@@ -59,8 +59,8 @@ const INITIAL_CONTROLADORES = [
         "email": ""
     },
     {
-        "id": "bento_gomes",
-        "name": "Bento Gomes",
+        "id": "erica",
+        "name": "Érica",
         "email": ""
     },
     {
@@ -92,7 +92,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "11263",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.004882/2026-01",
         "programasIds": [
             "BASIC",
@@ -116,7 +116,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "11264",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.005024/2026-75",
         "programasIds": [
             "BASIC",
@@ -140,7 +140,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "11265",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.005089/2026-11",
         "programasIds": [
             "BASIC",
@@ -167,7 +167,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "11266",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.004792/2026-10",
         "programasIds": [
             "BASIC",
@@ -192,7 +192,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "11267",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.004922/2026-14",
         "programasIds": [
             "BASIC",
@@ -218,7 +218,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "11268",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.004803/2026-53",
         "programasIds": [
             "BASIC",
@@ -242,7 +242,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "11269",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.004915/2026-12",
         "programasIds": [
             "BASIC",
@@ -267,7 +267,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "11270",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.005057/2026-15",
         "programasIds": [
             "BASIC",
@@ -291,7 +291,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "11271",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.004954/2026-10",
         "programasIds": [
             "BASIC",
@@ -317,7 +317,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "11272",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.004888/2026-70",
         "programasIds": [
             "BASIC",
@@ -344,7 +344,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "11273",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.004926/2026-94",
         "programasIds": [
             "BASIC",
@@ -369,7 +369,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "11275",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.004887/2026-25",
         "programasIds": [
             "BASIC",
@@ -395,7 +395,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "11277",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.004924/2026-03",
         "programasIds": [
             "BASIC",
@@ -421,7 +421,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "11278",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.005020/2026-97",
         "programasIds": [
             "BASIC",
@@ -446,7 +446,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "11280",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.005047/2026-80",
         "programasIds": [
             "BASIC",
@@ -471,7 +471,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "11282",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.004831/2026-71",
         "programasIds": [
             "BASIC",
@@ -498,7 +498,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "11283",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.004975/2026-27",
         "programasIds": [
             "BASIC",
@@ -523,7 +523,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "11284",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.004788/2026-43",
         "programasIds": [
             "BASIC",
@@ -548,7 +548,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "11285",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.004875/2026-09",
         "programasIds": [
             "BASIC",
@@ -575,7 +575,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "11287",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.005035/2026-55",
         "programasIds": [
             "BASIC",
@@ -599,7 +599,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "11288",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.005079/2026-85",
         "programasIds": [
             "BASIC",
@@ -623,7 +623,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "11567",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.004957/2026-45",
         "programasIds": [
             "BASIC",
@@ -649,7 +649,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "11564",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.004974/2026-82",
         "programasIds": [
             "BASIC",
@@ -674,7 +674,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "11289",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.005032/2026-11",
         "programasIds": [
             "BASIC",
@@ -699,7 +699,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "18620",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.005053/2026-37",
         "programasIds": [
             "BASIC",
@@ -723,7 +723,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "18680",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.005003/2026-50",
         "programasIds": [
             "BASIC",
@@ -747,7 +747,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "18666",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.004783/2026-11",
         "programasIds": [
             "BASIC",
@@ -771,7 +771,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "11274",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.005138/2026-15",
         "programasIds": [
             "BASIC",
@@ -796,7 +796,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "43114",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.005036/2026-08",
         "programasIds": [
             "BASIC",
@@ -820,7 +820,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "43916",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.004983/2026-73",
         "programasIds": [
             "BASIC",
@@ -844,7 +844,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "43915",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.004818/2026-11",
         "programasIds": [
             "BASIC",
@@ -868,7 +868,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "44459",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.004858/2026-63",
         "programasIds": [
             "BASIC",
@@ -892,7 +892,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "44458",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.004834/2026-12",
         "programasIds": [
             "BASIC",
@@ -916,7 +916,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "11276",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.005055/2026-26",
         "programasIds": [
             "BASIC",
@@ -940,7 +940,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "45420",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.004851/2026-41",
         "programasIds": [
             "BASIC",
@@ -964,7 +964,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "45571",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.004932/2026-41",
         "programasIds": [
             "BASIC",
@@ -988,7 +988,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "11286",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.004878/2026-34",
         "programasIds": [
             "BASIC",
@@ -1012,7 +1012,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "11279",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.004861/2026-87",
         "programasIds": [
             "BASIC",
@@ -1036,7 +1036,7 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "10ª R.A.",
         "sici": "11281",
-        "controladorId": "bento_gomes",
+        "controladorId": "erica",
         "processoInventario": "000704.005018/2026-18",
         "programasIds": [
             "BASIC",
@@ -4138,7 +4138,7 @@ const INITIAL_EQUIPE_INVENTARIO = [
     }
 ];
 
-const INITIAL_DATA_VERSION = '2026-07-08-real-cre4-v1';
+const INITIAL_DATA_VERSION = '2026-07-08-real-cre4-v2';
 
 // Calendário Global configurado pela SME
 const INITIAL_CONFIG = {
@@ -5982,12 +5982,20 @@ function filterSMEDetailTable(query) {
 // 7.4 Dashboard da Equipe de Inventário
 function renderDashboardInventario(container) {
     const listBens = bens;
-    const aguardando = listBens.filter(b => b.status === 'Encaminhada').length;
-    const naoEncamp = listBens.filter(b => b.status === 'Não encaminhada').length;
-    const concluido = listBens.filter(b => b.status === 'Inventariada').length;
+    const hasBensData = listBens.length > 0;
+    const aguardandoBens = listBens.filter(b => b.status === 'Encaminhada').length;
+    const naoEncampBens = listBens.filter(b => b.status === 'Não encaminhada').length;
+    const concluidoBens = listBens.filter(b => b.status === 'Inventariada').length;
     const escolasComProcesso = escolas.filter(e => e.processoInventario);
     const escolasSemProcesso = escolas.filter(e => !e.processoInventario);
     const escolasInventario = [...escolas].sort((a, b) => a.designação.localeCompare(b.designação));
+    const statUnitSingular = hasBensData ? 'Bem' : 'Escola';
+    const statUnitPlural = hasBensData ? 'Bens' : 'Escolas';
+    const formatStat = count => `${count} ${count === 1 ? statUnitSingular : statUnitPlural}`;
+    const formatSchoolStat = count => `${count} ${count === 1 ? 'Escola' : 'Escolas'}`;
+    const naoEncamp = hasBensData ? naoEncampBens : escolasSemProcesso.length;
+    const aguardando = hasBensData ? aguardandoBens : escolasComProcesso.length;
+    const concluido = hasBensData ? concluidoBens : 0;
 
     let filteredBens = [...listBens];
     if (activeInventarioSubFilter === 'naoEncamp') {
@@ -6000,12 +6008,131 @@ function renderDashboardInventario(container) {
 
     const orderMap = { 'Não encaminhada': 1, 'Encaminhada': 2, 'Inventariada': 3 };
     const sortedBens = filteredBens.sort((a, b) => orderMap[a.status] - orderMap[b.status]);
+    let filteredEscolasInventario = [...escolasInventario];
+    if (activeInventarioSubFilter === 'naoEncamp') {
+        filteredEscolasInventario = escolasSemProcesso;
+    } else if (activeInventarioSubFilter === 'aguardando') {
+        filteredEscolasInventario = escolasComProcesso;
+    } else if (activeInventarioSubFilter === 'concluido') {
+        filteredEscolasInventario = [];
+    }
+
+    const filterLabel = activeInventarioSubFilter === 'naoEncamp'
+        ? 'Sem Encarte / Pendente Verbas Federais'
+        : activeInventarioSubFilter === 'aguardando'
+            ? 'Aguardando Inventariação'
+            : activeInventarioSubFilter === 'concluido'
+                ? 'Já Inventariados'
+                : '';
+    const filaTitle = hasBensData ? 'Fila de Inventariação Patrimonial' : 'Acompanhamento de Processos de Inventário';
+    const bensTable = `
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Unidade Escolar</th>
+                    <th>Item Patrimonial</th>
+                    <th>Período Referente</th>
+                    <th>Valor</th>
+                    <th>Nota Fiscal</th>
+                    <th>Processo de Inventário</th>
+                    <th>Status no Inventário</th>
+                    <th>Ação</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${sortedBens.length === 0 ? `
+                    <tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:32px;">Nenhum bem permanente encontrado nesta categoria.</td></tr>
+                ` : sortedBens.map(b => {
+                    const esc = escolas.find(e => e.id === b.escolaId);
+                    const ctrl = esc ? controladores.find(c => c.id === esc.controladorId) : null;
+                    const compLabel = COMPETENCIAS.find(c => c.key === b.competencia)?.label || b.competencia;
+                    let actionBtn = '';
+                    let statusBadge = '';
+
+                    if (b.status === 'Não encaminhada') {
+                        statusBadge = `<span class="badge badge-danger">Pendente Verbas Federais (Falta Documentos)</span>`;
+                    } else if (b.status === 'Encaminhada') {
+                        statusBadge = `<span class="badge badge-warning">Aguardando Inventariação</span>`;
+                        actionBtn = `<button class="btn btn-primary btn-sm" onclick="inventariarBem('${b.id}')">Marcar como Inventariado</button>`;
+                    } else {
+                        let details = '';
+                        if (b.inventariadoPor) {
+                            details += `<br><small style="color:var(--text-muted); font-size: 0.75rem;">Por: <strong>${b.inventariadoPor}</strong>${b.inventariadoEm ? ' em ' + b.inventariadoEm : ''}</small>`;
+                        }
+                        if (b.observacoes) {
+                            details += `<br><small style="color:var(--text-muted); font-size: 0.75rem; font-style: italic;">Obs: ${b.observacoes}</small>`;
+                        }
+                        statusBadge = `<span class="badge badge-success">Inventariado</span>${details}`;
+                    }
+
+                    return `
+                        <tr>
+                            <td>
+                                <strong>${esc ? esc.denominação : 'N/A'}</strong><br>
+                                <small style="color:var(--text-muted)">
+                                    Designação: ${esc ? esc.designação : 'N/A'} • Controlador: ${ctrl ? ctrl.name : 'Não designado'}
+                                </small>
+                            </td>
+                            <td>${b.item}</td>
+                            <td><span style="font-weight:600; color:var(--primary);">${compLabel}</span></td>
+                            <td>R$ ${b.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                            <td>${b.notaFiscal || `<span style="color:var(--danger)">Ausente</span>`}</td>
+                            <td>${esc && esc.processoInventario ? esc.processoInventario : `<span style="color:var(--danger)">Não cadastrado</span>`}</td>
+                            <td>${statusBadge}</td>
+                            <td>${actionBtn}</td>
+                        </tr>
+                    `;
+                }).join('')}
+            </tbody>
+        </table>
+    `;
+    const processosTable = `
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Unidade Escolar</th>
+                    <th>Designação</th>
+                    <th>SICI</th>
+                    <th>Controlador</th>
+                    <th>Processo de Inventário</th>
+                    <th>Status no Inventário</th>
+                    <th>Programas</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${filteredEscolasInventario.length === 0 ? `
+                    <tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:32px;">Nenhuma escola encontrada nesta categoria.</td></tr>
+                ` : filteredEscolasInventario.map(esc => {
+                    const ctrl = controladores.find(c => c.id === esc.controladorId);
+                    const progNames = (esc.programasIds || []).map(pid => {
+                        const prog = programas.find(p => p.id === pid);
+                        return prog ? prog.name : pid;
+                    }).join(', ');
+                    const statusBadge = esc.processoInventario
+                        ? `<span class="badge badge-warning">Aguardando Inventariação</span>`
+                        : `<span class="badge badge-danger">Pendente Verbas Federais / Sem Processo</span>`;
+
+                    return `
+                        <tr>
+                            <td><strong>${esc.denominação}</strong></td>
+                            <td>${esc.designação}</td>
+                            <td>${esc.sici || '<span style="color:var(--text-muted)">Não informado</span>'}</td>
+                            <td>${ctrl ? ctrl.name : '<span style="color:var(--text-muted)">Não designado</span>'}</td>
+                            <td>${esc.processoInventario || '<span style="color:var(--danger)">Não cadastrado</span>'}</td>
+                            <td>${statusBadge}</td>
+                            <td>${progNames}</td>
+                        </tr>
+                    `;
+                }).join('')}
+            </tbody>
+        </table>
+    `;
 
     container.innerHTML = `
         <div class="page-header">
             <div class="page-title">
                 <h1>Painel da Equipe de Inventário</h1>
-                <p>Inventariação de bens patrimoniais permanentes adquiridos pelas escolas.</p>
+                <p>${hasBensData ? 'Inventariação de bens patrimoniais permanentes adquiridos pelas escolas.' : 'Acompanhamento dos processos anuais de inventário das unidades escolares.'}</p>
             </div>
         </div>
 
@@ -6015,95 +6142,37 @@ function renderDashboardInventario(container) {
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
                 </div>
                 <div class="stat-label">Sem Encarte / Pendente Verbas Federais</div>
-                <div class="stat-value">${naoEncamp} Bens</div>
+                <div class="stat-value">${formatStat(naoEncamp)}</div>
             </div>
             <div class="card-stat ${activeInventarioSubFilter === 'aguardando' ? 'active-aguardando' : ''}" style="cursor: pointer;" onclick="changeInventarioSubFilter('aguardando')">
                 <div class="stat-icon" style="background-color: var(--warning-bg); color: var(--warning);">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
                 </div>
                 <div class="stat-label">Aguardando Inventariação</div>
-                <div class="stat-value">${aguardando} Bens</div>
+                <div class="stat-value">${formatStat(aguardando)}</div>
             </div>
             <div class="card-stat ${activeInventarioSubFilter === 'concluido' ? 'active-concluido' : ''}" style="cursor: pointer;" onclick="changeInventarioSubFilter('concluido')">
                 <div class="stat-icon" style="background-color: var(--success-bg); color: var(--success);">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                 </div>
                 <div class="stat-label">Já Inventariados</div>
-                <div class="stat-value">${concluido} Bens</div>
+                <div class="stat-value">${formatStat(concluido)}</div>
             </div>
             <div class="card-stat ${activeInventarioSubFilter === 'all' ? 'active-all' : ''}" style="cursor: pointer;" onclick="changeInventarioSubFilter('all')">
                 <div class="stat-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
                 </div>
                 <div class="stat-label">Processos de Inventário</div>
-                <div class="stat-value">${escolasComProcesso.length} Escolas</div>
+                <div class="stat-value">${formatSchoolStat(escolasComProcesso.length)}</div>
             </div>
         </div>
 
         <div class="panel-card">
             <div class="panel-header">
-                <h2>Fila de Inventariação Patrimonial ${activeInventarioSubFilter !== 'all' ? `(${activeInventarioSubFilter === 'naoEncamp' ? 'Sem Encarte' : activeInventarioSubFilter === 'aguardando' ? 'Aguardando Inventariação' : 'Já Inventariados'})` : ''}</h2>
+                <h2>${filaTitle} ${filterLabel ? `(${filterLabel})` : ''}</h2>
             </div>
             <div class="table-responsive">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Unidade Escolar</th>
-                            <th>Item Patrimonial</th>
-                            <th>Período Referente</th>
-                            <th>Valor</th>
-                            <th>Nota Fiscal</th>
-                            <th>Processo de Inventário</th>
-                            <th>Status no Inventário</th>
-                            <th>Ação</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${sortedBens.length === 0 ? `
-                            <tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:32px;">Nenhum bem permanente encontrado nesta categoria.</td></tr>
-                        ` : sortedBens.map(b => {
-                            const esc = escolas.find(e => e.id === b.escolaId);
-                            const ctrl = esc ? controladores.find(c => c.id === esc.controladorId) : null;
-                            const compLabel = COMPETENCIAS.find(c => c.key === b.competencia)?.label || b.competencia;
-                            let actionBtn = '';
-                            let statusBadge = '';
-                            
-                            if (b.status === 'Não encaminhada') {
-                                statusBadge = `<span class="badge badge-danger">Pendente Verbas Federais (Falta Documentos)</span>`;
-                            } else if (b.status === 'Encaminhada') {
-                                statusBadge = `<span class="badge badge-warning">Aguardando Inventariação</span>`;
-                                actionBtn = `<button class="btn btn-primary btn-sm" onclick="inventariarBem('${b.id}')">Marcar como Inventariado</button>`;
-                            } else {
-                                let details = '';
-                                if (b.inventariadoPor) {
-                                    details += `<br><small style="color:var(--text-muted); font-size: 0.75rem;">Por: <strong>${b.inventariadoPor}</strong>${b.inventariadoEm ? ' em ' + b.inventariadoEm : ''}</small>`;
-                                }
-                                if (b.observacoes) {
-                                    details += `<br><small style="color:var(--text-muted); font-size: 0.75rem; font-style: italic;">Obs: ${b.observacoes}</small>`;
-                                }
-                                statusBadge = `<span class="badge badge-success">Inventariado</span>${details}`;
-                            }
-                            
-                            return `
-                                <tr>
-                                    <td>
-                                        <strong>${esc ? esc.denominação : 'N/A'}</strong><br>
-                                        <small style="color:var(--text-muted)">
-                                            Designação: ${esc ? esc.designação : 'N/A'} • Controlador: ${ctrl ? ctrl.name : 'Não designado'}
-                                        </small>
-                                    </td>
-                                    <td>${b.item}</td>
-                                    <td><span style="font-weight:600; color:var(--primary);">${compLabel}</span></td>
-                                    <td>R$ ${b.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                                    <td>${b.notaFiscal || `<span style="color:var(--danger)">Ausente</span>`}</td>
-                                    <td>${esc && esc.processoInventario ? esc.processoInventario : `<span style="color:var(--danger)">Não cadastrado</span>`}</td>
-                                    <td>${statusBadge}</td>
-                                    <td>${actionBtn}</td>
-                                </tr>
-                            `;
-                        }).join('')}
-                    </tbody>
-                </table>
+                ${hasBensData ? bensTable : processosTable}
             </div>
         </div>
 
