@@ -1,2801 +1,4099 @@
 // RADAR PDDE - Lógica Operacional e Gerenciamento de Estado (MVP)
 
 // ==========================================
-// 1. DADOS INICIAIS E MOCK DATA
+// 1. DADOS INICIAIS DA PLANILHA 4ª CRE
 // ==========================================
 
 const INITIAL_PROGRAMS = [
-    { id: 'BASIC', name: 'PDDE Básico', desc: 'Recursos gerais de custeio e capital.' },
-    { id: 'CONECTADA', name: 'Educação Conectada', desc: 'Inovação e conectividade escolar.' },
-    { id: 'PROEC', name: 'PROEC', desc: 'Programa de apoio às escolas de ensino integral.' },
-    { id: 'ED_FAMILIA', name: 'Educação e Família', desc: 'Fomento à participação das famílias.' },
-    { id: 'ADOLESCENCIAS', name: 'Escola das Adolescências', desc: 'Apoio aos anos finais do ensino fundamental.' },
-    { id: 'LEITURA', name: 'Cantinho da Leitura', desc: 'Leitura e alfabetização.' },
-    { id: 'TEMPO_APRENDER', name: 'Tempo de Aprender', desc: 'Apoio pedagógico para alfabetização.' },
-    { id: 'RECURSOS', name: 'Sala de Recursos', desc: 'Atendimento educacional especializado.' }
+    {
+        "id": "BASIC",
+        "name": "PDDE Básico",
+        "desc": "Recursos gerais de custeio e capital."
+    },
+    {
+        "id": "CONECTADA",
+        "name": "Educação Conectada",
+        "desc": "Inovação e conectividade escolar."
+    },
+    {
+        "id": "PROEC",
+        "name": "PROEC",
+        "desc": "Programa de apoio às escolas de ensino integral."
+    },
+    {
+        "id": "ED_FAMILIA",
+        "name": "Educação e Família",
+        "desc": "Fomento à participação das famílias."
+    },
+    {
+        "id": "ADOLESCENCIAS",
+        "name": "Escola das Adolescências",
+        "desc": "Apoio aos anos finais do ensino fundamental."
+    },
+    {
+        "id": "LEITURA",
+        "name": "Cantinho da Leitura",
+        "desc": "Leitura e alfabetização."
+    },
+    {
+        "id": "TEMPO_APRENDER",
+        "name": "Tempo de Aprender",
+        "desc": "Apoio pedagógico para alfabetização."
+    },
+    {
+        "id": "RECURSOS",
+        "name": "Sala de Recursos",
+        "desc": "Atendimento educacional especializado."
+    }
 ];
 
 const INITIAL_CONTROLADORES = [
-    { id: 'carlos', name: 'Carlos Souza', email: 'carlos.souza@cre.gov.br' },
-    { id: 'ana', name: 'Ana Costa', email: 'ana.costa@cre.gov.br' },
-    { id: 'mariana', name: 'Mariana Lima', email: 'mariana.lima@cre.gov.br' }
+    {
+        "id": "wilson_peixoto",
+        "name": "Wilson Peixoto",
+        "email": ""
+    },
+    {
+        "id": "alzira_de_souza",
+        "name": "Alzira de Souza",
+        "email": ""
+    },
+    {
+        "id": "bento_gomes",
+        "name": "Bento Gomes",
+        "email": ""
+    },
+    {
+        "id": "monica_chagas",
+        "name": "Mônica Chagas",
+        "email": ""
+    },
+    {
+        "id": "tuane_coutinho",
+        "name": "Tuane Coutinho",
+        "email": ""
+    }
 ];
 
 const INITIAL_ESCOLAS = [
     {
-        id: '1',
-        inep: '33095825',
-        cnpj: '12.369.459/0001-46',
-        denominação: "EDI MORRO DA FÉ",
-        designação: '04.11.804',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411804@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA', 'LEITURA'],
-        competenciaInicial: '2026-03'
+        "id": "04.10.001",
+        "denominação": "Escola Municipal Ema Negrão de Lima",
+        "designação": "04.10.001",
+        "telefone": "2562-3948 / 2241-1189",
+        "telefoneCelularInstitucional": "21992884147",
+        "email": "emema@rioeduca.net",
+        "diretor": "MARIA DE LURDES PEREIRA DOS SANTOS",
+        "telefoneDiretor": "96417-6296",
+        "diretorAdjunto": "KATIA VELLOZO FERREIRA CAVALCANTE",
+        "telefoneDiretorAdjunto": "99957-2698",
+        "inep": "33069247",
+        "cnpj": "04.500.463/0001-73",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "11263",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.004882/2026-01",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.002",
+        "denominação": "Escola Municipal Albino Souza Cruz",
+        "designação": "04.10.002",
+        "telefone": "2218-8038 /2228-5392",
+        "telefoneCelularInstitucional": "21992864637",
+        "email": "emscruz@rioeduca.net",
+        "diretor": "ANDRÉA DOS SANTOS SIMÕES",
+        "telefoneDiretor": "99543-1893",
+        "diretorAdjunto": "RENATA DIAS GARROT",
+        "telefoneDiretorAdjunto": "96829-4465",
+        "inep": "33069093",
+        "cnpj": "04.552.825/0001-70",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "11264",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.005024/2026-75",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.003",
+        "denominação": "Escola Municipal Ruy Barbosa",
+        "designação": "04.10.003",
+        "telefone": "2562-3949 e 2562-3950",
+        "telefoneCelularInstitucional": "21992863594",
+        "email": "emruyb@rioeduca.net",
+        "diretor": "IVONE LUISA FRANCISCO FERREIRA",
+        "telefoneDiretor": "99803-9352",
+        "diretorAdjunto": "VIVIANE MOREIRA THOMAZ RODRIGUES",
+        "telefoneDiretorAdjunto": "97016-6769",
+        "inep": "33069433",
+        "cnpj": "01.856.391/0001-03",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "11265",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.005089/2026-11",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ED_FAMILIA",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.004",
+        "denominação": "Escola Municipal Pedro Lessa",
+        "designação": "04.10.004",
+        "telefone": "2562-3951",
+        "telefoneCelularInstitucional": "21992861095",
+        "email": "empedro@rioeduca.net",
+        "diretor": "ANDRÉA PAULA PAIVA NASCIMENTO",
+        "telefoneDiretor": "99892-1335",
+        "diretorAdjunto": "PAULO VANDER FERREIRA SANTANA",
+        "telefoneDiretorAdjunto": "99965-1674",
+        "inep": "33069379",
+        "cnpj": "04.974.720/0001-09",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "11266",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.004792/2026-10",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.005",
+        "denominação": "Escola Municipal João Barbalho",
+        "designação": "04.10.005",
+        "telefone": "2562-3955",
+        "telefoneCelularInstitucional": "21992858053",
+        "email": "embarbalho@rioeduca.net",
+        "diretor": "ELDO MARCELINO FAGUNDES",
+        "telefoneDiretor": "97018-7155",
+        "diretorAdjunto": "CLAUDIO HENRIQUE SALES DE SOUZA",
+        "telefoneDiretorAdjunto": "98217-4183",
+        "inep": "33069271",
+        "cnpj": "01.226.403/0001-16",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "11267",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.004922/2026-14",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.006",
+        "denominação": "Escola Municipal Professor Carneiro Ribeiro",
+        "designação": "04.10.006",
+        "telefone": "2562-3957  /  2562-3958",
+        "telefoneCelularInstitucional": "21992840623",
+        "email": "emcarneiror@rioeduca.net",
+        "diretor": "ELAINE TAVARES VIEIRA SOARES",
+        "telefoneDiretor": "99493-1173",
+        "diretorAdjunto": "SIMONE DUARTE MAIA DE LIMA DOS ANJOS",
+        "telefoneDiretorAdjunto": "98034-6861",
+        "inep": "33069409",
+        "cnpj": "05.406.794/0001-01",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "11268",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.004803/2026-53",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.007",
+        "denominação": "Escola Municipal Padre Manuel da Nóbrega",
+        "designação": "04.10.007",
+        "telefone": "2562-3933 / 2562-3935",
+        "telefoneCelularInstitucional": "21992831921",
+        "email": "emnobrega@rioeduca.net",
+        "diretor": "CLAUDIA DA COSTA MUDESTO FERNANDES",
+        "telefoneDiretor": "99811-4108",
+        "diretorAdjunto": "ELENICE MARIA VIEIRA DE ARAUJO",
+        "telefoneDiretorAdjunto": "99473-1590 / 99398-8045",
+        "inep": "33069360",
+        "cnpj": "01.451.980/0001-01",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "11269",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.004915/2026-12",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.008",
+        "denominação": "Escola Municipal Walt Disney",
+        "designação": "04.10.008",
+        "telefone": "2562-3939",
+        "telefoneCelularInstitucional": "21992831321",
+        "email": "emdisney@rioeduca.net",
+        "diretor": "VALÉRIA MARIA CARLOS SEMIDEI",
+        "telefoneDiretor": "98881-0623",
+        "diretorAdjunto": "SIMONE CRISTINA BORBA DE OLIVEIRA",
+        "telefoneDiretorAdjunto": "99194-3691",
+        "inep": "33069468",
+        "cnpj": "01.197.182/0001-03",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "11270",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.005057/2026-15",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.009",
+        "denominação": "Escola Municipal Dilermando Cruz",
+        "designação": "04.10.009",
+        "telefone": "2562-3943",
+        "telefoneCelularInstitucional": "21992830125",
+        "email": "emdcruz@rioeduca.net",
+        "diretor": "THIAGO MENDONÇA DOS SANTOS",
+        "telefoneDiretor": "99444-0502",
+        "diretorAdjunto": "MICHELY LOPES CAMPBELL DA SILVA",
+        "telefoneDiretorAdjunto": "99819-8817",
+        "inep": "33069220",
+        "cnpj": "01.859.799/0001-39",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "11271",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.004954/2026-10",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.010",
+        "denominação": "Escola Municipal Nerval de Gouveia",
+        "designação": "04.10.010",
+        "telefone": "3885-2057",
+        "telefoneCelularInstitucional": "21992821871",
+        "email": "emnerval@rioeduca.net",
+        "diretor": "EDSON DIAS ALECYR",
+        "telefoneDiretor": "96405-9724",
+        "diretorAdjunto": "JAMILLY GOMES MONTEIRO",
+        "telefoneDiretorAdjunto": "97626-3003",
+        "inep": "33069328",
+        "cnpj": "05.485.540/0001-26",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "11272",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.004888/2026-70",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ADOLESCENCIAS",
+            "RECURSOS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.011",
+        "denominação": "Escola Municipal Edmundo Lins",
+        "designação": "04.10.011",
+        "telefone": "3885-2342",
+        "telefoneCelularInstitucional": "21992821614",
+        "email": "emlins@rioeduca.net",
+        "diretor": "ERIC MORITZ DE CAMPOS",
+        "telefoneDiretor": "98128-0303",
+        "diretorAdjunto": "JULIANA LOTUFO SOARES",
+        "telefoneDiretorAdjunto": "99966-9615",
+        "inep": "33069239",
+        "cnpj": "01.320.115/0001-26",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "11273",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.004926/2026-94",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.013",
+        "denominação": "Escola Municipal Carlos Chagas",
+        "designação": "04.10.013",
+        "telefone": "3885-2344 /3885-2346",
+        "telefoneCelularInstitucional": "21992789254",
+        "email": "emchagas@rioeduca.net",
+        "diretor": "MARALILA SAMPAIO DOS SANTOS",
+        "telefoneDiretor": "96466-0658",
+        "diretorAdjunto": "ROBERTA AMARO RIBEIRO",
+        "telefoneDiretorAdjunto": "99201-7183",
+        "inep": "33069166",
+        "cnpj": "03.108.351/0001-09",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "11275",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.004887/2026-25",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "ADOLESCENCIAS",
+            "RECURSOS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.015",
+        "denominação": "Escola Municipal Clóvis Beviláqua",
+        "designação": "04.10.015",
+        "telefone": "2573-5709 / 2573-3552",
+        "telefoneCelularInstitucional": "21992785398",
+        "email": "emclovis@rioeduca.net",
+        "diretor": "LUCIANA DA COSTA MARQUES",
+        "telefoneDiretor": "99466-4207",
+        "diretorAdjunto": "ALESSANDRA DAMASCENO OLIVEIRA",
+        "telefoneDiretorAdjunto": "99166-0676",
+        "inep": "33069190",
+        "cnpj": "02.034.159/0001-52",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "11277",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.004924/2026-03",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.016",
+        "denominação": "Escola Municipal Chile",
+        "designação": "04.10.016",
+        "telefone": "3885-2181",
+        "telefoneCelularInstitucional": "21992772778",
+        "email": "emchile@rioeduca.net",
+        "diretor": "ROSELI SOBREIRA BORREGO",
+        "telefoneDiretor": "98798-1223",
+        "diretorAdjunto": "LIDIANE GARCIA DE MATTOS",
+        "telefoneDiretorAdjunto": "96686-5896",
+        "inep": "33069174",
+        "cnpj": "05.624.227/0001-21",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "11278",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.005020/2026-97",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.018",
+        "denominação": "Escola Municipal Berlim",
+        "designação": "04.10.018",
+        "telefone": "3868-9821",
+        "telefoneCelularInstitucional": "21992759694",
+        "email": "emberlim@rioeduca.net",
+        "diretor": "MARIA IGNEZ CECCOPIERI BAPTISTA",
+        "telefoneDiretor": "99438-8488",
+        "diretorAdjunto": "ADRIANA OLIVEIRA SANTIAGO",
+        "telefoneDiretorAdjunto": "96405-3370",
+        "inep": "33069140",
+        "cnpj": "01.194.306/0001-99",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "11280",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.005047/2026-80",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.020",
+        "denominação": "Escola Municipal Joracy Camargo",
+        "designação": "04.10.020",
+        "telefone": "3886-1825",
+        "telefoneCelularInstitucional": "21992758389",
+        "email": "emjoracy@rioeduca.net",
+        "diretor": "TELMA DA SILVA TEIXEIRA MENDES",
+        "telefoneDiretor": "98636-3663",
+        "diretorAdjunto": "PRISCILA DA SILVA DORNELAS",
+        "telefoneDiretorAdjunto": "99525-3634",
+        "inep": "33069280",
+        "cnpj": "01.197.673/0001-46",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "11282",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.004831/2026-71",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ED_FAMILIA",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.021",
+        "denominação": "Escola Municipal Brasil",
+        "designação": "04.10.021",
+        "telefone": "3885-3830",
+        "telefoneCelularInstitucional": "21992748050",
+        "email": "embrasil@rioeduca.net",
+        "diretor": "MÁRCIA RODRIGUES DA SILVEIRA SANTOS",
+        "telefoneDiretor": "98238-9465",
+        "diretorAdjunto": "ANA CRISTINA CALHEIROS DE SOUZA CABRAL",
+        "telefoneDiretorAdjunto": "99973-2189",
+        "inep": "33069158",
+        "cnpj": "01.158.075/0001-68",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "11283",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.004975/2026-27",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.022",
+        "denominação": "Escola Municipal Odilon de Andrade",
+        "designação": "04.10.022",
+        "telefone": "3209-5514",
+        "telefoneCelularInstitucional": "21992744782",
+        "email": "emodilon@rioeduca.net",
+        "diretor": "LEANDRO OLIVEIRA DE ALMEIDA",
+        "telefoneDiretor": "96417-7470",
+        "diretorAdjunto": "LUDWIG FERREIRA ARAUJO",
+        "telefoneDiretorAdjunto": "98083-2073",
+        "inep": "33069336",
+        "cnpj": "01.235.532/0001-70",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "11284",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.004788/2026-43",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.023",
+        "denominação": "Escola Municipal Luiz Cesar Sayão Garcez",
+        "designação": "04.10.023",
+        "telefone": "3885-3370 / 3885-3874",
+        "telefoneCelularInstitucional": "21992593599",
+        "email": "emgarcez@rioeduca.net",
+        "diretor": "CRISTIANE DUTRA LANOR DA SILVA",
+        "telefoneDiretor": "96467-7889",
+        "diretorAdjunto": "LUCIANA SANTOS NUNES",
+        "telefoneDiretorAdjunto": "99259-3599",
+        "inep": "33069301",
+        "cnpj": "04.847.415/0001-56",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "11285",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.004875/2026-09",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ED_FAMILIA",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.025",
+        "denominação": "Escola Municipal Anibal Freire",
+        "designação": "04.10.025",
+        "telefone": "3885-3578 / 3885-4561",
+        "telefoneCelularInstitucional": "21992410014",
+        "email": "emanibal@rioeduca.net",
+        "diretor": "BERNILDA LEOBONS SILVA",
+        "telefoneDiretor": "98508-2558",
+        "diretorAdjunto": "JOSIMAR MENDES DA SILVA",
+        "telefoneDiretorAdjunto": "99206-6095",
+        "inep": "33069115",
+        "cnpj": "01.376.044/0001-83",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "11287",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.005035/2026-55",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.026",
+        "denominação": "Escola Municipal Professora Maria de Cerqueira e Silva",
+        "designação": "04.10.026",
+        "telefone": "99240-7498",
+        "telefoneCelularInstitucional": "21992407498",
+        "email": "emmariac@rioeduca.net",
+        "diretor": "VANESSA RODRIGUES MORAES DO NASCIMENTO",
+        "telefoneDiretor": "99490-7717",
+        "diretorAdjunto": "LILIANE SADER DE SOUZA MELLO",
+        "telefoneDiretorAdjunto": "99791-8731",
+        "inep": "33069395",
+        "cnpj": "02.820.657/0001-20",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "11288",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.005079/2026-85",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.202",
+        "denominação": "Ciep Yuri Gagarin",
+        "designação": "04.10.202",
+        "telefone": "3868-0532 / 3977-8196",
+        "telefoneCelularInstitucional": "21992399733",
+        "email": "ciepyuri@rioeduca.net",
+        "diretor": "VALÉRIA CARNEIRO FERNANDES",
+        "telefoneDiretor": "96428-6687",
+        "diretorAdjunto": "MARGARETH OLIVEIRA DE ALMEIDA",
+        "telefoneDiretorAdjunto": "98869-9208",
+        "inep": "33068755",
+        "cnpj": "05.374.513/0001-86",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "11567",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.004957/2026-45",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "LEITURA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.501",
+        "denominação": "Ciep Juscelino Kubitschek",
+        "designação": "04.10.501",
+        "telefone": "3885-5579 / 3885-5580",
+        "telefoneCelularInstitucional": "21992390194",
+        "email": "ciepjk@rioeduca.net",
+        "diretor": "GUSTAVO ALBERTO OTSUKA OLIVEIRA DE MENEZES",
+        "telefoneDiretor": "99964-8334",
+        "diretorAdjunto": "TERESA CRISTINA AGUIAR MARQUES",
+        "telefoneDiretorAdjunto": "99624-6550",
+        "inep": "33068798",
+        "cnpj": "02.894.802/0001-18",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "11564",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.004974/2026-82",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.502",
+        "denominação": "Ciep Maestro Francisco Mignone",
+        "designação": "04.10.502",
+        "telefone": "3209-5536 / 99238-9499",
+        "telefoneCelularInstitucional": "21992389499",
+        "email": "ciepmignone@rioeduca.net",
+        "diretor": "ADRIANA CASTRO SILVA KOENIGKAM",
+        "telefoneDiretor": "98420-1205",
+        "diretorAdjunto": "SHEILA BENÍCIO ROCHA DE SOUZA",
+        "telefoneDiretorAdjunto": "96752-6989",
+        "inep": "33068763",
+        "cnpj": "02.784.061/0001-12",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "11289",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.005032/2026-11",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.601",
+        "denominação": "Creche Municipal Manguinhos",
+        "designação": "04.10.601",
+        "telefone": "3886-0293",
+        "telefoneCelularInstitucional": "21992387367",
+        "email": "cmmanguinhos@rioeduca.net",
+        "diretor": "LUCIANA CERQUEIRA DOS SANTOS",
+        "telefoneDiretor": "99667-1548",
+        "diretorAdjunto": "LUCIANE PORTES DE LACERDA PAULA",
+        "telefoneDiretorAdjunto": "99224-7246",
+        "inep": "33136947",
+        "cnpj": "12.558.497/0001-47",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "18620",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.005053/2026-37",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.602",
+        "denominação": "Creche Municipal Dr. Juvenil de Souza Lopes",
+        "designação": "04.10.602",
+        "telefone": "3977-5748 / 99238-3984",
+        "telefoneCelularInstitucional": "21992383984",
+        "email": "cmdlopes@rioeduca.net",
+        "diretor": "SANDRA OLIVIA REIS DE SOUZA",
+        "telefoneDiretor": "99491-9934",
+        "diretorAdjunto": "ROSANI MACHADO NUNES",
+        "telefoneDiretorAdjunto": "96430-3176",
+        "inep": "33096511",
+        "cnpj": "12.672.659/0001-73",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "18680",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.005003/2026-50",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.603",
+        "denominação": "Creche Municipal Chico Bento",
+        "designação": "04.10.603",
+        "telefone": "3886-8952 / 99238-0993",
+        "telefoneCelularInstitucional": "21992380993",
+        "email": "cmcbento@rioeduca.net",
+        "diretor": "BIANCA MEDRADO MONTEIRO DO NASCIMENTO",
+        "telefoneDiretor": "96840-0378",
+        "diretorAdjunto": "IRANI OLIVEIRA DA SILVA",
+        "telefoneDiretorAdjunto": "99644-0195",
+        "inep": "33096538",
+        "cnpj": "12.128.507/0001-04",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "18666",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.004783/2026-11",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.701",
+        "denominação": "Centro de Educação de Jovens e Adultos CEJA - Avenida Brasil",
+        "designação": "04.10.701",
+        "telefone": "2573-6566 / 3867-3179 / 99280-6278",
+        "telefoneCelularInstitucional": "21992806278",
+        "email": "cejabrasil@rioeduca.net",
+        "diretor": "ROSANGELA OLIVEIRA DA SILVA",
+        "telefoneDiretor": "97601-1348",
+        "diretorAdjunto": "",
+        "telefoneDiretorAdjunto": "",
+        "inep": "33069182",
+        "cnpj": "02.808.542/0001-10",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "11274",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.005138/2026-15",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.801",
+        "denominação": "EDI Doutor Domingos Arthur Machado Filho",
+        "designação": "04.10.801",
+        "telefone": "3878-0442",
+        "telefoneCelularInstitucional": "21992369101",
+        "email": "edimachadofilho@rioeduca.net",
+        "diretor": "ANA LÚCIA SALVADORA GRISOLIA",
+        "telefoneDiretor": "99922-8366",
+        "diretorAdjunto": "PARAGUASSU BAPTISTA",
+        "telefoneDiretorAdjunto": "97161-1561",
+        "inep": "33523258",
+        "cnpj": "18.959.919/0001-72",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "43114",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.005036/2026-08",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.802",
+        "denominação": "EDI Doutor Antônio Fernandes Figueira",
+        "designação": "04.10.802",
+        "telefone": "3887-4595",
+        "telefoneCelularInstitucional": "21992364524",
+        "email": "ediantoniofernandes@rioeduca.net",
+        "diretor": "MARCELO VILA NOVA DE LIMA",
+        "telefoneDiretor": "99417-5006",
+        "diretorAdjunto": "ELIZABETH ROMUALDO DOS SANTOS",
+        "telefoneDiretorAdjunto": "97940-0841",
+        "inep": "33160902",
+        "cnpj": "17.571.841/0001-51",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "43916",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.004983/2026-73",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.803",
+        "denominação": "EDI Joaquim Venâncio",
+        "designação": "04.10.803",
+        "telefone": "3887-4500",
+        "telefoneCelularInstitucional": "21992364099",
+        "email": "edijvenancio@rioeduca.net",
+        "diretor": "IAGO DE ARAUJO SILVA",
+        "telefoneDiretor": "97919-6730",
+        "diretorAdjunto": "SHEILA CRISTINA PEREIRA DOS SANTOS",
+        "telefoneDiretorAdjunto": "99019-6555",
+        "inep": "33160910",
+        "cnpj": "17.561.015/0001-21",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "43915",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.004818/2026-11",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.804",
+        "denominação": "EDI Sargento Jorge Faleiro Souza",
+        "designação": "04.10.804",
+        "telefone": "2573-6275",
+        "telefoneCelularInstitucional": "21992356685",
+        "email": "edifaleiro@rioeduca.net",
+        "diretor": "MARGARETH DE SOUZA TEODORO",
+        "telefoneDiretor": "97990-7152",
+        "diretorAdjunto": "KEITY CRISTINA COSTA DA SILVA",
+        "telefoneDiretorAdjunto": "97614-9617",
+        "inep": "33163979",
+        "cnpj": "17.318.714/0001-45",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "44459",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.004858/2026-63",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.805",
+        "denominação": "EDI Compositor Neoci Dias de Andrade",
+        "designação": "04.10.805",
+        "telefone": "3223-4996 / 2573-6858",
+        "telefoneCelularInstitucional": "21992354136",
+        "email": "edineoci@rioeduca.net",
+        "diretor": "SUELI DE LEMOS MORSCH",
+        "telefoneDiretor": "98364-0393",
+        "diretorAdjunto": "JULIETH DE SOUZA RIBEIRO DA SILVA",
+        "telefoneDiretorAdjunto": "98764-1995",
+        "inep": "33163987",
+        "cnpj": "17.553.027/0001-04",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "44458",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.004834/2026-12",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.806",
+        "denominação": "EDI Pierre Janet",
+        "designação": "04.10.806",
+        "telefone": "3885-2347",
+        "telefoneCelularInstitucional": "21992343298",
+        "email": "edijanet@rioeduca.net",
+        "diretor": "EDIJANES DA SILVA BITTENCOURT DE CARVALHO",
+        "telefoneDiretor": "99620-5991",
+        "diretorAdjunto": "ELISABETH FERREIRA PRONESTINO",
+        "telefoneDiretorAdjunto": "98725-4098",
+        "inep": "33069387",
+        "cnpj": "13.898.976/0001-75",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "11276",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.005055/2026-26",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.807",
+        "denominação": "EDI Professora Tania da Rocha Correa",
+        "designação": "04.10.807",
+        "telefone": "3886-0054",
+        "telefoneCelularInstitucional": "21992340324",
+        "email": "editaniacorrea@rioeduca.net",
+        "diretor": "PATRICIA DANIELE ALVARENGA DE MELO",
+        "telefoneDiretor": "96416-3940",
+        "diretorAdjunto": "GISELE SILVA MOREIRA GUIMARÃES RÉGULO",
+        "telefoneDiretorAdjunto": "99221-5252",
+        "inep": "33171092",
+        "cnpj": "20.549.732/0001-42",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "45420",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.004851/2026-41",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.808",
+        "denominação": "EDI Almir Leite Ribeiro",
+        "designação": "04.10.808",
+        "telefone": "3886-0943 / 99233-8855",
+        "telefoneCelularInstitucional": "21992338855",
+        "email": "ediaribeiro@rioeduca.net",
+        "diretor": "GABRIEL OLIVEIRA DE CARVALHO",
+        "telefoneDiretor": "97403-0853",
+        "diretorAdjunto": "VALDELICE DE OLIVEIRA CIPRIANO",
+        "telefoneDiretorAdjunto": "97563-0916",
+        "inep": "33171106",
+        "cnpj": "21.470.618/0001-95",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "45571",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.004932/2026-41",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.810",
+        "denominação": "EDI Miguel Couto",
+        "designação": "04.10.810",
+        "telefone": "3885-3079 / 3885-3901",
+        "telefoneCelularInstitucional": "21992334191",
+        "email": "emcouto@rioeduca.net",
+        "diretor": "MAGALY DINIZ DE SOUZA MOURA",
+        "telefoneDiretor": "98582-1985",
+        "diretorAdjunto": "CLAUDIA DE AZEVEDO LIMA",
+        "telefoneDiretorAdjunto": "97216-8499",
+        "inep": "33070679",
+        "cnpj": "01.155.025/0001-27",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "11286",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.004878/2026-34",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.811",
+        "denominação": "EDI Lais Netto dos Reis",
+        "designação": "04.10.811",
+        "telefone": "3885-2866",
+        "telefoneCelularInstitucional": "21992332962",
+        "email": "emlais@rioeduca.net",
+        "diretor": "MARIA APARECIDA DANTAS RODRIGUES",
+        "telefoneDiretor": "96429-0308",
+        "diretorAdjunto": "WALESKA DANTAS DAMASCENO NASCIMENTO",
+        "telefoneDiretorAdjunto": "96422-4204",
+        "inep": "33069298",
+        "cnpj": "01.226.405/0001-05",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "11279",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.004861/2026-87",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.10.812",
+        "denominação": "EDI Coronel Assunção",
+        "designação": "04.10.812",
+        "telefone": "3885-2946 / 99233-1633",
+        "telefoneCelularInstitucional": "21992331633",
+        "email": "ediassuncao@rioeduca.net",
+        "diretor": "RENATA BORGES PESSANHA",
+        "telefoneDiretor": "98380-3366",
+        "diretorAdjunto": "LEILA CRISTINA CORREA DE LIMA ARIZÔT ARAGÃO",
+        "telefoneDiretorAdjunto": "98656-6673",
+        "inep": "33069204",
+        "cnpj": "01.325.768/0001-06",
+        "cre": "4ª CRE",
+        "ra": "10ª R.A.",
+        "sici": "11281",
+        "controladorId": "bento_gomes",
+        "processoInventario": "000704.005018/2026-18",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.001",
+        "denominação": "Escola Municipal Monsenhor Rocha",
+        "designação": "04.11.001",
+        "telefone": "99232-1366",
+        "telefoneCelularInstitucional": "21992321366",
+        "email": "emmrocha@rioeduca.net",
+        "diretor": "PRISCILA CAMILA CARDOSO RODRIGUES",
+        "telefoneDiretor": "99423-3665",
+        "diretorAdjunto": "RITA DE CÁSSIA SOARES MIRANDA",
+        "telefoneDiretorAdjunto": "99264-0207",
+        "inep": "33070725",
+        "cnpj": "03.530.444/0001-27",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "11478",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.004914/2026-60",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ED_FAMILIA",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.002",
+        "denominação": "Escola Municipal Bernardo de Vasconcellos",
+        "designação": "04.11.002",
+        "telefone": "99231-2473",
+        "telefoneCelularInstitucional": "21992312473",
+        "email": "embernardo@rioeduca.net",
+        "diretor": "RENATO LIMA SAMPAIO",
+        "telefoneDiretor": "98199-6704",
+        "diretorAdjunto": "LAZIANE LOURENÇO DE ANDRADE",
+        "telefoneDiretorAdjunto": "98170-0462",
+        "inep": "33070458",
+        "cnpj": "01.235.528/0001-02",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "11372",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.004939/2026-63",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.004",
+        "denominação": "Escola Municipal Leonor Coelho Pereira",
+        "designação": "04.11.004",
+        "telefone": "98909-3108",
+        "telefoneCelularInstitucional": "21992302702",
+        "email": "emleonor@rioeduca.net",
+        "diretor": "VERA LUCIA DE SOUZA CALDAS",
+        "telefoneDiretor": "99632-6335",
+        "diretorAdjunto": "",
+        "telefoneDiretorAdjunto": "",
+        "inep": "33070660",
+        "cnpj": "03.172.518/0001-09",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "11370",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.005012/2026-41",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.005",
+        "denominação": "Escola Municipal Presidente Eurico Dutra",
+        "designação": "04.11.005",
+        "telefone": "2573-4149 / 3867-5586",
+        "telefoneCelularInstitucional": "21992294923",
+        "email": "emeurico@rioeduca.net",
+        "diretor": "VÂNIA DE MATTOS AZEVEDO",
+        "telefoneDiretor": "98715-6290",
+        "diretorAdjunto": "SIMONE CRUZ DA SILVA",
+        "telefoneDiretorAdjunto": "97599-5916",
+        "inep": "33070768",
+        "cnpj": "01.872.287/0001-02",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "11369",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.004969/2026-70",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "RECURSOS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.006",
+        "denominação": "Escola Municipal Conde de Agrolongo",
+        "designação": "04.11.006",
+        "telefone": "3884-8623 / 3884-0256",
+        "telefoneCelularInstitucional": "21992411175",
+        "email": "emcagrolongo@rioeduca.net",
+        "diretor": "RAFAELA BRAVO",
+        "telefoneDiretor": "99314-0014",
+        "diretorAdjunto": "ALINNE D'ARC RAMOS BASTOS",
+        "telefoneDiretorAdjunto": "98741-1951",
+        "inep": "33070512",
+        "cnpj": "01.197.181/0001-50",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "11368",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.004785/2026-18",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.007",
+        "denominação": "Escola Municipal Ariosto Espinheira",
+        "designação": "04.11.007",
+        "telefone": "2573-8535 / 2573-5675",
+        "telefoneCelularInstitucional": "21992584364",
+        "email": "emariosto@rioeduca.net",
+        "diretor": "BIANCA DANTAS RODRIGUES",
+        "telefoneDiretor": "96421-8228",
+        "diretorAdjunto": "MARTHA VIRGÍNIIA DAS MERCÊS LOPES",
+        "telefoneDiretorAdjunto": "98790-8608",
+        "inep": "33070423",
+        "cnpj": "04.511.496/0001-19",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "11367",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.004799/2026-23",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.008",
+        "denominação": "Escola Municipal Professor Souza Carneiro",
+        "designação": "04.11.008",
+        "telefone": "3885-9354 / 99229-7358",
+        "telefoneCelularInstitucional": "21992297358",
+        "email": "emsouzac04@rioeduca.net",
+        "diretor": "ELEN CRISTINA GUIOMAR DE OLIVEIRA",
+        "telefoneDiretor": "99470-0411",
+        "diretorAdjunto": "ELISABETH GARCIA BRAGANÇA DOS SANTOS",
+        "telefoneDiretorAdjunto": "99311-2065",
+        "inep": "33070814",
+        "cnpj": "01.406.223/0001-16",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "11366",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.004955/2026-56",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.009",
+        "denominação": "Escola Municipal Cientista Mário Kroeff",
+        "designação": "04.11.009",
+        "telefone": "3885-9360",
+        "telefoneCelularInstitucional": "21992580390",
+        "email": "emkroeff@rioeduca.net",
+        "diretor": "MARCIA CRISTINA GARRIDO SOUZA",
+        "telefoneDiretor": "97121-1506",
+        "diretorAdjunto": "CAROLINA CARDOSO VIANA",
+        "telefoneDiretorAdjunto": "99271-5310",
+        "inep": "33070334",
+        "cnpj": "01.197.186/0001-83",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "11365",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.005080/2026-18",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "ADOLESCENCIAS",
+            "LEITURA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.010",
+        "denominação": "Escola Municipal Brant Horta",
+        "designação": "04.11.010",
+        "telefone": "2573-5758",
+        "telefoneCelularInstitucional": "2199256-8897",
+        "email": "embrant@rioeduca.net",
+        "diretor": "MARJORIE MENDONÇA DA SILVA GUIMARÃES",
+        "telefoneDiretor": "99755-5918",
+        "diretorAdjunto": "THIAGO GOMES DE CARVALHO",
+        "telefoneDiretorAdjunto": "98303-1267",
+        "inep": "33070466",
+        "cnpj": "01.918.335/0001-56",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "11364",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.005076/2026-41",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.011",
+        "denominação": "Escola Municipal Professor Augusto Motta",
+        "designação": "04.11.011",
+        "telefone": "2573-5045",
+        "telefoneCelularInstitucional": "21992562629",
+        "email": "emmotta@rioeduca.net",
+        "diretor": "THAÍS FERNANDES PEREIRA DE OLIVEIRA",
+        "telefoneDiretor": "99145-9589",
+        "diretorAdjunto": "MARCELO HENRIQUE PEREIRA SOARES",
+        "telefoneDiretorAdjunto": "99978-4974",
+        "inep": "33070792",
+        "cnpj": "01.194.881/0001-91",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "11363",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.004798/2026-89",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.012",
+        "denominação": "Escola Municipal João Marques dos Reis",
+        "designação": "04.11.012",
+        "telefone": "3424-0166",
+        "telefoneCelularInstitucional": "21992555015",
+        "email": "emreis@rioeduca.net",
+        "diretor": "KELLY CRISTINE VIEIRA REIS",
+        "telefoneDiretor": "96940-0536",
+        "diretorAdjunto": "LETÍCIA SANTIAGO DE OLIVEIRA",
+        "telefoneDiretorAdjunto": "99846-2026",
+        "inep": "33070636",
+        "cnpj": "01.266.143/0001-02",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "11362",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.013",
+        "denominação": "Escola Municipal Fernando Tude de Souza",
+        "designação": "04.11.013",
+        "telefone": "3137-8407",
+        "telefoneCelularInstitucional": "21992549664",
+        "email": "emtude@rioeduca.net",
+        "diretor": "ANDERSON FELIX FERNANDES",
+        "telefoneDiretor": "99487-1188",
+        "diretorAdjunto": "LUANA GRAÇA NEVES",
+        "telefoneDiretorAdjunto": "98538-8942",
+        "inep": "33070580",
+        "cnpj": "01.205.726/0001-23",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "11479",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.004980/2026-30",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ADOLESCENCIAS",
+            "RECURSOS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.014",
+        "denominação": "Escola Municipal João de Deus",
+        "designação": "04.11.014",
+        "telefone": "3885-9481",
+        "telefoneCelularInstitucional": "21992544217",
+        "email": "emjdeus@rioeduca.net",
+        "diretor": "VÂNIA FREITAS DE BRITO",
+        "telefoneDiretor": "97480-8879",
+        "diretorAdjunto": "CÍNTIA FERNANDES DE SOUZA",
+        "telefoneDiretorAdjunto": "99196-1149",
+        "inep": "33070628",
+        "cnpj": "05.492.717/0001-11",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "11361",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.004909/2026-57",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.015",
+        "denominação": "Escola Municipal Suíça",
+        "designação": "04.11.015",
+        "telefone": "3885-9485",
+        "telefoneCelularInstitucional": "21992540850",
+        "email": "emsuica@rioeduca.net",
+        "diretor": "EDNA DE SOUZA FERREIRA",
+        "telefoneDiretor": "97972-9402",
+        "diretorAdjunto": "ROSÂNGELA ELIZABETH DANTAS ARON DE CASTRO",
+        "telefoneDiretorAdjunto": "99371-7317",
+        "inep": "33070881",
+        "cnpj": "01.709.902/0001-64",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "11360",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.005010/2026-51",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.017",
+        "denominação": "Escola Municipal Ministro Afrânio Costa",
+        "designação": "04.11.017",
+        "telefone": "3885-9510 / 3882-8752",
+        "telefoneCelularInstitucional": "21992523435",
+        "email": "emafranio@rioeduca.net",
+        "diretor": "FERNANDA LORENZO PAMPILLO MORAIS",
+        "telefoneDiretor": "98324-8121",
+        "diretorAdjunto": "REJANE GONÇALVES RODRIGUES",
+        "telefoneDiretorAdjunto": "97276-8956",
+        "inep": "33070709",
+        "cnpj": "04.130.541/0001-95",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "11358",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.004918/2026-48",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.018",
+        "denominação": "Escola Municipal Professor Ary Quintella",
+        "designação": "04.11.018",
+        "telefone": "3252-0014  /3424-3613",
+        "telefoneCelularInstitucional": "21992518102",
+        "email": "emquintella@rioeduca.net",
+        "diretor": "ANDRÉA BRAGA PINTO VIANNA",
+        "telefoneDiretor": "99491-1009",
+        "diretorAdjunto": "DENIZE RICARDO PEREIRA",
+        "telefoneDiretorAdjunto": "99457-8828",
+        "inep": "33070784",
+        "cnpj": "05.011.104/0001-15",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "11357",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.004791/2026-67",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.020",
+        "denominação": "Escola Municipal Grécia",
+        "designação": "04.11.020",
+        "telefone": "2472-3777 / 3457-1442",
+        "telefoneCelularInstitucional": "21992505549",
+        "email": "emgrecia@rioeduca.net",
+        "diretor": "MARIA DA GLORIA FERREIRA DA COSTA",
+        "telefoneDiretor": "98282-1371",
+        "diretorAdjunto": "MARCILENE FERREIRA MATHEUS",
+        "telefoneDiretorAdjunto": "98254-0433",
+        "inep": "33070113",
+        "cnpj": "01.432.937/0001-07",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "11355",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.005085/2026-32",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.021",
+        "denominação": "Escola Municipal Miguel Ângelo",
+        "designação": "04.11.021",
+        "telefone": "3458-0645",
+        "telefoneCelularInstitucional": "21992493909",
+        "email": "emangelo@rioeduca.net",
+        "diretor": "SUMAIRA LAMAR CALIL",
+        "telefoneDiretor": "96413-8193",
+        "diretorAdjunto": "ADRIANA CARDOSO MOREIRA",
+        "telefoneDiretorAdjunto": "99796-7833",
+        "inep": "33074593",
+        "cnpj": "02.516.909/0001-22",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "11354",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.004795/2026-45",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.022",
+        "denominação": "Escola Municipal Marcílio Dias",
+        "designação": "04.11.022",
+        "telefone": "2482-9777 / 2482-3311",
+        "telefoneCelularInstitucional": "21992486346",
+        "email": "emmarcilio@rioeduca.net",
+        "diretor": "MARTA CARVALHO DE OLIVEIRA GOMES",
+        "telefoneDiretor": "96450-6422",
+        "diretorAdjunto": "TÂNIA CONCEIÇÃO DA SILVEIRA BORGES",
+        "telefoneDiretorAdjunto": "99768-1953",
+        "inep": "33074542",
+        "cnpj": "01.549.332/0001-92",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "11353",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.004977/2026-16",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.023",
+        "denominação": "Escola Municipal Ministro Plínio Casado",
+        "designação": "04.11.023",
+        "telefone": "2485-4305",
+        "telefoneCelularInstitucional": "21992482520",
+        "email": "emcasado@rioeduca.net",
+        "diretor": "PAULA DIOGO DE SOUZA",
+        "telefoneDiretor": "98102-7292",
+        "diretorAdjunto": "ANDERSON CARLOS ALCÂNTARA DA SILVA",
+        "telefoneDiretorAdjunto": "99431-9740",
+        "inep": "33070717",
+        "cnpj": "01.392.813/0001-37",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "11352",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.004823/2026-24",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.028",
+        "denominação": "Escola Municipal São Paulo",
+        "designação": "04.11.028",
+        "telefone": "2485-5145 / 2485-3288 / 99246-5291",
+        "telefoneCelularInstitucional": "21992465291",
+        "email": "emsaopaulo@rioeduca.net",
+        "diretor": "LEANDRO DO NASCIMENTO FARIAS",
+        "telefoneDiretor": "99496-8882",
+        "diretorAdjunto": "MICHELLE RAPOSO DA SILVA",
+        "telefoneDiretorAdjunto": "97619-5166",
+        "inep": "33070865",
+        "cnpj": "01.285.788/0001-92",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "11347",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.004871/2026-12",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.036",
+        "denominação": "Escola Municipal F. J. Oliveira Viana",
+        "designação": "04.11.036",
+        "telefone": "2485-2872",
+        "telefoneCelularInstitucional": "21992464426",
+        "email": "emfviana@rioeduca.net",
+        "diretor": "ANA CAROLINA DOS SANTOS SEGAL GONÇALVES",
+        "telefoneDiretor": "99531-3353  / 96436-4049 - ZAP",
+        "diretorAdjunto": "JORDAN WALLACE ANJOS DA SILVA",
+        "telefoneDiretorAdjunto": "99669-8853",
+        "inep": "33070571",
+        "cnpj": "01.243.944/0001-52",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "11339",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.005078/2026-31",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.049",
+        "denominação": "Escola Municipal Cantor e Compositor Gonzaguinha",
+        "designação": "04.11.049",
+        "telefone": "",
+        "telefoneCelularInstitucional": "21992463050",
+        "email": "emgonzagui@rioeduca.net",
+        "diretor": "YARA RAMOS ANTUNES DA SILVA",
+        "telefoneDiretor": "97567-0641",
+        "diretorAdjunto": "ANDRESA DE ARAUJO MORAIS",
+        "telefoneDiretorAdjunto": "98595-4996",
+        "inep": "33070482",
+        "cnpj": "01.464.150/0001-19",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "11326",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.005087/2026-21",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "RECURSOS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.202",
+        "denominação": "Ciep Gregório Bezerra",
+        "designação": "04.11.202",
+        "telefone": "99246-2040",
+        "telefoneCelularInstitucional": "21992462040",
+        "email": "ciepbezerra@rioeduca.net",
+        "diretor": "PATRICIA DA SILVA PITTA DE MATTOS",
+        "telefoneDiretor": "98479-8363",
+        "diretorAdjunto": "ELIANE SIMÕES MENDES",
+        "telefoneDiretorAdjunto": "98801-5027",
+        "inep": "33069808",
+        "cnpj": "02.034.313/0001-96",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "11924",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.004879/2026-89",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.502",
+        "denominação": "Ciep Deputado José Carlos Brandão Monteiro",
+        "designação": "04.11.502",
+        "telefone": "98909-3104",
+        "telefoneCelularInstitucional": "21992447911",
+        "email": "ciepcarlosb@rioeduca.net",
+        "diretor": "RACHEL NIGRE DE LIMA",
+        "telefoneDiretor": "99810-5939",
+        "diretorAdjunto": "BIANCA DUARTE E SILVA DE MORAES",
+        "telefoneDiretorAdjunto": "99821-1680",
+        "inep": "33069816",
+        "cnpj": "01.260.828/0001-41",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "11570",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.005039/2026-33",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.601",
+        "denominação": "Creche Municipal Carlos Drummond de Andrade",
+        "designação": "04.11.601",
+        "telefone": "99244-1830",
+        "telefoneCelularInstitucional": "21992441830",
+        "email": "cmcandrade@rioeduca.net",
+        "diretor": "CRISTINA SALVADORA FERREIRA",
+        "telefoneDiretor": "99768-1277",
+        "diretorAdjunto": "SILVIA DA LUZ OLIVEIRA FELIX",
+        "telefoneDiretorAdjunto": "96419-1707",
+        "inep": "33122822",
+        "cnpj": "21.554.317/0001-40",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "18621",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.004862/2026-21",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.602",
+        "denominação": "Creche Municipal Tempo de Aprender",
+        "designação": "04.11.602",
+        "telefone": "3887-7742",
+        "telefoneCelularInstitucional": "21992431678",
+        "email": "cmtaprender@rioeduca.net",
+        "diretor": "FLAVIA NUNES DA SILVA",
+        "telefoneDiretor": "97119-9916",
+        "diretorAdjunto": "RENATA CRISTINA PEREIRA TORDOYA",
+        "telefoneDiretorAdjunto": "96918-8841",
+        "inep": "33144672",
+        "cnpj": "12.301.433/0001-66",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "18622",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.004951/2026-78",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.603",
+        "denominação": "Creche Municipal Morro da Paz",
+        "designação": "04.11.603",
+        "telefone": "99242-2066",
+        "telefoneCelularInstitucional": "21992422066",
+        "email": "cmmpaz@rioeduca.net",
+        "diretor": "DANIELLE VIEIRA LINS FELIZARDO DE AZEVEDO",
+        "telefoneDiretor": "99203-2887",
+        "diretorAdjunto": "VIVIANE DE BRITO GOMES",
+        "telefoneDiretorAdjunto": "96460-4448",
+        "inep": "33147337",
+        "cnpj": "12.285.566/0001-96",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "18623",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.005065/2026-61",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.604",
+        "denominação": "Creche Municipal Betinho",
+        "designação": "04.11.604",
+        "telefone": "3886-1775",
+        "telefoneCelularInstitucional": "21992418898",
+        "email": "cmbetinho@rioeduca.net",
+        "diretor": "ESTELA APARECIDA MARTINS",
+        "telefoneDiretor": "98505-9159",
+        "diretorAdjunto": "CARINE DA SILVA MACHADO",
+        "telefoneDiretorAdjunto": "96479-8300",
+        "inep": "33123063",
+        "cnpj": "12.346.678/0001-00",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "18645",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.004865/2026-65",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.605",
+        "denominação": "Creche Municipal Caracol",
+        "designação": "04.11.605",
+        "telefone": "3886-1862",
+        "telefoneCelularInstitucional": "21992411673",
+        "email": "cmcaracol@rioeduca.net",
+        "diretor": "EVANDRO MADRUGA DE OLIVEIRA",
+        "telefoneDiretor": "96448-4002",
+        "diretorAdjunto": "ANA LÚCIA LESSA DA FONSECA",
+        "telefoneDiretorAdjunto": "96479-7769",
+        "inep": "33096554",
+        "cnpj": "12.518.272/0001-67",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "18661",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.004856/2026-74",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.607",
+        "denominação": "Creche Municipal Maria Altamira C. Olegário",
+        "designação": "04.11.607",
+        "telefone": "3457-0560",
+        "telefoneCelularInstitucional": "21993392779",
+        "email": "cmmolegario@rioeduca.net",
+        "diretor": "ALESSANDRA DE SOUZA DASSIÉ",
+        "telefoneDiretor": "98868-0077",
+        "diretorAdjunto": "MARISE FERREIRA DE OLIVEIRA",
+        "telefoneDiretorAdjunto": "98677-3394",
+        "inep": "33122768",
+        "cnpj": "12.246.672/0001-60",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "18720",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.005066/2026-14",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.609",
+        "denominação": "Creche Municipal Tia Ruth Costa dos Santos",
+        "designação": "04.11.609",
+        "telefone": "3868-0003",
+        "telefoneCelularInstitucional": "21993379902",
+        "email": "cmtrsantos@rioeduca.net",
+        "diretor": "MARIA CLAUDIA BALBINO CAMARGO MIRANDA",
+        "telefoneDiretor": "99276-6428",
+        "diretorAdjunto": "PATRICIA MARIA VENTURA BOMFIM",
+        "telefoneDiretorAdjunto": "98541-1330",
+        "inep": "33096368",
+        "cnpj": "12.445.093/0001-47",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "18776",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.005033/2026-66",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.610",
+        "denominação": "Creche Municipal Mussum - O Trapalhão",
+        "designação": "04.11.610",
+        "telefone": "99336-7175",
+        "telefoneCelularInstitucional": "21993367175",
+        "email": "cmmussum@rioeduca.net",
+        "diretor": "ANDRÉA SILVA DE OLIVEIRA",
+        "telefoneDiretor": "96463-3148",
+        "diretorAdjunto": "MARÍLIA FERREIRA BARBOSA",
+        "telefoneDiretorAdjunto": "97976-0469",
+        "inep": "33144680",
+        "cnpj": "12.290.969/0001-23",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "18729",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.004916/2026-59",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.801",
+        "denominação": "EDI Mariana Rocha de Souza",
+        "designação": "04.11.801",
+        "telefone": "3104-6454",
+        "telefoneCelularInstitucional": "21993357618",
+        "email": "edimariana@rioeduca.net",
+        "diretor": "ALESSANDRA BRAGA BRITO ROCHA",
+        "telefoneDiretor": "99451-7268",
+        "diretorAdjunto": "PRISCILA REIS PEREIRA",
+        "telefoneDiretorAdjunto": "98087-8090",
+        "inep": "33164070",
+        "cnpj": "17.112.690/0001-73",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "44185",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.004982/2026-29",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.802",
+        "denominação": "EDI Joel Luiz de Azevedo Bastos",
+        "designação": "04.11.802",
+        "telefone": "2482-3596",
+        "telefoneCelularInstitucional": "21993349679",
+        "email": "edijbastos@rioeduca.net",
+        "diretor": "GLEICE KÉTERI QUEIROZ DA SILVA",
+        "telefoneDiretor": "98056-7274",
+        "diretorAdjunto": "JULIANA DE CARVALHO",
+        "telefoneDiretorAdjunto": "97285-2785",
+        "inep": "33164096",
+        "cnpj": "17.042.644/0001-45",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "44417",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.004880/2026-11",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.803",
+        "denominação": "EDI Maria de Lourdes Ferreira",
+        "designação": "04.11.803",
+        "telefone": "3885-5202",
+        "telefoneCelularInstitucional": "21993342445",
+        "email": "edimariaferreira@rioeduca.net",
+        "diretor": "ELINE MOREIRA FERREIRA DE OLIVEIRA",
+        "telefoneDiretor": "98241-9105",
+        "diretorAdjunto": "ELAINE COPELO DA SILVA",
+        "telefoneDiretorAdjunto": "96421-2789",
+        "inep": "33167877",
+        "cnpj": "21.037.828/0001-94",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "45237",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.004890/2026-49",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.804",
+        "denominação": "EDI Morro da Fé",
+        "designação": "04.11.804",
+        "telefone": "3458-1406",
+        "telefoneCelularInstitucional": "21993324639",
+        "email": "edimfe@rioeduca.net",
+        "diretor": "FERNANDA SILVA DE BARRETO",
+        "telefoneDiretor": "98029-2898",
+        "diretorAdjunto": "LUCIANA BRANDÃO GENTIL",
+        "telefoneDiretorAdjunto": "96516-3722",
+        "inep": "33095825",
+        "cnpj": "12.369.459/0001-46",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "18728",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.004913/2026-15",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "LEITURA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.805",
+        "denominação": "EDI Edmundo da Luz Pinto",
+        "designação": "04.11.805",
+        "telefone": "3882-1089/3885-9497",
+        "telefoneCelularInstitucional": "21993315199",
+        "email": "ediluzpinto@rioeduca.net",
+        "diretor": "VIVIANE MONDAINI RIZZO E SILVA",
+        "telefoneDiretor": "96445-7296",
+        "diretorAdjunto": "TAÍS FABIANE BORGES BARRETO",
+        "telefoneDiretorAdjunto": "98864-3332",
+        "inep": "33070547",
+        "cnpj": "02.024.924/0001-53",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "11359",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.004988/2026-04",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.806",
+        "denominação": "EDI Göethe",
+        "designação": "04.11.806",
+        "telefone": "2485-1888",
+        "telefoneCelularInstitucional": "21993311865",
+        "email": "edigoethe@rioeduca.net",
+        "diretor": "MARIA CREUSA CORRÊA SANTOS",
+        "telefoneDiretor": "99559-3467",
+        "diretorAdjunto": "DANIELA ANDRADE FIGUEIREDO OLIVEIRA",
+        "telefoneDiretorAdjunto": "99548-2731",
+        "inep": "33070598",
+        "cnpj": "03.188.922/0001-62",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "11348",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.004942/2026-87",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.808",
+        "denominação": "EDI Pioneiras Sociais Nº 12",
+        "designação": "04.11.808",
+        "telefone": "3885-9166",
+        "telefoneCelularInstitucional": "21993307208",
+        "email": "edipioneiras@rioeduca.net",
+        "diretor": "TAINÁ CINTIA OLIVEIRA DE MEDEIROS",
+        "telefoneDiretor": "99800-5626",
+        "diretorAdjunto": "EVELYN CHAVES GUIMARÃES FERNANDES",
+        "telefoneDiretorAdjunto": "96442-1633",
+        "inep": "33070750",
+        "cnpj": "02.485.279/0001-76",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "11356",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.005015/2026-84",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.11.809",
+        "denominação": "EDI São Vicente",
+        "designação": "04.11.809",
+        "telefone": "3886-1767",
+        "telefoneCelularInstitucional": "21993304798",
+        "email": "emvicente@rioeduca.net",
+        "diretor": "SILVANIA MORAES DIAS",
+        "telefoneDiretor": "97173-2098",
+        "diretorAdjunto": "FÁTIMA DOS SANTOS DO NASCIMENTO",
+        "telefoneDiretorAdjunto": "99830-5247",
+        "inep": "33070873",
+        "cnpj": "01.530.851/0001-09",
+        "cre": "4ª CRE",
+        "ra": "11ª R.A.",
+        "sici": "11371",
+        "controladorId": "tuane_coutinho",
+        "processoInventario": "000704.004786/2026-54",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.001",
+        "denominação": "Escola Municipal Professor Josué de Castro",
+        "designação": "04.30.001",
+        "telefone": "3104-7747",
+        "telefoneCelularInstitucional": "21993298643",
+        "email": "emjosue@rioeduca.net",
+        "diretor": "CHRISTIANE LAGARTO FONTOURA",
+        "telefoneDiretor": "98708-3042",
+        "diretorAdjunto": "AYRTON PEREIRA DA SILVA JUNIOR",
+        "telefoneDiretorAdjunto": "99621-3892",
+        "inep": "33069417",
+        "cnpj": "02.900.428/0001-16",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "11591",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004806/2026-97",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.002",
+        "denominação": "Escola Municipal Teotonio Vilela",
+        "designação": "04.30.002",
+        "telefone": "3104-8550 / 3104-7346",
+        "telefoneCelularInstitucional": "21993297484",
+        "email": "emvillela@rioeduca.net",
+        "diretor": "SIMONE ARANHA DA SILVA PIMENTEL",
+        "telefoneDiretor": "98272-1466",
+        "diretorAdjunto": "TEREZA CRISTINA MATTOS DE CASTRO",
+        "telefoneDiretorAdjunto": "97228-5558",
+        "inep": "33069450",
+        "cnpj": "07.361.588/0001-58",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "11590",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.005034/2026-19",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.003",
+        "denominação": "Escola Municipal Bahia",
+        "designação": "04.30.003",
+        "telefone": "3104-6680 / 99329-5104",
+        "telefoneCelularInstitucional": "21993295104",
+        "email": "embahia@rioeduca.net",
+        "diretor": "FLAVIO MARCIO SILVA ARAGÃO",
+        "telefoneDiretor": "97409-2354",
+        "diretorAdjunto": "THIAGO DOS SANTOS MARTINS",
+        "telefoneDiretorAdjunto": "97027-5149",
+        "inep": "33069131",
+        "cnpj": "02.439.519/0001-04",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "11589",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.005054/2026-81",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.004",
+        "denominação": "Escola Municipal IV Centenário",
+        "designação": "04.30.004",
+        "telefone": "3868-0010",
+        "telefoneCelularInstitucional": "21993288168",
+        "email": "emcentenario@rioeduca.net",
+        "diretor": "ALESSANDRA DA CUNHA AGUIAR FONSECA",
+        "telefoneDiretor": "98334-2080",
+        "diretorAdjunto": "ELAINE CRISTINA SABINO NEVES VIEIRA",
+        "telefoneDiretorAdjunto": "99888-3022",
+        "inep": "33069263",
+        "cnpj": "01.868.604/0001-17",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "11588",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004903/2026-80",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.005",
+        "denominação": "Escola Municipal Tenente General Napion",
+        "designação": "04.30.005",
+        "telefone": "3105-8766 / 3105-8851",
+        "telefoneCelularInstitucional": "21993283036",
+        "email": "emnapion@rioeduca.net",
+        "diretor": "ADRIANA GERALDO DA SILVA",
+        "telefoneDiretor": "97676-5858",
+        "diretorAdjunto": "NATHÁLIA SANTOS DE AGUIAR NUNES",
+        "telefoneDiretorAdjunto": "99356-0375",
+        "inep": "33069441",
+        "cnpj": "04.017.619/0001-60",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "11587",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004800/2026-10",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.007",
+        "denominação": "Escola Municipal Nova Holanda",
+        "designação": "04.30.007",
+        "telefone": "99326-5870",
+        "telefoneCelularInstitucional": "21993265870",
+        "email": "emnovah@rioeduca.net",
+        "diretor": "JUREMA NASCIMENTO BRANDÃO",
+        "telefoneDiretor": "96415-8752",
+        "diretorAdjunto": "SUELEN DE SOUZA ALBUQUERQUE",
+        "telefoneDiretorAdjunto": "97902-6685",
+        "inep": "33069514",
+        "cnpj": "05.614.260/0001-70",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "11585",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004780/2026-87",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.009",
+        "denominação": "Escola Municipal Professor Paulo Freire",
+        "designação": "04.30.009",
+        "telefone": "3104-9502",
+        "telefoneCelularInstitucional": "21993255113",
+        "email": "empfreire@rioeduca.net",
+        "diretor": "GISELE DE SOUZA PINTO",
+        "telefoneDiretor": "99711-9189",
+        "diretorAdjunto": "SEBASTIANA MARIA PEREIRA GUSMÃO GONÇALVES",
+        "telefoneDiretorAdjunto": "98458-2308",
+        "inep": "33146071",
+        "cnpj": "05.967.616/0001-50",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "18968",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.005060/2026-39",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.010",
+        "denominação": "Escola Municipal Escritor Bartolomeu Campos de Queirós",
+        "designação": "04.30.010",
+        "telefone": "2482-3787",
+        "telefoneCelularInstitucional": "21993245279",
+        "email": "emqueiros@rioeduca.net",
+        "diretor": "JULIANA VIEIRA FERRÃO",
+        "telefoneDiretor": "98917-6710",
+        "diretorAdjunto": "RAQUEL PEREIRA DE OLIVEIRA",
+        "telefoneDiretorAdjunto": "98997-0020",
+        "inep": "33167478",
+        "cnpj": "21.362.407/0001-39",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "44828",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004860/2026-32",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.011",
+        "denominação": "Escola Municipal Escritor Lêdo Ivo",
+        "designação": "04.30.011",
+        "telefone": "2485-5736 / 99323-4606",
+        "telefoneCelularInstitucional": "21993234606",
+        "email": "emledoivo@rioeduca.net",
+        "diretor": "MARISA BARROS DE PINHO",
+        "telefoneDiretor": "97906-3381",
+        "diretorAdjunto": "ANTONIO CLAUDIO ARCHANJO ROZA",
+        "telefoneDiretorAdjunto": "99467-2877",
+        "inep": "33169500",
+        "cnpj": "23.013.482/0001-10",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "45383",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004802/2026-17",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.012",
+        "denominação": "Escola Municipal Genival Pereira de Albuquerque",
+        "designação": "04.30.012",
+        "telefone": "3161-4574",
+        "telefoneCelularInstitucional": "21993225964",
+        "email": "emgalbuquerque@rioeduca.net",
+        "diretor": "JULIANNA DE SOUZA NOGUEIRA",
+        "telefoneDiretor": "98690-7667",
+        "diretorAdjunto": "PAMELA DE SOUZA RODRIGUES MONTEIRO",
+        "telefoneDiretorAdjunto": "96446-6327",
+        "inep": "33176892",
+        "cnpj": "27.289.067/0001-44",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "46632",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004870/2026-78",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.013",
+        "denominação": "Escola Municipal Osmar Paiva Camelo",
+        "designação": "04.30.013",
+        "telefone": "3161-0221",
+        "telefoneCelularInstitucional": "21993223467",
+        "email": "emocamelo@rioeduca.net",
+        "diretor": "CRISTINA OLIVEIRA CARNEIRO",
+        "telefoneDiretor": "96574-2114",
+        "diretorAdjunto": "PATRICIA RAPOSO NOVAES",
+        "telefoneDiretorAdjunto": "97192-0477",
+        "inep": "33176884",
+        "cnpj": "26.469.796/0001-10",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "46631",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004793/2026-56",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.014",
+        "denominação": "Escola Municipal Lino Martins da Silva",
+        "designação": "04.30.014",
+        "telefone": "3438-6723",
+        "telefoneCelularInstitucional": "21993221292",
+        "email": "emlsilva@rioeduca.net",
+        "diretor": "ROSILENE DE OLIVEIRA",
+        "telefoneDiretor": "98315-2638",
+        "diretorAdjunto": "MONIQUE CORREIA DA SILVA",
+        "telefoneDiretorAdjunto": "99813-8482",
+        "inep": "33175950",
+        "cnpj": "26.204.472/0001-50",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "46626",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004867/2026-54",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.015",
+        "denominação": "Escola Municipal Erpídio Cabral de Souza( Índio da Maré)",
+        "designação": "04.30.015",
+        "telefone": "99320-5846",
+        "telefoneCelularInstitucional": "21993205846",
+        "email": "emindiodamare@rioeduca.net",
+        "diretor": "LILIAN REGINA MARTINS MELO",
+        "telefoneDiretor": "99913-0914",
+        "diretorAdjunto": "MÁRCIA VERÔNICA GONÇALVES COELHO",
+        "telefoneDiretorAdjunto": "99716-0281",
+        "inep": "33176051",
+        "cnpj": "26.231.528/0001-65",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "46628",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004923/2026-51",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.016",
+        "denominação": "Escola Municipal Olimpíadas Rio 2016",
+        "designação": "04.30.016",
+        "telefone": "3438-4863",
+        "telefoneCelularInstitucional": "21993416655",
+        "email": "emrio2016@rioeduca.net",
+        "diretor": "SEBASTIÃO RODRIGUES ANDRADE",
+        "telefoneDiretor": "96423-5002",
+        "diretorAdjunto": "ROSILENE ELIZA DOS SANTOS",
+        "telefoneDiretorAdjunto": "99392-7441",
+        "inep": "33176060",
+        "cnpj": "27.438.664/0001-93",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "46630",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004959/2026-34",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "ADOLESCENCIAS",
+            "RECURSOS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.018",
+        "denominação": "Escola Municipal Medalhista Olímpico Lucas Saatkamp",
+        "designação": "04.30.018",
+        "telefone": "2086-3341",
+        "telefoneCelularInstitucional": "21993553666",
+        "email": "emsaatkamp@rioeduca.net",
+        "diretor": "NÚBIA CARVALHO DO NASCIMENTO",
+        "telefoneDiretor": "99789-8580",
+        "diretorAdjunto": "ELISA MARIA LOPES FERREIRA SATURNINO",
+        "telefoneDiretorAdjunto": "98069-0222",
+        "inep": "33179450",
+        "cnpj": "31.538.188/0001-50",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "46764",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004787/2026-07",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.019",
+        "denominação": "Escola Municipal Escritor Millôr Fernandes",
+        "designação": "04.30.019",
+        "telefone": "99355-2439",
+        "telefoneCelularInstitucional": "21993552439",
+        "email": "emefernandes@rioeduca.net",
+        "diretor": "GISELLE NUNES BAPTISTA AMORIM",
+        "telefoneDiretor": "98739-8684",
+        "diretorAdjunto": "FLÁVIA LUCIANA ANDRADE DE MELO SALGADO",
+        "telefoneDiretorAdjunto": "97596-6067",
+        "inep": "33179395",
+        "cnpj": "31.099.076/0001-40",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "46763",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.005048/2026-24",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.020",
+        "denominação": "Escola Municipal Vereadora Marielle Franco",
+        "designação": "04.30.020",
+        "telefone": "99336-9562",
+        "telefoneCelularInstitucional": "21993536976",
+        "email": "emmariellefranco@rioeduca.net",
+        "diretor": "ALEX SILVA DE SOUZA",
+        "telefoneDiretor": "97579-4316",
+        "diretorAdjunto": "RENATA CHRISTINA PINHEIRO COUTINHO MELLO DA SILVA",
+        "telefoneDiretorAdjunto": "99710-0778",
+        "inep": "33183813",
+        "cnpj": "32.065.019/0001-02",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "46761",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.005075/2026-05",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.201",
+        "denominação": "Ciep Ministro Gustavo Capanema",
+        "designação": "04.30.201",
+        "telefone": "3104-9576",
+        "telefoneCelularInstitucional": "21993526102",
+        "email": "ciepgustavo@rioeduca.net",
+        "diretor": "LORENA FERREIRA RODRIGUES",
+        "telefoneDiretor": "99687-5453",
+        "diretorAdjunto": "BRENDA DE SOUZA RAMALHO",
+        "telefoneDiretorAdjunto": "96503-2869",
+        "inep": "33068771",
+        "cnpj": "03.170.355/0001-17",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "11579",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.005170/2026-09",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.204",
+        "denominação": "Ciep Operário Vicente Mariano",
+        "designação": "04.30.204",
+        "telefone": "3977-5609",
+        "telefoneCelularInstitucional": "21993524857",
+        "email": "ciepmariano@rioeduca.net",
+        "diretor": "ELIANA RODRIGUES DE OLIVEIRA PEREIRA",
+        "telefoneDiretor": "98355-6056",
+        "diretorAdjunto": "PRISCILA LEÃO MIRANDA",
+        "telefoneDiretorAdjunto": "96427-2773",
+        "inep": "33068780",
+        "cnpj": "02.702.349/0001-09",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "11583",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.005050/2026-01",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.206",
+        "denominação": "Ciep Hélio Smidt",
+        "designação": "04.30.206",
+        "telefone": "99352-1121",
+        "telefoneCelularInstitucional": "21993521121",
+        "email": "ciepsmidt@rioeduca.net",
+        "diretor": "ADRIANO ROSA DE SOUZA",
+        "telefoneDiretor": "97656-0024",
+        "diretorAdjunto": "ALEXANDRA CORRÊA DA ROCHA PINHEIRO",
+        "telefoneDiretorAdjunto": "99717-7617",
+        "inep": "33068747",
+        "cnpj": "02.016.546/0001-66",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "11598",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004807/2026-31",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.501",
+        "denominação": "Ciep Presidente Samora Machel",
+        "designação": "04.30.501",
+        "telefone": "99351-4734",
+        "telefoneCelularInstitucional": "21993514734",
+        "email": "ciepmachel@rioeduca.net",
+        "diretor": "TATIANE SANTOS PEIXOTO",
+        "telefoneDiretor": "98623-2059",
+        "diretorAdjunto": "MÁRCIA SAMPAIO BAMBERG DE OLIVEIRA",
+        "telefoneDiretorAdjunto": "99531-8669",
+        "inep": "33068801",
+        "cnpj": "01.950.897/0001-87",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "11578",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004984/2026-18",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.502",
+        "denominação": "Ciep Elis Regina",
+        "designação": "04.30.502",
+        "telefone": "99351-0329",
+        "telefoneCelularInstitucional": "21993510329",
+        "email": "ciepelis@rioeduca.net",
+        "diretor": "ANDRÉA DA SILVA FONSECA",
+        "telefoneDiretor": "98613-0497",
+        "diretorAdjunto": "DENISE GOMES DE OLIVEIRA BATISTA",
+        "telefoneDiretorAdjunto": "98243-1414",
+        "inep": "33068739",
+        "cnpj": "01.175.154/0001-87",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "11580",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.005040/2026-68",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.503",
+        "denominação": "Ciep Leonel de Moura Brizola",
+        "designação": "04.30.503",
+        "telefone": "3105-9934",
+        "telefoneCelularInstitucional": "21993493195",
+        "email": "ciepbrizola@rioeduca.net",
+        "diretor": "GABRIELLE PEIXOTO TARANTO",
+        "telefoneDiretor": "99849-7156",
+        "diretorAdjunto": "CAIO CESAR DA SILVEIRA CAVALCANTE SILVA",
+        "telefoneDiretorAdjunto": "99726-0638",
+        "inep": "33068720",
+        "cnpj": "03.178.700/0001-69",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "11573",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004962/2026-58",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.601",
+        "denominação": "Creche Municipal Menino Maluquinho",
+        "designação": "04.30.601",
+        "telefone": "",
+        "telefoneCelularInstitucional": "21993490754",
+        "email": "cmmaluquinho@rioeduca.net",
+        "diretor": "KATIA PIAES BENCARDINO",
+        "telefoneDiretor": "98493-4482",
+        "diretorAdjunto": "FLAVIA BORBOREMA",
+        "telefoneDiretorAdjunto": "98734-4771",
+        "inep": "33144702",
+        "cnpj": "12.353.633/0001-62",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "18781",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004995/2026-06",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.602",
+        "denominação": "Creche Municipal Vila Pinheiro",
+        "designação": "04.30.602",
+        "telefone": "3104-9665 / 99348-9804",
+        "telefoneCelularInstitucional": "21993489804",
+        "email": "cmvpinheiro@rioeduca.net",
+        "diretor": "GLADYS FERRAZ SARAIVA",
+        "telefoneDiretor": "98895-1665",
+        "diretorAdjunto": "JOSEFA NATALIA DA COSTA FARIAS",
+        "telefoneDiretorAdjunto": "98051-0883",
+        "inep": "33147264",
+        "cnpj": "12.558.016/0001-01",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "18782",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004866/2026-18",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.603",
+        "denominação": "Creche Municipal Tio Mário",
+        "designação": "04.30.603",
+        "telefone": "3104-7367",
+        "telefoneCelularInstitucional": "21993489781",
+        "email": "cmtmario@rioeduca.net",
+        "diretor": "REGINA CÉLIA FIRMINO DA CONCEIÇÃO",
+        "telefoneDiretor": "97426-5290",
+        "diretorAdjunto": "CARMEN DOLORES DA SILVA",
+        "telefoneDiretorAdjunto": "96527-4390",
+        "inep": "33096465",
+        "cnpj": "12.396.418/0001-49",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "18778",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.005077/2026-96",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.604",
+        "denominação": "Creche Municipal Monteiro Lobato",
+        "designação": "04.30.604",
+        "telefone": "99348-8381",
+        "telefoneCelularInstitucional": "21993488381",
+        "email": "cmmlobato@rioeduca.net",
+        "diretor": "ANA MARIA DOS SANTOS IGNACIO",
+        "telefoneDiretor": "99918-1984",
+        "diretorAdjunto": "DEBORA CRISTINA BERNARDO DA SILVA BASTOS RUIVO",
+        "telefoneDiretorAdjunto": "99826-1304",
+        "inep": "33095833",
+        "cnpj": "12.586.443/0001-95",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "18727",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004872/2026-67",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.605",
+        "denominação": "Creche Municipal Nova Holanda",
+        "designação": "04.30.605",
+        "telefone": "3868-0296",
+        "telefoneCelularInstitucional": "21993485894",
+        "email": "cmnholanda@rioeduca.net",
+        "diretor": "MARCIA HELENA MORAIS DE AZEVEDO",
+        "telefoneDiretor": "97197 4686",
+        "diretorAdjunto": "CRISTIANE FERREIRA CHILETTO DA SILVA",
+        "telefoneDiretorAdjunto": "99606-8425",
+        "inep": "33095752",
+        "cnpj": "12.449.488/0001-18",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "18737",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004979/2026-13",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.607",
+        "denominação": "Creche Municipal Professor Paulo Freire",
+        "designação": "04.30.607",
+        "telefone": "3105-5019 / 99347-4038",
+        "telefoneCelularInstitucional": "21993474038",
+        "email": "cmpfreire@rioeduca.net",
+        "diretor": "LILIANA VILA CORRÊA",
+        "telefoneDiretor": "98284-1555",
+        "diretorAdjunto": "MARIZELIA FRANÇA DE PAULA",
+        "telefoneDiretorAdjunto": "96953-7012",
+        "inep": "33122539",
+        "cnpj": "23.731.402/0001-61",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "18744",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004789/2026-98",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.701",
+        "denominação": "Centro de Educação de Jovens e Adultos CEJA - Maré",
+        "designação": "04.30.701",
+        "telefone": "",
+        "telefoneCelularInstitucional": "21993461663",
+        "email": "cejamare@rioeduca.net",
+        "diretor": "JOÃO PAULO SOBRAL DIAS NETTO",
+        "telefoneDiretor": "99809-0408",
+        "diretorAdjunto": "EDUARDO GOMES DE OLIVEIRA",
+        "telefoneDiretorAdjunto": "97691-4705",
+        "inep": "33167486",
+        "cnpj": "20.061.862/0001-31",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "45034",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004825/2026-13",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.801",
+        "denominação": "EDI Pescador Isidoro Duarte - \"Doro\"",
+        "designação": "04.30.801",
+        "telefone": "3457-1157",
+        "telefoneCelularInstitucional": "21993442702",
+        "email": "edipisidoro@rioeduca.net",
+        "diretor": "ANGELA BARROS FRUITOS MOTTA",
+        "telefoneDiretor": "98192-1371",
+        "diretorAdjunto": "ADRIANA ROSA DE SOUZA",
+        "telefoneDiretorAdjunto": "99265-7408",
+        "inep": "33160929",
+        "cnpj": "17.102.964/0001-43",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "43966",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004943/2026-21",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.802",
+        "denominação": "EDI Professora Kelita Faria de Paula",
+        "designação": "04.30.802",
+        "telefone": "3353-0456",
+        "telefoneCelularInstitucional": "21993474580",
+        "email": "edikelita@rioeduca.net",
+        "diretor": "ROSÂNGELA BARBOSA ALVES",
+        "telefoneDiretor": "99313-5405",
+        "diretorAdjunto": "CRISTIANE CAMPOS DA SILVA",
+        "telefoneDiretorAdjunto": "98890-2626",
+        "inep": "33164118",
+        "cnpj": "16.838.101/0001-76",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "44416",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004973/2026-38",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.803",
+        "denominação": "EDI Professor Moacyr de Góes",
+        "designação": "04.30.803",
+        "telefone": "3885-2349 / 99343-5054",
+        "telefoneCelularInstitucional": "21993435054",
+        "email": "edimgoes@rioeduca.net",
+        "diretor": "SAMANTHA FERRAZ LOBO CAVALCANTI",
+        "telefoneDiretor": "97934-1873",
+        "diretorAdjunto": "INGRID DE JESUS WHITE MASCARENHAS",
+        "telefoneDiretorAdjunto": "96435-4518",
+        "inep": "33167885",
+        "cnpj": "19.725.741/0001-68",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "44820",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.005062/2026-28",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "TEMPO_APRENDER"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.804",
+        "denominação": "EDI Cremilda da Silva dos Santos",
+        "designação": "04.30.804",
+        "telefone": "",
+        "telefoneCelularInstitucional": "21993430893",
+        "email": "edicremilda@rioeduca.net",
+        "diretor": "DIONE VASCONCELOS ALVES BRITTO",
+        "telefoneDiretor": "99439-2407",
+        "diretorAdjunto": "SARITA CLEMENTE DE MORAES",
+        "telefoneDiretorAdjunto": "98424-0459",
+        "inep": "33167362",
+        "cnpj": "18.329.758/0001-33",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "44829",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004937/2026-74",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.805",
+        "denominação": "EDI Professora Solange Conceição Tricarico",
+        "designação": "04.30.805",
+        "telefone": "3884-5678",
+        "telefoneCelularInstitucional": "21993430278",
+        "email": "edistricarico@rioeduca.net",
+        "diretor": "THUANNY CRUZ DA SILVA PASCARELLI",
+        "telefoneDiretor": "97134-0679",
+        "diretorAdjunto": "ANA PAULA DE SOUZA SOARES DE OLIVEIRA",
+        "telefoneDiretorAdjunto": "98538-9219",
+        "inep": "33167893",
+        "cnpj": "21.510.074/0001-48",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "45238",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004933/2026-96",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.806",
+        "denominação": "EDI Cleia Santos de Oliveira",
+        "designação": "04.30.806",
+        "telefone": "3105-4001",
+        "telefoneCelularInstitucional": "21993422660",
+        "email": "edicleiasantos@rioeduca.net",
+        "diretor": "ADRIANA SOARES PONTES",
+        "telefoneDiretor": "99718-3774",
+        "diretorAdjunto": "FATIMA SILVA BORGES CARVALHO",
+        "telefoneDiretorAdjunto": "97506-9054",
+        "inep": "33170983",
+        "cnpj": "22.787.794/0001-18",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "45570",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004911/2026-26",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "TEMPO_APRENDER"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.807",
+        "denominação": "EDI Maria Amélia Castro e Silva Belfort",
+        "designação": "04.30.807",
+        "telefone": "99341-7774",
+        "telefoneCelularInstitucional": "21993417774",
+        "email": "edimbelfort@rioeduca.net",
+        "diretor": "ANDREZZA HUBEANE NÓBREGA DIAS",
+        "telefoneDiretor": "97902-9777",
+        "diretorAdjunto": "CAMILA DAS GRAÇAS VIEIRA MAIA RODRIGUES",
+        "telefoneDiretorAdjunto": "98256-8424",
+        "inep": "33176043",
+        "cnpj": "28.626.726/0001-53",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "46629",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.005073/2026-16",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.808",
+        "denominação": "EDI Azoilda Trindade (Zô)",
+        "designação": "04.30.808",
+        "telefone": "2081-0835",
+        "telefoneCelularInstitucional": "21993193698",
+        "email": "ediatrindade@rioeduca.net",
+        "diretor": "ARIENE VITALINO DA SILVA",
+        "telefoneDiretor": "99935-4556",
+        "diretorAdjunto": "LUANA RAQUEL DA SILVA REZENDE",
+        "telefoneDiretorAdjunto": "97947-0526",
+        "inep": "33175942",
+        "cnpj": "28.027.038/0001-77",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "46627",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.005095/2026-78",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.809",
+        "denominação": "EDI Medalhista Olímpico Luiz Felipe Marques Fonteles",
+        "designação": "04.30.809",
+        "telefone": "2086-4678",
+        "telefoneCelularInstitucional": "21993013914",
+        "email": "edimfontelles@rioeduca.net",
+        "diretor": "KATIA GOMES DA SILVA",
+        "telefoneDiretor": "98516-2762",
+        "diretorAdjunto": "ANA PAULA DE LANNA",
+        "telefoneDiretorAdjunto": "97001-0156",
+        "inep": "33179514",
+        "cnpj": "31.059.011/0001-70",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "46760",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004981/2026-84",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.810",
+        "denominação": "EDI Medalhista Olímpico Evandro Motta Marcondes Guerra",
+        "designação": "04.30.810",
+        "telefone": "2086-4681",
+        "telefoneCelularInstitucional": "21993013019",
+        "email": "edimguerra@rioeduca.net",
+        "diretor": "VALESKA BARBOTEU PENHA",
+        "telefoneDiretor": "96938-9820",
+        "diretorAdjunto": "ANA ALINE GOMES SEABRA",
+        "telefoneDiretorAdjunto": "98770-8345",
+        "inep": "33179573",
+        "cnpj": "31.538.152/0001-76",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "46759",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.005049/2026-79",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.811",
+        "denominação": "EDI Medalhista Olímpico William Peixoto Arjona",
+        "designação": "04.30.811",
+        "telefone": "2086-3835",
+        "telefoneCelularInstitucional": "21993005782",
+        "email": "edimarjona@rioeduca.net",
+        "diretor": "FERNANADA MEDEIROS RIBEIRO",
+        "telefoneDiretor": "98383-3555",
+        "diretorAdjunto": "NINA CRISTINA VIDA FELINTO",
+        "telefoneDiretorAdjunto": "96483-3895",
+        "inep": "33179549",
+        "cnpj": "31.291.413/0001-04",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "46758",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.005028/2026-53",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.812",
+        "denominação": "EDI Medalhista Olímpico Eder Francis Carbonera",
+        "designação": "04.30.812",
+        "telefone": "2086-2852",
+        "telefoneCelularInstitucional": "21993005161",
+        "email": "edimcarbonera@rioeduca.net",
+        "diretor": "TAÍNA DOS REIS DO CARMO",
+        "telefoneDiretor": "97967-9252",
+        "diretorAdjunto": "DÉBORA CRISTINA RODRIGUES ESTEVES",
+        "telefoneDiretorAdjunto": "99185-8801",
+        "inep": "33179581",
+        "cnpj": "31.471.375/0001-63",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "46845",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004868/2026-07",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.813",
+        "denominação": "EDI Armando de Salles Oliveira",
+        "designação": "04.30.813",
+        "telefone": "99300-1569",
+        "telefoneCelularInstitucional": "21993001569",
+        "email": "emsalles@rioeduca.net",
+        "diretor": "DANIELE LUCIANA CHAVES DE OLIVEIRA PONTES",
+        "telefoneDiretor": "96650-3767",
+        "diretorAdjunto": "JACQUELLINE RODRIGUES ALVES DOS SANTOS",
+        "telefoneDiretorAdjunto": "98157-0936",
+        "inep": "33069123",
+        "cnpj": "01.875.458/0001-57",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "11586",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004944/2026-76",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.814",
+        "denominação": "EDI João Crisóstomo",
+        "designação": "04.30.814",
+        "telefone": "99299-7860",
+        "telefoneCelularInstitucional": "21992997860",
+        "email": "edicrisostomo@rioeduca.net",
+        "diretor": "MÔNICA ALVES SERAPIÃO DA SILVA",
+        "telefoneDiretor": "98141-2117",
+        "diretorAdjunto": "ANDRESSA MEDEIROS DA SILVA",
+        "telefoneDiretorAdjunto": "99392-2228",
+        "inep": "33179565",
+        "cnpj": "31.563.583/0001-92",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "46765",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004985/2026-62",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.815",
+        "denominação": "EDI Pescador Albano Rosa",
+        "designação": "04.30.815",
+        "telefone": "99348-1028",
+        "telefoneCelularInstitucional": "21993481028",
+        "email": "ediprosa@rioeduca.net",
+        "diretor": "THIAGO GENEROSO BARROS",
+        "telefoneDiretor": "99399-3527",
+        "diretorAdjunto": "MARIA ANDRÉA GOMES ALBA BRITTO",
+        "telefoneDiretorAdjunto": "98104-1443",
+        "inep": "33122776",
+        "cnpj": "12.743.515/0001-60",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "18742",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.005081/2026-54",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.001",
+        "denominação": "Escola Municipal Ary Barroso",
+        "designação": "04.31.001",
+        "telefone": "99298-7018",
+        "telefoneCelularInstitucional": "21992987018",
+        "email": "emary@rioeduca.net",
+        "diretor": "LUCIANE DE ASSIS ALMEIDA",
+        "telefoneDiretor": "99495-3366",
+        "diretorAdjunto": "EDUARDO MEIRELLES AZZAM",
+        "telefoneDiretorAdjunto": "99715-3691",
+        "inep": "33070440",
+        "cnpj": "03.056.773/0001-88",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11351",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.004810/2026-55",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.002",
+        "denominação": "Escola Municipal David Perez",
+        "designação": "04.31.002",
+        "telefone": "2482-3830 / 99298-6475",
+        "telefoneCelularInstitucional": "21992986475",
+        "email": "emperez@rioeduca.net",
+        "diretor": "SHAYENNE AZEVEDO DA SILVEIRA MOREIRA",
+        "telefoneDiretor": "96453-8653",
+        "diretorAdjunto": "MARILANE CARDOZO DA SILVA CAVALCANTI",
+        "telefoneDiretorAdjunto": "98892-3274",
+        "inep": "33070539",
+        "cnpj": "01.878.401/0001-01",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11350",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.004912/2026-71",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.003",
+        "denominação": "Escola Municipal Miguel Gustavo",
+        "designação": "04.31.003",
+        "telefone": "2482-3986",
+        "telefoneCelularInstitucional": "21992977460",
+        "email": "emgustavo@rioeduca.net",
+        "diretor": "ERIKA SILVA DE FREITAS",
+        "telefoneDiretor": "97035-5622",
+        "diretorAdjunto": "THAINÁ DA MATA RODRIGUES",
+        "telefoneDiretorAdjunto": "99259-9573",
+        "inep": "33070687",
+        "cnpj": "02.347.032/0001-93",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11349",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.004929/2026-28",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.004",
+        "denominação": "Escola Municipal Alfredo Gomes",
+        "designação": "04.31.004",
+        "telefone": "3137-7550 / 3137-7566",
+        "telefoneCelularInstitucional": "21992977093",
+        "email": "emalfredog@rioeduca.net",
+        "diretor": "TALITA FLÁVIA SODRÉ DA SILVA",
+        "telefoneDiretor": "97649-7732",
+        "diretorAdjunto": "",
+        "telefoneDiretorAdjunto": "",
+        "inep": "33070393",
+        "cnpj": "01.275.362/0001-58",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11346",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.004859/2026-16",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.006",
+        "denominação": "Escola Municipal São João Batista",
+        "designação": "04.31.006",
+        "telefone": "2482-7312",
+        "telefoneCelularInstitucional": "21992973114",
+        "email": "emsaojoao@rioeduca.net",
+        "diretor": "CINTHIA VIANA TAVARES DA SILVA",
+        "telefoneDiretor": "98687-4575",
+        "diretorAdjunto": "ELEZIANI VIEIRA AMORIM SOUZA",
+        "telefoneDiretorAdjunto": "98644-6274",
+        "inep": "33070857",
+        "cnpj": "02.690.400/0001-00",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11344",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.005082/2026-07",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ADOLESCENCIAS",
+            "LEITURA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.007",
+        "denominação": "Escola Municipal Embaixador Barros Hurtado",
+        "designação": "04.31.007",
+        "telefone": "2482-7736 / 2482-7955",
+        "telefoneCelularInstitucional": "21992963180",
+        "email": "emhurtado@rioeduca.net",
+        "diretor": "MARIA CAROLINA SILVEIRA SYLVESTRE",
+        "telefoneDiretor": "98337-2389",
+        "diretorAdjunto": "KAREN DO NASCIMENTO MORENO",
+        "telefoneDiretorAdjunto": "96586-8505",
+        "inep": "33070555",
+        "cnpj": "01.509.987/0001-37",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11343",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.005031/2026-77",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.008",
+        "denominação": "Escola Municipal Odilon Braga",
+        "designação": "04.31.008",
+        "telefone": "2482-4609",
+        "telefoneCelularInstitucional": "21992960557",
+        "email": "embraga@rioeduca.net",
+        "diretor": "ELENITA FONSECA DA SILVA",
+        "telefoneDiretor": "99914-8321",
+        "diretorAdjunto": "ALEXANDRE FAGUNDES ABRANTES",
+        "telefoneDiretorAdjunto": "98088-5553",
+        "inep": "33070741",
+        "cnpj": "01.211.046/0001-12",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11342",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.004960/2026-69",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ADOLESCENCIAS",
+            "RECURSOS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.009",
+        "denominação": "Escola Municipal Roraima",
+        "designação": "04.31.009",
+        "telefone": "2485-1140 / 2485-1150",
+        "telefoneCelularInstitucional": "21992955910",
+        "email": "emroraima@rioeduca.net",
+        "diretor": "ALINE FERREIRA RIBEIRO",
+        "telefoneDiretor": "98623- 7113",
+        "diretorAdjunto": "KASSIA CRISTINA DE ALMEIDA OLIVEIRA DOS SANTOS",
+        "telefoneDiretorAdjunto": "98722-0949",
+        "inep": "33070849",
+        "cnpj": "01.529.826/0001-05",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11341",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.005029/2026-06",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.010",
+        "denominação": "Escola Municipal Armando Fajardo",
+        "designação": "04.31.010",
+        "telefone": "2485-1422 / 99295-2993",
+        "telefoneCelularInstitucional": "21992952993",
+        "email": "emfajardo@rioeduca.net",
+        "diretor": "MICHAEL CHRISTIAN AGUIAR MADEIRA",
+        "telefoneDiretor": "98337-9924",
+        "diretorAdjunto": "MARCELO PASSOS CARREGOSA",
+        "telefoneDiretorAdjunto": "99093-5736",
+        "inep": "33070431",
+        "cnpj": "01.268.540/0001-13",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11340",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.004898/2026-13",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.011",
+        "denominação": "Escola Municipal Raul Pederneiras",
+        "designação": "04.31.011",
+        "telefone": "2485-1433",
+        "telefoneCelularInstitucional": "21992951542",
+        "email": "emraul@rioeduca.net",
+        "diretor": "LUCIANA OLIVEIRA NASCIMENTO DOS SANTOS",
+        "telefoneDiretor": "96456-8359",
+        "diretorAdjunto": "ROSE SAMARA CAVALCANTI SOUZA",
+        "telefoneDiretorAdjunto": "96935-6810",
+        "inep": "33070822",
+        "cnpj": "01.956.704/0001-03",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11338",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.004976/2026-71",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.013",
+        "denominação": "Escola Municipal Montese",
+        "designação": "04.31.013",
+        "telefone": "2485-2200 / 2485-2087",
+        "telefoneCelularInstitucional": "21992943931",
+        "email": "emmontese@rioeduca.net",
+        "diretor": "VALÉRIA DOS ANJOS GUEDES",
+        "telefoneDiretor": "97541-2761",
+        "diretorAdjunto": "ANA PAULA BAPTISTA DE FREITAS ROSA",
+        "telefoneDiretorAdjunto": "98638-3582",
+        "inep": "33070733",
+        "cnpj": "01.187.790/0001-29",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11336",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.005001/2026-61",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.014",
+        "denominação": "Escola Municipal Ministro Lafayette de Andrada",
+        "designação": "04.31.014",
+        "telefone": "2485-1377",
+        "telefoneCelularInstitucional": "21992938870",
+        "email": "emlandrade@rioeduca.net",
+        "diretor": "REJANE PERES NETO COSTA",
+        "telefoneDiretor": "98103-2701",
+        "diretorAdjunto": "EDUARDO DOS SANTOS COUTINHO",
+        "telefoneDiretorAdjunto": "98615-9093",
+        "inep": "33070695",
+        "cnpj": "05.392.564/0001-30",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11335",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.004864/2026-11",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.015",
+        "denominação": "Escola Municipal Joseph Bloch",
+        "designação": "04.31.015",
+        "telefone": "3458-1373",
+        "telefoneCelularInstitucional": "21992935646",
+        "email": "embloch@rioeduca.net",
+        "diretor": "LUCIANA PIMENTEL VIEIRA",
+        "telefoneDiretor": "98580-1343",
+        "diretorAdjunto": "VALERIA PEREIRA BARRETO",
+        "telefoneDiretorAdjunto": "98341-2481",
+        "inep": "33070652",
+        "cnpj": "01.187.789/0001-02",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11334",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.004883/2026-47",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.016",
+        "denominação": "Escola Municipal Cruzada São Sebastião",
+        "designação": "04.31.016",
+        "telefone": "2485-3999",
+        "telefoneCelularInstitucional": "21992934781",
+        "email": "emcruzada@rioeduca.net",
+        "diretor": "ELIANA ALMEIDA DO NASCIMENTO",
+        "telefoneDiretor": "99479-3067",
+        "diretorAdjunto": "ANDRE  LUIS SILVA",
+        "telefoneDiretorAdjunto": "98293-2043",
+        "inep": "33070474",
+        "cnpj": "02.849.204/0001-27",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11333",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.004904/2026-24",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.017",
+        "denominação": "Escola Municipal Cardeal Câmara",
+        "designação": "04.31.017",
+        "telefone": "3452-0179",
+        "telefoneCelularInstitucional": "21992920079",
+        "email": "emcardealc@rioeduca.net",
+        "diretor": "ISAQUE DA SILVA TAVARES",
+        "telefoneDiretor": "96453-9645",
+        "diretorAdjunto": "JULIANA ORNELLAS MOREIRA SANTOS DE OLIVEIRA",
+        "telefoneDiretorAdjunto": "98548-2900",
+        "inep": "33070490",
+        "cnpj": "02.998.816/0001-81",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11332",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.004986/2026-15",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.018",
+        "denominação": "Escola Municipal República do Líbano",
+        "designação": "04.31.018",
+        "telefone": "2475-9200 / 99291-1044",
+        "telefoneCelularInstitucional": "21992911044",
+        "email": "emlibano@rioeduca.net",
+        "diretor": "CARLOS HENRIQUE MATOS DA SILVA",
+        "telefoneDiretor": "97018-1653",
+        "diretorAdjunto": "CARLA LEITE FERNANDES BARROS",
+        "telefoneDiretorAdjunto": "98225-6910",
+        "inep": "33070830",
+        "cnpj": "01.213.617/0001-58",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11331",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.005044/2026-46",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.019",
+        "denominação": "Escola Municipal Jorge de Gouveia",
+        "designação": "04.31.019",
+        "telefone": "2475-9202 / 2475-9204",
+        "telefoneCelularInstitucional": "21992910211",
+        "email": "emgouvea@rioeduca.net",
+        "diretor": "VALÉRIA CRISTINA CARMO DE AQUINO MASSA",
+        "telefoneDiretor": "98878-6291",
+        "diretorAdjunto": "PATRICIA DO NASCIMENTO PAULO",
+        "telefoneDiretorAdjunto": "99881-6758",
+        "inep": "33070644",
+        "cnpj": "01.859.807/0001-47",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11330",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.005107/2026-64",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ED_FAMILIA",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.021",
+        "denominação": "Escola Municipal Heitor Beltrão",
+        "designação": "04.31.021",
+        "telefone": "2475-9207 / 2475-9208'",
+        "telefoneCelularInstitucional": "21992905794",
+        "email": "embeltrao@rioeduca.net",
+        "diretor": "VANESSA SANTOS DE MORAES",
+        "telefoneDiretor": "98320-4010",
+        "diretorAdjunto": "CARLA DE OLIVEIRA BOURA",
+        "telefoneDiretorAdjunto": "97915-1616",
+        "inep": "33070601",
+        "cnpj": "04.494.649/0001-67",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11328",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.004784/2026-65",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.022",
+        "denominação": "Escola Municipal Eneyda Rabello de Andrade",
+        "designação": "04.31.022",
+        "telefone": "2475-9210",
+        "telefoneCelularInstitucional": "21993016649",
+        "email": "emeneyda@rioeduca.net",
+        "diretor": "MARIA CRISTINA DOS SANTOS CAMPOS",
+        "telefoneDiretor": "99340-8173",
+        "diretorAdjunto": "CARLA ELISA DIAS DE OLIVEIRA",
+        "telefoneDiretorAdjunto": "96499-3204",
+        "inep": "33070563",
+        "cnpj": "01.878.402/0001-56",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11327",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.004934/2026-31",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.023",
+        "denominação": "Escola Municipal Presidente Gronchi",
+        "designação": "04.31.023",
+        "telefone": "3855-7107 / 3855-7010",
+        "telefoneCelularInstitucional": "21993186929",
+        "email": "emgronchi@rioeduca.net",
+        "diretor": "ILMA FÁTIMA CONSTANTINO VALVERDE",
+        "telefoneDiretor": "98149-9745",
+        "diretorAdjunto": "ANA CAROLINA TEIXEIRA BATISTA DE MIRANDA",
+        "telefoneDiretorAdjunto": "97064-9817",
+        "inep": "33070776",
+        "cnpj": "03.016.915/0001-83",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11868",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.004797/2026-34",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.024",
+        "denominação": "Escola Municipal Andrade Neves",
+        "designação": "04.31.024",
+        "telefone": "99318-4439 / 2475-7262 / 3372-5902",
+        "telefoneCelularInstitucional": "21993184439",
+        "email": "emaneves@rioeduca.net",
+        "diretor": "ADRIANE FERREIRA REIS MORAES",
+        "telefoneDiretor": "99202-5575",
+        "diretorAdjunto": "ANA CARLA DA SILVA BRANCO",
+        "telefoneDiretorAdjunto": "99473-7133",
+        "inep": "33070415",
+        "cnpj": "01.959.159/0001-09",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11869",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.005084/2026-98",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "LEITURA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.026",
+        "denominação": "Escola Municipal Herbert Moses",
+        "designação": "04.31.026",
+        "telefone": "3855-9566",
+        "telefoneCelularInstitucional": "21993182608",
+        "email": "emmoses@rioeduca.net",
+        "diretor": "RAFAEL LUIZ PINTO PERES",
+        "telefoneDiretor": "97140-1844",
+        "diretorAdjunto": "VÂNIA CRISTINA FRAGA DE FARIA PICULO",
+        "telefoneDiretorAdjunto": "99861-8583",
+        "inep": "33070610",
+        "cnpj": "02.293.014/0001-76",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11568",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.004978/2026-61",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.027",
+        "denominação": "Escola Municipal Zélia Braune",
+        "designação": "04.31.027",
+        "telefone": "3855-9220",
+        "telefoneCelularInstitucional": "21993179184",
+        "email": "embraune@rioeduca.net",
+        "diretor": "WLADIMIR MENDONÇA DA SILVA",
+        "telefoneDiretor": "99578-9247",
+        "diretorAdjunto": "JULIA BEATRIZ GOMES CARVALHO DA SILVA",
+        "telefoneDiretorAdjunto": "98663-8126",
+        "inep": "33070890",
+        "cnpj": "03.827.454/0001-29",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11569",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.005063/2026-72",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ADOLESCENCIAS",
+            "RECURSOS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.501",
+        "denominação": "Ciep Mestre Cartola (Agenor de Oliveira)",
+        "designação": "04.31.501",
+        "telefone": "3453-6464",
+        "telefoneCelularInstitucional": "21993178149",
+        "email": "ciepcartola@rioeduca.net",
+        "diretor": "MARCI DIAS PIRES",
+        "telefoneDiretor": "99793-1538",
+        "diretorAdjunto": "ELIANE BOMBINO DO AMARAL",
+        "telefoneDiretorAdjunto": "99392-3539",
+        "inep": "33069824",
+        "cnpj": "01.878.626/0001-68",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11919",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.005064/2026-17",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.502",
+        "denominação": "Ciep Graciliano Ramos",
+        "designação": "04.31.502",
+        "telefone": "3083-7595 / 99316-8830",
+        "telefoneCelularInstitucional": "21993168830",
+        "email": "ciepgramos@rioeduca.net",
+        "diretor": "LUCIANA DA SILVA NASCIMENTO",
+        "telefoneDiretor": "97272-1717",
+        "diretorAdjunto": "ISABEL FELIPE MOREIRA",
+        "telefoneDiretorAdjunto": "98915-0171",
+        "inep": "33073988",
+        "cnpj": "01.124.831/0001-38",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11325",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.004940/2026-98",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.601",
+        "denominação": "Creche Municipal Luís Carlos de Oliveira Câmara",
+        "designação": "04.31.601",
+        "telefone": "3455-5372",
+        "telefoneCelularInstitucional": "21993161033",
+        "email": "cmlcamara@rioeduca.net",
+        "diretor": "ANDRÉA BELARMINO DE CARVALHO ABEL PINTO",
+        "telefoneDiretor": "97693-7001",
+        "diretorAdjunto": "KEZIA GOMES DA SILVA",
+        "telefoneDiretorAdjunto": "99201-4629",
+        "inep": "33144699",
+        "cnpj": "12.329.092/0001-37",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "18710",
+        "controladorId": "alzira_de_souza",
+        "processoInventario": "000704.004928/2026-83",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.602",
+        "denominação": "Creche Municipal Barbosa Lima Sobrinho",
+        "designação": "04.31.602",
+        "telefone": "99315-4511",
+        "telefoneCelularInstitucional": "21993154511",
+        "email": "cmbsobrinho@rioeduca.net",
+        "diretor": "MAYARA SOARES BASILIO",
+        "telefoneDiretor": "97964-8500",
+        "diretorAdjunto": "MARCOS PAULO REGIS FARIA",
+        "telefoneDiretorAdjunto": "97556-4740",
+        "inep": "33137331",
+        "cnpj": "12.582.479/0001-09",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "18643",
+        "controladorId": "alzira_de_souza",
+        "processoInventario": "000704.004905/2026-79",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.603",
+        "denominação": "Creche Municipal Chico Mendes",
+        "designação": "04.31.603",
+        "telefone": "99312-4302 / 3424-6677",
+        "telefoneCelularInstitucional": "21993124302",
+        "email": "cmcmendes@rioeduca.net",
+        "diretor": "MARIA CRISTINA FALBO MARTINS",
+        "telefoneDiretor": "98543-0591",
+        "diretorAdjunto": "MARIA DAS DORES SILVA",
+        "telefoneDiretorAdjunto": "99420-6327",
+        "inep": "33096503",
+        "cnpj": "12.493.499/0001-03",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "18667",
+        "controladorId": "alzira_de_souza",
+        "processoInventario": "000704.005052/2026-92",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.604",
+        "denominação": "Creche Municipal Coração de Geneve",
+        "designação": "04.31.604",
+        "telefone": "2475-9211",
+        "telefoneCelularInstitucional": "21993119466",
+        "email": "cmcgeneve@rioeduca.net",
+        "diretor": "KELLEN DO NASCIMENTO MORENO",
+        "telefoneDiretor": "97366-0594",
+        "diretorAdjunto": "VANICE DA SILVA ELIAS",
+        "telefoneDiretorAdjunto": "96412-1404",
+        "inep": "33096546",
+        "cnpj": "12.470.388/0001-73",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "18670",
+        "controladorId": "alzira_de_souza",
+        "processoInventario": "000704.004889/2026-14",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.605",
+        "denominação": "Creche Municipal Sempre Vida Dique",
+        "designação": "04.31.605",
+        "telefone": "3855-9483",
+        "telefoneCelularInstitucional": "21993111783",
+        "email": "cmdique@rioeduca.net",
+        "diretor": "ANA LUCIA DE SOUSA SANTOS",
+        "telefoneDiretor": "99198-1467",
+        "diretorAdjunto": "FABIANA CASSIMIRO GUERRA DE PAULA",
+        "telefoneDiretorAdjunto": "99157-1759",
+        "inep": "33096520",
+        "cnpj": "12.649.139/0001-40",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "18755",
+        "controladorId": "alzira_de_souza",
+        "processoInventario": "000704.004989/2026-41",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.606",
+        "denominação": "Creche Municipal Visconde de Sabugosa",
+        "designação": "04.31.606",
+        "telefone": "3373-5288",
+        "telefoneCelularInstitucional": "21993106032",
+        "email": "cmvsabugosa@rioeduca.net",
+        "diretor": "ROSANGELA CAMPOS DE PAULA FERNANDES",
+        "telefoneDiretor": "97020-9572",
+        "diretorAdjunto": "DOLORES DA SILVA NORTE",
+        "telefoneDiretorAdjunto": "97985-0226",
+        "inep": "33095892",
+        "cnpj": "16.729.081/0001-03",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "18784",
+        "controladorId": "alzira_de_souza",
+        "processoInventario": "000704.004876/2026-45",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.607",
+        "denominação": "Creche Municipal Acauã",
+        "designação": "04.31.607",
+        "telefone": "3448-0670",
+        "telefoneCelularInstitucional": "21993091397",
+        "email": "cmacaua@rioeduca.net",
+        "diretor": "ALEXSANDRA BEZERRA DA SILVA",
+        "telefoneDiretor": "97482-6141",
+        "diretorAdjunto": "DANIELE DE OLIVEIRA DE FIGUEIREDO",
+        "telefoneDiretorAdjunto": "99257-8318",
+        "inep": "33147248",
+        "cnpj": "12.468.491/0001-89",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "39102",
+        "controladorId": "alzira_de_souza",
+        "processoInventario": "000704.005244/2026-07",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.608",
+        "denominação": "Creche Municipal Ari Pimentel",
+        "designação": "04.31.608",
+        "telefone": "2080-8074",
+        "telefoneCelularInstitucional": "21993089542",
+        "email": "cmapimentel@rioeduca.net",
+        "diretor": "MARCELA SILVA DO NASCIMENTO DE CAMPOS",
+        "telefoneDiretor": "97287-6541",
+        "diretorAdjunto": "LEANDRA SANTOS DA SILVA SCHEMIKO",
+        "telefoneDiretorAdjunto": "97279-7550",
+        "inep": "33144710",
+        "cnpj": "12.219.144/0001-12",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "39764",
+        "controladorId": "alzira_de_souza",
+        "processoInventario": "000704.004953/2026-67",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.801",
+        "denominação": "EDI Carvalho Mourão",
+        "designação": "04.31.801",
+        "telefone": "2485-2269",
+        "telefoneCelularInstitucional": "21993081503",
+        "email": "edicmourao@rioeduca.net",
+        "diretor": "ADRIANA DE ANDRADE DE OLIVEIRA",
+        "telefoneDiretor": "98706-3422",
+        "diretorAdjunto": "JULIANA RAMOS AMARAL VAILLANT",
+        "telefoneDiretorAdjunto": "99652-4445",
+        "inep": "33070504",
+        "cnpj": "01.859.441/0001-06",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11337",
+        "controladorId": "alzira_de_souza",
+        "processoInventario": "000704.004941/2026-32",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.802",
+        "denominação": "EDI Professor Carlos Falseth",
+        "designação": "04.31.802",
+        "telefone": "99308-0298",
+        "telefoneCelularInstitucional": "21993080298",
+        "email": "edicfalseth@rioeduca.net",
+        "diretor": "SHAYANA BRAGA FELIX",
+        "telefoneDiretor": "98870-5380",
+        "diretorAdjunto": "SUANE DE LIMA RIBEIRO",
+        "telefoneDiretorAdjunto": "97169-5012",
+        "inep": "33170991",
+        "cnpj": "23.402.143/0001-25",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "45569",
+        "controladorId": "alzira_de_souza",
+        "processoInventario": "000704.004873/2026-10",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.803",
+        "denominação": "EDI Professor Emmanuel Pereira Filho",
+        "designação": "04.31.803",
+        "telefone": "2482-7202",
+        "telefoneCelularInstitucional": "21993057687",
+        "email": "edipfilho@rioeduca.net",
+        "diretor": "ISABELA VIEIRA DA SILVA",
+        "telefoneDiretor": "99249-1834",
+        "diretorAdjunto": "LUANA DOS SANTOS TRINDADE",
+        "telefoneDiretorAdjunto": "99362-2978",
+        "inep": "33070806",
+        "cnpj": "01.268.536/0001-55",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11345",
+        "controladorId": "alzira_de_souza",
+        "processoInventario": "000704.004971/2026-49",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.804",
+        "denominação": "EDI Alfredo Valladão",
+        "designação": "04.31.804",
+        "telefone": "2475-9205/ 2475-9206",
+        "telefoneCelularInstitucional": "21993051737",
+        "email": "edivalladao@rioeduca.net",
+        "diretor": "KELLY HELLEN CHAVES MANSO",
+        "telefoneDiretor": "98700-3157",
+        "diretorAdjunto": "FERNANDA TELES DE OLIVEIRA",
+        "telefoneDiretorAdjunto": "97107-7222",
+        "inep": "33070407",
+        "cnpj": "01.412.221/0001-30",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11329",
+        "controladorId": "alzira_de_souza",
+        "processoInventario": "000704.004901/2026-91",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.805",
+        "denominação": "EDI Cônego Fernandes Pinheiro",
+        "designação": "04.31.805",
+        "telefone": "3372-5070 / 99304-1562",
+        "telefoneCelularInstitucional": "21993041562",
+        "email": "emconego@rioeduca.net",
+        "diretor": "ODETTE DOS SANTOS SACRAMENTO TERREZO FARDILHA",
+        "telefoneDiretor": "98876-6559",
+        "diretorAdjunto": "MARIA DO CARMO SERENO CHALO",
+        "telefoneDiretorAdjunto": "98561-5300",
+        "inep": "33070520",
+        "cnpj": "01.294.812/0001-50",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11870",
+        "controladorId": "alzira_de_souza",
+        "processoInventario": "000704.004782/2026-76",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
     }
-,
-    {
-        id: '2',
-        inep: '33163987',
-        cnpj: '17.553.027/0001-04',
-        denominação: "EDI COMPOSITOR NEOCI DIAS DE ANDRADE",
-        designação: '04.10.805',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410805@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '3',
-        inep: '33070741',
-        cnpj: '01.211.046/0001-12',
-        denominação: "EM ODILON BRAGA",
-        designação: '04.31.008',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431008@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA', 'PROEC', 'RECURSOS'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '4',
-        inep: '33069204',
-        cnpj: '01.325.768/0001-06',
-        denominação: "EDI CORONEL ASSUNÇÃO",
-        designação: '04.10.812',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410812@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '5',
-        inep: '33167478',
-        cnpj: '21.362.407/0001-39',
-        denominação: "EM ESCRITOR BARTOLOMEU CAMPOS DE QUEIRÓS",
-        designação: '04.30.010',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430010@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '6',
-        inep: '33068720',
-        cnpj: '03.178.700/0001-69',
-        denominação: "CIEP LEONEL DE MOURA BRIZOLA",
-        designação: '04.30.503',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430503@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '7',
-        inep: '33070679',
-        cnpj: '01.155.025/0001-27',
-        denominação: "EDI MIGUEL COUTO",
-        designação: '04.10.810',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410810@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '8',
-        inep: '33069409',
-        cnpj: '05.406.794/0001-01',
-        denominação: "EM PROFESSOR CARNEIRO RIBEIRO",
-        designação: '04.10.006',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410006@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '9',
-        inep: '33070784',
-        cnpj: '05.011.104/0001-15',
-        denominação: "EM PROFESSOR ARY QUINTELLA",
-        designação: '04.11.018',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411018@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '10',
-        inep: '33070660',
-        cnpj: '03.172.518/0001-09',
-        denominação: "EM LEONOR COELHO PEREIRA",
-        designação: '04.11.004',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411004@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '11',
-        inep: '33070482',
-        cnpj: '01.464.150/0001-19',
-        denominação: "EM CANTOR E COMPOSITOR GONZAGUINHA",
-        designação: '04.11.049',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411049@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA', 'RECURSOS'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '12',
-        inep: '33137331',
-        cnpj: '12.582.479/0001-09',
-        denominação: "CM BARBOSA LIMA SOBRINHO",
-        designação: '04.31.602',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431602@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '13',
-        inep: '33069441',
-        cnpj: '04.017.619/0001-60',
-        denominação: "EM TENENTE GENERAL NAPION",
-        designação: '04.30.005',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430005@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '14',
-        inep: '33122776',
-        cnpj: '12.743.515/0001-60',
-        denominação: "EDI PESCADOR ALBANO ROSA",
-        designação: '04.30.815',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430815@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '15',
-        inep: '33069514',
-        cnpj: '05.614.260/0001-70',
-        denominação: "EM NOVA HOLANDA",
-        designação: '04.30.007',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430007@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '16',
-        inep: '33074593',
-        cnpj: '02.516.909/0001-22',
-        denominação: "EM MIGUEL ÂNGELO",
-        designação: '04.11.021',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411021@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '17',
-        inep: '33073988',
-        cnpj: '01.124.831/0001-38',
-        denominação: "CIEP GRACILIANO RAMOS",
-        designação: '04.31.502',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431502@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '18',
-        inep: '33070598',
-        cnpj: '03.188.922/0001-62',
-        denominação: "EDI GÖETHE",
-        designação: '04.11.806',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411806@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '19',
-        inep: '33069360',
-        cnpj: '01.451.980/0001-01',
-        denominação: "EM PADRE MANUEL DA NÓBREGA",
-        designação: '04.10.007',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410007@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '20',
-        inep: '33144710',
-        cnpj: '12.219.144/0001-12',
-        denominação: "CM ARI PIMENTEL",
-        designação: '04.31.608',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431608@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '21',
-        inep: '33070687',
-        cnpj: '02.347.032/0001-93',
-        denominação: "EM MIGUEL GUSTAVO",
-        designação: '04.31.003',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431003@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '22',
-        inep: '33069263',
-        cnpj: '01.868.604/0001-17',
-        denominação: "EM IV CENTENÁRIO",
-        designação: '04.30.004',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430004@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '23',
-        inep: '33069158',
-        cnpj: '01.158.075/0001-68',
-        denominação: "EM BRASIL",
-        designação: '04.10.021',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410021@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '24',
-        inep: '33179565',
-        cnpj: '31.563.583/0001-92',
-        denominação: "EDI JOÃO CRISÓSTOMO",
-        designação: '04.30.814',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430814@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '25',
-        inep: '33070628',
-        cnpj: '05.492.717/0001-11',
-        denominação: "EM JOÃO DE DEUS",
-        designação: '04.11.014',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411014@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '26',
-        inep: '33176884',
-        cnpj: '26.469.796/0001-10',
-        denominação: "EM OSMAR PAIVA CAMELO",
-        designação: '04.30.013',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430013@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '27',
-        inep: '33095892',
-        cnpj: '16.729.081/0001-03',
-        denominação: "CM VISCONDE DE SABUGOSA",
-        designação: '04.31.606',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431606@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '28',
-        inep: '33122768',
-        cnpj: '12.246.672/0001-60',
-        denominação: "CM MARIA ALTAMIRA C. OLEGÁRIO",
-        designação: '04.11.607',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411607@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '29',
-        inep: '33068801',
-        cnpj: '01.950.897/0001-87',
-        denominação: "CIEP PRESIDENTE SAMORA MACHEL",
-        designação: '04.30.501',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430501@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '30',
-        inep: '33175950',
-        cnpj: '26.204.472/0001-50',
-        denominação: "EM LINO MARTINS DA SILVA",
-        designação: '04.30.014',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430014@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '31',
-        inep: '33070571',
-        cnpj: '01.243.944/0001-52',
-        denominação: "EM F. J. OLIVEIRA VIANA",
-        designação: '04.11.036',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411036@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '32',
-        inep: '33069123',
-        cnpj: '01.875.458/0001-57',
-        denominação: "EDI ARMANDO DE SALLES OLIVEIRA",
-        designação: '04.30.813',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430813@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '33',
-        inep: '33171092',
-        cnpj: '20.549.732/0001-42',
-        denominação: "EDI PROFESSORA TANIA DA ROCHA CORREA",
-        designação: '04.10.807',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410807@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '34',
-        inep: '33069131',
-        cnpj: '02.439.519/0001-04',
-        denominação: "EM BAHIA",
-        designação: '04.30.003',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430003@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '35',
-        inep: '33070881',
-        cnpj: '01.709.902/0001-64',
-        denominação: "EM SUÍÇA",
-        designação: '04.11.015',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411015@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '36',
-        inep: '33136947',
-        cnpj: '12.558.497/0001-47',
-        denominação: "CM MANGUINHOS",
-        designação: '04.10.601',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410601@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '37',
-        inep: '33069093',
-        cnpj: '04.552.825/0001-70',
-        denominação: "EM ALBINO SOUZA CRUZ",
-        designação: '04.10.002',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410002@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '38',
-        inep: '33144680',
-        cnpj: '12.290.969/0001-23',
-        denominação: "CM MUSSUM - O TRAPALHÃO",
-        designação: '04.11.610',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411610@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '39',
-        inep: '33096465',
-        cnpj: '12.396.418/0001-49',
-        denominação: "CM TIO MÁRIO",
-        designação: '04.30.603',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430603@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '40',
-        inep: '33170983',
-        cnpj: '22.787.794/0001-18',
-        denominação: "EDI CLEIA SANTOS DE OLIVEIRA",
-        designação: '04.30.806',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430806@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA', 'TEMPO_APRENDER'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '41',
-        inep: '33146071',
-        cnpj: '05.967.616/0001-50',
-        denominação: "EM PROFESSOR PAULO FREIRE",
-        designação: '04.30.009',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430009@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '42',
-        inep: '33069450',
-        cnpj: '07.361.588/0001-58',
-        denominação: "EM TEOTONIO VILELA",
-        designação: '04.30.002',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430002@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '43',
-        inep: '33070423',
-        cnpj: '04.511.496/0001-19',
-        denominação: "EM ARIOSTO ESPINHEIRA",
-        designação: '04.11.007',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411007@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '44',
-        inep: '33074542',
-        cnpj: '01.549.332/0001-92',
-        denominação: "EM MARCÍLIO DIAS",
-        designação: '04.11.022',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411022@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '45',
-        inep: '33068763',
-        cnpj: '02.784.061/0001-12',
-        denominação: "CIEP MAESTRO FRANCISCO MIGNONE",
-        designação: '04.10.502',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410502@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '46',
-        inep: '33123063',
-        cnpj: '12.346.678/0001-00',
-        denominação: "CM BETINHO",
-        designação: '04.11.604',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411604@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '47',
-        inep: '33167362',
-        cnpj: '18.329.758/0001-33',
-        denominação: "EDI CREMILDA DA SILVA DOS SANTOS",
-        designação: '04.30.804',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430804@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '48',
-        inep: '33179450',
-        cnpj: '31.538.188/0001-50',
-        denominação: "EM MEDALHISTA OLÍMPICO LUCAS SAATKAMP",
-        designação: '04.30.018',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430018@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '49',
-        inep: '33070555',
-        cnpj: '01.509.987/0001-37',
-        denominação: "EM EMBAIXADOR BARROS HURTADO",
-        designação: '04.31.007',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431007@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '50',
-        inep: '33096368',
-        cnpj: '12.445.093/0001-47',
-        denominação: "CM TIA RUTH COSTA DOS SANTOS",
-        designação: '04.11.609',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411609@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '51',
-        inep: '33122539',
-        cnpj: '23.731.402/0001-61',
-        denominação: "CM PROFESSOR PAULO FREIRE",
-        designação: '04.30.607',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430607@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '52',
-        inep: '33070806',
-        cnpj: '01.268.536/0001-55',
-        denominação: "EDI PROFESSOR EMMANUEL PEREIRA FILHO",
-        designação: '04.31.803',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431803@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '53',
-        inep: '33070490',
-        cnpj: '02.998.816/0001-81',
-        denominação: "EM CARDEAL CÂMARA",
-        designação: '04.31.017',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431017@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '54',
-        inep: '33160929',
-        cnpj: '17.102.964/0001-43',
-        denominação: "EDI PESCADOR ISIDORO DUARTE - DORO",
-        designação: '04.30.801',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430801@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '55',
-        inep: '33167885',
-        cnpj: '19.725.741/0001-68',
-        denominação: "EDI PROFESSOR MOACYR DE GÓES",
-        designação: '04.30.803',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430803@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA', 'TEMPO_APRENDER'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '56',
-        inep: '33176060',
-        cnpj: '27.438.664/0001-93',
-        denominação: "EM OLIMPÍADAS RIO 2016",
-        designação: '04.30.016',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430016@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA', 'RECURSOS'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '57',
-        inep: '33069190',
-        cnpj: '02.034.159/0001-52',
-        denominação: "EM CLÓVIS BEVILÁQUA",
-        designação: '04.10.015',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410015@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '58',
-        inep: '33523258',
-        cnpj: '18.959.919/0001-72',
-        denominação: "EDI DOUTOR DOMINGOS ARTHUR MACHADO FILHO",
-        designação: '04.10.801',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410801@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '59',
-        inep: '33070890',
-        cnpj: '03.827.454/0001-29',
-        denominação: "EM ZÉLIA BRAUNE",
-        designação: '04.31.027',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431027@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA', 'PROEC', 'RECURSOS'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '60',
-        inep: '33096511',
-        cnpj: '12.672.659/0001-73',
-        denominação: "CM DR. JUVENIL DE SOUZA LOPES",
-        designação: '04.10.602',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410602@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '61',
-        inep: '33070563',
-        cnpj: '01.878.402/0001-56',
-        denominação: "EM ENEYDA RABELLO DE ANDRADE",
-        designação: '04.31.022',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431022@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '62',
-        inep: '33167877',
-        cnpj: '21.037.828/0001-94',
-        denominação: "EDI MARIA DE LOURDES FERREIRA",
-        designação: '04.11.803',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411803@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '63',
-        inep: '33171106',
-        cnpj: '21.470.618/0001-95',
-        denominação: "EDI ALMIR LEITE RIBEIRO",
-        designação: '04.10.808',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410808@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '64',
-        inep: '33069166',
-        cnpj: '03.108.351/0001-09',
-        denominação: "EM CARLOS CHAGAS",
-        designação: '04.10.013',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410013@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA', 'RECURSOS'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '65',
-        inep: '33069417',
-        cnpj: '02.900.428/0001-16',
-        denominação: "EM PROFESSOR JOSUÉ DE CASTRO",
-        designação: '04.30.001',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430001@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '66',
-        inep: '33069336',
-        cnpj: '01.235.532/0001-70',
-        denominação: "EM ODILON DE ANDRADE",
-        designação: '04.10.022',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410022@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '67',
-        inep: '33164118',
-        cnpj: '16.838.101/0001-76',
-        denominação: "EDI PROFESSORA KELITA FARIA DE PAULA",
-        designação: '04.30.802',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430802@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '68',
-        inep: '33070768',
-        cnpj: '01.872.287/0001-02',
-        denominação: "EM PRESIDENTE EURICO DUTRA",
-        designação: '04.11.005',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411005@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA', 'PROEC', 'RECURSOS'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '69',
-        inep: '33176892',
-        cnpj: '27.289.067/0001-44',
-        denominação: "EM GENIVAL PEREIRA DE ALBUQUERQUE",
-        designação: '04.30.012',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430012@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '70',
-        inep: '33070512',
-        cnpj: '01.197.181/0001-50',
-        denominação: "EM CONDE DE AGROLONGO",
-        designação: '04.11.006',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411006@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '71',
-        inep: '33070857',
-        cnpj: '02.690.400/0001-00',
-        denominação: "EM SÃO JOÃO BATISTA",
-        designação: '04.31.006',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431006@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA', 'LEITURA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '72',
-        inep: '33070792',
-        cnpj: '01.194.881/0001-91',
-        denominação: "EM PROFESSOR AUGUSTO MOTTA",
-        designação: '04.11.011',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411011@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '73',
-        inep: '33069387',
-        cnpj: '13.898.976/0001-75',
-        denominação: "EDI PIERRE JANET",
-        designação: '04.10.806',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410806@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '74',
-        inep: '33095833',
-        cnpj: '12.586.443/0001-95',
-        denominação: "CM MONTEIRO LOBATO",
-        designação: '04.30.604',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430604@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '75',
-        inep: '33070504',
-        cnpj: '01.859.441/0001-06',
-        denominação: "EDI CARVALHO MOURÃO",
-        designação: '04.31.801',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431801@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '76',
-        inep: '33070695',
-        cnpj: '05.392.564/0001-30',
-        denominação: "EM MINISTRO LAFAYETTE DE ANDRADA",
-        designação: '04.31.014',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431014@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '77',
-        inep: '33070407',
-        cnpj: '01.412.221/0001-30',
-        denominação: "EDI ALFREDO VALLADÃO",
-        designação: '04.31.804',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431804@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '78',
-        inep: '33096520',
-        cnpj: '12.649.139/0001-40',
-        denominação: "CM SEMPRE VIDA DIQUE",
-        designação: '04.31.605',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431605@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '79',
-        inep: '33169500',
-        cnpj: '23.013.482/0001-10',
-        denominação: "EM ESCRITOR LÊDO IVO",
-        designação: '04.30.011',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430011@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '80',
-        inep: '33122822',
-        cnpj: '21.554.317/0001-40',
-        denominação: "CM CARLOS DRUMMOND DE ANDRADE",
-        designação: '04.11.601',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411601@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '81',
-        inep: '33070865',
-        cnpj: '01.285.788/0001-92',
-        denominação: "EM SÃO PAULO",
-        designação: '04.11.028',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411028@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '82',
-        inep: '33096546',
-        cnpj: '12.470.388/0001-73',
-        denominação: "CM CORAÇÃO DE GENEVE",
-        designação: '04.31.604',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431604@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '83',
-        inep: '33167893',
-        cnpj: '21.510.074/0001-48',
-        denominação: "EDI PROFESSORA SOLANGE CONCEIÇÃO TRICARICO",
-        designação: '04.30.805',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430805@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '84',
-        inep: '33179581',
-        cnpj: '31.471.375/0001-63',
-        denominação: "EDI MEDALHISTA OLÍMPICO EDER FRANCIS CARBONERA",
-        designação: '04.30.812',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430812@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '85',
-        inep: '33070709',
-        cnpj: '04.130.541/0001-95',
-        denominação: "EM MINISTRO AFRÂNIO COSTA",
-        designação: '04.11.017',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411017@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '86',
-        inep: '33070822',
-        cnpj: '01.956.704/0001-03',
-        denominação: "EM RAUL PEDERNEIRAS",
-        designação: '04.31.011',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431011@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '87',
-        inep: '33069182',
-        cnpj: '02.808.542/0001-10',
-        denominação: "CENTRO DE EDUCAÇÃO DE JOVENS E ADULTOS - AVENIDA BRASIL",
-        designação: '04.10.701',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410701@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '88',
-        inep: '33068739',
-        cnpj: '01.175.154/0001-87',
-        denominação: "CIEP ELIS REGINA",
-        designação: '04.30.502',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430502@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '89',
-        inep: '33069824',
-        cnpj: '01.878.626/0001-68',
-        denominação: "CIEP MESTRE CARTOLA (AGENOR DE OLIVEIRA)",
-        designação: '04.31.501',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431501@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '90',
-        inep: '33069468',
-        cnpj: '01.197.182/0001-03',
-        denominação: "EM WALT DISNEY",
-        designação: '04.10.008',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410008@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '91',
-        inep: '33144699',
-        cnpj: '12.329.092/0001-37',
-        denominação: "CM LUÍS CARLOS DE OLIVEIRA CÂMARA",
-        designação: '04.31.601',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431601@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '92',
-        inep: '33069271',
-        cnpj: '01.226.403/0001-16',
-        denominação: "EM JOÃO BARBALHO",
-        designação: '04.10.005',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410005@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '93',
-        inep: '33183813',
-        cnpj: '32.065.019/0001-02',
-        denominação: "EM VEREADORA MARIELLE FRANCO",
-        designação: '04.30.020',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430020@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '94',
-        inep: '33160910',
-        cnpj: '17.561.015/0001-21',
-        denominação: "EDI JOAQUIM VENÂNCIO",
-        designação: '04.10.803',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410803@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '95',
-        inep: '33070458',
-        cnpj: '01.235.528/0001-02',
-        denominação: "EM BERNARDO DE VASCONCELLOS",
-        designação: '04.11.002',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411002@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '96',
-        inep: '33070830',
-        cnpj: '01.213.617/0001-58',
-        denominação: "EM REPÚBLICA DO LÍBANO",
-        designação: '04.31.018',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431018@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '97',
-        inep: '33147248',
-        cnpj: '12.468.491/0001-89',
-        denominação: "CM ACAUÃ",
-        designação: '04.31.607',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431607@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '98',
-        inep: '33070652',
-        cnpj: '01.187.789/0001-02',
-        denominação: "EM JOSEPH BLOCH",
-        designação: '04.31.015',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431015@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '99',
-        inep: '33095752',
-        cnpj: '12.449.488/0001-18',
-        denominação: "CM NOVA HOLANDA",
-        designação: '04.30.605',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430605@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '100',
-        inep: '33070873',
-        cnpj: '01.530.851/0001-09',
-        denominação: "EDI SÃO VICENTE",
-        designação: '04.11.809',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411809@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '101',
-        inep: '33070520',
-        cnpj: '01.294.812/0001-50',
-        denominação: "EDI CÔNEGO FERNANDES PINHEIRO",
-        designação: '04.31.805',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431805@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '102',
-        inep: '33179514',
-        cnpj: '31.059.011/0001-70',
-        denominação: "EDI MEDALHISTA OLÍMPICO LUIZ FELIPE MARQUES FONTELES",
-        designação: '04.30.809',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430809@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '103',
-        inep: '33070580',
-        cnpj: '01.205.726/0001-23',
-        denominação: "EM FERNANDO TUDE DE SOUZA",
-        designação: '04.11.013',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411013@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA', 'PROEC', 'RECURSOS'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '104',
-        inep: '33070601',
-        cnpj: '04.494.649/0001-67',
-        denominação: "EM HEITOR BELTRÃO",
-        designação: '04.31.021',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431021@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '105',
-        inep: '33070466',
-        cnpj: '01.918.335/0001-56',
-        denominação: "EM BRANT HORTA",
-        designação: '04.11.010',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411010@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '106',
-        inep: '33069280',
-        cnpj: '01.197.673/0001-46',
-        denominação: "EM JORACY CAMARGO",
-        designação: '04.10.020',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410020@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA', 'ED_FAMILIA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '107',
-        inep: '33170991',
-        cnpj: '23.402.143/0001-25',
-        denominação: "EDI PROFESSOR CARLOS FALSETH",
-        designação: '04.31.802',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431802@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '108',
-        inep: '33069379',
-        cnpj: '04.974.720/0001-09',
-        denominação: "EM PEDRO LESSA",
-        designação: '04.10.004',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410004@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '109',
-        inep: '33069816',
-        cnpj: '01.260.828/0001-41',
-        denominação: "CIEP DEPUTADO JOSÉ CARLOS BRANDÃO MONTEIRO",
-        designação: '04.11.502',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411502@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '110',
-        inep: '33070849',
-        cnpj: '01.529.826/0001-05',
-        denominação: "EM RORAIMA",
-        designação: '04.31.009',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431009@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '111',
-        inep: '33069220',
-        cnpj: '01.859.799/0001-39',
-        denominação: "EM DILERMANDO CRUZ",
-        designação: '04.10.009',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410009@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '112',
-        inep: '33096554',
-        cnpj: '12.518.272/0001-67',
-        denominação: "CM CARACOL",
-        designação: '04.11.605',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411605@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '113',
-        inep: '33068771',
-        cnpj: '03.170.355/0001-17',
-        denominação: "CIEP MINISTRO GUSTAVO CAPANEMA",
-        designação: '04.30.201',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430201@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '114',
-        inep: '33070334',
-        cnpj: '01.197.186/0001-83',
-        denominação: "EM CIENTISTA MÁRIO KROEFF",
-        designação: '04.11.009',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411009@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA', 'LEITURA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '115',
-        inep: '33069140',
-        cnpj: '01.194.306/0001-99',
-        denominação: "EM BERLIM",
-        designação: '04.10.018',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410018@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '116',
-        inep: '33070393',
-        cnpj: '01.275.362/0001-58',
-        denominação: "EM ALFREDO GOMES",
-        designação: '04.31.004',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431004@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '117',
-        inep: '33069239',
-        cnpj: '01.320.115/0001-26',
-        denominação: "EM EDMUNDO LINS",
-        designação: '04.10.011',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410011@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '118',
-        inep: '33069328',
-        cnpj: '05.485.540/0001-26',
-        denominação: "EM NERVAL DE GOUVEIA",
-        designação: '04.10.010',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410010@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA', 'PROEC', 'RECURSOS'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '119',
-        inep: '33176051',
-        cnpj: '26.231.528/0001-65',
-        denominação: "EM ERPÍDIO CABRAL DE SOUZA (ÍNDIO DA MARÉ)",
-        designação: '04.30.015',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430015@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '120',
-        inep: '33070636',
-        cnpj: '01.266.143/0001-02',
-        denominação: "EM JOÃO MARQUES DOS REIS",
-        designação: '04.11.012',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411012@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '121',
-        inep: '33147264',
-        cnpj: '12.558.016/0001-01',
-        denominação: "CM VILA PINHEIRO",
-        designação: '04.30.602',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430602@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '122',
-        inep: '33069298',
-        cnpj: '01.226.405/0001-05',
-        denominação: "EDI LAIS NETTO DOS REIS",
-        designação: '04.10.811',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410811@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '123',
-        inep: '33176043',
-        cnpj: '28.626.726/0001-53',
-        denominação: "EDI MARIA AMÉLIA CASTRO E SILVA BELFORT",
-        designação: '04.30.807',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430807@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '124',
-        inep: '33069247',
-        cnpj: '04.500.463/0001-73',
-        denominação: "EM EMA NEGRÃO DE LIMA",
-        designação: '04.10.001',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410001@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '125',
-        inep: '33144672',
-        cnpj: '12.301.433/0001-66',
-        denominação: "CM TEMPO DE APRENDER",
-        designação: '04.11.602',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411602@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '126',
-        inep: '33068755',
-        cnpj: '05.374.513/0001-86',
-        denominação: "CIEP YURI GAGARIN",
-        designação: '04.10.202',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410202@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA', 'LEITURA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '127',
-        inep: '33164070',
-        cnpj: '17.112.690/0001-73',
-        denominação: "EDI MARIANA ROCHA DE SOUZA",
-        designação: '04.11.801',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411801@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '128',
-        inep: '33070717',
-        cnpj: '01.392.813/0001-37',
-        denominação: "EM MINISTRO PLÍNIO CASADO",
-        designação: '04.11.023',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411023@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '129',
-        inep: '33070440',
-        cnpj: '03.056.773/0001-88',
-        denominação: "EM ARY BARROSO",
-        designação: '04.31.001',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431001@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '130',
-        inep: '33070113',
-        cnpj: '01.432.937/0001-07',
-        denominação: "EM GRÉCIA",
-        designação: '04.11.020',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411020@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '131',
-        inep: '33070733',
-        cnpj: '01.187.790/0001-29',
-        denominação: "EM MONTESE",
-        designação: '04.31.013',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431013@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '132',
-        inep: '33069808',
-        cnpj: '02.034.313/0001-96',
-        denominação: "CIEP GREGÓRIO BEZERRA",
-        designação: '04.11.202',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411202@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '133',
-        inep: '33070474',
-        cnpj: '02.849.204/0001-27',
-        denominação: "EM CRUZADA SÃO SEBASTIÃO",
-        designação: '04.31.016',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431016@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '134',
-        inep: '33070610',
-        cnpj: '02.293.014/0001-76',
-        denominação: "EM HERBERT MOSES",
-        designação: '04.31.026',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431026@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '135',
-        inep: '33144702',
-        cnpj: '12.353.633/0001-62',
-        denominação: "CM MENINO MALUQUINHO",
-        designação: '04.30.601',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430601@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '136',
-        inep: '33070776',
-        cnpj: '03.016.915/0001-83',
-        denominação: "EM PRESIDENTE GRONCHI",
-        designação: '04.31.023',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431023@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '137',
-        inep: '33069174',
-        cnpj: '05.624.227/0001-21',
-        denominação: "EM CHILE",
-        designação: '04.10.016',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410016@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '138',
-        inep: '33147337',
-        cnpj: '12.285.566/0001-96',
-        denominação: "CM MORRO DA PAZ",
-        designação: '04.11.603',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411603@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '139',
-        inep: '33068780',
-        cnpj: '02.702.349/0001-09',
-        denominação: "CIEP OPERÁRIO VICENTE MARIANO",
-        designação: '04.30.204',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430204@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '140',
-        inep: '33070431',
-        cnpj: '01.268.540/0001-13',
-        denominação: "EM ARMANDO FAJARDO",
-        designação: '04.31.010',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431010@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '141',
-        inep: '33070725',
-        cnpj: '03.530.444/0001-27',
-        denominação: "EM MONSENHOR ROCHA",
-        designação: '04.11.001',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411001@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA', 'ED_FAMILIA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '142',
-        inep: '33096503',
-        cnpj: '12.493.499/0001-03',
-        denominação: "CM CHICO MENDES",
-        designação: '04.31.603',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431603@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '143',
-        inep: '33167486',
-        cnpj: '20.061.862/0001-31',
-        denominação: "CENTRO DE EDUCAÇÃO DE JOVENS E ADULTOS CEJA - MARÉ",
-        designação: '04.30.701',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430701@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '144',
-        inep: '33179573',
-        cnpj: '31.538.152/0001-76',
-        denominação: "EDI MEDALHISTA OLÍMPICO EVANDRO MOTTA MARCONDES GUERRA",
-        designação: '04.30.810',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430810@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '145',
-        inep: '33069115',
-        cnpj: '01.376.044/0001-83',
-        denominação: "EM ANIBAL FREIRE",
-        designação: '04.10.025',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410025@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '146',
-        inep: '33070547',
-        cnpj: '02.024.924/0001-53',
-        denominação: "EDI EDMUNDO DA LUZ PINTO",
-        designação: '04.11.805',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411805@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '147',
-        inep: '33163979',
-        cnpj: '17.318.714/0001-45',
-        denominação: "EDI SARGENTO JORGE FALEIRO SOUZA",
-        designação: '04.10.804',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410804@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '148',
-        inep: '33160902',
-        cnpj: '17.571.841/0001-51',
-        denominação: "EDI DOUTOR ANTÔNIO FERNANDES FIGUEIRA",
-        designação: '04.10.802',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410802@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '149',
-        inep: '33179549',
-        cnpj: '31.291.413/0001-04',
-        denominação: "EDI MEDALHISTA OLÍMPICO WILLIAM PEIXOTO ARJONA",
-        designação: '04.30.811',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430811@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '150',
-        inep: '33068747',
-        cnpj: '02.016.546/0001-66',
-        denominação: "CIEP HÉLIO SMIDT",
-        designação: '04.30.206',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430206@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '151',
-        inep: '33179395',
-        cnpj: '31.099.076/0001-40',
-        denominação: "EM ESCRITOR MILLÔR FERNANDES",
-        designação: '04.30.019',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430019@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '152',
-        inep: '33070539',
-        cnpj: '01.878.401/0001-01',
-        denominação: "EM DAVID PEREZ",
-        designação: '04.31.002',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431002@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '153',
-        inep: '33070415',
-        cnpj: '01.959.159/0001-09',
-        denominação: "EM ANDRADE NEVES",
-        designação: '04.31.024',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431024@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA', 'LEITURA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '154',
-        inep: '33164096',
-        cnpj: '17.042.644/0001-45',
-        denominação: "EDI JOEL LUIZ DE AZEVEDO BASTOS",
-        designação: '04.11.802',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411802@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '155',
-        inep: '33096538',
-        cnpj: '12.128.507/0001-04',
-        denominação: "CM CHICO BENTO",
-        designação: '04.10.603',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410603@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '156',
-        inep: '33070814',
-        cnpj: '01.406.223/0001-16',
-        denominação: "EM PROFESSOR SOUZA CARNEIRO",
-        designação: '04.11.008',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411008@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '157',
-        inep: '33175942',
-        cnpj: '28.027.038/0001-77',
-        denominação: "EDI AZOILDA TRINDADE (ZÔ)",
-        designação: '04.30.808',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0430808@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '158',
-        inep: '33070644',
-        cnpj: '01.859.807/0001-47',
-        denominação: "EM JORGE DE GOUVEIA",
-        designação: '04.31.019',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0431019@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA', 'ED_FAMILIA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '159',
-        inep: '33070750',
-        cnpj: '02.485.279/0001-76',
-        denominação: "EDI PIONEIRAS SOCIAIS Nº12",
-        designação: '04.11.808',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0411808@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '160',
-        inep: '33068798',
-        cnpj: '02.894.802/0001-18',
-        denominação: "CIEP JUSCELINO KUBITSCHEK",
-        designação: '04.10.501',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410501@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '161',
-        inep: '33069433',
-        cnpj: '01.856.391/0001-03',
-        denominação: "EM RUY BARBOSA",
-        designação: '04.10.003',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410003@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'ana',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA', 'ED_FAMILIA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '162',
-        inep: '33069301',
-        cnpj: '04.847.415/0001-56',
-        denominação: "EM LUIZ CESAR SAYÃO GARCEZ",
-        designação: '04.10.023',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410023@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'mariana',
-        processoInventario: '',
-        programasIds: ['ADOLESCENCIAS', 'BASIC', 'CONECTADA', 'ED_FAMILIA', 'PROEC'],
-        competenciaInicial: '2026-03'
-    }
-,
-    {
-        id: '163',
-        inep: '33069395',
-        cnpj: '02.820.657/0001-20',
-        denominação: "EM PROFESSORA MARIA DE CERQUEIRA E SILVA",
-        designação: '04.10.026',
-        cre: '4ª CRE',
-        ra: '4ª CRE - Geral',
-        email: 'em0410026@rioeduca.net',
-        diretor: 'Diretor(a) Geral',
-        telefone: '(21) 2222-3333',
-        controladorId: 'carlos',
-        processoInventario: '',
-        programasIds: ['BASIC', 'CONECTADA'],
-        competenciaInicial: '2026-03'
-    }
-
 ];
 
-// Competências de 2026
 const COMPETENCIAS = [
     { key: '2026-01', label: 'Janeiro 2026', bonifPrazo: '2026-02-15' },
     { key: '2026-02', label: 'Fevereiro 2026', bonifPrazo: '2026-03-15' },
@@ -2811,58 +4109,44 @@ const COMPETENCIAS = [
     { key: '2026-12', label: 'Dezembro 2026', bonifPrazo: '2027-01-15' }
 ];
 
-// Configuração Inicial de Bonificações e Análises Técnicas
-// Estrutura: { [escolaId]: { [competencia]: { bonificacao: { extCC: 'Sim', extINV: 'Sim', ... }, analise: { extCC: 'Correto', ... }, resultadoBonif: 'apta' } } }
-const INITIAL_VERIFICACOES = {
-    '1': {
-        '2026-03': {
-            bonificacao: { extCC: 'Sim', extINV: 'Sim', notaFiscal: 'NÃ£o', consAssessoria: 'NÃ£o se aplica', declBBAgil: 'Sim', encampInventario: 'NÃ£o se aplica' },
-            analise: { extCC: 'Correto', extINV: 'Correto', notaFiscal: 'Incorreto', consAssessoria: 'NÃ£o analisado', declBBAgil: 'Correto', encampInventario: 'NÃ£o analisado' },
-            resultadoBonif: 'inapta'
-        }
-    }
-};
+const INITIAL_VERIFICACOES = {};
 
-const INITIAL_PENDENCIAS = [
-    {
-        id: 'p1',
-        escolaId: '1',
-        competencia: '2026-03',
-        item: 'Notas Fiscais',
-        motivo: 'Documento ausente',
-        responsavel: 'Escola',
-        status: 'Aberta',
-        dataAbertura: '2026-04-16',
-        dataResolucao: null,
-        observacao: 'Falta nota fiscal no drive para regularizaÃ§Ã£o.'
-    }
-];
+const INITIAL_PENDENCIAS = [];
 
-const INITIAL_CONTATOS = [
-    {
-        id: 'c1',
-        escolaId: '1',
-        tipo: 'WhatsApp',
-        dataAtendimento: '2026-04-20',
-        dataRegistro: '2026-04-20T10:00:00Z',
-        desc: 'Contato com a direÃ§Ã£o cobrando as Notas Fiscais pendentes de MarÃ§o.',
-        pendenciaId: 'p1'
-    }
-];
+const INITIAL_CONTATOS = [];
 
-const INITIAL_LOGS = [
-    { id: 'l1', usuario: 'Carlos Souza', perfil: 'Controlador', dataHora: '2026-04-16T09:15:00Z', acao: 'Abertura de Pendência', detalhes: 'Pendência p1 aberta para E.M. Amélia Tomás (Março/2026 - Notas Fiscais).' },
-    { id: 'l2', usuario: 'Ana Costa', perfil: 'Controlador', dataHora: '2026-03-18T14:22:00Z', acao: 'Abertura de Pendência', detalhes: 'Pendência p2 aberta para C.M. Marechal Rondon (Fevereiro/2026 - Encaminhamento Inventário).' }
-];
+const INITIAL_LOGS = [];
 
 // Bens de Capital das escolas (para a equipe de Inventário)
 const INITIAL_BENS = [];
 
+const INITIAL_EQUIPE_INVENTARIO = [
+    {
+        "id": "aylane",
+        "name": "Aylane",
+        "email": ""
+    },
+    {
+        "id": "juliana",
+        "name": "Juliana",
+        "email": ""
+    },
+    {
+        "id": "odair",
+        "name": "Odair",
+        "email": ""
+    }
+];
+
+const INITIAL_DATA_VERSION = '2026-07-08-real-cre4-v1';
+
 // Calendário Global configurado pela SME
 const INITIAL_CONFIG = {
-    exercicios: ['2026'],
-    competenciaFechamento: '2026-05', // Mês operacional ativo (Maio/2026)
-    prazoBonificacaoProrrogado: false
+    "exercicios": [
+        "2026"
+    ],
+    "competenciaFechamento": "2026-05",
+    "prazoBonificacaoProrrogado": false
 };
 
 
@@ -2901,6 +4185,25 @@ let activeProntuarioCompetencia = null; // competência selecionada no prontuár
 let notasRegistradas = []; // lista unificada de todas as notas fiscais registradas
 let showSMEConsolidado = false; // toggle para exibir relatório detalhado de itens na visão da SME
 
+const DEFAULT_CONTROLADOR_ID = 'wilson_peixoto';
+const DEFAULT_PROFILE_USERS = {
+    assistente: { name: 'Luísa Ferreira', role: 'Assistente CRE' },
+    sme: { name: 'Valéria dos Anjos', role: 'Gerente 4ª CRE' }
+};
+const RADAR_STORAGE_KEYS = [
+    'radar_pdde_escolas',
+    'radar_pdde_pendencias',
+    'radar_pdde_contatos',
+    'radar_pdde_logs',
+    'radar_pdde_bens',
+    'radar_pdde_verificacoes',
+    'radar_pdde_config',
+    'radar_pdde_programas',
+    'radar_pdde_controladores',
+    'radar_pdde_equipe_inventario',
+    'radar_pdde_notas_registradas'
+];
+
 function normalizeEscolaRecord(record) {
     const denominacao = record.denominação || record.denominacao || record['denominaçao'] || record['denominaÃ§Ã£o'];
     const designacao = record.designação || record.designacao || record['designaçao'] || record['designaÃ§Ã£o'];
@@ -2914,6 +4217,43 @@ function normalizeEscolaRecord(record) {
 
 function normalizeEscolas(records) {
     return (records || []).map(normalizeEscolaRecord);
+}
+
+function seedLocalDataFromInitials() {
+    localStorage.setItem('radar_pdde_escolas', JSON.stringify(INITIAL_ESCOLAS));
+    localStorage.setItem('radar_pdde_pendencias', JSON.stringify(INITIAL_PENDENCIAS));
+    localStorage.setItem('radar_pdde_contatos', JSON.stringify(INITIAL_CONTATOS));
+    localStorage.setItem('radar_pdde_logs', JSON.stringify(INITIAL_LOGS));
+    localStorage.setItem('radar_pdde_bens', JSON.stringify(INITIAL_BENS));
+    localStorage.setItem('radar_pdde_verificacoes', JSON.stringify(INITIAL_VERIFICACOES));
+    localStorage.setItem('radar_pdde_config', JSON.stringify(INITIAL_CONFIG));
+    localStorage.setItem('radar_pdde_programas', JSON.stringify(INITIAL_PROGRAMS));
+    localStorage.setItem('radar_pdde_controladores', JSON.stringify(INITIAL_CONTROLADORES));
+    localStorage.setItem('radar_pdde_equipe_inventario', JSON.stringify(INITIAL_EQUIPE_INVENTARIO));
+    localStorage.setItem('radar_pdde_notas_registradas', JSON.stringify([]));
+    localStorage.setItem('radar_pdde_data_version', INITIAL_DATA_VERSION);
+}
+
+function getDefaultControladorId() {
+    const exists = (controladores.length ? controladores : INITIAL_CONTROLADORES).some(c => c.id === DEFAULT_CONTROLADOR_ID);
+    return exists ? DEFAULT_CONTROLADOR_ID : ((controladores[0] || INITIAL_CONTROLADORES[0] || {}).id || '');
+}
+
+function getDefaultControlador() {
+    const id = getDefaultControladorId();
+    return (controladores.length ? controladores : INITIAL_CONTROLADORES).find(c => c.id === id) || null;
+}
+
+function getCurrentUser() {
+    if (currentProfile === 'controlador') {
+        const controlador = getDefaultControlador();
+        return { name: controlador ? controlador.name : 'Controlador', role: 'Controlador' };
+    }
+    if (currentProfile === 'inventario') {
+        const inventariador = equipeInventario[0] || INITIAL_EQUIPE_INVENTARIO[0];
+        return { name: inventariador ? inventariador.name : 'Equipe de Inventário', role: 'Equipe de Inventário' };
+    }
+    return DEFAULT_PROFILE_USERS[currentProfile] || { name: 'Usuário', role: 'Operação' };
 }
 
 // ==========================================
@@ -3042,10 +4382,6 @@ async function seedDatabaseSupabase() {
     await supabaseClient.from('programas').insert(INITIAL_PROGRAMS);
     await supabaseClient.from('controladores').insert(INITIAL_CONTROLADORES);
     
-    const INITIAL_EQUIPE_INVENTARIO = [
-        { id: 'inv_1', name: 'Jorge Oliveira', email: 'jorge.oliveira@sme.rj.gov.br' },
-        { id: 'inv_2', name: 'Patrícia Souza', email: 'patricia.souza@sme.rj.gov.br' }
-    ];
     await supabaseClient.from('equipe_inventario').insert(INITIAL_EQUIPE_INVENTARIO);
 
     // 2. Inserir Escolas
@@ -3087,28 +4423,10 @@ async function seedDatabaseSupabase() {
 }
 
 function loadLocalFallback() {
-    if (!localStorage.getItem('radar_pdde_escolas')) {
-        localStorage.setItem('radar_pdde_escolas', JSON.stringify(INITIAL_ESCOLAS));
-        localStorage.setItem('radar_pdde_pendencias', JSON.stringify(INITIAL_PENDENCIAS));
-        localStorage.setItem('radar_pdde_contatos', JSON.stringify(INITIAL_CONTATOS));
-        localStorage.setItem('radar_pdde_logs', JSON.stringify(INITIAL_LOGS));
-        localStorage.setItem('radar_pdde_bens', JSON.stringify(INITIAL_BENS));
-        localStorage.setItem('radar_pdde_verificacoes', JSON.stringify(INITIAL_VERIFICACOES));
-        localStorage.setItem('radar_pdde_config', JSON.stringify(INITIAL_CONFIG));
-        localStorage.setItem('radar_pdde_programas', JSON.stringify(INITIAL_PROGRAMS));
-    }
-    if (!localStorage.getItem('radar_pdde_controladores')) {
-        localStorage.setItem('radar_pdde_controladores', JSON.stringify(INITIAL_CONTROLADORES));
-    }
-    if (!localStorage.getItem('radar_pdde_equipe_inventario')) {
-        const INITIAL_EQUIPE_INVENTARIO = [
-            { id: 'inv_1', name: 'Jorge Oliveira', email: 'jorge.oliveira@sme.rj.gov.br' },
-            { id: 'inv_2', name: 'Patrícia Souza', email: 'patricia.souza@sme.rj.gov.br' }
-        ];
-        localStorage.setItem('radar_pdde_equipe_inventario', JSON.stringify(INITIAL_EQUIPE_INVENTARIO));
-    }
-    if (!localStorage.getItem('radar_pdde_notas_registradas')) {
-        localStorage.setItem('radar_pdde_notas_registradas', JSON.stringify([]));
+    const storedVersion = localStorage.getItem('radar_pdde_data_version');
+    if (storedVersion !== INITIAL_DATA_VERSION || !localStorage.getItem('radar_pdde_escolas')) {
+        RADAR_STORAGE_KEYS.forEach(key => localStorage.removeItem(key));
+        seedLocalDataFromInitials();
     }
     
     const storedEscolas = JSON.parse(localStorage.getItem('radar_pdde_escolas'));
@@ -3150,6 +4468,7 @@ function persist(changedTable = null) {
     localStorage.setItem('radar_pdde_controladores', JSON.stringify(controladores));
     localStorage.setItem('radar_pdde_equipe_inventario', JSON.stringify(equipeInventario));
     localStorage.setItem('radar_pdde_notas_registradas', JSON.stringify(notasRegistradas));
+    localStorage.setItem('radar_pdde_data_version', INITIAL_DATA_VERSION);
 
     // 2. Sincronizar com Supabase em segundo plano
     if (supabaseClient) {
@@ -3224,13 +4543,7 @@ async function persistSingleTableSupabase(tableName) {
 }
 
 function registerLog(acao, detalhes) {
-    const userMap = {
-        'controlador': { name: 'Carlos Souza', role: 'Controlador' },
-        'assistente': { name: 'Sandra Pires', role: 'Assistente de Verbas Federais' },
-        'sme': { name: 'Alberto Magno', role: 'SME' },
-        'inventario': { name: 'Jorge Oliveira', role: 'Equipe de Inventário' }
-    };
-    const user = userMap[currentProfile];
+    const user = getCurrentUser();
     const newLog = {
         id: 'log-' + Date.now(),
         usuario: user.name,
@@ -3306,7 +4619,7 @@ function getAlerts() {
 
     // Alerta 3: Se perfil é controlador/assistente, mostrar análises de programa sem bonificação preenchida
     if (currentProfile === 'controlador' || currentProfile === 'assistente') {
-        const targetControlador = currentProfile === 'controlador' ? 'carlos' : null;
+        const targetControlador = currentProfile === 'controlador' ? getDefaultControladorId() : null;
         escolas.forEach(esc => {
             if (!targetControlador || esc.controladorId === targetControlador) {
                 // Verificar se o monitoramento já começou para essa escola nesta competência
@@ -3441,23 +4754,10 @@ function switchProfile(profile) {
     const roleEl = document.getElementById('current-user-role');
     const avatarEl = document.getElementById('current-avatar');
     
-    if (profile === 'controlador') {
-        nameEl.innerText = 'Carlos Souza';
-        roleEl.innerText = 'Controlador';
-        avatarEl.innerText = 'C';
-    } else if (profile === 'assistente') {
-        nameEl.innerText = 'Sandra Pires';
-        roleEl.innerText = 'Assistente CRE';
-        avatarEl.innerText = 'S';
-    } else if (profile === 'sme') {
-        nameEl.innerText = 'Alberto Magno';
-        roleEl.innerText = 'SME';
-        avatarEl.innerText = 'A';
-    } else if (profile === 'inventario') {
-        nameEl.innerText = 'Jorge Oliveira';
-        roleEl.innerText = 'Inventariador';
-        avatarEl.innerText = 'J';
-    }
+    const user = getCurrentUser();
+    nameEl.innerText = user.name;
+    roleEl.innerText = user.role;
+    avatarEl.innerText = user.name.charAt(0).toUpperCase();
 
     // Exibe ou oculta navegação de Parâmetros SME
     const smeGroup = document.getElementById('nav-sme-group');
@@ -3715,10 +5015,13 @@ function renderDashboard() {
 // 7.1 Dashboard do Controlador
 function renderDashboardControlador(container) {
     const filterRa = activeControladorRAFilter;
+    const activeControlador = getDefaultControlador();
+    const activeControladorId = getDefaultControladorId();
+    const activeControladorName = activeControlador ? activeControlador.name : 'Controlador';
     let targetEscolas = [];
     
     if (filterRa === 'carteira') {
-        targetEscolas = escolas.filter(e => e.controladorId === 'carlos');
+        targetEscolas = escolas.filter(e => e.controladorId === activeControladorId);
     } else if (filterRa === 'todas') {
         targetEscolas = escolas;
     } else {
@@ -3727,6 +5030,10 @@ function renderDashboardControlador(container) {
             return partes.length >= 2 && partes[1] === filterRa;
         });
     }
+    const carteiraRAs = [...new Set(escolas
+        .filter(e => e.controladorId === activeControladorId)
+        .map(e => getRAFromDesignacao(e.designação)))];
+    const carteiraRAText = carteiraRAs.length ? carteiraRAs.join(', ') : 'sem R.A. vinculada';
 
     const targetIds = targetEscolas.map(e => e.id);
     
@@ -3776,13 +5083,13 @@ function renderDashboardControlador(container) {
         <div class="page-header">
             <div class="page-title">
                 <h1>Painel do Controlador</h1>
-                <p>Suas R.As designadas: <strong>10ª R.A.</strong> e <strong>11ª R.A.</strong>. Você pode navegar por outras R.As ou pesquisar na CRE.</p>
+                <p>Carteira ativa: <strong>${activeControladorName}</strong>. R.A. vinculada: <strong>${carteiraRAText}</strong>. Você pode navegar por outras R.As ou pesquisar na CRE.</p>
             </div>
             <div class="badge badge-info">Mês Ativo: ${COMPETENCIAS.find(c => c.key === activeCompetenciaKey).label}</div>
         </div>
 
         <div class="tab-container" style="margin-bottom: 20px;">
-            <button class="tab-button ${filterRa === 'carteira' ? 'active' : ''}" onclick="changeControladorRAFilter('carteira')">Minha Carteira (Carlos)</button>
+            <button class="tab-button ${filterRa === 'carteira' ? 'active' : ''}" onclick="changeControladorRAFilter('carteira')">Minha Carteira (${activeControladorName.split(' ')[0]})</button>
             <button class="tab-button ${filterRa === '10' ? 'active' : ''}" onclick="changeControladorRAFilter('10')">10ª R.A.</button>
             <button class="tab-button ${filterRa === '11' ? 'active' : ''}" onclick="changeControladorRAFilter('11')">11ª R.A.</button>
             <button class="tab-button ${filterRa === '30' ? 'active' : ''}" onclick="changeControladorRAFilter('30')">30ª R.A.</button>
@@ -3874,7 +5181,7 @@ function renderDashboardControlador(container) {
                                     const cCount = contatos.filter(c => c.escolaId === e.id).length;
                                     const ctrl = controladores.find(c => c.id === e.controladorId);
                                     
-                                    const ctrlLabel = e.controladorId === 'carlos'
+                                    const ctrlLabel = e.controladorId === activeControladorId
                                         ? `<span class="badge badge-info" style="font-size:0.65rem; padding: 2px 4px; font-weight:500;">Sua Carteira</span>`
                                         : `<span style="font-size:0.75rem; color:var(--text-muted);">Controlador: ${ctrl ? ctrl.name : 'Sem designação'}</span>`;
 
@@ -4678,6 +5985,9 @@ function renderDashboardInventario(container) {
     const aguardando = listBens.filter(b => b.status === 'Encaminhada').length;
     const naoEncamp = listBens.filter(b => b.status === 'Não encaminhada').length;
     const concluido = listBens.filter(b => b.status === 'Inventariada').length;
+    const escolasComProcesso = escolas.filter(e => e.processoInventario);
+    const escolasSemProcesso = escolas.filter(e => !e.processoInventario);
+    const escolasInventario = [...escolas].sort((a, b) => a.designação.localeCompare(b.designação));
 
     let filteredBens = [...listBens];
     if (activeInventarioSubFilter === 'naoEncamp') {
@@ -4725,8 +6035,8 @@ function renderDashboardInventario(container) {
                 <div class="stat-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
                 </div>
-                <div class="stat-label">Total Cadastrado</div>
-                <div class="stat-value">${listBens.length} Aquisições</div>
+                <div class="stat-label">Processos de Inventário</div>
+                <div class="stat-value">${escolasComProcesso.length} Escolas</div>
             </div>
         </div>
 
@@ -4789,6 +6099,46 @@ function renderDashboardInventario(container) {
                                     <td>${esc && esc.processoInventario ? esc.processoInventario : `<span style="color:var(--danger)">Não cadastrado</span>`}</td>
                                     <td>${statusBadge}</td>
                                     <td>${actionBtn}</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel-card" style="margin-top: 20px;">
+            <div class="panel-header">
+                <h2>Processos de Inventário 2026 por Unidade</h2>
+                <span class="badge ${escolasSemProcesso.length === 0 ? 'badge-success' : 'badge-warning'}">${escolasComProcesso.length} com processo / ${escolasSemProcesso.length} pendentes</span>
+            </div>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Unidade Escolar</th>
+                            <th>Designação</th>
+                            <th>SICI</th>
+                            <th>Controlador</th>
+                            <th>Processo Anual</th>
+                            <th>Programas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${escolasInventario.map(esc => {
+                            const ctrl = controladores.find(c => c.id === esc.controladorId);
+                            const progNames = (esc.programasIds || []).map(pid => {
+                                const prog = programas.find(p => p.id === pid);
+                                return prog ? prog.name : pid;
+                            }).join(', ');
+                            return `
+                                <tr>
+                                    <td><strong>${esc.denominação}</strong></td>
+                                    <td>${esc.designação}</td>
+                                    <td>${esc.sici || '<span style="color:var(--text-muted)">Não informado</span>'}</td>
+                                    <td>${ctrl ? ctrl.name : '<span style="color:var(--text-muted)">Não designado</span>'}</td>
+                                    <td>${esc.processoInventario || '<span style="color:var(--danger)">Não cadastrado</span>'}</td>
+                                    <td>${progNames}</td>
                                 </tr>
                             `;
                         }).join('')}
@@ -5158,7 +6508,7 @@ function renderPendencias() {
 
     // Se perfil é controlador, ordenar as dele primeiro (e depois todas as outras)
     if (currentProfile === 'controlador') {
-        const activeCtrlId = 'carlos';
+        const activeCtrlId = getDefaultControladorId();
         const getSortWeight = (p) => {
             const esc = escolas.find(e => e.id === p.escolaId);
             return (esc && esc.controladorId === activeCtrlId) ? 0 : 1;
@@ -5212,7 +6562,7 @@ function renderPendencias() {
                                 const ctrl = esc ? controladores.find(c => c.id === esc.controladorId) : null;
                                 const ctrlName = ctrl ? ctrl.name : 'Não designado';
                                 const desig = esc ? esc.designação : '';
-                                const isMine = (currentProfile === 'controlador' && esc && esc.controladorId === 'carlos');
+                                const isMine = (currentProfile === 'controlador' && esc && esc.controladorId === getDefaultControladorId());
                                 return `
                                     <tr style="${isMine ? 'background-color: rgba(157, 125, 252, 0.05);' : ''}">
                                         <td>
@@ -5266,7 +6616,7 @@ function renderPendencias() {
                                 const ctrl = esc ? controladores.find(c => c.id === esc.controladorId) : null;
                                 const ctrlName = ctrl ? ctrl.name : 'Não designado';
                                 const desig = esc ? esc.designação : '';
-                                const isMine = (currentProfile === 'controlador' && esc && esc.controladorId === 'carlos');
+                                const isMine = (currentProfile === 'controlador' && esc && esc.controladorId === getDefaultControladorId());
                                 return `
                                     <tr style="${isMine ? 'background-color: rgba(157, 125, 252, 0.03);' : ''}">
                                         <td>
@@ -5659,6 +7009,10 @@ function renderProntuario(escolaId) {
                         <div class="info-value">${esc.designação}</div>
                     </div>
                     <div class="info-item">
+                        <div class="info-label">SICI</div>
+                        <div class="info-value">${esc.sici || 'Não informado'}</div>
+                    </div>
+                    <div class="info-item">
                         <div class="info-label">CNPJ</div>
                         <div class="info-value">${esc.cnpj}</div>
                     </div>
@@ -5667,8 +7021,24 @@ function renderProntuario(escolaId) {
                         <div class="info-value">${esc.diretor}</div>
                     </div>
                     <div class="info-item">
-                        <div class="info-label">Telefone</div>
+                        <div class="info-label">Telefone do Diretor(a)</div>
+                        <div class="info-value">${esc.telefoneDiretor || 'Não informado'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Diretor(a) Adjunto(a)</div>
+                        <div class="info-value">${esc.diretorAdjunto || 'Não informado'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Telefone do Adjunto(a)</div>
+                        <div class="info-value">${esc.telefoneDiretorAdjunto || 'Não informado'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Telefone da Unidade</div>
                         <div class="info-value">${esc.telefone}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Celular Institucional</div>
+                        <div class="info-value">${esc.telefoneCelularInstitucional || 'Não informado'}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Coordenadoria / RA</div>
@@ -6827,8 +8197,14 @@ function openEscolaEditModal(escolaId) {
     if (escolaId) {
         const esc = escolas.find(e => e.id === escolaId);
         document.getElementById('edit-escola-id').value = esc.id;
+        document.getElementById('edit-sici').value = esc.sici || '';
+        document.getElementById('edit-email').value = esc.email || '';
         document.getElementById('edit-diretor').value = esc.diretor;
+        document.getElementById('edit-telefone-diretor').value = esc.telefoneDiretor || '';
+        document.getElementById('edit-diretor-adjunto').value = esc.diretorAdjunto || '';
+        document.getElementById('edit-telefone-adjunto').value = esc.telefoneDiretorAdjunto || '';
         document.getElementById('edit-telefone').value = esc.telefone;
+        document.getElementById('edit-celular-institucional').value = esc.telefoneCelularInstitucional || '';
         document.getElementById('edit-controlador').value = esc.controladorId;
         document.getElementById('edit-processo').value = esc.processoInventario;
         
@@ -6850,8 +8226,14 @@ function openEscolaEditModal(escolaId) {
 function saveEscolaEdit(e) {
     e.preventDefault();
     const id = document.getElementById('edit-escola-id').value;
+    const sici = document.getElementById('edit-sici').value.trim();
+    const email = document.getElementById('edit-email').value.trim();
     const diretor = document.getElementById('edit-diretor').value.trim();
+    const telefoneDiretor = document.getElementById('edit-telefone-diretor').value.trim();
+    const diretorAdjunto = document.getElementById('edit-diretor-adjunto').value.trim();
+    const telefoneDiretorAdjunto = document.getElementById('edit-telefone-adjunto').value.trim();
     const tel = document.getElementById('edit-telefone').value.trim();
+    const celularInstitucional = document.getElementById('edit-celular-institucional').value.trim();
     const ctrlId = document.getElementById('edit-controlador').value;
     const processo = document.getElementById('edit-processo').value.trim();
     
@@ -6866,8 +8248,14 @@ function saveEscolaEdit(e) {
         const esc = escolas.find(item => item.id === id);
         if (esc) {
             const oldCtrl = esc.controladorId;
+            esc.sici = sici;
+            esc.email = email;
             esc.diretor = diretor;
+            esc.telefoneDiretor = telefoneDiretor;
+            esc.diretorAdjunto = diretorAdjunto;
+            esc.telefoneDiretorAdjunto = telefoneDiretorAdjunto;
             esc.telefone = tel;
+            esc.telefoneCelularInstitucional = celularInstitucional;
             esc.controladorId = ctrlId;
             esc.processoInventario = processo;
             esc.programasIds = progIds;
@@ -6886,9 +8274,14 @@ function saveEscolaEdit(e) {
             designação: '01.09.' + Math.floor(100 + Math.random() * 900),
             cre: '4ª CRE',
             ra: 'Geral',
-            email: 'nova.escola@rioeduca.net',
+            sici: sici,
+            email: email,
             diretor: diretor,
+            telefoneDiretor: telefoneDiretor,
+            diretorAdjunto: diretorAdjunto,
+            telefoneDiretorAdjunto: telefoneDiretorAdjunto,
             telefone: tel,
+            telefoneCelularInstitucional: celularInstitucional,
             controladorId: ctrlId,
             processoInventario: processo,
             programasIds: progIds,
