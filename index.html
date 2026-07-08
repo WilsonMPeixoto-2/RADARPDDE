@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RADAR PDDE - Registro de Acompanhamento das Demandas, Análises e Regularizações</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app-layout">
+        <!-- Sidebar Principal -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <!-- SVG Logo Radar -->
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    <path d="M2 12h20"></path>
+                </svg>
+                <div>
+                    <span class="logo-text">RADAR PDDE</span>
+                    <span class="logo-sub">Verbas Federais - GAD</span>
+                </div>
+            </div>
+
+            <!-- Navegação -->
+            <div class="nav-group">
+                <span class="nav-label">Operação</span>
+                <div class="nav-item active" id="nav-dashboard" onclick="switchView('dashboard')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+                    <span>Dashboard</span>
+                </div>
+                <div class="nav-item" id="nav-escolas" onclick="switchView('escolas')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"></path></svg>
+                    <span>Escolas / Carteira</span>
+                </div>
+                <div class="nav-item" id="nav-competencias" onclick="switchView('competencias')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <span>Competências</span>
+                </div>
+                <div class="nav-item" id="nav-pendencias" onclick="switchView('pendencias')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    <span>Passivo / Pendências</span>
+                </div>
+                <div class="nav-item" id="nav-equipe" onclick="switchView('equipe')" style="display: none;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    <span>Gestão de Equipe</span>
+                </div>
+            </div>
+
+            <div class="nav-group">
+                <span class="nav-label">Interno</span>
+                <div class="nav-item" id="nav-inventario" onclick="switchView('inventario')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                    <span>Capital & Inventário</span>
+                </div>
+                <div class="nav-item" id="nav-auditoria" onclick="switchView('auditoria')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    <span>Auditoria</span>
+                </div>
+            </div>
+
+            <div class="nav-group" id="nav-sme-group" style="display: none;">
+                <span class="nav-label">Configuração</span>
+                <div class="nav-item" id="nav-sme-config" onclick="switchView('sme-config')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    <span>Parâmetros SME</span>
+                </div>
+            </div>
+
+            <!-- Footer com Perfil Ativo -->
+            <div class="sidebar-footer">
+                <div class="user-badge">
+                    <div class="user-avatar" id="current-avatar">C</div>
+                    <div class="user-info">
+                        <div class="user-name" id="current-user-name">Carlos Souza</div>
+                        <div class="user-role" id="current-user-role">Controlador</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Área Principal de Conteúdo -->
+        <main class="content-area">
+            <!-- Header Superior -->
+            <header class="top-header">
+                <!-- Busca Inteligente -->
+                <div class="search-bar-container">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" class="search-input" id="global-search" placeholder="Busca inteligente (escola, INEP, CNPJ, diretor, processo)..." onkeyup="handleGlobalSearch(event)">
+                </div>
+
+                <div class="header-actions">
+                    <!-- Seletor de Exercício Anual -->
+                    <select class="exercise-selector" id="exercise-select" onchange="changeExercise(this.value)">
+                        <option value="2026">Exercício 2026</option>
+                    </select>
+
+                    <!-- Alternador de Tema (Claro/Escuro) -->
+                    <button class="bell-button" id="theme-toggle-btn" onclick="toggleTheme()" title="Alternar Tema" style="margin-right: 4px;">
+                        <svg id="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                        </svg>
+                    </button>
+
+                    <!-- Alertas -->
+                    <div class="alerts-bell" id="alerts-bell-container">
+                        <button class="bell-button" onclick="toggleAlertsDropdown(event)">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
+                            <span class="bell-badge" id="alerts-count">0</span>
+                        </button>
+                        <div class="alerts-dropdown" id="alerts-dropdown">
+                            <div class="alerts-header">
+                                <span>Alertas de Ação</span>
+                                <span class="badge badge-danger" id="alerts-dropdown-count">0</span>
+                            </div>
+                            <div class="alerts-list" id="alerts-list">
+                                <!-- Preenchido via Javascript -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Seletor de Perfil Simulado (Badge Flutuante) -->
+                    <div class="profile-switcher">
+                        <button class="profile-button" onclick="toggleProfileDropdown(event)">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                            <span id="profile-btn-label">Controlador</span>
+                        </button>
+                        <div class="profile-dropdown" id="profile-dropdown">
+                            <div class="profile-option active" id="prof-opt-controlador" onclick="switchProfile('controlador')">
+                                <span>Controlador</span>
+                            </div>
+                            <div class="profile-option" id="prof-opt-assistente" onclick="switchProfile('assistente')">
+                                <span>Assistente de Verbas Federais</span>
+                            </div>
+                            <div class="profile-option" id="prof-opt-sme" onclick="switchProfile('sme')">
+                                <span>SME (Gestão)</span>
+                            </div>
+                            <div class="profile-option" id="prof-opt-inventario" onclick="switchProfile('inventario')">
+                                <span>Equipe de Inventário</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Container das Páginas -->
+            <div class="page-container" id="main-container">
+                <!-- O conteúdo das páginas será injetado dinamicamente aqui -->
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAIS OPERACIONAIS -->
+
+    <!-- 1. Modal Registrar Contato / Atendimento -->
+    <div class="modal-overlay" id="modal-contato">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Registrar Contato / Atendimento</h3>
+                <button class="btn-close" onclick="closeModal('modal-contato')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-contato" onsubmit="saveContato(event)">
+                    <input type="hidden" id="contato-escola-id">
+                    <div class="form-group">
+                        <label for="contato-tipo">Tipo de Contato</label>
+                        <select class="form-control" id="contato-tipo" required>
+                            <option value="WhatsApp">WhatsApp</option>
+                            <option value="Telefone">Telefone</option>
+                            <option value="E-mail">E-mail</option>
+                            <option value="Atendimento presencial">Atendimento presencial</option>
+                            <option value="Reunião">Reunião</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="contato-data-atendimento">Data do Atendimento</label>
+                            <input type="date" class="form-control" id="contato-data-atendimento" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="contato-pendencia">Vincular a uma Pendência (Opcional)</label>
+                            <select class="form-control" id="contato-pendencia">
+                                <option value="">Nenhuma pendência específica</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="contato-desc">Descrição do Atendimento</label>
+                        <textarea class="form-control" id="contato-desc" placeholder="Descreva os pontos tratados no contato com a escola..." required></textarea>
+                    </div>
+                    <div style="display:none;" id="cobranca-flag-container">
+                        <label class="badge badge-info">
+                            <input type="checkbox" id="cobranca-envio-registro" checked> Registrar como cobrança oficial enviada
+                        </label>
+                    </div>
+                    <div class="modal-footer" style="padding: 16px 0 0 0; background:none;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-contato')">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Registrar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Modal Geração de Cobrança Consolidada -->
+    <div class="modal-overlay" id="modal-cobranca">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Gerar Mensagem de Cobrança</h3>
+                <button class="btn-close" onclick="closeModal('modal-cobranca')">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="cobranca-escola-id">
+                <div class="form-group">
+                    <p style="color:var(--text-muted); margin-bottom: 12px; font-size:0.85rem;">
+                        Selecione as pendências abaixo para incluir na cobrança consolidada. Pendências internas de inventário foram excluídas automaticamente.
+                    </p>
+                    <div id="cobranca-checkboxes-container" style="max-height: 150px; overflow-y:auto; border: 1px solid var(--border-color); padding: 8px; border-radius: 8px; margin-bottom: 16px;">
+                        <!-- Checkboxes injetados -->
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Pré-visualização da Mensagem</label>
+                    <div class="cobranca-preview" id="cobranca-preview-text"></div>
+                </div>
+                <div class="modal-footer" style="padding: 16px 0 0 0; background:none;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-cobranca')">Fechar</button>
+                    <button type="button" class="btn btn-primary" onclick="copyCobrancaText()">Copiar Texto</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Modal Editar Dados Escola / Processo Inventário -->
+    <div class="modal-overlay" id="modal-escola-edit">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Editar Dados da Unidade</h3>
+                <button class="btn-close" onclick="closeModal('modal-escola-edit')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-escola-edit" onsubmit="saveEscolaEdit(event)">
+                    <input type="hidden" id="edit-escola-id">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-diretor">Diretor(a) Geral</label>
+                            <input type="text" class="form-control" id="edit-diretor" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-telefone">Telefone</label>
+                            <input type="text" class="form-control" id="edit-telefone" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-controlador">Controlador Responsável</label>
+                            <select class="form-control" id="edit-controlador">
+                                <!-- Preenchido dinamicamente -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-processo">Processo de Inventário (Exercício)</label>
+                            <input type="text" class="form-control" id="edit-processo" placeholder="Nº Processo Administrativo">
+                        </div>
+                    </div>
+                    <div class="form-group" id="edit-programas-section">
+                        <label>Programas Vinculados no Exercício</label>
+                        <div id="edit-programas-checkboxes" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; max-height: 120px; overflow-y:auto;">
+                            <!-- Checkboxes de programas -->
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="padding: 16px 0 0 0; background:none;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-escola-edit')">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Modal Criar Pendência Manual (Caso especial) -->
+    <div class="modal-overlay" id="modal-nova-pendencia">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Abrir Pendência Manual</h3>
+                <button class="btn-close" onclick="closeModal('modal-nova-pendencia')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-nova-pendencia" onsubmit="saveNovaPendencia(event)">
+                    <input type="hidden" id="pendencia-escola-id">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pend-competencia">Competência de Origem</label>
+                            <select class="form-control" id="pend-competencia" required>
+                                <!-- Competências do exercício -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="pend-item">Item / Documento</label>
+                            <select class="form-control" id="pend-item" required>
+                                <option value="Extrato Conta Corrente">Extrato Conta Corrente</option>
+                                <option value="Extrato Investimento">Extrato Investimento</option>
+                                <option value="Notas Fiscais">Notas Fiscais</option>
+                                <option value="Consulta Assessoria">Consulta Assessoria</option>
+                                <option value="Declaração BB Ágil">Declaração BB Ágil</option>
+                                <option value="Encaminhado para Inventariação">Encaminhamento Inventário</option>
+                                <option value="Outro">Outro item</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pend-motivo">Motivo da Pendência</label>
+                            <select class="form-control" id="pend-motivo" required>
+                                <option value="Documento ausente">Documento ausente</option>
+                                <option value="Documento ilegível">Documento ilegível</option>
+                                <option value="Competência incorreta">Competência incorreta</option>
+                                <option value="Extrato incompleto">Extrato incompleto</option>
+                                <option value="Sem assinatura">Sem assinatura</option>
+                                <option value="Arquivo incompatível">Arquivo incompatível</option>
+                                <option value="Nota Fiscal pendente">Nota Fiscal pendente (Capital)</option>
+                                <option value="Processo de Inventário pendente">Processo de Inventário pendente (Capital)</option>
+                                <option value="Outro">Outro motivo</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="pend-responsavel">Responsável pela Ação</label>
+                            <select class="form-control" id="pend-responsavel" required>
+                                <option value="Escola">Escola (Ação externa)</option>
+                                <option value="Verbas Federais">Verbas Federais (Ação interna)</option>
+                                <option value="Inventário">Equipe de Inventário (Ação interna)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="pend-obs">Observações / Detalhes</label>
+                        <textarea class="form-control" id="pend-obs" placeholder="Descreva detalhadamente o que causou a pendência..." required></textarea>
+                    </div>
+                    <div class="modal-footer" style="padding: 16px 0 0 0; background:none;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-nova-pendencia')">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Criar Pendência</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Modal Confirmar Resolução de Pendência -->
+    <div class="modal-overlay" id="modal-resolver-pendencia">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Confirmar Resolução de Pendência</h3>
+                <button class="btn-close" onclick="closeModal('modal-resolver-pendencia')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-resolver-pendencia" onsubmit="confirmarResolverPendencia(event)">
+                    <input type="hidden" id="resolver-pendencia-id">
+                    <div style="margin-bottom: 16px; font-size: 0.9rem;">
+                        <p>Você está marcando como resolvida a pendência da unidade escolar:</p>
+                        <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); margin: 8px 0; display:flex; flex-direction:column; gap:6px;">
+                            <div><strong>Escola:</strong> <span id="resolver-escola-nome">-</span></div>
+                            <div><strong>Mês de Competência em Aberto:</strong> <span id="resolver-competencia-mes" style="color:var(--primary); font-weight:600;">-</span></div>
+                            <div><strong>Item:</strong> <span id="resolver-item-nome">-</span></div>
+                            <div><strong>Motivo Original:</strong> <span id="resolver-motivo-desc" style="color:var(--danger);">-</span></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="resolver-justificativa">Justificativa / O que foi feito para resolver?</label>
+                        <textarea class="form-control" id="resolver-justificativa" placeholder="O que foi feito para sanar o erro? (ex: Extrato retificado inserido no drive institucional)..." required></textarea>
+                    </div>
+                    <div class="modal-footer" style="padding: 16px 0 0 0; background:none;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-resolver-pendencia')">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Confirmar Resolução</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. Modal Dados de Gasto (Nota Fiscal) -->
+    <div class="modal-overlay" id="modal-dados-nota">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Dados da Nota Fiscal / Despesa</h3>
+                <button class="btn-close" onclick="closeModal('modal-dados-nota')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-dados-nota" onsubmit="salvarDadosNota(event)">
+                    <input type="hidden" id="nota-escola-id">
+                    <input type="hidden" id="nota-comp-key">
+                    <input type="hidden" id="nota-id">
+                    
+                    <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:12px;">
+                        Cadastre o gasto referente a esta Nota Fiscal para que o sistema direcione as obrigações operacionais corretas.
+                    </p>
+
+                    <div class="form-group">
+                        <label for="nota-desc">Descrição do Gasto</label>
+                        <input type="text" class="form-control" id="nota-desc" placeholder="Ex: Ar Condicionado Split, Pintura de Sala, Papelaria..." required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nota-tipo">Tipo de Gasto</label>
+                            <select class="form-control" id="nota-tipo" required>
+                                <option value="consumo">Material de Consumo (Sem exigências extras)</option>
+                                <option value="permanente">Bem Permanente (Inventariado - Equipe de Inventário)</option>
+                                <option value="servico">Prestação de Serviço (Custeio - Requer Assessoria Contábil)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nota-numero">Número da Nota Fiscal</label>
+                            <input type="text" class="form-control" id="nota-numero" placeholder="Ex: NF-12345" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="nota-valor">Valor do Gasto (R$)</label>
+                            <input type="number" step="0.01" class="form-control" id="nota-valor" placeholder="Ex: 1500.00" required>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer" style="padding: 16px 0 0 0; background:none;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-dados-nota')">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Salvar Gasto</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. Modal Inventariação de Bem -->
+    <div class="modal-overlay" id="modal-inventario-confirm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Inventariar Bem Patrimonial</h3>
+                <button class="btn-close" onclick="closeModal('modal-inventario-confirm')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-inventario-confirm" onsubmit="salvarInventariacao(event)">
+                    <input type="hidden" id="inventario-bem-id">
+                    
+                    <div style="background-color: var(--warning-bg); border-left: 4px solid var(--warning); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                        <p style="margin: 0; font-size: 0.85rem; font-weight: 500; color: var(--warning-color, var(--warning));">
+                            Você está registrando o tombamento e inventariação definitiva do bem:
+                        </p>
+                        <p id="inventario-bem-nome" style="margin: 4px 0 0 0; font-size: 0.95rem; font-weight: 600;"></p>
+                        <p id="inventario-bem-escola" style="margin: 2px 0 0 0; font-size: 0.8rem; color: var(--text-muted);"></p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inventario-responsavel">Responsável pela Inventariação</label>
+                        <select class="form-control" id="inventario-responsavel" required></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inventario-observacoes">Observações de Controle</label>
+                        <textarea class="form-control" id="inventario-observacoes" rows="3" placeholder="Insira detalhes como número de tombamento, estado de conservação ou localização física do bem..."></textarea>
+                    </div>
+
+                    <div class="modal-footer" style="padding: 16px 0 0 0; background:none;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-inventario-confirm')">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Confirmar Inventariação</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. Modal de Cadastro/Edição de Controlador -->
+    <div class="modal-overlay" id="modal-controlador-edit">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-controlador-title">Cadastrar Controlador</h3>
+                <button class="btn-close" onclick="closeModal('modal-controlador-edit')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-controlador-edit" onsubmit="salvarControlador(event)">
+                    <input type="hidden" id="controlador-id">
+                    
+                    <div class="form-group">
+                        <label for="controlador-name">Nome Completo</label>
+                        <input type="text" class="form-control" id="controlador-name" required placeholder="Ex: João da Silva">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="controlador-email">E-mail Corporativo</label>
+                        <input type="email" class="form-control" id="controlador-email" required placeholder="Ex: joao.silva@cre.gov.br">
+                    </div>
+
+                    <div class="modal-footer" style="padding: 16px 0 0 0; background:none;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-controlador-edit')">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Salvar Controlador</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 9. Modal de Cadastro/Edição de Integrante de Inventário -->
+    <div class="modal-overlay" id="modal-inventariador-edit">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-inventariador-title">Cadastrar Integrante de Inventário</h3>
+                <button class="btn-close" onclick="closeModal('modal-inventariador-edit')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-inventariador-edit" onsubmit="salvarInventariador(event)">
+                    <input type="hidden" id="inventariador-id">
+                    
+                    <div class="form-group">
+                        <label for="inventariador-name">Nome Completo</label>
+                        <input type="text" class="form-control" id="inventariador-name" required placeholder="Ex: Jorge Oliveira">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inventariador-email">E-mail Corporativo</label>
+                        <input type="email" class="form-control" id="inventariador-email" required placeholder="Ex: jorge.oliveira@sme.rj.gov.br">
+                    </div>
+
+                    <div class="modal-footer" style="padding: 16px 0 0 0; background:none;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-inventariador-edit')">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Salvar Integrante</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Runtime configuration. Leave empty for local-only storage. -->
+    <script src="config.js"></script>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Script Principal -->
+    <script src="app.js"></script>
+</body>
+</html>
