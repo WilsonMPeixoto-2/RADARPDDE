@@ -1106,6 +1106,8 @@ textarea.form-control {
     border-bottom: 1px solid var(--border-color);
     gap: 16px;
     margin-bottom: 20px;
+    overflow-x: auto;
+    overflow-y: hidden;
 }
 
 .tab-button {
@@ -1119,6 +1121,8 @@ textarea.form-control {
     cursor: pointer;
     position: relative;
     transition: var(--transition-fast);
+    white-space: nowrap;
+    flex: 0 0 auto;
 }
 
 .tab-button:hover {
@@ -1253,6 +1257,43 @@ textarea.form-control {
     }
     aside.sidebar {
         display: none; /* Em MVP simplifica, mas ideal ocultar ou hamburguer */
+    }
+    main.content-area {
+        min-width: 0;
+    }
+    header.top-header {
+        padding: 0 12px;
+        gap: 8px;
+    }
+    .search-bar-container {
+        width: 48px;
+        min-width: 48px;
+        flex: 0 0 48px;
+    }
+    .search-input {
+        color: transparent;
+        padding-right: 0;
+    }
+    .search-input:focus {
+        color: var(--text-main);
+    }
+    .header-actions {
+        gap: 8px;
+        min-width: 0;
+    }
+    .profile-button {
+        width: 44px;
+        min-width: 44px;
+        padding: 10px;
+        justify-content: center;
+    }
+    #profile-btn-label {
+        display: none;
+    }
+    .tab-container {
+        gap: 8px;
+        padding-bottom: 4px;
+        scrollbar-width: thin;
     }
 }
 
@@ -1455,6 +1496,5 @@ body.dark-theme .status-dot-out-of-scope {
     border-color: var(--primary);
     box-shadow: 0 0 0 3px var(--primary-glow);
 }
-
 
 
