@@ -1,0 +1,4 @@
+node_modules/
+.vercel/
+.playwright-cli/
+npm-debug.log*
