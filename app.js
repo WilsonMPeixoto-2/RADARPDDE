@@ -6595,20 +6595,20 @@ function renderEscolas() {
                             return `
                                 <tr>
                                     <td>
-                                        <strong>${e.denominação}</strong>
-                                        <br><small style="color:var(--text-muted)">${e.designação} • ${op.ra}</small>
+                                        <strong>${escapeHtml(e.denominação)}</strong>
+                                        <br><small style="color:var(--text-muted)">${escapeHtml(e.designação)} • ${escapeHtml(op.ra)}</small>
                                         <div class="school-program-inline">
                                             ${op.programas.slice(0, 3).map(p => `<span>${escapeHtml(p)}</span>`).join('')}
                                             ${op.programas.length > 3 ? `<span>+${op.programas.length - 3}</span>` : ''}
                                         </div>
                                     </td>
                                     <td>
-                                        <strong>INEP:</strong> ${e.inep}<br>
-                                        <small><strong>CNPJ:</strong> ${e.cnpj}</small><br>
-                                        <small><strong>SICI:</strong> ${e.sici || 'Não informado'}</small>
+                                        <strong>INEP:</strong> ${escapeHtml(e.inep)}<br>
+                                        <small><strong>CNPJ:</strong> ${escapeHtml(e.cnpj)}</small><br>
+                                        <small><strong>SICI:</strong> ${escapeHtml(e.sici || 'Não informado')}</small>
                                     </td>
-                                    <td>${e.diretor}<br><small style="color:var(--text-muted)">${e.telefone}</small></td>
-                                    <td>${op.controladorName}</td>
+                                    <td>${escapeHtml(e.diretor)}<br><small style="color:var(--text-muted)">${escapeHtml(e.telefone)}</small></td>
+                                    <td>${escapeHtml(op.controladorName)}</td>
                                     <td><span class="badge ${statusBadge}">${statusLabel}</span></td>
                                     <td>
                                         <div class="school-operation-stack">
@@ -6619,9 +6619,9 @@ function renderEscolas() {
                                     </td>
                                     <td>
                                         <div class="school-actions-stack">
-                                            <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${e.id}')">Ver Unidade</button>
+                                            <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${escapeHtml(e.id)}')">Ver Unidade</button>
                                             ${currentProfile === 'assistente' || currentProfile === 'controlador' ? `
-                                                <button class="btn btn-secondary btn-sm" onclick="openEscolaEditModal('${e.id}')">Editar</button>
+                                                <button class="btn btn-secondary btn-sm" onclick="openEscolaEditModal('${escapeHtml(e.id)}')">Editar</button>
                                             ` : ''}
                                         </div>
                                     </td>
