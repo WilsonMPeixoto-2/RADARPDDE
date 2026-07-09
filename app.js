@@ -5570,7 +5570,7 @@ function renderDashboardControlador(container) {
 
                 </div>
 
-                <div class="stat-label">Não Analisadas (${activeCompetenciaKey})</div>
+                <div class="stat-label">Não Analisadas (${formatCompetenciaText(activeCompetenciaKey)})</div>
 
                 <div class="stat-value">${escolasNaoAnalisadas.length} Escolas</div>
 
@@ -5598,7 +5598,7 @@ function renderDashboardControlador(container) {
                     <div class="panel-header">
                         <h2 class="dashboard-list-heading">
                             <span>Lista de Escolas - Visualização: ${filterRa === 'carteira' ? 'Minha Carteira' : filterRa === 'todas' ? 'Todas da CRE' : `${filterRa}ª R.A.`}${subFilterLabel}</span>
-                            <span class="dashboard-competencia-pill">Competência vista: ${escapeHtml(activeCompetenciaLabel)} (${escapeHtml(activeCompetenciaKey)})</span>
+                            <span class="dashboard-competencia-pill">Competência vista: ${escapeHtml(formatCompetenciaText(activeCompetenciaKey))}</span>
                         </h2>
                     </div>
                     <div class="table-responsive">
@@ -5608,7 +5608,7 @@ function renderDashboardControlador(container) {
                                     <th>Unidade Escolar</th>
                                     <th>INEP</th>
                                     <th>Contatos</th>
-                                    <th class="bonificacao-competencia-col">Bonificação <span>(${escapeHtml(activeCompetenciaKey)})</span></th>
+                                    <th class="bonificacao-competencia-col">Bonificação <span>(${escapeHtml(formatCompetenciaText(activeCompetenciaKey))})</span></th>
                                     <th>Ações</th>
                                 </tr>
                             </thead>
@@ -5866,14 +5866,14 @@ function renderDashboardAssistente(container) {
                 <div class="stat-icon" style="background-color: var(--success-bg); color: var(--success);">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                 </div>
-                <div class="stat-label">Unidades Aptas (${activeCompetenciaKey})</div>
+                <div class="stat-label">Unidades Aptas (${formatCompetenciaText(activeCompetenciaKey)})</div>
                 <div class="stat-value">${stats.apto} Escolas</div>
             </div>
             <div class="card-stat ${activeAssistenteSubFilter === 'inapto' ? 'active-pendencias' : ''}" style="cursor: pointer;" onclick="changeAssistenteSubFilter('inapto')">
                 <div class="stat-icon" style="background-color: var(--danger-bg); color: var(--danger);">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
                 </div>
-                <div class="stat-label">Unidades Inaptas (${activeCompetenciaKey})</div>
+                <div class="stat-label">Unidades Inaptas (${formatCompetenciaText(activeCompetenciaKey)})</div>
                 <div class="stat-value">${stats.inapto} Escolas</div>
             </div>
             <div class="card-stat ${activeAssistenteSubFilter === 'emAndamento' ? 'active-bens' : ''}" style="cursor: pointer;" onclick="changeAssistenteSubFilter('emAndamento')">
@@ -5906,7 +5906,7 @@ function renderDashboardAssistente(container) {
                                 <tr>
                                     <th>Controlador</th>
                                     <th>Escolas Ativas (Escopo)</th>
-                                    <th>Progresso das Análises (${activeCompetenciaKey})</th>
+                                    <th>Progresso das Análises (${formatCompetenciaText(activeCompetenciaKey)})</th>
                                     <th>Pendências Abertas</th>
                                     <th>Ações</th>
                                 </tr>
@@ -6303,14 +6303,14 @@ function renderDashboardSME(container) {
                 <div class="stat-icon" style="background-color: var(--success-bg); color: var(--success);">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                 </div>
-                <div class="stat-label">Unidades Aptas (${activeCompetenciaKey})</div>
+                <div class="stat-label">Unidades Aptas (${formatCompetenciaText(activeCompetenciaKey)})</div>
                 <div class="stat-value">${stats.apto} Escolas</div>
             </div>
             <div class="card-stat">
                 <div class="stat-icon" style="background-color: var(--danger-bg); color: var(--danger);">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
                 </div>
-                <div class="stat-label">Unidades Inaptas (${activeCompetenciaKey})</div>
+                <div class="stat-label">Unidades Inaptas (${formatCompetenciaText(activeCompetenciaKey)})</div>
                 <div class="stat-value">${stats.inapto} Escolas</div>
             </div>
             <div class="card-stat">
@@ -6341,8 +6341,8 @@ function renderDashboardSME(container) {
                             <tr>
                                 <th>Coordenadoria (CRE)</th>
                                 <th>Total Escolas Ativas</th>
-                                <th>Aptas (${activeCompetenciaKey})</th>
-                                <th>Inaptas (${activeCompetenciaKey})</th>
+                                <th>Aptas (${formatCompetenciaText(activeCompetenciaKey)})</th>
+                                <th>Inaptas (${formatCompetenciaText(activeCompetenciaKey)})</th>
                                 <th>Em Andamento</th>
                                 <th>Não Analisadas</th>
                                 <th>Taxa de Cumprimento (Aptas)</th>
@@ -7456,7 +7456,7 @@ function renderCompetencias() {
 
         <div class="panel-card">
             <div class="panel-header">
-                <h2>Lista de Entrega e Bonificação - Competência ${activeCompetenciaKey}</h2>
+                <h2>Lista de Entrega e Bonificação - Competência ${formatCompetenciaText(activeCompetenciaKey)}</h2>
             </div>
             <div class="table-responsive">
                 <table class="data-table">
@@ -7620,13 +7620,7 @@ function renderPassivoAnterior() {
 // ==========================================
 
 function getFormattedPendencyData(p) {
-    let formattedComp = p.competencia;
-    if (p.competencia && p.competencia.includes('-')) {
-        const parts = p.competencia.split('-');
-        if (parts.length === 2) {
-            formattedComp = `${parts[1]}-${parts[0]}`;
-        }
-    }
+    let formattedComp = formatCompetenciaText(p.competencia);
     
     const progMap = {
         'BASIC': 'PDDE Básico',
@@ -8431,7 +8425,7 @@ function renderProntuario(escolaId) {
                                         return `
                                             <tr>
                                                 <td><strong>${escapeHtml(b.item)}</strong></td>
-                                                <td>${escapeHtml(b.competencia)}</td>
+                                                <td>${escapeHtml(formatCompetenciaText(b.competencia))}</td>
                                                 <td>R$ ${b.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                                                 <td>
                                                     <input type="text" class="form-control" style="width:110px; font-size:0.75rem; padding:4px;" value="${escapeHtml(b.notaFiscal)}" onchange="updateCapitalDoc('${escapeHtml(b.id)}', 'notaFiscal', this.value)" placeholder="NF-XXXX" ${currentProfile === 'inventario' || currentProfile === 'sme' ? 'disabled' : ''}>
@@ -9627,16 +9621,17 @@ function openCobrancaModal(escolaId) {
 function formatCompetenciaText(key) {
     if (!key) return '';
     const parts = key.split('_');
-    const compParts = parts[0].split('-');
-    const formattedComp = compParts.length === 2 ? `${compParts[1]}-${compParts[0]}` : parts[0];
+    const baseKey = parts[0];
+    const comp = COMPETENCIAS.find(c => c.key === baseKey);
+    const label = comp ? comp.label.replace(' ', '/') : baseKey;
     
     if (parts.length === 2) {
         const progId = parts[1];
         const prog = programas.find(p => p.id === progId);
         const progName = prog ? prog.name : progId;
-        return `${formattedComp} ${progName}`;
+        return `${label} - ${progName}`;
     }
-    return formattedComp;
+    return label;
 }
 
 function formatTextCobranca(text) {
