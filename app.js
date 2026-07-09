@@ -5237,71 +5237,37 @@ function schoolMatchesSearch(esc, rawQuery) {
 
 
 
-    const digitsQuery = onlyDigits(rawQuery);
-
-    const op = getEscolaOperationalData(esc);
-
-    const textFields = [
+    const textCorpus = normalizeSearchText([
 
         esc.denominação,
 
-        esc.designação,
+        esc.designação
 
-        esc.inep,
+    ].filter(Boolean).join(' '));
 
-        esc.cnpj,
+    const designationDigits = onlyDigits(esc.designação);
 
-        esc.sici,
+    const tokens = cleanQuery
 
-        esc.diretor,
+        .replace(/[^a-z0-9]+/g, ' ')
 
-        esc.diretorAdjunto,
+        .split(/\s+/)
 
-        esc.email,
-
-        esc.telefone,
-
-        op.controladorName,
-
-        op.processoInventario,
-
-        op.ra,
-
-        ...op.programas
-
-    ];
-
-    const textCorpus = normalizeSearchText(textFields.filter(Boolean).join(' '));
+        .filter(Boolean);
 
 
 
-    const digitFields = [
-
-        esc.designação,
-
-        esc.inep,
-
-        esc.cnpj,
-
-        esc.sici,
-
-        esc.telefone,
-
-        esc.telefoneDiretor,
-
-        esc.telefoneDiretorAdjunto,
-
-        esc.telefoneCelularInstitucional,
-
-        op.processoInventario
-
-    ];
-
-    const digitCorpus = digitFields.map(onlyDigits).filter(Boolean).join(' ');
+    if (tokens.length === 0) return true;
 
 
 
-    return textCorpus.includes(cleanQuery) || (digitsQuery.length > 0 && digitCorpus.includes(digitsQuery));
+    return tokens.every(token => {
+
+        const tokenDigits = onlyDigits(token);
+
+        return textCorpus.includes(token) || (tokenDigits.length > 0 && designationDigits.includes(tokenDigits));
+
+    });
 
 }
 
@@ -5367,6 +5333,8 @@ function handleGlobalSearch(e) {
     escolaSearchQuery = e.target.value || '';
 
     searchResultFiltered = null;
+
+    activeEscolaFilters = { ...DEFAULT_ESCOLA_FILTERS };
 
 
     if (currentView !== 'escolas') {
@@ -7026,7 +6994,11 @@ function renderEscolas() {
 
     const inventarioCount = targetEscolas.filter(e => getEscolaOperationalData(e).hasInventarioProcess).length;
 
-    const activeFiltersCount = Object.keys(activeEscolaFilters).filter(key => activeEscolaFilters[key] !== DEFAULT_ESCOLA_FILTERS[key]).length + (escolaSearchQuery.trim() ? 1 : 0);
+    const activeSearchTerm = escolaSearchQuery.trim();
+
+    const activeFilterOnlyCount = Object.keys(activeEscolaFilters).filter(key => activeEscolaFilters[key] !== DEFAULT_ESCOLA_FILTERS[key]).length;
+
+    const activeFiltersCount = activeFilterOnlyCount + (activeSearchTerm ? 1 : 0);
 
 
 
@@ -7065,7 +7037,7 @@ function renderEscolas() {
 
                     <h2>Busca e filtros da carteira</h2>
 
-                    <p>Pesquise por designação, unidade, INEP, CNPJ, SICI, diretor, controlador, programa ou processo.</p>
+                    <p>Pesquise pelo nome da unidade escolar ou pela designação.</p>
 
                 </div>
 
@@ -7081,7 +7053,7 @@ function renderEscolas() {
 
                     <label for="escola-search-input">Busca</label>
 
-                    <input type="text" id="escola-search-input" class="form-control" value="${escapeHtml(escolaSearchQuery)}" placeholder="Ex.: 04.10.001, INEP, CNPJ, diretor, Érica, PDDE Básico..." oninput="updateEscolasSearch(this.value)">
+                    <input type="text" id="escola-search-input" class="form-control" value="${escapeHtml(escolaSearchQuery)}" placeholder="Ex.: EM Roraima, Roraima, 04.10.001 ou 0410001" oninput="updateEscolasSearch(this.value)">
 
                 </div>
 
@@ -7213,6 +7185,8 @@ function renderEscolas() {
 
                 <span><strong>${targetEscolas.length}</strong> de ${escolas.length} escolas exibidas</span>
 
+                ${activeSearchTerm ? `<span>Busca ativa: "${escapeHtml(activeSearchTerm)}"</span>` : ''}
+
                 <span>${pendenciasCount} com pendências abertas</span>
 
                 <span>${inventarioCount} com processo de inventário</span>
@@ -7277,9 +7251,9 @@ function renderEscolas() {
 
                                         <div class="empty-state-icon">⌕</div>
 
-                                        <strong>Nenhuma escola encontrada</strong>
+                                        <strong>${activeSearchTerm ? `Nenhuma escola encontrada para "${escapeHtml(activeSearchTerm)}"` : 'Nenhuma escola encontrada'}</strong>
 
-                                        <span>Ajuste a busca ou limpe os filtros para ampliar o resultado.</span>
+                                        <span>${activeSearchTerm && activeFilterOnlyCount === 0 ? 'Busque pelo nome da unidade escolar ou pela designação.' : 'Ajuste a busca ou limpe os filtros para ampliar o resultado.'}</span>
 
                                     </div>
 
