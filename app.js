@@ -5586,7 +5586,7 @@ function renderDashboardControlador(container) {
                                             }
                                         }
                                         statusHTML += `<div style="margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-                                            <span style="font-size:0.75rem; font-weight:500; color:var(--text-muted);">${progName}:</span>
+                                            <span style="font-size:0.75rem; font-weight:500; color:var(--text-muted);">${escapeHtml(progName)}:</span>
                                             ${progBadge}
                                         </div>`;
                                     });
