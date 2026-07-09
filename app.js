@@ -1,7 +1,7 @@
 // RADAR PDDE - Lógica Operacional e Gerenciamento de Estado (MVP)
 
 // ==========================================
-// 1. DADOS INICIAIS DA PLANILHA 4ª CRE
+// 1. DADOS INICIAIS DA PLANILHA 4ª CRE
 // ==========================================
 
 const INITIAL_PROGRAMS = [
@@ -55,7 +55,7 @@ const INITIAL_CONTROLADORES = [
     },
     {
         "id": "alzira_de_souza",
-        "name": "Alzira de Souza",
+        "name": "Alzira de Souza",
         "email": ""
     },
     {
@@ -65,7 +65,7 @@ const INITIAL_CONTROLADORES = [
     },
     {
         "id": "monica_chagas",
-        "name": "Mônica Chagas",
+        "name": "Mônica Chagas",
         "email": ""
     },
     {
@@ -75,7 +75,7 @@ const INITIAL_CONTROLADORES = [
     }
 ];
 
-const INITIAL_ESCOLAS = [
+const INITIAL_ESCOLAS = [
     {
         "id": "04.10.001",
         "denominação": "Escola Municipal Ema Negrão de Lima",
@@ -4091,26 +4091,26 @@ const INITIAL_ESCOLAS = [
             "CONECTADA"
         ],
         "competenciaInicial": "2026-01"
-    }
-];
+    }
+];
 
-const COMPETENCIAS = [
-    { key: '2026-01', label: 'Janeiro 2026', bonifPrazo: '2026-02-15' },
-    { key: '2026-02', label: 'Fevereiro 2026', bonifPrazo: '2026-03-15' },
-    { key: '2026-03', label: 'Março 2026', bonifPrazo: '2026-04-15' },
-    { key: '2026-04', label: 'Abril 2026', bonifPrazo: '2026-05-15' },
-    { key: '2026-05', label: 'Maio 2026', bonifPrazo: '2026-06-15' },
-    { key: '2026-06', label: 'Junho 2026', bonifPrazo: '2026-07-15' },
-    { key: '2026-07', label: 'Julho 2026', bonifPrazo: '2026-08-15' },
-    { key: '2026-08', label: 'Agosto 2026', bonifPrazo: '2026-09-15' },
-    { key: '2026-09', label: 'Setembro 2026', bonifPrazo: '2026-10-15' },
-    { key: '2026-10', label: 'Outubro 2026', bonifPrazo: '2026-11-15' },
-    { key: '2026-11', label: 'Novembro 2026', bonifPrazo: '2026-12-15' },
-    { key: '2026-12', label: 'Dezembro 2026', bonifPrazo: '2027-01-15' }
-];
-
-const INITIAL_VERIFICACOES = {};
-
+const COMPETENCIAS = [
+    { key: '2026-01', label: 'Janeiro 2026', bonifPrazo: '2026-02-15' },
+    { key: '2026-02', label: 'Fevereiro 2026', bonifPrazo: '2026-03-15' },
+    { key: '2026-03', label: 'Março 2026', bonifPrazo: '2026-04-15' },
+    { key: '2026-04', label: 'Abril 2026', bonifPrazo: '2026-05-15' },
+    { key: '2026-05', label: 'Maio 2026', bonifPrazo: '2026-06-15' },
+    { key: '2026-06', label: 'Junho 2026', bonifPrazo: '2026-07-15' },
+    { key: '2026-07', label: 'Julho 2026', bonifPrazo: '2026-08-15' },
+    { key: '2026-08', label: 'Agosto 2026', bonifPrazo: '2026-09-15' },
+    { key: '2026-09', label: 'Setembro 2026', bonifPrazo: '2026-10-15' },
+    { key: '2026-10', label: 'Outubro 2026', bonifPrazo: '2026-11-15' },
+    { key: '2026-11', label: 'Novembro 2026', bonifPrazo: '2026-12-15' },
+    { key: '2026-12', label: 'Dezembro 2026', bonifPrazo: '2027-01-15' }
+];
+
+const INITIAL_VERIFICACOES = {};
+
 const INITIAL_PENDENCIAS = [];
 
 const INITIAL_CONTATOS = [];
@@ -4168,21 +4168,21 @@ let activeEquipeTab = 'controladores'; // controladores, inventario
 
 let currentProfile = 'controlador'; // controlador, assistente, sme, inventario
 let currentExercise = '2026';
-let currentView = 'dashboard'; // dashboard, escolas, competencias, pendencias, inventario, auditoria, sme-config
-let activeSchoolId = null; // ID da escola em exibição no prontuário
-let activeCompetenciaKey = '2026-05'; // Competência selecionada na visão por competência
-let searchResultFiltered = null; // Mantido por compatibilidade; a carteira usa escolaSearchQuery + activeEscolaFilters
-let escolaSearchQuery = '';
-const DEFAULT_ESCOLA_FILTERS = Object.freeze({
-    controlador: 'all',
-    programa: 'all',
-    situacao: 'all',
-    pendencias: 'all',
-    inventario: 'all',
-    ra: 'all'
-});
-let activeEscolaFilters = { ...DEFAULT_ESCOLA_FILTERS };
-let activeControladorRAFilter = 'carteira'; // carteira, todas, 10, 11, 30, 31
+let currentView = 'dashboard'; // dashboard, escolas, competencias, pendencias, inventario, auditoria, sme-config
+let activeSchoolId = null; // ID da escola em exibição no prontuário
+let activeCompetenciaKey = '2026-05'; // Competência selecionada na visão por competência
+let searchResultFiltered = null; // Mantido por compatibilidade; a carteira usa escolaSearchQuery + activeEscolaFilters
+let escolaSearchQuery = '';
+const DEFAULT_ESCOLA_FILTERS = Object.freeze({
+    controlador: 'all',
+    programa: 'all',
+    situacao: 'all',
+    pendencias: 'all',
+    inventario: 'all',
+    ra: 'all'
+});
+let activeEscolaFilters = { ...DEFAULT_ESCOLA_FILTERS };
+let activeControladorRAFilter = 'carteira'; // carteira, todas, 10, 11, 30, 31
 let expandedControllerId = null; // ID do controlador expandido na tabela do assistente
 let activeControladorSubFilter = 'all'; // all, naoAnalisadas, pendencias, bens
 let activeInventarioSubFilter = 'all'; // all, naoEncamp, aguardando, concluido
@@ -4191,30 +4191,30 @@ let activeAssistenteControllerFilter = 'all'; // all, or controllerId
 let activeAssistenteRAFilter = 'all'; // all, or RA string
 let activeAssistenteSearchQuery = ''; // persistent search query
 let activeSMECreFilter = null; // null or CRE name (e.g. '4ª CRE')
-let activeProntuarioCompetencia = null; // competência selecionada no prontuário da escola
-let notasRegistradas = []; // lista unificada de todas as notas fiscais registradas
-let showSMEConsolidado = false; // toggle para exibir relatório detalhado de itens na visão da SME
-
-const DEFAULT_CONTROLADOR_ID = 'wilson_peixoto';
-const DEFAULT_PROFILE_USERS = {
-    assistente: { name: 'Luísa Ferreira', role: 'Assistente CRE' },
-    sme: { name: 'Valéria dos Anjos', role: 'Gerente 4ª CRE' }
-};
-const RADAR_STORAGE_KEYS = [
-    'radar_pdde_escolas',
-    'radar_pdde_pendencias',
-    'radar_pdde_contatos',
-    'radar_pdde_logs',
-    'radar_pdde_bens',
-    'radar_pdde_verificacoes',
-    'radar_pdde_config',
-    'radar_pdde_programas',
-    'radar_pdde_controladores',
-    'radar_pdde_equipe_inventario',
-    'radar_pdde_notas_registradas'
-];
-
-function normalizeEscolaRecord(record) {
+let activeProntuarioCompetencia = null; // competência selecionada no prontuário da escola
+let notasRegistradas = []; // lista unificada de todas as notas fiscais registradas
+let showSMEConsolidado = false; // toggle para exibir relatório detalhado de itens na visão da SME
+
+const DEFAULT_CONTROLADOR_ID = 'wilson_peixoto';
+const DEFAULT_PROFILE_USERS = {
+    assistente: { name: 'Luísa Ferreira', role: 'Assistente CRE' },
+    sme: { name: 'Valéria dos Anjos', role: 'Gerente 4ª CRE' }
+};
+const RADAR_STORAGE_KEYS = [
+    'radar_pdde_escolas',
+    'radar_pdde_pendencias',
+    'radar_pdde_contatos',
+    'radar_pdde_logs',
+    'radar_pdde_bens',
+    'radar_pdde_verificacoes',
+    'radar_pdde_config',
+    'radar_pdde_programas',
+    'radar_pdde_controladores',
+    'radar_pdde_equipe_inventario',
+    'radar_pdde_notas_registradas'
+];
+
+function normalizeEscolaRecord(record) {
     const denominacao = record.denominação || record.denominacao || record['denominaçao'] || record['denominaÃ§Ã£o'];
     const designacao = record.designação || record.designacao || record['designaçao'] || record['designaÃ§Ã£o'];
 
@@ -4225,47 +4225,47 @@ function normalizeEscolaRecord(record) {
     };
 }
 
-function normalizeEscolas(records) {
-    return (records || []).map(normalizeEscolaRecord);
-}
+function normalizeEscolas(records) {
+    return (records || []).map(normalizeEscolaRecord);
+}
 
-function seedLocalDataFromInitials() {
-    localStorage.setItem('radar_pdde_escolas', JSON.stringify(INITIAL_ESCOLAS));
-    localStorage.setItem('radar_pdde_pendencias', JSON.stringify(INITIAL_PENDENCIAS));
-    localStorage.setItem('radar_pdde_contatos', JSON.stringify(INITIAL_CONTATOS));
-    localStorage.setItem('radar_pdde_logs', JSON.stringify(INITIAL_LOGS));
-    localStorage.setItem('radar_pdde_bens', JSON.stringify(INITIAL_BENS));
-    localStorage.setItem('radar_pdde_verificacoes', JSON.stringify(INITIAL_VERIFICACOES));
-    localStorage.setItem('radar_pdde_config', JSON.stringify(INITIAL_CONFIG));
-    localStorage.setItem('radar_pdde_programas', JSON.stringify(INITIAL_PROGRAMS));
-    localStorage.setItem('radar_pdde_controladores', JSON.stringify(INITIAL_CONTROLADORES));
-    localStorage.setItem('radar_pdde_equipe_inventario', JSON.stringify(INITIAL_EQUIPE_INVENTARIO));
-    localStorage.setItem('radar_pdde_notas_registradas', JSON.stringify([]));
-    localStorage.setItem('radar_pdde_data_version', INITIAL_DATA_VERSION);
-}
-
-function getDefaultControladorId() {
-    const exists = (controladores.length ? controladores : INITIAL_CONTROLADORES).some(c => c.id === DEFAULT_CONTROLADOR_ID);
-    return exists ? DEFAULT_CONTROLADOR_ID : ((controladores[0] || INITIAL_CONTROLADORES[0] || {}).id || '');
-}
-
-function getDefaultControlador() {
-    const id = getDefaultControladorId();
-    return (controladores.length ? controladores : INITIAL_CONTROLADORES).find(c => c.id === id) || null;
-}
-
-function getCurrentUser() {
-    if (currentProfile === 'controlador') {
-        const controlador = getDefaultControlador();
-        return { name: controlador ? controlador.name : 'Controlador', role: 'Controlador' };
-    }
-    if (currentProfile === 'inventario') {
-        const inventariador = equipeInventario[0] || INITIAL_EQUIPE_INVENTARIO[0];
-        return { name: inventariador ? inventariador.name : 'Equipe de Inventário', role: 'Equipe de Inventário' };
-    }
-    return DEFAULT_PROFILE_USERS[currentProfile] || { name: 'Usuário', role: 'Operação' };
-}
-
+function seedLocalDataFromInitials() {
+    localStorage.setItem('radar_pdde_escolas', JSON.stringify(INITIAL_ESCOLAS));
+    localStorage.setItem('radar_pdde_pendencias', JSON.stringify(INITIAL_PENDENCIAS));
+    localStorage.setItem('radar_pdde_contatos', JSON.stringify(INITIAL_CONTATOS));
+    localStorage.setItem('radar_pdde_logs', JSON.stringify(INITIAL_LOGS));
+    localStorage.setItem('radar_pdde_bens', JSON.stringify(INITIAL_BENS));
+    localStorage.setItem('radar_pdde_verificacoes', JSON.stringify(INITIAL_VERIFICACOES));
+    localStorage.setItem('radar_pdde_config', JSON.stringify(INITIAL_CONFIG));
+    localStorage.setItem('radar_pdde_programas', JSON.stringify(INITIAL_PROGRAMS));
+    localStorage.setItem('radar_pdde_controladores', JSON.stringify(INITIAL_CONTROLADORES));
+    localStorage.setItem('radar_pdde_equipe_inventario', JSON.stringify(INITIAL_EQUIPE_INVENTARIO));
+    localStorage.setItem('radar_pdde_notas_registradas', JSON.stringify([]));
+    localStorage.setItem('radar_pdde_data_version', INITIAL_DATA_VERSION);
+}
+
+function getDefaultControladorId() {
+    const exists = (controladores.length ? controladores : INITIAL_CONTROLADORES).some(c => c.id === DEFAULT_CONTROLADOR_ID);
+    return exists ? DEFAULT_CONTROLADOR_ID : ((controladores[0] || INITIAL_CONTROLADORES[0] || {}).id || '');
+}
+
+function getDefaultControlador() {
+    const id = getDefaultControladorId();
+    return (controladores.length ? controladores : INITIAL_CONTROLADORES).find(c => c.id === id) || null;
+}
+
+function getCurrentUser() {
+    if (currentProfile === 'controlador') {
+        const controlador = getDefaultControlador();
+        return { name: controlador ? controlador.name : 'Controlador', role: 'Controlador' };
+    }
+    if (currentProfile === 'inventario') {
+        const inventariador = equipeInventario[0] || INITIAL_EQUIPE_INVENTARIO[0];
+        return { name: inventariador ? inventariador.name : 'Equipe de Inventário', role: 'Equipe de Inventário' };
+    }
+    return DEFAULT_PROFILE_USERS[currentProfile] || { name: 'Usuário', role: 'Operação' };
+}
+
 // ==========================================
 // SUPABASE CLIENT INITIALIZATION
 // ==========================================
@@ -4392,7 +4392,7 @@ async function seedDatabaseSupabase() {
     await supabaseClient.from('programas').insert(INITIAL_PROGRAMS);
     await supabaseClient.from('controladores').insert(INITIAL_CONTROLADORES);
     
-    await supabaseClient.from('equipe_inventario').insert(INITIAL_EQUIPE_INVENTARIO);
+    await supabaseClient.from('equipe_inventario').insert(INITIAL_EQUIPE_INVENTARIO);
 
     // 2. Inserir Escolas
     await supabaseClient.from('escolas').insert(INITIAL_ESCOLAS);
@@ -4432,12 +4432,12 @@ async function seedDatabaseSupabase() {
     }
 }
 
-function loadLocalFallback() {
-    const storedVersion = localStorage.getItem('radar_pdde_data_version');
-    if (storedVersion !== INITIAL_DATA_VERSION || !localStorage.getItem('radar_pdde_escolas')) {
-        RADAR_STORAGE_KEYS.forEach(key => localStorage.removeItem(key));
-        seedLocalDataFromInitials();
-    }
+function loadLocalFallback() {
+    const storedVersion = localStorage.getItem('radar_pdde_data_version');
+    if (storedVersion !== INITIAL_DATA_VERSION || !localStorage.getItem('radar_pdde_escolas')) {
+        RADAR_STORAGE_KEYS.forEach(key => localStorage.removeItem(key));
+        seedLocalDataFromInitials();
+    }
     
     const storedEscolas = JSON.parse(localStorage.getItem('radar_pdde_escolas'));
     escolas = normalizeEscolas(storedEscolas);
@@ -4475,10 +4475,10 @@ function persist(changedTable = null) {
     localStorage.setItem('radar_pdde_verificacoes', JSON.stringify(verificacoes));
     localStorage.setItem('radar_pdde_config', JSON.stringify(config));
     localStorage.setItem('radar_pdde_programas', JSON.stringify(programas));
-    localStorage.setItem('radar_pdde_controladores', JSON.stringify(controladores));
-    localStorage.setItem('radar_pdde_equipe_inventario', JSON.stringify(equipeInventario));
-    localStorage.setItem('radar_pdde_notas_registradas', JSON.stringify(notasRegistradas));
-    localStorage.setItem('radar_pdde_data_version', INITIAL_DATA_VERSION);
+    localStorage.setItem('radar_pdde_controladores', JSON.stringify(controladores));
+    localStorage.setItem('radar_pdde_equipe_inventario', JSON.stringify(equipeInventario));
+    localStorage.setItem('radar_pdde_notas_registradas', JSON.stringify(notasRegistradas));
+    localStorage.setItem('radar_pdde_data_version', INITIAL_DATA_VERSION);
 
     // 2. Sincronizar com Supabase em segundo plano
     if (supabaseClient) {
@@ -4552,8 +4552,8 @@ async function persistSingleTableSupabase(tableName) {
     }
 }
 
-function registerLog(acao, detalhes) {
-    const user = getCurrentUser();
+function registerLog(acao, detalhes) {
+    const user = getCurrentUser();
     const newLog = {
         id: 'log-' + Date.now(),
         usuario: user.name,
@@ -4629,7 +4629,7 @@ function getAlerts() {
 
     // Alerta 3: Se perfil é controlador/assistente, mostrar análises de programa sem bonificação preenchida
     if (currentProfile === 'controlador' || currentProfile === 'assistente') {
-        const targetControlador = currentProfile === 'controlador' ? getDefaultControladorId() : null;
+        const targetControlador = currentProfile === 'controlador' ? getDefaultControladorId() : null;
         escolas.forEach(esc => {
             if (!targetControlador || esc.controladorId === targetControlador) {
                 // Verificar se o monitoramento já começou para essa escola nesta competência
@@ -4764,10 +4764,10 @@ function switchProfile(profile) {
     const roleEl = document.getElementById('current-user-role');
     const avatarEl = document.getElementById('current-avatar');
     
-    const user = getCurrentUser();
-    nameEl.innerText = user.name;
-    roleEl.innerText = user.role;
-    avatarEl.innerText = user.name.charAt(0).toUpperCase();
+    const user = getCurrentUser();
+    nameEl.innerText = user.name;
+    roleEl.innerText = user.role;
+    avatarEl.innerText = user.name.charAt(0).toUpperCase();
 
     // Exibe ou oculta navegação de Parâmetros SME
     const smeGroup = document.getElementById('nav-sme-group');
@@ -4964,151 +4964,151 @@ function getEscolasStats(escolasList, compKey) {
 }
 
 
-// ==========================================
-// 6. BUSCA INTELIGENTE GLOBAL
-// ==========================================
-
-function normalizeSearchText(value) {
-    return String(value || '')
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .trim();
-}
-
-function onlyDigits(value) {
-    return String(value || '').replace(/\D/g, '');
-}
-
-function escapeHtml(value) {
-    return String(value || '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-}
-
-function selectedAttr(current, expected) {
-    return current === expected ? 'selected' : '';
-}
-
-function getControladorName(controladorId) {
-    const ctrl = controladores.find(c => c.id === controladorId);
-    return ctrl ? ctrl.name : 'Não designado';
-}
-
-function getEscolaProgramNames(esc) {
-    return (esc.programasIds || []).map(progId => {
-        const programa = programas.find(p => p.id === progId);
-        return programa ? programa.name : progId;
-    }).filter(Boolean);
-}
-
-function getEscolaOperationalData(esc) {
-    const pendenciasAbertas = pendencias.filter(p => p.escolaId === esc.id && p.status === 'Aberta');
-    const escolaBens = bens.filter(b => b.escolaId === esc.id);
-    const bensNaoEncaminhados = escolaBens.filter(b => b.status === 'Não encaminhada').length;
-    const bensEncaminhados = escolaBens.filter(b => b.status === 'Encaminhada').length;
-    const bensInventariados = escolaBens.filter(b => b.status === 'Inventariada').length;
-    const processoInventario = (esc.processoInventario || '').trim();
-
-    return {
-        controladorName: getControladorName(esc.controladorId),
-        programas: getEscolaProgramNames(esc),
-        ra: esc.ra || getRAFromDesignacao(esc.designação),
-        situacao: getSchoolAggregateStatus(esc, activeCompetenciaKey),
-        pendenciasAbertas,
-        hasPendencias: pendenciasAbertas.length > 0,
-        hasInventarioProcess: Boolean(processoInventario),
-        processoInventario,
-        bensTotal: escolaBens.length,
-        bensNaoEncaminhados,
-        bensEncaminhados,
-        bensInventariados
-    };
-}
-
-function schoolMatchesSearch(esc, rawQuery) {
-    const cleanQuery = normalizeSearchText(rawQuery);
-    if (!cleanQuery) return true;
-
-    const digitsQuery = onlyDigits(rawQuery);
-    const op = getEscolaOperationalData(esc);
-    const textFields = [
-        esc.denominação,
-        esc.designação,
-        esc.inep,
-        esc.cnpj,
-        esc.sici,
-        esc.diretor,
-        esc.diretorAdjunto,
-        esc.email,
-        esc.telefone,
-        op.controladorName,
-        op.processoInventario,
-        op.ra,
-        ...op.programas
-    ];
-    const textCorpus = normalizeSearchText(textFields.join(' '));
-
-    const digitFields = [
-        esc.designação,
-        esc.inep,
-        esc.cnpj,
-        esc.sici,
-        esc.telefone,
-        esc.telefoneDiretor,
-        esc.telefoneDiretorAdjunto,
-        esc.telefoneCelularInstitucional,
-        op.processoInventario
-    ];
-    const digitCorpus = digitFields.map(onlyDigits).filter(Boolean).join(' ');
-
-    return textCorpus.includes(cleanQuery) || (digitsQuery.length > 0 && digitCorpus.includes(digitsQuery));
-}
-
-function getEscolaStatusLabel(status) {
-    const labels = {
-        apto: 'Apta',
-        inapto: 'Inapta',
-        emAndamento: 'Em andamento',
-        naoAnalisado: 'Não analisada',
-        foraEscopo: 'Fora do escopo'
-    };
-    return labels[status] || 'Não analisada';
-}
-
-function getEscolaStatusBadgeClass(status) {
-    const classes = {
-        apto: 'badge-success',
-        inapto: 'badge-danger',
-        emAndamento: 'badge-warning',
-        naoAnalisado: 'badge-gray',
-        foraEscopo: 'badge-info'
-    };
-    return classes[status] || 'badge-gray';
-}
-
-function syncGlobalSearchInput() {
-    const input = document.getElementById('global-search');
-    if (input && input.value !== escolaSearchQuery) {
-        input.value = escolaSearchQuery;
+// ==========================================
+// 6. BUSCA INTELIGENTE GLOBAL
+// ==========================================
+
+function normalizeSearchText(value) {
+    return String(value || '')
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim();
+}
+
+function onlyDigits(value) {
+    return String(value || '').replace(/\D/g, '');
+}
+
+function escapeHtml(value) {
+    return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function selectedAttr(current, expected) {
+    return current === expected ? 'selected' : '';
+}
+
+function getControladorName(controladorId) {
+    const ctrl = controladores.find(c => c.id === controladorId);
+    return ctrl ? ctrl.name : 'Não designado';
+}
+
+function getEscolaProgramNames(esc) {
+    return (esc.programasIds || []).map(progId => {
+        const programa = programas.find(p => p.id === progId);
+        return programa ? programa.name : progId;
+    }).filter(Boolean);
+}
+
+function getEscolaOperationalData(esc) {
+    const pendenciasAbertas = pendencias.filter(p => p.escolaId === esc.id && p.status === 'Aberta');
+    const escolaBens = bens.filter(b => b.escolaId === esc.id);
+    const bensNaoEncaminhados = escolaBens.filter(b => b.status === 'Não encaminhada').length;
+    const bensEncaminhados = escolaBens.filter(b => b.status === 'Encaminhada').length;
+    const bensInventariados = escolaBens.filter(b => b.status === 'Inventariada').length;
+    const processoInventario = (esc.processoInventario || '').trim();
+
+    return {
+        controladorName: getControladorName(esc.controladorId),
+        programas: getEscolaProgramNames(esc),
+        ra: esc.ra || getRAFromDesignacao(esc.designação),
+        situacao: getSchoolAggregateStatus(esc, activeCompetenciaKey),
+        pendenciasAbertas,
+        hasPendencias: pendenciasAbertas.length > 0,
+        hasInventarioProcess: Boolean(processoInventario),
+        processoInventario,
+        bensTotal: escolaBens.length,
+        bensNaoEncaminhados,
+        bensEncaminhados,
+        bensInventariados
+    };
+}
+
+function schoolMatchesSearch(esc, rawQuery) {
+    const cleanQuery = normalizeSearchText(rawQuery);
+    if (!cleanQuery) return true;
+
+    const digitsQuery = onlyDigits(rawQuery);
+    const op = getEscolaOperationalData(esc);
+    const textFields = [
+        esc.denominação,
+        esc.designação,
+        esc.inep,
+        esc.cnpj,
+        esc.sici,
+        esc.diretor,
+        esc.diretorAdjunto,
+        esc.email,
+        esc.telefone,
+        op.controladorName,
+        op.processoInventario,
+        op.ra,
+        ...op.programas
+    ];
+    const textCorpus = normalizeSearchText(textFields.filter(Boolean).join(' '));
+
+    const digitFields = [
+        esc.designação,
+        esc.inep,
+        esc.cnpj,
+        esc.sici,
+        esc.telefone,
+        esc.telefoneDiretor,
+        esc.telefoneDiretorAdjunto,
+        esc.telefoneCelularInstitucional,
+        op.processoInventario
+    ];
+    const digitCorpus = digitFields.map(onlyDigits).filter(Boolean).join(' ');
+
+    return textCorpus.includes(cleanQuery) || (digitsQuery.length > 0 && digitCorpus.includes(digitsQuery));
+}
+
+function getEscolaStatusLabel(status) {
+    const labels = {
+        apto: 'Apta',
+        inapto: 'Inapta',
+        emAndamento: 'Em andamento',
+        naoAnalisado: 'Não analisada',
+        foraEscopo: 'Fora do escopo'
+    };
+    return labels[status] || 'Não analisada';
+}
+
+function getEscolaStatusBadgeClass(status) {
+    const classes = {
+        apto: 'badge-success',
+        inapto: 'badge-danger',
+        emAndamento: 'badge-warning',
+        naoAnalisado: 'badge-gray',
+        foraEscopo: 'badge-info'
+    };
+    return classes[status] || 'badge-gray';
+}
+
+function syncGlobalSearchInput() {
+    const input = document.getElementById('global-search');
+    if (input && input.value !== escolaSearchQuery) {
+        input.value = escolaSearchQuery;
     }
 }
 
-function handleGlobalSearch(e) {
-    escolaSearchQuery = e.target.value || '';
-    searchResultFiltered = null;
+function handleGlobalSearch(e) {
+    escolaSearchQuery = e.target.value || '';
+    searchResultFiltered = null;
 
-    if (currentView !== 'escolas') {
-        switchView('escolas');
-    } else {
-        renderEscolas();
-    }
-}
-
-
+    if (currentView !== 'escolas') {
+        switchView('escolas');
+    } else {
+        renderEscolas();
+    }
+}
+
+
 // ==========================================
 // 7. RENDER DA TELA: DASHBOARDS
 // ==========================================
@@ -5128,15 +5128,15 @@ function renderDashboard() {
 }
 
 // 7.1 Dashboard do Controlador
-function renderDashboardControlador(container) {
-    const filterRa = activeControladorRAFilter;
-    const activeControlador = getDefaultControlador();
-    const activeControladorId = getDefaultControladorId();
-    const activeControladorName = activeControlador ? activeControlador.name : 'Controlador';
-    let targetEscolas = [];
-    
-    if (filterRa === 'carteira') {
-        targetEscolas = escolas.filter(e => e.controladorId === activeControladorId);
+function renderDashboardControlador(container) {
+    const filterRa = activeControladorRAFilter;
+    const activeControlador = getDefaultControlador();
+    const activeControladorId = getDefaultControladorId();
+    const activeControladorName = activeControlador ? activeControlador.name : 'Controlador';
+    let targetEscolas = [];
+    
+    if (filterRa === 'carteira') {
+        targetEscolas = escolas.filter(e => e.controladorId === activeControladorId);
     } else if (filterRa === 'todas') {
         targetEscolas = escolas;
     } else {
@@ -5144,11 +5144,11 @@ function renderDashboardControlador(container) {
             const partes = e.designação.split('.');
             return partes.length >= 2 && partes[1] === filterRa;
         });
-    }
-    const carteiraRAs = [...new Set(escolas
-        .filter(e => e.controladorId === activeControladorId)
-        .map(e => getRAFromDesignacao(e.designação)))];
-    const carteiraRAText = carteiraRAs.length ? carteiraRAs.join(', ') : 'sem R.A. vinculada';
+    }
+    const carteiraRAs = [...new Set(escolas
+        .filter(e => e.controladorId === activeControladorId)
+        .map(e => getRAFromDesignacao(e.designação)))];
+    const carteiraRAText = carteiraRAs.length ? carteiraRAs.join(', ') : 'sem R.A. vinculada';
 
     const targetIds = targetEscolas.map(e => e.id);
     
@@ -5198,13 +5198,13 @@ function renderDashboardControlador(container) {
         <div class="page-header">
             <div class="page-title">
                 <h1>Painel do Controlador</h1>
-                <p>Carteira ativa: <strong>${activeControladorName}</strong>. R.A. vinculada: <strong>${carteiraRAText}</strong>. Você pode navegar por outras R.As ou pesquisar na CRE.</p>
+                <p>Carteira ativa: <strong>${activeControladorName}</strong>. R.A. vinculada: <strong>${carteiraRAText}</strong>. Você pode navegar por outras R.As ou pesquisar na CRE.</p>
             </div>
             <div class="badge badge-info">Mês Ativo: ${COMPETENCIAS.find(c => c.key === activeCompetenciaKey).label}</div>
         </div>
 
         <div class="tab-container" style="margin-bottom: 20px;">
-            <button class="tab-button ${filterRa === 'carteira' ? 'active' : ''}" onclick="changeControladorRAFilter('carteira')">Minha Carteira (${activeControladorName.split(' ')[0]})</button>
+            <button class="tab-button ${filterRa === 'carteira' ? 'active' : ''}" onclick="changeControladorRAFilter('carteira')">Minha Carteira (${activeControladorName.split(' ')[0]})</button>
             <button class="tab-button ${filterRa === '10' ? 'active' : ''}" onclick="changeControladorRAFilter('10')">10ª R.A.</button>
             <button class="tab-button ${filterRa === '11' ? 'active' : ''}" onclick="changeControladorRAFilter('11')">11ª R.A.</button>
             <button class="tab-button ${filterRa === '30' ? 'active' : ''}" onclick="changeControladorRAFilter('30')">30ª R.A.</button>
@@ -5220,12 +5220,12 @@ function renderDashboardControlador(container) {
                 <div class="stat-label">Escolas no Filtro</div>
                 <div class="stat-value">${targetEscolas.length} Unidades</div>
             </div>
-            <div class="card-stat ${activeControladorSubFilter === 'naoAnalisadas' ? 'active-naoAnalisadas' : ''}" style="cursor: pointer;" onclick="changeControladorSubFilter('naoAnalisadas')">
-                <div class="stat-icon" style="background-color: var(--warning-bg); color: var(--warning);">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                </div>
-                <div class="stat-label">Não Analisadas (${activeCompetenciaKey})</div>
-                <div class="stat-value">${escolasNaoAnalisadas.length} Escolas</div>
+            <div class="card-stat ${activeControladorSubFilter === 'naoAnalisadas' ? 'active-naoAnalisadas' : ''}" style="cursor: pointer;" onclick="changeControladorSubFilter('naoAnalisadas')">
+                <div class="stat-icon" style="background-color: var(--warning-bg); color: var(--warning);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                </div>
+                <div class="stat-label">Não Analisadas (${activeCompetenciaKey})</div>
+                <div class="stat-value">${escolasNaoAnalisadas.length} Escolas</div>
             </div>
             <div class="card-stat ${activeControladorSubFilter === 'pendencias' ? 'active-pendencias' : ''}" style="cursor: pointer;" onclick="changeControladorSubFilter('pendencias')">
                 <div class="stat-icon" style="background-color: var(--danger-bg); color: var(--danger);">
@@ -5296,7 +5296,7 @@ function renderDashboardControlador(container) {
                                     const cCount = contatos.filter(c => c.escolaId === e.id).length;
                                     const ctrl = controladores.find(c => c.id === e.controladorId);
                                     
-                                    const ctrlLabel = e.controladorId === activeControladorId
+                                    const ctrlLabel = e.controladorId === activeControladorId
                                         ? `<span class="badge badge-info" style="font-size:0.65rem; padding: 2px 4px; font-weight:500;">Sua Carteira</span>`
                                         : `<span style="font-size:0.75rem; color:var(--text-muted);">Controlador: ${ctrl ? ctrl.name : 'Sem designação'}</span>`;
 
@@ -6095,244 +6095,244 @@ function filterSMEDetailTable(query) {
 }
 
 // 7.4 Dashboard da Equipe de Inventário
-function renderDashboardInventario(container) {
-    const listBens = bens;
-    const hasBensData = listBens.length > 0;
-    const aguardandoBens = listBens.filter(b => b.status === 'Encaminhada').length;
-    const naoEncampBens = listBens.filter(b => b.status === 'Não encaminhada').length;
-    const concluidoBens = listBens.filter(b => b.status === 'Inventariada').length;
-    const escolasComProcesso = escolas.filter(e => e.processoInventario);
-    const escolasSemProcesso = escolas.filter(e => !e.processoInventario);
-    const escolasInventario = [...escolas].sort((a, b) => a.designação.localeCompare(b.designação));
-    const statUnitSingular = hasBensData ? 'Bem' : 'Escola';
-    const statUnitPlural = hasBensData ? 'Bens' : 'Escolas';
-    const formatStat = count => `${count} ${count === 1 ? statUnitSingular : statUnitPlural}`;
-    const formatSchoolStat = count => `${count} ${count === 1 ? 'Escola' : 'Escolas'}`;
-    const naoEncamp = hasBensData ? naoEncampBens : escolasSemProcesso.length;
-    const aguardando = hasBensData ? aguardandoBens : escolasComProcesso.length;
-    const concluido = hasBensData ? concluidoBens : 0;
-
-    let filteredBens = [...listBens];
-    if (activeInventarioSubFilter === 'naoEncamp') {
-        filteredBens = filteredBens.filter(b => b.status === 'Não encaminhada');
-    } else if (activeInventarioSubFilter === 'aguardando') {
+function renderDashboardInventario(container) {
+    const listBens = bens;
+    const hasBensData = listBens.length > 0;
+    const aguardandoBens = listBens.filter(b => b.status === 'Encaminhada').length;
+    const naoEncampBens = listBens.filter(b => b.status === 'Não encaminhada').length;
+    const concluidoBens = listBens.filter(b => b.status === 'Inventariada').length;
+    const escolasComProcesso = escolas.filter(e => e.processoInventario);
+    const escolasSemProcesso = escolas.filter(e => !e.processoInventario);
+    const escolasInventario = [...escolas].sort((a, b) => a.designação.localeCompare(b.designação));
+    const statUnitSingular = hasBensData ? 'Bem' : 'Escola';
+    const statUnitPlural = hasBensData ? 'Bens' : 'Escolas';
+    const formatStat = count => `${count} ${count === 1 ? statUnitSingular : statUnitPlural}`;
+    const formatSchoolStat = count => `${count} ${count === 1 ? 'Escola' : 'Escolas'}`;
+    const naoEncamp = hasBensData ? naoEncampBens : escolasSemProcesso.length;
+    const aguardando = hasBensData ? aguardandoBens : escolasComProcesso.length;
+    const concluido = hasBensData ? concluidoBens : 0;
+
+    let filteredBens = [...listBens];
+    if (activeInventarioSubFilter === 'naoEncamp') {
+        filteredBens = filteredBens.filter(b => b.status === 'Não encaminhada');
+    } else if (activeInventarioSubFilter === 'aguardando') {
         filteredBens = filteredBens.filter(b => b.status === 'Encaminhada');
     } else if (activeInventarioSubFilter === 'concluido') {
         filteredBens = filteredBens.filter(b => b.status === 'Inventariada');
-    }
+    }
 
-    const orderMap = { 'Não encaminhada': 1, 'Encaminhada': 2, 'Inventariada': 3 };
-    const sortedBens = filteredBens.sort((a, b) => orderMap[a.status] - orderMap[b.status]);
-    let filteredEscolasInventario = [...escolasInventario];
-    if (activeInventarioSubFilter === 'naoEncamp') {
-        filteredEscolasInventario = escolasSemProcesso;
-    } else if (activeInventarioSubFilter === 'aguardando') {
-        filteredEscolasInventario = escolasComProcesso;
-    } else if (activeInventarioSubFilter === 'concluido') {
-        filteredEscolasInventario = [];
-    }
-
-    const filterLabel = activeInventarioSubFilter === 'naoEncamp'
-        ? 'Sem Encarte / Pendente Verbas Federais'
-        : activeInventarioSubFilter === 'aguardando'
-            ? 'Aguardando Inventariação'
-            : activeInventarioSubFilter === 'concluido'
-                ? 'Já Inventariados'
-                : '';
-    const filaTitle = hasBensData ? 'Fila de Inventariação Patrimonial' : 'Acompanhamento de Processos de Inventário';
-    const bensTable = `
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Unidade Escolar</th>
-                    <th>Item Patrimonial</th>
-                    <th>Período Referente</th>
-                    <th>Valor</th>
-                    <th>Nota Fiscal</th>
-                    <th>Processo de Inventário</th>
-                    <th>Status no Inventário</th>
-                    <th>Ação</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${sortedBens.length === 0 ? `
-                    <tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:32px;">Nenhum bem permanente encontrado nesta categoria.</td></tr>
-                ` : sortedBens.map(b => {
-                    const esc = escolas.find(e => e.id === b.escolaId);
-                    const ctrl = esc ? controladores.find(c => c.id === esc.controladorId) : null;
-                    const compLabel = COMPETENCIAS.find(c => c.key === b.competencia)?.label || b.competencia;
-                    let actionBtn = '';
-                    let statusBadge = '';
-
-                    if (b.status === 'Não encaminhada') {
-                        statusBadge = `<span class="badge badge-danger">Pendente Verbas Federais (Falta Documentos)</span>`;
-                    } else if (b.status === 'Encaminhada') {
-                        statusBadge = `<span class="badge badge-warning">Aguardando Inventariação</span>`;
-                        actionBtn = `<button class="btn btn-primary btn-sm" onclick="inventariarBem('${b.id}')">Marcar como Inventariado</button>`;
-                    } else {
-                        let details = '';
-                        if (b.inventariadoPor) {
-                            details += `<br><small style="color:var(--text-muted); font-size: 0.75rem;">Por: <strong>${b.inventariadoPor}</strong>${b.inventariadoEm ? ' em ' + b.inventariadoEm : ''}</small>`;
-                        }
-                        if (b.observacoes) {
-                            details += `<br><small style="color:var(--text-muted); font-size: 0.75rem; font-style: italic;">Obs: ${b.observacoes}</small>`;
-                        }
-                        statusBadge = `<span class="badge badge-success">Inventariado</span>${details}`;
-                    }
-
-                    return `
-                        <tr>
-                            <td>
-                                <strong>${esc ? esc.denominação : 'N/A'}</strong><br>
-                                <small style="color:var(--text-muted)">
-                                    Designação: ${esc ? esc.designação : 'N/A'} • Controlador: ${ctrl ? ctrl.name : 'Não designado'}
-                                </small>
-                            </td>
-                            <td>${b.item}</td>
-                            <td><span style="font-weight:600; color:var(--primary);">${compLabel}</span></td>
-                            <td>R$ ${b.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                            <td>${b.notaFiscal || `<span style="color:var(--danger)">Ausente</span>`}</td>
-                            <td>${esc && esc.processoInventario ? esc.processoInventario : `<span style="color:var(--danger)">Não cadastrado</span>`}</td>
-                            <td>${statusBadge}</td>
-                            <td>${actionBtn}</td>
-                        </tr>
-                    `;
-                }).join('')}
-            </tbody>
-        </table>
-    `;
-    const processosTable = `
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Unidade Escolar</th>
-                    <th>Designação</th>
-                    <th>SICI</th>
-                    <th>Controlador</th>
-                    <th>Processo de Inventário</th>
-                    <th>Status no Inventário</th>
-                    <th>Programas</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${filteredEscolasInventario.length === 0 ? `
-                    <tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:32px;">Nenhuma escola encontrada nesta categoria.</td></tr>
-                ` : filteredEscolasInventario.map(esc => {
-                    const ctrl = controladores.find(c => c.id === esc.controladorId);
-                    const progNames = (esc.programasIds || []).map(pid => {
-                        const prog = programas.find(p => p.id === pid);
-                        return prog ? prog.name : pid;
-                    }).join(', ');
-                    const statusBadge = esc.processoInventario
-                        ? `<span class="badge badge-warning">Aguardando Inventariação</span>`
-                        : `<span class="badge badge-danger">Pendente Verbas Federais / Sem Processo</span>`;
-
-                    return `
-                        <tr>
-                            <td><strong>${esc.denominação}</strong></td>
-                            <td>${esc.designação}</td>
-                            <td>${esc.sici || '<span style="color:var(--text-muted)">Não informado</span>'}</td>
-                            <td>${ctrl ? ctrl.name : '<span style="color:var(--text-muted)">Não designado</span>'}</td>
-                            <td>${esc.processoInventario || '<span style="color:var(--danger)">Não cadastrado</span>'}</td>
-                            <td>${statusBadge}</td>
-                            <td>${progNames}</td>
-                        </tr>
-                    `;
-                }).join('')}
-            </tbody>
-        </table>
-    `;
-
-    container.innerHTML = `
-        <div class="page-header">
-            <div class="page-title">
-                <h1>Painel da Equipe de Inventário</h1>
-                <p>${hasBensData ? 'Inventariação de bens patrimoniais permanentes adquiridos pelas escolas.' : 'Acompanhamento dos processos anuais de inventário das unidades escolares.'}</p>
-            </div>
-        </div>
-
+    const orderMap = { 'Não encaminhada': 1, 'Encaminhada': 2, 'Inventariada': 3 };
+    const sortedBens = filteredBens.sort((a, b) => orderMap[a.status] - orderMap[b.status]);
+    let filteredEscolasInventario = [...escolasInventario];
+    if (activeInventarioSubFilter === 'naoEncamp') {
+        filteredEscolasInventario = escolasSemProcesso;
+    } else if (activeInventarioSubFilter === 'aguardando') {
+        filteredEscolasInventario = escolasComProcesso;
+    } else if (activeInventarioSubFilter === 'concluido') {
+        filteredEscolasInventario = [];
+    }
+
+    const filterLabel = activeInventarioSubFilter === 'naoEncamp'
+        ? 'Sem Encarte / Pendente Verbas Federais'
+        : activeInventarioSubFilter === 'aguardando'
+            ? 'Aguardando Inventariação'
+            : activeInventarioSubFilter === 'concluido'
+                ? 'Já Inventariados'
+                : '';
+    const filaTitle = hasBensData ? 'Fila de Inventariação Patrimonial' : 'Acompanhamento de Processos de Inventário';
+    const bensTable = `
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Unidade Escolar</th>
+                    <th>Item Patrimonial</th>
+                    <th>Período Referente</th>
+                    <th>Valor</th>
+                    <th>Nota Fiscal</th>
+                    <th>Processo de Inventário</th>
+                    <th>Status no Inventário</th>
+                    <th>Ação</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${sortedBens.length === 0 ? `
+                    <tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:32px;">Nenhum bem permanente encontrado nesta categoria.</td></tr>
+                ` : sortedBens.map(b => {
+                    const esc = escolas.find(e => e.id === b.escolaId);
+                    const ctrl = esc ? controladores.find(c => c.id === esc.controladorId) : null;
+                    const compLabel = COMPETENCIAS.find(c => c.key === b.competencia)?.label || b.competencia;
+                    let actionBtn = '';
+                    let statusBadge = '';
+
+                    if (b.status === 'Não encaminhada') {
+                        statusBadge = `<span class="badge badge-danger">Pendente Verbas Federais (Falta Documentos)</span>`;
+                    } else if (b.status === 'Encaminhada') {
+                        statusBadge = `<span class="badge badge-warning">Aguardando Inventariação</span>`;
+                        actionBtn = `<button class="btn btn-primary btn-sm" onclick="inventariarBem('${b.id}')">Marcar como Inventariado</button>`;
+                    } else {
+                        let details = '';
+                        if (b.inventariadoPor) {
+                            details += `<br><small style="color:var(--text-muted); font-size: 0.75rem;">Por: <strong>${b.inventariadoPor}</strong>${b.inventariadoEm ? ' em ' + b.inventariadoEm : ''}</small>`;
+                        }
+                        if (b.observacoes) {
+                            details += `<br><small style="color:var(--text-muted); font-size: 0.75rem; font-style: italic;">Obs: ${b.observacoes}</small>`;
+                        }
+                        statusBadge = `<span class="badge badge-success">Inventariado</span>${details}`;
+                    }
+
+                    return `
+                        <tr>
+                            <td>
+                                <strong>${esc ? esc.denominação : 'N/A'}</strong><br>
+                                <small style="color:var(--text-muted)">
+                                    Designação: ${esc ? esc.designação : 'N/A'} • Controlador: ${ctrl ? ctrl.name : 'Não designado'}
+                                </small>
+                            </td>
+                            <td>${b.item}</td>
+                            <td><span style="font-weight:600; color:var(--primary);">${compLabel}</span></td>
+                            <td>R$ ${b.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                            <td>${b.notaFiscal || `<span style="color:var(--danger)">Ausente</span>`}</td>
+                            <td>${esc && esc.processoInventario ? esc.processoInventario : `<span style="color:var(--danger)">Não cadastrado</span>`}</td>
+                            <td>${statusBadge}</td>
+                            <td>${actionBtn}</td>
+                        </tr>
+                    `;
+                }).join('')}
+            </tbody>
+        </table>
+    `;
+    const processosTable = `
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Unidade Escolar</th>
+                    <th>Designação</th>
+                    <th>SICI</th>
+                    <th>Controlador</th>
+                    <th>Processo de Inventário</th>
+                    <th>Status no Inventário</th>
+                    <th>Programas</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${filteredEscolasInventario.length === 0 ? `
+                    <tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:32px;">Nenhuma escola encontrada nesta categoria.</td></tr>
+                ` : filteredEscolasInventario.map(esc => {
+                    const ctrl = controladores.find(c => c.id === esc.controladorId);
+                    const progNames = (esc.programasIds || []).map(pid => {
+                        const prog = programas.find(p => p.id === pid);
+                        return prog ? prog.name : pid;
+                    }).join(', ');
+                    const statusBadge = esc.processoInventario
+                        ? `<span class="badge badge-warning">Aguardando Inventariação</span>`
+                        : `<span class="badge badge-danger">Pendente Verbas Federais / Sem Processo</span>`;
+
+                    return `
+                        <tr>
+                            <td><strong>${esc.denominação}</strong></td>
+                            <td>${esc.designação}</td>
+                            <td>${esc.sici || '<span style="color:var(--text-muted)">Não informado</span>'}</td>
+                            <td>${ctrl ? ctrl.name : '<span style="color:var(--text-muted)">Não designado</span>'}</td>
+                            <td>${esc.processoInventario || '<span style="color:var(--danger)">Não cadastrado</span>'}</td>
+                            <td>${statusBadge}</td>
+                            <td>${progNames}</td>
+                        </tr>
+                    `;
+                }).join('')}
+            </tbody>
+        </table>
+    `;
+
+    container.innerHTML = `
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Painel da Equipe de Inventário</h1>
+                <p>${hasBensData ? 'Inventariação de bens patrimoniais permanentes adquiridos pelas escolas.' : 'Acompanhamento dos processos anuais de inventário das unidades escolares.'}</p>
+            </div>
+        </div>
+
         <div class="grid-stats">
-            <div class="card-stat ${activeInventarioSubFilter === 'naoEncamp' ? 'active-naoEncamp' : ''}" style="cursor: pointer;" onclick="changeInventarioSubFilter('naoEncamp')">
-                <div class="stat-icon" style="background-color: var(--danger-bg); color: var(--danger);">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="9" y1="15" x2="15" y2="15"></line></svg>
-                </div>
-                <div class="stat-label">Sem Encarte / Pendente Verbas Federais</div>
-                <div class="stat-value">${formatStat(naoEncamp)}</div>
-            </div>
-            <div class="card-stat ${activeInventarioSubFilter === 'aguardando' ? 'active-aguardando' : ''}" style="cursor: pointer;" onclick="changeInventarioSubFilter('aguardando')">
-                <div class="stat-icon" style="background-color: var(--warning-bg); color: var(--warning);">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
-                </div>
-                <div class="stat-label">Aguardando Inventariação</div>
-                <div class="stat-value">${formatStat(aguardando)}</div>
-            </div>
-            <div class="card-stat ${activeInventarioSubFilter === 'concluido' ? 'active-concluido' : ''}" style="cursor: pointer;" onclick="changeInventarioSubFilter('concluido')">
-                <div class="stat-icon" style="background-color: var(--success-bg); color: var(--success);">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                </div>
-                <div class="stat-label">Já Inventariados</div>
-                <div class="stat-value">${formatStat(concluido)}</div>
-            </div>
-            <div class="card-stat ${activeInventarioSubFilter === 'all' ? 'active-all' : ''}" style="cursor: pointer;" onclick="changeInventarioSubFilter('all')">
-                <div class="stat-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
-                </div>
-                <div class="stat-label">Processos de Inventário</div>
-                <div class="stat-value">${formatSchoolStat(escolasComProcesso.length)}</div>
-            </div>
-        </div>
+            <div class="card-stat ${activeInventarioSubFilter === 'naoEncamp' ? 'active-naoEncamp' : ''}" style="cursor: pointer;" onclick="changeInventarioSubFilter('naoEncamp')">
+                <div class="stat-icon" style="background-color: var(--danger-bg); color: var(--danger);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+                </div>
+                <div class="stat-label">Sem Encarte / Pendente Verbas Federais</div>
+                <div class="stat-value">${formatStat(naoEncamp)}</div>
+            </div>
+            <div class="card-stat ${activeInventarioSubFilter === 'aguardando' ? 'active-aguardando' : ''}" style="cursor: pointer;" onclick="changeInventarioSubFilter('aguardando')">
+                <div class="stat-icon" style="background-color: var(--warning-bg); color: var(--warning);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+                </div>
+                <div class="stat-label">Aguardando Inventariação</div>
+                <div class="stat-value">${formatStat(aguardando)}</div>
+            </div>
+            <div class="card-stat ${activeInventarioSubFilter === 'concluido' ? 'active-concluido' : ''}" style="cursor: pointer;" onclick="changeInventarioSubFilter('concluido')">
+                <div class="stat-icon" style="background-color: var(--success-bg); color: var(--success);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                </div>
+                <div class="stat-label">Já Inventariados</div>
+                <div class="stat-value">${formatStat(concluido)}</div>
+            </div>
+            <div class="card-stat ${activeInventarioSubFilter === 'all' ? 'active-all' : ''}" style="cursor: pointer;" onclick="changeInventarioSubFilter('all')">
+                <div class="stat-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                </div>
+                <div class="stat-label">Processos de Inventário</div>
+                <div class="stat-value">${formatSchoolStat(escolasComProcesso.length)}</div>
+            </div>
+        </div>
 
-        <div class="panel-card">
-            <div class="panel-header">
-                <h2>${filaTitle} ${filterLabel ? `(${filterLabel})` : ''}</h2>
-            </div>
-            <div class="table-responsive">
-                ${hasBensData ? bensTable : processosTable}
-            </div>
-        </div>
-
-        <div class="panel-card" style="margin-top: 20px;">
-            <div class="panel-header">
-                <h2>Processos de Inventário 2026 por Unidade</h2>
-                <span class="badge ${escolasSemProcesso.length === 0 ? 'badge-success' : 'badge-warning'}">${escolasComProcesso.length} com processo / ${escolasSemProcesso.length} pendentes</span>
-            </div>
-            <div class="table-responsive">
-                <table class="data-table school-carteira-table">
-                    <thead>
-                        <tr>
-                            <th>Unidade Escolar</th>
-                            <th>Designação</th>
-                            <th>SICI</th>
-                            <th>Controlador</th>
-                            <th>Processo Anual</th>
-                            <th>Programas</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${escolasInventario.map(esc => {
-                            const ctrl = controladores.find(c => c.id === esc.controladorId);
-                            const progNames = (esc.programasIds || []).map(pid => {
-                                const prog = programas.find(p => p.id === pid);
-                                return prog ? prog.name : pid;
-                            }).join(', ');
-                            return `
-                                <tr>
-                                    <td><strong>${esc.denominação}</strong></td>
-                                    <td>${esc.designação}</td>
-                                    <td>${esc.sici || '<span style="color:var(--text-muted)">Não informado</span>'}</td>
-                                    <td>${ctrl ? ctrl.name : '<span style="color:var(--text-muted)">Não designado</span>'}</td>
-                                    <td>${esc.processoInventario || '<span style="color:var(--danger)">Não cadastrado</span>'}</td>
-                                    <td>${progNames}</td>
-                                </tr>
-                            `;
-                        }).join('')}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    `;
-}
-
+        <div class="panel-card">
+            <div class="panel-header">
+                <h2>${filaTitle} ${filterLabel ? `(${filterLabel})` : ''}</h2>
+            </div>
+            <div class="table-responsive">
+                ${hasBensData ? bensTable : processosTable}
+            </div>
+        </div>
+
+        <div class="panel-card" style="margin-top: 20px;">
+            <div class="panel-header">
+                <h2>Processos de Inventário 2026 por Unidade</h2>
+                <span class="badge ${escolasSemProcesso.length === 0 ? 'badge-success' : 'badge-warning'}">${escolasComProcesso.length} com processo / ${escolasSemProcesso.length} pendentes</span>
+            </div>
+            <div class="table-responsive">
+                <table class="data-table school-carteira-table">
+                    <thead>
+                        <tr>
+                            <th>Unidade Escolar</th>
+                            <th>Designação</th>
+                            <th>SICI</th>
+                            <th>Controlador</th>
+                            <th>Processo Anual</th>
+                            <th>Programas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${escolasInventario.map(esc => {
+                            const ctrl = controladores.find(c => c.id === esc.controladorId);
+                            const progNames = (esc.programasIds || []).map(pid => {
+                                const prog = programas.find(p => p.id === pid);
+                                return prog ? prog.name : pid;
+                            }).join(', ');
+                            return `
+                                <tr>
+                                    <td><strong>${esc.denominação}</strong></td>
+                                    <td>${esc.designação}</td>
+                                    <td>${esc.sici || '<span style="color:var(--text-muted)">Não informado</span>'}</td>
+                                    <td>${ctrl ? ctrl.name : '<span style="color:var(--text-muted)">Não designado</span>'}</td>
+                                    <td>${esc.processoInventario || '<span style="color:var(--danger)">Não cadastrado</span>'}</td>
+                                    <td>${progNames}</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+}
+
 function inventariarBem(bemId) {
     const b = bens.find(item => item.id === bemId);
     if (!b) return;
@@ -6400,244 +6400,244 @@ function changeInventarioSubFilter(subFilter) {
 }
 
 
-// ==========================================
-// 8. RENDER DA TELA: ESCOLAS (CARTEIRA)
-// ==========================================
-
-function updateEscolasSearch(value) {
-    escolaSearchQuery = value || '';
-    searchResultFiltered = null;
-    syncGlobalSearchInput();
-    renderEscolas();
-}
-
-function changeEscolaFilter(filterName, value) {
-    activeEscolaFilters = {
-        ...activeEscolaFilters,
-        [filterName]: value
-    };
-    renderEscolas();
-}
-
-function clearEscolaFilters() {
-    escolaSearchQuery = '';
-    searchResultFiltered = null;
-    activeEscolaFilters = { ...DEFAULT_ESCOLA_FILTERS };
-    syncGlobalSearchInput();
-    renderEscolas();
-}
-
-function getFilteredEscolas() {
-    return escolas.filter(esc => {
-        const op = getEscolaOperationalData(esc);
-
-        if (!schoolMatchesSearch(esc, escolaSearchQuery)) return false;
-        if (activeEscolaFilters.controlador !== 'all' && esc.controladorId !== activeEscolaFilters.controlador) return false;
-        if (activeEscolaFilters.programa !== 'all' && !(esc.programasIds || []).includes(activeEscolaFilters.programa)) return false;
-        if (activeEscolaFilters.situacao !== 'all' && op.situacao !== activeEscolaFilters.situacao) return false;
-        if (activeEscolaFilters.pendencias === 'com' && !op.hasPendencias) return false;
-        if (activeEscolaFilters.pendencias === 'sem' && op.hasPendencias) return false;
-        if (activeEscolaFilters.inventario === 'com' && !op.hasInventarioProcess) return false;
-        if (activeEscolaFilters.inventario === 'sem' && op.hasInventarioProcess) return false;
-        if (activeEscolaFilters.ra !== 'all' && op.ra !== activeEscolaFilters.ra) return false;
-
-        return true;
-    });
-}
-
-function renderEscolaFilterOptions(options, activeValue) {
-    return options.map(option => `
-        <option value="${escapeHtml(option.value)}" ${selectedAttr(activeValue, option.value)}>${escapeHtml(option.label)}</option>
-    `).join('');
-}
-
-function renderEscolas() {
-    const container = document.getElementById('main-container');
-    const targetEscolas = getFilteredEscolas();
-    const raOptions = [...new Set(escolas.map(e => e.ra || getRAFromDesignacao(e.designação)).filter(Boolean))].sort();
-    const pendenciasCount = targetEscolas.filter(e => getEscolaOperationalData(e).hasPendencias).length;
-    const inventarioCount = targetEscolas.filter(e => getEscolaOperationalData(e).hasInventarioProcess).length;
-    const activeFiltersCount = Object.keys(activeEscolaFilters).filter(key => activeEscolaFilters[key] !== DEFAULT_ESCOLA_FILTERS[key]).length + (escolaSearchQuery.trim() ? 1 : 0);
-
-    container.innerHTML = `
-        <div class="page-header">
-            <div class="page-title">
-                <h1>Escolas e Carteiras</h1>
-                <p>Lista pesquisável de unidades escolares sob jurisdição da Coordenadoria de Educação.</p>
-            </div>
-            ${currentProfile === 'assistente' ? `
-                <button class="btn btn-primary" onclick="openEscolaEditModal(null)">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"></path></svg>
-                    Cadastrar Escola
+// ==========================================
+// 8. RENDER DA TELA: ESCOLAS (CARTEIRA)
+// ==========================================
+
+function updateEscolasSearch(value) {
+    escolaSearchQuery = value || '';
+    searchResultFiltered = null;
+    syncGlobalSearchInput();
+    renderEscolas();
+}
+
+function changeEscolaFilter(filterName, value) {
+    activeEscolaFilters = {
+        ...activeEscolaFilters,
+        [filterName]: value
+    };
+    renderEscolas();
+}
+
+function clearEscolaFilters() {
+    escolaSearchQuery = '';
+    searchResultFiltered = null;
+    activeEscolaFilters = { ...DEFAULT_ESCOLA_FILTERS };
+    syncGlobalSearchInput();
+    renderEscolas();
+}
+
+function getFilteredEscolas() {
+    return escolas.filter(esc => {
+        const op = getEscolaOperationalData(esc);
+
+        if (!schoolMatchesSearch(esc, escolaSearchQuery)) return false;
+        if (activeEscolaFilters.controlador !== 'all' && esc.controladorId !== activeEscolaFilters.controlador) return false;
+        if (activeEscolaFilters.programa !== 'all' && !(esc.programasIds || []).includes(activeEscolaFilters.programa)) return false;
+        if (activeEscolaFilters.situacao !== 'all' && op.situacao !== activeEscolaFilters.situacao) return false;
+        if (activeEscolaFilters.pendencias === 'com' && !op.hasPendencias) return false;
+        if (activeEscolaFilters.pendencias === 'sem' && op.hasPendencias) return false;
+        if (activeEscolaFilters.inventario === 'com' && !op.hasInventarioProcess) return false;
+        if (activeEscolaFilters.inventario === 'sem' && op.hasInventarioProcess) return false;
+        if (activeEscolaFilters.ra !== 'all' && op.ra !== activeEscolaFilters.ra) return false;
+
+        return true;
+    });
+}
+
+function renderEscolaFilterOptions(options, activeValue) {
+    return options.map(option => `
+        <option value="${escapeHtml(option.value)}" ${selectedAttr(activeValue, option.value)}>${escapeHtml(option.label)}</option>
+    `).join('');
+}
+
+function renderEscolas() {
+    const container = document.getElementById('main-container');
+    const targetEscolas = getFilteredEscolas();
+    const raOptions = [...new Set(escolas.map(e => e.ra || getRAFromDesignacao(e.designação)).filter(Boolean))].sort();
+    const pendenciasCount = targetEscolas.filter(e => getEscolaOperationalData(e).hasPendencias).length;
+    const inventarioCount = targetEscolas.filter(e => getEscolaOperationalData(e).hasInventarioProcess).length;
+    const activeFiltersCount = Object.keys(activeEscolaFilters).filter(key => activeEscolaFilters[key] !== DEFAULT_ESCOLA_FILTERS[key]).length + (escolaSearchQuery.trim() ? 1 : 0);
+
+    container.innerHTML = `
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Escolas e Carteiras</h1>
+                <p>Lista pesquisável de unidades escolares sob jurisdição da Coordenadoria de Educação.</p>
+            </div>
+            ${currentProfile === 'assistente' ? `
+                <button class="btn btn-primary" onclick="openEscolaEditModal(null)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"></path></svg>
+                    Cadastrar Escola
                 </button>
-            ` : ''}
-        </div>
-
-        <div class="panel-card school-filter-panel">
-            <div class="school-filter-header">
-                <div>
-                    <h2>Busca e filtros da carteira</h2>
-                    <p>Pesquise por designação, unidade, INEP, CNPJ, SICI, diretor, controlador, programa ou processo.</p>
-                </div>
-                <button class="btn btn-secondary btn-sm" onclick="clearEscolaFilters()" ${activeFiltersCount === 0 ? 'disabled' : ''}>Limpar filtros</button>
-            </div>
-
-            <div class="school-filter-grid">
-                <div class="filter-field filter-field-wide">
-                    <label for="escola-search-input">Busca</label>
-                    <input type="text" id="escola-search-input" class="form-control" value="${escapeHtml(escolaSearchQuery)}" placeholder="Ex.: 04.10.001, INEP, CNPJ, diretor, Érica, PDDE Básico..." oninput="updateEscolasSearch(this.value)">
-                </div>
-
-                <div class="filter-field">
-                    <label for="filter-escola-controlador">Controlador</label>
-                    <select id="filter-escola-controlador" class="form-control" onchange="changeEscolaFilter('controlador', this.value)">
-                        <option value="all" ${selectedAttr(activeEscolaFilters.controlador, 'all')}>Todos</option>
-                        ${controladores.map(c => `<option value="${escapeHtml(c.id)}" ${selectedAttr(activeEscolaFilters.controlador, c.id)}>${escapeHtml(c.name)}</option>`).join('')}
-                    </select>
-                </div>
-
-                <div class="filter-field">
-                    <label for="filter-escola-programa">Programa</label>
-                    <select id="filter-escola-programa" class="form-control" onchange="changeEscolaFilter('programa', this.value)">
-                        <option value="all" ${selectedAttr(activeEscolaFilters.programa, 'all')}>Todos</option>
-                        ${programas.map(p => `<option value="${escapeHtml(p.id)}" ${selectedAttr(activeEscolaFilters.programa, p.id)}>${escapeHtml(p.name)}</option>`).join('')}
-                    </select>
-                </div>
-
-                <div class="filter-field">
-                    <label for="filter-escola-situacao">Situação</label>
-                    <select id="filter-escola-situacao" class="form-control" onchange="changeEscolaFilter('situacao', this.value)">
-                        ${renderEscolaFilterOptions([
-                            { value: 'all', label: 'Todas' },
-                            { value: 'apto', label: 'Aptas' },
-                            { value: 'inapto', label: 'Inaptas' },
-                            { value: 'emAndamento', label: 'Em andamento' },
-                            { value: 'naoAnalisado', label: 'Não analisadas' },
-                            { value: 'foraEscopo', label: 'Fora do escopo' }
-                        ], activeEscolaFilters.situacao)}
-                    </select>
-                </div>
-
-                <div class="filter-field">
-                    <label for="filter-escola-pendencias">Pendências</label>
-                    <select id="filter-escola-pendencias" class="form-control" onchange="changeEscolaFilter('pendencias', this.value)">
-                        ${renderEscolaFilterOptions([
-                            { value: 'all', label: 'Todas' },
-                            { value: 'com', label: 'Com pendências abertas' },
-                            { value: 'sem', label: 'Sem pendências abertas' }
-                        ], activeEscolaFilters.pendencias)}
-                    </select>
-                </div>
-
-                <div class="filter-field">
-                    <label for="filter-escola-inventario">Inventário</label>
-                    <select id="filter-escola-inventario" class="form-control" onchange="changeEscolaFilter('inventario', this.value)">
-                        ${renderEscolaFilterOptions([
-                            { value: 'all', label: 'Todos' },
-                            { value: 'com', label: 'Com processo' },
-                            { value: 'sem', label: 'Sem processo' }
-                        ], activeEscolaFilters.inventario)}
-                    </select>
-                </div>
-
-                <div class="filter-field">
-                    <label for="filter-escola-ra">R.A.</label>
-                    <select id="filter-escola-ra" class="form-control" onchange="changeEscolaFilter('ra', this.value)">
-                        <option value="all" ${selectedAttr(activeEscolaFilters.ra, 'all')}>Todas</option>
-                        ${raOptions.map(ra => `<option value="${escapeHtml(ra)}" ${selectedAttr(activeEscolaFilters.ra, ra)}>${escapeHtml(ra)}</option>`).join('')}
-                    </select>
-                </div>
-            </div>
-
-            <div class="school-filter-summary">
-                <span><strong>${targetEscolas.length}</strong> de ${escolas.length} escolas exibidas</span>
-                <span>${pendenciasCount} com pendências abertas</span>
-                <span>${inventarioCount} com processo de inventário</span>
-                <span>Competência: ${activeCompetenciaKey}</span>
-            </div>
-        </div>
-
-        <div class="panel-card">
-            <div class="panel-header">
-                <div>
-                    <h2>Resultado da carteira</h2>
-                    <p>${activeFiltersCount > 0 ? 'Lista filtrada conforme os critérios selecionados.' : 'Lista completa de escolas cadastradas.'}</p>
-                </div>
-            </div>
-            <div class="table-responsive">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Unidade Escolar</th>
-                            <th>Identificação</th>
-                            <th>Diretor(a) Geral</th>
-                            <th>Controlador Responsável</th>
-                            <th>Situação</th>
-                            <th>Operação</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${targetEscolas.length === 0 ? `
-                            <tr>
-                                <td colspan="7">
-                                    <div class="empty-state compact">
-                                        <div class="empty-state-icon">⌕</div>
-                                        <strong>Nenhuma escola encontrada</strong>
-                                        <span>Ajuste a busca ou limpe os filtros para ampliar o resultado.</span>
-                                    </div>
-                                </td>
-                            </tr>
-                        ` : targetEscolas.map(e => {
-                            const op = getEscolaOperationalData(e);
-                            const statusBadge = getEscolaStatusBadgeClass(op.situacao);
-                            const statusLabel = getEscolaStatusLabel(op.situacao);
-                            return `
-                                <tr>
-                                    <td>
-                                        <strong>${e.denominação}</strong>
-                                        <br><small style="color:var(--text-muted)">${e.designação} • ${op.ra}</small>
-                                        <div class="school-program-inline">
-                                            ${op.programas.slice(0, 3).map(p => `<span>${escapeHtml(p)}</span>`).join('')}
-                                            ${op.programas.length > 3 ? `<span>+${op.programas.length - 3}</span>` : ''}
+            ` : ''}
+        </div>
+
+        <div class="panel-card school-filter-panel">
+            <div class="school-filter-header">
+                <div>
+                    <h2>Busca e filtros da carteira</h2>
+                    <p>Pesquise por designação, unidade, INEP, CNPJ, SICI, diretor, controlador, programa ou processo.</p>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="clearEscolaFilters()" ${activeFiltersCount === 0 ? 'disabled' : ''}>Limpar filtros</button>
+            </div>
+
+            <div class="school-filter-grid">
+                <div class="filter-field filter-field-wide">
+                    <label for="escola-search-input">Busca</label>
+                    <input type="text" id="escola-search-input" class="form-control" value="${escapeHtml(escolaSearchQuery)}" placeholder="Ex.: 04.10.001, INEP, CNPJ, diretor, Érica, PDDE Básico..." oninput="updateEscolasSearch(this.value)">
+                </div>
+
+                <div class="filter-field">
+                    <label for="filter-escola-controlador">Controlador</label>
+                    <select id="filter-escola-controlador" class="form-control" onchange="changeEscolaFilter('controlador', this.value)">
+                        <option value="all" ${selectedAttr(activeEscolaFilters.controlador, 'all')}>Todos</option>
+                        ${controladores.map(c => `<option value="${escapeHtml(c.id)}" ${selectedAttr(activeEscolaFilters.controlador, c.id)}>${escapeHtml(c.name)}</option>`).join('')}
+                    </select>
+                </div>
+
+                <div class="filter-field">
+                    <label for="filter-escola-programa">Programa</label>
+                    <select id="filter-escola-programa" class="form-control" onchange="changeEscolaFilter('programa', this.value)">
+                        <option value="all" ${selectedAttr(activeEscolaFilters.programa, 'all')}>Todos</option>
+                        ${programas.map(p => `<option value="${escapeHtml(p.id)}" ${selectedAttr(activeEscolaFilters.programa, p.id)}>${escapeHtml(p.name)}</option>`).join('')}
+                    </select>
+                </div>
+
+                <div class="filter-field">
+                    <label for="filter-escola-situacao">Situação</label>
+                    <select id="filter-escola-situacao" class="form-control" onchange="changeEscolaFilter('situacao', this.value)">
+                        ${renderEscolaFilterOptions([
+                            { value: 'all', label: 'Todas' },
+                            { value: 'apto', label: 'Aptas' },
+                            { value: 'inapto', label: 'Inaptas' },
+                            { value: 'emAndamento', label: 'Em andamento' },
+                            { value: 'naoAnalisado', label: 'Não analisadas' },
+                            { value: 'foraEscopo', label: 'Fora do escopo' }
+                        ], activeEscolaFilters.situacao)}
+                    </select>
+                </div>
+
+                <div class="filter-field">
+                    <label for="filter-escola-pendencias">Pendências</label>
+                    <select id="filter-escola-pendencias" class="form-control" onchange="changeEscolaFilter('pendencias', this.value)">
+                        ${renderEscolaFilterOptions([
+                            { value: 'all', label: 'Todas' },
+                            { value: 'com', label: 'Com pendências abertas' },
+                            { value: 'sem', label: 'Sem pendências abertas' }
+                        ], activeEscolaFilters.pendencias)}
+                    </select>
+                </div>
+
+                <div class="filter-field">
+                    <label for="filter-escola-inventario">Inventário</label>
+                    <select id="filter-escola-inventario" class="form-control" onchange="changeEscolaFilter('inventario', this.value)">
+                        ${renderEscolaFilterOptions([
+                            { value: 'all', label: 'Todos' },
+                            { value: 'com', label: 'Com processo' },
+                            { value: 'sem', label: 'Sem processo' }
+                        ], activeEscolaFilters.inventario)}
+                    </select>
+                </div>
+
+                <div class="filter-field">
+                    <label for="filter-escola-ra">R.A.</label>
+                    <select id="filter-escola-ra" class="form-control" onchange="changeEscolaFilter('ra', this.value)">
+                        <option value="all" ${selectedAttr(activeEscolaFilters.ra, 'all')}>Todas</option>
+                        ${raOptions.map(ra => `<option value="${escapeHtml(ra)}" ${selectedAttr(activeEscolaFilters.ra, ra)}>${escapeHtml(ra)}</option>`).join('')}
+                    </select>
+                </div>
+            </div>
+
+            <div class="school-filter-summary">
+                <span><strong>${targetEscolas.length}</strong> de ${escolas.length} escolas exibidas</span>
+                <span>${pendenciasCount} com pendências abertas</span>
+                <span>${inventarioCount} com processo de inventário</span>
+                <span>Competência: ${activeCompetenciaKey}</span>
+            </div>
+        </div>
+
+        <div class="panel-card">
+            <div class="panel-header">
+                <div>
+                    <h2>Resultado da carteira</h2>
+                    <p>${activeFiltersCount > 0 ? 'Lista filtrada conforme os critérios selecionados.' : 'Lista completa de escolas cadastradas.'}</p>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Unidade Escolar</th>
+                            <th>Identificação</th>
+                            <th>Diretor(a) Geral</th>
+                            <th>Controlador Responsável</th>
+                            <th>Situação</th>
+                            <th>Operação</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${targetEscolas.length === 0 ? `
+                            <tr>
+                                <td colspan="7">
+                                    <div class="empty-state compact">
+                                        <div class="empty-state-icon">⌕</div>
+                                        <strong>Nenhuma escola encontrada</strong>
+                                        <span>Ajuste a busca ou limpe os filtros para ampliar o resultado.</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        ` : targetEscolas.map(e => {
+                            const op = getEscolaOperationalData(e);
+                            const statusBadge = getEscolaStatusBadgeClass(op.situacao);
+                            const statusLabel = getEscolaStatusLabel(op.situacao);
+                            return `
+                                <tr>
+                                    <td>
+                                        <strong>${e.denominação}</strong>
+                                        <br><small style="color:var(--text-muted)">${e.designação} • ${op.ra}</small>
+                                        <div class="school-program-inline">
+                                            ${op.programas.slice(0, 3).map(p => `<span>${escapeHtml(p)}</span>`).join('')}
+                                            ${op.programas.length > 3 ? `<span>+${op.programas.length - 3}</span>` : ''}
                                         </div>
                                     </td>
-                                    <td>
-                                        <strong>INEP:</strong> ${e.inep}<br>
-                                        <small><strong>CNPJ:</strong> ${e.cnpj}</small><br>
-                                        <small><strong>SICI:</strong> ${e.sici || 'Não informado'}</small>
-                                    </td>
-                                    <td>${e.diretor}<br><small style="color:var(--text-muted)">${e.telefone}</small></td>
-                                    <td>${op.controladorName}</td>
-                                    <td><span class="badge ${statusBadge}">${statusLabel}</span></td>
-                                    <td>
-                                        <div class="school-operation-stack">
-                                            <span class="badge ${op.hasPendencias ? 'badge-danger' : 'badge-success'}">${op.pendenciasAbertas.length} pendência${op.pendenciasAbertas.length === 1 ? '' : 's'}</span>
-                                            <span class="badge ${op.hasInventarioProcess ? 'badge-info' : 'badge-warning'}">${op.hasInventarioProcess ? 'Com processo' : 'Sem processo'}</span>
-                                            ${op.bensTotal > 0 ? `<small>${op.bensTotal} bem(ns): ${op.bensNaoEncaminhados} sem enc., ${op.bensEncaminhados} enc., ${op.bensInventariados} inv.</small>` : `<small>Sem bens vinculados</small>`}
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="school-actions-stack">
-                                            <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${e.id}')">Ver Unidade</button>
-                                            ${currentProfile === 'assistente' || currentProfile === 'controlador' ? `
-                                                <button class="btn btn-secondary btn-sm" onclick="openEscolaEditModal('${e.id}')">Editar</button>
-                                            ` : ''}
-                                        </div>
-                                    </td>
+                                    <td>
+                                        <strong>INEP:</strong> ${e.inep}<br>
+                                        <small><strong>CNPJ:</strong> ${e.cnpj}</small><br>
+                                        <small><strong>SICI:</strong> ${e.sici || 'Não informado'}</small>
+                                    </td>
+                                    <td>${e.diretor}<br><small style="color:var(--text-muted)">${e.telefone}</small></td>
+                                    <td>${op.controladorName}</td>
+                                    <td><span class="badge ${statusBadge}">${statusLabel}</span></td>
+                                    <td>
+                                        <div class="school-operation-stack">
+                                            <span class="badge ${op.hasPendencias ? 'badge-danger' : 'badge-success'}">${op.pendenciasAbertas.length} pendência${op.pendenciasAbertas.length === 1 ? '' : 's'}</span>
+                                            <span class="badge ${op.hasInventarioProcess ? 'badge-info' : 'badge-warning'}">${op.hasInventarioProcess ? 'Com processo' : 'Sem processo'}</span>
+                                            ${op.bensTotal > 0 ? `<small>${op.bensTotal} bem(ns): ${op.bensNaoEncaminhados} sem enc., ${op.bensEncaminhados} enc., ${op.bensInventariados} inv.</small>` : `<small>Sem bens vinculados</small>`}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="school-actions-stack">
+                                            <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${e.id}')">Ver Unidade</button>
+                                            ${currentProfile === 'assistente' || currentProfile === 'controlador' ? `
+                                                <button class="btn btn-secondary btn-sm" onclick="openEscolaEditModal('${e.id}')">Editar</button>
+                                            ` : ''}
+                                        </div>
+                                    </td>
                                 </tr>
                             `;
-                        }).join('')}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
 
-    syncGlobalSearchInput();
-}
+    syncGlobalSearchInput();
+}
 
-
+
 // ==========================================
 // 9. RENDER DA TELA: COMPETÊNCIAS
 // ==========================================
@@ -6866,7 +6866,7 @@ function renderPendencias() {
 
     // Se perfil é controlador, ordenar as dele primeiro (e depois todas as outras)
     if (currentProfile === 'controlador') {
-        const activeCtrlId = getDefaultControladorId();
+        const activeCtrlId = getDefaultControladorId();
         const getSortWeight = (p) => {
             const esc = escolas.find(e => e.id === p.escolaId);
             return (esc && esc.controladorId === activeCtrlId) ? 0 : 1;
@@ -6912,21 +6912,21 @@ function renderPendencias() {
                                 <th>Data Abertura</th>
                                 <th>Ações</th>
                             </tr>
-                        </thead>
-                        <tbody>
-                            ${abertas.length === 0 ? `
-                                <tr>
-                                    <td colspan="7">
-                                        Nenhuma pendência aberta no momento. Quando uma inconsistência for registrada, ela aparecerá nesta lista.
-                                    </td>
-                                </tr>
-                            ` : abertas.map(p => {
-                                const esc = escolas.find(e => e.id === p.escolaId);
-                                const pData = getFormattedPendencyData(p);
-                                const ctrl = esc ? controladores.find(c => c.id === esc.controladorId) : null;
+                        </thead>
+                        <tbody>
+                            ${abertas.length === 0 ? `
+                                <tr>
+                                    <td colspan="7">
+                                        Nenhuma pendência aberta no momento. Quando uma inconsistência for registrada, ela aparecerá nesta lista.
+                                    </td>
+                                </tr>
+                            ` : abertas.map(p => {
+                                const esc = escolas.find(e => e.id === p.escolaId);
+                                const pData = getFormattedPendencyData(p);
+                                const ctrl = esc ? controladores.find(c => c.id === esc.controladorId) : null;
                                 const ctrlName = ctrl ? ctrl.name : 'Não designado';
                                 const desig = esc ? esc.designação : '';
-                                const isMine = (currentProfile === 'controlador' && esc && esc.controladorId === getDefaultControladorId());
+                                const isMine = (currentProfile === 'controlador' && esc && esc.controladorId === getDefaultControladorId());
                                 return `
                                     <tr style="${isMine ? 'background-color: rgba(157, 125, 252, 0.05);' : ''}">
                                         <td>
@@ -6972,21 +6972,21 @@ function renderPendencias() {
                                 <th>Abertura</th>
                                 <th>Resolvido Em</th>
                             </tr>
-                        </thead>
-                        <tbody>
-                            ${resolvidas.length === 0 ? `
-                                <tr>
-                                    <td colspan="7">
-                                        Nenhuma pendência resolvida registrada ainda. O histórico será preenchido conforme as regularizações forem concluídas.
-                                    </td>
-                                </tr>
-                            ` : resolvidas.map(p => {
-                                const esc = escolas.find(e => e.id === p.escolaId);
-                                const pData = getFormattedPendencyData(p);
-                                const ctrl = esc ? controladores.find(c => c.id === esc.controladorId) : null;
+                        </thead>
+                        <tbody>
+                            ${resolvidas.length === 0 ? `
+                                <tr>
+                                    <td colspan="7">
+                                        Nenhuma pendência resolvida registrada ainda. O histórico será preenchido conforme as regularizações forem concluídas.
+                                    </td>
+                                </tr>
+                            ` : resolvidas.map(p => {
+                                const esc = escolas.find(e => e.id === p.escolaId);
+                                const pData = getFormattedPendencyData(p);
+                                const ctrl = esc ? controladores.find(c => c.id === esc.controladorId) : null;
                                 const ctrlName = ctrl ? ctrl.name : 'Não designado';
                                 const desig = esc ? esc.designação : '';
-                                const isMine = (currentProfile === 'controlador' && esc && esc.controladorId === getDefaultControladorId());
+                                const isMine = (currentProfile === 'controlador' && esc && esc.controladorId === getDefaultControladorId());
                                 return `
                                     <tr style="${isMine ? 'background-color: rgba(157, 125, 252, 0.03);' : ''}">
                                         <td>
@@ -7375,42 +7375,42 @@ function renderProntuario(escolaId) {
                         <div class="info-value">${esc.inep}</div>
                     </div>
                     <div class="info-item">
-                        <div class="info-label">Designação</div>
-                        <div class="info-value">${esc.designação}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">SICI</div>
-                        <div class="info-value">${esc.sici || 'Não informado'}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">CNPJ</div>
-                        <div class="info-value">${esc.cnpj}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Diretor(a)</div>
-                        <div class="info-value">${esc.diretor}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Telefone do Diretor(a)</div>
-                        <div class="info-value">${esc.telefoneDiretor || 'Não informado'}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Diretor(a) Adjunto(a)</div>
-                        <div class="info-value">${esc.diretorAdjunto || 'Não informado'}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Telefone do Adjunto(a)</div>
-                        <div class="info-value">${esc.telefoneDiretorAdjunto || 'Não informado'}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Telefone da Unidade</div>
-                        <div class="info-value">${esc.telefone}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Celular Institucional</div>
-                        <div class="info-value">${esc.telefoneCelularInstitucional || 'Não informado'}</div>
-                    </div>
-                    <div class="info-item">
+                        <div class="info-label">Designação</div>
+                        <div class="info-value">${esc.designação}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">SICI</div>
+                        <div class="info-value">${esc.sici || 'Não informado'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">CNPJ</div>
+                        <div class="info-value">${esc.cnpj}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Diretor(a)</div>
+                        <div class="info-value">${esc.diretor}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Telefone do Diretor(a)</div>
+                        <div class="info-value">${esc.telefoneDiretor || 'Não informado'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Diretor(a) Adjunto(a)</div>
+                        <div class="info-value">${esc.diretorAdjunto || 'Não informado'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Telefone do Adjunto(a)</div>
+                        <div class="info-value">${esc.telefoneDiretorAdjunto || 'Não informado'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Telefone da Unidade</div>
+                        <div class="info-value">${esc.telefone}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Celular Institucional</div>
+                        <div class="info-value">${esc.telefoneCelularInstitucional || 'Não informado'}</div>
+                    </div>
+                    <div class="info-item">
                         <div class="info-label">Coordenadoria / RA</div>
                         <div class="info-value">${esc.cre} / ${getRAFromDesignacao(esc.designação)}</div>
                     </div>
@@ -8564,19 +8564,19 @@ function openEscolaEditModal(escolaId) {
         </label>
     `).join('');
 
-    if (escolaId) {
-        const esc = escolas.find(e => e.id === escolaId);
-        document.getElementById('edit-escola-id').value = esc.id;
-        document.getElementById('edit-sici').value = esc.sici || '';
-        document.getElementById('edit-email').value = esc.email || '';
-        document.getElementById('edit-diretor').value = esc.diretor;
-        document.getElementById('edit-telefone-diretor').value = esc.telefoneDiretor || '';
-        document.getElementById('edit-diretor-adjunto').value = esc.diretorAdjunto || '';
-        document.getElementById('edit-telefone-adjunto').value = esc.telefoneDiretorAdjunto || '';
-        document.getElementById('edit-telefone').value = esc.telefone;
-        document.getElementById('edit-celular-institucional').value = esc.telefoneCelularInstitucional || '';
-        document.getElementById('edit-controlador').value = esc.controladorId;
-        document.getElementById('edit-processo').value = esc.processoInventario;
+    if (escolaId) {
+        const esc = escolas.find(e => e.id === escolaId);
+        document.getElementById('edit-escola-id').value = esc.id;
+        document.getElementById('edit-sici').value = esc.sici || '';
+        document.getElementById('edit-email').value = esc.email || '';
+        document.getElementById('edit-diretor').value = esc.diretor;
+        document.getElementById('edit-telefone-diretor').value = esc.telefoneDiretor || '';
+        document.getElementById('edit-diretor-adjunto').value = esc.diretorAdjunto || '';
+        document.getElementById('edit-telefone-adjunto').value = esc.telefoneDiretorAdjunto || '';
+        document.getElementById('edit-telefone').value = esc.telefone;
+        document.getElementById('edit-celular-institucional').value = esc.telefoneCelularInstitucional || '';
+        document.getElementById('edit-controlador').value = esc.controladorId;
+        document.getElementById('edit-processo').value = esc.processoInventario;
         
         // Marcar checkboxes dos programas
         document.querySelectorAll('input[name="edit-programs"]').forEach(chk => {
@@ -8595,17 +8595,17 @@ function openEscolaEditModal(escolaId) {
 
 function saveEscolaEdit(e) {
     e.preventDefault();
-    const id = document.getElementById('edit-escola-id').value;
-    const sici = document.getElementById('edit-sici').value.trim();
-    const email = document.getElementById('edit-email').value.trim();
-    const diretor = document.getElementById('edit-diretor').value.trim();
-    const telefoneDiretor = document.getElementById('edit-telefone-diretor').value.trim();
-    const diretorAdjunto = document.getElementById('edit-diretor-adjunto').value.trim();
-    const telefoneDiretorAdjunto = document.getElementById('edit-telefone-adjunto').value.trim();
-    const tel = document.getElementById('edit-telefone').value.trim();
-    const celularInstitucional = document.getElementById('edit-celular-institucional').value.trim();
-    const ctrlId = document.getElementById('edit-controlador').value;
-    const processo = document.getElementById('edit-processo').value.trim();
+    const id = document.getElementById('edit-escola-id').value;
+    const sici = document.getElementById('edit-sici').value.trim();
+    const email = document.getElementById('edit-email').value.trim();
+    const diretor = document.getElementById('edit-diretor').value.trim();
+    const telefoneDiretor = document.getElementById('edit-telefone-diretor').value.trim();
+    const diretorAdjunto = document.getElementById('edit-diretor-adjunto').value.trim();
+    const telefoneDiretorAdjunto = document.getElementById('edit-telefone-adjunto').value.trim();
+    const tel = document.getElementById('edit-telefone').value.trim();
+    const celularInstitucional = document.getElementById('edit-celular-institucional').value.trim();
+    const ctrlId = document.getElementById('edit-controlador').value;
+    const processo = document.getElementById('edit-processo').value.trim();
     
     // Obter programas selecionados
     const progIds = ['BASIC'];
@@ -8616,18 +8616,18 @@ function saveEscolaEdit(e) {
     if (id) {
         // Atualizar
         const esc = escolas.find(item => item.id === id);
-        if (esc) {
-            const oldCtrl = esc.controladorId;
-            esc.sici = sici;
-            esc.email = email;
-            esc.diretor = diretor;
-            esc.telefoneDiretor = telefoneDiretor;
-            esc.diretorAdjunto = diretorAdjunto;
-            esc.telefoneDiretorAdjunto = telefoneDiretorAdjunto;
-            esc.telefone = tel;
-            esc.telefoneCelularInstitucional = celularInstitucional;
-            esc.controladorId = ctrlId;
-            esc.processoInventario = processo;
+        if (esc) {
+            const oldCtrl = esc.controladorId;
+            esc.sici = sici;
+            esc.email = email;
+            esc.diretor = diretor;
+            esc.telefoneDiretor = telefoneDiretor;
+            esc.diretorAdjunto = diretorAdjunto;
+            esc.telefoneDiretorAdjunto = telefoneDiretorAdjunto;
+            esc.telefone = tel;
+            esc.telefoneCelularInstitucional = celularInstitucional;
+            esc.controladorId = ctrlId;
+            esc.processoInventario = processo;
             esc.programasIds = progIds;
             
             let logDetails = `Dados da escola ${esc.denominação} atualizados.`;
@@ -8642,17 +8642,17 @@ function saveEscolaEdit(e) {
             cnpj: '00.000.000/0001-' + Math.floor(10 + Math.random() * 89),
             denominação: 'Nova Unidade Escolar ' + Math.floor(Math.random() * 100),
             designação: '01.09.' + Math.floor(100 + Math.random() * 900),
-            cre: '4ª CRE',
-            ra: 'Geral',
-            sici: sici,
-            email: email,
-            diretor: diretor,
-            telefoneDiretor: telefoneDiretor,
-            diretorAdjunto: diretorAdjunto,
-            telefoneDiretorAdjunto: telefoneDiretorAdjunto,
-            telefone: tel,
-            telefoneCelularInstitucional: celularInstitucional,
-            controladorId: ctrlId,
+            cre: '4ª CRE',
+            ra: 'Geral',
+            sici: sici,
+            email: email,
+            diretor: diretor,
+            telefoneDiretor: telefoneDiretor,
+            diretorAdjunto: diretorAdjunto,
+            telefoneDiretorAdjunto: telefoneDiretorAdjunto,
+            telefone: tel,
+            telefoneCelularInstitucional: celularInstitucional,
+            controladorId: ctrlId,
             processoInventario: processo,
             programasIds: progIds,
             competenciaInicial: '2026-05'
