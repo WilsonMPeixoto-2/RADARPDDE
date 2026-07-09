@@ -5024,6 +5024,8 @@ function getEscolaProgramNames(esc) {
     }).filter(Boolean);
 }
 
+// NOTE: relies on _pendenciasByEscolaId and _bensByEscolaId indexes.
+// Call rebuildOperationalIndexes() after any mutation to pendencias or bens.
 function getEscolaOperationalData(esc) {
     const escolaPendencias = _pendenciasByEscolaId.get(esc.id) || [];
     const pendenciasAbertas = escolaPendencias.filter(p => p.status === 'Aberta');
