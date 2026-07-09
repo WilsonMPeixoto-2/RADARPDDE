@@ -5328,6 +5328,32 @@ function syncGlobalSearchInput() {
     }
 }
 
+function restoreEscolaSearchFocus(selectionStart = null, selectionEnd = selectionStart) {
+
+    const input = document.getElementById('escola-search-input');
+
+    if (!input) return;
+
+
+
+    input.focus({ preventScroll: true });
+
+
+
+    if (typeof input.setSelectionRange === 'function') {
+
+        const valueLength = input.value.length;
+
+        const start = Number.isInteger(selectionStart) ? Math.min(selectionStart, valueLength) : valueLength;
+
+        const end = Number.isInteger(selectionEnd) ? Math.min(selectionEnd, valueLength) : start;
+
+        input.setSelectionRange(start, end);
+
+    }
+
+}
+
 function handleGlobalSearch(e) {
 
     escolaSearchQuery = e.target.value || '';
@@ -6888,7 +6914,11 @@ function changeInventarioSubFilter(subFilter) {
 
 
 
-function updateEscolasSearch(value) {
+function updateEscolasSearch(value, selectionStart = null, selectionEnd = selectionStart) {
+
+    const activeInput = document.getElementById('escola-search-input');
+
+    const shouldRestoreFocus = document.activeElement === activeInput;
 
     escolaSearchQuery = value || '';
 
@@ -6897,6 +6927,12 @@ function updateEscolasSearch(value) {
     syncGlobalSearchInput();
 
     renderEscolas();
+
+    if (shouldRestoreFocus) {
+
+        restoreEscolaSearchFocus(selectionStart, selectionEnd);
+
+    }
 
 }
 
@@ -7053,7 +7089,7 @@ function renderEscolas() {
 
                     <label for="escola-search-input">Busca</label>
 
-                    <input type="text" id="escola-search-input" class="form-control" value="${escapeHtml(escolaSearchQuery)}" placeholder="Ex.: EM Roraima, Roraima, 04.10.001 ou 0410001" oninput="updateEscolasSearch(this.value)">
+                    <input type="text" id="escola-search-input" class="form-control" value="${escapeHtml(escolaSearchQuery)}" placeholder="Ex.: EM Roraima, Roraima, 04.10.001 ou 0410001" oninput="updateEscolasSearch(this.value, this.selectionStart, this.selectionEnd)">
 
                 </div>
 
