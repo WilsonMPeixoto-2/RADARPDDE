@@ -8275,7 +8275,7 @@ function renderProntuario(escolaId) {
                         <button class="tab-button" data-tab="pendencias" onclick="switchSchoolTab(event, 'tab-pendencias')">Pendências Ativas (${pAtivas.length})</button>
                         <button class="tab-button" data-tab="contatos" onclick="switchSchoolTab(event, 'tab-contatos')">Histórico de Contatos</button>
                         <button class="tab-button" data-tab="capital" onclick="switchSchoolTab(event, 'tab-capital')">Registro de Capital</button>
-                        <button class="tab-button" data-tab="auditoria" onclick="switchSchoolTab(event, 'tab-auditoria')">Auditoria</button>
+                        <button class="tab-button" data-tab="auditoria" onclick="switchSchoolTab(event, 'tab-auditoria')">Registros Internos</button>
                     `}
                 </div>
 
@@ -8467,7 +8467,7 @@ function renderProntuario(escolaId) {
                 <div class="tab-content-panel" id="tab-auditoria">
                     <div class="panel-card">
                         <div class="panel-header">
-                            <h2>Histórico de Auditoria da Unidade</h2>
+                            <h2>Histórico de Registros Internos da Unidade</h2>
                         </div>
                         <div class="table-responsive">
                             <table class="data-table">
