@@ -6625,7 +6625,13 @@ function renderPendencias() {
                             </tr>
                         </thead>
                         <tbody>
-                            ${abertas.map(p => {
+                            ${abertas.length === 0 ? `
+                                <tr>
+                                    <td colspan="7">
+                                        Nenhuma pendência aberta no momento. Quando uma inconsistência for registrada, ela aparecerá nesta lista.
+                                    </td>
+                                </tr>
+                            ` : abertas.map(p => {
                                 const esc = escolas.find(e => e.id === p.escolaId);
                                 const pData = getFormattedPendencyData(p);
                                 const ctrl = esc ? controladores.find(c => c.id === esc.controladorId) : null;
@@ -6679,7 +6685,13 @@ function renderPendencias() {
                             </tr>
                         </thead>
                         <tbody>
-                            ${resolvidas.map(p => {
+                            ${resolvidas.length === 0 ? `
+                                <tr>
+                                    <td colspan="7">
+                                        Nenhuma pendência resolvida registrada ainda. O histórico será preenchido conforme as regularizações forem concluídas.
+                                    </td>
+                                </tr>
+                            ` : resolvidas.map(p => {
                                 const esc = escolas.find(e => e.id === p.escolaId);
                                 const pData = getFormattedPendencyData(p);
                                 const ctrl = esc ? controladores.find(c => c.id === esc.controladorId) : null;

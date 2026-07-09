@@ -1497,4 +1497,677 @@ body.dark-theme .status-dot-out-of-scope {
     box-shadow: 0 0 0 3px var(--primary-glow);
 }
 
+/* ==========================================
+   ETAPA 2 - REFINAMENTO VISUAL E LEGIBILIDADE
+   Polimento preservando a identidade lilás/roxa existente.
+   ========================================== */
 
+html {
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+svg {
+    display: block;
+    flex-shrink: 0;
+    vector-effect: non-scaling-stroke;
+}
+
+#app-layout,
+main.content-area,
+.page-container,
+.panel-card,
+.table-responsive {
+    min-width: 0;
+}
+
+aside.sidebar {
+    padding: 24px 16px 20px;
+}
+
+.sidebar-logo {
+    min-height: 40px;
+    margin-bottom: 30px;
+}
+
+.sidebar-logo svg {
+    width: 28px;
+    height: 28px;
+}
+
+.logo-text,
+.logo-sub,
+.nav-item span,
+.user-name,
+.user-role {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nav-group {
+    gap: 7px;
+}
+
+.nav-label {
+    letter-spacing: 0;
+    line-height: 1.2;
+}
+
+.nav-item {
+    min-height: 42px;
+    line-height: 1.25;
+}
+
+.nav-item svg {
+    width: 18px;
+    height: 18px;
+}
+
+.sidebar-footer {
+    padding-top: 18px;
+}
+
+.user-badge {
+    min-width: 0;
+    padding: 10px;
+}
+
+.user-avatar {
+    color: #ffffff;
+    flex: 0 0 32px;
+}
+
+header.top-header {
+    gap: 20px;
+    min-height: 70px;
+}
+
+.search-bar-container {
+    flex: 1 1 460px;
+    max-width: 620px;
+    min-width: 280px;
+}
+
+.search-input {
+    min-height: 40px;
+    line-height: 1.2;
+}
+
+.search-input::placeholder {
+    color: var(--text-muted);
+    opacity: 0.82;
+}
+
+.header-actions {
+    flex: 0 0 auto;
+    gap: 10px;
+}
+
+.exercise-selector,
+.profile-button {
+    min-height: 38px;
+    white-space: nowrap;
+}
+
+.bell-button {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    position: relative;
+}
+
+.bell-button svg {
+    width: 19px;
+    height: 19px;
+}
+
+.bell-badge {
+    top: -3px;
+    right: -5px;
+    min-width: 18px;
+    height: 18px;
+    padding: 2px 5px;
+    line-height: 1;
+}
+
+.profile-button svg {
+    width: 16px;
+    height: 16px;
+}
+
+.alerts-dropdown,
+.profile-dropdown {
+    overflow: hidden;
+}
+
+.alert-item {
+    align-items: flex-start;
+    line-height: 1.4;
+}
+
+.alert-content {
+    min-width: 0;
+}
+
+.alert-text {
+    overflow-wrap: anywhere;
+}
+
+.alert-empty,
+table.data-table td[colspan] {
+    text-align: center;
+    color: var(--text-main);
+    padding: 34px 18px;
+    line-height: 1.55;
+    font-weight: 500;
+    background-color: rgba(157, 125, 252, 0.035);
+}
+
+.page-container {
+    padding: 34px 32px;
+}
+
+.page-header {
+    gap: 18px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.page-title {
+    min-width: 0;
+    max-width: 960px;
+}
+
+.page-title h1 {
+    line-height: 1.16;
+    letter-spacing: 0;
+}
+
+.page-title p {
+    line-height: 1.55;
+    max-width: 980px;
+}
+
+.page-header > .badge,
+.page-header > div:last-child:not(.page-title) {
+    flex-shrink: 0;
+}
+
+.grid-stats {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    align-items: stretch;
+}
+
+.card-stat {
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.card-stat::before {
+    border-radius: 16px 0 0 16px;
+}
+
+.stat-icon {
+    width: 44px;
+    height: 44px;
+    margin-bottom: 0;
+}
+
+.stat-icon svg {
+    width: 25px;
+    height: 25px;
+}
+
+.card-stat:hover .stat-icon {
+    color: #ffffff;
+}
+
+body.dark-theme .card-stat:hover .stat-icon {
+    color: var(--text-dark);
+}
+
+.stat-label {
+    letter-spacing: 0;
+    line-height: 1.35;
+}
+
+.stat-value {
+    line-height: 1.08;
+    overflow-wrap: anywhere;
+}
+
+.dash-layout {
+    align-items: start;
+}
+
+.panel-card,
+.school-info-card,
+.config-section {
+    box-shadow: var(--shadow-sm);
+}
+
+.panel-header {
+    gap: 14px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+
+.panel-header h2 {
+    line-height: 1.35;
+}
+
+.table-responsive {
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+table.data-table {
+    min-width: 760px;
+}
+
+table.data-table th,
+table.data-table td {
+    line-height: 1.45;
+}
+
+table.data-table th {
+    letter-spacing: 0;
+    white-space: nowrap;
+}
+
+table.data-table td:first-child strong {
+    display: inline-block;
+    line-height: 1.35;
+    max-width: 320px;
+}
+
+table.data-table small {
+    line-height: 1.45;
+}
+
+table.data-table .btn,
+table.data-table .badge {
+    white-space: nowrap;
+}
+
+.badge {
+    min-height: 24px;
+    line-height: 1.2;
+}
+
+.badge.badge-primary {
+    background-color: var(--primary-glow);
+    color: var(--primary);
+    border: 1px solid var(--border-hover);
+}
+
+.btn {
+    min-height: 40px;
+    line-height: 1.2;
+    text-align: center;
+    white-space: nowrap;
+    text-decoration: none;
+}
+
+.btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.btn-primary {
+    color: #ffffff;
+}
+
+body.dark-theme .btn-primary {
+    color: var(--text-dark);
+}
+
+.btn-sm {
+    min-height: 32px;
+    padding: 7px 12px;
+}
+
+.btn-sm svg {
+    width: 14px;
+    height: 14px;
+}
+
+.btn:disabled,
+.btn[disabled] {
+    opacity: 0.55;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.btn-close {
+    width: 36px;
+    height: 36px;
+    font-size: 1.25rem;
+}
+
+.modal-overlay {
+    padding: 24px;
+}
+
+.modal-content {
+    width: min(620px, calc(100vw - 32px));
+    max-width: calc(100vw - 32px);
+    max-height: calc(100vh - 48px);
+    background: var(--bg-sidebar);
+    box-shadow: 0 24px 70px rgba(18, 14, 34, 0.28);
+}
+
+body.dark-theme .modal-content {
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+}
+
+#modal-escola-edit .modal-content,
+#modal-nova-pendencia .modal-content,
+#modal-dados-nota .modal-content,
+#modal-inventario-confirm .modal-content {
+    width: min(720px, calc(100vw - 32px));
+}
+
+#modal-cobranca .modal-content {
+    width: min(760px, calc(100vw - 32px));
+}
+
+.modal-header {
+    gap: 16px;
+}
+
+.modal-header h3 {
+    line-height: 1.25;
+}
+
+.modal-body {
+    max-height: calc(100vh - 150px);
+}
+
+.modal-body .modal-footer {
+    margin: 20px -24px -24px;
+    padding: 16px 24px !important;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-sidebar) !important;
+}
+
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-group label,
+.info-label {
+    letter-spacing: 0;
+    line-height: 1.35;
+}
+
+.form-control {
+    min-height: 40px;
+    line-height: 1.35;
+}
+
+.form-control::placeholder {
+    color: var(--text-muted);
+    opacity: 0.78;
+}
+
+textarea.form-control {
+    line-height: 1.5;
+}
+
+.form-row {
+    gap: 16px 18px;
+}
+
+#edit-programas-checkboxes,
+#cobranca-checkboxes-container {
+    background: var(--bg-input);
+}
+
+.contact-card {
+    line-height: 1.45;
+}
+
+.contact-card::before {
+    background-clip: padding-box;
+}
+
+.contact-meta {
+    gap: 10px;
+    line-height: 1.3;
+}
+
+.contact-desc {
+    line-height: 1.5;
+}
+
+.school-grid {
+    align-items: start;
+}
+
+.info-value {
+    overflow-wrap: anywhere;
+    word-break: normal;
+}
+
+.tab-container {
+    gap: 10px;
+}
+
+.tab-button {
+    line-height: 1.2;
+}
+
+.program-tag {
+    line-height: 1.3;
+}
+
+.cobranca-preview {
+    line-height: 1.55;
+}
+
+@media (max-width: 1280px) {
+    header.top-header {
+        padding: 0 24px;
+    }
+
+    .search-bar-container {
+        flex-basis: 360px;
+        min-width: 220px;
+    }
+
+    .page-container {
+        padding: 30px 28px;
+    }
+
+    .dash-layout {
+        grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.9fr);
+    }
+}
+
+@media (max-width: 1100px) {
+    #app-layout {
+        grid-template-columns: 250px minmax(0, 1fr);
+    }
+
+    .dash-layout,
+    .school-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .grid-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    header.top-header {
+        gap: 12px;
+    }
+
+    .header-actions {
+        gap: 8px;
+    }
+
+    .search-bar-container {
+        min-width: 190px;
+    }
+}
+
+@media (max-width: 900px) {
+    #app-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    aside.sidebar {
+        display: none;
+    }
+
+    header.top-header {
+        width: 100%;
+        height: auto !important;
+        min-height: 112px;
+        padding: 12px 16px;
+        flex-wrap: wrap;
+        align-items: center;
+        align-content: flex-start;
+        row-gap: 10px;
+    }
+
+    .search-bar-container {
+        order: 2;
+        width: 100%;
+        flex: 1 1 100%;
+        min-width: 0;
+        max-width: none;
+    }
+
+    .search-input,
+    .search-input:focus {
+        color: var(--text-main);
+        padding-right: 16px;
+    }
+
+    .header-actions {
+        flex: 1 1 auto;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        min-width: 0;
+    }
+
+    .page-container {
+        padding: 24px 18px;
+    }
+
+    .page-header {
+        margin-bottom: 22px;
+    }
+
+    .page-title h1 {
+        font-size: 1.55rem;
+    }
+
+    .modal-overlay {
+        padding: 16px;
+        align-items: flex-start;
+    }
+
+    .modal-content,
+    #modal-escola-edit .modal-content,
+    #modal-nova-pendencia .modal-content,
+    #modal-dados-nota .modal-content,
+    #modal-inventario-confirm .modal-content,
+    #modal-cobranca .modal-content {
+        width: 100%;
+        max-width: 100%;
+        max-height: calc(100vh - 32px);
+    }
+
+    .modal-body {
+        max-height: calc(100vh - 138px);
+    }
+}
+
+@media (max-width: 700px) {
+    .grid-stats,
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .card-stat {
+        min-height: 132px;
+    }
+
+    .page-header {
+        flex-direction: column;
+    }
+
+    .page-header > .badge,
+    .page-header > div:last-child:not(.page-title) {
+        width: 100%;
+    }
+
+    .modal-header,
+    .modal-body {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+    .modal-body .modal-footer {
+        margin-left: -18px;
+        margin-right: -18px;
+        padding: 14px 18px !important;
+        flex-wrap: wrap;
+    }
+
+    .modal-footer .btn,
+    .modal-body .modal-footer .btn {
+        flex: 1 1 160px;
+    }
+}
+
+@media (max-width: 520px) {
+    .page-container {
+        padding: 20px 14px;
+    }
+
+    .header-actions {
+        justify-content: flex-start;
+    }
+
+    .exercise-selector {
+        max-width: 150px;
+    }
+
+    .profile-button {
+        width: 44px;
+        min-width: 44px;
+        padding: 0;
+        justify-content: center;
+    }
+
+    #profile-btn-label {
+        display: none;
+    }
+
+    .panel-card {
+        padding: 18px;
+    }
+
+    .tab-button {
+        padding: 10px 12px;
+    }
+
+    table.data-table {
+        min-width: 680px;
+    }
+}
