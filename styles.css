@@ -2315,6 +2315,47 @@ textarea.form-control {
     border-color: rgba(124, 58, 237, 0.3);
 }
 
+.carteira-competencia-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 8px 10px 8px 14px;
+    border: 1px solid rgba(124, 58, 237, 0.24);
+    border-radius: 8px;
+    background: var(--primary-glow);
+    color: var(--primary);
+}
+
+.carteira-competencia-control span {
+    font-size: 0.76rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.carteira-competencia-control select {
+    min-width: 168px;
+    border: 0;
+    border-radius: 8px;
+    padding: 8px 34px 8px 12px;
+    background: var(--primary);
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    outline: none;
+}
+
+.carteira-competencia-control select:focus {
+    box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+.carteira-competencia-control small {
+    color: var(--primary);
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
 .empty-state.compact {
     padding: 26px 16px;
     min-height: 0;
@@ -2344,5 +2385,16 @@ textarea.form-control {
     .school-filter-summary span {
         width: 100%;
         justify-content: center;
+    }
+
+    .carteira-competencia-control {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+
+    .carteira-competencia-control select {
+        flex: 1;
+        min-width: 180px;
     }
 }

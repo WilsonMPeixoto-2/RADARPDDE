@@ -6952,6 +6952,14 @@ function changeEscolaFilter(filterName, value) {
 
 }
 
+function changeCarteiraCompetencia(value) {
+
+    activeCompetenciaKey = value;
+
+    renderEscolas();
+
+}
+
 
 
 function clearEscolaFilters() {
@@ -7025,6 +7033,10 @@ function renderEscolas() {
     const targetEscolas = getFilteredEscolas();
 
     const raOptions = [...new Set(escolas.map(e => e.ra || getRAFromDesignacao(e.designação)).filter(Boolean))].sort();
+
+    const competenciaOptions = COMPETENCIAS.filter(c => c.key <= config.competenciaFechamento);
+
+    const activeCompetencia = COMPETENCIAS.find(c => c.key === activeCompetenciaKey);
 
     const pendenciasCount = targetEscolas.filter(e => getEscolaOperationalData(e).hasPendencias).length;
 
@@ -7227,8 +7239,6 @@ function renderEscolas() {
 
                 <span>${inventarioCount} com processo de inventário</span>
 
-                <span>Competência: ${activeCompetenciaKey}</span>
-
             </div>
 
         </div>
@@ -7244,6 +7254,24 @@ function renderEscolas() {
                     <h2>Resultado da carteira</h2>
 
                     <p>${activeFiltersCount > 0 ? 'Lista filtrada conforme os critérios selecionados.' : 'Lista completa de escolas cadastradas.'}</p>
+
+                </div>
+
+                <div class="carteira-competencia-control" aria-label="Competência da carteira">
+
+                    <span>Competência</span>
+
+                    <select id="carteira-competencia-select" onchange="changeCarteiraCompetencia(this.value)" title="Selecionar competência da carteira">
+
+                        ${competenciaOptions.map(c => `
+
+                            <option value="${escapeHtml(c.key)}" ${selectedAttr(activeCompetenciaKey, c.key)}>${escapeHtml(c.label)}</option>
+
+                        `).join('')}
+
+                    </select>
+
+                    <small>${escapeHtml(activeCompetencia ? activeCompetencia.key : activeCompetenciaKey)}</small>
 
                 </div>
 
