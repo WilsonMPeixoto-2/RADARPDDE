@@ -4171,7 +4171,17 @@ let currentExercise = '2026';
 let currentView = 'dashboard'; // dashboard, escolas, competencias, pendencias, inventario, auditoria, sme-config
 let activeSchoolId = null; // ID da escola em exibição no prontuário
 let activeCompetenciaKey = '2026-05'; // Competência selecionada na visão por competência
-let searchResultFiltered = null; // Filtro de busca global
+let searchResultFiltered = null; // Mantido por compatibilidade; a carteira usa escolaSearchQuery + activeEscolaFilters
+let escolaSearchQuery = '';
+const DEFAULT_ESCOLA_FILTERS = Object.freeze({
+    controlador: 'all',
+    programa: 'all',
+    situacao: 'all',
+    pendencias: 'all',
+    inventario: 'all',
+    ra: 'all'
+});
+let activeEscolaFilters = { ...DEFAULT_ESCOLA_FILTERS };
 let activeControladorRAFilter = 'carteira'; // carteira, todas, 10, 11, 30, 31
 let expandedControllerId = null; // ID do controlador expandido na tabela do assistente
 let activeControladorSubFilter = 'all'; // all, naoAnalisadas, pendencias, bens
@@ -4958,33 +4968,138 @@ function getEscolasStats(escolasList, compKey) {
 // 6. BUSCA INTELIGENTE GLOBAL
 // ==========================================
 
-function handleGlobalSearch(e) {
-    const query = e.target.value.toLowerCase().trim();
-    if (!query) {
-        searchResultFiltered = null;
-        if (currentView === 'escolas') renderEscolas();
-        return;
+function normalizeSearchText(value) {
+    return String(value || '')
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim();
+}
+
+function onlyDigits(value) {
+    return String(value || '').replace(/\D/g, '');
+}
+
+function escapeHtml(value) {
+    return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function selectedAttr(current, expected) {
+    return current === expected ? 'selected' : '';
+}
+
+function getControladorName(controladorId) {
+    const ctrl = controladores.find(c => c.id === controladorId);
+    return ctrl ? ctrl.name : 'Não designado';
+}
+
+function getEscolaProgramNames(esc) {
+    return (esc.programasIds || []).map(progId => {
+        const programa = programas.find(p => p.id === progId);
+        return programa ? programa.name : progId;
+    }).filter(Boolean);
+}
+
+function getEscolaOperationalData(esc) {
+    const pendenciasAbertas = pendencias.filter(p => p.escolaId === esc.id && p.status === 'Aberta');
+    const escolaBens = bens.filter(b => b.escolaId === esc.id);
+    const bensNaoEncaminhados = escolaBens.filter(b => b.status === 'Não encaminhada').length;
+    const bensEncaminhados = escolaBens.filter(b => b.status === 'Encaminhada').length;
+    const bensInventariados = escolaBens.filter(b => b.status === 'Inventariada').length;
+    const processoInventario = (esc.processoInventario || '').trim();
+
+    return {
+        controladorName: getControladorName(esc.controladorId),
+        programas: getEscolaProgramNames(esc),
+        ra: esc.ra || getRAFromDesignacao(esc.designação),
+        situacao: getSchoolAggregateStatus(esc, activeCompetenciaKey),
+        pendenciasAbertas,
+        hasPendencias: pendenciasAbertas.length > 0,
+        hasInventarioProcess: Boolean(processoInventario),
+        processoInventario,
+        bensTotal: escolaBens.length,
+        bensNaoEncaminhados,
+        bensEncaminhados,
+        bensInventariados
+    };
+}
+
+function schoolMatchesSearch(esc, rawQuery) {
+    const cleanQuery = normalizeSearchText(rawQuery);
+    if (!cleanQuery) return true;
+
+    const digitsQuery = onlyDigits(rawQuery);
+    const op = getEscolaOperationalData(esc);
+    const textFields = [
+        esc.denominação,
+        esc.designação,
+        esc.inep,
+        esc.cnpj,
+        esc.sici,
+        esc.diretor,
+        esc.diretorAdjunto,
+        esc.email,
+        esc.telefone,
+        op.controladorName,
+        op.processoInventario,
+        op.ra,
+        ...op.programas
+    ];
+    const textCorpus = normalizeSearchText(textFields.join(' '));
+
+    const digitFields = [
+        esc.designação,
+        esc.inep,
+        esc.cnpj,
+        esc.sici,
+        esc.telefone,
+        esc.telefoneDiretor,
+        esc.telefoneDiretorAdjunto,
+        esc.telefoneCelularInstitucional,
+        op.processoInventario
+    ];
+    const digitCorpus = digitFields.map(onlyDigits).filter(Boolean).join(' ');
+
+    return textCorpus.includes(cleanQuery) || (digitsQuery.length > 0 && digitCorpus.includes(digitsQuery));
+}
+
+function getEscolaStatusLabel(status) {
+    const labels = {
+        apto: 'Apta',
+        inapto: 'Inapta',
+        emAndamento: 'Em andamento',
+        naoAnalisado: 'Não analisada',
+        foraEscopo: 'Fora do escopo'
+    };
+    return labels[status] || 'Não analisada';
+}
+
+function getEscolaStatusBadgeClass(status) {
+    const classes = {
+        apto: 'badge-success',
+        inapto: 'badge-danger',
+        emAndamento: 'badge-warning',
+        naoAnalisado: 'badge-gray',
+        foraEscopo: 'badge-info'
+    };
+    return classes[status] || 'badge-gray';
+}
+
+function syncGlobalSearchInput() {
+    const input = document.getElementById('global-search');
+    if (input && input.value !== escolaSearchQuery) {
+        input.value = escolaSearchQuery;
     }
-    
-    // Função para remover acentos para busca insensível
-    const removeAccents = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    const cleanQuery = removeAccents(query);
-    
-    searchResultFiltered = escolas.filter(esc => {
-        const cNome = removeAccents(esc.denominação.toLowerCase());
-        const cDiretor = removeAccents(esc.diretor.toLowerCase());
-        const cInep = esc.inep;
-        const cCnpj = esc.cnpj.replace(/\D/g, "");
-        const cDesignacao = esc.designação.toLowerCase();
-        const cProcesso = esc.processoInventario.toLowerCase();
-        
-        return cNome.includes(cleanQuery) || 
-               cDiretor.includes(cleanQuery) || 
-               cInep.includes(cleanQuery) || 
-               cCnpj.includes(cleanQuery.replace(/\D/g, "")) || 
-               cDesignacao.includes(cleanQuery) ||
-               cProcesso.includes(cleanQuery);
-    });
+}
+
+function handleGlobalSearch(e) {
+    escolaSearchQuery = e.target.value || '';
+    searchResultFiltered = null;
 
     if (currentView !== 'escolas') {
         switchView('escolas');
@@ -6182,7 +6297,7 @@ function renderDashboardInventario(container) {
                 <span class="badge ${escolasSemProcesso.length === 0 ? 'badge-success' : 'badge-warning'}">${escolasComProcesso.length} com processo / ${escolasSemProcesso.length} pendentes</span>
             </div>
             <div class="table-responsive">
-                <table class="data-table">
+                <table class="data-table school-carteira-table">
                     <thead>
                         <tr>
                             <th>Unidade Escolar</th>
@@ -6289,15 +6404,66 @@ function changeInventarioSubFilter(subFilter) {
 // 8. RENDER DA TELA: ESCOLAS (CARTEIRA)
 // ==========================================
 
+function updateEscolasSearch(value) {
+    escolaSearchQuery = value || '';
+    searchResultFiltered = null;
+    syncGlobalSearchInput();
+    renderEscolas();
+}
+
+function changeEscolaFilter(filterName, value) {
+    activeEscolaFilters = {
+        ...activeEscolaFilters,
+        [filterName]: value
+    };
+    renderEscolas();
+}
+
+function clearEscolaFilters() {
+    escolaSearchQuery = '';
+    searchResultFiltered = null;
+    activeEscolaFilters = { ...DEFAULT_ESCOLA_FILTERS };
+    syncGlobalSearchInput();
+    renderEscolas();
+}
+
+function getFilteredEscolas() {
+    return escolas.filter(esc => {
+        const op = getEscolaOperationalData(esc);
+
+        if (!schoolMatchesSearch(esc, escolaSearchQuery)) return false;
+        if (activeEscolaFilters.controlador !== 'all' && esc.controladorId !== activeEscolaFilters.controlador) return false;
+        if (activeEscolaFilters.programa !== 'all' && !(esc.programasIds || []).includes(activeEscolaFilters.programa)) return false;
+        if (activeEscolaFilters.situacao !== 'all' && op.situacao !== activeEscolaFilters.situacao) return false;
+        if (activeEscolaFilters.pendencias === 'com' && !op.hasPendencias) return false;
+        if (activeEscolaFilters.pendencias === 'sem' && op.hasPendencias) return false;
+        if (activeEscolaFilters.inventario === 'com' && !op.hasInventarioProcess) return false;
+        if (activeEscolaFilters.inventario === 'sem' && op.hasInventarioProcess) return false;
+        if (activeEscolaFilters.ra !== 'all' && op.ra !== activeEscolaFilters.ra) return false;
+
+        return true;
+    });
+}
+
+function renderEscolaFilterOptions(options, activeValue) {
+    return options.map(option => `
+        <option value="${escapeHtml(option.value)}" ${selectedAttr(activeValue, option.value)}>${escapeHtml(option.label)}</option>
+    `).join('');
+}
+
 function renderEscolas() {
     const container = document.getElementById('main-container');
-    const targetEscolas = searchResultFiltered || escolas;
+    const targetEscolas = getFilteredEscolas();
+    const raOptions = [...new Set(escolas.map(e => e.ra || getRAFromDesignacao(e.designação)).filter(Boolean))].sort();
+    const pendenciasCount = targetEscolas.filter(e => getEscolaOperationalData(e).hasPendencias).length;
+    const inventarioCount = targetEscolas.filter(e => getEscolaOperationalData(e).hasInventarioProcess).length;
+    const activeFiltersCount = Object.keys(activeEscolaFilters).filter(key => activeEscolaFilters[key] !== DEFAULT_ESCOLA_FILTERS[key]).length + (escolaSearchQuery.trim() ? 1 : 0);
 
     container.innerHTML = `
         <div class="page-header">
             <div class="page-title">
                 <h1>Escolas e Carteiras</h1>
-                <p>Lista de unidades escolares sob jurisdição da Coordenadoria de Educação.</p>
+                <p>Lista pesquisável de unidades escolares sob jurisdição da Coordenadoria de Educação.</p>
             </div>
             ${currentProfile === 'assistente' ? `
                 <button class="btn btn-primary" onclick="openEscolaEditModal(null)">
@@ -6307,31 +6473,152 @@ function renderEscolas() {
             ` : ''}
         </div>
 
+        <div class="panel-card school-filter-panel">
+            <div class="school-filter-header">
+                <div>
+                    <h2>Busca e filtros da carteira</h2>
+                    <p>Pesquise por designação, unidade, INEP, CNPJ, SICI, diretor, controlador, programa ou processo.</p>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="clearEscolaFilters()" ${activeFiltersCount === 0 ? 'disabled' : ''}>Limpar filtros</button>
+            </div>
+
+            <div class="school-filter-grid">
+                <div class="filter-field filter-field-wide">
+                    <label for="escola-search-input">Busca</label>
+                    <input type="text" id="escola-search-input" class="form-control" value="${escapeHtml(escolaSearchQuery)}" placeholder="Ex.: 04.10.001, INEP, CNPJ, diretor, Érica, PDDE Básico..." oninput="updateEscolasSearch(this.value)">
+                </div>
+
+                <div class="filter-field">
+                    <label for="filter-escola-controlador">Controlador</label>
+                    <select id="filter-escola-controlador" class="form-control" onchange="changeEscolaFilter('controlador', this.value)">
+                        <option value="all" ${selectedAttr(activeEscolaFilters.controlador, 'all')}>Todos</option>
+                        ${controladores.map(c => `<option value="${escapeHtml(c.id)}" ${selectedAttr(activeEscolaFilters.controlador, c.id)}>${escapeHtml(c.name)}</option>`).join('')}
+                    </select>
+                </div>
+
+                <div class="filter-field">
+                    <label for="filter-escola-programa">Programa</label>
+                    <select id="filter-escola-programa" class="form-control" onchange="changeEscolaFilter('programa', this.value)">
+                        <option value="all" ${selectedAttr(activeEscolaFilters.programa, 'all')}>Todos</option>
+                        ${programas.map(p => `<option value="${escapeHtml(p.id)}" ${selectedAttr(activeEscolaFilters.programa, p.id)}>${escapeHtml(p.name)}</option>`).join('')}
+                    </select>
+                </div>
+
+                <div class="filter-field">
+                    <label for="filter-escola-situacao">Situação</label>
+                    <select id="filter-escola-situacao" class="form-control" onchange="changeEscolaFilter('situacao', this.value)">
+                        ${renderEscolaFilterOptions([
+                            { value: 'all', label: 'Todas' },
+                            { value: 'apto', label: 'Aptas' },
+                            { value: 'inapto', label: 'Inaptas' },
+                            { value: 'emAndamento', label: 'Em andamento' },
+                            { value: 'naoAnalisado', label: 'Não analisadas' },
+                            { value: 'foraEscopo', label: 'Fora do escopo' }
+                        ], activeEscolaFilters.situacao)}
+                    </select>
+                </div>
+
+                <div class="filter-field">
+                    <label for="filter-escola-pendencias">Pendências</label>
+                    <select id="filter-escola-pendencias" class="form-control" onchange="changeEscolaFilter('pendencias', this.value)">
+                        ${renderEscolaFilterOptions([
+                            { value: 'all', label: 'Todas' },
+                            { value: 'com', label: 'Com pendências abertas' },
+                            { value: 'sem', label: 'Sem pendências abertas' }
+                        ], activeEscolaFilters.pendencias)}
+                    </select>
+                </div>
+
+                <div class="filter-field">
+                    <label for="filter-escola-inventario">Inventário</label>
+                    <select id="filter-escola-inventario" class="form-control" onchange="changeEscolaFilter('inventario', this.value)">
+                        ${renderEscolaFilterOptions([
+                            { value: 'all', label: 'Todos' },
+                            { value: 'com', label: 'Com processo' },
+                            { value: 'sem', label: 'Sem processo' }
+                        ], activeEscolaFilters.inventario)}
+                    </select>
+                </div>
+
+                <div class="filter-field">
+                    <label for="filter-escola-ra">R.A.</label>
+                    <select id="filter-escola-ra" class="form-control" onchange="changeEscolaFilter('ra', this.value)">
+                        <option value="all" ${selectedAttr(activeEscolaFilters.ra, 'all')}>Todas</option>
+                        ${raOptions.map(ra => `<option value="${escapeHtml(ra)}" ${selectedAttr(activeEscolaFilters.ra, ra)}>${escapeHtml(ra)}</option>`).join('')}
+                    </select>
+                </div>
+            </div>
+
+            <div class="school-filter-summary">
+                <span><strong>${targetEscolas.length}</strong> de ${escolas.length} escolas exibidas</span>
+                <span>${pendenciasCount} com pendências abertas</span>
+                <span>${inventarioCount} com processo de inventário</span>
+                <span>Competência: ${activeCompetenciaKey}</span>
+            </div>
+        </div>
+
         <div class="panel-card">
+            <div class="panel-header">
+                <div>
+                    <h2>Resultado da carteira</h2>
+                    <p>${activeFiltersCount > 0 ? 'Lista filtrada conforme os critérios selecionados.' : 'Lista completa de escolas cadastradas.'}</p>
+                </div>
+            </div>
             <div class="table-responsive">
                 <table class="data-table">
                     <thead>
                         <tr>
                             <th>Unidade Escolar</th>
-                            <th>INEP</th>
-                            <th>CNPJ</th>
+                            <th>Identificação</th>
                             <th>Diretor(a) Geral</th>
                             <th>Controlador Responsável</th>
+                            <th>Situação</th>
+                            <th>Operação</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${targetEscolas.map(e => {
-                            const ctrl = controladores.find(c => c.id === e.controladorId);
+                        ${targetEscolas.length === 0 ? `
+                            <tr>
+                                <td colspan="7">
+                                    <div class="empty-state compact">
+                                        <div class="empty-state-icon">⌕</div>
+                                        <strong>Nenhuma escola encontrada</strong>
+                                        <span>Ajuste a busca ou limpe os filtros para ampliar o resultado.</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        ` : targetEscolas.map(e => {
+                            const op = getEscolaOperationalData(e);
+                            const statusBadge = getEscolaStatusBadgeClass(op.situacao);
+                            const statusLabel = getEscolaStatusLabel(op.situacao);
                             return `
                                 <tr>
-                                    <td><strong>${e.denominação}</strong><br><small style="color:var(--text-muted)">${e.designação}</small></td>
-                                    <td>${e.inep}</td>
-                                    <td>${e.cnpj}</td>
-                                    <td>${e.diretor}<br><small style="color:var(--text-muted)">${e.telefone}</small></td>
-                                    <td>${ctrl ? ctrl.name : 'Não designado'}</td>
                                     <td>
-                                        <div style="display:flex; gap:8px;">
+                                        <strong>${e.denominação}</strong>
+                                        <br><small style="color:var(--text-muted)">${e.designação} • ${op.ra}</small>
+                                        <div class="school-program-inline">
+                                            ${op.programas.slice(0, 3).map(p => `<span>${escapeHtml(p)}</span>`).join('')}
+                                            ${op.programas.length > 3 ? `<span>+${op.programas.length - 3}</span>` : ''}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <strong>INEP:</strong> ${e.inep}<br>
+                                        <small><strong>CNPJ:</strong> ${e.cnpj}</small><br>
+                                        <small><strong>SICI:</strong> ${e.sici || 'Não informado'}</small>
+                                    </td>
+                                    <td>${e.diretor}<br><small style="color:var(--text-muted)">${e.telefone}</small></td>
+                                    <td>${op.controladorName}</td>
+                                    <td><span class="badge ${statusBadge}">${statusLabel}</span></td>
+                                    <td>
+                                        <div class="school-operation-stack">
+                                            <span class="badge ${op.hasPendencias ? 'badge-danger' : 'badge-success'}">${op.pendenciasAbertas.length} pendência${op.pendenciasAbertas.length === 1 ? '' : 's'}</span>
+                                            <span class="badge ${op.hasInventarioProcess ? 'badge-info' : 'badge-warning'}">${op.hasInventarioProcess ? 'Com processo' : 'Sem processo'}</span>
+                                            ${op.bensTotal > 0 ? `<small>${op.bensTotal} bem(ns): ${op.bensNaoEncaminhados} sem enc., ${op.bensEncaminhados} enc., ${op.bensInventariados} inv.</small>` : `<small>Sem bens vinculados</small>`}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="school-actions-stack">
                                             <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${e.id}')">Ver Unidade</button>
                                             ${currentProfile === 'assistente' || currentProfile === 'controlador' ? `
                                                 <button class="btn btn-secondary btn-sm" onclick="openEscolaEditModal('${e.id}')">Editar</button>
@@ -6346,6 +6633,8 @@ function renderEscolas() {
             </div>
         </div>
     `;
+
+    syncGlobalSearchInput();
 }
 
 
