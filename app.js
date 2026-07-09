@@ -5107,7 +5107,7 @@ function renderDashboardControlador(container) {
             </div>
             <div class="card-stat ${activeControladorSubFilter === 'naoAnalisadas' ? 'active-naoAnalisadas' : ''}" style="cursor: pointer;" onclick="changeControladorSubFilter('naoAnalisadas')">
                 <div class="stat-icon" style="background-color: var(--warning-bg); color: var(--warning);">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                 </div>
                 <div class="stat-label">Não Analisadas (${activeCompetenciaKey})</div>
                 <div class="stat-value">${escolasNaoAnalisadas.length} Escolas</div>
@@ -6139,7 +6139,7 @@ function renderDashboardInventario(container) {
         <div class="grid-stats">
             <div class="card-stat ${activeInventarioSubFilter === 'naoEncamp' ? 'active-naoEncamp' : ''}" style="cursor: pointer;" onclick="changeInventarioSubFilter('naoEncamp')">
                 <div class="stat-icon" style="background-color: var(--danger-bg); color: var(--danger);">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="9" y1="15" x2="15" y2="15"></line></svg>
                 </div>
                 <div class="stat-label">Sem Encarte / Pendente Verbas Federais</div>
                 <div class="stat-value">${formatStat(naoEncamp)}</div>
