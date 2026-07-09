@@ -5374,11 +5374,11 @@ function syncGlobalSearchInput() {
 }
 
 function updateGlobalCompetenceIndicator() {
-    const el = document.getElementById('global-competence-badge');
+    const el = document.getElementById('global-competence-label');
     if (el) {
         const comp = COMPETENCIAS.find(c => c.key === activeCompetenciaKey);
         const label = comp ? comp.label : activeCompetenciaKey;
-        el.innerHTML = `Competência global: <strong style="color: var(--primary); font-weight: 700;">${escapeHtml(label)}</strong>`;
+        el.textContent = label;
     }
 }
 
@@ -10313,6 +10313,8 @@ function runRadarStatusDiagnostics() {
 window.runRadarStatusDiagnostics = runRadarStatusDiagnostics;
 
 
+const RADAR_DEBUG_MODE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
 // ==========================================
 // 21. BOOTSTRAP DA APLICAÇÃO
 // ==========================================
@@ -10322,6 +10324,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     initTheme();
     switchProfile('controlador'); // Inicia como Controlador para simular a visão principal
     
-    // Executa diagnósticos de status
-    runRadarStatusDiagnostics();
+    // Executa diagnósticos de status apenas se em modo debug
+    if (RADAR_DEBUG_MODE) {
+        runRadarStatusDiagnostics();
+    }
 });

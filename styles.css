@@ -399,6 +399,11 @@ header.top-header {
     box-shadow: var(--shadow-sm);
 }
 
+.global-competence-badge strong {
+    color: var(--primary);
+    font-weight: 700;
+}
+
 /* Alertas Bell Dropdown */
 .alerts-bell {
     position: relative;
