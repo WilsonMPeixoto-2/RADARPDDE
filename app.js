@@ -4963,6 +4963,9 @@ function switchProfile(profile) {
 function switchView(view, param = null) {
     currentView = view;
     
+    // Atualiza o indicador de competência global
+    updateGlobalCompetenceIndicator();
+    
     // Atualiza links no Sidebar
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
     const navItem = document.getElementById(`nav-${view}`);
@@ -5367,6 +5370,15 @@ function syncGlobalSearchInput() {
 
         input.value = escolaSearchQuery;
 
+    }
+}
+
+function updateGlobalCompetenceIndicator() {
+    const el = document.getElementById('global-competence-badge');
+    if (el) {
+        const comp = COMPETENCIAS.find(c => c.key === activeCompetenciaKey);
+        const label = comp ? comp.label : activeCompetenciaKey;
+        el.innerHTML = `Competência global: <strong style="color: var(--primary); font-weight: 700;">${escapeHtml(label)}</strong>`;
     }
 }
 
@@ -6908,6 +6920,7 @@ function salvarInventariacao(e) {
         const esc = escolas.find(e => e.id === b.escolaId);
         registerLog('Inventariação Concluída', `Bem patrimonial ${b.item} da escola ${esc ? esc.denominação : ''} foi registrado e inventariado por ${resp}.`);
         
+        rebuildOperationalIndexes();
         persist();
         closeModal('modal-inventario-confirm');
         if (currentView === 'inventario') {
@@ -6981,6 +6994,8 @@ function changeEscolaFilter(filterName, value) {
 function changeCarteiraCompetencia(value) {
 
     activeCompetenciaKey = value;
+
+    updateGlobalCompetenceIndicator();
 
     renderEscolas();
 
@@ -7543,6 +7558,7 @@ function renderCompetencias() {
 
 function changeCompetenciaView(val) {
     activeCompetenciaKey = val;
+    updateGlobalCompetenceIndicator();
     renderCompetencias();
 }
 
@@ -7860,6 +7876,7 @@ function confirmarResolverPendencia(e) {
         const esc = escolas.find(e => e.id === p.escolaId);
         registerLog('Pendência Resolvida', `Pendência de ${p.item} da escola ${esc ? esc.denominação : ''} (Origem: ${p.competencia}) resolvida. Justificativa: ${justificativa}`);
         
+        rebuildOperationalIndexes();
         persist();
         closeModal('modal-resolver-pendencia');
         updateAlertsBell();
@@ -8918,6 +8935,7 @@ function salvarDadosNota(e) {
                     bem.valor = valor;
                     bem.notaFiscal = numero;
                     bem.status = (numero && hasProcesso) ? 'Encaminhada' : 'Não encaminhada';
+                    rebuildOperationalIndexes();
                 }
             } else {
                 // Criar novo bem no inventário
@@ -9218,6 +9236,7 @@ function encaminharCapital(bemId) {
     b.status = 'Encaminhada';
     registerLog('Capital Encaminhado', `Aquisição ${b.item} da escola ${esc ? esc.denominação : ''} encaminhada ao inventariador com NF ${b.notaFiscal} no processo ${processo}.`);
     
+    rebuildOperationalIndexes();
     persist();
     renderProntuario(activeSchoolId);
     updateAlertsBell();
@@ -10190,6 +10209,110 @@ function initTheme() {
 }
 
 
+function runRadarStatusDiagnostics() {
+    console.group('%c[RADAR PDDE] Status and Competence Diagnostics', 'color: #7c3aed; font-weight: bold; font-size: 1.1em;');
+    
+    let totalChecks = 0;
+    let passedChecks = 0;
+    let failedChecks = 0;
+    const failures = [];
+
+    function assert(condition, message, context = {}) {
+        totalChecks++;
+        if (condition) {
+            passedChecks++;
+        } else {
+            failedChecks++;
+            failures.push({ message, context });
+            console.error(`Assert Failed: ${message}`, context);
+        }
+    }
+
+    // Scenario 1: Verify getProgramVerificationStatus on mock/existing scenarios
+    escolas.forEach(e => {
+        e.programasIds.forEach(progId => {
+            const compKey = activeCompetenciaKey;
+            const status = getProgramVerificationStatus(e.id, compKey, progId);
+            
+            // Check status is valid
+            assert(['apta', 'inapta', 'em-andamento', 'nao-lancado'].includes(status), 
+                `Invalid status value "${status}" for school ${e.id}, program ${progId}`, 
+                { schoolId: e.id, status });
+
+            // Specific rule checks if verification object exists
+            const compProgKey = `${compKey}_${progId}`;
+            const v = verificacoes[e.id]?.[compProgKey];
+            if (v) {
+                const analiseVals = Object.values(v.analise || {});
+                const temIncorreto = analiseVals.includes('Incorreto');
+                
+                if (v.resultadoBonif === 'inapta' || temIncorreto) {
+                    assert(status === 'inapta', 
+                        `Expected status to be "inapta" for school ${e.id}, program ${progId} because of inapta result or incorrect analysis.`, 
+                        { v, status });
+                }
+                
+                const analisesConcluidas = analiseVals.length > 0
+                    && analiseVals.every(x => x === 'Correto' || x === 'Correto (Atrasado)')
+                    && !analiseVals.includes('Não analisado');
+                
+                if ((v.resultadoBonif === 'apta' || analisesConcluidas) && !(v.resultadoBonif === 'inapta' || temIncorreto)) {
+                    assert(status === 'apta', 
+                        `Expected status to be "apta" for school ${e.id}, program ${progId} because of apta result or completed analyses.`, 
+                        { v, status });
+                }
+            }
+        });
+    });
+
+    // Scenario 2: Test getEscolasStats counts match sum of individual program statuses
+    const stats = getEscolasStats(escolas, activeCompetenciaKey);
+    let calculatedApto = 0;
+    let calculatedInapto = 0;
+    let calculatedEmAndamento = 0;
+    let calculatedNaoAnalisado = 0;
+    let calculatedForaEscopo = 0;
+
+    escolas.forEach(e => {
+        const hasPendencies = pendencias.some(p => p.escolaId === e.id && p.competencia === activeCompetenciaKey);
+        let hasVerifications = false;
+        if (verificacoes[e.id]) {
+            hasVerifications = Object.keys(verificacoes[e.id]).some(k => k.startsWith(activeCompetenciaKey));
+        }
+        const forceInScope = hasPendencies || hasVerifications;
+
+        if (!forceInScope && !isCompetenceInScope(e.competenciaInicial, activeCompetenciaKey)) {
+            calculatedForaEscopo++;
+            return;
+        }
+
+        e.programasIds.forEach(progId => {
+            const progStatus = getProgramVerificationStatus(e.id, activeCompetenciaKey, progId);
+            if (progStatus === 'inapta') calculatedInapto++;
+            else if (progStatus === 'apta') calculatedApto++;
+            else if (progStatus === 'em-andamento') calculatedEmAndamento++;
+            else calculatedNaoAnalisado++;
+        });
+    });
+
+    assert(stats.apto === calculatedApto, `Apto count mismatch: Stats has ${stats.apto}, calculated ${calculatedApto}`);
+    assert(stats.inapto === calculatedInapto, `Inapto count mismatch: Stats has ${stats.inapto}, calculated ${calculatedInapto}`);
+    assert(stats.emAndamento === calculatedEmAndamento, `EmAndamento count mismatch: Stats has ${stats.emAndamento}, calculated ${calculatedEmAndamento}`);
+    assert(stats.naoAnalisado === calculatedNaoAnalisado, `NaoAnalisado count mismatch: Stats has ${stats.naoAnalisado}, calculated ${calculatedNaoAnalisado}`);
+    assert(stats.foraEscopo === calculatedForaEscopo, `ForaEscopo count mismatch: Stats has ${stats.foraEscopo}, calculated ${calculatedForaEscopo}`);
+
+    console.log(`%cChecks run: ${totalChecks} | Passed: ${passedChecks} | Failed: ${failedChecks}`, 
+        failedChecks > 0 ? 'color: #ef4444; font-weight: bold;' : 'color: #10b981; font-weight: bold;');
+    
+    if (failedChecks > 0) {
+        console.table(failures);
+    }
+    console.groupEnd();
+    return { totalChecks, passedChecks, failedChecks, failures };
+}
+window.runRadarStatusDiagnostics = runRadarStatusDiagnostics;
+
+
 // ==========================================
 // 21. BOOTSTRAP DA APLICAÇÃO
 // ==========================================
@@ -10198,4 +10321,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await initData();
     initTheme();
     switchProfile('controlador'); // Inicia como Controlador para simular a visão principal
+    
+    // Executa diagnósticos de status
+    runRadarStatusDiagnostics();
 });

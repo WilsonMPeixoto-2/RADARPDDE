@@ -384,6 +384,21 @@ header.top-header {
     border-color: var(--border-focus);
 }
 
+.global-competence-badge {
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: var(--shadow-sm);
+}
+
 /* Alertas Bell Dropdown */
 .alerts-bell {
     position: relative;
