@@ -1661,7 +1661,8 @@ header.top-header {
 }
 
 .alert-empty,
-table.data-table tbody tr:not(.controller-detail-row) td[colspan] {
+table.data-table tr:not(.controller-detail-row) > td[colspan] {
+    text-align: center;
     color: var(--text-main);
     padding: 34px 18px;
     line-height: 1.55;
@@ -2168,5 +2169,170 @@ textarea.form-control {
 
     table.data-table {
         min-width: 680px;
+    }
+}
+
+/* ETAPA 4 - BUSCA E FILTROS DA CARTEIRA */
+.school-filter-panel {
+    margin-bottom: 20px;
+}
+
+.school-filter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.school-filter-header h2 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.school-filter-header p {
+    margin: 4px 0 0;
+    color: var(--text-muted);
+    font-size: 0.84rem;
+}
+
+.school-filter-grid {
+    display: grid;
+    grid-template-columns: minmax(260px, 2fr) repeat(3, minmax(150px, 1fr));
+    gap: 14px;
+    align-items: end;
+}
+
+.filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.filter-field-wide {
+    grid-column: span 2;
+}
+
+.filter-field label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.school-filter-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.school-filter-summary span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: rgba(157, 125, 252, 0.08);
+    border: 1px solid rgba(157, 125, 252, 0.14);
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    line-height: 1.2;
+}
+
+.school-filter-summary strong {
+    margin-right: 3px;
+}
+
+.school-carteira-table {
+    table-layout: fixed;
+    min-width: 980px;
+}
+
+.school-carteira-table th:nth-child(1) { width: 21%; }
+.school-carteira-table th:nth-child(2) { width: 12%; }
+.school-carteira-table th:nth-child(3) { width: 15%; }
+.school-carteira-table th:nth-child(4) { width: 14%; }
+.school-carteira-table th:nth-child(5) { width: 10%; }
+.school-carteira-table th:nth-child(6) { width: 17%; }
+.school-carteira-table th:nth-child(7) { width: 11%; }
+
+.school-program-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 8px;
+}
+
+.school-program-inline span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 22px;
+    padding: 3px 7px;
+    border-radius: 999px;
+    background: rgba(157, 125, 252, 0.08);
+    color: var(--primary);
+    font-size: 0.68rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.school-operation-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.school-operation-stack small {
+    color: var(--text-muted);
+    line-height: 1.35;
+}
+
+.school-actions-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+}
+
+.school-actions-stack .btn {
+    justify-content: center;
+    width: 100%;
+}
+
+.empty-state.compact {
+    padding: 26px 16px;
+    min-height: 0;
+}
+
+@media (max-width: 1280px) {
+    .school-filter-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .filter-field-wide {
+        grid-column: span 2;
+    }
+}
+
+@media (max-width: 700px) {
+    .school-filter-header {
+        flex-direction: column;
+    }
+
+    .school-filter-grid,
+    .filter-field-wide {
+        grid-template-columns: 1fr;
+        grid-column: auto;
+    }
+
+    .school-filter-summary span {
+        width: 100%;
+        justify-content: center;
     }
 }

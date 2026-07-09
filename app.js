@@ -2,6 +2,7 @@
 
 // ==========================================
 // 1. DADOS INICIAIS DA PLANILHA 4ª CRE
+
 // ==========================================
 
 const INITIAL_PROGRAMS = [
@@ -56,6 +57,7 @@ const INITIAL_CONTROLADORES = [
     {
         "id": "alzira_de_souza",
         "name": "Alzira de Souza",
+
         "email": ""
     },
     {
@@ -66,6 +68,7 @@ const INITIAL_CONTROLADORES = [
     {
         "id": "monica_chagas",
         "name": "Mônica Chagas",
+
         "email": ""
     },
     {
@@ -76,6 +79,7 @@ const INITIAL_CONTROLADORES = [
 ];
 
 const INITIAL_ESCOLAS = [
+
     {
         "id": "04.10.001",
         "denominação": "Escola Municipal Ema Negrão de Lima",
@@ -4092,24 +4096,43 @@ const INITIAL_ESCOLAS = [
         ],
         "competenciaInicial": "2026-01"
     }
+
 ];
+
 
 const COMPETENCIAS = [
+
     { key: '2026-01', label: 'Janeiro 2026', bonifPrazo: '2026-02-15' },
+
     { key: '2026-02', label: 'Fevereiro 2026', bonifPrazo: '2026-03-15' },
+
     { key: '2026-03', label: 'Março 2026', bonifPrazo: '2026-04-15' },
+
     { key: '2026-04', label: 'Abril 2026', bonifPrazo: '2026-05-15' },
+
     { key: '2026-05', label: 'Maio 2026', bonifPrazo: '2026-06-15' },
+
     { key: '2026-06', label: 'Junho 2026', bonifPrazo: '2026-07-15' },
+
     { key: '2026-07', label: 'Julho 2026', bonifPrazo: '2026-08-15' },
+
     { key: '2026-08', label: 'Agosto 2026', bonifPrazo: '2026-09-15' },
+
     { key: '2026-09', label: 'Setembro 2026', bonifPrazo: '2026-10-15' },
+
     { key: '2026-10', label: 'Outubro 2026', bonifPrazo: '2026-11-15' },
+
     { key: '2026-11', label: 'Novembro 2026', bonifPrazo: '2026-12-15' },
+
     { key: '2026-12', label: 'Dezembro 2026', bonifPrazo: '2027-01-15' }
+
 ];
 
+
+
 const INITIAL_VERIFICACOES = {};
+
+
 
 const INITIAL_PENDENCIAS = [];
 
@@ -4159,6 +4182,23 @@ let pendencias = [];
 let contatos = [];
 let logs = [];
 let bens = [];
+
+// Pre-indexed lookups — rebuilt whenever pendencias or bens change
+let _pendenciasByEscolaId = new Map();
+let _bensByEscolaId = new Map();
+
+function rebuildOperationalIndexes() {
+    _pendenciasByEscolaId = new Map();
+    pendencias.forEach(p => {
+        if (!_pendenciasByEscolaId.has(p.escolaId)) _pendenciasByEscolaId.set(p.escolaId, []);
+        _pendenciasByEscolaId.get(p.escolaId).push(p);
+    });
+    _bensByEscolaId = new Map();
+    bens.forEach(b => {
+        if (!_bensByEscolaId.has(b.escolaId)) _bensByEscolaId.set(b.escolaId, []);
+        _bensByEscolaId.get(b.escolaId).push(b);
+    });
+}
 let verificacoes = {};
 let config = {};
 let programas = [];
@@ -4169,10 +4209,35 @@ let activeEquipeTab = 'controladores'; // controladores, inventario
 let currentProfile = 'controlador'; // controlador, assistente, sme, inventario
 let currentExercise = '2026';
 let currentView = 'dashboard'; // dashboard, escolas, competencias, pendencias, inventario, auditoria, sme-config
+
 let activeSchoolId = null; // ID da escola em exibição no prontuário
+
 let activeCompetenciaKey = '2026-05'; // Competência selecionada na visão por competência
-let searchResultFiltered = null; // Filtro de busca global
+
+let searchResultFiltered = null; // Mantido por compatibilidade; a carteira usa escolaSearchQuery + activeEscolaFilters
+
+let escolaSearchQuery = '';
+
+const DEFAULT_ESCOLA_FILTERS = Object.freeze({
+
+    controlador: 'all',
+
+    programa: 'all',
+
+    situacao: 'all',
+
+    pendencias: 'all',
+
+    inventario: 'all',
+
+    ra: 'all'
+
+});
+
+let activeEscolaFilters = { ...DEFAULT_ESCOLA_FILTERS };
+
 let activeControladorRAFilter = 'carteira'; // carteira, todas, 10, 11, 30, 31
+
 let expandedControllerId = null; // ID do controlador expandido na tabela do assistente
 let activeControladorSubFilter = 'all'; // all, naoAnalisadas, pendencias, bens
 let activeInventarioSubFilter = 'all'; // all, naoEncamp, aguardando, concluido
@@ -4182,29 +4247,53 @@ let activeAssistenteRAFilter = 'all'; // all, or RA string
 let activeAssistenteSearchQuery = ''; // persistent search query
 let activeSMECreFilter = null; // null or CRE name (e.g. '4ª CRE')
 let activeProntuarioCompetencia = null; // competência selecionada no prontuário da escola
+
 let notasRegistradas = []; // lista unificada de todas as notas fiscais registradas
+
 let showSMEConsolidado = false; // toggle para exibir relatório detalhado de itens na visão da SME
 
+
+
 const DEFAULT_CONTROLADOR_ID = 'wilson_peixoto';
+
 const DEFAULT_PROFILE_USERS = {
+
     assistente: { name: 'Luísa Ferreira', role: 'Assistente CRE' },
+
     sme: { name: 'Valéria dos Anjos', role: 'Gerente 4ª CRE' }
+
 };
+
 const RADAR_STORAGE_KEYS = [
+
     'radar_pdde_escolas',
+
     'radar_pdde_pendencias',
+
     'radar_pdde_contatos',
+
     'radar_pdde_logs',
+
     'radar_pdde_bens',
+
     'radar_pdde_verificacoes',
+
     'radar_pdde_config',
+
     'radar_pdde_programas',
+
     'radar_pdde_controladores',
+
     'radar_pdde_equipe_inventario',
+
     'radar_pdde_notas_registradas'
+
 ];
 
+
+
 function normalizeEscolaRecord(record) {
+
     const denominacao = record.denominação || record.denominacao || record['denominaçao'] || record['denominaÃ§Ã£o'];
     const designacao = record.designação || record.designacao || record['designaçao'] || record['designaÃ§Ã£o'];
 
@@ -4216,45 +4305,85 @@ function normalizeEscolaRecord(record) {
 }
 
 function normalizeEscolas(records) {
+
     return (records || []).map(normalizeEscolaRecord);
+
 }
+
 
 function seedLocalDataFromInitials() {
+
     localStorage.setItem('radar_pdde_escolas', JSON.stringify(INITIAL_ESCOLAS));
+
     localStorage.setItem('radar_pdde_pendencias', JSON.stringify(INITIAL_PENDENCIAS));
+
     localStorage.setItem('radar_pdde_contatos', JSON.stringify(INITIAL_CONTATOS));
+
     localStorage.setItem('radar_pdde_logs', JSON.stringify(INITIAL_LOGS));
+
     localStorage.setItem('radar_pdde_bens', JSON.stringify(INITIAL_BENS));
+
     localStorage.setItem('radar_pdde_verificacoes', JSON.stringify(INITIAL_VERIFICACOES));
+
     localStorage.setItem('radar_pdde_config', JSON.stringify(INITIAL_CONFIG));
+
     localStorage.setItem('radar_pdde_programas', JSON.stringify(INITIAL_PROGRAMS));
+
     localStorage.setItem('radar_pdde_controladores', JSON.stringify(INITIAL_CONTROLADORES));
+
     localStorage.setItem('radar_pdde_equipe_inventario', JSON.stringify(INITIAL_EQUIPE_INVENTARIO));
+
     localStorage.setItem('radar_pdde_notas_registradas', JSON.stringify([]));
+
     localStorage.setItem('radar_pdde_data_version', INITIAL_DATA_VERSION);
+
 }
+
+
 
 function getDefaultControladorId() {
+
     const exists = (controladores.length ? controladores : INITIAL_CONTROLADORES).some(c => c.id === DEFAULT_CONTROLADOR_ID);
+
     return exists ? DEFAULT_CONTROLADOR_ID : ((controladores[0] || INITIAL_CONTROLADORES[0] || {}).id || '');
+
 }
+
+
 
 function getDefaultControlador() {
+
     const id = getDefaultControladorId();
+
     return (controladores.length ? controladores : INITIAL_CONTROLADORES).find(c => c.id === id) || null;
+
 }
 
+
+
 function getCurrentUser() {
+
     if (currentProfile === 'controlador') {
+
         const controlador = getDefaultControlador();
+
         return { name: controlador ? controlador.name : 'Controlador', role: 'Controlador' };
+
     }
+
     if (currentProfile === 'inventario') {
+
         const inventariador = equipeInventario[0] || INITIAL_EQUIPE_INVENTARIO[0];
+
         return { name: inventariador ? inventariador.name : 'Equipe de Inventário', role: 'Equipe de Inventário' };
+
     }
+
     return DEFAULT_PROFILE_USERS[currentProfile] || { name: 'Usuário', role: 'Operação' };
+
 }
+
+
 
 // ==========================================
 // SUPABASE CLIENT INITIALIZATION
@@ -4347,6 +4476,7 @@ async function initData() {
         contatos = resContatos.data || [];
         logs = (resLogs.data || []).sort((a, b) => (b.dataHora || '').localeCompare(a.dataHora || ''));
         bens = resBens.data || [];
+        rebuildOperationalIndexes();
         programas = resProgramas.data || [];
         controladores = resControladores.data || [];
         equipeInventario = resEquipe.data || [];
@@ -4383,6 +4513,7 @@ async function seedDatabaseSupabase() {
     await supabaseClient.from('controladores').insert(INITIAL_CONTROLADORES);
     
     await supabaseClient.from('equipe_inventario').insert(INITIAL_EQUIPE_INVENTARIO);
+
 
     // 2. Inserir Escolas
     await supabaseClient.from('escolas').insert(INITIAL_ESCOLAS);
@@ -4423,11 +4554,17 @@ async function seedDatabaseSupabase() {
 }
 
 function loadLocalFallback() {
+
     const storedVersion = localStorage.getItem('radar_pdde_data_version');
+
     if (storedVersion !== INITIAL_DATA_VERSION || !localStorage.getItem('radar_pdde_escolas')) {
+
         RADAR_STORAGE_KEYS.forEach(key => localStorage.removeItem(key));
+
         seedLocalDataFromInitials();
+
     }
+
     
     const storedEscolas = JSON.parse(localStorage.getItem('radar_pdde_escolas'));
     escolas = normalizeEscolas(storedEscolas);
@@ -4451,6 +4588,7 @@ function loadLocalFallback() {
     controladores = JSON.parse(localStorage.getItem('radar_pdde_controladores') || '[]');
     equipeInventario = JSON.parse(localStorage.getItem('radar_pdde_equipe_inventario') || '[]');
     notasRegistradas = JSON.parse(localStorage.getItem('radar_pdde_notas_registradas') || '[]');
+    rebuildOperationalIndexes();
     
     activeCompetenciaKey = config.competenciaFechamento;
 }
@@ -4466,9 +4604,13 @@ function persist(changedTable = null) {
     localStorage.setItem('radar_pdde_config', JSON.stringify(config));
     localStorage.setItem('radar_pdde_programas', JSON.stringify(programas));
     localStorage.setItem('radar_pdde_controladores', JSON.stringify(controladores));
+
     localStorage.setItem('radar_pdde_equipe_inventario', JSON.stringify(equipeInventario));
+
     localStorage.setItem('radar_pdde_notas_registradas', JSON.stringify(notasRegistradas));
+
     localStorage.setItem('radar_pdde_data_version', INITIAL_DATA_VERSION);
+
 
     // 2. Sincronizar com Supabase em segundo plano
     if (supabaseClient) {
@@ -4543,7 +4685,9 @@ async function persistSingleTableSupabase(tableName) {
 }
 
 function registerLog(acao, detalhes) {
+
     const user = getCurrentUser();
+
     const newLog = {
         id: 'log-' + Date.now(),
         usuario: user.name,
@@ -4620,6 +4764,7 @@ function getAlerts() {
     // Alerta 3: Se perfil é controlador/assistente, mostrar análises de programa sem bonificação preenchida
     if (currentProfile === 'controlador' || currentProfile === 'assistente') {
         const targetControlador = currentProfile === 'controlador' ? getDefaultControladorId() : null;
+
         escolas.forEach(esc => {
             if (!targetControlador || esc.controladorId === targetControlador) {
                 // Verificar se o monitoramento já começou para essa escola nesta competência
@@ -4664,7 +4809,7 @@ function updateAlertsBell() {
     }
     
     listContainer.innerHTML = list.map(a => `
-        <div class="alert-item alert-${a.type}" onclick="handleAlertClick('${a.id}')">
+        <div class="alert-item alert-${a.type}" onclick="handleAlertClick('${escapeHtml(a.id)}')">
             <div class="alert-icon">
                 ${a.type === 'danger' ? `
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
@@ -4675,8 +4820,8 @@ function updateAlertsBell() {
                 `}
             </div>
             <div class="alert-content">
-                <div class="alert-text">${a.text}</div>
-                <div class="alert-time">${a.time}</div>
+                <div class="alert-text">${escapeHtml(a.text)}</div>
+                <div class="alert-time">${escapeHtml(a.time)}</div>
             </div>
         </div>
     `).join('');
@@ -4755,9 +4900,13 @@ function switchProfile(profile) {
     const avatarEl = document.getElementById('current-avatar');
     
     const user = getCurrentUser();
+
     nameEl.innerText = user.name;
+
     roleEl.innerText = user.role;
+
     avatarEl.innerText = user.name.charAt(0).toUpperCase();
+
 
     // Exibe ou oculta navegação de Parâmetros SME
     const smeGroup = document.getElementById('nav-sme-group');
@@ -4955,43 +5104,285 @@ function getEscolasStats(escolasList, compKey) {
 
 
 // ==========================================
+
 // 6. BUSCA INTELIGENTE GLOBAL
+
 // ==========================================
 
-function handleGlobalSearch(e) {
-    const query = e.target.value.toLowerCase().trim();
-    if (!query) {
-        searchResultFiltered = null;
-        if (currentView === 'escolas') renderEscolas();
-        return;
-    }
-    
-    // Função para remover acentos para busca insensível
-    const removeAccents = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    const cleanQuery = removeAccents(query);
-    
-    searchResultFiltered = escolas.filter(esc => {
-        const cNome = removeAccents(esc.denominação.toLowerCase());
-        const cDiretor = removeAccents(esc.diretor.toLowerCase());
-        const cInep = esc.inep;
-        const cCnpj = esc.cnpj.replace(/\D/g, "");
-        const cDesignacao = esc.designação.toLowerCase();
-        const cProcesso = esc.processoInventario.toLowerCase();
-        
-        return cNome.includes(cleanQuery) || 
-               cDiretor.includes(cleanQuery) || 
-               cInep.includes(cleanQuery) || 
-               cCnpj.includes(cleanQuery.replace(/\D/g, "")) || 
-               cDesignacao.includes(cleanQuery) ||
-               cProcesso.includes(cleanQuery);
-    });
 
-    if (currentView !== 'escolas') {
-        switchView('escolas');
-    } else {
-        renderEscolas();
+
+function normalizeSearchText(value) {
+
+    return String(value || '')
+
+        .toLowerCase()
+
+        .normalize("NFD")
+
+        .replace(/[\u0300-\u036f]/g, "")
+
+        .trim();
+
+}
+
+
+
+function onlyDigits(value) {
+
+    return String(value || '').replace(/\D/g, '');
+
+}
+
+
+
+function escapeHtml(value) {
+
+    return String(value || '')
+
+        .replace(/&/g, '&amp;')
+
+        .replace(/</g, '&lt;')
+
+        .replace(/>/g, '&gt;')
+
+        .replace(/"/g, '&quot;')
+
+        .replace(/'/g, '&#039;');
+
+}
+
+
+
+function selectedAttr(current, expected) {
+
+    return current === expected ? 'selected' : '';
+
+}
+
+
+
+function getControladorName(controladorId) {
+
+    const ctrl = controladores.find(c => c.id === controladorId);
+
+    return ctrl ? ctrl.name : 'Não designado';
+
+}
+
+
+
+function getEscolaProgramNames(esc) {
+
+    return (esc.programasIds || []).map(progId => {
+
+        const programa = programas.find(p => p.id === progId);
+
+        return programa ? programa.name : progId;
+
+    }).filter(Boolean);
+
+}
+
+
+
+// NOTE: relies on _pendenciasByEscolaId and _bensByEscolaId indexes.
+// Call rebuildOperationalIndexes() after any mutation to pendencias or bens.
+function getEscolaOperationalData(esc) {
+    const escolaPendencias = _pendenciasByEscolaId.get(esc.id) || [];
+    const pendenciasAbertas = escolaPendencias.filter(p => p.status === 'Aberta');
+    const escolaBens = _bensByEscolaId.get(esc.id) || [];
+    const bensNaoEncaminhados = escolaBens.filter(b => b.status === 'Não encaminhada').length;
+    const bensEncaminhados = escolaBens.filter(b => b.status === 'Encaminhada').length;
+    const bensInventariados = escolaBens.filter(b => b.status === 'Inventariada').length;
+    const processoInventario = (esc.processoInventario || '').trim();
+
+
+    return {
+
+        controladorName: getControladorName(esc.controladorId),
+
+        programas: getEscolaProgramNames(esc),
+
+        ra: esc.ra || getRAFromDesignacao(esc.designação),
+
+        situacao: getSchoolAggregateStatus(esc, activeCompetenciaKey),
+
+        pendenciasAbertas,
+
+        hasPendencias: pendenciasAbertas.length > 0,
+
+        hasInventarioProcess: Boolean(processoInventario),
+
+        processoInventario,
+
+        bensTotal: escolaBens.length,
+
+        bensNaoEncaminhados,
+
+        bensEncaminhados,
+
+        bensInventariados
+
+    };
+
+}
+
+
+
+function schoolMatchesSearch(esc, rawQuery) {
+
+    const cleanQuery = normalizeSearchText(rawQuery);
+
+    if (!cleanQuery) return true;
+
+
+
+    const digitsQuery = onlyDigits(rawQuery);
+
+    const op = getEscolaOperationalData(esc);
+
+    const textFields = [
+
+        esc.denominação,
+
+        esc.designação,
+
+        esc.inep,
+
+        esc.cnpj,
+
+        esc.sici,
+
+        esc.diretor,
+
+        esc.diretorAdjunto,
+
+        esc.email,
+
+        esc.telefone,
+
+        op.controladorName,
+
+        op.processoInventario,
+
+        op.ra,
+
+        ...op.programas
+
+    ];
+
+    const textCorpus = normalizeSearchText(textFields.filter(Boolean).join(' '));
+
+
+
+    const digitFields = [
+
+        esc.designação,
+
+        esc.inep,
+
+        esc.cnpj,
+
+        esc.sici,
+
+        esc.telefone,
+
+        esc.telefoneDiretor,
+
+        esc.telefoneDiretorAdjunto,
+
+        esc.telefoneCelularInstitucional,
+
+        op.processoInventario
+
+    ];
+
+    const digitCorpus = digitFields.map(onlyDigits).filter(Boolean).join(' ');
+
+
+
+    return textCorpus.includes(cleanQuery) || (digitsQuery.length > 0 && digitCorpus.includes(digitsQuery));
+
+}
+
+
+
+function getEscolaStatusLabel(status) {
+
+    const labels = {
+
+        apto: 'Apta',
+
+        inapto: 'Inapta',
+
+        emAndamento: 'Em andamento',
+
+        naoAnalisado: 'Não analisada',
+
+        foraEscopo: 'Fora do escopo'
+
+    };
+
+    return labels[status] || 'Não analisada';
+
+}
+
+
+
+function getEscolaStatusBadgeClass(status) {
+
+    const classes = {
+
+        apto: 'badge-success',
+
+        inapto: 'badge-danger',
+
+        emAndamento: 'badge-warning',
+
+        naoAnalisado: 'badge-gray',
+
+        foraEscopo: 'badge-info'
+
+    };
+
+    return classes[status] || 'badge-gray';
+
+}
+
+
+
+function syncGlobalSearchInput() {
+
+    const input = document.getElementById('global-search');
+
+    if (input && input.value !== escolaSearchQuery) {
+
+        input.value = escolaSearchQuery;
+
     }
 }
+
+function handleGlobalSearch(e) {
+
+    escolaSearchQuery = e.target.value || '';
+
+    searchResultFiltered = null;
+
+
+    if (currentView !== 'escolas') {
+
+        switchView('escolas');
+
+    } else {
+
+        renderEscolas();
+
+    }
+
+}
+
+
+
 
 
 // ==========================================
@@ -5014,14 +5405,23 @@ function renderDashboard() {
 
 // 7.1 Dashboard do Controlador
 function renderDashboardControlador(container) {
+
     const filterRa = activeControladorRAFilter;
+
     const activeControlador = getDefaultControlador();
+
     const activeControladorId = getDefaultControladorId();
+
     const activeControladorName = activeControlador ? activeControlador.name : 'Controlador';
+
     let targetEscolas = [];
+
     
+
     if (filterRa === 'carteira') {
+
         targetEscolas = escolas.filter(e => e.controladorId === activeControladorId);
+
     } else if (filterRa === 'todas') {
         targetEscolas = escolas;
     } else {
@@ -5030,10 +5430,15 @@ function renderDashboardControlador(container) {
             return partes.length >= 2 && partes[1] === filterRa;
         });
     }
+
     const carteiraRAs = [...new Set(escolas
+
         .filter(e => e.controladorId === activeControladorId)
+
         .map(e => getRAFromDesignacao(e.designação)))];
+
     const carteiraRAText = carteiraRAs.length ? carteiraRAs.join(', ') : 'sem R.A. vinculada';
+
 
     const targetIds = targetEscolas.map(e => e.id);
     
@@ -5084,12 +5489,14 @@ function renderDashboardControlador(container) {
             <div class="page-title">
                 <h1>Painel do Controlador</h1>
                 <p>Carteira ativa: <strong>${activeControladorName}</strong>. R.A. vinculada: <strong>${carteiraRAText}</strong>. Você pode navegar por outras R.As ou pesquisar na CRE.</p>
+
             </div>
             <div class="badge badge-info">Mês Ativo: ${COMPETENCIAS.find(c => c.key === activeCompetenciaKey).label}</div>
         </div>
 
         <div class="tab-container" style="margin-bottom: 20px;">
             <button class="tab-button ${filterRa === 'carteira' ? 'active' : ''}" onclick="changeControladorRAFilter('carteira')">Minha Carteira (${activeControladorName.split(' ')[0]})</button>
+
             <button class="tab-button ${filterRa === '10' ? 'active' : ''}" onclick="changeControladorRAFilter('10')">10ª R.A.</button>
             <button class="tab-button ${filterRa === '11' ? 'active' : ''}" onclick="changeControladorRAFilter('11')">11ª R.A.</button>
             <button class="tab-button ${filterRa === '30' ? 'active' : ''}" onclick="changeControladorRAFilter('30')">30ª R.A.</button>
@@ -5106,11 +5513,17 @@ function renderDashboardControlador(container) {
                 <div class="stat-value">${targetEscolas.length} Unidades</div>
             </div>
             <div class="card-stat ${activeControladorSubFilter === 'naoAnalisadas' ? 'active-naoAnalisadas' : ''}" style="cursor: pointer;" onclick="changeControladorSubFilter('naoAnalisadas')">
+
                 <div class="stat-icon" style="background-color: var(--warning-bg); color: var(--warning);">
+
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+
                 </div>
+
                 <div class="stat-label">Não Analisadas (${activeCompetenciaKey})</div>
+
                 <div class="stat-value">${escolasNaoAnalisadas.length} Escolas</div>
+
             </div>
             <div class="card-stat ${activeControladorSubFilter === 'pendencias' ? 'active-pendencias' : ''}" style="cursor: pointer;" onclick="changeControladorSubFilter('pendencias')">
                 <div class="stat-icon" style="background-color: var(--danger-bg); color: var(--danger);">
@@ -5173,7 +5586,7 @@ function renderDashboardControlador(container) {
                                             }
                                         }
                                         statusHTML += `<div style="margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-                                            <span style="font-size:0.75rem; font-weight:500; color:var(--text-muted);">${progName}:</span>
+                                            <span style="font-size:0.75rem; font-weight:500; color:var(--text-muted);">${escapeHtml(progName)}:</span>
                                             ${progBadge}
                                         </div>`;
                                     });
@@ -5182,21 +5595,22 @@ function renderDashboardControlador(container) {
                                     const ctrl = controladores.find(c => c.id === e.controladorId);
                                     
                                     const ctrlLabel = e.controladorId === activeControladorId
+
                                         ? `<span class="badge badge-info" style="font-size:0.65rem; padding: 2px 4px; font-weight:500;">Sua Carteira</span>`
-                                        : `<span style="font-size:0.75rem; color:var(--text-muted);">Controlador: ${ctrl ? ctrl.name : 'Sem designação'}</span>`;
+                                        : `<span style="font-size:0.75rem; color:var(--text-muted);">Controlador: ${escapeHtml(ctrl ? ctrl.name : 'Sem designação')}</span>`;
 
                                     return `
                                         <tr>
                                             <td>
-                                                <strong>${e.denominação}</strong><br>
-                                                <small style="color:var(--text-muted)">${e.designação} • ${getRAFromDesignacao(e.designação)}</small><br>
+                                                <strong>${escapeHtml(e.denominação)}</strong><br>
+                                                <small style="color:var(--text-muted)">${escapeHtml(e.designação)} • ${escapeHtml(getRAFromDesignacao(e.designação))}</small><br>
                                                 ${ctrlLabel}
                                             </td>
-                                            <td>${e.inep}</td>
+                                            <td>${escapeHtml(e.inep)}</td>
                                             <td><span class="badge badge-info">${cCount} Contatos</span></td>
                                             <td>${statusHTML}</td>
                                             <td>
-                                                <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${e.id}')">Ver Unidade</button>
+                                                <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${escapeHtml(e.id)}')">Ver Unidade</button>
                                             </td>
                                         </tr>
                                     `;
@@ -5232,12 +5646,12 @@ function renderDashboardControlador(container) {
         gargalosEl.innerHTML = `<div style="text-align:center; padding: 24px; color:var(--text-muted)">Sem pendências críticas neste filtro! Bom trabalho.</div>`;
     } else {
         gargalosEl.innerHTML = localAlerts.map(a => `
-            <div class="contact-card" style="border-left: 3px solid var(--${a.type === 'danger' ? 'danger' : a.type === 'warning' ? 'warning' : 'info'}); margin-bottom: 12px; cursor:pointer;" onclick="handleAlertClick('${a.id}')">
+            <div class="contact-card" style="border-left: 3px solid var(--${a.type === 'danger' ? 'danger' : a.type === 'warning' ? 'warning' : 'info'}); margin-bottom: 12px; cursor:pointer;" onclick="handleAlertClick('${escapeHtml(a.id)}')">
                 <div class="contact-meta">
                     <span style="font-weight:700; color:var(--${a.type === 'danger' ? 'danger' : a.type === 'warning' ? 'warning' : 'info'})">${a.type.toUpperCase()}</span>
-                    <span>${a.time}</span>
+                    <span>${escapeHtml(a.time)}</span>
                 </div>
-                <div class="contact-desc" style="font-size:0.8rem">${a.text}</div>
+                <div class="contact-desc" style="font-size:0.8rem">${escapeHtml(a.text)}</div>
             </div>
         `).join('');
     }
@@ -5382,13 +5796,13 @@ function renderDashboardAssistente(container) {
             }
 
             return `
-                <tr class="assistente-escola-row" data-escola="${e.denominação.toLowerCase()}">
-                    <td><strong>${e.denominação}</strong></td>
-                    <td>${e.designação} (${getRAFromDesignacao(e.designação)})</td>
-                    <td>${ctrl ? ctrl.name : 'Não designado'}</td>
+                <tr class="assistente-escola-row" data-escola="${escapeHtml(e.denominação.toLowerCase())}">
+                    <td><strong>${escapeHtml(e.denominação)}</strong></td>
+                    <td>${escapeHtml(e.designação)} (${escapeHtml(getRAFromDesignacao(e.designação))})</td>
+                    <td>${escapeHtml(ctrl ? ctrl.name : 'Não designado')}</td>
                     <td><span class="badge ${badgeCls}">${statusText}</span></td>
                     <td>
-                        <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${e.id}')">Ver Unidade</button>
+                        <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${escapeHtml(e.id)}')">Ver Unidade</button>
                     </td>
                 </tr>
             `;
@@ -5467,13 +5881,13 @@ function renderDashboardAssistente(container) {
                                     const faltamList = [...c.stats.lists.emAndamento, ...c.stats.lists.naoAnalisado];
 
                                     return `
-                                        <tr style="cursor: pointer;" onclick="toggleControllerDetail('${c.id}')" class="tr-hoverABLE ${isExpanded ? 'tr-expanded-active' : ''}">
+                                        <tr style="cursor: pointer;" onclick="toggleControllerDetail('${escapeHtml(c.id)}')" class="tr-hoverABLE ${isExpanded ? 'tr-expanded-active' : ''}">
                                             <td>
                                                 <div style="display:flex; align-items:center; gap:8px;">
                                                     <span style="transform: rotate(${isExpanded ? '90' : '0'}deg); transition: transform 0.2s; color: var(--primary);">▶</span>
-                                                    <strong>${c.name}</strong>
+                                                    <strong>${escapeHtml(c.name)}</strong>
                                                 </div>
-                                                <small style="color:var(--text-muted); margin-left: 18px;">${c.email}</small>
+                                                <small style="color:var(--text-muted); margin-left: 18px;">${escapeHtml(c.email)}</small>
                                             </td>
                                             <td>${c.totalValidos} unidades</td>
                                             <td>
@@ -5486,7 +5900,7 @@ function renderDashboardAssistente(container) {
                                             </td>
                                             <td><span class="badge badge-danger">${c.pendenciasAtivas}</span></td>
                                             <td>
-                                                <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); toggleControllerDetail('${c.id}')">
+                                                <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); toggleControllerDetail('${escapeHtml(c.id)}')">
                                                     ${isExpanded ? 'Recolher' : 'Detalhamento'}
                                                  </button>
                                             </td>
@@ -5504,11 +5918,11 @@ function renderDashboardAssistente(container) {
                                                                         <strong>${c.analisadas} de ${c.totalValidos} (${percent}%)</strong>
                                                                     </div>
                                                                     <div style="display:flex; flex-direction:column; gap:6px; margin-left:12px; font-size:0.8rem; color:var(--text-muted)">
-                                                                        <div class="hover-filter-row" style="cursor: pointer; padding: 4px 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;" onclick="event.stopPropagation(); filterAssistenteByStatusAndController('apto', '${c.id}')">
+                                                                        <div class="hover-filter-row" style="cursor: pointer; padding: 4px 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;" onclick="event.stopPropagation(); filterAssistenteByStatusAndController('apto', '${escapeHtml(c.id)}')">
                                                                             <span>• Aptas</span>
                                                                             <span class="badge badge-success" style="font-size: 0.7rem; padding: 2px 6px;">${c.stats.apto}</span>
                                                                         </div>
-                                                                        <div class="hover-filter-row" style="cursor: pointer; padding: 4px 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;" onclick="event.stopPropagation(); filterAssistenteByStatusAndController('inapto', '${c.id}')">
+                                                                        <div class="hover-filter-row" style="cursor: pointer; padding: 4px 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;" onclick="event.stopPropagation(); filterAssistenteByStatusAndController('inapto', '${escapeHtml(c.id)}')">
                                                                             <span>• Inaptas</span>
                                                                             <span class="badge badge-danger" style="font-size: 0.7rem; padding: 2px 6px;">${c.stats.inapto}</span>
                                                                         </div>
@@ -5518,11 +5932,11 @@ function renderDashboardAssistente(container) {
                                                                         <strong>${c.faltam} de ${c.totalValidos} (${c.totalValidos > 0 ? Math.round((c.faltam / c.totalValidos) * 100) : 0}%)</strong>
                                                                     </div>
                                                                     <div style="display:flex; flex-direction:column; gap:6px; margin-left:12px; font-size:0.8rem; color:var(--text-muted)">
-                                                                        <div class="hover-filter-row" style="cursor: pointer; padding: 4px 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;" onclick="event.stopPropagation(); filterAssistenteByStatusAndController('emAndamento', '${c.id}')">
+                                                                        <div class="hover-filter-row" style="cursor: pointer; padding: 4px 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;" onclick="event.stopPropagation(); filterAssistenteByStatusAndController('emAndamento', '${escapeHtml(c.id)}')">
                                                                             <span>• Análise em Andamento</span>
                                                                             <span class="badge badge-primary" style="font-size: 0.7rem; padding: 2px 6px;">${c.stats.emAndamento}</span>
                                                                         </div>
-                                                                        <div class="hover-filter-row" style="cursor: pointer; padding: 4px 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;" onclick="event.stopPropagation(); filterAssistenteByStatusAndController('naoAnalisado', '${c.id}')">
+                                                                        <div class="hover-filter-row" style="cursor: pointer; padding: 4px 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;" onclick="event.stopPropagation(); filterAssistenteByStatusAndController('naoAnalisado', '${escapeHtml(c.id)}')">
                                                                             <span>• Não Analisadas (Não vistas)</span>
                                                                             <span class="badge badge-secondary" style="font-size: 0.7rem; padding: 2px 6px;">${c.stats.naoAnalisado}</span>
                                                                         </div>
@@ -5546,12 +5960,12 @@ function renderDashboardAssistente(container) {
                                                                             return `
                                                                                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; background: rgba(255,255,255,0.02); border-radius: 6px; border: 1px solid rgba(255,255,255,0.03);">
                                                                                     <div style="flex-grow: 1; padding-right: 8px;">
-                                                                                        <div style="font-size: 0.8rem; font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 240px;" title="${esc.denominação}">${esc.denominação}</div>
-                                                                                        <div style="font-size: 0.7rem; color: var(--text-muted);">${esc.designação} (${raName}) | Resp: ${c.name}</div>
+                                                                                        <div style="font-size: 0.8rem; font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 240px;" title="${escapeHtml(esc.denominação)}">${escapeHtml(esc.denominação)}</div>
+                                                                                        <div style="font-size: 0.7rem; color: var(--text-muted);">${escapeHtml(esc.designação)} (${escapeHtml(raName)}) | Resp: ${escapeHtml(c.name)}</div>
                                                                                     </div>
                                                                                     <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
                                                                                         ${escStatus}
-                                                                                        <button class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 0.7rem;" onclick="event.stopPropagation(); switchView('prontuario', '${esc.id}')">Ver Unidade</button>
+                                                                                        <button class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 0.7rem;" onclick="event.stopPropagation(); switchView('prontuario', '${escapeHtml(esc.id)}')">Ver Unidade</button>
                                                                                     </div>
                                                                                 </div>
                                                                             `;
@@ -5659,12 +6073,12 @@ function renderDashboardAssistente(container) {
         gargalosEl.innerHTML = `<div style="text-align:center; padding: 24px; color:var(--text-muted)">Sem gargalos de pendências ativas nas carteiras!</div>`;
     } else {
         gargalosEl.innerHTML = staleAlerts.map(a => `
-            <div class="contact-card" style="border-left: 3px solid var(--${a.type === 'danger' ? 'danger' : 'warning'}); margin-bottom:12px; cursor:pointer;" onclick="handleAlertClick('${a.id}')">
+            <div class="contact-card" style="border-left: 3px solid var(--${a.type === 'danger' ? 'danger' : 'warning'}); margin-bottom:12px; cursor:pointer;" onclick="handleAlertClick('${escapeHtml(a.id)}')">
                 <div class="contact-meta">
                     <span style="font-weight:700; color:var(--${a.type === 'danger' ? 'danger' : 'warning'})">${a.type.toUpperCase()}</span>
-                    <span>${a.time}</span>
+                    <span>${escapeHtml(a.time)}</span>
                 </div>
-                <div class="contact-desc" style="font-size:0.8rem">${a.text}</div>
+                <div class="contact-desc" style="font-size:0.8rem">${escapeHtml(a.text)}</div>
             </div>
         `).join('');
     }
@@ -5817,8 +6231,8 @@ function renderDashboardSME(container) {
                                     };
                                     
                                     return `
-                                        <tr class="sme-detail-row" data-escola="${e.denominação.toLowerCase()} ${e.designação.toLowerCase()}">
-                                            <td><strong>${e.denominação}</strong><br><small style="color:var(--text-muted)">${e.designação}</small></td>
+                                        <tr class="sme-detail-row" data-escola="${escapeHtml(e.denominação.toLowerCase())} ${escapeHtml(e.designação.toLowerCase())}">
+                                            <td><strong>${escapeHtml(e.denominação)}</strong><br><small style="color:var(--text-muted)">${escapeHtml(e.designação)}</small></td>
                                             <td><span class="badge badge-info">${progName}</span></td>
                                             <td>${formatVal(extCC)}</td>
                                             <td>${formatVal(extINV)}</td>
@@ -5908,11 +6322,11 @@ function renderDashboardSME(container) {
                                 const percent = cs.total > 0 ? Math.round((cs.stats.apto / cs.total) * 100) : 0;
                                 const isExpanded = activeSMECreFilter === cs.name;
                                 return `
-                                    <tr style="cursor: pointer;" onclick="toggleSMECreFilter('${cs.name}')" class="tr-hoverABLE ${isExpanded ? 'tr-expanded-active' : ''}">
+                                    <tr style="cursor: pointer;" onclick="toggleSMECreFilter('${escapeHtml(cs.name)}')" class="tr-hoverABLE ${isExpanded ? 'tr-expanded-active' : ''}">
                                         <td>
                                             <div style="display:flex; align-items:center; gap:8px;">
                                                 <span style="transform: rotate(${isExpanded ? '90' : '0'}deg); transition: transform 0.2s; color: var(--primary);">▶</span>
-                                                <strong>${cs.name} - Coordenadoria Regional</strong>
+                                                <strong>${escapeHtml(cs.name)} - Coordenadoria Regional</strong>
                                             </div>
                                         </td>
                                         <td>${cs.total} unidades</td>
@@ -5924,7 +6338,7 @@ function renderDashboardSME(container) {
                                             <strong>${percent}%</strong>
                                         </td>
                                         <td>
-                                            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); toggleSMECreFilter('${cs.name}')">
+                                            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); toggleSMECreFilter('${escapeHtml(cs.name)}')">
                                                 ${isExpanded ? 'Recolher' : 'Detalhamento'}
                                             </button>
                                         </td>
@@ -5981,242 +6395,455 @@ function filterSMEDetailTable(query) {
 
 // 7.4 Dashboard da Equipe de Inventário
 function renderDashboardInventario(container) {
+
     const listBens = bens;
+
     const hasBensData = listBens.length > 0;
+
     const aguardandoBens = listBens.filter(b => b.status === 'Encaminhada').length;
+
     const naoEncampBens = listBens.filter(b => b.status === 'Não encaminhada').length;
+
     const concluidoBens = listBens.filter(b => b.status === 'Inventariada').length;
+
     const escolasComProcesso = escolas.filter(e => e.processoInventario);
+
     const escolasSemProcesso = escolas.filter(e => !e.processoInventario);
+
     const escolasInventario = [...escolas].sort((a, b) => a.designação.localeCompare(b.designação));
+
     const statUnitSingular = hasBensData ? 'Bem' : 'Escola';
+
     const statUnitPlural = hasBensData ? 'Bens' : 'Escolas';
+
     const formatStat = count => `${count} ${count === 1 ? statUnitSingular : statUnitPlural}`;
+
     const formatSchoolStat = count => `${count} ${count === 1 ? 'Escola' : 'Escolas'}`;
+
     const naoEncamp = hasBensData ? naoEncampBens : escolasSemProcesso.length;
+
     const aguardando = hasBensData ? aguardandoBens : escolasComProcesso.length;
+
     const concluido = hasBensData ? concluidoBens : 0;
 
+
+
     let filteredBens = [...listBens];
+
     if (activeInventarioSubFilter === 'naoEncamp') {
+
         filteredBens = filteredBens.filter(b => b.status === 'Não encaminhada');
+
     } else if (activeInventarioSubFilter === 'aguardando') {
+
         filteredBens = filteredBens.filter(b => b.status === 'Encaminhada');
     } else if (activeInventarioSubFilter === 'concluido') {
         filteredBens = filteredBens.filter(b => b.status === 'Inventariada');
     }
 
+
     const orderMap = { 'Não encaminhada': 1, 'Encaminhada': 2, 'Inventariada': 3 };
+
     const sortedBens = filteredBens.sort((a, b) => orderMap[a.status] - orderMap[b.status]);
+
     let filteredEscolasInventario = [...escolasInventario];
+
     if (activeInventarioSubFilter === 'naoEncamp') {
+
         filteredEscolasInventario = escolasSemProcesso;
+
     } else if (activeInventarioSubFilter === 'aguardando') {
+
         filteredEscolasInventario = escolasComProcesso;
+
     } else if (activeInventarioSubFilter === 'concluido') {
+
         filteredEscolasInventario = [];
+
     }
 
+
+
     const filterLabel = activeInventarioSubFilter === 'naoEncamp'
+
         ? 'Sem Encarte / Pendente Verbas Federais'
+
         : activeInventarioSubFilter === 'aguardando'
+
             ? 'Aguardando Inventariação'
+
             : activeInventarioSubFilter === 'concluido'
+
                 ? 'Já Inventariados'
+
                 : '';
+
     const filaTitle = hasBensData ? 'Fila de Inventariação Patrimonial' : 'Acompanhamento de Processos de Inventário';
+
     const bensTable = `
+
         <table class="data-table">
+
             <thead>
+
                 <tr>
+
                     <th>Unidade Escolar</th>
+
                     <th>Item Patrimonial</th>
+
                     <th>Período Referente</th>
+
                     <th>Valor</th>
+
                     <th>Nota Fiscal</th>
+
                     <th>Processo de Inventário</th>
+
                     <th>Status no Inventário</th>
+
                     <th>Ação</th>
+
                 </tr>
+
             </thead>
+
             <tbody>
+
                 ${sortedBens.length === 0 ? `
+
                     <tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:32px;">Nenhum bem permanente encontrado nesta categoria.</td></tr>
+
                 ` : sortedBens.map(b => {
+
                     const esc = escolas.find(e => e.id === b.escolaId);
+
                     const ctrl = esc ? controladores.find(c => c.id === esc.controladorId) : null;
+
                     const compLabel = COMPETENCIAS.find(c => c.key === b.competencia)?.label || b.competencia;
+
                     let actionBtn = '';
+
                     let statusBadge = '';
 
+
+
                     if (b.status === 'Não encaminhada') {
+
                         statusBadge = `<span class="badge badge-danger">Pendente Verbas Federais (Falta Documentos)</span>`;
+
                     } else if (b.status === 'Encaminhada') {
+
                         statusBadge = `<span class="badge badge-warning">Aguardando Inventariação</span>`;
-                        actionBtn = `<button class="btn btn-primary btn-sm" onclick="inventariarBem('${b.id}')">Marcar como Inventariado</button>`;
+
+                        actionBtn = `<button class="btn btn-primary btn-sm" onclick="inventariarBem('${escapeHtml(b.id)}')">Marcar como Inventariado</button>`;
+
                     } else {
+
                         let details = '';
+
                         if (b.inventariadoPor) {
-                            details += `<br><small style="color:var(--text-muted); font-size: 0.75rem;">Por: <strong>${b.inventariadoPor}</strong>${b.inventariadoEm ? ' em ' + b.inventariadoEm : ''}</small>`;
+
+                            details += `<br><small style="color:var(--text-muted); font-size: 0.75rem;">Por: <strong>${escapeHtml(b.inventariadoPor)}</strong>${b.inventariadoEm ? ' em ' + escapeHtml(b.inventariadoEm) : ''}</small>`;
                         }
+
                         if (b.observacoes) {
-                            details += `<br><small style="color:var(--text-muted); font-size: 0.75rem; font-style: italic;">Obs: ${b.observacoes}</small>`;
+
+                            details += `<br><small style="color:var(--text-muted); font-size: 0.75rem; font-style: italic;">Obs: ${escapeHtml(b.observacoes)}</small>`;
                         }
+
                         statusBadge = `<span class="badge badge-success">Inventariado</span>${details}`;
+
                     }
 
+
+
                     return `
+
                         <tr>
+
                             <td>
-                                <strong>${esc ? esc.denominação : 'N/A'}</strong><br>
+
+                                <strong>${escapeHtml(esc ? esc.denominação : 'N/A')}</strong><br>
                                 <small style="color:var(--text-muted)">
-                                    Designação: ${esc ? esc.designação : 'N/A'} • Controlador: ${ctrl ? ctrl.name : 'Não designado'}
+
+                                    Designação: ${escapeHtml(esc ? esc.designação : 'N/A')} • Controlador: ${escapeHtml(ctrl ? ctrl.name : 'Não designado')}
                                 </small>
+
                             </td>
-                            <td>${b.item}</td>
-                            <td><span style="font-weight:600; color:var(--primary);">${compLabel}</span></td>
+
+                            <td>${escapeHtml(b.item)}</td>
+                            <td><span style="font-weight:600; color:var(--primary);">${escapeHtml(compLabel)}</span></td>
+
                             <td>R$ ${b.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                            <td>${b.notaFiscal || `<span style="color:var(--danger)">Ausente</span>`}</td>
-                            <td>${esc && esc.processoInventario ? esc.processoInventario : `<span style="color:var(--danger)">Não cadastrado</span>`}</td>
+
+                            <td>${b.notaFiscal ? escapeHtml(b.notaFiscal) : `<span style="color:var(--danger)">Ausente</span>`}</td>
+                            <td>${esc && esc.processoInventario ? escapeHtml(esc.processoInventario) : `<span style="color:var(--danger)">Não cadastrado</span>`}</td>
                             <td>${statusBadge}</td>
+
                             <td>${actionBtn}</td>
+
                         </tr>
+
                     `;
+
                 }).join('')}
+
             </tbody>
+
         </table>
+
     `;
+
     const processosTable = `
+
         <table class="data-table">
+
             <thead>
+
                 <tr>
+
                     <th>Unidade Escolar</th>
+
                     <th>Designação</th>
+
                     <th>SICI</th>
+
                     <th>Controlador</th>
+
                     <th>Processo de Inventário</th>
+
                     <th>Status no Inventário</th>
+
                     <th>Programas</th>
+
                 </tr>
+
             </thead>
+
             <tbody>
+
                 ${filteredEscolasInventario.length === 0 ? `
+
                     <tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:32px;">Nenhuma escola encontrada nesta categoria.</td></tr>
+
                 ` : filteredEscolasInventario.map(esc => {
+
                     const ctrl = controladores.find(c => c.id === esc.controladorId);
+
                     const progNames = (esc.programasIds || []).map(pid => {
+
                         const prog = programas.find(p => p.id === pid);
+
                         return prog ? prog.name : pid;
+
                     }).join(', ');
+
                     const statusBadge = esc.processoInventario
+
                         ? `<span class="badge badge-warning">Aguardando Inventariação</span>`
+
                         : `<span class="badge badge-danger">Pendente Verbas Federais / Sem Processo</span>`;
 
+
+
                     return `
+
                         <tr>
-                            <td><strong>${esc.denominação}</strong></td>
-                            <td>${esc.designação}</td>
-                            <td>${esc.sici || '<span style="color:var(--text-muted)">Não informado</span>'}</td>
-                            <td>${ctrl ? ctrl.name : '<span style="color:var(--text-muted)">Não designado</span>'}</td>
-                            <td>${esc.processoInventario || '<span style="color:var(--danger)">Não cadastrado</span>'}</td>
+
+                            <td><strong>${escapeHtml(esc.denominação)}</strong></td>
+                            <td>${escapeHtml(esc.designação)}</td>
+                            <td>${esc.sici ? escapeHtml(esc.sici) : '<span style="color:var(--text-muted)">Não informado</span>'}</td>
+                            <td>${ctrl ? escapeHtml(ctrl.name) : '<span style="color:var(--text-muted)">Não designado</span>'}</td>
+                            <td>${esc.processoInventario ? escapeHtml(esc.processoInventario) : '<span style="color:var(--danger)">Não cadastrado</span>'}</td>
                             <td>${statusBadge}</td>
-                            <td>${progNames}</td>
+
+                            <td>${escapeHtml(progNames)}</td>
                         </tr>
+
                     `;
+
                 }).join('')}
+
             </tbody>
+
         </table>
+
     `;
 
+
+
     container.innerHTML = `
+
         <div class="page-header">
+
             <div class="page-title">
+
                 <h1>Painel da Equipe de Inventário</h1>
+
                 <p>${hasBensData ? 'Inventariação de bens patrimoniais permanentes adquiridos pelas escolas.' : 'Acompanhamento dos processos anuais de inventário das unidades escolares.'}</p>
+
             </div>
+
         </div>
+
+
 
         <div class="grid-stats">
             <div class="card-stat ${activeInventarioSubFilter === 'naoEncamp' ? 'active-naoEncamp' : ''}" style="cursor: pointer;" onclick="changeInventarioSubFilter('naoEncamp')">
+
                 <div class="stat-icon" style="background-color: var(--danger-bg); color: var(--danger);">
+
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+
                 </div>
+
                 <div class="stat-label">Sem Encarte / Pendente Verbas Federais</div>
+
                 <div class="stat-value">${formatStat(naoEncamp)}</div>
+
             </div>
+
             <div class="card-stat ${activeInventarioSubFilter === 'aguardando' ? 'active-aguardando' : ''}" style="cursor: pointer;" onclick="changeInventarioSubFilter('aguardando')">
+
                 <div class="stat-icon" style="background-color: var(--warning-bg); color: var(--warning);">
+
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+
                 </div>
+
                 <div class="stat-label">Aguardando Inventariação</div>
+
                 <div class="stat-value">${formatStat(aguardando)}</div>
+
             </div>
+
             <div class="card-stat ${activeInventarioSubFilter === 'concluido' ? 'active-concluido' : ''}" style="cursor: pointer;" onclick="changeInventarioSubFilter('concluido')">
+
                 <div class="stat-icon" style="background-color: var(--success-bg); color: var(--success);">
+
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+
                 </div>
+
                 <div class="stat-label">Já Inventariados</div>
+
                 <div class="stat-value">${formatStat(concluido)}</div>
+
             </div>
+
             <div class="card-stat ${activeInventarioSubFilter === 'all' ? 'active-all' : ''}" style="cursor: pointer;" onclick="changeInventarioSubFilter('all')">
+
                 <div class="stat-icon">
+
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+
                 </div>
+
                 <div class="stat-label">Processos de Inventário</div>
+
                 <div class="stat-value">${formatSchoolStat(escolasComProcesso.length)}</div>
+
             </div>
+
         </div>
+
 
         <div class="panel-card">
+
             <div class="panel-header">
+
                 <h2>${filaTitle} ${filterLabel ? `(${filterLabel})` : ''}</h2>
+
             </div>
+
             <div class="table-responsive">
+
                 ${hasBensData ? bensTable : processosTable}
+
             </div>
+
         </div>
 
+
+
         <div class="panel-card" style="margin-top: 20px;">
+
             <div class="panel-header">
+
                 <h2>Processos de Inventário 2026 por Unidade</h2>
+
                 <span class="badge ${escolasSemProcesso.length === 0 ? 'badge-success' : 'badge-warning'}">${escolasComProcesso.length} com processo / ${escolasSemProcesso.length} pendentes</span>
+
             </div>
+
             <div class="table-responsive">
-                <table class="data-table">
+
+                <table class="data-table school-carteira-table">
+
                     <thead>
+
                         <tr>
+
                             <th>Unidade Escolar</th>
+
                             <th>Designação</th>
+
                             <th>SICI</th>
+
                             <th>Controlador</th>
+
                             <th>Processo Anual</th>
+
                             <th>Programas</th>
+
                         </tr>
+
                     </thead>
+
                     <tbody>
+
                         ${escolasInventario.map(esc => {
+
                             const ctrl = controladores.find(c => c.id === esc.controladorId);
+
                             const progNames = (esc.programasIds || []).map(pid => {
+
                                 const prog = programas.find(p => p.id === pid);
+
                                 return prog ? prog.name : pid;
+
                             }).join(', ');
+
                             return `
+
                                 <tr>
-                                    <td><strong>${esc.denominação}</strong></td>
-                                    <td>${esc.designação}</td>
-                                    <td>${esc.sici || '<span style="color:var(--text-muted)">Não informado</span>'}</td>
-                                    <td>${ctrl ? ctrl.name : '<span style="color:var(--text-muted)">Não designado</span>'}</td>
-                                    <td>${esc.processoInventario || '<span style="color:var(--danger)">Não cadastrado</span>'}</td>
-                                    <td>${progNames}</td>
+
+                                    <td><strong>${escapeHtml(esc.denominação)}</strong></td>
+                                    <td>${escapeHtml(esc.designação)}</td>
+                                    <td>${esc.sici ? escapeHtml(esc.sici) : '<span style="color:var(--text-muted)">Não informado</span>'}</td>
+                                    <td>${ctrl ? escapeHtml(ctrl.name) : '<span style="color:var(--text-muted)">Não designado</span>'}</td>
+                                    <td>${esc.processoInventario ? escapeHtml(esc.processoInventario) : '<span style="color:var(--danger)">Não cadastrado</span>'}</td>
+                                    <td>${escapeHtml(progNames)}</td>
                                 </tr>
+
                             `;
+
                         }).join('')}
+
                     </tbody>
+
                 </table>
+
             </div>
+
         </div>
+
     `;
+
 }
+
+
 
 function inventariarBem(bemId) {
     const b = bens.find(item => item.id === bemId);
@@ -6231,7 +6858,7 @@ function inventariarBem(bemId) {
     // Popula dropdown de responsáveis com integrantes cadastrados no Inventário
     const respSelect = document.getElementById('inventario-responsavel');
     if (respSelect) {
-        respSelect.innerHTML = equipeInventario.map(inv => `<option value="${inv.name}">${inv.name}</option>`).join('');
+        respSelect.innerHTML = equipeInventario.map(inv => `<option value="${escapeHtml(inv.name)}">${escapeHtml(inv.name)}</option>`).join('');
         if (equipeInventario.length > 0) {
             respSelect.value = equipeInventario[0].name;
         }
@@ -6286,67 +6913,463 @@ function changeInventarioSubFilter(subFilter) {
 
 
 // ==========================================
+
 // 8. RENDER DA TELA: ESCOLAS (CARTEIRA)
+
 // ==========================================
 
+
+
+function updateEscolasSearch(value) {
+
+    escolaSearchQuery = value || '';
+
+    searchResultFiltered = null;
+
+    syncGlobalSearchInput();
+
+    renderEscolas();
+
+}
+
+
+
+function changeEscolaFilter(filterName, value) {
+
+    activeEscolaFilters = {
+
+        ...activeEscolaFilters,
+
+        [filterName]: value
+
+    };
+
+    renderEscolas();
+
+}
+
+
+
+function clearEscolaFilters() {
+
+    escolaSearchQuery = '';
+
+    searchResultFiltered = null;
+
+    activeEscolaFilters = { ...DEFAULT_ESCOLA_FILTERS };
+
+    syncGlobalSearchInput();
+
+    renderEscolas();
+
+}
+
+
+
+function getFilteredEscolas() {
+
+    return escolas.filter(esc => {
+
+        const op = getEscolaOperationalData(esc);
+
+
+
+        if (!schoolMatchesSearch(esc, escolaSearchQuery)) return false;
+
+        if (activeEscolaFilters.controlador !== 'all' && esc.controladorId !== activeEscolaFilters.controlador) return false;
+
+        if (activeEscolaFilters.programa !== 'all' && !(esc.programasIds || []).includes(activeEscolaFilters.programa)) return false;
+
+        if (activeEscolaFilters.situacao !== 'all' && op.situacao !== activeEscolaFilters.situacao) return false;
+
+        if (activeEscolaFilters.pendencias === 'com' && !op.hasPendencias) return false;
+
+        if (activeEscolaFilters.pendencias === 'sem' && op.hasPendencias) return false;
+
+        if (activeEscolaFilters.inventario === 'com' && !op.hasInventarioProcess) return false;
+
+        if (activeEscolaFilters.inventario === 'sem' && op.hasInventarioProcess) return false;
+
+        if (activeEscolaFilters.ra !== 'all' && op.ra !== activeEscolaFilters.ra) return false;
+
+
+
+        return true;
+
+    });
+
+}
+
+
+
+function renderEscolaFilterOptions(options, activeValue) {
+
+    return options.map(option => `
+
+        <option value="${escapeHtml(option.value)}" ${selectedAttr(activeValue, option.value)}>${escapeHtml(option.label)}</option>
+
+    `).join('');
+
+}
+
+
+
 function renderEscolas() {
+
     const container = document.getElementById('main-container');
-    const targetEscolas = searchResultFiltered || escolas;
+
+    const targetEscolas = getFilteredEscolas();
+
+    const raOptions = [...new Set(escolas.map(e => e.ra || getRAFromDesignacao(e.designação)).filter(Boolean))].sort();
+
+    const pendenciasCount = targetEscolas.filter(e => getEscolaOperationalData(e).hasPendencias).length;
+
+    const inventarioCount = targetEscolas.filter(e => getEscolaOperationalData(e).hasInventarioProcess).length;
+
+    const activeFiltersCount = Object.keys(activeEscolaFilters).filter(key => activeEscolaFilters[key] !== DEFAULT_ESCOLA_FILTERS[key]).length + (escolaSearchQuery.trim() ? 1 : 0);
+
+
 
     container.innerHTML = `
+
         <div class="page-header">
+
             <div class="page-title">
+
                 <h1>Escolas e Carteiras</h1>
-                <p>Lista de unidades escolares sob jurisdição da Coordenadoria de Educação.</p>
+
+                <p>Lista pesquisável de unidades escolares sob jurisdição da Coordenadoria de Educação.</p>
+
             </div>
+
             ${currentProfile === 'assistente' ? `
+
                 <button class="btn btn-primary" onclick="openEscolaEditModal(null)">
+
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"></path></svg>
+
                     Cadastrar Escola
+
                 </button>
             ` : ''}
+
         </div>
 
+
+
+        <div class="panel-card school-filter-panel">
+
+            <div class="school-filter-header">
+
+                <div>
+
+                    <h2>Busca e filtros da carteira</h2>
+
+                    <p>Pesquise por designação, unidade, INEP, CNPJ, SICI, diretor, controlador, programa ou processo.</p>
+
+                </div>
+
+                <button class="btn btn-secondary btn-sm" onclick="clearEscolaFilters()" ${activeFiltersCount === 0 ? 'disabled' : ''}>Limpar filtros</button>
+
+            </div>
+
+
+
+            <div class="school-filter-grid">
+
+                <div class="filter-field filter-field-wide">
+
+                    <label for="escola-search-input">Busca</label>
+
+                    <input type="text" id="escola-search-input" class="form-control" value="${escapeHtml(escolaSearchQuery)}" placeholder="Ex.: 04.10.001, INEP, CNPJ, diretor, Érica, PDDE Básico..." oninput="updateEscolasSearch(this.value)">
+
+                </div>
+
+
+
+                <div class="filter-field">
+
+                    <label for="filter-escola-controlador">Controlador</label>
+
+                    <select id="filter-escola-controlador" class="form-control" onchange="changeEscolaFilter('controlador', this.value)">
+
+                        <option value="all" ${selectedAttr(activeEscolaFilters.controlador, 'all')}>Todos</option>
+
+                        ${controladores.map(c => `<option value="${escapeHtml(c.id)}" ${selectedAttr(activeEscolaFilters.controlador, c.id)}>${escapeHtml(c.name)}</option>`).join('')}
+
+                    </select>
+
+                </div>
+
+
+
+                <div class="filter-field">
+
+                    <label for="filter-escola-programa">Programa</label>
+
+                    <select id="filter-escola-programa" class="form-control" onchange="changeEscolaFilter('programa', this.value)">
+
+                        <option value="all" ${selectedAttr(activeEscolaFilters.programa, 'all')}>Todos</option>
+
+                        ${programas.map(p => `<option value="${escapeHtml(p.id)}" ${selectedAttr(activeEscolaFilters.programa, p.id)}>${escapeHtml(p.name)}</option>`).join('')}
+
+                    </select>
+
+                </div>
+
+
+
+                <div class="filter-field">
+
+                    <label for="filter-escola-situacao">Situação</label>
+
+                    <select id="filter-escola-situacao" class="form-control" onchange="changeEscolaFilter('situacao', this.value)">
+
+                        ${renderEscolaFilterOptions([
+
+                            { value: 'all', label: 'Todas' },
+
+                            { value: 'apto', label: 'Aptas' },
+
+                            { value: 'inapto', label: 'Inaptas' },
+
+                            { value: 'emAndamento', label: 'Em andamento' },
+
+                            { value: 'naoAnalisado', label: 'Não analisadas' },
+
+                            { value: 'foraEscopo', label: 'Fora do escopo' }
+
+                        ], activeEscolaFilters.situacao)}
+
+                    </select>
+
+                </div>
+
+
+
+                <div class="filter-field">
+
+                    <label for="filter-escola-pendencias">Pendências</label>
+
+                    <select id="filter-escola-pendencias" class="form-control" onchange="changeEscolaFilter('pendencias', this.value)">
+
+                        ${renderEscolaFilterOptions([
+
+                            { value: 'all', label: 'Todas' },
+
+                            { value: 'com', label: 'Com pendências abertas' },
+
+                            { value: 'sem', label: 'Sem pendências abertas' }
+
+                        ], activeEscolaFilters.pendencias)}
+
+                    </select>
+
+                </div>
+
+
+
+                <div class="filter-field">
+
+                    <label for="filter-escola-inventario">Inventário</label>
+
+                    <select id="filter-escola-inventario" class="form-control" onchange="changeEscolaFilter('inventario', this.value)">
+
+                        ${renderEscolaFilterOptions([
+
+                            { value: 'all', label: 'Todos' },
+
+                            { value: 'com', label: 'Com processo' },
+
+                            { value: 'sem', label: 'Sem processo' }
+
+                        ], activeEscolaFilters.inventario)}
+
+                    </select>
+
+                </div>
+
+
+
+                <div class="filter-field">
+
+                    <label for="filter-escola-ra">R.A.</label>
+
+                    <select id="filter-escola-ra" class="form-control" onchange="changeEscolaFilter('ra', this.value)">
+
+                        <option value="all" ${selectedAttr(activeEscolaFilters.ra, 'all')}>Todas</option>
+
+                        ${raOptions.map(ra => `<option value="${escapeHtml(ra)}" ${selectedAttr(activeEscolaFilters.ra, ra)}>${escapeHtml(ra)}</option>`).join('')}
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="school-filter-summary">
+
+                <span><strong>${targetEscolas.length}</strong> de ${escolas.length} escolas exibidas</span>
+
+                <span>${pendenciasCount} com pendências abertas</span>
+
+                <span>${inventarioCount} com processo de inventário</span>
+
+                <span>Competência: ${activeCompetenciaKey}</span>
+
+            </div>
+
+        </div>
+
+
+
         <div class="panel-card">
+
+            <div class="panel-header">
+
+                <div>
+
+                    <h2>Resultado da carteira</h2>
+
+                    <p>${activeFiltersCount > 0 ? 'Lista filtrada conforme os critérios selecionados.' : 'Lista completa de escolas cadastradas.'}</p>
+
+                </div>
+
+            </div>
+
             <div class="table-responsive">
+
                 <table class="data-table">
+
                     <thead>
+
                         <tr>
+
                             <th>Unidade Escolar</th>
-                            <th>INEP</th>
-                            <th>CNPJ</th>
+
+                            <th>Identificação</th>
+
                             <th>Diretor(a) Geral</th>
+
                             <th>Controlador Responsável</th>
+
+                            <th>Situação</th>
+
+                            <th>Operação</th>
+
                             <th>Ações</th>
+
                         </tr>
+
                     </thead>
+
                     <tbody>
-                        ${targetEscolas.map(e => {
-                            const ctrl = controladores.find(c => c.id === e.controladorId);
+
+                        ${targetEscolas.length === 0 ? `
+
+                            <tr>
+
+                                <td colspan="7">
+
+                                    <div class="empty-state compact">
+
+                                        <div class="empty-state-icon">⌕</div>
+
+                                        <strong>Nenhuma escola encontrada</strong>
+
+                                        <span>Ajuste a busca ou limpe os filtros para ampliar o resultado.</span>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                        ` : targetEscolas.map(e => {
+
+                            const op = getEscolaOperationalData(e);
+
+                            const statusBadge = getEscolaStatusBadgeClass(op.situacao);
+
+                            const statusLabel = getEscolaStatusLabel(op.situacao);
+
                             return `
+
                                 <tr>
-                                    <td><strong>${e.denominação}</strong><br><small style="color:var(--text-muted)">${e.designação}</small></td>
-                                    <td>${e.inep}</td>
-                                    <td>${e.cnpj}</td>
-                                    <td>${e.diretor}<br><small style="color:var(--text-muted)">${e.telefone}</small></td>
-                                    <td>${ctrl ? ctrl.name : 'Não designado'}</td>
+
                                     <td>
-                                        <div style="display:flex; gap:8px;">
-                                            <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${e.id}')">Ver Unidade</button>
-                                            ${currentProfile === 'assistente' || currentProfile === 'controlador' ? `
-                                                <button class="btn btn-secondary btn-sm" onclick="openEscolaEditModal('${e.id}')">Editar</button>
-                                            ` : ''}
+
+                                        <strong>${escapeHtml(e.denominação)}</strong>
+                                        <br><small style="color:var(--text-muted)">${escapeHtml(e.designação)} • ${escapeHtml(op.ra)}</small>
+                                        <div class="school-program-inline">
+
+                                            ${op.programas.slice(0, 3).map(p => `<span>${escapeHtml(p)}</span>`).join('')}
+
+                                            ${op.programas.length > 3 ? `<span>+${op.programas.length - 3}</span>` : ''}
+
                                         </div>
                                     </td>
+                                    <td>
+
+                                        <strong>INEP:</strong> ${escapeHtml(e.inep)}<br>
+                                        <small><strong>CNPJ:</strong> ${escapeHtml(e.cnpj)}</small><br>
+                                        <small><strong>SICI:</strong> ${escapeHtml(e.sici || 'Não informado')}</small>
+                                    </td>
+
+                                    <td>${escapeHtml(e.diretor)}<br><small style="color:var(--text-muted)">${escapeHtml(e.telefone)}</small></td>
+                                    <td>${escapeHtml(op.controladorName)}</td>
+                                    <td><span class="badge ${statusBadge}">${statusLabel}</span></td>
+
+                                    <td>
+
+                                        <div class="school-operation-stack">
+
+                                            <span class="badge ${op.hasPendencias ? 'badge-danger' : 'badge-success'}">${op.pendenciasAbertas.length} pendência${op.pendenciasAbertas.length === 1 ? '' : 's'}</span>
+
+                                            <span class="badge ${op.hasInventarioProcess ? 'badge-info' : 'badge-warning'}">${op.hasInventarioProcess ? 'Com processo' : 'Sem processo'}</span>
+
+                                            ${op.bensTotal > 0 ? `<small>${op.bensTotal} bem(ns): ${op.bensNaoEncaminhados} sem enc., ${op.bensEncaminhados} enc., ${op.bensInventariados} inv.</small>` : `<small>Sem bens vinculados</small>`}
+
+                                        </div>
+
+                                    </td>
+
+                                    <td>
+
+                                        <div class="school-actions-stack">
+
+                                            <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${escapeHtml(e.id)}')">Ver Unidade</button>
+                                            ${currentProfile === 'assistente' || currentProfile === 'controlador' ? `
+
+                                                <button class="btn btn-secondary btn-sm" onclick="openEscolaEditModal('${escapeHtml(e.id)}')">Editar</button>
+                                            ` : ''}
+
+                                        </div>
+
+                                    </td>
+
                                 </tr>
                             `;
                         }).join('')}
+
                     </tbody>
+
                 </table>
+
             </div>
+
         </div>
+
     `;
+
+
+    syncGlobalSearchInput();
+
 }
+
+
 
 
 // ==========================================
@@ -6440,17 +7463,17 @@ function renderCompetencias() {
                             return `
                                 <tr>
                                     <td>
-                                        <strong>${e.denominação}</strong>
-                                        <br><small style="color:var(--text-muted)">${e.designação}</small>
+                                        <strong>${escapeHtml(e.denominação)}</strong>
+                                        <br><small style="color:var(--text-muted)">${escapeHtml(e.designação)}</small>
                                     </td>
-                                    <td>${ctrl ? ctrl.name : 'N/A'}</td>
+                                    <td>${escapeHtml(ctrl ? ctrl.name : 'N/A')}</td>
                                     <td>${bonifStatusHTML}</td>
                                     <td>${analiseStatusHTML}</td>
                                     <td>
                                         ${pendentesCount > 0 ? `<span class="badge badge-danger">${pendentesCount} Abertas</span>` : `<span class="badge badge-gray">Nenhuma</span>`}
                                     </td>
                                     <td>
-                                        <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${e.id}')">Ver Unidade</button>
+                                        <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${escapeHtml(e.id)}')">Ver Unidade</button>
                                     </td>
                                 </tr>
                             `;
@@ -6510,16 +7533,16 @@ function renderPassivoAnterior() {
                         return `
                             <tr>
                                 <td>
-                                    <strong>${esc ? esc.denominação : 'N/A'}</strong>
-                                    ${esc ? `<br><small style="color:var(--text-muted)">${esc.designação}</small>` : ''}
+                                    <strong>${escapeHtml(esc ? esc.denominação : 'N/A')}</strong>
+                                    ${esc ? `<br><small style="color:var(--text-muted)">${escapeHtml(esc.designação)}</small>` : ''}
                                 </td>
-                                <td><span class="badge badge-warning" style="font-weight:600;">${compLabel}</span></td>
-                                <td>${p.item}</td>
-                                <td><span style="color:var(--danger)">${p.motivo}</span></td>
-                                <td><span class="badge badge-info">${p.responsavel}</span></td>
+                                <td><span class="badge badge-warning" style="font-weight:600;">${escapeHtml(compLabel)}</span></td>
+                                <td>${escapeHtml(p.item)}</td>
+                                <td><span style="color:var(--danger)">${escapeHtml(p.motivo)}</span></td>
+                                <td><span class="badge badge-info">${escapeHtml(p.responsavel)}</span></td>
                                 <td>${new Date(p.dataAbertura).toLocaleDateString('pt-BR')}</td>
                                 <td>
-                                    <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${p.escolaId}')">Tratar</button>
+                                    <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${escapeHtml(p.escolaId)}')">Tratar</button>
                                 </td>
                             </tr>
                         `;
@@ -6578,6 +7601,7 @@ function renderPendencias() {
     // Se perfil é controlador, ordenar as dele primeiro (e depois todas as outras)
     if (currentProfile === 'controlador') {
         const activeCtrlId = getDefaultControladorId();
+
         const getSortWeight = (p) => {
             const esc = escolas.find(e => e.id === p.escolaId);
             return (esc && esc.controladorId === activeCtrlId) ? 0 : 1;
@@ -6624,39 +7648,52 @@ function renderPendencias() {
                                 <th>Ações</th>
                             </tr>
                         </thead>
+
                         <tbody>
+
                             ${abertas.length === 0 ? `
+
                                 <tr>
+
                                     <td colspan="7">
+
                                         Nenhuma pendência aberta no momento. Quando uma inconsistência for registrada, ela aparecerá nesta lista.
+
                                     </td>
+
                                 </tr>
+
                             ` : abertas.map(p => {
+
                                 const esc = escolas.find(e => e.id === p.escolaId);
+
                                 const pData = getFormattedPendencyData(p);
+
                                 const ctrl = esc ? controladores.find(c => c.id === esc.controladorId) : null;
+
                                 const ctrlName = ctrl ? ctrl.name : 'Não designado';
                                 const desig = esc ? esc.designação : '';
                                 const isMine = (currentProfile === 'controlador' && esc && esc.controladorId === getDefaultControladorId());
+
                                 return `
                                     <tr style="${isMine ? 'background-color: rgba(157, 125, 252, 0.05);' : ''}">
                                         <td>
                                             <div style="display:flex; align-items:center; gap:8px;">
-                                                <strong>${esc ? esc.denominação : 'N/A'}</strong>
+                                                <strong>${escapeHtml(esc ? esc.denominação : 'N/A')}</strong>
                                                 ${isMine ? `<span class="badge badge-primary" style="font-size: 0.65rem; padding: 2px 6px;">Sua Carteira</span>` : ''}
                                             </div>
-                                            ${desig ? `<small style="color:var(--text-muted)">${desig} | Controlador: ${ctrlName}</small>` : ''}
+                                            ${desig ? `<small style="color:var(--text-muted)">${escapeHtml(desig)} | Controlador: ${escapeHtml(ctrlName)}</small>` : ''}
                                         </td>
-                                        <td><span style="font-weight:600; color:var(--primary);">${pData.competencia}</span></td>
-                                        <td>${pData.item}</td>
-                                        <td><span style="color:var(--danger)">${p.motivo}</span></td>
-                                        <td><span class="badge badge-info">${p.responsavel}</span></td>
+                                        <td><span style="font-weight:600; color:var(--primary);">${escapeHtml(pData.competencia)}</span></td>
+                                        <td>${escapeHtml(pData.item)}</td>
+                                        <td><span style="color:var(--danger)">${escapeHtml(p.motivo)}</span></td>
+                                        <td><span class="badge badge-info">${escapeHtml(p.responsavel)}</span></td>
                                         <td>${new Date(p.dataAbertura).toLocaleDateString('pt-BR')}</td>
                                         <td>
                                             <div style="display:flex; gap:6px;">
-                                                <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${p.escolaId}')">Ver Unidade</button>
+                                                <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${escapeHtml(p.escolaId)}')">Ver Unidade</button>
                                                 ${currentProfile !== 'inventario' ? `
-                                                    <button class="btn btn-primary btn-sm" onclick="abrirModalResolverPendencia('${p.id}')">Resolver</button>
+                                                    <button class="btn btn-primary btn-sm" onclick="abrirModalResolverPendencia('${escapeHtml(p.id)}')">Resolver</button>
                                                 ` : ''}
                                             </div>
                                         </td>
@@ -6684,33 +7721,46 @@ function renderPendencias() {
                                 <th>Resolvido Em</th>
                             </tr>
                         </thead>
+
                         <tbody>
+
                             ${resolvidas.length === 0 ? `
+
                                 <tr>
+
                                     <td colspan="7">
+
                                         Nenhuma pendência resolvida registrada ainda. O histórico será preenchido conforme as regularizações forem concluídas.
+
                                     </td>
+
                                 </tr>
+
                             ` : resolvidas.map(p => {
+
                                 const esc = escolas.find(e => e.id === p.escolaId);
+
                                 const pData = getFormattedPendencyData(p);
+
                                 const ctrl = esc ? controladores.find(c => c.id === esc.controladorId) : null;
+
                                 const ctrlName = ctrl ? ctrl.name : 'Não designado';
                                 const desig = esc ? esc.designação : '';
                                 const isMine = (currentProfile === 'controlador' && esc && esc.controladorId === getDefaultControladorId());
+
                                 return `
                                     <tr style="${isMine ? 'background-color: rgba(157, 125, 252, 0.03);' : ''}">
                                         <td>
                                             <div style="display:flex; align-items:center; gap:8px;">
-                                                <strong>${esc ? esc.denominação : 'N/A'}</strong>
+                                                <strong>${escapeHtml(esc ? esc.denominação : 'N/A')}</strong>
                                                 ${isMine ? `<span class="badge badge-primary" style="font-size: 0.65rem; padding: 2px 6px;">Sua Carteira</span>` : ''}
                                             </div>
-                                            ${desig ? `<small style="color:var(--text-muted)">${desig} | Controlador: ${ctrlName}</small>` : ''}
+                                            ${desig ? `<small style="color:var(--text-muted)">${escapeHtml(desig)} | Controlador: ${escapeHtml(ctrlName)}</small>` : ''}
                                         </td>
-                                        <td>${pData.competencia}</td>
-                                        <td>${pData.item}</td>
-                                        <td>${p.motivo}</td>
-                                        <td><span style="color:var(--success); font-size:0.8rem;">${p.justificativaResolucao || 'Resolvida'}</span></td>
+                                        <td>${escapeHtml(pData.competencia)}</td>
+                                        <td>${escapeHtml(pData.item)}</td>
+                                        <td>${escapeHtml(p.motivo)}</td>
+                                        <td><span style="color:var(--success); font-size:0.8rem;">${escapeHtml(p.justificativaResolucao || 'Resolvida')}</span></td>
                                         <td>${new Date(p.dataAbertura).toLocaleDateString('pt-BR')}</td>
                                         <td>${new Date(p.dataResolucao).toLocaleDateString('pt-BR')}</td>
                                     </tr>
@@ -6819,10 +7869,10 @@ function renderAuditoria() {
                         ${logs.map(l => `
                             <tr>
                                 <td><strong>${new Date(l.dataHora).toLocaleString('pt-BR')}</strong></td>
-                                <td>${l.usuario}</td>
-                                <td><span class="badge badge-info">${l.perfil}</span></td>
-                                <td><strong>${l.acao}</strong></td>
-                                <td>${l.detalhes}</td>
+                                <td>${escapeHtml(l.usuario)}</td>
+                                <td><span class="badge badge-info">${escapeHtml(l.perfil)}</span></td>
+                                <td><strong>${escapeHtml(l.acao)}</strong></td>
+                                <td>${escapeHtml(l.detalhes)}</td>
                             </tr>
                         `).join('')}
                     </tbody>
@@ -6908,8 +7958,8 @@ function renderSMEConfig() {
             <div class="program-tag-list">
                 ${programas.map(p => `
                     <span class="program-tag">
-                        <strong>${p.name}</strong> - ${p.desc}
-                        ${p.id !== 'BASIC' ? `<button onclick="removerPrograma('${p.id}')">×</button>` : ''}
+                        <strong>${escapeHtml(p.name)}</strong> - ${escapeHtml(p.desc)}
+                        ${p.id !== 'BASIC' ? `<button onclick="removerPrograma('${escapeHtml(p.id)}')">×</button>` : ''}
                     </span>
                 `).join('')}
             </div>
@@ -7057,22 +8107,22 @@ function renderProntuario(escolaId) {
     container.innerHTML = `
         <div class="page-header">
             <div class="page-title">
-                <h1>Unidade Escolar: ${esc.denominação} (${esc.designação})</h1>
+                <h1>Unidade Escolar: ${escapeHtml(esc.denominação)} (${escapeHtml(esc.designação)})</h1>
                 <p>Acompanhamento e Histórico Unificado da Unidade Escolar</p>
             </div>
             <div style="display:flex; gap:12px;">
                 ${currentProfile !== 'inventario' && currentProfile !== 'sme' ? `
-                    <button class="btn btn-secondary" onclick="openContatoModal('${esc.id}')">
+                    <button class="btn btn-secondary" onclick="openContatoModal('${escapeHtml(esc.id)}')">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                         Registrar Contato
                     </button>
-                    <button class="btn btn-secondary" onclick="openCobrancaModal('${esc.id}')">
+                    <button class="btn btn-secondary" onclick="openCobrancaModal('${escapeHtml(esc.id)}')">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
                         Gerar Cobrança
                     </button>
                 ` : ''}
                 ${currentProfile === 'assistente' || currentProfile === 'controlador' ? `
-                    <button class="btn btn-primary" onclick="openEscolaEditModal('${esc.id}')">Editar Dados</button>
+                    <button class="btn btn-primary" onclick="openEscolaEditModal('${escapeHtml(esc.id)}')">Editar Dados</button>
                 ` : ''}
             </div>
         </div>
@@ -7083,60 +8133,87 @@ function renderProntuario(escolaId) {
                 <div class="school-info-card">
                     <div class="info-item">
                         <div class="info-label">INEP</div>
-                        <div class="info-value">${esc.inep}</div>
+                        <div class="info-value">${escapeHtml(esc.inep)}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Designação</div>
-                        <div class="info-value">${esc.designação}</div>
+
+                        <div class="info-value">${escapeHtml(esc.designação)}</div>
                     </div>
+
                     <div class="info-item">
+
                         <div class="info-label">SICI</div>
-                        <div class="info-value">${esc.sici || 'Não informado'}</div>
+
+                        <div class="info-value">${escapeHtml(esc.sici || 'Não informado')}</div>
                     </div>
+
                     <div class="info-item">
+
                         <div class="info-label">CNPJ</div>
-                        <div class="info-value">${esc.cnpj}</div>
+
+                        <div class="info-value">${escapeHtml(esc.cnpj)}</div>
                     </div>
+
                     <div class="info-item">
+
                         <div class="info-label">Diretor(a)</div>
-                        <div class="info-value">${esc.diretor}</div>
+
+                        <div class="info-value">${escapeHtml(esc.diretor)}</div>
                     </div>
+
                     <div class="info-item">
+
                         <div class="info-label">Telefone do Diretor(a)</div>
-                        <div class="info-value">${esc.telefoneDiretor || 'Não informado'}</div>
+
+                        <div class="info-value">${escapeHtml(esc.telefoneDiretor || 'Não informado')}</div>
                     </div>
+
                     <div class="info-item">
+
                         <div class="info-label">Diretor(a) Adjunto(a)</div>
-                        <div class="info-value">${esc.diretorAdjunto || 'Não informado'}</div>
+
+                        <div class="info-value">${escapeHtml(esc.diretorAdjunto || 'Não informado')}</div>
                     </div>
+
                     <div class="info-item">
+
                         <div class="info-label">Telefone do Adjunto(a)</div>
-                        <div class="info-value">${esc.telefoneDiretorAdjunto || 'Não informado'}</div>
+
+                        <div class="info-value">${escapeHtml(esc.telefoneDiretorAdjunto || 'Não informado')}</div>
                     </div>
+
                     <div class="info-item">
+
                         <div class="info-label">Telefone da Unidade</div>
-                        <div class="info-value">${esc.telefone}</div>
+
+                        <div class="info-value">${escapeHtml(esc.telefone)}</div>
                     </div>
+
                     <div class="info-item">
+
                         <div class="info-label">Celular Institucional</div>
-                        <div class="info-value">${esc.telefoneCelularInstitucional || 'Não informado'}</div>
+
+                        <div class="info-value">${escapeHtml(esc.telefoneCelularInstitucional || 'Não informado')}</div>
                     </div>
+
                     <div class="info-item">
+
                         <div class="info-label">Coordenadoria / RA</div>
-                        <div class="info-value">${esc.cre} / ${getRAFromDesignacao(esc.designação)}</div>
+                        <div class="info-value">${escapeHtml(esc.cre)} / ${escapeHtml(getRAFromDesignacao(esc.designação))}</div>
                     </div>
 
                     <div class="info-item">
                         <div class="info-label">E-mail Institucional</div>
-                        <div class="info-value">${esc.email}</div>
+                        <div class="info-value">${escapeHtml(esc.email)}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Controlador Responsável</div>
-                        <div class="info-value">${ctrl ? ctrl.name : 'Não designado'}</div>
+                        <div class="info-value">${escapeHtml(ctrl ? ctrl.name : 'Não designado')}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Processo Inventário (Exercício)</div>
-                        <div class="info-value">${process}</div>
+                        <div class="info-value">${escapeHtml(process)}</div>
                     </div>
                 </div>
 
@@ -7145,7 +8222,7 @@ function renderProntuario(escolaId) {
                     <div style="display:flex; flex-direction:column; gap:6px;">
                         ${esc.programasIds.map(progId => {
                             const p = programas.find(x => x.id === progId);
-                            return p ? `<span class="badge badge-info" style="justify-content:flex-start;">${p.name}</span>` : '';
+                            return p ? `<span class="badge badge-info" style="justify-content:flex-start;">${escapeHtml(p.name)}</span>` : '';
                         }).join('')}
                     </div>
                 </div>
@@ -7183,7 +8260,7 @@ function renderProntuario(escolaId) {
                                 
                                 let statusBadgeClass = 'status-dot-' + status;
                                 let isDisabled = status === 'out-of-scope';
-                                let clickHandler = isDisabled ? '' : `onclick="changeProntuarioCompetencia('${esc.id}', '${c.key}')"`;
+                                let clickHandler = isDisabled ? '' : `onclick="changeProntuarioCompetencia('${escapeHtml(esc.id)}', '${escapeHtml(c.key)}')"`;
                                 
                                 // Obter nome abreviado do mês (Ex: Janeiro -> Jan)
                                 const monthAbbr = c.label.split(' ')[0].substring(0, 3);
@@ -7225,7 +8302,7 @@ function renderProntuario(escolaId) {
                     <div class="panel-card">
                         <div class="panel-header">
                             <h2>Pendências Operacionais Ativas</h2>
-                            <button class="btn btn-secondary btn-sm" onclick="openNovaPendenciaModal('${esc.id}')">Criar Pendência Manual</button>
+                            <button class="btn btn-secondary btn-sm" onclick="openNovaPendenciaModal('${escapeHtml(esc.id)}')">Criar Pendência Manual</button>
                         </div>
                         <div class="table-responsive">
                             <table class="data-table">
@@ -7246,13 +8323,13 @@ function renderProntuario(escolaId) {
                                         const pData = getFormattedPendencyData(p);
                                         return `
                                             <tr>
-                                                <td><span style="font-weight:600; color:var(--primary);">${pData.competencia}</span></td>
-                                                <td>${pData.item}</td>
-                                                <td><span style="color:var(--danger)">${p.motivo}</span><br><small style="color:var(--text-muted)">${p.observacao}</small></td>
-                                                <td><span class="badge badge-info">${p.responsavel}</span></td>
+                                                <td><span style="font-weight:600; color:var(--primary);">${escapeHtml(pData.competencia)}</span></td>
+                                                <td>${escapeHtml(pData.item)}</td>
+                                                <td><span style="color:var(--danger)">${escapeHtml(p.motivo)}</span><br><small style="color:var(--text-muted)">${escapeHtml(p.observacao)}</small></td>
+                                                <td><span class="badge badge-info">${escapeHtml(p.responsavel)}</span></td>
                                                 <td>${new Date(p.dataAbertura).toLocaleDateString('pt-BR')}</td>
                                                 <td>
-                                                    <button class="btn btn-primary btn-sm" onclick="abrirModalResolverPendencia('${p.id}')">Marcar Resolvida</button>
+                                                    <button class="btn btn-primary btn-sm" onclick="abrirModalResolverPendencia('${escapeHtml(p.id)}')">Marcar Resolvida</button>
                                                 </td>
                                             </tr>
                                         `;
@@ -7275,10 +8352,10 @@ function renderProntuario(escolaId) {
                             ` : contatos.filter(c => c.escolaId === esc.id).sort((a,b) => b.dataRegistro.localeCompare(a.dataRegistro)).map(c => `
                                 <div class="contact-card">
                                     <div class="contact-meta">
-                                        <span class="contact-type-tag">${c.tipo}</span>
+                                        <span class="contact-type-tag">${escapeHtml(c.tipo)}</span>
                                         <span>Atendimento: ${new Date(c.dataAtendimento).toLocaleDateString('pt-BR')} (Registro: ${new Date(c.dataRegistro).toLocaleString('pt-BR')})</span>
                                     </div>
-                                    <div class="contact-desc">${c.desc}</div>
+                                    <div class="contact-desc">${escapeHtml(c.desc)}</div>
                                 </div>
                             `).join('')}
                         </div>
@@ -7293,10 +8370,10 @@ function renderProntuario(escolaId) {
                         <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 10px;">
                             <div>
                                 <h2>Aquisição de Bens Permanentes (Natureza de Capital)</h2>
-                                <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Processo de Inventário 2026: <strong>${esc.processoInventario || '<span style="color:var(--danger)">Não cadastrado na escola</span>'}</strong></div>
+                                <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Processo de Inventário 2026: <strong>${esc.processoInventario ? escapeHtml(esc.processoInventario) : '<span style="color:var(--danger)">Não cadastrado na escola</span>'}</strong></div>
                             </div>
                             ${currentProfile !== 'inventario' ? `
-                                <button class="btn btn-secondary btn-sm" onclick="openNovoCapitalModal('${esc.id}')">Registrar Nova Compra</button>
+                                <button class="btn btn-secondary btn-sm" onclick="openNovoCapitalModal('${escapeHtml(esc.id)}')">Registrar Nova Compra</button>
                             ` : ''}
                         </div>
                         <div class="table-responsive">
@@ -7318,26 +8395,26 @@ function renderProntuario(escolaId) {
                                         let statusCls = b.status === 'Não encaminhada' ? 'badge-danger' : b.status === 'Encaminhada' ? 'badge-warning' : 'badge-success';
                                         return `
                                             <tr>
-                                                <td><strong>${b.item}</strong></td>
-                                                <td>${b.competencia}</td>
+                                                <td><strong>${escapeHtml(b.item)}</strong></td>
+                                                <td>${escapeHtml(b.competencia)}</td>
                                                 <td>R$ ${b.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                                                 <td>
-                                                    <input type="text" class="form-control" style="width:110px; font-size:0.75rem; padding:4px;" value="${b.notaFiscal}" onchange="updateCapitalDoc('${b.id}', 'notaFiscal', this.value)" placeholder="NF-XXXX" ${currentProfile === 'inventario' || currentProfile === 'sme' ? 'disabled' : ''}>
+                                                    <input type="text" class="form-control" style="width:110px; font-size:0.75rem; padding:4px;" value="${escapeHtml(b.notaFiscal)}" onchange="updateCapitalDoc('${escapeHtml(b.id)}', 'notaFiscal', this.value)" placeholder="NF-XXXX" ${currentProfile === 'inventario' || currentProfile === 'sme' ? 'disabled' : ''}>
                                                 </td>
                                                 <td>
-                                                    <span class="badge ${statusCls}">${b.status}</span>
+                                                    <span class="badge ${statusCls}">${escapeHtml(b.status)}</span>
                                                     ${b.status === 'Inventariada' && b.inventariadoPor ? `
-                                                        <br><small style="color:var(--text-muted); font-size:0.7rem;">Por: <strong>${b.inventariadoPor}</strong>${b.inventariadoEm ? ' em ' + b.inventariadoEm : ''}</small>
+                                                        <br><small style="color:var(--text-muted); font-size:0.7rem;">Por: <strong>${escapeHtml(b.inventariadoPor)}</strong>${b.inventariadoEm ? ' em ' + escapeHtml(b.inventariadoEm) : ''}</small>
                                                     ` : ''}
                                                     ${b.status === 'Inventariada' && b.observacoes ? `
-                                                        <br><small style="color:var(--text-muted); font-size:0.7rem; font-style:italic;">Obs: ${b.observacoes}</small>
+                                                        <br><small style="color:var(--text-muted); font-size:0.7rem; font-style:italic;">Obs: ${escapeHtml(b.observacoes)}</small>
                                                     ` : ''}
                                                 </td>
                                                 <td>
                                                     ${b.status === 'Não encaminhada' ? `
-                                                        <button class="btn btn-primary btn-sm" onclick="encaminharCapital('${b.id}')" ${currentProfile === 'inventario' || currentProfile === 'sme' ? 'disabled' : ''}>Encaminhar</button>
+                                                        <button class="btn btn-primary btn-sm" onclick="encaminharCapital('${escapeHtml(b.id)}')" ${currentProfile === 'inventario' || currentProfile === 'sme' ? 'disabled' : ''}>Encaminhar</button>
                                                     ` : (b.status === 'Encaminhada' && currentProfile === 'inventario') ? `
-                                                        <button class="btn btn-primary btn-sm" onclick="inventariarBem('${b.id}')">Inventariar</button>
+                                                        <button class="btn btn-primary btn-sm" onclick="inventariarBem('${escapeHtml(b.id)}')">Inventariar</button>
                                                     ` : `<span style="font-size:0.75rem; color:var(--text-muted)">${b.status === 'Encaminhada' ? 'Encaminhado' : 'Inventariado'}</span>`}
                                                 </td>
                                             </tr>
@@ -7373,9 +8450,9 @@ function renderProntuario(escolaId) {
                                     ` : logs.filter(l => l.detalhes.includes(esc.denominação) || l.detalhes.includes(esc.id)).map(l => `
                                         <tr>
                                             <td>${new Date(l.dataHora).toLocaleString('pt-BR')}</td>
-                                            <td>${l.usuario} (${l.perfil})</td>
-                                            <td><strong>${l.acao}</strong></td>
-                                            <td>${l.detalhes}</td>
+                                            <td>${escapeHtml(l.usuario)} (${escapeHtml(l.perfil)})</td>
+                                            <td><strong>${escapeHtml(l.acao)}</strong></td>
+                                            <td>${escapeHtml(l.detalhes)}</td>
                                         </tr>
                                     `).join('')}
                                 </tbody>
@@ -7480,13 +8557,13 @@ function renderProntuarioVerificacoes(esc) {
                     const activePend = pendencias.find(p => p.escolaId === esc.id && p.competencia === c.key && p.item === fullItemName && p.status === 'Aberta');
                     let pendStatusHTML = '';
                     if (activePend) {
-                        pendStatusHTML = `<button class="btn btn-danger btn-sm" onclick="abrirModalResolverPendencia('${activePend.id}')" style="font-size:0.7rem; padding:2px 6px;">Resolver Pendência</button>`;
+                        pendStatusHTML = `<button class="btn btn-danger btn-sm" onclick="abrirModalResolverPendencia('${escapeHtml(activePend.id)}')" style="font-size:0.7rem; padding:2px 6px;">Resolver Pendência</button>`;
                     } else if (analiseValue === 'Incorreto') {
                         const resolvedPend = pendencias.find(p => p.escolaId === esc.id && p.competencia === c.key && p.item === fullItemName && p.status === 'Resolvida');
                         if (resolvedPend) {
-                            pendStatusHTML = `<span class="badge badge-success" style="font-size:0.7rem;" title="Justificativa: ${resolvedPend.observacao}">Resolvida</span>`;
+                            pendStatusHTML = `<span class="badge badge-success" style="font-size:0.7rem;" title="Justificativa: ${escapeHtml(resolvedPend.observacao)}">Resolvida</span>`;
                         } else {
-                            pendStatusHTML = `<button class="btn btn-secondary btn-sm" onclick="openNovaPendenciaModalWithDefaults('${esc.id}', '${c.key}', '${fullItemName}')" style="font-size:0.7rem; padding:2px 6px;">Abrir Pendência</button>`;
+                            pendStatusHTML = `<button class="btn btn-secondary btn-sm" onclick="openNovaPendenciaModalWithDefaults('${escapeHtml(esc.id)}', '${escapeHtml(c.key)}', '${escapeHtml(fullItemName)}')" style="font-size:0.7rem; padding:2px 6px;">Abrir Pendência</button>`;
                         }
                     }
 
@@ -7497,16 +8574,16 @@ function renderProntuarioVerificacoes(esc) {
                         
                         const notesBadges = notes.map(n => `
                             <span class="badge badge-info" style="display: inline-flex; align-items: center; margin-right: 4px; margin-bottom: 4px; padding: 4px 8px; font-size: 0.7rem; font-weight: 500;">
-                                NF: ${n.numero} (R$ ${n.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})})
+                                NF: ${escapeHtml(n.numero)} (R$ ${n.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})})
                                 ${currentProfile !== 'inventario' && currentProfile !== 'sme' ? `
-                                    <span style="margin-left: 6px; cursor: pointer; font-weight: bold; color: var(--warning); font-size: 0.85rem;" onclick="abrirEditarNota('${n.id}', '${esc.id}')" title="Editar Nota">✎</span>
-                                    <span style="margin-left: 6px; cursor: pointer; font-weight: bold; color: var(--danger); font-size: 0.85rem;" onclick="removerNotaRegistrada('${n.id}', '${esc.id}')" title="Excluir Nota">×</span>
+                                    <span style="margin-left: 6px; cursor: pointer; font-weight: bold; color: var(--warning); font-size: 0.85rem;" onclick="abrirEditarNota('${escapeHtml(n.id)}', '${escapeHtml(esc.id)}')" title="Editar Nota">✎</span>
+                                    <span style="margin-left: 6px; cursor: pointer; font-weight: bold; color: var(--danger); font-size: 0.85rem;" onclick="removerNotaRegistrada('${escapeHtml(n.id)}', '${escapeHtml(esc.id)}')" title="Excluir Nota">×</span>
                                 ` : ''}
                             </span>
                         `).join('');
                         
                         const addBtn = (currentProfile !== 'inventario' && currentProfile !== 'sme' && bonifValue !== 'Não se aplica' && (analiseValue === 'Correto' || analiseValue === 'Correto (Atrasado)')) ? `
-                            <button class="btn btn-secondary btn-sm" style="font-size:0.65rem; padding: 2px 6px; display: inline-flex; align-items: center; margin-bottom: 4px;" onclick="openModalDadosNota('${esc.id}', '${compProgKey}')">
+                            <button class="btn btn-secondary btn-sm" style="font-size:0.65rem; padding: 2px 6px; display: inline-flex; align-items: center; margin-bottom: 4px;" onclick="openModalDadosNota('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">>
                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:2px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                                 Adicionar Nota
                             </button>
@@ -7529,12 +8606,12 @@ function renderProntuarioVerificacoes(esc) {
                                 <div style="margin-top: 6px; display: flex; flex-direction: column; gap: 6px;">
                                     <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px;">
                                         <span class="badge badge-warning" style="font-size: 0.7rem; font-weight: 500; padding: 4px 8px;">
-                                            Ref. Serviço NF: ${serviceNotes.map(n => n.numero).join(', ')}
+                                            Ref. Serviço NF: ${escapeHtml(serviceNotes.map(n => n.numero).join(', '))}
                                         </span>
                                     </div>
                                     <div style="display: flex; align-items: center; gap: 8px;">
                                         <label style="font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; cursor: pointer; margin-top: 2px;">
-                                            <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleConsEnviada('${esc.id}', '${compProgKey}', this.checked)" ${isBonifLocked ? 'disabled' : ''}>
+                                            <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleConsEnviada('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', this.checked)" ${isBonifLocked ? 'disabled' : ''}>
                                             <span>Consultoria realmente enviada para Assessoria</span>
                                         </label>
                                     </div>
@@ -7552,38 +8629,38 @@ function renderProntuarioVerificacoes(esc) {
                     rowsHTML += `
                         <tr>
                             ${idx === 0 ? `<td rowspan="${docItems.length}" style="vertical-align:top; border-right: 1px solid var(--border-color); width:180px;">
-                                <strong>${c.label}</strong><br>
-                                <span style="font-size:0.75rem; color:var(--primary); font-weight:600;">${progName}</span>
+                                <strong>${escapeHtml(c.label)}</strong><br>
+                                <span style="font-size:0.75rem; color:var(--primary); font-weight:600;">${escapeHtml(progName)}</span>
                                 <div style="margin-top:16px;">
                                     ${bonifConsolidadoText}
                                     ${currentProfile !== 'inventario' && currentProfile !== 'sme' ? (
                                         v.resultadoBonif ? `
                                             <button class="btn btn-secondary btn-sm" style="width:100%; justify-content:center; font-size:0.75rem;" disabled>Consolidada</button>
                                         ` : `
-                                            <button class="btn btn-secondary btn-sm" style="width:100%; justify-content:center; font-size:0.75rem;" onclick="calcularEFecharBonificacao('${esc.id}', '${compProgKey}')">Consolidar</button>
+                                            <button class="btn btn-secondary btn-sm" style="width:100%; justify-content:center; font-size:0.75rem;" onclick="calcularEFecharBonificacao('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">Consolidar</button>
                                         `
                                     ) : ''}
                                 </div>
                             </td>` : ''}
-                            <td><span style="font-size:0.85rem; font-weight:500;">${doc.name}</span>${extraContentHTML}</td>
+                            <td><span style="font-size:0.85rem; font-weight:500;">${escapeHtml(doc.name)}</span>${extraContentHTML}</td>
                             <td>
                                 <div class="btn-group-toggle">
                                     <button class="btn-toggle ${bonifValue === 'Sim' ? 'active-sim' : ''}" 
-                                            onclick="toggleBonif('${esc.id}', '${compProgKey}', '${doc.key}', 'Sim')" 
+                                            onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', 'Sim')" 
                                             ${isBonifLocked ? 'disabled' : ''}>Sim</button>
                                     <button class="btn-toggle ${bonifValue === 'Não' ? 'active-nao' : ''}" 
-                                            onclick="toggleBonif('${esc.id}', '${compProgKey}', '${doc.key}', 'Não')" 
+                                            onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', 'Não')" 
                                             ${isBonifLocked ? 'disabled' : ''}>Não</button>
                                     ${doc.allowNaoAplica ? `
                                         <button class="btn-toggle ${bonifValue === 'Não se aplica' ? 'active-naoseaplica' : ''}" 
-                                                onclick="toggleBonif('${esc.id}', '${compProgKey}', '${doc.key}', 'Não se aplica')" 
+                                                onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', 'Não se aplica')" 
                                                 ${isBonifLocked ? 'disabled' : ''}>N/A</button>
                                     ` : ''}
                                 </div>
                             </td>
                             <td>
                                 <select class="select-analise select-analise-comp analise-${analiseValue.toLowerCase().replace(/\s+/g, '-').replace(/[()]/g, '')}" 
-                                        onchange="changeAnaliseTecnica('${esc.id}', '${compProgKey}', '${doc.key}', this.value)"
+                                        onchange="changeAnaliseTecnica('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', this.value)"
                                         ${isAnaliseLocked ? 'disabled' : ''}>
                                     <option value="Não analisado" ${analiseValue === 'Não analisado' ? 'selected' : ''}>Não analisado</option>
                                     <option value="Correto" ${analiseValue === 'Correto' ? 'selected' : ''}>Correto</option>
@@ -7634,6 +8711,7 @@ function toggleBonif(escolaId, compKey, docKey, value) {
                 }
                 if (supabaseClient) supabaseClient.from('notas_registradas').delete().eq('id', nota.id).then();
             });
+            rebuildOperationalIndexes();
             notasRegistradas = notasRegistradas.filter(n => !(n.escolaId === escolaId && n.compKey === compKey));
 
             v.bonificacao['encampInventario'] = 'Não se aplica';
@@ -7835,6 +8913,7 @@ function salvarDadosNota(e) {
                     status: (numero && hasProcesso) ? 'Encaminhada' : 'Não encaminhada'
                 };
                 bens.push(newBem);
+                rebuildOperationalIndexes();
                 nota.bemId = newBem.id;
 
                 if (!hasProcesso) {
@@ -7845,6 +8924,7 @@ function salvarDadosNota(e) {
             // Se mudou de permanente para outra coisa, remove do inventário
             if (oldBemId) {
                 bens = bens.filter(b => b.id !== oldBemId);
+                rebuildOperationalIndexes();
                 if (supabaseClient) supabaseClient.from('bens').delete().eq('id', oldBemId).then();
                 nota.bemId = null;
             }
@@ -7894,6 +8974,7 @@ function salvarDadosNota(e) {
                 status: (numero && hasProcesso) ? 'Encaminhada' : 'Não encaminhada'
             };
             bens.push(newBem);
+            rebuildOperationalIndexes();
             bemId = newBem.id;
             
             // Logar a ação
@@ -7998,6 +9079,7 @@ function removerNotaRegistrada(notaId, escolaId) {
         // Se a nota tiver bemId associado, remove do inventário (bens)
         if (nota.bemId) {
             bens = bens.filter(b => b.id !== nota.bemId);
+            rebuildOperationalIndexes();
             if (supabaseClient) supabaseClient.from('bens').delete().eq('id', nota.bemId).then();
         }
         
@@ -8146,7 +9228,7 @@ function openContatoModal(escolaId) {
     pSelect.innerHTML = `<option value="">Nenhuma pendência específica</option>`;
     pendencias.filter(p => p.escolaId == escolaId && p.status === 'Aberta').forEach(p => {
         const pData = getFormattedPendencyData(p);
-        pSelect.innerHTML += `<option value="${p.id}">${pData.competencia} - ${pData.item} (${p.motivo})</option>`;
+        pSelect.innerHTML += `<option value="${escapeHtml(p.id)}">${escapeHtml(pData.competencia)} - ${escapeHtml(pData.item)} (${escapeHtml(p.motivo)})</option>`;
     });
 
     openModal('modal-contato');
@@ -8244,6 +9326,7 @@ function saveNovaPendencia(e) {
     };
 
     pendencias.push(newPend);
+    rebuildOperationalIndexes();
     
     const esc = escolas.find(x => x.id === escolaId);
     registerLog('Pendência Criada', `Abertura manual de pendência de ${item} para ${esc ? esc.denominação : ''} (${comp}) - Responsável: ${resp}.`);
@@ -8264,30 +9347,43 @@ function saveNovaPendencia(e) {
 function openEscolaEditModal(escolaId) {
     const selectCtrl = document.getElementById('edit-controlador');
     selectCtrl.innerHTML = controladores.map(c => `
-        <option value="${c.id}">${c.name}</option>
+        <option value="${escapeHtml(c.id)}">${escapeHtml(c.name)}</option>
     `).join('');
 
     const chkContainer = document.getElementById('edit-programas-checkboxes');
     chkContainer.innerHTML = programas.map(p => `
         <label style="display:flex; align-items:center; gap:6px; font-size:0.8rem;">
-            <input type="checkbox" name="edit-programs" value="${p.id}" ${p.id === 'BASIC' ? 'checked disabled' : ''}>
-            ${p.name}
+            <input type="checkbox" name="edit-programs" value="${escapeHtml(p.id)}" ${p.id === 'BASIC' ? 'checked disabled' : ''}>
+            ${escapeHtml(p.name)}
         </label>
     `).join('');
 
     if (escolaId) {
+
         const esc = escolas.find(e => e.id === escolaId);
+
         document.getElementById('edit-escola-id').value = esc.id;
+
         document.getElementById('edit-sici').value = esc.sici || '';
+
         document.getElementById('edit-email').value = esc.email || '';
+
         document.getElementById('edit-diretor').value = esc.diretor;
+
         document.getElementById('edit-telefone-diretor').value = esc.telefoneDiretor || '';
+
         document.getElementById('edit-diretor-adjunto').value = esc.diretorAdjunto || '';
+
         document.getElementById('edit-telefone-adjunto').value = esc.telefoneDiretorAdjunto || '';
+
         document.getElementById('edit-telefone').value = esc.telefone;
+
         document.getElementById('edit-celular-institucional').value = esc.telefoneCelularInstitucional || '';
+
         document.getElementById('edit-controlador').value = esc.controladorId;
+
         document.getElementById('edit-processo').value = esc.processoInventario;
+
         
         // Marcar checkboxes dos programas
         document.querySelectorAll('input[name="edit-programs"]').forEach(chk => {
@@ -8307,16 +9403,27 @@ function openEscolaEditModal(escolaId) {
 function saveEscolaEdit(e) {
     e.preventDefault();
     const id = document.getElementById('edit-escola-id').value;
+
     const sici = document.getElementById('edit-sici').value.trim();
+
     const email = document.getElementById('edit-email').value.trim();
+
     const diretor = document.getElementById('edit-diretor').value.trim();
+
     const telefoneDiretor = document.getElementById('edit-telefone-diretor').value.trim();
+
     const diretorAdjunto = document.getElementById('edit-diretor-adjunto').value.trim();
+
     const telefoneDiretorAdjunto = document.getElementById('edit-telefone-adjunto').value.trim();
+
     const tel = document.getElementById('edit-telefone').value.trim();
+
     const celularInstitucional = document.getElementById('edit-celular-institucional').value.trim();
+
     const ctrlId = document.getElementById('edit-controlador').value;
+
     const processo = document.getElementById('edit-processo').value.trim();
+
     
     // Obter programas selecionados
     const progIds = ['BASIC'];
@@ -8328,17 +9435,29 @@ function saveEscolaEdit(e) {
         // Atualizar
         const esc = escolas.find(item => item.id === id);
         if (esc) {
+
             const oldCtrl = esc.controladorId;
+
             esc.sici = sici;
+
             esc.email = email;
+
             esc.diretor = diretor;
+
             esc.telefoneDiretor = telefoneDiretor;
+
             esc.diretorAdjunto = diretorAdjunto;
+
             esc.telefoneDiretorAdjunto = telefoneDiretorAdjunto;
+
             esc.telefone = tel;
+
             esc.telefoneCelularInstitucional = celularInstitucional;
+
             esc.controladorId = ctrlId;
+
             esc.processoInventario = processo;
+
             esc.programasIds = progIds;
             
             let logDetails = `Dados da escola ${esc.denominação} atualizados.`;
@@ -8354,16 +9473,27 @@ function saveEscolaEdit(e) {
             denominação: 'Nova Unidade Escolar ' + Math.floor(Math.random() * 100),
             designação: '01.09.' + Math.floor(100 + Math.random() * 900),
             cre: '4ª CRE',
+
             ra: 'Geral',
+
             sici: sici,
+
             email: email,
+
             diretor: diretor,
+
             telefoneDiretor: telefoneDiretor,
+
             diretorAdjunto: diretorAdjunto,
+
             telefoneDiretorAdjunto: telefoneDiretorAdjunto,
+
             telefone: tel,
+
             telefoneCelularInstitucional: celularInstitucional,
+
             controladorId: ctrlId,
+
             processoInventario: processo,
             programasIds: progIds,
             competenciaInicial: '2026-05'
@@ -8409,6 +9539,7 @@ function openNovoCapitalModal(escolaId) {
     };
 
     bens.push(newBem);
+    rebuildOperationalIndexes();
     const escObj = escolas.find(x => x.id === escolaId);
     registerLog('Bem Cadastrado', `Gasto de capital de R$ ${val} registrado para ${escObj ? escObj.denominação : ''}: ${dec}.`);
     
@@ -8443,10 +9574,10 @@ function openCobrancaModal(escolaId) {
         const pData = getFormattedPendencyData(p);
         return `
             <label style="display:flex; align-items:flex-start; gap:8px; margin-bottom:8px; font-size:0.8rem; cursor:pointer;">
-                <input type="checkbox" class="chk-cobranca-item" value="${p.id}" checked onchange="buildCobrancaPreview('${escolaId}')">
+                <input type="checkbox" class="chk-cobranca-item" value="${escapeHtml(p.id)}" checked onchange="buildCobrancaPreview('${escapeHtml(escolaId)}')">
                 <div>
-                    <strong>[Comp. ${pData.competencia}] ${pData.item}</strong><br>
-                    Motivo: ${p.motivo} - ${p.observacao}
+                    <strong>[Comp. ${escapeHtml(pData.competencia)}] ${escapeHtml(pData.item)}</strong><br>
+                    Motivo: ${escapeHtml(p.motivo)} - ${escapeHtml(p.observacao)}
                 </div>
             </label>
         `;
@@ -8586,8 +9717,8 @@ function renderEquipe() {
                                 ${c.name ? c.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : '??'}
                             </div>
                             <div style="flex: 1; min-width: 0;">
-                                <h3 style="margin: 0; font-size: 1.1rem; font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.name}</h3>
-                                <p style="margin: 2px 0 0 0; font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.email}</p>
+                                <h3 style="margin: 0; font-size: 1.1rem; font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(c.name)}</h3>
+                                <p style="margin: 2px 0 0 0; font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(c.email)}</p>
                             </div>
                         </div>
                         
@@ -8597,10 +9728,10 @@ function renderEquipe() {
                                 <span style="font-size: 1.1rem; font-weight: 700; color: var(--primary);">${c.totalEscolas} ${c.totalEscolas === 1 ? 'escola' : 'escolas'}</span>
                             </div>
                             <div style="display: flex; gap: 8px;">
-                                <button class="btn btn-secondary btn-sm" onclick="abrirEditarControlador('${c.id}')" title="Editar dados">
+                                <button class="btn btn-secondary btn-sm" onclick="abrirEditarControlador('${escapeHtml(c.id)}')" title="Editar dados">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                 </button>
-                                <button class="btn btn-danger btn-sm" onclick="removerControlador('${c.id}')" title="Remover controlador" ${controladores.length <= 1 ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
+                                <button class="btn btn-danger btn-sm" onclick="removerControlador('${escapeHtml(c.id)}')" title="Remover controlador" ${controladores.length <= 1 ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                                 </button>
                             </div>
@@ -8623,7 +9754,7 @@ function renderEquipe() {
                         </span>
                         <select id="bulk-controlador-select" class="form-control" style="width: 200px; font-size: 0.85rem; padding: 4px 8px; height: auto; border-color: var(--border-color);">
                             <option value="" disabled selected>Atribuir ao Controlador...</option>
-                            ${controladores.map(ctrl => `<option value="${ctrl.id}">${ctrl.name}</option>`).join('')}
+                            ${controladores.map(ctrl => `<option value="${escapeHtml(ctrl.id)}">${escapeHtml(ctrl.name)}</option>`).join('')}
                         </select>
                         <button class="btn btn-primary btn-sm" onclick="aplicarAtribuicaoEmLote()" style="padding: 5px 12px; font-size: 0.8rem;">Aplicar em Lote</button>
                     </div>
@@ -8646,18 +9777,18 @@ function renderEquipe() {
                                 const currentCtrlId = e.controladorId;
                                 return `
                                     <tr>
-                                        <td style="text-align: center;"><input type="checkbox" class="escola-bulk-checkbox" data-id="${e.id}" onchange="updateBulkBar()" style="cursor:pointer;"></td>
+                                        <td style="text-align: center;"><input type="checkbox" class="escola-bulk-checkbox" data-id="${escapeHtml(e.id)}" onchange="updateBulkBar()" style="cursor:pointer;"></td>
                                         <td>
-                                            <div style="font-weight: 600; color: var(--text-main);">${e.denominação || e.denominaçao}</div>
-                                            <div style="font-size: 0.75rem; color: var(--text-muted);">${e.designação || e.designaçao} | ${e.email}</div>
+                                            <div style="font-weight: 600; color: var(--text-main);">${escapeHtml(e.denominação || e.denominaçao)}</div>
+                                            <div style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(e.designação || e.designaçao)} | ${escapeHtml(e.email)}</div>
                                         </td>
-                                        <td><code>${e.inep}</code></td>
-                                        <td>${e.cnpj}</td>
-                                        <td><span class="badge badge-gray">${getRAFromDesignacao(e.designação || e.designaçao)}</span></td>
+                                        <td><code>${escapeHtml(e.inep)}</code></td>
+                                        <td>${escapeHtml(e.cnpj)}</td>
+                                        <td><span class="badge badge-gray">${escapeHtml(getRAFromDesignacao(e.designação || e.designaçao))}</span></td>
                                         <td>
-                                            <select class="form-control select-alocacao" style="max-width: 220px; font-weight: 500; border-color: var(--border-color);" onchange="reatribuirEscolaDirect('${e.id}', this.value)">
+                                            <select class="form-control select-alocacao" style="max-width: 220px; font-weight: 500; border-color: var(--border-color);" onchange="reatribuirEscolaDirect('${escapeHtml(e.id)}', this.value)">
                                                 ${controladores.map(ctrl => `
-                                                    <option value="${ctrl.id}" ${ctrl.id === currentCtrlId ? 'selected' : ''}>${ctrl.name}</option>
+                                                    <option value="${escapeHtml(ctrl.id)}" ${ctrl.id === currentCtrlId ? 'selected' : ''}>${escapeHtml(ctrl.name)}</option>
                                                 `).join('')}
                                             </select>
                                         </td>
@@ -8678,17 +9809,17 @@ function renderEquipe() {
                                 ${inv.name ? inv.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : '??'}
                             </div>
                             <div style="flex: 1; min-width: 0;">
-                                <h3 style="margin: 0; font-size: 1.1rem; font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${inv.name}</h3>
-                                <p style="margin: 2px 0 0 0; font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${inv.email}</p>
+                                <h3 style="margin: 0; font-size: 1.1rem; font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(inv.name)}</h3>
+                                <p style="margin: 2px 0 0 0; font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(inv.email)}</p>
                             </div>
                         </div>
                         
                         <div style="border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 12px; display: flex; justify-content: flex-end; align-items: center;">
                             <div style="display: flex; gap: 8px;">
-                                <button class="btn btn-secondary btn-sm" onclick="abrirEditarInventariador('${inv.id}')" title="Editar dados">
+                                <button class="btn btn-secondary btn-sm" onclick="abrirEditarInventariador('${escapeHtml(inv.id)}')" title="Editar dados">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                 </button>
-                                <button class="btn btn-danger btn-sm" onclick="removerInventariador('${inv.id}')" title="Remover integrante" ${equipeInventario.length <= 1 ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
+                                <button class="btn btn-danger btn-sm" onclick="removerInventariador('${escapeHtml(inv.id)}')" title="Remover integrante" ${equipeInventario.length <= 1 ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                                 </button>
                             </div>
