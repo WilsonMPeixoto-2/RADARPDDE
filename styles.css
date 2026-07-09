@@ -1661,7 +1661,7 @@ header.top-header {
 }
 
 .alert-empty,
-table.data-table td[colspan] {
+table.data-table tr:not(.controller-detail-row) > td[colspan] {
     text-align: center;
     color: var(--text-main);
     padding: 34px 18px;
