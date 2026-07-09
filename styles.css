@@ -2281,18 +2281,6 @@ textarea.form-control {
     line-height: 1.2;
 }
 
-.school-operation-stack {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-}
-
-.school-operation-stack small {
-    color: var(--text-muted);
-    line-height: 1.35;
-}
-
 .school-actions-stack {
     display: flex;
     flex-direction: column;
@@ -2303,6 +2291,28 @@ textarea.form-control {
 .school-actions-stack .btn {
     justify-content: center;
     width: 100%;
+}
+
+.school-actions-stack .school-action-view {
+    background: var(--info-bg);
+    border-color: rgba(37, 99, 235, 0.18);
+    color: var(--info);
+}
+
+.school-actions-stack .school-action-view:hover {
+    background: rgba(37, 99, 235, 0.14);
+    border-color: rgba(37, 99, 235, 0.28);
+}
+
+.school-actions-stack .school-action-edit {
+    background: var(--primary-glow);
+    border-color: rgba(124, 58, 237, 0.2);
+    color: var(--primary);
+}
+
+.school-actions-stack .school-action-edit:hover {
+    background: rgba(124, 58, 237, 0.16);
+    border-color: rgba(124, 58, 237, 0.3);
 }
 
 .empty-state.compact {

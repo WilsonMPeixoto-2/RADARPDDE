@@ -7267,8 +7267,6 @@ function renderEscolas() {
 
                             <th>Situação</th>
 
-                            <th>Operação</th>
-
                             <th>Ações</th>
 
                         </tr>
@@ -7281,7 +7279,7 @@ function renderEscolas() {
 
                             <tr>
 
-                                <td colspan="7">
+                                <td colspan="6">
 
                                     <div class="empty-state compact">
 
@@ -7334,26 +7332,12 @@ function renderEscolas() {
 
                                     <td>
 
-                                        <div class="school-operation-stack">
-
-                                            <span class="badge ${op.hasPendencias ? 'badge-danger' : 'badge-success'}">${op.pendenciasAbertas.length} pendência${op.pendenciasAbertas.length === 1 ? '' : 's'}</span>
-
-                                            <span class="badge ${op.hasInventarioProcess ? 'badge-info' : 'badge-warning'}">${op.hasInventarioProcess ? 'Com processo' : 'Sem processo'}</span>
-
-                                            ${op.bensTotal > 0 ? `<small>${op.bensTotal} bem(ns): ${op.bensNaoEncaminhados} sem enc., ${op.bensEncaminhados} enc., ${op.bensInventariados} inv.</small>` : `<small>Sem bens vinculados</small>`}
-
-                                        </div>
-
-                                    </td>
-
-                                    <td>
-
                                         <div class="school-actions-stack">
 
-                                            <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${escapeHtml(e.id)}')">Ver Unidade</button>
+                                            <button class="btn btn-secondary btn-sm school-action-view" onclick="switchView('prontuario', '${escapeHtml(e.id)}')">Ver Unidade</button>
                                             ${currentProfile === 'assistente' || currentProfile === 'controlador' ? `
 
-                                                <button class="btn btn-secondary btn-sm" onclick="openEscolaEditModal('${escapeHtml(e.id)}')">Editar</button>
+                                                <button class="btn btn-secondary btn-sm school-action-edit" onclick="openEscolaEditModal('${escapeHtml(e.id)}')">Editar</button>
                                             ` : ''}
 
                                         </div>
