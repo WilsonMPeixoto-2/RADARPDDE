@@ -4159,6 +4159,23 @@ let pendencias = [];
 let contatos = [];
 let logs = [];
 let bens = [];
+
+// Pre-indexed lookups — rebuilt whenever pendencias or bens change
+let _pendenciasByEscolaId = new Map();
+let _bensByEscolaId = new Map();
+
+function rebuildOperationalIndexes() {
+    _pendenciasByEscolaId = new Map();
+    pendencias.forEach(p => {
+        if (!_pendenciasByEscolaId.has(p.escolaId)) _pendenciasByEscolaId.set(p.escolaId, []);
+        _pendenciasByEscolaId.get(p.escolaId).push(p);
+    });
+    _bensByEscolaId = new Map();
+    bens.forEach(b => {
+        if (!_bensByEscolaId.has(b.escolaId)) _bensByEscolaId.set(b.escolaId, []);
+        _bensByEscolaId.get(b.escolaId).push(b);
+    });
+}
 let verificacoes = {};
 let config = {};
 let programas = [];
@@ -4357,6 +4374,7 @@ async function initData() {
         contatos = resContatos.data || [];
         logs = (resLogs.data || []).sort((a, b) => (b.dataHora || '').localeCompare(a.dataHora || ''));
         bens = resBens.data || [];
+        rebuildOperationalIndexes();
         programas = resProgramas.data || [];
         controladores = resControladores.data || [];
         equipeInventario = resEquipe.data || [];
@@ -4461,6 +4479,7 @@ function loadLocalFallback() {
     controladores = JSON.parse(localStorage.getItem('radar_pdde_controladores') || '[]');
     equipeInventario = JSON.parse(localStorage.getItem('radar_pdde_equipe_inventario') || '[]');
     notasRegistradas = JSON.parse(localStorage.getItem('radar_pdde_notas_registradas') || '[]');
+    rebuildOperationalIndexes();
     
     activeCompetenciaKey = config.competenciaFechamento;
 }
@@ -5006,12 +5025,13 @@ function getEscolaProgramNames(esc) {
 }
 
 function getEscolaOperationalData(esc) {
-    const pendenciasAbertas = pendencias.filter(p => p.escolaId === esc.id && p.status === 'Aberta');
-    const escolaBens = bens.filter(b => b.escolaId === esc.id);
-    const bensNaoEncaminhados = escolaBens.filter(b => b.status === 'Não encaminhada').length;
-    const bensEncaminhados = escolaBens.filter(b => b.status === 'Encaminhada').length;
-    const bensInventariados = escolaBens.filter(b => b.status === 'Inventariada').length;
-    const processoInventario = (esc.processoInventario || '').trim();
+    const escolaPendencias = _pendenciasByEscolaId.get(esc.id) || [];
+    const pendenciasAbertas = escolaPendencias.filter(p => p.status === 'Aberta');
+    const escolaBens = _bensByEscolaId.get(esc.id) || [];
+    const bensNaoEncaminhados = escolaBens.filter(b => b.status === 'Não encaminhada').length;
+    const bensEncaminhados = escolaBens.filter(b => b.status === 'Encaminhada').length;
+    const bensInventariados = escolaBens.filter(b => b.status === 'Inventariada').length;
+    const processoInventario = (esc.processoInventario || '').trim();
 
     return {
         controladorName: getControladorName(esc.controladorId),
@@ -7923,6 +7943,7 @@ function toggleBonif(escolaId, compKey, docKey, value) {
                 }
                 if (supabaseClient) supabaseClient.from('notas_registradas').delete().eq('id', nota.id).then();
             });
+            rebuildOperationalIndexes();
             notasRegistradas = notasRegistradas.filter(n => !(n.escolaId === escolaId && n.compKey === compKey));
 
             v.bonificacao['encampInventario'] = 'Não se aplica';
@@ -8124,6 +8145,7 @@ function salvarDadosNota(e) {
                     status: (numero && hasProcesso) ? 'Encaminhada' : 'Não encaminhada'
                 };
                 bens.push(newBem);
+                rebuildOperationalIndexes();
                 nota.bemId = newBem.id;
 
                 if (!hasProcesso) {
@@ -8134,6 +8156,7 @@ function salvarDadosNota(e) {
             // Se mudou de permanente para outra coisa, remove do inventário
             if (oldBemId) {
                 bens = bens.filter(b => b.id !== oldBemId);
+                rebuildOperationalIndexes();
                 if (supabaseClient) supabaseClient.from('bens').delete().eq('id', oldBemId).then();
                 nota.bemId = null;
             }
@@ -8183,6 +8206,7 @@ function salvarDadosNota(e) {
                 status: (numero && hasProcesso) ? 'Encaminhada' : 'Não encaminhada'
             };
             bens.push(newBem);
+            rebuildOperationalIndexes();
             bemId = newBem.id;
             
             // Logar a ação
@@ -8287,6 +8311,7 @@ function removerNotaRegistrada(notaId, escolaId) {
         // Se a nota tiver bemId associado, remove do inventário (bens)
         if (nota.bemId) {
             bens = bens.filter(b => b.id !== nota.bemId);
+            rebuildOperationalIndexes();
             if (supabaseClient) supabaseClient.from('bens').delete().eq('id', nota.bemId).then();
         }
         
@@ -8533,6 +8558,7 @@ function saveNovaPendencia(e) {
     };
 
     pendencias.push(newPend);
+    rebuildOperationalIndexes();
     
     const esc = escolas.find(x => x.id === escolaId);
     registerLog('Pendência Criada', `Abertura manual de pendência de ${item} para ${esc ? esc.denominação : ''} (${comp}) - Responsável: ${resp}.`);
@@ -8698,6 +8724,7 @@ function openNovoCapitalModal(escolaId) {
     };
 
     bens.push(newBem);
+    rebuildOperationalIndexes();
     const escObj = escolas.find(x => x.id === escolaId);
     registerLog('Bem Cadastrado', `Gasto de capital de R$ ${val} registrado para ${escObj ? escObj.denominação : ''}: ${dec}.`);
     
