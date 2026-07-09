@@ -5318,20 +5318,20 @@ function renderDashboardControlador(container) {
                                     
                                     const ctrlLabel = e.controladorId === activeControladorId
                                         ? `<span class="badge badge-info" style="font-size:0.65rem; padding: 2px 4px; font-weight:500;">Sua Carteira</span>`
-                                        : `<span style="font-size:0.75rem; color:var(--text-muted);">Controlador: ${ctrl ? ctrl.name : 'Sem designação'}</span>`;
+                                        : `<span style="font-size:0.75rem; color:var(--text-muted);">Controlador: ${escapeHtml(ctrl ? ctrl.name : 'Sem designação')}</span>`;
 
                                     return `
                                         <tr>
                                             <td>
-                                                <strong>${e.denominação}</strong><br>
-                                                <small style="color:var(--text-muted)">${e.designação} • ${getRAFromDesignacao(e.designação)}</small><br>
+                                                <strong>${escapeHtml(e.denominação)}</strong><br>
+                                                <small style="color:var(--text-muted)">${escapeHtml(e.designação)} • ${escapeHtml(getRAFromDesignacao(e.designação))}</small><br>
                                                 ${ctrlLabel}
                                             </td>
-                                            <td>${e.inep}</td>
+                                            <td>${escapeHtml(e.inep)}</td>
                                             <td><span class="badge badge-info">${cCount} Contatos</span></td>
                                             <td>${statusHTML}</td>
                                             <td>
-                                                <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${e.id}')">Ver Unidade</button>
+                                                <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${escapeHtml(e.id)}')">Ver Unidade</button>
                                             </td>
                                         </tr>
                                     `;
@@ -5517,13 +5517,13 @@ function renderDashboardAssistente(container) {
             }
 
             return `
-                <tr class="assistente-escola-row" data-escola="${e.denominação.toLowerCase()}">
-                    <td><strong>${e.denominação}</strong></td>
-                    <td>${e.designação} (${getRAFromDesignacao(e.designação)})</td>
-                    <td>${ctrl ? ctrl.name : 'Não designado'}</td>
+                <tr class="assistente-escola-row" data-escola="${escapeHtml(e.denominação.toLowerCase())}">
+                    <td><strong>${escapeHtml(e.denominação)}</strong></td>
+                    <td>${escapeHtml(e.designação)} (${escapeHtml(getRAFromDesignacao(e.designação))})</td>
+                    <td>${escapeHtml(ctrl ? ctrl.name : 'Não designado')}</td>
                     <td><span class="badge ${badgeCls}">${statusText}</span></td>
                     <td>
-                        <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${e.id}')">Ver Unidade</button>
+                        <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${escapeHtml(e.id)}')">Ver Unidade</button>
                     </td>
                 </tr>
             `;
@@ -5952,8 +5952,8 @@ function renderDashboardSME(container) {
                                     };
                                     
                                     return `
-                                        <tr class="sme-detail-row" data-escola="${e.denominação.toLowerCase()} ${e.designação.toLowerCase()}">
-                                            <td><strong>${e.denominação}</strong><br><small style="color:var(--text-muted)">${e.designação}</small></td>
+                                        <tr class="sme-detail-row" data-escola="${escapeHtml(e.denominação.toLowerCase())} ${escapeHtml(e.designação.toLowerCase())}">
+                                            <td><strong>${escapeHtml(e.denominação)}</strong><br><small style="color:var(--text-muted)">${escapeHtml(e.designação)}</small></td>
                                             <td><span class="badge badge-info">${progName}</span></td>
                                             <td>${formatVal(extCC)}</td>
                                             <td>${formatVal(extINV)}</td>
@@ -6749,17 +6749,17 @@ function renderCompetencias() {
                             return `
                                 <tr>
                                     <td>
-                                        <strong>${e.denominação}</strong>
-                                        <br><small style="color:var(--text-muted)">${e.designação}</small>
+                                        <strong>${escapeHtml(e.denominação)}</strong>
+                                        <br><small style="color:var(--text-muted)">${escapeHtml(e.designação)}</small>
                                     </td>
-                                    <td>${ctrl ? ctrl.name : 'N/A'}</td>
+                                    <td>${escapeHtml(ctrl ? ctrl.name : 'N/A')}</td>
                                     <td>${bonifStatusHTML}</td>
                                     <td>${analiseStatusHTML}</td>
                                     <td>
                                         ${pendentesCount > 0 ? `<span class="badge badge-danger">${pendentesCount} Abertas</span>` : `<span class="badge badge-gray">Nenhuma</span>`}
                                     </td>
                                     <td>
-                                        <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${e.id}')">Ver Unidade</button>
+                                        <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${escapeHtml(e.id)}')">Ver Unidade</button>
                                     </td>
                                 </tr>
                             `;
@@ -8939,7 +8939,7 @@ function renderEquipe() {
                         </span>
                         <select id="bulk-controlador-select" class="form-control" style="width: 200px; font-size: 0.85rem; padding: 4px 8px; height: auto; border-color: var(--border-color);">
                             <option value="" disabled selected>Atribuir ao Controlador...</option>
-                            ${controladores.map(ctrl => `<option value="${ctrl.id}">${ctrl.name}</option>`).join('')}
+                            ${controladores.map(ctrl => `<option value="${escapeHtml(ctrl.id)}">${escapeHtml(ctrl.name)}</option>`).join('')}
                         </select>
                         <button class="btn btn-primary btn-sm" onclick="aplicarAtribuicaoEmLote()" style="padding: 5px 12px; font-size: 0.8rem;">Aplicar em Lote</button>
                     </div>
@@ -8962,18 +8962,18 @@ function renderEquipe() {
                                 const currentCtrlId = e.controladorId;
                                 return `
                                     <tr>
-                                        <td style="text-align: center;"><input type="checkbox" class="escola-bulk-checkbox" data-id="${e.id}" onchange="updateBulkBar()" style="cursor:pointer;"></td>
+                                        <td style="text-align: center;"><input type="checkbox" class="escola-bulk-checkbox" data-id="${escapeHtml(e.id)}" onchange="updateBulkBar()" style="cursor:pointer;"></td>
                                         <td>
-                                            <div style="font-weight: 600; color: var(--text-main);">${e.denominação || e.denominaçao}</div>
-                                            <div style="font-size: 0.75rem; color: var(--text-muted);">${e.designação || e.designaçao} | ${e.email}</div>
+                                            <div style="font-weight: 600; color: var(--text-main);">${escapeHtml(e.denominação || e.denominaçao)}</div>
+                                            <div style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(e.designação || e.designaçao)} | ${escapeHtml(e.email)}</div>
                                         </td>
-                                        <td><code>${e.inep}</code></td>
-                                        <td>${e.cnpj}</td>
-                                        <td><span class="badge badge-gray">${getRAFromDesignacao(e.designação || e.designaçao)}</span></td>
+                                        <td><code>${escapeHtml(e.inep)}</code></td>
+                                        <td>${escapeHtml(e.cnpj)}</td>
+                                        <td><span class="badge badge-gray">${escapeHtml(getRAFromDesignacao(e.designação || e.designaçao))}</span></td>
                                         <td>
-                                            <select class="form-control select-alocacao" style="max-width: 220px; font-weight: 500; border-color: var(--border-color);" onchange="reatribuirEscolaDirect('${e.id}', this.value)">
+                                            <select class="form-control select-alocacao" style="max-width: 220px; font-weight: 500; border-color: var(--border-color);" onchange="reatribuirEscolaDirect('${escapeHtml(e.id)}', this.value)">
                                                 ${controladores.map(ctrl => `
-                                                    <option value="${ctrl.id}" ${ctrl.id === currentCtrlId ? 'selected' : ''}>${ctrl.name}</option>
+                                                    <option value="${escapeHtml(ctrl.id)}" ${ctrl.id === currentCtrlId ? 'selected' : ''}>${escapeHtml(ctrl.name)}</option>
                                                 `).join('')}
                                             </select>
                                         </td>
