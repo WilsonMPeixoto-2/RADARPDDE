@@ -6639,9 +6639,9 @@ function renderEscolas() {
                                     </td>
                                     <td>
                                         <div class="school-actions-stack">
-                                            <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${escapeHtml(e.id)}')">Ver Unidade</button>
+                                            <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${e.id}')">Ver Unidade</button>
                                             ${currentProfile === 'assistente' || currentProfile === 'controlador' ? `
-                                                <button class="btn btn-secondary btn-sm" onclick="openEscolaEditModal('${escapeHtml(e.id)}')">Editar</button>
+                                                <button class="btn btn-secondary btn-sm" onclick="openEscolaEditModal('${e.id}')">Editar</button>
                                             ` : ''}
                                         </div>
                                     </td>
