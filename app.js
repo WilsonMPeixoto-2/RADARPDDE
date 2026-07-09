@@ -5027,6 +5027,54 @@ function getRAFromDesignacao(designacao) {
     return `${parseInt(raNum)}ª R.A.`;
 }
 
+function isBonificacaoValueStarted(value) {
+    return value !== undefined && value !== null && value !== '' && value !== false;
+}
+
+function isAnaliseValueStarted(value) {
+    return Boolean(value && value !== 'Não analisado');
+}
+
+function getProgramVerificationStatus(escolaId, compKey, progId) {
+    const compProgKey = `${compKey}_${progId}`;
+    const v = verificacoes[escolaId]?.[compProgKey];
+
+    if (!v) return 'nao-lancado';
+
+    const analiseVals = Object.values(v.analise || {});
+    const bonifVals = Object.values(v.bonificacao || {});
+    const temIncorreto = analiseVals.includes('Incorreto');
+
+    if (v.resultadoBonif === 'inapta' || temIncorreto) {
+        return 'inapta';
+    }
+
+    const analisesConcluidas = analiseVals.length > 0
+        && analiseVals.every(x => x === 'Correto' || x === 'Correto (Atrasado)')
+        && !analiseVals.includes('Não analisado');
+
+    if (v.resultadoBonif === 'apta' || analisesConcluidas) {
+        return 'apta';
+    }
+
+    const hasStarted = analiseVals.some(isAnaliseValueStarted)
+        || bonifVals.some(isBonificacaoValueStarted)
+        || Boolean(v.resultadoBonif);
+
+    return hasStarted ? 'em-andamento' : 'nao-lancado';
+}
+
+function getProgramStatusMeta(status) {
+    const metas = {
+        apta: { label: 'Apta', badgeClass: 'badge-success' },
+        inapta: { label: 'Inapta', badgeClass: 'badge-danger' },
+        'em-andamento': { label: 'Em andamento', badgeClass: 'badge-warning' },
+        'nao-lancado': { label: 'Não analisada', badgeClass: 'badge-gray' }
+    };
+
+    return metas[status] || metas['nao-lancado'];
+}
+
 function getEscolasStats(escolasList, compKey) {
     let apto = 0;
     let inapto = 0;
@@ -5056,7 +5104,7 @@ function getEscolasStats(escolasList, compKey) {
         // Iterar sobre cada programa da escola
         e.programasIds.forEach(progId => {
             const compProgKey = `${compKey}_${progId}`;
-            const v = verificacoes[e.id]?.[compProgKey];
+            const progStatus = getProgramVerificationStatus(e.id, compKey, progId);
             
             // Referência dinâmica contendo dados da escola e o programa associado
             const schoolProgRef = {
@@ -5065,24 +5113,18 @@ function getEscolasStats(escolasList, compKey) {
                 compProgKey: compProgKey
             };
 
-            if (!v || !v.bonificacao || Object.keys(v.bonificacao).length === 0) {
-                naoAnalisado++;
-                naoAnalisadoList.push(schoolProgRef);
-                return;
-            }
-
-            const analiseVals = Object.values(v.analise);
-            const temIncorreto = analiseVals.includes('Incorreto');
-            
-            if (v.resultadoBonif === 'inapta' || temIncorreto) {
+            if (progStatus === 'inapta') {
                 inapto++;
                 inaptoList.push(schoolProgRef);
-            } else if (v.resultadoBonif === 'apta' || (analiseVals.every(x => x === 'Correto' || x === 'Correto (Atrasado)') && !analiseVals.includes('Não analisado'))) {
+            } else if (progStatus === 'apta') {
                 apto++;
                 aptoList.push(schoolProgRef);
-            } else {
+            } else if (progStatus === 'em-andamento') {
                 emAndamento++;
                 emAndamentoList.push(schoolProgRef);
+            } else {
+                naoAnalisado++;
+                naoAnalisadoList.push(schoolProgRef);
             }
         });
     });
@@ -5408,6 +5450,10 @@ function renderDashboardControlador(container) {
 
     const activeControladorName = activeControlador ? activeControlador.name : 'Controlador';
 
+    const activeCompetencia = COMPETENCIAS.find(c => c.key === activeCompetenciaKey);
+
+    const activeCompetenciaLabel = activeCompetencia ? activeCompetencia.label : activeCompetenciaKey;
+
     let targetEscolas = [];
 
     
@@ -5446,9 +5492,7 @@ function renderDashboardControlador(container) {
     const escolasNaoAnalisadas = targetEscolas.filter(e => {
         if (!isCompetenceInScope(e.competenciaInicial, activeCompetenciaKey)) return false;
         return e.programasIds.some(progId => {
-            const compProgKey = `${activeCompetenciaKey}_${progId}`;
-            const v = verificacoes[e.id]?.[compProgKey];
-            return !v || !v.bonificacao || Object.keys(v.bonificacao).length === 0;
+            return getProgramVerificationStatus(e.id, activeCompetenciaKey, progId) === 'nao-lancado';
         });
     });
 
@@ -5540,7 +5584,10 @@ function renderDashboardControlador(container) {
             <div>
                 <div class="panel-card">
                     <div class="panel-header">
-                        <h2>Lista de Escolas - Visualização: ${filterRa === 'carteira' ? 'Minha Carteira' : filterRa === 'todas' ? 'Todas da CRE' : `${filterRa}ª R.A.`}${subFilterLabel}</h2>
+                        <h2 class="dashboard-list-heading">
+                            <span>Lista de Escolas - Visualização: ${filterRa === 'carteira' ? 'Minha Carteira' : filterRa === 'todas' ? 'Todas da CRE' : `${filterRa}ª R.A.`}${subFilterLabel}</span>
+                            <span class="dashboard-competencia-pill">Competência vista: ${escapeHtml(activeCompetenciaLabel)} (${escapeHtml(activeCompetenciaKey)})</span>
+                        </h2>
                     </div>
                     <div class="table-responsive">
                         <table class="data-table">
@@ -5549,7 +5596,7 @@ function renderDashboardControlador(container) {
                                     <th>Unidade Escolar</th>
                                     <th>INEP</th>
                                     <th>Contatos</th>
-                                    <th>Bonificação (${activeCompetenciaKey})</th>
+                                    <th class="bonificacao-competencia-col">Bonificação <span>(${escapeHtml(activeCompetenciaKey)})</span></th>
                                     <th>Ações</th>
                                 </tr>
                             </thead>
@@ -5561,24 +5608,12 @@ function renderDashboardControlador(container) {
                                 ` : renderedEscolas.map(e => {
                                     let statusHTML = '';
                                     e.programasIds.forEach(progId => {
-                                        const compProgKey = `${activeCompetenciaKey}_${progId}`;
-                                        const v = verificacoes[e.id]?.[compProgKey];
                                         const prog = programas.find(p => p.id === progId);
                                         const progName = prog ? prog.name : progId;
-                                        
-                                        let progBadge = `<span class="badge badge-gray" style="font-size:0.65rem; padding: 2px 4px; font-weight:500;">Não Analisada</span>`;
-                                        if (v) {
-                                            const analiseVals = Object.values(v.analise);
-                                            const temIncorreto = analiseVals.includes('Incorreto');
-                                            
-                                            if (v.resultadoBonif === 'inapta' || temIncorreto) {
-                                                progBadge = `<span class="badge badge-danger" style="font-size:0.65rem; padding: 2px 4px; font-weight:500;">Inapta</span>`;
-                                            } else if (v.resultadoBonif === 'apta' || (analiseVals.every(x => x === 'Correto' || x === 'Correto (Atrasado)') && !analiseVals.includes('Não analisado'))) {
-                                                progBadge = `<span class="badge badge-success" style="font-size:0.65rem; padding: 2px 4px; font-weight:500;">Apta</span>`;
-                                            } else {
-                                                progBadge = `<span class="badge badge-warning" style="font-size:0.65rem; padding: 2px 4px; font-weight:500;">Em Andamento</span>`;
-                                            }
-                                        }
+                                        const progStatus = getProgramVerificationStatus(e.id, activeCompetenciaKey, progId);
+                                        const statusMeta = getProgramStatusMeta(progStatus);
+                                        const progBadge = `<span class="badge ${statusMeta.badgeClass} dashboard-status-badge">${statusMeta.label}</span>`;
+
                                         statusHTML += `<div style="margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
                                             <span style="font-size:0.75rem; font-weight:500; color:var(--text-muted);">${escapeHtml(progName)}:</span>
                                             ${progBadge}
@@ -5602,7 +5637,7 @@ function renderDashboardControlador(container) {
                                             </td>
                                             <td>${escapeHtml(e.inep)}</td>
                                             <td><span class="badge badge-info">${cCount} Contatos</span></td>
-                                            <td>${statusHTML}</td>
+                                            <td class="bonificacao-competencia-cell">${statusHTML}</td>
                                             <td>
                                                 <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${escapeHtml(e.id)}')">Ver Unidade</button>
                                             </td>
@@ -6195,26 +6230,17 @@ function renderDashboardSME(container) {
                                     let consAssessoria = '-';
                                     let declBBAgil = '-';
                                     let encampInventario = '-';
-                                    let statusBadge = '<span class="badge badge-gray">Não Analisada</span>';
+                                    const progStatus = getProgramVerificationStatus(e.id, activeCompetenciaKey, progId);
+                                    const statusMeta = getProgramStatusMeta(progStatus);
+                                    let statusBadge = `<span class="badge ${statusMeta.badgeClass}">${statusMeta.label}</span>`;
                                     
                                     if (v) {
-                                        extCC = v.bonificacao['extCC'] || '-';
-                                        extINV = v.bonificacao['extINV'] || '-';
-                                        notaFiscal = v.bonificacao['notaFiscal'] || '-';
-                                        consAssessoria = v.bonificacao['consAssessoria'] || '-';
-                                        declBBAgil = v.bonificacao['declBBAgil'] || '-';
-                                        encampInventario = v.bonificacao['encampInventario'] || '-';
-                                        
-                                        const analiseVals = Object.values(v.analise);
-                                        const temIncorreto = analiseVals.includes('Incorreto');
-                                        
-                                        if (v.resultadoBonif === 'inapta' || temIncorreto) {
-                                            statusBadge = '<span class="badge badge-danger">Inapta</span>';
-                                        } else if (v.resultadoBonif === 'apta' || (analiseVals.every(x => x === 'Correto' || x === 'Correto (Atrasado)') && !analiseVals.includes('Não analisado'))) {
-                                            statusBadge = '<span class="badge badge-success">Apta</span>';
-                                        } else {
-                                            statusBadge = '<span class="badge badge-warning">Em Andamento</span>';
-                                        }
+                                        extCC = v.bonificacao?.['extCC'] || '-';
+                                        extINV = v.bonificacao?.['extINV'] || '-';
+                                        notaFiscal = v.bonificacao?.['notaFiscal'] || '-';
+                                        consAssessoria = v.bonificacao?.['consAssessoria'] || '-';
+                                        declBBAgil = v.bonificacao?.['declBBAgil'] || '-';
+                                        encampInventario = v.bonificacao?.['encampInventario'] || '-';
                                     }
                                     
                                     const formatVal = (val) => {
@@ -7036,8 +7062,6 @@ function renderEscolas() {
 
     const competenciaOptions = COMPETENCIAS.filter(c => c.key <= config.competenciaFechamento);
 
-    const activeCompetencia = COMPETENCIAS.find(c => c.key === activeCompetenciaKey);
-
     const pendenciasCount = targetEscolas.filter(e => getEscolaOperationalData(e).hasPendencias).length;
 
     const inventarioCount = targetEscolas.filter(e => getEscolaOperationalData(e).hasInventarioProcess).length;
@@ -7271,8 +7295,6 @@ function renderEscolas() {
 
                     </select>
 
-                    <small>${escapeHtml(activeCompetencia ? activeCompetencia.key : activeCompetenciaKey)}</small>
-
                 </div>
 
             </div>
@@ -7448,21 +7470,22 @@ function renderCompetencias() {
                                     const v = verificacoes[e.id]?.[compProgKey];
                                     const prog = programas.find(p => p.id === progId);
                                     const progName = prog ? prog.name : progId;
+                                    const progStatus = getProgramVerificationStatus(e.id, activeCompetenciaKey, progId);
+                                    const statusMeta = getProgramStatusMeta(progStatus);
                                     
-                                    let bStatus = `<span class="badge badge-warning" style="font-size:0.65rem; padding: 2px 4px; font-weight:500;">Não Verificada</span>`;
+                                    let bStatus = `<span class="badge ${statusMeta.badgeClass}" style="font-size:0.65rem; padding: 2px 4px; font-weight:500;">${statusMeta.label}</span>`;
                                     let aStatus = `<span style="color:var(--text-muted); font-size:0.75rem;">Sem registro</span>`;
                                     
                                     if (v) {
-                                        bStatus = v.resultadoBonif === 'apta' 
-                                            ? `<span class="badge badge-success" style="font-size:0.65rem; padding: 2px 4px; font-weight:500;">Apta</span>` 
-                                            : `<span class="badge badge-danger" style="font-size:0.65rem; padding: 2px 4px; font-weight:500;">Inapta</span>`;
-                                        
-                                        const aVals = Object.values(v.analise);
-                                        if (aVals.every(x => x === 'Correto' || x === 'Correto (Atrasado)')) {
+                                        const aVals = Object.values(v.analise || {});
+                                        const hasStarted = aVals.some(isAnaliseValueStarted)
+                                            || Object.values(v.bonificacao || {}).some(isBonificacaoValueStarted);
+
+                                        if (aVals.length > 0 && aVals.every(x => x === 'Correto' || x === 'Correto (Atrasado)')) {
                                             aStatus = `<span style="color:var(--success); font-weight:600; font-size:0.75rem;">Correto</span>`;
                                         } else if (aVals.includes('Incorreto')) {
                                             aStatus = `<span style="color:var(--danger); font-weight:600; font-size:0.75rem;">Com Erros</span>`;
-                                        } else {
+                                        } else if (hasStarted) {
                                             aStatus = `<span style="color:var(--text-muted); font-size:0.75rem;">Em Análise</span>`;
                                         }
                                     }
@@ -8054,51 +8077,24 @@ function getCompMonthStatus(escolaId, compKey) {
     }
     
     // 2. Procurar verificações da escola para todos os seus programas nesta competência
-    let totalItems = 0;
-    let analisados = 0;
-    let incorretos = 0;
-    let aptos = 0;
-    let inaptos = 0;
-    let preenchidos = 0;
-    
-    esc.programasIds.forEach(progId => {
-        const compProgKey = `${compKey}_${progId}`;
-        const v = verificacoes[escolaId]?.[compProgKey];
-        if (v) {
-            totalItems++;
-            if (v.resultadoBonif === 'apta') aptos++;
-            else if (v.resultadoBonif === 'inapta') inaptos++;
-            
-            const analiseVals = Object.values(v.analise);
-            const bonifVals = Object.values(v.bonificacao);
-            
-            analiseVals.forEach(val => {
-                if (val && val !== 'Não analisado') {
-                    analisados++;
-                    if (val === 'Incorreto') incorretos++;
-                }
-            });
-            
-            bonifVals.forEach(val => {
-                if (val && val !== 'Não se aplica' && val !== '') {
-                    preenchidos++;
-                }
-            });
-        }
-    });
+    const programStatuses = esc.programasIds.map(progId => getProgramVerificationStatus(escolaId, compKey, progId));
     
     // Pendências ativas vinculadas a esta competência e escola
-    const pAtivasComp = pendencias.filter(p => p.escolaId === escolaId && p.competenciaOrigem === compKey && p.status === 'Aberta').length;
+    const pAtivasComp = pendencias.filter(p =>
+        p.escolaId === escolaId
+        && (p.competenciaOrigem === compKey || p.competencia === compKey)
+        && p.status === 'Aberta'
+    ).length;
     
-    if (inaptos > 0 || incorretos > 0 || pAtivasComp > 0) {
+    if (programStatuses.includes('inapta') || pAtivasComp > 0) {
         return 'inapta'; // Vermelho
     }
     
-    if (totalItems > 0 && aptos === totalItems) {
+    if (programStatuses.length > 0 && programStatuses.every(status => status === 'apta')) {
         return 'apta'; // Verde
     }
     
-    if (analisados > 0 || preenchidos > 0) {
+    if (programStatuses.some(status => status === 'em-andamento' || status === 'apta')) {
         return 'em-andamento'; // Laranja/Amarelo
     }
     
