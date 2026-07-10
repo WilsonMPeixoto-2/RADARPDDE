@@ -42,8 +42,10 @@
             naoAnalisado: 'naoAnalisada',
             naoAnalisada: 'naoAnalisada',
             'nao-analisado': 'naoAnalisada',
+            'nao-lancado': 'naoAnalisada',
             foraEscopo: 'foraEscopo',
-            'fora-escopo': 'foraEscopo'
+            'fora-escopo': 'foraEscopo',
+            'out-of-scope': 'foraEscopo'
         };
 
         return aliases[normalized] || null;

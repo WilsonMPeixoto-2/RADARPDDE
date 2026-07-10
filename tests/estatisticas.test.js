@@ -17,7 +17,9 @@ test('normaliza os rótulos usados atualmente sem misturar unidades de análise'
     assert.equal(normalizeStatus('inapta'), 'inapta');
     assert.equal(normalizeStatus('em-andamento'), 'emAndamento');
     assert.equal(normalizeStatus('naoAnalisado'), 'naoAnalisada');
+    assert.equal(normalizeStatus('nao-lancado'), 'naoAnalisada');
     assert.equal(normalizeStatus('fora-escopo'), 'foraEscopo');
+    assert.equal(normalizeStatus('out-of-scope'), 'foraEscopo');
     assert.equal(normalizeStatus('desconhecido'), null);
 });
 

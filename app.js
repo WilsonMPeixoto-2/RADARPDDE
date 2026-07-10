@@ -5723,6 +5723,15 @@ function getSchoolAggregateStatus(e, compKey) {
     return 'naoAnalisado';
 }
 
+function calculateSMESchoolStats(escolasList, compKey) {
+    const schoolRecords = escolasList.map(escola => ({
+        escola,
+        status: getSchoolAggregateStatus(escola, compKey)
+    }));
+
+    return RadarEstatisticas.calculateSchoolStats(schoolRecords);
+}
+
 function renderDashboardAssistente(container) {
     // Calcular estatísticas agregadas por escola
     const stats = {
@@ -6186,8 +6195,8 @@ function clearAssistenteFilters() {
 
 // 7.3 Dashboard da SME
 function renderDashboardSME(container) {
-    const stats = getEscolasStats(escolas, activeCompetenciaKey);
-    const totalEscolasValidas = stats.apto + stats.inapto + stats.emAndamento + stats.naoAnalisado;
+    const stats = calculateSMESchoolStats(escolas, activeCompetenciaKey);
+    const totalEscolasValidas = stats.activeTotal;
 
     // Obter lista de CREs únicas nas escolas cadastradas
     const activeSMECreList = [...new Set(escolas.map(e => e.cre || '4ª CRE'))];
@@ -6195,8 +6204,8 @@ function renderDashboardSME(container) {
     // Computar estatísticas por CRE
     const cresStats = activeSMECreList.map(creName => {
         const carteira = escolas.filter(e => e.cre === creName);
-        const cStats = getEscolasStats(carteira, activeCompetenciaKey);
-        const total = cStats.apto + cStats.inapto + cStats.emAndamento + cStats.naoAnalisado;
+        const cStats = calculateSMESchoolStats(carteira, activeCompetenciaKey);
+        const total = cStats.activeTotal;
         return { name: creName, stats: cStats, total };
     });
 
@@ -6304,14 +6313,14 @@ function renderDashboardSME(container) {
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                 </div>
                 <div class="stat-label">Unidades Aptas (${formatCompetenciaText(activeCompetenciaKey)})</div>
-                <div class="stat-value">${stats.apto} Escolas</div>
+                <div class="stat-value">${stats.apta} Escolas</div>
             </div>
             <div class="card-stat">
                 <div class="stat-icon" style="background-color: var(--danger-bg); color: var(--danger);">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
                 </div>
                 <div class="stat-label">Unidades Inaptas (${formatCompetenciaText(activeCompetenciaKey)})</div>
-                <div class="stat-value">${stats.inapto} Escolas</div>
+                <div class="stat-value">${stats.inapta} Escolas</div>
             </div>
             <div class="card-stat">
                 <div class="stat-icon" style="background-color: rgba(157, 125, 252, 0.1); color: var(--primary);">
@@ -6325,7 +6334,7 @@ function renderDashboardSME(container) {
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                 </div>
                 <div class="stat-label">Não Analisadas (Não vistas)</div>
-                <div class="stat-value">${stats.naoAnalisado} Unidades</div>
+                <div class="stat-value">${stats.naoAnalisada} Unidades</div>
             </div>
         </div>
 
@@ -6351,7 +6360,7 @@ function renderDashboardSME(container) {
                         </thead>
                         <tbody>
                             ${cresStats.map(cs => {
-                                const percent = cs.total > 0 ? Math.round((cs.stats.apto / cs.total) * 100) : 0;
+                                const percent = Math.round(cs.stats.rates.apta);
                                 const isExpanded = activeSMECreFilter === cs.name;
                                 return `
                                     <tr style="cursor: pointer;" onclick="toggleSMECreFilter('${escapeHtml(cs.name)}')" class="tr-hoverABLE ${isExpanded ? 'tr-expanded-active' : ''}">
@@ -6362,10 +6371,10 @@ function renderDashboardSME(container) {
                                             </div>
                                         </td>
                                         <td>${cs.total} unidades</td>
-                                        <td><span style="color:var(--success); font-weight:600;">${cs.stats.apto}</span></td>
-                                        <td><span style="color:var(--danger); font-weight:600;">${cs.stats.inapto}</span></td>
+                                        <td><span style="color:var(--success); font-weight:600;">${cs.stats.apta}</span></td>
+                                        <td><span style="color:var(--danger); font-weight:600;">${cs.stats.inapta}</span></td>
                                         <td><span style="color:var(--primary); font-weight:600;">${cs.stats.emAndamento}</span></td>
-                                        <td><span style="color:var(--text-muted);">${cs.stats.naoAnalisado}</span></td>
+                                        <td><span style="color:var(--text-muted);">${cs.stats.naoAnalisada}</span></td>
                                         <td>
                                             <strong>${percent}%</strong>
                                         </td>
