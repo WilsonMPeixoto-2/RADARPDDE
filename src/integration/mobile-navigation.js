@@ -102,7 +102,7 @@
 
         function openMenu() {
             if (!mediaQuery.matches || isOpen()) return;
-            lastFocusedElement = document.activeElement;
+            lastFocusedElement = menuButton;
             sidebar.classList.add('mobile-open');
             overlay.classList.add('is-visible');
             document.body.classList.add('mobile-nav-open');
@@ -132,8 +132,11 @@
             document.body.classList.remove('mobile-nav-open');
             updateAccessibility();
 
-            if (settings.restoreFocus && lastFocusedElement && typeof lastFocusedElement.focus === 'function') {
-                lastFocusedElement.focus({ preventScroll: true });
+            if (settings.restoreFocus) {
+                const focusTarget = lastFocusedElement && typeof lastFocusedElement.focus === 'function'
+                    ? lastFocusedElement
+                    : menuButton;
+                focusTarget.focus({ preventScroll: true });
             }
         }
 
