@@ -1,0 +1,49 @@
+name: Testes mobile Playwright
+
+on:
+  pull_request:
+    paths:
+      - '**/*.js'
+      - '**/*.html'
+      - '**/*.css'
+      - 'package.json'
+      - 'playwright.config.js'
+      - '.github/workflows/playwright-mobile.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: playwright-mobile-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  mobile:
+    name: Android e iPhone
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Obter código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Instalar dependências
+        run: npm install
+
+      - name: Instalar navegadores Playwright
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: Executar testes mobile
+        run: npm run test:mobile
+
+      - name: Publicar relatório em caso de falha
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-mobile
+          path: playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
