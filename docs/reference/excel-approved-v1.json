@@ -1,0 +1,26 @@
+{
+  "id": "radar-pdde-excel-approved-v1",
+  "approvedAt": "2026-07-10",
+  "file": "RADAR_PDDE_Exportacao_Excel_Aprovada_v1.xlsx",
+  "sha256": "059e729d3e3ffbc03658433dcace880998e920ba3ece731283a0ec9d6efee895",
+  "sizeBytes": 14587,
+  "sheetOrder": [
+    "BONIFICACOES",
+    "SINTESE",
+    "QUALIDADE_DADOS",
+    "METADADOS"
+  ],
+  "requiredSheet": "BONIFICACOES",
+  "optionalSheets": [
+    "SINTESE",
+    "QUALIDADE_DADOS",
+    "METADADOS"
+  ],
+  "baseHeaderRow": 8,
+  "baseFirstDataRow": 9,
+  "originalFieldCount": 12,
+  "containsDemonstrationData": true,
+  "runtimeTemplate": false,
+  "purpose": "Referência visual, funcional e editorial imutável para a implementação do gerador XLSX do RADAR PDDE.",
+  "usageRule": "O gerador deve reproduzir o padrão aprovado sem utilizar os dados demonstrativos como dados oficiais."
+}
