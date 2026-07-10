@@ -1,4 +1,4 @@
-name: Testes mobile Playwright
+name: Testes Playwright multiplataforma
 
 on:
   pull_request:
@@ -12,14 +12,14 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: playwright-mobile-${{ github.ref }}
+  group: playwright-multiplataforma-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  mobile:
-    name: Android e iPhone
+  browsers:
+    name: Desktop, Android e iPhone
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
 
     steps:
       - name: Obter código
@@ -29,21 +29,22 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: 'npm'
 
       - name: Instalar dependências
-        run: npm install
+        run: npm ci
 
       - name: Instalar navegadores Playwright
         run: npx playwright install --with-deps chromium webkit
 
-      - name: Executar testes mobile
-        run: npm run test:mobile
+      - name: Executar testes desktop, Android e iPhone
+        run: npm run test:e2e
 
       - name: Publicar relatório em caso de falha
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-mobile
+          name: playwright-report-multiplataforma
           path: playwright-report/
           retention-days: 7
           if-no-files-found: ignore
