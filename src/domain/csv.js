@@ -11,7 +11,7 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, function () {
     'use strict';
 
-    const FORMULA_PREFIX_PATTERN = /^[\t\r ]*[=+\-@]/;
+    const FORMULA_PREFIX_PATTERN = /^[\t\r\n ]*[=+\-@]/;
     const DEFAULT_DELIMITER = ';';
     const DEFAULT_LINE_ENDING = '\r\n';
     const UTF8_BOM = '\uFEFF';
