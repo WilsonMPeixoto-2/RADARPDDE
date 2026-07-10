@@ -56,6 +56,38 @@
         overlay.setAttribute('aria-hidden', 'true');
         document.body.appendChild(overlay);
 
+        function wrapResponsiveTables(scope) {
+            if (!scope) return;
+
+            const tables = [];
+            if (scope.nodeType === 1 && scope.matches('table.data-table')) tables.push(scope);
+            if (typeof scope.querySelectorAll === 'function') {
+                tables.push(...scope.querySelectorAll('table.data-table'));
+            }
+
+            tables.forEach(table => {
+                if (!table.parentElement || table.parentElement.classList.contains('table-responsive')) return;
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'table-responsive mobile-generated-table-wrapper';
+                wrapper.setAttribute('role', 'region');
+                wrapper.setAttribute('aria-label', 'Tabela com rolagem horizontal');
+                table.parentNode.insertBefore(wrapper, table);
+                wrapper.appendChild(table);
+            });
+        }
+
+        wrapResponsiveTables(document);
+        const mainContainer = document.querySelector('#main-container');
+        if (mainContainer) {
+            const tableObserver = new MutationObserver(records => {
+                records.forEach(record => {
+                    record.addedNodes.forEach(node => wrapResponsiveTables(node));
+                });
+            });
+            tableObserver.observe(mainContainer, { childList: true, subtree: true });
+        }
+
         function isOpen() {
             return sidebar.classList.contains('mobile-open');
         }
