@@ -1,0 +1,143 @@
+/* RADAR PDDE — hotfix de estabilidade de pintura em navegadores móveis
+   Evita telas brancas, cintilação e perda temporária de SVG durante a rolagem. */
+
+@media (max-width: 900px) {
+    html {
+        min-height: 100%;
+        background-color: var(--bg-page);
+    }
+
+    body {
+        min-height: 100%;
+        overflow-x: hidden;
+        overflow-y: auto;
+        background-color: var(--bg-page);
+        background-image: none !important;
+        background-attachment: initial !important;
+        -webkit-overflow-scrolling: auto;
+    }
+
+    #app-layout,
+    main.content-area,
+    #main-container,
+    .page-container {
+        min-height: 100vh;
+        min-height: 100svh;
+        height: auto;
+        overflow: visible;
+        background-color: var(--bg-page);
+        contain: none;
+    }
+
+    /* O cabeçalho deixa de compor uma camada translúcida durante a rolagem. */
+    header.top-header {
+        position: relative;
+        top: auto;
+        background-color: var(--bg-sidebar);
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        transform: none;
+        will-change: auto;
+    }
+
+    /* Elementos opacos reduzem drasticamente repaints e falhas de composição. */
+    .card-stat,
+    .panel-card,
+    .school-filter-panel,
+    .modal-content,
+    .alerts-dropdown,
+    .profile-dropdown {
+        background-color: var(--bg-sidebar);
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        transform: none;
+        will-change: auto;
+    }
+
+    .modal-overlay,
+    .mobile-sidebar-overlay {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+
+    /* Evita recalcular a altura durante a expansão e retração da barra do navegador. */
+    aside.sidebar,
+    .mobile-sidebar-overlay,
+    .modal-overlay {
+        height: 100vh;
+        min-height: 100vh;
+    }
+
+    @supports (height: 100svh) {
+        aside.sidebar,
+        .mobile-sidebar-overlay,
+        .modal-overlay {
+            height: 100svh;
+            min-height: 100svh;
+        }
+    }
+
+    .alerts-dropdown,
+    .profile-dropdown {
+        max-height: calc(100vh - 132px);
+    }
+
+    .modal-content,
+    #modal-escola-edit .modal-content,
+    #modal-nova-pendencia .modal-content,
+    #modal-dados-nota .modal-content,
+    #modal-inventario-confirm .modal-content,
+    #modal-cobranca .modal-content {
+        max-height: calc(100vh - 24px);
+    }
+
+    .modal-body {
+        max-height: calc(100vh - 126px);
+    }
+
+    /* Filtros SVG e contenção inline podem desaparecer durante a composição móvel. */
+    .sidebar-logo svg,
+    .nav-item.active svg,
+    .stat-icon svg,
+    svg {
+        filter: none !important;
+        -webkit-filter: none !important;
+    }
+
+    svg {
+        backface-visibility: visible;
+        -webkit-backface-visibility: visible;
+    }
+
+    .mobile-generated-table-wrapper {
+        contain: none;
+    }
+
+    .table-responsive {
+        scrollbar-gutter: auto;
+    }
+
+    /* Não cria contêineres de rolagem verticais concorrentes. */
+    main.content-area,
+    #main-container,
+    .page-container {
+        overflow-x: visible;
+        overflow-y: visible;
+    }
+}
+
+@media (max-width: 520px) {
+    .alerts-dropdown,
+    .profile-dropdown {
+        max-height: calc(100vh - 120px);
+    }
+
+    .modal-content,
+    #modal-escola-edit .modal-content,
+    #modal-nova-pendencia .modal-content,
+    #modal-dados-nota .modal-content,
+    #modal-inventario-confirm .modal-content,
+    #modal-cobranca .modal-content {
+        max-height: calc(100vh - 16px);
+    }
+}
