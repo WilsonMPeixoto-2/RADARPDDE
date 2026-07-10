@@ -6,6 +6,8 @@ Evoluir o relatório CSV existente para um arquivo `.xlsx` real, acrescentando o
 
 A versão visual aprovada em 10/07/2026 passa a ser a referência funcional e editorial para a implementação. O padrão deve ser adaptado à finalidade operacional do RADAR, sem reproduzir mecanicamente todos os componentes do sistema editorial.
 
+A referência binária imutável está preservada em [`docs/reference/RADAR_PDDE_Exportacao_Excel_Aprovada_v1.xlsx`](../reference/RADAR_PDDE_Exportacao_Excel_Aprovada_v1.xlsx), com integridade controlada pelo manifesto [`docs/reference/excel-approved-v1.json`](../reference/excel-approved-v1.json).
+
 ## Contrato do relatório original
 
 A função atual `exportDataExcel()` percorre, nesta ordem:
@@ -168,7 +170,7 @@ A exportação `.xlsx` somente poderá substituir a atual quando:
 
 1. o relatório de equivalência retornar `equivalent: true`;
 2. todos os testes automatizados forem aprovados;
-3. a prévia visual reproduzir a versão aprovada;
+3. a prévia visual reproduzir a referência binária aprovada;
 4. o CSV atual permanecer disponível até a validação final em produção;
 5. o botão do site for alterado em PR separado, com possibilidade de reversão imediata.
 
