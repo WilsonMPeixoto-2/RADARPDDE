@@ -26,6 +26,7 @@ window.RADAR_PDDE_CONFIG = {
     }
 
     loadStylesheet('src/styles/mobile-responsive.css');
+    loadStylesheet('src/styles/mobile-rendering-hotfix.css');
     loadScript('src/integration/mobile-navigation.js', false);
     loadScript('src/integration/load-excel-export.js', true);
 }());
