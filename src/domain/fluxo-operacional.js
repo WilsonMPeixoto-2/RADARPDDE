@@ -1,5 +1,8 @@
 (function (root, factory) {
-    const api = factory();
+    const competenciaApi = typeof module === 'object' && module.exports
+        ? require('./competencia.js')
+        : root && root.RadarCompetencia;
+    const api = factory(competenciaApi);
 
     if (typeof module === 'object' && module.exports) {
         module.exports = api;
@@ -8,7 +11,7 @@
     if (root) {
         root.RadarFluxoOperacional = api;
     }
-}(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+}(typeof globalThis !== 'undefined' ? globalThis : this, function (RadarCompetencia) {
     'use strict';
 
     const DOCUMENT_KEYS = Object.freeze([
@@ -23,6 +26,47 @@
     const VALID_VALUES = new Set(['Sim', 'Não', 'Não se aplica']);
     const EDITABLE_PROFILES = new Set(['controlador', 'assistente']);
     const CORRECT_ANALYSES = new Set(['Correto', 'Correto (Atrasado)']);
+
+    function normalizeText(value) {
+        return typeof value === 'string' ? value.trim() : '';
+    }
+
+    function buildPendencyContext(input = {}) {
+        const splitContext = RadarCompetencia.splitCompetenciaContext(input.compProgKey);
+        const programaNome = normalizeText(input.programaNome) || splitContext.contextId;
+        const documentoNome = normalizeText(input.documentoNome);
+
+        return Object.freeze({
+            competencia: splitContext.competenciaKey,
+            programaId: splitContext.contextId,
+            documentoKey: normalizeText(input.documentoKey),
+            documentoNome,
+            item: [programaNome, documentoNome].filter(Boolean).join(' - ')
+        });
+    }
+
+    function pendencyMatchesContext(pendency = {}, context = {}) {
+        const pendencyCompetencia = normalizeText(
+            pendency.competenciaOrigem || pendency.competencia
+        );
+        const contextCompetencia = normalizeText(context.competencia);
+
+        if (pendencyCompetencia && contextCompetencia
+            && pendencyCompetencia !== contextCompetencia) {
+            return false;
+        }
+
+        const pendencyProgramaId = normalizeText(pendency.programaId);
+        const pendencyDocumentoKey = normalizeText(pendency.documentoKey);
+        if (pendencyProgramaId || pendencyDocumentoKey) {
+            return pendencyProgramaId === normalizeText(context.programaId)
+                && pendencyDocumentoKey === normalizeText(context.documentoKey);
+        }
+
+        const pendencyItem = normalizeText(pendency.item);
+        return pendencyItem === normalizeText(context.item)
+            || pendencyItem === normalizeText(context.documentoNome);
+    }
 
     function createEmptyVerification() {
         return {
@@ -98,10 +142,12 @@
 
     return Object.freeze({
         DOCUMENT_KEYS,
+        buildPendencyContext,
         canRegisterFiscalNote,
         createEmptyVerification,
         evaluateBonification,
         getProgramOperationalStatus,
+        pendencyMatchesContext,
         shouldRequireFiscalNote
     });
 }));

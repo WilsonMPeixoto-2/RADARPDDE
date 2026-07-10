@@ -4660,9 +4660,9 @@ async function persistSingleTableSupabase(tableName) {
             const flatVerif = [];
             Object.keys(verificacoes).forEach(escId => {
                 Object.keys(verificacoes[escId]).forEach(compKey => {
-                    const partes = compKey.split('_');
-                    const competencia = partes[0];
-                    const programaId = partes[1] || 'BASIC';
+                    const splitContext = window.RadarCompetencia.splitCompetenciaContext(compKey);
+                    const competencia = splitContext.competenciaKey;
+                    const programaId = splitContext.contextId || 'BASIC';
                     const dataVal = verificacoes[escId][compKey];
                     flatVerif.push({
                         id: `${escId}_${competencia}_${programaId}`,
@@ -7930,6 +7930,15 @@ function confirmarResolverPendencia(e) {
         p.dataResolucao = new Date().toISOString().split('T')[0];
         p.justificativaResolucao = justificativa;
 
+        if (p.programaId && p.documentoKey) {
+            const competencia = p.competenciaOrigem || p.competencia;
+            const compProgKey = `${competencia}_${p.programaId}`;
+            const analise = verificacoes[p.escolaId]?.[compProgKey]?.analise;
+            if (analise?.[p.documentoKey] === 'Incorreto') {
+                analise[p.documentoKey] = 'Não analisado';
+            }
+        }
+
         const esc = escolas.find(e => e.id === p.escolaId);
         registerLog('Pendência Resolvida', `Pendência de ${p.item} da escola ${esc ? esc.denominação : ''} (Origem: ${p.competencia}) resolvida. Justificativa: ${justificativa}`);
         
@@ -8635,19 +8644,29 @@ function renderProntuarioVerificacoes(esc) {
                         }
                     }
 
-                    // Linkando com as pendências reais (nome combinando Programa e Documento)
-                    const fullItemName = `${progName} - ${doc.name}`;
-                    const activePend = pendencias.find(p => p.escolaId === esc.id && p.competencia === c.key && p.item === fullItemName && p.status === 'Aberta');
+                    const pendencyContext = window.RadarFluxoOperacional.buildPendencyContext({
+                        compProgKey,
+                        programaNome: progName,
+                        documentoKey: doc.key,
+                        documentoNome: doc.name
+                    });
+                    const matchesPendencyContext = p => (
+                        p.escolaId === esc.id
+                        && window.RadarFluxoOperacional.pendencyMatchesContext(p, pendencyContext)
+                    );
+                    const activePend = pendencias.find(p => (
+                        p.status === 'Aberta' && matchesPendencyContext(p)
+                    ));
+                    const resolvedPend = pendencias.find(p => (
+                        p.status === 'Resolvida' && matchesPendencyContext(p)
+                    ));
                     let pendStatusHTML = '';
                     if (activePend) {
                         pendStatusHTML = `<button class="btn btn-danger btn-sm" onclick="abrirModalResolverPendencia('${escapeHtml(activePend.id)}')" style="font-size:0.7rem; padding:2px 6px;">Resolver Pendência</button>`;
+                    } else if (resolvedPend && analiseValue === 'Não analisado') {
+                        pendStatusHTML = `<span class="badge badge-success" style="font-size:0.7rem;" title="Justificativa: ${escapeHtml(resolvedPend.justificativaResolucao || resolvedPend.observacao || '')}">Resolvida - reanalisar</span>`;
                     } else if (analiseValue === 'Incorreto') {
-                        const resolvedPend = pendencias.find(p => p.escolaId === esc.id && p.competencia === c.key && p.item === fullItemName && p.status === 'Resolvida');
-                        if (resolvedPend) {
-                            pendStatusHTML = `<span class="badge badge-success" style="font-size:0.7rem;" title="Justificativa: ${escapeHtml(resolvedPend.observacao)}">Resolvida</span>`;
-                        } else {
-                            pendStatusHTML = `<button class="btn btn-secondary btn-sm" onclick="openNovaPendenciaModalWithDefaults('${escapeHtml(esc.id)}', '${escapeHtml(c.key)}', '${escapeHtml(fullItemName)}')" style="font-size:0.7rem; padding:2px 6px;">Abrir Pendência</button>`;
-                        }
+                        pendStatusHTML = `<button class="btn btn-secondary btn-sm" onclick="openNovaPendenciaModalWithDefaults('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(progName)}', '${escapeHtml(doc.key)}', '${escapeHtml(doc.name)}')" style="font-size:0.7rem; padding:2px 6px;">Abrir Pendência</button>`;
                     }
 
                     // Conteúdo extra para visualização de notas fiscais
@@ -8866,10 +8885,18 @@ function changeAnaliseTecnica(escolaId, compKey, docKey, value) {
 
     // Regra Crítica: Se marcar como "Incorreto", abrir modal de pendência correspondente automaticamente
     if (value === 'Incorreto') {
-        openNovaPendenciaModal(escolaId, false);
-        const cleanComp = compKey.split('_')[0];
-        document.getElementById('pend-competencia').value = cleanComp;
-        document.getElementById('pend-item').value = docNames[docKey];
+        const splitContext = window.RadarCompetencia.splitCompetenciaContext(compKey);
+        const mesRaw = splitContext.competenciaKey;
+        const progId = splitContext.contextId;
+        const prog = programas.find(item => item.id === progId);
+        const programaNome = prog ? prog.name : progId;
+        openNovaPendenciaModalWithDefaults(
+            escolaId,
+            compKey,
+            programaNome,
+            docKey,
+            docNames[docKey]
+        );
         
         // Auto seleção de motivos padronizados
         const motivoSelect = document.getElementById('pend-motivo');
@@ -8880,10 +8907,6 @@ function changeAnaliseTecnica(escolaId, compKey, docKey, value) {
         } else {
             motivoSelect.value = 'Documento ausente';
         }
-        
-        const parts = compKey.split('_');
-        const mesRaw = parts[0];
-        const progId = parts[1];
         
         let mesFormat = mesRaw;
         if (mesRaw && mesRaw.includes('-')) {
@@ -8968,9 +8991,9 @@ function salvarDadosNota(e) {
     const valor = parseFloat(document.getElementById('nota-valor').value);
     
     const esc = escolas.find(x => x.id === escolaId);
-    const splitKey = compKey.split('_');
-    const mesKey = splitKey[0]; // ex: 2026-05
-    const progId = splitKey[1]; // ex: BASIC
+    const splitContext = window.RadarCompetencia.splitCompetenciaContext(compKey);
+    const mesKey = splitContext.competenciaKey;
+    const progId = splitContext.contextId;
     
     const prog = programas.find(p => p.id === progId);
     const progName = prog ? prog.name : progId;
@@ -9363,7 +9386,12 @@ function saveContato(e) {
 
 // 16.2 Salvar Nova Pendência Manual
 function openNovaPendenciaModal(escolaId, isManual = true) {
+    document.getElementById('form-nova-pendencia').reset();
+    const itemSelect = document.getElementById('pend-item');
+    itemSelect.querySelectorAll('option[data-contextual="true"]').forEach(option => option.remove());
     document.getElementById('pendencia-escola-id').value = escolaId;
+    document.getElementById('pend-programa-id').value = '';
+    document.getElementById('pend-documento-key').value = '';
     
     // Preencher select de competências
     const compSelect = document.getElementById('pend-competencia');
@@ -9372,7 +9400,6 @@ function openNovaPendenciaModal(escolaId, isManual = true) {
     `).join('');
     compSelect.value = activeCompetenciaKey;
 
-    const itemSelect = document.getElementById('pend-item');
     if (isManual) {
         compSelect.disabled = false;
         itemSelect.disabled = false;
@@ -9384,17 +9411,39 @@ function openNovaPendenciaModal(escolaId, isManual = true) {
     openModal('modal-nova-pendencia');
 }
 
-function openNovaPendenciaModalWithDefaults(escolaId, compKey, itemName) {
+function openNovaPendenciaModalWithDefaults(
+    escolaId,
+    compProgKey,
+    programaNome,
+    documentoKey,
+    documentoNome
+) {
+    const context = window.RadarFluxoOperacional.buildPendencyContext({
+        compProgKey,
+        programaNome,
+        documentoKey,
+        documentoNome
+    });
     openNovaPendenciaModal(escolaId, false);
-    const cleanComp = compKey.split('_')[0];
-    document.getElementById('pend-competencia').value = cleanComp;
-    document.getElementById('pend-item').value = itemName;
+    document.getElementById('pend-competencia').value = context.competencia;
+    document.getElementById('pend-programa-id').value = context.programaId;
+    document.getElementById('pend-documento-key').value = context.documentoKey;
+
+    const itemSelect = document.getElementById('pend-item');
+    const contextualOption = document.createElement('option');
+    contextualOption.value = context.item;
+    contextualOption.textContent = context.item;
+    contextualOption.dataset.contextual = 'true';
+    itemSelect.appendChild(contextualOption);
+    itemSelect.value = context.item;
 }
 
 function saveNovaPendencia(e) {
     e.preventDefault();
     const escolaId = document.getElementById('pendencia-escola-id').value;
     const comp = document.getElementById('pend-competencia').value;
+    const programaId = document.getElementById('pend-programa-id').value;
+    const documentoKey = document.getElementById('pend-documento-key').value;
     const item = document.getElementById('pend-item').value;
     const motivo = document.getElementById('pend-motivo').value;
     const resp = document.getElementById('pend-responsavel').value;
@@ -9404,6 +9453,8 @@ function saveNovaPendencia(e) {
         id: 'pend-' + Date.now(),
         escolaId: escolaId,
         competencia: comp,
+        programaId: programaId,
+        documentoKey: documentoKey,
         item: item,
         motivo: motivo,
         responsavel: resp,
@@ -9677,13 +9728,13 @@ function openCobrancaModal(escolaId) {
 
 function formatCompetenciaText(key) {
     if (!key) return '';
-    const parts = key.split('_');
-    const baseKey = parts[0];
+    const splitContext = window.RadarCompetencia.splitCompetenciaContext(key);
+    const baseKey = splitContext.competenciaKey;
     const comp = COMPETENCIAS.find(c => c.key === baseKey);
     const label = comp ? comp.label.replace(' ', '/') : baseKey;
     
-    if (parts.length === 2) {
-        const progId = parts[1];
+    if (splitContext.contextId) {
+        const progId = splitContext.contextId;
         const prog = programas.find(p => p.id === progId);
         const progName = prog ? prog.name : progId;
         return `${label} - ${progName}`;

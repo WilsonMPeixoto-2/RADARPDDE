@@ -373,4 +373,141 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
       reopenLogs: logs.filter(log => log.acao === 'Consolidação Reaberta').length
     }), context)).toEqual({ result: '', assessoria: '', inventario: '', reopenLogs: 1 });
   });
+
+  test('vincula e resolve pendência na linha exata de programa com sublinhado', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+
+    await page.goto('/');
+    const context = await page.evaluate(() => {
+      switchProfile('controlador');
+
+      const competencia = activeCompetenciaKey;
+      const escola = escolas.find(candidate => (
+        candidate.programasIds.includes('ED_FAMILIA')
+        && candidate.programasIds.includes('BASIC')
+        && isCompetenceInScope(candidate.competenciaInicial, competencia)
+      ));
+      const compProgKey = `${competencia}_ED_FAMILIA`;
+      const otherCompProgKey = `${competencia}_BASIC`;
+
+      pendencias = pendencias.filter(pendency => !(
+        pendency.escolaId === escola.id && pendency.competencia === competencia
+      ));
+      rebuildOperationalIndexes();
+
+      verificacoes[escola.id] = verificacoes[escola.id] || {};
+      verificacoes[escola.id][compProgKey] = RadarFluxoOperacional.createEmptyVerification();
+      verificacoes[escola.id][compProgKey].bonificacao.extCC = 'Sim';
+      verificacoes[escola.id][compProgKey].bonificacao.extINV = 'Sim';
+      verificacoes[escola.id][compProgKey].analise.extINV = 'Correto';
+      verificacoes[escola.id][otherCompProgKey] = RadarFluxoOperacional.createEmptyVerification();
+      verificacoes[escola.id][otherCompProgKey].bonificacao.extCC = 'Sim';
+      verificacoes[escola.id][otherCompProgKey].analise.extCC = 'Incorreto';
+
+      persist();
+      activeProntuarioCompetencia = competencia;
+      switchView('prontuario', escola.id);
+
+      return { escolaId: escola.id, competencia, compProgKey, otherCompProgKey };
+    });
+
+    const targetRow = page.locator('#prontuario-verif-rows tr')
+      .filter({ hasText: 'Educação e Família' })
+      .filter({ hasText: 'Extrato Conta Corrente' });
+    await expect(targetRow).toHaveCount(1);
+    await targetRow.locator('select.select-analise').selectOption('Incorreto');
+    await expect(page.locator('#modal-nova-pendencia')).toHaveClass(/show/);
+    await page.locator('#form-nova-pendencia button[type="submit"]').click();
+
+    expect(await page.evaluate(({ escolaId, competencia }) => {
+      const pendency = pendencias.find(item => (
+        item.escolaId === escolaId
+        && item.competencia === competencia
+        && item.status === 'Aberta'
+      ));
+      return pendency && {
+        programaId: pendency.programaId,
+        documentoKey: pendency.documentoKey,
+        item: pendency.item
+      };
+    }, context)).toEqual({
+      programaId: 'ED_FAMILIA',
+      documentoKey: 'extCC',
+      item: 'Educação e Família - Extrato Conta Corrente'
+    });
+
+    const linkedRow = page.locator('#prontuario-verif-rows tr')
+      .filter({ hasText: 'Educação e Família' })
+      .filter({ hasText: 'Extrato Conta Corrente' });
+    await linkedRow.getByRole('button', { name: 'Resolver Pendência' }).click();
+    await page.locator('#resolver-justificativa').fill('Documento corrigido no Drive.');
+    await page.locator('#form-resolver-pendencia button[type="submit"]').click();
+
+    await expect(page.locator('#prontuario-verif-rows tr')
+      .filter({ hasText: 'Educação e Família' })
+      .filter({ hasText: 'Extrato Conta Corrente' })
+      .getByText('Resolvida - reanalisar')).toBeVisible();
+
+    expect(await page.evaluate(({ escolaId, competencia, compProgKey, otherCompProgKey }) => ({
+      target: verificacoes[escolaId][compProgKey].analise.extCC,
+      siblingDocument: verificacoes[escolaId][compProgKey].analise.extINV,
+      otherProgram: verificacoes[escolaId][otherCompProgKey].analise.extCC,
+      status: getProgramVerificationStatus(escolaId, competencia, 'ED_FAMILIA')
+    }), context)).toEqual({
+      target: 'Não analisado',
+      siblingDocument: 'Correto',
+      otherProgram: 'Incorreto',
+      status: 'em-andamento'
+    });
+
+    const resolvedRow = page.locator('#prontuario-verif-rows tr')
+      .filter({ hasText: 'Educação e Família' })
+      .filter({ hasText: 'Extrato Conta Corrente' });
+    await resolvedRow.locator('select.select-analise').selectOption('Incorreto');
+    await page.locator('#modal-nova-pendencia .btn-secondary').click();
+    await expect(page.locator('#prontuario-verif-rows tr')
+      .filter({ hasText: 'Educação e Família' })
+      .filter({ hasText: 'Extrato Conta Corrente' })
+      .getByRole('button', { name: 'Abrir Pendência' })).toBeVisible();
+  });
+
+  test('reconhece pendência textual antiga pela competência de origem', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+
+    await page.goto('/');
+    await page.evaluate(() => {
+      switchProfile('controlador');
+
+      const competencia = activeCompetenciaKey;
+      const escola = escolas.find(candidate => (
+        candidate.programasIds.includes('ED_FAMILIA')
+        && isCompetenceInScope(candidate.competenciaInicial, competencia)
+      ));
+      const compProgKey = `${competencia}_ED_FAMILIA`;
+
+      verificacoes[escola.id] = verificacoes[escola.id] || {};
+      verificacoes[escola.id][compProgKey] = RadarFluxoOperacional.createEmptyVerification();
+      verificacoes[escola.id][compProgKey].bonificacao.extCC = 'Sim';
+      verificacoes[escola.id][compProgKey].analise.extCC = 'Incorreto';
+      pendencias.push({
+        id: 'pend-e2e-legada',
+        escolaId: escola.id,
+        competenciaOrigem: competencia,
+        item: 'Extrato Conta Corrente',
+        motivo: 'Documento ausente',
+        responsavel: 'Escola',
+        status: 'Aberta',
+        dataAbertura: '2026-07-10',
+        observacao: 'Registro legado sem campos estruturados.'
+      });
+      rebuildOperationalIndexes();
+      activeProntuarioCompetencia = competencia;
+      switchView('prontuario', escola.id);
+    });
+
+    await expect(page.locator('#prontuario-verif-rows tr')
+      .filter({ hasText: 'Educação e Família' })
+      .filter({ hasText: 'Extrato Conta Corrente' })
+      .getByRole('button', { name: 'Resolver Pendência' })).toBeVisible();
+  });
 });

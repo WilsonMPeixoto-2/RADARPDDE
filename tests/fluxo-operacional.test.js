@@ -5,10 +5,12 @@ const assert = require('node:assert/strict');
 
 const {
     DOCUMENT_KEYS,
+    buildPendencyContext,
     canRegisterFiscalNote,
     createEmptyVerification,
     evaluateBonification,
     getProgramOperationalStatus,
+    pendencyMatchesContext,
     shouldRequireFiscalNote
 } = require('../src/domain/fluxo-operacional.js');
 
@@ -154,4 +156,76 @@ test('exige nota somente ao tentar aprovar entrega Sim ainda sem cadastro', () =
         analiseValue: 'Incorreto',
         fiscalNotes: []
     }), false);
+});
+
+test('preserva o programa completo ao criar contexto de pendência pela chave composta', () => {
+    assert.deepEqual(buildPendencyContext({
+        compProgKey: '2026-05_ED_FAMILIA',
+        programaNome: 'Educação e Família',
+        documentoKey: 'extCC',
+        documentoNome: 'Extrato Conta Corrente'
+    }), {
+        competencia: '2026-05',
+        programaId: 'ED_FAMILIA',
+        documentoKey: 'extCC',
+        documentoNome: 'Extrato Conta Corrente',
+        item: 'Educação e Família - Extrato Conta Corrente'
+    });
+
+    assert.equal(buildPendencyContext({
+        compProgKey: '2026-05_TEMPO_APRENDER',
+        programaNome: 'Tempo de Aprender',
+        documentoKey: 'extCC',
+        documentoNome: 'Extrato Conta Corrente'
+    }).programaId, 'TEMPO_APRENDER');
+});
+
+test('distingue o mesmo documento em programas diferentes pelo contexto estruturado', () => {
+    const context = buildPendencyContext({
+        compProgKey: '2026-05_ED_FAMILIA',
+        programaNome: 'Educação e Família',
+        documentoKey: 'extCC',
+        documentoNome: 'Extrato Conta Corrente'
+    });
+
+    assert.equal(pendencyMatchesContext({
+        competencia: '2026-05',
+        programaId: 'ED_FAMILIA',
+        documentoKey: 'extCC',
+        item: context.item
+    }, context), true);
+    assert.equal(pendencyMatchesContext({
+        competencia: '2026-05',
+        programaId: 'TEMPO_APRENDER',
+        documentoKey: 'extCC',
+        item: context.item
+    }, context), false);
+    assert.equal(pendencyMatchesContext({
+        competencia: '2026-05',
+        programaId: 'ED_FAMILIA',
+        documentoKey: 'notaFiscal',
+        item: context.item
+    }, context), false);
+});
+
+test('mantém compatibilidade com pendências antigas pelo item completo ou documento', () => {
+    const context = buildPendencyContext({
+        compProgKey: '2026-05_ED_FAMILIA',
+        programaNome: 'Educação e Família',
+        documentoKey: 'extCC',
+        documentoNome: 'Extrato Conta Corrente'
+    });
+
+    assert.equal(pendencyMatchesContext({
+        competencia: '2026-05',
+        item: 'Educação e Família - Extrato Conta Corrente'
+    }, context), true);
+    assert.equal(pendencyMatchesContext({
+        competencia: '2026-05',
+        item: 'Extrato Conta Corrente'
+    }, context), true);
+    assert.equal(pendencyMatchesContext({
+        competencia: '2026-05',
+        item: 'Notas Fiscais'
+    }, context), false);
 });
