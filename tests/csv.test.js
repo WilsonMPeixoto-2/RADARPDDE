@@ -38,6 +38,7 @@ test('neutraliza fórmulas em valores textuais potencialmente perigosos', () => 
     assert.equal(protectSpreadsheetFormula(' +123'), "' +123");
     assert.equal(protectSpreadsheetFormula('-1+2'), "'-1+2");
     assert.equal(protectSpreadsheetFormula('@cmd'), "'@cmd");
+    assert.equal(protectSpreadsheetFormula('\n=CMD()'), "'\n=CMD()");
     assert.equal(protectSpreadsheetFormula('Texto comum'), 'Texto comum');
     assert.equal(protectSpreadsheetFormula(-42), '-42');
 });
