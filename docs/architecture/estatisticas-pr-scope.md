@@ -1,0 +1,1 @@
+Arquivo de escopo temporário do PR.
