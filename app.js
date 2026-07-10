@@ -5038,33 +5038,66 @@ function isAnaliseValueStarted(value) {
     return Boolean(value && value !== 'Não analisado');
 }
 
+const VERIFICATION_DOCUMENT_LABELS = Object.freeze({
+    extCC: 'Extrato Conta Corrente',
+    extINV: 'Extrato Investimento',
+    notaFiscal: 'Notas Fiscais',
+    consAssessoria: 'Consulta Assessoria',
+    declBBAgil: 'Declaração BB Ágil',
+    encampInventario: 'Encaminhado para Inventariação'
+});
+
+function buildVerificationSnapshot(verification) {
+    const emptyVerification = window.RadarFluxoOperacional.createEmptyVerification();
+
+    if (!verification) {
+        return emptyVerification;
+    }
+
+    return {
+        ...emptyVerification,
+        ...verification,
+        bonificacao: {
+            ...emptyVerification.bonificacao,
+            ...(verification.bonificacao || {})
+        },
+        analise: {
+            ...emptyVerification.analise,
+            ...(verification.analise || {})
+        },
+        resultadoBonif: verification.resultadoBonif || ''
+    };
+}
+
+function ensureProgramVerification(escolaId, compProgKey) {
+    if (!verificacoes[escolaId]) {
+        verificacoes[escolaId] = {};
+    }
+
+    const verification = buildVerificationSnapshot(verificacoes[escolaId][compProgKey]);
+    verificacoes[escolaId][compProgKey] = verification;
+    return verification;
+}
+
+function reopenConsolidationForAssistant(escolaId, compProgKey, verification, hasChanged) {
+    if (!hasChanged || currentProfile !== 'assistente' || !verification.resultadoBonif) {
+        return;
+    }
+
+    const previousResult = verification.resultadoBonif;
+    verification.resultadoBonif = '';
+    const esc = escolas.find(item => item.id === escolaId);
+    registerLog(
+        'Consolidação Reaberta',
+        `A consolidação ${previousResult.toUpperCase()} da escola ${esc ? esc.denominação : escolaId} para ${compProgKey} foi reaberta após alteração da bonificação.`
+    );
+}
+
 function getProgramVerificationStatus(escolaId, compKey, progId) {
     const compProgKey = `${compKey}_${progId}`;
-    const v = verificacoes[escolaId]?.[compProgKey];
-
-    if (!v) return 'nao-lancado';
-
-    const analiseVals = Object.values(v.analise || {});
-    const bonifVals = Object.values(v.bonificacao || {});
-    const temIncorreto = analiseVals.includes('Incorreto');
-
-    if (v.resultadoBonif === 'inapta' || temIncorreto) {
-        return 'inapta';
-    }
-
-    const analisesConcluidas = analiseVals.length > 0
-        && analiseVals.every(x => x === 'Correto' || x === 'Correto (Atrasado)')
-        && !analiseVals.includes('Não analisado');
-
-    if (v.resultadoBonif === 'apta' || analisesConcluidas) {
-        return 'apta';
-    }
-
-    const hasStarted = analiseVals.some(isAnaliseValueStarted)
-        || bonifVals.some(isBonificacaoValueStarted)
-        || Boolean(v.resultadoBonif);
-
-    return hasStarted ? 'em-andamento' : 'nao-lancado';
+    return window.RadarFluxoOperacional.getProgramOperationalStatus(
+        verificacoes[escolaId]?.[compProgKey]
+    );
 }
 
 function getProgramStatusMeta(status) {
@@ -8557,26 +8590,17 @@ function renderProntuarioVerificacoes(esc) {
                 const progName = prog ? prog.name : progId;
                 const compProgKey = `${c.key}_${progId}`;
 
-                // Recupera verificação existente ou cria estado vazio na memória local
-                if (!verificacoes[esc.id]) verificacoes[esc.id] = {};
-                if (!verificacoes[esc.id][compProgKey]) {
-                    verificacoes[esc.id][compProgKey] = {
-                        bonificacao: {},
-                        analise: {},
-                        resultadoBonif: ''
-                    };
-                    docItems.forEach(item => {
-                        verificacoes[esc.id][compProgKey].bonificacao[item.key] = '';
-                        verificacoes[esc.id][compProgKey].analise[item.key] = 'Não analisado';
-                    });
-                }
-
-                const v = verificacoes[esc.id][compProgKey];
+                // A grade usa um estado vazio transitório; só um comando do usuário cria a verificação.
+                const v = buildVerificationSnapshot(verificacoes[esc.id]?.[compProgKey]);
 
                 // Montar a sub-linha com cada documento
                 docItems.forEach((doc, idx) => {
                     const bonifValue = v.bonificacao[doc.key] || '';
                     const analiseValue = v.analise[doc.key] || 'Não analisado';
+                    const isBonifLocked = (v.resultadoBonif && currentProfile !== 'assistente')
+                        || currentProfile === 'inventario'
+                        || currentProfile === 'sme';
+                    const isAnaliseLocked = currentProfile === 'inventario' || currentProfile === 'sme';
                     
                     // Determinar o resultado final da bonificação na competência (Apta/Inapta)
                     let bonifConsolidadoText = '';
@@ -8620,8 +8644,8 @@ function renderProntuarioVerificacoes(esc) {
                             </span>
                         `).join('');
                         
-                        const addBtn = (currentProfile !== 'inventario' && currentProfile !== 'sme' && bonifValue !== 'Não se aplica' && (analiseValue === 'Correto' || analiseValue === 'Correto (Atrasado)')) ? `
-                            <button class="btn btn-secondary btn-sm" style="font-size:0.65rem; padding: 2px 6px; display: inline-flex; align-items: center; margin-bottom: 4px;" onclick="openModalDadosNota('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">>
+                        const addBtn = window.RadarFluxoOperacional.canRegisterFiscalNote(currentProfile, bonifValue) ? `
+                            <button class="btn btn-secondary btn-sm" style="font-size:0.65rem; padding: 2px 6px; display: inline-flex; align-items: center; margin-bottom: 4px;" onclick="openModalDadosNota('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">
                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:2px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                                 Adicionar Nota
                             </button>
@@ -8657,12 +8681,6 @@ function renderProntuarioVerificacoes(esc) {
                             `;
                         }
                     }
-
-                    // Bloqueio de bonificação: se consolidada (e não for assistente) ou se perfil for inventário/SME
-                    const isBonifLocked = (v.resultadoBonif && currentProfile !== 'assistente') || (currentProfile === 'inventario') || (currentProfile === 'sme');
-
-                    // Bloqueio de análise técnica: apenas se perfil for inventário ou SME (nunca trava por consolidação para controlador/assistente)
-                    const isAnaliseLocked = (currentProfile === 'inventario') || (currentProfile === 'sme');
 
                     rowsHTML += `
                         <tr>
@@ -8727,31 +8745,32 @@ function changeProntuarioCompetencia(escolaId, compKey) {
 // 14.2 Operações de Clique Bonificação
 function toggleBonif(escolaId, compKey, docKey, value) {
     if (currentProfile === 'inventario' || currentProfile === 'sme') return;
-    
+
+    const v = ensureProgramVerification(escolaId, compKey);
+
     // Regra: Não permitir alterar bonificação se o mês estiver consolidado
-    const v = verificacoes[escolaId][compKey];
     if (v.resultadoBonif && currentProfile !== 'assistente') {
         alert('Esta competência já foi consolidada. Apenas o(a) Assistente de Verbas Federais pode fazer ajustes retroativos na bonificação.');
         return;
     }
 
+    const registeredNotes = notasRegistradas.filter(nota => (
+        nota.escolaId === escolaId && nota.compKey === compKey
+    ));
+    if (docKey === 'notaFiscal' && value === 'Não se aplica' && registeredNotes.length > 0) {
+        const noteNumbers = registeredNotes.map(nota => nota.numero).join(', ');
+        persist();
+        alert(`Existem notas fiscais cadastradas (${noteNumbers}). Para marcar N/A, faça a exclusão individual de cada nota antes. Nenhuma nota ou bem foi excluído.`);
+        renderProntuario(escolaId);
+        return;
+    }
+
+    const hasChanged = v.bonificacao[docKey] !== value;
     v.bonificacao[docKey] = value;
-    
+
     // Regra Automática: Se Nota Fiscal = Não se aplica, automaticamente Encaminhado Inventário e Consulta Assessoria = Não se aplica
     if (docKey === 'notaFiscal') {
         if (value === 'Não se aplica') {
-            // Remover todas as notas registradas para este compKey/escola
-            const notesToDelete = notasRegistradas.filter(n => n.escolaId === escolaId && n.compKey === compKey);
-            notesToDelete.forEach(nota => {
-                if (nota.bemId) {
-                    bens = bens.filter(b => b.id !== nota.bemId);
-                    if (supabaseClient) supabaseClient.from('bens').delete().eq('id', nota.bemId).then();
-                }
-                if (supabaseClient) supabaseClient.from('notas_registradas').delete().eq('id', nota.id).then();
-            });
-            rebuildOperationalIndexes();
-            notasRegistradas = notasRegistradas.filter(n => !(n.escolaId === escolaId && n.compKey === compKey));
-
             v.bonificacao['encampInventario'] = 'Não se aplica';
             v.analise['encampInventario'] = 'Correto';
             v.bonificacao['consAssessoria'] = 'Não se aplica';
@@ -8770,6 +8789,7 @@ function toggleBonif(escolaId, compKey, docKey, value) {
         }
     }
 
+    reopenConsolidationForAssistant(escolaId, compKey, v, hasChanged);
     persist();
     renderProntuario(escolaId);
 }
@@ -8777,24 +8797,29 @@ function toggleBonif(escolaId, compKey, docKey, value) {
 // 14.3 Operações de Clique Análise Técnica
 function changeAnaliseTecnica(escolaId, compKey, docKey, value) {
     if (currentProfile === 'inventario' || currentProfile === 'sme') return;
-    const v = verificacoes[escolaId][compKey];
+    const v = ensureProgramVerification(escolaId, compKey);
     
     // Regra Operacional: Não permitir preencher análise técnica se a entrega do drive estiver vazia (Sim, Não, N/A)
     if (value !== 'Não analisado' && (!v.bonificacao[docKey] || v.bonificacao[docKey] === '')) {
+        persist();
         alert('Você não pode alterar a análise técnica sem antes preencher o status de entrega no Drive (Sim, Não ou N/A).');
         renderProntuario(escolaId);
         return;
     }
 
-    // Regra Operacional: Se a entrega do Drive for "Sim" e estiver definindo como "Correto" ou "Correto (Atrasado)" para Notas Fiscais,
-    // exige que exista pelo menos uma nota fiscal cadastrada no sistema
-    if (docKey === 'notaFiscal' && (value === 'Correto' || value === 'Correto (Atrasado)') && v.bonificacao['notaFiscal'] === 'Sim') {
-        const count = notasRegistradas.filter(n => n.escolaId === escolaId && n.compKey === compKey).length;
-        if (count === 0) {
-            alert('Você declarou que há entrega de Notas Fiscais no Drive (Sim), mas não cadastrou nenhuma Nota Fiscal no sistema. Por favor, cadastre pelo menos uma Nota Fiscal antes de marcar como Correto.');
-            renderProntuario(escolaId);
-            return;
-        }
+    const fiscalNotes = notasRegistradas.filter(nota => (
+        nota.escolaId === escolaId && nota.compKey === compKey
+    ));
+    if (docKey === 'notaFiscal' && window.RadarFluxoOperacional.shouldRequireFiscalNote({
+        bonificacaoNotaFiscal: v.bonificacao.notaFiscal,
+        analiseValue: value,
+        fiscalNotes
+    })) {
+        persist();
+        alert('Você declarou que há entrega de Notas Fiscais no Drive (Sim), mas não cadastrou nenhuma Nota Fiscal no sistema. Por favor, cadastre pelo menos uma Nota Fiscal antes de marcar como Correto.');
+        renderProntuario(escolaId);
+        openModalDadosNota(escolaId, compKey);
+        return;
     }
 
     const oldValue = v.analise[docKey];
@@ -8858,14 +8883,6 @@ function changeAnaliseTecnica(escolaId, compKey, docKey, value) {
         document.getElementById('pend-obs').value = `Identificado erro técnico na conferência de ${docNames[docKey]} de ${compLabel}.`;
     }
     
-    // Nova Regra Operacional: Se a análise técnica de Notas Fiscais for marcada como "Correto" ou "Correto (Atrasado)",
-    // abre o modal para inserir os dados do gasto correspondente
-    if (docKey === 'notaFiscal' && (value === 'Correto' || value === 'Correto (Atrasado)')) {
-        if (v.bonificacao['notaFiscal'] !== 'Não se aplica') {
-            openModalDadosNota(escolaId, compKey);
-        }
-    }
-    
     renderProntuario(escolaId);
 }
 
@@ -8876,10 +8893,10 @@ function openModalDadosNota(escolaId, compKey) {
         alert('Não é possível adicionar notas fiscais para competências marcadas como "Não se aplica".');
         return;
     }
+    document.getElementById('form-dados-nota').reset();
     document.getElementById('nota-escola-id').value = escolaId;
     document.getElementById('nota-comp-key').value = compKey;
     document.getElementById('nota-id').value = '';
-    document.getElementById('form-dados-nota').reset();
     
     // Restaurar título e botão do modal para modo padrão
     document.querySelector('#modal-dados-nota h3').innerText = 'Dados da Nota Fiscal / Despesa';
@@ -9086,8 +9103,7 @@ function abrirEditarNota(notaId, escolaId) {
 
 function toggleConsEnviada(escolaId, compKey, isChecked) {
     if (currentProfile === 'inventario' || currentProfile === 'sme') return;
-    const v = verificacoes[escolaId]?.[compKey];
-    if (!v) return;
+    const v = ensureProgramVerification(escolaId, compKey);
 
     if (v.resultadoBonif && currentProfile !== 'assistente') {
         alert('Esta competência já foi consolidada. Apenas o(a) Assistente de Verbas Federais pode fazer ajustes retroativos.');
@@ -9098,7 +9114,9 @@ function toggleConsEnviada(escolaId, compKey, isChecked) {
     if (!v.bonificacao) {
         v.bonificacao = {};
     }
+    const hasChanged = Boolean(v.bonificacao.consEnviada) !== Boolean(isChecked);
     v.bonificacao['consEnviada'] = isChecked;
+    reopenConsolidationForAssistant(escolaId, compKey, v, hasChanged);
 
     const esc = escolas.find(x => x.id === escolaId);
     registerLog('Consulta Assessoria Enviada Toggled', `Status de consultoria enviada para ${compKey} da escola ${esc ? esc.denominação : escolaId} definido como ${isChecked}.`);
@@ -9161,43 +9179,23 @@ function removerNotaRegistrada(notaId, escolaId) {
 // 14.4 Regra de Consolidação de Bonificação (Apta / Inapta)
 function calcularEFecharBonificacao(escolaId, compKey) {
     if (currentProfile === 'inventario' || currentProfile === 'sme') return;
-    const v = verificacoes[escolaId]?.[compKey];
-    if (!v || !v.bonificacao) return;
+    const v = ensureProgramVerification(escolaId, compKey);
+    const evaluation = window.RadarFluxoOperacional.evaluateBonification(v.bonificacao);
 
-    // Regra: Para ser APTA na bonificação, as obrigações fundamentais e condicionais ativas devem estar como "Sim"
-    // Extrato CC, Extrato Investimento, BB Ágil devem ser obrigatoriamente "Sim"
-    // Notas fiscais, Consulta Assessoria, Encamp Inventário devem ser "Sim" se não forem "Não se aplica"
-    
-    let isApta = true;
-    
-    const CC = v.bonificacao['extCC'];
-    const INV = v.bonificacao['extINV'];
-    const BBA = v.bonificacao['declBBAgil'];
-    const NF = v.bonificacao['notaFiscal'];
-    const ASS = v.bonificacao['consAssessoria'];
-    const INV_ENC = v.bonificacao['encampInventario'];
-    
-    // CC, INV, BBA são obrigatórios e não aceitam N/A
-    if (CC !== 'Sim' || INV !== 'Sim' || BBA !== 'Sim') {
-        isApta = false;
-    }
-    
-    // Condicionais
-    if (NF === 'Não' || ASS === 'Não' || INV_ENC === 'Não') {
-        isApta = false;
-    }
-    
-    // Se não preencheu algum obrigatório
-    if (!CC || !INV || !BBA) {
-        alert('Por favor, preencha todos os itens de bonificação antes de consolidar.');
+    if (!evaluation.canConsolidate) {
+        const missingLabels = evaluation.missingFields
+            .map(key => VERIFICATION_DOCUMENT_LABELS[key] || key)
+            .join(', ');
+        persist();
+        alert(`Preencha todos os itens de bonificação antes de consolidar. Campos ausentes ou inválidos: ${missingLabels}.`);
+        renderProntuario(escolaId);
         return;
     }
 
     const esc = escolas.find(e => e.id === escolaId);
-    const resultado = isApta ? 'apta' : 'inapta';
-    v.resultadoBonif = resultado;
+    v.resultadoBonif = evaluation.status;
     
-    registerLog('Bonificação Consolidada', `A bonificação da escola ${esc ? esc.denominação : ''} para ${compKey} foi fechada como "${resultado.toUpperCase()}".`);
+    registerLog('Bonificação Consolidada', `A bonificação da escola ${esc ? esc.denominação : ''} para ${compKey} foi fechada como "${evaluation.status.toUpperCase()}".`);
     
     persist();
     renderProntuario(escolaId);
