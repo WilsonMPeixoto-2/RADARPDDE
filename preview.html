@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RADAR PDDE — Prévia operacional</title>
+  <style>
+    body { margin: 0; font-family: system-ui, sans-serif; background: #f8f7fc; color: #201a30; }
+    .preview-loader { min-height: 100vh; display: grid; place-items: center; padding: 24px; text-align: center; }
+    .preview-loader strong { display: block; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+  <div class="preview-loader" id="preview-loader">
+    <div>
+      <strong>Carregando a prévia operacional do RADAR PDDE…</strong>
+      <span>Dashboard e Carteira de Escolas do primeiro bloco.</span>
+    </div>
+  </div>
+  <script>
+    (async function loadPreview() {
+      try {
+        const response = await fetch('./index.html', { cache: 'no-store' });
+        if (!response.ok) throw new Error('Não foi possível carregar a aplicação base.');
+
+        let html = await response.text();
+        const closeScript = '</scr' + 'ipt>';
+        const appTag = '<scr' + 'ipt src="app.js">' + closeScript;
+        const scripts = [
+          '<scr' + 'ipt src="src/domain/jornada-operacional.js">' + closeScript,
+          appTag,
+          '<scr' + 'ipt src="preview/operational-data.js">' + closeScript,
+          '<scr' + 'ipt src="preview/operational-dashboard.js">' + closeScript,
+          '<scr' + 'ipt src="preview/operational-portfolio.js">' + closeScript
+        ].join('\n');
+
+        html = html.replace(
+          '<link rel="stylesheet" href="styles.css">',
+          '<link rel="stylesheet" href="styles.css">\n<link rel="stylesheet" href="preview/operational-preview.css">'
+        );
+        html = html.replace(appTag, scripts);
+        html = html.replace(
+          '<title>RADAR PDDE - Registro de Acompanhamento das Demandas, Análises e Regularizações</title>',
+          '<title>RADAR PDDE — Prévia operacional</title>'
+        );
+
+        document.open();
+        document.write(html);
+        document.close();
+      } catch (error) {
+        const loader = document.getElementById('preview-loader');
+        loader.innerHTML = '<div><strong>Não foi possível abrir a prévia.</strong><span>' + String(error.message || error) + '</span></div>';
+      }
+    }());
+  </script>
+</body>
+</html>
