@@ -1,4 +1,7 @@
 node_modules/
 .vercel/
 .playwright-cli/
+playwright-report/
+test-results/
+blob-report/
 npm-debug.log*
