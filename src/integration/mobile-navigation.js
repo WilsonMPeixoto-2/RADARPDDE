@@ -136,7 +136,15 @@
                 const focusTarget = lastFocusedElement && typeof lastFocusedElement.focus === 'function'
                     ? lastFocusedElement
                     : menuButton;
-                focusTarget.focus({ preventScroll: true });
+                const restoreFocus = () => {
+                    try {
+                        focusTarget.focus({ preventScroll: true });
+                    } catch (error) {
+                        focusTarget.focus();
+                    }
+                };
+                restoreFocus();
+                root.setTimeout(restoreFocus, 0);
             }
         }
 
