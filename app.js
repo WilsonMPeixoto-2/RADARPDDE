@@ -5093,6 +5093,27 @@ function reopenConsolidationForAssistant(escolaId, compProgKey, verification, ha
     );
 }
 
+function hasBonificationChanged(before, after) {
+    const keys = new Set([
+        ...Object.keys(before || {}),
+        ...Object.keys(after || {})
+    ]);
+
+    return Array.from(keys).some(key => !Object.is(before?.[key], after?.[key]));
+}
+
+function blockConsolidatedFiscalNoteMutation(escolaId, compProgKey) {
+    const verification = verificacoes[escolaId]?.[compProgKey];
+
+    if (!verification?.resultadoBonif || currentProfile === 'assistente') {
+        return false;
+    }
+
+    alert('Esta competência está consolidada. Apenas o(a) Assistente de Verbas Federais pode incluir, editar ou excluir Notas Fiscais.');
+    renderProntuario(escolaId);
+    return true;
+}
+
 function getProgramVerificationStatus(escolaId, compKey, progId) {
     const compProgKey = `${compKey}_${progId}`;
     return window.RadarFluxoOperacional.getProgramOperationalStatus(
@@ -8637,14 +8658,14 @@ function renderProntuarioVerificacoes(esc) {
                         const notesBadges = notes.map(n => `
                             <span class="badge badge-info" style="display: inline-flex; align-items: center; margin-right: 4px; margin-bottom: 4px; padding: 4px 8px; font-size: 0.7rem; font-weight: 500;">
                                 NF: ${escapeHtml(n.numero)} (R$ ${n.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})})
-                                ${currentProfile !== 'inventario' && currentProfile !== 'sme' ? `
+                                ${currentProfile !== 'inventario' && currentProfile !== 'sme' && !isBonifLocked ? `
                                     <span style="margin-left: 6px; cursor: pointer; font-weight: bold; color: var(--warning); font-size: 0.85rem;" onclick="abrirEditarNota('${escapeHtml(n.id)}', '${escapeHtml(esc.id)}')" title="Editar Nota">✎</span>
                                     <span style="margin-left: 6px; cursor: pointer; font-weight: bold; color: var(--danger); font-size: 0.85rem;" onclick="removerNotaRegistrada('${escapeHtml(n.id)}', '${escapeHtml(esc.id)}')" title="Excluir Nota">×</span>
                                 ` : ''}
                             </span>
                         `).join('');
                         
-                        const addBtn = window.RadarFluxoOperacional.canRegisterFiscalNote(currentProfile, bonifValue) ? `
+                        const addBtn = window.RadarFluxoOperacional.canRegisterFiscalNote(currentProfile, bonifValue) && !isBonifLocked ? `
                             <button class="btn btn-secondary btn-sm" style="font-size:0.65rem; padding: 2px 6px; display: inline-flex; align-items: center; margin-bottom: 4px;" onclick="openModalDadosNota('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">
                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:2px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                                 Adicionar Nota
@@ -8765,7 +8786,7 @@ function toggleBonif(escolaId, compKey, docKey, value) {
         return;
     }
 
-    const hasChanged = v.bonificacao[docKey] !== value;
+    const bonificationBefore = { ...v.bonificacao };
     v.bonificacao[docKey] = value;
 
     // Regra Automática: Se Nota Fiscal = Não se aplica, automaticamente Encaminhado Inventário e Consulta Assessoria = Não se aplica
@@ -8789,7 +8810,12 @@ function toggleBonif(escolaId, compKey, docKey, value) {
         }
     }
 
-    reopenConsolidationForAssistant(escolaId, compKey, v, hasChanged);
+    reopenConsolidationForAssistant(
+        escolaId,
+        compKey,
+        v,
+        hasBonificationChanged(bonificationBefore, v.bonificacao)
+    );
     persist();
     renderProntuario(escolaId);
 }
@@ -8888,6 +8914,10 @@ function changeAnaliseTecnica(escolaId, compKey, docKey, value) {
 
 // 14.5 Operações de Registro de Dados da Nota Fiscal (Via Análise Técnica)
 function openModalDadosNota(escolaId, compKey) {
+    if (blockConsolidatedFiscalNoteMutation(escolaId, compKey)) {
+        return;
+    }
+
     const v = verificacoes[escolaId]?.[compKey];
     if (v && v.bonificacao && v.bonificacao['notaFiscal'] === 'Não se aplica') {
         alert('Não é possível adicionar notas fiscais para competências marcadas como "Não se aplica".');
@@ -8913,10 +8943,23 @@ function salvarDadosNota(e) {
     const compKey = document.getElementById('nota-comp-key').value; // Formato: 2026-05_BASIC ou similar
 
     const v = verificacoes[escolaId]?.[compKey];
+    if (blockConsolidatedFiscalNoteMutation(escolaId, compKey)) {
+        closeModal('modal-dados-nota');
+        return;
+    }
     if (v && v.bonificacao && v.bonificacao['notaFiscal'] === 'Não se aplica') {
         alert('Não é possível adicionar notas fiscais para competências marcadas como "Não se aplica".');
         closeModal('modal-dados-nota');
         return;
+    }
+
+    const existingNote = notaId
+        ? notasRegistradas.find(nota => nota.id === notaId)
+        : null;
+    if (notaId && !existingNote) return;
+
+    if (v) {
+        reopenConsolidationForAssistant(escolaId, compKey, v, true);
     }
     
     const desc = document.getElementById('nota-desc').value.trim();
@@ -8934,8 +8977,7 @@ function salvarDadosNota(e) {
 
     if (notaId) {
         // MODO EDICAO
-        const nota = notasRegistradas.find(n => n.id === notaId);
-        if (!nota) return;
+        const nota = existingNote;
 
         const oldTipo = nota.tipo;
         const oldBemId = nota.bemId;
@@ -9085,6 +9127,7 @@ function salvarDadosNota(e) {
 function abrirEditarNota(notaId, escolaId) {
     const nota = notasRegistradas.find(n => n.id === notaId);
     if (!nota) return;
+    if (blockConsolidatedFiscalNoteMutation(escolaId, nota.compKey)) return;
 
     document.getElementById('nota-escola-id').value = escolaId;
     document.getElementById('nota-comp-key').value = nota.compKey;
@@ -9127,11 +9170,18 @@ function toggleConsEnviada(escolaId, compKey, isChecked) {
 
 function removerNotaRegistrada(notaId, escolaId) {
     if (currentProfile === 'inventario' || currentProfile === 'sme') return;
-    if (!confirm('Deseja realmente remover esta nota fiscal registrada?')) return;
-    
     const idx = notasRegistradas.findIndex(n => n.id === notaId);
+    if (idx === -1) return;
+
+    const nota = notasRegistradas[idx];
+    if (blockConsolidatedFiscalNoteMutation(escolaId, nota.compKey)) return;
+    if (!confirm('Deseja realmente remover esta nota fiscal registrada?')) return;
+
     if (idx !== -1) {
-        const nota = notasRegistradas[idx];
+        const verification = verificacoes[escolaId]?.[nota.compKey];
+        if (verification) {
+            reopenConsolidationForAssistant(escolaId, nota.compKey, verification, true);
+        }
         
         // Se a nota tiver bemId associado, remove do inventário (bens)
         if (nota.bemId) {

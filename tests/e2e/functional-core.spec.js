@@ -92,6 +92,17 @@ function fiscalNoteRow(page) {
   return page.locator('#prontuario-verif-rows tr').filter({ hasText: 'Notas Fiscais' }).first();
 }
 
+async function setConsolidatedProgram(page, context, options = {}) {
+  await page.evaluate(({ context: target, profile, bonificacao }) => {
+    const verification = verificacoes[target.escolaId][target.compProgKey];
+    Object.assign(verification.bonificacao, bonificacao || {});
+    verification.resultadoBonif = 'apta';
+    switchProfile(profile || 'controlador');
+    activeProntuarioCompetencia = target.compProgKey.slice(0, 7);
+    switchView('prontuario', target.escolaId);
+  }, { context, ...options });
+}
+
 test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
   test('painel SME conta cada escola uma única vez nos indicadores', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
@@ -227,5 +238,139 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
       bemExists: bens.some(bem => bem.id === 'bem-e2e-preservado')
     }), context)).toEqual({ noteCount: 1, bemExists: true });
     await expect(fiscalNoteRow(page).getByText('NF: NF-PRESERVADA-E2E')).toBeVisible();
+  });
+
+  test('bloqueia criação edição e remoção de nota consolidada para Controlador', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+
+    const dialogs = [];
+    page.on('dialog', async dialog => {
+      dialogs.push(dialog.message());
+      await dialog.accept();
+    });
+
+    await page.goto('/');
+    const context = await openOperationalProgram(page, {
+      initialized: true,
+      note: {
+        desc: 'Material consolidado',
+        tipo: 'consumo',
+        numero: 'NF-CONSOLIDADA-E2E',
+        valor: 120
+      }
+    });
+    await setConsolidatedProgram(page, context, { profile: 'controlador' });
+
+    const noteRow = fiscalNoteRow(page);
+    await expect(noteRow.getByRole('button', { name: 'Adicionar Nota' })).toHaveCount(0);
+    await expect(noteRow.locator('[title="Editar Nota"]')).toHaveCount(0);
+    await expect(noteRow.locator('[title="Excluir Nota"]')).toHaveCount(0);
+
+    await page.evaluate(({ escolaId, compProgKey }) => {
+      openModalDadosNota(escolaId, compProgKey);
+      abrirEditarNota('nota-e2e-consumo', escolaId);
+      removerNotaRegistrada('nota-e2e-consumo', escolaId);
+    }, context);
+
+    await expect(page.locator('#modal-dados-nota')).not.toHaveClass(/show/);
+    expect(await page.evaluate(({ escolaId, compProgKey }) => ({
+      noteCount: notasRegistradas.filter(note => (
+        note.escolaId === escolaId && note.compKey === compProgKey
+      )).length,
+      result: verificacoes[escolaId][compProgKey].resultadoBonif
+    }), context)).toEqual({ noteCount: 1, result: 'apta' });
+    expect(dialogs.filter(message => message.includes('consolidada')).length).toBeGreaterThanOrEqual(3);
+  });
+
+  test('Assistente reabre consolidação ao incluir serviço editar e remover nota', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+
+    page.on('dialog', dialog => dialog.accept());
+
+    await page.goto('/');
+    const context = await openOperationalProgram(page, { initialized: true });
+    await setConsolidatedProgram(page, context, { profile: 'assistente' });
+
+    await fiscalNoteRow(page).getByRole('button', { name: 'Adicionar Nota' }).click();
+    await page.locator('#nota-desc').fill('Consultoria especializada');
+    await page.locator('#nota-tipo').selectOption('servico');
+    await page.locator('#nota-numero').fill('NF-SERV-CONSOLIDADA');
+    await page.locator('#nota-valor').fill('780');
+    await page.locator('#form-dados-nota button[type="submit"]').click();
+
+    expect(await page.evaluate(({ escolaId, compProgKey }) => {
+      const verification = verificacoes[escolaId][compProgKey];
+      const persistedVerification = JSON.parse(
+        localStorage.getItem('radar_pdde_verificacoes')
+      )[escolaId][compProgKey];
+      return {
+        result: verification.resultadoBonif,
+        persistedResult: persistedVerification.resultadoBonif,
+        assessoria: verification.bonificacao.consAssessoria,
+        assessoriaAnalysis: verification.analise.consAssessoria,
+        reopenLogs: logs.filter(log => log.acao === 'Consolidação Reaberta').length
+      };
+    }, context)).toEqual({
+      result: '',
+      persistedResult: '',
+      assessoria: 'Não',
+      assessoriaAnalysis: 'Não analisado',
+      reopenLogs: 1
+    });
+
+    await page.evaluate(({ escolaId, compProgKey }) => {
+      verificacoes[escolaId][compProgKey].resultadoBonif = 'apta';
+      renderProntuario(escolaId);
+    }, context);
+    await fiscalNoteRow(page).locator('[title="Editar Nota"]').click();
+    await page.locator('#nota-numero').fill('NF-SERV-EDITADA');
+    await page.locator('#form-dados-nota button[type="submit"]').click();
+
+    expect(await page.evaluate(({ escolaId, compProgKey }) => ({
+      result: verificacoes[escolaId][compProgKey].resultadoBonif,
+      numero: notasRegistradas.find(note => (
+        note.escolaId === escolaId && note.compKey === compProgKey
+      )).numero,
+      reopenLogs: logs.filter(log => log.acao === 'Consolidação Reaberta').length
+    }), context)).toEqual({ result: '', numero: 'NF-SERV-EDITADA', reopenLogs: 2 });
+
+    await page.evaluate(({ escolaId, compProgKey }) => {
+      verificacoes[escolaId][compProgKey].resultadoBonif = 'apta';
+      renderProntuario(escolaId);
+    }, context);
+    await fiscalNoteRow(page).locator('[title="Excluir Nota"]').click();
+
+    expect(await page.evaluate(({ escolaId, compProgKey }) => ({
+      result: verificacoes[escolaId][compProgKey].resultadoBonif,
+      noteCount: notasRegistradas.filter(note => (
+        note.escolaId === escolaId && note.compKey === compProgKey
+      )).length,
+      assessoria: verificacoes[escolaId][compProgKey].bonificacao.consAssessoria,
+      reopenLogs: logs.filter(log => log.acao === 'Consolidação Reaberta').length
+    }), context)).toEqual({ result: '', noteCount: 0, assessoria: 'Não se aplica', reopenLogs: 3 });
+  });
+
+  test('reabre consolidação quando valor repetido de NF altera campos derivados', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+
+    await page.goto('/');
+    const context = await openOperationalProgram(page, { initialized: true });
+    await setConsolidatedProgram(page, context, {
+      profile: 'assistente',
+      bonificacao: {
+        notaFiscal: 'Sim',
+        consAssessoria: 'Não se aplica',
+        encampInventario: 'Não se aplica'
+      }
+    });
+
+    await fiscalNoteRow(page).getByRole('button', { name: 'Sim', exact: true }).click();
+
+    expect(await page.evaluate(({ escolaId, compProgKey }) => ({
+      result: verificacoes[escolaId][compProgKey].resultadoBonif,
+      assessoria: verificacoes[escolaId][compProgKey].bonificacao.consAssessoria,
+      inventario: verificacoes[escolaId][compProgKey].bonificacao.encampInventario,
+      reopenLogs: logs.filter(log => log.acao === 'Consolidação Reaberta').length
+    }), context)).toEqual({ result: '', assessoria: '', inventario: '', reopenLogs: 1 });
   });
 });
