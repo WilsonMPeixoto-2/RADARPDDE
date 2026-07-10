@@ -4,15 +4,17 @@
 
 Evoluir o relatório CSV existente para um arquivo `.xlsx` real, acrescentando organização, significado visual e análises opcionais sem reduzir o conteúdo originalmente exportado.
 
+A versão visual aprovada em 10/07/2026 passa a ser a referência funcional e editorial para a implementação. O padrão deve ser adaptado à finalidade operacional do RADAR, sem reproduzir mecanicamente todos os componentes do sistema editorial.
+
 ## Contrato do relatório original
 
-A função `exportDataExcel()` percorre, nesta ordem:
+A função atual `exportDataExcel()` percorre, nesta ordem:
 
 1. todas as escolas;
 2. todas as competências configuradas;
 3. todos os programas vinculados a cada escola.
 
-Uma linha é exportada somente quando existe verificação para a combinação `escola + competência + programa` e `resultadoBonif` está preenchido. Portanto, a granularidade original é:
+Uma linha é exportada somente quando existe verificação para a combinação `escola + competência + programa` e `resultadoBonif` está preenchido. A granularidade original é:
 
 > uma linha por escola, competência e programa com bonificação consolidada.
 
@@ -39,76 +41,145 @@ A aba principal `BONIFICACOES` deve manter os doze campos do CSV original, na me
 
 Nenhum desses campos pode ser removido, agregado, substituído por indicador ou transferido exclusivamente para outra aba.
 
-## Aba principal
+## Estrutura aprovada do arquivo
 
-A aba `BONIFICACOES` será a base oficial do arquivo e deverá:
+A ordem das abas é fixa:
+
+1. `BONIFICACOES` — base principal obrigatória;
+2. `SINTESE` — análises derivadas opcionais;
+3. `QUALIDADE_DADOS` — controle auxiliar opcional;
+4. `METADADOS` — contrato, fonte e dicionário opcional.
+
+Somente `BONIFICACOES` é indispensável. As demais abas podem ser removidas sem perda do relatório básico.
+
+## Aba `BONIFICACOES`
+
+A base oficial deverá:
 
 - conservar o universo de linhas do relatório original;
 - preservar a ordem de escolas, competências e programas;
-- manter o formato legado `MM-AAAA` na coluna Competência, enquanto formatos amigáveis podem aparecer nas abas opcionais;
+- manter o formato legado `MM-AAAA` na coluna Competência;
 - exibir `APTA` e `INAPTA` em texto, mesmo quando houver cor semântica;
 - manter INEP, designação e competência como texto;
-- permitir filtros, ordenação e congelamento de cabeçalhos;
-- evitar gráficos ou resumos que interfiram na leitura da base.
+- disponibilizar filtros e ordenação;
+- congelar as oito primeiras linhas e as três primeiras colunas;
+- iniciar o cabeçalho da tabela na linha 8 e os dados na linha 9;
+- não inserir gráficos ou resumos dentro da base principal.
 
-## Abas opcionais
+### Larguras e alinhamentos aprovados
 
-As abas adicionais devem ser totalmente derivadas da aba principal ou de estruturas explicitamente documentadas. A ausência delas não pode impedir o uso da base.
+| Coluna | Campo | Largura | Alinhamento |
+|---|---|---:|---|
+| A | INEP | 12 | centralizado |
+| B | Denominação | 34 | esquerda |
+| C | Designação | 14 | centralizado |
+| D | Competência | 13 | centralizado |
+| E | Programa | 24 | esquerda |
+| F | Conta corrente | 17 | centralizado |
+| G | Investimento | 17 | centralizado |
+| H | Nota fiscal | 17 | centralizado |
+| I | Assessoria | 17 | centralizado |
+| J | BB Ágil | 17 | centralizado |
+| K | Encaminhado ao inventário | 20 | centralizado |
+| L | Status da bonificação | 21 | centralizado |
 
-### `SINTESE_COMPETENCIA`
+## Aba `SINTESE`
 
-- quantidade de resultados consolidados por competência;
-- quantidade de aptas e inaptas;
-- taxa de aptidão calculada sobre linhas consolidadas;
-- advertência explícita de que a unidade estatística é escola-programa-competência, não escola única.
+A aba aprovada reúne, sem alterar a base:
 
-### `SINTESE_PROGRAMA`
-
+- consolidadas, aptas, inaptas e taxa de aptidão por competência;
 - consolidadas, aptas e inaptas por programa;
-- comparação entre programas sem alterar a base.
+- indicadores gerais calculados sobre linhas consolidadas;
+- gráfico simples por competência, quando útil.
 
-### `QUALIDADE_DADOS`
+A unidade estatística deve ser declarada como `escola × competência × programa`, não como escola única.
 
-- localização de campos ausentes ou substituídos por traço;
-- referência à linha correspondente da aba principal;
-- finalidade de controle, não de reclassificação do resultado.
+## Aba `QUALIDADE_DADOS`
 
-### `METADADOS`
+A aba auxiliar deverá:
+
+- localizar campos ausentes, vazios ou representados por traço;
+- referenciar a linha correspondente da aba `BONIFICACOES`;
+- considerar que a primeira linha de dados da base é a linha 9;
+- ter finalidade de controle, sem reclassificar `APTA` ou `INAPTA`.
+
+### Larguras e alinhamentos aprovados
+
+| Campo | Largura | Alinhamento |
+|---|---:|---|
+| Linha na base | 17 | centralizado |
+| INEP | 14 | centralizado |
+| Designação | 16 | centralizado |
+| Competência | 14 | centralizado |
+| Programa | 26 | esquerda |
+| Campos ausentes | 17 | centralizado |
+| Detalhamento | 40 | esquerda |
+| Situação | 15 | centralizado |
+
+## Aba `METADADOS`
+
+Deverá registrar:
 
 - data e hora da geração;
 - versão do modelo;
 - regra de inclusão;
 - granularidade;
 - escopo temporal;
-- dicionário dos campos;
-- indicação da fonte dos dados.
+- estrutura aprovada das abas;
+- dicionário dos doze campos;
+- fonte dos dados.
+
+Os conteúdos textuais permanecem alinhados à esquerda.
+
+## Semântica visual
+
+A paleta segue o sistema editorial, adaptada ao uso operacional:
+
+- azul estrutural: títulos e estrutura;
+- azul informacional: cabeçalhos;
+- verde: situação positiva;
+- vermelho: situação crítica;
+- âmbar: atenção e revisão;
+- roxo: análise e indicadores derivados;
+- cinza: informação funcional e neutra.
+
+A cor nunca substitui o texto. `APTA`, `INAPTA`, `Completa` e `Revisar` devem permanecer escritos.
+
+## Teste de equivalência
+
+O módulo mantém duas rotas lógicas separadas:
+
+- `buildLegacyLogicalRows()`: espelho da rotina CSV atual;
+- `buildBaseRows()`: modelo da futura aba `BONIFICACOES`.
+
+O relatório de equivalência compara, linha a linha e coluna a coluna:
+
+1. a quantidade de registros;
+2. a ordem dos registros;
+3. os doze valores lógicos;
+4. a presença de consolidados;
+5. a ausência de registros não consolidados.
+
+Qualquer diferença deve bloquear a substituição do CSV.
+
+## Regra de aceite para integração
+
+A exportação `.xlsx` somente poderá substituir a atual quando:
+
+1. o relatório de equivalência retornar `equivalent: true`;
+2. todos os testes automatizados forem aprovados;
+3. a prévia visual reproduzir a versão aprovada;
+4. o CSV atual permanecer disponível até a validação final em produção;
+5. o botão do site for alterado em PR separado, com possibilidade de reversão imediata.
 
 ## Oportunidades posteriores
 
-Após validação da primeira versão, outras abas podem ser acrescentadas sem alterar `BONIFICACOES`:
+Novas análises podem ser acrescentadas em abas opcionais, sempre com origem e regra documentadas:
 
-- análise técnica por documento, distinguindo bonificação e conferência;
+- análise técnica por documento;
 - pendências abertas e resolvidas;
 - inventário e bens permanentes;
 - carteira por controlador e região administrativa;
 - trilha de auditoria da exportação.
 
-Essas abas exigem dados adicionais além do CSV original e, por isso, devem ser implementadas como módulos opcionais com origem e regra próprias.
-
-## Questões corrigidas na evolução para XLSX
-
-- o CSV atual não escapa ponto e vírgula, aspas e quebras de linha;
-- o nome do arquivo sugere uma competência única, embora o conteúdo inclua todas;
-- o CSV não suporta estilos, filtros estruturados, congelamento, metadados ou múltiplas abas;
-- campos ausentes podem aparecer de maneira inconsistente;
-- não existe declaração visível da unidade estatística nem da regra de inclusão.
-
-## Regra de aceite
-
-A exportação `.xlsx` somente poderá substituir a atual quando um teste de equivalência demonstrar que, para o mesmo estado da aplicação:
-
-1. a quantidade de linhas da aba `BONIFICACOES` corresponde à quantidade de linhas do CSV original;
-2. cada linha conserva os mesmos doze valores lógicos;
-3. nenhum registro consolidado é omitido;
-4. nenhum registro não consolidado é inserido;
-5. as abas opcionais podem ser removidas sem perda do relatório básico.
+Essas extensões não poderão modificar o conteúdo da aba `BONIFICACOES`.
