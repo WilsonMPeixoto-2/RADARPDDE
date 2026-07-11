@@ -36,6 +36,64 @@ test('expõe a versão e os quatro estados canônicos imutáveis', () => {
     assert.deepEqual([...ACTIVE_STATUSES], ['Aberta', 'Aguardando reanálise']);
 });
 
+test('impede que mutações do conjunto público alterem a regra de atividade', () => {
+    function attemptMutation(mutate, didChange, restore) {
+        let error = null;
+        try {
+            mutate();
+        } catch (caughtError) {
+            error = caughtError;
+        }
+
+        const changed = didChange();
+        if (changed) {
+            restore();
+        }
+
+        return { changed, error };
+    }
+
+    const addResult = attemptMutation(
+        () => ACTIVE_STATUSES.add('Resolvida'),
+        () => ACTIVE_STATUSES.has('Resolvida'),
+        () => ACTIVE_STATUSES.delete('Resolvida')
+    );
+    const deleteResult = attemptMutation(
+        () => ACTIVE_STATUSES.delete('Aberta'),
+        () => !ACTIVE_STATUSES.has('Aberta'),
+        () => ACTIVE_STATUSES.add('Aberta')
+    );
+    const clearResult = attemptMutation(
+        () => ACTIVE_STATUSES.clear(),
+        () => ACTIVE_STATUSES.size !== 2,
+        () => {
+            ACTIVE_STATUSES.add('Aberta');
+            ACTIVE_STATUSES.add('Aguardando reanálise');
+        }
+    );
+
+    assert.equal(Object.isFrozen(ACTIVE_STATUSES), true);
+    for (const result of [addResult, deleteResult, clearResult]) {
+        assert.equal(result.changed, false);
+        assert.equal(result.error instanceof TypeError, true);
+        assert.match(result.error.message, /imutável/);
+    }
+    assert.equal(isActivePendency({ status: 'Aberta' }), true);
+    assert.equal(isActivePendency({ status: 'Resolvida' }), false);
+});
+
+test('não expõe o Set mutável interno pelo callback de forEach', () => {
+    let callbackSet = null;
+    ACTIVE_STATUSES.forEach((value, repeatedValue, set) => {
+        assert.equal(value, repeatedValue);
+        callbackSet = set;
+    });
+
+    assert.equal(callbackSet, ACTIVE_STATUSES);
+    assert.throws(() => callbackSet.add('Resolvida'), /imutável/);
+    assert.equal(isActivePendency({ status: 'Resolvida' }), false);
+});
+
 test('expõe somente os tipos canônicos de erro documental', () => {
     assert.deepEqual(DOCUMENT_ERROR_TYPES, [
         'Documento ausente',
@@ -96,6 +154,76 @@ test('ignora duplicata resolvida e encontra a ativa no contexto estruturado exat
     const active = { id: 'pend-active', ...DOCUMENT_CONTEXT, status: 'Aberta' };
 
     assert.equal(findActivePendency([resolved, otherProgram, active], DOCUMENT_CONTEXT), active);
+});
+
+test('não seleciona registro canônico ou legado quando o contexto-alvo está incompleto', () => {
+    const canonical = {
+        id: 'pend-canonical',
+        ...DOCUMENT_CONTEXT,
+        status: 'Aberta',
+        item: 'Educação e Família - Extrato Conta Corrente'
+    };
+    const legacy = {
+        id: 'pend-legacy',
+        escolaId: DOCUMENT_CONTEXT.escolaId,
+        competencia: DOCUMENT_CONTEXT.competencia,
+        status: 'Aberta',
+        item: canonical.item
+    };
+    const withoutSchool = {
+        competencia: DOCUMENT_CONTEXT.competencia,
+        programaId: DOCUMENT_CONTEXT.programaId,
+        documentoKey: DOCUMENT_CONTEXT.documentoKey,
+        item: canonical.item
+    };
+    const withoutCompetence = {
+        escolaId: DOCUMENT_CONTEXT.escolaId,
+        programaId: DOCUMENT_CONTEXT.programaId,
+        documentoKey: DOCUMENT_CONTEXT.documentoKey,
+        item: canonical.item
+    };
+
+    assert.equal(findActivePendency([canonical, legacy], withoutSchool), undefined);
+    assert.equal(findActivePendency([canonical, legacy], withoutCompetence), undefined);
+});
+
+test('fallback legado exige escola e competência exatas no contexto-alvo completo', () => {
+    const item = 'Educação e Família - Extrato Conta Corrente';
+    const withoutSchool = {
+        id: 'legacy-without-school',
+        competencia: DOCUMENT_CONTEXT.competencia,
+        status: 'Aberta',
+        item
+    };
+    const withoutCompetence = {
+        id: 'legacy-without-competence',
+        escolaId: DOCUMENT_CONTEXT.escolaId,
+        status: 'Aberta',
+        item
+    };
+    const matchingLegacy = {
+        id: 'legacy-matching',
+        escolaId: DOCUMENT_CONTEXT.escolaId,
+        competencia: DOCUMENT_CONTEXT.competencia,
+        status: 'Aberta',
+        item
+    };
+    const completeTarget = { ...DOCUMENT_CONTEXT, item };
+
+    assert.equal(findActivePendency([withoutSchool], completeTarget), undefined);
+    assert.equal(findActivePendency([withoutCompetence], completeTarget), undefined);
+    assert.equal(findActivePendency([matchingLegacy], completeTarget), matchingLegacy);
+});
+
+test('fallback legado não infere documento quando falta identidade textual', () => {
+    const legacyWithoutItem = {
+        id: 'legacy-without-item',
+        escolaId: DOCUMENT_CONTEXT.escolaId,
+        competencia: DOCUMENT_CONTEXT.competencia,
+        status: 'Aberta'
+    };
+
+    assert.equal(findActivePendency([legacyWithoutItem], DOCUMENT_CONTEXT), undefined);
 });
 
 test('normaliza erros únicos e mantém Documento ausente isolado', () => {

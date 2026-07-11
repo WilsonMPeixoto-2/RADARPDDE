@@ -21,10 +21,12 @@
         RESOLVED: 'Resolvida',
         CANCELLED: 'Cancelada'
     });
-    const ACTIVE_STATUSES = new Set([
+    const ACTIVE_STATUS_VALUES = Object.freeze([
         PENDENCY_STATUS.OPEN,
         PENDENCY_STATUS.AWAITING_REVIEW
     ]);
+    const INTERNAL_ACTIVE_STATUSES = new Set(ACTIVE_STATUS_VALUES);
+    const ACTIVE_STATUSES = createImmutableSet(ACTIVE_STATUS_VALUES);
     const DOCUMENT_ERROR_TYPES = Object.freeze([
         'Documento ausente',
         'Documento ilegível',
@@ -40,6 +42,40 @@
 
     function normalizeText(value) {
         return typeof value === 'string' ? value.trim() : '';
+    }
+
+    function createImmutableSet(values) {
+        const mutatingMethods = new Set(['add', 'delete', 'clear']);
+        const target = new Set(values);
+        let immutableSet;
+
+        function forEach(callback, thisArg) {
+            if (typeof callback !== 'function') {
+                throw new TypeError('Callback de forEach deve ser uma função.');
+            }
+
+            target.forEach(value => {
+                callback.call(thisArg, value, value, immutableSet);
+            });
+        }
+
+        immutableSet = new Proxy(target, {
+            get(set, property) {
+                if (mutatingMethods.has(property)) {
+                    return function blockMutation() {
+                        throw new TypeError('ACTIVE_STATUSES é imutável.');
+                    };
+                }
+                if (property === 'forEach') {
+                    return forEach;
+                }
+
+                const value = Reflect.get(set, property, set);
+                return typeof value === 'function' ? value.bind(set) : value;
+            }
+        });
+
+        return Object.freeze(immutableSet);
     }
 
     function normalizeUniqueNonEmptyStrings(values) {
@@ -59,7 +95,7 @@
     }
 
     function isActivePendency(pendency = {}) {
-        return ACTIVE_STATUSES.has(normalizeText(pendency.status));
+        return INTERNAL_ACTIVE_STATUSES.has(normalizeText(pendency.status));
     }
 
     function isDocumentaryPendency(pendency = {}) {
@@ -101,14 +137,30 @@
         return getStructuredContextParts(context).every(Boolean);
     }
 
-    function matchesContext(pendency, context) {
-        if (hasCompleteStructuredContext(pendency) && hasCompleteStructuredContext(context)) {
+    function sameDocumentContext(pendency, context) {
+        if (!hasCompleteStructuredContext(context)) {
+            return false;
+        }
+
+        if (hasCompleteStructuredContext(pendency)) {
             return buildDocumentContextKey(pendency) === buildDocumentContextKey(context);
         }
 
-        const pendencySchoolId = normalizeText(pendency && pendency.escolaId);
-        const contextSchoolId = normalizeText(context && context.escolaId);
-        if (pendencySchoolId && contextSchoolId && pendencySchoolId !== contextSchoolId) {
+        const pendencyParts = getStructuredContextParts(pendency);
+        const contextParts = getStructuredContextParts(context);
+        const hasExactSchoolAndCompetence = pendencyParts[0] === contextParts[0]
+            && pendencyParts[1] === contextParts[1];
+        const isTextOnlyLegacyContext = !pendencyParts[2] && !pendencyParts[3];
+        const legacyItem = normalizeText(pendency && pendency.item);
+        const hasTargetTextIdentity = Boolean(
+            normalizeText(context && context.item)
+            || normalizeText(context && context.documentoNome)
+        );
+
+        if (!hasExactSchoolAndCompetence
+            || !isTextOnlyLegacyContext
+            || !legacyItem
+            || !hasTargetTextIdentity) {
             return false;
         }
 
@@ -129,7 +181,7 @@
         }
 
         return pendencies.find(pendency => (
-            isActivePendency(pendency) && matchesContext(pendency, context)
+            isActivePendency(pendency) && sameDocumentContext(pendency, context)
         ));
     }
 
