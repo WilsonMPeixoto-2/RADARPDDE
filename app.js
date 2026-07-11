@@ -7744,6 +7744,78 @@ function getCorrectiveSubmissionActionLabel(pendency) {
     return '';
 }
 
+function encodePendencyIdReference(pendencyId) {
+    const type = typeof pendencyId;
+    const validString = type === 'string' && pendencyId.length > 0;
+    const validNumber = type === 'number' && Number.isFinite(pendencyId);
+    if (!validString && !validNumber) {
+        throw new Error('Referência de pendência inválida.');
+    }
+
+    return JSON.stringify({ type, value: pendencyId });
+}
+
+function decodePendencyIdReference(serializedReference) {
+    if (typeof serializedReference !== 'string' || !serializedReference) {
+        throw new Error('Referência de pendência ausente.');
+    }
+
+    let reference;
+    try {
+        reference = JSON.parse(serializedReference);
+    } catch (error) {
+        throw new Error('Referência de pendência malformada.');
+    }
+
+    const isObject = reference && typeof reference === 'object' && !Array.isArray(reference);
+    const hasType = isObject && Object.prototype.hasOwnProperty.call(reference, 'type');
+    const hasValue = isObject && Object.prototype.hasOwnProperty.call(reference, 'value');
+    const validString = hasType
+        && reference.type === 'string'
+        && hasValue
+        && typeof reference.value === 'string'
+        && reference.value.length > 0;
+    const validNumber = hasType
+        && reference.type === 'number'
+        && hasValue
+        && typeof reference.value === 'number'
+        && Number.isFinite(reference.value);
+
+    if (!validString && !validNumber) {
+        throw new Error('Referência de pendência inválida.');
+    }
+    return reference.value;
+}
+
+function resolvePendencyIdReference(source) {
+    const actionElement = source && source.currentTarget
+        ? source.currentTarget
+        : source;
+    if (actionElement && actionElement.dataset && actionElement.dataset.pendencyRef) {
+        return decodePendencyIdReference(actionElement.dataset.pendencyRef);
+    }
+
+    return decodePendencyIdReference(encodePendencyIdReference(source));
+}
+
+function findPendencyById(pendencyId) {
+    return pendencias.find(item => item.id === pendencyId);
+}
+
+function elementMatchesPendencyIdReference(element, pendencyId) {
+    if (!element || !element.dataset || !element.dataset.pendencyRef) return false;
+    try {
+        return decodePendencyIdReference(element.dataset.pendencyRef) === pendencyId;
+    } catch (error) {
+        return false;
+    }
+}
+
+function findPendencyElement(selector, pendencyId) {
+    return Array.from(document.querySelectorAll(selector))
+        .find(element => elementMatchesPendencyIdReference(element, pendencyId)) || null;
+}
+
 function renderPendencias() {
     const container = document.getElementById('main-container');
     let ativas = pendencias.filter(p => window.RadarPendencias.isActivePendency(p));
@@ -7833,7 +7905,7 @@ function renderPendencias() {
 
                                 return `
                                     <tr
-                                        data-pendency-id="${escapeHtml(p.id)}"
+                                        data-pendency-ref="${escapeHtml(encodePendencyIdReference(p.id))}"
                                         data-pendency-status="${escapeHtml(p.status)}"
                                         class="${isSelected ? 'pendency-row-selected' : ''}"
                                         tabindex="-1"
@@ -7861,7 +7933,8 @@ function renderPendencias() {
                                                     <button
                                                         class="btn btn-primary btn-sm"
                                                         data-action="register-corrective-submission"
-                                                        onclick="abrirModalRegistrarNovoEnvio('${escapeHtml(p.id)}')"
+                                                        data-pendency-ref="${escapeHtml(encodePendencyIdReference(p.id))}"
+                                                        onclick="abrirModalRegistrarNovoEnvio(this)"
                                                     >${escapeHtml(submissionActionLabel)}</button>
                                                 ` : ''}
                                             </div>
@@ -7920,7 +7993,7 @@ function renderPendencias() {
 
                                 return `
                                     <tr
-                                        data-pendency-id="${escapeHtml(p.id)}"
+                                        data-pendency-ref="${escapeHtml(encodePendencyIdReference(p.id))}"
                                         class="${isSelected ? 'pendency-row-selected' : ''}"
                                         tabindex="-1"
                                         aria-current="${isSelected ? 'true' : 'false'}"
@@ -7952,15 +8025,14 @@ function renderPendencias() {
 }
 
 function openPendencyDetail(pendencyId) {
-    const pendency = pendencias.find(item => item.id === pendencyId);
+    const pendency = findPendencyById(pendencyId);
     if (!pendency) return false;
 
     activePendencyDetailId = pendency.id;
     switchView('pendencias');
 
     const focusSelectedPendency = () => {
-        const row = Array.from(document.querySelectorAll('[data-pendency-id]'))
-            .find(candidate => candidate.dataset.pendencyId === String(pendency.id));
+        const row = findPendencyElement('tr[data-pendency-ref]', pendency.id);
         if (!row) return;
 
         row.scrollIntoView({ block: 'center', behavior: 'auto' });
@@ -7988,6 +8060,17 @@ function updatePendencyById(pendencyId, nextPendency) {
     if (index === -1) throw new Error('Pendência não encontrada.');
     pendencias[index] = nextPendency;
 }
+
+let registrarNovoEnvioTrigger = null;
+
+const REGISTRAR_NOVO_ENVIO_FOCUSABLE_SELECTOR = [
+    'button:not([disabled])',
+    'input:not([disabled]):not([type="hidden"])',
+    'textarea:not([disabled])',
+    'select:not([disabled])',
+    'a[href]',
+    '[tabindex]:not([tabindex="-1"])'
+].join(',');
 
 function resetRegistrarNovoEnvioForm() {
     const form = document.getElementById('form-registrar-envio');
@@ -8017,6 +8100,116 @@ function cloneSubmissionInvariant(value) {
     return JSON.parse(JSON.stringify(value));
 }
 
+function cloneOperationalIndex(index) {
+    return new Map(Array.from(index.entries()).map(([key, values]) => [
+        key,
+        cloneSubmissionInvariant(values)
+    ]));
+}
+
+function captureCorrectiveSubmissionLocalStorage() {
+    const keys = [...RADAR_STORAGE_KEYS, 'radar_pdde_data_version'];
+    return keys.map(key => {
+        const value = localStorage.getItem(key);
+        return { key, present: value !== null, value };
+    });
+}
+
+function restoreCorrectiveSubmissionLocalStorage(snapshot) {
+    const errors = [];
+    snapshot.forEach(entry => {
+        try {
+            if (entry.present) {
+                localStorage.setItem(entry.key, entry.value);
+            } else {
+                localStorage.removeItem(entry.key);
+            }
+        } catch (error) {
+            errors.push({ key: entry.key, error });
+        }
+    });
+
+    if (errors.length > 0) {
+        const restoreError = new Error(
+            `Não foi possível restaurar ${errors.length} chave(s) do armazenamento local.`
+        );
+        restoreError.storageErrors = errors;
+        throw restoreError;
+    }
+}
+
+function captureCorrectiveSubmissionRollback(current, verification, compProgKey) {
+    return {
+        pendencyId: current.id,
+        pendency: cloneSubmissionInvariant(current),
+        escolaId: current.escolaId,
+        compProgKey,
+        verification: cloneSubmissionInvariant(verification),
+        logs: cloneSubmissionInvariant(logs),
+        pendenciasIndex: cloneOperationalIndex(_pendenciasByEscolaId),
+        bensIndex: cloneOperationalIndex(_bensByEscolaId),
+        localStorage: captureCorrectiveSubmissionLocalStorage()
+    };
+}
+
+function restoreCorrectiveSubmissionRollback(snapshot) {
+    const rollbackErrors = [];
+
+    try {
+        updatePendencyById(snapshot.pendencyId, cloneSubmissionInvariant(snapshot.pendency));
+    } catch (error) {
+        rollbackErrors.push({ step: 'pendência', error });
+    }
+
+    try {
+        if (!verificacoes[snapshot.escolaId]) {
+            throw new Error('Coleção de verificações da escola não encontrada.');
+        }
+        verificacoes[snapshot.escolaId][snapshot.compProgKey] = cloneSubmissionInvariant(
+            snapshot.verification
+        );
+    } catch (error) {
+        rollbackErrors.push({ step: 'verificação', error });
+    }
+
+    try {
+        logs = cloneSubmissionInvariant(snapshot.logs);
+    } catch (error) {
+        rollbackErrors.push({ step: 'logs', error });
+    }
+
+    try {
+        rebuildOperationalIndexes();
+    } catch (error) {
+        try {
+            _pendenciasByEscolaId = cloneOperationalIndex(snapshot.pendenciasIndex);
+            _bensByEscolaId = cloneOperationalIndex(snapshot.bensIndex);
+        } catch (indexRestoreError) {
+            rollbackErrors.push({ step: 'índices', error: indexRestoreError });
+        }
+    }
+
+    try {
+        restoreCorrectiveSubmissionLocalStorage(snapshot.localStorage);
+    } catch (error) {
+        rollbackErrors.push({ step: 'armazenamento local', error });
+    }
+
+    return rollbackErrors;
+}
+
+function getCorrectiveSubmissionFailureMessage(primaryError, rollbackErrors) {
+    const primaryMessage = primaryError && primaryError.message
+        ? primaryError.message
+        : 'Não foi possível registrar o novo envio.';
+    console.error('Falha ao registrar o novo envio.', primaryError);
+
+    if (rollbackErrors.length === 0) return primaryMessage;
+
+    console.error('Falha parcial ao restaurar o novo envio.', rollbackErrors);
+    return `${primaryMessage} A restauração local não pôde ser concluída integralmente; recarregue a página antes de tentar novamente.`;
+}
+
 function verifySubmissionBonificationInvariant(verification, bonificationSnapshot, resultSnapshot) {
     const bonificationChanged = JSON.stringify(verification.bonificacao)
         !== JSON.stringify(bonificationSnapshot);
@@ -8028,8 +8221,110 @@ function verifySubmissionBonificationInvariant(verification, bonificationSnapsho
     }
 }
 
-function abrirModalRegistrarNovoEnvio(pendId) {
-    const pendency = pendencias.find(item => item.id === pendId);
+function getRegistrarNovoEnvioTrigger(source) {
+    const candidate = source && source.currentTarget
+        ? source.currentTarget
+        : source;
+    if (candidate && candidate.dataset && candidate.dataset.pendencyRef) {
+        return candidate;
+    }
+
+    const activeElement = document.activeElement;
+    return activeElement && typeof activeElement.focus === 'function'
+        ? activeElement
+        : null;
+}
+
+function openRegistrarNovoEnvioModal(trigger) {
+    const modal = document.getElementById('modal-registrar-envio');
+    registrarNovoEnvioTrigger = trigger;
+    modal.removeAttribute('inert');
+    modal.setAttribute('aria-hidden', 'false');
+    openModal('modal-registrar-envio');
+    document.getElementById('envio-data-disponibilizacao').focus();
+}
+
+function closeRegistrarNovoEnvioModal({ restoreFocus = true } = {}) {
+    const modal = document.getElementById('modal-registrar-envio');
+    const trigger = registrarNovoEnvioTrigger;
+    modal.classList.remove('show');
+    modal.setAttribute('aria-hidden', 'true');
+    modal.setAttribute('inert', '');
+    registrarNovoEnvioTrigger = null;
+
+    if (restoreFocus && trigger && trigger.isConnected && typeof trigger.focus === 'function') {
+        trigger.focus({ preventScroll: true });
+    }
+}
+
+function handleRegistrarNovoEnvioKeydown(event) {
+    const modal = document.getElementById('modal-registrar-envio');
+    if (!modal || modal.getAttribute('aria-hidden') === 'true') return;
+
+    if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        closeRegistrarNovoEnvioModal();
+        return;
+    }
+
+    if (event.key !== 'Tab') return;
+    const focusable = Array.from(modal.querySelectorAll(
+        REGISTRAR_NOVO_ENVIO_FOCUSABLE_SELECTOR
+    ));
+    if (focusable.length === 0) {
+        event.preventDefault();
+        return;
+    }
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+    }
+}
+
+function focusCorrectiveSubmissionAfterRender(pendencyId) {
+    const focusEquivalentAction = () => {
+        const actions = Array.from(document.querySelectorAll(
+            '[data-action="register-corrective-submission"][data-pendency-ref]'
+        ));
+        const action = actions.find(candidate => (
+            elementMatchesPendencyIdReference(candidate, pendencyId)
+            && candidate.getClientRects().length > 0
+        ));
+        const row = Array.from(document.querySelectorAll('tr[data-pendency-ref]')).find(candidate => (
+            elementMatchesPendencyIdReference(candidate, pendencyId)
+            && candidate.getClientRects().length > 0
+        ));
+        const target = action || row;
+        if (!target) return;
+
+        target.scrollIntoView({ block: 'nearest', behavior: 'auto' });
+        target.focus({ preventScroll: true });
+    };
+
+    if (typeof requestAnimationFrame === 'function') {
+        requestAnimationFrame(focusEquivalentAction);
+    } else {
+        setTimeout(focusEquivalentAction, 0);
+    }
+}
+
+function abrirModalRegistrarNovoEnvio(pendencySource) {
+    let pendencyId;
+    try {
+        pendencyId = resolvePendencyIdReference(pendencySource);
+    } catch (error) {
+        console.error('Não foi possível interpretar a referência da pendência.', error);
+        return false;
+    }
+
+    const pendency = findPendencyById(pendencyId);
     const school = pendency
         ? escolas.find(item => item.id === pendency.escolaId)
         : null;
@@ -8052,7 +8347,7 @@ function abrirModalRegistrarNovoEnvio(pendId) {
     const schoolName = school.denominação || school.denominacao || school.denominaçao || '';
 
     resetRegistrarNovoEnvioForm();
-    document.getElementById('envio-pendencia-id').value = pendency.id;
+    document.getElementById('envio-pendencia-id').value = encodePendencyIdReference(pendency.id);
     document.getElementById('envio-contexto').innerHTML = `
         <dl aria-label="Contexto da pendência">
             <div>
@@ -8070,14 +8365,14 @@ function abrirModalRegistrarNovoEnvio(pendId) {
         </dl>
     `;
 
-    openModal('modal-registrar-envio');
+    openRegistrarNovoEnvioModal(getRegistrarNovoEnvioTrigger(pendencySource));
     return true;
 }
 
 function confirmarRegistrarNovoEnvio(event) {
     event.preventDefault();
     const form = document.getElementById('form-registrar-envio');
-    const pendencyId = document.getElementById('envio-pendencia-id').value;
+    const serializedPendencyId = document.getElementById('envio-pendencia-id').value;
     const availabilityDateInput = document.getElementById('envio-data-disponibilizacao');
     const observationInput = document.getElementById('envio-observacao');
     const linkInput = document.getElementById('envio-link');
@@ -8100,7 +8395,15 @@ function confirmarRegistrarNovoEnvio(event) {
 
     const sourceView = currentView;
     const sourceSchoolId = activeSchoolId;
-    const current = pendencias.find(item => item.id === pendencyId);
+    let pendencyId;
+    try {
+        pendencyId = decodePendencyIdReference(serializedPendencyId);
+    } catch (error) {
+        showRegistrarNovoEnvioError(error.message);
+        return false;
+    }
+
+    const current = findPendencyById(pendencyId);
     const school = current
         ? escolas.find(item => item.id === current.escolaId)
         : null;
@@ -8127,11 +8430,36 @@ function confirmarRegistrarNovoEnvio(event) {
         return false;
     }
 
+    let rollbackSnapshot;
+    try {
+        rollbackSnapshot = captureCorrectiveSubmissionRollback(
+            current,
+            verification,
+            compProgKey
+        );
+    } catch (error) {
+        showRegistrarNovoEnvioError(error && error.message
+            ? error.message
+            : 'Não foi possível preparar o registro do novo envio.');
+        return false;
+    }
+
     const nowIso = new Date().toISOString();
     const user = getCurrentUser();
-    let nextPendency;
+    const bonificationSnapshot = cloneSubmissionInvariant(
+        rollbackSnapshot.verification.bonificacao
+    );
+    const resultSnapshot = cloneSubmissionInvariant(
+        rollbackSnapshot.verification.resultadoBonif
+    );
+    const program = programas.find(item => item.id === current.programaId);
+    const programName = program ? program.name : current.programaId;
+    const documentName = VERIFICATION_DOCUMENT_LABELS[current.documentoKey]
+        || current.documentoKey;
+    const schoolName = school.denominação || school.denominacao || school.denominaçao || '';
+
     try {
-        nextPendency = window.RadarPendencias.registerCorrectiveSubmission(current, {
+        const nextPendency = window.RadarPendencias.registerCorrectiveSubmission(current, {
             id: createPendencyClientId('tentativa'),
             dataDisponibilizacao: availabilityDate,
             observacao: observation,
@@ -8142,24 +8470,6 @@ function confirmarRegistrarNovoEnvio(event) {
             usuario: user.name,
             perfil: user.role
         });
-    } catch (error) {
-        showRegistrarNovoEnvioError(error && error.message
-            ? error.message
-            : 'Não foi possível registrar o novo envio.');
-        return false;
-    }
-
-    const bonificationSnapshot = cloneSubmissionInvariant(verification.bonificacao);
-    const resultSnapshot = cloneSubmissionInvariant(verification.resultadoBonif);
-    const previousAnalysisValue = verification.analise[current.documentoKey];
-    const logsSnapshot = logs.slice();
-    const program = programas.find(item => item.id === current.programaId);
-    const programName = program ? program.name : current.programaId;
-    const documentName = VERIFICATION_DOCUMENT_LABELS[current.documentoKey]
-        || current.documentoKey;
-    const schoolName = school.denominação || school.denominacao || school.denominaçao || '';
-
-    try {
         verification.analise[current.documentoKey] = 'Não analisado';
         updatePendencyById(current.id, nextPendency);
         verifySubmissionBonificationInvariant(
@@ -8172,22 +8482,15 @@ function confirmarRegistrarNovoEnvio(event) {
             'Novo envio registrado',
             `Novo envio de ${documentName} (${current.documentoKey}) no programa ${programName} (${current.programaId}) para ${schoolName}, competência ${competence}, disponibilizado em ${availabilityDate}.`
         );
-    } catch (error) {
-        verification.analise[current.documentoKey] = previousAnalysisValue;
-        logs = logsSnapshot;
-        try {
-            updatePendencyById(current.id, current);
-            rebuildOperationalIndexes();
-        } catch (rollbackError) {
-            console.error('Falha ao restaurar o registro do novo envio.', rollbackError);
-        }
-        showRegistrarNovoEnvioError(error && error.message
-            ? error.message
-            : 'Não foi possível registrar o novo envio.');
+    } catch (primaryError) {
+        const rollbackErrors = restoreCorrectiveSubmissionRollback(rollbackSnapshot);
+        showRegistrarNovoEnvioError(
+            getCorrectiveSubmissionFailureMessage(primaryError, rollbackErrors)
+        );
         return false;
     }
 
-    closeModal('modal-registrar-envio');
+    closeRegistrarNovoEnvioModal({ restoreFocus: false });
     resetRegistrarNovoEnvioForm();
     updateAlertsBell();
 
@@ -8196,6 +8499,7 @@ function confirmarRegistrarNovoEnvio(event) {
     } else {
         renderPendencias();
     }
+    focusCorrectiveSubmissionAfterRender(current.id);
     return true;
 }
 
@@ -8671,7 +8975,10 @@ function renderProntuario(escolaId) {
                                         const pData = getFormattedPendencyData(p);
                                         const submissionActionLabel = getCorrectiveSubmissionActionLabel(p);
                                         return `
-                                            <tr data-pendency-id="${escapeHtml(p.id)}" data-pendency-status="${escapeHtml(p.status)}">
+                                            <tr
+                                                data-pendency-ref="${escapeHtml(encodePendencyIdReference(p.id))}"
+                                                data-pendency-status="${escapeHtml(p.status)}"
+                                            >
                                                 <td><span style="font-weight:600; color:var(--primary);">${escapeHtml(pData.competencia)}</span></td>
                                                 <td>${escapeHtml(pData.item)}</td>
                                                 <td><span style="color:var(--danger)">${escapeHtml(p.motivo)}</span><br><small style="color:var(--text-muted)">${escapeHtml(p.observacao)}</small></td>
@@ -8682,7 +8989,8 @@ function renderProntuario(escolaId) {
                                                         <button
                                                             class="btn btn-primary btn-sm"
                                                             data-action="register-corrective-submission"
-                                                            onclick="abrirModalRegistrarNovoEnvio('${escapeHtml(p.id)}')"
+                                                            data-pendency-ref="${escapeHtml(encodePendencyIdReference(p.id))}"
+                                                            onclick="abrirModalRegistrarNovoEnvio(this)"
                                                         >${escapeHtml(submissionActionLabel)}</button>
                                                     ` : '<span style="color:var(--text-muted);">Sem ação de envio</span>'}
                                                 </td>
@@ -8923,7 +9231,8 @@ function renderProntuarioVerificacoes(esc) {
                             <button
                                 class="btn btn-primary btn-sm"
                                 data-action="register-corrective-submission"
-                                onclick="abrirModalRegistrarNovoEnvio('${escapeHtml(activePend.id)}')"
+                                data-pendency-ref="${escapeHtml(encodePendencyIdReference(activePend.id))}"
+                                onclick="abrirModalRegistrarNovoEnvio(this)"
                                 style="font-size:0.7rem; padding:2px 6px;"
                             >${escapeHtml(submissionActionLabel)}</button>
                         `;
@@ -9591,6 +9900,10 @@ function openModal(id) {
 }
 
 function closeModal(id) {
+    if (id === 'modal-registrar-envio') {
+        closeRegistrarNovoEnvioModal();
+        return;
+    }
     document.getElementById(id).classList.remove('show');
     if (id === 'modal-nova-pendencia') {
         clearPendencyNotice();
@@ -10850,6 +11163,8 @@ const RADAR_DEBUG_MODE = window.location.hostname === 'localhost' || window.loca
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', async () => {
+    const registrarNovoEnvioModal = document.getElementById('modal-registrar-envio');
+    registrarNovoEnvioModal.addEventListener('keydown', handleRegistrarNovoEnvioKeydown);
     await initData();
     initTheme();
     switchProfile('controlador'); // Inicia como Controlador para simular a visão principal

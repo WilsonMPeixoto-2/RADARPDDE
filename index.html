@@ -408,11 +408,24 @@
     </div>
 
     <!-- 5. Modal Registrar Novo Envio -->
-    <div class="modal-overlay" id="modal-registrar-envio">
+    <div
+        class="modal-overlay"
+        id="modal-registrar-envio"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-registrar-envio-title"
+        aria-hidden="true"
+        inert
+    >
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Registrar novo envio para conferência</h3>
-                <button class="btn-close" onclick="closeModal('modal-registrar-envio')">×</button>
+                <h3 id="modal-registrar-envio-title">Registrar novo envio para conferência</h3>
+                <button
+                    type="button"
+                    class="btn-close"
+                    aria-label="Fechar registro de novo envio"
+                    onclick="closeModal('modal-registrar-envio')"
+                >×</button>
             </div>
             <div class="modal-body">
                 <form id="form-registrar-envio" onsubmit="confirmarRegistrarNovoEnvio(event)">

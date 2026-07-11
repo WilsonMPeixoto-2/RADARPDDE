@@ -6,6 +6,21 @@ const DOCUMENT_CONTEXT = {
   documentoNome: 'Extrato Conta Corrente'
 };
 
+const PERSISTED_LOCAL_STORAGE_KEYS = [
+  'radar_pdde_escolas',
+  'radar_pdde_pendencias',
+  'radar_pdde_contatos',
+  'radar_pdde_logs',
+  'radar_pdde_bens',
+  'radar_pdde_verificacoes',
+  'radar_pdde_config',
+  'radar_pdde_programas',
+  'radar_pdde_controladores',
+  'radar_pdde_equipe_inventario',
+  'radar_pdde_notas_registradas',
+  'radar_pdde_data_version'
+];
+
 function targetDocumentRow(page) {
   return page.locator(
     `[data-program-id="${DOCUMENT_CONTEXT.programaId}"]`
@@ -240,7 +255,7 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     );
     await expect(notice).toBeVisible();
 
-    const selectedRow = page.locator(`[data-pendency-id="${originalId}"]`);
+    const selectedRow = page.locator('tr[data-pendency-ref].pendency-row-selected');
     await expect(selectedRow).toHaveCount(1);
     await expect(selectedRow).toHaveClass(/pendency-row-selected/);
     await expect(selectedRow).toContainText('Pendência selecionada');
@@ -376,13 +391,23 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
       };
     }, DOCUMENT_CONTEXT);
 
-    const row = page.locator(`[data-pendency-id="${context.pendencyId}"]`);
+    const row = page.locator('#p-abertas tr[data-pendency-ref]');
     await expect(row).toHaveCount(1);
-    await expect(row.getByRole('button', { name: 'Registrar novo envio', exact: true })).toBeVisible();
+    const initialSubmissionTrigger = row.getByRole('button', {
+      name: 'Registrar novo envio',
+      exact: true
+    });
+    await expect(initialSubmissionTrigger).toBeVisible();
     await expect(row.getByRole('button', { name: /^(Resolver|Resolver Pendência)$/ })).toHaveCount(0);
 
-    await row.getByRole('button', { name: 'Registrar novo envio', exact: true }).click();
     const modal = page.locator('#modal-registrar-envio');
+    await expect(modal).toHaveAttribute('role', 'dialog');
+    await expect(modal).toHaveAttribute('aria-modal', 'true');
+    await expect(modal).toHaveAttribute('aria-labelledby', 'modal-registrar-envio-title');
+    await expect(modal).toHaveAttribute('aria-hidden', 'true');
+    await expect(modal).toHaveAttribute('inert', '');
+
+    await initialSubmissionTrigger.click();
     const contextSummary = modal.locator('#envio-contexto');
     const availabilityDate = modal.getByLabel(
       'Data em que o arquivo foi disponibilizado no Drive',
@@ -394,8 +419,14 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
       name: 'Registrar e enviar para reanálise',
       exact: true
     });
+    const close = modal.getByRole('button', {
+      name: 'Fechar registro de novo envio',
+      exact: true
+    });
 
     await expect(modal).toHaveClass(/show/);
+    await expect(modal).toHaveAttribute('aria-hidden', 'false');
+    await expect(modal).not.toHaveAttribute('inert', '');
     await expect(modal.getByRole('heading', {
       name: 'Registrar novo envio para conferência',
       exact: true
@@ -404,6 +435,22 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     await expect(contextSummary).toContainText(context.competencia);
     await expect(contextSummary).toContainText(context.programaNome);
     await expect(contextSummary).toContainText(context.documentoNome);
+    await expect(availabilityDate).toBeFocused();
+
+    await submit.focus();
+    await page.keyboard.press('Tab');
+    await expect(close).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    await expect(submit).toBeFocused();
+
+    await page.keyboard.press('Escape');
+    await expect(modal).not.toHaveClass(/show/);
+    await expect(modal).toHaveAttribute('aria-hidden', 'true');
+    await expect(modal).toHaveAttribute('inert', '');
+    await expect(initialSubmissionTrigger).toBeFocused();
+
+    await initialSubmissionTrigger.click();
+    await expect(availabilityDate).toBeFocused();
 
     await observation.fill('Arquivo corrigido, mas a data ainda não foi informada.');
     await submit.click();
@@ -524,17 +571,16 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     expect(firstSubmission.matchingLogs[0].detalhes).toContain('2026-07-10');
 
     await expect(page.getByRole('button', { name: 'Ativas (1)', exact: true })).toBeVisible();
-    const awaitingRow = page.locator(`[data-pendency-id="${context.pendencyId}"]`);
+    const awaitingRow = page.locator('#p-abertas tr[data-pendency-ref]');
     await expect(awaitingRow).toContainText('Aguardando reanálise');
-    await expect(awaitingRow.getByRole('button', {
+    const replacementTrigger = awaitingRow.getByRole('button', {
       name: 'Registrar substituição mais recente',
       exact: true
-    })).toBeVisible();
+    });
+    await expect(replacementTrigger).toBeVisible();
+    await expect(replacementTrigger).toBeFocused();
 
-    await awaitingRow.getByRole('button', {
-      name: 'Registrar substituição mais recente',
-      exact: true
-    }).click();
+    await replacementTrigger.click();
     await expect(availabilityDate).toHaveValue('');
     await expect(observation).toHaveValue('');
     await expect(link).toHaveValue('');
@@ -613,5 +659,364 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     expect(secondSubmission.matchingLogs.slice(0, 2)
       .every(log => log.acao === 'Novo envio registrado')).toBe(true);
     expect(secondSubmission.matchingLogs[0].detalhes).toContain('2026-07-11');
+    await expect(page.getByRole('button', {
+      name: 'Registrar substituição mais recente',
+      exact: true
+    })).toBeFocused();
+  });
+
+  test('restaura memória, índices e localStorage após falha intermediária de persistência', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+
+    await page.goto('/');
+    const context = await page.evaluate(({ target, storageKeys }) => {
+      switchProfile('controlador');
+
+      const competencia = activeCompetenciaKey;
+      const escola = escolas.find(candidate => (
+        Array.isArray(candidate.programasIds)
+        && candidate.programasIds.includes(target.programaId)
+        && isCompetenceInScope(candidate.competenciaInicial, competencia)
+      ));
+      if (!escola) {
+        throw new Error('Escola determinística para rollback não encontrada.');
+      }
+
+      const programa = programas.find(candidate => candidate.id === target.programaId);
+      const compProgKey = `${competencia}_${target.programaId}`;
+      const pendencyContext = RadarFluxoOperacional.buildPendencyContext({
+        compProgKey,
+        programaNome: programa ? programa.name : target.programaId,
+        documentoKey: target.documentoKey,
+        documentoNome: target.documentoNome
+      });
+
+      pendencias = pendencias.filter(pendency => !RadarPendencias.isActivePendency(pendency));
+      verificacoes[escola.id] = verificacoes[escola.id] || {};
+      verificacoes[escola.id][compProgKey] = RadarFluxoOperacional.createEmptyVerification();
+      const verification = verificacoes[escola.id][compProgKey];
+      verification.bonificacao = {
+        extCC: 'Sim',
+        extINV: 'Não',
+        notaFiscal: 'Não se aplica',
+        consAssessoria: 'Sim',
+        declBBAgil: 'Sim',
+        encampInventario: 'Não se aplica'
+      };
+      verification.analise[target.documentoKey] = 'Incorreto';
+      verification.analise.extINV = 'Correto';
+      verification.resultadoBonif = 'inapta';
+
+      const pendency = RadarPendencias.createDocumentPendency({
+        id: 'pend-e2e-rollback-persistencia',
+        escolaId: escola.id,
+        competenciaOrigem: competencia,
+        programaId: target.programaId,
+        documentoKey: target.documentoKey,
+        item: pendencyContext.item,
+        errosAtuais: ['Documento ilegível'],
+        observacao: 'Estado original que deve sobreviver à falha de persistência.',
+        dataAbertura: '2026-07-09'
+      }, {
+        eventId: 'evento-e2e-abertura-rollback',
+        at: '2026-07-09T12:00:00.000Z',
+        usuario: 'Controladora E2E',
+        perfil: 'Controlador'
+      });
+      pendencias.push(pendency);
+      rebuildOperationalIndexes();
+      persist();
+      switchView('pendencias');
+
+      const captureIndexes = () => ({
+        pendencias: Array.from(_pendenciasByEscolaId.entries()).map(([key, values]) => [
+          key,
+          values.map(item => ({ idType: typeof item.id, id: item.id, status: item.status }))
+        ]),
+        bens: Array.from(_bensByEscolaId.entries()).map(([key, values]) => [
+          key,
+          values.map(item => ({ idType: typeof item.id, id: item.id, status: item.status }))
+        ])
+      });
+
+      return {
+        pendencyId: pendency.id,
+        escolaId: escola.id,
+        compProgKey,
+        documentoKey: target.documentoKey,
+        snapshot: {
+          pendencias: JSON.parse(JSON.stringify(pendencias)),
+          verification: JSON.parse(JSON.stringify(verification)),
+          logs: JSON.parse(JSON.stringify(logs)),
+          indexes: captureIndexes(),
+          localStorage: Object.fromEntries(
+            storageKeys.map(key => [key, localStorage.getItem(key)])
+          )
+        }
+      };
+    }, { target: DOCUMENT_CONTEXT, storageKeys: PERSISTED_LOCAL_STORAGE_KEYS });
+
+    const modal = page.locator('#modal-registrar-envio');
+    await page.getByRole('button', { name: 'Registrar novo envio', exact: true }).click();
+    await modal.getByLabel(
+      'Data em que o arquivo foi disponibilizado no Drive',
+      { exact: true }
+    ).fill('2026-07-10');
+    await modal.getByLabel('Observação', { exact: true })
+      .fill('Envio que deve sofrer rollback integral.');
+
+    await page.evaluate(() => {
+      const originalSetItem = Storage.prototype.setItem;
+      let failed = false;
+      window.__restoreRollbackSetItem = () => {
+        Storage.prototype.setItem = originalSetItem;
+        delete window.__restoreRollbackSetItem;
+      };
+      Storage.prototype.setItem = function setItemWithSingleFailure(key, value) {
+        if (!failed && key === 'radar_pdde_logs') {
+          failed = true;
+          Storage.prototype.setItem = originalSetItem;
+          throw new Error('Falha E2E intermediária ao persistir logs.');
+        }
+        return originalSetItem.call(this, key, value);
+      };
+    });
+
+    try {
+      await modal.getByRole('button', {
+        name: 'Registrar e enviar para reanálise',
+        exact: true
+      }).click();
+      await expect(modal).toHaveClass(/show/);
+      await expect(modal.getByRole('alert')).toContainText(
+        'Falha E2E intermediária ao persistir logs.'
+      );
+    } finally {
+      await page.evaluate(() => {
+        if (window.__restoreRollbackSetItem) window.__restoreRollbackSetItem();
+      });
+    }
+
+    const afterFailure = await page.evaluate(({ seeded, storageKeys }) => {
+      const captureIndexes = () => ({
+        pendencias: Array.from(_pendenciasByEscolaId.entries()).map(([key, values]) => [
+          key,
+          values.map(item => ({ idType: typeof item.id, id: item.id, status: item.status }))
+        ]),
+        bens: Array.from(_bensByEscolaId.entries()).map(([key, values]) => [
+          key,
+          values.map(item => ({ idType: typeof item.id, id: item.id, status: item.status }))
+        ])
+      });
+      const pendency = pendencias.find(item => item.id === seeded.pendencyId);
+
+      return {
+        snapshot: {
+          pendencias: JSON.parse(JSON.stringify(pendencias)),
+          verification: JSON.parse(JSON.stringify(
+            verificacoes[seeded.escolaId][seeded.compProgKey]
+          )),
+          logs: JSON.parse(JSON.stringify(logs)),
+          indexes: captureIndexes(),
+          localStorage: Object.fromEntries(
+            storageKeys.map(key => [key, localStorage.getItem(key)])
+          )
+        },
+        affected: {
+          status: pendency.status,
+          attempts: pendency.tentativas.length,
+          history: pendency.historico.length,
+          analysis: verificacoes[seeded.escolaId][seeded.compProgKey]
+            .analise[seeded.documentoKey],
+          matchingLogs: logs.filter(log => log.acao === 'Novo envio registrado').length
+        }
+      };
+    }, { seeded: context, storageKeys: PERSISTED_LOCAL_STORAGE_KEYS });
+
+    expect(afterFailure.snapshot).toEqual(context.snapshot);
+    expect(afterFailure.affected).toEqual({
+      status: 'Aberta',
+      attempts: 0,
+      history: 1,
+      analysis: 'Incorreto',
+      matchingLogs: context.snapshot.logs
+        .filter(log => log.acao === 'Novo envio registrado').length
+    });
+  });
+
+  test('preserva tipo de IDs legados e mantém ações seguras para aspas', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+
+    const pageErrors = [];
+    const dialogs = [];
+    page.on('pageerror', error => pageErrors.push(error.message));
+    page.on('dialog', async dialog => {
+      dialogs.push(dialog.message());
+      await dialog.dismiss();
+    });
+
+    await page.goto('/');
+    const context = await page.evaluate(target => {
+      switchProfile('controlador');
+
+      const competencia = activeCompetenciaKey;
+      const escola = escolas.find(candidate => (
+        Array.isArray(candidate.programasIds)
+        && candidate.programasIds.includes(target.programaId)
+        && isCompetenceInScope(candidate.competenciaInicial, competencia)
+      ));
+      if (!escola) throw new Error('Escola determinística para IDs legados não encontrada.');
+
+      const programa = programas.find(candidate => candidate.id === target.programaId);
+      const programaNome = programa ? programa.name : target.programaId;
+      const compProgKey = `${competencia}_${target.programaId}`;
+      const definitions = [
+        {
+          id: 123,
+          documentoKey: 'extCC',
+          documentoNome: 'Extrato Conta Corrente'
+        },
+        {
+          id: '123',
+          documentoKey: 'extINV',
+          documentoNome: 'Extrato Investimento'
+        },
+        {
+          id: `pend-"dupla'-legado`,
+          documentoKey: 'notaFiscal',
+          documentoNome: 'Notas Fiscais'
+        }
+      ];
+
+      pendencias = pendencias.filter(pendency => !RadarPendencias.isActivePendency(pendency));
+      verificacoes[escola.id] = verificacoes[escola.id] || {};
+      verificacoes[escola.id][compProgKey] = RadarFluxoOperacional.createEmptyVerification();
+      const verification = verificacoes[escola.id][compProgKey];
+
+      definitions.forEach((definition, index) => {
+        verification.bonificacao[definition.documentoKey] = 'Sim';
+        verification.analise[definition.documentoKey] = 'Incorreto';
+        const pendencyContext = RadarFluxoOperacional.buildPendencyContext({
+          compProgKey,
+          programaNome,
+          documentoKey: definition.documentoKey,
+          documentoNome: definition.documentoNome
+        });
+        const pendency = RadarPendencias.createDocumentPendency({
+          id: `pend-e2e-id-legado-seed-${index + 1}`,
+          escolaId: escola.id,
+          competenciaOrigem: competencia,
+          programaId: target.programaId,
+          documentoKey: definition.documentoKey,
+          item: pendencyContext.item,
+          errosAtuais: ['Documento ilegível'],
+          observacao: `Pendência legada ${index + 1}.`,
+          dataAbertura: '2026-07-09'
+        }, {
+          eventId: `evento-e2e-id-legado-${index + 1}`,
+          at: `2026-07-09T12:0${index}:00.000Z`,
+          usuario: 'Controladora E2E',
+          perfil: 'Controlador'
+        });
+        pendency.id = definition.id;
+        pendencias.push(pendency);
+      });
+      verification.resultadoBonif = 'inapta';
+
+      rebuildOperationalIndexes();
+      persist();
+      switchView('pendencias');
+
+      return {
+        numericId: definitions[0].id,
+        stringNumericId: definitions[1].id,
+        quotedId: definitions[2].id,
+        documents: definitions.map(definition => definition.documentoNome)
+      };
+    }, DOCUMENT_CONTEXT);
+
+    const rows = page.locator('#p-abertas tr[data-pendency-ref]');
+    const actions = page.getByRole('button', { name: 'Registrar novo envio', exact: true });
+    const modal = page.locator('#modal-registrar-envio');
+    const hiddenReference = modal.locator('#envio-pendencia-id');
+    const cancel = modal.getByRole('button', { name: 'Cancelar', exact: true });
+    const rowFor = documentName => rows.filter({ hasText: documentName });
+
+    await expect(rows).toHaveCount(3);
+    await expect(actions).toHaveCount(3);
+    await expect(modal).toHaveCount(1);
+
+    const numericTrigger = rowFor(context.documents[0]).getByRole('button', {
+      name: 'Registrar novo envio',
+      exact: true
+    });
+    await numericTrigger.click();
+    await expect(modal.locator('#envio-contexto')).toContainText(context.documents[0]);
+    expect(JSON.parse(await hiddenReference.inputValue())).toEqual({
+      type: 'number',
+      value: context.numericId
+    });
+    await cancel.click();
+    await expect(numericTrigger).toBeFocused();
+
+    const stringNumericTrigger = rowFor(context.documents[1]).getByRole('button', {
+      name: 'Registrar novo envio',
+      exact: true
+    });
+    await stringNumericTrigger.click();
+    await expect(modal.locator('#envio-contexto')).toContainText(context.documents[1]);
+    expect(JSON.parse(await hiddenReference.inputValue())).toEqual({
+      type: 'string',
+      value: context.stringNumericId
+    });
+    await cancel.click();
+    await expect(stringNumericTrigger).toBeFocused();
+
+    const quotedTrigger = rowFor(context.documents[2]).getByRole('button', {
+      name: 'Registrar novo envio',
+      exact: true
+    });
+    await quotedTrigger.click();
+    await expect(modal.locator('#envio-contexto')).toContainText(context.documents[2]);
+    expect(JSON.parse(await hiddenReference.inputValue())).toEqual({
+      type: 'string',
+      value: context.quotedId
+    });
+    await cancel.click();
+    await expect(quotedTrigger).toBeFocused();
+
+    expect(await page.evaluate(id => abrirModalRegistrarNovoEnvio(id), context.numericId)).toBe(true);
+    expect(JSON.parse(await hiddenReference.inputValue())).toEqual({
+      type: 'number',
+      value: context.numericId
+    });
+    await cancel.click();
+
+    expect(await page.evaluate(id => openPendencyDetail(id), context.quotedId)).toBe(true);
+    await expect.poll(() => page.evaluate(() => {
+      const focused = document.activeElement;
+      if (!focused || !focused.dataset.pendencyRef) return null;
+      return {
+        reference: JSON.parse(focused.dataset.pendencyRef),
+        selected: focused.classList.contains('pendency-row-selected')
+      };
+    })).toEqual({
+      reference: { type: 'string', value: context.quotedId },
+      selected: true
+    });
+
+    const selectedQuotedRow = page.locator('tr[data-pendency-ref].pendency-row-selected');
+    await expect(selectedQuotedRow).toContainText(context.documents[2]);
+    await selectedQuotedRow.getByRole('button', {
+      name: 'Registrar novo envio',
+      exact: true
+    }).click();
+    await expect(modal.locator('#envio-contexto')).toContainText(context.documents[2]);
+    await cancel.click();
+
+    await expect(rows).toHaveCount(3);
+    await expect(actions).toHaveCount(3);
+    expect(pageErrors).toEqual([]);
+    expect(dialogs).toEqual([]);
   });
 });
