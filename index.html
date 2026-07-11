@@ -452,7 +452,63 @@
         </div>
     </div>
 
-    <!-- 6. Modal Dados de Gasto (Nota Fiscal) -->
+    <!-- 6. Modal Reanalisar Pendência -->
+    <div
+        class="modal-overlay"
+        id="modal-reanalisar-pendencia"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-reanalisar-pendencia-title"
+        aria-hidden="true"
+        inert
+    >
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-reanalisar-pendencia-title">Reanalisar pendência documental</h3>
+                <button
+                    type="button"
+                    class="btn-close"
+                    aria-label="Fechar reanálise"
+                    onclick="closeModal('modal-reanalisar-pendencia')"
+                >×</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-reanalisar-pendencia" onsubmit="confirmarReanalisePendencia(event)">
+                    <input type="hidden" id="reanalisar-pendencia-id">
+                    <div
+                        class="pendency-context-summary"
+                        id="reanalisar-tentativa-atual"
+                        aria-label="Tentativa aguardando reanálise"
+                    ></div>
+                    <div class="form-group">
+                        <label for="reanalisar-resultado">Resultado da reanálise</label>
+                        <select class="form-control" id="reanalisar-resultado" required>
+                            <option value="">Selecione o resultado</option>
+                            <option value="correto">Documento correto</option>
+                            <option value="incorreto">Documento ainda incorreto</option>
+                            <option value="arquivo_indisponivel">Arquivo não localizado ou inacessível</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="reanalisar-observacao">Observação da análise</label>
+                        <textarea class="form-control" id="reanalisar-observacao" required></textarea>
+                    </div>
+                    <div class="form-group" id="reanalisar-erros-group" hidden>
+                        <fieldset class="pendency-error-fieldset" id="reanalisar-erros-fieldset" disabled>
+                            <legend>Erros documentais encontrados</legend>
+                            <div id="reanalisar-erros" class="pendency-error-grid"></div>
+                        </fieldset>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-reanalisar-pendencia')">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Confirmar reanálise</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. Modal Dados de Gasto (Nota Fiscal) -->
     <div class="modal-overlay" id="modal-dados-nota">
         <div class="modal-content">
             <div class="modal-header">

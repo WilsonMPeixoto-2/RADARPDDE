@@ -28,6 +28,119 @@ function targetDocumentRow(page) {
   );
 }
 
+async function seedAwaitingReanalysis(page, options = {}) {
+  return page.evaluate(({ target, seedOptions }) => {
+    switchProfile('controlador');
+
+    const competencia = seedOptions.competencia || activeCompetenciaKey;
+    const escola = escolas.find(candidate => (
+      Array.isArray(candidate.programasIds)
+      && candidate.programasIds.includes(target.programaId)
+      && candidate.programasIds.includes('BASIC')
+      && isCompetenceInScope(candidate.competenciaInicial, competencia)
+    ));
+    if (!escola) {
+      throw new Error('Escola determinística para reanálise não encontrada.');
+    }
+
+    const programa = programas.find(candidate => candidate.id === target.programaId);
+    const programaNome = programa ? programa.name : target.programaId;
+    const compProgKey = competencia + '_' + target.programaId;
+    const unrelatedCompProgKey = competencia + '_BASIC';
+    const pendencyContext = RadarFluxoOperacional.buildPendencyContext({
+      compProgKey,
+      programaNome,
+      documentoKey: target.documentoKey,
+      documentoNome: target.documentoNome
+    });
+
+    pendencias = [];
+    verificacoes[escola.id] = verificacoes[escola.id] || {};
+
+    const verification = RadarFluxoOperacional.createEmptyVerification();
+    verification.bonificacao = {
+      extCC: 'Sim',
+      extINV: 'Não',
+      notaFiscal: 'Não se aplica',
+      consAssessoria: 'Sim',
+      declBBAgil: 'Sim',
+      encampInventario: 'Não se aplica'
+    };
+    verification.analise[target.documentoKey] = 'Não analisado';
+    verification.analise.extINV = 'Correto';
+    verification.resultadoBonif = 'inapta';
+    verificacoes[escola.id][compProgKey] = verification;
+
+    const unrelatedVerification = RadarFluxoOperacional.createEmptyVerification();
+    unrelatedVerification.bonificacao.extCC = 'Sim';
+    unrelatedVerification.analise.extCC = 'Correto';
+    unrelatedVerification.resultadoBonif = 'apta';
+    verificacoes[escola.id][unrelatedCompProgKey] = unrelatedVerification;
+
+    const opened = RadarPendencias.createDocumentPendency({
+      id: seedOptions.pendencyId || 'pend-e2e-reanalise',
+      escolaId: escola.id,
+      competenciaOrigem: competencia,
+      programaId: target.programaId,
+      documentoKey: target.documentoKey,
+      item: pendencyContext.item,
+      errosAtuais: ['Documento ilegível', 'Competência incorreta'],
+      observacao: 'Erros originais preservados no histórico.',
+      dataAbertura: '2026-06-01'
+    }, {
+      eventId: (seedOptions.pendencyId || 'pend-e2e-reanalise') + '-abertura',
+      at: '2026-06-01T12:00:00.000Z',
+      usuario: 'Controladora E2E',
+      perfil: 'Controlador'
+    });
+    const awaiting = RadarPendencias.registerCorrectiveSubmission(opened, {
+      id: (seedOptions.pendencyId || 'pend-e2e-reanalise') + '-tentativa',
+      dataDisponibilizacao: seedOptions.availabilityDate || '2026-06-10',
+      observacao: seedOptions.submissionObservation
+        || 'Arquivo corrigido disponibilizado para conferência.',
+      link: Object.prototype.hasOwnProperty.call(seedOptions, 'link')
+        ? seedOptions.link
+        : 'https://drive.google.com/file/d/reanalise-e2e/view'
+    }, {
+      eventId: (seedOptions.pendencyId || 'pend-e2e-reanalise') + '-envio',
+      at: '2026-06-10T12:00:00.000Z',
+      usuario: 'Escola E2E',
+      perfil: 'Escola'
+    });
+
+    pendencias.push(awaiting);
+    rebuildOperationalIndexes();
+    persist();
+    if (seedOptions.view === 'prontuario') {
+      activeProntuarioCompetencia = competencia;
+      switchView('prontuario', escola.id);
+    } else {
+      switchView('pendencias');
+    }
+
+    return {
+      pendencyId: awaiting.id,
+      escolaId: escola.id,
+      escolaNome: escola.denominação,
+      competencia,
+      compProgKey,
+      unrelatedCompProgKey,
+      programaId: target.programaId,
+      programaNome,
+      documentoKey: target.documentoKey,
+      documentoNome: target.documentoNome,
+      availabilityDate: awaiting.tentativas.at(-1).dataDisponibilizacao,
+      submissionObservation: awaiting.tentativas.at(-1).observacao,
+      submissionLink: awaiting.tentativas.at(-1).link,
+      user: getCurrentUser(),
+      oldHistory: JSON.parse(JSON.stringify(awaiting.historico)),
+      verificationBefore: JSON.parse(JSON.stringify(verification)),
+      unrelatedBefore: JSON.parse(JSON.stringify(unrelatedVerification)),
+      reanalysisLogsBefore: logs.filter(log => log.acao === 'Reanálise registrada').length
+    };
+  }, { target: DOCUMENT_CONTEXT, seedOptions: options });
+}
+
 test.describe('ciclo de criação da pendência documental no desktop', () => {
   test('registra múltiplos erros e localiza a duplicata em reanálise', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
@@ -1357,6 +1470,564 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
       inSourceTab: true,
       programaId: context.programaId,
       documentoKey: context.documentoKey
+    });
+  });
+});
+
+test.describe('reanálise atômica da pendência documental no desktop', () => {
+  test('reanálise incorreta substitui erros atuais e preserva histórico e bonificação', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+
+    await page.goto('/');
+    const context = await seedAwaitingReanalysis(page, {
+      pendencyId: 'pend-e2e-reanalise-incorreta',
+      availabilityDate: '2026-06-10',
+      submissionObservation: 'Arquivo legível, mas com conteúdo que precisa de nova conferência.',
+      link: 'https://drive.google.com/file/d/reanalise-incorreta/view'
+    });
+
+    const trigger = page.getByRole('button', { name: 'Reanalisar', exact: true });
+    await expect(trigger).toBeVisible();
+
+    const modal = page.locator('#modal-reanalisar-pendencia');
+    await expect(modal).toHaveAttribute('role', 'dialog');
+    await expect(modal).toHaveAttribute('aria-modal', 'true');
+    await expect(modal).toHaveAttribute('aria-labelledby', 'modal-reanalisar-pendencia-title');
+    await expect(modal).toHaveAttribute('aria-hidden', 'true');
+    await expect(modal).toHaveAttribute('inert', '');
+
+    await trigger.click();
+    const resultSelect = modal.getByLabel('Resultado da reanálise', { exact: true });
+    const analysisObservation = modal.getByLabel('Observação da análise', { exact: true });
+    const submit = modal.getByRole('button', { name: 'Confirmar reanálise', exact: true });
+    const close = modal.getByRole('button', { name: 'Fechar reanálise', exact: true });
+    const attemptSummary = modal.locator('#reanalisar-tentativa-atual');
+    const driveLink = modal.getByRole('link', { name: 'Abrir arquivo no Drive', exact: true });
+
+    await expect(modal).toHaveClass(/show/);
+    await expect(modal).toHaveAttribute('aria-hidden', 'false');
+    await expect(modal).not.toHaveAttribute('inert', '');
+    await expect(resultSelect).toBeFocused();
+    await expect(attemptSummary).toContainText(context.availabilityDate);
+    await expect(attemptSummary).toContainText(context.submissionObservation);
+    await expect(driveLink).toHaveAttribute('href', context.submissionLink);
+    await expect(driveLink).toHaveAttribute('target', '_blank');
+    await expect(driveLink).toHaveAttribute('rel', 'noopener noreferrer');
+
+    await submit.focus();
+    await page.keyboard.press('Tab');
+    await expect(close).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    await expect(submit).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(modal).not.toHaveClass(/show/);
+    await expect(modal).toHaveAttribute('aria-hidden', 'true');
+    await expect(modal).toHaveAttribute('inert', '');
+    await expect(trigger).toBeFocused();
+
+    await trigger.click();
+    await submit.click();
+    expect(await resultSelect.evaluate(input => input.validity.valueMissing)).toBe(true);
+    await resultSelect.selectOption('incorreto');
+    await submit.click();
+    expect(await analysisObservation.evaluate(input => input.validity.valueMissing)).toBe(true);
+
+    const errorGroup = modal.locator('#reanalisar-erros-group');
+    const absentError = modal.getByLabel('Documento ausente', { exact: true });
+    const divergentError = modal.getByLabel('Dados divergentes', { exact: true });
+    const incompleteError = modal.getByLabel('Documento incompleto', { exact: true });
+    await expect(errorGroup).toBeVisible();
+    await expect(modal.locator('input[name="reanalisar-erros"]')).toHaveCount(10);
+    await analysisObservation.fill('Validação sem erro documental selecionado.');
+    await submit.click();
+    await expect(modal.getByRole('alert')).toContainText(
+      'Informe ao menos um erro documental.'
+    );
+    await absentError.check();
+    await expect(divergentError).toBeDisabled();
+    await absentError.uncheck();
+    await expect(divergentError).toBeEnabled();
+    await divergentError.check();
+    await incompleteError.check();
+    await analysisObservation.fill('Persistem divergências e partes ausentes no arquivo corrigido.');
+    await submit.click();
+    await expect(modal).not.toHaveClass(/show/);
+
+    const result = await page.evaluate(seeded => {
+      const pendency = pendencias.find(item => item.id === seeded.pendencyId);
+      const attempt = pendency.tentativas.at(-1);
+      const event = pendency.historico.at(-1);
+      const verification = verificacoes[seeded.escolaId][seeded.compProgKey];
+      return {
+        pendency,
+        attempt,
+        event,
+        oldHistory: pendency.historico.slice(0, -1),
+        analysis: verification.analise[seeded.documentoKey],
+        bonification: JSON.parse(JSON.stringify(verification.bonificacao)),
+        programResult: verification.resultadoBonif,
+        unrelated: JSON.parse(JSON.stringify(
+          verificacoes[seeded.escolaId][seeded.unrelatedCompProgKey]
+        )),
+        matchingLogs: logs.filter(log => log.acao === 'Reanálise registrada')
+      };
+    }, context);
+
+    expect(result.pendency).toMatchObject({
+      status: 'Aberta',
+      responsavel: 'Escola',
+      dataResolucao: null,
+      errosAtuais: ['Dados divergentes', 'Documento incompleto'],
+      motivo: 'Dados divergentes'
+    });
+    expect(result.oldHistory).toEqual(context.oldHistory);
+    expect(result.oldHistory[0].erros).toEqual(['Documento ilegível', 'Competência incorreta']);
+    expect(result.attempt).toMatchObject({
+      status: 'analisada',
+      analisadoPor: context.user.name,
+      resultado: 'incorreto',
+      errosEncontrados: ['Dados divergentes', 'Documento incompleto'],
+      observacaoAnalise: 'Persistem divergências e partes ausentes no arquivo corrigido.'
+    });
+    expect(result.attempt.dataAnalise).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+    expect(result.event).toMatchObject({
+      tipo: 'reanalise_incorreta',
+      tentativaId: result.attempt.id,
+      erros: ['Dados divergentes', 'Documento incompleto']
+    });
+    expect(result.analysis).toBe('Incorreto');
+    expect(result.bonification).toEqual(context.verificationBefore.bonificacao);
+    expect(result.programResult).toBe(context.verificationBefore.resultadoBonif);
+    expect(result.unrelated).toEqual(context.unrelatedBefore);
+    expect(result.matchingLogs).toHaveLength(context.reanalysisLogsBefore + 1);
+    expect(result.matchingLogs[0].detalhes).toContain(context.escolaNome);
+    expect(result.matchingLogs[0].detalhes).toContain(context.competencia);
+    expect(result.matchingLogs[0].detalhes).toContain(context.programaNome);
+    expect(result.matchingLogs[0].detalhes).toContain(context.documentoNome);
+    expect(result.matchingLogs[0].detalhes).toContain(result.attempt.id);
+    expect(result.matchingLogs[0].detalhes).toContain('incorreto');
+  });
+
+  test('reanálise correta tardia resolve na confirmação sem reescrever bonificação', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+
+    await page.goto('/');
+    const context = await seedAwaitingReanalysis(page, {
+      pendencyId: 'pend-e2e-reanalise-correta-tardia',
+      availabilityDate: '2026-07-01',
+      link: null
+    });
+    const deadline = await page.evaluate(competencia => (
+      COMPETENCIAS.find(item => item.key === competencia).bonifPrazo
+    ), context.competencia);
+    expect(context.availabilityDate > deadline).toBe(true);
+
+    await page.getByRole('button', { name: 'Reanalisar', exact: true }).click();
+    const modal = page.locator('#modal-reanalisar-pendencia');
+    await expect(modal.getByRole('link', { name: 'Abrir arquivo no Drive' })).toHaveCount(0);
+    await modal.getByLabel('Resultado da reanálise', { exact: true }).selectOption('correto');
+    await modal.getByLabel('Observação da análise', { exact: true })
+      .fill('Documento correto confirmado pela Controladora.');
+
+    const confirmationDateBefore = await page.evaluate(() => new Date().toISOString().slice(0, 10));
+    await modal.getByRole('button', { name: 'Confirmar reanálise', exact: true }).click();
+    const confirmationDateAfter = await page.evaluate(() => new Date().toISOString().slice(0, 10));
+    await expect(modal).not.toHaveClass(/show/);
+
+    const result = await page.evaluate(seeded => {
+      const pendency = pendencias.find(item => item.id === seeded.pendencyId);
+      const attempt = pendency.tentativas.at(-1);
+      const verification = verificacoes[seeded.escolaId][seeded.compProgKey];
+      return {
+        pendency,
+        attempt,
+        event: pendency.historico.at(-1),
+        analysis: verification.analise[seeded.documentoKey],
+        bonification: JSON.parse(JSON.stringify(verification.bonificacao)),
+        programResult: verification.resultadoBonif
+      };
+    }, context);
+
+    expect(result.pendency).toMatchObject({
+      status: 'Resolvida',
+      responsavel: null,
+      errosAtuais: [],
+      motivo: null
+    });
+    expect([confirmationDateBefore, confirmationDateAfter]).toContain(result.pendency.dataResolucao);
+    expect(result.pendency.dataResolucao).not.toBe(context.availabilityDate);
+    expect(result.attempt).toMatchObject({
+      status: 'analisada',
+      resultado: 'correto',
+      errosEncontrados: [],
+      observacaoAnalise: 'Documento correto confirmado pela Controladora.'
+    });
+    expect(result.event).toMatchObject({
+      tipo: 'reanalise_correta',
+      tentativaId: result.attempt.id,
+      erros: []
+    });
+    expect(result.analysis).toBe('Correto (Atrasado)');
+    expect(result.bonification).toEqual(context.verificationBefore.bonificacao);
+    expect(result.programResult).toBe(context.verificationBefore.resultadoBonif);
+
+    await expect(page.getByRole('button', {
+      name: 'Histórico Resolvidas (1)',
+      exact: true
+    })).toHaveClass(/active/);
+    const resolvedRow = page.locator('#p-resolvidas tr[data-pendency-ref]');
+    await expect(resolvedRow).toHaveCount(1);
+    await expect(resolvedRow).toContainText(context.documentoNome);
+    await expect(resolvedRow).toHaveClass(/pendency-row-selected/);
+    await expect(resolvedRow).toBeFocused();
+  });
+});
+
+test.describe('resultados alternativos, bloqueio e rollback da reanálise', () => {
+  test('arquivo indisponível reabre com erro canônico sem alterar bonificação', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+
+    await page.goto('/');
+    const context = await seedAwaitingReanalysis(page, {
+      pendencyId: 'pend-e2e-arquivo-indisponivel',
+      availabilityDate: '2026-06-11'
+    });
+
+    await page.getByRole('button', { name: 'Reanalisar', exact: true }).click();
+    const modal = page.locator('#modal-reanalisar-pendencia');
+    await modal.getByLabel('Resultado da reanálise', { exact: true })
+      .selectOption('arquivo_indisponivel');
+    await expect(modal.locator('#reanalisar-erros-group')).toBeHidden();
+    expect(await modal.locator('input[name="reanalisar-erros"]')
+      .evaluateAll(inputs => inputs.every(input => input.disabled))).toBe(true);
+    await modal.getByLabel('Observação da análise', { exact: true })
+      .fill('O arquivo informado não foi localizado no Drive.');
+    await modal.getByRole('button', { name: 'Confirmar reanálise', exact: true }).click();
+
+    const result = await page.evaluate(seeded => {
+      const pendency = pendencias.find(item => item.id === seeded.pendencyId);
+      const verification = verificacoes[seeded.escolaId][seeded.compProgKey];
+      return {
+        status: pendency.status,
+        actor: pendency.responsavel,
+        resolutionDate: pendency.dataResolucao,
+        errors: pendency.errosAtuais,
+        reason: pendency.motivo,
+        attempt: pendency.tentativas.at(-1),
+        event: pendency.historico.at(-1),
+        analysis: verification.analise[seeded.documentoKey],
+        bonification: JSON.parse(JSON.stringify(verification.bonificacao)),
+        programResult: verification.resultadoBonif
+      };
+    }, context);
+
+    expect(result).toMatchObject({
+      status: 'Aberta',
+      actor: 'Escola',
+      resolutionDate: null,
+      errors: ['Arquivo não localizado ou inacessível'],
+      reason: 'Arquivo não localizado ou inacessível',
+      analysis: 'Incorreto'
+    });
+    expect(result.attempt).toMatchObject({
+      status: 'analisada',
+      resultado: 'arquivo_indisponivel',
+      errosEncontrados: ['Arquivo não localizado ou inacessível'],
+      observacaoAnalise: 'O arquivo informado não foi localizado no Drive.'
+    });
+    expect(result.event).toMatchObject({
+      tipo: 'arquivo_indisponivel',
+      tentativaId: result.attempt.id,
+      erros: ['Arquivo não localizado ou inacessível']
+    });
+    expect(result.bonification).toEqual(context.verificationBefore.bonificacao);
+    expect(result.programResult).toBe(context.verificationBefore.resultadoBonif);
+  });
+
+  test('bloqueia somente o controle técnico do documento com pendência ativa', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+
+    const dialogs = [];
+    page.on('dialog', async dialog => {
+      dialogs.push(dialog.message());
+      await dialog.accept();
+    });
+
+    await page.goto('/');
+    const context = await page.evaluate(target => {
+      switchProfile('controlador');
+      const competencia = activeCompetenciaKey;
+      const escola = escolas.find(candidate => (
+        Array.isArray(candidate.programasIds)
+        && candidate.programasIds.includes(target.programaId)
+        && candidate.programasIds.includes('BASIC')
+        && isCompetenceInScope(candidate.competenciaInicial, competencia)
+      ));
+      if (!escola) throw new Error('Escola determinística para bloqueio não encontrada.');
+
+      const programa = programas.find(candidate => candidate.id === target.programaId);
+      const programaNome = programa ? programa.name : target.programaId;
+      const compProgKey = competencia + '_' + target.programaId;
+      const otherCompProgKey = competencia + '_BASIC';
+      const verification = RadarFluxoOperacional.createEmptyVerification();
+      verification.bonificacao.extCC = 'Sim';
+      verification.bonificacao.extINV = 'Sim';
+      verification.bonificacao.declBBAgil = 'Sim';
+      verification.analise.extCC = 'Incorreto';
+      verification.analise.extINV = 'Não analisado';
+      verification.analise.declBBAgil = 'Não analisado';
+      const otherVerification = RadarFluxoOperacional.createEmptyVerification();
+      otherVerification.bonificacao.extCC = 'Sim';
+      otherVerification.analise.extCC = 'Não analisado';
+      verificacoes[escola.id] = verificacoes[escola.id] || {};
+      verificacoes[escola.id][compProgKey] = verification;
+      verificacoes[escola.id][otherCompProgKey] = otherVerification;
+
+      const buildContext = (documentoKey, documentoNome) => (
+        RadarFluxoOperacional.buildPendencyContext({
+          compProgKey,
+          programaNome,
+          documentoKey,
+          documentoNome
+        })
+      );
+      const openContext = buildContext('extCC', 'Extrato Conta Corrente');
+      const awaitingContext = buildContext('extINV', 'Extrato Investimento');
+      const openPendency = RadarPendencias.createDocumentPendency({
+        id: 'pend-e2e-gate-aberta',
+        escolaId: escola.id,
+        competenciaOrigem: competencia,
+        programaId: target.programaId,
+        documentoKey: 'extCC',
+        item: openContext.item,
+        errosAtuais: ['Documento ilegível'],
+        observacao: 'Documento aberto aguardando a escola.',
+        dataAbertura: '2026-06-01'
+      }, {
+        eventId: 'evento-e2e-gate-aberta',
+        at: '2026-06-01T12:00:00.000Z',
+        usuario: 'Controladora E2E',
+        perfil: 'Controlador'
+      });
+      const awaitingOpened = RadarPendencias.createDocumentPendency({
+        id: 'pend-e2e-gate-aguardando',
+        escolaId: escola.id,
+        competenciaOrigem: competencia,
+        programaId: target.programaId,
+        documentoKey: 'extINV',
+        item: awaitingContext.item,
+        errosAtuais: ['Documento incompleto'],
+        observacao: 'Segundo documento aberto no mesmo programa.',
+        dataAbertura: '2026-06-02'
+      }, {
+        eventId: 'evento-e2e-gate-aguardando-abertura',
+        at: '2026-06-02T12:00:00.000Z',
+        usuario: 'Controladora E2E',
+        perfil: 'Controlador'
+      });
+      const awaitingPendency = RadarPendencias.registerCorrectiveSubmission(
+        awaitingOpened,
+        {
+          id: 'tentativa-e2e-gate-aguardando',
+          dataDisponibilizacao: '2026-06-10',
+          observacao: 'Arquivo substituto pronto para reanálise.'
+        },
+        {
+          eventId: 'evento-e2e-gate-aguardando-envio',
+          at: '2026-06-10T12:00:00.000Z',
+          usuario: 'Escola E2E',
+          perfil: 'Escola'
+        }
+      );
+
+      pendencias = [openPendency, awaitingPendency];
+      rebuildOperationalIndexes();
+      persist();
+      activeProntuarioCompetencia = competencia;
+      switchView('prontuario', escola.id);
+      return {
+        escolaId: escola.id,
+        competencia,
+        compProgKey,
+        otherCompProgKey,
+        programaId: target.programaId,
+        pendenciesBefore: JSON.parse(JSON.stringify(pendencias)),
+        targetAnalysisBefore: verification.analise.extCC,
+        siblingAnalysisBefore: verification.analise.extINV,
+        unrelatedDocumentBefore: verification.analise.declBBAgil,
+        otherProgramBefore: otherVerification.analise.extCC
+      };
+    }, DOCUMENT_CONTEXT);
+
+    const openRow = page.locator(
+      '[data-program-id="ED_FAMILIA"][data-document-key="extCC"]'
+    );
+    const awaitingRow = page.locator(
+      '[data-program-id="ED_FAMILIA"][data-document-key="extINV"]'
+    );
+    const unrelatedDocumentRow = page.locator(
+      '[data-program-id="ED_FAMILIA"][data-document-key="declBBAgil"]'
+    );
+    const otherProgramRow = page.locator(
+      '[data-program-id="BASIC"][data-document-key="extCC"]'
+    );
+
+    await expect(openRow.locator('select.select-analise')).toBeDisabled();
+    await expect(openRow).toContainText('Registre um novo envio para prosseguir.');
+    await expect(openRow.getByRole('button', { name: 'Registrar novo envio', exact: true }))
+      .toBeVisible();
+    await expect(awaitingRow.locator('select.select-analise')).toBeDisabled();
+    await expect(awaitingRow).toContainText('Use Reanalisar para registrar o resultado.');
+    await expect(awaitingRow.getByRole('button', { name: 'Reanalisar', exact: true }))
+      .toBeVisible();
+    await expect(awaitingRow.getByRole('button', {
+      name: 'Registrar substituição mais recente',
+      exact: true
+    })).toBeVisible();
+    await expect(unrelatedDocumentRow.locator('select.select-analise')).toBeEnabled();
+    await expect(otherProgramRow.locator('select.select-analise')).toBeEnabled();
+
+    expect(await page.evaluate(seeded => changeAnaliseTecnica(
+      seeded.escolaId,
+      seeded.compProgKey,
+      'extCC',
+      'Correto'
+    ), context)).toBe(false);
+    expect(dialogs.some(message => message.includes('Registrar novo envio'))).toBe(true);
+    await otherProgramRow.locator('select.select-analise').selectOption('Correto');
+
+    const after = await page.evaluate(seeded => ({
+      pendencies: JSON.parse(JSON.stringify(pendencias)),
+      targetAnalysis: verificacoes[seeded.escolaId][seeded.compProgKey].analise.extCC,
+      siblingAnalysis: verificacoes[seeded.escolaId][seeded.compProgKey].analise.extINV,
+      unrelatedDocument: verificacoes[seeded.escolaId][seeded.compProgKey]
+        .analise.declBBAgil,
+      otherProgram: verificacoes[seeded.escolaId][seeded.otherCompProgKey].analise.extCC
+    }), context);
+    expect(after).toEqual({
+      pendencies: context.pendenciesBefore,
+      targetAnalysis: context.targetAnalysisBefore,
+      siblingAnalysis: context.siblingAnalysisBefore,
+      unrelatedDocument: context.unrelatedDocumentBefore,
+      otherProgram: 'Correto'
+    });
+  });
+
+  test('restaura estado integral após falha intermediária ao persistir reanálise', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+
+    await page.goto('/');
+    const context = await seedAwaitingReanalysis(page, {
+      pendencyId: 'pend-e2e-reanalise-rollback',
+      availabilityDate: '2026-07-01'
+    });
+    context.snapshot = await page.evaluate(({ seeded, storageKeys }) => {
+      const captureIndexes = () => ({
+        pendencias: Array.from(_pendenciasByEscolaId.entries()).map(([key, values]) => [
+          key,
+          values.map(item => ({ idType: typeof item.id, id: item.id, status: item.status }))
+        ]),
+        bens: Array.from(_bensByEscolaId.entries()).map(([key, values]) => [
+          key,
+          values.map(item => ({ idType: typeof item.id, id: item.id, status: item.status }))
+        ])
+      });
+      return {
+        pendencias: JSON.parse(JSON.stringify(pendencias)),
+        verification: JSON.parse(JSON.stringify(
+          verificacoes[seeded.escolaId][seeded.compProgKey]
+        )),
+        logs: JSON.parse(JSON.stringify(logs)),
+        indexes: captureIndexes(),
+        localStorage: Object.fromEntries(
+          storageKeys.map(key => [key, localStorage.getItem(key)])
+        )
+      };
+    }, { seeded: context, storageKeys: PERSISTED_LOCAL_STORAGE_KEYS });
+
+    await page.getByRole('button', { name: 'Reanalisar', exact: true }).click();
+    const modal = page.locator('#modal-reanalisar-pendencia');
+    await modal.getByLabel('Resultado da reanálise', { exact: true }).selectOption('correto');
+    await modal.getByLabel('Observação da análise', { exact: true })
+      .fill('Resultado que deve sofrer rollback integral.');
+
+    await page.evaluate(() => {
+      const originalSetItem = Storage.prototype.setItem;
+      let failed = false;
+      window.__restoreReanalysisRollbackSetItem = () => {
+        Storage.prototype.setItem = originalSetItem;
+        delete window.__restoreReanalysisRollbackSetItem;
+      };
+      Storage.prototype.setItem = function setItemWithSingleFailure(key, value) {
+        if (!failed && key === 'radar_pdde_logs') {
+          failed = true;
+          Storage.prototype.setItem = originalSetItem;
+          throw new Error('Falha E2E intermediária ao persistir reanálise.');
+        }
+        return originalSetItem.call(this, key, value);
+      };
+    });
+
+    try {
+      await modal.getByRole('button', { name: 'Confirmar reanálise', exact: true }).click();
+      await expect(modal).toHaveClass(/show/);
+      await expect(modal.getByRole('alert')).toContainText(
+        'Falha E2E intermediária ao persistir reanálise.'
+      );
+    } finally {
+      await page.evaluate(() => {
+        if (window.__restoreReanalysisRollbackSetItem) {
+          window.__restoreReanalysisRollbackSetItem();
+        }
+      });
+    }
+
+    const afterFailure = await page.evaluate(({ seeded, storageKeys }) => {
+      const captureIndexes = () => ({
+        pendencias: Array.from(_pendenciasByEscolaId.entries()).map(([key, values]) => [
+          key,
+          values.map(item => ({ idType: typeof item.id, id: item.id, status: item.status }))
+        ]),
+        bens: Array.from(_bensByEscolaId.entries()).map(([key, values]) => [
+          key,
+          values.map(item => ({ idType: typeof item.id, id: item.id, status: item.status }))
+        ])
+      });
+      const pendency = pendencias.find(item => item.id === seeded.pendencyId);
+      return {
+        snapshot: {
+          pendencias: JSON.parse(JSON.stringify(pendencias)),
+          verification: JSON.parse(JSON.stringify(
+            verificacoes[seeded.escolaId][seeded.compProgKey]
+          )),
+          logs: JSON.parse(JSON.stringify(logs)),
+          indexes: captureIndexes(),
+          localStorage: Object.fromEntries(
+            storageKeys.map(key => [key, localStorage.getItem(key)])
+          )
+        },
+        affected: {
+          status: pendency.status,
+          attemptStatus: pendency.tentativas.at(-1).status,
+          attemptResult: pendency.tentativas.at(-1).resultado,
+          historyLength: pendency.historico.length,
+          resolutionDate: pendency.dataResolucao,
+          analysis: verificacoes[seeded.escolaId][seeded.compProgKey]
+            .analise[seeded.documentoKey],
+          reanalysisLogs: logs.filter(log => log.acao === 'Reanálise registrada').length
+        }
+      };
+    }, { seeded: context, storageKeys: PERSISTED_LOCAL_STORAGE_KEYS });
+
+    expect(afterFailure.snapshot).toEqual(context.snapshot);
+    expect(afterFailure.affected).toEqual({
+      status: 'Aguardando reanálise',
+      attemptStatus: 'aguardando',
+      attemptResult: null,
+      historyLength: 2,
+      resolutionDate: null,
+      analysis: 'Não analisado',
+      reanalysisLogs: context.reanalysisLogsBefore
     });
   });
 });
