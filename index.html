@@ -165,6 +165,15 @@
         </main>
     </div>
 
+    <div
+        id="pendency-notice"
+        class="pendency-notice"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        hidden
+    ></div>
+
     <!-- MODAIS OPERACIONAIS -->
 
     <!-- 1. Modal Registrar Contato / Atendimento -->
@@ -355,10 +364,16 @@
                             </select>
                         </div>
                     </div>
+                    <div class="form-group" id="pend-erros-documentais-group" hidden>
+                        <fieldset class="pendency-error-fieldset">
+                            <legend>Tipos de erro identificados</legend>
+                            <div id="pend-erros-documentais" class="pendency-error-grid"></div>
+                        </fieldset>
+                    </div>
                     <div class="form-row">
-                        <div class="form-group">
-                            <label for="pend-motivo">Motivo da Pendência</label>
-                            <select class="form-control" id="pend-motivo" required>
+                        <div class="form-group" id="pend-motivo-legacy-group">
+                            <label for="pend-motivo">Motivo da ocorrência</label>
+                            <select class="form-control" id="pend-motivo">
                                 <option value="Documento ausente">Documento ausente</option>
                                 <option value="Documento ilegível">Documento ilegível</option>
                                 <option value="Competência incorreta">Competência incorreta</option>
@@ -370,9 +385,9 @@
                                 <option value="Outro">Outro motivo</option>
                             </select>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" id="pend-responsavel-group">
                             <label for="pend-responsavel">Responsável pela Ação</label>
-                            <select class="form-control" id="pend-responsavel" required>
+                            <select class="form-control" id="pend-responsavel">
                                 <option value="Escola">Escola (Ação externa)</option>
                                 <option value="Verbas Federais">Verbas Federais (Ação interna)</option>
                                 <option value="Inventário">Equipe de Inventário (Ação interna)</option>
@@ -392,39 +407,108 @@
         </div>
     </div>
 
-    <!-- 5. Modal Confirmar Resolução de Pendência -->
-    <div class="modal-overlay" id="modal-resolver-pendencia">
+    <!-- 5. Modal Registrar Novo Envio -->
+    <div
+        class="modal-overlay"
+        id="modal-registrar-envio"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-registrar-envio-title"
+        aria-hidden="true"
+        inert
+    >
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Confirmar Resolução de Pendência</h3>
-                <button class="btn-close" onclick="closeModal('modal-resolver-pendencia')">×</button>
+                <h3 id="modal-registrar-envio-title">Registrar novo envio para conferência</h3>
+                <button
+                    type="button"
+                    class="btn-close"
+                    aria-label="Fechar registro de novo envio"
+                    onclick="closeModal('modal-registrar-envio')"
+                >×</button>
             </div>
             <div class="modal-body">
-                <form id="form-resolver-pendencia" onsubmit="confirmarResolverPendencia(event)">
-                    <input type="hidden" id="resolver-pendencia-id">
-                    <div style="margin-bottom: 16px; font-size: 0.9rem;">
-                        <p>Você está marcando como resolvida a pendência da unidade escolar:</p>
-                        <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); margin: 8px 0; display:flex; flex-direction:column; gap:6px;">
-                            <div><strong>Escola:</strong> <span id="resolver-escola-nome">-</span></div>
-                            <div><strong>Mês de Competência em Aberto:</strong> <span id="resolver-competencia-mes" style="color:var(--primary); font-weight:600;">-</span></div>
-                            <div><strong>Item:</strong> <span id="resolver-item-nome">-</span></div>
-                            <div><strong>Motivo Original:</strong> <span id="resolver-motivo-desc" style="color:var(--danger);">-</span></div>
-                        </div>
+                <form id="form-registrar-envio" onsubmit="confirmarRegistrarNovoEnvio(event)">
+                    <input type="hidden" id="envio-pendencia-id">
+                    <div class="pendency-context-summary" id="envio-contexto"></div>
+                    <div class="form-group">
+                        <label for="envio-data-disponibilizacao">Data em que o arquivo foi disponibilizado no Drive</label>
+                        <input type="date" class="form-control" id="envio-data-disponibilizacao" required>
                     </div>
                     <div class="form-group">
-                        <label for="resolver-justificativa">Justificativa / O que foi feito para resolver?</label>
-                        <textarea class="form-control" id="resolver-justificativa" placeholder="O que foi feito para sanar o erro? (ex: Extrato retificado inserido no drive institucional)..." required></textarea>
+                        <label for="envio-observacao">Observação</label>
+                        <textarea class="form-control" id="envio-observacao" required></textarea>
                     </div>
-                    <div class="modal-footer" style="padding: 16px 0 0 0; background:none;">
-                        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-resolver-pendencia')">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">Confirmar Resolução</button>
+                    <div class="form-group">
+                        <label for="envio-link">Link direto do arquivo no Drive (opcional)</label>
+                        <input type="url" class="form-control" id="envio-link">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-registrar-envio')">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Registrar e enviar para reanálise</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- 6. Modal Dados de Gasto (Nota Fiscal) -->
+    <!-- 6. Modal Reanalisar Pendência -->
+    <div
+        class="modal-overlay"
+        id="modal-reanalisar-pendencia"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-reanalisar-pendencia-title"
+        aria-hidden="true"
+        inert
+    >
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-reanalisar-pendencia-title">Reanalisar pendência documental</h3>
+                <button
+                    type="button"
+                    class="btn-close"
+                    aria-label="Fechar reanálise"
+                    onclick="closeModal('modal-reanalisar-pendencia')"
+                >×</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-reanalisar-pendencia" onsubmit="confirmarReanalisePendencia(event)">
+                    <input type="hidden" id="reanalisar-pendencia-id">
+                    <div
+                        class="pendency-context-summary"
+                        id="reanalisar-tentativa-atual"
+                        aria-label="Tentativa aguardando reanálise"
+                    ></div>
+                    <div class="form-group">
+                        <label for="reanalisar-resultado">Resultado da reanálise</label>
+                        <select class="form-control" id="reanalisar-resultado" required>
+                            <option value="">Selecione o resultado</option>
+                            <option value="correto">Documento correto</option>
+                            <option value="incorreto">Documento ainda incorreto</option>
+                            <option value="arquivo_indisponivel">Arquivo não localizado ou inacessível</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="reanalisar-observacao">Observação da análise</label>
+                        <textarea class="form-control" id="reanalisar-observacao" required></textarea>
+                    </div>
+                    <div class="form-group" id="reanalisar-erros-group" hidden>
+                        <fieldset class="pendency-error-fieldset" id="reanalisar-erros-fieldset" disabled>
+                            <legend>Erros documentais encontrados</legend>
+                            <div id="reanalisar-erros" class="pendency-error-grid"></div>
+                        </fieldset>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-reanalisar-pendencia')">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Confirmar reanálise</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. Modal Dados de Gasto (Nota Fiscal) -->
     <div class="modal-overlay" id="modal-dados-nota">
         <div class="modal-content">
             <div class="modal-header">
@@ -583,6 +667,7 @@
     <script src="src/domain/competencia.js"></script>
     <script src="src/domain/estatisticas.js"></script>
     <script src="src/domain/fluxo-operacional.js"></script>
+    <script src="src/domain/pendencias.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

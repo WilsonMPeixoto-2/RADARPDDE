@@ -374,7 +374,7 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
     }), context)).toEqual({ result: '', assessoria: '', inventario: '', reopenLogs: 1 });
   });
 
-  test('vincula e resolve pendência na linha exata de programa com sublinhado', async ({ page }, testInfo) => {
+  test('vincula e conclui por reanálise a pendência na linha exata de programa com sublinhado', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 
     await page.goto('/');
@@ -408,7 +408,16 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
       activeProntuarioCompetencia = competencia;
       switchView('prontuario', escola.id);
 
-      return { escolaId: escola.id, competencia, compProgKey, otherCompProgKey };
+      return {
+        escolaId: escola.id,
+        competencia,
+        compProgKey,
+        otherCompProgKey,
+        bonificacaoAntes: JSON.parse(JSON.stringify(
+          verificacoes[escola.id][compProgKey].bonificacao
+        )),
+        resultadoAntes: verificacoes[escola.id][compProgKey].resultadoBonif
+      };
     });
 
     const targetRow = page.locator('#prontuario-verif-rows tr')
@@ -419,18 +428,21 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
     await expect(page.locator('#modal-nova-pendencia')).toHaveClass(/show/);
     await page.locator('#form-nova-pendencia button[type="submit"]').click();
 
-    expect(await page.evaluate(({ escolaId, competencia }) => {
+    const createdPendency = await page.evaluate(({ escolaId, competencia }) => {
       const pendency = pendencias.find(item => (
         item.escolaId === escolaId
         && item.competencia === competencia
         && item.status === 'Aberta'
       ));
       return pendency && {
+        id: pendency.id,
         programaId: pendency.programaId,
         documentoKey: pendency.documentoKey,
         item: pendency.item
       };
-    }, context)).toEqual({
+    }, context);
+    expect(createdPendency).toEqual({
+      id: expect.anything(),
       programaId: 'ED_FAMILIA',
       documentoKey: 'extCC',
       item: 'Educação e Família - Extrato Conta Corrente'
@@ -439,43 +451,79 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
     const linkedRow = page.locator('#prontuario-verif-rows tr')
       .filter({ hasText: 'Educação e Família' })
       .filter({ hasText: 'Extrato Conta Corrente' });
-    await linkedRow.getByRole('button', { name: 'Resolver Pendência' }).click();
-    await page.locator('#resolver-justificativa').fill('Documento corrigido no Drive.');
-    await page.locator('#form-resolver-pendencia button[type="submit"]').click();
+    await expect(linkedRow.locator('select.select-analise')).toBeDisabled();
+    await linkedRow.getByRole('button', { name: 'Registrar novo envio', exact: true }).click();
+    const submissionModal = page.locator('#modal-registrar-envio');
+    await submissionModal.getByLabel(
+      'Data em que o arquivo foi disponibilizado no Drive',
+      { exact: true }
+    ).fill('2026-06-10');
+    await submissionModal.getByLabel('Observação', { exact: true })
+      .fill('Documento corrigido no Drive para nova conferência.');
+    await submissionModal.getByRole('button', {
+      name: 'Registrar e enviar para reanálise',
+      exact: true
+    }).click();
 
-    await expect(page.locator('#prontuario-verif-rows tr')
+    const awaitingRow = page.locator('#prontuario-verif-rows tr')
       .filter({ hasText: 'Educação e Família' })
-      .filter({ hasText: 'Extrato Conta Corrente' })
-      .getByText('Resolvida - reanalisar')).toBeVisible();
-
-    expect(await page.evaluate(({ escolaId, competencia, compProgKey, otherCompProgKey }) => ({
-      target: verificacoes[escolaId][compProgKey].analise.extCC,
-      siblingDocument: verificacoes[escolaId][compProgKey].analise.extINV,
-      otherProgram: verificacoes[escolaId][otherCompProgKey].analise.extCC,
-      status: getProgramVerificationStatus(escolaId, competencia, 'ED_FAMILIA')
-    }), context)).toEqual({
-      target: 'Não analisado',
-      siblingDocument: 'Correto',
-      otherProgram: 'Incorreto',
-      status: 'em-andamento'
-    });
+      .filter({ hasText: 'Extrato Conta Corrente' });
+    await expect(awaitingRow.locator('select.select-analise')).toBeDisabled();
+    await awaitingRow.getByRole('button', { name: 'Reanalisar', exact: true }).click();
+    const reanalysisModal = page.locator('#modal-reanalisar-pendencia');
+    await reanalysisModal.getByLabel('Resultado da reanálise', { exact: true })
+      .selectOption('correto');
+    await reanalysisModal.getByLabel('Observação da análise', { exact: true })
+      .fill('Documento correto confirmado no ciclo completo.');
+    await reanalysisModal.getByRole('button', {
+      name: 'Confirmar reanálise',
+      exact: true
+    }).click();
 
     const resolvedRow = page.locator('#prontuario-verif-rows tr')
       .filter({ hasText: 'Educação e Família' })
       .filter({ hasText: 'Extrato Conta Corrente' });
-    await resolvedRow.locator('select.select-analise').selectOption('Incorreto');
-    await page.locator('#modal-nova-pendencia .btn-secondary').click();
-    await expect(page.locator('#prontuario-verif-rows tr')
-      .filter({ hasText: 'Educação e Família' })
-      .filter({ hasText: 'Extrato Conta Corrente' })
-      .getByRole('button', { name: 'Abrir Pendência' })).toBeVisible();
+    await expect(resolvedRow.locator('select.select-analise')).toBeEnabled();
+    await expect(resolvedRow.locator('select.select-analise')).toHaveValue('Correto');
+    await expect(resolvedRow.getByRole('button', { name: 'Reanalisar', exact: true }))
+      .toHaveCount(0);
+
+    expect(await page.evaluate(({
+      escolaId,
+      competencia,
+      compProgKey,
+      otherCompProgKey,
+      pendencyId
+    }) => ({
+      target: verificacoes[escolaId][compProgKey].analise.extCC,
+      siblingDocument: verificacoes[escolaId][compProgKey].analise.extINV,
+      otherProgram: verificacoes[escolaId][otherCompProgKey].analise.extCC,
+      status: getProgramVerificationStatus(escolaId, competencia, 'ED_FAMILIA'),
+      bonificacao: JSON.parse(JSON.stringify(
+        verificacoes[escolaId][compProgKey].bonificacao
+      )),
+      resultado: verificacoes[escolaId][compProgKey].resultadoBonif,
+      pendency: pendencias.find(item => item.id === pendencyId)
+    }), { ...context, pendencyId: createdPendency.id })).toEqual({
+      target: 'Correto',
+      siblingDocument: 'Correto',
+      otherProgram: 'Incorreto',
+      status: 'em-andamento',
+      bonificacao: context.bonificacaoAntes,
+      resultado: context.resultadoAntes,
+      pendency: expect.objectContaining({
+        status: 'Resolvida',
+        responsavel: null,
+        errosAtuais: []
+      })
+    });
   });
 
   test('reconhece pendência textual antiga pela competência de origem', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 
     await page.goto('/');
-    await page.evaluate(() => {
+    const context = await page.evaluate(() => {
       switchProfile('controlador');
 
       const competencia = activeCompetenciaKey;
@@ -489,7 +537,8 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
       verificacoes[escola.id][compProgKey] = RadarFluxoOperacional.createEmptyVerification();
       verificacoes[escola.id][compProgKey].bonificacao.extCC = 'Sim';
       verificacoes[escola.id][compProgKey].analise.extCC = 'Incorreto';
-      pendencias.push({
+      pendencias = pendencias.filter(item => item.id !== 'pend-e2e-legada');
+      pendencias.push(RadarPendencias.normalizePendencyRecord({
         id: 'pend-e2e-legada',
         escolaId: escola.id,
         competenciaOrigem: competencia,
@@ -499,15 +548,57 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
         status: 'Aberta',
         dataAbertura: '2026-07-10',
         observacao: 'Registro legado sem campos estruturados.'
-      });
+      }));
       rebuildOperationalIndexes();
-      activeProntuarioCompetencia = competencia;
-      switchView('prontuario', escola.id);
+      switchView('pendencias');
+      return {
+        escolaId: escola.id,
+        competencia,
+        competenciaLabel: formatCompetenciaText(competencia),
+        compProgKey
+      };
     });
 
-    await expect(page.locator('#prontuario-verif-rows tr')
+    const legacyRow = page.locator(
+      '#p-abertas tr[data-pendency-ref*="pend-e2e-legada"]'
+    );
+    await expect(legacyRow).toHaveCount(1);
+    await expect(legacyRow).toContainText('Extrato Conta Corrente');
+    await expect(legacyRow).toContainText(context.competenciaLabel);
+    await expect(legacyRow.getByRole('button', { name: 'Registrar novo envio' }))
+      .toHaveCount(0);
+    await expect(legacyRow.getByRole('button', { name: 'Reanalisar' })).toHaveCount(0);
+
+    expect(await page.evaluate(() => {
+      const legacy = pendencias.find(item => item.id === 'pend-e2e-legada');
+      return {
+        item: legacy.item,
+        status: legacy.status,
+        competenciaOrigem: legacy.competenciaOrigem,
+        tipo: legacy.tipo,
+        contextoIncompleto: legacy.contextoIncompleto,
+        hasProgramaId: Object.prototype.hasOwnProperty.call(legacy, 'programaId'),
+        hasDocumentoKey: Object.prototype.hasOwnProperty.call(legacy, 'documentoKey'),
+        documentary: RadarPendencias.isDocumentaryPendency(legacy)
+      };
+    })).toEqual({
+      item: 'Extrato Conta Corrente',
+      status: 'Aberta',
+      competenciaOrigem: context.competencia,
+      tipo: 'legada',
+      contextoIncompleto: true,
+      hasProgramaId: false,
+      hasDocumentoKey: false,
+      documentary: false
+    });
+
+    await legacyRow.getByRole('button', { name: 'Ver Unidade', exact: true }).click();
+    const matchingTechnicalRow = page.locator('#prontuario-verif-rows tr')
       .filter({ hasText: 'Educação e Família' })
-      .filter({ hasText: 'Extrato Conta Corrente' })
-      .getByRole('button', { name: 'Resolver Pendência' })).toBeVisible();
+      .filter({ hasText: 'Extrato Conta Corrente' });
+    await expect(matchingTechnicalRow.getByRole('button', { name: 'Registrar novo envio' }))
+      .toHaveCount(0);
+    await expect(matchingTechnicalRow.getByRole('button', { name: 'Reanalisar' }))
+      .toHaveCount(0);
   });
 });

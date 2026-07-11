@@ -4162,6 +4162,7 @@ const INITIAL_EQUIPE_INVENTARIO = [
 ];
 
 const INITIAL_DATA_VERSION = '2026-07-08-real-cre4-v2';
+const PENDENCY_SCHEMA_STORAGE_KEY = 'radar_pdde_pendency_schema_version';
 
 // Calendário Global configurado pela SME
 const INITIAL_CONFIG = {
@@ -4211,6 +4212,7 @@ let currentExercise = '2026';
 let currentView = 'dashboard'; // dashboard, escolas, competencias, pendencias, inventario, auditoria, sme-config
 
 let activeSchoolId = null; // ID da escola em exibição no prontuário
+let activePendencyDetailId = null; // Pendência destacada na navegação mínima de detalhe
 
 let activeCompetenciaKey = '2026-05'; // Competência selecionada na visão por competência
 
@@ -4553,6 +4555,27 @@ async function seedDatabaseSupabase() {
     }
 }
 
+function getPendencyAnalysisValue(pendency) {
+    if (!pendency || !pendency.programaId || !pendency.documentoKey) return null;
+    const competencia = pendency.competenciaOrigem || pendency.competencia;
+    const compProgKey = `${competencia}_${pendency.programaId}`;
+    return verificacoes?.[pendency.escolaId]?.[compProgKey]?.analise?.[pendency.documentoKey] || null;
+}
+
+function migrateLoadedPendencies() {
+    const migrationAt = new Date().toISOString();
+    pendencias = window.RadarPendencias.migratePendencyCollection(pendencias, {
+        migrationAt,
+        getAnalysisValue: getPendencyAnalysisValue
+    });
+
+    localStorage.setItem('radar_pdde_pendencias', JSON.stringify(pendencias));
+    localStorage.setItem(
+        PENDENCY_SCHEMA_STORAGE_KEY,
+        String(window.RadarPendencias.PENDENCY_SCHEMA_VERSION)
+    );
+}
+
 function loadLocalFallback() {
 
     const storedVersion = localStorage.getItem('radar_pdde_data_version');
@@ -4588,6 +4611,7 @@ function loadLocalFallback() {
     controladores = JSON.parse(localStorage.getItem('radar_pdde_controladores') || '[]');
     equipeInventario = JSON.parse(localStorage.getItem('radar_pdde_equipe_inventario') || '[]');
     notasRegistradas = JSON.parse(localStorage.getItem('radar_pdde_notas_registradas') || '[]');
+    migrateLoadedPendencies();
     rebuildOperationalIndexes();
     
     activeCompetenciaKey = config.competenciaFechamento;
@@ -4709,9 +4733,9 @@ function getAlerts() {
     const alerts = [];
     const now = new Date();
     
-    // Alerta 1: Pendências abertas há mais de 10 dias (permanecem até serem resolvidas)
+    // Alerta 1: Pendências ativas há mais de 10 dias
     pendencias.forEach(p => {
-        if (p.status === 'Aberta') {
+        if (window.RadarPendencias.isActivePendency(p)) {
             // Achar último contato dessa pendência para exibição
             const pContatos = contatos.filter(c => c.pendenciaId === p.id);
             let lastDate = new Date(p.dataAbertura);
@@ -4726,15 +4750,20 @@ function getAlerts() {
                 const ctrl = esc ? controladores.find(c => c.id === esc.controladorId) : null;
                 const ctrlText = ctrl ? ctrl.name : 'Não designado';
                 const desigText = esc ? esc.designação : '';
+                const nextActor = p.responsavel
+                    || window.RadarPendencias.getNextActor(p)
+                    || 'Não definido';
                 const timeLabel = pContatos.length > 0 
                     ? `Último contato em ${lastDate.toLocaleDateString('pt-BR')}` 
-                    : `Aberta em ${new Date(p.dataAbertura).toLocaleDateString('pt-BR')}`;
+                    : `Registrada em ${new Date(p.dataAbertura).toLocaleDateString('pt-BR')}`;
                 alerts.push({
-                    id: 'stale-' + p.id,
+                    alertKind: 'stale-pendency',
+                    schoolId: p.escolaId,
+                    pendencyRef: encodePendencyIdReference(p.id),
                     type: 'danger',
-                    text: `Pendência (${pData.item}) de ${esc ? esc.denominação : 'Escola'} (${desigText} | Resp: ${ctrlText}) aberta há ${diffDays} dias!`,
+                    text: `Pendência (${pData.item}) de ${esc ? esc.denominação : 'Escola'} (${desigText} | Resp: ${ctrlText}). Estado: ${p.status}. Próximo ator: ${nextActor}. Ativa há ${diffDays} dias.`,
                     time: timeLabel,
-                    action: () => openSchoolVerification(p.escolaId, p.competencia)
+                    action: () => openPendencyDetail(p.id)
                 });
             }
         }
@@ -4752,6 +4781,8 @@ function getAlerts() {
                 const desigText = esc ? esc.designação : '';
                 alerts.push({
                     id: 'capital-' + b.id,
+                    alertKind: 'capital',
+                    schoolId: b.escolaId,
                     type: 'warning',
                     text: `Aquisição de capital em ${esc ? esc.denominação : 'Escola'} (${desigText} | Resp: ${ctrlText}) não encaminhada: ${faltaNF ? 'Falta Nota Fiscal' : ''}${faltaNF && faltaProc ? ' e ' : ''}${faltaProc ? 'Falta Processo de Inventário' : ''}.`,
                     time: `Pendente de verificação interna`,
@@ -4779,6 +4810,8 @@ function getAlerts() {
                             const desigText = esc ? esc.designação : '';
                             alerts.push({
                                 id: `nobonif-${esc.id}-${progId}`,
+                                alertKind: 'missing-bonification',
+                                schoolId: esc.id,
                                 type: 'info',
                                 text: `Bonificação de ${esc.denominação} (${desigText} | Resp: ${ctrlText}) para o programa ${prog ? prog.name : progId} na competência ${activeCompetenciaKey} não registrada.`,
                                 time: `Janela de fechamento ativa`,
@@ -4792,6 +4825,13 @@ function getAlerts() {
     }
 
     return alerts;
+}
+
+function getAlertActionDataAttributes(alert) {
+    if (alert && alert.pendencyRef) {
+        return `data-alert-kind="${escapeHtml(alert.alertKind)}" data-pendency-ref="${escapeHtml(alert.pendencyRef)}"`;
+    }
+    return `data-alert-id="${escapeHtml(alert && alert.id)}"`;
 }
 
 function updateAlertsBell() {
@@ -4809,7 +4849,7 @@ function updateAlertsBell() {
     }
     
     listContainer.innerHTML = list.map(a => `
-        <div class="alert-item alert-${a.type}" onclick="handleAlertClick('${escapeHtml(a.id)}')">
+        <div class="alert-item alert-${a.type}" ${getAlertActionDataAttributes(a)} onclick="handleAlertClick(this)">
             <div class="alert-icon">
                 ${a.type === 'danger' ? `
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
@@ -4827,9 +4867,36 @@ function updateAlertsBell() {
     `).join('');
 }
 
-function handleAlertClick(alertId) {
+function findAlertFromActionSource(alerts, alertSource) {
+    const actionElement = alertSource && alertSource.currentTarget
+        ? alertSource.currentTarget
+        : alertSource;
+    if (actionElement && actionElement.dataset) {
+        if (actionElement.dataset.pendencyRef) {
+            let pendencyId;
+            try {
+                pendencyId = decodePendencyIdReference(actionElement.dataset.pendencyRef);
+            } catch (error) {
+                console.error('Não foi possível interpretar a referência do alerta.', error);
+                return null;
+            }
+            return alerts.find(alert => {
+                if (!alert.pendencyRef) return false;
+                try {
+                    return decodePendencyIdReference(alert.pendencyRef) === pendencyId;
+                } catch (error) {
+                    return false;
+                }
+            }) || null;
+        }
+        return alerts.find(alert => alert.id === actionElement.dataset.alertId) || null;
+    }
+    return alerts.find(alert => alert.id === alertSource) || null;
+}
+
+function handleAlertClick(alertSource) {
     const alerts = getAlerts();
-    const alert = alerts.find(a => a.id === alertId);
+    const alert = findAlertFromActionSource(alerts, alertSource);
     if (alert) {
         alert.action();
         document.getElementById('alerts-dropdown').classList.remove('show');
@@ -4844,8 +4911,7 @@ function openSchoolTimeline(schoolId, compKey = null) {
     }
     switchView('prontuario');
     setTimeout(() => {
-        const tab = document.querySelector('[data-tab="contatos"]');
-        if (tab) tab.click();
+        activateProntuarioTab('tab-contatos');
     }, 100);
 }
 
@@ -4856,8 +4922,7 @@ function openSchoolCapital(schoolId, compKey = null) {
     }
     switchView('prontuario');
     setTimeout(() => {
-        const tab = document.querySelector('[data-tab="capital"]');
-        if (tab) tab.click();
+        activateProntuarioTab('tab-capital');
     }, 100);
 }
 
@@ -4868,8 +4933,7 @@ function openSchoolVerification(schoolId, compKey = null) {
     }
     switchView('prontuario');
     setTimeout(() => {
-        const tab = document.querySelector('[data-tab="verificacoes"]');
-        if (tab) tab.click();
+        activateProntuarioTab('tab-verificacoes');
     }, 100);
 }
 
@@ -5288,7 +5352,9 @@ function getEscolaProgramNames(esc) {
 // Call rebuildOperationalIndexes() after any mutation to pendencias or bens.
 function getEscolaOperationalData(esc) {
     const escolaPendencias = _pendenciasByEscolaId.get(esc.id) || [];
-    const pendenciasAbertas = escolaPendencias.filter(p => p.status === 'Aberta');
+    const pendenciasAbertas = escolaPendencias.filter(p => (
+        window.RadarPendencias.isActivePendency(p)
+    ));
     const escolaBens = _bensByEscolaId.get(esc.id) || [];
     const bensNaoEncaminhados = escolaBens.filter(b => b.status === 'Não encaminhada').length;
     const bensEncaminhados = escolaBens.filter(b => b.status === 'Encaminhada').length;
@@ -5549,7 +5615,10 @@ function renderDashboardControlador(container) {
     const targetIds = targetEscolas.map(e => e.id);
     
     // Contagem de pendências ativas das escolas do filtro
-    const pAtivas = pendencias.filter(p => targetIds.includes(p.escolaId) && p.status === 'Aberta');
+    const pAtivas = pendencias.filter(p => (
+        targetIds.includes(p.escolaId)
+        && window.RadarPendencias.isActivePendency(p)
+    ));
     
     // Contagem de bens não encaminhados
     const bPendentes = bens.filter(b => targetIds.includes(b.escolaId) && b.status === 'Não encaminhada');
@@ -5563,7 +5632,10 @@ function renderDashboardControlador(container) {
     });
 
     const escolasComPendencias = targetEscolas.filter(e => {
-        return pendencias.some(p => p.escolaId === e.id && p.status === 'Aberta');
+        return pendencias.some(p => (
+            p.escolaId === e.id
+            && window.RadarPendencias.isActivePendency(p)
+        ));
     });
 
     const escolasComBensPendentes = targetEscolas.filter(e => {
@@ -5582,7 +5654,7 @@ function renderDashboardControlador(container) {
         subFilterLabel = ' (Filtrado: Não Analisadas)';
     } else if (activeControladorSubFilter === 'pendencias') {
         renderedEscolas = escolasComPendencias;
-        subFilterLabel = ' (Filtrado: Com Pendências Abertas)';
+        subFilterLabel = ' (Filtrado: Com pendências ativas)';
     } else if (activeControladorSubFilter === 'bens') {
         renderedEscolas = escolasComBensPendentes;
         subFilterLabel = ' (Filtrado: Com Bens Não Encaminhados)';
@@ -5633,7 +5705,7 @@ function renderDashboardControlador(container) {
                 <div class="stat-icon" style="background-color: var(--danger-bg); color: var(--danger);">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg>
                 </div>
-                <div class="stat-label">Pendências Abertas</div>
+                <div class="stat-label">Pendências ativas</div>
                 <div class="stat-value">${escolasComPendencias.length} Escolas</div>
             </div>
             <div class="card-stat ${activeControladorSubFilter === 'bens' ? 'active-bens' : ''}" style="cursor: pointer;" onclick="changeControladorSubFilter('bens')">
@@ -5732,16 +5804,21 @@ function renderDashboardControlador(container) {
     
     // Injetar os alertas do controlador no painel lateral com base nas escolas filtradas
     const gargalosEl = document.getElementById('controlador-gargalos');
-    const localAlerts = getAlerts().filter(a => {
-        const matchSchoolId = targetIds.some(id => a.id.includes(id));
-        return matchSchoolId && (a.id.startsWith('stale-') || a.id.startsWith('nobonif-') || a.id.startsWith('capital-'));
-    });
+    const localAlertKinds = new Set([
+        'stale-pendency',
+        'missing-bonification',
+        'capital'
+    ]);
+    const localAlerts = getAlerts().filter(a => (
+        targetIds.includes(a.schoolId)
+        && localAlertKinds.has(a.alertKind)
+    ));
     
     if (localAlerts.length === 0) {
         gargalosEl.innerHTML = `<div style="text-align:center; padding: 24px; color:var(--text-muted)">Sem pendências críticas neste filtro! Bom trabalho.</div>`;
     } else {
         gargalosEl.innerHTML = localAlerts.map(a => `
-            <div class="contact-card" style="border-left: 3px solid var(--${a.type === 'danger' ? 'danger' : a.type === 'warning' ? 'warning' : 'info'}); margin-bottom: 12px; cursor:pointer;" onclick="handleAlertClick('${escapeHtml(a.id)}')">
+            <div class="contact-card" style="border-left: 3px solid var(--${a.type === 'danger' ? 'danger' : a.type === 'warning' ? 'warning' : 'info'}); margin-bottom: 12px; cursor:pointer;" ${getAlertActionDataAttributes(a)} onclick="handleAlertClick(this)">
                 <div class="contact-meta">
                     <span style="font-weight:700; color:var(--${a.type === 'danger' ? 'danger' : a.type === 'warning' ? 'warning' : 'info'})">${a.type.toUpperCase()}</span>
                     <span>${escapeHtml(a.time)}</span>
@@ -6172,12 +6249,14 @@ function renderDashboardAssistente(container) {
     `;
 
     const gargalosEl = document.getElementById('assistente-gargalos');
-    const staleAlerts = getAlerts().filter(a => a.id.startsWith('stale-') || a.id.startsWith('capital-'));
+    const staleAlerts = getAlerts().filter(a => (
+        a.alertKind === 'stale-pendency' || a.alertKind === 'capital'
+    ));
     if (staleAlerts.length === 0) {
         gargalosEl.innerHTML = `<div style="text-align:center; padding: 24px; color:var(--text-muted)">Sem gargalos de pendências ativas nas carteiras!</div>`;
     } else {
         gargalosEl.innerHTML = staleAlerts.map(a => `
-            <div class="contact-card" style="border-left: 3px solid var(--${a.type === 'danger' ? 'danger' : 'warning'}); margin-bottom:12px; cursor:pointer;" onclick="handleAlertClick('${escapeHtml(a.id)}')">
+            <div class="contact-card" style="border-left: 3px solid var(--${a.type === 'danger' ? 'danger' : 'warning'}); margin-bottom:12px; cursor:pointer;" ${getAlertActionDataAttributes(a)} onclick="handleAlertClick(this)">
                 <div class="contact-meta">
                     <span style="font-weight:700; color:var(--${a.type === 'danger' ? 'danger' : 'warning'})">${a.type.toUpperCase()}</span>
                     <span>${escapeHtml(a.time)}</span>
@@ -7279,9 +7358,9 @@ function renderEscolas() {
 
                             { value: 'all', label: 'Todas' },
 
-                            { value: 'com', label: 'Com pendências abertas' },
+                            { value: 'com', label: 'Com pendências ativas' },
 
-                            { value: 'sem', label: 'Sem pendências abertas' }
+                            { value: 'sem', label: 'Sem pendências ativas' }
 
                         ], activeEscolaFilters.pendencias)}
 
@@ -7337,7 +7416,7 @@ function renderEscolas() {
 
                 ${activeSearchTerm ? `<span>Busca ativa: "${escapeHtml(activeSearchTerm)}"</span>` : ''}
 
-                <span>${pendenciasCount} com pendências abertas</span>
+                <span>${pendenciasCount} com pendências ativas</span>
 
                 <span>${inventarioCount} com processo de inventário</span>
 
@@ -7711,10 +7790,100 @@ function getFormattedPendencyData(p) {
     };
 }
 
+function getCorrectiveSubmissionActionLabel(pendency) {
+    if (!window.RadarPendencias.isDocumentaryPendency(pendency)) return '';
+    if (pendency.status === 'Aberta') return 'Registrar novo envio';
+    if (pendency.status === 'Aguardando reanálise') {
+        return 'Registrar substituição mais recente';
+    }
+    return '';
+}
+
+function canReanalysePendency(pendency) {
+    return currentProfile === 'controlador'
+        && pendency
+        && pendency.status === 'Aguardando reanálise'
+        && window.RadarPendencias.isDocumentaryPendency(pendency);
+}
+
+function encodePendencyIdReference(pendencyId) {
+    const type = typeof pendencyId;
+    const validString = type === 'string' && pendencyId.length > 0;
+    const validNumber = type === 'number' && Number.isFinite(pendencyId);
+    if (!validString && !validNumber) {
+        throw new Error('Referência de pendência inválida.');
+    }
+
+    return JSON.stringify({ type, value: pendencyId });
+}
+
+function decodePendencyIdReference(serializedReference) {
+    if (typeof serializedReference !== 'string' || !serializedReference) {
+        throw new Error('Referência de pendência ausente.');
+    }
+
+    let reference;
+    try {
+        reference = JSON.parse(serializedReference);
+    } catch (error) {
+        throw new Error('Referência de pendência malformada.');
+    }
+
+    const isObject = reference && typeof reference === 'object' && !Array.isArray(reference);
+    const hasType = isObject && Object.prototype.hasOwnProperty.call(reference, 'type');
+    const hasValue = isObject && Object.prototype.hasOwnProperty.call(reference, 'value');
+    const validString = hasType
+        && reference.type === 'string'
+        && hasValue
+        && typeof reference.value === 'string'
+        && reference.value.length > 0;
+    const validNumber = hasType
+        && reference.type === 'number'
+        && hasValue
+        && typeof reference.value === 'number'
+        && Number.isFinite(reference.value);
+
+    if (!validString && !validNumber) {
+        throw new Error('Referência de pendência inválida.');
+    }
+    return reference.value;
+}
+
+function resolvePendencyIdReference(source) {
+    const actionElement = source && source.currentTarget
+        ? source.currentTarget
+        : source;
+    if (actionElement && actionElement.dataset && actionElement.dataset.pendencyRef) {
+        return decodePendencyIdReference(actionElement.dataset.pendencyRef);
+    }
+
+    return decodePendencyIdReference(encodePendencyIdReference(source));
+}
+
+function findPendencyById(pendencyId) {
+    return pendencias.find(item => item.id === pendencyId);
+}
+
+function elementMatchesPendencyIdReference(element, pendencyId) {
+    if (!element || !element.dataset || !element.dataset.pendencyRef) return false;
+    try {
+        return decodePendencyIdReference(element.dataset.pendencyRef) === pendencyId;
+    } catch (error) {
+        return false;
+    }
+}
+
+function findPendencyElement(selector, pendencyId) {
+    return Array.from(document.querySelectorAll(selector))
+        .find(element => elementMatchesPendencyIdReference(element, pendencyId)) || null;
+}
+
 function renderPendencias() {
     const container = document.getElementById('main-container');
-    let abertas = pendencias.filter(p => p.status === 'Aberta');
+    let ativas = pendencias.filter(p => window.RadarPendencias.isActivePendency(p));
     let resolvidas = pendencias.filter(p => p.status === 'Resolvida');
+    const selectedPendency = pendencias.find(p => p.id === activePendencyDetailId);
+    const showResolvedTab = selectedPendency && selectedPendency.status === 'Resolvida';
 
     // Se perfil é controlador, ordenar as dele primeiro (e depois todas as outras)
     if (currentProfile === 'controlador') {
@@ -7724,7 +7893,7 @@ function renderPendencias() {
             const esc = escolas.find(e => e.id === p.escolaId);
             return (esc && esc.controladorId === activeCtrlId) ? 0 : 1;
         };
-        abertas.sort((a, b) => {
+        ativas.sort((a, b) => {
             const wA = getSortWeight(a);
             const wB = getSortWeight(b);
             if (wA !== wB) return wA - wB;
@@ -7747,11 +7916,11 @@ function renderPendencias() {
         </div>
 
         <div class="tab-container">
-            <button class="tab-button active" onclick="switchPendenciasTab(event, 'p-abertas')">Abertas (${abertas.length})</button>
-            <button class="tab-button" onclick="switchPendenciasTab(event, 'p-resolvidas')">Histórico Resolvidas (${resolvidas.length})</button>
+            <button class="tab-button ${showResolvedTab ? '' : 'active'}" onclick="switchPendenciasTab(event, 'p-abertas')">Ativas (${ativas.length})</button>
+            <button class="tab-button ${showResolvedTab ? 'active' : ''}" onclick="switchPendenciasTab(event, 'p-resolvidas')">Histórico Resolvidas (${resolvidas.length})</button>
         </div>
 
-        <div class="tab-content-panel active" id="p-abertas">
+        <div class="tab-content-panel ${showResolvedTab ? '' : 'active'}" id="p-abertas">
             <div class="panel-card">
                 <div class="table-responsive">
                     <table class="data-table">
@@ -7761,6 +7930,7 @@ function renderPendencias() {
                                 <th>Mês de Competência</th>
                                 <th>Item</th>
                                 <th>Motivo da Falha</th>
+                                <th>Situação</th>
                                 <th>Quem deve agir?</th>
                                 <th>Data Abertura</th>
                                 <th>Ações</th>
@@ -7769,19 +7939,19 @@ function renderPendencias() {
 
                         <tbody>
 
-                            ${abertas.length === 0 ? `
+                            ${ativas.length === 0 ? `
 
                                 <tr>
 
-                                    <td colspan="7">
+                                    <td colspan="8">
 
-                                        Nenhuma pendência aberta no momento. Quando uma inconsistência for registrada, ela aparecerá nesta lista.
+                                        Nenhuma pendência ativa no momento. Quando uma inconsistência for registrada, ela aparecerá nesta lista.
 
                                     </td>
 
                                 </tr>
 
-                            ` : abertas.map(p => {
+                            ` : ativas.map(p => {
 
                                 const esc = escolas.find(e => e.id === p.escolaId);
 
@@ -7792,26 +7962,51 @@ function renderPendencias() {
                                 const ctrlName = ctrl ? ctrl.name : 'Não designado';
                                 const desig = esc ? esc.designação : '';
                                 const isMine = (currentProfile === 'controlador' && esc && esc.controladorId === getDefaultControladorId());
+                                const isSelected = p.id === activePendencyDetailId;
+                                const submissionActionLabel = getCorrectiveSubmissionActionLabel(p);
+                                const canReanalyse = canReanalysePendency(p);
 
                                 return `
-                                    <tr style="${isMine ? 'background-color: rgba(157, 125, 252, 0.05);' : ''}">
+                                    <tr
+                                        data-pendency-ref="${escapeHtml(encodePendencyIdReference(p.id))}"
+                                        data-pendency-status="${escapeHtml(p.status)}"
+                                        class="${isSelected ? 'pendency-row-selected' : ''}"
+                                        tabindex="-1"
+                                        aria-current="${isSelected ? 'true' : 'false'}"
+                                        style="${isMine ? 'background-color: rgba(157, 125, 252, 0.05);' : ''}"
+                                    >
                                         <td>
                                             <div style="display:flex; align-items:center; gap:8px;">
                                                 <strong>${escapeHtml(esc ? esc.denominação : 'N/A')}</strong>
                                                 ${isMine ? `<span class="badge badge-primary" style="font-size: 0.65rem; padding: 2px 6px;">Sua Carteira</span>` : ''}
                                             </div>
                                             ${desig ? `<small style="color:var(--text-muted)">${escapeHtml(desig)} | Controlador: ${escapeHtml(ctrlName)}</small>` : ''}
+                                            ${isSelected ? '<span class="pendency-detail-marker">Pendência selecionada</span>' : ''}
                                         </td>
                                         <td><span style="font-weight:600; color:var(--primary);">${escapeHtml(pData.competencia)}</span></td>
                                         <td>${escapeHtml(pData.item)}</td>
                                         <td><span style="color:var(--danger)">${escapeHtml(p.motivo)}</span></td>
+                                        <td><span class="badge ${p.status === 'Aguardando reanálise' ? 'badge-warning' : 'badge-danger'}">${escapeHtml(p.status)}</span></td>
                                         <td><span class="badge badge-info">${escapeHtml(p.responsavel)}</span></td>
                                         <td>${new Date(p.dataAbertura).toLocaleDateString('pt-BR')}</td>
                                         <td>
                                             <div style="display:flex; gap:6px;">
                                                 <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${escapeHtml(p.escolaId)}')">Ver Unidade</button>
-                                                ${currentProfile !== 'inventario' ? `
-                                                    <button class="btn btn-primary btn-sm" onclick="abrirModalResolverPendencia('${escapeHtml(p.id)}')">Resolver</button>
+                                                ${canReanalyse ? `
+                                                    <button
+                                                        class="btn btn-primary btn-sm"
+                                                        data-action="reanalyse-pendency"
+                                                        data-pendency-ref="${escapeHtml(encodePendencyIdReference(p.id))}"
+                                                        onclick="abrirModalReanalisarPendencia(this)"
+                                                    >Reanalisar</button>
+                                                ` : ''}
+                                                ${submissionActionLabel && currentProfile !== 'inventario' ? `
+                                                    <button
+                                                        class="btn ${canReanalyse ? 'btn-secondary' : 'btn-primary'} btn-sm"
+                                                        data-action="register-corrective-submission"
+                                                        data-pendency-ref="${escapeHtml(encodePendencyIdReference(p.id))}"
+                                                        onclick="abrirModalRegistrarNovoEnvio(this)"
+                                                    >${escapeHtml(submissionActionLabel)}</button>
                                                 ` : ''}
                                             </div>
                                         </td>
@@ -7824,7 +8019,7 @@ function renderPendencias() {
             </div>
         </div>
 
-        <div class="tab-content-panel" id="p-resolvidas">
+        <div class="tab-content-panel ${showResolvedTab ? 'active' : ''}" id="p-resolvidas">
             <div class="panel-card">
                 <div class="table-responsive">
                     <table class="data-table">
@@ -7865,15 +8060,23 @@ function renderPendencias() {
                                 const ctrlName = ctrl ? ctrl.name : 'Não designado';
                                 const desig = esc ? esc.designação : '';
                                 const isMine = (currentProfile === 'controlador' && esc && esc.controladorId === getDefaultControladorId());
+                                const isSelected = p.id === activePendencyDetailId;
 
                                 return `
-                                    <tr style="${isMine ? 'background-color: rgba(157, 125, 252, 0.03);' : ''}">
+                                    <tr
+                                        data-pendency-ref="${escapeHtml(encodePendencyIdReference(p.id))}"
+                                        class="${isSelected ? 'pendency-row-selected' : ''}"
+                                        tabindex="-1"
+                                        aria-current="${isSelected ? 'true' : 'false'}"
+                                        style="${isMine ? 'background-color: rgba(157, 125, 252, 0.03);' : ''}"
+                                    >
                                         <td>
                                             <div style="display:flex; align-items:center; gap:8px;">
                                                 <strong>${escapeHtml(esc ? esc.denominação : 'N/A')}</strong>
                                                 ${isMine ? `<span class="badge badge-primary" style="font-size: 0.65rem; padding: 2px 6px;">Sua Carteira</span>` : ''}
                                             </div>
                                             ${desig ? `<small style="color:var(--text-muted)">${escapeHtml(desig)} | Controlador: ${escapeHtml(ctrlName)}</small>` : ''}
+                                            ${isSelected ? '<span class="pendency-detail-marker">Pendência selecionada</span>' : ''}
                                         </td>
                                         <td>${escapeHtml(pData.competencia)}</td>
                                         <td>${escapeHtml(pData.item)}</td>
@@ -7892,6 +8095,29 @@ function renderPendencias() {
     `;
 }
 
+function openPendencyDetail(pendencyId) {
+    const pendency = findPendencyById(pendencyId);
+    if (!pendency) return false;
+
+    activePendencyDetailId = pendency.id;
+    switchView('pendencias');
+
+    const focusSelectedPendency = () => {
+        const row = findPendencyElement('tr[data-pendency-ref]', pendency.id);
+        if (!row) return;
+
+        row.scrollIntoView({ block: 'center', behavior: 'auto' });
+        row.focus({ preventScroll: true });
+    };
+
+    if (typeof requestAnimationFrame === 'function') {
+        requestAnimationFrame(focusSelectedPendency);
+    } else {
+        setTimeout(focusSelectedPendency, 0);
+    }
+    return true;
+}
+
 function switchPendenciasTab(e, tabId) {
     document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
     e.target.classList.add('active');
@@ -7900,59 +8126,1038 @@ function switchPendenciasTab(e, tabId) {
     document.getElementById(tabId).classList.add('active');
 }
 
-function abrirModalResolverPendencia(pendId) {
-    const p = pendencias.find(item => item.id === pendId);
-    if (!p) return;
-
-    const esc = escolas.find(e => e.id === p.escolaId);
-    if (!esc) return;
-
-    const pData = getFormattedPendencyData(p);
-
-    document.getElementById('resolver-pendencia-id').value = p.id;
-    document.getElementById('resolver-escola-nome').innerText = esc.denominação || esc.denominaçao;
-    document.getElementById('resolver-competencia-mes').innerText = pData.competencia;
-    document.getElementById('resolver-item-nome').innerText = pData.item;
-    document.getElementById('resolver-motivo-desc').innerText = `${p.motivo} - ${p.observacao || ''}`;
-    document.getElementById('resolver-justificativa').value = '';
-
-    openModal('modal-resolver-pendencia');
+function updatePendencyById(pendencyId, nextPendency) {
+    const index = pendencias.findIndex(item => item.id === pendencyId);
+    if (index === -1) throw new Error('Pendência não encontrada.');
+    pendencias[index] = nextPendency;
 }
 
-function confirmarResolverPendencia(e) {
-    e.preventDefault();
-    const pendId = document.getElementById('resolver-pendencia-id').value;
-    const justificativa = document.getElementById('resolver-justificativa').value.trim();
+let registrarNovoEnvioTrigger = null;
+let registrarNovoEnvioSourceContext = null;
+let reanalisarPendenciaTrigger = null;
+let reanalisarPendenciaSourceContext = null;
 
-    const p = pendencias.find(item => item.id === pendId);
-    if (p) {
-        p.status = 'Resolvida';
-        p.dataResolucao = new Date().toISOString().split('T')[0];
-        p.justificativaResolucao = justificativa;
+const CORRECTIVE_SUBMISSION_PRONTUARIO_TABS = new Set([
+    'tab-pendencias',
+    'tab-verificacoes'
+]);
 
-        if (p.programaId && p.documentoKey) {
-            const competencia = p.competenciaOrigem || p.competencia;
-            const compProgKey = `${competencia}_${p.programaId}`;
-            const analise = verificacoes[p.escolaId]?.[compProgKey]?.analise;
-            if (analise?.[p.documentoKey] === 'Incorreto') {
-                analise[p.documentoKey] = 'Não analisado';
+const ACCESSIBLE_MODAL_FOCUSABLE_SELECTOR = [
+    'button:not([disabled])',
+    'input:not([disabled]):not([type="hidden"])',
+    'textarea:not([disabled])',
+    'select:not([disabled])',
+    'a[href]',
+    '[tabindex]:not([tabindex="-1"])'
+].join(',');
+
+function setAccessibleModalOpen(modalId, initialFocus) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return false;
+
+    modal.removeAttribute('inert');
+    modal.setAttribute('aria-hidden', 'false');
+    openModal(modalId);
+    if (initialFocus && typeof initialFocus.focus === 'function') {
+        initialFocus.focus();
+    }
+    return true;
+}
+
+function setAccessibleModalClosed(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return false;
+
+    modal.classList.remove('show');
+    modal.setAttribute('aria-hidden', 'true');
+    modal.setAttribute('inert', '');
+    return true;
+}
+
+function trapAccessibleModalFocus(event, modal, closeHandler) {
+    if (!modal || modal.getAttribute('aria-hidden') === 'true') return false;
+
+    if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        closeHandler();
+        return true;
+    }
+
+    if (event.key !== 'Tab') return false;
+    const focusable = Array.from(modal.querySelectorAll(
+        ACCESSIBLE_MODAL_FOCUSABLE_SELECTOR
+    ));
+    if (focusable.length === 0) {
+        event.preventDefault();
+        return true;
+    }
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+    }
+    return true;
+}
+
+function resetRegistrarNovoEnvioForm() {
+    const form = document.getElementById('form-registrar-envio');
+    if (!form) return;
+
+    form.reset();
+    document.getElementById('envio-pendencia-id').value = '';
+    document.getElementById('envio-contexto').replaceChildren();
+}
+
+function showRegistrarNovoEnvioError(message) {
+    const context = document.getElementById('envio-contexto');
+    if (!context) return;
+
+    let errorMessage = context.querySelector('[data-envio-error]');
+    if (!errorMessage) {
+        errorMessage = document.createElement('p');
+        errorMessage.dataset.envioError = 'true';
+        errorMessage.setAttribute('role', 'alert');
+        context.prepend(errorMessage);
+    }
+    errorMessage.textContent = message;
+}
+
+function cloneSubmissionInvariant(value) {
+    if (value === undefined) return undefined;
+    return JSON.parse(JSON.stringify(value));
+}
+
+function cloneOperationalIndex(index) {
+    return new Map(Array.from(index.entries()).map(([key, values]) => [
+        key,
+        cloneSubmissionInvariant(values)
+    ]));
+}
+
+function captureCorrectiveSubmissionLocalStorage() {
+    const keys = [...RADAR_STORAGE_KEYS, 'radar_pdde_data_version'];
+    return keys.map(key => {
+        const value = localStorage.getItem(key);
+        return { key, present: value !== null, value };
+    });
+}
+
+function restoreCorrectiveSubmissionLocalStorage(snapshot) {
+    const errors = [];
+    snapshot.forEach(entry => {
+        try {
+            if (entry.present) {
+                localStorage.setItem(entry.key, entry.value);
+            } else {
+                localStorage.removeItem(entry.key);
             }
+        } catch (error) {
+            errors.push({ key: entry.key, error });
         }
+    });
 
-        const esc = escolas.find(e => e.id === p.escolaId);
-        registerLog('Pendência Resolvida', `Pendência de ${p.item} da escola ${esc ? esc.denominação : ''} (Origem: ${p.competencia}) resolvida. Justificativa: ${justificativa}`);
-        
+    if (errors.length > 0) {
+        const restoreError = new Error(
+            `Não foi possível restaurar ${errors.length} chave(s) do armazenamento local.`
+        );
+        restoreError.storageErrors = errors;
+        throw restoreError;
+    }
+}
+
+function captureCorrectiveSubmissionRollback(current, verification, compProgKey) {
+    return {
+        pendencyId: current.id,
+        pendency: cloneSubmissionInvariant(current),
+        escolaId: current.escolaId,
+        compProgKey,
+        verification: cloneSubmissionInvariant(verification),
+        logs: cloneSubmissionInvariant(logs),
+        pendenciasIndex: cloneOperationalIndex(_pendenciasByEscolaId),
+        bensIndex: cloneOperationalIndex(_bensByEscolaId),
+        localStorage: captureCorrectiveSubmissionLocalStorage()
+    };
+}
+
+function restoreCorrectiveSubmissionRollback(snapshot) {
+    const rollbackErrors = [];
+
+    try {
+        updatePendencyById(snapshot.pendencyId, cloneSubmissionInvariant(snapshot.pendency));
+    } catch (error) {
+        rollbackErrors.push({ step: 'pendência', error });
+    }
+
+    try {
+        if (!verificacoes[snapshot.escolaId]) {
+            throw new Error('Coleção de verificações da escola não encontrada.');
+        }
+        verificacoes[snapshot.escolaId][snapshot.compProgKey] = cloneSubmissionInvariant(
+            snapshot.verification
+        );
+    } catch (error) {
+        rollbackErrors.push({ step: 'verificação', error });
+    }
+
+    try {
+        logs = cloneSubmissionInvariant(snapshot.logs);
+    } catch (error) {
+        rollbackErrors.push({ step: 'logs', error });
+    }
+
+    try {
         rebuildOperationalIndexes();
-        persist();
-        closeModal('modal-resolver-pendencia');
-        updateAlertsBell();
-
-        if (currentView === 'prontuario') {
-            renderProntuario(activeSchoolId);
-        } else {
-            renderPendencias();
+    } catch (error) {
+        try {
+            _pendenciasByEscolaId = cloneOperationalIndex(snapshot.pendenciasIndex);
+            _bensByEscolaId = cloneOperationalIndex(snapshot.bensIndex);
+        } catch (indexRestoreError) {
+            rollbackErrors.push({ step: 'índices', error: indexRestoreError });
         }
     }
+
+    try {
+        restoreCorrectiveSubmissionLocalStorage(snapshot.localStorage);
+    } catch (error) {
+        rollbackErrors.push({ step: 'armazenamento local', error });
+    }
+
+    return rollbackErrors;
+}
+
+function getCorrectiveSubmissionFailureMessage(primaryError, rollbackErrors) {
+    const primaryMessage = primaryError && primaryError.message
+        ? primaryError.message
+        : 'Não foi possível registrar o novo envio.';
+    console.error('Falha ao registrar o novo envio.', primaryError);
+
+    if (rollbackErrors.length === 0) return primaryMessage;
+
+    console.error('Falha parcial ao restaurar o novo envio.', rollbackErrors);
+    return `${primaryMessage} A restauração local não pôde ser concluída integralmente; recarregue a página antes de tentar novamente.`;
+}
+
+function verifySubmissionBonificationInvariant(verification, bonificationSnapshot, resultSnapshot) {
+    const bonificationChanged = JSON.stringify(verification.bonificacao)
+        !== JSON.stringify(bonificationSnapshot);
+    const resultChanged = JSON.stringify(verification.resultadoBonif)
+        !== JSON.stringify(resultSnapshot);
+
+    if (bonificationChanged || resultChanged) {
+        throw new Error('O novo envio não pode alterar a bonificação ou o resultado consolidado.');
+    }
+}
+
+function getPendencyActionTrigger(source) {
+    const candidate = source && source.currentTarget
+        ? source.currentTarget
+        : source;
+    if (candidate && candidate.dataset && candidate.dataset.pendencyRef) {
+        return candidate;
+    }
+
+    const activeElement = document.activeElement;
+    return activeElement && typeof activeElement.focus === 'function'
+        ? activeElement
+        : null;
+}
+
+function getPendencyActionProntuarioTab(trigger) {
+    if (currentView !== 'prontuario') return null;
+
+    const triggerPanel = trigger && typeof trigger.closest === 'function'
+        ? trigger.closest('.tab-content-panel')
+        : null;
+    if (triggerPanel && CORRECTIVE_SUBMISSION_PRONTUARIO_TABS.has(triggerPanel.id)) {
+        return triggerPanel.id;
+    }
+
+    const activePanel = Array.from(document.querySelectorAll(
+        '#main-container .tab-content-panel.active'
+    )).find(panel => CORRECTIVE_SUBMISSION_PRONTUARIO_TABS.has(panel.id));
+    return activePanel ? activePanel.id : null;
+}
+
+function capturePendencyActionSourceContext(pendency, trigger) {
+    const competence = pendency.competenciaOrigem || pendency.competencia;
+    return Object.freeze({
+        currentView,
+        escolaId: pendency.escolaId,
+        competencia: competence,
+        prontuarioTabId: getPendencyActionProntuarioTab(trigger)
+    });
+}
+
+function openRegistrarNovoEnvioModal(trigger, sourceContext) {
+    registrarNovoEnvioTrigger = trigger;
+    registrarNovoEnvioSourceContext = sourceContext;
+    setAccessibleModalOpen(
+        'modal-registrar-envio',
+        document.getElementById('envio-data-disponibilizacao')
+    );
+}
+
+function closeRegistrarNovoEnvioModal({ restoreFocus = true } = {}) {
+    const trigger = registrarNovoEnvioTrigger;
+    setAccessibleModalClosed('modal-registrar-envio');
+    registrarNovoEnvioTrigger = null;
+    registrarNovoEnvioSourceContext = null;
+
+    if (restoreFocus && trigger && trigger.isConnected && typeof trigger.focus === 'function') {
+        trigger.focus({ preventScroll: true });
+    }
+}
+
+function handleRegistrarNovoEnvioKeydown(event) {
+    const modal = document.getElementById('modal-registrar-envio');
+    trapAccessibleModalFocus(event, modal, closeRegistrarNovoEnvioModal);
+}
+
+function getPendencyActionFocusScope(sourceContext) {
+    if (sourceContext.currentView === 'prontuario') {
+        const sourcePanel = CORRECTIVE_SUBMISSION_PRONTUARIO_TABS.has(
+            sourceContext.prontuarioTabId
+        )
+            ? document.getElementById(sourceContext.prontuarioTabId)
+            : null;
+        if (sourcePanel && sourcePanel.classList.contains('active')) return sourcePanel;
+
+        return Array.from(document.querySelectorAll(
+            '#main-container .tab-content-panel.active'
+        )).find(panel => CORRECTIVE_SUBMISSION_PRONTUARIO_TABS.has(panel.id)) || null;
+    }
+
+    return ['p-abertas', 'p-resolvidas']
+        .map(panelId => document.getElementById(panelId))
+        .find(panel => panel && panel.classList.contains('active')) || null;
+}
+
+function preparePendencyActionFallbackFocus(scope, pendencyId, sourceContext) {
+    const pendency = findPendencyById(pendencyId);
+    const school = pendency
+        ? escolas.find(item => item.id === pendency.escolaId)
+        : null;
+    const schoolName = school
+        ? (school.denominação || school.denominacao || school.denominaçao || school.id)
+        : sourceContext.escolaId;
+    const documentName = pendency
+        ? (VERIFICATION_DOCUMENT_LABELS[pendency.documentoKey] || pendency.documentoKey)
+        : 'pendência documental';
+    const contextualContainer = scope
+        ? (scope.querySelector('.panel-card') || scope)
+        : document.getElementById('main-container');
+    if (!contextualContainer) return null;
+
+    contextualContainer.setAttribute('tabindex', '-1');
+    contextualContainer.setAttribute('role', 'region');
+    contextualContainer.setAttribute(
+        'aria-label',
+        `Contexto da pendência atualizada: ${documentName}, ${schoolName}, competência ${sourceContext.competencia}.`
+    );
+    return contextualContainer;
+}
+
+function focusPendencyActionAfterRender(pendencyId, sourceContext, actionName) {
+    const focusEquivalentAction = () => {
+        const scope = getPendencyActionFocusScope(sourceContext);
+        const actions = scope ? Array.from(scope.querySelectorAll(
+            `[data-action="${actionName}"][data-pendency-ref]`
+        )) : [];
+        const action = actions.find(candidate => (
+            elementMatchesPendencyIdReference(candidate, pendencyId)
+            && candidate.getClientRects().length > 0
+        ));
+        const rows = scope ? Array.from(scope.querySelectorAll('tr[data-pendency-ref]')) : [];
+        const row = rows.find(candidate => (
+            elementMatchesPendencyIdReference(candidate, pendencyId)
+            && candidate.getClientRects().length > 0
+        ));
+        const target = action
+            || row
+            || preparePendencyActionFallbackFocus(scope, pendencyId, sourceContext);
+        if (!target) return;
+
+        if (typeof target.scrollIntoView === 'function') {
+            target.scrollIntoView({ block: 'nearest', behavior: 'auto' });
+        }
+        target.focus({ preventScroll: true });
+    };
+
+    if (typeof requestAnimationFrame === 'function') {
+        requestAnimationFrame(focusEquivalentAction);
+    } else {
+        setTimeout(focusEquivalentAction, 0);
+    }
+}
+
+function abrirModalRegistrarNovoEnvio(pendencySource) {
+    let pendencyId;
+    try {
+        pendencyId = resolvePendencyIdReference(pendencySource);
+    } catch (error) {
+        console.error('Não foi possível interpretar a referência da pendência.', error);
+        return false;
+    }
+
+    const pendency = findPendencyById(pendencyId);
+    const school = pendency
+        ? escolas.find(item => item.id === pendency.escolaId)
+        : null;
+    const allowedStatus = pendency
+        && ['Aberta', 'Aguardando reanálise'].includes(pendency.status);
+
+    if (!pendency
+        || !school
+        || !allowedStatus
+        || !window.RadarPendencias.isDocumentaryPendency(pendency)) {
+        return false;
+    }
+
+    const competence = pendency.competenciaOrigem || pendency.competencia;
+    const competenceLabel = formatCompetenciaText(competence);
+    const program = programas.find(item => item.id === pendency.programaId);
+    const programName = program ? program.name : pendency.programaId;
+    const documentName = VERIFICATION_DOCUMENT_LABELS[pendency.documentoKey]
+        || pendency.documentoKey;
+    const schoolName = school.denominação || school.denominacao || school.denominaçao || '';
+    const trigger = getPendencyActionTrigger(pendencySource);
+    const sourceContext = capturePendencyActionSourceContext(pendency, trigger);
+
+    resetRegistrarNovoEnvioForm();
+    document.getElementById('envio-pendencia-id').value = encodePendencyIdReference(pendency.id);
+    document.getElementById('envio-contexto').innerHTML = `
+        <dl aria-label="Contexto da pendência">
+            <div>
+                <dt>Escola</dt>
+                <dd>${escapeHtml(schoolName)}</dd>
+            </div>
+            <div>
+                <dt>Competência</dt>
+                <dd>${escapeHtml(competenceLabel)} (${escapeHtml(competence)})</dd>
+            </div>
+            <div>
+                <dt>Programa / documento</dt>
+                <dd>${escapeHtml(programName)} — ${escapeHtml(documentName)}</dd>
+            </div>
+        </dl>
+    `;
+
+    openRegistrarNovoEnvioModal(trigger, sourceContext);
+    return true;
+}
+
+function confirmarRegistrarNovoEnvio(event) {
+    event.preventDefault();
+    const form = document.getElementById('form-registrar-envio');
+    const serializedPendencyId = document.getElementById('envio-pendencia-id').value;
+    const availabilityDateInput = document.getElementById('envio-data-disponibilizacao');
+    const observationInput = document.getElementById('envio-observacao');
+    const linkInput = document.getElementById('envio-link');
+    const availabilityDate = availabilityDateInput.value;
+    const observation = observationInput.value.trim();
+    const link = linkInput.value.trim();
+
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return false;
+    }
+    if (!availabilityDate) {
+        availabilityDateInput.focus();
+        return false;
+    }
+    if (!observation) {
+        observationInput.focus();
+        return false;
+    }
+
+    let pendencyId;
+    try {
+        pendencyId = decodePendencyIdReference(serializedPendencyId);
+    } catch (error) {
+        showRegistrarNovoEnvioError(error.message);
+        return false;
+    }
+
+    const current = findPendencyById(pendencyId);
+    const school = current
+        ? escolas.find(item => item.id === current.escolaId)
+        : null;
+    const allowedStatus = current
+        && ['Aberta', 'Aguardando reanálise'].includes(current.status);
+
+    if (!current
+        || !school
+        || !allowedStatus
+        || !window.RadarPendencias.isDocumentaryPendency(current)) {
+        showRegistrarNovoEnvioError('A pendência documental não está disponível para um novo envio.');
+        return false;
+    }
+
+    const sourceContext = registrarNovoEnvioSourceContext
+        || capturePendencyActionSourceContext(current, registrarNovoEnvioTrigger);
+
+    const competence = current.competenciaOrigem || current.competencia;
+    const compProgKey = `${competence}_${current.programaId}`;
+    const verification = verificacoes[current.escolaId]?.[compProgKey];
+    const hasLinkedAnalysis = verification
+        && verification.analise
+        && Object.prototype.hasOwnProperty.call(verification.analise, current.documentoKey);
+
+    if (!hasLinkedAnalysis) {
+        showRegistrarNovoEnvioError('A análise técnica vinculada não foi encontrada. Nenhum dado foi alterado.');
+        return false;
+    }
+
+    let rollbackSnapshot;
+    try {
+        rollbackSnapshot = captureCorrectiveSubmissionRollback(
+            current,
+            verification,
+            compProgKey
+        );
+    } catch (error) {
+        showRegistrarNovoEnvioError(error && error.message
+            ? error.message
+            : 'Não foi possível preparar o registro do novo envio.');
+        return false;
+    }
+
+    const nowIso = new Date().toISOString();
+    const user = getCurrentUser();
+    const bonificationSnapshot = cloneSubmissionInvariant(
+        rollbackSnapshot.verification.bonificacao
+    );
+    const resultSnapshot = cloneSubmissionInvariant(
+        rollbackSnapshot.verification.resultadoBonif
+    );
+    const program = programas.find(item => item.id === current.programaId);
+    const programName = program ? program.name : current.programaId;
+    const documentName = VERIFICATION_DOCUMENT_LABELS[current.documentoKey]
+        || current.documentoKey;
+    const schoolName = school.denominação || school.denominacao || school.denominaçao || '';
+
+    try {
+        const nextPendency = window.RadarPendencias.registerCorrectiveSubmission(current, {
+            id: createPendencyClientId('tentativa'),
+            dataDisponibilizacao: availabilityDate,
+            observacao: observation,
+            link
+        }, {
+            eventId: createPendencyClientId('evento'),
+            at: nowIso,
+            usuario: user.name,
+            perfil: user.role
+        });
+        verification.analise[current.documentoKey] = 'Não analisado';
+        updatePendencyById(current.id, nextPendency);
+        verifySubmissionBonificationInvariant(
+            verification,
+            bonificationSnapshot,
+            resultSnapshot
+        );
+        rebuildOperationalIndexes();
+        registerLog(
+            'Novo envio registrado',
+            `Novo envio de ${documentName} (${current.documentoKey}) no programa ${programName} (${current.programaId}) para ${schoolName}, competência ${competence}, disponibilizado em ${availabilityDate}.`
+        );
+    } catch (primaryError) {
+        const rollbackErrors = restoreCorrectiveSubmissionRollback(rollbackSnapshot);
+        showRegistrarNovoEnvioError(
+            getCorrectiveSubmissionFailureMessage(primaryError, rollbackErrors)
+        );
+        return false;
+    }
+
+    closeRegistrarNovoEnvioModal({ restoreFocus: false });
+    resetRegistrarNovoEnvioForm();
+    updateAlertsBell();
+
+    if (sourceContext.currentView === 'prontuario') {
+        activeSchoolId = sourceContext.escolaId;
+        activeProntuarioCompetencia = sourceContext.competencia;
+        renderProntuario(sourceContext.escolaId);
+        activateProntuarioTab(
+            CORRECTIVE_SUBMISSION_PRONTUARIO_TABS.has(sourceContext.prontuarioTabId)
+                ? sourceContext.prontuarioTabId
+                : 'tab-verificacoes'
+        );
+    } else {
+        activePendencyDetailId = current.id;
+        renderPendencias();
+    }
+    focusPendencyActionAfterRender(
+        current.id,
+        sourceContext,
+        'register-corrective-submission'
+    );
+    return true;
+}
+
+function getCorrectAnalysisLabel(competencia, dataDisponibilizacao) {
+    const prazo = COMPETENCIAS.find(item => item.key === competencia)?.bonifPrazo;
+    if (!prazo || !dataDisponibilizacao) return 'Correto';
+    return dataDisponibilizacao > prazo ? 'Correto (Atrasado)' : 'Correto';
+}
+
+function assertBonificationUnchanged(
+    verification,
+    documentoKey,
+    previousBonification,
+    previousProgramResult
+) {
+    const currentBonification = verification && verification.bonificacao;
+    const sourceDocumentChanged = !Object.is(
+        currentBonification && currentBonification[documentoKey],
+        previousBonification && previousBonification[documentoKey]
+    );
+    const wholeBonificationChanged = JSON.stringify(currentBonification)
+        !== JSON.stringify(previousBonification);
+    const programResultChanged = JSON.stringify(verification && verification.resultadoBonif)
+        !== JSON.stringify(previousProgramResult);
+
+    if (sourceDocumentChanged || wholeBonificationChanged || programResultChanged) {
+        throw new Error(
+            'A reanálise não pode alterar a bonificação nem o resultado consolidado.'
+        );
+    }
+}
+
+function getLatestAwaitingPendencyAttempt(pendency) {
+    const attempts = Array.isArray(pendency && pendency.tentativas)
+        ? pendency.tentativas
+        : [];
+    return [...attempts].reverse().find(attempt => (
+        attempt && attempt.status === 'aguardando'
+    )) || null;
+}
+
+function enforceAbsentDocumentExclusivity(inputs, changedInput) {
+    const absentInput = inputs.find(input => input.value === 'Documento ausente');
+    if (!absentInput || !changedInput) return;
+
+    if (changedInput !== absentInput && changedInput.checked) {
+        absentInput.checked = false;
+    }
+
+    const absentIsExclusive = changedInput === absentInput && absentInput.checked;
+    inputs.forEach(input => {
+        if (input === absentInput) return;
+        input.disabled = absentIsExclusive;
+        if (absentIsExclusive) input.checked = false;
+    });
+
+    if (!absentIsExclusive) {
+        inputs.forEach(input => {
+            if (input !== absentInput) input.disabled = false;
+        });
+    }
+}
+
+function renderReanalysisErrorOptions() {
+    const container = document.getElementById('reanalisar-erros');
+    if (!container) return;
+
+    container.replaceChildren();
+    window.RadarPendencias.DOCUMENT_ERROR_TYPES.forEach(error => {
+        const label = document.createElement('label');
+        label.className = 'pendency-error-option';
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.name = 'reanalisar-erros';
+        input.value = error;
+        input.addEventListener('change', () => {
+            syncReanalysisAbsentErrorExclusivity(input);
+        });
+        const text = document.createElement('span');
+        text.textContent = error;
+        label.append(input, text);
+        container.append(label);
+    });
+}
+
+function syncReanalysisAbsentErrorExclusivity(changedInput) {
+    const inputs = Array.from(
+        document.querySelectorAll('#reanalisar-erros input[name="reanalisar-erros"]')
+    );
+    enforceAbsentDocumentExclusivity(inputs, changedInput);
+}
+
+function updateReanalysisErrorVisibility() {
+    const result = document.getElementById('reanalisar-resultado');
+    const group = document.getElementById('reanalisar-erros-group');
+    const fieldset = document.getElementById('reanalisar-erros-fieldset');
+    if (!result || !group || !fieldset) return;
+
+    const showErrors = result.value === 'incorreto';
+    group.hidden = !showErrors;
+    fieldset.disabled = !showErrors;
+    const inputs = Array.from(fieldset.querySelectorAll('input[name="reanalisar-erros"]'));
+    inputs.forEach(input => {
+        input.disabled = !showErrors;
+        if (!showErrors) input.checked = false;
+    });
+}
+
+function collectReanalysisErrors(result) {
+    if (result !== 'incorreto') return [];
+    const selectedErrors = Array.from(
+        document.querySelectorAll('#reanalisar-erros input[name="reanalisar-erros"]:checked')
+    ).map(input => input.value);
+    return window.RadarPendencias.validateDocumentErrors(selectedErrors);
+}
+
+function resetReanalysisForm() {
+    const form = document.getElementById('form-reanalisar-pendencia');
+    if (!form) return;
+
+    form.reset();
+    document.getElementById('reanalisar-pendencia-id').value = '';
+    document.getElementById('reanalisar-tentativa-atual').replaceChildren();
+    renderReanalysisErrorOptions();
+    updateReanalysisErrorVisibility();
+}
+
+function showReanalysisError(message) {
+    const summary = document.getElementById('reanalisar-tentativa-atual');
+    if (!summary) return;
+
+    let errorMessage = summary.querySelector('[data-reanalysis-error]');
+    if (!errorMessage) {
+        errorMessage = document.createElement('p');
+        errorMessage.dataset.reanalysisError = 'true';
+        errorMessage.setAttribute('role', 'alert');
+        summary.prepend(errorMessage);
+    }
+    errorMessage.textContent = message;
+}
+
+function appendReanalysisSummaryItem(list, label, value) {
+    const row = document.createElement('div');
+    const term = document.createElement('dt');
+    const description = document.createElement('dd');
+    term.textContent = label;
+    if (value instanceof Node) {
+        description.append(value);
+    } else {
+        description.textContent = value || 'Não informado';
+    }
+    row.append(term, description);
+    list.append(row);
+}
+
+function getSafeReanalysisLink(value) {
+    if (typeof value !== 'string' || !value.trim()) return null;
+    try {
+        const parsed = new URL(value.trim());
+        return ['https:', 'http:'].includes(parsed.protocol) ? parsed.href : null;
+    } catch (error) {
+        return null;
+    }
+}
+
+function renderReanalysisAttemptSummary(pendency, attempt, school) {
+    const summary = document.getElementById('reanalisar-tentativa-atual');
+    const list = document.createElement('dl');
+    const competence = pendency.competenciaOrigem || pendency.competencia;
+    const program = programas.find(item => item.id === pendency.programaId);
+    const documentName = VERIFICATION_DOCUMENT_LABELS[pendency.documentoKey]
+        || pendency.documentoKey;
+    const schoolName = school.denominação || school.denominacao || school.id;
+    const nextActor = pendency.responsavel
+        || window.RadarPendencias.getNextActor(pendency)
+        || 'Não definido';
+    const currentErrors = Array.isArray(pendency.errosAtuais)
+        ? pendency.errosAtuais.filter(Boolean)
+        : [];
+    appendReanalysisSummaryItem(list, 'Estado atual', pendency.status);
+    appendReanalysisSummaryItem(list, 'Próximo ator', nextActor);
+    appendReanalysisSummaryItem(
+        list,
+        'Erros atuais',
+        currentErrors.length > 0 ? currentErrors.join(' • ') : 'Nenhum erro registrado'
+    );
+    appendReanalysisSummaryItem(list, 'Escola', schoolName);
+    appendReanalysisSummaryItem(
+        list,
+        'Competência',
+        formatCompetenciaText(competence) + ' (' + competence + ')'
+    );
+    appendReanalysisSummaryItem(
+        list,
+        'Programa / documento',
+        (program ? program.name : pendency.programaId) + ' — ' + documentName
+    );
+    appendReanalysisSummaryItem(
+        list,
+        'Disponibilizado no Drive em',
+        attempt.dataDisponibilizacao
+    );
+    appendReanalysisSummaryItem(list, 'Observação do envio', attempt.observacao);
+
+    const safeLink = getSafeReanalysisLink(attempt.link);
+    if (safeLink) {
+        const link = document.createElement('a');
+        link.href = safeLink;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = 'Abrir arquivo no Drive';
+        appendReanalysisSummaryItem(list, 'Arquivo', link);
+    }
+    summary.replaceChildren(list);
+}
+
+function openReanalysisModal(trigger, sourceContext) {
+    reanalisarPendenciaTrigger = trigger;
+    reanalisarPendenciaSourceContext = sourceContext;
+    setAccessibleModalOpen(
+        'modal-reanalisar-pendencia',
+        document.getElementById('reanalisar-resultado')
+    );
+}
+
+function closeReanalysisModal({ restoreFocus = true } = {}) {
+    const trigger = reanalisarPendenciaTrigger;
+    setAccessibleModalClosed('modal-reanalisar-pendencia');
+    reanalisarPendenciaTrigger = null;
+    reanalisarPendenciaSourceContext = null;
+
+    if (restoreFocus && trigger && trigger.isConnected && typeof trigger.focus === 'function') {
+        trigger.focus({ preventScroll: true });
+    }
+}
+
+function handleReanalysisKeydown(event) {
+    const modal = document.getElementById('modal-reanalisar-pendencia');
+    trapAccessibleModalFocus(event, modal, closeReanalysisModal);
+}
+
+function abrirModalReanalisarPendencia(pendencySource) {
+    if (currentProfile !== 'controlador') return false;
+
+    let pendencyId;
+    try {
+        pendencyId = resolvePendencyIdReference(pendencySource);
+    } catch (error) {
+        console.error('Não foi possível interpretar a referência da pendência.', error);
+        return false;
+    }
+
+    const pendency = findPendencyById(pendencyId);
+    const school = pendency
+        ? escolas.find(item => item.id === pendency.escolaId)
+        : null;
+    const attempt = getLatestAwaitingPendencyAttempt(pendency);
+    if (!pendency
+        || !school
+        || pendency.status !== 'Aguardando reanálise'
+        || !window.RadarPendencias.isDocumentaryPendency(pendency)
+        || !attempt) {
+        return false;
+    }
+
+    const trigger = getPendencyActionTrigger(pendencySource);
+    const sourceContext = capturePendencyActionSourceContext(pendency, trigger);
+    resetReanalysisForm();
+    document.getElementById('reanalisar-pendencia-id').value = encodePendencyIdReference(
+        pendency.id
+    );
+    renderReanalysisAttemptSummary(pendency, attempt, school);
+    openReanalysisModal(trigger, sourceContext);
+    return true;
+}
+
+function getReanalysisFailureMessage(primaryError, rollbackErrors) {
+    const primaryMessage = primaryError && primaryError.message
+        ? primaryError.message
+        : 'Não foi possível registrar a reanálise.';
+    console.error('Falha ao registrar a reanálise.', primaryError);
+
+    if (rollbackErrors.length === 0) return primaryMessage;
+    console.error('Falha parcial ao restaurar a reanálise.', rollbackErrors);
+    return primaryMessage
+        + ' A restauração local não pôde ser concluída integralmente; recarregue a página antes de tentar novamente.';
+}
+
+function confirmarReanalisePendencia(event) {
+    event.preventDefault();
+    const form = document.getElementById('form-reanalisar-pendencia');
+    const resultInput = document.getElementById('reanalisar-resultado');
+    const observationInput = document.getElementById('reanalisar-observacao');
+    const serializedPendencyId = document.getElementById('reanalisar-pendencia-id').value;
+    const result = resultInput.value;
+    const observation = observationInput.value.trim();
+
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return false;
+    }
+    if (currentProfile !== 'controlador') {
+        showReanalysisError('Reanálise permitida somente ao perfil Controlador.');
+        return false;
+    }
+
+    let errors;
+    try {
+        errors = collectReanalysisErrors(result);
+    } catch (error) {
+        showReanalysisError(error.message);
+        const firstError = document.querySelector(
+            '#reanalisar-erros input[name="reanalisar-erros"]'
+        );
+        if (firstError) firstError.focus();
+        return false;
+    }
+
+    let pendencyId;
+    try {
+        pendencyId = decodePendencyIdReference(serializedPendencyId);
+    } catch (error) {
+        showReanalysisError(error.message);
+        return false;
+    }
+
+    const current = findPendencyById(pendencyId);
+    const school = current
+        ? escolas.find(item => item.id === current.escolaId)
+        : null;
+    if (!current
+        || !school
+        || current.status !== 'Aguardando reanálise'
+        || !window.RadarPendencias.isDocumentaryPendency(current)) {
+        showReanalysisError(
+            'A pendência documental não está disponível para reanálise.'
+        );
+        return false;
+    }
+
+    const competence = current.competenciaOrigem || current.competencia;
+    const exactActive = window.RadarPendencias.findActivePendency(
+        pendencias.filter(pendency => window.RadarPendencias.isDocumentaryPendency(pendency)),
+        {
+            escolaId: current.escolaId,
+            competenciaOrigem: competence,
+            programaId: current.programaId,
+            documentoKey: current.documentoKey,
+            item: current.item
+        }
+    );
+    const awaitingAttempt = getLatestAwaitingPendencyAttempt(current);
+    const compProgKey = competence + '_' + current.programaId;
+    const verification = verificacoes[current.escolaId]?.[compProgKey];
+    const hasLinkedAnalysis = verification
+        && verification.analise
+        && Object.prototype.hasOwnProperty.call(verification.analise, current.documentoKey);
+    if (!exactActive
+        || exactActive.id !== current.id
+        || !awaitingAttempt
+        || !hasLinkedAnalysis) {
+        showReanalysisError(
+            'A tentativa ou a análise técnica vinculada não foi encontrada. Nenhum dado foi alterado.'
+        );
+        return false;
+    }
+
+    let rollbackSnapshot;
+    try {
+        rollbackSnapshot = captureCorrectiveSubmissionRollback(
+            current,
+            verification,
+            compProgKey
+        );
+    } catch (error) {
+        showReanalysisError(error && error.message
+            ? error.message
+            : 'Não foi possível preparar o registro da reanálise.');
+        return false;
+    }
+
+    const sourceContext = reanalisarPendenciaSourceContext
+        || capturePendencyActionSourceContext(current, reanalisarPendenciaTrigger);
+    const previousBonification = cloneSubmissionInvariant(
+        rollbackSnapshot.verification.bonificacao
+    );
+    const previousProgramResult = cloneSubmissionInvariant(
+        rollbackSnapshot.verification.resultadoBonif
+    );
+    const nowIso = new Date().toISOString();
+    const user = getCurrentUser();
+    const program = programas.find(item => item.id === current.programaId);
+    const programName = program ? program.name : current.programaId;
+    const documentName = VERIFICATION_DOCUMENT_LABELS[current.documentoKey]
+        || current.documentoKey;
+    const schoolName = school.denominação || school.denominacao || school.id;
+    let nextPendency;
+
+    try {
+        nextPendency = window.RadarPendencias.recordReanalysis(current, {
+            resultado: result,
+            erros: errors,
+            observacao: observation
+        }, {
+            eventId: createPendencyClientId('evento'),
+            at: nowIso,
+            usuario: user.name,
+            perfil: user.role
+        });
+        const analysisLabel = result === 'correto'
+            ? getCorrectAnalysisLabel(competence, awaitingAttempt.dataDisponibilizacao)
+            : 'Incorreto';
+        updatePendencyById(current.id, nextPendency);
+        verification.analise = {
+            ...verification.analise,
+            [current.documentoKey]: analysisLabel
+        };
+        assertBonificationUnchanged(
+            verification,
+            current.documentoKey,
+            previousBonification,
+            previousProgramResult
+        );
+        rebuildOperationalIndexes();
+        registerLog(
+            'Reanálise registrada',
+            'Reanálise de ' + documentName + ' (' + current.documentoKey + ') no programa '
+                + programName + ' (' + current.programaId + ') para ' + schoolName
+                + ', competência ' + competence + ', tentativa ' + awaitingAttempt.id
+                + ', resultado ' + result + '.'
+        );
+    } catch (primaryError) {
+        const rollbackErrors = restoreCorrectiveSubmissionRollback(rollbackSnapshot);
+        showReanalysisError(getReanalysisFailureMessage(primaryError, rollbackErrors));
+        return false;
+    }
+
+    closeReanalysisModal({ restoreFocus: false });
+    resetReanalysisForm();
+    updateAlertsBell();
+
+    if (sourceContext.currentView === 'prontuario') {
+        activeSchoolId = sourceContext.escolaId;
+        activeProntuarioCompetencia = sourceContext.competencia;
+        renderProntuario(sourceContext.escolaId);
+        activateProntuarioTab(
+            CORRECTIVE_SUBMISSION_PRONTUARIO_TABS.has(sourceContext.prontuarioTabId)
+                ? sourceContext.prontuarioTabId
+                : 'tab-verificacoes'
+        );
+    } else {
+        activePendencyDetailId = current.id;
+        renderPendencias();
+    }
+    focusPendencyActionAfterRender(
+        current.id,
+        sourceContext,
+        nextPendency.status === 'Aberta'
+            ? 'register-corrective-submission'
+            : 'reanalyse-pendency'
+    );
+    return true;
 }
 
 
@@ -8166,7 +9371,7 @@ function getCompMonthStatus(escolaId, compKey) {
     const pAtivasComp = pendencias.filter(p =>
         p.escolaId === escolaId
         && (p.competenciaOrigem === compKey || p.competencia === compKey)
-        && p.status === 'Aberta'
+        && window.RadarPendencias.isActivePendency(p)
     ).length;
     
     if (programStatuses.includes('inapta') || pAtivasComp > 0) {
@@ -8202,7 +9407,10 @@ function renderProntuario(escolaId) {
     }
 
     const ctrl = controladores.find(c => c.id === esc.controladorId);
-    const pAtivas = pendencias.filter(p => p.escolaId === esc.id && p.status === 'Aberta');
+    const pAtivas = pendencias.filter(p => (
+        p.escolaId === esc.id
+        && window.RadarPendencias.isActivePendency(p)
+    ));
     const process = esc.processoInventario || 'Não registrado';
 
     container.innerHTML = `
@@ -8412,7 +9620,7 @@ function renderProntuario(escolaId) {
                                         <th>Mês Origem</th>
                                         <th>Documento / Item</th>
                                         <th>Defeito apontado</th>
-                                        <th>Quem deve resolver</th>
+                                        <th>Quem deve agir?</th>
                                         <th>Abertura</th>
                                         <th>Ações</th>
                                     </tr>
@@ -8422,15 +9630,42 @@ function renderProntuario(escolaId) {
                                         <tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:32px;">Nenhuma pendência ativa nesta escola! Tudo regularizado.</td></tr>
                                     ` : pAtivas.map(p => {
                                         const pData = getFormattedPendencyData(p);
+                                        const submissionActionLabel = getCorrectiveSubmissionActionLabel(p);
+                                        const canReanalyse = canReanalysePendency(p);
                                         return `
-                                            <tr>
+                                            <tr
+                                                data-pendency-ref="${escapeHtml(encodePendencyIdReference(p.id))}"
+                                                data-pendency-status="${escapeHtml(p.status)}"
+                                                tabindex="-1"
+                                            >
                                                 <td><span style="font-weight:600; color:var(--primary);">${escapeHtml(pData.competencia)}</span></td>
                                                 <td>${escapeHtml(pData.item)}</td>
                                                 <td><span style="color:var(--danger)">${escapeHtml(p.motivo)}</span><br><small style="color:var(--text-muted)">${escapeHtml(p.observacao)}</small></td>
                                                 <td><span class="badge badge-info">${escapeHtml(p.responsavel)}</span></td>
                                                 <td>${new Date(p.dataAbertura).toLocaleDateString('pt-BR')}</td>
                                                 <td>
-                                                    <button class="btn btn-primary btn-sm" onclick="abrirModalResolverPendencia('${escapeHtml(p.id)}')">Marcar Resolvida</button>
+                                                    ${canReanalyse || submissionActionLabel ? `
+                                                        <div class="pendency-actions">
+                                                            ${canReanalyse ? `
+                                                                <button
+                                                                    type="button"
+                                                                    class="btn btn-primary btn-sm"
+                                                                    data-action="reanalyse-pendency"
+                                                                    data-pendency-ref="${escapeHtml(encodePendencyIdReference(p.id))}"
+                                                                    onclick="abrirModalReanalisarPendencia(this)"
+                                                                >Reanalisar</button>
+                                                            ` : ''}
+                                                            ${submissionActionLabel ? `
+                                                                <button
+                                                                    type="button"
+                                                                    class="btn ${canReanalyse ? 'btn-secondary' : 'btn-primary'} btn-sm"
+                                                                    data-action="register-corrective-submission"
+                                                                    data-pendency-ref="${escapeHtml(encodePendencyIdReference(p.id))}"
+                                                                    onclick="abrirModalRegistrarNovoEnvio(this)"
+                                                                >${escapeHtml(submissionActionLabel)}</button>
+                                                            ` : ''}
+                                                        </div>
+                                                    ` : '<span style="color:var(--text-muted);">Sem ação de envio</span>'}
                                                 </td>
                                             </tr>
                                         `;
@@ -8569,18 +9804,48 @@ function renderProntuario(escolaId) {
     renderProntuarioVerificacoes(esc);
 }
 
-function switchSchoolTab(e, tabId) {
-    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-    e.target.classList.add('active');
-    
-    document.querySelectorAll('.tab-content-panel').forEach(pnl => pnl.classList.remove('active'));
-    document.getElementById(tabId).classList.add('active');
+function activateProntuarioTab(tabId) {
+    const allowedTabIds = new Set([
+        'tab-verificacoes',
+        'tab-pendencias',
+        'tab-contatos',
+        'tab-capital',
+        'tab-auditoria'
+    ]);
+    if (currentView !== 'prontuario' || !allowedTabIds.has(tabId)) return false;
+
+    const prontuarioRoot = document.querySelector('#main-container .school-grid');
+    const targetPanel = prontuarioRoot ? prontuarioRoot.querySelector(`#${tabId}`) : null;
+    const targetButton = prontuarioRoot
+        ? prontuarioRoot.querySelector(`[data-tab="${tabId.slice(4)}"]`)
+        : null;
+    if (!targetPanel || !targetButton) return false;
+
+    const tabContainer = targetButton.closest('.tab-container');
+    if (!tabContainer || targetPanel.parentElement !== tabContainer.parentElement) return false;
+
+    Array.from(tabContainer.children).forEach(element => {
+        if (element.classList.contains('tab-button')) element.classList.remove('active');
+    });
+    Array.from(targetPanel.parentElement.children).forEach(element => {
+        if (element.classList.contains('tab-content-panel')) element.classList.remove('active');
+    });
+    targetButton.classList.add('active');
+    targetPanel.classList.add('active');
+    return true;
+}
+
+function switchSchoolTab(event, tabId) {
+    activateProntuarioTab(tabId);
 }
 
 // 14.1 Render Grade de Bonificações e Análises Técnicas Mensais
 function renderProntuarioVerificacoes(esc) {
     const container = document.getElementById('prontuario-verif-rows');
     if (!container) return;
+    const documentaryPendencies = pendencias.filter(pendency => (
+        window.RadarPendencias.isDocumentaryPendency(pendency)
+    ));
     
     // Lista de documentos operados na bonificação
     const docItems = [
@@ -8630,7 +9895,6 @@ function renderProntuarioVerificacoes(esc) {
                     const isBonifLocked = (v.resultadoBonif && currentProfile !== 'assistente')
                         || currentProfile === 'inventario'
                         || currentProfile === 'sme';
-                    const isAnaliseLocked = currentProfile === 'inventario' || currentProfile === 'sme';
                     
                     // Determinar o resultado final da bonificação na competência (Apta/Inapta)
                     let bonifConsolidadoText = '';
@@ -8650,23 +9914,61 @@ function renderProntuarioVerificacoes(esc) {
                         documentoKey: doc.key,
                         documentoNome: doc.name
                     });
-                    const matchesPendencyContext = p => (
-                        p.escolaId === esc.id
-                        && window.RadarFluxoOperacional.pendencyMatchesContext(p, pendencyContext)
+                    const exactPendencyContext = {
+                        ...pendencyContext,
+                        escolaId: esc.id,
+                        competenciaOrigem: c.key
+                    };
+                    const exactPendencyKey = window.RadarPendencias.buildDocumentContextKey(
+                        exactPendencyContext
                     );
-                    const activePend = pendencias.find(p => (
-                        p.status === 'Aberta' && matchesPendencyContext(p)
+                    const activePend = window.RadarPendencias.findActivePendency(
+                        documentaryPendencies,
+                        exactPendencyContext
+                    );
+                    const resolvedPend = documentaryPendencies.find(pendency => (
+                        pendency.status === 'Resolvida'
+                        && window.RadarPendencias.buildDocumentContextKey(pendency)
+                            === exactPendencyKey
                     ));
-                    const resolvedPend = pendencias.find(p => (
-                        p.status === 'Resolvida' && matchesPendencyContext(p)
-                    ));
+                    const isAnaliseLocked = currentProfile === 'inventario'
+                        || currentProfile === 'sme'
+                        || Boolean(activePend);
+                    const analysisLockId = `analysis-lock-${progId}-${doc.key}`;
                     let pendStatusHTML = '';
                     if (activePend) {
-                        pendStatusHTML = `<button class="btn btn-danger btn-sm" onclick="abrirModalResolverPendencia('${escapeHtml(activePend.id)}')" style="font-size:0.7rem; padding:2px 6px;">Resolver Pendência</button>`;
+                        const submissionActionLabel = getCorrectiveSubmissionActionLabel(activePend);
+                        const canReanalyse = canReanalysePendency(activePend);
+                        const instruction = activePend.status === 'Aguardando reanálise'
+                            ? 'Análise bloqueada enquanto aguarda reanálise. Use Reanalisar para registrar o resultado.'
+                            : 'Análise bloqueada enquanto a pendência estiver Aberta. Registre um novo envio para prosseguir.';
+                        pendStatusHTML = `
+                            <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                                ${canReanalyse ? `
+                                    <button
+                                        class="btn btn-primary btn-sm"
+                                        data-action="reanalyse-pendency"
+                                        data-pendency-ref="${escapeHtml(encodePendencyIdReference(activePend.id))}"
+                                        onclick="abrirModalReanalisarPendencia(this)"
+                                        style="font-size:0.7rem; padding:2px 6px;"
+                                    >Reanalisar</button>
+                                ` : ''}
+                                ${submissionActionLabel && currentProfile !== 'inventario' ? `
+                                    <button
+                                        class="btn ${canReanalyse ? 'btn-secondary' : 'btn-primary'} btn-sm"
+                                        data-action="register-corrective-submission"
+                                        data-pendency-ref="${escapeHtml(encodePendencyIdReference(activePend.id))}"
+                                        onclick="abrirModalRegistrarNovoEnvio(this)"
+                                        style="font-size:0.7rem; padding:2px 6px;"
+                                    >${escapeHtml(submissionActionLabel)}</button>
+                                ` : ''}
+                            </div>
+                            <p id="${escapeHtml(analysisLockId)}" style="font-size:0.7rem; color:var(--text-muted); margin-top:6px;">${escapeHtml(instruction)}</p>
+                        `;
                     } else if (resolvedPend && analiseValue === 'Não analisado') {
                         pendStatusHTML = `<span class="badge badge-success" style="font-size:0.7rem;" title="Justificativa: ${escapeHtml(resolvedPend.justificativaResolucao || resolvedPend.observacao || '')}">Resolvida - reanalisar</span>`;
                     } else if (analiseValue === 'Incorreto') {
-                        pendStatusHTML = `<button class="btn btn-secondary btn-sm" onclick="openNovaPendenciaModalWithDefaults('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(progName)}', '${escapeHtml(doc.key)}', '${escapeHtml(doc.name)}')" style="font-size:0.7rem; padding:2px 6px;">Abrir Pendência</button>`;
+                        pendStatusHTML = `<button class="btn btn-secondary btn-sm" data-action="open-document-pendency" onclick="openNovaPendenciaModalWithDefaults('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(progName)}', '${escapeHtml(doc.key)}', '${escapeHtml(doc.name)}')" style="font-size:0.7rem; padding:2px 6px;">Abrir Pendência</button>`;
                     }
 
                     // Conteúdo extra para visualização de notas fiscais
@@ -8723,7 +10025,11 @@ function renderProntuarioVerificacoes(esc) {
                     }
 
                     rowsHTML += `
-                        <tr>
+                        <tr
+                            data-program-id="${escapeHtml(progId)}"
+                            data-document-key="${escapeHtml(doc.key)}"
+                            ${activePend || resolvedPend ? `data-pendency-ref="${escapeHtml(encodePendencyIdReference((activePend || resolvedPend).id))}" tabindex="-1"` : ''}
+                        >
                             ${idx === 0 ? `<td rowspan="${docItems.length}" style="vertical-align:top; border-right: 1px solid var(--border-color); width:180px;">
                                 <strong>${escapeHtml(c.label)}</strong><br>
                                 <span style="font-size:0.75rem; color:var(--primary); font-weight:600;">${escapeHtml(progName)}</span>
@@ -8756,7 +10062,8 @@ function renderProntuarioVerificacoes(esc) {
                             </td>
                             <td>
                                 <select class="select-analise select-analise-comp analise-${analiseValue.toLowerCase().replace(/\s+/g, '-').replace(/[()]/g, '')}" 
-                                        onchange="changeAnaliseTecnica('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', this.value)"
+                                        onchange="changeAnaliseTecnica('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', this.value, this)"
+                                        ${activePend ? `aria-describedby="${escapeHtml(analysisLockId)}"` : ''}
                                         ${isAnaliseLocked ? 'disabled' : ''}>
                                     <option value="Não analisado" ${analiseValue === 'Não analisado' ? 'selected' : ''}>Não analisado</option>
                                     <option value="Correto" ${analiseValue === 'Correto' ? 'selected' : ''}>Correto</option>
@@ -8839,9 +10146,52 @@ function toggleBonif(escolaId, compKey, docKey, value) {
     renderProntuario(escolaId);
 }
 
+function findActivePendencyForTechnicalAnalysis(escolaId, compProgKey, documentoKey) {
+    const splitContext = window.RadarCompetencia.splitCompetenciaContext(compProgKey);
+    const programaId = splitContext.contextId;
+    const programa = programas.find(item => item.id === programaId);
+    const programaNome = programa ? programa.name : programaId;
+    const documentoNome = VERIFICATION_DOCUMENT_LABELS[documentoKey] || documentoKey;
+    const context = window.RadarFluxoOperacional.buildPendencyContext({
+        compProgKey,
+        programaNome,
+        documentoKey,
+        documentoNome
+    });
+    const documentaryPendencies = pendencias.filter(pendency => (
+        window.RadarPendencias.isDocumentaryPendency(pendency)
+    ));
+
+    return window.RadarPendencias.findActivePendency(documentaryPendencies, {
+        ...context,
+        escolaId,
+        competenciaOrigem: context.competencia
+    });
+}
+
 // 14.3 Operações de Clique Análise Técnica
-function changeAnaliseTecnica(escolaId, compKey, docKey, value) {
-    if (currentProfile === 'inventario' || currentProfile === 'sme') return;
+function changeAnaliseTecnica(escolaId, compKey, docKey, value, selectElement = null) {
+    if (currentProfile === 'inventario' || currentProfile === 'sme') return false;
+
+    const activePendency = findActivePendencyForTechnicalAnalysis(
+        escolaId,
+        compKey,
+        docKey
+    );
+    if (activePendency) {
+        const previousValue = verificacoes[escolaId]?.[compKey]?.analise?.[docKey]
+            || 'Não analisado';
+        if (selectElement && typeof selectElement === 'object') {
+            selectElement.value = previousValue;
+        }
+        const instruction = activePendency.status === 'Aguardando reanálise'
+            ? 'Esta análise aguarda reanálise. Use Reanalisar para registrar o resultado.'
+            : 'Esta análise possui pendência aberta. Use Registrar novo envio para prosseguir.';
+        alert(instruction);
+        renderProntuario(escolaId);
+        return false;
+    }
+
     const v = ensureProgramVerification(escolaId, compKey);
     
     // Regra Operacional: Não permitir preencher análise técnica se a entrega do drive estiver vazia (Sim, Não, N/A)
@@ -8898,14 +10248,15 @@ function changeAnaliseTecnica(escolaId, compKey, docKey, value) {
             docNames[docKey]
         );
         
-        // Auto seleção de motivos padronizados
-        const motivoSelect = document.getElementById('pend-motivo');
-        if (docKey === 'declBBAgil') {
-            motivoSelect.value = 'Sem assinatura'; // Valor comum para o BB Ágil
-        } else if (docKey === 'encampInventario') {
-            motivoSelect.value = 'Nota Fiscal pendente';
-        } else {
-            motivoSelect.value = 'Documento ausente';
+        // Auto seleção de um erro documental compatível com o contexto detectado.
+        const defaultError = docKey === 'declBBAgil'
+            ? 'Sem assinatura'
+            : 'Documento ausente';
+        const defaultErrorInput = Array.from(document.querySelectorAll('input[name="pend-erros"]'))
+            .find(input => input.value === defaultError);
+        if (defaultErrorInput) {
+            defaultErrorInput.checked = true;
+            syncAbsentErrorExclusivity(defaultErrorInput);
         }
         
         let mesFormat = mesRaw;
@@ -8933,6 +10284,7 @@ function changeAnaliseTecnica(escolaId, compKey, docKey, value) {
     }
     
     renderProntuario(escolaId);
+    return true;
 }
 
 // 14.5 Operações de Registro de Dados da Nota Fiscal (Via Análise Técnica)
@@ -9326,7 +10678,18 @@ function openModal(id) {
 }
 
 function closeModal(id) {
+    if (id === 'modal-registrar-envio') {
+        closeRegistrarNovoEnvioModal();
+        return;
+    }
+    if (id === 'modal-reanalisar-pendencia') {
+        closeReanalysisModal();
+        return;
+    }
     document.getElementById(id).classList.remove('show');
+    if (id === 'modal-nova-pendencia') {
+        clearPendencyNotice();
+    }
 }
 
 // 16.1 Salvar Contato / Atendimento
@@ -9384,14 +10747,101 @@ function saveContato(e) {
     updateAlertsBell();
 }
 
-// 16.2 Salvar Nova Pendência Manual
-function openNovaPendenciaModal(escolaId, isManual = true) {
-    document.getElementById('form-nova-pendencia').reset();
+// 16.2 Salvar Nova Pendência Manual ou Documental
+function showPendencyNotice(message, variant = 'info') {
+    const notice = document.getElementById('pendency-notice');
+    if (!notice) return;
+
+    notice.textContent = message || '';
+    notice.dataset.variant = variant;
+    notice.hidden = !message;
+}
+
+function clearPendencyNotice() {
+    showPendencyNotice('');
+}
+
+function createPendencyClientId(prefix) {
+    const uniquePart = window.crypto && typeof window.crypto.randomUUID === 'function'
+        ? window.crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    return `${prefix}-${uniquePart}`;
+}
+
+function renderPendencyErrorOptions() {
+    const container = document.getElementById('pend-erros-documentais');
+    if (!container) return;
+
+    container.innerHTML = window.RadarPendencias.DOCUMENT_ERROR_TYPES.map(error => `
+        <label class="pendency-error-option">
+            <input
+                type="checkbox"
+                name="pend-erros"
+                value="${escapeHtml(error)}"
+                onchange="syncAbsentErrorExclusivity(this)"
+            >
+            <span>${escapeHtml(error)}</span>
+        </label>
+    `).join('');
+}
+
+function getSelectedPendencyErrors() {
+    const selectedErrors = Array.from(
+        document.querySelectorAll('#pend-erros-documentais input[name="pend-erros"]:checked')
+    ).map(input => input.value);
+    return window.RadarPendencias.validateDocumentErrors(selectedErrors);
+}
+
+function syncAbsentErrorExclusivity(changedInput) {
+    const inputs = Array.from(
+        document.querySelectorAll('#pend-erros-documentais input[name="pend-erros"]')
+    );
+    enforceAbsentDocumentExclusivity(inputs, changedInput);
+}
+
+function configurePendencyFormMode(isDocumentary) {
+    const documentaryGroup = document.getElementById('pend-erros-documentais-group');
+    const legacyGroup = document.getElementById('pend-motivo-legacy-group');
+    const responsibleGroup = document.getElementById('pend-responsavel-group');
+    const motiveSelect = document.getElementById('pend-motivo');
+    const responsibleSelect = document.getElementById('pend-responsavel');
+    const competenceSelect = document.getElementById('pend-competencia');
     const itemSelect = document.getElementById('pend-item');
-    itemSelect.querySelectorAll('option[data-contextual="true"]').forEach(option => option.remove());
-    document.getElementById('pendencia-escola-id').value = escolaId;
+    const title = document.querySelector('#modal-nova-pendencia .modal-header h3');
+
+    documentaryGroup.hidden = !isDocumentary;
+    legacyGroup.hidden = isDocumentary;
+    responsibleGroup.hidden = isDocumentary;
+    motiveSelect.required = !isDocumentary;
+    motiveSelect.disabled = isDocumentary;
+    responsibleSelect.required = !isDocumentary;
+    responsibleSelect.disabled = isDocumentary;
+    competenceSelect.required = !isDocumentary;
+    competenceSelect.disabled = isDocumentary;
+    itemSelect.required = !isDocumentary;
+    itemSelect.disabled = isDocumentary;
+    title.textContent = isDocumentary
+        ? 'Abrir Pendência Documental'
+        : 'Abrir Pendência Manual';
+}
+
+function resetNovaPendenciaForm() {
+    const form = document.getElementById('form-nova-pendencia');
+    form.reset();
+    document.getElementById('pend-item')
+        .querySelectorAll('option[data-contextual="true"]')
+        .forEach(option => option.remove());
+    document.getElementById('pendencia-escola-id').value = '';
     document.getElementById('pend-programa-id').value = '';
     document.getElementById('pend-documento-key').value = '';
+    renderPendencyErrorOptions();
+    configurePendencyFormMode(false);
+}
+
+function openNovaPendenciaModal(escolaId, isManual = true) {
+    resetNovaPendenciaForm();
+    clearPendencyNotice();
+    document.getElementById('pendencia-escola-id').value = escolaId;
     
     // Preencher select de competências
     const compSelect = document.getElementById('pend-competencia');
@@ -9399,14 +10849,7 @@ function openNovaPendenciaModal(escolaId, isManual = true) {
         <option value="${c.key}">${c.label}</option>
     `).join('');
     compSelect.value = activeCompetenciaKey;
-
-    if (isManual) {
-        compSelect.disabled = false;
-        itemSelect.disabled = false;
-    } else {
-        compSelect.disabled = true;
-        itemSelect.disabled = true;
-    }
+    configurePendencyFormMode(!isManual);
 
     openModal('modal-nova-pendencia');
 }
@@ -9440,6 +10883,7 @@ function openNovaPendenciaModalWithDefaults(
 
 function saveNovaPendencia(e) {
     e.preventDefault();
+    const sourceView = currentView;
     const escolaId = document.getElementById('pendencia-escola-id').value;
     const comp = document.getElementById('pend-competencia').value;
     const programaId = document.getElementById('pend-programa-id').value;
@@ -9448,33 +10892,93 @@ function saveNovaPendencia(e) {
     const motivo = document.getElementById('pend-motivo').value;
     const resp = document.getElementById('pend-responsavel').value;
     const obs = document.getElementById('pend-obs').value.trim();
+    const isDocumentary = Boolean(programaId && documentoKey);
 
-    const newPend = {
-        id: 'pend-' + Date.now(),
-        escolaId: escolaId,
-        competencia: comp,
-        programaId: programaId,
-        documentoKey: documentoKey,
-        item: item,
-        motivo: motivo,
-        responsavel: resp,
-        status: 'Aberta',
-        dataAbertura: new Date().toISOString().split('T')[0],
-        dataResolucao: null,
-        observacao: obs
-    };
+    if (!obs) {
+        showPendencyNotice('Informe as observações da pendência.', 'error');
+        document.getElementById('pend-obs').focus();
+        return;
+    }
+
+    const now = new Date();
+    const nowIso = now.toISOString();
+    const user = getCurrentUser();
+    let newPend;
+    let logDetails;
+
+    try {
+        if (isDocumentary) {
+            const errors = getSelectedPendencyErrors();
+            const context = {
+                escolaId,
+                competenciaOrigem: comp,
+                programaId,
+                documentoKey,
+                item
+            };
+            const existing = window.RadarPendencias.findActivePendency(pendencias, context);
+
+            if (existing) {
+                closeModal('modal-nova-pendencia');
+                resetNovaPendenciaForm();
+                openPendencyDetail(existing.id);
+                showPendencyNotice('Já existe uma pendência ativa para este documento.', 'duplicate');
+                return;
+            }
+
+            newPend = window.RadarPendencias.createDocumentPendency({
+                id: createPendencyClientId('pend'),
+                escolaId,
+                competenciaOrigem: comp,
+                programaId,
+                documentoKey,
+                item,
+                errosAtuais: errors,
+                observacao: obs,
+                dataAbertura: nowIso.split('T')[0]
+            }, {
+                eventId: createPendencyClientId('evento'),
+                at: nowIso,
+                usuario: user.name,
+                perfil: user.role
+            });
+            logDetails = `Pendência documental de ${item} para a escola ID ${escolaId} (${comp}, programa ${programaId}, documento ${documentoKey}). Erros: ${errors.join(', ')}.`;
+        } else {
+            newPend = window.RadarPendencias.normalizePendencyRecord({
+                id: createPendencyClientId('pend'),
+                escolaId,
+                competencia: comp,
+                item,
+                motivo,
+                responsavel: resp,
+                status: 'Aberta',
+                dataAbertura: nowIso.split('T')[0],
+                dataResolucao: null,
+                observacao: obs
+            });
+            const esc = escolas.find(x => x.id === escolaId);
+            logDetails = `Abertura manual de pendência de ${item} para ${esc ? esc.denominação : ''} (${comp}) - Responsável: ${resp}.`;
+        }
+    } catch (error) {
+        showPendencyNotice(error && error.message
+            ? error.message
+            : 'Não foi possível validar a pendência.', 'error');
+        if (isDocumentary) {
+            const firstErrorInput = document.querySelector('input[name="pend-erros"]');
+            if (firstErrorInput) firstErrorInput.focus();
+        }
+        return;
+    }
 
     pendencias.push(newPend);
     rebuildOperationalIndexes();
-    
-    const esc = escolas.find(x => x.id === escolaId);
-    registerLog('Pendência Criada', `Abertura manual de pendência de ${item} para ${esc ? esc.denominação : ''} (${comp}) - Responsável: ${resp}.`);
+    registerLog('Pendência Criada', logDetails);
 
     persist();
     closeModal('modal-nova-pendencia');
-    document.getElementById('form-nova-pendencia').reset();
+    resetNovaPendenciaForm();
 
-    if (currentView === 'prontuario') {
+    if (sourceView === 'prontuario') {
         renderProntuario(escolaId);
     } else {
         renderPendencias();
@@ -10423,6 +11927,12 @@ const RADAR_DEBUG_MODE = window.location.hostname === 'localhost' || window.loca
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', async () => {
+    const registrarNovoEnvioModal = document.getElementById('modal-registrar-envio');
+    registrarNovoEnvioModal.addEventListener('keydown', handleRegistrarNovoEnvioKeydown);
+    const reanalysisModal = document.getElementById('modal-reanalisar-pendencia');
+    const reanalysisResult = document.getElementById('reanalisar-resultado');
+    reanalysisModal.addEventListener('keydown', handleReanalysisKeydown);
+    reanalysisResult.addEventListener('change', updateReanalysisErrorVisibility);
     await initData();
     initTheme();
     switchProfile('controlador'); // Inicia como Controlador para simular a visão principal

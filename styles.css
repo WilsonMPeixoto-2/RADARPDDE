@@ -2469,3 +2469,147 @@ textarea.form-control {
         white-space: normal;
     }
 }
+
+/* Pendências documentais: seleção múltipla e navegação mínima */
+.pendency-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.pendency-error-fieldset {
+    margin: 0;
+    padding: 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--bg-input);
+}
+
+.pendency-error-fieldset legend {
+    padding: 0 6px;
+    color: var(--text-main);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.pendency-error-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+
+.form-group .pendency-error-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    min-height: 44px;
+    margin: 0;
+    padding: 10px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: var(--text-main);
+    background: var(--bg-sidebar);
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    line-height: 1.4;
+    text-transform: none;
+}
+
+.pendency-error-option input {
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+    margin: 1px 0 0;
+    accent-color: var(--primary);
+}
+
+.pendency-error-option:has(input:checked) {
+    border-color: var(--border-focus);
+    background: var(--primary-glow);
+}
+
+.pendency-error-option:has(input:disabled) {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.pendency-error-option:has(input:focus-visible),
+.pendency-row-selected:focus-visible {
+    outline: 3px solid var(--border-focus);
+    outline-offset: 2px;
+}
+
+.pendency-notice {
+    position: fixed;
+    top: 84px;
+    right: 24px;
+    z-index: 1200;
+    display: flex;
+    align-items: center;
+    max-width: min(420px, calc(100vw - 48px));
+    min-height: 44px;
+    padding: 12px 16px;
+    border: 1px solid var(--border-focus);
+    border-radius: 10px;
+    color: var(--text-main);
+    background: var(--bg-sidebar);
+    box-shadow: var(--shadow-md);
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.pendency-notice[hidden] {
+    display: none;
+}
+
+.pendency-notice[data-variant="duplicate"] {
+    border-color: var(--warning);
+    background: var(--warning-bg);
+}
+
+.pendency-notice[data-variant="error"] {
+    border-color: var(--danger);
+    background: var(--danger-bg);
+}
+
+.pendency-row-selected {
+    outline: 2px solid var(--primary);
+    outline-offset: -2px;
+    box-shadow: inset 4px 0 0 var(--primary);
+}
+
+.pendency-detail-marker {
+    display: block;
+    width: fit-content;
+    margin-top: 6px;
+    padding: 3px 7px;
+    border-radius: 999px;
+    color: var(--primary-dark);
+    background: var(--primary-glow);
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+body.dark-theme .pendency-detail-marker {
+    color: var(--accent-lavender);
+}
+
+@media (max-width: 700px) {
+    .pendency-error-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .pendency-error-option {
+        min-height: 44px;
+    }
+
+    .pendency-notice {
+        top: 16px;
+        right: 16px;
+        left: 16px;
+        max-width: none;
+    }
+}
