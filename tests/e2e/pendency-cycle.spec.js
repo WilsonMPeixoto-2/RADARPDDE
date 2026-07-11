@@ -957,7 +957,7 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     });
   });
 
-  test('preserva tipo de IDs legados e mantém ações seguras para aspas', async ({ page }, testInfo) => {
+  test('preserva tipo de IDs legados e protege ações para referências hostis', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 
     const pageErrors = [];
@@ -995,12 +995,13 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
           documentoNome: 'Extrato Investimento'
         },
         {
-          id: `pend-"dupla'-legado`,
+          id: `pend-alerta-'/</div><img src=x onerror=window.__pendencyAlertInjected=true>`,
           documentoKey: 'notaFiscal',
           documentoNome: 'Notas Fiscais'
         }
       ];
 
+      window.__pendencyAlertInjected = false;
       pendencias = pendencias.filter(pendency => !RadarPendencias.isActivePendency(pendency));
       verificacoes[escola.id] = verificacoes[escola.id] || {};
       verificacoes[escola.id][compProgKey] = RadarFluxoOperacional.createEmptyVerification();
@@ -1024,7 +1025,7 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
           item: pendencyContext.item,
           errosAtuais: ['Documento ilegível'],
           observacao: `Pendência legada ${index + 1}.`,
-          dataAbertura: '2026-07-09'
+          dataAbertura: '2026-06-01'
         }, {
           eventId: `evento-e2e-id-legado-${index + 1}`,
           at: `2026-07-09T12:0${index}:00.000Z`,
@@ -1039,11 +1040,13 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
       rebuildOperationalIndexes();
       persist();
       switchView('pendencias');
+      updateAlertsBell();
 
       return {
         numericId: definitions[0].id,
         stringNumericId: definitions[1].id,
-        quotedId: definitions[2].id,
+        hostileId: definitions[2].id,
+        escolaNome: escola.denominação,
         documents: definitions.map(definition => definition.documentoNome)
       };
     }, DOCUMENT_CONTEXT);
@@ -1085,18 +1088,18 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     await cancel.click();
     await expect(stringNumericTrigger).toBeFocused();
 
-    const quotedTrigger = rowFor(context.documents[2]).getByRole('button', {
+    const hostileTrigger = rowFor(context.documents[2]).getByRole('button', {
       name: 'Registrar novo envio',
       exact: true
     });
-    await quotedTrigger.click();
+    await hostileTrigger.click();
     await expect(modal.locator('#envio-contexto')).toContainText(context.documents[2]);
     expect(JSON.parse(await hiddenReference.inputValue())).toEqual({
       type: 'string',
-      value: context.quotedId
+      value: context.hostileId
     });
     await cancel.click();
-    await expect(quotedTrigger).toBeFocused();
+    await expect(hostileTrigger).toBeFocused();
 
     expect(await page.evaluate(id => abrirModalRegistrarNovoEnvio(id), context.numericId)).toBe(true);
     expect(JSON.parse(await hiddenReference.inputValue())).toEqual({
@@ -1105,7 +1108,7 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     });
     await cancel.click();
 
-    expect(await page.evaluate(id => openPendencyDetail(id), context.quotedId)).toBe(true);
+    expect(await page.evaluate(id => openPendencyDetail(id), context.hostileId)).toBe(true);
     await expect.poll(() => page.evaluate(() => {
       const focused = document.activeElement;
       if (!focused || !focused.dataset.pendencyRef) return null;
@@ -1114,7 +1117,7 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
         selected: focused.classList.contains('pendency-row-selected')
       };
     })).toEqual({
-      reference: { type: 'string', value: context.quotedId },
+      reference: { type: 'string', value: context.hostileId },
       selected: true
     });
 
@@ -1126,6 +1129,69 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     }).click();
     await expect(modal.locator('#envio-contexto')).toContainText(context.documents[2]);
     await cancel.click();
+
+    await page.evaluate(() => {
+      activeControladorRAFilter = 'todas';
+      activeControladorSubFilter = 'all';
+      switchView('dashboard');
+      updateAlertsBell();
+    });
+
+    const bellPendencyAlerts = page.locator('#alerts-list [data-pendency-ref]');
+    await expect(bellPendencyAlerts).toHaveCount(3);
+    expect(await bellPendencyAlerts.evaluateAll(elements => elements.map(element => ({
+      handler: element.getAttribute('onclick'),
+      reference: JSON.parse(element.dataset.pendencyRef)
+    })))).toEqual([
+      { handler: 'handleAlertClick(this)', reference: { type: 'number', value: 123 } },
+      { handler: 'handleAlertClick(this)', reference: { type: 'string', value: '123' } },
+      {
+        handler: 'handleAlertClick(this)',
+        reference: { type: 'string', value: context.hostileId }
+      }
+    ]);
+    expect(await page.evaluate(() => ({
+      injected: window.__pendencyAlertInjected,
+      injectedElement: Boolean(document.querySelector(
+        '[onerror*="__pendencyAlertInjected"]'
+      ))
+    }))).toEqual({ injected: false, injectedElement: false });
+
+    const controllerPendencyCards = page.locator(
+      '#controlador-gargalos [data-pendency-ref]'
+    );
+    await expect(controllerPendencyCards).toHaveCount(3);
+    await expect(controllerPendencyCards.filter({ hasText: context.documents[2] }))
+      .toHaveAttribute('onclick', 'handleAlertClick(this)');
+
+    const selectedReference = () => page.evaluate(() => ({
+      idType: typeof activePendencyDetailId,
+      id: activePendencyDetailId,
+      focusedReference: document.activeElement?.dataset?.pendencyRef
+        ? JSON.parse(document.activeElement.dataset.pendencyRef)
+        : null
+    }));
+
+    await controllerPendencyCards.filter({ hasText: context.documents[2] }).click();
+    await expect.poll(selectedReference).toEqual({
+      idType: 'string',
+      id: context.hostileId,
+      focusedReference: { type: 'string', value: context.hostileId }
+    });
+
+    await bellPendencyAlerts.filter({ hasText: context.documents[0] }).click();
+    await expect.poll(selectedReference).toEqual({
+      idType: 'number',
+      id: context.numericId,
+      focusedReference: { type: 'number', value: context.numericId }
+    });
+
+    await bellPendencyAlerts.filter({ hasText: context.documents[1] }).click();
+    await expect.poll(selectedReference).toEqual({
+      idType: 'string',
+      id: context.stringNumericId,
+      focusedReference: { type: 'string', value: context.stringNumericId }
+    });
 
     await expect(rows).toHaveCount(3);
     await expect(actions).toHaveCount(3);

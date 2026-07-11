@@ -4757,11 +4757,13 @@ function getAlerts() {
                     ? `Último contato em ${lastDate.toLocaleDateString('pt-BR')}` 
                     : `Registrada em ${new Date(p.dataAbertura).toLocaleDateString('pt-BR')}`;
                 alerts.push({
-                    id: 'stale-' + p.id,
+                    alertKind: 'stale-pendency',
+                    schoolId: p.escolaId,
+                    pendencyRef: encodePendencyIdReference(p.id),
                     type: 'danger',
                     text: `Pendência (${pData.item}) de ${esc ? esc.denominação : 'Escola'} (${desigText} | Resp: ${ctrlText}). Estado: ${p.status}. Próximo ator: ${nextActor}. Ativa há ${diffDays} dias.`,
                     time: timeLabel,
-                    action: () => openSchoolVerification(p.escolaId, p.competencia)
+                    action: () => openPendencyDetail(p.id)
                 });
             }
         }
@@ -4779,6 +4781,8 @@ function getAlerts() {
                 const desigText = esc ? esc.designação : '';
                 alerts.push({
                     id: 'capital-' + b.id,
+                    alertKind: 'capital',
+                    schoolId: b.escolaId,
                     type: 'warning',
                     text: `Aquisição de capital em ${esc ? esc.denominação : 'Escola'} (${desigText} | Resp: ${ctrlText}) não encaminhada: ${faltaNF ? 'Falta Nota Fiscal' : ''}${faltaNF && faltaProc ? ' e ' : ''}${faltaProc ? 'Falta Processo de Inventário' : ''}.`,
                     time: `Pendente de verificação interna`,
@@ -4806,6 +4810,8 @@ function getAlerts() {
                             const desigText = esc ? esc.designação : '';
                             alerts.push({
                                 id: `nobonif-${esc.id}-${progId}`,
+                                alertKind: 'missing-bonification',
+                                schoolId: esc.id,
                                 type: 'info',
                                 text: `Bonificação de ${esc.denominação} (${desigText} | Resp: ${ctrlText}) para o programa ${prog ? prog.name : progId} na competência ${activeCompetenciaKey} não registrada.`,
                                 time: `Janela de fechamento ativa`,
@@ -4819,6 +4825,13 @@ function getAlerts() {
     }
 
     return alerts;
+}
+
+function getAlertActionDataAttributes(alert) {
+    if (alert && alert.pendencyRef) {
+        return `data-alert-kind="${escapeHtml(alert.alertKind)}" data-pendency-ref="${escapeHtml(alert.pendencyRef)}"`;
+    }
+    return `data-alert-id="${escapeHtml(alert && alert.id)}"`;
 }
 
 function updateAlertsBell() {
@@ -4836,7 +4849,7 @@ function updateAlertsBell() {
     }
     
     listContainer.innerHTML = list.map(a => `
-        <div class="alert-item alert-${a.type}" onclick="handleAlertClick('${escapeHtml(a.id)}')">
+        <div class="alert-item alert-${a.type}" ${getAlertActionDataAttributes(a)} onclick="handleAlertClick(this)">
             <div class="alert-icon">
                 ${a.type === 'danger' ? `
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
@@ -4854,9 +4867,36 @@ function updateAlertsBell() {
     `).join('');
 }
 
-function handleAlertClick(alertId) {
+function findAlertFromActionSource(alerts, alertSource) {
+    const actionElement = alertSource && alertSource.currentTarget
+        ? alertSource.currentTarget
+        : alertSource;
+    if (actionElement && actionElement.dataset) {
+        if (actionElement.dataset.pendencyRef) {
+            let pendencyId;
+            try {
+                pendencyId = decodePendencyIdReference(actionElement.dataset.pendencyRef);
+            } catch (error) {
+                console.error('Não foi possível interpretar a referência do alerta.', error);
+                return null;
+            }
+            return alerts.find(alert => {
+                if (!alert.pendencyRef) return false;
+                try {
+                    return decodePendencyIdReference(alert.pendencyRef) === pendencyId;
+                } catch (error) {
+                    return false;
+                }
+            }) || null;
+        }
+        return alerts.find(alert => alert.id === actionElement.dataset.alertId) || null;
+    }
+    return alerts.find(alert => alert.id === alertSource) || null;
+}
+
+function handleAlertClick(alertSource) {
     const alerts = getAlerts();
-    const alert = alerts.find(a => a.id === alertId);
+    const alert = findAlertFromActionSource(alerts, alertSource);
     if (alert) {
         alert.action();
         document.getElementById('alerts-dropdown').classList.remove('show');
@@ -5764,16 +5804,21 @@ function renderDashboardControlador(container) {
     
     // Injetar os alertas do controlador no painel lateral com base nas escolas filtradas
     const gargalosEl = document.getElementById('controlador-gargalos');
-    const localAlerts = getAlerts().filter(a => {
-        const matchSchoolId = targetIds.some(id => a.id.includes(id));
-        return matchSchoolId && (a.id.startsWith('stale-') || a.id.startsWith('nobonif-') || a.id.startsWith('capital-'));
-    });
+    const localAlertKinds = new Set([
+        'stale-pendency',
+        'missing-bonification',
+        'capital'
+    ]);
+    const localAlerts = getAlerts().filter(a => (
+        targetIds.includes(a.schoolId)
+        && localAlertKinds.has(a.alertKind)
+    ));
     
     if (localAlerts.length === 0) {
         gargalosEl.innerHTML = `<div style="text-align:center; padding: 24px; color:var(--text-muted)">Sem pendências críticas neste filtro! Bom trabalho.</div>`;
     } else {
         gargalosEl.innerHTML = localAlerts.map(a => `
-            <div class="contact-card" style="border-left: 3px solid var(--${a.type === 'danger' ? 'danger' : a.type === 'warning' ? 'warning' : 'info'}); margin-bottom: 12px; cursor:pointer;" onclick="handleAlertClick('${escapeHtml(a.id)}')">
+            <div class="contact-card" style="border-left: 3px solid var(--${a.type === 'danger' ? 'danger' : a.type === 'warning' ? 'warning' : 'info'}); margin-bottom: 12px; cursor:pointer;" ${getAlertActionDataAttributes(a)} onclick="handleAlertClick(this)">
                 <div class="contact-meta">
                     <span style="font-weight:700; color:var(--${a.type === 'danger' ? 'danger' : a.type === 'warning' ? 'warning' : 'info'})">${a.type.toUpperCase()}</span>
                     <span>${escapeHtml(a.time)}</span>
@@ -6204,12 +6249,14 @@ function renderDashboardAssistente(container) {
     `;
 
     const gargalosEl = document.getElementById('assistente-gargalos');
-    const staleAlerts = getAlerts().filter(a => a.id.startsWith('stale-') || a.id.startsWith('capital-'));
+    const staleAlerts = getAlerts().filter(a => (
+        a.alertKind === 'stale-pendency' || a.alertKind === 'capital'
+    ));
     if (staleAlerts.length === 0) {
         gargalosEl.innerHTML = `<div style="text-align:center; padding: 24px; color:var(--text-muted)">Sem gargalos de pendências ativas nas carteiras!</div>`;
     } else {
         gargalosEl.innerHTML = staleAlerts.map(a => `
-            <div class="contact-card" style="border-left: 3px solid var(--${a.type === 'danger' ? 'danger' : 'warning'}); margin-bottom:12px; cursor:pointer;" onclick="handleAlertClick('${escapeHtml(a.id)}')">
+            <div class="contact-card" style="border-left: 3px solid var(--${a.type === 'danger' ? 'danger' : 'warning'}); margin-bottom:12px; cursor:pointer;" ${getAlertActionDataAttributes(a)} onclick="handleAlertClick(this)">
                 <div class="contact-meta">
                     <span style="font-weight:700; color:var(--${a.type === 'danger' ? 'danger' : 'warning'})">${a.type.toUpperCase()}</span>
                     <span>${escapeHtml(a.time)}</span>
