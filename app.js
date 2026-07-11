@@ -9560,6 +9560,7 @@ function renderProntuario(escolaId) {
                                     ` : pAtivas.map(p => {
                                         const pData = getFormattedPendencyData(p);
                                         const submissionActionLabel = getCorrectiveSubmissionActionLabel(p);
+                                        const canReanalyse = canReanalysePendency(p);
                                         return `
                                             <tr
                                                 data-pendency-ref="${escapeHtml(encodePendencyIdReference(p.id))}"
@@ -9572,13 +9573,27 @@ function renderProntuario(escolaId) {
                                                 <td><span class="badge badge-info">${escapeHtml(p.responsavel)}</span></td>
                                                 <td>${new Date(p.dataAbertura).toLocaleDateString('pt-BR')}</td>
                                                 <td>
-                                                    ${submissionActionLabel ? `
-                                                        <button
-                                                            class="btn btn-primary btn-sm"
-                                                            data-action="register-corrective-submission"
-                                                            data-pendency-ref="${escapeHtml(encodePendencyIdReference(p.id))}"
-                                                            onclick="abrirModalRegistrarNovoEnvio(this)"
-                                                        >${escapeHtml(submissionActionLabel)}</button>
+                                                    ${canReanalyse || submissionActionLabel ? `
+                                                        <div class="pendency-actions">
+                                                            ${canReanalyse ? `
+                                                                <button
+                                                                    type="button"
+                                                                    class="btn btn-primary btn-sm"
+                                                                    data-action="reanalyse-pendency"
+                                                                    data-pendency-ref="${escapeHtml(encodePendencyIdReference(p.id))}"
+                                                                    onclick="abrirModalReanalisarPendencia(this)"
+                                                                >Reanalisar</button>
+                                                            ` : ''}
+                                                            ${submissionActionLabel ? `
+                                                                <button
+                                                                    type="button"
+                                                                    class="btn ${canReanalyse ? 'btn-secondary' : 'btn-primary'} btn-sm"
+                                                                    data-action="register-corrective-submission"
+                                                                    data-pendency-ref="${escapeHtml(encodePendencyIdReference(p.id))}"
+                                                                    onclick="abrirModalRegistrarNovoEnvio(this)"
+                                                                >${escapeHtml(submissionActionLabel)}</button>
+                                                            ` : ''}
+                                                        </div>
                                                     ` : '<span style="color:var(--text-muted);">Sem ação de envio</span>'}
                                                 </td>
                                             </tr>

@@ -1681,6 +1681,217 @@ test.describe('reanálise atômica da pendência documental no desktop', () => {
     await expect(resolvedRow).toHaveClass(/pendency-row-selected/);
     await expect(resolvedRow).toBeFocused();
   });
+
+  test('reanálise iniciada na aba Pendências preserva contexto e foco após resolução', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+
+    await page.goto('/');
+    const context = await seedAwaitingReanalysis(page, {
+      pendencyId: 'pend-e2e-reanalise-aba-pendencias',
+      availabilityDate: '2026-06-10',
+      submissionObservation: 'Envio aguardando análise a partir do Prontuário.',
+      view: 'prontuario'
+    });
+
+    const pendenciesTabButton = page.locator('[data-tab="pendencias"]');
+    await pendenciesTabButton.click();
+    const sourceTab = page.locator('#tab-pendencias');
+    const sourceRow = sourceTab.locator('tr[data-pendency-ref]');
+    const reanalysisTrigger = sourceRow.getByRole('button', {
+      name: 'Reanalisar',
+      exact: true
+    });
+    const replacementTrigger = sourceRow.getByRole('button', {
+      name: 'Registrar substituição mais recente',
+      exact: true
+    });
+
+    await expect(sourceRow).toHaveCount(1);
+    await expect(reanalysisTrigger).toBeVisible();
+    await expect(reanalysisTrigger).toHaveAttribute('type', 'button');
+    await expect(reanalysisTrigger).toHaveAttribute('data-action', 'reanalyse-pendency');
+    await expect(reanalysisTrigger).toHaveAttribute('data-pendency-ref', /.+/);
+    await expect(reanalysisTrigger).toHaveAttribute(
+      'onclick',
+      'abrirModalReanalisarPendencia(this)'
+    );
+    await expect(replacementTrigger).toBeVisible();
+    await expect(replacementTrigger).toHaveAttribute(
+      'data-action',
+      'register-corrective-submission'
+    );
+    await expect(replacementTrigger).toHaveAttribute('data-pendency-ref', /.+/);
+    expect(await reanalysisTrigger.evaluate((button, expectedId) => (
+      decodePendencyIdReference(button.dataset.pendencyRef) === expectedId
+    ), context.pendencyId)).toBe(true);
+
+    await reanalysisTrigger.click();
+    const modal = page.locator('#modal-reanalisar-pendencia');
+    await expect(modal).toHaveClass(/show/);
+    await modal.getByLabel('Resultado da reanálise', { exact: true }).selectOption('correto');
+    await modal.getByLabel('Observação da análise', { exact: true })
+      .fill('Documento correto confirmado a partir da aba de Pendências.');
+    await modal.getByRole('button', { name: 'Confirmar reanálise', exact: true }).click();
+    await expect(modal).not.toHaveClass(/show/);
+
+    const result = await page.evaluate(seeded => {
+      const pendency = pendencias.find(item => item.id === seeded.pendencyId);
+      const verification = verificacoes[seeded.escolaId][seeded.compProgKey];
+      return {
+        status: pendency.status,
+        analysis: verification.analise[seeded.documentoKey],
+        bonification: JSON.parse(JSON.stringify(verification.bonificacao)),
+        programResult: verification.resultadoBonif,
+        currentView,
+        activeSchoolId,
+        activeCompetence: activeProntuarioCompetencia
+      };
+    }, context);
+    expect(result).toEqual({
+      status: 'Resolvida',
+      analysis: 'Correto',
+      bonification: context.verificationBefore.bonificacao,
+      programResult: context.verificationBefore.resultadoBonif,
+      currentView: 'prontuario',
+      activeSchoolId: context.escolaId,
+      activeCompetence: context.competencia
+    });
+
+    await expect(page.locator('[data-tab="pendencias"]')).toHaveClass(/active/);
+    await expect(sourceTab).toHaveClass(/active/);
+    await expect(sourceTab.locator('tr[data-pendency-ref]')).toHaveCount(0);
+    await expect(sourceTab).toContainText('Nenhuma pendência ativa nesta escola');
+    await expect.poll(() => page.evaluate(() => {
+      const focused = document.activeElement;
+      return {
+        body: focused === document.body,
+        inSourceTab: Boolean(focused && focused.closest('#tab-pendencias')),
+        role: focused && focused.getAttribute('role'),
+        tabindex: focused && focused.getAttribute('tabindex'),
+        ariaLabel: focused && focused.getAttribute('aria-label')
+      };
+    })).toEqual({
+      body: false,
+      inSourceTab: true,
+      role: 'region',
+      tabindex: '-1',
+      ariaLabel: 'Contexto da pendência atualizada: '
+        + context.documentoNome + ', ' + context.escolaNome
+        + ', competência ' + context.competencia + '.'
+    });
+  });
+
+  test('aba Pendências só expõe reanálise documental aguardando ao Controlador', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+
+    await page.goto('/');
+    const context = await seedAwaitingReanalysis(page, {
+      pendencyId: 'pend-e2e-gate-aba-pendencias-aguardando',
+      view: 'prontuario'
+    });
+    const ids = await page.evaluate(({ seeded, target }) => {
+      const openContext = RadarFluxoOperacional.buildPendencyContext({
+        compProgKey: seeded.compProgKey,
+        programaNome: seeded.programaNome,
+        documentoKey: 'extINV',
+        documentoNome: 'Extrato Investimento'
+      });
+      const openDocument = RadarPendencias.createDocumentPendency({
+        id: 'pend-e2e-gate-aba-pendencias-aberta',
+        escolaId: seeded.escolaId,
+        competenciaOrigem: seeded.competencia,
+        programaId: target.programaId,
+        documentoKey: 'extINV',
+        item: openContext.item,
+        errosAtuais: ['Documento incompleto'],
+        observacao: 'Documento ainda depende de novo envio.',
+        dataAbertura: '2026-06-02'
+      }, {
+        eventId: 'evento-e2e-gate-aba-pendencias-aberta',
+        at: '2026-06-02T12:00:00.000Z',
+        usuario: 'Controladora E2E',
+        perfil: 'Controlador'
+      });
+      const manualAwaiting = RadarPendencias.normalizePendencyRecord({
+        id: 'pend-e2e-gate-aba-pendencias-manual',
+        escolaId: seeded.escolaId,
+        competencia: seeded.competencia,
+        item: 'Conferência manual sem vínculo documental',
+        motivo: 'Validação administrativa',
+        responsavel: 'Controlador',
+        status: 'Aguardando reanálise',
+        dataAbertura: '2026-06-03',
+        dataResolucao: null,
+        observacao: 'Registro manual não pode iniciar reanálise documental.'
+      });
+      const awaitingDocument = pendencias.find(item => item.id === seeded.pendencyId);
+      const resolvedDocument = JSON.parse(JSON.stringify(awaitingDocument));
+      resolvedDocument.id = 'pend-e2e-gate-aba-pendencias-resolvida';
+      resolvedDocument.status = 'Resolvida';
+      resolvedDocument.responsavel = null;
+      resolvedDocument.dataResolucao = '2026-06-11';
+      const cancelledDocument = JSON.parse(JSON.stringify(awaitingDocument));
+      cancelledDocument.id = 'pend-e2e-gate-aba-pendencias-cancelada';
+      cancelledDocument.status = 'Cancelada';
+      cancelledDocument.responsavel = null;
+
+      pendencias.push(
+        openDocument,
+        manualAwaiting,
+        resolvedDocument,
+        cancelledDocument
+      );
+      rebuildOperationalIndexes();
+      persist();
+      renderProntuario(seeded.escolaId);
+      activateProntuarioTab('tab-pendencias');
+      return {
+        awaiting: seeded.pendencyId,
+        open: openDocument.id,
+        manual: manualAwaiting.id,
+        resolved: resolvedDocument.id,
+        cancelled: cancelledDocument.id
+      };
+    }, { seeded: context, target: DOCUMENT_CONTEXT });
+
+    const sourceTab = page.locator('#tab-pendencias');
+    const rowFor = pendencyId => sourceTab.locator(
+      `tr[data-pendency-ref*="${pendencyId}"]`
+    );
+    const reanalysisButtons = sourceTab.locator('[data-action="reanalyse-pendency"]');
+
+    await expect(rowFor(ids.awaiting)).toHaveCount(1);
+    await expect(rowFor(ids.awaiting).getByRole('button', {
+      name: 'Reanalisar',
+      exact: true
+    })).toBeVisible();
+    await expect(rowFor(ids.awaiting).getByRole('button', {
+      name: 'Registrar substituição mais recente',
+      exact: true
+    })).toBeVisible();
+    await expect(reanalysisButtons).toHaveCount(1);
+
+    await expect(rowFor(ids.open)).toHaveCount(1);
+    await expect(rowFor(ids.open).getByRole('button', { name: 'Reanalisar' }))
+      .toHaveCount(0);
+    await expect(rowFor(ids.open).getByRole('button', {
+      name: 'Registrar novo envio',
+      exact: true
+    })).toBeVisible();
+    await expect(rowFor(ids.manual)).toHaveCount(1);
+    await expect(rowFor(ids.manual).getByRole('button', { name: 'Reanalisar' }))
+      .toHaveCount(0);
+    await expect(rowFor(ids.resolved)).toHaveCount(0);
+    await expect(rowFor(ids.cancelled)).toHaveCount(0);
+
+    await page.evaluate(() => switchProfile('assistente'));
+    await page.locator('[data-tab="pendencias"]').click();
+    await expect(sourceTab.locator('[data-action="reanalyse-pendency"]')).toHaveCount(0);
+    await expect(rowFor(ids.awaiting).getByRole('button', {
+      name: 'Registrar substituição mais recente',
+      exact: true
+    })).toBeVisible();
+  });
 });
 
 test.describe('resultados alternativos, bloqueio e rollback da reanálise', () => {

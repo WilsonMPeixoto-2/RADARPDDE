@@ -2471,6 +2471,12 @@ textarea.form-control {
 }
 
 /* Pendências documentais: seleção múltipla e navegação mínima */
+.pendency-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
 .pendency-error-fieldset {
     margin: 0;
     padding: 14px;
