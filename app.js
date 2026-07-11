@@ -4868,8 +4868,7 @@ function openSchoolTimeline(schoolId, compKey = null) {
     }
     switchView('prontuario');
     setTimeout(() => {
-        const tab = document.querySelector('[data-tab="contatos"]');
-        if (tab) tab.click();
+        activateProntuarioTab('tab-contatos');
     }, 100);
 }
 
@@ -4880,8 +4879,7 @@ function openSchoolCapital(schoolId, compKey = null) {
     }
     switchView('prontuario');
     setTimeout(() => {
-        const tab = document.querySelector('[data-tab="capital"]');
-        if (tab) tab.click();
+        activateProntuarioTab('tab-capital');
     }, 100);
 }
 
@@ -4892,8 +4890,7 @@ function openSchoolVerification(schoolId, compKey = null) {
     }
     switchView('prontuario');
     setTimeout(() => {
-        const tab = document.querySelector('[data-tab="verificacoes"]');
-        if (tab) tab.click();
+        activateProntuarioTab('tab-verificacoes');
     }, 100);
 }
 
@@ -8062,6 +8059,12 @@ function updatePendencyById(pendencyId, nextPendency) {
 }
 
 let registrarNovoEnvioTrigger = null;
+let registrarNovoEnvioSourceContext = null;
+
+const CORRECTIVE_SUBMISSION_PRONTUARIO_TABS = new Set([
+    'tab-pendencias',
+    'tab-verificacoes'
+]);
 
 const REGISTRAR_NOVO_ENVIO_FOCUSABLE_SELECTOR = [
     'button:not([disabled])',
@@ -8235,9 +8238,36 @@ function getRegistrarNovoEnvioTrigger(source) {
         : null;
 }
 
-function openRegistrarNovoEnvioModal(trigger) {
+function getCorrectiveSubmissionProntuarioTab(trigger) {
+    if (currentView !== 'prontuario') return null;
+
+    const triggerPanel = trigger && typeof trigger.closest === 'function'
+        ? trigger.closest('.tab-content-panel')
+        : null;
+    if (triggerPanel && CORRECTIVE_SUBMISSION_PRONTUARIO_TABS.has(triggerPanel.id)) {
+        return triggerPanel.id;
+    }
+
+    const activePanel = Array.from(document.querySelectorAll(
+        '#main-container .tab-content-panel.active'
+    )).find(panel => CORRECTIVE_SUBMISSION_PRONTUARIO_TABS.has(panel.id));
+    return activePanel ? activePanel.id : null;
+}
+
+function captureCorrectiveSubmissionSourceContext(pendency, trigger) {
+    const competence = pendency.competenciaOrigem || pendency.competencia;
+    return Object.freeze({
+        currentView,
+        escolaId: pendency.escolaId,
+        competencia: competence,
+        prontuarioTabId: getCorrectiveSubmissionProntuarioTab(trigger)
+    });
+}
+
+function openRegistrarNovoEnvioModal(trigger, sourceContext) {
     const modal = document.getElementById('modal-registrar-envio');
     registrarNovoEnvioTrigger = trigger;
+    registrarNovoEnvioSourceContext = sourceContext;
     modal.removeAttribute('inert');
     modal.setAttribute('aria-hidden', 'false');
     openModal('modal-registrar-envio');
@@ -8251,6 +8281,7 @@ function closeRegistrarNovoEnvioModal({ restoreFocus = true } = {}) {
     modal.setAttribute('aria-hidden', 'true');
     modal.setAttribute('inert', '');
     registrarNovoEnvioTrigger = null;
+    registrarNovoEnvioSourceContext = null;
 
     if (restoreFocus && trigger && trigger.isConnected && typeof trigger.focus === 'function') {
         trigger.focus({ preventScroll: true });
@@ -8288,23 +8319,74 @@ function handleRegistrarNovoEnvioKeydown(event) {
     }
 }
 
-function focusCorrectiveSubmissionAfterRender(pendencyId) {
+function getCorrectiveSubmissionFocusScope(sourceContext) {
+    if (sourceContext.currentView === 'prontuario') {
+        const sourcePanel = CORRECTIVE_SUBMISSION_PRONTUARIO_TABS.has(
+            sourceContext.prontuarioTabId
+        )
+            ? document.getElementById(sourceContext.prontuarioTabId)
+            : null;
+        if (sourcePanel && sourcePanel.classList.contains('active')) return sourcePanel;
+
+        return Array.from(document.querySelectorAll(
+            '#main-container .tab-content-panel.active'
+        )).find(panel => CORRECTIVE_SUBMISSION_PRONTUARIO_TABS.has(panel.id)) || null;
+    }
+
+    const activePendenciesPanel = document.getElementById('p-abertas');
+    return activePendenciesPanel && activePendenciesPanel.classList.contains('active')
+        ? activePendenciesPanel
+        : null;
+}
+
+function prepareCorrectiveSubmissionFallbackFocus(scope, pendencyId, sourceContext) {
+    const pendency = findPendencyById(pendencyId);
+    const school = pendency
+        ? escolas.find(item => item.id === pendency.escolaId)
+        : null;
+    const schoolName = school
+        ? (school.denominação || school.denominacao || school.denominaçao || school.id)
+        : sourceContext.escolaId;
+    const documentName = pendency
+        ? (VERIFICATION_DOCUMENT_LABELS[pendency.documentoKey] || pendency.documentoKey)
+        : 'pendência documental';
+    const contextualContainer = scope
+        ? (scope.querySelector('.panel-card') || scope)
+        : document.getElementById('main-container');
+    if (!contextualContainer) return null;
+
+    contextualContainer.setAttribute('tabindex', '-1');
+    contextualContainer.setAttribute('role', 'region');
+    contextualContainer.setAttribute(
+        'aria-label',
+        `Contexto da pendência atualizada: ${documentName}, ${schoolName}, competência ${sourceContext.competencia}.`
+    );
+    return contextualContainer;
+}
+
+function focusCorrectiveSubmissionAfterRender(pendencyId, sourceContext) {
     const focusEquivalentAction = () => {
-        const actions = Array.from(document.querySelectorAll(
+        const scope = getCorrectiveSubmissionFocusScope(sourceContext);
+        const actions = scope ? Array.from(scope.querySelectorAll(
             '[data-action="register-corrective-submission"][data-pendency-ref]'
-        ));
+        )) : [];
         const action = actions.find(candidate => (
             elementMatchesPendencyIdReference(candidate, pendencyId)
             && candidate.getClientRects().length > 0
         ));
-        const row = Array.from(document.querySelectorAll('tr[data-pendency-ref]')).find(candidate => (
+        const rows = scope ? Array.from(scope.querySelectorAll('tr[data-pendency-ref]')) : [];
+        const row = rows.find(candidate => (
             elementMatchesPendencyIdReference(candidate, pendencyId)
             && candidate.getClientRects().length > 0
         ));
-        const target = action || row;
+        const target = action
+            || row
+            || prepareCorrectiveSubmissionFallbackFocus(scope, pendencyId, sourceContext);
         if (!target) return;
 
-        target.scrollIntoView({ block: 'nearest', behavior: 'auto' });
+        if (typeof target.scrollIntoView === 'function') {
+            target.scrollIntoView({ block: 'nearest', behavior: 'auto' });
+        }
         target.focus({ preventScroll: true });
     };
 
@@ -8345,6 +8427,8 @@ function abrirModalRegistrarNovoEnvio(pendencySource) {
     const documentName = VERIFICATION_DOCUMENT_LABELS[pendency.documentoKey]
         || pendency.documentoKey;
     const schoolName = school.denominação || school.denominacao || school.denominaçao || '';
+    const trigger = getRegistrarNovoEnvioTrigger(pendencySource);
+    const sourceContext = captureCorrectiveSubmissionSourceContext(pendency, trigger);
 
     resetRegistrarNovoEnvioForm();
     document.getElementById('envio-pendencia-id').value = encodePendencyIdReference(pendency.id);
@@ -8365,7 +8449,7 @@ function abrirModalRegistrarNovoEnvio(pendencySource) {
         </dl>
     `;
 
-    openRegistrarNovoEnvioModal(getRegistrarNovoEnvioTrigger(pendencySource));
+    openRegistrarNovoEnvioModal(trigger, sourceContext);
     return true;
 }
 
@@ -8393,8 +8477,6 @@ function confirmarRegistrarNovoEnvio(event) {
         return false;
     }
 
-    const sourceView = currentView;
-    const sourceSchoolId = activeSchoolId;
     let pendencyId;
     try {
         pendencyId = decodePendencyIdReference(serializedPendencyId);
@@ -8417,6 +8499,9 @@ function confirmarRegistrarNovoEnvio(event) {
         showRegistrarNovoEnvioError('A pendência documental não está disponível para um novo envio.');
         return false;
     }
+
+    const sourceContext = registrarNovoEnvioSourceContext
+        || captureCorrectiveSubmissionSourceContext(current, registrarNovoEnvioTrigger);
 
     const competence = current.competenciaOrigem || current.competencia;
     const compProgKey = `${competence}_${current.programaId}`;
@@ -8494,12 +8579,20 @@ function confirmarRegistrarNovoEnvio(event) {
     resetRegistrarNovoEnvioForm();
     updateAlertsBell();
 
-    if (sourceView === 'prontuario') {
-        renderProntuario(sourceSchoolId || current.escolaId);
+    if (sourceContext.currentView === 'prontuario') {
+        activeSchoolId = sourceContext.escolaId;
+        activeProntuarioCompetencia = sourceContext.competencia;
+        renderProntuario(sourceContext.escolaId);
+        activateProntuarioTab(
+            CORRECTIVE_SUBMISSION_PRONTUARIO_TABS.has(sourceContext.prontuarioTabId)
+                ? sourceContext.prontuarioTabId
+                : 'tab-verificacoes'
+        );
     } else {
+        activePendencyDetailId = current.id;
         renderPendencias();
     }
-    focusCorrectiveSubmissionAfterRender(current.id);
+    focusCorrectiveSubmissionAfterRender(current.id, sourceContext);
     return true;
 }
 
@@ -8978,6 +9071,7 @@ function renderProntuario(escolaId) {
                                             <tr
                                                 data-pendency-ref="${escapeHtml(encodePendencyIdReference(p.id))}"
                                                 data-pendency-status="${escapeHtml(p.status)}"
+                                                tabindex="-1"
                                             >
                                                 <td><span style="font-weight:600; color:var(--primary);">${escapeHtml(pData.competencia)}</span></td>
                                                 <td>${escapeHtml(pData.item)}</td>
@@ -9131,12 +9225,39 @@ function renderProntuario(escolaId) {
     renderProntuarioVerificacoes(esc);
 }
 
-function switchSchoolTab(e, tabId) {
-    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-    e.target.classList.add('active');
-    
-    document.querySelectorAll('.tab-content-panel').forEach(pnl => pnl.classList.remove('active'));
-    document.getElementById(tabId).classList.add('active');
+function activateProntuarioTab(tabId) {
+    const allowedTabIds = new Set([
+        'tab-verificacoes',
+        'tab-pendencias',
+        'tab-contatos',
+        'tab-capital',
+        'tab-auditoria'
+    ]);
+    if (currentView !== 'prontuario' || !allowedTabIds.has(tabId)) return false;
+
+    const prontuarioRoot = document.querySelector('#main-container .school-grid');
+    const targetPanel = prontuarioRoot ? prontuarioRoot.querySelector(`#${tabId}`) : null;
+    const targetButton = prontuarioRoot
+        ? prontuarioRoot.querySelector(`[data-tab="${tabId.slice(4)}"]`)
+        : null;
+    if (!targetPanel || !targetButton) return false;
+
+    const tabContainer = targetButton.closest('.tab-container');
+    if (!tabContainer || targetPanel.parentElement !== tabContainer.parentElement) return false;
+
+    Array.from(tabContainer.children).forEach(element => {
+        if (element.classList.contains('tab-button')) element.classList.remove('active');
+    });
+    Array.from(targetPanel.parentElement.children).forEach(element => {
+        if (element.classList.contains('tab-content-panel')) element.classList.remove('active');
+    });
+    targetButton.classList.add('active');
+    targetPanel.classList.add('active');
+    return true;
+}
+
+function switchSchoolTab(event, tabId) {
+    activateProntuarioTab(tabId);
 }
 
 // 14.1 Render Grade de Bonificações e Análises Técnicas Mensais
@@ -9296,7 +9417,11 @@ function renderProntuarioVerificacoes(esc) {
                     }
 
                     rowsHTML += `
-                        <tr data-program-id="${escapeHtml(progId)}" data-document-key="${escapeHtml(doc.key)}">
+                        <tr
+                            data-program-id="${escapeHtml(progId)}"
+                            data-document-key="${escapeHtml(doc.key)}"
+                            ${activePend ? `data-pendency-ref="${escapeHtml(encodePendencyIdReference(activePend.id))}" tabindex="-1"` : ''}
+                        >
                             ${idx === 0 ? `<td rowspan="${docItems.length}" style="vertical-align:top; border-right: 1px solid var(--border-color); width:180px;">
                                 <strong>${escapeHtml(c.label)}</strong><br>
                                 <span style="font-size:0.75rem; color:var(--primary); font-weight:600;">${escapeHtml(progName)}</span>

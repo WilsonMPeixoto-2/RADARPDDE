@@ -1019,4 +1019,344 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     expect(pageErrors).toEqual([]);
     expect(dialogs).toEqual([]);
   });
+
+  test('preserva aba Pendências, competência de origem e foco após novo envio', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+
+    await page.goto('/');
+    const context = await page.evaluate(target => {
+      switchProfile('controlador');
+
+      const competenciaOrigem = '2026-04';
+      const competenciaAnterior = '2026-05';
+      const escola = escolas.find(candidate => (
+        Array.isArray(candidate.programasIds)
+        && candidate.programasIds.includes(target.programaId)
+        && isCompetenceInScope(candidate.competenciaInicial, competenciaOrigem)
+      ));
+      if (!escola) throw new Error('Escola determinística para foco em Pendências não encontrada.');
+
+      const programa = programas.find(candidate => candidate.id === target.programaId);
+      const compProgKey = `${competenciaOrigem}_${target.programaId}`;
+      const pendencyContext = RadarFluxoOperacional.buildPendencyContext({
+        compProgKey,
+        programaNome: programa ? programa.name : target.programaId,
+        documentoKey: target.documentoKey,
+        documentoNome: target.documentoNome
+      });
+
+      pendencias = pendencias.filter(pendency => !RadarPendencias.isActivePendency(pendency));
+      verificacoes[escola.id] = verificacoes[escola.id] || {};
+      verificacoes[escola.id][compProgKey] = RadarFluxoOperacional.createEmptyVerification();
+      const verification = verificacoes[escola.id][compProgKey];
+      verification.bonificacao[target.documentoKey] = 'Sim';
+      verification.analise[target.documentoKey] = 'Incorreto';
+      verification.resultadoBonif = 'inapta';
+
+      const pendency = RadarPendencias.createDocumentPendency({
+        id: 'pend-e2e-foco-aba-pendencias',
+        escolaId: escola.id,
+        competenciaOrigem,
+        programaId: target.programaId,
+        documentoKey: target.documentoKey,
+        item: pendencyContext.item,
+        errosAtuais: ['Documento ilegível'],
+        observacao: 'Pendência de competência diferente da seleção anterior.',
+        dataAbertura: '2026-07-09'
+      }, {
+        eventId: 'evento-e2e-foco-aba-pendencias',
+        at: '2026-07-09T12:00:00.000Z',
+        usuario: 'Controladora E2E',
+        perfil: 'Controlador'
+      });
+      pendencias.push(pendency);
+      rebuildOperationalIndexes();
+      persist();
+
+      activeProntuarioCompetencia = competenciaAnterior;
+      switchView('prontuario', escola.id);
+      return {
+        pendencyId: pendency.id,
+        escolaId: escola.id,
+        competenciaOrigem,
+        competenciaAnterior
+      };
+    }, DOCUMENT_CONTEXT);
+
+    expect(context.competenciaOrigem).not.toBe(context.competenciaAnterior);
+    const pendenciasTab = page.locator('[data-tab="pendencias"]');
+    await pendenciasTab.click();
+    await expect(pendenciasTab).toHaveClass(/active/);
+
+    const trigger = page.locator('#tab-pendencias').getByRole('button', {
+      name: 'Registrar novo envio',
+      exact: true
+    });
+    await trigger.click();
+
+    const modal = page.locator('#modal-registrar-envio');
+    await modal.getByLabel(
+      'Data em que o arquivo foi disponibilizado no Drive',
+      { exact: true }
+    ).fill('2026-07-10');
+    await modal.getByLabel('Observação', { exact: true })
+      .fill('Novo envio iniciado na aba de pendências da unidade.');
+    await modal.getByRole('button', {
+      name: 'Registrar e enviar para reanálise',
+      exact: true
+    }).click();
+    await expect(modal).not.toHaveClass(/show/);
+
+    await expect(page.locator('[data-tab="pendencias"]')).toHaveClass(/active/);
+    await expect(page.locator('#tab-pendencias')).toHaveClass(/active/);
+    await expect.poll(() => page.evaluate(() => activeProntuarioCompetencia))
+      .toBe(context.competenciaOrigem);
+    await expect.poll(() => page.evaluate(pendencyId => {
+      const focused = document.activeElement;
+      return {
+        body: focused === document.body,
+        samePendency: elementMatchesPendencyIdReference(focused, pendencyId),
+        inSourceTab: Boolean(focused && focused.closest('#tab-pendencias'))
+      };
+    }, context.pendencyId)).toEqual({
+      body: false,
+      samePendency: true,
+      inSourceTab: true
+    });
+  });
+
+  test('reativa Pendências Ativas e destaca o registro enviado após detalhe resolvido', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+
+    await page.goto('/');
+    const context = await page.evaluate(target => {
+      switchProfile('controlador');
+
+      const competencia = activeCompetenciaKey;
+      const escola = escolas.find(candidate => (
+        Array.isArray(candidate.programasIds)
+        && candidate.programasIds.includes(target.programaId)
+        && isCompetenceInScope(candidate.competenciaInicial, competencia)
+      ));
+      if (!escola) throw new Error('Escola determinística para foco global não encontrada.');
+
+      const programa = programas.find(candidate => candidate.id === target.programaId);
+      const programaNome = programa ? programa.name : target.programaId;
+      const compProgKey = `${competencia}_${target.programaId}`;
+      const activeContext = RadarFluxoOperacional.buildPendencyContext({
+        compProgKey,
+        programaNome,
+        documentoKey: target.documentoKey,
+        documentoNome: target.documentoNome
+      });
+      const resolvedContext = RadarFluxoOperacional.buildPendencyContext({
+        compProgKey,
+        programaNome,
+        documentoKey: 'extINV',
+        documentoNome: 'Extrato Investimento'
+      });
+
+      pendencias = [];
+      verificacoes[escola.id] = verificacoes[escola.id] || {};
+      verificacoes[escola.id][compProgKey] = RadarFluxoOperacional.createEmptyVerification();
+      const verification = verificacoes[escola.id][compProgKey];
+      verification.bonificacao[target.documentoKey] = 'Sim';
+      verification.analise[target.documentoKey] = 'Incorreto';
+      verification.resultadoBonif = 'inapta';
+
+      const activePendency = RadarPendencias.createDocumentPendency({
+        id: 'pend-e2e-foco-global-ativa',
+        escolaId: escola.id,
+        competenciaOrigem: competencia,
+        programaId: target.programaId,
+        documentoKey: target.documentoKey,
+        item: activeContext.item,
+        errosAtuais: ['Documento ilegível'],
+        observacao: 'Registro ativo que receberá o novo envio.',
+        dataAbertura: '2026-07-09'
+      }, {
+        eventId: 'evento-e2e-foco-global-ativa',
+        at: '2026-07-09T12:00:00.000Z',
+        usuario: 'Controladora E2E',
+        perfil: 'Controlador'
+      });
+      const resolvedPendency = RadarPendencias.createDocumentPendency({
+        id: 'pend-e2e-foco-global-resolvida',
+        escolaId: escola.id,
+        competenciaOrigem: competencia,
+        programaId: target.programaId,
+        documentoKey: 'extINV',
+        item: resolvedContext.item,
+        errosAtuais: ['Documento ilegível'],
+        observacao: 'Registro resolvido previamente selecionado.',
+        dataAbertura: '2026-07-08'
+      }, {
+        eventId: 'evento-e2e-foco-global-resolvida',
+        at: '2026-07-08T12:00:00.000Z',
+        usuario: 'Controladora E2E',
+        perfil: 'Controlador'
+      });
+      resolvedPendency.status = 'Resolvida';
+      resolvedPendency.responsavel = null;
+      resolvedPendency.dataResolucao = '2026-07-09';
+      resolvedPendency.justificativaResolucao = 'Análise concluída anteriormente.';
+
+      pendencias.push(activePendency, resolvedPendency);
+      activePendencyDetailId = resolvedPendency.id;
+      rebuildOperationalIndexes();
+      persist();
+      switchView('pendencias');
+      return {
+        activePendencyId: activePendency.id,
+        resolvedPendencyId: resolvedPendency.id
+      };
+    }, DOCUMENT_CONTEXT);
+
+    await expect(page.getByRole('button', {
+      name: 'Histórico Resolvidas (1)',
+      exact: true
+    })).toHaveClass(/active/);
+    await page.getByRole('button', { name: 'Ativas (1)', exact: true }).click();
+
+    const trigger = page.locator('#p-abertas').getByRole('button', {
+      name: 'Registrar novo envio',
+      exact: true
+    });
+    await trigger.click();
+    const modal = page.locator('#modal-registrar-envio');
+    await modal.getByLabel(
+      'Data em que o arquivo foi disponibilizado no Drive',
+      { exact: true }
+    ).fill('2026-07-10');
+    await modal.getByLabel('Observação', { exact: true })
+      .fill('Novo envio do registro ativo aberto antes da mudança de estado.');
+    await modal.getByRole('button', {
+      name: 'Registrar e enviar para reanálise',
+      exact: true
+    }).click();
+    await expect(modal).not.toHaveClass(/show/);
+
+    await expect(page.getByRole('button', { name: 'Ativas (1)', exact: true }))
+      .toHaveClass(/active/);
+    await expect(page.locator('#p-abertas')).toHaveClass(/active/);
+    await expect.poll(() => page.evaluate(() => activePendencyDetailId))
+      .toBe(context.activePendencyId);
+    await expect.poll(() => page.evaluate(pendencyId => {
+      const focused = document.activeElement;
+      return {
+        body: focused === document.body,
+        samePendency: elementMatchesPendencyIdReference(focused, pendencyId),
+        inActiveTab: Boolean(focused && focused.closest('#p-abertas'))
+      };
+    }, context.activePendencyId)).toEqual({
+      body: false,
+      samePendency: true,
+      inActiveTab: true
+    });
+  });
+
+  test('restaura competência e foco documental após abertura programática na grade', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+
+    await page.goto('/');
+    const context = await page.evaluate(target => {
+      switchProfile('controlador');
+
+      const competenciaOrigem = '2026-04';
+      const competenciaAnterior = '2026-05';
+      const escola = escolas.find(candidate => (
+        Array.isArray(candidate.programasIds)
+        && candidate.programasIds.includes(target.programaId)
+        && isCompetenceInScope(candidate.competenciaInicial, competenciaOrigem)
+      ));
+      if (!escola) throw new Error('Escola determinística para foco documental não encontrada.');
+
+      const programa = programas.find(candidate => candidate.id === target.programaId);
+      const compProgKey = `${competenciaOrigem}_${target.programaId}`;
+      const pendencyContext = RadarFluxoOperacional.buildPendencyContext({
+        compProgKey,
+        programaNome: programa ? programa.name : target.programaId,
+        documentoKey: target.documentoKey,
+        documentoNome: target.documentoNome
+      });
+
+      pendencias = pendencias.filter(pendency => !RadarPendencias.isActivePendency(pendency));
+      verificacoes[escola.id] = verificacoes[escola.id] || {};
+      verificacoes[escola.id][compProgKey] = RadarFluxoOperacional.createEmptyVerification();
+      const verification = verificacoes[escola.id][compProgKey];
+      verification.bonificacao[target.documentoKey] = 'Sim';
+      verification.analise[target.documentoKey] = 'Incorreto';
+      verification.resultadoBonif = 'inapta';
+
+      const pendency = RadarPendencias.createDocumentPendency({
+        id: 'pend-e2e-foco-grade-documental',
+        escolaId: escola.id,
+        competenciaOrigem,
+        programaId: target.programaId,
+        documentoKey: target.documentoKey,
+        item: pendencyContext.item,
+        errosAtuais: ['Documento ilegível'],
+        observacao: 'Pendência aberta programaticamente a partir da grade ativa.',
+        dataAbertura: '2026-07-09'
+      }, {
+        eventId: 'evento-e2e-foco-grade-documental',
+        at: '2026-07-09T12:00:00.000Z',
+        usuario: 'Controladora E2E',
+        perfil: 'Controlador'
+      });
+      pendencias.push(pendency);
+      rebuildOperationalIndexes();
+      persist();
+
+      activeProntuarioCompetencia = competenciaAnterior;
+      switchView('prontuario', escola.id);
+      return {
+        pendencyId: pendency.id,
+        competenciaOrigem,
+        competenciaAnterior,
+        programaId: target.programaId,
+        documentoKey: target.documentoKey
+      };
+    }, DOCUMENT_CONTEXT);
+
+    expect(context.competenciaOrigem).not.toBe(context.competenciaAnterior);
+    await expect(page.locator('[data-tab="verificacoes"]')).toHaveClass(/active/);
+    expect(await page.evaluate(pendencyId => abrirModalRegistrarNovoEnvio(pendencyId), context.pendencyId))
+      .toBe(true);
+
+    const modal = page.locator('#modal-registrar-envio');
+    await modal.getByLabel(
+      'Data em que o arquivo foi disponibilizado no Drive',
+      { exact: true }
+    ).fill('2026-07-10');
+    await modal.getByLabel('Observação', { exact: true })
+      .fill('Novo envio programático preservando a origem na grade documental.');
+    await modal.getByRole('button', {
+      name: 'Registrar e enviar para reanálise',
+      exact: true
+    }).click();
+    await expect(modal).not.toHaveClass(/show/);
+
+    await expect(page.locator('[data-tab="verificacoes"]')).toHaveClass(/active/);
+    await expect(page.locator('#tab-verificacoes')).toHaveClass(/active/);
+    await expect.poll(() => page.evaluate(() => activeProntuarioCompetencia))
+      .toBe(context.competenciaOrigem);
+    await expect.poll(() => page.evaluate(seeded => {
+      const focused = document.activeElement;
+      const row = focused && focused.closest('tr');
+      return {
+        body: focused === document.body,
+        samePendency: elementMatchesPendencyIdReference(focused, seeded.pendencyId),
+        inSourceTab: Boolean(focused && focused.closest('#tab-verificacoes')),
+        programaId: row && row.dataset.programId,
+        documentoKey: row && row.dataset.documentKey
+      };
+    }, context)).toEqual({
+      body: false,
+      samePendency: true,
+      inSourceTab: true,
+      programaId: context.programaId,
+      documentoKey: context.documentoKey
+    });
+  });
 });
