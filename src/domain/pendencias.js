@@ -86,12 +86,33 @@
         return [...new Set(values.map(normalizeText).filter(Boolean))];
     }
 
-    function requireText(value, fieldName) {
+    function requireText(value, fieldName, message) {
         const normalized = normalizeText(value);
         if (!normalized) {
-            throw new TypeError(`${fieldName} é obrigatório.`);
+            throw new TypeError(message || `${fieldName} é obrigatório.`);
         }
         return normalized;
+    }
+
+    function clonePendency(pendency) {
+        return JSON.parse(JSON.stringify(pendency));
+    }
+
+    function ensurePendencyArrays(pendency) {
+        pendency.tentativas = Array.isArray(pendency.tentativas)
+            ? pendency.tentativas
+            : [];
+        pendency.historico = Array.isArray(pendency.historico)
+            ? pendency.historico
+            : [];
+        return pendency;
+    }
+
+    function findLatestAwaitingAttempt(pendency = {}) {
+        const attempts = Array.isArray(pendency.tentativas) ? pendency.tentativas : [];
+        return [...attempts]
+            .reverse()
+            .find(attempt => attempt && attempt.status === 'aguardando') || null;
     }
 
     function isActivePendency(pendency = {}) {
@@ -205,6 +226,22 @@
         return parsed.toISOString();
     }
 
+    function createHistoryEvent(type, audit = {}, detail, errors, attemptId) {
+        return {
+            id: requireText(audit.eventId || audit.id, 'ID do evento'),
+            tipo: type,
+            dataHora: normalizeIsoTimestamp(audit.at || audit.timestamp || audit.dataHora),
+            usuario: requireText(
+                audit.usuario || audit.user || audit.usuarioId,
+                'Usuário do evento'
+            ),
+            perfil: requireText(audit.perfil || audit.profile, 'Perfil do evento'),
+            detalhe: detail,
+            erros: Array.isArray(errors) ? [...errors] : [],
+            tentativaId: normalizeText(attemptId) || null
+        };
+    }
+
     function createDocumentPendency(input = {}, audit = {}) {
         const competencia = requireText(
             input.competenciaOrigem || input.competencia,
@@ -212,15 +249,13 @@
         );
         const errosAtuais = validateDocumentErrors(input.errosAtuais || input.erros);
         const status = PENDENCY_STATUS.OPEN;
-        const eventId = requireText(audit.eventId || audit.id, 'ID do evento');
-        const timestamp = normalizeIsoTimestamp(
-            audit.timestamp || audit.dataHora || audit.at
+        const openingEvent = createHistoryEvent(
+            'abertura',
+            audit,
+            'Pendência documental aberta.',
+            errosAtuais,
+            null
         );
-        const usuario = requireText(
-            audit.usuario || audit.user || audit.usuarioId,
-            'Usuário do evento'
-        );
-        const perfil = requireText(audit.perfil || audit.profile, 'Perfil do evento');
 
         return {
             schemaVersion: PENDENCY_SCHEMA_VERSION,
@@ -240,19 +275,200 @@
             dataAbertura: requireText(input.dataAbertura, 'Data de abertura'),
             dataResolucao: null,
             tentativas: [],
-            historico: [{
-                id: eventId,
-                tipo: 'abertura',
-                dataHora: timestamp,
-                usuario,
-                perfil,
-                detalhe: 'Pendência documental aberta.',
-                erros: [...errosAtuais],
-                tentativaId: null
-            }],
+            historico: [openingEvent],
             cancelamento: null,
             contextoIncompleto: false
         };
+    }
+
+    function registerCorrectiveSubmission(pendency = {}, submission = {}, audit = {}) {
+        const status = normalizeText(pendency.status);
+        if (status !== PENDENCY_STATUS.OPEN && status !== PENDENCY_STATUS.AWAITING_REVIEW) {
+            throw new Error(
+                'Envio corretivo permitido somente para pendência Aberta ou Aguardando reanálise.'
+            );
+        }
+
+        const attemptId = requireText(submission.id, 'ID da tentativa');
+        const availabilityDate = requireText(
+            submission.dataDisponibilizacao,
+            'Data de disponibilização',
+            'Data de disponibilização é obrigatória.'
+        );
+        const observation = requireText(
+            submission.observacao,
+            'Observação do envio',
+            'Observação do envio é obrigatória.'
+        );
+        const next = ensurePendencyArrays(clonePendency(pendency));
+        const previousAwaitingAttempt = findLatestAwaitingAttempt(next);
+
+        if (previousAwaitingAttempt) {
+            previousAwaitingAttempt.status = 'substituida_antes_da_analise';
+        }
+
+        const event = createHistoryEvent(
+            'novo_envio',
+            audit,
+            'Novo envio corretivo registrado para reanálise.',
+            next.errosAtuais,
+            attemptId
+        );
+        const attempt = {
+            id: attemptId,
+            numero: next.tentativas.length + 1,
+            dataDisponibilizacao: availabilityDate,
+            dataRegistro: event.dataHora,
+            observacao: observation,
+            link: normalizeText(submission.link) || null,
+            registradoPor: event.usuario,
+            status: 'aguardando',
+            dataAnalise: null,
+            analisadoPor: null,
+            resultado: null,
+            errosEncontrados: [],
+            observacaoAnalise: null
+        };
+
+        next.tentativas.push(attempt);
+        next.status = PENDENCY_STATUS.AWAITING_REVIEW;
+        next.responsavel = getNextActor(next);
+        next.dataResolucao = null;
+        next.historico.push(event);
+        return next;
+    }
+
+    function recordReanalysis(pendency = {}, review = {}, audit = {}) {
+        if (normalizeText(pendency.status) !== PENDENCY_STATUS.AWAITING_REVIEW) {
+            throw new Error('Reanálise permitida somente para pendência Aguardando reanálise.');
+        }
+
+        const next = ensurePendencyArrays(clonePendency(pendency));
+        const attempt = findLatestAwaitingAttempt(next);
+        if (!attempt) {
+            throw new Error('Não há tentativa aguardando reanálise.');
+        }
+
+        const result = normalizeText(review.resultado);
+        if (!['correto', 'incorreto', 'arquivo_indisponivel'].includes(result)) {
+            throw new TypeError('Resultado de reanálise não suportado.');
+        }
+        const observation = requireText(
+            review.observacao,
+            'Observação da reanálise',
+            'Observação da reanálise é obrigatória.'
+        );
+        let errors;
+        let eventType;
+        let eventDetail;
+
+        if (result === 'correto') {
+            errors = [];
+            eventType = 'reanalise_correta';
+            eventDetail = 'Reanálise confirmou a correção do documento.';
+        } else if (result === 'incorreto') {
+            errors = validateDocumentErrors(review.errosEncontrados || review.erros);
+            eventType = 'reanalise_incorreta';
+            eventDetail = 'Reanálise identificou erros no documento corrigido.';
+        } else {
+            errors = ['Arquivo não localizado ou inacessível'];
+            eventType = 'arquivo_indisponivel';
+            eventDetail = 'Reanálise não localizou um arquivo acessível.';
+        }
+
+        const attemptId = requireText(attempt.id, 'ID da tentativa aguardando');
+        const event = createHistoryEvent(
+            eventType,
+            audit,
+            eventDetail,
+            errors,
+            attemptId
+        );
+        if (normalizeText(event.perfil).toLocaleLowerCase('pt-BR') !== 'controlador') {
+            throw new Error('Reanálise permitida somente ao perfil Controlador.');
+        }
+
+        attempt.status = 'analisada';
+        attempt.dataAnalise = event.dataHora;
+        attempt.analisadoPor = event.usuario;
+        attempt.resultado = result;
+        attempt.errosEncontrados = [...errors];
+        attempt.observacaoAnalise = observation;
+
+        next.errosAtuais = [...errors];
+        next.motivo = errors[0] || null;
+        next.status = result === 'correto'
+            ? PENDENCY_STATUS.RESOLVED
+            : PENDENCY_STATUS.OPEN;
+        next.responsavel = getNextActor(next);
+        next.dataResolucao = result === 'correto' ? event.dataHora.slice(0, 10) : null;
+        next.historico.push(event);
+        return next;
+    }
+
+    function cancelPendency(pendency = {}, cancellation = {}, audit = {}) {
+        const justification = requireText(
+            cancellation.justificativa,
+            'Justificativa do cancelamento',
+            'Justificativa do cancelamento é obrigatória.'
+        );
+        const status = normalizeText(pendency.status);
+        if (status === PENDENCY_STATUS.CANCELLED) {
+            throw new Error('A pendência já está cancelada.');
+        }
+        if (!isActivePendency(pendency)) {
+            throw new Error('Somente pendências ativas podem ser canceladas.');
+        }
+
+        const next = ensurePendencyArrays(clonePendency(pendency));
+        const event = createHistoryEvent(
+            'cancelamento',
+            audit,
+            `Pendência cancelada: ${justification}`,
+            next.errosAtuais,
+            null
+        );
+
+        next.status = PENDENCY_STATUS.CANCELLED;
+        next.responsavel = getNextActor(next);
+        next.dataResolucao = null;
+        next.cancelamento = {
+            justificativa: justification,
+            dataHora: event.dataHora,
+            usuario: event.usuario,
+            perfil: event.perfil
+        };
+        next.historico.push(event);
+        return next;
+    }
+
+    function reopenPendency(pendency = {}, input = {}, audit = {}) {
+        if (normalizeText(pendency.status) !== PENDENCY_STATUS.RESOLVED) {
+            throw new Error('Somente pendências resolvidas podem ser reabertas.');
+        }
+
+        const justification = requireText(
+            input.justificativa,
+            'Justificativa da reabertura',
+            'Justificativa da reabertura é obrigatória.'
+        );
+        const errors = validateDocumentErrors(input.errosAtuais || input.erros);
+        const next = ensurePendencyArrays(clonePendency(pendency));
+        const event = createHistoryEvent(
+            'reabertura',
+            audit,
+            `Pendência reaberta: ${justification}`,
+            errors,
+            null
+        );
+
+        next.status = PENDENCY_STATUS.OPEN;
+        next.errosAtuais = [...errors];
+        next.motivo = errors[0];
+        next.responsavel = getNextActor(next);
+        next.dataResolucao = null;
+        next.historico.push(event);
+        return next;
     }
 
     return Object.freeze({
@@ -261,11 +477,15 @@
         PENDENCY_SCHEMA_VERSION,
         PENDENCY_STATUS,
         buildDocumentContextKey,
+        cancelPendency,
         createDocumentPendency,
         findActivePendency,
         getNextActor,
         isActivePendency,
         isDocumentaryPendency,
+        recordReanalysis,
+        registerCorrectiveSubmission,
+        reopenPendency,
         validateDocumentErrors
     });
 }));
