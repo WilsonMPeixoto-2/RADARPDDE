@@ -15,6 +15,8 @@ const {
     getNextActor,
     isActivePendency,
     isDocumentaryPendency,
+    migratePendencyCollection,
+    normalizePendencyRecord,
     recordReanalysis,
     registerCorrectiveSubmission,
     reopenPendency,
@@ -847,4 +849,286 @@ test('inicializa arrays legados ausentes sem mutar o registro de origem', () => 
     assert.equal(result.tentativas[0].numero, 1);
     assert.equal(result.historico.length, 1);
     assert.equal(result.historico[0].tipo, 'novo_envio');
+});
+
+function createPrematureLegacyResolutionFixture() {
+    return {
+        id: 'legacy-1',
+        escolaId: '04.31.001',
+        competencia: '2026-05',
+        programaId: 'BASIC',
+        documentoKey: 'extCC',
+        item: 'PDDE Básico - Extrato Conta Corrente',
+        motivo: 'Documento ilegível',
+        observacao: 'Falha inicial',
+        status: 'Resolvida',
+        dataAbertura: '2026-07-01',
+        dataResolucao: '2026-07-10',
+        justificativaResolucao: 'Novo arquivo inserido'
+    };
+}
+
+test('normaliza motivo legado em erros atuais sem perder a compatibilidade textual', () => {
+    const source = {
+        id: 'legacy-motivo',
+        escolaId: '04.31.001',
+        competencia: ' 2026-05 ',
+        programaId: 'BASIC',
+        documentoKey: 'extCC',
+        motivo: ' Documento ilegível ',
+        observacao: 'Falha preservada',
+        status: 'Aberta',
+        responsavel: 'Ator legado',
+        dataAbertura: '2026-07-01'
+    };
+    const snapshot = JSON.parse(JSON.stringify(source));
+
+    const result = normalizePendencyRecord(source);
+
+    assert.deepEqual(source, snapshot);
+    assert.equal(result.schemaVersion, 2);
+    assert.equal(result.tipo, 'documental');
+    assert.equal(result.competencia, '2026-05');
+    assert.equal(result.competenciaOrigem, '2026-05');
+    assert.deepEqual(result.errosAtuais, ['Documento ilegível']);
+    assert.equal(result.motivo, 'Documento ilegível');
+    assert.equal(result.responsavel, 'Escola');
+});
+
+test('reverte resolução legada prematura e cria tentativa e evento vinculados', () => {
+    const source = {
+        ...createPrematureLegacyResolutionFixture(),
+        link: 'https://arquivos.example/extrato-substituto.pdf'
+    };
+
+    const result = normalizePendencyRecord(source, {
+        analysisValue: 'Não analisado',
+        migrationAt: '2026-07-11T10:00:00.000Z'
+    });
+
+    assert.equal(result.status, 'Aguardando reanálise');
+    assert.equal(result.dataResolucao, null);
+    assert.equal(result.responsavel, 'Controlador');
+    assert.equal(result.tentativas.length, 1);
+    assert.equal(result.tentativas[0].numero, 1);
+    assert.equal(result.tentativas[0].status, 'aguardando');
+    assert.equal(result.tentativas[0].link, source.link);
+    assert.equal(result.tentativas[0].dataAnalise, null);
+    assert.equal(result.tentativas[0].analisadoPor, null);
+    assert.equal(result.tentativas[0].resultado, null);
+    assert.deepEqual(result.tentativas[0].errosEncontrados, []);
+    assert.equal(result.tentativas[0].observacaoAnalise, null);
+    assert.match(result.tentativas[0].id, /legacy-1/);
+    assert.equal(result.historico.length, 1);
+    assert.equal(result.historico[0].tipo, 'migracao_resolucao_prematura');
+    assert.equal(result.historico[0].tentativaId, result.tentativas[0].id);
+    assert.deepEqual(result.historico[0].erros, ['Documento ilegível']);
+});
+
+test('usa justificativa e data da resolução no envio compatível da fixture legada', () => {
+    const result = normalizePendencyRecord({
+        id: 'legacy-1',
+        escolaId: '04.31.001',
+        competencia: '2026-05',
+        programaId: 'BASIC',
+        documentoKey: 'extCC',
+        item: 'PDDE Básico - Extrato Conta Corrente',
+        motivo: 'Documento ilegível',
+        observacao: 'Falha inicial',
+        status: 'Resolvida',
+        dataAbertura: '2026-07-01',
+        dataResolucao: '2026-07-10',
+        justificativaResolucao: 'Novo arquivo inserido'
+    }, {
+        analysisValue: 'Não analisado',
+        migrationAt: '2026-07-11T10:00:00.000Z'
+    });
+
+    assert.equal(result.observacao, 'Falha inicial');
+    assert.equal(result.justificativaResolucao, 'Novo arquivo inserido');
+    assert.equal(result.tentativas[0].observacao, 'Novo arquivo inserido');
+    assert.equal(result.tentativas[0].dataDisponibilizacao, '2026-07-10');
+    assert.equal(result.tentativas[0].dataRegistro, '2026-07-11T10:00:00.000Z');
+    assert.equal(result.historico[0].dataHora, '2026-07-11T10:00:00.000Z');
+});
+
+test('mantém contexto incompleto como legado sem inferir programa ou documento pelo item', () => {
+    const withoutProgram = normalizePendencyRecord({
+        id: 'legacy-sem-programa',
+        escolaId: '04.31.001',
+        competencia: '2026-05',
+        documentoKey: 'extCC',
+        item: 'PDDE Básico - Extrato Conta Corrente',
+        status: 'Aberta',
+        responsavel: 'Triagem manual'
+    });
+    const withoutDocument = normalizePendencyRecord({
+        id: 'legacy-sem-documento',
+        escolaId: '04.31.001',
+        competencia: '2026-05',
+        programaId: 'BASIC',
+        item: 'PDDE Básico - Extrato Conta Corrente',
+        status: 'Aberta',
+        responsavel: 'Operação legada'
+    });
+
+    assert.equal(withoutProgram.tipo, 'legada');
+    assert.equal(withoutProgram.contextoIncompleto, true);
+    assert.equal(withoutProgram.programaId, undefined);
+    assert.equal(withoutProgram.documentoKey, 'extCC');
+    assert.equal(withoutProgram.responsavel, 'Triagem manual');
+    assert.equal(withoutDocument.tipo, 'legada');
+    assert.equal(withoutDocument.contextoIncompleto, true);
+    assert.equal(withoutDocument.programaId, 'BASIC');
+    assert.equal(withoutDocument.documentoKey, undefined);
+    assert.equal(withoutDocument.responsavel, 'Operação legada');
+});
+
+test('preserva identidade, datas, textos e campos legados desconhecidos', () => {
+    const source = {
+        id: 'legacy-preservada',
+        escolaId: '04.31.001',
+        competencia: '2026-05',
+        programaId: 'BASIC',
+        documentoKey: 'extCC',
+        status: 'Resolvida',
+        motivo: 'Documento ilegível',
+        observacao: 'Observação original sem reescrita',
+        dataAbertura: '2026-06-20',
+        dataResolucao: '2026-07-09',
+        justificativaResolucao: 'Conferência concluída manualmente',
+        codigoLegado: 8472,
+        metadadoDesconhecido: { origem: 'planilha antiga' }
+    };
+
+    const result = normalizePendencyRecord(source, {
+        analysisValue: 'Analisado',
+        migrationAt: '2026-07-11T10:00:00.000Z'
+    });
+
+    assert.notEqual(result, source);
+    assert.equal(result.id, source.id);
+    assert.equal(result.dataAbertura, source.dataAbertura);
+    assert.equal(result.dataResolucao, source.dataResolucao);
+    assert.equal(result.observacao, source.observacao);
+    assert.equal(result.justificativaResolucao, source.justificativaResolucao);
+    assert.equal(result.codigoLegado, 8472);
+    assert.deepEqual(result.metadadoDesconhecido, { origem: 'planilha antiga' });
+    assert.equal(result.status, 'Resolvida');
+});
+
+test('preserva e clona tentativas, histórico e cancelamento existentes', () => {
+    const source = {
+        ...createOpenPendencyFixture(),
+        schemaVersion: 1,
+        cancelamento: {
+            justificativa: 'Registro administrativo legado.',
+            usuario: 'Operador legado'
+        }
+    };
+    const snapshot = JSON.parse(JSON.stringify(source));
+
+    const result = normalizePendencyRecord(source);
+
+    assert.deepEqual(source, snapshot);
+    assert.deepEqual(result.tentativas, source.tentativas);
+    assert.deepEqual(result.historico, source.historico);
+    assert.deepEqual(result.cancelamento, source.cancelamento);
+    assert.notEqual(result.tentativas, source.tentativas);
+    assert.notEqual(result.historico, source.historico);
+    assert.notEqual(result.historico[0], source.historico[0]);
+    assert.notEqual(result.historico[0].erros, source.historico[0].erros);
+    assert.notEqual(result.cancelamento, source.cancelamento);
+});
+
+test('normalização repetida do schema 2 é profundamente idempotente', () => {
+    const first = normalizePendencyRecord(createPrematureLegacyResolutionFixture(), {
+        analysisValue: 'Não analisado',
+        migrationAt: '2026-07-11T10:00:00.000Z'
+    });
+    const second = normalizePendencyRecord(first, {
+        analysisValue: 'Não analisado',
+        migrationAt: '2026-08-01T08:00:00.000Z'
+    });
+
+    assert.deepEqual(second, first);
+    assert.notEqual(second, first);
+    assert.notEqual(second.tentativas, first.tentativas);
+    assert.notEqual(second.historico, first.historico);
+    assert.equal(second.tentativas.length, 1);
+    assert.equal(second.historico.filter(event => (
+        event.tipo === 'migracao_resolucao_prematura'
+    )).length, 1);
+});
+
+test('migra coleção sem alterar quantidade ou ordem e consulta a análise de cada registro', () => {
+    const records = [
+        createPrematureLegacyResolutionFixture(),
+        {
+            ...createPrematureLegacyResolutionFixture(),
+            id: 'legacy-2',
+            dataResolucao: '2026-07-08'
+        }
+    ];
+    const snapshot = JSON.parse(JSON.stringify(records));
+    const consulted = [];
+
+    const result = migratePendencyCollection(records, {
+        migrationAt: '2026-07-11T10:00:00.000Z',
+        getAnalysisValue(record) {
+            consulted.push(record);
+            return record.id === 'legacy-1' ? 'Não analisado' : 'Analisado';
+        }
+    });
+
+    assert.deepEqual(records, snapshot);
+    assert.equal(result.length, records.length);
+    assert.deepEqual(result.map(record => record.id), ['legacy-1', 'legacy-2']);
+    assert.deepEqual(consulted, records);
+    assert.equal(result[0].status, 'Aguardando reanálise');
+    assert.equal(result[1].status, 'Resolvida');
+});
+
+test('trata coleção vazia ou inválida com segurança e conserva dado individual malformado', () => {
+    assert.deepEqual(migratePendencyCollection(), []);
+    assert.deepEqual(migratePendencyCollection(null), []);
+    assert.deepEqual(migratePendencyCollection({ id: 'não-é-coleção' }), []);
+
+    const malformed = {
+        id: 'legacy-malformada',
+        motivo: 42,
+        tentativas: 'estrutura inválida',
+        historico: null,
+        campoDesconhecido: 'não apagar'
+    };
+    const result = migratePendencyCollection([malformed]);
+
+    assert.equal(result.length, 1);
+    assert.equal(result[0].id, 'legacy-malformada');
+    assert.equal(result[0].campoDesconhecido, 'não apagar');
+    assert.equal(result[0].schemaVersion, 2);
+    assert.equal(result[0].tipo, 'legada');
+    assert.equal(result[0].contextoIncompleto, true);
+    assert.deepEqual(result[0].tentativas, []);
+    assert.deepEqual(result[0].historico, []);
+});
+
+test('normaliza cópia schema 2 sem duplicar tentativa ou evento de migração', () => {
+    const migrated = normalizePendencyRecord(createPrematureLegacyResolutionFixture(), {
+        analysisValue: 'Não analisado',
+        migrationAt: '2026-07-11T10:00:00.000Z'
+    });
+    const snapshot = JSON.parse(JSON.stringify(migrated));
+
+    const result = normalizePendencyRecord(migrated, {
+        analysisValue: 'Não analisado',
+        migrationAt: '2026-07-12T10:00:00.000Z'
+    });
+
+    assert.deepEqual(migrated, snapshot);
+    assert.deepEqual(result, migrated);
+    assert.notEqual(result, migrated);
+    assert.equal(result.tentativas.length, 1);
+    assert.equal(result.historico.length, 1);
+    assert.equal(result.historico[0].tipo, 'migracao_resolucao_prematura');
 });

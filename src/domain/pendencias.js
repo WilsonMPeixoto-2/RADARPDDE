@@ -108,6 +108,16 @@
         return pendency;
     }
 
+    function cloneStoredArray(value) {
+        return Array.isArray(value) ? clonePendency(value) : [];
+    }
+
+    function cloneStoredObject(value) {
+        return value && typeof value === 'object'
+            ? clonePendency(value)
+            : value;
+    }
+
     function findLatestAwaitingAttempt(pendency = {}) {
         const attempts = Array.isArray(pendency.tentativas) ? pendency.tentativas : [];
         return [...attempts]
@@ -279,6 +289,125 @@
             cancelamento: null,
             contextoIncompleto: false
         };
+    }
+
+    function normalizePendencyRecord(record, options = {}) {
+        const source = record == null ? {} : record;
+        const next = { ...source };
+        const isSchemaTwo = Number(source.schemaVersion) === PENDENCY_SCHEMA_VERSION;
+        const competencia = normalizeText(source.competenciaOrigem)
+            || normalizeText(source.competencia);
+        const documentary = isDocumentaryPendency(source);
+        const existingErrors = Array.isArray(source.errosAtuais)
+            ? normalizeUniqueNonEmptyStrings(source.errosAtuais)
+            : null;
+        const legacyReason = normalizeText(source.motivo);
+        const errors = existingErrors || (legacyReason ? [legacyReason] : []);
+
+        next.schemaVersion = PENDENCY_SCHEMA_VERSION;
+        next.tipo = documentary ? 'documental' : 'legada';
+        next.competencia = competencia;
+        next.competenciaOrigem = competencia;
+        next.errosAtuais = [...errors];
+        next.motivo = legacyReason
+            || errors[0]
+            || (Object.prototype.hasOwnProperty.call(source, 'motivo') ? source.motivo : null);
+        next.observacao = Object.prototype.hasOwnProperty.call(source, 'observacao')
+            ? source.observacao
+            : '';
+        next.dataAbertura = Object.prototype.hasOwnProperty.call(source, 'dataAbertura')
+            ? source.dataAbertura
+            : null;
+        next.dataResolucao = Object.prototype.hasOwnProperty.call(source, 'dataResolucao')
+            ? source.dataResolucao
+            : null;
+        next.tentativas = cloneStoredArray(source.tentativas);
+        next.historico = cloneStoredArray(source.historico);
+        next.cancelamento = Object.prototype.hasOwnProperty.call(source, 'cancelamento')
+            ? cloneStoredObject(source.cancelamento)
+            : null;
+        next.contextoIncompleto = !documentary;
+
+        const normalizedStatus = normalizeText(source.status);
+        if (normalizedStatus) {
+            next.status = normalizedStatus;
+        }
+        if (documentary) {
+            next.responsavel = getNextActor(next);
+        }
+
+        const isPrematureLegacyResolution = !isSchemaTwo
+            && documentary
+            && normalizedStatus === PENDENCY_STATUS.RESOLVED
+            && normalizeText(options.analysisValue) === 'Não analisado';
+        if (!isPrematureLegacyResolution) {
+            return next;
+        }
+
+        const recordId = normalizeText(source.id) || 'sem-id';
+        const attemptId = `tentativa-migracao-resolucao-prematura-${recordId}`;
+        const migrationAt = normalizeText(options.migrationAt)
+            || normalizeText(source.dataRegistro)
+            || normalizeText(source.dataAbertura)
+            || '1970-01-01T00:00:00.000Z';
+        const availabilityDate = normalizeText(source.dataResolucao)
+            || normalizeText(source.dataDisponibilizacao)
+            || normalizeText(source.dataAbertura)
+            || migrationAt.slice(0, 10);
+        const resolutionJustification = normalizeText(source.justificativaResolucao);
+        const existingObservation = normalizeText(source.observacao);
+        const attemptObservation = resolutionJustification
+            ? source.justificativaResolucao
+            : (existingObservation
+                ? source.observacao
+                : 'Resolução legada revertida por ausência de análise técnica.');
+        const link = normalizeText(source.link) ? source.link : null;
+        const attempt = {
+            id: attemptId,
+            numero: next.tentativas.length + 1,
+            dataDisponibilizacao: availabilityDate,
+            dataRegistro: migrationAt,
+            observacao: attemptObservation,
+            link,
+            registradoPor: 'Migração de compatibilidade',
+            status: 'aguardando',
+            dataAnalise: null,
+            analisadoPor: null,
+            resultado: null,
+            errosEncontrados: [],
+            observacaoAnalise: null
+        };
+        const event = {
+            id: `evento-migracao-resolucao-prematura-${recordId}`,
+            tipo: 'migracao_resolucao_prematura',
+            dataHora: migrationAt,
+            usuario: 'Sistema de migração',
+            perfil: 'sistema',
+            detalhe: 'Resolução legada revertida por ausência de análise técnica.',
+            erros: [...next.errosAtuais],
+            tentativaId: attemptId
+        };
+
+        next.tentativas.push(attempt);
+        next.historico.push(event);
+        next.status = PENDENCY_STATUS.AWAITING_REVIEW;
+        next.responsavel = getNextActor(next);
+        next.dataResolucao = null;
+        return next;
+    }
+
+    function migratePendencyCollection(records, options = {}) {
+        if (!Array.isArray(records)) {
+            return [];
+        }
+
+        return records.map(record => {
+            const recordOptions = { ...options };
+            if (typeof options.getAnalysisValue === 'function') {
+                recordOptions.analysisValue = options.getAnalysisValue(record);
+            }
+            return normalizePendencyRecord(record, recordOptions);
+        });
     }
 
     function registerCorrectiveSubmission(pendency = {}, submission = {}, audit = {}) {
@@ -483,6 +612,8 @@
         getNextActor,
         isActivePendency,
         isDocumentaryPendency,
+        migratePendencyCollection,
+        normalizePendencyRecord,
         recordReanalysis,
         registerCorrectiveSubmission,
         reopenPendency,

@@ -4162,6 +4162,7 @@ const INITIAL_EQUIPE_INVENTARIO = [
 ];
 
 const INITIAL_DATA_VERSION = '2026-07-08-real-cre4-v2';
+const PENDENCY_SCHEMA_STORAGE_KEY = 'radar_pdde_pendency_schema_version';
 
 // Calendário Global configurado pela SME
 const INITIAL_CONFIG = {
@@ -4553,6 +4554,27 @@ async function seedDatabaseSupabase() {
     }
 }
 
+function getPendencyAnalysisValue(pendency) {
+    if (!pendency.programaId || !pendency.documentoKey) return null;
+    const competencia = pendency.competenciaOrigem || pendency.competencia;
+    const compProgKey = `${competencia}_${pendency.programaId}`;
+    return verificacoes[pendency.escolaId]?.[compProgKey]?.analise?.[pendency.documentoKey] || null;
+}
+
+function migrateLoadedPendencies() {
+    const migrationAt = new Date().toISOString();
+    pendencias = window.RadarPendencias.migratePendencyCollection(pendencias, {
+        migrationAt,
+        getAnalysisValue: getPendencyAnalysisValue
+    });
+
+    localStorage.setItem('radar_pdde_pendencias', JSON.stringify(pendencias));
+    localStorage.setItem(
+        PENDENCY_SCHEMA_STORAGE_KEY,
+        String(window.RadarPendencias.PENDENCY_SCHEMA_VERSION)
+    );
+}
+
 function loadLocalFallback() {
 
     const storedVersion = localStorage.getItem('radar_pdde_data_version');
@@ -4588,6 +4610,7 @@ function loadLocalFallback() {
     controladores = JSON.parse(localStorage.getItem('radar_pdde_controladores') || '[]');
     equipeInventario = JSON.parse(localStorage.getItem('radar_pdde_equipe_inventario') || '[]');
     notasRegistradas = JSON.parse(localStorage.getItem('radar_pdde_notas_registradas') || '[]');
+    migrateLoadedPendencies();
     rebuildOperationalIndexes();
     
     activeCompetenciaKey = config.competenciaFechamento;
