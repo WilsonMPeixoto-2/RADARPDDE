@@ -1084,7 +1084,8 @@ test('migra coleção sem alterar quantidade ou ordem e consulta a análise de c
     assert.deepEqual(records, snapshot);
     assert.equal(result.length, records.length);
     assert.deepEqual(result.map(record => record.id), ['legacy-1', 'legacy-2']);
-    assert.deepEqual(consulted, records);
+    assert.deepEqual(consulted.map(record => record.id), records.map(record => record.id));
+    assert.equal(consulted.every(record => record.schemaVersion === 2), true);
     assert.equal(result[0].status, 'Aguardando reanálise');
     assert.equal(result[1].status, 'Resolvida');
 });
@@ -1131,4 +1132,104 @@ test('normaliza cópia schema 2 sem duplicar tentativa ou evento de migração',
     assert.equal(result.tentativas.length, 1);
     assert.equal(result.historico.length, 1);
     assert.equal(result.historico[0].tipo, 'migracao_resolucao_prematura');
+});
+
+test('normaliza cada item antes do callback e não perde registros quando a coleção contém null', () => {
+    const records = [
+        null,
+        createPrematureLegacyResolutionFixture(),
+        {
+            ...createPrematureLegacyResolutionFixture(),
+            id: 'legacy-aberta',
+            status: 'Aberta',
+            dataResolucao: null
+        }
+    ];
+    const consulted = [];
+
+    const result = migratePendencyCollection(records, {
+        migrationAt: '2026-07-11T10:00:00.000Z',
+        getAnalysisValue(record) {
+            consulted.push(record);
+            return record.programaId === 'BASIC' && record.documentoKey === 'extCC'
+                ? 'Não analisado'
+                : null;
+        }
+    });
+
+    assert.equal(result.length, 3);
+    assert.deepEqual(result.map(record => record.id), [undefined, 'legacy-1', 'legacy-aberta']);
+    assert.equal(result[0].schemaVersion, 2);
+    assert.equal(result[0].tipo, 'legada');
+    assert.equal(result[1].status, 'Aguardando reanálise');
+    assert.equal(result[2].status, 'Aberta');
+    assert.equal(consulted.length, 3);
+    assert.equal(consulted.every(record => record && record.schemaVersion === 2), true);
+});
+
+test('distingue ids numéricos nos ids determinísticos de auditoria e permanece idempotente', () => {
+    const records = [123, 456].map(id => ({
+        ...createPrematureLegacyResolutionFixture(),
+        id
+    }));
+    const options = {
+        migrationAt: '2026-07-11T10:00:00.000Z',
+        getAnalysisValue(record) {
+            return record.programaId === 'BASIC' ? 'Não analisado' : null;
+        }
+    };
+
+    const first = migratePendencyCollection(records, options);
+    const second = migratePendencyCollection(first, {
+        ...options,
+        migrationAt: '2026-07-12T10:00:00.000Z'
+    });
+
+    assert.deepEqual(first.map(record => record.id), [123, 456]);
+    assert.notEqual(first[0].tentativas[0].id, first[1].tentativas[0].id);
+    assert.notEqual(first[0].historico[0].id, first[1].historico[0].id);
+    assert.equal(first[0].historico[0].tentativaId, first[0].tentativas[0].id);
+    assert.equal(first[1].historico[0].tentativaId, first[1].tentativas[0].id);
+    assert.deepEqual(second, first);
+});
+
+test('usa a posição estável da coleção para registros prematuros sem id', () => {
+    const records = [0, 1].map(() => {
+        const record = createPrematureLegacyResolutionFixture();
+        delete record.id;
+        return record;
+    });
+    const options = {
+        migrationAt: '2026-07-11T10:00:00.000Z',
+        getAnalysisValue(record) {
+            return record.programaId === 'BASIC' ? 'Não analisado' : null;
+        }
+    };
+
+    const first = migratePendencyCollection(records, options);
+    const second = migratePendencyCollection(first, options);
+
+    assert.deepEqual(first.map(record => record.id), [undefined, undefined]);
+    assert.notEqual(first[0].tentativas[0].id, first[1].tentativas[0].id);
+    assert.notEqual(first[0].historico[0].id, first[1].historico[0].id);
+    assert.deepEqual(second, first);
+});
+
+test('numera a tentativa compatível após o maior número válido existente', () => {
+    const source = {
+        ...createPrematureLegacyResolutionFixture(),
+        tentativas: [{
+            id: 'tentativa-legada-2',
+            numero: 2,
+            status: 'analisada'
+        }]
+    };
+
+    const result = normalizePendencyRecord(source, {
+        analysisValue: 'Não analisado',
+        migrationAt: '2026-07-11T10:00:00.000Z'
+    });
+
+    assert.equal(result.tentativas.length, 2);
+    assert.equal(result.tentativas.at(-1).numero, 3);
 });

@@ -118,6 +118,36 @@
             : value;
     }
 
+    function serializeAuditIdentity(value) {
+        if (typeof value === 'string' && normalizeText(value)) {
+            return `texto-${encodeURIComponent(normalizeText(value))}`;
+        }
+        if (typeof value === 'number' && Number.isFinite(value)) {
+            return `numero-${String(value)}`;
+        }
+        return '';
+    }
+
+    function getMigrationAuditToken(record, options = {}) {
+        const recordIdentity = serializeAuditIdentity(record && record.id);
+        if (recordIdentity) {
+            return `id-${recordIdentity}`;
+        }
+
+        const collectionIdentity = serializeAuditIdentity(options.collectionRecordIdentifier);
+        return collectionIdentity ? `colecao-${collectionIdentity}` : 'sem-id';
+    }
+
+    function getNextAttemptNumber(attempts) {
+        const highestNumber = attempts.reduce((highest, attempt) => {
+            const number = attempt && attempt.numero;
+            return Number.isInteger(number) && number > 0
+                ? Math.max(highest, number)
+                : highest;
+        }, 0);
+        return highestNumber + 1;
+    }
+
     function findLatestAwaitingAttempt(pendency = {}) {
         const attempts = Array.isArray(pendency.tentativas) ? pendency.tentativas : [];
         return [...attempts]
@@ -344,8 +374,8 @@
             return next;
         }
 
-        const recordId = normalizeText(source.id) || 'sem-id';
-        const attemptId = `tentativa-migracao-resolucao-prematura-${recordId}`;
+        const auditToken = getMigrationAuditToken(source, options);
+        const attemptId = `tentativa-migracao-resolucao-prematura-${auditToken}`;
         const migrationAt = normalizeText(options.migrationAt)
             || normalizeText(source.dataRegistro)
             || normalizeText(source.dataAbertura)
@@ -364,7 +394,7 @@
         const link = normalizeText(source.link) ? source.link : null;
         const attempt = {
             id: attemptId,
-            numero: next.tentativas.length + 1,
+            numero: getNextAttemptNumber(next.tentativas),
             dataDisponibilizacao: availabilityDate,
             dataRegistro: migrationAt,
             observacao: attemptObservation,
@@ -378,7 +408,7 @@
             observacaoAnalise: null
         };
         const event = {
-            id: `evento-migracao-resolucao-prematura-${recordId}`,
+            id: `evento-migracao-resolucao-prematura-${auditToken}`,
             tipo: 'migracao_resolucao_prematura',
             dataHora: migrationAt,
             usuario: 'Sistema de migração',
@@ -401,10 +431,17 @@
             return [];
         }
 
-        return records.map(record => {
-            const recordOptions = { ...options };
+        return records.map((record, index) => {
+            const recordOptions = {
+                ...options,
+                collectionRecordIdentifier: index
+            };
             if (typeof options.getAnalysisValue === 'function') {
-                recordOptions.analysisValue = options.getAnalysisValue(record);
+                const normalizedRecord = normalizePendencyRecord(record, {
+                    ...recordOptions,
+                    analysisValue: null
+                });
+                recordOptions.analysisValue = options.getAnalysisValue(normalizedRecord);
             }
             return normalizePendencyRecord(record, recordOptions);
         });

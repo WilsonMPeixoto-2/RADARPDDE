@@ -4555,10 +4555,10 @@ async function seedDatabaseSupabase() {
 }
 
 function getPendencyAnalysisValue(pendency) {
-    if (!pendency.programaId || !pendency.documentoKey) return null;
+    if (!pendency || !pendency.programaId || !pendency.documentoKey) return null;
     const competencia = pendency.competenciaOrigem || pendency.competencia;
     const compProgKey = `${competencia}_${pendency.programaId}`;
-    return verificacoes[pendency.escolaId]?.[compProgKey]?.analise?.[pendency.documentoKey] || null;
+    return verificacoes?.[pendency.escolaId]?.[compProgKey]?.analise?.[pendency.documentoKey] || null;
 }
 
 function migrateLoadedPendencies() {
