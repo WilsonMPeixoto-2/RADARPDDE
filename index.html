@@ -165,6 +165,15 @@
         </main>
     </div>
 
+    <div
+        id="pendency-notice"
+        class="pendency-notice"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        hidden
+    ></div>
+
     <!-- MODAIS OPERACIONAIS -->
 
     <!-- 1. Modal Registrar Contato / Atendimento -->
@@ -355,10 +364,16 @@
                             </select>
                         </div>
                     </div>
+                    <div class="form-group" id="pend-erros-documentais-group" hidden>
+                        <fieldset class="pendency-error-fieldset">
+                            <legend>Tipos de erro identificados</legend>
+                            <div id="pend-erros-documentais" class="pendency-error-grid"></div>
+                        </fieldset>
+                    </div>
                     <div class="form-row">
-                        <div class="form-group">
-                            <label for="pend-motivo">Motivo da Pendência</label>
-                            <select class="form-control" id="pend-motivo" required>
+                        <div class="form-group" id="pend-motivo-legacy-group">
+                            <label for="pend-motivo">Motivo da ocorrência</label>
+                            <select class="form-control" id="pend-motivo">
                                 <option value="Documento ausente">Documento ausente</option>
                                 <option value="Documento ilegível">Documento ilegível</option>
                                 <option value="Competência incorreta">Competência incorreta</option>
@@ -370,9 +385,9 @@
                                 <option value="Outro">Outro motivo</option>
                             </select>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" id="pend-responsavel-group">
                             <label for="pend-responsavel">Responsável pela Ação</label>
-                            <select class="form-control" id="pend-responsavel" required>
+                            <select class="form-control" id="pend-responsavel">
                                 <option value="Escola">Escola (Ação externa)</option>
                                 <option value="Verbas Federais">Verbas Federais (Ação interna)</option>
                                 <option value="Inventário">Equipe de Inventário (Ação interna)</option>

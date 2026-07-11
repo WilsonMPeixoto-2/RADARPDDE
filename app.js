@@ -4212,6 +4212,7 @@ let currentExercise = '2026';
 let currentView = 'dashboard'; // dashboard, escolas, competencias, pendencias, inventario, auditoria, sme-config
 
 let activeSchoolId = null; // ID da escola em exibição no prontuário
+let activePendencyDetailId = null; // Pendência destacada na navegação mínima de detalhe
 
 let activeCompetenciaKey = '2026-05'; // Competência selecionada na visão por competência
 
@@ -7738,6 +7739,8 @@ function renderPendencias() {
     const container = document.getElementById('main-container');
     let abertas = pendencias.filter(p => p.status === 'Aberta');
     let resolvidas = pendencias.filter(p => p.status === 'Resolvida');
+    const selectedPendency = pendencias.find(p => p.id === activePendencyDetailId);
+    const showResolvedTab = selectedPendency && selectedPendency.status === 'Resolvida';
 
     // Se perfil é controlador, ordenar as dele primeiro (e depois todas as outras)
     if (currentProfile === 'controlador') {
@@ -7770,11 +7773,11 @@ function renderPendencias() {
         </div>
 
         <div class="tab-container">
-            <button class="tab-button active" onclick="switchPendenciasTab(event, 'p-abertas')">Abertas (${abertas.length})</button>
-            <button class="tab-button" onclick="switchPendenciasTab(event, 'p-resolvidas')">Histórico Resolvidas (${resolvidas.length})</button>
+            <button class="tab-button ${showResolvedTab ? '' : 'active'}" onclick="switchPendenciasTab(event, 'p-abertas')">Abertas (${abertas.length})</button>
+            <button class="tab-button ${showResolvedTab ? 'active' : ''}" onclick="switchPendenciasTab(event, 'p-resolvidas')">Histórico Resolvidas (${resolvidas.length})</button>
         </div>
 
-        <div class="tab-content-panel active" id="p-abertas">
+        <div class="tab-content-panel ${showResolvedTab ? '' : 'active'}" id="p-abertas">
             <div class="panel-card">
                 <div class="table-responsive">
                     <table class="data-table">
@@ -7815,15 +7818,23 @@ function renderPendencias() {
                                 const ctrlName = ctrl ? ctrl.name : 'Não designado';
                                 const desig = esc ? esc.designação : '';
                                 const isMine = (currentProfile === 'controlador' && esc && esc.controladorId === getDefaultControladorId());
+                                const isSelected = p.id === activePendencyDetailId;
 
                                 return `
-                                    <tr style="${isMine ? 'background-color: rgba(157, 125, 252, 0.05);' : ''}">
+                                    <tr
+                                        data-pendency-id="${escapeHtml(p.id)}"
+                                        class="${isSelected ? 'pendency-row-selected' : ''}"
+                                        tabindex="-1"
+                                        aria-current="${isSelected ? 'true' : 'false'}"
+                                        style="${isMine ? 'background-color: rgba(157, 125, 252, 0.05);' : ''}"
+                                    >
                                         <td>
                                             <div style="display:flex; align-items:center; gap:8px;">
                                                 <strong>${escapeHtml(esc ? esc.denominação : 'N/A')}</strong>
                                                 ${isMine ? `<span class="badge badge-primary" style="font-size: 0.65rem; padding: 2px 6px;">Sua Carteira</span>` : ''}
                                             </div>
                                             ${desig ? `<small style="color:var(--text-muted)">${escapeHtml(desig)} | Controlador: ${escapeHtml(ctrlName)}</small>` : ''}
+                                            ${isSelected ? '<span class="pendency-detail-marker">Pendência selecionada</span>' : ''}
                                         </td>
                                         <td><span style="font-weight:600; color:var(--primary);">${escapeHtml(pData.competencia)}</span></td>
                                         <td>${escapeHtml(pData.item)}</td>
@@ -7847,7 +7858,7 @@ function renderPendencias() {
             </div>
         </div>
 
-        <div class="tab-content-panel" id="p-resolvidas">
+        <div class="tab-content-panel ${showResolvedTab ? 'active' : ''}" id="p-resolvidas">
             <div class="panel-card">
                 <div class="table-responsive">
                     <table class="data-table">
@@ -7888,15 +7899,23 @@ function renderPendencias() {
                                 const ctrlName = ctrl ? ctrl.name : 'Não designado';
                                 const desig = esc ? esc.designação : '';
                                 const isMine = (currentProfile === 'controlador' && esc && esc.controladorId === getDefaultControladorId());
+                                const isSelected = p.id === activePendencyDetailId;
 
                                 return `
-                                    <tr style="${isMine ? 'background-color: rgba(157, 125, 252, 0.03);' : ''}">
+                                    <tr
+                                        data-pendency-id="${escapeHtml(p.id)}"
+                                        class="${isSelected ? 'pendency-row-selected' : ''}"
+                                        tabindex="-1"
+                                        aria-current="${isSelected ? 'true' : 'false'}"
+                                        style="${isMine ? 'background-color: rgba(157, 125, 252, 0.03);' : ''}"
+                                    >
                                         <td>
                                             <div style="display:flex; align-items:center; gap:8px;">
                                                 <strong>${escapeHtml(esc ? esc.denominação : 'N/A')}</strong>
                                                 ${isMine ? `<span class="badge badge-primary" style="font-size: 0.65rem; padding: 2px 6px;">Sua Carteira</span>` : ''}
                                             </div>
                                             ${desig ? `<small style="color:var(--text-muted)">${escapeHtml(desig)} | Controlador: ${escapeHtml(ctrlName)}</small>` : ''}
+                                            ${isSelected ? '<span class="pendency-detail-marker">Pendência selecionada</span>' : ''}
                                         </td>
                                         <td>${escapeHtml(pData.competencia)}</td>
                                         <td>${escapeHtml(pData.item)}</td>
@@ -7913,6 +7932,30 @@ function renderPendencias() {
             </div>
         </div>
     `;
+}
+
+function openPendencyDetail(pendencyId) {
+    const pendency = pendencias.find(item => item.id === pendencyId);
+    if (!pendency) return false;
+
+    activePendencyDetailId = pendency.id;
+    switchView('pendencias');
+
+    const focusSelectedPendency = () => {
+        const row = Array.from(document.querySelectorAll('[data-pendency-id]'))
+            .find(candidate => candidate.dataset.pendencyId === String(pendency.id));
+        if (!row) return;
+
+        row.scrollIntoView({ block: 'center', behavior: 'auto' });
+        row.focus({ preventScroll: true });
+    };
+
+    if (typeof requestAnimationFrame === 'function') {
+        requestAnimationFrame(focusSelectedPendency);
+    } else {
+        setTimeout(focusSelectedPendency, 0);
+    }
+    return true;
 }
 
 function switchPendenciasTab(e, tabId) {
@@ -8689,7 +8732,7 @@ function renderProntuarioVerificacoes(esc) {
                     } else if (resolvedPend && analiseValue === 'Não analisado') {
                         pendStatusHTML = `<span class="badge badge-success" style="font-size:0.7rem;" title="Justificativa: ${escapeHtml(resolvedPend.justificativaResolucao || resolvedPend.observacao || '')}">Resolvida - reanalisar</span>`;
                     } else if (analiseValue === 'Incorreto') {
-                        pendStatusHTML = `<button class="btn btn-secondary btn-sm" onclick="openNovaPendenciaModalWithDefaults('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(progName)}', '${escapeHtml(doc.key)}', '${escapeHtml(doc.name)}')" style="font-size:0.7rem; padding:2px 6px;">Abrir Pendência</button>`;
+                        pendStatusHTML = `<button class="btn btn-secondary btn-sm" data-action="open-document-pendency" onclick="openNovaPendenciaModalWithDefaults('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(progName)}', '${escapeHtml(doc.key)}', '${escapeHtml(doc.name)}')" style="font-size:0.7rem; padding:2px 6px;">Abrir Pendência</button>`;
                     }
 
                     // Conteúdo extra para visualização de notas fiscais
@@ -8746,7 +8789,7 @@ function renderProntuarioVerificacoes(esc) {
                     }
 
                     rowsHTML += `
-                        <tr>
+                        <tr data-program-id="${escapeHtml(progId)}" data-document-key="${escapeHtml(doc.key)}">
                             ${idx === 0 ? `<td rowspan="${docItems.length}" style="vertical-align:top; border-right: 1px solid var(--border-color); width:180px;">
                                 <strong>${escapeHtml(c.label)}</strong><br>
                                 <span style="font-size:0.75rem; color:var(--primary); font-weight:600;">${escapeHtml(progName)}</span>
@@ -8921,14 +8964,15 @@ function changeAnaliseTecnica(escolaId, compKey, docKey, value) {
             docNames[docKey]
         );
         
-        // Auto seleção de motivos padronizados
-        const motivoSelect = document.getElementById('pend-motivo');
-        if (docKey === 'declBBAgil') {
-            motivoSelect.value = 'Sem assinatura'; // Valor comum para o BB Ágil
-        } else if (docKey === 'encampInventario') {
-            motivoSelect.value = 'Nota Fiscal pendente';
-        } else {
-            motivoSelect.value = 'Documento ausente';
+        // Auto seleção de um erro documental compatível com o contexto detectado.
+        const defaultError = docKey === 'declBBAgil'
+            ? 'Sem assinatura'
+            : 'Documento ausente';
+        const defaultErrorInput = Array.from(document.querySelectorAll('input[name="pend-erros"]'))
+            .find(input => input.value === defaultError);
+        if (defaultErrorInput) {
+            defaultErrorInput.checked = true;
+            syncAbsentErrorExclusivity(defaultErrorInput);
         }
         
         let mesFormat = mesRaw;
@@ -9407,14 +9451,119 @@ function saveContato(e) {
     updateAlertsBell();
 }
 
-// 16.2 Salvar Nova Pendência Manual
-function openNovaPendenciaModal(escolaId, isManual = true) {
-    document.getElementById('form-nova-pendencia').reset();
+// 16.2 Salvar Nova Pendência Manual ou Documental
+function showPendencyNotice(message, variant = 'info') {
+    const notice = document.getElementById('pendency-notice');
+    if (!notice) return;
+
+    notice.textContent = message || '';
+    notice.dataset.variant = variant;
+    notice.hidden = !message;
+}
+
+function clearPendencyNotice() {
+    showPendencyNotice('');
+}
+
+function createPendencyClientId(prefix) {
+    const uniquePart = window.crypto && typeof window.crypto.randomUUID === 'function'
+        ? window.crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    return `${prefix}-${uniquePart}`;
+}
+
+function renderPendencyErrorOptions() {
+    const container = document.getElementById('pend-erros-documentais');
+    if (!container) return;
+
+    container.innerHTML = window.RadarPendencias.DOCUMENT_ERROR_TYPES.map(error => `
+        <label class="pendency-error-option">
+            <input
+                type="checkbox"
+                name="pend-erros"
+                value="${escapeHtml(error)}"
+                onchange="syncAbsentErrorExclusivity(this)"
+            >
+            <span>${escapeHtml(error)}</span>
+        </label>
+    `).join('');
+}
+
+function getSelectedPendencyErrors() {
+    const selectedErrors = Array.from(
+        document.querySelectorAll('#pend-erros-documentais input[name="pend-erros"]:checked')
+    ).map(input => input.value);
+    return window.RadarPendencias.validateDocumentErrors(selectedErrors);
+}
+
+function syncAbsentErrorExclusivity(changedInput) {
+    const inputs = Array.from(
+        document.querySelectorAll('#pend-erros-documentais input[name="pend-erros"]')
+    );
+    const absentInput = inputs.find(input => input.value === 'Documento ausente');
+    if (!absentInput || !changedInput) return;
+
+    if (changedInput !== absentInput && changedInput.checked) {
+        absentInput.checked = false;
+    }
+
+    const absentIsExclusive = changedInput === absentInput && absentInput.checked;
+    inputs.forEach(input => {
+        if (input === absentInput) return;
+        input.disabled = absentIsExclusive;
+        if (absentIsExclusive) input.checked = false;
+    });
+
+    if (!absentIsExclusive) {
+        inputs.forEach(input => {
+            if (input !== absentInput) input.disabled = false;
+        });
+    }
+}
+
+function configurePendencyFormMode(isDocumentary) {
+    const documentaryGroup = document.getElementById('pend-erros-documentais-group');
+    const legacyGroup = document.getElementById('pend-motivo-legacy-group');
+    const responsibleGroup = document.getElementById('pend-responsavel-group');
+    const motiveSelect = document.getElementById('pend-motivo');
+    const responsibleSelect = document.getElementById('pend-responsavel');
+    const competenceSelect = document.getElementById('pend-competencia');
     const itemSelect = document.getElementById('pend-item');
-    itemSelect.querySelectorAll('option[data-contextual="true"]').forEach(option => option.remove());
-    document.getElementById('pendencia-escola-id').value = escolaId;
+    const title = document.querySelector('#modal-nova-pendencia .modal-header h3');
+
+    documentaryGroup.hidden = !isDocumentary;
+    legacyGroup.hidden = isDocumentary;
+    responsibleGroup.hidden = isDocumentary;
+    motiveSelect.required = !isDocumentary;
+    motiveSelect.disabled = isDocumentary;
+    responsibleSelect.required = !isDocumentary;
+    responsibleSelect.disabled = isDocumentary;
+    competenceSelect.required = !isDocumentary;
+    competenceSelect.disabled = isDocumentary;
+    itemSelect.required = !isDocumentary;
+    itemSelect.disabled = isDocumentary;
+    title.textContent = isDocumentary
+        ? 'Abrir Pendência Documental'
+        : 'Abrir Pendência Manual';
+}
+
+function resetNovaPendenciaForm() {
+    const form = document.getElementById('form-nova-pendencia');
+    form.reset();
+    document.getElementById('pend-item')
+        .querySelectorAll('option[data-contextual="true"]')
+        .forEach(option => option.remove());
+    document.getElementById('pendencia-escola-id').value = '';
     document.getElementById('pend-programa-id').value = '';
     document.getElementById('pend-documento-key').value = '';
+    renderPendencyErrorOptions();
+    configurePendencyFormMode(false);
+}
+
+function openNovaPendenciaModal(escolaId, isManual = true) {
+    resetNovaPendenciaForm();
+    clearPendencyNotice();
+    document.getElementById('pendencia-escola-id').value = escolaId;
     
     // Preencher select de competências
     const compSelect = document.getElementById('pend-competencia');
@@ -9422,14 +9571,7 @@ function openNovaPendenciaModal(escolaId, isManual = true) {
         <option value="${c.key}">${c.label}</option>
     `).join('');
     compSelect.value = activeCompetenciaKey;
-
-    if (isManual) {
-        compSelect.disabled = false;
-        itemSelect.disabled = false;
-    } else {
-        compSelect.disabled = true;
-        itemSelect.disabled = true;
-    }
+    configurePendencyFormMode(!isManual);
 
     openModal('modal-nova-pendencia');
 }
@@ -9463,6 +9605,7 @@ function openNovaPendenciaModalWithDefaults(
 
 function saveNovaPendencia(e) {
     e.preventDefault();
+    const sourceView = currentView;
     const escolaId = document.getElementById('pendencia-escola-id').value;
     const comp = document.getElementById('pend-competencia').value;
     const programaId = document.getElementById('pend-programa-id').value;
@@ -9471,33 +9614,93 @@ function saveNovaPendencia(e) {
     const motivo = document.getElementById('pend-motivo').value;
     const resp = document.getElementById('pend-responsavel').value;
     const obs = document.getElementById('pend-obs').value.trim();
+    const isDocumentary = Boolean(programaId && documentoKey);
 
-    const newPend = {
-        id: 'pend-' + Date.now(),
-        escolaId: escolaId,
-        competencia: comp,
-        programaId: programaId,
-        documentoKey: documentoKey,
-        item: item,
-        motivo: motivo,
-        responsavel: resp,
-        status: 'Aberta',
-        dataAbertura: new Date().toISOString().split('T')[0],
-        dataResolucao: null,
-        observacao: obs
-    };
+    if (!obs) {
+        showPendencyNotice('Informe as observações da pendência.', 'error');
+        document.getElementById('pend-obs').focus();
+        return;
+    }
+
+    const now = new Date();
+    const nowIso = now.toISOString();
+    const user = getCurrentUser();
+    let newPend;
+    let logDetails;
+
+    try {
+        if (isDocumentary) {
+            const errors = getSelectedPendencyErrors();
+            const context = {
+                escolaId,
+                competenciaOrigem: comp,
+                programaId,
+                documentoKey,
+                item
+            };
+            const existing = window.RadarPendencias.findActivePendency(pendencias, context);
+
+            if (existing) {
+                closeModal('modal-nova-pendencia');
+                resetNovaPendenciaForm();
+                openPendencyDetail(existing.id);
+                showPendencyNotice('Já existe uma pendência ativa para este documento.', 'duplicate');
+                return;
+            }
+
+            newPend = window.RadarPendencias.createDocumentPendency({
+                id: createPendencyClientId('pend'),
+                escolaId,
+                competenciaOrigem: comp,
+                programaId,
+                documentoKey,
+                item,
+                errosAtuais: errors,
+                observacao: obs,
+                dataAbertura: nowIso.split('T')[0]
+            }, {
+                eventId: createPendencyClientId('evento'),
+                at: nowIso,
+                usuario: user.name,
+                perfil: user.role
+            });
+            logDetails = `Pendência documental de ${item} para a escola ID ${escolaId} (${comp}, programa ${programaId}, documento ${documentoKey}). Erros: ${errors.join(', ')}.`;
+        } else {
+            newPend = window.RadarPendencias.normalizePendencyRecord({
+                id: createPendencyClientId('pend'),
+                escolaId,
+                competencia: comp,
+                item,
+                motivo,
+                responsavel: resp,
+                status: 'Aberta',
+                dataAbertura: nowIso.split('T')[0],
+                dataResolucao: null,
+                observacao: obs
+            });
+            const esc = escolas.find(x => x.id === escolaId);
+            logDetails = `Abertura manual de pendência de ${item} para ${esc ? esc.denominação : ''} (${comp}) - Responsável: ${resp}.`;
+        }
+    } catch (error) {
+        showPendencyNotice(error && error.message
+            ? error.message
+            : 'Não foi possível validar a pendência.', 'error');
+        if (isDocumentary) {
+            const firstErrorInput = document.querySelector('input[name="pend-erros"]');
+            if (firstErrorInput) firstErrorInput.focus();
+        }
+        return;
+    }
 
     pendencias.push(newPend);
     rebuildOperationalIndexes();
-    
-    const esc = escolas.find(x => x.id === escolaId);
-    registerLog('Pendência Criada', `Abertura manual de pendência de ${item} para ${esc ? esc.denominação : ''} (${comp}) - Responsável: ${resp}.`);
+    registerLog('Pendência Criada', logDetails);
 
     persist();
     closeModal('modal-nova-pendencia');
-    document.getElementById('form-nova-pendencia').reset();
+    resetNovaPendenciaForm();
 
-    if (currentView === 'prontuario') {
+    if (sourceView === 'prontuario') {
         renderProntuario(escolaId);
     } else {
         renderPendencias();
