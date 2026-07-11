@@ -7737,7 +7737,7 @@ function getFormattedPendencyData(p) {
 
 function renderPendencias() {
     const container = document.getElementById('main-container');
-    let abertas = pendencias.filter(p => p.status === 'Aberta');
+    let ativas = pendencias.filter(p => window.RadarPendencias.isActivePendency(p));
     let resolvidas = pendencias.filter(p => p.status === 'Resolvida');
     const selectedPendency = pendencias.find(p => p.id === activePendencyDetailId);
     const showResolvedTab = selectedPendency && selectedPendency.status === 'Resolvida';
@@ -7750,7 +7750,7 @@ function renderPendencias() {
             const esc = escolas.find(e => e.id === p.escolaId);
             return (esc && esc.controladorId === activeCtrlId) ? 0 : 1;
         };
-        abertas.sort((a, b) => {
+        ativas.sort((a, b) => {
             const wA = getSortWeight(a);
             const wB = getSortWeight(b);
             if (wA !== wB) return wA - wB;
@@ -7773,7 +7773,7 @@ function renderPendencias() {
         </div>
 
         <div class="tab-container">
-            <button class="tab-button ${showResolvedTab ? '' : 'active'}" onclick="switchPendenciasTab(event, 'p-abertas')">Abertas (${abertas.length})</button>
+            <button class="tab-button ${showResolvedTab ? '' : 'active'}" onclick="switchPendenciasTab(event, 'p-abertas')">Ativas (${ativas.length})</button>
             <button class="tab-button ${showResolvedTab ? 'active' : ''}" onclick="switchPendenciasTab(event, 'p-resolvidas')">Histórico Resolvidas (${resolvidas.length})</button>
         </div>
 
@@ -7787,6 +7787,7 @@ function renderPendencias() {
                                 <th>Mês de Competência</th>
                                 <th>Item</th>
                                 <th>Motivo da Falha</th>
+                                <th>Situação</th>
                                 <th>Quem deve agir?</th>
                                 <th>Data Abertura</th>
                                 <th>Ações</th>
@@ -7795,19 +7796,19 @@ function renderPendencias() {
 
                         <tbody>
 
-                            ${abertas.length === 0 ? `
+                            ${ativas.length === 0 ? `
 
                                 <tr>
 
-                                    <td colspan="7">
+                                    <td colspan="8">
 
-                                        Nenhuma pendência aberta no momento. Quando uma inconsistência for registrada, ela aparecerá nesta lista.
+                                        Nenhuma pendência ativa no momento. Quando uma inconsistência for registrada, ela aparecerá nesta lista.
 
                                     </td>
 
                                 </tr>
 
-                            ` : abertas.map(p => {
+                            ` : ativas.map(p => {
 
                                 const esc = escolas.find(e => e.id === p.escolaId);
 
@@ -7823,6 +7824,7 @@ function renderPendencias() {
                                 return `
                                     <tr
                                         data-pendency-id="${escapeHtml(p.id)}"
+                                        data-pendency-status="${escapeHtml(p.status)}"
                                         class="${isSelected ? 'pendency-row-selected' : ''}"
                                         tabindex="-1"
                                         aria-current="${isSelected ? 'true' : 'false'}"
@@ -7839,12 +7841,13 @@ function renderPendencias() {
                                         <td><span style="font-weight:600; color:var(--primary);">${escapeHtml(pData.competencia)}</span></td>
                                         <td>${escapeHtml(pData.item)}</td>
                                         <td><span style="color:var(--danger)">${escapeHtml(p.motivo)}</span></td>
+                                        <td><span class="badge ${p.status === 'Aguardando reanálise' ? 'badge-warning' : 'badge-danger'}">${escapeHtml(p.status)}</span></td>
                                         <td><span class="badge badge-info">${escapeHtml(p.responsavel)}</span></td>
                                         <td>${new Date(p.dataAbertura).toLocaleDateString('pt-BR')}</td>
                                         <td>
                                             <div style="display:flex; gap:6px;">
                                                 <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${escapeHtml(p.escolaId)}')">Ver Unidade</button>
-                                                ${currentProfile !== 'inventario' ? `
+                                                ${p.status === 'Aberta' && currentProfile !== 'inventario' ? `
                                                     <button class="btn btn-primary btn-sm" onclick="abrirModalResolverPendencia('${escapeHtml(p.id)}')">Resolver</button>
                                                 ` : ''}
                                             </div>
@@ -9394,6 +9397,9 @@ function openModal(id) {
 
 function closeModal(id) {
     document.getElementById(id).classList.remove('show');
+    if (id === 'modal-nova-pendencia') {
+        clearPendencyNotice();
+    }
 }
 
 // 16.1 Salvar Contato / Atendimento

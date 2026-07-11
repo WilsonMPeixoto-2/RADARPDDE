@@ -14,7 +14,7 @@ function targetDocumentRow(page) {
 }
 
 test.describe('ciclo de criação da pendência documental no desktop', () => {
-  test('registra múltiplos erros e preserva o registro original diante de duplicidade', async ({ page }, testInfo) => {
+  test('registra múltiplos erros e localiza a duplicata em reanálise', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 
     const dialogs = [];
@@ -116,6 +116,8 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     await modal.locator('button[type="submit"]').click();
 
     await expect(modal).not.toHaveClass(/show/);
+    const notice = page.locator('#pendency-notice');
+    await expect(notice).toBeHidden();
     const created = await page.evaluate(({ context: seeded, target }) => {
       const key = RadarPendencias.buildDocumentContextKey({
         escolaId: seeded.escolaId,
@@ -160,6 +162,64 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     expect(created.resultadoDepois).toBe(context.resultadoAntes);
 
     const originalId = created.active[0].id;
+
+    await page.evaluate(({ seeded, target }) => {
+      openNovaPendenciaModalWithDefaults(
+        seeded.escolaId,
+        seeded.compProgKey,
+        seeded.programaNome,
+        target.documentoKey,
+        target.documentoNome
+      );
+    }, { seeded: context, target: DOCUMENT_CONTEXT });
+    await modal.locator('#pend-obs').fill('Validação temporária antes do cancelamento.');
+    await modal.locator('button[type="submit"]').click();
+    await expect(notice).toHaveText('Informe ao menos um erro documental.');
+    await modal.getByRole('button', { name: 'Cancelar', exact: true }).click();
+    await expect(modal).not.toHaveClass(/show/);
+    await expect(notice).toBeHidden();
+
+    const awaiting = await page.evaluate(({ seeded, target, originalId: pendencyId }) => {
+      const pendencyIndex = pendencias.findIndex(pendency => pendency.id === pendencyId);
+      if (pendencyIndex === -1) {
+        throw new Error('Pendência documental criada não encontrada para o seeding de reanálise.');
+      }
+
+      pendencias[pendencyIndex] = RadarPendencias.registerCorrectiveSubmission(
+        pendencias[pendencyIndex],
+        {
+          id: 'tentativa-e2e-aguardando-reanalise',
+          dataDisponibilizacao: '2026-07-11',
+          observacao: 'Documento corrigido e disponibilizado deterministicamente no E2E.'
+        },
+        {
+          eventId: 'evento-e2e-aguardando-reanalise',
+          at: '2026-07-11T12:00:00.000Z',
+          usuario: 'Escola E2E',
+          perfil: 'Escola'
+        }
+      );
+      rebuildOperationalIndexes();
+      persist();
+      activeProntuarioCompetencia = seeded.competencia;
+      switchView('prontuario', seeded.escolaId);
+
+      const verification = verificacoes[seeded.escolaId][seeded.compProgKey];
+      return {
+        id: pendencias[pendencyIndex].id,
+        status: pendencias[pendencyIndex].status,
+        bonificacaoDepois: verification.bonificacao[target.documentoKey],
+        resultadoDepois: verification.resultadoBonif
+      };
+    }, { seeded: context, target: DOCUMENT_CONTEXT, originalId });
+
+    expect(awaiting).toEqual({
+      id: originalId,
+      status: 'Aguardando reanálise',
+      bonificacaoDepois: context.bonificacaoAntes,
+      resultadoDepois: context.resultadoAntes
+    });
+
     await page.evaluate(({ seeded, target }) => {
       openNovaPendenciaModalWithDefaults(
         seeded.escolaId,
@@ -175,15 +235,16 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     await modal.locator('button[type="submit"]').click();
 
     await expect(modal).not.toHaveClass(/show/);
-    await expect(page.locator('#pendency-notice')).toHaveText(
+    await expect(notice).toHaveText(
       'Já existe uma pendência ativa para este documento.'
     );
-    await expect(page.locator('#pendency-notice')).toBeVisible();
+    await expect(notice).toBeVisible();
 
     const selectedRow = page.locator(`[data-pendency-id="${originalId}"]`);
     await expect(selectedRow).toHaveCount(1);
     await expect(selectedRow).toHaveClass(/pendency-row-selected/);
     await expect(selectedRow).toContainText('Pendência selecionada');
+    await expect(selectedRow.getByText('Aguardando reanálise', { exact: true })).toBeVisible();
     await expect(selectedRow).toBeFocused();
 
     const afterDuplicate = await page.evaluate(({ seeded, target, originalId: expectedId }) => {
@@ -202,6 +263,7 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
       return {
         count: active.length,
         id: active[0] && active[0].id,
+        status: active[0] && active[0].status,
         detailId: activePendencyDetailId,
         expectedId,
         bonificacaoDepois: verification.bonificacao[target.documentoKey],
@@ -212,6 +274,7 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     expect(afterDuplicate).toEqual({
       count: 1,
       id: originalId,
+      status: 'Aguardando reanálise',
       detailId: originalId,
       expectedId: originalId,
       bonificacaoDepois: context.bonificacaoAntes,
