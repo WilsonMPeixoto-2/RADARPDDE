@@ -407,32 +407,32 @@
         </div>
     </div>
 
-    <!-- 5. Modal Confirmar Resolução de Pendência -->
-    <div class="modal-overlay" id="modal-resolver-pendencia">
+    <!-- 5. Modal Registrar Novo Envio -->
+    <div class="modal-overlay" id="modal-registrar-envio">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Confirmar Resolução de Pendência</h3>
-                <button class="btn-close" onclick="closeModal('modal-resolver-pendencia')">×</button>
+                <h3>Registrar novo envio para conferência</h3>
+                <button class="btn-close" onclick="closeModal('modal-registrar-envio')">×</button>
             </div>
             <div class="modal-body">
-                <form id="form-resolver-pendencia" onsubmit="confirmarResolverPendencia(event)">
-                    <input type="hidden" id="resolver-pendencia-id">
-                    <div style="margin-bottom: 16px; font-size: 0.9rem;">
-                        <p>Você está marcando como resolvida a pendência da unidade escolar:</p>
-                        <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); margin: 8px 0; display:flex; flex-direction:column; gap:6px;">
-                            <div><strong>Escola:</strong> <span id="resolver-escola-nome">-</span></div>
-                            <div><strong>Mês de Competência em Aberto:</strong> <span id="resolver-competencia-mes" style="color:var(--primary); font-weight:600;">-</span></div>
-                            <div><strong>Item:</strong> <span id="resolver-item-nome">-</span></div>
-                            <div><strong>Motivo Original:</strong> <span id="resolver-motivo-desc" style="color:var(--danger);">-</span></div>
-                        </div>
+                <form id="form-registrar-envio" onsubmit="confirmarRegistrarNovoEnvio(event)">
+                    <input type="hidden" id="envio-pendencia-id">
+                    <div class="pendency-context-summary" id="envio-contexto"></div>
+                    <div class="form-group">
+                        <label for="envio-data-disponibilizacao">Data em que o arquivo foi disponibilizado no Drive</label>
+                        <input type="date" class="form-control" id="envio-data-disponibilizacao" required>
                     </div>
                     <div class="form-group">
-                        <label for="resolver-justificativa">Justificativa / O que foi feito para resolver?</label>
-                        <textarea class="form-control" id="resolver-justificativa" placeholder="O que foi feito para sanar o erro? (ex: Extrato retificado inserido no drive institucional)..." required></textarea>
+                        <label for="envio-observacao">Observação</label>
+                        <textarea class="form-control" id="envio-observacao" required></textarea>
                     </div>
-                    <div class="modal-footer" style="padding: 16px 0 0 0; background:none;">
-                        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-resolver-pendencia')">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">Confirmar Resolução</button>
+                    <div class="form-group">
+                        <label for="envio-link">Link direto do arquivo no Drive (opcional)</label>
+                        <input type="url" class="form-control" id="envio-link">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-registrar-envio')">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Registrar e enviar para reanálise</button>
                     </div>
                 </form>
             </div>

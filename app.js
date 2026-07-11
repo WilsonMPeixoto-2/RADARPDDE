@@ -7735,6 +7735,15 @@ function getFormattedPendencyData(p) {
     };
 }
 
+function getCorrectiveSubmissionActionLabel(pendency) {
+    if (!window.RadarPendencias.isDocumentaryPendency(pendency)) return '';
+    if (pendency.status === 'Aberta') return 'Registrar novo envio';
+    if (pendency.status === 'Aguardando reanálise') {
+        return 'Registrar substituição mais recente';
+    }
+    return '';
+}
+
 function renderPendencias() {
     const container = document.getElementById('main-container');
     let ativas = pendencias.filter(p => window.RadarPendencias.isActivePendency(p));
@@ -7820,6 +7829,7 @@ function renderPendencias() {
                                 const desig = esc ? esc.designação : '';
                                 const isMine = (currentProfile === 'controlador' && esc && esc.controladorId === getDefaultControladorId());
                                 const isSelected = p.id === activePendencyDetailId;
+                                const submissionActionLabel = getCorrectiveSubmissionActionLabel(p);
 
                                 return `
                                     <tr
@@ -7847,8 +7857,12 @@ function renderPendencias() {
                                         <td>
                                             <div style="display:flex; gap:6px;">
                                                 <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${escapeHtml(p.escolaId)}')">Ver Unidade</button>
-                                                ${p.status === 'Aberta' && currentProfile !== 'inventario' ? `
-                                                    <button class="btn btn-primary btn-sm" onclick="abrirModalResolverPendencia('${escapeHtml(p.id)}')">Resolver</button>
+                                                ${submissionActionLabel && currentProfile !== 'inventario' ? `
+                                                    <button
+                                                        class="btn btn-primary btn-sm"
+                                                        data-action="register-corrective-submission"
+                                                        onclick="abrirModalRegistrarNovoEnvio('${escapeHtml(p.id)}')"
+                                                    >${escapeHtml(submissionActionLabel)}</button>
                                                 ` : ''}
                                             </div>
                                         </td>
@@ -7969,59 +7983,220 @@ function switchPendenciasTab(e, tabId) {
     document.getElementById(tabId).classList.add('active');
 }
 
-function abrirModalResolverPendencia(pendId) {
-    const p = pendencias.find(item => item.id === pendId);
-    if (!p) return;
-
-    const esc = escolas.find(e => e.id === p.escolaId);
-    if (!esc) return;
-
-    const pData = getFormattedPendencyData(p);
-
-    document.getElementById('resolver-pendencia-id').value = p.id;
-    document.getElementById('resolver-escola-nome').innerText = esc.denominação || esc.denominaçao;
-    document.getElementById('resolver-competencia-mes').innerText = pData.competencia;
-    document.getElementById('resolver-item-nome').innerText = pData.item;
-    document.getElementById('resolver-motivo-desc').innerText = `${p.motivo} - ${p.observacao || ''}`;
-    document.getElementById('resolver-justificativa').value = '';
-
-    openModal('modal-resolver-pendencia');
+function updatePendencyById(pendencyId, nextPendency) {
+    const index = pendencias.findIndex(item => item.id === pendencyId);
+    if (index === -1) throw new Error('Pendência não encontrada.');
+    pendencias[index] = nextPendency;
 }
 
-function confirmarResolverPendencia(e) {
-    e.preventDefault();
-    const pendId = document.getElementById('resolver-pendencia-id').value;
-    const justificativa = document.getElementById('resolver-justificativa').value.trim();
+function resetRegistrarNovoEnvioForm() {
+    const form = document.getElementById('form-registrar-envio');
+    if (!form) return;
 
-    const p = pendencias.find(item => item.id === pendId);
-    if (p) {
-        p.status = 'Resolvida';
-        p.dataResolucao = new Date().toISOString().split('T')[0];
-        p.justificativaResolucao = justificativa;
+    form.reset();
+    document.getElementById('envio-pendencia-id').value = '';
+    document.getElementById('envio-contexto').replaceChildren();
+}
 
-        if (p.programaId && p.documentoKey) {
-            const competencia = p.competenciaOrigem || p.competencia;
-            const compProgKey = `${competencia}_${p.programaId}`;
-            const analise = verificacoes[p.escolaId]?.[compProgKey]?.analise;
-            if (analise?.[p.documentoKey] === 'Incorreto') {
-                analise[p.documentoKey] = 'Não analisado';
-            }
-        }
+function showRegistrarNovoEnvioError(message) {
+    const context = document.getElementById('envio-contexto');
+    if (!context) return;
 
-        const esc = escolas.find(e => e.id === p.escolaId);
-        registerLog('Pendência Resolvida', `Pendência de ${p.item} da escola ${esc ? esc.denominação : ''} (Origem: ${p.competencia}) resolvida. Justificativa: ${justificativa}`);
-        
-        rebuildOperationalIndexes();
-        persist();
-        closeModal('modal-resolver-pendencia');
-        updateAlertsBell();
-
-        if (currentView === 'prontuario') {
-            renderProntuario(activeSchoolId);
-        } else {
-            renderPendencias();
-        }
+    let errorMessage = context.querySelector('[data-envio-error]');
+    if (!errorMessage) {
+        errorMessage = document.createElement('p');
+        errorMessage.dataset.envioError = 'true';
+        errorMessage.setAttribute('role', 'alert');
+        context.prepend(errorMessage);
     }
+    errorMessage.textContent = message;
+}
+
+function cloneSubmissionInvariant(value) {
+    if (value === undefined) return undefined;
+    return JSON.parse(JSON.stringify(value));
+}
+
+function verifySubmissionBonificationInvariant(verification, bonificationSnapshot, resultSnapshot) {
+    const bonificationChanged = JSON.stringify(verification.bonificacao)
+        !== JSON.stringify(bonificationSnapshot);
+    const resultChanged = JSON.stringify(verification.resultadoBonif)
+        !== JSON.stringify(resultSnapshot);
+
+    if (bonificationChanged || resultChanged) {
+        throw new Error('O novo envio não pode alterar a bonificação ou o resultado consolidado.');
+    }
+}
+
+function abrirModalRegistrarNovoEnvio(pendId) {
+    const pendency = pendencias.find(item => item.id === pendId);
+    const school = pendency
+        ? escolas.find(item => item.id === pendency.escolaId)
+        : null;
+    const allowedStatus = pendency
+        && ['Aberta', 'Aguardando reanálise'].includes(pendency.status);
+
+    if (!pendency
+        || !school
+        || !allowedStatus
+        || !window.RadarPendencias.isDocumentaryPendency(pendency)) {
+        return false;
+    }
+
+    const competence = pendency.competenciaOrigem || pendency.competencia;
+    const competenceLabel = formatCompetenciaText(competence);
+    const program = programas.find(item => item.id === pendency.programaId);
+    const programName = program ? program.name : pendency.programaId;
+    const documentName = VERIFICATION_DOCUMENT_LABELS[pendency.documentoKey]
+        || pendency.documentoKey;
+    const schoolName = school.denominação || school.denominacao || school.denominaçao || '';
+
+    resetRegistrarNovoEnvioForm();
+    document.getElementById('envio-pendencia-id').value = pendency.id;
+    document.getElementById('envio-contexto').innerHTML = `
+        <dl aria-label="Contexto da pendência">
+            <div>
+                <dt>Escola</dt>
+                <dd>${escapeHtml(schoolName)}</dd>
+            </div>
+            <div>
+                <dt>Competência</dt>
+                <dd>${escapeHtml(competenceLabel)} (${escapeHtml(competence)})</dd>
+            </div>
+            <div>
+                <dt>Programa / documento</dt>
+                <dd>${escapeHtml(programName)} — ${escapeHtml(documentName)}</dd>
+            </div>
+        </dl>
+    `;
+
+    openModal('modal-registrar-envio');
+    return true;
+}
+
+function confirmarRegistrarNovoEnvio(event) {
+    event.preventDefault();
+    const form = document.getElementById('form-registrar-envio');
+    const pendencyId = document.getElementById('envio-pendencia-id').value;
+    const availabilityDateInput = document.getElementById('envio-data-disponibilizacao');
+    const observationInput = document.getElementById('envio-observacao');
+    const linkInput = document.getElementById('envio-link');
+    const availabilityDate = availabilityDateInput.value;
+    const observation = observationInput.value.trim();
+    const link = linkInput.value.trim();
+
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return false;
+    }
+    if (!availabilityDate) {
+        availabilityDateInput.focus();
+        return false;
+    }
+    if (!observation) {
+        observationInput.focus();
+        return false;
+    }
+
+    const sourceView = currentView;
+    const sourceSchoolId = activeSchoolId;
+    const current = pendencias.find(item => item.id === pendencyId);
+    const school = current
+        ? escolas.find(item => item.id === current.escolaId)
+        : null;
+    const allowedStatus = current
+        && ['Aberta', 'Aguardando reanálise'].includes(current.status);
+
+    if (!current
+        || !school
+        || !allowedStatus
+        || !window.RadarPendencias.isDocumentaryPendency(current)) {
+        showRegistrarNovoEnvioError('A pendência documental não está disponível para um novo envio.');
+        return false;
+    }
+
+    const competence = current.competenciaOrigem || current.competencia;
+    const compProgKey = `${competence}_${current.programaId}`;
+    const verification = verificacoes[current.escolaId]?.[compProgKey];
+    const hasLinkedAnalysis = verification
+        && verification.analise
+        && Object.prototype.hasOwnProperty.call(verification.analise, current.documentoKey);
+
+    if (!hasLinkedAnalysis) {
+        showRegistrarNovoEnvioError('A análise técnica vinculada não foi encontrada. Nenhum dado foi alterado.');
+        return false;
+    }
+
+    const nowIso = new Date().toISOString();
+    const user = getCurrentUser();
+    let nextPendency;
+    try {
+        nextPendency = window.RadarPendencias.registerCorrectiveSubmission(current, {
+            id: createPendencyClientId('tentativa'),
+            dataDisponibilizacao: availabilityDate,
+            observacao: observation,
+            link
+        }, {
+            eventId: createPendencyClientId('evento'),
+            at: nowIso,
+            usuario: user.name,
+            perfil: user.role
+        });
+    } catch (error) {
+        showRegistrarNovoEnvioError(error && error.message
+            ? error.message
+            : 'Não foi possível registrar o novo envio.');
+        return false;
+    }
+
+    const bonificationSnapshot = cloneSubmissionInvariant(verification.bonificacao);
+    const resultSnapshot = cloneSubmissionInvariant(verification.resultadoBonif);
+    const previousAnalysisValue = verification.analise[current.documentoKey];
+    const logsSnapshot = logs.slice();
+    const program = programas.find(item => item.id === current.programaId);
+    const programName = program ? program.name : current.programaId;
+    const documentName = VERIFICATION_DOCUMENT_LABELS[current.documentoKey]
+        || current.documentoKey;
+    const schoolName = school.denominação || school.denominacao || school.denominaçao || '';
+
+    try {
+        verification.analise[current.documentoKey] = 'Não analisado';
+        updatePendencyById(current.id, nextPendency);
+        verifySubmissionBonificationInvariant(
+            verification,
+            bonificationSnapshot,
+            resultSnapshot
+        );
+        rebuildOperationalIndexes();
+        registerLog(
+            'Novo envio registrado',
+            `Novo envio de ${documentName} (${current.documentoKey}) no programa ${programName} (${current.programaId}) para ${schoolName}, competência ${competence}, disponibilizado em ${availabilityDate}.`
+        );
+    } catch (error) {
+        verification.analise[current.documentoKey] = previousAnalysisValue;
+        logs = logsSnapshot;
+        try {
+            updatePendencyById(current.id, current);
+            rebuildOperationalIndexes();
+        } catch (rollbackError) {
+            console.error('Falha ao restaurar o registro do novo envio.', rollbackError);
+        }
+        showRegistrarNovoEnvioError(error && error.message
+            ? error.message
+            : 'Não foi possível registrar o novo envio.');
+        return false;
+    }
+
+    closeModal('modal-registrar-envio');
+    resetRegistrarNovoEnvioForm();
+    updateAlertsBell();
+
+    if (sourceView === 'prontuario') {
+        renderProntuario(sourceSchoolId || current.escolaId);
+    } else {
+        renderPendencias();
+    }
+    return true;
 }
 
 
@@ -8235,7 +8410,7 @@ function getCompMonthStatus(escolaId, compKey) {
     const pAtivasComp = pendencias.filter(p =>
         p.escolaId === escolaId
         && (p.competenciaOrigem === compKey || p.competencia === compKey)
-        && p.status === 'Aberta'
+        && window.RadarPendencias.isActivePendency(p)
     ).length;
     
     if (programStatuses.includes('inapta') || pAtivasComp > 0) {
@@ -8271,7 +8446,10 @@ function renderProntuario(escolaId) {
     }
 
     const ctrl = controladores.find(c => c.id === esc.controladorId);
-    const pAtivas = pendencias.filter(p => p.escolaId === esc.id && p.status === 'Aberta');
+    const pAtivas = pendencias.filter(p => (
+        p.escolaId === esc.id
+        && window.RadarPendencias.isActivePendency(p)
+    ));
     const process = esc.processoInventario || 'Não registrado';
 
     container.innerHTML = `
@@ -8481,7 +8659,7 @@ function renderProntuario(escolaId) {
                                         <th>Mês Origem</th>
                                         <th>Documento / Item</th>
                                         <th>Defeito apontado</th>
-                                        <th>Quem deve resolver</th>
+                                        <th>Quem deve agir?</th>
                                         <th>Abertura</th>
                                         <th>Ações</th>
                                     </tr>
@@ -8491,15 +8669,22 @@ function renderProntuario(escolaId) {
                                         <tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:32px;">Nenhuma pendência ativa nesta escola! Tudo regularizado.</td></tr>
                                     ` : pAtivas.map(p => {
                                         const pData = getFormattedPendencyData(p);
+                                        const submissionActionLabel = getCorrectiveSubmissionActionLabel(p);
                                         return `
-                                            <tr>
+                                            <tr data-pendency-id="${escapeHtml(p.id)}" data-pendency-status="${escapeHtml(p.status)}">
                                                 <td><span style="font-weight:600; color:var(--primary);">${escapeHtml(pData.competencia)}</span></td>
                                                 <td>${escapeHtml(pData.item)}</td>
                                                 <td><span style="color:var(--danger)">${escapeHtml(p.motivo)}</span><br><small style="color:var(--text-muted)">${escapeHtml(p.observacao)}</small></td>
                                                 <td><span class="badge badge-info">${escapeHtml(p.responsavel)}</span></td>
                                                 <td>${new Date(p.dataAbertura).toLocaleDateString('pt-BR')}</td>
                                                 <td>
-                                                    <button class="btn btn-primary btn-sm" onclick="abrirModalResolverPendencia('${escapeHtml(p.id)}')">Marcar Resolvida</button>
+                                                    ${submissionActionLabel ? `
+                                                        <button
+                                                            class="btn btn-primary btn-sm"
+                                                            data-action="register-corrective-submission"
+                                                            onclick="abrirModalRegistrarNovoEnvio('${escapeHtml(p.id)}')"
+                                                        >${escapeHtml(submissionActionLabel)}</button>
+                                                    ` : '<span style="color:var(--text-muted);">Sem ação de envio</span>'}
                                                 </td>
                                             </tr>
                                         `;
@@ -8724,14 +8909,24 @@ function renderProntuarioVerificacoes(esc) {
                         && window.RadarFluxoOperacional.pendencyMatchesContext(p, pendencyContext)
                     );
                     const activePend = pendencias.find(p => (
-                        p.status === 'Aberta' && matchesPendencyContext(p)
+                        window.RadarPendencias.isActivePendency(p)
+                        && window.RadarPendencias.isDocumentaryPendency(p)
+                        && matchesPendencyContext(p)
                     ));
                     const resolvedPend = pendencias.find(p => (
                         p.status === 'Resolvida' && matchesPendencyContext(p)
                     ));
                     let pendStatusHTML = '';
                     if (activePend) {
-                        pendStatusHTML = `<button class="btn btn-danger btn-sm" onclick="abrirModalResolverPendencia('${escapeHtml(activePend.id)}')" style="font-size:0.7rem; padding:2px 6px;">Resolver Pendência</button>`;
+                        const submissionActionLabel = getCorrectiveSubmissionActionLabel(activePend);
+                        pendStatusHTML = `
+                            <button
+                                class="btn btn-primary btn-sm"
+                                data-action="register-corrective-submission"
+                                onclick="abrirModalRegistrarNovoEnvio('${escapeHtml(activePend.id)}')"
+                                style="font-size:0.7rem; padding:2px 6px;"
+                            >${escapeHtml(submissionActionLabel)}</button>
+                        `;
                     } else if (resolvedPend && analiseValue === 'Não analisado') {
                         pendStatusHTML = `<span class="badge badge-success" style="font-size:0.7rem;" title="Justificativa: ${escapeHtml(resolvedPend.justificativaResolucao || resolvedPend.observacao || '')}">Resolvida - reanalisar</span>`;
                     } else if (analiseValue === 'Incorreto') {
