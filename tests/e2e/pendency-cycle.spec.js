@@ -1138,6 +1138,14 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     });
 
     const bellPendencyAlerts = page.locator('#alerts-list [data-pendency-ref]');
+    const alertsButton = page.locator('#alerts-bell-container > .bell-button');
+    const alertsDropdown = page.locator('#alerts-dropdown');
+    const openAlertsDropdown = async () => {
+      await expect(alertsButton).toHaveCount(1);
+      await alertsButton.click();
+      await expect(alertsDropdown).toHaveClass(/show/);
+      await expect(alertsDropdown).toBeVisible();
+    };
     await expect(bellPendencyAlerts).toHaveCount(3);
     expect(await bellPendencyAlerts.evaluateAll(elements => elements.map(element => ({
       handler: element.getAttribute('onclick'),
@@ -1179,6 +1187,7 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
       focusedReference: { type: 'string', value: context.hostileId }
     });
 
+    await openAlertsDropdown();
     await bellPendencyAlerts.filter({ hasText: context.documents[0] }).click();
     await expect.poll(selectedReference).toEqual({
       idType: 'number',
@@ -1186,6 +1195,7 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
       focusedReference: { type: 'number', value: context.numericId }
     });
 
+    await openAlertsDropdown();
     await bellPendencyAlerts.filter({ hasText: context.documents[1] }).click();
     await expect.poll(selectedReference).toEqual({
       idType: 'string',
