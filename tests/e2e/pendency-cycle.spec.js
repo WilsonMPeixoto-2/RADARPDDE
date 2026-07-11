@@ -1781,6 +1781,96 @@ test.describe('reanálise atômica da pendência documental no desktop', () => {
     });
   });
 
+  test('mantém reanálise aguardando na fila cotidiana do Controlador', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+
+    await page.goto('/');
+    const context = await seedAwaitingReanalysis(page, {
+      pendencyId: 'pend-e2e-fila-controlador-aguardando',
+      availabilityDate: '2026-06-10'
+    });
+
+    await page.evaluate(() => {
+      activeControladorRAFilter = 'todas';
+      activeControladorSubFilter = 'all';
+      switchView('dashboard');
+      updateAlertsBell();
+    });
+
+    const activePendenciesCard = page.locator('.card-stat').filter({
+      hasText: 'Pendências ativas'
+    });
+    await expect(activePendenciesCard).toHaveCount(1);
+    await expect(activePendenciesCard.locator('.stat-value')).toHaveText('1 Escolas');
+
+    const awaitingAlert = page.locator('#alerts-list .alert-item')
+      .filter({ hasText: context.documentoNome })
+      .filter({ hasText: 'Estado: Aguardando reanálise' });
+    await expect(awaitingAlert).toHaveCount(1);
+    await expect(awaitingAlert).toContainText('Próximo ator: Controlador');
+
+    await activePendenciesCard.click();
+    await expect(page.locator('.dashboard-list-heading'))
+      .toContainText('Com pendências ativas');
+    const dashboardRows = page.locator('.dash-layout tbody tr');
+    await expect(dashboardRows).toHaveCount(1);
+    await expect(dashboardRows.first()).toContainText(context.escolaNome);
+
+    await page.evaluate(() => switchView('escolas'));
+    const pendenciesFilter = page.locator('#filter-escola-pendencias');
+    await expect(pendenciesFilter.locator('option[value="com"]'))
+      .toHaveText('Com pendências ativas');
+    await expect(pendenciesFilter.locator('option[value="sem"]'))
+      .toHaveText('Sem pendências ativas');
+    await pendenciesFilter.selectOption('com');
+    await expect(page.locator('.school-filter-summary'))
+      .toContainText('1 com pendências ativas');
+    const schoolsResult = page.locator('.panel-card').filter({
+      has: page.getByRole('heading', { name: 'Resultado da carteira', exact: true })
+    });
+    await expect(schoolsResult.locator('tbody tr')).toHaveCount(1);
+    await expect(schoolsResult.locator('tbody tr').first()).toContainText(context.escolaNome);
+
+    await page.evaluate(() => switchView('pendencias'));
+    await expect(page.getByRole('button', {
+      name: 'Histórico Resolvidas (0)',
+      exact: true
+    })).toBeVisible();
+    await expect(page.locator('#p-resolvidas tr[data-pendency-ref]')).toHaveCount(0);
+    await page.locator('#p-abertas').getByRole('button', {
+      name: 'Reanalisar',
+      exact: true
+    }).click();
+
+    const modal = page.locator('#modal-reanalisar-pendencia');
+    const summary = modal.locator('#reanalisar-tentativa-atual');
+    const summaryValue = label => summary.locator('dl > div')
+      .filter({ hasText: label })
+      .locator('dd');
+    await expect(summaryValue('Estado atual')).toHaveText('Aguardando reanálise');
+    await expect(summaryValue('Próximo ator')).toHaveText('Controlador');
+    await expect(summaryValue('Erros atuais')).toContainText('Documento ilegível');
+    await expect(summaryValue('Erros atuais')).toContainText('Competência incorreta');
+
+    expect(await page.evaluate(seeded => {
+      const pendency = pendencias.find(item => item.id === seeded.pendencyId);
+      const verification = verificacoes[seeded.escolaId][seeded.compProgKey];
+      return {
+        status: pendency.status,
+        active: RadarPendencias.isActivePendency(pendency),
+        resolvedCount: pendencias.filter(item => item.status === 'Resolvida').length,
+        bonification: JSON.parse(JSON.stringify(verification.bonificacao)),
+        programResult: verification.resultadoBonif
+      };
+    }, context)).toEqual({
+      status: 'Aguardando reanálise',
+      active: true,
+      resolvedCount: 0,
+      bonification: context.verificationBefore.bonificacao,
+      programResult: context.verificationBefore.resultadoBonif
+    });
+  });
+
   test('aba Pendências só expõe reanálise documental aguardando ao Controlador', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 

@@ -4733,9 +4733,9 @@ function getAlerts() {
     const alerts = [];
     const now = new Date();
     
-    // Alerta 1: Pendências abertas há mais de 10 dias (permanecem até serem resolvidas)
+    // Alerta 1: Pendências ativas há mais de 10 dias
     pendencias.forEach(p => {
-        if (p.status === 'Aberta') {
+        if (window.RadarPendencias.isActivePendency(p)) {
             // Achar último contato dessa pendência para exibição
             const pContatos = contatos.filter(c => c.pendenciaId === p.id);
             let lastDate = new Date(p.dataAbertura);
@@ -4750,13 +4750,16 @@ function getAlerts() {
                 const ctrl = esc ? controladores.find(c => c.id === esc.controladorId) : null;
                 const ctrlText = ctrl ? ctrl.name : 'Não designado';
                 const desigText = esc ? esc.designação : '';
+                const nextActor = p.responsavel
+                    || window.RadarPendencias.getNextActor(p)
+                    || 'Não definido';
                 const timeLabel = pContatos.length > 0 
                     ? `Último contato em ${lastDate.toLocaleDateString('pt-BR')}` 
-                    : `Aberta em ${new Date(p.dataAbertura).toLocaleDateString('pt-BR')}`;
+                    : `Registrada em ${new Date(p.dataAbertura).toLocaleDateString('pt-BR')}`;
                 alerts.push({
                     id: 'stale-' + p.id,
                     type: 'danger',
-                    text: `Pendência (${pData.item}) de ${esc ? esc.denominação : 'Escola'} (${desigText} | Resp: ${ctrlText}) aberta há ${diffDays} dias!`,
+                    text: `Pendência (${pData.item}) de ${esc ? esc.denominação : 'Escola'} (${desigText} | Resp: ${ctrlText}). Estado: ${p.status}. Próximo ator: ${nextActor}. Ativa há ${diffDays} dias.`,
                     time: timeLabel,
                     action: () => openSchoolVerification(p.escolaId, p.competencia)
                 });
@@ -5309,7 +5312,9 @@ function getEscolaProgramNames(esc) {
 // Call rebuildOperationalIndexes() after any mutation to pendencias or bens.
 function getEscolaOperationalData(esc) {
     const escolaPendencias = _pendenciasByEscolaId.get(esc.id) || [];
-    const pendenciasAbertas = escolaPendencias.filter(p => p.status === 'Aberta');
+    const pendenciasAbertas = escolaPendencias.filter(p => (
+        window.RadarPendencias.isActivePendency(p)
+    ));
     const escolaBens = _bensByEscolaId.get(esc.id) || [];
     const bensNaoEncaminhados = escolaBens.filter(b => b.status === 'Não encaminhada').length;
     const bensEncaminhados = escolaBens.filter(b => b.status === 'Encaminhada').length;
@@ -5570,7 +5575,10 @@ function renderDashboardControlador(container) {
     const targetIds = targetEscolas.map(e => e.id);
     
     // Contagem de pendências ativas das escolas do filtro
-    const pAtivas = pendencias.filter(p => targetIds.includes(p.escolaId) && p.status === 'Aberta');
+    const pAtivas = pendencias.filter(p => (
+        targetIds.includes(p.escolaId)
+        && window.RadarPendencias.isActivePendency(p)
+    ));
     
     // Contagem de bens não encaminhados
     const bPendentes = bens.filter(b => targetIds.includes(b.escolaId) && b.status === 'Não encaminhada');
@@ -5584,7 +5592,10 @@ function renderDashboardControlador(container) {
     });
 
     const escolasComPendencias = targetEscolas.filter(e => {
-        return pendencias.some(p => p.escolaId === e.id && p.status === 'Aberta');
+        return pendencias.some(p => (
+            p.escolaId === e.id
+            && window.RadarPendencias.isActivePendency(p)
+        ));
     });
 
     const escolasComBensPendentes = targetEscolas.filter(e => {
@@ -5603,7 +5614,7 @@ function renderDashboardControlador(container) {
         subFilterLabel = ' (Filtrado: Não Analisadas)';
     } else if (activeControladorSubFilter === 'pendencias') {
         renderedEscolas = escolasComPendencias;
-        subFilterLabel = ' (Filtrado: Com Pendências Abertas)';
+        subFilterLabel = ' (Filtrado: Com pendências ativas)';
     } else if (activeControladorSubFilter === 'bens') {
         renderedEscolas = escolasComBensPendentes;
         subFilterLabel = ' (Filtrado: Com Bens Não Encaminhados)';
@@ -5654,7 +5665,7 @@ function renderDashboardControlador(container) {
                 <div class="stat-icon" style="background-color: var(--danger-bg); color: var(--danger);">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg>
                 </div>
-                <div class="stat-label">Pendências Abertas</div>
+                <div class="stat-label">Pendências ativas</div>
                 <div class="stat-value">${escolasComPendencias.length} Escolas</div>
             </div>
             <div class="card-stat ${activeControladorSubFilter === 'bens' ? 'active-bens' : ''}" style="cursor: pointer;" onclick="changeControladorSubFilter('bens')">
@@ -7300,9 +7311,9 @@ function renderEscolas() {
 
                             { value: 'all', label: 'Todas' },
 
-                            { value: 'com', label: 'Com pendências abertas' },
+                            { value: 'com', label: 'Com pendências ativas' },
 
-                            { value: 'sem', label: 'Sem pendências abertas' }
+                            { value: 'sem', label: 'Sem pendências ativas' }
 
                         ], activeEscolaFilters.pendencias)}
 
@@ -7358,7 +7369,7 @@ function renderEscolas() {
 
                 ${activeSearchTerm ? `<span>Busca ativa: "${escapeHtml(activeSearchTerm)}"</span>` : ''}
 
-                <span>${pendenciasCount} com pendências abertas</span>
+                <span>${pendenciasCount} com pendências ativas</span>
 
                 <span>${inventarioCount} com processo de inventário</span>
 
@@ -8811,6 +8822,19 @@ function renderReanalysisAttemptSummary(pendency, attempt, school) {
     const documentName = VERIFICATION_DOCUMENT_LABELS[pendency.documentoKey]
         || pendency.documentoKey;
     const schoolName = school.denominação || school.denominacao || school.id;
+    const nextActor = pendency.responsavel
+        || window.RadarPendencias.getNextActor(pendency)
+        || 'Não definido';
+    const currentErrors = Array.isArray(pendency.errosAtuais)
+        ? pendency.errosAtuais.filter(Boolean)
+        : [];
+    appendReanalysisSummaryItem(list, 'Estado atual', pendency.status);
+    appendReanalysisSummaryItem(list, 'Próximo ator', nextActor);
+    appendReanalysisSummaryItem(
+        list,
+        'Erros atuais',
+        currentErrors.length > 0 ? currentErrors.join(' • ') : 'Nenhum erro registrado'
+    );
     appendReanalysisSummaryItem(list, 'Escola', schoolName);
     appendReanalysisSummaryItem(
         list,
