@@ -8,7 +8,7 @@ on:
       - synchronize
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   patch-and-verify:
@@ -67,16 +67,7 @@ jobs:
       - name: Executar E2E iPhone
         run: npx playwright test --project=mobile-webkit
 
-      - name: Publicar relatório de diagnóstico
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: audit-fix-playwright-report
-          path: playwright-report/
-          retention-days: 7
-          if-no-files-found: ignore
-
-      - name: Confirmar escopo e publicar
+      - name: Validar escopo
         shell: bash
         run: |
           git diff --check
@@ -84,11 +75,32 @@ jobs:
             echo "A correção alterou regras de perfil, o que foi proibido."
             exit 1
           fi
-          rm .github/workflows/audit-fix-once.yml
-          rm .github/workflows/audit-fix-pr.yml
-          rm scripts/apply_audit_fixes.py
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "fix: consolidar correções auditadas das tasks 1 a 7 [audit-fix]"
-          git push origin HEAD:fix/ciclo-a-tasks-1-7-auditoria
+
+      - name: Empacotar arquivos validados
+        shell: bash
+        run: |
+          mkdir -p validated/tests/e2e validated/src/domain validated/.github/workflows
+          cp app.js validated/app.js
+          cp src/domain/pendencias.js validated/src/domain/pendencias.js
+          cp tests/pendencias.test.js validated/tests/pendencias.test.js
+          cp tests/e2e/pendency-cycle.spec.js validated/tests/e2e/pendency-cycle.spec.js
+          cp tests/e2e/functional-core.spec.js validated/tests/e2e/functional-core.spec.js
+          cp playwright.config.js validated/playwright.config.js
+          cp .github/workflows/playwright-mobile.yml validated/.github/workflows/playwright-mobile.yml
+
+      - name: Publicar arquivos validados
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-fix-validated-files
+          path: validated/
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Publicar relatório Playwright
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-fix-playwright-report
+          path: playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
