@@ -120,6 +120,21 @@
             });
         }
 
+        function restoreMenuButtonFocus(focusTarget) {
+            const applyFocus = () => {
+                if (!focusTarget || !focusTarget.isConnected) return;
+                try {
+                    focusTarget.focus({ preventScroll: true });
+                } catch (error) {
+                    focusTarget.focus();
+                }
+            };
+            root.requestAnimationFrame(() => {
+                root.requestAnimationFrame(applyFocus);
+            });
+            root.setTimeout(applyFocus, 50);
+        }
+
         function closeMenu(options) {
             const settings = Object.assign({ restoreFocus: true }, options);
             if (!isOpen()) {
@@ -127,25 +142,15 @@
                 return;
             }
 
+            const focusTarget = lastFocusedElement && typeof lastFocusedElement.focus === 'function'
+                ? lastFocusedElement
+                : menuButton;
             sidebar.classList.remove('mobile-open');
             overlay.classList.remove('is-visible');
             document.body.classList.remove('mobile-nav-open');
             updateAccessibility();
 
-            if (settings.restoreFocus) {
-                const focusTarget = lastFocusedElement && typeof lastFocusedElement.focus === 'function'
-                    ? lastFocusedElement
-                    : menuButton;
-                const restoreFocus = () => {
-                    try {
-                        focusTarget.focus({ preventScroll: true });
-                    } catch (error) {
-                        focusTarget.focus();
-                    }
-                };
-                restoreFocus();
-                root.setTimeout(restoreFocus, 0);
-            }
+            if (settings.restoreFocus) restoreMenuButtonFocus(focusTarget);
         }
 
         function toggleMenu() {
@@ -164,7 +169,11 @@
         });
 
         document.addEventListener('keydown', event => {
-            if (event.key === 'Escape' && isOpen()) closeMenu();
+            if (event.key === 'Escape' && isOpen()) {
+                event.preventDefault();
+                event.stopPropagation();
+                closeMenu();
+            }
         });
 
         mediaQuery.addEventListener('change', event => {
