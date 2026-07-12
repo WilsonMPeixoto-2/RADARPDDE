@@ -707,7 +707,11 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
       exact: true
     });
     await expect(replacementTrigger).toBeVisible();
-    await expect(replacementTrigger).toBeFocused();
+    const focusedReplacementTrigger = page.locator(':focus');
+    await expect(focusedReplacementTrigger)
+      .toHaveAttribute('data-action', 'register-corrective-submission');
+    await expect(focusedReplacementTrigger)
+      .toHaveText('Registrar substituição mais recente');
 
     await replacementTrigger.click();
     await expect(availabilityDate).toHaveValue('');
@@ -1068,7 +1072,7 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     }, DOCUMENT_CONTEXT);
 
     const rows = page.locator('#p-abertas tr[data-pendency-ref]');
-    const actions = page.getByRole('button', { name: 'Registrar novo envio', exact: true });
+    const actions = page.locator('#p-abertas').getByRole('button', { name: 'Registrar novo envio', exact: true });
     const modal = page.locator('#modal-registrar-envio');
     const hiddenReference = modal.locator('#envio-pendencia-id');
     const cancel = modal.getByRole('button', { name: 'Cancelar', exact: true });
