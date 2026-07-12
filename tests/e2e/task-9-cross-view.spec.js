@@ -43,7 +43,7 @@ async function seedCompetencePendencies(page) {
     });
 
     pendencias = [open, awaiting];
-    activeCompetenciaKey = '2026-05';
+    activeCompetenciaKey = '2026-04';
     activePendencyDetailId = null;
     rebuildOperationalIndexes();
     persist();
@@ -73,18 +73,22 @@ test.describe('Task 9 — encontrabilidade entre Competências e Pendências', (
     await expect(schoolRow).toContainText('1 aberta');
     await expect(schoolRow).toContainText('1 para reanalisar');
 
-    const passivo = page.locator('#passivo-competencias-list');
-    await expect(passivo.locator('[data-pendency-ref]')).toHaveCount(2);
-    await expect(passivo).toContainText('Aberta');
-    await expect(passivo).toContainText('Aguardando reanálise');
-
     await schoolRow.getByRole('button', { name: '1 para reanalisar' }).click();
     await expect(page.getByRole('tab', { name: /^Aguardando reanálise\b/ })).toHaveAttribute('aria-selected', 'true');
     await expect(page.getByLabel('Unidade escolar')).toHaveValue(seeded.schoolId);
     await expect(page.getByLabel('Competência')).toHaveValue('2026-04');
+
+    await page.evaluate(() => {
+      activeCompetenciaKey = '2026-05';
+      switchView('competencias');
+    });
+    const passivo = page.locator('#passivo-competencias-list');
+    await expect(passivo.locator('[data-pendency-ref]')).toHaveCount(2);
+    await expect(passivo).toContainText('Aberta');
+    await expect(passivo).toContainText('Aguardando reanálise');
   });
 
-  test('mantém as ações da lista acessíveis com o drawer aberto no desktop', async ({ page }, testInfo) => {
+  test('mantém as ações da lista e o cabeçalho global acessíveis com o drawer aberto no desktop', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 
     await page.goto('/');
@@ -95,6 +99,10 @@ test.describe('Task 9 — encontrabilidade entre Competências e Pendências', (
     await record.getByRole('button', { name: 'Ver detalhes' }).click();
     await expect(page.getByRole('complementary', { name: 'Detalhes da pendência' })).toBeVisible();
     await expect(page.locator('body')).toHaveClass(/pendency-drawer-open-desktop/);
+
+    await page.locator('#alerts-bell-container > .bell-button').click();
+    await expect(page.locator('#alerts-dropdown')).toHaveClass(/show/);
+    await page.locator('#alerts-bell-container > .bell-button').click();
 
     const action = record.getByRole('button', { name: 'Registrar novo envio' });
     await action.click();
