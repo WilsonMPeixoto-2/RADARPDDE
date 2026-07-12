@@ -136,7 +136,9 @@
         const button = primaryButton.cloneNode(false);
         button.removeAttribute('onclick');
         button.type = 'button';
+        delete button.dataset.radarXlsxEnhanced;
         button.dataset.radarCsvFallback = 'true';
+        button.dataset.radarExportFormat = 'csv';
         button.classList.remove('btn-primary');
         button.classList.add('btn-secondary');
         button.textContent = 'CSV';
