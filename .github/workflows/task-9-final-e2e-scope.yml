@@ -31,14 +31,14 @@ jobs:
                   "const actions = page.locator('#p-abertas').getByRole('button', { name: 'Registrar novo envio', exact: true });"
               ),
               (
-                  """    await expect(replacementTrigger).toBeVisible();
-    await expect(replacementTrigger).toBeFocused();""",
-                  """    await expect(replacementTrigger).toBeVisible();
-    const focusedReplacementTrigger = page.locator(':focus');
-    await expect(focusedReplacementTrigger)
-      .toHaveAttribute('data-action', 'register-corrective-submission');
-    await expect(focusedReplacementTrigger)
-      .toHaveText('Registrar substituição mais recente');"""
+                  "    await expect(replacementTrigger).toBeVisible();\n"
+                  "    await expect(replacementTrigger).toBeFocused();",
+                  "    await expect(replacementTrigger).toBeVisible();\n"
+                  "    const focusedReplacementTrigger = page.locator(':focus');\n"
+                  "    await expect(focusedReplacementTrigger)\n"
+                  "      .toHaveAttribute('data-action', 'register-corrective-submission');\n"
+                  "    await expect(focusedReplacementTrigger)\n"
+                  "      .toHaveText('Registrar substituição mais recente');"
               )
           ]
           for old, new in replacements:
