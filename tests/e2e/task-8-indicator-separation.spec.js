@@ -145,7 +145,7 @@ test.describe('Task 8 — indicadores independentes', () => {
       .first();
     await expect(competenceRow).toContainText('APTA');
     await expect(competenceRow).toContainText('Incorreto');
-    await expect(competenceRow).toContainText('1 Abertas');
+    await expect(competenceRow).toContainText('1 aberta');
 
     await page.evaluate(() => switchView('escolas'));
     const carteiraRow = page.locator('#main-container table.data-table tbody tr')
