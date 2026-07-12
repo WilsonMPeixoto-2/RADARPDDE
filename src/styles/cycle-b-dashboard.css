@@ -1,0 +1,150 @@
+/* Ciclo B — Dashboard operacional do Controlador */
+.cycle-b-dashboard-stats {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.cycle-b-dashboard-card {
+    width: 100%;
+    min-height: 132px;
+    text-align: left;
+    font: inherit;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-sidebar);
+    color: var(--text-main);
+    cursor: pointer;
+    transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.cycle-b-dashboard-card:hover,
+.cycle-b-dashboard-card:focus-visible {
+    transform: translateY(-1px);
+    border-color: var(--primary);
+    box-shadow: var(--shadow-md);
+    outline: none;
+}
+
+.cycle-b-dashboard-card.is-open {
+    border-top: 4px solid var(--warning);
+}
+
+.cycle-b-dashboard-card.is-awaiting {
+    border-top: 4px solid var(--info, #4d9fff);
+}
+
+.cycle-b-dashboard-card.is-assets {
+    border-top: 4px solid var(--primary);
+}
+
+.cycle-b-dashboard-card.is-neutral {
+    border-top: 4px solid var(--text-muted);
+}
+
+.cycle-b-card-detail {
+    margin-top: 8px;
+    color: var(--text-muted);
+    font-size: 0.76rem;
+    line-height: 1.4;
+}
+
+.cycle-b-overlap-note {
+    margin: -4px 0 18px;
+    color: var(--text-muted);
+    font-size: 0.76rem;
+    line-height: 1.45;
+}
+
+.cycle-b-action-queue {
+    margin-bottom: 20px;
+}
+
+.cycle-b-action-queue .panel-header p {
+    margin: 4px 0 0;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.cycle-b-action-list {
+    display: grid;
+    gap: 10px;
+}
+
+.cycle-b-action-item {
+    display: grid;
+    grid-template-columns: 6px minmax(0, 1fr) auto;
+    gap: 14px;
+    align-items: center;
+    padding: 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-input);
+}
+
+.cycle-b-action-priority {
+    align-self: stretch;
+    border-radius: 999px;
+    background: var(--primary);
+}
+
+.cycle-b-action-content {
+    min-width: 0;
+}
+
+.cycle-b-action-content header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.cycle-b-action-content h3 {
+    margin: 7px 0 3px;
+    font-size: 0.92rem;
+}
+
+.cycle-b-action-content p,
+.cycle-b-action-content small {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    line-height: 1.4;
+}
+
+@media (max-width: 1180px) {
+    .cycle-b-dashboard-stats {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 700px) {
+    .cycle-b-dashboard-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .cycle-b-dashboard-card {
+        min-height: 110px;
+    }
+
+    .cycle-b-action-item {
+        grid-template-columns: 5px minmax(0, 1fr);
+    }
+
+    .cycle-b-action-item > .btn {
+        grid-column: 2;
+        width: 100%;
+        min-height: 44px;
+        justify-content: center;
+    }
+
+    .cycle-b-action-content header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 6px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cycle-b-dashboard-card {
+        transition: none;
+    }
+}
