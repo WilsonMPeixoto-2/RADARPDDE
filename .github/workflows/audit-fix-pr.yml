@@ -8,7 +8,7 @@ on:
       - synchronize
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   patch-and-verify:
@@ -71,30 +71,12 @@ jobs:
         shell: bash
         run: |
           git diff --check
-          if git diff -- app.js | grep -E "currentProfile|perfil"; then
+          if git diff --unified=0 -- app.js \
+            | grep -E '^[+-][^+-]' \
+            | grep -E 'currentProfile|perfil'; then
             echo "A correção alterou regras de perfil, o que foi proibido."
             exit 1
           fi
-
-      - name: Empacotar arquivos validados
-        shell: bash
-        run: |
-          mkdir -p validated/tests/e2e validated/src/domain validated/.github/workflows
-          cp app.js validated/app.js
-          cp src/domain/pendencias.js validated/src/domain/pendencias.js
-          cp tests/pendencias.test.js validated/tests/pendencias.test.js
-          cp tests/e2e/pendency-cycle.spec.js validated/tests/e2e/pendency-cycle.spec.js
-          cp tests/e2e/functional-core.spec.js validated/tests/e2e/functional-core.spec.js
-          cp playwright.config.js validated/playwright.config.js
-          cp .github/workflows/playwright-mobile.yml validated/.github/workflows/playwright-mobile.yml
-
-      - name: Publicar arquivos validados
-        uses: actions/upload-artifact@v4
-        with:
-          name: audit-fix-validated-files
-          path: validated/
-          retention-days: 7
-          if-no-files-found: error
 
       - name: Publicar relatório Playwright
         if: ${{ always() }}
@@ -104,3 +86,18 @@ jobs:
           path: playwright-report/
           retention-days: 7
           if-no-files-found: ignore
+
+      - name: Preparar commit definitivo
+        shell: bash
+        run: |
+          rm -f .github/workflows/audit-fix-once.yml
+          rm -f .github/workflows/audit-fix-pr.yml
+          rm -f scripts/apply_audit_fixes.py
+          git status --short
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix: consolidar correções auditadas das tasks 1 a 7 [audit-fix]"
+
+      - name: Enviar commit à branch
+        run: git push origin HEAD:fix/ciclo-a-tasks-1-7-auditoria
