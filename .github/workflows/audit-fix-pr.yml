@@ -87,16 +87,16 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
 
-      - name: Preparar commit definitivo
+      - name: Preparar commit de código e testes
         shell: bash
         run: |
-          rm -f .github/workflows/audit-fix-once.yml
-          rm -f .github/workflows/audit-fix-pr.yml
-          rm -f scripts/apply_audit_fixes.py
+          git checkout -- .github/workflows/playwright-mobile.yml
           git status --short
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
+          git add app.js src/domain/pendencias.js tests/pendencias.test.js \
+            tests/e2e/pendency-cycle.spec.js tests/e2e/functional-core.spec.js \
+            playwright.config.js
           git commit -m "fix: consolidar correções auditadas das tasks 1 a 7 [audit-fix]"
 
       - name: Enviar commit à branch
