@@ -33,6 +33,10 @@
         );
     }
 
+    function isMobileViewport() {
+        return Boolean(root.matchMedia && root.matchMedia('(max-width: 700px)').matches);
+    }
+
     function normalize(value) {
         return String(value == null ? '' : value)
             .normalize('NFD')
@@ -169,7 +173,7 @@
                 <td>${escapeHtml(formatDateTime(projection.latestMovement && projection.latestMovement.at))}</td>
                 <td>
                     <strong>${escapeHtml(projection.nextAction && projection.nextAction.label || 'Sem ação pendente')}</strong>
-                    ${projection.nextAction && projection.nextAction.actor ? `<small>Responsável: ${escapeHtml(projection.nextAction.actor)}</small>` : ''}
+                    ${projection.nextAction && projection.nextAction.actor ? `<small>Próximo ator: ${escapeHtml(projection.nextAction.actor)}</small>` : ''}
                 </td>
                 <td>${renderActions(school, projection)}</td>
             </tr>
@@ -194,7 +198,7 @@
                     <div><dt>Pendências abertas</dt><dd>${projection.openCount}</dd></div>
                     <div><dt>Para reanalisar</dt><dd>${projection.awaitingCount}</dd></div>
                     <div><dt>Última movimentação</dt><dd>${escapeHtml(formatDateTime(projection.latestMovement && projection.latestMovement.at))}</dd></div>
-                    <div><dt>Próxima ação</dt><dd>${escapeHtml(projection.nextAction && projection.nextAction.label || 'Sem ação pendente')}</dd></div>
+                    <div><dt>Próxima ação</dt><dd>${escapeHtml(projection.nextAction && projection.nextAction.label || 'Sem ação pendente')}${projection.nextAction && projection.nextAction.actor ? `<small>Próximo ator: ${escapeHtml(projection.nextAction.actor)}</small>` : ''}</dd></div>
                 </dl>
                 ${renderActions(school, projection)}
             </article>
@@ -212,8 +216,15 @@
                 </div>
             `;
         }
+        if (isMobileViewport()) {
+            return `
+                <div class="table-responsive cycle-b-wallet-mobile">
+                    ${projection.schools.map(item => renderMobileCard(schoolById.get(item.schoolId), item)).join('')}
+                </div>
+            `;
+        }
         return `
-            <div class="table-responsive cycle-b-wallet-desktop">
+            <div class="cycle-b-wallet-desktop">
                 <table class="data-table cycle-b-wallet-table">
                     <thead>
                         <tr>
@@ -234,9 +245,6 @@
                         ${projection.schools.map(item => renderDesktopRow(schoolById.get(item.schoolId), item)).join('')}
                     </tbody>
                 </table>
-            </div>
-            <div class="cycle-b-wallet-mobile">
-                ${projection.schools.map(item => renderMobileCard(schoolById.get(item.schoolId), item)).join('')}
             </div>
         `;
     }
@@ -352,14 +360,14 @@
         root.changeCycleBDocumentaryFilter = changeCycleBDocumentaryFilter;
         root.openCycleBWalletPendencies = openCycleBWalletPendencies;
         root.RadarCycleBCarteira = Object.freeze({
-            VERSION: '1.0.0',
+            VERSION: '1.1.0',
             enhance: enhanceWallet,
             openWithPendingFilter,
             getDocumentaryFilter: () => documentaryFilter
         });
         installed = true;
         if (typeof currentView !== 'undefined' && currentView === 'escolas') {
-            root.renderEscolas();
+            enhanceWallet();
         }
         return true;
     }
