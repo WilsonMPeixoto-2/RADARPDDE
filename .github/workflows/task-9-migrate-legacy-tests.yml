@@ -31,14 +31,16 @@ jobs:
           pendency_path = Path('tests/e2e/pendency-cycle.spec.js')
           pendency = pendency_path.read_text(encoding='utf-8')
           pendency, open_count = re.subn(
-              r"getByRole\('button', \{ name: 'Ativas \(\d+\)', exact: true \}\)",
-              r"getByRole('tab', { name: /^Abertas\b/ })",
+              r"page\.getByRole\('button',\s*\{\s*name:\s*'Ativas \(\d+\)',\s*exact:\s*true\s*\}\)",
+              r"page.getByRole('tab', { name: /^Abertas\b/ })",
               pendency,
+              flags=re.MULTILINE,
           )
           pendency, resolved_count = re.subn(
-              r"getByRole\('button', \{ name: 'Histórico Resolvidas \(\d+\)', exact: true \}\)",
-              r"getByRole('tab', { name: /^Resolvidas\b/ })",
+              r"page\.getByRole\('button',\s*\{\s*name:\s*'Histórico Resolvidas \(\d+\)',\s*exact:\s*true\s*\}\)",
+              r"page.getByRole('tab', { name: /^Resolvidas\b/ })",
               pendency,
+              flags=re.MULTILINE,
           )
           pendency_path.write_text(pendency, encoding='utf-8')
 
