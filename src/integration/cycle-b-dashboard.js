@@ -9,6 +9,8 @@
             root.RadarOperationalProjection
             && typeof root.renderDashboardControlador === 'function'
             && typeof root.switchView === 'function'
+            && typeof root.encodePendencyIdReference === 'function'
+            && typeof root.resolvePendencyIdReference === 'function'
         );
     }
 
@@ -75,10 +77,13 @@
             action.competence ? formatCompetenciaText(action.competence) : ''
         ].filter(Boolean).join(' · ');
         const hasPendency = action.pendencyId != null;
+        const pendencyReference = hasPendency
+            ? escapeHtml(root.encodePendencyIdReference(action.pendencyId))
+            : '';
         return `
             <article
                 class="cycle-b-action-item"
-                ${hasPendency ? `data-pendency-id="${escapeHtml(String(action.pendencyId))}"` : ''}
+                ${hasPendency ? `data-pendency-ref="${pendencyReference}"` : ''}
                 data-school-id="${escapeHtml(action.schoolId || '')}"
             >
                 <div class="cycle-b-action-priority" aria-hidden="true"></div>
@@ -94,7 +99,7 @@
                 <button
                     type="button"
                     class="btn btn-primary btn-sm"
-                    data-pendency-id="${hasPendency ? escapeHtml(String(action.pendencyId)) : ''}"
+                    ${hasPendency ? `data-pendency-ref="${pendencyReference}"` : ''}
                     data-school-id="${escapeHtml(action.schoolId || '')}"
                     data-competence="${escapeHtml(action.competence || activeCompetenciaKey)}"
                     onclick="openCycleBOperationalAction(this)"
@@ -204,10 +209,18 @@
     }
 
     function openCycleBOperationalAction(source) {
-        const pendencyId = source?.dataset?.pendencyId;
+        let pendencyId = null;
+        if (source?.dataset?.pendencyRef) {
+            try {
+                pendencyId = root.resolvePendencyIdReference(source);
+            } catch (error) {
+                console.error('Não foi possível interpretar a referência da pendência.', error);
+                return false;
+            }
+        }
         const schoolId = source?.dataset?.schoolId;
         const competence = source?.dataset?.competence || activeCompetenciaKey;
-        if (pendencyId) {
+        if (pendencyId != null) {
             root.switchView('pendencias');
             if (typeof root.clearPendencyFilters === 'function') root.clearPendencyFilters();
             root.requestAnimationFrame(() => {
@@ -228,7 +241,7 @@
         root.openCycleBCarteira = openCycleBCarteira;
         root.openCycleBOperationalAction = openCycleBOperationalAction;
         root.RadarCycleBDashboard = Object.freeze({
-            VERSION: '1.1.0',
+            VERSION: '1.2.0',
             enhance: enhanceDashboard
         });
         installed = true;
