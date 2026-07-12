@@ -135,7 +135,7 @@
             renderCard({
                 label: 'Pendências abertas',
                 value: projection.totals.schoolsWithOpen,
-                detail: 'Providência da escola',
+                detail: 'Pendências ativas sob providência da escola',
                 className: 'is-open',
                 filter: 'aberta'
             }),
@@ -228,12 +228,12 @@
         root.openCycleBCarteira = openCycleBCarteira;
         root.openCycleBOperationalAction = openCycleBOperationalAction;
         root.RadarCycleBDashboard = Object.freeze({
-            VERSION: '1.0.0',
+            VERSION: '1.1.0',
             enhance: enhanceDashboard
         });
         installed = true;
         if (typeof currentView !== 'undefined' && currentView === 'dashboard' && currentProfile === 'controlador') {
-            root.renderDashboard();
+            enhanceDashboard();
         }
         return true;
     }
