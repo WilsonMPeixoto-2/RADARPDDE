@@ -1,0 +1,76 @@
+name: Executar correções auditadas no PR
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - synchronize
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Obter branch de correção
+        uses: actions/checkout@v4
+        with:
+          ref: fix/ciclo-a-tasks-1-7-auditoria
+          fetch-depth: 0
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Instalar dependências
+        run: npm install --no-package-lock
+
+      - name: Instalar navegadores Playwright
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: Preparar testes de regressão
+        run: python3 scripts/apply_audit_fixes.py --prepare-tests
+
+      - name: Confirmar reprodução dos defeitos
+        shell: bash
+        run: |
+          set +e
+          node --test tests/pendencias.test.js > /tmp/red-unit.log 2>&1
+          UNIT_STATUS=$?
+          npx playwright test tests/e2e/pendency-cycle.spec.js --project=desktop-chromium --grep "não pré-seleciona Documento ausente" > /tmp/red-e2e.log 2>&1
+          E2E_STATUS=$?
+          set -e
+          cat /tmp/red-unit.log
+          cat /tmp/red-e2e.log
+          test "$UNIT_STATUS" -ne 0
+          test "$E2E_STATUS" -ne 0
+
+      - name: Aplicar correções
+        run: python3 scripts/apply_audit_fixes.py --apply
+
+      - name: Validar tudo
+        run: |
+          node --check app.js
+          node --test tests/*.test.js
+          npm run test:e2e
+
+      - name: Confirmar escopo e publicar
+        shell: bash
+        run: |
+          git diff --check
+          if git diff -- app.js | grep -E "currentProfile|perfil"; then
+            echo "A correção alterou regras de perfil, o que foi proibido."
+            exit 1
+          fi
+          rm .github/workflows/audit-fix-once.yml
+          rm .github/workflows/audit-fix-pr.yml
+          rm scripts/apply_audit_fixes.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix: consolidar correções auditadas das tasks 1 a 7 [audit-fix]"
+          git push origin HEAD:fix/ciclo-a-tasks-1-7-auditoria
