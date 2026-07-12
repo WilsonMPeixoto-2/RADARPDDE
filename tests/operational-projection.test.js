@@ -111,6 +111,16 @@ test('deriva próxima ação concreta do registro ativo mais antigo', () => {
   assert.equal(school.nextAction.documentKey, 'extCC');
 });
 
+test('expõe todas as pendências ativas na fila global sem perder a ação principal da escola', () => {
+  const model = Projection.buildOperationalProjection(baseInput());
+
+  assert.equal(model.schools[0].nextAction.pendencyId, 'open-1');
+  assert.deepEqual(
+    model.actions.map(action => action.pendencyId).sort(),
+    ['await-1', 'open-1']
+  );
+});
+
 test('usa o último envio aguardando como data-base da reanálise', () => {
   const awaiting = Projection.getOperationalBaseDate(pendencias[1]);
   assert.equal(awaiting, '2026-07-10T12:00:00.000Z');

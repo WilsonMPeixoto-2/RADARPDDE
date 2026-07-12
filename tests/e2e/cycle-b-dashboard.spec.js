@@ -87,7 +87,9 @@ test.describe('Ciclo B — Dashboard operacional do Controlador', () => {
     await expect(queue).toContainText('Registrar novo envio do Extrato Conta Corrente');
     await expect(queue).toContainText('Reanalisar Extrato Investimento');
 
-    const awaitingAction = queue.locator('[data-pendency-id="cycle-b-dashboard-awaiting"]');
+    const awaitingAction = queue.locator('.cycle-b-action-item').filter({
+      hasText: 'Reanalisar Extrato Investimento'
+    });
     await awaitingAction.getByRole('button', { name: 'Abrir pendência' }).click();
     await expect(page.getByRole('heading', { name: 'Pendências operacionais' })).toBeVisible();
     await expect(page.getByRole('complementary', { name: 'Detalhes da pendência' })).toContainText('Extrato Investimento');

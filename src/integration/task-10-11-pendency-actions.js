@@ -46,11 +46,11 @@
             region = document.createElement('div');
             region.id = 'task-10-11-live-region';
             region.className = 'task-operations-live-region';
-            region.setAttribute('role', type === 'error' ? 'alert' : 'status');
-            region.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
             document.body.appendChild(region);
         }
         region.dataset.type = type;
+        region.setAttribute('role', type === 'error' ? 'alert' : 'status');
+        region.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
         region.textContent = message;
         root.setTimeout(() => {
             if (region.textContent === message) region.textContent = '';
@@ -59,6 +59,23 @@
 
     function dialogElement(id) {
         return document.getElementById(id);
+    }
+
+    function trapDialogFocus(event, dialog) {
+        if (event.key !== 'Tab') return;
+        const focusable = Array.from(dialog.querySelectorAll(
+            'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        ));
+        if (!focusable.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+        }
     }
 
     function openDialog(id, trigger) {
@@ -191,11 +208,16 @@
         document.getElementById('form-pendency-reopen').addEventListener('submit', confirmReopenPendency);
         errorContainer.addEventListener('change', enforceAbsentExclusivity);
         document.addEventListener('keydown', event => {
-            if (event.key !== 'Escape') return;
-            ['modal-pendency-contact', 'modal-pendency-cancel', 'modal-pendency-reopen'].forEach(id => {
-                const dialog = dialogElement(id);
-                if (dialog && dialog.classList.contains('show')) closeDialog(id);
-            });
+            const dialog = ['modal-pendency-contact', 'modal-pendency-cancel', 'modal-pendency-reopen']
+                .map(dialogElement)
+                .find(candidate => candidate && candidate.classList.contains('show'));
+            if (!dialog) return;
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                closeDialog(dialog.id);
+                return;
+            }
+            trapDialogFocus(event, dialog);
         });
     }
 

@@ -81,6 +81,7 @@
         }
         region.dataset.type = type;
         region.setAttribute('role', type === 'error' ? 'alert' : 'status');
+        region.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
         region.textContent = message;
         root.setTimeout(() => {
             if (region.textContent === message) region.textContent = '';
@@ -137,6 +138,22 @@
             if (event.key === 'Escape') {
                 event.preventDefault();
                 closeRetificationModal();
+                return;
+            }
+            if (event.key === 'Tab') {
+                const focusable = Array.from(modal.querySelectorAll(
+                    'button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+                ));
+                if (!focusable.length) return;
+                const first = focusable[0];
+                const last = focusable[focusable.length - 1];
+                if (event.shiftKey && document.activeElement === first) {
+                    event.preventDefault();
+                    last.focus();
+                } else if (!event.shiftKey && document.activeElement === last) {
+                    event.preventDefault();
+                    first.focus();
+                }
             }
         });
     }
@@ -354,6 +371,15 @@
             activeContext = null;
             root.renderProntuario(schoolId);
             announce('Retificação registrada com histórico antes e depois.');
+            root.requestAnimationFrame(() => {
+                const history = document.querySelector('.retification-history-panel');
+                const target = document.querySelector('[data-retification-control] button') || history;
+                if (history) {
+                    history.setAttribute('tabindex', '-1');
+                    history.scrollIntoView({ block: 'nearest' });
+                }
+                if (target) target.focus({ preventScroll: true });
+            });
             return true;
         } catch (error) {
             showRetificationError(error.message || 'Não foi possível registrar a retificação.');

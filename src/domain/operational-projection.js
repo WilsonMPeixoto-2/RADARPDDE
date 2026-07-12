@@ -206,7 +206,8 @@
                 controllerName: controller?.name || 'Não designado'
             };
         });
-        let nextAction = sortOperationalActions(actionCandidates)[0] || null;
+        const operationalActions = sortOperationalActions(actionCandidates);
+        let nextAction = operationalActions[0] || null;
         if (!nextAction) {
             const row = programRows.find(item => item.bonificationStatus !== 'apta' || !['correto', 'correto-atrasado'].includes(item.technicalStatus)) || programRows[0] || {};
             nextAction = {
@@ -252,6 +253,7 @@
             awaitingCount: awaiting.length,
             activeCount: active.length,
             activePendencies: active,
+            operationalActions,
             latestMovement: latestMovementForSchool({ pendencies, contacts }),
             nextAction
         };
@@ -276,9 +278,12 @@
             school,
             competence: input.competencia
         }));
-        const actions = sortOperationalActions(
-            schools.map(school => school.nextAction).filter(action => action && action.label !== 'Sem ação pendente')
-        );
+        const actions = sortOperationalActions(schools.flatMap(school => {
+            if (school.operationalActions.length) return school.operationalActions;
+            return school.nextAction && school.nextAction.label !== 'Sem ação pendente'
+                ? [school.nextAction]
+                : [];
+        }));
         return {
             competence: input.competencia || '',
             schools,

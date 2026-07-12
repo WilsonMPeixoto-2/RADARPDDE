@@ -34,7 +34,7 @@
     }
 
     function isMobileViewport() {
-        return Boolean(root.matchMedia && root.matchMedia('(max-width: 700px)').matches);
+        return Boolean(root.matchMedia && root.matchMedia('(max-width: 900px)').matches);
     }
 
     function normalize(value) {
@@ -210,9 +210,10 @@
         const schoolById = new Map(targetSchools.map(school => [school.id, school]));
         if (!targetSchools.length) {
             return `
-                <div class="empty-state compact">
+                <div class="empty-state compact" role="status" aria-live="polite">
                     <strong>Nenhuma escola encontrada</strong>
                     <span>Ajuste a busca ou limpe os filtros para ampliar o resultado.</span>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="clearEscolaFilters()">Limpar filtros</button>
                 </div>
             `;
         }
@@ -366,6 +367,12 @@
             getDocumentaryFilter: () => documentaryFilter
         });
         installed = true;
+        const viewport = root.matchMedia && root.matchMedia('(max-width: 900px)');
+        if (viewport && typeof viewport.addEventListener === 'function') {
+            viewport.addEventListener('change', () => {
+                if (typeof currentView !== 'undefined' && currentView === 'escolas') root.renderEscolas();
+            });
+        }
         if (typeof currentView !== 'undefined' && currentView === 'escolas') {
             enhanceWallet();
         }
