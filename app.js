@@ -9589,10 +9589,17 @@ function renderProntuario(escolaId) {
                             ${COMPETENCIAS.map(c => {
                                 const status = getCompMonthStatus(esc.id, c.key);
                                 const isActive = c.key === activeProntuarioCompetencia;
+                                const monthStatusLabels = {
+                                    apta: 'Apta',
+                                    inapta: 'Inapta',
+                                    'em-andamento': 'Em apuração',
+                                    'nao-lancado': 'Não lançada',
+                                    'out-of-scope': 'Fora de escopo'
+                                };
                                 
-                                let statusBadgeClass = 'status-dot-' + status;
-                                let isDisabled = status === 'out-of-scope';
-                                let clickHandler = isDisabled ? '' : `onclick="changeProntuarioCompetencia('${escapeHtml(esc.id)}', '${escapeHtml(c.key)}')"`;
+                                const statusBadgeClass = 'status-dot-' + status;
+                                const isDisabled = status === 'out-of-scope';
+                                const clickHandler = isDisabled ? '' : `onclick="changeProntuarioCompetencia('${escapeHtml(esc.id)}', '${escapeHtml(c.key)}')"`;
                                 
                                 // Obter nome abreviado do mês (Ex: Janeiro -> Jan)
                                 const monthAbbr = c.label.split(' ')[0].substring(0, 3);
@@ -9601,7 +9608,7 @@ function renderProntuario(escolaId) {
                                     <button class="comp-sub-tab ${isActive ? 'active' : ''} ${isDisabled ? 'disabled' : ''}" 
                                             ${clickHandler} 
                                             style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: ${isDisabled ? 'not-allowed' : 'pointer'};"
-                                            title="${c.label} - Status: ${status === 'apta' ? 'Apta' : status === 'inapta' ? 'Inapta/Pendências' : status === 'em-andamento' ? 'Em Análise' : status === 'out-of-scope' ? 'Fora de Escopo' : 'Não Lançado'}">
+                                            title="${c.label} - Bonificação: ${monthStatusLabels[status] || 'Não lançada'}">
                                         <span class="status-dot ${statusBadgeClass}" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block;"></span>
                                         <span>${monthAbbr}</span>
                                     </button>
@@ -9913,6 +9920,22 @@ function renderProntuarioVerificacoes(esc) {
 
                 // A grade usa um estado vazio transitório; só um comando do usuário cria a verificação.
                 const v = buildVerificationSnapshot(verificacoes[esc.id]?.[compProgKey]);
+                const bonusStatus = getProgramBonificationStatus(esc.id, c.key, progId);
+                const bonusMeta = getProgramBonificationMeta(bonusStatus);
+                const technicalStatus = getProgramTechnicalStatus(esc.id, c.key, progId);
+                const technicalMeta = getProgramTechnicalMeta(technicalStatus);
+                const programStatusSummary = `
+                    <div class="program-status-summary" data-program-status-summary="${escapeHtml(progId)}">
+                        <div>
+                            <span>Bonificação</span>
+                            <span class="badge ${bonusMeta.badgeClass}" data-status-dimension="bonificacao">${bonusMeta.label}</span>
+                        </div>
+                        <div>
+                            <span>Análise técnica</span>
+                            <span class="badge ${technicalMeta.badgeClass}" data-status-dimension="analise">${technicalMeta.label}</span>
+                        </div>
+                    </div>
+                `;
 
                 // Montar a sub-linha com cada documento
                 docItems.forEach((doc, idx) => {
@@ -9922,18 +9945,6 @@ function renderProntuarioVerificacoes(esc) {
                         || currentProfile === 'inventario'
                         || currentProfile === 'sme';
                     
-                    // Determinar o resultado final da bonificação na competência (Apta/Inapta)
-                    let bonifConsolidadoText = '';
-                    if (idx === 0) {
-                        if (v.resultadoBonif) {
-                            bonifConsolidadoText = v.resultadoBonif === 'apta' 
-                                ? `<div class="badge badge-success" style="font-size:0.75rem; padding:8px; margin-bottom:8px; width:100%; justify-content:center;">APTA</div>`
-                                : `<div class="badge badge-danger" style="font-size:0.75rem; padding:8px; margin-bottom:8px; width:100%; justify-content:center;">INAPTA</div>`;
-                        } else {
-                            bonifConsolidadoText = `<div class="badge badge-warning" style="font-size:0.75rem; padding:8px; margin-bottom:8px; width:100%; justify-content:center;">Aguardando</div>`;
-                        }
-                    }
-
                     const pendencyContext = window.RadarFluxoOperacional.buildPendencyContext({
                         compProgKey,
                         programaNome: progName,
@@ -10060,7 +10071,7 @@ function renderProntuarioVerificacoes(esc) {
                                 <strong>${escapeHtml(c.label)}</strong><br>
                                 <span style="font-size:0.75rem; color:var(--primary); font-weight:600;">${escapeHtml(progName)}</span>
                                 <div style="margin-top:16px;">
-                                    ${bonifConsolidadoText}
+                                    ${programStatusSummary}
                                     ${currentProfile !== 'inventario' && currentProfile !== 'sme' ? (
                                         v.resultadoBonif ? `
                                             <button class="btn btn-secondary btn-sm" style="width:100%; justify-content:center; font-size:0.75rem;" disabled>Consolidada</button>
