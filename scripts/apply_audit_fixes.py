@@ -87,19 +87,27 @@ test.describe('abertura automática de pendência documental', () => {
         e2e_path.write_text(e2e)
 
 
+def replace_once(text, old, new, label):
+    if text.count(old) != 1:
+        raise SystemExit(f'Trecho não encontrado de forma única ({label}).')
+    return text.replace(old, new)
+
+
 def apply_fixes():
     domain_path = Path('src/domain/pendencias.js')
     domain = domain_path.read_text()
-    replacements = {
-        '        next.contextoIncompleto = !documentary;':
-            '        next.contextoIncompleto = !hasCompleteStructuredContext(source);',
-        '            numero: next.tentativas.length + 1,':
-            '            numero: getNextAttemptNumber(next.tentativas),'
-    }
-    for old, new in replacements.items():
-        if domain.count(old) != 1:
-            raise SystemExit(f'Trecho do domínio não encontrado de forma única: {old!r}')
-        domain = domain.replace(old, new)
+    domain = replace_once(
+        domain,
+        '        next.contextoIncompleto = !documentary;',
+        '        next.contextoIncompleto = !hasCompleteStructuredContext(source);',
+        'contextoIncompleto'
+    )
+    domain = replace_once(
+        domain,
+        '            numero: next.tentativas.length + 1,',
+        '            numero: getNextAttemptNumber(next.tentativas),',
+        'numeração da tentativa'
+    )
     domain_path.write_text(domain)
 
     app_path = Path('app.js')
@@ -120,23 +128,72 @@ def apply_fixes():
         "        // Ao abrir a pendência a partir de uma análise \"Incorreto\",\n"
         "        // nenhum erro é presumido: o Controlador registra apenas as falhas efetivamente observadas.\n"
     )
-    if app.count(old) != 1:
-        raise SystemExit('Trecho de pré-seleção de erro não encontrado de forma única.')
-    app_path.write_text(app.replace(old, new))
+    app_path.write_text(replace_once(app, old, new, 'pré-seleção de erro'))
+
+    functional_path = Path('tests/e2e/functional-core.spec.js')
+    functional = functional_path.read_text()
+    old = (
+        "    await expect(page.locator('#modal-nova-pendencia')).toHaveClass(/show/);\n"
+        "    await page.locator('#form-nova-pendencia button[type=\"submit\"]').click();"
+    )
+    new = (
+        "    const pendencyModal = page.locator('#modal-nova-pendencia');\n"
+        "    await expect(pendencyModal).toHaveClass(/show/);\n"
+        "    await pendencyModal.getByLabel('Documento ilegível', { exact: true }).check();\n"
+        "    await page.locator('#form-nova-pendencia button[type=\"submit\"]').click();"
+    )
+    functional_path.write_text(replace_once(
+        functional, old, new, 'adaptação do fluxo funcional sem erro presumido'
+    ))
+
+    config_path = Path('playwright.config.js')
+    config = config_path.read_text()
+    config = replace_once(
+        config,
+        "      name: 'mobile-chromium',\n      use: { ...devices['Pixel 7'] }",
+        "      name: 'mobile-chromium',\n      testMatch: /mobile-smoke\\.spec\\.js/,\n      use: { ...devices['Pixel 7'] }",
+        'escopo mobile chromium'
+    )
+    config = replace_once(
+        config,
+        "      name: 'mobile-webkit',\n      use: { ...devices['iPhone 15'] }",
+        "      name: 'mobile-webkit',\n      testMatch: /mobile-smoke\\.spec\\.js/,\n      use: { ...devices['iPhone 15'] }",
+        'escopo mobile webkit'
+    )
+    config = replace_once(
+        config,
+        "      name: 'desktop-chromium',\n      use: { ...devices['Desktop Chrome'] }",
+        "      name: 'desktop-chromium',\n      testIgnore: /mobile-smoke\\.spec\\.js/,\n      use: { ...devices['Desktop Chrome'] }",
+        'escopo desktop chromium'
+    )
+    config_path.write_text(config)
 
     workflow_path = Path('.github/workflows/playwright-mobile.yml')
     workflow = workflow_path.read_text()
-    replacements = {
-        'name: Testes mobile Playwright': 'name: Testes E2E Playwright',
-        '    name: Android e iPhone': '    name: Desktop, Android e iPhone',
-        '    timeout-minutes: 20': '    timeout-minutes: 35',
-        '      - name: Executar testes mobile\n        run: npm run test:mobile':
-            '      - name: Executar testes E2E completos\n        run: npm run test:e2e'
-    }
-    for old, new in replacements.items():
-        if old not in workflow:
-            raise SystemExit(f'Trecho do workflow não encontrado: {old!r}')
-        workflow = workflow.replace(old, new)
+    workflow = replace_once(
+        workflow,
+        'name: Testes mobile Playwright',
+        'name: Testes E2E Playwright',
+        'nome do workflow E2E'
+    )
+    workflow = replace_once(
+        workflow,
+        '    name: Android e iPhone',
+        '    name: Desktop, Android e iPhone',
+        'nome do job E2E'
+    )
+    workflow = replace_once(
+        workflow,
+        '    timeout-minutes: 20',
+        '    timeout-minutes: 35',
+        'timeout E2E'
+    )
+    workflow = replace_once(
+        workflow,
+        '      - name: Executar testes mobile\n        run: npm run test:mobile',
+        '      - name: Executar testes E2E completos\n        run: npm run test:e2e',
+        'comando E2E completo'
+    )
     workflow_path.write_text(workflow)
 
 
