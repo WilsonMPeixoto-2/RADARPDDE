@@ -92,49 +92,8 @@ jobs:
           test "$(wc -c < tests/e2e/pendency-cycle.spec.js)" -gt 100000
           node --check tests/e2e/pendency-cycle.spec.js
           git diff --check
-          rm -f .github/workflows/task-9-restore-pendency-cycle.yml
-
-          cat > .github/workflows/validate.yml <<'YAML'
-          name: Validar RADAR PDDE
-
-          on:
-            pull_request:
-            push:
-              branches:
-                - main
-
-          permissions:
-            contents: read
-
-          jobs:
-            validate:
-              name: Sintaxe e testes de domínio
-              runs-on: ubuntu-latest
-
-              steps:
-                - name: Obter código
-                  uses: actions/checkout@v4
-
-                - name: Configurar Node.js
-                  uses: actions/setup-node@v4
-                  with:
-                    node-version: 20
-
-                - name: Verificar sintaxe da aplicação e módulos ativos
-                  run: |
-                    node --check app.js
-                    node --check src/domain/pendencias-view-model.js
-                    node --check src/integration/task-9-pendencias-page.js
-                    node --check src/integration/task-9-focus-bridge.js
-                    node --check src/integration/task-9-cross-view.js
-
-                - name: Executar testes unitários
-                  run: node --test tests/*.test.js
-          YAML
-
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add tests/e2e/pendency-cycle.spec.js .github/workflows/validate.yml
-          git add -u .github/workflows
+          git add tests/e2e/pendency-cycle.spec.js
           git commit -m "test: consolidar filas canônicas da Task 9"
           git push origin HEAD:feature/ciclo-a-task-9-pendencias-navegaveis
