@@ -56,6 +56,7 @@
 @media (min-width: 1181px) {
     body.pendency-drawer-open-desktop {
         --pendency-docked-drawer-width: min(520px, 42vw);
+        --pendency-docked-drawer-top: 70px;
     }
 
     body.pendency-drawer-open-desktop #main-container {
@@ -64,8 +65,10 @@
     }
 
     body.pendency-drawer-open-desktop .pendency-detail-drawer {
+        top: var(--pendency-docked-drawer-top);
         width: var(--pendency-docked-drawer-width);
         min-width: 420px;
+        height: calc(100dvh - var(--pendency-docked-drawer-top));
     }
 }
 
