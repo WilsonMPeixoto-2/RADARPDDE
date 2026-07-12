@@ -6161,7 +6161,7 @@ function renderDashboardAssistente(container) {
                                                                         ${faltamList.map(esc => {
                                                                             const isEmAndamento = c.stats.lists.emAndamento.includes(esc);
                                                                             const escStatus = isEmAndamento 
-                                                                                 ? `<span class="badge badge-warning" style="font-size:0.65rem; padding: 2px 6px;">Em apuração</span>` 
+                                                                                 ? `<span class="badge badge-warning" style="font-size:0.65rem; padding: 2px 6px;">Em apuração</span>`
                                                                                  : `<span class="badge badge-gray" style="font-size:0.65rem; padding: 2px 6px;">Não lançada</span>`;
                                                                             const raName = getRAFromDesignacao(esc.designação);
                                                                             return `
