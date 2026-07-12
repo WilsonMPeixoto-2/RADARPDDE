@@ -2408,3 +2408,36 @@ test.describe('resultados alternativos, bloqueio e rollback da reanálise', () =
     });
   });
 });
+
+
+test.describe('abertura automática de pendência documental', () => {
+  test('não pré-seleciona Documento ausente ao classificar um arquivo como Incorreto', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+
+    await page.goto('/');
+    await page.evaluate(target => {
+      switchProfile('controlador');
+      const competencia = activeCompetenciaKey;
+      const escola = escolas.find(candidate => (
+        Array.isArray(candidate.programasIds)
+        && candidate.programasIds.includes(target.programaId)
+        && isCompetenceInScope(candidate.competenciaInicial, competencia)
+      ));
+      if (!escola) throw new Error('Escola determinística não encontrada.');
+
+      const compProgKey = competencia + '_' + target.programaId;
+      verificacoes[escola.id] = verificacoes[escola.id] || {};
+      verificacoes[escola.id][compProgKey] = RadarFluxoOperacional.createEmptyVerification();
+      verificacoes[escola.id][compProgKey].bonificacao[target.documentoKey] = 'Sim';
+      persist();
+      activeProntuarioCompetencia = competencia;
+      switchView('prontuario', escola.id);
+      changeAnaliseTecnica(escola.id, compProgKey, target.documentoKey, 'Incorreto');
+    }, DOCUMENT_CONTEXT);
+
+    const modal = page.locator('#modal-nova-pendencia');
+    await expect(modal).toHaveClass(/show/);
+    await expect(modal.locator('input[name="pend-erros"]:checked')).toHaveCount(0);
+    await expect(modal.getByLabel('Documento ausente', { exact: true })).not.toBeChecked();
+  });
+});

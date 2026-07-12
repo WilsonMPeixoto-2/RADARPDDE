@@ -24,14 +24,17 @@ module.exports = defineConfig({
   projects: [
     {
       name: 'mobile-chromium',
+      testMatch: /mobile-smoke\.spec\.js/,
       use: { ...devices['Pixel 7'] }
     },
     {
       name: 'mobile-webkit',
+      testMatch: /mobile-smoke\.spec\.js/,
       use: { ...devices['iPhone 15'] }
     },
     {
       name: 'desktop-chromium',
+      testIgnore: /mobile-smoke\.spec\.js/,
       use: { ...devices['Desktop Chrome'] }
     }
   ]

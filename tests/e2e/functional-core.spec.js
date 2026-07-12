@@ -425,7 +425,9 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
       .filter({ hasText: 'Extrato Conta Corrente' });
     await expect(targetRow).toHaveCount(1);
     await targetRow.locator('select.select-analise').selectOption('Incorreto');
-    await expect(page.locator('#modal-nova-pendencia')).toHaveClass(/show/);
+    const pendencyModal = page.locator('#modal-nova-pendencia');
+    await expect(pendencyModal).toHaveClass(/show/);
+    await pendencyModal.getByLabel('Documento ilegível', { exact: true }).check();
     await page.locator('#form-nova-pendencia button[type="submit"]').click();
 
     const createdPendency = await page.evaluate(({ escolaId, competencia }) => {

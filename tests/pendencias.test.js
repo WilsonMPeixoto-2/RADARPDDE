@@ -1233,3 +1233,38 @@ test('numera a tentativa compatível após o maior número válido existente', (
     assert.equal(result.tentativas.length, 2);
     assert.equal(result.tentativas.at(-1).numero, 3);
 });
+
+
+test('numera novo envio a partir do maior número legado existente', () => {
+    const source = createOpenPendencyFixture();
+    source.tentativas = [
+        { id: 'tentativa-1', numero: 1, status: 'analisada' },
+        { id: 'tentativa-3', numero: 3, status: 'analisada' }
+    ];
+
+    const result = registerCorrectiveSubmission(source, {
+        id: 'tentativa-4',
+        dataDisponibilizacao: '2026-07-18',
+        observacao: 'Nova versão disponível.'
+    }, {
+        eventId: 'evt-envio-4',
+        at: '2026-07-18T12:00:00.000Z',
+        usuario: 'Operador de teste',
+        perfil: 'controlador'
+    });
+
+    assert.equal(result.tentativas.at(-1).numero, 4);
+});
+
+test('marca contexto documental estruturado parcial como incompleto', () => {
+    const result = normalizePendencyRecord({
+        id: 'pendencia-legada-parcial',
+        programaId: 'BASIC',
+        documentoKey: 'extCC',
+        status: 'Aberta',
+        motivo: 'Documento ausente'
+    });
+
+    assert.equal(result.tipo, 'documental');
+    assert.equal(result.contextoIncompleto, true);
+});
