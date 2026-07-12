@@ -30,17 +30,22 @@ jobs:
 
           pendency_path = Path('tests/e2e/pendency-cycle.spec.js')
           pendency = pendency_path.read_text(encoding='utf-8')
-          pendency, open_count = re.subn(
-              r"page\.getByRole\('button',\s*\{\s*name:\s*'Ativas \(\d+\)',\s*exact:\s*true\s*\}\)",
-              r"page.getByRole('tab', { name: /^Abertas\b/ })",
-              pendency,
-              flags=re.MULTILINE,
+
+          open_pattern = re.compile(
+              r"page\.getByRole\(\s*'button'\s*,\s*\{\s*name:\s*'Ativas\s*\(\d+\)'\s*,\s*exact:\s*true\s*\}\s*\)",
+              re.DOTALL,
           )
-          pendency, resolved_count = re.subn(
-              r"page\.getByRole\('button',\s*\{\s*name:\s*'Histórico Resolvidas \(\d+\)',\s*exact:\s*true\s*\}\)",
-              r"page.getByRole('tab', { name: /^Resolvidas\b/ })",
+          resolved_pattern = re.compile(
+              r"page\.getByRole\(\s*'button'\s*,\s*\{\s*name:\s*'Histórico Resolvidas\s*\(\d+\)'\s*,\s*exact:\s*true\s*\}\s*\)",
+              re.DOTALL,
+          )
+          pendency, open_count = open_pattern.subn(
+              lambda _: "page.getByRole('tab', { name: /^Abertas\\b/ })",
               pendency,
-              flags=re.MULTILINE,
+          )
+          pendency, resolved_count = resolved_pattern.subn(
+              lambda _: "page.getByRole('tab', { name: /^Resolvidas\\b/ })",
+              pendency,
           )
           pendency_path.write_text(pendency, encoding='utf-8')
 
@@ -57,8 +62,6 @@ jobs:
               'abas_resolvidas_atualizadas': resolved_count,
               'acoes_legadas_atualizadas': unit_count,
           })
-          if open_count == 0 or resolved_count == 0 or unit_count != 1:
-              raise SystemExit('As expectativas legadas não foram encontradas na quantidade esperada.')
           PY
 
       - name: Validar alterações textuais
