@@ -1,9 +1,6 @@
-name: Migrar testes legados da Task 9
+name: Finalizar migração dos testes da Task 9
 
 on:
-  push:
-    branches:
-      - feature/ciclo-a-task-9-pendencias-navegaveis
   pull_request:
     branches:
       - main
@@ -22,7 +19,7 @@ jobs:
           ref: feature/ciclo-a-task-9-pendencias-navegaveis
           fetch-depth: 0
 
-      - name: Atualizar expectativas superadas pela interface canônica
+      - name: Corrigir expectativas e caracteres de controle
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -30,6 +27,7 @@ jobs:
 
           pendency_path = Path('tests/e2e/pendency-cycle.spec.js')
           pendency = pendency_path.read_text(encoding='utf-8')
+          pendency = pendency.replace(chr(8), r'\b')
 
           open_pattern = re.compile(
               r"page\.getByRole\(\s*'button'\s*,\s*\{\s*name:\s*'Ativas\s*\(\d+\)'\s*,\s*exact:\s*true\s*\}\s*\)",
@@ -39,43 +37,38 @@ jobs:
               r"page\.getByRole\(\s*'button'\s*,\s*\{\s*name:\s*'Histórico Resolvidas\s*\(\d+\)'\s*,\s*exact:\s*true\s*\}\s*\)",
               re.DOTALL,
           )
-          pendency, open_count = open_pattern.subn(
-              lambda _: "page.getByRole('tab', { name: /^Abertas\\b/ })",
+          pendency = open_pattern.sub(
+              lambda _: r"page.getByRole('tab', { name: /^Abertas\b/ })",
               pendency,
           )
-          pendency, resolved_count = resolved_pattern.subn(
-              lambda _: "page.getByRole('tab', { name: /^Resolvidas\\b/ })",
+          pendency = resolved_pattern.sub(
+              lambda _: r"page.getByRole('tab', { name: /^Resolvidas\b/ })",
               pendency,
           )
           pendency_path.write_text(pendency, encoding='utf-8')
 
           functional_path = Path('tests/e2e/functional-core.spec.js')
           functional = functional_path.read_text(encoding='utf-8')
-          old = "await legacyRow.getByRole('button', { name: 'Ver Unidade', exact: true }).click();"
-          new = "await legacyRow.getByRole('button', { name: 'Abrir no Prontuário', exact: true }).click();"
-          unit_count = functional.count(old)
-          functional = functional.replace(old, new)
+          functional = functional.replace(
+              "await legacyRow.getByRole('button', { name: 'Ver Unidade', exact: true }).click();",
+              "await legacyRow.getByRole('button', { name: 'Abrir no Prontuário', exact: true }).click();",
+          )
           functional_path.write_text(functional, encoding='utf-8')
-
-          print({
-              'abas_ativas_atualizadas': open_count,
-              'abas_resolvidas_atualizadas': resolved_count,
-              'acoes_legadas_atualizadas': unit_count,
-          })
           PY
 
-      - name: Validar alterações textuais
+      - name: Validar alterações
         run: |
           git diff --check
           node --check tests/e2e/pendency-cycle.spec.js
           node --check tests/e2e/functional-core.spec.js
-
-      - name: Salvar migração dos testes
-        run: |
-          if git diff --quiet; then
-            echo "Nenhuma alteração necessária."
-            exit 0
+          if grep -P -n "\x08" tests/e2e/pendency-cycle.spec.js; then
+            echo "Caractere de controle residual encontrado."
+            exit 1
           fi
+
+      - name: Salvar e remover o aplicador temporário
+        run: |
+          git rm .github/workflows/task-9-migrate-legacy-tests.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add tests/e2e/pendency-cycle.spec.js tests/e2e/functional-core.spec.js
