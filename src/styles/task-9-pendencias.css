@@ -1,6 +1,7 @@
 /* Task 9 — página operacional de pendências */
 .pendency-page-header {
     align-items: flex-start;
+    gap: 16px;
 }
 
 .pendency-active-summary {
@@ -13,11 +14,87 @@
     border-radius: 8px;
     background: var(--bg-sidebar);
     color: var(--text-muted);
+    white-space: nowrap;
 }
 
 .pendency-active-summary strong {
     color: var(--primary);
     font-size: 1.25rem;
+}
+
+.pendency-filter-panel {
+    margin-bottom: 18px;
+}
+
+.pendency-filter-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.pendency-filter-header h2 {
+    margin: 0 0 4px;
+    font-size: 1rem;
+}
+
+.pendency-filter-header p,
+.pendency-filter-result {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    line-height: 1.45;
+}
+
+.pendency-filter-grid {
+    display: grid;
+    grid-template-columns: minmax(260px, 2fr) repeat(4, minmax(150px, 1fr));
+    gap: 12px;
+    align-items: end;
+}
+
+.pendency-filter-grid .filter-field-wide {
+    grid-column: span 2;
+}
+
+.pendency-filter-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 12px;
+}
+
+.pendency-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 32px;
+    padding: 5px 9px;
+    border: 1px solid color-mix(in srgb, var(--primary) 42%, var(--border-color));
+    border-radius: 999px;
+    background: var(--primary-glow);
+    color: var(--text-main);
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.pendency-filter-chip:hover,
+.pendency-filter-chip:focus-visible {
+    border-color: var(--primary);
+    outline: none;
+}
+
+.pendency-filter-chip span:last-child {
+    color: var(--primary);
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.pendency-filter-result {
+    margin-top: 10px;
 }
 
 .pendency-tabs {
@@ -26,6 +103,7 @@
     margin-bottom: 16px;
     overflow-x: auto;
     border-bottom: 1px solid var(--border-color);
+    scrollbar-width: thin;
 }
 
 .pendency-tabs .tab-button {
@@ -86,6 +164,25 @@
     margin-top: 4px;
     color: var(--text-muted);
     line-height: 1.35;
+}
+
+.pendency-row-selected {
+    position: relative;
+    outline: 2px solid color-mix(in srgb, var(--primary) 68%, transparent);
+    outline-offset: -2px;
+    background: var(--primary-glow) !important;
+}
+
+.pendency-detail-marker {
+    display: inline-flex;
+    width: fit-content;
+    margin-top: 6px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: var(--primary);
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 750;
 }
 
 .pendency-error-summary {
@@ -155,28 +252,287 @@
     gap: 10px;
 }
 
-.pendency-mobile-card dt {
+.pendency-mobile-card dt,
+.pendency-detail-drawer dt {
     color: var(--text-muted);
     font-size: 0.72rem;
     font-weight: 700;
     text-transform: uppercase;
 }
 
-.pendency-mobile-card dd {
+.pendency-mobile-card dd,
+.pendency-detail-drawer dd {
     margin: 0;
     color: var(--text-main);
     font-size: 0.84rem;
     font-weight: 600;
 }
 
+.pendency-drawer-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 1300;
+    pointer-events: none;
+}
+
+.pendency-drawer-backdrop {
+    position: absolute;
+    inset: 0;
+    display: none;
+    width: 100%;
+    border: 0;
+    background: rgba(12, 18, 30, 0.56);
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.pendency-detail-drawer {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    width: min(620px, calc(100vw - 300px));
+    min-width: 460px;
+    height: 100%;
+    border-left: 1px solid var(--border-color);
+    background: var(--bg-main);
+    box-shadow: -18px 0 52px rgba(15, 23, 42, 0.22);
+    color: var(--text-main);
+    pointer-events: auto;
+    animation: pendency-drawer-enter 160ms ease-out;
+}
+
+@keyframes pendency-drawer-enter {
+    from { transform: translateX(24px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.pendency-drawer-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 22px 24px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-sidebar);
+}
+
+.pendency-drawer-header h2 {
+    margin: 10px 0 4px;
+    font-size: 1.25rem;
+}
+
+.pendency-drawer-header p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+}
+
+.pendency-drawer-body {
+    flex: 1;
+    display: grid;
+    align-content: start;
+    gap: 16px;
+    padding: 20px 24px 32px;
+    overflow-y: auto;
+}
+
+.pendency-drawer-body > section {
+    padding: 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-sidebar);
+}
+
+.pendency-drawer-body h3 {
+    margin: 0 0 12px;
+    font-size: 0.92rem;
+}
+
+.pendency-drawer-body p {
+    margin: 8px 0 0;
+    color: var(--text-main);
+    font-size: 0.82rem;
+    line-height: 1.55;
+}
+
+.pendency-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 16px;
+    margin: 0;
+}
+
+.pendency-detail-grid > div,
+.pendency-compact-dl > div {
+    display: grid;
+    gap: 3px;
+}
+
+.pendency-drawer-footer {
+    padding: 14px 24px;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-sidebar);
+}
+
+.pendency-drawer-footer .pendency-row-actions {
+    justify-content: flex-end;
+}
+
+.pendency-attempt-list,
+.pendency-contact-list,
+.pendency-timeline {
+    display: grid;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.pendency-attempt-list > li,
+.pendency-contact-list > li {
+    padding: 13px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-input);
+}
+
+.pendency-attempt-heading,
+.pendency-timeline-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.pendency-attempt-heading time,
+.pendency-timeline-heading time,
+.pendency-contact-list time {
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    white-space: nowrap;
+}
+
+.pendency-compact-dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin: 10px 0 0;
+}
+
+.pendency-contact-list strong,
+.pendency-contact-list time {
+    display: block;
+}
+
+.pendency-contact-list small {
+    color: var(--text-muted);
+}
+
+.pendency-timeline > li {
+    position: relative;
+    display: grid;
+    grid-template-columns: 14px minmax(0, 1fr);
+    gap: 10px;
+}
+
+.pendency-timeline > li:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    top: 13px;
+    bottom: -15px;
+    left: 5px;
+    width: 2px;
+    background: var(--border-color);
+}
+
+.pendency-timeline-marker {
+    position: relative;
+    z-index: 1;
+    width: 12px;
+    height: 12px;
+    margin-top: 3px;
+    border: 3px solid var(--bg-sidebar);
+    border-radius: 50%;
+    background: var(--primary);
+    box-shadow: 0 0 0 1px var(--primary);
+}
+
+.pendency-timeline small {
+    display: block;
+    margin-top: 4px;
+    color: var(--text-muted);
+}
+
+.pendency-context-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+    padding: 12px 14px;
+    border: 1px solid color-mix(in srgb, var(--primary) 46%, var(--border-color));
+    border-left: 4px solid var(--primary);
+    border-radius: 8px;
+    background: var(--primary-glow);
+}
+
+.pendency-context-banner div {
+    display: grid;
+    gap: 3px;
+}
+
+.pendency-context-banner span {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+}
+
+.pendency-context-target {
+    outline: 3px solid color-mix(in srgb, var(--primary) 72%, transparent) !important;
+    outline-offset: 3px;
+    scroll-margin-block: 120px;
+}
+
+@media (max-width: 1180px) {
+    .pendency-filter-grid {
+        grid-template-columns: repeat(3, minmax(160px, 1fr));
+    }
+
+    .pendency-filter-grid .filter-field-wide {
+        grid-column: span 2;
+    }
+
+    .pendency-detail-drawer {
+        width: min(600px, calc(100vw - 80px));
+        min-width: 430px;
+    }
+}
+
 @media (max-width: 700px) {
-    .pendency-page-header {
-        gap: 12px;
+    .pendency-page-header,
+    .pendency-filter-header,
+    .pendency-context-banner {
+        flex-direction: column;
+        align-items: stretch;
     }
 
     .pendency-active-summary {
         width: 100%;
         justify-content: center;
+    }
+
+    .pendency-filter-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .pendency-filter-grid .filter-field-wide {
+        grid-column: auto;
+    }
+
+    .pendency-tabs {
+        margin-inline: -4px;
+        padding-inline: 4px;
     }
 
     .pendency-desktop-list {
@@ -191,5 +547,41 @@
     .pendency-row-actions .btn {
         flex: 1 1 100%;
         min-height: 44px;
+    }
+
+    .pendency-drawer-layer.is-mobile .pendency-drawer-backdrop {
+        display: block;
+    }
+
+    .pendency-detail-drawer {
+        inset: 0;
+        width: 100vw;
+        min-width: 0;
+        height: 100dvh;
+        border-left: 0;
+        box-shadow: none;
+    }
+
+    .pendency-drawer-header {
+        padding: max(16px, env(safe-area-inset-top)) 16px 14px;
+    }
+
+    .pendency-drawer-body {
+        padding: 14px 16px calc(24px + env(safe-area-inset-bottom));
+    }
+
+    .pendency-detail-grid,
+    .pendency-compact-dl {
+        grid-template-columns: 1fr;
+    }
+
+    .pendency-drawer-footer {
+        padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pendency-detail-drawer {
+        animation: none;
     }
 }
