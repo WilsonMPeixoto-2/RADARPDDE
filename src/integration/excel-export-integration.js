@@ -111,6 +111,27 @@
         return true;
     }
 
+    const PRIMARY_BUTTON_HTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span>Gerar relatório Excel (.xlsx)</span>
+    `;
+
+    function configurePrimaryButton(button) {
+        if (!button) return false;
+        button.dataset.radarXlsxEnhanced = 'true';
+        button.dataset.radarExportFormat = 'xlsx';
+        button.classList.remove('btn-secondary');
+        button.classList.add('btn-primary');
+        button.innerHTML = PRIMARY_BUTTON_HTML;
+        button.title = 'Gerar relatório institucional Excel com as abas BONIFICACOES, SINTESE, QUALIDADE_DADOS e METADADOS';
+        button.setAttribute('aria-label', 'Gerar relatório Excel completo em formato XLSX');
+        return true;
+    }
+
     function createCsvButton(primaryButton) {
         const button = primaryButton.cloneNode(false);
         button.removeAttribute('onclick');
@@ -130,9 +151,7 @@
         const buttons = root.document.querySelectorAll('[onclick*="exportDataExcel"]');
         buttons.forEach(button => {
             if (button.dataset.radarXlsxEnhanced === 'true') return;
-            button.dataset.radarXlsxEnhanced = 'true';
-            button.title = 'Gerar arquivo Excel completo com base, síntese, qualidade dos dados e metadados';
-            button.setAttribute('aria-label', 'Gerar novo arquivo Excel completo');
+            configurePrimaryButton(button);
             const next = button.nextElementSibling;
             if (!next || next.dataset.radarCsvFallback !== 'true') {
                 button.insertAdjacentElement('afterend', createCsvButton(button));
@@ -174,6 +193,7 @@
     return Object.freeze({
         VERSION,
         buildFileName,
+        configurePrimaryButton,
         createExportArtifacts,
         enhanceExportButtons,
         exportCsvLegacy,
