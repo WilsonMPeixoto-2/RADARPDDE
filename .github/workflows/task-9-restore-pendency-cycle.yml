@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - feature/ciclo-a-task-9-pendencias-navegaveis
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: write
