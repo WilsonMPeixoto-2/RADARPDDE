@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - feature/ciclo-a-pacote-operacional-retificacao
 
 permissions:
   contents: write
@@ -106,11 +107,15 @@ jobs:
           node --check src/integration/task-9-cross-view.js
           node --check src/integration/task-10-11-pendency-actions.js
           node --check src/integration/task-12-13-retificacoes.js
+          node --check src/integration/cycle-b-carteira.js
+          node --check src/integration/cycle-b-dashboard.js
           node --check tests/e2e/task-9-pendencias.spec.js
           node --check tests/e2e/task-9-cross-view.spec.js
           node --check tests/e2e/task-9-cross-view-order.spec.js
           node --check tests/e2e/task-10-11-pendencias.spec.js
           node --check tests/e2e/task-12-13-retificacoes.spec.js
+          node --check tests/e2e/cycle-b-carteira.spec.js
+          node --check tests/e2e/cycle-b-dashboard.spec.js
 
       - name: Executar testes unitários
         run: node --test tests/*.test.js
