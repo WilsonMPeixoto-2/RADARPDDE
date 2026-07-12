@@ -30,6 +30,7 @@ window.RADAR_PDDE_CONFIG = {
     loadStylesheet('src/styles/task-9-pendencias.css');
     loadStylesheet('src/styles/task-9-cross-view.css');
     loadStylesheet('src/styles/task-10-11-pendency-actions.css');
+    loadStylesheet('src/styles/task-12-13-retificacoes.css');
     loadScript('src/domain/pendencias-view-model.js', false);
     loadScript('src/domain/operational-projection.js', false);
     loadScript('src/domain/retificacoes.js', false);
@@ -38,5 +39,6 @@ window.RADAR_PDDE_CONFIG = {
     loadScript('src/integration/task-9-focus-bridge.js', false);
     loadScript('src/integration/task-9-cross-view.js', false);
     loadScript('src/integration/task-10-11-pendency-actions.js', false);
+    loadScript('src/integration/task-12-13-retificacoes.js', false);
     loadScript('src/integration/load-excel-export.js', true);
 }());
