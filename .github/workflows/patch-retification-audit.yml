@@ -1,0 +1,84 @@
+name: Corrigir fluxo auditável de retificação
+
+on:
+  push:
+    branches:
+      - feature/ciclo-a-pacote-operacional-retificacao
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obter branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/ciclo-a-pacote-operacional-retificacao
+          fetch-depth: 0
+
+      - name: Aplicar correções
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          integration = Path('src/integration/task-12-13-retificacoes.js')
+          text = integration.read_text(encoding='utf-8')
+          old = "                perfil: user.role || currentProfileValue(),"
+          new = "                perfil: currentProfileValue(),"
+          if text.count(old) != 1:
+              raise SystemExit(f'Trecho de perfil encontrado {text.count(old)} vezes.')
+          integration.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          test_path = Path('tests/e2e/functional-core.spec.js')
+          text = test_path.read_text(encoding='utf-8')
+          old_name = "  test('reabre consolidação quando valor repetido de NF altera campos derivados', async ({ page }, testInfo) => {"
+          new_name = "  test('direciona alteração consolidada ao fluxo auditável sem edição silenciosa', async ({ page }, testInfo) => {"
+          if text.count(old_name) != 1:
+              raise SystemExit(f'Nome do teste encontrado {text.count(old_name)} vezes.')
+          text = text.replace(old_name, new_name, 1)
+
+          old_block = """    await fiscalNoteRow(page).getByRole('button', { name: 'Sim', exact: true }).click();
+
+    expect(await page.evaluate(({ escolaId, compProgKey }) => ({
+      result: verificacoes[escolaId][compProgKey].resultadoBonif,
+      assessoria: verificacoes[escolaId][compProgKey].bonificacao.consAssessoria,
+      inventario: verificacoes[escolaId][compProgKey].bonificacao.encampInventario,
+      reopenLogs: logs.filter(log => log.acao === 'Consolidação Reaberta').length
+    }), context)).toEqual({ result: '', assessoria: '', inventario: '', reopenLogs: 1 });
+"""
+          new_block = """    await fiscalNoteRow(page).getByRole('button', { name: 'Sim', exact: true }).click();
+
+    const dialog = page.getByRole('dialog', { name: 'Retificar consolidação' });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByLabel('Notas Fiscais')).toHaveValue('Sim');
+
+    expect(await page.evaluate(({ escolaId, compProgKey }) => ({
+      result: verificacoes[escolaId][compProgKey].resultadoBonif,
+      assessoria: verificacoes[escolaId][compProgKey].bonificacao.consAssessoria,
+      inventario: verificacoes[escolaId][compProgKey].bonificacao.encampInventario,
+      reopenLogs: logs.filter(log => log.acao === 'Consolidação Reaberta').length
+    }), context)).toEqual({
+      result: 'apta',
+      assessoria: 'Não se aplica',
+      inventario: 'Não se aplica',
+      reopenLogs: 0
+    });
+"""
+          if text.count(old_block) != 1:
+              raise SystemExit(f'Bloco antigo encontrado {text.count(old_block)} vezes.')
+          test_path.write_text(text.replace(old_block, new_block, 1), encoding='utf-8')
+          PY
+
+      - name: Validar e publicar
+        run: |
+          node --check src/integration/task-12-13-retificacoes.js
+          node --check tests/e2e/functional-core.spec.js
+          git diff --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/integration/task-12-13-retificacoes.js tests/e2e/functional-core.spec.js
+          git commit -m "fix: concluir fluxo auditável de retificação"
+          git push origin HEAD:feature/ciclo-a-pacote-operacional-retificacao
