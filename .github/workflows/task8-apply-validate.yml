@@ -33,11 +33,16 @@ jobs:
         if: steps.patch.outputs.present == 'true'
         shell: bash
         run: |
-          base64 --decode task8-implementation.patch.gz.b64 | gzip --decompress > /tmp/task8-implementation.patch
-          echo "233eefe7ab2730f295b571c377efb2dc8a5d6e5504514aab8489d67d24a8b311  /tmp/task8-implementation.patch" | sha256sum --check
+          set -euo pipefail
+          wc -c task8-implementation.patch.gz.b64
+          base64 --decode task8-implementation.patch.gz.b64 > /tmp/task8-implementation.patch.gz
+          gzip --test /tmp/task8-implementation.patch.gz
+          gzip --decompress --stdout /tmp/task8-implementation.patch.gz > /tmp/task8-implementation.patch
+          wc -c /tmp/task8-implementation.patch
+          sha256sum /tmp/task8-implementation.patch
           git config user.name "Wilson Malafaia Peixoto"
           git config user.email "wilsonmp2@gmail.com"
-          git am /tmp/task8-implementation.patch
+          git am --3way /tmp/task8-implementation.patch
           git rm task8-implementation.patch.gz.b64
 
       - name: Instalar dependências sem alterar o manifesto
