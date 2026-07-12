@@ -48,36 +48,36 @@ jobs:
           text = path.read_text(encoding='utf-8')
           replacements = [
               (
-                  """    await expect(page.getByRole('tab', { name: /^Abertas\\b/ })).toBeVisible();
-    const awaitingRow = page.locator('#p-abertas tr[data-pendency-ref]');
-    await expect(awaitingRow).toContainText('Aguardando reanálise');""",
-                  """    await expect(page.getByRole('tab', { name: /^Aguardando reanálise\\b/ }))
-      .toHaveAttribute('aria-selected', 'true');
-    const awaitingRow = page.locator('#p-aguardando tr[data-pendency-ref]');
-    await expect(awaitingRow).toContainText('Aguardando reanálise');"""
+                  "    await expect(page.getByRole('tab', { name: /^Abertas\\b/ })).toBeVisible();\n"
+                  "    const awaitingRow = page.locator('#p-abertas tr[data-pendency-ref]');\n"
+                  "    await expect(awaitingRow).toContainText('Aguardando reanálise');",
+                  "    await expect(page.getByRole('tab', { name: /^Aguardando reanálise\\b/ }))\n"
+                  "      .toHaveAttribute('aria-selected', 'true');\n"
+                  "    const awaitingRow = page.locator('#p-aguardando tr[data-pendency-ref]');\n"
+                  "    await expect(awaitingRow).toContainText('Aguardando reanálise');"
               ),
               (
-                  """    await expect(page.getByRole('tab', { name: /^Abertas\\b/ }))
-      .toHaveClass(/active/);
-    await expect(page.locator('#p-abertas')).toHaveClass(/active/);""",
-                  """    await expect(page.getByRole('tab', { name: /^Aguardando reanálise\\b/ }))
-      .toHaveClass(/active/);
-    await expect(page.locator('#p-aguardando')).toHaveClass(/active/);"""
+                  "    await expect(page.getByRole('tab', { name: /^Abertas\\b/ }))\n"
+                  "      .toHaveClass(/active/);\n"
+                  "    await expect(page.locator('#p-abertas')).toHaveClass(/active/);",
+                  "    await expect(page.getByRole('tab', { name: /^Aguardando reanálise\\b/ }))\n"
+                  "      .toHaveClass(/active/);\n"
+                  "    await expect(page.locator('#p-aguardando')).toHaveClass(/active/);"
               ),
               (
                   "inActiveTab: Boolean(focused && focused.closest('#p-abertas'))",
                   "inActiveTab: Boolean(focused && focused.closest('#p-aguardando'))"
               ),
               (
-                  """    await page.locator('#p-abertas').getByRole('button', {
-      name: 'Reanalisar',
-      exact: true
-    }).click();""",
-                  """    await page.getByRole('tab', { name: /^Aguardando reanálise\\b/ }).click();
-    await page.locator('#p-aguardando').getByRole('button', {
-      name: 'Reanalisar',
-      exact: true
-    }).click();"""
+                  "    await page.locator('#p-abertas').getByRole('button', {\n"
+                  "      name: 'Reanalisar',\n"
+                  "      exact: true\n"
+                  "    }).click();",
+                  "    await page.getByRole('tab', { name: /^Aguardando reanálise\\b/ }).click();\n"
+                  "    await page.locator('#p-aguardando').getByRole('button', {\n"
+                  "      name: 'Reanalisar',\n"
+                  "      exact: true\n"
+                  "    }).click();"
               )
           ]
           for old, new in replacements:
