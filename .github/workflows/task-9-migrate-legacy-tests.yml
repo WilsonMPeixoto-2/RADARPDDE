@@ -29,12 +29,12 @@ jobs:
           pendency = pendency_path.read_text(encoding='utf-8')
           pendency, open_count = re.subn(
               r"getByRole\('button', \{ name: 'Ativas \(\d+\)', exact: true \}\)",
-              r"getByRole('tab', { name: /^Abertas\\b/ })",
+              r"getByRole('tab', { name: /^Abertas\b/ })",
               pendency,
           )
           pendency, resolved_count = re.subn(
               r"getByRole\('button', \{ name: 'Histórico Resolvidas \(\d+\)', exact: true \}\)",
-              r"getByRole('tab', { name: /^Resolvidas\\b/ })",
+              r"getByRole('tab', { name: /^Resolvidas\b/ })",
               pendency,
           )
           pendency_path.write_text(pendency, encoding='utf-8')
