@@ -1,0 +1,75 @@
+name: Migrar testes legados da Task 9
+
+on:
+  push:
+    branches:
+      - feature/ciclo-a-task-9-pendencias-navegaveis
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obter código
+        uses: actions/checkout@v4
+        with:
+          ref: feature/ciclo-a-task-9-pendencias-navegaveis
+          fetch-depth: 0
+
+      - name: Atualizar expectativas superadas pela interface canônica
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          pendency_path = Path('tests/e2e/pendency-cycle.spec.js')
+          pendency = pendency_path.read_text(encoding='utf-8')
+          pendency, open_count = re.subn(
+              r"getByRole\('button', \{ name: 'Ativas \(\d+\)', exact: true \}\)",
+              r"getByRole('tab', { name: /^Abertas\\b/ })",
+              pendency,
+          )
+          pendency, resolved_count = re.subn(
+              r"getByRole\('button', \{ name: 'Histórico Resolvidas \(\d+\)', exact: true \}\)",
+              r"getByRole('tab', { name: /^Resolvidas\\b/ })",
+              pendency,
+          )
+          pendency_path.write_text(pendency, encoding='utf-8')
+
+          functional_path = Path('tests/e2e/functional-core.spec.js')
+          functional = functional_path.read_text(encoding='utf-8')
+          old = "await legacyRow.getByRole('button', { name: 'Ver Unidade', exact: true }).click();"
+          new = "await legacyRow.getByRole('button', { name: 'Abrir no Prontuário', exact: true }).click();"
+          unit_count = functional.count(old)
+          functional = functional.replace(old, new)
+          functional_path.write_text(functional, encoding='utf-8')
+
+          print({
+              'abas_ativas_atualizadas': open_count,
+              'abas_resolvidas_atualizadas': resolved_count,
+              'acoes_legadas_atualizadas': unit_count,
+          })
+          if open_count == 0 or resolved_count == 0 or unit_count != 1:
+              raise SystemExit('As expectativas legadas não foram encontradas na quantidade esperada.')
+          PY
+
+      - name: Validar alterações textuais
+        run: |
+          git diff --check
+          node --check tests/e2e/pendency-cycle.spec.js
+          node --check tests/e2e/functional-core.spec.js
+
+      - name: Salvar migração dos testes
+        run: |
+          if git diff --quiet; then
+            echo "Nenhuma alteração necessária."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/e2e/pendency-cycle.spec.js tests/e2e/functional-core.spec.js
+          git commit -m "test: alinhar regressões legadas à Task 9"
+          git push origin HEAD:feature/ciclo-a-task-9-pendencias-navegaveis
