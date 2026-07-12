@@ -27,12 +27,16 @@ jobs:
         run: |
           node --check app.js
           node --check src/domain/pendencias-view-model.js
+          node --check src/domain/operational-projection.js
+          node --check src/domain/retificacoes.js
           node --check src/integration/task-9-pendencias-page.js
           node --check src/integration/task-9-focus-bridge.js
           node --check src/integration/task-9-cross-view.js
+          node --check src/integration/task-10-11-pendency-actions.js
           node --check tests/e2e/task-9-pendencias.spec.js
           node --check tests/e2e/task-9-cross-view.spec.js
           node --check tests/e2e/task-9-cross-view-order.spec.js
+          node --check tests/e2e/task-10-11-pendencias.spec.js
 
       - name: Executar testes unitários
         run: node --test tests/*.test.js
