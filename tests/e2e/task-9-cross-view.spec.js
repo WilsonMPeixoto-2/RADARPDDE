@@ -83,7 +83,7 @@ test.describe('Task 9 — encontrabilidade entre Competências e Pendências', (
       switchView('competencias');
     });
     const passivo = page.locator('#passivo-competencias-list');
-    await expect(passivo.locator('[data-pendency-ref]')).toHaveCount(2);
+    await expect(passivo.locator('tr[data-pendency-ref]')).toHaveCount(2);
     await expect(passivo).toContainText('Aberta');
     await expect(passivo).toContainText('Aguardando reanálise');
   });
