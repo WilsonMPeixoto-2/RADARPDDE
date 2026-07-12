@@ -5178,29 +5178,66 @@ function blockConsolidatedFiscalNoteMutation(escolaId, compProgKey) {
     return true;
 }
 
-function getProgramVerificationStatus(escolaId, compKey, progId) {
+function getProgramBonificationStatus(escolaId, compKey, progId) {
     const compProgKey = `${compKey}_${progId}`;
-    return window.RadarFluxoOperacional.getProgramOperationalStatus(
+    return window.RadarFluxoOperacional.getProgramBonificationStatus(
         verificacoes[escolaId]?.[compProgKey]
     );
 }
 
-function getProgramStatusMeta(status) {
+function getProgramTechnicalStatus(escolaId, compKey, progId) {
+    const compProgKey = `${compKey}_${progId}`;
+    return window.RadarFluxoOperacional.getProgramTechnicalAnalysisStatus(
+        verificacoes[escolaId]?.[compProgKey]
+    );
+}
+
+function getProgramBonificationMeta(status) {
     const metas = {
-        apta: { label: 'Apta', badgeClass: 'badge-success' },
-        inapta: { label: 'Inapta', badgeClass: 'badge-danger' },
-        'em-andamento': { label: 'Em andamento', badgeClass: 'badge-warning' },
-        'nao-lancado': { label: 'Não analisada', badgeClass: 'badge-gray' }
+        apta: { label: 'APTA', badgeClass: 'badge-success' },
+        inapta: { label: 'INAPTA', badgeClass: 'badge-danger' },
+        'em-apuracao': { label: 'Em apuração', badgeClass: 'badge-warning' },
+        'nao-lancada': { label: 'Não lançada', badgeClass: 'badge-gray' }
     };
 
-    return metas[status] || metas['nao-lancado'];
+    return metas[status] || metas['nao-lancada'];
+}
+
+function getProgramTechnicalMeta(status) {
+    const metas = {
+        correto: { label: 'Correto', badgeClass: 'badge-success' },
+        'correto-atrasado': { label: 'Correto após o prazo', badgeClass: 'badge-success' },
+        incorreto: { label: 'Incorreto', badgeClass: 'badge-danger' },
+        'em-analise': { label: 'Em análise', badgeClass: 'badge-warning' },
+        'nao-analisado': { label: 'Não analisado', badgeClass: 'badge-gray' }
+    };
+
+    return metas[status] || metas['nao-analisado'];
+}
+
+function getSchoolTechnicalAnalysisStatus(esc, compKey) {
+    if (!esc || !Array.isArray(esc.programasIds) || esc.programasIds.length === 0) {
+        return 'nao-analisado';
+    }
+
+    const statuses = esc.programasIds.map(progId => (
+        getProgramTechnicalStatus(esc.id, compKey, progId)
+    ));
+
+    if (statuses.includes('incorreto')) return 'incorreto';
+    if (statuses.every(status => status === 'correto')) return 'correto';
+    if (statuses.every(status => ['correto', 'correto-atrasado'].includes(status))) {
+        return statuses.includes('correto-atrasado') ? 'correto-atrasado' : 'correto';
+    }
+    if (statuses.every(status => status === 'nao-analisado')) return 'nao-analisado';
+    return 'em-analise';
 }
 
 function getEscolasStats(escolasList, compKey) {
     let apto = 0;
     let inapto = 0;
     let emAndamento = 0;
-    let naoAnalisado = 0; // Análise de programa não vista
+    let naoAnalisado = 0; // Bonificação de programa ainda não lançada
     let foraEscopo = 0;
     
     const aptoList = [];
@@ -5209,13 +5246,12 @@ function getEscolasStats(escolasList, compKey) {
     const naoAnalisadoList = [];
 
     escolasList.forEach(e => {
-        // Se possui pendências ou verificações lançadas neste mês/escola, o mês está ativo independente da data de início
-        const hasPendencies = pendencias.some(p => p.escolaId === e.id && p.competencia === compKey);
+        // Verificações existentes preservam a leitura histórica da bonificação.
         let hasVerifications = false;
         if (verificacoes[e.id]) {
             hasVerifications = Object.keys(verificacoes[e.id]).some(k => k.startsWith(compKey));
         }
-        const forceInScope = hasPendencies || hasVerifications;
+        const forceInScope = hasVerifications;
 
         if (!forceInScope && !isCompetenceInScope(e.competenciaInicial, compKey)) {
             foraEscopo++;
@@ -5225,7 +5261,7 @@ function getEscolasStats(escolasList, compKey) {
         // Iterar sobre cada programa da escola
         e.programasIds.forEach(progId => {
             const compProgKey = `${compKey}_${progId}`;
-            const progStatus = getProgramVerificationStatus(e.id, compKey, progId);
+            const progStatus = getProgramBonificationStatus(e.id, compKey, progId);
             
             // Referência dinâmica contendo dados da escola e o programa associado
             const schoolProgRef = {
@@ -5240,7 +5276,7 @@ function getEscolasStats(escolasList, compKey) {
             } else if (progStatus === 'apta') {
                 apto++;
                 aptoList.push(schoolProgRef);
-            } else if (progStatus === 'em-andamento') {
+            } else if (progStatus === 'em-apuracao') {
                 emAndamento++;
                 emAndamentoList.push(schoolProgRef);
             } else {
@@ -5627,7 +5663,7 @@ function renderDashboardControlador(container) {
     const escolasNaoAnalisadas = targetEscolas.filter(e => {
         if (!isCompetenceInScope(e.competenciaInicial, activeCompetenciaKey)) return false;
         return e.programasIds.some(progId => {
-            return getProgramVerificationStatus(e.id, activeCompetenciaKey, progId) === 'nao-lancado';
+            return getProgramBonificationStatus(e.id, activeCompetenciaKey, progId) === 'nao-lancada';
         });
     });
 
@@ -5748,8 +5784,8 @@ function renderDashboardControlador(container) {
                                     e.programasIds.forEach(progId => {
                                         const prog = programas.find(p => p.id === progId);
                                         const progName = prog ? prog.name : progId;
-                                        const progStatus = getProgramVerificationStatus(e.id, activeCompetenciaKey, progId);
-                                        const statusMeta = getProgramStatusMeta(progStatus);
+                                        const progStatus = getProgramBonificationStatus(e.id, activeCompetenciaKey, progId);
+                                        const statusMeta = getProgramBonificationMeta(progStatus);
                                         const progBadge = `<span class="badge ${statusMeta.badgeClass} dashboard-status-badge">${statusMeta.label}</span>`;
 
                                         statusHTML += `<div style="margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
@@ -6384,8 +6420,8 @@ function renderDashboardSME(container) {
                                     let consAssessoria = '-';
                                     let declBBAgil = '-';
                                     let encampInventario = '-';
-                                    const progStatus = getProgramVerificationStatus(e.id, activeCompetenciaKey, progId);
-                                    const statusMeta = getProgramStatusMeta(progStatus);
+                                    const progStatus = getProgramBonificationStatus(e.id, activeCompetenciaKey, progId);
+                                    const statusMeta = getProgramBonificationMeta(progStatus);
                                     let statusBadge = `<span class="badge ${statusMeta.badgeClass}">${statusMeta.label}</span>`;
                                     
                                     if (v) {
@@ -7619,41 +7655,39 @@ function renderCompetencias() {
                             
                             let bonifStatusHTML = '';
                             let analiseStatusHTML = '';
-                            let pendentesCount = pendencias.filter(p => p.escolaId === e.id && p.competencia === activeCompetenciaKey && p.status === 'Aberta').length;
+                            const pendentesCount = pendencias.filter(p => (
+                                p.escolaId === e.id
+                                && (p.competenciaOrigem === activeCompetenciaKey || p.competencia === activeCompetenciaKey)
+                                && window.RadarPendencias.isActivePendency(p)
+                            )).length;
 
                             if (inScope) {
                                 e.programasIds.forEach(progId => {
-                                    const compProgKey = `${activeCompetenciaKey}_${progId}`;
-                                    const v = verificacoes[e.id]?.[compProgKey];
                                     const prog = programas.find(p => p.id === progId);
                                     const progName = prog ? prog.name : progId;
-                                    const progStatus = getProgramVerificationStatus(e.id, activeCompetenciaKey, progId);
-                                    const statusMeta = getProgramStatusMeta(progStatus);
-                                    
-                                    let bStatus = `<span class="badge ${statusMeta.badgeClass}" style="font-size:0.65rem; padding: 2px 4px; font-weight:500;">${statusMeta.label}</span>`;
-                                    let aStatus = `<span style="color:var(--text-muted); font-size:0.75rem;">Sem registro</span>`;
-                                    
-                                    if (v) {
-                                        const aVals = Object.values(v.analise || {});
-                                        const hasStarted = aVals.some(isAnaliseValueStarted)
-                                            || Object.values(v.bonificacao || {}).some(isBonificacaoValueStarted);
+                                    const bonusStatus = getProgramBonificationStatus(
+                                        e.id,
+                                        activeCompetenciaKey,
+                                        progId
+                                    );
+                                    const bonusMeta = getProgramBonificationMeta(bonusStatus);
+                                    const technicalStatus = getProgramTechnicalStatus(
+                                        e.id,
+                                        activeCompetenciaKey,
+                                        progId
+                                    );
+                                    const technicalMeta = getProgramTechnicalMeta(technicalStatus);
 
-                                        if (aVals.length > 0 && aVals.every(x => x === 'Correto' || x === 'Correto (Atrasado)')) {
-                                            aStatus = `<span style="color:var(--success); font-weight:600; font-size:0.75rem;">Correto</span>`;
-                                        } else if (aVals.includes('Incorreto')) {
-                                            aStatus = `<span style="color:var(--danger); font-weight:600; font-size:0.75rem;">Com Erros</span>`;
-                                        } else if (hasStarted) {
-                                            aStatus = `<span style="color:var(--text-muted); font-size:0.75rem;">Em Análise</span>`;
-                                        }
-                                    }
-                                    
+                                    const bStatus = `<span class="badge ${bonusMeta.badgeClass}" style="font-size:0.65rem; padding: 2px 4px; font-weight:500;">${bonusMeta.label}</span>`;
+                                    const aStatus = `<span class="badge ${technicalMeta.badgeClass}" style="font-size:0.65rem; padding: 2px 4px; font-weight:500;">${technicalMeta.label}</span>`;
+
                                     bonifStatusHTML += `<div style="margin-bottom:4px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
-                                        <span style="font-size:0.75rem; color:var(--text-muted);">${progName}:</span>
+                                        <span style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(progName)}:</span>
                                         ${bStatus}
                                     </div>`;
-                                    
+
                                     analiseStatusHTML += `<div style="margin-bottom:4px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
-                                        <span style="font-size:0.75rem; color:var(--text-muted);">${progName}:</span>
+                                        <span style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(progName)}:</span>
                                         ${aStatus}
                                     </div>`;
                                 });
@@ -9345,48 +9379,37 @@ function removerPrograma(progId) {
 function getCompMonthStatus(escolaId, compKey) {
     const esc = escolas.find(e => e.id === escolaId);
     if (!esc) return 'nao-lancado';
-    
-    // Se possui pendências ou verificações lançadas neste mês/escola, o mês está ativo independente da data de início
-    const hasPendencies = pendencias.some(p => p.escolaId === escolaId && p.competencia === compKey);
+
     let hasVerifications = false;
     if (verificacoes[escolaId]) {
         hasVerifications = Object.keys(verificacoes[escolaId]).some(k => k.startsWith(compKey));
     }
-    const forceInScope = hasPendencies || hasVerifications;
 
-    // 1. Fora do escopo da escola (antes da competência inicial)
-    if (!forceInScope && !isCompetenceInScope(esc.competenciaInicial, compKey)) {
+    if (!hasVerifications && !isCompetenceInScope(esc.competenciaInicial, compKey)) {
         return 'out-of-scope';
     }
-    
-    // Se for maior que o fechamento da CRE, ainda não foi iniciado/lançado
-    if (!forceInScope && compKey > config.competenciaFechamento) {
+
+    if (!hasVerifications && compKey > config.competenciaFechamento) {
         return 'out-of-scope';
     }
-    
-    // 2. Procurar verificações da escola para todos os seus programas nesta competência
-    const programStatuses = esc.programasIds.map(progId => getProgramVerificationStatus(escolaId, compKey, progId));
-    
-    // Pendências ativas vinculadas a esta competência e escola
-    const pAtivasComp = pendencias.filter(p =>
-        p.escolaId === escolaId
-        && (p.competenciaOrigem === compKey || p.competencia === compKey)
-        && window.RadarPendencias.isActivePendency(p)
-    ).length;
-    
-    if (programStatuses.includes('inapta') || pAtivasComp > 0) {
-        return 'inapta'; // Vermelho
+
+    const programStatuses = esc.programasIds.map(progId => (
+        getProgramBonificationStatus(escolaId, compKey, progId)
+    ));
+
+    if (programStatuses.includes('inapta')) {
+        return 'inapta';
     }
-    
+
     if (programStatuses.length > 0 && programStatuses.every(status => status === 'apta')) {
-        return 'apta'; // Verde
+        return 'apta';
     }
-    
-    if (programStatuses.some(status => status === 'em-andamento' || status === 'apta')) {
-        return 'em-andamento'; // Laranja/Amarelo
+
+    if (programStatuses.some(status => ['apta', 'em-apuracao'].includes(status))) {
+        return 'em-andamento';
     }
-    
-    return 'nao-lancado'; // Cinza
+
+    return 'nao-lancado';
 }
 
 // ==========================================
@@ -9864,7 +9887,10 @@ function renderProntuarioVerificacoes(esc) {
         const c = selectedComp;
         
         // Se possui pendências ou verificações lançadas neste mês/escola, o mês está ativo independente da data de início
-        const hasPendencies = pendencias.some(p => p.escolaId === esc.id && p.competencia === c.key);
+        const hasPendencies = pendencias.some(p => (
+            p.escolaId === esc.id
+            && (p.competenciaOrigem === c.key || p.competencia === c.key)
+        ));
         let hasVerifications = false;
         if (verificacoes[esc.id]) {
             hasVerifications = Object.keys(verificacoes[esc.id]).some(k => k.startsWith(c.key));
@@ -11827,44 +11853,47 @@ function runRadarStatusDiagnostics() {
         }
     }
 
-    // Scenario 1: Verify getProgramVerificationStatus on mock/existing scenarios
+    // Scenario 1: validate the two independent program dimensions.
     escolas.forEach(e => {
         e.programasIds.forEach(progId => {
             const compKey = activeCompetenciaKey;
-            const status = getProgramVerificationStatus(e.id, compKey, progId);
-            
-            // Check status is valid
-            assert(['apta', 'inapta', 'em-andamento', 'nao-lancado'].includes(status), 
-                `Invalid status value "${status}" for school ${e.id}, program ${progId}`, 
-                { schoolId: e.id, status });
+            const bonusStatus = getProgramBonificationStatus(e.id, compKey, progId);
+            const technicalStatus = getProgramTechnicalStatus(e.id, compKey, progId);
 
-            // Specific rule checks if verification object exists
+            assert(
+                ['apta', 'inapta', 'em-apuracao', 'nao-lancada'].includes(bonusStatus),
+                `Invalid bonus status "${bonusStatus}" for school ${e.id}, program ${progId}`,
+                { schoolId: e.id, bonusStatus }
+            );
+            assert(
+                ['correto', 'correto-atrasado', 'incorreto', 'em-analise', 'nao-analisado']
+                    .includes(technicalStatus),
+                `Invalid technical status "${technicalStatus}" for school ${e.id}, program ${progId}`,
+                { schoolId: e.id, technicalStatus }
+            );
+
             const compProgKey = `${compKey}_${progId}`;
-            const v = verificacoes[e.id]?.[compProgKey];
-            if (v) {
-                const analiseVals = Object.values(v.analise || {});
-                const temIncorreto = analiseVals.includes('Incorreto');
-                
-                if (v.resultadoBonif === 'inapta' || temIncorreto) {
-                    assert(status === 'inapta', 
-                        `Expected status to be "inapta" for school ${e.id}, program ${progId} because of inapta result or incorrect analysis.`, 
-                        { v, status });
-                }
-                
-                const analisesConcluidas = analiseVals.length > 0
-                    && analiseVals.every(x => x === 'Correto' || x === 'Correto (Atrasado)')
-                    && !analiseVals.includes('Não analisado');
-                
-                if ((v.resultadoBonif === 'apta' || analisesConcluidas) && !(v.resultadoBonif === 'inapta' || temIncorreto)) {
-                    assert(status === 'apta', 
-                        `Expected status to be "apta" for school ${e.id}, program ${progId} because of apta result or completed analyses.`, 
-                        { v, status });
-                }
+            const verification = verificacoes[e.id]?.[compProgKey];
+            if (!verification) return;
+
+            if (['apta', 'inapta'].includes(verification.resultadoBonif)) {
+                assert(
+                    bonusStatus === verification.resultadoBonif,
+                    `Bonus status must preserve the consolidated result for school ${e.id}, program ${progId}.`,
+                    { verification, bonusStatus }
+                );
+            }
+            if (Object.values(verification.analise || {}).includes('Incorreto')) {
+                assert(
+                    technicalStatus === 'incorreto',
+                    `Incorrect analysis must affect only the technical dimension for school ${e.id}, program ${progId}.`,
+                    { verification, bonusStatus, technicalStatus }
+                );
             }
         });
     });
 
-    // Scenario 2: Test getEscolasStats counts match sum of individual program statuses
+    // Scenario 2: bonus statistics must match the independent bonus status.
     const stats = getEscolasStats(escolas, activeCompetenciaKey);
     let calculatedApto = 0;
     let calculatedInapto = 0;
@@ -11873,23 +11902,27 @@ function runRadarStatusDiagnostics() {
     let calculatedForaEscopo = 0;
 
     escolas.forEach(e => {
-        const hasPendencies = pendencias.some(p => p.escolaId === e.id && p.competencia === activeCompetenciaKey);
         let hasVerifications = false;
         if (verificacoes[e.id]) {
-            hasVerifications = Object.keys(verificacoes[e.id]).some(k => k.startsWith(activeCompetenciaKey));
+            hasVerifications = Object.keys(verificacoes[e.id]).some(k => (
+                k.startsWith(activeCompetenciaKey)
+            ));
         }
-        const forceInScope = hasPendencies || hasVerifications;
 
-        if (!forceInScope && !isCompetenceInScope(e.competenciaInicial, activeCompetenciaKey)) {
+        if (!hasVerifications && !isCompetenceInScope(e.competenciaInicial, activeCompetenciaKey)) {
             calculatedForaEscopo++;
             return;
         }
 
         e.programasIds.forEach(progId => {
-            const progStatus = getProgramVerificationStatus(e.id, activeCompetenciaKey, progId);
-            if (progStatus === 'inapta') calculatedInapto++;
-            else if (progStatus === 'apta') calculatedApto++;
-            else if (progStatus === 'em-andamento') calculatedEmAndamento++;
+            const bonusStatus = getProgramBonificationStatus(
+                e.id,
+                activeCompetenciaKey,
+                progId
+            );
+            if (bonusStatus === 'inapta') calculatedInapto++;
+            else if (bonusStatus === 'apta') calculatedApto++;
+            else if (bonusStatus === 'em-apuracao') calculatedEmAndamento++;
             else calculatedNaoAnalisado++;
         });
     });
