@@ -9,7 +9,8 @@ const {
     canRegisterFiscalNote,
     createEmptyVerification,
     evaluateBonification,
-    getProgramOperationalStatus,
+    getProgramBonificationStatus,
+    getProgramTechnicalAnalysisStatus,
     pendencyMatchesContext,
     shouldRequireFiscalNote
 } = require('../src/domain/fluxo-operacional.js');
@@ -84,41 +85,77 @@ test('recusa consolidação e informa todos os documentos ausentes ou inválidos
     });
 });
 
-test('programa só fica apta com bonificação apta e as seis análises corretas', () => {
-    assert.equal(getProgramOperationalStatus({
-        bonificacao: COMPLETE_APTA_BONIFICATION,
-        analise: COMPLETE_ANALYSIS,
-        resultadoBonif: 'apta'
-    }), 'apta');
-
-    assert.equal(getProgramOperationalStatus({
-        bonificacao: COMPLETE_APTA_BONIFICATION,
-        analise: { ...COMPLETE_ANALYSIS, notaFiscal: 'Não analisado' },
-        resultadoBonif: 'apta'
-    }), 'em-andamento');
-});
-
-test('programa fica inapta por consolidação inapta ou qualquer análise incorreta', () => {
-    assert.equal(getProgramOperationalStatus({
-        bonificacao: COMPLETE_APTA_BONIFICATION,
-        analise: COMPLETE_ANALYSIS,
-        resultadoBonif: 'inapta'
-    }), 'inapta');
-
-    assert.equal(getProgramOperationalStatus({
+test('mantém bonificação apta mesmo quando a análise técnica está incorreta', () => {
+    assert.equal(getProgramBonificationStatus({
         bonificacao: COMPLETE_APTA_BONIFICATION,
         analise: { ...COMPLETE_ANALYSIS, consAssessoria: 'Incorreto' },
         resultadoBonif: 'apta'
+    }), 'apta');
+});
+
+test('mantém bonificação inapta mesmo quando todas as análises estão corretas', () => {
+    assert.equal(getProgramBonificationStatus({
+        bonificacao: { ...COMPLETE_APTA_BONIFICATION, notaFiscal: 'Não' },
+        analise: Object.fromEntries(DOCUMENT_KEYS.map(key => [key, 'Correto'])),
+        resultadoBonif: 'inapta'
     }), 'inapta');
 });
 
-test('distingue verificação vazia de estado parcialmente preenchido', () => {
-    assert.equal(getProgramOperationalStatus(), 'nao-lancado');
-    assert.equal(getProgramOperationalStatus(createEmptyVerification()), 'nao-lancado');
-    assert.equal(getProgramOperationalStatus({
+test('distingue bonificação não lançada de bonificação em apuração', () => {
+    assert.equal(getProgramBonificationStatus(), 'nao-lancada');
+    assert.equal(getProgramBonificationStatus(createEmptyVerification()), 'nao-lancada');
+    assert.equal(getProgramBonificationStatus({
         ...createEmptyVerification(),
         bonificacao: { ...createEmptyVerification().bonificacao, notaFiscal: 'Sim' }
-    }), 'em-andamento');
+    }), 'em-apuracao');
+});
+
+test('pendência externa não interfere no resultado da bonificação', () => {
+    const verification = {
+        bonificacao: COMPLETE_APTA_BONIFICATION,
+        analise: { ...COMPLETE_ANALYSIS, extCC: 'Incorreto' },
+        resultadoBonif: 'apta'
+    };
+    const activePendency = { status: 'Aberta' };
+
+    assert.equal(activePendency.status, 'Aberta');
+    assert.equal(getProgramBonificationStatus(verification), 'apta');
+});
+
+test('classifica análise técnica totalmente não analisada', () => {
+    assert.equal(
+        getProgramTechnicalAnalysisStatus(createEmptyVerification()),
+        'nao-analisado'
+    );
+});
+
+test('classifica análise técnica parcialmente iniciada', () => {
+    const verification = createEmptyVerification();
+    verification.analise.extCC = 'Correto';
+
+    assert.equal(
+        getProgramTechnicalAnalysisStatus(verification),
+        'em-analise'
+    );
+});
+
+test('prioriza análise incorreta sobre os demais estados técnicos', () => {
+    assert.equal(getProgramTechnicalAnalysisStatus({
+        analise: { ...COMPLETE_ANALYSIS, consAssessoria: 'Incorreto' }
+    }), 'incorreto');
+});
+
+test('distingue análise correta no prazo de análise correta após o prazo', () => {
+    const allCorrect = Object.fromEntries(DOCUMENT_KEYS.map(key => [key, 'Correto']));
+
+    assert.equal(
+        getProgramTechnicalAnalysisStatus({ analise: allCorrect }),
+        'correto'
+    );
+    assert.equal(
+        getProgramTechnicalAnalysisStatus({ analise: COMPLETE_ANALYSIS }),
+        'correto-atrasado'
+    );
 });
 
 test('permite cadastrar nota após entrega Sim apenas para perfis editáveis', () => {

@@ -102,29 +102,42 @@
         });
     }
 
-    function getProgramOperationalStatus(verificacao) {
-        if (!verificacao || typeof verificacao !== 'object') {
-            return 'nao-lancado';
+    function hasStartedValue(value) {
+        return value !== undefined
+            && value !== null
+            && value !== ''
+            && value !== false;
+    }
+
+    function getProgramBonificationStatus(verification = {}) {
+        const result = normalizeText(verification.resultadoBonif);
+        if (result === 'apta' || result === 'inapta') {
+            return result;
         }
 
-        const bonificacao = verificacao.bonificacao || {};
-        const analise = verificacao.analise || {};
-        const analyses = DOCUMENT_KEYS.map(key => analise[key]);
+        const bonificacao = verification.bonificacao || {};
+        const hasStarted = DOCUMENT_KEYS.some(key => hasStartedValue(bonificacao[key]));
+        return hasStarted ? 'em-apuracao' : 'nao-lancada';
+    }
 
-        if (verificacao.resultadoBonif === 'inapta' || analyses.includes('Incorreto')) {
-            return 'inapta';
+    function getProgramTechnicalAnalysisStatus(verification = {}) {
+        const analise = verification.analise || {};
+        const values = DOCUMENT_KEYS.map(key => (
+            normalizeText(analise[key]) || 'Não analisado'
+        ));
+
+        if (values.includes('Incorreto')) {
+            return 'incorreto';
         }
-
-        if (verificacao.resultadoBonif === 'apta'
-            && analyses.every(value => CORRECT_ANALYSES.has(value))) {
-            return 'apta';
+        if (values.every(value => CORRECT_ANALYSES.has(value))) {
+            return values.includes('Correto (Atrasado)')
+                ? 'correto-atrasado'
+                : 'correto';
         }
-
-        const hasStarted = Boolean(verificacao.resultadoBonif)
-            || DOCUMENT_KEYS.some(key => Boolean(bonificacao[key]))
-            || analyses.some(value => Boolean(value) && value !== 'Não analisado');
-
-        return hasStarted ? 'em-andamento' : 'nao-lancado';
+        if (values.every(value => value === 'Não analisado')) {
+            return 'nao-analisado';
+        }
+        return 'em-analise';
     }
 
     function canRegisterFiscalNote(profile, bonificacaoNotaFiscal) {
@@ -146,7 +159,8 @@
         canRegisterFiscalNote,
         createEmptyVerification,
         evaluateBonification,
-        getProgramOperationalStatus,
+        getProgramBonificationStatus,
+        getProgramTechnicalAnalysisStatus,
         pendencyMatchesContext,
         shouldRequireFiscalNote
     });
