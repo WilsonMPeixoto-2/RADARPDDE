@@ -698,8 +698,9 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     expect(firstSubmission.matchingLogs[0].detalhes).toContain(context.documentoNome);
     expect(firstSubmission.matchingLogs[0].detalhes).toContain('2026-07-10');
 
-    await expect(page.getByRole('tab', { name: /^Abertas\b/ })).toBeVisible();
-    const awaitingRow = page.locator('#p-abertas tr[data-pendency-ref]');
+    await expect(page.getByRole('tab', { name: /^Aguardando reanálise\b/ }))
+      .toHaveAttribute('aria-selected', 'true');
+    const awaitingRow = page.locator('#p-aguardando tr[data-pendency-ref]');
     await expect(awaitingRow).toContainText('Aguardando reanálise');
     const replacementTrigger = awaitingRow.getByRole('button', {
       name: 'Registrar substituição mais recente',
@@ -1437,9 +1438,9 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     }).click();
     await expect(modal).not.toHaveClass(/show/);
 
-    await expect(page.getByRole('tab', { name: /^Abertas\b/ }))
+    await expect(page.getByRole('tab', { name: /^Aguardando reanálise\b/ }))
       .toHaveClass(/active/);
-    await expect(page.locator('#p-abertas')).toHaveClass(/active/);
+    await expect(page.locator('#p-aguardando')).toHaveClass(/active/);
     await expect.poll(() => page.evaluate(() => activePendencyDetailId))
       .toBe(context.activePendencyId);
     await expect.poll(() => page.evaluate(pendencyId => {
@@ -1447,7 +1448,7 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
       return {
         body: focused === document.body,
         samePendency: elementMatchesPendencyIdReference(focused, pendencyId),
-        inActiveTab: Boolean(focused && focused.closest('#p-abertas'))
+        inActiveTab: Boolean(focused && focused.closest('#p-aguardando'))
       };
     }, context.activePendencyId)).toEqual({
       body: false,
@@ -1935,7 +1936,8 @@ test.describe('reanálise atômica da pendência documental no desktop', () => {
     await page.evaluate(() => switchView('pendencias'));
     await expect(page.getByRole('tab', { name: /^Resolvidas\b/ })).toBeVisible();
     await expect(page.locator('#p-resolvidas tr[data-pendency-ref]')).toHaveCount(0);
-    await page.locator('#p-abertas').getByRole('button', {
+    await page.getByRole('tab', { name: /^Aguardando reanálise\b/ }).click();
+    await page.locator('#p-aguardando').getByRole('button', {
       name: 'Reanalisar',
       exact: true
     }).click();
