@@ -1,1 +1,0 @@
-Aciona o workflow temporário de aplicação e validação da Task 8. Este arquivo será removido após a execução.
