@@ -74,19 +74,23 @@ Estados canônicos:
 
 ## Documentação oficial
 
-O índice completo está em [`docs/README.md`](docs/README.md).
+O índice completo está em [`docs/README.md`](docs/README.md). A matriz de precedência, disponibilidade e integridade está em [`docs/reference/STATUS_DOCUMENTOS.md`](docs/reference/STATUS_DOCUMENTOS.md).
 
-Documentos de referência:
+Documentos produzidos e verificados para inclusão na biblioteca do projeto:
 
-- [`Dossiê Consolidado v1.0`](docs/reference/RADAR_PDDE_Dossie_Contexto_Regras_Decisoes_v1_0.docx) — contexto, regras de negócio e decisões consolidadas;
-- [`Plano do Lote 2 v2.0`](docs/reference/RADAR_PDDE_Plano_Lote_2_Revisao_Consolidada_v2_0.docx) — contrato funcional, visual e de navegação;
-- [`Protótipo de exportação Excel`](docs/reference/RADAR_PDDE_Prototipo_Exportacao_Conservadora_v2-1.xlsx) — referência congelada da planilha;
-- [`Relatório e Guia do Ciclo A v1.0`](docs/reports/RADAR_PDDE_Relatorio_Guia_Ciclo_A_v1_0.docx) — explicação funcional para usuários e gestores.
+| Documento | Finalidade | Situação no repositório |
+|---|---|---|
+| Dossiê Consolidado v1.0 | Contexto, regras de negócio e decisões consolidadas | Binário verificado; inclusão pendente |
+| Plano do Lote 2 — Revisão Consolidada v2.0 | Contrato funcional, visual e de navegação | Binário verificado; inclusão pendente |
+| Protótipo de exportação Excel v2.1 | Referência congelada da estrutura da planilha | Binário verificado; inclusão pendente |
+| Relatório e Guia do Ciclo A v1.0 | Explicação funcional para usuários e gestores | Binário verificado; inclusão pendente |
 
-Documentação arquitetural:
+Documentação arquitetural já versionada:
 
 - [`Modelo operacional compartilhado`](docs/architecture/modelo-operacional.md);
 - [`Retificações administrativas`](docs/architecture/retificacoes.md);
+- [`Competências`](docs/architecture/competencias.md);
+- [`Pendências e reanálise`](docs/architecture/pendencias-reanalise.md);
 - [`Status e precedência dos documentos`](docs/reference/STATUS_DOCUMENTOS.md).
 
 ## Precedência das decisões
