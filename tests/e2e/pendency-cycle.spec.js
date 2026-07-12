@@ -698,7 +698,7 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     expect(firstSubmission.matchingLogs[0].detalhes).toContain(context.documentoNome);
     expect(firstSubmission.matchingLogs[0].detalhes).toContain('2026-07-10');
 
-    await expect(page.getByRole('button', { name: 'Ativas (1)', exact: true })).toBeVisible();
+    await expect(page.getByRole('tab', { name: /^Abertas/ })).toBeVisible();
     const awaitingRow = page.locator('#p-abertas tr[data-pendency-ref]');
     await expect(awaitingRow).toContainText('Aguardando reanálise');
     const replacementTrigger = awaitingRow.getByRole('button', {
@@ -1416,11 +1416,8 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
       };
     }, DOCUMENT_CONTEXT);
 
-    await expect(page.getByRole('button', {
-      name: 'Histórico Resolvidas (1)',
-      exact: true
-    })).toHaveClass(/active/);
-    await page.getByRole('button', { name: 'Ativas (1)', exact: true }).click();
+    await expect(page.getByRole('tab', { name: /^Resolvidas/ })).toHaveClass(/active/);
+    await page.getByRole('tab', { name: /^Abertas/ }).click();
 
     const trigger = page.locator('#p-abertas').getByRole('button', {
       name: 'Registrar novo envio',
@@ -1440,7 +1437,7 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     }).click();
     await expect(modal).not.toHaveClass(/show/);
 
-    await expect(page.getByRole('button', { name: 'Ativas (1)', exact: true }))
+    await expect(page.getByRole('tab', { name: /^Abertas/ }))
       .toHaveClass(/active/);
     await expect(page.locator('#p-abertas')).toHaveClass(/active/);
     await expect.poll(() => page.evaluate(() => activePendencyDetailId))
@@ -1778,10 +1775,7 @@ test.describe('reanálise atômica da pendência documental no desktop', () => {
       .toHaveText('Correto após o prazo');
 
     await page.evaluate(pendencyId => openPendencyDetail(pendencyId), context.pendencyId);
-    await expect(page.getByRole('button', {
-      name: 'Histórico Resolvidas (1)',
-      exact: true
-    })).toHaveClass(/active/);
+    await expect(page.getByRole('tab', { name: /^Resolvidas/ })).toHaveClass(/active/);
     const resolvedRow = page.locator('#p-resolvidas tr[data-pendency-ref]');
     await expect(resolvedRow).toHaveCount(1);
     await expect(resolvedRow).toContainText(context.documentoNome);
@@ -1939,10 +1933,7 @@ test.describe('reanálise atômica da pendência documental no desktop', () => {
     await expect(schoolsResult.locator('tbody tr').first()).toContainText(context.escolaNome);
 
     await page.evaluate(() => switchView('pendencias'));
-    await expect(page.getByRole('button', {
-      name: 'Histórico Resolvidas (0)',
-      exact: true
-    })).toBeVisible();
+    await expect(page.getByRole('tab', { name: /^Resolvidas/ })).toBeVisible();
     await expect(page.locator('#p-resolvidas tr[data-pendency-ref]')).toHaveCount(0);
     await page.locator('#p-abertas').getByRole('button', {
       name: 'Reanalisar',
