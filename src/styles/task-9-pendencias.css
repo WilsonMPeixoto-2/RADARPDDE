@@ -1,0 +1,195 @@
+/* Task 9 — página operacional de pendências */
+.pendency-page-header {
+    align-items: flex-start;
+}
+
+.pendency-active-summary {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    min-height: 44px;
+    padding: 10px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-sidebar);
+    color: var(--text-muted);
+}
+
+.pendency-active-summary strong {
+    color: var(--primary);
+    font-size: 1.25rem;
+}
+
+.pendency-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.pendency-tabs .tab-button {
+    flex: 0 0 auto;
+    min-height: 44px;
+    border-radius: 8px 8px 0 0;
+}
+
+.pendency-tabs .tab-button span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    margin-left: 6px;
+    padding: 0 7px;
+    border-radius: 999px;
+    background: var(--bg-input);
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+.pendency-tabs .tab-button.active span {
+    background: var(--primary-glow);
+    color: var(--primary);
+}
+
+.pendency-tab-panel[hidden] {
+    display: none;
+}
+
+.pendency-tab-panel.active {
+    display: block;
+}
+
+.pendency-operations-table {
+    min-width: 1320px;
+    table-layout: fixed;
+}
+
+.pendency-operations-table th:nth-child(1) { width: 17%; }
+.pendency-operations-table th:nth-child(2) { width: 8%; }
+.pendency-operations-table th:nth-child(3) { width: 14%; }
+.pendency-operations-table th:nth-child(4) { width: 14%; }
+.pendency-operations-table th:nth-child(5) { width: 10%; }
+.pendency-operations-table th:nth-child(6) { width: 14%; }
+.pendency-operations-table th:nth-child(7) { width: 9%; }
+.pendency-operations-table th:nth-child(8) { width: 6%; }
+.pendency-operations-table th:nth-child(9) { width: 16%; }
+
+.pendency-operations-table td {
+    vertical-align: top;
+}
+
+.pendency-operations-table td small,
+.pendency-mobile-card small {
+    display: block;
+    margin-top: 4px;
+    color: var(--text-muted);
+    line-height: 1.35;
+}
+
+.pendency-error-summary {
+    display: grid;
+    gap: 3px;
+    margin: 0;
+    padding-left: 16px;
+    color: var(--danger);
+    font-size: 0.78rem;
+}
+
+.pendency-more-errors,
+.pendency-muted {
+    display: inline-block;
+    margin-top: 5px;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.pendency-row-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.pendency-row-actions .btn {
+    min-height: 36px;
+    justify-content: center;
+}
+
+.pendency-count-cell {
+    text-align: center;
+    font-weight: 800;
+}
+
+.pendency-mobile-list {
+    display: none;
+}
+
+.pendency-mobile-card {
+    display: grid;
+    gap: 14px;
+    padding: 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-sidebar);
+    box-shadow: var(--shadow-sm);
+}
+
+.pendency-mobile-card > header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.pendency-mobile-card dl {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+}
+
+.pendency-mobile-card dl > div {
+    display: grid;
+    grid-template-columns: minmax(90px, 0.7fr) minmax(0, 1.3fr);
+    gap: 10px;
+}
+
+.pendency-mobile-card dt {
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.pendency-mobile-card dd {
+    margin: 0;
+    color: var(--text-main);
+    font-size: 0.84rem;
+    font-weight: 600;
+}
+
+@media (max-width: 700px) {
+    .pendency-page-header {
+        gap: 12px;
+    }
+
+    .pendency-active-summary {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .pendency-desktop-list {
+        display: none;
+    }
+
+    .pendency-mobile-list {
+        display: grid;
+        gap: 12px;
+    }
+
+    .pendency-row-actions .btn {
+        flex: 1 1 100%;
+        min-height: 44px;
+    }
+}
