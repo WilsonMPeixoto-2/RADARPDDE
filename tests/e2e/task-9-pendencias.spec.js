@@ -125,6 +125,10 @@ async function seedFourPendencyStates(page) {
   });
 }
 
+function visibleRecord(page, id) {
+  return page.locator(`[data-pendency-id="${id}"]:visible`).first();
+}
+
 test.describe('Task 9 — página de Pendências Operacionais', () => {
   test('separa as quatro situações canônicas em abas acessíveis', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
@@ -141,7 +145,102 @@ test.describe('Task 9 — página de Pendências Operacionais', () => {
 
     const openTab = tablist.getByRole('tab', { name: /^Abertas\b/ });
     await expect(openTab).toHaveAttribute('aria-selected', 'true');
-    await expect(page.getByRole('tabpanel', { name: /^Abertas\b/ })
-      .locator('[data-pendency-id="task9-open"]')).toHaveCount(1);
+    await expect(visibleRecord(page, 'task9-open')).toBeVisible();
+  });
+
+  test('aplica busca global sem perder a separação das quatro filas', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+
+    await page.goto('/');
+    await seedFourPendencyStates(page);
+
+    const search = page.getByRole('searchbox', { name: 'Buscar pendências' });
+    await search.fill('dados divergentes');
+
+    const tablist = page.getByRole('tablist', { name: 'Situações das pendências' });
+    await expect(tablist.getByRole('tab', { name: /^Abertas\b/ })).toContainText('0 de 1');
+    await expect(tablist.getByRole('tab', { name: /^Canceladas\b/ })).toContainText('1 de 1');
+
+    await tablist.getByRole('tab', { name: /^Canceladas\b/ }).click();
+    await expect(visibleRecord(page, 'task9-cancelled')).toContainText('Declaração BB Ágil');
+    await expect(search).toHaveValue('dados divergentes');
+  });
+
+  test('abre o drawer com erros, tentativas, contatos e timeline e restaura o foco', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+
+    await page.goto('/');
+    await seedFourPendencyStates(page);
+
+    const record = visibleRecord(page, 'task9-open');
+    const detailsButton = record.getByRole('button', { name: 'Ver detalhes' });
+    await detailsButton.click();
+
+    const drawer = page.getByRole('complementary', { name: 'Detalhes da pendência' });
+    await expect(drawer).toBeVisible();
+    await expect(drawer).toContainText('Extrato Conta Corrente');
+    await expect(drawer).toContainText('Documento ilegível');
+    await expect(drawer).toContainText('Observação inicial da pendência task9-open.');
+    await expect(drawer).toContainText('Direção orientada sobre o documento ilegível.');
+    await expect(drawer.getByRole('heading', { name: 'Linha do tempo' })).toBeVisible();
+
+    await page.keyboard.press('Escape');
+    await expect(drawer).toBeHidden();
+    await expect(detailsButton).toBeFocused();
+  });
+
+  test('preserva busca, aba, seleção e rolagem ao retornar do Prontuário', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+
+    await page.goto('/');
+    const seeded = await seedFourPendencyStates(page);
+
+    const search = page.getByRole('searchbox', { name: 'Buscar pendências' });
+    await search.fill(seeded.schoolDesignation);
+    await visibleRecord(page, 'task9-open').getByRole('button', { name: 'Ver detalhes' }).click();
+
+    const drawer = page.getByRole('complementary', { name: 'Detalhes da pendência' });
+    await drawer.getByRole('button', { name: 'Abrir no Prontuário' }).click();
+
+    await expect(page.getByRole('button', { name: 'Voltar às Pendências' })).toBeVisible();
+    await expect(page.locator('#main-container')).toContainText(seeded.schoolName);
+
+    await page.getByRole('button', { name: 'Voltar às Pendências' }).click();
+    await expect(search).toHaveValue(seeded.schoolDesignation);
+    await expect(page.getByRole('complementary', { name: 'Detalhes da pendência' })).toBeVisible();
+    await expect(visibleRecord(page, 'task9-open')).toHaveClass(/pendency-row-selected/);
+  });
+
+  test('permite percorrer as abas pelo teclado', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+
+    await page.goto('/');
+    await seedFourPendencyStates(page);
+
+    const openTab = page.getByRole('tab', { name: /^Abertas\b/ });
+    const awaitingTab = page.getByRole('tab', { name: /^Aguardando reanálise\b/ });
+    await openTab.focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(awaitingTab).toHaveAttribute('aria-selected', 'true');
+    await expect(awaitingTab).toBeFocused();
+  });
+
+  test('substitui a tabela por cartões e abre o detalhe em tela inteira no celular', async ({ page }, testInfo) => {
+    test.skip(!testInfo.project.name.startsWith('mobile-'), 'Cenário exclusivo dos projetos mobile.');
+
+    await page.goto('/');
+    await seedFourPendencyStates(page);
+
+    const card = visibleRecord(page, 'task9-open');
+    await expect(card).toBeVisible();
+    await expect(card).toHaveCSS('display', 'grid');
+    await card.getByRole('button', { name: 'Ver detalhes' }).click();
+
+    const drawer = page.getByRole('dialog', { name: 'Detalhes da pendência' });
+    await expect(drawer).toBeVisible();
+    const box = await drawer.boundingBox();
+    expect(box).not.toBeNull();
+    expect(Math.abs(box.x)).toBeLessThanOrEqual(2);
+    expect(Math.abs(box.width - (await page.evaluate(() => innerWidth)))).toBeLessThanOrEqual(2);
   });
 });
