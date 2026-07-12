@@ -11,6 +11,9 @@ on:
       - '.github/workflows/playwright-mobile.yml'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
   group: playwright-mobile-${{ github.ref }}
   cancel-in-progress: true

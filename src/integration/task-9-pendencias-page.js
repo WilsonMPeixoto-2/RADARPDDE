@@ -59,7 +59,7 @@
     }
 
     function isMobileViewport() {
-        return Boolean(root.matchMedia && root.matchMedia('(max-width: 700px)').matches);
+        return Boolean(root.matchMedia && root.matchMedia('(max-width: 900px)').matches);
     }
 
     function normalize(value) {

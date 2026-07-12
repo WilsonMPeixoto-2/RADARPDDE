@@ -1,0 +1,216 @@
+/* Ciclo B — Dashboard operacional do Controlador */
+.cycle-b-dashboard-stats {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.cycle-b-dashboard-card {
+    width: 100%;
+    text-align: left;
+    font: inherit;
+    color: var(--text-main);
+    cursor: pointer;
+}
+
+.cycle-b-dashboard-card:hover,
+.cycle-b-dashboard-card:focus-visible {
+    border-color: var(--primary);
+    outline: none;
+}
+
+.cycle-b-dashboard-card.is-open .stat-icon {
+    background: var(--warning-bg);
+    color: var(--warning);
+}
+
+.cycle-b-dashboard-card.is-awaiting .stat-icon {
+    background: var(--info-bg);
+    color: var(--info, #4d9fff);
+}
+
+.cycle-b-dashboard-card.is-assets .stat-icon {
+    background: var(--primary-glow);
+    color: var(--primary);
+}
+
+.cycle-b-dashboard-card.is-neutral .stat-icon {
+    background: var(--bg-input);
+    color: var(--text-muted);
+}
+
+.cycle-b-card-detail {
+    margin-top: 8px;
+    color: var(--text-muted);
+    font-size: 0.76rem;
+    line-height: 1.4;
+}
+
+.cycle-b-overlap-note {
+    margin: -4px 0 18px;
+    color: var(--text-muted);
+    font-size: 0.76rem;
+    line-height: 1.45;
+}
+
+.cycle-b-action-queue {
+    margin-bottom: 24px;
+}
+
+.cycle-b-action-queue .panel-header p {
+    margin: 4px 0 0;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.cycle-b-action-list {
+    display: grid;
+    gap: 10px;
+}
+
+.cycle-b-action-queue-compact .cycle-b-action-list {
+    max-height: min(660px, calc(100vh - 260px));
+    padding-right: 4px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+.cycle-b-action-item {
+    display: grid;
+    grid-template-columns: 6px minmax(0, 1fr) auto;
+    gap: 14px;
+    align-items: center;
+    padding: 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-input);
+}
+
+.cycle-b-action-priority {
+    align-self: stretch;
+    border-radius: 999px;
+    background: var(--primary);
+}
+
+.cycle-b-action-content {
+    min-width: 0;
+}
+
+.cycle-b-action-content header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.cycle-b-action-content h3 {
+    margin: 7px 0 3px;
+    font-size: 0.92rem;
+}
+
+.cycle-b-action-content p,
+.cycle-b-action-content small {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    line-height: 1.4;
+}
+
+@media (max-width: 1180px) {
+    .cycle-b-dashboard-stats {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+.cycle-b-action-queue-compact .cycle-b-action-item {
+    grid-template-columns: 4px minmax(0, 1fr);
+    gap: 10px;
+    padding: 12px;
+}
+
+.cycle-b-action-queue-compact .cycle-b-action-item > .btn {
+    grid-column: 2;
+    width: 100%;
+    min-height: 40px;
+    justify-content: center;
+}
+
+.cycle-b-action-queue-compact .cycle-b-action-content header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.cycle-b-action-empty {
+    display: grid;
+    gap: 6px;
+    padding: 18px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--bg-input);
+}
+
+.cycle-b-action-empty span,
+.cycle-b-action-summary span {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    line-height: 1.45;
+}
+
+.cycle-b-action-summary {
+    display: grid;
+    gap: 12px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+}
+
+.cycle-b-action-summary > div {
+    display: grid;
+    gap: 4px;
+}
+
+.cycle-b-action-summary .btn,
+.cycle-b-action-view-all {
+    width: 100%;
+    min-height: 40px;
+    margin-top: 12px;
+    justify-content: center;
+}
+
+@media (max-width: 1050px) {
+    .cycle-b-dashboard-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 700px) {
+    .cycle-b-dashboard-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .cycle-b-dashboard-card {
+        min-height: 110px;
+    }
+
+    .cycle-b-action-item {
+        grid-template-columns: 5px minmax(0, 1fr);
+    }
+
+    .cycle-b-action-item > .btn {
+        grid-column: 2;
+        width: 100%;
+        min-height: 44px;
+        justify-content: center;
+    }
+
+    .cycle-b-action-content header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 6px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cycle-b-dashboard-card {
+        transition: none;
+    }
+}

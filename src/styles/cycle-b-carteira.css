@@ -1,0 +1,141 @@
+/* Ciclo B — Carteira operacional */
+.cycle-b-wallet-results {
+    min-width: 0;
+}
+
+.cycle-b-wallet-desktop {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.cycle-b-wallet-table {
+    min-width: 1560px;
+    table-layout: fixed;
+}
+
+.cycle-b-wallet-table th:nth-child(1) { width: 17%; }
+.cycle-b-wallet-table th:nth-child(2) { width: 10%; }
+.cycle-b-wallet-table th:nth-child(3) { width: 10%; }
+.cycle-b-wallet-table th:nth-child(4) { width: 8%; }
+.cycle-b-wallet-table th:nth-child(5) { width: 9%; }
+.cycle-b-wallet-table th:nth-child(6) { width: 12%; }
+.cycle-b-wallet-table th:nth-child(7),
+.cycle-b-wallet-table th:nth-child(8) { width: 6%; }
+.cycle-b-wallet-table th:nth-child(9) { width: 10%; }
+.cycle-b-wallet-table th:nth-child(10) { width: 14%; }
+.cycle-b-wallet-table th:nth-child(11) { width: 10%; }
+
+.cycle-b-wallet-table td {
+    vertical-align: top;
+}
+
+.cycle-b-wallet-table td small {
+    display: block;
+    margin-top: 4px;
+    color: var(--text-muted);
+    line-height: 1.35;
+}
+
+.cycle-b-count-cell {
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.cycle-b-wallet-actions {
+    min-width: 124px;
+}
+
+.cycle-b-wallet-actions .btn {
+    width: 100%;
+    justify-content: center;
+}
+
+.cycle-b-documentary-chip {
+    border: 1px solid color-mix(in srgb, var(--primary) 42%, var(--border-color));
+    border-radius: 999px;
+    padding: 4px 9px;
+    background: var(--primary-glow);
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.cycle-b-wallet-mobile {
+    display: grid;
+    gap: 12px;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.cycle-b-wallet-mobile-card {
+    display: grid;
+    gap: 14px;
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-sidebar);
+    box-shadow: var(--shadow-sm);
+}
+
+.cycle-b-wallet-mobile-card > header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.cycle-b-wallet-mobile-card > header strong,
+.cycle-b-wallet-mobile-card > header small {
+    display: block;
+    overflow-wrap: anywhere;
+}
+
+.cycle-b-wallet-mobile-card > header small {
+    margin-top: 4px;
+    color: var(--text-muted);
+}
+
+.cycle-b-wallet-mobile-card dl {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+}
+
+.cycle-b-wallet-mobile-card dl > div {
+    display: grid;
+    grid-template-columns: minmax(110px, 0.8fr) minmax(0, 1.2fr);
+    gap: 10px;
+}
+
+.cycle-b-wallet-mobile-card dt {
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-weight: 750;
+    text-transform: uppercase;
+}
+
+.cycle-b-wallet-mobile-card dd {
+    margin: 0;
+    font-size: 0.84rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 900px) {
+    .cycle-b-wallet-mobile-card dl > div {
+        grid-template-columns: 1fr;
+        gap: 3px;
+    }
+
+    .cycle-b-wallet-actions {
+        display: grid;
+        gap: 8px;
+    }
+
+    .cycle-b-wallet-actions .btn {
+        min-height: 44px;
+    }
+}

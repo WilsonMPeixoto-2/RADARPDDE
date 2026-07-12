@@ -350,7 +350,7 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
     }), context)).toEqual({ result: '', noteCount: 0, assessoria: 'Não se aplica', reopenLogs: 3 });
   });
 
-  test('reabre consolidação quando valor repetido de NF altera campos derivados', async ({ page }, testInfo) => {
+  test('direciona alteração consolidada ao fluxo auditável sem edição silenciosa', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 
     await page.goto('/');
@@ -366,12 +366,21 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
 
     await fiscalNoteRow(page).getByRole('button', { name: 'Sim', exact: true }).click();
 
+    const dialog = page.getByRole('dialog', { name: 'Retificar consolidação' });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByLabel('Notas Fiscais')).toHaveValue('Sim');
+
     expect(await page.evaluate(({ escolaId, compProgKey }) => ({
       result: verificacoes[escolaId][compProgKey].resultadoBonif,
       assessoria: verificacoes[escolaId][compProgKey].bonificacao.consAssessoria,
       inventario: verificacoes[escolaId][compProgKey].bonificacao.encampInventario,
       reopenLogs: logs.filter(log => log.acao === 'Consolidação Reaberta').length
-    }), context)).toEqual({ result: '', assessoria: '', inventario: '', reopenLogs: 1 });
+    }), context)).toEqual({
+      result: 'apta',
+      assessoria: 'Não se aplica',
+      inventario: 'Não se aplica',
+      reopenLogs: 0
+    });
   });
 
   test('vincula e conclui por reanálise a pendência na linha exata de programa com sublinhado', async ({ page }, testInfo) => {
