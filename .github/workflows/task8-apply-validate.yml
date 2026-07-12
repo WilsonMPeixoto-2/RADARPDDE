@@ -1,0 +1,83 @@
+name: Aplicar e validar Task 8
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  aplicar-e-validar:
+    if: github.head_ref == 'feature/ciclo-a-task-8-separacao-indicadores'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obter branch completa
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: feature/ciclo-a-task-8-separacao-indicadores
+
+      - name: Detectar patch temporário
+        id: patch
+        shell: bash
+        run: |
+          if [ -f task8-implementation.patch.gz.b64 ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Aplicar commits validados
+        if: steps.patch.outputs.present == 'true'
+        shell: bash
+        run: |
+          base64 --decode task8-implementation.patch.gz.b64 | gzip --decompress > /tmp/task8-implementation.patch
+          echo "233eefe7ab2730f295b571c377efb2dc8a5d6e5504514aab8489d67d24a8b311  /tmp/task8-implementation.patch" | sha256sum --check
+          git config user.name "Wilson Malafaia Peixoto"
+          git config user.email "wilsonmp2@gmail.com"
+          git am /tmp/task8-implementation.patch
+          git rm task8-implementation.patch.gz.b64
+
+      - name: Instalar dependências sem alterar o manifesto
+        run: npm install --no-package-lock
+
+      - name: Instalar navegadores Playwright
+        run: npx playwright install --with-deps
+
+      - name: Verificar sintaxe
+        run: |
+          node --check app.js
+          node --check src/domain/fluxo-operacional.js
+          node --check tests/e2e/functional-core.spec.js
+          node --check tests/e2e/pendency-cycle.spec.js
+          node --check tests/e2e/task-8-indicator-separation.spec.js
+
+      - name: Executar testes unitários
+        run: node --test tests/*.test.js
+
+      - name: Executar Playwright completo
+        run: npm run test:e2e
+
+      - name: Confirmar escopo da Task 8
+        shell: bash
+        run: |
+          ! grep -R -n "getProgramOperationalStatus\|getProgramVerificationStatus\|getProgramStatusMeta" app.js src tests
+          ! grep -nE "analise.*inapta|Incorreto.*inapta|pAtivasComp.*inapta|pendencias.*return 'inapta'" app.js src/domain/fluxo-operacional.js
+          git diff --check origin/main...HEAD
+
+      - name: Publicar commits aprovados na branch
+        if: steps.patch.outputs.present == 'true'
+        shell: bash
+        run: |
+          git commit -m "chore: remover patch temporário da task 8"
+          git push origin HEAD:feature/ciclo-a-task-8-separacao-indicadores
+
+      - name: Publicar relatório Playwright
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-task-8
+          path: playwright-report/
+          retention-days: 7
