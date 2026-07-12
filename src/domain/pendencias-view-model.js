@@ -41,6 +41,12 @@
         return typeof value === 'string' ? value.trim() : '';
     }
 
+    function containsSearchTokens(haystack, query) {
+        const normalizedHaystack = normalizeSearchText(haystack);
+        const tokens = normalizeSearchText(query).split(' ').filter(Boolean);
+        return tokens.every(token => normalizedHaystack.includes(token));
+    }
+
     function parseDate(value) {
         if (!value) return null;
         const parsed = new Date(value);
@@ -53,12 +59,10 @@
     }
 
     function compareNullableTimestamps(left, right, direction) {
-        const l = left == null ? null : left;
-        const r = right == null ? null : right;
-        if (l == null && r == null) return 0;
-        if (l == null) return 1;
-        if (r == null) return -1;
-        return direction === 'desc' ? r - l : l - r;
+        if (left == null && right == null) return 0;
+        if (left == null) return 1;
+        if (right == null) return -1;
+        return direction === 'desc' ? right - left : left - right;
     }
 
     function differenceInDays(startValue, endValue) {
@@ -130,13 +134,11 @@
             type: event && event.tipo,
             label: event && (event.detalhe || event.detalhes)
         }));
-        attempts.forEach(attempt => {
-            candidates.push({
-                at: attempt && (attempt.dataAnalise || attempt.dataRegistro || attempt.dataDisponibilizacao),
-                type: attempt && attempt.resultado ? 'reanálise' : 'novo_envio',
-                label: attempt && attempt.observacao
-            });
-        });
+        attempts.forEach(attempt => candidates.push({
+            at: attempt && (attempt.dataAnalise || attempt.dataRegistro || attempt.dataDisponibilizacao),
+            type: attempt && attempt.resultado ? 'reanálise' : 'novo_envio',
+            label: attempt && attempt.observacao
+        }));
         contacts.forEach(contact => candidates.push({
             at: contact && (contact.dataHora || contact.data),
             type: 'contato',
@@ -157,7 +159,7 @@
         return candidates
             .map(candidate => ({ ...candidate, timestamp: toTimestamp(candidate.at) }))
             .filter(candidate => candidate.timestamp != null)
-            .sort((a, b) => b.timestamp - a.timestamp)[0] || null;
+            .sort((left, right) => right.timestamp - left.timestamp)[0] || null;
     }
 
     function buildSearchText(record) {
@@ -292,12 +294,12 @@
         const age = normalizeText(filters.age);
 
         return (Array.isArray(records) ? records : []).filter(record => {
-            if (query && !record.searchText.includes(query)) return false;
+            if (query && !containsSearchTokens(record.searchText, query)) return false;
             if (schoolId && record.schoolId !== schoolId) return false;
             if (competence && record.competence !== competence) return false;
             if (programId && record.programId !== programId) return false;
             if (documentKey && record.documentKey !== documentKey) return false;
-            if (error && !normalizeSearchText(record.errors.join(' ')).includes(error)) return false;
+            if (error && !containsSearchTokens(record.errors.join(' '), error)) return false;
             if (nextActor && normalizeSearchText(record.nextActor) !== nextActor) return false;
             if (controllerId && record.controllerId !== controllerId) return false;
             if (!matchesAge(record.ageDays, age)) return false;
