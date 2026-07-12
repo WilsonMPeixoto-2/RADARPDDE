@@ -28,6 +28,7 @@ jobs:
           node --check app.js
           node --check src/domain/pendencias-view-model.js
           node --check src/integration/task-9-pendencias-page.js
+          node --check src/integration/task-9-focus-bridge.js
           node --check src/integration/task-9-cross-view.js
 
       - name: Executar testes unitários
