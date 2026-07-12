@@ -18,7 +18,11 @@
     }
 
     function canRetify(profile) {
-        return normalizeProfile(profile) === 'assistente';
+        return new Set([
+            'assistente',
+            'assistente cre',
+            'assistente de verbas federais'
+        ]).has(normalizeProfile(profile));
     }
 
     function normalizeTimestamp(value) {
@@ -125,7 +129,7 @@
     }
 
     return Object.freeze({
-        VERSION: '1.0.0',
+        VERSION: '1.0.1',
         applyRetification,
         canRetify,
         createRetification,
