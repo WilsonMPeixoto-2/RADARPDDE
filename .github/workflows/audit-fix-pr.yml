@@ -52,11 +52,29 @@ jobs:
       - name: Aplicar correções
         run: python3 scripts/apply_audit_fixes.py --apply
 
-      - name: Validar tudo
-        run: |
-          node --check app.js
-          node --test tests/*.test.js
-          npm run test:e2e
+      - name: Verificar sintaxe
+        run: node --check app.js
+
+      - name: Executar testes unitários
+        run: node --test tests/*.test.js
+
+      - name: Executar E2E desktop
+        run: npx playwright test --project=desktop-chromium
+
+      - name: Executar E2E Android
+        run: npx playwright test --project=mobile-chromium
+
+      - name: Executar E2E iPhone
+        run: npx playwright test --project=mobile-webkit
+
+      - name: Publicar relatório de diagnóstico
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-fix-playwright-report
+          path: playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
 
       - name: Confirmar escopo e publicar
         shell: bash
