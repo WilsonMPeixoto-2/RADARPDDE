@@ -356,7 +356,7 @@
         next.cancelamento = Object.prototype.hasOwnProperty.call(source, 'cancelamento')
             ? cloneStoredObject(source.cancelamento)
             : null;
-        next.contextoIncompleto = !documentary;
+        next.contextoIncompleto = !hasCompleteStructuredContext(source);
 
         const normalizedStatus = normalizeText(source.status);
         if (normalizedStatus) {
@@ -482,7 +482,7 @@
         );
         const attempt = {
             id: attemptId,
-            numero: next.tentativas.length + 1,
+            numero: getNextAttemptNumber(next.tentativas),
             dataDisponibilizacao: availabilityDate,
             dataRegistro: event.dataHora,
             observacao: observation,

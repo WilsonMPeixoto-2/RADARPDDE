@@ -10248,16 +10248,8 @@ function changeAnaliseTecnica(escolaId, compKey, docKey, value, selectElement = 
             docNames[docKey]
         );
         
-        // Auto seleção de um erro documental compatível com o contexto detectado.
-        const defaultError = docKey === 'declBBAgil'
-            ? 'Sem assinatura'
-            : 'Documento ausente';
-        const defaultErrorInput = Array.from(document.querySelectorAll('input[name="pend-erros"]'))
-            .find(input => input.value === defaultError);
-        if (defaultErrorInput) {
-            defaultErrorInput.checked = true;
-            syncAbsentErrorExclusivity(defaultErrorInput);
-        }
+        // Ao abrir a pendência a partir de uma análise "Incorreto",
+        // nenhum erro é presumido: o Controlador registra apenas as falhas efetivamente observadas.
         
         let mesFormat = mesRaw;
         if (mesRaw && mesRaw.includes('-')) {

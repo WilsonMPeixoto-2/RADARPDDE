@@ -1,4 +1,4 @@
-name: Testes mobile Playwright
+name: Testes E2E Playwright
 
 on:
   pull_request:
@@ -17,9 +17,9 @@ concurrency:
 
 jobs:
   mobile:
-    name: Android e iPhone
+    name: Desktop, Android e iPhone
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
 
     steps:
       - name: Obter código
@@ -36,8 +36,8 @@ jobs:
       - name: Instalar navegadores Playwright
         run: npx playwright install --with-deps chromium webkit
 
-      - name: Executar testes mobile
-        run: npm run test:mobile
+      - name: Executar testes E2E completos
+        run: npm run test:e2e
 
       - name: Publicar relatório em caso de falha
         if: ${{ !cancelled() }}
