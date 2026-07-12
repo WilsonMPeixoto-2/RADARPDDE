@@ -86,6 +86,11 @@ test.describe('Ciclo B — Dashboard operacional do Controlador', () => {
     const queue = page.getByRole('region', { name: 'Próximas ações operacionais' });
     await expect(queue).toContainText('Registrar novo envio do Extrato Conta Corrente');
     await expect(queue).toContainText('Reanalisar Extrato Investimento');
+    await expect(queue.locator('.cycle-b-action-item')).toHaveCount(2);
+    await expect(page.locator('#controlador-gargalos')).toHaveCount(0);
+    expect(await queue.evaluate(element => (
+      element.parentElement === document.querySelector('.dash-layout')?.lastElementChild
+    ))).toBe(true);
 
     const awaitingAction = queue.locator('.cycle-b-action-item').filter({
       hasText: 'Reanalisar Extrato Investimento'

@@ -4,6 +4,14 @@
     let installed = false;
     let originalRenderDashboardControlador = null;
 
+    const CARD_ICONS = Object.freeze({
+        schools: '<path d="M3 21h18M5 21V5l7-3 7 3v16M9 9h.01M9 13h.01M9 17h.01M15 9h.01M15 13h.01M15 17h.01"/>',
+        bonus: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+        open: '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/>',
+        review: '<path d="M21 12a9 9 0 1 1-2.6-6.4L21 8"/><path d="M21 3v5h-5M8 12h8M12 8v8"/>',
+        assets: '<path d="m3 7 9-5 9 5-9 5-9-5Z"/><path d="m3 12 9 5 9-5M3 17l9 5 9-5"/>'
+    });
+
     function dependenciesReady() {
         return Boolean(
             root.RadarOperationalProjection
@@ -55,7 +63,7 @@
         return `${days} dia${days === 1 ? '' : 's'} aguardando`;
     }
 
-    function renderCard({ label, value, detail, className, filter }) {
+    function renderCard({ label, value, detail, className, filter, icon }) {
         return `
             <button
                 type="button"
@@ -63,10 +71,28 @@
                 aria-label="${escapeHtml(label)}: ${value} escolas"
                 onclick="openCycleBCarteira('${filter}')"
             >
-                <div class="stat-label">${escapeHtml(label)}</div>
-                <div class="stat-value">${value} ${value === 1 ? 'Escola' : 'Escolas'}</div>
-                <div class="cycle-b-card-detail">${escapeHtml(detail)}</div>
+                <div class="stat-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${CARD_ICONS[icon] || CARD_ICONS.schools}</svg>
+                </div>
+                <div>
+                    <div class="stat-label">${escapeHtml(label)}</div>
+                    <div class="stat-value">${value} ${value === 1 ? 'Escola' : 'Escolas'}</div>
+                    <div class="cycle-b-card-detail">${escapeHtml(detail)}</div>
+                </div>
             </button>
+        `;
+    }
+
+    function renderBonificationSummary(count) {
+        if (!count) return '';
+        return `
+            <div class="cycle-b-action-summary">
+                <div>
+                    <strong>${count} ${count === 1 ? 'escola aguarda' : 'escolas aguardam'} lançamento de bonificação</strong>
+                    <span>${escapeHtml(formatCompetenciaText(activeCompetenciaKey))} · tarefa regular consolidada</span>
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="changeControladorSubFilter('naoAnalisadas')">Filtrar lista</button>
+            </div>
         `;
     }
 
@@ -128,35 +154,40 @@
                 label: 'Escolas no escopo',
                 value: projection.totals.schools,
                 detail: 'Recorte atual da carteira',
-                filter: 'all'
+                filter: 'all',
+                icon: 'schools'
             }),
             renderCard({
                 label: 'Bonificação não lançada',
                 value: projection.totals.bonificationNotLaunched,
                 detail: formatCompetenciaText(activeCompetenciaKey),
                 className: 'is-neutral',
-                filter: 'all'
+                filter: 'all',
+                icon: 'bonus'
             }),
             renderCard({
                 label: 'Pendências abertas',
                 value: projection.totals.schoolsWithOpen,
                 detail: 'Pendências ativas sob providência da escola',
                 className: 'is-open',
-                filter: 'aberta'
+                filter: 'aberta',
+                icon: 'open'
             }),
             renderCard({
                 label: 'Aguardando reanálise',
                 value: projection.totals.schoolsAwaitingReview,
                 detail: 'Conferência do Controlador',
                 className: 'is-awaiting',
-                filter: 'aguardando'
+                filter: 'aguardando',
+                icon: 'review'
             }),
             renderCard({
                 label: 'Bens não encaminhados',
                 value: schoolsWithPendingAssets,
                 detail: 'Inventário ainda pendente',
                 className: 'is-assets',
-                filter: 'all'
+                filter: 'all',
+                icon: 'assets'
             })
         ].join('');
 
@@ -169,27 +200,35 @@
         }
         note.textContent = 'Os indicadores representam dimensões operacionais diferentes; as contagens podem se sobrepor e não devem ser somadas.';
 
-        document.getElementById('cycle-b-action-queue')?.remove();
-        const queue = document.createElement('section');
+        const pendencyActions = projection.actions.filter(action => action.pendencyId != null);
+        const sideColumn = layout.lastElementChild;
+        let queue = document.getElementById('cycle-b-action-queue');
+        if (!queue) queue = document.createElement('section');
         queue.id = 'cycle-b-action-queue';
-        queue.className = 'panel-card cycle-b-action-queue';
+        queue.className = 'panel-card cycle-b-action-queue cycle-b-action-queue-compact';
         queue.setAttribute('role', 'region');
         queue.setAttribute('aria-label', 'Próximas ações operacionais');
         queue.innerHTML = `
             <div class="panel-header">
                 <div>
                     <h2>Próximas ações operacionais</h2>
-                    <p>Fila priorizada por tempo de espera, situação e contexto documental.</p>
+                    <p>Pendências documentais concretas, priorizadas por tempo de espera.</p>
                 </div>
-                <span class="badge badge-info">${projection.actions.length}</span>
+                <span class="badge badge-info">${pendencyActions.length}</span>
             </div>
             <div class="cycle-b-action-list">
-                ${projection.actions.length
-                    ? projection.actions.slice(0, 15).map(renderAction).join('')
-                    : '<div class="empty-state compact"><strong>Nenhuma ação operacional pendente.</strong></div>'}
+                ${pendencyActions.length
+                    ? pendencyActions.slice(0, 8).map(renderAction).join('')
+                    : '<div class="cycle-b-action-empty"><strong>Nenhuma pendência documental ativa.</strong><span>Não há providência da escola ou reanálise aguardando neste recorte.</span></div>'}
             </div>
+            ${pendencyActions.length > 8 ? '<button type="button" class="btn btn-secondary btn-sm cycle-b-action-view-all" onclick="switchView(\'pendencias\')">Ver todas as pendências</button>' : ''}
+            ${renderBonificationSummary(projection.totals.bonificationNotLaunched)}
         `;
-        layout.insertAdjacentElement('beforebegin', queue);
+        const currentSidePanel = sideColumn && sideColumn.querySelector('.panel-card');
+        if (currentSidePanel !== queue) {
+            if (currentSidePanel) currentSidePanel.replaceWith(queue);
+            else if (sideColumn) sideColumn.appendChild(queue);
+        }
         return true;
     }
 
