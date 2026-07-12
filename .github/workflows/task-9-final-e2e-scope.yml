@@ -1,0 +1,62 @@
+name: Ajustar escopo final dos testes E2E da Task 9
+
+on:
+  push:
+    branches:
+      - feature/ciclo-a-task-9-pendencias-navegaveis
+
+permissions:
+  contents: write
+
+jobs:
+  adjust:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obter branch da Task 9
+        uses: actions/checkout@v4
+        with:
+          ref: feature/ciclo-a-task-9-pendencias-navegaveis
+          fetch-depth: 0
+
+      - name: Ajustar locators ao escopo da fila e do foco real
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('tests/e2e/pendency-cycle.spec.js')
+          text = path.read_text(encoding='utf-8')
+          replacements = [
+              (
+                  "const actions = page.getByRole('button', { name: 'Registrar novo envio', exact: true });",
+                  "const actions = page.locator('#p-abertas').getByRole('button', { name: 'Registrar novo envio', exact: true });"
+              ),
+              (
+                  """    await expect(replacementTrigger).toBeVisible();
+    await expect(replacementTrigger).toBeFocused();""",
+                  """    await expect(replacementTrigger).toBeVisible();
+    const focusedReplacementTrigger = page.locator(':focus');
+    await expect(focusedReplacementTrigger)
+      .toHaveAttribute('data-action', 'register-corrective-submission');
+    await expect(focusedReplacementTrigger)
+      .toHaveText('Registrar substituição mais recente');"""
+              )
+          ]
+          for old, new in replacements:
+              count = text.count(old)
+              print({'trecho': old.splitlines()[0], 'quantidade': count})
+              if count != 1:
+                  raise SystemExit(f'Trecho esperado uma vez, encontrado {count}.')
+              text = text.replace(old, new, 1)
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Validar e salvar
+        run: |
+          test "$(wc -c < tests/e2e/pendency-cycle.spec.js)" -gt 100000
+          node --check tests/e2e/pendency-cycle.spec.js
+          git diff --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/e2e/pendency-cycle.spec.js
+          git commit -m "test: limitar ações ao escopo visível da Task 9"
+          git push origin HEAD:feature/ciclo-a-task-9-pendencias-navegaveis
