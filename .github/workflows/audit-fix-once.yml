@@ -4,13 +4,18 @@ on:
   push:
     branches:
       - fix/ciclo-a-tasks-1-7-auditoria
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
 
 permissions:
   contents: write
 
 jobs:
   patch-and-verify:
-    if: ${{ !contains(github.event.head_commit.message, '[audit-fix]') }}
+    if: ${{ (github.event_name == 'push' && !contains(github.event.head_commit.message, '[audit-fix]')) || (github.event_name == 'pull_request' && github.event.action == 'opened') }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
