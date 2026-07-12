@@ -75,8 +75,8 @@ test.describe('Task 9 — encontrabilidade entre Competências e Pendências', (
 
     await schoolRow.getByRole('button', { name: '1 para reanalisar' }).click();
     await expect(page.getByRole('tab', { name: /^Aguardando reanálise\b/ })).toHaveAttribute('aria-selected', 'true');
-    await expect(page.getByLabel('Unidade escolar')).toHaveValue(seeded.schoolId);
-    await expect(page.getByLabel('Competência')).toHaveValue('2026-04');
+    await expect(page.locator('#pendency-filter-school')).toHaveValue(seeded.schoolId);
+    await expect(page.locator('#pendency-filter-competence')).toHaveValue('2026-04');
 
     await page.evaluate(() => {
       activeCompetenciaKey = '2026-05';
