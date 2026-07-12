@@ -16,11 +16,13 @@ Documentos antigos permanecem disponíveis para rastreabilidade, mas não preval
 
 | Documento | Finalidade | Status |
 |---|---|---|
-| `reference/RADAR_PDDE_Dossie_Contexto_Regras_Decisoes_v1_0.docx` | Contexto, regras de negócio e decisões consolidadas | Canônico |
-| `reference/RADAR_PDDE_Plano_Lote_2_Revisao_Consolidada_v2_0.docx` | Contrato funcional, visual e de navegação | Aprovado |
-| `reference/RADAR_PDDE_Prototipo_Exportacao_Conservadora_v2-1.xlsx` | Estrutura e identidade da exportação Excel | Referência congelada |
-| `reports/RADAR_PDDE_Relatorio_Guia_Ciclo_A_v1_0.docx` | Relatório funcional e guia para usuários | Referência de uso |
-| `reference/STATUS_DOCUMENTOS.md` | Matriz de precedência, disponibilidade e atualização | Vigente |
+| Dossiê Consolidado v1.0 | Contexto, regras de negócio e decisões consolidadas | Canônico; binário verificado e aguardando inclusão |
+| Plano do Lote 2 — Revisão Consolidada v2.0 | Contrato funcional, visual e de navegação | Aprovado; binário verificado e aguardando inclusão |
+| Protótipo de exportação Excel v2.1 | Estrutura e identidade da exportação Excel | Referência congelada; binário verificado e aguardando inclusão |
+| Relatório e Guia do Ciclo A v1.0 | Relatório funcional e guia para usuários | Produzido; binário verificado e aguardando inclusão |
+| [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md) | Matriz de precedência, disponibilidade, integridade e caminhos previstos | Vigente |
+
+Os nomes, caminhos previstos e hashes SHA-256 dos arquivos binários constam na matriz de status. Links diretos serão adicionados somente após a inclusão efetiva dos arquivos no GitHub.
 
 ## Arquitetura e regras de manutenção
 
