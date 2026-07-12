@@ -792,10 +792,11 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     expect(secondSubmission.matchingLogs.slice(0, 2)
       .every(log => log.acao === 'Novo envio registrado')).toBe(true);
     expect(secondSubmission.matchingLogs[0].detalhes).toContain('2026-07-11');
-    await expect(page.getByRole('button', {
-      name: 'Registrar substituição mais recente',
-      exact: true
-    })).toBeFocused();
+    const focusedAfterReplacement = page.locator(':focus');
+    await expect(focusedAfterReplacement)
+      .toHaveAttribute('data-action', 'register-corrective-submission');
+    await expect(focusedAfterReplacement)
+      .toHaveText('Registrar substituição mais recente');
   });
 
   test('restaura memória, índices e localStorage após falha intermediária de persistência', async ({ page }, testInfo) => {
