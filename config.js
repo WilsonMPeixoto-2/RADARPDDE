@@ -32,6 +32,7 @@ window.RADAR_PDDE_CONFIG = {
     loadScript('src/domain/pendencias-view-model.js', false);
     loadScript('src/integration/mobile-navigation.js', false);
     loadScript('src/integration/task-9-pendencias-page.js', false);
+    loadScript('src/integration/task-9-focus-bridge.js', false);
     loadScript('src/integration/task-9-cross-view.js', false);
     loadScript('src/integration/load-excel-export.js', true);
 }());
