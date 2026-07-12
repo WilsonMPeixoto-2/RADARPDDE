@@ -112,7 +112,7 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
 
     const statsGrid = page.locator('#main-container .grid-stats').first();
     const cards = statsGrid.locator(':scope > .card-stat');
-    const naoAnalisadasCard = cards.filter({ hasText: 'Não Analisadas' });
+    const naoAnalisadasCard = cards.filter({ hasText: 'Bonificação não lançada' });
 
     await expect(cards).toHaveCount(4);
     await expect(naoAnalisadasCard).toHaveCount(1);

@@ -5391,41 +5391,39 @@ function getEscolaOperationalData(esc) {
     const pendenciasAbertas = escolaPendencias.filter(p => (
         window.RadarPendencias.isActivePendency(p)
     ));
+    const analiseTecnica = getSchoolTechnicalAnalysisStatus(esc, activeCompetenciaKey);
+    const analiseTecnicaMeta = getProgramTechnicalMeta(analiseTecnica);
+    const nextActors = [...new Set(pendenciasAbertas.map(pendency => (
+        pendency.responsavel
+            || window.RadarPendencias.getNextActor(pendency)
+            || 'Não definido'
+    )))];
+    const proximaAcao = pendenciasAbertas.length === 0
+        ? 'Sem pendência ativa'
+        : nextActors.join(' / ');
     const escolaBens = _bensByEscolaId.get(esc.id) || [];
     const bensNaoEncaminhados = escolaBens.filter(b => b.status === 'Não encaminhada').length;
     const bensEncaminhados = escolaBens.filter(b => b.status === 'Encaminhada').length;
     const bensInventariados = escolaBens.filter(b => b.status === 'Inventariada').length;
     const processoInventario = (esc.processoInventario || '').trim();
 
-
     return {
-
         controladorName: getControladorName(esc.controladorId),
-
         programas: getEscolaProgramNames(esc),
-
         ra: esc.ra || getRAFromDesignacao(esc.designação),
-
         situacao: getSchoolAggregateStatus(esc, activeCompetenciaKey),
-
+        analiseTecnica,
+        analiseTecnicaMeta,
         pendenciasAbertas,
-
         hasPendencias: pendenciasAbertas.length > 0,
-
+        proximaAcao,
         hasInventarioProcess: Boolean(processoInventario),
-
         processoInventario,
-
         bensTotal: escolaBens.length,
-
         bensNaoEncaminhados,
-
         bensEncaminhados,
-
         bensInventariados
-
     };
-
 }
 
 
@@ -5475,23 +5473,15 @@ function schoolMatchesSearch(esc, rawQuery) {
 
 
 function getEscolaStatusLabel(status) {
-
     const labels = {
-
-        apto: 'Apta',
-
-        inapto: 'Inapta',
-
-        emAndamento: 'Em andamento',
-
-        naoAnalisado: 'Não analisada',
-
+        apto: 'APTA',
+        inapto: 'INAPTA',
+        emAndamento: 'Em apuração',
+        naoAnalisado: 'Não lançada',
         foraEscopo: 'Fora do escopo'
-
     };
 
-    return labels[status] || 'Não analisada';
-
+    return labels[status] || 'Não lançada';
 }
 
 
@@ -5687,7 +5677,7 @@ function renderDashboardControlador(container) {
     let subFilterLabel = '';
     if (activeControladorSubFilter === 'naoAnalisadas') {
         renderedEscolas = escolasNaoAnalisadas;
-        subFilterLabel = ' (Filtrado: Não Analisadas)';
+        subFilterLabel = ' (Filtrado: Bonificação não lançada)';
     } else if (activeControladorSubFilter === 'pendencias') {
         renderedEscolas = escolasComPendencias;
         subFilterLabel = ' (Filtrado: Com pendências ativas)';
@@ -5732,7 +5722,7 @@ function renderDashboardControlador(container) {
 
                 </div>
 
-                <div class="stat-label">Não Analisadas (${formatCompetenciaText(activeCompetenciaKey)})</div>
+                <div class="stat-label">Bonificação não lançada (${formatCompetenciaText(activeCompetenciaKey)})</div>
 
                 <div class="stat-value">${escolasNaoAnalisadas.length} Escolas</div>
 
@@ -6005,10 +5995,10 @@ function renderDashboardAssistente(container) {
                 statusText = 'Inapta';
                 badgeCls = 'badge-danger';
             } else if (aggStatus === 'emAndamento') {
-                statusText = 'Em Andamento';
+                statusText = 'Em apuração';
                 badgeCls = 'badge-primary';
             } else {
-                statusText = 'Não Analisada';
+                statusText = 'Não lançada';
                 badgeCls = 'badge-secondary';
             }
 
@@ -6056,14 +6046,14 @@ function renderDashboardAssistente(container) {
                 <div class="stat-icon" style="background-color: rgba(157, 125, 252, 0.1); color: var(--primary);">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
                 </div>
-                <div class="stat-label">Análise em Andamento</div>
+                <div class="stat-label">Bonificação em apuração</div>
                 <div class="stat-value">${stats.emAndamento} Escolas</div>
             </div>
             <div class="card-stat ${activeAssistenteSubFilter === 'naoAnalisado' ? 'active-naoAnalisadas' : ''}" style="cursor: pointer;" onclick="changeAssistenteSubFilter('naoAnalisado')">
                 <div class="stat-icon" style="background-color: rgba(255, 255, 255, 0.06); color: var(--text-muted);">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                 </div>
-                <div class="stat-label">Não Analisadas (Não vistas)</div>
+                <div class="stat-label">Bonificação não lançada</div>
                 <div class="stat-value">${stats.naoAnalisado} Unidades</div>
             </div>
         </div>
@@ -6082,7 +6072,7 @@ function renderDashboardAssistente(container) {
                                 <tr>
                                     <th>Controlador</th>
                                     <th>Escolas Ativas (Escopo)</th>
-                                    <th>Progresso das Análises (${formatCompetenciaText(activeCompetenciaKey)})</th>
+                                    <th>Progresso da bonificação (${formatCompetenciaText(activeCompetenciaKey)})</th>
                                     <th>Pendências Abertas</th>
                                     <th>Ações</th>
                                 </tr>
@@ -6131,7 +6121,7 @@ function renderDashboardAssistente(container) {
                                                                 <h4 style="margin-bottom: 10px; color: var(--primary); font-size: 0.9rem;">Situação Operacional da Carteira</h4>
                                                                 <div style="display:flex; flex-direction:column; gap:8px;">
                                                                     <div style="display:flex; justify-content:space-between; font-size: 0.85rem;">
-                                                                        <span><strong>Analisados (Concluídos)</strong></span>
+                                                                        <span><strong>Bonificações consolidadas</strong></span>
                                                                         <strong>${c.analisadas} de ${c.totalValidos} (${percent}%)</strong>
                                                                     </div>
                                                                     <div style="display:flex; flex-direction:column; gap:6px; margin-left:12px; font-size:0.8rem; color:var(--text-muted)">
@@ -6150,11 +6140,11 @@ function renderDashboardAssistente(container) {
                                                                     </div>
                                                                     <div style="display:flex; flex-direction:column; gap:6px; margin-left:12px; font-size:0.8rem; color:var(--text-muted)">
                                                                         <div class="hover-filter-row" style="cursor: pointer; padding: 4px 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;" onclick="event.stopPropagation(); filterAssistenteByStatusAndController('emAndamento', '${escapeHtml(c.id)}')">
-                                                                            <span>• Análise em Andamento</span>
+                                                                            <span>• Bonificação em apuração</span>
                                                                             <span class="badge badge-primary" style="font-size: 0.7rem; padding: 2px 6px;">${c.stats.emAndamento}</span>
                                                                         </div>
                                                                         <div class="hover-filter-row" style="cursor: pointer; padding: 4px 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;" onclick="event.stopPropagation(); filterAssistenteByStatusAndController('naoAnalisado', '${escapeHtml(c.id)}')">
-                                                                            <span>• Não Analisadas (Não vistas)</span>
+                                                                            <span>• Bonificação não lançada</span>
                                                                             <span class="badge badge-secondary" style="font-size: 0.7rem; padding: 2px 6px;">${c.stats.naoAnalisado}</span>
                                                                         </div>
                                                                     </div>
@@ -6171,8 +6161,8 @@ function renderDashboardAssistente(container) {
                                                                         ${faltamList.map(esc => {
                                                                             const isEmAndamento = c.stats.lists.emAndamento.includes(esc);
                                                                             const escStatus = isEmAndamento 
-                                                                                 ? `<span class="badge badge-warning" style="font-size:0.65rem; padding: 2px 6px;">Em Andamento</span>` 
-                                                                                 : `<span class="badge badge-gray" style="font-size:0.65rem; padding: 2px 6px;">Não Analisada</span>`;
+                                                                                 ? `<span class="badge badge-warning" style="font-size:0.65rem; padding: 2px 6px;">Em apuração</span>` 
+                                                                                 : `<span class="badge badge-gray" style="font-size:0.65rem; padding: 2px 6px;">Não lançada</span>`;
                                                                             const raName = getRAFromDesignacao(esc.designação);
                                                                             return `
                                                                                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; background: rgba(255,255,255,0.02); border-radius: 6px; border: 1px solid rgba(255,255,255,0.03);">
@@ -6237,8 +6227,8 @@ function renderDashboardAssistente(container) {
                         <option value="all" ${activeAssistenteSubFilter === 'all' ? 'selected' : ''}>Todos os Status</option>
                         <option value="apto" ${activeAssistenteSubFilter === 'apto' ? 'selected' : ''}>Apta</option>
                         <option value="inapto" ${activeAssistenteSubFilter === 'inapto' ? 'selected' : ''}>Inapta</option>
-                        <option value="emAndamento" ${activeAssistenteSubFilter === 'emAndamento' ? 'selected' : ''}>Em Andamento</option>
-                        <option value="naoAnalisado" ${activeAssistenteSubFilter === 'naoAnalisado' ? 'selected' : ''}>Não Analisada</option>
+                        <option value="emAndamento" ${activeAssistenteSubFilter === 'emAndamento' ? 'selected' : ''}>Em apuração</option>
+                        <option value="naoAnalisado" ${activeAssistenteSubFilter === 'naoAnalisado' ? 'selected' : ''}>Não lançada</option>
                     </select>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 4px;">
@@ -6495,14 +6485,14 @@ function renderDashboardSME(container) {
                 <div class="stat-icon" style="background-color: rgba(157, 125, 252, 0.1); color: var(--primary);">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
                 </div>
-                <div class="stat-label">Análise em Andamento</div>
+                <div class="stat-label">Bonificação em apuração</div>
                 <div class="stat-value">${stats.emAndamento} Escolas</div>
             </div>
             <div class="card-stat">
                 <div class="stat-icon" style="background-color: rgba(255, 255, 255, 0.06); color: var(--text-muted);">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                 </div>
-                <div class="stat-label">Não Analisadas (Não vistas)</div>
+                <div class="stat-label">Bonificação não lançada</div>
                 <div class="stat-value">${stats.naoAnalisada} Unidades</div>
             </div>
         </div>
@@ -6521,8 +6511,8 @@ function renderDashboardSME(container) {
                                 <th>Total Escolas Ativas</th>
                                 <th>Aptas (${formatCompetenciaText(activeCompetenciaKey)})</th>
                                 <th>Inaptas (${formatCompetenciaText(activeCompetenciaKey)})</th>
-                                <th>Em Andamento</th>
-                                <th>Não Analisadas</th>
+                                <th>Em apuração</th>
+                                <th>Não lançadas</th>
                                 <th>Taxa de Cumprimento (Aptas)</th>
                                 <th>Ações</th>
                             </tr>
@@ -7358,7 +7348,7 @@ function renderEscolas() {
 
                 <div class="filter-field">
 
-                    <label for="filter-escola-situacao">Situação</label>
+                    <label for="filter-escola-situacao">Situação da bonificação</label>
 
                     <select id="filter-escola-situacao" class="form-control" onchange="changeEscolaFilter('situacao', this.value)">
 
@@ -7370,9 +7360,9 @@ function renderEscolas() {
 
                             { value: 'inapto', label: 'Inaptas' },
 
-                            { value: 'emAndamento', label: 'Em andamento' },
+                            { value: 'emAndamento', label: 'Em apuração' },
 
-                            { value: 'naoAnalisado', label: 'Não analisadas' },
+                            { value: 'naoAnalisado', label: 'Não lançadas' },
 
                             { value: 'foraEscopo', label: 'Fora do escopo' }
 
@@ -7508,7 +7498,11 @@ function renderEscolas() {
 
                             <th>Controlador Responsável</th>
 
-                            <th>Situação</th>
+                            <th>Bonificação</th>
+
+                            <th>Análise técnica</th>
+
+                            <th>Pendência / próxima ação</th>
 
                             <th>Ações</th>
 
@@ -7522,7 +7516,7 @@ function renderEscolas() {
 
                             <tr>
 
-                                <td colspan="6">
+                                <td colspan="8">
 
                                     <div class="empty-state compact">
 
@@ -7545,6 +7539,10 @@ function renderEscolas() {
                             const statusBadge = getEscolaStatusBadgeClass(op.situacao);
 
                             const statusLabel = getEscolaStatusLabel(op.situacao);
+
+                            const pendencySummary = op.hasPendencias
+                                ? `<span class="badge badge-warning">${op.pendenciasAbertas.length} ativa(s)</span><br><small>Próximo ator: ${escapeHtml(op.proximaAcao)}</small>`
+                                : '<span class="badge badge-gray">Sem pendência ativa</span>';
 
                             return `
 
@@ -7572,6 +7570,8 @@ function renderEscolas() {
                                     <td>${escapeHtml(e.diretor)}<br><small style="color:var(--text-muted)">${escapeHtml(e.telefone)}</small></td>
                                     <td>${escapeHtml(op.controladorName)}</td>
                                     <td><span class="badge ${statusBadge}">${statusLabel}</span></td>
+                                    <td><span class="badge ${op.analiseTecnicaMeta.badgeClass}">${op.analiseTecnicaMeta.label}</span></td>
+                                    <td>${pendencySummary}</td>
 
                                     <td>
 
