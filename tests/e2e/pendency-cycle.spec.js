@@ -1186,12 +1186,24 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
       ))
     }))).toEqual({ injected: false, injectedElement: false });
 
-    const controllerPendencyCards = page.locator(
-      '#controlador-gargalos [data-pendency-ref]'
+    const controllerPendencyActions = page.locator(
+      '#cycle-b-action-queue .cycle-b-action-item > button[data-pendency-ref]'
     );
-    await expect(controllerPendencyCards).toHaveCount(3);
-    await expect(controllerPendencyCards.filter({ hasText: context.documents[2] }))
-      .toHaveAttribute('onclick', 'handleAlertClick(this)');
+    await expect(controllerPendencyActions).toHaveCount(3);
+    const hostileDashboardAction = page.locator(
+      '#cycle-b-action-queue .cycle-b-action-item'
+    ).filter({ hasText: context.documents[2] }).getByRole('button', {
+      name: 'Abrir pendência',
+      exact: true
+    });
+    await expect(hostileDashboardAction).toHaveAttribute(
+      'onclick',
+      'openCycleBOperationalAction(this)'
+    );
+    expect(JSON.parse(await hostileDashboardAction.getAttribute('data-pendency-ref'))).toEqual({
+      type: 'string',
+      value: context.hostileId
+    });
 
     const selectedReference = () => page.evaluate(() => ({
       idType: typeof activePendencyDetailId,
@@ -1201,7 +1213,7 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
         : null
     }));
 
-    await controllerPendencyCards.filter({ hasText: context.documents[2] }).click();
+    await hostileDashboardAction.click();
     await expect.poll(selectedReference).toEqual({
       idType: 'string',
       id: context.hostileId,
@@ -1904,34 +1916,29 @@ test.describe('reanálise atômica da pendência documental no desktop', () => {
       updateAlertsBell();
     });
 
-    const activePendenciesCard = page.locator('.card-stat').filter({
-      hasText: 'Pendências ativas'
-    });
-    await expect(activePendenciesCard).toHaveCount(1);
-    await expect(activePendenciesCard.locator('.stat-value')).toHaveText('1 Escolas');
+    const awaitingCard = page.getByRole('button', { name: /Aguardando reanálise/ });
+    await expect(awaitingCard).toHaveCount(1);
+    await expect(awaitingCard.locator('.stat-value')).toHaveText('1 Escola');
 
     const awaitingAlert = page.locator('#alerts-list .alert-item')
       .filter({ hasText: context.documentoNome })
-      .filter({ hasText: 'Estado: Aguardando reanálise' });
+      .filter({ hasText: `Reanalisar ${context.documentoNome}` });
     await expect(awaitingAlert).toHaveCount(1);
-    await expect(awaitingAlert).toContainText('Próximo ator: Controlador');
+    await expect(awaitingAlert).toHaveClass(/alert-info/);
+    await expect(awaitingAlert).toContainText('Controlador');
 
-    await activePendenciesCard.click();
-    await expect(page.locator('.dashboard-list-heading'))
-      .toContainText('Com pendências ativas');
-    const dashboardRows = page.locator('.dash-layout tbody tr');
-    await expect(dashboardRows).toHaveCount(1);
-    await expect(dashboardRows.first()).toContainText(context.escolaNome);
-
-    await page.evaluate(() => switchView('escolas'));
+    await awaitingCard.click();
+    await expect(page.getByRole('heading', { name: 'Escolas e Carteiras' })).toBeVisible();
     const pendenciesFilter = page.locator('#filter-escola-pendencias');
+    await expect(pendenciesFilter.locator('option[value="aberta"]'))
+      .toHaveText('Pendência aberta');
+    await expect(pendenciesFilter.locator('option[value="aguardando"]'))
+      .toHaveText('Aguardando reanálise');
     await expect(pendenciesFilter.locator('option[value="com"]'))
-      .toHaveText('Com pendências ativas');
+      .toHaveText('Com pendência ativa');
     await expect(pendenciesFilter.locator('option[value="sem"]'))
-      .toHaveText('Sem pendências ativas');
-    await pendenciesFilter.selectOption('com');
-    await expect(page.locator('.school-filter-summary'))
-      .toContainText('1 com pendências ativas');
+      .toHaveText('Sem pendência ativa');
+    await expect(pendenciesFilter).toHaveValue('aguardando');
     const schoolsResult = page.locator('.panel-card').filter({
       has: page.getByRole('heading', { name: 'Resultado da carteira', exact: true })
     });
