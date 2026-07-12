@@ -139,7 +139,9 @@ test.describe('Task 9 — página de Pendências Operacionais', () => {
     await expect(tablist.getByRole('tab', { name: /^Resolvidas\b/ })).toBeVisible();
     await expect(tablist.getByRole('tab', { name: /^Canceladas\b/ })).toBeVisible();
 
-    await expect(tablist.getByRole('tab', { name: /^Abertas\b/ })).toHaveAttribute('aria-selected', 'true');
-    await expect(page.getByRole('tabpanel', { name: /^Abertas\b/ })).toContainText('task9-open');
+    const openTab = tablist.getByRole('tab', { name: /^Abertas\b/ });
+    await expect(openTab).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByRole('tabpanel', { name: /^Abertas\b/ })
+      .locator('[data-pendency-id="task9-open"]')).toHaveCount(1);
   });
 });
