@@ -72,6 +72,50 @@
         return `<div class="competence-pendency-summary">${buttons.join('')}</div>`;
     }
 
+    function getSchoolDesignation(school) {
+        return String(school && (school.designação || school.designacao) || '').trim();
+    }
+
+    function getSchoolName(school) {
+        return String(school && (
+            school.denominação || school.denominacao || school.denominaçao || school.name
+        ) || '').trim();
+    }
+
+    function getSchoolIdFromProntuarioAction(row) {
+        const action = row && row.querySelector('[onclick*="switchView"]');
+        const handler = action && action.getAttribute('onclick');
+        if (!handler) return '';
+        const match = handler.match(
+            /switchView\(\s*['"]prontuario['"]\s*,\s*['"]([^'"]+)['"]\s*\)/
+        );
+        return match ? match[1] : '';
+    }
+
+    function resolveSchoolForCompetenceRow(row) {
+        if (!row) return null;
+
+        const actionSchoolId = getSchoolIdFromProntuarioAction(row);
+        if (actionSchoolId) {
+            const actionSchool = escolas.find(school => String(school.id) === actionSchoolId);
+            if (actionSchool) return actionSchool;
+        }
+
+        const rowText = String(row.textContent || '');
+        const byDesignation = [...escolas]
+            .filter(school => getSchoolDesignation(school))
+            .sort((left, right) => (
+                getSchoolDesignation(right).length - getSchoolDesignation(left).length
+            ))
+            .find(school => rowText.includes(getSchoolDesignation(school)));
+        if (byDesignation) return byDesignation;
+
+        return [...escolas]
+            .filter(school => getSchoolName(school))
+            .sort((left, right) => getSchoolName(right).length - getSchoolName(left).length)
+            .find(school => rowText.includes(getSchoolName(school))) || null;
+    }
+
     function enhanceCompetenceTable() {
         const panel = Array.from(document.querySelectorAll('.panel-card')).find(candidate => (
             candidate.querySelector('.panel-header h2')?.textContent.includes('Lista de Entrega e Bonificação')
@@ -83,8 +127,8 @@
         if (headers[4]) headers[4].textContent = 'Pendências ativas';
 
         const rows = Array.from(table.querySelectorAll('tbody tr'));
-        rows.forEach((row, index) => {
-            const school = escolas[index];
+        rows.forEach(row => {
+            const school = resolveSchoolForCompetenceRow(row);
             const cells = row.querySelectorAll('td');
             if (!school || cells.length < 6) return;
             row.dataset.schoolId = school.id;
@@ -126,13 +170,6 @@
 
     function getStatusBadgeClass(status) {
         return status === 'Aguardando reanálise' ? 'badge-info' : 'badge-warning';
-    }
-
-    function formatDate(value) {
-        const parsed = new Date(value || '');
-        return Number.isNaN(parsed.getTime())
-            ? 'Data não informada'
-            : parsed.toLocaleDateString('pt-BR');
     }
 
     function renderPassivoAnteriorTask9() {
@@ -236,9 +273,10 @@
         root.openPendencyQueueForSchool = openPendencyQueueForSchool;
         root.openPendencyFromCrossView = openPendencyFromCrossView;
         root.RadarTask9CrossView = Object.freeze({
-            VERSION: '1.0.0',
+            VERSION: '1.1.0',
             enhanceCompetenceTable,
             renderPassivoAnterior: renderPassivoAnteriorTask9,
+            resolveSchoolForCompetenceRow,
             syncDrawerDockState
         });
 
