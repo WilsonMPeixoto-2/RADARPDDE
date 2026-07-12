@@ -1,9 +1,9 @@
 name: Ajustar semântica dos testes da Task 9
 
 on:
-  pull_request:
+  push:
     branches:
-      - main
+      - feature/ciclo-a-task-9-pendencias-navegaveis
 
 permissions:
   contents: write
