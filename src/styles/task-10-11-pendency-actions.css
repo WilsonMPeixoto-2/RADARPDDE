@@ -1,0 +1,117 @@
+/* Tasks 10–11 — ações operacionais de pendências */
+.task-operation-modal {
+    width: min(620px, calc(100vw - 32px));
+    max-height: min(86vh, 760px);
+    overflow-y: auto;
+}
+
+.task-operation-modal .modal-header p {
+    margin: 4px 0 0;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    line-height: 1.45;
+}
+
+.task-destructive-note {
+    margin-bottom: 14px;
+    padding: 12px 14px;
+    border: 1px solid color-mix(in srgb, var(--danger) 34%, var(--border-color));
+    border-left: 4px solid var(--danger);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--danger) 8%, transparent);
+    color: var(--text-main);
+    font-size: 0.8rem;
+    line-height: 1.5;
+}
+
+.task-error-fieldset {
+    margin: 0 0 16px;
+    padding: 0;
+    border: 0;
+}
+
+.task-error-fieldset legend {
+    margin-bottom: 9px;
+    color: var(--text-main);
+    font-weight: 700;
+}
+
+.task-error-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.task-error-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    min-height: 44px;
+    padding: 10px 11px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-input);
+    color: var(--text-main);
+    font-size: 0.78rem;
+    line-height: 1.35;
+    cursor: pointer;
+}
+
+.task-error-option:has(input:checked) {
+    border-color: var(--primary);
+    background: var(--primary-glow);
+}
+
+.task-error-option input {
+    margin-top: 2px;
+}
+
+.task-operations-live-region {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 2100;
+    max-width: min(420px, calc(100vw - 40px));
+    padding: 12px 15px;
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--success);
+    border-radius: 8px;
+    background: var(--bg-sidebar);
+    color: var(--text-main);
+    box-shadow: var(--shadow-lg);
+    font-size: 0.82rem;
+    line-height: 1.45;
+}
+
+.task-operations-live-region:empty {
+    display: none;
+}
+
+.task-operations-live-region[data-type="error"] {
+    border-left-color: var(--danger);
+}
+
+.pendency-row-actions .btn-danger {
+    min-height: 36px;
+}
+
+@media (max-width: 700px) {
+    .task-operation-modal {
+        width: 100%;
+        max-width: none;
+        max-height: 100dvh;
+        min-height: 100dvh;
+        border-radius: 0;
+    }
+
+    .task-error-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .task-operations-live-region {
+        right: 12px;
+        bottom: calc(12px + env(safe-area-inset-bottom));
+        left: 12px;
+        max-width: none;
+    }
+}
