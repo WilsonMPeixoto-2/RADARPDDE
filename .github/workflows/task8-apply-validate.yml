@@ -23,7 +23,7 @@ jobs:
         id: patch
         shell: bash
         run: |
-          if [ -f task8-implementation.patch.gz.b64 ]; then
+          if [ -f task8-patch-parts/part-00 ]; then
             echo "present=true" >> "$GITHUB_OUTPUT"
           else
             echo "present=false" >> "$GITHUB_OUTPUT"
@@ -32,63 +32,28 @@ jobs:
       - name: Aplicar commits validados
         id: apply
         if: steps.patch.outputs.present == 'true'
-        continue-on-error: true
         shell: bash
         run: |
-          set -uo pipefail
-          exec > >(tee /tmp/task8-diagnostic.txt) 2>&1
-          echo "== arquivo base64 =="
-          wc -c task8-implementation.patch.gz.b64
-          base64 --decode task8-implementation.patch.gz.b64 > /tmp/task8-implementation.patch.gz
-          decode_status=$?
-          echo "base64_status=$decode_status"
-          if [ "$decode_status" -ne 0 ]; then exit "$decode_status"; fi
-          echo "== arquivo gzip =="
-          wc -c /tmp/task8-implementation.patch.gz
+          set -euo pipefail
+          cat task8-patch-parts/part-* > /tmp/task8-implementation.patch.gz.b64
+          wc -c /tmp/task8-implementation.patch.gz.b64
+          base64 --decode /tmp/task8-implementation.patch.gz.b64 > /tmp/task8-implementation.patch.gz
           gzip --test /tmp/task8-implementation.patch.gz
-          gzip_status=$?
-          echo "gzip_status=$gzip_status"
-          if [ "$gzip_status" -ne 0 ]; then exit "$gzip_status"; fi
           gzip --decompress --stdout /tmp/task8-implementation.patch.gz > /tmp/task8-implementation.patch
-          echo "== patch descompactado =="
-          wc -c /tmp/task8-implementation.patch
-          sha256sum /tmp/task8-implementation.patch
-          sed -n '1,12p' /tmp/task8-implementation.patch
+          echo "233eefe7ab2730f295b571c377efb2dc8a5d6e5504514aab8489d67d24a8b311  /tmp/task8-implementation.patch" | sha256sum --check
           git config user.name "Wilson Malafaia Peixoto"
           git config user.email "wilsonmp2@gmail.com"
-          echo "== git am =="
           git am --3way /tmp/task8-implementation.patch
-          am_status=$?
-          echo "git_am_status=$am_status"
-          if [ "$am_status" -ne 0 ]; then
-            git status --short
-            git am --show-current-patch=diff || true
-            exit "$am_status"
-          fi
-          git rm task8-implementation.patch.gz.b64
-
-      - name: Publicar diagnóstico do transporte
-        if: always() && steps.patch.outputs.present == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: task8-patch-diagnostic
-          path: /tmp/task8-diagnostic.txt
-          retention-days: 1
-
-      - name: Interromper após falha de aplicação
-        if: steps.patch.outputs.present == 'true' && steps.apply.outcome != 'success'
-        run: exit 1
+          git rm -r task8-patch-parts
+          git rm task8-implementation.patch.gz.b64 task8-trigger.txt
 
       - name: Instalar dependências sem alterar o manifesto
-        if: steps.patch.outputs.present != 'true' || steps.apply.outcome == 'success'
         run: npm install --no-package-lock
 
       - name: Instalar navegadores Playwright
-        if: steps.patch.outputs.present != 'true' || steps.apply.outcome == 'success'
         run: npx playwright install --with-deps
 
       - name: Verificar sintaxe
-        if: steps.patch.outputs.present != 'true' || steps.apply.outcome == 'success'
         run: |
           node --check app.js
           node --check src/domain/fluxo-operacional.js
@@ -97,15 +62,12 @@ jobs:
           node --check tests/e2e/task-8-indicator-separation.spec.js
 
       - name: Executar testes unitários
-        if: steps.patch.outputs.present != 'true' || steps.apply.outcome == 'success'
         run: node --test tests/*.test.js
 
       - name: Executar Playwright completo
-        if: steps.patch.outputs.present != 'true' || steps.apply.outcome == 'success'
         run: npm run test:e2e
 
       - name: Confirmar escopo da Task 8
-        if: steps.patch.outputs.present != 'true' || steps.apply.outcome == 'success'
         shell: bash
         run: |
           ! grep -R -n "getProgramOperationalStatus\|getProgramVerificationStatus\|getProgramStatusMeta" app.js src tests
@@ -113,10 +75,10 @@ jobs:
           git diff --check origin/main...HEAD
 
       - name: Publicar commits aprovados na branch
-        if: steps.patch.outputs.present == 'true' && steps.apply.outcome == 'success'
+        if: steps.patch.outputs.present == 'true'
         shell: bash
         run: |
-          git commit -m "chore: remover patch temporário da task 8"
+          git commit -m "chore: remover transporte temporário da task 8"
           git push origin HEAD:feature/ciclo-a-task-8-separacao-indicadores
 
       - name: Publicar relatório Playwright
