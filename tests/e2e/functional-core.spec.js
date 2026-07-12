@@ -596,7 +596,7 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
       documentary: false
     });
 
-    await legacyRow.getByRole('button', { name: 'Ver Unidade', exact: true }).click();
+    await legacyRow.getByRole('button', { name: 'Abrir no Prontuário', exact: true }).click();
     const matchingTechnicalRow = page.locator('#prontuario-verif-rows tr')
       .filter({ hasText: 'Educação e Família' })
       .filter({ hasText: 'Extrato Conta Corrente' });

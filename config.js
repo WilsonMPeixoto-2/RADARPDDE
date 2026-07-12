@@ -27,6 +27,12 @@ window.RADAR_PDDE_CONFIG = {
 
     loadStylesheet('src/styles/mobile-responsive.css');
     loadStylesheet('src/styles/mobile-rendering-hotfix.css');
+    loadStylesheet('src/styles/task-9-pendencias.css');
+    loadStylesheet('src/styles/task-9-cross-view.css');
+    loadScript('src/domain/pendencias-view-model.js', false);
     loadScript('src/integration/mobile-navigation.js', false);
+    loadScript('src/integration/task-9-pendencias-page.js', false);
+    loadScript('src/integration/task-9-focus-bridge.js', false);
+    loadScript('src/integration/task-9-cross-view.js', false);
     loadScript('src/integration/load-excel-export.js', true);
 }());

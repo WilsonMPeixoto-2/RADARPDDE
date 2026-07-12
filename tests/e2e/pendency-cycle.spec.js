@@ -698,15 +698,20 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     expect(firstSubmission.matchingLogs[0].detalhes).toContain(context.documentoNome);
     expect(firstSubmission.matchingLogs[0].detalhes).toContain('2026-07-10');
 
-    await expect(page.getByRole('button', { name: 'Ativas (1)', exact: true })).toBeVisible();
-    const awaitingRow = page.locator('#p-abertas tr[data-pendency-ref]');
+    await expect(page.getByRole('tab', { name: /^Aguardando reanálise\b/ }))
+      .toHaveAttribute('aria-selected', 'true');
+    const awaitingRow = page.locator('#p-aguardando tr[data-pendency-ref]');
     await expect(awaitingRow).toContainText('Aguardando reanálise');
     const replacementTrigger = awaitingRow.getByRole('button', {
       name: 'Registrar substituição mais recente',
       exact: true
     });
     await expect(replacementTrigger).toBeVisible();
-    await expect(replacementTrigger).toBeFocused();
+    const focusedReplacementTrigger = page.locator(':focus');
+    await expect(focusedReplacementTrigger)
+      .toHaveAttribute('data-action', 'register-corrective-submission');
+    await expect(focusedReplacementTrigger)
+      .toHaveText('Registrar substituição mais recente');
 
     await replacementTrigger.click();
     await expect(availabilityDate).toHaveValue('');
@@ -787,10 +792,11 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     expect(secondSubmission.matchingLogs.slice(0, 2)
       .every(log => log.acao === 'Novo envio registrado')).toBe(true);
     expect(secondSubmission.matchingLogs[0].detalhes).toContain('2026-07-11');
-    await expect(page.getByRole('button', {
-      name: 'Registrar substituição mais recente',
-      exact: true
-    })).toBeFocused();
+    const focusedAfterReplacement = page.locator(':focus');
+    await expect(focusedAfterReplacement)
+      .toHaveAttribute('data-action', 'register-corrective-submission');
+    await expect(focusedAfterReplacement)
+      .toHaveText('Registrar substituição mais recente');
   });
 
   test('restaura memória, índices e localStorage após falha intermediária de persistência', async ({ page }, testInfo) => {
@@ -1067,7 +1073,7 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     }, DOCUMENT_CONTEXT);
 
     const rows = page.locator('#p-abertas tr[data-pendency-ref]');
-    const actions = page.getByRole('button', { name: 'Registrar novo envio', exact: true });
+    const actions = page.locator('#p-abertas').getByRole('button', { name: 'Registrar novo envio', exact: true });
     const modal = page.locator('#modal-registrar-envio');
     const hiddenReference = modal.locator('#envio-pendencia-id');
     const cancel = modal.getByRole('button', { name: 'Cancelar', exact: true });
@@ -1416,11 +1422,8 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
       };
     }, DOCUMENT_CONTEXT);
 
-    await expect(page.getByRole('button', {
-      name: 'Histórico Resolvidas (1)',
-      exact: true
-    })).toHaveClass(/active/);
-    await page.getByRole('button', { name: 'Ativas (1)', exact: true }).click();
+    await expect(page.getByRole('tab', { name: /^Resolvidas\b/ })).toHaveClass(/active/);
+    await page.getByRole('tab', { name: /^Abertas\b/ }).click();
 
     const trigger = page.locator('#p-abertas').getByRole('button', {
       name: 'Registrar novo envio',
@@ -1440,9 +1443,9 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     }).click();
     await expect(modal).not.toHaveClass(/show/);
 
-    await expect(page.getByRole('button', { name: 'Ativas (1)', exact: true }))
+    await expect(page.getByRole('tab', { name: /^Aguardando reanálise\b/ }))
       .toHaveClass(/active/);
-    await expect(page.locator('#p-abertas')).toHaveClass(/active/);
+    await expect(page.locator('#p-aguardando')).toHaveClass(/active/);
     await expect.poll(() => page.evaluate(() => activePendencyDetailId))
       .toBe(context.activePendencyId);
     await expect.poll(() => page.evaluate(pendencyId => {
@@ -1450,7 +1453,7 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
       return {
         body: focused === document.body,
         samePendency: elementMatchesPendencyIdReference(focused, pendencyId),
-        inActiveTab: Boolean(focused && focused.closest('#p-abertas'))
+        inActiveTab: Boolean(focused && focused.closest('#p-aguardando'))
       };
     }, context.activePendencyId)).toEqual({
       body: false,
@@ -1778,10 +1781,7 @@ test.describe('reanálise atômica da pendência documental no desktop', () => {
       .toHaveText('Correto após o prazo');
 
     await page.evaluate(pendencyId => openPendencyDetail(pendencyId), context.pendencyId);
-    await expect(page.getByRole('button', {
-      name: 'Histórico Resolvidas (1)',
-      exact: true
-    })).toHaveClass(/active/);
+    await expect(page.getByRole('tab', { name: /^Resolvidas\b/ })).toHaveClass(/active/);
     const resolvedRow = page.locator('#p-resolvidas tr[data-pendency-ref]');
     await expect(resolvedRow).toHaveCount(1);
     await expect(resolvedRow).toContainText(context.documentoNome);
@@ -1939,12 +1939,10 @@ test.describe('reanálise atômica da pendência documental no desktop', () => {
     await expect(schoolsResult.locator('tbody tr').first()).toContainText(context.escolaNome);
 
     await page.evaluate(() => switchView('pendencias'));
-    await expect(page.getByRole('button', {
-      name: 'Histórico Resolvidas (0)',
-      exact: true
-    })).toBeVisible();
+    await expect(page.getByRole('tab', { name: /^Resolvidas\b/ })).toBeVisible();
     await expect(page.locator('#p-resolvidas tr[data-pendency-ref]')).toHaveCount(0);
-    await page.locator('#p-abertas').getByRole('button', {
+    await page.getByRole('tab', { name: /^Aguardando reanálise\b/ }).click();
+    await page.locator('#p-aguardando').getByRole('button', {
       name: 'Reanalisar',
       exact: true
     }).click();

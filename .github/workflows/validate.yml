@@ -23,8 +23,16 @@ jobs:
         with:
           node-version: 20
 
-      - name: Verificar sintaxe da aplicação
-        run: node --check app.js
+      - name: Verificar sintaxe da aplicação e módulos ativos
+        run: |
+          node --check app.js
+          node --check src/domain/pendencias-view-model.js
+          node --check src/integration/task-9-pendencias-page.js
+          node --check src/integration/task-9-focus-bridge.js
+          node --check src/integration/task-9-cross-view.js
+          node --check tests/e2e/task-9-pendencias.spec.js
+          node --check tests/e2e/task-9-cross-view.spec.js
+          node --check tests/e2e/task-9-cross-view-order.spec.js
 
       - name: Executar testes unitários
         run: node --test tests/*.test.js

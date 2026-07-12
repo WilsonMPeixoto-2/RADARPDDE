@@ -1,0 +1,91 @@
+/* Task 9 — integração com Competências e drawer não modal no desktop */
+.competence-pendency-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.competence-pendency-link {
+    min-height: 34px;
+    color: var(--warning);
+    border-color: color-mix(in srgb, var(--warning) 44%, var(--border-color));
+    background: var(--warning-bg);
+}
+
+.competence-pendency-link:hover,
+.competence-pendency-link:focus-visible {
+    border-color: var(--warning);
+    outline: none;
+}
+
+.competence-pendency-awaiting {
+    color: var(--info, #4d9fff);
+    border-color: color-mix(in srgb, var(--info, #4d9fff) 44%, var(--border-color));
+    background: color-mix(in srgb, var(--info, #4d9fff) 11%, transparent);
+}
+
+.competence-pendency-awaiting:hover,
+.competence-pendency-awaiting:focus-visible {
+    border-color: var(--info, #4d9fff);
+}
+
+.competence-passivo-table {
+    min-width: 1180px;
+    table-layout: fixed;
+}
+
+.competence-passivo-table th:nth-child(1) { width: 18%; }
+.competence-passivo-table th:nth-child(2) { width: 9%; }
+.competence-passivo-table th:nth-child(3) { width: 16%; }
+.competence-passivo-table th:nth-child(4) { width: 15%; }
+.competence-passivo-table th:nth-child(5) { width: 12%; }
+.competence-passivo-table th:nth-child(6) { width: 16%; }
+.competence-passivo-table th:nth-child(7) { width: 8%; }
+.competence-passivo-table th:nth-child(8) { width: 8%; }
+
+.competence-passivo-table td {
+    vertical-align: top;
+}
+
+.competence-passivo-table td small {
+    display: block;
+    margin-top: 4px;
+    color: var(--text-muted);
+}
+
+/* Acima do conteúdo, mas abaixo dos modais globais (z-index 1000). */
+.pendency-drawer-layer {
+    z-index: 800;
+}
+
+@media (min-width: 1181px) {
+    body.pendency-drawer-open-desktop {
+        --pendency-docked-drawer-width: min(520px, 42vw);
+        --pendency-docked-drawer-top: 70px;
+    }
+
+    body.pendency-drawer-open-desktop header.top-header {
+        z-index: 900;
+    }
+
+    body.pendency-drawer-open-desktop #main-container {
+        width: calc(100% - var(--pendency-docked-drawer-width));
+        max-width: calc(100% - var(--pendency-docked-drawer-width));
+        margin-right: var(--pendency-docked-drawer-width);
+        flex-grow: 0;
+        transition: width 160ms ease-out, max-width 160ms ease-out;
+    }
+
+    body.pendency-drawer-open-desktop .pendency-detail-drawer {
+        top: var(--pendency-docked-drawer-top);
+        width: var(--pendency-docked-drawer-width);
+        min-width: 420px;
+        height: calc(100dvh - var(--pendency-docked-drawer-top));
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.pendency-drawer-open-desktop #main-container {
+        transition: none;
+    }
+}
