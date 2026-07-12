@@ -119,7 +119,7 @@ test.describe('Tasks 10–11 — contatos, cancelamento e reabertura', () => {
       return { status: item.status, historyTypes: item.historico.map(event => event.tipo) };
     });
     expect(data.status).toBe('Aberta');
-    expect(data.historyTypes).toContain('reanálise_correta');
+    expect(data.historyTypes).toContain('reanalise_correta');
     expect(data.historyTypes).toContain('reabertura');
   });
 });
