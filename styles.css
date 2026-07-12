@@ -2613,3 +2613,23 @@ body.dark-theme .pendency-detail-marker {
         max-width: none;
     }
 }
+
+
+/* Task 8: dimensões independentes no resumo por programa */
+.program-status-summary {
+    display: grid;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.program-status-summary > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.72rem;
+}
+
+.program-status-summary > div > span:first-child {
+    color: var(--text-muted);
+}

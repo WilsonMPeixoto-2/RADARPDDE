@@ -58,17 +58,32 @@ async function seedAwaitingReanalysis(page, options = {}) {
     verificacoes[escola.id] = verificacoes[escola.id] || {};
 
     const verification = RadarFluxoOperacional.createEmptyVerification();
-    verification.bonificacao = {
-      extCC: 'Sim',
-      extINV: 'Não',
-      notaFiscal: 'Não se aplica',
-      consAssessoria: 'Sim',
-      declBBAgil: 'Sim',
-      encampInventario: 'Não se aplica'
-    };
+    verification.bonificacao = seedOptions.bonusResult === 'apta'
+      ? {
+          extCC: 'Sim',
+          extINV: 'Sim',
+          notaFiscal: 'Não se aplica',
+          consAssessoria: 'Não se aplica',
+          declBBAgil: 'Sim',
+          encampInventario: 'Não se aplica'
+        }
+      : {
+          extCC: 'Sim',
+          extINV: 'Não',
+          notaFiscal: 'Não se aplica',
+          consAssessoria: 'Sim',
+          declBBAgil: 'Sim',
+          encampInventario: 'Não se aplica'
+        };
+    if (seedOptions.completeTechnicalAnalysis) {
+      Object.keys(verification.analise).forEach(key => {
+        verification.analise[key] = 'Correto';
+      });
+    } else {
+      verification.analise.extINV = 'Correto';
+    }
     verification.analise[target.documentoKey] = 'Não analisado';
-    verification.analise.extINV = 'Correto';
-    verification.resultadoBonif = 'inapta';
+    verification.resultadoBonif = seedOptions.bonusResult || 'inapta';
     verificacoes[escola.id][compProgKey] = verification;
 
     const unrelatedVerification = RadarFluxoOperacional.createEmptyVerification();
@@ -1691,7 +1706,9 @@ test.describe('reanálise atômica da pendência documental no desktop', () => {
     const context = await seedAwaitingReanalysis(page, {
       pendencyId: 'pend-e2e-reanalise-correta-tardia',
       availabilityDate: '2026-07-01',
-      link: null
+      link: null,
+      bonusResult: 'apta',
+      completeTechnicalAnalysis: true
     });
     const deadline = await page.evaluate(competencia => (
       COMPETENCIAS.find(item => item.key === competencia).bonifPrazo
@@ -1746,7 +1763,21 @@ test.describe('reanálise atômica da pendência documental no desktop', () => {
     expect(result.analysis).toBe('Correto (Atrasado)');
     expect(result.bonification).toEqual(context.verificationBefore.bonificacao);
     expect(result.programResult).toBe(context.verificationBefore.resultadoBonif);
+    expect(result.programResult).toBe('apta');
 
+    await page.evaluate(seeded => {
+      activeProntuarioCompetencia = seeded.competencia;
+      switchView('prontuario', seeded.escolaId);
+    }, context);
+    const programSummary = page.locator(
+      `[data-program-status-summary="${context.programaId}"]`
+    ).first();
+    await expect(programSummary.locator('[data-status-dimension="bonificacao"]'))
+      .toHaveText('APTA');
+    await expect(programSummary.locator('[data-status-dimension="analise"]'))
+      .toHaveText('Correto após o prazo');
+
+    await page.evaluate(pendencyId => openPendencyDetail(pendencyId), context.pendencyId);
     await expect(page.getByRole('button', {
       name: 'Histórico Resolvidas (1)',
       exact: true

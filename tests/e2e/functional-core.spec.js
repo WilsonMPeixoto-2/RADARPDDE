@@ -112,7 +112,7 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
 
     const statsGrid = page.locator('#main-container .grid-stats').first();
     const cards = statsGrid.locator(':scope > .card-stat');
-    const naoAnalisadasCard = cards.filter({ hasText: 'Não Analisadas' });
+    const naoAnalisadasCard = cards.filter({ hasText: 'Bonificação não lançada' });
 
     await expect(cards).toHaveCount(4);
     await expect(naoAnalisadasCard).toHaveCount(1);
@@ -500,7 +500,8 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
       target: verificacoes[escolaId][compProgKey].analise.extCC,
       siblingDocument: verificacoes[escolaId][compProgKey].analise.extINV,
       otherProgram: verificacoes[escolaId][otherCompProgKey].analise.extCC,
-      status: getProgramVerificationStatus(escolaId, competencia, 'ED_FAMILIA'),
+      bonusStatus: getProgramBonificationStatus(escolaId, competencia, 'ED_FAMILIA'),
+      technicalStatus: getProgramTechnicalStatus(escolaId, competencia, 'ED_FAMILIA'),
       bonificacao: JSON.parse(JSON.stringify(
         verificacoes[escolaId][compProgKey].bonificacao
       )),
@@ -510,7 +511,8 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
       target: 'Correto',
       siblingDocument: 'Correto',
       otherProgram: 'Incorreto',
-      status: 'em-andamento',
+      bonusStatus: 'em-apuracao',
+      technicalStatus: 'em-analise',
       bonificacao: context.bonificacaoAntes,
       resultado: context.resultadoAntes,
       pendency: expect.objectContaining({
