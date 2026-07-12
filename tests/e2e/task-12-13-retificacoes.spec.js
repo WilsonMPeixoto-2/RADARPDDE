@@ -83,8 +83,12 @@ test.describe('Tasks 12–13 — retificação administrativa auditável', () =>
     await expect(dialog.getByTestId('retification-preview')).toContainText('Não → Sim');
     await dialog.getByRole('button', { name: 'Confirmar retificação' }).click();
 
-    await expect(page.getByText('Histórico de retificações')).toBeVisible();
-    await expect(page.getByText('Correção do lançamento após conferência administrativa do documento apresentado.')).toBeVisible();
+    const history = page.locator('.retification-history').first();
+    await expect(history.getByText('Histórico de retificações')).toBeVisible();
+    await expect(history.getByText(
+      'Correção do lançamento após conferência administrativa do documento apresentado.',
+      { exact: true }
+    )).toBeVisible();
 
     const result = await page.evaluate(({ schoolId, compKey }) => {
       const verification = verificacoes[schoolId][compKey];
