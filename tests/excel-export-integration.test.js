@@ -73,6 +73,30 @@ test('formata competência e nome do arquivo de modo estável', () => {
     assert.equal(integration.buildFileName('2026-05'), 'RADAR_PDDE_BONIFICACOES_05-2026.xlsx');
 });
 
+test('transforma o botão legado em ação primária e explícita de geração XLSX', () => {
+    const classes = new Set(['btn', 'btn-secondary']);
+    const attributes = {};
+    const button = {
+        dataset: {},
+        classList: {
+            add(value) { classes.add(value); },
+            remove(value) { classes.delete(value); }
+        },
+        setAttribute(name, value) { attributes[name] = value; },
+        innerHTML: '',
+        title: ''
+    };
+
+    assert.equal(integration.configurePrimaryButton(button), true);
+    assert.equal(button.dataset.radarXlsxEnhanced, 'true');
+    assert.equal(button.dataset.radarExportFormat, 'xlsx');
+    assert.equal(classes.has('btn-primary'), true);
+    assert.equal(classes.has('btn-secondary'), false);
+    assert.match(button.innerHTML, /Gerar relatório Excel \(\.xlsx\)/);
+    assert.match(button.title, /BONIFICACOES, SINTESE, QUALIDADE_DADOS e METADADOS/);
+    assert.equal(attributes['aria-label'], 'Gerar relatório Excel completo em formato XLSX');
+});
+
 test('preserva a função CSV legada ao instalar a integração', () => {
     let csvCalls = 0;
     const fakeRoot = {
