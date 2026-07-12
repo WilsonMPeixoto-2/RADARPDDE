@@ -1,0 +1,88 @@
+name: Ajustar semântica dos testes da Task 9
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obter branch da Task 9
+        uses: actions/checkout@v4
+        with:
+          ref: feature/ciclo-a-task-9-pendencias-navegaveis
+          fetch-depth: 0
+
+      - name: Migrar expectativas das filas separadas
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('tests/e2e/pendency-cycle.spec.js')
+          text = path.read_text(encoding='utf-8')
+
+          replacements = [
+              (
+                  """    await expect(page.getByRole('tab', { name: /^Abertas\\b/ })).toBeVisible();
+    const awaitingRow = page.locator('#p-abertas tr[data-pendency-ref]');
+    await expect(awaitingRow).toContainText('Aguardando reanálise');""",
+                  """    await expect(page.getByRole('tab', { name: /^Aguardando reanálise\\b/ }))
+      .toHaveAttribute('aria-selected', 'true');
+    const awaitingRow = page.locator('#p-aguardando tr[data-pendency-ref]');
+    await expect(awaitingRow).toContainText('Aguardando reanálise');""",
+                  1,
+              ),
+              (
+                  """    await expect(page.getByRole('tab', { name: /^Abertas\\b/ }))
+      .toHaveClass(/active/);
+    await expect(page.locator('#p-abertas')).toHaveClass(/active/);""",
+                  """    await expect(page.getByRole('tab', { name: /^Aguardando reanálise\\b/ }))
+      .toHaveClass(/active/);
+    await expect(page.locator('#p-aguardando')).toHaveClass(/active/);""",
+                  1,
+              ),
+              (
+                  "inActiveTab: Boolean(focused && focused.closest('#p-abertas'))",
+                  "inActiveTab: Boolean(focused && focused.closest('#p-aguardando'))",
+                  1,
+              ),
+              (
+                  """    await page.locator('#p-abertas').getByRole('button', {
+      name: 'Reanalisar',
+      exact: true
+    }).click();""",
+                  """    await page.getByRole('tab', { name: /^Aguardando reanálise\\b/ }).click();
+    await page.locator('#p-aguardando').getByRole('button', {
+      name: 'Reanalisar',
+      exact: true
+    }).click();""",
+                  1,
+              ),
+          ]
+
+          for old, new, expected in replacements:
+              count = text.count(old)
+              print({'trecho': old.splitlines()[0], 'encontrado': count})
+              if count != expected:
+                  raise SystemExit(f'Trecho encontrado {count} vez(es); esperado: {expected}.')
+              text = text.replace(old, new, expected)
+
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Validar e salvar
+        run: |
+          git diff --check
+          node --check tests/e2e/pendency-cycle.spec.js
+          git rm .github/workflows/task-9-semantic-test-migration.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/e2e/pendency-cycle.spec.js
+          git commit -m "test: respeitar filas separadas da Task 9"
+          git push origin HEAD:feature/ciclo-a-task-9-pendencias-navegaveis
