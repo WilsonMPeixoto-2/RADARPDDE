@@ -44,5 +44,6 @@ window.RADAR_PDDE_CONFIG = {
     loadScript('src/integration/task-12-13-retificacoes.js', false);
     loadScript('src/integration/cycle-b-carteira.js', false);
     loadScript('src/integration/cycle-b-dashboard.js', false);
+    loadScript('src/integration/task-10-alerts-competence.js', false);
     loadScript('src/integration/load-excel-export.js', true);
 }());
