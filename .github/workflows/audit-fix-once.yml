@@ -165,20 +165,22 @@ jobs:
 
           app_path = Path('app.js')
           app = app_path.read_text()
-          old_default = r'''        // Auto seleção de um erro documental compatível com o contexto detectado.
-          const defaultError = docKey === 'declBBAgil'
-              ? 'Sem assinatura'
-              : 'Documento ausente';
-          const defaultErrorInput = Array.from(document.querySelectorAll('input[name="pend-erros"]'))
-              .find(input => input.value === defaultError);
-          if (defaultErrorInput) {
-              defaultErrorInput.checked = true;
-              syncAbsentErrorExclusivity(defaultErrorInput);
-          }
-          '''
-          new_default = r'''        // Ao abrir a pendência a partir de uma análise "Incorreto",
-          // nenhum erro é presumido: o Controlador registra apenas as falhas efetivamente observadas.
-          '''
+          old_default = (
+              "        // Auto seleção de um erro documental compatível com o contexto detectado.\n"
+              "        const defaultError = docKey === 'declBBAgil'\n"
+              "            ? 'Sem assinatura'\n"
+              "            : 'Documento ausente';\n"
+              "        const defaultErrorInput = Array.from(document.querySelectorAll('input[name=\"pend-erros\"]'))\n"
+              "            .find(input => input.value === defaultError);\n"
+              "        if (defaultErrorInput) {\n"
+              "            defaultErrorInput.checked = true;\n"
+              "            syncAbsentErrorExclusivity(defaultErrorInput);\n"
+              "        }\n"
+          )
+          new_default = (
+              "        // Ao abrir a pendência a partir de uma análise \"Incorreto\",\n"
+              "        // nenhum erro é presumido: o Controlador registra apenas as falhas efetivamente observadas.\n"
+          )
           if app.count(old_default) != 1:
               raise SystemExit('Trecho de pré-seleção de erro não encontrado de forma única.')
           app = app.replace(old_default, new_default)
