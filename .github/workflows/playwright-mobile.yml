@@ -12,35 +12,13 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: playwright-mobile-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  migrate-cycle-b-regressions:
-    if: github.actor != 'github-actions[bot]'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Obter branch do pacote
-        uses: actions/checkout@v4
-        with:
-          ref: feature/ciclo-a-pacote-operacional-retificacao
-          fetch-depth: 0
-
-      - name: Aplicar migração explícita
-        run: |
-          python scripts/migrate-cycle-b-regression-tests.py
-          test "$(wc -c < tests/e2e/pendency-cycle.spec.js)" -gt 100000
-          node --check tests/e2e/pendency-cycle.spec.js
-          git diff --check
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add tests/e2e/pendency-cycle.spec.js
-          git commit -m "test: alinhar regressões ao Dashboard e à Carteira do Ciclo B"
-          git push origin HEAD:feature/ciclo-a-pacote-operacional-retificacao
-
   mobile:
     name: Desktop, Android e iPhone
     runs-on: ubuntu-latest
