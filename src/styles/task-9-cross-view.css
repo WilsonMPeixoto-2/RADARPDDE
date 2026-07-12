@@ -53,15 +53,27 @@
     color: var(--text-muted);
 }
 
+/* Acima do conteúdo, mas abaixo dos modais globais (z-index 1000). */
+.pendency-drawer-layer {
+    z-index: 800;
+}
+
 @media (min-width: 1181px) {
     body.pendency-drawer-open-desktop {
         --pendency-docked-drawer-width: min(520px, 42vw);
         --pendency-docked-drawer-top: 70px;
     }
 
+    body.pendency-drawer-open-desktop header.top-header {
+        z-index: 900;
+    }
+
     body.pendency-drawer-open-desktop #main-container {
+        width: calc(100% - var(--pendency-docked-drawer-width));
+        max-width: calc(100% - var(--pendency-docked-drawer-width));
         margin-right: var(--pendency-docked-drawer-width);
-        transition: margin-right 160ms ease-out;
+        flex-grow: 0;
+        transition: width 160ms ease-out, max-width 160ms ease-out;
     }
 
     body.pendency-drawer-open-desktop .pendency-detail-drawer {
