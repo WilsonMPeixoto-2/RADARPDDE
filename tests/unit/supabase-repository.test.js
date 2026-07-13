@@ -3,7 +3,10 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const { SupabaseRepository } = require('../../src/data/supabase-repository.js');
+const {
+    SupabaseRepository,
+    IMPORT_ENTITY_ORDER
+} = require('../../src/data/supabase-repository.js');
 const { createRepository } = require('../../src/data/repository-factory.js');
 const { RepositoryError } = require('../../src/data/repository-contract.js');
 const { validateSnapshot } = require('../../src/data/snapshot-tools.js');
@@ -94,6 +97,38 @@ test('exporta snapshot remoto compatível com as ferramentas de reconciliação'
     assert.deepEqual(validateSnapshot(snapshot), { ok: true, errors: [] });
 });
 
+test('restaura snapshot respeitando a ordem das chaves estrangeiras', async () => {
+    const client = createSupabaseClient();
+    const repository = new SupabaseRepository({ client });
+
+    await repository.restoreSnapshot({
+        format: 'radar-pdde-snapshot',
+        version: '1',
+        importId: 'ordered-import',
+        exportedAt: '2026-07-13T12:00:00.000Z',
+        entities: {
+            pendencies: [{ id: 'p1', school_id: 's1' }],
+            appConfig: [{ id: 'global', closing_competence: '2026-05' }],
+            schools: [{ id: 's1' }],
+            programs: [{ id: 'BASIC' }],
+            competences: [{ id: '2026-05' }]
+        }
+    });
+
+    const upsertTables = client.calls
+        .filter(call => call.operation === 'upsert')
+        .map(call => call.table);
+
+    assert.deepEqual(upsertTables, [
+        'competences',
+        'programs',
+        'app_config',
+        'schools',
+        'pendencies'
+    ]);
+    assert.ok(IMPORT_ENTITY_ORDER.indexOf('competences') < IMPORT_ENTITY_ORDER.indexOf('appConfig'));
+});
+
 test('remove registro por id', async () => {
     const client = createSupabaseClient({ pendencies: [{ id: 'p1' }, { id: 'p2' }] });
     const repository = new SupabaseRepository({ client });
@@ -132,8 +167,7 @@ test('factory permanece em local sem dupla autorização', () => {
     assert.equal(supabaseClient.calls.length, 0);
 });
 
-test('factory cria adaptador Supabase somente com configuração habilitada', () => {
-    const localRepository = { type: 'local' };
+test('factory cria Supabase sem instanciar armazenamento local desnecessário', () => {
     const selected = createRepository({
         dataMode: 'supabase-preview',
         features: {
@@ -144,7 +178,6 @@ test('factory cria adaptador Supabase somente com configuração habilitada', ()
             connectionEnabled: true
         }
     }, {
-        localRepository,
         supabaseClient: createSupabaseClient()
     });
 
