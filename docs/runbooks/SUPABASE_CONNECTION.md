@@ -4,12 +4,14 @@
 
 Não execute este runbook durante a etapa de preparação. A produção permanece em `localStorage`, com URL e chave vazias e feature flags desativadas.
 
+O `app.js` ainda contém uma integração direta preliminar e antiga, com tabelas e seed incompatíveis com o novo esquema. Ela permanece inativa porque a configuração publicada não expõe credenciais. **Não se deve simplesmente preencher URL, chave e ligar as flags.** A ponte definitiva deverá substituir esse caminho pelo contrato de repositório antes de qualquer conexão da aplicação.
+
 ## Pré-requisitos
 
-- projeto Supabase criado e em estado ativo;
+- projeto Supabase criado e ativo;
 - branch de integração isolada;
-- migrations revisadas e aplicadas em ambiente de desenvolvimento;
-- URL do projeto e chave **publishable** disponíveis;
+- migrations aplicadas em ambiente de desenvolvimento;
+- URL e chave **publishable** disponíveis;
 - nenhuma chave `service_role`, `sb_secret_`, senha ou token administrativo no frontend;
 - Preview do Vercel separado de produção;
 - snapshot local exportado e validado;
@@ -27,9 +29,10 @@ Após a aplicação:
 
 - listar migrations executadas;
 - verificar advisors de segurança e desempenho;
-- confirmar que RLS está ativa nas tabelas;
-- confirmar que não há políticas para o papel `anon`;
-- gerar tipos TypeScript apenas como artefato de conferência, mesmo que o frontend atual permaneça JavaScript.
+- confirmar RLS ativa em todas as tabelas expostas;
+- confirmar ausência de políticas para `anon`;
+- gerar tipos TypeScript como artefato de conferência;
+- executar teste de criação e rollback em ambiente descartável.
 
 ## 2. Criar usuários de teste
 
@@ -41,18 +44,71 @@ Criar usuários separados para:
 - Gestão SME;
 - Administrador técnico.
 
-Vincular cada usuário em `user_profiles`. Controladores precisam de `controller_id`; integrantes de inventário precisam de `inventory_member_id`.
+Vincular cada usuário em `user_profiles`. Controladores precisam de `controller_id`; integrantes do inventário precisam de `inventory_member_id`.
 
 ## 3. Configurar escopos
 
 - associar escolas ao controlador por `schools.controller_id`;
-- usar `user_school_scopes` apenas para exceções;
+- usar `user_school_scopes` para exceções;
 - marcar `can_write` explicitamente;
+- conceder escopo a inventariador que precise registrar o primeiro bem de uma escola;
 - não conceder perfil técnico administrativo a usuário operacional.
 
-## 4. Configurar somente o Preview
+## 4. Validar o repositório sem conectar a aplicação
 
-Em uma branch específica, alterar a fonte publicada de configuração para:
+Nesta fase, `config.js` continua integralmente em modo local. A validação do banco ocorre por cliente injetado em ambiente técnico controlado, e não pela interface pública do RADAR.
+
+Exemplo conceitual:
+
+```javascript
+const client = createClient(projectUrl, publishableKey);
+const repository = new RadarSupabaseRepository.SupabaseRepository({ client });
+const health = await repository.healthCheck();
+```
+
+As credenciais devem vir do ambiente de execução ou do conector autorizado, nunca do GitHub.
+
+Validar:
+
+- leitura com cada usuário de teste;
+- negativas de RLS;
+- gravação em tabelas permitidas;
+- exclusão restrita ao Administrador técnico;
+- exportação de snapshot remoto;
+- ausência de seed automático;
+- ordem relacional de restauração;
+- logs e auditoria.
+
+## 5. Exportar e importar uma cópia controlada
+
+Seguir `SUPABASE_MIGRATION_AND_ROLLBACK.md`:
+
+1. exportar o estado atual com `RadarLegacyStateAdapter.exportLegacySnapshot()`;
+2. resolver advertências e rejeições;
+3. registrar `import_id`;
+4. importar em ordem relacional por backend controlado;
+5. exportar o destino;
+6. reconciliar origem e destino;
+7. preservar o snapshot local.
+
+A importação não deve ocorrer no navegador com credencial administrativa.
+
+## 6. Implementar a ponte definitiva em PR separado
+
+Somente após o repositório e os dados estarem homologados:
+
+- substituir as chamadas diretas do `app.js` por operações do contrato de repositório;
+- remover o seed automático e a integração antiga com tabelas legadas;
+- mapear carregamento, gravação, conflitos e falhas;
+- manter o adaptador local como referência e rollback;
+- criar testes de equivalência para cada mutação do domínio;
+- comprovar que nenhuma tela, cálculo, botão ou fluxo mudou.
+
+A simples alteração de flags **não substitui essa implementação**.
+
+## 7. Configurar somente o Preview
+
+Depois de a ponte definitiva estar implementada e testada, alterar a fonte de configuração apenas na branch de Preview:
 
 ```javascript
 {
@@ -60,7 +116,7 @@ Em uma branch específica, alterar a fonte publicada de configuração para:
   productionActivationApproved: false,
   features: {
     supabaseRepositoryEnabled: true,
-    legacyAppBridgeEnabled: false
+    legacyAppBridgeEnabled: true
   },
   supabase: {
     url: 'URL_DO_PROJETO',
@@ -69,16 +125,18 @@ Em uma branch específica, alterar a fonte publicada de configuração para:
 }
 ```
 
-A primeira ativação mantém `legacyAppBridgeEnabled: false`. Isso permite validar o novo repositório isoladamente antes de permitir que o fluxo legado grave remotamente.
+A conexão exige simultaneamente:
 
-## 5. Validar infraestrutura
+- modo não local;
+- `supabaseRepositoryEnabled: true`;
+- `legacyAppBridgeEnabled: true`;
+- URL válida;
+- chave publicável válida.
 
-Executar:
+## 8. Executar validações
 
 ```bash
-npm run check
-npm run test:unit
-npm run check:supabase
+npm run test:readiness
 npm run test:e2e
 ```
 
@@ -86,39 +144,38 @@ Confirmar:
 
 - cliente criado somente no Preview;
 - produção continua em modo local;
-- leitura respeita RLS;
+- leitura e escrita respeitam RLS;
 - usuário sem perfil recebe acesso negado;
 - nenhum seed é executado automaticamente;
-- nenhuma tabela é preenchida apenas por estar vazia.
+- banco vazio não causa inserção implícita;
+- falha de rede é tratada sem corromper o estado;
+- resultados funcionais coincidem com o modo local.
 
-## 6. Importar snapshot
+## 9. Homologar RLS e concorrência
 
-Seguir `SUPABASE_MIGRATION_AND_ROLLBACK.md`. A importação deve usar `import_id` único e gerar relatório de reconciliação.
+Executar todos os casos da matriz de permissões, incluindo tentativas negativas. Ocultar um botão não prova segurança; a operação deve ser negada pelo banco.
 
-## 7. Ativar a ponte legada no Preview
+Também validar:
 
-Somente após a reconciliação aprovada:
+- duas sessões alterando o mesmo registro;
+- incremento de `row_version`;
+- detecção de conflito;
+- sessão expirada;
+- usuário desativado;
+- alteração de perfil;
+- auditoria de inserção, alteração e exclusão.
 
-```javascript
-legacyAppBridgeEnabled: true
-```
-
-Reexecutar toda a regressão e homologar as operações de criação, alteração, reanálise, retificação, inventário e exportação.
-
-## 8. Homologar RLS
-
-Executar os casos da matriz de permissões, incluindo tentativas negativas. Uma tela ocultar botão não é prova de segurança; a operação deve ser negada pelo banco.
-
-## 9. Preparar produção
+## 10. Preparar produção
 
 A promoção exige simultaneamente:
 
-- autorização funcional;
-- autorização técnica;
+- autorização funcional e técnica;
 - snapshot e backup preservados;
-- relatório de reconciliação sem diferenças;
+- reconciliação sem diferenças não justificadas;
 - CI verde;
 - Preview homologado;
-- plano de rollback testado.
+- advisors analisados;
+- rollback testado;
+- período de implantação definido.
 
-O modo `supabase-production` ainda exige `productionActivationApproved: true`. Sem essa autorização, a configuração retorna automaticamente para `local`.
+O modo `supabase-production` exige `productionActivationApproved: true`. Sem essa autorização, a configuração retorna automaticamente para `local`.
