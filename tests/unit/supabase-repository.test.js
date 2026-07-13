@@ -6,6 +6,7 @@ const assert = require('node:assert/strict');
 const { SupabaseRepository } = require('../../src/data/supabase-repository.js');
 const { createRepository } = require('../../src/data/repository-factory.js');
 const { RepositoryError } = require('../../src/data/repository-contract.js');
+const { validateSnapshot } = require('../../src/data/snapshot-tools.js');
 
 function createSupabaseClient(seed = {}) {
     const tables = new Map(Object.entries(seed).map(([name, rows]) => [name, structuredClone(rows)]));
@@ -72,6 +73,25 @@ test('carrega e grava por tabela sem executar seed automático', async () => {
         { id: '2', name: 'B' }
     ]);
     assert.equal(client.calls.some(call => call.operation === 'insert'), false);
+});
+
+test('exporta snapshot remoto compatível com as ferramentas de reconciliação', async () => {
+    const client = createSupabaseClient({
+        schools: [{ id: '1', name: 'A' }],
+        programs: [{ id: 'BASIC', name: 'PDDE Básico' }]
+    });
+    const repository = new SupabaseRepository({ client });
+
+    const snapshot = await repository.exportSnapshot({
+        version: '7',
+        importId: 'remote-001',
+        exportedAt: '2026-07-13T12:00:00.000Z'
+    });
+
+    assert.equal(snapshot.format, 'radar-pdde-snapshot');
+    assert.equal(snapshot.version, '7');
+    assert.equal(snapshot.importId, 'remote-001');
+    assert.deepEqual(validateSnapshot(snapshot), { ok: true, errors: [] });
 });
 
 test('remove registro por id', async () => {
