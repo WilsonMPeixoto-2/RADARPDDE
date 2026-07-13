@@ -23,7 +23,8 @@ Aplicar, nesta ordem:
 
 1. `202607130001_core_schema.sql`;
 2. `202607130002_auth_and_rls.sql`;
-3. `202607130003_audit_and_import.sql`.
+3. `202607130003_audit_and_import.sql`;
+4. `202607130004_competence_bonus_deadline.sql`.
 
 Após a aplicação:
 
