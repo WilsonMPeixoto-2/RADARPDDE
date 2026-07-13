@@ -26,7 +26,7 @@ test('cria snapshot canônico com IDs ordenados', () => {
     assert.deepEqual(snapshot.entities.schools.map(item => item.id), ['1', '2']);
 });
 
-test('valida estrutura e rejeita IDs duplicados', () => {
+test('valida estrutura, entidade canônica e rejeita IDs duplicados', () => {
     const valid = createSnapshot({ schools: [{ id: '1' }] }, {
         version: '1',
         importId: 'ok',
@@ -37,12 +37,14 @@ test('valida estrutura e rejeita IDs duplicados', () => {
     const invalid = {
         ...valid,
         entities: {
-            schools: [{ id: '1' }, { id: '1' }]
+            schools: [{ id: '1' }, { id: '1' }],
+            arbitraryTable: [{ id: 'danger' }]
         }
     };
     const result = validateSnapshot(invalid);
     assert.equal(result.ok, false);
     assert.match(result.errors.join(' '), /duplicado/i);
+    assert.match(result.errors.join(' '), /entidade desconhecida.*arbitraryTable/i);
 });
 
 test('gera lotes sem alterar a ordem canônica', () => {
