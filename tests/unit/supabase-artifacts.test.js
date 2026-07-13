@@ -107,3 +107,14 @@ test('migration de auditoria usa sintaxe válida de triggers e leitura segura de
         /nullif\s*\(\s*current_setting\s*\(\s*'request\.headers'\s*,\s*true\s*\)\s*,\s*''\s*\)\s*::jsonb/i
     );
 });
+
+test('bootstrap de smoke test reproduz dependências mínimas do Supabase', () => {
+    const bootstrapPath = path.join(ROOT, 'supabase', 'tests', 'bootstrap.sql');
+    const sql = fs.readFileSync(bootstrapPath, 'utf8');
+
+    assert.match(sql, /create\s+schema\s+auth/i);
+    assert.match(sql, /create\s+table\s+auth\.users/i);
+    assert.match(sql, /create\s+or\s+replace\s+function\s+auth\.uid\(\)/i);
+    assert.match(sql, /create\s+role\s+authenticated/i);
+    assert.match(sql, /create\s+role\s+anon/i);
+});
