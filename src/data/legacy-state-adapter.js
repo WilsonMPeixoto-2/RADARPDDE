@@ -55,6 +55,20 @@
         'Inventariada'
     ]);
     const EXPENSE_TYPES = new Set(['consumo', 'permanente', 'servico']);
+    const MONTH_LABELS = Object.freeze([
+        'Janeiro',
+        'Fevereiro',
+        'Março',
+        'Abril',
+        'Maio',
+        'Junho',
+        'Julho',
+        'Agosto',
+        'Setembro',
+        'Outubro',
+        'Novembro',
+        'Dezembro'
+    ]);
 
     function text(value) {
         return value == null ? '' : String(value).trim();
@@ -162,7 +176,15 @@
             const normalized = text(value);
             if (/^\d{4}-(0[1-9]|1[0-2])$/.test(normalized)) ids.add(normalized);
         };
+        const addExercise = value => {
+            const normalized = text(value);
+            if (!/^\d{4}$/.test(normalized)) return;
+            for (let month = 1; month <= 12; month += 1) {
+                add(`${normalized}-${String(month).padStart(2, '0')}`);
+            }
+        };
 
+        array(state.config?.exercicios).forEach(addExercise);
         add(state.config?.competenciaFechamento);
         array(state.schools).forEach(school => add(school.competenciaInicial));
         array(state.pendencies).forEach(pendency => add(pendency.competenciaOrigem || pendency.competencia));
@@ -182,12 +204,14 @@
         const [year, month] = id.split('-').map(Number);
         const startsOn = `${id}-01`;
         const endsOn = new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10);
+        const nextMonth = new Date(Date.UTC(year, month, 15));
         return {
             id,
-            label: id,
+            label: `${MONTH_LABELS[month - 1]} ${year}`,
             exercise: year,
             starts_on: startsOn,
             ends_on: endsOn,
+            bonus_deadline: nextMonth.toISOString().slice(0, 10),
             closed_at: null
         };
     }
