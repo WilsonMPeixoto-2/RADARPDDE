@@ -1,0 +1,70 @@
+name: Aplicar ajuste temporário de teste do Dashboard
+
+on:
+  push:
+    branches:
+      - fix/encerramento-ciclos-a-b
+    paths:
+      - '.github/workflows/apply-dashboard-test-patch.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/encerramento-ciclos-a-b
+          fetch-depth: 0
+
+      - name: Atualizar expectativa legada para filtro local
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('tests/e2e/pendency-cycle.spec.js')
+          text = path.read_text(encoding='utf-8')
+          old = """    await awaitingCard.click();
+    await expect(page.getByRole('heading', { name: 'Escolas e Carteiras' })).toBeVisible();
+    const pendenciesFilter = page.locator('#filter-escola-pendencias');
+    await expect(pendenciesFilter.locator('option[value=\"aberta\"]'))
+      .toHaveText('Pendência aberta');
+    await expect(pendenciesFilter.locator('option[value=\"aguardando\"]'))
+      .toHaveText('Aguardando reanálise');
+    await expect(pendenciesFilter.locator('option[value=\"com\"]'))
+      .toHaveText('Com pendência ativa');
+    await expect(pendenciesFilter.locator('option[value=\"sem\"]'))
+      .toHaveText('Sem pendência ativa');
+    await expect(pendenciesFilter).toHaveValue('aguardando');
+    const schoolsResult = page.locator('.panel-card').filter({
+      has: page.getByRole('heading', { name: 'Resultado da carteira', exact: true })
+    });
+    await expect(schoolsResult.locator('tbody tr')).toHaveCount(1);
+    await expect(schoolsResult.locator('tbody tr').first()).toContainText(context.escolaNome);
+"""
+          new = """    await awaitingCard.click();
+    await expect(page.getByRole('heading', { name: 'Painel do Controlador' })).toBeVisible();
+    await expect(awaitingCard).toHaveAttribute('aria-pressed', 'true');
+
+    const dashboardTable = page.locator('.dash-layout table.data-table').first();
+    const filteredRow = dashboardTable.locator('tbody tr').filter({ hasText: context.escolaNome });
+    await expect(filteredRow).toHaveCount(1);
+    await expect(filteredRow.getByRole('button', { name: 'Reanalisar documento' })).toBeVisible();
+
+    const dashboardQueue = page.getByRole('region', { name: 'Próximas ações operacionais' });
+    await expect(dashboardQueue.locator('.cycle-b-action-item')).toHaveCount(1);
+    await expect(dashboardQueue).toContainText(`Reanalisar ${context.documentoNome}`);
+"""
+          if old not in text:
+              raise SystemExit('Bloco legado não localizado; nenhuma alteração aplicada.')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+      - name: Commit da atualização do teste
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/e2e/pendency-cycle.spec.js
+          git commit -m "test: alinhar fila do Controlador ao filtro local"
+          git push origin HEAD:fix/encerramento-ciclos-a-b
