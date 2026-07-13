@@ -27,13 +27,19 @@ test('schema principal contém entidades, relacionamentos e id canônico', () =>
     assert.match(sql, /references\s+public\.schools\s*\(id\)/i);
     assert.match(sql, /references\s+public\.programs\s*\(id\)/i);
     assert.match(sql, /create\s+table\s+public\.competences\s*\(\s*id\s+text\s+primary\s+key/i);
-    assert.match(sql, /bonus_deadline\s+date/i);
     assert.match(sql, /create\s+table\s+public\.school_programs\s*\(\s*id\s+text\s+primary\s+key/i);
     assert.match(sql, /create\s+table\s+public\.pendency_attempts\s*\(\s*id\s+text\s+primary\s+key/i);
     assert.match(sql, /create\s+table\s+public\.pendency_contacts\s*\(\s*id\s+text\s+primary\s+key/i);
     assert.match(sql, /unique\s*\(school_id,\s*program_id\)/i);
     assert.match(sql, /check\s*\(status\s+in\s*\(/i);
     assert.match(sql, /create\s+index/i);
+});
+
+test('migration complementar preserva o prazo de bonificação por competência', () => {
+    const sql = read('202607130004_competence_bonus_deadline.sql');
+    assert.match(sql, /alter\s+table\s+public\.competences[\s\S]*?add\s+column\s+bonus_deadline\s+date/i);
+    assert.match(sql, /competences_bonus_deadline_check/i);
+    assert.match(sql, /competences_bonus_deadline_idx/i);
 });
 
 test('migration de autenticação ativa RLS, define perfis e IDs removíveis', () => {
