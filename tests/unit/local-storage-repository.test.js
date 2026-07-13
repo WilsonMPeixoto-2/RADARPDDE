@@ -5,6 +5,7 @@ const assert = require('node:assert/strict');
 
 const { LocalStorageRepository } = require('../../src/data/local-storage-repository.js');
 const { RepositoryError } = require('../../src/data/repository-contract.js');
+const { validateSnapshot } = require('../../src/data/snapshot-tools.js');
 
 function createMemoryStorage() {
     const values = new Map();
@@ -53,7 +54,7 @@ test('remove uma entidade sem afetar as demais', async () => {
     assert.deepEqual(await repository.load('pendencies'), [{ id: 'p1' }]);
 });
 
-test('exporta e restaura snapshot versionado', async () => {
+test('exporta e restaura snapshot no formato canônico de migração', async () => {
     const storage = createMemoryStorage();
     const repository = new LocalStorageRepository({
         storage,
@@ -63,8 +64,14 @@ test('exporta e restaura snapshot versionado', async () => {
     await repository.save('schools', [{ id: '1' }]);
     await repository.save('programs', [{ id: 'BASIC' }]);
 
-    const snapshot = await repository.exportSnapshot();
-    assert.equal(snapshot.schemaVersion, '7');
+    const snapshot = await repository.exportSnapshot({
+        importId: 'local-001',
+        exportedAt: '2026-07-13T12:00:00.000Z'
+    });
+    assert.equal(snapshot.format, 'radar-pdde-snapshot');
+    assert.equal(snapshot.version, '7');
+    assert.equal(snapshot.importId, 'local-001');
+    assert.deepEqual(validateSnapshot(snapshot), { ok: true, errors: [] });
     assert.deepEqual(snapshot.entities.schools, [{ id: '1' }]);
     assert.deepEqual(snapshot.entities.programs, [{ id: 'BASIC' }]);
 
