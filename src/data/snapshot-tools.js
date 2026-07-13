@@ -16,11 +16,13 @@
 }(typeof window !== 'undefined' ? window : globalThis, function createSnapshotToolsApi(contract) {
     'use strict';
 
-    const cloneValue = contract && contract.cloneValue
-        ? contract.cloneValue
-        : value => JSON.parse(JSON.stringify(value));
+    if (!contract) {
+        throw new Error('RadarRepositoryContract deve ser carregado antes das ferramentas de snapshot.');
+    }
 
-    const SNAPSHOT_FORMAT = 'radar-pdde-snapshot';
+    const cloneValue = contract.cloneValue;
+    const SNAPSHOT_FORMAT = contract.SNAPSHOT_FORMAT;
+    const ENTITY_SET = new Set(contract.RADAR_ENTITIES);
 
     function sortObjectKeys(value) {
         if (Array.isArray(value)) return value.map(sortObjectKeys);
@@ -84,6 +86,9 @@
         }
 
         Object.entries(snapshot.entities).forEach(([entity, records]) => {
+            if (!ENTITY_SET.has(entity)) {
+                errors.push(`Entidade desconhecida no snapshot: ${entity}.`);
+            }
             if (!Array.isArray(records)) {
                 errors.push(`A entidade ${entity} não é uma coleção.`);
                 return;
