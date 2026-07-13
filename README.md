@@ -1,34 +1,90 @@
 # RADAR PDDE
 
-O **RADAR PDDE** é uma aplicação web para monitoramento do ciclo de entrega, análise, regularização e consolidação dos programas do PDDE por unidade escolar, competência, programa e documento.
+O **RADAR PDDE** é uma aplicação web para acompanhar o ciclo de entrega, análise, regularização e consolidação dos programas do PDDE por unidade escolar, competência, programa e documento.
 
-O sistema foi concebido para apoiar o trabalho cotidiano de Controladores, Assistentes, equipe de Inventário e gestão da SME, transformando registros documentais em filas operacionais, históricos auditáveis e informações gerenciais navegáveis.
+O sistema apoia o trabalho cotidiano de Controladores, Assistentes, equipe de Inventário e gestão da SME, transformando registros documentais em filas de trabalho, históricos auditáveis e informações gerenciais navegáveis.
 
-## Situação do projeto
+## Estado atual — 12 de julho de 2026
 
-A versão publicada em produção contém o **Ciclo A até a Task 9**, incluindo:
+O pacote integrado do **PR 18** foi concluído e incorporado à `main`. Ele reúne as Tasks 10–13 do Ciclo A, o Dashboard operacional e a integração da Carteira de Escolas ao mesmo modelo de acompanhamento.
 
-- modelo canônico de pendências documentais;
+O **PR 19** corrigiu uma regressão visual e funcional na Carteira de Escolas: a tabela aprovada foi restaurada com os programas em destaque, os dados da direção e os botões **Ver Unidade** e **Editar**, preservando os novos filtros e indicadores operacionais.
+
+| Ambiente | Situação atual |
+|---|---|
+| `main` | Contém o pacote completo do PR 18 e a correção do PR 19. |
+| Preview corrigido | Pronto para validação e promoção; reúne o Dashboard aprovado e a Carteira restaurada. |
+| Produção | Ainda apresenta a versão anterior à correção da Carteira. A promoção do Preview ficou pendente porque o limite diário de implantações do plano gratuito da Vercel foi atingido. |
+
+**Próxima ação operacional:** promover o Preview corrigido para produção quando o limite da Vercel for restabelecido e realizar uma conferência rápida das telas principais. Não há indicação de rollback.
+
+O relatório completo da sessão está em [`docs/reports/RELATORIO_ESTADO_ATUAL_2026-07-12.md`](docs/reports/RELATORIO_ESTADO_ATUAL_2026-07-12.md).
+
+## Progressão das últimas sessões
+
+### Ciclo A até a Task 9
+
+- criação do modelo de pendências documentais;
 - registro de novo envio e reanálise;
 - separação entre bonificação, análise técnica e pendência;
-- página de Pendências com quatro filas, busca, filtros, drawer e timeline;
+- página de Pendências com quatro filas, busca, filtros, detalhes e histórico;
 - navegação contextual entre Pendências, Competências e Prontuário;
 - geração do relatório Excel `.xlsx`.
 
-O **PR 18** reúne o pacote integrado em desenvolvimento:
+### Tasks 10 e 11
 
-- Tasks 10–13 do Ciclo A;
-- contatos vinculados, cancelamento e reabertura;
-- retificação administrativa auditável pelo perfil Assistente;
-- Dashboard operacional do Controlador;
-- Carteira de Escolas integrada ao mesmo modelo operacional;
-- alinhamento de alertas, indicadores e documentação.
+- registro de contatos relacionados a uma pendência, sem alterar sua situação;
+- cancelamento justificado de pendência lançada indevidamente;
+- reabertura de pendência resolvida, preservando o histórico anterior;
+- alertas diferenciando providência da escola e reanálise do Controlador.
 
-Nenhum conteúdo desse pacote deve ser incorporado à `main` ou publicado em produção sem autorização expressa.
+### Tasks 12 e 13
+
+- retificação administrativa pelo perfil Assistente;
+- comparação clara entre informação anterior e informação corrigida;
+- justificativa obrigatória e histórico da retificação;
+- preservação das pendências e da análise técnica durante a retificação.
+
+### Dashboard e Carteira
+
+- indicadores separados para pendências abertas e itens aguardando reanálise;
+- quadro de próximas ações priorizado pelo tempo de espera;
+- tarefa regular consolidada para escolas que aguardam lançamento de bonificação;
+- transporte de filtros do Dashboard para a Carteira;
+- busca da Carteira por nome, designação e INEP;
+- filtros por situação documental;
+- preservação da tabela aprovada, dos programas e das ações **Ver Unidade** e **Editar**.
+
+### Qualidade e validação
+
+- refinamentos de foco, teclado, leitura por tecnologias assistivas e adaptação móvel;
+- verificação de ausência de rolagem indevida nas telas principais;
+- 136 testes de regras e dados aprovados;
+- 61 testes completos de uso aprovados;
+- 2 cenários ignorados por configuração e nenhuma falha.
+
+## Regra de preservação visual e funcional
+
+Melhorias de qualidade visual são permitidas quando aperfeiçoam os elementos existentes, por exemplo:
+
+- espaçamento, alinhamento e hierarquia;
+- tipografia, contraste e legibilidade;
+- responsividade e adaptação móvel;
+- consistência e acabamento visual.
+
+Exigem **aprovação expressa prévia** do responsável pelo projeto:
+
+- remover ou acrescentar caminhos de navegação;
+- retirar, trocar ou mudar a finalidade de botões;
+- substituir componentes ou tabelas já aprovados;
+- alterar colunas, permissões, fluxos ou funcionalidades;
+- modificar o conceito estético definido.
+
+Uma apresentação aparentemente mais organizada não autoriza alteração funcional. Toda evolução visual deve preservar integralmente as ações e os caminhos existentes, salvo decisão expressa em contrário.
 
 ## Modelo funcional
 
-O RADAR PDDE mantém três dimensões relacionadas, porém independentes:
+O RADAR PDDE mantém três dimensões relacionadas, porém independentes.
 
 ### Bonificação
 
@@ -63,34 +119,25 @@ Estados canônicos:
 
 `Aberta` e `Aguardando reanálise` são pendências ativas. Não existe estado `Vencida`; a antiguidade é utilizada para priorização.
 
-## Principais superfícies
+## Principais áreas do sistema
 
-- **Dashboard:** visão gerencial e fila priorizada de próximas ações;
-- **Carteira de Escolas:** pesquisa, filtros e comparação operacional das unidades;
+- **Dashboard:** visão da carteira, indicadores separados e próximas ações;
+- **Carteira de Escolas:** pesquisa, filtros, comparação das unidades, consulta e edição;
 - **Visão por Competência:** acompanhamento mensal de bonificação, análise e pendências;
 - **Prontuário:** contexto completo da escola, programa e documento;
-- **Pendências:** quatro filas canônicas, busca global, filtros, detalhes e histórico;
+- **Pendências:** quatro filas, busca global, filtros, detalhes, contatos e histórico;
 - **Excel:** relatório estruturado com bonificações, síntese, qualidade dos dados e metadados.
 
 ## Documentação oficial
 
 O índice completo está em [`docs/README.md`](docs/README.md). A matriz de precedência, disponibilidade e integridade está em [`docs/reference/STATUS_DOCUMENTOS.md`](docs/reference/STATUS_DOCUMENTOS.md).
 
-Documentos produzidos e verificados para inclusão na biblioteca do projeto:
-
-| Documento | Finalidade | Situação no repositório |
-|---|---|---|
-| Dossiê Consolidado v1.0 | Contexto, regras de negócio e decisões consolidadas | Binário verificado; inclusão pendente |
-| Plano do Lote 2 — Revisão Consolidada v2.0 | Contrato funcional, visual e de navegação | Binário verificado; inclusão pendente |
-| Protótipo de exportação Excel v2.1 | Referência congelada da estrutura da planilha | Binário verificado; inclusão pendente |
-| Relatório e Guia do Ciclo A v1.0 | Explicação funcional para usuários e gestores | Binário verificado; inclusão pendente |
-
 Documentação arquitetural já versionada:
 
 - [`Modelo operacional compartilhado`](docs/architecture/modelo-operacional.md);
 - [`Retificações administrativas`](docs/architecture/retificacoes.md);
 - [`Competências`](docs/architecture/competencias.md);
-- [`Pendências e reanálise`](docs/architecture/pendencias-reanalise.md);
+- [`Testes e validação`](docs/architecture/testing.md);
 - [`Status e precedência dos documentos`](docs/reference/STATUS_DOCUMENTOS.md).
 
 ## Precedência das decisões
@@ -98,10 +145,11 @@ Documentação arquitetural já versionada:
 Quando houver divergência entre fontes, deve ser aplicada a seguinte ordem:
 
 1. orientação expressa mais recente do responsável pelo projeto;
-2. Dossiê consolidado;
-3. Plano aprovado do Lote 2;
-4. plano técnico da implementação;
-5. código vigente.
+2. relatório atual de execução, quanto ao estado da implementação;
+3. Dossiê consolidado;
+4. Plano aprovado do Lote 2;
+5. plano técnico da implementação;
+6. código vigente.
 
 Decisões consolidadas não devem ser reabertas sem nova regra institucional, defeito comprovado ou determinação expressa.
 
@@ -160,15 +208,15 @@ Projetos cobertos:
 
 ## Organização do desenvolvimento
 
-- `main` — versão autorizada para produção;
+- `main` — base aprovada para publicação;
 - branches `feature/*` e `fix/*` — trabalho isolado;
-- PRs permanecem em rascunho durante a implementação;
-- merge e produção exigem autorização expressa;
-- testes e Preview do Vercel devem estar aprovados antes do encerramento.
+- alterações relevantes são revisadas por Pull Request;
+- mudanças funcionais, merge e produção exigem autorização expressa;
+- testes e Preview da Vercel devem ser aprovados antes do encerramento.
 
 ## Roadmap consolidado
 
-1. **Pacote operacional integrado:** Tasks 10–13 + Dashboard e Carteira do Ciclo B;
-2. **Qualidade e encerramento:** acessibilidade, mobile, documentação final e regressão completa;
+1. **Publicação da correção:** promover o Preview corrigido após a renovação do limite da Vercel;
+2. **Conferência pós-publicação:** validar Dashboard, Carteira, Pendências, Competências e Prontuário;
 3. **Prontuário ampliado:** evolução estrutural prevista para o Ciclo C;
 4. **Infraestrutura futura:** Supabase, autenticação e permissões institucionais.
