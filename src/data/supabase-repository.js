@@ -21,11 +21,13 @@
     }
 
     const {
+        SNAPSHOT_FORMAT,
         RADAR_ENTITIES,
         RepositoryError,
         assertKnownEntity,
         cloneValue,
-        normalizeCollection
+        normalizeCollection,
+        createSnapshotEnvelope
     } = contract;
 
     const DEFAULT_TABLE_MAP = Object.freeze({
@@ -145,16 +147,20 @@
                     entities[entity] = records;
                 }
             }
-            return {
-                format: 'radar-pdde-repository-snapshot',
-                schemaVersion: String(options.schemaVersion || '1'),
-                exportedAt: options.exportedAt || new Date().toISOString(),
-                entities
-            };
+
+            return createSnapshotEnvelope(entities, {
+                version: options.version || options.schemaVersion || '1',
+                importId: options.importId,
+                exportedAt: options.exportedAt
+            });
         }
 
         async restoreSnapshot(snapshot) {
-            if (!snapshot || typeof snapshot !== 'object' || !snapshot.entities) {
+            if (!snapshot
+                || typeof snapshot !== 'object'
+                || snapshot.format !== SNAPSHOT_FORMAT
+                || !snapshot.entities
+                || typeof snapshot.entities !== 'object') {
                 throw new RepositoryError(
                     'INVALID_SNAPSHOT',
                     'Snapshot Supabase inválido.',
@@ -166,7 +172,11 @@
             for (const [entity, records] of entries) {
                 await this.save(entity, records);
             }
-            return { restoredEntities: entries.length };
+            return {
+                restoredEntities: entries.length,
+                version: String(snapshot.version || '1'),
+                importId: String(snapshot.importId || '')
+            };
         }
 
         async healthCheck() {
