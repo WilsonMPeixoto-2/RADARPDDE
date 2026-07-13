@@ -57,6 +57,13 @@ create table public.competences (
     check (ends_on is null or starts_on is null or ends_on >= starts_on)
 );
 
+alter table public.app_config
+    add constraint app_config_closing_competence_fk
+    foreign key (closing_competence)
+    references public.competences (id)
+    on update cascade
+    on delete set null;
+
 create table public.schools (
     id text primary key,
     designation text not null unique,
@@ -133,7 +140,7 @@ create table public.pendencies (
 );
 
 create table public.pendency_attempts (
-    id uuid primary key default gen_random_uuid(),
+    id text primary key,
     pendency_id text not null references public.pendencies (id) on update cascade on delete cascade,
     attempt_number integer not null check (attempt_number > 0),
     submitted_at timestamptz not null default now(),
@@ -142,6 +149,7 @@ create table public.pendency_attempts (
     observation text not null default '',
     drive_url text not null default '',
     errors jsonb not null default '[]'::jsonb,
+    payload jsonb not null default '{}'::jsonb,
     created_by uuid references auth.users (id) on delete set null,
     row_version integer not null default 1 check (row_version > 0),
     created_at timestamptz not null default now(),
@@ -150,13 +158,14 @@ create table public.pendency_attempts (
 );
 
 create table public.pendency_contacts (
-    id uuid primary key default gen_random_uuid(),
+    id text primary key,
     school_id text not null references public.schools (id) on update cascade on delete cascade,
     pendency_id text references public.pendencies (id) on update cascade on delete set null,
     contact_type text not null,
     contact_date date not null,
     description text not null,
     official_charge boolean not null default false,
+    payload jsonb not null default '{}'::jsonb,
     created_by uuid references auth.users (id) on delete set null,
     row_version integer not null default 1 check (row_version > 0),
     created_at timestamptz not null default now(),
@@ -174,6 +183,7 @@ create table public.assets (
     status text not null check (status in ('Não encaminhada', 'Encaminhada', 'Inventariada')),
     inventory_process text not null default '',
     notes text not null default '',
+    payload jsonb not null default '{}'::jsonb,
     row_version integer not null default 1 check (row_version > 0),
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
