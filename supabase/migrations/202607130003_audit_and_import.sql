@@ -42,7 +42,13 @@ as $$
 begin
     new.updated_at = now();
     if to_jsonb(new) ? 'row_version' then
-        new.row_version = coalesce(old.row_version, 0) + 1;
+        new := jsonb_populate_record(
+            new,
+            jsonb_build_object(
+                'row_version',
+                coalesce((to_jsonb(old)->>'row_version')::integer, 0) + 1
+            )
+        );
     end if;
     return new;
 end
@@ -59,6 +65,7 @@ declare
     v_old jsonb;
     v_new jsonb;
     v_changed_fields text[] := '{}';
+    v_headers jsonb;
 begin
     if tg_op = 'DELETE' then
         v_record_id := coalesce(to_jsonb(old)->>'id', to_jsonb(old)->>'key', 'unknown');
@@ -78,6 +85,8 @@ begin
         where (v_old -> current_value.key) is distinct from current_value.value;
     end if;
 
+    v_headers := nullif(current_setting('request.headers', true), '')::jsonb;
+
     insert into public.audit_events (
         table_name,
         record_id,
@@ -95,10 +104,13 @@ begin
         v_new,
         v_changed_fields,
         auth.uid(),
-        current_setting('request.headers', true)::jsonb ->> 'x-request-id'
+        v_headers ->> 'x-request-id'
     );
 
-    return coalesce(new, old);
+    if tg_op = 'DELETE' then
+        return old;
+    end if;
+    return new;
 end
 $$;
 
@@ -167,32 +179,32 @@ before update on public.data_import_runs
 for each row execute function public.touch_updated_at();
 
 create trigger schools_capture_audit
-for each row after insert or update or delete on public.schools
-execute function public.capture_audit_event();
+after insert or update or delete on public.schools
+for each row execute function public.capture_audit_event();
 
 create trigger verifications_capture_audit
-for each row after insert or update or delete on public.verifications
-execute function public.capture_audit_event();
+after insert or update or delete on public.verifications
+for each row execute function public.capture_audit_event();
 
 create trigger pendencies_capture_audit
-for each row after insert or update or delete on public.pendencies
-execute function public.capture_audit_event();
+after insert or update or delete on public.pendencies
+for each row execute function public.capture_audit_event();
 
 create trigger pendency_attempts_capture_audit
-for each row after insert or update or delete on public.pendency_attempts
-execute function public.capture_audit_event();
+after insert or update or delete on public.pendency_attempts
+for each row execute function public.capture_audit_event();
 
 create trigger pendency_contacts_capture_audit
-for each row after insert or update or delete on public.pendency_contacts
-execute function public.capture_audit_event();
+after insert or update or delete on public.pendency_contacts
+for each row execute function public.capture_audit_event();
 
 create trigger assets_capture_audit
-for each row after insert or update or delete on public.assets
-execute function public.capture_audit_event();
+after insert or update or delete on public.assets
+for each row execute function public.capture_audit_event();
 
 create trigger registered_invoices_capture_audit
-for each row after insert or update or delete on public.registered_invoices
-execute function public.capture_audit_event();
+after insert or update or delete on public.registered_invoices
+for each row execute function public.capture_audit_event();
 
 alter table public.data_import_runs enable row level security;
 alter table public.audit_events enable row level security;
