@@ -17,6 +17,7 @@ test('modo local mantém a infraestrutura Supabase passiva e sem requisições r
         && window.RadarSupabaseRepository
         && window.RadarRepositoryFactory
         && window.RadarSnapshotTools
+        && window.RadarLegacyStateAdapter
     ));
 
     const state = await page.evaluate(() => ({
@@ -26,7 +27,8 @@ test('modo local mantém a infraestrutura Supabase passiva e sem requisições r
         supabaseUrl: window.RADAR_PDDE_CONFIG.supabase.url,
         publishableKey: window.RADAR_PDDE_CONFIG.supabase.publishableKey,
         repositoryEnabled: window.RADAR_PDDE_CONFIG.features.supabaseRepositoryEnabled,
-        bridgeEnabled: window.RADAR_PDDE_CONFIG.features.legacyAppBridgeEnabled
+        bridgeEnabled: window.RADAR_PDDE_CONFIG.features.legacyAppBridgeEnabled,
+        legacyAdapterLoaded: typeof window.RadarLegacyStateAdapter.exportLegacySnapshot === 'function'
     }));
 
     expect(state).toEqual({
@@ -36,7 +38,8 @@ test('modo local mantém a infraestrutura Supabase passiva e sem requisições r
         supabaseUrl: '',
         publishableKey: '',
         repositoryEnabled: false,
-        bridgeEnabled: false
+        bridgeEnabled: false,
+        legacyAdapterLoaded: true
     });
 
     await page.waitForTimeout(300);
