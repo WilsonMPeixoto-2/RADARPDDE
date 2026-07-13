@@ -28,6 +28,8 @@ test('schema principal contém entidades, relacionamentos e id canônico', () =>
     assert.match(sql, /references\s+public\.programs\s*\(id\)/i);
     assert.match(sql, /create\s+table\s+public\.competences\s*\(\s*id\s+text\s+primary\s+key/i);
     assert.match(sql, /create\s+table\s+public\.school_programs\s*\(\s*id\s+text\s+primary\s+key/i);
+    assert.match(sql, /create\s+table\s+public\.pendency_attempts\s*\(\s*id\s+text\s+primary\s+key/i);
+    assert.match(sql, /create\s+table\s+public\.pendency_contacts\s*\(\s*id\s+text\s+primary\s+key/i);
     assert.match(sql, /unique\s*\(school_id,\s*program_id\)/i);
     assert.match(sql, /check\s*\(status\s+in\s*\(/i);
     assert.match(sql, /create\s+index/i);
@@ -50,6 +52,39 @@ test('migration de autenticação ativa RLS, define perfis e IDs removíveis', (
     assert.match(sql, /technical_admin/i);
     assert.match(sql, /controller/i);
     assert.match(sql, /inventory/i);
+});
+
+test('políticas RLS separam escrita operacional de exclusão administrativa', () => {
+    const authSql = read('202607130002_auth_and_rls.sql');
+    const auditSql = read('202607130003_audit_and_import.sql');
+
+    [
+        'school_programs',
+        'verifications',
+        'pendencies',
+        'pendency_attempts',
+        'pendency_contacts',
+        'assets',
+        'registered_invoices'
+    ].forEach(tableName => {
+        assert.match(
+            authSql,
+            new RegExp(`create\\s+policy\\s+${tableName}_delete[\\s\\S]*?for\\s+delete[\\s\\S]*?technical_admin`, 'i')
+        );
+        assert.doesNotMatch(
+            authSql,
+            new RegExp(`create\\s+policy\\s+${tableName}_write[\\s\\S]*?for\\s+all`, 'i')
+        );
+    });
+
+    assert.match(
+        auditSql,
+        /create\s+policy\s+data_import_runs_delete[\s\S]*?for\s+delete[\s\S]*?technical_admin/i
+    );
+    assert.doesNotMatch(
+        auditSql,
+        /create\s+policy\s+data_import_runs_manage[\s\S]*?for\s+all/i
+    );
 });
 
 test('migration de auditoria usa sintaxe válida de triggers e leitura segura de headers', () => {
