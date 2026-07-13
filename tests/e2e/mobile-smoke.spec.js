@@ -72,23 +72,19 @@ test.describe('RADAR PDDE em dispositivos móveis', () => {
     await expect(menuButton).toBeFocused();
   });
 
-  test('mantém tabelas largas dentro de rolagem local', async ({ page }) => {
+  test('usa cartões na Carteira sem overflow global', async ({ page }) => {
     await openApplication(page);
 
     await page.locator('#mobile-menu-button').click();
     await page.locator('#nav-escolas').click();
 
-    const tableWrapper = page.locator('.table-responsive').first();
-    await expect(tableWrapper).toBeVisible();
+    const cards = page.locator('.cycle-b-wallet-mobile-card');
+    await expect(cards.first()).toBeVisible();
 
-    const overflow = await tableWrapper.evaluate(element => ({
-      clientWidth: element.clientWidth,
-      scrollWidth: element.scrollWidth,
-      overflowX: getComputedStyle(element).overflowX
-    }));
-
-    expect(['auto', 'scroll']).toContain(overflow.overflowX);
-    expect(overflow.scrollWidth).toBeGreaterThanOrEqual(overflow.clientWidth);
+    const resultPanel = page.locator('.panel-card').filter({
+      has: page.getByRole('heading', { name: 'Resultado da carteira' })
+    });
+    await expect(resultPanel.locator('table.data-table')).toHaveCount(0);
 
     const pageOverflow = await page.evaluate(() => ({
       viewport: window.innerWidth,

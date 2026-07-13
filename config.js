@@ -33,10 +33,12 @@ window.RADAR_PDDE_CONFIG = {
     loadStylesheet('src/styles/task-12-13-retificacoes.css');
     loadStylesheet('src/styles/cycle-b-carteira.css');
     loadStylesheet('src/styles/cycle-b-dashboard.css');
+    loadStylesheet('src/styles/cycle-b-dashboard-final.css');
     loadScript('src/domain/pendencias-view-model.js', false);
     loadScript('src/domain/operational-projection.js', false);
     loadScript('src/domain/retificacoes.js', false);
     loadScript('src/integration/mobile-navigation.js', false);
+    loadScript('src/integration/modal-accessibility.js', false);
     loadScript('src/integration/task-9-pendencias-page.js', false);
     loadScript('src/integration/task-9-focus-bridge.js', false);
     loadScript('src/integration/task-9-cross-view.js', false);
@@ -44,6 +46,7 @@ window.RADAR_PDDE_CONFIG = {
     loadScript('src/integration/task-12-13-retificacoes.js', false);
     loadScript('src/integration/cycle-b-carteira.js', false);
     loadScript('src/integration/cycle-b-dashboard.js', false);
+    loadScript('src/integration/cycle-b-dashboard-result.js', false);
     loadScript('src/integration/task-10-alerts-competence.js', false);
     loadScript('src/integration/load-excel-export.js', true);
 }());

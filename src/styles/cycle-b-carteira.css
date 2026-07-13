@@ -61,12 +61,29 @@
     font-weight: 700;
 }
 
+.cycle-b-wallet-operational-meta {
+    display: grid;
+    gap: 5px;
+    margin-top: 9px;
+    padding-top: 9px;
+    border-top: 1px solid var(--border-color);
+}
+
+.cycle-b-wallet-operational-meta small {
+    margin: 0;
+}
+
+.cycle-b-wallet-operational-meta > strong {
+    font-size: 0.78rem;
+    line-height: 1.35;
+}
+
 .cycle-b-wallet-mobile {
     display: grid;
     gap: 12px;
     width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    min-width: 0;
+    overflow: visible;
 }
 
 .cycle-b-wallet-mobile-card {
@@ -98,6 +115,22 @@
     color: var(--text-muted);
 }
 
+.cycle-b-wallet-mobile-programs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.cycle-b-wallet-mobile-programs span {
+    border: 1px solid color-mix(in srgb, var(--primary) 30%, var(--border-color));
+    border-radius: 999px;
+    padding: 3px 8px;
+    background: var(--primary-glow);
+    color: var(--primary);
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
 .cycle-b-wallet-mobile-card dl {
     display: grid;
     gap: 10px;
@@ -122,6 +155,13 @@
     font-size: 0.84rem;
     font-weight: 600;
     overflow-wrap: anywhere;
+}
+
+.cycle-b-wallet-mobile-card dd small {
+    display: block;
+    margin-top: 4px;
+    color: var(--text-muted);
+    font-weight: 500;
 }
 
 @media (max-width: 900px) {
