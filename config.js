@@ -33,6 +33,7 @@ window.RADAR_PDDE_CONFIG = {
     loadStylesheet('src/styles/task-12-13-retificacoes.css');
     loadStylesheet('src/styles/cycle-b-carteira.css');
     loadStylesheet('src/styles/cycle-b-dashboard.css');
+    loadStylesheet('src/styles/cycle-b-dashboard-final.css');
     loadScript('src/domain/pendencias-view-model.js', false);
     loadScript('src/domain/operational-projection.js', false);
     loadScript('src/domain/retificacoes.js', false);
