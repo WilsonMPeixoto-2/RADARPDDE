@@ -38,6 +38,7 @@ create index audit_events_actor_idx on public.audit_events (actor_user_id, occur
 create or replace function public.touch_updated_at()
 returns trigger
 language plpgsql
+set search_path = pg_catalog, public
 as $$
 begin
     new.updated_at = now();
@@ -58,7 +59,7 @@ create or replace function public.capture_audit_event()
 returns trigger
 language plpgsql
 security definer
-set search_path = public
+set search_path = pg_catalog, public
 as $$
 declare
     v_record_id text;
@@ -68,15 +69,15 @@ declare
     v_headers jsonb;
 begin
     if tg_op = 'DELETE' then
-        v_record_id := coalesce(to_jsonb(old)->>'id', to_jsonb(old)->>'key', 'unknown');
+        v_record_id := coalesce(to_jsonb(old)->>'id', 'unknown');
         v_old := to_jsonb(old);
         v_new := null;
     elsif tg_op = 'INSERT' then
-        v_record_id := coalesce(to_jsonb(new)->>'id', to_jsonb(new)->>'key', 'unknown');
+        v_record_id := coalesce(to_jsonb(new)->>'id', 'unknown');
         v_old := null;
         v_new := to_jsonb(new);
     else
-        v_record_id := coalesce(to_jsonb(new)->>'id', to_jsonb(new)->>'key', 'unknown');
+        v_record_id := coalesce(to_jsonb(new)->>'id', 'unknown');
         v_old := to_jsonb(old);
         v_new := to_jsonb(new);
         select coalesce(array_agg(key order by key), '{}')
@@ -174,6 +175,10 @@ create trigger user_profiles_touch_updated_at
 before update on public.user_profiles
 for each row execute function public.touch_updated_at();
 
+create trigger user_school_scopes_touch_updated_at
+before update on public.user_school_scopes
+for each row execute function public.touch_updated_at();
+
 create trigger data_import_runs_touch_updated_at
 before update on public.data_import_runs
 for each row execute function public.touch_updated_at();
@@ -204,6 +209,22 @@ for each row execute function public.capture_audit_event();
 
 create trigger registered_invoices_capture_audit
 after insert or update or delete on public.registered_invoices
+for each row execute function public.capture_audit_event();
+
+create trigger profiles_capture_audit
+after insert or update or delete on public.profiles
+for each row execute function public.capture_audit_event();
+
+create trigger user_profiles_capture_audit
+after insert or update or delete on public.user_profiles
+for each row execute function public.capture_audit_event();
+
+create trigger user_school_scopes_capture_audit
+after insert or update or delete on public.user_school_scopes
+for each row execute function public.capture_audit_event();
+
+create trigger data_import_runs_capture_audit
+after insert or update or delete on public.data_import_runs
 for each row execute function public.capture_audit_event();
 
 alter table public.data_import_runs enable row level security;
