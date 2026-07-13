@@ -101,6 +101,7 @@ Cria snapshots canônicos, valida estrutura e entidades conhecidas, detecta IDs 
 - transforma `programasIds` em `school_programs`;
 - transforma verificações aninhadas em linhas;
 - separa tentativas de pendência;
+- preserva o calendário anual dos exercícios configurados, inclusive o prazo mensal de bonificação;
 - preserva dados legados em `payload`;
 - retorna advertências e registros rejeitados;
 - produz snapshot canônico para validação e reconciliação.
@@ -111,7 +112,8 @@ As migrations são versionadas e não são executadas pela aplicação:
 
 1. `202607130001_core_schema.sql` — entidades, FKs, constraints, índices e versionamento;
 2. `202607130002_auth_and_rls.sql` — perfis, escopos, funções de autorização e políticas granulares;
-3. `202607130003_audit_and_import.sql` — importações, auditoria e triggers.
+3. `202607130003_audit_and_import.sql` — importações, auditoria e triggers;
+4. `202607130004_competence_bonus_deadline.sql` — prazo de bonificação por competência.
 
 Todas as entidades acessadas pelo contrato possuem `id`. Exclusões físicas de dados operacionais são separadas das políticas de escrita e restritas ao Administrador técnico.
 
