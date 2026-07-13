@@ -5,7 +5,8 @@ const assert = require('node:assert/strict');
 
 const {
     SupabaseRepository,
-    IMPORT_ENTITY_ORDER
+    IMPORT_ENTITY_ORDER,
+    NON_RESTORABLE_ENTITIES
 } = require('../../src/data/supabase-repository.js');
 const { createRepository } = require('../../src/data/repository-factory.js');
 const { RepositoryError } = require('../../src/data/repository-contract.js');
@@ -97,17 +98,18 @@ test('exporta snapshot remoto compatível com as ferramentas de reconciliação'
     assert.deepEqual(validateSnapshot(snapshot), { ok: true, errors: [] });
 });
 
-test('restaura snapshot respeitando a ordem das chaves estrangeiras', async () => {
+test('restaura snapshot respeitando FKs e sem reimportar auditoria técnica', async () => {
     const client = createSupabaseClient();
     const repository = new SupabaseRepository({ client });
 
-    await repository.restoreSnapshot({
+    const result = await repository.restoreSnapshot({
         format: 'radar-pdde-snapshot',
         version: '1',
         importId: 'ordered-import',
         exportedAt: '2026-07-13T12:00:00.000Z',
         entities: {
             pendencies: [{ id: 'p1', school_id: 's1' }],
+            auditEvents: [{ id: '1', table_name: 'schools' }],
             appConfig: [{ id: 'global', closing_competence: '2026-05' }],
             schools: [{ id: 's1' }],
             programs: [{ id: 'BASIC' }],
@@ -126,7 +128,9 @@ test('restaura snapshot respeitando a ordem das chaves estrangeiras', async () =
         'schools',
         'pendencies'
     ]);
+    assert.deepEqual(result.skippedEntities, ['auditEvents']);
     assert.ok(IMPORT_ENTITY_ORDER.indexOf('competences') < IMPORT_ENTITY_ORDER.indexOf('appConfig'));
+    assert.deepEqual(NON_RESTORABLE_ENTITIES, ['auditEvents']);
 });
 
 test('remove registro por id', async () => {
