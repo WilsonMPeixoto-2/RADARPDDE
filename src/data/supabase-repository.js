@@ -74,6 +74,9 @@
         'auditEvents'
     ]);
 
+    const NON_RESTORABLE_ENTITIES = Object.freeze(['auditEvents']);
+    const NON_RESTORABLE_SET = new Set(NON_RESTORABLE_ENTITIES);
+
     class SupabaseRepository {
         constructor(options = {}) {
             if (!options.client || typeof options.client.from !== 'function') {
@@ -192,11 +195,17 @@
 
             const entityNames = Object.keys(snapshot.entities);
             entityNames.forEach(assertKnownEntity);
+            const skippedEntities = entityNames
+                .filter(entity => NON_RESTORABLE_SET.has(entity) && snapshot.entities[entity].length > 0)
+                .sort();
             const orderIndex = new Map(IMPORT_ENTITY_ORDER.map((entity, index) => [entity, index]));
-            const orderedEntities = entityNames.slice().sort((left, right) => (
-                (orderIndex.get(left) ?? Number.MAX_SAFE_INTEGER)
-                - (orderIndex.get(right) ?? Number.MAX_SAFE_INTEGER)
-            ));
+            const orderedEntities = entityNames
+                .filter(entity => !NON_RESTORABLE_SET.has(entity))
+                .slice()
+                .sort((left, right) => (
+                    (orderIndex.get(left) ?? Number.MAX_SAFE_INTEGER)
+                    - (orderIndex.get(right) ?? Number.MAX_SAFE_INTEGER)
+                ));
 
             for (const entity of orderedEntities) {
                 await this.save(entity, snapshot.entities[entity]);
@@ -205,6 +214,7 @@
             return {
                 restoredEntities: orderedEntities.length,
                 orderedEntities,
+                skippedEntities,
                 version: String(snapshot.version || '1'),
                 importId: String(snapshot.importId || '')
             };
@@ -228,6 +238,7 @@
     return Object.freeze({
         DEFAULT_TABLE_MAP,
         IMPORT_ENTITY_ORDER,
+        NON_RESTORABLE_ENTITIES,
         SupabaseRepository
     });
 }));
