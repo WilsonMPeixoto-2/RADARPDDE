@@ -38,6 +38,7 @@ window.RADAR_PDDE_CONFIG = {
     loadScript('src/domain/operational-projection.js', false);
     loadScript('src/domain/retificacoes.js', false);
     loadScript('src/integration/mobile-navigation.js', false);
+    loadScript('src/integration/modal-accessibility.js', false);
     loadScript('src/integration/task-9-pendencias-page.js', false);
     loadScript('src/integration/task-9-focus-bridge.js', false);
     loadScript('src/integration/task-9-cross-view.js', false);
