@@ -54,13 +54,14 @@ Estrutura equivalente à de `controllers`, voltada à equipe patrimonial e com v
 | Campo | Tipo | Regra |
 |---|---|---|
 | `id` | `text` | chave no formato `AAAA-MM` |
-| `label` | `text` | descrição exibida |
+| `label` | `text` | descrição exibida, como `Janeiro 2026` |
 | `exercise` | `integer` | exercício de referência |
 | `starts_on` / `ends_on` | `date` | janela operacional |
+| `bonus_deadline` | `date` | prazo ordinário de bonificação da competência |
 | `closed_at` | `timestamptz` | fechamento formal opcional |
 | `row_version` | `integer` | concorrência otimista |
 
-As competências referenciadas no estado atual são derivadas da configuração, escolas, verificações, pendências, bens e notas durante a exportação.
+Para cada exercício válido de `app_config.exercises`, o adaptador gera as doze competências mensais e preserva o prazo ordinário existente — dia 15 do mês seguinte. Competências adicionais referenciadas em escolas, verificações, pendências, bens ou notas também são incluídas.
 
 ## Escolas e programas
 
@@ -231,9 +232,10 @@ O módulo `src/data/legacy-state-adapter.js`:
 2. não modifica nem remove o conteúdo do navegador;
 3. converte campos em português para o modelo SQL;
 4. separa `programasIds`, verificações e tentativas em coleções relacionais;
-5. preserva registros completos em `payload` quando necessário;
-6. gera lista de advertências e registros rejeitados;
-7. produz snapshot canônico validável e reconciliável.
+5. gera as doze competências de cada exercício configurado e seus prazos ordinários;
+6. preserva registros completos em `payload` quando necessário;
+7. gera lista de advertências e registros rejeitados;
+8. produz snapshot canônico validável e reconciliável.
 
 ## Campos transversais
 
