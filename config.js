@@ -89,12 +89,41 @@
 
     const ALLOWED_MODES = new Set(Object.values(DATA_MODES));
 
+    function decodeJwtPayload(value) {
+        const parts = String(value || '').trim().split('.');
+        if (parts.length < 2 || !parts[1]) return null;
+
+        try {
+            const normalized = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+            const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
+            let jsonText;
+
+            if (typeof atob === 'function') {
+                jsonText = atob(padded);
+            } else if (typeof Buffer !== 'undefined') {
+                jsonText = Buffer.from(padded, 'base64').toString('utf8');
+            } else {
+                return null;
+            }
+
+            const payload = JSON.parse(jsonText);
+            return payload && typeof payload === 'object' ? payload : null;
+        } catch (error) {
+            return null;
+        }
+    }
+
     function isForbiddenSupabaseKey(value) {
-        const normalized = String(value || '').trim().toLowerCase();
+        const raw = String(value || '').trim();
+        const normalized = raw.toLowerCase();
+        const jwtPayload = decodeJwtPayload(raw);
+        const jwtRole = String(jwtPayload?.role || '').trim().toLowerCase();
+
         return normalized.startsWith('sb_secret_')
             || normalized === 'service_role'
             || normalized.includes('"role":"service_role"')
-            || normalized.includes("'role':'service_role'");
+            || normalized.includes("'role':'service_role'")
+            || jwtRole === 'service_role';
     }
 
     function isValidSupabaseUrl(value) {
