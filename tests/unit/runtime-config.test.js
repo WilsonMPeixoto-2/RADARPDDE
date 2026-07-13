@@ -9,6 +9,11 @@ const {
     isForbiddenSupabaseKey
 } = require('../../config.js');
 
+function jwtWithRole(role) {
+    const encode = value => Buffer.from(JSON.stringify(value)).toString('base64url');
+    return `${encode({ alg: 'HS256', typ: 'JWT' })}.${encode({ role })}.signature`;
+}
+
 test('modo local é o padrão e neutraliza credenciais mesmo quando preenchidas', () => {
     const config = createRuntimeConfig({
         supabase: {
@@ -62,16 +67,21 @@ test('conexão exige modo não local e dupla autorização explícita', () => {
     assert.equal(enabled.supabase.publishableKey, 'sb_publishable_example');
 });
 
-test('chaves secretas são rejeitadas', () => {
+test('chaves secretas, inclusive JWT service_role, são rejeitadas', () => {
+    const serviceRoleJwt = jwtWithRole('service_role');
+    const anonJwt = jwtWithRole('anon');
+
     assert.equal(isForbiddenSupabaseKey('sb_secret_1234567890abcdef'), true);
     assert.equal(isForbiddenSupabaseKey('service_role'), true);
+    assert.equal(isForbiddenSupabaseKey(serviceRoleJwt), true);
     assert.equal(isForbiddenSupabaseKey('sb_publishable_example'), false);
+    assert.equal(isForbiddenSupabaseKey(anonJwt), false);
 
     assert.throws(() => createRuntimeConfig({
         dataMode: DATA_MODES.SUPABASE_PREVIEW,
         supabase: {
             url: 'https://example.supabase.co',
-            publishableKey: 'sb_secret_1234567890abcdef'
+            publishableKey: serviceRoleJwt
         },
         features: {
             supabaseRepositoryEnabled: true,
