@@ -1,6 +1,15 @@
 # Dicionário de dados — Supabase
 
-Este documento descreve o modelo preparado para futura persistência do RADAR PDDE. Os nomes SQL usam `snake_case`; os nomes atuais do frontend permanecem inalterados até a etapa de adaptação.
+Este documento descreve o modelo preparado para futura persistência do RADAR PDDE. Os nomes SQL usam `snake_case`; os nomes atuais do frontend permanecem inalterados enquanto o sistema estiver no modo `local`.
+
+## Convenções gerais
+
+- Toda entidade exposta pelo contrato de repositório possui uma coluna `id`.
+- Identificadores atuais de escolas, programas, controladores, pendências, tentativas, contatos, bens, notas e logs são preservados como `text`.
+- Tabelas exclusivamente administrativas podem usar `uuid` ou identidade numérica.
+- `payload jsonb` conserva atributos legados ainda não normalizados e viabiliza migração sem perda de informação.
+- `row_version` é incrementado por trigger nas tabelas mutáveis para futuro controle de concorrência.
+- `created_at` e `updated_at` são timestamps técnicos; campos de data do domínio permanecem separados.
 
 ## Tabelas estruturais
 
@@ -8,12 +17,12 @@ Este documento descreve o modelo preparado para futura persistência do RADAR PD
 
 | Campo | Tipo | Origem atual | Regra |
 |---|---|---|---|
-| `id` | `text` | configuração global | chave primária; valor futuro esperado: `global` |
-| `exercises` | `jsonb` | `config.exercicios` | lista de exercícios disponíveis |
-| `closing_competence` | `text` | `config.competenciaFechamento` | competência global vigente |
-| `bonus_deadline_extended` | `date` | `config.prazoBonificacaoProrrogado` | prazo excepcional |
-| `settings` | `jsonb` | demais parâmetros | extensão controlada |
-| `row_version` | `integer` | novo | controle otimista |
+| `id` | `text` | configuração global | chave primária; valor esperado: `global` |
+| `exercises` | `jsonb` | `config.exercicios` | exercícios disponíveis |
+| `closing_competence` | `text` | `config.competenciaFechamento` | FK para `competences.id` |
+| `bonus_deadline_extended` | `date` | prazo excepcional, quando houver | nulo quando não configurado |
+| `settings` | `jsonb` | demais parâmetros | preserva `prazoBonificacaoProrrogado` e extensões futuras |
+| `row_version` | `integer` | novo | concorrência otimista |
 
 ### `programs`
 
@@ -23,6 +32,7 @@ Este documento descreve o modelo preparado para futura persistência do RADAR PD
 | `name` | `text` | `programa.name` |
 | `description` | `text` | `programa.desc` |
 | `active` | `boolean` | novo |
+| `row_version` | `integer` | novo |
 
 ### `controllers`
 
@@ -31,21 +41,26 @@ Este documento descreve o modelo preparado para futura persistência do RADAR PD
 | `id` | `text` | `controlador.id` |
 | `name` | `text` | `controlador.name` |
 | `email` | `text` | `controlador.email` |
-| `user_id` | `uuid` | futuro vínculo com `auth.users` |
+| `user_id` | `uuid` | futuro vínculo único com `auth.users` |
+| `active` | `boolean` | novo |
+| `row_version` | `integer` | novo |
 
 ### `inventory_team_members`
 
-Estrutura equivalente à de controladores, voltada à equipe patrimonial.
+Estrutura equivalente à de `controllers`, voltada à equipe patrimonial e com vínculo futuro opcional a `auth.users`.
 
 ### `competences`
 
 | Campo | Tipo | Regra |
 |---|---|---|
-| `key` | `text` | formato `AAAA-MM` |
+| `id` | `text` | chave no formato `AAAA-MM` |
 | `label` | `text` | descrição exibida |
 | `exercise` | `integer` | exercício de referência |
-| `starts_on` / `ends_on` | `date` | janela operacional opcional |
+| `starts_on` / `ends_on` | `date` | janela operacional |
 | `closed_at` | `timestamptz` | fechamento formal opcional |
+| `row_version` | `integer` | concorrência otimista |
+
+As competências referenciadas no estado atual são derivadas da configuração, escolas, verificações, pendências, bens e notas durante a exportação.
 
 ## Escolas e programas
 
@@ -71,11 +86,23 @@ Estrutura equivalente à de controladores, voltada à equipe patrimonial.
 | `controller_id` | `controladorId` | FK para `controllers` |
 | `inventory_process` | `processoInventario` | processo administrativo |
 | `initial_competence` | `competenciaInicial` | FK para `competences` |
+| `active` | novo | desativação lógica |
 | `row_version` | novo | concorrência otimista |
 
 ### `school_programs`
 
-Substitui futuramente o array `programasIds` por relação N:N entre escola e programa. A chave composta é `(school_id, program_id)`.
+Substitui futuramente o array `programasIds` por relação N:N.
+
+| Campo | Regra |
+|---|---|
+| `id` | identificador determinístico `school_id::program_id` |
+| `school_id` | FK para escola |
+| `program_id` | FK para programa |
+| `active` | vínculo vigente |
+| `starts_on` / `ends_on` | vigência opcional |
+| `row_version` | concorrência otimista |
+
+A combinação `(school_id, program_id)` é única.
 
 ## Acompanhamento documental
 
@@ -83,51 +110,67 @@ Substitui futuramente o array `programasIds` por relação N:N entre escola e pr
 
 | Campo | Origem atual |
 |---|---|
-| `id` | chave composta serializada |
+| `id` | `school_id::competence_id::program_id` |
 | `school_id` | escola |
-| `competence_key` | competência |
-| `program_id` | programa |
+| `competence_id` | competência extraída da chave atual |
+| `program_id` | programa extraído da chave atual |
 | `bonification` | objeto `bonificacao` em JSONB |
 | `analysis` | objeto `analise` em JSONB |
 | `bonus_result` | `resultadoBonif` |
 | `row_version` | novo |
 
-Os objetos de bonificação e análise permanecem em JSONB na primeira versão para preservar fielmente o contrato atual. Uma normalização adicional só poderá ocorrer após inventário completo dos documentos e estados.
+Os objetos de bonificação e análise permanecem em JSONB na primeira versão para preservar fielmente o contrato atual.
 
 ### `pendencies`
 
 | Campo | Descrição |
 |---|---|
-| `id` | identificador canônico |
+| `id` | identificador canônico atual |
 | `school_id` | unidade escolar |
 | `competence_origin` | competência em que surgiu |
 | `program_id` | programa associado, quando aplicável |
 | `document_key` | documento ou item |
 | `status` | `Aberta`, `Aguardando reanálise`, `Resolvida` ou `Cancelada` |
-| `responsible_area` | responsável pela providência |
+| `responsible_area` | responsável registrado |
 | `next_actor` | próximo ator operacional |
 | `reason` | motivo |
 | `notes` | observações |
-| `payload` | atributos legados ainda não normalizados |
+| `opened_at`, `resolved_at`, `canceled_at` | marcos temporais |
+| `payload` | registro legado completo |
 | `row_version` | concorrência otimista |
 
 ### `pendency_attempts`
 
-Registra cada novo envio e respectiva reanálise. A combinação `(pendency_id, attempt_number)` é única.
+| Campo | Descrição |
+|---|---|
+| `id` | identificador textual da tentativa atual; determinístico apenas quando ausente |
+| `pendency_id` | FK para pendência |
+| `attempt_number` | sequência positiva e única por pendência |
+| `submitted_at` / `analyzed_at` | envio e análise |
+| `result` | `correto`, `incorreto` ou `arquivo_indisponivel` |
+| `observation`, `drive_url`, `errors` | dados da tentativa |
+| `payload` | tentativa legada completa |
+| `created_by` | futuro usuário autenticado |
 
 ### `pendency_contacts`
 
-Registra contatos, atendimentos e cobranças vinculados à escola e, opcionalmente, à pendência.
+Registra contatos, atendimentos e cobranças. O `id` textual atual é preservado; quando inexistente, o exportador gera um identificador determinístico e registra advertência. `payload` preserva o registro original.
 
 ## Patrimônio e despesas
 
 ### `assets`
 
-Representa bens e obrigações de inventário. O tipo de despesa aceita `consumo`, `permanente` ou `servico`; a situação aceita `Não encaminhada`, `Encaminhada` ou `Inventariada`.
+Representa bens e obrigações de inventário.
+
+- `expense_type`: `consumo`, `permanente` ou `servico`;
+- `status`: `Não encaminhada`, `Encaminhada` ou `Inventariada`;
+- `competence_id`: FK opcional para competência;
+- `payload`: registro legado integral;
+- `row_version`: concorrência otimista.
 
 ### `registered_invoices`
 
-Preserva os registros de notas e despesas atualmente mantidos em `notasRegistradas`.
+Preserva os registros mantidos atualmente em `notasRegistradas`, incluindo escola, competência, descrição, tipo, número, valor e `payload` original.
 
 ## Segurança e perfis
 
@@ -143,29 +186,59 @@ Catálogo estrutural:
 
 ### `user_profiles`
 
-Vincula `auth.users` a um perfil e, quando necessário, a controlador ou integrante do inventário.
+| Campo | Regra |
+|---|---|
+| `id` | UUID primário |
+| `user_id` | FK para `auth.users` |
+| `profile_id` | FK para `profiles` |
+| `controller_id` | obrigatório para perfil Controlador |
+| `inventory_member_id` | obrigatório para perfil Inventário |
+| `cre_scope` | restrição organizacional futura |
+| `active` | vínculo ativo |
+
+A combinação `(user_id, profile_id)` é única.
 
 ### `user_school_scopes`
 
-Exceções explícitas de acesso por escola, com indicação separada de permissão de escrita.
+| Campo | Regra |
+|---|---|
+| `id` | UUID primário |
+| `user_id` | usuário autenticado |
+| `school_id` | escola concedida |
+| `can_write` | diferencia leitura de escrita |
+
+A combinação `(user_id, school_id)` é única.
 
 ## Auditoria e migração
 
 ### `administrative_logs`
 
-Mantém os registros operacionais já existentes no sistema.
+Mantém os registros operacionais já existentes, com `details` em JSONB e vínculo opcional a escola e usuário autenticado.
 
 ### `data_import_runs`
 
-Controla cada importação por `import_id` único, versão do snapshot, contagens, estado e relatório de reconciliação.
+Controla cada importação por `import_id` único, versão do snapshot, contagens, estado, relatório de reconciliação, erro e autoria.
 
 ### `audit_events`
 
-Trilha imutável de inserções, alterações e exclusões nas entidades críticas. Guarda registro anterior, novo registro, campos alterados, usuário e horário.
+Trilha imutável de inserções, alterações e exclusões nas entidades críticas. Guarda registro anterior, novo registro, campos alterados, usuário, requisição e horário.
+
+## Transformação do estado local
+
+O módulo `src/data/legacy-state-adapter.js`:
+
+1. lê somente as chaves `radar_pdde_*` já usadas pelo sistema;
+2. não modifica nem remove o conteúdo do navegador;
+3. converte campos em português para o modelo SQL;
+4. separa `programasIds`, verificações e tentativas em coleções relacionais;
+5. preserva registros completos em `payload` quando necessário;
+6. gera lista de advertências e registros rejeitados;
+7. produz snapshot canônico validável e reconciliável.
 
 ## Campos transversais
 
-- `created_at`: criação do registro;
+- `created_at`: criação técnica do registro;
 - `updated_at`: última alteração;
-- `row_version`: incrementado em alterações nas tabelas críticas;
-- `created_by`: usuário autenticado responsável, quando aplicável.
+- `row_version`: incrementado por trigger nas tabelas mutáveis;
+- `created_by` ou `actor_user_id`: usuário autenticado responsável, quando aplicável;
+- `payload`: cópia dos atributos legados necessários à rastreabilidade.
