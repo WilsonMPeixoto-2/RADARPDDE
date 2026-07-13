@@ -21,11 +21,13 @@
     }
 
     const {
+        SNAPSHOT_FORMAT,
         RADAR_ENTITIES,
         RepositoryError,
         assertKnownEntity,
         cloneValue,
-        normalizeCollection
+        normalizeCollection,
+        createSnapshotEnvelope
     } = contract;
 
     class LocalStorageRepository {
@@ -105,16 +107,19 @@
                 }
             }
 
-            return {
-                format: 'radar-pdde-repository-snapshot',
-                schemaVersion: this.schemaVersion,
-                exportedAt: options.exportedAt || new Date().toISOString(),
-                entities
-            };
+            return createSnapshotEnvelope(entities, {
+                version: options.version || this.schemaVersion,
+                importId: options.importId,
+                exportedAt: options.exportedAt
+            });
         }
 
         async restoreSnapshot(snapshot) {
-            if (!snapshot || typeof snapshot !== 'object' || !snapshot.entities) {
+            if (!snapshot
+                || typeof snapshot !== 'object'
+                || snapshot.format !== SNAPSHOT_FORMAT
+                || !snapshot.entities
+                || typeof snapshot.entities !== 'object') {
                 throw new RepositoryError(
                     'INVALID_SNAPSHOT',
                     'Snapshot local inválido.',
@@ -130,7 +135,8 @@
 
             return {
                 restoredEntities: entries.length,
-                schemaVersion: String(snapshot.schemaVersion || this.schemaVersion)
+                version: String(snapshot.version || this.schemaVersion),
+                importId: String(snapshot.importId || '')
             };
         }
 
