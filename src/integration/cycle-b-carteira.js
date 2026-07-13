@@ -284,18 +284,6 @@
 
     function enhanceWallet() {
         injectFilterControls();
-        const panel = Array.from(document.querySelectorAll('.panel-card')).find(candidate => (
-            candidate.querySelector('.panel-header h2')?.textContent.trim() === 'Resultado da carteira'
-        ));
-        if (!panel) return false;
-        const oldWrapper = panel.querySelector('.table-responsive');
-        if (!oldWrapper) return false;
-        const targetSchools = getFilteredEscolasEnhanced();
-        const replacement = document.createElement('div');
-        replacement.className = 'cycle-b-wallet-results';
-        replacement.innerHTML = renderOperationalTable(targetSchools);
-        oldWrapper.replaceWith(replacement);
-
         const summary = document.querySelector('.school-filter-summary');
         if (summary && documentaryFilter !== 'all') {
             const chip = document.createElement('span');

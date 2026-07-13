@@ -93,46 +93,52 @@ test.describe('Ciclo B — Carteira operacional de Escolas', () => {
     await expect(page.getByText(seeded.regular.name)).toBeVisible();
   });
 
-  test('pesquisa por INEP e exibe as dimensões operacionais em colunas próprias', async ({ page }, testInfo) => {
+  test('preserva a tabela aprovada com programas, diretor e ações ao pesquisar por INEP', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário desktop.');
     await page.goto('/');
     const seeded = await seedCycleBCarteira(page);
 
-    const table = page.locator('.cycle-b-wallet-table');
-    await expect(table.getByRole('columnheader', { name: 'Situação documental' })).toBeVisible();
-    await expect(table.getByRole('columnheader', { name: 'Abertas' })).toBeVisible();
-    await expect(table.getByRole('columnheader', { name: 'Para reanalisar' })).toBeVisible();
-    await expect(table.getByRole('columnheader', { name: 'Última movimentação' })).toBeVisible();
-    await expect(table.getByRole('columnheader', { name: 'Próxima ação' })).toBeVisible();
+    const resultPanel = page.locator('.panel-card').filter({
+      has: page.getByRole('heading', { name: 'Resultado da carteira' })
+    });
+    const table = resultPanel.locator('table.data-table');
+    await expect(page.locator('.cycle-b-wallet-table')).toHaveCount(0);
+    await expect(table.getByRole('columnheader', { name: 'Diretor(a) Geral' })).toBeVisible();
+    await expect(table.getByRole('columnheader', { name: 'Controlador Responsável' })).toBeVisible();
+    await expect(table.getByRole('columnheader', { name: 'Pendência / próxima ação' })).toBeVisible();
 
     const search = page.locator('#escola-search-input');
     await search.fill(seeded.awaiting.inep);
     const row = table.locator('tbody tr').filter({ hasText: seeded.awaiting.name });
     await expect(row).toHaveCount(1);
-    await expect(row).toContainText('Aguardando reanálise');
-    await expect(row).toContainText('Reanalisar Extrato Investimento');
+    await expect(row.locator('.school-program-inline')).toContainText('PDDE Básico');
+    await expect(row).toContainText('1 ativa(s)');
+    await expect(row.getByRole('button', { name: 'Ver Unidade' })).toBeVisible();
+    await expect(row.getByRole('button', { name: 'Editar' })).toBeVisible();
   });
 
-  test('abre a fila de Pendências preservando escola e situação', async ({ page }, testInfo) => {
+  test('mantém a ação aprovada Ver Unidade após filtrar aguardando reanálise', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário desktop.');
     await page.goto('/');
     const seeded = await seedCycleBCarteira(page);
 
     await page.locator('#filter-escola-pendencias').selectOption('aguardando');
-    const row = page.locator('.cycle-b-wallet-table tbody tr').filter({ hasText: seeded.awaiting.name });
-    await row.getByRole('button', { name: 'Abrir Pendências' }).click();
+    const row = page.locator('table.data-table tbody tr').filter({ hasText: seeded.awaiting.name });
+    await row.getByRole('button', { name: 'Ver Unidade' }).click();
 
-    await expect(page.getByRole('heading', { name: 'Pendências operacionais' })).toBeVisible();
-    await expect(page.locator('#pendency-filter-school')).toHaveValue(seeded.awaiting.id);
-    await expect(page.getByRole('tab', { name: /^Aguardando reanálise\b/ })).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByRole('heading', { name: new RegExp(seeded.awaiting.name) })).toBeVisible();
   });
 
-  test('usa cartões operacionais sem overflow global no celular', async ({ page }, testInfo) => {
+  test('mantém a tabela aprovada em rolagem local no celular', async ({ page }, testInfo) => {
     test.skip(!testInfo.project.name.startsWith('mobile-'), 'Cenário mobile.');
     await page.goto('/');
     await seedCycleBCarteira(page);
 
-    await expect(page.locator('.cycle-b-wallet-mobile-card').first()).toBeVisible();
+    await expect(page.locator('.cycle-b-wallet-mobile-card')).toHaveCount(0);
+    const resultPanel = page.locator('.panel-card').filter({
+      has: page.getByRole('heading', { name: 'Resultado da carteira' })
+    });
+    await expect(resultPanel.locator('.table-responsive')).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
   });
 });
