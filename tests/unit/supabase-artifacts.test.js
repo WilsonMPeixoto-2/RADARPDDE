@@ -27,6 +27,7 @@ test('schema principal contém entidades, relacionamentos e id canônico', () =>
     assert.match(sql, /references\s+public\.schools\s*\(id\)/i);
     assert.match(sql, /references\s+public\.programs\s*\(id\)/i);
     assert.match(sql, /create\s+table\s+public\.competences\s*\(\s*id\s+text\s+primary\s+key/i);
+    assert.match(sql, /bonus_deadline\s+date/i);
     assert.match(sql, /create\s+table\s+public\.school_programs\s*\(\s*id\s+text\s+primary\s+key/i);
     assert.match(sql, /create\s+table\s+public\.pendency_attempts\s*\(\s*id\s+text\s+primary\s+key/i);
     assert.match(sql, /create\s+table\s+public\.pendency_contacts\s*\(\s*id\s+text\s+primary\s+key/i);
