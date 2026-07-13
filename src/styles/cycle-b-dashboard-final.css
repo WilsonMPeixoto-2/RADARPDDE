@@ -1,0 +1,40 @@
+/* Encerramento dos Ciclos A/B — filtro local e ações contextuais do Dashboard */
+.cycle-b-dashboard-card.is-selected,
+.cycle-b-dashboard-card[aria-pressed="true"] {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px var(--primary-glow);
+}
+
+.cycle-b-dashboard-card[aria-pressed="true"] .stat-label {
+    color: var(--primary);
+}
+
+.cycle-b-dashboard-row-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.cycle-b-dashboard-row-actions .btn {
+    white-space: nowrap;
+}
+
+.cycle-b-dashboard-empty {
+    padding: 32px;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+@media (max-width: 700px) {
+    .cycle-b-dashboard-row-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .cycle-b-dashboard-row-actions .btn {
+        width: 100%;
+        min-height: 44px;
+        justify-content: center;
+    }
+}
