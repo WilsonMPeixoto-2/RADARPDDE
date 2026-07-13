@@ -1,0 +1,45 @@
+name: Supabase readiness
+
+on:
+  pull_request:
+    paths:
+      - 'config.js'
+      - '.env.example'
+      - 'src/data/**'
+      - 'scripts/check-supabase-readiness.js'
+      - 'supabase/**'
+      - 'tests/unit/**'
+      - 'package.json'
+      - '.github/workflows/supabase-readiness.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'config.js'
+      - '.env.example'
+      - 'src/data/**'
+      - 'scripts/check-supabase-readiness.js'
+      - 'supabase/**'
+      - 'tests/unit/**'
+      - 'package.json'
+      - '.github/workflows/supabase-readiness.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  readiness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Executar testes unitários de prontidão
+        run: node --test tests/unit/*.test.js
