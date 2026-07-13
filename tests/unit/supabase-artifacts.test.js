@@ -12,7 +12,7 @@ function read(name) {
     return fs.readFileSync(path.join(MIGRATIONS, name), 'utf8');
 }
 
-test('schema principal contém todas as entidades e relacionamentos essenciais', () => {
+test('schema principal contém entidades, relacionamentos e id canônico', () => {
     const sql = read('202607130001_core_schema.sql');
     const requiredTables = [
         'app_config', 'programs', 'controllers', 'inventory_team_members',
@@ -26,16 +26,22 @@ test('schema principal contém todas as entidades e relacionamentos essenciais',
     });
     assert.match(sql, /references\s+public\.schools\s*\(id\)/i);
     assert.match(sql, /references\s+public\.programs\s*\(id\)/i);
+    assert.match(sql, /create\s+table\s+public\.competences\s*\(\s*id\s+text\s+primary\s+key/i);
+    assert.match(sql, /create\s+table\s+public\.school_programs\s*\(\s*id\s+text\s+primary\s+key/i);
     assert.match(sql, /unique\s*\(school_id,\s*program_id\)/i);
     assert.match(sql, /check\s*\(status\s+in\s*\(/i);
     assert.match(sql, /create\s+index/i);
 });
 
-test('migration de autenticação ativa RLS e define políticas por perfil', () => {
+test('migration de autenticação ativa RLS, define perfis e IDs removíveis', () => {
     const sql = read('202607130002_auth_and_rls.sql');
     ['profiles', 'user_profiles', 'user_school_scopes'].forEach(tableName => {
         assert.match(sql, new RegExp(`create\\s+table\\s+public\\.${tableName}`, 'i'));
     });
+    assert.match(sql, /create\s+table\s+public\.user_profiles\s*\(\s*id\s+uuid\s+primary\s+key/i);
+    assert.match(sql, /unique\s*\(user_id,\s*profile_id\)/i);
+    assert.match(sql, /create\s+table\s+public\.user_school_scopes\s*\(\s*id\s+uuid\s+primary\s+key/i);
+    assert.match(sql, /unique\s*\(user_id,\s*school_id\)/i);
     assert.match(sql, /create\s+or\s+replace\s+function\s+public\.current_app_role/i);
     assert.match(sql, /create\s+or\s+replace\s+function\s+public\.can_access_school/i);
     assert.match(sql, /auth\.uid\(\)/i);
