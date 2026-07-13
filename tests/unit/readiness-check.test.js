@@ -6,8 +6,14 @@ const assert = require('node:assert/strict');
 const {
     scanTextForSecrets,
     validateRuntimeConfigSource,
-    validateMigrationManifest
+    validateMigrationManifest,
+    validateReadinessArtifacts
 } = require('../../scripts/check-supabase-readiness.js');
+
+function jwtWithRole(role) {
+    const encode = value => Buffer.from(JSON.stringify(value)).toString('base64url');
+    return `${encode({ alg: 'HS256', typ: 'JWT' })}.${encode({ role })}.signature`;
+}
 
 test('detecta atribuição real de segredo Supabase', () => {
     const findings = scanTextForSecrets("SUPABASE_SERVICE_ROLE_KEY='super-secret-value'");
@@ -16,6 +22,17 @@ test('detecta atribuição real de segredo Supabase', () => {
 
     assert.deepEqual(scanTextForSecrets('SUPABASE_SERVICE_ROLE_KEY='), []);
     assert.deepEqual(scanTextForSecrets('Nunca use service_role no frontend.'), []);
+});
+
+test('detecta JWT legado com role service_role sem bloquear JWT anon', () => {
+    assert.match(
+        scanTextForSecrets(`const key = '${jwtWithRole('service_role')}';`, 'config.js').join(' '),
+        /jwt service_role/i
+    );
+    assert.deepEqual(
+        scanTextForSecrets(`const key = '${jwtWithRole('anon')}';`, 'config.js'),
+        []
+    );
 });
 
 test('recusa configuração publicada fora do modo local', () => {
@@ -36,5 +53,23 @@ test('valida conjunto obrigatório de migrations', () => {
     assert.match(
         validateMigrationManifest(['202607130001_core_schema.sql']).join(' '),
         /202607130002_auth_and_rls\.sql/
+    );
+});
+
+test('valida presença dos artefatos essenciais de preparação', () => {
+    assert.deepEqual(validateReadinessArtifacts([
+        'src/data/repository-contract.js',
+        'src/data/local-storage-repository.js',
+        'src/data/supabase-repository.js',
+        'src/data/repository-factory.js',
+        'src/data/snapshot-tools.js',
+        'src/data/legacy-state-adapter.js',
+        'docs/runbooks/SUPABASE_CONNECTION.md',
+        'docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md'
+    ]), []);
+
+    assert.match(
+        validateReadinessArtifacts(['src/data/repository-contract.js']).join(' '),
+        /legacy-state-adapter\.js/
     );
 });
