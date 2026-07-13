@@ -13,21 +13,24 @@ create table public.profiles (
     priority integer not null default 100,
     description text not null default '',
     active boolean not null default true,
+    row_version integer not null default 1 check (row_version > 0),
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now(),
     check (id in ('controller', 'federal_assistant', 'inventory', 'sme_management', 'technical_admin'))
 );
 
 create table public.user_profiles (
+    id uuid primary key default gen_random_uuid(),
     user_id uuid not null references auth.users (id) on delete cascade,
     profile_id text not null references public.profiles (id) on update cascade on delete restrict,
     controller_id text references public.controllers (id) on update cascade on delete set null,
     inventory_member_id text references public.inventory_team_members (id) on update cascade on delete set null,
     cre_scope text,
     active boolean not null default true,
+    row_version integer not null default 1 check (row_version > 0),
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now(),
-    primary key (user_id, profile_id),
+    unique (user_id, profile_id),
     check (
         (profile_id = 'controller' and controller_id is not null)
         or (profile_id = 'inventory' and inventory_member_id is not null)
@@ -36,11 +39,13 @@ create table public.user_profiles (
 );
 
 create table public.user_school_scopes (
+    id uuid primary key default gen_random_uuid(),
     user_id uuid not null references auth.users (id) on delete cascade,
     school_id text not null references public.schools (id) on update cascade on delete cascade,
     can_write boolean not null default false,
     created_at timestamptz not null default now(),
-    primary key (user_id, school_id)
+    updated_at timestamptz not null default now(),
+    unique (user_id, school_id)
 );
 
 insert into public.profiles (id, label, priority, description)
@@ -61,7 +66,7 @@ returns text
 language sql
 stable
 security definer
-set search_path = public
+set search_path = pg_catalog, public
 as $$
     select up.profile_id
     from public.user_profiles up
@@ -78,7 +83,7 @@ returns text
 language sql
 stable
 security definer
-set search_path = public
+set search_path = pg_catalog, public
 as $$
     select up.controller_id
     from public.user_profiles up
@@ -93,7 +98,7 @@ returns boolean
 language sql
 stable
 security definer
-set search_path = public
+set search_path = pg_catalog, public
 as $$
     select case
         when auth.uid() is null then false
@@ -124,7 +129,7 @@ returns boolean
 language sql
 stable
 security definer
-set search_path = public
+set search_path = pg_catalog, public
 as $$
     select case
         when auth.uid() is null then false
