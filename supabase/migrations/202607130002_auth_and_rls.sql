@@ -176,61 +176,83 @@ alter table public.user_school_scopes enable row level security;
 create policy app_config_read on public.app_config
 for select to authenticated
 using (true);
-
-create policy app_config_manage on public.app_config
-for all to authenticated
+create policy app_config_insert on public.app_config
+for insert to authenticated
+with check (public.current_app_role() in ('technical_admin', 'sme_management'));
+create policy app_config_update on public.app_config
+for update to authenticated
 using (public.current_app_role() in ('technical_admin', 'sme_management'))
 with check (public.current_app_role() in ('technical_admin', 'sme_management'));
+create policy app_config_delete on public.app_config
+for delete to authenticated
+using (public.current_app_role() = 'technical_admin');
 
 create policy programs_read on public.programs
 for select to authenticated
 using (true);
-
-create policy programs_manage on public.programs
-for all to authenticated
+create policy programs_insert on public.programs
+for insert to authenticated
+with check (public.current_app_role() in ('technical_admin', 'sme_management'));
+create policy programs_update on public.programs
+for update to authenticated
 using (public.current_app_role() in ('technical_admin', 'sme_management'))
 with check (public.current_app_role() in ('technical_admin', 'sme_management'));
+create policy programs_delete on public.programs
+for delete to authenticated
+using (public.current_app_role() = 'technical_admin');
 
 create policy competences_read on public.competences
 for select to authenticated
 using (true);
-
-create policy competences_manage on public.competences
-for all to authenticated
+create policy competences_insert on public.competences
+for insert to authenticated
+with check (public.current_app_role() in ('technical_admin', 'sme_management'));
+create policy competences_update on public.competences
+for update to authenticated
 using (public.current_app_role() in ('technical_admin', 'sme_management'))
 with check (public.current_app_role() in ('technical_admin', 'sme_management'));
+create policy competences_delete on public.competences
+for delete to authenticated
+using (public.current_app_role() = 'technical_admin');
 
 create policy controllers_read on public.controllers
 for select to authenticated
 using (true);
-
-create policy controllers_manage on public.controllers
-for all to authenticated
+create policy controllers_insert on public.controllers
+for insert to authenticated
+with check (public.current_app_role() in ('technical_admin', 'sme_management'));
+create policy controllers_update on public.controllers
+for update to authenticated
 using (public.current_app_role() in ('technical_admin', 'sme_management'))
 with check (public.current_app_role() in ('technical_admin', 'sme_management'));
+create policy controllers_delete on public.controllers
+for delete to authenticated
+using (public.current_app_role() = 'technical_admin');
 
 create policy inventory_members_read on public.inventory_team_members
 for select to authenticated
 using (true);
-
-create policy inventory_members_manage on public.inventory_team_members
-for all to authenticated
+create policy inventory_members_insert on public.inventory_team_members
+for insert to authenticated
+with check (public.current_app_role() in ('technical_admin', 'sme_management'));
+create policy inventory_members_update on public.inventory_team_members
+for update to authenticated
 using (public.current_app_role() in ('technical_admin', 'sme_management'))
 with check (public.current_app_role() in ('technical_admin', 'sme_management'));
+create policy inventory_members_delete on public.inventory_team_members
+for delete to authenticated
+using (public.current_app_role() = 'technical_admin');
 
 create policy schools_read on public.schools
 for select to authenticated
 using (public.can_access_school(id));
-
 create policy schools_insert on public.schools
 for insert to authenticated
 with check (public.current_app_role() in ('technical_admin', 'federal_assistant'));
-
 create policy schools_update on public.schools
 for update to authenticated
 using (public.can_write_school(id))
 with check (public.can_write_school(id));
-
 create policy schools_delete on public.schools
 for delete to authenticated
 using (public.current_app_role() = 'technical_admin');
@@ -238,29 +260,44 @@ using (public.current_app_role() = 'technical_admin');
 create policy school_programs_read on public.school_programs
 for select to authenticated
 using (public.can_access_school(school_id));
-
-create policy school_programs_write on public.school_programs
-for all to authenticated
+create policy school_programs_insert on public.school_programs
+for insert to authenticated
+with check (public.can_write_school(school_id));
+create policy school_programs_update on public.school_programs
+for update to authenticated
 using (public.can_write_school(school_id))
 with check (public.can_write_school(school_id));
+create policy school_programs_delete on public.school_programs
+for delete to authenticated
+using (public.current_app_role() = 'technical_admin');
 
 create policy verifications_read on public.verifications
 for select to authenticated
 using (public.can_access_school(school_id));
-
-create policy verifications_write on public.verifications
-for all to authenticated
+create policy verifications_insert on public.verifications
+for insert to authenticated
+with check (public.can_write_school(school_id));
+create policy verifications_update on public.verifications
+for update to authenticated
 using (public.can_write_school(school_id))
 with check (public.can_write_school(school_id));
+create policy verifications_delete on public.verifications
+for delete to authenticated
+using (public.current_app_role() = 'technical_admin');
 
 create policy pendencies_read on public.pendencies
 for select to authenticated
 using (public.can_access_school(school_id));
-
-create policy pendencies_write on public.pendencies
-for all to authenticated
+create policy pendencies_insert on public.pendencies
+for insert to authenticated
+with check (public.can_write_school(school_id));
+create policy pendencies_update on public.pendencies
+for update to authenticated
 using (public.can_write_school(school_id))
 with check (public.can_write_school(school_id));
+create policy pendencies_delete on public.pendencies
+for delete to authenticated
+using (public.current_app_role() = 'technical_admin');
 
 create policy pendency_attempts_read on public.pendency_attempts
 for select to authenticated
@@ -268,9 +305,14 @@ using (exists (
     select 1 from public.pendencies p
     where p.id = pendency_id and public.can_access_school(p.school_id)
 ));
-
-create policy pendency_attempts_write on public.pendency_attempts
-for all to authenticated
+create policy pendency_attempts_insert on public.pendency_attempts
+for insert to authenticated
+with check (exists (
+    select 1 from public.pendencies p
+    where p.id = pendency_id and public.can_write_school(p.school_id)
+));
+create policy pendency_attempts_update on public.pendency_attempts
+for update to authenticated
 using (exists (
     select 1 from public.pendencies p
     where p.id = pendency_id and public.can_write_school(p.school_id)
@@ -279,22 +321,35 @@ with check (exists (
     select 1 from public.pendencies p
     where p.id = pendency_id and public.can_write_school(p.school_id)
 ));
+create policy pendency_attempts_delete on public.pendency_attempts
+for delete to authenticated
+using (public.current_app_role() = 'technical_admin');
 
 create policy pendency_contacts_read on public.pendency_contacts
 for select to authenticated
 using (public.can_access_school(school_id));
-
-create policy pendency_contacts_write on public.pendency_contacts
-for all to authenticated
+create policy pendency_contacts_insert on public.pendency_contacts
+for insert to authenticated
+with check (public.can_write_school(school_id));
+create policy pendency_contacts_update on public.pendency_contacts
+for update to authenticated
 using (public.can_write_school(school_id))
 with check (public.can_write_school(school_id));
+create policy pendency_contacts_delete on public.pendency_contacts
+for delete to authenticated
+using (public.current_app_role() = 'technical_admin');
 
 create policy assets_read on public.assets
 for select to authenticated
 using (public.can_access_school(school_id));
-
-create policy assets_write on public.assets
-for all to authenticated
+create policy assets_insert on public.assets
+for insert to authenticated
+with check (
+    public.current_app_role() in ('technical_admin', 'federal_assistant', 'inventory')
+    and public.can_access_school(school_id)
+);
+create policy assets_update on public.assets
+for update to authenticated
 using (
     public.current_app_role() in ('technical_admin', 'federal_assistant', 'inventory')
     and public.can_access_school(school_id)
@@ -303,15 +358,23 @@ with check (
     public.current_app_role() in ('technical_admin', 'federal_assistant', 'inventory')
     and public.can_access_school(school_id)
 );
+create policy assets_delete on public.assets
+for delete to authenticated
+using (public.current_app_role() = 'technical_admin');
 
 create policy registered_invoices_read on public.registered_invoices
 for select to authenticated
 using (public.can_access_school(school_id));
-
-create policy registered_invoices_write on public.registered_invoices
-for all to authenticated
+create policy registered_invoices_insert on public.registered_invoices
+for insert to authenticated
+with check (public.can_write_school(school_id));
+create policy registered_invoices_update on public.registered_invoices
+for update to authenticated
 using (public.can_write_school(school_id))
 with check (public.can_write_school(school_id));
+create policy registered_invoices_delete on public.registered_invoices
+for delete to authenticated
+using (public.current_app_role() = 'technical_admin');
 
 create policy administrative_logs_read on public.administrative_logs
 for select to authenticated
@@ -320,18 +383,19 @@ using (
     or public.can_access_school(school_id)
     or public.current_app_role() in ('technical_admin', 'sme_management')
 );
-
 create policy administrative_logs_insert on public.administrative_logs
 for insert to authenticated
 with check (
     school_id is null
     or public.can_access_school(school_id)
 );
+create policy administrative_logs_delete on public.administrative_logs
+for delete to authenticated
+using (public.current_app_role() = 'technical_admin');
 
 create policy profiles_read on public.profiles
 for select to authenticated
 using (true);
-
 create policy profiles_manage on public.profiles
 for all to authenticated
 using (public.current_app_role() = 'technical_admin')
@@ -340,7 +404,6 @@ with check (public.current_app_role() = 'technical_admin');
 create policy user_profiles_self_read on public.user_profiles
 for select to authenticated
 using (user_id = auth.uid() or public.current_app_role() = 'technical_admin');
-
 create policy user_profiles_manage on public.user_profiles
 for all to authenticated
 using (public.current_app_role() = 'technical_admin')
@@ -349,7 +412,6 @@ with check (public.current_app_role() = 'technical_admin');
 create policy user_school_scopes_self_read on public.user_school_scopes
 for select to authenticated
 using (user_id = auth.uid() or public.current_app_role() = 'technical_admin');
-
 create policy user_school_scopes_manage on public.user_school_scopes
 for all to authenticated
 using (public.current_app_role() = 'technical_admin')
