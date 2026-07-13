@@ -9,6 +9,10 @@ on:
       - 'scripts/check-supabase-readiness.js'
       - 'supabase/**'
       - 'tests/unit/**'
+      - 'tests/e2e/supabase-local-mode.spec.js'
+      - 'docs/architecture/supabase-readiness.md'
+      - 'docs/reference/SUPABASE_*.md'
+      - 'docs/runbooks/SUPABASE_*.md'
       - 'package.json'
       - '.github/workflows/supabase-readiness.yml'
   push:
@@ -21,6 +25,10 @@ on:
       - 'scripts/check-supabase-readiness.js'
       - 'supabase/**'
       - 'tests/unit/**'
+      - 'tests/e2e/supabase-local-mode.spec.js'
+      - 'docs/architecture/supabase-readiness.md'
+      - 'docs/reference/SUPABASE_*.md'
+      - 'docs/runbooks/SUPABASE_*.md'
       - 'package.json'
       - '.github/workflows/supabase-readiness.yml'
 
@@ -41,5 +49,5 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Executar testes unitários de prontidão
-        run: node --test tests/unit/*.test.js
+      - name: Executar validação completa de prontidão
+        run: npm run test:readiness
