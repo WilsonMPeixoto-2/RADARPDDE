@@ -10,6 +10,28 @@ const REQUIRED_MIGRATIONS = Object.freeze([
     '202607130003_audit_and_import.sql'
 ]);
 
+const REQUIRED_ARTIFACTS = Object.freeze([
+    'src/data/repository-contract.js',
+    'src/data/local-storage-repository.js',
+    'src/data/supabase-repository.js',
+    'src/data/repository-factory.js',
+    'src/data/snapshot-tools.js',
+    'src/data/legacy-state-adapter.js',
+    'docs/runbooks/SUPABASE_CONNECTION.md',
+    'docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md'
+]);
+
+function decodeJwtRole(token) {
+    const parts = String(token || '').split('.');
+    if (parts.length < 2 || !parts[1]) return '';
+    try {
+        const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
+        return String(payload?.role || '').trim().toLowerCase();
+    } catch (error) {
+        return '';
+    }
+}
+
 function scanTextForSecrets(text, label = 'arquivo') {
     const findings = [];
     const source = String(text || '');
@@ -26,6 +48,12 @@ function scanTextForSecrets(text, label = 'arquivo') {
     const secretKeyPattern = /sb_secret_[A-Za-z0-9_-]{8,}/g;
     if (secretKeyPattern.test(source)) {
         findings.push(`${label}: chave sb_secret_ encontrada no repositório.`);
+    }
+
+    const jwtPattern = /\b[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]*\b/g;
+    const jwtTokens = source.match(jwtPattern) || [];
+    if (jwtTokens.some(token => decodeJwtRole(token) === 'service_role')) {
+        findings.push(`${label}: JWT service_role encontrado no repositório.`);
     }
 
     const databasePasswordAssignment = /(?:SUPABASE_)?(?:DB|DATABASE)_PASSWORD\s*[:=]\s*['"]?([^\s'"#]+)['"]?/gi;
@@ -65,6 +93,13 @@ function validateMigrationManifest(fileNames) {
         .map(name => `Migration obrigatória ausente: ${name}`);
 }
 
+function validateReadinessArtifacts(fileNames) {
+    const available = new Set(fileNames || []);
+    return REQUIRED_ARTIFACTS
+        .filter(name => !available.has(name))
+        .map(name => `Artefato obrigatório ausente: ${name}`);
+}
+
 function listFilesRecursively(directory) {
     if (!fs.existsSync(directory)) return [];
     return fs.readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
@@ -98,17 +133,27 @@ function runReadinessChecks(rootDir = path.resolve(__dirname, '..')) {
 
     migrationFiles.forEach(name => {
         const source = fs.readFileSync(path.join(migrationsDir, name), 'utf8');
-        if (/service_role|sb_secret_/i.test(source)) {
-            findings.push(`${name}: migration não deve conter credenciais ou nomes de chaves secretas.`);
+        if (/sb_secret_/i.test(source)) {
+            findings.push(`${name}: migration não deve conter credenciais secretas.`);
         }
     });
 
-    const scanRoots = [
-        path.join(rootDir, 'src'),
-        path.join(rootDir, 'scripts')
+    const artifactFiles = REQUIRED_ARTIFACTS.filter(fileName => (
+        fs.existsSync(path.join(rootDir, fileName))
+    ));
+    findings.push(...validateReadinessArtifacts(artifactFiles));
+
+    const scanFiles = [
+        path.join(rootDir, 'app.js'),
+        path.join(rootDir, 'package.json'),
+        ...listFilesRecursively(path.join(rootDir, 'src')),
+        ...listFilesRecursively(path.join(rootDir, 'scripts')),
+        ...listFilesRecursively(path.join(rootDir, '.github', 'workflows'))
     ];
-    scanRoots.flatMap(listFilesRecursively)
-        .filter(filePath => /\.(?:js|mjs|cjs|json|env)$/i.test(filePath))
+
+    scanFiles
+        .filter(filePath => fs.existsSync(filePath))
+        .filter(filePath => /\.(?:js|mjs|cjs|json|ya?ml|env)$/i.test(filePath))
         .forEach(filePath => {
             const source = fs.readFileSync(filePath, 'utf8');
             findings.push(...scanTextForSecrets(source, relative(rootDir, filePath)));
@@ -125,7 +170,7 @@ function runReadinessChecks(rootDir = path.resolve(__dirname, '..')) {
         }
     }
 
-    return findings;
+    return [...new Set(findings)];
 }
 
 function main() {
@@ -145,8 +190,11 @@ if (require.main === module) {
 
 module.exports = Object.freeze({
     REQUIRED_MIGRATIONS,
+    REQUIRED_ARTIFACTS,
+    decodeJwtRole,
     scanTextForSecrets,
     validateRuntimeConfigSource,
     validateMigrationManifest,
+    validateReadinessArtifacts,
     runReadinessChecks
 });
