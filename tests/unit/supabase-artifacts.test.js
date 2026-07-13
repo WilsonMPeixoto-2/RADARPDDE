@@ -46,11 +46,23 @@ test('migration de autenticação ativa RLS e define políticas por perfil', () 
     assert.match(sql, /inventory/i);
 });
 
-test('migration de auditoria controla importações e alterações', () => {
+test('migration de auditoria usa sintaxe válida de triggers e leitura segura de headers', () => {
     const sql = read('202607130003_audit_and_import.sql');
     assert.match(sql, /create\s+table\s+public\.data_import_runs/i);
     assert.match(sql, /create\s+table\s+public\.audit_events/i);
     assert.match(sql, /import_id\s+text\s+not\s+null\s+unique/i);
     assert.match(sql, /create\s+or\s+replace\s+function\s+public\.touch_updated_at/i);
-    assert.match(sql, /create\s+trigger/i);
+    assert.match(
+        sql,
+        /create\s+trigger\s+schools_capture_audit\s+after\s+insert\s+or\s+update\s+or\s+delete\s+on\s+public\.schools\s+for\s+each\s+row\s+execute\s+function/i
+    );
+    assert.doesNotMatch(
+        sql,
+        /create\s+trigger\s+\w+\s+for\s+each\s+row\s+after/i,
+        'A cláusula AFTER deve vir antes de ON ... FOR EACH ROW.'
+    );
+    assert.match(
+        sql,
+        /nullif\s*\(\s*current_setting\s*\(\s*'request\.headers'\s*,\s*true\s*\)\s*,\s*''\s*\)\s*::jsonb/i
+    );
 });
