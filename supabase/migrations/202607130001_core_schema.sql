@@ -19,6 +19,7 @@ create table public.programs (
     name text not null,
     description text not null default '',
     active boolean not null default true,
+    row_version integer not null default 1 check (row_version > 0),
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
 );
@@ -28,6 +29,7 @@ create table public.controllers (
     name text not null,
     email text not null default '',
     active boolean not null default true,
+    row_version integer not null default 1 check (row_version > 0),
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
 );
@@ -37,17 +39,19 @@ create table public.inventory_team_members (
     name text not null,
     email text not null default '',
     active boolean not null default true,
+    row_version integer not null default 1 check (row_version > 0),
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
 );
 
 create table public.competences (
-    key text primary key check (key ~ '^\d{4}-(0[1-9]|1[0-2])$'),
+    id text primary key check (id ~ '^\d{4}-(0[1-9]|1[0-2])$'),
     label text not null,
     exercise integer not null check (exercise between 2000 and 2100),
     starts_on date,
     ends_on date,
     closed_at timestamptz,
+    row_version integer not null default 1 check (row_version > 0),
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now(),
     check (ends_on is null or starts_on is null or ends_on >= starts_on)
@@ -71,7 +75,7 @@ create table public.schools (
     sici text not null default '',
     controller_id text references public.controllers (id) on update cascade on delete set null,
     inventory_process text not null default '',
-    initial_competence text references public.competences (key) on update cascade on delete set null,
+    initial_competence text references public.competences (id) on update cascade on delete set null,
     active boolean not null default true,
     row_version integer not null default 1 check (row_version > 0),
     created_at timestamptz not null default now(),
@@ -79,14 +83,15 @@ create table public.schools (
 );
 
 create table public.school_programs (
+    id text primary key,
     school_id text not null references public.schools (id) on update cascade on delete cascade,
     program_id text not null references public.programs (id) on update cascade on delete restrict,
     active boolean not null default true,
     starts_on date,
     ends_on date,
+    row_version integer not null default 1 check (row_version > 0),
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now(),
-    primary key (school_id, program_id),
     unique (school_id, program_id),
     check (ends_on is null or starts_on is null or ends_on >= starts_on)
 );
@@ -94,7 +99,7 @@ create table public.school_programs (
 create table public.verifications (
     id text primary key,
     school_id text not null references public.schools (id) on update cascade on delete cascade,
-    competence_key text not null references public.competences (key) on update cascade on delete restrict,
+    competence_id text not null references public.competences (id) on update cascade on delete restrict,
     program_id text not null references public.programs (id) on update cascade on delete restrict,
     bonification jsonb not null default '{}'::jsonb,
     analysis jsonb not null default '{}'::jsonb,
@@ -102,13 +107,13 @@ create table public.verifications (
     row_version integer not null default 1 check (row_version > 0),
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now(),
-    unique (school_id, competence_key, program_id)
+    unique (school_id, competence_id, program_id)
 );
 
 create table public.pendencies (
     id text primary key,
     school_id text not null references public.schools (id) on update cascade on delete cascade,
-    competence_origin text not null references public.competences (key) on update cascade on delete restrict,
+    competence_origin text not null references public.competences (id) on update cascade on delete restrict,
     program_id text references public.programs (id) on update cascade on delete restrict,
     document_key text not null,
     status text not null check (status in ('Aberta', 'Aguardando reanálise', 'Resolvida', 'Cancelada')),
@@ -137,7 +142,8 @@ create table public.pendency_attempts (
     observation text not null default '',
     drive_url text not null default '',
     errors jsonb not null default '[]'::jsonb,
-    created_by uuid,
+    created_by uuid references auth.users (id) on delete set null,
+    row_version integer not null default 1 check (row_version > 0),
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now(),
     unique (pendency_id, attempt_number)
@@ -151,7 +157,8 @@ create table public.pendency_contacts (
     contact_date date not null,
     description text not null,
     official_charge boolean not null default false,
-    created_by uuid,
+    created_by uuid references auth.users (id) on delete set null,
+    row_version integer not null default 1 check (row_version > 0),
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
 );
@@ -159,7 +166,7 @@ create table public.pendency_contacts (
 create table public.assets (
     id text primary key,
     school_id text not null references public.schools (id) on update cascade on delete cascade,
-    competence_key text references public.competences (key) on update cascade on delete set null,
+    competence_id text references public.competences (id) on update cascade on delete set null,
     description text not null,
     expense_type text not null check (expense_type in ('consumo', 'permanente', 'servico')),
     invoice_number text not null default '',
@@ -175,12 +182,13 @@ create table public.assets (
 create table public.registered_invoices (
     id text primary key,
     school_id text not null references public.schools (id) on update cascade on delete cascade,
-    competence_key text references public.competences (key) on update cascade on delete set null,
+    competence_id text references public.competences (id) on update cascade on delete set null,
     description text not null,
     expense_type text not null check (expense_type in ('consumo', 'permanente', 'servico')),
     invoice_number text not null,
     amount numeric(14,2) not null check (amount >= 0),
     payload jsonb not null default '{}'::jsonb,
+    row_version integer not null default 1 check (row_version > 0),
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
 );
@@ -188,6 +196,7 @@ create table public.registered_invoices (
 create table public.administrative_logs (
     id text primary key,
     school_id text references public.schools (id) on update cascade on delete set null,
+    actor_user_id uuid references auth.users (id) on delete set null,
     user_identifier text not null default '',
     profile_name text not null default '',
     action text not null,
@@ -200,12 +209,12 @@ create index schools_controller_id_idx on public.schools (controller_id);
 create index schools_cre_ra_idx on public.schools (cre, ra);
 create index schools_inep_idx on public.schools (inep);
 create index school_programs_program_id_idx on public.school_programs (program_id);
-create index verifications_school_competence_idx on public.verifications (school_id, competence_key);
+create index verifications_school_competence_idx on public.verifications (school_id, competence_id);
 create index verifications_program_idx on public.verifications (program_id);
 create index pendencies_school_status_idx on public.pendencies (school_id, status);
 create index pendencies_competence_idx on public.pendencies (competence_origin);
 create index pendency_attempts_pendency_idx on public.pendency_attempts (pendency_id, attempt_number);
 create index pendency_contacts_school_date_idx on public.pendency_contacts (school_id, contact_date desc);
 create index assets_school_status_idx on public.assets (school_id, status);
-create index registered_invoices_school_competence_idx on public.registered_invoices (school_id, competence_key);
+create index registered_invoices_school_competence_idx on public.registered_invoices (school_id, competence_id);
 create index administrative_logs_school_event_idx on public.administrative_logs (school_id, event_at desc);
