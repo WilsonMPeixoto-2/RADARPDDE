@@ -12,93 +12,15 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: playwright-mobile-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  patch-dashboard-test:
-    name: Ajustar expectativa legada do Dashboard
-    if: github.head_ref == 'fix/encerramento-ciclos-a-b'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Obter branch funcional
-        uses: actions/checkout@v4
-        with:
-          ref: fix/encerramento-ciclos-a-b
-          fetch-depth: 0
-
-      - name: Aplicar ajustes delimitados
-        shell: python
-        run: |
-          from pathlib import Path
-
-          changed = False
-          test_path = Path('tests/e2e/pendency-cycle.spec.js')
-          test_text = test_path.read_text(encoding='utf-8')
-          old = """    await awaitingCard.click();
-    await expect(page.getByRole('heading', { name: 'Escolas e Carteiras' })).toBeVisible();
-    const pendenciesFilter = page.locator('#filter-escola-pendencias');
-    await expect(pendenciesFilter.locator('option[value=\"aberta\"]'))
-      .toHaveText('Pendência aberta');
-    await expect(pendenciesFilter.locator('option[value=\"aguardando\"]'))
-      .toHaveText('Aguardando reanálise');
-    await expect(pendenciesFilter.locator('option[value=\"com\"]'))
-      .toHaveText('Com pendência ativa');
-    await expect(pendenciesFilter.locator('option[value=\"sem\"]'))
-      .toHaveText('Sem pendência ativa');
-    await expect(pendenciesFilter).toHaveValue('aguardando');
-    const schoolsResult = page.locator('.panel-card').filter({
-      has: page.getByRole('heading', { name: 'Resultado da carteira', exact: true })
-    });
-    await expect(schoolsResult.locator('tbody tr')).toHaveCount(1);
-    await expect(schoolsResult.locator('tbody tr').first()).toContainText(context.escolaNome);
-"""
-          new = """    await awaitingCard.click();
-    await expect(page.getByRole('heading', { name: 'Painel do Controlador' })).toBeVisible();
-    await expect(awaitingCard).toHaveAttribute('aria-pressed', 'true');
-
-    const dashboardTable = page.locator('.dash-layout table.data-table').first();
-    const filteredRow = dashboardTable.locator('tbody tr').filter({ hasText: context.escolaNome });
-    await expect(filteredRow).toHaveCount(1);
-    await expect(filteredRow.getByRole('button', { name: 'Reanalisar documento' })).toBeVisible();
-
-    const dashboardQueue = page.getByRole('region', { name: 'Próximas ações operacionais' });
-    await expect(dashboardQueue.locator('.cycle-b-action-item')).toHaveCount(1);
-    await expect(dashboardQueue).toContainText(`Reanalisar ${context.documentoNome}`);
-"""
-          if old in test_text:
-              test_path.write_text(test_text.replace(old, new, 1), encoding='utf-8')
-              changed = True
-
-          dashboard_path = Path('src/integration/cycle-b-dashboard.js')
-          dashboard_text = dashboard_path.read_text(encoding='utf-8')
-          old_note = 'Selecione um cartão para filtrar a lista e as próximas ações. As dimensões podem se sobrepor e não devem ser somadas.'
-          new_note = 'Selecione um cartão para filtrar a lista e as próximas ações. As contagens podem se sobrepor porque representam dimensões operacionais diferentes e não devem ser somadas.'
-          if old_note in dashboard_text:
-              dashboard_path.write_text(dashboard_text.replace(old_note, new_note, 1), encoding='utf-8')
-              changed = True
-
-          Path('.dashboard-patch-changed').write_text('yes' if changed else 'no', encoding='utf-8')
-
-      - name: Publicar ajustes na branch
-        run: |
-          if [ "$(cat .dashboard-patch-changed)" != "yes" ]; then
-            echo "Ajustes já aplicados."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add tests/e2e/pendency-cycle.spec.js src/integration/cycle-b-dashboard.js
-          git commit -m "test: alinhar Dashboard ao filtro local aprovado"
-          git push origin HEAD:fix/encerramento-ciclos-a-b
-
   mobile:
     name: Desktop, Android e iPhone
-    needs: patch-dashboard-test
-    if: always() && (needs.patch-dashboard-test.result == 'success' || needs.patch-dashboard-test.result == 'skipped')
     runs-on: ubuntu-latest
     timeout-minutes: 35
 
