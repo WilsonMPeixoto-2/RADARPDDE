@@ -185,10 +185,18 @@ test('transforma o estado atual em entidades relacionais com IDs canônicos', ()
         '04.31.001::BASIC',
         '04.31.001::ED_FAMILIA'
     ]);
-    assert.deepEqual(result.entities.competences.map(item => item.id), [
-        '2026-01',
-        '2026-05'
-    ]);
+    assert.equal(result.entities.competences.length, 12);
+    assert.deepEqual(result.entities.competences[0], {
+        id: '2026-01',
+        label: 'Janeiro 2026',
+        exercise: 2026,
+        starts_on: '2026-01-01',
+        ends_on: '2026-01-31',
+        bonus_deadline: '2026-02-15',
+        closed_at: null
+    });
+    assert.equal(result.entities.competences[11].id, '2026-12');
+    assert.equal(result.entities.competences[11].bonus_deadline, '2027-01-15');
     assert.deepEqual(result.entities.verifications[0], {
         id: '04.31.001::2026-05::ED_FAMILIA',
         school_id: '04.31.001',
