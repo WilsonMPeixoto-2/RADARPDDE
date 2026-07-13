@@ -4,23 +4,19 @@ O **RADAR PDDE** é uma aplicação web para acompanhar o ciclo de entrega, aná
 
 O sistema apoia o trabalho cotidiano de Controladores, Assistentes, equipe de Inventário e gestão da SME, transformando registros documentais em filas de trabalho, históricos auditáveis e informações gerenciais navegáveis.
 
-## Estado atual — 12 de julho de 2026
+## Estado atual — 13 de julho de 2026
 
-O pacote integrado do **PR 18** foi concluído e incorporado à `main`. Ele reúne as Tasks 10–13 do Ciclo A, o Dashboard operacional e a integração da Carteira de Escolas ao mesmo modelo de acompanhamento.
+Os PRs **18 a 21** foram incorporados à `main` e publicados no Vercel. Esse conjunto reúne as Tasks 10–13 do Ciclo A, o Dashboard operacional, a Carteira de Escolas restaurada e aprimorada, acessibilidade dos modais legados, coerência dos filtros e adaptação móvel.
 
-O **PR 19** corrigiu uma regressão visual e funcional na Carteira de Escolas: a tabela aprovada foi restaurada com os programas em destaque, os dados da direção e os botões **Ver Unidade** e **Editar**, preservando os novos filtros e indicadores operacionais.
+A infraestrutura de **prontidão para Supabase** está sendo versionada de forma isolada. Ela não ativa banco remoto, autenticação nem sincronização em produção.
 
 | Ambiente | Situação atual |
 |---|---|
-| `main` | Contém o pacote completo do PR 18 e a correção do PR 19. |
-| Preview corrigido | Pronto para validação e promoção; reúne o Dashboard aprovado e a Carteira restaurada. |
-| Produção | Ainda apresenta a versão anterior à correção da Carteira. A promoção do Preview ficou pendente porque o limite diário de implantações do plano gratuito da Vercel foi atingido. |
+| `main` | Base funcional aprovada, incluindo os PRs 18, 19, 20 e 21. |
+| Produção Vercel | Alinhada à `main` e operando exclusivamente com persistência local. |
+| Preparação Supabase | Adaptadores, migrations, RLS, testes e runbooks preparados; conexão bloqueada por configuração. |
 
-**Próxima ação operacional:** promover o Preview corrigido para produção quando o limite da Vercel for restabelecido e realizar uma conferência rápida das telas principais. Não há indicação de rollback.
-
-O relatório completo da sessão está em [`docs/reports/RELATORIO_ESTADO_ATUAL_2026-07-12.md`](docs/reports/RELATORIO_ESTADO_ATUAL_2026-07-12.md).
-
-## Progressão das últimas sessões
+## Progressão funcional consolidada
 
 ### Ciclo A até a Task 9
 
@@ -48,20 +44,21 @@ O relatório completo da sessão está em [`docs/reports/RELATORIO_ESTADO_ATUAL_
 ### Dashboard e Carteira
 
 - indicadores separados para pendências abertas e itens aguardando reanálise;
-- quadro de próximas ações priorizado pelo tempo de espera;
-- tarefa regular consolidada para escolas que aguardam lançamento de bonificação;
-- transporte de filtros do Dashboard para a Carteira;
+- filtros locais do Dashboard com seleção e limpeza pelo segundo clique;
+- lista e próximas ações operacionais usando exatamente o mesmo recorte;
+- ações contextuais para abrir pendência ou reanalisar documento;
 - busca da Carteira por nome, designação e INEP;
-- filtros por situação documental;
-- preservação da tabela aprovada, dos programas e das ações **Ver Unidade** e **Editar**.
+- filtros técnicos e documentais;
+- preservação da tabela desktop aprovada;
+- cartões operacionais na visualização móvel;
+- manutenção das ações **Ver Unidade**, **Editar** e **Abrir Pendências**.
 
 ### Qualidade e validação
 
-- refinamentos de foco, teclado, leitura por tecnologias assistivas e adaptação móvel;
-- verificação de ausência de rolagem indevida nas telas principais;
-- 136 testes de regras e dados aprovados;
-- 61 testes completos de uso aprovados;
-- 2 cenários ignorados por configuração e nenhuma falha.
+- acessibilidade por teclado, foco, Escape e retorno ao acionador nos modais legados;
+- leitura por tecnologias assistivas e adaptação móvel;
+- testes de domínio e interface executados em desktop Chromium, Android/Chromium e iPhone/WebKit;
+- validações específicas assegurando que o modo local não faça requisições ao Supabase.
 
 ## Regra de preservação visual e funcional
 
@@ -132,13 +129,17 @@ Estados canônicos:
 
 O índice completo está em [`docs/README.md`](docs/README.md). A matriz de precedência, disponibilidade e integridade está em [`docs/reference/STATUS_DOCUMENTOS.md`](docs/reference/STATUS_DOCUMENTOS.md).
 
-Documentação arquitetural já versionada:
+Documentação arquitetural e operacional relevante:
 
 - [`Modelo operacional compartilhado`](docs/architecture/modelo-operacional.md);
 - [`Retificações administrativas`](docs/architecture/retificacoes.md);
 - [`Competências`](docs/architecture/competencias.md);
 - [`Testes e validação`](docs/architecture/testing.md);
-- [`Status e precedência dos documentos`](docs/reference/STATUS_DOCUMENTOS.md).
+- [`Prontidão para Supabase`](docs/architecture/supabase-readiness.md);
+- [`Dicionário de dados Supabase`](docs/reference/SUPABASE_DATA_DICTIONARY.md);
+- [`Matriz futura de permissões`](docs/reference/SUPABASE_PERMISSIONS_MATRIX.md);
+- [`Runbook de conexão`](docs/runbooks/SUPABASE_CONNECTION.md);
+- [`Migração e rollback`](docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md).
 
 ## Precedência das decisões
 
@@ -155,21 +156,31 @@ Decisões consolidadas não devem ser reabertas sem nova regra institucional, de
 
 ## Dados e persistência
 
-Nesta fase, a aplicação utiliza:
+O modo vigente permanece **exclusivamente local**:
 
 - dados iniciais versionados no frontend;
-- persistência no `localStorage` do navegador;
-- Supabase deliberadamente desabilitado em `config.js`.
+- persistência funcional no `localStorage` do navegador;
+- `dataMode: "local"` na configuração publicada;
+- `supabaseRepositoryEnabled: false`;
+- `legacyAppBridgeEnabled: false`;
+- URL e chave publicável vazias;
+- nenhuma chamada de rede ao Supabase.
 
-Limitações atuais:
+A preparação futura inclui:
 
-- não há autenticação real;
-- não há sincronização automática entre dispositivos;
-- permissões definitivas serão estabelecidas na futura integração com Supabase;
-- a retificação está provisoriamente autorizada ao perfil Assistente por regra centralizada;
-- não há conferência automática de arquivos no Google Drive.
+- contrato comum de persistência;
+- adaptador local testável;
+- adaptador Supabase injetável e desativado;
+- factory com comportamento *fail-closed*;
+- snapshots, importação em lotes e reconciliação;
+- migrations PostgreSQL versionadas;
+- autenticação, perfis e políticas RLS planejadas;
+- auditoria e controle de importações;
+- verificações automáticas contra credenciais secretas.
 
-Nunca utilize uma chave `service_role` no frontend.
+A existência desses arquivos **não autoriza a conexão**. A ativação exigirá projeto Supabase próprio, aplicação controlada das migrations, configuração de Preview, testes de equivalência, homologação e autorização expressa.
+
+Nunca utilize `service_role`, `sb_secret_`, senha do banco ou token administrativo no frontend ou no repositório.
 
 ## Executar localmente
 
@@ -188,19 +199,22 @@ http://127.0.0.1:4175
 
 ## Testes
 
-Validação de sintaxe e domínio:
+Validação completa de prontidão:
+
+```bash
+npm run test:readiness
+```
+
+Comandos individuais:
 
 ```bash
 npm run check
-```
-
-Playwright completo:
-
-```bash
+npm run test:unit
+npm run check:supabase
 npm run test:e2e
 ```
 
-Projetos cobertos:
+Projetos de interface cobertos:
 
 - Chromium desktop;
 - Android/Chromium;
@@ -216,7 +230,9 @@ Projetos cobertos:
 
 ## Roadmap consolidado
 
-1. **Publicação da correção:** promover o Preview corrigido após a renovação do limite da Vercel;
-2. **Conferência pós-publicação:** validar Dashboard, Carteira, Pendências, Competências e Prontuário;
-3. **Prontuário ampliado:** evolução estrutural prevista para o Ciclo C;
-4. **Infraestrutura futura:** Supabase, autenticação e permissões institucionais.
+1. concluir a revisão da infraestrutura de prontidão sem conectar produção;
+2. criar ou selecionar um projeto Supabase autorizado;
+3. aplicar migrations em ambiente de desenvolvimento ou Preview;
+4. importar uma cópia controlada e executar reconciliação completa;
+5. homologar autenticação, RLS, concorrência e recuperação;
+6. somente após autorização, avaliar a ativação remota em produção.
