@@ -34,23 +34,8 @@ test('modo local é o padrão e neutraliza credenciais mesmo quando preenchidas'
     assert.equal(config.features.legacyAppBridgeEnabled, false);
 });
 
-test('conexão isolada do repositório exige modo não local, flag e credenciais válidas', () => {
+test('conexão exige modo não local e dupla autorização explícita', () => {
     const disabled = createRuntimeConfig({
-        dataMode: DATA_MODES.SUPABASE_PREVIEW,
-        supabase: {
-            url: 'https://example.supabase.co',
-            publishableKey: 'sb_publishable_example'
-        },
-        features: {
-            supabaseRepositoryEnabled: false,
-            legacyAppBridgeEnabled: false
-        }
-    });
-
-    assert.equal(disabled.supabase.connectionEnabled, false);
-    assert.equal(disabled.supabase.url, '');
-
-    const repositoryOnly = createRuntimeConfig({
         dataMode: DATA_MODES.SUPABASE_PREVIEW,
         supabase: {
             url: 'https://example.supabase.co',
@@ -62,12 +47,10 @@ test('conexão isolada do repositório exige modo não local, flag e credenciais
         }
     });
 
-    assert.equal(repositoryOnly.supabase.connectionEnabled, true);
-    assert.equal(repositoryOnly.activeRepository, 'supabase');
-    assert.equal(repositoryOnly.activeApplicationDataSource, 'local');
-    assert.equal(repositoryOnly.features.legacyAppBridgeEnabled, false);
+    assert.equal(disabled.supabase.connectionEnabled, false);
+    assert.equal(disabled.supabase.url, '');
 
-    const bridged = createRuntimeConfig({
+    const enabled = createRuntimeConfig({
         dataMode: DATA_MODES.SUPABASE_PREVIEW,
         supabase: {
             url: 'https://example.supabase.co',
@@ -79,8 +62,9 @@ test('conexão isolada do repositório exige modo não local, flag e credenciais
         }
     });
 
-    assert.equal(bridged.supabase.connectionEnabled, true);
-    assert.equal(bridged.activeApplicationDataSource, 'supabase');
+    assert.equal(enabled.supabase.connectionEnabled, true);
+    assert.equal(enabled.supabase.url, 'https://example.supabase.co');
+    assert.equal(enabled.supabase.publishableKey, 'sb_publishable_example');
 });
 
 test('chaves secretas, inclusive JWT service_role, são rejeitadas', () => {
