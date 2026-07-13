@@ -7,7 +7,8 @@ const path = require('node:path');
 const REQUIRED_MIGRATIONS = Object.freeze([
     '202607130001_core_schema.sql',
     '202607130002_auth_and_rls.sql',
-    '202607130003_audit_and_import.sql'
+    '202607130003_audit_and_import.sql',
+    '202607130004_competence_bonus_deadline.sql'
 ]);
 
 const REQUIRED_ARTIFACTS = Object.freeze([
