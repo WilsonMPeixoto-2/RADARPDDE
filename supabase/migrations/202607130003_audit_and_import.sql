@@ -234,10 +234,18 @@ create policy data_import_runs_read on public.data_import_runs
 for select to authenticated
 using (public.current_app_role() in ('technical_admin', 'sme_management', 'federal_assistant'));
 
-create policy data_import_runs_manage on public.data_import_runs
-for all to authenticated
+create policy data_import_runs_insert on public.data_import_runs
+for insert to authenticated
+with check (public.current_app_role() in ('technical_admin', 'federal_assistant'));
+
+create policy data_import_runs_update on public.data_import_runs
+for update to authenticated
 using (public.current_app_role() in ('technical_admin', 'federal_assistant'))
 with check (public.current_app_role() in ('technical_admin', 'federal_assistant'));
+
+create policy data_import_runs_delete on public.data_import_runs
+for delete to authenticated
+using (public.current_app_role() = 'technical_admin');
 
 create policy audit_events_read on public.audit_events
 for select to authenticated
