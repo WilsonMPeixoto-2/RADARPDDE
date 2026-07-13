@@ -30,16 +30,18 @@
             && runtimeConfig.supabase?.connectionEnabled === true;
     }
 
-    function createRepository(runtimeConfig = {}, dependencies = {}) {
-        const localRepository = dependencies.localRepository
+    function createLocalRepository(dependencies = {}) {
+        return dependencies.localRepository
             || new localApi.LocalStorageRepository({
                 storage: dependencies.storage,
                 keyPrefix: dependencies.keyPrefix,
                 schemaVersion: dependencies.schemaVersion
             });
+    }
 
+    function createRepository(runtimeConfig = {}, dependencies = {}) {
         if (!isSupabaseExplicitlyEnabled(runtimeConfig)) {
-            return localRepository;
+            return createLocalRepository(dependencies);
         }
 
         return new supabaseApi.SupabaseRepository({
@@ -50,6 +52,7 @@
 
     return Object.freeze({
         createRepository,
+        createLocalRepository,
         isSupabaseExplicitlyEnabled
     });
 }));
