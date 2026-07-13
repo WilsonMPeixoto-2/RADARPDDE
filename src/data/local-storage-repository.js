@@ -1,0 +1,151 @@
+(function installLocalStorageRepository(root, factory) {
+    'use strict';
+
+    const contract = typeof module !== 'undefined' && module.exports
+        ? require('./repository-contract.js')
+        : root.RadarRepositoryContract;
+    const api = factory(contract);
+
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports = api;
+    }
+
+    if (root) {
+        root.RadarLocalStorageRepository = Object.freeze(api);
+    }
+}(typeof window !== 'undefined' ? window : globalThis, function createLocalStorageRepositoryApi(contract) {
+    'use strict';
+
+    if (!contract) {
+        throw new Error('RadarRepositoryContract deve ser carregado antes do repositório local.');
+    }
+
+    const {
+        RADAR_ENTITIES,
+        RepositoryError,
+        assertKnownEntity,
+        cloneValue,
+        normalizeCollection
+    } = contract;
+
+    class LocalStorageRepository {
+        constructor(options = {}) {
+            this.storage = options.storage || (typeof localStorage !== 'undefined' ? localStorage : null);
+            this.keyPrefix = options.keyPrefix || 'radar_pdde_repository';
+            this.schemaVersion = String(options.schemaVersion || '1');
+
+            if (!this.storage
+                || typeof this.storage.getItem !== 'function'
+                || typeof this.storage.setItem !== 'function'
+                || typeof this.storage.removeItem !== 'function') {
+                throw new RepositoryError(
+                    'INVALID_STORAGE',
+                    'Um armazenamento compatível com Storage é obrigatório.',
+                    { operation: 'construct' }
+                );
+            }
+        }
+
+        keyFor(entity) {
+            assertKnownEntity(entity);
+            return `${this.keyPrefix}:${entity}`;
+        }
+
+        async load(entity) {
+            const key = this.keyFor(entity);
+            const raw = this.storage.getItem(key);
+            if (raw == null || raw === '') return [];
+
+            try {
+                return normalizeCollection(JSON.parse(raw));
+            } catch (error) {
+                if (error instanceof RepositoryError) throw error;
+                throw new RepositoryError(
+                    'DESERIALIZATION_FAILED',
+                    `Não foi possível interpretar os dados locais de ${entity}.`,
+                    { entity, operation: 'load', cause: error }
+                );
+            }
+        }
+
+        async save(entity, records) {
+            const key = this.keyFor(entity);
+            const collection = normalizeCollection(records);
+            try {
+                this.storage.setItem(key, JSON.stringify(collection));
+                return cloneValue(collection);
+            } catch (error) {
+                throw new RepositoryError(
+                    'WRITE_FAILED',
+                    `Não foi possível gravar os dados locais de ${entity}.`,
+                    { entity, operation: 'save', cause: error }
+                );
+            }
+        }
+
+        async remove(entity, id) {
+            const key = this.keyFor(entity);
+            if (id === undefined || id === null) {
+                this.storage.removeItem(key);
+                return { removed: 'all' };
+            }
+
+            const current = await this.load(entity);
+            const filtered = current.filter(record => record && record.id !== id);
+            await this.save(entity, filtered);
+            return { removed: current.length - filtered.length };
+        }
+
+        async exportSnapshot(options = {}) {
+            const entities = {};
+            for (const entity of RADAR_ENTITIES) {
+                const records = await this.load(entity);
+                if (records.length > 0 || options.includeEmpty === true) {
+                    entities[entity] = records;
+                }
+            }
+
+            return {
+                format: 'radar-pdde-repository-snapshot',
+                schemaVersion: this.schemaVersion,
+                exportedAt: options.exportedAt || new Date().toISOString(),
+                entities
+            };
+        }
+
+        async restoreSnapshot(snapshot) {
+            if (!snapshot || typeof snapshot !== 'object' || !snapshot.entities) {
+                throw new RepositoryError(
+                    'INVALID_SNAPSHOT',
+                    'Snapshot local inválido.',
+                    { operation: 'restoreSnapshot' }
+                );
+            }
+
+            const entries = Object.entries(snapshot.entities);
+            for (const [entity, records] of entries) {
+                assertKnownEntity(entity);
+                await this.save(entity, records);
+            }
+
+            return {
+                restoredEntities: entries.length,
+                schemaVersion: String(snapshot.schemaVersion || this.schemaVersion)
+            };
+        }
+
+        async healthCheck() {
+            const probeKey = `${this.keyPrefix}:__healthcheck__`;
+            try {
+                this.storage.setItem(probeKey, 'ok');
+                const writable = this.storage.getItem(probeKey) === 'ok';
+                this.storage.removeItem(probeKey);
+                return { ok: writable, mode: 'local', writable };
+            } catch (error) {
+                return { ok: false, mode: 'local', writable: false };
+            }
+        }
+    }
+
+    return Object.freeze({ LocalStorageRepository });
+}));
