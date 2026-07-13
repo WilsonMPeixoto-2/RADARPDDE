@@ -65,6 +65,7 @@ async function seedCycleBDashboard(page) {
 
     return {
       openSchoolId: candidates[0].id,
+      openSchoolName: candidates[0].denominação,
       awaitingSchoolId: candidates[1].id,
       awaitingSchoolName: candidates[1].denominação
     };
@@ -100,14 +101,45 @@ test.describe('Ciclo B — Dashboard operacional do Controlador', () => {
     await expect(page.getByRole('complementary', { name: 'Detalhes da pendência' })).toContainText('Extrato Investimento');
   });
 
-  test('transporta o recorte de aguardando reanálise para a Carteira', async ({ page }, testInfo) => {
+  test('filtra a lista e as próximas ações no próprio Dashboard e desfaz no segundo clique', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário desktop.');
+    await page.goto('/');
+    const seeded = await seedCycleBDashboard(page);
+
+    const awaitingCard = page.getByRole('button', { name: /Aguardando reanálise/ });
+    await awaitingCard.click();
+
+    await expect(page.getByRole('heading', { name: 'Painel do Controlador' })).toBeVisible();
+    await expect(awaitingCard).toHaveAttribute('aria-pressed', 'true');
+
+    const table = page.locator('.dash-layout table.data-table').first();
+    await expect(table.locator('tbody tr').filter({ hasText: seeded.awaitingSchoolName })).toHaveCount(1);
+    await expect(table.locator('tbody tr').filter({ hasText: seeded.openSchoolName })).toHaveCount(0);
+
+    const queue = page.getByRole('region', { name: 'Próximas ações operacionais' });
+    await expect(queue.locator('.cycle-b-action-item')).toHaveCount(1);
+    await expect(queue).toContainText('Reanalisar Extrato Investimento');
+    await expect(queue).not.toContainText('Registrar novo envio do Extrato Conta Corrente');
+
+    await awaitingCard.click();
+    await expect(awaitingCard).toHaveAttribute('aria-pressed', 'false');
+    await expect(table.locator('tbody tr').filter({ hasText: seeded.awaitingSchoolName })).toHaveCount(1);
+    await expect(table.locator('tbody tr').filter({ hasText: seeded.openSchoolName })).toHaveCount(1);
+    await expect(queue.locator('.cycle-b-action-item')).toHaveCount(2);
+  });
+
+  test('abre a pendência correta pela linha da escola filtrada', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário desktop.');
     await page.goto('/');
     const seeded = await seedCycleBDashboard(page);
 
     await page.getByRole('button', { name: /Aguardando reanálise/ }).click();
-    await expect(page.getByRole('heading', { name: 'Escolas e Carteiras' })).toBeVisible();
-    await expect(page.locator('#filter-escola-pendencias')).toHaveValue('aguardando');
-    await expect(page.getByText(seeded.awaitingSchoolName)).toBeVisible();
+    const row = page.locator('.dash-layout table.data-table tbody tr').filter({
+      hasText: seeded.awaitingSchoolName
+    });
+
+    await row.getByRole('button', { name: 'Reanalisar documento' }).click();
+    await expect(page.getByRole('heading', { name: 'Pendências operacionais' })).toBeVisible();
+    await expect(page.getByRole('complementary', { name: 'Detalhes da pendência' })).toContainText('Extrato Investimento');
   });
 });
