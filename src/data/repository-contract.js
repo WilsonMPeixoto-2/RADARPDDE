@@ -13,6 +13,8 @@
 }(typeof window !== 'undefined' ? window : globalThis, function createRepositoryContract() {
     'use strict';
 
+    const SNAPSHOT_FORMAT = 'radar-pdde-snapshot';
+
     const RADAR_ENTITIES = Object.freeze([
         'appConfig',
         'programs',
@@ -77,11 +79,23 @@
         return cloneValue(value);
     }
 
+    function createSnapshotEnvelope(entities, options = {}) {
+        return {
+            format: SNAPSHOT_FORMAT,
+            version: String(options.version || options.schemaVersion || '1'),
+            importId: String(options.importId || `import-${Date.now()}`),
+            exportedAt: options.exportedAt || new Date().toISOString(),
+            entities: cloneValue(entities || {})
+        };
+    }
+
     return Object.freeze({
+        SNAPSHOT_FORMAT,
         RADAR_ENTITIES,
         RepositoryError,
         assertKnownEntity,
         cloneValue,
-        normalizeCollection
+        normalizeCollection,
+        createSnapshotEnvelope
     });
 }));
