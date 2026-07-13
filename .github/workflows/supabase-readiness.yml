@@ -51,3 +51,104 @@ jobs:
 
       - name: Executar validação completa de prontidão
         run: npm run test:readiness
+
+  migration-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: radar_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d radar_test"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: radar_test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Instalar cliente PostgreSQL
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client
+
+      - name: Aplicar bootstrap e migrations
+        run: |
+          set -euo pipefail
+          psql -v ON_ERROR_STOP=1 -f supabase/tests/bootstrap.sql
+          for migration in supabase/migrations/*.sql; do
+            echo "Aplicando ${migration}"
+            psql -v ON_ERROR_STOP=1 -f "${migration}"
+          done
+
+      - name: Exercitar triggers de versão e auditoria
+        run: |
+          psql -v ON_ERROR_STOP=1 <<'SQL'
+          insert into public.competences (id, label, exercise)
+          values ('2026-01', 'Janeiro de 2026', 2026);
+
+          insert into public.programs (id, name)
+          values ('BASIC', 'PDDE Básico');
+
+          insert into public.controllers (id, name)
+          values ('controller-test', 'Controlador de teste');
+
+          insert into public.schools (
+              id,
+              designation,
+              denomination,
+              cre,
+              controller_id,
+              initial_competence
+          ) values (
+              '04.00.001',
+              '04.00.001',
+              'Escola de teste',
+              '4ª CRE',
+              'controller-test',
+              '2026-01'
+          );
+
+          update public.schools
+          set denomination = 'Escola de teste atualizada'
+          where id = '04.00.001';
+
+          do $$
+          declare
+              version_value integer;
+              audit_count integer;
+          begin
+              select row_version into version_value
+              from public.schools
+              where id = '04.00.001';
+
+              if version_value <> 2 then
+                  raise exception 'row_version esperado 2, encontrado %', version_value;
+              end if;
+
+              select count(*) into audit_count
+              from public.audit_events
+              where table_name = 'schools'
+                and record_id = '04.00.001';
+
+              if audit_count < 2 then
+                  raise exception 'auditoria de schools incompleta: % eventos', audit_count;
+              end if;
+          end
+          $$;
+          SQL
