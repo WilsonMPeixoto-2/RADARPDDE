@@ -52,6 +52,28 @@
         auditEvents: 'audit_events'
     });
 
+    const IMPORT_ENTITY_ORDER = Object.freeze([
+        'competences',
+        'programs',
+        'appConfig',
+        'controllers',
+        'inventoryTeamMembers',
+        'profiles',
+        'schools',
+        'schoolPrograms',
+        'verifications',
+        'pendencies',
+        'pendencyAttempts',
+        'pendencyContacts',
+        'assets',
+        'registeredInvoices',
+        'administrativeLogs',
+        'userProfiles',
+        'userSchoolScopes',
+        'dataImportRuns',
+        'auditEvents'
+    ]);
+
     class SupabaseRepository {
         constructor(options = {}) {
             if (!options.client || typeof options.client.from !== 'function') {
@@ -168,12 +190,21 @@
                 );
             }
 
-            const entries = Object.entries(snapshot.entities);
-            for (const [entity, records] of entries) {
-                await this.save(entity, records);
+            const entityNames = Object.keys(snapshot.entities);
+            entityNames.forEach(assertKnownEntity);
+            const orderIndex = new Map(IMPORT_ENTITY_ORDER.map((entity, index) => [entity, index]));
+            const orderedEntities = entityNames.slice().sort((left, right) => (
+                (orderIndex.get(left) ?? Number.MAX_SAFE_INTEGER)
+                - (orderIndex.get(right) ?? Number.MAX_SAFE_INTEGER)
+            ));
+
+            for (const entity of orderedEntities) {
+                await this.save(entity, snapshot.entities[entity]);
             }
+
             return {
-                restoredEntities: entries.length,
+                restoredEntities: orderedEntities.length,
+                orderedEntities,
                 version: String(snapshot.version || '1'),
                 importId: String(snapshot.importId || '')
             };
@@ -196,6 +227,7 @@
 
     return Object.freeze({
         DEFAULT_TABLE_MAP,
+        IMPORT_ENTITY_ORDER,
         SupabaseRepository
     });
 }));
