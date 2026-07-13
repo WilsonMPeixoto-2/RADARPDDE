@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "check": "node --check app.js && node --check config.js && node --check src/data/repository-contract.js && node --check src/data/local-storage-repository.js && node --check src/data/supabase-repository.js && node --check src/data/repository-factory.js && node --check src/data/snapshot-tools.js && node --check scripts/check-supabase-readiness.js",
+    "check": "node --check app.js && node --check config.js && node --check src/data/repository-contract.js && node --check src/data/local-storage-repository.js && node --check src/data/supabase-repository.js && node --check src/data/repository-factory.js && node --check src/data/snapshot-tools.js && node --check src/data/legacy-state-adapter.js && node --check scripts/check-supabase-readiness.js",
     "check:supabase": "node scripts/check-supabase-readiness.js",
     "start": "http-server . -p 4175 -c-1",
     "test:unit": "node --test tests/unit/*.test.js",
