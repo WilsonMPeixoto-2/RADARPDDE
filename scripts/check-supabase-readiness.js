@@ -20,8 +20,10 @@ const REQUIRED_ARTIFACTS = Object.freeze([
     'src/data/snapshot-tools.js',
     'src/data/legacy-state-adapter.js',
     'src/data/state-bridge.js',
+    'src/data/state-bridge-metadata.js',
     'src/integration/exercise-management.js',
     'scripts/audit-functional-persistence.js',
+    'docs/reference/SUPABASE_FUNCTIONAL_COVERAGE.md',
     'docs/runbooks/SUPABASE_CONNECTION.md',
     'docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md'
 ]);
