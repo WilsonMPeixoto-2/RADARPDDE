@@ -251,6 +251,17 @@ jobs:
           RADAR_E2E_SUPABASE_LOCAL: '1'
         run: npx playwright test tests/e2e/supabase-auth-local.spec.js tests/e2e/supabase-full-contract.spec.js --project=desktop-chromium
 
+      - name: Publicar relatório do contrato Supabase local
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: playwright-report-supabase-local
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: warn
+          retention-days: 1
+
       - name: Restaurar configuração pública local
         if: always()
         run: npm run generate:runtime-config
