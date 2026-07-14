@@ -12,23 +12,38 @@ A infraestrutura preparada já inclui:
 - repositório Supabase com paginação integral e gravação em lotes;
 - atualização otimista por `row_version`;
 - reconciliação de snapshots;
-- esquema, autenticação futura, RLS, auditoria e importações;
-- distinção efetiva entre acesso somente leitura e autorização de escrita;
-- auditoria técnica de parâmetros, cadastros e vínculos institucionais;
-- inventário automatizado de chaves, configurações, handlers, formulários e mutações.
+- oito migrations, Auth futura, RLS, auditoria e importações;
+- RPCs transacionais para nota, bem e verificação;
+- Supabase CLI fixada, ambiente local, pgTAP e lint;
+- tipos TypeScript gerados do schema;
+- `@supabase/supabase-js` fixado e empacotado localmente;
+- validação remota manual e não destrutiva preparada.
 
-## Pré-requisitos
+## Pré-requisitos para iniciar a conexão experimental
 
-- projeto Supabase criado e ativo;
-- branch de integração isolada;
-- migrations aplicadas em ambiente de desenvolvimento;
+- projeto ou branch Supabase criado e ativo;
+- branch Git isolada;
+- autorização expressa para a conexão experimental;
 - URL e chave **publishable** disponíveis;
+- `SUPABASE_ACCESS_TOKEN` e senha do banco apenas nos segredos do ambiente autorizado;
 - nenhuma chave `service_role`, `sb_secret_`, senha ou token administrativo no frontend;
-- Preview do Vercel separado de produção;
-- snapshot local exportado e validado;
-- autorização expressa para iniciar a conexão experimental.
+- Preview do Vercel separado da produção;
+- snapshot local exportado e validado.
 
-## 1. Aplicar migrations
+## 1. Validar o projeto remoto sem aplicar alterações
+
+O workflow manual `.github/workflows/supabase-remote-validation.yml` deve ser executado primeiro. Ele:
+
+1. vincula o `project_ref` autorizado;
+2. executa `db push --dry-run`;
+3. executa lint remoto;
+4. executa pgTAP em transações revertidas;
+5. compara os tipos remotos com `src/types/database.types.ts`;
+6. lista as branches disponíveis.
+
+Esse workflow **não aplica migrations**.
+
+## 2. Aplicar as migrations em ambiente descartável ou branch Supabase
 
 Aplicar, nesta ordem:
 
@@ -38,23 +53,23 @@ Aplicar, nesta ordem:
 4. `202607130004_competence_bonus_deadline.sql`;
 5. `202607130005_operational_context.sql`;
 6. `202607130006_authorization_hardening.sql`;
-7. `202607130007_configuration_audit_coverage.sql`.
+7. `202607130007_configuration_audit_coverage.sql`;
+8. `202607130008_atomic_invoice_operations.sql`.
 
 Após a aplicação:
 
 - listar migrations executadas;
-- verificar advisors de segurança e desempenho;
+- executar Security e Performance Advisors;
 - confirmar RLS ativa em todas as tabelas expostas;
 - confirmar ausência de políticas para `anon`;
 - confirmar apenas um perfil ativo por usuário;
 - confirmar que escopo somente leitura não concede escrita;
-- gerar tipos TypeScript como artefato de conferência;
-- executar teste de criação e rollback em ambiente descartável;
-- confirmar as FKs de notas para programa, verificação, bem e escola;
-- confirmar o vínculo do inventariador e a data de inventariação;
-- confirmar triggers de auditoria em parâmetros, programas, controladores, equipe, competências e vínculos escola–programa.
+- regenerar e comparar os tipos TypeScript;
+- executar pgTAP e lint;
+- validar as RPCs `save_invoice_with_effects` e `delete_invoice_with_effects`;
+- confirmar triggers de auditoria em parâmetros, cadastros, vínculos e dados operacionais.
 
-## 2. Criar usuários de teste
+## 3. Criar usuários de teste
 
 Criar usuários separados para:
 
@@ -66,24 +81,22 @@ Criar usuários separados para:
 
 Vincular cada usuário em `user_profiles`. Controladores precisam de `controller_id`; integrantes do inventário precisam de `inventory_member_id`.
 
-## 3. Configurar escopos
+## 4. Configurar escopos
 
 - associar escolas ao controlador por `schools.controller_id`;
 - usar `user_school_scopes` para exceções;
 - marcar `can_write` explicitamente;
 - comprovar que `can_write = false` concede apenas leitura;
-- conceder escopo a inventariador que precise registrar o primeiro bem de uma escola;
+- conceder escopo ao inventariador que precise registrar o primeiro bem de uma escola;
 - não conceder perfil técnico administrativo a usuário operacional;
 - manter apenas um vínculo ativo em `user_profiles` por usuário.
 
-## 4. Validar o repositório sem conectar a aplicação
+## 5. Validar o repositório sem conectar a interface
 
-Nesta fase, `config.js` continua integralmente em modo local. A validação do banco ocorre por cliente injetado em ambiente técnico controlado, e não pela interface pública do RADAR.
-
-Exemplo conceitual:
+Nesta fase, `config.js` continua integralmente em modo local. A validação ocorre por cliente injetado em ambiente técnico controlado.
 
 ```javascript
-const client = createClient(projectUrl, publishableKey);
+const client = RadarSupabaseClient.createClient(projectUrl, publishableKey);
 const repository = new RadarSupabaseRepository.SupabaseRepository({
   client,
   pageSize: 500,
@@ -92,23 +105,22 @@ const repository = new RadarSupabaseRepository.SupabaseRepository({
 const health = await repository.healthCheck();
 ```
 
-As credenciais devem vir do ambiente de execução ou do conector autorizado, nunca do GitHub.
-
 Validar:
 
-- leitura paginada com coleções acima de mil registros;
+- leitura paginada acima de mil registros;
 - escrita em lotes;
 - leitura com cada usuário de teste;
 - negativas de RLS;
-- gravação em tabelas permitidas;
+- gravação nas tabelas permitidas;
 - atualização concorrente por `updateWithVersion()`;
-- exclusão restrita ao Administrador técnico;
+- execução das RPCs transacionais;
+- exclusão física restrita ao Administrador técnico;
 - exportação de snapshot remoto;
 - ausência de seed automático;
 - ordem relacional de restauração;
 - logs operacionais e auditoria técnica.
 
-## 5. Exportar e importar uma cópia controlada
+## 6. Exportar e importar uma cópia controlada
 
 Seguir `SUPABASE_MIGRATION_AND_ROLLBACK.md`:
 
@@ -118,30 +130,30 @@ Seguir `SUPABASE_MIGRATION_AND_ROLLBACK.md`:
 4. importar em ordem relacional por backend controlado;
 5. exportar o destino;
 6. reconciliar origem e destino;
-7. executar uma restauração simulada com `dryRun: true`;
-8. preservar o snapshot local e os metadados laterais de reconciliação.
+7. executar restauração simulada com `dryRun: true`;
+8. preservar snapshot local e metadados laterais.
 
 A importação não deve ocorrer no navegador com credencial administrativa.
 
-## 6. Implementar a ponte definitiva em PR separado
+## 7. Implementar a ponte definitiva em PR separado
 
-Somente após o repositório e os dados estarem homologados:
+Somente após o banco e os dados estarem homologados:
 
-- substituir as chamadas diretas do `app.js` por operações do contrato de repositório;
-- remover o seed automático e a integração antiga com tabelas legadas;
-- remover o carregamento CDN flutuante do SDK e usar versão fixada ou bundle controlado;
-- criar o cliente Supabase somente quando `connectionEnabled` for verdadeiro;
-- mapear carregamento, gravação, conflitos e falhas;
-- utilizar `updateWithVersion()` nas edições de registros existentes;
+- substituir as chamadas diretas do `app.js` pelo contrato de repositório;
+- remover seed automático e integração antiga com tabelas legadas;
+- criar o cliente apenas quando `connectionEnabled` for verdadeiro;
+- usar as RPCs para salvar e remover notas com efeitos relacionados;
+- usar `updateWithVersion()` nas demais edições;
+- mapear carregamento, gravação, conflito, sessão expirada e falha de rede;
 - manter o adaptador local e `RadarStateBridge` como referência e rollback;
-- criar testes de equivalência para cada mutação do domínio;
+- criar testes de equivalência para cada mutação;
 - comprovar que nenhuma tela, cálculo, botão ou fluxo mudou.
 
-A simples alteração de flags **não substitui essa implementação**.
+O cliente já está fixado e empacotado em `vendor/supabase-client.js`. A simples alteração de flags **não substitui a implementação da ponte**.
 
-## 7. Configurar somente o Preview
+## 8. Configurar somente o Preview
 
-Depois de a ponte definitiva estar implementada e testada, alterar a fonte de configuração apenas na branch de Preview:
+Depois de a ponte definitiva estar implementada e testada, alterar a configuração apenas na branch de Preview:
 
 ```javascript
 {
@@ -158,18 +170,14 @@ Depois de a ponte definitiva estar implementada e testada, alterar a fonte de co
 }
 ```
 
-A conexão exige simultaneamente:
-
-- modo não local;
-- `supabaseRepositoryEnabled: true`;
-- `legacyAppBridgeEnabled: true`;
-- URL válida;
-- chave publicável válida.
-
-## 8. Executar validações
+## 9. Executar validações
 
 ```bash
 npm run test:readiness
+npm run supabase:start
+npm run supabase:reset
+npm run supabase:test:db
+npm run supabase:lint:db
 npm run test:e2e
 ```
 
@@ -181,29 +189,27 @@ Confirmar:
 - usuário sem perfil recebe acesso negado;
 - nenhum seed é executado automaticamente;
 - banco vazio não causa inserção implícita;
-- falha de rede é tratada sem corromper o estado;
-- nenhuma coleção é truncada por limite de paginação;
-- resultados funcionais coincidem com o modo local;
-- ida e volta Supabase → estado local preserva campos funcionais;
-- alterações locais posteriores não são ocultadas pelos metadados de reconciliação.
+- falha de rede não corrompe o estado;
+- nenhuma coleção é truncada;
+- resultados coincidem com o modo local;
+- ida e volta preserva campos funcionais;
+- metadados de reconciliação não ocultam alterações locais.
 
-## 9. Homologar RLS e concorrência
+## 10. Homologar RLS, concorrência e transações
 
-Executar todos os casos da matriz de permissões, incluindo tentativas negativas. Ocultar um botão não prova segurança; a operação deve ser negada pelo banco.
-
-Também validar:
+Executar todos os casos da matriz de permissões, incluindo tentativas negativas:
 
 - duas sessões alterando o mesmo registro;
 - incremento de `row_version`;
 - retorno de `OPTIMISTIC_CONFLICT` para versão obsoleta;
 - sessão expirada;
 - usuário desativado;
-- tentativa de ativar dois perfis simultâneos;
-- exceção de escola somente leitura;
-- exceção de escola com escrita;
+- tentativa de dois perfis ativos;
+- exceção somente leitura e exceção com escrita;
+- criação, edição e remoção atômica de nota, bem e verificação;
 - auditoria de inserção, alteração e exclusão.
 
-## 10. Preparar produção
+## 11. Preparar produção
 
 A promoção exige simultaneamente:
 
@@ -212,7 +218,7 @@ A promoção exige simultaneamente:
 - reconciliação sem diferenças não justificadas;
 - CI verde;
 - Preview homologado;
-- advisors analisados;
+- Advisors analisados;
 - rollback testado;
 - período de implantação definido.
 
