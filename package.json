@@ -6,7 +6,7 @@
     "node": ">=24 <27"
   },
   "scripts": {
-    "check": "node --check app.js && node --check config.js && node --check src/data/repository-contract.js && node --check src/data/local-storage-repository.js && node --check src/data/supabase-repository.js && node --check src/data/repository-factory.js && node --check src/data/snapshot-tools.js && node --check src/data/legacy-state-adapter.js && node --check src/data/state-bridge.js && node --check src/integration/exercise-management.js && node --check scripts/check-supabase-readiness.js && node --check scripts/audit-functional-persistence.js",
+    "check": "node --check app.js && node --check config.js && node --check src/data/repository-contract.js && node --check src/data/local-storage-repository.js && node --check src/data/supabase-repository.js && node --check src/data/repository-factory.js && node --check src/data/snapshot-tools.js && node --check src/data/legacy-state-adapter.js && node --check src/data/state-bridge.js && node --check src/data/state-bridge-metadata.js && node --check src/integration/exercise-management.js && node --check scripts/check-supabase-readiness.js && node --check scripts/audit-functional-persistence.js",
     "check:supabase": "node scripts/check-supabase-readiness.js",
     "audit:functional": "node scripts/audit-functional-persistence.js",
     "audit:functional:json": "node scripts/audit-functional-persistence.js --json",
