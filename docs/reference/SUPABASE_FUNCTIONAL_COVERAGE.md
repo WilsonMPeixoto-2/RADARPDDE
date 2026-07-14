@@ -11,6 +11,7 @@ Este documento relaciona as superfícies do frontend, os dados alterados pelo us
 - **Derivado:** calculado a partir de dados canônicos; não deve ser gravado como fonte de verdade.
 - **Local:** preferência ou estado transitório que não pertence ao banco institucional.
 - **Pré-ativação:** tarefa obrigatória apenas quando a conexão real for iniciada.
+- **Preparado:** infraestrutura concluída, ainda não ligada ao frontend remoto.
 
 ## Cobertura por domínio
 
@@ -36,12 +37,12 @@ Este documento relaciona as superfícies do frontend, os dados alterados pelo us
 | Histórico de pendência | `historico` e atributos adicionais | `pendencies.payload`, `pendency_attempts.payload` | preservação integral durante migração | ponte e testes de ida/volta |
 | Registrar contato | `contatos` | `pendency_contacts` | `desc`, tipo, data, pendência e cobrança oficial | `state-bridge.test.js` |
 | Cobrança oficial | `cobrancaOficial` | `pendency_contacts.official_charge` | influencia indicadores e histórico | ponte bidirecional |
-| Cadastrar nota de consumo | `notasRegistradas` | `registered_invoices` | não cria bem | migration 005 e testes |
-| Cadastrar nota de serviço | nota e verificação | `registered_invoices`, `verifications` | torna consulta à assessoria obrigatória | testes funcionais existentes |
-| Cadastrar nota permanente | nota e bem | `registered_invoices`, `assets` | cria bem e vincula `linked_asset_id` | migration 005 e ponte |
+| Cadastrar nota de consumo | `notasRegistradas` | `registered_invoices` | não cria bem | migrations 005/008 e pgTAP |
+| Cadastrar nota de serviço | nota e verificação | `registered_invoices`, `verifications` | torna consulta à assessoria obrigatória | migration 008 e testes funcionais |
+| Cadastrar nota permanente | nota e bem | `registered_invoices`, `assets` | cria bem e vincula `linked_asset_id` | migration 008 e pgTAP |
 | Contexto da nota | `compKey` | `competence_id`, `program_id`, `verification_id`, `source_context_key` | permite reconstruir prontuário exato | migration 005 e round-trip |
-| Editar nota | nota, bem e verificação relacionados | mesmas tabelas | alterações devem ser transacionais na ponte real | **Pré-ativação** |
-| Remover nota | nota, bem e análise relacionada | mesmas tabelas | pode remover bem e redefinir análise | **Pré-ativação**, já coberto no modo local |
+| Editar nota | nota, bem e verificação relacionados | RPC `save_invoice_with_effects` | operação transacional com `row_version` | **Preparado**, migration 008 e pgTAP |
+| Remover nota | nota, bem e análise relacionada | RPC `delete_invoice_with_effects` | exclusão física técnica e ajuste transacional | **Preparado**, migration 008 e pgTAP |
 | Bens patrimoniais | `bens` | `assets` | escola, competência, NF, valor e processo | testes de inventário |
 | Inventariar bem | responsável, data, status e observações | `assets.inventoried_by_member_id`, `inventoried_at`, `status`, `notes` | vínculo com equipe de inventário | migration 005 e ponte |
 | Logs operacionais | `logs` | `administrative_logs` | usuário, perfil, ação, detalhes e horário | snapshot e auditoria |
@@ -49,7 +50,7 @@ Este documento relaciona as superfícies do frontend, os dados alterados pelo us
 | Importações | inexistente no modo local | `data_import_runs` | idempotência e reconciliação | migration 003 |
 | Perfis simulados atuais | `currentProfile` | **Local**, até autenticação real | não é identidade de segurança | matriz de permissões |
 | Login e sessão | ainda não implementados | `auth.users`, `user_profiles` | exige fluxo real de autenticação | **Pré-ativação** |
-| Escopo por escola | controlador/perfil atual | `user_school_scopes` e funções RLS | leitura e escrita separadas | migration 002 |
+| Escopo por escola | controlador/perfil atual | `user_school_scopes` e funções RLS | leitura e escrita separadas | migrations 002/006 |
 | Tema claro/escuro | `radar_pdde_theme` | **Local** | preferência visual do dispositivo | não migrar |
 | View, modal e filtro ativos | variáveis de interface | **Local** | estado efêmero | não migrar |
 | Alertas | derivados de pendências, prazos e bens | consultas derivadas | não duplicar como fonte de verdade | E2E de alertas |
@@ -60,11 +61,12 @@ Este documento relaciona as superfícies do frontend, os dados alterados pelo us
 ### Nota fiscal
 
 1. **Tipo permanente** cria ou atualiza um bem em `assets`.
-2. O bem pode ser vinculado pela nota em `registered_invoices.linked_asset_id`.
+2. O bem é vinculado pela nota em `registered_invoices.linked_asset_id`.
 3. **Tipo serviço** exige consulta à assessoria na verificação.
 4. Remover a última nota pode redefinir a análise documental para “Não analisado”.
 5. Remover a última nota de serviço pode devolver a consulta à assessoria para “Não se aplica”.
-6. O contexto `competência_programa` é decomposto em FKs e também preservado em `source_context_key`.
+6. O contexto `competência_programa` é decomposto em FKs e preservado em `source_context_key`.
+7. As RPCs da migration 008 garantem atomicidade e conflito otimista para nota, bem e verificação.
 
 ### Escola e programas
 
@@ -90,12 +92,13 @@ Este documento relaciona as superfícies do frontend, os dados alterados pelo us
 
 ## Cobertura automatizada
 
-A preparação utiliza quatro camadas:
+A preparação utiliza cinco camadas:
 
-1. **Análise estática:** inventaria chaves `localStorage`, raízes de estado, handlers, formulários, configurações e funções mutadoras.
-2. **Testes unitários:** contratos dos repositórios, paginação, lotes, concorrência, snapshots e ponte bidirecional.
-3. **PostgreSQL real:** aplica todas as migrations e exercita triggers.
-4. **Playwright:** desktop Chromium, Android Chromium e iPhone WebKit, com fluxos funcionais e ausência de conexão Supabase no modo local.
+1. **Análise estática:** chaves `localStorage`, raízes de estado, handlers, formulários, configurações e mutações.
+2. **Testes unitários:** contratos, paginação, lotes, concorrência, snapshots, ponte e artefatos gerados.
+3. **PostgreSQL 17:** aplica oito migrations e executa smoke operacional.
+4. **Supabase local:** executa 37 testes pgTAP, lint, geração de tipos e reprodução do bundle.
+5. **Playwright:** desktop Chromium, Android Chromium e iPhone WebKit, com ausência de conexão remota no modo local.
 
 ## Itens que não devem ser confundidos com conclusão da integração
 
@@ -113,11 +116,11 @@ O PR de preparação não executa estas etapas:
 ## Bloqueios obrigatórios antes da primeira conexão
 
 1. Remover a integração direta e o seed automático antigos do `app.js`.
-2. Remover o carregamento flutuante `@supabase/supabase-js@2` do HTML e usar uma versão fixada ou bundle controlado.
-3. Implementar autenticação e restauração de sessão.
-4. Ligar cada mutação da interface ao contrato de repositório, usando `updateWithVersion()` nas edições.
-5. Executar importação e reconciliação em Preview.
-6. Homologar RLS com usuários positivos e negativos.
+2. Implementar autenticação e restauração de sessão.
+3. Ligar cada mutação da interface ao contrato; notas devem usar as RPCs da migration 008.
+4. Executar importação e reconciliação em Preview.
+5. Homologar RLS com usuários positivos e negativos.
+6. Executar Advisors no projeto remoto.
 7. Testar falha de rede, sessão expirada, conflito e rollback.
 
-Esses itens pertencem à futura etapa de conexão. O objetivo desta preparação é tornar cada um explícito, testável e reversível, sem alterar a produção atual.
+O cliente Supabase já está fixado e empacotado; esse antigo bloqueio foi concluído. Os itens restantes pertencem à futura etapa de conexão e exigem ambiente remoto e autorização expressa.
