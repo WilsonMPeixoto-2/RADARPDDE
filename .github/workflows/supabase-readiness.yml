@@ -19,6 +19,7 @@ on:
       - 'docs/reference/SUPABASE_*.md'
       - 'docs/runbooks/SUPABASE_*.md'
       - 'package.json'
+      - 'package-lock.json'
       - '.github/workflows/supabase-readiness.yml'
   push:
     branches:
@@ -40,6 +41,7 @@ on:
       - 'docs/reference/SUPABASE_*.md'
       - 'docs/runbooks/SUPABASE_*.md'
       - 'package.json'
+      - 'package-lock.json'
       - '.github/workflows/supabase-readiness.yml'
 
 permissions:
@@ -52,17 +54,17 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Configurar Node.js LTS
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '24'
           cache: npm
-          cache-dependency-path: package.json
+          cache-dependency-path: package-lock.json
 
-      - name: Instalar dependências de auditoria
-        run: npm install
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
 
       - name: Executar validação completa de prontidão
         run: npm run test:readiness
@@ -95,7 +97,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Instalar cliente PostgreSQL
         run: |
@@ -111,17 +113,27 @@ jobs:
             psql -v ON_ERROR_STOP=1 -f "${migration}"
           done
 
-      - name: Exercitar versão, auditoria e contexto operacional
+      - name: Exercitar versão, auditoria, contexto e autorização
         run: |
           psql -v ON_ERROR_STOP=1 <<'SQL'
+          insert into auth.users (id, email)
+          values ('00000000-0000-0000-0000-000000000001', 'controller@example.test');
+
           insert into public.competences (id, label, exercise, bonus_deadline)
           values ('2026-01', 'Janeiro de 2026', 2026, '2026-02-15');
 
           insert into public.programs (id, name)
           values ('BASIC', 'PDDE Básico');
 
+          insert into public.controllers (id, name, user_id)
+          values (
+            'controller-test',
+            'Controlador de teste',
+            '00000000-0000-0000-0000-000000000001'
+          );
+
           insert into public.controllers (id, name)
-          values ('controller-test', 'Controlador de teste');
+          values ('other-controller', 'Outro controlador');
 
           insert into public.inventory_team_members (id, name)
           values ('inventory-test', 'Inventariador de teste');
@@ -133,13 +145,39 @@ jobs:
             cre,
             controller_id,
             initial_competence
-          ) values (
+          ) values
+          (
             '04.00.001',
             '04.00.001',
-            'Escola de teste',
+            'Escola da carteira',
             '4ª CRE',
             'controller-test',
             '2026-01'
+          ),
+          (
+            '04.00.002',
+            '04.00.002',
+            'Escola com exceção',
+            '4ª CRE',
+            'other-controller',
+            '2026-01'
+          );
+
+          insert into public.user_profiles (
+            user_id,
+            profile_id,
+            controller_id
+          ) values (
+            '00000000-0000-0000-0000-000000000001',
+            'controller',
+            'controller-test'
+          );
+
+          insert into public.user_school_scopes (user_id, school_id, can_write)
+          values (
+            '00000000-0000-0000-0000-000000000001',
+            '04.00.002',
+            false
           );
 
           insert into public.verifications (
@@ -211,16 +249,63 @@ jobs:
           );
 
           update public.schools
-          set denomination = 'Escola de teste atualizada'
+          set denomination = 'Escola da carteira atualizada'
           where id = '04.00.001';
+
+          update public.programs
+          set name = 'PDDE Básico atualizado'
+          where id = 'BASIC';
 
           do $$
           declare
               version_value integer;
               audit_count integer;
+              program_audit_count integer;
               invoice_context text;
               inventoried_member text;
           begin
+              select set_config(
+                  'request.jwt.claim.sub',
+                  '00000000-0000-0000-0000-000000000001',
+                  true
+              );
+
+              if public.current_app_role() <> 'controller' then
+                  raise exception 'perfil ativo incorreto: %', public.current_app_role();
+              end if;
+
+              if public.can_write_school('04.00.001') is not true then
+                  raise exception 'controlador não escreve na própria carteira';
+              end if;
+
+              if public.can_access_school('04.00.002') is not true then
+                  raise exception 'exceção somente leitura não concedeu leitura';
+              end if;
+
+              if public.can_write_school('04.00.002') is not false then
+                  raise exception 'exceção somente leitura concedeu escrita indevida';
+              end if;
+
+              update public.user_school_scopes
+              set can_write = true
+              where user_id = '00000000-0000-0000-0000-000000000001'
+                and school_id = '04.00.002';
+
+              if public.can_write_school('04.00.002') is not true then
+                  raise exception 'exceção com escrita não foi respeitada';
+              end if;
+
+              begin
+                  insert into public.user_profiles (user_id, profile_id)
+                  values (
+                      '00000000-0000-0000-0000-000000000001',
+                      'federal_assistant'
+                  );
+                  raise exception 'segundo perfil ativo foi aceito indevidamente';
+              exception
+                  when unique_violation then null;
+              end;
+
               select row_version into version_value
               from public.schools
               where id = '04.00.001';
@@ -236,6 +321,15 @@ jobs:
 
               if audit_count < 2 then
                   raise exception 'auditoria de schools incompleta: % eventos', audit_count;
+              end if;
+
+              select count(*) into program_audit_count
+              from public.audit_events
+              where table_name = 'programs'
+                and record_id = 'BASIC';
+
+              if program_audit_count < 2 then
+                  raise exception 'auditoria de programs incompleta: % eventos', program_audit_count;
               end if;
 
               select source_context_key into invoice_context
