@@ -1,0 +1,48 @@
+name: Resolver ferramentas Supabase
+
+on:
+  push:
+    branches:
+      - feature/supabase-readiness
+    paths:
+      - '.github/workflows/resolve-modern-supabase.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout da branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: feature/supabase-readiness
+          fetch-depth: 0
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar versões estáveis publicadas
+        run: npm install --save-dev --save-exact supabase@latest @supabase/supabase-js@latest esbuild@latest
+
+      - name: Registrar versões resolvidas
+        run: |
+          node -e "const p=require('./package.json'); console.log(JSON.stringify({supabase:p.devDependencies.supabase,supabaseJs:p.devDependencies['@supabase/supabase-js'],esbuild:p.devDependencies.esbuild}, null, 2))"
+
+      - name: Commitar package.json e package-lock.json
+        run: |
+          if git diff --quiet -- package.json package-lock.json; then
+            echo 'Nenhuma alteração de dependência.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add package.json package-lock.json
+          git commit -m 'chore: fixar ferramentas Supabase modernas'
+          git push origin HEAD:feature/supabase-readiness
