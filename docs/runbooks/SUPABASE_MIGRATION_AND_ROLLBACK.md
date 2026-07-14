@@ -15,6 +15,7 @@ Migrar dados locais para Supabase de forma controlada, auditável e reversível.
 7. O rollback deve permitir restaurar o estado canônico nas chaves `radar_pdde_*`.
 8. Snapshot com dados pessoais não deve ser versionado no GitHub.
 9. Campos técnicos do banco não podem ocultar divergências funcionais.
+10. Escopo somente leitura jamais pode ser reutilizado como autorização de escrita.
 
 ## 1. Congelamento operacional
 
@@ -53,6 +54,8 @@ A ponte:
 - converte bens, inventariação e notas fiscais;
 - preserva `compKey`, programa, verificação, bem associado e data da nota;
 - preserva atributos legados em `payload`;
+- usa metadados laterais para reconciliação exata sem poluir os objetos operacionais;
+- não usa metadados para ocultar alterações posteriores feitas pelo usuário;
 - gera IDs determinísticos somente quando o registro antigo não possui identificador;
 - registra advertências e rejeições para análise humana.
 
@@ -72,7 +75,8 @@ Registrar também:
 - contagem por entidade;
 - navegador e usuário;
 - commit do RADAR;
-- lista de chaves locais exportadas.
+- lista de chaves locais exportadas;
+- versão dos metadados laterais de reconciliação.
 
 ## 4. Validação prévia
 
@@ -113,7 +117,9 @@ Aplicar, na ordem:
 2. `202607130002_auth_and_rls.sql`;
 3. `202607130003_audit_and_import.sql`;
 4. `202607130004_competence_bonus_deadline.sql`;
-5. `202607130005_operational_context.sql`.
+5. `202607130005_operational_context.sql`;
+6. `202607130006_authorization_hardening.sql`;
+7. `202607130007_configuration_audit_coverage.sql`.
 
 Depois:
 
@@ -122,7 +128,10 @@ Depois:
 - criar usuários mínimos de homologação;
 - registrar `data_import_runs` como `pending`;
 - confirmar unicidade de `import_id`;
-- confirmar RLS e ausência de acesso `anon`.
+- confirmar RLS e ausência de acesso `anon`;
+- confirmar apenas um perfil ativo por usuário;
+- confirmar que `user_school_scopes.can_write = false` não permite escrita;
+- confirmar triggers de auditoria em dados operacionais e configurações institucionais.
 
 Nenhuma migration é aplicada automaticamente pelo frontend.
 
@@ -198,7 +207,7 @@ No Preview:
 
 - abrir todas as áreas e perfis;
 - validar Dashboard, Carteira e competências;
-- criar e alternar exercício anual;
+- criar, recarregar e alternar exercício anual;
 - editar escola, controlador e equipe;
 - abrir, reenviar, reanalisar, resolver e cancelar pendência;
 - registrar contato e cobrança;
@@ -209,7 +218,7 @@ No Preview:
 - inventariar bem e preservar responsável/data;
 - gerar Excel;
 - testar negativas de RLS;
-- confirmar auditoria;
+- confirmar auditoria operacional e administrativa;
 - testar duas sessões alterando o mesmo registro;
 - simular indisponibilidade do Supabase;
 - confirmar que o snapshot local continua recuperável.
@@ -232,10 +241,12 @@ Quando a versão estiver obsoleta, a operação deve retornar `OPTIMISTIC_CONFLI
 
 - usuário anônimo recebe acesso negado;
 - controlador não acessa escola de outro controlador;
-- controlador com escopo adicional recebe apenas a escola concedida;
+- controlador com escopo adicional somente leitura não grava;
+- controlador com `can_write = true` grava apenas na escola concedida;
 - inventário não altera análise técnica;
 - Gestão SME consulta sem excluir registros operacionais;
 - Assistente opera dentro do escopo permitido;
+- tentativa de manter dois perfis ativos para o mesmo usuário é recusada;
 - apenas Administrador técnico exclui dados operacionais;
 - auditoria não pode ser editada por usuário autenticado.
 
@@ -244,7 +255,7 @@ Quando a versão estiver obsoleta, a operação deve retornar `OPTIMISTIC_CONFLI
 - reconciliação sem diferenças não justificadas;
 - ida e volta canônico → local → canônico aprovada;
 - testes unitários e E2E verdes;
-- migrations aplicadas em ambiente descartável sem erro;
+- sete migrations aplicadas em ambiente descartável sem erro;
 - advisors avaliados;
 - RLS homologada;
 - Preview estável;
@@ -301,7 +312,7 @@ Não executar exclusões massivas diretamente. Preferir:
 - versão dos dados locais;
 - advertências e rejeições;
 - commit e deployment;
-- lista das cinco migrations;
+- lista das sete migrations;
 - relatório de advisors;
 - relatório de reconciliação;
 - relatório de restauração simulada;
