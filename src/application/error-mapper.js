@@ -138,11 +138,22 @@
     }
 
     function showDataOperationError(error, context = {}) {
+        const sourceCode = String(error?.code || '').toUpperCase();
+        const isBusinessRepositoryError = error instanceof RepositoryError
+            && sourceCode
+            && !DATA_ERROR_SET.has(sourceCode);
+        const publicCode = isBusinessRepositoryError
+            ? 'VALIDATION_FAILED'
+            : classifyError(error, context.fallbackCode || 'TRANSACTION_FAILED');
+        const publicMessage = context.message
+            || (isBusinessRepositoryError
+                ? error?.message
+                : DATA_ERROR_MESSAGES[publicCode] || error?.message);
         const mapped = toRepositoryError(error, {
-            fallbackCode: context.fallbackCode,
+            code: publicCode,
             operation: context.operation,
             entity: context.entity,
-            message: context.message
+            message: publicMessage
         });
         const publicError = Object.freeze({
             code: mapped.code,
