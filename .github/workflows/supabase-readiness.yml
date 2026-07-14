@@ -13,6 +13,8 @@ on:
       - 'supabase/**'
       - 'tests/unit/**'
       - 'tests/e2e/supabase-local-mode.spec.js'
+      - 'tests/e2e/exercise-management.spec.js'
+      - 'tests/e2e/frontend-contract.spec.js'
       - 'docs/architecture/supabase-readiness.md'
       - 'docs/reference/SUPABASE_*.md'
       - 'docs/runbooks/SUPABASE_*.md'
@@ -32,6 +34,8 @@ on:
       - 'supabase/**'
       - 'tests/unit/**'
       - 'tests/e2e/supabase-local-mode.spec.js'
+      - 'tests/e2e/exercise-management.spec.js'
+      - 'tests/e2e/frontend-contract.spec.js'
       - 'docs/architecture/supabase-readiness.md'
       - 'docs/reference/SUPABASE_*.md'
       - 'docs/runbooks/SUPABASE_*.md'
@@ -98,7 +102,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes postgresql-client
 
-      - name: Aplicar bootstrap e migrations
+      - name: Aplicar bootstrap e todas as migrations
         run: |
           set -euo pipefail
           psql -v ON_ERROR_STOP=1 -f supabase/tests/bootstrap.sql
@@ -107,17 +111,20 @@ jobs:
             psql -v ON_ERROR_STOP=1 -f "${migration}"
           done
 
-      - name: Exercitar triggers de versão e auditoria
+      - name: Exercitar versão, auditoria e contexto operacional
         run: |
           psql -v ON_ERROR_STOP=1 <<'SQL'
-          insert into public.competences (id, label, exercise)
-          values ('2026-01', 'Janeiro de 2026', 2026);
+          insert into public.competences (id, label, exercise, bonus_deadline)
+          values ('2026-01', 'Janeiro de 2026', 2026, '2026-02-15');
 
           insert into public.programs (id, name)
           values ('BASIC', 'PDDE Básico');
 
           insert into public.controllers (id, name)
           values ('controller-test', 'Controlador de teste');
+
+          insert into public.inventory_team_members (id, name)
+          values ('inventory-test', 'Inventariador de teste');
 
           insert into public.schools (
             id,
@@ -135,6 +142,74 @@ jobs:
             '2026-01'
           );
 
+          insert into public.verifications (
+            id,
+            school_id,
+            competence_id,
+            program_id,
+            bonification,
+            analysis
+          ) values (
+            '04.00.001::2026-01::BASIC',
+            '04.00.001',
+            '2026-01',
+            'BASIC',
+            '{}'::jsonb,
+            '{}'::jsonb
+          );
+
+          insert into public.assets (
+            id,
+            school_id,
+            competence_id,
+            description,
+            expense_type,
+            invoice_number,
+            amount,
+            status,
+            inventoried_by_member_id,
+            inventoried_at
+          ) values (
+            'asset-test',
+            '04.00.001',
+            '2026-01',
+            'Computador',
+            'permanente',
+            'NF-TEST',
+            2500,
+            'Inventariada',
+            'inventory-test',
+            '2026-01-20T12:00:00Z'
+          );
+
+          insert into public.registered_invoices (
+            id,
+            school_id,
+            competence_id,
+            program_id,
+            verification_id,
+            source_context_key,
+            linked_asset_id,
+            description,
+            expense_type,
+            invoice_number,
+            amount,
+            registered_at
+          ) values (
+            'invoice-test',
+            '04.00.001',
+            '2026-01',
+            'BASIC',
+            '04.00.001::2026-01::BASIC',
+            '2026-01_BASIC',
+            'asset-test',
+            'Computador',
+            'permanente',
+            'NF-TEST',
+            2500,
+            '2026-01-10T12:00:00Z'
+          );
+
           update public.schools
           set denomination = 'Escola de teste atualizada'
           where id = '04.00.001';
@@ -143,6 +218,8 @@ jobs:
           declare
               version_value integer;
               audit_count integer;
+              invoice_context text;
+              inventoried_member text;
           begin
               select row_version into version_value
               from public.schools
@@ -159,6 +236,22 @@ jobs:
 
               if audit_count < 2 then
                   raise exception 'auditoria de schools incompleta: % eventos', audit_count;
+              end if;
+
+              select source_context_key into invoice_context
+              from public.registered_invoices
+              where id = 'invoice-test';
+
+              if invoice_context <> '2026-01_BASIC' then
+                  raise exception 'contexto da nota não preservado: %', invoice_context;
+              end if;
+
+              select inventoried_by_member_id into inventoried_member
+              from public.assets
+              where id = 'asset-test';
+
+              if inventoried_member <> 'inventory-test' then
+                  raise exception 'responsável da inventariação não preservado: %', inventoried_member;
               end if;
           end
           $$;
