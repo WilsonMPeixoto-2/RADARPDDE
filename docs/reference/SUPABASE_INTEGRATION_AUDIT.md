@@ -10,10 +10,9 @@ Esta auditoria não autoriza conexão remota. O modo oficial continua sendo `loc
 
 - Branch: `feature/supabase-readiness`
 - Pull Request: `#22`
-- HEAD auditado: `6c4658bc7877ac07c661e0a1ffae1c4a9f3d184b`
 - Base: `main` em `a2483fd07473a0a3c431b5e49c642c53be1b2018`
-- Preview funcional: deployment `dpl_AoxHJd1Apx5z7LWzXikz8AqSZUKN`
 - Produção: não alterada
+- Conexão Supabase remota: desativada
 
 ## Conclusão executiva
 
@@ -25,13 +24,18 @@ Foram incorporados:
 - contrato e adaptadores de persistência;
 - ponte bidirecional do estado legado;
 - tradução das estruturas reais usadas pela interface;
-- sete migrations relacionais;
+- oito migrations relacionais;
 - autenticação e RLS futuras;
 - auditoria e controle de importações;
-- testes unitários, SQL e E2E;
-- inventário automatizado de superfícies funcionais;
-- runbooks e documentação de ativação e rollback;
-- atualização da cadeia de desenvolvimento e CI.
+- operações atômicas para nota, bem e verificação;
+- testes unitários, smoke SQL, pgTAP e E2E;
+- ambiente Supabase local reproduzível;
+- tipos TypeScript gerados do schema;
+- cliente Supabase fixado e empacotado;
+- lint de PL/pgSQL;
+- validação remota manual e não destrutiva preparada;
+- runbooks de ativação e rollback;
+- manutenção automatizada de dependências.
 
 A conexão real permanece intencionalmente desativada. Isso é uma salvaguarda, não uma lacuna da etapa aprovada.
 
@@ -41,23 +45,25 @@ A conexão real permanece intencionalmente desativada. Isso é uma salvaguarda, 
 |---|---|---|
 | Layout e navegação | Dashboard, Carteira, Competências, Pendências, Prontuário, Inventário, equipe, configurações e Excel preservados | Coberto |
 | Botões e handlers | Inventário estático de handlers e testes E2E dos fluxos principais | Coberto |
-| Formulários e campos | Campos de escola, contato, pendência, reenvio, reanálise, nota, bem, controlador, inventariador e exercício | Coberto |
+| Formulários e campos | Escola, contato, pendência, reenvio, reanálise, nota, bem, controlador, inventariador e exercício | Coberto |
 | Persistência local | Chaves `radar_pdde_*`, leitura, gravação, snapshot e restauração | Coberto |
-| Dados derivados | Bonificação, análise, alertas, próxima ação, inventário e efeitos de notas permanecem calculados pelas regras atuais | Coberto |
+| Dados derivados | Bonificação, análise, alertas, próxima ação, inventário e efeitos de notas | Coberto |
 | Tradução para banco | Entidades, relacionamentos, JSONB de compatibilidade e FKs | Coberto |
-| Migração e retorno | Exportação, `dryRun`, importação em lotes, reconciliação e rollback local | Coberto |
+| Migração e retorno | Exportação, `dryRun`, lotes, reconciliação e rollback local | Coberto |
 | Autenticação futura | Perfis, vínculos, escopos e identidade Supabase Auth | Preparado e desativado |
 | Autorização | RLS, leitura/escrita separadas, perfil ativo único e exclusão técnica | Coberto |
 | Concorrência | `row_version` e erro `OPTIMISTIC_CONFLICT` | Coberto |
+| Mutações compostas | RPCs atômicas para salvar e remover notas com efeitos relacionados | Coberto |
 | Auditoria | Alterações operacionais, configurações, cadastros, vínculos e importações | Coberto |
 | Escala | Paginação integral e lotes para coleções acima de mil registros | Coberto |
 | Segurança de segredos | Bloqueio de `service_role`, `sb_secret_`, senha e JWT administrativo | Coberto |
 | Regressão visual e funcional | Desktop Chromium, Android/Chromium e iPhone/WebKit | Coberto |
+| Schema executável | Supabase CLI, PostgreSQL 17, pgTAP, tipos e lint | Coberto |
 
-## Correções descobertas e incorporadas durante a auditoria
+## Correções descobertas e incorporadas
 
 1. Contatos criados pela interface usam `desc`; a ponte passou a preservar esse campo corretamente.
-2. Notas fiscais passaram a preservar `compKey`, programa, verificação, bem vinculado e `dataRegistro` em colunas relacionais.
+2. Notas fiscais passaram a preservar `compKey`, programa, verificação, bem vinculado e `dataRegistro`.
 3. A inventariação passou a preservar responsável e data próprios.
 4. A ida e volta canônico → local → canônico deixou de inserir aliases técnicos nos objetos do usuário.
 5. Exercícios e competências persistidos passaram a ser hidratados antes da primeira renderização.
@@ -67,8 +73,10 @@ A conexão real permanece intencionalmente desativada. Isso é uma salvaguarda, 
 9. Foi impedida a existência de dois perfis ativos simultaneamente para o mesmo usuário.
 10. Configurações, programas, controladores, equipe, competências e vínculos escola–programa passaram a gerar eventos de auditoria.
 11. Dependências e Actions passaram a ser reproduzíveis e monitoradas.
+12. O SDK deixou de ser carregado por CDN flutuante e passou a ser empacotado em versão fixa.
+13. Salvar ou remover nota, bem vinculado e ajuste de verificação passou a possuir contrato transacional no banco.
 
-## Sete migrations incorporadas
+## Oito migrations incorporadas
 
 1. `202607130001_core_schema.sql`
 2. `202607130002_auth_and_rls.sql`
@@ -77,19 +85,38 @@ A conexão real permanece intencionalmente desativada. Isso é uma salvaguarda, 
 5. `202607130005_operational_context.sql`
 6. `202607130006_authorization_hardening.sql`
 7. `202607130007_configuration_audit_coverage.sql`
+8. `202607130008_atomic_invoice_operations.sql`
 
-## Validações executadas
+## Modernização incorporada
 
-- validação de sintaxe e infraestrutura;
-- testes de domínio existentes;
-- testes unitários dos contratos e adaptadores;
-- auditoria funcional e de persistência;
-- auditoria npm com bloqueio para vulnerabilidades altas;
-- aplicação das sete migrations em PostgreSQL 17 efêmero;
-- testes SQL de versão, auditoria, contexto e autorização;
-- Playwright completo em desktop, Android e iPhone;
-- verificação de ausência de chamadas Supabase no modo local;
-- Preview Vercel em estado `READY` e sem erro de build ou runtime registrado.
+- Node.js 24 em `.nvmrc` e CI;
+- Supabase CLI `2.109.1` fixada;
+- `@supabase/supabase-js` `2.110.3` fixado e empacotado por esbuild;
+- tipos TypeScript gerados em `src/types/database.types.ts`;
+- ambiente local versionado em `supabase/config.toml`;
+- 37 verificações pgTAP para schema, RLS e RPCs;
+- smoke test adicional em PostgreSQL 17 puro;
+- lint de PL/pgSQL com falha em erro;
+- `package-lock.json`, `npm ci`, `npm audit` e Dependabot;
+- GitHub Actions fixadas por SHA;
+- workflow manual `supabase-remote-validation.yml`, sem aplicação automática de migrations.
+
+## Validações permanentes
+
+O workflow `Supabase readiness` executa três camadas:
+
+1. contratos, artefatos, segredos e auditoria funcional;
+2. aplicação das oito migrations e smoke operacional em PostgreSQL 17;
+3. pilha Supabase local, pgTAP, lint, regeneração de tipos e reprodução do bundle.
+
+A validação remota, quando houver projeto autorizado, poderá executar:
+
+- vínculo controlado por `project_ref`;
+- `db push --dry-run`;
+- lint remoto;
+- pgTAP remoto em transações reversíveis;
+- comparação dos tipos remotos;
+- inventário de branches.
 
 ## Elementos não ativados por decisão arquitetural
 
@@ -97,52 +124,32 @@ Os itens abaixo não devem ser interpretados como trabalho esquecido:
 
 - projeto Supabase remoto;
 - URL e chave publicável;
-- login real;
-- sessão autenticada;
+- login e sessão reais;
 - aplicação das migrations em banco remoto;
 - substituição das chamadas diretas do `app.js` pelo contrato;
 - ativação de `supabase-preview`;
+- criação de branch remota Supabase;
+- execução dos Advisors do projeto real;
 - promoção para produção.
 
-Esses itens pertencem à etapa futura de conexão e exigem ambiente remoto, usuários de teste e homologação de RLS.
+Esses itens exigem ambiente remoto, usuários de teste, homologação de RLS e autorização expressa.
 
-## Modernização já incorporada
+## Melhorias que permanecem para a conexão real
 
-- Node.js 24 indicado em `.nvmrc` e CI;
-- dependências de desenvolvimento fixadas;
-- `package-lock.json` versionado;
-- instalação por `npm ci` no CI;
-- Playwright atualizado e fixado;
-- análise sintática com Acorn;
-- GitHub Actions fixadas por SHA;
-- Dependabot semanal para npm e Actions;
-- `npm audit --audit-level=high` no pipeline;
-- PostgreSQL real no smoke test das migrations.
+1. Criar uma branch Supabase sem dados produtivos para homologação.
+2. Aplicar as migrations em ambiente remoto autorizado.
+3. Executar Security e Performance Advisors do projeto real.
+4. Testar Auth e RLS com todos os perfis e cenários negativos.
+5. Substituir a integração direta antiga do `app.js` pelo contrato de repositório.
+6. Testar falha de rede, sessão expirada, conflito e recuperação.
+7. Executar teste de carga com a volumetria completa das CREs.
+8. Reconciliar origem e destino sem divergência funcional.
 
-## Melhorias recomendadas para a etapa de conexão real
+## Não recomendado agora
 
-### Prioridade alta
-
-1. **Adicionar Supabase CLI como dependência de desenvolvimento fixada.** Usar a pilha local completa para aplicar migrations, testar Auth e reproduzir o ambiente remoto.
-2. **Converter os testes SQL de autorização para pgTAP.** Manter os smoke tests atuais e acrescentar casos declarativos de RLS positivos e negativos.
-3. **Gerar tipos TypeScript a partir do banco.** Mesmo com frontend JavaScript, os tipos podem validar contratos e servir como artefato de auditoria do schema.
-4. **Fixar e empacotar `@supabase/supabase-js`.** Remover o carregamento CDN flutuante antes da primeira conexão.
-5. **Executar Security e Performance Advisors.** Tratar índices ausentes, políticas permissivas, RLS incompleta e funções com `search_path` inseguro.
-6. **Implementar transações server-side para mutações compostas.** Edição ou remoção de nota pode alterar nota, bem e verificação; essas operações devem ser atômicas por função PostgreSQL/RPC ou backend controlado.
-
-### Prioridade média
-
-1. Criar testes de contrato contra uma instância Supabase local real, além dos mocks do cliente.
-2. Gerar relatório automático de diferença entre schema esperado e schema aplicado.
-3. Adicionar teste de carga com a volumetria completa das CREs antes da produção.
-4. Criar telemetria de erros de sincronização sem registrar dados pessoais ou conteúdo documental.
-5. Avaliar cache de leitura e invalidação somente após medir consultas reais.
-
-### Não recomendado agora
-
-- migrar o frontend inteiro para React, Next.js ou outro framework apenas para usar Supabase;
+- migrar o frontend para React, Next.js ou outro framework apenas para usar Supabase;
 - ativar Realtime sem necessidade operacional comprovada;
-- introduzir ORM antes de estabilizar o contrato de dados;
+- introduzir ORM antes de estabilizar o contrato;
 - remover o adaptador local antes da homologação e do rollback;
 - substituir tabelas, botões ou fluxos aprovados durante a integração técnica.
 
@@ -150,11 +157,11 @@ Esses itens pertencem à etapa futura de conexão e exigem ambiente remoto, usu�
 
 A conexão futura somente poderá ser promovida quando:
 
-- o cliente Supabase estiver fixado e empacotado;
 - o contrato substituir a integração antiga;
 - Auth e RLS forem testados com todos os perfis;
-- mutações compostas forem atômicas;
-- origem e destino forem reconciliados sem divergência funcional;
+- mutações compostas forem homologadas no ambiente remoto;
+- Advisors forem analisados;
+- origem e destino forem reconciliados;
 - falha de rede, sessão expirada e conflito forem tratados;
 - o Preview remoto for homologado;
 - o rollback estiver testado;
