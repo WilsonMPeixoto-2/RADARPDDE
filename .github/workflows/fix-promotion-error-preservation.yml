@@ -1,0 +1,119 @@
+name: Fix promotion error preservation
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/fix-promotion-error-preservation.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: feature/supabase-readiness
+
+      - name: Configure Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Preserve promotion cause and add regression test
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          coordinator = Path('src/data/import-coordinator.js')
+          source = coordinator.read_text()
+          old = """            } catch (error) {
+              await this.rollback(snapshot.importId, { preserveFailure: true });
+              throw error;
+            }
+          """
+          new = """            } catch (error) {
+              let rollbackError = null;
+              try {
+                await this.rollback(snapshot.importId, { preserveFailure: true });
+              } catch (candidate) {
+                rollbackError = candidate;
+              }
+              if (rollbackError) {
+                throw new RepositoryError(
+                  error?.code || 'TRANSACTION_FAILED',
+                  error?.message || 'A promoção da importação falhou.',
+                  {
+                    cause: error,
+                    operation: error?.operation || 'migration:promote',
+                    entity: error?.entity || null,
+                    details: cloneValue({
+                      ...(error?.details || {}),
+                      rollbackCode: rollbackError?.code || 'ROLLBACK_FAILED',
+                      rollbackMessage: rollbackError?.message || null
+                    })
+                  }
+                );
+              }
+              throw error;
+            }
+          """
+          if old not in source:
+              raise SystemExit('Bloco de promoção esperado não localizado.')
+          coordinator.write_text(source.replace(old, new, 1))
+
+          test_file = Path('tests/unit/import-coordinator.test.js')
+          tests = test_file.read_text()
+          addition = """
+
+          test('falha de promoção preserva a causa original quando o rollback remoto não está disponível', async () => {
+              const target = new LocalStorageRepository({ storage: storage(), keyPrefix: 'target' });
+              target.promoteImportSnapshot = async () => {
+                  const error = new Error('PROMOTION_FAILED: constraint violation');
+                  error.code = 'PROMOTION_FAILED';
+                  throw error;
+              };
+              target.rollbackImport = async () => {
+                  const error = new Error('IMPORT_ROLLBACK_UNAVAILABLE: promotion-test');
+                  error.code = 'IMPORT_ROLLBACK_UNAVAILABLE';
+                  throw error;
+              };
+              const coordinator = new ImportCoordinator({
+                  targetRepository: target,
+                  checkpointStore: createMemoryCheckpointStore()
+              });
+
+              await assert.rejects(
+                  coordinator.import(sourceSnapshot('promotion-test')),
+                  error => error.code === 'PROMOTION_FAILED'
+                      && error.message.includes('constraint violation')
+                      && error.details?.rollbackCode === 'IMPORT_ROLLBACK_UNAVAILABLE'
+              );
+          });
+          """
+          if 'falha de promoção preserva a causa original' not in tests:
+              test_file.write_text(tests + addition)
+          PY
+
+      - name: Validate focused and complete readiness
+        run: |
+          npm ci
+          node --test tests/unit/import-coordinator.test.js
+          CI=false npm run test:readiness
+
+      - name: Commit one verified correction
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add src/data/import-coordinator.js tests/unit/import-coordinator.test.js
+          git rm -f .github/workflows/fix-promotion-error-preservation.yml
+          git config user.name 'RADAR Gate Automation'
+          git config user.email 'actions@users.noreply.github.com'
+          git commit -m 'fix: preservar causa original da falha de promoção'
+          git push origin HEAD:feature/supabase-readiness
