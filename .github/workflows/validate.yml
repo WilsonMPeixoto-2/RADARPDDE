@@ -11,40 +11,30 @@ permissions:
 
 jobs:
   validate:
-    name: Sintaxe e testes de domínio
+    name: Sintaxe, auditoria e testes de domínio
     runs-on: ubuntu-latest
 
     steps:
       - name: Obter código
         uses: actions/checkout@v4
 
-      - name: Configurar Node.js
+      - name: Configurar Node.js LTS
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package.json
 
-      - name: Verificar sintaxe da aplicação e módulos ativos
+      - name: Instalar dependências de desenvolvimento
+        run: npm install
+
+      - name: Verificar sintaxe da aplicação e infraestrutura
+        run: npm run check
+
+      - name: Executar testes unitários de domínio e persistência
         run: |
-          node --check app.js
-          node --check src/domain/pendencias-view-model.js
-          node --check src/domain/operational-projection.js
-          node --check src/domain/retificacoes.js
-          node --check src/integration/task-9-pendencias-page.js
-          node --check src/integration/task-9-focus-bridge.js
-          node --check src/integration/task-9-cross-view.js
-          node --check src/integration/task-10-11-pendency-actions.js
-          node --check src/integration/task-12-13-retificacoes.js
-          node --check src/integration/cycle-b-carteira.js
-          node --check src/integration/cycle-b-dashboard.js
-          node --check src/integration/task-10-alerts-competence.js
-          node --check tests/e2e/task-9-pendencias.spec.js
-          node --check tests/e2e/task-9-cross-view.spec.js
-          node --check tests/e2e/task-9-cross-view-order.spec.js
-          node --check tests/e2e/task-10-11-pendencias.spec.js
-          node --check tests/e2e/task-12-13-retificacoes.spec.js
-          node --check tests/e2e/cycle-b-carteira.spec.js
-          node --check tests/e2e/cycle-b-dashboard.spec.js
-          node --check tests/e2e/task-10-alertas-competencias.spec.js
+          node --test tests/*.test.js
+          npm run test:unit
 
-      - name: Executar testes unitários
-        run: node --test tests/*.test.js
+      - name: Auditar cobertura funcional e de persistência
+        run: npm run audit:functional
