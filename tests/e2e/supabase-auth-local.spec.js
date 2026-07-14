@@ -2,23 +2,24 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 
+const supabaseLocalEnabled = process.env.RADAR_E2E_SUPABASE_LOCAL === '1';
 test.skip(
-    process.env.RADAR_E2E_SUPABASE_LOCAL !== '1',
+    !supabaseLocalEnabled,
     'Esta suíte exige a pilha Supabase local e configuração runtime temporária do CI.'
 );
 
-const seed = fs.readFileSync(path.resolve(__dirname, '../../supabase/seed.sql'), 'utf8');
-const fixturePasswordMatch = seed.match(/crypt\('([^']+)'\s*,\s*gen_salt\('bf'\)\)/i);
-if (!fixturePasswordMatch) throw new Error('Senha da fixture Auth local não foi localizada.');
-const fixturePassword = fixturePasswordMatch[1];
+const fixtures = JSON.parse(fs.readFileSync(
+    path.resolve(__dirname, '../../supabase/fixtures/auth-users.json'),
+    'utf8'
+));
+const fixturePassword = process.env.RADAR_AUTH_FIXTURE_PASSWORD || '';
+if (supabaseLocalEnabled && !fixturePassword) {
+    throw new Error('A senha efêmera da fixture Auth local não foi fornecida.');
+}
 
-const identities = [
-    ['controller@radar.local', 'controller'],
-    ['assistant@radar.local', 'federal_assistant'],
-    ['inventory@radar.local', 'inventory'],
-    ['sme@radar.local', 'sme_management'],
-    ['admin@radar.local', 'technical_admin']
-];
+const identities = fixtures
+    .filter(fixture => fixture.profileId && fixture.active)
+    .map(fixture => [fixture.email, fixture.profileId]);
 
 async function signIn(page, email) {
     await page.goto('/');
@@ -67,10 +68,12 @@ for (const [email, role] of identities) {
     });
 }
 
-const deniedIdentities = [
-    ['inactive@radar.local', /inativo/i],
-    ['without-profile@radar.local', /não possui perfil/i]
-];
+const deniedIdentities = fixtures
+    .filter(fixture => !fixture.profileId || !fixture.active)
+    .map(fixture => [
+        fixture.email,
+        fixture.profileId ? /inativo/i : /não possui perfil/i
+    ]);
 
 for (const [email, expectedMessage] of deniedIdentities) {
     test(`${email} permanece fora dos dados institucionais`, async ({ browser }) => {
@@ -85,7 +88,7 @@ for (const [email, expectedMessage] of deniedIdentities) {
 }
 
 test('RLS permite escrita na carteira do controlador e bloqueia escopos somente leitura', async ({ page }) => {
-    await signIn(page, 'controller@radar.local');
+    await signIn(page, fixtures.find(fixture => fixture.profileId === 'controller').email);
     await waitForApplication(page, 'controller');
 
     const result = await page.evaluate(async () => {
@@ -140,7 +143,7 @@ test('RLS permite escrita na carteira do controlador e bloqueia escopos somente 
 });
 
 test('Gestão SME consulta a carteira, mas a política impede escrita operacional', async ({ page }) => {
-    await signIn(page, 'sme@radar.local');
+    await signIn(page, fixtures.find(fixture => fixture.profileId === 'sme_management').email);
     await waitForApplication(page, 'sme_management');
 
     const result = await page.evaluate(async () => {

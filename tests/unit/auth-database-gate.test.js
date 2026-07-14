@@ -23,33 +23,36 @@ test('migration fecha Data API anônima e concede somente operações sujeitas a
     assert.doesNotMatch(sql, /service_role/i);
 });
 
-test('fixture local contém cinco identidades e vínculos institucionais determinísticos', () => {
+test('manifesto local contém sete identidades e cinco perfis ativos determinísticos', () => {
     const seed = fs.readFileSync(path.join(root, 'supabase/seed.sql'), 'utf8');
+    const fixtures = JSON.parse(fs.readFileSync(
+        path.join(root, 'supabase/fixtures/auth-users.json'),
+        'utf8'
+    ));
 
     ['controller', 'federal_assistant', 'inventory', 'sme_management', 'technical_admin']
-        .forEach(profile => assert.match(seed, new RegExp(`['\"]${profile}['\"]`)));
-    assert.match(seed, /insert\s+into\s+auth\.users/i);
-    assert.match(seed, /insert\s+into\s+auth\.identities/i);
-    assert.match(seed, /insert\s+into\s+public\.user_profiles/i);
-    assert.match(seed, /insert\s+into\s+public\.user_school_scopes/i);
+        .forEach(profile => assert.ok(fixtures.some(fixture => fixture.profileId === profile)));
+    assert.equal(fixtures.length, 7);
+    assert.equal(fixtures.filter(fixture => fixture.profileId && fixture.active).length, 5);
+    assert.equal(fixtures.filter(fixture => fixture.profileId && !fixture.active).length, 1);
+    assert.equal(fixtures.filter(fixture => !fixture.profileId).length, 1);
+    assert.equal(new Set(fixtures.map(fixture => fixture.id)).size, fixtures.length);
+    assert.equal(new Set(fixtures.map(fixture => fixture.email)).size, fixtures.length);
+    assert.doesNotMatch(seed, /auth\.(?:users|identities)/i);
+    assert.doesNotMatch(seed, /encrypted_password|gen_salt|crypt\s*\(/i);
 });
 
-test('fixture Auth usa o UUID do usuário como provider_id da identidade de e-mail', () => {
-    const seed = fs.readFileSync(path.join(root, 'supabase/seed.sql'), 'utf8');
-    const identities = seed.match(
-        /insert\s+into\s+auth\.identities[\s\S]+?values([\s\S]+?)on\s+conflict\s*\(provider_id,\s*provider\)/i
+test('bootstrap cria usuários pela API Admin e só aceita a pilha local com autorização explícita', () => {
+    const source = fs.readFileSync(
+        path.join(root, 'scripts/bootstrap-local-auth-fixtures.mjs'),
+        'utf8'
     );
 
-    assert.ok(identities, 'Bloco de identidades Auth não encontrado na fixture local.');
-
-    const rows = [...identities[1].matchAll(
-        /\('([^']+)',\s*'([^']+)',\s*'([^']+)',\s*'[^']+',\s*'email'/g
-    )];
-
-    assert.equal(rows.length, 7, 'Todas as identidades locais devem ser verificadas.');
-    rows.forEach(([, , userId, providerId]) => {
-        assert.equal(providerId, userId);
-    });
+    assert.match(source, /auth\.admin\.createUser/);
+    assert.match(source, /RADAR_ALLOW_LOCAL_AUTH_BOOTSTRAP/);
+    assert.match(source, /localhost/);
+    assert.match(source, /127\.0\.0\.1/);
+    assert.doesNotMatch(source, /console\.log\([^\n]*(?:password|key|token)/i);
 });
 
 test('CI valida as credenciais locais antes de iniciar o Playwright', () => {
@@ -60,8 +63,17 @@ test('CI valida as credenciais locais antes de iniciar o Playwright', () => {
     );
 
     assert.equal(
+        pkg.scripts['bootstrap:auth-fixtures'],
+        'node scripts/bootstrap-local-auth-fixtures.mjs'
+    );
+    assert.equal(
         pkg.scripts['check:auth-fixtures'],
         'node scripts/check-local-auth-fixtures.mjs'
+    );
+    assert.ok(
+        workflow.indexOf('npm run bootstrap:auth-fixtures')
+            < workflow.indexOf('npm run check:auth-fixtures'),
+        'O bootstrap Auth deve executar antes do login-probe.'
     );
     assert.ok(
         workflow.indexOf('npm run check:auth-fixtures')

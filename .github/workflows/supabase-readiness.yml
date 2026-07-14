@@ -11,6 +11,7 @@ on:
       - 'src/**'
       - 'vendor/**'
       - 'scripts/check-supabase-readiness.js'
+      - 'scripts/bootstrap-local-auth-fixtures.mjs'
       - 'scripts/check-local-auth-fixtures.mjs'
       - 'scripts/check-generated-artifacts.js'
       - 'scripts/build-supabase-client.mjs'
@@ -41,6 +42,7 @@ on:
       - 'src/**'
       - 'vendor/**'
       - 'scripts/check-supabase-readiness.js'
+      - 'scripts/bootstrap-local-auth-fixtures.mjs'
       - 'scripts/check-local-auth-fixtures.mjs'
       - 'scripts/check-generated-artifacts.js'
       - 'scripts/build-supabase-client.mjs'
@@ -183,9 +185,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          eval "$(npx supabase status -o env | grep -E '^(API_URL|ANON_KEY)=')"
+          eval "$(npx supabase status -o env | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=')"
           test -n "${API_URL:-}"
           test -n "${ANON_KEY:-}"
+          test -n "${SERVICE_ROLE_KEY:-}"
+          FIXTURE_PASSWORD="$(node --input-type=module -e "import { randomBytes } from 'node:crypto'; process.stdout.write(randomBytes(32).toString('base64url') + 'A1!')")"
+          echo "::add-mask::${FIXTURE_PASSWORD}"
+          RADAR_ALLOW_LOCAL_AUTH_BOOTSTRAP=true \
+          RADAR_SUPABASE_URL="${API_URL}" \
+          RADAR_SUPABASE_ADMIN_KEY="${SERVICE_ROLE_KEY}" \
+          RADAR_AUTH_FIXTURE_PASSWORD="${FIXTURE_PASSWORD}" \
+          npm run bootstrap:auth-fixtures
           RADAR_DATA_MODE=supabase-preview \
           RADAR_ENVIRONMENT=test \
           RADAR_SUPABASE_REPOSITORY_ENABLED=true \
@@ -194,8 +204,10 @@ jobs:
           npm run generate:runtime-config
           RADAR_SUPABASE_URL="${API_URL}" \
           RADAR_SUPABASE_PUBLISHABLE_KEY="${ANON_KEY}" \
+          RADAR_AUTH_FIXTURE_PASSWORD="${FIXTURE_PASSWORD}" \
           npm run check:auth-fixtures
           RADAR_E2E_SUPABASE_LOCAL=1 \
+          RADAR_AUTH_FIXTURE_PASSWORD="${FIXTURE_PASSWORD}" \
           npx playwright test tests/e2e/supabase-auth-local.spec.js --project=desktop-chromium
 
       - name: Restaurar configuração pública local
