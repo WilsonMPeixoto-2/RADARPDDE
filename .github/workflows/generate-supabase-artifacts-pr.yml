@@ -65,6 +65,7 @@ jobs:
 
       - name: Gerar tipos e cliente empacotado
         run: |
+          mkdir -p src/types
           npm run supabase:gen:types
           npm run build:supabase-client
           python3 - <<'PY'
