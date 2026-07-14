@@ -12,7 +12,7 @@ A infraestrutura preparada já inclui:
 - repositório Supabase com paginação integral e gravação em lotes;
 - atualização otimista por `row_version`;
 - reconciliação de snapshots;
-- oito migrations, Auth futura, RLS, auditoria e importações;
+- nove migrations, Auth futura, RLS, auditoria e importações;
 - RPCs transacionais para nota, bem e verificação;
 - Supabase CLI fixada, ambiente local, pgTAP e lint;
 - tipos TypeScript gerados do schema;
@@ -54,7 +54,8 @@ Aplicar, nesta ordem:
 5. `202607130005_operational_context.sql`;
 6. `202607130006_authorization_hardening.sql`;
 7. `202607130007_configuration_audit_coverage.sql`;
-8. `202607130008_atomic_invoice_operations.sql`.
+8. `202607130008_atomic_invoice_operations.sql`;
+9. `202607140009_verification_payload.sql`.
 
 Após a aplicação:
 

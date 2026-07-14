@@ -84,6 +84,24 @@
             : {};
     }
 
+    function verificationPayload(verification) {
+        const mappedKeys = new Set([
+            'bonificacao',
+            'bonification',
+            'analise',
+            'analysis',
+            'resultadoBonif',
+            'bonus_result',
+            'payload'
+        ]);
+        const source = object(verification);
+        const payload = object(source.payload);
+        Object.entries(source).forEach(([key, value]) => {
+            if (!mappedKeys.has(key)) payload[key] = cloneValue(value);
+        });
+        return payload;
+    }
+
     function numeric(value) {
         if (typeof value === 'number' && Number.isFinite(value)) return value;
         const normalized = text(value)
@@ -348,7 +366,8 @@
                     program_id: context.programId,
                     bonification: object(verification.bonificacao || verification.bonification),
                     analysis: object(verification.analise || verification.analysis),
-                    bonus_result: text(verification.resultadoBonif || verification.bonus_result) || null
+                    bonus_result: text(verification.resultadoBonif || verification.bonus_result) || null,
+                    payload: verificationPayload(verification)
                 });
             });
         });

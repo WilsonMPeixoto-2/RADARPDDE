@@ -334,6 +334,7 @@
             }
             const key = `${verification.competence_id}_${verification.program_id}`;
             state.verifications[verification.school_id][key] = {
+                ...object(verification.payload),
                 bonificacao: object(verification.bonification),
                 analise: object(verification.analysis),
                 resultadoBonif: verification.bonus_result || ''

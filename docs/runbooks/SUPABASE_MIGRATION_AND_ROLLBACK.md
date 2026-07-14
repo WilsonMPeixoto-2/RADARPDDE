@@ -121,7 +121,8 @@ Aplicar, na ordem:
 5. `202607130005_operational_context.sql`;
 6. `202607130006_authorization_hardening.sql`;
 7. `202607130007_configuration_audit_coverage.sql`;
-8. `202607130008_atomic_invoice_operations.sql`.
+8. `202607130008_atomic_invoice_operations.sql`;
+9. `202607140009_verification_payload.sql`.
 
 Depois:
 
@@ -266,7 +267,7 @@ Quando qualquer versão estiver obsoleta, a operação deve retornar `OPTIMISTIC
 - reconciliação sem diferenças não justificadas;
 - ida e volta canônico → local → canônico aprovada;
 - testes unitários, pgTAP, lint e E2E verdes;
-- oito migrations aplicadas em ambiente descartável sem erro;
+- nove migrations aplicadas em ambiente descartável sem erro;
 - RPCs homologadas;
 - Advisors avaliados;
 - RLS homologada;
@@ -324,7 +325,7 @@ Não executar exclusões massivas diretamente. Preferir:
 - versão dos dados locais;
 - advertências e rejeições;
 - commit e deployment;
-- lista das oito migrations;
+- lista das nove migrations;
 - relatório de pgTAP e lint;
 - relatório de Advisors;
 - comparação dos tipos gerados;

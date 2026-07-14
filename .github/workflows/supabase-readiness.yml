@@ -146,7 +146,7 @@ jobs:
       - name: Iniciar Supabase local
         run: npm run supabase:start
 
-      - name: Recriar banco com oito migrations
+      - name: Recriar banco com nove migrations
         run: npm run supabase:reset
 
       - name: Executar testes pgTAP

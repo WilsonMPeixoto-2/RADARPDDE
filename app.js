@@ -4549,7 +4549,7 @@ async function initializeRadarData() {
 function appendRadarLog(acao, detalhes) {
     const user = getCurrentUser();
     const newLog = {
-        id: 'log-' + Date.now(),
+        id: createPendencyClientId('log'),
         usuario: user.name,
         perfil: user.role,
         dataHora: new Date().toISOString(),
@@ -8115,12 +8115,6 @@ function switchPendenciasTab(e, tabId) {
     document.getElementById(tabId).classList.add('active');
 }
 
-function updatePendencyById(pendencyId, nextPendency) {
-    const index = pendencias.findIndex(item => item.id === pendencyId);
-    if (index === -1) throw new Error('Pendência não encontrada.');
-    pendencias[index] = nextPendency;
-}
-
 let registrarNovoEnvioTrigger = null;
 let registrarNovoEnvioSourceContext = null;
 let reanalisarPendenciaTrigger = null;
@@ -8215,132 +8209,6 @@ function showRegistrarNovoEnvioError(message) {
         context.prepend(errorMessage);
     }
     errorMessage.textContent = message;
-}
-
-function cloneSubmissionInvariant(value) {
-    if (value === undefined) return undefined;
-    return JSON.parse(JSON.stringify(value));
-}
-
-function cloneOperationalIndex(index) {
-    return new Map(Array.from(index.entries()).map(([key, values]) => [
-        key,
-        cloneSubmissionInvariant(values)
-    ]));
-}
-
-function captureCorrectiveSubmissionLocalStorage() {
-    const keys = [...RADAR_STORAGE_KEYS, 'radar_pdde_data_version'];
-    return keys.map(key => {
-        const value = localStorage.getItem(key);
-        return { key, present: value !== null, value };
-    });
-}
-
-function restoreCorrectiveSubmissionLocalStorage(snapshot) {
-    const errors = [];
-    snapshot.forEach(entry => {
-        try {
-            if (entry.present) {
-                localStorage.setItem(entry.key, entry.value);
-            } else {
-                localStorage.removeItem(entry.key);
-            }
-        } catch (error) {
-            errors.push({ key: entry.key, error });
-        }
-    });
-
-    if (errors.length > 0) {
-        const restoreError = new Error(
-            `Não foi possível restaurar ${errors.length} chave(s) do armazenamento local.`
-        );
-        restoreError.storageErrors = errors;
-        throw restoreError;
-    }
-}
-
-function captureCorrectiveSubmissionRollback(current, verification, compProgKey) {
-    return {
-        pendencyId: current.id,
-        pendency: cloneSubmissionInvariant(current),
-        escolaId: current.escolaId,
-        compProgKey,
-        verification: cloneSubmissionInvariant(verification),
-        logs: cloneSubmissionInvariant(logs),
-        pendenciasIndex: cloneOperationalIndex(_pendenciasByEscolaId),
-        bensIndex: cloneOperationalIndex(_bensByEscolaId),
-        localStorage: captureCorrectiveSubmissionLocalStorage()
-    };
-}
-
-function restoreCorrectiveSubmissionRollback(snapshot) {
-    const rollbackErrors = [];
-
-    try {
-        updatePendencyById(snapshot.pendencyId, cloneSubmissionInvariant(snapshot.pendency));
-    } catch (error) {
-        rollbackErrors.push({ step: 'pendência', error });
-    }
-
-    try {
-        if (!verificacoes[snapshot.escolaId]) {
-            throw new Error('Coleção de verificações da escola não encontrada.');
-        }
-        verificacoes[snapshot.escolaId][snapshot.compProgKey] = cloneSubmissionInvariant(
-            snapshot.verification
-        );
-    } catch (error) {
-        rollbackErrors.push({ step: 'verificação', error });
-    }
-
-    try {
-        logs = cloneSubmissionInvariant(snapshot.logs);
-    } catch (error) {
-        rollbackErrors.push({ step: 'logs', error });
-    }
-
-    try {
-        rebuildOperationalIndexes();
-    } catch (error) {
-        try {
-            _pendenciasByEscolaId = cloneOperationalIndex(snapshot.pendenciasIndex);
-            _bensByEscolaId = cloneOperationalIndex(snapshot.bensIndex);
-        } catch (indexRestoreError) {
-            rollbackErrors.push({ step: 'índices', error: indexRestoreError });
-        }
-    }
-
-    try {
-        restoreCorrectiveSubmissionLocalStorage(snapshot.localStorage);
-    } catch (error) {
-        rollbackErrors.push({ step: 'armazenamento local', error });
-    }
-
-    return rollbackErrors;
-}
-
-function getCorrectiveSubmissionFailureMessage(primaryError, rollbackErrors) {
-    const primaryMessage = primaryError && primaryError.message
-        ? primaryError.message
-        : 'Não foi possível registrar o novo envio.';
-    console.error('Falha ao registrar o novo envio.', primaryError);
-
-    if (rollbackErrors.length === 0) return primaryMessage;
-
-    console.error('Falha parcial ao restaurar o novo envio.', rollbackErrors);
-    return `${primaryMessage} A restauração local não pôde ser concluída integralmente; recarregue a página antes de tentar novamente.`;
-}
-
-function verifySubmissionBonificationInvariant(verification, bonificationSnapshot, resultSnapshot) {
-    const bonificationChanged = JSON.stringify(verification.bonificacao)
-        !== JSON.stringify(bonificationSnapshot);
-    const resultChanged = JSON.stringify(verification.resultadoBonif)
-        !== JSON.stringify(resultSnapshot);
-
-    if (bonificationChanged || resultChanged) {
-        throw new Error('O novo envio não pode alterar a bonificação ou o resultado consolidado.');
-    }
 }
 
 function getPendencyActionTrigger(source) {
@@ -8638,29 +8506,6 @@ function getCorrectAnalysisLabel(competencia, dataDisponibilizacao) {
     return dataDisponibilizacao > prazo ? 'Correto (Atrasado)' : 'Correto';
 }
 
-function assertBonificationUnchanged(
-    verification,
-    documentoKey,
-    previousBonification,
-    previousProgramResult
-) {
-    const currentBonification = verification && verification.bonificacao;
-    const sourceDocumentChanged = !Object.is(
-        currentBonification && currentBonification[documentoKey],
-        previousBonification && previousBonification[documentoKey]
-    );
-    const wholeBonificationChanged = JSON.stringify(currentBonification)
-        !== JSON.stringify(previousBonification);
-    const programResultChanged = JSON.stringify(verification && verification.resultadoBonif)
-        !== JSON.stringify(previousProgramResult);
-
-    if (sourceDocumentChanged || wholeBonificationChanged || programResultChanged) {
-        throw new Error(
-            'A reanálise não pode alterar a bonificação nem o resultado consolidado.'
-        );
-    }
-}
-
 function getLatestAwaitingPendencyAttempt(pendency) {
     const attempts = Array.isArray(pendency && pendency.tentativas)
         ? pendency.tentativas
@@ -8903,18 +8748,6 @@ function abrirModalReanalisarPendencia(pendencySource) {
     renderReanalysisAttemptSummary(pendency, attempt, school);
     openReanalysisModal(trigger, sourceContext);
     return true;
-}
-
-function getReanalysisFailureMessage(primaryError, rollbackErrors) {
-    const primaryMessage = primaryError && primaryError.message
-        ? primaryError.message
-        : 'Não foi possível registrar a reanálise.';
-    console.error('Falha ao registrar a reanálise.', primaryError);
-
-    if (rollbackErrors.length === 0) return primaryMessage;
-    console.error('Falha parcial ao restaurar a reanálise.', rollbackErrors);
-    return primaryMessage
-        + ' A restauração local não pôde ser concluída integralmente; recarregue a página antes de tentar novamente.';
 }
 
 async function confirmarReanalisePendencia(event) {

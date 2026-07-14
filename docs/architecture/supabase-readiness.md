@@ -115,7 +115,7 @@ O HTML não carrega mais uma versão flutuante por CDN. O bundle versionado exp�
 
 ## Modelo SQL
 
-As oito migrations são versionadas e não são executadas pela aplicação:
+As nove migrations são versionadas e não são executadas pela aplicação:
 
 1. `202607130001_core_schema.sql` — entidades, FKs, constraints, índices e versionamento;
 2. `202607130002_auth_and_rls.sql` — perfis, escopos, autorização e RLS;
@@ -124,7 +124,8 @@ As oito migrations são versionadas e não são executadas pela aplicação:
 5. `202607130005_operational_context.sql` — contexto de notas e inventário;
 6. `202607130006_authorization_hardening.sql` — perfil ativo único e leitura/escrita separadas;
 7. `202607130007_configuration_audit_coverage.sql` — auditoria de parâmetros e cadastros;
-8. `202607130008_atomic_invoice_operations.sql` — RPCs transacionais de nota, bem e verificação.
+8. `202607130008_atomic_invoice_operations.sql` — RPCs transacionais de nota, bem e verificação;
+9. `202607140009_verification_payload.sql` — extensões auditáveis da verificação, incluindo retificações.
 
 As RPCs `save_invoice_with_effects` e `delete_invoice_with_effects` usam `SECURITY INVOKER`, `search_path` fixo, RLS e controle otimista por versão. A exclusão física continua restrita ao Administrador técnico.
 
@@ -136,7 +137,7 @@ Cobrem configuração, contratos, paginação, lotes, concorrência, snapshots, 
 
 ### PostgreSQL 17 independente
 
-O smoke test aplica as oito migrations em um PostgreSQL efêmero e exercita versão, auditoria, contexto e autorização.
+O smoke test aplica as nove migrations em um PostgreSQL efêmero e exercita versão, auditoria, contexto e autorização.
 
 ### Supabase local e pgTAP
 
@@ -189,7 +190,7 @@ Criação de branch, aplicação de migration e Advisors dependem de autorizaç�
 ## Modelo futuro de ativação
 
 1. Criar projeto ou branch Supabase de desenvolvimento.
-2. Aplicar as oito migrations em ambiente remoto autorizado.
+2. Aplicar as nove migrations em ambiente remoto autorizado.
 3. Executar lint, pgTAP, tipos e Advisors.
 4. Exportar o estado real com `RadarStateBridge.exportLegacySnapshot()`.
 5. Resolver advertências e registros rejeitados.

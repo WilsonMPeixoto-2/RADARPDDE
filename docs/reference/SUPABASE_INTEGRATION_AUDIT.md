@@ -24,7 +24,7 @@ Foram incorporados:
 - contrato e adaptadores de persistência;
 - ponte bidirecional do estado legado;
 - tradução das estruturas reais usadas pela interface;
-- oito migrations relacionais;
+- nove migrations relacionais;
 - autenticação e RLS futuras;
 - auditoria e controle de importações;
 - operações atômicas para nota, bem e verificação;
@@ -86,6 +86,7 @@ A conexão real permanece intencionalmente desativada. Isso é uma salvaguarda, 
 6. `202607130006_authorization_hardening.sql`
 7. `202607130007_configuration_audit_coverage.sql`
 8. `202607130008_atomic_invoice_operations.sql`
+9. `202607140009_verification_payload.sql`
 
 ## Modernização incorporada
 
@@ -106,7 +107,7 @@ A conexão real permanece intencionalmente desativada. Isso é uma salvaguarda, 
 O workflow `Supabase readiness` executa três camadas:
 
 1. contratos, artefatos, segredos e auditoria funcional;
-2. aplicação das oito migrations e smoke operacional em PostgreSQL 17;
+2. aplicação das nove migrations e smoke operacional em PostgreSQL 17;
 3. pilha Supabase local, pgTAP, lint, regeneração de tipos e reprodução do bundle.
 
 A validação remota, quando houver projeto autorizado, poderá executar:

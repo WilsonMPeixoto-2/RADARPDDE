@@ -70,14 +70,16 @@ insert into public.verifications (
     competence_id,
     program_id,
     bonification,
-    analysis
+    analysis,
+    payload
 ) values (
     '04.00.001::2026-01::BASIC',
     '04.00.001',
     '2026-01',
     'BASIC',
     '{}'::jsonb,
-    '{}'::jsonb
+    '{}'::jsonb,
+    '{"retificacoes":[{"id":"ret-smoke"}]}'::jsonb
 );
 
 insert into public.assets (
@@ -147,6 +149,7 @@ declare
     program_audit_count integer;
     invoice_context text;
     inventoried_member text;
+    retification_id text;
 begin
     perform set_config(
         'request.jwt.claim.sub',
@@ -230,6 +233,14 @@ begin
 
     if inventoried_member <> 'inventory-test' then
         raise exception 'responsável da inventariação não preservado: %', inventoried_member;
+    end if;
+
+    select payload #>> '{retificacoes,0,id}' into retification_id
+    from public.verifications
+    where id = '04.00.001::2026-01::BASIC';
+
+    if retification_id <> 'ret-smoke' then
+        raise exception 'histórico de retificação não preservado: %', retification_id;
     end if;
 end
 $$;

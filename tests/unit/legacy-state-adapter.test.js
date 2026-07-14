@@ -75,7 +75,8 @@ function createLegacyStorage() {
                 '2026-05_ED_FAMILIA': {
                     bonificacao: { extrato: true },
                     analise: { extrato: 'Correto' },
-                    resultadoBonif: 'apta'
+                    resultadoBonif: 'apta',
+                    retificacoes: [{ id: 'ret-1', justificativa: 'Correção auditada.' }]
                 }
             }
         }),
@@ -204,7 +205,10 @@ test('transforma o estado atual em entidades relacionais com IDs canônicos', ()
         program_id: 'ED_FAMILIA',
         bonification: { extrato: true },
         analysis: { extrato: 'Correto' },
-        bonus_result: 'apta'
+        bonus_result: 'apta',
+        payload: {
+            retificacoes: [{ id: 'ret-1', justificativa: 'Correção auditada.' }]
+        }
     });
     assert.equal(result.entities.pendencies[0].payload.item, 'Extrato');
     assert.equal(result.entities.pendencyAttempts[0].id, 'tentativa-1');

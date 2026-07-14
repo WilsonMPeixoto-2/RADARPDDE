@@ -93,7 +93,12 @@ function createOperationalStorage() {
                         notaFiscal: 'Correto',
                         consAssessoria: 'Correto'
                     },
-                    resultadoBonif: 'apta'
+                    resultadoBonif: 'apta',
+                    retificacoes: [{
+                        id: 'ret-1',
+                        justificativa: 'Correção administrativa auditada.',
+                        changedFields: ['bonificacao.extCC']
+                    }]
                 }
             }
         }),
@@ -245,6 +250,16 @@ test('restaura snapshot canônico em localStorage sem perder ações e campos de
     const restoredAssets = JSON.parse(destinationStorage.getItem('radar_pdde_bens'));
     assert.equal(restoredAssets[0].inventariadorId, 'aylane');
     assert.equal(restoredAssets[0].dataInventariacao, '2026-05-20T13:00:00.000Z');
+
+    const restoredVerifications = JSON.parse(destinationStorage.getItem('radar_pdde_verificacoes'));
+    assert.deepEqual(
+        restoredVerifications['04.31.001']['2026-05_ED_FAMILIA'].retificacoes,
+        [{
+            id: 'ret-1',
+            justificativa: 'Correção administrativa auditada.',
+            changedFields: ['bonificacao.extCC']
+        }]
+    );
 
     const restoredConfig = JSON.parse(destinationStorage.getItem('radar_pdde_config'));
     assert.deepEqual(restoredConfig.exercicios, ['2026', '2027']);

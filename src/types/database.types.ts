@@ -970,6 +970,7 @@ export type Database = {
           competence_id: string
           created_at: string
           id: string
+          payload: Json
           program_id: string
           row_version: number
           school_id: string
@@ -982,6 +983,7 @@ export type Database = {
           competence_id: string
           created_at?: string
           id: string
+          payload?: Json
           program_id: string
           row_version?: number
           school_id: string
@@ -994,6 +996,7 @@ export type Database = {
           competence_id?: string
           created_at?: string
           id?: string
+          payload?: Json
           program_id?: string
           row_version?: number
           school_id?: string

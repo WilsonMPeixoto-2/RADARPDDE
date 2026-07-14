@@ -96,7 +96,7 @@ A preparação utiliza cinco camadas:
 
 1. **Análise estática:** chaves `localStorage`, raízes de estado, handlers, formulários, configurações e mutações.
 2. **Testes unitários:** contratos, paginação, lotes, concorrência, snapshots, ponte e artefatos gerados.
-3. **PostgreSQL 17:** aplica oito migrations e executa smoke operacional.
+3. **PostgreSQL 17:** aplica nove migrations e executa smoke operacional.
 4. **Supabase local:** executa 37 testes pgTAP, lint, geração de tipos e reprodução do bundle.
 5. **Playwright:** desktop Chromium, Android Chromium e iPhone WebKit, com ausência de conexão remota no modo local.
 

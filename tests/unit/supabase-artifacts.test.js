@@ -42,6 +42,12 @@ test('migration complementar preserva o prazo de bonificação por competência'
     assert.match(sql, /competences_bonus_deadline_idx/i);
 });
 
+test('migration de verificações preserva extensões auditáveis do frontend', () => {
+    const sql = read('202607140009_verification_payload.sql');
+    assert.match(sql, /alter\s+table\s+public\.verifications/i);
+    assert.match(sql, /add\s+column\s+if\s+not\s+exists\s+payload\s+jsonb\s+not\s+null/i);
+});
+
 test('migration operacional normaliza contexto de notas e inventário', () => {
     const sql = read('202607130005_operational_context.sql');
 

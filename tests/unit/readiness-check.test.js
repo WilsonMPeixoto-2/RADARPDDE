@@ -23,7 +23,8 @@ const MIGRATIONS = [
     '202607130005_operational_context.sql',
     '202607130006_authorization_hardening.sql',
     '202607130007_configuration_audit_coverage.sql',
-    '202607130008_atomic_invoice_operations.sql'
+    '202607130008_atomic_invoice_operations.sql',
+    '202607140009_verification_payload.sql'
 ];
 
 const ARTIFACTS = [
@@ -85,7 +86,7 @@ test('valida conjunto obrigatório de migrations', () => {
     assert.deepEqual(validateMigrationManifest(MIGRATIONS), []);
     assert.match(
         validateMigrationManifest(MIGRATIONS.slice(0, -1)).join(' '),
-        /202607130008_atomic_invoice_operations\.sql/
+        /202607140009_verification_payload\.sql/
     );
 });
 
