@@ -8,7 +8,10 @@ on:
       - 'config.js'
       - '.env.example'
       - 'src/**'
+      - 'vendor/**'
       - 'scripts/check-supabase-readiness.js'
+      - 'scripts/check-generated-artifacts.js'
+      - 'scripts/build-supabase-client.mjs'
       - 'scripts/audit-functional-persistence.js'
       - 'supabase/**'
       - 'tests/unit/**'
@@ -30,7 +33,10 @@ on:
       - 'config.js'
       - '.env.example'
       - 'src/**'
+      - 'vendor/**'
       - 'scripts/check-supabase-readiness.js'
+      - 'scripts/check-generated-artifacts.js'
+      - 'scripts/build-supabase-client.mjs'
       - 'scripts/audit-functional-persistence.js'
       - 'supabase/**'
       - 'tests/unit/**'
@@ -46,6 +52,9 @@ on:
 
 permissions:
   contents: read
+
+env:
+  SUPABASE_TELEMETRY_DISABLED: '1'
 
 jobs:
   readiness:
@@ -115,3 +124,43 @@ jobs:
 
       - name: Exercitar versão, auditoria, contexto e autorização
         run: psql -v ON_ERROR_STOP=1 -f supabase/tests/smoke.sql
+
+  supabase-local:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Configurar Node.js LTS
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+
+      - name: Iniciar Supabase local
+        run: npm run supabase:start
+
+      - name: Recriar banco com oito migrations
+        run: npm run supabase:reset
+
+      - name: Executar testes pgTAP
+        run: npm run supabase:test:db
+
+      - name: Regenerar tipos e cliente fixado
+        run: |
+          mkdir -p src/types
+          npm run supabase:gen:types
+          npm run build:supabase-client
+
+      - name: Confirmar artefatos reproduzíveis
+        run: npm run check:generated
+
+      - name: Encerrar Supabase local
+        if: always()
+        run: npm run supabase:stop || true
