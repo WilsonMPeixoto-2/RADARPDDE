@@ -234,7 +234,28 @@
                     await this.targetRepository.restoreSnapshot(snapshot, { replace: true });
                 }
             } catch (error) {
-                await this.rollback(snapshot.importId, { preserveFailure: true });
+                let rollbackError = null;
+                try {
+                    await this.rollback(snapshot.importId, { preserveFailure: true });
+                } catch (candidate) {
+                    rollbackError = candidate;
+                }
+                if (rollbackError) {
+                    throw new RepositoryError(
+                        error?.code || 'TRANSACTION_FAILED',
+                        error?.message || 'A promoção da importação falhou.',
+                        {
+                            cause: error,
+                            operation: error?.operation || 'migration:promote',
+                            entity: error?.entity || null,
+                            details: cloneValue({
+                                ...(error?.details || {}),
+                                rollbackCode: rollbackError?.code || 'ROLLBACK_FAILED',
+                                rollbackMessage: rollbackError?.message || null
+                            })
+                        }
+                    );
+                }
                 throw error;
             }
 

@@ -76,3 +76,29 @@ test('reconciliação divergente bloqueia conclusão e rollback restaura o snaps
     assert.equal(rolledBack.status, 'rolled_back');
     assert.deepEqual(await target.load('schools'), [{ id: 'old', designation: 'old', denomination: 'Anterior', cre: '4ª CRE' }]);
 });
+
+
+test('falha de promoção preserva a causa original quando o rollback remoto não está disponível', async () => {
+    const target = new LocalStorageRepository({ storage: storage(), keyPrefix: 'target' });
+    target.promoteImportSnapshot = async () => {
+        const error = new Error('PROMOTION_FAILED: constraint violation');
+        error.code = 'PROMOTION_FAILED';
+        throw error;
+    };
+    target.rollbackImport = async () => {
+        const error = new Error('IMPORT_ROLLBACK_UNAVAILABLE: promotion-test');
+        error.code = 'IMPORT_ROLLBACK_UNAVAILABLE';
+        throw error;
+    };
+    const coordinator = new ImportCoordinator({
+        targetRepository: target,
+        checkpointStore: createMemoryCheckpointStore()
+    });
+
+    await assert.rejects(
+        coordinator.import(sourceSnapshot('promotion-test')),
+        error => error.code === 'PROMOTION_FAILED'
+            && error.message.includes('constraint violation')
+            && error.details?.rollbackCode === 'IMPORT_ROLLBACK_UNAVAILABLE'
+    );
+});
