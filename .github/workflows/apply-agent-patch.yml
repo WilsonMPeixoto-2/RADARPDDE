@@ -5,15 +5,17 @@ on:
     branches:
       - feature/supabase-readiness
     paths:
-      - '.github/agent-change.patch.b64'
+      - '.github/agent-apply.trigger'
 
 permissions:
   contents: write
+  issues: read
+  pull-requests: read
 
 jobs:
   apply:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Checkout do branch
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -21,14 +23,31 @@ jobs:
           ref: feature/supabase-readiness
           fetch-depth: 2
 
-      - name: Aplicar alteração versionada
+      - name: Reconstituir e aplicar alteração versionada
+        env:
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          base64 --decode .github/agent-change.patch.b64 > /tmp/agent-change.patch
+          curl --fail --silent --show-error \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/22/comments?per_page=100" \
+            > /tmp/comments.json
+          jq -r '[.[] | select(.body | startswith("RADAR_PATCH_PART_"))]
+            | sort_by(.body | capture("RADAR_PATCH_PART_(?<part>[0-9]+)").part | tonumber)
+            | .[].body
+            | sub("^RADAR_PATCH_PART_[0-9]+\\n"; "")' /tmp/comments.json \
+            | tr -d '\n' \
+            | base64 --decode \
+            | gzip --decompress \
+            > /tmp/agent-change.patch
+          test -s /tmp/agent-change.patch
           git apply --index --whitespace=fix /tmp/agent-change.patch
-          git rm --cached .github/agent-change.patch.b64
-          rm -f .github/agent-change.patch.b64
+          npm install --package-lock-only --ignore-scripts
+          npm run build:ajv
+          git rm .github/agent-apply.trigger
+          git add package-lock.json vendor/ajv.js
           git config user.name 'RADAR Gate Automation'
           git config user.email 'actions@users.noreply.github.com'
           git commit -m 'feat: concluir contratos e migração reversível'
