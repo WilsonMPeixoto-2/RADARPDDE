@@ -85,3 +85,35 @@ test('reconcilia contagens, ausências e registros divergentes', () => {
     assert.deepEqual(report.entities.schools.unexpectedInTarget, ['3']);
     assert.deepEqual(report.entities.schools.changed, ['1']);
 });
+
+test('reconcilia instantes ISO equivalentes sem alterar datas civis', () => {
+    const source = createSnapshot({
+        pendencies: [{
+            id: 'p1',
+            opened_at: '2032-01-01T00:00:00.000Z',
+            contact_date: '2032-01-01',
+            payload: { updated_at: '2032-01-01T03:00:00.000+03:00' }
+        }]
+    }, {
+        version: '1',
+        importId: 'source-time',
+        exportedAt: '2026-07-14T12:00:00.000Z'
+    });
+    const target = createSnapshot({
+        pendencies: [{
+            id: 'p1',
+            opened_at: '2032-01-01T00:00:00+00:00',
+            contact_date: '2032-01-01',
+            payload: { updated_at: '2032-01-01T00:00:00Z' }
+        }]
+    }, {
+        version: '1',
+        importId: 'target-time',
+        exportedAt: '2026-07-14T12:00:00+00:00'
+    });
+
+    const report = reconcileSnapshots(source, target);
+    assert.equal(report.ok, true);
+    assert.deepEqual(report.entities.pendencies.changed, []);
+    assert.equal(source.entities.pendencies[0].contact_date, '2032-01-01');
+});
