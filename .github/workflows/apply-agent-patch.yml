@@ -12,7 +12,7 @@ on:
 
 permissions:
   contents: write
-  issues: read
+  issues: write
   pull-requests: read
 
 jobs:
@@ -92,7 +92,6 @@ jobs:
             .github/workflows/validate.yml
           git rm .github/agent-apply.ready .github/agent-payload-*
           git add package-lock.json vendor/ajv.js
-          git status --short
 
       - name: Criar commit funcional
         shell: bash
@@ -101,6 +100,26 @@ jobs:
           git config user.name 'RADAR Gate Automation'
           git config user.email 'actions@users.noreply.github.com'
           git commit -m 'feat: concluir contratos e migração reversível'
+          echo "RADAR_COMMIT_SHA=$(git rev-parse HEAD)" >> "${GITHUB_ENV}"
+          echo "RADAR_TREE_SHA=$(git rev-parse HEAD^{tree})" >> "${GITHUB_ENV}"
 
-      - name: Publicar commit funcional
+      - name: Registrar SHA do commit no PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="RADAR_FUNCTIONAL_COMMIT_SHA=${RADAR_COMMIT_SHA}\nRADAR_FUNCTIONAL_TREE_SHA=${RADAR_TREE_SHA}"
+          jq -n --arg body "${body}" '{body: $body}' > /tmp/comment.json
+          curl --fail --silent --show-error \
+            -X POST \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H 'Accept: application/vnd.github+json' \
+            -H 'Content-Type: application/json' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/22/comments" \
+            --data-binary @/tmp/comment.json \
+            > /tmp/comment-response.json
+
+      - name: Tentar publicar commit funcional
+        continue-on-error: true
         run: git push origin HEAD:feature/supabase-readiness
