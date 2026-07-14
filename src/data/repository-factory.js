@@ -26,7 +26,6 @@
     function isSupabaseExplicitlyEnabled(runtimeConfig = {}) {
         return runtimeConfig.dataMode !== 'local'
             && runtimeConfig.features?.supabaseRepositoryEnabled === true
-            && runtimeConfig.features?.legacyAppBridgeEnabled === true
             && runtimeConfig.supabase?.connectionEnabled === true;
     }
 

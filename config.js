@@ -10,18 +10,7 @@
     if (!root) return;
 
     root.RadarRuntimeConfig = Object.freeze(api);
-    root.RADAR_PDDE_CONFIG = api.createRuntimeConfig({
-        dataMode: api.DATA_MODES.LOCAL,
-        productionActivationApproved: false,
-        features: {
-            supabaseRepositoryEnabled: false,
-            legacyAppBridgeEnabled: false
-        },
-        supabase: {
-            url: '',
-            publishableKey: ''
-        }
-    });
+    root.RADAR_PDDE_CONFIG = api.createRuntimeConfig(root.RADAR_PDDE_RUNTIME_INPUT || {});
 
     if (typeof document === 'undefined') return;
 
@@ -136,6 +125,7 @@
     });
 
     const ALLOWED_MODES = new Set(Object.values(DATA_MODES));
+    const ALLOWED_ENVIRONMENTS = new Set(['local', 'development', 'test', 'preview', 'production']);
 
     function decodeJwtPayload(value) {
         const parts = String(value || '').trim().split('.');
@@ -200,15 +190,28 @@
 
     function createRuntimeConfig(input = {}) {
         const diagnostics = [];
+        const environmentIsExplicit = ALLOWED_ENVIRONMENTS.has(input.environment);
+        const environment = environmentIsExplicit
+            ? input.environment
+            : 'local';
         const requestedMode = ALLOWED_MODES.has(input.dataMode)
             ? input.dataMode
             : DATA_MODES.LOCAL;
         let dataMode = requestedMode;
 
+        if (requestedMode !== DATA_MODES.LOCAL && !environmentIsExplicit) {
+            dataMode = DATA_MODES.LOCAL;
+            diagnostics.push('Modo Supabase bloqueado: ambiente público ausente ou inválido.');
+        }
+
         if (requestedMode === DATA_MODES.SUPABASE_PRODUCTION
-            && input.productionActivationApproved !== true) {
+            && (environment !== 'production' || input.productionActivationApproved !== true)) {
             dataMode = DATA_MODES.LOCAL;
             diagnostics.push('Modo Supabase de produção bloqueado: falta autorização explícita.');
+        }
+        if (requestedMode === DATA_MODES.SUPABASE_PREVIEW && environment === 'production') {
+            dataMode = DATA_MODES.LOCAL;
+            diagnostics.push('Modo Supabase de preview bloqueado no ambiente de produção.');
         }
 
         const rawUrl = String(input.supabase?.url || '').trim();
@@ -219,30 +222,28 @@
         }
 
         const requestedRepository = input.features?.supabaseRepositoryEnabled === true;
-        const requestedLegacyBridge = input.features?.legacyAppBridgeEnabled === true;
         const isLocal = dataMode === DATA_MODES.LOCAL;
         const validCredentials = isValidSupabaseUrl(rawUrl) && isValidPublishableKey(rawKey);
         const connectionEnabled = !isLocal
             && requestedRepository
-            && requestedLegacyBridge
             && validCredentials;
 
         if (!isLocal && !validCredentials) {
             diagnostics.push('Conexão Supabase bloqueada: URL ou chave publicável inválida.');
         }
-        if (!isLocal && (!requestedRepository || !requestedLegacyBridge)) {
-            diagnostics.push('Conexão Supabase bloqueada: dupla autorização de feature flags incompleta.');
+        if (!isLocal && !requestedRepository) {
+            diagnostics.push('Conexão Supabase bloqueada: autorização do repositório ausente.');
         }
 
         const config = {
-            configVersion: 'supabase-readiness-v1',
+            configVersion: 'supabase-readiness-v2',
+            environment,
             dataMode,
             activeRepository: connectionEnabled ? 'supabase' : 'local',
             productionActivationApproved: dataMode === DATA_MODES.SUPABASE_PRODUCTION
                 && input.productionActivationApproved === true,
             features: {
-                supabaseRepositoryEnabled: isLocal ? false : requestedRepository,
-                legacyAppBridgeEnabled: isLocal ? false : requestedLegacyBridge
+                supabaseRepositoryEnabled: isLocal ? false : requestedRepository
             },
             supabase: {
                 url: connectionEnabled ? rawUrl : '',

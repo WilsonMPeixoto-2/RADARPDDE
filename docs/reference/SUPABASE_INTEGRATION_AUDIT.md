@@ -92,7 +92,8 @@ A conexão real permanece intencionalmente desativada. Isso é uma salvaguarda, 
 
 - Node.js 24 em `.nvmrc` e CI;
 - Supabase CLI `2.109.1` fixada;
-- `@supabase/supabase-js` `2.110.3` fixado e empacotado por esbuild;
+- `@supabase/supabase-js` `2.110.5` fixado e empacotado por esbuild;
+- TypeScript `7.0.2` verificando o contrato gerado do banco;
 - tipos TypeScript gerados em `src/types/database.types.ts`;
 - ambiente local versionado em `supabase/config.toml`;
 - 37 verificações pgTAP para schema, RLS e RPCs;

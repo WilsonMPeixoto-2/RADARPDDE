@@ -28,6 +28,7 @@ const MIGRATIONS = [
 ];
 
 const ARTIFACTS = [
+    'config.runtime.js',
     'src/data/repository-contract.js',
     'src/data/local-storage-repository.js',
     'src/data/supabase-repository.js',
@@ -43,11 +44,13 @@ const ARTIFACTS = [
     'vendor/supabase-client.js',
     'scripts/audit-functional-persistence.js',
     'scripts/build-supabase-client.mjs',
+    'scripts/generate-runtime-config.mjs',
     'scripts/check-generated-artifacts.js',
     'supabase/config.toml',
     'supabase/tests/database/schema.test.sql',
     'supabase/tests/database/rls.test.sql',
     'supabase/tests/database/invoice-rpc.test.sql',
+    'tsconfig.database-types.json',
     'docs/reference/SUPABASE_FUNCTIONAL_COVERAGE.md',
     'docs/reference/SUPABASE_INTEGRATION_AUDIT.md',
     'docs/runbooks/SUPABASE_CONNECTION.md',
@@ -75,9 +78,16 @@ test('detecta JWT legado com role service_role sem bloquear JWT anon', () => {
 });
 
 test('recusa configuração publicada fora do modo local', () => {
-    assert.deepEqual(validateRuntimeConfigSource("dataMode: 'local'"), []);
+    const localSource = `window.RADAR_PDDE_RUNTIME_INPUT = {
+        dataMode: 'local',
+        features: { supabaseRepositoryEnabled: false }
+    };`;
+    assert.deepEqual(validateRuntimeConfigSource(localSource), []);
     assert.match(
-        validateRuntimeConfigSource("dataMode: 'supabase-production'").join(' '),
+        validateRuntimeConfigSource(`window.RADAR_PDDE_RUNTIME_INPUT = {
+            dataMode: 'supabase-production',
+            features: { supabaseRepositoryEnabled: true }
+        };`).join(' '),
         /modo local/i
     );
 });

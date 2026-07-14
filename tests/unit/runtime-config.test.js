@@ -21,8 +21,7 @@ test('modo local é o padrão e neutraliza credenciais mesmo quando preenchidas'
             publishableKey: 'sb_publishable_example'
         },
         features: {
-            supabaseRepositoryEnabled: true,
-            legacyAppBridgeEnabled: true
+            supabaseRepositoryEnabled: true
         }
     });
 
@@ -31,19 +30,19 @@ test('modo local é o padrão e neutraliza credenciais mesmo quando preenchidas'
     assert.equal(config.supabase.publishableKey, '');
     assert.equal(config.supabase.connectionEnabled, false);
     assert.equal(config.features.supabaseRepositoryEnabled, false);
-    assert.equal(config.features.legacyAppBridgeEnabled, false);
+    assert.equal(Object.hasOwn(config.features, 'legacyAppBridgeEnabled'), false);
 });
 
-test('conexão exige modo não local e dupla autorização explícita', () => {
+test('conexão exige modo não local, ambiente coerente e autorização explícita', () => {
     const disabled = createRuntimeConfig({
         dataMode: DATA_MODES.SUPABASE_PREVIEW,
+        environment: 'preview',
         supabase: {
             url: 'https://example.supabase.co',
             publishableKey: 'sb_publishable_example'
         },
         features: {
-            supabaseRepositoryEnabled: true,
-            legacyAppBridgeEnabled: false
+            supabaseRepositoryEnabled: false
         }
     });
 
@@ -52,19 +51,32 @@ test('conexão exige modo não local e dupla autorização explícita', () => {
 
     const enabled = createRuntimeConfig({
         dataMode: DATA_MODES.SUPABASE_PREVIEW,
+        environment: 'preview',
         supabase: {
             url: 'https://example.supabase.co',
             publishableKey: 'sb_publishable_example'
         },
         features: {
-            supabaseRepositoryEnabled: true,
-            legacyAppBridgeEnabled: true
+            supabaseRepositoryEnabled: true
         }
     });
 
     assert.equal(enabled.supabase.connectionEnabled, true);
     assert.equal(enabled.supabase.url, 'https://example.supabase.co');
     assert.equal(enabled.supabase.publishableKey, 'sb_publishable_example');
+    assert.equal(enabled.environment, 'preview');
+
+    const missingEnvironment = createRuntimeConfig({
+        dataMode: DATA_MODES.SUPABASE_PREVIEW,
+        features: { supabaseRepositoryEnabled: true },
+        supabase: {
+            url: 'https://example.supabase.co',
+            publishableKey: 'sb_publishable_example'
+        }
+    });
+    assert.equal(missingEnvironment.dataMode, DATA_MODES.LOCAL);
+    assert.equal(missingEnvironment.supabase.connectionEnabled, false);
+    assert.match(missingEnvironment.diagnostics.join(' '), /ambiente/i);
 });
 
 test('chaves secretas, inclusive JWT service_role, são rejeitadas', () => {
@@ -79,13 +91,13 @@ test('chaves secretas, inclusive JWT service_role, são rejeitadas', () => {
 
     assert.throws(() => createRuntimeConfig({
         dataMode: DATA_MODES.SUPABASE_PREVIEW,
+        environment: 'preview',
         supabase: {
             url: 'https://example.supabase.co',
             publishableKey: serviceRoleJwt
         },
         features: {
-            supabaseRepositoryEnabled: true,
-            legacyAppBridgeEnabled: true
+            supabaseRepositoryEnabled: true
         }
     }), /chave secreta/i);
 });
@@ -93,14 +105,14 @@ test('chaves secretas, inclusive JWT service_role, são rejeitadas', () => {
 test('modo de produção não pode ser ativado sem autorização própria', () => {
     const config = createRuntimeConfig({
         dataMode: DATA_MODES.SUPABASE_PRODUCTION,
+        environment: 'production',
         productionActivationApproved: false,
         supabase: {
             url: 'https://example.supabase.co',
             publishableKey: 'sb_publishable_example'
         },
         features: {
-            supabaseRepositoryEnabled: true,
-            legacyAppBridgeEnabled: true
+            supabaseRepositoryEnabled: true
         }
     });
 

@@ -171,13 +171,13 @@
 - O gerador aceita somente variáveis públicas `RADAR_DATA_MODE`, `RADAR_SUPABASE_URL`, `RADAR_SUPABASE_PUBLISHABLE_KEY`, `RADAR_SUPABASE_REPOSITORY_ENABLED`, `RADAR_ENVIRONMENT` e autorização explícita de produção.
 - `npm run typecheck:database` executa `tsc -p tsconfig.database-types.json --noEmit` sobre os tipos gerados.
 
-- [ ] Escrever testes para saída local determinística, rejeição de segredos e bloqueio de produção.
-- [ ] Atualizar `@supabase/supabase-js` de `2.110.3` para `2.110.5` e adicionar `typescript` `7.0.2`, preservando lockfile.
-- [ ] Implementar o gerador sem imprimir valores de chaves e manter o arquivo versionado em modo local seguro.
-- [ ] Fazer `config.js` consumir exclusivamente a entrada pública e remover `legacyAppBridgeEnabled`.
-- [ ] Adicionar verificação de tipos e artefatos ao CI/readiness.
-- [ ] Executar testes, `npm audit`, build do cliente e typecheck.
-- [ ] Commitar como `build: gerar configuracao publica segura`.
+- [x] Escrever testes para saída local determinística, rejeição de segredos e bloqueio de produção.
+- [x] Atualizar `@supabase/supabase-js` de `2.110.3` para `2.110.5` e adicionar `typescript` `7.0.2`, preservando lockfile.
+- [x] Implementar o gerador sem imprimir valores de chaves e manter o arquivo versionado em modo local seguro.
+- [x] Fazer `config.js` consumir exclusivamente a entrada pública e remover `legacyAppBridgeEnabled`.
+- [x] Adicionar verificação de tipos e artefatos ao CI/readiness.
+- [x] Executar testes, `npm audit`, build do cliente e typecheck.
+- [x] Commitar como `build: gerar configuracao publica segura`.
 
 ### Tarefa 7: Auth e RLS reais na pilha local, com exposição explícita da Data API
 

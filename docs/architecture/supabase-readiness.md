@@ -8,12 +8,12 @@ A configuração publicada permanece:
 
 ```javascript
 {
+  environment: 'local',
   dataMode: 'local',
   activeRepository: 'local',
   productionActivationApproved: false,
   features: {
-    supabaseRepositoryEnabled: false,
-    legacyAppBridgeEnabled: false
+    supabaseRepositoryEnabled: false
   },
   supabase: {
     url: '',
@@ -32,7 +32,7 @@ Separar gradualmente regras e telas da tecnologia de persistência, sem alterar 
 ```text
 Telas e regras do RADAR
         ↓
-Ponte operacional futura — atualmente desativada
+Serviços de aplicação e gateway único
         ↓
 Contrato de repositório
         ↓
@@ -44,14 +44,16 @@ Contrato de repositório
 RadarStateBridge — exportação, restauração e reconciliação
 ```
 
-Nesta entrega o `app.js` legado não foi reescrito para consumir o novo contrato. Os módulos são carregados passivamente para permitir futura migração incremental e testável. A persistência oficial continua sendo o conjunto de chaves `radar_pdde_*` já utilizado pelo sistema.
+Os fluxos institucionais, escolas, pendências, verificações, notas e inventário já passam pelo gateway único. O adaptador selecionado continua sendo o `LocalStorageRepository`, portanto a persistência oficial permanece nas chaves `radar_pdde_*` até uma ativação deliberada e homologada.
 
 ## Componentes de aplicação
 
-### `config.js`
+### `config.runtime.js` e `config.js`
 
+- o gerador aceita somente variáveis públicas conhecidas e nunca imprime seus valores;
+- a cópia versionada permanece em modo local, sem credenciais;
 - define os modos `local`, `supabase-preview` e `supabase-production`;
-- exige modo não local, duas feature flags e credenciais publicáveis válidas;
+- exige modo não local, autorização do repositório e credenciais publicáveis válidas;
 - bloqueia chaves secretas e JWT legado de `service_role`;
 - exige autorização adicional para produção;
 - hidrata competências persistidas antes da primeira renderização;
@@ -72,7 +74,7 @@ Nesta entrega o `app.js` legado não foi reescrito para consumir o novo contrato
 - atualização otimista por `row_version`;
 - erro `OPTIMISTIC_CONFLICT` para edição concorrente.
 
-`src/data/repository-factory.js` mantém comportamento *fail-closed*: o adaptador remoto só é criado com modo não local, duas flags ativas e conexão validada.
+`src/data/repository-factory.js` mantém comportamento *fail-closed*: o adaptador remoto só é criado com modo não local, autorização explícita do repositório e conexão validada.
 
 ### Snapshot e ponte bidirecional
 
@@ -107,11 +109,12 @@ A preparação agora inclui uma pilha reproduzível, ainda sem projeto remoto:
 - testes pgTAP em `supabase/tests/database`;
 - lint de PL/pgSQL por `supabase db lint`;
 - tipos gerados em `src/types/database.types.ts`;
-- cliente `@supabase/supabase-js` `2.110.3` empacotado em `vendor/supabase-client.js`;
+- cliente `@supabase/supabase-js` `2.110.5` empacotado em `vendor/supabase-client.js`;
+- TypeScript `7.0.2` verificando o contrato gerado do banco;
 - esbuild `0.28.1` fixado;
 - verificação de reprodutibilidade dos artefatos no CI.
 
-O HTML não carrega mais uma versão flutuante por CDN. O bundle versionado expõe `RadarSupabaseClient` e mantém o alias `supabase` apenas para compatibilidade com a integração antiga ainda desativada.
+O HTML não carrega mais uma versão flutuante por CDN. O bundle versionado expõe `RadarSupabaseClient`; a configuração pública é carregada antes do validador *fail-closed*.
 
 ## Modelo SQL
 
@@ -127,7 +130,7 @@ As nove migrations são versionadas e não são executadas pela aplicação:
 8. `202607130008_atomic_invoice_operations.sql` — RPCs transacionais de nota, bem e verificação;
 9. `202607140009_verification_payload.sql` — extensões auditáveis da verificação, incluindo retificações.
 
-As RPCs `save_invoice_with_effects` e `delete_invoice_with_effects` usam `SECURITY INVOKER`, `search_path` fixo, RLS e controle otimista por versão. A exclusão física continua restrita ao Administrador técnico.
+As RPCs `save_invoice_with_effects` e `delete_invoice_with_effects` usam `search_path` fixo, autorização por escopo e controle otimista por versão. O salvamento usa `SECURITY INVOKER`; a remoção usa `SECURITY DEFINER` somente para atravessar a política genérica de exclusão, mas revalida `can_write_school` internamente. A exclusão física direta continua restrita ao Administrador técnico.
 
 ## Estratégia de testes
 

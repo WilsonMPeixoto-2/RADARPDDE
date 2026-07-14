@@ -8,6 +8,7 @@ const { spawnSync } = require('node:child_process');
 const root = path.resolve(__dirname, '..');
 const packageJson = require(path.join(root, 'package.json'));
 const requiredFiles = [
+    'config.runtime.js',
     'src/types/database.types.ts',
     'vendor/supabase-client.js'
 ];
@@ -37,6 +38,23 @@ if (fs.existsSync(typeFile)) {
         });
 }
 
+const runtimeConfigFile = path.join(root, 'config.runtime.js');
+if (fs.existsSync(runtimeConfigFile)) {
+    const source = fs.readFileSync(runtimeConfigFile, 'utf8');
+    const globalAssignments = [...source.matchAll(/(?:window|globalThis)\.([A-Za-z0-9_$]+)\s*=/g)]
+        .map(match => match[1]);
+    if (globalAssignments.length !== 1 || globalAssignments[0] !== 'RADAR_PDDE_RUNTIME_INPUT') {
+        findings.push('config.runtime.js deve definir somente window.RADAR_PDDE_RUNTIME_INPUT.');
+    }
+    if (!/["']dataMode["']\s*:\s*["']local["']/.test(source)
+        || !/["']supabaseRepositoryEnabled["']\s*:\s*false/.test(source)) {
+        findings.push('config.runtime.js versionado deve permanecer em modo local e com repositório remoto desativado.');
+    }
+    if (/legacyAppBridgeEnabled|sb_secret_|service_role/i.test(source)) {
+        findings.push('config.runtime.js contém configuração legada ou material secreto proibido.');
+    }
+}
+
 const bundleFile = path.join(root, 'vendor/supabase-client.js');
 if (fs.existsSync(bundleFile)) {
     const bundle = fs.readFileSync(bundleFile, 'utf8');
@@ -52,7 +70,7 @@ if (fs.existsSync(bundleFile)) {
 if (findings.length === 0 && process.env.CI === 'true') {
     const diff = spawnSync(
         'git',
-        ['diff', '--exit-code', '--', 'src/types/database.types.ts', 'vendor/supabase-client.js'],
+        ['diff', '--exit-code', '--', 'config.runtime.js', 'src/types/database.types.ts', 'vendor/supabase-client.js'],
         { cwd: root, encoding: 'utf8' }
     );
     if (diff.status !== 0) {

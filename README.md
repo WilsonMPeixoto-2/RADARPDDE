@@ -162,9 +162,10 @@ O modo vigente permanece **exclusivamente local**:
 - persistência funcional no `localStorage` do navegador;
 - `dataMode: "local"` na configuração publicada;
 - `supabaseRepositoryEnabled: false`;
-- `legacyAppBridgeEnabled: false`;
 - URL e chave publicável vazias;
 - nenhuma chamada de rede ao Supabase.
+
+O arquivo público `config.runtime.js` é gerado a partir de uma lista fechada de variáveis de ambiente. A cópia versionada permanece local, sem credenciais, e é validada antes dos testes.
 
 A preparação futura inclui:
 

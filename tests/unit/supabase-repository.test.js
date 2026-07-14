@@ -327,15 +327,14 @@ test('recusa construção sem cliente Supabase válido', () => {
     );
 });
 
-test('factory permanece em local sem dupla autorização', () => {
+test('factory permanece em local sem autorização explícita do repositório', () => {
     const localRepository = { type: 'local' };
     const supabaseClient = createSupabaseClient();
 
     const selected = createRepository({
         dataMode: 'supabase-preview',
         features: {
-            supabaseRepositoryEnabled: true,
-            legacyAppBridgeEnabled: false
+            supabaseRepositoryEnabled: false
         },
         supabase: {
             connectionEnabled: false
@@ -353,8 +352,7 @@ test('factory cria Supabase sem instanciar armazenamento local desnecessário', 
     const selected = createRepository({
         dataMode: 'supabase-preview',
         features: {
-            supabaseRepositoryEnabled: true,
-            legacyAppBridgeEnabled: true
+            supabaseRepositoryEnabled: true
         },
         supabase: {
             connectionEnabled: true

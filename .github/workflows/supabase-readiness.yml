@@ -6,12 +6,14 @@ on:
       - 'app.js'
       - 'index.html'
       - 'config.js'
+      - 'config.runtime.js'
       - '.env.example'
       - 'src/**'
       - 'vendor/**'
       - 'scripts/check-supabase-readiness.js'
       - 'scripts/check-generated-artifacts.js'
       - 'scripts/build-supabase-client.mjs'
+      - 'scripts/generate-runtime-config.mjs'
       - 'scripts/audit-functional-persistence.js'
       - 'supabase/**'
       - 'tests/unit/**'
@@ -23,6 +25,7 @@ on:
       - 'docs/runbooks/SUPABASE_*.md'
       - 'package.json'
       - 'package-lock.json'
+      - 'tsconfig.database-types.json'
       - '.github/workflows/supabase-readiness.yml'
   push:
     branches:
@@ -31,12 +34,14 @@ on:
       - 'app.js'
       - 'index.html'
       - 'config.js'
+      - 'config.runtime.js'
       - '.env.example'
       - 'src/**'
       - 'vendor/**'
       - 'scripts/check-supabase-readiness.js'
       - 'scripts/check-generated-artifacts.js'
       - 'scripts/build-supabase-client.mjs'
+      - 'scripts/generate-runtime-config.mjs'
       - 'scripts/audit-functional-persistence.js'
       - 'supabase/**'
       - 'tests/unit/**'
@@ -48,6 +53,7 @@ on:
       - 'docs/runbooks/SUPABASE_*.md'
       - 'package.json'
       - 'package-lock.json'
+      - 'tsconfig.database-types.json'
       - '.github/workflows/supabase-readiness.yml'
 
 permissions:
@@ -162,7 +168,9 @@ jobs:
           npm run build:supabase-client
 
       - name: Confirmar artefatos reproduzíveis
-        run: npm run check:generated
+        run: |
+          npm run check:generated
+          npm run typecheck:database
 
       - name: Encerrar Supabase local
         if: always()

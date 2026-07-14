@@ -17,6 +17,7 @@ const REQUIRED_MIGRATIONS = Object.freeze([
 ]);
 
 const REQUIRED_ARTIFACTS = Object.freeze([
+    'config.runtime.js',
     'src/data/repository-contract.js',
     'src/data/local-storage-repository.js',
     'src/data/supabase-repository.js',
@@ -32,11 +33,13 @@ const REQUIRED_ARTIFACTS = Object.freeze([
     'vendor/supabase-client.js',
     'scripts/audit-functional-persistence.js',
     'scripts/build-supabase-client.mjs',
+    'scripts/generate-runtime-config.mjs',
     'scripts/check-generated-artifacts.js',
     'supabase/config.toml',
     'supabase/tests/database/schema.test.sql',
     'supabase/tests/database/rls.test.sql',
     'supabase/tests/database/invoice-rpc.test.sql',
+    'tsconfig.database-types.json',
     'docs/reference/SUPABASE_FUNCTIONAL_COVERAGE.md',
     'docs/reference/SUPABASE_INTEGRATION_AUDIT.md',
     'docs/runbooks/SUPABASE_CONNECTION.md',
@@ -92,18 +95,20 @@ function scanTextForSecrets(text, label = 'arquivo') {
 function validateRuntimeConfigSource(source) {
     const findings = [];
     const text = String(source || '');
-    const localModePattern = /dataMode\s*:\s*(?:api\.)?DATA_MODES\.LOCAL|dataMode\s*:\s*['"]local['"]/;
+    const localModePattern = /["']?dataMode["']?\s*:\s*['"]local['"]/;
     if (!localModePattern.test(text)) {
         findings.push('A configuração publicada deve permanecer em modo local.');
     }
 
-    const repositoryDisabled = /supabaseRepositoryEnabled\s*:\s*false/;
-    const bridgeDisabled = /legacyAppBridgeEnabled\s*:\s*false/;
-    if (text.includes('RADAR_PDDE_CONFIG') && !repositoryDisabled.test(text)) {
+    const repositoryDisabled = /["']?supabaseRepositoryEnabled["']?\s*:\s*false/;
+    if (!text.includes('RADAR_PDDE_RUNTIME_INPUT')) {
+        findings.push('config.runtime.js deve definir RADAR_PDDE_RUNTIME_INPUT.');
+    }
+    if (!repositoryDisabled.test(text)) {
         findings.push('A feature flag supabaseRepositoryEnabled deve permanecer false na configuração publicada.');
     }
-    if (text.includes('RADAR_PDDE_CONFIG') && !bridgeDisabled.test(text)) {
-        findings.push('A feature flag legacyAppBridgeEnabled deve permanecer false na configuração publicada.');
+    if (/legacyAppBridgeEnabled/i.test(text)) {
+        findings.push('A configuração publicada não deve conter a ponte legada do Supabase.');
     }
     return findings;
 }
@@ -138,14 +143,28 @@ function relative(rootDir, filePath) {
 function runReadinessChecks(rootDir = path.resolve(__dirname, '..')) {
     const findings = [];
     const configPath = path.join(rootDir, 'config.js');
+    const runtimeConfigPath = path.join(rootDir, 'config.runtime.js');
     const migrationsDir = path.join(rootDir, 'supabase', 'migrations');
 
     if (!fs.existsSync(configPath)) {
         findings.push('config.js não encontrado.');
     } else {
         const configSource = fs.readFileSync(configPath, 'utf8');
-        findings.push(...validateRuntimeConfigSource(configSource));
         findings.push(...scanTextForSecrets(configSource, 'config.js'));
+        if (!/createRuntimeConfig\(root\.RADAR_PDDE_RUNTIME_INPUT\s*\|\|\s*\{\}\)/.test(configSource)) {
+            findings.push('config.js deve consumir exclusivamente RADAR_PDDE_RUNTIME_INPUT.');
+        }
+        if (/legacyAppBridgeEnabled/i.test(configSource)) {
+            findings.push('config.js ainda contém a ponte legada do Supabase.');
+        }
+    }
+
+    if (!fs.existsSync(runtimeConfigPath)) {
+        findings.push('config.runtime.js não encontrado.');
+    } else {
+        const runtimeConfigSource = fs.readFileSync(runtimeConfigPath, 'utf8');
+        findings.push(...validateRuntimeConfigSource(runtimeConfigSource));
+        findings.push(...scanTextForSecrets(runtimeConfigSource, 'config.runtime.js'));
     }
 
     const migrationFiles = fs.existsSync(migrationsDir)

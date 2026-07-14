@@ -94,7 +94,7 @@ Vincular cada usuário em `user_profiles`. Controladores precisam de `controller
 
 ## 5. Validar o repositório sem conectar a interface
 
-Nesta fase, `config.js` continua integralmente em modo local. A validação ocorre por cliente injetado em ambiente técnico controlado.
+Nesta fase, `config.runtime.js` continua integralmente em modo local. A validação ocorre por cliente injetado em ambiente técnico controlado.
 
 ```javascript
 const client = RadarSupabaseClient.createClient(projectUrl, publishableKey);
@@ -154,22 +154,18 @@ O cliente já está fixado e empacotado em `vendor/supabase-client.js`. A simple
 
 ## 8. Configurar somente o Preview
 
-Depois de a ponte definitiva estar implementada e testada, alterar a configuração apenas na branch de Preview:
+Depois de o gateway definitivo estar implementado e testado, gerar a configuração apenas no ambiente de Preview:
 
-```javascript
-{
-  dataMode: DATA_MODES.SUPABASE_PREVIEW,
-  productionActivationApproved: false,
-  features: {
-    supabaseRepositoryEnabled: true,
-    legacyAppBridgeEnabled: true
-  },
-  supabase: {
-    url: 'URL_DO_PROJETO',
-    publishableKey: 'CHAVE_PUBLICÁVEL'
-  }
-}
+```bash
+RADAR_DATA_MODE=supabase-preview
+RADAR_ENVIRONMENT=preview
+RADAR_SUPABASE_REPOSITORY_ENABLED=true
+RADAR_SUPABASE_URL=https://PROJECT_REF.supabase.co
+RADAR_SUPABASE_PUBLISHABLE_KEY=CHAVE_PUBLICAVEL
+npm run generate:runtime-config
 ```
+
+O gerador aceita apenas valores públicos, rejeita chaves secretas e produz exclusivamente `window.RADAR_PDDE_RUNTIME_INPUT`. Nunca gerar esse arquivo com `service_role`, `sb_secret_*`, senha de banco ou token administrativo.
 
 ## 9. Executar validações
 
