@@ -34,7 +34,6 @@ enable_signup = false
 enable_anonymous_sign_ins = false
 
 [auth.email]
-enabled = true
-enable_signup = false
+enable_signup = true
 double_confirm_changes = true
 enable_confirmations = false
