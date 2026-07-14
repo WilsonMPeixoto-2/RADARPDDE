@@ -11,7 +11,8 @@ const REQUIRED_MIGRATIONS = Object.freeze([
     '202607130004_competence_bonus_deadline.sql',
     '202607130005_operational_context.sql',
     '202607130006_authorization_hardening.sql',
-    '202607130007_configuration_audit_coverage.sql'
+    '202607130007_configuration_audit_coverage.sql',
+    '202607130008_atomic_invoice_operations.sql'
 ]);
 
 const REQUIRED_ARTIFACTS = Object.freeze([
@@ -25,8 +26,18 @@ const REQUIRED_ARTIFACTS = Object.freeze([
     'src/data/state-bridge-metadata.js',
     'src/integration/exercise-management.js',
     'src/integration/exercise-early-init.js',
+    'src/vendor/supabase-client-entry.js',
+    'src/types/database.types.ts',
+    'vendor/supabase-client.js',
     'scripts/audit-functional-persistence.js',
+    'scripts/build-supabase-client.mjs',
+    'scripts/check-generated-artifacts.js',
+    'supabase/config.toml',
+    'supabase/tests/database/schema.test.sql',
+    'supabase/tests/database/rls.test.sql',
+    'supabase/tests/database/invoice-rpc.test.sql',
     'docs/reference/SUPABASE_FUNCTIONAL_COVERAGE.md',
+    'docs/reference/SUPABASE_INTEGRATION_AUDIT.md',
     'docs/runbooks/SUPABASE_CONNECTION.md',
     'docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md'
 ]);
