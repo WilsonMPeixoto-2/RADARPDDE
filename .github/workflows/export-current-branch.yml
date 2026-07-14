@@ -1,6 +1,9 @@
 name: Export current branch
 
 on:
+  pull_request:
+    paths:
+      - '.github/workflows/export-current-branch.yml'
   push:
     branches:
       - feature/supabase-readiness
