@@ -210,7 +210,23 @@ jobs:
           } >> "${GITHUB_ENV}"
 
       - name: Validar login das sete identidades Auth
-        run: npm run check:auth-fixtures
+        id: auth-probe
+        shell: bash
+        run: |
+          set +e
+          npm run check:auth-fixtures > auth-probe.log 2>&1
+          status=$?
+          cat auth-probe.log
+          exit "${status}"
+
+      - name: Publicar diagnóstico seguro do login-probe
+        if: ${{ failure() && steps.auth-probe.conclusion == 'failure' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: auth-probe-diagnostic
+          path: auth-probe.log
+          if-no-files-found: error
+          retention-days: 1
 
       - name: Exercitar frontend, Auth e RLS na pilha Supabase local
         env:
