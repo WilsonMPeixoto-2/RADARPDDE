@@ -1,6 +1,9 @@
 name: Export branch snapshot
 
 on:
+  pull_request:
+    paths:
+      - '.github/workflows/export-branch-snapshot.yml'
   push:
     branches:
       - feature/supabase-readiness
