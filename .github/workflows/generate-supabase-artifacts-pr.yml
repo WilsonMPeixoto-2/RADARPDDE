@@ -43,8 +43,25 @@ jobs:
       - name: Recriar banco com oito migrations
         run: npm run supabase:reset
 
-      - name: Executar pgTAP
-        run: npm run supabase:test:db
+      - name: Executar pgTAP com relatório integral
+        id: pgtap
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          npm run supabase:test:db 2>&1 | tee pgtap-report.txt
+
+      - name: Publicar relatório pgTAP
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: pgtap-report
+          path: pgtap-report.txt
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Interromper após falha pgTAP
+        if: steps.pgtap.outcome == 'failure'
+        run: exit 1
 
       - name: Gerar tipos e cliente empacotado
         run: |
