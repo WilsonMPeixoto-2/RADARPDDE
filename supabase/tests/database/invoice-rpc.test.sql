@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
 
-select plan(13);
+select plan(15);
 
 insert into auth.users (id, email)
 values ('00000000-0000-0000-0000-000000000101', 'rpc-user@example.test');
@@ -68,7 +68,15 @@ select lives_ok(
             'id', '04.99.101::2028-01::RPC_BASIC',
             'analysis', jsonb_build_object('notas', 'Correto')
         ),
-        p_expected_verification_version => 1
+        p_expected_verification_version => 1,
+        p_administrative_log => jsonb_build_object(
+            'id', 'log-invoice-create',
+            'user_identifier', 'Assistente de teste',
+            'profile_name', 'Assistente',
+            'action', 'Gasto Permanente Cadastrado',
+            'details', jsonb_build_object('invoice', 'invoice-pgtap'),
+            'event_at', '2028-01-10T12:00:00Z'
+        )
     )
     $$,
     'salvamento composto inicial conclui sem erro'
@@ -78,6 +86,7 @@ select is((select count(*)::integer from public.registered_invoices where id = '
 select is((select count(*)::integer from public.assets where id = 'asset-pgtap'), 1, 'bem foi criado');
 select is((select linked_asset_id from public.registered_invoices where id = 'invoice-pgtap'), 'asset-pgtap', 'nota foi vinculada ao bem');
 select is((select analysis ->> 'notas' from public.verifications where id = '04.99.101::2028-01::RPC_BASIC'), 'Correto', 'análise foi atualizada atomicamente');
+select is((select count(*)::integer from public.administrative_logs where id = 'log-invoice-create'), 1, 'auditoria da criação foi gravada na mesma RPC');
 
 select lives_ok(
     $$
@@ -139,10 +148,6 @@ select throws_ok(
     'versão obsoleta é rejeitada'
 );
 
-update public.user_profiles
-set profile_id = 'technical_admin'
-where user_id = '00000000-0000-0000-0000-000000000101';
-
 select lives_ok(
     $$
     select public.delete_invoice_with_effects(
@@ -153,14 +158,23 @@ select lives_ok(
         p_verification_patch => jsonb_build_object(
             'analysis', jsonb_build_object('notas', 'Não analisado')
         ),
-        p_expected_verification_version => 3
+        p_expected_verification_version => 3,
+        p_administrative_log => jsonb_build_object(
+            'id', 'log-invoice-delete',
+            'user_identifier', 'Assistente de teste',
+            'profile_name', 'Assistente',
+            'action', 'Nota Fiscal Removida',
+            'details', jsonb_build_object('invoice', 'invoice-pgtap'),
+            'event_at', '2028-01-11T12:00:00Z'
+        )
     )
     $$,
-    'remoção composta conclui para Administrador técnico'
+    'remoção composta conclui para perfil operacional com escrita na escola'
 );
 
 select is((select count(*)::integer from public.registered_invoices where id = 'invoice-pgtap'), 0, 'nota foi removida');
 select is((select count(*)::integer from public.assets where id = 'asset-pgtap'), 0, 'bem vinculado foi removido');
+select is((select count(*)::integer from public.administrative_logs where id = 'log-invoice-delete'), 1, 'auditoria da remoção foi gravada na mesma RPC');
 
 select * from finish();
 rollback;

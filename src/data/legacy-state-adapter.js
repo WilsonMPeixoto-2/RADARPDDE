@@ -367,7 +367,10 @@
                     bonification: object(verification.bonificacao || verification.bonification),
                     analysis: object(verification.analise || verification.analysis),
                     bonus_result: text(verification.resultadoBonif || verification.bonus_result) || null,
-                    payload: verificationPayload(verification)
+                    payload: verificationPayload(verification),
+                    ...(Number.isInteger(verification.rowVersion || verification.row_version)
+                        ? { row_version: verification.rowVersion || verification.row_version }
+                        : {})
                 });
             });
         });
@@ -467,7 +470,10 @@
                 status,
                 inventory_process: text(asset.processoInventario || asset.inventory_process),
                 notes: text(asset.observacoes || asset.observacao || asset.notes),
-                payload: cloneValue(asset)
+                payload: cloneValue(asset),
+                ...(Number.isInteger(asset.rowVersion || asset.row_version)
+                    ? { row_version: asset.rowVersion || asset.row_version }
+                    : {})
             }];
         });
 
@@ -487,7 +493,10 @@
                 expense_type: expenseType,
                 invoice_number: text(invoice.numero || invoice.notaFiscal || invoice.invoice_number),
                 amount: numeric(invoice.valor || invoice.amount),
-                payload: cloneValue(invoice)
+                payload: cloneValue(invoice),
+                ...(Number.isInteger(invoice.rowVersion || invoice.row_version)
+                    ? { row_version: invoice.rowVersion || invoice.row_version }
+                    : {})
             }];
         });
 

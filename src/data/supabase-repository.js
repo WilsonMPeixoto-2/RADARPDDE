@@ -319,6 +319,80 @@
             }
         }
 
+        async executeRpc(name, args, operation) {
+            if (typeof this.client.rpc !== 'function') {
+                throw new RepositoryError(
+                    'MISSING_RPC_CLIENT',
+                    'O cliente Supabase não oferece execução de RPC.',
+                    { operation }
+                );
+            }
+            try {
+                const result = await this.client.rpc(name, cloneValue(args || {}));
+                if (result?.error) throw result.error;
+                return cloneValue(result?.data ?? null);
+            } catch (error) {
+                if (error instanceof RepositoryError) throw error;
+                const message = String(error?.message || 'Falha em operação transacional Supabase.');
+                let code = 'SUPABASE_OPERATION_FAILED';
+                if (message.includes('OPTIMISTIC_CONFLICT')) code = 'OPTIMISTIC_CONFLICT';
+                else if (message.includes('AUTHORIZATION_DENIED')) code = 'PERMISSION_DENIED';
+                else if (message.includes('VALIDATION_ERROR')) code = 'VALIDATION_FAILED';
+                else if (message.includes('NOT_FOUND')) code = 'NOT_FOUND';
+                throw new RepositoryError(code, message, {
+                    operation,
+                    cause: error,
+                    details: { rpc: name }
+                });
+            }
+        }
+
+        async saveInvoiceWithEffects(input = {}) {
+            if (!input.invoice || typeof input.invoice !== 'object') {
+                throw new RepositoryError(
+                    'VALIDATION_FAILED',
+                    'A RPC de nota exige o registro da nota fiscal.',
+                    { operation: 'saveInvoiceWithEffects' }
+                );
+            }
+            return this.executeRpc('save_invoice_with_effects', {
+                p_invoice: cloneValue(input.invoice),
+                p_asset: input.asset ? cloneValue(input.asset) : null,
+                p_verification_patch: input.verificationPatch
+                    ? cloneValue(input.verificationPatch)
+                    : null,
+                p_expected_invoice_version: input.expectedInvoiceVersion ?? null,
+                p_expected_asset_version: input.expectedAssetVersion ?? null,
+                p_expected_verification_version: input.expectedVerificationVersion ?? null,
+                p_administrative_log: input.administrativeLog
+                    ? cloneValue(input.administrativeLog)
+                    : null
+            }, 'saveInvoiceWithEffects');
+        }
+
+        async deleteInvoiceWithEffects(input = {}) {
+            if (!input.invoiceId) {
+                throw new RepositoryError(
+                    'VALIDATION_FAILED',
+                    'A RPC de remoção exige o identificador da nota fiscal.',
+                    { operation: 'deleteInvoiceWithEffects' }
+                );
+            }
+            return this.executeRpc('delete_invoice_with_effects', {
+                p_invoice_id: input.invoiceId,
+                p_expected_invoice_version: input.expectedInvoiceVersion ?? null,
+                p_delete_linked_asset: input.deleteLinkedAsset !== false,
+                p_expected_asset_version: input.expectedAssetVersion ?? null,
+                p_verification_patch: input.verificationPatch
+                    ? cloneValue(input.verificationPatch)
+                    : null,
+                p_expected_verification_version: input.expectedVerificationVersion ?? null,
+                p_administrative_log: input.administrativeLog
+                    ? cloneValue(input.administrativeLog)
+                    : null
+            }, 'deleteInvoiceWithEffects');
+        }
+
         capabilities() {
             return Object.freeze({
                 mode: 'supabase',
@@ -326,6 +400,7 @@
                 writable: true,
                 canImportLegacy: false,
                 atomicTransactions: false,
+                atomicInvoiceEffects: true,
                 optimisticConcurrency: true
             });
         }

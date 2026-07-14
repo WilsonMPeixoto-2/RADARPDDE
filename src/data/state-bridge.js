@@ -337,7 +337,10 @@
                 ...object(verification.payload),
                 bonificacao: object(verification.bonification),
                 analise: object(verification.analysis),
-                resultadoBonif: verification.bonus_result || ''
+                resultadoBonif: verification.bonus_result || '',
+                ...(Number.isInteger(verification.row_version)
+                    ? { rowVersion: verification.row_version }
+                    : {})
             };
         });
 
@@ -407,7 +410,8 @@
             processoInventario: asset.inventory_process || '',
             observacoes: asset.notes || '',
             inventariadorId: asset.inventoried_by_member_id || null,
-            dataInventariacao: asset.inventoried_at || null
+            dataInventariacao: asset.inventoried_at || null,
+            ...(Number.isInteger(asset.row_version) ? { rowVersion: asset.row_version } : {})
         }));
 
         state.registeredInvoices = array(source.registeredInvoices).map(invoice => {
@@ -428,7 +432,8 @@
                 numero: invoice.invoice_number,
                 valor: Number(invoice.amount || 0),
                 bemId: invoice.linked_asset_id || null,
-                dataRegistro: invoice.registered_at || invoice.created_at || null
+                dataRegistro: invoice.registered_at || invoice.created_at || null,
+                ...(Number.isInteger(invoice.row_version) ? { rowVersion: invoice.row_version } : {})
             };
         });
 

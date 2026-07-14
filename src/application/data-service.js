@@ -197,13 +197,23 @@
             const beforeRepository = await this.repository.exportSnapshot({ includeEmpty: true });
 
             try {
+                const defaultPersist = async ({ snapshot }) => {
+                    for (const entity of changedEntities) {
+                        await this.repository.save(entity, snapshot.entities[entity] || []);
+                    }
+                };
                 const result = await this.unitOfWork.run({
                     ...command,
                     changedEntities,
-                    persist: async ({ snapshot }) => {
-                        for (const entity of changedEntities) {
-                            await this.repository.save(entity, snapshot.entities[entity] || []);
+                    persist: async context => {
+                        if (typeof command.persist !== 'function') {
+                            return defaultPersist(context);
                         }
+                        return command.persist({
+                            ...context,
+                            repository: this.repository,
+                            defaultPersist: () => defaultPersist(context)
+                        });
                     }
                 });
                 return {

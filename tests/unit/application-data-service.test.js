@@ -263,6 +263,40 @@ test('execute devolve resultado e snapshot clonados depois de uma gravação bem
     assert.equal((await repository.load('schools'))[0].denomination, 'Escola Confirmada');
 });
 
+test('execute permite persistência atômica especializada sem duplicar gravações genéricas', async () => {
+    const harness = createPortHarness();
+    const repository = new LocalStorageRepository({
+        storage: createMemoryStorage(),
+        keyPrefix: 'canonical-specialized'
+    });
+    const genericSaves = [];
+    const originalSave = repository.save.bind(repository);
+    repository.save = async (...args) => {
+        genericSaves.push(args[0]);
+        return originalSave(...args);
+    };
+    const service = new DataService({ repository, statePort: harness.statePort });
+    await service.bootstrap();
+    genericSaves.length = 0;
+    const specializedCalls = [];
+
+    const result = await service.execute({
+        name: 'invoice:atomic-save',
+        changedEntities: ['registeredInvoices', 'administrativeLogs'],
+        mutate: () => ({ invoiceId: 'nota-1' }),
+        persist: async context => {
+            specializedCalls.push(context);
+        }
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(specializedCalls.length, 1);
+    assert.equal(specializedCalls[0].repository, repository);
+    assert.deepEqual(specializedCalls[0].value, { invoiceId: 'nota-1' });
+    assert.equal(typeof specializedCalls[0].defaultPersist, 'function');
+    assert.deepEqual(genericSaves, []);
+});
+
 test('execute preserva exatamente o estado legado em memória e armazenamento após persistir o canônico', async () => {
     const initial = createLegacyState();
     initial.pendencies = [{

@@ -4405,6 +4405,9 @@ let radarDirectoryService = null;
 let radarSchoolService = null;
 let radarPendencyService = null;
 let radarVerificationService = null;
+let radarAuditService = null;
+let radarInvoiceService = null;
+let radarInventoryService = null;
 
 function cloneRadarValue(value) {
     return window.RadarRepositoryContract.cloneValue(value);
@@ -4571,6 +4574,7 @@ function initializeRadarApplicationServices() {
         verifications: verificacoes,
         pendencies: pendencias,
         contacts: contatos,
+        assets: bens,
         registeredInvoices: notasRegistradas,
         logs
     });
@@ -4598,12 +4602,23 @@ function initializeRadarApplicationServices() {
         reopenConsolidation: reopenConsolidationForAssistant,
         pendencyService: radarPendencyService
     });
+    radarAuditService = new window.RadarAuditService.AuditService(transactionalDependencies);
+    radarInvoiceService = new window.RadarInvoiceService.InvoiceService({
+        ...transactionalDependencies,
+        reopenConsolidation: (schoolId, compKey, verification, changed) => (
+            reopenConsolidationForAssistant(schoolId, compKey, verification, changed)
+        )
+    });
+    radarInventoryService = new window.RadarInventoryService.InventoryService(transactionalDependencies);
     window.RadarApplicationServices = Object.freeze({
         configuration: radarConfigurationService,
         directory: radarDirectoryService,
         schools: radarSchoolService,
         pendencies: radarPendencyService,
-        verifications: radarVerificationService
+        verifications: radarVerificationService,
+        audit: radarAuditService,
+        invoices: radarInvoiceService,
+        inventory: radarInventoryService
     });
 }
 
@@ -4674,8 +4689,7 @@ function persist(changedTable = null) {
 window.waitForRadarPersistence = () => radarPersistenceQueue;
 
 function registerLog(acao, detalhes) {
-    appendRadarLog(acao, detalhes);
-    persist('logs');
+    return appendRadarLog(acao, detalhes);
 }
 
 
@@ -7023,34 +7037,30 @@ function inventariarBem(bemId) {
     openModal('modal-inventario-confirm');
 }
 
-function salvarInventariacao(e) {
+async function salvarInventariacao(e) {
     e.preventDefault();
     const bemId = document.getElementById('inventario-bem-id').value;
     const resp = document.getElementById('inventario-responsavel').value;
     const obs = document.getElementById('inventario-observacoes').value;
+    const inventoryMember = equipeInventario.find(member => member.name === resp);
 
-    const b = bens.find(item => item.id === bemId);
-    if (b) {
-        b.status = 'Inventariada';
-        b.inventariadoPor = resp;
-        b.observacoes = obs;
-        
-        // Formata data de forma amigável
-        const now = new Date();
-        const formattedDate = now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-        b.inventariadoEm = formattedDate;
-
-        const esc = escolas.find(e => e.id === b.escolaId);
-        registerLog('Inventariação Concluída', `Bem patrimonial ${b.item} da escola ${esc ? esc.denominação : ''} foi registrado e inventariado por ${resp}.`);
-        
+    try {
+        await radarInventoryService.inventory({
+            assetId: bemId,
+            responsible: resp,
+            responsibleId: inventoryMember?.id || null,
+            notes: obs,
+            profile: currentProfile
+        });
         rebuildOperationalIndexes();
-        persist();
         closeModal('modal-inventario-confirm');
         if (currentView === 'inventario') {
             renderInventarioView();
         } else {
             renderDashboard();
         }
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível concluir a inventariação.');
     }
 }
 
@@ -9970,193 +9980,43 @@ function openModalDadosNota(escolaId, compKey) {
     openModal('modal-dados-nota');
 }
 
-function salvarDadosNota(e) {
+async function salvarDadosNota(e) {
     e.preventDefault();
     if (currentProfile === 'inventario' || currentProfile === 'sme') return;
     const notaId = document.getElementById('nota-id').value;
     const escolaId = document.getElementById('nota-escola-id').value;
-    const compKey = document.getElementById('nota-comp-key').value; // Formato: 2026-05_BASIC ou similar
-
-    const v = verificacoes[escolaId]?.[compKey];
-    if (blockConsolidatedFiscalNoteMutation(escolaId, compKey)) {
-        closeModal('modal-dados-nota');
-        return;
-    }
-    if (v && v.bonificacao && v.bonificacao['notaFiscal'] === 'Não se aplica') {
-        alert('Não é possível adicionar notas fiscais para competências marcadas como "Não se aplica".');
-        closeModal('modal-dados-nota');
-        return;
-    }
-
-    const existingNote = notaId
-        ? notasRegistradas.find(nota => nota.id === notaId)
-        : null;
-    if (notaId && !existingNote) return;
-
-    if (v) {
-        reopenConsolidationForAssistant(escolaId, compKey, v, true);
-    }
-    
+    const compKey = document.getElementById('nota-comp-key').value;
     const desc = document.getElementById('nota-desc').value.trim();
     const tipo = document.getElementById('nota-tipo').value;
     const numero = document.getElementById('nota-numero').value.trim();
     const valor = parseFloat(document.getElementById('nota-valor').value);
-    
-    const esc = escolas.find(x => x.id === escolaId);
-    const splitContext = window.RadarCompetencia.splitCompetenciaContext(compKey);
-    const mesKey = splitContext.competenciaKey;
-    const progId = splitContext.contextId;
-    
-    const prog = programas.find(p => p.id === progId);
-    const progName = prog ? prog.name : progId;
 
-    if (notaId) {
-        // MODO EDICAO
-        const nota = existingNote;
-
-        const oldTipo = nota.tipo;
-        const oldBemId = nota.bemId;
-
-        nota.desc = desc;
-        nota.tipo = tipo;
-        nota.numero = numero;
-        nota.valor = valor;
-
-        if (tipo === 'permanente') {
-            const hasProcesso = esc && esc.processoInventario;
-            if (oldBemId) {
-                // Atualizar bem existente no inventário
-                const bem = bens.find(b => b.id === oldBemId);
-                if (bem) {
-                    bem.item = `${progName} - ${desc}`;
-                    bem.valor = valor;
-                    bem.notaFiscal = numero;
-                    bem.status = (numero && hasProcesso) ? 'Encaminhada' : 'Não encaminhada';
-                    rebuildOperationalIndexes();
-                }
-            } else {
-                // Criar novo bem no inventário
-                const newBem = {
-                    id: 'bem-' + Date.now(),
-                    escolaId: escolaId,
-                    competencia: mesKey,
-                    item: `${progName} - ${desc}`,
-                    valor: valor,
-                    notaFiscal: numero,
-                    status: (numero && hasProcesso) ? 'Encaminhada' : 'Não encaminhada'
-                };
-                bens.push(newBem);
-                rebuildOperationalIndexes();
-                nota.bemId = newBem.id;
-
-                if (!hasProcesso) {
-                    alert(`Aviso: O bem permanente foi registrado no inventário, mas a escola não tem Processo de Inventário cadastrado. A equipe de inventário não poderá tombá-lo até que você cadastre o processo da escola.`);
-                }
-            }
-        } else {
-            // Se mudou de permanente para outra coisa, remove do inventário
-            if (oldBemId) {
-                bens = bens.filter(b => b.id !== oldBemId);
-                rebuildOperationalIndexes();
-                nota.bemId = null;
-            }
+    try {
+        const result = await radarInvoiceService.save({
+            id: notaId || null,
+            schoolId: escolaId,
+            compKey,
+            description: desc,
+            expenseType: tipo,
+            invoiceNumber: numero,
+            amount: valor,
+            profile: currentProfile
+        });
+        rebuildOperationalIndexes();
+        if (result.value.warnings.includes('SERVICE_ADVISORY_REQUIRED')) {
+            alert('Aviso de Regra de Negócio: Como é prestação de serviços (custeio), é obrigatório apresentar o e-mail de consultoria da assessoria contábil no encarte mensal do PDDE.');
         }
-
-        // Lógica de prestação de serviços
-        if (tipo === 'servico') {
-            if (oldTipo !== 'servico') {
-                alert(`Aviso de Regra de Negócio: Como é prestação de serviços (custeio), é obrigatório apresentar o e-mail de consultoria da assessoria contábil no encarte mensal do PDDE.`);
-            }
-            // Força consAssessoria para 'Não' se estiver 'Não se aplica' ou em branco
-            const v = verificacoes[escolaId]?.[compKey];
-            if (v) {
-                if (v.bonificacao['consAssessoria'] === 'Não se aplica' || v.bonificacao['consAssessoria'] === '') {
-                    v.bonificacao['consAssessoria'] = 'Não';
-                    v.analise['consAssessoria'] = 'Não analisado';
-                }
-            }
-        } else if (oldTipo === 'servico') {
-            // Se mudou de serviço para outra coisa, checa se ainda existem outros serviços
-            const remainingServices = notasRegistradas.filter(n => n.escolaId === escolaId && n.compKey === compKey && n.tipo === 'servico' && n.id !== notaId);
-            if (remainingServices.length === 0) {
-                const v = verificacoes[escolaId]?.[compKey];
-                if (v) {
-                    v.bonificacao['consAssessoria'] = 'Não se aplica';
-                    v.analise['consAssessoria'] = 'Correto';
-                    v.bonificacao['consEnviada'] = false; // Reset checkbox
-                }
-            }
+        if (result.value.warnings.includes('MISSING_INVENTORY_PROCESS')) {
+            alert('Aviso: O bem permanente foi registrado no inventário, mas a escola não tem Processo de Inventário cadastrado. A equipe de inventário não poderá tombá-lo até que você cadastre o processo da escola.');
         }
-
-        registerLog('Nota Editada', `Nota Fiscal ${numero} editada para ${esc ? esc.denominação : ''} no valor de R$ ${valor}.`);
-    } else {
-        // MODO CRIAÇÃO (código original)
-        let bemId = null;
-
-        if (tipo === 'permanente') {
-            // Bem Permanente -> Criar no inventário (bens de capital)
-            const hasProcesso = esc && esc.processoInventario;
-            const newBem = {
-                id: 'bem-' + Date.now(),
-                escolaId: escolaId,
-                competencia: mesKey,
-                item: `${progName} - ${desc}`,
-                valor: valor,
-                notaFiscal: numero,
-                status: (numero && hasProcesso) ? 'Encaminhada' : 'Não encaminhada'
-            };
-            bens.push(newBem);
-            rebuildOperationalIndexes();
-            bemId = newBem.id;
-            
-            // Logar a ação
-            registerLog('Bem Cadastrado', `Gasto de capital (permanente) de R$ ${valor} registrado via análise mensal para ${esc ? esc.denominação : ''} com NF ${numero}.`);
-            
-            // E se a escola tiver processo, encaminha automático, se não tiver avisa!
-            if (!hasProcesso) {
-                alert(`Aviso: O bem permanente foi registrado no inventário, mas a escola não tem Processo de Inventário cadastrado. A equipe de inventário não poderá tombá-lo até que você cadastre o processo da escola.`);
-            }
-        } else if (tipo === 'servico') {
-            // Prestação de Serviço -> Avisar que precisa de consulta assessoria!
-            alert(`Aviso de Regra de Negócio: Como é prestação de serviços (custeio), é obrigatório apresentar o e-mail de consultoria da assessoria contábil no encarte mensal do PDDE.`);
-            
-            // Se registrou serviço, a consulta da assessoria passa a ser requerida (não pode ser "Não se aplica")
-            const v = verificacoes[escolaId]?.[compKey];
-            if (v) {
-                if (v.bonificacao['consAssessoria'] === 'Não se aplica' || v.bonificacao['consAssessoria'] === '') {
-                    v.bonificacao['consAssessoria'] = 'Não'; // Força para 'Não' para requerer check explícito
-                    v.analise['consAssessoria'] = 'Não analisado';
-                }
-            }
-            
-            // Logar
-            registerLog('Gasto Serviço Cadastrado', `Gasto com Prestação de Serviços registrado para ${esc ? esc.denominação : ''}: ${desc} com NF ${numero} no valor de R$ ${valor}.`);
-        } else {
-            // Material de Consumo -> Custeio simples
-            // Logar
-            registerLog('Gasto Consumo Cadastrado', `Gasto com Material de Consumo registrado para ${esc ? esc.denominação : ''}: ${desc} com NF ${numero} no valor de R$ ${valor}.`);
-        }
-
-        // Registrar a Nota Fiscal na lista unificada
-        const newNota = {
-            id: 'nota-' + Date.now(),
-            escolaId: escolaId,
-            compKey: compKey, // '2026-05_BASIC'
-            desc: desc,
-            tipo: tipo,
-            numero: numero,
-            valor: valor,
-            bemId: bemId,
-            dataRegistro: new Date().toISOString()
-        };
-        notasRegistradas.push(newNota);
+        closeModal('modal-dados-nota');
+        renderProntuario(escolaId);
+        updateAlertsBell();
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível salvar a nota fiscal.');
     }
-    
-    persist();
-    closeModal('modal-dados-nota');
-    renderProntuario(escolaId);
-    updateAlertsBell();
 }
+
 
 function abrirEditarNota(notaId, escolaId) {
     const nota = notasRegistradas.find(n => n.id === notaId);
@@ -10202,61 +10062,30 @@ function toggleConsEnviada(escolaId, compKey, isChecked) {
     renderProntuario(escolaId);
 }
 
-function removerNotaRegistrada(notaId, escolaId) {
+async function removerNotaRegistrada(notaId, escolaId) {
     if (currentProfile === 'inventario' || currentProfile === 'sme') return;
-    const idx = notasRegistradas.findIndex(n => n.id === notaId);
-    if (idx === -1) return;
-
-    const nota = notasRegistradas[idx];
+    const nota = notasRegistradas.find(item => item.id === notaId);
+    if (!nota) return;
     if (blockConsolidatedFiscalNoteMutation(escolaId, nota.compKey)) return;
     if (!confirm('Deseja realmente remover esta nota fiscal registrada?')) return;
 
-    if (idx !== -1) {
-        const verification = verificacoes[escolaId]?.[nota.compKey];
-        if (verification) {
-            reopenConsolidationForAssistant(escolaId, nota.compKey, verification, true);
+    try {
+        const result = await radarInvoiceService.remove({
+            id: notaId,
+            schoolId: escolaId,
+            profile: currentProfile
+        });
+        rebuildOperationalIndexes();
+        if (result.value.resetFiscalAnalysis) {
+            alert('Aviso: Como você removeu todas as notas fiscais cadastradas para esta competência/programa, a análise técnica foi redefinida para "Não analisado".');
         }
-        
-        // Se a nota tiver bemId associado, remove do inventário (bens)
-        if (nota.bemId) {
-            bens = bens.filter(b => b.id !== nota.bemId);
-            rebuildOperationalIndexes();
-        }
-        
-        // Remove da lista de notas
-        const compProgKey = nota.compKey;
-        notasRegistradas.splice(idx, 1);
-        
-        // Se removeu a última nota de serviço, a consulta da assessoria pode voltar a ser "Não se aplica"
-        const remainingServices = notasRegistradas.filter(n => n.escolaId === escolaId && n.compKey === compProgKey && n.tipo === 'servico');
-        if (remainingServices.length === 0) {
-            const v = verificacoes[escolaId]?.[compProgKey];
-            if (v) {
-                v.bonificacao['consAssessoria'] = 'Não se aplica';
-                v.analise['consAssessoria'] = 'Correto';
-            }
-        }
-
-        // Se removeu a última nota fiscal e a análise técnica estava como "Correto" ou "Correto (Atrasado)" sob entrega "Sim",
-        // reseta a análise para "Não analisado" pois não há mais documentos cadastrados
-        const remainingNotes = notasRegistradas.filter(n => n.escolaId === escolaId && n.compKey === compProgKey);
-        if (remainingNotes.length === 0) {
-            const v = verificacoes[escolaId]?.[compProgKey];
-            if (v && v.bonificacao['notaFiscal'] === 'Sim' && (v.analise['notaFiscal'] === 'Correto' || v.analise['notaFiscal'] === 'Correto (Atrasado)')) {
-                v.analise['notaFiscal'] = 'Não analisado';
-                alert('Aviso: Como você removeu todas as notas fiscais cadastradas para esta competência/programa, a análise técnica foi redefinida para "Não analisado".');
-            }
-        }
-        
-        // Logar exclusão
-        const esc = escolas.find(x => x.id === escolaId);
-        registerLog('Nota Fiscal Removida', `Nota Fiscal ${nota.numero} de R$ ${nota.valor} foi excluída da escola ${esc ? esc.denominação : ''}.`);
-        
-        persist();
         renderProntuario(escolaId);
         updateAlertsBell();
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível remover a nota fiscal.');
     }
 }
+
 
 // 14.4 Regra de Consolidação de Bonificação (Apta / Inapta)
 async function calcularEFecharBonificacao(escolaId, compKey) {
@@ -10283,40 +10112,38 @@ async function calcularEFecharBonificacao(escolaId, compKey) {
 // 15. REGRA OPERACIONAL: REQUISITOS DE CAPITAL
 // ==========================================
 
-function updateCapitalDoc(bemId, field, value) {
+async function updateCapitalDoc(bemId, field, value) {
     if (currentProfile === 'inventario' || currentProfile === 'sme') return;
-    const b = bens.find(item => item.id === bemId);
-    if (b) {
-        b[field] = value;
-        persist();
+    try {
+        await radarInventoryService.updateAsset({
+            assetId: bemId,
+            field,
+            value,
+            profile: currentProfile
+        });
+        rebuildOperationalIndexes();
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível atualizar o bem patrimonial.');
+        if (activeSchoolId) renderProntuario(activeSchoolId);
     }
 }
 
-function encaminharCapital(bemId) {
+async function encaminharCapital(bemId) {
     if (currentProfile === 'inventario' || currentProfile === 'sme') return;
-    const b = bens.find(item => item.id === bemId);
-    if (!b) return;
-
-    const esc = escolas.find(e => e.id === b.escolaId);
-    const processo = esc ? esc.processoInventario : '';
-
-    if (!b.notaFiscal) {
-        alert('Erro de Validação: Não é possível encaminhar bens patrimoniais sem preencher o Número da Nota Fiscal.');
-        return;
+    try {
+        await radarInventoryService.forward({
+            assetId: bemId,
+            profile: currentProfile
+        });
+        rebuildOperationalIndexes();
+        renderProntuario(activeSchoolId);
+        updateAlertsBell();
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível encaminhar o bem patrimonial.');
     }
-    if (!processo) {
-        alert('Erro de Validação: A unidade escolar não possui um Processo de Inventário cadastrado para o exercício. Por favor, atualize os dados cadastrais da escola primeiro.');
-        return;
-    }
-
-    b.status = 'Encaminhada';
-    registerLog('Capital Encaminhado', `Aquisição ${b.item} da escola ${esc ? esc.denominação : ''} encaminhada ao inventariador com NF ${b.notaFiscal} no processo ${processo}.`);
-    
-    rebuildOperationalIndexes();
-    persist();
-    renderProntuario(activeSchoolId);
-    updateAlertsBell();
 }
+
+
 
 
 // ==========================================
@@ -10697,41 +10524,36 @@ async function saveEscolaEdit(e) {
 }
 
 // 16.4 Registrar Novo Bem de Capital
-function openNovoCapitalModal(escolaId) {
+async function openNovoCapitalModal(escolaId) {
     if (currentProfile === 'inventario' || currentProfile === 'sme') return;
-    // Para simplificar no MVP, adicionamos via formulário dinâmico simples
-    const dec = prompt("Descreva o bem patrimonial comprado (ex: Computador Desktop Dell):");
+    const dec = prompt('Descreva o bem patrimonial comprado (ex: Computador Desktop Dell):');
     if (!dec) return;
-    const valStr = prompt("Informe o valor da compra (ex: 2500):");
+    const valStr = prompt('Informe o valor da compra (ex: 2500):');
     const val = parseFloat(valStr);
-    if (isNaN(val)) {
-        alert("Valor inválido!");
+    if (Number.isNaN(val)) {
+        alert('Valor inválido!');
         return;
     }
-    const nf = prompt("Informe o número da Nota Fiscal (opcional para iniciar, ex: NF-84321):") || '';
+    const nf = prompt('Informe o número da Nota Fiscal (opcional para iniciar, ex: NF-84321):') || '';
 
-    const esc = escolas.find(x => x.id === escolaId);
-    const hasProcesso = esc && esc.processoInventario;
-
-    const newBem = {
-        id: 'bem-' + Date.now(),
-        escolaId: escolaId,
-        competencia: activeCompetenciaKey,
-        item: dec,
-        valor: val,
-        notaFiscal: nf,
-        status: (nf && hasProcesso) ? 'Encaminhada' : 'Não encaminhada'
-    };
-
-    bens.push(newBem);
-    rebuildOperationalIndexes();
-    const escObj = escolas.find(x => x.id === escolaId);
-    registerLog('Bem Cadastrado', `Gasto de capital de R$ ${val} registrado para ${escObj ? escObj.denominação : ''}: ${dec}.`);
-    
-    persist();
-    renderProntuario(escolaId);
-    updateAlertsBell();
+    try {
+        await radarInventoryService.createAsset({
+            schoolId: escolaId,
+            competence: activeCompetenciaKey,
+            description: dec,
+            amount: val,
+            invoiceNumber: nf,
+            profile: currentProfile
+        });
+        rebuildOperationalIndexes();
+        renderProntuario(escolaId);
+        updateAlertsBell();
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível registrar o bem patrimonial.');
+    }
 }
+
+
 
 
 // ==========================================
@@ -11251,6 +11073,7 @@ function exportDataExcel() {
     URL.revokeObjectURL(url);
     
     registerLog('Relatório Exportado', `Exportação da planilha consolidada de bonificações efetuada com sucesso.`);
+    persist('logs');
 }
 
 
@@ -11263,6 +11086,7 @@ function toggleTheme() {
     localStorage.setItem('radar_pdde_theme', isDark ? 'dark' : 'light');
     updateThemeIcon(isDark);
     registerLog('Tema Alterado', `Tema visual alterado para ${isDark ? 'Escuro' : 'Claro'}.`);
+    persist('logs');
 }
 
 function updateThemeIcon(isDark) {

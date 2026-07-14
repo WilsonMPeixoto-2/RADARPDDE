@@ -32,7 +32,7 @@ select ok(
 select ok(
     has_function_privilege(
         'authenticated',
-        'public.save_invoice_with_effects(jsonb,jsonb,jsonb,integer,integer,integer)',
+        'public.save_invoice_with_effects(jsonb,jsonb,jsonb,integer,integer,integer,jsonb)',
         'EXECUTE'
     ),
     'authenticated executa a RPC de salvamento'
@@ -40,7 +40,7 @@ select ok(
 select ok(
     not has_function_privilege(
         'anon',
-        'public.save_invoice_with_effects(jsonb,jsonb,jsonb,integer,integer,integer)',
+        'public.save_invoice_with_effects(jsonb,jsonb,jsonb,integer,integer,integer,jsonb)',
         'EXECUTE'
     ),
     'anon não executa a RPC de salvamento'
@@ -48,7 +48,7 @@ select ok(
 select ok(
     has_function_privilege(
         'authenticated',
-        'public.delete_invoice_with_effects(text,integer,boolean,integer,jsonb,integer)',
+        'public.delete_invoice_with_effects(text,integer,boolean,integer,jsonb,integer,jsonb)',
         'EXECUTE'
     ),
     'authenticated pode invocar a RPC de remoção, sujeita à autorização interna'
@@ -56,20 +56,20 @@ select ok(
 select ok(
     not has_function_privilege(
         'anon',
-        'public.delete_invoice_with_effects(text,integer,boolean,integer,jsonb,integer)',
+        'public.delete_invoice_with_effects(text,integer,boolean,integer,jsonb,integer,jsonb)',
         'EXECUTE'
     ),
     'anon não executa a RPC de remoção'
 );
 select is(
-    (select prosecdef from pg_proc where oid = 'public.save_invoice_with_effects(jsonb,jsonb,jsonb,integer,integer,integer)'::regprocedure),
+    (select prosecdef from pg_proc where oid = 'public.save_invoice_with_effects(jsonb,jsonb,jsonb,integer,integer,integer,jsonb)'::regprocedure),
     false,
     'RPC de salvamento é SECURITY INVOKER'
 );
 select is(
-    (select prosecdef from pg_proc where oid = 'public.delete_invoice_with_effects(text,integer,boolean,integer,jsonb,integer)'::regprocedure),
-    false,
-    'RPC de remoção é SECURITY INVOKER'
+    (select prosecdef from pg_proc where oid = 'public.delete_invoice_with_effects(text,integer,boolean,integer,jsonb,integer,jsonb)'::regprocedure),
+    true,
+    'RPC de remoção é SECURITY DEFINER com autorização interna e escopo fixo'
 );
 
 select * from finish();

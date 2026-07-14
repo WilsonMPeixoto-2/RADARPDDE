@@ -252,6 +252,74 @@ test('remove registro por id', async () => {
     assert.deepEqual(client.dump('pendencies'), [{ id: 'p2' }]);
 });
 
+test('executa RPCs atômicas de nota com versões e auditoria sem upserts paralelos', async () => {
+    const rpcCalls = [];
+    const client = createSupabaseClient();
+    client.rpc = async (name, args) => {
+        rpcCalls.push({ name, args: structuredClone(args) });
+        return { data: { ok: true, name }, error: null };
+    };
+    const repository = new SupabaseRepository({ client });
+
+    const saved = await repository.saveInvoiceWithEffects({
+        invoice: { id: 'nota-1', school_id: 'ESC-1' },
+        asset: { id: 'bem-1', school_id: 'ESC-1' },
+        verificationPatch: { id: 'ver-1', analysis: {} },
+        administrativeLog: { id: 'log-1', action: 'Nota Editada' },
+        expectedInvoiceVersion: 2,
+        expectedAssetVersion: 3,
+        expectedVerificationVersion: 4
+    });
+    const removed = await repository.deleteInvoiceWithEffects({
+        invoiceId: 'nota-1',
+        expectedInvoiceVersion: 3,
+        deleteLinkedAsset: true,
+        expectedAssetVersion: 4,
+        verificationPatch: { id: 'ver-1', analysis: {} },
+        expectedVerificationVersion: 5,
+        administrativeLog: { id: 'log-2', action: 'Nota Fiscal Removida' }
+    });
+
+    assert.deepEqual(saved, { ok: true, name: 'save_invoice_with_effects' });
+    assert.deepEqual(removed, { ok: true, name: 'delete_invoice_with_effects' });
+    assert.equal(rpcCalls.length, 2);
+    assert.deepEqual(rpcCalls[0], {
+        name: 'save_invoice_with_effects',
+        args: {
+            p_invoice: { id: 'nota-1', school_id: 'ESC-1' },
+            p_asset: { id: 'bem-1', school_id: 'ESC-1' },
+            p_verification_patch: { id: 'ver-1', analysis: {} },
+            p_expected_invoice_version: 2,
+            p_expected_asset_version: 3,
+            p_expected_verification_version: 4,
+            p_administrative_log: { id: 'log-1', action: 'Nota Editada' }
+        }
+    });
+    assert.equal(rpcCalls[1].args.p_invoice_id, 'nota-1');
+    assert.equal(rpcCalls[1].args.p_administrative_log.id, 'log-2');
+    assert.equal(repository.capabilities().atomicInvoiceEffects, true);
+    assert.equal(client.calls.length, 0);
+});
+
+test('traduz conflito otimista devolvido pela RPC para erro canônico', async () => {
+    const client = createSupabaseClient();
+    client.rpc = async () => ({
+        data: null,
+        error: { message: 'OPTIMISTIC_CONFLICT: registered_invoices/nota-1' }
+    });
+    const repository = new SupabaseRepository({ client });
+
+    await assert.rejects(
+        repository.saveInvoiceWithEffects({
+            invoice: { id: 'nota-1', school_id: 'ESC-1' },
+            expectedInvoiceVersion: 1
+        }),
+        error => error instanceof RepositoryError
+            && error.code === 'OPTIMISTIC_CONFLICT'
+            && error.operation === 'saveInvoiceWithEffects'
+    );
+});
+
 test('recusa construção sem cliente Supabase válido', () => {
     assert.throws(
         () => new SupabaseRepository({ client: null }),

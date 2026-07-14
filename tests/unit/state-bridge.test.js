@@ -285,6 +285,37 @@ test('ida e volta preserva o modelo canônico atual', () => {
     assert.equal(reconciliation.ok, true, JSON.stringify(reconciliation.entities, null, 2));
 });
 
+test('ida e volta preserva row_version de nota, bem e verificação para concorrência otimista', () => {
+    const source = bridge.exportLegacySnapshot(createOperationalStorage(), {
+        importId: 'versions-source',
+        exportedAt: '2026-07-14T00:00:00.000Z'
+    });
+    source.snapshot.entities.registeredInvoices[0].row_version = 7;
+    source.snapshot.entities.assets[0].row_version = 8;
+    source.snapshot.entities.verifications[0].row_version = 9;
+    const storage = createMemoryStorage();
+
+    bridge.restoreCanonicalSnapshotToLegacyStorage(source.snapshot, storage, {
+        dataVersion: 'versions-restored'
+    });
+
+    const invoice = JSON.parse(storage.getItem('radar_pdde_notas_registradas'))[0];
+    const asset = JSON.parse(storage.getItem('radar_pdde_bens'))[0];
+    const verification = JSON.parse(storage.getItem('radar_pdde_verificacoes'))
+        ['04.31.001']['2026-05_ED_FAMILIA'];
+    assert.equal(invoice.rowVersion, 7);
+    assert.equal(asset.rowVersion, 8);
+    assert.equal(verification.rowVersion, 9);
+
+    const roundtrip = bridge.exportLegacySnapshot(storage, {
+        importId: 'versions-target',
+        exportedAt: '2026-07-14T00:00:01.000Z'
+    });
+    assert.equal(roundtrip.snapshot.entities.registeredInvoices[0].row_version, 7);
+    assert.equal(roundtrip.snapshot.entities.assets[0].row_version, 8);
+    assert.equal(roundtrip.snapshot.entities.verifications[0].row_version, 9);
+});
+
 test('metadados não ocultam uma alteração funcional posterior no localStorage', () => {
     const source = bridge.exportLegacySnapshot(createOperationalStorage(), {
         importId: 'changed-source',

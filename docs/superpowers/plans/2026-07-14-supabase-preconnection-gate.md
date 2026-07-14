@@ -120,13 +120,13 @@
 - `VerificationService.setBonification`, `setTechnicalAnalysis`, `setSubmission`, `closeBonification` e `retify` preservam os cálculos existentes.
 - `PendencyService.open`, `registerAttempt`, `reanalyze`, `resolve`, `cancel`, `reopen` e `registerContact` atualizam pendência, tentativa, verificação e log atomicamente.
 
-- [ ] Criar testes de caracterização para todos os quatro estados canônicos, tentativa numerada, erros múltiplos, novo envio, reanálise, cancelamento, reabertura e retificação.
-- [ ] Confirmar que os testes falham enquanto os handlers alterarem diretamente as raízes globais.
-- [ ] Implementar serviços usando `RadarPendencias`, `RadarRetificacoes` e regras existentes como fonte, sem duplicar lógica.
-- [ ] Converter handlers para `async`, aguardar o serviço antes de fechar modal e conservar foco/contexto em falhas.
-- [ ] Remover persistências internas paralelas das integrações e centralizar auditoria na unidade de trabalho.
-- [ ] Executar testes unitários e E2E de pendências/retificações.
-- [ ] Commitar como `refactor: integrar pendencias ao gateway de dados`.
+- [x] Criar testes de caracterização para todos os quatro estados canônicos, tentativa numerada, erros múltiplos, novo envio, reanálise, cancelamento, reabertura e retificação.
+- [x] Confirmar que os testes falham enquanto os handlers alterarem diretamente as raízes globais.
+- [x] Implementar serviços usando `RadarPendencias`, `RadarRetificacoes` e regras existentes como fonte, sem duplicar lógica.
+- [x] Converter handlers para `async`, aguardar o serviço antes de fechar modal e conservar foco/contexto em falhas.
+- [x] Remover persistências internas paralelas das integrações e centralizar auditoria na unidade de trabalho.
+- [x] Executar testes unitários e E2E de pendências/retificações.
+- [x] Commitar em `d59274d` e `bd8d453` como integração dos fluxos documentais ao gateway.
 
 ### Tarefa 5: Serviços de notas, bens, inventário e logs
 
@@ -146,12 +146,12 @@
 - `InventoryService.updateAsset/forward/inventory` preserva responsável, data, processo, observações e vínculos.
 - `AuditService.record(event)` participa da mesma unidade de trabalho; `registerLog` deixa de iniciar persistência aninhada.
 
-- [ ] Escrever testes para notas de consumo, serviço e permanente, edição, remoção, bem derivado, verificação derivada, concorrência e rollback.
-- [ ] Executar os testes e confirmar falha antes dos serviços.
-- [ ] Implementar RPC no repositório Supabase e transação equivalente no local.
-- [ ] Migrar handlers e tornar logs parte do commit único.
-- [ ] Executar unitários, E2E funcional e testes existentes das RPCs.
-- [ ] Commitar como `refactor: integrar notas e inventario ao gateway`.
+- [x] Escrever testes para notas de consumo, serviço e permanente, edição, remoção, bem derivado, verificação derivada, concorrência e rollback.
+- [x] Executar os testes e confirmar falha antes dos serviços.
+- [x] Implementar RPC no repositório Supabase e transação equivalente no local.
+- [x] Migrar handlers e tornar logs parte do commit único.
+- [x] Executar unitários, E2E funcional e testes existentes das RPCs.
+- [x] Commitar como `refactor: integrar notas e inventario ao gateway`.
 
 ### Tarefa 6: Configuração pública gerada e verificação de tipos
 

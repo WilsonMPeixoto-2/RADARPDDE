@@ -1037,6 +1037,7 @@ export type Database = {
       current_controller_id: { Args: never; Returns: string }
       delete_invoice_with_effects: {
         Args: {
+          p_administrative_log?: Json
           p_delete_linked_asset?: boolean
           p_expected_asset_version?: number
           p_expected_invoice_version: number
@@ -1048,6 +1049,7 @@ export type Database = {
       }
       save_invoice_with_effects: {
         Args: {
+          p_administrative_log?: Json
           p_asset?: Json
           p_expected_asset_version?: number
           p_expected_invoice_version?: number

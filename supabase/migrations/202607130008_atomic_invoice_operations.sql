@@ -1,5 +1,6 @@
 -- RADAR PDDE — operações atômicas para notas fiscais e seus efeitos derivados.
--- As funções usam SECURITY INVOKER: RLS e privilégios do usuário autenticado continuam válidos.
+-- O salvamento usa SECURITY INVOKER. A remoção usa SECURITY DEFINER somente para
+-- atravessar a política que bloqueia DELETE direto, mantendo autorização interna por escola.
 
 create or replace function public.save_invoice_with_effects(
     p_invoice jsonb,
@@ -7,7 +8,8 @@ create or replace function public.save_invoice_with_effects(
     p_verification_patch jsonb default null,
     p_expected_invoice_version integer default null,
     p_expected_asset_version integer default null,
-    p_expected_verification_version integer default null
+    p_expected_verification_version integer default null,
+    p_administrative_log jsonb default null
 )
 returns jsonb
 language plpgsql
@@ -210,6 +212,33 @@ begin
         where id = v_verification_id;
     end if;
 
+    if p_administrative_log is not null then
+        if nullif(p_administrative_log ->> 'id', '') is null
+            or nullif(p_administrative_log ->> 'action', '') is null then
+            raise exception 'VALIDATION_ERROR: log administrativo exige id e action';
+        end if;
+
+        insert into public.administrative_logs (
+            id,
+            school_id,
+            actor_user_id,
+            user_identifier,
+            profile_name,
+            action,
+            details,
+            event_at
+        ) values (
+            p_administrative_log ->> 'id',
+            v_school_id,
+            auth.uid(),
+            coalesce(p_administrative_log ->> 'user_identifier', ''),
+            coalesce(p_administrative_log ->> 'profile_name', public.current_app_role(), ''),
+            p_administrative_log ->> 'action',
+            coalesce(p_administrative_log -> 'details', '{}'::jsonb),
+            coalesce(nullif(p_administrative_log ->> 'event_at', '')::timestamptz, now())
+        );
+    end if;
+
     return jsonb_build_object(
         'invoice', to_jsonb(v_invoice),
         'asset', case when v_asset.id is null then null else to_jsonb(v_asset) end,
@@ -224,11 +253,12 @@ create or replace function public.delete_invoice_with_effects(
     p_delete_linked_asset boolean default true,
     p_expected_asset_version integer default null,
     p_verification_patch jsonb default null,
-    p_expected_verification_version integer default null
+    p_expected_verification_version integer default null,
+    p_administrative_log jsonb default null
 )
 returns jsonb
 language plpgsql
-security invoker
+security definer
 set search_path = pg_catalog, public
 as $$
 declare
@@ -248,10 +278,6 @@ begin
 
     if not public.can_write_school(v_invoice.school_id) then
         raise exception 'AUTHORIZATION_DENIED: usuário sem permissão de escrita para a escola %', v_invoice.school_id;
-    end if;
-
-    if public.current_app_role() <> 'technical_admin' then
-        raise exception 'AUTHORIZATION_DENIED: exclusão física exige Administrador técnico';
     end if;
 
     if v_invoice.row_version <> p_expected_invoice_version then
@@ -316,6 +342,33 @@ begin
         end if;
     end if;
 
+    if p_administrative_log is not null then
+        if nullif(p_administrative_log ->> 'id', '') is null
+            or nullif(p_administrative_log ->> 'action', '') is null then
+            raise exception 'VALIDATION_ERROR: log administrativo exige id e action';
+        end if;
+
+        insert into public.administrative_logs (
+            id,
+            school_id,
+            actor_user_id,
+            user_identifier,
+            profile_name,
+            action,
+            details,
+            event_at
+        ) values (
+            p_administrative_log ->> 'id',
+            v_invoice.school_id,
+            auth.uid(),
+            coalesce(p_administrative_log ->> 'user_identifier', ''),
+            coalesce(p_administrative_log ->> 'profile_name', public.current_app_role(), ''),
+            p_administrative_log ->> 'action',
+            coalesce(p_administrative_log -> 'details', '{}'::jsonb),
+            coalesce(nullif(p_administrative_log ->> 'event_at', '')::timestamptz, now())
+        );
+    end if;
+
     return jsonb_build_object(
         'deleted_invoice_id', p_invoice_id,
         'deleted_asset_id', case when v_asset.id is null or not p_delete_linked_asset then null else v_asset.id end,
@@ -324,8 +377,8 @@ begin
 end
 $$;
 
-revoke all on function public.save_invoice_with_effects(jsonb, jsonb, jsonb, integer, integer, integer) from public;
-revoke all on function public.delete_invoice_with_effects(text, integer, boolean, integer, jsonb, integer) from public;
+revoke all on function public.save_invoice_with_effects(jsonb, jsonb, jsonb, integer, integer, integer, jsonb) from public;
+revoke all on function public.delete_invoice_with_effects(text, integer, boolean, integer, jsonb, integer, jsonb) from public;
 
-grant execute on function public.save_invoice_with_effects(jsonb, jsonb, jsonb, integer, integer, integer) to authenticated;
-grant execute on function public.delete_invoice_with_effects(text, integer, boolean, integer, jsonb, integer) to authenticated;
+grant execute on function public.save_invoice_with_effects(jsonb, jsonb, jsonb, integer, integer, integer, jsonb) to authenticated;
+grant execute on function public.delete_invoice_with_effects(text, integer, boolean, integer, jsonb, integer, jsonb) to authenticated;

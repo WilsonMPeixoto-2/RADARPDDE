@@ -16,11 +16,11 @@ select has_column('public', 'assets', 'inventoried_by_member_id', 'bem possui in
 select has_column('public', 'competences', 'bonus_deadline', 'competência possui prazo de bonificação');
 select has_column('public', 'verifications', 'payload', 'verificação preserva extensões auditáveis');
 select ok(
-    to_regprocedure('public.save_invoice_with_effects(jsonb,jsonb,jsonb,integer,integer,integer)') is not null,
+    to_regprocedure('public.save_invoice_with_effects(jsonb,jsonb,jsonb,integer,integer,integer,jsonb)') is not null,
     'RPC atômica de salvamento existe'
 );
 select ok(
-    to_regprocedure('public.delete_invoice_with_effects(text,integer,boolean,integer,jsonb,integer)') is not null,
+    to_regprocedure('public.delete_invoice_with_effects(text,integer,boolean,integer,jsonb,integer,jsonb)') is not null,
     'RPC atômica de remoção existe'
 );
 select ok(
