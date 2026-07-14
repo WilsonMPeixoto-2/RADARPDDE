@@ -25,83 +25,8 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: Preserve promotion cause and add regression test
-        shell: bash
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          from pathlib import Path
-          coordinator = Path('src/data/import-coordinator.js')
-          source = coordinator.read_text()
-          old = (
-              "            } catch (error) {\n"
-              "                await this.rollback(snapshot.importId, { preserveFailure: true });\n"
-              "                throw error;\n"
-              "            }\n"
-          )
-          new = (
-              "            } catch (error) {\n"
-              "                let rollbackError = null;\n"
-              "                try {\n"
-              "                    await this.rollback(snapshot.importId, { preserveFailure: true });\n"
-              "                } catch (candidate) {\n"
-              "                    rollbackError = candidate;\n"
-              "                }\n"
-              "                if (rollbackError) {\n"
-              "                    throw new RepositoryError(\n"
-              "                        error?.code || 'TRANSACTION_FAILED',\n"
-              "                        error?.message || 'A promoção da importação falhou.',\n"
-              "                        {\n"
-              "                            cause: error,\n"
-              "                            operation: error?.operation || 'migration:promote',\n"
-              "                            entity: error?.entity || null,\n"
-              "                            details: cloneValue({\n"
-              "                                ...(error?.details || {}),\n"
-              "                                rollbackCode: rollbackError?.code || 'ROLLBACK_FAILED',\n"
-              "                                rollbackMessage: rollbackError?.message || null\n"
-              "                            })\n"
-              "                        }\n"
-              "                    );\n"
-              "                }\n"
-              "                throw error;\n"
-              "            }\n"
-          )
-          if old not in source:
-              raise SystemExit('Bloco de promoção esperado não localizado.')
-          coordinator.write_text(source.replace(old, new, 1))
-
-          test_file = Path('tests/unit/import-coordinator.test.js')
-          tests = test_file.read_text()
-          addition = """
-
-test('falha de promoção preserva a causa original quando o rollback remoto não está disponível', async () => {
-    const target = new LocalStorageRepository({ storage: storage(), keyPrefix: 'target' });
-    target.promoteImportSnapshot = async () => {
-        const error = new Error('PROMOTION_FAILED: constraint violation');
-        error.code = 'PROMOTION_FAILED';
-        throw error;
-    };
-    target.rollbackImport = async () => {
-        const error = new Error('IMPORT_ROLLBACK_UNAVAILABLE: promotion-test');
-        error.code = 'IMPORT_ROLLBACK_UNAVAILABLE';
-        throw error;
-    };
-    const coordinator = new ImportCoordinator({
-        targetRepository: target,
-        checkpointStore: createMemoryCheckpointStore()
-    });
-
-    await assert.rejects(
-        coordinator.import(sourceSnapshot('promotion-test')),
-        error => error.code === 'PROMOTION_FAILED'
-            && error.message.includes('constraint violation')
-            && error.details?.rollbackCode === 'IMPORT_ROLLBACK_UNAVAILABLE'
-    );
-});
-"""
-          if 'falha de promoção preserva a causa original' not in tests:
-              test_file.write_text(tests + addition)
-          PY
+      - name: Apply deterministic correction
+        run: node .github/apply-promotion-diagnostics.mjs
 
       - name: Validate focused and complete readiness
         run: |
@@ -114,7 +39,7 @@ test('falha de promoção preserva a causa original quando o rollback remoto nã
         run: |
           set -euo pipefail
           git add src/data/import-coordinator.js tests/unit/import-coordinator.test.js
-          git rm -f .github/workflows/fix-promotion-error-preservation.yml
+          git rm -f .github/apply-promotion-diagnostics.mjs .github/workflows/fix-promotion-error-preservation.yml
           git config user.name 'RADAR Gate Automation'
           git config user.email 'actions@users.noreply.github.com'
           git commit -m 'fix: preservar causa original da falha de promoção'
