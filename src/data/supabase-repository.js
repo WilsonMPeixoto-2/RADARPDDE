@@ -76,6 +76,20 @@
 
     const NON_RESTORABLE_ENTITIES = Object.freeze(['auditEvents']);
     const NON_RESTORABLE_SET = new Set(NON_RESTORABLE_ENTITIES);
+    const DEFAULT_PAGE_SIZE = 500;
+    const DEFAULT_WRITE_BATCH_SIZE = 250;
+
+    function positiveInteger(value, fallback) {
+        return Number.isInteger(value) && value > 0 ? value : fallback;
+    }
+
+    function chunks(records, size) {
+        const result = [];
+        for (let offset = 0; offset < records.length; offset += size) {
+            result.push(records.slice(offset, offset + size));
+        }
+        return result;
+    }
 
     class SupabaseRepository {
         constructor(options = {}) {
@@ -92,6 +106,11 @@
                 ...DEFAULT_TABLE_MAP,
                 ...(options.tableMap || {})
             });
+            this.pageSize = positiveInteger(options.pageSize, DEFAULT_PAGE_SIZE);
+            this.writeBatchSize = positiveInteger(
+                options.writeBatchSize,
+                DEFAULT_WRITE_BATCH_SIZE
+            );
         }
 
         tableFor(entity) {
@@ -124,27 +143,93 @@
             }
         }
 
-        async load(entity) {
+        async loadPage(entity, offset = 0, limit = this.pageSize) {
             const table = this.tableFor(entity);
-            const data = await this.execute(
-                entity,
-                'load',
-                this.client.from(table).select('*')
-            );
+            const pageSize = positiveInteger(limit, this.pageSize);
+            const start = Math.max(0, Number.isInteger(offset) ? offset : 0);
+            let query = this.client.from(table).select('*');
+            if (typeof query.order === 'function') {
+                query = query.order('id', { ascending: true });
+            }
+            if (typeof query.range === 'function') {
+                query = query.range(start, start + pageSize - 1);
+            }
+            const data = await this.execute(entity, 'loadPage', query);
             return normalizeCollection(data);
         }
 
-        async save(entity, records) {
+        async load(entity) {
+            const rows = [];
+            let offset = 0;
+
+            while (true) {
+                const page = await this.loadPage(entity, offset, this.pageSize);
+                rows.push(...page);
+                if (page.length < this.pageSize) break;
+                offset += page.length;
+            }
+
+            return cloneValue(rows);
+        }
+
+        async save(entity, records, options = {}) {
             const table = this.tableFor(entity);
             const collection = normalizeCollection(records);
             if (collection.length === 0) return [];
+            const batchSize = positiveInteger(options.batchSize, this.writeBatchSize);
 
-            await this.execute(
-                entity,
-                'save',
-                this.client.from(table).upsert(collection)
-            );
+            for (const batch of chunks(collection, batchSize)) {
+                await this.execute(
+                    entity,
+                    'save',
+                    this.client.from(table).upsert(batch)
+                );
+            }
             return cloneValue(collection);
+        }
+
+        async updateWithVersion(entity, record, expectedVersion) {
+            const table = this.tableFor(entity);
+            const id = record && record.id;
+            if (id === undefined || id === null || id === '') {
+                throw new RepositoryError(
+                    'MISSING_RECORD_ID',
+                    'A atualização otimista exige um identificador explícito.',
+                    { entity, operation: 'updateWithVersion' }
+                );
+            }
+            if (!Number.isInteger(expectedVersion) || expectedVersion <= 0) {
+                throw new RepositoryError(
+                    'INVALID_ROW_VERSION',
+                    'A atualização otimista exige row_version positivo.',
+                    { entity, operation: 'updateWithVersion', details: { id, expectedVersion } }
+                );
+            }
+
+            const payload = cloneValue(record);
+            delete payload.id;
+            delete payload.row_version;
+
+            let query = this.client.from(table).update(payload).eq('id', id).eq(
+                'row_version',
+                expectedVersion
+            );
+            if (typeof query.select === 'function') query = query.select('*');
+            const updatedRows = await this.execute(entity, 'updateWithVersion', query);
+
+            if (updatedRows.length === 0) {
+                throw new RepositoryError(
+                    'OPTIMISTIC_CONFLICT',
+                    `O registro ${String(id)} foi alterado por outra sessão.`,
+                    {
+                        entity,
+                        operation: 'updateWithVersion',
+                        details: { id, expectedVersion }
+                    }
+                );
+            }
+
+            return cloneValue(updatedRows[0]);
         }
 
         async remove(entity, id) {
@@ -180,7 +265,7 @@
             });
         }
 
-        async restoreSnapshot(snapshot) {
+        async restoreSnapshot(snapshot, options = {}) {
             if (!snapshot
                 || typeof snapshot !== 'object'
                 || snapshot.format !== SNAPSHOT_FORMAT
@@ -208,7 +293,7 @@
                 ));
 
             for (const entity of orderedEntities) {
-                await this.save(entity, snapshot.entities[entity]);
+                await this.save(entity, snapshot.entities[entity], options);
             }
 
             return {
@@ -222,7 +307,7 @@
 
         async healthCheck() {
             try {
-                await this.load('appConfig');
+                await this.loadPage('appConfig', 0, 1);
                 return { ok: true, mode: 'supabase', writable: null };
             } catch (error) {
                 return {
@@ -239,6 +324,8 @@
         DEFAULT_TABLE_MAP,
         IMPORT_ENTITY_ORDER,
         NON_RESTORABLE_ENTITIES,
+        DEFAULT_PAGE_SIZE,
+        DEFAULT_WRITE_BATCH_SIZE,
         SupabaseRepository
     });
 }));
