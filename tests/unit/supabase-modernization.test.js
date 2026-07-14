@@ -26,6 +26,7 @@ test('ferramentas Supabase modernas estão fixadas e reproduzíveis', () => {
     assert.equal(pkg.scripts['supabase:start'], 'supabase start');
     assert.equal(pkg.scripts['supabase:stop'], 'supabase stop --no-backup');
     assert.equal(pkg.scripts['supabase:test:db'], 'supabase test db supabase/tests/database');
+    assert.equal(pkg.scripts['supabase:lint:db'], 'supabase db lint --local --schema public --level warning --fail-on error');
     assert.equal(pkg.scripts['supabase:gen:types'], 'supabase gen types typescript --local --schema public > src/types/database.types.ts');
     assert.equal(pkg.scripts['build:supabase-client'], 'node scripts/build-supabase-client.mjs');
     assert.equal(pkg.scripts['check:generated'], 'node scripts/check-generated-artifacts.js');
@@ -51,10 +52,11 @@ test('HTML não usa mais CDN flutuante do Supabase', () => {
     assert.match(html, /<script\s+src=["']vendor\/supabase-client\.js["']><\/script>/i);
 });
 
-test('CI executa pgTAP, valida tipos e bundle gerados', () => {
+test('CI executa pgTAP, lint, valida tipos e bundle gerados', () => {
     const workflow = read('.github/workflows/supabase-readiness.yml');
     assert.match(workflow, /npm\s+run\s+supabase:start/i);
     assert.match(workflow, /npm\s+run\s+supabase:test:db/i);
+    assert.match(workflow, /npm\s+run\s+supabase:lint:db/i);
     assert.match(workflow, /npm\s+run\s+supabase:gen:types/i);
     assert.match(workflow, /npm\s+run\s+build:supabase-client/i);
     assert.match(workflow, /npm\s+run\s+check:generated/i);
