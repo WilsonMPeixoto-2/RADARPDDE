@@ -1,9 +1,7 @@
 name: Empacotar Preview direto
 
 on:
-  push:
-    branches:
-      - feature/supabase-readiness
+  pull_request:
     paths:
       - '.github/workflows/package-preview-source.yml'
 
@@ -18,7 +16,7 @@ jobs:
       - name: Checkout do HEAD
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
-          ref: feature/supabase-readiness
+          ref: ${{ github.head_ref }}
           fetch-depth: 1
 
       - name: Registrar commit empacotado
