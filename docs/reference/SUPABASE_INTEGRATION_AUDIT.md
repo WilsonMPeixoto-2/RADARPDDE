@@ -96,7 +96,7 @@ A conexão real permanece intencionalmente desativada. Isso é uma salvaguarda, 
 - TypeScript `7.0.2` verificando o contrato gerado do banco;
 - tipos TypeScript gerados em `src/types/database.types.ts`;
 - ambiente local versionado em `supabase/config.toml`;
-- 48 verificações pgTAP para schema, RLS, grants e RPCs;
+- 61 verificações pgTAP para schema, RLS, grants e RPCs;
 - smoke test adicional em PostgreSQL 17 puro;
 - lint de PL/pgSQL com falha em erro;
 - `package-lock.json`, `npm ci`, `npm audit` e Dependabot;

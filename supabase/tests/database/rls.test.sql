@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
 
-select plan(20);
+select plan(33);
 
 select ok(
     (select relrowsecurity from pg_class where oid = 'public.schools'::regclass),
@@ -102,6 +102,58 @@ select ok(
 select ok(
     not has_function_privilege('anon', 'public.current_app_role()', 'EXECUTE'),
     'anon não consulta o papel institucional'
+);
+select ok(
+    has_schema_privilege('service_role', 'public', 'USAGE'),
+    'service_role acessa explicitamente o schema para o bootstrap administrativo'
+);
+select ok(
+    has_table_privilege('service_role', 'public.controllers', 'SELECT'),
+    'service_role localiza o controlador que será vinculado ao usuário Auth'
+);
+select ok(
+    has_table_privilege('service_role', 'public.controllers', 'UPDATE'),
+    'service_role vincula o controlador ao usuário Auth'
+);
+select ok(
+    has_table_privilege('service_role', 'public.inventory_team_members', 'SELECT'),
+    'service_role localiza o integrante de inventário que será vinculado'
+);
+select ok(
+    has_table_privilege('service_role', 'public.inventory_team_members', 'UPDATE'),
+    'service_role vincula o integrante de inventário ao usuário Auth'
+);
+select ok(
+    has_table_privilege('service_role', 'public.user_profiles', 'SELECT'),
+    'service_role consulta os perfis dos usuários provisionados'
+);
+select ok(
+    has_table_privilege('service_role', 'public.user_profiles', 'INSERT'),
+    'service_role cria vínculos de perfil no bootstrap'
+);
+select ok(
+    has_table_privilege('service_role', 'public.user_profiles', 'UPDATE'),
+    'service_role atualiza vínculos de perfil no bootstrap idempotente'
+);
+select ok(
+    has_table_privilege('service_role', 'public.user_school_scopes', 'SELECT'),
+    'service_role consulta os escopos escolares provisionados'
+);
+select ok(
+    has_table_privilege('service_role', 'public.user_school_scopes', 'INSERT'),
+    'service_role cria escopos escolares no bootstrap'
+);
+select ok(
+    has_table_privilege('service_role', 'public.user_school_scopes', 'UPDATE'),
+    'service_role atualiza escopos escolares no bootstrap idempotente'
+);
+select ok(
+    not has_table_privilege('service_role', 'public.user_profiles', 'DELETE'),
+    'service_role não remove perfis pelo bootstrap'
+);
+select ok(
+    not has_table_privilege('service_role', 'public.user_school_scopes', 'DELETE'),
+    'service_role não remove escopos pelo bootstrap'
 );
 
 select * from finish();

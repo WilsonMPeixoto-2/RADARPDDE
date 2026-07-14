@@ -20,7 +20,17 @@ test('migration fecha Data API anônima e concede somente operações sujeitas a
     assert.match(sql, /grant\s+select[\s\S]+profiles[\s\S]+user_profiles[\s\S]+user_school_scopes[\s\S]+to\s+authenticated/i);
     assert.match(sql, /grant\s+select,\s*insert,\s*update,\s*delete[\s\S]+to\s+authenticated/i);
     assert.match(sql, /alter\s+default\s+privileges[\s\S]+revoke\s+all[\s\S]+from\s+anon/i);
-    assert.doesNotMatch(sql, /service_role/i);
+    assert.match(sql, /grant\s+usage\s+on\s+schema\s+public\s+to\s+service_role/i);
+    assert.match(sql, /grant\s+select,\s*update\s+on\s+table[\s\S]+controllers[\s\S]+inventory_team_members[\s\S]+to\s+service_role/i);
+    assert.match(sql, /grant\s+select,\s*insert,\s*update\s+on\s+table[\s\S]+user_profiles[\s\S]+user_school_scopes[\s\S]+to\s+service_role/i);
+    const serviceRoleGrants = sql
+        .replace(/--.*$/gm, '')
+        .split(';')
+        .filter(statement => /\bgrant\b/i.test(statement) && /to\s+service_role\s*$/i.test(statement.trim()));
+    serviceRoleGrants.forEach(statement => {
+        assert.doesNotMatch(statement, /grant\s+all/i);
+        assert.doesNotMatch(statement, /\bdelete\b/i);
+    });
 });
 
 test('manifesto local contém sete identidades e cinco perfis ativos determinísticos', () => {

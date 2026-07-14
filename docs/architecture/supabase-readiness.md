@@ -158,7 +158,7 @@ O smoke test aplica as dez migrations em um PostgreSQL efêmero e exercita vers�
 
 ### Supabase local e pgTAP
 
-A pilha local aplica as migrations reais e executa 48 verificações declarativas de:
+A pilha local aplica as migrations reais e executa 61 verificações declarativas de:
 
 - schema e colunas;
 - funções e privilégios;

@@ -93,42 +93,42 @@ test('RLS permite escrita na carteira do controlador e bloqueia escopos somente 
 
     const result = await page.evaluate(async () => {
         const client = window.RadarSessionContext.service.client;
-        const before = await client.from('schools').select('id, name').order('id');
+        const before = await client.from('schools').select('id, denomination').order('id');
         if (before.error) throw before.error;
         const own = before.data.find(row => row.id === 'ESC-LOCAL');
         const readOnly = before.data.find(row => row.id === 'ESC-OTHER');
-        const deniedName = `${readOnly.name} - alteração bloqueada`;
+        const deniedName = `${readOnly.denomination} - alteração bloqueada`;
         const denied = await client.from('schools')
-            .update({ name: deniedName })
+            .update({ denomination: deniedName })
             .eq('id', readOnly.id)
-            .select('id, name');
+            .select('id, denomination');
         const readOnlyAfter = await client.from('schools')
-            .select('id, name')
+            .select('id, denomination')
             .eq('id', readOnly.id)
             .single();
 
-        const changedName = `${own.name} - teste RLS`;
+        const changedName = `${own.denomination} - teste RLS`;
         const allowed = await client.from('schools')
-            .update({ name: changedName })
+            .update({ denomination: changedName })
             .eq('id', own.id)
-            .select('id, name')
+            .select('id, denomination')
             .single();
         const restored = await client.from('schools')
-            .update({ name: own.name })
+            .update({ denomination: own.denomination })
             .eq('id', own.id)
-            .select('id, name')
+            .select('id, denomination')
             .single();
 
         return {
             visibleIds: before.data.map(row => row.id),
             deniedError: denied.error?.code || null,
             deniedRows: denied.data || [],
-            readOnlyName: readOnly.name,
-            readOnlyAfter: readOnlyAfter.data?.name,
+            readOnlyName: readOnly.denomination,
+            readOnlyAfter: readOnlyAfter.data?.denomination,
             allowedError: allowed.error?.code || null,
-            allowedName: allowed.data?.name,
+            allowedName: allowed.data?.denomination,
             restoredError: restored.error?.code || null,
-            restoredName: restored.data?.name
+            restoredName: restored.data?.denomination
         };
     });
 
@@ -148,16 +148,16 @@ test('Gestão SME consulta a carteira, mas a política impede escrita operaciona
 
     const result = await page.evaluate(async () => {
         const client = window.RadarSessionContext.service.client;
-        const before = await client.from('schools').select('id, name').eq('id', 'ESC-LOCAL').single();
-        const attempted = `${before.data.name} - SME não deve salvar`;
+        const before = await client.from('schools').select('id, denomination').eq('id', 'ESC-LOCAL').single();
+        const attempted = `${before.data.denomination} - SME não deve salvar`;
         const write = await client.from('schools')
-            .update({ name: attempted })
+            .update({ denomination: attempted })
             .eq('id', 'ESC-LOCAL')
-            .select('id, name');
-        const after = await client.from('schools').select('id, name').eq('id', 'ESC-LOCAL').single();
+            .select('id, denomination');
+        const after = await client.from('schools').select('id, denomination').eq('id', 'ESC-LOCAL').single();
         return {
-            before: before.data.name,
-            after: after.data.name,
+            before: before.data.denomination,
+            after: after.data.denomination,
             writeRows: write.data || [],
             writeError: write.error?.code || null
         };

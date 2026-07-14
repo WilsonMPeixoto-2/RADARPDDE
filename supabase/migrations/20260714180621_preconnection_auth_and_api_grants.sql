@@ -63,6 +63,22 @@ grant execute on function public.can_write_school(text) to authenticated;
 grant execute on function public.save_invoice_with_effects(jsonb, jsonb, jsonb, integer, integer, integer, jsonb) to authenticated;
 grant execute on function public.delete_invoice_with_effects(text, integer, boolean, integer, jsonb, integer, jsonb) to authenticated;
 
+-- O bootstrap Auth é executado somente no ambiente local por um processo
+-- administrativo. O papel recebe apenas os privilégios necessários para
+-- vincular identidades já criadas; não recebe DELETE nem acesso amplo às
+-- demais tabelas. A chave service_role nunca é enviada ao navegador.
+grant usage on schema public to service_role;
+
+grant select, update on table
+    public.controllers,
+    public.inventory_team_members
+to service_role;
+
+grant select, insert, update on table
+    public.user_profiles,
+    public.user_school_scopes
+to service_role;
+
 alter default privileges in schema public
     revoke all on tables from anon, authenticated;
 alter default privileges in schema public
