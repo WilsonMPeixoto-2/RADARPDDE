@@ -7,8 +7,10 @@ const {
     DATA_ERROR_MESSAGES,
     classifyError,
     toRepositoryError,
-    withSafeReadRetry
+    withSafeReadRetry,
+    showDataOperationError
 } = require('../../src/application/error-mapper.js');
+const { RepositoryError } = require('../../src/data/repository-contract.js');
 
 test('traduz falhas técnicas para as categorias e mensagens funcionais obrigatórias', () => {
     assert.equal(classifyError({ status: 401 }), 'SESSION_EXPIRED');
@@ -41,4 +43,23 @@ test('retry seletivo repete somente leituras seguras com falha transitória', as
         /RLS/
     );
     assert.equal(deniedAttempts, 1);
+});
+
+test('mensagem pública canoniza falha técnica e preserva orientação de validação de negócio', () => {
+    const session = showDataOperationError(new RepositoryError(
+        'SESSION_EXPIRED',
+        'Sessão expirada durante o salvamento.',
+        { operation: 'school:save' }
+    ));
+    assert.equal(session.code, 'SESSION_EXPIRED');
+    assert.equal(session.message, DATA_ERROR_MESSAGES.SESSION_EXPIRED);
+
+    const business = showDataOperationError(new RepositoryError(
+        'FISCAL_NOTE_REQUIRED',
+        'Cadastre pelo menos uma Nota Fiscal antes de marcar como Correto.',
+        { operation: 'setTechnicalAnalysis' }
+    ));
+    assert.equal(business.code, 'VALIDATION_FAILED');
+    assert.match(business.message, /cadastre pelo menos uma Nota Fiscal/i);
+    assert.equal(business.details.sourceCode, 'FISCAL_NOTE_REQUIRED');
 });

@@ -287,6 +287,7 @@ export type Database = {
       data_import_runs: {
         Row: {
           completed_at: string | null
+          completed_batches: Json
           created_at: string
           created_by: string | null
           entity_counts: Json
@@ -294,8 +295,10 @@ export type Database = {
           id: string
           import_id: string
           reconciliation_report: Json
+          rollback_snapshot: Json | null
           snapshot_format: string
           snapshot_version: string
+          source_hash: string
           source_label: string
           started_at: string
           status: string
@@ -303,6 +306,7 @@ export type Database = {
         }
         Insert: {
           completed_at?: string | null
+          completed_batches?: Json
           created_at?: string
           created_by?: string | null
           entity_counts?: Json
@@ -310,8 +314,10 @@ export type Database = {
           id?: string
           import_id: string
           reconciliation_report?: Json
+          rollback_snapshot?: Json | null
           snapshot_format: string
           snapshot_version: string
+          source_hash?: string
           source_label?: string
           started_at?: string
           status: string
@@ -319,6 +325,7 @@ export type Database = {
         }
         Update: {
           completed_at?: string | null
+          completed_batches?: Json
           created_at?: string
           created_by?: string | null
           entity_counts?: Json
@@ -326,14 +333,57 @@ export type Database = {
           id?: string
           import_id?: string
           reconciliation_report?: Json
+          rollback_snapshot?: Json | null
           snapshot_format?: string
           snapshot_version?: string
+          source_hash?: string
           source_label?: string
           started_at?: string
           status?: string
           updated_at?: string
         }
         Relationships: []
+      }
+      data_import_staging: {
+        Row: {
+          batch_index: number
+          created_at: string
+          entity: string
+          import_id: string
+          payload: Json
+          record_id: string
+          source_hash: string
+          updated_at: string
+        }
+        Insert: {
+          batch_index: number
+          created_at?: string
+          entity: string
+          import_id: string
+          payload: Json
+          record_id: string
+          source_hash: string
+          updated_at?: string
+        }
+        Update: {
+          batch_index?: number
+          created_at?: string
+          entity?: string
+          import_id?: string
+          payload?: Json
+          record_id?: string
+          source_hash?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_import_staging_import_id_fkey"
+            columns: ["import_id"]
+            isOneToOne: false
+            referencedRelation: "data_import_runs"
+            referencedColumns: ["import_id"]
+          },
+        ]
       }
       inventory_team_members: {
         Row: {
@@ -1031,8 +1081,31 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_functional_snapshot: { Args: { p_snapshot: Json }; Returns: Json }
+      begin_data_import: {
+        Args: {
+          p_entity_counts: Json
+          p_import_id: string
+          p_snapshot_format: string
+          p_snapshot_version: string
+          p_source_hash: string
+        }
+        Returns: Json
+      }
       can_access_school: { Args: { p_school_id: string }; Returns: boolean }
       can_write_school: { Args: { p_school_id: string }; Returns: boolean }
+      capture_functional_snapshot: {
+        Args: { p_import_id: string }
+        Returns: Json
+      }
+      complete_data_import: {
+        Args: {
+          p_import_id: string
+          p_reconciliation: Json
+          p_source_hash: string
+        }
+        Returns: Json
+      }
       current_app_role: { Args: never; Returns: string }
       current_controller_id: { Args: never; Returns: string }
       delete_invoice_with_effects: {
@@ -1047,6 +1120,41 @@ export type Database = {
         }
         Returns: Json
       }
+      load_staged_import: { Args: { p_import_id: string }; Returns: Json }
+      promote_data_import: {
+        Args: {
+          p_entity_counts: Json
+          p_import_id: string
+          p_snapshot: Json
+          p_source_hash: string
+        }
+        Returns: Json
+      }
+      radar_json_schema: { Args: { p_contract: string }; Returns: Json }
+      radar_jsonb_matches: {
+        Args: { p_contract: string; p_value: Json }
+        Returns: boolean
+      }
+      reanalyze_pendency_with_verification: {
+        Args: {
+          p_administrative_log?: Json
+          p_attempt: Json
+          p_expected_pendency_version: number
+          p_expected_verification_version: number
+          p_pendency: Json
+          p_verification_patch: Json
+        }
+        Returns: Json
+      }
+      rollback_data_import: { Args: { p_import_id: string }; Returns: Json }
+      save_exercise_with_competences: {
+        Args: {
+          p_administrative_log?: Json
+          p_competences: Json
+          p_config: Json
+        }
+        Returns: Json
+      }
       save_invoice_with_effects: {
         Args: {
           p_administrative_log?: Json
@@ -1056,6 +1164,25 @@ export type Database = {
           p_expected_verification_version?: number
           p_invoice: Json
           p_verification_patch?: Json
+        }
+        Returns: Json
+      }
+      save_school_with_programs: {
+        Args: {
+          p_administrative_log?: Json
+          p_expected_school_version?: number
+          p_programs: Json
+          p_school: Json
+        }
+        Returns: Json
+      }
+      stage_data_import_batch: {
+        Args: {
+          p_batch_index: number
+          p_entity: string
+          p_import_id: string
+          p_records: Json
+          p_source_hash: string
         }
         Returns: Json
       }
