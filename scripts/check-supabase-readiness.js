@@ -10,7 +10,8 @@ const REQUIRED_MIGRATIONS = Object.freeze([
     '202607130003_audit_and_import.sql',
     '202607130004_competence_bonus_deadline.sql',
     '202607130005_operational_context.sql',
-    '202607130006_authorization_hardening.sql'
+    '202607130006_authorization_hardening.sql',
+    '202607130007_configuration_audit_coverage.sql'
 ]);
 
 const REQUIRED_ARTIFACTS = Object.freeze([
