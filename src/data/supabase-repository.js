@@ -318,6 +318,17 @@
                 };
             }
         }
+
+        capabilities() {
+            return Object.freeze({
+                mode: 'supabase',
+                remote: true,
+                writable: true,
+                canImportLegacy: false,
+                atomicTransactions: false,
+                optimisticConcurrency: true
+            });
+        }
     }
 
     return Object.freeze({

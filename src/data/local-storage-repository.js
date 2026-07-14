@@ -151,6 +151,17 @@
                 return { ok: false, mode: 'local', writable: false };
             }
         }
+
+        capabilities() {
+            return Object.freeze({
+                mode: 'local',
+                remote: false,
+                writable: true,
+                canImportLegacy: true,
+                atomicTransactions: true,
+                optimisticConcurrency: false
+            });
+        }
     }
 
     return Object.freeze({ LocalStorageRepository });

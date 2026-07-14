@@ -38,6 +38,15 @@
     ]);
 
     const ENTITY_SET = new Set(RADAR_ENTITIES);
+    const REQUIRED_REPOSITORY_METHODS = Object.freeze([
+        'load',
+        'save',
+        'remove',
+        'exportSnapshot',
+        'restoreSnapshot',
+        'healthCheck',
+        'capabilities'
+    ]);
 
     class RepositoryError extends Error {
         constructor(code, message, options = {}) {
@@ -89,13 +98,47 @@
         };
     }
 
+    function assertRepositoryContract(repository) {
+        if (!repository || typeof repository !== 'object') {
+            throw new RepositoryError(
+                'INVALID_REPOSITORY',
+                'Um repositório de dados é obrigatório.',
+                { operation: 'assertRepositoryContract' }
+            );
+        }
+        const missing = REQUIRED_REPOSITORY_METHODS.filter(
+            method => typeof repository[method] !== 'function'
+        );
+        if (missing.length > 0) {
+            throw new RepositoryError(
+                'INVALID_REPOSITORY',
+                `Repositório incompleto: ${missing.join(', ')}.`,
+                {
+                    operation: 'assertRepositoryContract',
+                    details: { missing }
+                }
+            );
+        }
+        return repository;
+    }
+
+    function isSnapshotEmpty(snapshot) {
+        if (!snapshot || !snapshot.entities || typeof snapshot.entities !== 'object') return true;
+        return Object.values(snapshot.entities).every(
+            records => !Array.isArray(records) || records.length === 0
+        );
+    }
+
     return Object.freeze({
         SNAPSHOT_FORMAT,
         RADAR_ENTITIES,
+        REQUIRED_REPOSITORY_METHODS,
         RepositoryError,
         assertKnownEntity,
         cloneValue,
         normalizeCollection,
-        createSnapshotEnvelope
+        createSnapshotEnvelope,
+        assertRepositoryContract,
+        isSnapshotEmpty
     });
 }));
