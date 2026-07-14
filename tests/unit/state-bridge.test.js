@@ -3,7 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const bridge = require('../../src/data/state-bridge.js');
+const bridge = require('../../src/data/state-bridge-metadata.js');
 const snapshots = require('../../src/data/snapshot-tools.js');
 
 function createMemoryStorage(seed = {}) {
@@ -231,6 +231,7 @@ test('restaura snapshot canônico em localStorage sem perder ações e campos de
     assert.equal(restoration.dryRun, false);
     assert.equal(destinationStorage.getItem('radar_pdde_data_version'), 'restored-v1');
     assert.equal(destinationStorage.getItem('radar_pdde_pendency_schema_version'), '2');
+    assert.ok(destinationStorage.getItem('radar_pdde_bridge_metadata'));
 
     const restoredContacts = JSON.parse(destinationStorage.getItem('radar_pdde_contatos'));
     assert.equal(restoredContacts[0].desc, 'Orientação enviada pela interface.');
@@ -269,6 +270,30 @@ test('ida e volta preserva o modelo canônico atual', () => {
     assert.equal(reconciliation.ok, true, JSON.stringify(reconciliation.entities, null, 2));
 });
 
+test('metadados não ocultam uma alteração funcional posterior no localStorage', () => {
+    const source = bridge.exportLegacySnapshot(createOperationalStorage(), {
+        importId: 'changed-source',
+        exportedAt: '2026-07-14T00:00:00.000Z'
+    });
+    const storage = createMemoryStorage();
+    bridge.restoreCanonicalSnapshotToLegacyStorage(source.snapshot, storage, {
+        dataVersion: 'changed-restored'
+    });
+
+    const invoices = JSON.parse(storage.getItem('radar_pdde_notas_registradas'));
+    invoices[0].desc = 'Computador alterado após restauração';
+    storage.setItem('radar_pdde_notas_registradas', JSON.stringify(invoices));
+
+    const changed = bridge.exportLegacySnapshot(storage, {
+        importId: 'changed-target',
+        exportedAt: '2026-07-14T00:00:01.000Z'
+    });
+    assert.equal(
+        changed.snapshot.entities.registeredInvoices[0].description,
+        'Computador alterado após restauração'
+    );
+});
+
 test('simulação de restauração não altera o armazenamento', () => {
     const exported = bridge.exportLegacySnapshot(createOperationalStorage(), {
         importId: 'dry-run-source',
@@ -283,6 +308,6 @@ test('simulação de restauração não altera o armazenamento', () => {
     );
 
     assert.equal(result.dryRun, true);
-    assert.equal(result.writes.length, 11);
+    assert.equal(result.writes.length, 12);
     assert.deepEqual(storage.dump(), { sentinel: 'preserve' });
 });
