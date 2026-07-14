@@ -76,14 +76,16 @@ test('valida presença dos artefatos essenciais de preparação', () => {
         'src/data/snapshot-tools.js',
         'src/data/legacy-state-adapter.js',
         'src/data/state-bridge.js',
+        'src/data/state-bridge-metadata.js',
         'src/integration/exercise-management.js',
         'scripts/audit-functional-persistence.js',
+        'docs/reference/SUPABASE_FUNCTIONAL_COVERAGE.md',
         'docs/runbooks/SUPABASE_CONNECTION.md',
         'docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md'
     ]), []);
 
     assert.match(
         validateReadinessArtifacts(['src/data/repository-contract.js']).join(' '),
-        /state-bridge\.js/
+        /state-bridge-metadata\.js/
     );
 });
