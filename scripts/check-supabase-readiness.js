@@ -9,7 +9,8 @@ const REQUIRED_MIGRATIONS = Object.freeze([
     '202607130002_auth_and_rls.sql',
     '202607130003_audit_and_import.sql',
     '202607130004_competence_bonus_deadline.sql',
-    '202607130005_operational_context.sql'
+    '202607130005_operational_context.sql',
+    '202607130006_authorization_hardening.sql'
 ]);
 
 const REQUIRED_ARTIFACTS = Object.freeze([
@@ -22,6 +23,7 @@ const REQUIRED_ARTIFACTS = Object.freeze([
     'src/data/state-bridge.js',
     'src/data/state-bridge-metadata.js',
     'src/integration/exercise-management.js',
+    'src/integration/exercise-early-init.js',
     'scripts/audit-functional-persistence.js',
     'docs/reference/SUPABASE_FUNCTIONAL_COVERAGE.md',
     'docs/runbooks/SUPABASE_CONNECTION.md',
