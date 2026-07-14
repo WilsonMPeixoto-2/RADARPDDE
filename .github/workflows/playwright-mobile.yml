@@ -7,6 +7,7 @@ on:
       - '**/*.html'
       - '**/*.css'
       - 'package.json'
+      - 'package-lock.json'
       - 'playwright.config.js'
       - '.github/workflows/playwright-mobile.yml'
   workflow_dispatch:
@@ -26,17 +27,17 @@ jobs:
 
     steps:
       - name: Obter código
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Configurar Node.js LTS
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '24'
           cache: npm
-          cache-dependency-path: package.json
+          cache-dependency-path: package-lock.json
 
-      - name: Instalar dependências
-        run: npm install
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
 
       - name: Instalar navegadores Playwright
         run: npx playwright install --with-deps chromium webkit
@@ -46,7 +47,7 @@ jobs:
 
       - name: Publicar relatório de execução
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: playwright-report-mobile
           path: playwright-report/
