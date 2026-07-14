@@ -25,7 +25,7 @@ test('ferramentas Supabase modernas estão fixadas e reproduzíveis', () => {
 
     assert.equal(pkg.scripts['supabase:start'], 'supabase start');
     assert.equal(pkg.scripts['supabase:stop'], 'supabase stop --no-backup');
-    assert.equal(pkg.scripts['supabase:test:db'], 'supabase test db');
+    assert.equal(pkg.scripts['supabase:test:db'], 'supabase test db supabase/tests/database');
     assert.equal(pkg.scripts['supabase:gen:types'], 'supabase gen types typescript --local --schema public > src/types/database.types.ts');
     assert.equal(pkg.scripts['build:supabase-client'], 'node scripts/build-supabase-client.mjs');
     assert.equal(pkg.scripts['check:generated'], 'node scripts/check-generated-artifacts.js');
