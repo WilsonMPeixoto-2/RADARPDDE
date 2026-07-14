@@ -123,6 +123,24 @@
         const configuredDataVersion = String(options.dataVersion || '').trim();
         const configuredPendencyVersion = String(options.pendencySchemaVersion || '').trim();
 
+        function assertSynchronous(value, operation) {
+            if (value && typeof value.then === 'function') {
+                throw new RepositoryError(
+                    'ASYNC_STATE_PORT_UNSUPPORTED',
+                    `A operação ${operation} exige uma porta de memória síncrona.`,
+                    { operation }
+                );
+            }
+            return value;
+        }
+
+        function captureSync() {
+            return {
+                memory: cloneValue(assertSynchronous(readMemory(), 'captureSync')),
+                storage: captureStorage(storage, bridge)
+            };
+        }
+
         async function capture() {
             return {
                 memory: cloneValue(await readMemory()),
@@ -130,9 +148,9 @@
             };
         }
 
-        async function exportCanonical(exportOptions = {}) {
+        function exportFromMemory(memoryValue, exportOptions = {}) {
             const stage = createMemoryStorage(captureStorage(storage, bridge));
-            const memory = cloneValue(await readMemory()) || {};
+            const memory = cloneValue(memoryValue) || {};
 
             Object.entries(bridge.LEGACY_STORAGE_MAP || {}).forEach(([stateKey, descriptor]) => {
                 if (Object.prototype.hasOwnProperty.call(memory, stateKey)) {
@@ -162,6 +180,50 @@
             return bridge.exportLegacySnapshot(stage, exportOptions).snapshot;
         }
 
+        function exportCanonicalSync(exportOptions = {}) {
+            return exportFromMemory(
+                assertSynchronous(readMemory(), 'exportCanonicalSync'),
+                exportOptions
+            );
+        }
+
+        async function exportCanonical(exportOptions = {}) {
+            return exportFromMemory(await readMemory(), exportOptions);
+        }
+
+        function commitCurrent(snapshot, commitOptions = {}) {
+            const memory = cloneValue(assertSynchronous(readMemory(), 'commitCurrent')) || {};
+            Object.entries(bridge.LEGACY_STORAGE_MAP || {}).forEach(([stateKey, descriptor]) => {
+                if (Object.prototype.hasOwnProperty.call(memory, stateKey)) {
+                    storage.setItem(descriptor.key, JSON.stringify(memory[stateKey]));
+                }
+            });
+
+            const dataVersion = String(
+                memory.dataVersion
+                || commitOptions.dataVersion
+                || configuredDataVersion
+                || ''
+            );
+            const pendencySchemaVersion = String(
+                memory.pendencySchemaVersion
+                || commitOptions.pendencySchemaVersion
+                || configuredPendencyVersion
+                || ''
+            );
+            if (dataVersion) storage.setItem('radar_pdde_data_version', dataVersion);
+            if (pendencySchemaVersion) {
+                storage.setItem('radar_pdde_pendency_schema_version', pendencySchemaVersion);
+            }
+            if (snapshot?.entities
+                && typeof bridge.buildMetadata === 'function'
+                && bridge.BRIDGE_METADATA_STORAGE_KEY) {
+                const metadata = bridge.buildMetadata(snapshot.entities, memory, { dataVersion });
+                storage.setItem(bridge.BRIDGE_METADATA_STORAGE_KEY, JSON.stringify(metadata));
+            }
+            return cloneValue(memory);
+        }
+
         async function applyCanonical(snapshot, applyOptions = {}) {
             const result = bridge.restoreCanonicalSnapshotToLegacyStorage(snapshot, storage, {
                 dataVersion: applyOptions.dataVersion || configuredDataVersion,
@@ -172,7 +234,7 @@
             return cloneValue(result.state);
         }
 
-        async function restore(captured) {
+        function validateCapture(captured) {
             if (!captured || typeof captured !== 'object' || !captured.storage) {
                 throw new RepositoryError(
                     'INVALID_STATE_CAPTURE',
@@ -180,13 +242,36 @@
                     { operation: 'restore' }
                 );
             }
+        }
+
+        function restoreStorage(captured) {
+            validateCapture(captured);
             listRadarKeys(storage, bridge).forEach(key => storage.removeItem(key));
             Object.entries(captured.storage).forEach(([key, value]) => storage.setItem(key, value));
+        }
+
+        function restoreSync(captured) {
+            restoreStorage(captured);
+            assertSynchronous(writeMemory(cloneValue(captured.memory)), 'restoreSync');
+            return cloneValue(captured.memory);
+        }
+
+        async function restore(captured) {
+            restoreStorage(captured);
             await writeMemory(cloneValue(captured.memory));
             return cloneValue(captured.memory);
         }
 
-        return Object.freeze({ capture, exportCanonical, applyCanonical, restore });
+        return Object.freeze({
+            capture,
+            captureSync,
+            exportCanonical,
+            exportCanonicalSync,
+            applyCanonical,
+            commitCurrent,
+            restore,
+            restoreSync
+        });
     }
 
     return Object.freeze({ createStatePort });

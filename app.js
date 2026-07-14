@@ -4313,36 +4313,6 @@ function normalizeEscolas(records) {
 }
 
 
-function seedLocalDataFromInitials() {
-
-    localStorage.setItem('radar_pdde_escolas', JSON.stringify(INITIAL_ESCOLAS));
-
-    localStorage.setItem('radar_pdde_pendencias', JSON.stringify(INITIAL_PENDENCIAS));
-
-    localStorage.setItem('radar_pdde_contatos', JSON.stringify(INITIAL_CONTATOS));
-
-    localStorage.setItem('radar_pdde_logs', JSON.stringify(INITIAL_LOGS));
-
-    localStorage.setItem('radar_pdde_bens', JSON.stringify(INITIAL_BENS));
-
-    localStorage.setItem('radar_pdde_verificacoes', JSON.stringify(INITIAL_VERIFICACOES));
-
-    localStorage.setItem('radar_pdde_config', JSON.stringify(INITIAL_CONFIG));
-
-    localStorage.setItem('radar_pdde_programas', JSON.stringify(INITIAL_PROGRAMS));
-
-    localStorage.setItem('radar_pdde_controladores', JSON.stringify(INITIAL_CONTROLADORES));
-
-    localStorage.setItem('radar_pdde_equipe_inventario', JSON.stringify(INITIAL_EQUIPE_INVENTARIO));
-
-    localStorage.setItem('radar_pdde_notas_registradas', JSON.stringify([]));
-
-    localStorage.setItem('radar_pdde_data_version', INITIAL_DATA_VERSION);
-
-}
-
-
-
 function getDefaultControladorId() {
 
     const exists = (controladores.length ? controladores : INITIAL_CONTROLADORES).some(c => c.id === DEFAULT_CONTROLADOR_ID);
@@ -4388,171 +4358,105 @@ function getCurrentUser() {
 
 
 // ==========================================
-// SUPABASE CLIENT INITIALIZATION
+// GATEWAY ÚNICO DE DADOS
 // ==========================================
 const runtimeConfig = window.RADAR_PDDE_CONFIG || {};
-const supabaseConfig = runtimeConfig.supabase || {};
-const supabaseClient = (supabaseConfig.url && supabaseConfig.publishableKey && window.supabase)
-    ? window.supabase.createClient(supabaseConfig.url, supabaseConfig.publishableKey)
-    : null;
+const LEGACY_TABLE_ENTITY_MAP = Object.freeze({
+    escolas: ['schools', 'schoolPrograms'],
+    pendencias: ['pendencies', 'pendencyAttempts'],
+    contatos: ['pendencyContacts'],
+    logs: ['administrativeLogs'],
+    bens: ['assets'],
+    verificacoes: ['verifications'],
+    config: ['appConfig', 'competences'],
+    programas: ['programs'],
+    controladores: ['controllers'],
+    equipe_inventario: ['inventoryTeamMembers'],
+    notas_registradas: ['registeredInvoices']
+});
+const ALL_LEGACY_CANONICAL_ENTITIES = Object.freeze([
+    ...new Set(Object.values(LEGACY_TABLE_ENTITY_MAP).flat())
+]);
 
+let radarDataService = null;
+let radarPersistenceQueue = Promise.resolve({ ok: true });
 
-async function initData() {
-    // Força atualização se houver codificação antiga incorreta na LocalStorage
-    const storedProgs = localStorage.getItem('radar_pdde_programas');
-    if (storedProgs && (storedProgs.includes('BÃ¡sico') || storedProgs.includes('EducaÃ'))) {
-        localStorage.removeItem('radar_pdde_programas');
-    }
-
-    if (!supabaseClient) {
-        loadLocalFallback();
-        return;
-    }
-
-    try {
-        // Buscar Configurações do Supabase
-        let { data: dbConfig, error: cfgErr } = await supabaseClient.from('config').select('*').limit(1);
-        if (cfgErr) throw cfgErr;
-
-        // Se o banco estiver vazio, executar o seed automático
-        if (!dbConfig || dbConfig.length === 0) {
-            console.log("Banco de dados do Supabase vazio. Executando seed de dados iniciais...");
-            await seedDatabaseSupabase();
-            let { data: newCfg, error: newCfgErr } = await supabaseClient.from('config').select('*').limit(1);
-            if (newCfgErr) throw newCfgErr;
-            dbConfig = newCfg;
-        }
-
-        config = dbConfig[0];
-
-        // Buscar dados de todas as outras tabelas
-        const [
-            resEscolas,
-            resPendencias,
-            resContatos,
-            resLogs,
-            resBens,
-            resVerificacoes,
-            resProgramas,
-            resControladores,
-            resEquipe,
-            resNotas
-        ] = await Promise.all([
-            supabaseClient.from('escolas').select('*'),
-            supabaseClient.from('pendencias').select('*'),
-            supabaseClient.from('contatos').select('*'),
-            supabaseClient.from('logs').select('*'),
-            supabaseClient.from('bens').select('*'),
-            supabaseClient.from('verificacoes').select('*'),
-            supabaseClient.from('programas').select('*'),
-            supabaseClient.from('controladores').select('*'),
-            supabaseClient.from('equipe_inventario').select('*'),
-            supabaseClient.from('notas_registradas').select('*')
-        ]);
-
-        if (resEscolas.error) throw resEscolas.error;
-        if (resPendencias.error) throw resPendencias.error;
-        if (resContatos.error) throw resContatos.error;
-        if (resLogs.error) throw resLogs.error;
-        if (resBens.error) throw resBens.error;
-        if (resVerificacoes.error) throw resVerificacoes.error;
-        if (resProgramas.error) throw resProgramas.error;
-        if (resControladores.error) throw resControladores.error;
-        if (resEquipe.error) throw resEquipe.error;
-        if (resNotas.error) throw resNotas.error;
-
-        // Remapear nomes de colunas do Supabase para os nomes de propriedades usados no app
-        escolas = normalizeEscolas((resEscolas.data || []).map(e => {
-            const keys = Object.keys(e);
-            keys.forEach(k => {
-                if (k.indexOf('denomina') === 0 && k !== 'denomina\u00e7ao') {
-                    e['denomina\u00e7ao'] = e[k];
-                }
-                if (k.indexOf('designa') === 0 && k !== 'designa\u00e7ao') {
-                    e['designa\u00e7ao'] = e[k];
-                }
-            });
-            return e;
-        }));
-        pendencias = resPendencias.data || [];
-        contatos = resContatos.data || [];
-        logs = (resLogs.data || []).sort((a, b) => (b.dataHora || '').localeCompare(a.dataHora || ''));
-        bens = resBens.data || [];
-        rebuildOperationalIndexes();
-        programas = resProgramas.data || [];
-        controladores = resControladores.data || [];
-        equipeInventario = resEquipe.data || [];
-        notasRegistradas = resNotas.data || [];
-
-        // Reconstruir objeto verificacoes
-        verificacoes = {};
-        resVerificacoes.data.forEach(v => {
-            if (!verificacoes[v.escolaId]) {
-                verificacoes[v.escolaId] = {};
-            }
-            const compProgKey = `${v.competencia}_${v.programaId}`;
-            verificacoes[v.escolaId][compProgKey] = {
-                bonificacao: v.bonificacao || {},
-                analise: v.analise || {},
-                resultadoBonif: v.resultadoBonif
-            };
-        });
-
-        activeCompetenciaKey = config.competenciaFechamento;
-    } catch (err) {
-        console.error("Erro ao carregar dados do Supabase. Carregando fallback local.", err);
-        loadLocalFallback();
-    }
+function cloneRadarValue(value) {
+    return window.RadarRepositoryContract.cloneValue(value);
 }
 
-async function seedDatabaseSupabase() {
-    // 1. Inserir tabelas base independentes
-    await supabaseClient.from('config').insert([
-        { id: 'global', exercicios: INITIAL_CONFIG.exercicios, competenciaFechamento: INITIAL_CONFIG.competenciaFechamento, prazoBonificacaoProrrogado: INITIAL_CONFIG.prazoBonificacaoProrrogado }
-    ]);
-    
-    await supabaseClient.from('programas').insert(INITIAL_PROGRAMS);
-    await supabaseClient.from('controladores').insert(INITIAL_CONTROLADORES);
-    
-    await supabaseClient.from('equipe_inventario').insert(INITIAL_EQUIPE_INVENTARIO);
+function createInitialRadarMemoryState() {
+    return {
+        config: cloneRadarValue(INITIAL_CONFIG),
+        programs: cloneRadarValue(INITIAL_PROGRAMS),
+        controllers: cloneRadarValue(INITIAL_CONTROLADORES),
+        inventoryTeamMembers: cloneRadarValue(INITIAL_EQUIPE_INVENTARIO),
+        schools: normalizeEscolas(cloneRadarValue(INITIAL_ESCOLAS)),
+        verifications: cloneRadarValue(INITIAL_VERIFICACOES),
+        pendencies: cloneRadarValue(INITIAL_PENDENCIAS),
+        contacts: cloneRadarValue(INITIAL_CONTATOS),
+        assets: cloneRadarValue(INITIAL_BENS),
+        registeredInvoices: [],
+        logs: cloneRadarValue(INITIAL_LOGS),
+        dataVersion: INITIAL_DATA_VERSION,
+        pendencySchemaVersion: String(window.RadarPendencias.PENDENCY_SCHEMA_VERSION)
+    };
+}
 
-
-    // 2. Inserir Escolas
-    await supabaseClient.from('escolas').insert(INITIAL_ESCOLAS);
-
-    // 3. Inserir tabelas dependentes
-    await supabaseClient.from('pendencias').insert(INITIAL_PENDENCIAS);
-    await supabaseClient.from('contatos').insert(INITIAL_CONTATOS);
-    
-    const initialLogsFormatted = INITIAL_LOGS.map(l => ({
-        id: l.id,
-        usuario: l.usuario,
-        perfil: l.perfil,
-        dataHora: l.dataHora,
-        acao: l.acao,
-        detalhes: l.detalhes
-    }));
-    await supabaseClient.from('logs').insert(initialLogsFormatted);
-
-    // 4. Inserir Verificações iniciais
-    const flatVerif = [];
-    Object.keys(INITIAL_VERIFICACOES).forEach(escId => {
-        Object.keys(INITIAL_VERIFICACOES[escId]).forEach(compKey => {
-            const dataVal = INITIAL_VERIFICACOES[escId][compKey];
-            flatVerif.push({
-                id: `${escId}_${compKey}_BASIC`,
-                escolaId: escId,
-                competencia: compKey,
-                programaId: 'BASIC',
-                bonificacao: dataVal.bonificacao,
-                analise: dataVal.analise,
-                resultadoBonif: dataVal.resultadoBonif
-            });
-        });
-    });
-    if (flatVerif.length > 0) {
-        await supabaseClient.from('verificacoes').insert(flatVerif);
+function readInitialRadarMemoryState() {
+    const storedVersion = localStorage.getItem('radar_pdde_data_version');
+    const hasSchools = Boolean(localStorage.getItem('radar_pdde_escolas'));
+    if (storedVersion !== INITIAL_DATA_VERSION || !hasSchools) {
+        return createInitialRadarMemoryState();
     }
+
+    const state = window.RadarStateBridge.readLegacyState(localStorage);
+    const rawPrograms = localStorage.getItem('radar_pdde_programas') || '';
+    if (rawPrograms.includes('BÃ¡sico') || rawPrograms.includes('EducaÃ')) {
+        state.programs = cloneRadarValue(INITIAL_PROGRAMS);
+    }
+    state.pendencySchemaVersion = localStorage.getItem(PENDENCY_SCHEMA_STORAGE_KEY)
+        || String(window.RadarPendencias.PENDENCY_SCHEMA_VERSION);
+    return state;
+}
+
+function captureRadarMemoryState() {
+    return {
+        config: cloneRadarValue(config),
+        programs: cloneRadarValue(programas),
+        controllers: cloneRadarValue(controladores),
+        inventoryTeamMembers: cloneRadarValue(equipeInventario),
+        schools: cloneRadarValue(escolas),
+        verifications: cloneRadarValue(verificacoes),
+        pendencies: cloneRadarValue(pendencias),
+        contacts: cloneRadarValue(contatos),
+        assets: cloneRadarValue(bens),
+        registeredInvoices: cloneRadarValue(notasRegistradas),
+        logs: cloneRadarValue(logs),
+        dataVersion: INITIAL_DATA_VERSION,
+        pendencySchemaVersion: String(window.RadarPendencias.PENDENCY_SCHEMA_VERSION)
+    };
+}
+
+function applyRadarMemoryState(state = {}) {
+    config = cloneRadarValue(state.config || INITIAL_CONFIG);
+    programas = cloneRadarValue(state.programs || []);
+    controladores = cloneRadarValue(state.controllers || []);
+    equipeInventario = cloneRadarValue(state.inventoryTeamMembers || []);
+    escolas = normalizeEscolas(cloneRadarValue(state.schools || []));
+    escolas.forEach(escola => {
+        if (escola.cre === '1ª CRE' || escola.cre === '1\u00aa CRE') escola.cre = '4ª CRE';
+    });
+    verificacoes = cloneRadarValue(state.verifications || {});
+    pendencias = cloneRadarValue(state.pendencies || []);
+    contatos = cloneRadarValue(state.contacts || []);
+    bens = cloneRadarValue(state.assets || []);
+    notasRegistradas = cloneRadarValue(state.registeredInvoices || []);
+    logs = cloneRadarValue(state.logs || [])
+        .sort((left, right) => (right.dataHora || '').localeCompare(left.dataHora || ''));
+    migrateLoadedPendencies();
+    rebuildOperationalIndexes();
+    activeCompetenciaKey = config.competenciaFechamento || activeCompetenciaKey;
 }
 
 function getPendencyAnalysisValue(pendency) {
@@ -4569,144 +4473,113 @@ function migrateLoadedPendencies() {
         getAnalysisValue: getPendencyAnalysisValue
     });
 
-    localStorage.setItem('radar_pdde_pendencias', JSON.stringify(pendencias));
-    localStorage.setItem(
-        PENDENCY_SCHEMA_STORAGE_KEY,
-        String(window.RadarPendencias.PENDENCY_SCHEMA_VERSION)
-    );
 }
 
-function loadLocalFallback() {
+async function initializeRadarData() {
+    applyRadarMemoryState(readInitialRadarMemoryState());
 
-    const storedVersion = localStorage.getItem('radar_pdde_data_version');
-
-    if (storedVersion !== INITIAL_DATA_VERSION || !localStorage.getItem('radar_pdde_escolas')) {
-
-        RADAR_STORAGE_KEYS.forEach(key => localStorage.removeItem(key));
-
-        seedLocalDataFromInitials();
-
-    }
-
-    
-    const storedEscolas = JSON.parse(localStorage.getItem('radar_pdde_escolas'));
-    escolas = normalizeEscolas(storedEscolas);
-    let schoolsMigrated = JSON.stringify(storedEscolas) !== JSON.stringify(escolas);
-    escolas.forEach(e => {
-        if (e.cre === '1ª CRE' || e.cre === '1\u00aa CRE') {
-            e.cre = '4ª CRE';
-            schoolsMigrated = true;
+    let remoteClient = null;
+    if (runtimeConfig.supabase?.connectionEnabled === true) {
+        if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+            throw new Error('Cliente Supabase indisponível para a conexão explicitamente ativada.');
         }
-    });
-    if (schoolsMigrated) {
-        localStorage.setItem('radar_pdde_escolas', JSON.stringify(escolas));
+        remoteClient = window.supabase.createClient(
+            runtimeConfig.supabase.url,
+            runtimeConfig.supabase.publishableKey
+        );
     }
-    pendencias = JSON.parse(localStorage.getItem('radar_pdde_pendencias'));
-    contatos = JSON.parse(localStorage.getItem('radar_pdde_contatos'));
-    logs = JSON.parse(localStorage.getItem('radar_pdde_logs'));
-    bens = JSON.parse(localStorage.getItem('radar_pdde_bens'));
-    verificacoes = JSON.parse(localStorage.getItem('radar_pdde_verificacoes'));
-    config = JSON.parse(localStorage.getItem('radar_pdde_config'));
-    programas = JSON.parse(localStorage.getItem('radar_pdde_programas'));
-    controladores = JSON.parse(localStorage.getItem('radar_pdde_controladores') || '[]');
-    equipeInventario = JSON.parse(localStorage.getItem('radar_pdde_equipe_inventario') || '[]');
-    notasRegistradas = JSON.parse(localStorage.getItem('radar_pdde_notas_registradas') || '[]');
-    migrateLoadedPendencies();
-    rebuildOperationalIndexes();
-    
-    activeCompetenciaKey = config.competenciaFechamento;
+
+    const repository = window.RadarRepositoryFactory.createRepository(runtimeConfig, {
+        storage: localStorage,
+        schemaVersion: '1',
+        supabaseClient: remoteClient
+    });
+    const statePort = window.RadarStatePort.createStatePort({
+        storage: localStorage,
+        bridge: window.RadarStateBridge,
+        readMemory: captureRadarMemoryState,
+        writeMemory: applyRadarMemoryState,
+        dataVersion: INITIAL_DATA_VERSION,
+        pendencySchemaVersion: String(window.RadarPendencias.PENDENCY_SCHEMA_VERSION)
+    });
+    radarDataService = new window.RadarDataService.DataService({
+        repository,
+        statePort
+    });
+    const bootstrap = await radarDataService.bootstrap();
+    const capabilities = repository.capabilities();
+
+    window.RadarDataContext = Object.freeze({
+        ready: true,
+        bootstrap: Object.freeze({
+            importedLegacy: bootstrap.importedLegacy,
+            empty: bootstrap.empty
+        }),
+        capabilities: Object.freeze({ ...capabilities })
+    });
+    return window.RadarDataContext;
+}
+
+function reportRadarPersistenceError(error) {
+    window.RADAR_LAST_DATA_ERROR = error;
+    window.dispatchEvent(new CustomEvent('radar:data-error', {
+        detail: {
+            code: error?.code || 'TRANSACTION_FAILED',
+            message: error?.message || 'Não foi possível salvar a alteração.'
+        }
+    }));
 }
 
 function persist(changedTable = null) {
-    // 1. Salvar na LocalStorage
-    localStorage.setItem('radar_pdde_escolas', JSON.stringify(escolas));
-    localStorage.setItem('radar_pdde_pendencias', JSON.stringify(pendencias));
-    localStorage.setItem('radar_pdde_contatos', JSON.stringify(contatos));
-    localStorage.setItem('radar_pdde_logs', JSON.stringify(logs));
-    localStorage.setItem('radar_pdde_bens', JSON.stringify(bens));
-    localStorage.setItem('radar_pdde_verificacoes', JSON.stringify(verificacoes));
-    localStorage.setItem('radar_pdde_config', JSON.stringify(config));
-    localStorage.setItem('radar_pdde_programas', JSON.stringify(programas));
-    localStorage.setItem('radar_pdde_controladores', JSON.stringify(controladores));
-
-    localStorage.setItem('radar_pdde_equipe_inventario', JSON.stringify(equipeInventario));
-
-    localStorage.setItem('radar_pdde_notas_registradas', JSON.stringify(notasRegistradas));
-
-    localStorage.setItem('radar_pdde_data_version', INITIAL_DATA_VERSION);
-
-
-    // 2. Sincronizar com Supabase em segundo plano
-    if (supabaseClient) {
-        if (changedTable) {
-            persistSingleTableSupabase(changedTable);
-        } else {
-            persistSingleTableSupabase('escolas');
-            persistSingleTableSupabase('pendencias');
-            persistSingleTableSupabase('contatos');
-            persistSingleTableSupabase('logs');
-            persistSingleTableSupabase('bens');
-            persistSingleTableSupabase('verificacoes');
-            persistSingleTableSupabase('config');
-            persistSingleTableSupabase('controladores');
-            persistSingleTableSupabase('equipe_inventario');
-            persistSingleTableSupabase('notas_registradas');
-        }
+    if (!radarDataService) {
+        const error = new window.RadarRepositoryContract.RepositoryError(
+            'TRANSACTION_FAILED',
+            'Gateway de dados ainda não inicializado.',
+            { operation: 'persist' }
+        );
+        reportRadarPersistenceError(error);
+        return Promise.resolve({ ok: false, error });
     }
-}
 
-async function persistSingleTableSupabase(tableName) {
+    const changedEntities = changedTable
+        ? (LEGACY_TABLE_ENTITY_MAP[changedTable] || [])
+        : ALL_LEGACY_CANONICAL_ENTITIES;
+    if (changedEntities.length === 0) {
+        const error = new window.RadarRepositoryContract.RepositoryError(
+            'VALIDATION_FAILED',
+            `Tabela de compatibilidade desconhecida: ${String(changedTable)}.`,
+            { operation: 'persist' }
+        );
+        reportRadarPersistenceError(error);
+        return Promise.resolve({ ok: false, error });
+    }
+
+    let staged;
     try {
-        if (tableName === 'escolas') {
-            await supabaseClient.from('escolas').upsert(escolas);
-        } else if (tableName === 'pendencias') {
-            await supabaseClient.from('pendencias').upsert(pendencias);
-        } else if (tableName === 'contatos') {
-            await supabaseClient.from('contatos').upsert(contatos);
-        } else if (tableName === 'logs') {
-            await supabaseClient.from('logs').upsert(logs);
-        } else if (tableName === 'bens') {
-            await supabaseClient.from('bens').upsert(bens);
-        } else if (tableName === 'config') {
-            await supabaseClient.from('config').upsert({
-                id: 'global',
-                exercicios: config.exercicios,
-                competenciaFechamento: config.competenciaFechamento,
-                prazoBonificacaoProrrogado: config.prazoBonificacaoProrrogado
-            });
-        } else if (tableName === 'controladores') {
-            await supabaseClient.from('controladores').upsert(controladores);
-        } else if (tableName === 'equipe_inventario') {
-            await supabaseClient.from('equipe_inventario').upsert(equipeInventario);
-        } else if (tableName === 'notas_registradas') {
-            await supabaseClient.from('notas_registradas').upsert(notasRegistradas);
-        } else if (tableName === 'verificacoes') {
-            const flatVerif = [];
-            Object.keys(verificacoes).forEach(escId => {
-                Object.keys(verificacoes[escId]).forEach(compKey => {
-                    const splitContext = window.RadarCompetencia.splitCompetenciaContext(compKey);
-                    const competencia = splitContext.competenciaKey;
-                    const programaId = splitContext.contextId || 'BASIC';
-                    const dataVal = verificacoes[escId][compKey];
-                    flatVerif.push({
-                        id: `${escId}_${competencia}_${programaId}`,
-                        escolaId: escId,
-                        competencia: competencia,
-                        programaId: programaId,
-                        bonificacao: dataVal.bonificacao,
-                        analise: dataVal.analise,
-                        resultadoBonif: dataVal.resultadoBonif
-                    });
-                });
-            });
-            if (flatVerif.length > 0) {
-                await supabaseClient.from('verificacoes').upsert(flatVerif);
-            }
-        }
-    } catch (err) {
-        console.error("Erro na sincronização síncrona com Supabase para", tableName, err);
+        staged = radarDataService.stageCompatibility({
+            name: `persist:${changedTable || 'all'}`,
+            changedEntities
+        });
+    } catch (error) {
+        reportRadarPersistenceError(error);
+        throw error;
     }
+    const execute = () => radarDataService.persistSnapshot(
+        staged.snapshot,
+        staged.changedEntities,
+        { name: `persist:${changedTable || 'all'}` }
+    );
+    radarPersistenceQueue = radarPersistenceQueue
+        .catch(() => ({ ok: false }))
+        .then(execute)
+        .catch(error => {
+            reportRadarPersistenceError(error);
+            return { ok: false, error };
+        });
+    return radarPersistenceQueue;
 }
+
+window.waitForRadarPersistence = () => radarPersistenceQueue;
 
 function registerLog(acao, detalhes) {
 
@@ -10427,7 +10300,6 @@ function salvarDadosNota(e) {
             if (oldBemId) {
                 bens = bens.filter(b => b.id !== oldBemId);
                 rebuildOperationalIndexes();
-                if (supabaseClient) supabaseClient.from('bens').delete().eq('id', oldBemId).then();
                 nota.bemId = null;
             }
         }
@@ -10591,13 +10463,11 @@ function removerNotaRegistrada(notaId, escolaId) {
         if (nota.bemId) {
             bens = bens.filter(b => b.id !== nota.bemId);
             rebuildOperationalIndexes();
-            if (supabaseClient) supabaseClient.from('bens').delete().eq('id', nota.bemId).then();
         }
         
         // Remove da lista de notas
         const compProgKey = nota.compKey;
         notasRegistradas.splice(idx, 1);
-        if (supabaseClient) supabaseClient.from('notas_registradas').delete().eq('id', notaId).then();
         
         // Se removeu a última nota de serviço, a consulta da assessoria pode voltar a ser "Não se aplica"
         const remainingServices = notasRegistradas.filter(n => n.escolaId === escolaId && n.compKey === compProgKey && n.tipo === 'servico');
@@ -11577,7 +11447,6 @@ function removerInventariador(id) {
     
     // Remover
     equipeInventario = equipeInventario.filter(x => x.id !== id);
-    if (supabaseClient) supabaseClient.from('equipe_inventario').delete().eq('id', id).then();
     registerLog('Gestão de Equipe', `Integrante do Inventário ${inv.name} removido.`);
     
     persist();
@@ -11668,7 +11537,6 @@ function removerControlador(id) {
     
     // Remover
     controladores = controladores.filter(c => c.id !== id);
-    if (supabaseClient) supabaseClient.from('controladores').delete().eq('id', id).then();
     
     registerLog('Gestão de Equipe', `Controlador ${ctrl.name} removido. ${reassignedCount} escolas foram transferidas para ${fallbackCtrl.name}.`);
     
@@ -11969,7 +11837,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const reanalysisResult = document.getElementById('reanalisar-resultado');
     reanalysisModal.addEventListener('keydown', handleReanalysisKeydown);
     reanalysisResult.addEventListener('change', updateReanalysisErrorVisibility);
-    await initData();
+    await initializeRadarData();
     initTheme();
     switchProfile('controlador'); // Inicia como Controlador para simular a visão principal
     

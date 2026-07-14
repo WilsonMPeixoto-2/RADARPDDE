@@ -262,3 +262,87 @@ test('execute devolve resultado e snapshot clonados depois de uma gravação bem
     result.snapshot.entities.schools[0].denomination = 'Mutação externa';
     assert.equal((await repository.load('schools'))[0].denomination, 'Escola Confirmada');
 });
+
+test('execute preserva exatamente o estado legado em memória e armazenamento após persistir o canônico', async () => {
+    const initial = createLegacyState();
+    initial.pendencies = [{
+        id: 'pend-exata',
+        escolaId: '04.31.001',
+        competenciaOrigem: '2026-05',
+        programaId: 'BASIC',
+        documentoKey: 'extCC',
+        status: 'Resolvida',
+        responsavel: null,
+        motivo: null,
+        dataAbertura: '2026-06-01',
+        dataResolucao: '2026-06-02',
+        tentativas: [{
+            id: 'tentativa-exata',
+            numero: 1,
+            dataRegistro: '2026-06-01T12:00:00.000Z',
+            dataDisponibilizacao: '2026-06-01',
+            link: null,
+            resultado: 'correto'
+        }],
+        historico: []
+    }];
+    initial.assets = [{
+        id: 'bem-legado-incompleto',
+        escolaId: '04.31.001',
+        item: 'Bem preservado',
+        status: 'Não encaminhada'
+    }];
+    const harness = createPortHarness(initial);
+    const repository = new LocalStorageRepository({
+        storage: createMemoryStorage(),
+        keyPrefix: 'canonical-exact'
+    });
+    const service = new DataService({ repository, statePort: harness.statePort });
+    await service.bootstrap();
+    harness.setMemory(initial);
+
+    await service.execute({
+        name: 'preservar legado exato',
+        changedEntities: ['pendencies', 'pendencyAttempts', 'assets'],
+        mutate: () => ({ saved: true })
+    });
+
+    assert.deepEqual(harness.getMemory().pendencies, initial.pendencies);
+    assert.deepEqual(harness.getMemory().assets, initial.assets);
+    assert.deepEqual(
+        JSON.parse(harness.storage.getItem('radar_pdde_pendencias')),
+        initial.pendencies
+    );
+    assert.deepEqual(
+        JSON.parse(harness.storage.getItem('radar_pdde_bens')),
+        initial.assets
+    );
+});
+
+test('compatibilidade prepara a gravação sincronicamente e restaura tudo se localStorage falhar', async () => {
+    const harness = createPortHarness();
+    const repository = new LocalStorageRepository({
+        storage: createMemoryStorage(),
+        keyPrefix: 'canonical-compatibility'
+    });
+    const service = new DataService({ repository, statePort: harness.statePort });
+    await service.bootstrap();
+    const beforeMemory = harness.getMemory();
+    const beforeStorage = harness.storage.dump();
+    const originalSetItem = harness.storage.setItem.bind(harness.storage);
+    let failed = false;
+    harness.storage.setItem = (key, value) => {
+        if (!failed && key === 'radar_pdde_logs') {
+            failed = true;
+            throw new Error('Falha síncrona induzida.');
+        }
+        originalSetItem(key, value);
+    };
+
+    assert.throws(
+        () => service.stageCompatibility({ changedEntities: ['administrativeLogs'] }),
+        error => error instanceof RepositoryError && error.code === 'TRANSACTION_FAILED'
+    );
+    assert.deepEqual(harness.getMemory(), beforeMemory);
+    assert.deepEqual(harness.storage.dump(), beforeStorage);
+});

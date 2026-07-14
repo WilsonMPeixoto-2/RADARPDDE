@@ -67,13 +67,13 @@
 - `persist()` permanece temporariamente como adaptador de compatibilidade, mas delega ao `DataService`; não usa `localStorage` nem `supabase.from()` diretamente.
 - Os módulos críticos passam a ser scripts estáticos ordenados antes de `app.js`; o carregador dinâmico continua apenas para extensões visuais/funcionais que não participam do bootstrap.
 
-- [ ] Escrever teste que falhe enquanto `app.js` contiver tabelas antigas (`config`, `escolas`, `pendencias`, `notas_registradas`), `seedDatabaseSupabase` ou `persistSingleTableSupabase`.
-- [ ] Escrever E2E que confirme inicialização local pelo gateway e zero requisições `/rest/v1` e `/auth/v1`.
-- [ ] Remover criação direta do cliente, leituras/upserts diretos, sincronização silenciosa e seed automático de `app.js`.
-- [ ] Substituir `initData()` por bootstrap pelo serviço e hidratação explícita do estado legado para a interface.
-- [ ] Fazer `persist()` delegar ao gateway e emitir erro observável, nunca apenas `console.error`.
-- [ ] Executar `node --test tests/unit/legacy-supabase-removal.test.js` e o E2E focado.
-- [ ] Commitar como `refactor: remover integracao Supabase legada`.
+- [x] Escrever teste que falhe enquanto `app.js` contiver tabelas antigas (`config`, `escolas`, `pendencias`, `notas_registradas`), `seedDatabaseSupabase` ou `persistSingleTableSupabase`.
+- [x] Escrever E2E que confirme inicialização local pelo gateway e zero requisições `/rest/v1` e `/auth/v1`.
+- [x] Remover criação direta do cliente, leituras/upserts diretos, sincronização silenciosa e seed automático de `app.js`.
+- [x] Substituir `initData()` por bootstrap pelo serviço e hidratação explícita do estado legado para a interface.
+- [x] Fazer `persist()` delegar ao gateway e emitir erro observável, nunca apenas `console.error`.
+- [x] Executar `node --test tests/unit/legacy-supabase-removal.test.js` e o E2E focado.
+- [x] Commitar como `refactor: remover integracao Supabase legada`.
 
 ### Tarefa 3: Serviços de configurações, cadastros e escolas
 

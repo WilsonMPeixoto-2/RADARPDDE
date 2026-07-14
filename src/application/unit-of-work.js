@@ -63,7 +63,11 @@
                     value: cloneValue(value),
                     snapshot: cloneValue(snapshot)
                 });
-                await this.statePort.applyCanonical(snapshot);
+                if (typeof this.statePort.commitCurrent === 'function') {
+                    this.statePort.commitCurrent(snapshot);
+                } else {
+                    await this.statePort.applyCanonical(snapshot);
+                }
                 return { value: cloneValue(value), snapshot: cloneValue(snapshot) };
             } catch (error) {
                 try {

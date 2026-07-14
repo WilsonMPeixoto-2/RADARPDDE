@@ -19,6 +19,10 @@ test('modo local mantém a infraestrutura Supabase passiva e sem requisições r
         && window.RadarSnapshotTools
         && window.RadarLegacyStateAdapter
         && window.RadarStateBridge
+        && window.RadarStatePort
+        && window.RadarDataService
+        && window.RadarDataContext
+        && window.RadarDataContext.ready === true
     ));
 
     const state = await page.evaluate(() => ({
@@ -29,6 +33,9 @@ test('modo local mantém a infraestrutura Supabase passiva e sem requisições r
         publishableKey: window.RADAR_PDDE_CONFIG.supabase.publishableKey,
         repositoryEnabled: window.RADAR_PDDE_CONFIG.features.supabaseRepositoryEnabled,
         bridgeEnabled: window.RADAR_PDDE_CONFIG.features.legacyAppBridgeEnabled,
+        gatewayReady: window.RadarDataContext.ready,
+        gatewayMode: window.RadarDataContext.capabilities.mode,
+        waitLoaded: typeof window.waitForRadarPersistence === 'function',
         exportLoaded: typeof window.RadarStateBridge.exportLegacySnapshot === 'function',
         restoreLoaded: typeof window.RadarStateBridge.restoreCanonicalSnapshotToLegacyStorage === 'function'
     }));
@@ -41,6 +48,9 @@ test('modo local mantém a infraestrutura Supabase passiva e sem requisições r
         publishableKey: '',
         repositoryEnabled: false,
         bridgeEnabled: false,
+        gatewayReady: true,
+        gatewayMode: 'local',
+        waitLoaded: true,
         exportLoaded: true,
         restoreLoaded: true
     });

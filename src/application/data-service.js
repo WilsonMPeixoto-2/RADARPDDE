@@ -92,6 +92,91 @@
             };
         }
 
+        stageCompatibility(options = {}) {
+            const changedEntities = [...new Set(options.changedEntities || [])];
+            if (changedEntities.length === 0) {
+                throw new RepositoryError(
+                    'VALIDATION_FAILED',
+                    'A persistência de compatibilidade exige entidades alteradas.',
+                    { operation: 'stageCompatibility' }
+                );
+            }
+            changedEntities.forEach(assertKnownEntity);
+            if (typeof this.statePort.captureSync !== 'function'
+                || typeof this.statePort.exportCanonicalSync !== 'function'
+                || typeof this.statePort.commitCurrent !== 'function'
+                || typeof this.statePort.restoreSync !== 'function') {
+                throw new RepositoryError(
+                    'INVALID_STATE_PORT',
+                    'A compatibilidade legada exige uma porta de estado síncrona.',
+                    { operation: 'stageCompatibility' }
+                );
+            }
+
+            const capture = this.statePort.captureSync();
+            try {
+                const snapshot = this.statePort.exportCanonicalSync({
+                    version: options.version || '1',
+                    importId: options.importId || `compatibility-${Date.now()}`,
+                    exportedAt: options.exportedAt || new Date().toISOString()
+                });
+                this.statePort.commitCurrent(snapshot);
+                return {
+                    changedEntities,
+                    snapshot: cloneValue(snapshot)
+                };
+            } catch (error) {
+                let rollbackError = null;
+                try {
+                    this.statePort.restoreSync(capture);
+                } catch (restoreError) {
+                    rollbackError = restoreError;
+                }
+                throw toRepositoryError(error, {
+                    code: 'TRANSACTION_FAILED',
+                    operation: String(options.name || 'persist-compatibility'),
+                    message: rollbackError
+                        ? 'A gravação local falhou e o estado não pôde ser restaurado integralmente.'
+                        : error?.message || 'A gravação local foi desfeita após uma falha.',
+                    details: { rollbackCode: rollbackError?.code || null }
+                });
+            }
+        }
+
+        async persistSnapshot(snapshot, changedEntities, options = {}) {
+            const entities = [...new Set(changedEntities || [])];
+            if (entities.length === 0) {
+                throw new RepositoryError(
+                    'VALIDATION_FAILED',
+                    'O snapshot exige ao menos uma entidade para persistência.',
+                    { operation: 'persistSnapshot' }
+                );
+            }
+            entities.forEach(assertKnownEntity);
+            const beforeRepository = await this.repository.exportSnapshot({ includeEmpty: true });
+            try {
+                for (const entity of entities) {
+                    await this.repository.save(entity, snapshot.entities?.[entity] || []);
+                }
+                return { ok: true, snapshot: cloneValue(snapshot) };
+            } catch (error) {
+                let rollbackError = null;
+                try {
+                    await this.repository.restoreSnapshot(beforeRepository, { replace: true });
+                } catch (restoreError) {
+                    rollbackError = restoreError;
+                }
+                throw toRepositoryError(error, {
+                    code: 'TRANSACTION_FAILED',
+                    operation: String(options.name || 'persistSnapshot'),
+                    message: rollbackError
+                        ? 'A persistência canônica falhou e o repositório não pôde ser restaurado.'
+                        : 'A persistência canônica foi desfeita após uma falha.',
+                    details: { rollbackCode: rollbackError?.code || null }
+                });
+            }
+        }
+
         async execute(command = {}) {
             if (typeof command.mutate !== 'function') {
                 throw new RepositoryError(
