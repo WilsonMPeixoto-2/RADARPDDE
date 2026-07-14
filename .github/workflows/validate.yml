@@ -36,5 +36,17 @@ jobs:
           node --test tests/*.test.js
           npm run test:unit
 
+      - name: Gerar relatório detalhado da auditoria
+        run: npm run audit:functional:json > functional-persistence-audit.json || true
+
+      - name: Publicar relatório detalhado da auditoria
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: functional-persistence-audit
+          path: functional-persistence-audit.json
+          retention-days: 7
+          if-no-files-found: error
+
       - name: Auditar cobertura funcional e de persistência
         run: npm run audit:functional
