@@ -1,0 +1,71 @@
+#!/usr/bin/env node
+'use strict';
+
+const fs = require('node:fs');
+const path = require('node:path');
+const { spawnSync } = require('node:child_process');
+
+const root = path.resolve(__dirname, '..');
+const packageJson = require(path.join(root, 'package.json'));
+const requiredFiles = [
+    'src/types/database.types.ts',
+    'vendor/supabase-client.js'
+];
+
+const findings = [];
+
+for (const relativePath of requiredFiles) {
+    const absolutePath = path.join(root, relativePath);
+    if (!fs.existsSync(absolutePath)) {
+        findings.push(`${relativePath} não existe.`);
+    } else if (fs.statSync(absolutePath).size === 0) {
+        findings.push(`${relativePath} está vazio.`);
+    }
+}
+
+const typeFile = path.join(root, 'src/types/database.types.ts');
+if (fs.existsSync(typeFile)) {
+    const types = fs.readFileSync(typeFile, 'utf8');
+    if (!/export\s+type\s+Database|export\s+interface\s+Database/.test(types)) {
+        findings.push('database.types.ts não contém o contrato Database gerado.');
+    }
+    ['registered_invoices', 'assets', 'verifications', 'save_invoice_with_effects', 'delete_invoice_with_effects']
+        .forEach(identifier => {
+            if (!types.includes(identifier)) {
+                findings.push(`database.types.ts não contém ${identifier}.`);
+            }
+        });
+}
+
+const bundleFile = path.join(root, 'vendor/supabase-client.js');
+if (fs.existsSync(bundleFile)) {
+    const bundle = fs.readFileSync(bundleFile, 'utf8');
+    const expectedVersion = packageJson.devDependencies?.['@supabase/supabase-js'];
+    if (!bundle.includes(`@supabase/supabase-js ${expectedVersion}`)) {
+        findings.push('O bundle não identifica a versão fixada de @supabase/supabase-js.');
+    }
+    if (!bundle.includes('RadarSupabaseClient')) {
+        findings.push('O bundle não expõe RadarSupabaseClient.');
+    }
+}
+
+if (findings.length === 0 && process.env.CI === 'true') {
+    const diff = spawnSync(
+        'git',
+        ['diff', '--exit-code', '--', 'src/types/database.types.ts', 'vendor/supabase-client.js'],
+        { cwd: root, encoding: 'utf8' }
+    );
+    if (diff.status !== 0) {
+        findings.push('Artefatos gerados divergem do conteúdo versionado.');
+        if (diff.stdout) process.stderr.write(diff.stdout);
+        if (diff.stderr) process.stderr.write(diff.stderr);
+    }
+}
+
+if (findings.length > 0) {
+    console.error('Artefatos gerados: falha');
+    findings.forEach(finding => console.error(`- ${finding}`));
+    process.exitCode = 1;
+} else {
+    console.log('Artefatos gerados: aprovados.');
+}
