@@ -28,10 +28,12 @@ jobs:
       - name: Obter código
         uses: actions/checkout@v4
 
-      - name: Configurar Node.js
+      - name: Configurar Node.js LTS
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package.json
 
       - name: Instalar dependências
         run: npm install
@@ -42,7 +44,7 @@ jobs:
       - name: Executar testes E2E completos
         run: npm run test:e2e
 
-      - name: Publicar relatório em caso de falha
+      - name: Publicar relatório de execução
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
