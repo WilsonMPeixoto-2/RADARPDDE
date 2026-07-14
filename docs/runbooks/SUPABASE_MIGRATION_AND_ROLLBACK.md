@@ -16,6 +16,7 @@ Migrar dados locais para Supabase de forma controlada, auditável e reversível.
 8. Snapshot com dados pessoais não deve ser versionado no GitHub.
 9. Campos técnicos do banco não podem ocultar divergências funcionais.
 10. Escopo somente leitura jamais pode ser reutilizado como autorização de escrita.
+11. Nota, bem e verificação relacionados devem ser alterados de forma atômica.
 
 ## 1. Congelamento operacional
 
@@ -119,11 +120,12 @@ Aplicar, na ordem:
 4. `202607130004_competence_bonus_deadline.sql`;
 5. `202607130005_operational_context.sql`;
 6. `202607130006_authorization_hardening.sql`;
-7. `202607130007_configuration_audit_coverage.sql`.
+7. `202607130007_configuration_audit_coverage.sql`;
+8. `202607130008_atomic_invoice_operations.sql`.
 
 Depois:
 
-- executar advisors de segurança e desempenho;
+- executar Advisors de segurança e desempenho;
 - confirmar banco vazio ou ambiente descartável;
 - criar usuários mínimos de homologação;
 - registrar `data_import_runs` como `pending`;
@@ -131,7 +133,10 @@ Depois:
 - confirmar RLS e ausência de acesso `anon`;
 - confirmar apenas um perfil ativo por usuário;
 - confirmar que `user_school_scopes.can_write = false` não permite escrita;
-- confirmar triggers de auditoria em dados operacionais e configurações institucionais.
+- confirmar triggers de auditoria;
+- executar pgTAP e lint;
+- comparar os tipos gerados com `src/types/database.types.ts`;
+- validar as RPCs transacionais da migration 008.
 
 Nenhuma migration é aplicada automaticamente pelo frontend.
 
@@ -214,7 +219,7 @@ No Preview:
 - testar retificação;
 - registrar consumo, serviço e bem permanente;
 - verificar efeitos derivados da nota sobre assessoria e inventário;
-- editar e remover nota;
+- editar e remover nota pelas RPCs transacionais;
 - inventariar bem e preservar responsável/data;
 - gerar Excel;
 - testar negativas de RLS;
@@ -223,9 +228,9 @@ No Preview:
 - simular indisponibilidade do Supabase;
 - confirmar que o snapshot local continua recuperável.
 
-## 10. Concorrência
+## 10. Concorrência e atomicidade
 
-Para alterar registro existente, usar `updateWithVersion()`:
+Para alterar registro simples existente, usar `updateWithVersion()`:
 
 ```javascript
 await repository.updateWithVersion(
@@ -235,7 +240,12 @@ await repository.updateWithVersion(
 );
 ```
 
-Quando a versão estiver obsoleta, a operação deve retornar `OPTIMISTIC_CONFLICT`. A interface deverá informar ao usuário e recarregar o registro antes de nova tentativa.
+Para nota, bem e verificação relacionados, usar:
+
+- `save_invoice_with_effects` para criação ou edição;
+- `delete_invoice_with_effects` para remoção técnica.
+
+Quando qualquer versão estiver obsoleta, a operação deve retornar `OPTIMISTIC_CONFLICT`. A interface deverá informar o usuário e recarregar os registros antes de nova tentativa.
 
 ## 11. Casos mínimos de RLS
 
@@ -248,15 +258,17 @@ Quando a versão estiver obsoleta, a operação deve retornar `OPTIMISTIC_CONFLI
 - Assistente opera dentro do escopo permitido;
 - tentativa de manter dois perfis ativos para o mesmo usuário é recusada;
 - apenas Administrador técnico exclui dados operacionais;
-- auditoria não pode ser editada por usuário autenticado.
+- auditoria não pode ser editada por usuário autenticado;
+- RPCs usam `SECURITY INVOKER` e respeitam RLS.
 
 ## 12. Critérios para promoção
 
 - reconciliação sem diferenças não justificadas;
 - ida e volta canônico → local → canônico aprovada;
-- testes unitários e E2E verdes;
-- sete migrations aplicadas em ambiente descartável sem erro;
-- advisors avaliados;
+- testes unitários, pgTAP, lint e E2E verdes;
+- oito migrations aplicadas em ambiente descartável sem erro;
+- RPCs homologadas;
+- Advisors avaliados;
 - RLS homologada;
 - Preview estável;
 - snapshot local preservado;
@@ -312,8 +324,10 @@ Não executar exclusões massivas diretamente. Preferir:
 - versão dos dados locais;
 - advertências e rejeições;
 - commit e deployment;
-- lista das sete migrations;
-- relatório de advisors;
+- lista das oito migrations;
+- relatório de pgTAP e lint;
+- relatório de Advisors;
+- comparação dos tipos gerados;
 - relatório de reconciliação;
 - relatório de restauração simulada;
 - resultado dos testes;
