@@ -152,6 +152,9 @@ jobs:
       - name: Executar testes pgTAP
         run: npm run supabase:test:db
 
+      - name: Executar lint de PL/pgSQL
+        run: npm run supabase:lint:db
+
       - name: Regenerar tipos e cliente fixado
         run: |
           mkdir -p src/types
