@@ -91,13 +91,23 @@ jobs:
       - name: Gerar bundle Ajv
         run: npm run build:ajv
 
-      - name: Commitar e publicar
+      - name: Preparar índice para commit
         shell: bash
         run: |
           set -euo pipefail
           git rm .github/agent-apply.ready .github/agent-payload-*
           git add package-lock.json vendor/ajv.js
+          git status --short
+
+      - name: Criar commit funcional
+        shell: bash
+        run: |
+          set -euo pipefail
           git config user.name 'RADAR Gate Automation'
           git config user.email 'actions@users.noreply.github.com'
           git commit -m 'feat: concluir contratos e migração reversível'
-          git push origin HEAD:feature/supabase-readiness
+          git rev-parse HEAD
+
+      - name: Publicar commit funcional
+        shell: bash
+        run: git push origin HEAD:feature/supabase-readiness
