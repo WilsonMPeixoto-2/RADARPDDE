@@ -63,6 +63,7 @@
         loadScript('src/data/snapshot-tools.js', false);
         loadScript('src/data/legacy-state-adapter.js', false);
         loadScript('src/data/state-bridge.js', false);
+        loadScript('src/data/state-bridge-metadata.js', false);
 
         loadScript('src/domain/pendencias-view-model.js', false);
         loadScript('src/domain/operational-projection.js', false);
