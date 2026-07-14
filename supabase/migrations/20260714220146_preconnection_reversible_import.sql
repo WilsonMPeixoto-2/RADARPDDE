@@ -268,18 +268,18 @@ begin
         raise exception 'VALIDATION_ERROR: snapshot funcional inválido';
     end if;
 
-    delete from public.administrative_logs;
-    delete from public.registered_invoices;
-    delete from public.assets;
-    delete from public.pendency_contacts;
-    delete from public.pendency_attempts;
-    delete from public.pendencies;
-    delete from public.verifications;
-    delete from public.school_programs;
-    delete from public.schools;
-    delete from public.app_config;
-    delete from public.competences;
-    delete from public.programs;
+    delete from public.administrative_logs where true;
+    delete from public.registered_invoices where true;
+    delete from public.assets where true;
+    delete from public.pendency_contacts where true;
+    delete from public.pendency_attempts where true;
+    delete from public.pendencies where true;
+    delete from public.verifications where true;
+    delete from public.school_programs where true;
+    delete from public.schools where true;
+    delete from public.app_config where true;
+    delete from public.competences where true;
+    delete from public.programs where true;
 
     foreach v_entity in array array[
         'competences', 'programs', 'appConfig', 'schools', 'schoolPrograms',
