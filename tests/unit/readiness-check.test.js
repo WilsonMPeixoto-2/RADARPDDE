@@ -50,7 +50,8 @@ test('valida conjunto obrigatório de migrations', () => {
         '202607130003_audit_and_import.sql',
         '202607130004_competence_bonus_deadline.sql',
         '202607130005_operational_context.sql',
-        '202607130006_authorization_hardening.sql'
+        '202607130006_authorization_hardening.sql',
+        '202607130007_configuration_audit_coverage.sql'
     ]), []);
 
     assert.match(
@@ -63,9 +64,10 @@ test('valida conjunto obrigatório de migrations', () => {
             '202607130002_auth_and_rls.sql',
             '202607130003_audit_and_import.sql',
             '202607130004_competence_bonus_deadline.sql',
-            '202607130005_operational_context.sql'
+            '202607130005_operational_context.sql',
+            '202607130006_authorization_hardening.sql'
         ]).join(' '),
-        /202607130006_authorization_hardening\.sql/
+        /202607130007_configuration_audit_coverage\.sql/
     );
 });
 
