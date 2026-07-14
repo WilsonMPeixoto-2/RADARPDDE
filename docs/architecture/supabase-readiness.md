@@ -32,7 +32,7 @@ Separar gradualmente regras e telas da tecnologia de persistência, sem alterar 
 ```text
 Telas e regras do RADAR
         ↓
-Ponte legada futura — atualmente desativada
+Ponte operacional futura — atualmente desativada
         ↓
 Contrato de repositório
         ↓
@@ -41,7 +41,7 @@ Contrato de repositório
 │ referência contratual    │ preparado e desativado   │
 └──────────────────────────┴──────────────────────────┘
         ↑
-LegacyStateAdapter — exportação controlada do estado atual
+RadarStateBridge — exportação, restauração e reconciliação
 ```
 
 Nesta entrega o `app.js` legado não foi reescrito para consumir o novo contrato. Os módulos são carregados passivamente para permitir futura migração incremental e testável. A persistência oficial continua sendo o conjunto de chaves `radar_pdde_*` já utilizado pelo sistema.
@@ -55,7 +55,8 @@ Nesta entrega o `app.js` legado não foi reescrito para consumir o novo contrato
 - bloqueia chaves secretas, inclusive JWT legado de `service_role`;
 - exige autorização adicional para modo de produção;
 - mantém o modo publicado em `local`;
-- carrega passivamente os módulos de dados sem instanciar repositório.
+- hidrata competências persistidas antes da primeira renderização;
+- carrega os módulos de dados sem instanciar repositório remoto.
 
 ### `src/data/repository-contract.js`
 
@@ -74,7 +75,14 @@ Implementa o contrato usando uma interface compatível com `Storage`. É uma ref
 
 ### `src/data/supabase-repository.js`
 
-Recebe o cliente Supabase por injeção. Não importa SDK, não lê segredos, não cria cliente e não executa seed automático. A restauração respeita a ordem das FKs e todos os registros utilizam `id` canônico.
+Recebe o cliente Supabase por injeção. Não importa SDK, não lê segredos, não cria cliente e não executa seed automático. Inclui:
+
+- leitura paginada e ordenada;
+- gravação em lotes controlados;
+- restauração respeitando dependências de FKs;
+- exclusão de `audit_events` das restaurações;
+- atualização otimista por `row_version`;
+- erro tipado `OPTIMISTIC_CONFLICT` quando outra sessão altera o registro.
 
 ### `src/data/repository-factory.js`
 
@@ -93,7 +101,7 @@ Cria snapshots canônicos, valida estrutura e entidades conhecidas, detecta IDs 
 
 ### `src/data/legacy-state-adapter.js`
 
-É a ponte de exportação entre o estado real atual e o modelo relacional futuro. O módulo:
+Executa a leitura e transformação básica do estado atual:
 
 - lê somente as chaves `radar_pdde_*` existentes;
 - não altera o navegador;
@@ -101,10 +109,43 @@ Cria snapshots canônicos, valida estrutura e entidades conhecidas, detecta IDs 
 - transforma `programasIds` em `school_programs`;
 - transforma verificações aninhadas em linhas;
 - separa tentativas de pendência;
-- preserva o calendário anual dos exercícios configurados, inclusive o prazo mensal de bonificação;
 - preserva dados legados em `payload`;
-- retorna advertências e registros rejeitados;
-- produz snapshot canônico para validação e reconciliação.
+- retorna advertências e registros rejeitados.
+
+### `src/data/state-bridge.js` e `state-bridge-metadata.js`
+
+Completam a tradução semântica e bidirecional:
+
+- preservam o calendário anual e o prazo mensal de bonificação;
+- traduzem os campos reais usados pela interface, inclusive `desc`, `compKey`, `bemId`, `dataRegistro`, inventariador e próximo ator;
+- decompõem o contexto da nota em competência, programa, verificação e bem;
+- restauram snapshot canônico nas chaves locais;
+- suportam `dryRun`;
+- usam metadados laterais para reconciliação exata sem inserir aliases técnicos nos objetos do usuário;
+- invalidam esses metadados por registro quando o usuário altera o conteúdo local.
+
+### `src/integration/exercise-management.js`
+
+Preenche uma lacuna funcional existente no frontend:
+
+- implementa `changeExercise` e `criarExercicio`;
+- cria as doze competências de cada exercício;
+- preserva competência inicial e prazos mensais;
+- atualiza o seletor anual;
+- restaura os exercícios após recarregamento;
+- rejeita ano inválido ou duplicado.
+
+### `scripts/audit-functional-persistence.js`
+
+Usa análise sintática com Acorn para inventariar:
+
+- chaves de armazenamento local;
+- raízes mutáveis de estado;
+- chamadas de persistência;
+- configurações;
+- handlers de interface;
+- campos de formulário;
+- funções que alteram dados sem caminho de persistência reconhecido.
 
 ## Modelo SQL
 
@@ -112,8 +153,11 @@ As migrations são versionadas e não são executadas pela aplicação:
 
 1. `202607130001_core_schema.sql` — entidades, FKs, constraints, índices e versionamento;
 2. `202607130002_auth_and_rls.sql` — perfis, escopos, funções de autorização e políticas granulares;
-3. `202607130003_audit_and_import.sql` — importações, auditoria e triggers;
-4. `202607130004_competence_bonus_deadline.sql` — prazo de bonificação por competência.
+3. `202607130003_audit_and_import.sql` — importações, auditoria operacional e triggers;
+4. `202607130004_competence_bonus_deadline.sql` — prazo de bonificação por competência;
+5. `202607130005_operational_context.sql` — contexto de notas, verificação, bem e inventariação;
+6. `202607130006_authorization_hardening.sql` — perfil ativo único e distinção entre leitura e escrita;
+7. `202607130007_configuration_audit_coverage.sql` — auditoria de parâmetros, cadastros e vínculos institucionais.
 
 Todas as entidades acessadas pelo contrato possuem `id`. Exclusões físicas de dados operacionais são separadas das políticas de escrita e restritas ao Administrador técnico.
 
@@ -128,19 +172,24 @@ Todas as entidades acessadas pelo contrato possuem `id`. Exclusões físicas de 
 7. **Exclusão excepcional:** escrita operacional não implica permissão de exclusão.
 8. **Auditoria imutável:** usuários autenticados não editam `audit_events`.
 9. **Funções protegidas:** funções `security definer` usam `search_path` fixo.
+10. **Escopo explícito:** `can_write = false` não concede permissão de alteração.
+11. **Perfil não ambíguo:** cada usuário possui no máximo um perfil ativo.
+12. **Dependências reproduzíveis:** versões do runtime, bibliotecas e GitHub Actions são fixadas antes da integração real.
 
 ## Modelo futuro de ativação
 
 1. Criar projeto ou branch Supabase de desenvolvimento.
-2. Aplicar migrations e verificar advisors.
-3. Exportar o estado real com `RadarLegacyStateAdapter.exportLegacySnapshot()`.
+2. Aplicar as sete migrations e verificar advisors.
+3. Exportar o estado real com `RadarStateBridge.exportLegacySnapshot()`.
 4. Resolver advertências e registros rejeitados.
 5. Configurar apenas o Preview com `supabase-preview`.
 6. Importar em ordem relacional por backend controlado.
-7. Reconciliar origem e destino.
+7. Reconciliar origem e destino e testar restauração local.
 8. Homologar autenticação, RLS, concorrência e falhas.
-9. Ativar a ponte legada somente após equivalência comprovada.
-10. Promover para produção somente com autorização expressa.
+9. Substituir a integração direta antiga pelo contrato de repositório.
+10. Remover o SDK flutuante por versão fixada ou bundle controlado.
+11. Ativar a ponte somente após equivalência comprovada.
+12. Promover para produção somente com autorização expressa.
 
 ## Invariantes
 
