@@ -23,18 +23,10 @@ jobs:
         with:
           node-version: '24'
           cache: npm
-          cache-dependency-path: package.json
+          cache-dependency-path: package-lock.json
 
-      - name: Instalar dependências de desenvolvimento
-        run: npm install
-
-      - name: Publicar lockfile gerado
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: package-lock-candidate
-          path: package-lock.json
-          retention-days: 7
-          if-no-files-found: error
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
 
       - name: Auditar dependências npm
         run: npm audit --audit-level=high
