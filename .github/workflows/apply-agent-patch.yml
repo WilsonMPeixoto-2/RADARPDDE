@@ -26,6 +26,13 @@ jobs:
           ref: feature/supabase-readiness
           fetch-depth: 2
 
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
       - name: Reconstituir e aplicar alteração versionada
         env:
           GH_TOKEN: ${{ github.token }}
@@ -44,12 +51,16 @@ jobs:
               | sub("^RADAR_PATCH_PART_[0-9]+\\n"; "")' /tmp/comments.json \
               | tr -d '\n'
             cat .github/agent-payload-*
-          } | base64 --decode \
+          } > /tmp/agent-change.patch.gz.b64
+          test "$(wc -c < /tmp/agent-change.patch.gz.b64)" = '47968'
+          echo 'c16cc5ed78d1b1ee4b198df026ada30cd1e111ad9d30271a102d0aebf6537b5e  /tmp/agent-change.patch.gz.b64' \
+            | sha256sum --check --strict
+          base64 --decode /tmp/agent-change.patch.gz.b64 \
             | gzip --decompress \
             > /tmp/agent-change.patch
           test -s /tmp/agent-change.patch
           git apply --index --whitespace=fix /tmp/agent-change.patch
-          npm install --package-lock-only --ignore-scripts
+          npm install --ignore-scripts
           npm run build:ajv
           git rm .github/agent-apply.ready .github/agent-payload-*
           git add package-lock.json vendor/ajv.js
