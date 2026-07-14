@@ -445,7 +445,7 @@
                 p_entity: input.entity,
                 p_batch_index: input.batchIndex,
                 p_records: cloneValue(input.records || []),
-                p_source_hash: input.hash
+                p_source_hash: input.hash || input.sourceHash
             }, 'stageImportBatch');
         }
 
