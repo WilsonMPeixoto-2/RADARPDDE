@@ -48,8 +48,8 @@ Este documento relaciona as superfícies do frontend, os dados alterados pelo us
 | Logs operacionais | `logs` | `administrative_logs` | usuário, perfil, ação, detalhes e horário | snapshot e auditoria |
 | Auditoria técnica | inexistente no navegador | `audit_events` | produzida por triggers, imutável para usuários | migration 003 |
 | Importações | inexistente no modo local | `data_import_runs` | idempotência e reconciliação | migration 003 |
-| Perfis simulados atuais | `currentProfile` | **Local**, até autenticação real | não é identidade de segurança | matriz de permissões |
-| Login e sessão | ainda não implementados | `auth.users`, `user_profiles` | exige fluxo real de autenticação | **Pré-ativação** |
+| Perfis simulados atuais | `currentProfile` | **Somente modo local** | não é identidade de segurança e desaparece no modo Supabase | matriz de permissões e E2E |
+| Login e sessão | gate, restauração, logout e sessão expirada preparados | `auth.users`, `user_profiles` | perfil e escopo vêm da sessão; produção permanece desativada | **Preparado e homologado na pilha local** |
 | Escopo por escola | controlador/perfil atual | `user_school_scopes` e funções RLS | leitura e escrita separadas | migrations 002/006 |
 | Tema claro/escuro | `radar_pdde_theme` | **Local** | preferência visual do dispositivo | não migrar |
 | View, modal e filtro ativos | variáveis de interface | **Local** | estado efêmero | não migrar |

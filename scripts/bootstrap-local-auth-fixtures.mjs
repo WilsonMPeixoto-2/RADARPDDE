@@ -73,8 +73,14 @@ async function upsertAuthUser(client, fixture) {
 
 async function requireSingleRow(operation, label) {
     const { data, error } = await operation.select('id').single();
-    if (error || !data?.id) {
-        throw new Error(`Não foi possível vincular ${label} à identidade local.`);
+    if (error) {
+        const diagnostic = [error.code, error.message, error.details, error.hint]
+            .filter(Boolean)
+            .join(' | ');
+        throw new Error(`Não foi possível vincular ${label} à identidade local: ${diagnostic}`);
+    }
+    if (!data?.id) {
+        throw new Error(`Não foi possível vincular ${label}: nenhum registro funcional foi localizado.`);
     }
 }
 
@@ -113,12 +119,16 @@ async function provisionInstitutionalLinks(client) {
 
     const profileResult = await client.from('user_profiles').upsert(profiles, { onConflict: 'id' });
     if (profileResult.error) {
-        throw new Error('Não foi possível preparar os perfis institucionais locais.');
+        throw new Error(
+            `Não foi possível preparar os perfis institucionais locais: ${profileResult.error.code || 'erro da Data API'}.`
+        );
     }
 
     const scopeResult = await client.from('user_school_scopes').upsert(scopes, { onConflict: 'id' });
     if (scopeResult.error) {
-        throw new Error('Não foi possível preparar os escopos institucionais locais.');
+        throw new Error(
+            `Não foi possível preparar os escopos institucionais locais: ${scopeResult.error.code || 'erro da Data API'}.`
+        );
     }
 }
 

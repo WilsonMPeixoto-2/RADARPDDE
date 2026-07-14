@@ -169,9 +169,13 @@ A pilha local aplica as migrations reais e executa 48 verificações declarativa
 
 Depois o CI executa lint, regenera tipos e bundle e confirma que não há diferença com os arquivos versionados.
 
+As contas de homologação não são gravadas diretamente nas tabelas internas de Auth. Depois do reset, `supabase/seed.sql` insere somente dados funcionais sem credenciais e `bootstrap-local-auth-fixtures.mjs` cria sete identidades determinísticas pela API Admin oficial, exclusivamente em `localhost`/`127.0.0.1` e mediante autorização explícita. A senha forte é gerada em memória pelo CI, mascarada e descartada ao encerrar a pilha. O manifesto versionado contém apenas IDs, e-mails locais, perfis e escopos, sem senha ou chave administrativa.
+
+Antes do Playwright, um login-probe autentica e encerra a sessão das sete identidades. Assim, uma regressão nas fixtures falha rapidamente e não é confundida com erro de interface ou de RLS.
+
 ### Interface
 
-O Playwright mantém cobertura em Chromium desktop, Android/Chromium e iPhone/WebKit, incluindo ausência de conexão Supabase no modo local. No job Supabase local, uma suíte adicional autentica os cinco perfis, valida usuários recusados e comprova RLS de leitura e escrita no frontend real.
+O Playwright mantém cobertura em Chromium desktop, Android/Chromium e iPhone/WebKit, incluindo ausência de conexão Supabase no modo local. No job Supabase local, uma suíte adicional autentica os cinco perfis em cenários independentes, valida usuário inativo e usuário sem perfil, encerra sessões e comprova RLS de leitura e escrita no frontend real.
 
 ## Validação remota futura
 

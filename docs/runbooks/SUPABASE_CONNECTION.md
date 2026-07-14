@@ -138,21 +138,20 @@ Seguir `SUPABASE_MIGRATION_AND_ROLLBACK.md`:
 
 A importação não deve ocorrer no navegador com credencial administrativa.
 
-## 7. Implementar a ponte definitiva em PR separado
+## 7. Confirmar o gateway definitivo antes da conexão
 
-Somente após o banco e os dados estarem homologados:
+O frontend já passa pelo contrato único de repositório e pelos serviços de aplicação. Antes de conectar qualquer projeto remoto, confirmar no HEAD candidato que:
 
-- substituir as chamadas diretas do `app.js` pelo contrato de repositório;
-- remover seed automático e integração antiga com tabelas legadas;
-- criar o cliente apenas quando `connectionEnabled` for verdadeiro;
-- usar as RPCs para salvar e remover notas com efeitos relacionados;
-- usar `updateWithVersion()` nas demais edições;
-- mapear carregamento, gravação, conflito, sessão expirada e falha de rede;
-- manter o adaptador local e `RadarStateBridge` como referência e rollback;
-- criar testes de equivalência para cada mutação;
-- comprovar que nenhuma tela, cálculo, botão ou fluxo mudou.
+- o `app.js` não contém cliente, seed, tabelas ou sincronização Supabase legados;
+- o cliente só é criado quando `connectionEnabled` for verdadeiro;
+- banco remoto vazio nunca recebe seed implícito do navegador;
+- notas usam as RPCs atômicas e as demais edições preservam `row_version`;
+- carregamento, gravação, conflito, sessão expirada e falha de rede são mapeados;
+- o adaptador local e `RadarStateBridge` continuam disponíveis como referência e rollback;
+- os testes de equivalência cobrem cada mutação integrada;
+- nenhuma tela, cálculo, botão ou regra de negócio mudou.
 
-O cliente já está fixado e empacotado em `vendor/supabase-client.js`. A simples alteração de flags **não substitui a implementação da ponte**.
+O cliente está fixado e empacotado em `vendor/supabase-client.js`. Alterar flags sem executar os gates deste runbook continua proibido.
 
 ## 8. Configurar somente o Preview
 
@@ -175,6 +174,8 @@ O gerador aceita apenas valores públicos, rejeita chaves secretas e produz excl
 npm run test:readiness
 npm run supabase:start
 npm run supabase:reset
+npm run bootstrap:auth-fixtures
+npm run check:auth-fixtures
 npm run supabase:test:db
 npm run supabase:lint:db
 npm run test:e2e
