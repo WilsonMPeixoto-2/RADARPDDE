@@ -26,4 +26,5 @@ test('stageImportBatch encaminha o sourceHash canônico à RPC de staging', asyn
 
     assert.equal(captured.name, 'stage_data_import_batch');
     assert.equal(captured.args.p_source_hash, 'sha256-contract');
+    assert.deepEqual(captured.args.p_records, [{ id: 'school-1' }]);
 });
