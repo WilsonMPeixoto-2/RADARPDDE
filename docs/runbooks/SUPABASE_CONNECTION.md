@@ -6,6 +6,15 @@ Não execute este runbook durante a etapa de preparação. A produção permanec
 
 O `app.js` ainda contém uma integração direta preliminar e antiga, com tabelas e seed incompatíveis com o novo esquema. Ela permanece inativa porque a configuração publicada não expõe credenciais. **Não se deve simplesmente preencher URL, chave e ligar as flags.** A ponte definitiva deverá substituir esse caminho pelo contrato de repositório antes de qualquer conexão da aplicação.
 
+A infraestrutura preparada já inclui:
+
+- exportação e restauração bidirecional do estado `radar_pdde_*`;
+- repositório Supabase com paginação integral e gravação em lotes;
+- atualização otimista por `row_version`;
+- reconciliação de snapshots;
+- esquema, autenticação futura, RLS, auditoria e importações;
+- inventário automatizado de chaves, configurações, handlers, formulários e mutações.
+
 ## Pré-requisitos
 
 - projeto Supabase criado e ativo;
@@ -24,7 +33,8 @@ Aplicar, nesta ordem:
 1. `202607130001_core_schema.sql`;
 2. `202607130002_auth_and_rls.sql`;
 3. `202607130003_audit_and_import.sql`;
-4. `202607130004_competence_bonus_deadline.sql`.
+4. `202607130004_competence_bonus_deadline.sql`;
+5. `202607130005_operational_context.sql`.
 
 Após a aplicação:
 
@@ -33,7 +43,9 @@ Após a aplicação:
 - confirmar RLS ativa em todas as tabelas expostas;
 - confirmar ausência de políticas para `anon`;
 - gerar tipos TypeScript como artefato de conferência;
-- executar teste de criação e rollback em ambiente descartável.
+- executar teste de criação e rollback em ambiente descartável;
+- confirmar as FKs de notas para programa, verificação, bem e escola;
+- confirmar o vínculo do inventariador e a data de inventariação.
 
 ## 2. Criar usuários de teste
 
@@ -63,7 +75,11 @@ Exemplo conceitual:
 
 ```javascript
 const client = createClient(projectUrl, publishableKey);
-const repository = new RadarSupabaseRepository.SupabaseRepository({ client });
+const repository = new RadarSupabaseRepository.SupabaseRepository({
+  client,
+  pageSize: 500,
+  writeBatchSize: 250
+});
 const health = await repository.healthCheck();
 ```
 
@@ -71,9 +87,12 @@ As credenciais devem vir do ambiente de execução ou do conector autorizado, nu
 
 Validar:
 
+- leitura paginada com coleções acima de mil registros;
+- escrita em lotes;
 - leitura com cada usuário de teste;
 - negativas de RLS;
 - gravação em tabelas permitidas;
+- atualização concorrente por `updateWithVersion()`;
 - exclusão restrita ao Administrador técnico;
 - exportação de snapshot remoto;
 - ausência de seed automático;
@@ -84,13 +103,14 @@ Validar:
 
 Seguir `SUPABASE_MIGRATION_AND_ROLLBACK.md`:
 
-1. exportar o estado atual com `RadarLegacyStateAdapter.exportLegacySnapshot()`;
+1. exportar o estado atual com `RadarStateBridge.exportLegacySnapshot()`;
 2. resolver advertências e rejeições;
 3. registrar `import_id`;
 4. importar em ordem relacional por backend controlado;
 5. exportar o destino;
 6. reconciliar origem e destino;
-7. preservar o snapshot local.
+7. executar uma restauração simulada com `dryRun: true`;
+8. preservar o snapshot local.
 
 A importação não deve ocorrer no navegador com credencial administrativa.
 
@@ -100,8 +120,11 @@ Somente após o repositório e os dados estarem homologados:
 
 - substituir as chamadas diretas do `app.js` por operações do contrato de repositório;
 - remover o seed automático e a integração antiga com tabelas legadas;
+- remover o carregamento CDN flutuante do SDK e usar versão fixada ou bundle controlado;
+- criar o cliente Supabase somente quando `connectionEnabled` for verdadeiro;
 - mapear carregamento, gravação, conflitos e falhas;
-- manter o adaptador local como referência e rollback;
+- utilizar `updateWithVersion()` nas edições de registros existentes;
+- manter o adaptador local e `RadarStateBridge` como referência e rollback;
 - criar testes de equivalência para cada mutação do domínio;
 - comprovar que nenhuma tela, cálculo, botão ou fluxo mudou.
 
@@ -150,7 +173,9 @@ Confirmar:
 - nenhum seed é executado automaticamente;
 - banco vazio não causa inserção implícita;
 - falha de rede é tratada sem corromper o estado;
-- resultados funcionais coincidem com o modo local.
+- nenhuma coleção é truncada por limite de paginação;
+- resultados funcionais coincidem com o modo local;
+- ida e volta Supabase → estado local preserva campos funcionais.
 
 ## 9. Homologar RLS e concorrência
 
@@ -160,7 +185,7 @@ Também validar:
 
 - duas sessões alterando o mesmo registro;
 - incremento de `row_version`;
-- detecção de conflito;
+- retorno de `OPTIMISTIC_CONFLICT` para versão obsoleta;
 - sessão expirada;
 - usuário desativado;
 - alteração de perfil;
