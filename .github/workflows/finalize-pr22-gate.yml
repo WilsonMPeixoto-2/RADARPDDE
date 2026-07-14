@@ -1,0 +1,70 @@
+name: Finalize PR22 gate
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/finalize-pr22-gate.yml'
+
+permissions:
+  contents: write
+
+env:
+  SUPABASE_TELEMETRY_DISABLED: '1'
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: feature/supabase-readiness
+          fetch-depth: 0
+
+      - name: Incorporate tested functional corrections
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin agent/pr22-finalization
+          git cherry-pick --no-commit 0ab0a16354003fd3f53b0b43c99d31b900b84467
+          git cherry-pick --no-commit d9fb753f7a1b9bbdf98af4ca91d9a30f7c67f764
+
+      - name: Configure Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install reproducible dependencies
+        run: npm ci
+
+      - name: Start local Supabase
+        run: npm run supabase:start
+
+      - name: Regenerate database and browser artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run supabase:reset
+          mkdir -p src/types
+          npm run supabase:gen:types
+          npm run build:supabase-client
+          npm run build:ajv
+          CI=false npm run test:readiness
+
+      - name: Create one consolidated remote commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add src/application/error-mapper.js tests/unit/error-mapper.test.js src/types/database.types.ts vendor/supabase-client.js vendor/ajv.js
+          git rm -f .github/workflows/export-current-branch.yml .github/workflows/finalize-pr22-gate.yml
+          git config user.name 'RADAR Gate Automation'
+          git config user.email 'actions@users.noreply.github.com'
+          git commit -m 'fix: concluir homologacao funcional e artefatos do gate'
+          git push origin HEAD:feature/supabase-readiness
+
+      - name: Stop local Supabase
+        if: always()
+        run: npm run supabase:stop || true
