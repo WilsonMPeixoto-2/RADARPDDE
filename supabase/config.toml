@@ -12,9 +12,6 @@ port = 54322
 shadow_port = 54320
 major_version = 17
 
-[db.pooler]
-enabled = false
-
 [studio]
 enabled = false
 
@@ -22,12 +19,6 @@ enabled = false
 enabled = false
 
 [storage]
-enabled = false
-
-[realtime]
-enabled = false
-
-[analytics]
 enabled = false
 
 [auth]
@@ -42,9 +33,3 @@ enable_anonymous_sign_ins = false
 enable_signup = false
 double_confirm_changes = true
 enable_confirmations = false
-
-[edge_runtime]
-enabled = false
-
-[functions]
-verify_jwt = true
