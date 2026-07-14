@@ -2,12 +2,17 @@
   "name": "radar-pdde",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=24 <27"
+  },
   "scripts": {
-    "check": "node --check app.js && node --check config.js && node --check src/data/repository-contract.js && node --check src/data/local-storage-repository.js && node --check src/data/supabase-repository.js && node --check src/data/repository-factory.js && node --check src/data/snapshot-tools.js && node --check src/data/legacy-state-adapter.js && node --check scripts/check-supabase-readiness.js",
+    "check": "node --check app.js && node --check config.js && node --check src/data/repository-contract.js && node --check src/data/local-storage-repository.js && node --check src/data/supabase-repository.js && node --check src/data/repository-factory.js && node --check src/data/snapshot-tools.js && node --check src/data/legacy-state-adapter.js && node --check scripts/check-supabase-readiness.js && node --check scripts/audit-functional-persistence.js",
     "check:supabase": "node scripts/check-supabase-readiness.js",
+    "audit:functional": "node scripts/audit-functional-persistence.js",
+    "audit:functional:json": "node scripts/audit-functional-persistence.js --json",
     "start": "http-server . -p 4175 -c-1",
     "test:unit": "node --test tests/unit/*.test.js",
-    "test:readiness": "npm run check && npm run test:unit && npm run check:supabase",
+    "test:readiness": "npm run check && npm run test:unit && npm run check:supabase && npm run audit:functional",
     "test:e2e": "playwright test",
     "test:mobile": "playwright test --project=mobile-chromium --project=mobile-webkit",
     "test:mobile:headed": "playwright test --project=mobile-chromium --headed",
@@ -15,6 +20,8 @@
   },
   "devDependencies": {
     "@playwright/test": "1.61.0",
-    "http-server": "^14.1.1"
+    "acorn": "8.17.0",
+    "acorn-walk": "8.3.5",
+    "http-server": "14.1.2"
   }
 }
