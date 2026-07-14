@@ -41,6 +41,15 @@ test('bootstrap PostgreSQL reproduz os três papéis mínimos do Supabase', () =
     assert.match(bootstrap, /create\s+role\s+service_role\s+nologin\s+bypassrls/i);
 });
 
+test('configuração local habilita explicitamente login por email e bloqueia cadastro público', () => {
+    const config = fs.readFileSync(path.join(root, 'supabase/config.toml'), 'utf8');
+    const emailSection = config.match(/\[auth\.email\]([\s\S]*?)(?:\n\[|$)/i);
+
+    assert.ok(emailSection, 'A seção [auth.email] deve existir.');
+    assert.match(emailSection[1], /^\s*enabled\s*=\s*true\s*$/mi);
+    assert.match(emailSection[1], /^\s*enable_signup\s*=\s*false\s*$/mi);
+});
+
 test('manifesto local contém sete identidades e cinco perfis ativos determinísticos', () => {
     const seed = fs.readFileSync(path.join(root, 'supabase/seed.sql'), 'utf8');
     const fixtures = JSON.parse(fs.readFileSync(
