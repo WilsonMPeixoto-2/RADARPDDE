@@ -42,6 +42,20 @@ test('migration complementar preserva o prazo de bonificação por competência'
     assert.match(sql, /competences_bonus_deadline_idx/i);
 });
 
+test('migration operacional normaliza contexto de notas e inventário', () => {
+    const sql = read('202607130005_operational_context.sql');
+
+    assert.match(sql, /alter\s+table\s+public\.assets[\s\S]*?inventoried_by_member_id\s+text/i);
+    assert.match(sql, /inventoried_by_member_id[\s\S]*?references\s+public\.inventory_team_members\s*\(id\)/i);
+    assert.match(sql, /add\s+column\s+inventoried_at\s+timestamptz/i);
+    assert.match(sql, /alter\s+table\s+public\.registered_invoices[\s\S]*?program_id\s+text/i);
+    assert.match(sql, /verification_id\s+text[\s\S]*?references\s+public\.verifications\s*\(id\)/i);
+    assert.match(sql, /source_context_key\s+text\s+not\s+null/i);
+    assert.match(sql, /linked_asset_id\s+text[\s\S]*?references\s+public\.assets\s*\(id\)/i);
+    assert.match(sql, /registered_at\s+timestamptz/i);
+    assert.match(sql, /registered_invoices_context_idx/i);
+});
+
 test('migration de autenticação ativa RLS, define perfis e IDs removíveis', () => {
     const sql = read('202607130002_auth_and_rls.sql');
     ['profiles', 'user_profiles', 'user_school_scopes'].forEach(tableName => {
