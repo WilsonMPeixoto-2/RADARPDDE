@@ -1,6 +1,9 @@
 name: Apply agent patch
 
 on:
+  pull_request:
+    paths:
+      - '.github/agent-apply.ready'
   push:
     branches:
       - feature/supabase-readiness
