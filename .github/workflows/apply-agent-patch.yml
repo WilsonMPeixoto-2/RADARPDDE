@@ -52,8 +52,6 @@ jobs:
               | tr -d '\n'
             cat .github/agent-payload-*
           } > /tmp/agent-change.patch.gz.b64
-          printf 'partes_comentarios=%s\n' "$(jq '[.[] | select(.body | startswith("RADAR_PATCH_PART_"))] | length' /tmp/comments.json)"
-          printf 'bytes_payload=%s\n' "$(wc -c < /tmp/agent-change.patch.gz.b64)"
 
       - name: Verificar integridade do payload
         shell: bash
@@ -61,9 +59,6 @@ jobs:
           set -euo pipefail
           actual_bytes="$(wc -c < /tmp/agent-change.patch.gz.b64)"
           actual_sha="$(sha256sum /tmp/agent-change.patch.gz.b64 | cut -d' ' -f1)"
-          printf 'bytes_esperados=47968 bytes_obtidos=%s\n' "${actual_bytes}"
-          printf 'sha_esperado=c16cc5ed78d1b1ee4b198df026ada30cd1e111ad9d30271a102d0aebf6537b5e\n'
-          printf 'sha_obtido=%s\n' "${actual_sha}"
           test "${actual_bytes}" = '47968'
           test "${actual_sha}" = 'c16cc5ed78d1b1ee4b198df026ada30cd1e111ad9d30271a102d0aebf6537b5e'
 
@@ -75,14 +70,11 @@ jobs:
             | gzip --decompress \
             > /tmp/agent-change.patch
           test -s /tmp/agent-change.patch
-          printf 'bytes_patch=%s\n' "$(wc -c < /tmp/agent-change.patch)"
 
       - name: Validar aplicação do patch
-        shell: bash
         run: git apply --check --whitespace=fix /tmp/agent-change.patch
 
       - name: Aplicar patch
-        shell: bash
         run: git apply --index --whitespace=fix /tmp/agent-change.patch
 
       - name: Instalar dependências reproduzíveis
@@ -91,10 +83,13 @@ jobs:
       - name: Gerar bundle Ajv
         run: npm run build:ajv
 
-      - name: Preparar índice para commit
+      - name: Preparar índice sem alterações de workflows
         shell: bash
         run: |
           set -euo pipefail
+          git restore --source=HEAD --staged --worktree \
+            .github/workflows/supabase-readiness.yml \
+            .github/workflows/validate.yml
           git rm .github/agent-apply.ready .github/agent-payload-*
           git add package-lock.json vendor/ajv.js
           git status --short
@@ -106,8 +101,6 @@ jobs:
           git config user.name 'RADAR Gate Automation'
           git config user.email 'actions@users.noreply.github.com'
           git commit -m 'feat: concluir contratos e migração reversível'
-          git rev-parse HEAD
 
       - name: Publicar commit funcional
-        shell: bash
         run: git push origin HEAD:feature/supabase-readiness
