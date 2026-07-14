@@ -33,37 +33,39 @@ jobs:
           from pathlib import Path
           coordinator = Path('src/data/import-coordinator.js')
           source = coordinator.read_text()
-          old = """            } catch (error) {
-              await this.rollback(snapshot.importId, { preserveFailure: true });
-              throw error;
-            }
-          """
-          new = """            } catch (error) {
-              let rollbackError = null;
-              try {
-                await this.rollback(snapshot.importId, { preserveFailure: true });
-              } catch (candidate) {
-                rollbackError = candidate;
-              }
-              if (rollbackError) {
-                throw new RepositoryError(
-                  error?.code || 'TRANSACTION_FAILED',
-                  error?.message || 'A promoção da importação falhou.',
-                  {
-                    cause: error,
-                    operation: error?.operation || 'migration:promote',
-                    entity: error?.entity || null,
-                    details: cloneValue({
-                      ...(error?.details || {}),
-                      rollbackCode: rollbackError?.code || 'ROLLBACK_FAILED',
-                      rollbackMessage: rollbackError?.message || null
-                    })
-                  }
-                );
-              }
-              throw error;
-            }
-          """
+          old = (
+              "            } catch (error) {\n"
+              "                await this.rollback(snapshot.importId, { preserveFailure: true });\n"
+              "                throw error;\n"
+              "            }\n"
+          )
+          new = (
+              "            } catch (error) {\n"
+              "                let rollbackError = null;\n"
+              "                try {\n"
+              "                    await this.rollback(snapshot.importId, { preserveFailure: true });\n"
+              "                } catch (candidate) {\n"
+              "                    rollbackError = candidate;\n"
+              "                }\n"
+              "                if (rollbackError) {\n"
+              "                    throw new RepositoryError(\n"
+              "                        error?.code || 'TRANSACTION_FAILED',\n"
+              "                        error?.message || 'A promoção da importação falhou.',\n"
+              "                        {\n"
+              "                            cause: error,\n"
+              "                            operation: error?.operation || 'migration:promote',\n"
+              "                            entity: error?.entity || null,\n"
+              "                            details: cloneValue({\n"
+              "                                ...(error?.details || {}),\n"
+              "                                rollbackCode: rollbackError?.code || 'ROLLBACK_FAILED',\n"
+              "                                rollbackMessage: rollbackError?.message || null\n"
+              "                            })\n"
+              "                        }\n"
+              "                    );\n"
+              "                }\n"
+              "                throw error;\n"
+              "            }\n"
+          )
           if old not in source:
               raise SystemExit('Bloco de promoção esperado não localizado.')
           coordinator.write_text(source.replace(old, new, 1))
@@ -72,31 +74,31 @@ jobs:
           tests = test_file.read_text()
           addition = """
 
-          test('falha de promoção preserva a causa original quando o rollback remoto não está disponível', async () => {
-              const target = new LocalStorageRepository({ storage: storage(), keyPrefix: 'target' });
-              target.promoteImportSnapshot = async () => {
-                  const error = new Error('PROMOTION_FAILED: constraint violation');
-                  error.code = 'PROMOTION_FAILED';
-                  throw error;
-              };
-              target.rollbackImport = async () => {
-                  const error = new Error('IMPORT_ROLLBACK_UNAVAILABLE: promotion-test');
-                  error.code = 'IMPORT_ROLLBACK_UNAVAILABLE';
-                  throw error;
-              };
-              const coordinator = new ImportCoordinator({
-                  targetRepository: target,
-                  checkpointStore: createMemoryCheckpointStore()
-              });
+test('falha de promoção preserva a causa original quando o rollback remoto não está disponível', async () => {
+    const target = new LocalStorageRepository({ storage: storage(), keyPrefix: 'target' });
+    target.promoteImportSnapshot = async () => {
+        const error = new Error('PROMOTION_FAILED: constraint violation');
+        error.code = 'PROMOTION_FAILED';
+        throw error;
+    };
+    target.rollbackImport = async () => {
+        const error = new Error('IMPORT_ROLLBACK_UNAVAILABLE: promotion-test');
+        error.code = 'IMPORT_ROLLBACK_UNAVAILABLE';
+        throw error;
+    };
+    const coordinator = new ImportCoordinator({
+        targetRepository: target,
+        checkpointStore: createMemoryCheckpointStore()
+    });
 
-              await assert.rejects(
-                  coordinator.import(sourceSnapshot('promotion-test')),
-                  error => error.code === 'PROMOTION_FAILED'
-                      && error.message.includes('constraint violation')
-                      && error.details?.rollbackCode === 'IMPORT_ROLLBACK_UNAVAILABLE'
-              );
-          });
-          """
+    await assert.rejects(
+        coordinator.import(sourceSnapshot('promotion-test')),
+        error => error.code === 'PROMOTION_FAILED'
+            && error.message.includes('constraint violation')
+            && error.details?.rollbackCode === 'IMPORT_ROLLBACK_UNAVAILABLE'
+    );
+});
+"""
           if 'falha de promoção preserva a causa original' not in tests:
               test_file.write_text(tests + addition)
           PY
