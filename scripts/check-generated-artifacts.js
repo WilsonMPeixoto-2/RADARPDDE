@@ -10,7 +10,8 @@ const packageJson = require(path.join(root, 'package.json'));
 const requiredFiles = [
     'config.runtime.js',
     'src/types/database.types.ts',
-    'vendor/supabase-client.js'
+    'vendor/supabase-client.js',
+    'vendor/ajv.js'
 ];
 
 const findings = [];
@@ -55,6 +56,14 @@ if (fs.existsSync(runtimeConfigFile)) {
     }
 }
 
+const ajvBundleFile = path.join(root, 'vendor/ajv.js');
+if (fs.existsSync(ajvBundleFile)) {
+    const bundle = fs.readFileSync(ajvBundleFile, 'utf8');
+    const expectedVersion = packageJson.devDependencies?.ajv;
+    if (!bundle.includes(`Ajv ${expectedVersion}`)) findings.push('O bundle Ajv não identifica a versão fixada.');
+    if (!bundle.includes('RadarAjv')) findings.push('O bundle Ajv não expõe RadarAjv.');
+}
+
 const bundleFile = path.join(root, 'vendor/supabase-client.js');
 if (fs.existsSync(bundleFile)) {
     const bundle = fs.readFileSync(bundleFile, 'utf8');
@@ -70,7 +79,7 @@ if (fs.existsSync(bundleFile)) {
 if (findings.length === 0 && process.env.CI === 'true') {
     const diff = spawnSync(
         'git',
-        ['diff', '--exit-code', '--', 'config.runtime.js', 'src/types/database.types.ts', 'vendor/supabase-client.js'],
+        ['diff', '--exit-code', '--', 'config.runtime.js', 'src/types/database.types.ts', 'vendor/supabase-client.js', 'vendor/ajv.js'],
         { cwd: root, encoding: 'utf8' }
     );
     if (diff.status !== 0) {

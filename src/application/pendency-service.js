@@ -226,6 +226,32 @@
                     } catch (error) {
                         throw asRepositoryError(error, 'reanalyze');
                     }
+                },
+                persist: async ({ snapshot, repository, defaultPersist }) => {
+                    if (typeof repository.reanalyzePendencyWithVerification !== 'function') {
+                        return defaultPersist();
+                    }
+                    const pendencyId = text(input.pendencyId);
+                    const pendency = (snapshot.entities.pendencies || [])
+                        .find(record => String(record.id) === pendencyId);
+                    if (!pendency) return defaultPersist();
+                    const attempt = (snapshot.entities.pendencyAttempts || [])
+                        .filter(record => String(record.pendency_id) === pendencyId)
+                        .sort((left, right) => Number(right.attempt_number || 0) - Number(left.attempt_number || 0))[0] || null;
+                    const verification = (snapshot.entities.verifications || []).find(record => (
+                        String(record.school_id) === String(pendency.school_id)
+                        && String(record.competence_id) === String(pendency.competence_origin)
+                        && String(record.program_id || '') === String(pendency.program_id || '')
+                    ));
+                    if (!verification) return defaultPersist();
+                    return repository.reanalyzePendencyWithVerification({
+                        pendency,
+                        attempt,
+                        verification,
+                        expectedPendencyVersion: Number(pendency.row_version || 1),
+                        expectedVerificationVersion: Number(verification.row_version || 1),
+                        administrativeLog: snapshot.entities.administrativeLogs?.at(-1) || null
+                    });
                 }
             });
         }

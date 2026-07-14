@@ -39,6 +39,9 @@ test('módulos críticos são estáticos, ordenados e não carregados dinamicame
     const config = read('config.js');
     const orderedScripts = [
         'src/data/repository-contract.js',
+        'vendor/ajv.js',
+        'src/domain/json-contracts.js',
+        'src/application/error-mapper.js',
         'src/data/local-storage-repository.js',
         'src/data/supabase-repository.js',
         'src/data/repository-factory.js',
@@ -46,7 +49,6 @@ test('módulos críticos são estáticos, ordenados e não carregados dinamicame
         'src/data/legacy-state-adapter.js',
         'src/data/state-bridge.js',
         'src/data/state-bridge-metadata.js',
-        'src/application/error-mapper.js',
         'src/application/state-port.js',
         'src/application/unit-of-work.js',
         'src/application/data-service.js',

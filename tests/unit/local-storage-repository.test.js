@@ -101,3 +101,16 @@ test('health check não altera dados e informa modo local', async () => {
         writable: true
     });
 });
+
+test('diagnostica uso aproximado e capacidade de escrita do armazenamento local', async () => {
+    const storage = createMemoryStorage();
+    const repository = new LocalStorageRepository({ storage, keyPrefix: 'radar-capacity' });
+    await repository.save('schools', [{ id: 's1', denomination: 'Escola' }]);
+
+    const diagnostic = await repository.diagnoseCapacity();
+    assert.equal(diagnostic.ok, true);
+    assert.equal(diagnostic.writable, true);
+    assert.equal(diagnostic.mode, 'local');
+    assert.equal(diagnostic.trackedEntities, 19);
+    assert.equal(diagnostic.approximateBytes > 0, true);
+});

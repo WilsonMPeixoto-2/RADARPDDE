@@ -107,16 +107,20 @@ function readSourceFiles() {
 }
 
 function parseJavaScript(source, file) {
+    const options = {
+        ecmaVersion: 'latest',
+        allowHashBang: true,
+        locations: true
+    };
     try {
-        return acorn.parse(source, {
-            ecmaVersion: 'latest',
-            sourceType: 'script',
-            allowHashBang: true,
-            locations: true
-        });
-    } catch (error) {
-        error.message = `${file}: ${error.message}`;
-        throw error;
+        return acorn.parse(source, { ...options, sourceType: 'script' });
+    } catch (scriptError) {
+        try {
+            return acorn.parse(source, { ...options, sourceType: 'module' });
+        } catch (moduleError) {
+            moduleError.message = `${file}: ${moduleError.message}`;
+            throw moduleError;
+        }
     }
 }
 

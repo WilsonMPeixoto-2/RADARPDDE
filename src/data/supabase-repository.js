@@ -4,7 +4,10 @@
     const contract = typeof module !== 'undefined' && module.exports
         ? require('./repository-contract.js')
         : root.RadarRepositoryContract;
-    const api = factory(contract);
+    const errorMapper = typeof module !== 'undefined' && module.exports
+        ? require('../application/error-mapper.js')
+        : root.RadarErrorMapper;
+    const api = factory(contract, errorMapper);
 
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = api;
@@ -13,11 +16,11 @@
     if (root) {
         root.RadarSupabaseRepository = Object.freeze(api);
     }
-}(typeof window !== 'undefined' ? window : globalThis, function createSupabaseRepositoryApi(contract) {
+}(typeof window !== 'undefined' ? window : globalThis, function createSupabaseRepositoryApi(contract, errorMapper) {
     'use strict';
 
-    if (!contract) {
-        throw new Error('RadarRepositoryContract deve ser carregado antes do repositório Supabase.');
+    if (!contract || !errorMapper) {
+        throw new Error('Contrato e mapeador de erros devem ser carregados antes do repositório Supabase.');
     }
 
     const {
@@ -78,6 +81,7 @@
     const NON_RESTORABLE_SET = new Set(NON_RESTORABLE_ENTITIES);
     const DEFAULT_PAGE_SIZE = 500;
     const DEFAULT_WRITE_BATCH_SIZE = 250;
+    const { withSafeReadRetry } = errorMapper;
 
     function positiveInteger(value, fallback) {
         return Number.isInteger(value) && value > 0 ? value : fallback;
@@ -111,6 +115,12 @@
                 options.writeBatchSize,
                 DEFAULT_WRITE_BATCH_SIZE
             );
+            this.readRetry = Object.freeze({
+                maxAttempts: positiveInteger(options.readRetry?.maxAttempts, 3),
+                delayMs: Number.isFinite(options.readRetry?.delayMs) && options.readRetry.delayMs >= 0
+                    ? options.readRetry.delayMs
+                    : 120
+            });
         }
 
         tableFor(entity) {
@@ -147,14 +157,12 @@
             const table = this.tableFor(entity);
             const pageSize = positiveInteger(limit, this.pageSize);
             const start = Math.max(0, Number.isInteger(offset) ? offset : 0);
-            let query = this.client.from(table).select('*');
-            if (typeof query.order === 'function') {
-                query = query.order('id', { ascending: true });
-            }
-            if (typeof query.range === 'function') {
-                query = query.range(start, start + pageSize - 1);
-            }
-            const data = await this.execute(entity, 'loadPage', query);
+            const data = await withSafeReadRetry(async () => {
+                let query = this.client.from(table).select('*');
+                if (typeof query.order === 'function') query = query.order('id', { ascending: true });
+                if (typeof query.range === 'function') query = query.range(start, start + pageSize - 1);
+                return this.execute(entity, 'loadPage', query);
+            }, this.readRetry);
             return normalizeCollection(data);
         }
 
@@ -393,6 +401,80 @@
             }, 'deleteInvoiceWithEffects');
         }
 
+        async saveExerciseWithCompetences(input = {}) {
+            return this.executeRpc('save_exercise_with_competences', {
+                p_config: cloneValue(input.appConfig || {}),
+                p_competences: cloneValue(input.competences || []),
+                p_administrative_log: input.administrativeLog ? cloneValue(input.administrativeLog) : null
+            }, 'saveExerciseWithCompetences');
+        }
+
+        async saveSchoolWithPrograms(input = {}) {
+            return this.executeRpc('save_school_with_programs', {
+                p_school: cloneValue(input.school || {}),
+                p_programs: cloneValue(input.programs || []),
+                p_expected_school_version: input.expectedSchoolVersion ?? null,
+                p_administrative_log: input.administrativeLog ? cloneValue(input.administrativeLog) : null
+            }, 'saveSchoolWithPrograms');
+        }
+
+        async reanalyzePendencyWithVerification(input = {}) {
+            return this.executeRpc('reanalyze_pendency_with_verification', {
+                p_pendency: cloneValue(input.pendency || {}),
+                p_attempt: input.attempt ? cloneValue(input.attempt) : null,
+                p_verification_patch: cloneValue(input.verification || {}),
+                p_expected_pendency_version: input.expectedPendencyVersion ?? null,
+                p_expected_verification_version: input.expectedVerificationVersion ?? null,
+                p_administrative_log: input.administrativeLog ? cloneValue(input.administrativeLog) : null
+            }, 'reanalyzePendencyWithVerification');
+        }
+
+        async beginImport(input = {}) {
+            return this.executeRpc('begin_data_import', {
+                p_import_id: input.importId,
+                p_snapshot_format: input.format,
+                p_snapshot_version: input.version,
+                p_source_hash: input.hash || input.sourceHash,
+                p_entity_counts: cloneValue(input.counts || {})
+            }, 'beginImport');
+        }
+
+        async stageImportBatch(input = {}) {
+            return this.executeRpc('stage_data_import_batch', {
+                p_import_id: input.importId,
+                p_entity: input.entity,
+                p_batch_index: input.batchIndex,
+                p_records: cloneValue(input.records || []),
+                p_source_hash: input.hash
+            }, 'stageImportBatch');
+        }
+
+        async loadStagedSnapshot(importId) {
+            return this.executeRpc('load_staged_import', { p_import_id: importId }, 'loadStagedSnapshot');
+        }
+
+        async promoteImportSnapshot(input = {}) {
+            return this.executeRpc('promote_data_import', {
+                p_import_id: input.importId,
+                p_source_hash: input.hash || input.sourceHash,
+                p_entity_counts: cloneValue(input.counts || {}),
+                p_snapshot: cloneValue(input.snapshot || {})
+            }, 'promoteImportSnapshot');
+        }
+
+        async completeImport(input = {}) {
+            return this.executeRpc('complete_data_import', {
+                p_import_id: input.importId,
+                p_source_hash: input.hash || input.sourceHash,
+                p_reconciliation: cloneValue(input.reconciliation || {})
+            }, 'completeImport');
+        }
+
+        async rollbackImport(input) {
+            const importId = typeof input === 'object' ? input.importId : input;
+            return this.executeRpc('rollback_data_import', { p_import_id: importId }, 'rollbackImport');
+        }
+
         capabilities() {
             return Object.freeze({
                 mode: 'supabase',
@@ -401,7 +483,13 @@
                 canImportLegacy: false,
                 atomicTransactions: false,
                 atomicInvoiceEffects: true,
-                optimisticConcurrency: true
+                atomicExerciseCreation: true,
+                atomicSchoolPrograms: true,
+                atomicPendencyReanalysis: true,
+                resumableImport: true,
+                reversibleImport: true,
+                optimisticConcurrency: true,
+                safeReadRetry: true
             });
         }
     }

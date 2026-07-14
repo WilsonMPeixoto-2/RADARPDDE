@@ -10,7 +10,10 @@
     const unitOfWorkApi = typeof module !== 'undefined' && module.exports
         ? require('./unit-of-work.js')
         : root.RadarUnitOfWork;
-    const api = factory(contract, errorMapper, unitOfWorkApi);
+    const jsonContracts = typeof module !== 'undefined' && module.exports
+        ? require('../domain/json-contracts.js')
+        : root.RadarJsonContracts;
+    const api = factory(contract, errorMapper, unitOfWorkApi, jsonContracts);
 
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = api;
@@ -22,12 +25,13 @@
 }(typeof window !== 'undefined' ? window : globalThis, function createRadarDataServiceApi(
     contract,
     errorMapper,
-    unitOfWorkApi
+    unitOfWorkApi,
+    jsonContracts
 ) {
     'use strict';
 
-    if (!contract || !errorMapper || !unitOfWorkApi) {
-        throw new Error('Contrato, mapeador de erros e unidade de trabalho são obrigatórios.');
+    if (!contract || !errorMapper || !unitOfWorkApi || !jsonContracts) {
+        throw new Error('Contrato, mapeador de erros, unidade de trabalho e contratos JSON são obrigatórios.');
     }
 
     const {
@@ -39,6 +43,14 @@
     } = contract;
     const { toRepositoryError } = errorMapper;
     const { UnitOfWork } = unitOfWorkApi;
+    const { assertCanonicalRecords } = jsonContracts;
+
+    function assertSnapshotJson(snapshot, operation) {
+        for (const [entity, records] of Object.entries(snapshot?.entities || {})) {
+            assertCanonicalRecords(entity, records, { operation });
+        }
+        return snapshot;
+    }
 
     class DataService {
         constructor(options = {}) {
@@ -59,6 +71,7 @@
         async bootstrap() {
             const capabilities = this.repository.capabilities();
             const current = await this.repository.exportSnapshot({ includeEmpty: true });
+            assertSnapshotJson(current, 'bootstrap');
             const empty = isSnapshotEmpty(current);
 
             if (empty && capabilities.remote === true) {
@@ -120,6 +133,7 @@
                     importId: options.importId || `compatibility-${Date.now()}`,
                     exportedAt: options.exportedAt || new Date().toISOString()
                 });
+                assertSnapshotJson(snapshot, 'stageCompatibility');
                 this.statePort.commitCurrent(snapshot);
                 return {
                     changedEntities,
@@ -155,6 +169,7 @@
             entities.forEach(assertKnownEntity);
             const beforeRepository = await this.repository.exportSnapshot({ includeEmpty: true });
             try {
+                assertSnapshotJson(snapshot, String(options.name || 'persistSnapshot'));
                 for (const entity of entities) {
                     await this.repository.save(entity, snapshot.entities?.[entity] || []);
                 }
@@ -198,6 +213,7 @@
 
             try {
                 const defaultPersist = async ({ snapshot }) => {
+                    assertSnapshotJson(snapshot, String(command.name || 'data-command'));
                     for (const entity of changedEntities) {
                         await this.repository.save(entity, snapshot.entities[entity] || []);
                     }

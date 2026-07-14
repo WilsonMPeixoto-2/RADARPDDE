@@ -140,6 +140,47 @@
             };
         }
 
+
+        async diagnoseCapacity(options = {}) {
+            const probeBytes = Number.isInteger(options.probeBytes) && options.probeBytes > 0
+                ? Math.min(options.probeBytes, 1024 * 1024)
+                : 4096;
+            let approximateBytes = 0;
+            for (const entity of RADAR_ENTITIES) {
+                const raw = this.storage.getItem(this.keyFor(entity)) || '';
+                approximateBytes += raw.length * 2;
+            }
+            const probeKey = `${this.keyPrefix}:__capacity_probe__`;
+            try {
+                this.storage.setItem(probeKey, '0'.repeat(probeBytes));
+                const writable = this.storage.getItem(probeKey)?.length === probeBytes;
+                this.storage.removeItem(probeKey);
+                return {
+                    ok: writable,
+                    mode: 'local',
+                    writable,
+                    trackedEntities: RADAR_ENTITIES.length,
+                    approximateBytes,
+                    probeBytes,
+                    errorCode: null
+                };
+            } catch (error) {
+                try { this.storage.removeItem(probeKey); } catch (_) { /* noop */ }
+                const quota = error?.name === 'QuotaExceededError'
+                    || error?.code === 22
+                    || /quota/i.test(String(error?.message || ''));
+                return {
+                    ok: false,
+                    mode: 'local',
+                    writable: false,
+                    trackedEntities: RADAR_ENTITIES.length,
+                    approximateBytes,
+                    probeBytes,
+                    errorCode: quota ? 'LOCAL_STORAGE_QUOTA_EXCEEDED' : 'LOCAL_STORAGE_UNAVAILABLE'
+                };
+            }
+        }
+
         async healthCheck() {
             const probeKey = `${this.keyPrefix}:__healthcheck__`;
             try {
@@ -159,7 +200,8 @@
                 writable: true,
                 canImportLegacy: true,
                 atomicTransactions: true,
-                optimisticConcurrency: false
+                optimisticConcurrency: false,
+                capacityDiagnostics: true
             });
         }
     }

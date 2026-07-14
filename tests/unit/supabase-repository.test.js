@@ -363,3 +363,67 @@ test('factory cria Supabase sem instanciar armazenamento local desnecessário', 
 
     assert.ok(selected instanceof SupabaseRepository);
 });
+
+test('repete somente leitura transitória e não repete gravações', async () => {
+    let readAttempts = 0;
+    const client = {
+        from() {
+            return {
+                select() { return this; },
+                order() { return this; },
+                range() { return this; },
+                upsert() {
+                    return Promise.resolve({ data: null, error: new TypeError('network write failed') });
+                },
+                then(resolve) {
+                    readAttempts += 1;
+                    if (readAttempts < 3) resolve({ data: null, error: new TypeError('network read failed') });
+                    else resolve({ data: [], error: null });
+                }
+            };
+        }
+    };
+    const repository = new SupabaseRepository({ client, readRetry: { maxAttempts: 3, delayMs: 0 } });
+    assert.deepEqual(await repository.load('schools'), []);
+    assert.equal(readAttempts, 3);
+    await assert.rejects(repository.save('schools', [{ id: 's1' }]), /Falha na operação save/);
+});
+
+test('expõe RPCs compostas e operacionais de importação sem persistência paralela', async () => {
+    const rpcCalls = [];
+    const client = createSupabaseClient();
+    client.rpc = async (name, args) => {
+        rpcCalls.push({ name, args: structuredClone(args) });
+        return { data: { name, ok: true }, error: null };
+    };
+    const repository = new SupabaseRepository({ client });
+
+    await repository.saveExerciseWithCompetences({
+        appConfig: { id: 'global' }, competences: [{ id: '2031-01' }], administrativeLog: { id: 'l1' }
+    });
+    await repository.saveSchoolWithPrograms({
+        school: { id: 's1' }, programs: [{ id: 'sp1' }], expectedSchoolVersion: 2, administrativeLog: { id: 'l2' }
+    });
+    await repository.reanalyzePendencyWithVerification({
+        pendency: { id: 'p1' }, attempt: { id: 'a1' }, verification: { id: 'v1' },
+        expectedPendencyVersion: 3, expectedVerificationVersion: 4, administrativeLog: { id: 'l3' }
+    });
+    await repository.beginImport({ importId: 'imp-1', format: 'radar-pdde-snapshot', version: '1', hash: 'abc', counts: { schools: 1 } });
+    await repository.stageImportBatch({ importId: 'imp-1', entity: 'schools', batchIndex: 0, records: [{ id: 's1' }], hash: 'abc' });
+    await repository.loadStagedSnapshot('imp-1');
+    await repository.promoteImportSnapshot({ importId: 'imp-1', hash: 'abc', counts: { schools: 1 }, snapshot: { format: 'radar-pdde-snapshot' } });
+    await repository.completeImport({ importId: 'imp-1', hash: 'abc', reconciliation: { ok: true, entities: {} } });
+    await repository.rollbackImport('imp-1');
+
+    assert.deepEqual(rpcCalls.map(call => call.name), [
+        'save_exercise_with_competences', 'save_school_with_programs',
+        'reanalyze_pendency_with_verification', 'begin_data_import',
+        'stage_data_import_batch', 'load_staged_import', 'promote_data_import',
+        'complete_data_import', 'rollback_data_import'
+    ]);
+    const capabilities = repository.capabilities();
+    assert.equal(capabilities.atomicExerciseCreation, true);
+    assert.equal(capabilities.atomicSchoolPrograms, true);
+    assert.equal(capabilities.atomicPendencyReanalysis, true);
+    assert.equal(capabilities.resumableImport, true);
+});

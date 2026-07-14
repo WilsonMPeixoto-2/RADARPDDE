@@ -61,6 +61,7 @@
         }
 
         async saveSchool(input = {}) {
+            let persistedSchoolId = text(input.id);
             return this.dataService.execute({
                 name: 'school:save',
                 changedEntities: ['schools', 'schoolPrograms', 'administrativeLogs'],
@@ -100,6 +101,7 @@
                     school.programasIds = this.normalizedProgramIds(state, input.programIds, existing);
                     school.active = true;
                     if (!existing) state.schools.push(school);
+                    persistedSchoolId = String(school.id);
                     let details = existing
                         ? `Dados da escola ${school.denominação} atualizados.`
                         : `Nova escola cadastrada: ${school.denominação} com controlador designado.`;
@@ -108,6 +110,22 @@
                     }
                     this.appendLog(existing ? 'Escola Atualizada' : 'Escola Cadastrada', details);
                     return { school: { ...school, programasIds: [...school.programasIds] } };
+                },
+                persist: async ({ snapshot, repository, defaultPersist }) => {
+                    if (typeof repository.saveSchoolWithPrograms !== 'function') {
+                        return defaultPersist();
+                    }
+                    const school = (snapshot.entities.schools || [])
+                        .find(record => String(record.id) === persistedSchoolId);
+                    const programs = (snapshot.entities.schoolPrograms || [])
+                        .filter(record => String(record.school_id) === persistedSchoolId);
+                    if (!school) return defaultPersist();
+                    return repository.saveSchoolWithPrograms({
+                        school,
+                        programs,
+                        expectedSchoolVersion: input.id ? Number(school.row_version || 1) : null,
+                        administrativeLog: snapshot.entities.administrativeLogs?.at(-1) || null
+                    });
                 }
             });
         }

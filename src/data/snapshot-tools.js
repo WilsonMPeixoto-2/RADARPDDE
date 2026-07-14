@@ -4,7 +4,10 @@
     const contract = typeof module !== 'undefined' && module.exports
         ? require('./repository-contract.js')
         : root.RadarRepositoryContract;
-    const api = factory(contract);
+    const nodeCrypto = typeof module !== 'undefined' && module.exports
+        ? require('node:crypto')
+        : null;
+    const api = factory(contract, nodeCrypto, root);
 
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = api;
@@ -13,7 +16,7 @@
     if (root) {
         root.RadarSnapshotTools = Object.freeze(api);
     }
-}(typeof window !== 'undefined' ? window : globalThis, function createSnapshotToolsApi(contract) {
+}(typeof window !== 'undefined' ? window : globalThis, function createSnapshotToolsApi(contract, nodeCrypto, root) {
     'use strict';
 
     if (!contract) {
@@ -23,6 +26,28 @@
     const cloneValue = contract.cloneValue;
     const SNAPSHOT_FORMAT = contract.SNAPSHOT_FORMAT;
     const ENTITY_SET = new Set(contract.RADAR_ENTITIES);
+    const IMPORT_ENTITY_ORDER = Object.freeze([
+        'competences',
+        'programs',
+        'appConfig',
+        'controllers',
+        'inventoryTeamMembers',
+        'profiles',
+        'schools',
+        'schoolPrograms',
+        'verifications',
+        'pendencies',
+        'pendencyAttempts',
+        'pendencyContacts',
+        'assets',
+        'registeredInvoices',
+        'administrativeLogs',
+        'userProfiles',
+        'userSchoolScopes',
+        'dataImportRuns',
+        'auditEvents'
+    ]);
+    const ORDER_INDEX = new Map(IMPORT_ENTITY_ORDER.map((entity, index) => [entity, index]));
 
     function sortObjectKeys(value) {
         if (Array.isArray(value)) return value.map(sortObjectKeys);
@@ -128,7 +153,11 @@
         }
 
         const batches = [];
-        Object.keys(snapshot.entities).sort().forEach(entity => {
+        Object.keys(snapshot.entities)
+            .sort((left, right) => (ORDER_INDEX.get(left) ?? Number.MAX_SAFE_INTEGER)
+                - (ORDER_INDEX.get(right) ?? Number.MAX_SAFE_INTEGER)
+                || left.localeCompare(right))
+            .forEach(entity => {
             const records = canonicalizeRecords(snapshot.entities[entity]);
             for (let offset = 0; offset < records.length; offset += batchSize) {
                 batches.push({
@@ -139,6 +168,117 @@
             }
         });
         return batches;
+    }
+
+
+    function entityCounts(snapshot) {
+        assertValidSnapshot(snapshot);
+        return Object.keys(snapshot.entities).sort().reduce((counts, entity) => {
+            counts[entity] = snapshot.entities[entity].length;
+            return counts;
+        }, {});
+    }
+
+    function idSet(snapshot, entity) {
+        return new Set((snapshot.entities[entity] || []).map(record => String(record.id)));
+    }
+
+    function validateSnapshotReferences(snapshot) {
+        const structure = validateSnapshot(snapshot);
+        if (!structure.ok) return { ok: false, errors: structure.errors.map(message => ({ relation: 'structure', message })) };
+        const errors = [];
+        const sets = new Map(contract.RADAR_ENTITIES.map(entity => [entity, idSet(snapshot, entity)]));
+        const check = (entity, record, field, target, optional = false) => {
+            const value = record?.[field];
+            if ((value == null || value === '') && optional) return;
+            if (value == null || value === '' || !sets.get(target).has(String(value))) {
+                errors.push({
+                    relation: `${entity}.${field}->${target}.id`,
+                    recordId: String(record?.id || ''),
+                    targetId: value == null ? null : String(value)
+                });
+            }
+        };
+
+        for (const record of snapshot.entities.appConfig || []) check('appConfig', record, 'closing_competence', 'competences', true);
+        for (const record of snapshot.entities.schools || []) {
+            check('schools', record, 'controller_id', 'controllers', true);
+            check('schools', record, 'initial_competence', 'competences', true);
+        }
+        for (const record of snapshot.entities.schoolPrograms || []) {
+            check('schoolPrograms', record, 'school_id', 'schools');
+            check('schoolPrograms', record, 'program_id', 'programs');
+        }
+        for (const record of snapshot.entities.verifications || []) {
+            check('verifications', record, 'school_id', 'schools');
+            check('verifications', record, 'competence_id', 'competences');
+            check('verifications', record, 'program_id', 'programs');
+        }
+        for (const record of snapshot.entities.pendencies || []) {
+            check('pendencies', record, 'school_id', 'schools');
+            check('pendencies', record, 'competence_origin', 'competences');
+            check('pendencies', record, 'program_id', 'programs', true);
+        }
+        for (const record of snapshot.entities.pendencyAttempts || []) check('pendencyAttempts', record, 'pendency_id', 'pendencies');
+        for (const record of snapshot.entities.pendencyContacts || []) {
+            check('pendencyContacts', record, 'school_id', 'schools');
+            check('pendencyContacts', record, 'pendency_id', 'pendencies', true);
+        }
+        for (const record of snapshot.entities.assets || []) {
+            check('assets', record, 'school_id', 'schools');
+            check('assets', record, 'competence_id', 'competences', true);
+        }
+        for (const record of snapshot.entities.registeredInvoices || []) {
+            check('registeredInvoices', record, 'school_id', 'schools');
+            check('registeredInvoices', record, 'competence_id', 'competences', true);
+            check('registeredInvoices', record, 'program_id', 'programs', true);
+            check('registeredInvoices', record, 'verification_id', 'verifications', true);
+            check('registeredInvoices', record, 'linked_asset_id', 'assets', true);
+        }
+        for (const record of snapshot.entities.administrativeLogs || []) check('administrativeLogs', record, 'school_id', 'schools', true);
+        for (const record of snapshot.entities.userProfiles || []) {
+            check('userProfiles', record, 'profile_id', 'profiles');
+            check('userProfiles', record, 'controller_id', 'controllers', true);
+            check('userProfiles', record, 'inventory_member_id', 'inventoryTeamMembers', true);
+        }
+        for (const record of snapshot.entities.userSchoolScopes || []) check('userSchoolScopes', record, 'school_id', 'schools');
+        return { ok: errors.length === 0, errors };
+    }
+
+    async function sha256(value) {
+        const encoded = stableStringify(value);
+        if (nodeCrypto?.createHash) return nodeCrypto.createHash('sha256').update(encoded).digest('hex');
+        if (root?.crypto?.subtle && typeof TextEncoder !== 'undefined') {
+            const digest = await root.crypto.subtle.digest('SHA-256', new TextEncoder().encode(encoded));
+            return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
+        }
+        throw new Error('SHA-256 não está disponível neste ambiente.');
+    }
+
+    async function hashSnapshot(snapshot) {
+        assertValidSnapshot(snapshot);
+        return sha256({
+            format: snapshot.format,
+            version: snapshot.version,
+            importId: snapshot.importId,
+            entities: snapshot.entities
+        });
+    }
+
+    function summarizeReconciliation(report) {
+        return {
+            ok: Boolean(report?.ok),
+            sourceImportId: String(report?.sourceImportId || ''),
+            targetImportId: String(report?.targetImportId || ''),
+            entities: Object.fromEntries(Object.entries(report?.entities || {}).map(([entity, value]) => [entity, {
+                ok: Boolean(value.ok),
+                sourceCount: Number(value.sourceCount || 0),
+                targetCount: Number(value.targetCount || 0),
+                missingCount: value.missingInTarget?.length || 0,
+                unexpectedCount: value.unexpectedInTarget?.length || 0,
+                changedCount: value.changed?.length || 0
+            }]))
+        };
     }
 
     function indexById(records) {
@@ -196,10 +336,15 @@
 
     return Object.freeze({
         SNAPSHOT_FORMAT,
+        IMPORT_ENTITY_ORDER,
         createSnapshot,
         validateSnapshot,
+        validateSnapshotReferences,
+        entityCounts,
         buildImportBatches,
         reconcileSnapshots,
-        stableStringify
+        summarizeReconciliation,
+        stableStringify,
+        hashSnapshot
     });
 }));

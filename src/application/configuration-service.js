@@ -125,6 +125,16 @@
                         `Exercício ${year} criado com competência operacional inicial ${year}-${initialMonth}.`
                     );
                     return { year, initialCompetence: `${year}-${initialMonth}` };
+                },
+                persist: async ({ snapshot, repository, defaultPersist }) => {
+                    if (typeof repository.saveExerciseWithCompetences !== 'function') {
+                        return defaultPersist();
+                    }
+                    return repository.saveExerciseWithCompetences({
+                        appConfig: snapshot.entities.appConfig?.[0] || {},
+                        competences: snapshot.entities.competences || [],
+                        administrativeLog: snapshot.entities.administrativeLogs?.at(-1) || null
+                    });
                 }
             });
         }

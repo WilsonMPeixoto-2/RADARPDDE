@@ -25,7 +25,9 @@ const MIGRATIONS = [
     '202607130007_configuration_audit_coverage.sql',
     '202607130008_atomic_invoice_operations.sql',
     '202607140009_verification_payload.sql',
-    '20260714180621_preconnection_auth_and_api_grants.sql'
+    '20260714180621_preconnection_auth_and_api_grants.sql',
+    '20260714220136_preconnection_transactions_and_json_contracts.sql',
+    '20260714220146_preconnection_reversible_import.sql'
 ];
 
 const ARTIFACTS = [
@@ -36,7 +38,9 @@ const ARTIFACTS = [
     'src/data/supabase-repository.js',
     'src/data/repository-factory.js',
     'src/data/snapshot-tools.js',
+    'src/data/import-coordinator.js',
     'src/data/legacy-state-adapter.js',
+    'src/domain/json-contracts.js',
     'src/data/state-bridge.js',
     'src/data/state-bridge-metadata.js',
     'src/integration/exercise-management.js',
@@ -46,10 +50,13 @@ const ARTIFACTS = [
     'src/vendor/supabase-client-entry.js',
     'src/types/database.types.ts',
     'vendor/supabase-client.js',
+    'vendor/ajv.js',
     'scripts/bootstrap-local-auth-fixtures.mjs',
     'scripts/check-local-auth-fixtures.mjs',
     'scripts/audit-functional-persistence.js',
     'scripts/build-supabase-client.mjs',
+    'scripts/build-ajv.mjs',
+    'scripts/migration-cli.mjs',
     'scripts/generate-runtime-config.mjs',
     'scripts/check-generated-artifacts.js',
     'supabase/config.toml',
@@ -58,12 +65,16 @@ const ARTIFACTS = [
     'supabase/tests/database/schema.test.sql',
     'supabase/tests/database/rls.test.sql',
     'supabase/tests/database/invoice-rpc.test.sql',
+    'supabase/tests/database/json-contracts.test.sql',
+    'supabase/tests/database/operations-rpc.test.sql',
     'tests/unit/auth-database-gate.test.js',
     'tests/unit/auth-bootstrap.test.js',
     'tests/unit/auth-frontend-contract.test.js',
     'tests/unit/auth-gate.test.js',
     'tests/unit/session-service.test.js',
     'tests/e2e/supabase-auth-local.spec.js',
+    'tests/e2e/supabase-full-contract.spec.js',
+    'tests/e2e/data-error-ux.spec.js',
     'tsconfig.database-types.json',
     'docs/reference/SUPABASE_FUNCTIONAL_COVERAGE.md',
     'docs/reference/SUPABASE_INTEGRATION_AUDIT.md',
@@ -110,7 +121,7 @@ test('valida conjunto obrigatório de migrations', () => {
     assert.deepEqual(validateMigrationManifest(MIGRATIONS), []);
     assert.match(
         validateMigrationManifest(MIGRATIONS.slice(0, -1)).join(' '),
-        /20260714180621_preconnection_auth_and_api_grants\.sql/
+        /20260714220146_preconnection_reversible_import\.sql/
     );
 });
 

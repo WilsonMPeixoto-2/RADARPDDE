@@ -4621,6 +4621,7 @@ function initializeRadarApplicationServices() {
     });
     radarInventoryService = new window.RadarInventoryService.InventoryService(transactionalDependencies);
     window.RadarApplicationServices = Object.freeze({
+        data: radarDataService,
         configuration: radarConfigurationService,
         directory: radarDirectoryService,
         schools: radarSchoolService,
@@ -4632,7 +4633,10 @@ function initializeRadarApplicationServices() {
     });
 }
 
-function reportRadarPersistenceError(error) {
+function reportRadarPersistenceError(error, context = {}) {
+    if (window.RadarErrorMapper?.showDataOperationError) {
+        return window.RadarErrorMapper.showDataOperationError(error, context);
+    }
     window.RADAR_LAST_DATA_ERROR = error;
     window.dispatchEvent(new CustomEvent('radar:data-error', {
         detail: {
@@ -4640,11 +4644,16 @@ function reportRadarPersistenceError(error) {
             message: error?.message || 'Não foi possível salvar a alteração.'
         }
     }));
+    return error;
 }
 
-function reportRadarActionError(error, fallbackMessage) {
-    reportRadarPersistenceError(error);
-    alert(error?.message || fallbackMessage || 'Não foi possível concluir a alteração.');
+function reportRadarActionError(error, fallbackMessage, context = {}) {
+    const mapped = reportRadarPersistenceError(error, {
+        ...context,
+        message: context.message || null
+    });
+    alert(mapped?.message || fallbackMessage || 'Não foi possível concluir a alteração.');
+    return mapped;
 }
 
 function persist(changedTable = null) {
