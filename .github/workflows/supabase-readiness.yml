@@ -18,6 +18,7 @@ on:
       - 'supabase/**'
       - 'tests/unit/**'
       - 'tests/e2e/supabase-local-mode.spec.js'
+      - 'tests/e2e/supabase-auth-local.spec.js'
       - 'tests/e2e/exercise-management.spec.js'
       - 'tests/e2e/frontend-contract.spec.js'
       - 'docs/architecture/supabase-readiness.md'
@@ -46,6 +47,7 @@ on:
       - 'supabase/**'
       - 'tests/unit/**'
       - 'tests/e2e/supabase-local-mode.spec.js'
+      - 'tests/e2e/supabase-auth-local.spec.js'
       - 'tests/e2e/exercise-management.spec.js'
       - 'tests/e2e/frontend-contract.spec.js'
       - 'docs/architecture/supabase-readiness.md'
@@ -149,10 +151,13 @@ jobs:
       - name: Instalar dependências reproduzíveis
         run: npm ci
 
+      - name: Instalar Chromium para o gate Auth local
+        run: npx playwright install --with-deps chromium
+
       - name: Iniciar Supabase local
         run: npm run supabase:start
 
-      - name: Recriar banco com nove migrations
+      - name: Recriar banco com dez migrations e seed local
         run: npm run supabase:reset
 
       - name: Executar testes pgTAP
@@ -171,6 +176,26 @@ jobs:
         run: |
           npm run check:generated
           npm run typecheck:database
+
+      - name: Exercitar frontend, Auth e RLS na pilha Supabase local
+        shell: bash
+        run: |
+          set -euo pipefail
+          eval "$(npx supabase status -o env | grep -E '^(API_URL|ANON_KEY)=')"
+          test -n "${API_URL:-}"
+          test -n "${ANON_KEY:-}"
+          RADAR_DATA_MODE=supabase-preview \
+          RADAR_ENVIRONMENT=test \
+          RADAR_SUPABASE_REPOSITORY_ENABLED=true \
+          RADAR_SUPABASE_URL="${API_URL}" \
+          RADAR_SUPABASE_PUBLISHABLE_KEY="${ANON_KEY}" \
+          npm run generate:runtime-config
+          RADAR_E2E_SUPABASE_LOCAL=1 \
+          npx playwright test tests/e2e/supabase-auth-local.spec.js --project=desktop-chromium
+
+      - name: Restaurar configuração pública local
+        if: always()
+        run: npm run generate:runtime-config
 
       - name: Encerrar Supabase local
         if: always()

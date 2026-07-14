@@ -4,7 +4,7 @@
 
 Não execute este runbook durante a etapa de preparação. A produção permanece em `localStorage`, com URL e chave vazias e feature flags desativadas.
 
-O `app.js` ainda contém uma integração direta preliminar e antiga, com tabelas e seed incompatíveis com o novo esquema. Ela permanece inativa porque a configuração publicada não expõe credenciais. **Não se deve simplesmente preencher URL, chave e ligar as flags.** A ponte definitiva deverá substituir esse caminho pelo contrato de repositório antes de qualquer conexão da aplicação.
+O `app.js` já usa o gateway único, o repositório selecionado pela configuração e um gate que valida Auth, perfil e escopos antes de consultar dados institucionais. Tudo permanece inativo porque a configuração publicada está em modo local. **Ainda não se deve simplesmente preencher URL, chave e ligar as flags:** migrations, usuários, importação, reconciliação e homologação remota continuam obrigatórios.
 
 A infraestrutura preparada já inclui:
 
@@ -12,7 +12,7 @@ A infraestrutura preparada já inclui:
 - repositório Supabase com paginação integral e gravação em lotes;
 - atualização otimista por `row_version`;
 - reconciliação de snapshots;
-- nove migrations, Auth futura, RLS, auditoria e importações;
+- dez migrations, Auth local homologável, RLS, auditoria e importações;
 - RPCs transacionais para nota, bem e verificação;
 - Supabase CLI fixada, ambiente local, pgTAP e lint;
 - tipos TypeScript gerados do schema;
@@ -56,6 +56,7 @@ Aplicar, nesta ordem:
 7. `202607130007_configuration_audit_coverage.sql`;
 8. `202607130008_atomic_invoice_operations.sql`;
 9. `202607140009_verification_payload.sql`.
+10. `20260714180621_preconnection_auth_and_api_grants.sql`.
 
 Após a aplicação:
 
@@ -69,6 +70,7 @@ Após a aplicação:
 - executar pgTAP e lint;
 - validar as RPCs `save_invoice_with_effects` e `delete_invoice_with_effects`;
 - confirmar triggers de auditoria em parâmetros, cadastros, vínculos e dados operacionais.
+- confirmar que `anon` não lê tabelas nem executa RPCs institucionais e que `authenticated` continua sujeito a RLS.
 
 ## 3. Criar usuários de teste
 

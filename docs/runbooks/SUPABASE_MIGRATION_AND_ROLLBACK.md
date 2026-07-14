@@ -267,7 +267,7 @@ Quando qualquer versão estiver obsoleta, a operação deve retornar `OPTIMISTIC
 - reconciliação sem diferenças não justificadas;
 - ida e volta canônico → local → canônico aprovada;
 - testes unitários, pgTAP, lint e E2E verdes;
-- nove migrations aplicadas em ambiente descartável sem erro;
+- dez migrations aplicadas em ambiente descartável sem erro;
 - RPCs homologadas;
 - Advisors avaliados;
 - RLS homologada;
@@ -325,7 +325,7 @@ Não executar exclusões massivas diretamente. Preferir:
 - versão dos dados locais;
 - advertências e rejeições;
 - commit e deployment;
-- lista das nove migrations;
+- lista das dez migrations;
 - relatório de pgTAP e lint;
 - relatório de Advisors;
 - comparação dos tipos gerados;

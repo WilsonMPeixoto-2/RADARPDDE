@@ -24,7 +24,7 @@ Foram incorporados:
 - contrato e adaptadores de persistência;
 - ponte bidirecional do estado legado;
 - tradução das estruturas reais usadas pela interface;
-- nove migrations relacionais;
+- dez migrations relacionais;
 - autenticação e RLS futuras;
 - auditoria e controle de importações;
 - operações atômicas para nota, bem e verificação;
@@ -96,7 +96,7 @@ A conexão real permanece intencionalmente desativada. Isso é uma salvaguarda, 
 - TypeScript `7.0.2` verificando o contrato gerado do banco;
 - tipos TypeScript gerados em `src/types/database.types.ts`;
 - ambiente local versionado em `supabase/config.toml`;
-- 37 verificações pgTAP para schema, RLS e RPCs;
+- 48 verificações pgTAP para schema, RLS, grants e RPCs;
 - smoke test adicional em PostgreSQL 17 puro;
 - lint de PL/pgSQL com falha em erro;
 - `package-lock.json`, `npm ci`, `npm audit` e Dependabot;
@@ -108,7 +108,7 @@ A conexão real permanece intencionalmente desativada. Isso é uma salvaguarda, 
 O workflow `Supabase readiness` executa três camadas:
 
 1. contratos, artefatos, segredos e auditoria funcional;
-2. aplicação das nove migrations e smoke operacional em PostgreSQL 17;
+2. aplicação das dez migrations e smoke operacional em PostgreSQL 17;
 3. pilha Supabase local, pgTAP, lint, regeneração de tipos e reprodução do bundle.
 
 A validação remota, quando houver projeto autorizado, poderá executar:
@@ -141,8 +141,8 @@ Esses itens exigem ambiente remoto, usuários de teste, homologação de RLS e a
 1. Criar uma branch Supabase sem dados produtivos para homologação.
 2. Aplicar as migrations em ambiente remoto autorizado.
 3. Executar Security e Performance Advisors do projeto real.
-4. Testar Auth e RLS com todos os perfis e cenários negativos.
-5. Substituir a integração direta antiga do `app.js` pelo contrato de repositório.
+4. Repetir no projeto remoto os testes de Auth e RLS já preparados para os cinco perfis e cenários negativos locais.
+5. Homologar o gateway já integrado ao `app.js` com uma cópia reconciliada dos dados.
 6. Testar falha de rede, sessão expirada, conflito e recuperação.
 7. Executar teste de carga com a volumetria completa das CREs.
 8. Reconciliar origem e destino sem divergência funcional.
@@ -159,7 +159,7 @@ Esses itens exigem ambiente remoto, usuários de teste, homologação de RLS e a
 
 A conexão futura somente poderá ser promovida quando:
 
-- o contrato substituir a integração antiga;
+- o gateway já integrado for homologado contra a base remota reconciliada;
 - Auth e RLS forem testados com todos os perfis;
 - mutações compostas forem homologadas no ambiente remoto;
 - Advisors forem analisados;

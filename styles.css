@@ -2633,3 +2633,125 @@ body.dark-theme .pendency-detail-marker {
 .program-status-summary > div > span:first-child {
     color: var(--text-muted);
 }
+
+/* Gate de autenticação usado somente quando o repositório Supabase é ativado. */
+.radar-auth-gate {
+    display: none;
+}
+
+html.radar-auth-required #app-layout,
+html.radar-auth-required .pendency-notice,
+html.radar-auth-required .modal-overlay {
+    display: none !important;
+}
+
+html.radar-auth-required .radar-auth-gate {
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    display: grid;
+    place-items: center;
+    overflow-y: auto;
+    padding: 24px;
+    background:
+        radial-gradient(circle at 15% 20%, rgba(124, 58, 237, 0.2), transparent 42%),
+        radial-gradient(circle at 85% 80%, rgba(167, 139, 250, 0.16), transparent 38%),
+        var(--bg-page);
+}
+
+.radar-auth-card {
+    width: min(100%, 440px);
+    padding: clamp(24px, 5vw, 40px);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    color: var(--text-main);
+    background: var(--bg-sidebar);
+    box-shadow: var(--shadow-md);
+}
+
+.radar-auth-brand {
+    width: fit-content;
+    margin-bottom: 18px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    color: var(--primary-dark);
+    background: var(--primary-glow);
+    font: 700 0.78rem/1 var(--font-heading);
+    letter-spacing: 0.08em;
+}
+
+body.dark-theme .radar-auth-brand {
+    color: var(--accent-lavender);
+}
+
+.radar-auth-card h1 {
+    margin-bottom: 8px;
+    font: 700 clamp(1.65rem, 5vw, 2.15rem)/1.15 var(--font-heading);
+}
+
+.radar-auth-card > p {
+    margin-bottom: 24px;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+.radar-auth-form {
+    display: grid;
+    gap: 16px;
+}
+
+.radar-auth-form .form-group {
+    margin: 0;
+}
+
+.radar-auth-form input {
+    width: 100%;
+}
+
+.radar-auth-submit {
+    width: 100%;
+    min-height: 46px;
+}
+
+.radar-auth-status {
+    min-height: 22px;
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    line-height: 1.45;
+}
+
+.radar-auth-status[data-type="error"] {
+    color: var(--danger);
+}
+
+.radar-auth-status[data-type="success"] {
+    color: var(--success);
+}
+
+.auth-logout-button {
+    min-height: 40px;
+    padding-inline: 14px;
+    white-space: nowrap;
+}
+
+.auth-logout-button[hidden] {
+    display: none;
+}
+
+@media (max-width: 700px) {
+    html.radar-auth-required .radar-auth-gate {
+        align-items: start;
+        padding: 16px;
+    }
+
+    .radar-auth-card {
+        margin-top: max(16px, env(safe-area-inset-top));
+        border-radius: 16px;
+    }
+
+    .auth-logout-button {
+        min-width: 44px;
+        padding-inline: 10px;
+    }
+}

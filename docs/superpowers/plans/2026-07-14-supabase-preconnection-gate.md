@@ -183,6 +183,7 @@
 
 **Arquivos:**
 - Criar: `src/auth/session-service.js`
+- Criar: `src/integration/auth-bootstrap.js`
 - Criar: `src/integration/auth-gate.js`
 - Modificar: `index.html`
 - Modificar: `styles.css`
@@ -198,11 +199,11 @@
 - O seletor simulado permanece apenas em `dataMode: local`; no modo Supabase o perfil vem da sessão.
 - A migration revoga defaults, concede privilégios mínimos a `authenticated`, nenhum privilégio institucional a `anon`, e mantém RLS em todas as tabelas expostas.
 
-- [ ] Descobrir comandos com `npx supabase --help` e `npx supabase migration new --help`; criar a migration somente pela CLI.
-- [ ] Escrever testes de sessão, usuário inativo, sem perfil, perfil único, leitura, escrita e negações.
-- [ ] Implementar serviço de sessão e gate de login apenas para modo Supabase.
-- [ ] Criar cinco identidades locais determinísticas sem expor senha fora dos fixtures de teste e vinculá-las aos cinco perfis.
-- [ ] Aplicar grants explícitos e testar `anon` negado, `authenticated` condicionado por RLS e RPCs com `EXECUTE` mínimo.
+- [x] Descobrir comandos com `npx supabase --help` e `npx supabase migration new --help`; criar a migration somente pela CLI.
+- [x] Escrever testes de sessão, usuário inativo, sem perfil, perfil único, leitura, escrita e negações.
+- [x] Implementar serviço de sessão e gate de login apenas para modo Supabase.
+- [x] Criar cinco identidades locais determinísticas sem expor senha fora dos fixtures de teste e vinculá-las aos cinco perfis.
+- [x] Aplicar grants explícitos e testar `anon` negado, `authenticated` condicionado por RLS e RPCs com `EXECUTE` mínimo.
 - [ ] Executar reset local, pgTAP e E2E de Auth/RLS.
 - [ ] Commitar como `feat: homologar auth e RLS localmente`.
 

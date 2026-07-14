@@ -24,8 +24,8 @@ select ok(
     'RPC atômica de remoção existe'
 );
 select ok(
-    (select count(*) = 9 from supabase_migrations.schema_migrations),
-    'nove migrations foram registradas'
+    (select count(*) = 10 from supabase_migrations.schema_migrations),
+    'dez migrations foram registradas'
 );
 
 select * from finish();

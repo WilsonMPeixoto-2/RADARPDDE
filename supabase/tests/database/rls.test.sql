@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
 
-select plan(12);
+select plan(20);
 
 select ok(
     (select relrowsecurity from pg_class where oid = 'public.schools'::regclass),
@@ -70,6 +70,38 @@ select is(
     (select prosecdef from pg_proc where oid = 'public.delete_invoice_with_effects(text,integer,boolean,integer,jsonb,integer,jsonb)'::regprocedure),
     true,
     'RPC de remoção é SECURITY DEFINER com autorização interna e escopo fixo'
+);
+select ok(
+    has_schema_privilege('authenticated', 'public', 'USAGE'),
+    'authenticated possui acesso explícito ao schema público'
+);
+select ok(
+    has_table_privilege('authenticated', 'public.schools', 'SELECT'),
+    'authenticated lê escolas sob RLS'
+);
+select ok(
+    has_table_privilege('authenticated', 'public.schools', 'UPDATE'),
+    'authenticated solicita atualização de escolas sob RLS'
+);
+select ok(
+    not has_table_privilege('anon', 'public.schools', 'SELECT'),
+    'anon não lê escolas'
+);
+select ok(
+    has_table_privilege('authenticated', 'public.audit_events', 'SELECT'),
+    'authenticated consulta auditoria conforme a política RLS'
+);
+select ok(
+    not has_table_privilege('authenticated', 'public.audit_events', 'INSERT'),
+    'authenticated não insere eventos técnicos diretamente'
+);
+select ok(
+    has_function_privilege('authenticated', 'public.current_app_role()', 'EXECUTE'),
+    'authenticated confirma o papel institucional efetivo'
+);
+select ok(
+    not has_function_privilege('anon', 'public.current_app_role()', 'EXECUTE'),
+    'anon não consulta o papel institucional'
 );
 
 select * from finish();

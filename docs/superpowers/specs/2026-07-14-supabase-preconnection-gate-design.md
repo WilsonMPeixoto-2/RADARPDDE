@@ -17,7 +17,7 @@ A etapa não autoriza:
 
 O PR 22 já contém:
 
-- modelo relacional e nove migrations;
+- modelo relacional e dez migrations;
 - RLS, perfis, escopos e auditoria;
 - repositórios local e Supabase;
 - factory `fail-closed`;

@@ -4355,6 +4355,14 @@ function getDefaultControlador() {
 
 function getCurrentUser() {
 
+    const authenticated = window.RadarAuthContext;
+    if (authenticated?.user && authenticated?.authorization) {
+        return {
+            name: authenticated.user.displayName || authenticated.user.email || 'Usuário autenticado',
+            role: authenticated.authorization.profile?.label || authenticated.authorization.role
+        };
+    }
+
     if (currentProfile === 'controlador') {
 
         const controlador = getDefaultControlador();
@@ -4506,16 +4514,17 @@ function migrateLoadedPendencies() {
 async function initializeRadarData() {
     applyRadarMemoryState(readInitialRadarMemoryState());
 
-    let remoteClient = null;
-    if (runtimeConfig.supabase?.connectionEnabled === true) {
-        if (!window.supabase || typeof window.supabase.createClient !== 'function') {
-            throw new Error('Cliente Supabase indisponível para a conexão explicitamente ativada.');
-        }
-        remoteClient = window.supabase.createClient(
-            runtimeConfig.supabase.url,
-            runtimeConfig.supabase.publishableKey
-        );
-    }
+    const authenticatedClient = await window.RadarAuthBootstrap.prepareAuthenticatedClient({
+        runtimeConfig,
+        root: window
+    });
+    const remoteClient = authenticatedClient.client;
+    const authentication = authenticatedClient.authentication
+        ? Object.freeze({
+            user: Object.freeze({ ...authenticatedClient.authentication.user }),
+            authorization: Object.freeze({ ...authenticatedClient.authentication.authorization })
+        })
+        : null;
 
     const repository = window.RadarRepositoryFactory.createRepository(runtimeConfig, {
         storage: localStorage,
@@ -4544,7 +4553,8 @@ async function initializeRadarData() {
             importedLegacy: bootstrap.importedLegacy,
             empty: bootstrap.empty
         }),
-        capabilities: Object.freeze({ ...capabilities })
+        capabilities: Object.freeze({ ...capabilities }),
+        authentication: authentication
     });
     return window.RadarDataContext;
 }
@@ -11251,9 +11261,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const reanalysisResult = document.getElementById('reanalisar-resultado');
     reanalysisModal.addEventListener('keydown', handleReanalysisKeydown);
     reanalysisResult.addEventListener('change', updateReanalysisErrorVisibility);
-    await initializeRadarData();
+    const dataContext = await initializeRadarData();
     initTheme();
-    switchProfile('controlador'); // Inicia como Controlador para simular a visão principal
+    if (runtimeConfig.supabase?.connectionEnabled === true) {
+        window.RadarAuthGate.applyAuthorization(dataContext.authentication);
+    } else {
+        switchProfile('controlador'); // Mantém a simulação de perfis exclusivamente no modo local.
+    }
     
     // Executa diagnósticos de status apenas se em modo debug
     if (RADAR_DEBUG_MODE) {

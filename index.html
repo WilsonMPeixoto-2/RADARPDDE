@@ -8,6 +8,48 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <section
+        id="radar-auth-gate"
+        class="radar-auth-gate"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="radar-auth-title"
+        aria-describedby="radar-auth-description"
+    >
+        <div class="radar-auth-card">
+            <div class="radar-auth-brand" aria-hidden="true">RADAR PDDE</div>
+            <h1 id="radar-auth-title">Acesso institucional</h1>
+            <p id="radar-auth-description">
+                Entre com sua conta autorizada para acessar os dados do RADAR PDDE.
+            </p>
+            <form id="radar-auth-form" class="radar-auth-form" novalidate>
+                <div class="form-group">
+                    <label for="radar-auth-email">E-mail institucional</label>
+                    <input
+                        id="radar-auth-email"
+                        name="email"
+                        type="email"
+                        autocomplete="username"
+                        inputmode="email"
+                        required
+                    >
+                </div>
+                <div class="form-group">
+                    <label for="radar-auth-password">Senha</label>
+                    <input
+                        id="radar-auth-password"
+                        name="password"
+                        type="password"
+                        autocomplete="current-password"
+                        required
+                    >
+                </div>
+                <p id="radar-auth-status" class="radar-auth-status" role="status" aria-live="polite"></p>
+                <button type="submit" class="btn btn-primary radar-auth-submit">Entrar</button>
+            </form>
+        </div>
+    </section>
+
     <div id="app-layout">
         <!-- Sidebar Principal -->
         <aside class="sidebar">
@@ -128,6 +170,15 @@
                             </div>
                         </div>
                     </div>
+
+                    <button
+                        type="button"
+                        class="btn btn-secondary auth-logout-button"
+                        id="auth-logout-button"
+                        hidden
+                    >
+                        Sair
+                    </button>
 
                     <!-- Seletor de Perfil Simulado (Badge Flutuante) -->
                     <div class="profile-switcher">
@@ -673,6 +724,8 @@
     <script src="vendor/supabase-client.js"></script>
     <!-- Contrato único de persistência e bootstrap de dados. -->
     <script src="src/data/repository-contract.js"></script>
+    <script src="src/auth/session-service.js"></script>
+    <script src="src/integration/auth-bootstrap.js"></script>
     <script src="src/data/local-storage-repository.js"></script>
     <script src="src/data/supabase-repository.js"></script>
     <script src="src/data/repository-factory.js"></script>
@@ -694,5 +747,6 @@
     <script src="src/application/inventory-service.js"></script>
     <!-- Script Principal -->
     <script src="app.js"></script>
+    <script src="src/integration/auth-gate.js"></script>
 </body>
 </html>

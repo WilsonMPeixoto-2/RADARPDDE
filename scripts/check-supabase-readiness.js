@@ -13,11 +13,13 @@ const REQUIRED_MIGRATIONS = Object.freeze([
     '202607130006_authorization_hardening.sql',
     '202607130007_configuration_audit_coverage.sql',
     '202607130008_atomic_invoice_operations.sql',
-    '202607140009_verification_payload.sql'
+    '202607140009_verification_payload.sql',
+    '20260714180621_preconnection_auth_and_api_grants.sql'
 ]);
 
 const REQUIRED_ARTIFACTS = Object.freeze([
     'config.runtime.js',
+    'src/auth/session-service.js',
     'src/data/repository-contract.js',
     'src/data/local-storage-repository.js',
     'src/data/supabase-repository.js',
@@ -28,6 +30,8 @@ const REQUIRED_ARTIFACTS = Object.freeze([
     'src/data/state-bridge-metadata.js',
     'src/integration/exercise-management.js',
     'src/integration/exercise-early-init.js',
+    'src/integration/auth-bootstrap.js',
+    'src/integration/auth-gate.js',
     'src/vendor/supabase-client-entry.js',
     'src/types/database.types.ts',
     'vendor/supabase-client.js',
@@ -36,9 +40,16 @@ const REQUIRED_ARTIFACTS = Object.freeze([
     'scripts/generate-runtime-config.mjs',
     'scripts/check-generated-artifacts.js',
     'supabase/config.toml',
+    'supabase/seed.sql',
     'supabase/tests/database/schema.test.sql',
     'supabase/tests/database/rls.test.sql',
     'supabase/tests/database/invoice-rpc.test.sql',
+    'tests/unit/auth-database-gate.test.js',
+    'tests/unit/auth-bootstrap.test.js',
+    'tests/unit/auth-frontend-contract.test.js',
+    'tests/unit/auth-gate.test.js',
+    'tests/unit/session-service.test.js',
+    'tests/e2e/supabase-auth-local.spec.js',
     'tsconfig.database-types.json',
     'docs/reference/SUPABASE_FUNCTIONAL_COVERAGE.md',
     'docs/reference/SUPABASE_INTEGRATION_AUDIT.md',
