@@ -17,6 +17,7 @@
     "supabase:stop": "supabase stop --no-backup",
     "supabase:reset": "supabase db reset --local",
     "supabase:test:db": "supabase test db supabase/tests/database",
+    "supabase:lint:db": "supabase db lint --local --schema public --level warning --fail-on error",
     "supabase:gen:types": "supabase gen types typescript --local --schema public > src/types/database.types.ts",
     "test:unit": "node --test tests/unit/*.test.js",
     "test:readiness": "npm run check && npm run test:unit && npm run check:supabase && npm run check:generated && npm run audit:functional",
