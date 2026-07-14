@@ -53,6 +53,7 @@ test('mensagem pública canoniza falha técnica e preserva orientação de valid
     ));
     assert.equal(session.code, 'SESSION_EXPIRED');
     assert.equal(session.message, DATA_ERROR_MESSAGES.SESSION_EXPIRED);
+    assert.equal(session.operation, 'school:save');
 
     const business = showDataOperationError(new RepositoryError(
         'FISCAL_NOTE_REQUIRED',
@@ -61,5 +62,6 @@ test('mensagem pública canoniza falha técnica e preserva orientação de valid
     ));
     assert.equal(business.code, 'VALIDATION_FAILED');
     assert.match(business.message, /cadastre pelo menos uma Nota Fiscal/i);
+    assert.equal(business.operation, 'setTechnicalAnalysis');
     assert.equal(business.details.sourceCode, 'FISCAL_NOTE_REQUIRED');
 });
