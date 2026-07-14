@@ -1,0 +1,89 @@
+name: Fix import source hash contract
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/fix-import-source-hash.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: feature/supabase-readiness
+
+      - name: Configure Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Apply canonical sourceHash contract and regression test
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          repository = Path('src/data/supabase-repository.js')
+          source = repository.read_text()
+          old = "p_source_hash: input.hash\n            }, 'stageImportBatch');"
+          new = "p_source_hash: input.hash || input.sourceHash\n            }, 'stageImportBatch');"
+          if old not in source:
+              raise SystemExit('Contrato antigo de stageImportBatch não localizado.')
+          repository.write_text(source.replace(old, new, 1))
+          PY
+          cat > tests/unit/supabase-import-source-hash.test.js <<'EOF'
+          'use strict';
+
+          const test = require('node:test');
+          const assert = require('node:assert/strict');
+          const { SupabaseRepository } = require('../../src/data/supabase-repository.js');
+
+          test('stageImportBatch encaminha o sourceHash canônico à RPC de staging', async () => {
+              let captured = null;
+              const repository = new SupabaseRepository({
+                  client: {
+                      from() { return {}; },
+                      async rpc(name, args) {
+                          captured = { name, args };
+                          return { data: { ok: true }, error: null };
+                      }
+                  }
+              });
+
+              await repository.stageImportBatch({
+                  importId: 'import-contract',
+                  entity: 'schools',
+                  batchIndex: 0,
+                  records: [{ id: 'school-1' }],
+                  sourceHash: 'sha256-contract'
+              });
+
+              assert.equal(captured.name, 'stage_data_import_batch');
+              assert.equal(captured.args.p_source_hash, 'sha256-contract');
+          });
+          EOF
+
+      - name: Validate focused and complete readiness
+        run: |
+          npm ci
+          node --test tests/unit/supabase-import-source-hash.test.js tests/unit/supabase-repository.test.js
+          CI=false npm run test:readiness
+
+      - name: Commit one verified correction
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add src/data/supabase-repository.js tests/unit/supabase-import-source-hash.test.js
+          git rm -f .github/workflows/fix-import-source-hash.yml
+          git config user.name 'RADAR Gate Automation'
+          git config user.email 'actions@users.noreply.github.com'
+          git commit -m 'fix: encaminhar hash canonico ao staging Supabase'
+          git push origin HEAD:feature/supabase-readiness
