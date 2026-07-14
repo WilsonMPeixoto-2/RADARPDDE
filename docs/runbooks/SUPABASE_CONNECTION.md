@@ -13,6 +13,8 @@ A infraestrutura preparada já inclui:
 - atualização otimista por `row_version`;
 - reconciliação de snapshots;
 - esquema, autenticação futura, RLS, auditoria e importações;
+- distinção efetiva entre acesso somente leitura e autorização de escrita;
+- auditoria técnica de parâmetros, cadastros e vínculos institucionais;
 - inventário automatizado de chaves, configurações, handlers, formulários e mutações.
 
 ## Pré-requisitos
@@ -34,7 +36,9 @@ Aplicar, nesta ordem:
 2. `202607130002_auth_and_rls.sql`;
 3. `202607130003_audit_and_import.sql`;
 4. `202607130004_competence_bonus_deadline.sql`;
-5. `202607130005_operational_context.sql`.
+5. `202607130005_operational_context.sql`;
+6. `202607130006_authorization_hardening.sql`;
+7. `202607130007_configuration_audit_coverage.sql`.
 
 Após a aplicação:
 
@@ -42,10 +46,13 @@ Após a aplicação:
 - verificar advisors de segurança e desempenho;
 - confirmar RLS ativa em todas as tabelas expostas;
 - confirmar ausência de políticas para `anon`;
+- confirmar apenas um perfil ativo por usuário;
+- confirmar que escopo somente leitura não concede escrita;
 - gerar tipos TypeScript como artefato de conferência;
 - executar teste de criação e rollback em ambiente descartável;
 - confirmar as FKs de notas para programa, verificação, bem e escola;
-- confirmar o vínculo do inventariador e a data de inventariação.
+- confirmar o vínculo do inventariador e a data de inventariação;
+- confirmar triggers de auditoria em parâmetros, programas, controladores, equipe, competências e vínculos escola–programa.
 
 ## 2. Criar usuários de teste
 
@@ -64,8 +71,10 @@ Vincular cada usuário em `user_profiles`. Controladores precisam de `controller
 - associar escolas ao controlador por `schools.controller_id`;
 - usar `user_school_scopes` para exceções;
 - marcar `can_write` explicitamente;
+- comprovar que `can_write = false` concede apenas leitura;
 - conceder escopo a inventariador que precise registrar o primeiro bem de uma escola;
-- não conceder perfil técnico administrativo a usuário operacional.
+- não conceder perfil técnico administrativo a usuário operacional;
+- manter apenas um vínculo ativo em `user_profiles` por usuário.
 
 ## 4. Validar o repositório sem conectar a aplicação
 
@@ -97,7 +106,7 @@ Validar:
 - exportação de snapshot remoto;
 - ausência de seed automático;
 - ordem relacional de restauração;
-- logs e auditoria.
+- logs operacionais e auditoria técnica.
 
 ## 5. Exportar e importar uma cópia controlada
 
@@ -110,7 +119,7 @@ Seguir `SUPABASE_MIGRATION_AND_ROLLBACK.md`:
 5. exportar o destino;
 6. reconciliar origem e destino;
 7. executar uma restauração simulada com `dryRun: true`;
-8. preservar o snapshot local.
+8. preservar o snapshot local e os metadados laterais de reconciliação.
 
 A importação não deve ocorrer no navegador com credencial administrativa.
 
@@ -175,7 +184,8 @@ Confirmar:
 - falha de rede é tratada sem corromper o estado;
 - nenhuma coleção é truncada por limite de paginação;
 - resultados funcionais coincidem com o modo local;
-- ida e volta Supabase → estado local preserva campos funcionais.
+- ida e volta Supabase → estado local preserva campos funcionais;
+- alterações locais posteriores não são ocultadas pelos metadados de reconciliação.
 
 ## 9. Homologar RLS e concorrência
 
@@ -188,7 +198,9 @@ Também validar:
 - retorno de `OPTIMISTIC_CONFLICT` para versão obsoleta;
 - sessão expirada;
 - usuário desativado;
-- alteração de perfil;
+- tentativa de ativar dois perfis simultâneos;
+- exceção de escola somente leitura;
+- exceção de escola com escrita;
 - auditoria de inserção, alteração e exclusão.
 
 ## 10. Preparar produção
