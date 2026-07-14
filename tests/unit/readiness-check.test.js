@@ -46,6 +46,7 @@ const ARTIFACTS = [
     'src/vendor/supabase-client-entry.js',
     'src/types/database.types.ts',
     'vendor/supabase-client.js',
+    'scripts/check-local-auth-fixtures.mjs',
     'scripts/audit-functional-persistence.js',
     'scripts/build-supabase-client.mjs',
     'scripts/generate-runtime-config.mjs',

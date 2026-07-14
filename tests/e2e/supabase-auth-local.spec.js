@@ -38,8 +38,8 @@ async function waitForApplication(page, role) {
     await expect(page.locator('#auth-logout-button')).toBeVisible();
 }
 
-test('cinco perfis locais autenticam, recebem contexto seguro e encerram a sessão', async ({ browser }) => {
-    for (const [email, role] of identities) {
+for (const [email, role] of identities) {
+    test(`${role} autentica, recebe contexto seguro e encerra a sessão`, async ({ browser }) => {
         const context = await browser.newContext();
         const page = await context.newPage();
         await signIn(page, email);
@@ -64,16 +64,16 @@ test('cinco perfis locais autenticam, recebem contexto seguro e encerram a sess�
         await expect(page.locator('#radar-auth-gate')).toBeVisible();
         await expect(page.locator('#radar-auth-status')).toContainText(/sessão/i);
         await context.close();
-    }
-});
+    });
+}
 
-test('perfil inativo e usuário sem perfil permanecem fora dos dados institucionais', async ({ browser }) => {
-    const denied = [
-        ['inactive@radar.local', /inativo/i],
-        ['without-profile@radar.local', /não possui perfil/i]
-    ];
+const deniedIdentities = [
+    ['inactive@radar.local', /inativo/i],
+    ['without-profile@radar.local', /não possui perfil/i]
+];
 
-    for (const [email, expectedMessage] of denied) {
+for (const [email, expectedMessage] of deniedIdentities) {
+    test(`${email} permanece fora dos dados institucionais`, async ({ browser }) => {
         const context = await browser.newContext();
         const page = await context.newPage();
         await signIn(page, email);
@@ -81,8 +81,8 @@ test('perfil inativo e usuário sem perfil permanecem fora dos dados institucion
         await expect(page.locator('#radar-auth-gate')).toBeVisible();
         expect(await page.evaluate(() => Boolean(window.RadarDataContext?.ready))).toBe(false);
         await context.close();
-    }
-});
+    });
+}
 
 test('RLS permite escrita na carteira do controlador e bloqueia escopos somente leitura', async ({ page }) => {
     await signIn(page, 'controller@radar.local');

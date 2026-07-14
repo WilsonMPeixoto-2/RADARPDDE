@@ -33,3 +33,39 @@ test('fixture local contém cinco identidades e vínculos institucionais determi
     assert.match(seed, /insert\s+into\s+public\.user_profiles/i);
     assert.match(seed, /insert\s+into\s+public\.user_school_scopes/i);
 });
+
+test('fixture Auth usa o UUID do usuário como provider_id da identidade de e-mail', () => {
+    const seed = fs.readFileSync(path.join(root, 'supabase/seed.sql'), 'utf8');
+    const identities = seed.match(
+        /insert\s+into\s+auth\.identities[\s\S]+?values([\s\S]+?)on\s+conflict\s*\(provider_id,\s*provider\)/i
+    );
+
+    assert.ok(identities, 'Bloco de identidades Auth não encontrado na fixture local.');
+
+    const rows = [...identities[1].matchAll(
+        /\('([^']+)',\s*'([^']+)',\s*'([^']+)',\s*'[^']+',\s*'email'/g
+    )];
+
+    assert.equal(rows.length, 7, 'Todas as identidades locais devem ser verificadas.');
+    rows.forEach(([, , userId, providerId]) => {
+        assert.equal(providerId, userId);
+    });
+});
+
+test('CI valida as credenciais locais antes de iniciar o Playwright', () => {
+    const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+    const workflow = fs.readFileSync(
+        path.join(root, '.github/workflows/supabase-readiness.yml'),
+        'utf8'
+    );
+
+    assert.equal(
+        pkg.scripts['check:auth-fixtures'],
+        'node scripts/check-local-auth-fixtures.mjs'
+    );
+    assert.ok(
+        workflow.indexOf('npm run check:auth-fixtures')
+            < workflow.indexOf('npx playwright test tests/e2e/supabase-auth-local.spec.js'),
+        'O login-probe deve executar antes da suíte E2E Auth/RLS.'
+    );
+});

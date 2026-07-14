@@ -11,6 +11,7 @@ on:
       - 'src/**'
       - 'vendor/**'
       - 'scripts/check-supabase-readiness.js'
+      - 'scripts/check-local-auth-fixtures.mjs'
       - 'scripts/check-generated-artifacts.js'
       - 'scripts/build-supabase-client.mjs'
       - 'scripts/generate-runtime-config.mjs'
@@ -40,6 +41,7 @@ on:
       - 'src/**'
       - 'vendor/**'
       - 'scripts/check-supabase-readiness.js'
+      - 'scripts/check-local-auth-fixtures.mjs'
       - 'scripts/check-generated-artifacts.js'
       - 'scripts/build-supabase-client.mjs'
       - 'scripts/generate-runtime-config.mjs'
@@ -190,6 +192,9 @@ jobs:
           RADAR_SUPABASE_URL="${API_URL}" \
           RADAR_SUPABASE_PUBLISHABLE_KEY="${ANON_KEY}" \
           npm run generate:runtime-config
+          RADAR_SUPABASE_URL="${API_URL}" \
+          RADAR_SUPABASE_PUBLISHABLE_KEY="${ANON_KEY}" \
+          npm run check:auth-fixtures
           RADAR_E2E_SUPABASE_LOCAL=1 \
           npx playwright test tests/e2e/supabase-auth-local.spec.js --project=desktop-chromium
 
