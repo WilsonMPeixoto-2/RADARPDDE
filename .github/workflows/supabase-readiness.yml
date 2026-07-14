@@ -181,7 +181,7 @@ jobs:
           npm run check:generated
           npm run typecheck:database
 
-      - name: Exercitar frontend, Auth e RLS na pilha Supabase local
+      - name: Preparar identidades Auth e configuração temporária
         shell: bash
         run: |
           set -euo pipefail
@@ -191,6 +191,7 @@ jobs:
           test -n "${SERVICE_ROLE_KEY:-}"
           FIXTURE_PASSWORD="$(node --input-type=module -e "import { randomBytes } from 'node:crypto'; process.stdout.write(randomBytes(32).toString('base64url') + 'A1!')")"
           echo "::add-mask::${FIXTURE_PASSWORD}"
+          echo "::add-mask::${SERVICE_ROLE_KEY}"
           RADAR_ALLOW_LOCAL_AUTH_BOOTSTRAP=true \
           RADAR_SUPABASE_URL="${API_URL}" \
           RADAR_SUPABASE_ADMIN_KEY="${SERVICE_ROLE_KEY}" \
@@ -202,13 +203,19 @@ jobs:
           RADAR_SUPABASE_URL="${API_URL}" \
           RADAR_SUPABASE_PUBLISHABLE_KEY="${ANON_KEY}" \
           npm run generate:runtime-config
-          RADAR_SUPABASE_URL="${API_URL}" \
-          RADAR_SUPABASE_PUBLISHABLE_KEY="${ANON_KEY}" \
-          RADAR_AUTH_FIXTURE_PASSWORD="${FIXTURE_PASSWORD}" \
-          npm run check:auth-fixtures
-          RADAR_E2E_SUPABASE_LOCAL=1 \
-          RADAR_AUTH_FIXTURE_PASSWORD="${FIXTURE_PASSWORD}" \
-          npx playwright test tests/e2e/supabase-auth-local.spec.js --project=desktop-chromium
+          {
+            printf 'RADAR_SUPABASE_URL=%s\n' "${API_URL}"
+            printf 'RADAR_SUPABASE_PUBLISHABLE_KEY=%s\n' "${ANON_KEY}"
+            printf 'RADAR_AUTH_FIXTURE_PASSWORD=%s\n' "${FIXTURE_PASSWORD}"
+          } >> "${GITHUB_ENV}"
+
+      - name: Validar login das sete identidades Auth
+        run: npm run check:auth-fixtures
+
+      - name: Exercitar frontend, Auth e RLS na pilha Supabase local
+        env:
+          RADAR_E2E_SUPABASE_LOCAL: '1'
+        run: npx playwright test tests/e2e/supabase-auth-local.spec.js --project=desktop-chromium
 
       - name: Restaurar configuração pública local
         if: always()
