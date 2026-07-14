@@ -19,6 +19,9 @@ on:
       - 'scripts/audit-functional-persistence.js'
       - 'supabase/**'
       - 'tests/unit/**'
+      - 'tests/integration/**'
+      - 'tests/e2e/data-error-ux.spec.js'
+      - 'tests/e2e/supabase-full-contract.spec.js'
       - 'tests/e2e/supabase-local-mode.spec.js'
       - 'tests/e2e/supabase-auth-local.spec.js'
       - 'tests/e2e/exercise-management.spec.js'
@@ -50,6 +53,9 @@ on:
       - 'scripts/audit-functional-persistence.js'
       - 'supabase/**'
       - 'tests/unit/**'
+      - 'tests/integration/**'
+      - 'tests/e2e/data-error-ux.spec.js'
+      - 'tests/e2e/supabase-full-contract.spec.js'
       - 'tests/e2e/supabase-local-mode.spec.js'
       - 'tests/e2e/supabase-auth-local.spec.js'
       - 'tests/e2e/exercise-management.spec.js'
@@ -161,7 +167,7 @@ jobs:
       - name: Iniciar Supabase local
         run: npm run supabase:start
 
-      - name: Recriar banco com dez migrations e seed local
+      - name: Recriar banco com doze migrations e seed local
         run: npm run supabase:reset
 
       - name: Executar testes pgTAP
@@ -175,6 +181,7 @@ jobs:
           mkdir -p src/types
           npm run supabase:gen:types
           npm run build:supabase-client
+          npm run build:ajv
 
       - name: Confirmar artefatos reproduzíveis
         run: |
@@ -231,7 +238,7 @@ jobs:
       - name: Exercitar frontend, Auth e RLS na pilha Supabase local
         env:
           RADAR_E2E_SUPABASE_LOCAL: '1'
-        run: npx playwright test tests/e2e/supabase-auth-local.spec.js --project=desktop-chromium
+        run: npx playwright test tests/e2e/supabase-auth-local.spec.js tests/e2e/supabase-full-contract.spec.js --project=desktop-chromium
 
       - name: Restaurar configuração pública local
         if: always()

@@ -37,6 +37,9 @@ jobs:
       - name: Executar testes de domínio existentes
         run: node --test tests/*.test.js
 
+      - name: Executar testes de integração da migração
+        run: npm run test:integration
+
       - name: Executar testes unitários com relatório estruturado
         id: unit_tests
         shell: bash
