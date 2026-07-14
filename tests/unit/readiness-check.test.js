@@ -15,6 +15,44 @@ function jwtWithRole(role) {
     return `${encode({ alg: 'HS256', typ: 'JWT' })}.${encode({ role })}.signature`;
 }
 
+const MIGRATIONS = [
+    '202607130001_core_schema.sql',
+    '202607130002_auth_and_rls.sql',
+    '202607130003_audit_and_import.sql',
+    '202607130004_competence_bonus_deadline.sql',
+    '202607130005_operational_context.sql',
+    '202607130006_authorization_hardening.sql',
+    '202607130007_configuration_audit_coverage.sql',
+    '202607130008_atomic_invoice_operations.sql'
+];
+
+const ARTIFACTS = [
+    'src/data/repository-contract.js',
+    'src/data/local-storage-repository.js',
+    'src/data/supabase-repository.js',
+    'src/data/repository-factory.js',
+    'src/data/snapshot-tools.js',
+    'src/data/legacy-state-adapter.js',
+    'src/data/state-bridge.js',
+    'src/data/state-bridge-metadata.js',
+    'src/integration/exercise-management.js',
+    'src/integration/exercise-early-init.js',
+    'src/vendor/supabase-client-entry.js',
+    'src/types/database.types.ts',
+    'vendor/supabase-client.js',
+    'scripts/audit-functional-persistence.js',
+    'scripts/build-supabase-client.mjs',
+    'scripts/check-generated-artifacts.js',
+    'supabase/config.toml',
+    'supabase/tests/database/schema.test.sql',
+    'supabase/tests/database/rls.test.sql',
+    'supabase/tests/database/invoice-rpc.test.sql',
+    'docs/reference/SUPABASE_FUNCTIONAL_COVERAGE.md',
+    'docs/reference/SUPABASE_INTEGRATION_AUDIT.md',
+    'docs/runbooks/SUPABASE_CONNECTION.md',
+    'docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md'
+];
+
 test('detecta atribuição real de segredo Supabase', () => {
     const findings = scanTextForSecrets("SUPABASE_SERVICE_ROLE_KEY='super-secret-value'");
     assert.equal(findings.length, 1);
@@ -44,53 +82,17 @@ test('recusa configuração publicada fora do modo local', () => {
 });
 
 test('valida conjunto obrigatório de migrations', () => {
-    assert.deepEqual(validateMigrationManifest([
-        '202607130001_core_schema.sql',
-        '202607130002_auth_and_rls.sql',
-        '202607130003_audit_and_import.sql',
-        '202607130004_competence_bonus_deadline.sql',
-        '202607130005_operational_context.sql',
-        '202607130006_authorization_hardening.sql',
-        '202607130007_configuration_audit_coverage.sql'
-    ]), []);
-
+    assert.deepEqual(validateMigrationManifest(MIGRATIONS), []);
     assert.match(
-        validateMigrationManifest(['202607130001_core_schema.sql']).join(' '),
-        /202607130002_auth_and_rls\.sql/
-    );
-    assert.match(
-        validateMigrationManifest([
-            '202607130001_core_schema.sql',
-            '202607130002_auth_and_rls.sql',
-            '202607130003_audit_and_import.sql',
-            '202607130004_competence_bonus_deadline.sql',
-            '202607130005_operational_context.sql',
-            '202607130006_authorization_hardening.sql'
-        ]).join(' '),
-        /202607130007_configuration_audit_coverage\.sql/
+        validateMigrationManifest(MIGRATIONS.slice(0, -1)).join(' '),
+        /202607130008_atomic_invoice_operations\.sql/
     );
 });
 
 test('valida presença dos artefatos essenciais de preparação', () => {
-    assert.deepEqual(validateReadinessArtifacts([
-        'src/data/repository-contract.js',
-        'src/data/local-storage-repository.js',
-        'src/data/supabase-repository.js',
-        'src/data/repository-factory.js',
-        'src/data/snapshot-tools.js',
-        'src/data/legacy-state-adapter.js',
-        'src/data/state-bridge.js',
-        'src/data/state-bridge-metadata.js',
-        'src/integration/exercise-management.js',
-        'src/integration/exercise-early-init.js',
-        'scripts/audit-functional-persistence.js',
-        'docs/reference/SUPABASE_FUNCTIONAL_COVERAGE.md',
-        'docs/runbooks/SUPABASE_CONNECTION.md',
-        'docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md'
-    ]), []);
-
+    assert.deepEqual(validateReadinessArtifacts(ARTIFACTS), []);
     assert.match(
-        validateReadinessArtifacts(['src/data/repository-contract.js']).join(' '),
-        /state-bridge-metadata\.js/
+        validateReadinessArtifacts(ARTIFACTS.filter(path => path !== 'vendor/supabase-client.js')).join(' '),
+        /vendor\/supabase-client\.js/
     );
 });
