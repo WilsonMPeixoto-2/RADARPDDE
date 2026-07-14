@@ -659,6 +659,12 @@
         </div>
     </div>
 
+    <!-- Domínios carregados antes das integrações e serviços que os consomem. -->
+    <script src="src/domain/competencia.js"></script>
+    <script src="src/domain/estatisticas.js"></script>
+    <script src="src/domain/fluxo-operacional.js"></script>
+    <script src="src/domain/pendencias.js"></script>
+    <script src="src/domain/retificacoes.js" data-radar-extension="src/domain/retificacoes.js"></script>
     <!-- Runtime configuration. Leave empty for local-only storage. -->
     <script src="config.js"></script>
     <!-- Supabase JS Client -->
@@ -679,11 +685,9 @@
     <script src="src/application/configuration-service.js"></script>
     <script src="src/application/directory-service.js"></script>
     <script src="src/application/school-service.js"></script>
+    <script src="src/application/pendency-service.js"></script>
+    <script src="src/application/verification-service.js"></script>
     <!-- Script Principal -->
-    <script src="src/domain/competencia.js"></script>
-    <script src="src/domain/estatisticas.js"></script>
-    <script src="src/domain/fluxo-operacional.js"></script>
-    <script src="src/domain/pendencias.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

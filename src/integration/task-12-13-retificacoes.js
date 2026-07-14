@@ -23,6 +23,7 @@
         return Boolean(
             root.RadarRetificacoes
             && root.RadarFluxoOperacional
+            && root.RadarApplicationServices?.verifications
             && typeof root.renderProntuario === 'function'
             && typeof root.toggleBonif === 'function'
         );
@@ -324,7 +325,7 @@
         return true;
     }
 
-    function confirmRetification(event) {
+    async function confirmRetification(event) {
         event.preventDefault();
         if (!activeContext) return false;
         try {
@@ -341,32 +342,17 @@
                 const missing = evaluation.missingFields.map(key => BONUS_LABELS[key] || key).join(', ');
                 throw new Error(`A retificação não pode ser concluída. Revise: ${missing || 'campos de bonificação'}.`);
             }
-            const user = getCurrentUserSafe();
-            const result = root.RadarRetificacoes.applyRetification(verification, {
-                bonificacao: draft,
-                resultadoBonif: evaluation.status,
-                justificativa: document.getElementById('retification-justification').value
-            }, {
-                id: createClientId('retificacao'),
-                at: new Date().toISOString(),
-                usuario: user.name,
-                perfil: user.role || currentProfileValue(),
-                escolaId: activeContext.schoolId,
-                competencia: activeContext.compKey.split('_')[0],
-                programaId: activeContext.programId
+            const response = await root.RadarApplicationServices.verifications.retify({
+                schoolId: activeContext.schoolId,
+                compKey: activeContext.compKey,
+                programId: activeContext.programId,
+                bonification: draft,
+                bonusResult: evaluation.status,
+                justification: document.getElementById('retification-justification').value,
+                profile: currentProfileValue()
             });
-            verificacoes[activeContext.schoolId][activeContext.compKey] = result.verification;
+            const result = response.value;
             const schoolId = activeContext.schoolId;
-            const schoolName = getSchoolName(schoolId);
-            const compKey = activeContext.compKey;
-            if (typeof registerLog === 'function') {
-                registerLog(
-                    'Consolidação retificada',
-                    `${schoolName} · ${compKey}. Justificativa: ${result.retification.justificativa}. Campos: ${result.retification.changedFields.join(', ')}.`
-                );
-            } else if (typeof persist === 'function') {
-                persist('verificacoes');
-            }
             setModalOpen(false);
             activeContext = null;
             root.renderProntuario(schoolId);
@@ -382,6 +368,7 @@
             });
             return true;
         } catch (error) {
+            if (typeof reportRadarPersistenceError === 'function') reportRadarPersistenceError(error);
             showRetificationError(error.message || 'Não foi possível registrar a retificação.');
             return false;
         }

@@ -4403,6 +4403,8 @@ let radarPersistenceQueue = Promise.resolve({ ok: true });
 let radarConfigurationService = null;
 let radarDirectoryService = null;
 let radarSchoolService = null;
+let radarPendencyService = null;
+let radarVerificationService = null;
 
 function cloneRadarValue(value) {
     return window.RadarRepositoryContract.cloneValue(value);
@@ -4566,6 +4568,10 @@ function initializeRadarApplicationServices() {
         controllers: controladores,
         inventoryTeamMembers: equipeInventario,
         schools: escolas,
+        verifications: verificacoes,
+        pendencies: pendencias,
+        contacts: contatos,
+        registeredInvoices: notasRegistradas,
         logs
     });
     const dependencies = {
@@ -4576,10 +4582,28 @@ function initializeRadarApplicationServices() {
     radarConfigurationService = new window.RadarConfigurationService.ConfigurationService(dependencies);
     radarDirectoryService = new window.RadarDirectoryService.DirectoryService(dependencies);
     radarSchoolService = new window.RadarSchoolService.SchoolService(dependencies);
+    const transactionalDependencies = {
+        ...dependencies,
+        getCurrentUser,
+        createId: createPendencyClientId,
+        now: () => new Date().toISOString()
+    };
+    radarPendencyService = new window.RadarPendencyService.PendencyService({
+        ...transactionalDependencies,
+        getCorrectAnalysisLabel
+    });
+    radarVerificationService = new window.RadarVerificationService.VerificationService({
+        ...transactionalDependencies,
+        ensureVerification: ensureProgramVerification,
+        reopenConsolidation: reopenConsolidationForAssistant,
+        pendencyService: radarPendencyService
+    });
     window.RadarApplicationServices = Object.freeze({
         configuration: radarConfigurationService,
         directory: radarDirectoryService,
-        schools: radarSchoolService
+        schools: radarSchoolService,
+        pendencies: radarPendencyService,
+        verifications: radarVerificationService
     });
 }
 
@@ -5081,7 +5105,7 @@ function reopenConsolidationForAssistant(escolaId, compProgKey, verification, ha
     const previousResult = verification.resultadoBonif;
     verification.resultadoBonif = '';
     const esc = escolas.find(item => item.id === escolaId);
-    registerLog(
+    appendRadarLog(
         'Consolidação Reaberta',
         `A consolidação ${previousResult.toUpperCase()} da escola ${esc ? esc.denominação : escolaId} para ${compProgKey} foi reaberta após alteração da bonificação.`
     );
@@ -8517,7 +8541,7 @@ function abrirModalRegistrarNovoEnvio(pendencySource) {
     return true;
 }
 
-function confirmarRegistrarNovoEnvio(event) {
+async function confirmarRegistrarNovoEnvio(event) {
     event.preventDefault();
     const form = document.getElementById('form-registrar-envio');
     const serializedPendencyId = document.getElementById('envio-pendencia-id').value;
@@ -8567,75 +8591,19 @@ function confirmarRegistrarNovoEnvio(event) {
     const sourceContext = registrarNovoEnvioSourceContext
         || capturePendencyActionSourceContext(current, registrarNovoEnvioTrigger);
 
-    const competence = current.competenciaOrigem || current.competencia;
-    const compProgKey = `${competence}_${current.programaId}`;
-    const verification = verificacoes[current.escolaId]?.[compProgKey];
-    const hasLinkedAnalysis = verification
-        && verification.analise
-        && Object.prototype.hasOwnProperty.call(verification.analise, current.documentoKey);
-
-    if (!hasLinkedAnalysis) {
-        showRegistrarNovoEnvioError('A análise técnica vinculada não foi encontrada. Nenhum dado foi alterado.');
-        return false;
-    }
-
-    let rollbackSnapshot;
+    let nextPendency;
     try {
-        rollbackSnapshot = captureCorrectiveSubmissionRollback(
-            current,
-            verification,
-            compProgKey
-        );
-    } catch (error) {
-        showRegistrarNovoEnvioError(error && error.message
-            ? error.message
-            : 'Não foi possível preparar o registro do novo envio.');
-        return false;
-    }
-
-    const nowIso = new Date().toISOString();
-    const user = getCurrentUser();
-    const bonificationSnapshot = cloneSubmissionInvariant(
-        rollbackSnapshot.verification.bonificacao
-    );
-    const resultSnapshot = cloneSubmissionInvariant(
-        rollbackSnapshot.verification.resultadoBonif
-    );
-    const program = programas.find(item => item.id === current.programaId);
-    const programName = program ? program.name : current.programaId;
-    const documentName = VERIFICATION_DOCUMENT_LABELS[current.documentoKey]
-        || current.documentoKey;
-    const schoolName = school.denominação || school.denominacao || school.denominaçao || '';
-
-    try {
-        const nextPendency = window.RadarPendencias.registerCorrectiveSubmission(current, {
-            id: createPendencyClientId('tentativa'),
-            dataDisponibilizacao: availabilityDate,
-            observacao: observation,
+        const result = await radarPendencyService.registerAttempt({
+            pendencyId: current.id,
+            availabilityDate,
+            observation,
             link
-        }, {
-            eventId: createPendencyClientId('evento'),
-            at: nowIso,
-            usuario: user.name,
-            perfil: user.role
         });
-        verification.analise[current.documentoKey] = 'Não analisado';
-        updatePendencyById(current.id, nextPendency);
-        verifySubmissionBonificationInvariant(
-            verification,
-            bonificationSnapshot,
-            resultSnapshot
-        );
+        nextPendency = result.value.pendency;
         rebuildOperationalIndexes();
-        registerLog(
-            'Novo envio registrado',
-            `Novo envio de ${documentName} (${current.documentoKey}) no programa ${programName} (${current.programaId}) para ${schoolName}, competência ${competence}, disponibilizado em ${availabilityDate}.`
-        );
-    } catch (primaryError) {
-        const rollbackErrors = restoreCorrectiveSubmissionRollback(rollbackSnapshot);
-        showRegistrarNovoEnvioError(
-            getCorrectiveSubmissionFailureMessage(primaryError, rollbackErrors)
-        );
+    } catch (error) {
+        reportRadarPersistenceError(error);
+        showRegistrarNovoEnvioError(error?.cause?.message || error?.message || 'Não foi possível registrar o novo envio.');
         return false;
     }
 
@@ -8949,7 +8917,7 @@ function getReanalysisFailureMessage(primaryError, rollbackErrors) {
         + ' A restauração local não pôde ser concluída integralmente; recarregue a página antes de tentar novamente.';
 }
 
-function confirmarReanalisePendencia(event) {
+async function confirmarReanalisePendencia(event) {
     event.preventDefault();
     const form = document.getElementById('form-reanalisar-pendencia');
     const resultInput = document.getElementById('reanalisar-resultado');
@@ -9028,73 +8996,22 @@ function confirmarReanalisePendencia(event) {
         return false;
     }
 
-    let rollbackSnapshot;
-    try {
-        rollbackSnapshot = captureCorrectiveSubmissionRollback(
-            current,
-            verification,
-            compProgKey
-        );
-    } catch (error) {
-        showReanalysisError(error && error.message
-            ? error.message
-            : 'Não foi possível preparar o registro da reanálise.');
-        return false;
-    }
-
     const sourceContext = reanalisarPendenciaSourceContext
         || capturePendencyActionSourceContext(current, reanalisarPendenciaTrigger);
-    const previousBonification = cloneSubmissionInvariant(
-        rollbackSnapshot.verification.bonificacao
-    );
-    const previousProgramResult = cloneSubmissionInvariant(
-        rollbackSnapshot.verification.resultadoBonif
-    );
-    const nowIso = new Date().toISOString();
-    const user = getCurrentUser();
-    const program = programas.find(item => item.id === current.programaId);
-    const programName = program ? program.name : current.programaId;
-    const documentName = VERIFICATION_DOCUMENT_LABELS[current.documentoKey]
-        || current.documentoKey;
-    const schoolName = school.denominação || school.denominacao || school.id;
     let nextPendency;
 
     try {
-        nextPendency = window.RadarPendencias.recordReanalysis(current, {
-            resultado: result,
-            erros: errors,
-            observacao: observation
-        }, {
-            eventId: createPendencyClientId('evento'),
-            at: nowIso,
-            usuario: user.name,
-            perfil: user.role
+        const response = await radarPendencyService.reanalyze({
+            pendencyId: current.id,
+            result,
+            errors,
+            observation
         });
-        const analysisLabel = result === 'correto'
-            ? getCorrectAnalysisLabel(competence, awaitingAttempt.dataDisponibilizacao)
-            : 'Incorreto';
-        updatePendencyById(current.id, nextPendency);
-        verification.analise = {
-            ...verification.analise,
-            [current.documentoKey]: analysisLabel
-        };
-        assertBonificationUnchanged(
-            verification,
-            current.documentoKey,
-            previousBonification,
-            previousProgramResult
-        );
+        nextPendency = response.value.pendency;
         rebuildOperationalIndexes();
-        registerLog(
-            'Reanálise registrada',
-            'Reanálise de ' + documentName + ' (' + current.documentoKey + ') no programa '
-                + programName + ' (' + current.programaId + ') para ' + schoolName
-                + ', competência ' + competence + ', tentativa ' + awaitingAttempt.id
-                + ', resultado ' + result + '.'
-        );
-    } catch (primaryError) {
-        const rollbackErrors = restoreCorrectiveSubmissionRollback(rollbackSnapshot);
-        showReanalysisError(getReanalysisFailureMessage(primaryError, rollbackErrors));
+    } catch (error) {
+        reportRadarPersistenceError(error);
+        showReanalysisError(error?.cause?.message || error?.message || 'Não foi possível registrar a reanálise.');
         return false;
     }
 
@@ -10053,60 +9970,23 @@ function changeProntuarioCompetencia(escolaId, compKey) {
 }
 
 // 14.2 Operações de Clique Bonificação
-function toggleBonif(escolaId, compKey, docKey, value) {
+async function toggleBonif(escolaId, compKey, docKey, value) {
     if (currentProfile === 'inventario' || currentProfile === 'sme') return;
-
-    const v = ensureProgramVerification(escolaId, compKey);
-
-    // Regra: Não permitir alterar bonificação se o mês estiver consolidado
-    if (v.resultadoBonif && currentProfile !== 'assistente') {
-        alert('Esta competência já foi consolidada. Apenas o(a) Assistente de Verbas Federais pode fazer ajustes retroativos na bonificação.');
-        return;
-    }
-
-    const registeredNotes = notasRegistradas.filter(nota => (
-        nota.escolaId === escolaId && nota.compKey === compKey
-    ));
-    if (docKey === 'notaFiscal' && value === 'Não se aplica' && registeredNotes.length > 0) {
-        const noteNumbers = registeredNotes.map(nota => nota.numero).join(', ');
-        persist();
-        alert(`Existem notas fiscais cadastradas (${noteNumbers}). Para marcar N/A, faça a exclusão individual de cada nota antes. Nenhuma nota ou bem foi excluído.`);
+    try {
+        await radarVerificationService.setBonification({
+            schoolId: escolaId,
+            compKey,
+            documentKey: docKey,
+            value,
+            profile: currentProfile
+        });
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível alterar a bonificação.');
         renderProntuario(escolaId);
-        return;
+        return false;
     }
-
-    const bonificationBefore = { ...v.bonificacao };
-    v.bonificacao[docKey] = value;
-
-    // Regra Automática: Se Nota Fiscal = Não se aplica, automaticamente Encaminhado Inventário e Consulta Assessoria = Não se aplica
-    if (docKey === 'notaFiscal') {
-        if (value === 'Não se aplica') {
-            v.bonificacao['encampInventario'] = 'Não se aplica';
-            v.analise['encampInventario'] = 'Correto';
-            v.bonificacao['consAssessoria'] = 'Não se aplica';
-            v.analise['consAssessoria'] = 'Correto';
-            v.analise['notaFiscal'] = 'Correto';
-        } else if (value === 'Sim' || value === 'Não') {
-            // Se estava como "Não se aplica" antes, reseta para exigir análise
-            if (v.bonificacao['encampInventario'] === 'Não se aplica') {
-                v.bonificacao['encampInventario'] = '';
-                v.analise['encampInventario'] = 'Não analisado';
-            }
-            if (v.bonificacao['consAssessoria'] === 'Não se aplica') {
-                v.bonificacao['consAssessoria'] = '';
-                v.analise['consAssessoria'] = 'Não analisado';
-            }
-        }
-    }
-
-    reopenConsolidationForAssistant(
-        escolaId,
-        compKey,
-        v,
-        hasBonificationChanged(bonificationBefore, v.bonificacao)
-    );
-    persist();
     renderProntuario(escolaId);
+    return true;
 }
 
 function findActivePendencyForTechnicalAnalysis(escolaId, compProgKey, documentoKey) {
@@ -10133,7 +10013,7 @@ function findActivePendencyForTechnicalAnalysis(escolaId, compProgKey, documento
 }
 
 // 14.3 Operações de Clique Análise Técnica
-function changeAnaliseTecnica(escolaId, compKey, docKey, value, selectElement = null) {
+async function changeAnaliseTecnica(escolaId, compKey, docKey, value, selectElement = null) {
     if (currentProfile === 'inventario' || currentProfile === 'sme') return false;
 
     const activePendency = findActivePendencyForTechnicalAnalysis(
@@ -10155,34 +10035,6 @@ function changeAnaliseTecnica(escolaId, compKey, docKey, value, selectElement = 
         return false;
     }
 
-    const v = ensureProgramVerification(escolaId, compKey);
-    
-    // Regra Operacional: Não permitir preencher análise técnica se a entrega do drive estiver vazia (Sim, Não, N/A)
-    if (value !== 'Não analisado' && (!v.bonificacao[docKey] || v.bonificacao[docKey] === '')) {
-        persist();
-        alert('Você não pode alterar a análise técnica sem antes preencher o status de entrega no Drive (Sim, Não ou N/A).');
-        renderProntuario(escolaId);
-        return;
-    }
-
-    const fiscalNotes = notasRegistradas.filter(nota => (
-        nota.escolaId === escolaId && nota.compKey === compKey
-    ));
-    if (docKey === 'notaFiscal' && window.RadarFluxoOperacional.shouldRequireFiscalNote({
-        bonificacaoNotaFiscal: v.bonificacao.notaFiscal,
-        analiseValue: value,
-        fiscalNotes
-    })) {
-        persist();
-        alert('Você declarou que há entrega de Notas Fiscais no Drive (Sim), mas não cadastrou nenhuma Nota Fiscal no sistema. Por favor, cadastre pelo menos uma Nota Fiscal antes de marcar como Correto.');
-        renderProntuario(escolaId);
-        openModalDadosNota(escolaId, compKey);
-        return;
-    }
-
-    const oldValue = v.analise[docKey];
-    v.analise[docKey] = value;
-    
     const docNames = {
         extCC: 'Extrato Conta Corrente',
         extINV: 'Extrato Investimento',
@@ -10191,13 +10043,33 @@ function changeAnaliseTecnica(escolaId, compKey, docKey, value, selectElement = 
         declBBAgil: 'Declaração BB Ágil',
         encampInventario: 'Encaminhado para Inventariação'
     };
-
-    registerLog('Análise Técnica Alterada', `Análise técnica de ${docNames[docKey]} em ${compKey} da escola ID ${escolaId} alterada de "${oldValue}" para "${value}".`);
-
-    persist();
+    const previousValue = verificacoes[escolaId]?.[compKey]?.analise?.[docKey]
+        || 'Não analisado';
+    let shouldOpenPendency = false;
+    try {
+        const response = await radarVerificationService.setTechnicalAnalysis({
+            schoolId: escolaId,
+            compKey,
+            documentKey: docKey,
+            value,
+            profile: currentProfile,
+            activePendency
+        });
+        shouldOpenPendency = response.value.shouldOpenPendency;
+    } catch (error) {
+        if (selectElement && typeof selectElement === 'object') {
+            selectElement.value = previousValue;
+        }
+        reportRadarActionError(error, 'Não foi possível alterar a análise técnica.');
+        renderProntuario(escolaId);
+        if (error?.code === 'FISCAL_NOTE_REQUIRED') {
+            openModalDadosNota(escolaId, compKey);
+        }
+        return false;
+    }
 
     // Regra Crítica: Se marcar como "Incorreto", abrir modal de pendência correspondente automaticamente
-    if (value === 'Incorreto') {
+    if (shouldOpenPendency) {
         const splitContext = window.RadarCompetencia.splitCompetenciaContext(compKey);
         const mesRaw = splitContext.competenciaKey;
         const progId = splitContext.contextId;
@@ -10554,29 +10426,22 @@ function removerNotaRegistrada(notaId, escolaId) {
 }
 
 // 14.4 Regra de Consolidação de Bonificação (Apta / Inapta)
-function calcularEFecharBonificacao(escolaId, compKey) {
+async function calcularEFecharBonificacao(escolaId, compKey) {
     if (currentProfile === 'inventario' || currentProfile === 'sme') return;
-    const v = ensureProgramVerification(escolaId, compKey);
-    const evaluation = window.RadarFluxoOperacional.evaluateBonification(v.bonificacao);
-
-    if (!evaluation.canConsolidate) {
-        const missingLabels = evaluation.missingFields
-            .map(key => VERIFICATION_DOCUMENT_LABELS[key] || key)
-            .join(', ');
-        persist();
-        alert(`Preencha todos os itens de bonificação antes de consolidar. Campos ausentes ou inválidos: ${missingLabels}.`);
+    try {
+        await radarVerificationService.closeBonification({
+            schoolId: escolaId,
+            compKey,
+            profile: currentProfile
+        });
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível consolidar a bonificação.');
         renderProntuario(escolaId);
-        return;
+        return false;
     }
-
-    const esc = escolas.find(e => e.id === escolaId);
-    v.resultadoBonif = evaluation.status;
-    
-    registerLog('Bonificação Consolidada', `A bonificação da escola ${esc ? esc.denominação : ''} para ${compKey} foi fechada como "${evaluation.status.toUpperCase()}".`);
-    
-    persist();
     renderProntuario(escolaId);
     updateAlertsBell();
+    return true;
 }
 
 
@@ -10660,7 +10525,7 @@ function openContatoModal(escolaId) {
     openModal('modal-contato');
 }
 
-function saveContato(e) {
+async function saveContato(e) {
     e.preventDefault();
     const escolaId = document.getElementById('contato-escola-id').value;
     const tipo = document.getElementById('contato-tipo').value;
@@ -10668,26 +10533,18 @@ function saveContato(e) {
     const pendId = document.getElementById('contato-pendencia').value;
     const desc = document.getElementById('contato-desc').value.trim();
 
-    const newContato = {
-        id: 'cont-' + Date.now(),
-        escolaId: escolaId,
-        tipo: tipo,
-        dataAtendimento: dataAtend,
-        dataRegistro: new Date().toISOString(),
-        desc: desc,
-        pendenciaId: pendId || null
-    };
-
-    contatos.push(newContato);
-    
-    // Se o contato atualizou uma pendência específica, registrar no log da pendência
-    if (pendId) {
-        registerLog('Contato Registrado', `Contato via ${tipo} associado à pendência ID ${pendId} na escola ID ${escolaId}.`);
-    } else {
-        registerLog('Contato Registrado', `Contato via ${tipo} registrado para a escola ID ${escolaId}.`);
+    try {
+        await radarPendencyService.registerContact({
+            schoolId: escolaId,
+            pendencyId: pendId || null,
+            channel: tipo,
+            serviceDate: dataAtend,
+            description: desc
+        });
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível registrar o contato.');
+        return false;
     }
-
-    persist();
     closeModal('modal-contato');
     document.getElementById('form-contato').reset();
     
@@ -10697,6 +10554,7 @@ function saveContato(e) {
         renderDashboard();
     }
     updateAlertsBell();
+    return true;
 }
 
 // 16.2 Salvar Nova Pendência Manual ou Documental
@@ -10833,7 +10691,7 @@ function openNovaPendenciaModalWithDefaults(
     itemSelect.value = context.item;
 }
 
-function saveNovaPendencia(e) {
+async function saveNovaPendencia(e) {
     e.preventDefault();
     const sourceView = currentView;
     const escolaId = document.getElementById('pendencia-escola-id').value;
@@ -10852,66 +10710,34 @@ function saveNovaPendencia(e) {
         return;
     }
 
-    const now = new Date();
-    const nowIso = now.toISOString();
-    const user = getCurrentUser();
     let newPend;
-    let logDetails;
 
     try {
+        let errors = [];
         if (isDocumentary) {
-            const errors = getSelectedPendencyErrors();
-            const context = {
-                escolaId,
-                competenciaOrigem: comp,
-                programaId,
-                documentoKey,
-                item
-            };
-            const existing = window.RadarPendencias.findActivePendency(pendencias, context);
-
-            if (existing) {
-                closeModal('modal-nova-pendencia');
-                resetNovaPendenciaForm();
-                openPendencyDetail(existing.id);
-                showPendencyNotice('Já existe uma pendência ativa para este documento.', 'duplicate');
-                return;
-            }
-
-            newPend = window.RadarPendencias.createDocumentPendency({
-                id: createPendencyClientId('pend'),
-                escolaId,
-                competenciaOrigem: comp,
-                programaId,
-                documentoKey,
-                item,
-                errosAtuais: errors,
-                observacao: obs,
-                dataAbertura: nowIso.split('T')[0]
-            }, {
-                eventId: createPendencyClientId('evento'),
-                at: nowIso,
-                usuario: user.name,
-                perfil: user.role
-            });
-            logDetails = `Pendência documental de ${item} para a escola ID ${escolaId} (${comp}, programa ${programaId}, documento ${documentoKey}). Erros: ${errors.join(', ')}.`;
-        } else {
-            newPend = window.RadarPendencias.normalizePendencyRecord({
-                id: createPendencyClientId('pend'),
-                escolaId,
-                competencia: comp,
-                item,
-                motivo,
-                responsavel: resp,
-                status: 'Aberta',
-                dataAbertura: nowIso.split('T')[0],
-                dataResolucao: null,
-                observacao: obs
-            });
-            const esc = escolas.find(x => x.id === escolaId);
-            logDetails = `Abertura manual de pendência de ${item} para ${esc ? esc.denominação : ''} (${comp}) - Responsável: ${resp}.`;
+            errors = getSelectedPendencyErrors();
         }
+        const result = await radarPendencyService.open({
+            schoolId: escolaId,
+            competence: comp,
+            programId: isDocumentary ? programaId : null,
+            documentKey: isDocumentary ? documentoKey : null,
+            item,
+            errors,
+            reason: motivo,
+            responsible: resp,
+            observation: obs
+        });
+        newPend = result.value.pendency;
     } catch (error) {
+        if (error?.code === 'DUPLICATE_PENDENCY' && error.details?.existingPendencyId) {
+            closeModal('modal-nova-pendencia');
+            resetNovaPendenciaForm();
+            openPendencyDetail(error.details.existingPendencyId);
+            showPendencyNotice('Já existe uma pendência ativa para este documento.', 'duplicate');
+            return false;
+        }
+        reportRadarPersistenceError(error);
         showPendencyNotice(error && error.message
             ? error.message
             : 'Não foi possível validar a pendência.', 'error');
@@ -10922,11 +10748,7 @@ function saveNovaPendencia(e) {
         return;
     }
 
-    pendencias.push(newPend);
     rebuildOperationalIndexes();
-    registerLog('Pendência Criada', logDetails);
-
-    persist();
     closeModal('modal-nova-pendencia');
     resetNovaPendenciaForm();
 
@@ -10936,6 +10758,7 @@ function saveNovaPendencia(e) {
         renderPendencias();
     }
     updateAlertsBell();
+    return Boolean(newPend);
 }
 
 // 16.3 Editar Cadastro da Escola
