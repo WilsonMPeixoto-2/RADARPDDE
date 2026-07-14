@@ -8,7 +8,8 @@ const REQUIRED_MIGRATIONS = Object.freeze([
     '202607130001_core_schema.sql',
     '202607130002_auth_and_rls.sql',
     '202607130003_audit_and_import.sql',
-    '202607130004_competence_bonus_deadline.sql'
+    '202607130004_competence_bonus_deadline.sql',
+    '202607130005_operational_context.sql'
 ]);
 
 const REQUIRED_ARTIFACTS = Object.freeze([
@@ -18,6 +19,9 @@ const REQUIRED_ARTIFACTS = Object.freeze([
     'src/data/repository-factory.js',
     'src/data/snapshot-tools.js',
     'src/data/legacy-state-adapter.js',
+    'src/data/state-bridge.js',
+    'src/integration/exercise-management.js',
+    'scripts/audit-functional-persistence.js',
     'docs/runbooks/SUPABASE_CONNECTION.md',
     'docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md'
 ]);
