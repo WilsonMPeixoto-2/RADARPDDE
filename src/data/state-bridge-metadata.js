@@ -148,6 +148,83 @@
         };
     }
 
+    function applyLiveLegacyFields(transformed, state) {
+        const legacyIndex = indexLegacyState(state);
+
+        transformed.entities.pendencyContacts = transformed.entities.pendencyContacts.map(record => {
+            const legacy = legacyIndex.pendencyContacts.get(text(record.id));
+            if (!legacy) return record;
+            return {
+                ...record,
+                description: text(legacy.desc || legacy.descricao || legacy.description || record.description),
+                official_charge: legacy.cobrancaOficial === true
+                    || legacy.cobrancaEnvioRegistro === true
+                    || legacy.official_charge === true
+            };
+        });
+
+        transformed.entities.assets = transformed.entities.assets.map(record => {
+            const legacy = legacyIndex.assets.get(text(record.id));
+            if (!legacy) return record;
+            return {
+                ...record,
+                description: text(legacy.item || legacy.descricao || legacy.description || record.description),
+                inventoried_by_member_id: text(
+                    legacy.inventariadorId
+                    || legacy.responsavelInventario
+                    || legacy.inventoried_by_member_id
+                    || record.inventoried_by_member_id
+                ) || null,
+                inventoried_at: legacy.dataInventariacao
+                    || legacy.inventoried_at
+                    || record.inventoried_at
+                    || null
+            };
+        });
+
+        transformed.entities.registeredInvoices = transformed.entities.registeredInvoices.map(record => {
+            const legacy = legacyIndex.registeredInvoices.get(text(record.id));
+            if (!legacy) return record;
+            const context = baseBridge.contextFromValue(
+                legacy.compKey
+                || legacy.contextKey
+                || legacy.source_context_key
+                || record.source_context_key
+            );
+            const competenceId = text(legacy.competencia || context?.competenceId || record.competence_id) || null;
+            const programId = text(legacy.programaId || context?.programId || record.program_id) || null;
+            return {
+                ...record,
+                competence_id: competenceId,
+                program_id: programId,
+                verification_id: competenceId && programId
+                    ? `${record.school_id}::${competenceId}::${programId}`
+                    : (record.verification_id || null),
+                source_context_key: text(legacy.compKey || record.source_context_key),
+                description: text(legacy.desc || legacy.descricao || legacy.description || record.description),
+                linked_asset_id: text(legacy.bemId || legacy.linked_asset_id || record.linked_asset_id) || null,
+                registered_at: legacy.dataRegistro || legacy.registered_at || record.registered_at || null
+            };
+        });
+
+        transformed.entities.pendencies = transformed.entities.pendencies.map(record => {
+            const legacy = legacyIndex.pendencies.get(text(record.id));
+            if (!legacy) return record;
+            return {
+                ...record,
+                next_actor: text(
+                    legacy.proximoAtor
+                    || legacy.nextActor
+                    || legacy.next_actor
+                    || record.next_actor
+                    || record.responsible_area
+                )
+            };
+        });
+
+        return transformed;
+    }
+
     function applyMetadata(transformed, state, metadata) {
         if (!metadata || metadata.dataVersion !== text(state.dataVersion)) return transformed;
         const legacyIndex = indexLegacyState(state);
@@ -174,7 +251,10 @@
     }
 
     function transformLegacyState(state = {}) {
-        const transformed = baseBridge.enhanceLegacyTransformation(state);
+        const transformed = applyLiveLegacyFields(
+            baseBridge.enhanceLegacyTransformation(state),
+            state
+        );
         return applyMetadata(transformed, state, state.bridgeMetadata || null);
     }
 
@@ -271,6 +351,7 @@
         TRACKED_ENTITIES,
         readMetadata,
         buildMetadata,
+        applyLiveLegacyFields,
         applyMetadata,
         transformLegacyState,
         exportLegacySnapshot,
