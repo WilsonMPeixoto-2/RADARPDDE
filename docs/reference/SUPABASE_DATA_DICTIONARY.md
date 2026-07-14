@@ -10,6 +10,7 @@ Este documento descreve o modelo preparado para futura persistência do RADAR PD
 - `payload jsonb` conserva atributos legados ainda não normalizados e viabiliza migração sem perda de informação.
 - `row_version` é incrementado por trigger nas tabelas mutáveis para futuro controle de concorrência.
 - `created_at` e `updated_at` são timestamps técnicos; campos de data do domínio permanecem separados.
+- O repositório remoto pagina leituras, grava em lotes e oferece atualização otimista por `row_version`.
 
 ## Tabelas estruturais
 
@@ -61,7 +62,7 @@ Estrutura equivalente à de `controllers`, voltada à equipe patrimonial e com v
 | `closed_at` | `timestamptz` | fechamento formal opcional |
 | `row_version` | `integer` | concorrência otimista |
 
-Para cada exercício válido de `app_config.exercises`, o adaptador gera as doze competências mensais e preserva o prazo ordinário existente — dia 15 do mês seguinte. Competências adicionais referenciadas em escolas, verificações, pendências, bens ou notas também são incluídas.
+Para cada exercício válido de `app_config.exercises`, a ponte gera as doze competências mensais e preserva o prazo ordinário existente — dia 15 do mês seguinte. Competências adicionais referenciadas em escolas, verificações, pendências, bens ou notas também são incluídas.
 
 ## Escolas e programas
 
@@ -155,23 +156,64 @@ Os objetos de bonificação e análise permanecem em JSONB na primeira versão p
 
 ### `pendency_contacts`
 
-Registra contatos, atendimentos e cobranças. O `id` textual atual é preservado; quando inexistente, o exportador gera um identificador determinístico e registra advertência. `payload` preserva o registro original.
+| Campo | Origem atual |
+|---|---|
+| `id` | `contato.id` |
+| `school_id` | `escolaId` |
+| `pendency_id` | `pendenciaId`, quando houver |
+| `contact_type` | `tipo` |
+| `contact_date` | `dataAtendimento` |
+| `description` | `desc`, `descricao` ou `description` |
+| `official_charge` | `cobrancaOficial` |
+| `created_by` | futuro usuário autenticado |
+| `payload` | registro original integral |
+| `row_version` | concorrência otimista |
+
+O campo `desc`, efetivamente usado pela interface atual, é traduzido explicitamente. Isso evita que o texto do contato exista apenas no `payload`.
 
 ## Patrimônio e despesas
 
 ### `assets`
 
-Representa bens e obrigações de inventário.
+| Campo | Origem atual |
+|---|---|
+| `id` | `bem.id` |
+| `school_id` | `escolaId` |
+| `competence_id` | `competencia` |
+| `description` | `item`, `descricao` ou `description` |
+| `expense_type` | `tipo` |
+| `invoice_number` | `notaFiscal` |
+| `amount` | `valor` |
+| `status` | situação patrimonial |
+| `inventory_process` | `processoInventario` |
+| `notes` | `observacoes` |
+| `inventoried_by_member_id` | `inventariadorId` ou responsável registrado |
+| `inventoried_at` | `dataInventariacao` |
+| `payload` | bem legado integral |
+| `row_version` | concorrência otimista |
 
-- `expense_type`: `consumo`, `permanente` ou `servico`;
-- `status`: `Não encaminhada`, `Encaminhada` ou `Inventariada`;
-- `competence_id`: FK opcional para competência;
-- `payload`: registro legado integral;
-- `row_version`: concorrência otimista.
+`inventoried_by_member_id` referencia `inventory_team_members` e permite recuperar quem realizou a inventariação sem depender de texto livre.
 
 ### `registered_invoices`
 
-Preserva os registros mantidos atualmente em `notasRegistradas`, incluindo escola, competência, descrição, tipo, número, valor e `payload` original.
+| Campo | Origem atual | Finalidade |
+|---|---|---|
+| `id` | `nota.id` | identificador |
+| `school_id` | `escolaId` | unidade |
+| `competence_id` | parte de `compKey` | competência |
+| `program_id` | parte de `compKey` | programa |
+| `verification_id` | escola + competência + programa | contexto documental exato |
+| `source_context_key` | `compKey` | preservação do identificador atual |
+| `description` | `desc`, `descricao` ou `description` | descrição do gasto |
+| `expense_type` | `tipo` | consumo, permanente ou serviço |
+| `invoice_number` | `numero` ou `notaFiscal` | número fiscal |
+| `amount` | `valor` | valor monetário |
+| `linked_asset_id` | `bemId` | vínculo com o bem criado pela nota |
+| `registered_at` | `dataRegistro` | horário de registro |
+| `payload` | nota original integral | rastreabilidade |
+| `row_version` | novo | concorrência otimista |
+
+A decomposição de `compKey` permite consultar notas por competência e programa e também reconstruir exatamente o prontuário local.
 
 ## Segurança e perfis
 
@@ -224,18 +266,26 @@ Controla cada importação por `import_id` único, versão do snapshot, contagen
 
 Trilha imutável de inserções, alterações e exclusões nas entidades críticas. Guarda registro anterior, novo registro, campos alterados, usuário, requisição e horário.
 
-## Transformação do estado local
+## Transformação e restauração
 
-O módulo `src/data/legacy-state-adapter.js`:
+A camada é composta por:
 
-1. lê somente as chaves `radar_pdde_*` já usadas pelo sistema;
-2. não modifica nem remove o conteúdo do navegador;
-3. converte campos em português para o modelo SQL;
-4. separa `programasIds`, verificações e tentativas em coleções relacionais;
-5. gera as doze competências de cada exercício configurado e seus prazos ordinários;
-6. preserva registros completos em `payload` quando necessário;
-7. gera lista de advertências e registros rejeitados;
-8. produz snapshot canônico validável e reconciliável.
+1. `legacy-state-adapter.js` — leitura e transformação básica das chaves `radar_pdde_*`;
+2. `state-bridge.js` — enriquecimento semântico e conversão bidirecional;
+3. `snapshot-tools.js` — validação, lotes e reconciliação;
+4. `supabase-repository.js` — paginação, escrita em lotes, restauração por ordem de FK e concorrência otimista.
+
+A ponte bidirecional:
+
+- não modifica o navegador durante a exportação;
+- converte campos em português para o modelo SQL;
+- separa `programasIds`, verificações e tentativas em coleções relacionais;
+- gera as doze competências de cada exercício configurado;
+- preserva contatos, contexto de notas e inventariação;
+- gera advertências e rejeições;
+- restaura snapshot canônico nas chaves locais;
+- permite `dryRun` antes do rollback;
+- viabiliza teste canônico → local → canônico.
 
 ## Campos transversais
 
