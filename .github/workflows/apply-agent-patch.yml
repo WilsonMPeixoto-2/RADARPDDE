@@ -33,7 +33,7 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: Reconstituir e aplicar alteração versionada
+      - name: Baixar componentes do patch
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -52,16 +52,49 @@ jobs:
               | tr -d '\n'
             cat .github/agent-payload-*
           } > /tmp/agent-change.patch.gz.b64
-          test "$(wc -c < /tmp/agent-change.patch.gz.b64)" = '47968'
-          echo 'c16cc5ed78d1b1ee4b198df026ada30cd1e111ad9d30271a102d0aebf6537b5e  /tmp/agent-change.patch.gz.b64' \
-            | sha256sum --check --strict
+          printf 'partes_comentarios=%s\n' "$(jq '[.[] | select(.body | startswith("RADAR_PATCH_PART_"))] | length' /tmp/comments.json)"
+          printf 'bytes_payload=%s\n' "$(wc -c < /tmp/agent-change.patch.gz.b64)"
+
+      - name: Verificar integridade do payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual_bytes="$(wc -c < /tmp/agent-change.patch.gz.b64)"
+          actual_sha="$(sha256sum /tmp/agent-change.patch.gz.b64 | cut -d' ' -f1)"
+          printf 'bytes_esperados=47968 bytes_obtidos=%s\n' "${actual_bytes}"
+          printf 'sha_esperado=c16cc5ed78d1b1ee4b198df026ada30cd1e111ad9d30271a102d0aebf6537b5e\n'
+          printf 'sha_obtido=%s\n' "${actual_sha}"
+          test "${actual_bytes}" = '47968'
+          test "${actual_sha}" = 'c16cc5ed78d1b1ee4b198df026ada30cd1e111ad9d30271a102d0aebf6537b5e'
+
+      - name: Decodificar patch
+        shell: bash
+        run: |
+          set -euo pipefail
           base64 --decode /tmp/agent-change.patch.gz.b64 \
             | gzip --decompress \
             > /tmp/agent-change.patch
           test -s /tmp/agent-change.patch
-          git apply --index --whitespace=fix /tmp/agent-change.patch
-          npm install --ignore-scripts
-          npm run build:ajv
+          printf 'bytes_patch=%s\n' "$(wc -c < /tmp/agent-change.patch)"
+
+      - name: Validar aplicação do patch
+        shell: bash
+        run: git apply --check --whitespace=fix /tmp/agent-change.patch
+
+      - name: Aplicar patch
+        shell: bash
+        run: git apply --index --whitespace=fix /tmp/agent-change.patch
+
+      - name: Instalar dependências reproduzíveis
+        run: npm install --ignore-scripts
+
+      - name: Gerar bundle Ajv
+        run: npm run build:ajv
+
+      - name: Commitar e publicar
+        shell: bash
+        run: |
+          set -euo pipefail
           git rm .github/agent-apply.ready .github/agent-payload-*
           git add package-lock.json vendor/ajv.js
           git config user.name 'RADAR Gate Automation'
