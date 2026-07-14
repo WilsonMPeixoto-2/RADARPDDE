@@ -80,6 +80,7 @@
         loadScript('src/integration/cycle-b-dashboard-result.js', false);
         loadScript('src/integration/task-10-alerts-competence.js', false);
         loadScript('src/integration/exercise-management.js', false);
+        loadScript('src/integration/exercise-early-init.js', false);
         loadScript('src/integration/load-excel-export.js', true);
     }());
 }(typeof window !== 'undefined' ? window : globalThis, function createRadarRuntimeConfigApi() {
