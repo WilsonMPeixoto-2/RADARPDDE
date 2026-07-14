@@ -5,6 +5,9 @@ create schema auth;
 
 create role authenticated nologin;
 create role anon nologin;
+-- No ambiente Supabase real, service_role existe e ignora RLS. O smoke
+-- independente precisa reproduzir essa dependência antes de aplicar migrations.
+create role service_role nologin bypassrls;
 
 create table auth.users (
     id uuid primary key,

@@ -47,27 +47,40 @@ function isNotFound(error) {
     return error?.status === 404 || error?.code === 'user_not_found';
 }
 
-async function upsertAuthUser(client, fixture) {
-    const attributes = {
-        id: fixture.id,
+function editableAuthAttributes(fixture) {
+    return {
         email: fixture.email,
         password: fixturePassword,
         email_confirm: true,
-        role: 'authenticated',
         user_metadata: { name: fixture.name }
     };
+}
+
+async function upsertAuthUser(client, fixture) {
     const current = await client.auth.admin.getUserById(fixture.id);
 
     if (current.error && !isNotFound(current.error)) {
         throw new Error(`Não foi possível consultar a identidade local ${fixture.email}.`);
     }
 
+    const editableAttributes = editableAuthAttributes(fixture);
     const result = current.data?.user
-        ? await client.auth.admin.updateUserById(fixture.id, attributes)
-        : await client.auth.admin.createUser(attributes);
+        ? await client.auth.admin.updateUserById(fixture.id, editableAttributes)
+        : await client.auth.admin.createUser({
+            id: fixture.id,
+            ...editableAttributes
+        });
 
-    if (result.error || result.data.user?.id !== fixture.id) {
-        throw new Error(`Não foi possível preparar a identidade local ${fixture.email}.`);
+    if (result.error
+        || result.data.user?.id !== fixture.id
+        || result.data.user?.email !== fixture.email) {
+        const diagnostic = [result.error?.code, result.error?.message]
+            .filter(Boolean)
+            .join(' | ');
+        throw new Error(
+            `Não foi possível preparar a identidade local ${fixture.email}`
+            + (diagnostic ? `: ${diagnostic}` : '.')
+        );
     }
 }
 

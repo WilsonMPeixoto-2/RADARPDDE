@@ -33,6 +33,14 @@ test('migration fecha Data API anônima e concede somente operações sujeitas a
     });
 });
 
+test('bootstrap PostgreSQL reproduz os três papéis mínimos do Supabase', () => {
+    const bootstrap = fs.readFileSync(path.join(root, 'supabase/tests/bootstrap.sql'), 'utf8');
+
+    assert.match(bootstrap, /create\s+role\s+authenticated\s+nologin/i);
+    assert.match(bootstrap, /create\s+role\s+anon\s+nologin/i);
+    assert.match(bootstrap, /create\s+role\s+service_role\s+nologin\s+bypassrls/i);
+});
+
 test('manifesto local contém sete identidades e cinco perfis ativos determinísticos', () => {
     const seed = fs.readFileSync(path.join(root, 'supabase/seed.sql'), 'utf8');
     const fixtures = JSON.parse(fs.readFileSync(
@@ -62,7 +70,22 @@ test('bootstrap cria usuários pela API Admin e só aceita a pilha local com aut
     assert.match(source, /RADAR_ALLOW_LOCAL_AUTH_BOOTSTRAP/);
     assert.match(source, /localhost/);
     assert.match(source, /127\.0\.0\.1/);
+    assert.doesNotMatch(source, /role:\s*['"]authenticated['"]/);
     assert.doesNotMatch(source, /console\.log\([^\n]*(?:password|key|token)/i);
+});
+
+test('login-probe isola sessões, repete apenas falhas transitórias e preserva diagnóstico', () => {
+    const source = fs.readFileSync(
+        path.join(root, 'scripts/check-local-auth-fixtures.mjs'),
+        'utf8'
+    );
+
+    assert.match(source, /MAX_AUTH_PROBE_ATTEMPTS\s*=\s*4/);
+    assert.match(source, /createProbeClient\(\)/);
+    assert.match(source, /signOut\(\{\s*scope:\s*['"]local['"]\s*\}\)/);
+    assert.match(source, /error\?\.status/);
+    assert.match(source, /error\?\.code/);
+    assert.match(source, /error\?\.message/);
 });
 
 test('CI valida as credenciais locais antes de iniciar o Playwright', () => {
