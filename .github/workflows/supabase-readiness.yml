@@ -3,10 +3,13 @@ name: Supabase readiness
 on:
   pull_request:
     paths:
+      - 'app.js'
+      - 'index.html'
       - 'config.js'
       - '.env.example'
-      - 'src/data/**'
+      - 'src/**'
       - 'scripts/check-supabase-readiness.js'
+      - 'scripts/audit-functional-persistence.js'
       - 'supabase/**'
       - 'tests/unit/**'
       - 'tests/e2e/supabase-local-mode.spec.js'
@@ -19,10 +22,13 @@ on:
     branches:
       - main
     paths:
+      - 'app.js'
+      - 'index.html'
       - 'config.js'
       - '.env.example'
-      - 'src/data/**'
+      - 'src/**'
       - 'scripts/check-supabase-readiness.js'
+      - 'scripts/audit-functional-persistence.js'
       - 'supabase/**'
       - 'tests/unit/**'
       - 'tests/e2e/supabase-local-mode.spec.js'
@@ -38,16 +44,21 @@ permissions:
 jobs:
   readiness:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configurar Node.js
+      - name: Configurar Node.js LTS
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package.json
+
+      - name: Instalar dependências de auditoria
+        run: npm install
 
       - name: Executar validação completa de prontidão
         run: npm run test:readiness
@@ -109,19 +120,19 @@ jobs:
           values ('controller-test', 'Controlador de teste');
 
           insert into public.schools (
-              id,
-              designation,
-              denomination,
-              cre,
-              controller_id,
-              initial_competence
+            id,
+            designation,
+            denomination,
+            cre,
+            controller_id,
+            initial_competence
           ) values (
-              '04.00.001',
-              '04.00.001',
-              'Escola de teste',
-              '4ª CRE',
-              'controller-test',
-              '2026-01'
+            '04.00.001',
+            '04.00.001',
+            'Escola de teste',
+            '4ª CRE',
+            'controller-test',
+            '2026-01'
           );
 
           update public.schools
