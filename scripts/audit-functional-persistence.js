@@ -9,42 +9,15 @@ const walk = require('acorn-walk');
 const ROOT = path.resolve(__dirname, '..');
 
 const STATE_ROOTS = Object.freeze({
-    escolas: {
-        storageKey: 'radar_pdde_escolas',
-        entities: ['schools', 'schoolPrograms']
-    },
-    pendencias: {
-        storageKey: 'radar_pdde_pendencias',
-        entities: ['pendencies', 'pendencyAttempts']
-    },
-    contatos: {
-        storageKey: 'radar_pdde_contatos',
-        entities: ['pendencyContacts']
-    },
-    logs: {
-        storageKey: 'radar_pdde_logs',
-        entities: ['administrativeLogs']
-    },
-    bens: {
-        storageKey: 'radar_pdde_bens',
-        entities: ['assets']
-    },
-    verificacoes: {
-        storageKey: 'radar_pdde_verificacoes',
-        entities: ['verifications']
-    },
-    config: {
-        storageKey: 'radar_pdde_config',
-        entities: ['appConfig', 'competences']
-    },
-    programas: {
-        storageKey: 'radar_pdde_programas',
-        entities: ['programs']
-    },
-    controladores: {
-        storageKey: 'radar_pdde_controladores',
-        entities: ['controllers']
-    },
+    escolas: { storageKey: 'radar_pdde_escolas', entities: ['schools', 'schoolPrograms'] },
+    pendencias: { storageKey: 'radar_pdde_pendencias', entities: ['pendencies', 'pendencyAttempts'] },
+    contatos: { storageKey: 'radar_pdde_contatos', entities: ['pendencyContacts'] },
+    logs: { storageKey: 'radar_pdde_logs', entities: ['administrativeLogs'] },
+    bens: { storageKey: 'radar_pdde_bens', entities: ['assets'] },
+    verificacoes: { storageKey: 'radar_pdde_verificacoes', entities: ['verifications'] },
+    config: { storageKey: 'radar_pdde_config', entities: ['appConfig', 'competences'] },
+    programas: { storageKey: 'radar_pdde_programas', entities: ['programs'] },
+    controladores: { storageKey: 'radar_pdde_controladores', entities: ['controllers'] },
     equipeInventario: {
         storageKey: 'radar_pdde_equipe_inventario',
         entities: ['inventoryTeamMembers']
@@ -89,7 +62,8 @@ const PERSIST_TABLE_MAP = Object.freeze({
 const CONFIG_FIELD_MAP = Object.freeze({
     exercicios: ['app_config.exercises', 'competences.exercise'],
     competenciaFechamento: ['app_config.closing_competence'],
-    prazoBonificacaoProrrogado: ['app_config.bonus_deadline_extended', 'app_config.settings']
+    prazoBonificacaoProrrogado: ['app_config.bonus_deadline_extended', 'app_config.settings'],
+    competencias: ['competences']
 });
 
 const INITIALIZATION_MUTATORS = new Set([
@@ -102,6 +76,8 @@ const MUTATING_METHODS = new Set([
     'push', 'pop', 'shift', 'unshift', 'splice', 'copyWithin', 'fill',
     'set', 'delete', 'clear'
 ]);
+
+const INLINE_GLOBALS = new Set(['event', 'this', 'window', 'document', 'return']);
 
 function listFilesRecursively(directory, predicate = () => true) {
     if (!fs.existsSync(directory)) return [];
@@ -117,11 +93,12 @@ function relative(filePath) {
 }
 
 function readSourceFiles() {
-    const roots = [path.join(ROOT, 'app.js'), path.join(ROOT, 'config.js')];
     const sourceFiles = [
-        ...roots.filter(fs.existsSync),
+        path.join(ROOT, 'app.js'),
+        path.join(ROOT, 'config.js'),
         ...listFilesRecursively(path.join(ROOT, 'src'), filePath => filePath.endsWith('.js'))
-    ];
+    ].filter(fs.existsSync);
+
     return sourceFiles.map(filePath => ({
         filePath,
         file: relative(filePath),
@@ -162,9 +139,7 @@ function assignedFunctionName(node, ancestors) {
     if (node.type === 'FunctionDeclaration' && node.id) return node.id.name;
     const parent = ancestors[ancestors.length - 2];
     if (!parent) return '';
-    if (parent.type === 'VariableDeclarator' && parent.id.type === 'Identifier') {
-        return parent.id.name;
-    }
+    if (parent.type === 'VariableDeclarator' && parent.id.type === 'Identifier') return parent.id.name;
     if (parent.type === 'AssignmentExpression') {
         if (parent.left.type === 'Identifier') return parent.left.name;
         if (parent.left.type === 'MemberExpression') return propertyName(parent.left);
@@ -239,8 +214,7 @@ function inspectJavaScript(files) {
         walk.fullAncestor(ast, (node, _state, ancestors) => {
             if (node.type === 'VariableDeclarator'
                 && node.id.type === 'Identifier'
-                && node.init
-                && node.init.type === 'Literal'
+                && node.init?.type === 'Literal'
                 && typeof node.init.value === 'string') {
                 constants.set(node.id.name, node.init.value);
             }
@@ -259,13 +233,13 @@ function inspectJavaScript(files) {
 
         walk.fullAncestor(ast, (node, _state, ancestors) => {
             const functionName = nearestFunctionName(ancestors, functionNames);
-            const functionRecord = ensureFunctionRecord(functions, functionName, file, node.loc?.start.line || null);
+            const record = ensureFunctionRecord(functions, functionName, file, node.loc?.start.line || null);
 
             if (node.type === 'AssignmentExpression' || node.type === 'UpdateExpression') {
                 const left = node.type === 'AssignmentExpression' ? node.left : node.argument;
-                const root = rootIdentifier(left);
-                if (Object.prototype.hasOwnProperty.call(STATE_ROOTS, root)) {
-                    functionRecord.mutations.add(root);
+                const stateRoot = rootIdentifier(left);
+                if (Object.prototype.hasOwnProperty.call(STATE_ROOTS, stateRoot)) {
+                    record.mutations.add(stateRoot);
                 }
 
                 if (node.type === 'AssignmentExpression' && node.left.type === 'MemberExpression') {
@@ -280,15 +254,18 @@ function inspectJavaScript(files) {
             if (node.type !== 'CallExpression') return;
 
             const called = calleeName(node.callee);
-            if (called) functionRecord.calls.add(called);
+            if (called) record.calls.add(called);
 
-            if (called === 'persist' || called === 'registerLog' || called === 'persistSingleTableSupabase') {
-                functionRecord.directPersistence = true;
+            if (called === 'persist' || called === 'persistSingleTableSupabase') {
+                record.directPersistence = true;
                 const table = literalString(node.arguments[0], constants);
                 if (table) {
-                    functionRecord.persistTables.add(table);
+                    record.persistTables.add(table);
                     persistTables.add(table);
                 }
+            } else if (called === 'registerLog') {
+                // registerLog grava o log e invoca persist(); seu primeiro argumento é uma ação, não tabela.
+                record.directPersistence = true;
             }
 
             if (node.callee.type === 'MemberExpression') {
@@ -297,37 +274,39 @@ function inspectJavaScript(files) {
 
                 if (Object.prototype.hasOwnProperty.call(STATE_ROOTS, objectRoot)
                     && MUTATING_METHODS.has(method)) {
-                    functionRecord.mutations.add(objectRoot);
+                    record.mutations.add(objectRoot);
                 }
 
                 if (objectRoot === 'localStorage' && ['getItem', 'setItem', 'removeItem'].includes(method)) {
                     const key = literalString(node.arguments[0], constants);
                     if (key) {
                         storageKeys.add(key);
-                        if (method === 'getItem') functionRecord.storageReads.add(key);
-                        else functionRecord.storageWrites.add(key);
+                        if (method === 'getItem') {
+                            record.storageReads.add(key);
+                        } else {
+                            record.storageWrites.add(key);
+                            record.directPersistence = true;
+                        }
                     }
                 }
             }
 
-            if (called === 'assign' && node.callee.type === 'MemberExpression'
+            if (called === 'assign'
+                && node.callee.type === 'MemberExpression'
                 && rootIdentifier(node.callee.object) === 'Object') {
-                const root = rootIdentifier(node.arguments[0]);
-                if (Object.prototype.hasOwnProperty.call(STATE_ROOTS, root)) {
-                    functionRecord.mutations.add(root);
+                const stateRoot = rootIdentifier(node.arguments[0]);
+                if (Object.prototype.hasOwnProperty.call(STATE_ROOTS, stateRoot)) {
+                    record.mutations.add(stateRoot);
                 }
             }
         });
 
-        if (file === 'app.js') {
-            walk.full(ast, node => {
-                if (node.type !== 'MemberExpression') return;
-                const root = rootIdentifier(node);
-                if (root !== 'config') return;
-                const field = propertyName(node);
-                if (field) configFields.add(field);
-            });
-        }
+        walk.full(ast, node => {
+            if (node.type !== 'MemberExpression') return;
+            if (node.object?.type !== 'Identifier' || node.object.name !== 'config') return;
+            const field = propertyName(node);
+            if (field) configFields.add(field);
+        });
     });
 
     const reachesPersistenceMemo = new Map();
@@ -354,23 +333,31 @@ function inspectJavaScript(files) {
         });
     });
 
+    const hasPersistingCallerMemo = new Map();
+    function hasPersistingCaller(name, stack = new Set()) {
+        if (hasPersistingCallerMemo.has(name)) return hasPersistingCallerMemo.get(name);
+        if (stack.has(name)) return false;
+        const directCallers = [...(callers.get(name) || [])];
+        const nextStack = new Set(stack).add(name);
+        const result = directCallers.some(caller => (
+            reachesPersistence(caller) || hasPersistingCaller(caller, nextStack)
+        ));
+        hasPersistingCallerMemo.set(name, result);
+        return result;
+    }
+
     const mutationFunctions = [...functions.values()]
         .filter(record => record.mutations.size > 0)
-        .map(record => {
-            const directOrTransitivePersistence = reachesPersistence(record.name);
-            const knownCallers = [...(callers.get(record.name) || [])];
-            const persistedByCaller = knownCallers.some(caller => reachesPersistence(caller));
-            return {
-                name: record.name,
-                file: record.file,
-                line: record.line,
-                mutations: [...record.mutations].sort(),
-                persistTables: [...record.persistTables].sort(),
-                directOrTransitivePersistence,
-                persistedByCaller,
-                callers: knownCallers.sort()
-            };
-        })
+        .map(record => ({
+            name: record.name,
+            file: record.file,
+            line: record.line,
+            mutations: [...record.mutations].sort(),
+            persistTables: [...record.persistTables].sort(),
+            directOrTransitivePersistence: reachesPersistence(record.name),
+            persistedByCaller: hasPersistingCaller(record.name),
+            callers: [...(callers.get(record.name) || [])].sort()
+        }))
         .sort((left, right) => left.name.localeCompare(right.name));
 
     return {
@@ -388,7 +375,7 @@ function extractInlineHandlers(text) {
     const pattern = /\bon(?:click|submit|change|input|blur|keydown|keyup)\s*=\s*["']\s*([A-Za-z_$][\w$]*)/gi;
     let match;
     while ((match = pattern.exec(text)) !== null) {
-        handlers.push(match[1]);
+        if (!INLINE_GLOBALS.has(match[1])) handlers.push(match[1]);
     }
     return handlers;
 }
@@ -398,7 +385,9 @@ function extractFormControls(text) {
     const pattern = /<(input|select|textarea)\b[^>]*\bid\s*=\s*["']([^"']+)["'][^>]*>/gi;
     let match;
     while ((match = pattern.exec(text)) !== null) {
-        controls.push({ tag: match[1].toLowerCase(), id: match[2] });
+        if (!match[2].includes('${')) {
+            controls.push({ tag: match[1].toLowerCase(), id: match[2] });
+        }
     }
     return controls;
 }
@@ -406,7 +395,8 @@ function extractFormControls(text) {
 function inspectMarkup(files) {
     const htmlPath = path.join(ROOT, 'index.html');
     const html = fs.existsSync(htmlPath) ? fs.readFileSync(htmlPath, 'utf8') : '';
-    const allText = [html, ...files.map(file => file.source)].join('\n');
+    const jsText = files.map(file => file.source).join('\n');
+    const allText = `${html}\n${jsText}`;
     const handlers = [...new Set(extractInlineHandlers(allText))].sort();
     const controls = extractFormControls(allText)
         .filter((control, index, collection) => (
@@ -418,9 +408,8 @@ function inspectMarkup(files) {
             const escaped = control.id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             const getById = new RegExp(`getElementById\\(\\s*['\"]${escaped}['\"]\\s*\\)`);
             const selector = new RegExp(`querySelector(?:All)?\\(\\s*['\"][^'\"]*#${escaped}(?:[^'\"]*)['\"]\\s*\\)`);
-            const dataReference = new RegExp(`['\"]${escaped}['\"]`);
-            const jsText = files.map(file => file.source).join('\n');
-            return !getById.test(jsText) && !selector.test(jsText) && !dataReference.test(jsText);
+            const literalReference = new RegExp(`['\"]${escaped}['\"]`);
+            return !getById.test(jsText) && !selector.test(jsText) && !literalReference.test(jsText);
         })
         .sort((left, right) => left.id.localeCompare(right.id));
 
