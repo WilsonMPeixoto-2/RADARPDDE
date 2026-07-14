@@ -18,14 +18,35 @@ function createSupabaseClient(seed = {}) {
 
     function table(name) {
         if (!tables.has(name)) tables.set(name, []);
-        const state = { operation: null, payload: null, filters: [] };
+        const state = {
+            operation: null,
+            payload: null,
+            filters: [],
+            range: null,
+            order: null,
+            returning: false
+        };
         const query = {
             select() {
-                state.operation = 'select';
+                if (!state.operation) state.operation = 'select';
+                else state.returning = true;
+                return query;
+            },
+            order(column, options = {}) {
+                state.order = { column, ascending: options.ascending !== false };
+                return query;
+            },
+            range(from, to) {
+                state.range = [from, to];
                 return query;
             },
             upsert(payload) {
                 state.operation = 'upsert';
+                state.payload = structuredClone(payload);
+                return query;
+            },
+            update(payload) {
+                state.operation = 'update';
                 state.payload = structuredClone(payload);
                 return query;
             },
@@ -40,15 +61,52 @@ function createSupabaseClient(seed = {}) {
             then(resolve) {
                 calls.push({ table: name, ...structuredClone(state) });
                 let data = tables.get(name);
+                const matches = row => state.filters.every(([column, value]) => row[column] === value);
+
                 if (state.operation === 'upsert') {
                     const incoming = Array.isArray(state.payload) ? state.payload : [state.payload];
                     const byId = new Map(data.map(row => [row.id, row]));
                     incoming.forEach(row => byId.set(row.id, row));
                     data = [...byId.values()];
                     tables.set(name, data);
-                } else if (state.operation === 'delete') {
-                    data = data.filter(row => !state.filters.every(([column, value]) => row[column] === value));
+                    resolve({ data: structuredClone(incoming), error: null });
+                    return;
+                }
+
+                if (state.operation === 'update') {
+                    const updated = [];
+                    data = data.map(row => {
+                        if (!matches(row)) return row;
+                        const next = {
+                            ...row,
+                            ...state.payload,
+                            row_version: Number(row.row_version || 1) + 1
+                        };
+                        updated.push(next);
+                        return next;
+                    });
                     tables.set(name, data);
+                    resolve({ data: state.returning ? structuredClone(updated) : [], error: null });
+                    return;
+                }
+
+                if (state.operation === 'delete') {
+                    data = data.filter(row => !matches(row));
+                    tables.set(name, data);
+                    resolve({ data: structuredClone(data), error: null });
+                    return;
+                }
+
+                data = data.filter(matches);
+                if (state.order) {
+                    const { column, ascending } = state.order;
+                    data = data.slice().sort((left, right) => {
+                        const comparison = String(left[column]).localeCompare(String(right[column]));
+                        return ascending ? comparison : -comparison;
+                    });
+                }
+                if (state.range) {
+                    data = data.slice(state.range[0], state.range[1] + 1);
                 }
                 resolve({ data: structuredClone(data), error: null });
             }
@@ -77,6 +135,53 @@ test('carrega e grava por tabela sem executar seed automático', async () => {
         { id: '2', name: 'B' }
     ]);
     assert.equal(client.calls.some(call => call.operation === 'insert'), false);
+});
+
+test('pagina todas as linhas em ordem determinística sem truncar coleções grandes', async () => {
+    const rows = [5, 1, 3, 2, 4].map(id => ({ id: String(id), name: `Escola ${id}` }));
+    const client = createSupabaseClient({ schools: rows });
+    const repository = new SupabaseRepository({ client, pageSize: 2 });
+
+    const loaded = await repository.load('schools');
+
+    assert.deepEqual(loaded.map(row => row.id), ['1', '2', '3', '4', '5']);
+    const selectCalls = client.calls.filter(call => call.table === 'schools' && call.operation === 'select');
+    assert.deepEqual(selectCalls.map(call => call.range), [[0, 1], [2, 3], [4, 5]]);
+});
+
+test('grava coleções em lotes controlados', async () => {
+    const client = createSupabaseClient();
+    const repository = new SupabaseRepository({ client, writeBatchSize: 2 });
+    const rows = [1, 2, 3, 4, 5].map(id => ({ id: String(id) }));
+
+    await repository.save('schools', rows);
+
+    const upserts = client.calls.filter(call => call.operation === 'upsert');
+    assert.deepEqual(upserts.map(call => call.payload.length), [2, 2, 1]);
+    assert.equal(client.dump('schools').length, 5);
+});
+
+test('atualiza com row_version e detecta conflito entre sessões', async () => {
+    const client = createSupabaseClient({
+        schools: [{ id: 's1', name: 'Original', row_version: 3 }]
+    });
+    const repository = new SupabaseRepository({ client });
+
+    const updated = await repository.updateWithVersion(
+        'schools',
+        { id: 's1', name: 'Atualizada', row_version: 999 },
+        3
+    );
+
+    assert.deepEqual(updated, { id: 's1', name: 'Atualizada', row_version: 4 });
+    assert.deepEqual(client.dump('schools'), [{ id: 's1', name: 'Atualizada', row_version: 4 }]);
+
+    await assert.rejects(
+        repository.updateWithVersion('schools', { id: 's1', name: 'Conflito' }, 3),
+        error => error instanceof RepositoryError
+            && error.code === 'OPTIMISTIC_CONFLICT'
+            && error.details.id === 's1'
+    );
 });
 
 test('exporta snapshot remoto compatível com as ferramentas de reconciliação', async () => {
@@ -108,6 +213,8 @@ test('restaura snapshot respeitando FKs e sem reimportar auditoria técnica', as
         importId: 'ordered-import',
         exportedAt: '2026-07-13T12:00:00.000Z',
         entities: {
+            registeredInvoices: [{ id: 'n1', school_id: 's1', linked_asset_id: 'a1' }],
+            assets: [{ id: 'a1', school_id: 's1' }],
             pendencies: [{ id: 'p1', school_id: 's1' }],
             auditEvents: [{ id: '1', table_name: 'schools' }],
             appConfig: [{ id: 'global', closing_competence: '2026-05' }],
@@ -126,10 +233,13 @@ test('restaura snapshot respeitando FKs e sem reimportar auditoria técnica', as
         'programs',
         'app_config',
         'schools',
-        'pendencies'
+        'pendencies',
+        'assets',
+        'registered_invoices'
     ]);
     assert.deepEqual(result.skippedEntities, ['auditEvents']);
     assert.ok(IMPORT_ENTITY_ORDER.indexOf('competences') < IMPORT_ENTITY_ORDER.indexOf('appConfig'));
+    assert.ok(IMPORT_ENTITY_ORDER.indexOf('assets') < IMPORT_ENTITY_ORDER.indexOf('registeredInvoices'));
     assert.deepEqual(NON_RESTORABLE_ENTITIES, ['auditEvents']);
 });
 
