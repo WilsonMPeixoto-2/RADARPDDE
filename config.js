@@ -25,6 +25,59 @@
 
     if (typeof document === 'undefined') return;
 
+    // Registrado antes do app.js para que competências persistidas existam no primeiro render.
+    document.addEventListener('DOMContentLoaded', function hydratePersistedCompetences() {
+        const monthNames = [
+            'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+            'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+        ];
+        try {
+            const raw = root.localStorage?.getItem('radar_pdde_config');
+            if (!raw || typeof COMPETENCIAS === 'undefined' || !Array.isArray(COMPETENCIAS)) return;
+            const stored = JSON.parse(raw);
+            const byKey = new Map(
+                COMPETENCIAS
+                    .filter(item => item && item.key)
+                    .map(item => [String(item.key), { ...item }])
+            );
+
+            (Array.isArray(stored.competencias) ? stored.competencias : []).forEach(item => {
+                const key = String(item?.key || item?.id || '').trim();
+                if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(key)) return;
+                const [year, month] = key.split('-').map(Number);
+                const deadline = new Date(Date.UTC(year, month, 15)).toISOString().slice(0, 10);
+                byKey.set(key, {
+                    key,
+                    label: String(item.label || `${monthNames[month - 1]} ${year}`),
+                    bonifPrazo: String(item.bonifPrazo || item.bonus_deadline || deadline)
+                });
+            });
+
+            (Array.isArray(stored.exercicios) ? stored.exercicios : []).forEach(value => {
+                const year = Number.parseInt(String(value), 10);
+                if (!Number.isInteger(year) || year < 2000 || year > 2100) return;
+                for (let month = 1; month <= 12; month += 1) {
+                    const monthText = String(month).padStart(2, '0');
+                    const key = `${year}-${monthText}`;
+                    if (byKey.has(key)) continue;
+                    byKey.set(key, {
+                        key,
+                        label: `${monthNames[month - 1]} ${year}`,
+                        bonifPrazo: new Date(Date.UTC(year, month, 15)).toISOString().slice(0, 10)
+                    });
+                }
+            });
+
+            COMPETENCIAS.splice(
+                0,
+                COMPETENCIAS.length,
+                ...[...byKey.values()].sort((left, right) => left.key.localeCompare(right.key))
+            );
+        } catch (error) {
+            // O fluxo local existente continua responsável por tratar configuração inválida.
+        }
+    }, { once: true });
+
     // Carrega extensões isoladas sem modificar o arquivo principal da aplicação.
     (function loadRadarExtensions() {
         function loadStylesheet(href) {
