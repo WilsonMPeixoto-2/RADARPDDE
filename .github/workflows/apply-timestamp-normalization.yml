@@ -1,0 +1,46 @@
+name: Apply timestamp normalization
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/apply-timestamp-normalization.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: feature/supabase-readiness
+
+      - name: Configure Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Apply canonical timestamp normalization
+        run: node .github/apply-timestamp-normalization.mjs
+
+      - name: Validate focused and complete readiness
+        run: |
+          npm ci
+          node --test tests/unit/snapshot-tools.test.js
+          CI=false npm run test:readiness
+
+      - name: Commit one verified correction
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add src/data/snapshot-tools.js
+          git rm -f .github/apply-timestamp-normalization.mjs .github/workflows/apply-timestamp-normalization.yml
+          git config user.name 'RADAR Gate Automation'
+          git config user.email 'actions@users.noreply.github.com'
+          git commit -m 'fix: normalizar instantes na reconciliacao de snapshots'
+          git push origin HEAD:feature/supabase-readiness
