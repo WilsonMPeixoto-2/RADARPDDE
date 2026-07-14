@@ -49,9 +49,17 @@
     ]);
     const ORDER_INDEX = new Map(IMPORT_ENTITY_ORDER.map((entity, index) => [entity, index]));
 
+    const ISO_INSTANT_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/;
+
+    function normalizeCanonicalPrimitive(value) {
+        if (typeof value !== 'string' || !ISO_INSTANT_PATTERN.test(value)) return value;
+        const timestamp = Date.parse(value);
+        return Number.isNaN(timestamp) ? value : new Date(timestamp).toISOString();
+    }
+
     function sortObjectKeys(value) {
         if (Array.isArray(value)) return value.map(sortObjectKeys);
-        if (!value || typeof value !== 'object') return value;
+        if (!value || typeof value !== 'object') return normalizeCanonicalPrimitive(value);
         return Object.keys(value)
             .sort()
             .reduce((accumulator, key) => {
