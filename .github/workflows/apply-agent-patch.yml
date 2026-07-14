@@ -5,7 +5,7 @@ on:
     branches:
       - feature/supabase-readiness
     paths:
-      - '.github/agent-apply.trigger'
+      - '.github/agent-apply.ready'
 
 permissions:
   contents: write
@@ -34,19 +34,21 @@ jobs:
             -H 'Accept: application/vnd.github+json' \
             "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/22/comments?per_page=100" \
             > /tmp/comments.json
-          jq -r '[.[] | select(.body | startswith("RADAR_PATCH_PART_"))]
-            | sort_by(.body | capture("RADAR_PATCH_PART_(?<part>[0-9]+)").part | tonumber)
-            | .[].body
-            | sub("^RADAR_PATCH_PART_[0-9]+\\n"; "")' /tmp/comments.json \
-            | tr -d '\n' \
-            | base64 --decode \
+          {
+            jq -r '[.[] | select(.body | startswith("RADAR_PATCH_PART_"))]
+              | sort_by(.body | capture("RADAR_PATCH_PART_(?<part>[0-9]+)").part | tonumber)
+              | .[].body
+              | sub("^RADAR_PATCH_PART_[0-9]+\\n"; "")' /tmp/comments.json \
+              | tr -d '\n'
+            cat .github/agent-payload-*
+          } | base64 --decode \
             | gzip --decompress \
             > /tmp/agent-change.patch
           test -s /tmp/agent-change.patch
           git apply --index --whitespace=fix /tmp/agent-change.patch
           npm install --package-lock-only --ignore-scripts
           npm run build:ajv
-          git rm .github/agent-apply.trigger
+          git rm .github/agent-apply.ready .github/agent-payload-*
           git add package-lock.json vendor/ajv.js
           git config user.name 'RADAR Gate Automation'
           git config user.email 'actions@users.noreply.github.com'
