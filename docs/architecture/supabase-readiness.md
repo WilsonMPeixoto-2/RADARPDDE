@@ -4,7 +4,7 @@
 
 O RADAR PDDE continua operando exclusivamente com dados iniciais versionados no frontend e persistência em `localStorage`. A infraestrutura descrita neste documento não ativa banco remoto, autenticação ou sincronização.
 
-A configuração publicada contém:
+A configuração publicada permanece:
 
 ```javascript
 {
@@ -23,7 +23,7 @@ A configuração publicada contém:
 }
 ```
 
-Mesmo que URL e chave sejam preenchidas acidentalmente, o modo local neutraliza as credenciais e mantém as duas feature flags desativadas. Chaves `sb_secret_`, o literal `service_role` e JWTs cujo payload informe `role: service_role` são rejeitados.
+Mesmo que URL e chave sejam preenchidas acidentalmente, o modo local neutraliza as credenciais e mantém as feature flags desativadas. Chaves `sb_secret_`, o literal `service_role` e JWTs cujo payload informe `role: service_role` são rejeitados.
 
 ## Objetivo arquitetural
 
@@ -46,150 +46,160 @@ RadarStateBridge — exportação, restauração e reconciliação
 
 Nesta entrega o `app.js` legado não foi reescrito para consumir o novo contrato. Os módulos são carregados passivamente para permitir futura migração incremental e testável. A persistência oficial continua sendo o conjunto de chaves `radar_pdde_*` já utilizado pelo sistema.
 
-## Componentes
+## Componentes de aplicação
 
 ### `config.js`
 
 - define os modos `local`, `supabase-preview` e `supabase-production`;
 - exige modo não local, duas feature flags e credenciais publicáveis válidas;
-- bloqueia chaves secretas, inclusive JWT legado de `service_role`;
-- exige autorização adicional para modo de produção;
-- mantém o modo publicado em `local`;
+- bloqueia chaves secretas e JWT legado de `service_role`;
+- exige autorização adicional para produção;
 - hidrata competências persistidas antes da primeira renderização;
-- carrega os módulos de dados sem instanciar repositório remoto.
+- mantém o modo publicado em `local`.
 
-### `src/data/repository-contract.js`
+### Contrato e repositórios
 
-Define:
+`src/data/repository-contract.js` define entidades canônicas, snapshots, erros tipados e validação.
 
-- entidades canônicas;
-- formato `radar-pdde-snapshot`;
-- erros tipados;
-- validação de entidade;
-- clonagem defensiva;
-- envelope comum de snapshot.
+`src/data/local-storage-repository.js` implementa o contrato usando uma interface compatível com `Storage`.
 
-### `src/data/local-storage-repository.js`
-
-Implementa o contrato usando uma interface compatível com `Storage`. É uma referência testável para operações de leitura, gravação, remoção, snapshot, restauração e saúde. Não substitui automaticamente as chaves legadas do `app.js`.
-
-### `src/data/supabase-repository.js`
-
-Recebe o cliente Supabase por injeção. Não importa SDK, não lê segredos, não cria cliente e não executa seed automático. Inclui:
+`src/data/supabase-repository.js` recebe o cliente por injeção e oferece:
 
 - leitura paginada e ordenada;
-- gravação em lotes controlados;
+- gravação em lotes;
 - restauração respeitando dependências de FKs;
 - exclusão de `audit_events` das restaurações;
 - atualização otimista por `row_version`;
-- erro tipado `OPTIMISTIC_CONFLICT` quando outra sessão altera o registro.
+- erro `OPTIMISTIC_CONFLICT` para edição concorrente.
 
-### `src/data/repository-factory.js`
+`src/data/repository-factory.js` mantém comportamento *fail-closed*: o adaptador remoto só é criado com modo não local, duas flags ativas e conexão validada.
 
-Seleciona o adaptador local por padrão. O adaptador Supabase só é criado quando:
+### Snapshot e ponte bidirecional
 
-1. o modo não é `local`;
-2. `supabaseRepositoryEnabled` está ativo;
-3. `legacyAppBridgeEnabled` está ativo;
-4. `connectionEnabled` foi calculado como verdadeiro.
+`src/data/snapshot-tools.js`, `legacy-state-adapter.js`, `state-bridge.js` e `state-bridge-metadata.js`:
 
-O repositório local não é instanciado desnecessariamente quando o modo remoto estiver futuramente autorizado.
-
-### `src/data/snapshot-tools.js`
-
-Cria snapshots canônicos, valida estrutura e entidades conhecidas, detecta IDs ausentes ou duplicados, divide lotes e compara origem e destino.
-
-### `src/data/legacy-state-adapter.js`
-
-Executa a leitura e transformação básica do estado atual:
-
-- lê somente as chaves `radar_pdde_*` existentes;
-- não altera o navegador;
-- converte nomes de campos para `snake_case`;
-- transforma `programasIds` em `school_programs`;
-- transforma verificações aninhadas em linhas;
-- separa tentativas de pendência;
-- preserva dados legados em `payload`;
-- retorna advertências e registros rejeitados.
-
-### `src/data/state-bridge.js` e `state-bridge-metadata.js`
-
-Completam a tradução semântica e bidirecional:
-
-- preservam o calendário anual e o prazo mensal de bonificação;
-- traduzem os campos reais usados pela interface, inclusive `desc`, `compKey`, `bemId`, `dataRegistro`, inventariador e próximo ator;
+- leem apenas as chaves `radar_pdde_*`;
+- traduzem objetos para linhas relacionais;
+- preservam atributos variáveis em `payload`;
+- preservam campos reais como `desc`, `compKey`, `bemId`, `dataRegistro`, inventariador e próximo ator;
 - decompõem o contexto da nota em competência, programa, verificação e bem;
-- restauram snapshot canônico nas chaves locais;
-- suportam `dryRun`;
-- usam metadados laterais para reconciliação exata sem inserir aliases técnicos nos objetos do usuário;
-- invalidam esses metadados por registro quando o usuário altera o conteúdo local.
+- restauram snapshots nas estruturas locais;
+- suportam `dryRun`, lotes e reconciliação exata;
+- invalidam metadados laterais quando o usuário altera o registro local.
 
-### `src/integration/exercise-management.js`
+### Exercícios e competências
 
-Preenche uma lacuna funcional existente no frontend:
+`src/integration/exercise-management.js` e `exercise-early-init.js`:
 
-- implementa `changeExercise` e `criarExercicio`;
-- cria as doze competências de cada exercício;
-- preserva competência inicial e prazos mensais;
-- atualiza o seletor anual;
-- restaura os exercícios após recarregamento;
-- rejeita ano inválido ou duplicado.
+- implementam criação e alternância de exercício;
+- criam as doze competências anuais;
+- preservam competência inicial e prazo mensal;
+- restauram exercícios antes da primeira renderização;
+- rejeitam ano inválido ou duplicado.
 
-### `scripts/audit-functional-persistence.js`
+## Pilha Supabase local
 
-Usa análise sintática com Acorn para inventariar:
+A preparação agora inclui uma pilha reproduzível, ainda sem projeto remoto:
 
-- chaves de armazenamento local;
-- raízes mutáveis de estado;
-- chamadas de persistência;
-- configurações;
-- handlers de interface;
-- campos de formulário;
-- funções que alteram dados sem caminho de persistência reconhecido.
+- `supabase/config.toml` com PostgreSQL 17;
+- Supabase CLI `2.109.1` fixada em `devDependencies`;
+- banco recriado por `supabase db reset --local`;
+- testes pgTAP em `supabase/tests/database`;
+- lint de PL/pgSQL por `supabase db lint`;
+- tipos gerados em `src/types/database.types.ts`;
+- cliente `@supabase/supabase-js` `2.110.3` empacotado em `vendor/supabase-client.js`;
+- esbuild `0.28.1` fixado;
+- verificação de reprodutibilidade dos artefatos no CI.
+
+O HTML não carrega mais uma versão flutuante por CDN. O bundle versionado expõe `RadarSupabaseClient` e mantém o alias `supabase` apenas para compatibilidade com a integração antiga ainda desativada.
 
 ## Modelo SQL
 
-As migrations são versionadas e não são executadas pela aplicação:
+As oito migrations são versionadas e não são executadas pela aplicação:
 
 1. `202607130001_core_schema.sql` — entidades, FKs, constraints, índices e versionamento;
-2. `202607130002_auth_and_rls.sql` — perfis, escopos, funções de autorização e políticas granulares;
-3. `202607130003_audit_and_import.sql` — importações, auditoria operacional e triggers;
-4. `202607130004_competence_bonus_deadline.sql` — prazo de bonificação por competência;
-5. `202607130005_operational_context.sql` — contexto de notas, verificação, bem e inventariação;
-6. `202607130006_authorization_hardening.sql` — perfil ativo único e distinção entre leitura e escrita;
-7. `202607130007_configuration_audit_coverage.sql` — auditoria de parâmetros, cadastros e vínculos institucionais.
+2. `202607130002_auth_and_rls.sql` — perfis, escopos, autorização e RLS;
+3. `202607130003_audit_and_import.sql` — importações, auditoria e triggers;
+4. `202607130004_competence_bonus_deadline.sql` — prazo de bonificação;
+5. `202607130005_operational_context.sql` — contexto de notas e inventário;
+6. `202607130006_authorization_hardening.sql` — perfil ativo único e leitura/escrita separadas;
+7. `202607130007_configuration_audit_coverage.sql` — auditoria de parâmetros e cadastros;
+8. `202607130008_atomic_invoice_operations.sql` — RPCs transacionais de nota, bem e verificação.
 
-Todas as entidades acessadas pelo contrato possuem `id`. Exclusões físicas de dados operacionais são separadas das políticas de escrita e restritas ao Administrador técnico.
+As RPCs `save_invoice_with_effects` e `delete_invoice_with_effects` usam `SECURITY INVOKER`, `search_path` fixo, RLS e controle otimista por versão. A exclusão física continua restrita ao Administrador técnico.
+
+## Estratégia de testes
+
+### Testes unitários
+
+Cobrem configuração, contratos, paginação, lotes, concorrência, snapshots, ponte, migrations, artefatos gerados e RPCs.
+
+### PostgreSQL 17 independente
+
+O smoke test aplica as oito migrations em um PostgreSQL efêmero e exercita versão, auditoria, contexto e autorização.
+
+### Supabase local e pgTAP
+
+A pilha local aplica as migrations reais e executa 37 verificações declarativas de:
+
+- schema e colunas;
+- funções e privilégios;
+- RLS e `SECURITY INVOKER`;
+- criação, atualização, conflito e remoção atômica de nota e bem;
+- atualização relacionada da verificação.
+
+Depois o CI executa lint, regenera tipos e bundle e confirma que não há diferença com os arquivos versionados.
+
+### Interface
+
+O Playwright mantém cobertura em Chromium desktop, Android/Chromium e iPhone/WebKit, incluindo ausência de conexão Supabase no modo local.
+
+## Validação remota futura
+
+O workflow manual `supabase-remote-validation.yml` está preparado para um projeto autorizado. Ele não roda automaticamente e não aplica migrations.
+
+Quando configurado com segredos do GitHub Actions, poderá:
+
+- vincular o `project_ref`;
+- simular `db push --dry-run`;
+- executar lint remoto;
+- executar pgTAP remoto em transações revertidas;
+- comparar tipos remotos com o contrato versionado;
+- listar branches disponíveis.
+
+Criação de branch, aplicação de migration e Advisors dependem de autorização específica.
 
 ## Princípios de segurança
 
 1. **Fail closed:** configuração incompleta retorna ao modo local.
-2. **Sem segredo no frontend:** somente chave publicável poderá ser usada futuramente.
-3. **RLS obrigatória:** a chave publicável não concede acesso sem políticas compatíveis.
+2. **Sem segredo no frontend:** somente chave publicável poderá ser usada.
+3. **RLS obrigatória:** a chave publicável não concede acesso sem políticas.
 4. **Sem seed implícito:** banco vazio não autoriza inserção automática.
 5. **Sem promoção automática:** Preview e produção exigem autorizações separadas.
-6. **Rollback preservado:** o snapshot local é mantido até homologação definitiva.
-7. **Exclusão excepcional:** escrita operacional não implica permissão de exclusão.
+6. **Rollback preservado:** snapshot local permanece até homologação.
+7. **Exclusão excepcional:** escrita operacional não implica exclusão.
 8. **Auditoria imutável:** usuários autenticados não editam `audit_events`.
-9. **Funções protegidas:** funções `security definer` usam `search_path` fixo.
-10. **Escopo explícito:** `can_write = false` não concede permissão de alteração.
-11. **Perfil não ambíguo:** cada usuário possui no máximo um perfil ativo.
-12. **Dependências reproduzíveis:** versões do runtime, bibliotecas e GitHub Actions são fixadas antes da integração real.
+9. **Funções protegidas:** `search_path` fixo.
+10. **Escopo explícito:** `can_write = false` não concede escrita.
+11. **Perfil não ambíguo:** no máximo um perfil ativo por usuário.
+12. **Concorrência controlada:** atualizações usam `row_version`.
+13. **Mutações compostas atômicas:** nota, bem e verificação não ficam parcialmente atualizados.
+14. **Dependências reproduzíveis:** runtime, bibliotecas, CLI e Actions são fixados.
 
 ## Modelo futuro de ativação
 
 1. Criar projeto ou branch Supabase de desenvolvimento.
-2. Aplicar as sete migrations e verificar advisors.
-3. Exportar o estado real com `RadarStateBridge.exportLegacySnapshot()`.
-4. Resolver advertências e registros rejeitados.
-5. Configurar apenas o Preview com `supabase-preview`.
-6. Importar em ordem relacional por backend controlado.
-7. Reconciliar origem e destino e testar restauração local.
-8. Homologar autenticação, RLS, concorrência e falhas.
-9. Substituir a integração direta antiga pelo contrato de repositório.
-10. Remover o SDK flutuante por versão fixada ou bundle controlado.
+2. Aplicar as oito migrations em ambiente remoto autorizado.
+3. Executar lint, pgTAP, tipos e Advisors.
+4. Exportar o estado real com `RadarStateBridge.exportLegacySnapshot()`.
+5. Resolver advertências e registros rejeitados.
+6. Configurar somente Preview com `supabase-preview`.
+7. Importar em ordem relacional por backend controlado.
+8. Reconciliar origem e destino e testar restauração local.
+9. Homologar Auth, RLS, concorrência, RPCs e falhas.
+10. Substituir a integração direta antiga pelo contrato.
 11. Ativar a ponte somente após equivalência comprovada.
-12. Promover para produção somente com autorização expressa.
+12. Promover para produção apenas com autorização expressa.
 
 ## Invariantes
 
