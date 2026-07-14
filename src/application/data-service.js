@@ -218,6 +218,11 @@
                 } catch (restoreError) {
                     rollbackError = restoreError;
                 }
+                if (!rollbackError
+                    && error instanceof RepositoryError
+                    && error.details?.unitOfWorkPhase === 'mutate') {
+                    throw error;
+                }
                 throw toRepositoryError(error, {
                     code: 'TRANSACTION_FAILED',
                     operation: String(command.name || 'data-command'),

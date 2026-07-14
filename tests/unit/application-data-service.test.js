@@ -319,6 +319,38 @@ test('execute preserva exatamente o estado legado em memória e armazenamento ap
     );
 });
 
+test('execute preserva código e mensagem de erro de domínio depois de restaurar a mutação', async () => {
+    const harness = createPortHarness();
+    const repository = new LocalStorageRepository({
+        storage: createMemoryStorage(),
+        keyPrefix: 'canonical',
+        schemaVersion: '1'
+    });
+    const service = new DataService({ repository, statePort: harness.statePort });
+    await service.bootstrap();
+    const before = harness.getMemory();
+
+    await assert.rejects(
+        () => service.execute({
+            name: 'duplicate-domain-command',
+            changedEntities: ['appConfig'],
+            mutate: () => {
+                harness.setMemory({ ...before, config: { altered: true } });
+                throw new RepositoryError(
+                    'DUPLICATE_EXERCISE',
+                    'O exercício já está cadastrado.',
+                    { operation: 'createExercise' }
+                );
+            }
+        }),
+        error => error instanceof RepositoryError
+            && error.code === 'DUPLICATE_EXERCISE'
+            && error.message === 'O exercício já está cadastrado.'
+    );
+
+    assert.deepEqual(harness.getMemory(), before);
+});
+
 test('compatibilidade prepara a gravação sincronicamente e restaura tudo se localStorage falhar', async () => {
     const harness = createPortHarness();
     const repository = new LocalStorageRepository({

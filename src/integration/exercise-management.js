@@ -201,57 +201,46 @@
         return true;
     }
 
-    function createExercise(yearValue, initialMonthValue) {
+    async function createExercise(yearValue, initialMonthValue) {
         const year = normalizeYear(yearValue);
         const month = normalizeMonth(initialMonthValue);
-        const { runtimeConfig, competences } = getRuntimeCollections();
-
-        if (!runtimeConfig || !Array.isArray(competences)) {
+        if (!year || !month) return { ok: false, reason: 'invalid-period' };
+        const service = root.RadarApplicationServices?.configuration;
+        if (!service || typeof service.createExercise !== 'function') {
             return { ok: false, reason: 'runtime-unavailable' };
         }
-        if (!year || !month) return { ok: false, reason: 'invalid-period' };
-        if (runtimeConfig.exercicios.includes(year)) {
-            return { ok: false, reason: 'duplicate-exercise', year };
+        try {
+            const result = await service.createExercise({ year, initialMonth: month });
+            if (typeof currentExercise !== 'undefined') currentExercise = year;
+            if (typeof activeCompetenciaKey !== 'undefined') activeCompetenciaKey = result.value.initialCompetence;
+            return { ok: true, ...result.value };
+        } catch (error) {
+            const reasonByCode = {
+                RUNTIME_UNAVAILABLE: 'runtime-unavailable',
+                INVALID_PERIOD: 'invalid-period',
+                DUPLICATE_EXERCISE: 'duplicate-exercise'
+            };
+            return {
+                ok: false,
+                reason: reasonByCode[error?.code] || 'persistence-failed',
+                year,
+                error
+            };
         }
-
-        runtimeConfig.exercicios.push(year);
-        runtimeConfig.exercicios.sort();
-        for (let monthNumber = 1; monthNumber <= 12; monthNumber += 1) {
-            const competence = createCompetence(year, monthNumber);
-            if (!competences.some(item => text(item.key || item.id) === competence.key)) {
-                competences.push(competence);
-            }
-        }
-        competences.sort((left, right) => text(left.key || left.id).localeCompare(text(right.key || right.id)));
-        runtimeConfig.competencias = competences.map(item => normalizeCompetence(item)).filter(Boolean);
-        runtimeConfig.competenciaFechamento = `${year}-${month}`;
-
-        if (typeof currentExercise !== 'undefined') currentExercise = year;
-        if (typeof activeCompetenciaKey !== 'undefined') activeCompetenciaKey = `${year}-${month}`;
-
-        if (typeof registerLog === 'function') {
-            registerLog(
-                'Exercício Criado',
-                `Exercício ${year} criado com competência operacional inicial ${year}-${month}.`
-            );
-        } else if (typeof persist === 'function') {
-            persist('config');
-        }
-
-        return { ok: true, year, initialCompetence: `${year}-${month}` };
     }
 
-    function createExerciseFromForm() {
+    async function createExerciseFromForm() {
         if (typeof document === 'undefined') return false;
         const yearInput = document.getElementById('new-exercise-input');
         const monthSelect = document.getElementById('new-exercise-competencia');
-        const result = createExercise(yearInput?.value, monthSelect?.value);
+        const result = await createExercise(yearInput?.value, monthSelect?.value);
 
         if (!result.ok) {
             const messages = {
                 'runtime-unavailable': 'A configuração do sistema ainda não está disponível.',
                 'invalid-period': 'Informe um ano entre 2000 e 2100 e uma competência inicial válida.',
-                'duplicate-exercise': `O exercício ${result.year || ''} já está cadastrado.`
+                'duplicate-exercise': `O exercício ${result.year || ''} já está cadastrado.`,
+                'persistence-failed': result.error?.message || 'Não foi possível salvar o exercício.'
             };
             root.alert?.(messages[result.reason] || 'Não foi possível criar o exercício.');
             return false;

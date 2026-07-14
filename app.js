@@ -4312,12 +4312,31 @@ function normalizeEscolas(records) {
 
 }
 
+function getActivePrograms() {
+
+    return programas.filter(item => item && item.active !== false);
+
+}
+
+function getActiveControllers() {
+
+    return controladores.filter(item => item && item.active !== false);
+
+}
+
+function getActiveInventoryMembers() {
+
+    return equipeInventario.filter(item => item && item.active !== false);
+
+}
+
 
 function getDefaultControladorId() {
 
-    const exists = (controladores.length ? controladores : INITIAL_CONTROLADORES).some(c => c.id === DEFAULT_CONTROLADOR_ID);
+    const available = getActiveControllers().length ? getActiveControllers() : INITIAL_CONTROLADORES;
+    const exists = available.some(c => c.id === DEFAULT_CONTROLADOR_ID);
 
-    return exists ? DEFAULT_CONTROLADOR_ID : ((controladores[0] || INITIAL_CONTROLADORES[0] || {}).id || '');
+    return exists ? DEFAULT_CONTROLADOR_ID : ((available[0] || {}).id || '');
 
 }
 
@@ -4327,7 +4346,8 @@ function getDefaultControlador() {
 
     const id = getDefaultControladorId();
 
-    return (controladores.length ? controladores : INITIAL_CONTROLADORES).find(c => c.id === id) || null;
+    const available = getActiveControllers().length ? getActiveControllers() : INITIAL_CONTROLADORES;
+    return available.find(c => c.id === id) || null;
 
 }
 
@@ -4345,7 +4365,7 @@ function getCurrentUser() {
 
     if (currentProfile === 'inventario') {
 
-        const inventariador = equipeInventario[0] || INITIAL_EQUIPE_INVENTARIO[0];
+        const inventariador = getActiveInventoryMembers()[0] || INITIAL_EQUIPE_INVENTARIO[0];
 
         return { name: inventariador ? inventariador.name : 'Equipe de Inventário', role: 'Equipe de Inventário' };
 
@@ -4380,6 +4400,9 @@ const ALL_LEGACY_CANONICAL_ENTITIES = Object.freeze([
 
 let radarDataService = null;
 let radarPersistenceQueue = Promise.resolve({ ok: true });
+let radarConfigurationService = null;
+let radarDirectoryService = null;
+let radarSchoolService = null;
 
 function cloneRadarValue(value) {
     return window.RadarRepositoryContract.cloneValue(value);
@@ -4507,6 +4530,7 @@ async function initializeRadarData() {
         statePort
     });
     const bootstrap = await radarDataService.bootstrap();
+    initializeRadarApplicationServices();
     const capabilities = repository.capabilities();
 
     window.RadarDataContext = Object.freeze({
@@ -4520,6 +4544,45 @@ async function initializeRadarData() {
     return window.RadarDataContext;
 }
 
+function appendRadarLog(acao, detalhes) {
+    const user = getCurrentUser();
+    const newLog = {
+        id: 'log-' + Date.now(),
+        usuario: user.name,
+        perfil: user.role,
+        dataHora: new Date().toISOString(),
+        acao,
+        detalhes
+    };
+    logs.unshift(newLog);
+    return newLog;
+}
+
+function initializeRadarApplicationServices() {
+    const getState = () => ({
+        config,
+        competences: COMPETENCIAS,
+        programs: programas,
+        controllers: controladores,
+        inventoryTeamMembers: equipeInventario,
+        schools: escolas,
+        logs
+    });
+    const dependencies = {
+        dataService: radarDataService,
+        getState,
+        appendLog: appendRadarLog
+    };
+    radarConfigurationService = new window.RadarConfigurationService.ConfigurationService(dependencies);
+    radarDirectoryService = new window.RadarDirectoryService.DirectoryService(dependencies);
+    radarSchoolService = new window.RadarSchoolService.SchoolService(dependencies);
+    window.RadarApplicationServices = Object.freeze({
+        configuration: radarConfigurationService,
+        directory: radarDirectoryService,
+        schools: radarSchoolService
+    });
+}
+
 function reportRadarPersistenceError(error) {
     window.RADAR_LAST_DATA_ERROR = error;
     window.dispatchEvent(new CustomEvent('radar:data-error', {
@@ -4528,6 +4591,11 @@ function reportRadarPersistenceError(error) {
             message: error?.message || 'Não foi possível salvar a alteração.'
         }
     }));
+}
+
+function reportRadarActionError(error, fallbackMessage) {
+    reportRadarPersistenceError(error);
+    alert(error?.message || fallbackMessage || 'Não foi possível concluir a alteração.');
 }
 
 function persist(changedTable = null) {
@@ -4582,19 +4650,8 @@ function persist(changedTable = null) {
 window.waitForRadarPersistence = () => radarPersistenceQueue;
 
 function registerLog(acao, detalhes) {
-
-    const user = getCurrentUser();
-
-    const newLog = {
-        id: 'log-' + Date.now(),
-        usuario: user.name,
-        perfil: user.role,
-        dataHora: new Date().toISOString(),
-        acao: acao,
-        detalhes: detalhes
-    };
-    logs.unshift(newLog);
-    persist();
+    appendRadarLog(acao, detalhes);
+    persist('logs');
 }
 
 
@@ -5781,7 +5838,7 @@ function renderDashboardAssistente(container) {
     const totalEscolasValidas = stats.apto + stats.inapto + stats.emAndamento + stats.naoAnalisado;
 
     // Consolidações por Controlador
-    const statsControladores = controladores.map(ctrl => {
+    const statsControladores = getActiveControllers().map(ctrl => {
         const carteira = escolas.filter(e => e.controladorId === ctrl.id);
         
         let cApto = 0;
@@ -6108,7 +6165,7 @@ function renderDashboardAssistente(container) {
                     <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Controlador</label>
                     <select id="filter-assistente-controlador" class="form-control" style="width: 180px; font-size: 0.85rem; padding: 6px 12px; height: auto;" onchange="changeAssistenteFilter('controlador', this.value)">
                         <option value="all" ${activeAssistenteControllerFilter === 'all' ? 'selected' : ''}>Todos os Controladores</option>
-                        ${controladores.map(ctrl => `<option value="${ctrl.id}" ${activeAssistenteControllerFilter === ctrl.id ? 'selected' : ''}>${ctrl.name}</option>`).join('')}
+                        ${getActiveControllers().map(ctrl => `<option value="${ctrl.id}" ${activeAssistenteControllerFilter === ctrl.id ? 'selected' : ''}>${ctrl.name}</option>`).join('')}
                     </select>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 4px;">
@@ -6931,8 +6988,9 @@ function inventariarBem(bemId) {
     // Popula dropdown de responsáveis com integrantes cadastrados no Inventário
     const respSelect = document.getElementById('inventario-responsavel');
     if (respSelect) {
-        respSelect.innerHTML = equipeInventario.map(inv => `<option value="${escapeHtml(inv.name)}">${escapeHtml(inv.name)}</option>`).join('');
-        if (equipeInventario.length > 0) {
+        const activeInventoryMembers = getActiveInventoryMembers();
+        respSelect.innerHTML = activeInventoryMembers.map(inv => `<option value="${escapeHtml(inv.name)}">${escapeHtml(inv.name)}</option>`).join('');
+        if (activeInventoryMembers.length > 0) {
             respSelect.value = equipeInventario[0].name;
         }
     }
@@ -7195,7 +7253,7 @@ function renderEscolas() {
 
                         <option value="all" ${selectedAttr(activeEscolaFilters.controlador, 'all')}>Todos</option>
 
-                        ${controladores.map(c => `<option value="${escapeHtml(c.id)}" ${selectedAttr(activeEscolaFilters.controlador, c.id)}>${escapeHtml(c.name)}</option>`).join('')}
+                        ${getActiveControllers().map(c => `<option value="${escapeHtml(c.id)}" ${selectedAttr(activeEscolaFilters.controlador, c.id)}>${escapeHtml(c.name)}</option>`).join('')}
 
                     </select>
 
@@ -9196,7 +9254,7 @@ function renderSMEConfig() {
                 <button class="btn btn-primary" onclick="cadastrarPrograma()">Adicionar</button>
             </div>
             <div class="program-tag-list">
-                ${programas.map(p => `
+                ${getActivePrograms().map(p => `
                     <span class="program-tag">
                         <strong>${escapeHtml(p.name)}</strong> - ${escapeHtml(p.desc)}
                         ${p.id !== 'BASIC' ? `<button onclick="removerPrograma('${escapeHtml(p.id)}')">×</button>` : ''}
@@ -9207,46 +9265,41 @@ function renderSMEConfig() {
     `;
 }
 
-function salvarCalendarioSME(e) {
+async function salvarCalendarioSME(e) {
     e.preventDefault();
     const cFechamento = document.getElementById('cfg-comp-fechamento').value;
     const prorrogado = document.getElementById('cfg-prorrogado').value === 'true';
-    
-    const oldFechamento = config.competenciaFechamento;
-    config.competenciaFechamento = cFechamento;
-    config.prazoBonificacaoProrrogado = prorrogado;
-    
-    registerLog('Calendário Alterado', `Competência de fechamento alterada de ${oldFechamento} para ${cFechamento}. Janela de prorrogada: ${prorrogado}.`);
-    
-    persist();
-    activeCompetenciaKey = cFechamento;
-    renderSMEConfig();
-    alert('Parâmetros operacionais da SME atualizados com sucesso!');
+    try {
+        await radarConfigurationService.saveCalendar({
+            closingCompetence: cFechamento,
+            bonusWindowExtended: prorrogado
+        });
+        activeCompetenciaKey = cFechamento;
+        renderSMEConfig();
+        alert('Parâmetros operacionais da SME atualizados com sucesso!');
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível atualizar os parâmetros operacionais.');
+    }
 }
 
-function cadastrarPrograma() {
+async function cadastrarPrograma() {
     const name = document.getElementById('new-program-name').value.trim();
     const desc = document.getElementById('new-program-desc').value.trim();
-    
-    if (!name) return;
-    
-    const newProg = {
-        id: 'prog-' + Date.now(),
-        name: name,
-        desc: desc
-    };
-    
-    programas.push(newProg);
-    registerLog('Programa Cadastrado', `Novo programa cadastrado: ${name}.`);
-    persist();
-    renderSMEConfig();
+    try {
+        await radarDirectoryService.saveProgram({ name, description: desc });
+        renderSMEConfig();
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível cadastrar o programa.');
+    }
 }
 
-function removerPrograma(progId) {
-    programas = programas.filter(p => p.id !== progId);
-    registerLog('Programa Removido', `Programa ID ${progId} foi excluído do exercício.`);
-    persist();
-    renderSMEConfig();
+async function removerPrograma(progId) {
+    try {
+        await radarDirectoryService.deactivateProgram({ programId: progId });
+        renderSMEConfig();
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível desativar o programa.');
+    }
 }
 
 function getCompMonthStatus(escolaId, compKey) {
@@ -10888,12 +10941,12 @@ function saveNovaPendencia(e) {
 // 16.3 Editar Cadastro da Escola
 function openEscolaEditModal(escolaId) {
     const selectCtrl = document.getElementById('edit-controlador');
-    selectCtrl.innerHTML = controladores.map(c => `
+    selectCtrl.innerHTML = getActiveControllers().map(c => `
         <option value="${escapeHtml(c.id)}">${escapeHtml(c.name)}</option>
     `).join('');
 
     const chkContainer = document.getElementById('edit-programas-checkboxes');
-    chkContainer.innerHTML = programas.map(p => `
+    chkContainer.innerHTML = getActivePrograms().map(p => `
         <label style="display:flex; align-items:center; gap:6px; font-size:0.8rem;">
             <input type="checkbox" name="edit-programs" value="${escapeHtml(p.id)}" ${p.id === 'BASIC' ? 'checked disabled' : ''}>
             ${escapeHtml(p.name)}
@@ -10942,114 +10995,48 @@ function openEscolaEditModal(escolaId) {
     openModal('modal-escola-edit');
 }
 
-function saveEscolaEdit(e) {
+async function saveEscolaEdit(e) {
     e.preventDefault();
     const id = document.getElementById('edit-escola-id').value;
-
     const sici = document.getElementById('edit-sici').value.trim();
-
     const email = document.getElementById('edit-email').value.trim();
-
     const diretor = document.getElementById('edit-diretor').value.trim();
-
     const telefoneDiretor = document.getElementById('edit-telefone-diretor').value.trim();
-
     const diretorAdjunto = document.getElementById('edit-diretor-adjunto').value.trim();
-
     const telefoneDiretorAdjunto = document.getElementById('edit-telefone-adjunto').value.trim();
-
     const tel = document.getElementById('edit-telefone').value.trim();
-
     const celularInstitucional = document.getElementById('edit-celular-institucional').value.trim();
-
     const ctrlId = document.getElementById('edit-controlador').value;
-
     const processo = document.getElementById('edit-processo').value.trim();
-
-    
-    // Obter programas selecionados
     const progIds = ['BASIC'];
     document.querySelectorAll('input[name="edit-programs"]:checked').forEach(chk => {
         if (chk.value !== 'BASIC') progIds.push(chk.value);
     });
-
-    if (id) {
-        // Atualizar
-        const esc = escolas.find(item => item.id === id);
-        if (esc) {
-
-            const oldCtrl = esc.controladorId;
-
-            esc.sici = sici;
-
-            esc.email = email;
-
-            esc.diretor = diretor;
-
-            esc.telefoneDiretor = telefoneDiretor;
-
-            esc.diretorAdjunto = diretorAdjunto;
-
-            esc.telefoneDiretorAdjunto = telefoneDiretorAdjunto;
-
-            esc.telefone = tel;
-
-            esc.telefoneCelularInstitucional = celularInstitucional;
-
-            esc.controladorId = ctrlId;
-
-            esc.processoInventario = processo;
-
-            esc.programasIds = progIds;
-            
-            let logDetails = `Dados da escola ${esc.denominação} atualizados.`;
-            if (oldCtrl !== ctrlId) logDetails += ` Controlador alterado para ${controladores.find(c=>c.id===ctrlId).name}.`;
-            registerLog('Escola Atualizada', logDetails);
+    try {
+        const result = await radarSchoolService.saveSchool({
+            id: id || undefined,
+            sici,
+            email,
+            director: diretor,
+            directorPhone: telefoneDiretor,
+            deputyDirector: diretorAdjunto,
+            deputyDirectorPhone: telefoneDiretorAdjunto,
+            phone: tel,
+            institutionalMobile: celularInstitucional,
+            controllerId: ctrlId,
+            inventoryProcess: processo,
+            programIds: progIds,
+            initialCompetence: activeCompetenciaKey || '2026-05'
+        });
+        const savedId = result.value.school.id;
+        closeModal('modal-escola-edit');
+        if (currentView === 'prontuario') {
+            renderProntuario(savedId);
+        } else {
+            renderEscolas();
         }
-    } else {
-        // Novo cadastro
-        const newEsc = {
-            id: 'esc-' + Date.now(),
-            inep: '330' + Math.floor(10000 + Math.random() * 90000),
-            cnpj: '00.000.000/0001-' + Math.floor(10 + Math.random() * 89),
-            denominação: 'Nova Unidade Escolar ' + Math.floor(Math.random() * 100),
-            designação: '01.09.' + Math.floor(100 + Math.random() * 900),
-            cre: '4ª CRE',
-
-            ra: 'Geral',
-
-            sici: sici,
-
-            email: email,
-
-            diretor: diretor,
-
-            telefoneDiretor: telefoneDiretor,
-
-            diretorAdjunto: diretorAdjunto,
-
-            telefoneDiretorAdjunto: telefoneDiretorAdjunto,
-
-            telefone: tel,
-
-            telefoneCelularInstitucional: celularInstitucional,
-
-            controladorId: ctrlId,
-
-            processoInventario: processo,
-            programasIds: progIds,
-            competenciaInicial: '2026-05'
-        };
-        escolas.push(newEsc);
-        registerLog('Escola Cadastrada', `Nova escola cadastrada: ${newEsc.denominação} com controlador designado.`);
-    }
-
-    persist();
-    closeModal('modal-escola-edit');
-    if (currentView === 'prontuario') {
-        renderProntuario(id);
-    } else {
-        renderEscolas();
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível salvar a escola.');
     }
 }
 
@@ -11219,9 +11206,11 @@ function openRedistributionModal() {
 function renderEquipe() {
     const container = document.getElementById('main-container');
     if (!container) return;
+    const activeControllers = getActiveControllers();
+    const activeInventoryMembers = getActiveInventoryMembers();
 
     // Calcular contagem de escolas por controlador
-    const ctrlStats = controladores.map(c => {
+    const ctrlStats = activeControllers.map(c => {
         const totalEscolas = escolas.filter(e => e.controladorId === c.id).length;
         return { ...c, totalEscolas };
     });
@@ -11246,8 +11235,8 @@ function renderEquipe() {
         </div>
 
         <div class="tab-container" style="margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
-            <button class="tab-button ${activeEquipeTab === 'controladores' ? 'active' : ''}" onclick="switchEquipeTab('controladores')" style="background:none; border:none; color:${activeEquipeTab === 'controladores' ? 'var(--primary)' : 'var(--text-muted)'}; font-weight:600; padding: 8px 16px; cursor:pointer;">Controladores e Carteiras (${controladores.length})</button>
-            <button class="tab-button ${activeEquipeTab === 'inventario' ? 'active' : ''}" onclick="switchEquipeTab('inventario')" style="background:none; border:none; color:${activeEquipeTab === 'inventario' ? 'var(--primary)' : 'var(--text-muted)'}; font-weight:600; padding: 8px 16px; cursor:pointer;">Equipe de Inventário (${equipeInventario.length})</button>
+            <button class="tab-button ${activeEquipeTab === 'controladores' ? 'active' : ''}" onclick="switchEquipeTab('controladores')" style="background:none; border:none; color:${activeEquipeTab === 'controladores' ? 'var(--primary)' : 'var(--text-muted)'}; font-weight:600; padding: 8px 16px; cursor:pointer;">Controladores e Carteiras (${activeControllers.length})</button>
+            <button class="tab-button ${activeEquipeTab === 'inventario' ? 'active' : ''}" onclick="switchEquipeTab('inventario')" style="background:none; border:none; color:${activeEquipeTab === 'inventario' ? 'var(--primary)' : 'var(--text-muted)'}; font-weight:600; padding: 8px 16px; cursor:pointer;">Equipe de Inventário (${activeInventoryMembers.length})</button>
         </div>
 
         ${activeEquipeTab === 'controladores' ? `
@@ -11274,7 +11263,7 @@ function renderEquipe() {
                                 <button class="btn btn-secondary btn-sm" onclick="abrirEditarControlador('${escapeHtml(c.id)}')" title="Editar dados">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                 </button>
-                                <button class="btn btn-danger btn-sm" onclick="removerControlador('${escapeHtml(c.id)}')" title="Remover controlador" ${controladores.length <= 1 ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
+                                <button class="btn btn-danger btn-sm" onclick="removerControlador('${escapeHtml(c.id)}')" title="Remover controlador" ${activeControllers.length <= 1 ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                                 </button>
                             </div>
@@ -11297,7 +11286,7 @@ function renderEquipe() {
                         </span>
                         <select id="bulk-controlador-select" class="form-control" style="width: 200px; font-size: 0.85rem; padding: 4px 8px; height: auto; border-color: var(--border-color);">
                             <option value="" disabled selected>Atribuir ao Controlador...</option>
-                            ${controladores.map(ctrl => `<option value="${escapeHtml(ctrl.id)}">${escapeHtml(ctrl.name)}</option>`).join('')}
+                            ${activeControllers.map(ctrl => `<option value="${escapeHtml(ctrl.id)}">${escapeHtml(ctrl.name)}</option>`).join('')}
                         </select>
                         <button class="btn btn-primary btn-sm" onclick="aplicarAtribuicaoEmLote()" style="padding: 5px 12px; font-size: 0.8rem;">Aplicar em Lote</button>
                     </div>
@@ -11330,7 +11319,7 @@ function renderEquipe() {
                                         <td><span class="badge badge-gray">${escapeHtml(getRAFromDesignacao(e.designação || e.designaçao))}</span></td>
                                         <td>
                                             <select class="form-control select-alocacao" style="max-width: 220px; font-weight: 500; border-color: var(--border-color);" onchange="reatribuirEscolaDirect('${escapeHtml(e.id)}', this.value)">
-                                                ${controladores.map(ctrl => `
+                                                ${activeControllers.map(ctrl => `
                                                     <option value="${escapeHtml(ctrl.id)}" ${ctrl.id === currentCtrlId ? 'selected' : ''}>${escapeHtml(ctrl.name)}</option>
                                                 `).join('')}
                                             </select>
@@ -11345,7 +11334,7 @@ function renderEquipe() {
         ` : `
             <!-- View de Equipe de Inventário -->
             <div class="equipe-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px;">
-                ${equipeInventario.map(inv => `
+                ${activeInventoryMembers.map(inv => `
                     <div class="panel-card ctrl-card" style="position: relative; overflow: hidden; transition: var(--transition-smooth); border: 1px solid var(--border-color);">
                         <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px;">
                             <div class="avatar" style="width: 48px; height: 48px; border-radius: 50%; background: rgba(157, 125, 252, 0.1); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 600;">
@@ -11362,7 +11351,7 @@ function renderEquipe() {
                                 <button class="btn btn-secondary btn-sm" onclick="abrirEditarInventariador('${escapeHtml(inv.id)}')" title="Editar dados">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                 </button>
-                                <button class="btn btn-danger btn-sm" onclick="removerInventariador('${escapeHtml(inv.id)}')" title="Remover integrante" ${equipeInventario.length <= 1 ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
+                                <button class="btn btn-danger btn-sm" onclick="removerInventariador('${escapeHtml(inv.id)}')" title="Remover integrante" ${activeInventoryMembers.length <= 1 ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                                 </button>
                             </div>
@@ -11402,40 +11391,22 @@ function abrirEditarInventariador(id) {
     openModal('modal-inventariador-edit');
 }
 
-function salvarInventariador(event) {
+async function salvarInventariador(event) {
     event.preventDefault();
     const id = document.getElementById('inventariador-id').value;
     const name = document.getElementById('inventariador-name').value.trim();
     const email = document.getElementById('inventariador-email').value.trim();
-    
-    if (!name || !email) {
-        alert("Preencha todos os campos!");
-        return;
+    try {
+        await radarDirectoryService.saveInventoryMember({ id: id || undefined, name, email });
+        closeModal('modal-inventariador-edit');
+        renderEquipe();
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível salvar o integrante do inventário.');
     }
-    
-    if (!id) {
-        // Criar novo
-        const newId = 'inv_' + Date.now();
-        equipeInventario.push({ id: newId, name, email });
-        registerLog('Gestão de Equipe', `Integrante do Inventário ${name} (${email}) adicionado à equipe.`);
-    } else {
-        // Editar existente
-        const inv = equipeInventario.find(x => x.id === id);
-        if (inv) {
-            const oldName = inv.name;
-            inv.name = name;
-            inv.email = email;
-            registerLog('Gestão de Equipe', `Dados do integrante do Inventário ${oldName} atualizados para: ${name} (${email}).`);
-        }
-    }
-    
-    persist();
-    closeModal('modal-inventariador-edit');
-    renderEquipe();
 }
 
-function removerInventariador(id) {
-    if (equipeInventario.length <= 1) {
+async function removerInventariador(id) {
+    if (getActiveInventoryMembers().length <= 1) {
         alert("Não é possível remover o único integrante de inventário existente!");
         return;
     }
@@ -11445,12 +11416,12 @@ function removerInventariador(id) {
     
     if (!confirm(`Deseja realmente remover o(a) integrante do inventário ${inv.name}?`)) return;
     
-    // Remover
-    equipeInventario = equipeInventario.filter(x => x.id !== id);
-    registerLog('Gestão de Equipe', `Integrante do Inventário ${inv.name} removido.`);
-    
-    persist();
-    renderEquipe();
+    try {
+        await radarDirectoryService.deactivateInventoryMember({ memberId: id });
+        renderEquipe();
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível desativar o integrante do inventário.');
+    }
 }
 
 function abrirEditarControlador(id) {
@@ -11476,40 +11447,23 @@ function abrirEditarControlador(id) {
     openModal('modal-controlador-edit');
 }
 
-function salvarControlador(event) {
+async function salvarControlador(event) {
     event.preventDefault();
     const id = document.getElementById('controlador-id').value;
     const name = document.getElementById('controlador-name').value.trim();
     const email = document.getElementById('controlador-email').value.trim();
-    
-    if (!name || !email) {
-        alert("Preencha todos os campos!");
-        return;
+    try {
+        await radarDirectoryService.saveController({ id: id || undefined, name, email });
+        closeModal('modal-controlador-edit');
+        renderEquipe();
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível salvar o controlador.');
     }
-    
-    if (!id) {
-        // Criar novo
-        const newId = 'ctrl_' + Date.now();
-        controladores.push({ id: newId, name, email });
-        registerLog('Gestão de Equipe', `Controlador ${name} (${email}) adicionado à equipe.`);
-    } else {
-        // Editar existente
-        const ctrl = controladores.find(c => c.id === id);
-        if (ctrl) {
-            const oldName = ctrl.name;
-            ctrl.name = name;
-            ctrl.email = email;
-            registerLog('Gestão de Equipe', `Dados do controlador ${oldName} atualizados para: ${name} (${email}).`);
-        }
-    }
-    
-    persist();
-    closeModal('modal-controlador-edit');
-    renderEquipe();
 }
 
-function removerControlador(id) {
-    if (controladores.length <= 1) {
+async function removerControlador(id) {
+    const activeControllers = getActiveControllers();
+    if (activeControllers.length <= 1) {
         alert("Não é possível remover o único controlador existente!");
         return;
     }
@@ -11520,44 +11474,34 @@ function removerControlador(id) {
     const totalEscolas = escolas.filter(e => e.controladorId === id).length;
     
     const confirmMsg = totalEscolas > 0 
-        ? `Deseja realmente remover o(a) controlador(a) ${ctrl.name}? As ${totalEscolas} escolas sob a responsabilidade dele(a) serão reatribuídas automaticamente para o(a) controlador(a) ${controladores.find(c => c.id !== id).name}.`
+        ? `Deseja realmente remover o(a) controlador(a) ${ctrl.name}? As ${totalEscolas} escolas sob a responsabilidade dele(a) serão reatribuídas automaticamente para o(a) controlador(a) ${activeControllers.find(c => c.id !== id).name}.`
         : `Deseja realmente remover o(a) controlador(a) ${ctrl.name}?`;
         
     if (!confirm(confirmMsg)) return;
     
-    // Reatribuir escolas
-    const fallbackCtrl = controladores.find(c => c.id !== id);
-    let reassignedCount = 0;
-    escolas.forEach(e => {
-        if (e.controladorId === id) {
-            e.controladorId = fallbackCtrl.id;
-            reassignedCount++;
-        }
-    });
-    
-    // Remover
-    controladores = controladores.filter(c => c.id !== id);
-    
-    registerLog('Gestão de Equipe', `Controlador ${ctrl.name} removido. ${reassignedCount} escolas foram transferidas para ${fallbackCtrl.name}.`);
-    
-    persist();
-    renderEquipe();
+    const fallbackCtrl = activeControllers.find(c => c.id !== id);
+    try {
+        await radarDirectoryService.deactivateController({
+            controllerId: id,
+            fallbackControllerId: fallbackCtrl?.id
+        });
+        renderEquipe();
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível desativar o controlador.');
+    }
 }
 
-function reatribuirEscolaDirect(escolaId, novoCtrlId) {
-    const esc = escolas.find(e => e.id === escolaId);
-    if (!esc) return;
-    
-    const oldCtrl = controladores.find(c => c.id === esc.controladorId);
-    const novoCtrl = controladores.find(c => c.id === novoCtrlId);
-    
-    if (esc.controladorId === novoCtrlId) return;
-    
-    esc.controladorId = novoCtrlId;
-    registerLog('Redistribuição de Carteira', `Escola ${esc.denominação || esc.denominaçao} redistribuída de ${oldCtrl ? oldCtrl.name : 'Ninguém'} para ${novoCtrl ? novoCtrl.name : 'Ninguém'}.`);
-    
-    persist();
-    renderEquipe();
+async function reatribuirEscolaDirect(escolaId, novoCtrlId) {
+    try {
+        const result = await radarSchoolService.assignController({
+            schoolId: escolaId,
+            controllerId: novoCtrlId
+        });
+        if (result.value.changed) renderEquipe();
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível reatribuir a escola.');
+        renderEquipe();
+    }
 }
 
 function toggleSelectAllEscolas(isChecked) {
@@ -11586,7 +11530,7 @@ function updateBulkBar() {
     }
 }
 
-function aplicarAtribuicaoEmLote() {
+async function aplicarAtribuicaoEmLote() {
     const bulkSelect = document.getElementById('bulk-controlador-select');
     if (!bulkSelect) return;
     const novoCtrlId = bulkSelect.value;
@@ -11599,25 +11543,15 @@ function aplicarAtribuicaoEmLote() {
     const checkedBoxes = Array.from(checkboxes).filter(cb => cb.checked);
     const targetEscolasIds = checkedBoxes.map(cb => cb.getAttribute('data-id'));
     
-    const novoCtrl = controladores.find(c => c.id === novoCtrlId);
-    if (!novoCtrl) return;
-    
-    let updatedCount = 0;
-    escolas.forEach(e => {
-        if (targetEscolasIds.includes(e.id)) {
-            if (e.controladorId !== novoCtrlId) {
-                e.controladorId = novoCtrlId;
-                updatedCount++;
-            }
-        }
-    });
-    
-    if (updatedCount > 0) {
-        registerLog('Redistribuição em Lote', `Atribuição em lote realizada: ${updatedCount} escolas redistribuídas para o controlador ${novoCtrl.name}.`);
-        persist();
+    try {
+        await radarSchoolService.bulkAssignController({
+            schoolIds: targetEscolasIds,
+            controllerId: novoCtrlId
+        });
+        renderEquipe();
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível concluir a atribuição em lote.');
     }
-    
-    renderEquipe();
 }
 
 

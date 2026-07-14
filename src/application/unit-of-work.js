@@ -49,20 +49,24 @@
             const changedEntities = [...new Set(command.changedEntities || [])];
             changedEntities.forEach(assertKnownEntity);
             const capture = await this.statePort.capture();
+            let phase = 'mutate';
 
             try {
                 const value = await command.mutate();
+                phase = 'export';
                 const snapshot = await this.statePort.exportCanonical({
                     version: command.version || '1',
                     importId: command.importId || `command-${Date.now()}`,
                     exportedAt: command.exportedAt || new Date().toISOString()
                 });
+                phase = 'persist';
                 await command.persist({
                     name: String(command.name || 'data-command'),
                     changedEntities,
                     value: cloneValue(value),
                     snapshot: cloneValue(snapshot)
                 });
+                phase = 'commit';
                 if (typeof this.statePort.commitCurrent === 'function') {
                     this.statePort.commitCurrent(snapshot);
                 } else {
@@ -82,6 +86,12 @@
                             details: { rollbackCode: rollbackError?.code || null }
                         }
                     );
+                }
+                if (error instanceof RepositoryError && phase === 'mutate') {
+                    error.details = {
+                        ...(error.details || {}),
+                        unitOfWorkPhase: 'mutate'
+                    };
                 }
                 throw error;
             }

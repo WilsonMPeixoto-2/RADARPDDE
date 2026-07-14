@@ -94,13 +94,13 @@
 - `DirectoryService.saveProgram/saveController/saveInventoryMember/deactivate*` prefere desativação lógica e bloqueia remoção referenciada.
 - `SchoolService.saveSchool(input)`, `assignController(input)` e `bulkAssignController(input)` atualizam escola e vínculos de programas na mesma unidade de trabalho.
 
-- [ ] Escrever testes com os mesmos dados e resultados atuais para calendário, doze competências, programa, controlador, inventariador, edição de escola e atribuição em lote.
-- [ ] Executar os testes e confirmar falha antes da delegação.
-- [ ] Mover validação e mutação institucional para os três serviços; handlers ficam responsáveis apenas por DOM, mensagens e renderização.
-- [ ] Substituir chamadas diretas a `persist()` nesses fluxos por `await` aos serviços.
-- [ ] Garantir que falha mantenha o formulário aberto e restaure estado/memória.
-- [ ] Executar testes unitários, `exercise-management.spec.js` e `frontend-contract.spec.js`.
-- [ ] Commitar como `refactor: integrar cadastros ao gateway de dados`.
+- [x] Escrever testes com os mesmos dados e resultados atuais para calendário, doze competências, programa, controlador, inventariador, edição de escola e atribuição em lote.
+- [x] Executar os testes e confirmar falha antes da delegação.
+- [x] Mover validação e mutação institucional para os três serviços; handlers ficam responsáveis apenas por DOM, mensagens e renderização.
+- [x] Substituir chamadas diretas a `persist()` nesses fluxos por `await` aos serviços.
+- [x] Garantir que falha mantenha o formulário aberto e restaure estado/memória.
+- [x] Executar testes unitários, `exercise-management.spec.js` e `frontend-contract.spec.js`.
+- [x] Commitar como `refactor: integrar cadastros ao gateway de dados`.
 
 ### Tarefa 4: Serviços de verificações, pendências, contatos e retificações
 
