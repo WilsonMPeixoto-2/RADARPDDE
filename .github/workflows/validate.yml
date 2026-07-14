@@ -31,12 +31,30 @@ jobs:
       - name: Verificar sintaxe da aplicação e infraestrutura
         run: npm run check
 
-      - name: Executar testes unitários de domínio e persistência
+      - name: Executar testes de domínio existentes
+        run: node --test tests/*.test.js
+
+      - name: Executar testes unitários com relatório estruturado
+        id: unit_tests
+        shell: bash
         run: |
-          node --test tests/*.test.js
-          npm run test:unit
+          set +e
+          node --test --test-reporter=json tests/unit/*.test.js > unit-tests.jsonl
+          status=$?
+          set -e
+          exit $status
+
+      - name: Publicar relatório dos testes unitários
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-tests-report
+          path: unit-tests.jsonl
+          retention-days: 7
+          if-no-files-found: error
 
       - name: Gerar relatório detalhado da auditoria
+        if: ${{ !cancelled() }}
         run: npm run audit:functional:json > functional-persistence-audit.json || true
 
       - name: Publicar relatório detalhado da auditoria
