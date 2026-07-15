@@ -14,6 +14,7 @@
     "check:runtime-config": "node scripts/generate-runtime-config.mjs --check",
     "audit:functional": "node scripts/audit-functional-persistence.js",
     "audit:functional:json": "node scripts/audit-functional-persistence.js --json",
+    "audit:inventory": "node scripts/audit/generate-repository-inventory.mjs",
     "build:supabase-client": "node scripts/build-supabase-client.mjs",
     "generate:runtime-config": "node scripts/generate-runtime-config.mjs",
     "typecheck:database": "tsc -p tsconfig.database-types.json --noEmit",
@@ -37,7 +38,9 @@
     "migration:import:local": "node scripts/migration-cli.mjs import:local",
     "migration:reconcile": "node scripts/migration-cli.mjs reconcile",
     "migration:rollback": "node scripts/migration-cli.mjs rollback",
-    "test:integration": "node --test tests/integration/*.test.js"
+    "test:integration": "node --test tests/integration/*.test.js",
+    "audit:baseline": "node scripts/audit/prepare-baseline-output.mjs && playwright test --config=playwright.audit.config.js && node scripts/audit/build-baseline-manifest.mjs",
+    "audit:cycle-a": "node scripts/audit/validate-cycle-a-artifacts.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.12.1",

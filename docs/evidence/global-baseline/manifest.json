@@ -1,0 +1,246 @@
+{
+  "schemaVersion": 1,
+  "commit": "de4ef4edcf39d0232dbb6ee8259147d19bc7c33c",
+  "captures": [
+    {
+      "profile": "controlador",
+      "surface": "carteira",
+      "state": "resultado",
+      "viewport": "desktop",
+      "file": "desktop/controlador__carteira__resultado__desktop.png",
+      "bytes": 135494,
+      "captureMode": "viewport",
+      "documentHeight": 720
+    },
+    {
+      "profile": "controlador",
+      "surface": "competencias",
+      "state": "padrao",
+      "viewport": "desktop",
+      "file": "desktop/controlador__competencias__padrao__desktop.png",
+      "bytes": 172627,
+      "captureMode": "viewport",
+      "documentHeight": 720
+    },
+    {
+      "profile": "controlador",
+      "surface": "dashboard",
+      "state": "padrao",
+      "viewport": "desktop",
+      "file": "desktop/controlador__dashboard__padrao__desktop.png",
+      "bytes": 207039,
+      "captureMode": "viewport",
+      "documentHeight": 720
+    },
+    {
+      "profile": "controlador",
+      "surface": "inventario",
+      "state": "padrao",
+      "viewport": "desktop",
+      "file": "desktop/controlador__inventario__padrao__desktop.png",
+      "bytes": 169209,
+      "captureMode": "viewport",
+      "documentHeight": 720
+    },
+    {
+      "profile": "controlador",
+      "surface": "pendencias",
+      "state": "padrao",
+      "viewport": "desktop",
+      "file": "desktop/controlador__pendencias__padrao__desktop.png",
+      "bytes": 171955,
+      "captureMode": "viewport",
+      "documentHeight": 720
+    },
+    {
+      "profile": "controlador",
+      "surface": "registros-internos",
+      "state": "padrao",
+      "viewport": "desktop",
+      "file": "desktop/controlador__registros-internos__padrao__desktop.png",
+      "bytes": 162086,
+      "captureMode": "viewport",
+      "documentHeight": 720
+    },
+    {
+      "profile": "sme",
+      "surface": "configuracoes",
+      "state": "padrao",
+      "viewport": "desktop",
+      "file": "desktop/sme__configuracoes__padrao__desktop.png",
+      "bytes": 173609,
+      "captureMode": "viewport",
+      "documentHeight": 720
+    },
+    {
+      "profile": "sme",
+      "surface": "dashboard",
+      "state": "padrao",
+      "viewport": "desktop",
+      "file": "desktop/sme__dashboard__padrao__desktop.png",
+      "bytes": 185728,
+      "captureMode": "viewport",
+      "documentHeight": 720
+    },
+    {
+      "profile": "controlador",
+      "surface": "carteira",
+      "state": "resultado",
+      "viewport": "android",
+      "file": "android/controlador__carteira__resultado__android.png",
+      "bytes": 143838,
+      "captureMode": "viewport",
+      "documentHeight": 115732
+    },
+    {
+      "profile": "controlador",
+      "surface": "competencias",
+      "state": "padrao",
+      "viewport": "android",
+      "file": "android/controlador__competencias__padrao__android.png",
+      "bytes": 142556,
+      "captureMode": "viewport",
+      "documentHeight": 17496
+    },
+    {
+      "profile": "controlador",
+      "surface": "dashboard",
+      "state": "padrao",
+      "viewport": "android",
+      "file": "android/controlador__dashboard__padrao__android.png",
+      "bytes": 140975,
+      "captureMode": "viewport",
+      "documentHeight": 5335
+    },
+    {
+      "profile": "controlador",
+      "surface": "inventario",
+      "state": "padrao",
+      "viewport": "android",
+      "file": "android/controlador__inventario__padrao__android.png",
+      "bytes": 120526,
+      "captureMode": "viewport",
+      "documentHeight": 21635
+    },
+    {
+      "profile": "controlador",
+      "surface": "pendencias",
+      "state": "padrao",
+      "viewport": "android",
+      "file": "android/controlador__pendencias__padrao__android.png",
+      "bytes": 149961,
+      "captureMode": "viewport",
+      "documentHeight": 1435
+    },
+    {
+      "profile": "controlador",
+      "surface": "registros-internos",
+      "state": "padrao",
+      "viewport": "android",
+      "file": "android/controlador__registros-internos__padrao__android.png",
+      "bytes": 80723,
+      "captureMode": "viewport",
+      "documentHeight": 962
+    },
+    {
+      "profile": "sme",
+      "surface": "configuracoes",
+      "state": "padrao",
+      "viewport": "android",
+      "file": "android/sme__configuracoes__padrao__android.png",
+      "bytes": 158061,
+      "captureMode": "viewport",
+      "documentHeight": 1480
+    },
+    {
+      "profile": "sme",
+      "surface": "dashboard",
+      "state": "padrao",
+      "viewport": "android",
+      "file": "android/sme__dashboard__padrao__android.png",
+      "bytes": 136575,
+      "captureMode": "viewport",
+      "documentHeight": 1642
+    },
+    {
+      "profile": "controlador",
+      "surface": "carteira",
+      "state": "resultado",
+      "viewport": "iphone",
+      "file": "iphone/controlador__carteira__resultado__iphone.png",
+      "bytes": 198376,
+      "captureMode": "viewport",
+      "documentHeight": 116060
+    },
+    {
+      "profile": "controlador",
+      "surface": "competencias",
+      "state": "padrao",
+      "viewport": "iphone",
+      "file": "iphone/controlador__competencias__padrao__iphone.png",
+      "bytes": 203157,
+      "captureMode": "viewport",
+      "documentHeight": 17448
+    },
+    {
+      "profile": "controlador",
+      "surface": "dashboard",
+      "state": "padrao",
+      "viewport": "iphone",
+      "file": "iphone/controlador__dashboard__padrao__iphone.png",
+      "bytes": 198803,
+      "captureMode": "viewport",
+      "documentHeight": 5338
+    },
+    {
+      "profile": "controlador",
+      "surface": "inventario",
+      "state": "padrao",
+      "viewport": "iphone",
+      "file": "iphone/controlador__inventario__padrao__iphone.png",
+      "bytes": 160930,
+      "captureMode": "viewport",
+      "documentHeight": 21450
+    },
+    {
+      "profile": "controlador",
+      "surface": "pendencias",
+      "state": "padrao",
+      "viewport": "iphone",
+      "file": "iphone/controlador__pendencias__padrao__iphone.png",
+      "bytes": 225217,
+      "captureMode": "viewport",
+      "documentHeight": 1501
+    },
+    {
+      "profile": "controlador",
+      "surface": "registros-internos",
+      "state": "padrao",
+      "viewport": "iphone",
+      "file": "iphone/controlador__registros-internos__padrao__iphone.png",
+      "bytes": 126115,
+      "captureMode": "viewport",
+      "documentHeight": 784
+    },
+    {
+      "profile": "sme",
+      "surface": "configuracoes",
+      "state": "padrao",
+      "viewport": "iphone",
+      "file": "iphone/sme__configuracoes__padrao__iphone.png",
+      "bytes": 220643,
+      "captureMode": "viewport",
+      "documentHeight": 1530
+    },
+    {
+      "profile": "sme",
+      "surface": "dashboard",
+      "state": "padrao",
+      "viewport": "iphone",
+      "file": "iphone/sme__dashboard__padrao__iphone.png",
+      "bytes": 186872,
+      "captureMode": "viewport",
+      "documentHeight": 1645
+    }
+  ]
+}

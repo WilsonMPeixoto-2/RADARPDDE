@@ -1,0 +1,1695 @@
+{
+  "schemaVersion": 1,
+  "package": {
+    "name": "radar-pdde",
+    "version": "1.0.0",
+    "engines": {
+      "node": ">=24 <27"
+    },
+    "scripts": {
+      "audit:baseline": "node scripts/audit/prepare-baseline-output.mjs && playwright test --config=playwright.audit.config.js && node scripts/audit/build-baseline-manifest.mjs",
+      "audit:cycle-a": "node scripts/audit/validate-cycle-a-artifacts.mjs",
+      "audit:functional": "node scripts/audit-functional-persistence.js",
+      "audit:functional:json": "node scripts/audit-functional-persistence.js --json",
+      "audit:inventory": "node scripts/audit/generate-repository-inventory.mjs",
+      "bootstrap:auth-fixtures": "node scripts/bootstrap-local-auth-fixtures.mjs",
+      "build:ajv": "node scripts/build-ajv.mjs",
+      "build:supabase-client": "node scripts/build-supabase-client.mjs",
+      "check": "node --check app.js && node --check config.runtime.js && node --check config.js && node --check src/auth/session-service.js && node --check src/integration/auth-bootstrap.js && node --check src/integration/auth-gate.js && node --check src/application/error-mapper.js && node --check src/application/state-port.js && node --check src/application/unit-of-work.js && node --check src/application/data-service.js && node --check src/application/configuration-service.js && node --check src/application/directory-service.js && node --check src/application/school-service.js && node --check src/application/pendency-service.js && node --check src/application/verification-service.js && node --check src/application/audit-service.js && node --check src/application/invoice-service.js && node --check src/application/inventory-service.js && node --check src/data/repository-contract.js && node --check src/data/local-storage-repository.js && node --check src/data/supabase-repository.js && node --check src/data/repository-factory.js && node --check src/data/snapshot-tools.js && node --check src/data/legacy-state-adapter.js && node --check src/data/state-bridge.js && node --check src/data/state-bridge-metadata.js && node --check src/integration/exercise-management.js && node --check src/integration/exercise-early-init.js && node --check src/vendor/supabase-client-entry.js && node --check scripts/bootstrap-local-auth-fixtures.mjs && node --check scripts/check-local-auth-fixtures.mjs && node --check scripts/check-supabase-readiness.js && node --check scripts/audit-functional-persistence.js && node --check scripts/check-generated-artifacts.js && node --check scripts/build-supabase-client.mjs && node --check scripts/generate-runtime-config.mjs && node --check src/domain/json-contracts.js && node --check src/data/import-coordinator.js && node --check src/vendor/ajv-entry.js && node --check scripts/build-ajv.mjs && node --check scripts/migration-cli.mjs",
+      "check:auth-fixtures": "node scripts/check-local-auth-fixtures.mjs",
+      "check:generated": "node scripts/check-generated-artifacts.js",
+      "check:runtime-config": "node scripts/generate-runtime-config.mjs --check",
+      "check:supabase": "node scripts/check-supabase-readiness.js",
+      "generate:runtime-config": "node scripts/generate-runtime-config.mjs",
+      "migration:dry-run": "node scripts/migration-cli.mjs dry-run",
+      "migration:import:local": "node scripts/migration-cli.mjs import:local",
+      "migration:plan": "node scripts/migration-cli.mjs plan",
+      "migration:reconcile": "node scripts/migration-cli.mjs reconcile",
+      "migration:rollback": "node scripts/migration-cli.mjs rollback",
+      "migration:validate": "node scripts/migration-cli.mjs validate",
+      "playwright:install": "playwright install chromium webkit",
+      "start": "http-server . -p 4175 -c-1",
+      "supabase:gen:types": "supabase gen types typescript --local --schema public > src/types/database.types.ts",
+      "supabase:lint:db": "supabase db lint --local --schema public --level warning --fail-on error",
+      "supabase:reset": "supabase db reset --local",
+      "supabase:start": "supabase start",
+      "supabase:stop": "supabase stop --no-backup",
+      "supabase:test:db": "supabase test db supabase/tests/database",
+      "test:e2e": "playwright test",
+      "test:integration": "node --test tests/integration/*.test.js",
+      "test:mobile": "playwright test --project=mobile-chromium --project=mobile-webkit",
+      "test:mobile:headed": "playwright test --project=mobile-chromium --headed",
+      "test:readiness": "npm run check && npm run test:unit && npm run test:integration && npm run check:supabase && npm run check:runtime-config && npm run check:generated && npm run typecheck:database && npm run audit:functional",
+      "test:unit": "node --test tests/unit/*.test.js",
+      "typecheck:database": "tsc -p tsconfig.database-types.json --noEmit"
+    },
+    "devDependencies": {
+      "@axe-core/playwright": "4.12.1",
+      "@playwright/test": "1.61.1",
+      "@supabase/supabase-js": "2.110.5",
+      "acorn": "8.17.0",
+      "acorn-walk": "8.3.5",
+      "ajv": "8.20.0",
+      "esbuild": "0.28.1",
+      "http-server": "14.1.1",
+      "supabase": "2.109.1",
+      "typescript": "7.0.2"
+    }
+  },
+  "runtimeExtensions": {
+    "styles": [
+      "src/styles/mobile-responsive.css",
+      "src/styles/mobile-rendering-hotfix.css",
+      "src/styles/task-9-pendencias.css",
+      "src/styles/task-9-cross-view.css",
+      "src/styles/task-10-11-pendency-actions.css",
+      "src/styles/task-12-13-retificacoes.css",
+      "src/styles/cycle-b-carteira.css",
+      "src/styles/cycle-b-dashboard.css",
+      "src/styles/cycle-b-dashboard-final.css"
+    ],
+    "scripts": [
+      "src/domain/pendencias-view-model.js",
+      "src/domain/operational-projection.js",
+      "src/domain/retificacoes.js",
+      "src/integration/mobile-navigation.js",
+      "src/integration/modal-accessibility.js",
+      "src/integration/task-9-pendencias-page.js",
+      "src/integration/task-9-focus-bridge.js",
+      "src/integration/task-9-cross-view.js",
+      "src/integration/task-10-11-pendency-actions.js",
+      "src/integration/task-12-13-retificacoes.js",
+      "src/integration/cycle-b-carteira.js",
+      "src/integration/cycle-b-dashboard.js",
+      "src/integration/cycle-b-dashboard-result.js",
+      "src/integration/task-10-alerts-competence.js",
+      "src/integration/exercise-management.js",
+      "src/integration/exercise-early-init.js",
+      "src/integration/load-excel-export.js"
+    ]
+  },
+  "supabase": {
+    "migrationCount": 12
+  },
+  "summaries": {
+    "application": 12,
+    "audit-tests": 1,
+    "configuration": 3,
+    "data": 9,
+    "database-tests": 7,
+    "documentation": 74,
+    "domain": 11,
+    "e2e-tests": 21,
+    "frontend-core": 3,
+    "integration": 17,
+    "integration-tests": 1,
+    "migrations": 12,
+    "other": 32,
+    "scripts": 13,
+    "styles": 9,
+    "unit-tests": 39,
+    "workflows": 4
+  },
+  "files": [
+    {
+      "path": ".env.example",
+      "category": "configuration",
+      "bytes": 390
+    },
+    {
+      "path": ".github/dependabot.yml",
+      "category": "other",
+      "bytes": 726,
+      "lines": 37
+    },
+    {
+      "path": ".github/workflows/playwright-mobile.yml",
+      "category": "workflows",
+      "bytes": 1430,
+      "lines": 56
+    },
+    {
+      "path": ".github/workflows/supabase-readiness.yml",
+      "category": "workflows",
+      "bytes": 8830,
+      "lines": 272
+    },
+    {
+      "path": ".github/workflows/supabase-remote-validation.yml",
+      "category": "workflows",
+      "bytes": 2154,
+      "lines": 63
+    },
+    {
+      "path": ".github/workflows/validate.yml",
+      "category": "workflows",
+      "bytes": 2236,
+      "lines": 77
+    },
+    {
+      "path": ".gitignore",
+      "category": "other",
+      "bytes": 115
+    },
+    {
+      "path": ".nvmrc",
+      "category": "other",
+      "bytes": 3
+    },
+    {
+      "path": "app.js",
+      "category": "frontend-core",
+      "bytes": 458569,
+      "lines": 11286
+    },
+    {
+      "path": "config.js",
+      "category": "configuration",
+      "bytes": 11303,
+      "lines": 267
+    },
+    {
+      "path": "config.runtime.js",
+      "category": "configuration",
+      "bytes": 264,
+      "lines": 13
+    },
+    {
+      "path": "docs/architecture/competencias.md",
+      "category": "documentation",
+      "bytes": 3243,
+      "lines": 104
+    },
+    {
+      "path": "docs/architecture/estatisticas.md",
+      "category": "documentation",
+      "bytes": 2260,
+      "lines": 77
+    },
+    {
+      "path": "docs/architecture/excel-export.md",
+      "category": "documentation",
+      "bytes": 6879,
+      "lines": 186
+    },
+    {
+      "path": "docs/architecture/excel-workbook-plan.md",
+      "category": "documentation",
+      "bytes": 2587,
+      "lines": 74
+    },
+    {
+      "path": "docs/architecture/excel-xlsx-runtime.md",
+      "category": "documentation",
+      "bytes": 2037,
+      "lines": 59
+    },
+    {
+      "path": "docs/architecture/modelo-operacional.md",
+      "category": "documentation",
+      "bytes": 1317,
+      "lines": 34
+    },
+    {
+      "path": "docs/architecture/README.md",
+      "category": "documentation",
+      "bytes": 935,
+      "lines": 12
+    },
+    {
+      "path": "docs/architecture/retificacoes.md",
+      "category": "documentation",
+      "bytes": 1017,
+      "lines": 23
+    },
+    {
+      "path": "docs/architecture/roadmap-pre-supabase.md",
+      "category": "documentation",
+      "bytes": 1944,
+      "lines": 50
+    },
+    {
+      "path": "docs/architecture/supabase-readiness.md",
+      "category": "documentation",
+      "bytes": 4343,
+      "lines": 132
+    },
+    {
+      "path": "docs/architecture/testing.md",
+      "category": "documentation",
+      "bytes": 904,
+      "lines": 32
+    },
+    {
+      "path": "docs/audits/2026-07-15-dados-e-ambientes-estado-atual.md",
+      "category": "documentation",
+      "bytes": 7265,
+      "lines": 81
+    },
+    {
+      "path": "docs/audits/2026-07-15-inventario-tecnico-global.md",
+      "category": "documentation",
+      "bytes": 8141,
+      "lines": 155
+    },
+    {
+      "path": "docs/audits/2026-07-15-produto-estado-atual.md",
+      "category": "documentation",
+      "bytes": 13104,
+      "lines": 259
+    },
+    {
+      "path": "docs/evidence/global-baseline/android/controlador__carteira__resultado__android.png",
+      "category": "documentation",
+      "bytes": 143838
+    },
+    {
+      "path": "docs/evidence/global-baseline/android/controlador__competencias__padrao__android.png",
+      "category": "documentation",
+      "bytes": 142556
+    },
+    {
+      "path": "docs/evidence/global-baseline/android/controlador__dashboard__padrao__android.png",
+      "category": "documentation",
+      "bytes": 140975
+    },
+    {
+      "path": "docs/evidence/global-baseline/android/controlador__inventario__padrao__android.png",
+      "category": "documentation",
+      "bytes": 120526
+    },
+    {
+      "path": "docs/evidence/global-baseline/android/controlador__pendencias__padrao__android.png",
+      "category": "documentation",
+      "bytes": 149961
+    },
+    {
+      "path": "docs/evidence/global-baseline/android/controlador__registros-internos__padrao__android.png",
+      "category": "documentation",
+      "bytes": 80723
+    },
+    {
+      "path": "docs/evidence/global-baseline/android/sme__configuracoes__padrao__android.png",
+      "category": "documentation",
+      "bytes": 158061
+    },
+    {
+      "path": "docs/evidence/global-baseline/android/sme__dashboard__padrao__android.png",
+      "category": "documentation",
+      "bytes": 136575
+    },
+    {
+      "path": "docs/evidence/global-baseline/desktop/controlador__carteira__resultado__desktop.png",
+      "category": "documentation",
+      "bytes": 135494
+    },
+    {
+      "path": "docs/evidence/global-baseline/desktop/controlador__competencias__padrao__desktop.png",
+      "category": "documentation",
+      "bytes": 172627
+    },
+    {
+      "path": "docs/evidence/global-baseline/desktop/controlador__dashboard__padrao__desktop.png",
+      "category": "documentation",
+      "bytes": 207039
+    },
+    {
+      "path": "docs/evidence/global-baseline/desktop/controlador__inventario__padrao__desktop.png",
+      "category": "documentation",
+      "bytes": 169209
+    },
+    {
+      "path": "docs/evidence/global-baseline/desktop/controlador__pendencias__padrao__desktop.png",
+      "category": "documentation",
+      "bytes": 171955
+    },
+    {
+      "path": "docs/evidence/global-baseline/desktop/controlador__registros-internos__padrao__desktop.png",
+      "category": "documentation",
+      "bytes": 162086
+    },
+    {
+      "path": "docs/evidence/global-baseline/desktop/sme__configuracoes__padrao__desktop.png",
+      "category": "documentation",
+      "bytes": 173609
+    },
+    {
+      "path": "docs/evidence/global-baseline/desktop/sme__dashboard__padrao__desktop.png",
+      "category": "documentation",
+      "bytes": 185728
+    },
+    {
+      "path": "docs/evidence/global-baseline/iphone/controlador__carteira__resultado__iphone.png",
+      "category": "documentation",
+      "bytes": 198376
+    },
+    {
+      "path": "docs/evidence/global-baseline/iphone/controlador__competencias__padrao__iphone.png",
+      "category": "documentation",
+      "bytes": 203157
+    },
+    {
+      "path": "docs/evidence/global-baseline/iphone/controlador__dashboard__padrao__iphone.png",
+      "category": "documentation",
+      "bytes": 198803
+    },
+    {
+      "path": "docs/evidence/global-baseline/iphone/controlador__inventario__padrao__iphone.png",
+      "category": "documentation",
+      "bytes": 160930
+    },
+    {
+      "path": "docs/evidence/global-baseline/iphone/controlador__pendencias__padrao__iphone.png",
+      "category": "documentation",
+      "bytes": 225217
+    },
+    {
+      "path": "docs/evidence/global-baseline/iphone/controlador__registros-internos__padrao__iphone.png",
+      "category": "documentation",
+      "bytes": 126115
+    },
+    {
+      "path": "docs/evidence/global-baseline/iphone/sme__configuracoes__padrao__iphone.png",
+      "category": "documentation",
+      "bytes": 220643
+    },
+    {
+      "path": "docs/evidence/global-baseline/iphone/sme__dashboard__padrao__iphone.png",
+      "category": "documentation",
+      "bytes": 186872
+    },
+    {
+      "path": "docs/evidence/global-baseline/manifest.json",
+      "category": "documentation",
+      "bytes": 6890,
+      "lines": 247
+    },
+    {
+      "path": "docs/evidence/global-baseline/repository-inventory.json",
+      "category": "documentation",
+      "bytes": 41063,
+      "lines": 1574
+    },
+    {
+      "path": "docs/handoff/2026-07-15-ciclo-a-final-report.md",
+      "category": "documentation",
+      "bytes": 13259,
+      "lines": 321
+    },
+    {
+      "path": "docs/handoff/PR22_FINAL_GATE_REPORT_2026-07-14.md",
+      "category": "documentation",
+      "bytes": 1996,
+      "lines": 50
+    },
+    {
+      "path": "docs/handoff/PR22_PRECONNECTION_GATE_HANDOFF_2026-07-14.md",
+      "category": "documentation",
+      "bytes": 2610,
+      "lines": 55
+    },
+    {
+      "path": "docs/README.md",
+      "category": "documentation",
+      "bytes": 6530,
+      "lines": 120
+    },
+    {
+      "path": "docs/reference/CHANGE_CLASSIFICATION.md",
+      "category": "documentation",
+      "bytes": 4978,
+      "lines": 87
+    },
+    {
+      "path": "docs/reference/DATA_CLASSIFICATION_AND_ENVIRONMENTS.md",
+      "category": "documentation",
+      "bytes": 6057,
+      "lines": 85
+    },
+    {
+      "path": "docs/reference/POST_PR22_PRIORITIZED_BACKLOG.md",
+      "category": "documentation",
+      "bytes": 11675,
+      "lines": 103
+    },
+    {
+      "path": "docs/reference/PRODUCT_DECISIONS.md",
+      "category": "documentation",
+      "bytes": 5283,
+      "lines": 70
+    },
+    {
+      "path": "docs/reference/PRODUCT_SURFACE_CATALOG.md",
+      "category": "documentation",
+      "bytes": 17780,
+      "lines": 384
+    },
+    {
+      "path": "docs/reference/STATUS_DOCUMENTOS.md",
+      "category": "documentation",
+      "bytes": 4484,
+      "lines": 56
+    },
+    {
+      "path": "docs/reference/SUPABASE_DATA_DICTIONARY.md",
+      "category": "documentation",
+      "bytes": 11537,
+      "lines": 297
+    },
+    {
+      "path": "docs/reference/SUPABASE_FUNCTIONAL_COVERAGE.md",
+      "category": "documentation",
+      "bytes": 4248,
+      "lines": 96
+    },
+    {
+      "path": "docs/reference/SUPABASE_INTEGRATION_AUDIT.md",
+      "category": "documentation",
+      "bytes": 4615,
+      "lines": 113
+    },
+    {
+      "path": "docs/reference/SUPABASE_PERMISSIONS_MATRIX.md",
+      "category": "documentation",
+      "bytes": 5633,
+      "lines": 101
+    },
+    {
+      "path": "docs/reports/RELATORIO_ESTADO_ATUAL_2026-07-12.md",
+      "category": "documentation",
+      "bytes": 6096,
+      "lines": 106
+    },
+    {
+      "path": "docs/runbooks/SUPABASE_CONNECTION.md",
+      "category": "documentation",
+      "bytes": 8913,
+      "lines": 226
+    },
+    {
+      "path": "docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md",
+      "category": "documentation",
+      "bytes": 4775,
+      "lines": 146
+    },
+    {
+      "path": "docs/superpowers/plans/2026-07-10-consolidacao-funcional-lote-1.md",
+      "category": "documentation",
+      "bytes": 6207,
+      "lines": 96
+    },
+    {
+      "path": "docs/superpowers/plans/2026-07-11-task-8-separacao-indicadores.md",
+      "category": "documentation",
+      "bytes": 37253,
+      "lines": 1116
+    },
+    {
+      "path": "docs/superpowers/plans/2026-07-12-pacote-operacional-retificacao-ciclo-b.md",
+      "category": "documentation",
+      "bytes": 9460,
+      "lines": 191
+    },
+    {
+      "path": "docs/superpowers/plans/2026-07-12-pr18-refinamento-qualidade.md",
+      "category": "documentation",
+      "bytes": 12121,
+      "lines": 312
+    },
+    {
+      "path": "docs/superpowers/plans/2026-07-12-task-9-pendencias-visiveis-navegaveis.md",
+      "category": "documentation",
+      "bytes": 15007,
+      "lines": 500
+    },
+    {
+      "path": "docs/superpowers/plans/2026-07-13-supabase-readiness.md",
+      "category": "documentation",
+      "bytes": 8983,
+      "lines": 167
+    },
+    {
+      "path": "docs/superpowers/plans/2026-07-14-plano-diretor-consolidacao-evolucao-pos-pr22.md",
+      "category": "documentation",
+      "bytes": 41250,
+      "lines": 1437
+    },
+    {
+      "path": "docs/superpowers/plans/2026-07-14-supabase-preconnection-gate.md",
+      "category": "documentation",
+      "bytes": 6702,
+      "lines": 143
+    },
+    {
+      "path": "docs/superpowers/plans/2026-07-15-ciclo-a-linha-base-classificacao.md",
+      "category": "documentation",
+      "bytes": 51077,
+      "lines": 1344
+    },
+    {
+      "path": "docs/superpowers/specs/2026-07-11-task-8-separacao-indicadores-design.md",
+      "category": "documentation",
+      "bytes": 10007,
+      "lines": 245
+    },
+    {
+      "path": "docs/superpowers/specs/2026-07-12-pacote-operacional-retificacao-ciclo-b-design.md",
+      "category": "documentation",
+      "bytes": 16421,
+      "lines": 521
+    },
+    {
+      "path": "docs/superpowers/specs/2026-07-12-pr18-refinamento-qualidade-design.md",
+      "category": "documentation",
+      "bytes": 4874,
+      "lines": 106
+    },
+    {
+      "path": "docs/superpowers/specs/2026-07-12-task-9-pendencias-visiveis-navegaveis-design.md",
+      "category": "documentation",
+      "bytes": 11178,
+      "lines": 368
+    },
+    {
+      "path": "docs/superpowers/specs/2026-07-13-supabase-readiness-design.md",
+      "category": "documentation",
+      "bytes": 5904,
+      "lines": 161
+    },
+    {
+      "path": "docs/superpowers/specs/2026-07-14-supabase-preconnection-gate-design.md",
+      "category": "documentation",
+      "bytes": 12019,
+      "lines": 329
+    },
+    {
+      "path": "docs/superpowers/specs/2026-07-15-ciclo-a-linha-base-classificacao-design.md",
+      "category": "documentation",
+      "bytes": 11990,
+      "lines": 432
+    },
+    {
+      "path": "docs/superpowers/specs/2026-07-15-contratos-transversais-experiencia-design.md",
+      "category": "documentation",
+      "bytes": 14697,
+      "lines": 638
+    },
+    {
+      "path": "index.html",
+      "category": "frontend-core",
+      "bytes": 44668,
+      "lines": 756
+    },
+    {
+      "path": "package-lock.json",
+      "category": "other",
+      "bytes": 65941,
+      "lines": 2027
+    },
+    {
+      "path": "package.json",
+      "category": "other",
+      "bytes": 5040,
+      "lines": 58
+    },
+    {
+      "path": "playwright.audit.config.js",
+      "category": "other",
+      "bytes": 671,
+      "lines": 23
+    },
+    {
+      "path": "playwright.config.js",
+      "category": "other",
+      "bytes": 1113,
+      "lines": 42
+    },
+    {
+      "path": "README.md",
+      "category": "other",
+      "bytes": 7535,
+      "lines": 217
+    },
+    {
+      "path": "scripts/audit-functional-persistence.js",
+      "category": "scripts",
+      "bytes": 21086,
+      "lines": 542
+    },
+    {
+      "path": "scripts/audit/build-baseline-manifest.mjs",
+      "category": "scripts",
+      "bytes": 2025,
+      "lines": 43
+    },
+    {
+      "path": "scripts/audit/generate-repository-inventory.mjs",
+      "category": "scripts",
+      "bytes": 4460,
+      "lines": 92
+    },
+    {
+      "path": "scripts/audit/prepare-baseline-output.mjs",
+      "category": "scripts",
+      "bytes": 600,
+      "lines": 14
+    },
+    {
+      "path": "scripts/audit/validate-cycle-a-artifacts.mjs",
+      "category": "scripts",
+      "bytes": 3458,
+      "lines": 76
+    },
+    {
+      "path": "scripts/bootstrap-local-auth-fixtures.mjs",
+      "category": "scripts",
+      "bytes": 5594,
+      "lines": 164
+    },
+    {
+      "path": "scripts/build-ajv.mjs",
+      "category": "scripts",
+      "bytes": 1065,
+      "lines": 29
+    },
+    {
+      "path": "scripts/build-supabase-client.mjs",
+      "category": "scripts",
+      "bytes": 1090,
+      "lines": 33
+    },
+    {
+      "path": "scripts/check-generated-artifacts.js",
+      "category": "scripts",
+      "bytes": 4024,
+      "lines": 99
+    },
+    {
+      "path": "scripts/check-local-auth-fixtures.mjs",
+      "category": "scripts",
+      "bytes": 3380,
+      "lines": 102
+    },
+    {
+      "path": "scripts/check-supabase-readiness.js",
+      "category": "scripts",
+      "bytes": 10215,
+      "lines": 267
+    },
+    {
+      "path": "scripts/generate-runtime-config.mjs",
+      "category": "scripts",
+      "bytes": 6915,
+      "lines": 201
+    },
+    {
+      "path": "scripts/migration-cli.mjs",
+      "category": "scripts",
+      "bytes": 4946,
+      "lines": 133
+    },
+    {
+      "path": "src/application/audit-service.js",
+      "category": "application",
+      "bytes": 2084,
+      "lines": 58
+    },
+    {
+      "path": "src/application/configuration-service.js",
+      "category": "application",
+      "bytes": 7157,
+      "lines": 146
+    },
+    {
+      "path": "src/application/data-service.js",
+      "category": "application",
+      "bytes": 11417,
+      "lines": 268
+    },
+    {
+      "path": "src/application/directory-service.js",
+      "category": "application",
+      "bytes": 10102,
+      "lines": 191
+    },
+    {
+      "path": "src/application/error-mapper.js",
+      "category": "application",
+      "bytes": 9392,
+      "lines": 207
+    },
+    {
+      "path": "src/application/inventory-service.js",
+      "category": "application",
+      "bytes": 9771,
+      "lines": 207
+    },
+    {
+      "path": "src/application/invoice-service.js",
+      "category": "application",
+      "bytes": 20758,
+      "lines": 415
+    },
+    {
+      "path": "src/application/pendency-service.js",
+      "category": "application",
+      "bytes": 19984,
+      "lines": 355
+    },
+    {
+      "path": "src/application/school-service.js",
+      "category": "application",
+      "bytes": 9949,
+      "lines": 188
+    },
+    {
+      "path": "src/application/state-port.js",
+      "category": "application",
+      "bytes": 10545,
+      "lines": 279
+    },
+    {
+      "path": "src/application/unit-of-work.js",
+      "category": "application",
+      "bytes": 4102,
+      "lines": 103
+    },
+    {
+      "path": "src/application/verification-service.js",
+      "category": "application",
+      "bytes": 17313,
+      "lines": 330
+    },
+    {
+      "path": "src/auth/session-service.js",
+      "category": "other",
+      "bytes": 10300,
+      "lines": 264
+    },
+    {
+      "path": "src/data/import-coordinator.js",
+      "category": "data",
+      "bytes": 16812,
+      "lines": 359
+    },
+    {
+      "path": "src/data/legacy-state-adapter.js",
+      "category": "data",
+      "bytes": 23929,
+      "lines": 559
+    },
+    {
+      "path": "src/data/local-storage-repository.js",
+      "category": "data",
+      "bytes": 7726,
+      "lines": 211
+    },
+    {
+      "path": "src/data/repository-contract.js",
+      "category": "data",
+      "bytes": 4375,
+      "lines": 145
+    },
+    {
+      "path": "src/data/repository-factory.js",
+      "category": "data",
+      "bytes": 1988,
+      "lines": 58
+    },
+    {
+      "path": "src/data/snapshot-tools.js",
+      "category": "data",
+      "bytes": 14795,
+      "lines": 359
+    },
+    {
+      "path": "src/data/state-bridge-metadata.js",
+      "category": "data",
+      "bytes": 13949,
+      "lines": 362
+    },
+    {
+      "path": "src/data/state-bridge.js",
+      "category": "data",
+      "bytes": 21771,
+      "lines": 516
+    },
+    {
+      "path": "src/data/supabase-repository.js",
+      "category": "data",
+      "bytes": 20152,
+      "lines": 506
+    },
+    {
+      "path": "src/domain/competencia.js",
+      "category": "domain",
+      "bytes": 5694,
+      "lines": 189
+    },
+    {
+      "path": "src/domain/estatisticas.js",
+      "category": "domain",
+      "bytes": 3610,
+      "lines": 123
+    },
+    {
+      "path": "src/domain/excel-export-model.js",
+      "category": "domain",
+      "bytes": 16318,
+      "lines": 378
+    },
+    {
+      "path": "src/domain/excel-workbook-plan.js",
+      "category": "domain",
+      "bytes": 10358,
+      "lines": 172
+    },
+    {
+      "path": "src/domain/excel-xlsx-renderer.js",
+      "category": "domain",
+      "bytes": 42407,
+      "lines": 578
+    },
+    {
+      "path": "src/domain/fluxo-operacional.js",
+      "category": "domain",
+      "bytes": 5865,
+      "lines": 168
+    },
+    {
+      "path": "src/domain/json-contracts.js",
+      "category": "domain",
+      "bytes": 9656,
+      "lines": 256
+    },
+    {
+      "path": "src/domain/operational-projection.js",
+      "category": "domain",
+      "bytes": 14900,
+      "lines": 311
+    },
+    {
+      "path": "src/domain/pendencias-view-model.js",
+      "category": "domain",
+      "bytes": 20546,
+      "lines": 490
+    },
+    {
+      "path": "src/domain/pendencias.js",
+      "category": "domain",
+      "bytes": 24178,
+      "lines": 660
+    },
+    {
+      "path": "src/domain/retificacoes.js",
+      "category": "domain",
+      "bytes": 5216,
+      "lines": 139
+    },
+    {
+      "path": "src/integration/auth-bootstrap.js",
+      "category": "integration",
+      "bytes": 3338,
+      "lines": 93
+    },
+    {
+      "path": "src/integration/auth-gate.js",
+      "category": "integration",
+      "bytes": 6548,
+      "lines": 161
+    },
+    {
+      "path": "src/integration/cycle-b-carteira.js",
+      "category": "integration",
+      "bytes": 18501,
+      "lines": 405
+    },
+    {
+      "path": "src/integration/cycle-b-dashboard-result.js",
+      "category": "integration",
+      "bytes": 3307,
+      "lines": 81
+    },
+    {
+      "path": "src/integration/cycle-b-dashboard.js",
+      "category": "integration",
+      "bytes": 20940,
+      "lines": 471
+    },
+    {
+      "path": "src/integration/excel-export-integration.js",
+      "category": "integration",
+      "bytes": 9089,
+      "lines": 209
+    },
+    {
+      "path": "src/integration/exercise-early-init.js",
+      "category": "integration",
+      "bytes": 929,
+      "lines": 29
+    },
+    {
+      "path": "src/integration/exercise-management.js",
+      "category": "integration",
+      "bytes": 11304,
+      "lines": 294
+    },
+    {
+      "path": "src/integration/load-excel-export.js",
+      "category": "integration",
+      "bytes": 1384,
+      "lines": 41
+    },
+    {
+      "path": "src/integration/mobile-navigation.js",
+      "category": "integration",
+      "bytes": 7864,
+      "lines": 194
+    },
+    {
+      "path": "src/integration/modal-accessibility.js",
+      "category": "integration",
+      "bytes": 6077,
+      "lines": 152
+    },
+    {
+      "path": "src/integration/task-10-11-pendency-actions.js",
+      "category": "integration",
+      "bytes": 22092,
+      "lines": 436
+    },
+    {
+      "path": "src/integration/task-10-alerts-competence.js",
+      "category": "integration",
+      "bytes": 5542,
+      "lines": 138
+    },
+    {
+      "path": "src/integration/task-12-13-retificacoes.js",
+      "category": "integration",
+      "bytes": 24624,
+      "lines": 531
+    },
+    {
+      "path": "src/integration/task-9-cross-view.js",
+      "category": "integration",
+      "bytes": 12988,
+      "lines": 305
+    },
+    {
+      "path": "src/integration/task-9-focus-bridge.js",
+      "category": "integration",
+      "bytes": 1210,
+      "lines": 31
+    },
+    {
+      "path": "src/integration/task-9-pendencias-page.js",
+      "category": "integration",
+      "bytes": 52234,
+      "lines": 1071
+    },
+    {
+      "path": "src/styles/cycle-b-carteira.css",
+      "category": "styles",
+      "bytes": 3843,
+      "lines": 182
+    },
+    {
+      "path": "src/styles/cycle-b-dashboard-final.css",
+      "category": "styles",
+      "bytes": 1452,
+      "lines": 72
+    },
+    {
+      "path": "src/styles/cycle-b-dashboard.css",
+      "category": "styles",
+      "bytes": 4298,
+      "lines": 217
+    },
+    {
+      "path": "src/styles/mobile-rendering-hotfix.css",
+      "category": "styles",
+      "bytes": 3629,
+      "lines": 144
+    },
+    {
+      "path": "src/styles/mobile-responsive.css",
+      "category": "styles",
+      "bytes": 10354,
+      "lines": 479
+    },
+    {
+      "path": "src/styles/task-10-11-pendency-actions.css",
+      "category": "styles",
+      "bytes": 3861,
+      "lines": 174
+    },
+    {
+      "path": "src/styles/task-12-13-retificacoes.css",
+      "category": "styles",
+      "bytes": 6222,
+      "lines": 293
+    },
+    {
+      "path": "src/styles/task-9-cross-view.css",
+      "category": "styles",
+      "bytes": 2683,
+      "lines": 92
+    },
+    {
+      "path": "src/styles/task-9-pendencias.css",
+      "category": "styles",
+      "bytes": 11978,
+      "lines": 588
+    },
+    {
+      "path": "src/types/database.types.ts",
+      "category": "other",
+      "bytes": 38054,
+      "lines": 1322
+    },
+    {
+      "path": "src/vendor/ajv-entry.js",
+      "category": "other",
+      "bytes": 107,
+      "lines": 8
+    },
+    {
+      "path": "src/vendor/supabase-client-entry.js",
+      "category": "other",
+      "bytes": 209,
+      "lines": 11
+    },
+    {
+      "path": "styles.css",
+      "category": "frontend-core",
+      "bytes": 56292,
+      "lines": 2758
+    },
+    {
+      "path": "supabase/config.toml",
+      "category": "other",
+      "bytes": 634
+    },
+    {
+      "path": "supabase/fixtures/auth-users.json",
+      "category": "other",
+      "bytes": 2785,
+      "lines": 104
+    },
+    {
+      "path": "supabase/migrations/202607130001_core_schema.sql",
+      "category": "migrations",
+      "bytes": 10633,
+      "lines": 231
+    },
+    {
+      "path": "supabase/migrations/202607130002_auth_and_rls.sql",
+      "category": "migrations",
+      "bytes": 17320,
+      "lines": 419
+    },
+    {
+      "path": "supabase/migrations/202607130003_audit_and_import.sql",
+      "category": "migrations",
+      "bytes": 8956,
+      "lines": 255
+    },
+    {
+      "path": "supabase/migrations/202607130004_competence_bonus_deadline.sql",
+      "category": "migrations",
+      "bytes": 428,
+      "lines": 13
+    },
+    {
+      "path": "supabase/migrations/202607130005_operational_context.sql",
+      "category": "migrations",
+      "bytes": 1717,
+      "lines": 49
+    },
+    {
+      "path": "supabase/migrations/202607130006_authorization_hardening.sql",
+      "category": "migrations",
+      "bytes": 1780,
+      "lines": 52
+    },
+    {
+      "path": "supabase/migrations/202607130007_configuration_audit_coverage.sql",
+      "category": "migrations",
+      "bytes": 1535,
+      "lines": 34
+    },
+    {
+      "path": "supabase/migrations/202607130008_atomic_invoice_operations.sql",
+      "category": "migrations",
+      "bytes": 15659,
+      "lines": 385
+    },
+    {
+      "path": "supabase/migrations/202607140009_verification_payload.sql",
+      "category": "migrations",
+      "bytes": 290,
+      "lines": 10
+    },
+    {
+      "path": "supabase/migrations/20260714180621_preconnection_auth_and_api_grants.sql",
+      "category": "migrations",
+      "bytes": 3304,
+      "lines": 91
+    },
+    {
+      "path": "supabase/migrations/20260714220136_preconnection_transactions_and_json_contracts.sql",
+      "category": "migrations",
+      "bytes": 24612,
+      "lines": 496
+    },
+    {
+      "path": "supabase/migrations/20260714220146_preconnection_reversible_import.sql",
+      "category": "migrations",
+      "bytes": 19661,
+      "lines": 456
+    },
+    {
+      "path": "supabase/seed.sql",
+      "category": "other",
+      "bytes": 1994,
+      "lines": 52
+    },
+    {
+      "path": "supabase/tests/bootstrap.sql",
+      "category": "database-tests",
+      "bytes": 1663,
+      "lines": 46
+    },
+    {
+      "path": "supabase/tests/database/invoice-rpc.test.sql",
+      "category": "database-tests",
+      "bytes": 6946,
+      "lines": 181
+    },
+    {
+      "path": "supabase/tests/database/json-contracts.test.sql",
+      "category": "database-tests",
+      "bytes": 2421,
+      "lines": 38
+    },
+    {
+      "path": "supabase/tests/database/operations-rpc.test.sql",
+      "category": "database-tests",
+      "bytes": 4511,
+      "lines": 66
+    },
+    {
+      "path": "supabase/tests/database/rls.test.sql",
+      "category": "database-tests",
+      "bytes": 5771,
+      "lines": 161
+    },
+    {
+      "path": "supabase/tests/database/schema.test.sql",
+      "category": "database-tests",
+      "bytes": 2213,
+      "lines": 39
+    },
+    {
+      "path": "supabase/tests/smoke.sql",
+      "category": "database-tests",
+      "bytes": 5950,
+      "lines": 247
+    },
+    {
+      "path": "tests/audit/global-baseline.spec.js",
+      "category": "audit-tests",
+      "bytes": 4004,
+      "lines": 91
+    },
+    {
+      "path": "tests/competencia.test.js",
+      "category": "other",
+      "bytes": 3741,
+      "lines": 94
+    },
+    {
+      "path": "tests/e2e/application-services.spec.js",
+      "category": "e2e-tests",
+      "bytes": 6310,
+      "lines": 128
+    },
+    {
+      "path": "tests/e2e/cycle-b-carteira.spec.js",
+      "category": "e2e-tests",
+      "bytes": 8184,
+      "lines": 180
+    },
+    {
+      "path": "tests/e2e/cycle-b-dashboard.spec.js",
+      "category": "e2e-tests",
+      "bytes": 5938,
+      "lines": 125
+    },
+    {
+      "path": "tests/e2e/data-error-ux.spec.js",
+      "category": "e2e-tests",
+      "bytes": 1454,
+      "lines": 39
+    },
+    {
+      "path": "tests/e2e/excel-export-button.spec.js",
+      "category": "e2e-tests",
+      "bytes": 903,
+      "lines": 22
+    },
+    {
+      "path": "tests/e2e/exercise-management.spec.js",
+      "category": "e2e-tests",
+      "bytes": 4245,
+      "lines": 107
+    },
+    {
+      "path": "tests/e2e/frontend-contract.spec.js",
+      "category": "e2e-tests",
+      "bytes": 4360,
+      "lines": 128
+    },
+    {
+      "path": "tests/e2e/functional-core.spec.js",
+      "category": "e2e-tests",
+      "bytes": 25541,
+      "lines": 618
+    },
+    {
+      "path": "tests/e2e/mobile-smoke.spec.js",
+      "category": "e2e-tests",
+      "bytes": 7155,
+      "lines": 174
+    },
+    {
+      "path": "tests/e2e/modal-accessibility.spec.js",
+      "category": "e2e-tests",
+      "bytes": 2126,
+      "lines": 55
+    },
+    {
+      "path": "tests/e2e/pendency-cycle.spec.js",
+      "category": "e2e-tests",
+      "bytes": 104652,
+      "lines": 2480
+    },
+    {
+      "path": "tests/e2e/supabase-auth-local.spec.js",
+      "category": "e2e-tests",
+      "bytes": 7375,
+      "lines": 170
+    },
+    {
+      "path": "tests/e2e/supabase-full-contract.spec.js",
+      "category": "e2e-tests",
+      "bytes": 6363,
+      "lines": 75
+    },
+    {
+      "path": "tests/e2e/supabase-local-mode.spec.js",
+      "category": "e2e-tests",
+      "bytes": 6864,
+      "lines": 179
+    },
+    {
+      "path": "tests/e2e/task-10-11-pendencias.spec.js",
+      "category": "e2e-tests",
+      "bytes": 5687,
+      "lines": 126
+    },
+    {
+      "path": "tests/e2e/task-10-alertas-competencias.spec.js",
+      "category": "e2e-tests",
+      "bytes": 3458,
+      "lines": 85
+    },
+    {
+      "path": "tests/e2e/task-12-13-retificacoes.spec.js",
+      "category": "e2e-tests",
+      "bytes": 6087,
+      "lines": 144
+    },
+    {
+      "path": "tests/e2e/task-8-indicator-separation.spec.js",
+      "category": "e2e-tests",
+      "bytes": 6269,
+      "lines": 172
+    },
+    {
+      "path": "tests/e2e/task-9-cross-view-order.spec.js",
+      "category": "e2e-tests",
+      "bytes": 1620,
+      "lines": 43
+    },
+    {
+      "path": "tests/e2e/task-9-cross-view.spec.js",
+      "category": "e2e-tests",
+      "bytes": 4744,
+      "lines": 112
+    },
+    {
+      "path": "tests/e2e/task-9-pendencias.spec.js",
+      "category": "e2e-tests",
+      "bytes": 9884,
+      "lines": 247
+    },
+    {
+      "path": "tests/estatisticas.test.js",
+      "category": "other",
+      "bytes": 4138,
+      "lines": 134
+    },
+    {
+      "path": "tests/excel-export-integration.test.js",
+      "category": "other",
+      "bytes": 4249,
+      "lines": 113
+    },
+    {
+      "path": "tests/excel-export-model.test.js",
+      "category": "other",
+      "bytes": 9812,
+      "lines": 297
+    },
+    {
+      "path": "tests/excel-runtime-loader.test.js",
+      "category": "other",
+      "bytes": 1244,
+      "lines": 35
+    },
+    {
+      "path": "tests/excel-workbook-plan-integration.test.js",
+      "category": "other",
+      "bytes": 1617,
+      "lines": 48
+    },
+    {
+      "path": "tests/excel-workbook-plan.test.js",
+      "category": "other",
+      "bytes": 8011,
+      "lines": 164
+    },
+    {
+      "path": "tests/excel-xlsx-renderer.test.js",
+      "category": "other",
+      "bytes": 6311,
+      "lines": 163
+    },
+    {
+      "path": "tests/fluxo-operacional.test.js",
+      "category": "other",
+      "bytes": 8972,
+      "lines": 269
+    },
+    {
+      "path": "tests/integration/local-migration-flow.test.js",
+      "category": "integration-tests",
+      "bytes": 2558,
+      "lines": 55
+    },
+    {
+      "path": "tests/operational-projection.test.js",
+      "category": "other",
+      "bytes": 5154,
+      "lines": 163
+    },
+    {
+      "path": "tests/pendencias-view-model.test.js",
+      "category": "other",
+      "bytes": 12153,
+      "lines": 393
+    },
+    {
+      "path": "tests/pendencias.test.js",
+      "category": "other",
+      "bytes": 47523,
+      "lines": 1271
+    },
+    {
+      "path": "tests/retificacoes.test.js",
+      "category": "other",
+      "bytes": 3134,
+      "lines": 101
+    },
+    {
+      "path": "tests/unit/application-data-service.test.js",
+      "category": "unit-tests",
+      "bytes": 15618,
+      "lines": 415
+    },
+    {
+      "path": "tests/unit/atomic-invoice-rpc.test.js",
+      "category": "unit-tests",
+      "bytes": 2426,
+      "lines": 49
+    },
+    {
+      "path": "tests/unit/audit-service.test.js",
+      "category": "unit-tests",
+      "bytes": 1107,
+      "lines": 39
+    },
+    {
+      "path": "tests/unit/audit-tools.test.js",
+      "category": "unit-tests",
+      "bytes": 3529,
+      "lines": 68
+    },
+    {
+      "path": "tests/unit/auth-bootstrap.test.js",
+      "category": "unit-tests",
+      "bytes": 4445,
+      "lines": 140
+    },
+    {
+      "path": "tests/unit/auth-database-gate.test.js",
+      "category": "unit-tests",
+      "bytes": 6147,
+      "lines": 129
+    },
+    {
+      "path": "tests/unit/auth-frontend-contract.test.js",
+      "category": "unit-tests",
+      "bytes": 1795,
+      "lines": 43
+    },
+    {
+      "path": "tests/unit/auth-gate.test.js",
+      "category": "unit-tests",
+      "bytes": 741,
+      "lines": 24
+    },
+    {
+      "path": "tests/unit/authorization-hardening.test.js",
+      "category": "unit-tests",
+      "bytes": 1531,
+      "lines": 40
+    },
+    {
+      "path": "tests/unit/configuration-audit-coverage.test.js",
+      "category": "unit-tests",
+      "bytes": 1372,
+      "lines": 47
+    },
+    {
+      "path": "tests/unit/configuration-service.test.js",
+      "category": "unit-tests",
+      "bytes": 2902,
+      "lines": 84
+    },
+    {
+      "path": "tests/unit/directory-service.test.js",
+      "category": "unit-tests",
+      "bytes": 3293,
+      "lines": 88
+    },
+    {
+      "path": "tests/unit/error-mapper.test.js",
+      "category": "unit-tests",
+      "bytes": 2712,
+      "lines": 68
+    },
+    {
+      "path": "tests/unit/functional-audit-modules.test.js",
+      "category": "unit-tests",
+      "bytes": 913,
+      "lines": 30
+    },
+    {
+      "path": "tests/unit/import-coordinator.test.js",
+      "category": "unit-tests",
+      "bytes": 5063,
+      "lines": 105
+    },
+    {
+      "path": "tests/unit/inventory-service.test.js",
+      "category": "unit-tests",
+      "bytes": 3954,
+      "lines": 115
+    },
+    {
+      "path": "tests/unit/invoice-service.test.js",
+      "category": "unit-tests",
+      "bytes": 7903,
+      "lines": 235
+    },
+    {
+      "path": "tests/unit/json-contracts.test.js",
+      "category": "unit-tests",
+      "bytes": 3028,
+      "lines": 84
+    },
+    {
+      "path": "tests/unit/legacy-state-adapter.test.js",
+      "category": "unit-tests",
+      "bytes": 8747,
+      "lines": 247
+    },
+    {
+      "path": "tests/unit/legacy-supabase-removal.test.js",
+      "category": "unit-tests",
+      "bytes": 2840,
+      "lines": 67
+    },
+    {
+      "path": "tests/unit/local-storage-repository.test.js",
+      "category": "unit-tests",
+      "bytes": 4168,
+      "lines": 117
+    },
+    {
+      "path": "tests/unit/migration-cli.test.js",
+      "category": "unit-tests",
+      "bytes": 2450,
+      "lines": 53
+    },
+    {
+      "path": "tests/unit/operations-rpc.test.js",
+      "category": "unit-tests",
+      "bytes": 1486,
+      "lines": 37
+    },
+    {
+      "path": "tests/unit/pendency-service.test.js",
+      "category": "unit-tests",
+      "bytes": 6902,
+      "lines": 182
+    },
+    {
+      "path": "tests/unit/readiness-check.test.js",
+      "category": "unit-tests",
+      "bytes": 5039,
+      "lines": 135
+    },
+    {
+      "path": "tests/unit/repository-contract-equivalence.test.js",
+      "category": "unit-tests",
+      "bytes": 5592,
+      "lines": 149
+    },
+    {
+      "path": "tests/unit/reversible-import-safe-delete.test.js",
+      "category": "unit-tests",
+      "bytes": 1326,
+      "lines": 36
+    },
+    {
+      "path": "tests/unit/runtime-config-generation.test.js",
+      "category": "unit-tests",
+      "bytes": 3949,
+      "lines": 111
+    },
+    {
+      "path": "tests/unit/runtime-config.test.js",
+      "category": "unit-tests",
+      "bytes": 4281,
+      "lines": 123
+    },
+    {
+      "path": "tests/unit/school-service.test.js",
+      "category": "unit-tests",
+      "bytes": 4042,
+      "lines": 121
+    },
+    {
+      "path": "tests/unit/session-service.test.js",
+      "category": "unit-tests",
+      "bytes": 5777,
+      "lines": 172
+    },
+    {
+      "path": "tests/unit/snapshot-tools.test.js",
+      "category": "unit-tests",
+      "bytes": 4313,
+      "lines": 125
+    },
+    {
+      "path": "tests/unit/state-bridge.test.js",
+      "category": "unit-tests",
+      "bytes": 13913,
+      "lines": 360
+    },
+    {
+      "path": "tests/unit/supabase-artifacts.test.js",
+      "category": "unit-tests",
+      "bytes": 6833,
+      "lines": 148
+    },
+    {
+      "path": "tests/unit/supabase-import-source-hash.test.js",
+      "category": "unit-tests",
+      "bytes": 978,
+      "lines": 31
+    },
+    {
+      "path": "tests/unit/supabase-modernization.test.js",
+      "category": "unit-tests",
+      "bytes": 2922,
+      "lines": 64
+    },
+    {
+      "path": "tests/unit/supabase-repository.test.js",
+      "category": "unit-tests",
+      "bytes": 17061,
+      "lines": 430
+    },
+    {
+      "path": "tests/unit/task5-gateway-integration.test.js",
+      "category": "unit-tests",
+      "bytes": 2663,
+      "lines": 59
+    },
+    {
+      "path": "tests/unit/verification-service.test.js",
+      "category": "unit-tests",
+      "bytes": 4965,
+      "lines": 137
+    },
+    {
+      "path": "tsconfig.database-types.json",
+      "category": "other",
+      "bytes": 233,
+      "lines": 14
+    },
+    {
+      "path": "vendor/ajv.js",
+      "category": "other",
+      "bytes": 117810,
+      "lines": 10
+    },
+    {
+      "path": "vendor/supabase-client.js",
+      "category": "other",
+      "bytes": 265049,
+      "lines": 31
+    },
+    {
+      "path": "vercel.json",
+      "category": "other",
+      "bytes": 151,
+      "lines": 9
+    }
+  ]
+}
