@@ -31,6 +31,8 @@ A prioridade não substitui os gates do Plano Diretor. Itens `CP` e `ID` são pr
 | BL-INV-01 | P2 | E1 | Inventário | FA | S-06; notas permanentes integradas | informação e próxima ação menos maduras | fila, filtro e estado claros | vínculo nota-bem-processo | auditoria específica | sim | sim | backend já preparado | Evolução do Inventário |
 | BL-AUD-01 | P2 | E2 | Registros Internos | FA | S-07; modelo de eventos rico | tela de consulta não explora filtro e contexto | localizar evento e origem com rapidez | integridade e retenção | política D6 | sim | sim | logs remotos no F/G | Consulta de auditoria |
 | BL-SME-01 | P2 | E3 | Configurações SME | FA/IC | S-08; estilos inline e `alert` | experiência administrativa abaixo das áreas centrais | cadastros previsíveis e auditáveis | regras transacionais e permissões | BL-UX-01/FORM-01 | sim | sim | Auth/RLS por perfil | Paridade de Configurações |
+| BL-TEAM-02 | P2 | D/E | Gestão de Equipe | FA | auditoria visual desktop; 163 unidades em página com aproximadamente 11.474 px de altura | localização, seleção e reatribuição perdem eficiência com o volume atual | busca, filtros e carregamento escalável sem mudar regras de carteira | reatribuição obrigatória, contagens e histórico | contratos de tabela; mockup aprovado | sim | sim | neutro | Produtividade da alocação de escolas |
+| BL-PRON-01 | P2 decisão | D/E | Prontuário | FA/DQ | auditoria visual desktop; cinco abas, painel institucional e tabela larga no mesmo viewport | contexto e lançamento competem visualmente | identidade, competência e programa permanecem ancorados durante a operação | conteúdo, ações e dimensões do domínio | pesquisa de tarefa; mockups | sim | sim | neutro | Hierarquia operacional do Prontuário |
 | BL-HELP-01 | P3 | E | ajuda contextual | EP | conceitos complexos sem sistema comum de ajuda | novos usuários dependem de conhecimento tácito | glossário e ajuda ligados à tarefa | nomenclatura institucional | catálogo e contratos | sim | sim | neutro | Ajuda e onboarding contextual |
 | BL-OBS-01 | P2/P3 | G2/G4 | operação | EP/FA | sem contrato de erro real/métricas | falhas e abandono em produção não são mensuráveis | diagnóstico com dados minimizados | privacidade e conteúdo institucional | BL-DATA-03; Preview | não | sim para telemetria | após conexão ou piloto | Observabilidade e métricas |
 | BL-PERF-01 | P3 | G3 | desempenho | EP | `app.js`, CSS e tabelas extensas; sem baseline Web Vitals | não há budget nem comparação real | budgets baseados em cenários reais | comportamento e qualidade visual | observabilidade mínima | não | não | medir local/remoto | Baseline de desempenho |
@@ -100,3 +102,13 @@ BL-SUP-01 pode avançar em paralelo à consolidação visual. A importação de 
 - **Plano técnico a criar:** `docs/superpowers/plans/YYYY-MM-DD-protecao-dados-arvore-ativa.md` após as decisões.
 
 Enquanto essas decisões são obtidas, `BL-SUP-01` (projeto Preview e migrations) e a auditoria de precedência `BL-FE-01` podem ser planejadas sem dados reais e sem bloquear uma à outra.
+
+## Sequência operacional vigente em 15/07/2026
+
+Após a conclusão de `BL-FE-01` e do piloto de `BL-UX-01`, o responsável decidiu:
+
+- postergar o saneamento de dados reais para o gate de implantação efetiva do Supabase, antes de qualquer divulgação ou piloto externo;
+- postergar a consolidação visual mobile;
+- executar primeiro o polimento visual desktop, mantendo mobile apenas como gate de regressão.
+
+A auditoria correspondente está em `docs/audits/2026-07-15-polimento-visual-desktop-producao.md`. Ela acrescenta `BL-TEAM-02` e `BL-PRON-01` e recomenda mockups comparativos antes de qualquer alteração material.

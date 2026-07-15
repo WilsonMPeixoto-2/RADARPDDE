@@ -1,0 +1,48 @@
+{
+  "audit": "polimento-visual-desktop-producao",
+  "capturedAt": "2026-07-15T17:18:53.8445836-03:00",
+  "source": {
+    "url": "https://radarpdde-fix.vercel.app/",
+    "repositoryCommit": "72c13a74a1c41e4c0fd4924c400e12d624af1482",
+    "persistence": "LocalStorageRepository",
+    "supabaseRemoteConnected": false
+  },
+  "viewport": {
+    "width": 1440,
+    "height": 1000,
+    "deviceScaleFactor": 1,
+    "theme": "light"
+  },
+  "privacy": {
+    "sourceDataChanged": false,
+    "evidenceOnlyRedaction": true,
+    "redactedFields": [
+      "nome do usuario",
+      "nomes de direcao e equipe",
+      "e-mails",
+      "telefones"
+    ],
+    "note": "A ocultacao ocorreu somente no DOM da sessao de captura e nao alterou a aplicacao nem os dados persistidos."
+  },
+  "runtimeChecks": {
+    "consoleErrors": 0,
+    "consoleWarnings": 0,
+    "modalEscape": "approved",
+    "modalFocusReturn": "approved",
+    "closedModalAriaHidden": "approved"
+  },
+  "screenshots": [
+    { "step": 1, "file": "01-controlador-dashboard.png", "profile": "controlador", "surface": "dashboard" },
+    { "step": 2, "file": "03-controlador-carteira-topo.png", "profile": "controlador", "surface": "carteira" },
+    { "step": 3, "file": "04-controlador-competencias.png", "profile": "controlador", "surface": "competencias" },
+    { "step": 4, "file": "05-controlador-pendencias.png", "profile": "controlador", "surface": "pendencias" },
+    { "step": 5, "file": "06-controlador-inventario.png", "profile": "controlador", "surface": "inventario" },
+    { "step": 6, "file": "07-controlador-registros-internos.png", "profile": "controlador", "surface": "registros-internos" },
+    { "step": 7, "file": "08-sme-dashboard.png", "profile": "sme", "surface": "dashboard" },
+    { "step": 8, "file": "09-sme-configuracoes.png", "profile": "sme", "surface": "configuracoes" },
+    { "step": 9, "file": "10-controlador-prontuario.png", "profile": "controlador", "surface": "prontuario" },
+    { "step": 10, "file": "11-modal-edicao-unidade.png", "profile": "controlador", "surface": "modal-edicao-unidade" },
+    { "step": 11, "file": "12-assistente-gestao-equipe.png", "profile": "assistente", "surface": "gestao-equipe" },
+    { "step": 12, "file": "13-dialogo-desativacao-controladora.png", "profile": "assistente", "surface": "dialogo-desativacao-controladora" }
+  ]
+}

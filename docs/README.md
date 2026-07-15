@@ -88,6 +88,11 @@ Documentos antigos permanecem disponíveis para rastreabilidade, mas não preval
 - [`evidence/shared-interactions/full-comparison.png`](evidence/shared-interactions/full-comparison.png) — referência e implementação no mesmo viewport;
 - [`../design-qa.md`](../design-qa.md) — controle de qualidade visual do pacote.
 
+## Auditoria visual desktop da produção
+
+- [`audits/2026-07-15-polimento-visual-desktop-producao.md`](audits/2026-07-15-polimento-visual-desktop-producao.md) — diagnóstico ilustrado do acabamento atual e sequência recomendada para o polimento;
+- [`evidence/visual-polish-desktop/manifest.json`](evidence/visual-polish-desktop/manifest.json) — origem, viewport, privacidade e percurso das doze capturas atuais de produção.
+
 ## Situação funcional
 
 - Ciclo A concluído até as Tasks 10–13;
