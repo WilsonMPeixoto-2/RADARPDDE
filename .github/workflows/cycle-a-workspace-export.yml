@@ -1,4 +1,4 @@
-name: Cycle A workspace export
+name: Cycle A visual baseline
 
 on:
   pull_request:
@@ -6,35 +6,63 @@ on:
       - main
     paths:
       - '.github/workflows/cycle-a-workspace-export.yml'
-      - 'docs/**'
-      - 'scripts/**'
-      - 'tests/**'
-      - 'package.json'
       - 'playwright.audit.config.js'
+      - 'scripts/audit/**'
+      - 'tests/audit/**'
+      - 'package.json'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  export:
+  baseline:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 30
     steps:
-      - name: Checkout exact PR head
+      - name: Checkout exact PR branch
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.head.ref }}
 
-      - name: Create clean workspace archive
+      - name: Configure Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: Generate repository inventory
+        run: npm run audit:inventory
+
+      - name: Capture desktop Android and iPhone baseline
+        env:
+          RADAR_BASELINE_COMMIT: ${{ github.event.pull_request.head.sha }}
+        run: npm run audit:baseline
+
+      - name: Commit generated evidence to PR branch
         shell: bash
         run: |
           set -euo pipefail
-          tar --exclude='.git' --exclude='node_modules' -czf /tmp/radar-cycle-a-workspace.tar.gz .
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/evidence/global-baseline
+          if git diff --cached --quiet; then
+            echo 'No generated evidence changes.'
+          else
+            git commit -m 'test: registrar baseline visual do Ciclo A'
+            git push origin HEAD:${{ github.event.pull_request.head.ref }}
+          fi
 
-      - name: Upload workspace archive
+      - name: Upload visual evidence
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: radar-cycle-a-workspace
-          path: /tmp/radar-cycle-a-workspace.tar.gz
+          name: radar-cycle-a-visual-baseline
+          path: docs/evidence/global-baseline
           if-no-files-found: error
-          retention-days: 1
+          retention-days: 3
