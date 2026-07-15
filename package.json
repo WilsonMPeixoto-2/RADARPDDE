@@ -40,7 +40,10 @@
     "migration:rollback": "node scripts/migration-cli.mjs rollback",
     "test:integration": "node --test tests/integration/*.test.js",
     "audit:baseline": "node scripts/audit/prepare-baseline-output.mjs && playwright test --config=playwright.audit.config.js && node scripts/audit/build-baseline-manifest.mjs",
-    "audit:cycle-a": "node scripts/audit/validate-cycle-a-artifacts.mjs"
+    "audit:cycle-a": "node scripts/audit/validate-cycle-a-artifacts.mjs",
+    "audit:frontend-precedence": "node scripts/audit/analyze-frontend-precedence.mjs",
+    "audit:frontend-precedence:check": "node scripts/audit/analyze-frontend-precedence.mjs --check",
+    "test:frontend-precedence": "playwright test --config=playwright.frontend-audit.config.js"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.12.1",
