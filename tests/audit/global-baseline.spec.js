@@ -3,7 +3,6 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 
 const evidenceRoot = path.resolve(__dirname, '../../docs/evidence/global-baseline');
-const MAX_FULL_PAGE_HEIGHT = 30000;
 const scenarios = [
   { profile: 'controlador', surface: 'dashboard', state: 'padrao', view: 'dashboard' },
   { profile: 'controlador', surface: 'carteira', state: 'resultado', view: 'escolas' },
@@ -50,11 +49,10 @@ async function capturePage(page, file) {
     document.documentElement.scrollHeight,
     document.body?.scrollHeight || 0
   ));
-  const fullPage = documentHeight <= MAX_FULL_PAGE_HEIGHT;
-  if (!fullPage) await page.evaluate(() => window.scrollTo(0, 0));
-  await page.screenshot({ path: file, fullPage });
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.screenshot({ path: file, fullPage: false });
   await fs.writeFile(file.replace(/\.png$/, '.meta.json'), JSON.stringify({
-    captureMode: fullPage ? 'full-page' : 'viewport-bounded',
+    captureMode: 'viewport',
     documentHeight
   }));
 }
