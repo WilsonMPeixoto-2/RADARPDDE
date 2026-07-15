@@ -137,7 +137,7 @@ Esta tarefa foi acrescentada durante o gate de merge, depois de uma execução f
 - [x] Confirmar o teste vermelho por ausência do comportamento.
 - [x] Normalizar somente quebras de linha durante a comparação, preservando a validação integral do conteúdo.
 - [x] Confirmar o teste verde e `npm run check:runtime-config` aprovado no Windows.
-- [ ] Reexecutar os gates integrais, salvar no remoto e aguardar os checks do novo HEAD antes do merge.
+- [x] Reexecutar os gates integrais, salvar no remoto e aguardar os checks do novo HEAD antes do merge.
 
 Resultado esperado: o mesmo gate funciona em Windows e Linux, sem falso negativo de checkout e sem relaxar segurança, modo local ou reprodutibilidade semântica.
 
