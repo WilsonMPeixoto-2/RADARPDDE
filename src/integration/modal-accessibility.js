@@ -33,7 +33,9 @@
 
     function normalizeDialog(dialog) {
         if (!dialog || !dialog.classList.contains('modal-overlay')) return false;
-        dialog.setAttribute('role', 'dialog');
+        if (dialog.getAttribute('role') !== 'alertdialog') {
+            dialog.setAttribute('role', 'dialog');
+        }
         dialog.setAttribute('aria-modal', 'true');
         ensureLabel(dialog);
         const closeButton = dialog.querySelector('.btn-close');

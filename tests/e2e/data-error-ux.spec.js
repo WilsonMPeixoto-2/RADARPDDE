@@ -29,6 +29,7 @@ test('erro funcional preserva modal, formulário e foco com anúncio acessível'
   await expect(form).toHaveAttribute('data-data-error', 'SESSION_EXPIRED');
   await expect(page.locator('#radar-data-operation-status')).toContainText(/sessão expirou/i);
   await expect(email).toBeFocused();
+  await expect(page.locator('#modal-escola-edit')).toHaveCSS('opacity', '1');
 
   const results = await new AxeBuilder({ page })
     .include('#modal-escola-edit')
