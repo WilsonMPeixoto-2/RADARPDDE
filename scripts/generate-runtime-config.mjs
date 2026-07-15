@@ -145,6 +145,10 @@ function renderRuntimeConfig(input) {
     return `window.RADAR_PDDE_RUNTIME_INPUT = Object.freeze(${JSON.stringify(input, null, 2)});\n`;
 }
 
+function runtimeConfigMatches(current, rendered) {
+    return String(current).replace(/\r\n/g, '\n') === String(rendered).replace(/\r\n/g, '\n');
+}
+
 function parseArguments(argv) {
     const result = {
         check: false,
@@ -172,7 +176,7 @@ async function main() {
 
     if (options.check) {
         const current = await fs.readFile(options.output, 'utf8').catch(() => '');
-        if (current !== rendered) {
+        if (!runtimeConfigMatches(current, rendered)) {
             throw new Error('config.runtime.js diverge da configuração pública esperada.');
         }
         console.log('Configuração pública: aprovada.');
@@ -196,5 +200,6 @@ export {
     buildRuntimeInput,
     isForbiddenPublishableKey,
     parseBoolean,
-    renderRuntimeConfig
+    renderRuntimeConfig,
+    runtimeConfigMatches
 };

@@ -44,6 +44,15 @@ test('gera entrada local determinística sem credenciais publicadas', async () =
     assert.doesNotMatch(first, /legacyAppBridgeEnabled/);
 });
 
+test('compara configurações reproduzíveis sem depender da quebra de linha do checkout', async () => {
+    const { runtimeConfigMatches } = await loadGenerator();
+    const lf = 'linha 1\nlinha 2\n';
+    const crlf = 'linha 1\r\nlinha 2\r\n';
+
+    assert.equal(runtimeConfigMatches(lf, crlf), true);
+    assert.equal(runtimeConfigMatches(lf, 'linha 1\r\nlinha diferente\r\n'), false);
+});
+
 test('gera configuração de preview apenas com autorização e credenciais públicas válidas', async () => {
     const { buildRuntimeInput } = await loadGenerator();
     const input = buildRuntimeInput({

@@ -48,6 +48,7 @@ Nenhum arquivo será declarado obsoleto somente pelo nome `final`, `hotfix` ou `
 - regras, declarações, `!important` e contextos condicionais do CSS;
 - colisões de propriedades para o mesmo seletor e contexto;
 - observação real da ordem de execução em Chromium;
+- portabilidade do gate de configuração pública entre checkouts LF e CRLF, sem aceitar divergência de conteúdo;
 - documentação arquitetural e auditoria do estado atual.
 
 ## Fora do escopo
@@ -150,9 +151,10 @@ O benefício para o usuário é indireto, mas necessário: futuras melhorias vis
 - grafo arquitetural completo;
 - relatório não declara remoções sem evidência;
 - teste Playwright de precedência aprovado;
+- configuração pública reproduzível validada em checkout Windows com CRLF e na CI com LF;
 - `npm run check`, testes unitários, auditoria do Ciclo A e E2E dirigidos aprovados;
 - nenhuma conexão Supabase remota, mudança de Vercel ou deployment de produção.
 
 ## Rollback
 
-O pacote acrescenta apenas documentação, ferramenta de auditoria, testes, manifesto e scripts npm. O rollback consiste em reverter esses arquivos; a aplicação permanece idêntica antes e depois.
+O pacote acrescenta apenas documentação, ferramentas de auditoria e validação, testes, manifesto e scripts npm. O rollback consiste em reverter esses arquivos; a aplicação permanece idêntica antes e depois.

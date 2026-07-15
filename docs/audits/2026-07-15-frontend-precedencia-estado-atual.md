@@ -187,7 +187,7 @@ As 17 colisões de `max-height` entre arquivos correspondem principalmente a gru
 | Gate | Resultado |
 |---|---|
 | `npm run check` | aprovado |
-| `npm run test:unit` | 154 testes aprovados |
+| `npm run test:unit` | 155 testes aprovados |
 | `npm run audit:cycle-a` | 18 superfícies e 24 capturas válidas |
 | `npm run audit:frontend-precedence:check` | manifesto reproduzível |
 | `npm run test:frontend-precedence` | 2 cenários aprovados |
@@ -196,6 +196,8 @@ As 17 colisões de `max-height` entre arquivos correspondem principalmente a gru
 | `git diff --check` | aprovado |
 
 A primeira execução E2E dirigida usou quatro workers locais e o Chromium encerrou processos com `VirtualAlloc failed`. Essa rodada produziu abortos e falhas secundárias de tempo. A mesma seleção foi repetida com um worker, configuração também usada no CI, e todos os 22 cenários aplicáveis passaram. A causa foi esgotamento de memória virtual por concorrência local, não regressão do produto; nenhum código funcional foi alterado para mascarar o problema.
+
+O gate de merge também revelou um falso negativo reproduzível em `npm run check:runtime-config`: com `core.autocrlf=true`, o checkout Windows continha CRLF e o gerador produzia LF, embora o hash Git e o conteúdo fossem os esperados. Um teste escrito antes da correção comprovou a falha. O comparador agora normaliza exclusivamente quebras de linha, continua rejeitando qualquer diferença de conteúdo e passou tanto no Windows quanto na CI Linux.
 
 ## Relação com a decisão sobre dados
 

@@ -18,6 +18,7 @@
 | 4 — Comprovar a ordem no navegador | concluída |
 | 5 — Produzir grafo e diagnóstico | concluída |
 | 6 — Validar ausência de regressão e salvar o checkpoint | concluída |
+| 7 — Corrigir falso negativo CRLF no gate final | concluída |
 
 ## Restrições globais
 
@@ -48,6 +49,8 @@
 
 - `package.json` — adicionar comandos da auditoria.
 - `docs/README.md` — indexar os novos artefatos.
+- `scripts/generate-runtime-config.mjs` — comparar conteúdo reproduzível sem depender da quebra de linha do checkout.
+- `tests/unit/runtime-config-generation.test.js` — proteger a equivalência LF/CRLF e continuar rejeitando divergência real.
 
 ---
 
@@ -123,6 +126,20 @@
 - [ ] Commitar documentação, ferramenta, testes e evidência em unidades rastreáveis.
 - [ ] Publicar todos os commits no branch remoto e atualizar a PR em rascunho com resultados exatos.
 - [ ] Não retirar a PR de rascunho, não fazer merge e não publicar produção sem revisão e autorização.
+
+## Task 7 — Corrigir falso negativo CRLF no gate final
+
+Esta tarefa foi acrescentada durante o gate de merge, depois de uma execução fresca de `npm run test:readiness` no Windows. O teste revelou que `config.runtime.js` tinha conteúdo correto e idêntico ao Git, mas o checkout com `core.autocrlf=true` usava CRLF enquanto o gerador comparava a saída LF byte a byte. A CI Linux permanecia verde.
+
+- [x] Reproduzir a falha e comprovar ausência de variáveis Supabase, segredos ou alteração no arquivo versionado.
+- [x] Comparar bytes e demonstrar que a primeira e todas as divergências eram exclusivamente `CRLF` versus `LF`.
+- [x] Escrever primeiro teste que exige equivalência entre LF/CRLF e rejeita conteúdo diferente.
+- [x] Confirmar o teste vermelho por ausência do comportamento.
+- [x] Normalizar somente quebras de linha durante a comparação, preservando a validação integral do conteúdo.
+- [x] Confirmar o teste verde e `npm run check:runtime-config` aprovado no Windows.
+- [ ] Reexecutar os gates integrais, salvar no remoto e aguardar os checks do novo HEAD antes do merge.
+
+Resultado esperado: o mesmo gate funciona em Windows e Linux, sem falso negativo de checkout e sem relaxar segurança, modo local ou reprodutibilidade semântica.
 
 ## Autorrevisão do plano
 
