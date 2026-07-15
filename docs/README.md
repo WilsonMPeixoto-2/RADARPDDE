@@ -6,9 +6,10 @@ Este diretório organiza as fontes funcionais, arquiteturais, históricas e oper
 
 A base funcional contém os PRs 18 a 21. O PR 22 conclui o Gate de Pré-conexão Supabase: a arquitetura remota está preparada e testada localmente, mas produção continua em `localStorage`, sem URL, chave ou conexão ativa.
 
-Documento de encerramento:
+Documentos de referência:
 
-- [`handoff/PR22_FINAL_GATE_REPORT_2026-07-14.md`](handoff/PR22_FINAL_GATE_REPORT_2026-07-14.md) — escopo, evidências, salvaguardas e dependências remotas.
+- [`handoff/PR22_FINAL_GATE_REPORT_2026-07-14.md`](handoff/PR22_FINAL_GATE_REPORT_2026-07-14.md) — escopo, evidências, salvaguardas e dependências remotas;
+- [`superpowers/plans/2026-07-14-plano-diretor-consolidacao-evolucao-pos-pr22.md`](superpowers/plans/2026-07-14-plano-diretor-consolidacao-evolucao-pos-pr22.md) — governança da evolução, proteção contra regressões, trilhas, ciclos e gates de aprovação pós-PR 22.
 
 ## Regra de precedência
 
