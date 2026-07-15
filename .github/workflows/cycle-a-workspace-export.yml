@@ -41,11 +41,17 @@ jobs:
         run: npm run audit:inventory
 
       - name: Capture desktop Android and iPhone baseline
+        id: baseline
+        continue-on-error: true
         env:
           RADAR_BASELINE_COMMIT: ${{ github.event.pull_request.head.sha }}
-        run: npm run audit:baseline
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run audit:baseline 2>&1 | tee /tmp/cycle-a-baseline.log
 
       - name: Commit generated evidence to PR branch
+        if: ${{ steps.baseline.outcome == 'success' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -59,10 +65,18 @@ jobs:
             git push origin HEAD:${{ github.event.pull_request.head.ref }}
           fi
 
-      - name: Upload visual evidence
+      - name: Upload visual evidence and diagnostic
+        if: ${{ always() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: radar-cycle-a-visual-baseline
-          path: docs/evidence/global-baseline
-          if-no-files-found: error
+          path: |
+            docs/evidence/global-baseline
+            /tmp/cycle-a-baseline.log
+            test-results/audit-baseline
+          if-no-files-found: warn
           retention-days: 3
+
+      - name: Fail when baseline failed
+        if: ${{ steps.baseline.outcome == 'failure' }}
+        run: exit 1
