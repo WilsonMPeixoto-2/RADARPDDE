@@ -1,126 +1,95 @@
-# Matriz de cobertura funcional — RADAR PDDE e Supabase
+# Cobertura funcional — Gate de Pré-conexão Supabase
 
-## Finalidade
+## Situação
 
-Este documento relaciona as superfícies do frontend, os dados alterados pelo usuário, os efeitos derivados e a representação preparada para o Supabase. Ele não significa que a aplicação já esteja conectada: produção permanece em `localStorage` e a ponte operacional com o banco continua desativada.
+O RADAR PDDE possui um contrato único de persistência e foi preparado para operar com dois adaptadores:
 
-## Legenda
+- `LocalStorageRepository` — backend vigente e padrão;
+- `SupabaseRepository` — backend preparado e comprovado na pilha Supabase local.
 
-- **Canônico:** possui tabela e colunas próprias.
-- **JSONB:** atributos variáveis permanecem preservados em estrutura JSON.
-- **Derivado:** calculado a partir de dados canônicos; não deve ser gravado como fonte de verdade.
-- **Local:** preferência ou estado transitório que não pertence ao banco institucional.
-- **Pré-ativação:** tarefa obrigatória apenas quando a conexão real for iniciada.
-- **Preparado:** infraestrutura concluída, ainda não ligada ao frontend remoto.
+A conexão remota permanece desativada. O objetivo deste gate é demonstrar que a futura ativação não exigirá reconstrução de formulários, regras de negócio, permissões, modelo relacional, migração ou layout.
 
-## Cobertura por domínio
+## Matriz de cobertura
 
-| Superfície ou ação | Estado atual | Destino preparado | Efeitos e dependências | Evidência |
-|---|---|---|---|---|
-| Dashboard e cartões | Derivado de escolas, verificações e pendências | consultas sobre `schools`, `verifications`, `pendencies` | filtros locais não alteram dados | E2E Dashboard e auditoria funcional |
-| Carteira de Escolas | escolas, programas, controlador, pendências e bens | `schools`, `school_programs`, `controllers`, `pendencies`, `assets` | última movimentação e próxima ação são derivados | E2E Carteira desktop/mobile |
-| Busca global | filtro transitório | **Local** | não deve persistir no banco | auditoria de handlers |
-| Competência global | `activeCompetenciaKey` e `config.competenciaFechamento` | `app_config.closing_competence`, `competences` | orienta Dashboard, Carteira, prontuário e alertas | testes de competência e exercício |
-| Exercícios anuais | `config.exercicios` | `app_config.exercises`, `competences.exercise` | cada exercício gera doze competências | `exercise-management.spec.js` |
-| Prazo de bonificação | `COMPETENCIAS[].bonifPrazo` | `competences.bonus_deadline` | usado por avisos e resultados de prazo | migration 004 e testes SQL |
-| Cadastro/edição de escola | objeto em `escolas` | `schools` | controlador, processo e competência inicial têm FKs | testes de mutação e snapshot |
-| Programas da escola | `programasIds` | `school_programs` | relação N:N, vigência e desativação lógica | ponte bidirecional |
-| Controladores | `controladores` | `controllers` | vínculo futuro a `auth.users` | testes de repositório e RLS |
-| Equipe de Inventário | `equipeInventario` | `inventory_team_members` | vínculo futuro a `auth.users` | testes de repositório e RLS |
-| Bonificação documental | `verificacoes[].bonificacao` | `verifications.bonification` **JSONB** | resultado é recalculado pelas regras atuais | testes do fluxo operacional |
-| Análise técnica | `verificacoes[].analise` | `verifications.analysis` **JSONB** | estados documentais permanecem iguais | testes do fluxo operacional |
-| Resultado de bonificação | `resultadoBonif` | `verifications.bonus_result` | consolidado somente quando requisitos são válidos | testes de consolidação |
-| Criar pendência | `pendencias` | `pendencies` | gera log e alerta; `next_actor` é preservado | E2E pendências e ponte |
-| Reenviar documento | `tentativas` dentro da pendência | `pendency_attempts` | número único por pendência | E2E reenvio |
-| Reanalisar pendência | tentativa e status | `pendency_attempts`, `pendencies` | pode resolver ou manter em reanálise | E2E reanálise |
-| Resolver/cancelar pendência | status e datas | `pendencies` | datas condicionadas ao status | constraints SQL e E2E |
-| Histórico de pendência | `historico` e atributos adicionais | `pendencies.payload`, `pendency_attempts.payload` | preservação integral durante migração | ponte e testes de ida/volta |
-| Registrar contato | `contatos` | `pendency_contacts` | `desc`, tipo, data, pendência e cobrança oficial | `state-bridge.test.js` |
-| Cobrança oficial | `cobrancaOficial` | `pendency_contacts.official_charge` | influencia indicadores e histórico | ponte bidirecional |
-| Cadastrar nota de consumo | `notasRegistradas` | `registered_invoices` | não cria bem | migrations 005/008 e pgTAP |
-| Cadastrar nota de serviço | nota e verificação | `registered_invoices`, `verifications` | torna consulta à assessoria obrigatória | migration 008 e testes funcionais |
-| Cadastrar nota permanente | nota e bem | `registered_invoices`, `assets` | cria bem e vincula `linked_asset_id` | migration 008 e pgTAP |
-| Contexto da nota | `compKey` | `competence_id`, `program_id`, `verification_id`, `source_context_key` | permite reconstruir prontuário exato | migration 005 e round-trip |
-| Editar nota | nota, bem e verificação relacionados | RPC `save_invoice_with_effects` | operação transacional com `row_version` | **Preparado**, migration 008 e pgTAP |
-| Remover nota | nota, bem e análise relacionada | RPC `delete_invoice_with_effects` | exclusão física técnica e ajuste transacional | **Preparado**, migration 008 e pgTAP |
-| Bens patrimoniais | `bens` | `assets` | escola, competência, NF, valor e processo | testes de inventário |
-| Inventariar bem | responsável, data, status e observações | `assets.inventoried_by_member_id`, `inventoried_at`, `status`, `notes` | vínculo com equipe de inventário | migration 005 e ponte |
-| Logs operacionais | `logs` | `administrative_logs` | usuário, perfil, ação, detalhes e horário | snapshot e auditoria |
-| Auditoria técnica | inexistente no navegador | `audit_events` | produzida por triggers, imutável para usuários | migration 003 |
-| Importações | inexistente no modo local | `data_import_runs` | idempotência e reconciliação | migration 003 |
-| Perfis simulados atuais | `currentProfile` | **Somente modo local** | não é identidade de segurança e desaparece no modo Supabase | matriz de permissões e E2E |
-| Login e sessão | gate, restauração, logout e sessão expirada preparados | `auth.users`, `user_profiles` | perfil e escopo vêm da sessão; produção permanece desativada | **Preparado e homologado na pilha local** |
-| Escopo por escola | controlador/perfil atual | `user_school_scopes` e funções RLS | leitura e escrita separadas | migrations 002/006 |
-| Tema claro/escuro | `radar_pdde_theme` | **Local** | preferência visual do dispositivo | não migrar |
-| View, modal e filtro ativos | variáveis de interface | **Local** | estado efêmero | não migrar |
-| Alertas | derivados de pendências, prazos e bens | consultas derivadas | não duplicar como fonte de verdade | E2E de alertas |
-| Exportação Excel | derivada do estado atual | leitura das entidades canônicas | arquivo não é persistência primária | regressão E2E |
+| Domínio ou fluxo | LocalStorageRepository | Supabase local | Evidência principal |
+|---|---:|---:|---|
+| Bootstrap e hidratação canônica | Sim | Sim | serviços de dados e E2E |
+| Configuração, exercícios e 12 competências | Sim | Sim | serviço + RPC transacional |
+| Programas, controladores e equipe de inventário | Sim | Sim | serviços e RLS |
+| Escolas, programas e atribuição de controlador | Sim | Sim | serviço + RPC transacional |
+| Bonificação e análise técnica | Sim | Sim | serviço de verificações |
+| Abertura e ciclo completo de pendências | Sim | Sim | serviço + RPC de reanálise |
+| Tentativas, contatos, cancelamento e reabertura | Sim | Sim | serviços e histórico auditável |
+| Retificação administrativa | Sim | Sim | fluxo funcional preservado |
+| Notas de consumo, serviço e permanente | Sim | Sim | RPCs atômicas de notas |
+| Bem derivado, encaminhamento e inventariação | Sim | Sim | serviço de inventário |
+| Auditoria administrativa e técnica | Sim | Sim | unidade de trabalho + triggers |
+| Concorrência otimista | Não aplicável ao modo local | Sim | `row_version` e testes de conflito |
+| Sessão expirada e autorização negada | Não aplicável ao modo local | Sim | Auth local, RLS e UX de falhas |
+| Rede e indisponibilidade remota | Não aplicável ao modo local | Simulada | retry apenas de leitura e E2E |
+| Exportação, staging, retomada e idempotência | Sim | Sim | coordenador e RPCs de importação |
+| Promoção atômica, reconciliação e rollback | Sim | Sim | integração e E2E Supabase local |
+| Desktop, Android e iPhone | Sim | Sim nos fluxos do gate | Playwright |
+| Acessibilidade automatizada e teclado | Sim | Sim | axe, foco, Escape e retorno ao acionador |
 
-## Dependências automáticas entre campos
+## Perfis comprovados
 
-### Nota fiscal
+Os cinco perfis institucionais estão modelados e testados:
 
-1. **Tipo permanente** cria ou atualiza um bem em `assets`.
-2. O bem é vinculado pela nota em `registered_invoices.linked_asset_id`.
-3. **Tipo serviço** exige consulta à assessoria na verificação.
-4. Remover a última nota pode redefinir a análise documental para “Não analisado”.
-5. Remover a última nota de serviço pode devolver a consulta à assessoria para “Não se aplica”.
-6. O contexto `competência_programa` é decomposto em FKs e preservado em `source_context_key`.
-7. As RPCs da migration 008 garantem atomicidade e conflito otimista para nota, bem e verificação.
+1. `technical_admin`;
+2. `sme_management`;
+3. `federal_assistant`;
+4. `controller`;
+5. `inventory`.
 
-### Escola e programas
+Também são testados usuário inativo, usuário sem perfil, escopo somente leitura e escopo de escrita por escola.
 
-1. Alterar controlador atualiza `schools.controller_id`.
-2. Alterar programas recria o conjunto ativo de `school_programs`.
-3. Processo de inventário influencia o encaminhamento de bens.
-4. Competência inicial limita o recorte histórico da escola.
+## Contratos de dados
 
-### Pendências
+A validação ocorre em duas camadas coordenadas:
 
-1. Abertura registra competência, programa, documento, responsável e próximo ator.
-2. Reenvio gera tentativa numerada.
-3. Reanálise altera tentativa e status da pendência.
-4. Resolução e cancelamento exigem datas compatíveis.
-5. Contatos e cobranças podem ser vinculados à pendência.
+- navegador: Ajv `8.20.0`, por meio de `src/domain/json-contracts.js` e `vendor/ajv.js`;
+- PostgreSQL: `pg_jsonschema`, constraints relacionais e testes pgTAP.
 
-### Exercícios e competências
+Os contratos abrangem bonificação, análise, pendências, tentativas, erros, cancelamento, resolução, retificação, auditoria e compatibilidade legada.
 
-1. Criar exercício gera doze competências mensais.
-2. A competência inicial selecionada passa a ser o fechamento operacional.
-3. Cada competência recebe prazo ordinário no mês seguinte.
-4. Alternar o exercício altera o recorte visual, não duplica dados.
+## Resiliência
 
-## Cobertura automatizada
+As categorias públicas de falha são:
 
-A preparação utiliza cinco camadas:
+- `NETWORK_UNAVAILABLE`;
+- `SESSION_EXPIRED`;
+- `PERMISSION_DENIED`;
+- `OPTIMISTIC_CONFLICT`;
+- `VALIDATION_FAILED`;
+- `TRANSACTION_FAILED`;
+- `REMOTE_UNAVAILABLE`;
+- `IMPORT_RECONCILIATION_FAILED`.
 
-1. **Análise estática:** chaves `localStorage`, raízes de estado, handlers, formulários, configurações e mutações.
-2. **Testes unitários:** contratos, paginação, lotes, concorrência, snapshots, ponte e artefatos gerados.
-3. **PostgreSQL 17:** aplica dez migrations e executa smoke operacional.
-4. **Supabase local:** executa 37 testes pgTAP, lint, geração de tipos e reprodução do bundle.
-5. **Playwright:** desktop Chromium, Android Chromium e iPhone WebKit, com ausência de conexão remota no modo local.
+Validações de negócio mantêm mensagens específicas. Retry é permitido somente em leituras seguras e falhas transitórias; gravações não são repetidas automaticamente.
 
-## Itens que não devem ser confundidos com conclusão da integração
+## Migração operacional
 
-O PR de preparação não executa estas etapas:
+O fluxo preparado é:
 
-- criação do projeto remoto;
-- aplicação de migrations no projeto real;
-- criação de usuários reais;
-- homologação das políticas RLS no ambiente remoto;
-- substituição das chamadas diretas do `app.js` pelo repositório;
-- ativação de `supabase-preview`;
-- configuração de URL e chave publicável;
-- promoção para produção.
+```text
+exportar → validar → planejar → staging por importId
+        → retomar lotes → reconciliar staging
+        → promover atomicamente → reconciliar destino
+        → concluir ou executar rollback controlado
+```
 
-## Bloqueios obrigatórios antes da primeira conexão
+O relatório contém hash SHA-256, contagens, estado de lotes e diferenças resumidas, sem registros integrais nem credenciais.
 
-1. Remover a integração direta e o seed automático antigos do `app.js`.
-2. Implementar autenticação e restauração de sessão.
-3. Ligar cada mutação da interface ao contrato; notas devem usar as RPCs da migration 008.
-4. Executar importação e reconciliação em Preview.
-5. Homologar RLS com usuários positivos e negativos.
-6. Executar Advisors no projeto remoto.
-7. Testar falha de rede, sessão expirada, conflito e rollback.
+## Fora do escopo deste gate
 
-O cliente Supabase já está fixado e empacotado; esse antigo bloqueio foi concluído. Os itens restantes pertencem à futura etapa de conexão e exigem ambiente remoto e autorização expressa.
+Dependem necessariamente de um projeto Supabase remoto:
+
+- `project_ref`, URL e chave publicável;
+- aplicação remota das migrations;
+- usuários reais de homologação;
+- Auth e RLS remotos;
+- Security Advisor e Performance Advisor;
+- backups, restauração e MFA;
+- importação controlada de dados reais;
+- autorização de ativação em produção.
