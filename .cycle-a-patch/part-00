@@ -1,0 +1,317 @@
+diff --git a/.github/workflows/cycle-a-workspace-export.yml b/.github/workflows/cycle-a-workspace-export.yml
+deleted file mode 100644
+index 1dd55a8..0000000
+--- a/.github/workflows/cycle-a-workspace-export.yml
++++ /dev/null
+@@ -1,40 +0,0 @@
+-name: Cycle A workspace export
+-
+-on:
+-  pull_request:
+-    branches:
+-      - main
+-    paths:
+-      - '.github/workflows/cycle-a-workspace-export.yml'
+-      - 'docs/**'
+-      - 'scripts/**'
+-      - 'tests/**'
+-      - 'package.json'
+-      - 'playwright.audit.config.js'
+-
+-permissions:
+-  contents: read
+-
+-jobs:
+-  export:
+-    runs-on: ubuntu-latest
+-    timeout-minutes: 10
+-    steps:
+-      - name: Checkout exact PR head
+-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+-        with:
+-          ref: ${{ github.event.pull_request.head.sha }}
+-
+-      - name: Create clean workspace archive
+-        shell: bash
+-        run: |
+-          set -euo pipefail
+-          tar --exclude='.git' --exclude='node_modules' -czf /tmp/radar-cycle-a-workspace.tar.gz .
+-
+-      - name: Upload workspace archive
+-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+-        with:
+-          name: radar-cycle-a-workspace
+-          path: /tmp/radar-cycle-a-workspace.tar.gz
+-          if-no-files-found: error
+-          retention-days: 1
+diff --git a/docs/README.md b/docs/README.md
+index fce01a7..7d242b3 100644
+--- a/docs/README.md
++++ b/docs/README.md
+@@ -59,6 +59,20 @@ Documentos antigos permanecem disponíveis para rastreabilidade, mas não preval
+ 
+ - [`superpowers/plans/2026-07-14-supabase-preconnection-gate.md`](superpowers/plans/2026-07-14-supabase-preconnection-gate.md) — Tasks 1 a 10 e critérios de aceite do HEAD congelado.
+ 
++## Ciclo A pós-PR 22 — linha de base e classificação
++
++- [`reference/PRODUCT_DECISIONS.md`](reference/PRODUCT_DECISIONS.md) — decisões e fronteiras;
++- [`reference/CHANGE_CLASSIFICATION.md`](reference/CHANGE_CLASSIFICATION.md) — códigos e condutas;
++- [`reference/DATA_CLASSIFICATION_AND_ENVIRONMENTS.md`](reference/DATA_CLASSIFICATION_AND_ENVIRONMENTS.md) — dados e ambientes;
++- [`reference/PRODUCT_SURFACE_CATALOG.md`](reference/PRODUCT_SURFACE_CATALOG.md) — 18 superfícies e conexões;
++- [`reference/POST_PR22_PRIORITIZED_BACKLOG.md`](reference/POST_PR22_PRIORITIZED_BACKLOG.md) — backlog priorizado;
++- [`audits/2026-07-15-inventario-tecnico-global.md`](audits/2026-07-15-inventario-tecnico-global.md) — inventário técnico;
++- [`audits/2026-07-15-dados-e-ambientes-estado-atual.md`](audits/2026-07-15-dados-e-ambientes-estado-atual.md) — auditoria de dados;
++- [`audits/2026-07-15-produto-estado-atual.md`](audits/2026-07-15-produto-estado-atual.md) — auditoria global;
++- [`superpowers/specs/2026-07-15-contratos-transversais-experiencia-design.md`](superpowers/specs/2026-07-15-contratos-transversais-experiencia-design.md) — 16 contratos de experiência;
++- [`evidence/global-baseline/manifest.json`](evidence/global-baseline/manifest.json) — manifesto visual reproduzível;
++- [`handoff/2026-07-15-ciclo-a-final-report.md`](handoff/2026-07-15-ciclo-a-final-report.md) — encerramento e próxima prioridade.
++
+ ## Situação funcional
+ 
+ - Ciclo A concluído até as Tasks 10–13;
+diff --git a/docs/audits/2026-07-15-dados-e-ambientes-estado-atual.md b/docs/audits/2026-07-15-dados-e-ambientes-estado-atual.md
+new file mode 100644
+index 0000000..29f165d
+--- /dev/null
++++ b/docs/audits/2026-07-15-dados-e-ambientes-estado-atual.md
+@@ -0,0 +1,80 @@
++# Auditoria de dados e ambientes — estado atual
++
++## Escopo
++
++A auditoria examinou dados iniciais, configuração, `localStorage`, snapshots, fixtures, logs, Excel, CI e arquitetura Supabase. Nenhum valor pessoal é reproduzido neste documento.
++
++## Evidências
++
++| Evidência | Local atual | Classe | Exposição atual | Proteção atual | Proteção futura | Classe do achado | Conduta |
++|---|---|---|---|---|---|---|---|
++| 163 registros iniciais de escola com campos de direção, telefone, e-mail, INEP, CNPJ e processo | `app.js:79-4180` | D0, D1 e D2 misturados | repositório público e bundle | nenhuma restrição de leitura do bundle | banco protegido e RLS não removem o bundle legado | `DC` para D2 no bundle público; `DQ` para tratamento do histórico | separar dados reais do código; decidir saneamento do histórico |
++| nomes dos controladores iniciais | `app.js:48-78` | D1/D2 conforme política institucional | repositório e bundle | sem e-mail preenchido | perfis remotos e diretório protegido | `FA` | substituir por fixtures fictícias fora do ambiente autorizado |
++| nome do usuário no shell | `index.html:121` | D2 | repositório e bundle | apenas apresentação | identidade Auth remota | `FA` | usar usuário fictício no modo demonstração e sessão real no remoto |
++| runtime fail-closed | `config.js:120-242`; `config.runtime.js` | D4 | público | valida modo, ambiente, flag, URL e chave | mesma configuração em Preview/produção | `CP` | preservar e testar |
++| proibição de chaves privilegiadas | `config.js:156-166`; readiness | D3 | regra pública | erro explícito antes de criar cliente | secret store e menor privilégio | `CP` | preservar; nunca registrar valor |
++| estado funcional local | chaves `radar_pdde_*` em serviços e adaptador | D0–D2/D6 | dispositivo local do usuário | contrato de repositório, snapshot e rollback | RLS por usuário/perfil | `ID` | manter até ativação remota autorizada |
++| snapshot canônico e migração | `src/data/snapshot-tools.js`, `import-coordinator.js`, CLI | D7 | código contém estrutura; dados reais não versionados | hash, validação, staging, checkpoint, reconciliação e rollback | armazenamento controlado remoto | `CP` para arquitetura; `DF` para execução remota | preservar; aplicar política de cópia controlada |
++| fixtures Auth locais | `supabase/fixtures`, scripts e testes | D5/D3 de teste | manifesto determinístico; senha vem de variável temporária | bootstrap limitado à pilha local e autorização explícita | usuários reais no Ciclo F | `CP` | preservar separação entre fixture e usuário real |
++| logs administrativos | `administrative_logs`, `audit_events`, serviços | D6 | schemas e fixtures | atores, ações, versões e RLS preparados | retenção, acesso e monitoramento remotos | `DF` para política operacional | definir retenção no Ciclo F/G |
++| exportação Excel | módulos de exportação e referência v2.1 | D0–D2/D6 | arquivo gerado pelo usuário | conteúdo depende do recorte exportado | permissões e política de distribuição | `ID` e `DQ` | preservar referência; definir classificação do arquivo exportado |
++| artefatos CI | Playwright, relatórios e uploads | D5/D6 técnico | acesso conforme GitHub e retenção | screenshots de falha podem capturar tela | mascaramento e retenção explícitos | `FA` | baseline do Ciclo A neutraliza contatos e desativa trace/vídeo |
++| Google Fonts | `styles.css` | metadado de rede | requisição externa no navegador | sem dado funcional enviado intencionalmente | política de CSP e recursos externos | `EP` | avaliar no hardening de entrega |
++
++## Risco atual independente do Supabase
++
++O achado mais relevante é a presença de dados de contato e direção em `INITIAL_ESCOLAS`. Como o repositório é público e o array é entregue ao navegador, RLS futura não restringirá essa cópia. A correção ativa deve retirar D2 do código e do bundle; o tratamento do histórico requer decisão separada.
++
++## Proteções já resolvidas ou preparadas
++
++- modo local não inicializa conexão Supabase;
++- chave privilegiada é rejeitada;
++- configuração de produção exige autorização explícita;
++- cliente recebe somente chave publicável;
++- migrations, grants e RLS estão versionados;
++- importação possui hash, checkpoint, reconciliação e rollback;
++- fixtures Auth não são usuários de produção.
++
++## Atividades deliberadamente futuras
++
++São `DF`, não falhas atuais:
++
++- criar projeto remoto;
++- configurar Preview;
++- aplicar migrations remotas;
++- criar usuários reais;
++- homologar perfis e negações;
++- executar migração de cópia controlada;
++- configurar Advisors;
++- testar backup e restauração;
++- definir MFA e política de incidentes;
++- autorizar produção remota.
++
++## Dúvidas materiais
++
++### DQ-01 — Tratamento do histórico Git com dados de contato
++
++- **Evidência:** campos D2 existem em commits públicos anteriores e na árvore ativa.
++- **Intenção não comprovada:** não há decisão sobre preservar histórico integral ou reescrevê-lo.
++- **Alternativa A:** remover apenas da árvore atual. Consequência: reduz exposição futura no bundle, mas o histórico continua acessível.
++- **Alternativa B:** reescrever histórico e coordenar clones, PRs, tags e Vercel. Consequência: maior redução de exposição, com impacto operacional e de rastreabilidade.
++- **Recomendação técnica provisória:** retirar D2 da árvore ativa no primeiro pacote de proteção de dados e fazer avaliação autônoma do histórico antes de reescrever.
++- **Decisão necessária:** nível de saneamento autorizado e responsáveis pela classificação institucional.
++
++### DQ-02 — Fonte oficial e necessidade operacional dos contatos de direção
++
++- **Evidência:** nome, telefone e contato de direção estão acoplados ao cadastro inicial de escolas.
++- **Intenção não comprovada:** quais campos são indispensáveis no RADAR, qual a fonte oficial e quais perfis precisam de acesso.
++- **Alternativa A:** manter todos no banco protegido. Consequência: continuidade funcional, maior responsabilidade de atualização e acesso.
++- **Alternativa B:** manter somente contato institucional e abrir fonte oficial externa para os demais. Consequência: menor exposição e possível aumento de cliques.
++- **Recomendação técnica provisória:** manter no RADAR apenas dados necessários à ação operacional, privilegiando contato institucional e acesso por perfil.
++- **Decisão necessária:** lista oficial de campos e perfis autorizados.
++
++### DQ-03 — Classificação da exportação Excel
++
++- **Evidência:** o relatório pode reunir dados operacionais e escolares.
++- **Intenção não comprovada:** política de distribuição, retenção e responsabilidade após o download.
++- **Alternativa A:** aviso e classificação no próprio workbook. Consequência: orientação persistente no arquivo.
++- **Alternativa B:** orientação apenas na interface. Consequência: menor alteração do protótipo congelado, mas aviso não acompanha a cópia.
++- **Recomendação técnica provisória:** tratar em plano autônomo sem alterar a referência v2.1 antes de aprovação.
++- **Decisão necessária:** classificação institucional do arquivo e forma de comunicação.
+diff --git a/docs/audits/2026-07-15-inventario-tecnico-global.md b/docs/audits/2026-07-15-inventario-tecnico-global.md
+new file mode 100644
+index 0000000..693246d
+--- /dev/null
++++ b/docs/audits/2026-07-15-inventario-tecnico-global.md
+@@ -0,0 +1,154 @@
++# Inventário técnico global do RADAR PDDE
++
++## Linha de base
++
++| Campo | Valor |
++|---|---|
++| Data da auditoria | 15/07/2026 |
++| Branch remota de execução | `docs/ciclo-a-execucao` |
++| Commit funcional de referência em `main` | `f85d0f23648f365b1f88378394914dae4ac85225` |
++| Primeiro HEAD remoto da execução | `afda608dbe59499798d651951314666bd84ab5c0` |
++| Persistência publicada | `LocalStorageRepository` |
++| Modo de dados | `local` |
++| Supabase remoto | não conectado |
++| Runtime normativo | Node.js `>=24 <27` |
++| Runtime auxiliar disponível no contêiner | Node.js `22.16.0`, usado apenas para diagnóstico local |
++
++O commit funcional de referência contém o Plano Diretor e o plano aprovado do Ciclo A. O workflow temporário usado para transferir a worktree não pertence à árvore final e não altera o produto.
++
++## Baseline de validação
++
++| Comando ou gate | Resultado | Observação |
++|---|---|---|
++| CI `Validar RADAR PDDE` da PR 25 | aprovado | Node 24; plano documental |
++| `npm ci` local | aprovado | 0 vulnerabilidades; aviso de engine por Node 22 |
++| `npm run check` local | aprovado | sintaxe dos módulos vigentes |
++| `npm run test:unit` local antes das ferramentas do Ciclo A | 147 testes aprovados | baseline do produto |
++| `npm run test:integration` local | 1 teste aprovado | migração local reversível |
++| `npm run audit:functional` local | aprovado | 54 arquivos JS, 11 raízes, 89 handlers e 93 campos |
++| `npm run test:readiness` local | aprovado | configuração, artefatos, tipos e persistência |
++| Playwright local | bloqueado pelo ambiente | executáveis Chromium/WebKit ausentes; execução normativa será feita na CI |
++
++O bloqueio local do Playwright é ambiental e não foi classificado como falha do produto. A CI oficial instala Chromium e WebKit e permanece a fonte normativa para E2E e capturas.
++
++## Visão quantitativa
++
++O inventário reproduzível em `docs/evidence/global-baseline/repository-inventory.json` registra:
++
++| Categoria | Arquivos |
++|---|---:|
++| serviços de aplicação | 12 |
++| configuração | 3 |
++| dados e repositórios | 9 |
++| testes de banco | 7 |
++| domínio | 11 |
++| testes E2E | 21 |
++| núcleo frontend | 3 |
++| integrações frontend | 17 |
++| migrations | 12 |
++| estilos de extensão | 9 |
++| testes unitários | 38 antes das ferramentas; 39 após a Task 3 |
++| workflows vigentes | 4 |
++
++### Maiores concentradores
++
++| Arquivo | Linhas na baseline | Papel | Classificação |
++|---|---:|---|---|
++| `app.js` | 11.286 | dados iniciais, estado, renderização e handlers legados | `FA` |
++| `styles.css` | 2.758 | tokens e estilos principais | `FA` |
++| `tests/e2e/pendency-cycle.spec.js` | 2.480 | cobertura extensa do ciclo de pendências | `CP` para cobertura; `FA` para manutenção do teste |
++| `src/integration/task-9-pendencias-page.js` | 1.071 | página e integração das pendências | `FA` |
++| `index.html` | 756 | shell, navegação, modais e formulários | `FA` |
++
++O tamanho não constitui defeito isoladamente. Ele indica custo de leitura e acoplamento potencial que deverá ser confirmado por pacote antes de qualquer decomposição.
++
++## Arquitetura vigente
++
++```text
++Interface e regras aprovadas
++        ↓
++serviços de aplicação
++        ↓
++unidade de trabalho e contrato único
++        ├── LocalStorageRepository — ativo
++        └── SupabaseRepository — preparado
++```
++
++### Pontos fortes protegidos
++
++- **`CP-ARQ-001` — contrato único de persistência:** serviços, unidade de trabalho e adaptadores reduzem acoplamento entre interface e backend. Evidências: `src/application/`, `src/data/` e testes unitários.
++- **`CP-ARQ-002` — operação fail-closed:** `config.js` bloqueia modos remotos sem ambiente, flag, URL e chave publicável válidos; bloqueia `service_role` e `sb_secret_*`.
++- **`CP-ARQ-003` — migração reversível:** staging, checkpoint, reconciliação, promoção e rollback possuem serviços e testes.
++- **`CP-DOM-001` — domínio não achatado:** bonificação, análise, pendência, retificação, nota e inventário preservam semânticas distintas.
++- **`CP-TEST-001` — cobertura em múltiplas camadas:** unitário, integração, E2E, axe, pgTAP e lint de banco.
++- **`CP-MOB-001` — mobile intencional:** navegação móvel, alvos, Escape, retorno de foco e cartões da Carteira possuem testes dedicados.
++
++## Frontend e ordem de carregamento
++
++`config.js:90-116` carrega, em ordem, nove folhas de estilo e dezessete scripts de domínio/integração. O padrão permitiu evolução incremental sem reescrever o núcleo, mas a ordem passou a exercer papel arquitetural.
++
++### Folhas de estilo carregadas
++
++1. `mobile-responsive.css`;
++2. `mobile-rendering-hotfix.css`;
++3. `task-9-pendencias.css`;
++4. `task-9-cross-view.css`;
++5. `task-10-11-pendency-actions.css`;
++6. `task-12-13-retificacoes.css`;
++7. `cycle-b-carteira.css`;
++8. `cycle-b-dashboard.css`;
++9. `cycle-b-dashboard-final.css`.
++
++### Achados
++
++- **`IC-FE-001` — precedência acumulativa de CSS:** nomes como `hotfix` e `final`, somados à carga sequencial, indicam sobreposição potencial. A consolidação só poderá ocorrer depois de mapear seletores ativos, especificidade e capturas computadas.
++- **`FA-FE-002` — concentração em `app.js`:** 11.286 linhas e múltiplas responsabilidades aumentam o custo de alteração. A decomposição deve ser incremental e restrita às áreas tocadas.
++- **`FA-FE-003` — HTML com handlers e estilos inline:** `index.html` contém 36 ocorrências de `onclick=` e 20 de `style=`. Isso reduz separação sem, por si só, provar falha funcional.
++- **`FA-FE-004` — navegação baseada em estado interno:** itens da sidebar chamam `switchView(...)`; URLs não representam integralmente tela, filtro e contexto. O Ciclo C deverá medir perdas reais antes de propor roteamento.
++- **`FA-UX-001` — feedback bloqueante coexistente:** foram localizadas 17 chamadas ou wrappers de `alert`/`confirm` fora de vendors. Modais acessíveis mais novos já demonstram padrão superior, mas a substituição precisa preservar mensagens e confirmações críticas.
++- **`FA-OBS-001` — ausência de observabilidade de uso real:** testes protegem entrega, mas não há contrato consolidado para erros em produção, Web Vitals ou métricas de fluxo. Trata-se de evolução do Ciclo G.
++- **`DF-SUP-001` — proteções remotas:** usuários reais, Auth/RLS remotos, backup, restauração, Advisors e MFA pertencem ao Ciclo F e não são falhas do estado local.
++
++## Dados iniciais e código público
++
++`app.js:79` inicia `INITIAL_ESCOLAS`; a baseline contém 163 registros com campos de contato, direção, INEP, CNPJ, processo e atribuição. Esse fato é tratado detalhadamente na auditoria de dados. A existência no código versionado e no bundle é risco atual independente da futura RLS; a decisão de saneamento do histórico permanece `DQ`.
++
++## Testes e gates
++
++### Unitários e integração
++
++- 147 testes unitários do produto na baseline;
++- 1 teste de integração de exportação, importação, reconciliação e rollback;
++- ferramentas do Ciclo A acrescentam testes sem substituir os anteriores.
++
++### E2E
++
++Os 21 arquivos E2E cobrem, entre outros:
++
++- núcleo funcional;
++- ciclo completo de pendências;
++- Dashboard e Carteira;
++- navegação contextual;
++- retificações;
++- alertas;
++- exercícios;
++- autenticação e RLS local;
++- acessibilidade de modais;
++- erros de dados;
++- mobile Chromium e WebKit.
++
++### Banco
++
++- 12 migrations;
++- testes pgTAP e smoke;
++- lint PL/pgSQL;
++- tipos TypeScript reproduzíveis;
++- grants e RLS preparados.
++
++## Dependências
++
++As dependências estão fixadas no `package-lock.json`. Não foi adicionada dependência no Ciclo A. O frontend permanece JavaScript/HTML/CSS próprio; Ajv, Playwright, Supabase client, TypeScript e ferramentas de build são dependências de desenvolvimento ou bundles versionados.
++
++## Regra de escopo
++
++Este documento registra o estado atual. O Ciclo A não altera comportamento funcional, layout, regras, persistência, migrations, Vercel ou produção. Achados `FA`, `IC`, `DQ`, `DF` e `EP` serão convertidos em backlog; nenhum deles autoriza implementação automática.
