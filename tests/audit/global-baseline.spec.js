@@ -3,6 +3,7 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 
 const evidenceRoot = path.resolve(__dirname, '../../docs/evidence/global-baseline');
+const MAX_FULL_PAGE_HEIGHT = 30000;
 const scenarios = [
   { profile: 'controlador', surface: 'dashboard', state: 'padrao', view: 'dashboard' },
   { profile: 'controlador', surface: 'carteira', state: 'resultado', view: 'escolas' },
@@ -44,6 +45,20 @@ async function sanitizeVisibleEvidence(page) {
   });
 }
 
+async function capturePage(page, file) {
+  const documentHeight = await page.evaluate(() => Math.max(
+    document.documentElement.scrollHeight,
+    document.body?.scrollHeight || 0
+  ));
+  const fullPage = documentHeight <= MAX_FULL_PAGE_HEIGHT;
+  if (!fullPage) await page.evaluate(() => window.scrollTo(0, 0));
+  await page.screenshot({ path: file, fullPage });
+  await fs.writeFile(file.replace(/\.png$/, '.meta.json'), JSON.stringify({
+    captureMode: fullPage ? 'full-page' : 'viewport-bounded',
+    documentHeight
+  }));
+}
+
 test.describe('linha de base visual global', () => {
   for (const scenario of scenarios) {
     test(`${scenario.profile} — ${scenario.surface}`, async ({ page }, testInfo) => {
@@ -68,7 +83,7 @@ test.describe('linha de base visual global', () => {
       const viewport = testInfo.project.name;
       const file = path.join(evidenceRoot, viewport, captureName(scenario, viewport));
       await fs.mkdir(path.dirname(file), { recursive: true });
-      await page.screenshot({ path: file, fullPage: true });
+      await capturePage(page, file);
 
       expect(pageErrors).toEqual([]);
       expect(consoleErrors).toEqual([]);
