@@ -91,6 +91,7 @@ Documentos antigos permanecem disponíveis para rastreabilidade, mas não preval
 ## Auditoria visual desktop da produção
 
 - [`audits/2026-07-15-polimento-visual-desktop-producao.md`](audits/2026-07-15-polimento-visual-desktop-producao.md) — diagnóstico ilustrado do acabamento atual e sequência recomendada para o polimento;
+- [`audits/2026-07-15-gate-visual-estados-vazios.md`](audits/2026-07-15-gate-visual-estados-vazios.md) — primeiro gate comparativo no Figma para Pendências e Registros Internos, ainda sem implementação funcional;
 - [`evidence/visual-polish-desktop/manifest.json`](evidence/visual-polish-desktop/manifest.json) — origem, viewport, privacidade e percurso das doze capturas atuais de produção.
 - [Quadro editável no Figma](https://www.figma.com/design/VVVjqKyaj0QnC9L63HT9yb) — referências preservadas, oportunidades e ordem dos próximos mockups.
 

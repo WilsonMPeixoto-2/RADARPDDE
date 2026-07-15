@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RADAR PDDE — Comparativo de estados vazios</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #7c3aed;
+      --primary-strong: #5b21b6;
+      --primary-soft: #f3edff;
+      --primary-border: #dfd2ff;
+      --page: #eeebf6;
+      --surface: #fff;
+      --surface-soft: #faf8ff;
+      --text: #201a30;
+      --muted: #6b607e;
+      --border: #e9e3f3;
+      --success: #2f855a;
+      --success-soft: #eaf8f0;
+      --scale: 0.3888888889;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 1200px;
+      height: 680px;
+      margin: 0;
+      overflow: hidden;
+      background: var(--page);
+      color: var(--text);
+      font-family: "Plus Jakarta Sans", sans-serif;
+    }
+
+    body { padding: 18px 20px; }
+
+    h1, h2, h3 { font-family: "Outfit", sans-serif; }
+
+    .module { display: none; }
+    body[data-module="pendencias"] .module-pendencias,
+    body[data-module="auditoria"] .module-auditoria { display: block; }
+
+    .heading {
+      display: flex;
+      min-height: 76px;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .eyebrow {
+      margin: 0 0 4px;
+      color: var(--primary);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 25px;
+      line-height: 1.1;
+      letter-spacing: -.02em;
+    }
+
+    .heading p:last-child {
+      max-width: 880px;
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .badge {
+      flex: 0 0 auto;
+      margin-top: 4px;
+      padding: 8px 11px;
+      border: 1px solid var(--primary-border);
+      border-radius: 999px;
+      background: var(--surface-soft);
+      color: var(--primary-strong);
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .comparison {
+      display: grid;
+      grid-template-columns: 560px 560px;
+      gap: 18px;
+    }
+
+    .label {
+      display: flex;
+      justify-content: space-between;
+      margin: 0 2px 6px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .label strong {
+      color: var(--primary-strong);
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .screen {
+      position: relative;
+      width: 560px;
+      height: 389px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      box-shadow: 0 8px 24px rgba(45, 31, 69, .10);
+    }
+
+    .stage {
+      position: absolute;
+      inset: 0 auto auto 0;
+      width: 1440px;
+      height: 1000px;
+      transform: scale(var(--scale));
+      transform-origin: top left;
+    }
+
+    .stage > img {
+      display: block;
+      width: 1440px;
+      height: 1000px;
+      object-fit: contain;
+      background: #fff;
+    }
+
+    .proposal-mask {
+      position: absolute;
+      z-index: 1;
+      left: 260px;
+      right: 0;
+      top: 553px;
+      bottom: 0;
+      background: radial-gradient(circle at 50% 0%, #faf8ff 0, #f8f7fc 58%, #f8f7fc 100%);
+    }
+
+    .empty-card {
+      position: absolute;
+      z-index: 2;
+      left: 292px;
+      top: 585px;
+      display: flex;
+      width: 1116px;
+      min-height: 304px;
+      flex-direction: column;
+      align-items: center;
+      padding: 28px 50px 26px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, .97);
+      box-shadow: 0 12px 34px rgba(90, 63, 135, .09);
+      text-align: center;
+    }
+
+    .empty-icon {
+      display: grid;
+      width: 54px;
+      height: 54px;
+      place-items: center;
+      margin-bottom: 14px;
+      border-radius: 16px;
+      background: var(--success-soft);
+      color: var(--success);
+    }
+
+    .empty-icon.audit {
+      background: var(--primary-soft);
+      color: var(--primary);
+    }
+
+    .empty-icon svg { width: 28px; height: 28px; }
+
+    .empty-card h3,
+    .audit-empty h3 {
+      margin: 0;
+      font-size: 23px;
+      line-height: 1.25;
+      letter-spacing: -.012em;
+    }
+
+    .empty-card > p,
+    .audit-empty > p {
+      max-width: 760px;
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    .context-row,
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .context-row { margin-top: 16px; }
+    .action-row { margin-top: 17px; }
+
+    .context-chip {
+      padding: 7px 11px;
+      border: 1px solid var(--primary-border);
+      border-radius: 999px;
+      background: var(--surface-soft);
+      color: #584b70;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .mock-button {
+      min-height: 38px;
+      padding: 10px 15px;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .mock-button.primary {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 7px 18px rgba(124, 58, 237, .18);
+    }
+
+    .mock-button.secondary {
+      border-color: var(--primary-border);
+      background: #fff;
+      color: var(--primary-strong);
+    }
+
+    .audit-extension {
+      position: absolute;
+      z-index: 1;
+      left: 292px;
+      top: 262px;
+      width: 1116px;
+      height: 410px;
+      border: 1px solid var(--border);
+      border-top: 0;
+      border-radius: 0 0 18px 18px;
+      background: #fff;
+      box-shadow: 0 18px 34px rgba(90, 63, 135, .08);
+    }
+
+    .audit-empty {
+      position: absolute;
+      z-index: 2;
+      left: 430px;
+      top: 320px;
+      display: flex;
+      width: 840px;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .audit-info {
+      width: 760px;
+      margin-top: 19px;
+      padding: 12px 15px;
+      border: 1px solid var(--primary-border);
+      border-radius: 12px;
+      background: var(--surface-soft);
+      color: #584b70;
+      font-size: 12px;
+      line-height: 1.5;
+      text-align: left;
+    }
+
+    .audit-info strong { color: var(--primary-strong); }
+
+    .notes {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 12px;
+    }
+
+    .note {
+      min-height: 82px;
+      padding: 11px 13px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, .74);
+      color: var(--muted);
+      font-size: 10.5px;
+      line-height: 1.5;
+    }
+
+    .note strong { color: var(--text); }
+  </style>
+</head>
+<body>
+  <section class="module module-pendencias">
+    <header class="heading">
+      <div>
+        <p class="eyebrow">RADAR PDDE · gate visual desktop</p>
+        <h1>Pendências Operacionais · estado vazio da fila Abertas</h1>
+        <p>Mesmo viewport e mesmos dados. A proposta explica o recorte e orienta a recuperação sem alterar filtros, contagens ou as quatro filas.</p>
+      </div>
+      <div class="badge">C-09 · proposta para aprovação</div>
+    </header>
+    <div class="comparison">
+      <div>
+        <div class="label"><span>Estado atual</span><span>Mensagem isolada</span></div>
+        <div class="screen"><div class="stage"><img src="../evidence/visual-polish-desktop/05-controlador-pendencias.png" alt="Estado atual de Pendências Operacionais"></div></div>
+      </div>
+      <div>
+        <div class="label"><span>Proposta</span><strong>contexto + motivo + recuperação</strong></div>
+        <div class="screen">
+          <div class="stage">
+            <img src="../evidence/visual-polish-desktop/05-controlador-pendencias.png" alt="Base visual de Pendências Operacionais">
+            <div class="proposal-mask"></div>
+            <div class="empty-card">
+              <div class="empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>
+              <h3>Nenhuma pendência depende de providência da escola</h3>
+              <p>Com a competência global e os filtros atuais, não há itens na fila <strong>Abertas</strong>. As demais filas continuam disponíveis nas abas acima.</p>
+              <div class="context-row"><span class="context-chip">Competência · Maio 2026</span><span class="context-chip">Filtros adicionais · Nenhum</span></div>
+              <div class="action-row"><span class="mock-button primary">Consultar outra competência</span><span class="mock-button secondary">Entender esta fila</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <div class="note"><strong>Preservado:</strong> busca, oito filtros, competência global, contagem e abas Abertas/Aguardando reanálise/Resolvidas/Canceladas.</div>
+      <div class="note"><strong>Ganho esperado:</strong> distinguir ausência real de falha do sistema e permitir mudar o recorte sem perder o modelo das quatro filas.</div>
+    </div>
+  </section>
+
+  <section class="module module-auditoria">
+    <header class="heading">
+      <div>
+        <p class="eyebrow">RADAR PDDE · gate visual desktop</p>
+        <h1>Registros Internos · estado vazio de primeiro uso</h1>
+        <p>Mesmo viewport e mesmos dados. A proposta esclarece a geração automática do histórico sem oferecer uma ação de criação indevida.</p>
+      </div>
+      <div class="badge">C-09 · proposta para aprovação</div>
+    </header>
+    <div class="comparison">
+      <div>
+        <div class="label"><span>Estado atual</span><span>Tabela sem orientação</span></div>
+        <div class="screen"><div class="stage"><img src="../evidence/visual-polish-desktop/07-controlador-registros-internos-rendered.jpg" alt="Estado atual de Registros Internos"></div></div>
+      </div>
+      <div>
+        <div class="label"><span>Proposta</span><strong>primeiro uso + expectativa + ajuda</strong></div>
+        <div class="screen">
+          <div class="stage">
+            <img src="../evidence/visual-polish-desktop/07-controlador-registros-internos-rendered.jpg" alt="Base visual de Registros Internos">
+            <div class="audit-extension"></div>
+            <div class="audit-empty">
+              <div class="empty-icon audit" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></div>
+              <h3>Nenhum registro interno foi gerado ainda</h3>
+              <p>As ações de gravação e alteração aparecerão aqui com data, usuário, perfil, ação e detalhes. O histórico será preenchido automaticamente conforme o RADAR for utilizado.</p>
+              <div class="audit-info"><strong>O que será registrado:&nbsp;</strong> alterações de escolas, competências, pendências, notas fiscais e inventário.</div>
+              <div class="action-row"><span class="mock-button secondary">Entender a rastreabilidade</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <div class="note"><strong>Preservado:</strong> título, finalidade, colunas Data e hora/Usuário/Perfil/Ação realizada/Detalhes e geração automática do log.</div>
+      <div class="note"><strong>Ganho esperado:</strong> a tela deixa de parecer incompleta e explica quando o histórico surgirá, sem permitir registros manuais.</div>
+    </div>
+  </section>
+
+  <script>
+    const moduleName = new URLSearchParams(window.location.search).get('module') || 'pendencias';
+    document.body.dataset.module = moduleName === 'auditoria' ? 'auditoria' : 'pendencias';
+  </script>
+</body>
+</html>

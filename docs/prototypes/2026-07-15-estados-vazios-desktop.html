@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RADAR PDDE — Gate visual de estados vazios</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #7c3aed;
+      --primary-strong: #5b21b6;
+      --primary-soft: #f3edff;
+      --primary-border: #dfd2ff;
+      --page: #ece9f4;
+      --surface: #ffffff;
+      --surface-soft: #faf8ff;
+      --text: #201a30;
+      --muted: #6b607e;
+      --border: #e9e3f3;
+      --success: #2f855a;
+      --success-soft: #eaf8f0;
+      --shadow: 0 20px 60px rgba(46, 28, 82, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-width: 1552px;
+      background: var(--page);
+      color: var(--text);
+      font-family: "Plus Jakarta Sans", sans-serif;
+    }
+
+    body { padding: 32px; }
+
+    .board {
+      width: 2976px;
+      margin: 0 auto;
+      zoom: 0.5;
+    }
+
+    .board-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 64px;
+      margin-bottom: 52px;
+    }
+
+    .eyebrow {
+      margin: 0 0 12px;
+      color: var(--primary);
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3 { font-family: "Outfit", sans-serif; }
+
+    h1 {
+      margin: 0;
+      max-width: 1850px;
+      font-size: 54px;
+      line-height: 1.08;
+      letter-spacing: -0.025em;
+    }
+
+    .subtitle {
+      max-width: 1800px;
+      margin: 16px 0 0;
+      color: var(--muted);
+      font-size: 23px;
+      line-height: 1.55;
+    }
+
+    .status-badge {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px;
+      border: 1px solid var(--primary-border);
+      border-radius: 999px;
+      background: var(--surface-soft);
+      color: var(--primary-strong);
+      font-size: 18px;
+      font-weight: 700;
+      box-shadow: 0 8px 24px rgba(124, 58, 237, 0.08);
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--primary);
+      box-shadow: 0 0 0 6px rgba(124, 58, 237, 0.12);
+    }
+
+    .module {
+      margin-bottom: 58px;
+      padding: 28px;
+      border: 1px solid rgba(124, 58, 237, 0.14);
+      border-radius: 30px;
+      background: rgba(255, 255, 255, 0.72);
+      box-shadow: var(--shadow);
+    }
+
+    .module-heading {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 40px;
+      margin: 0 4px 22px;
+    }
+
+    .module-heading h2 {
+      margin: 0;
+      font-size: 34px;
+      letter-spacing: -0.015em;
+    }
+
+    .module-heading p {
+      max-width: 1600px;
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.5;
+    }
+
+    .contract {
+      padding: 10px 15px;
+      border-radius: 12px;
+      background: var(--primary-soft);
+      color: var(--primary-strong);
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .comparison {
+      display: grid;
+      grid-template-columns: 1440px 1440px;
+      gap: 40px;
+    }
+
+    .screen-column { min-width: 0; }
+
+    .screen-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 0 2px 12px;
+      color: var(--muted);
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .screen-label strong {
+      color: var(--primary-strong);
+      font-size: 15px;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .screen {
+      position: relative;
+      width: 1440px;
+      height: 1000px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: #fff;
+      box-shadow: 0 14px 40px rgba(32, 26, 48, 0.11);
+    }
+
+    .screen > img {
+      display: block;
+      width: 1440px;
+      height: 1000px;
+      object-fit: contain;
+      background: #fff;
+    }
+
+    .proposal-mask {
+      position: absolute;
+      z-index: 1;
+      background: radial-gradient(circle at 50% 0%, #faf8ff 0, #f8f7fc 56%, #f8f7fc 100%);
+    }
+
+    .proposal-mask.pendencias {
+      left: 260px;
+      right: 0;
+      top: 553px;
+      bottom: 0;
+    }
+
+    .empty-card {
+      position: absolute;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 12px 34px rgba(90, 63, 135, 0.09);
+    }
+
+    .empty-card.pendencias {
+      left: 292px;
+      top: 585px;
+      width: 1116px;
+      min-height: 304px;
+      padding: 28px 50px 26px;
+    }
+
+    .empty-icon {
+      display: grid;
+      place-items: center;
+      width: 54px;
+      height: 54px;
+      margin-bottom: 14px;
+      border-radius: 16px;
+      background: var(--success-soft);
+      color: var(--success);
+    }
+
+    .empty-icon.audit {
+      background: var(--primary-soft);
+      color: var(--primary);
+    }
+
+    .empty-icon svg {
+      width: 28px;
+      height: 28px;
+    }
+
+    .empty-card h3,
+    .audit-empty h3 {
+      margin: 0;
+      color: var(--text);
+      font-size: 23px;
+      line-height: 1.25;
+      letter-spacing: -0.012em;
+    }
+
+    .empty-card > p,
+    .audit-empty > p {
+      max-width: 760px;
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    .context-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .context-chip {
+      padding: 7px 11px;
+      border: 1px solid var(--primary-border);
+      border-radius: 999px;
+      background: var(--surface-soft);
+      color: #584b70;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .action-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 17px;
+    }
+
+    .mock-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 9px 15px;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      font: 700 12px/1 "Plus Jakarta Sans", sans-serif;
+    }
+
+    .mock-button.primary {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 7px 18px rgba(124, 58, 237, 0.18);
+    }
+
+    .mock-button.secondary {
+      border-color: var(--primary-border);
+      background: #fff;
+      color: var(--primary-strong);
+    }
+
+    .audit-extension {
+      position: absolute;
+      z-index: 1;
+      left: 292px;
+      top: 262px;
+      width: 1116px;
+      height: 410px;
+      border: 1px solid var(--border);
+      border-top: 0;
+      border-radius: 0 0 18px 18px;
+      background: #fff;
+      box-shadow: 0 18px 34px rgba(90, 63, 135, 0.08);
+    }
+
+    .audit-empty {
+      position: absolute;
+      z-index: 2;
+      left: 430px;
+      top: 320px;
+      display: flex;
+      width: 840px;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .audit-info {
+      display: flex;
+      align-items: flex-start;
+      width: 760px;
+      margin-top: 19px;
+      padding: 12px 15px;
+      border: 1px solid var(--primary-border);
+      border-radius: 12px;
+      background: var(--surface-soft);
+      color: #584b70;
+      font-size: 12px;
+      line-height: 1.5;
+      text-align: left;
+    }
+
+    .audit-info strong { color: var(--primary-strong); }
+
+    .module-note {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      margin-top: 20px;
+    }
+
+    .note {
+      padding: 17px 19px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--surface-soft);
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.55;
+    }
+
+    .note strong { color: var(--text); }
+
+    .decision-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 40px;
+      padding: 26px 30px;
+      border: 1px solid var(--primary-border);
+      border-radius: 22px;
+      background: linear-gradient(135deg, #fff 0%, #f7f1ff 100%);
+      box-shadow: 0 14px 36px rgba(124, 58, 237, 0.1);
+    }
+
+    .decision-strip h2 {
+      margin: 0;
+      font-size: 27px;
+    }
+
+    .decision-strip p {
+      margin: 7px 0 0;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.5;
+    }
+
+    .decision-pill {
+      flex: 0 0 auto;
+      padding: 13px 18px;
+      border-radius: 12px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    body.mode-pendencias,
+    body.mode-auditoria {
+      min-width: 1230px;
+      padding: 20px;
+    }
+
+    body.mode-pendencias .board,
+    body.mode-auditoria .board {
+      zoom: 0.4;
+    }
+
+    body.mode-pendencias .board-header,
+    body.mode-pendencias .module:nth-of-type(2),
+    body.mode-pendencias .decision-strip,
+    body.mode-auditoria .board-header,
+    body.mode-auditoria .module:first-of-type,
+    body.mode-auditoria .decision-strip {
+      display: none;
+    }
+
+    body.mode-pendencias-detail,
+    body.mode-auditoria-detail {
+      min-width: 970px;
+      padding: 16px;
+      background: #ece9f4;
+    }
+
+    body.mode-pendencias-detail .board,
+    body.mode-auditoria-detail .board {
+      width: 1440px;
+      margin: 0;
+      zoom: 0.65;
+    }
+
+    body.mode-pendencias-detail .board-header,
+    body.mode-pendencias-detail .module:nth-of-type(2),
+    body.mode-pendencias-detail .decision-strip,
+    body.mode-auditoria-detail .board-header,
+    body.mode-auditoria-detail .module:first-of-type,
+    body.mode-auditoria-detail .decision-strip,
+    body.mode-pendencias-detail .module-heading,
+    body.mode-pendencias-detail .module-note,
+    body.mode-auditoria-detail .module-heading,
+    body.mode-auditoria-detail .module-note,
+    body.mode-pendencias-detail .screen-column:first-child,
+    body.mode-auditoria-detail .screen-column:first-child {
+      display: none;
+    }
+
+    body.mode-pendencias-detail .module,
+    body.mode-auditoria-detail .module {
+      margin: 0;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    body.mode-pendencias-detail .comparison,
+    body.mode-auditoria-detail .comparison {
+      display: block;
+    }
+
+    body.mode-pendencias-detail .screen-label,
+    body.mode-auditoria-detail .screen-label {
+      margin-bottom: 10px;
+      padding: 0 2px;
+    }
+  </style>
+</head>
+<body>
+  <main class="board">
+    <header class="board-header">
+      <div>
+        <p class="eyebrow">RADAR PDDE · gate visual desktop</p>
+        <h1>Estados vazios que explicam o recorte e orientam a próxima ação</h1>
+        <p class="subtitle">Comparação no mesmo viewport e com os mesmos dados. A proposta aplica o contrato transversal C-09 sem alterar regras, filas, filtros, permissões ou persistência.</p>
+      </div>
+      <div class="status-badge"><span class="status-dot"></span> Mockup para aprovação · sem código funcional</div>
+    </header>
+
+    <section class="module">
+      <div class="module-heading">
+        <div>
+          <h2>1. Pendências Operacionais · fila Abertas</h2>
+          <p>O estado atual informa apenas a ausência. A proposta explicita competência, filtros e caminho de recuperação, mantendo as quatro filas aprovadas.</p>
+        </div>
+        <div class="contract">Contrato C-09 · estado vazio por recorte</div>
+      </div>
+
+      <div class="comparison">
+        <div class="screen-column">
+          <div class="screen-label"><span>Estado atual</span><span>Mensagem isolada</span></div>
+          <div class="screen">
+            <img src="../evidence/visual-polish-desktop/05-controlador-pendencias.png" alt="Estado atual de Pendências Operacionais sem registros">
+          </div>
+        </div>
+
+        <div class="screen-column">
+          <div class="screen-label"><span>Proposta</span><strong>Contexto + motivo + recuperação</strong></div>
+          <div class="screen">
+            <img src="../evidence/visual-polish-desktop/05-controlador-pendencias.png" alt="Base visual de Pendências Operacionais">
+            <div class="proposal-mask pendencias"></div>
+            <div class="empty-card pendencias">
+              <div class="empty-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+              </div>
+              <h3>Nenhuma pendência depende de providência da escola</h3>
+              <p>Com a competência global e os filtros atuais, não há itens na fila <strong>Abertas</strong>. As demais filas continuam disponíveis nas abas acima.</p>
+              <div class="context-row">
+                <span class="context-chip">Competência · Maio 2026</span>
+                <span class="context-chip">Filtros adicionais · Nenhum</span>
+              </div>
+              <div class="action-row">
+                <span class="mock-button primary">Consultar outra competência</span>
+                <span class="mock-button secondary">Entender esta fila</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="module-note">
+        <div class="note"><strong>Preservado:</strong> busca, oito filtros, contagem, abas Abertas/Aguardando reanálise/Resolvidas/Canceladas e a separação entre providência da escola e reanálise.</div>
+        <div class="note"><strong>Resultado esperado:</strong> o usuário entende por que a lista está vazia e consegue mudar o recorte sem interpretar ausência de dados como falha do sistema.</div>
+      </div>
+    </section>
+
+    <section class="module">
+      <div class="module-heading">
+        <div>
+          <h2>2. Registros Internos · primeiro uso</h2>
+          <p>O estado atual deixa apenas o cabeçalho da tabela. A proposta explica a geração automática do histórico e o que aparecerá ali, sem oferecer uma ação de criação indevida.</p>
+        </div>
+        <div class="contract">Contrato C-09 · estado vazio de primeiro uso</div>
+      </div>
+
+      <div class="comparison">
+        <div class="screen-column">
+          <div class="screen-label"><span>Estado atual</span><span>Tabela sem orientação</span></div>
+          <div class="screen">
+            <img src="../evidence/visual-polish-desktop/07-controlador-registros-internos-rendered.jpg" alt="Estado atual de Registros Internos sem eventos">
+          </div>
+        </div>
+
+        <div class="screen-column">
+          <div class="screen-label"><span>Proposta</span><strong>Primeiro uso + expectativa + ajuda</strong></div>
+          <div class="screen">
+            <img src="../evidence/visual-polish-desktop/07-controlador-registros-internos-rendered.jpg" alt="Base visual de Registros Internos">
+            <div class="audit-extension"></div>
+            <div class="audit-empty">
+              <div class="empty-icon audit" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                  <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+              </div>
+              <h3>Nenhum registro interno foi gerado ainda</h3>
+              <p>As ações de gravação e alteração aparecerão aqui com data, usuário, perfil, ação e detalhes. O histórico será preenchido automaticamente conforme o RADAR for utilizado.</p>
+              <div class="audit-info"><strong>O que será registrado:&nbsp;</strong> alterações de escolas, competências, pendências, notas fiscais e inventário.</div>
+              <div class="action-row">
+                <span class="mock-button secondary">Entender a rastreabilidade</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="module-note">
+        <div class="note"><strong>Preservado:</strong> título, finalidade, colunas Data e hora/Usuário/Perfil/Ação realizada/Detalhes e o caráter automático e imutável do log.</div>
+        <div class="note"><strong>Resultado esperado:</strong> a tela deixa de parecer incompleta e passa a explicar quando o histórico surgirá, sem induzir o usuário a criar registros manualmente.</div>
+      </div>
+    </section>
+
+    <section class="decision-strip">
+      <div>
+        <h2>Decisão solicitada</h2>
+        <p>Aprovar a direção visual e a linguagem funcional para detalhar os estados filtrado, sem permissão e indisponível antes da implementação.</p>
+      </div>
+      <div class="decision-pill">Gate visual · aguardando aprovação</div>
+    </section>
+  </main>
+  <script>
+    const mode = new URLSearchParams(window.location.search).get('mode');
+    if (mode) document.body.classList.add(`mode-${mode}`);
+  </script>
+</body>
+</html>

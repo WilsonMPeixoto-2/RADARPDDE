@@ -190,6 +190,8 @@ Nenhum novo pacote deve ser instalado apenas para cumprir essa sequência. Depen
 
 ## Próximo gate visual
 
+O primeiro gate foi materializado em [Gate visual 01 — estados vazios no desktop](2026-07-15-gate-visual-estados-vazios.md) e inserido no [quadro do Figma](https://www.figma.com/design/VVVjqKyaj0QnC9L63HT9yb/RADAR-PDDE-%E2%80%94-Auditoria-e-Polimento-Visual-Desktop?node-id=9-3&t=3mEQEC2NqCPE4ARa-0). Ele compara o estado atual e a proposta para Pendências Operacionais e Registros Internos, sem alteração da aplicação.
+
 Antes de alterar CSS ou HTML, apresentar no mesmo viewport:
 
 - captura atual;

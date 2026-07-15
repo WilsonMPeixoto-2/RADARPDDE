@@ -4,6 +4,7 @@
   "figma": {
     "fileKey": "VVVjqKyaj0QnC9L63HT9yb",
     "url": "https://www.figma.com/design/VVVjqKyaj0QnC9L63HT9yb",
+    "gateNodeUrl": "https://www.figma.com/design/VVVjqKyaj0QnC9L63HT9yb/RADAR-PDDE-%E2%80%94-Auditoria-e-Polimento-Visual-Desktop?node-id=9-3&t=3mEQEC2NqCPE4ARa-0",
     "purpose": "Quadro editavel com referencias protegidas, oportunidades de evolucao e gates de mockup."
   },
   "source": {
@@ -49,5 +50,40 @@
     { "step": 10, "file": "11-modal-edicao-unidade.png", "profile": "controlador", "surface": "modal-edicao-unidade" },
     { "step": 11, "file": "12-assistente-gestao-equipe.png", "profile": "assistente", "surface": "gestao-equipe" },
     { "step": 12, "file": "13-dialogo-desativacao-controladora.png", "profile": "assistente", "surface": "dialogo-desativacao-controladora" }
+  ],
+  "derivedArtifacts": [
+    {
+      "file": "07-controlador-registros-internos-rendered.jpg",
+      "source": "07-controlador-registros-internos.png",
+      "purpose": "Copia somente reencodada para renderizacao consistente no mockup; nenhum conteudo foi alterado."
+    }
+  ],
+  "mockups": [
+    {
+      "step": 13,
+      "file": "mockups/14-pendencias-estado-vazio-comparativo.jpg",
+      "surface": "pendencias",
+      "state": "abertas-sem-resultados",
+      "contract": "C-09",
+      "status": "proposta-aguardando-aprovacao"
+    },
+    {
+      "step": 14,
+      "file": "mockups/15-registros-internos-estado-vazio-comparativo.jpg",
+      "surface": "registros-internos",
+      "state": "primeiro-uso-sem-eventos",
+      "contract": "C-09",
+      "status": "proposta-aguardando-aprovacao"
+    }
+  ],
+  "prototypes": [
+    {
+      "file": "../../prototypes/2026-07-15-estados-vazios-desktop.html",
+      "purpose": "Quadro completo e reproduzivel do gate visual."
+    },
+    {
+      "file": "../../prototypes/2026-07-15-estados-vazios-figma-capture.html",
+      "purpose": "Superficie compacta e reproduzivel usada para inserir os comparativos no Figma."
+    }
   ]
 }
