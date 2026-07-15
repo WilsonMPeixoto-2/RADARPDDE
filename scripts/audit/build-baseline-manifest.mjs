@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process';
-import { readdir, stat, writeFile } from 'node:fs/promises';
+import { readFile, readdir, stat, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
@@ -15,9 +15,22 @@ for (const viewport of ['desktop', 'android', 'iphone']) {
   for (const name of names) {
     const match = name.match(/^([^_]+)__([^_]+)__([^_]+)__(desktop|android|iphone)\.png$/);
     if (!match) throw new Error(`Nome de captura inválido: ${name}`);
-    const fileStat = await stat(path.join(directory, name));
+    const imagePath = path.join(directory, name);
+    const metadataPath = imagePath.replace(/\.png$/, '.meta.json');
+    const fileStat = await stat(imagePath);
     if (fileStat.size < 6000) throw new Error(`Captura pequena ou vazia: ${viewport}/${name}`);
-    captures.push({ profile: match[1], surface: match[2], state: match[3], viewport, file: `${viewport}/${name}`, bytes: fileStat.size });
+    const metadata = JSON.parse(await readFile(metadataPath, 'utf8'));
+    captures.push({
+      profile: match[1],
+      surface: match[2],
+      state: match[3],
+      viewport,
+      file: `${viewport}/${name}`,
+      bytes: fileStat.size,
+      captureMode: metadata.captureMode,
+      documentHeight: metadata.documentHeight
+    });
+    await unlink(metadataPath);
   }
 }
 
