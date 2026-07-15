@@ -9,6 +9,7 @@
     function dependenciesReady() {
         return Boolean(
             root.RadarPendencias
+            && root.RadarApplicationServices?.pendencies
             && root.RadarTask9PendencyPage
             && typeof root.renderPendencias === 'function'
             && typeof root.openPendencyDetail === 'function'
@@ -20,24 +21,8 @@
         return typeof currentProfile !== 'undefined' ? currentProfile : '';
     }
 
-    function getUser() {
-        if (typeof getCurrentUser === 'function') return getCurrentUser();
-        return { name: 'Usuário não identificado', role: getProfile() || 'não informado' };
-    }
-
     function findPendency(id) {
         return Array.isArray(pendencias) ? pendencias.find(item => item.id === id) : null;
-    }
-
-    function replacePendency(updated) {
-        const index = pendencias.findIndex(item => item.id === updated.id);
-        if (index < 0) throw new Error('Pendência não encontrada para atualização.');
-        pendencias[index] = updated;
-        if (typeof rebuildOperationalIndexes === 'function') rebuildOperationalIndexes();
-    }
-
-    function nextId(prefix) {
-        return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     }
 
     function announce(message, type = 'success') {
@@ -254,7 +239,7 @@
         return openDialog('modal-pendency-contact', source.currentTarget || source);
     }
 
-    function savePendencyContact(event) {
+    async function savePendencyContact(event) {
         event.preventDefault();
         try {
             const reference = JSON.parse(document.getElementById('pendency-contact-id').value);
@@ -265,35 +250,19 @@
             }
             const description = document.getElementById('pendency-contact-description').value.trim();
             if (!description) throw new Error('Descrição do contato é obrigatória.');
-            const user = getUser();
-            const now = new Date().toISOString();
-            contatos.push({
-                id: nextId('contato-pendencia'),
-                pendenciaId: pendency.id,
-                escolaId: pendency.escolaId,
-                competencia: pendency.competenciaOrigem || pendency.competencia,
-                programaId: pendency.programaId || null,
-                documentoKey: pendency.documentoKey || null,
-                data: now.slice(0, 10),
-                dataHora: now,
-                tipo: document.getElementById('pendency-contact-channel').value,
-                descricao: description,
-                observacao: description,
-                responsavel: user.name,
-                usuario: user.name,
-                perfil: user.role || getProfile()
+            await root.RadarApplicationServices.pendencies.registerContact({
+                pendencyId: pendency.id,
+                schoolId: pendency.escolaId,
+                channel: document.getElementById('pendency-contact-channel').value,
+                description
             });
-            if (typeof registerLog === 'function') {
-                registerLog('Contato de pendência registrado', `${description} [Pendência ${String(pendency.id)}]`);
-            } else if (typeof persist === 'function') {
-                persist('contatos');
-            }
             closeDialog('modal-pendency-contact');
             originalRenderPendencias();
             originalOpenPendencyDetail(pendency.id);
             enhancePendencyActions();
             announce('Contato registrado e incluído na linha do tempo.');
         } catch (error) {
+            if (typeof reportRadarPersistenceError === 'function') reportRadarPersistenceError(error);
             announce(error.message || 'Não foi possível registrar o contato.', 'error');
         }
     }
@@ -310,34 +279,26 @@
         return openDialog('modal-pendency-cancel', source.currentTarget || source);
     }
 
-    function confirmCancelPendency(event) {
+    async function confirmCancelPendency(event) {
         event.preventDefault();
         try {
             const reference = JSON.parse(document.getElementById('pendency-cancel-id').value);
             const pendency = findPendency(reference.value);
             if (!pendency) throw new Error('Pendência não encontrada.');
             const justification = document.getElementById('pendency-cancel-justification').value.trim();
-            const user = getUser();
-            const updated = root.RadarPendencias.cancelPendency(pendency, {
-                justificativa: justification
-            }, {
-                eventId: nextId('evento-cancelamento'),
-                at: new Date().toISOString(),
-                usuario: user.name,
-                perfil: user.role || getProfile()
+            const response = await root.RadarApplicationServices.pendencies.cancel({
+                pendencyId: pendency.id,
+                justification
             });
-            replacePendency(updated);
-            if (typeof registerLog === 'function') {
-                registerLog('Pendência cancelada', `${justification} [Pendência ${String(updated.id)}]`);
-            } else if (typeof persist === 'function') {
-                persist('pendencias');
-            }
+            const updated = response.value.pendency;
+            if (typeof rebuildOperationalIndexes === 'function') rebuildOperationalIndexes();
             closeDialog('modal-pendency-cancel');
             originalRenderPendencias();
             originalOpenPendencyDetail(updated.id);
             enhancePendencyActions();
             announce('Pendência cancelada e preservada no histórico.');
         } catch (error) {
+            if (typeof reportRadarPersistenceError === 'function') reportRadarPersistenceError(error);
             announce(error.message || 'Não foi possível cancelar a pendência.', 'error');
         }
     }
@@ -355,7 +316,7 @@
         return openDialog('modal-pendency-reopen', source.currentTarget || source);
     }
 
-    function confirmReopenPendency(event) {
+    async function confirmReopenPendency(event) {
         event.preventDefault();
         try {
             const reference = JSON.parse(document.getElementById('pendency-reopen-id').value);
@@ -364,28 +325,20 @@
             const errors = Array.from(document.querySelectorAll('input[name="pendency-reopen-error"]:checked'))
                 .map(input => input.value);
             const justification = document.getElementById('pendency-reopen-justification').value.trim();
-            const user = getUser();
-            const updated = root.RadarPendencias.reopenPendency(pendency, {
-                justificativa: justification,
-                errosAtuais: errors
-            }, {
-                eventId: nextId('evento-reabertura'),
-                at: new Date().toISOString(),
-                usuario: user.name,
-                perfil: user.role || getProfile()
+            const response = await root.RadarApplicationServices.pendencies.reopen({
+                pendencyId: pendency.id,
+                justification,
+                errors
             });
-            replacePendency(updated);
-            if (typeof registerLog === 'function') {
-                registerLog('Pendência reaberta', `${justification} [Pendência ${String(updated.id)}]`);
-            } else if (typeof persist === 'function') {
-                persist('pendencias');
-            }
+            const updated = response.value.pendency;
+            if (typeof rebuildOperationalIndexes === 'function') rebuildOperationalIndexes();
             closeDialog('modal-pendency-reopen');
             originalRenderPendencias();
             originalOpenPendencyDetail(updated.id);
             enhancePendencyActions();
             announce('Pendência reaberta e devolvida à fila Abertas.');
         } catch (error) {
+            if (typeof reportRadarPersistenceError === 'function') reportRadarPersistenceError(error);
             announce(error.message || 'Não foi possível reabrir a pendência.', 'error');
         }
     }

@@ -2,16 +2,53 @@
   "name": "radar-pdde",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=24 <27"
+  },
   "scripts": {
-    "check": "node --check app.js",
+    "check": "node --check app.js && node --check config.runtime.js && node --check config.js && node --check src/auth/session-service.js && node --check src/integration/auth-bootstrap.js && node --check src/integration/auth-gate.js && node --check src/application/error-mapper.js && node --check src/application/state-port.js && node --check src/application/unit-of-work.js && node --check src/application/data-service.js && node --check src/application/configuration-service.js && node --check src/application/directory-service.js && node --check src/application/school-service.js && node --check src/application/pendency-service.js && node --check src/application/verification-service.js && node --check src/application/audit-service.js && node --check src/application/invoice-service.js && node --check src/application/inventory-service.js && node --check src/data/repository-contract.js && node --check src/data/local-storage-repository.js && node --check src/data/supabase-repository.js && node --check src/data/repository-factory.js && node --check src/data/snapshot-tools.js && node --check src/data/legacy-state-adapter.js && node --check src/data/state-bridge.js && node --check src/data/state-bridge-metadata.js && node --check src/integration/exercise-management.js && node --check src/integration/exercise-early-init.js && node --check src/vendor/supabase-client-entry.js && node --check scripts/bootstrap-local-auth-fixtures.mjs && node --check scripts/check-local-auth-fixtures.mjs && node --check scripts/check-supabase-readiness.js && node --check scripts/audit-functional-persistence.js && node --check scripts/check-generated-artifacts.js && node --check scripts/build-supabase-client.mjs && node --check scripts/generate-runtime-config.mjs && node --check src/domain/json-contracts.js && node --check src/data/import-coordinator.js && node --check src/vendor/ajv-entry.js && node --check scripts/build-ajv.mjs && node --check scripts/migration-cli.mjs",
+    "bootstrap:auth-fixtures": "node scripts/bootstrap-local-auth-fixtures.mjs",
+    "check:auth-fixtures": "node scripts/check-local-auth-fixtures.mjs",
+    "check:supabase": "node scripts/check-supabase-readiness.js",
+    "check:generated": "node scripts/check-generated-artifacts.js",
+    "check:runtime-config": "node scripts/generate-runtime-config.mjs --check",
+    "audit:functional": "node scripts/audit-functional-persistence.js",
+    "audit:functional:json": "node scripts/audit-functional-persistence.js --json",
+    "build:supabase-client": "node scripts/build-supabase-client.mjs",
+    "generate:runtime-config": "node scripts/generate-runtime-config.mjs",
+    "typecheck:database": "tsc -p tsconfig.database-types.json --noEmit",
     "start": "http-server . -p 4175 -c-1",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop --no-backup",
+    "supabase:reset": "supabase db reset --local",
+    "supabase:test:db": "supabase test db supabase/tests/database",
+    "supabase:lint:db": "supabase db lint --local --schema public --level warning --fail-on error",
+    "supabase:gen:types": "supabase gen types typescript --local --schema public > src/types/database.types.ts",
+    "test:unit": "node --test tests/unit/*.test.js",
+    "test:readiness": "npm run check && npm run test:unit && npm run test:integration && npm run check:supabase && npm run check:runtime-config && npm run check:generated && npm run typecheck:database && npm run audit:functional",
     "test:e2e": "playwright test",
     "test:mobile": "playwright test --project=mobile-chromium --project=mobile-webkit",
     "test:mobile:headed": "playwright test --project=mobile-chromium --headed",
-    "playwright:install": "playwright install chromium webkit"
+    "playwright:install": "playwright install chromium webkit",
+    "build:ajv": "node scripts/build-ajv.mjs",
+    "migration:plan": "node scripts/migration-cli.mjs plan",
+    "migration:validate": "node scripts/migration-cli.mjs validate",
+    "migration:dry-run": "node scripts/migration-cli.mjs dry-run",
+    "migration:import:local": "node scripts/migration-cli.mjs import:local",
+    "migration:reconcile": "node scripts/migration-cli.mjs reconcile",
+    "migration:rollback": "node scripts/migration-cli.mjs rollback",
+    "test:integration": "node --test tests/integration/*.test.js"
   },
   "devDependencies": {
-    "@playwright/test": "1.61.0",
-    "http-server": "^14.1.1"
+    "@axe-core/playwright": "4.12.1",
+    "@playwright/test": "1.61.1",
+    "@supabase/supabase-js": "2.110.5",
+    "acorn": "8.17.0",
+    "acorn-walk": "8.3.5",
+    "ajv": "8.20.0",
+    "esbuild": "0.28.1",
+    "http-server": "14.1.1",
+    "supabase": "2.109.1",
+    "typescript": "7.0.2"
   }
 }

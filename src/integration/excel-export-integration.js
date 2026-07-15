@@ -79,6 +79,7 @@
     function logExport(details) {
         if (typeof registerLog === 'function') {
             registerLog('Relatório Excel Exportado', details);
+            if (typeof persist === 'function') persist('logs');
         }
     }
 

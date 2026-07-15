@@ -1,0 +1,62 @@
+name: Validar Supabase remoto
+
+on:
+  workflow_dispatch:
+    inputs:
+      project_ref:
+        description: Referência do projeto ou branch Supabase autorizado
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  SUPABASE_TELEMETRY_DISABLED: '1'
+  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+  PGPASS_REMOTE: ${{ secrets.SUPABASE_DB_PASSWORD }}
+
+jobs:
+  remote-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+
+      - name: Validar autorização e segredos do ambiente
+        run: |
+          test -n "${SUPABASE_ACCESS_TOKEN}" || { echo 'SUPABASE_ACCESS_TOKEN ausente.' >&2; exit 1; }
+          test -n "${PGPASS_REMOTE}" || { echo 'Segredo de senha do banco ausente.' >&2; exit 1; }
+          test -n "${{ inputs.project_ref }}" || { echo 'project_ref ausente.' >&2; exit 1; }
+
+      - name: Vincular projeto autorizado
+        run: supabase link --project-ref "${{ inputs.project_ref }}" --password "${PGPASS_REMOTE}"
+
+      - name: Simular aplicação das migrations
+        run: supabase db push --linked --dry-run
+
+      - name: Executar lint remoto
+        run: supabase db lint --linked --schema public --level warning --fail-on error
+
+      - name: Executar pgTAP remoto em transações reversíveis
+        run: supabase test db supabase/tests/database --linked
+
+      - name: Comparar tipos remotos com o contrato versionado
+        run: |
+          supabase gen types typescript --linked --schema public > /tmp/database.remote.types.ts
+          diff --unified src/types/database.types.ts /tmp/database.remote.types.ts
+
+      - name: Listar branches disponíveis
+        run: supabase branches list --project-ref "${{ inputs.project_ref }}" --output json

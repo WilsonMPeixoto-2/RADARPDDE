@@ -1,0 +1,271 @@
+name: Supabase readiness
+
+on:
+  pull_request:
+    paths:
+      - 'app.js'
+      - 'index.html'
+      - 'config.js'
+      - 'config.runtime.js'
+      - '.env.example'
+      - 'src/**'
+      - 'vendor/**'
+      - 'scripts/check-supabase-readiness.js'
+      - 'scripts/bootstrap-local-auth-fixtures.mjs'
+      - 'scripts/check-local-auth-fixtures.mjs'
+      - 'scripts/check-generated-artifacts.js'
+      - 'scripts/build-supabase-client.mjs'
+      - 'scripts/generate-runtime-config.mjs'
+      - 'scripts/audit-functional-persistence.js'
+      - 'supabase/**'
+      - 'tests/unit/**'
+      - 'tests/integration/**'
+      - 'tests/e2e/data-error-ux.spec.js'
+      - 'tests/e2e/supabase-full-contract.spec.js'
+      - 'tests/e2e/supabase-local-mode.spec.js'
+      - 'tests/e2e/supabase-auth-local.spec.js'
+      - 'tests/e2e/exercise-management.spec.js'
+      - 'tests/e2e/frontend-contract.spec.js'
+      - 'docs/architecture/supabase-readiness.md'
+      - 'docs/reference/SUPABASE_*.md'
+      - 'docs/runbooks/SUPABASE_*.md'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.database-types.json'
+      - '.github/workflows/supabase-readiness.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'app.js'
+      - 'index.html'
+      - 'config.js'
+      - 'config.runtime.js'
+      - '.env.example'
+      - 'src/**'
+      - 'vendor/**'
+      - 'scripts/check-supabase-readiness.js'
+      - 'scripts/bootstrap-local-auth-fixtures.mjs'
+      - 'scripts/check-local-auth-fixtures.mjs'
+      - 'scripts/check-generated-artifacts.js'
+      - 'scripts/build-supabase-client.mjs'
+      - 'scripts/generate-runtime-config.mjs'
+      - 'scripts/audit-functional-persistence.js'
+      - 'supabase/**'
+      - 'tests/unit/**'
+      - 'tests/integration/**'
+      - 'tests/e2e/data-error-ux.spec.js'
+      - 'tests/e2e/supabase-full-contract.spec.js'
+      - 'tests/e2e/supabase-local-mode.spec.js'
+      - 'tests/e2e/supabase-auth-local.spec.js'
+      - 'tests/e2e/exercise-management.spec.js'
+      - 'tests/e2e/frontend-contract.spec.js'
+      - 'docs/architecture/supabase-readiness.md'
+      - 'docs/reference/SUPABASE_*.md'
+      - 'docs/runbooks/SUPABASE_*.md'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.database-types.json'
+      - '.github/workflows/supabase-readiness.yml'
+
+permissions:
+  contents: read
+
+env:
+  SUPABASE_TELEMETRY_DISABLED: '1'
+
+jobs:
+  readiness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Configurar Node.js LTS
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+
+      - name: Executar validação completa de prontidão
+        run: npm run test:readiness
+
+  migration-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: radar_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d radar_test"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: radar_test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Instalar cliente PostgreSQL
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client
+
+      - name: Aplicar bootstrap e todas as migrations
+        run: |
+          set -euo pipefail
+          psql -v ON_ERROR_STOP=1 -f supabase/tests/bootstrap.sql
+          for migration in supabase/migrations/*.sql; do
+            echo "Aplicando ${migration}"
+            psql -v ON_ERROR_STOP=1 -f "${migration}"
+          done
+
+      - name: Exercitar versão, auditoria, contexto e autorização
+        run: psql -v ON_ERROR_STOP=1 -f supabase/tests/smoke.sql
+
+  supabase-local:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Configurar Node.js LTS
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+
+      - name: Instalar Chromium para o gate Auth local
+        run: npx playwright install --with-deps chromium
+
+      - name: Iniciar Supabase local
+        run: npm run supabase:start
+
+      - name: Recriar banco com doze migrations e seed local
+        run: npm run supabase:reset
+
+      - name: Executar testes pgTAP
+        run: npm run supabase:test:db
+
+      - name: Executar lint de PL/pgSQL
+        run: npm run supabase:lint:db
+
+      - name: Regenerar tipos e cliente fixado
+        run: |
+          mkdir -p src/types
+          npm run supabase:gen:types
+          npm run build:supabase-client
+          npm run build:ajv
+
+      - name: Publicar artefatos regenerados
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: generated-supabase-artifacts
+          path: |
+            src/types/database.types.ts
+            vendor/supabase-client.js
+            vendor/ajv.js
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Confirmar artefatos reproduzíveis
+        run: |
+          npm run check:generated
+          npm run typecheck:database
+
+      - name: Preparar identidades Auth e configuração temporária
+        shell: bash
+        run: |
+          set -euo pipefail
+          eval "$(npx supabase status -o env | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=')"
+          test -n "${API_URL:-}"
+          test -n "${ANON_KEY:-}"
+          test -n "${SERVICE_ROLE_KEY:-}"
+          FIXTURE_PASSWORD="$(node --input-type=module -e "import { randomBytes } from 'node:crypto'; process.stdout.write(randomBytes(32).toString('base64url') + 'A1!')")"
+          echo "::add-mask::${FIXTURE_PASSWORD}"
+          echo "::add-mask::${SERVICE_ROLE_KEY}"
+          RADAR_ALLOW_LOCAL_AUTH_BOOTSTRAP=true \
+          RADAR_SUPABASE_URL="${API_URL}" \
+          RADAR_SUPABASE_ADMIN_KEY="${SERVICE_ROLE_KEY}" \
+          RADAR_AUTH_FIXTURE_PASSWORD="${FIXTURE_PASSWORD}" \
+          npm run bootstrap:auth-fixtures
+          RADAR_DATA_MODE=supabase-preview \
+          RADAR_ENVIRONMENT=test \
+          RADAR_SUPABASE_REPOSITORY_ENABLED=true \
+          RADAR_SUPABASE_URL="${API_URL}" \
+          RADAR_SUPABASE_PUBLISHABLE_KEY="${ANON_KEY}" \
+          npm run generate:runtime-config
+          {
+            printf 'RADAR_SUPABASE_URL=%s\n' "${API_URL}"
+            printf 'RADAR_SUPABASE_PUBLISHABLE_KEY=%s\n' "${ANON_KEY}"
+            printf 'RADAR_AUTH_FIXTURE_PASSWORD=%s\n' "${FIXTURE_PASSWORD}"
+          } >> "${GITHUB_ENV}"
+
+      - name: Validar login das sete identidades Auth
+        id: auth-probe
+        shell: bash
+        run: |
+          set +e
+          npm run check:auth-fixtures > auth-probe.log 2>&1
+          status=$?
+          cat auth-probe.log
+          exit "${status}"
+
+      - name: Publicar diagnóstico seguro do login-probe
+        if: ${{ failure() && steps.auth-probe.conclusion == 'failure' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: auth-probe-diagnostic
+          path: auth-probe.log
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Exercitar frontend, Auth e RLS na pilha Supabase local
+        env:
+          RADAR_E2E_SUPABASE_LOCAL: '1'
+        run: npx playwright test tests/e2e/supabase-auth-local.spec.js tests/e2e/supabase-full-contract.spec.js --project=desktop-chromium
+
+      - name: Publicar relatório do contrato Supabase local
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: playwright-report-supabase-local
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: warn
+          retention-days: 1
+
+      - name: Restaurar configuração pública local
+        if: always()
+        run: npm run generate:runtime-config
+
+      - name: Encerrar Supabase local
+        if: always()
+        run: npm run supabase:stop || true

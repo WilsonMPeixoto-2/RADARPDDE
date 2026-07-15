@@ -2,85 +2,54 @@
 
 O **RADAR PDDE** é uma aplicação web para acompanhar o ciclo de entrega, análise, regularização e consolidação dos programas do PDDE por unidade escolar, competência, programa e documento.
 
-O sistema apoia o trabalho cotidiano de Controladores, Assistentes, equipe de Inventário e gestão da SME, transformando registros documentais em filas de trabalho, históricos auditáveis e informações gerenciais navegáveis.
+O sistema apoia Controladores, Assistentes, equipe de Inventário e gestão da SME, transformando registros documentais em filas de trabalho, históricos auditáveis e informações gerenciais navegáveis.
 
-## Estado atual — 12 de julho de 2026
+## Estado atual — Gate de Pré-conexão Supabase
 
-O pacote integrado do **PR 18** foi concluído e incorporado à `main`. Ele reúne as Tasks 10–13 do Ciclo A, o Dashboard operacional e a integração da Carteira de Escolas ao mesmo modelo de acompanhamento.
+A base funcional aprovada permanece em operação com persistência local. O PR 22 prepara integralmente a arquitetura para futura conexão ao Supabase, sem ativar banco remoto, autenticação remota ou sincronização em produção.
 
-O **PR 19** corrigiu uma regressão visual e funcional na Carteira de Escolas: a tabela aprovada foi restaurada com os programas em destaque, os dados da direção e os botões **Ver Unidade** e **Editar**, preservando os novos filtros e indicadores operacionais.
-
-| Ambiente | Situação atual |
+| Camada | Situação |
 |---|---|
-| `main` | Contém o pacote completo do PR 18 e a correção do PR 19. |
-| Preview corrigido | Pronto para validação e promoção; reúne o Dashboard aprovado e a Carteira restaurada. |
-| Produção | Ainda apresenta a versão anterior à correção da Carteira. A promoção do Preview ficou pendente porque o limite diário de implantações do plano gratuito da Vercel foi atingido. |
+| Frontend e regras de negócio | Aprovados e independentes do backend. |
+| Produção Vercel | `dataMode: local`, operando em `localStorage`. |
+| Persistência | Contrato único com adaptadores local e Supabase. |
+| Supabase | Preparado e comprovado na pilha local; projeto remoto ainda não conectado. |
+| Migração | Staging, retomada, hash, promoção, reconciliação e rollback preparados. |
 
-**Próxima ação operacional:** promover o Preview corrigido para produção quando o limite da Vercel for restabelecido e realizar uma conferência rápida das telas principais. Não há indicação de rollback.
+A formulação correta é:
 
-O relatório completo da sessão está em [`docs/reports/RELATORIO_ESTADO_ATUAL_2026-07-12.md`](docs/reports/RELATORIO_ESTADO_ATUAL_2026-07-12.md).
+> O RADAR está integralmente preparado para conexão ao Supabase, sem necessidade de nova refatoração estrutural. O Supabase ainda não está implantado nem ativado em produção.
 
-## Progressão das últimas sessões
+## Progressão funcional consolidada
 
-### Ciclo A até a Task 9
+### Ciclo documental
 
 - criação do modelo de pendências documentais;
 - registro de novo envio e reanálise;
 - separação entre bonificação, análise técnica e pendência;
-- página de Pendências com quatro filas, busca, filtros, detalhes e histórico;
+- quatro filas operacionais de pendências;
 - navegação contextual entre Pendências, Competências e Prontuário;
-- geração do relatório Excel `.xlsx`.
-
-### Tasks 10 e 11
-
-- registro de contatos relacionados a uma pendência, sem alterar sua situação;
-- cancelamento justificado de pendência lançada indevidamente;
-- reabertura de pendência resolvida, preservando o histórico anterior;
-- alertas diferenciando providência da escola e reanálise do Controlador.
-
-### Tasks 12 e 13
-
-- retificação administrativa pelo perfil Assistente;
-- comparação clara entre informação anterior e informação corrigida;
-- justificativa obrigatória e histórico da retificação;
-- preservação das pendências e da análise técnica durante a retificação.
+- contatos, cancelamento, reabertura e retificação administrativa;
+- histórico auditável e relatório Excel `.xlsx`.
 
 ### Dashboard e Carteira
 
 - indicadores separados para pendências abertas e itens aguardando reanálise;
-- quadro de próximas ações priorizado pelo tempo de espera;
-- tarefa regular consolidada para escolas que aguardam lançamento de bonificação;
-- transporte de filtros do Dashboard para a Carteira;
-- busca da Carteira por nome, designação e INEP;
-- filtros por situação documental;
-- preservação da tabela aprovada, dos programas e das ações **Ver Unidade** e **Editar**.
+- filtros locais coerentes com listas e próximas ações;
+- ações contextuais para abrir pendência ou reanalisar documento;
+- busca por nome, designação e INEP;
+- filtros técnicos e documentais;
+- tabela desktop preservada e cartões operacionais no mobile;
+- ações **Ver Unidade**, **Editar** e **Abrir Pendências**.
 
-### Qualidade e validação
+### Qualidade e acessibilidade
 
-- refinamentos de foco, teclado, leitura por tecnologias assistivas e adaptação móvel;
-- verificação de ausência de rolagem indevida nas telas principais;
-- 136 testes de regras e dados aprovados;
-- 61 testes completos de uso aprovados;
-- 2 cenários ignorados por configuração e nenhuma falha.
-
-## Regra de preservação visual e funcional
-
-Melhorias de qualidade visual são permitidas quando aperfeiçoam os elementos existentes, por exemplo:
-
-- espaçamento, alinhamento e hierarquia;
-- tipografia, contraste e legibilidade;
-- responsividade e adaptação móvel;
-- consistência e acabamento visual.
-
-Exigem **aprovação expressa prévia** do responsável pelo projeto:
-
-- remover ou acrescentar caminhos de navegação;
-- retirar, trocar ou mudar a finalidade de botões;
-- substituir componentes ou tabelas já aprovados;
-- alterar colunas, permissões, fluxos ou funcionalidades;
-- modificar o conceito estético definido.
-
-Uma apresentação aparentemente mais organizada não autoriza alteração funcional. Toda evolução visual deve preservar integralmente as ações e os caminhos existentes, salvo decisão expressa em contrário.
+- foco, Escape, armadilha de teclado e retorno ao acionador nos modais;
+- mensagens de falha em região `aria-live`;
+- formulários preservados após falha de dados;
+- testes desktop Chromium, Android/Chromium e iPhone/WebKit;
+- acessibilidade automatizada com axe;
+- garantia de zero requisições ao Supabase no modo local.
 
 ## Modelo funcional
 
@@ -88,7 +57,7 @@ O RADAR PDDE mantém três dimensões relacionadas, porém independentes.
 
 ### Bonificação
 
-Avalia a entrega tempestiva dos documentos exigidos e produz o resultado **APTA** ou **INAPTA** para fins de consolidação e encaminhamento à SME.
+Avalia a entrega tempestiva dos documentos exigidos e produz o resultado **APTA** ou **INAPTA**.
 
 ### Análise técnica
 
@@ -98,7 +67,7 @@ Registra a qualidade e a correção de cada documento: não analisado, em análi
 
 Controla o saneamento de documento ausente ou incorreto. Uma pendência somente é encerrada quando o documento é apresentado e a reanálise confirma sua correção.
 
-Consequentemente, combinações como **APTA + documento incorreto + pendência ativa** são válidas. A regularização posterior não altera automaticamente a bonificação histórica.
+Combinações como **APTA + documento incorreto + pendência ativa** são válidas. A regularização posterior não altera automaticamente a bonificação histórica.
 
 ## Ciclo das pendências
 
@@ -117,70 +86,82 @@ Estados canônicos:
 - `Resolvida` — reanálise positiva concluída;
 - `Cancelada` — lançamento indevido cancelado com justificativa.
 
-`Aberta` e `Aguardando reanálise` são pendências ativas. Não existe estado `Vencida`; a antiguidade é utilizada para priorização.
+## Principais áreas
 
-## Principais áreas do sistema
-
-- **Dashboard:** visão da carteira, indicadores separados e próximas ações;
-- **Carteira de Escolas:** pesquisa, filtros, comparação das unidades, consulta e edição;
-- **Visão por Competência:** acompanhamento mensal de bonificação, análise e pendências;
+- **Dashboard:** visão da carteira, indicadores e próximas ações;
+- **Carteira de Escolas:** pesquisa, filtros, consulta e edição;
+- **Visão por Competência:** bonificação, análise e pendências mensais;
 - **Prontuário:** contexto completo da escola, programa e documento;
-- **Pendências:** quatro filas, busca global, filtros, detalhes, contatos e histórico;
-- **Excel:** relatório estruturado com bonificações, síntese, qualidade dos dados e metadados.
+- **Pendências:** filas, busca, detalhes, contatos e histórico;
+- **Excel:** relatório estruturado e metadados de qualidade.
+
+## Arquitetura de persistência
+
+```text
+Frontend aprovado
+       ↓
+Serviços de aplicação
+       ↓
+Unidade de trabalho e contrato único
+       ├── LocalStorageRepository — modo vigente
+       └── SupabaseRepository — modo preparado
+```
+
+O modo publicado continua:
+
+- `dataMode: "local"`;
+- `supabaseRepositoryEnabled: false`;
+- URL e chave publicável vazias;
+- nenhuma conexão Supabase.
+
+A preparação inclui:
+
+- serviços de aplicação e rollback determinístico;
+- snapshots canônicos e porta de estado;
+- 12 migrations PostgreSQL;
+- Auth local, cinco perfis e RLS;
+- Ajv e `pg_jsonschema`;
+- RPCs transacionais;
+- concorrência otimista por `row_version`;
+- importação reversível por `importId`;
+- artefatos gerados e fixados por versão.
+
+Nunca utilize `service_role`, `sb_secret_*`, senha do banco ou token administrativo no frontend, no GitHub ou nos logs.
+
+## Migração preparada
+
+```text
+exportar → validar → planejar → staging
+        → retomar lotes → reconciliar
+        → promover atomicamente → reconciliar destino
+        → concluir ou reverter
+```
+
+A migração não é iniciada automaticamente quando o banco está vazio. A futura execução remota dependerá de projeto aprovado, cópia controlada, janela, homologação e autorização expressa.
 
 ## Documentação oficial
 
-O índice completo está em [`docs/README.md`](docs/README.md). A matriz de precedência, disponibilidade e integridade está em [`docs/reference/STATUS_DOCUMENTOS.md`](docs/reference/STATUS_DOCUMENTOS.md).
+O índice completo está em [`docs/README.md`](docs/README.md). Documentos principais:
 
-Documentação arquitetural já versionada:
-
-- [`Modelo operacional compartilhado`](docs/architecture/modelo-operacional.md);
-- [`Retificações administrativas`](docs/architecture/retificacoes.md);
-- [`Competências`](docs/architecture/competencias.md);
-- [`Testes e validação`](docs/architecture/testing.md);
-- [`Status e precedência dos documentos`](docs/reference/STATUS_DOCUMENTOS.md).
-
-## Precedência das decisões
-
-Quando houver divergência entre fontes, deve ser aplicada a seguinte ordem:
-
-1. orientação expressa mais recente do responsável pelo projeto;
-2. relatório atual de execução, quanto ao estado da implementação;
-3. Dossiê consolidado;
-4. Plano aprovado do Lote 2;
-5. plano técnico da implementação;
-6. código vigente.
-
-Decisões consolidadas não devem ser reabertas sem nova regra institucional, defeito comprovado ou determinação expressa.
-
-## Dados e persistência
-
-Nesta fase, a aplicação utiliza:
-
-- dados iniciais versionados no frontend;
-- persistência no `localStorage` do navegador;
-- Supabase deliberadamente desabilitado em `config.js`.
-
-Limitações atuais:
-
-- não há autenticação real;
-- não há sincronização automática entre dispositivos;
-- permissões definitivas serão estabelecidas na futura integração com Supabase;
-- a retificação está provisoriamente autorizada ao perfil Assistente por regra centralizada;
-- não há conferência automática de arquivos no Google Drive.
-
-Nunca utilize uma chave `service_role` no frontend.
+- [`Arquitetura de prontidão`](docs/architecture/supabase-readiness.md);
+- [`Cobertura funcional`](docs/reference/SUPABASE_FUNCTIONAL_COVERAGE.md);
+- [`Auditoria da integração`](docs/reference/SUPABASE_INTEGRATION_AUDIT.md);
+- [`Dicionário de dados`](docs/reference/SUPABASE_DATA_DICTIONARY.md);
+- [`Matriz de permissões`](docs/reference/SUPABASE_PERMISSIONS_MATRIX.md);
+- [`Runbook de conexão`](docs/runbooks/SUPABASE_CONNECTION.md);
+- [`Migração e rollback`](docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md);
+- [`Relatório final do PR 22`](docs/handoff/PR22_FINAL_GATE_REPORT_2026-07-14.md).
 
 ## Executar localmente
 
-Requisitos: Node.js compatível com o projeto e npm.
+Requisitos: Node.js 24 e npm.
 
 ```bash
-npm install
+npm ci
 npm start
 ```
 
-A aplicação será disponibilizada em:
+Aplicação:
 
 ```text
 http://127.0.0.1:4175
@@ -188,35 +169,48 @@ http://127.0.0.1:4175
 
 ## Testes
 
-Validação de sintaxe e domínio:
+Validação estrutural completa:
 
 ```bash
-npm run check
+npm run test:readiness
 ```
 
-Playwright completo:
+Pilha Supabase local:
+
+```bash
+npm run supabase:start
+npm run supabase:reset
+npm run supabase:test:db
+npm run supabase:lint:db
+npm run supabase:stop
+```
+
+Interface:
 
 ```bash
 npm run test:e2e
+npm run test:mobile
 ```
 
-Projetos cobertos:
+Migração local controlada:
 
-- Chromium desktop;
-- Android/Chromium;
-- iPhone/WebKit.
+```bash
+npm run migration:plan -- --snapshot <snapshot.json>
+npm run migration:validate -- --snapshot <snapshot.json>
+npm run migration:dry-run -- --snapshot <snapshot.json>
+```
 
-## Organização do desenvolvimento
+## Regra de preservação
 
-- `main` — base aprovada para publicação;
-- branches `feature/*` e `fix/*` — trabalho isolado;
-- alterações relevantes são revisadas por Pull Request;
-- mudanças funcionais, merge e produção exigem autorização expressa;
-- testes e Preview da Vercel devem ser aprovados antes do encerramento.
+Melhorias visuais podem aperfeiçoar espaçamento, tipografia, contraste, responsividade e acabamento. Exigem aprovação expressa alterações em navegação, botões, tabelas, colunas, permissões, fluxos, regras ou conceito estético.
 
-## Roadmap consolidado
+## Próxima etapa
 
-1. **Publicação da correção:** promover o Preview corrigido após a renovação do limite da Vercel;
-2. **Conferência pós-publicação:** validar Dashboard, Carteira, Pendências, Competências e Prontuário;
-3. **Prontuário ampliado:** evolução estrutural prevista para o Ciclo C;
-4. **Infraestrutura futura:** Supabase, autenticação e permissões institucionais.
+1. criar ou selecionar um projeto Supabase autorizado;
+2. configurar Preview com URL e chave publicável;
+3. aplicar as 12 migrations;
+4. criar usuários reais de homologação;
+5. testar Auth, RLS, migração e reconciliação remotos;
+6. executar Advisors, backup, restauração e MFA;
+7. homologar o Preview;
+8. somente após autorização, avaliar a ativação em produção.

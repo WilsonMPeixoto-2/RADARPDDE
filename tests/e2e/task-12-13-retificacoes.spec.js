@@ -93,12 +93,16 @@ test.describe('Tasks 12–13 — retificação administrativa auditável', () =>
     const result = await page.evaluate(({ schoolId, compKey }) => {
       const verification = verificacoes[schoolId][compKey];
       const pendency = pendencias.find(item => item.id === 'retification-independent-pendency');
+      const canonical = JSON.parse(
+        localStorage.getItem('radar_pdde_repository:verifications')
+      ).find(item => item.school_id === schoolId && `${item.competence_id}_${item.program_id}` === compKey);
       return {
         bonus: verification.bonificacao.extINV,
         result: verification.resultadoBonif,
         analysis: verification.analise,
         retifications: verification.retificacoes,
-        pendency
+        pendency,
+        canonicalRetifications: canonical?.payload?.retificacoes || []
       };
     }, seeded);
 
@@ -108,6 +112,7 @@ test.describe('Tasks 12–13 — retificação administrativa auditável', () =>
     expect(result.retifications).toHaveLength(1);
     expect(result.retifications[0].before.bonificacao.extINV).toBe('Não');
     expect(result.retifications[0].after.bonificacao.extINV).toBe('Sim');
+    expect(result.canonicalRetifications).toEqual(result.retifications);
   });
 
   test('Controlador não recebe ação de retificação', async ({ page }, testInfo) => {

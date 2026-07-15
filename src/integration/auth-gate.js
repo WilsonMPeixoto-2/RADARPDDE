@@ -1,0 +1,160 @@
+(function installRadarAuthGate(root, factory) {
+    'use strict';
+
+    const api = factory();
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports = api;
+    }
+    if (root) {
+        root.RadarAuthGateApi = Object.freeze(api);
+        if (root.document) {
+            root.RadarAuthGate = new api.AuthGate({ root, document: root.document });
+            root.RadarAuthGate.initialize();
+        }
+    }
+}(typeof window !== 'undefined' ? window : globalThis, function createAuthGateApi() {
+    'use strict';
+
+    const ROLE_TO_LEGACY_PROFILE = Object.freeze({
+        controller: 'controlador',
+        federal_assistant: 'assistente',
+        inventory: 'inventario',
+        sme_management: 'sme',
+        technical_admin: 'assistente'
+    });
+
+    function legacyProfileForRole(role) {
+        const profile = ROLE_TO_LEGACY_PROFILE[String(role || '')];
+        if (!profile) throw new Error('Perfil institucional não reconhecido pela interface.');
+        return profile;
+    }
+
+    class AuthGate {
+        constructor(options = {}) {
+            this.root = options.root;
+            this.document = options.document;
+            this.enabled = this.root?.RADAR_PDDE_CONFIG?.supabase?.connectionEnabled === true;
+            this.bound = false;
+        }
+
+        initialize() {
+            if (!this.enabled) {
+                this.document.documentElement.classList.remove('radar-auth-required');
+                return;
+            }
+            this.bind();
+            this.show('Entre para acessar o RADAR PDDE.');
+            this.root.addEventListener('radar:auth-required', event => {
+                this.show(event?.detail?.message || 'Entre para acessar o RADAR PDDE.');
+            });
+        }
+
+        bind() {
+            if (this.bound) return;
+            const form = this.document.getElementById('radar-auth-form');
+            const logout = this.document.getElementById('auth-logout-button');
+            if (!form) return;
+            this.bound = true;
+            form.addEventListener('submit', event => this.handleSubmit(event));
+            logout?.addEventListener('click', () => this.handleSignOut());
+            const switcher = this.document.querySelector('.profile-switcher');
+            if (switcher) {
+                switcher.hidden = true;
+                switcher.setAttribute('aria-hidden', 'true');
+            }
+            if (logout) logout.hidden = false;
+        }
+
+        show(message) {
+            if (!this.enabled) return;
+            this.document.documentElement.classList.add('radar-auth-required');
+            const app = this.document.getElementById('app-layout');
+            if (app) app.inert = true;
+            this.setStatus(message || 'Entre para acessar o RADAR PDDE.', 'info');
+            this.root.requestAnimationFrame?.(() => {
+                this.document.getElementById('radar-auth-email')?.focus();
+            });
+        }
+
+        hide() {
+            this.document.documentElement.classList.remove('radar-auth-required');
+            const app = this.document.getElementById('app-layout');
+            if (app) app.inert = false;
+            this.setStatus('', 'info');
+        }
+
+        setStatus(message, type = 'info') {
+            const status = this.document.getElementById('radar-auth-status');
+            if (!status) return;
+            status.textContent = message || '';
+            status.dataset.type = type;
+        }
+
+        async handleSubmit(event) {
+            event.preventDefault();
+            const form = event.currentTarget;
+            const submit = form.querySelector('[type="submit"]');
+            const email = this.document.getElementById('radar-auth-email')?.value || '';
+            const password = this.document.getElementById('radar-auth-password')?.value || '';
+            const service = this.root.RadarSessionContext?.service;
+            if (!service) {
+                this.setStatus('A autenticação ainda está inicializando. Tente novamente.', 'error');
+                return;
+            }
+
+            if (submit) submit.disabled = true;
+            form.setAttribute('aria-busy', 'true');
+            this.setStatus('Autenticando…', 'info');
+            try {
+                await service.signIn({ email, password });
+                const passwordInput = this.document.getElementById('radar-auth-password');
+                if (passwordInput) passwordInput.value = '';
+                this.setStatus('Sessão validada. Carregando dados autorizados…', 'success');
+                if (this.root.RadarDataContext?.ready === true) {
+                    this.root.location?.reload?.();
+                }
+            } catch (error) {
+                this.setStatus(error?.message || 'Não foi possível autenticar.', 'error');
+                this.document.getElementById('radar-auth-email')?.focus();
+            } finally {
+                if (submit) submit.disabled = false;
+                form.removeAttribute('aria-busy');
+            }
+        }
+
+        applyAuthorization(authentication) {
+            if (!this.enabled || !authentication?.authorization) return null;
+            const authorization = authentication.authorization;
+            const legacyProfile = legacyProfileForRole(authorization.role);
+            this.root.RadarAuthContext = Object.freeze({
+                user: Object.freeze({ ...(authentication.user || {}) }),
+                authorization: Object.freeze({ ...authorization })
+            });
+            this.root.switchProfile(legacyProfile);
+            const label = this.document.getElementById('profile-btn-label');
+            if (label) label.textContent = authorization.profile?.label || authorization.role;
+            this.document.body.dataset.authRole = authorization.role;
+            this.hide();
+            return legacyProfile;
+        }
+
+        async handleSignOut() {
+            const service = this.root.RadarSessionContext?.service;
+            if (!service) return;
+            try {
+                await service.signOut();
+                this.root.RadarAuthContext = null;
+                this.show('Sessão encerrada. Entre novamente para continuar.');
+                this.document.getElementById('radar-auth-email')?.focus();
+            } catch (error) {
+                this.setStatus(error?.message || 'Não foi possível encerrar a sessão.', 'error');
+            }
+        }
+    }
+
+    return Object.freeze({
+        AuthGate,
+        ROLE_TO_LEGACY_PROFILE,
+        legacyProfileForRole
+    });
+}));

@@ -4312,42 +4312,31 @@ function normalizeEscolas(records) {
 
 }
 
+function getActivePrograms() {
 
-function seedLocalDataFromInitials() {
+    return programas.filter(item => item && item.active !== false);
 
-    localStorage.setItem('radar_pdde_escolas', JSON.stringify(INITIAL_ESCOLAS));
+}
 
-    localStorage.setItem('radar_pdde_pendencias', JSON.stringify(INITIAL_PENDENCIAS));
+function getActiveControllers() {
 
-    localStorage.setItem('radar_pdde_contatos', JSON.stringify(INITIAL_CONTATOS));
+    return controladores.filter(item => item && item.active !== false);
 
-    localStorage.setItem('radar_pdde_logs', JSON.stringify(INITIAL_LOGS));
+}
 
-    localStorage.setItem('radar_pdde_bens', JSON.stringify(INITIAL_BENS));
+function getActiveInventoryMembers() {
 
-    localStorage.setItem('radar_pdde_verificacoes', JSON.stringify(INITIAL_VERIFICACOES));
-
-    localStorage.setItem('radar_pdde_config', JSON.stringify(INITIAL_CONFIG));
-
-    localStorage.setItem('radar_pdde_programas', JSON.stringify(INITIAL_PROGRAMS));
-
-    localStorage.setItem('radar_pdde_controladores', JSON.stringify(INITIAL_CONTROLADORES));
-
-    localStorage.setItem('radar_pdde_equipe_inventario', JSON.stringify(INITIAL_EQUIPE_INVENTARIO));
-
-    localStorage.setItem('radar_pdde_notas_registradas', JSON.stringify([]));
-
-    localStorage.setItem('radar_pdde_data_version', INITIAL_DATA_VERSION);
+    return equipeInventario.filter(item => item && item.active !== false);
 
 }
 
 
-
 function getDefaultControladorId() {
 
-    const exists = (controladores.length ? controladores : INITIAL_CONTROLADORES).some(c => c.id === DEFAULT_CONTROLADOR_ID);
+    const available = getActiveControllers().length ? getActiveControllers() : INITIAL_CONTROLADORES;
+    const exists = available.some(c => c.id === DEFAULT_CONTROLADOR_ID);
 
-    return exists ? DEFAULT_CONTROLADOR_ID : ((controladores[0] || INITIAL_CONTROLADORES[0] || {}).id || '');
+    return exists ? DEFAULT_CONTROLADOR_ID : ((available[0] || {}).id || '');
 
 }
 
@@ -4357,13 +4346,22 @@ function getDefaultControlador() {
 
     const id = getDefaultControladorId();
 
-    return (controladores.length ? controladores : INITIAL_CONTROLADORES).find(c => c.id === id) || null;
+    const available = getActiveControllers().length ? getActiveControllers() : INITIAL_CONTROLADORES;
+    return available.find(c => c.id === id) || null;
 
 }
 
 
 
 function getCurrentUser() {
+
+    const authenticated = window.RadarAuthContext;
+    if (authenticated?.user && authenticated?.authorization) {
+        return {
+            name: authenticated.user.displayName || authenticated.user.email || 'Usuário autenticado',
+            role: authenticated.authorization.profile?.label || authenticated.authorization.role
+        };
+    }
 
     if (currentProfile === 'controlador') {
 
@@ -4375,7 +4373,7 @@ function getCurrentUser() {
 
     if (currentProfile === 'inventario') {
 
-        const inventariador = equipeInventario[0] || INITIAL_EQUIPE_INVENTARIO[0];
+        const inventariador = getActiveInventoryMembers()[0] || INITIAL_EQUIPE_INVENTARIO[0];
 
         return { name: inventariador ? inventariador.name : 'Equipe de Inventário', role: 'Equipe de Inventário' };
 
@@ -4388,171 +4386,113 @@ function getCurrentUser() {
 
 
 // ==========================================
-// SUPABASE CLIENT INITIALIZATION
+// GATEWAY ÚNICO DE DADOS
 // ==========================================
 const runtimeConfig = window.RADAR_PDDE_CONFIG || {};
-const supabaseConfig = runtimeConfig.supabase || {};
-const supabaseClient = (supabaseConfig.url && supabaseConfig.publishableKey && window.supabase)
-    ? window.supabase.createClient(supabaseConfig.url, supabaseConfig.publishableKey)
-    : null;
+const LEGACY_TABLE_ENTITY_MAP = Object.freeze({
+    escolas: ['schools', 'schoolPrograms'],
+    pendencias: ['pendencies', 'pendencyAttempts'],
+    contatos: ['pendencyContacts'],
+    logs: ['administrativeLogs'],
+    bens: ['assets'],
+    verificacoes: ['verifications'],
+    config: ['appConfig', 'competences'],
+    programas: ['programs'],
+    controladores: ['controllers'],
+    equipe_inventario: ['inventoryTeamMembers'],
+    notas_registradas: ['registeredInvoices']
+});
+const ALL_LEGACY_CANONICAL_ENTITIES = Object.freeze([
+    ...new Set(Object.values(LEGACY_TABLE_ENTITY_MAP).flat())
+]);
 
+let radarDataService = null;
+let radarPersistenceQueue = Promise.resolve({ ok: true });
+let radarConfigurationService = null;
+let radarDirectoryService = null;
+let radarSchoolService = null;
+let radarPendencyService = null;
+let radarVerificationService = null;
+let radarAuditService = null;
+let radarInvoiceService = null;
+let radarInventoryService = null;
 
-async function initData() {
-    // Força atualização se houver codificação antiga incorreta na LocalStorage
-    const storedProgs = localStorage.getItem('radar_pdde_programas');
-    if (storedProgs && (storedProgs.includes('BÃ¡sico') || storedProgs.includes('EducaÃ'))) {
-        localStorage.removeItem('radar_pdde_programas');
-    }
-
-    if (!supabaseClient) {
-        loadLocalFallback();
-        return;
-    }
-
-    try {
-        // Buscar Configurações do Supabase
-        let { data: dbConfig, error: cfgErr } = await supabaseClient.from('config').select('*').limit(1);
-        if (cfgErr) throw cfgErr;
-
-        // Se o banco estiver vazio, executar o seed automático
-        if (!dbConfig || dbConfig.length === 0) {
-            console.log("Banco de dados do Supabase vazio. Executando seed de dados iniciais...");
-            await seedDatabaseSupabase();
-            let { data: newCfg, error: newCfgErr } = await supabaseClient.from('config').select('*').limit(1);
-            if (newCfgErr) throw newCfgErr;
-            dbConfig = newCfg;
-        }
-
-        config = dbConfig[0];
-
-        // Buscar dados de todas as outras tabelas
-        const [
-            resEscolas,
-            resPendencias,
-            resContatos,
-            resLogs,
-            resBens,
-            resVerificacoes,
-            resProgramas,
-            resControladores,
-            resEquipe,
-            resNotas
-        ] = await Promise.all([
-            supabaseClient.from('escolas').select('*'),
-            supabaseClient.from('pendencias').select('*'),
-            supabaseClient.from('contatos').select('*'),
-            supabaseClient.from('logs').select('*'),
-            supabaseClient.from('bens').select('*'),
-            supabaseClient.from('verificacoes').select('*'),
-            supabaseClient.from('programas').select('*'),
-            supabaseClient.from('controladores').select('*'),
-            supabaseClient.from('equipe_inventario').select('*'),
-            supabaseClient.from('notas_registradas').select('*')
-        ]);
-
-        if (resEscolas.error) throw resEscolas.error;
-        if (resPendencias.error) throw resPendencias.error;
-        if (resContatos.error) throw resContatos.error;
-        if (resLogs.error) throw resLogs.error;
-        if (resBens.error) throw resBens.error;
-        if (resVerificacoes.error) throw resVerificacoes.error;
-        if (resProgramas.error) throw resProgramas.error;
-        if (resControladores.error) throw resControladores.error;
-        if (resEquipe.error) throw resEquipe.error;
-        if (resNotas.error) throw resNotas.error;
-
-        // Remapear nomes de colunas do Supabase para os nomes de propriedades usados no app
-        escolas = normalizeEscolas((resEscolas.data || []).map(e => {
-            const keys = Object.keys(e);
-            keys.forEach(k => {
-                if (k.indexOf('denomina') === 0 && k !== 'denomina\u00e7ao') {
-                    e['denomina\u00e7ao'] = e[k];
-                }
-                if (k.indexOf('designa') === 0 && k !== 'designa\u00e7ao') {
-                    e['designa\u00e7ao'] = e[k];
-                }
-            });
-            return e;
-        }));
-        pendencias = resPendencias.data || [];
-        contatos = resContatos.data || [];
-        logs = (resLogs.data || []).sort((a, b) => (b.dataHora || '').localeCompare(a.dataHora || ''));
-        bens = resBens.data || [];
-        rebuildOperationalIndexes();
-        programas = resProgramas.data || [];
-        controladores = resControladores.data || [];
-        equipeInventario = resEquipe.data || [];
-        notasRegistradas = resNotas.data || [];
-
-        // Reconstruir objeto verificacoes
-        verificacoes = {};
-        resVerificacoes.data.forEach(v => {
-            if (!verificacoes[v.escolaId]) {
-                verificacoes[v.escolaId] = {};
-            }
-            const compProgKey = `${v.competencia}_${v.programaId}`;
-            verificacoes[v.escolaId][compProgKey] = {
-                bonificacao: v.bonificacao || {},
-                analise: v.analise || {},
-                resultadoBonif: v.resultadoBonif
-            };
-        });
-
-        activeCompetenciaKey = config.competenciaFechamento;
-    } catch (err) {
-        console.error("Erro ao carregar dados do Supabase. Carregando fallback local.", err);
-        loadLocalFallback();
-    }
+function cloneRadarValue(value) {
+    return window.RadarRepositoryContract.cloneValue(value);
 }
 
-async function seedDatabaseSupabase() {
-    // 1. Inserir tabelas base independentes
-    await supabaseClient.from('config').insert([
-        { id: 'global', exercicios: INITIAL_CONFIG.exercicios, competenciaFechamento: INITIAL_CONFIG.competenciaFechamento, prazoBonificacaoProrrogado: INITIAL_CONFIG.prazoBonificacaoProrrogado }
-    ]);
-    
-    await supabaseClient.from('programas').insert(INITIAL_PROGRAMS);
-    await supabaseClient.from('controladores').insert(INITIAL_CONTROLADORES);
-    
-    await supabaseClient.from('equipe_inventario').insert(INITIAL_EQUIPE_INVENTARIO);
+function createInitialRadarMemoryState() {
+    return {
+        config: cloneRadarValue(INITIAL_CONFIG),
+        programs: cloneRadarValue(INITIAL_PROGRAMS),
+        controllers: cloneRadarValue(INITIAL_CONTROLADORES),
+        inventoryTeamMembers: cloneRadarValue(INITIAL_EQUIPE_INVENTARIO),
+        schools: normalizeEscolas(cloneRadarValue(INITIAL_ESCOLAS)),
+        verifications: cloneRadarValue(INITIAL_VERIFICACOES),
+        pendencies: cloneRadarValue(INITIAL_PENDENCIAS),
+        contacts: cloneRadarValue(INITIAL_CONTATOS),
+        assets: cloneRadarValue(INITIAL_BENS),
+        registeredInvoices: [],
+        logs: cloneRadarValue(INITIAL_LOGS),
+        dataVersion: INITIAL_DATA_VERSION,
+        pendencySchemaVersion: String(window.RadarPendencias.PENDENCY_SCHEMA_VERSION)
+    };
+}
 
-
-    // 2. Inserir Escolas
-    await supabaseClient.from('escolas').insert(INITIAL_ESCOLAS);
-
-    // 3. Inserir tabelas dependentes
-    await supabaseClient.from('pendencias').insert(INITIAL_PENDENCIAS);
-    await supabaseClient.from('contatos').insert(INITIAL_CONTATOS);
-    
-    const initialLogsFormatted = INITIAL_LOGS.map(l => ({
-        id: l.id,
-        usuario: l.usuario,
-        perfil: l.perfil,
-        dataHora: l.dataHora,
-        acao: l.acao,
-        detalhes: l.detalhes
-    }));
-    await supabaseClient.from('logs').insert(initialLogsFormatted);
-
-    // 4. Inserir Verificações iniciais
-    const flatVerif = [];
-    Object.keys(INITIAL_VERIFICACOES).forEach(escId => {
-        Object.keys(INITIAL_VERIFICACOES[escId]).forEach(compKey => {
-            const dataVal = INITIAL_VERIFICACOES[escId][compKey];
-            flatVerif.push({
-                id: `${escId}_${compKey}_BASIC`,
-                escolaId: escId,
-                competencia: compKey,
-                programaId: 'BASIC',
-                bonificacao: dataVal.bonificacao,
-                analise: dataVal.analise,
-                resultadoBonif: dataVal.resultadoBonif
-            });
-        });
-    });
-    if (flatVerif.length > 0) {
-        await supabaseClient.from('verificacoes').insert(flatVerif);
+function readInitialRadarMemoryState() {
+    const storedVersion = localStorage.getItem('radar_pdde_data_version');
+    const hasSchools = Boolean(localStorage.getItem('radar_pdde_escolas'));
+    if (storedVersion !== INITIAL_DATA_VERSION || !hasSchools) {
+        return createInitialRadarMemoryState();
     }
+
+    const state = window.RadarStateBridge.readLegacyState(localStorage);
+    const rawPrograms = localStorage.getItem('radar_pdde_programas') || '';
+    if (rawPrograms.includes('BÃ¡sico') || rawPrograms.includes('EducaÃ')) {
+        state.programs = cloneRadarValue(INITIAL_PROGRAMS);
+    }
+    state.pendencySchemaVersion = localStorage.getItem(PENDENCY_SCHEMA_STORAGE_KEY)
+        || String(window.RadarPendencias.PENDENCY_SCHEMA_VERSION);
+    return state;
+}
+
+function captureRadarMemoryState() {
+    return {
+        config: cloneRadarValue(config),
+        programs: cloneRadarValue(programas),
+        controllers: cloneRadarValue(controladores),
+        inventoryTeamMembers: cloneRadarValue(equipeInventario),
+        schools: cloneRadarValue(escolas),
+        verifications: cloneRadarValue(verificacoes),
+        pendencies: cloneRadarValue(pendencias),
+        contacts: cloneRadarValue(contatos),
+        assets: cloneRadarValue(bens),
+        registeredInvoices: cloneRadarValue(notasRegistradas),
+        logs: cloneRadarValue(logs),
+        dataVersion: INITIAL_DATA_VERSION,
+        pendencySchemaVersion: String(window.RadarPendencias.PENDENCY_SCHEMA_VERSION)
+    };
+}
+
+function applyRadarMemoryState(state = {}) {
+    config = cloneRadarValue(state.config || INITIAL_CONFIG);
+    programas = cloneRadarValue(state.programs || []);
+    controladores = cloneRadarValue(state.controllers || []);
+    equipeInventario = cloneRadarValue(state.inventoryTeamMembers || []);
+    escolas = normalizeEscolas(cloneRadarValue(state.schools || []));
+    escolas.forEach(escola => {
+        if (escola.cre === '1ª CRE' || escola.cre === '1\u00aa CRE') escola.cre = '4ª CRE';
+    });
+    verificacoes = cloneRadarValue(state.verifications || {});
+    pendencias = cloneRadarValue(state.pendencies || []);
+    contatos = cloneRadarValue(state.contacts || []);
+    bens = cloneRadarValue(state.assets || []);
+    notasRegistradas = cloneRadarValue(state.registeredInvoices || []);
+    logs = cloneRadarValue(state.logs || [])
+        .sort((left, right) => (right.dataHora || '').localeCompare(left.dataHora || ''));
+    migrateLoadedPendencies();
+    rebuildOperationalIndexes();
+    activeCompetenciaKey = config.competenciaFechamento || activeCompetenciaKey;
 }
 
 function getPendencyAnalysisValue(pendency) {
@@ -4569,159 +4509,206 @@ function migrateLoadedPendencies() {
         getAnalysisValue: getPendencyAnalysisValue
     });
 
-    localStorage.setItem('radar_pdde_pendencias', JSON.stringify(pendencias));
-    localStorage.setItem(
-        PENDENCY_SCHEMA_STORAGE_KEY,
-        String(window.RadarPendencias.PENDENCY_SCHEMA_VERSION)
-    );
 }
 
-function loadLocalFallback() {
+async function initializeRadarData() {
+    applyRadarMemoryState(readInitialRadarMemoryState());
 
-    const storedVersion = localStorage.getItem('radar_pdde_data_version');
-
-    if (storedVersion !== INITIAL_DATA_VERSION || !localStorage.getItem('radar_pdde_escolas')) {
-
-        RADAR_STORAGE_KEYS.forEach(key => localStorage.removeItem(key));
-
-        seedLocalDataFromInitials();
-
-    }
-
-    
-    const storedEscolas = JSON.parse(localStorage.getItem('radar_pdde_escolas'));
-    escolas = normalizeEscolas(storedEscolas);
-    let schoolsMigrated = JSON.stringify(storedEscolas) !== JSON.stringify(escolas);
-    escolas.forEach(e => {
-        if (e.cre === '1ª CRE' || e.cre === '1\u00aa CRE') {
-            e.cre = '4ª CRE';
-            schoolsMigrated = true;
-        }
+    const authenticatedClient = await window.RadarAuthBootstrap.prepareAuthenticatedClient({
+        runtimeConfig,
+        root: window
     });
-    if (schoolsMigrated) {
-        localStorage.setItem('radar_pdde_escolas', JSON.stringify(escolas));
-    }
-    pendencias = JSON.parse(localStorage.getItem('radar_pdde_pendencias'));
-    contatos = JSON.parse(localStorage.getItem('radar_pdde_contatos'));
-    logs = JSON.parse(localStorage.getItem('radar_pdde_logs'));
-    bens = JSON.parse(localStorage.getItem('radar_pdde_bens'));
-    verificacoes = JSON.parse(localStorage.getItem('radar_pdde_verificacoes'));
-    config = JSON.parse(localStorage.getItem('radar_pdde_config'));
-    programas = JSON.parse(localStorage.getItem('radar_pdde_programas'));
-    controladores = JSON.parse(localStorage.getItem('radar_pdde_controladores') || '[]');
-    equipeInventario = JSON.parse(localStorage.getItem('radar_pdde_equipe_inventario') || '[]');
-    notasRegistradas = JSON.parse(localStorage.getItem('radar_pdde_notas_registradas') || '[]');
-    migrateLoadedPendencies();
-    rebuildOperationalIndexes();
-    
-    activeCompetenciaKey = config.competenciaFechamento;
+    const remoteClient = authenticatedClient.client;
+    const authentication = authenticatedClient.authentication
+        ? Object.freeze({
+            user: Object.freeze({ ...authenticatedClient.authentication.user }),
+            authorization: Object.freeze({ ...authenticatedClient.authentication.authorization })
+        })
+        : null;
+
+    const repository = window.RadarRepositoryFactory.createRepository(runtimeConfig, {
+        storage: localStorage,
+        schemaVersion: '1',
+        supabaseClient: remoteClient
+    });
+    const statePort = window.RadarStatePort.createStatePort({
+        storage: localStorage,
+        bridge: window.RadarStateBridge,
+        readMemory: captureRadarMemoryState,
+        writeMemory: applyRadarMemoryState,
+        dataVersion: INITIAL_DATA_VERSION,
+        pendencySchemaVersion: String(window.RadarPendencias.PENDENCY_SCHEMA_VERSION)
+    });
+    radarDataService = new window.RadarDataService.DataService({
+        repository,
+        statePort
+    });
+    const bootstrap = await radarDataService.bootstrap();
+    initializeRadarApplicationServices();
+    const capabilities = repository.capabilities();
+
+    window.RadarDataContext = Object.freeze({
+        ready: true,
+        bootstrap: Object.freeze({
+            importedLegacy: bootstrap.importedLegacy,
+            empty: bootstrap.empty
+        }),
+        capabilities: Object.freeze({ ...capabilities }),
+        authentication: authentication
+    });
+    return window.RadarDataContext;
 }
 
-function persist(changedTable = null) {
-    // 1. Salvar na LocalStorage
-    localStorage.setItem('radar_pdde_escolas', JSON.stringify(escolas));
-    localStorage.setItem('radar_pdde_pendencias', JSON.stringify(pendencias));
-    localStorage.setItem('radar_pdde_contatos', JSON.stringify(contatos));
-    localStorage.setItem('radar_pdde_logs', JSON.stringify(logs));
-    localStorage.setItem('radar_pdde_bens', JSON.stringify(bens));
-    localStorage.setItem('radar_pdde_verificacoes', JSON.stringify(verificacoes));
-    localStorage.setItem('radar_pdde_config', JSON.stringify(config));
-    localStorage.setItem('radar_pdde_programas', JSON.stringify(programas));
-    localStorage.setItem('radar_pdde_controladores', JSON.stringify(controladores));
-
-    localStorage.setItem('radar_pdde_equipe_inventario', JSON.stringify(equipeInventario));
-
-    localStorage.setItem('radar_pdde_notas_registradas', JSON.stringify(notasRegistradas));
-
-    localStorage.setItem('radar_pdde_data_version', INITIAL_DATA_VERSION);
-
-
-    // 2. Sincronizar com Supabase em segundo plano
-    if (supabaseClient) {
-        if (changedTable) {
-            persistSingleTableSupabase(changedTable);
-        } else {
-            persistSingleTableSupabase('escolas');
-            persistSingleTableSupabase('pendencias');
-            persistSingleTableSupabase('contatos');
-            persistSingleTableSupabase('logs');
-            persistSingleTableSupabase('bens');
-            persistSingleTableSupabase('verificacoes');
-            persistSingleTableSupabase('config');
-            persistSingleTableSupabase('controladores');
-            persistSingleTableSupabase('equipe_inventario');
-            persistSingleTableSupabase('notas_registradas');
-        }
-    }
-}
-
-async function persistSingleTableSupabase(tableName) {
-    try {
-        if (tableName === 'escolas') {
-            await supabaseClient.from('escolas').upsert(escolas);
-        } else if (tableName === 'pendencias') {
-            await supabaseClient.from('pendencias').upsert(pendencias);
-        } else if (tableName === 'contatos') {
-            await supabaseClient.from('contatos').upsert(contatos);
-        } else if (tableName === 'logs') {
-            await supabaseClient.from('logs').upsert(logs);
-        } else if (tableName === 'bens') {
-            await supabaseClient.from('bens').upsert(bens);
-        } else if (tableName === 'config') {
-            await supabaseClient.from('config').upsert({
-                id: 'global',
-                exercicios: config.exercicios,
-                competenciaFechamento: config.competenciaFechamento,
-                prazoBonificacaoProrrogado: config.prazoBonificacaoProrrogado
-            });
-        } else if (tableName === 'controladores') {
-            await supabaseClient.from('controladores').upsert(controladores);
-        } else if (tableName === 'equipe_inventario') {
-            await supabaseClient.from('equipe_inventario').upsert(equipeInventario);
-        } else if (tableName === 'notas_registradas') {
-            await supabaseClient.from('notas_registradas').upsert(notasRegistradas);
-        } else if (tableName === 'verificacoes') {
-            const flatVerif = [];
-            Object.keys(verificacoes).forEach(escId => {
-                Object.keys(verificacoes[escId]).forEach(compKey => {
-                    const splitContext = window.RadarCompetencia.splitCompetenciaContext(compKey);
-                    const competencia = splitContext.competenciaKey;
-                    const programaId = splitContext.contextId || 'BASIC';
-                    const dataVal = verificacoes[escId][compKey];
-                    flatVerif.push({
-                        id: `${escId}_${competencia}_${programaId}`,
-                        escolaId: escId,
-                        competencia: competencia,
-                        programaId: programaId,
-                        bonificacao: dataVal.bonificacao,
-                        analise: dataVal.analise,
-                        resultadoBonif: dataVal.resultadoBonif
-                    });
-                });
-            });
-            if (flatVerif.length > 0) {
-                await supabaseClient.from('verificacoes').upsert(flatVerif);
-            }
-        }
-    } catch (err) {
-        console.error("Erro na sincronização síncrona com Supabase para", tableName, err);
-    }
-}
-
-function registerLog(acao, detalhes) {
-
+function appendRadarLog(acao, detalhes) {
     const user = getCurrentUser();
-
     const newLog = {
-        id: 'log-' + Date.now(),
+        id: createPendencyClientId('log'),
         usuario: user.name,
         perfil: user.role,
         dataHora: new Date().toISOString(),
-        acao: acao,
-        detalhes: detalhes
+        acao,
+        detalhes
     };
     logs.unshift(newLog);
-    persist();
+    return newLog;
+}
+
+function initializeRadarApplicationServices() {
+    const getState = () => ({
+        config,
+        competences: COMPETENCIAS,
+        programs: programas,
+        controllers: controladores,
+        inventoryTeamMembers: equipeInventario,
+        schools: escolas,
+        verifications: verificacoes,
+        pendencies: pendencias,
+        contacts: contatos,
+        assets: bens,
+        registeredInvoices: notasRegistradas,
+        logs
+    });
+    const dependencies = {
+        dataService: radarDataService,
+        getState,
+        appendLog: appendRadarLog
+    };
+    radarConfigurationService = new window.RadarConfigurationService.ConfigurationService(dependencies);
+    radarDirectoryService = new window.RadarDirectoryService.DirectoryService(dependencies);
+    radarSchoolService = new window.RadarSchoolService.SchoolService(dependencies);
+    const transactionalDependencies = {
+        ...dependencies,
+        getCurrentUser,
+        createId: createPendencyClientId,
+        now: () => new Date().toISOString()
+    };
+    radarPendencyService = new window.RadarPendencyService.PendencyService({
+        ...transactionalDependencies,
+        getCorrectAnalysisLabel
+    });
+    radarVerificationService = new window.RadarVerificationService.VerificationService({
+        ...transactionalDependencies,
+        ensureVerification: ensureProgramVerification,
+        reopenConsolidation: reopenConsolidationForAssistant,
+        pendencyService: radarPendencyService
+    });
+    radarAuditService = new window.RadarAuditService.AuditService(transactionalDependencies);
+    radarInvoiceService = new window.RadarInvoiceService.InvoiceService({
+        ...transactionalDependencies,
+        reopenConsolidation: (schoolId, compKey, verification, changed) => (
+            reopenConsolidationForAssistant(schoolId, compKey, verification, changed)
+        )
+    });
+    radarInventoryService = new window.RadarInventoryService.InventoryService(transactionalDependencies);
+    window.RadarApplicationServices = Object.freeze({
+        data: radarDataService,
+        configuration: radarConfigurationService,
+        directory: radarDirectoryService,
+        schools: radarSchoolService,
+        pendencies: radarPendencyService,
+        verifications: radarVerificationService,
+        audit: radarAuditService,
+        invoices: radarInvoiceService,
+        inventory: radarInventoryService
+    });
+}
+
+function reportRadarPersistenceError(error, context = {}) {
+    if (window.RadarErrorMapper?.showDataOperationError) {
+        return window.RadarErrorMapper.showDataOperationError(error, context);
+    }
+    window.RADAR_LAST_DATA_ERROR = error;
+    window.dispatchEvent(new CustomEvent('radar:data-error', {
+        detail: {
+            code: error?.code || 'TRANSACTION_FAILED',
+            message: error?.message || 'Não foi possível salvar a alteração.'
+        }
+    }));
+    return error;
+}
+
+function reportRadarActionError(error, fallbackMessage, context = {}) {
+    const mapped = reportRadarPersistenceError(error, {
+        ...context,
+        message: context.message || null
+    });
+    alert(mapped?.message || fallbackMessage || 'Não foi possível concluir a alteração.');
+    return mapped;
+}
+
+function persist(changedTable = null) {
+    if (!radarDataService) {
+        const error = new window.RadarRepositoryContract.RepositoryError(
+            'TRANSACTION_FAILED',
+            'Gateway de dados ainda não inicializado.',
+            { operation: 'persist' }
+        );
+        reportRadarPersistenceError(error);
+        return Promise.resolve({ ok: false, error });
+    }
+
+    const changedEntities = changedTable
+        ? (LEGACY_TABLE_ENTITY_MAP[changedTable] || [])
+        : ALL_LEGACY_CANONICAL_ENTITIES;
+    if (changedEntities.length === 0) {
+        const error = new window.RadarRepositoryContract.RepositoryError(
+            'VALIDATION_FAILED',
+            `Tabela de compatibilidade desconhecida: ${String(changedTable)}.`,
+            { operation: 'persist' }
+        );
+        reportRadarPersistenceError(error);
+        return Promise.resolve({ ok: false, error });
+    }
+
+    let staged;
+    try {
+        staged = radarDataService.stageCompatibility({
+            name: `persist:${changedTable || 'all'}`,
+            changedEntities
+        });
+    } catch (error) {
+        reportRadarPersistenceError(error);
+        throw error;
+    }
+    const execute = () => radarDataService.persistSnapshot(
+        staged.snapshot,
+        staged.changedEntities,
+        { name: `persist:${changedTable || 'all'}` }
+    );
+    radarPersistenceQueue = radarPersistenceQueue
+        .catch(() => ({ ok: false }))
+        .then(execute)
+        .catch(error => {
+            reportRadarPersistenceError(error);
+            return { ok: false, error };
+        });
+    return radarPersistenceQueue;
+}
+
+window.waitForRadarPersistence = () => radarPersistenceQueue;
+
+function registerLog(acao, detalhes) {
+    return appendRadarLog(acao, detalhes);
 }
 
 
@@ -5151,7 +5138,7 @@ function reopenConsolidationForAssistant(escolaId, compProgKey, verification, ha
     const previousResult = verification.resultadoBonif;
     verification.resultadoBonif = '';
     const esc = escolas.find(item => item.id === escolaId);
-    registerLog(
+    appendRadarLog(
         'Consolidação Reaberta',
         `A consolidação ${previousResult.toUpperCase()} da escola ${esc ? esc.denominação : escolaId} para ${compProgKey} foi reaberta após alteração da bonificação.`
     );
@@ -5908,7 +5895,7 @@ function renderDashboardAssistente(container) {
     const totalEscolasValidas = stats.apto + stats.inapto + stats.emAndamento + stats.naoAnalisado;
 
     // Consolidações por Controlador
-    const statsControladores = controladores.map(ctrl => {
+    const statsControladores = getActiveControllers().map(ctrl => {
         const carteira = escolas.filter(e => e.controladorId === ctrl.id);
         
         let cApto = 0;
@@ -6235,7 +6222,7 @@ function renderDashboardAssistente(container) {
                     <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Controlador</label>
                     <select id="filter-assistente-controlador" class="form-control" style="width: 180px; font-size: 0.85rem; padding: 6px 12px; height: auto;" onchange="changeAssistenteFilter('controlador', this.value)">
                         <option value="all" ${activeAssistenteControllerFilter === 'all' ? 'selected' : ''}>Todos os Controladores</option>
-                        ${controladores.map(ctrl => `<option value="${ctrl.id}" ${activeAssistenteControllerFilter === ctrl.id ? 'selected' : ''}>${ctrl.name}</option>`).join('')}
+                        ${getActiveControllers().map(ctrl => `<option value="${ctrl.id}" ${activeAssistenteControllerFilter === ctrl.id ? 'selected' : ''}>${ctrl.name}</option>`).join('')}
                     </select>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 4px;">
@@ -7058,8 +7045,9 @@ function inventariarBem(bemId) {
     // Popula dropdown de responsáveis com integrantes cadastrados no Inventário
     const respSelect = document.getElementById('inventario-responsavel');
     if (respSelect) {
-        respSelect.innerHTML = equipeInventario.map(inv => `<option value="${escapeHtml(inv.name)}">${escapeHtml(inv.name)}</option>`).join('');
-        if (equipeInventario.length > 0) {
+        const activeInventoryMembers = getActiveInventoryMembers();
+        respSelect.innerHTML = activeInventoryMembers.map(inv => `<option value="${escapeHtml(inv.name)}">${escapeHtml(inv.name)}</option>`).join('');
+        if (activeInventoryMembers.length > 0) {
             respSelect.value = equipeInventario[0].name;
         }
     }
@@ -7068,34 +7056,30 @@ function inventariarBem(bemId) {
     openModal('modal-inventario-confirm');
 }
 
-function salvarInventariacao(e) {
+async function salvarInventariacao(e) {
     e.preventDefault();
     const bemId = document.getElementById('inventario-bem-id').value;
     const resp = document.getElementById('inventario-responsavel').value;
     const obs = document.getElementById('inventario-observacoes').value;
+    const inventoryMember = equipeInventario.find(member => member.name === resp);
 
-    const b = bens.find(item => item.id === bemId);
-    if (b) {
-        b.status = 'Inventariada';
-        b.inventariadoPor = resp;
-        b.observacoes = obs;
-        
-        // Formata data de forma amigável
-        const now = new Date();
-        const formattedDate = now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-        b.inventariadoEm = formattedDate;
-
-        const esc = escolas.find(e => e.id === b.escolaId);
-        registerLog('Inventariação Concluída', `Bem patrimonial ${b.item} da escola ${esc ? esc.denominação : ''} foi registrado e inventariado por ${resp}.`);
-        
+    try {
+        await radarInventoryService.inventory({
+            assetId: bemId,
+            responsible: resp,
+            responsibleId: inventoryMember?.id || null,
+            notes: obs,
+            profile: currentProfile
+        });
         rebuildOperationalIndexes();
-        persist();
         closeModal('modal-inventario-confirm');
         if (currentView === 'inventario') {
             renderInventarioView();
         } else {
             renderDashboard();
         }
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível concluir a inventariação.');
     }
 }
 
@@ -7322,7 +7306,7 @@ function renderEscolas() {
 
                         <option value="all" ${selectedAttr(activeEscolaFilters.controlador, 'all')}>Todos</option>
 
-                        ${controladores.map(c => `<option value="${escapeHtml(c.id)}" ${selectedAttr(activeEscolaFilters.controlador, c.id)}>${escapeHtml(c.name)}</option>`).join('')}
+                        ${getActiveControllers().map(c => `<option value="${escapeHtml(c.id)}" ${selectedAttr(activeEscolaFilters.controlador, c.id)}>${escapeHtml(c.name)}</option>`).join('')}
 
                     </select>
 
@@ -8160,12 +8144,6 @@ function switchPendenciasTab(e, tabId) {
     document.getElementById(tabId).classList.add('active');
 }
 
-function updatePendencyById(pendencyId, nextPendency) {
-    const index = pendencias.findIndex(item => item.id === pendencyId);
-    if (index === -1) throw new Error('Pendência não encontrada.');
-    pendencias[index] = nextPendency;
-}
-
 let registrarNovoEnvioTrigger = null;
 let registrarNovoEnvioSourceContext = null;
 let reanalisarPendenciaTrigger = null;
@@ -8260,132 +8238,6 @@ function showRegistrarNovoEnvioError(message) {
         context.prepend(errorMessage);
     }
     errorMessage.textContent = message;
-}
-
-function cloneSubmissionInvariant(value) {
-    if (value === undefined) return undefined;
-    return JSON.parse(JSON.stringify(value));
-}
-
-function cloneOperationalIndex(index) {
-    return new Map(Array.from(index.entries()).map(([key, values]) => [
-        key,
-        cloneSubmissionInvariant(values)
-    ]));
-}
-
-function captureCorrectiveSubmissionLocalStorage() {
-    const keys = [...RADAR_STORAGE_KEYS, 'radar_pdde_data_version'];
-    return keys.map(key => {
-        const value = localStorage.getItem(key);
-        return { key, present: value !== null, value };
-    });
-}
-
-function restoreCorrectiveSubmissionLocalStorage(snapshot) {
-    const errors = [];
-    snapshot.forEach(entry => {
-        try {
-            if (entry.present) {
-                localStorage.setItem(entry.key, entry.value);
-            } else {
-                localStorage.removeItem(entry.key);
-            }
-        } catch (error) {
-            errors.push({ key: entry.key, error });
-        }
-    });
-
-    if (errors.length > 0) {
-        const restoreError = new Error(
-            `Não foi possível restaurar ${errors.length} chave(s) do armazenamento local.`
-        );
-        restoreError.storageErrors = errors;
-        throw restoreError;
-    }
-}
-
-function captureCorrectiveSubmissionRollback(current, verification, compProgKey) {
-    return {
-        pendencyId: current.id,
-        pendency: cloneSubmissionInvariant(current),
-        escolaId: current.escolaId,
-        compProgKey,
-        verification: cloneSubmissionInvariant(verification),
-        logs: cloneSubmissionInvariant(logs),
-        pendenciasIndex: cloneOperationalIndex(_pendenciasByEscolaId),
-        bensIndex: cloneOperationalIndex(_bensByEscolaId),
-        localStorage: captureCorrectiveSubmissionLocalStorage()
-    };
-}
-
-function restoreCorrectiveSubmissionRollback(snapshot) {
-    const rollbackErrors = [];
-
-    try {
-        updatePendencyById(snapshot.pendencyId, cloneSubmissionInvariant(snapshot.pendency));
-    } catch (error) {
-        rollbackErrors.push({ step: 'pendência', error });
-    }
-
-    try {
-        if (!verificacoes[snapshot.escolaId]) {
-            throw new Error('Coleção de verificações da escola não encontrada.');
-        }
-        verificacoes[snapshot.escolaId][snapshot.compProgKey] = cloneSubmissionInvariant(
-            snapshot.verification
-        );
-    } catch (error) {
-        rollbackErrors.push({ step: 'verificação', error });
-    }
-
-    try {
-        logs = cloneSubmissionInvariant(snapshot.logs);
-    } catch (error) {
-        rollbackErrors.push({ step: 'logs', error });
-    }
-
-    try {
-        rebuildOperationalIndexes();
-    } catch (error) {
-        try {
-            _pendenciasByEscolaId = cloneOperationalIndex(snapshot.pendenciasIndex);
-            _bensByEscolaId = cloneOperationalIndex(snapshot.bensIndex);
-        } catch (indexRestoreError) {
-            rollbackErrors.push({ step: 'índices', error: indexRestoreError });
-        }
-    }
-
-    try {
-        restoreCorrectiveSubmissionLocalStorage(snapshot.localStorage);
-    } catch (error) {
-        rollbackErrors.push({ step: 'armazenamento local', error });
-    }
-
-    return rollbackErrors;
-}
-
-function getCorrectiveSubmissionFailureMessage(primaryError, rollbackErrors) {
-    const primaryMessage = primaryError && primaryError.message
-        ? primaryError.message
-        : 'Não foi possível registrar o novo envio.';
-    console.error('Falha ao registrar o novo envio.', primaryError);
-
-    if (rollbackErrors.length === 0) return primaryMessage;
-
-    console.error('Falha parcial ao restaurar o novo envio.', rollbackErrors);
-    return `${primaryMessage} A restauração local não pôde ser concluída integralmente; recarregue a página antes de tentar novamente.`;
-}
-
-function verifySubmissionBonificationInvariant(verification, bonificationSnapshot, resultSnapshot) {
-    const bonificationChanged = JSON.stringify(verification.bonificacao)
-        !== JSON.stringify(bonificationSnapshot);
-    const resultChanged = JSON.stringify(verification.resultadoBonif)
-        !== JSON.stringify(resultSnapshot);
-
-    if (bonificationChanged || resultChanged) {
-        throw new Error('O novo envio não pode alterar a bonificação ou o resultado consolidado.');
-    }
 }
 
 function getPendencyActionTrigger(source) {
@@ -8586,7 +8438,7 @@ function abrirModalRegistrarNovoEnvio(pendencySource) {
     return true;
 }
 
-function confirmarRegistrarNovoEnvio(event) {
+async function confirmarRegistrarNovoEnvio(event) {
     event.preventDefault();
     const form = document.getElementById('form-registrar-envio');
     const serializedPendencyId = document.getElementById('envio-pendencia-id').value;
@@ -8636,75 +8488,19 @@ function confirmarRegistrarNovoEnvio(event) {
     const sourceContext = registrarNovoEnvioSourceContext
         || capturePendencyActionSourceContext(current, registrarNovoEnvioTrigger);
 
-    const competence = current.competenciaOrigem || current.competencia;
-    const compProgKey = `${competence}_${current.programaId}`;
-    const verification = verificacoes[current.escolaId]?.[compProgKey];
-    const hasLinkedAnalysis = verification
-        && verification.analise
-        && Object.prototype.hasOwnProperty.call(verification.analise, current.documentoKey);
-
-    if (!hasLinkedAnalysis) {
-        showRegistrarNovoEnvioError('A análise técnica vinculada não foi encontrada. Nenhum dado foi alterado.');
-        return false;
-    }
-
-    let rollbackSnapshot;
+    let nextPendency;
     try {
-        rollbackSnapshot = captureCorrectiveSubmissionRollback(
-            current,
-            verification,
-            compProgKey
-        );
-    } catch (error) {
-        showRegistrarNovoEnvioError(error && error.message
-            ? error.message
-            : 'Não foi possível preparar o registro do novo envio.');
-        return false;
-    }
-
-    const nowIso = new Date().toISOString();
-    const user = getCurrentUser();
-    const bonificationSnapshot = cloneSubmissionInvariant(
-        rollbackSnapshot.verification.bonificacao
-    );
-    const resultSnapshot = cloneSubmissionInvariant(
-        rollbackSnapshot.verification.resultadoBonif
-    );
-    const program = programas.find(item => item.id === current.programaId);
-    const programName = program ? program.name : current.programaId;
-    const documentName = VERIFICATION_DOCUMENT_LABELS[current.documentoKey]
-        || current.documentoKey;
-    const schoolName = school.denominação || school.denominacao || school.denominaçao || '';
-
-    try {
-        const nextPendency = window.RadarPendencias.registerCorrectiveSubmission(current, {
-            id: createPendencyClientId('tentativa'),
-            dataDisponibilizacao: availabilityDate,
-            observacao: observation,
+        const result = await radarPendencyService.registerAttempt({
+            pendencyId: current.id,
+            availabilityDate,
+            observation,
             link
-        }, {
-            eventId: createPendencyClientId('evento'),
-            at: nowIso,
-            usuario: user.name,
-            perfil: user.role
         });
-        verification.analise[current.documentoKey] = 'Não analisado';
-        updatePendencyById(current.id, nextPendency);
-        verifySubmissionBonificationInvariant(
-            verification,
-            bonificationSnapshot,
-            resultSnapshot
-        );
+        nextPendency = result.value.pendency;
         rebuildOperationalIndexes();
-        registerLog(
-            'Novo envio registrado',
-            `Novo envio de ${documentName} (${current.documentoKey}) no programa ${programName} (${current.programaId}) para ${schoolName}, competência ${competence}, disponibilizado em ${availabilityDate}.`
-        );
-    } catch (primaryError) {
-        const rollbackErrors = restoreCorrectiveSubmissionRollback(rollbackSnapshot);
-        showRegistrarNovoEnvioError(
-            getCorrectiveSubmissionFailureMessage(primaryError, rollbackErrors)
-        );
+    } catch (error) {
+        reportRadarPersistenceError(error);
+        showRegistrarNovoEnvioError(error?.cause?.message || error?.message || 'Não foi possível registrar o novo envio.');
         return false;
     }
 
@@ -8737,29 +8533,6 @@ function getCorrectAnalysisLabel(competencia, dataDisponibilizacao) {
     const prazo = COMPETENCIAS.find(item => item.key === competencia)?.bonifPrazo;
     if (!prazo || !dataDisponibilizacao) return 'Correto';
     return dataDisponibilizacao > prazo ? 'Correto (Atrasado)' : 'Correto';
-}
-
-function assertBonificationUnchanged(
-    verification,
-    documentoKey,
-    previousBonification,
-    previousProgramResult
-) {
-    const currentBonification = verification && verification.bonificacao;
-    const sourceDocumentChanged = !Object.is(
-        currentBonification && currentBonification[documentoKey],
-        previousBonification && previousBonification[documentoKey]
-    );
-    const wholeBonificationChanged = JSON.stringify(currentBonification)
-        !== JSON.stringify(previousBonification);
-    const programResultChanged = JSON.stringify(verification && verification.resultadoBonif)
-        !== JSON.stringify(previousProgramResult);
-
-    if (sourceDocumentChanged || wholeBonificationChanged || programResultChanged) {
-        throw new Error(
-            'A reanálise não pode alterar a bonificação nem o resultado consolidado.'
-        );
-    }
 }
 
 function getLatestAwaitingPendencyAttempt(pendency) {
@@ -9006,19 +8779,7 @@ function abrirModalReanalisarPendencia(pendencySource) {
     return true;
 }
 
-function getReanalysisFailureMessage(primaryError, rollbackErrors) {
-    const primaryMessage = primaryError && primaryError.message
-        ? primaryError.message
-        : 'Não foi possível registrar a reanálise.';
-    console.error('Falha ao registrar a reanálise.', primaryError);
-
-    if (rollbackErrors.length === 0) return primaryMessage;
-    console.error('Falha parcial ao restaurar a reanálise.', rollbackErrors);
-    return primaryMessage
-        + ' A restauração local não pôde ser concluída integralmente; recarregue a página antes de tentar novamente.';
-}
-
-function confirmarReanalisePendencia(event) {
+async function confirmarReanalisePendencia(event) {
     event.preventDefault();
     const form = document.getElementById('form-reanalisar-pendencia');
     const resultInput = document.getElementById('reanalisar-resultado');
@@ -9097,73 +8858,22 @@ function confirmarReanalisePendencia(event) {
         return false;
     }
 
-    let rollbackSnapshot;
-    try {
-        rollbackSnapshot = captureCorrectiveSubmissionRollback(
-            current,
-            verification,
-            compProgKey
-        );
-    } catch (error) {
-        showReanalysisError(error && error.message
-            ? error.message
-            : 'Não foi possível preparar o registro da reanálise.');
-        return false;
-    }
-
     const sourceContext = reanalisarPendenciaSourceContext
         || capturePendencyActionSourceContext(current, reanalisarPendenciaTrigger);
-    const previousBonification = cloneSubmissionInvariant(
-        rollbackSnapshot.verification.bonificacao
-    );
-    const previousProgramResult = cloneSubmissionInvariant(
-        rollbackSnapshot.verification.resultadoBonif
-    );
-    const nowIso = new Date().toISOString();
-    const user = getCurrentUser();
-    const program = programas.find(item => item.id === current.programaId);
-    const programName = program ? program.name : current.programaId;
-    const documentName = VERIFICATION_DOCUMENT_LABELS[current.documentoKey]
-        || current.documentoKey;
-    const schoolName = school.denominação || school.denominacao || school.id;
     let nextPendency;
 
     try {
-        nextPendency = window.RadarPendencias.recordReanalysis(current, {
-            resultado: result,
-            erros: errors,
-            observacao: observation
-        }, {
-            eventId: createPendencyClientId('evento'),
-            at: nowIso,
-            usuario: user.name,
-            perfil: user.role
+        const response = await radarPendencyService.reanalyze({
+            pendencyId: current.id,
+            result,
+            errors,
+            observation
         });
-        const analysisLabel = result === 'correto'
-            ? getCorrectAnalysisLabel(competence, awaitingAttempt.dataDisponibilizacao)
-            : 'Incorreto';
-        updatePendencyById(current.id, nextPendency);
-        verification.analise = {
-            ...verification.analise,
-            [current.documentoKey]: analysisLabel
-        };
-        assertBonificationUnchanged(
-            verification,
-            current.documentoKey,
-            previousBonification,
-            previousProgramResult
-        );
+        nextPendency = response.value.pendency;
         rebuildOperationalIndexes();
-        registerLog(
-            'Reanálise registrada',
-            'Reanálise de ' + documentName + ' (' + current.documentoKey + ') no programa '
-                + programName + ' (' + current.programaId + ') para ' + schoolName
-                + ', competência ' + competence + ', tentativa ' + awaitingAttempt.id
-                + ', resultado ' + result + '.'
-        );
-    } catch (primaryError) {
-        const rollbackErrors = restoreCorrectiveSubmissionRollback(rollbackSnapshot);
-        showReanalysisError(getReanalysisFailureMessage(primaryError, rollbackErrors));
+    } catch (error) {
+        reportRadarPersistenceError(error);
+        showReanalysisError(error?.cause?.message || error?.message || 'Não foi possível registrar a reanálise.');
         return false;
     }
 
@@ -9323,7 +9033,7 @@ function renderSMEConfig() {
                 <button class="btn btn-primary" onclick="cadastrarPrograma()">Adicionar</button>
             </div>
             <div class="program-tag-list">
-                ${programas.map(p => `
+                ${getActivePrograms().map(p => `
                     <span class="program-tag">
                         <strong>${escapeHtml(p.name)}</strong> - ${escapeHtml(p.desc)}
                         ${p.id !== 'BASIC' ? `<button onclick="removerPrograma('${escapeHtml(p.id)}')">×</button>` : ''}
@@ -9334,46 +9044,41 @@ function renderSMEConfig() {
     `;
 }
 
-function salvarCalendarioSME(e) {
+async function salvarCalendarioSME(e) {
     e.preventDefault();
     const cFechamento = document.getElementById('cfg-comp-fechamento').value;
     const prorrogado = document.getElementById('cfg-prorrogado').value === 'true';
-    
-    const oldFechamento = config.competenciaFechamento;
-    config.competenciaFechamento = cFechamento;
-    config.prazoBonificacaoProrrogado = prorrogado;
-    
-    registerLog('Calendário Alterado', `Competência de fechamento alterada de ${oldFechamento} para ${cFechamento}. Janela de prorrogada: ${prorrogado}.`);
-    
-    persist();
-    activeCompetenciaKey = cFechamento;
-    renderSMEConfig();
-    alert('Parâmetros operacionais da SME atualizados com sucesso!');
+    try {
+        await radarConfigurationService.saveCalendar({
+            closingCompetence: cFechamento,
+            bonusWindowExtended: prorrogado
+        });
+        activeCompetenciaKey = cFechamento;
+        renderSMEConfig();
+        alert('Parâmetros operacionais da SME atualizados com sucesso!');
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível atualizar os parâmetros operacionais.');
+    }
 }
 
-function cadastrarPrograma() {
+async function cadastrarPrograma() {
     const name = document.getElementById('new-program-name').value.trim();
     const desc = document.getElementById('new-program-desc').value.trim();
-    
-    if (!name) return;
-    
-    const newProg = {
-        id: 'prog-' + Date.now(),
-        name: name,
-        desc: desc
-    };
-    
-    programas.push(newProg);
-    registerLog('Programa Cadastrado', `Novo programa cadastrado: ${name}.`);
-    persist();
-    renderSMEConfig();
+    try {
+        await radarDirectoryService.saveProgram({ name, description: desc });
+        renderSMEConfig();
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível cadastrar o programa.');
+    }
 }
 
-function removerPrograma(progId) {
-    programas = programas.filter(p => p.id !== progId);
-    registerLog('Programa Removido', `Programa ID ${progId} foi excluído do exercício.`);
-    persist();
-    renderSMEConfig();
+async function removerPrograma(progId) {
+    try {
+        await radarDirectoryService.deactivateProgram({ programId: progId });
+        renderSMEConfig();
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível desativar o programa.');
+    }
 }
 
 function getCompMonthStatus(escolaId, compKey) {
@@ -10127,60 +9832,23 @@ function changeProntuarioCompetencia(escolaId, compKey) {
 }
 
 // 14.2 Operações de Clique Bonificação
-function toggleBonif(escolaId, compKey, docKey, value) {
+async function toggleBonif(escolaId, compKey, docKey, value) {
     if (currentProfile === 'inventario' || currentProfile === 'sme') return;
-
-    const v = ensureProgramVerification(escolaId, compKey);
-
-    // Regra: Não permitir alterar bonificação se o mês estiver consolidado
-    if (v.resultadoBonif && currentProfile !== 'assistente') {
-        alert('Esta competência já foi consolidada. Apenas o(a) Assistente de Verbas Federais pode fazer ajustes retroativos na bonificação.');
-        return;
-    }
-
-    const registeredNotes = notasRegistradas.filter(nota => (
-        nota.escolaId === escolaId && nota.compKey === compKey
-    ));
-    if (docKey === 'notaFiscal' && value === 'Não se aplica' && registeredNotes.length > 0) {
-        const noteNumbers = registeredNotes.map(nota => nota.numero).join(', ');
-        persist();
-        alert(`Existem notas fiscais cadastradas (${noteNumbers}). Para marcar N/A, faça a exclusão individual de cada nota antes. Nenhuma nota ou bem foi excluído.`);
+    try {
+        await radarVerificationService.setBonification({
+            schoolId: escolaId,
+            compKey,
+            documentKey: docKey,
+            value,
+            profile: currentProfile
+        });
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível alterar a bonificação.');
         renderProntuario(escolaId);
-        return;
+        return false;
     }
-
-    const bonificationBefore = { ...v.bonificacao };
-    v.bonificacao[docKey] = value;
-
-    // Regra Automática: Se Nota Fiscal = Não se aplica, automaticamente Encaminhado Inventário e Consulta Assessoria = Não se aplica
-    if (docKey === 'notaFiscal') {
-        if (value === 'Não se aplica') {
-            v.bonificacao['encampInventario'] = 'Não se aplica';
-            v.analise['encampInventario'] = 'Correto';
-            v.bonificacao['consAssessoria'] = 'Não se aplica';
-            v.analise['consAssessoria'] = 'Correto';
-            v.analise['notaFiscal'] = 'Correto';
-        } else if (value === 'Sim' || value === 'Não') {
-            // Se estava como "Não se aplica" antes, reseta para exigir análise
-            if (v.bonificacao['encampInventario'] === 'Não se aplica') {
-                v.bonificacao['encampInventario'] = '';
-                v.analise['encampInventario'] = 'Não analisado';
-            }
-            if (v.bonificacao['consAssessoria'] === 'Não se aplica') {
-                v.bonificacao['consAssessoria'] = '';
-                v.analise['consAssessoria'] = 'Não analisado';
-            }
-        }
-    }
-
-    reopenConsolidationForAssistant(
-        escolaId,
-        compKey,
-        v,
-        hasBonificationChanged(bonificationBefore, v.bonificacao)
-    );
-    persist();
     renderProntuario(escolaId);
+    return true;
 }
 
 function findActivePendencyForTechnicalAnalysis(escolaId, compProgKey, documentoKey) {
@@ -10207,7 +9875,7 @@ function findActivePendencyForTechnicalAnalysis(escolaId, compProgKey, documento
 }
 
 // 14.3 Operações de Clique Análise Técnica
-function changeAnaliseTecnica(escolaId, compKey, docKey, value, selectElement = null) {
+async function changeAnaliseTecnica(escolaId, compKey, docKey, value, selectElement = null) {
     if (currentProfile === 'inventario' || currentProfile === 'sme') return false;
 
     const activePendency = findActivePendencyForTechnicalAnalysis(
@@ -10229,34 +9897,6 @@ function changeAnaliseTecnica(escolaId, compKey, docKey, value, selectElement = 
         return false;
     }
 
-    const v = ensureProgramVerification(escolaId, compKey);
-    
-    // Regra Operacional: Não permitir preencher análise técnica se a entrega do drive estiver vazia (Sim, Não, N/A)
-    if (value !== 'Não analisado' && (!v.bonificacao[docKey] || v.bonificacao[docKey] === '')) {
-        persist();
-        alert('Você não pode alterar a análise técnica sem antes preencher o status de entrega no Drive (Sim, Não ou N/A).');
-        renderProntuario(escolaId);
-        return;
-    }
-
-    const fiscalNotes = notasRegistradas.filter(nota => (
-        nota.escolaId === escolaId && nota.compKey === compKey
-    ));
-    if (docKey === 'notaFiscal' && window.RadarFluxoOperacional.shouldRequireFiscalNote({
-        bonificacaoNotaFiscal: v.bonificacao.notaFiscal,
-        analiseValue: value,
-        fiscalNotes
-    })) {
-        persist();
-        alert('Você declarou que há entrega de Notas Fiscais no Drive (Sim), mas não cadastrou nenhuma Nota Fiscal no sistema. Por favor, cadastre pelo menos uma Nota Fiscal antes de marcar como Correto.');
-        renderProntuario(escolaId);
-        openModalDadosNota(escolaId, compKey);
-        return;
-    }
-
-    const oldValue = v.analise[docKey];
-    v.analise[docKey] = value;
-    
     const docNames = {
         extCC: 'Extrato Conta Corrente',
         extINV: 'Extrato Investimento',
@@ -10265,13 +9905,33 @@ function changeAnaliseTecnica(escolaId, compKey, docKey, value, selectElement = 
         declBBAgil: 'Declaração BB Ágil',
         encampInventario: 'Encaminhado para Inventariação'
     };
-
-    registerLog('Análise Técnica Alterada', `Análise técnica de ${docNames[docKey]} em ${compKey} da escola ID ${escolaId} alterada de "${oldValue}" para "${value}".`);
-
-    persist();
+    const previousValue = verificacoes[escolaId]?.[compKey]?.analise?.[docKey]
+        || 'Não analisado';
+    let shouldOpenPendency = false;
+    try {
+        const response = await radarVerificationService.setTechnicalAnalysis({
+            schoolId: escolaId,
+            compKey,
+            documentKey: docKey,
+            value,
+            profile: currentProfile,
+            activePendency
+        });
+        shouldOpenPendency = response.value.shouldOpenPendency;
+    } catch (error) {
+        if (selectElement && typeof selectElement === 'object') {
+            selectElement.value = previousValue;
+        }
+        reportRadarActionError(error, 'Não foi possível alterar a análise técnica.');
+        renderProntuario(escolaId);
+        if (error?.code === 'FISCAL_NOTE_REQUIRED') {
+            openModalDadosNota(escolaId, compKey);
+        }
+        return false;
+    }
 
     // Regra Crítica: Se marcar como "Incorreto", abrir modal de pendência correspondente automaticamente
-    if (value === 'Incorreto') {
+    if (shouldOpenPendency) {
         const splitContext = window.RadarCompetencia.splitCompetenciaContext(compKey);
         const mesRaw = splitContext.competenciaKey;
         const progId = splitContext.contextId;
@@ -10339,194 +9999,43 @@ function openModalDadosNota(escolaId, compKey) {
     openModal('modal-dados-nota');
 }
 
-function salvarDadosNota(e) {
+async function salvarDadosNota(e) {
     e.preventDefault();
     if (currentProfile === 'inventario' || currentProfile === 'sme') return;
     const notaId = document.getElementById('nota-id').value;
     const escolaId = document.getElementById('nota-escola-id').value;
-    const compKey = document.getElementById('nota-comp-key').value; // Formato: 2026-05_BASIC ou similar
-
-    const v = verificacoes[escolaId]?.[compKey];
-    if (blockConsolidatedFiscalNoteMutation(escolaId, compKey)) {
-        closeModal('modal-dados-nota');
-        return;
-    }
-    if (v && v.bonificacao && v.bonificacao['notaFiscal'] === 'Não se aplica') {
-        alert('Não é possível adicionar notas fiscais para competências marcadas como "Não se aplica".');
-        closeModal('modal-dados-nota');
-        return;
-    }
-
-    const existingNote = notaId
-        ? notasRegistradas.find(nota => nota.id === notaId)
-        : null;
-    if (notaId && !existingNote) return;
-
-    if (v) {
-        reopenConsolidationForAssistant(escolaId, compKey, v, true);
-    }
-    
+    const compKey = document.getElementById('nota-comp-key').value;
     const desc = document.getElementById('nota-desc').value.trim();
     const tipo = document.getElementById('nota-tipo').value;
     const numero = document.getElementById('nota-numero').value.trim();
     const valor = parseFloat(document.getElementById('nota-valor').value);
-    
-    const esc = escolas.find(x => x.id === escolaId);
-    const splitContext = window.RadarCompetencia.splitCompetenciaContext(compKey);
-    const mesKey = splitContext.competenciaKey;
-    const progId = splitContext.contextId;
-    
-    const prog = programas.find(p => p.id === progId);
-    const progName = prog ? prog.name : progId;
 
-    if (notaId) {
-        // MODO EDICAO
-        const nota = existingNote;
-
-        const oldTipo = nota.tipo;
-        const oldBemId = nota.bemId;
-
-        nota.desc = desc;
-        nota.tipo = tipo;
-        nota.numero = numero;
-        nota.valor = valor;
-
-        if (tipo === 'permanente') {
-            const hasProcesso = esc && esc.processoInventario;
-            if (oldBemId) {
-                // Atualizar bem existente no inventário
-                const bem = bens.find(b => b.id === oldBemId);
-                if (bem) {
-                    bem.item = `${progName} - ${desc}`;
-                    bem.valor = valor;
-                    bem.notaFiscal = numero;
-                    bem.status = (numero && hasProcesso) ? 'Encaminhada' : 'Não encaminhada';
-                    rebuildOperationalIndexes();
-                }
-            } else {
-                // Criar novo bem no inventário
-                const newBem = {
-                    id: 'bem-' + Date.now(),
-                    escolaId: escolaId,
-                    competencia: mesKey,
-                    item: `${progName} - ${desc}`,
-                    valor: valor,
-                    notaFiscal: numero,
-                    status: (numero && hasProcesso) ? 'Encaminhada' : 'Não encaminhada'
-                };
-                bens.push(newBem);
-                rebuildOperationalIndexes();
-                nota.bemId = newBem.id;
-
-                if (!hasProcesso) {
-                    alert(`Aviso: O bem permanente foi registrado no inventário, mas a escola não tem Processo de Inventário cadastrado. A equipe de inventário não poderá tombá-lo até que você cadastre o processo da escola.`);
-                }
-            }
-        } else {
-            // Se mudou de permanente para outra coisa, remove do inventário
-            if (oldBemId) {
-                bens = bens.filter(b => b.id !== oldBemId);
-                rebuildOperationalIndexes();
-                if (supabaseClient) supabaseClient.from('bens').delete().eq('id', oldBemId).then();
-                nota.bemId = null;
-            }
+    try {
+        const result = await radarInvoiceService.save({
+            id: notaId || null,
+            schoolId: escolaId,
+            compKey,
+            description: desc,
+            expenseType: tipo,
+            invoiceNumber: numero,
+            amount: valor,
+            profile: currentProfile
+        });
+        rebuildOperationalIndexes();
+        if (result.value.warnings.includes('SERVICE_ADVISORY_REQUIRED')) {
+            alert('Aviso de Regra de Negócio: Como é prestação de serviços (custeio), é obrigatório apresentar o e-mail de consultoria da assessoria contábil no encarte mensal do PDDE.');
         }
-
-        // Lógica de prestação de serviços
-        if (tipo === 'servico') {
-            if (oldTipo !== 'servico') {
-                alert(`Aviso de Regra de Negócio: Como é prestação de serviços (custeio), é obrigatório apresentar o e-mail de consultoria da assessoria contábil no encarte mensal do PDDE.`);
-            }
-            // Força consAssessoria para 'Não' se estiver 'Não se aplica' ou em branco
-            const v = verificacoes[escolaId]?.[compKey];
-            if (v) {
-                if (v.bonificacao['consAssessoria'] === 'Não se aplica' || v.bonificacao['consAssessoria'] === '') {
-                    v.bonificacao['consAssessoria'] = 'Não';
-                    v.analise['consAssessoria'] = 'Não analisado';
-                }
-            }
-        } else if (oldTipo === 'servico') {
-            // Se mudou de serviço para outra coisa, checa se ainda existem outros serviços
-            const remainingServices = notasRegistradas.filter(n => n.escolaId === escolaId && n.compKey === compKey && n.tipo === 'servico' && n.id !== notaId);
-            if (remainingServices.length === 0) {
-                const v = verificacoes[escolaId]?.[compKey];
-                if (v) {
-                    v.bonificacao['consAssessoria'] = 'Não se aplica';
-                    v.analise['consAssessoria'] = 'Correto';
-                    v.bonificacao['consEnviada'] = false; // Reset checkbox
-                }
-            }
+        if (result.value.warnings.includes('MISSING_INVENTORY_PROCESS')) {
+            alert('Aviso: O bem permanente foi registrado no inventário, mas a escola não tem Processo de Inventário cadastrado. A equipe de inventário não poderá tombá-lo até que você cadastre o processo da escola.');
         }
-
-        registerLog('Nota Editada', `Nota Fiscal ${numero} editada para ${esc ? esc.denominação : ''} no valor de R$ ${valor}.`);
-    } else {
-        // MODO CRIAÇÃO (código original)
-        let bemId = null;
-
-        if (tipo === 'permanente') {
-            // Bem Permanente -> Criar no inventário (bens de capital)
-            const hasProcesso = esc && esc.processoInventario;
-            const newBem = {
-                id: 'bem-' + Date.now(),
-                escolaId: escolaId,
-                competencia: mesKey,
-                item: `${progName} - ${desc}`,
-                valor: valor,
-                notaFiscal: numero,
-                status: (numero && hasProcesso) ? 'Encaminhada' : 'Não encaminhada'
-            };
-            bens.push(newBem);
-            rebuildOperationalIndexes();
-            bemId = newBem.id;
-            
-            // Logar a ação
-            registerLog('Bem Cadastrado', `Gasto de capital (permanente) de R$ ${valor} registrado via análise mensal para ${esc ? esc.denominação : ''} com NF ${numero}.`);
-            
-            // E se a escola tiver processo, encaminha automático, se não tiver avisa!
-            if (!hasProcesso) {
-                alert(`Aviso: O bem permanente foi registrado no inventário, mas a escola não tem Processo de Inventário cadastrado. A equipe de inventário não poderá tombá-lo até que você cadastre o processo da escola.`);
-            }
-        } else if (tipo === 'servico') {
-            // Prestação de Serviço -> Avisar que precisa de consulta assessoria!
-            alert(`Aviso de Regra de Negócio: Como é prestação de serviços (custeio), é obrigatório apresentar o e-mail de consultoria da assessoria contábil no encarte mensal do PDDE.`);
-            
-            // Se registrou serviço, a consulta da assessoria passa a ser requerida (não pode ser "Não se aplica")
-            const v = verificacoes[escolaId]?.[compKey];
-            if (v) {
-                if (v.bonificacao['consAssessoria'] === 'Não se aplica' || v.bonificacao['consAssessoria'] === '') {
-                    v.bonificacao['consAssessoria'] = 'Não'; // Força para 'Não' para requerer check explícito
-                    v.analise['consAssessoria'] = 'Não analisado';
-                }
-            }
-            
-            // Logar
-            registerLog('Gasto Serviço Cadastrado', `Gasto com Prestação de Serviços registrado para ${esc ? esc.denominação : ''}: ${desc} com NF ${numero} no valor de R$ ${valor}.`);
-        } else {
-            // Material de Consumo -> Custeio simples
-            // Logar
-            registerLog('Gasto Consumo Cadastrado', `Gasto com Material de Consumo registrado para ${esc ? esc.denominação : ''}: ${desc} com NF ${numero} no valor de R$ ${valor}.`);
-        }
-
-        // Registrar a Nota Fiscal na lista unificada
-        const newNota = {
-            id: 'nota-' + Date.now(),
-            escolaId: escolaId,
-            compKey: compKey, // '2026-05_BASIC'
-            desc: desc,
-            tipo: tipo,
-            numero: numero,
-            valor: valor,
-            bemId: bemId,
-            dataRegistro: new Date().toISOString()
-        };
-        notasRegistradas.push(newNota);
+        closeModal('modal-dados-nota');
+        renderProntuario(escolaId);
+        updateAlertsBell();
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível salvar a nota fiscal.');
     }
-    
-    persist();
-    closeModal('modal-dados-nota');
-    renderProntuario(escolaId);
-    updateAlertsBell();
 }
+
 
 function abrirEditarNota(notaId, escolaId) {
     const nota = notasRegistradas.find(n => n.id === notaId);
@@ -10572,88 +10081,48 @@ function toggleConsEnviada(escolaId, compKey, isChecked) {
     renderProntuario(escolaId);
 }
 
-function removerNotaRegistrada(notaId, escolaId) {
+async function removerNotaRegistrada(notaId, escolaId) {
     if (currentProfile === 'inventario' || currentProfile === 'sme') return;
-    const idx = notasRegistradas.findIndex(n => n.id === notaId);
-    if (idx === -1) return;
-
-    const nota = notasRegistradas[idx];
+    const nota = notasRegistradas.find(item => item.id === notaId);
+    if (!nota) return;
     if (blockConsolidatedFiscalNoteMutation(escolaId, nota.compKey)) return;
     if (!confirm('Deseja realmente remover esta nota fiscal registrada?')) return;
 
-    if (idx !== -1) {
-        const verification = verificacoes[escolaId]?.[nota.compKey];
-        if (verification) {
-            reopenConsolidationForAssistant(escolaId, nota.compKey, verification, true);
+    try {
+        const result = await radarInvoiceService.remove({
+            id: notaId,
+            schoolId: escolaId,
+            profile: currentProfile
+        });
+        rebuildOperationalIndexes();
+        if (result.value.resetFiscalAnalysis) {
+            alert('Aviso: Como você removeu todas as notas fiscais cadastradas para esta competência/programa, a análise técnica foi redefinida para "Não analisado".');
         }
-        
-        // Se a nota tiver bemId associado, remove do inventário (bens)
-        if (nota.bemId) {
-            bens = bens.filter(b => b.id !== nota.bemId);
-            rebuildOperationalIndexes();
-            if (supabaseClient) supabaseClient.from('bens').delete().eq('id', nota.bemId).then();
-        }
-        
-        // Remove da lista de notas
-        const compProgKey = nota.compKey;
-        notasRegistradas.splice(idx, 1);
-        if (supabaseClient) supabaseClient.from('notas_registradas').delete().eq('id', notaId).then();
-        
-        // Se removeu a última nota de serviço, a consulta da assessoria pode voltar a ser "Não se aplica"
-        const remainingServices = notasRegistradas.filter(n => n.escolaId === escolaId && n.compKey === compProgKey && n.tipo === 'servico');
-        if (remainingServices.length === 0) {
-            const v = verificacoes[escolaId]?.[compProgKey];
-            if (v) {
-                v.bonificacao['consAssessoria'] = 'Não se aplica';
-                v.analise['consAssessoria'] = 'Correto';
-            }
-        }
-
-        // Se removeu a última nota fiscal e a análise técnica estava como "Correto" ou "Correto (Atrasado)" sob entrega "Sim",
-        // reseta a análise para "Não analisado" pois não há mais documentos cadastrados
-        const remainingNotes = notasRegistradas.filter(n => n.escolaId === escolaId && n.compKey === compProgKey);
-        if (remainingNotes.length === 0) {
-            const v = verificacoes[escolaId]?.[compProgKey];
-            if (v && v.bonificacao['notaFiscal'] === 'Sim' && (v.analise['notaFiscal'] === 'Correto' || v.analise['notaFiscal'] === 'Correto (Atrasado)')) {
-                v.analise['notaFiscal'] = 'Não analisado';
-                alert('Aviso: Como você removeu todas as notas fiscais cadastradas para esta competência/programa, a análise técnica foi redefinida para "Não analisado".');
-            }
-        }
-        
-        // Logar exclusão
-        const esc = escolas.find(x => x.id === escolaId);
-        registerLog('Nota Fiscal Removida', `Nota Fiscal ${nota.numero} de R$ ${nota.valor} foi excluída da escola ${esc ? esc.denominação : ''}.`);
-        
-        persist();
         renderProntuario(escolaId);
         updateAlertsBell();
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível remover a nota fiscal.');
     }
 }
 
+
 // 14.4 Regra de Consolidação de Bonificação (Apta / Inapta)
-function calcularEFecharBonificacao(escolaId, compKey) {
+async function calcularEFecharBonificacao(escolaId, compKey) {
     if (currentProfile === 'inventario' || currentProfile === 'sme') return;
-    const v = ensureProgramVerification(escolaId, compKey);
-    const evaluation = window.RadarFluxoOperacional.evaluateBonification(v.bonificacao);
-
-    if (!evaluation.canConsolidate) {
-        const missingLabels = evaluation.missingFields
-            .map(key => VERIFICATION_DOCUMENT_LABELS[key] || key)
-            .join(', ');
-        persist();
-        alert(`Preencha todos os itens de bonificação antes de consolidar. Campos ausentes ou inválidos: ${missingLabels}.`);
+    try {
+        await radarVerificationService.closeBonification({
+            schoolId: escolaId,
+            compKey,
+            profile: currentProfile
+        });
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível consolidar a bonificação.');
         renderProntuario(escolaId);
-        return;
+        return false;
     }
-
-    const esc = escolas.find(e => e.id === escolaId);
-    v.resultadoBonif = evaluation.status;
-    
-    registerLog('Bonificação Consolidada', `A bonificação da escola ${esc ? esc.denominação : ''} para ${compKey} foi fechada como "${evaluation.status.toUpperCase()}".`);
-    
-    persist();
     renderProntuario(escolaId);
     updateAlertsBell();
+    return true;
 }
 
 
@@ -10662,40 +10131,38 @@ function calcularEFecharBonificacao(escolaId, compKey) {
 // 15. REGRA OPERACIONAL: REQUISITOS DE CAPITAL
 // ==========================================
 
-function updateCapitalDoc(bemId, field, value) {
+async function updateCapitalDoc(bemId, field, value) {
     if (currentProfile === 'inventario' || currentProfile === 'sme') return;
-    const b = bens.find(item => item.id === bemId);
-    if (b) {
-        b[field] = value;
-        persist();
+    try {
+        await radarInventoryService.updateAsset({
+            assetId: bemId,
+            field,
+            value,
+            profile: currentProfile
+        });
+        rebuildOperationalIndexes();
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível atualizar o bem patrimonial.');
+        if (activeSchoolId) renderProntuario(activeSchoolId);
     }
 }
 
-function encaminharCapital(bemId) {
+async function encaminharCapital(bemId) {
     if (currentProfile === 'inventario' || currentProfile === 'sme') return;
-    const b = bens.find(item => item.id === bemId);
-    if (!b) return;
-
-    const esc = escolas.find(e => e.id === b.escolaId);
-    const processo = esc ? esc.processoInventario : '';
-
-    if (!b.notaFiscal) {
-        alert('Erro de Validação: Não é possível encaminhar bens patrimoniais sem preencher o Número da Nota Fiscal.');
-        return;
+    try {
+        await radarInventoryService.forward({
+            assetId: bemId,
+            profile: currentProfile
+        });
+        rebuildOperationalIndexes();
+        renderProntuario(activeSchoolId);
+        updateAlertsBell();
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível encaminhar o bem patrimonial.');
     }
-    if (!processo) {
-        alert('Erro de Validação: A unidade escolar não possui um Processo de Inventário cadastrado para o exercício. Por favor, atualize os dados cadastrais da escola primeiro.');
-        return;
-    }
-
-    b.status = 'Encaminhada';
-    registerLog('Capital Encaminhado', `Aquisição ${b.item} da escola ${esc ? esc.denominação : ''} encaminhada ao inventariador com NF ${b.notaFiscal} no processo ${processo}.`);
-    
-    rebuildOperationalIndexes();
-    persist();
-    renderProntuario(activeSchoolId);
-    updateAlertsBell();
 }
+
+
 
 
 // ==========================================
@@ -10737,7 +10204,7 @@ function openContatoModal(escolaId) {
     openModal('modal-contato');
 }
 
-function saveContato(e) {
+async function saveContato(e) {
     e.preventDefault();
     const escolaId = document.getElementById('contato-escola-id').value;
     const tipo = document.getElementById('contato-tipo').value;
@@ -10745,26 +10212,18 @@ function saveContato(e) {
     const pendId = document.getElementById('contato-pendencia').value;
     const desc = document.getElementById('contato-desc').value.trim();
 
-    const newContato = {
-        id: 'cont-' + Date.now(),
-        escolaId: escolaId,
-        tipo: tipo,
-        dataAtendimento: dataAtend,
-        dataRegistro: new Date().toISOString(),
-        desc: desc,
-        pendenciaId: pendId || null
-    };
-
-    contatos.push(newContato);
-    
-    // Se o contato atualizou uma pendência específica, registrar no log da pendência
-    if (pendId) {
-        registerLog('Contato Registrado', `Contato via ${tipo} associado à pendência ID ${pendId} na escola ID ${escolaId}.`);
-    } else {
-        registerLog('Contato Registrado', `Contato via ${tipo} registrado para a escola ID ${escolaId}.`);
+    try {
+        await radarPendencyService.registerContact({
+            schoolId: escolaId,
+            pendencyId: pendId || null,
+            channel: tipo,
+            serviceDate: dataAtend,
+            description: desc
+        });
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível registrar o contato.');
+        return false;
     }
-
-    persist();
     closeModal('modal-contato');
     document.getElementById('form-contato').reset();
     
@@ -10774,6 +10233,7 @@ function saveContato(e) {
         renderDashboard();
     }
     updateAlertsBell();
+    return true;
 }
 
 // 16.2 Salvar Nova Pendência Manual ou Documental
@@ -10910,7 +10370,7 @@ function openNovaPendenciaModalWithDefaults(
     itemSelect.value = context.item;
 }
 
-function saveNovaPendencia(e) {
+async function saveNovaPendencia(e) {
     e.preventDefault();
     const sourceView = currentView;
     const escolaId = document.getElementById('pendencia-escola-id').value;
@@ -10929,66 +10389,34 @@ function saveNovaPendencia(e) {
         return;
     }
 
-    const now = new Date();
-    const nowIso = now.toISOString();
-    const user = getCurrentUser();
     let newPend;
-    let logDetails;
 
     try {
+        let errors = [];
         if (isDocumentary) {
-            const errors = getSelectedPendencyErrors();
-            const context = {
-                escolaId,
-                competenciaOrigem: comp,
-                programaId,
-                documentoKey,
-                item
-            };
-            const existing = window.RadarPendencias.findActivePendency(pendencias, context);
-
-            if (existing) {
-                closeModal('modal-nova-pendencia');
-                resetNovaPendenciaForm();
-                openPendencyDetail(existing.id);
-                showPendencyNotice('Já existe uma pendência ativa para este documento.', 'duplicate');
-                return;
-            }
-
-            newPend = window.RadarPendencias.createDocumentPendency({
-                id: createPendencyClientId('pend'),
-                escolaId,
-                competenciaOrigem: comp,
-                programaId,
-                documentoKey,
-                item,
-                errosAtuais: errors,
-                observacao: obs,
-                dataAbertura: nowIso.split('T')[0]
-            }, {
-                eventId: createPendencyClientId('evento'),
-                at: nowIso,
-                usuario: user.name,
-                perfil: user.role
-            });
-            logDetails = `Pendência documental de ${item} para a escola ID ${escolaId} (${comp}, programa ${programaId}, documento ${documentoKey}). Erros: ${errors.join(', ')}.`;
-        } else {
-            newPend = window.RadarPendencias.normalizePendencyRecord({
-                id: createPendencyClientId('pend'),
-                escolaId,
-                competencia: comp,
-                item,
-                motivo,
-                responsavel: resp,
-                status: 'Aberta',
-                dataAbertura: nowIso.split('T')[0],
-                dataResolucao: null,
-                observacao: obs
-            });
-            const esc = escolas.find(x => x.id === escolaId);
-            logDetails = `Abertura manual de pendência de ${item} para ${esc ? esc.denominação : ''} (${comp}) - Responsável: ${resp}.`;
+            errors = getSelectedPendencyErrors();
         }
+        const result = await radarPendencyService.open({
+            schoolId: escolaId,
+            competence: comp,
+            programId: isDocumentary ? programaId : null,
+            documentKey: isDocumentary ? documentoKey : null,
+            item,
+            errors,
+            reason: motivo,
+            responsible: resp,
+            observation: obs
+        });
+        newPend = result.value.pendency;
     } catch (error) {
+        if (error?.code === 'DUPLICATE_PENDENCY' && error.details?.existingPendencyId) {
+            closeModal('modal-nova-pendencia');
+            resetNovaPendenciaForm();
+            openPendencyDetail(error.details.existingPendencyId);
+            showPendencyNotice('Já existe uma pendência ativa para este documento.', 'duplicate');
+            return false;
+        }
+        reportRadarPersistenceError(error);
         showPendencyNotice(error && error.message
             ? error.message
             : 'Não foi possível validar a pendência.', 'error');
@@ -10999,11 +10427,7 @@ function saveNovaPendencia(e) {
         return;
     }
 
-    pendencias.push(newPend);
     rebuildOperationalIndexes();
-    registerLog('Pendência Criada', logDetails);
-
-    persist();
     closeModal('modal-nova-pendencia');
     resetNovaPendenciaForm();
 
@@ -11013,17 +10437,18 @@ function saveNovaPendencia(e) {
         renderPendencias();
     }
     updateAlertsBell();
+    return Boolean(newPend);
 }
 
 // 16.3 Editar Cadastro da Escola
 function openEscolaEditModal(escolaId) {
     const selectCtrl = document.getElementById('edit-controlador');
-    selectCtrl.innerHTML = controladores.map(c => `
+    selectCtrl.innerHTML = getActiveControllers().map(c => `
         <option value="${escapeHtml(c.id)}">${escapeHtml(c.name)}</option>
     `).join('');
 
     const chkContainer = document.getElementById('edit-programas-checkboxes');
-    chkContainer.innerHTML = programas.map(p => `
+    chkContainer.innerHTML = getActivePrograms().map(p => `
         <label style="display:flex; align-items:center; gap:6px; font-size:0.8rem;">
             <input type="checkbox" name="edit-programs" value="${escapeHtml(p.id)}" ${p.id === 'BASIC' ? 'checked disabled' : ''}>
             ${escapeHtml(p.name)}
@@ -11072,153 +10497,82 @@ function openEscolaEditModal(escolaId) {
     openModal('modal-escola-edit');
 }
 
-function saveEscolaEdit(e) {
+async function saveEscolaEdit(e) {
     e.preventDefault();
     const id = document.getElementById('edit-escola-id').value;
-
     const sici = document.getElementById('edit-sici').value.trim();
-
     const email = document.getElementById('edit-email').value.trim();
-
     const diretor = document.getElementById('edit-diretor').value.trim();
-
     const telefoneDiretor = document.getElementById('edit-telefone-diretor').value.trim();
-
     const diretorAdjunto = document.getElementById('edit-diretor-adjunto').value.trim();
-
     const telefoneDiretorAdjunto = document.getElementById('edit-telefone-adjunto').value.trim();
-
     const tel = document.getElementById('edit-telefone').value.trim();
-
     const celularInstitucional = document.getElementById('edit-celular-institucional').value.trim();
-
     const ctrlId = document.getElementById('edit-controlador').value;
-
     const processo = document.getElementById('edit-processo').value.trim();
-
-    
-    // Obter programas selecionados
     const progIds = ['BASIC'];
     document.querySelectorAll('input[name="edit-programs"]:checked').forEach(chk => {
         if (chk.value !== 'BASIC') progIds.push(chk.value);
     });
-
-    if (id) {
-        // Atualizar
-        const esc = escolas.find(item => item.id === id);
-        if (esc) {
-
-            const oldCtrl = esc.controladorId;
-
-            esc.sici = sici;
-
-            esc.email = email;
-
-            esc.diretor = diretor;
-
-            esc.telefoneDiretor = telefoneDiretor;
-
-            esc.diretorAdjunto = diretorAdjunto;
-
-            esc.telefoneDiretorAdjunto = telefoneDiretorAdjunto;
-
-            esc.telefone = tel;
-
-            esc.telefoneCelularInstitucional = celularInstitucional;
-
-            esc.controladorId = ctrlId;
-
-            esc.processoInventario = processo;
-
-            esc.programasIds = progIds;
-            
-            let logDetails = `Dados da escola ${esc.denominação} atualizados.`;
-            if (oldCtrl !== ctrlId) logDetails += ` Controlador alterado para ${controladores.find(c=>c.id===ctrlId).name}.`;
-            registerLog('Escola Atualizada', logDetails);
+    try {
+        const result = await radarSchoolService.saveSchool({
+            id: id || undefined,
+            sici,
+            email,
+            director: diretor,
+            directorPhone: telefoneDiretor,
+            deputyDirector: diretorAdjunto,
+            deputyDirectorPhone: telefoneDiretorAdjunto,
+            phone: tel,
+            institutionalMobile: celularInstitucional,
+            controllerId: ctrlId,
+            inventoryProcess: processo,
+            programIds: progIds,
+            initialCompetence: activeCompetenciaKey || '2026-05'
+        });
+        const savedId = result.value.school.id;
+        closeModal('modal-escola-edit');
+        if (currentView === 'prontuario') {
+            renderProntuario(savedId);
+        } else {
+            renderEscolas();
         }
-    } else {
-        // Novo cadastro
-        const newEsc = {
-            id: 'esc-' + Date.now(),
-            inep: '330' + Math.floor(10000 + Math.random() * 90000),
-            cnpj: '00.000.000/0001-' + Math.floor(10 + Math.random() * 89),
-            denominação: 'Nova Unidade Escolar ' + Math.floor(Math.random() * 100),
-            designação: '01.09.' + Math.floor(100 + Math.random() * 900),
-            cre: '4ª CRE',
-
-            ra: 'Geral',
-
-            sici: sici,
-
-            email: email,
-
-            diretor: diretor,
-
-            telefoneDiretor: telefoneDiretor,
-
-            diretorAdjunto: diretorAdjunto,
-
-            telefoneDiretorAdjunto: telefoneDiretorAdjunto,
-
-            telefone: tel,
-
-            telefoneCelularInstitucional: celularInstitucional,
-
-            controladorId: ctrlId,
-
-            processoInventario: processo,
-            programasIds: progIds,
-            competenciaInicial: '2026-05'
-        };
-        escolas.push(newEsc);
-        registerLog('Escola Cadastrada', `Nova escola cadastrada: ${newEsc.denominação} com controlador designado.`);
-    }
-
-    persist();
-    closeModal('modal-escola-edit');
-    if (currentView === 'prontuario') {
-        renderProntuario(id);
-    } else {
-        renderEscolas();
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível salvar a escola.');
     }
 }
 
 // 16.4 Registrar Novo Bem de Capital
-function openNovoCapitalModal(escolaId) {
+async function openNovoCapitalModal(escolaId) {
     if (currentProfile === 'inventario' || currentProfile === 'sme') return;
-    // Para simplificar no MVP, adicionamos via formulário dinâmico simples
-    const dec = prompt("Descreva o bem patrimonial comprado (ex: Computador Desktop Dell):");
+    const dec = prompt('Descreva o bem patrimonial comprado (ex: Computador Desktop Dell):');
     if (!dec) return;
-    const valStr = prompt("Informe o valor da compra (ex: 2500):");
+    const valStr = prompt('Informe o valor da compra (ex: 2500):');
     const val = parseFloat(valStr);
-    if (isNaN(val)) {
-        alert("Valor inválido!");
+    if (Number.isNaN(val)) {
+        alert('Valor inválido!');
         return;
     }
-    const nf = prompt("Informe o número da Nota Fiscal (opcional para iniciar, ex: NF-84321):") || '';
+    const nf = prompt('Informe o número da Nota Fiscal (opcional para iniciar, ex: NF-84321):') || '';
 
-    const esc = escolas.find(x => x.id === escolaId);
-    const hasProcesso = esc && esc.processoInventario;
-
-    const newBem = {
-        id: 'bem-' + Date.now(),
-        escolaId: escolaId,
-        competencia: activeCompetenciaKey,
-        item: dec,
-        valor: val,
-        notaFiscal: nf,
-        status: (nf && hasProcesso) ? 'Encaminhada' : 'Não encaminhada'
-    };
-
-    bens.push(newBem);
-    rebuildOperationalIndexes();
-    const escObj = escolas.find(x => x.id === escolaId);
-    registerLog('Bem Cadastrado', `Gasto de capital de R$ ${val} registrado para ${escObj ? escObj.denominação : ''}: ${dec}.`);
-    
-    persist();
-    renderProntuario(escolaId);
-    updateAlertsBell();
+    try {
+        await radarInventoryService.createAsset({
+            schoolId: escolaId,
+            competence: activeCompetenciaKey,
+            description: dec,
+            amount: val,
+            invoiceNumber: nf,
+            profile: currentProfile
+        });
+        rebuildOperationalIndexes();
+        renderProntuario(escolaId);
+        updateAlertsBell();
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível registrar o bem patrimonial.');
+    }
 }
+
+
 
 
 // ==========================================
@@ -11349,9 +10703,11 @@ function openRedistributionModal() {
 function renderEquipe() {
     const container = document.getElementById('main-container');
     if (!container) return;
+    const activeControllers = getActiveControllers();
+    const activeInventoryMembers = getActiveInventoryMembers();
 
     // Calcular contagem de escolas por controlador
-    const ctrlStats = controladores.map(c => {
+    const ctrlStats = activeControllers.map(c => {
         const totalEscolas = escolas.filter(e => e.controladorId === c.id).length;
         return { ...c, totalEscolas };
     });
@@ -11376,8 +10732,8 @@ function renderEquipe() {
         </div>
 
         <div class="tab-container" style="margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
-            <button class="tab-button ${activeEquipeTab === 'controladores' ? 'active' : ''}" onclick="switchEquipeTab('controladores')" style="background:none; border:none; color:${activeEquipeTab === 'controladores' ? 'var(--primary)' : 'var(--text-muted)'}; font-weight:600; padding: 8px 16px; cursor:pointer;">Controladores e Carteiras (${controladores.length})</button>
-            <button class="tab-button ${activeEquipeTab === 'inventario' ? 'active' : ''}" onclick="switchEquipeTab('inventario')" style="background:none; border:none; color:${activeEquipeTab === 'inventario' ? 'var(--primary)' : 'var(--text-muted)'}; font-weight:600; padding: 8px 16px; cursor:pointer;">Equipe de Inventário (${equipeInventario.length})</button>
+            <button class="tab-button ${activeEquipeTab === 'controladores' ? 'active' : ''}" onclick="switchEquipeTab('controladores')" style="background:none; border:none; color:${activeEquipeTab === 'controladores' ? 'var(--primary)' : 'var(--text-muted)'}; font-weight:600; padding: 8px 16px; cursor:pointer;">Controladores e Carteiras (${activeControllers.length})</button>
+            <button class="tab-button ${activeEquipeTab === 'inventario' ? 'active' : ''}" onclick="switchEquipeTab('inventario')" style="background:none; border:none; color:${activeEquipeTab === 'inventario' ? 'var(--primary)' : 'var(--text-muted)'}; font-weight:600; padding: 8px 16px; cursor:pointer;">Equipe de Inventário (${activeInventoryMembers.length})</button>
         </div>
 
         ${activeEquipeTab === 'controladores' ? `
@@ -11404,7 +10760,7 @@ function renderEquipe() {
                                 <button class="btn btn-secondary btn-sm" onclick="abrirEditarControlador('${escapeHtml(c.id)}')" title="Editar dados">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                 </button>
-                                <button class="btn btn-danger btn-sm" onclick="removerControlador('${escapeHtml(c.id)}')" title="Remover controlador" ${controladores.length <= 1 ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
+                                <button class="btn btn-danger btn-sm" onclick="removerControlador('${escapeHtml(c.id)}')" title="Remover controlador" ${activeControllers.length <= 1 ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                                 </button>
                             </div>
@@ -11427,7 +10783,7 @@ function renderEquipe() {
                         </span>
                         <select id="bulk-controlador-select" class="form-control" style="width: 200px; font-size: 0.85rem; padding: 4px 8px; height: auto; border-color: var(--border-color);">
                             <option value="" disabled selected>Atribuir ao Controlador...</option>
-                            ${controladores.map(ctrl => `<option value="${escapeHtml(ctrl.id)}">${escapeHtml(ctrl.name)}</option>`).join('')}
+                            ${activeControllers.map(ctrl => `<option value="${escapeHtml(ctrl.id)}">${escapeHtml(ctrl.name)}</option>`).join('')}
                         </select>
                         <button class="btn btn-primary btn-sm" onclick="aplicarAtribuicaoEmLote()" style="padding: 5px 12px; font-size: 0.8rem;">Aplicar em Lote</button>
                     </div>
@@ -11460,7 +10816,7 @@ function renderEquipe() {
                                         <td><span class="badge badge-gray">${escapeHtml(getRAFromDesignacao(e.designação || e.designaçao))}</span></td>
                                         <td>
                                             <select class="form-control select-alocacao" style="max-width: 220px; font-weight: 500; border-color: var(--border-color);" onchange="reatribuirEscolaDirect('${escapeHtml(e.id)}', this.value)">
-                                                ${controladores.map(ctrl => `
+                                                ${activeControllers.map(ctrl => `
                                                     <option value="${escapeHtml(ctrl.id)}" ${ctrl.id === currentCtrlId ? 'selected' : ''}>${escapeHtml(ctrl.name)}</option>
                                                 `).join('')}
                                             </select>
@@ -11475,7 +10831,7 @@ function renderEquipe() {
         ` : `
             <!-- View de Equipe de Inventário -->
             <div class="equipe-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px;">
-                ${equipeInventario.map(inv => `
+                ${activeInventoryMembers.map(inv => `
                     <div class="panel-card ctrl-card" style="position: relative; overflow: hidden; transition: var(--transition-smooth); border: 1px solid var(--border-color);">
                         <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px;">
                             <div class="avatar" style="width: 48px; height: 48px; border-radius: 50%; background: rgba(157, 125, 252, 0.1); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 600;">
@@ -11492,7 +10848,7 @@ function renderEquipe() {
                                 <button class="btn btn-secondary btn-sm" onclick="abrirEditarInventariador('${escapeHtml(inv.id)}')" title="Editar dados">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                 </button>
-                                <button class="btn btn-danger btn-sm" onclick="removerInventariador('${escapeHtml(inv.id)}')" title="Remover integrante" ${equipeInventario.length <= 1 ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
+                                <button class="btn btn-danger btn-sm" onclick="removerInventariador('${escapeHtml(inv.id)}')" title="Remover integrante" ${activeInventoryMembers.length <= 1 ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                                 </button>
                             </div>
@@ -11532,40 +10888,22 @@ function abrirEditarInventariador(id) {
     openModal('modal-inventariador-edit');
 }
 
-function salvarInventariador(event) {
+async function salvarInventariador(event) {
     event.preventDefault();
     const id = document.getElementById('inventariador-id').value;
     const name = document.getElementById('inventariador-name').value.trim();
     const email = document.getElementById('inventariador-email').value.trim();
-    
-    if (!name || !email) {
-        alert("Preencha todos os campos!");
-        return;
+    try {
+        await radarDirectoryService.saveInventoryMember({ id: id || undefined, name, email });
+        closeModal('modal-inventariador-edit');
+        renderEquipe();
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível salvar o integrante do inventário.');
     }
-    
-    if (!id) {
-        // Criar novo
-        const newId = 'inv_' + Date.now();
-        equipeInventario.push({ id: newId, name, email });
-        registerLog('Gestão de Equipe', `Integrante do Inventário ${name} (${email}) adicionado à equipe.`);
-    } else {
-        // Editar existente
-        const inv = equipeInventario.find(x => x.id === id);
-        if (inv) {
-            const oldName = inv.name;
-            inv.name = name;
-            inv.email = email;
-            registerLog('Gestão de Equipe', `Dados do integrante do Inventário ${oldName} atualizados para: ${name} (${email}).`);
-        }
-    }
-    
-    persist();
-    closeModal('modal-inventariador-edit');
-    renderEquipe();
 }
 
-function removerInventariador(id) {
-    if (equipeInventario.length <= 1) {
+async function removerInventariador(id) {
+    if (getActiveInventoryMembers().length <= 1) {
         alert("Não é possível remover o único integrante de inventário existente!");
         return;
     }
@@ -11575,13 +10913,12 @@ function removerInventariador(id) {
     
     if (!confirm(`Deseja realmente remover o(a) integrante do inventário ${inv.name}?`)) return;
     
-    // Remover
-    equipeInventario = equipeInventario.filter(x => x.id !== id);
-    if (supabaseClient) supabaseClient.from('equipe_inventario').delete().eq('id', id).then();
-    registerLog('Gestão de Equipe', `Integrante do Inventário ${inv.name} removido.`);
-    
-    persist();
-    renderEquipe();
+    try {
+        await radarDirectoryService.deactivateInventoryMember({ memberId: id });
+        renderEquipe();
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível desativar o integrante do inventário.');
+    }
 }
 
 function abrirEditarControlador(id) {
@@ -11607,40 +10944,23 @@ function abrirEditarControlador(id) {
     openModal('modal-controlador-edit');
 }
 
-function salvarControlador(event) {
+async function salvarControlador(event) {
     event.preventDefault();
     const id = document.getElementById('controlador-id').value;
     const name = document.getElementById('controlador-name').value.trim();
     const email = document.getElementById('controlador-email').value.trim();
-    
-    if (!name || !email) {
-        alert("Preencha todos os campos!");
-        return;
+    try {
+        await radarDirectoryService.saveController({ id: id || undefined, name, email });
+        closeModal('modal-controlador-edit');
+        renderEquipe();
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível salvar o controlador.');
     }
-    
-    if (!id) {
-        // Criar novo
-        const newId = 'ctrl_' + Date.now();
-        controladores.push({ id: newId, name, email });
-        registerLog('Gestão de Equipe', `Controlador ${name} (${email}) adicionado à equipe.`);
-    } else {
-        // Editar existente
-        const ctrl = controladores.find(c => c.id === id);
-        if (ctrl) {
-            const oldName = ctrl.name;
-            ctrl.name = name;
-            ctrl.email = email;
-            registerLog('Gestão de Equipe', `Dados do controlador ${oldName} atualizados para: ${name} (${email}).`);
-        }
-    }
-    
-    persist();
-    closeModal('modal-controlador-edit');
-    renderEquipe();
 }
 
-function removerControlador(id) {
-    if (controladores.length <= 1) {
+async function removerControlador(id) {
+    const activeControllers = getActiveControllers();
+    if (activeControllers.length <= 1) {
         alert("Não é possível remover o único controlador existente!");
         return;
     }
@@ -11651,45 +10971,34 @@ function removerControlador(id) {
     const totalEscolas = escolas.filter(e => e.controladorId === id).length;
     
     const confirmMsg = totalEscolas > 0 
-        ? `Deseja realmente remover o(a) controlador(a) ${ctrl.name}? As ${totalEscolas} escolas sob a responsabilidade dele(a) serão reatribuídas automaticamente para o(a) controlador(a) ${controladores.find(c => c.id !== id).name}.`
+        ? `Deseja realmente remover o(a) controlador(a) ${ctrl.name}? As ${totalEscolas} escolas sob a responsabilidade dele(a) serão reatribuídas automaticamente para o(a) controlador(a) ${activeControllers.find(c => c.id !== id).name}.`
         : `Deseja realmente remover o(a) controlador(a) ${ctrl.name}?`;
         
     if (!confirm(confirmMsg)) return;
     
-    // Reatribuir escolas
-    const fallbackCtrl = controladores.find(c => c.id !== id);
-    let reassignedCount = 0;
-    escolas.forEach(e => {
-        if (e.controladorId === id) {
-            e.controladorId = fallbackCtrl.id;
-            reassignedCount++;
-        }
-    });
-    
-    // Remover
-    controladores = controladores.filter(c => c.id !== id);
-    if (supabaseClient) supabaseClient.from('controladores').delete().eq('id', id).then();
-    
-    registerLog('Gestão de Equipe', `Controlador ${ctrl.name} removido. ${reassignedCount} escolas foram transferidas para ${fallbackCtrl.name}.`);
-    
-    persist();
-    renderEquipe();
+    const fallbackCtrl = activeControllers.find(c => c.id !== id);
+    try {
+        await radarDirectoryService.deactivateController({
+            controllerId: id,
+            fallbackControllerId: fallbackCtrl?.id
+        });
+        renderEquipe();
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível desativar o controlador.');
+    }
 }
 
-function reatribuirEscolaDirect(escolaId, novoCtrlId) {
-    const esc = escolas.find(e => e.id === escolaId);
-    if (!esc) return;
-    
-    const oldCtrl = controladores.find(c => c.id === esc.controladorId);
-    const novoCtrl = controladores.find(c => c.id === novoCtrlId);
-    
-    if (esc.controladorId === novoCtrlId) return;
-    
-    esc.controladorId = novoCtrlId;
-    registerLog('Redistribuição de Carteira', `Escola ${esc.denominação || esc.denominaçao} redistribuída de ${oldCtrl ? oldCtrl.name : 'Ninguém'} para ${novoCtrl ? novoCtrl.name : 'Ninguém'}.`);
-    
-    persist();
-    renderEquipe();
+async function reatribuirEscolaDirect(escolaId, novoCtrlId) {
+    try {
+        const result = await radarSchoolService.assignController({
+            schoolId: escolaId,
+            controllerId: novoCtrlId
+        });
+        if (result.value.changed) renderEquipe();
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível reatribuir a escola.');
+        renderEquipe();
+    }
 }
 
 function toggleSelectAllEscolas(isChecked) {
@@ -11718,7 +11027,7 @@ function updateBulkBar() {
     }
 }
 
-function aplicarAtribuicaoEmLote() {
+async function aplicarAtribuicaoEmLote() {
     const bulkSelect = document.getElementById('bulk-controlador-select');
     if (!bulkSelect) return;
     const novoCtrlId = bulkSelect.value;
@@ -11731,25 +11040,15 @@ function aplicarAtribuicaoEmLote() {
     const checkedBoxes = Array.from(checkboxes).filter(cb => cb.checked);
     const targetEscolasIds = checkedBoxes.map(cb => cb.getAttribute('data-id'));
     
-    const novoCtrl = controladores.find(c => c.id === novoCtrlId);
-    if (!novoCtrl) return;
-    
-    let updatedCount = 0;
-    escolas.forEach(e => {
-        if (targetEscolasIds.includes(e.id)) {
-            if (e.controladorId !== novoCtrlId) {
-                e.controladorId = novoCtrlId;
-                updatedCount++;
-            }
-        }
-    });
-    
-    if (updatedCount > 0) {
-        registerLog('Redistribuição em Lote', `Atribuição em lote realizada: ${updatedCount} escolas redistribuídas para o controlador ${novoCtrl.name}.`);
-        persist();
+    try {
+        await radarSchoolService.bulkAssignController({
+            schoolIds: targetEscolasIds,
+            controllerId: novoCtrlId
+        });
+        renderEquipe();
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível concluir a atribuição em lote.');
     }
-    
-    renderEquipe();
 }
 
 
@@ -11793,6 +11092,7 @@ function exportDataExcel() {
     URL.revokeObjectURL(url);
     
     registerLog('Relatório Exportado', `Exportação da planilha consolidada de bonificações efetuada com sucesso.`);
+    persist('logs');
 }
 
 
@@ -11805,6 +11105,7 @@ function toggleTheme() {
     localStorage.setItem('radar_pdde_theme', isDark ? 'dark' : 'light');
     updateThemeIcon(isDark);
     registerLog('Tema Alterado', `Tema visual alterado para ${isDark ? 'Escuro' : 'Claro'}.`);
+    persist('logs');
 }
 
 function updateThemeIcon(isDark) {
@@ -11969,9 +11270,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const reanalysisResult = document.getElementById('reanalisar-resultado');
     reanalysisModal.addEventListener('keydown', handleReanalysisKeydown);
     reanalysisResult.addEventListener('change', updateReanalysisErrorVisibility);
-    await initData();
+    const dataContext = await initializeRadarData();
     initTheme();
-    switchProfile('controlador'); // Inicia como Controlador para simular a visão principal
+    if (runtimeConfig.supabase?.connectionEnabled === true) {
+        window.RadarAuthGate.applyAuthorization(dataContext.authentication);
+    } else {
+        switchProfile('controlador'); // Mantém a simulação de perfis exclusivamente no modo local.
+    }
     
     // Executa diagnósticos de status apenas se em modo debug
     if (RADAR_DEBUG_MODE) {
