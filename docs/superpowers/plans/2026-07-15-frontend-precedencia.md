@@ -17,7 +17,7 @@
 | 3 — Implementar o analisador estático | concluída |
 | 4 — Comprovar a ordem no navegador | concluída |
 | 5 — Produzir grafo e diagnóstico | concluída |
-| 6 — Validar ausência de regressão e salvar o checkpoint | em execução |
+| 6 — Validar ausência de regressão e salvar o checkpoint | concluída |
 
 ## Restrições globais
 

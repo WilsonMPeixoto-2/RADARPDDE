@@ -182,6 +182,21 @@ As 17 colisões de `max-height` entre arquivos correspondem principalmente a gru
 - nenhum breakpoint foi unificado;
 - nenhuma biblioteca foi recomendada apenas por modernidade.
 
+## Validação executada
+
+| Gate | Resultado |
+|---|---|
+| `npm run check` | aprovado |
+| `npm run test:unit` | 154 testes aprovados |
+| `npm run audit:cycle-a` | 18 superfícies e 24 capturas válidas |
+| `npm run audit:frontend-precedence:check` | manifesto reproduzível |
+| `npm run test:frontend-precedence` | 2 cenários aprovados |
+| E2E dirigido com `--workers=1` | 22 aprovados e 1 ignorado por projeto |
+| `npm audit --audit-level=high` | 0 vulnerabilidades |
+| `git diff --check` | aprovado |
+
+A primeira execução E2E dirigida usou quatro workers locais e o Chromium encerrou processos com `VirtualAlloc failed`. Essa rodada produziu abortos e falhas secundárias de tempo. A mesma seleção foi repetida com um worker, configuração também usada no CI, e todos os 22 cenários aplicáveis passaram. A causa foi esgotamento de memória virtual por concorrência local, não regressão do produto; nenhum código funcional foi alterado para mascarar o problema.
+
 ## Relação com a decisão sobre dados
 
 A decisão posterior ao Ciclo A mantém temporariamente o tratamento de D2 para o início da implantação real do Supabase, porque o site ainda é de desenvolvimento e uso exclusivo do responsável. O risco não foi eliminado: não se deve acrescentar novo D2 ao código, e o saneamento da árvore ativa, minimização e fonte protegida continuam obrigatórios antes de Preview/piloto com dados reais. A eventual reescrita do histórico permanece plano separado.
