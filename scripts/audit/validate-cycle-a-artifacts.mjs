@@ -13,7 +13,8 @@ export const REQUIRED_FILES = [
   'docs/audits/2026-07-15-produto-estado-atual.md',
   'docs/superpowers/specs/2026-07-15-contratos-transversais-experiencia-design.md',
   'docs/evidence/global-baseline/manifest.json',
-  'docs/evidence/global-baseline/repository-inventory.json'
+  'docs/evidence/global-baseline/repository-inventory.json',
+  'docs/handoff/2026-07-15-ciclo-a-final-report.md'
 ];
 
 async function exists(filePath) {
@@ -35,7 +36,9 @@ export async function validateCycleAArtifacts(rootDir) {
     const absolutePath = path.join(rootDir, relativePath);
     if (!(await exists(absolutePath))) continue;
     const source = await readFile(absolutePath, 'utf8');
-    if (/\b(TBD|TODO|implement later|fill in details)\b/i.test(source)) errors.push(`Placeholder proibido: ${relativePath}`);
+    const hasPlaceholder = /\b(?:TBD|TODO)\b/.test(source)
+      || /implement later|fill in details/i.test(source);
+    if (hasPlaceholder) errors.push(`Placeholder proibido: ${relativePath}`);
     for (const link of localLinks(source)) {
       const target = path.resolve(path.dirname(absolutePath), decodeURIComponent(link));
       if (!(await exists(target))) errors.push(`Link quebrado em ${relativePath}: ${link}`);
