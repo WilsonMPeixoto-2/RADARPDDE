@@ -97,30 +97,20 @@
     "configuration": 3,
     "data": 9,
     "database-tests": 7,
-    "documentation": 47,
+    "documentation": 74,
     "domain": 11,
     "e2e-tests": 21,
     "frontend-core": 3,
     "integration": 17,
     "integration-tests": 1,
     "migrations": 12,
-    "other": 34,
+    "other": 32,
     "scripts": 13,
     "styles": 9,
     "unit-tests": 39,
-    "workflows": 5
+    "workflows": 4
   },
   "files": [
-    {
-      "path": ".cycle-a-patch-b64/part-00",
-      "category": "other",
-      "bytes": 10000
-    },
-    {
-      "path": ".cycle-a-patch/part-00",
-      "category": "other",
-      "bytes": 19423
-    },
     {
       "path": ".env.example",
       "category": "configuration",
@@ -131,12 +121,6 @@
       "category": "other",
       "bytes": 726,
       "lines": 37
-    },
-    {
-      "path": ".github/workflows/cycle-a-workspace-export.yml",
-      "category": "workflows",
-      "bytes": 2520,
-      "lines": 83
     },
     {
       "path": ".github/workflows/playwright-mobile.yml",
@@ -275,6 +259,144 @@
       "lines": 259
     },
     {
+      "path": "docs/evidence/global-baseline/android/controlador__carteira__resultado__android.png",
+      "category": "documentation",
+      "bytes": 143838
+    },
+    {
+      "path": "docs/evidence/global-baseline/android/controlador__competencias__padrao__android.png",
+      "category": "documentation",
+      "bytes": 142556
+    },
+    {
+      "path": "docs/evidence/global-baseline/android/controlador__dashboard__padrao__android.png",
+      "category": "documentation",
+      "bytes": 140975
+    },
+    {
+      "path": "docs/evidence/global-baseline/android/controlador__inventario__padrao__android.png",
+      "category": "documentation",
+      "bytes": 120526
+    },
+    {
+      "path": "docs/evidence/global-baseline/android/controlador__pendencias__padrao__android.png",
+      "category": "documentation",
+      "bytes": 149961
+    },
+    {
+      "path": "docs/evidence/global-baseline/android/controlador__registros-internos__padrao__android.png",
+      "category": "documentation",
+      "bytes": 80723
+    },
+    {
+      "path": "docs/evidence/global-baseline/android/sme__configuracoes__padrao__android.png",
+      "category": "documentation",
+      "bytes": 158061
+    },
+    {
+      "path": "docs/evidence/global-baseline/android/sme__dashboard__padrao__android.png",
+      "category": "documentation",
+      "bytes": 136575
+    },
+    {
+      "path": "docs/evidence/global-baseline/desktop/controlador__carteira__resultado__desktop.png",
+      "category": "documentation",
+      "bytes": 135494
+    },
+    {
+      "path": "docs/evidence/global-baseline/desktop/controlador__competencias__padrao__desktop.png",
+      "category": "documentation",
+      "bytes": 172627
+    },
+    {
+      "path": "docs/evidence/global-baseline/desktop/controlador__dashboard__padrao__desktop.png",
+      "category": "documentation",
+      "bytes": 207039
+    },
+    {
+      "path": "docs/evidence/global-baseline/desktop/controlador__inventario__padrao__desktop.png",
+      "category": "documentation",
+      "bytes": 169209
+    },
+    {
+      "path": "docs/evidence/global-baseline/desktop/controlador__pendencias__padrao__desktop.png",
+      "category": "documentation",
+      "bytes": 171955
+    },
+    {
+      "path": "docs/evidence/global-baseline/desktop/controlador__registros-internos__padrao__desktop.png",
+      "category": "documentation",
+      "bytes": 162086
+    },
+    {
+      "path": "docs/evidence/global-baseline/desktop/sme__configuracoes__padrao__desktop.png",
+      "category": "documentation",
+      "bytes": 173609
+    },
+    {
+      "path": "docs/evidence/global-baseline/desktop/sme__dashboard__padrao__desktop.png",
+      "category": "documentation",
+      "bytes": 185728
+    },
+    {
+      "path": "docs/evidence/global-baseline/iphone/controlador__carteira__resultado__iphone.png",
+      "category": "documentation",
+      "bytes": 198376
+    },
+    {
+      "path": "docs/evidence/global-baseline/iphone/controlador__competencias__padrao__iphone.png",
+      "category": "documentation",
+      "bytes": 203157
+    },
+    {
+      "path": "docs/evidence/global-baseline/iphone/controlador__dashboard__padrao__iphone.png",
+      "category": "documentation",
+      "bytes": 198803
+    },
+    {
+      "path": "docs/evidence/global-baseline/iphone/controlador__inventario__padrao__iphone.png",
+      "category": "documentation",
+      "bytes": 160930
+    },
+    {
+      "path": "docs/evidence/global-baseline/iphone/controlador__pendencias__padrao__iphone.png",
+      "category": "documentation",
+      "bytes": 225217
+    },
+    {
+      "path": "docs/evidence/global-baseline/iphone/controlador__registros-internos__padrao__iphone.png",
+      "category": "documentation",
+      "bytes": 126115
+    },
+    {
+      "path": "docs/evidence/global-baseline/iphone/sme__configuracoes__padrao__iphone.png",
+      "category": "documentation",
+      "bytes": 220643
+    },
+    {
+      "path": "docs/evidence/global-baseline/iphone/sme__dashboard__padrao__iphone.png",
+      "category": "documentation",
+      "bytes": 186872
+    },
+    {
+      "path": "docs/evidence/global-baseline/manifest.json",
+      "category": "documentation",
+      "bytes": 6890,
+      "lines": 247
+    },
+    {
+      "path": "docs/evidence/global-baseline/repository-inventory.json",
+      "category": "documentation",
+      "bytes": 41063,
+      "lines": 1574
+    },
+    {
+      "path": "docs/handoff/2026-07-15-ciclo-a-final-report.md",
+      "category": "documentation",
+      "bytes": 13259,
+      "lines": 321
+    },
+    {
       "path": "docs/handoff/PR22_FINAL_GATE_REPORT_2026-07-14.md",
       "category": "documentation",
       "bytes": 1996,
@@ -295,7 +417,7 @@
     {
       "path": "docs/reference/CHANGE_CLASSIFICATION.md",
       "category": "documentation",
-      "bytes": 4967,
+      "bytes": 4978,
       "lines": 87
     },
     {
@@ -535,8 +657,8 @@
     {
       "path": "scripts/audit/validate-cycle-a-artifacts.mjs",
       "category": "scripts",
-      "bytes": 3336,
-      "lines": 73
+      "bytes": 3458,
+      "lines": 76
     },
     {
       "path": "scripts/bootstrap-local-auth-fixtures.mjs",
