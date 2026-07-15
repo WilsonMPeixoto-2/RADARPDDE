@@ -59,6 +59,20 @@ Documentos antigos permanecem disponíveis para rastreabilidade, mas não preval
 
 - [`superpowers/plans/2026-07-14-supabase-preconnection-gate.md`](superpowers/plans/2026-07-14-supabase-preconnection-gate.md) — Tasks 1 a 10 e critérios de aceite do HEAD congelado.
 
+## Ciclo A pós-PR 22 — linha de base e classificação
+
+- [`reference/PRODUCT_DECISIONS.md`](reference/PRODUCT_DECISIONS.md) — decisões e fronteiras;
+- [`reference/CHANGE_CLASSIFICATION.md`](reference/CHANGE_CLASSIFICATION.md) — códigos e condutas;
+- [`reference/DATA_CLASSIFICATION_AND_ENVIRONMENTS.md`](reference/DATA_CLASSIFICATION_AND_ENVIRONMENTS.md) — dados e ambientes;
+- [`reference/PRODUCT_SURFACE_CATALOG.md`](reference/PRODUCT_SURFACE_CATALOG.md) — 18 superfícies e conexões;
+- [`reference/POST_PR22_PRIORITIZED_BACKLOG.md`](reference/POST_PR22_PRIORITIZED_BACKLOG.md) — backlog priorizado;
+- [`audits/2026-07-15-inventario-tecnico-global.md`](audits/2026-07-15-inventario-tecnico-global.md) — inventário técnico;
+- [`audits/2026-07-15-dados-e-ambientes-estado-atual.md`](audits/2026-07-15-dados-e-ambientes-estado-atual.md) — auditoria de dados;
+- [`audits/2026-07-15-produto-estado-atual.md`](audits/2026-07-15-produto-estado-atual.md) — auditoria global;
+- [`superpowers/specs/2026-07-15-contratos-transversais-experiencia-design.md`](superpowers/specs/2026-07-15-contratos-transversais-experiencia-design.md) — 16 contratos de experiência;
+- [`evidence/global-baseline/manifest.json`](evidence/global-baseline/manifest.json) — manifesto visual reproduzível;
+- [`handoff/2026-07-15-ciclo-a-final-report.md`](handoff/2026-07-15-ciclo-a-final-report.md) — encerramento e próxima prioridade.
+
 ## Situação funcional
 
 - Ciclo A concluído até as Tasks 10–13;
