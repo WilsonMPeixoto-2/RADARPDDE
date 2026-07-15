@@ -1,4 +1,4 @@
-name: Cycle A visual baseline
+name: Cycle A final workspace export
 
 on:
   pull_request:
@@ -6,77 +6,30 @@ on:
       - main
     paths:
       - '.github/workflows/cycle-a-workspace-export.yml'
-      - 'playwright.audit.config.js'
-      - 'scripts/audit/**'
-      - 'tests/audit/**'
-      - 'package.json'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  baseline:
+  export:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 10
     steps:
       - name: Checkout exact PR branch
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           ref: ${{ github.event.pull_request.head.ref }}
 
-      - name: Configure Node.js 24
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
-        with:
-          node-version: '24'
-          cache: npm
-          cache-dependency-path: package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium webkit
-
-      - name: Generate repository inventory
-        run: npm run audit:inventory
-
-      - name: Capture desktop Android and iPhone baseline
-        id: baseline
-        continue-on-error: true
-        env:
-          RADAR_BASELINE_COMMIT: ${{ github.event.pull_request.head.sha }}
-        shell: bash
-        run: |
-          set -o pipefail
-          npm run audit:baseline 2>&1 | tee /tmp/cycle-a-baseline.log
-
-      - name: Commit generated evidence to PR branch
-        if: ${{ steps.baseline.outcome == 'success' }}
+      - name: Create clean workspace archive
         shell: bash
         run: |
           set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add docs/evidence/global-baseline
-          if git diff --cached --quiet; then
-            echo 'No generated evidence changes.'
-          else
-            git commit -m 'test: registrar baseline visual do Ciclo A'
-            git push origin HEAD:${{ github.event.pull_request.head.ref }}
-          fi
+          tar --exclude='.git' --exclude='node_modules' -czf /tmp/radar-cycle-a-final-workspace.tar.gz .
 
-      - name: Upload visual evidence and diagnostic
-        if: ${{ always() }}
+      - name: Upload final workspace archive
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: radar-cycle-a-visual-baseline
-          path: |
-            docs/evidence/global-baseline
-            /tmp/cycle-a-baseline.log
-            test-results/audit-baseline
-          if-no-files-found: warn
-          retention-days: 3
-
-      - name: Fail when baseline failed
-        if: ${{ steps.baseline.outcome == 'failure' }}
-        run: exit 1
+          name: radar-cycle-a-final-workspace
+          path: /tmp/radar-cycle-a-final-workspace.tar.gz
+          if-no-files-found: error
+          retention-days: 1
