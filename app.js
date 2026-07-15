@@ -62,7 +62,7 @@ const INITIAL_CONTROLADORES = [
     },
     {
         "id": "erica",
-        "name": "Érica",
+        "name": "Érika Reis",
         "email": ""
     },
     {
@@ -4312,6 +4312,13 @@ function normalizeEscolas(records) {
 
 }
 
+function normalizeControllerRecords(records) {
+    if (window.RadarSharedInteractions?.normalizeControllerRecords) {
+        return window.RadarSharedInteractions.normalizeControllerRecords(records);
+    }
+    return (records || []).map(record => ({ ...record }));
+}
+
 function getActivePrograms() {
 
     return programas.filter(item => item && item.active !== false);
@@ -4425,7 +4432,7 @@ function createInitialRadarMemoryState() {
     return {
         config: cloneRadarValue(INITIAL_CONFIG),
         programs: cloneRadarValue(INITIAL_PROGRAMS),
-        controllers: cloneRadarValue(INITIAL_CONTROLADORES),
+        controllers: normalizeControllerRecords(cloneRadarValue(INITIAL_CONTROLADORES)),
         inventoryTeamMembers: cloneRadarValue(INITIAL_EQUIPE_INVENTARIO),
         schools: normalizeEscolas(cloneRadarValue(INITIAL_ESCOLAS)),
         verifications: cloneRadarValue(INITIAL_VERIFICACOES),
@@ -4447,6 +4454,7 @@ function readInitialRadarMemoryState() {
     }
 
     const state = window.RadarStateBridge.readLegacyState(localStorage);
+    state.controllers = normalizeControllerRecords(state.controllers);
     const rawPrograms = localStorage.getItem('radar_pdde_programas') || '';
     if (rawPrograms.includes('BÃ¡sico') || rawPrograms.includes('EducaÃ')) {
         state.programs = cloneRadarValue(INITIAL_PROGRAMS);
@@ -10715,7 +10723,7 @@ function renderEquipe() {
     container.innerHTML = `
         <div class="page-header">
             <div class="page-title">
-                <h1>Gestão de Equipe</h1>
+                <h1 id="team-page-title" tabindex="-1">Gestão de Equipe</h1>
                 <p>Gerencie os Controladores da CRE, integrantes do Inventário e a alocação de carteiras.</p>
             </div>
             ${activeEquipeTab === 'controladores' ? `
@@ -10760,7 +10768,7 @@ function renderEquipe() {
                                 <button class="btn btn-secondary btn-sm" onclick="abrirEditarControlador('${escapeHtml(c.id)}')" title="Editar dados">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                 </button>
-                                <button class="btn btn-danger btn-sm" onclick="removerControlador('${escapeHtml(c.id)}')" title="Remover controlador" ${activeControllers.length <= 1 ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
+                                <button class="btn btn-danger btn-sm" onclick="removerControlador('${escapeHtml(c.id)}', this)" title="Remover controlador" ${activeControllers.length <= 1 ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                                 </button>
                             </div>
@@ -10958,10 +10966,13 @@ async function salvarControlador(event) {
     }
 }
 
-async function removerControlador(id) {
+async function removerControlador(id, trigger = document.activeElement) {
     const activeControllers = getActiveControllers();
     if (activeControllers.length <= 1) {
-        alert("Não é possível remover o único controlador existente!");
+        window.RadarSharedInteractions?.notify({
+            type: 'error',
+            message: 'Não é possível desativar a única pessoa responsável pelas carteiras.'
+        });
         return;
     }
     
@@ -10970,21 +10981,46 @@ async function removerControlador(id) {
     
     const totalEscolas = escolas.filter(e => e.controladorId === id).length;
     
-    const confirmMsg = totalEscolas > 0 
-        ? `Deseja realmente remover o(a) controlador(a) ${ctrl.name}? As ${totalEscolas} escolas sob a responsabilidade dele(a) serão reatribuídas automaticamente para o(a) controlador(a) ${activeControllers.find(c => c.id !== id).name}.`
-        : `Deseja realmente remover o(a) controlador(a) ${ctrl.name}?`;
-        
-    if (!confirm(confirmMsg)) return;
-    
-    const fallbackCtrl = activeControllers.find(c => c.id !== id);
     try {
-        await radarDirectoryService.deactivateController({
-            controllerId: id,
-            fallbackControllerId: fallbackCtrl?.id
+        if (!window.RadarSharedInteractions?.requestControllerDeactivation) {
+            throw new Error('A confirmação acessível ainda não foi carregada. Recarregue a página.');
+        }
+        const outcome = await window.RadarSharedInteractions.requestControllerDeactivation({
+            controller: ctrl,
+            controllers: activeControllers,
+            schoolCount: totalEscolas,
+            trigger,
+            onConfirm: async (recipientId, recipient) => {
+                try {
+                    const operation = await radarDirectoryService.deactivateController({
+                        controllerId: id,
+                        fallbackControllerId: recipientId
+                    });
+                    return {
+                        ...operation.value,
+                        recipientName: recipient?.name || ''
+                    };
+                } catch (error) {
+                    throw reportRadarPersistenceError(error);
+                }
+            }
         });
+        if (!outcome) return;
         renderEquipe();
+        window.RadarSharedInteractions.notify({
+            type: 'success',
+            message: window.RadarSharedInteractions.formatControllerDeactivationSuccess({
+                controllerName: ctrl.name,
+                recipientName: outcome.result?.recipientName,
+                schoolCount: outcome.result?.reassignedCount
+            })
+        });
+        requestAnimationFrame(() => document.getElementById('team-page-title')?.focus({ preventScroll: true }));
     } catch (error) {
-        reportRadarActionError(error, 'Não foi possível desativar o controlador.');
+        window.RadarSharedInteractions?.notify({
+            type: 'error',
+            message: error?.message || 'Não foi possível abrir a confirmação de desativação.'
+        });
     }
 }
 

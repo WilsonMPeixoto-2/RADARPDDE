@@ -15,8 +15,8 @@ npm run test:frontend-precedence
 
 ```mermaid
 flowchart TD
-    HTML["index.html"] --> CSS0["styles.css"]
-    HTML --> STATIC["35 scripts estáticos e síncronos"]
+    HTML["index.html"] --> CSS0["styles.css + shared-interactions.css"]
+    HTML --> STATIC["36 scripts estáticos e síncronos"]
     STATIC --> CONFIG["config.js"]
     CONFIG --> CSSX["9 folhas CSS de extensão"]
     CONFIG --> ORDERED["15 extensões com async=false"]
@@ -41,18 +41,19 @@ O grafo distingue ordem relativa de posição absoluta. O loader Excel é assín
 | Ordem | Arquivo | Blocos de regra | Ocorrências de seletor | Declarações | `!important` |
 |---:|---|---:|---:|---:|---:|
 | 0 | `styles.css` | 429 | 469 | 1.417 | 50 |
-| 1 | `src/styles/mobile-responsive.css` | 58 | 111 | 242 | 6 |
-| 2 | `src/styles/mobile-rendering-hotfix.css` | 18 | 48 | 46 | 10 |
-| 3 | `src/styles/task-9-pendencias.css` | 93 | 110 | 306 | 2 |
-| 4 | `src/styles/task-9-cross-view.css` | 22 | 24 | 41 | 0 |
-| 5 | `src/styles/task-10-11-pendency-actions.css` | 24 | 26 | 97 | 0 |
-| 6 | `src/styles/task-12-13-retificacoes.css` | 45 | 47 | 153 | 0 |
-| 7 | `src/styles/cycle-b-carteira.css` | 37 | 39 | 95 | 0 |
-| 8 | `src/styles/cycle-b-dashboard.css` | 35 | 39 | 99 | 0 |
-| 9 | `src/styles/cycle-b-dashboard-final.css` | 12 | 13 | 32 | 0 |
-| **Total** | **10 folhas** | **773** | **926** | **2.528** | **68** |
+| 1 | `src/styles/shared-interactions.css` | 24 | 28 | 86 | 0 |
+| 2 | `src/styles/mobile-responsive.css` | 58 | 111 | 242 | 6 |
+| 3 | `src/styles/mobile-rendering-hotfix.css` | 18 | 48 | 46 | 10 |
+| 4 | `src/styles/task-9-pendencias.css` | 93 | 110 | 306 | 2 |
+| 5 | `src/styles/task-9-cross-view.css` | 22 | 24 | 41 | 0 |
+| 6 | `src/styles/task-10-11-pendency-actions.css` | 24 | 26 | 97 | 0 |
+| 7 | `src/styles/task-12-13-retificacoes.css` | 45 | 47 | 153 | 0 |
+| 8 | `src/styles/cycle-b-carteira.css` | 37 | 39 | 95 | 0 |
+| 9 | `src/styles/cycle-b-dashboard.css` | 35 | 39 | 99 | 0 |
+| 10 | `src/styles/cycle-b-dashboard-final.css` | 12 | 13 | 32 | 0 |
+| **Total** | **11 folhas** | **797** | **954** | **2.614** | **68** |
 
-`config.js` acrescenta as nove extensões exatamente nessa ordem. Como todas são links no mesmo documento, a posição posterior participa da cascata mesmo quando o download termina em outra ordem.
+O HTML carrega as duas primeiras folhas; `config.js` acrescenta as nove extensões restantes exatamente nessa ordem. Como todas são links no mesmo documento, a posição posterior participa da cascata mesmo quando o download termina em outra ordem.
 
 ### Como as colisões são medidas
 
@@ -66,9 +67,9 @@ Assim, `.card` no contexto global não colide com `.card` dentro de `@media (max
 
 O estado atual contém:
 
-- 161 seletores repetidos considerando qualquer contexto;
+- 162 seletores repetidos considerando qualquer contexto;
 - 113 seletores presentes em mais de um contexto;
-- 128 repetições no mesmo contexto;
+- 129 repetições no mesmo contexto;
 - 68 repetições no mesmo contexto com ao menos uma propriedade divergente;
 - 37 colisões entre arquivos diferentes;
 - 31 colisões internas ao mesmo arquivo.
@@ -93,7 +94,7 @@ Não existe colisão exata no mesmo contexto entre `cycle-b-dashboard.css` e `cy
 
 ## Scripts estáticos
 
-O HTML carrega 35 scripts na seguinte ordem:
+O HTML carrega 36 scripts na seguinte ordem:
 
 | Ordem | Script |
 |---:|---|
@@ -130,8 +131,11 @@ O HTML carrega 35 scripts na seguinte ordem:
 | 31 | `src/application/audit-service.js` |
 | 32 | `src/application/invoice-service.js` |
 | 33 | `src/application/inventory-service.js` |
-| 34 | `app.js` |
-| 35 | `src/integration/auth-gate.js` |
+| 34 | `src/integration/shared-interactions.js` |
+| 35 | `app.js` |
+| 36 | `src/integration/auth-gate.js` |
+
+`shared-interactions.js` precisa executar antes de `app.js`: o núcleo usa sua normalização compatível durante a criação e leitura do estado inicial e integra o diálogo de desativação da equipe. O módulo não depende do núcleo durante a carga; sua camada DOM reutiliza `openModal` e `closeModal` somente no momento da interação, quando essas funções já existem.
 
 `src/domain/retificacoes.js` possui `data-radar-extension` no HTML. Quando `config.js` tenta declará-lo novamente, o seletor de deduplicação encontra esse marcador. O arquivo executa uma única vez.
 

@@ -7,7 +7,8 @@
   },
   "styles": {
     "static": [
-      "styles.css"
+      "styles.css",
+      "src/styles/shared-interactions.css"
     ],
     "declaredExtensions": [
       "src/styles/mobile-responsive.css",
@@ -22,6 +23,7 @@
     ],
     "loadOrder": [
       "styles.css",
+      "src/styles/shared-interactions.css",
       "src/styles/mobile-responsive.css",
       "src/styles/mobile-rendering-hotfix.css",
       "src/styles/task-9-pendencias.css",
@@ -68,6 +70,7 @@
       "src/application/audit-service.js",
       "src/application/invoice-service.js",
       "src/application/inventory-service.js",
+      "src/integration/shared-interactions.js",
       "app.js",
       "src/integration/auth-gate.js"
     ],
@@ -222,6 +225,7 @@
       "src/application/audit-service.js",
       "src/application/invoice-service.js",
       "src/application/inventory-service.js",
+      "src/integration/shared-interactions.js",
       "app.js",
       "src/integration/auth-gate.js",
       "src/domain/pendencias-view-model.js",
@@ -247,14 +251,14 @@
   },
   "css": {
     "summary": {
-      "stylesheetCount": 10,
-      "styleRuleBlocks": 773,
-      "selectorOccurrences": 926,
-      "declarations": 2528,
+      "stylesheetCount": 11,
+      "styleRuleBlocks": 797,
+      "selectorOccurrences": 954,
+      "declarations": 2614,
       "importantDeclarations": 68,
-      "duplicatedSelectorsAnyContext": 161,
+      "duplicatedSelectorsAnyContext": 162,
       "crossContextSelectorCount": 113,
-      "sameContextDuplicateCount": 128,
+      "sameContextDuplicateCount": 129,
       "sameContextCollisionCount": 68
     },
     "files": [
@@ -276,8 +280,20 @@
         ]
       },
       {
-        "path": "src/styles/mobile-responsive.css",
+        "path": "src/styles/shared-interactions.css",
         "sheetOrder": 1,
+        "styleRuleBlocks": 24,
+        "selectorOccurrences": 28,
+        "declarations": 86,
+        "importantDeclarations": 0,
+        "contexts": [
+          "@media (prefers-reduced-motion: reduce)",
+          "global"
+        ]
+      },
+      {
+        "path": "src/styles/mobile-responsive.css",
+        "sheetOrder": 2,
         "styleRuleBlocks": 58,
         "selectorOccurrences": 111,
         "declarations": 242,
@@ -292,7 +308,7 @@
       },
       {
         "path": "src/styles/mobile-rendering-hotfix.css",
-        "sheetOrder": 2,
+        "sheetOrder": 3,
         "styleRuleBlocks": 18,
         "selectorOccurrences": 48,
         "declarations": 46,
@@ -306,7 +322,7 @@
       },
       {
         "path": "src/styles/task-9-pendencias.css",
-        "sheetOrder": 3,
+        "sheetOrder": 4,
         "styleRuleBlocks": 93,
         "selectorOccurrences": 110,
         "declarations": 306,
@@ -320,7 +336,7 @@
       },
       {
         "path": "src/styles/task-9-cross-view.css",
-        "sheetOrder": 4,
+        "sheetOrder": 5,
         "styleRuleBlocks": 22,
         "selectorOccurrences": 24,
         "declarations": 41,
@@ -333,7 +349,7 @@
       },
       {
         "path": "src/styles/task-10-11-pendency-actions.css",
-        "sheetOrder": 5,
+        "sheetOrder": 6,
         "styleRuleBlocks": 24,
         "selectorOccurrences": 26,
         "declarations": 97,
@@ -345,7 +361,7 @@
       },
       {
         "path": "src/styles/task-12-13-retificacoes.css",
-        "sheetOrder": 6,
+        "sheetOrder": 7,
         "styleRuleBlocks": 45,
         "selectorOccurrences": 47,
         "declarations": 153,
@@ -357,7 +373,7 @@
       },
       {
         "path": "src/styles/cycle-b-carteira.css",
-        "sheetOrder": 7,
+        "sheetOrder": 8,
         "styleRuleBlocks": 37,
         "selectorOccurrences": 39,
         "declarations": 95,
@@ -369,7 +385,7 @@
       },
       {
         "path": "src/styles/cycle-b-dashboard.css",
-        "sheetOrder": 8,
+        "sheetOrder": 9,
         "styleRuleBlocks": 35,
         "selectorOccurrences": 39,
         "declarations": 99,
@@ -384,7 +400,7 @@
       },
       {
         "path": "src/styles/cycle-b-dashboard-final.css",
-        "sheetOrder": 9,
+        "sheetOrder": 10,
         "styleRuleBlocks": 12,
         "selectorOccurrences": 13,
         "declarations": 32,
@@ -1254,15 +1270,15 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 54,
-            "cascadeOrder": 574
+            "cascadeOrder": 602
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 18,
-            "cascadeOrder": 628
+            "cascadeOrder": 656
           }
         ]
       },
@@ -1272,15 +1288,15 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 54,
-            "cascadeOrder": 572
+            "cascadeOrder": 600
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 18,
-            "cascadeOrder": 626
+            "cascadeOrder": 654
           }
         ]
       },
@@ -1290,15 +1306,15 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 54,
-            "cascadeOrder": 570
+            "cascadeOrder": 598
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 18,
-            "cascadeOrder": 624
+            "cascadeOrder": 652
           }
         ]
       },
@@ -1308,15 +1324,15 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 54,
-            "cascadeOrder": 573
+            "cascadeOrder": 601
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 18,
-            "cascadeOrder": 627
+            "cascadeOrder": 655
           }
         ]
       },
@@ -1326,15 +1342,15 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 54,
-            "cascadeOrder": 571
+            "cascadeOrder": 599
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 18,
-            "cascadeOrder": 625
+            "cascadeOrder": 653
           }
         ]
       },
@@ -1344,15 +1360,15 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 52,
-            "cascadeOrder": 566
+            "cascadeOrder": 594
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 17,
-            "cascadeOrder": 621
+            "cascadeOrder": 649
           }
         ]
       },
@@ -1362,15 +1378,15 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 54,
-            "cascadeOrder": 569
+            "cascadeOrder": 597
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 18,
-            "cascadeOrder": 623
+            "cascadeOrder": 651
           }
         ]
       },
@@ -1386,9 +1402,9 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 48,
-            "cascadeOrder": 562
+            "cascadeOrder": 590
           }
         ]
       },
@@ -1404,9 +1420,9 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 49,
-            "cascadeOrder": 563
+            "cascadeOrder": 591
           }
         ]
       },
@@ -1416,15 +1432,15 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 52,
-            "cascadeOrder": 567
+            "cascadeOrder": 595
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 17,
-            "cascadeOrder": 622
+            "cascadeOrder": 650
           }
         ]
       },
@@ -1446,15 +1462,15 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 5,
-            "cascadeOrder": 477
+            "cascadeOrder": 505
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 3,
-            "cascadeOrder": 583
+            "cascadeOrder": 611
           }
         ]
       },
@@ -1464,21 +1480,21 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 25,
-            "cascadeOrder": 512
+            "cascadeOrder": 540
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 3,
-            "cascadeOrder": 585
+            "cascadeOrder": 613
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 16,
-            "cascadeOrder": 619
+            "cascadeOrder": 647
           }
         ]
       },
@@ -1494,15 +1510,15 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 40,
-            "cascadeOrder": 550
+            "cascadeOrder": 578
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 10,
-            "cascadeOrder": 609
+            "cascadeOrder": 637
           }
         ]
       },
@@ -1518,15 +1534,15 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 40,
-            "cascadeOrder": 548
+            "cascadeOrder": 576
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 10,
-            "cascadeOrder": 607
+            "cascadeOrder": 635
           }
         ]
       },
@@ -1542,15 +1558,15 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 40,
-            "cascadeOrder": 546
+            "cascadeOrder": 574
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 10,
-            "cascadeOrder": 605
+            "cascadeOrder": 633
           }
         ]
       },
@@ -1566,15 +1582,15 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 40,
-            "cascadeOrder": 549
+            "cascadeOrder": 577
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 10,
-            "cascadeOrder": 608
+            "cascadeOrder": 636
           }
         ]
       },
@@ -1590,15 +1606,15 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 40,
-            "cascadeOrder": 547
+            "cascadeOrder": 575
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 10,
-            "cascadeOrder": 606
+            "cascadeOrder": 634
           }
         ]
       },
@@ -1608,21 +1624,21 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 38,
-            "cascadeOrder": 542
+            "cascadeOrder": 570
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 5,
-            "cascadeOrder": 592
+            "cascadeOrder": 620
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 9,
-            "cascadeOrder": 602
+            "cascadeOrder": 630
           }
         ]
       },
@@ -1632,15 +1648,15 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 16,
-            "cascadeOrder": 501
+            "cascadeOrder": 529
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 44,
-            "cascadeOrder": 558
+            "cascadeOrder": 586
           }
         ]
       },
@@ -1650,15 +1666,15 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 30,
-            "cascadeOrder": 530
+            "cascadeOrder": 558
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 5,
-            "cascadeOrder": 588
+            "cascadeOrder": 616
           }
         ]
       },
@@ -1668,15 +1684,15 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 16,
-            "cascadeOrder": 499
+            "cascadeOrder": 527
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 17,
-            "cascadeOrder": 503
+            "cascadeOrder": 531
           }
         ]
       },
@@ -1698,9 +1714,9 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 13,
-            "cascadeOrder": 496
+            "cascadeOrder": 524
           }
         ]
       },
@@ -1710,15 +1726,15 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 33,
-            "cascadeOrder": 537
+            "cascadeOrder": 565
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 14,
-            "cascadeOrder": 616
+            "cascadeOrder": 644
           }
         ]
       },
@@ -1728,21 +1744,21 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 23,
-            "cascadeOrder": 509
+            "cascadeOrder": 537
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 6,
-            "cascadeOrder": 595
+            "cascadeOrder": 623
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 7,
-            "cascadeOrder": 597
+            "cascadeOrder": 625
           }
         ]
       },
@@ -1758,15 +1774,15 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 41,
-            "cascadeOrder": 551
+            "cascadeOrder": 579
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 11,
-            "cascadeOrder": 610
+            "cascadeOrder": 638
           }
         ]
       },
@@ -1782,21 +1798,21 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 40,
-            "cascadeOrder": 545
+            "cascadeOrder": 573
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 5,
-            "cascadeOrder": 591
+            "cascadeOrder": 619
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 10,
-            "cascadeOrder": 604
+            "cascadeOrder": 632
           }
         ]
       },
@@ -1812,21 +1828,21 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 39,
-            "cascadeOrder": 544
+            "cascadeOrder": 572
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 6,
-            "cascadeOrder": 594
+            "cascadeOrder": 622
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 7,
-            "cascadeOrder": 598
+            "cascadeOrder": 626
           }
         ]
       },
@@ -1842,27 +1858,27 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 25,
-            "cascadeOrder": 511
+            "cascadeOrder": 539
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 26,
-            "cascadeOrder": 513
+            "cascadeOrder": 541
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 3,
-            "cascadeOrder": 586
+            "cascadeOrder": 614
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 16,
-            "cascadeOrder": 620
+            "cascadeOrder": 648
           }
         ]
       },
@@ -1878,9 +1894,9 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 28,
-            "cascadeOrder": 521
+            "cascadeOrder": 549
           }
         ]
       },
@@ -1896,9 +1912,9 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 29,
-            "cascadeOrder": 526
+            "cascadeOrder": 554
           }
         ]
       },
@@ -1908,21 +1924,21 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 30,
-            "cascadeOrder": 529
+            "cascadeOrder": 557
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 31,
-            "cascadeOrder": 535
+            "cascadeOrder": 563
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 5,
-            "cascadeOrder": 589
+            "cascadeOrder": 617
           }
         ]
       },
@@ -1938,15 +1954,15 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 16,
-            "cascadeOrder": 502
+            "cascadeOrder": 530
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 44,
-            "cascadeOrder": 557
+            "cascadeOrder": 585
           }
         ]
       },
@@ -1956,21 +1972,21 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 38,
-            "cascadeOrder": 543
+            "cascadeOrder": 571
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 5,
-            "cascadeOrder": 593
+            "cascadeOrder": 621
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 9,
-            "cascadeOrder": 603
+            "cascadeOrder": 631
           }
         ]
       },
@@ -1980,15 +1996,15 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 30,
-            "cascadeOrder": 531
+            "cascadeOrder": 559
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 5,
-            "cascadeOrder": 590
+            "cascadeOrder": 618
           }
         ]
       },
@@ -2010,9 +2026,9 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 11,
-            "cascadeOrder": 486
+            "cascadeOrder": 514
           }
         ]
       },
@@ -2034,9 +2050,9 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 12,
-            "cascadeOrder": 487
+            "cascadeOrder": 515
           }
         ]
       },
@@ -2058,9 +2074,9 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 12,
-            "cascadeOrder": 488
+            "cascadeOrder": 516
           }
         ]
       },
@@ -2076,15 +2092,15 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 27,
-            "cascadeOrder": 520
+            "cascadeOrder": 548
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 35,
-            "cascadeOrder": 539
+            "cascadeOrder": 567
           }
         ]
       },
@@ -2094,21 +2110,21 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 27,
-            "cascadeOrder": 519
+            "cascadeOrder": 547
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 32,
-            "cascadeOrder": 536
+            "cascadeOrder": 564
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 15,
-            "cascadeOrder": 617
+            "cascadeOrder": 645
           }
         ]
       },
@@ -2130,15 +2146,15 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 18,
-            "cascadeOrder": 504
+            "cascadeOrder": 532
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 7,
-            "cascadeOrder": 596
+            "cascadeOrder": 624
           }
         ]
       },
@@ -2148,21 +2164,21 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 2,
-            "cascadeOrder": 474
+            "cascadeOrder": 502
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 3,
-            "cascadeOrder": 475
+            "cascadeOrder": 503
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 2,
-            "cascadeOrder": 582
+            "cascadeOrder": 610
           }
         ]
       },
@@ -2184,15 +2200,15 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 7,
-            "cascadeOrder": 479
+            "cascadeOrder": 507
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 4,
-            "cascadeOrder": 587
+            "cascadeOrder": 615
           }
         ]
       },
@@ -2202,15 +2218,15 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 2,
-            "cascadeOrder": 473
+            "cascadeOrder": 501
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 1,
-            "cascadeOrder": 581
+            "cascadeOrder": 609
           }
         ]
       },
@@ -2226,21 +2242,21 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 6,
-            "cascadeOrder": 478
+            "cascadeOrder": 506
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 3,
-            "cascadeOrder": 584
+            "cascadeOrder": 612
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 16,
-            "cascadeOrder": 618
+            "cascadeOrder": 646
           }
         ]
       },
@@ -2250,15 +2266,15 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 12,
-            "cascadeOrder": 614
+            "cascadeOrder": 642
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 13,
-            "cascadeOrder": 615
+            "cascadeOrder": 643
           }
         ]
       },
@@ -2664,15 +2680,15 @@
         "occurrences": [
           {
             "path": "src/styles/cycle-b-carteira.css",
-            "sheetOrder": 7,
+            "sheetOrder": 8,
             "ruleOrder": 26,
-            "cascadeOrder": 863
+            "cascadeOrder": 891
           },
           {
             "path": "src/styles/cycle-b-carteira.css",
-            "sheetOrder": 7,
+            "sheetOrder": 8,
             "ruleOrder": 27,
-            "cascadeOrder": 864
+            "cascadeOrder": 892
           }
         ]
       },
@@ -3198,15 +3214,15 @@
         "occurrences": [
           {
             "path": "src/styles/task-9-pendencias.css",
-            "sheetOrder": 3,
+            "sheetOrder": 4,
             "ruleOrder": 64,
-            "cascadeOrder": 705
+            "cascadeOrder": 733
           },
           {
             "path": "src/styles/task-9-pendencias.css",
-            "sheetOrder": 3,
+            "sheetOrder": 4,
             "ruleOrder": 66,
-            "cascadeOrder": 708
+            "cascadeOrder": 736
           }
         ]
       },
@@ -3222,9 +3238,9 @@
           },
           {
             "path": "src/styles/task-9-pendencias.css",
-            "sheetOrder": 3,
+            "sheetOrder": 4,
             "ruleOrder": 34,
-            "cascadeOrder": 665
+            "cascadeOrder": 693
           }
         ]
       },
@@ -3234,15 +3250,15 @@
         "occurrences": [
           {
             "path": "src/styles/task-9-pendencias.css",
-            "sheetOrder": 3,
+            "sheetOrder": 4,
             "ruleOrder": 47,
-            "cascadeOrder": 681
+            "cascadeOrder": 709
           },
           {
             "path": "src/styles/task-9-cross-view.css",
-            "sheetOrder": 4,
+            "sheetOrder": 5,
             "ruleOrder": 17,
-            "cascadeOrder": 757
+            "cascadeOrder": 785
           }
         ]
       },
@@ -3252,15 +3268,15 @@
         "occurrences": [
           {
             "path": "src/styles/task-9-pendencias.css",
-            "sheetOrder": 3,
+            "sheetOrder": 4,
             "ruleOrder": 7,
-            "cascadeOrder": 636
+            "cascadeOrder": 664
           },
           {
             "path": "src/styles/task-9-pendencias.css",
-            "sheetOrder": 3,
+            "sheetOrder": 4,
             "ruleOrder": 14,
-            "cascadeOrder": 644
+            "cascadeOrder": 672
           }
         ]
       },
@@ -3276,9 +3292,9 @@
           },
           {
             "path": "src/styles/task-9-pendencias.css",
-            "sheetOrder": 3,
+            "sheetOrder": 4,
             "ruleOrder": 33,
-            "cascadeOrder": 664
+            "cascadeOrder": 692
           }
         ]
       },
@@ -3333,6 +3349,24 @@
             "sheetOrder": 0,
             "ruleOrder": 310,
             "cascadeOrder": 335
+          }
+        ]
+      },
+      {
+        "selector": ".radar-critical-dialog__header p",
+        "context": "global",
+        "occurrences": [
+          {
+            "path": "src/styles/shared-interactions.css",
+            "sheetOrder": 1,
+            "ruleOrder": 4,
+            "cascadeOrder": 473
+          },
+          {
+            "path": "src/styles/shared-interactions.css",
+            "sheetOrder": 1,
+            "ruleOrder": 5,
+            "cascadeOrder": 475
           }
         ]
       },
@@ -3788,15 +3822,15 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 54,
-            "cascadeOrder": 574
+            "cascadeOrder": 602
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 18,
-            "cascadeOrder": 628
+            "cascadeOrder": 656
           }
         ],
         "conflictingProperties": [
@@ -3805,17 +3839,17 @@
             "values": [
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 54,
-                "cascadeOrder": 574,
+                "cascadeOrder": 602,
                 "value": "calc(100dvh - 16px)",
                 "important": false
               },
               {
                 "path": "src/styles/mobile-rendering-hotfix.css",
-                "sheetOrder": 2,
+                "sheetOrder": 3,
                 "ruleOrder": 18,
-                "cascadeOrder": 628,
+                "cascadeOrder": 656,
                 "value": "calc(100vh - 16px)",
                 "important": false
               }
@@ -3829,15 +3863,15 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 54,
-            "cascadeOrder": 572
+            "cascadeOrder": 600
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 18,
-            "cascadeOrder": 626
+            "cascadeOrder": 654
           }
         ],
         "conflictingProperties": [
@@ -3846,17 +3880,17 @@
             "values": [
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 54,
-                "cascadeOrder": 572,
+                "cascadeOrder": 600,
                 "value": "calc(100dvh - 16px)",
                 "important": false
               },
               {
                 "path": "src/styles/mobile-rendering-hotfix.css",
-                "sheetOrder": 2,
+                "sheetOrder": 3,
                 "ruleOrder": 18,
-                "cascadeOrder": 626,
+                "cascadeOrder": 654,
                 "value": "calc(100vh - 16px)",
                 "important": false
               }
@@ -3870,15 +3904,15 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 54,
-            "cascadeOrder": 570
+            "cascadeOrder": 598
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 18,
-            "cascadeOrder": 624
+            "cascadeOrder": 652
           }
         ],
         "conflictingProperties": [
@@ -3887,17 +3921,17 @@
             "values": [
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 54,
-                "cascadeOrder": 570,
+                "cascadeOrder": 598,
                 "value": "calc(100dvh - 16px)",
                 "important": false
               },
               {
                 "path": "src/styles/mobile-rendering-hotfix.css",
-                "sheetOrder": 2,
+                "sheetOrder": 3,
                 "ruleOrder": 18,
-                "cascadeOrder": 624,
+                "cascadeOrder": 652,
                 "value": "calc(100vh - 16px)",
                 "important": false
               }
@@ -3911,15 +3945,15 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 54,
-            "cascadeOrder": 573
+            "cascadeOrder": 601
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 18,
-            "cascadeOrder": 627
+            "cascadeOrder": 655
           }
         ],
         "conflictingProperties": [
@@ -3928,17 +3962,17 @@
             "values": [
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 54,
-                "cascadeOrder": 573,
+                "cascadeOrder": 601,
                 "value": "calc(100dvh - 16px)",
                 "important": false
               },
               {
                 "path": "src/styles/mobile-rendering-hotfix.css",
-                "sheetOrder": 2,
+                "sheetOrder": 3,
                 "ruleOrder": 18,
-                "cascadeOrder": 627,
+                "cascadeOrder": 655,
                 "value": "calc(100vh - 16px)",
                 "important": false
               }
@@ -3952,15 +3986,15 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 54,
-            "cascadeOrder": 571
+            "cascadeOrder": 599
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 18,
-            "cascadeOrder": 625
+            "cascadeOrder": 653
           }
         ],
         "conflictingProperties": [
@@ -3969,17 +4003,17 @@
             "values": [
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 54,
-                "cascadeOrder": 571,
+                "cascadeOrder": 599,
                 "value": "calc(100dvh - 16px)",
                 "important": false
               },
               {
                 "path": "src/styles/mobile-rendering-hotfix.css",
-                "sheetOrder": 2,
+                "sheetOrder": 3,
                 "ruleOrder": 18,
-                "cascadeOrder": 625,
+                "cascadeOrder": 653,
                 "value": "calc(100vh - 16px)",
                 "important": false
               }
@@ -3993,15 +4027,15 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 52,
-            "cascadeOrder": 566
+            "cascadeOrder": 594
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 17,
-            "cascadeOrder": 621
+            "cascadeOrder": 649
           }
         ],
         "conflictingProperties": [
@@ -4010,17 +4044,17 @@
             "values": [
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 52,
-                "cascadeOrder": 566,
+                "cascadeOrder": 594,
                 "value": "calc(100dvh - 120px)",
                 "important": false
               },
               {
                 "path": "src/styles/mobile-rendering-hotfix.css",
-                "sheetOrder": 2,
+                "sheetOrder": 3,
                 "ruleOrder": 17,
-                "cascadeOrder": 621,
+                "cascadeOrder": 649,
                 "value": "calc(100vh - 120px)",
                 "important": false
               }
@@ -4034,15 +4068,15 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 54,
-            "cascadeOrder": 569
+            "cascadeOrder": 597
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 18,
-            "cascadeOrder": 623
+            "cascadeOrder": 651
           }
         ],
         "conflictingProperties": [
@@ -4051,17 +4085,17 @@
             "values": [
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 54,
-                "cascadeOrder": 569,
+                "cascadeOrder": 597,
                 "value": "calc(100dvh - 16px)",
                 "important": false
               },
               {
                 "path": "src/styles/mobile-rendering-hotfix.css",
-                "sheetOrder": 2,
+                "sheetOrder": 3,
                 "ruleOrder": 18,
-                "cascadeOrder": 623,
+                "cascadeOrder": 651,
                 "value": "calc(100vh - 16px)",
                 "important": false
               }
@@ -4081,9 +4115,9 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 48,
-            "cascadeOrder": 562
+            "cascadeOrder": 590
           }
         ],
         "conflictingProperties": [
@@ -4100,9 +4134,9 @@
               },
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 48,
-                "cascadeOrder": 562,
+                "cascadeOrder": 590,
                 "value": "18px 12px 28px",
                 "important": false
               }
@@ -4122,9 +4156,9 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 49,
-            "cascadeOrder": 563
+            "cascadeOrder": 591
           }
         ],
         "conflictingProperties": [
@@ -4141,9 +4175,9 @@
               },
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 49,
-                "cascadeOrder": 563,
+                "cascadeOrder": 591,
                 "value": "16px",
                 "important": false
               }
@@ -4157,15 +4191,15 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 52,
-            "cascadeOrder": 567
+            "cascadeOrder": 595
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 17,
-            "cascadeOrder": 622
+            "cascadeOrder": 650
           }
         ],
         "conflictingProperties": [
@@ -4174,17 +4208,17 @@
             "values": [
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 52,
-                "cascadeOrder": 567,
+                "cascadeOrder": 595,
                 "value": "calc(100dvh - 120px)",
                 "important": false
               },
               {
                 "path": "src/styles/mobile-rendering-hotfix.css",
-                "sheetOrder": 2,
+                "sheetOrder": 3,
                 "ruleOrder": 17,
-                "cascadeOrder": 622,
+                "cascadeOrder": 650,
                 "value": "calc(100vh - 120px)",
                 "important": false
               }
@@ -4210,15 +4244,15 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 5,
-            "cascadeOrder": 477
+            "cascadeOrder": 505
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 3,
-            "cascadeOrder": 583
+            "cascadeOrder": 611
           }
         ],
         "conflictingProperties": [
@@ -4248,17 +4282,17 @@
             "values": [
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 5,
-                "cascadeOrder": 477,
+                "cascadeOrder": 505,
                 "value": "100dvh",
                 "important": false
               },
               {
                 "path": "src/styles/mobile-rendering-hotfix.css",
-                "sheetOrder": 2,
+                "sheetOrder": 3,
                 "ruleOrder": 3,
-                "cascadeOrder": 583,
+                "cascadeOrder": 611,
                 "value": "100svh",
                 "important": false
               }
@@ -4272,21 +4306,21 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 25,
-            "cascadeOrder": 512
+            "cascadeOrder": 540
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 3,
-            "cascadeOrder": 585
+            "cascadeOrder": 613
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 16,
-            "cascadeOrder": 619
+            "cascadeOrder": 647
           }
         ],
         "conflictingProperties": [
@@ -4295,17 +4329,17 @@
             "values": [
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 25,
-                "cascadeOrder": 512,
+                "cascadeOrder": 540,
                 "value": "clip",
                 "important": false
               },
               {
                 "path": "src/styles/mobile-rendering-hotfix.css",
-                "sheetOrder": 2,
+                "sheetOrder": 3,
                 "ruleOrder": 16,
-                "cascadeOrder": 619,
+                "cascadeOrder": 647,
                 "value": "visible",
                 "important": false
               }
@@ -4325,15 +4359,15 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 40,
-            "cascadeOrder": 550
+            "cascadeOrder": 578
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 10,
-            "cascadeOrder": 609
+            "cascadeOrder": 637
           }
         ],
         "conflictingProperties": [
@@ -4350,17 +4384,17 @@
               },
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 40,
-                "cascadeOrder": 550,
+                "cascadeOrder": 578,
                 "value": "calc(100dvh - 24px)",
                 "important": false
               },
               {
                 "path": "src/styles/mobile-rendering-hotfix.css",
-                "sheetOrder": 2,
+                "sheetOrder": 3,
                 "ruleOrder": 10,
-                "cascadeOrder": 609,
+                "cascadeOrder": 637,
                 "value": "calc(100vh - 24px)",
                 "important": false
               }
@@ -4380,15 +4414,15 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 40,
-            "cascadeOrder": 548
+            "cascadeOrder": 576
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 10,
-            "cascadeOrder": 607
+            "cascadeOrder": 635
           }
         ],
         "conflictingProperties": [
@@ -4405,17 +4439,17 @@
               },
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 40,
-                "cascadeOrder": 548,
+                "cascadeOrder": 576,
                 "value": "calc(100dvh - 24px)",
                 "important": false
               },
               {
                 "path": "src/styles/mobile-rendering-hotfix.css",
-                "sheetOrder": 2,
+                "sheetOrder": 3,
                 "ruleOrder": 10,
-                "cascadeOrder": 607,
+                "cascadeOrder": 635,
                 "value": "calc(100vh - 24px)",
                 "important": false
               }
@@ -4435,15 +4469,15 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 40,
-            "cascadeOrder": 546
+            "cascadeOrder": 574
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 10,
-            "cascadeOrder": 605
+            "cascadeOrder": 633
           }
         ],
         "conflictingProperties": [
@@ -4460,17 +4494,17 @@
               },
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 40,
-                "cascadeOrder": 546,
+                "cascadeOrder": 574,
                 "value": "calc(100dvh - 24px)",
                 "important": false
               },
               {
                 "path": "src/styles/mobile-rendering-hotfix.css",
-                "sheetOrder": 2,
+                "sheetOrder": 3,
                 "ruleOrder": 10,
-                "cascadeOrder": 605,
+                "cascadeOrder": 633,
                 "value": "calc(100vh - 24px)",
                 "important": false
               }
@@ -4490,15 +4524,15 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 40,
-            "cascadeOrder": 549
+            "cascadeOrder": 577
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 10,
-            "cascadeOrder": 608
+            "cascadeOrder": 636
           }
         ],
         "conflictingProperties": [
@@ -4515,17 +4549,17 @@
               },
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 40,
-                "cascadeOrder": 549,
+                "cascadeOrder": 577,
                 "value": "calc(100dvh - 24px)",
                 "important": false
               },
               {
                 "path": "src/styles/mobile-rendering-hotfix.css",
-                "sheetOrder": 2,
+                "sheetOrder": 3,
                 "ruleOrder": 10,
-                "cascadeOrder": 608,
+                "cascadeOrder": 636,
                 "value": "calc(100vh - 24px)",
                 "important": false
               }
@@ -4545,15 +4579,15 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 40,
-            "cascadeOrder": 547
+            "cascadeOrder": 575
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 10,
-            "cascadeOrder": 606
+            "cascadeOrder": 634
           }
         ],
         "conflictingProperties": [
@@ -4570,17 +4604,17 @@
               },
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 40,
-                "cascadeOrder": 547,
+                "cascadeOrder": 575,
                 "value": "calc(100dvh - 24px)",
                 "important": false
               },
               {
                 "path": "src/styles/mobile-rendering-hotfix.css",
-                "sheetOrder": 2,
+                "sheetOrder": 3,
                 "ruleOrder": 10,
-                "cascadeOrder": 606,
+                "cascadeOrder": 634,
                 "value": "calc(100vh - 24px)",
                 "important": false
               }
@@ -4594,21 +4628,21 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 38,
-            "cascadeOrder": 542
+            "cascadeOrder": 570
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 5,
-            "cascadeOrder": 592
+            "cascadeOrder": 620
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 9,
-            "cascadeOrder": 602
+            "cascadeOrder": 630
           }
         ],
         "conflictingProperties": [
@@ -4617,17 +4651,17 @@
             "values": [
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 38,
-                "cascadeOrder": 542,
+                "cascadeOrder": 570,
                 "value": "calc(100dvh - 132px)",
                 "important": false
               },
               {
                 "path": "src/styles/mobile-rendering-hotfix.css",
-                "sheetOrder": 2,
+                "sheetOrder": 3,
                 "ruleOrder": 9,
-                "cascadeOrder": 602,
+                "cascadeOrder": 630,
                 "value": "calc(100vh - 132px)",
                 "important": false
               }
@@ -4653,9 +4687,9 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 13,
-            "cascadeOrder": 496
+            "cascadeOrder": 524
           }
         ],
         "conflictingProperties": [
@@ -4672,9 +4706,9 @@
               },
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 13,
-                "cascadeOrder": 496,
+                "cascadeOrder": 524,
                 "value": "nowrap",
                 "important": false
               }
@@ -4693,9 +4727,9 @@
               },
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 13,
-                "cascadeOrder": 496,
+                "cascadeOrder": 524,
                 "value": "flex-start",
                 "important": false
               }
@@ -4709,15 +4743,15 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 33,
-            "cascadeOrder": 537
+            "cascadeOrder": 565
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 14,
-            "cascadeOrder": 616
+            "cascadeOrder": 644
           }
         ],
         "conflictingProperties": [
@@ -4726,17 +4760,17 @@
             "values": [
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 33,
-                "cascadeOrder": 537,
+                "cascadeOrder": 565,
                 "value": "inline-size",
                 "important": false
               },
               {
                 "path": "src/styles/mobile-rendering-hotfix.css",
-                "sheetOrder": 2,
+                "sheetOrder": 3,
                 "ruleOrder": 14,
-                "cascadeOrder": 616,
+                "cascadeOrder": 644,
                 "value": "none",
                 "important": false
               }
@@ -4750,21 +4784,21 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 23,
-            "cascadeOrder": 509
+            "cascadeOrder": 537
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 6,
-            "cascadeOrder": 595
+            "cascadeOrder": 623
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 7,
-            "cascadeOrder": 597
+            "cascadeOrder": 625
           }
         ],
         "conflictingProperties": [
@@ -4773,17 +4807,17 @@
             "values": [
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 23,
-                "cascadeOrder": 509,
+                "cascadeOrder": 537,
                 "value": "blur(2px)",
                 "important": false
               },
               {
                 "path": "src/styles/mobile-rendering-hotfix.css",
-                "sheetOrder": 2,
+                "sheetOrder": 3,
                 "ruleOrder": 6,
-                "cascadeOrder": 595,
+                "cascadeOrder": 623,
                 "value": "none",
                 "important": true
               }
@@ -4794,17 +4828,17 @@
             "values": [
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 23,
-                "cascadeOrder": 509,
+                "cascadeOrder": 537,
                 "value": "100dvh",
                 "important": false
               },
               {
                 "path": "src/styles/mobile-rendering-hotfix.css",
-                "sheetOrder": 2,
+                "sheetOrder": 3,
                 "ruleOrder": 7,
-                "cascadeOrder": 597,
+                "cascadeOrder": 625,
                 "value": "100vh",
                 "important": false
               }
@@ -4824,15 +4858,15 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 41,
-            "cascadeOrder": 551
+            "cascadeOrder": 579
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 11,
-            "cascadeOrder": 610
+            "cascadeOrder": 638
           }
         ],
         "conflictingProperties": [
@@ -4849,17 +4883,17 @@
               },
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 41,
-                "cascadeOrder": 551,
+                "cascadeOrder": 579,
                 "value": "calc(100dvh - 126px)",
                 "important": false
               },
               {
                 "path": "src/styles/mobile-rendering-hotfix.css",
-                "sheetOrder": 2,
+                "sheetOrder": 3,
                 "ruleOrder": 11,
-                "cascadeOrder": 610,
+                "cascadeOrder": 638,
                 "value": "calc(100vh - 126px)",
                 "important": false
               }
@@ -4879,21 +4913,21 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 40,
-            "cascadeOrder": 545
+            "cascadeOrder": 573
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 5,
-            "cascadeOrder": 591
+            "cascadeOrder": 619
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 10,
-            "cascadeOrder": 604
+            "cascadeOrder": 632
           }
         ],
         "conflictingProperties": [
@@ -4910,17 +4944,17 @@
               },
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 40,
-                "cascadeOrder": 545,
+                "cascadeOrder": 573,
                 "value": "calc(100dvh - 24px)",
                 "important": false
               },
               {
                 "path": "src/styles/mobile-rendering-hotfix.css",
-                "sheetOrder": 2,
+                "sheetOrder": 3,
                 "ruleOrder": 10,
-                "cascadeOrder": 604,
+                "cascadeOrder": 632,
                 "value": "calc(100vh - 24px)",
                 "important": false
               }
@@ -4940,21 +4974,21 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 39,
-            "cascadeOrder": 544
+            "cascadeOrder": 572
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 6,
-            "cascadeOrder": 594
+            "cascadeOrder": 622
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 7,
-            "cascadeOrder": 598
+            "cascadeOrder": 626
           }
         ],
         "conflictingProperties": [
@@ -4963,17 +4997,17 @@
             "values": [
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 39,
-                "cascadeOrder": 544,
+                "cascadeOrder": 572,
                 "value": "100dvh",
                 "important": false
               },
               {
                 "path": "src/styles/mobile-rendering-hotfix.css",
-                "sheetOrder": 2,
+                "sheetOrder": 3,
                 "ruleOrder": 7,
-                "cascadeOrder": 598,
+                "cascadeOrder": 626,
                 "value": "100vh",
                 "important": false
               }
@@ -4992,9 +5026,9 @@
               },
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 39,
-                "cascadeOrder": 544,
+                "cascadeOrder": 572,
                 "value": "12px",
                 "important": false
               }
@@ -5014,27 +5048,27 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 25,
-            "cascadeOrder": 511
+            "cascadeOrder": 539
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 26,
-            "cascadeOrder": 513
+            "cascadeOrder": 541
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 3,
-            "cascadeOrder": 586
+            "cascadeOrder": 614
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 16,
-            "cascadeOrder": 620
+            "cascadeOrder": 648
           }
         ],
         "conflictingProperties": [
@@ -5043,17 +5077,17 @@
             "values": [
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 25,
-                "cascadeOrder": 511,
+                "cascadeOrder": 539,
                 "value": "clip",
                 "important": false
               },
               {
                 "path": "src/styles/mobile-rendering-hotfix.css",
-                "sheetOrder": 2,
+                "sheetOrder": 3,
                 "ruleOrder": 16,
-                "cascadeOrder": 620,
+                "cascadeOrder": 648,
                 "value": "visible",
                 "important": false
               }
@@ -5072,9 +5106,9 @@
               },
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 26,
-                "cascadeOrder": 513,
+                "cascadeOrder": 541,
                 "value": "22px 16px 34px",
                 "important": false
               }
@@ -5088,21 +5122,21 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 38,
-            "cascadeOrder": 543
+            "cascadeOrder": 571
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 5,
-            "cascadeOrder": 593
+            "cascadeOrder": 621
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 9,
-            "cascadeOrder": 603
+            "cascadeOrder": 631
           }
         ],
         "conflictingProperties": [
@@ -5111,17 +5145,17 @@
             "values": [
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 38,
-                "cascadeOrder": 543,
+                "cascadeOrder": 571,
                 "value": "calc(100dvh - 132px)",
                 "important": false
               },
               {
                 "path": "src/styles/mobile-rendering-hotfix.css",
-                "sheetOrder": 2,
+                "sheetOrder": 3,
                 "ruleOrder": 9,
-                "cascadeOrder": 603,
+                "cascadeOrder": 631,
                 "value": "calc(100vh - 132px)",
                 "important": false
               }
@@ -5147,9 +5181,9 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 11,
-            "cascadeOrder": 486
+            "cascadeOrder": 514
           }
         ],
         "conflictingProperties": [
@@ -5174,9 +5208,9 @@
               },
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 11,
-                "cascadeOrder": 486,
+                "cascadeOrder": 514,
                 "value": "none",
                 "important": false
               }
@@ -5203,9 +5237,9 @@
               },
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 11,
-                "cascadeOrder": 486,
+                "cascadeOrder": 514,
                 "value": "0",
                 "important": false
               }
@@ -5224,9 +5258,9 @@
               },
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 11,
-                "cascadeOrder": 486,
+                "cascadeOrder": 514,
                 "value": "initial",
                 "important": false
               }
@@ -5253,9 +5287,9 @@
               },
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 11,
-                "cascadeOrder": 486,
+                "cascadeOrder": 514,
                 "value": "100%",
                 "important": false
               }
@@ -5281,9 +5315,9 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 12,
-            "cascadeOrder": 487
+            "cascadeOrder": 515
           }
         ],
         "conflictingProperties": [
@@ -5343,15 +5377,15 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 27,
-            "cascadeOrder": 520
+            "cascadeOrder": 548
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 35,
-            "cascadeOrder": 539
+            "cascadeOrder": 567
           }
         ],
         "conflictingProperties": [
@@ -5368,9 +5402,9 @@
               },
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 35,
-                "cascadeOrder": 539,
+                "cascadeOrder": 567,
                 "value": "none",
                 "important": false
               }
@@ -5384,21 +5418,21 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 27,
-            "cascadeOrder": 519
+            "cascadeOrder": 547
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 32,
-            "cascadeOrder": 536
+            "cascadeOrder": 564
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 15,
-            "cascadeOrder": 617
+            "cascadeOrder": 645
           }
         ],
         "conflictingProperties": [
@@ -5407,17 +5441,17 @@
             "values": [
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 32,
-                "cascadeOrder": 536,
+                "cascadeOrder": 564,
                 "value": "stable",
                 "important": false
               },
               {
                 "path": "src/styles/mobile-rendering-hotfix.css",
-                "sheetOrder": 2,
+                "sheetOrder": 3,
                 "ruleOrder": 15,
-                "cascadeOrder": 617,
+                "cascadeOrder": 645,
                 "value": "auto",
                 "important": false
               }
@@ -5443,15 +5477,15 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 18,
-            "cascadeOrder": 504
+            "cascadeOrder": 532
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 7,
-            "cascadeOrder": 596
+            "cascadeOrder": 624
           }
         ],
         "conflictingProperties": [
@@ -5476,9 +5510,9 @@
               },
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 18,
-                "cascadeOrder": 504,
+                "cascadeOrder": 532,
                 "value": "flex",
                 "important": true
               }
@@ -5489,17 +5523,17 @@
             "values": [
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 18,
-                "cascadeOrder": 504,
+                "cascadeOrder": 532,
                 "value": "100dvh",
                 "important": false
               },
               {
                 "path": "src/styles/mobile-rendering-hotfix.css",
-                "sheetOrder": 2,
+                "sheetOrder": 3,
                 "ruleOrder": 7,
-                "cascadeOrder": 596,
+                "cascadeOrder": 624,
                 "value": "100vh",
                 "important": false
               }
@@ -5510,17 +5544,17 @@
             "values": [
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 18,
-                "cascadeOrder": 504,
+                "cascadeOrder": 532,
                 "value": "100dvh",
                 "important": false
               },
               {
                 "path": "src/styles/mobile-rendering-hotfix.css",
-                "sheetOrder": 2,
+                "sheetOrder": 3,
                 "ruleOrder": 7,
-                "cascadeOrder": 596,
+                "cascadeOrder": 624,
                 "value": "100vh",
                 "important": false
               }
@@ -5534,21 +5568,21 @@
         "occurrences": [
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 2,
-            "cascadeOrder": 474
+            "cascadeOrder": 502
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 3,
-            "cascadeOrder": 475
+            "cascadeOrder": 503
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 2,
-            "cascadeOrder": 582
+            "cascadeOrder": 610
           }
         ],
         "conflictingProperties": [
@@ -5557,17 +5591,17 @@
             "values": [
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 3,
-                "cascadeOrder": 475,
+                "cascadeOrder": 503,
                 "value": "scroll",
                 "important": false
               },
               {
                 "path": "src/styles/mobile-rendering-hotfix.css",
-                "sheetOrder": 2,
+                "sheetOrder": 3,
                 "ruleOrder": 2,
-                "cascadeOrder": 582,
+                "cascadeOrder": 610,
                 "value": "initial",
                 "important": true
               }
@@ -5578,17 +5612,17 @@
             "values": [
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 3,
-                "cascadeOrder": 475,
+                "cascadeOrder": 503,
                 "value": "100dvh",
                 "important": false
               },
               {
                 "path": "src/styles/mobile-rendering-hotfix.css",
-                "sheetOrder": 2,
+                "sheetOrder": 3,
                 "ruleOrder": 2,
-                "cascadeOrder": 582,
+                "cascadeOrder": 610,
                 "value": "100%",
                 "important": false
               }
@@ -5614,15 +5648,15 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 7,
-            "cascadeOrder": 479
+            "cascadeOrder": 507
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 4,
-            "cascadeOrder": 587
+            "cascadeOrder": 615
           }
         ],
         "conflictingProperties": [
@@ -5639,9 +5673,9 @@
               },
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 7,
-                "cascadeOrder": 479,
+                "cascadeOrder": 507,
                 "value": "0",
                 "important": false
               }
@@ -5668,9 +5702,9 @@
               },
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 7,
-                "cascadeOrder": 479,
+                "cascadeOrder": 507,
                 "value": "max(10px, env(safe-area-inset-top)) 14px 12px",
                 "important": false
               }
@@ -5690,21 +5724,21 @@
           },
           {
             "path": "src/styles/mobile-responsive.css",
-            "sheetOrder": 1,
+            "sheetOrder": 2,
             "ruleOrder": 6,
-            "cascadeOrder": 478
+            "cascadeOrder": 506
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 3,
-            "cascadeOrder": 584
+            "cascadeOrder": 612
           },
           {
             "path": "src/styles/mobile-rendering-hotfix.css",
-            "sheetOrder": 2,
+            "sheetOrder": 3,
             "ruleOrder": 16,
-            "cascadeOrder": 618
+            "cascadeOrder": 646
           }
         ],
         "conflictingProperties": [
@@ -5713,17 +5747,17 @@
             "values": [
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 6,
-                "cascadeOrder": 478,
+                "cascadeOrder": 506,
                 "value": "100dvh",
                 "important": false
               },
               {
                 "path": "src/styles/mobile-rendering-hotfix.css",
-                "sheetOrder": 2,
+                "sheetOrder": 3,
                 "ruleOrder": 3,
-                "cascadeOrder": 584,
+                "cascadeOrder": 612,
                 "value": "100svh",
                 "important": false
               }
@@ -5734,17 +5768,17 @@
             "values": [
               {
                 "path": "src/styles/mobile-responsive.css",
-                "sheetOrder": 1,
+                "sheetOrder": 2,
                 "ruleOrder": 6,
-                "cascadeOrder": 478,
+                "cascadeOrder": 506,
                 "value": "clip",
                 "important": false
               },
               {
                 "path": "src/styles/mobile-rendering-hotfix.css",
-                "sheetOrder": 2,
+                "sheetOrder": 3,
                 "ruleOrder": 16,
-                "cascadeOrder": 618,
+                "cascadeOrder": 646,
                 "value": "visible",
                 "important": false
               }
@@ -6840,9 +6874,9 @@
           },
           {
             "path": "src/styles/task-9-pendencias.css",
-            "sheetOrder": 3,
+            "sheetOrder": 4,
             "ruleOrder": 34,
-            "cascadeOrder": 665
+            "cascadeOrder": 693
           }
         ],
         "conflictingProperties": [
@@ -6859,9 +6893,9 @@
               },
               {
                 "path": "src/styles/task-9-pendencias.css",
-                "sheetOrder": 3,
+                "sheetOrder": 4,
                 "ruleOrder": 34,
-                "cascadeOrder": 665,
+                "cascadeOrder": 693,
                 "value": "var(--primary)",
                 "important": false
               }
@@ -6880,9 +6914,9 @@
               },
               {
                 "path": "src/styles/task-9-pendencias.css",
-                "sheetOrder": 3,
+                "sheetOrder": 4,
                 "ruleOrder": 34,
-                "cascadeOrder": 665,
+                "cascadeOrder": 693,
                 "value": "#fff",
                 "important": false
               }
@@ -6901,9 +6935,9 @@
               },
               {
                 "path": "src/styles/task-9-pendencias.css",
-                "sheetOrder": 3,
+                "sheetOrder": 4,
                 "ruleOrder": 34,
-                "cascadeOrder": 665,
+                "cascadeOrder": 693,
                 "value": "inline-flex",
                 "important": false
               }
@@ -6922,9 +6956,9 @@
               },
               {
                 "path": "src/styles/task-9-pendencias.css",
-                "sheetOrder": 3,
+                "sheetOrder": 4,
                 "ruleOrder": 34,
-                "cascadeOrder": 665,
+                "cascadeOrder": 693,
                 "value": "0.65rem",
                 "important": false
               }
@@ -6943,9 +6977,9 @@
               },
               {
                 "path": "src/styles/task-9-pendencias.css",
-                "sheetOrder": 3,
+                "sheetOrder": 4,
                 "ruleOrder": 34,
-                "cascadeOrder": 665,
+                "cascadeOrder": 693,
                 "value": "750",
                 "important": false
               }
@@ -6964,9 +6998,9 @@
               },
               {
                 "path": "src/styles/task-9-pendencias.css",
-                "sheetOrder": 3,
+                "sheetOrder": 4,
                 "ruleOrder": 34,
-                "cascadeOrder": 665,
+                "cascadeOrder": 693,
                 "value": "2px 7px",
                 "important": false
               }
@@ -6980,15 +7014,15 @@
         "occurrences": [
           {
             "path": "src/styles/task-9-pendencias.css",
-            "sheetOrder": 3,
+            "sheetOrder": 4,
             "ruleOrder": 47,
-            "cascadeOrder": 681
+            "cascadeOrder": 709
           },
           {
             "path": "src/styles/task-9-cross-view.css",
-            "sheetOrder": 4,
+            "sheetOrder": 5,
             "ruleOrder": 17,
-            "cascadeOrder": 757
+            "cascadeOrder": 785
           }
         ],
         "conflictingProperties": [
@@ -6997,17 +7031,17 @@
             "values": [
               {
                 "path": "src/styles/task-9-pendencias.css",
-                "sheetOrder": 3,
+                "sheetOrder": 4,
                 "ruleOrder": 47,
-                "cascadeOrder": 681,
+                "cascadeOrder": 709,
                 "value": "1300",
                 "important": false
               },
               {
                 "path": "src/styles/task-9-cross-view.css",
-                "sheetOrder": 4,
+                "sheetOrder": 5,
                 "ruleOrder": 17,
-                "cascadeOrder": 757,
+                "cascadeOrder": 785,
                 "value": "800",
                 "important": false
               }
@@ -7027,9 +7061,9 @@
           },
           {
             "path": "src/styles/task-9-pendencias.css",
-            "sheetOrder": 3,
+            "sheetOrder": 4,
             "ruleOrder": 33,
-            "cascadeOrder": 664
+            "cascadeOrder": 692
           }
         ],
         "conflictingProperties": [
@@ -7046,9 +7080,9 @@
               },
               {
                 "path": "src/styles/task-9-pendencias.css",
-                "sheetOrder": 3,
+                "sheetOrder": 4,
                 "ruleOrder": 33,
-                "cascadeOrder": 664,
+                "cascadeOrder": 692,
                 "value": "2px solid color-mix(in srgb, var(--primary) 68%, transparent)",
                 "important": false
               }

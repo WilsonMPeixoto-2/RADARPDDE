@@ -81,6 +81,13 @@ Documentos antigos permanecem disponíveis para rastreabilidade, mas não preval
 - [`audits/2026-07-15-frontend-precedencia-estado-atual.md`](audits/2026-07-15-frontend-precedencia-estado-atual.md) — métricas, classificações e limites seguros;
 - [`evidence/frontend-precedence/manifest.json`](evidence/frontend-precedence/manifest.json) — evidência determinística gerada pelo analisador.
 
+## Ciclo B3 — interações compartilhadas
+
+- [`superpowers/specs/2026-07-15-interacoes-compartilhadas-design.md`](superpowers/specs/2026-07-15-interacoes-compartilhadas-design.md) — decisão aprovada, preservações, fluxo e critérios;
+- [`superpowers/plans/2026-07-15-interacoes-compartilhadas.md`](superpowers/plans/2026-07-15-interacoes-compartilhadas.md) — plano técnico e validações;
+- [`evidence/shared-interactions/full-comparison.png`](evidence/shared-interactions/full-comparison.png) — referência e implementação no mesmo viewport;
+- [`../design-qa.md`](../design-qa.md) — controle de qualidade visual do pacote.
+
 ## Situação funcional
 
 - Ciclo A concluído até as Tasks 10–13;
