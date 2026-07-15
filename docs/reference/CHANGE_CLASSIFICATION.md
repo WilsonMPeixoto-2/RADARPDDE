@@ -25,7 +25,7 @@ Nenhum achado entra no backlog sem código, evidência e conduta. A classificaç
 - **Definição:** solução correta que entrega a tarefa, mas possui ganho demonstrável de clareza, produtividade, acessibilidade, desempenho ou manutenção.
 - **Evidência mínima:** fluxo atual observado e consequência concreta da limitação.
 - **Conduta permitida:** propor alternativas, resultado esperado e preservações.
-- **Conduta proibida:** usar “modernizar” ou “melhorar UX” sem evidência.
+- **Conduta proibida:** usar rótulos vagos de modernização ou experiência sem evidência.
 - **Exemplo:** tabela desktop da Carteira é completa, porém demanda estudo de densidade e personalização.
 
 ## `IC` — Inconsistente ou duplicado
