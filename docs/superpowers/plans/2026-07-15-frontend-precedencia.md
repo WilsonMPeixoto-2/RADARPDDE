@@ -8,6 +8,17 @@
 
 **Tech Stack:** Node.js 24; JavaScript ESM e CommonJS; Acorn 8; Playwright 1.61; HTML; CSS; JSON; Markdown; nenhuma dependência nova.
 
+## Status de execução
+
+| Tarefa | Estado |
+|---|---|
+| 1 — Congelar escopo e publicar o plano | concluída |
+| 2 — Escrever testes do analisador | concluída |
+| 3 — Implementar o analisador estático | concluída |
+| 4 — Comprovar a ordem no navegador | concluída |
+| 5 — Produzir grafo e diagnóstico | concluída |
+| 6 — Validar ausência de regressão e salvar o checkpoint | em execução |
+
 ## Restrições globais
 
 - Partir de `ad0513299c9f4e10b08d6f1cedacb970adbc6ec8`, merge do Ciclo A.

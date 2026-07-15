@@ -73,6 +73,14 @@ Documentos antigos permanecem disponíveis para rastreabilidade, mas não preval
 - [`evidence/global-baseline/manifest.json`](evidence/global-baseline/manifest.json) — manifesto visual reproduzível;
 - [`handoff/2026-07-15-ciclo-a-final-report.md`](handoff/2026-07-15-ciclo-a-final-report.md) — encerramento e próxima prioridade.
 
+## Ciclo B1 — precedência do frontend
+
+- [`superpowers/specs/2026-07-15-frontend-precedencia-design.md`](superpowers/specs/2026-07-15-frontend-precedencia-design.md) — escopo, preservações e contrato da auditoria;
+- [`superpowers/plans/2026-07-15-frontend-precedencia.md`](superpowers/plans/2026-07-15-frontend-precedencia.md) — plano técnico executável;
+- [`architecture/frontend-load-order.md`](architecture/frontend-load-order.md) — grafo e ordem efetiva de CSS e JavaScript;
+- [`audits/2026-07-15-frontend-precedencia-estado-atual.md`](audits/2026-07-15-frontend-precedencia-estado-atual.md) — métricas, classificações e limites seguros;
+- [`evidence/frontend-precedence/manifest.json`](evidence/frontend-precedence/manifest.json) — evidência determinística gerada pelo analisador.
+
 ## Situação funcional
 
 - Ciclo A concluído até as Tasks 10–13;
