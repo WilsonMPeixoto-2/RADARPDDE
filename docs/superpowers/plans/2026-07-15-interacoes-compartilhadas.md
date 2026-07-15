@@ -18,7 +18,7 @@
 | 4 — Implementar o diálogo e o feedback compartilhado | concluída |
 | 5 — Integrar o fluxo e a correção Érika Reis | concluída |
 | 6 — Validar visual, regressões e gates globais | concluída |
-| 7 — Salvar no remoto e abrir PR rascunho | em publicação |
+| 7 — Salvar no remoto e abrir PR rascunho | concluída |
 
 ## Restrições globais
 
@@ -122,12 +122,12 @@
 
 ## Task 7 — Salvar no remoto e abrir PR rascunho
 
-- [ ] atualizar o status deste plano com resultados exatos;
-- [ ] commitar somente arquivos intencionais;
-- [ ] publicar `agent/interacoes-compartilhadas` no GitHub;
-- [ ] abrir PR rascunho com situação anterior, evolução, resultado e gates;
-- [ ] acompanhar os workflows do HEAD remoto;
-- [ ] não fazer merge nem deployment sem nova autorização.
+- [x] atualizar o status deste plano com resultados exatos;
+- [x] commitar somente arquivos intencionais;
+- [x] publicar `agent/interacoes-compartilhadas` no GitHub;
+- [x] abrir a [PR 28](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/28) em rascunho com situação anterior, evolução, resultado e gates;
+- [x] iniciar o acompanhamento dos workflows do HEAD remoto;
+- [x] manter o PR sem merge e sem deployment até nova autorização.
 
 ## Rollback
 
