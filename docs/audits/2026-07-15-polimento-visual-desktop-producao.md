@@ -14,6 +14,8 @@ O principal salto de qualidade não depende de trocar paleta, tipografia ou fram
 
 Esta auditoria não altera aplicação, layout, dados, regras ou persistência. Ela estabelece evidência visual atual e o gate para os mockups que deverão anteceder qualquer mudança material.
 
+O quadro visual editável está no Figma: [RADAR PDDE — Auditoria e Polimento Visual Desktop](https://www.figma.com/design/VVVjqKyaj0QnC9L63HT9yb). Ele organiza as doze capturas em referências protegidas, oportunidades de evolução e cinco gates de mockup, sem apresentar nenhuma proposta como aprovada.
+
 ## Fonte e limites
 
 | Campo | Valor |
@@ -26,6 +28,7 @@ Esta auditoria não altera aplicação, layout, dados, regras ou persistência. 
 | Dispositivos | desktop somente, conforme decisão do responsável |
 | Pesquisa com usuários | não realizada neste pacote |
 | Mudança funcional/visual | nenhuma |
+| Quadro Figma | `https://www.figma.com/design/VVVjqKyaj0QnC9L63HT9yb` |
 
 Os dados pessoais ou de contato foram mascarados apenas no DOM da sessão de captura. A aplicação e os dados persistidos não foram alterados. O manifesto reproduzível está em [`../evidence/visual-polish-desktop/manifest.json`](../evidence/visual-polish-desktop/manifest.json).
 

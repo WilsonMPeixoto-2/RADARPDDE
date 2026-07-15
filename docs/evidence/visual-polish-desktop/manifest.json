@@ -1,6 +1,11 @@
 {
   "audit": "polimento-visual-desktop-producao",
   "capturedAt": "2026-07-15T17:18:53.8445836-03:00",
+  "figma": {
+    "fileKey": "VVVjqKyaj0QnC9L63HT9yb",
+    "url": "https://www.figma.com/design/VVVjqKyaj0QnC9L63HT9yb",
+    "purpose": "Quadro editavel com referencias protegidas, oportunidades de evolucao e gates de mockup."
+  },
   "source": {
     "url": "https://radarpdde-fix.vercel.app/",
     "repositoryCommit": "72c13a74a1c41e4c0fd4924c400e12d624af1482",

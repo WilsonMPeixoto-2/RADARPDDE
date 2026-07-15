@@ -92,6 +92,7 @@ Documentos antigos permanecem disponíveis para rastreabilidade, mas não preval
 
 - [`audits/2026-07-15-polimento-visual-desktop-producao.md`](audits/2026-07-15-polimento-visual-desktop-producao.md) — diagnóstico ilustrado do acabamento atual e sequência recomendada para o polimento;
 - [`evidence/visual-polish-desktop/manifest.json`](evidence/visual-polish-desktop/manifest.json) — origem, viewport, privacidade e percurso das doze capturas atuais de produção.
+- [Quadro editável no Figma](https://www.figma.com/design/VVVjqKyaj0QnC9L63HT9yb) — referências preservadas, oportunidades e ordem dos próximos mockups.
 
 ## Situação funcional
 
