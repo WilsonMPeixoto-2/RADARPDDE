@@ -117,5 +117,8 @@ test('reconcilia instantes ISO equivalentes sem alterar datas civis', () => {
     assert.deepEqual(report.entities.pendencies.changed, []);
     assert.equal(source.entities.pendencies[0].opened_at, '2032-01-01T00:00:00.000Z');
     assert.equal(source.entities.pendencies[0].payload.updated_at, '2032-01-01T00:00:00.000Z');
+    assert.equal(target.entities.pendencies[0].opened_at, '2032-01-01T00:00:00.000Z');
+    assert.equal(target.entities.pendencies[0].payload.updated_at, '2032-01-01T00:00:00.000Z');
     assert.equal(source.entities.pendencies[0].contact_date, '2032-01-01');
+    assert.equal(target.entities.pendencies[0].contact_date, '2032-01-01');
 });
