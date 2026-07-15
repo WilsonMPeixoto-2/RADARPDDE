@@ -1,6 +1,8 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
+const os = require('node:os');
+const { mkdir, mkdtemp, writeFile } = require('node:fs/promises');
 const { pathToFileURL } = require('node:url');
 
 const rootDir = path.resolve(__dirname, '../..');
@@ -34,10 +36,32 @@ test('nome de captura visual é determinístico', () => {
   assert.doesNotMatch('Dashboard Final.png', valid);
 });
 
-test('validador aceita o conjunto completo do Ciclo A', async () => {
-  const { validateCycleAArtifacts } = await importAuditModule('validate-cycle-a-artifacts.mjs');
-  const result = await validateCycleAArtifacts(rootDir);
+test('validador aceita um conjunto completo e reproduzível do Ciclo A', async () => {
+  const { REQUIRED_FILES, validateCycleAArtifacts } = await importAuditModule('validate-cycle-a-artifacts.mjs');
+  const fixtureRoot = await mkdtemp(path.join(os.tmpdir(), 'radar-cycle-a-'));
+
+  for (const relativePath of REQUIRED_FILES) {
+    const absolutePath = path.join(fixtureRoot, relativePath);
+    await mkdir(path.dirname(absolutePath), { recursive: true });
+    if (relativePath.endsWith('PRODUCT_SURFACE_CATALOG.md')) {
+      await writeFile(absolutePath, Array.from({ length: 18 }, (_, index) => `## S-${String(index + 1).padStart(2, '0')} — Superfície\n`).join('\n'));
+    } else if (relativePath.endsWith('manifest.json')) {
+      const captures = Array.from({ length: 24 }, (_, index) => ({ file: `desktop/capture-${index + 1}.png` }));
+      await writeFile(absolutePath, JSON.stringify({ captures }));
+      for (const capture of captures) {
+        const capturePath = path.join(fixtureRoot, 'docs/evidence/global-baseline', capture.file);
+        await mkdir(path.dirname(capturePath), { recursive: true });
+        await writeFile(capturePath, 'fixture');
+      }
+    } else if (relativePath.endsWith('.json')) {
+      await writeFile(absolutePath, '{}');
+    } else {
+      await writeFile(absolutePath, '# Documento de teste\n');
+    }
+  }
+
+  const result = await validateCycleAArtifacts(fixtureRoot);
   assert.equal(result.errors.length, 0, result.errors.join('\n'));
-  assert.ok(result.surfaceCount >= 18);
+  assert.equal(result.surfaceCount, 18);
   assert.equal(result.captureCount, 24);
 });
