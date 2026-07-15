@@ -1,237 +1,131 @@
-# Arquitetura de preparação para Supabase
+# Arquitetura de prontidão para Supabase
 
-## Estado vigente
-
-O RADAR PDDE continua operando exclusivamente com dados iniciais versionados no frontend e persistência em `localStorage`. A infraestrutura descrita neste documento não ativa banco remoto, autenticação ou sincronização.
-
-A configuração publicada permanece:
-
-```javascript
-{
-  environment: 'local',
-  dataMode: 'local',
-  activeRepository: 'local',
-  productionActivationApproved: false,
-  features: {
-    supabaseRepositoryEnabled: false
-  },
-  supabase: {
-    url: '',
-    publishableKey: '',
-    connectionEnabled: false
-  }
-}
-```
-
-Mesmo que URL e chave sejam preenchidas acidentalmente, o modo local neutraliza as credenciais e mantém as feature flags desativadas. Chaves `sb_secret_`, o literal `service_role` e JWTs cujo payload informe `role: service_role` são rejeitados.
-
-## Objetivo arquitetural
-
-Separar gradualmente regras e telas da tecnologia de persistência, sem alterar o comportamento atual:
+## Estado arquitetural
 
 ```text
-Telas e regras do RADAR
-        ↓
-Serviços de aplicação e gateway único
-        ↓
-Contrato de repositório
-        ↓
-┌──────────────────────────┬──────────────────────────┐
-│ LocalStorageRepository   │ SupabaseRepository       │
-│ referência contratual    │ preparado e desativado   │
-└──────────────────────────┴──────────────────────────┘
-        ↑
-RadarStateBridge — exportação, restauração e reconciliação
+Frontend aprovado
+       ↓
+Serviços de aplicação
+       ↓
+Unidade de trabalho e contrato único de persistência
+       ├── LocalStorageRepository — modo vigente
+       └── SupabaseRepository — modo preparado
 ```
 
-Os fluxos institucionais, escolas, pendências, verificações, notas e inventário já passam pelo gateway único. O adaptador selecionado continua sendo o `LocalStorageRepository`, portanto a persistência oficial permanece nas chaves `radar_pdde_*` até uma ativação deliberada e homologada.
+A seleção ocorre por configuração pública gerada. A cópia versionada permanece em modo local e bloqueia qualquer inicialização remota.
 
-## Componentes de aplicação
-
-### `config.runtime.js` e `config.js`
-
-- o gerador aceita somente variáveis públicas conhecidas e nunca imprime seus valores;
-- a cópia versionada permanece em modo local, sem credenciais;
-- define os modos `local`, `supabase-preview` e `supabase-production`;
-- exige modo não local, autorização do repositório e credenciais publicáveis válidas;
-- bloqueia chaves secretas e JWT legado de `service_role`;
-- exige autorização adicional para produção;
-- hidrata competências persistidas antes da primeira renderização;
-- mantém o modo publicado em `local`.
-
-### Contrato e repositórios
-
-`src/data/repository-contract.js` define entidades canônicas, snapshots, erros tipados e validação.
-
-`src/data/local-storage-repository.js` implementa o contrato usando uma interface compatível com `Storage`.
-
-`src/data/supabase-repository.js` recebe o cliente por injeção e oferece:
-
-- leitura paginada e ordenada;
-- gravação em lotes;
-- restauração respeitando dependências de FKs;
-- exclusão de `audit_events` das restaurações;
-- atualização otimista por `row_version`;
-- erro `OPTIMISTIC_CONFLICT` para edição concorrente.
-
-`src/data/repository-factory.js` mantém comportamento *fail-closed*: o adaptador remoto só é criado com modo não local, autorização explícita do repositório e conexão validada.
-
-### Auth e autorização antes dos dados
-
-`src/auth/session-service.js`, `src/integration/auth-bootstrap.js` e `src/integration/auth-gate.js` formam o gate remoto:
-
-- nenhuma tabela institucional é consultada antes de uma sessão válida;
-- o perfil ativo e os escopos são confirmados sob RLS;
-- usuário sem perfil, perfil inativo ou perfis ambíguos permanecem fora da aplicação;
-- o contexto público não contém token ou sessão bruta;
-- o seletor simulado de perfis continua disponível somente no modo local;
-- logout e expiração ocultam a aplicação, e uma nova identidade força recarga segura dos dados autorizados.
-
-O gate está versionado, mas permanece invisível e inativo enquanto `dataMode` for `local`.
-
-### Snapshot e ponte bidirecional
-
-`src/data/snapshot-tools.js`, `legacy-state-adapter.js`, `state-bridge.js` e `state-bridge-metadata.js`:
-
-- leem apenas as chaves `radar_pdde_*`;
-- traduzem objetos para linhas relacionais;
-- preservam atributos variáveis em `payload`;
-- preservam campos reais como `desc`, `compKey`, `bemId`, `dataRegistro`, inventariador e próximo ator;
-- decompõem o contexto da nota em competência, programa, verificação e bem;
-- restauram snapshots nas estruturas locais;
-- suportam `dryRun`, lotes e reconciliação exata;
-- invalidam metadados laterais quando o usuário altera o registro local.
-
-### Exercícios e competências
-
-`src/integration/exercise-management.js` e `exercise-early-init.js`:
-
-- implementam criação e alternância de exercício;
-- criam as doze competências anuais;
-- preservam competência inicial e prazo mensal;
-- restauram exercícios antes da primeira renderização;
-- rejeitam ano inválido ou duplicado.
-
-## Pilha Supabase local
-
-A preparação agora inclui uma pilha reproduzível, ainda sem projeto remoto:
-
-- `supabase/config.toml` com PostgreSQL 17;
-- Supabase CLI `2.109.1` fixada em `devDependencies`;
-- banco recriado por `supabase db reset --local`;
-- testes pgTAP em `supabase/tests/database`;
-- lint de PL/pgSQL por `supabase db lint`;
-- tipos gerados em `src/types/database.types.ts`;
-- cliente `@supabase/supabase-js` `2.110.5` empacotado em `vendor/supabase-client.js`;
-- TypeScript `7.0.2` verificando o contrato gerado do banco;
-- esbuild `0.28.1` fixado;
-- verificação de reprodutibilidade dos artefatos no CI.
-
-O HTML não carrega mais uma versão flutuante por CDN. O bundle versionado expõe `RadarSupabaseClient`; a configuração pública é carregada antes do validador *fail-closed*.
-
-## Modelo SQL
-
-As dez migrations são versionadas e não são executadas pela aplicação:
-
-1. `202607130001_core_schema.sql` — entidades, FKs, constraints, índices e versionamento;
-2. `202607130002_auth_and_rls.sql` — perfis, escopos, autorização e RLS;
-3. `202607130003_audit_and_import.sql` — importações, auditoria e triggers;
-4. `202607130004_competence_bonus_deadline.sql` — prazo de bonificação;
-5. `202607130005_operational_context.sql` — contexto de notas e inventário;
-6. `202607130006_authorization_hardening.sql` — perfil ativo único e leitura/escrita separadas;
-7. `202607130007_configuration_audit_coverage.sql` — auditoria de parâmetros e cadastros;
-8. `202607130008_atomic_invoice_operations.sql` — RPCs transacionais de nota, bem e verificação;
-9. `202607140009_verification_payload.sql` — extensões auditáveis da verificação, incluindo retificações.
-10. `20260714180621_preconnection_auth_and_api_grants.sql` — grants explícitos da Data API e bloqueio do papel anônimo.
-
-As RPCs `save_invoice_with_effects` e `delete_invoice_with_effects` usam `search_path` fixo, autorização por escopo e controle otimista por versão. O salvamento usa `SECURITY INVOKER`; a remoção usa `SECURITY DEFINER` somente para atravessar a política genérica de exclusão, mas revalida `can_write_school` internamente. A exclusão física direta continua restrita ao Administrador técnico.
-
-## Estratégia de testes
-
-### Testes unitários
-
-Cobrem configuração, contratos, paginação, lotes, concorrência, snapshots, ponte, migrations, artefatos gerados e RPCs.
-
-### PostgreSQL 17 independente
-
-O smoke test aplica as dez migrations em um PostgreSQL efêmero e exercita versão, auditoria, contexto e autorização.
-
-### Supabase local e pgTAP
-
-A pilha local aplica as migrations reais e executa 61 verificações declarativas de:
-
-- schema e colunas;
-- funções e privilégios;
-- RLS e `SECURITY INVOKER`;
-- criação, atualização, conflito e remoção atômica de nota e bem;
-- atualização relacionada da verificação.
-- privilégios explícitos da Data API para `authenticated` e negativas para `anon`.
-
-Depois o CI executa lint, regenera tipos e bundle e confirma que não há diferença com os arquivos versionados.
-
-As contas de homologação não são gravadas diretamente nas tabelas internas de Auth. Depois do reset, `supabase/seed.sql` insere somente dados funcionais sem credenciais e `bootstrap-local-auth-fixtures.mjs` cria sete identidades determinísticas pela API Admin oficial, exclusivamente em `localhost`/`127.0.0.1` e mediante autorização explícita. A senha forte é gerada em memória pelo CI, mascarada e descartada ao encerrar a pilha. O manifesto versionado contém apenas IDs, e-mails locais, perfis e escopos, sem senha ou chave administrativa.
-
-Antes do Playwright, um login-probe autentica e encerra a sessão das sete identidades. Assim, uma regressão nas fixtures falha rapidamente e não é confundida com erro de interface ou de RLS.
+## Componentes
 
 ### Interface
 
-O Playwright mantém cobertura em Chromium desktop, Android/Chromium e iPhone/WebKit, incluindo ausência de conexão Supabase no modo local. No job Supabase local, uma suíte adicional autentica os cinco perfis em cenários independentes, valida usuário inativo e usuário sem perfil, encerra sessões e comprova RLS de leitura e escrita no frontend real.
+Os handlers permanecem responsáveis por DOM, mensagens, abertura de modais e renderização. Regras institucionais e mutações não são persistidas diretamente pela camada visual.
 
-## Validação remota futura
+### Serviços de aplicação
 
-O workflow manual `supabase-remote-validation.yml` está preparado para um projeto autorizado. Ele não roda automaticamente e não aplica migrations.
+Serviços especializados cobrem:
 
-Quando configurado com segredos do GitHub Actions, poderá:
+- configurações e exercícios;
+- diretórios e cadastros;
+- escolas e carteira;
+- verificações;
+- pendências, tentativas e contatos;
+- notas fiscais;
+- bens e inventário;
+- auditoria.
 
-- vincular o `project_ref`;
-- simular `db push --dry-run`;
-- executar lint remoto;
-- executar pgTAP remoto em transações revertidas;
-- comparar tipos remotos com o contrato versionado;
-- listar branches disponíveis.
+### Unidade de trabalho
 
-Criação de branch, aplicação de migration e Advisors dependem de autorização específica.
+`DataService` e `UnitOfWork` capturam o estado anterior, executam a regra, persistem e restauram memória, armazenamento e repositório em caso de falha.
 
-## Princípios de segurança
+### Porta de estado
 
-1. **Fail closed:** configuração incompleta retorna ao modo local.
-2. **Sem segredo no frontend:** somente chave publicável poderá ser usada.
-3. **RLS obrigatória:** a chave publicável não concede acesso sem políticas.
-4. **Sem seed implícito:** banco vazio não autoriza inserção automática.
-5. **Sem promoção automática:** Preview e produção exigem autorizações separadas.
-6. **Rollback preservado:** snapshot local permanece até homologação.
-7. **Exclusão excepcional:** escrita operacional não implica exclusão.
-8. **Auditoria imutável:** usuários autenticados não editam `audit_events`.
-9. **Funções protegidas:** `search_path` fixo.
-10. **Escopo explícito:** `can_write = false` não concede escrita.
-11. **Perfil não ambíguo:** no máximo um perfil ativo por usuário.
-12. **Concorrência controlada:** atualizações usam `row_version`.
-13. **Mutações compostas atômicas:** nota, bem e verificação não ficam parcialmente atualizados.
-14. **Dependências reproduzíveis:** runtime, bibliotecas, CLI e Actions são fixados.
+A porta traduz o modelo legado do frontend para o snapshot canônico e realiza o caminho inverso. As chaves `radar_pdde_*` continuam preservadas para operação local e rollback.
 
-## Modelo futuro de ativação
+### Repositórios
 
-1. Criar projeto ou branch Supabase de desenvolvimento.
-2. Aplicar as dez migrations em ambiente remoto autorizado.
-3. Executar lint, pgTAP, tipos e Advisors.
-4. Exportar o estado real com `RadarStateBridge.exportLegacySnapshot()`.
-5. Resolver advertências e registros rejeitados.
-6. Configurar somente Preview com `supabase-preview`.
-7. Importar em ordem relacional por backend controlado.
-8. Reconciliar origem e destino e testar restauração local.
-9. Homologar Auth, RLS, concorrência, RPCs e falhas.
-10. Ativar o adaptador remoto somente após equivalência comprovada.
-11. Promover para produção apenas com autorização expressa.
+Ambos implementam:
 
-## Invariantes
+- `load`;
+- `save`;
+- `remove`;
+- `exportSnapshot`;
+- `restoreSnapshot`;
+- `healthCheck`;
+- `capabilities`.
 
-A integração futura não pode alterar:
+O adaptador Supabase acrescenta paginação, lotes, concorrência otimista, RPCs compostas e protocolo de importação.
 
-- regras de bonificação;
-- análise técnica;
-- estados e transições de pendências;
-- retificações;
-- priorização e antiguidade;
-- inventário;
-- exportação Excel;
-- navegação, colunas, botões ou componentes aprovados.
+## Modelo de dados
+
+O banco normaliza entidades funcionais e mantém JSONB somente onde a estrutura é realmente variável. Contratos JSON compartilhados são validados por Ajv no navegador e `pg_jsonschema` no PostgreSQL.
+
+Tabelas expostas possuem RLS. A Data API exige grants explícitos e não concede acesso institucional ao papel `anon`.
+
+## Autenticação e autorização
+
+No modo local, o seletor de perfil vigente continua disponível. No modo Supabase, a identidade vem exclusivamente da sessão Auth e das tabelas protegidas de perfil e escopo.
+
+Autorização combina:
+
+- perfil ativo único;
+- carteira do controlador;
+- escopo explícito por escola;
+- distinção entre leitura e escrita;
+- permissões específicas do inventário;
+- privilégios administrativos restritos.
+
+## Operações atômicas
+
+RPCs transacionais evitam persistências parciais nos seguintes fluxos:
+
+- criação de exercício e competências;
+- escola e programas;
+- reanálise e efeitos documentais;
+- nota, bem e verificação;
+- promoção de dados staged.
+
+## Migração
+
+O protocolo não semeia banco vazio automaticamente. A migração é uma operação deliberada:
+
+1. exportar o estado local;
+2. validar estrutura e referências;
+3. calcular hash e plano;
+4. gravar lotes em staging por `importId`;
+5. retomar lotes interrompidos sem duplicação;
+6. reconciliar staging;
+7. promover o snapshot em transação única;
+8. reconciliar o destino;
+9. concluir ou reverter.
+
+A comparação canônica normaliza representações ISO equivalentes de um mesmo instante, sem alterar datas civis ou dados persistidos.
+
+## Resiliência e UX
+
+Falhas técnicas são convertidas em categorias estáveis e mensagens funcionais. O formulário permanece aberto, o foco é preservado e tecnologias assistivas recebem anúncio em região `aria-live`.
+
+Retry automático é limitado a leituras seguras com erro transitório. Escritas nunca são repetidas silenciosamente.
+
+## Invariantes de segurança
+
+- produção padrão: `local`;
+- conexão remota exige autorização explícita de configuração;
+- nenhum segredo no navegador, repositório ou logs;
+- nenhuma migration aplicada automaticamente em projeto remoto;
+- nenhum seed implícito;
+- rollback local preservado após futura ativação;
+- layout, botões e regras aprovadas não dependem do backend escolhido.
+
+## Ativação futura
+
+A etapa remota deverá consistir principalmente em:
+
+1. criar ou selecionar o projeto;
+2. configurar URL e chave publicável em Preview;
+3. aplicar as 12 migrations;
+4. confirmar extensões e versões;
+5. criar usuários de homologação;
+6. executar Auth, RLS, importação e reconciliação remotos;
+7. executar Advisors, backup, restauração e MFA;
+8. homologar Preview;
+9. autorizar produção.
