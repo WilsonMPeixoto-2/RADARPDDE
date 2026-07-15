@@ -105,14 +105,18 @@ test('analisa ordem estática, extensões, deduplicação e carregamento encadea
     'extensions/load-excel.js'
   ]);
   assert.deepEqual(manifest.scripts.chainedScripts, ['excel/model.js', 'excel/integration.js']);
-  assert.deepEqual(manifest.scripts.expectedExecutionOrder, [
+  assert.deepEqual(manifest.scripts.orderedExtensions, [
+    'extensions/first.js',
+    'extensions/second.js'
+  ]);
+  assert.deepEqual(manifest.scripts.asynchronousExtensions, ['extensions/load-excel.js']);
+  assert.deepEqual(manifest.scripts.expectedOrderedExecution, [
     'core.js',
     'shared.js',
     'config.js',
     'app.js',
     'extensions/first.js',
     'extensions/second.js',
-    'extensions/load-excel.js',
     'excel/model.js',
     'excel/integration.js'
   ]);

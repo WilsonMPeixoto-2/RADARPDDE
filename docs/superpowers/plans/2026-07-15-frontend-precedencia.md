@@ -79,7 +79,9 @@
 - [ ] Criar `tests/audit/frontend-precedence.spec.js`.
 - [ ] Instrumentar respostas JavaScript locais e registrar execução antes do código original.
 - [ ] Esperar a ativação do pacote Excel.
-- [ ] Comparar execução observada com o manifesto.
+- [ ] Comparar a baseline observada com o manifesto.
+- [ ] Atrasar artificialmente o núcleo posterior a `config.js` e comprovar a ordem relativa e a inicialização das extensões ordenadas.
+- [ ] Tratar o loader Excel assíncrono como posição variável válida e comprovar apenas sua unicidade e precedência sobre os quatro módulos encadeados.
 - [ ] Verificar que `retificacoes.js` executa uma vez.
 - [ ] Comparar a sequência dos links CSS efetivos com o manifesto.
 - [ ] Falhar em `pageerror` e `console.error` inesperado.

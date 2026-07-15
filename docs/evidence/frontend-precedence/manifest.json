@@ -162,13 +162,33 @@
       "src/integration/exercise-early-init.js",
       "src/integration/load-excel-export.js"
     ],
+    "orderedExtensions": [
+      "src/domain/pendencias-view-model.js",
+      "src/domain/operational-projection.js",
+      "src/integration/mobile-navigation.js",
+      "src/integration/modal-accessibility.js",
+      "src/integration/task-9-pendencias-page.js",
+      "src/integration/task-9-focus-bridge.js",
+      "src/integration/task-9-cross-view.js",
+      "src/integration/task-10-11-pendency-actions.js",
+      "src/integration/task-12-13-retificacoes.js",
+      "src/integration/cycle-b-carteira.js",
+      "src/integration/cycle-b-dashboard.js",
+      "src/integration/cycle-b-dashboard-result.js",
+      "src/integration/task-10-alerts-competence.js",
+      "src/integration/exercise-management.js",
+      "src/integration/exercise-early-init.js"
+    ],
+    "asynchronousExtensions": [
+      "src/integration/load-excel-export.js"
+    ],
     "chainedScripts": [
       "src/domain/excel-export-model.js",
       "src/domain/excel-workbook-plan.js",
       "src/domain/excel-xlsx-renderer.js",
       "src/integration/excel-export-integration.js"
     ],
-    "expectedExecutionOrder": [
+    "expectedOrderedExecution": [
       "src/domain/competencia.js",
       "src/domain/estatisticas.js",
       "src/domain/fluxo-operacional.js",
@@ -219,7 +239,6 @@
       "src/integration/task-10-alerts-competence.js",
       "src/integration/exercise-management.js",
       "src/integration/exercise-early-init.js",
-      "src/integration/load-excel-export.js",
       "src/domain/excel-export-model.js",
       "src/domain/excel-workbook-plan.js",
       "src/domain/excel-xlsx-renderer.js",

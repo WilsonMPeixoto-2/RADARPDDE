@@ -9,10 +9,14 @@ function localPathFromUrl(url) {
   return decodeURIComponent(new URL(url).pathname).replace(/^\/+/, '');
 }
 
-test('ordem efetiva corresponde ao contrato estático de precedência', async ({ page }) => {
-  const { analyzeFrontendPrecedence } = await import(analyzerUrl);
-  const manifest = await analyzeFrontendPrecedence(repositoryRoot);
-  const expectedScripts = new Set(manifest.scripts.expectedExecutionOrder);
+async function observeExecution(page, manifest, { delayCoreAfterConfig = false } = {}) {
+  const expectedScripts = new Set([
+    ...manifest.scripts.staticOrder,
+    ...manifest.scripts.effectiveExtensions,
+    ...manifest.scripts.chainedScripts
+  ]);
+  const configIndex = manifest.scripts.staticOrder.indexOf('config.js');
+  const delayedCore = new Set(manifest.scripts.staticOrder.slice(configIndex + 1));
   const pageErrors = [];
   const consoleErrors = [];
 
@@ -30,11 +34,19 @@ test('ordem efetiva corresponde ao contrato estático de precedência', async ({
     const response = await route.fetch();
     const source = await response.text();
     const instrumentation = `window.__RADAR_EXECUTION_ORDER__ = window.__RADAR_EXECUTION_ORDER__ || []; window.__RADAR_EXECUTION_ORDER__.push(${JSON.stringify(relativePath)});\n`;
+    if (delayCoreAfterConfig && delayedCore.has(relativePath)) {
+      await new Promise(resolve => setTimeout(resolve, 180));
+    }
     await route.fulfill({ response, body: `${instrumentation}${source}` });
   });
 
   await page.goto('/');
-  await page.waitForFunction(() => Boolean(window.RadarExcelExportIntegration));
+  await page.waitForFunction(() => Boolean(
+    window.RadarTask9PendencyPage
+      && window.RadarTask1011PendencyActions
+      && window.RadarCycleBDashboard
+      && window.RadarExcelExportIntegration
+  ));
   await page.waitForFunction(expected => (
     document.querySelectorAll('link[rel="stylesheet"]').length >= expected
   ), manifest.styles.loadOrder.length);
@@ -44,9 +56,37 @@ test('ordem efetiva corresponde ao contrato estático de precedência', async ({
     links.map(link => decodeURIComponent(new URL(link.href).pathname).replace(/^\/+/, ''))
   ));
 
-  expect(observedScripts).toEqual(manifest.scripts.expectedExecutionOrder);
-  expect(observedScripts.filter(script => script === 'src/domain/retificacoes.js')).toHaveLength(1);
-  expect(observedStyles).toEqual(manifest.styles.loadOrder);
-  expect(pageErrors).toEqual([]);
-  expect(consoleErrors).toEqual([]);
+  return { observedScripts, observedStyles, pageErrors, consoleErrors };
+}
+
+function expectExecutionContract(observation, manifest) {
+  const asynchronous = new Set(manifest.scripts.asynchronousExtensions);
+  const orderedObservation = observation.observedScripts.filter(path => !asynchronous.has(path));
+
+  expect(orderedObservation).toEqual(manifest.scripts.expectedOrderedExecution);
+  for (const asynchronousPath of asynchronous) {
+    expect(observation.observedScripts.filter(path => path === asynchronousPath)).toHaveLength(1);
+    expect(observation.observedScripts.indexOf(asynchronousPath))
+      .toBeLessThan(observation.observedScripts.indexOf(manifest.scripts.chainedScripts[0]));
+  }
+  expect(observation.observedScripts.filter(script => script === 'src/domain/retificacoes.js')).toHaveLength(1);
+  expect(observation.observedStyles).toEqual(manifest.styles.loadOrder);
+  expect(observation.pageErrors).toEqual([]);
+  expect(observation.consoleErrors).toEqual([]);
+}
+
+test('baseline do servidor de auditoria corresponde à ordem observada', async ({ page }) => {
+  const { analyzeFrontendPrecedence } = await import(analyzerUrl);
+  const manifest = await analyzeFrontendPrecedence(repositoryRoot);
+  const observation = await observeExecution(page, manifest);
+
+  expectExecutionContract(observation, manifest);
+});
+
+test('extensões ordenadas preservam contrato e inicializam com núcleo atrasado', async ({ page }) => {
+  const { analyzeFrontendPrecedence } = await import(analyzerUrl);
+  const manifest = await analyzeFrontendPrecedence(repositoryRoot);
+  const observation = await observeExecution(page, manifest, { delayCoreAfterConfig: true });
+
+  expectExecutionContract(observation, manifest);
 });

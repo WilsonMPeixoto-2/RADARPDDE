@@ -12,7 +12,7 @@ O frontend combina três mecanismos:
 2. `config.js` acrescenta nove folhas de estilo e declara 17 scripts de extensão;
 3. `src/integration/load-excel-export.js` carrega mais quatro scripts, em série, depois do evento `load`.
 
-O navegador insere as extensões de `config.js` no `head`, mas a observação de execução mostra que os scripts síncronos do documento, inclusive `app.js` e `auth-gate.js`, terminam antes das extensões. Essa ordem permite que módulos posteriores capturem e envolvam funções globais já existentes.
+O navegador insere as extensões de `config.js` no `head`. Quinze extensões usam `async = false` e preservam a ordem declarada; a observação com e sem atraso artificial do núcleo mostra que elas executam depois dos scripts estáticos. O loader Excel usa `async = true`, portanto sua posição relativa varia legitimamente. Ele não envolve funções do núcleo e espera o evento `load` para carregar seus quatro módulos em série. Os módulos ordenados também usam espera limitada por pré-requisitos, proteção adicional que deve ser registrada antes de qualquer substituição do loader.
 
 Há pelo menos um encadeamento material entre extensões: `task-9-pendencias-page.js` substitui `renderPendencias`; em seguida, `task-10-11-pendency-actions.js` captura essa versão e a envolve novamente. Reordenar os arquivos pode preservar a sintaxe e ainda modificar o comportamento.
 
@@ -70,7 +70,7 @@ Nenhum arquivo será declarado obsoleto somente pelo nome `final`, `hotfix` ou `
 
 - estilos estáticos e dinâmicos na ordem declarada;
 - scripts estáticos, dinâmicos, deduplicados e encadeados;
-- ordem de execução esperada;
+- ordem relativa garantida, separando extensões ordenadas e assíncronas;
 - métricas por folha de estilo;
 - seletores repetidos por contexto;
 - colisões de propriedades no mesmo contexto;
@@ -87,8 +87,10 @@ O analisador terá modo de escrita e modo `--check`, que falha quando o manifest
 
 `tests/audit/frontend-precedence.spec.js` interceptará os scripts locais, registrará sua execução sem mudar os arquivos-fonte e verificará:
 
-- ordem efetiva dos 35 scripts estáticos;
-- execução das extensões depois de `auth-gate.js`;
+- ordem relativa dos 35 scripts estáticos;
+- baseline observada sem atraso;
+- cenário com atraso artificial do núcleo para comprovar a estabilidade da ordem dos módulos não assíncronos;
+- posição variável do loader Excel sem falso positivo;
 - deduplicação de `retificacoes.js`;
 - ordem sequencial dos quatro módulos Excel;
 - ordem efetiva das dez folhas CSS;

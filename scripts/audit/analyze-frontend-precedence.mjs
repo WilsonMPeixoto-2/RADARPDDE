@@ -452,6 +452,12 @@ export async function analyzeFrontendPrecedence(rootDir, options = {}) {
   const extensionMarkers = new Set(staticAssets.scripts.map(item => item.extensionMarker).filter(Boolean));
   const deduplicated = declared.scripts.filter(item => extensionMarkers.has(item.src)).map(item => item.src);
   const effectiveExtensions = declared.scripts.filter(item => !extensionMarkers.has(item.src)).map(item => item.src);
+  const orderedExtensions = declared.scripts
+    .filter(item => !item.async && !extensionMarkers.has(item.src))
+    .map(item => item.src);
+  const asynchronousExtensions = declared.scripts
+    .filter(item => item.async && !extensionMarkers.has(item.src))
+    .map(item => item.src);
   const chainedScripts = extractChainedScripts(excelLoaderSource);
   const staticScripts = staticAssets.scripts.map(item => item.src);
   const styleLoadOrder = [...staticAssets.styles, ...declared.styles];
@@ -479,8 +485,10 @@ export async function analyzeFrontendPrecedence(rootDir, options = {}) {
       declaredExtensions: declared.scripts,
       deduplicated,
       effectiveExtensions,
+      orderedExtensions,
+      asynchronousExtensions,
       chainedScripts,
-      expectedExecutionOrder: [...staticScripts, ...effectiveExtensions, ...chainedScripts]
+      expectedOrderedExecution: [...staticScripts, ...orderedExtensions, ...chainedScripts]
     },
     css: summarizeCss(parsedStylesheets),
     javascript: summarizeJavascript(javascriptExtensions)
