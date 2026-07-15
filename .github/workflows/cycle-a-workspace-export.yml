@@ -1,0 +1,40 @@
+name: Cycle A workspace export
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/cycle-a-workspace-export.yml'
+      - 'docs/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - 'package.json'
+      - 'playwright.audit.config.js'
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Create clean workspace archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar --exclude='.git' --exclude='node_modules' -czf /tmp/radar-cycle-a-workspace.tar.gz .
+
+      - name: Upload workspace archive
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: radar-cycle-a-workspace
+          path: /tmp/radar-cycle-a-workspace.tar.gz
+          if-no-files-found: error
+          retention-days: 1
