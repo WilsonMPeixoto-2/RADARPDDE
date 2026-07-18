@@ -96,6 +96,11 @@ Documentos antigos permanecem disponíveis para rastreabilidade, mas não preval
 - [`evidence/visual-polish-desktop/manifest.json`](evidence/visual-polish-desktop/manifest.json) — origem, viewport, privacidade e percurso das doze capturas atuais de produção;
 - [Quadro editável no Figma](https://www.figma.com/design/VVVjqKyaj0QnC9L63HT9yb) — referências preservadas, oportunidades e ordem dos próximos mockups.
 
+## Contrato integral de perfis e superfícies
+
+- [`superpowers/specs/2026-07-18-contrato-perfis-superficies-design.md`](superpowers/specs/2026-07-18-contrato-perfis-superficies-design.md) — cinco experiências canônicas, segregação de funções, navegação e critérios de autorização;
+- [`superpowers/plans/2026-07-18-contrato-perfis-superficies.md`](superpowers/plans/2026-07-18-contrato-perfis-superficies.md) — plano TDD em nove tasks para implementação, RLS, E2E, acessibilidade e gate final.
+
 ## Situação funcional
 
 - Ciclo A concluído até as Tasks 10–13;
