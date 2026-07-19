@@ -1,100 +1,117 @@
-# Matriz futura de permissões — Supabase
+# Matriz de permissões — Supabase
 
-Esta matriz descreve o comportamento previsto para autenticação e RLS. Ela não altera os perfis simulados existentes enquanto o sistema permanecer em modo local.
+Esta matriz representa o contrato funcional aprovado para Auth, RLS e operações server-side do RADAR PDDE.
 
-## Perfis
+## Perfis funcionais e papel técnico
 
-| Perfil técnico | Nome exibido | Escopo padrão |
-|---|---|---|
-| `controller` | Controlador | escolas vinculadas ao controlador e exceções explícitas |
-| `federal_assistant` | Assistente de Verbas Federais | operação transversal das escolas autorizadas |
-| `inventory` | Equipe de Inventário | dados patrimoniais das escolas com bens registrados ou escopo explícito |
-| `sme_management` | Gestão SME | leitura gerencial ampla e parâmetros institucionais |
-| `technical_admin` | Administrador técnico | administração técnica, perfis, escopos e auditoria |
+O produto possui quatro perfis operacionais visíveis e um papel técnico separado:
 
-Quando um usuário possuir mais de um perfil ativo, a função `current_app_role()` utiliza o perfil de maior prioridade administrativa. A combinação autorizada de perfis deverá ser homologada antes da ativação real.
+| Papel técnico | Nome exibido | Natureza | Escopo padrão |
+|---|---|---|---|
+| `controller` | Controlador | funcional | carteira vinculada e exceções explícitas |
+| `federal_assistant` | Assistente de Verbas Federais | funcional | gestão operacional transversal da 4ª CRE e liderança da equipe |
+| `inventory` | Equipe de Inventário | funcional | operação patrimonial autorizada |
+| `sme_management` | SME (Gestão) | funcional gerencial | leitura consolidada e parâmetros institucionais |
+| `technical_admin` | Administrador técnico | técnico, fora do seletor operacional | infraestrutura, perfis, escopos e auditoria |
+
+`technical_admin` não é convertido em Assistente e não deve ser usado para operação cotidiana. O banco admite somente um perfil ativo por usuário.
 
 ## Matriz funcional
 
-Legenda: **L** leitura; **C** criação; **A** alteração; **E** exclusão; **—** sem acesso direto.
+Legenda: **L** leitura; **C** criação; **A** alteração ou desativação lógica; **E** exclusão física; **S** operação server-side protegida; **—** sem acesso direto.
 
-| Recurso | Controlador | Assistente | Inventário | Gestão SME | Admin técnico |
+| Recurso | Controlador | Assistente | Inventário | SME (Gestão) | Admin técnico |
 |---|---:|---:|---:|---:|---:|
 | Escolas vinculadas | L/A | L/C/A | L | L | L/C/A/E |
+| Distribuição de carteiras | L própria | L/C/A | L | L | L/C/A/E |
 | Programas | L | L | L | L/C/A | L/C/A/E |
 | Competências | L | L | L | L/C/A | L/C/A/E |
 | Bonificação e análise | L/C/A | L/C/A | L | L | L/C/A/E |
-| Pendências | L/C/A | L/C/A | L nos casos patrimoniais | L | L/C/A/E |
-| Tentativas de regularização | L/C/A | L/C/A | L nos casos patrimoniais | L | L/C/A/E |
+| Pendências | L/C/A | L/C/A | L patrimonial | L | L/C/A/E |
+| Tentativas de regularização | L/C/A | L/C/A | L patrimonial | L | L/C/A/E |
 | Contatos e cobranças | L/C/A | L/C/A | L | L | L/C/A/E |
 | Bens e inventário | L | L/C/A | L/C/A | L | L/C/A/E |
 | Notas registradas | L/C/A | L/C/A | L | L | L/C/A/E |
 | Configuração global | L | L | L | L/C/A | L/C/A/E |
-| Controladores e equipe | L | L | L | L/C/A | L/C/A/E |
+| Controladores | L | L/C/A/S | L | L | L/C/A/E/S |
+| Equipe de Inventário | L | L/C/A/S | L própria | L | L/C/A/E/S |
+| Convites e contas Auth da equipe | — | C/A/S | — | — | C/A/S |
 | Perfis e escopos | própria associação | própria associação | própria associação | L | L/C/A/E |
-| Logs administrativos | L do próprio escopo | L do escopo | L do escopo | L amplo | L amplo/E excepcional |
+| Logs administrativos | L do escopo | L do escopo | L do escopo | L amplo | L amplo/E excepcional |
 | Auditoria técnica | — | — | — | L | L |
 | Execuções de importação | — | L/C/A | — | L | L/C/A/E |
 
+## Gestão de Equipe pela Assistente
+
+A Assistente de Verbas Federais é a liderança direta dos controladores no âmbito da GAD da 4ª CRE. Sua permissão é plena para os efeitos funcionais da tela Gestão de Equipe:
+
+- cadastrar e editar controladores;
+- convidar o usuário e criar a conta Auth;
+- criar e manter o vínculo `user_profiles`;
+- distribuir e redistribuir escolas;
+- desativar o controlador e seu acesso, escolhendo o destinatário da carteira;
+- cadastrar, editar, convidar e desativar integrantes da Equipe de Inventário;
+- registrar todas as operações no histórico administrativo.
+
+As políticas RLS permitem `INSERT` e `UPDATE` em `controllers` e `inventory_team_members` a `federal_assistant` e `technical_admin`. A SME possui leitura, mas não manutenção cotidiana desses diretórios.
+
+Convite, alteração e bloqueio de contas Auth não são executados diretamente pelo navegador. O frontend chama a Edge Function autenticada `team-account-management`; a função valida o papel e usa Auth Admin e RPCs restritas ao `service_role`.
+
 ## Regra de exclusão
 
-As migrations separam políticas de `insert`, `update` e `delete`. Usuários operacionais não recebem exclusão física apenas porque possuem permissão de escrita.
+A opção visual de remover integrante executa desativação lógica e auditada, não `DELETE`.
 
-- exclusão de escolas, vínculos, verificações, pendências, tentativas, contatos, bens e notas: somente `technical_admin`;
-- exclusão de programas, competências, controladores, equipe e configuração: somente `technical_admin`;
-- exclusão de execução de importação: somente `technical_admin`;
-- `audit_events`: sem inserção, alteração ou exclusão direta para usuários autenticados;
-- cancelamento e retificação funcionais continuam sendo eventos de domínio, não exclusões de banco.
+- exclusão física de escolas, verificações, pendências, tentativas, contatos, bens, notas, controladores e equipe: somente `technical_admin`;
+- usuários operacionais preservam registros e histórico;
+- cancelamento, retificação e desativação são eventos de domínio;
+- `audit_events` não recebe inserção, alteração ou exclusão direta por usuários autenticados.
 
 ## Regras de escopo
 
 ### Controlador
 
-A escola é acessível quando:
-
-- `schools.controller_id` corresponde ao controlador vinculado ao usuário; ou
-- existe registro em `user_school_scopes` para o usuário e a escola.
-
-A exceção de escopo pode ser somente leitura ou permitir escrita.
+A escola é acessível quando `schools.controller_id` corresponde ao controlador vinculado ou existe `user_school_scopes`. A exceção pode ser somente leitura ou permitir escrita.
 
 ### Assistente de Verbas Federais
 
-Na primeira versão, possui acesso transversal às escolas para atividades operacionais, inclusive retificação já prevista no sistema. Restrições por CRE poderão ser aplicadas por `cre_scope` ou `user_school_scopes` antes da ativação real.
+Possui acesso transversal à 4ª CRE para operação, retificação e Gestão de Equipe. `cre_scope` permanece registrado para futura segmentação entre coordenadorias.
 
 ### Inventário
 
-Acesso prioritário às escolas com registros em `assets` e às exceções concedidas. Para lançar o primeiro bem de uma escola sem registro patrimonial anterior, o usuário deverá possuir escopo explícito. Não recebe permissão para alterar bonificação, análise técnica ou configuração.
+Atua prioritariamente nas escolas com bens registrados ou escopo explícito. Não altera análise técnica, bonificação ou configuração global.
 
-### Gestão SME
+### SME (Gestão)
 
-Leitura ampla para acompanhamento e administração de parâmetros institucionais. Pode criar e alterar cadastros estruturais autorizados, mas não exclui dados nem altera pendências por padrão.
+Possui leitura ampla e visões consolidadas, como Situação Operacional por Coordenadoria. Administra parâmetros institucionais autorizados, mas não substitui a liderança local da Assistente na equipe da CRE.
 
 ### Administrador técnico
 
-Administra perfis, escopos e infraestrutura. A exclusão física é excepcional, auditada e restrita a esse perfil. O perfil não deve ser usado para operação cotidiana.
+Administra infraestrutura, perfis, escopos, auditoria e procedimentos excepcionais. Não aparece no seletor operacional nem herda telas da Assistente.
 
-## Princípios RLS
+## Princípios de segurança
 
-1. Usuário não autenticado não acessa dados.
-2. A chave publicável nunca substitui as políticas RLS.
-3. Políticas de leitura, criação, alteração e exclusão são separadas.
-4. Exclusão de dados operacionais é excepcional e restrita.
-5. Auditoria não pode ser editada por usuários autenticados.
-6. Operações com privilégio elevado ocorrem apenas em backend controlado.
-7. Funções `security definer` usam `search_path` fixo e retornam apenas decisões de autorização.
-8. Toda mudança na matriz exige aprovação funcional antes da aplicação das migrations.
+1. usuário não autenticado não acessa dados institucionais;
+2. chave publicável nunca substitui RLS;
+3. leitura, criação, alteração e exclusão possuem políticas separadas;
+4. credencial administrativa nunca chega ao navegador;
+5. RPCs de contas são executáveis apenas por `service_role`;
+6. Edge Function exige JWT e valida o papel institucional;
+7. convite ou bloqueio falho é compensado para evitar conta órfã;
+8. exclusão física é excepcional e técnica;
+9. toda alteração desta matriz exige decisão funcional expressa e testes cruzados de UI, Auth e RLS.
 
 ## Casos obrigatórios de homologação
 
-- usuário anônimo recebe acesso negado;
-- controlador não enxerga escola de outro controlador;
-- controlador com escopo adicional enxerga apenas a escola concedida;
-- controlador consegue alterar, mas não excluir, registros do próprio escopo;
-- inventário não altera análise técnica;
-- inventário com escopo explícito consegue registrar o primeiro bem;
-- Gestão SME consulta todas as escolas sem editar ou excluir pendências;
-- Assistente retifica registro dentro do escopo permitido sem excluir o histórico;
-- usuário sem perfil ativo recebe acesso negado;
-- Administrador técnico consulta auditoria e gerencia perfis;
+- anônimo e usuário sem perfil recebem acesso negado;
+- controlador não acessa escola alheia sem exceção;
+- Assistente cadastra controlador, envia convite e cria vínculos;
+- Assistente edita e desativa controlador, redistribuindo escolas;
+- Assistente administra integrantes do Inventário;
+- SME consulta equipe e situação operacional, mas não altera os diretórios;
+- Inventário não altera análise técnica;
+- Administrador técnico não recebe interface da Assistente;
+- falha após convite remove a conta recém-criada;
+- falha após bloqueio restaura o acesso;
+- repetição idempotente não cria conta duplicada;
 - apenas Administrador técnico executa exclusão física;
 - nenhuma política permite acesso anônimo.
