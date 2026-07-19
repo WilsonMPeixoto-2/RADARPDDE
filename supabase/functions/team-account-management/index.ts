@@ -43,6 +43,16 @@ function publicError(error: unknown): { code: string; message: string; status: n
   return { code: "TEAM_ACCOUNT_OPERATION_FAILED", message: "Não foi possível concluir a gestão de acesso da equipe.", status: 500 };
 }
 
+async function requestCommand(req: Request) {
+  try {
+    return normalizeTeamCommand(await req.json());
+  } catch (error) {
+    const message = String((error as { message?: string })?.message || "Comando de Gestão de Equipe inválido.");
+    if (message.includes("VALIDATION_ERROR")) throw error;
+    throw new Error(`VALIDATION_ERROR: ${message}`);
+  }
+}
+
 function requiredEnv(name: string): string {
   const value = Deno.env.get(name);
   if (!value) throw new Error(`CONFIGURATION_ERROR: ${name} ausente`);
@@ -235,7 +245,7 @@ Deno.serve(async (req: Request) => {
 
   try {
     const { user, url } = await authorizeRequest(req);
-    const command = normalizeTeamCommand(await req.json());
+    const command = await requestCommand(req);
     const admin = adminClient(url);
     const result = command.operation.startsWith("save_")
       ? await saveMember(admin, user, command)
