@@ -144,14 +144,9 @@
         renderTechnicalAccess(authentication) {
             this.setAuthenticationContext(authentication);
             const sidebar = this.document.querySelector('.sidebar');
-            const header = this.document.querySelector('.top-header');
             if (sidebar) {
                 sidebar.hidden = true;
                 sidebar.setAttribute?.('aria-hidden', 'true');
-            }
-            if (header) {
-                header.hidden = true;
-                header.setAttribute?.('aria-hidden', 'true');
             }
             const container = this.document.getElementById('main-container');
             if (container) {
