@@ -23,6 +23,22 @@ test('Preview Vercel executa build versionado e deploy prebuilt', () => {
     assert.doesNotMatch(workflow, /--environment=production/i);
 });
 
+test('workflow valida o conteúdo semântico do manifesto antes do deploy', () => {
+    const workflow = fs.readFileSync(workflowPath, 'utf8');
+
+    assert.match(workflow, /vercelEnvironment:\s*['"]preview['"]/);
+    assert.match(workflow, /runtimeEnvironment:\s*['"]preview['"]/);
+    assert.match(workflow, /dataMode:\s*['"]supabase-preview['"]/);
+    assert.match(workflow, /supabaseRepositoryEnabled:\s*true/);
+    assert.match(workflow, /productionActivationApproved:\s*false/);
+    assert.match(workflow, /sb_secret_\|service_role\|password/);
+    assert.ok(
+        workflow.indexOf('Confirmar manifesto público do Preview')
+            < workflow.indexOf('Publicar somente o artefato prebuilt de Preview'),
+        'O manifesto deve ser validado antes do deployment.'
+    );
+});
+
 test('workflow exige segredos operacionais sem publicá-los como artefato', () => {
     const workflow = fs.readFileSync(workflowPath, 'utf8');
 
