@@ -37,3 +37,6 @@ enable_anonymous_sign_ins = false
 enable_signup = true
 double_confirm_changes = true
 enable_confirmations = false
+
+[functions.team-account-management]
+verify_jwt = true
