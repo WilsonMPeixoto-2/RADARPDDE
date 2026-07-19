@@ -258,6 +258,24 @@ function validateRemoteWorkflowContracts(preflightSource, postApplySource) {
     return findings;
 }
 
+function validateRemoteVerificationSql(preflightSource, postApplySource) {
+    const findings = [];
+    [
+        ['preflight', preflightSource, 'CAPABILITY_OK'],
+        ['pós-aplicação', postApplySource, 'MIGRATION_OK']
+    ].forEach(([name, source, evidenceMarker]) => {
+        const sql = String(source || '').trim();
+        const singleDoBlock = /^(?:--[^\r\n]*(?:\r?\n|$))*\s*do\s+\$\$[\s\S]*\$\$;\s*$/i;
+        if (!singleDoBlock.test(sql)) {
+            findings.push(`A verificação SQL de ${name} deve conter um único bloco executável.`);
+        }
+        if (!sql.includes(evidenceMarker)) {
+            findings.push(`A verificação SQL de ${name} deve registrar evidências seguras.`);
+        }
+    });
+    return findings;
+}
+
 function validateVercelBuildContract(vercelSource, packageSource) {
     const findings = [];
     let vercelConfig;
@@ -309,6 +327,8 @@ function runReadinessChecks(rootDir = path.resolve(__dirname, '..')) {
     const postApplyWorkflowPath = path.join(rootDir, '.github', 'workflows', 'supabase-remote-post-apply.yml');
     const vercelConfigPath = path.join(rootDir, 'vercel.json');
     const packagePath = path.join(rootDir, 'package.json');
+    const preflightSqlPath = path.join(rootDir, 'supabase', 'verification', 'remote-preflight.sql');
+    const postApplySqlPath = path.join(rootDir, 'supabase', 'verification', 'remote-post-apply.sql');
 
     if (!fs.existsSync(configPath)) {
         findings.push('config.js não encontrado.');
@@ -356,6 +376,14 @@ function runReadinessChecks(rootDir = path.resolve(__dirname, '..')) {
         preflightWorkflowSource,
         postApplyWorkflowSource
     ));
+
+    const preflightSqlSource = fs.existsSync(preflightSqlPath)
+        ? fs.readFileSync(preflightSqlPath, 'utf8')
+        : '';
+    const postApplySqlSource = fs.existsSync(postApplySqlPath)
+        ? fs.readFileSync(postApplySqlPath, 'utf8')
+        : '';
+    findings.push(...validateRemoteVerificationSql(preflightSqlSource, postApplySqlSource));
 
     const vercelConfigSource = fs.existsSync(vercelConfigPath)
         ? fs.readFileSync(vercelConfigPath, 'utf8')
@@ -431,6 +459,7 @@ module.exports = Object.freeze({
     validateMigrationManifest,
     validateMigrationDocumentation,
     validateRemoteWorkflowContracts,
+    validateRemoteVerificationSql,
     validateReadinessArtifacts,
     validateSupabaseApiSchemas,
     validateVercelBuildContract,

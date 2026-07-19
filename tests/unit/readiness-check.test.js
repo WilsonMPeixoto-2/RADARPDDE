@@ -10,6 +10,7 @@ const {
     validateMigrationDocumentation,
     validateReadinessArtifacts,
     validateRemoteWorkflowContracts,
+    validateRemoteVerificationSql,
     validateSupabaseApiSchemas,
     validateVercelBuildContract
 } = require('../../scripts/check-supabase-readiness.js');
@@ -219,6 +220,19 @@ supabase db advisors
             postApply
         ).join(' '),
         /somente acionamento manual/i
+    );
+});
+
+test('mantém cada verificação SQL compatível com a execução preparada do CLI', () => {
+    const preflight = `-- comentário\ndo $$\nbegin\n  raise notice 'CAPABILITY_OK';\nend\n$$;`;
+    const postApply = `-- comentário\ndo $$\nbegin\n  raise notice 'MIGRATION_OK';\nend\n$$;`;
+    assert.deepEqual(validateRemoteVerificationSql(preflight, postApply), []);
+    assert.match(
+        validateRemoteVerificationSql(
+            `${preflight}\nselect 1;`,
+            postApply
+        ).join(' '),
+        /único bloco executável/i
     );
 });
 

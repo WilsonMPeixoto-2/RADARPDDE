@@ -17,6 +17,7 @@ declare
     ];
     v_actual text[];
     v_missing_extensions text[];
+    v_version text;
 begin
     select coalesce(array_agg(version order by version), array[]::text[])
       into v_actual
@@ -38,9 +39,10 @@ begin
     if v_missing_extensions is not null then
         raise exception 'EXTENSION_NOT_INSTALLED: %', array_to_string(v_missing_extensions, ', ');
     end if;
+
+    foreach v_version in array v_actual
+    loop
+        raise notice 'MIGRATION_OK: %', v_version;
+    end loop;
 end
 $$;
-
-select version
-  from supabase_migrations.schema_migrations
- order by version;
