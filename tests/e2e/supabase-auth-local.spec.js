@@ -68,6 +68,16 @@ for (const [email, role] of identities) {
     });
 }
 
+test('Administrador técnico recebe superfície neutra e não herda o painel da Assistente', async ({ page }) => {
+    await signIn(page, fixtures.find(fixture => fixture.profileId === 'technical_admin').email);
+    await waitForApplication(page, 'technical_admin');
+
+    await expect(page.getByRole('heading', { name: 'Acesso técnico' })).toBeVisible();
+    await expect(page.locator('.sidebar')).toBeHidden();
+    await expect(page.getByText('Painel do Assistente de Verbas Federais')).toHaveCount(0);
+    await expect(page.locator('#auth-logout-button')).toBeVisible();
+});
+
 const deniedIdentities = fixtures
     .filter(fixture => !fixture.profileId || !fixture.active)
     .map(fixture => [
@@ -142,7 +152,58 @@ test('RLS permite escrita na carteira do controlador e bloqueia escopos somente 
     expect(result.restoredName).not.toContain('teste RLS');
 });
 
-test('Gestão SME consulta a carteira, mas a política impede escrita operacional', async ({ page }) => {
+test('Assistente mantém controladores e Equipe de Inventário pela RLS', async ({ page }) => {
+    await signIn(page, fixtures.find(fixture => fixture.profileId === 'federal_assistant').email);
+    await waitForApplication(page, 'federal_assistant');
+
+    const result = await page.evaluate(async () => {
+        const client = window.RadarSessionContext.service.client;
+        const suffix = crypto.randomUUID().slice(0, 8);
+        const controllerId = `CTRL-E2E-${suffix}`;
+        const inventoryId = `INV-E2E-${suffix}`;
+        const controllerInsert = await client.from('controllers').insert({
+            id: controllerId,
+            name: 'Controlador E2E',
+            email: `controller-${suffix}@example.test`,
+            active: true
+        }).select('id, active').single();
+        const controllerUpdate = await client.from('controllers')
+            .update({ active: false })
+            .eq('id', controllerId)
+            .select('id, active')
+            .single();
+        const inventoryInsert = await client.from('inventory_team_members').insert({
+            id: inventoryId,
+            name: 'Inventário E2E',
+            email: `inventory-${suffix}@example.test`,
+            active: true
+        }).select('id, active').single();
+        const inventoryUpdate = await client.from('inventory_team_members')
+            .update({ active: false })
+            .eq('id', inventoryId)
+            .select('id, active')
+            .single();
+        return {
+            controllerInsertError: controllerInsert.error?.code || null,
+            controllerUpdateError: controllerUpdate.error?.code || null,
+            controllerActive: controllerUpdate.data?.active,
+            inventoryInsertError: inventoryInsert.error?.code || null,
+            inventoryUpdateError: inventoryUpdate.error?.code || null,
+            inventoryActive: inventoryUpdate.data?.active
+        };
+    });
+
+    expect(result).toEqual({
+        controllerInsertError: null,
+        controllerUpdateError: null,
+        controllerActive: false,
+        inventoryInsertError: null,
+        inventoryUpdateError: null,
+        inventoryActive: false
+    });
+});
+
+test('Gestão SME consulta a carteira e a equipe, mas não executa escrita operacional', async ({ page }) => {
     await signIn(page, fixtures.find(fixture => fixture.profileId === 'sme_management').email);
     await waitForApplication(page, 'sme_management');
 
@@ -155,15 +216,43 @@ test('Gestão SME consulta a carteira, mas a política impede escrita operaciona
             .eq('id', 'ESC-LOCAL')
             .select('id, denomination');
         const after = await client.from('schools').select('id, denomination').eq('id', 'ESC-LOCAL').single();
+        const controllers = await client.from('controllers').select('id').limit(1);
+        const existingControllerId = controllers.data?.[0]?.id;
+        const controllerWrite = existingControllerId
+            ? await client.from('controllers')
+                .update({ name: 'SME não deve alterar' })
+                .eq('id', existingControllerId)
+                .select('id')
+            : { data: [], error: null };
+        const inventory = await client.from('inventory_team_members').select('id').limit(1);
+        const existingInventoryId = inventory.data?.[0]?.id;
+        const inventoryWrite = existingInventoryId
+            ? await client.from('inventory_team_members')
+                .update({ name: 'SME não deve alterar' })
+                .eq('id', existingInventoryId)
+                .select('id')
+            : { data: [], error: null };
         return {
             before: before.data.denomination,
             after: after.data.denomination,
             writeRows: write.data || [],
-            writeError: write.error?.code || null
+            writeError: write.error?.code || null,
+            controllersReadable: Array.isArray(controllers.data),
+            controllerWriteRows: controllerWrite.data || [],
+            controllerWriteError: controllerWrite.error?.code || null,
+            inventoryReadable: Array.isArray(inventory.data),
+            inventoryWriteRows: inventoryWrite.data || [],
+            inventoryWriteError: inventoryWrite.error?.code || null
         };
     });
 
     expect(result.after).toBe(result.before);
     expect(result.writeRows).toEqual([]);
     expect(result.writeError === null || typeof result.writeError === 'string').toBe(true);
+    expect(result.controllersReadable).toBe(true);
+    expect(result.controllerWriteRows).toEqual([]);
+    expect(result.controllerWriteError === null || typeof result.controllerWriteError === 'string').toBe(true);
+    expect(result.inventoryReadable).toBe(true);
+    expect(result.inventoryWriteRows).toEqual([]);
+    expect(result.inventoryWriteError === null || typeof result.inventoryWriteError === 'string').toBe(true);
 });
