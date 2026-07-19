@@ -30,6 +30,12 @@ test('falhas de compensação são detectadas e não são ignoradas silenciosame
     assert.match(source, /if \(error\) throw error/g);
 });
 
+test('erros de comando e JSON inválido são classificados como validação pública', () => {
+    assert.match(source, /async function requestCommand\(req: Request\)/);
+    assert.match(source, /VALIDATION_ERROR/);
+    assert.match(source, /const command = await requestCommand\(req\)/);
+});
+
 test('respostas públicas não expõem causa administrativa detalhada', () => {
     assert.match(source, /Acione a administração técnica/);
     assert.match(source, /console\.error\("team-account-management",\s*\{[\s\S]*code:[\s\S]*status:/);
