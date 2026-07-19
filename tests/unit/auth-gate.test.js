@@ -29,15 +29,25 @@ test('mapeia somente os quatro perfis funcionais visíveis', () => {
 test('administrador técnico não herda a interface da Assistente e a navegação volta para perfil operacional', () => {
     const calls = [];
     const main = { innerHTML: '' };
-    const app = { inert: true };
-    const styleValues = new Map();
-    const sidebar = {
+    const sidebarStyles = new Map();
+    const appStyles = new Map();
+    const searchStyles = new Map();
+    const createElement = styleValues => ({
         hidden: false,
         attributes: {},
         setAttribute(name, value) { this.attributes[name] = value; },
         style: {
             setProperty(name, value, priority) { styleValues.set(name, { value, priority }); },
             removeProperty(name) { styleValues.delete(name); }
+        }
+    });
+    const sidebar = createElement(sidebarStyles);
+    const search = createElement(searchStyles);
+    const app = {
+        inert: true,
+        style: {
+            setProperty(name, value, priority) { appStyles.set(name, { value, priority }); },
+            removeProperty(name) { appStyles.delete(name); }
         }
     };
     const document = {
@@ -52,6 +62,7 @@ test('administrador técnico não herda a interface da Assistente e a navegaçã
         },
         querySelector(selector) {
             if (selector === '.sidebar') return sidebar;
+            if (selector === '.search-bar-container') return search;
             return null;
         }
     };
@@ -76,7 +87,10 @@ test('administrador técnico não herda a interface da Assistente e a navegaçã
     assert.doesNotMatch(main.innerHTML, /assistente de verbas federais/i);
     assert.equal(sidebar.hidden, true);
     assert.equal(sidebar.attributes['aria-hidden'], 'true');
-    assert.deepEqual(styleValues.get('display'), { value: 'none', priority: 'important' });
+    assert.deepEqual(sidebarStyles.get('display'), { value: 'none', priority: 'important' });
+    assert.equal(search.hidden, true);
+    assert.deepEqual(searchStyles.get('display'), { value: 'none', priority: 'important' });
+    assert.deepEqual(appStyles.get('grid-template-columns'), { value: '1fr', priority: 'important' });
     assert.equal(app.inert, false);
 
     const operational = gate.applyAuthorization({
@@ -91,5 +105,8 @@ test('administrador técnico não herda a interface da Assistente e a navegaçã
     assert.deepEqual(calls, ['assistente']);
     assert.equal(sidebar.hidden, false);
     assert.equal(sidebar.attributes['aria-hidden'], 'false');
-    assert.equal(styleValues.has('display'), false);
+    assert.equal(sidebarStyles.has('display'), false);
+    assert.equal(search.hidden, false);
+    assert.equal(searchStyles.has('display'), false);
+    assert.equal(appStyles.has('grid-template-columns'), false);
 });
