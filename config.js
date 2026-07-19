@@ -96,6 +96,7 @@
         loadStylesheet('src/styles/cycle-b-carteira.css');
         loadStylesheet('src/styles/cycle-b-dashboard.css');
         loadStylesheet('src/styles/cycle-b-dashboard-final.css');
+        loadStylesheet('src/styles/painel-controlador-expressiva.css');
 
         loadScript('src/domain/pendencias-view-model.js', false);
         loadScript('src/domain/operational-projection.js', false);
@@ -113,6 +114,7 @@
         loadScript('src/integration/task-10-alerts-competence.js', false);
         loadScript('src/integration/exercise-management.js', false);
         loadScript('src/integration/exercise-early-init.js', false);
+        loadScript('src/integration/painel-controlador-expressiva.js', false);
         loadScript('src/integration/load-excel-export.js', true);
     }());
 }(typeof window !== 'undefined' ? window : globalThis, function createRadarRuntimeConfigApi() {
