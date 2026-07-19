@@ -1,0 +1,122 @@
+name: Aplicar e validar Supabase remoto descartável
+
+on:
+  workflow_dispatch:
+    inputs:
+      project_ref:
+        description: Referência do projeto ou branch Supabase descartável autorizado
+        required: true
+        type: string
+      target_kind:
+        description: Natureza do alvo experimental
+        required: true
+        type: choice
+        options:
+          - development-project
+          - database-branch
+      confirmation:
+        description: Digite APLICAR_12_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-remote-apply-${{ inputs.project_ref }}
+  cancel-in-progress: false
+
+env:
+  SUPABASE_TELEMETRY_DISABLED: '1'
+  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+  PGPASS_REMOTE: ${{ secrets.SUPABASE_DB_PASSWORD }}
+
+jobs:
+  apply-and-validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+
+      - name: Validar alvo descartável, autorização e segredos
+        env:
+          PROJECT_REF: ${{ inputs.project_ref }}
+          TARGET_KIND: ${{ inputs.target_kind }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          test -n "${SUPABASE_ACCESS_TOKEN}" || { echo 'SUPABASE_ACCESS_TOKEN ausente.' >&2; exit 1; }
+          test -n "${PGPASS_REMOTE}" || { echo 'Segredo de senha do banco ausente.' >&2; exit 1; }
+          test -n "${PROJECT_REF}" || { echo 'project_ref ausente.' >&2; exit 1; }
+          test "${TARGET_KIND}" = 'development-project' -o "${TARGET_KIND}" = 'database-branch' \
+            || { echo 'Tipo de alvo não autorizado.' >&2; exit 1; }
+          test "${CONFIRMATION}" = 'APLICAR_12_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL' \
+            || { echo 'Confirmação explícita incorreta; nenhuma migration será aplicada.' >&2; exit 1; }
+
+      - name: Vincular alvo descartável autorizado
+        env:
+          PROJECT_REF: ${{ inputs.project_ref }}
+        run: npx --no-install supabase link --project-ref "${PROJECT_REF}" --password "${PGPASS_REMOTE}"
+
+      - name: Repetir dry-run imediatamente antes da aplicação
+        run: |
+          set -o pipefail
+          npx --no-install supabase db push --linked --dry-run --password "${PGPASS_REMOTE}" 2>&1 \
+            | tee /tmp/supabase-apply-dry-run.txt
+
+      - name: Aplicar migrations sem seed
+        run: |
+          set -o pipefail
+          npx --no-install supabase db push --linked --password "${PGPASS_REMOTE}" --yes 2>&1 \
+            | tee /tmp/supabase-apply.txt
+
+      - name: Confirmar histórico remoto e capacidades instaladas
+        run: |
+          set -o pipefail
+          npx --no-install supabase migration list --linked --password "${PGPASS_REMOTE}" 2>&1 \
+            | tee /tmp/supabase-migration-list-after.txt
+          npx --no-install supabase db query --linked --file supabase/verification/remote-post-apply.sql 2>&1 \
+            | tee /tmp/supabase-post-apply-contract.txt
+
+      - name: Executar lint remoto
+        run: npx --no-install supabase db lint --linked --schema public --level warning --fail-on error
+
+      - name: Executar pgTAP remoto em transações reversíveis
+        run: npx --no-install supabase test db supabase/tests/database --linked
+
+      - name: Comparar tipos remotos com o contrato versionado
+        run: |
+          npx --no-install supabase gen types typescript --linked --schema public > /tmp/database.remote.types.ts
+          diff --unified src/types/database.types.ts /tmp/database.remote.types.ts
+
+      - name: Executar Advisors de segurança e desempenho
+        run: |
+          set -o pipefail
+          npx --no-install supabase db advisors --linked --type all --level info --fail-on error 2>&1 \
+            | tee /tmp/supabase-advisors.txt
+
+      - name: Publicar evidências da aplicação experimental
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: supabase-remote-post-apply-${{ github.run_id }}
+          path: |
+            /tmp/supabase-apply-dry-run.txt
+            /tmp/supabase-apply.txt
+            /tmp/supabase-migration-list-after.txt
+            /tmp/supabase-post-apply-contract.txt
+            /tmp/database.remote.types.ts
+            /tmp/supabase-advisors.txt
+          if-no-files-found: warn
+          retention-days: 14

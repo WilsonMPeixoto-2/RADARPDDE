@@ -12,12 +12,13 @@ A infraestrutura preparada já inclui:
 - repositório Supabase com paginação integral e gravação em lotes;
 - atualização otimista por `row_version`;
 - reconciliação de snapshots;
-- dez migrations, Auth local homologável, RLS, auditoria e importações;
+- o conjunto versionado contém atualmente **12** migrations, além de Auth local homologável, RLS, auditoria e importações;
 - RPCs transacionais para nota, bem e verificação;
 - Supabase CLI fixada, ambiente local, pgTAP e lint;
 - tipos TypeScript gerados do schema;
 - `@supabase/supabase-js` fixado e empacotado localmente;
-- validação remota manual e não destrutiva preparada.
+- preflight remoto não destrutivo separado da aplicação experimental;
+- build Vercel versionado, com artefatos distintos para produção local e Preview Supabase.
 
 ## Pré-requisitos para iniciar a conexão experimental
 
@@ -35,28 +36,31 @@ A infraestrutura preparada já inclui:
 O workflow manual `.github/workflows/supabase-remote-validation.yml` deve ser executado primeiro. Ele:
 
 1. vincula o `project_ref` autorizado;
-2. executa `db push --dry-run`;
-3. executa lint remoto;
-4. executa pgTAP em transações revertidas;
-5. compara os tipos remotos com `src/types/database.types.ts`;
-6. lista as branches disponíveis.
+2. registra `supabase migration list --linked`;
+3. executa `supabase db push --linked --dry-run`;
+4. verifica, sem instalar, a disponibilidade de `pgcrypto`, `pg_jsonschema` e `pgtap`;
+5. registra as branches disponíveis, quando o recurso estiver habilitado;
+6. publica as evidências do plano como artefato da Action.
 
-Esse workflow **não aplica migrations**.
+Esse workflow **não aplica migrations, não executa seed, não altera o schema e não testa objetos que ainda não existem**.
 
 ## 2. Aplicar as migrations em ambiente descartável ou branch Supabase
 
-Aplicar, nesta ordem:
+Os arquivos existentes em `supabase/migrations` são a única fonte de ordem. Não copie nem mantenha uma segunda lista manual. Antes de aplicar, executar:
 
-1. `202607130001_core_schema.sql`;
-2. `202607130002_auth_and_rls.sql`;
-3. `202607130003_audit_and_import.sql`;
-4. `202607130004_competence_bonus_deadline.sql`;
-5. `202607130005_operational_context.sql`;
-6. `202607130006_authorization_hardening.sql`;
-7. `202607130007_configuration_audit_coverage.sql`;
-8. `202607130008_atomic_invoice_operations.sql`;
-9. `202607140009_verification_payload.sql`.
-10. `20260714180621_preconnection_auth_and_api_grants.sql`.
+```bash
+supabase migration list --linked
+supabase db push --linked --dry-run
+```
+
+Depois de aprovar o plano, executar somente contra projeto de desenvolvimento ou branch de banco descartável:
+
+```bash
+supabase db push --linked
+supabase migration list --linked
+```
+
+O workflow manual `.github/workflows/supabase-remote-post-apply.yml` automatiza essa fase e exige a confirmação textual `APLICAR_12_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL`. Ele nunca usa `--include-seed`.
 
 Após a aplicação:
 
@@ -71,6 +75,8 @@ Após a aplicação:
 - validar as RPCs `save_invoice_with_effects` e `delete_invoice_with_effects`;
 - confirmar triggers de auditoria em parâmetros, cadastros, vínculos e dados operacionais.
 - confirmar que `anon` não lê tabelas nem executa RPCs institucionais e que `authenticated` continua sujeito a RLS.
+
+O workflow também confirma que o histórico remoto corresponde exatamente às 12 migrations versionadas, executa lint, pgTAP, comparação de tipos e Advisors. A Data API expõe apenas `public`; o RADAR não depende de `graphql_public` nem de `pg_graphql`.
 
 ## 3. Criar usuários de teste
 
@@ -155,7 +161,7 @@ O cliente está fixado e empacotado em `vendor/supabase-client.js`. Alterar flag
 
 ## 8. Configurar somente o Preview
 
-Depois de o gateway definitivo estar implementado e testado, gerar a configuração apenas no ambiente de Preview:
+Depois de o gateway definitivo estar implementado e testado, cadastrar estas variáveis **somente no ambiente Preview da Vercel**:
 
 ```bash
 RADAR_DATA_MODE=supabase-preview
@@ -163,10 +169,40 @@ RADAR_ENVIRONMENT=preview
 RADAR_SUPABASE_REPOSITORY_ENABLED=true
 RADAR_SUPABASE_URL=https://PROJECT_REF.supabase.co
 RADAR_SUPABASE_PUBLISHABLE_KEY=CHAVE_PUBLICAVEL
-npm run generate:runtime-config
+RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED=false
 ```
 
-O gerador aceita apenas valores públicos, rejeita chaves secretas e produz exclusivamente `window.RADAR_PDDE_RUNTIME_INPUT`. Nunca gerar esse arquivo com `service_role`, `sb_secret_*`, senha de banco ou token administrativo.
+O `vercel.json` executa `npm run build:vercel` e publica somente `dist`. Esse build copia exclusivamente os ativos públicos, gera `dist/config.runtime.js` e cria `dist/radar-build-manifest.json` sem URL ou chave. O gerador aceita apenas valores públicos e rejeita `service_role`, `sb_secret_*`, senha de banco e token administrativo.
+
+Para reproduzir o artefato de Preview localmente com valores fictícios, use as mesmas variáveis e execute:
+
+```bash
+npm run build:vercel
+```
+
+Confirme no artefato:
+
+```text
+runtimeEnvironment: preview
+dataMode: supabase-preview
+supabaseRepositoryEnabled: true
+productionActivationApproved: false
+```
+
+O alvo real `VERCEL_ENV=production` bloqueia um artefato `supabase-preview`, mesmo que as variáveis tenham sido cadastradas incorretamente.
+
+### Comprovar a produção local
+
+As variáveis de produção permanecem ausentes ou explicitamente locais. O mesmo build deve produzir:
+
+```text
+runtimeEnvironment: local
+dataMode: local
+supabaseRepositoryEnabled: false
+productionActivationApproved: false
+```
+
+Não promova um Preview conectado para produção. Produção e Preview são builds independentes, derivados do mesmo código e validados por seus respectivos manifestos públicos.
 
 ## 9. Executar validações
 

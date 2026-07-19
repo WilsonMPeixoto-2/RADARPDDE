@@ -207,10 +207,11 @@ Melhorias visuais podem aperfeiçoar espaçamento, tipografia, contraste, respon
 ## Próxima etapa
 
 1. criar ou selecionar um projeto Supabase autorizado;
-2. configurar Preview com URL e chave publicável;
-3. aplicar as 12 migrations;
-4. criar usuários reais de homologação;
-5. testar Auth, RLS, migração e reconciliação remotos;
-6. executar Advisors, backup, restauração e MFA;
-7. homologar o Preview;
-8. somente após autorização, avaliar a ativação em produção.
+2. executar o preflight remoto não destrutivo;
+3. aplicar e validar as 12 migrations somente em projeto ou branch descartável;
+4. configurar o Preview com URL e chave publicável por meio do build versionado;
+5. criar usuários reais de homologação;
+6. testar Auth, RLS, migração e reconciliação remotos;
+7. executar Advisors, backup, restauração e MFA;
+8. homologar o Preview;
+9. somente após autorização, avaliar a ativação em produção.
