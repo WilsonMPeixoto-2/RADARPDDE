@@ -15,7 +15,7 @@ on:
           - development-project
           - database-branch
       confirmation:
-        description: Digite APLICAR_12_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL
+        description: Digite APLICAR_13_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL
         required: true
         type: string
 
@@ -34,7 +34,7 @@ env:
 jobs:
   apply-and-validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 40
 
     steps:
       - name: Checkout
@@ -61,7 +61,7 @@ jobs:
           test -n "${PROJECT_REF}" || { echo 'project_ref ausente.' >&2; exit 1; }
           test "${TARGET_KIND}" = 'development-project' -o "${TARGET_KIND}" = 'database-branch' \
             || { echo 'Tipo de alvo não autorizado.' >&2; exit 1; }
-          test "${CONFIRMATION}" = 'APLICAR_12_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL' \
+          test "${CONFIRMATION}" = 'APLICAR_13_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL' \
             || { echo 'Confirmação explícita incorreta; nenhuma migration será aplicada.' >&2; exit 1; }
 
       - name: Vincular alvo descartável autorizado
@@ -106,6 +106,14 @@ jobs:
           npx --no-install supabase db advisors --linked --type all --level info --fail-on error 2>&1 \
             | tee /tmp/supabase-advisors.txt
 
+      - name: Implantar função protegida de Gestão de Equipe
+        env:
+          PROJECT_REF: ${{ inputs.project_ref }}
+        run: |
+          set -o pipefail
+          npx --no-install supabase functions deploy team-account-management \
+            --project-ref "${PROJECT_REF}" 2>&1 | tee /tmp/supabase-function-deploy.txt
+
       - name: Publicar evidências da aplicação experimental
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -118,5 +126,6 @@ jobs:
             /tmp/supabase-post-apply-contract.txt
             /tmp/database.remote.types.ts
             /tmp/supabase-advisors.txt
+            /tmp/supabase-function-deploy.txt
           if-no-files-found: warn
           retention-days: 14
