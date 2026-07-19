@@ -24,6 +24,13 @@ function publicError(error: unknown): { code: string; message: string; status: n
   if (message.includes("AUTHORIZATION_DENIED")) {
     return { code: "PERMISSION_DENIED", message: "Perfil sem permissão para gerir a equipe.", status: 403 };
   }
+  if (message.includes("COMPENSATION_FAILED")) {
+    return {
+      code: "COMPENSATION_FAILED",
+      message: "A operação falhou e a restauração automática não foi concluída. Acione a administração técnica.",
+      status: 500,
+    };
+  }
   if (message.includes("NOT_FOUND")) {
     return { code: "NOT_FOUND", message: message.replace(/^.*NOT_FOUND:\s*/i, ""), status: 404 };
   }
@@ -88,6 +95,46 @@ async function authUser(admin: ReturnType<typeof createClient>, userId: string):
   return data.user || null;
 }
 
+function compensationFailure(action: string, cause: unknown): Error {
+  const reason = String((cause as { message?: string })?.message || "erro não informado");
+  return new Error(`COMPENSATION_FAILED: ${action}: ${reason}`);
+}
+
+async function removeInvitedUser(admin: ReturnType<typeof createClient>, userId: string) {
+  try {
+    const { error } = await admin.auth.admin.deleteUser(userId);
+    if (error) throw error;
+  } catch (error) {
+    throw compensationFailure("não foi possível remover a conta recém-criada", error);
+  }
+}
+
+async function restoreUser(
+  admin: ReturnType<typeof createClient>,
+  userId: string,
+  previousUser: User,
+) {
+  try {
+    const { error } = await admin.auth.admin.updateUserById(userId, {
+      email: previousUser.email,
+      user_metadata: previousUser.user_metadata,
+      ban_duration: "none",
+    });
+    if (error) throw error;
+  } catch (error) {
+    throw compensationFailure("não foi possível restaurar os dados anteriores da conta", error);
+  }
+}
+
+async function restoreAccess(admin: ReturnType<typeof createClient>, userId: string) {
+  try {
+    const { error } = await admin.auth.admin.updateUserById(userId, { ban_duration: "none" });
+    if (error) throw error;
+  } catch (error) {
+    throw compensationFailure("não foi possível restaurar o acesso da conta", error);
+  }
+}
+
 async function saveMember(
   admin: ReturnType<typeof createClient>,
   actor: User,
@@ -130,13 +177,9 @@ async function saveMember(
     return { ok: true, userId, invited: createdUser, result: data };
   } catch (error) {
     if (createdUser && userId) {
-      await admin.auth.admin.deleteUser(userId).catch(() => null);
+      await removeInvitedUser(admin, userId);
     } else if (previousUser && userId) {
-      await admin.auth.admin.updateUserById(userId, {
-        email: previousUser.email,
-        user_metadata: previousUser.user_metadata,
-        ban_duration: "none",
-      }).catch(() => null);
+      await restoreUser(admin, userId, previousUser);
     }
     throw error;
   }
@@ -180,7 +223,7 @@ async function deactivateMember(
     return { ok: true, userId, accessDisabled: Boolean(userId), result: data };
   } catch (error) {
     if (banned && userId) {
-      await admin.auth.admin.updateUserById(userId, { ban_duration: "none" }).catch(() => null);
+      await restoreAccess(admin, userId);
     }
     throw error;
   }
