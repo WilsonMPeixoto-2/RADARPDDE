@@ -1,0 +1,51 @@
+name: Regenerar tipos temporariamente
+
+on:
+  push:
+    branches:
+      - fix/pre-supabase-functional-alignment
+    paths:
+      - '.github/workflows/regenerate-database-types.yml'
+
+permissions:
+  contents: write
+
+env:
+  SUPABASE_TELEMETRY_DISABLED: '1'
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout da branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: fix/pre-supabase-functional-alignment
+          fetch-depth: 0
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Instalar dependências
+        run: npm ci
+      - name: Gerar tipos no schema final
+        run: |
+          npm run supabase:start
+          npm run supabase:reset
+          npm run supabase:gen:types
+      - name: Commitar somente o tipo gerado
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/types/database.types.ts
+          if git diff --cached --quiet; then
+            echo 'Tipos já estavam atualizados.'
+          else
+            git commit -m 'chore: regenerar tipos do banco para Gestão de Equipe'
+            git push origin HEAD:fix/pre-supabase-functional-alignment
+          fi
+      - name: Encerrar Supabase local
+        if: always()
+        run: npm run supabase:stop || true
