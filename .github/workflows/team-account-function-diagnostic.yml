@@ -1,0 +1,76 @@
+name: Diagnóstico autenticado da Edge Function
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/team-account-function-diagnostic.yml'
+
+permissions:
+  contents: read
+
+env:
+  SUPABASE_TELEMETRY_DISABLED: '1'
+
+jobs:
+  diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Instalar dependências
+        run: npm ci
+      - name: Iniciar e recriar Supabase local
+        run: |
+          npm run supabase:start
+          npm run supabase:reset
+      - name: Preparar identidades Auth
+        shell: bash
+        run: |
+          set -euo pipefail
+          eval "$(npx --no-install supabase status -o env | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=')"
+          FIXTURE_PASSWORD="$(node --input-type=module -e "import { randomBytes } from 'node:crypto'; process.stdout.write(randomBytes(32).toString('base64url') + 'A1!')")"
+          echo "::add-mask::${FIXTURE_PASSWORD}"
+          echo "::add-mask::${SERVICE_ROLE_KEY}"
+          RADAR_ALLOW_LOCAL_AUTH_BOOTSTRAP=true \
+          RADAR_SUPABASE_URL="${API_URL}" \
+          RADAR_SUPABASE_ADMIN_KEY="${SERVICE_ROLE_KEY}" \
+          RADAR_AUTH_FIXTURE_PASSWORD="${FIXTURE_PASSWORD}" \
+          npm run bootstrap:auth-fixtures
+          {
+            printf 'RADAR_SUPABASE_URL=%s\n' "${API_URL}"
+            printf 'RADAR_SUPABASE_PUBLISHABLE_KEY=%s\n' "${ANON_KEY}"
+            printf 'RADAR_AUTH_FIXTURE_PASSWORD=%s\n' "${FIXTURE_PASSWORD}"
+          } >> "${GITHUB_ENV}"
+      - name: Executar smoke autenticado
+        id: smoke
+        shell: bash
+        run: |
+          set +e
+          npm run check:team-account-function > team-account-function.log 2>&1
+          status=$?
+          cat team-account-function.log
+          echo "status=${status}" >> "${GITHUB_OUTPUT}"
+          exit 0
+      - name: Publicar diagnóstico
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: team-account-function-diagnostic-${{ github.run_id }}
+          path: team-account-function.log
+          if-no-files-found: error
+          retention-days: 1
+      - name: Propagar resultado
+        env:
+          SMOKE_STATUS: ${{ steps.smoke.outputs.status }}
+        run: test "${SMOKE_STATUS}" = '0'
+      - name: Encerrar Supabase local
+        if: always()
+        run: npm run supabase:stop || true
