@@ -31,12 +31,20 @@ if (fs.existsSync(typeFile)) {
     if (!/export\s+type\s+Database|export\s+interface\s+Database/.test(types)) {
         findings.push('database.types.ts não contém o contrato Database gerado.');
     }
-    ['registered_invoices', 'assets', 'verifications', 'save_invoice_with_effects', 'delete_invoice_with_effects']
-        .forEach(identifier => {
-            if (!types.includes(identifier)) {
-                findings.push(`database.types.ts não contém ${identifier}.`);
-            }
-        });
+    [
+        'registered_invoices',
+        'assets',
+        'verifications',
+        'save_invoice_with_effects',
+        'delete_invoice_with_effects',
+        'upsert_team_member_account',
+        'deactivate_controller_account',
+        'deactivate_inventory_member_account'
+    ].forEach(identifier => {
+        if (!types.includes(identifier)) {
+            findings.push(`database.types.ts não contém ${identifier}.`);
+        }
+    });
 }
 
 const runtimeConfigFile = path.join(root, 'config.runtime.js');
