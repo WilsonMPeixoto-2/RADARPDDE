@@ -57,7 +57,8 @@ Esses pontos não são decisões pendentes.
 - `dataMode: local`;
 - repositório Supabase desabilitado;
 - URL e chave vazias;
-- ativação Supabase não aprovada.
+- ativação Supabase não aprovada;
+- deployments automáticos da Vercel após merge na `main` foram reativados no PR 34.
 
 ### Supabase remoto
 
