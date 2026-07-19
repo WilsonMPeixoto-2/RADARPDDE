@@ -144,24 +144,24 @@ select is((select count(*)::integer from public.administrative_logs where id = '
     1,
     'desativação do Inventário é auditada');
 
-select like(
-    (select with_check from pg_policies where schemaname = 'public' and tablename = 'controllers' and policyname = 'controllers_insert'),
-    '%technical_admin%federal_assistant%',
+select ok(
+    (select with_check from pg_policies where schemaname = 'public' and tablename = 'controllers' and policyname = 'controllers_insert')
+        like '%technical_admin%federal_assistant%',
     'RLS de controlador atribui escrita à Assistente e ao papel técnico'
 );
-select unlike(
-    (select with_check from pg_policies where schemaname = 'public' and tablename = 'controllers' and policyname = 'controllers_insert'),
-    '%sme_management%',
+select ok(
+    (select with_check from pg_policies where schemaname = 'public' and tablename = 'controllers' and policyname = 'controllers_insert')
+        not like '%sme_management%',
     'Gestão SME não mantém controladores'
 );
-select like(
-    (select with_check from pg_policies where schemaname = 'public' and tablename = 'inventory_team_members' and policyname = 'inventory_members_insert'),
-    '%technical_admin%federal_assistant%',
+select ok(
+    (select with_check from pg_policies where schemaname = 'public' and tablename = 'inventory_team_members' and policyname = 'inventory_members_insert')
+        like '%technical_admin%federal_assistant%',
     'RLS de Inventário atribui escrita à Assistente e ao papel técnico'
 );
-select unlike(
-    (select with_check from pg_policies where schemaname = 'public' and tablename = 'inventory_team_members' and policyname = 'inventory_members_insert'),
-    '%sme_management%',
+select ok(
+    (select with_check from pg_policies where schemaname = 'public' and tablename = 'inventory_team_members' and policyname = 'inventory_members_insert')
+        not like '%sme_management%',
     'Gestão SME não mantém o diretório de Inventário'
 );
 
