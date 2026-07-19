@@ -26,10 +26,20 @@ test('mapeia somente os quatro perfis funcionais visíveis', () => {
     assert.throws(() => operationalProfileForRole('unknown'), /perfil/i);
 });
 
-test('administrador técnico não herda a interface da Assistente', () => {
+test('administrador técnico não herda a interface da Assistente e a navegação volta para perfil operacional', () => {
     const calls = [];
     const main = { innerHTML: '' };
     const app = { inert: true };
+    const styleValues = new Map();
+    const sidebar = {
+        hidden: false,
+        attributes: {},
+        setAttribute(name, value) { this.attributes[name] = value; },
+        style: {
+            setProperty(name, value, priority) { styleValues.set(name, { value, priority }); },
+            removeProperty(name) { styleValues.delete(name); }
+        }
+    };
     const document = {
         body: { dataset: {} },
         documentElement: { classList: { remove() {} } },
@@ -41,9 +51,7 @@ test('administrador técnico não herda a interface da Assistente', () => {
             return null;
         },
         querySelector(selector) {
-            if (selector === '.sidebar' || selector === '.top-header') {
-                return { hidden: false, setAttribute() {} };
-            }
+            if (selector === '.sidebar') return sidebar;
             return null;
         }
     };
@@ -66,5 +74,22 @@ test('administrador técnico não herda a interface da Assistente', () => {
     assert.equal(document.body.dataset.authRole, 'technical_admin');
     assert.match(main.innerHTML, /acesso técnico/i);
     assert.doesNotMatch(main.innerHTML, /assistente de verbas federais/i);
+    assert.equal(sidebar.hidden, true);
+    assert.equal(sidebar.attributes['aria-hidden'], 'true');
+    assert.deepEqual(styleValues.get('display'), { value: 'none', priority: 'important' });
     assert.equal(app.inert, false);
+
+    const operational = gate.applyAuthorization({
+        user: { id: 'assistant-1', email: 'assistant@radar.test' },
+        authorization: {
+            role: 'federal_assistant',
+            profile: { label: 'Assistente de Verbas Federais' }
+        }
+    });
+
+    assert.equal(operational, 'assistente');
+    assert.deepEqual(calls, ['assistente']);
+    assert.equal(sidebar.hidden, false);
+    assert.equal(sidebar.attributes['aria-hidden'], 'false');
+    assert.equal(styleValues.has('display'), false);
 });
