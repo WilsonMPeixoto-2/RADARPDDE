@@ -13,7 +13,8 @@ declare
         '202607140009',
         '20260714180621',
         '20260714220136',
-        '20260714220146'
+        '20260714220146',
+        '202607190001'
     ];
     v_actual text[];
     v_missing_extensions text[];
@@ -38,6 +39,20 @@ begin
 
     if v_missing_extensions is not null then
         raise exception 'EXTENSION_NOT_INSTALLED: %', array_to_string(v_missing_extensions, ', ');
+    end if;
+
+    if to_regprocedure('public.upsert_team_member_account(jsonb,uuid,text,uuid,jsonb)') is null
+       or to_regprocedure('public.deactivate_controller_account(text,text,uuid,jsonb)') is null
+       or to_regprocedure('public.deactivate_inventory_member_account(text,uuid,jsonb)') is null then
+        raise exception 'TEAM_ACCOUNT_CONTRACT_MISSING';
+    end if;
+
+    if has_function_privilege(
+        'authenticated',
+        'public.upsert_team_member_account(jsonb,uuid,text,uuid,jsonb)',
+        'EXECUTE'
+    ) then
+        raise exception 'TEAM_ACCOUNT_RPC_EXPOSED_TO_AUTHENTICATED';
     end if;
 
     foreach v_version in array v_actual
