@@ -35,26 +35,24 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          printf 'RADAR_ALLOWED_ORIGIN=http://127.0.0.1:4175\n' > /tmp/radar-functions.env
-          npx --no-install supabase functions serve team-account-management --no-verify-jwt --env-file /tmp/radar-functions.env > function-diagnostic.log 2>&1 &
-          function_pid=$!
-          cleanup() {
-            kill "${function_pid}" 2>/dev/null || true
-            wait "${function_pid}" 2>/dev/null || true
-          }
-          trap cleanup EXIT
+          eval "$(npx --no-install supabase status -o env | grep -E '^(ANON_KEY|API_URL)=')"
+          test -n "${ANON_KEY:-}"
+          test -n "${API_URL:-}"
+          echo '::add-mask::'"${ANON_KEY}"
+
           status='000'
           for attempt in $(seq 1 90); do
-            if ! kill -0 "${function_pid}" 2>/dev/null; then
-              cat function-diagnostic.log
-              echo 'O processo da Edge Function encerrou antes de responder.' >&2
-              exit 1
-            fi
-            status="$(curl --silent --output function-response.json --write-out '%{http_code}' --request POST --header 'Content-Type: application/json' --data '{}' http://127.0.0.1:54321/functions/v1/team-account-management || true)"
-            if test "${status}" != '000'; then break; fi
+            status="$(curl --silent --output function-response.json --write-out '%{http_code}' \
+              --request POST \
+              --header 'Content-Type: application/json' \
+              --header "apikey: ${ANON_KEY}" \
+              --header "Authorization: Bearer ${ANON_KEY}" \
+              --data '{}' \
+              "${API_URL}/functions/v1/team-account-management" || true)"
+            if test "${status}" = '403'; then break; fi
             sleep 1
           done
-          cat function-diagnostic.log
+
           cat function-response.json || true
           test "${status}" = '403'
           grep -q 'PERMISSION_DENIED' function-response.json
@@ -63,9 +61,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: supabase-function-diagnostic-${{ github.run_id }}
-          path: |
-            function-diagnostic.log
-            function-response.json
+          path: function-response.json
           if-no-files-found: warn
           retention-days: 1
       - name: Encerrar banco local
