@@ -1108,6 +1108,23 @@ export type Database = {
       }
       current_app_role: { Args: never; Returns: string }
       current_controller_id: { Args: never; Returns: string }
+      deactivate_controller_account: {
+        Args: {
+          p_actor_user_id: string
+          p_administrative_log: Json
+          p_controller_id: string
+          p_fallback_controller_id: string
+        }
+        Returns: Json
+      }
+      deactivate_inventory_member_account: {
+        Args: {
+          p_actor_user_id: string
+          p_administrative_log: Json
+          p_member_id: string
+        }
+        Returns: Json
+      }
       delete_invoice_with_effects: {
         Args: {
           p_administrative_log?: Json
@@ -1119,6 +1136,10 @@ export type Database = {
           p_verification_patch?: Json
         }
         Returns: Json
+      }
+      insert_team_management_log: {
+        Args: { p_actor_user_id: string; p_log: Json; p_profile_name: string }
+        Returns: string
       }
       load_staged_import: { Args: { p_import_id: string }; Returns: Json }
       promote_data_import: {
@@ -1183,6 +1204,16 @@ export type Database = {
           p_import_id: string
           p_records: Json
           p_source_hash: string
+        }
+        Returns: Json
+      }
+      upsert_team_member_account: {
+        Args: {
+          p_actor_user_id: string
+          p_administrative_log: Json
+          p_member: Json
+          p_profile_id: string
+          p_user_id: string
         }
         Returns: Json
       }
