@@ -167,7 +167,7 @@ jobs:
       - name: Iniciar Supabase local
         run: npm run supabase:start
 
-      - name: Recriar banco com doze migrations e seed local
+      - name: Recriar banco com treze migrations e seed local
         run: npm run supabase:reset
 
       - name: Validar contratos operacionais do preflight remoto
