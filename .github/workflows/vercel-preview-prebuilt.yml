@@ -43,8 +43,29 @@ jobs:
         run: npx --yes vercel@56.2.0 pull --yes --environment=preview --token="${VERCEL_TOKEN}"
       - name: Executar build versionado da Vercel
         run: npx --yes vercel@56.2.0 build --token="${VERCEL_TOKEN}"
-      - name: Confirmar manifesto público
-        run: test -f dist/radar-build-manifest.json
+      - name: Confirmar manifesto público do Preview
+        run: |
+          test -f dist/radar-build-manifest.json
+          node <<'NODE'
+          const fs = require('node:fs');
+          const manifest = JSON.parse(fs.readFileSync('dist/radar-build-manifest.json', 'utf8'));
+          const expected = {
+            vercelEnvironment: 'preview',
+            runtimeEnvironment: 'preview',
+            dataMode: 'supabase-preview',
+            supabaseRepositoryEnabled: true,
+            productionActivationApproved: false
+          };
+          for (const [key, value] of Object.entries(expected)) {
+            if (manifest[key] !== value) {
+              throw new Error(`Manifesto de Preview inválido em ${key}: ${JSON.stringify(manifest[key])}`);
+            }
+          }
+          const serialized = JSON.stringify(manifest);
+          if (/sb_secret_|service_role|password|publishableKey|supabaseUrl/i.test(serialized)) {
+            throw new Error('Manifesto contém campo ou material público proibido.');
+          }
+          NODE
       - name: Publicar somente o artefato prebuilt de Preview
         run: npx --yes vercel@56.2.0 deploy --prebuilt --token="${VERCEL_TOKEN}"
       - name: Publicar manifesto público como evidência
