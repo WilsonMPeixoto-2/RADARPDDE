@@ -32,7 +32,8 @@ const MIGRATIONS = [
     '202607140009_verification_payload.sql',
     '20260714180621_preconnection_auth_and_api_grants.sql',
     '20260714220136_preconnection_transactions_and_json_contracts.sql',
-    '20260714220146_preconnection_reversible_import.sql'
+    '20260714220146_preconnection_reversible_import.sql',
+    '202607190001_team_management_auth_alignment.sql'
 ];
 
 const ARTIFACTS = [
@@ -52,6 +53,7 @@ const ARTIFACTS = [
     'src/integration/exercise-early-init.js',
     'src/integration/auth-bootstrap.js',
     'src/integration/auth-gate.js',
+    'src/application/team-account-gateway.js',
     'src/vendor/supabase-client-entry.js',
     'src/types/database.types.ts',
     'vendor/supabase-client.js',
@@ -65,31 +67,44 @@ const ARTIFACTS = [
     'scripts/generate-runtime-config.mjs',
     'scripts/build-vercel.mjs',
     'scripts/check-generated-artifacts.js',
+    'scripts/check-supabase-final-alignment.js',
     'supabase/config.toml',
     'supabase/seed.sql',
     'supabase/fixtures/auth-users.json',
+    'supabase/functions/_shared/team-account-domain.mjs',
+    'supabase/functions/team-account-management/index.ts',
     'supabase/tests/database/schema.test.sql',
     'supabase/tests/database/rls.test.sql',
     'supabase/tests/database/invoice-rpc.test.sql',
     'supabase/tests/database/json-contracts.test.sql',
     'supabase/tests/database/operations-rpc.test.sql',
+    'supabase/tests/database/team-management-rpc.test.sql',
     'tests/unit/auth-database-gate.test.js',
     'tests/unit/auth-bootstrap.test.js',
     'tests/unit/auth-frontend-contract.test.js',
     'tests/unit/auth-gate.test.js',
     'tests/unit/session-service.test.js',
+    'tests/unit/team-account-gateway.test.js',
+    'tests/unit/team-account-domain.test.js',
+    'tests/unit/vercel-preview-workflow.test.js',
     'tests/e2e/supabase-auth-local.spec.js',
     'tests/e2e/supabase-full-contract.spec.js',
     'tests/e2e/data-error-ux.spec.js',
     'tsconfig.database-types.json',
     'docs/reference/SUPABASE_FUNCTIONAL_COVERAGE.md',
     'docs/reference/SUPABASE_INTEGRATION_AUDIT.md',
+    'docs/reference/SUPABASE_PERMISSIONS_MATRIX.md',
     'docs/runbooks/SUPABASE_CONNECTION.md',
     'docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md',
     '.github/workflows/supabase-remote-validation.yml',
     '.github/workflows/supabase-remote-post-apply.yml',
+    '.github/workflows/vercel-preview-prebuilt.yml',
     'supabase/verification/remote-preflight.sql',
-    'supabase/verification/remote-post-apply.sql'
+    'supabase/verification/remote-post-apply.sql',
+    'AGENTS.md',
+    'docs/PROJECT_CONTEXT.md',
+    'docs/CURRENT_STAGE.md',
+    'docs/DECISION_LOG.md'
 ];
 
 test('detecta atribuição real de segredo Supabase', () => {
@@ -131,13 +146,13 @@ test('valida conjunto obrigatório de migrations', () => {
     assert.deepEqual(validateMigrationManifest(MIGRATIONS), []);
     assert.match(
         validateMigrationManifest(MIGRATIONS.slice(0, -1)).join(' '),
-        /20260714220146_preconnection_reversible_import\.sql/
+        /202607190001_team_management_auth_alignment\.sql/
     );
 });
 
 test('impede divergência entre a contagem documentada e o diretório de migrations', () => {
     const validRunbook = `
-O conjunto versionado contém atualmente **12** migrations.
+O conjunto versionado contém atualmente **13** migrations.
 supabase migration list --linked
 supabase db push --linked --dry-run
 supabase db push --linked
@@ -146,10 +161,10 @@ supabase db push --linked
 
     assert.match(
         validateMigrationDocumentation(
-            validRunbook.replace('**12**', '**10**'),
+            validRunbook.replace('**13**', '**10**'),
             MIGRATIONS
         ).join(' '),
-        /declara 10 migrations.*contém 12/i
+        /declara 10 migrations.*contém 13/i
     );
     assert.match(
         validateMigrationDocumentation(
@@ -186,7 +201,7 @@ npx --no-install supabase db query --linked --file supabase/verification/remote-
     const postApply = `
 on:
   workflow_dispatch:
-APLICAR_12_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL
+APLICAR_13_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL
 npx --no-install supabase db push --linked --dry-run
 npx --no-install supabase db push --linked --yes
 remote-post-apply.sql
@@ -194,6 +209,7 @@ supabase db lint
 supabase test db
 supabase gen types
 supabase db advisors
+supabase functions deploy team-account-management
 `;
     assert.deepEqual(validateRemoteWorkflowContracts(preflight, postApply), []);
 
