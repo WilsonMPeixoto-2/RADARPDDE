@@ -22,6 +22,13 @@
         sme_management: 'sme'
     });
     const TECHNICAL_ROLES = Object.freeze(new Set(['technical_admin']));
+    const TECHNICAL_HIDDEN_SELECTORS = Object.freeze([
+        '.search-bar-container',
+        '#global-competence-badge',
+        '#exercise-select',
+        '#theme-toggle-btn',
+        '#alerts-bell-container'
+    ]);
 
     function isTechnicalRole(role) {
         return TECHNICAL_ROLES.has(String(role || ''));
@@ -35,6 +42,15 @@
         const profile = ROLE_TO_OPERATIONAL_PROFILE[normalizedRole];
         if (!profile) throw new Error('Perfil institucional não reconhecido pela interface.');
         return profile;
+    }
+
+    function setForcedDisplay(element, hidden) {
+        if (!element) return;
+        element.hidden = hidden;
+        element.setAttribute?.('aria-hidden', hidden ? 'true' : 'false');
+        if (!element.style) return;
+        if (hidden) element.style.setProperty?.('display', 'none', 'important');
+        else element.style.removeProperty?.('display');
     }
 
     class AuthGate {
@@ -142,14 +158,14 @@
         }
 
         setOperationalChromeVisible(visible) {
-            const sidebar = this.document.querySelector('.sidebar');
-            if (sidebar) {
-                sidebar.hidden = !visible;
-                sidebar.setAttribute?.('aria-hidden', visible ? 'false' : 'true');
-                if (sidebar.style) {
-                    if (visible) sidebar.style.removeProperty?.('display');
-                    else sidebar.style.setProperty?.('display', 'none', 'important');
-                }
+            setForcedDisplay(this.document.querySelector('.sidebar'), !visible);
+            TECHNICAL_HIDDEN_SELECTORS.forEach(selector => {
+                setForcedDisplay(this.document.querySelector(selector), !visible);
+            });
+            const app = this.document.getElementById('app-layout');
+            if (app?.style) {
+                if (visible) app.style.removeProperty?.('grid-template-columns');
+                else app.style.setProperty?.('grid-template-columns', '1fr', 'important');
             }
         }
 
