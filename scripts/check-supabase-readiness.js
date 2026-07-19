@@ -47,6 +47,7 @@ const REQUIRED_ARTIFACTS = Object.freeze([
     'scripts/build-ajv.mjs',
     'scripts/migration-cli.mjs',
     'scripts/generate-runtime-config.mjs',
+    'scripts/build-vercel.mjs',
     'scripts/check-generated-artifacts.js',
     'supabase/config.toml',
     'supabase/seed.sql',
@@ -68,7 +69,11 @@ const REQUIRED_ARTIFACTS = Object.freeze([
     'docs/reference/SUPABASE_FUNCTIONAL_COVERAGE.md',
     'docs/reference/SUPABASE_INTEGRATION_AUDIT.md',
     'docs/runbooks/SUPABASE_CONNECTION.md',
-    'docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md'
+    'docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md',
+    '.github/workflows/supabase-remote-validation.yml',
+    '.github/workflows/supabase-remote-post-apply.yml',
+    'supabase/verification/remote-preflight.sql',
+    'supabase/verification/remote-post-apply.sql'
 ]);
 
 function decodeJwtRole(token) {
@@ -152,6 +157,152 @@ function validateReadinessArtifacts(fileNames) {
         .map(name => `Artefato obrigatório ausente: ${name}`);
 }
 
+function validateMigrationDocumentation(source, migrationFileNames) {
+    const findings = [];
+    const text = String(source || '');
+    const migrationCount = (migrationFileNames || []).filter(name => name.endsWith('.sql')).length;
+    const documentedCount = text.match(/conjunto versionado contém atualmente \*\*(\d+)\*\* migrations/i);
+
+    if (!documentedCount) {
+        findings.push('SUPABASE_CONNECTION.md deve declarar a contagem versionada de migrations.');
+    } else if (Number.parseInt(documentedCount[1], 10) !== migrationCount) {
+        findings.push(
+            `SUPABASE_CONNECTION.md declara ${documentedCount[1]} migrations, mas o diretório contém ${migrationCount}.`
+        );
+    }
+
+    const commandLines = text.split(/\r?\n/).map(line => line.trim());
+    const hasDryRun = commandLines.some(line => /^supabase db push --linked --dry-run\s*$/.test(line));
+    const hasEffectivePush = commandLines.some(line => /^supabase db push --linked\s*$/.test(line));
+    const hasMigrationList = commandLines.some(line => /^supabase migration list --linked\s*$/.test(line));
+    if (!hasDryRun || !hasEffectivePush || !hasMigrationList) {
+        findings.push('SUPABASE_CONNECTION.md deve usar o histórico do CLI como fonte de ordem das migrations.');
+    }
+
+    if (/Aplicar, nesta ordem:/i.test(text)) {
+        findings.push('SUPABASE_CONNECTION.md não deve manter uma segunda lista manual de migrations.');
+    }
+
+    return findings;
+}
+
+function validateSupabaseApiSchemas(source) {
+    const match = String(source || '').match(/^schemas\s*=\s*\[([^\]]*)\]/m);
+    if (!match) return ['supabase/config.toml deve declarar explicitamente os schemas da Data API.'];
+
+    const schemas = [...match[1].matchAll(/["']([^"']+)["']/g)].map(item => item[1]);
+    if (schemas.length !== 1 || schemas[0] !== 'public') {
+        return ['A Data API do RADAR deve expor somente o schema public; GraphQL não é uma dependência funcional.'];
+    }
+    return [];
+}
+
+function workflowCommandLines(source, command) {
+    return String(source || '')
+        .split(/\r?\n/)
+        .map(line => line.trim())
+        .filter(line => line.includes(command));
+}
+
+function validateRemoteWorkflowContracts(preflightSource, postApplySource) {
+    const findings = [];
+    const preflight = String(preflightSource || '');
+    const postApply = String(postApplySource || '');
+    const preflightPushes = workflowCommandLines(preflight, 'supabase db push');
+    const postApplyPushes = workflowCommandLines(postApply, 'supabase db push');
+
+    [
+        ['preflight', preflight],
+        ['pós-aplicação', postApply]
+    ].forEach(([name, workflow]) => {
+        if (!/^\s{2}workflow_dispatch:\s*$/m.test(workflow)
+            || /^\s{2}(?:push|pull_request|schedule|workflow_run):\s*$/m.test(workflow)) {
+            findings.push(`O workflow de ${name} deve possuir somente acionamento manual.`);
+        }
+    });
+
+    if (preflightPushes.length === 0 || preflightPushes.some(line => !line.includes('--dry-run'))) {
+        findings.push('O workflow de preflight deve ser estritamente não destrutivo e usar apenas db push --dry-run.');
+    }
+    if (!preflight.includes('remote-preflight.sql') || !preflight.includes('supabase migration list')) {
+        findings.push('O preflight remoto deve verificar capacidades e registrar o histórico de migrations.');
+    }
+
+    const dryRunIndex = postApplyPushes.findIndex(line => line.includes('--dry-run'));
+    const applyIndex = postApplyPushes.findIndex(line => !line.includes('--dry-run'));
+    if (dryRunIndex < 0 || applyIndex < 0 || dryRunIndex > applyIndex) {
+        findings.push('O workflow pós-aplicação deve executar dry-run antes do db push efetivo.');
+    }
+    if (!postApply.includes('APLICAR_12_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL')) {
+        findings.push('O workflow pós-aplicação exige confirmação textual do alvo descartável.');
+    }
+    if (applyIndex >= 0 && !postApplyPushes[applyIndex].includes('--yes')) {
+        findings.push('O db push efetivo deve ser não interativo somente após a confirmação explícita.');
+    }
+    [
+        'remote-post-apply.sql',
+        'supabase db lint',
+        'supabase test db',
+        'supabase gen types',
+        'supabase db advisors'
+    ].forEach(fragment => {
+        if (!postApply.includes(fragment)) {
+            findings.push(`Workflow pós-aplicação incompleto: ${fragment} ausente.`);
+        }
+    });
+
+    if (/--include-seed\b/.test(preflight) || /--include-seed\b/.test(postApply)) {
+        findings.push('Workflows remotos não podem executar seed local.');
+    }
+
+    return findings;
+}
+
+function validateRemoteVerificationSql(preflightSource, postApplySource) {
+    const findings = [];
+    [
+        ['preflight', preflightSource, 'CAPABILITY_OK'],
+        ['pós-aplicação', postApplySource, 'MIGRATION_OK']
+    ].forEach(([name, source, evidenceMarker]) => {
+        const sql = String(source || '').trim();
+        const singleDoBlock = /^(?:--[^\r\n]*(?:\r?\n|$))*\s*do\s+\$\$[\s\S]*\$\$;\s*$/i;
+        if (!singleDoBlock.test(sql)) {
+            findings.push(`A verificação SQL de ${name} deve conter um único bloco executável.`);
+        }
+        if (!sql.includes(evidenceMarker)) {
+            findings.push(`A verificação SQL de ${name} deve registrar evidências seguras.`);
+        }
+    });
+    return findings;
+}
+
+function validateVercelBuildContract(vercelSource, packageSource) {
+    const findings = [];
+    let vercelConfig;
+    let packageConfig;
+    try {
+        vercelConfig = JSON.parse(String(vercelSource || ''));
+    } catch (error) {
+        findings.push('vercel.json inválido.');
+    }
+    try {
+        packageConfig = JSON.parse(String(packageSource || ''));
+    } catch (error) {
+        findings.push('package.json inválido.');
+    }
+
+    if (vercelConfig?.buildCommand !== 'npm run build:vercel') {
+        findings.push('A Vercel deve executar npm run build:vercel.');
+    }
+    if (vercelConfig?.outputDirectory !== 'dist') {
+        findings.push('A Vercel deve publicar exclusivamente o diretório dist.');
+    }
+    if (packageConfig?.scripts?.['build:vercel'] !== 'node scripts/build-vercel.mjs') {
+        findings.push('package.json deve definir o build Vercel versionado.');
+    }
+    return findings;
+}
+
 function listFilesRecursively(directory) {
     if (!fs.existsSync(directory)) return [];
     return fs.readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
@@ -170,6 +321,14 @@ function runReadinessChecks(rootDir = path.resolve(__dirname, '..')) {
     const configPath = path.join(rootDir, 'config.js');
     const runtimeConfigPath = path.join(rootDir, 'config.runtime.js');
     const migrationsDir = path.join(rootDir, 'supabase', 'migrations');
+    const connectionRunbookPath = path.join(rootDir, 'docs', 'runbooks', 'SUPABASE_CONNECTION.md');
+    const supabaseConfigPath = path.join(rootDir, 'supabase', 'config.toml');
+    const preflightWorkflowPath = path.join(rootDir, '.github', 'workflows', 'supabase-remote-validation.yml');
+    const postApplyWorkflowPath = path.join(rootDir, '.github', 'workflows', 'supabase-remote-post-apply.yml');
+    const vercelConfigPath = path.join(rootDir, 'vercel.json');
+    const packagePath = path.join(rootDir, 'package.json');
+    const preflightSqlPath = path.join(rootDir, 'supabase', 'verification', 'remote-preflight.sql');
+    const postApplySqlPath = path.join(rootDir, 'supabase', 'verification', 'remote-post-apply.sql');
 
     if (!fs.existsSync(configPath)) {
         findings.push('config.js não encontrado.');
@@ -196,6 +355,43 @@ function runReadinessChecks(rootDir = path.resolve(__dirname, '..')) {
         ? fs.readdirSync(migrationsDir).filter(name => name.endsWith('.sql')).sort()
         : [];
     findings.push(...validateMigrationManifest(migrationFiles));
+
+    const connectionRunbook = fs.existsSync(connectionRunbookPath)
+        ? fs.readFileSync(connectionRunbookPath, 'utf8')
+        : '';
+    findings.push(...validateMigrationDocumentation(connectionRunbook, migrationFiles));
+
+    const supabaseConfigSource = fs.existsSync(supabaseConfigPath)
+        ? fs.readFileSync(supabaseConfigPath, 'utf8')
+        : '';
+    findings.push(...validateSupabaseApiSchemas(supabaseConfigSource));
+
+    const preflightWorkflowSource = fs.existsSync(preflightWorkflowPath)
+        ? fs.readFileSync(preflightWorkflowPath, 'utf8')
+        : '';
+    const postApplyWorkflowSource = fs.existsSync(postApplyWorkflowPath)
+        ? fs.readFileSync(postApplyWorkflowPath, 'utf8')
+        : '';
+    findings.push(...validateRemoteWorkflowContracts(
+        preflightWorkflowSource,
+        postApplyWorkflowSource
+    ));
+
+    const preflightSqlSource = fs.existsSync(preflightSqlPath)
+        ? fs.readFileSync(preflightSqlPath, 'utf8')
+        : '';
+    const postApplySqlSource = fs.existsSync(postApplySqlPath)
+        ? fs.readFileSync(postApplySqlPath, 'utf8')
+        : '';
+    findings.push(...validateRemoteVerificationSql(preflightSqlSource, postApplySqlSource));
+
+    const vercelConfigSource = fs.existsSync(vercelConfigPath)
+        ? fs.readFileSync(vercelConfigPath, 'utf8')
+        : '';
+    const packageSource = fs.existsSync(packagePath)
+        ? fs.readFileSync(packagePath, 'utf8')
+        : '';
+    findings.push(...validateVercelBuildContract(vercelConfigSource, packageSource));
 
     migrationFiles.forEach(name => {
         const source = fs.readFileSync(path.join(migrationsDir, name), 'utf8');
@@ -261,6 +457,11 @@ module.exports = Object.freeze({
     scanTextForSecrets,
     validateRuntimeConfigSource,
     validateMigrationManifest,
+    validateMigrationDocumentation,
+    validateRemoteWorkflowContracts,
+    validateRemoteVerificationSql,
     validateReadinessArtifacts,
+    validateSupabaseApiSchemas,
+    validateVercelBuildContract,
     runReadinessChecks
 });

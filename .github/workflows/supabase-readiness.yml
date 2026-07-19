@@ -170,6 +170,11 @@ jobs:
       - name: Recriar banco com doze migrations e seed local
         run: npm run supabase:reset
 
+      - name: Validar contratos operacionais do preflight remoto
+        run: |
+          npx supabase db query --local --file supabase/verification/remote-preflight.sql
+          npx supabase db query --local --file supabase/verification/remote-post-apply.sql
+
       - name: Executar testes pgTAP
         run: npm run supabase:test:db
 

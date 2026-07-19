@@ -7,7 +7,12 @@ const {
     scanTextForSecrets,
     validateRuntimeConfigSource,
     validateMigrationManifest,
-    validateReadinessArtifacts
+    validateMigrationDocumentation,
+    validateReadinessArtifacts,
+    validateRemoteWorkflowContracts,
+    validateRemoteVerificationSql,
+    validateSupabaseApiSchemas,
+    validateVercelBuildContract
 } = require('../../scripts/check-supabase-readiness.js');
 
 function jwtWithRole(role) {
@@ -58,6 +63,7 @@ const ARTIFACTS = [
     'scripts/build-ajv.mjs',
     'scripts/migration-cli.mjs',
     'scripts/generate-runtime-config.mjs',
+    'scripts/build-vercel.mjs',
     'scripts/check-generated-artifacts.js',
     'supabase/config.toml',
     'supabase/seed.sql',
@@ -79,7 +85,11 @@ const ARTIFACTS = [
     'docs/reference/SUPABASE_FUNCTIONAL_COVERAGE.md',
     'docs/reference/SUPABASE_INTEGRATION_AUDIT.md',
     'docs/runbooks/SUPABASE_CONNECTION.md',
-    'docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md'
+    'docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md',
+    '.github/workflows/supabase-remote-validation.yml',
+    '.github/workflows/supabase-remote-post-apply.yml',
+    'supabase/verification/remote-preflight.sql',
+    'supabase/verification/remote-post-apply.sql'
 ];
 
 test('detecta atribuição real de segredo Supabase', () => {
@@ -122,6 +132,125 @@ test('valida conjunto obrigatório de migrations', () => {
     assert.match(
         validateMigrationManifest(MIGRATIONS.slice(0, -1)).join(' '),
         /20260714220146_preconnection_reversible_import\.sql/
+    );
+});
+
+test('impede divergência entre a contagem documentada e o diretório de migrations', () => {
+    const validRunbook = `
+O conjunto versionado contém atualmente **12** migrations.
+supabase migration list --linked
+supabase db push --linked --dry-run
+supabase db push --linked
+`;
+    assert.deepEqual(validateMigrationDocumentation(validRunbook, MIGRATIONS), []);
+
+    assert.match(
+        validateMigrationDocumentation(
+            validRunbook.replace('**12**', '**10**'),
+            MIGRATIONS
+        ).join(' '),
+        /declara 10 migrations.*contém 12/i
+    );
+    assert.match(
+        validateMigrationDocumentation(
+            `${validRunbook}\nAplicar, nesta ordem:\n`,
+            MIGRATIONS
+        ).join(' '),
+        /segunda lista manual/i
+    );
+    assert.match(
+        validateMigrationDocumentation(
+            validRunbook.replace(/^supabase db push --linked$/m, ''),
+            MIGRATIONS
+        ).join(' '),
+        /histórico do CLI/i
+    );
+});
+
+test('restringe a Data API ao schema public usado pelo RADAR', () => {
+    assert.deepEqual(validateSupabaseApiSchemas('schemas = ["public"]'), []);
+    assert.match(
+        validateSupabaseApiSchemas('schemas = ["public", "graphql_public"]').join(' '),
+        /somente o schema public/i
+    );
+});
+
+test('separa preflight não destrutivo de aplicação remota confirmada', () => {
+    const preflight = `
+on:
+  workflow_dispatch:
+npx --no-install supabase migration list --linked
+npx --no-install supabase db push --linked --dry-run
+npx --no-install supabase db query --linked --file supabase/verification/remote-preflight.sql
+`;
+    const postApply = `
+on:
+  workflow_dispatch:
+APLICAR_12_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL
+npx --no-install supabase db push --linked --dry-run
+npx --no-install supabase db push --linked --yes
+remote-post-apply.sql
+supabase db lint
+supabase test db
+supabase gen types
+supabase db advisors
+`;
+    assert.deepEqual(validateRemoteWorkflowContracts(preflight, postApply), []);
+
+    assert.match(
+        validateRemoteWorkflowContracts(
+            `${preflight}\nnpx --no-install supabase db push --linked`,
+            postApply
+        ).join(' '),
+        /estritamente não destrutivo/i
+    );
+    assert.match(
+        validateRemoteWorkflowContracts(
+            preflight,
+            postApply.replace(
+                'supabase db push --linked --yes',
+                'supabase db push --linked --yes --include-seed'
+            )
+        ).join(' '),
+        /seed local/i
+    );
+    assert.match(
+        validateRemoteWorkflowContracts(
+            preflight.replace('  workflow_dispatch:', '  push:'),
+            postApply
+        ).join(' '),
+        /somente acionamento manual/i
+    );
+});
+
+test('mantém cada verificação SQL compatível com a execução preparada do CLI', () => {
+    const preflight = `-- comentário\ndo $$\nbegin\n  raise notice 'CAPABILITY_OK';\nend\n$$;`;
+    const postApply = `-- comentário\ndo $$\nbegin\n  raise notice 'MIGRATION_OK';\nend\n$$;`;
+    assert.deepEqual(validateRemoteVerificationSql(preflight, postApply), []);
+    assert.match(
+        validateRemoteVerificationSql(
+            `${preflight}\nselect 1;`,
+            postApply
+        ).join(' '),
+        /único bloco executável/i
+    );
+});
+
+test('exige build versionado e diretório público isolado na Vercel', () => {
+    const packageSource = JSON.stringify({
+        scripts: { 'build:vercel': 'node scripts/build-vercel.mjs' }
+    });
+    const vercelSource = JSON.stringify({
+        buildCommand: 'npm run build:vercel',
+        outputDirectory: 'dist'
+    });
+    assert.deepEqual(validateVercelBuildContract(vercelSource, packageSource), []);
+    assert.match(
+        validateVercelBuildContract(
+            JSON.stringify({ outputDirectory: '.' }),
+            packageSource
+        ).join(' '),
+        /build:vercel|diretório dist/i
     );
 });
 

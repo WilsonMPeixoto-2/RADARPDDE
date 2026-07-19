@@ -1,15 +1,19 @@
-name: Validar Supabase remoto
+name: Preflight Supabase remoto
 
 on:
   workflow_dispatch:
     inputs:
       project_ref:
-        description: Referência do projeto ou branch Supabase autorizado
+        description: Referência do projeto Supabase experimental autorizado
         required: true
         type: string
 
 permissions:
   contents: read
+
+concurrency:
+  group: supabase-remote-preflight-${{ github.ref }}
+  cancel-in-progress: false
 
 env:
   SUPABASE_TELEMETRY_DISABLED: '1'
@@ -17,9 +21,9 @@ env:
   PGPASS_REMOTE: ${{ secrets.SUPABASE_DB_PASSWORD }}
 
 jobs:
-  remote-validation:
+  preflight:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
@@ -36,27 +40,55 @@ jobs:
         run: npm ci
 
       - name: Validar autorização e segredos do ambiente
+        env:
+          PROJECT_REF: ${{ inputs.project_ref }}
         run: |
           test -n "${SUPABASE_ACCESS_TOKEN}" || { echo 'SUPABASE_ACCESS_TOKEN ausente.' >&2; exit 1; }
           test -n "${PGPASS_REMOTE}" || { echo 'Segredo de senha do banco ausente.' >&2; exit 1; }
-          test -n "${{ inputs.project_ref }}" || { echo 'project_ref ausente.' >&2; exit 1; }
+          test -n "${PROJECT_REF}" || { echo 'project_ref ausente.' >&2; exit 1; }
 
-      - name: Vincular projeto autorizado
-        run: supabase link --project-ref "${{ inputs.project_ref }}" --password "${PGPASS_REMOTE}"
+      - name: Vincular projeto experimental autorizado
+        env:
+          PROJECT_REF: ${{ inputs.project_ref }}
+        run: npx --no-install supabase link --project-ref "${PROJECT_REF}" --password "${PGPASS_REMOTE}"
 
-      - name: Simular aplicação das migrations
-        run: supabase db push --linked --dry-run
-
-      - name: Executar lint remoto
-        run: supabase db lint --linked --schema public --level warning --fail-on error
-
-      - name: Executar pgTAP remoto em transações reversíveis
-        run: supabase test db supabase/tests/database --linked
-
-      - name: Comparar tipos remotos com o contrato versionado
+      - name: Registrar histórico local e remoto de migrations
         run: |
-          supabase gen types typescript --linked --schema public > /tmp/database.remote.types.ts
-          diff --unified src/types/database.types.ts /tmp/database.remote.types.ts
+          set -o pipefail
+          npx --no-install supabase migration list --linked --password "${PGPASS_REMOTE}" 2>&1 \
+            | tee /tmp/supabase-migration-list.txt
 
-      - name: Listar branches disponíveis
-        run: supabase branches list --project-ref "${{ inputs.project_ref }}" --output json
+      - name: Simular aplicação das migrations sem alterar o banco
+        run: |
+          set -o pipefail
+          npx --no-install supabase db push --linked --dry-run --password "${PGPASS_REMOTE}" 2>&1 \
+            | tee /tmp/supabase-migration-dry-run.txt
+
+      - name: Verificar capacidades obrigatórias do projeto
+        run: |
+          set -o pipefail
+          npx --no-install supabase db query --linked --file supabase/verification/remote-preflight.sql 2>&1 \
+            | tee /tmp/supabase-capabilities.txt
+
+      - name: Registrar branches disponíveis sem bloquear projeto sem branching
+        env:
+          PROJECT_REF: ${{ inputs.project_ref }}
+        run: |
+          if ! npx --no-install supabase branches list --project-ref "${PROJECT_REF}" --output json \
+            > /tmp/supabase-branches.json; then
+            printf '{"available":false,"reason":"branching indisponível ou não habilitado"}\n' \
+              > /tmp/supabase-branches.json
+          fi
+
+      - name: Publicar evidências do preflight
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: supabase-remote-preflight-${{ github.run_id }}
+          path: |
+            /tmp/supabase-migration-list.txt
+            /tmp/supabase-migration-dry-run.txt
+            /tmp/supabase-capabilities.txt
+            /tmp/supabase-branches.json
+          if-no-files-found: warn
+          retention-days: 14
