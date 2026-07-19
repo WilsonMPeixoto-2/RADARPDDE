@@ -1,0 +1,63 @@
+name: Gerar artefato seguro de Production
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/build-production-artifact.yml'
+
+permissions:
+  contents: read
+
+env:
+  RADAR_ENVIRONMENT: local
+  RADAR_DATA_MODE: local
+  RADAR_SUPABASE_REPOSITORY_ENABLED: 'false'
+  RADAR_PRODUCTION_ACTIVATION_APPROVED: 'false'
+  VERCEL_ENV: production
+
+jobs:
+  build-production-artifact:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Instalar dependências
+        run: npm ci
+      - name: Gerar artefato de Production em modo local
+        run: npm run build:vercel
+      - name: Validar manifesto
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f dist/radar-build-manifest.json
+          node <<'NODE'
+          const fs = require('node:fs');
+          const manifest = JSON.parse(fs.readFileSync('dist/radar-build-manifest.json', 'utf8'));
+          const expected = {
+            vercelEnvironment: 'production',
+            runtimeEnvironment: 'local',
+            dataMode: 'local',
+            supabaseRepositoryEnabled: false,
+            productionActivationApproved: false
+          };
+          for (const [key, value] of Object.entries(expected)) {
+            if (manifest[key] !== value) {
+              throw new Error(`Manifesto inválido em ${key}: ${JSON.stringify(manifest[key])}`);
+            }
+          }
+          NODE
+      - name: Publicar artefato
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: radar-production-dist-${{ github.sha }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 1
