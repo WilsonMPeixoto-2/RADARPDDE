@@ -1,4 +1,4 @@
-name: Gerar artefato seguro de Production
+name: Publicar artefato seguro em Production
 
 on:
   pull_request:
@@ -16,11 +16,14 @@ env:
   RADAR_SUPABASE_REPOSITORY_ENABLED: 'false'
   RADAR_PRODUCTION_ACTIVATION_APPROVED: 'false'
   VERCEL_ENV: production
+  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+  VERCEL_ORG_ID: team_EFJunPOtGozS99jZ6zkIQXHF
+  VERCEL_PROJECT_ID: prj_GfXuUuO3dF2jykpp9QgyqIDsxg4U
 
 jobs:
-  build-production-artifact:
+  deploy-production:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
@@ -31,8 +34,13 @@ jobs:
           cache: npm
       - name: Instalar dependências
         run: npm ci
-      - name: Gerar artefato de Production em modo local
-        run: npm run build:vercel
+      - name: Confirmar credencial Vercel
+        shell: bash
+        run: test -n "${VERCEL_TOKEN:-}"
+      - name: Obter configuração de Production
+        run: npx --yes vercel@56.2.0 pull --yes --environment=production --token="${VERCEL_TOKEN}"
+      - name: Executar build versionado de Production
+        run: npx --yes vercel@56.2.0 build --prod --token="${VERCEL_TOKEN}"
       - name: Validar manifesto
         shell: bash
         run: |
@@ -54,10 +62,13 @@ jobs:
             }
           }
           NODE
-      - name: Publicar artefato
+      - name: Publicar somente o prebuilt em Production
+        run: npx --yes vercel@56.2.0 deploy --prebuilt --prod --token="${VERCEL_TOKEN}"
+      - name: Publicar manifesto como evidência
+        if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: radar-production-dist-${{ github.sha }}
-          path: dist/
-          if-no-files-found: error
+          name: radar-production-manifest-${{ github.sha }}
+          path: dist/radar-build-manifest.json
+          if-no-files-found: warn
           retention-days: 1
