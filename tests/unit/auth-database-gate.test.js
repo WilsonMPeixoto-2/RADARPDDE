@@ -11,6 +11,10 @@ const migrationPath = path.join(
     'supabase/migrations/20260714180621_preconnection_auth_and_api_grants.sql'
 );
 
+function read(relativePath) {
+    return fs.readFileSync(path.join(root, relativePath), 'utf8');
+}
+
 test('migration fecha Data API anônima e concede somente operações sujeitas a RLS', () => {
     const sql = fs.readFileSync(migrationPath, 'utf8');
 
@@ -34,7 +38,7 @@ test('migration fecha Data API anônima e concede somente operações sujeitas a
 });
 
 test('bootstrap PostgreSQL reproduz os três papéis mínimos do Supabase', () => {
-    const bootstrap = fs.readFileSync(path.join(root, 'supabase/tests/bootstrap.sql'), 'utf8');
+    const bootstrap = read('supabase/tests/bootstrap.sql');
 
     assert.match(bootstrap, /create\s+role\s+authenticated\s+nologin/i);
     assert.match(bootstrap, /create\s+role\s+anon\s+nologin/i);
@@ -42,7 +46,7 @@ test('bootstrap PostgreSQL reproduz os três papéis mínimos do Supabase', () =
 });
 
 test('configuração local habilita login por email sem abrir cadastro público', () => {
-    const config = fs.readFileSync(path.join(root, 'supabase/config.toml'), 'utf8');
+    const config = read('supabase/config.toml');
     const authSection = config.match(/\[auth\]([\s\S]*?)(?:\n\[|$)/i);
     const emailSection = config.match(/\[auth\.email\]([\s\S]*?)(?:\n\[|$)/i);
 
@@ -53,12 +57,9 @@ test('configuração local habilita login por email sem abrir cadastro público'
     assert.doesNotMatch(emailSection[1], /^\s*enabled\s*=/mi);
 });
 
-test('manifesto local contém sete identidades e cinco perfis ativos determinísticos', () => {
-    const seed = fs.readFileSync(path.join(root, 'supabase/seed.sql'), 'utf8');
-    const fixtures = JSON.parse(fs.readFileSync(
-        path.join(root, 'supabase/fixtures/auth-users.json'),
-        'utf8'
-    ));
+test('manifesto local contém sete identidades e cinco papéis ativos determinísticos', () => {
+    const seed = read('supabase/seed.sql');
+    const fixtures = JSON.parse(read('supabase/fixtures/auth-users.json'));
 
     ['controller', 'federal_assistant', 'inventory', 'sme_management', 'technical_admin']
         .forEach(profile => assert.ok(fixtures.some(fixture => fixture.profileId === profile)));
@@ -73,10 +74,7 @@ test('manifesto local contém sete identidades e cinco perfis ativos determinís
 });
 
 test('bootstrap cria usuários pela API Admin e só aceita a pilha local com autorização explícita', () => {
-    const source = fs.readFileSync(
-        path.join(root, 'scripts/bootstrap-local-auth-fixtures.mjs'),
-        'utf8'
-    );
+    const source = read('scripts/bootstrap-local-auth-fixtures.mjs');
 
     assert.match(source, /auth\.admin\.createUser/);
     assert.match(source, /RADAR_ALLOW_LOCAL_AUTH_BOOTSTRAP/);
@@ -87,10 +85,7 @@ test('bootstrap cria usuários pela API Admin e só aceita a pilha local com aut
 });
 
 test('login-probe isola sessões, repete apenas falhas transitórias e preserva diagnóstico', () => {
-    const source = fs.readFileSync(
-        path.join(root, 'scripts/check-local-auth-fixtures.mjs'),
-        'utf8'
-    );
+    const source = read('scripts/check-local-auth-fixtures.mjs');
 
     assert.match(source, /MAX_AUTH_PROBE_ATTEMPTS\s*=\s*4/);
     assert.match(source, /createProbeClient\(\)/);
@@ -101,11 +96,8 @@ test('login-probe isola sessões, repete apenas falhas transitórias e preserva 
 });
 
 test('CI valida as credenciais locais antes de iniciar o Playwright', () => {
-    const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
-    const workflow = fs.readFileSync(
-        path.join(root, '.github/workflows/supabase-readiness.yml'),
-        'utf8'
-    );
+    const pkg = JSON.parse(read('package.json'));
+    const workflow = read('.github/workflows/supabase-readiness.yml');
 
     assert.equal(
         pkg.scripts['bootstrap:auth-fixtures'],
@@ -125,4 +117,38 @@ test('CI valida as credenciais locais antes de iniciar o Playwright', () => {
             < workflow.indexOf('npx playwright test tests/e2e/supabase-auth-local.spec.js'),
         'O login-probe deve executar antes da suíte E2E Auth/RLS.'
     );
+});
+
+test('alinhamento final concede gestão de equipe à Assistente e restringe RPCs administrativas', () => {
+    const sql = read('supabase/migrations/202607190001_team_management_auth_alignment.sql');
+
+    assert.match(sql, /controllers_insert[\s\S]+technical_admin[\s\S]+federal_assistant/i);
+    assert.match(sql, /controllers_update[\s\S]+technical_admin[\s\S]+federal_assistant/i);
+    assert.match(sql, /inventory_members_insert[\s\S]+technical_admin[\s\S]+federal_assistant/i);
+    assert.match(sql, /inventory_members_update[\s\S]+technical_admin[\s\S]+federal_assistant/i);
+
+    const managementPolicies = sql.match(/create policy (?:controllers|inventory_members)_(?:insert|update)[\s\S]*?;/gi) || [];
+    assert.equal(managementPolicies.length, 4);
+    managementPolicies.forEach(policy => assert.doesNotMatch(policy, /sme_management/i));
+
+    [
+        'upsert_team_member_account',
+        'deactivate_controller_account',
+        'deactivate_inventory_member_account'
+    ].forEach(functionName => {
+        assert.match(sql, new RegExp(`create\\s+or\\s+replace\\s+function\\s+public\\.${functionName}`, 'i'));
+        assert.match(sql, new RegExp(`grant\\s+execute\\s+on\\s+function\\s+public\\.${functionName}[\\s\\S]+to\\s+service_role`, 'i'));
+    });
+    assert.doesNotMatch(sql, /grant\s+execute[\s\S]+to\s+(?:authenticated|anon)/i);
+});
+
+test('gate final exige a décima terceira migration e a Edge Function protegida', () => {
+    const readiness = read('scripts/check-supabase-final-alignment.js');
+    const config = read('supabase/config.toml');
+
+    assert.match(readiness, /202607190001_team_management_auth_alignment\.sql/);
+    assert.match(readiness, /supabase\/functions\/_shared\/team-account-domain\.mjs/);
+    assert.match(readiness, /supabase\/functions\/team-account-management\/index\.ts/);
+    assert.match(readiness, /src\/application\/team-account-gateway\.js/);
+    assert.match(config, /\[functions\.team-account-management\][\s\S]*verify_jwt\s*=\s*true/i);
 });

@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 
 const { DirectoryService } = require('../../src/application/directory-service.js');
 
-function createHarness() {
+function createHarness(options = {}) {
     const state = {
         programs: [{ id: 'BASIC', name: 'PDDE Básico', desc: '', active: true }],
         controllers: [
@@ -20,21 +20,58 @@ function createHarness() {
         logs: []
     };
     const calls = [];
+    const gatewayCalls = [];
+    let defaultPersistCount = 0;
     const dataService = {
         async execute(command) {
             calls.push(command);
             const value = await command.mutate();
+            const defaultPersist = async () => { defaultPersistCount += 1; };
+            if (typeof command.persist === 'function') {
+                await command.persist({ value, snapshot: { entities: {} }, defaultPersist });
+            } else {
+                await defaultPersist();
+            }
             return { ok: true, value };
         }
     };
+    const teamAccountGateway = options.remote === true ? {
+        async saveController(input) {
+            gatewayCalls.push({ method: 'saveController', input });
+            return { ok: true };
+        },
+        async deactivateController(input) {
+            gatewayCalls.push({ method: 'deactivateController', input });
+            return { ok: true };
+        },
+        async saveInventoryMember(input) {
+            gatewayCalls.push({ method: 'saveInventoryMember', input });
+            return { ok: true };
+        },
+        async deactivateInventoryMember(input) {
+            gatewayCalls.push({ method: 'deactivateInventoryMember', input });
+            return { ok: true };
+        }
+    } : null;
     let id = 0;
     const service = new DirectoryService({
         dataService,
         getState: () => state,
-        appendLog: (action, details) => state.logs.unshift({ action, details }),
-        createId: prefix => `${prefix}-${++id}`
+        appendLog: (action, details) => {
+            const log = { id: `log-${++id}`, action, details, eventAt: '2026-07-19T00:00:00.000Z' };
+            state.logs.unshift(log);
+            return log;
+        },
+        createId: prefix => `${prefix}-${++id}`,
+        teamAccountGateway
     });
-    return { state, calls, service };
+    return {
+        state,
+        calls,
+        gatewayCalls,
+        service,
+        get defaultPersistCount() { return defaultPersistCount; }
+    };
 }
 
 test('cadastra programa e o desativa sem apagar o registro histórico', async () => {
@@ -49,6 +86,7 @@ test('cadastra programa e o desativa sem apagar o registro histórico', async ()
     assert.equal(harness.state.programs.find(item => item.id === programId).active, false);
     assert.equal(harness.state.logs[0].action, 'Programa Desativado');
     assert.equal(harness.calls[1].changedEntities.includes('programs'), true);
+    assert.equal(harness.defaultPersistCount, 2);
 });
 
 test('desativa controlador somente após reatribuir suas escolas na mesma operação', async () => {
@@ -66,6 +104,7 @@ test('desativa controlador somente após reatribuir suas escolas na mesma opera�
         harness.calls[0].changedEntities,
         ['controllers', 'schools', 'administrativeLogs']
     );
+    assert.equal(harness.defaultPersistCount, 1);
 });
 
 test('salva integrante e impede desativar o último integrante ativo', async () => {
@@ -85,3 +124,64 @@ test('salva integrante e impede desativar o último integrante ativo', async () 
     );
 });
 
+test('modo remoto provisiona convite e vínculo ao cadastrar controlador', async () => {
+    const harness = createHarness({ remote: true });
+
+    const result = await harness.service.saveController({
+        name: 'Carla Controle',
+        email: 'carla.controle@rioeduca.net'
+    });
+
+    assert.equal(harness.defaultPersistCount, 0);
+    assert.equal(harness.gatewayCalls.length, 1);
+    assert.equal(harness.gatewayCalls[0].method, 'saveController');
+    assert.deepEqual(harness.gatewayCalls[0].input.controller, result.value.controller);
+    assert.equal(harness.gatewayCalls[0].input.previousController, null);
+    assert.equal(harness.gatewayCalls[0].input.administrativeLog.id, result.value.administrativeLog.id);
+});
+
+test('modo remoto propaga edição do controlador para a conta vinculada', async () => {
+    const harness = createHarness({ remote: true });
+
+    await harness.service.saveController({
+        id: 'CTRL-1',
+        name: 'Um Atualizado',
+        email: 'um.atualizado@rioeduca.net'
+    });
+
+    const call = harness.gatewayCalls[0];
+    assert.equal(call.method, 'saveController');
+    assert.equal(call.input.controller.email, 'um.atualizado@rioeduca.net');
+    assert.equal(call.input.previousController.email, 'um@rio.gov.br');
+});
+
+test('modo remoto desativa acesso e redistribui carteira na mesma operação', async () => {
+    const harness = createHarness({ remote: true });
+
+    await harness.service.deactivateController({
+        controllerId: 'CTRL-1',
+        fallbackControllerId: 'CTRL-2'
+    });
+
+    assert.equal(harness.defaultPersistCount, 0);
+    assert.equal(harness.gatewayCalls[0].method, 'deactivateController');
+    assert.equal(harness.gatewayCalls[0].input.controllerId, 'CTRL-1');
+    assert.equal(harness.gatewayCalls[0].input.fallbackControllerId, 'CTRL-2');
+    assert.equal(harness.gatewayCalls[0].input.reassignedCount, 1);
+});
+
+test('modo remoto provisiona e desativa integrante do Inventário', async () => {
+    const harness = createHarness({ remote: true });
+
+    const saved = await harness.service.saveInventoryMember({
+        name: 'Carla Inventário',
+        email: 'carla.inventario@rioeduca.net'
+    });
+    await harness.service.deactivateInventoryMember({ memberId: saved.value.member.id });
+
+    assert.deepEqual(
+        harness.gatewayCalls.map(call => call.method),
+        ['saveInventoryMember', 'deactivateInventoryMember']
+    );
+    assert.equal(harness.defaultPersistCount, 0);
+});

@@ -15,18 +15,42 @@
 }(typeof window !== 'undefined' ? window : globalThis, function createAuthGateApi() {
     'use strict';
 
-    const ROLE_TO_LEGACY_PROFILE = Object.freeze({
+    const ROLE_TO_OPERATIONAL_PROFILE = Object.freeze({
         controller: 'controlador',
         federal_assistant: 'assistente',
         inventory: 'inventario',
-        sme_management: 'sme',
-        technical_admin: 'assistente'
+        sme_management: 'sme'
     });
+    const TECHNICAL_ROLES = Object.freeze(new Set(['technical_admin']));
+    const TECHNICAL_HIDDEN_SELECTORS = Object.freeze([
+        '.search-bar-container',
+        '#global-competence-badge',
+        '#exercise-select',
+        '#theme-toggle-btn',
+        '#alerts-bell-container'
+    ]);
 
-    function legacyProfileForRole(role) {
-        const profile = ROLE_TO_LEGACY_PROFILE[String(role || '')];
+    function isTechnicalRole(role) {
+        return TECHNICAL_ROLES.has(String(role || ''));
+    }
+
+    function operationalProfileForRole(role) {
+        const normalizedRole = String(role || '');
+        if (isTechnicalRole(normalizedRole)) {
+            throw new Error('Papel técnico não possui perfil operacional na interface.');
+        }
+        const profile = ROLE_TO_OPERATIONAL_PROFILE[normalizedRole];
         if (!profile) throw new Error('Perfil institucional não reconhecido pela interface.');
         return profile;
+    }
+
+    function setForcedDisplay(element, hidden) {
+        if (!element) return;
+        element.hidden = hidden;
+        element.setAttribute?.('aria-hidden', hidden ? 'true' : 'false');
+        if (!element.style) return;
+        if (hidden) element.style.setProperty?.('display', 'none', 'important');
+        else element.style.removeProperty?.('display');
     }
 
     class AuthGate {
@@ -44,7 +68,7 @@
             }
             this.bind();
             this.show('Entre para acessar o RADAR PDDE.');
-            this.root.addEventListener('radar:auth-required', event => {
+            this.root.addEventListener?.('radar:auth-required', event => {
                 this.show(event?.detail?.message || 'Entre para acessar o RADAR PDDE.');
             });
         }
@@ -122,20 +146,59 @@
             }
         }
 
-        applyAuthorization(authentication) {
-            if (!this.enabled || !authentication?.authorization) return null;
+        setAuthenticationContext(authentication) {
             const authorization = authentication.authorization;
-            const legacyProfile = legacyProfileForRole(authorization.role);
             this.root.RadarAuthContext = Object.freeze({
                 user: Object.freeze({ ...(authentication.user || {}) }),
                 authorization: Object.freeze({ ...authorization })
             });
-            this.root.switchProfile(legacyProfile);
             const label = this.document.getElementById('profile-btn-label');
             if (label) label.textContent = authorization.profile?.label || authorization.role;
             this.document.body.dataset.authRole = authorization.role;
+        }
+
+        setOperationalChromeVisible(visible) {
+            setForcedDisplay(this.document.querySelector('.sidebar'), !visible);
+            TECHNICAL_HIDDEN_SELECTORS.forEach(selector => {
+                setForcedDisplay(this.document.querySelector(selector), !visible);
+            });
+            const app = this.document.getElementById('app-layout');
+            if (app?.style) {
+                if (visible) app.style.removeProperty?.('grid-template-columns');
+                else app.style.setProperty?.('grid-template-columns', '1fr', 'important');
+            }
+        }
+
+        renderTechnicalAccess(authentication) {
+            this.setAuthenticationContext(authentication);
+            this.setOperationalChromeVisible(false);
+            const container = this.document.getElementById('main-container');
+            if (container) {
+                container.innerHTML = `
+                    <section class="panel-card radar-technical-access" aria-labelledby="technical-access-title">
+                        <h1 id="technical-access-title">Acesso técnico</h1>
+                        <p>Esta conta administra segurança, perfis, escopos e infraestrutura do RADAR PDDE.</p>
+                        <p>Não há uma superfície operacional atribuída a este papel. As ações técnicas permanecem separadas do trabalho cotidiano da equipe.</p>
+                    </section>
+                `;
+            }
             this.hide();
-            return legacyProfile;
+            return null;
+        }
+
+        applyAuthorization(authentication) {
+            if (!this.enabled || !authentication?.authorization) return null;
+            const authorization = authentication.authorization;
+            if (isTechnicalRole(authorization.role)) {
+                return this.renderTechnicalAccess(authentication);
+            }
+
+            const operationalProfile = operationalProfileForRole(authorization.role);
+            this.setOperationalChromeVisible(true);
+            this.setAuthenticationContext(authentication);
+            this.root.switchProfile(operationalProfile);
+            this.hide();
+            return operationalProfile;
         }
 
         async handleSignOut() {
@@ -154,7 +217,11 @@
 
     return Object.freeze({
         AuthGate,
-        ROLE_TO_LEGACY_PROFILE,
-        legacyProfileForRole
+        ROLE_TO_OPERATIONAL_PROFILE,
+        operationalProfileForRole,
+        isTechnicalRole,
+        // Compatibilidade de importação para consumidores anteriores; o conteúdo já exclui o papel técnico.
+        ROLE_TO_LEGACY_PROFILE: ROLE_TO_OPERATIONAL_PROFILE,
+        legacyProfileForRole: operationalProfileForRole
     });
 }));

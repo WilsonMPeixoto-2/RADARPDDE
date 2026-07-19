@@ -4,15 +4,15 @@
     const contract = typeof module !== 'undefined' && module.exports
         ? require('../data/repository-contract.js')
         : root.RadarRepositoryContract;
-    const api = factory(contract);
+    const api = factory(contract, root);
 
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
     if (root) root.RadarDirectoryService = Object.freeze(api);
-}(typeof window !== 'undefined' ? window : globalThis, function createDirectoryServiceApi(contract) {
+}(typeof window !== 'undefined' ? window : globalThis, function createDirectoryServiceApi(contract, root) {
     'use strict';
 
     if (!contract) throw new Error('RadarRepositoryContract é obrigatório.');
-    const { RepositoryError } = contract;
+    const { RepositoryError, cloneValue } = contract;
 
     function text(value) {
         return value == null ? '' : String(value).trim();
@@ -22,12 +22,52 @@
         throw new RepositoryError(code, message, { operation });
     }
 
+    async function runtimeGateway(method, value) {
+        if (root?.RADAR_PDDE_CONFIG?.supabase?.connectionEnabled !== true) return null;
+        if (!root.RadarTeamAccountGateway?.TeamAccountGateway) {
+            const base = root.document?.baseURI || root.location?.href || '/';
+            await import(new URL('src/application/team-account-gateway.js', base).href);
+        }
+        const client = root.RadarSessionContext?.service?.client;
+        if (!client || !root.RadarTeamAccountGateway?.TeamAccountGateway) {
+            fail(
+                'MISSING_FUNCTIONS_CLIENT',
+                'O serviço autenticado de contas da equipe não está disponível.',
+                method
+            );
+        }
+        const gateway = new root.RadarTeamAccountGateway.TeamAccountGateway({
+            client,
+            enabled: true
+        });
+        return gateway[method](value);
+    }
+
+    function createRuntimeGateway() {
+        if (root?.RADAR_PDDE_CONFIG?.supabase?.connectionEnabled !== true) return null;
+        return Object.freeze({
+            saveController: value => runtimeGateway('saveController', value),
+            deactivateController: value => runtimeGateway('deactivateController', value),
+            saveInventoryMember: value => runtimeGateway('saveInventoryMember', value),
+            deactivateInventoryMember: value => runtimeGateway('deactivateInventoryMember', value)
+        });
+    }
+
+    function withRemotePersist(command, gateway, method) {
+        if (!gateway || typeof gateway[method] !== 'function') return command;
+        return {
+            ...command,
+            persist: async ({ value }) => gateway[method](value)
+        };
+    }
+
     class DirectoryService {
         constructor(options = {}) {
             this.dataService = options.dataService;
             this.getState = options.getState;
             this.appendLog = options.appendLog;
             this.createId = options.createId || (prefix => `${prefix}-${Date.now()}`);
+            this.teamAccountGateway = options.teamAccountGateway || createRuntimeGateway();
             if (!this.dataService || typeof this.dataService.execute !== 'function'
                 || typeof this.getState !== 'function'
                 || typeof this.appendLog !== 'function') {
@@ -81,36 +121,46 @@
 
         async saveController(input = {}) {
             const name = text(input.name);
-            const email = text(input.email);
+            const email = text(input.email).toLowerCase();
             if (!name || !email) fail('VALIDATION_FAILED', 'Preencha nome e e-mail do controlador.', 'saveController');
-            return this.dataService.execute({
+            const command = {
                 name: 'directory:save-controller',
                 changedEntities: ['controllers', 'administrativeLogs'],
                 mutate: () => {
                     const { controllers } = this.getState();
                     const existing = input.id ? controllers.find(item => item.id === input.id) : null;
                     if (input.id && !existing) fail('NOT_FOUND', 'Controlador não localizado.', 'saveController');
+                    const previousController = existing ? cloneValue(existing) : null;
                     const previousName = existing?.name;
                     const controller = existing || { id: this.createId('ctrl') };
                     controller.name = name;
                     controller.email = email;
                     controller.active = true;
                     if (!existing) controllers.push(controller);
-                    this.appendLog(
+                    const administrativeLog = this.appendLog(
                         'Gestão de Equipe',
                         existing
                             ? `Dados do controlador ${previousName} atualizados para: ${name} (${email}).`
-                            : `Controlador ${name} (${email}) adicionado à equipe.`
+                            : `Controlador ${name} (${email}) adicionado à equipe e convidado para acesso.`
                     );
-                    return { controller: { ...controller } };
+                    return {
+                        controller: cloneValue(controller),
+                        previousController,
+                        administrativeLog: cloneValue(administrativeLog)
+                    };
                 }
-            });
+            };
+            return this.dataService.execute(withRemotePersist(
+                command,
+                this.teamAccountGateway,
+                'saveController'
+            ));
         }
 
         async deactivateController(input = {}) {
             const controllerId = text(input.controllerId);
             const fallbackControllerId = text(input.fallbackControllerId);
-            return this.dataService.execute({
+            const command = {
                 name: 'directory:deactivate-controller',
                 changedEntities: ['controllers', 'schools', 'administrativeLogs'],
                 mutate: () => {
@@ -128,46 +178,66 @@
                     }
                     assigned.forEach(school => { school.controladorId = fallback.id; });
                     controller.active = false;
-                    this.appendLog(
+                    const administrativeLog = this.appendLog(
                         'Gestão de Equipe',
-                        `Controlador ${controller.name} desativado. ${assigned.length} escolas foram transferidas${fallback ? ` para ${fallback.name}` : ''}.`
+                        `Controlador ${controller.name} desativado. ${assigned.length} escolas foram transferidas${fallback ? ` para ${fallback.name}` : ''}. O acesso ao RADAR foi desativado.`
                     );
-                    return { controllerId, reassignedCount: assigned.length };
+                    return {
+                        controllerId,
+                        fallbackControllerId: fallback?.id || null,
+                        reassignedCount: assigned.length,
+                        administrativeLog: cloneValue(administrativeLog)
+                    };
                 }
-            });
+            };
+            return this.dataService.execute(withRemotePersist(
+                command,
+                this.teamAccountGateway,
+                'deactivateController'
+            ));
         }
 
         async saveInventoryMember(input = {}) {
             const name = text(input.name);
-            const email = text(input.email);
+            const email = text(input.email).toLowerCase();
             if (!name || !email) fail('VALIDATION_FAILED', 'Preencha nome e e-mail do integrante.', 'saveInventoryMember');
-            return this.dataService.execute({
+            const command = {
                 name: 'directory:save-inventory-member',
                 changedEntities: ['inventoryTeamMembers', 'administrativeLogs'],
                 mutate: () => {
                     const { inventoryTeamMembers } = this.getState();
                     const existing = input.id ? inventoryTeamMembers.find(item => item.id === input.id) : null;
                     if (input.id && !existing) fail('NOT_FOUND', 'Integrante não localizado.', 'saveInventoryMember');
+                    const previousMember = existing ? cloneValue(existing) : null;
                     const previousName = existing?.name;
                     const member = existing || { id: this.createId('inv') };
                     member.name = name;
                     member.email = email;
                     member.active = true;
                     if (!existing) inventoryTeamMembers.push(member);
-                    this.appendLog(
+                    const administrativeLog = this.appendLog(
                         'Gestão de Equipe',
                         existing
                             ? `Dados do integrante do Inventário ${previousName} atualizados para: ${name} (${email}).`
-                            : `Integrante do Inventário ${name} (${email}) adicionado à equipe.`
+                            : `Integrante do Inventário ${name} (${email}) adicionado à equipe e convidado para acesso.`
                     );
-                    return { member: { ...member } };
+                    return {
+                        member: cloneValue(member),
+                        previousMember,
+                        administrativeLog: cloneValue(administrativeLog)
+                    };
                 }
-            });
+            };
+            return this.dataService.execute(withRemotePersist(
+                command,
+                this.teamAccountGateway,
+                'saveInventoryMember'
+            ));
         }
 
         async deactivateInventoryMember(input = {}) {
             const memberId = text(input.memberId);
-            return this.dataService.execute({
+            const command = {
                 name: 'directory:deactivate-inventory-member',
                 changedEntities: ['inventoryTeamMembers', 'administrativeLogs'],
                 mutate: () => {
@@ -178,13 +248,23 @@
                         fail('LAST_ACTIVE_MEMBER', 'Não é possível desativar o único integrante ativo.', 'deactivateInventoryMember');
                     }
                     member.active = false;
-                    this.appendLog('Gestão de Equipe', `Integrante do Inventário ${member.name} desativado sem apagar seu histórico.`);
-                    return { memberId };
+                    const administrativeLog = this.appendLog(
+                        'Gestão de Equipe',
+                        `Integrante do Inventário ${member.name} desativado sem apagar seu histórico. O acesso ao RADAR foi desativado.`
+                    );
+                    return {
+                        memberId,
+                        administrativeLog: cloneValue(administrativeLog)
+                    };
                 }
-            });
+            };
+            return this.dataService.execute(withRemotePersist(
+                command,
+                this.teamAccountGateway,
+                'deactivateInventoryMember'
+            ));
         }
     }
 
     return Object.freeze({ DirectoryService });
 }));
-

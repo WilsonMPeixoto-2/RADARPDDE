@@ -16,7 +16,8 @@ const REQUIRED_MIGRATIONS = Object.freeze([
     '202607140009_verification_payload.sql',
     '20260714180621_preconnection_auth_and_api_grants.sql',
     '20260714220136_preconnection_transactions_and_json_contracts.sql',
-    '20260714220146_preconnection_reversible_import.sql'
+    '20260714220146_preconnection_reversible_import.sql',
+    '202607190001_team_management_auth_alignment.sql'
 ]);
 
 const REQUIRED_ARTIFACTS = Object.freeze([
@@ -36,6 +37,7 @@ const REQUIRED_ARTIFACTS = Object.freeze([
     'src/integration/exercise-early-init.js',
     'src/integration/auth-bootstrap.js',
     'src/integration/auth-gate.js',
+    'src/application/team-account-gateway.js',
     'src/vendor/supabase-client-entry.js',
     'src/types/database.types.ts',
     'vendor/supabase-client.js',
@@ -49,31 +51,44 @@ const REQUIRED_ARTIFACTS = Object.freeze([
     'scripts/generate-runtime-config.mjs',
     'scripts/build-vercel.mjs',
     'scripts/check-generated-artifacts.js',
+    'scripts/check-supabase-final-alignment.js',
     'supabase/config.toml',
     'supabase/seed.sql',
     'supabase/fixtures/auth-users.json',
+    'supabase/functions/_shared/team-account-domain.mjs',
+    'supabase/functions/team-account-management/index.ts',
     'supabase/tests/database/schema.test.sql',
     'supabase/tests/database/rls.test.sql',
     'supabase/tests/database/invoice-rpc.test.sql',
     'supabase/tests/database/json-contracts.test.sql',
     'supabase/tests/database/operations-rpc.test.sql',
+    'supabase/tests/database/team-management-rpc.test.sql',
     'tests/unit/auth-database-gate.test.js',
     'tests/unit/auth-bootstrap.test.js',
     'tests/unit/auth-frontend-contract.test.js',
     'tests/unit/auth-gate.test.js',
     'tests/unit/session-service.test.js',
+    'tests/unit/team-account-gateway.test.js',
+    'tests/unit/team-account-domain.test.js',
+    'tests/unit/vercel-preview-workflow.test.js',
     'tests/e2e/supabase-auth-local.spec.js',
     'tests/e2e/supabase-full-contract.spec.js',
     'tests/e2e/data-error-ux.spec.js',
     'tsconfig.database-types.json',
     'docs/reference/SUPABASE_FUNCTIONAL_COVERAGE.md',
     'docs/reference/SUPABASE_INTEGRATION_AUDIT.md',
+    'docs/reference/SUPABASE_PERMISSIONS_MATRIX.md',
     'docs/runbooks/SUPABASE_CONNECTION.md',
     'docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md',
     '.github/workflows/supabase-remote-validation.yml',
     '.github/workflows/supabase-remote-post-apply.yml',
+    '.github/workflows/vercel-preview-prebuilt.yml',
     'supabase/verification/remote-preflight.sql',
-    'supabase/verification/remote-post-apply.sql'
+    'supabase/verification/remote-post-apply.sql',
+    'AGENTS.md',
+    'docs/PROJECT_CONTEXT.md',
+    'docs/CURRENT_STAGE.md',
+    'docs/DECISION_LOG.md'
 ]);
 
 function decodeJwtRole(token) {
@@ -233,8 +248,8 @@ function validateRemoteWorkflowContracts(preflightSource, postApplySource) {
     if (dryRunIndex < 0 || applyIndex < 0 || dryRunIndex > applyIndex) {
         findings.push('O workflow pós-aplicação deve executar dry-run antes do db push efetivo.');
     }
-    if (!postApply.includes('APLICAR_12_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL')) {
-        findings.push('O workflow pós-aplicação exige confirmação textual do alvo descartável.');
+    if (!postApply.includes('APLICAR_13_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL')) {
+        findings.push('O workflow pós-aplicação exige confirmação textual das 13 migrations no alvo descartável.');
     }
     if (applyIndex >= 0 && !postApplyPushes[applyIndex].includes('--yes')) {
         findings.push('O db push efetivo deve ser não interativo somente após a confirmação explícita.');
@@ -244,7 +259,8 @@ function validateRemoteWorkflowContracts(preflightSource, postApplySource) {
         'supabase db lint',
         'supabase test db',
         'supabase gen types',
-        'supabase db advisors'
+        'supabase db advisors',
+        'supabase functions deploy team-account-management'
     ].forEach(fragment => {
         if (!postApply.includes(fragment)) {
             findings.push(`Workflow pós-aplicação incompleto: ${fragment} ausente.`);
@@ -410,12 +426,13 @@ function runReadinessChecks(rootDir = path.resolve(__dirname, '..')) {
         path.join(rootDir, 'package.json'),
         ...listFilesRecursively(path.join(rootDir, 'src')),
         ...listFilesRecursively(path.join(rootDir, 'scripts')),
+        ...listFilesRecursively(path.join(rootDir, 'supabase', 'functions')),
         ...listFilesRecursively(path.join(rootDir, '.github', 'workflows'))
     ];
 
     scanFiles
         .filter(filePath => fs.existsSync(filePath))
-        .filter(filePath => /\.(?:js|mjs|cjs|json|ya?ml|env)$/i.test(filePath))
+        .filter(filePath => /\.(?:js|mjs|cjs|ts|json|ya?ml|env)$/i.test(filePath))
         .forEach(filePath => {
             const source = fs.readFileSync(filePath, 'utf8');
             findings.push(...scanTextForSecrets(source, relative(rootDir, filePath)));

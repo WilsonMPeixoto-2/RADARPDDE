@@ -13,6 +13,7 @@ on:
       - 'scripts/check-supabase-readiness.js'
       - 'scripts/bootstrap-local-auth-fixtures.mjs'
       - 'scripts/check-local-auth-fixtures.mjs'
+      - 'scripts/check-team-account-function.mjs'
       - 'scripts/check-generated-artifacts.js'
       - 'scripts/build-supabase-client.mjs'
       - 'scripts/generate-runtime-config.mjs'
@@ -47,6 +48,7 @@ on:
       - 'scripts/check-supabase-readiness.js'
       - 'scripts/bootstrap-local-auth-fixtures.mjs'
       - 'scripts/check-local-auth-fixtures.mjs'
+      - 'scripts/check-team-account-function.mjs'
       - 'scripts/check-generated-artifacts.js'
       - 'scripts/build-supabase-client.mjs'
       - 'scripts/generate-runtime-config.mjs'
@@ -167,7 +169,7 @@ jobs:
       - name: Iniciar Supabase local
         run: npm run supabase:start
 
-      - name: Recriar banco com doze migrations e seed local
+      - name: Recriar banco com treze migrations e seed local
         run: npm run supabase:reset
 
       - name: Validar contratos operacionais do preflight remoto
@@ -250,6 +252,9 @@ jobs:
           path: auth-probe.log
           if-no-files-found: error
           retention-days: 1
+
+      - name: Validar autorização da Edge Function de Gestão de Equipe
+        run: npm run check:team-account-function
 
       - name: Exercitar frontend, Auth e RLS na pilha Supabase local
         env:
