@@ -1,0 +1,980 @@
+/*
+ * Direção Expressiva Institucional do Painel do Controlador.
+ * Preserva a estrutura, os dados e os contratos funcionais do RADAR.
+ */
+
+body.radar-expressiva-institucional {
+    --primary: #6d28d9;
+    --primary-hover: #5b21b6;
+    --primary-dark: #3f176f;
+    --primary-glow: rgba(109, 40, 217, 0.13);
+    --bg-page: #f6f3fb;
+    --bg-card: rgba(255, 255, 255, 0.94);
+    --bg-input: #f3eef9;
+    --text-main: #21162f;
+    --text-primary: #21162f;
+    --text-muted: #6e637d;
+    --border-color: rgba(88, 52, 127, 0.14);
+    --expressiva-ink: #21162f;
+    --expressiva-plum: #43156f;
+    --expressiva-violet: #6d28d9;
+    --expressiva-violet-bright: #8b5cf6;
+    --expressiva-lilac: #ede4fb;
+    --expressiva-mist: #faf8fd;
+    --expressiva-blue: #2563eb;
+    --expressiva-amber: #c46a08;
+    --expressiva-rose: #b4235a;
+    background:
+        radial-gradient(circle at 78% 5%, rgba(139, 92, 246, 0.09), transparent 30%),
+        linear-gradient(180deg, #faf9fd 0%, #f5f1fa 100%);
+    color: var(--expressiva-ink);
+    font-size: 14.25px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+body.radar-expressiva-institucional #app-layout {
+    background: transparent;
+}
+
+body.radar-expressiva-institucional aside.sidebar {
+    width: 264px;
+    padding: 22px 16px 18px;
+    border-right: 1px solid rgba(76, 29, 149, 0.10);
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 14px 0 36px rgba(53, 32, 80, 0.045);
+    backdrop-filter: blur(18px);
+}
+
+body.radar-expressiva-institucional .content-area {
+    min-width: 0;
+}
+
+body.radar-expressiva-institucional .sidebar-logo {
+    gap: 12px;
+    margin-bottom: 24px;
+    padding: 0 6px 22px;
+    border-bottom: 1px solid rgba(76, 29, 149, 0.09);
+}
+
+body.radar-expressiva-institucional .sidebar-logo > svg {
+    width: 38px;
+    height: 38px;
+    padding: 8px;
+    border-radius: 12px;
+    background: linear-gradient(145deg, #7c3aed 0%, #4c1d95 100%);
+    color: #fff;
+    filter: drop-shadow(0 9px 14px rgba(76, 29, 149, 0.23));
+    stroke-width: 1.9;
+}
+
+body.radar-expressiva-institucional .logo-text {
+    color: var(--expressiva-ink);
+    font-size: 1.38rem;
+    font-weight: 750;
+    letter-spacing: 0.012em;
+}
+
+body.radar-expressiva-institucional .logo-sub {
+    margin-top: 1px;
+    color: #796d88;
+    font-size: 0.76rem;
+    font-weight: 500;
+    letter-spacing: 0.015em;
+}
+
+body.radar-expressiva-institucional .nav-group {
+    gap: 5px;
+    margin-bottom: 20px;
+}
+
+body.radar-expressiva-institucional .nav-label {
+    margin: 0 8px 6px;
+    color: #81758f;
+    font-size: 0.69rem;
+    font-weight: 750;
+    letter-spacing: 0.105em;
+}
+
+body.radar-expressiva-institucional .nav-item {
+    min-height: 46px;
+    gap: 10px;
+    padding: 7px 10px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    color: #5f546f;
+    font-size: 0.91rem;
+    font-weight: 550;
+    transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+body.radar-expressiva-institucional .nav-item svg {
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    padding: 5px;
+    border-radius: 9px;
+    background: #f5f1fa;
+    color: #70657f;
+    stroke-width: 1.85;
+}
+
+body.radar-expressiva-institucional .nav-item:hover {
+    border-color: rgba(109, 40, 217, 0.10);
+    background: rgba(109, 40, 217, 0.045);
+    color: var(--expressiva-plum);
+}
+
+body.radar-expressiva-institucional .nav-item.active {
+    border-color: rgba(109, 40, 217, 0.18);
+    background: linear-gradient(90deg, rgba(109, 40, 217, 0.14), rgba(139, 92, 246, 0.055));
+    color: #511b8d;
+    font-weight: 700;
+    box-shadow: inset 3px 0 0 #6d28d9, 0 8px 24px rgba(76, 29, 149, 0.075);
+}
+
+body.radar-expressiva-institucional .nav-item.active svg {
+    background: linear-gradient(145deg, #7c3aed, #5b21b6);
+    color: #fff;
+    filter: none;
+    box-shadow: 0 6px 14px rgba(76, 29, 149, 0.20);
+}
+
+body.radar-expressiva-institucional .sidebar-footer {
+    padding: 14px 0 0;
+    border-top: 1px solid rgba(76, 29, 149, 0.09);
+}
+
+body.radar-expressiva-institucional .user-badge {
+    padding: 11px;
+    border: 1px solid rgba(109, 40, 217, 0.10);
+    border-radius: 14px;
+    background: linear-gradient(145deg, #ffffff, #f8f4fd);
+    box-shadow: 0 8px 22px rgba(53, 32, 80, 0.06);
+}
+
+body.radar-expressiva-institucional .user-avatar {
+    width: 38px;
+    height: 38px;
+    background: linear-gradient(145deg, #6d28d9, #3f176f);
+    box-shadow: 0 7px 14px rgba(76, 29, 149, 0.20);
+}
+
+body.radar-expressiva-institucional .user-name {
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+body.radar-expressiva-institucional .user-role {
+    color: #6d28d9;
+    font-size: 0.77rem;
+    font-weight: 600;
+}
+
+body.radar-expressiva-institucional header.top-header {
+    height: 72px;
+    padding: 12px 28px;
+    border-bottom: 1px solid rgba(76, 29, 149, 0.09);
+    background: rgba(255, 255, 255, 0.84);
+    box-shadow: 0 10px 30px rgba(53, 32, 80, 0.035);
+    backdrop-filter: blur(18px);
+}
+
+body.radar-expressiva-institucional .search-bar-container {
+    height: 44px;
+    border: 1px solid rgba(109, 40, 217, 0.10);
+    border-radius: 14px;
+    background: linear-gradient(145deg, rgba(247, 243, 252, 0.98), rgba(240, 234, 248, 0.92));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+body.radar-expressiva-institucional .search-input {
+    color: var(--expressiva-ink);
+    font-size: 0.9rem;
+}
+
+body.radar-expressiva-institucional .search-bar-container svg {
+    color: #6d28d9;
+    stroke-width: 2;
+}
+
+body.radar-expressiva-institucional .global-competence-badge,
+body.radar-expressiva-institucional .exercise-selector,
+body.radar-expressiva-institucional .bell-button,
+body.radar-expressiva-institucional .profile-button {
+    min-height: 40px;
+    border: 1px solid rgba(109, 40, 217, 0.11);
+    background: rgba(248, 244, 253, 0.92);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+body.radar-expressiva-institucional .global-competence-badge {
+    border-radius: 11px;
+    color: #5f546f;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 0.84rem;
+    font-weight: 600;
+}
+
+body.radar-expressiva-institucional .global-competence-badge strong {
+    color: #5b21b6;
+    font-weight: 750;
+}
+
+body.radar-expressiva-institucional .exercise-selector {
+    border-radius: 11px;
+    color: var(--expressiva-ink);
+    font-size: 0.86rem;
+    font-weight: 650;
+}
+
+body.radar-expressiva-institucional .bell-button {
+    border-color: transparent;
+    border-radius: 11px;
+    color: #534762;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 0 0 1px rgba(109, 40, 217, 0.07);
+}
+
+body.radar-expressiva-institucional .profile-button {
+    border-color: rgba(76, 29, 149, 0.16);
+    border-radius: 999px;
+    background: linear-gradient(135deg, #eee6fb 0%, #d8c7f3 100%);
+    color: #35134f;
+    font-size: 0.88rem;
+    font-weight: 750;
+    box-shadow: 0 7px 18px rgba(76, 29, 149, 0.11);
+}
+
+body.radar-expressiva-institucional .page-container {
+    padding: 31px 32px 48px;
+    background:
+        radial-gradient(circle at 86% 0%, rgba(109, 40, 217, 0.07), transparent 26%),
+        transparent;
+}
+
+body.radar-expressiva-institucional .page-header {
+    align-items: flex-start;
+    margin-bottom: 19px;
+}
+
+body.radar-expressiva-institucional .radar-page-eyebrow {
+    display: block;
+    margin-bottom: 4px;
+    color: #6d28d9;
+    font-size: 0.69rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+body.radar-expressiva-institucional .page-title h1 {
+    margin: 0;
+    color: #21162f;
+    font-family: Outfit, sans-serif;
+    font-size: 2.05rem;
+    font-weight: 750;
+    letter-spacing: -0.027em;
+    line-height: 1.1;
+}
+
+body.radar-expressiva-institucional .page-title p {
+    max-width: 880px;
+    margin-top: 7px;
+    color: #655a72;
+    font-size: 0.93rem;
+    line-height: 1.55;
+}
+
+body.radar-expressiva-institucional .page-title p strong {
+    color: #43364f;
+    font-weight: 750;
+}
+
+body.radar-expressiva-institucional .page-header > .badge-info {
+    margin-top: 4px;
+    padding: 7px 12px;
+    border: 1px solid rgba(37, 99, 235, 0.10);
+    border-radius: 999px;
+    background: #eaf2ff;
+    color: #1d55b5;
+    font-size: 0.79rem;
+    font-weight: 700;
+}
+
+body.radar-expressiva-institucional .tab-container {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 20px !important;
+    padding: 6px;
+    border: 1px solid rgba(109, 40, 217, 0.10);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.68);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 7px 22px rgba(53, 32, 80, 0.04);
+}
+
+body.radar-expressiva-institucional .tab-button {
+    min-height: 38px;
+    padding: 8px 15px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    color: #655a73;
+    font-size: 0.84rem;
+    font-weight: 650;
+    transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+body.radar-expressiva-institucional .tab-button:hover {
+    background: #f4eefb;
+    color: #4c1d95;
+}
+
+body.radar-expressiva-institucional .tab-button.active {
+    border-color: rgba(109, 40, 217, 0.15);
+    background: linear-gradient(145deg, #ffffff, #f0e8fb);
+    color: #5b21b6;
+    font-weight: 750;
+    box-shadow: 0 5px 14px rgba(76, 29, 149, 0.10), inset 0 -2px 0 #7c3aed;
+}
+
+body.radar-expressiva-institucional .cycle-b-dashboard-stats {
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+body.radar-expressiva-institucional .cycle-b-dashboard-card {
+    position: relative;
+    min-height: 210px;
+    gap: 0;
+    padding: 18px;
+    overflow: hidden;
+    border: 1px solid rgba(88, 52, 127, 0.13);
+    border-radius: 18px;
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.98), rgba(250, 248, 253, 0.96));
+    box-shadow: 0 10px 26px rgba(53, 32, 80, 0.055), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+    transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+body.radar-expressiva-institucional .cycle-b-dashboard-card::before {
+    top: 0;
+    right: 0;
+    bottom: auto;
+    left: 0;
+    width: auto;
+    height: 4px;
+    border-radius: 18px 18px 0 0;
+    background: #b9a6d2;
+    opacity: 0.74;
+    transform: none;
+}
+
+body.radar-expressiva-institucional .cycle-b-dashboard-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(109, 40, 217, 0.27);
+    box-shadow: 0 16px 34px rgba(53, 32, 80, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+body.radar-expressiva-institucional .cycle-b-dashboard-card:focus-visible {
+    outline: 3px solid rgba(37, 99, 235, 0.30);
+    outline-offset: 3px;
+}
+
+body.radar-expressiva-institucional .cycle-b-dashboard-card .stat-icon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 14px;
+    border: 1px solid rgba(109, 40, 217, 0.09);
+    border-radius: 14px;
+    background: #f2ebfb;
+    color: #6d28d9;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86), 0 8px 18px rgba(76, 29, 149, 0.075);
+}
+
+body.radar-expressiva-institucional .cycle-b-dashboard-card .stat-icon svg {
+    width: 25px;
+    height: 25px;
+    stroke-width: 1.9;
+}
+
+body.radar-expressiva-institucional .cycle-b-dashboard-card .stat-label {
+    color: #5f526d;
+    font-size: 0.84rem;
+    font-weight: 720;
+    letter-spacing: 0.008em;
+    line-height: 1.28;
+}
+
+body.radar-expressiva-institucional .cycle-b-dashboard-card .stat-value {
+    margin-top: 4px;
+    color: #21162f;
+    font-family: Outfit, sans-serif;
+    font-size: 1.84rem;
+    font-weight: 760;
+    letter-spacing: -0.025em;
+    line-height: 1.06;
+}
+
+body.radar-expressiva-institucional .cycle-b-dashboard-card .cycle-b-card-detail {
+    margin-top: 10px;
+    color: #685d74;
+    font-size: 0.82rem;
+    line-height: 1.46;
+}
+
+body.radar-expressiva-institucional .cycle-b-dashboard-card[data-radar-card="bonus"]::before {
+    background: #7857a8;
+}
+
+body.radar-expressiva-institucional .cycle-b-dashboard-card[data-radar-card="bonus"] .stat-icon {
+    border-color: rgba(102, 75, 145, 0.13);
+    background: #eee9f5;
+    color: #654696;
+}
+
+body.radar-expressiva-institucional .cycle-b-dashboard-card[data-radar-card="open"]::before {
+    background: #d97706;
+}
+
+body.radar-expressiva-institucional .cycle-b-dashboard-card[data-radar-card="open"] .stat-icon {
+    border-color: rgba(217, 119, 6, 0.13);
+    background: #fff1df;
+    color: #bd6506;
+}
+
+body.radar-expressiva-institucional .cycle-b-dashboard-card[data-radar-card="review"]::before {
+    background: #2563eb;
+}
+
+body.radar-expressiva-institucional .cycle-b-dashboard-card[data-radar-card="review"] .stat-icon {
+    border-color: rgba(37, 99, 235, 0.12);
+    background: #eaf2ff;
+    color: #2563eb;
+}
+
+body.radar-expressiva-institucional .cycle-b-dashboard-card[data-radar-card="assets"]::before {
+    background: #8b3fc0;
+}
+
+body.radar-expressiva-institucional .cycle-b-dashboard-card[data-radar-card="assets"] .stat-icon {
+    border-color: rgba(139, 63, 192, 0.12);
+    background: #f4eafd;
+    color: #7b2fb2;
+}
+
+body.radar-expressiva-institucional .cycle-b-dashboard-card.is-selected,
+body.radar-expressiva-institucional .cycle-b-dashboard-card[aria-pressed="true"] {
+    border-color: rgba(255, 255, 255, 0.24);
+    background: linear-gradient(150deg, #7b34df 0%, #5b21b6 46%, #3e165f 100%);
+    box-shadow: 0 19px 38px rgba(76, 29, 149, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+body.radar-expressiva-institucional .cycle-b-dashboard-card.is-selected::before,
+body.radar-expressiva-institucional .cycle-b-dashboard-card[aria-pressed="true"]::before {
+    height: 5px;
+    background: linear-gradient(90deg, #f5e9ff, #bca0ff 52%, #e4d5ff);
+    opacity: 1;
+}
+
+body.radar-expressiva-institucional .cycle-b-dashboard-card[aria-pressed="true"] .stat-icon {
+    border-color: rgba(255, 255, 255, 0.24);
+    background: rgba(255, 255, 255, 0.16);
+    color: #fff;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24), 0 10px 22px rgba(29, 8, 49, 0.24);
+}
+
+body.radar-expressiva-institucional .cycle-b-dashboard-card[aria-pressed="true"] .stat-label,
+body.radar-expressiva-institucional .cycle-b-dashboard-card[aria-pressed="true"] .stat-value,
+body.radar-expressiva-institucional .cycle-b-dashboard-card[aria-pressed="true"] .cycle-b-card-detail {
+    color: #fff;
+}
+
+body.radar-expressiva-institucional .cycle-b-dashboard-card[aria-pressed="true"] .cycle-b-card-detail {
+    color: rgba(255, 255, 255, 0.86);
+}
+
+body.radar-expressiva-institucional .radar-card-status {
+    position: absolute;
+    top: 18px;
+    right: 15px;
+    padding: 5px 8px;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+    font-size: 0.61rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+body.radar-expressiva-institucional .cycle-b-overlap-note {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr);
+    gap: 8px;
+    align-items: center;
+    margin: -2px 0 19px;
+    padding: 11px 14px;
+    border: 1px solid rgba(109, 40, 217, 0.15);
+    border-left: 4px solid #6d28d9;
+    border-radius: 12px;
+    background: linear-gradient(90deg, rgba(109, 40, 217, 0.105), rgba(255, 255, 255, 0.75));
+    color: #5f536c;
+    box-shadow: 0 7px 20px rgba(53, 32, 80, 0.04);
+    font-size: 0.84rem;
+    line-height: 1.4;
+}
+
+body.radar-expressiva-institucional .radar-context-caption {
+    color: #725987;
+    font-size: 0.64rem;
+    font-weight: 800;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+}
+
+body.radar-expressiva-institucional .radar-context-value {
+    padding-right: 9px;
+    border-right: 1px solid rgba(109, 40, 217, 0.18);
+    color: #511b8d;
+    font-size: 0.84rem;
+    font-weight: 800;
+}
+
+body.radar-expressiva-institucional .radar-context-explanation {
+    color: #5d5269;
+    font-size: 0.83rem;
+}
+
+body.radar-expressiva-institucional .dash-layout {
+    grid-template-columns: minmax(0, 1.8fr) minmax(320px, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+body.radar-expressiva-institucional .panel-card {
+    overflow: hidden;
+    border: 1px solid rgba(88, 52, 127, 0.13);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 14px 34px rgba(53, 32, 80, 0.065), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+body.radar-expressiva-institucional .radar-result-panel {
+    border-top: 4px solid #6d28d9;
+}
+
+body.radar-expressiva-institucional .radar-result-panel > .panel-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(190px, 228px);
+    column-gap: 20px;
+    row-gap: 4px;
+    align-items: end;
+    padding: 23px 24px 21px;
+    border-bottom: 1px solid rgba(88, 52, 127, 0.14);
+    background: linear-gradient(165deg, #fefcff 0%, #f6f0fb 100%);
+    box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.75);
+}
+
+body.radar-expressiva-institucional .cycle-b-result-title {
+    grid-column: 1;
+    margin: 0;
+    color: #6d28d9;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.11em;
+    line-height: 1.3;
+    text-transform: uppercase;
+}
+
+body.radar-expressiva-institucional .dashboard-list-heading {
+    grid-column: 1;
+    display: grid;
+    gap: 9px;
+    margin: 0;
+    color: #21162f;
+    font-family: Outfit, sans-serif;
+    font-size: 1.28rem;
+    font-weight: 670;
+    letter-spacing: -0.015em;
+    line-height: 1.28;
+}
+
+body.radar-expressiva-institucional .dashboard-competencia-pill {
+    width: fit-content;
+    padding: 6px 10px;
+    border: 1px solid rgba(109, 40, 217, 0.11);
+    border-radius: 8px;
+    background: #eee6fb;
+    color: #5b21b6;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 0.77rem;
+    font-weight: 750;
+    letter-spacing: 0;
+}
+
+body.radar-expressiva-institucional .cycle-b-result-filter-status {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: end;
+    min-width: 0;
+    margin-left: 0;
+}
+
+body.radar-expressiva-institucional .cycle-b-result-filter-status label {
+    color: #75687f;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.075em;
+}
+
+body.radar-expressiva-institucional .cycle-b-result-filter-status select {
+    min-height: 43px;
+    border: 1px solid rgba(109, 40, 217, 0.13);
+    border-radius: 11px;
+    background: #f4effa;
+    color: #35273f;
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+body.radar-expressiva-institucional .table-responsive {
+    overflow: auto;
+}
+
+body.radar-expressiva-institucional table.data-table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+body.radar-expressiva-institucional table.data-table th {
+    height: 46px;
+    padding: 12px 15px;
+    border-bottom: 1px solid rgba(88, 52, 127, 0.16);
+    background: #f5f0f9;
+    color: #5d5069;
+    font-size: 0.77rem;
+    font-weight: 800;
+    letter-spacing: 0.035em;
+    line-height: 1.35;
+}
+
+body.radar-expressiva-institucional table.data-table th:first-child {
+    text-align: left;
+}
+
+body.radar-expressiva-institucional table.data-table th:nth-child(n + 2) {
+    text-align: center;
+}
+
+body.radar-expressiva-institucional table.data-table td {
+    padding: 17px 15px;
+    border-bottom: 1px solid rgba(88, 52, 127, 0.085);
+    color: #30253b;
+    font-size: 0.87rem;
+    line-height: 1.47;
+    vertical-align: middle;
+}
+
+body.radar-expressiva-institucional table.data-table td:nth-child(2),
+body.radar-expressiva-institucional table.data-table td:nth-child(3),
+body.radar-expressiva-institucional table.data-table td:nth-child(5) {
+    text-align: center;
+}
+
+body.radar-expressiva-institucional table.data-table tbody tr {
+    transition: background-color 140ms ease, box-shadow 140ms ease;
+}
+
+body.radar-expressiva-institucional table.data-table tbody tr:hover {
+    background: #f9f5fc;
+    box-shadow: inset 3px 0 0 rgba(109, 40, 217, 0.55);
+}
+
+body.radar-expressiva-institucional table.data-table td:first-child strong {
+    color: #25192f;
+    font-size: 0.91rem;
+    font-weight: 750;
+    line-height: 1.35;
+}
+
+body.radar-expressiva-institucional table.data-table small {
+    color: #6b6076 !important;
+    font-size: 0.78rem;
+    line-height: 1.45;
+}
+
+body.radar-expressiva-institucional table.data-table .badge {
+    font-size: 0.70rem;
+    font-weight: 700;
+}
+
+body.radar-expressiva-institucional table.data-table td > .badge-info {
+    border: 1px solid rgba(37, 99, 235, 0.10);
+    background: #edf4ff;
+    color: #2054b3;
+}
+
+body.radar-expressiva-institucional table.data-table th.bonificacao-competencia-col {
+    border-right: 1px solid rgba(109, 40, 217, 0.10);
+    border-left: 1px solid rgba(109, 40, 217, 0.10);
+    background: #eee5fa;
+    color: #5b21b6;
+}
+
+body.radar-expressiva-institucional table.data-table td.bonificacao-competencia-cell {
+    border-right: 1px solid rgba(109, 40, 217, 0.08);
+    border-left: 1px solid rgba(109, 40, 217, 0.08);
+    background: rgba(109, 40, 217, 0.032);
+}
+
+body.radar-expressiva-institucional .bonificacao-competencia-cell > div > span:first-child {
+    color: #655a71 !important;
+    font-size: 0.77rem !important;
+    font-weight: 600 !important;
+}
+
+body.radar-expressiva-institucional .dashboard-status-badge {
+    border: 1px solid rgba(103, 89, 119, 0.10);
+    background: #f1eef4;
+    color: #62576e;
+}
+
+body.radar-expressiva-institucional table.data-table .btn {
+    min-height: 36px;
+    padding: 7px 11px;
+    border: 1px solid rgba(109, 40, 217, 0.17);
+    border-radius: 9px;
+    background: #f2ebfb;
+    color: #511b8d;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 0.77rem;
+    font-weight: 750;
+    box-shadow: 0 4px 10px rgba(76, 29, 149, 0.055);
+}
+
+body.radar-expressiva-institucional table.data-table .btn:hover {
+    border-color: #6d28d9;
+    background: #6d28d9;
+    color: #fff;
+    box-shadow: 0 8px 18px rgba(76, 29, 149, 0.18);
+}
+
+body.radar-expressiva-institucional .radar-action-panel {
+    position: sticky;
+    top: 92px;
+    border-top: 4px solid #4c1d95;
+    background: linear-gradient(165deg, #fefcff 0%, #f7f1fb 100%);
+}
+
+body.radar-expressiva-institucional .radar-action-panel > .panel-header {
+    display: block;
+    padding: 23px 22px 18px;
+    border-bottom: 1px solid rgba(88, 52, 127, 0.14);
+    background: linear-gradient(165deg, rgba(255, 255, 255, 0.72), rgba(244, 236, 250, 0.68));
+}
+
+body.radar-expressiva-institucional .radar-action-panel .panel-header h2 {
+    color: #261830;
+    font-size: 1.28rem;
+    font-weight: 680;
+    letter-spacing: -0.015em;
+    line-height: 1.25;
+}
+
+body.radar-expressiva-institucional .radar-action-panel .panel-header p {
+    margin-top: 7px;
+    color: #65596f;
+    font-size: 0.84rem;
+    line-height: 1.5;
+}
+
+body.radar-expressiva-institucional .radar-action-panel .panel-header .badge {
+    margin-top: 12px;
+    border: 1px solid rgba(37, 99, 235, 0.12);
+    background: #edf4ff;
+    color: #2054b3;
+    font-size: 0.73rem;
+    font-weight: 750;
+}
+
+body.radar-expressiva-institucional .cycle-b-action-list,
+body.radar-expressiva-institucional .cycle-b-action-queue-compact .cycle-b-action-list {
+    padding: 18px 20px 0;
+}
+
+body.radar-expressiva-institucional .cycle-b-action-empty {
+    gap: 7px;
+    min-height: 142px;
+    padding: 18px;
+    border: 1px solid rgba(109, 40, 217, 0.13);
+    border-left: 4px solid #8b5cf6;
+    border-radius: 13px;
+    background: linear-gradient(145deg, #faf7ff, #f1e9fb);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+body.radar-expressiva-institucional .cycle-b-action-empty strong {
+    color: #2d1f38;
+    font-size: 0.94rem;
+    font-weight: 750;
+    line-height: 1.4;
+}
+
+body.radar-expressiva-institucional .cycle-b-action-empty span {
+    color: #62566c;
+    font-size: 0.83rem;
+    line-height: 1.52;
+}
+
+body.radar-expressiva-institucional .cycle-b-action-summary {
+    gap: 15px;
+    margin: 19px 20px 0;
+    padding: 19px 0 21px;
+    border-top: 1px solid rgba(88, 52, 127, 0.12);
+}
+
+body.radar-expressiva-institucional .cycle-b-action-summary strong {
+    color: #2b1e36;
+    font-size: 0.94rem;
+    font-weight: 760;
+    line-height: 1.42;
+}
+
+body.radar-expressiva-institucional .cycle-b-action-summary span {
+    color: #65596f;
+    font-size: 0.82rem;
+    line-height: 1.5;
+}
+
+body.radar-expressiva-institucional .cycle-b-action-summary .btn,
+body.radar-expressiva-institucional .cycle-b-action-view-all {
+    min-height: 44px;
+    border: 1px solid #5b21b6;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #6d28d9, #4c1d95);
+    color: #fff;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 0.80rem;
+    font-weight: 760;
+    box-shadow: 0 9px 20px rgba(76, 29, 149, 0.20);
+}
+
+body.radar-expressiva-institucional .cycle-b-action-summary .btn:hover,
+body.radar-expressiva-institucional .cycle-b-action-view-all:hover {
+    border-color: #3f176f;
+    background: linear-gradient(135deg, #5b21b6, #35104f);
+    box-shadow: 0 12px 24px rgba(76, 29, 149, 0.24);
+}
+
+body.radar-expressiva-institucional .cycle-b-action-item {
+    border: 1px solid rgba(88, 52, 127, 0.14);
+    border-radius: 13px;
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 5px 14px rgba(53, 32, 80, 0.035);
+}
+
+body.radar-expressiva-institucional .cycle-b-action-content h3 {
+    font-size: 0.95rem;
+}
+
+body.radar-expressiva-institucional .cycle-b-action-content p,
+body.radar-expressiva-institucional .cycle-b-action-content small {
+    color: #65596f;
+    font-size: 0.81rem;
+    line-height: 1.46;
+}
+
+@media (max-width: 1180px) {
+    body.radar-expressiva-institucional .cycle-b-dashboard-stats {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    body.radar-expressiva-institucional .dash-layout {
+        grid-template-columns: 1fr;
+    }
+
+    body.radar-expressiva-institucional .radar-action-panel {
+        position: static;
+    }
+}
+
+@media (max-width: 900px) {
+    body.radar-expressiva-institucional aside.sidebar {
+        width: min(86vw, 292px);
+    }
+
+    body.radar-expressiva-institucional .content-area {
+        min-width: 0;
+    }
+
+    body.radar-expressiva-institucional header.top-header {
+        padding-inline: 18px;
+    }
+
+    body.radar-expressiva-institucional .page-container {
+        padding: 25px 18px 42px;
+    }
+
+    body.radar-expressiva-institucional .tab-container {
+        overflow-x: auto;
+    }
+
+    body.radar-expressiva-institucional .tab-button {
+        flex: 0 0 auto;
+    }
+}
+
+@media (max-width: 700px) {
+    body.radar-expressiva-institucional {
+        font-size: 14px;
+    }
+
+    body.radar-expressiva-institucional .page-header {
+        gap: 13px;
+    }
+
+    body.radar-expressiva-institucional .page-title h1 {
+        font-size: 1.75rem;
+    }
+
+    body.radar-expressiva-institucional .cycle-b-dashboard-stats {
+        grid-template-columns: 1fr;
+    }
+
+    body.radar-expressiva-institucional .cycle-b-dashboard-card {
+        min-height: 174px;
+        gap: 0;
+    }
+
+    body.radar-expressiva-institucional .cycle-b-overlap-note {
+        grid-template-columns: 1fr;
+        gap: 3px;
+    }
+
+    body.radar-expressiva-institucional .radar-context-value {
+        padding-right: 0;
+        border-right: 0;
+    }
+
+    body.radar-expressiva-institucional .radar-result-panel > .panel-header {
+        grid-template-columns: 1fr;
+    }
+
+    body.radar-expressiva-institucional .cycle-b-result-filter-status {
+        grid-column: 1;
+        grid-row: auto;
+        margin-top: 10px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.radar-expressiva-institucional .cycle-b-dashboard-card,
+    body.radar-expressiva-institucional .nav-item,
+    body.radar-expressiva-institucional .tab-button,
+    body.radar-expressiva-institucional table.data-table tbody tr {
+        transition: none;
+    }
+}

@@ -11,8 +11,10 @@ async function seedCycleBDashboard(page) {
       Array.isArray(school.programasIds)
       && school.programasIds.includes('BASIC')
       && isCompetenceInScope(school.competenciaInicial, activeCompetenciaKey)
-    )).slice(0, 2);
-    if (candidates.length < 2) throw new Error('Duas escolas não foram encontradas para o Dashboard do Ciclo B.');
+    )).slice(0, 3);
+    if (candidates.length < 3) throw new Error('Três escolas não foram encontradas para o Dashboard do Ciclo B.');
+
+    candidates[2].denominação = 'Escola Municipal de Educação Integral Professora Maria da Conceição';
 
     const createOpen = (school, id, key, name, openedAt) => RadarPendencias.createDocumentPendency({
       id,
@@ -33,6 +35,7 @@ async function seedCycleBDashboard(page) {
 
     const open = createOpen(candidates[0], 'cycle-b-dashboard-open', 'extCC', 'Extrato Conta Corrente', '2026-06-01');
     const awaitingBase = createOpen(candidates[1], 'cycle-b-dashboard-awaiting', 'extINV', 'Extrato Investimento', '2026-06-02');
+    const longNameOpen = createOpen(candidates[2], 'cycle-b-dashboard-open-long', 'parecerTEC', 'Parecer Técnico', '2026-06-15');
     const awaiting = RadarPendencias.registerCorrectiveSubmission(awaitingBase, {
       id: 'cycle-b-dashboard-attempt',
       dataDisponibilizacao: '2026-07-01',
@@ -44,7 +47,7 @@ async function seedCycleBDashboard(page) {
       perfil: 'escola'
     });
 
-    pendencias = [open, awaiting];
+    pendencias = [open, awaiting, longNameOpen];
     contatos = [];
     bens = [];
     rebuildOperationalIndexes();
@@ -53,7 +56,8 @@ async function seedCycleBDashboard(page) {
 
     return {
       openSchoolName: candidates[0].denominação,
-      awaitingSchoolName: candidates[1].denominação
+      awaitingSchoolName: candidates[1].denominação,
+      longSchoolName: candidates[2].denominação
     };
   });
 }
@@ -66,15 +70,36 @@ test.describe('Ciclo B — Dashboard operacional do Controlador', () => {
 
     const openCard = page.getByRole('button', { name: /Pendências abertas/ });
     const awaitingCard = page.getByRole('button', { name: /Aguardando reanálise/ });
-    await expect(openCard).toContainText('1');
+    await expect(openCard).toContainText('2');
     await expect(awaitingCard).toContainText('1');
     await expect(page.getByText(/podem se sobrepor/i)).toBeVisible();
 
     const queue = page.getByRole('region', { name: 'Próximas ações operacionais' });
     await expect(queue).toContainText('Registrar novo envio do Extrato Conta Corrente');
     await expect(queue).toContainText('Reanalisar Extrato Investimento');
-    await expect(queue.locator('.cycle-b-action-item')).toHaveCount(2);
+    await expect(queue).toContainText('Registrar novo envio do Parecer Técnico');
+    await expect(queue).toContainText('Escola Municipal de Educação Integral Professora Maria da Conceição');
+    await expect(queue.locator('.cycle-b-action-item')).toHaveCount(3);
     await expect(page.locator('#controlador-gargalos')).toHaveCount(0);
+
+    const queueMetrics = await queue.evaluate((element) => {
+      const heading = element.querySelector('.panel-header h2');
+      const headingStyle = getComputedStyle(heading);
+      const lineHeight = Number.parseFloat(headingStyle.lineHeight);
+      return {
+        width: element.getBoundingClientRect().width,
+        overflows: element.scrollWidth > element.clientWidth,
+        headingLines: Math.round(heading.getBoundingClientRect().height / lineHeight)
+      };
+    });
+    expect(queueMetrics.width).toBeGreaterThanOrEqual(320);
+    expect(queueMetrics.overflows).toBe(false);
+    expect(queueMetrics.headingLines).toBeLessThanOrEqual(2);
+
+    const headerAlignments = await page.locator('.dash-layout table.data-table thead th').evaluateAll((headers) => (
+      headers.map((header) => getComputedStyle(header).textAlign)
+    ));
+    expect(headerAlignments).toEqual(['left', 'center', 'center', 'center', 'center']);
 
     const awaitingAction = queue.locator('.cycle-b-action-item').filter({ hasText: 'Reanalisar Extrato Investimento' });
     await awaitingAction.getByRole('button', { name: 'Abrir pendência' }).click();
@@ -106,7 +131,7 @@ test.describe('Ciclo B — Dashboard operacional do Controlador', () => {
     await expect(awaitingCard).toHaveAttribute('aria-pressed', 'false');
     await expect(table.locator('tbody tr').filter({ hasText: seeded.awaitingSchoolName })).toHaveCount(1);
     await expect(table.locator('tbody tr').filter({ hasText: seeded.openSchoolName })).toHaveCount(1);
-    await expect(queue.locator('.cycle-b-action-item')).toHaveCount(2);
+    await expect(queue.locator('.cycle-b-action-item')).toHaveCount(3);
   });
 
   test('abre a pendência correta pela linha da escola filtrada', async ({ page }, testInfo) => {
