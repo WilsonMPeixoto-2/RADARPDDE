@@ -141,13 +141,21 @@
             this.document.body.dataset.authRole = authorization.role;
         }
 
-        renderTechnicalAccess(authentication) {
-            this.setAuthenticationContext(authentication);
+        setOperationalChromeVisible(visible) {
             const sidebar = this.document.querySelector('.sidebar');
             if (sidebar) {
-                sidebar.hidden = true;
-                sidebar.setAttribute?.('aria-hidden', 'true');
+                sidebar.hidden = !visible;
+                sidebar.setAttribute?.('aria-hidden', visible ? 'false' : 'true');
+                if (sidebar.style) {
+                    if (visible) sidebar.style.removeProperty?.('display');
+                    else sidebar.style.setProperty?.('display', 'none', 'important');
+                }
             }
+        }
+
+        renderTechnicalAccess(authentication) {
+            this.setAuthenticationContext(authentication);
+            this.setOperationalChromeVisible(false);
             const container = this.document.getElementById('main-container');
             if (container) {
                 container.innerHTML = `
@@ -170,6 +178,7 @@
             }
 
             const operationalProfile = operationalProfileForRole(authorization.role);
+            this.setOperationalChromeVisible(true);
             this.setAuthenticationContext(authentication);
             this.root.switchProfile(operationalProfile);
             this.hide();
