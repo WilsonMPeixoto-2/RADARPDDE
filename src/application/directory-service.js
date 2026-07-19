@@ -4,11 +4,11 @@
     const contract = typeof module !== 'undefined' && module.exports
         ? require('../data/repository-contract.js')
         : root.RadarRepositoryContract;
-    const api = factory(contract);
+    const api = factory(contract, root);
 
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
     if (root) root.RadarDirectoryService = Object.freeze(api);
-}(typeof window !== 'undefined' ? window : globalThis, function createDirectoryServiceApi(contract) {
+}(typeof window !== 'undefined' ? window : globalThis, function createDirectoryServiceApi(contract, root) {
     'use strict';
 
     if (!contract) throw new Error('RadarRepositoryContract é obrigatório.');
@@ -20,6 +20,37 @@
 
     function fail(code, message, operation) {
         throw new RepositoryError(code, message, { operation });
+    }
+
+    async function runtimeGateway(method, value) {
+        if (root?.RADAR_PDDE_CONFIG?.supabase?.connectionEnabled !== true) return null;
+        if (!root.RadarTeamAccountGateway?.TeamAccountGateway) {
+            const base = root.document?.baseURI || root.location?.href || '/';
+            await import(new URL('src/application/team-account-gateway.js', base).href);
+        }
+        const client = root.RadarSessionContext?.service?.client;
+        if (!client || !root.RadarTeamAccountGateway?.TeamAccountGateway) {
+            fail(
+                'MISSING_FUNCTIONS_CLIENT',
+                'O serviço autenticado de contas da equipe não está disponível.',
+                method
+            );
+        }
+        const gateway = new root.RadarTeamAccountGateway.TeamAccountGateway({
+            client,
+            enabled: true
+        });
+        return gateway[method](value);
+    }
+
+    function createRuntimeGateway() {
+        if (root?.RADAR_PDDE_CONFIG?.supabase?.connectionEnabled !== true) return null;
+        return Object.freeze({
+            saveController: value => runtimeGateway('saveController', value),
+            deactivateController: value => runtimeGateway('deactivateController', value),
+            saveInventoryMember: value => runtimeGateway('saveInventoryMember', value),
+            deactivateInventoryMember: value => runtimeGateway('deactivateInventoryMember', value)
+        });
     }
 
     function withRemotePersist(command, gateway, method) {
@@ -36,7 +67,7 @@
             this.getState = options.getState;
             this.appendLog = options.appendLog;
             this.createId = options.createId || (prefix => `${prefix}-${Date.now()}`);
-            this.teamAccountGateway = options.teamAccountGateway || null;
+            this.teamAccountGateway = options.teamAccountGateway || createRuntimeGateway();
             if (!this.dataService || typeof this.dataService.execute !== 'function'
                 || typeof this.getState !== 'function'
                 || typeof this.appendLog !== 'function') {
