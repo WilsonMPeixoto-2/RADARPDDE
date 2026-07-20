@@ -26,6 +26,19 @@ const RUNTIME_ENTRIES = Object.freeze([
 
 const VERCEL_ENVIRONMENTS = new Set(['development', 'preview', 'production']);
 
+const PREVIEW_SUPABASE_PUBLIC_RUNTIME = Object.freeze({
+    RADAR_DATA_MODE: 'supabase-preview',
+    RADAR_ENVIRONMENT: 'preview',
+    RADAR_SUPABASE_REPOSITORY_ENABLED: 'true',
+    RADAR_SUPABASE_URL: 'https://scnryinorqeucbfkioxo.supabase.co',
+    RADAR_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_NJYBP3Mh2b_okdWKNypajQ_CYD8QQTO',
+    RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED: 'false'
+});
+
+const RADAR_RUNTIME_VARIABLES = Object.freeze(
+    Object.keys(PREVIEW_SUPABASE_PUBLIC_RUNTIME)
+);
+
 function isPathInside(parent, candidate) {
     const relative = path.relative(parent, candidate);
     return relative !== '' && !relative.startsWith('..') && !path.isAbsolute(relative);
@@ -55,6 +68,23 @@ function normalizeVercelEnvironment(environment = {}) {
         throw new Error('VERCEL_ENV possui valor não reconhecido pelo build público.');
     }
     return value;
+}
+
+function hasExplicitRadarRuntime(environment = {}) {
+    return RADAR_RUNTIME_VARIABLES.some(name => (
+        String(environment?.[name] ?? '').trim() !== ''
+    ));
+}
+
+function resolveVercelRuntimeEnvironment(environment = {}) {
+    const vercelEnvironment = normalizeVercelEnvironment(environment);
+    if (vercelEnvironment !== 'preview' || hasExplicitRadarRuntime(environment)) {
+        return { ...environment };
+    }
+    return {
+        ...environment,
+        ...PREVIEW_SUPABASE_PUBLIC_RUNTIME
+    };
 }
 
 function assertDeploymentTargetCompatibility(runtimeInput, environment = {}) {
@@ -127,9 +157,10 @@ async function buildVercelArtifact({
 } = {}) {
     const resolvedRoot = path.resolve(rootDir);
     const resolvedOutput = assertSafeOutputDirectory(resolvedRoot, outputDir);
+    const resolvedEnvironment = resolveVercelRuntimeEnvironment(environment);
 
-    const runtimeInput = buildRuntimeInput(environment);
-    assertDeploymentTargetCompatibility(runtimeInput, environment);
+    const runtimeInput = buildRuntimeInput(resolvedEnvironment);
+    assertDeploymentTargetCompatibility(runtimeInput, resolvedEnvironment);
 
     await fs.rm(resolvedOutput, { recursive: true, force: true });
     await fs.mkdir(resolvedOutput, { recursive: true });
@@ -144,7 +175,7 @@ async function buildVercelArtifact({
         'utf8'
     );
 
-    const manifest = createPublicBuildManifest(runtimeInput, environment);
+    const manifest = createPublicBuildManifest(runtimeInput, resolvedEnvironment);
     await fs.writeFile(
         path.join(resolvedOutput, 'radar-build-manifest.json'),
         `${JSON.stringify(manifest, null, 2)}\n`,
@@ -193,11 +224,15 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
 }
 
 export {
+    PREVIEW_SUPABASE_PUBLIC_RUNTIME,
+    RADAR_RUNTIME_VARIABLES,
     RUNTIME_ENTRIES,
     assertSafeOutputDirectory,
     assertDeploymentTargetCompatibility,
     buildVercelArtifact,
     createPublicBuildManifest,
+    hasExplicitRadarRuntime,
     normalizeVercelEnvironment,
+    resolveVercelRuntimeEnvironment,
     sanitizeCommitSha
 };
