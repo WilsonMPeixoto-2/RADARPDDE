@@ -34,7 +34,7 @@ const MIGRATIONS = [
     '20260714220136_preconnection_transactions_and_json_contracts.sql',
     '20260714220146_preconnection_reversible_import.sql',
     '202607190001_team_management_auth_alignment.sql',
-    '20260720025125_activation_basic_hardening.sql'
+    '20260720030046_activation_basic_hardening.sql'
 ];
 
 const ARTIFACTS = [
@@ -147,7 +147,7 @@ test('valida conjunto obrigatório de migrations', () => {
     assert.deepEqual(validateMigrationManifest(MIGRATIONS), []);
     assert.match(
         validateMigrationManifest(MIGRATIONS.slice(0, -1)).join(' '),
-        /20260720025125_activation_basic_hardening\.sql/
+        /20260720030046_activation_basic_hardening\.sql/
     );
 });
 

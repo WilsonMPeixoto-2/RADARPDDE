@@ -10,6 +10,6 @@
 
 ## Hardening versionado
 
-A migration `20260720025125_activation_basic_hardening.sql` é a 14ª migration local. Ela revoga `EXECUTE` de `PUBLIC`, `anon` e `authenticated` para `public.capture_audit_event()` e preserva o privilégio administrativo de `service_role`.
+A migration `20260720030046_activation_basic_hardening.sql` é a 14ª migration e foi aplicada com sucesso no projeto remoto. Ela revoga `EXECUTE` de `PUBLIC`, `anon` e `authenticated` para `public.capture_audit_event()` e preserva o privilégio administrativo de `service_role`.
 
-O ACL está sanitizado: a função trigger não é executável diretamente por papéis expostos pela Data API. Nenhuma migration foi aplicada ao projeto remoto nesta tarefa.
+O ACL foi verificado e está sanitizado: `anon=false`, `authenticated=false` e `service_role=true` para `EXECUTE` em `capture_audit_event()`. O Advisor específico relacionado a esse privilégio foi removido.

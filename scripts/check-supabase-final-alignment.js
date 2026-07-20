@@ -8,7 +8,7 @@ const root = path.resolve(__dirname, '..');
 const requiredFiles = Object.freeze([
     'src/application/team-account-gateway.js',
     'supabase/migrations/202607190001_team_management_auth_alignment.sql',
-    'supabase/migrations/20260720025125_activation_basic_hardening.sql',
+    'supabase/migrations/20260720030046_activation_basic_hardening.sql',
     'supabase/functions/_shared/team-account-domain.mjs',
     'supabase/functions/team-account-management/index.ts',
     'supabase/tests/database/team-management-rpc.test.sql',
