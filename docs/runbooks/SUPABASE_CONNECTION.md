@@ -4,7 +4,7 @@
 
 O projeto remoto autorizado é `scnryinorqeucbfkioxo`. O schema, a carga canônica e os primeiros vínculos de Auth já foram concluídos e validados.
 
-O conjunto versionado contém atualmente **14** migrations.
+O conjunto versionado contém atualmente **15** migrations.
 
 A carga remota contém:
 
@@ -39,7 +39,7 @@ supabase db push --linked --dry-run
 supabase db push --linked
 ```
 
-O contrato pós-aplicação está em `supabase/verification/remote-post-apply.sql` e deve reconhecer exatamente as 14 migrations versionadas.
+O contrato pós-aplicação está em `supabase/verification/remote-post-apply.sql` e deve reconhecer exatamente as 15 migrations versionadas.
 
 ## 2. Estado de dados e Auth
 

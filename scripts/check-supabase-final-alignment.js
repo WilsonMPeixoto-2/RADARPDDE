@@ -10,6 +10,7 @@ const requiredFiles = Object.freeze([
     'src/application/team-account-gateway.js',
     'supabase/migrations/202607190001_team_management_auth_alignment.sql',
     'supabase/migrations/20260720030046_activation_basic_hardening.sql',
+    'supabase/migrations/20260720193000_performance_and_rls_hardening.sql',
     'supabase/functions/_shared/team-account-domain.mjs',
     'supabase/functions/team-account-management/index.ts',
     'supabase/tests/database/team-management-rpc.test.sql',
@@ -101,8 +102,8 @@ function check() {
 
     const migrationCount = fs.readdirSync(path.join(root, 'supabase/migrations'))
         .filter(name => name.endsWith('.sql')).length;
-    if (migrationCount !== 14) {
-        findings.push(`Conjunto final deve conter 14 migrations; encontrado: ${migrationCount}.`);
+    if (migrationCount !== 15) {
+        findings.push(`Conjunto final deve conter 15 migrations; encontrado: ${migrationCount}.`);
     }
 
     return [...new Set(findings)];

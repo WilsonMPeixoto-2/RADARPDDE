@@ -25,7 +25,7 @@ O RADAR possui:
 - `LocalStorageRepository` operacional;
 - `SupabaseRepository` implementado;
 - concorrência otimista por `row_version`;
-- **14 migrations SQL versionadas e aplicadas remotamente**;
+- **15 migrations SQL versionadas e aplicadas remotamente**;
 - RLS, auditoria, importação, reconciliação e rollback;
 - Edge Function e RPCs de Gestão de Equipe preparadas;
 - testes unitários, integração, E2E e pgTAP;

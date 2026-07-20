@@ -18,7 +18,8 @@ const REQUIRED_MIGRATIONS = Object.freeze([
     '20260714220136_preconnection_transactions_and_json_contracts.sql',
     '20260714220146_preconnection_reversible_import.sql',
     '202607190001_team_management_auth_alignment.sql',
-    '20260720030046_activation_basic_hardening.sql'
+    '20260720030046_activation_basic_hardening.sql',
+    '20260720193000_performance_and_rls_hardening.sql'
 ]);
 
 const REQUIRED_ARTIFACTS = Object.freeze([
@@ -256,8 +257,8 @@ function validateRemoteWorkflowContracts(preflightSource, postApplySource) {
     if (dryRunIndex < 0 || applyIndex < 0 || dryRunIndex > applyIndex) {
         findings.push('O workflow pós-aplicação deve executar dry-run antes do db push efetivo.');
     }
-    if (!postApply.includes('APLICAR_14_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL')) {
-        findings.push('O workflow pós-aplicação exige confirmação textual das 14 migrations no alvo descartável.');
+    if (!postApply.includes('APLICAR_15_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL')) {
+        findings.push('O workflow pós-aplicação exige confirmação textual das 15 migrations no alvo descartável.');
     }
     if (applyIndex >= 0 && !postApplyPushes[applyIndex].includes('--yes')) {
         findings.push('O db push efetivo deve ser não interativo somente após a confirmação explícita.');
