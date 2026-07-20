@@ -156,6 +156,125 @@
     color: var(--text-main);
 }
 
+/* Identidade visual vetorial do RADAR PDDE. */
+.radar-auth-card {
+    width: min(100%, 560px);
+}
+
+.radar-auth-brand {
+    display: grid;
+    grid-template-columns: clamp(96px, 23vw, 132px) minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-items: center;
+    column-gap: clamp(16px, 4vw, 26px);
+    row-gap: 10px;
+    width: 100%;
+    margin: 0 0 28px;
+    padding: 0;
+    border-radius: 0;
+    color: #1d0b62;
+    background: none;
+    font: 800 clamp(2.1rem, 7vw, 3.25rem)/0.96 var(--font-heading);
+    letter-spacing: 0.075em;
+    text-align: left;
+}
+
+.radar-auth-brand::before {
+    content: "";
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    background: url("/assets/radar-pdde-mark.svg") center / contain no-repeat;
+    filter: drop-shadow(0 12px 20px rgba(53, 24, 130, 0.16));
+}
+
+.radar-auth-brand::after {
+    content: "Registro de Acompanhamento das\A Demandas, Análises e Regularizações\A do PDDE";
+    grid-column: 2;
+    grid-row: 2;
+    display: block;
+    padding-top: 10px;
+    border-top: 1px solid rgba(124, 58, 237, 0.34);
+    color: #31294a;
+    white-space: pre-line;
+    font: 600 clamp(0.72rem, 2.1vw, 0.88rem)/1.38 var(--font-body);
+    letter-spacing: 0;
+}
+
+body.dark-theme .radar-auth-brand {
+    color: #f5f1ff;
+}
+
+body.dark-theme .radar-auth-brand::after {
+    border-top-color: rgba(167, 139, 250, 0.5);
+    color: #d8d0e8;
+}
+
+.sidebar-logo {
+    gap: 10px;
+    padding-inline: 6px;
+}
+
+.sidebar-logo > svg {
+    display: none;
+}
+
+.sidebar-logo::before {
+    content: "";
+    display: block;
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
+    border: 1px solid rgba(124, 58, 237, 0.16);
+    border-radius: 12px;
+    background: #fff url("/assets/radar-pdde-mark.svg") center / 92% 92% no-repeat;
+    box-shadow: 0 8px 22px rgba(76, 29, 149, 0.14);
+}
+
+body.dark-theme .sidebar-logo::before {
+    border-color: rgba(167, 139, 250, 0.34);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.34);
+}
+
+@media (max-width: 700px) {
+    .radar-auth-brand {
+        grid-template-columns: 92px minmax(0, 1fr);
+        column-gap: 16px;
+        margin-bottom: 24px;
+        font-size: clamp(1.8rem, 9vw, 2.4rem);
+    }
+
+    .radar-auth-brand::after {
+        padding-top: 8px;
+        font-size: 0.7rem;
+        line-height: 1.34;
+    }
+}
+
+@media (max-width: 420px) {
+    .radar-auth-brand {
+        grid-template-columns: 76px minmax(0, 1fr);
+        column-gap: 12px;
+        row-gap: 7px;
+        font-size: clamp(1.48rem, 8.2vw, 1.9rem);
+        letter-spacing: 0.055em;
+    }
+
+    .radar-auth-brand::after {
+        padding-top: 6px;
+        font-size: 0.61rem;
+        line-height: 1.3;
+    }
+
+    .sidebar-logo::before {
+        width: 42px;
+        height: 42px;
+        flex-basis: 42px;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .radar-shared-dialog .modal-content {
         transition: none;
