@@ -1,0 +1,17 @@
+name: Preview Vercel legado — não executar
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  substituido:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Informar workflow vigente
+        run: |
+          echo 'Este workflow foi substituído por configurar-e-publicar-preview-supabase.yml.'
+          echo 'Nenhuma configuração ou publicação foi executada.'
+          exit 1
