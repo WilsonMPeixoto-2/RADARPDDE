@@ -83,7 +83,7 @@ function check() {
         /vercel@56\.2\.0\s+build/i,
         /radar-build-manifest\.json/,
         /vercel@56\.2\.0\s+deploy[^\n]+--prebuilt/i,
-        /RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED[^\n]*false/i
+        /printf\s+['"]%s['"]\s+['"]false['"][^\n]+env add RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED preview/i
     ].forEach(pattern => {
         if (!pattern.test(workflow)) findings.push(`Workflow Vercel incompleto: ${pattern}`);
     });
