@@ -25,7 +25,9 @@ npm run bootstrap:supabase:validate
 npm run bootstrap:supabase:plan
 ```
 
-Os dois comandos não escrevem no destino. O processo interrompe quando encontrar qualquer ID desconhecido no destino ou conteúdo diferente para o mesmo ID.
+Os dois comandos não escrevem no destino. O snapshot deve declarar versão (e, quando informado, schema) `1`, conter as 19 coleções canônicas e passar todas as referências entre entidades antes de qualquer escrita. O processo interrompe quando encontrar qualquer ID desconhecido no destino ou conteúdo diferente para o mesmo ID.
+
+O único estado pré-existente permitido é o baseline institucional exato de cinco perfis (`technical_admin`, `sme_management`, `federal_assistant`, `controller` e `inventory`) quando a fonte não traz perfis. Qualquer perfil adicional, ausente ou alterado é conflito. Metadados gerados pelo banco (`row_version`, timestamps) e eventos de auditoria de triggers não participam da comparação.
 
 ## Importar e reconciliar
 
@@ -36,7 +38,9 @@ npm run bootstrap:supabase:import
 npm run bootstrap:supabase:reconcile
 ```
 
-O importador grava apenas linhas ausentes, respeitando a ordem canônica e os lotes. Uma repetição do mesmo snapshot não grava linhas. Não há chamadas de exclusão, nem restauração com substituição; dados já existentes e incompatíveis interrompem a operação para revisão humana.
+O importador grava apenas linhas ausentes, respeitando a ordem canônica e os lotes. A escrita administrativa é somente por inserção: não usa upsert e uma colisão de chave interrompe como conflito, sem sobrescrever o registro existente. Uma repetição do mesmo snapshot não grava linhas. Não há chamadas de exclusão, nem restauração com substituição; dados já existentes e incompatíveis interrompem a operação para revisão humana.
+
+`bootstrap:supabase:reconcile` é estritamente diagnóstico e termina com falha quando houver qualquer divergência depois da mesma projeção de metadados e auditoria.
 
 ## Recuperação
 

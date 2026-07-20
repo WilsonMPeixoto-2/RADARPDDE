@@ -6,29 +6,34 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 
 const { createSnapshot } = require('../../src/data/snapshot-tools.js');
+const { RADAR_ENTITIES } = require('../../src/data/repository-contract.js');
 const {
     IMPORT_ORDER,
+    PROFILE_BASELINE,
     sanitizeBootstrapSnapshot,
     inspectDestination,
     bootstrapRemoteSnapshot
 } = require('../../scripts/lib/remote-bootstrap.mjs');
 
 function snapshot(entities = {}) {
-    return createSnapshot(entities, {
+    return createSnapshot(Object.fromEntries(RADAR_ENTITIES.map(entity => [entity, entities[entity] || []])), {
         importId: 'bootstrap-test',
         exportedAt: '2026-07-20T12:00:00.000Z'
     });
 }
 
 function createRepository(destination) {
-    const saves = [];
+    const inserts = [];
     return {
-        saves,
+        inserts,
         async exportSnapshot() {
             return destination;
         },
-        async save(entity, records) {
-            saves.push({ entity, records });
+        async save() {
+            throw new Error('NORMAL_SAVE_NOT_ALLOWED');
+        },
+        async insertOnly(entity, records) {
+            inserts.push({ entity, records });
             const byId = new Map((destination.entities[entity] || []).map(row => [row.id, row]));
             records.forEach(row => byId.set(row.id, structuredClone(row)));
             destination.entities[entity] = [...byId.values()];
@@ -42,6 +47,25 @@ test('rejeita snapshot inv\u00e1lido', async () => {
         bootstrapRemoteSnapshot({ repository: createRepository(snapshot()), snapshot: {} }),
         error => error.code === 'VALIDATION_FAILED'
     );
+});
+
+test('exige versao 1, as 19 colecoes e referencias canonicas antes de escrever', async () => {
+    const repository = createRepository(snapshot());
+    const wrongVersion = snapshot();
+    wrongVersion.version = '2';
+    const wrongSchema = snapshot();
+    wrongSchema.schemaVersion = '2';
+    const incomplete = snapshot();
+    delete incomplete.entities.schools;
+    const orphan = snapshot({ schools: [{ id: 'school-1', controller_id: 'controller-inexistente' }] });
+
+    for (const invalid of [wrongVersion, wrongSchema, incomplete, orphan]) {
+        await assert.rejects(
+            bootstrapRemoteSnapshot({ repository, snapshot: invalid, mode: 'import' }),
+            error => error.code === 'VALIDATION_FAILED'
+        );
+    }
+    assert.equal(repository.inserts.length, 0);
 });
 
 test('rejeita vari\u00e1vel administrativa ausente sem imprimir segredo', () => {
@@ -97,14 +121,26 @@ test('sanitiza o snapshot exportado pela aplicacao limpa antes de persistir', as
 });
 
 test('aceita destino vazio ou contendo somente cinco profiles', async () => {
-    const profiles = Array.from({ length: 5 }, (_, index) => ({ id: `profile-${index + 1}` }));
-    const source = snapshot({ profiles });
+    const profiles = PROFILE_BASELINE.map(profile => ({
+        ...profile,
+        row_version: 1,
+        created_at: '2026-07-20T12:00:00.000Z',
+        updated_at: '2026-07-20T12:00:00.000Z'
+    }));
+    const source = snapshot();
 
     const empty = await inspectDestination(createRepository(snapshot()));
     assert.equal(empty.compatible, true);
 
     const onlyProfiles = await inspectDestination(createRepository(snapshot({ profiles })), source);
     assert.equal(onlyProfiles.compatible, true);
+
+    const altered = structuredClone(profiles);
+    altered[0].label = 'Perfil alterado';
+    await assert.rejects(
+        inspectDestination(createRepository(snapshot({ profiles: altered })), source),
+        error => error.code === 'DESTINATION_CONFLICT'
+    );
 });
 
 test('valida destino vazio sem escrever nem tratar ausencia como conflito', async () => {
@@ -115,7 +151,7 @@ test('valida destino vazio sem escrever nem tratar ausencia como conflito', asyn
 
     assert.equal(report.ok, true);
     assert.equal(report.writtenRows, 0);
-    assert.equal(repository.saves.length, 0);
+    assert.equal(repository.inserts.length, 0);
 });
 
 test('interrompe em IDs ou conte\u00fado incompat\u00edvel', async () => {
@@ -126,7 +162,7 @@ test('interrompe em IDs ou conte\u00fado incompat\u00edvel', async () => {
         bootstrapRemoteSnapshot({ repository, snapshot: source, mode: 'import' }),
         error => error.code === 'DESTINATION_CONFLICT'
     );
-    assert.equal(repository.saves.length, 0);
+    assert.equal(repository.inserts.length, 0);
 });
 
 test('grava na ordem can\u00f4nica em lotes', async () => {
@@ -139,10 +175,18 @@ test('grava na ordem can\u00f4nica em lotes', async () => {
 
     await bootstrapRemoteSnapshot({ repository, snapshot: source, mode: 'import', batchSize: 2 });
 
-    assert.deepEqual(repository.saves.map(call => call.entity), [
+    assert.deepEqual(repository.inserts.map(call => call.entity), [
         ...IMPORT_ORDER.filter(entity => ['competences', 'programs', 'schools'].includes(entity)
             && source.entities[entity]?.length)
             .flatMap(entity => entity === 'schools' ? [entity, entity] : [entity])
     ]);
-    assert.deepEqual(repository.saves.map(call => call.records.length), [1, 1, 2, 1]);
+    assert.deepEqual(repository.inserts.map(call => call.records.length), [1, 1, 2, 1]);
+});
+
+test('reconcile divergente rejeita com codigo seguro', async () => {
+    const source = snapshot({ schools: [{ id: 'school-1' }] });
+    await assert.rejects(
+        bootstrapRemoteSnapshot({ repository: createRepository(snapshot()), snapshot: source, mode: 'reconcile' }),
+        error => error.code === 'RECONCILIATION_FAILED'
+    );
 });

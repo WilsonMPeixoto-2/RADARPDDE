@@ -5,6 +5,7 @@ const { RADAR_ENTITIES } = require('../../src/data/repository-contract.js');
 const {
     IMPORT_ENTITY_ORDER: IMPORT_ORDER,
     validateSnapshot,
+    validateSnapshotReferences,
     reconcileSnapshots,
     summarizeReconciliation,
     stableStringify
@@ -15,6 +16,16 @@ const SANITIZED_ENTITIES = Object.freeze([
     'userSchoolScopes',
     'auditEvents',
     'dataImportRuns'
+]);
+const GENERATED_METADATA_FIELDS = new Set([
+    'row_version', 'rowVersion', 'created_at', 'createdAt', 'updated_at', 'updatedAt'
+]);
+const PROFILE_BASELINE = Object.freeze([
+    Object.freeze({ id: 'technical_admin', label: 'Administrador t\u00e9cnico', priority: 10, description: 'Administra\u00e7\u00e3o t\u00e9cnica e seguran\u00e7a do ambiente.', active: true }),
+    Object.freeze({ id: 'sme_management', label: 'Gest\u00e3o SME', priority: 20, description: 'Leitura gerencial e administra\u00e7\u00e3o institucional.', active: true }),
+    Object.freeze({ id: 'federal_assistant', label: 'Assistente de Verbas Federais', priority: 30, description: 'Opera\u00e7\u00e3o transversal de verbas federais.', active: true }),
+    Object.freeze({ id: 'controller', label: 'Controlador', priority: 40, description: 'Opera\u00e7\u00e3o da carteira de escolas vinculada.', active: true }),
+    Object.freeze({ id: 'inventory', label: 'Equipe de Invent\u00e1rio', priority: 50, description: 'Opera\u00e7\u00e3o patrimonial e de invent\u00e1rio.', active: true })
 ]);
 
 function bootstrapError(code, message) {
@@ -34,9 +45,31 @@ function entityCounts(snapshot) {
     ]));
 }
 
+function projectRecord(record) {
+    return Object.fromEntries(Object.entries(record || {}).filter(([field]) => !GENERATED_METADATA_FIELDS.has(field)));
+}
+
+function projectBootstrapSnapshot(snapshot) {
+    const projected = clone(snapshot);
+    projected.entities = Object.fromEntries(RADAR_ENTITIES.map(entity => [
+        entity,
+        (snapshot.entities[entity] || []).map(projectRecord)
+    ]));
+    projected.entities.auditEvents = [];
+    return projected;
+}
+
 function assertValidSnapshot(snapshot) {
     const validation = validateSnapshot(snapshot);
-    if (!validation.ok) throw bootstrapError('VALIDATION_FAILED', 'Snapshot de bootstrap inválido.');
+    const hasAllCollections = RADAR_ENTITIES.every(entity => Object.hasOwn(snapshot?.entities || {}, entity));
+    const references = validation.ok ? validateSnapshotReferences(snapshot) : { ok: false };
+    if (!validation.ok
+        || String(snapshot?.version || '') !== '1'
+        || (snapshot?.schemaVersion !== undefined && String(snapshot.schemaVersion) !== '1')
+        || !hasAllCollections
+        || !references.ok) {
+        throw bootstrapError('VALIDATION_FAILED', 'Snapshot de bootstrap invalido.');
+    }
 }
 
 function sanitizeBootstrapSnapshot(snapshot) {
@@ -48,16 +81,43 @@ function sanitizeBootstrapSnapshot(snapshot) {
     return sanitized;
 }
 
+function recordsMatch(left, right) {
+    return stableStringify(projectRecord(left)) === stableStringify(projectRecord(right));
+}
+
+function matchesProfileBaseline(records) {
+    if (records.length !== PROFILE_BASELINE.length) return false;
+    const byId = new Map(records.map(record => [String(record.id), record]));
+    return PROFILE_BASELINE.every(profile => recordsMatch(byId.get(profile.id), profile));
+}
+
 function assertDestinationCompatible(destination, source) {
     for (const entity of RADAR_ENTITIES) {
+        if (entity === 'auditEvents') continue;
+        const destinationRecords = destination.entities[entity] || [];
+        if (entity === 'profiles' && (source.entities.profiles || []).length === 0) {
+            if (destinationRecords.length > 0 && !matchesProfileBaseline(destinationRecords)) {
+                throw bootstrapError('DESTINATION_CONFLICT', 'O destino remoto contem dados incompativeis com o snapshot canonico.');
+            }
+            continue;
+        }
         const sourceById = new Map((source.entities[entity] || []).map(record => [String(record.id), record]));
-        for (const record of destination.entities[entity] || []) {
+        for (const record of destinationRecords) {
             const expected = sourceById.get(String(record.id));
-            if (!expected || stableStringify(expected) !== stableStringify(record)) {
-                throw bootstrapError('DESTINATION_CONFLICT', 'O destino remoto contém dados incompatíveis com o snapshot canônico.');
+            if (!expected || !recordsMatch(expected, record)) {
+                throw bootstrapError('DESTINATION_CONFLICT', 'O destino remoto contem dados incompativeis com o snapshot canonico.');
             }
         }
     }
+}
+
+function reconcileBootstrapSnapshots(source, destination) {
+    const expected = projectBootstrapSnapshot(source);
+    const actual = projectBootstrapSnapshot(destination);
+    if (expected.entities.profiles.length === 0 && matchesProfileBaseline(destination.entities.profiles || [])) {
+        actual.entities.profiles = [];
+    }
+    return reconcileSnapshots(expected, actual);
 }
 
 async function inspectDestination(repository, snapshot) {
@@ -65,12 +125,9 @@ async function inspectDestination(repository, snapshot) {
     assertValidSnapshot(destination);
     if (snapshot) {
         assertValidSnapshot(snapshot);
-        assertDestinationCompatible(destination, sanitizeBootstrapSnapshot(snapshot));
+        assertDestinationCompatible(destination, projectBootstrapSnapshot(sanitizeBootstrapSnapshot(snapshot)));
     }
-    return Object.freeze({
-        compatible: true,
-        entityCounts: entityCounts(destination)
-    });
+    return Object.freeze({ compatible: true, entityCounts: entityCounts(destination) });
 }
 
 function createBatches(records, batchSize) {
@@ -88,7 +145,9 @@ function plannedRows(source, destination) {
     ]));
     return Object.fromEntries(IMPORT_ORDER.map(entity => [
         entity,
-        (source.entities[entity] || []).filter(record => !destinationIds[entity].has(String(record.id)))
+        (source.entities[entity] || [])
+            .filter(record => !destinationIds[entity].has(String(record.id)))
+            .map(projectRecord)
     ]));
 }
 
@@ -97,7 +156,7 @@ function createSanitizedReport({ mode, source, destination, writtenRows = 0, wri
         ok: reconciliation ? reconciliation.ok : true,
         mode,
         sourceCounts: entityCounts(source),
-        destinationCounts: entityCounts(destination),
+        destinationCounts: entityCounts(projectBootstrapSnapshot(destination)),
         writtenRows,
         writtenBatches,
         reconciliation: reconciliation ? summarizeReconciliation(reconciliation) : null
@@ -106,14 +165,14 @@ function createSanitizedReport({ mode, source, destination, writtenRows = 0, wri
 
 async function bootstrapRemoteSnapshot({ repository, snapshot, mode = 'validate', batchSize = 250 } = {}) {
     assertValidSnapshot(snapshot);
-    if (!repository || typeof repository.exportSnapshot !== 'function' || typeof repository.save !== 'function') {
-        throw bootstrapError('INVALID_REPOSITORY', 'O repositório remoto injetado é inválido.');
+    if (!repository || typeof repository.exportSnapshot !== 'function' || typeof repository.insertOnly !== 'function') {
+        throw bootstrapError('INVALID_REPOSITORY', 'O repositorio remoto injetado e invalido.');
     }
     if (!Number.isInteger(batchSize) || batchSize <= 0) {
         throw bootstrapError('INVALID_BATCH_SIZE', 'O tamanho do lote deve ser um inteiro positivo.');
     }
 
-    const sanitized = sanitizeBootstrapSnapshot(snapshot);
+    const sanitized = projectBootstrapSnapshot(sanitizeBootstrapSnapshot(snapshot));
     const before = await repository.exportSnapshot({ includeEmpty: true });
     assertValidSnapshot(before);
     assertDestinationCompatible(before, sanitized);
@@ -123,16 +182,25 @@ async function bootstrapRemoteSnapshot({ repository, snapshot, mode = 'validate'
         return createSanitizedReport({ mode, source: sanitized, destination: before });
     }
     if (mode === 'reconcile') {
-        const reconciliation = reconcileSnapshots(sanitized, before);
+        const reconciliation = reconcileBootstrapSnapshots(sanitized, before);
+        if (!reconciliation.ok) throw bootstrapError('RECONCILIATION_FAILED', 'A reconciliacao do bootstrap remoto falhou.');
         return createSanitizedReport({ mode, source: sanitized, destination: before, reconciliation });
     }
-    if (mode !== 'import') throw bootstrapError('INVALID_MODE', 'Modo de bootstrap inválido.');
+    if (mode !== 'import') throw bootstrapError('INVALID_MODE', 'Modo de bootstrap invalido.');
 
     let writtenRows = 0;
     let writtenBatches = 0;
     for (const entity of IMPORT_ORDER) {
         for (const batch of createBatches(rowsByEntity[entity] || [], batchSize)) {
-            await repository.save(entity, batch);
+            try {
+                await repository.insertOnly(entity, batch);
+            } catch (error) {
+                const cause = error?.cause || error;
+                if (cause?.code === '23505' || /duplicate|unique/i.test(String(cause?.message || error?.message || ''))) {
+                    throw bootstrapError('DESTINATION_CONFLICT', 'O destino remoto contem dados incompativeis com o snapshot canonico.');
+                }
+                throw error;
+            }
             writtenRows += batch.length;
             writtenBatches += 1;
         }
@@ -140,22 +208,17 @@ async function bootstrapRemoteSnapshot({ repository, snapshot, mode = 'validate'
 
     const after = await repository.exportSnapshot({ includeEmpty: true });
     assertValidSnapshot(after);
-    const reconciliation = reconcileSnapshots(sanitized, after);
-    if (!reconciliation.ok) throw bootstrapError('RECONCILIATION_FAILED', 'A reconciliação do bootstrap remoto falhou.');
-    return createSanitizedReport({
-        mode,
-        source: sanitized,
-        destination: after,
-        writtenRows,
-        writtenBatches,
-        reconciliation
-    });
+    const reconciliation = reconcileBootstrapSnapshots(sanitized, after);
+    if (!reconciliation.ok) throw bootstrapError('RECONCILIATION_FAILED', 'A reconciliacao do bootstrap remoto falhou.');
+    return createSanitizedReport({ mode, source: sanitized, destination: after, writtenRows, writtenBatches, reconciliation });
 }
 
 export {
     IMPORT_ORDER,
     SANITIZED_ENTITIES,
+    PROFILE_BASELINE,
     sanitizeBootstrapSnapshot,
+    projectBootstrapSnapshot,
     assertDestinationCompatible,
     inspectDestination,
     bootstrapRemoteSnapshot

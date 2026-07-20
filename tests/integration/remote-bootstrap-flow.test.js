@@ -4,10 +4,12 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const { createSnapshot } = require('../../src/data/snapshot-tools.js');
+const { RADAR_ENTITIES } = require('../../src/data/repository-contract.js');
+const { SupabaseRepository } = require('../../src/data/supabase-repository.js');
 const { bootstrapRemoteSnapshot } = require('../../scripts/lib/remote-bootstrap.mjs');
 
 function snapshot(entities = {}) {
-    return createSnapshot(entities, {
+    return createSnapshot(Object.fromEntries(RADAR_ENTITIES.map(entity => [entity, entities[entity] || []])), {
         importId: 'remote-flow',
         exportedAt: '2026-07-20T12:00:00.000Z'
     });
@@ -27,7 +29,7 @@ function createInMemoryRemote(initial = {}) {
             }
             return snapshot(exported);
         },
-        async save(entity, batch) {
+        async insertOnly(entity, batch) {
             writes.push({ entity, batch: structuredClone(batch) });
             const byId = new Map((entities[entity] || []).map(row => [row.id, row]));
             batch.forEach(row => byId.set(row.id, structuredClone(row)));
@@ -35,6 +37,60 @@ function createInMemoryRemote(initial = {}) {
             return batch;
         }
     };
+}
+
+function createSupabaseClientWithMetadata(seed = {}, options = {}) {
+    const tables = new Map(Object.entries(seed).map(([name, rows]) => [name, structuredClone(rows)]));
+    const calls = [];
+    const table = name => {
+        if (!tables.has(name)) tables.set(name, []);
+        const state = { operation: null, payload: null, range: null, order: null };
+        const query = {
+            select() { state.operation ||= 'select'; return query; },
+            order(column) { state.order = column; return query; },
+            range(from, to) { state.range = [from, to]; return query; },
+            insert(payload) { state.operation = 'insert'; state.payload = structuredClone(payload); return query; },
+            upsert(payload) { state.operation = 'upsert'; state.payload = structuredClone(payload); return query; },
+            then(resolve) {
+                calls.push({ table: name, operation: state.operation, payload: structuredClone(state.payload) });
+                let rows = tables.get(name);
+                if (state.operation === 'insert') {
+                    const incoming = Array.isArray(state.payload) ? state.payload : [state.payload];
+                    const duplicate = incoming.some(row => rows.some(existing => existing.id === row.id));
+                    if (duplicate || options.uniqueOnInsert === name) {
+                        resolve({ data: null, error: { code: '23505', message: 'duplicate key value violates unique constraint' } });
+                        return;
+                    }
+                    const created = incoming.map((row, index) => ({
+                        ...row,
+                        row_version: 1,
+                        created_at: `2026-07-20T12:00:0${index}.000Z`,
+                        updated_at: `2026-07-20T12:00:0${index}.000Z`
+                    }));
+                    tables.set(name, [...rows, ...created]);
+                    if (name !== 'audit_events') {
+                        const audits = tables.get('audit_events') || [];
+                        tables.set('audit_events', [...audits, ...created.map((row, index) => ({
+                            id: `audit-${name}-${row.id}-${index}`,
+                            table_name: name,
+                            created_at: row.created_at
+                        }))]);
+                    }
+                    resolve({ data: structuredClone(created), error: null });
+                    return;
+                }
+                if (state.operation === 'upsert') {
+                    resolve({ data: null, error: new Error('upsert must not be used by bootstrap') });
+                    return;
+                }
+                if (state.order) rows = rows.slice().sort((left, right) => String(left[state.order]).localeCompare(String(right[state.order])));
+                if (state.range) rows = rows.slice(state.range[0], state.range[1] + 1);
+                resolve({ data: structuredClone(rows), error: null });
+            }
+        };
+        return query;
+    };
+    return { from: table, calls, dump: name => structuredClone(tables.get(name) || []) };
 }
 
 test('reconcilia e permite reexecu\u00e7\u00e3o idempotente', async () => {
@@ -54,4 +110,39 @@ test('reconcilia e permite reexecu\u00e7\u00e3o idempotente', async () => {
     assert.equal(second.ok, true);
     assert.equal(second.writtenRows, 0);
     assert.equal(repository.writes.length, writesAfterFirstRun);
+});
+
+test('atravessa SupabaseRepository com metadados e auditoria gerada sem upsert', async () => {
+    const client = createSupabaseClientWithMetadata({
+        profiles: [
+            { id: 'technical_admin', label: 'Administrador t\u00e9cnico', priority: 10, description: 'Administra\u00e7\u00e3o t\u00e9cnica e seguran\u00e7a do ambiente.', active: true, row_version: 1 },
+            { id: 'sme_management', label: 'Gest\u00e3o SME', priority: 20, description: 'Leitura gerencial e administra\u00e7\u00e3o institucional.', active: true, row_version: 1 },
+            { id: 'federal_assistant', label: 'Assistente de Verbas Federais', priority: 30, description: 'Opera\u00e7\u00e3o transversal de verbas federais.', active: true, row_version: 1 },
+            { id: 'controller', label: 'Controlador', priority: 40, description: 'Opera\u00e7\u00e3o da carteira de escolas vinculada.', active: true, row_version: 1 },
+            { id: 'inventory', label: 'Equipe de Invent\u00e1rio', priority: 50, description: 'Opera\u00e7\u00e3o patrimonial e de invent\u00e1rio.', active: true, row_version: 1 }
+        ]
+    });
+    const repository = new SupabaseRepository({ client });
+    const source = snapshot({ schools: [{ id: 'school-1', denomination: 'Escola real', rowVersion: 99 }] });
+
+    const first = await bootstrapRemoteSnapshot({ repository, snapshot: source, mode: 'import' });
+    const second = await bootstrapRemoteSnapshot({ repository, snapshot: source, mode: 'import' });
+
+    assert.equal(first.reconciliation.ok, true);
+    assert.equal(second.writtenRows, 0);
+    assert.equal(client.calls.some(call => call.operation === 'upsert'), false);
+    assert.equal(client.dump('schools')[0].row_version, 1);
+    assert.equal(client.dump('audit_events').length > 0, true);
+});
+
+test('converte colisao insert-only do SupabaseRepository em conflito sem sobrescrever', async () => {
+    const client = createSupabaseClientWithMetadata({}, { uniqueOnInsert: 'schools' });
+    const repository = new SupabaseRepository({ client });
+    const source = snapshot({ schools: [{ id: 'school-1', denomination: 'Escola real' }] });
+
+    await assert.rejects(
+        bootstrapRemoteSnapshot({ repository, snapshot: source, mode: 'import' }),
+        error => error.code === 'DESTINATION_CONFLICT'
+    );
+    assert.equal(client.calls.some(call => call.operation === 'upsert'), false);
 });
