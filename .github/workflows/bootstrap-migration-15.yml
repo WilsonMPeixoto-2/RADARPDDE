@@ -9,11 +9,10 @@ on:
       - main
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   align:
-    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -84,10 +83,17 @@ jobs:
           ! grep -R "APLICAR_14_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL" \
             scripts tests supabase/verification docs/runbooks
 
-      - name: Commitar alinhamento
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add scripts tests docs supabase
-          git commit -m "chore: alinhar contratos para 15 migrations"
-          git push origin HEAD:supabase/performance-auth-hardening
+      - name: Publicar contratos alinhados
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: migration-15-contracts
+          path: |
+            scripts/check-supabase-readiness.js
+            scripts/check-supabase-final-alignment.js
+            scripts/ops/build-canonical-import-sql.mjs
+            tests/unit/readiness-check.test.js
+            docs/runbooks/SUPABASE_CONNECTION.md
+            docs/CURRENT_STAGE.md
+            supabase/verification/remote-post-apply.sql
+          retention-days: 1
+          if-no-files-found: error
