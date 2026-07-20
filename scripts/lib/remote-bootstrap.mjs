@@ -59,6 +59,11 @@ function projectRecord(record, entity) {
     return projected;
 }
 
+function isTechnicalAdminBootstrapLog(record) {
+    return record?.action === 'Bootstrap do administrador técnico'
+        && record?.details?.source === 'remote-admin-bootstrap';
+}
+
 function projectBootstrapSnapshot(snapshot) {
     const projected = clone(snapshot);
     projected.entities = Object.fromEntries(RADAR_ENTITIES.map(entity => [
@@ -68,6 +73,8 @@ function projectBootstrapSnapshot(snapshot) {
     SANITIZED_ENTITIES.forEach(entity => {
         projected.entities[entity] = [];
     });
+    projected.entities.administrativeLogs = (projected.entities.administrativeLogs || [])
+        .filter(record => !isTechnicalAdminBootstrapLog(record));
     return projected;
 }
 
@@ -104,9 +111,10 @@ function matchesProfileBaseline(records) {
 }
 
 function assertDestinationCompatible(destination, source) {
+    const projectedDestination = projectBootstrapSnapshot(destination);
     for (const entity of RADAR_ENTITIES) {
         if (SANITIZED_ENTITIES.includes(entity)) continue;
-        const destinationRecords = destination.entities[entity] || [];
+        const destinationRecords = projectedDestination.entities[entity] || [];
         if (entity === 'profiles' && (source.entities.profiles || []).length === 0) {
             if (destinationRecords.length > 0 && !matchesProfileBaseline(destinationRecords)) {
                 throw bootstrapError('DESTINATION_CONFLICT', 'O destino remoto contem dados incompativeis com o snapshot canonico.');
@@ -188,7 +196,7 @@ async function bootstrapRemoteSnapshot({ repository, snapshot, mode = 'validate'
     const before = await repository.exportSnapshot({ includeEmpty: true });
     assertValidSnapshot(before);
     assertDestinationCompatible(before, sanitized);
-    const rowsByEntity = plannedRows(sanitized, before);
+    const rowsByEntity = plannedRows(sanitized, projectBootstrapSnapshot(before));
 
     if (mode === 'validate' || mode === 'plan') {
         return createSanitizedReport({ mode, source: sanitized, destination: before });
