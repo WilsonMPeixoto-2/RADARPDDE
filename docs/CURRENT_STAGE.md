@@ -25,7 +25,8 @@ O RADAR possui:
 - `LocalStorageRepository` operacional;
 - `SupabaseRepository` implementado;
 - concorrência otimista por `row_version`;
-- **15 migrations SQL versionadas: 14 aplicadas remotamente e a 15ª pronta para aplicação após o merge**;
+- **15 migrations SQL versionadas e aplicadas remotamente**;
+- índices de chaves estrangeiras e políticas RLS otimizadas pela migration `20260720193000`;
 - RLS, auditoria, importação, reconciliação e rollback;
 - Edge Function e RPCs de Gestão de Equipe preparadas;
 - testes unitários, integração, E2E e pgTAP;
@@ -49,6 +50,8 @@ Carga canônica validada:
 
 A validação confirmou ausência de referências órfãs e duplicidades materiais no conjunto carregado.
 
+Os Advisors de desempenho não apresentam mais chaves estrangeiras sem índice, reavaliação de `auth.uid()` por linha ou políticas permissivas duplicadas. Avisos de índices ainda não utilizados são informativos enquanto o ambiente não recebe carga operacional real.
+
 ## 4. Identidades iniciais
 
 Foram vinculados e validados:
@@ -58,6 +61,8 @@ Foram vinculados e validados:
 - duas Controladoras vinculadas aos respectivos registros funcionais.
 
 Os quatro usuários estão confirmados no Auth e possuem um único perfil institucional ativo.
+
+A proteção contra senhas vazadas foi solicitada pela Management API, mas o Supabase recusou a ativação com HTTP 402 porque a organização está no plano Free. O recurso exige plano Pro ou superior. Nenhuma mudança de plano ou cobrança foi realizada.
 
 ## 5. Contrato Vercel
 
@@ -87,7 +92,7 @@ A URL e a chave `sb_publishable_` são material público do cliente Supabase. Ne
 
 O Preview não pode ser promovido automaticamente para Production.
 
-## 6. Ocorrência operacional resolvida
+## 6. Ocorrências operacionais resolvidas
 
 A primeira tentativa de workflow manual falhou porque `VERCEL_TOKEN`, `VERCEL_ORG_ID` e `VERCEL_PROJECT_ID` não estavam cadastrados no GitHub Actions.
 
@@ -98,14 +103,16 @@ A solução vigente elimina essa dependência:
 - Production continua local pelo valor real de `VERCEL_ENV`;
 - configuração RADAR explícita continua prevalecendo sobre o padrão automático.
 
+A migration 15 foi aplicada pelo conector do Supabase e teve o identificador do histórico reconciliado para o valor versionado `20260720193000`.
+
 ## 7. Próxima tarefa única
 
 1. validar o manifesto do Preview automático;
 2. homologar login, sessão, telas, menus e permissões dos quatro perfis;
 3. executar testes de persistência, RLS, auditoria e Gestão de Equipe;
-4. analisar Advisors e tratar bloqueadores reais;
-5. testar recuperação, backup e rollback;
-6. registrar evidências e pendências.
+4. testar recuperação, backup e rollback;
+5. registrar evidências e pendências;
+6. decidir futuramente sobre plano Pro caso a proteção contra senhas vazadas seja requisito obrigatório.
 
 ## 8. Gate de Production
 
