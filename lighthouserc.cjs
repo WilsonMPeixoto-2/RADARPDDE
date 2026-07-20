@@ -1,3 +1,4 @@
+// Linha de base inicial: bloquear acessibilidade e boas práticas; observar desempenho.
 module.exports = {
   ci: {
     collect: {
