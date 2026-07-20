@@ -1,0 +1,99 @@
+name: Atualizar Supabase JS 2.110.7
+
+on:
+  push:
+    branches:
+      - agent/update-supabase-js-2-110-7
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-supabase-js-2-110-7
+  cancel-in-progress: false
+
+jobs:
+  update:
+    name: Atualizar dependência, bundle e validar
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Obter código
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar linha de base reproduzível
+        run: npm ci
+
+      - name: Atualizar somente Supabase JS
+        run: npm install --save-dev --save-exact @supabase/supabase-js@2.110.7
+
+      - name: Regenerar bundle do cliente Supabase
+        run: npm run build:supabase-client
+
+      - name: Confirmar versão instalada
+        shell: bash
+        run: |
+          node - <<'NODE'
+          const manifest = require('./package.json');
+          const lock = require('./package-lock.json');
+          const expected = '2.110.7';
+          const manifestVersion = manifest.devDependencies['@supabase/supabase-js'];
+          const lockRootVersion = lock.packages[''].devDependencies['@supabase/supabase-js'];
+          const lockPackageVersion = lock.packages['node_modules/@supabase/supabase-js'].version;
+          if ([manifestVersion, lockRootVersion, lockPackageVersion].some(version => version !== expected)) {
+            throw new Error(`Versões divergentes: manifest=${manifestVersion}, lockRoot=${lockRootVersion}, lockPackage=${lockPackageVersion}`);
+          }
+          console.log(`@supabase/supabase-js ${expected} confirmado no manifesto e lockfile.`);
+          NODE
+
+      - name: Verificar sintaxe
+        run: npm run check
+
+      - name: Executar testes unitários
+        run: npm run test:unit
+
+      - name: Executar testes de integração
+        run: npm run test:integration
+
+      - name: Validar prontidão Supabase
+        run: npm run check:supabase
+
+      - name: Validar alinhamento final Supabase
+        run: npm run check:supabase-final
+
+      - name: Garantir escopo mínimo do diff
+        shell: bash
+        run: |
+          rm .github/workflows/one-off-update-supabase-js.yml
+          mapfile -t changed < <(git status --short | sed -E 's/^.. //')
+          printf 'Arquivos alterados:\n%s\n' "${changed[*]}"
+          for path in "${changed[@]}"; do
+            case "$path" in
+              package.json|package-lock.json|vendor/supabase-client.js|.github/workflows/one-off-update-supabase-js.yml) ;;
+              *) echo "Alteração inesperada: $path" >&2; exit 1 ;;
+            esac
+          done
+
+      - name: Criar commit final da atualização
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json vendor/supabase-client.js .github/workflows/one-off-update-supabase-js.yml
+          git diff --cached --stat
+          git commit -m "chore: atualizar supabase-js para 2.110.7"
+
+      - name: Validar artefatos após o commit
+        run: npm run check:generated
+
+      - name: Publicar branch atualizada
+        run: git push origin HEAD:agent/update-supabase-js-2-110-7
