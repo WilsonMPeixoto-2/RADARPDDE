@@ -1,0 +1,116 @@
+name: Importar snapshot canônico no Supabase
+
+on:
+  workflow_dispatch:
+    inputs:
+      project_ref:
+        description: Referência exata do projeto Supabase autorizado
+        required: true
+        type: string
+      confirmation:
+        description: Digite IMPORTAR_SNAPSHOT_CANONICO_RADAR_PDDE
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: radar-pdde-canonical-import-${{ inputs.project_ref }}
+  cancel-in-progress: false
+
+env:
+  SUPABASE_TELEMETRY_DISABLED: '1'
+  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+  PGPASS_REMOTE: ${{ secrets.SUPABASE_DB_PASSWORD }}
+  RADAR_SNAPSHOT_FILE: /tmp/radar-pdde-snapshot.json
+  RADAR_IMPORT_SQL_FILE: /tmp/radar-pdde-import.sql
+  RADAR_IMPORT_SUMMARY_FILE: /tmp/radar-pdde-import-summary.json
+  RADAR_SNAPSHOT_IMPORT_ID: radar-pdde-canonical-v1
+  RADAR_SNAPSHOT_EXPORTED_AT: '2026-07-20T00:00:00.000Z'
+
+jobs:
+  importar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Validar autorização explícita e segredos
+        env:
+          PROJECT_REF: ${{ inputs.project_ref }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+        shell: bash
+        run: |
+          test "${PROJECT_REF}" = 'scnryinorqeucbfkioxo'
+          test "${CONFIRMATION}" = 'IMPORTAR_SNAPSHOT_CANONICO_RADAR_PDDE'
+          test -n "${SUPABASE_ACCESS_TOKEN}"
+          test -n "${PGPASS_REMOTE}"
+
+      - name: Instalar Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Iniciar aplicação estática limpa
+        shell: bash
+        run: |
+          python3 -m http.server 4175 --bind 127.0.0.1 > /tmp/radar-import-server.log 2>&1 &
+          echo $! > /tmp/radar-import-server.pid
+          for tentativa in {1..30}; do
+            curl --fail --silent http://127.0.0.1:4175/index.html > /dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/radar-import-server.log
+          exit 1
+
+      - name: Exportar fonte canônica sanitizada
+        run: npm run snapshot:export:local
+
+      - name: Gerar SQL retomável insert-only
+        run: node scripts/ops/build-canonical-import-sql.mjs
+
+      - name: Vincular projeto autorizado
+        env:
+          PROJECT_REF: ${{ inputs.project_ref }}
+        run: npx --no-install supabase link --project-ref "${PROJECT_REF}" --password "${PGPASS_REMOTE}"
+
+      - name: Importar e reconciliar em transação única
+        shell: bash
+        run: |
+          set -o pipefail
+          npx --no-install supabase db query --linked --file "${RADAR_IMPORT_SQL_FILE}" 2>&1 \
+            | tee /tmp/radar-pdde-import-result.txt
+
+      - name: Consultar Advisors após a carga
+        shell: bash
+        run: |
+          set -o pipefail
+          npx --no-install supabase db advisors --linked --type all --level info --fail-on error 2>&1 \
+            | tee /tmp/radar-pdde-advisors-after-import.txt
+
+      - name: Publicar evidências sanitizadas
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: radar-pdde-canonical-import-${{ github.run_id }}
+          path: |
+            /tmp/radar-pdde-import-summary.json
+            /tmp/radar-pdde-import-result.txt
+            /tmp/radar-pdde-advisors-after-import.txt
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Encerrar servidor local
+        if: always()
+        shell: bash
+        run: |
+          test ! -f /tmp/radar-import-server.pid || kill "$(cat /tmp/radar-import-server.pid)" || true
