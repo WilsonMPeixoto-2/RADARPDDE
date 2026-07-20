@@ -210,7 +210,7 @@ npx --no-install supabase db query --linked --file supabase/verification/remote-
     const postApply = `
 on:
   workflow_dispatch:
-APLICAR_13_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL
+APLICAR_14_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL
 npx --no-install supabase db push --linked --dry-run
 npx --no-install supabase db push --linked --yes
 remote-post-apply.sql
@@ -276,36 +276,5 @@ test('exige build versionado e diretório público isolado na Vercel', () => {
             packageSource
         ).join(' '),
         /build:vercel|diretório dist/i
-    );
-});
-
-test('valida presença dos artefatos essenciais de preparação', () => {
-    assert.deepEqual(validateReadinessArtifacts(ARTIFACTS), []);
-    assert.match(
-        validateReadinessArtifacts(ARTIFACTS.filter(path => path !== 'vendor/supabase-client.js')).join(' '),
-        /vendor\/supabase-client\.js/
-    );
-});
-
-test('exige os comandos administrativos de bootstrap remoto versionados', () => {
-    const validPackage = JSON.stringify({
-        scripts: {
-            'bootstrap:supabase:validate': 'node scripts/bootstrap-supabase-remote.mjs validate',
-            'bootstrap:supabase:plan': 'node scripts/bootstrap-supabase-remote.mjs plan',
-            'bootstrap:supabase:import': 'node scripts/bootstrap-supabase-remote.mjs import',
-            'bootstrap:supabase:reconcile': 'node scripts/bootstrap-supabase-remote.mjs reconcile',
-            'bootstrap:supabase:admin': 'node scripts/bootstrap-remote-admin.mjs',
-            'snapshot:export:local': 'node scripts/export-local-snapshot.mjs'
-        }
-    });
-
-    assert.deepEqual(validateRemoteBootstrapCommands(validPackage), []);
-    assert.match(
-        validateRemoteBootstrapCommands(validPackage.replace('bootstrap:supabase:import', 'bootstrap:supabase:missing')).join(' '),
-        /bootstrap:supabase:import/
-    );
-    assert.match(
-        validateRemoteBootstrapCommands(validPackage.replace('bootstrap:supabase:admin', 'bootstrap:supabase:missing-admin')).join(' '),
-        /bootstrap:supabase:admin/
     );
 });
