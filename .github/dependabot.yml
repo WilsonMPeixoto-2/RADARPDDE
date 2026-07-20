@@ -25,6 +25,7 @@ updates:
           - "ajv"
           - "esbuild"
           - "http-server"
+          - "prettier"
           - "typescript"
     labels:
       - dependencies

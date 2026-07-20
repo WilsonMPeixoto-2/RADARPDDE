@@ -54,7 +54,9 @@
     "audit:cycle-a": "node scripts/audit/validate-cycle-a-artifacts.mjs",
     "audit:frontend-precedence": "node scripts/audit/analyze-frontend-precedence.mjs",
     "audit:frontend-precedence:check": "node scripts/audit/analyze-frontend-precedence.mjs --check",
-    "test:frontend-precedence": "playwright test --config=playwright.frontend-audit.config.js"
+    "test:frontend-precedence": "playwright test --config=playwright.frontend-audit.config.js",
+    "format": "prettier --write --ignore-unknown",
+    "format:check": "prettier --check --ignore-unknown"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.12.1",
@@ -65,6 +67,7 @@
     "ajv": "8.20.0",
     "esbuild": "0.28.1",
     "http-server": "14.1.1",
+    "prettier": "3.9.5",
     "supabase": "2.109.1",
     "typescript": "7.0.2"
   }
