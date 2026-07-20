@@ -71,10 +71,6 @@ jobs:
             ["        '20260720030046'\n    ];", "        '20260720030046',\n        '20260720193000'\n    ];"]
           ]);
 
-          replace('.github/workflows/supabase-remote-post-apply.yml', [
-            ['APLICAR_14_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL', 'APLICAR_15_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL']
-          ]);
-
           if (fs.existsSync('docs/CURRENT_STAGE.md')) {
             let current = fs.readFileSync('docs/CURRENT_STAGE.md', 'utf8');
             current = current.replaceAll('**14** migrations', '**15** migrations');
@@ -85,14 +81,13 @@ jobs:
 
       - name: Verificar referências ativas antigas
         run: |
-          ! grep -R --exclude=bootstrap-migration-15.yml \
-            "APLICAR_14_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL" \
-            scripts tests .github/workflows supabase/verification docs/runbooks
+          ! grep -R "APLICAR_14_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL" \
+            scripts tests supabase/verification docs/runbooks
 
       - name: Commitar alinhamento
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add scripts tests docs supabase .github/workflows/supabase-remote-post-apply.yml
+          git add scripts tests docs supabase
           git commit -m "chore: alinhar contratos para 15 migrations"
           git push origin HEAD:supabase/performance-auth-hardening
