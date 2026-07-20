@@ -1,9 +1,6 @@
 name: Atualizar Supabase JS 2.110.7
 
 on:
-  push:
-    branches:
-      - agent/update-supabase-js-2-110-7
   pull_request:
     branches:
       - main
@@ -13,7 +10,7 @@ permissions:
 
 concurrency:
   group: update-supabase-js-2-110-7
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   update:
