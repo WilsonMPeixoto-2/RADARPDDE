@@ -22,7 +22,7 @@ Production continua em `localStorage`, com repositório Supabase desabilitado e 
 
 - Não reutilizar projeto Supabase de outra aplicação.
 - Não inserir chave administrativa no frontend, bundle ou artefatos.
-- Usar somente chave publicável no navegador.
+- Usar somente chave `sb_publishable_` no navegador.
 - Não promover deployment Preview para Production.
 - Não ativar Production antes da homologação completa dos perfis, telas e permissões.
 - Manter apenas um perfil institucional ativo por usuário.
@@ -56,38 +56,34 @@ Antes de publicar um Preview, confirmar:
 
 As senhas não são armazenadas no repositório nem tratadas por workflows operacionais.
 
-## 3. Configurar e publicar somente o Preview
+## 3. Publicação automática do Preview
 
-Usar o workflow:
+A integração Git–Vercel já existente cria deployments Preview para branches e pull requests.
 
-```text
-.github/workflows/configurar-e-publicar-preview-supabase.yml
-```
+O build `scripts/build-vercel.mjs` aplica automaticamente a configuração pública abaixo quando:
 
-Parâmetros:
-
-- `publishable_key`: chave iniciada por `sb_publishable_`;
-- `confirmation`: `PUBLICAR_PREVIEW_SUPABASE_RADAR_PDDE`.
-
-O workflow configura exclusivamente no ambiente Preview:
+- `VERCEL_ENV=preview`; e
+- nenhuma variável `RADAR_*` de runtime foi definida explicitamente.
 
 ```text
 RADAR_DATA_MODE=supabase-preview
 RADAR_ENVIRONMENT=preview
 RADAR_SUPABASE_REPOSITORY_ENABLED=true
 RADAR_SUPABASE_URL=https://scnryinorqeucbfkioxo.supabase.co
-RADAR_SUPABASE_PUBLISHABLE_KEY=<chave publicável>
+RADAR_SUPABASE_PUBLISHABLE_KEY=<chave sb_publishable_ versionada>
 RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED=false
 ```
 
-Depois executa:
+A URL e a chave publicável fazem parte da configuração pública do cliente Supabase. Não utilizar:
 
-1. `vercel pull --environment=preview`;
-2. build versionado;
-3. validação de `dist/radar-build-manifest.json`;
-4. `vercel deploy --prebuilt` sem `--prod`;
-5. validação do manifesto publicado;
-6. verificação de que Production continua local.
+- `VERCEL_TOKEN`;
+- `VERCEL_ORG_ID`;
+- `VERCEL_PROJECT_ID`;
+- chave `service_role`;
+- chave `sb_secret_`;
+- senha de banco.
+
+Configuração RADAR explícita prevalece sobre o padrão automático. Isso permite testes controlados sem alterar o contrato normal.
 
 O manifesto do Preview deve apresentar:
 
@@ -182,6 +178,7 @@ Antes de Production:
 - confirmar que usuário anônimo não lê dados institucionais;
 - confirmar ausência de chave administrativa no bundle;
 - analisar Security e Performance Advisors;
+- tratar bloqueadores reais de segurança;
 - testar backup e restauração;
 - testar rollback;
 - definir política de MFA para perfis privilegiados;
