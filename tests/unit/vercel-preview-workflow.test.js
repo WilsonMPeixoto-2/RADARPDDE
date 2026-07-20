@@ -18,7 +18,8 @@ test('workflow configura exclusivamente o ambiente Preview do RADAR', () => {
     const workflow = readWorkflow();
 
     assert.match(workflow, /workflow_dispatch:/);
-    assert.match(workflow, /push:\s*\n\s+branches:\s*\[main\]/);
+    assert.match(workflow, /publishable_key:/);
+    assert.match(workflow, /PUBLICAR_PREVIEW_SUPABASE_RADAR_PDDE/);
     assert.match(workflow, /scnryinorqeucbfkioxo\.supabase\.co/);
     assert.match(workflow, /RADAR_DATA_MODE[\s\S]*supabase-preview/);
     assert.match(workflow, /RADAR_ENVIRONMENT[\s\S]*preview/);
@@ -56,6 +57,7 @@ test('workflow publica artefato prebuilt e valida o manifesto antes e depois do 
     assert.match(workflow, /supabaseRepositoryEnabled:\s*true/);
     assert.match(workflow, /productionActivationApproved:\s*false/);
     assert.match(workflow, /radarpdde-fix\.vercel\.app\/radar-build-manifest\.json/);
+    assert.match(workflow, /runtimeEnvironment:\s*['"]local['"]/);
     assert.match(workflow, /dataMode:\s*['"]local['"]/);
     assert.doesNotMatch(workflow, /\s--prod(?:\s|$)/i);
     assert.doesNotMatch(workflow, /--environment=production/i);
