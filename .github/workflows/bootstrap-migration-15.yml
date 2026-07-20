@@ -26,60 +26,92 @@ jobs:
           node <<'NODE'
           const fs = require('node:fs');
 
-          function replace(path, replacements) {
-            let text = fs.readFileSync(path, 'utf8');
-            for (const [from, to] of replacements) {
-              if (!text.includes(from)) throw new Error(`Trecho ausente em ${path}: ${from}`);
-              text = text.replaceAll(from, to);
-            }
-            fs.writeFileSync(path, text);
+          function edit(path, transform, validate) {
+            const original = fs.readFileSync(path, 'utf8');
+            const updated = transform(original);
+            if (!validate(updated)) throw new Error(`Contrato final inválido: ${path}`);
+            fs.writeFileSync(path, updated);
           }
 
-          replace('scripts/check-supabase-readiness.js', [
-            ["    '20260720030046_activation_basic_hardening.sql'\n]);", "    '20260720030046_activation_basic_hardening.sql',\n    '20260720193000_performance_and_rls_hardening.sql'\n]);"],
-            ['APLICAR_14_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL', 'APLICAR_15_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL'],
-            ['das 14 migrations', 'das 15 migrations']
-          ]);
+          edit('scripts/check-supabase-readiness.js', text => {
+            if (!text.includes('20260720193000_performance_and_rls_hardening.sql')) {
+              text = text.replace(
+                /('20260720030046_activation_basic_hardening\.sql')\s*\n\]\);/,
+                "$1,\n    '20260720193000_performance_and_rls_hardening.sql'\n]);"
+              );
+            }
+            return text
+              .replaceAll('APLICAR_14_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL', 'APLICAR_15_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL')
+              .replaceAll('das 14 migrations', 'das 15 migrations');
+          }, text => text.includes('20260720193000_performance_and_rls_hardening.sql')
+              && text.includes('APLICAR_15_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL'));
 
-          replace('scripts/check-supabase-final-alignment.js', [
-            ["    'supabase/migrations/20260720030046_activation_basic_hardening.sql',", "    'supabase/migrations/20260720030046_activation_basic_hardening.sql',\n    'supabase/migrations/20260720193000_performance_and_rls_hardening.sql',"],
-            ['migrationCount !== 14', 'migrationCount !== 15'],
-            ['deve conter 14 migrations', 'deve conter 15 migrations']
-          ]);
+          edit('scripts/check-supabase-final-alignment.js', text => {
+            if (!text.includes('20260720193000_performance_and_rls_hardening.sql')) {
+              text = text.replace(
+                "    'supabase/migrations/20260720030046_activation_basic_hardening.sql',",
+                "    'supabase/migrations/20260720030046_activation_basic_hardening.sql',\n    'supabase/migrations/20260720193000_performance_and_rls_hardening.sql',"
+              );
+            }
+            return text
+              .replaceAll('migrationCount !== 14', 'migrationCount !== 15')
+              .replaceAll('deve conter 14 migrations', 'deve conter 15 migrations');
+          }, text => text.includes('20260720193000_performance_and_rls_hardening.sql')
+              && text.includes('migrationCount !== 15'));
 
-          replace('scripts/ops/build-canonical-import-sql.mjs', [
-            ["version='20260720030046') then raise exception 'MIGRATION_14_MISSING'", "version='20260720193000') then raise exception 'MIGRATION_15_MISSING'"],
-            ['schema_migrations)<>14', 'schema_migrations)<>15']
-          ]);
+          edit('scripts/ops/build-canonical-import-sql.mjs', text => text
+            .replace(/version='20260720030046'\) then raise exception 'MIGRATION_14_MISSING'/,
+              "version='20260720193000') then raise exception 'MIGRATION_15_MISSING'")
+            .replace(/schema_migrations\)<>14/, 'schema_migrations)<>15'),
+            text => text.includes("version='20260720193000'")
+              && text.includes("MIGRATION_15_MISSING")
+              && text.includes('schema_migrations)<>15'));
 
-          replace('tests/unit/readiness-check.test.js', [
-            ["    '20260720030046_activation_basic_hardening.sql'\n];", "    '20260720030046_activation_basic_hardening.sql',\n    '20260720193000_performance_and_rls_hardening.sql'\n];"],
-            ['/20260720030046_activation_basic_hardening\\.sql/', '/20260720193000_performance_and_rls_hardening\\.sql/'],
-            ['atualmente **14** migrations', 'atualmente **15** migrations'],
-            ["replace('**14**', '**10**')", "replace('**15**', '**10**')"],
-            ['contém 14/i', 'contém 15/i'],
-            ['APLICAR_14_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL', 'APLICAR_15_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL']
-          ]);
+          edit('tests/unit/readiness-check.test.js', text => {
+            if (!text.includes('20260720193000_performance_and_rls_hardening.sql')) {
+              text = text.replace(
+                /('20260720030046_activation_basic_hardening\.sql')\s*\n\];/,
+                "$1,\n    '20260720193000_performance_and_rls_hardening.sql'\n];"
+              );
+            }
+            return text
+              .replaceAll('/20260720030046_activation_basic_hardening\\.sql/', '/20260720193000_performance_and_rls_hardening\\.sql/')
+              .replaceAll('atualmente **14** migrations', 'atualmente **15** migrations')
+              .replaceAll("replace('**14**', '**10**')", "replace('**15**', '**10**')")
+              .replaceAll('contém 14/i', 'contém 15/i')
+              .replaceAll('APLICAR_14_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL', 'APLICAR_15_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL');
+          }, text => text.includes('20260720193000_performance_and_rls_hardening.sql')
+              && text.includes('atualmente **15** migrations'));
 
-          replace('docs/runbooks/SUPABASE_CONNECTION.md', [
-            ['atualmente **14** migrations', 'atualmente **15** migrations'],
-            ['exatamente as 14 migrations versionadas', 'exatamente as 15 migrations versionadas']
-          ]);
+          edit('docs/runbooks/SUPABASE_CONNECTION.md', text => text
+            .replaceAll('atualmente **14** migrations', 'atualmente **15** migrations')
+            .replaceAll('exatamente as 14 migrations versionadas', 'exatamente as 15 migrations versionadas'),
+            text => text.includes('atualmente **15** migrations')
+              && text.includes('exatamente as 15 migrations versionadas'));
 
-          replace('supabase/verification/remote-post-apply.sql', [
-            ["        '20260720030046'\n    ];", "        '20260720030046',\n        '20260720193000'\n    ];"]
-          ]);
+          edit('supabase/verification/remote-post-apply.sql', text => {
+            if (!text.includes("'20260720193000'")) {
+              text = text.replace(
+                /('20260720030046')\s*\n\s*\];/,
+                "$1,\n        '20260720193000'\n    ];"
+              );
+            }
+            return text;
+          }, text => text.includes("'20260720193000'"));
 
           if (fs.existsSync('docs/CURRENT_STAGE.md')) {
-            let current = fs.readFileSync('docs/CURRENT_STAGE.md', 'utf8');
-            current = current.replaceAll('**14** migrations', '**15** migrations');
-            current = current.replaceAll('14 migrations', '15 migrations');
-            fs.writeFileSync('docs/CURRENT_STAGE.md', current);
+            edit('docs/CURRENT_STAGE.md', text => text
+              .replaceAll('**14** migrations', '**15** migrations')
+              .replaceAll('14 migrations', '15 migrations'),
+              text => !text.includes('**14** migrations'));
           }
           NODE
 
-      - name: Verificar referências ativas antigas
+      - name: Verificar contratos finais
         run: |
+          grep -q "20260720193000_performance_and_rls_hardening.sql" scripts/check-supabase-readiness.js
+          grep -q "MIGRATION_15_MISSING" scripts/ops/build-canonical-import-sql.mjs
+          grep -q "20260720193000" supabase/verification/remote-post-apply.sql
           ! grep -R "APLICAR_14_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL" \
             scripts tests supabase/verification docs/runbooks
 
