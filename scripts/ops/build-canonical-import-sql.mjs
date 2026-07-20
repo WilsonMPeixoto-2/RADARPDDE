@@ -33,8 +33,8 @@ const qualified = (spec,alias) => spec.columns.map(([name])=>`${alias}.${name}`)
 const row = (spec,alias) => `row(${qualified(spec,alias)})`;
 const sql=[];
 sql.push('begin;',"set local lock_timeout='10s';","set local statement_timeout='180s';",'do $$ declare v jsonb; begin');
-sql.push("if not exists(select 1 from supabase_migrations.schema_migrations where version='20260720030046') then raise exception 'MIGRATION_14_MISSING'; end if;");
-sql.push("if (select count(*) from supabase_migrations.schema_migrations)<>14 then raise exception 'MIGRATION_COUNT_MISMATCH'; end if;");
+sql.push("if not exists(select 1 from supabase_migrations.schema_migrations where version='20260720193000') then raise exception 'MIGRATION_15_MISSING'; end if;");
+sql.push("if (select count(*) from supabase_migrations.schema_migrations)<>15 then raise exception 'MIGRATION_COUNT_MISMATCH'; end if;");
 sql.push("select coalesce(jsonb_agg(jsonb_build_object('id',id,'label',label,'priority',priority,'description',description,'active',active) order by priority),'[]'::jsonb) into v from public.profiles;");
 sql.push(`if v is distinct from ${tag}${json(profiles)}${tag}::jsonb then raise exception 'PROFILE_BASELINE_MISMATCH'; end if; end $$;`);
 for(const spec of specs){

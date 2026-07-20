@@ -35,7 +35,8 @@ const MIGRATIONS = [
     '20260714220136_preconnection_transactions_and_json_contracts.sql',
     '20260714220146_preconnection_reversible_import.sql',
     '202607190001_team_management_auth_alignment.sql',
-    '20260720030046_activation_basic_hardening.sql'
+    '20260720030046_activation_basic_hardening.sql',
+    '20260720193000_performance_and_rls_hardening.sql'
 ];
 
 const ARTIFACTS = [
@@ -155,13 +156,13 @@ test('valida conjunto obrigatório de migrations', () => {
     assert.deepEqual(validateMigrationManifest(MIGRATIONS), []);
     assert.match(
         validateMigrationManifest(MIGRATIONS.slice(0, -1)).join(' '),
-        /20260720030046_activation_basic_hardening\.sql/
+        /20260720193000_performance_and_rls_hardening\.sql/
     );
 });
 
 test('impede divergência entre a contagem documentada e o diretório de migrations', () => {
     const validRunbook = `
-O conjunto versionado contém atualmente **14** migrations.
+O conjunto versionado contém atualmente **15** migrations.
 supabase migration list --linked
 supabase db push --linked --dry-run
 supabase db push --linked
@@ -170,10 +171,10 @@ supabase db push --linked
 
     assert.match(
         validateMigrationDocumentation(
-            validRunbook.replace('**14**', '**10**'),
+            validRunbook.replace('**15**', '**10**'),
             MIGRATIONS
         ).join(' '),
-        /declara 10 migrations.*contém 14/i
+        /declara 10 migrations.*contém 15/i
     );
     assert.match(
         validateMigrationDocumentation(
@@ -210,7 +211,7 @@ npx --no-install supabase db query --linked --file supabase/verification/remote-
     const postApply = `
 on:
   workflow_dispatch:
-APLICAR_14_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL
+APLICAR_15_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL
 npx --no-install supabase db push --linked --dry-run
 npx --no-install supabase db push --linked --yes
 remote-post-apply.sql
