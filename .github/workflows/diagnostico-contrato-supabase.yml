@@ -1,0 +1,39 @@
+name: Diagnóstico contrato Supabase
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/diagnostico-contrato-supabase.yml'
+      - '.github/workflows/configurar-e-publicar-preview-supabase.yml'
+      - 'scripts/check-supabase-readiness.js'
+      - 'docs/runbooks/SUPABASE_CONNECTION.md'
+
+permissions:
+  contents: read
+
+jobs:
+  contrato:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - name: Executar e capturar diagnóstico
+        id: diagnostico
+        shell: bash
+        run: |
+          set +e
+          node scripts/check-supabase-readiness.js > /tmp/contrato-supabase.txt 2>&1
+          status=$?
+          cat /tmp/contrato-supabase.txt
+          echo "status=${status}" >> "${GITHUB_OUTPUT}"
+      - name: Publicar diagnóstico
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: diagnostico-contrato-supabase-${{ github.run_id }}
+          path: /tmp/contrato-supabase.txt
+          if-no-files-found: error
+          retention-days: 1
+      - name: Preservar resultado do verificador
+        env:
+          STATUS: ${{ steps.diagnostico.outputs.status }}
+        run: test "${STATUS}" = "0"
