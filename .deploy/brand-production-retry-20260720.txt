@@ -1,2 +1,3 @@
-Disparo único de produção após o limite temporário de builds da Vercel.
-O conteúdo funcional corresponde ao commit e603d29d0c6f245613749b7ba4c7c49d0e611f78.
+Nova tentativa de disparo de produção após o bloqueio temporário de builds da Vercel.
+O conteúdo funcional permanece correspondente à correção do logo original integral, sem redesenho.
+Tentativa automática adicional solicitada pelo usuário em 20/07/2026.
