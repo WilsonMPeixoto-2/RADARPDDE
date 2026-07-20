@@ -85,7 +85,8 @@ jobs:
 
       - name: Verificar referências ativas antigas
         run: |
-          ! grep -R "APLICAR_14_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL" \
+          ! grep -R --exclude=bootstrap-migration-15.yml \
+            "APLICAR_14_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL" \
             scripts tests .github/workflows supabase/verification docs/runbooks
 
       - name: Commitar alinhamento
