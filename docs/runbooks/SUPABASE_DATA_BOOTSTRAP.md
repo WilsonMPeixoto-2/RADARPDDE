@@ -27,7 +27,9 @@ npm run bootstrap:supabase:plan
 
 Os dois comandos não escrevem no destino. O snapshot deve declarar versão (e, quando informado, schema) `1`, conter as 19 coleções canônicas e passar todas as referências entre entidades antes de qualquer escrita. O processo interrompe quando encontrar qualquer ID desconhecido no destino ou conteúdo diferente para o mesmo ID.
 
-O único estado pré-existente permitido é o baseline institucional exato de cinco perfis (`technical_admin`, `sme_management`, `federal_assistant`, `controller` e `inventory`) quando a fonte não traz perfis. Qualquer perfil adicional, ausente ou alterado é conflito. Metadados gerados pelo banco (`row_version`, timestamps) e eventos de auditoria de triggers não participam da comparação.
+O único estado pré-existente permitido é o baseline institucional exato de cinco perfis (`technical_admin`, `sme_management`, `federal_assistant`, `controller` e `inventory`) quando a fonte não traz perfis. O perfil `inventory` usa a descrição literal versionada `Operação patrimonial e de inventariação.`. Qualquer perfil adicional, ausente ou alterado é conflito. Metadados gerados pelo banco (`row_version`, timestamps) e eventos de auditoria de triggers não participam da comparação.
+
+Somente em `controllers.user_id` e `inventoryTeamMembers.user_id`, ausência e `null` são equivalentes para acomodar o default remoto. Qualquer valor não nulo divergente continua sendo conflito.
 
 ## Importar e reconciliar
 

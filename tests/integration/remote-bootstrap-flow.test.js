@@ -8,6 +8,14 @@ const { RADAR_ENTITIES } = require('../../src/data/repository-contract.js');
 const { SupabaseRepository } = require('../../src/data/supabase-repository.js');
 const { bootstrapRemoteSnapshot } = require('../../scripts/lib/remote-bootstrap.mjs');
 
+const SQL_PROFILE_BASELINE = Object.freeze([
+    Object.freeze({ id: 'technical_admin', label: 'Administrador t\u00e9cnico', priority: 10, description: 'Administra\u00e7\u00e3o t\u00e9cnica e seguran\u00e7a do ambiente.', active: true }),
+    Object.freeze({ id: 'sme_management', label: 'Gest\u00e3o SME', priority: 20, description: 'Leitura gerencial e administra\u00e7\u00e3o institucional.', active: true }),
+    Object.freeze({ id: 'federal_assistant', label: 'Assistente de Verbas Federais', priority: 30, description: 'Opera\u00e7\u00e3o transversal de verbas federais.', active: true }),
+    Object.freeze({ id: 'controller', label: 'Controlador', priority: 40, description: 'Opera\u00e7\u00e3o da carteira de escolas vinculada.', active: true }),
+    Object.freeze({ id: 'inventory', label: 'Equipe de Invent\u00e1rio', priority: 50, description: 'Opera\u00e7\u00e3o patrimonial e de inventaria\u00e7\u00e3o.', active: true })
+]);
+
 function snapshot(entities = {}) {
     return createSnapshot(Object.fromEntries(RADAR_ENTITIES.map(entity => [entity, entities[entity] || []])), {
         importId: 'remote-flow',
@@ -63,6 +71,9 @@ function createSupabaseClientWithMetadata(seed = {}, options = {}) {
                     }
                     const created = incoming.map((row, index) => ({
                         ...row,
+                        ...((name === 'controllers' || name === 'inventory_team_members') && row.user_id === undefined
+                            ? { user_id: null }
+                            : {}),
                         row_version: 1,
                         created_at: `2026-07-20T12:00:0${index}.000Z`,
                         updated_at: `2026-07-20T12:00:0${index}.000Z`
@@ -114,13 +125,7 @@ test('reconcilia e permite reexecu\u00e7\u00e3o idempotente', async () => {
 
 test('atravessa SupabaseRepository com metadados e auditoria gerada sem upsert', async () => {
     const client = createSupabaseClientWithMetadata({
-        profiles: [
-            { id: 'technical_admin', label: 'Administrador t\u00e9cnico', priority: 10, description: 'Administra\u00e7\u00e3o t\u00e9cnica e seguran\u00e7a do ambiente.', active: true, row_version: 1 },
-            { id: 'sme_management', label: 'Gest\u00e3o SME', priority: 20, description: 'Leitura gerencial e administra\u00e7\u00e3o institucional.', active: true, row_version: 1 },
-            { id: 'federal_assistant', label: 'Assistente de Verbas Federais', priority: 30, description: 'Opera\u00e7\u00e3o transversal de verbas federais.', active: true, row_version: 1 },
-            { id: 'controller', label: 'Controlador', priority: 40, description: 'Opera\u00e7\u00e3o da carteira de escolas vinculada.', active: true, row_version: 1 },
-            { id: 'inventory', label: 'Equipe de Invent\u00e1rio', priority: 50, description: 'Opera\u00e7\u00e3o patrimonial e de invent\u00e1rio.', active: true, row_version: 1 }
-        ]
+        profiles: SQL_PROFILE_BASELINE.map(profile => ({ ...profile, row_version: 1 }))
     });
     const repository = new SupabaseRepository({ client });
     const source = snapshot({ schools: [{ id: 'school-1', denomination: 'Escola real', rowVersion: 99 }] });
@@ -133,6 +138,27 @@ test('atravessa SupabaseRepository com metadados e auditoria gerada sem upsert',
     assert.equal(client.calls.some(call => call.operation === 'upsert'), false);
     assert.equal(client.dump('schools')[0].row_version, 1);
     assert.equal(client.dump('audit_events').length > 0, true);
+});
+
+test('normaliza user_id ausente e null somente nos defaults remotos permitidos', async () => {
+    const client = createSupabaseClientWithMetadata({
+        profiles: SQL_PROFILE_BASELINE.map(profile => ({ ...profile, row_version: 1 }))
+    });
+    const repository = new SupabaseRepository({ client });
+    const source = snapshot({
+        controllers: [{ id: 'controller-1', name: 'Controlador real' }],
+        inventoryTeamMembers: [{ id: 'inventory-1', name: 'Inventario real' }]
+    });
+
+    const first = await bootstrapRemoteSnapshot({ repository, snapshot: source, mode: 'import' });
+    const repeated = await bootstrapRemoteSnapshot({ repository, snapshot: source, mode: 'import' });
+    const reconciled = await bootstrapRemoteSnapshot({ repository, snapshot: source, mode: 'reconcile' });
+
+    assert.equal(first.reconciliation.ok, true);
+    assert.equal(repeated.writtenRows, 0);
+    assert.equal(reconciled.ok, true);
+    assert.equal(client.dump('controllers')[0].user_id, null);
+    assert.equal(client.dump('inventory_team_members')[0].user_id, null);
 });
 
 test('converte colisao insert-only do SupabaseRepository em conflito sem sobrescrever', async () => {

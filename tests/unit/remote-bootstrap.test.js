@@ -15,6 +15,14 @@ const {
     bootstrapRemoteSnapshot
 } = require('../../scripts/lib/remote-bootstrap.mjs');
 
+const SQL_PROFILE_BASELINE = Object.freeze([
+    Object.freeze({ id: 'technical_admin', label: 'Administrador t\u00e9cnico', priority: 10, description: 'Administra\u00e7\u00e3o t\u00e9cnica e seguran\u00e7a do ambiente.', active: true }),
+    Object.freeze({ id: 'sme_management', label: 'Gest\u00e3o SME', priority: 20, description: 'Leitura gerencial e administra\u00e7\u00e3o institucional.', active: true }),
+    Object.freeze({ id: 'federal_assistant', label: 'Assistente de Verbas Federais', priority: 30, description: 'Opera\u00e7\u00e3o transversal de verbas federais.', active: true }),
+    Object.freeze({ id: 'controller', label: 'Controlador', priority: 40, description: 'Opera\u00e7\u00e3o da carteira de escolas vinculada.', active: true }),
+    Object.freeze({ id: 'inventory', label: 'Equipe de Invent\u00e1rio', priority: 50, description: 'Opera\u00e7\u00e3o patrimonial e de inventaria\u00e7\u00e3o.', active: true })
+]);
+
 function snapshot(entities = {}) {
     return createSnapshot(Object.fromEntries(RADAR_ENTITIES.map(entity => [entity, entities[entity] || []])), {
         importId: 'bootstrap-test',
@@ -121,7 +129,8 @@ test('sanitiza o snapshot exportado pela aplicacao limpa antes de persistir', as
 });
 
 test('aceita destino vazio ou contendo somente cinco profiles', async () => {
-    const profiles = PROFILE_BASELINE.map(profile => ({
+    assert.deepEqual(PROFILE_BASELINE, SQL_PROFILE_BASELINE);
+    const profiles = SQL_PROFILE_BASELINE.map(profile => ({
         ...profile,
         row_version: 1,
         created_at: '2026-07-20T12:00:00.000Z',
@@ -163,6 +172,16 @@ test('interrompe em IDs ou conte\u00fado incompat\u00edvel', async () => {
         error => error.code === 'DESTINATION_CONFLICT'
     );
     assert.equal(repository.inserts.length, 0);
+});
+
+test('mantem conflito quando user_id nao nulo diverge dos defaults remotos permitidos', async () => {
+    const source = snapshot({ controllers: [{ id: 'controller-1', user_id: 'auth-source' }] });
+    const destination = snapshot({ controllers: [{ id: 'controller-1', user_id: null }] });
+
+    await assert.rejects(
+        bootstrapRemoteSnapshot({ repository: createRepository(destination), snapshot: source, mode: 'validate' }),
+        error => error.code === 'DESTINATION_CONFLICT'
+    );
 });
 
 test('grava na ordem can\u00f4nica em lotes', async () => {

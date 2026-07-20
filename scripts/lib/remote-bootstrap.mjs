@@ -20,12 +20,16 @@ const SANITIZED_ENTITIES = Object.freeze([
 const GENERATED_METADATA_FIELDS = new Set([
     'row_version', 'rowVersion', 'created_at', 'createdAt', 'updated_at', 'updatedAt'
 ]);
+const NULL_EQUIVALENT_DEFAULTS = Object.freeze({
+    controllers: new Set(['user_id']),
+    inventoryTeamMembers: new Set(['user_id'])
+});
 const PROFILE_BASELINE = Object.freeze([
     Object.freeze({ id: 'technical_admin', label: 'Administrador t\u00e9cnico', priority: 10, description: 'Administra\u00e7\u00e3o t\u00e9cnica e seguran\u00e7a do ambiente.', active: true }),
     Object.freeze({ id: 'sme_management', label: 'Gest\u00e3o SME', priority: 20, description: 'Leitura gerencial e administra\u00e7\u00e3o institucional.', active: true }),
     Object.freeze({ id: 'federal_assistant', label: 'Assistente de Verbas Federais', priority: 30, description: 'Opera\u00e7\u00e3o transversal de verbas federais.', active: true }),
     Object.freeze({ id: 'controller', label: 'Controlador', priority: 40, description: 'Opera\u00e7\u00e3o da carteira de escolas vinculada.', active: true }),
-    Object.freeze({ id: 'inventory', label: 'Equipe de Invent\u00e1rio', priority: 50, description: 'Opera\u00e7\u00e3o patrimonial e de invent\u00e1rio.', active: true })
+    Object.freeze({ id: 'inventory', label: 'Equipe de Invent\u00e1rio', priority: 50, description: 'Opera\u00e7\u00e3o patrimonial e de inventaria\u00e7\u00e3o.', active: true })
 ]);
 
 function bootstrapError(code, message) {
@@ -45,15 +49,21 @@ function entityCounts(snapshot) {
     ]));
 }
 
-function projectRecord(record) {
-    return Object.fromEntries(Object.entries(record || {}).filter(([field]) => !GENERATED_METADATA_FIELDS.has(field)));
+function projectRecord(record, entity) {
+    const projected = Object.fromEntries(
+        Object.entries(record || {}).filter(([field]) => !GENERATED_METADATA_FIELDS.has(field))
+    );
+    for (const field of NULL_EQUIVALENT_DEFAULTS[entity] || []) {
+        if (projected[field] === null) delete projected[field];
+    }
+    return projected;
 }
 
 function projectBootstrapSnapshot(snapshot) {
     const projected = clone(snapshot);
     projected.entities = Object.fromEntries(RADAR_ENTITIES.map(entity => [
         entity,
-        (snapshot.entities[entity] || []).map(projectRecord)
+        (snapshot.entities[entity] || []).map(record => projectRecord(record, entity))
     ]));
     projected.entities.auditEvents = [];
     return projected;
@@ -81,14 +91,14 @@ function sanitizeBootstrapSnapshot(snapshot) {
     return sanitized;
 }
 
-function recordsMatch(left, right) {
-    return stableStringify(projectRecord(left)) === stableStringify(projectRecord(right));
+function recordsMatch(left, right, entity) {
+    return stableStringify(projectRecord(left, entity)) === stableStringify(projectRecord(right, entity));
 }
 
 function matchesProfileBaseline(records) {
     if (records.length !== PROFILE_BASELINE.length) return false;
     const byId = new Map(records.map(record => [String(record.id), record]));
-    return PROFILE_BASELINE.every(profile => recordsMatch(byId.get(profile.id), profile));
+    return PROFILE_BASELINE.every(profile => recordsMatch(byId.get(profile.id), profile, 'profiles'));
 }
 
 function assertDestinationCompatible(destination, source) {
@@ -104,7 +114,7 @@ function assertDestinationCompatible(destination, source) {
         const sourceById = new Map((source.entities[entity] || []).map(record => [String(record.id), record]));
         for (const record of destinationRecords) {
             const expected = sourceById.get(String(record.id));
-            if (!expected || !recordsMatch(expected, record)) {
+            if (!expected || !recordsMatch(expected, record, entity)) {
                 throw bootstrapError('DESTINATION_CONFLICT', 'O destino remoto contem dados incompativeis com o snapshot canonico.');
             }
         }
@@ -147,7 +157,7 @@ function plannedRows(source, destination) {
         entity,
         (source.entities[entity] || [])
             .filter(record => !destinationIds[entity].has(String(record.id)))
-            .map(projectRecord)
+            .map(record => projectRecord(record, entity))
     ]));
 }
 
