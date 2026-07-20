@@ -1,0 +1,95 @@
+name: Saúde das dependências
+
+on:
+  pull_request:
+    paths:
+      - package.json
+      - package-lock.json
+      - .github/dependabot.yml
+      - .github/workflows/dependency-health.yml
+  push:
+    branches:
+      - main
+    paths:
+      - package.json
+      - package-lock.json
+      - .github/dependabot.yml
+      - .github/workflows/dependency-health.yml
+  schedule:
+    - cron: '0 13 * * 2'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dependency-health-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    name: Vulnerabilidades, integridade e inventário
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Obter código
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+
+      - name: Preparar diretório de evidências
+        run: mkdir -p dependency-health
+
+      - name: Gerar relatório completo de vulnerabilidades
+        shell: bash
+        run: |
+          set +e
+          npm audit --json > dependency-health/npm-audit.json
+          audit_exit=$?
+          set -e
+          printf '{"exitCode":%s}\n' "$audit_exit" > dependency-health/npm-audit-exit.json
+
+      - name: Bloquear vulnerabilidades altas ou críticas
+        run: npm audit --audit-level=high
+
+      - name: Verificar assinaturas e proveniência
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          npm audit signatures --json --include-attestations > dependency-health/npm-signatures.json 2> dependency-health/npm-signatures.stderr.txt
+          signature_exit=$?
+          set -e
+          printf '{"exitCode":%s}\n' "$signature_exit" > dependency-health/npm-signatures-exit.json
+
+      - name: Registrar pacotes desatualizados
+        shell: bash
+        run: |
+          set +e
+          npm outdated --json > dependency-health/npm-outdated.json
+          outdated_exit=$?
+          set -e
+          printf '{"exitCode":%s}\n' "$outdated_exit" > dependency-health/npm-outdated-exit.json
+
+      - name: Gerar SBOM CycloneDX
+        run: npm sbom --sbom-format cyclonedx --sbom-type application > dependency-health/sbom.cdx.json
+
+      - name: Registrar árvore instalada
+        run: npm ls --all --json > dependency-health/npm-tree.json
+
+      - name: Publicar evidências de dependências
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: dependency-health-${{ github.run_id }}
+          path: dependency-health
+          retention-days: 30
+          if-no-files-found: error
