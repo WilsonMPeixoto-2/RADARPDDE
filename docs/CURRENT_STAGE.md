@@ -19,7 +19,6 @@ Relatórios históricos não substituem este estado operacional.
 
 O RADAR possui:
 
-- frontend funcional em modo local;
 - quatro perfis funcionais e papel técnico separado;
 - dashboard, carteira, competências, pendências, prontuário, Gestão de Equipe, Inventário e registros;
 - contrato único de repositório;
@@ -60,7 +59,7 @@ Foram vinculados e validados:
 
 Os quatro usuários estão confirmados no Auth e possuem um único perfil institucional ativo.
 
-## 5. Vercel
+## 5. Contrato Vercel
 
 ### Production
 
@@ -75,7 +74,7 @@ productionActivationApproved: false
 
 ### Preview
 
-A próxima entrega configura somente o Preview com:
+O build reconhece diretamente `VERCEL_ENV=preview` e, na ausência de configuração RADAR explícita, gera:
 
 ```text
 runtimeEnvironment: preview
@@ -84,18 +83,31 @@ supabaseRepositoryEnabled: true
 productionActivationApproved: false
 ```
 
+A URL e a chave `sb_publishable_` são material público do cliente Supabase. Nenhum token da Vercel, chave administrativa do Supabase ou senha de banco é necessário para o build automático.
+
 O Preview não pode ser promovido automaticamente para Production.
 
-## 6. Próxima tarefa única
+## 6. Ocorrência operacional resolvida
 
-1. incorporar o workflow seguro de configuração e publicação do Preview;
-2. executar o workflow com a chave publicável do projeto;
-3. validar o manifesto publicado;
-4. homologar login, sessão, telas, menus e permissões dos quatro perfis;
-5. executar testes de persistência, RLS, auditoria e Gestão de Equipe;
+A primeira tentativa de workflow manual falhou porque `VERCEL_TOKEN`, `VERCEL_ORG_ID` e `VERCEL_PROJECT_ID` não estavam cadastrados no GitHub Actions.
+
+A solução vigente elimina essa dependência:
+
+- Preview é produzido pela integração Git–Vercel já existente;
+- o próprio build aplica a configuração pública de homologação;
+- Production continua local pelo valor real de `VERCEL_ENV`;
+- configuração RADAR explícita continua prevalecendo sobre o padrão automático.
+
+## 7. Próxima tarefa única
+
+1. validar o manifesto do Preview automático;
+2. homologar login, sessão, telas, menus e permissões dos quatro perfis;
+3. executar testes de persistência, RLS, auditoria e Gestão de Equipe;
+4. analisar Advisors e tratar bloqueadores reais;
+5. testar recuperação, backup e rollback;
 6. registrar evidências e pendências.
 
-## 7. Gate de Production
+## 8. Gate de Production
 
 Production somente poderá usar Supabase após todos os itens abaixo:
 
@@ -104,7 +116,7 @@ Production somente poderá usar Supabase após todos os itens abaixo:
 - RLS positiva e negativa comprovada;
 - persistência e concorrência otimista comprovadas;
 - Gestão de Equipe homologada;
-- Advisors analisados;
+- Advisors analisados e bloqueadores de segurança tratados;
 - backup, restauração e rollback testados;
 - política de MFA definida;
 - CI verde no mesmo commit implantado;
@@ -112,12 +124,11 @@ Production somente poderá usar Supabase após todos os itens abaixo:
 
 Até lá, `productionActivationApproved` permanece `false`.
 
-## 8. Critério de atualização
+## 9. Critério de atualização
 
 Atualize este documento quando ocorrer:
 
 - merge que altere estágio ou prioridade;
-- novo workflow operacional;
 - implantação de Preview conectado;
 - alteração de identidades ou perfis;
 - nova carga ou correção de dados;
