@@ -1,0 +1,68 @@
+name: Lighthouse CI
+
+on:
+  pull_request:
+    paths:
+      - index.html
+      - styles.css
+      - app.js
+      - config.js
+      - config.runtime.js
+      - src/**
+      - package.json
+      - package-lock.json
+      - lighthouserc.cjs
+      - .github/workflows/lighthouse-ci.yml
+  push:
+    branches:
+      - main
+    paths:
+      - index.html
+      - styles.css
+      - app.js
+      - config.js
+      - config.runtime.js
+      - src/**
+      - package.json
+      - package-lock.json
+      - lighthouserc.cjs
+      - .github/workflows/lighthouse-ci.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lighthouse-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lighthouse:
+    name: Desempenho, acessibilidade e boas práticas
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Obter código
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+
+      - name: Executar Lighthouse CI
+        run: npm run test:lighthouse
+
+      - name: Publicar relatório Lighthouse
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: lighthouse-${{ github.run_id }}
+          path: lighthouse-report
+          retention-days: 30
+          if-no-files-found: warn
