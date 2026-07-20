@@ -2,18 +2,16 @@
 name: Bootstrap Prettier
 
 on:
-  push:
-    branches:
-      - chore/prettier
   pull_request:
     branches:
       - main
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   lockfile:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -39,7 +37,7 @@ jobs:
           NODE
       - name: Atualizar lockfile
         run: npm install --package-lock-only --ignore-scripts
-      - name: Instalar dependências
+      - name: Instalar e validar dependências
         run: npm ci --ignore-scripts
       - name: Validar Prettier
         run: |
@@ -48,13 +46,16 @@ jobs:
           npx prettier --check package.json .prettierrc.json
       - name: Auditar dependências
         run: npm audit --audit-level=high
-      - name: Publicar arquivos gerados
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: prettier-package
-          path: |
-            package.json
-            package-lock.json
-            .prettierrc.json
-          retention-days: 1
-          if-no-files-found: error
+      - name: Aplicar manifesto e lockfile na branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for file in package.json package-lock.json; do
+            sha=$(gh api "repos/$GITHUB_REPOSITORY/contents/$file?ref=chore/prettier" --jq .sha)
+            content=$(base64 -w0 "$file")
+            gh api --method PUT "repos/$GITHUB_REPOSITORY/contents/$file" \
+              -f message="build: registrar Prettier 3.9.5" \
+              -f content="$content" \
+              -f sha="$sha" \
+              -f branch="chore/prettier"
+          done
