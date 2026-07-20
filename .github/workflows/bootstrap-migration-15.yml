@@ -4,15 +4,13 @@ on:
   push:
     branches:
       - supabase/performance-auth-hardening
-  pull_request:
-    branches:
-      - main
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   align:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -98,13 +96,6 @@ jobs:
             }
             return text;
           }, text => text.includes("'20260720193000'"));
-
-          if (fs.existsSync('docs/CURRENT_STAGE.md')) {
-            edit('docs/CURRENT_STAGE.md', text => text
-              .replaceAll('**14** migrations', '**15** migrations')
-              .replaceAll('14 migrations', '15 migrations'),
-              text => !text.includes('**14** migrations'));
-          }
           NODE
 
       - name: Verificar contratos finais
@@ -115,17 +106,26 @@ jobs:
           ! grep -R "APLICAR_14_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL" \
             scripts tests supabase/verification docs/runbooks
 
-      - name: Publicar contratos alinhados
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: migration-15-contracts
-          path: |
+      - name: Aplicar contratos pela API de conteúdo
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_BRANCH: supabase/performance-auth-hardening
+        run: |
+          set -euo pipefail
+          files=(
             scripts/check-supabase-readiness.js
             scripts/check-supabase-final-alignment.js
             scripts/ops/build-canonical-import-sql.mjs
             tests/unit/readiness-check.test.js
             docs/runbooks/SUPABASE_CONNECTION.md
-            docs/CURRENT_STAGE.md
             supabase/verification/remote-post-apply.sql
-          retention-days: 1
-          if-no-files-found: error
+          )
+          for path in "${files[@]}"; do
+            sha="$(gh api "/repos/${GITHUB_REPOSITORY}/contents/${path}?ref=${TARGET_BRANCH}" --jq '.sha')"
+            content="$(base64 -w 0 "${path}")"
+            gh api --method PUT "/repos/${GITHUB_REPOSITORY}/contents/${path}" \
+              -f message="chore: alinhar ${path} à migration 15" \
+              -f content="${content}" \
+              -f sha="${sha}" \
+              -f branch="${TARGET_BRANCH}" >/dev/null
+          done
