@@ -72,6 +72,8 @@ const ARTIFACTS = [
     'scripts/export-local-snapshot.mjs',
     'scripts/lib/remote-bootstrap.mjs',
     'scripts/bootstrap-supabase-remote.mjs',
+    'scripts/lib/remote-admin-bootstrap.mjs',
+    'scripts/bootstrap-remote-admin.mjs',
     'scripts/check-supabase-final-alignment.js',
     'supabase/config.toml',
     'supabase/seed.sql',
@@ -102,6 +104,7 @@ const ARTIFACTS = [
     'docs/runbooks/SUPABASE_CONNECTION.md',
     'docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md',
     'docs/runbooks/SUPABASE_DATA_BOOTSTRAP.md',
+    'docs/runbooks/SUPABASE_AUTH_BOOTSTRAP.md',
     '.github/workflows/supabase-remote-validation.yml',
     '.github/workflows/supabase-remote-post-apply.yml',
     '.github/workflows/vercel-preview-prebuilt.yml',
@@ -291,6 +294,7 @@ test('exige os comandos administrativos de bootstrap remoto versionados', () => 
             'bootstrap:supabase:plan': 'node scripts/bootstrap-supabase-remote.mjs plan',
             'bootstrap:supabase:import': 'node scripts/bootstrap-supabase-remote.mjs import',
             'bootstrap:supabase:reconcile': 'node scripts/bootstrap-supabase-remote.mjs reconcile',
+            'bootstrap:supabase:admin': 'node scripts/bootstrap-remote-admin.mjs',
             'snapshot:export:local': 'node scripts/export-local-snapshot.mjs'
         }
     });
@@ -299,5 +303,9 @@ test('exige os comandos administrativos de bootstrap remoto versionados', () => 
     assert.match(
         validateRemoteBootstrapCommands(validPackage.replace('bootstrap:supabase:import', 'bootstrap:supabase:missing')).join(' '),
         /bootstrap:supabase:import/
+    );
+    assert.match(
+        validateRemoteBootstrapCommands(validPackage.replace('bootstrap:supabase:admin', 'bootstrap:supabase:missing-admin')).join(' '),
+        /bootstrap:supabase:admin/
     );
 });
