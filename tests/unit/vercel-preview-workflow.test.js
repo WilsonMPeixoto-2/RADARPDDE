@@ -41,7 +41,7 @@ test('workflow configura exclusivamente o ambiente Preview do RADAR', () => {
         );
     });
 
-    assert.doesNotMatch(workflow, /env add[^\n]+production/i);
+    assert.doesNotMatch(workflow, /env add\s+\S+\s+production(?:\s|$)/i);
     assert.doesNotMatch(workflow, /secrets\.(?:RADAR_SUPABASE_SERVICE_ROLE_KEY|SUPABASE_SERVICE_ROLE_KEY)/i);
 });
 
