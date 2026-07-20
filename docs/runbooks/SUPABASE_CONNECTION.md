@@ -2,178 +2,94 @@
 
 ## Situação atual
 
-A preparação pré-Supabase está versionada, mas a conexão remota ainda não foi executada. Production permanece em `localStorage`, com URL e chave vazias, repositório Supabase desabilitado e `productionActivationApproved: false`.
+O projeto remoto autorizado é `scnryinorqeucbfkioxo`. O schema, a carga canônica e os primeiros vínculos de Auth já foram concluídos e validados.
 
-O frontend usa um contrato único de persistência, serviços de aplicação e gate de autenticação. A infraestrutura inclui:
+O conjunto versionado contém atualmente **14** migrations.
 
-- `LocalStorageRepository` operacional e `SupabaseRepository` preparado;
-- paginação, lotes, `row_version`, auditoria, snapshots, staging, reconciliação e rollback;
-- Auth, RLS e quatro perfis funcionais: Controlador, Assistente de Verbas Federais, SME (Gestão) e Equipe de Inventário;
-- `technical_admin` como papel técnico separado dos perfis operacionais;
-- Gestão de Equipe plena pela Assistente, inclusive convite, conta, vínculo, edição e desativação de acesso;
-- Edge Function protegida `team-account-management` e RPCs administrativas restritas ao `service_role`;
-- o conjunto versionado contém atualmente **14** migrations;
-- pgTAP, lint, tipos gerados e gates E2E;
-- workflows manuais e separados para preflight, aplicação experimental e Preview Vercel prebuilt.
+A carga remota contém:
 
-Não preencha URL/chave nem ative flags sem cumprir este runbook.
+- 1 configuração geral;
+- 8 programas;
+- 5 controladores;
+- 3 integrantes de Inventário;
+- 12 competências;
+- 163 escolas;
+- 430 vínculos escola–programa.
 
-## Pré-requisitos
+Production continua em `localStorage`, com repositório Supabase desabilitado e `productionActivationApproved: false`.
 
-- autorização expressa para criar ou selecionar um projeto experimental exclusivo;
-- projeto `radar-pdde-preview` ou branch de banco isolada, preferencialmente em `sa-east-1`;
-- branch Git e commit candidatos identificados;
-- `SUPABASE_ACCESS_TOKEN` e senha do banco somente em segredos do ambiente autorizado;
-- URL e chave **publishable** somente para o Preview;
-- `VERCEL_TOKEN`, `VERCEL_ORG_ID` e `VERCEL_PROJECT_ID` somente em GitHub Secrets;
-- nenhuma chave `service_role`, `sb_secret_*`, senha ou token administrativo no frontend;
-- snapshot local exportado e validado antes de qualquer importação.
+## Regras permanentes
 
-## 1. Criar o projeto exclusivo
+- Não reutilizar projeto Supabase de outra aplicação.
+- Não inserir chave administrativa no frontend, bundle ou artefatos.
+- Usar somente chave publicável no navegador.
+- Não promover deployment Preview para Production.
+- Não ativar Production antes da homologação completa dos perfis, telas e permissões.
+- Manter apenas um perfil institucional ativo por usuário.
 
-Não reutilize projetos de outras aplicações. O projeto deve ser claramente identificado como experimental do RADAR e permanecer separado de Production.
+## 1. Contrato de migrations
 
-A criação do projeto não autoriza migrations, importação, Vercel ou Production. Cada gate exige autorização própria.
-
-## 2. Executar somente o preflight não destrutivo
-
-Acione manualmente `.github/workflows/supabase-remote-validation.yml`. O workflow:
-
-1. vincula o `project_ref` autorizado;
-2. registra o histórico remoto;
-3. executa dry-run;
-4. verifica capacidades disponíveis sem instalar objetos;
-5. publica evidências sem credenciais.
+Os arquivos em `supabase/migrations` são a única fonte da ordem. Não manter lista manual paralela.
 
 Comandos canônicos:
 
 ```bash
 supabase migration list --linked
 supabase db push --linked --dry-run
+supabase db push --linked
 ```
 
-O preflight não aplica migrations, não executa seed e não pressupõe que o schema exista.
+O contrato pós-aplicação está em `supabase/verification/remote-post-apply.sql` e deve reconhecer exatamente as 14 migrations versionadas.
 
-## 3. Aplicar as migrations somente em alvo descartável
+## 2. Estado de dados e Auth
 
-Os arquivos em `supabase/migrations` são a única fonte da ordem. Não mantenha lista manual duplicada.
+Antes de publicar um Preview, confirmar:
 
-Depois de revisar o preflight, acione `.github/workflows/supabase-remote-post-apply.yml` com a confirmação:
+- 163 escolas;
+- 430 vínculos escola–programa;
+- ausência de referências órfãs;
+- cinco perfis institucionais ativos;
+- Administrador técnico ativo;
+- Assistente de Verbas Federais ativa;
+- duas Controladoras vinculadas aos respectivos cadastros;
+- nenhum usuário com múltiplos perfis ativos.
+
+As senhas não são armazenadas no repositório nem tratadas por workflows operacionais.
+
+## 3. Configurar e publicar somente o Preview
+
+Usar o workflow:
 
 ```text
-APLICAR_13_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL
+.github/workflows/configurar-e-publicar-preview-supabase.yml
 ```
 
-O workflow repete o dry-run e, apenas depois, executa:
+Parâmetros:
 
-```bash
-supabase db push --linked
-supabase migration list --linked
-```
+- `publishable_key`: chave iniciada por `sb_publishable_`;
+- `confirmation`: `PUBLICAR_PREVIEW_SUPABASE_RADAR_PDDE`.
 
-O workflow nunca usa `--include-seed`. Em seguida ele:
+O workflow configura exclusivamente no ambiente Preview:
 
-- confirma exatamente as 13 migrations;
-- verifica `pgcrypto`, `pg_jsonschema` e as RPCs de Gestão de Equipe;
-- executa lint e pgTAP;
-- regenera e compara os tipos TypeScript;
-- executa Security e Performance Advisors;
-- implanta a Edge Function `team-account-management` com JWT obrigatório;
-- publica apenas evidências técnicas sem segredos.
-
-## 4. Homologar perfis e segregação de funções
-
-Criar identidades separadas para:
-
-- Controlador;
-- Assistente de Verbas Federais;
-- SME (Gestão);
-- Equipe de Inventário;
-- Administrador técnico.
-
-A interface operacional mostra apenas os quatro primeiros. `technical_admin` não deve herdar a interface da Assistente.
-
-Comprovar:
-
-- usuário anônimo não acessa dados ou RPCs institucionais;
-- usuário sem perfil ativo recebe acesso negado;
-- Controlador vê e altera somente sua carteira e exceções autorizadas;
-- Assistente acessa toda a 4ª CRE e administra controladores, carteiras e Inventário;
-- SME acompanha dados gerenciais e não altera o diretório da equipe da CRE;
-- Inventário atua no escopo patrimonial autorizado;
-- Administrador técnico gerencia infraestrutura, perfis, escopos e auditoria, sem operação cotidiana;
-- somente um perfil permanece ativo por usuário;
-- exclusão física continua excepcional e técnica.
-
-## 5. Homologar Gestão de Equipe e Auth
-
-No perfil Assistente, validar o ciclo completo:
-
-1. cadastrar controlador com nome e e-mail institucional;
-2. receber convite por e-mail;
-3. confirmar criação em Auth;
-4. confirmar `controllers.user_id` e `user_profiles.profile_id = 'controller'`;
-5. atribuir escolas;
-6. editar nome/e-mail e confirmar sincronização da conta;
-7. desativar controlador escolhendo substituto;
-8. confirmar redistribuição, perfil inativo, acesso bloqueado e histórico preservado;
-9. repetir os mesmos efeitos para integrante da Equipe de Inventário;
-10. confirmar que repetição idempotente não cria conta duplicada.
-
-Falha da RPC após convite deve remover a conta recém-criada. Falha da desativação deve restaurar o acesso. Credenciais administrativas permanecem apenas na Edge Function.
-
-## 6. Validar o repositório sem conectar a interface
-
-Com cliente técnico controlado, validar:
-
-- saúde do projeto;
-- leitura paginada acima de mil registros;
-- escrita em lotes;
-- RLS positiva e negativa por perfil;
-- `row_version` e `OPTIMISTIC_CONFLICT`;
-- RPCs compostas de notas, escolas, pendências e Gestão de Equipe;
-- exportação de snapshot remoto;
-- banco remoto vazio sem seed implícito;
-- logs administrativos e auditoria técnica.
-
-## 7. Importar uma cópia controlada
-
-Seguir `SUPABASE_MIGRATION_AND_ROLLBACK.md`:
-
-1. exportar snapshot canônico;
-2. validar estrutura e referências;
-3. gerar plano e dry-run;
-4. carregar em staging por `import_id`;
-5. retomar lotes de forma idempotente;
-6. reconciliar staging;
-7. promover atomicamente;
-8. reconciliar destino;
-9. comprovar rollback.
-
-A importação não ocorre no navegador e nunca usa o seed local como dado institucional.
-
-## 8. Configurar somente o Preview da Vercel
-
-Cadastrar estas variáveis apenas no ambiente Preview:
-
-```bash
+```text
 RADAR_DATA_MODE=supabase-preview
 RADAR_ENVIRONMENT=preview
 RADAR_SUPABASE_REPOSITORY_ENABLED=true
-RADAR_SUPABASE_URL=https://PROJECT_REF.supabase.co
-RADAR_SUPABASE_PUBLISHABLE_KEY=CHAVE_PUBLICAVEL
+RADAR_SUPABASE_URL=https://scnryinorqeucbfkioxo.supabase.co
+RADAR_SUPABASE_PUBLISHABLE_KEY=<chave publicável>
 RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED=false
 ```
 
-Acione `.github/workflows/vercel-preview-prebuilt.yml` com:
+Depois executa:
 
-```text
-PUBLICAR_PREVIEW_PREBUILT
-```
+1. `vercel pull --environment=preview`;
+2. build versionado;
+3. validação de `dist/radar-build-manifest.json`;
+4. `vercel deploy --prebuilt` sem `--prod`;
+5. validação do manifesto publicado;
+6. verificação de que Production continua local.
 
-O workflow deve executar `vercel pull --environment=preview`, `vercel build`, confirmar `dist/radar-build-manifest.json` e publicar apenas com `vercel deploy --prebuilt`. Ele não aceita `--prod`.
-
-No manifesto, confirmar:
+O manifesto do Preview deve apresentar:
 
 ```text
 runtimeEnvironment: preview
@@ -182,7 +98,7 @@ supabaseRepositoryEnabled: true
 productionActivationApproved: false
 ```
 
-Production continua gerando:
+Production deve continuar apresentando:
 
 ```text
 runtimeEnvironment: local
@@ -191,43 +107,97 @@ supabaseRepositoryEnabled: false
 productionActivationApproved: false
 ```
 
-Não promova o Preview conectado para Production.
+## 4. Homologar autenticação e autorização
 
-## 9. Executar gates
+Validar os quatro acessos iniciais:
 
-```bash
-npm run test:readiness
-npm run supabase:start
-npm run supabase:reset
-npm run bootstrap:auth-fixtures
-npm run check:auth-fixtures
-npm run supabase:test:db
-npm run supabase:lint:db
-npm run test:e2e
-```
+- Administrador técnico;
+- Assistente de Verbas Federais;
+- Controladora A;
+- Controladora B.
 
-Confirmar também:
+Para cada acesso, comprovar:
 
-- `npm run check:supabase-final` aprovado;
-- tipos remotos idênticos ao arquivo versionado;
-- Advisors analisados;
-- Edge Function exige JWT;
-- chave secreta ausente do bundle e dos logs;
-- desktop, Android e iPhone sem regressão funcional;
-- Production inalterada.
+- login e logout;
+- restauração de sessão após recarregar;
+- perfil institucional correto;
+- menus, abas, telas e ações esperadas;
+- ausência de funções indevidas;
+- funcionamento em desktop e celular.
 
-## 10. Critérios para preparar Production
+## 5. Matriz funcional mínima
+
+### Administrador técnico
+
+- gerencia perfis, escopos e auditoria;
+- não herda a operação cotidiana da Assistente;
+- não aparece como perfil operacional comum.
+
+### Assistente de Verbas Federais
+
+- acessa toda a 4ª CRE;
+- gerencia controladores e carteiras;
+- gerencia a equipe de Inventário;
+- acompanha dashboards, pendências e próximas ações.
+
+### Controladoras
+
+- acessam somente a própria carteira e exceções autorizadas;
+- não leem nem alteram a carteira da outra controladora;
+- registram verificações, pendências, contatos e reanálises no escopo permitido.
+
+## 6. Persistência e auditoria
+
+No Preview conectado:
+
+1. criar registro de homologação claramente identificado;
+2. recarregar e confirmar persistência;
+3. atualizar o registro;
+4. confirmar incremento e conflito de `row_version`;
+5. confirmar entrada correspondente em `audit_events`;
+6. confirmar ausência de duplicidade;
+7. remover ou reverter o dado de homologação ao final.
+
+## 7. Gestão de Equipe
+
+Homologar o ciclo completo:
+
+1. convidar integrante;
+2. confirmar conta Auth e perfil;
+3. atribuir carteira ou vínculo funcional;
+4. editar dados permitidos;
+5. desativar acesso;
+6. redistribuir carteira quando necessário;
+7. confirmar bloqueio do usuário desativado;
+8. preservar histórico e auditoria;
+9. repetir a operação para comprovar idempotência.
+
+Credenciais administrativas permanecem exclusivamente na Edge Function.
+
+## 8. Segurança e recuperação
+
+Antes de Production:
+
+- executar RLS positiva e negativa por perfil;
+- confirmar que usuário anônimo não lê dados institucionais;
+- confirmar ausência de chave administrativa no bundle;
+- analisar Security e Performance Advisors;
+- testar backup e restauração;
+- testar rollback;
+- definir política de MFA para perfis privilegiados;
+- manter CI verde no mesmo commit implantado.
+
+## 9. Critérios para Production
 
 A ativação futura de `supabase-production` exige simultaneamente:
 
-- homologação funcional dos quatro perfis;
-- validação do papel técnico separado;
-- migração reconciliada;
-- rollback comprovado;
-- backup e restauração testados;
+- Preview homologado por todos os perfis;
+- todas as abas e telas avaliadas;
+- persistência, RLS e auditoria aprovadas;
+- Gestão de Equipe aprovada;
+- rollback, backup e restauração comprovados;
 - Advisors tratados;
-- MFA e política de segurança definidas;
-- CI verde no mesmo commit implantado;
+- MFA definido;
 - autorização funcional e técnica específica.
 
-Sem `productionActivationApproved: true`, a aplicação deve permanecer em modo local e fail-closed.
+Sem esses requisitos, `RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED` permanece `false` e a aplicação deve continuar fail-closed.
