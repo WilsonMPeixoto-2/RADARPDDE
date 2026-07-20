@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
+const previewWorkflowPath = '.github/workflows/configurar-e-publicar-preview-supabase.yml';
 const requiredFiles = Object.freeze([
     'src/application/team-account-gateway.js',
     'supabase/migrations/202607190001_team_management_auth_alignment.sql',
@@ -12,7 +13,7 @@ const requiredFiles = Object.freeze([
     'supabase/functions/_shared/team-account-domain.mjs',
     'supabase/functions/team-account-management/index.ts',
     'supabase/tests/database/team-management-rpc.test.sql',
-    '.github/workflows/vercel-preview-prebuilt.yml'
+    previewWorkflowPath
 ]);
 
 function read(relativePath) {
@@ -73,19 +74,27 @@ function check() {
         findings.push('Separação entre perfis funcionais e papel técnico ausente.');
     }
 
-    const workflow = read('.github/workflows/vercel-preview-prebuilt.yml');
+    const workflow = read(previewWorkflowPath);
     [
         /workflow_dispatch:/,
-        /PUBLICAR_PREVIEW_PREBUILT/,
+        /publishable_key:/,
+        /PUBLICAR_PREVIEW_SUPABASE_RADAR_PDDE/,
         /vercel@56\.2\.0\s+pull[^\n]+--environment=preview/i,
         /vercel@56\.2\.0\s+build/i,
         /radar-build-manifest\.json/,
-        /vercel@56\.2\.0\s+deploy[^\n]+--prebuilt/i
+        /vercel@56\.2\.0\s+deploy[^\n]+--prebuilt/i,
+        /printf\s+['"]%s['"]\s+['"]false['"][^\n]+env add RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED preview/i
     ].forEach(pattern => {
         if (!pattern.test(workflow)) findings.push(`Workflow Vercel incompleto: ${pattern}`);
     });
     if (/\s--prod(?:\s|$)/i.test(workflow) || /--environment=production/i.test(workflow)) {
         findings.push('Workflow de Preview contém ativação de Production.');
+    }
+    if (/env add\s+\S+\s+production(?:\s|$)/i.test(workflow)) {
+        findings.push('Workflow configura variável diretamente em Production.');
+    }
+    if (/secrets\.(?:RADAR_SUPABASE_SERVICE_ROLE_KEY|SUPABASE_SERVICE_ROLE_KEY)/i.test(workflow)) {
+        findings.push('Workflow de Preview usa credencial administrativa do Supabase.');
     }
 
     const migrationCount = fs.readdirSync(path.join(root, 'supabase/migrations'))
