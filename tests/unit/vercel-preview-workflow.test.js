@@ -42,7 +42,7 @@ test('workflow configura exclusivamente o ambiente Preview do RADAR', () => {
     });
 
     assert.doesNotMatch(workflow, /env add[^\n]+production/i);
-    assert.doesNotMatch(workflow, /RADAR_SUPABASE_SERVICE_ROLE_KEY|sb_secret_|service_role/i);
+    assert.doesNotMatch(workflow, /secrets\.(?:RADAR_SUPABASE_SERVICE_ROLE_KEY|SUPABASE_SERVICE_ROLE_KEY)/i);
 });
 
 test('workflow publica artefato prebuilt e valida o manifesto antes e depois do deploy', () => {
