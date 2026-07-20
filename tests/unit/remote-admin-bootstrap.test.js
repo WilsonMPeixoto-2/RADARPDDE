@@ -8,11 +8,12 @@ const { spawnSync } = require('node:child_process');
 
 const {
     bootstrapRemoteAdmin,
+    isUsableExistingAuthUser,
     TECHNICAL_ADMIN_PROFILE,
     TECHNICAL_ADMIN_SCOPE
 } = require('../../scripts/lib/remote-admin-bootstrap.mjs');
 
-function createClient({ users = [], profiles = [], logs = [], failTable = '' } = {}) {
+function createClient({ users = [], profiles = [], logs = [], failTable = '', technicalProfileActive = true } = {}) {
     const state = {
         users: structuredClone(users),
         profiles: structuredClone(profiles),
@@ -26,7 +27,7 @@ function createClient({ users = [], profiles = [], logs = [], failTable = '' } =
     function tableRows(table) {
         if (table === 'user_profiles') return state.profiles;
         if (table === 'administrative_logs') return state.logs;
-        if (table === 'profiles') return [{ id: TECHNICAL_ADMIN_PROFILE }];
+        if (table === 'profiles') return [{ id: TECHNICAL_ADMIN_PROFILE, active: technicalProfileActive }];
         throw new Error(`Tabela inesperada: ${table}`);
     }
 
@@ -117,7 +118,7 @@ test('cria um Auth user confirmado e o vincula somente ao perfil technical_admin
 
 test('reconhece usuário e vínculo técnico compatíveis sem criar ou alterar registros', async () => {
     const client = createClient({
-        users: [{ id: 'existing-user', email: 'ADMIN@radar.example' }],
+        users: [{ id: 'existing-user', email: 'ADMIN@radar.example', email_confirmed_at: '2026-07-20T12:00:00.000Z' }],
         profiles: [{
             user_id: 'existing-user',
             profile_id: TECHNICAL_ADMIN_PROFILE,
@@ -161,7 +162,7 @@ test('é idempotente em reexecução após a criação inicial', async () => {
 
 test('aborta sem mutar quando o usuário existente possui papel incompatível', async () => {
     const client = createClient({
-        users: [{ id: 'existing-user', email: 'admin@radar.example' }],
+        users: [{ id: 'existing-user', email: 'admin@radar.example', email_confirmed_at: '2026-07-20T12:00:00.000Z' }],
         profiles: [{
             user_id: 'existing-user',
             profile_id: 'controller',
@@ -180,6 +181,24 @@ test('aborta sem mutar quando o usuário existente possui papel incompatível', 
     assert.equal(client.state.inserts.length, 0);
 });
 
+test('rejeita usuário Auth existente não confirmado, banido ou excluído', async () => {
+    const now = Date.parse('2026-07-20T12:00:00.000Z');
+    assert.equal(isUsableExistingAuthUser({ email_confirmed_at: null }, now), false);
+    assert.equal(isUsableExistingAuthUser({ email_confirmed_at: '2026-07-20T10:00:00.000Z', banned_until: '2026-07-21T12:00:00.000Z' }, now), false);
+    assert.equal(isUsableExistingAuthUser({ email_confirmed_at: '2026-07-20T10:00:00.000Z', deleted_at: '2026-07-20T11:00:00.000Z' }, now), false);
+    assert.equal(isUsableExistingAuthUser({ email_confirmed_at: '2026-07-20T10:00:00.000Z', banned_until: '2026-07-19T12:00:00.000Z' }, now), true);
+});
+
+test('rejeita perfil técnico institucional desativado', async () => {
+    const client = createClient({ technicalProfileActive: false });
+
+    await assert.rejects(
+        bootstrapRemoteAdmin({ client, email: 'admin@radar.example', password: 'segredo-local' }),
+        error => error.code === 'ADMIN_BOOTSTRAP_FAILED'
+    );
+    assert.deepEqual(client.state.deletedUsers, ['user-1']);
+});
+
 test('compensa somente o Auth user criado quando o vínculo de perfil falha', async () => {
     const client = createClient({ failTable: 'user_profiles' });
 
@@ -193,7 +212,7 @@ test('compensa somente o Auth user criado quando o vínculo de perfil falha', as
 
 test('não compensa um usuário Auth preexistente quando o vínculo falha', async () => {
     const client = createClient({
-        users: [{ id: 'existing-user', email: 'admin@radar.example' }],
+        users: [{ id: 'existing-user', email: 'admin@radar.example', email_confirmed_at: '2026-07-20T12:00:00.000Z' }],
         failTable: 'user_profiles'
     });
 
