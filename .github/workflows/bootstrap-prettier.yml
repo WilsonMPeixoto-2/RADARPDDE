@@ -1,3 +1,4 @@
+# Workflow temporário para materializar o lockfile; será removido antes do merge.
 name: Bootstrap Prettier
 
 on:
