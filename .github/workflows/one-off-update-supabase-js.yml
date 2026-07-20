@@ -15,7 +15,7 @@ concurrency:
 jobs:
   update:
     name: Atualizar dependência, bundle e validar
-    runs-on: ubuntu-latest
+    runs-on: macos-15
 
     steps:
       - name: Obter código
