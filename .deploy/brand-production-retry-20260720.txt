@@ -1,0 +1,2 @@
+Disparo único de produção após o limite temporário de builds da Vercel.
+O conteúdo funcional corresponde ao commit e603d29d0c6f245613749b7ba4c7c49d0e611f78.
