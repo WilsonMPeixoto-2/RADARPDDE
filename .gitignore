@@ -7,3 +7,4 @@ test-results/
 blob-report/
 npm-debug.log*
 .superpowers/
+.worktrees/
