@@ -1,3 +1,4 @@
+# Execução operacional temporária para materializar o artefato da ativação.
 name: Validar snapshot canônico do RADAR
 
 on:
