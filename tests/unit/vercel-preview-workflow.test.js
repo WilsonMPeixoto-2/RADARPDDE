@@ -5,72 +5,56 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const workflowPath = path.resolve(
+const buildPath = path.resolve(
     __dirname,
-    '../../.github/workflows/configurar-e-publicar-preview-supabase.yml'
+    '../../scripts/build-vercel.mjs'
 );
 
-function readWorkflow() {
-    return fs.readFileSync(workflowPath, 'utf8');
+function readBuild() {
+    return fs.readFileSync(buildPath, 'utf8');
 }
 
-test('workflow configura exclusivamente o ambiente Preview do RADAR', () => {
-    const workflow = readWorkflow();
+test('build automático configura exclusivamente deployments Preview com Supabase', () => {
+    const source = readBuild();
 
-    assert.match(workflow, /workflow_dispatch:/);
-    assert.match(workflow, /publishable_key:/);
-    assert.match(workflow, /PUBLICAR_PREVIEW_SUPABASE_RADAR_PDDE/);
-    assert.match(workflow, /scnryinorqeucbfkioxo\.supabase\.co/);
-    assert.match(workflow, /RADAR_DATA_MODE[\s\S]*supabase-preview/);
-    assert.match(workflow, /RADAR_ENVIRONMENT[\s\S]*preview/);
-    assert.match(workflow, /RADAR_SUPABASE_REPOSITORY_ENABLED[\s\S]*true/);
-    assert.match(workflow, /RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED[\s\S]*false/);
-
-    [
-        'RADAR_DATA_MODE',
-        'RADAR_ENVIRONMENT',
-        'RADAR_SUPABASE_REPOSITORY_ENABLED',
-        'RADAR_SUPABASE_URL',
-        'RADAR_SUPABASE_PUBLISHABLE_KEY',
-        'RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED'
-    ].forEach(name => {
-        assert.match(
-            workflow,
-            new RegExp(`env add ["']?${name}["']? preview [^\\n]*--force`, 'i'),
-            `${name} deve ser configurada somente em Preview.`
-        );
-    });
-
-    assert.doesNotMatch(workflow, /env add\s+\S+\s+production(?:\s|$)/i);
-    assert.doesNotMatch(workflow, /secrets\.(?:RADAR_SUPABASE_SERVICE_ROLE_KEY|SUPABASE_SERVICE_ROLE_KEY)/i);
+    assert.match(source, /PREVIEW_SUPABASE_PUBLIC_RUNTIME/);
+    assert.match(source, /RADAR_DATA_MODE:\s*['"]supabase-preview['"]/);
+    assert.match(source, /RADAR_ENVIRONMENT:\s*['"]preview['"]/);
+    assert.match(source, /RADAR_SUPABASE_REPOSITORY_ENABLED:\s*['"]true['"]/);
+    assert.match(source, /scnryinorqeucbfkioxo\.supabase\.co/);
+    assert.match(source, /RADAR_SUPABASE_PUBLISHABLE_KEY:\s*['"]sb_publishable_/);
+    assert.match(source, /RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED:\s*['"]false['"]/);
+    assert.match(source, /vercelEnvironment\s*!==\s*['"]preview['"]/);
+    assert.match(source, /hasExplicitRadarRuntime\(environment\)/);
 });
 
-test('workflow publica artefato prebuilt e valida o manifesto antes e depois do deploy', () => {
-    const workflow = readWorkflow();
+test('build Preview não depende de token nem de credencial administrativa', () => {
+    const source = readBuild();
 
-    assert.match(workflow, /vercel(?:@56\.2\.0)?\s+pull[^\n]+--environment=preview/i);
-    assert.match(workflow, /vercel(?:@56\.2\.0)?\s+build/i);
-    assert.match(workflow, /dist\/radar-build-manifest\.json/);
-    assert.match(workflow, /vercel(?:@56\.2\.0)?\s+deploy[^\n]+--prebuilt/i);
-    assert.match(workflow, /runtimeEnvironment:\s*['"]preview['"]/);
-    assert.match(workflow, /dataMode:\s*['"]supabase-preview['"]/);
-    assert.match(workflow, /supabaseRepositoryEnabled:\s*true/);
-    assert.match(workflow, /productionActivationApproved:\s*false/);
-    assert.match(workflow, /radarpdde-fix\.vercel\.app\/radar-build-manifest\.json/);
-    assert.match(workflow, /runtimeEnvironment:\s*['"]local['"]/);
-    assert.match(workflow, /dataMode:\s*['"]local['"]/);
-    assert.doesNotMatch(workflow, /\s--prod(?:\s|$)/i);
-    assert.doesNotMatch(workflow, /--environment=production/i);
+    assert.doesNotMatch(source, /VERCEL_TOKEN|VERCEL_ORG_ID|VERCEL_PROJECT_ID/);
+    assert.doesNotMatch(source, /sb_secret_/i);
+    assert.doesNotMatch(source, /service_role/i);
+    assert.doesNotMatch(source, /DATABASE_PASSWORD|DB_PASSWORD/i);
 });
 
-test('workflow usa apenas segredos operacionais da Vercel e não os publica', () => {
-    const workflow = readWorkflow();
+test('manifesto público não recebe URL ou chave do Supabase', () => {
+    const source = readBuild();
+    const manifestBlock = source.match(
+        /function createPublicBuildManifest[\s\S]*?\n}\n/
+    )?.[0] || '';
 
-    ['VERCEL_TOKEN', 'VERCEL_ORG_ID', 'VERCEL_PROJECT_ID'].forEach(secret => {
-        assert.match(workflow, new RegExp(`secrets\\.${secret}`));
-    });
+    assert.match(manifestBlock, /vercelEnvironment/);
+    assert.match(manifestBlock, /runtimeEnvironment/);
+    assert.match(manifestBlock, /dataMode/);
+    assert.match(manifestBlock, /supabaseRepositoryEnabled/);
+    assert.match(manifestBlock, /productionActivationApproved/);
+    assert.doesNotMatch(manifestBlock, /publishableKey|supabaseUrl|RADAR_SUPABASE_URL/);
+});
 
-    const artifactBlock = workflow.match(/upload-artifact[\s\S]*?(?=\n\s{6}- name:|$)/i)?.[0] || '';
-    assert.match(artifactBlock, /radar-build-manifest\.json/);
-    assert.doesNotMatch(artifactBlock, /\.vercel|\.env|config\.runtime|token/i);
+test('Production continua protegida pelo alvo real da Vercel', () => {
+    const source = readBuild();
+
+    assert.match(source, /vercelEnvironment === ['"]production['"][\s\S]*runtimeInput\.dataMode === ['"]supabase-preview['"]/);
+    assert.match(source, /vercelEnvironment !== ['"]production['"][\s\S]*runtimeInput\.dataMode === ['"]supabase-production['"]/);
+    assert.match(source, /Produção em modo local exige RADAR_ENVIRONMENT=local/);
 });
