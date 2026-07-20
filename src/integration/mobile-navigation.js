@@ -5,6 +5,211 @@
     root.__RADAR_MOBILE_NAVIGATION__ = true;
 
     const MOBILE_QUERY = '(max-width: 900px)';
+    const ORIGINAL_LOGO_DATA_FILES = [
+        'src/assets/logo-original/part-1.js',
+        'src/assets/logo-original/part-2.js',
+        'src/assets/logo-original/part-3.js',
+        'src/assets/logo-original/part-4.js',
+        'src/assets/logo-original/bundle-5-8.js',
+        'src/assets/logo-original/bundle-9-12.js',
+        'src/assets/logo-original/bundle-13-16.js',
+        'src/assets/logo-original/bundle-17-20.js'
+    ];
+    const ORIGINAL_LOGO_ALT = 'RADAR PDDE — Registro de Acompanhamento das Demandas, Análises e Regularizações do PDDE';
+
+    function ensureOriginalBrandStyles(document) {
+        if (document.getElementById('radar-original-brand-styles')) return;
+
+        const style = document.createElement('style');
+        style.id = 'radar-original-brand-styles';
+        style.textContent = `
+            .radar-auth-brand::before,
+            .radar-auth-brand::after,
+            .sidebar-logo::before {
+                content: none !important;
+                display: none !important;
+            }
+
+            .radar-auth-brand {
+                display: flex !important;
+                width: 100% !important;
+                min-height: 120px;
+                margin: 0 0 24px !important;
+                padding: 0 !important;
+                align-items: center !important;
+                justify-content: center !important;
+                background: transparent !important;
+                border: 0 !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                color: transparent !important;
+                font-size: 0 !important;
+                line-height: 0 !important;
+                letter-spacing: 0 !important;
+                overflow: hidden;
+            }
+
+            .radar-auth-brand > :not(.radar-original-logo) {
+                display: none !important;
+            }
+
+            .radar-original-logo {
+                display: block;
+                width: 100%;
+                height: auto;
+                object-fit: contain;
+                object-position: center;
+                border: 0;
+                border-radius: 0;
+                background: transparent;
+                box-shadow: none;
+                filter: none;
+            }
+
+            .radar-auth-brand .radar-original-logo {
+                max-width: 500px;
+            }
+
+            .sidebar-logo {
+                position: relative;
+                display: flex !important;
+                width: 100%;
+                min-height: 84px;
+                margin-bottom: 24px !important;
+                padding: 0 8px !important;
+                align-items: center !important;
+                justify-content: flex-start !important;
+                gap: 0 !important;
+                overflow: visible;
+            }
+
+            .sidebar-logo > svg,
+            .sidebar-logo > div:not(.radar-original-logo-shell) {
+                display: none !important;
+            }
+
+            .radar-original-logo-shell {
+                display: block;
+                width: 100%;
+                max-width: 220px;
+                line-height: 0;
+            }
+
+            .sidebar-logo .radar-original-logo {
+                width: 100%;
+                max-width: 220px;
+            }
+
+            @media (max-width: 900px) {
+                .sidebar-logo {
+                    min-height: 92px;
+                    padding-right: 58px !important;
+                }
+
+                .radar-original-logo-shell,
+                .sidebar-logo .radar-original-logo {
+                    max-width: 230px;
+                }
+
+                .mobile-sidebar-close {
+                    position: absolute !important;
+                    top: 50% !important;
+                    right: 8px !important;
+                    transform: translateY(-50%);
+                    margin: 0 !important;
+                    flex: 0 0 auto;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .radar-auth-brand {
+                    min-height: 92px;
+                    margin-bottom: 20px !important;
+                }
+
+                .radar-auth-brand .radar-original-logo {
+                    max-width: 420px;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    function loadScript(document, src) {
+        return new Promise((resolve, reject) => {
+            const existing = document.querySelector(`script[data-radar-logo-source="${src}"]`);
+            if (existing?.dataset.loaded === 'true') {
+                resolve();
+                return;
+            }
+            if (existing) {
+                existing.addEventListener('load', resolve, { once: true });
+                existing.addEventListener('error', reject, { once: true });
+                return;
+            }
+
+            const script = document.createElement('script');
+            script.src = `${src}?v=20260720-original-logo-1`;
+            script.async = false;
+            script.dataset.radarLogoSource = src;
+            script.addEventListener('load', () => {
+                script.dataset.loaded = 'true';
+                resolve();
+            }, { once: true });
+            script.addEventListener('error', () => reject(new Error(`Falha ao carregar ${src}`)), { once: true });
+            document.head.appendChild(script);
+        });
+    }
+
+    async function getOriginalLogoDataUrl(document) {
+        if (root.__RADAR_PDDE_ORIGINAL_LOGO_DATA_URL__) {
+            return root.__RADAR_PDDE_ORIGINAL_LOGO_DATA_URL__;
+        }
+
+        root.RADAR_PDDE_LOGO_PARTS = [];
+        for (const src of ORIGINAL_LOGO_DATA_FILES) {
+            await loadScript(document, src);
+        }
+
+        const parts = root.RADAR_PDDE_LOGO_PARTS;
+        if (!Array.isArray(parts) || parts.length !== 20 || parts.some(part => typeof part !== 'string' || !part.length)) {
+            throw new Error('A imagem original do RADAR PDDE não foi carregada integralmente.');
+        }
+
+        const dataUrl = `data:image/webp;base64,${parts.join('')}`;
+        root.__RADAR_PDDE_ORIGINAL_LOGO_DATA_URL__ = dataUrl;
+        return dataUrl;
+    }
+
+    function createOriginalLogoImage(document, dataUrl) {
+        const image = document.createElement('img');
+        image.className = 'radar-original-logo';
+        image.src = dataUrl;
+        image.alt = ORIGINAL_LOGO_ALT;
+        image.width = 1235;
+        image.height = 499;
+        image.decoding = 'async';
+        image.draggable = false;
+        return image;
+    }
+
+    function applyOriginalBrand(document, dataUrl) {
+        const authBrand = document.querySelector('.radar-auth-brand');
+        if (authBrand) {
+            authBrand.replaceChildren(createOriginalLogoImage(document, dataUrl));
+            authBrand.removeAttribute('aria-hidden');
+        }
+
+        const sidebarLogo = document.querySelector('.sidebar-logo');
+        if (sidebarLogo) {
+            const closeButton = sidebarLogo.querySelector('.mobile-sidebar-close');
+            const shell = document.createElement('div');
+            shell.className = 'radar-original-logo-shell';
+            shell.appendChild(createOriginalLogoImage(document, dataUrl));
+            sidebarLogo.replaceChildren(shell);
+            if (closeButton) sidebarLogo.appendChild(closeButton);
+        }
+    }
 
     function initialize() {
         const document = root.document;
@@ -48,6 +253,10 @@
         `;
         const sidebarLogo = sidebar.querySelector('.sidebar-logo');
         if (sidebarLogo) sidebarLogo.appendChild(closeButton);
+
+        getOriginalLogoDataUrl(document)
+            .then(dataUrl => applyOriginalBrand(document, dataUrl))
+            .catch(error => console.error('[RADAR PDDE] Falha ao aplicar o logo original.', error));
 
         const overlay = document.createElement('button');
         overlay.type = 'button';
@@ -184,6 +393,8 @@
         root.addEventListener('pageshow', updateAccessibility);
         updateAccessibility();
     }
+
+    ensureOriginalBrandStyles(root.document);
 
     if (root.document.readyState === 'loading') {
         root.document.addEventListener('DOMContentLoaded', initialize, { once: true });
