@@ -1,0 +1,61 @@
+name: Bootstrap Lighthouse lockfile
+
+on:
+  push:
+    branches:
+      - quality/lighthouse-ci
+
+permissions:
+  contents: write
+
+jobs:
+  lockfile:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Obter branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: quality/lighthouse-ci
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Registrar Lighthouse no manifesto
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          pkg.scripts['test:lighthouse'] = 'lhci autorun --config=./lighthouserc.cjs';
+          pkg.devDependencies['@lhci/cli'] = '0.15.1';
+          pkg.devDependencies = Object.fromEntries(
+            Object.entries(pkg.devDependencies).sort(([left], [right]) => left.localeCompare(right))
+          );
+          fs.writeFileSync('package.json', `${JSON.stringify(pkg, null, 2)}\n`);
+          NODE
+
+      - name: Atualizar lockfile reproduzível
+        run: npm install --package-lock-only --ignore-scripts
+
+      - name: Instalar e validar dependências
+        run: npm ci --ignore-scripts
+
+      - name: Bloquear vulnerabilidades altas ou críticas
+        run: npm audit --audit-level=high
+
+      - name: Commitar manifesto e lockfile
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          if git diff --cached --quiet; then
+            echo "Manifesto e lockfile já estão atualizados."
+            exit 0
+          fi
+          git commit -m "build: lock Lighthouse CI"
+          git push origin HEAD:quality/lighthouse-ci
