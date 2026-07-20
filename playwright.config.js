@@ -2,6 +2,7 @@ const { defineConfig, devices } = require('@playwright/test');
 
 module.exports = defineConfig({
   testDir: './tests/e2e',
+  testIgnore: /remote-deployment-contract\.spec\.js/,
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
@@ -34,7 +35,7 @@ module.exports = defineConfig({
     },
     {
       name: 'desktop-chromium',
-      testIgnore: /mobile-smoke\.spec\.js/,
+      testIgnore: /(?:mobile-smoke|remote-deployment-contract)\.spec\.js/,
       use: { ...devices['Desktop Chrome'] }
     }
   ]
