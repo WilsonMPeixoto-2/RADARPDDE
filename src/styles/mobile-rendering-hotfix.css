@@ -127,6 +127,96 @@
 }
 
 @media (max-width: 520px) {
+    /*
+       Os controles do cabeçalho deixam de formar uma faixa horizontal oculta.
+       A competência ocupa a primeira linha e os controles de ação permanecem
+       integralmente acessíveis na segunda linha.
+    */
+    .header-actions {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) repeat(3, 44px);
+        grid-template-areas:
+            "competence competence competence competence"
+            "exercise theme alerts session";
+        align-items: center;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        gap: 8px;
+        padding-bottom: 0;
+        overflow-x: visible;
+        overflow-y: visible;
+    }
+
+    .global-competence-badge {
+        grid-area: competence;
+        width: 100%;
+        max-width: none;
+        min-width: 0;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        line-height: 1.3;
+    }
+
+    .exercise-selector {
+        grid-area: exercise;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    #theme-toggle-btn {
+        grid-area: theme;
+        width: 44px;
+        min-width: 44px;
+        margin-right: 0 !important;
+    }
+
+    .alerts-bell {
+        grid-area: alerts;
+        width: 44px;
+        min-width: 44px;
+    }
+
+    .alerts-bell > .bell-button {
+        width: 44px;
+        min-width: 44px;
+    }
+
+    .auth-logout-button,
+    .profile-switcher {
+        grid-area: session;
+        width: 44px;
+        min-width: 44px;
+        max-width: 44px;
+    }
+
+    .profile-button {
+        width: 44px;
+        min-width: 44px;
+        padding: 0;
+        justify-content: center;
+    }
+
+    .profile-button #profile-btn-label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    .auth-logout-button {
+        padding: 0 4px;
+        font-size: 0.72rem;
+        line-height: 1;
+    }
+
     .alerts-dropdown,
     .profile-dropdown {
         max-height: calc(100vh - 120px);
