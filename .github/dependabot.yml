@@ -7,14 +7,25 @@ updates:
       day: monday
       time: "09:00"
       timezone: America/Sao_Paulo
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 6
+    rebase-strategy: auto
     groups:
-      development-tooling:
+      browser-quality:
         patterns:
+          - "@axe-core/playwright"
           - "@playwright/test"
+      supabase-tooling:
+        patterns:
+          - "@supabase/supabase-js"
+          - "supabase"
+      build-and-validation:
+        patterns:
           - "acorn"
           - "acorn-walk"
+          - "ajv"
+          - "esbuild"
           - "http-server"
+          - "typescript"
     labels:
       - dependencies
       - supabase-readiness
@@ -27,6 +38,7 @@ updates:
       time: "09:30"
       timezone: America/Sao_Paulo
     open-pull-requests-limit: 5
+    rebase-strategy: auto
     groups:
       actions:
         patterns:
