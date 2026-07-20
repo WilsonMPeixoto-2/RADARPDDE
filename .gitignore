@@ -8,3 +8,5 @@ blob-report/
 npm-debug.log*
 .superpowers/
 .worktrees/
+.radar-snapshot/
+radar-pdde-snapshot*.json

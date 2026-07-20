@@ -52,6 +52,9 @@ const REQUIRED_ARTIFACTS = Object.freeze([
     'scripts/generate-runtime-config.mjs',
     'scripts/build-vercel.mjs',
     'scripts/check-generated-artifacts.js',
+    'scripts/export-local-snapshot.mjs',
+    'scripts/lib/remote-bootstrap.mjs',
+    'scripts/bootstrap-supabase-remote.mjs',
     'scripts/check-supabase-final-alignment.js',
     'supabase/config.toml',
     'supabase/seed.sql',
@@ -81,6 +84,7 @@ const REQUIRED_ARTIFACTS = Object.freeze([
     'docs/reference/SUPABASE_PERMISSIONS_MATRIX.md',
     'docs/runbooks/SUPABASE_CONNECTION.md',
     'docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md',
+    'docs/runbooks/SUPABASE_DATA_BOOTSTRAP.md',
     '.github/workflows/supabase-remote-validation.yml',
     '.github/workflows/supabase-remote-post-apply.yml',
     '.github/workflows/vercel-preview-prebuilt.yml',
@@ -320,6 +324,25 @@ function validateVercelBuildContract(vercelSource, packageSource) {
     return findings;
 }
 
+function validateRemoteBootstrapCommands(packageSource) {
+    let packageConfig;
+    try {
+        packageConfig = JSON.parse(String(packageSource || ''));
+    } catch (error) {
+        return ['package.json inválido.'];
+    }
+    const required = {
+        'bootstrap:supabase:validate': 'node scripts/bootstrap-supabase-remote.mjs validate',
+        'bootstrap:supabase:plan': 'node scripts/bootstrap-supabase-remote.mjs plan',
+        'bootstrap:supabase:import': 'node scripts/bootstrap-supabase-remote.mjs import',
+        'bootstrap:supabase:reconcile': 'node scripts/bootstrap-supabase-remote.mjs reconcile',
+        'snapshot:export:local': 'node scripts/export-local-snapshot.mjs'
+    };
+    return Object.entries(required)
+        .filter(([name, command]) => packageConfig?.scripts?.[name] !== command)
+        .map(([name]) => `Comando obrigatório ausente ou divergente: ${name}.`);
+}
+
 function listFilesRecursively(directory) {
     if (!fs.existsSync(directory)) return [];
     return fs.readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
@@ -409,6 +432,7 @@ function runReadinessChecks(rootDir = path.resolve(__dirname, '..')) {
         ? fs.readFileSync(packagePath, 'utf8')
         : '';
     findings.push(...validateVercelBuildContract(vercelConfigSource, packageSource));
+    findings.push(...validateRemoteBootstrapCommands(packageSource));
 
     migrationFiles.forEach(name => {
         const source = fs.readFileSync(path.join(migrationsDir, name), 'utf8');
@@ -481,5 +505,6 @@ module.exports = Object.freeze({
     validateReadinessArtifacts,
     validateSupabaseApiSchemas,
     validateVercelBuildContract,
+    validateRemoteBootstrapCommands,
     runReadinessChecks
 });

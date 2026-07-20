@@ -12,7 +12,8 @@ const {
     validateRemoteWorkflowContracts,
     validateRemoteVerificationSql,
     validateSupabaseApiSchemas,
-    validateVercelBuildContract
+    validateVercelBuildContract,
+    validateRemoteBootstrapCommands
 } = require('../../scripts/check-supabase-readiness.js');
 
 function jwtWithRole(role) {
@@ -68,6 +69,9 @@ const ARTIFACTS = [
     'scripts/generate-runtime-config.mjs',
     'scripts/build-vercel.mjs',
     'scripts/check-generated-artifacts.js',
+    'scripts/export-local-snapshot.mjs',
+    'scripts/lib/remote-bootstrap.mjs',
+    'scripts/bootstrap-supabase-remote.mjs',
     'scripts/check-supabase-final-alignment.js',
     'supabase/config.toml',
     'supabase/seed.sql',
@@ -97,6 +101,7 @@ const ARTIFACTS = [
     'docs/reference/SUPABASE_PERMISSIONS_MATRIX.md',
     'docs/runbooks/SUPABASE_CONNECTION.md',
     'docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md',
+    'docs/runbooks/SUPABASE_DATA_BOOTSTRAP.md',
     '.github/workflows/supabase-remote-validation.yml',
     '.github/workflows/supabase-remote-post-apply.yml',
     '.github/workflows/vercel-preview-prebuilt.yml',
@@ -276,5 +281,23 @@ test('valida presença dos artefatos essenciais de preparação', () => {
     assert.match(
         validateReadinessArtifacts(ARTIFACTS.filter(path => path !== 'vendor/supabase-client.js')).join(' '),
         /vendor\/supabase-client\.js/
+    );
+});
+
+test('exige os comandos administrativos de bootstrap remoto versionados', () => {
+    const validPackage = JSON.stringify({
+        scripts: {
+            'bootstrap:supabase:validate': 'node scripts/bootstrap-supabase-remote.mjs validate',
+            'bootstrap:supabase:plan': 'node scripts/bootstrap-supabase-remote.mjs plan',
+            'bootstrap:supabase:import': 'node scripts/bootstrap-supabase-remote.mjs import',
+            'bootstrap:supabase:reconcile': 'node scripts/bootstrap-supabase-remote.mjs reconcile',
+            'snapshot:export:local': 'node scripts/export-local-snapshot.mjs'
+        }
+    });
+
+    assert.deepEqual(validateRemoteBootstrapCommands(validPackage), []);
+    assert.match(
+        validateRemoteBootstrapCommands(validPackage.replace('bootstrap:supabase:import', 'bootstrap:supabase:missing')).join(' '),
+        /bootstrap:supabase:import/
     );
 });
