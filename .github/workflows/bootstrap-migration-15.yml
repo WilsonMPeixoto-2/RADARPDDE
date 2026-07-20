@@ -1,0 +1,94 @@
+name: Bootstrap migration 15
+
+on:
+  push:
+    branches:
+      - supabase/performance-auth-hardening
+
+permissions:
+  contents: write
+
+jobs:
+  align:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Obter branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: supabase/performance-auth-hardening
+
+      - name: Atualizar contratos ativos
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+
+          function replace(path, replacements) {
+            let text = fs.readFileSync(path, 'utf8');
+            for (const [from, to] of replacements) {
+              if (!text.includes(from)) throw new Error(`Trecho ausente em ${path}: ${from}`);
+              text = text.replaceAll(from, to);
+            }
+            fs.writeFileSync(path, text);
+          }
+
+          replace('scripts/check-supabase-readiness.js', [
+            ["    '20260720030046_activation_basic_hardening.sql'\n]);", "    '20260720030046_activation_basic_hardening.sql',\n    '20260720193000_performance_and_rls_hardening.sql'\n]);"],
+            ['APLICAR_14_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL', 'APLICAR_15_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL'],
+            ['das 14 migrations', 'das 15 migrations']
+          ]);
+
+          replace('scripts/check-supabase-final-alignment.js', [
+            ["    'supabase/migrations/20260720030046_activation_basic_hardening.sql',", "    'supabase/migrations/20260720030046_activation_basic_hardening.sql',\n    'supabase/migrations/20260720193000_performance_and_rls_hardening.sql',"],
+            ['migrationCount !== 14', 'migrationCount !== 15'],
+            ['deve conter 14 migrations', 'deve conter 15 migrations']
+          ]);
+
+          replace('scripts/ops/build-canonical-import-sql.mjs', [
+            ["version='20260720030046') then raise exception 'MIGRATION_14_MISSING'", "version='20260720193000') then raise exception 'MIGRATION_15_MISSING'"],
+            ['schema_migrations)<>14', 'schema_migrations)<>15']
+          ]);
+
+          replace('tests/unit/readiness-check.test.js', [
+            ["    '20260720030046_activation_basic_hardening.sql'\n];", "    '20260720030046_activation_basic_hardening.sql',\n    '20260720193000_performance_and_rls_hardening.sql'\n];"],
+            ['/20260720030046_activation_basic_hardening\\.sql/', '/20260720193000_performance_and_rls_hardening\\.sql/'],
+            ['atualmente **14** migrations', 'atualmente **15** migrations'],
+            ["replace('**14**', '**10**')", "replace('**15**', '**10**')"],
+            ['contém 14/i', 'contém 15/i'],
+            ['APLICAR_14_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL', 'APLICAR_15_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL']
+          ]);
+
+          replace('docs/runbooks/SUPABASE_CONNECTION.md', [
+            ['atualmente **14** migrations', 'atualmente **15** migrations'],
+            ['exatamente as 14 migrations versionadas', 'exatamente as 15 migrations versionadas']
+          ]);
+
+          replace('supabase/verification/remote-post-apply.sql', [
+            ["        '20260720030046'\n    ];", "        '20260720030046',\n        '20260720193000'\n    ];"]
+          ]);
+
+          replace('.github/workflows/supabase-remote-post-apply.yml', [
+            ['APLICAR_14_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL', 'APLICAR_15_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL']
+          ]);
+
+          if (fs.existsSync('docs/CURRENT_STAGE.md')) {
+            let current = fs.readFileSync('docs/CURRENT_STAGE.md', 'utf8');
+            current = current.replaceAll('**14** migrations', '**15** migrations');
+            current = current.replaceAll('14 migrations', '15 migrations');
+            fs.writeFileSync('docs/CURRENT_STAGE.md', current);
+          }
+          NODE
+
+      - name: Verificar referências ativas antigas
+        run: |
+          ! grep -R "APLICAR_14_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL" \
+            scripts tests .github/workflows supabase/verification docs/runbooks
+
+      - name: Commitar alinhamento
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts tests docs supabase .github/workflows/supabase-remote-post-apply.yml
+          git commit -m "chore: alinhar contratos para 15 migrations"
+          git push origin HEAD:supabase/performance-auth-hardening
