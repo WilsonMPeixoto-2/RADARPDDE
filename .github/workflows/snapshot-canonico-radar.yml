@@ -1,4 +1,3 @@
-# Execução operacional temporária para materializar o artefato da ativação.
 name: Validar snapshot canônico do RADAR
 
 on:
@@ -24,7 +23,7 @@ permissions:
   contents: read
 
 env:
-  RADAR_SNAPSHOT_FILE: ${{ runner.temp }}/radar-pdde-snapshot.json
+  RADAR_SNAPSHOT_FILE: /tmp/radar-pdde-snapshot.json
   RADAR_SNAPSHOT_IMPORT_ID: radar-pdde-canonical-v1
   RADAR_SNAPSHOT_EXPORTED_AT: '2026-07-20T00:00:00.000Z'
 
@@ -91,8 +90,8 @@ jobs:
         with:
           name: radar-pdde-snapshot-canonico-${{ github.run_id }}
           path: |
-            ${{ runner.temp }}/radar-pdde-snapshot.json
-            ${{ runner.temp }}/radar-pdde-snapshot.json.summary.json
+            /tmp/radar-pdde-snapshot.json
+            /tmp/radar-pdde-snapshot.json.summary.json
           if-no-files-found: error
           retention-days: 7
       - name: Encerrar servidor local
