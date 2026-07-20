@@ -45,15 +45,23 @@ jobs:
       - name: Instalar e validar dependências
         run: npm ci --ignore-scripts
 
-      - name: Bloquear vulnerabilidades altas ou críticas
-        run: npm audit --audit-level=high
+      - name: Capturar auditoria completa
+        shell: bash
+        run: |
+          set +e
+          npm audit --json > lighthouse-bootstrap-audit.json
+          audit_exit=$?
+          set -e
+          printf '{"exitCode":%s}\n' "$audit_exit" > lighthouse-bootstrap-audit-exit.json
 
-      - name: Publicar manifesto e lockfile
+      - name: Publicar manifesto, lockfile e auditoria
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: lighthouse-package-${{ github.run_id }}
           path: |
             package.json
             package-lock.json
+            lighthouse-bootstrap-audit.json
+            lighthouse-bootstrap-audit-exit.json
           retention-days: 1
           if-no-files-found: error
