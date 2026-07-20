@@ -17,7 +17,8 @@ const REQUIRED_MIGRATIONS = Object.freeze([
     '20260714180621_preconnection_auth_and_api_grants.sql',
     '20260714220136_preconnection_transactions_and_json_contracts.sql',
     '20260714220146_preconnection_reversible_import.sql',
-    '202607190001_team_management_auth_alignment.sql'
+    '202607190001_team_management_auth_alignment.sql',
+    '20260720025125_activation_basic_hardening.sql'
 ]);
 
 const REQUIRED_ARTIFACTS = Object.freeze([

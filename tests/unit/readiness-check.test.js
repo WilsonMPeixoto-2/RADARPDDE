@@ -33,7 +33,8 @@ const MIGRATIONS = [
     '20260714180621_preconnection_auth_and_api_grants.sql',
     '20260714220136_preconnection_transactions_and_json_contracts.sql',
     '20260714220146_preconnection_reversible_import.sql',
-    '202607190001_team_management_auth_alignment.sql'
+    '202607190001_team_management_auth_alignment.sql',
+    '20260720025125_activation_basic_hardening.sql'
 ];
 
 const ARTIFACTS = [
@@ -146,13 +147,13 @@ test('valida conjunto obrigatório de migrations', () => {
     assert.deepEqual(validateMigrationManifest(MIGRATIONS), []);
     assert.match(
         validateMigrationManifest(MIGRATIONS.slice(0, -1)).join(' '),
-        /202607190001_team_management_auth_alignment\.sql/
+        /20260720025125_activation_basic_hardening\.sql/
     );
 });
 
 test('impede divergência entre a contagem documentada e o diretório de migrations', () => {
     const validRunbook = `
-O conjunto versionado contém atualmente **13** migrations.
+O conjunto versionado contém atualmente **14** migrations.
 supabase migration list --linked
 supabase db push --linked --dry-run
 supabase db push --linked
@@ -161,10 +162,10 @@ supabase db push --linked
 
     assert.match(
         validateMigrationDocumentation(
-            validRunbook.replace('**13**', '**10**'),
+            validRunbook.replace('**14**', '**10**'),
             MIGRATIONS
         ).join(' '),
-        /declara 10 migrations.*contém 13/i
+        /declara 10 migrations.*contém 14/i
     );
     assert.match(
         validateMigrationDocumentation(
