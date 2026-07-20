@@ -1,0 +1,83 @@
+name: Homologar deployment e perfis
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'app.js'
+      - 'index.html'
+      - 'styles.css'
+      - 'src/**'
+      - 'vendor/**'
+      - 'scripts/build-vercel.mjs'
+      - 'playwright.deployment.config.js'
+      - 'tests/e2e/frontend-contract.spec.js'
+      - 'tests/e2e/mobile-smoke.spec.js'
+      - 'tests/e2e/remote-deployment-contract.spec.js'
+      - '.github/workflows/homologacao-deployment-perfis.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'app.js'
+      - 'index.html'
+      - 'styles.css'
+      - 'src/**'
+      - 'vendor/**'
+      - 'scripts/build-vercel.mjs'
+      - 'playwright.deployment.config.js'
+      - 'tests/e2e/frontend-contract.spec.js'
+      - 'tests/e2e/mobile-smoke.spec.js'
+      - 'tests/e2e/remote-deployment-contract.spec.js'
+      - '.github/workflows/homologacao-deployment-perfis.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: homologacao-deployment-perfis-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  RADAR_DEPLOYMENT_URL: https://radarpdde-fix.vercel.app
+
+jobs:
+  deployment:
+    name: Production local — desktop, Android e iPhone
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Obter código
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+
+      - name: Instalar Chromium e WebKit
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: Homologar deployment e quatro perfis
+        run: >-
+          npx playwright test
+          tests/e2e/remote-deployment-contract.spec.js
+          tests/e2e/frontend-contract.spec.js
+          tests/e2e/mobile-smoke.spec.js
+          --config=playwright.deployment.config.js
+
+      - name: Publicar evidências de QA
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: homologacao-deployment-perfis-${{ github.run_id }}
+          path: |
+            playwright-report-deployment/
+            test-results/
+          if-no-files-found: warn
+          retention-days: 14
