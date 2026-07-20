@@ -256,8 +256,8 @@ function validateRemoteWorkflowContracts(preflightSource, postApplySource) {
     if (dryRunIndex < 0 || applyIndex < 0 || dryRunIndex > applyIndex) {
         findings.push('O workflow pós-aplicação deve executar dry-run antes do db push efetivo.');
     }
-    if (!postApply.includes('APLICAR_13_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL')) {
-        findings.push('O workflow pós-aplicação exige confirmação textual das 13 migrations no alvo descartável.');
+    if (!postApply.includes('APLICAR_14_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL')) {
+        findings.push('O workflow pós-aplicação exige confirmação textual das 14 migrations no alvo descartável.');
     }
     if (applyIndex >= 0 && !postApplyPushes[applyIndex].includes('--yes')) {
         findings.push('O db push efetivo deve ser não interativo somente após a confirmação explícita.');
