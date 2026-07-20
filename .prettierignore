@@ -1,3 +1,4 @@
+# Dependências, builds e relatórios locais
 node_modules/
 dist/
 .vercel/
@@ -5,7 +6,10 @@ dist/
 playwright-report/
 test-results/
 blob-report/
+coverage/
 dependency-health/
+
+# Áreas temporárias e artefatos gerados
 .superpowers/
 .worktrees/
 .radar-snapshot/
