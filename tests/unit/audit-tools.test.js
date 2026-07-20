@@ -61,5 +61,7 @@ test('validador aceita um conjunto completo e reproduzível do Ciclo A', async (
   }
 
   const result = await validateCycleAArtifacts(fixtureRoot);
-  assert.deepEqual(result.errors, []);
+  assert.equal(result.errors.length, 0, result.errors.join('\n'));
+  assert.equal(result.surfaceCount, 18);
+  assert.equal(result.captureCount, 24);
 });
