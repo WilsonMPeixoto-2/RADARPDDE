@@ -37,6 +37,13 @@ async function findAuthUserByEmail(client, email) {
     return matches[0] || null;
 }
 
+function isUsableExistingAuthUser(user, now = Date.now()) {
+    if (!user || user.deleted_at) return false;
+    if (!user.email_confirmed_at && !user.confirmed_at) return false;
+    const bannedUntil = Date.parse(String(user.banned_until || ''));
+    return !Number.isFinite(bannedUntil) || bannedUntil <= now;
+}
+
 async function createConfirmedUser(client, email, password) {
     const { data, error } = await client.auth.admin.createUser({ email: String(email).trim(), password, email_confirm: true });
     if (error || !data?.user?.id) throw bootstrapError('ADMIN_BOOTSTRAP_FAILED', 'Falha ao criar a identidade administrativa.');
@@ -50,8 +57,10 @@ function isCompatibleTechnicalProfile(profile, userId) {
 }
 
 async function assertTechnicalProfileExists(client) {
-    const profiles = await readRows(client.from('profiles').select('id').eq('id', TECHNICAL_ADMIN_PROFILE), 'ADMIN_PROFILE_UNAVAILABLE');
-    if (profiles.length !== 1 || profiles[0].id !== TECHNICAL_ADMIN_PROFILE) throw bootstrapError('ADMIN_PROFILE_UNAVAILABLE', 'Perfil técnico obrigatório indisponível.');
+    const profiles = await readRows(client.from('profiles').select('id, active').eq('id', TECHNICAL_ADMIN_PROFILE), 'ADMIN_PROFILE_UNAVAILABLE');
+    if (profiles.length !== 1 || profiles[0].id !== TECHNICAL_ADMIN_PROFILE || profiles[0].active !== true) {
+        throw bootstrapError('ADMIN_PROFILE_UNAVAILABLE', 'Perfil técnico obrigatório indisponível.');
+    }
 }
 
 async function upsertTechnicalAdminProfile(client, userId) {
@@ -110,6 +119,9 @@ async function compensateCreatedUser(client, userId) {
 async function bootstrapRemoteAdmin({ client, email, password }) {
     assertValidInput({ client, email, password });
     const existing = await findAuthUserByEmail(client, email);
+    if (existing && !isUsableExistingAuthUser(existing)) {
+        throw bootstrapError('ADMIN_IDENTITY_CONFLICT', 'A identidade administrativa existente não está confirmada e ativa.');
+    }
     const user = existing || await createConfirmedUser(client, email, password);
     try {
         await upsertTechnicalAdminProfile(client, user.id);
@@ -122,4 +134,15 @@ async function bootstrapRemoteAdmin({ client, email, password }) {
     return { ok: true, created: !existing, userId: user.id, profileId: TECHNICAL_ADMIN_PROFILE, active: true };
 }
 
-export { BOOTSTRAP_ACTION, TECHNICAL_ADMIN_PROFILE, TECHNICAL_ADMIN_SCOPE, bootstrapLogId, bootstrapRemoteAdmin, createConfirmedUser, findAuthUserByEmail, upsertTechnicalAdminProfile, writeSanitizedBootstrapLog };
+export {
+    BOOTSTRAP_ACTION,
+    TECHNICAL_ADMIN_PROFILE,
+    TECHNICAL_ADMIN_SCOPE,
+    bootstrapLogId,
+    bootstrapRemoteAdmin,
+    createConfirmedUser,
+    findAuthUserByEmail,
+    isUsableExistingAuthUser,
+    upsertTechnicalAdminProfile,
+    writeSanitizedBootstrapLog
+};
