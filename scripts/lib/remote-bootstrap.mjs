@@ -25,11 +25,11 @@ const NULL_EQUIVALENT_DEFAULTS = Object.freeze({
     inventoryTeamMembers: new Set(['user_id'])
 });
 const PROFILE_BASELINE = Object.freeze([
-    Object.freeze({ id: 'technical_admin', label: 'Administrador t\u00e9cnico', priority: 10, description: 'Administra\u00e7\u00e3o t\u00e9cnica e seguran\u00e7a do ambiente.', active: true }),
-    Object.freeze({ id: 'sme_management', label: 'Gest\u00e3o SME', priority: 20, description: 'Leitura gerencial e administra\u00e7\u00e3o institucional.', active: true }),
-    Object.freeze({ id: 'federal_assistant', label: 'Assistente de Verbas Federais', priority: 30, description: 'Opera\u00e7\u00e3o transversal de verbas federais.', active: true }),
-    Object.freeze({ id: 'controller', label: 'Controlador', priority: 40, description: 'Opera\u00e7\u00e3o da carteira de escolas vinculada.', active: true }),
-    Object.freeze({ id: 'inventory', label: 'Equipe de Invent\u00e1rio', priority: 50, description: 'Opera\u00e7\u00e3o patrimonial e de inventaria\u00e7\u00e3o.', active: true })
+    Object.freeze({ id: 'technical_admin', label: 'Administrador técnico', priority: 10, description: 'Administração técnica e segurança do ambiente.', active: true }),
+    Object.freeze({ id: 'sme_management', label: 'Gestão SME', priority: 20, description: 'Leitura gerencial e administração institucional.', active: true }),
+    Object.freeze({ id: 'federal_assistant', label: 'Assistente de Verbas Federais', priority: 30, description: 'Operação transversal de verbas federais.', active: true }),
+    Object.freeze({ id: 'controller', label: 'Controlador', priority: 40, description: 'Operação da carteira de escolas vinculada.', active: true }),
+    Object.freeze({ id: 'inventory', label: 'Equipe de Inventário', priority: 50, description: 'Operação patrimonial e de inventariação.', active: true })
 ]);
 
 function bootstrapError(code, message) {
@@ -65,7 +65,9 @@ function projectBootstrapSnapshot(snapshot) {
         entity,
         (snapshot.entities[entity] || []).map(record => projectRecord(record, entity))
     ]));
-    projected.entities.auditEvents = [];
+    SANITIZED_ENTITIES.forEach(entity => {
+        projected.entities[entity] = [];
+    });
     return projected;
 }
 
@@ -103,7 +105,7 @@ function matchesProfileBaseline(records) {
 
 function assertDestinationCompatible(destination, source) {
     for (const entity of RADAR_ENTITIES) {
-        if (entity === 'auditEvents') continue;
+        if (SANITIZED_ENTITIES.includes(entity)) continue;
         const destinationRecords = destination.entities[entity] || [];
         if (entity === 'profiles' && (source.entities.profiles || []).length === 0) {
             if (destinationRecords.length > 0 && !matchesProfileBaseline(destinationRecords)) {
