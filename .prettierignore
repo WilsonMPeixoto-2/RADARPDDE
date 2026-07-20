@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.vercel/
+.playwright-cli/
+playwright-report/
+test-results/
+blob-report/
+dependency-health/
+.superpowers/
+.worktrees/
+.radar-snapshot/
+supabase/.temp/
+docs/evidence/
+src/vendor/
+package-lock.json
+radar-pdde-snapshot*.json
