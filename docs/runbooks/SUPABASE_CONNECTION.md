@@ -12,7 +12,7 @@ O frontend usa um contrato único de persistência, serviços de aplicação e g
 - `technical_admin` como papel técnico separado dos perfis operacionais;
 - Gestão de Equipe plena pela Assistente, inclusive convite, conta, vínculo, edição e desativação de acesso;
 - Edge Function protegida `team-account-management` e RPCs administrativas restritas ao `service_role`;
-- o conjunto versionado contém atualmente **13** migrations;
+- o conjunto versionado contém atualmente **14** migrations;
 - pgTAP, lint, tipos gerados e gates E2E;
 - workflows manuais e separados para preflight, aplicação experimental e Preview Vercel prebuilt.
 

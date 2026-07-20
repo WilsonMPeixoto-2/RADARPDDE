@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
 
-select plan(33);
+select plan(36);
 
 select ok(
     (select relrowsecurity from pg_class where oid = 'public.schools'::regclass),
@@ -154,6 +154,19 @@ select ok(
 select ok(
     not has_table_privilege('service_role', 'public.user_school_scopes', 'DELETE'),
     'service_role não remove escopos pelo bootstrap'
+);
+
+select ok(
+    not has_function_privilege('anon', 'public.capture_audit_event()', 'EXECUTE'),
+    'anon não executa capture_audit_event diretamente'
+);
+select ok(
+    not has_function_privilege('authenticated', 'public.capture_audit_event()', 'EXECUTE'),
+    'authenticated não executa capture_audit_event diretamente'
+);
+select ok(
+    has_function_privilege('service_role', 'public.capture_audit_event()', 'EXECUTE'),
+    'service_role preserva execução administrativa'
 );
 
 select * from finish();

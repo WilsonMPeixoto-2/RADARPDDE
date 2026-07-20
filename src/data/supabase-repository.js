@@ -196,6 +196,22 @@
             return cloneValue(collection);
         }
 
+        async insertOnly(entity, records, options = {}) {
+            const table = this.tableFor(entity);
+            const collection = normalizeCollection(records);
+            if (collection.length === 0) return [];
+            const batchSize = positiveInteger(options.batchSize, this.writeBatchSize);
+
+            for (const batch of chunks(collection, batchSize)) {
+                await this.execute(
+                    entity,
+                    'insertOnly',
+                    this.client.from(table).insert(batch)
+                );
+            }
+            return cloneValue(collection);
+        }
+
         async updateWithVersion(entity, record, expectedVersion) {
             const table = this.tableFor(entity);
             const id = record && record.id;

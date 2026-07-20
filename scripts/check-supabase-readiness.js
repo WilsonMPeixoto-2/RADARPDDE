@@ -17,7 +17,8 @@ const REQUIRED_MIGRATIONS = Object.freeze([
     '20260714180621_preconnection_auth_and_api_grants.sql',
     '20260714220136_preconnection_transactions_and_json_contracts.sql',
     '20260714220146_preconnection_reversible_import.sql',
-    '202607190001_team_management_auth_alignment.sql'
+    '202607190001_team_management_auth_alignment.sql',
+    '20260720030046_activation_basic_hardening.sql'
 ]);
 
 const REQUIRED_ARTIFACTS = Object.freeze([
@@ -51,6 +52,11 @@ const REQUIRED_ARTIFACTS = Object.freeze([
     'scripts/generate-runtime-config.mjs',
     'scripts/build-vercel.mjs',
     'scripts/check-generated-artifacts.js',
+    'scripts/export-local-snapshot.mjs',
+    'scripts/lib/remote-bootstrap.mjs',
+    'scripts/bootstrap-supabase-remote.mjs',
+    'scripts/lib/remote-admin-bootstrap.mjs',
+    'scripts/bootstrap-remote-admin.mjs',
     'scripts/check-supabase-final-alignment.js',
     'supabase/config.toml',
     'supabase/seed.sql',
@@ -80,6 +86,8 @@ const REQUIRED_ARTIFACTS = Object.freeze([
     'docs/reference/SUPABASE_PERMISSIONS_MATRIX.md',
     'docs/runbooks/SUPABASE_CONNECTION.md',
     'docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md',
+    'docs/runbooks/SUPABASE_DATA_BOOTSTRAP.md',
+    'docs/runbooks/SUPABASE_AUTH_BOOTSTRAP.md',
     '.github/workflows/supabase-remote-validation.yml',
     '.github/workflows/supabase-remote-post-apply.yml',
     '.github/workflows/vercel-preview-prebuilt.yml',
@@ -248,8 +256,8 @@ function validateRemoteWorkflowContracts(preflightSource, postApplySource) {
     if (dryRunIndex < 0 || applyIndex < 0 || dryRunIndex > applyIndex) {
         findings.push('O workflow pós-aplicação deve executar dry-run antes do db push efetivo.');
     }
-    if (!postApply.includes('APLICAR_13_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL')) {
-        findings.push('O workflow pós-aplicação exige confirmação textual das 13 migrations no alvo descartável.');
+    if (!postApply.includes('APLICAR_14_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL')) {
+        findings.push('O workflow pós-aplicação exige confirmação textual das 14 migrations no alvo descartável.');
     }
     if (applyIndex >= 0 && !postApplyPushes[applyIndex].includes('--yes')) {
         findings.push('O db push efetivo deve ser não interativo somente após a confirmação explícita.');
@@ -317,6 +325,26 @@ function validateVercelBuildContract(vercelSource, packageSource) {
         findings.push('package.json deve definir o build Vercel versionado.');
     }
     return findings;
+}
+
+function validateRemoteBootstrapCommands(packageSource) {
+    let packageConfig;
+    try {
+        packageConfig = JSON.parse(String(packageSource || ''));
+    } catch (error) {
+        return ['package.json inválido.'];
+    }
+    const required = {
+        'bootstrap:supabase:validate': 'node scripts/bootstrap-supabase-remote.mjs validate',
+        'bootstrap:supabase:plan': 'node scripts/bootstrap-supabase-remote.mjs plan',
+        'bootstrap:supabase:import': 'node scripts/bootstrap-supabase-remote.mjs import',
+        'bootstrap:supabase:reconcile': 'node scripts/bootstrap-supabase-remote.mjs reconcile',
+        'bootstrap:supabase:admin': 'node scripts/bootstrap-remote-admin.mjs',
+        'snapshot:export:local': 'node scripts/export-local-snapshot.mjs'
+    };
+    return Object.entries(required)
+        .filter(([name, command]) => packageConfig?.scripts?.[name] !== command)
+        .map(([name]) => `Comando obrigatório ausente ou divergente: ${name}.`);
 }
 
 function listFilesRecursively(directory) {
@@ -408,6 +436,7 @@ function runReadinessChecks(rootDir = path.resolve(__dirname, '..')) {
         ? fs.readFileSync(packagePath, 'utf8')
         : '';
     findings.push(...validateVercelBuildContract(vercelConfigSource, packageSource));
+    findings.push(...validateRemoteBootstrapCommands(packageSource));
 
     migrationFiles.forEach(name => {
         const source = fs.readFileSync(path.join(migrationsDir, name), 'utf8');
@@ -480,5 +509,6 @@ module.exports = Object.freeze({
     validateReadinessArtifacts,
     validateSupabaseApiSchemas,
     validateVercelBuildContract,
+    validateRemoteBootstrapCommands,
     runReadinessChecks
 });

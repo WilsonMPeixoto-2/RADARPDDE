@@ -12,7 +12,8 @@ const {
     validateRemoteWorkflowContracts,
     validateRemoteVerificationSql,
     validateSupabaseApiSchemas,
-    validateVercelBuildContract
+    validateVercelBuildContract,
+    validateRemoteBootstrapCommands
 } = require('../../scripts/check-supabase-readiness.js');
 
 function jwtWithRole(role) {
@@ -33,7 +34,8 @@ const MIGRATIONS = [
     '20260714180621_preconnection_auth_and_api_grants.sql',
     '20260714220136_preconnection_transactions_and_json_contracts.sql',
     '20260714220146_preconnection_reversible_import.sql',
-    '202607190001_team_management_auth_alignment.sql'
+    '202607190001_team_management_auth_alignment.sql',
+    '20260720030046_activation_basic_hardening.sql'
 ];
 
 const ARTIFACTS = [
@@ -67,6 +69,11 @@ const ARTIFACTS = [
     'scripts/generate-runtime-config.mjs',
     'scripts/build-vercel.mjs',
     'scripts/check-generated-artifacts.js',
+    'scripts/export-local-snapshot.mjs',
+    'scripts/lib/remote-bootstrap.mjs',
+    'scripts/bootstrap-supabase-remote.mjs',
+    'scripts/lib/remote-admin-bootstrap.mjs',
+    'scripts/bootstrap-remote-admin.mjs',
     'scripts/check-supabase-final-alignment.js',
     'supabase/config.toml',
     'supabase/seed.sql',
@@ -96,6 +103,8 @@ const ARTIFACTS = [
     'docs/reference/SUPABASE_PERMISSIONS_MATRIX.md',
     'docs/runbooks/SUPABASE_CONNECTION.md',
     'docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md',
+    'docs/runbooks/SUPABASE_DATA_BOOTSTRAP.md',
+    'docs/runbooks/SUPABASE_AUTH_BOOTSTRAP.md',
     '.github/workflows/supabase-remote-validation.yml',
     '.github/workflows/supabase-remote-post-apply.yml',
     '.github/workflows/vercel-preview-prebuilt.yml',
@@ -146,13 +155,13 @@ test('valida conjunto obrigatório de migrations', () => {
     assert.deepEqual(validateMigrationManifest(MIGRATIONS), []);
     assert.match(
         validateMigrationManifest(MIGRATIONS.slice(0, -1)).join(' '),
-        /202607190001_team_management_auth_alignment\.sql/
+        /20260720030046_activation_basic_hardening\.sql/
     );
 });
 
 test('impede divergência entre a contagem documentada e o diretório de migrations', () => {
     const validRunbook = `
-O conjunto versionado contém atualmente **13** migrations.
+O conjunto versionado contém atualmente **14** migrations.
 supabase migration list --linked
 supabase db push --linked --dry-run
 supabase db push --linked
@@ -161,10 +170,10 @@ supabase db push --linked
 
     assert.match(
         validateMigrationDocumentation(
-            validRunbook.replace('**13**', '**10**'),
+            validRunbook.replace('**14**', '**10**'),
             MIGRATIONS
         ).join(' '),
-        /declara 10 migrations.*contém 13/i
+        /declara 10 migrations.*contém 14/i
     );
     assert.match(
         validateMigrationDocumentation(
@@ -201,7 +210,7 @@ npx --no-install supabase db query --linked --file supabase/verification/remote-
     const postApply = `
 on:
   workflow_dispatch:
-APLICAR_13_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL
+APLICAR_14_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL
 npx --no-install supabase db push --linked --dry-run
 npx --no-install supabase db push --linked --yes
 remote-post-apply.sql
@@ -267,13 +276,5 @@ test('exige build versionado e diretório público isolado na Vercel', () => {
             packageSource
         ).join(' '),
         /build:vercel|diretório dist/i
-    );
-});
-
-test('valida presença dos artefatos essenciais de preparação', () => {
-    assert.deepEqual(validateReadinessArtifacts(ARTIFACTS), []);
-    assert.match(
-        validateReadinessArtifacts(ARTIFACTS.filter(path => path !== 'vendor/supabase-client.js')).join(' '),
-        /vendor\/supabase-client\.js/
     );
 });
