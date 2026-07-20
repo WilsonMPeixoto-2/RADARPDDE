@@ -186,7 +186,7 @@
     display: block;
     width: 100%;
     aspect-ratio: 1;
-    background: url("/assets/radar-pdde-mark.svg") center / contain no-repeat;
+    background: url("/src/assets/radar-pdde-mark.svg") center / contain no-repeat;
     filter: drop-shadow(0 12px 20px rgba(53, 24, 130, 0.16));
 }
 
@@ -229,7 +229,7 @@ body.dark-theme .radar-auth-brand::after {
     flex: 0 0 46px;
     border: 1px solid rgba(124, 58, 237, 0.16);
     border-radius: 12px;
-    background: #fff url("/assets/radar-pdde-mark.svg") center / 92% 92% no-repeat;
+    background: #fff url("/src/assets/radar-pdde-mark.svg") center / 92% 92% no-repeat;
     box-shadow: 0 8px 22px rgba(76, 29, 149, 0.14);
 }
 
