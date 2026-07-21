@@ -21,7 +21,7 @@ declare
         '20260721152515',
         '20260721152634',
         '20260721153758',
-        '20260721160100'
+        '20260721160056'
     ];
     v_actual text[];
     v_missing_extensions text[];
@@ -40,9 +40,7 @@ begin
       into v_missing_extensions
       from (values ('pgcrypto'), ('pg_jsonschema')) as required(name)
      where not exists (
-        select 1
-          from pg_extension installed
-         where installed.extname = required.name
+        select 1 from pg_extension installed where installed.extname = required.name
      );
 
     if v_missing_extensions is not null then
@@ -55,11 +53,7 @@ begin
         raise exception 'TEAM_ACCOUNT_CONTRACT_MISSING';
     end if;
 
-    if has_function_privilege(
-        'authenticated',
-        'public.upsert_team_member_account(jsonb,uuid,text,uuid,jsonb)',
-        'EXECUTE'
-    ) then
+    if has_function_privilege('authenticated', 'public.upsert_team_member_account(jsonb,uuid,text,uuid,jsonb)', 'EXECUTE') then
         raise exception 'TEAM_ACCOUNT_RPC_EXPOSED_TO_AUTHENTICATED';
     end if;
 
