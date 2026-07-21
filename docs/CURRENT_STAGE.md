@@ -17,53 +17,27 @@ Relatórios históricos não substituem este estado operacional.
 
 ## 2. Estado consolidado
 
-O RADAR possui:
+O RADAR PDDE possui:
 
-- quatro perfis funcionais e papel técnico separado;
+- quatro perfis funcionais e um papel técnico separado;
 - dashboard, carteira, competências, pendências, prontuário, Gestão de Equipe, Capital e Inventário e registros;
-- `LocalStorageRepository` operacional em Production;
-- `SupabaseRepository` conectado no Preview;
+- `SupabaseRepository` como backend de Preview e Production;
+- `LocalStorageRepository` preservado somente para rollback emergencial;
 - concorrência otimista por `row_version`;
-- **20 migrations SQL aplicadas no Supabase remoto e registradas na branch de sincronização patrimonial**;
+- **20 migrations SQL versionadas e aplicadas no Supabase remoto**;
 - acesso colaborativo dos Controladores da mesma CRE;
 - escopo específico de Capital e Inventário para a própria CRE;
 - RLS, auditoria, importação, reconciliação e rollback;
-- Edge Function e RPCs de Gestão de Equipe;
-- testes unitários, integração, E2E e pgTAP;
-- Production preservada em modo local e fail-closed.
+- Edge Function `team-account-management` ativa e protegida por JWT;
+- testes unitários, integração, E2E e pgTAP.
 
-## 3. Controladores
+A integração técnica entre site, Auth, RLS, banco e Vercel está concluída. A etapa seguinte é operação real pelos usuários, não nova construção da conexão.
 
-A carteira individual é responsabilidade principal, filtro inicial e organização do trabalho. Não é barreira de acesso entre os cinco Controladores da 4ª CRE.
-
-- os cinco Controladores possuem contas vinculadas;
-- as carteiras somam 163 escolas;
-- cada Controlador consulta e opera todas as escolas da 4ª CRE;
-- atuação fora da carteira não transfere responsabilidade;
-- autoria permanece vinculada ao executor;
-- outra CRE permanece bloqueada sem exceção explícita.
-
-## 4. Capital e Inventário
-
-Odair e Aylane possuem contas Auth confirmadas, vínculo ativo com o perfil `inventory` e `cre_scope = '4ª CRE'`.
-
-O estado final das migrations 17 a 20 estabelece que o perfil `inventory`:
-
-- consulta as 163 escolas da própria CRE;
-- consulta os 430 vínculos escola–programa necessários à seção patrimonial;
-- consulta e atualiza bens patrimoniais da própria CRE;
-- pode concluir a inventariação de bem encaminhado;
-- não recebe escrita cadastral nas escolas;
-- não recebe acesso funcional a bonificação, análise técnica, contatos ou configuração global;
-- não acessa escolas ou bens de outra CRE, mesmo quando a escola externa possui bem cadastrado.
-
-A migration 20 corrigiu a fronteira genérica legada de acesso a escolas com bens.
-
-## 5. Supabase remoto
+## 3. Dados e ponto de restauração
 
 Projeto autorizado: `scnryinorqeucbfkioxo`.
 
-| Entidade | Quantidade |
+| Entidade estrutural | Quantidade |
 |---|---:|
 | Configuração geral | 1 |
 | Programas | 8 |
@@ -73,31 +47,70 @@ Projeto autorizado: `scnryinorqeucbfkioxo`.
 | Escolas | 163 |
 | Vínculos escola–programa | 430 |
 
-A validação confirmou ausência de referências órfãs e duplicidades materiais no conjunto carregado.
+Antes da ativação de Production foi registrado o backup lógico:
 
-## 6. Identidades configuradas
+```text
+import_id: PROD-ACTIVATION-BACKUP-20260721
+finalidade: restauração pré-ativação
+```
+
+Todos os registros operacionais identificados por `HML-*` foram removidos após o backup. Pendências, tentativas, contatos, verificações, notas e bens iniciam sem massa artificial. Escolas, programas, carteiras, perfis e auditoria foram preservados.
+
+## 4. Identidades configuradas
 
 Foram vinculados e validados:
 
-- um Administrador técnico;
+- um Administrador Técnico;
 - uma Assistente de Verbas Federais;
 - cinco Controladores;
 - dois integrantes operacionais da Equipe de Inventário.
 
-As contas verificadas possuem e-mail confirmado, senha configurada e um único perfil institucional ativo.
+As nove contas possuem e-mail confirmado, senha configurada, perfil ativo e `cre_scope = '4ª CRE'`.
+
+Observações:
+
+- a integrante Juliana permanece apenas no diretório de Inventário, sem conta Auth;
+- não existe conta ativa de `sme_management`;
+- essas ausências não bloqueiam a operação dos usuários já autorizados.
+
+## 5. Controladores
+
+A carteira individual é responsabilidade principal, filtro inicial e organização do trabalho. Não é barreira de acesso entre os cinco Controladores da 4ª CRE.
+
+- as carteiras somam 163 escolas;
+- cada Controlador consulta e opera todas as escolas da 4ª CRE;
+- atuação fora da carteira não transfere responsabilidade;
+- autoria permanece vinculada ao executor;
+- outra CRE permanece bloqueada sem exceção explícita.
+
+## 6. Capital e Inventário
+
+Odair e Aylane possuem conta Auth, perfil `inventory` e `cre_scope = '4ª CRE'`.
+
+O perfil:
+
+- consulta as 163 escolas da própria CRE;
+- consulta os 430 vínculos escola–programa;
+- consulta, cria e atualiza bens patrimoniais permitidos pela interface;
+- pode concluir a inventariação de bem encaminhado;
+- não recebe escrita cadastral nas escolas;
+- não recebe bonificação, análise técnica, contatos ou configuração global;
+- não acessa escolas ou bens de outra CRE.
 
 ## 7. Contrato Vercel
 
-Production permanece:
+### Production
 
 ```text
-runtimeEnvironment: local
-dataMode: local
-supabaseRepositoryEnabled: false
-productionActivationApproved: false
+runtimeEnvironment: production
+dataMode: supabase-production
+supabaseRepositoryEnabled: true
+productionActivationApproved: true
 ```
 
-Preview permanece:
+O build de `VERCEL_ENV=production` aplica esse contrato automaticamente, utilizando somente URL e chave publicável do Supabase.
+
+### Preview
 
 ```text
 runtimeEnvironment: preview
@@ -106,37 +119,36 @@ supabaseRepositoryEnabled: true
 productionActivationApproved: false
 ```
 
-O Preview não pode ser promovido automaticamente para Production.
+Preview e Production são construídos separadamente; nenhum artefato de Preview é promovido.
 
-## 8. Histórico patrimonial
+### Rollback emergencial
 
-- migration 17: primeiro ajuste remoto de leitura do Inventário por CRE;
-- migration 18: separação do escopo patrimonial;
-- migration 19: consolidação das políticas de Capital e Inventário e remoção da helper transitória;
-- migration 20: bloqueio do acesso genérico a escola de outra CRE apenas por possuir bem.
+Definir na Vercel Production:
+
+```text
+RADAR_PRODUCTION_FORCE_LOCAL=true
+```
+
+O build retorna ao modo local, sem apagar ou modificar o banco. A remoção da variável restaura o Supabase Production no deployment seguinte.
+
+## 8. Segurança operacional
+
+- usuário anônimo não acessa dados institucionais;
+- o frontend recebe apenas chave `sb_publishable_`;
+- `service_role`, senha de banco e chaves secretas não entram no bundle;
+- RLS restringe leituras e escritas por papel e `cre_scope`;
+- a Edge Function exige JWT;
+- alterações são registradas em auditoria;
+- o backup pré-ativação permanece disponível para restauração controlada.
 
 ## 9. Próxima tarefa única
 
-1. concluir os gates do PR de sincronização patrimonial;
-2. mesclar apenas após CI verde e autorização;
-3. homologar login real de Controladores e Inventário no Preview;
-4. testar lançamento patrimonial identificado e reversível;
-5. confirmar autoria, persistência e auditoria;
-6. manter Production sem alteração.
+A conexão está encerrada tecnicamente. A próxima atividade é a entrada em operação:
 
-## 10. Gate de Production
+1. cada usuário realiza o primeiro login com sua senha;
+2. os Controladores iniciam os lançamentos reais;
+3. a Assistente acompanha competências e verificações;
+4. Odair e Aylane iniciam os registros de Capital e Inventário;
+5. o Administrador Técnico acompanha Auth, auditoria e eventuais bloqueios.
 
-Production somente poderá usar Supabase após:
-
-- homologação funcional de todos os perfis, abas e telas;
-- RLS positiva e negativa comprovada;
-- persistência e concorrência otimista comprovadas;
-- Gestão de Equipe homologada;
-- Capital e Inventário homologado com usuários reais;
-- Advisors analisados;
-- backup, restauração e rollback testados;
-- política de MFA definida;
-- CI verde no mesmo commit;
-- autorização funcional e técnica específica.
-
-Até lá, `productionActivationApproved` permanece `false`.
+Não criar nova camada de integração ou fallback paralelo sem uma falha comprovada no contrato atual.
