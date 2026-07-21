@@ -142,14 +142,15 @@ test('alinhamento final concede gestão de equipe à Assistente e restringe RPCs
     assert.doesNotMatch(sql, /grant\s+execute[\s\S]+to\s+(?:authenticated|anon)/i);
 });
 
-test('gate final exige a décima quinta migration e a Edge Function protegida', () => {
+test('gate final exige a décima sexta migration, acesso colaborativo e Edge Function protegida', () => {
     const readiness = read('scripts/check-supabase-final-alignment.js');
     const config = read('supabase/config.toml');
 
     assert.match(readiness, /202607190001_team_management_auth_alignment\.sql/);
     assert.match(readiness, /activation_basic_hardening\.sql/);
     assert.match(readiness, /performance_and_rls_hardening\.sql/);
-    assert.match(readiness, /15 migrations/);
+    assert.match(readiness, /controller_collaborative_cre_access\.sql/);
+    assert.match(readiness, /16 migrations/);
     assert.match(readiness, /supabase\/functions\/_shared\/team-account-domain\.mjs/);
     assert.match(readiness, /supabase\/functions\/team-account-management\/index\.ts/);
     assert.match(readiness, /src\/application\/team-account-gateway\.js/);
