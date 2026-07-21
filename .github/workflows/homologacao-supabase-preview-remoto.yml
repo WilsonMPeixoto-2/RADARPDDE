@@ -1,4 +1,5 @@
 name: Homologar Preview Supabase remoto
+# Acionamento controlado da homologação final — 21/07/2026.
 
 on:
   workflow_dispatch:
