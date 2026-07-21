@@ -58,8 +58,8 @@ test('Preview automático da Vercel usa o Supabase público sem segredos operaci
     assert.doesNotMatch(manifestSource, /sb_publishable_|supabase\.co/);
 });
 
-test('Production automática da Vercel continua local sem configuração explícita', async context => {
-    const { buildVercelArtifact } = await loadBuilder();
+test('Production automática da Vercel usa Supabase Production aprovado', async context => {
+    const { buildVercelArtifact, PRODUCTION_SUPABASE_PUBLIC_RUNTIME } = await loadBuilder();
     const outputDir = await createOutputDirectory(context);
 
     const result = await buildVercelArtifact({
@@ -68,6 +68,64 @@ test('Production automática da Vercel continua local sem configuração explíc
         environment: {
             VERCEL_ENV: 'production',
             VERCEL_GIT_COMMIT_SHA: 'fedcba9876543210fedcba9876543210fedcba98'
+        }
+    });
+
+    const runtimeSource = await fs.readFile(path.join(outputDir, 'config.runtime.js'), 'utf8');
+    const manifestSource = await fs.readFile(
+        path.join(outputDir, 'radar-build-manifest.json'),
+        'utf8'
+    );
+
+    assert.equal(result.runtimeInput.environment, 'production');
+    assert.equal(result.runtimeInput.dataMode, 'supabase-production');
+    assert.equal(result.runtimeInput.features.supabaseRepositoryEnabled, true);
+    assert.equal(result.runtimeInput.productionActivationApproved, true);
+    assert.equal(
+        result.runtimeInput.supabase.url,
+        PRODUCTION_SUPABASE_PUBLIC_RUNTIME.RADAR_SUPABASE_URL
+    );
+    assert.equal(
+        result.runtimeInput.supabase.publishableKey,
+        PRODUCTION_SUPABASE_PUBLIC_RUNTIME.RADAR_SUPABASE_PUBLISHABLE_KEY
+    );
+    assert.match(runtimeSource, /supabase-production/);
+    assert.match(runtimeSource, /scnryinorqeucbfkioxo\.supabase\.co/);
+    assert.doesNotMatch(manifestSource, /sb_publishable_|supabase\.co/);
+});
+
+test('Production ignora configuração local antiga quando a ativação está vigente', async context => {
+    const { buildVercelArtifact } = await loadBuilder();
+    const outputDir = await createOutputDirectory(context);
+
+    const result = await buildVercelArtifact({
+        rootDir: projectRoot,
+        outputDir,
+        environment: {
+            VERCEL_ENV: 'production',
+            RADAR_DATA_MODE: 'local',
+            RADAR_ENVIRONMENT: 'local',
+            RADAR_SUPABASE_REPOSITORY_ENABLED: 'false',
+            RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED: 'false'
+        }
+    });
+
+    assert.equal(result.runtimeInput.environment, 'production');
+    assert.equal(result.runtimeInput.dataMode, 'supabase-production');
+    assert.equal(result.runtimeInput.features.supabaseRepositoryEnabled, true);
+    assert.equal(result.runtimeInput.productionActivationApproved, true);
+});
+
+test('sinal de emergência mantém Production em modo local', async context => {
+    const { buildVercelArtifact } = await loadBuilder();
+    const outputDir = await createOutputDirectory(context);
+
+    const result = await buildVercelArtifact({
+        rootDir: projectRoot,
+        outputDir,
+        environment: {
+            VERCEL_ENV: 'production',
+            RADAR_PRODUCTION_FORCE_LOCAL: 'true'
         }
     });
 
