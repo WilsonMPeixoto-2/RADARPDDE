@@ -5,8 +5,6 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "git": {
-    "deploymentEnabled": {
-      "fix/controller-collaborative-cre-access": false
-    }
+    "deploymentEnabled": true
   }
 }
