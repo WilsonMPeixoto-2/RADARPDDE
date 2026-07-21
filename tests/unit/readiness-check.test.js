@@ -37,7 +37,11 @@ const MIGRATIONS = [
     '202607190001_team_management_auth_alignment.sql',
     '20260720030046_activation_basic_hardening.sql',
     '20260720193000_performance_and_rls_hardening.sql',
-    '20260721090000_controller_collaborative_cre_access.sql'
+    '20260721090000_controller_collaborative_cre_access.sql',
+    '20260721152515_inventory_cre_read_access.sql',
+    '20260721152634_inventory_capital_section_scope.sql',
+    '20260721153758_inventory_capital_section_inline_scope.sql',
+    '20260721160056_inventory_generic_asset_scope_by_cre.sql'
 ];
 
 const ARTIFACTS = [
@@ -88,6 +92,7 @@ const ARTIFACTS = [
     'supabase/tests/database/json-contracts.test.sql',
     'supabase/tests/database/operations-rpc.test.sql',
     'supabase/tests/database/team-management-rpc.test.sql',
+    'supabase/tests/database/inventory-capital-rls.test.sql',
     'tests/unit/auth-database-gate.test.js',
     'tests/unit/auth-bootstrap.test.js',
     'tests/unit/auth-frontend-contract.test.js',
@@ -122,35 +127,19 @@ test('detecta atribuição real de segredo Supabase', () => {
     const findings = scanTextForSecrets("SUPABASE_SERVICE_ROLE_KEY='super-secret-value'");
     assert.equal(findings.length, 1);
     assert.match(findings[0], /service role/i);
-
     assert.deepEqual(scanTextForSecrets('SUPABASE_SERVICE_ROLE_KEY='), []);
     assert.deepEqual(scanTextForSecrets('Nunca use service_role no frontend.'), []);
 });
 
 test('aceita referências do GitHub Actions ao secret store sem aceitar valor literal', () => {
-    assert.deepEqual(
-        scanTextForSecrets('RADAR_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.RADAR_SUPABASE_SERVICE_ROLE_KEY }}'),
-        []
-    );
-    assert.deepEqual(
-        scanTextForSecrets('SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}'),
-        []
-    );
-    assert.match(
-        scanTextForSecrets('RADAR_SUPABASE_SERVICE_ROLE_KEY: valor-literal').join(' '),
-        /service role/i
-    );
+    assert.deepEqual(scanTextForSecrets('RADAR_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.RADAR_SUPABASE_SERVICE_ROLE_KEY }}'), []);
+    assert.deepEqual(scanTextForSecrets('SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}'), []);
+    assert.match(scanTextForSecrets('RADAR_SUPABASE_SERVICE_ROLE_KEY: valor-literal').join(' '), /service role/i);
 });
 
 test('detecta JWT legado com role service_role sem bloquear JWT anon', () => {
-    assert.match(
-        scanTextForSecrets(`const key = '${jwtWithRole('service_role')}';`, 'config.js').join(' '),
-        /jwt service_role/i
-    );
-    assert.deepEqual(
-        scanTextForSecrets(`const key = '${jwtWithRole('anon')}';`, 'config.js'),
-        []
-    );
+    assert.match(scanTextForSecrets(`const key = '${jwtWithRole('service_role')}';`, 'config.js').join(' '), /jwt service_role/i);
+    assert.deepEqual(scanTextForSecrets(`const key = '${jwtWithRole('anon')}';`, 'config.js'), []);
 });
 
 test('recusa configuração publicada fora do modo local', () => {
@@ -159,61 +148,33 @@ test('recusa configuração publicada fora do modo local', () => {
         features: { supabaseRepositoryEnabled: false }
     };`;
     assert.deepEqual(validateRuntimeConfigSource(localSource), []);
-    assert.match(
-        validateRuntimeConfigSource(`window.RADAR_PDDE_RUNTIME_INPUT = {
-            dataMode: 'supabase-production',
-            features: { supabaseRepositoryEnabled: true }
-        };`).join(' '),
-        /modo local/i
-    );
+    assert.match(validateRuntimeConfigSource(`window.RADAR_PDDE_RUNTIME_INPUT = {
+        dataMode: 'supabase-production',
+        features: { supabaseRepositoryEnabled: true }
+    };`).join(' '), /modo local/i);
 });
 
 test('valida conjunto obrigatório de migrations', () => {
     assert.deepEqual(validateMigrationManifest(MIGRATIONS), []);
-    assert.match(
-        validateMigrationManifest(MIGRATIONS.slice(0, -1)).join(' '),
-        /20260721090000_controller_collaborative_cre_access\.sql/
-    );
+    assert.match(validateMigrationManifest(MIGRATIONS.slice(0, -1)).join(' '), /20260721160056_inventory_generic_asset_scope_by_cre\.sql/);
 });
 
 test('impede divergência entre a contagem documentada e o diretório de migrations', () => {
     const validRunbook = `
-O conjunto versionado contém atualmente **16** migrations.
+O conjunto versionado contém atualmente **20** migrations.
 supabase migration list --linked
 supabase db push --linked --dry-run
 supabase db push --linked
 `;
     assert.deepEqual(validateMigrationDocumentation(validRunbook, MIGRATIONS), []);
-
-    assert.match(
-        validateMigrationDocumentation(
-            validRunbook.replace('**16**', '**10**'),
-            MIGRATIONS
-        ).join(' '),
-        /declara 10 migrations.*contém 16/i
-    );
-    assert.match(
-        validateMigrationDocumentation(
-            `${validRunbook}\nAplicar, nesta ordem:\n`,
-            MIGRATIONS
-        ).join(' '),
-        /segunda lista manual/i
-    );
-    assert.match(
-        validateMigrationDocumentation(
-            validRunbook.replace(/^supabase db push --linked$/m, ''),
-            MIGRATIONS
-        ).join(' '),
-        /histórico do CLI/i
-    );
+    assert.match(validateMigrationDocumentation(validRunbook.replace('**20**', '**10**'), MIGRATIONS).join(' '), /declara 10 migrations.*contém 20/i);
+    assert.match(validateMigrationDocumentation(`${validRunbook}\nAplicar, nesta ordem:\n`, MIGRATIONS).join(' '), /segunda lista manual/i);
+    assert.match(validateMigrationDocumentation(validRunbook.replace(/^supabase db push --linked$/m, ''), MIGRATIONS).join(' '), /histórico do CLI/i);
 });
 
 test('restringe a Data API ao schema public usado pelo RADAR', () => {
     assert.deepEqual(validateSupabaseApiSchemas('schemas = ["public"]'), []);
-    assert.match(
-        validateSupabaseApiSchemas('schemas = ["public", "graphql_public"]').join(' '),
-        /somente o schema public/i
-    );
+    assert.match(validateSupabaseApiSchemas('schemas = ["public", "graphql_public"]').join(' '), /somente o schema public/i);
 });
 
 test('separa preflight não destrutivo de aplicação remota confirmada', () => {
@@ -227,7 +188,7 @@ npx --no-install supabase db query --linked --file supabase/verification/remote-
     const postApply = `
 on:
   workflow_dispatch:
-APLICAR_16_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL
+APLICAR_20_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL
 npx --no-install supabase db push --linked --dry-run
 npx --no-install supabase db push --linked --yes
 remote-post-apply.sql
@@ -238,31 +199,9 @@ supabase db advisors
 supabase functions deploy team-account-management
 `;
     assert.deepEqual(validateRemoteWorkflowContracts(preflight, postApply), []);
-
-    assert.match(
-        validateRemoteWorkflowContracts(
-            `${preflight}\nnpx --no-install supabase db push --linked`,
-            postApply
-        ).join(' '),
-        /estritamente não destrutivo/i
-    );
-    assert.match(
-        validateRemoteWorkflowContracts(
-            preflight,
-            postApply.replace(
-                'supabase db push --linked --yes',
-                'supabase db push --linked --yes --include-seed'
-            )
-        ).join(' '),
-        /seed local/i
-    );
-    assert.match(
-        validateRemoteWorkflowContracts(
-            preflight.replace('  workflow_dispatch:', '  push:'),
-            postApply
-        ).join(' '),
-        /somente acionamento manual/i
-    );
+    assert.match(validateRemoteWorkflowContracts(`${preflight}\nnpx --no-install supabase db push --linked`, postApply).join(' '), /estritamente não destrutivo/i);
+    assert.match(validateRemoteWorkflowContracts(preflight, postApply.replace('supabase db push --linked --yes', 'supabase db push --linked --yes --include-seed')).join(' '), /seed local/i);
+    assert.match(validateRemoteWorkflowContracts(preflight.replace('  workflow_dispatch:', '  push:'), postApply).join(' '), /somente acionamento manual/i);
 });
 
 test('mantém cada verificação SQL compatível com a execução preparada do CLI', () => {
@@ -279,29 +218,30 @@ begin
 end
 $$;`;
     assert.deepEqual(validateRemoteVerificationSql(preflight, postApply), []);
-    assert.match(
-        validateRemoteVerificationSql(
-            `${preflight}\nselect 1;`,
-            postApply
-        ).join(' '),
-        /único bloco executável/i
-    );
+    assert.match(validateRemoteVerificationSql(`${preflight}\nselect 1;`, postApply).join(' '), /único bloco executável/i);
 });
 
 test('exige build versionado e diretório público isolado na Vercel', () => {
-    const packageSource = JSON.stringify({
-        scripts: { 'build:vercel': 'node scripts/build-vercel.mjs' }
-    });
-    const vercelSource = JSON.stringify({
-        buildCommand: 'npm run build:vercel',
-        outputDirectory: 'dist'
-    });
+    const packageSource = JSON.stringify({ scripts: { 'build:vercel': 'node scripts/build-vercel.mjs' } });
+    const vercelSource = JSON.stringify({ buildCommand: 'npm run build:vercel', outputDirectory: 'dist' });
     assert.deepEqual(validateVercelBuildContract(vercelSource, packageSource), []);
-    assert.match(
-        validateVercelBuildContract(
-            JSON.stringify({ outputDirectory: '.' }),
-            packageSource
-        ).join(' '),
-        /build:vercel|diretório dist/i
-    );
+    assert.match(validateVercelBuildContract(JSON.stringify({ outputDirectory: '.' }), packageSource).join(' '), /build:vercel|diretório dist/i);
+});
+
+test('exige todos os artefatos e comandos de bootstrap remoto', () => {
+    assert.deepEqual(validateReadinessArtifacts(ARTIFACTS), []);
+    assert.match(validateReadinessArtifacts(ARTIFACTS.slice(1)).join(' '), /config\.runtime\.js/);
+
+    const packageSource = JSON.stringify({
+        scripts: {
+            'bootstrap:supabase:validate': 'node scripts/bootstrap-supabase-remote.mjs validate',
+            'bootstrap:supabase:plan': 'node scripts/bootstrap-supabase-remote.mjs plan',
+            'bootstrap:supabase:import': 'node scripts/bootstrap-supabase-remote.mjs import',
+            'bootstrap:supabase:reconcile': 'node scripts/bootstrap-supabase-remote.mjs reconcile',
+            'bootstrap:supabase:admin': 'node scripts/bootstrap-remote-admin.mjs',
+            'snapshot:export:local': 'node scripts/export-local-snapshot.mjs'
+        }
+    });
+    assert.deepEqual(validateRemoteBootstrapCommands(packageSource), []);
+    assert.match(validateRemoteBootstrapCommands(JSON.stringify({ scripts: {} })).join(' '), /bootstrap:supabase:validate/);
 });

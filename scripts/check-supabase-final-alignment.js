@@ -12,9 +12,14 @@ const requiredFiles = Object.freeze([
     'supabase/migrations/20260720030046_activation_basic_hardening.sql',
     'supabase/migrations/20260720193000_performance_and_rls_hardening.sql',
     'supabase/migrations/20260721090000_controller_collaborative_cre_access.sql',
+    'supabase/migrations/20260721152515_inventory_cre_read_access.sql',
+    'supabase/migrations/20260721152634_inventory_capital_section_scope.sql',
+    'supabase/migrations/20260721153758_inventory_capital_section_inline_scope.sql',
+    'supabase/migrations/20260721160056_inventory_generic_asset_scope_by_cre.sql',
     'supabase/functions/_shared/team-account-domain.mjs',
     'supabase/functions/team-account-management/index.ts',
     'supabase/tests/database/team-management-rpc.test.sql',
+    'supabase/tests/database/inventory-capital-rls.test.sql',
     previewBuildPath,
     'tests/unit/vercel-preview-workflow.test.js',
     'tests/unit/vercel-preview-defaults.test.js'
@@ -87,6 +92,36 @@ function check() {
         findings.push('A migration colaborativa ainda usa a carteira como fronteira de autorização.');
     }
 
+    const inventoryMigration = read('supabase/migrations/20260721153758_inventory_capital_section_inline_scope.sql');
+    [
+        /create policy schools_read[\s\S]+profile_id\s*=\s*'inventory'[\s\S]+schools\.cre\s*=\s*up\.cre_scope/i,
+        /create policy school_programs_read[\s\S]+profile_id\s*=\s*'inventory'[\s\S]+s\.cre\s*=\s*up\.cre_scope/i,
+        /create policy assets_read[\s\S]+profile_id\s*=\s*'inventory'[\s\S]+s\.cre\s*=\s*up\.cre_scope/i,
+        /create policy assets_update[\s\S]+current_app_role\(\)\s*=\s*'inventory'/i,
+        /drop function if exists public\.inventory_can_access_cre_school\(text\)/i
+    ].forEach(pattern => {
+        if (!pattern.test(inventoryMigration)) {
+            findings.push(`Escopo final de Capital e Inventário incompleto: ${pattern}`);
+        }
+    });
+    if (/create\s+or\s+replace\s+function\s+public\.can_write_school/i.test(inventoryMigration)) {
+        findings.push('A migration patrimonial ampliou indevidamente a escrita cadastral do Inventário.');
+    }
+
+    const inventoryBoundaryMigration = read(
+        'supabase/migrations/20260721160056_inventory_generic_asset_scope_by_cre.sql'
+    );
+    [
+        /current_app_role\(\)\s*=\s*'inventory'/i,
+        /join public\.assets a[\s\S]+a\.school_id\s*=\s*s\.id/i,
+        /up\.profile_id\s*=\s*'inventory'/i,
+        /s\.cre\s*=\s*up\.cre_scope/i
+    ].forEach(pattern => {
+        if (!pattern.test(inventoryBoundaryMigration)) {
+            findings.push(`Fronteira de CRE do Inventário incompleta: ${pattern}`);
+        }
+    });
+
     const previewBuild = read(previewBuildPath);
     [
         /PREVIEW_SUPABASE_PUBLIC_RUNTIME/,
@@ -112,8 +147,8 @@ function check() {
 
     const migrationCount = fs.readdirSync(path.join(root, 'supabase/migrations'))
         .filter(name => name.endsWith('.sql')).length;
-    if (migrationCount !== 16) {
-        findings.push(`Conjunto final deve conter 16 migrations; encontrado: ${migrationCount}.`);
+    if (migrationCount !== 20) {
+        findings.push(`Conjunto final deve conter 20 migrations; encontrado: ${migrationCount}.`);
     }
 
     return [...new Set(findings)];

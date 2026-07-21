@@ -10,7 +10,7 @@ O produto possui quatro perfis operacionais visíveis e um papel técnico separa
 |---|---|---|---|
 | `controller` | Controlador | funcional | 4ª CRE; carteira própria como recorte inicial e responsabilidade principal |
 | `federal_assistant` | Assistente de Verbas Federais | funcional | gestão operacional transversal da 4ª CRE e liderança da equipe |
-| `inventory` | Equipe de Inventário | funcional | operação patrimonial autorizada |
+| `inventory` | Equipe de Inventário | funcional | seção Capital e Inventário das escolas da própria CRE |
 | `sme_management` | SME (Gestão) | funcional gerencial | leitura consolidada e parâmetros institucionais |
 | `technical_admin` | Administrador técnico | técnico, fora do seletor operacional | infraestrutura, perfis, escopos e auditoria |
 
@@ -22,14 +22,14 @@ Legenda: **L** leitura; **C** criação; **A** alteração ou desativação lóg
 
 | Recurso | Controlador | Assistente | Inventário | SME (Gestão) | Admin técnico |
 |---|---:|---:|---:|---:|---:|
-| Escolas da 4ª CRE | L/A | L/C/A | L | L | L/C/A/E |
+| Escolas da 4ª CRE | L/A | L/C/A | L patrimonial | L | L/C/A/E |
 | Distribuição de carteiras | L | L/C/A | L | L | L/C/A/E |
-| Programas | L | L | L | L/C/A | L/C/A/E |
+| Programas | L | L | L patrimonial | L/C/A | L/C/A/E |
 | Competências | L | L | L | L/C/A | L/C/A/E |
-| Bonificação e análise | L/C/A | L/C/A | L | L | L/C/A/E |
-| Pendências | L/C/A | L/C/A | L patrimonial | L | L/C/A/E |
-| Tentativas de regularização | L/C/A | L/C/A | L patrimonial | L | L/C/A/E |
-| Contatos e cobranças | L/C/A | L/C/A | L | L | L/C/A/E |
+| Bonificação e análise | L/C/A | L/C/A | — | L | L/C/A/E |
+| Pendências | L/C/A | L/C/A | L patrimonial restrita | L | L/C/A/E |
+| Tentativas de regularização | L/C/A | L/C/A | L patrimonial restrita | L | L/C/A/E |
+| Contatos e cobranças | L/C/A | L/C/A | — | L | L/C/A/E |
 | Bens e inventário | L | L/C/A | L/C/A | L | L/C/A/E |
 | Notas registradas | L/C/A | L/C/A | L | L | L/C/A/E |
 | Configuração global | L | L | L | L/C/A | L/C/A/E |
@@ -37,7 +37,7 @@ Legenda: **L** leitura; **C** criação; **A** alteração ou desativação lóg
 | Equipe de Inventário | L | L/C/A/S | L própria | L | L/C/A/E/S |
 | Convites e contas Auth da equipe | — | C/A/S | — | — | C/A/S |
 | Perfis e escopos | própria associação | própria associação | própria associação | L | L/C/A/E |
-| Logs administrativos | L da 4ª CRE | L da 4ª CRE | L do escopo | L amplo | L amplo/E excepcional |
+| Logs administrativos | L da 4ª CRE | L da 4ª CRE | L do escopo patrimonial | L amplo | L amplo/E excepcional |
 | Auditoria técnica | — | — | — | L | L |
 | Execuções de importação | — | L/C/A | — | L | L/C/A/E |
 
@@ -89,7 +89,18 @@ Possui acesso transversal à 4ª CRE para operação, retificação e Gestão de
 
 ### Inventário
 
-Atua prioritariamente nas escolas com bens registrados ou escopo explícito. Não altera análise técnica, bonificação ou configuração global.
+O perfil `inventory` abre automaticamente a interface **Equipe de Inventário** e mantém disponível a seção **Capital e Inventário**.
+
+Dentro dessa seção, o integrante autenticado:
+
+- consulta todas as escolas cuja `cre` corresponda ao seu `cre_scope`;
+- consulta os vínculos escola–programa necessários ao painel patrimonial;
+- consulta os bens dessas escolas;
+- pode criar e atualizar registros patrimoniais permitidos pela interface, inclusive concluir a inventariação de bem encaminhado;
+- não altera o cadastro da escola, a distribuição de carteiras, bonificação, análise técnica, contatos ou configuração global;
+- não recebe acesso patrimonial a escola de outra CRE.
+
+A ampliação é implementada diretamente nas políticas de `schools`, `school_programs` e `assets`. O predicado genérico `can_write_school` não é ampliado para o Inventário.
 
 ### SME (Gestão)
 
@@ -110,7 +121,8 @@ Administra infraestrutura, perfis, escopos, auditoria e procedimentos excepciona
 7. convite ou bloqueio falho é compensado para evitar conta órfã;
 8. exclusão física é excepcional e técnica;
 9. carteira organiza o trabalho, mas não bloqueia colaboração dentro da mesma CRE;
-10. toda alteração desta matriz exige decisão funcional expressa e testes cruzados de UI, Auth e RLS.
+10. o Inventário recebe somente o escopo necessário à superfície patrimonial;
+11. toda alteração desta matriz exige decisão funcional expressa e testes cruzados de UI, Auth e RLS.
 
 ## Casos obrigatórios de homologação
 
@@ -124,7 +136,10 @@ Administra infraestrutura, perfis, escopos, auditoria e procedimentos excepciona
 - Assistente edita e desativa controlador, redistribuindo escolas;
 - Assistente administra integrantes do Inventário;
 - SME consulta equipe e situação operacional, mas não altera os diretórios;
-- Inventário não altera análise técnica;
+- Inventário carrega as escolas da própria CRE na seção Capital e Inventário;
+- Inventário conclui a inventariação de um bem encaminhado;
+- Inventário não altera cadastro escolar, bonificação ou análise técnica;
+- Inventário não acessa escola de outra CRE;
 - Administrador técnico não recebe interface da Assistente;
 - falha após convite remove a conta recém-criada;
 - falha após bloqueio restaura o acesso;
