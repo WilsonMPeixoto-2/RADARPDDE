@@ -15,6 +15,7 @@ const requiredFiles = Object.freeze([
     'supabase/migrations/20260721152515_inventory_cre_read_access.sql',
     'supabase/migrations/20260721152634_inventory_capital_section_scope.sql',
     'supabase/migrations/20260721153758_inventory_capital_section_inline_scope.sql',
+    'supabase/migrations/20260721160100_inventory_generic_asset_scope_by_cre.sql',
     'supabase/functions/_shared/team-account-domain.mjs',
     'supabase/functions/team-account-management/index.ts',
     'supabase/tests/database/team-management-rpc.test.sql',
@@ -107,6 +108,20 @@ function check() {
         findings.push('A migration patrimonial ampliou indevidamente a escrita cadastral do Inventário.');
     }
 
+    const inventoryBoundaryMigration = read(
+        'supabase/migrations/20260721160100_inventory_generic_asset_scope_by_cre.sql'
+    );
+    [
+        /current_app_role\(\)\s*=\s*'inventory'/i,
+        /join public\.assets a[\s\S]+a\.school_id\s*=\s*s\.id/i,
+        /up\.profile_id\s*=\s*'inventory'/i,
+        /s\.cre\s*=\s*up\.cre_scope/i
+    ].forEach(pattern => {
+        if (!pattern.test(inventoryBoundaryMigration)) {
+            findings.push(`Fronteira de CRE do Inventário incompleta: ${pattern}`);
+        }
+    });
+
     const previewBuild = read(previewBuildPath);
     [
         /PREVIEW_SUPABASE_PUBLIC_RUNTIME/,
@@ -132,8 +147,8 @@ function check() {
 
     const migrationCount = fs.readdirSync(path.join(root, 'supabase/migrations'))
         .filter(name => name.endsWith('.sql')).length;
-    if (migrationCount !== 19) {
-        findings.push(`Conjunto final deve conter 19 migrations; encontrado: ${migrationCount}.`);
+    if (migrationCount !== 20) {
+        findings.push(`Conjunto final deve conter 20 migrations; encontrado: ${migrationCount}.`);
     }
 
     return [...new Set(findings)];
