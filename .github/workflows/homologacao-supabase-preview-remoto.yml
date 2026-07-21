@@ -1,4 +1,5 @@
 name: Homologar Preview Supabase remoto
+# Disparo final após registro do workflow na branch padrão.
 
 on:
   workflow_dispatch:
