@@ -1,17 +1,17 @@
 name: Reparar package-lock
 
 on:
-  push:
-    branches:
-      - activate/supabase-production
+  pull_request:
     paths:
       - '.github/workflows/repair-package-lock.yml'
+      - 'package-lock.json'
 
 permissions:
   contents: write
 
 jobs:
   repair:
+    if: github.head_ref == 'activate/supabase-production'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
