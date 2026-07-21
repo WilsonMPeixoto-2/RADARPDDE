@@ -6,7 +6,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const migrationPath = fs.readdirSync(path.resolve('supabase/migrations'))
-    .find(name => name.endsWith('_preconnection_transactions_and_json_contracts.sql'));
+    .filter(name => name.endsWith('_preconnection_transactions_and_json_contracts.sql'))
+    .sort().pop();
 const sql = fs.readFileSync(path.resolve('supabase/migrations', migrationPath), 'utf8');
 
 test('migration habilita pg_jsonschema e protege todas as colunas JSONB críticas', () => {

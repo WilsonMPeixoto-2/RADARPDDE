@@ -40,7 +40,7 @@ test('build Preview não depende de token nem de credencial administrativa', () 
 test('manifesto público não recebe URL ou chave do Supabase', () => {
     const source = readBuild();
     const manifestBlock = source.match(
-        /function createPublicBuildManifest[\s\S]*?\n}\n/
+        /function createPublicBuildManifest[\s\S]*?\n\}/
     )?.[0] || '';
 
     assert.match(manifestBlock, /vercelEnvironment/);

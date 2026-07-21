@@ -77,9 +77,17 @@
                 this.storage.setItem(key, JSON.stringify(collection));
                 return cloneValue(collection);
             } catch (error) {
+                const name = error.name || '';
+                const code = error.code || 0;
+                const isQuota = name === 'QuotaExceededError' 
+                             || name === 'NS_ERROR_DOM_QUOTA_REACHED'
+                             || code === 1014;
+                
                 throw new RepositoryError(
-                    'WRITE_FAILED',
-                    `Não foi possível gravar os dados locais de ${entity}.`,
+                    isQuota ? 'QUOTA_EXCEEDED' : 'WRITE_FAILED',
+                    isQuota 
+                        ? `Limite de armazenamento local (quota) excedido ao tentar gravar a entidade ${entity}.`
+                        : `Não foi possível gravar os dados locais de ${entity}.`,
                     { entity, operation: 'save', cause: error }
                 );
             }
@@ -128,9 +136,31 @@
             }
 
             const entries = Object.entries(snapshot.entities);
-            for (const [entity, records] of entries) {
+            const backup = new Map();
+            for (const [entity] of entries) {
                 assertKnownEntity(entity);
-                await this.save(entity, records);
+                const key = this.keyFor(entity);
+                backup.set(entity, this.storage.getItem(key));
+            }
+
+            try {
+                for (const [entity, records] of entries) {
+                    await this.save(entity, records);
+                }
+            } catch (error) {
+                for (const [entity, backupValue] of backup.entries()) {
+                    const key = this.keyFor(entity);
+                    if (backupValue === null) {
+                        this.storage.removeItem(key);
+                    } else {
+                        try {
+                            this.storage.setItem(key, backupValue);
+                        } catch (rollbackError) {
+                            // Silenciar falha do rollback
+                        }
+                    }
+                }
+                throw error;
             }
 
             return {

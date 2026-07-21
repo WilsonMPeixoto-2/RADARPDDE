@@ -342,6 +342,57 @@
         };
     }
 
+    async function estimateLocalStorageCapacity(snapshot) {
+        const snapshotStr = stableStringify(snapshot || {});
+        const actualSizeBytes = typeof TextEncoder !== 'undefined'
+            ? new TextEncoder().encode(snapshotStr).byteLength
+            : snapshotStr.length * 2; // Fallback simples para ambientes node sem TextEncoder global
+
+        const domains = {};
+        if (snapshot && snapshot.entities) {
+            Object.entries(snapshot.entities).forEach(([entity, records]) => {
+                const domainStr = stableStringify(records);
+                domains[entity] = {
+                    count: records.length,
+                    sizeBytes: typeof TextEncoder !== 'undefined'
+                        ? new TextEncoder().encode(domainStr).byteLength
+                        : domainStr.length * 2
+                };
+            });
+        }
+
+        const schoolCount = domains.schools ? domains.schools.count : 0;
+        const growthFactor = schoolCount > 0 ? (163 / schoolCount) : 1;
+        const simulatedSizeBytes = Math.round(actualSizeBytes * growthFactor * 3.5);
+
+        let quota = null;
+        let usage = null;
+        let percentage = null;
+        
+        if (typeof navigator !== 'undefined' && navigator.storage && typeof navigator.storage.estimate === 'function') {
+            try {
+                const estimate = await navigator.storage.estimate();
+                quota = estimate.quota;
+                usage = estimate.usage;
+                if (quota > 0) {
+                    percentage = parseFloat(((usage / quota) * 100).toFixed(2));
+                }
+            } catch (err) {
+                // Silenciar e manter nulos
+            }
+        }
+
+        return {
+            actualSizeBytes,
+            simulatedSizeBytes,
+            domains,
+            quota,
+            usage,
+            percentage,
+            riskDetected: simulatedSizeBytes > (quota || 5 * 1024 * 1024) * 0.8
+        };
+    }
+
     return Object.freeze({
         SNAPSHOT_FORMAT,
         IMPORT_ENTITY_ORDER,
@@ -353,6 +404,7 @@
         reconcileSnapshots,
         summarizeReconciliation,
         stableStringify,
-        hashSnapshot
+        hashSnapshot,
+        estimateLocalStorageCapacity
     });
 }));

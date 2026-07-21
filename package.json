@@ -56,19 +56,27 @@
     "audit:frontend-precedence:check": "node scripts/audit/analyze-frontend-precedence.mjs --check",
     "test:frontend-precedence": "playwright test --config=playwright.frontend-audit.config.js",
     "format": "prettier --write --ignore-unknown",
-    "format:check": "prettier --check --ignore-unknown"
+    "format:check": "prettier --check --ignore-unknown",
+    "dev": "browser-sync start --server --files '*.html, *.css, *.js, src/**/*.js' --port 4175 --no-notify",
+    "lint": "eslint src/ app.js config.js"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.12.1",
+    "@eslint/js": "10.0.1",
     "@playwright/test": "1.61.1",
-    "@supabase/supabase-js": "2.110.7",
+    "@supabase/supabase-js": "2.110.8",
     "acorn": "8.17.0",
     "acorn-walk": "8.3.5",
     "ajv": "8.20.0",
+    "browser-sync": "3.0.4",
     "esbuild": "0.28.1",
+    "eslint": "10.7.0",
     "http-server": "14.1.1",
     "prettier": "3.9.5",
     "supabase": "2.109.1",
     "typescript": "7.0.2"
+  },
+  "dependencies": {
+    "exceljs": "4.4.0"
   }
 }

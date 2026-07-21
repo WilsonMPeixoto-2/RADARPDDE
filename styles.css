@@ -2730,13 +2730,20 @@ body.dark-theme .radar-auth-brand {
 }
 
 .auth-logout-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
     min-height: 40px;
     padding-inline: 14px;
     white-space: nowrap;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color var(--transition-fast, 0.15s ease), border-color var(--transition-fast, 0.15s ease), opacity var(--transition-fast, 0.15s ease);
 }
 
 .auth-logout-button[hidden] {
-    display: none;
+    display: none !important;
 }
 
 @media (max-width: 700px) {

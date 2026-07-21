@@ -2,8 +2,6 @@ const { test, expect } = require('@playwright/test');
 
 test.describe('acessibilidade dos modais legados', () => {
   test('gerencia foco, Escape e árvore de acessibilidade sem alterar o formulário', async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
-
     await page.goto('/');
     await page.evaluate(() => {
       const trigger = document.createElement('button');

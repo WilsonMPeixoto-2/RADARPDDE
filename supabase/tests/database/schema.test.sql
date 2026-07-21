@@ -10,6 +10,7 @@ select has_table('public', 'registered_invoices', 'registered_invoices existe');
 select has_table('public', 'assets', 'assets existe');
 select has_table('public', 'verifications', 'verifications existe');
 select has_table('public', 'audit_events', 'audit_events existe');
+select has_table('public', 'data_import_staging', 'data_import_staging existe');
 select has_column('public', 'registered_invoices', 'linked_asset_id', 'nota possui vínculo com bem');
 select has_column('public', 'registered_invoices', 'row_version', 'nota possui controle de versão');
 select has_column('public', 'assets', 'inventoried_by_member_id', 'bem possui inventariador');
@@ -32,6 +33,26 @@ select ok(to_regprocedure('public.rollback_data_import(text)') is not null, 'RPC
 select ok(
     (select count(*) = 20 from supabase_migrations.schema_migrations),
     'vinte migrations foram registradas'
+);
+select has_extension('pg_jsonschema', 'pg_jsonschema está instalada e ativa');
+select ok(
+    extensions.jsonb_matches_schema(
+        '{"type": "object", "properties": {"id": {"type": "string"}}, "required": ["id"]}'::json,
+        '{"id": "test-uuid"}'::jsonb
+    ),
+    'jsonb_matches_schema valida payload correto'
+);
+select ok(
+    not extensions.jsonb_matches_schema(
+        '{"type": "object", "properties": {"id": {"type": "string"}}, "required": ["id"]}'::json,
+        '{"other": "value"}'::jsonb
+    ),
+    'jsonb_matches_schema rejeita payload incorreto'
+);
+select ok(
+    (select count(*) >= 12 from supabase_migrations.schema_migrations),
+    'migrações registradas com sucesso'
+>>>>>>> Stashed changes
 );
 
 select * from finish();

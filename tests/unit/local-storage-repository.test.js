@@ -114,3 +114,66 @@ test('diagnostica uso aproximado e capacidade de escrita do armazenamento local'
     assert.equal(diagnostic.trackedEntities, 19);
     assert.equal(diagnostic.approximateBytes > 0, true);
 });
+
+test('trata QuotaExceededError lançando o código de erro apropriado', async () => {
+    const brokenStorage = {
+        getItem() { return null; },
+        setItem() {
+            const error = new Error('Quota exceeded');
+            error.name = 'QuotaExceededError';
+            throw error;
+        },
+        removeItem() {}
+    };
+    const repository = new LocalStorageRepository({ storage: brokenStorage });
+
+    await assert.rejects(
+        repository.save('schools', [{ id: '1' }]),
+        error => error instanceof RepositoryError && error.code === 'QUOTA_EXCEEDED'
+    );
+});
+
+test('restoreSnapshot garante consistência atômica com rollback na falha de quota', async () => {
+    const storage = createMemoryStorage();
+    const repository = new LocalStorageRepository({ storage });
+
+    await repository.save('schools', [{ id: 'escola-original' }]);
+    await repository.save('programs', [{ id: 'programa-original' }]);
+
+    const brokenSnapshot = {
+        format: 'radar-pdde-snapshot',
+        version: '1',
+        importId: 'err-01',
+        entities: {
+            schools: [{ id: 'nova-escola' }],
+            programs: [{ id: 'novo-programa' }]
+        }
+    };
+
+    // Forçar falha de quota especificamente quando salvar 'programs'
+    let saveCount = 0;
+    const interceptorStorage = {
+        getItem(key) { return storage.getItem(key); },
+        removeItem(key) { storage.removeItem(key); },
+        setItem(key, value) {
+            saveCount += 1;
+            if (saveCount === 2) {
+                const error = new Error('Storage full');
+                error.name = 'QuotaExceededError';
+                throw error;
+            }
+            storage.setItem(key, value);
+        }
+    };
+
+    const interceptorRepository = new LocalStorageRepository({ storage: interceptorStorage });
+
+    await assert.rejects(
+        interceptorRepository.restoreSnapshot(brokenSnapshot),
+        error => error instanceof RepositoryError && error.code === 'QUOTA_EXCEEDED'
+    );
+
+    // O rollback deve restaurar o estado original de TODAS as tabelas, inclusive da 'schools' que chegou a ser gravada
+    assert.deepEqual(await repository.load('schools'), [{ id: 'escola-original' }]);
+    assert.deepEqual(await repository.load('programs'), [{ id: 'programa-original' }]);
+});
