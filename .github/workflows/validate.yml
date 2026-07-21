@@ -77,7 +77,7 @@ jobs:
 
   homologacao-supabase-preview:
     name: Auth, perfis, RLS e persistência no Preview
-    if: ${{ github.event_name == 'pull_request' && github.head_ref == 'qa/supabase-preview-final-run' }}
+    if: ${{ github.event_name == 'pull_request' && startsWith(github.head_ref, 'qa/supabase-preview-final') }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
