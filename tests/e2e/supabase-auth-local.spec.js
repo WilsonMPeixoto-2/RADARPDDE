@@ -97,7 +97,7 @@ for (const [email, expectedMessage] of deniedIdentities) {
     });
 }
 
-test('RLS permite escrita na carteira do controlador e bloqueia escopos somente leitura', async ({ page }) => {
+test('RLS permite escrita na carteira própria e colaboração em outra carteira da mesma CRE', async ({ page }) => {
     await signIn(page, fixtures.find(fixture => fixture.profileId === 'controller').email);
     await waitForApplication(page, 'controller');
 
@@ -106,15 +106,18 @@ test('RLS permite escrita na carteira do controlador e bloqueia escopos somente 
         const before = await client.from('schools').select('id, denomination').order('id');
         if (before.error) throw before.error;
         const own = before.data.find(row => row.id === 'ESC-LOCAL');
-        const readOnly = before.data.find(row => row.id === 'ESC-OTHER');
-        const deniedName = `${readOnly.denomination} - alteração bloqueada`;
-        const denied = await client.from('schools')
-            .update({ denomination: deniedName })
-            .eq('id', readOnly.id)
-            .select('id, denomination');
-        const readOnlyAfter = await client.from('schools')
+        const colleague = before.data.find(row => row.id === 'ESC-OTHER');
+
+        const collaborativeName = `${colleague.denomination} - cobertura colaborativa`;
+        const collaborative = await client.from('schools')
+            .update({ denomination: collaborativeName })
+            .eq('id', colleague.id)
             .select('id, denomination')
-            .eq('id', readOnly.id)
+            .single();
+        const collaborativeRestored = await client.from('schools')
+            .update({ denomination: colleague.denomination })
+            .eq('id', colleague.id)
+            .select('id, denomination')
             .single();
 
         const changedName = `${own.denomination} - teste RLS`;
@@ -131,10 +134,10 @@ test('RLS permite escrita na carteira do controlador e bloqueia escopos somente 
 
         return {
             visibleIds: before.data.map(row => row.id),
-            deniedError: denied.error?.code || null,
-            deniedRows: denied.data || [],
-            readOnlyName: readOnly.denomination,
-            readOnlyAfter: readOnlyAfter.data?.denomination,
+            collaborativeError: collaborative.error?.code || null,
+            collaborativeName: collaborative.data?.denomination,
+            collaborativeRestoreError: collaborativeRestored.error?.code || null,
+            collaborativeRestoredName: collaborativeRestored.data?.denomination,
             allowedError: allowed.error?.code || null,
             allowedName: allowed.data?.denomination,
             restoredError: restored.error?.code || null,
@@ -143,9 +146,10 @@ test('RLS permite escrita na carteira do controlador e bloqueia escopos somente 
     });
 
     expect(result.visibleIds).toEqual(['ESC-LOCAL', 'ESC-OTHER']);
-    expect(result.deniedError === null || typeof result.deniedError === 'string').toBe(true);
-    expect(result.deniedRows).toEqual([]);
-    expect(result.readOnlyAfter).toBe(result.readOnlyName);
+    expect(result.collaborativeError).toBeNull();
+    expect(result.collaborativeName).toContain('cobertura colaborativa');
+    expect(result.collaborativeRestoreError).toBeNull();
+    expect(result.collaborativeRestoredName).not.toContain('cobertura colaborativa');
     expect(result.allowedError).toBeNull();
     expect(result.allowedName).toContain('teste RLS');
     expect(result.restoredError).toBeNull();
