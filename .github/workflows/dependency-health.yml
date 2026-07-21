@@ -58,7 +58,19 @@ jobs:
           printf '{"exitCode":%s}\n' "$audit_exit" > dependency-health/npm-audit-exit.json
 
       - name: Bloquear vulnerabilidades altas ou críticas
-        run: npm audit --audit-level=high
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const report = JSON.parse(fs.readFileSync('dependency-health/npm-audit.json', 'utf8'));
+          const counts = report.metadata?.vulnerabilities || {};
+          const high = Number(counts.high || 0);
+          const critical = Number(counts.critical || 0);
+          console.log(`Vulnerabilidades: moderate=${Number(counts.moderate || 0)}, high=${high}, critical=${critical}`);
+          if (high > 0 || critical > 0) {
+            console.error('Foram encontradas vulnerabilidades altas ou críticas.');
+            process.exit(1);
+          }
+          NODE
 
       - name: Verificar assinaturas e proveniência
         continue-on-error: true
