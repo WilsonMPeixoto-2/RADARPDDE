@@ -7,42 +7,31 @@ O RADAR PDDE possui contrato único de persistência e dois adaptadores:
 - `LocalStorageRepository` — backend vigente em Production;
 - `SupabaseRepository` — backend conectado ao Preview e preparado para futura ativação controlada.
 
-A conexão remota de Preview permanece separada de Production. O gate final mantém a equivalência entre frontend, Auth, RLS, banco e implantação.
-
-O conjunto contém **19 migrations** e uma Edge Function protegida para o ciclo de contas da equipe.
+A conexão de Preview permanece separada de Production. O conjunto contém **20 migrations** e uma Edge Function protegida para o ciclo de contas da equipe.
 
 ## Matriz de cobertura
 
 | Domínio ou fluxo | Modo local | Supabase local/Preview | Evidência principal |
 |---|---:|---:|---|
 | Bootstrap e hidratação canônica | Sim | Sim | serviços de dados e E2E |
-| Configuração, exercícios e 12 competências | Sim | Sim | serviço + RPC transacional |
-| Programas e cadastros estruturais | Sim | Sim | serviços e RLS |
-| Escolas, programas e atribuição de controlador | Sim | Sim | serviço + RPC transacional |
-| Carteira como filtro padrão e responsabilidade | Sim | Sim | Dashboard, `controller_id` e E2E |
-| Colaboração entre Controladores da mesma CRE | Sim | Sim | migration 16, smoke SQL e E2E remoto |
-| Capital e Inventário nas escolas da própria CRE | Sim | Sim | migrations 17–19, RLS e pgTAP |
-| Gestão plena de controladores pela Assistente | Sim | Sim | `DirectoryService`, gateway, RLS e RPCs |
-| Gestão plena da Equipe de Inventário pela Assistente | Sim | Sim | serviço, Edge Function e RPCs |
-| Convite e criação de conta Auth | Não aplicável | Sim | Edge Function autenticada + Auth Admin |
-| Edição e bloqueio de acesso | Não aplicável | Sim | Edge Function com compensação |
+| Configuração, exercícios e competências | Sim | Sim | serviço + RPC transacional |
+| Escolas, programas e controlador | Sim | Sim | serviço + RLS/RPC |
+| Carteira como filtro e responsabilidade | Sim | Sim | Dashboard e E2E |
+| Colaboração entre Controladores da mesma CRE | Sim | Sim | migration 16, smoke e E2E |
+| Capital e Inventário da própria CRE | Sim | Sim | migrations 17–20 e pgTAP |
+| Gestão de controladores pela Assistente | Sim | Sim | gateway, RLS e RPCs |
+| Gestão da Equipe de Inventário | Sim | Sim | serviço, Edge Function e RPCs |
+| Convite e conta Auth | Não aplicável | Sim | Edge Function + Auth Admin |
 | Bonificação e análise técnica | Sim | Sim | serviço de verificações |
-| Abertura e ciclo completo de pendências | Sim | Sim | serviço + RPC de reanálise |
-| Tentativas, contatos, cancelamento e reabertura | Sim | Sim | serviços e histórico auditável |
-| Retificação administrativa | Sim | Sim | fluxo funcional preservado |
-| Notas de consumo, serviço e permanente | Sim | Sim | RPCs atômicas de notas |
-| Bem derivado, encaminhamento e inventariação | Sim | Sim | serviço de inventário e RLS patrimonial |
-| Auditoria administrativa e técnica | Sim | Sim | unidade de trabalho + triggers |
-| Concorrência otimista | Não aplicável | Sim | `row_version` e testes de conflito |
-| Sessão expirada e autorização negada | Não aplicável | Sim | Auth, RLS e UX de falhas |
-| Rede e indisponibilidade remota | Não aplicável | Simulada | retry apenas de leitura e E2E |
-| Exportação, staging, retomada e idempotência | Sim | Sim | coordenador e RPCs de importação |
-| Promoção atômica, reconciliação e rollback | Sim | Sim | integração e E2E local |
-| Build Vercel versionado de Preview | Não aplicável | Sim | workflow prebuilt e manifesto |
-| Desktop, Android e iPhone | Sim | Sim nos fluxos do gate | Playwright |
-| Acessibilidade automatizada e teclado | Sim | Sim | axe, foco, Escape e retorno ao acionador |
+| Pendências, tentativas e contatos | Sim | Sim | serviços e histórico |
+| Notas e bens derivados | Sim | Sim | RPCs atômicas e inventário |
+| Auditoria | Sim | Sim | unidade de trabalho + triggers |
+| Concorrência otimista | Não aplicável | Sim | `row_version` |
+| Importação, reconciliação e rollback | Sim | Sim | coordenador + RPCs |
+| Desktop, Android e iPhone | Sim | Sim | Playwright |
+| Acessibilidade automatizada | Sim | Sim | axe, foco e teclado |
 
-## Perfis funcionais e papel técnico
+## Perfis
 
 A interface possui quatro perfis funcionais:
 
@@ -51,90 +40,53 @@ A interface possui quatro perfis funcionais:
 3. `sme_management` — SME (Gestão);
 4. `inventory` — Equipe de Inventário.
 
-`technical_admin` é um quinto papel de autorização, porém técnico e separado do seletor operacional. Ele não é convertido em Assistente e recebe uma superfície neutra até existir administração visual própria.
+`technical_admin` é um papel técnico separado do seletor operacional.
 
-Também são testados usuário inativo, usuário sem perfil, escopo somente leitura e escopo com escrita.
+### Controlador
 
-### Controlador e carteira
-
-A carteira individual personaliza o Dashboard e identifica o responsável principal. O perfil `controller` possui acesso operacional às escolas da mesma `cre_scope`, permitindo substituição e apoio entre colegas sem redistribuição formal.
-
-Uma ação realizada fora da carteira:
-
-- mantém o `controller_id` da escola;
-- registra o usuário executor em `created_by` e na auditoria;
-- não concede acesso a outra CRE sem exceção explícita.
+A carteira personaliza o Dashboard e identifica o responsável principal. O perfil pode operar as escolas da mesma `cre_scope`, preservando autoria e responsabilidade, sem acessar outra CRE sem exceção explícita.
 
 ### Capital e Inventário
 
 O perfil `inventory` é direcionado à interface Equipe de Inventário e à seção **Capital e Inventário**.
 
-O contrato final permite:
+O contrato permite:
 
-- leitura das escolas da própria `cre_scope`, inclusive unidades ainda sem bem cadastrado;
+- leitura das escolas da própria `cre_scope`, inclusive sem bem cadastrado;
 - leitura dos vínculos escola–programa necessários ao painel;
-- leitura e atualização dos bens patrimoniais da própria CRE;
+- leitura, criação e atualização dos bens da própria CRE;
 - conclusão da inventariação de bem encaminhado;
-- preservação do bloqueio cadastral das escolas e dos módulos não patrimoniais;
+- bloqueio da escrita cadastral das escolas;
+- bloqueio dos módulos não patrimoniais;
 - bloqueio de escolas e bens de outra CRE.
 
-As migrations 17 e 18 registram etapas intermediárias aplicadas no ambiente remoto. A migration 19 consolida a regra final diretamente nas políticas RLS e remove a função auxiliar transitória, preservando o contrato TypeScript público.
+As migrations 17 e 18 registram etapas intermediárias do ajuste remoto. A migration 19 consolida as políticas patrimoniais e remove a função auxiliar transitória. A migration 20 corrige o predicado genérico legado para exigir correspondência entre a CRE da escola com bem e a `cre_scope` do integrante.
 
 ## Gestão de Equipe
 
-O contrato aprovado estabelece que a Assistente:
-
-- cadastra e edita controlador;
-- envia convite e cria conta Auth;
-- cria e mantém `user_profiles`;
-- distribui e redistribui escolas;
-- desativa controlador e acesso sem apagar histórico;
-- realiza o mesmo ciclo para a Equipe de Inventário.
-
-A SME acompanha a situação operacional e consulta a equipe, mas não mantém os diretórios da CRE.
-
-No modo Supabase, `DirectoryService` encaminha a persistência composta ao `TeamAccountGateway`. A Edge Function valida o JWT e o papel, executa Auth Admin e chama RPCs restritas ao `service_role`. Falhas compensam convite, alteração ou bloqueio para impedir contas órfãs.
+A Assistente cadastra, convida, edita e desativa Controladores e integrantes do Inventário. No modo Supabase, o `TeamAccountGateway` chama Edge Function autenticada, que valida o JWT, usa Auth Admin e RPCs restritas ao `service_role`.
 
 ## Contratos de dados
 
-A validação ocorre em camadas coordenadas:
+A validação ocorre em camadas:
 
-- navegador: Ajv `8.20.0`;
-- domínio da Edge Function: normalização de comandos, e-mails, papéis e metadados;
+- navegador: Ajv;
+- domínio da Edge Function;
 - PostgreSQL: tipos, constraints, `pg_jsonschema`, RLS e pgTAP.
 
-Os contratos abrangem bonificação, análise, pendências, tentativas, erros, cancelamento, resolução, retificação, inventário, auditoria, compatibilidade legada e Gestão de Equipe.
-
-## Resiliência
-
-Categorias públicas relevantes:
-
-- `NETWORK_UNAVAILABLE`;
-- `SESSION_EXPIRED`;
-- `PERMISSION_DENIED`;
-- `ACCOUNT_CONFLICT`;
-- `OPTIMISTIC_CONFLICT`;
-- `VALIDATION_FAILED`;
-- `TRANSACTION_FAILED`;
-- `REMOTE_UNAVAILABLE`;
-- `IMPORT_RECONCILIATION_FAILED`.
-
-Gravações não são repetidas automaticamente. Operações de conta utilizam idempotência pelo registro e compensação explícita de falha.
+Gravações não são repetidas automaticamente. Operações de conta usam idempotência e compensação explícita.
 
 ## Migração operacional
 
 ```text
-exportar → validar → planejar → staging por importId
-        → retomar lotes → reconciliar staging
-        → promover atomicamente → reconciliar destino
-        → concluir ou executar rollback controlado
+exportar → validar → planejar → staging
+        → retomar lotes → reconciliar
+        → promover atomicamente → rollback controlado
 ```
-
-O relatório contém hash SHA-256, contagens, estado dos lotes e diferenças resumidas, sem dados integrais ou credenciais.
 
 ## Fora do escopo deste pacote
 
 - ativação do Supabase em Production;
 - alteração visual ou de navegação;
-- redefinição das permissões de Controlador, Assistente, SME ou Administrador técnico;
+- redefinição das permissões dos demais perfis;
 - backup, restauração e MFA de Production.
