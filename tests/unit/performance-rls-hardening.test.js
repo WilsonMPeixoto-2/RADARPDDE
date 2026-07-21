@@ -48,7 +48,7 @@ test('políticas administrativas são separadas por operação sem SELECT duplic
 
 test('leituras do próprio usuário inicializam auth.uid uma única vez por consulta', () => {
     const selfReadPolicies = migration.match(
-        /create policy user_(?:profiles|school_scopes)_self_read[\s\S]*?;\n/gi
+        /create policy (?:user_profiles|user_school_scopes)_self_read[\s\S]*?;(?:\r?\n)/gi
     ) || [];
 
     assert.equal(selfReadPolicies.length, 2);

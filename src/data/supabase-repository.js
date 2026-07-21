@@ -153,6 +153,25 @@
             }
         }
 
+        isTransientError(error) {
+            if (!error) return false;
+            const status = error.status || error.code;
+            const message = String(error.message || '').toLowerCase();
+            if (status === 429 || status === 408 || status === 502 || status === 503 || status === 504) {
+                return true;
+            }
+            if (message.includes('fetch') || message.includes('network') || message.includes('timeout') || message.includes('failed to fetch') || message.includes('load failed')) {
+                return true;
+            }
+            return false;
+        }
+
+        getRetryDelay(attempt) {
+            const base = 250 * Math.pow(3, attempt);
+            const jitter = Math.random() * 100;
+            return base + jitter;
+        }
+
         async loadPage(entity, offset = 0, limit = this.pageSize) {
             const table = this.tableFor(entity);
             const pageSize = positiveInteger(limit, this.pageSize);
@@ -185,6 +204,26 @@
             const collection = normalizeCollection(records);
             if (collection.length === 0) return [];
             const batchSize = positiveInteger(options.batchSize, this.writeBatchSize);
+
+            if (entity === 'verifications') {
+                const contracts = typeof window !== 'undefined' && window.RadarJsonContracts
+                    ? window.RadarJsonContracts
+                    : require('../domain/json-contracts.js');
+                
+                for (const record of collection) {
+                    const payloadToValidate = typeof record.payload === 'string'
+                        ? JSON.parse(record.payload)
+                        : record.payload;
+                    const res = contracts.validateVerification(payloadToValidate || {});
+                    if (!res.valid) {
+                        throw new RepositoryError(
+                            'VALIDATION_FAILED',
+                            `Falha de validação de contrato no payload de verificação: ${res.errors[0].message}`,
+                            { entity, operation: 'save', details: { id: record.id, errors: res.errors } }
+                        );
+                    }
+                }
+            }
 
             for (const batch of chunks(collection, batchSize)) {
                 await this.execute(
@@ -228,6 +267,23 @@
                     'A atualização otimista exige row_version positivo.',
                     { entity, operation: 'updateWithVersion', details: { id, expectedVersion } }
                 );
+            }
+
+            if (entity === 'verifications') {
+                const contracts = typeof window !== 'undefined' && window.RadarJsonContracts
+                    ? window.RadarJsonContracts
+                    : require('../domain/json-contracts.js');
+                const payloadToValidate = typeof record.payload === 'string'
+                    ? JSON.parse(record.payload)
+                    : record.payload;
+                const res = contracts.validateVerification(payloadToValidate || {});
+                if (!res.valid) {
+                    throw new RepositoryError(
+                        'VALIDATION_FAILED',
+                        `Falha de validação de contrato no payload de verificação: ${res.errors[0].message}`,
+                        { entity, operation: 'updateWithVersion', details: { id, errors: res.errors } }
+                    );
+                }
             }
 
             const payload = cloneValue(record);

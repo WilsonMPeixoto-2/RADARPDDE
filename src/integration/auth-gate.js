@@ -62,15 +62,15 @@
         }
 
         initialize() {
+            this.bind();
+            this.root.addEventListener('radar:auth-required', event => {
+                this.show(event?.detail?.message || 'Entre para acessar o RADAR PDDE.');
+            });
             if (!this.enabled) {
                 this.document.documentElement.classList.remove('radar-auth-required');
                 return;
             }
-            this.bind();
             this.show('Entre para acessar o RADAR PDDE.');
-            this.root.addEventListener?.('radar:auth-required', event => {
-                this.show(event?.detail?.message || 'Entre para acessar o RADAR PDDE.');
-            });
         }
 
         bind() {
@@ -82,7 +82,7 @@
             form.addEventListener('submit', event => this.handleSubmit(event));
             logout?.addEventListener('click', () => this.handleSignOut());
             const switcher = this.document.querySelector('.profile-switcher');
-            if (switcher) {
+            if (switcher && this.enabled) {
                 switcher.hidden = true;
                 switcher.setAttribute('aria-hidden', 'true');
             }
@@ -90,7 +90,6 @@
         }
 
         show(message) {
-            if (!this.enabled) return;
             this.document.documentElement.classList.add('radar-auth-required');
             const app = this.document.getElementById('app-layout');
             if (app) app.inert = true;
@@ -122,6 +121,11 @@
             const password = this.document.getElementById('radar-auth-password')?.value || '';
             const service = this.root.RadarSessionContext?.service;
             if (!service) {
+                if (!this.enabled) {
+                    this.setStatus('Sessão local iniciada.', 'success');
+                    this.hide();
+                    return;
+                }
                 this.setStatus('A autenticação ainda está inicializando. Tente novamente.', 'error');
                 return;
             }
@@ -203,15 +207,16 @@
 
         async handleSignOut() {
             const service = this.root.RadarSessionContext?.service;
-            if (!service) return;
-            try {
-                await service.signOut();
-                this.root.RadarAuthContext = null;
-                this.show('Sessão encerrada. Entre novamente para continuar.');
-                this.document.getElementById('radar-auth-email')?.focus();
-            } catch (error) {
-                this.setStatus(error?.message || 'Não foi possível encerrar a sessão.', 'error');
+            if (service) {
+                try {
+                    await service.signOut();
+                } catch (error) {
+                    this.setStatus(error?.message || 'Não foi possível encerrar a sessão remotamente.', 'error');
+                }
             }
+            this.root.RadarAuthContext = null;
+            this.show('Sessão encerrada. Entre novamente para continuar.');
+            this.document.getElementById('radar-auth-email')?.focus();
         }
     }
 

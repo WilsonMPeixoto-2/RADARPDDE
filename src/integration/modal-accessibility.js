@@ -74,6 +74,21 @@
         return result;
     }
 
+    function resolveLogicalFallback(id, dialog) {
+        if (id === 'modal-retificacoes' || id === 'modal-reanalisar') {
+            const cards = document.querySelectorAll('.card-escola, .escola-item, .school-card, .btn-action-main');
+            if (cards.length > 0) return cards[0];
+        }
+        const h1 = document.querySelector('h1, h2, main, #app');
+        if (h1) {
+            if (!h1.hasAttribute('tabindex')) {
+                h1.setAttribute('tabindex', '-1');
+            }
+            return h1;
+        }
+        return document.body;
+    }
+
     function closeAccessible(id) {
         if (EXCLUDED_IDS.has(id) || !managed.has(id)) return originalCloseModal(id);
         const dialog = document.getElementById(id);
@@ -88,8 +103,13 @@
         }
         const trigger = triggers.get(id);
         triggers.delete(id);
-        if (trigger && document.contains(trigger)) {
+        if (trigger && document.contains(trigger) && trigger.isConnected) {
             root.requestAnimationFrame(() => trigger.focus({ preventScroll: true }));
+        } else {
+            const fallback = resolveLogicalFallback(id, dialog);
+            if (fallback) {
+                root.requestAnimationFrame(() => fallback.focus({ preventScroll: true }));
+            }
         }
         return result;
     }

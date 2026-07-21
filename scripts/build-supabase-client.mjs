@@ -15,6 +15,7 @@ const supabaseVersion = packageJson.devDependencies['@supabase/supabase-js'];
 
 await fs.mkdir(outputDirectory, { recursive: true });
 
+// 1. Build Supabase Client
 await build({
     entryPoints: [path.join(root, 'src/vendor/supabase-client-entry.js')],
     outfile: outputFile,
@@ -30,3 +31,23 @@ await build({
 });
 
 console.log(`Cliente Supabase empacotado em ${path.relative(root, outputFile)}.`);
+
+// 2. Build Ajv Client
+const ajvVersion = packageJson.devDependencies['ajv'];
+const ajvOutputFile = path.join(outputDirectory, 'ajv.js');
+
+await build({
+    entryPoints: [path.join(root, 'src/vendor/ajv-entry.js')],
+    outfile: ajvOutputFile,
+    bundle: true,
+    minify: true,
+    format: 'iife',
+    platform: 'browser',
+    target: ['es2022'],
+    legalComments: 'none',
+    banner: {
+        js: `/* RADAR PDDE | ajv ${ajvVersion} | arquivo gerado; não editar manualmente */`
+    }
+});
+
+console.log(`Ajv empacotado em ${path.relative(root, ajvOutputFile)}.`);

@@ -7,7 +7,8 @@ const {
     createSnapshot,
     validateSnapshot,
     buildImportBatches,
-    reconcileSnapshots
+    reconcileSnapshots,
+    estimateLocalStorageCapacity
 } = require('../../src/data/snapshot-tools.js');
 
 test('cria snapshot canônico com IDs ordenados', () => {
@@ -109,7 +110,7 @@ test('reconcilia instantes ISO equivalentes sem alterar datas civis', () => {
     }, {
         version: '1',
         importId: 'target-time',
-        exportedAt: '2026-07-14T12:00:00+00:00'
+        exportedAt: '2026-07-14T12:00:00.000Z'
     });
 
     const report = reconcileSnapshots(source, target);
@@ -121,4 +122,22 @@ test('reconcilia instantes ISO equivalentes sem alterar datas civis', () => {
     assert.equal(target.entities.pendencies[0].payload.updated_at, '2032-01-01T00:00:00.000Z');
     assert.equal(source.entities.pendencies[0].contact_date, '2032-01-01');
     assert.equal(target.entities.pendencies[0].contact_date, '2032-01-01');
+});
+
+test('estima capacidade local, simula crescimento de 163 escolas e identifica riscos', async () => {
+    const snapshot = createSnapshot({
+        schools: [{ id: '1', name: 'Escola Modelo' }],
+        programs: [{ id: 'BASIC' }]
+    }, {
+        version: '1',
+        importId: 'est-001',
+        exportedAt: '2026-07-13T12:00:00.000Z'
+    });
+
+    const report = await estimateLocalStorageCapacity(snapshot);
+    assert.ok(report.actualSizeBytes > 0, 'actualSizeBytes é maior que zero');
+    assert.ok(report.simulatedSizeBytes > report.actualSizeBytes, 'simulatedSizeBytes é escalado');
+    assert.ok(report.domains.schools.count === 1, 'schools tem contagem correta');
+    assert.ok(report.domains.schools.sizeBytes > 0, 'schools sizeBytes é preenchido');
+    assert.equal(report.riskDetected, false, 'risco não detectado para snapshot pequeno e cota padrão');
 });
