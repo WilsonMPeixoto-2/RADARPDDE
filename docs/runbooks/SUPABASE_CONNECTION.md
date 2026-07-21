@@ -4,7 +4,7 @@
 
 O projeto remoto autorizado é `scnryinorqeucbfkioxo`. O schema, a carga canônica e os primeiros vínculos de Auth já foram concluídos e validados.
 
-O conjunto versionado contém atualmente **15** migrations.
+O conjunto versionado contém atualmente **16** migrations.
 
 A carga remota contém:
 
@@ -39,7 +39,7 @@ supabase db push --linked --dry-run
 supabase db push --linked
 ```
 
-O contrato pós-aplicação está em `supabase/verification/remote-post-apply.sql` e deve reconhecer exatamente as 15 migrations versionadas.
+O contrato pós-aplicação está em `supabase/verification/remote-post-apply.sql` e deve reconhecer exatamente as 16 migrations versionadas.
 
 ## 2. Estado de dados e Auth
 
@@ -138,9 +138,12 @@ Para cada acesso, comprovar:
 
 ### Controladoras
 
-- acessam somente a própria carteira e exceções autorizadas;
-- não leem nem alteram a carteira da outra controladora;
-- registram verificações, pendências, contatos e reanálises no escopo permitido.
+- acessam e executam ações operacionais em todas as escolas da 4ª CRE;
+- iniciam o Dashboard pela própria carteira, usada como recorte padrão e atribuição de responsabilidade;
+- podem consultar outras carteiras e cobrir férias, licenças, ausências ou sobrecarga da equipe;
+- mantêm a autoria individual de cada ação no histórico e na auditoria;
+- não transferem automaticamente a responsabilidade principal da escola ao atuar fora da própria carteira;
+- não acessam escolas de outra CRE sem exceção explícita registrada em `user_school_scopes`.
 
 ## 6. Persistência e auditoria
 
@@ -176,6 +179,7 @@ Antes de Production:
 
 - executar RLS positiva e negativa por perfil;
 - confirmar que usuário anônimo não lê dados institucionais;
+- confirmar colaboração entre Controladores da mesma CRE e bloqueio entre CREs sem exceção;
 - confirmar ausência de chave administrativa no bundle;
 - analisar Security e Performance Advisors;
 - tratar bloqueadores reais de segurança;
