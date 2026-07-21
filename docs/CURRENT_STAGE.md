@@ -1,6 +1,7 @@
 # RADAR PDDE — Estado atual do projeto
 
 **Atualizado em:** 21 de julho de 2026  
+**Commit-base da ativação:** `1d500884ddec0424c1e6dab59eb474dc9cde6fe1`  
 **Natureza:** documento operacional e transitório
 
 ## 1. Regra de leitura
