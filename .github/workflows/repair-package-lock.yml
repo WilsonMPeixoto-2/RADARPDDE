@@ -1,0 +1,49 @@
+name: Reparar package-lock
+
+on:
+  push:
+    branches:
+      - activate/supabase-production
+    paths:
+      - '.github/workflows/repair-package-lock.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Obter branch de ativação
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: activate/supabase-production
+          fetch-depth: 0
+
+      - name: Extrair primeiro documento JSON válido
+        shell: python
+        run: |
+          import json
+          from pathlib import Path
+
+          path = Path('package-lock.json')
+          source = path.read_text(encoding='utf-8')
+          document, end = json.JSONDecoder().raw_decode(source)
+          trailing = source[end:].strip()
+          if not trailing:
+              raise SystemExit('O package-lock já possui somente um documento JSON; nada a reparar.')
+          path.write_text(json.dumps(document, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+          json.loads(path.read_text(encoding='utf-8'))
+          print(f'Documento válido preservado; {len(trailing)} caracteres duplicados removidos.')
+
+      - name: Validar instalação reproduzível
+        run: npm ci
+
+      - name: Publicar lockfile reparado
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add package-lock.json
+          git commit -m 'fix: repair duplicated package-lock document'
+          git push origin HEAD:activate/supabase-production
