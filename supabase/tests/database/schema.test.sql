@@ -30,8 +30,8 @@ select ok(to_regprocedure('public.reanalyze_pendency_with_verification(jsonb,jso
 select ok(to_regprocedure('public.promote_data_import(text,text,jsonb,jsonb)') is not null, 'RPC de promoção existe');
 select ok(to_regprocedure('public.rollback_data_import(text)') is not null, 'RPC de rollback existe');
 select ok(
-    (select count(*) = 16 from supabase_migrations.schema_migrations),
-    'dezesseis migrations foram registradas'
+    (select count(*) = 19 from supabase_migrations.schema_migrations),
+    'dezenove migrations foram registradas'
 );
 
 select * from finish();
