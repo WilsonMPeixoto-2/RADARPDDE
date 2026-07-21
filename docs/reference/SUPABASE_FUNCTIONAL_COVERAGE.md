@@ -1,24 +1,26 @@
-# Cobertura funcional — Gate de Pré-conexão Supabase
+# Cobertura funcional — Supabase
 
 ## Situação
 
 O RADAR PDDE possui contrato único de persistência e dois adaptadores:
 
 - `LocalStorageRepository` — backend vigente em Production;
-- `SupabaseRepository` — backend preparado e comprovado na pilha local.
+- `SupabaseRepository` — backend conectado ao Preview e preparado para futura ativação controlada.
 
-A conexão remota permanece desativada. O gate final acrescenta a equivalência que faltava entre a Gestão de Equipe aprovada no frontend e os efeitos necessários em Auth, RLS, banco e implantação.
+A conexão remota de Preview permanece separada de Production. O gate final mantém a equivalência entre a Gestão de Equipe aprovada no frontend e os efeitos necessários em Auth, RLS, banco e implantação.
 
-O conjunto contém **13 migrations** e uma Edge Function protegida para o ciclo de contas da equipe.
+O conjunto contém **16 migrations** e uma Edge Function protegida para o ciclo de contas da equipe.
 
 ## Matriz de cobertura
 
-| Domínio ou fluxo | Modo local | Supabase local/preparado | Evidência principal |
+| Domínio ou fluxo | Modo local | Supabase local/Preview | Evidência principal |
 |---|---:|---:|---|
 | Bootstrap e hidratação canônica | Sim | Sim | serviços de dados e E2E |
 | Configuração, exercícios e 12 competências | Sim | Sim | serviço + RPC transacional |
 | Programas e cadastros estruturais | Sim | Sim | serviços e RLS |
 | Escolas, programas e atribuição de controlador | Sim | Sim | serviço + RPC transacional |
+| Carteira como filtro padrão e responsabilidade | Sim | Sim | Dashboard, `controller_id` e E2E |
+| Colaboração entre Controladores da mesma CRE | Sim | Sim | migration 16, smoke SQL e E2E remoto |
 | Gestão plena de controladores pela Assistente | Sim | Sim | `DirectoryService`, gateway, RLS e RPCs |
 | Gestão plena da Equipe de Inventário pela Assistente | Sim | Sim | serviço, Edge Function e RPCs |
 | Convite e criação de conta Auth | Não aplicável | Sim | Edge Function autenticada + Auth Admin |
@@ -51,6 +53,16 @@ A interface possui quatro perfis funcionais:
 `technical_admin` é um quinto papel de autorização, porém técnico e separado do seletor operacional. Ele não é convertido em Assistente e recebe uma superfície neutra até existir administração visual própria.
 
 Também são testados usuário inativo, usuário sem perfil, escopo somente leitura e escopo com escrita.
+
+### Controlador e carteira
+
+A carteira individual personaliza o Dashboard e identifica o responsável principal. O perfil `controller` possui acesso operacional às escolas da mesma `cre_scope`, permitindo substituição e apoio entre colegas sem redistribuição formal.
+
+Uma ação realizada fora da carteira:
+
+- mantém o `controller_id` da escola;
+- registra o usuário executor em `created_by` e na auditoria;
+- não concede acesso a outra CRE sem exceção explícita.
 
 ## Gestão de Equipe
 
@@ -104,15 +116,10 @@ exportar → validar → planejar → staging por importId
 
 O relatório contém hash SHA-256, contagens, estado dos lotes e diferenças resumidas, sem dados integrais ou credenciais.
 
-## Fora do escopo deste gate
+## Fora do escopo deste pacote
 
-Dependem do projeto remoto e de autorização própria:
-
-- criação do `radar-pdde-preview`;
-- obtenção de `project_ref`, URL e chave publicável;
-- aplicação remota das 13 migrations;
-- implantação remota da Edge Function;
-- identidades reais de homologação;
-- Advisors, backup, restauração e MFA;
-- importação controlada dos dados;
-- ativação do Supabase em Production.
+- ativação do Supabase em Production;
+- alteração visual ou de navegação;
+- redefinição das permissões de Assistente, Inventário, SME ou Administrador técnico;
+- aplicação automática da migration colaborativa sem revisão e gate remoto;
+- backup, restauração e MFA de Production.
