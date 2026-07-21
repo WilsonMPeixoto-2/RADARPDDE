@@ -23,9 +23,7 @@ test('perfil inventory é direcionado à interface Equipe de Inventário', () =>
 });
 
 test('migration 19 limita a ampliação às políticas patrimoniais da própria CRE', () => {
-    const migration = read(
-        'supabase/migrations/20260721153758_inventory_capital_section_inline_scope.sql'
-    );
+    const migration = read('supabase/migrations/20260721153758_inventory_capital_section_inline_scope.sql');
 
     ['schools_read', 'school_programs_read', 'assets_read', 'assets_insert', 'assets_update']
         .forEach(policyName => assert.match(
@@ -43,9 +41,7 @@ test('migration 19 limita a ampliação às políticas patrimoniais da própria 
 });
 
 test('migration 20 impede acesso genérico do Inventário a outra CRE', () => {
-    const migration = read(
-        'supabase/migrations/20260721160056_inventory_generic_asset_scope_by_cre.sql'
-    );
+    const migration = read('supabase/migrations/20260721160056_inventory_generic_asset_scope_by_cre.sql');
 
     assert.match(migration, /current_app_role\(\)\s*=\s*'inventory'/i);
     assert.match(migration, /join\s+public\.assets\s+a[\s\S]+a\.school_id\s*=\s*s\.id/i);
@@ -67,3 +63,5 @@ test('readiness exige o histórico patrimonial completo e o pgTAP específico', 
 
     assert.ok(REQUIRED_ARTIFACTS.includes('supabase/tests/database/inventory-capital-rls.test.sql'));
 });
+
+// Alteração deliberada para executar novamente todos os gates do PR no histórico final.
