@@ -44,9 +44,9 @@ As migrations patrimoniais são:
 - `20260721152515_inventory_cre_read_access.sql` — primeiro ajuste remoto de leitura por CRE;
 - `20260721152634_inventory_capital_section_scope.sql` — separação do escopo patrimonial;
 - `20260721153758_inventory_capital_section_inline_scope.sql` — consolidação nas políticas RLS e remoção da helper transitória;
-- `20260721160100_inventory_generic_asset_scope_by_cre.sql` — correção final da fronteira de CRE no predicado genérico do Inventário.
+- `20260721160056_inventory_generic_asset_scope_by_cre.sql` — correção final da fronteira de CRE no predicado genérico do Inventário.
 
-As quatro permanecem versionadas porque integram o histórico remoto real. A migration 20 complementa o estado final ao impedir acesso a escola de outra CRE apenas por possuir bem cadastrado.
+As quatro permanecem versionadas porque integram o histórico remoto real. A migration 20 impede acesso a escola de outra CRE apenas por possuir bem cadastrado.
 
 ## 2. Estado de dados e Auth
 
@@ -110,16 +110,7 @@ Mantêm as permissões previstas na matriz canônica `docs/reference/SUPABASE_PE
 
 ## 5. Homologação
 
-Para cada perfil, comprovar:
-
-- login, logout e restauração de sessão;
-- menus, abas, telas e ações esperadas;
-- ausência de funções indevidas;
-- funcionamento em desktop e celular;
-- persistência após recarregar;
-- incremento de `row_version` quando aplicável;
-- auditoria e autoria;
-- bloqueio de operações negativas.
+Para cada perfil, comprovar login, menus, telas, persistência, auditoria, autoria e bloqueio das operações negativas em desktop e celular.
 
 Para o Inventário, usar um bem de homologação em estado `Encaminhada`, concluir a inventariação e confirmar responsável, data, status e auditoria. Remover ou reverter o dado ao final.
 
