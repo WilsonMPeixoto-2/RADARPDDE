@@ -1,0 +1,34 @@
+name: Restaurar logo aprovado
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/restore-approved-logo.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    if: github.head_ref == 'activate/supabase-production'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Obter branch de ativação
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: activate/supabase-production
+          fetch-depth: 0
+
+      - name: Restaurar implementação aprovada da imagem original
+        run: |
+          git checkout e603d29d0c6f245613749b7ba4c7c49d0e611f78 -- src/integration/mobile-navigation.js
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/integration/mobile-navigation.js
+          if git diff --cached --quiet; then
+            echo 'A implementação aprovada já estava presente.'
+            exit 0
+          fi
+          git commit -m 'fix(brand): restore supplied logo image without redesign'
+          git push origin HEAD:activate/supabase-production
