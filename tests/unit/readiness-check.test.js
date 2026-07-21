@@ -40,7 +40,8 @@ const MIGRATIONS = [
     '20260721090000_controller_collaborative_cre_access.sql',
     '20260721152515_inventory_cre_read_access.sql',
     '20260721152634_inventory_capital_section_scope.sql',
-    '20260721153758_inventory_capital_section_inline_scope.sql'
+    '20260721153758_inventory_capital_section_inline_scope.sql',
+    '20260721160100_inventory_generic_asset_scope_by_cre.sql'
 ];
 
 const ARTIFACTS = [
@@ -176,13 +177,13 @@ test('valida conjunto obrigatório de migrations', () => {
     assert.deepEqual(validateMigrationManifest(MIGRATIONS), []);
     assert.match(
         validateMigrationManifest(MIGRATIONS.slice(0, -1)).join(' '),
-        /20260721153758_inventory_capital_section_inline_scope\.sql/
+        /20260721160100_inventory_generic_asset_scope_by_cre\.sql/
     );
 });
 
 test('impede divergência entre a contagem documentada e o diretório de migrations', () => {
     const validRunbook = `
-O conjunto versionado contém atualmente **19** migrations.
+O conjunto versionado contém atualmente **20** migrations.
 supabase migration list --linked
 supabase db push --linked --dry-run
 supabase db push --linked
@@ -191,10 +192,10 @@ supabase db push --linked
 
     assert.match(
         validateMigrationDocumentation(
-            validRunbook.replace('**19**', '**10**'),
+            validRunbook.replace('**20**', '**10**'),
             MIGRATIONS
         ).join(' '),
-        /declara 10 migrations.*contém 19/i
+        /declara 10 migrations.*contém 20/i
     );
     assert.match(
         validateMigrationDocumentation(
@@ -231,7 +232,7 @@ npx --no-install supabase db query --linked --file supabase/verification/remote-
     const postApply = `
 on:
   workflow_dispatch:
-APLICAR_19_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL
+APLICAR_20_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL
 npx --no-install supabase db push --linked --dry-run
 npx --no-install supabase db push --linked --yes
 remote-post-apply.sql
