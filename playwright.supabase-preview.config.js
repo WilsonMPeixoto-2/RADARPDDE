@@ -1,5 +1,6 @@
 const { defineConfig, devices } = require('@playwright/test');
 
+// Alteração operacional sem efeito funcional: aciona o gate remoto final.
 const deploymentUrl = process.env.RADAR_DEPLOYMENT_URL;
 if (!deploymentUrl) throw new Error('RADAR_DEPLOYMENT_URL ausente.');
 
