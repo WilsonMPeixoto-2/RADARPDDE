@@ -28,14 +28,15 @@ jobs:
           from pathlib import Path
 
           path = Path('package-lock.json')
-          source = path.read_text(encoding='utf-8')
+          source = path.read_text(encoding='utf-8-sig').lstrip()
           document, end = json.JSONDecoder().raw_decode(source)
           trailing = source[end:].strip()
           if not trailing:
-              raise SystemExit('O package-lock já possui somente um documento JSON; nada a reparar.')
+              print('O package-lock já contém somente um documento JSON válido.')
+          else:
+              print(f'{len(trailing)} caracteres duplicados serão removidos.')
           path.write_text(json.dumps(document, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
           json.loads(path.read_text(encoding='utf-8'))
-          print(f'Documento válido preservado; {len(trailing)} caracteres duplicados removidos.')
 
       - name: Validar instalação reproduzível
         run: npm ci
@@ -44,6 +45,10 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if git diff --quiet -- package-lock.json; then
+            echo 'Nenhuma alteração necessária.'
+            exit 0
+          fi
           git add package-lock.json
           git commit -m 'fix: repair duplicated package-lock document'
           git push origin HEAD:activate/supabase-production
