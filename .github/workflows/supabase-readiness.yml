@@ -96,7 +96,23 @@ jobs:
         run: npm ci
 
       - name: Executar validação completa de prontidão
-        run: npm run test:readiness
+        id: readiness-validation
+        shell: bash
+        run: |
+          set +e
+          npm run test:readiness > readiness-diagnostic.log 2>&1
+          status=$?
+          cat readiness-diagnostic.log
+          exit "${status}"
+
+      - name: Publicar diagnóstico completo do readiness
+        if: ${{ failure() && steps.readiness-validation.conclusion == 'failure' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: readiness-diagnostic-${{ github.run_id }}
+          path: readiness-diagnostic.log
+          if-no-files-found: error
+          retention-days: 1
 
   migration-smoke:
     runs-on: ubuntu-latest
@@ -169,7 +185,7 @@ jobs:
       - name: Iniciar Supabase local
         run: npm run supabase:start
 
-      - name: Recriar banco com treze migrations e seed local
+      - name: Recriar banco com dezesseis migrations e seed local
         run: npm run supabase:reset
 
       - name: Validar contratos operacionais do preflight remoto
