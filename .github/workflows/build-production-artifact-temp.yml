@@ -1,0 +1,56 @@
+name: Gerar artefato Production temporário
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/build-production-artifact-temp.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    if: github.head_ref == 'ops/build-production-artifact-20260721'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    steps:
+      - name: Obter código da main com workflow operacional
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+
+      - name: Gerar artefato Production
+        env:
+          VERCEL_ENV: production
+          VERCEL_GIT_COMMIT_SHA: 11c83b297ac4836b3355499fbc45964461c7173c
+        run: node scripts/build-vercel.mjs
+
+      - name: Validar manifesto gerado
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const manifest = JSON.parse(fs.readFileSync('dist/radar-build-manifest.json', 'utf8'));
+          const expected = {
+            commitSha: '11c83b297ac4836b3355499fbc45964461c7173c',
+            vercelEnvironment: 'production',
+            runtimeEnvironment: 'production',
+            dataMode: 'supabase-production',
+            supabaseRepositoryEnabled: true,
+            productionActivationApproved: true
+          };
+          for (const [key, value] of Object.entries(expected)) {
+            if (manifest[key] !== value) throw new Error(`${key}: esperado ${value}; recebido ${manifest[key]}`);
+          }
+          NODE
+
+      - name: Publicar artefato
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: radar-production-dist
+          path: dist/
+          retention-days: 1
+          if-no-files-found: error
