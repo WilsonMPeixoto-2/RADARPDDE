@@ -1,5 +1,6 @@
 const { defineConfig, devices } = require('@playwright/test');
 
+// Acionamento operacional do gate autenticado final — sem efeito funcional.
 const deploymentUrl = process.env.RADAR_DEPLOYMENT_URL;
 if (!deploymentUrl) throw new Error('RADAR_DEPLOYMENT_URL ausente.');
 
