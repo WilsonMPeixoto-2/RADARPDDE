@@ -21,7 +21,7 @@ jobs:
           ref: activate/supabase-production
           fetch-depth: 0
 
-      - name: Extrair primeiro documento JSON válido
+      - name: Extrair documento package-lock válido
         shell: python
         run: |
           import json
@@ -29,12 +29,42 @@ jobs:
 
           path = Path('package-lock.json')
           source = path.read_text(encoding='utf-8-sig').lstrip()
-          document, end = json.JSONDecoder().raw_decode(source)
+          package = json.loads(Path('package.json').read_text(encoding='utf-8'))
+
+          candidates = []
+          for marker in ('}\n{', '}\r\n{', '}{'):
+              start = 0
+              while True:
+                  index = source.find(marker, start)
+                  if index < 0:
+                      break
+                  candidates.append(index + 1)
+                  start = index + 1
+          candidates.append(len(source))
+
+          document = None
+          end = None
+          for candidate_end in sorted(set(candidates)):
+              try:
+                  parsed = json.loads(source[:candidate_end])
+              except json.JSONDecodeError:
+                  continue
+              root = parsed.get('packages', {}).get('', {})
+              if parsed.get('name') != package.get('name'):
+                  continue
+              if parsed.get('lockfileVersion') != 3:
+                  continue
+              if root.get('version') != package.get('version'):
+                  continue
+              document = parsed
+              end = candidate_end
+              break
+
+          if document is None:
+              raise SystemExit('Nenhum documento package-lock completo foi encontrado antes da concatenação.')
+
           trailing = source[end:].strip()
-          if not trailing:
-              print('O package-lock já contém somente um documento JSON válido.')
-          else:
-              print(f'{len(trailing)} caracteres duplicados serão removidos.')
+          print(f'Documento válido encontrado em {end} caracteres; {len(trailing)} caracteres excedentes removidos.')
           path.write_text(json.dumps(document, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
           json.loads(path.read_text(encoding='utf-8'))
 
