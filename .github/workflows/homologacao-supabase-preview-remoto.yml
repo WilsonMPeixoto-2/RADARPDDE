@@ -26,6 +26,8 @@ on:
 
 permissions:
   contents: read
+  issues: write
+  pull-requests: write
 
 concurrency:
   group: homologacao-supabase-preview-remoto
@@ -42,21 +44,23 @@ env:
 jobs:
   homologar:
     name: Auth, perfis, RLS e persistência no Preview
-    if: >-
-      ${{
-        github.event_name != 'issue_comment' ||
-        (
-          github.event.issue.pull_request != null &&
-          github.event.comment.body == '/homologar-supabase-preview-final' &&
-          github.event.comment.user.login == 'WilsonMPeixoto-2'
-        )
-      }}
+    if: github.event_name != 'issue_comment' || (github.event.issue.pull_request && github.event.comment.body == '/homologar-supabase-preview-final' && github.actor == 'WilsonMPeixoto-2')
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
     steps:
       - name: Obter código
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Registrar início da homologação no PR
+        if: ${{ github.event_name == 'issue_comment' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: >-
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments"
+          -f "body=Homologação remota iniciada. Execução: ${RUN_URL}"
 
       - name: Configurar Node.js 24
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
@@ -120,3 +124,19 @@ jobs:
             test-results/
           if-no-files-found: warn
           retention-days: 14
+
+      - name: Registrar resultado da homologação no PR
+        if: ${{ always() && github.event_name == 'issue_comment' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          JOB_RESULT: ${{ job.status }}
+        shell: bash
+        run: |
+          if [[ "${JOB_RESULT}" == "success" ]]; then
+            message="Homologação remota concluída com sucesso. Execução: ${RUN_URL}"
+          else
+            message="Homologação remota concluída com falha. Execução: ${RUN_URL}"
+          fi
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" -f "body=${message}"
