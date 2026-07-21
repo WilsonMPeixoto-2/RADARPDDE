@@ -37,7 +37,10 @@ const MIGRATIONS = [
     '202607190001_team_management_auth_alignment.sql',
     '20260720030046_activation_basic_hardening.sql',
     '20260720193000_performance_and_rls_hardening.sql',
-    '20260721090000_controller_collaborative_cre_access.sql'
+    '20260721090000_controller_collaborative_cre_access.sql',
+    '20260721152515_inventory_cre_read_access.sql',
+    '20260721152634_inventory_capital_section_scope.sql',
+    '20260721153758_inventory_capital_section_inline_scope.sql'
 ];
 
 const ARTIFACTS = [
@@ -88,6 +91,7 @@ const ARTIFACTS = [
     'supabase/tests/database/json-contracts.test.sql',
     'supabase/tests/database/operations-rpc.test.sql',
     'supabase/tests/database/team-management-rpc.test.sql',
+    'supabase/tests/database/inventory-capital-rls.test.sql',
     'tests/unit/auth-database-gate.test.js',
     'tests/unit/auth-bootstrap.test.js',
     'tests/unit/auth-frontend-contract.test.js',
@@ -172,13 +176,13 @@ test('valida conjunto obrigatório de migrations', () => {
     assert.deepEqual(validateMigrationManifest(MIGRATIONS), []);
     assert.match(
         validateMigrationManifest(MIGRATIONS.slice(0, -1)).join(' '),
-        /20260721090000_controller_collaborative_cre_access\.sql/
+        /20260721153758_inventory_capital_section_inline_scope\.sql/
     );
 });
 
 test('impede divergência entre a contagem documentada e o diretório de migrations', () => {
     const validRunbook = `
-O conjunto versionado contém atualmente **16** migrations.
+O conjunto versionado contém atualmente **19** migrations.
 supabase migration list --linked
 supabase db push --linked --dry-run
 supabase db push --linked
@@ -187,10 +191,10 @@ supabase db push --linked
 
     assert.match(
         validateMigrationDocumentation(
-            validRunbook.replace('**16**', '**10**'),
+            validRunbook.replace('**19**', '**10**'),
             MIGRATIONS
         ).join(' '),
-        /declara 10 migrations.*contém 16/i
+        /declara 10 migrations.*contém 19/i
     );
     assert.match(
         validateMigrationDocumentation(
@@ -227,7 +231,7 @@ npx --no-install supabase db query --linked --file supabase/verification/remote-
     const postApply = `
 on:
   workflow_dispatch:
-APLICAR_16_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL
+APLICAR_19_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL
 npx --no-install supabase db push --linked --dry-run
 npx --no-install supabase db push --linked --yes
 remote-post-apply.sql
@@ -303,5 +307,29 @@ test('exige build versionado e diretório público isolado na Vercel', () => {
             packageSource
         ).join(' '),
         /build:vercel|diretório dist/i
+    );
+});
+
+test('exige todos os artefatos e comandos de bootstrap remoto', () => {
+    assert.deepEqual(validateReadinessArtifacts(ARTIFACTS), []);
+    assert.match(
+        validateReadinessArtifacts(ARTIFACTS.slice(1)).join(' '),
+        /config\.runtime\.js/
+    );
+
+    const packageSource = JSON.stringify({
+        scripts: {
+            'bootstrap:supabase:validate': 'node scripts/bootstrap-supabase-remote.mjs validate',
+            'bootstrap:supabase:plan': 'node scripts/bootstrap-supabase-remote.mjs plan',
+            'bootstrap:supabase:import': 'node scripts/bootstrap-supabase-remote.mjs import',
+            'bootstrap:supabase:reconcile': 'node scripts/bootstrap-supabase-remote.mjs reconcile',
+            'bootstrap:supabase:admin': 'node scripts/bootstrap-remote-admin.mjs',
+            'snapshot:export:local': 'node scripts/export-local-snapshot.mjs'
+        }
+    });
+    assert.deepEqual(validateRemoteBootstrapCommands(packageSource), []);
+    assert.match(
+        validateRemoteBootstrapCommands(JSON.stringify({ scripts: {} })).join(' '),
+        /bootstrap:supabase:validate/
     );
 });
