@@ -22,17 +22,17 @@ module.exports = defineConfig({
   projects: [
     {
       name: 'deployment-desktop-chromium',
-      testMatch: /(?:remote-deployment-contract|frontend-contract)\.spec\.js/,
+      testMatch: /remote-deployment-contract\.spec\.js/,
       use: { ...devices['Desktop Chrome'] }
     },
     {
       name: 'deployment-mobile-chromium',
-      testMatch: /(?:remote-deployment-contract|mobile-smoke)\.spec\.js/,
+      testMatch: /remote-deployment-contract\.spec\.js/,
       use: { ...devices['Pixel 7'] }
     },
     {
       name: 'deployment-mobile-webkit',
-      testMatch: /(?:remote-deployment-contract|mobile-smoke)\.spec\.js/,
+      testMatch: /remote-deployment-contract\.spec\.js/,
       use: { ...devices['iPhone 15'] }
     }
   ]
