@@ -20,34 +20,50 @@ Relatórios históricos não substituem este estado operacional.
 O RADAR possui:
 
 - quatro perfis funcionais e papel técnico separado;
-- dashboard, carteira, competências, pendências, prontuário, Gestão de Equipe, Inventário e registros;
+- dashboard, carteira, competências, pendências, prontuário, Gestão de Equipe, Capital e Inventário e registros;
 - contrato único de repositório;
 - `LocalStorageRepository` operacional;
 - `SupabaseRepository` implementado;
 - concorrência otimista por `row_version`;
-- **16 migrations SQL versionadas nesta branch; 15 aplicadas remotamente até a revisão da migration colaborativa**;
+- **19 migrations SQL aplicadas no Supabase remoto e registradas na branch de sincronização patrimonial**;
 - índices de chaves estrangeiras e políticas RLS otimizadas pela migration `20260720193000`;
 - acesso colaborativo dos Controladores da mesma CRE definido pela migration `20260721090000`;
+- escopo específico de Capital e Inventário consolidado pela migration `20260721153758`;
 - RLS, auditoria, importação, reconciliação e rollback;
 - Edge Function e RPCs de Gestão de Equipe preparadas;
 - testes unitários, integração, E2E e pgTAP;
 - Production preservada em modo local e fail-closed.
 
-## 3. Regra funcional corrigida dos Controladores
+## 3. Controladores
 
 A carteira individual é responsabilidade principal, filtro inicial e organização do trabalho. Não é barreira de acesso entre os cinco Controladores da 4ª CRE.
 
-Após aplicação da migration 16 no Preview:
+A migration 16 está aplicada no Preview:
 
-- Controladores poderão consultar e operar todas as escolas da própria `cre_scope`;
-- o Dashboard continuará abrindo pela carteira individual;
-- atuar em escola de colega não mudará automaticamente `schools.controller_id`;
-- a autoria permanecerá associada ao usuário executor;
-- escola de outra CRE continuará bloqueada sem exceção explícita.
+- Controladores consultam e operam todas as escolas da própria `cre_scope`;
+- o Dashboard continua abrindo pela carteira individual;
+- atuar em escola de colega não muda automaticamente `schools.controller_id`;
+- a autoria permanece associada ao usuário executor;
+- escola de outra CRE continua bloqueada sem exceção explícita.
 
-A expectativa anterior de bloqueio entre as carteiras de Tuane e Alzira está substituída.
+Os cinco registros funcionais somam as 163 escolas e possuem contas de Controlador vinculadas no Auth.
 
-## 4. Supabase remoto
+## 4. Capital e Inventário
+
+A Equipe de Inventário usa a superfície específica **Capital e Inventário**.
+
+O estado final das migrations 17 a 19 estabelece que o perfil `inventory`:
+
+- consulta as 163 escolas da própria CRE para compor o painel patrimonial;
+- consulta os 430 vínculos escola–programa necessários à interface;
+- consulta e atualiza bens patrimoniais da própria CRE;
+- pode concluir a inventariação de bem encaminhado;
+- não recebe escrita cadastral em escolas;
+- não recebe acesso funcional a bonificação, análise técnica, contatos, configuração global ou escolas de outra CRE.
+
+Odair e Aylane possuem conta Auth confirmada e vínculo ativo com o perfil `inventory` e `cre_scope = '4ª CRE'`.
+
+## 5. Supabase remoto
 
 Projeto autorizado: `scnryinorqeucbfkioxo`.
 
@@ -58,7 +74,7 @@ Carga canônica validada:
 | Configuração geral | 1 |
 | Programas | 8 |
 | Controladores | 5 |
-| Equipe de Inventário | 3 |
+| Equipe de Inventário no diretório | 3 |
 | Competências | 12 |
 | Escolas | 163 |
 | Vínculos escola–programa | 430 |
@@ -67,19 +83,20 @@ A validação confirmou ausência de referências órfãs e duplicidades materia
 
 Os Advisors de desempenho não apresentam mais chaves estrangeiras sem índice, reavaliação de `auth.uid()` por linha ou políticas permissivas duplicadas. Avisos de índices ainda não utilizados são informativos enquanto o ambiente não recebe carga operacional real.
 
-## 5. Identidades iniciais
+## 6. Identidades configuradas
 
 Foram vinculados e validados:
 
 - um Administrador técnico com escopo da 4ª CRE;
 - uma Assistente de Verbas Federais com escopo da 4ª CRE;
-- duas Controladoras vinculadas aos respectivos registros funcionais.
+- cinco Controladores vinculados aos respectivos registros funcionais;
+- dois integrantes da Equipe de Inventário vinculados aos respectivos registros funcionais.
 
-Os quatro usuários estão confirmados no Auth e possuem um único perfil institucional ativo.
+As contas verificadas possuem e-mail confirmado, senha configurada e um único perfil institucional ativo.
 
 A proteção contra senhas vazadas foi solicitada pela Management API, mas o Supabase recusou a ativação com HTTP 402 porque a organização está no plano Free. O recurso exige plano Pro ou superior. Nenhuma mudança de plano ou cobrança foi realizada.
 
-## 6. Contrato Vercel
+## 7. Contrato Vercel
 
 ### Production
 
@@ -107,29 +124,23 @@ A URL e a chave `sb_publishable_` são material público do cliente Supabase. Ne
 
 O Preview não pode ser promovido automaticamente para Production.
 
-## 7. Ocorrências operacionais resolvidas
+## 8. Ocorrências operacionais resolvidas
 
-A primeira tentativa de workflow manual falhou porque `VERCEL_TOKEN`, `VERCEL_ORG_ID` e `VERCEL_PROJECT_ID` não estavam cadastrados no GitHub Actions.
+- A migration 15 teve o identificador do histórico reconciliado para `20260720193000`.
+- A migration 16 substituiu a interpretação restritiva das carteiras dos Controladores.
+- As migrations 17 e 18 registram os ajustes intermediários do Inventário aplicados remotamente.
+- A migration 19 consolida a regra final diretamente nas políticas patrimoniais e remove a helper transitória da API pública.
 
-A solução vigente elimina essa dependência:
+## 9. Próxima tarefa única
 
-- Preview é produzido pela integração Git–Vercel já existente;
-- o próprio build aplica a configuração pública de homologação;
-- Production continua local pelo valor real de `VERCEL_ENV`;
-- configuração RADAR explícita continua prevalecendo sobre o padrão automático.
-
-A migration 15 foi aplicada pelo conector do Supabase e teve o identificador do histórico reconciliado para o valor versionado `20260720193000`.
-
-## 8. Próxima tarefa única
-
-1. concluir os gates do PR de acesso colaborativo;
-2. aplicar somente a migration `20260721090000` no Supabase de Preview após revisão;
-3. executar uma única homologação remota corrigida para Tuane e Alzira;
-4. comprovar leitura da 4ª CRE, escrita cruzada e autoria;
-5. confirmar bloqueio fora da CRE e limpeza dos registros HML;
+1. concluir os gates da branch de sincronização patrimonial;
+2. mesclar o PR após CI verde;
+3. homologar login real de Controladores e Inventário no Preview;
+4. testar um lançamento patrimonial claramente identificado e reversível;
+5. confirmar autoria, persistência e auditoria;
 6. manter Production sem alteração.
 
-## 9. Gate de Production
+## 10. Gate de Production
 
 Production somente poderá usar Supabase após todos os itens abaixo:
 
@@ -138,6 +149,7 @@ Production somente poderá usar Supabase após todos os itens abaixo:
 - RLS positiva e negativa comprovada;
 - persistência e concorrência otimista comprovadas;
 - Gestão de Equipe homologada;
+- Capital e Inventário homologado com usuários reais;
 - Advisors analisados e bloqueadores de segurança tratados;
 - backup, restauração e rollback testados;
 - política de MFA definida;
@@ -146,7 +158,7 @@ Production somente poderá usar Supabase após todos os itens abaixo:
 
 Até lá, `productionActivationApproved` permanece `false`.
 
-## 10. Critério de atualização
+## 11. Critério de atualização
 
 Atualize este documento quando ocorrer:
 
