@@ -66,6 +66,12 @@ A Assistente de Verbas Federais é a liderança direta dos controladores da GAD 
 
 A SME acompanha gerencialmente as CREs e não substitui essa liderança local.
 
+### Carteiras dos Controladores
+
+A carteira representa responsabilidade principal, filtro inicial e organização do trabalho. Não é fronteira de sigilo ou autorização entre os cinco Controladores da mesma CRE.
+
+Controladores autenticados podem consultar e executar ações operacionais em todas as escolas da própria `cre_scope`. Atuar na carteira de colega não altera automaticamente `schools.controller_id`; a autoria real permanece vinculada ao usuário executor. Escola de outra CRE continua bloqueada sem exceção explícita.
+
 Não reabra essas decisões sem solicitação expressa do responsável.
 
 ## 5. Regra de impacto entre camadas
