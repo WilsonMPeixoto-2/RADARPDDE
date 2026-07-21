@@ -15,7 +15,7 @@ const requiredFiles = Object.freeze([
     'supabase/migrations/20260721152515_inventory_cre_read_access.sql',
     'supabase/migrations/20260721152634_inventory_capital_section_scope.sql',
     'supabase/migrations/20260721153758_inventory_capital_section_inline_scope.sql',
-    'supabase/migrations/20260721160100_inventory_generic_asset_scope_by_cre.sql',
+    'supabase/migrations/20260721160056_inventory_generic_asset_scope_by_cre.sql',
     'supabase/functions/_shared/team-account-domain.mjs',
     'supabase/functions/team-account-management/index.ts',
     'supabase/tests/database/team-management-rpc.test.sql',
@@ -109,7 +109,7 @@ function check() {
     }
 
     const inventoryBoundaryMigration = read(
-        'supabase/migrations/20260721160100_inventory_generic_asset_scope_by_cre.sql'
+        'supabase/migrations/20260721160056_inventory_generic_asset_scope_by_cre.sql'
     );
     [
         /current_app_role\(\)\s*=\s*'inventory'/i,
