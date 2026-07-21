@@ -2,9 +2,9 @@ const { test, expect } = require('@playwright/test');
 const AxeBuilder = require('@axe-core/playwright').default;
 
 test.describe('Acessibilidade Automatizada (Axe-core)', () => {
-  test('Executa scan de acessibilidade na página principal', async ({ page }) => {
+  test('Executa scan de acessibilidade na página principal', async ({ page }, testInfo) => {
     await page.goto('/');
-    
+
     // Aguardar o carregamento inicial da aplicação e renderização da view principal
     await page.waitForSelector('#app, h1, h2, .card-escola, .escola-item, .school-card', { timeout: 10000 }).catch(() => {});
 
@@ -12,12 +12,35 @@ test.describe('Acessibilidade Automatizada (Axe-core)', () => {
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
       .analyze();
 
-    // Filtra violações críticas e sérias para garantir prevenção a regressões de acessibilidade
+    // Filtra violações críticas e sérias para garantir prevenção a regressões de acessibilidade.
     const criticalViolations = accessibilityScanResults.violations.filter(
-      v => v.impact === 'critical' || v.impact === 'serious'
+      violation => violation.impact === 'critical' || violation.impact === 'serious'
     );
-    
-    expect(criticalViolations.length).toBe(0);
+
+    if (criticalViolations.length > 0) {
+      const diagnostic = criticalViolations.map(violation => ({
+        id: violation.id,
+        impact: violation.impact,
+        description: violation.description,
+        help: violation.help,
+        helpUrl: violation.helpUrl,
+        nodes: violation.nodes.map(node => ({
+          target: node.target,
+          html: node.html,
+          failureSummary: node.failureSummary
+        }))
+      }));
+
+      await testInfo.attach('axe-serious-critical-violations', {
+        body: Buffer.from(JSON.stringify(diagnostic, null, 2), 'utf8'),
+        contentType: 'application/json'
+      });
+    }
+
+    expect(
+      criticalViolations,
+      `Violações sérias/críticas do Axe:\n${JSON.stringify(criticalViolations, null, 2)}`
+    ).toEqual([]);
   });
 });
 
@@ -28,7 +51,7 @@ test.describe('Navegação e Ciclo de Foco com Fallback Lógico', () => {
       // Criar um container e um botão disparador de teste
       const container = document.createElement('div');
       container.id = 'e2e-container';
-      
+
       const trigger = document.createElement('button');
       trigger.id = 'e2e-trigger-destruido';
       trigger.type = 'button';
@@ -36,7 +59,7 @@ test.describe('Navegação e Ciclo de Foco com Fallback Lógico', () => {
       trigger.addEventListener('click', () => {
         openModal('modal-contato');
       });
-      
+
       container.appendChild(trigger);
       document.body.appendChild(container);
     });
