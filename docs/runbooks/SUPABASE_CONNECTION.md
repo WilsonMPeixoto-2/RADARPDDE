@@ -2,16 +2,16 @@
 
 ## Situação atual
 
-O projeto remoto autorizado é `scnryinorqeucbfkioxo`. O schema, a carga canônica e os primeiros vínculos de Auth já foram concluídos e validados.
+O projeto remoto autorizado é `scnryinorqeucbfkioxo`. O schema, a carga canônica e os vínculos funcionais de Auth já foram concluídos e validados para os usuários cadastrados.
 
-O conjunto versionado contém atualmente **16** migrations.
+O conjunto versionado contém atualmente **19** migrations.
 
 A carga remota contém:
 
 - 1 configuração geral;
 - 8 programas;
 - 5 controladores;
-- 3 integrantes de Inventário;
+- 3 integrantes no diretório de Inventário;
 - 12 competências;
 - 163 escolas;
 - 430 vínculos escola–programa.
@@ -39,7 +39,15 @@ supabase db push --linked --dry-run
 supabase db push --linked
 ```
 
-O contrato pós-aplicação está em `supabase/verification/remote-post-apply.sql` e deve reconhecer exatamente as 16 migrations versionadas.
+O contrato pós-aplicação está em `supabase/verification/remote-post-apply.sql` e deve reconhecer exatamente as 19 migrations versionadas.
+
+As migrations patrimoniais finais são:
+
+- `20260721152515_inventory_cre_read_access.sql` — registra o primeiro ajuste aplicado remotamente;
+- `20260721152634_inventory_capital_section_scope.sql` — separa o acesso patrimonial do predicado genérico;
+- `20260721153758_inventory_capital_section_inline_scope.sql` — consolida o estado final diretamente nas políticas RLS e remove a helper transitória.
+
+A terceira migration é o contrato final vigente. As anteriores permanecem versionadas porque integram o histórico remoto real.
 
 ## 2. Estado de dados e Auth
 
@@ -48,11 +56,10 @@ Antes de publicar um Preview, confirmar:
 - 163 escolas;
 - 430 vínculos escola–programa;
 - ausência de referências órfãs;
-- cinco perfis institucionais ativos;
-- Administrador técnico ativo;
-- Assistente de Verbas Federais ativa;
-- duas Controladoras vinculadas aos respectivos cadastros;
-- nenhum usuário com múltiplos perfis ativos.
+- perfil institucional ativo para cada usuário autorizado;
+- vínculo funcional correto com Controlador ou integrante do Inventário;
+- nenhum usuário com múltiplos perfis ativos;
+- e-mail confirmado e senha configurada no Auth.
 
 As senhas não são armazenadas no repositório nem tratadas por workflows operacionais.
 
@@ -105,13 +112,6 @@ productionActivationApproved: false
 
 ## 4. Homologar autenticação e autorização
 
-Validar os quatro acessos iniciais:
-
-- Administrador técnico;
-- Assistente de Verbas Federais;
-- Controladora A;
-- Controladora B.
-
 Para cada acesso, comprovar:
 
 - login e logout;
@@ -120,6 +120,14 @@ Para cada acesso, comprovar:
 - menus, abas, telas e ações esperadas;
 - ausência de funções indevidas;
 - funcionamento em desktop e celular.
+
+Perfis mínimos da homologação:
+
+- Administrador técnico;
+- Assistente de Verbas Federais;
+- Controladores;
+- Equipe de Inventário;
+- SME (Gestão), quando houver conta de homologação disponível.
 
 ## 5. Matriz funcional mínima
 
@@ -136,7 +144,7 @@ Para cada acesso, comprovar:
 - gerencia a equipe de Inventário;
 - acompanha dashboards, pendências e próximas ações.
 
-### Controladoras
+### Controladores
 
 - acessam e executam ações operacionais em todas as escolas da 4ª CRE;
 - iniciam o Dashboard pela própria carteira, usada como recorte padrão e atribuição de responsabilidade;
@@ -144,6 +152,16 @@ Para cada acesso, comprovar:
 - mantêm a autoria individual de cada ação no histórico e na auditoria;
 - não transferem automaticamente a responsabilidade principal da escola ao atuar fora da própria carteira;
 - não acessam escolas de outra CRE sem exceção explícita registrada em `user_school_scopes`.
+
+### Equipe de Inventário
+
+- entra automaticamente no perfil operacional `inventario`;
+- acessa o menu e o painel **Capital e Inventário**;
+- consulta as 163 escolas e os 430 vínculos escola–programa da própria `cre_scope` para compor o acompanhamento patrimonial;
+- consulta e atualiza bens patrimoniais da própria CRE, inclusive a ação de concluir a inventariação;
+- não recebe escrita cadastral nas escolas;
+- não recebe bonificação, análise técnica, pendências operacionais, contatos ou configuração global;
+- não acessa escolas ou bens de outra CRE.
 
 ## 6. Persistência e auditoria
 
@@ -156,6 +174,8 @@ No Preview conectado:
 5. confirmar entrada correspondente em `audit_events`;
 6. confirmar ausência de duplicidade;
 7. remover ou reverter o dado de homologação ao final.
+
+Para o Inventário, o teste deve usar um bem patrimonial de homologação em estado `Encaminhada`, concluir a inventariação e confirmar responsável, data, status e auditoria.
 
 ## 7. Gestão de Equipe
 
@@ -180,6 +200,7 @@ Antes de Production:
 - executar RLS positiva e negativa por perfil;
 - confirmar que usuário anônimo não lê dados institucionais;
 - confirmar colaboração entre Controladores da mesma CRE e bloqueio entre CREs sem exceção;
+- confirmar que Inventário vê somente a superfície patrimonial da própria CRE;
 - confirmar ausência de chave administrativa no bundle;
 - analisar Security e Performance Advisors;
 - tratar bloqueadores reais de segurança;
