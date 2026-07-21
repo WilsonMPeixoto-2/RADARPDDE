@@ -35,8 +35,30 @@ const PREVIEW_SUPABASE_PUBLIC_RUNTIME = Object.freeze({
     RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED: 'false'
 });
 
+const PRODUCTION_SUPABASE_PUBLIC_RUNTIME = Object.freeze({
+    RADAR_DATA_MODE: 'supabase-production',
+    RADAR_ENVIRONMENT: 'production',
+    RADAR_SUPABASE_REPOSITORY_ENABLED: 'true',
+    RADAR_SUPABASE_URL: 'https://scnryinorqeucbfkioxo.supabase.co',
+    RADAR_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_NJYBP3Mh2b_okdWKNypajQ_CYD8QQTO',
+    RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED: 'true'
+});
+
+const PRODUCTION_LOCAL_ROLLBACK_RUNTIME = Object.freeze({
+    RADAR_DATA_MODE: 'local',
+    RADAR_ENVIRONMENT: 'local',
+    RADAR_SUPABASE_REPOSITORY_ENABLED: 'false',
+    RADAR_SUPABASE_URL: '',
+    RADAR_SUPABASE_PUBLISHABLE_KEY: '',
+    RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED: 'false'
+});
+
+const RADAR_PRODUCTION_FORCE_LOCAL_VARIABLE = 'RADAR_PRODUCTION_FORCE_LOCAL';
 const RADAR_RUNTIME_VARIABLES = Object.freeze(
-    Object.keys(PREVIEW_SUPABASE_PUBLIC_RUNTIME)
+    [...new Set([
+        ...Object.keys(PREVIEW_SUPABASE_PUBLIC_RUNTIME),
+        ...Object.keys(PRODUCTION_SUPABASE_PUBLIC_RUNTIME)
+    ])]
 );
 
 function isPathInside(parent, candidate) {
@@ -76,11 +98,33 @@ function hasExplicitRadarRuntime(environment = {}) {
     ));
 }
 
+function productionForceLocal(environment = {}) {
+    const value = String(environment?.[RADAR_PRODUCTION_FORCE_LOCAL_VARIABLE] || '')
+        .trim()
+        .toLowerCase();
+    if (!value) return false;
+    if (!['true', 'false'].includes(value)) {
+        throw new Error(`${RADAR_PRODUCTION_FORCE_LOCAL_VARIABLE} deve ser true ou false.`);
+    }
+    return value === 'true';
+}
+
 function resolveVercelRuntimeEnvironment(environment = {}) {
     const vercelEnvironment = normalizeVercelEnvironment(environment);
+
+    if (vercelEnvironment === 'production') {
+        return {
+            ...environment,
+            ...(productionForceLocal(environment)
+                ? PRODUCTION_LOCAL_ROLLBACK_RUNTIME
+                : PRODUCTION_SUPABASE_PUBLIC_RUNTIME)
+        };
+    }
+
     if (vercelEnvironment !== 'preview' || hasExplicitRadarRuntime(environment)) {
         return { ...environment };
     }
+
     return {
         ...environment,
         ...PREVIEW_SUPABASE_PUBLIC_RUNTIME
@@ -225,6 +269,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
 
 export {
     PREVIEW_SUPABASE_PUBLIC_RUNTIME,
+    PRODUCTION_LOCAL_ROLLBACK_RUNTIME,
+    PRODUCTION_SUPABASE_PUBLIC_RUNTIME,
+    RADAR_PRODUCTION_FORCE_LOCAL_VARIABLE,
     RADAR_RUNTIME_VARIABLES,
     RUNTIME_ENTRIES,
     assertSafeOutputDirectory,
@@ -233,6 +280,7 @@ export {
     createPublicBuildManifest,
     hasExplicitRadarRuntime,
     normalizeVercelEnvironment,
+    productionForceLocal,
     resolveVercelRuntimeEnvironment,
     sanitizeCommitSha
 };

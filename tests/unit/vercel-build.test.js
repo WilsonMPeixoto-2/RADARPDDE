@@ -22,7 +22,7 @@ async function createOutputDirectory(context) {
     return path.join(temporaryRoot, 'dist');
 }
 
-test('gera artefato local fail-closed sem publicar credenciais fornecidas', async context => {
+test('gera artefato local somente com rollback explícito e sem publicar credenciais fornecidas', async context => {
     const { buildVercelArtifact } = await loadBuilder();
     const outputDir = await createOutputDirectory(context);
 
@@ -32,11 +32,13 @@ test('gera artefato local fail-closed sem publicar credenciais fornecidas', asyn
         environment: {
             VERCEL_ENV: 'production',
             VERCEL_GIT_COMMIT_SHA: '0123456789abcdef0123456789abcdef01234567',
-            RADAR_DATA_MODE: 'local',
-            RADAR_ENVIRONMENT: 'local',
-            RADAR_SUPABASE_REPOSITORY_ENABLED: 'false',
+            RADAR_PRODUCTION_FORCE_LOCAL: 'true',
+            RADAR_DATA_MODE: 'supabase-production',
+            RADAR_ENVIRONMENT: 'production',
+            RADAR_SUPABASE_REPOSITORY_ENABLED: 'true',
             RADAR_SUPABASE_URL: 'https://discarded.supabase.co',
-            RADAR_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_discarded'
+            RADAR_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_discarded',
+            RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED: 'true'
         }
     });
 
@@ -46,8 +48,10 @@ test('gera artefato local fail-closed sem publicar credenciais fornecidas', asyn
     );
 
     assert.equal(result.runtimeInput.dataMode, 'local');
+    assert.equal(result.runtimeInput.environment, 'local');
     assert.equal(manifest.vercelEnvironment, 'production');
     assert.equal(manifest.supabaseRepositoryEnabled, false);
+    assert.equal(manifest.productionActivationApproved, false);
     assert.equal(manifest.commitSha, '0123456789abcdef0123456789abcdef01234567');
     assert.doesNotMatch(runtimeSource, /discarded/);
     await fs.access(path.join(outputDir, 'index.html'));
@@ -91,43 +95,32 @@ test('gera artefato de Preview com configuração pública e manifesto sem a cha
     assert.doesNotMatch(manifestSource, /supabase\.co/);
 });
 
-test('bloqueia Preview Supabase quando o alvo real da Vercel é produção', async context => {
+test('alvo Production ignora tentativa de publicar configuração de Preview', async context => {
     const { buildVercelArtifact } = await loadBuilder();
     const outputDir = await createOutputDirectory(context);
 
-    await assert.rejects(
-        buildVercelArtifact({
-            rootDir: projectRoot,
-            outputDir,
-            environment: {
-                VERCEL_ENV: 'production',
-                RADAR_DATA_MODE: 'supabase-preview',
-                RADAR_ENVIRONMENT: 'preview',
-                RADAR_SUPABASE_REPOSITORY_ENABLED: 'true',
-                RADAR_SUPABASE_URL: 'https://example.supabase.co',
-                RADAR_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_preview_example'
-            }
-        }),
-        /Preview.*production/i
-    );
+    const result = await buildVercelArtifact({
+        rootDir: projectRoot,
+        outputDir,
+        environment: {
+            VERCEL_ENV: 'production',
+            RADAR_DATA_MODE: 'supabase-preview',
+            RADAR_ENVIRONMENT: 'preview',
+            RADAR_SUPABASE_REPOSITORY_ENABLED: 'true',
+            RADAR_SUPABASE_URL: 'https://example.supabase.co',
+            RADAR_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_preview_example'
+        }
+    });
+
+    assert.equal(result.runtimeInput.dataMode, 'supabase-production');
+    assert.equal(result.runtimeInput.environment, 'production');
+    assert.equal(result.runtimeInput.productionActivationApproved, true);
+    assert.equal(result.manifest.vercelEnvironment, 'production');
 });
 
-test('bloqueia ambiente público divergente do alvo real da Vercel', async context => {
+test('bloqueia ambiente de Preview divergente do alvo real da Vercel', async context => {
     const { buildVercelArtifact } = await loadBuilder();
     const outputDir = await createOutputDirectory(context);
-
-    await assert.rejects(
-        buildVercelArtifact({
-            rootDir: projectRoot,
-            outputDir,
-            environment: {
-                VERCEL_ENV: 'production',
-                RADAR_DATA_MODE: 'local',
-                RADAR_ENVIRONMENT: 'preview'
-            }
-        }),
-        /produção.*RADAR_ENVIRONMENT=local/i
-    );
 
     await assert.rejects(
         buildVercelArtifact({

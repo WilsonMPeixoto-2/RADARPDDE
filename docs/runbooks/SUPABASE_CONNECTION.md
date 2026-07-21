@@ -2,11 +2,11 @@
 
 ## Situação atual
 
-O projeto remoto autorizado é `scnryinorqeucbfkioxo`. O schema, a carga canônica e os vínculos funcionais de Auth já foram concluídos e validados para os usuários cadastrados.
+O projeto remoto autorizado é `scnryinorqeucbfkioxo`. O schema, a carga estrutural e os vínculos funcionais de Auth estão concluídos.
 
 O conjunto versionado contém atualmente **20** migrations.
 
-A carga remota contém:
+A carga estrutural contém:
 
 - 1 configuração geral;
 - 8 programas;
@@ -16,7 +16,7 @@ A carga remota contém:
 - 163 escolas;
 - 430 vínculos escola–programa.
 
-Production continua em `localStorage`, com repositório Supabase desabilitado e `productionActivationApproved: false`.
+Production utiliza `SupabaseRepository` em `supabase-production`. O `LocalStorageRepository` permanece somente como rollback emergencial explícito.
 
 ## Regras permanentes
 
@@ -24,12 +24,13 @@ Production continua em `localStorage`, com repositório Supabase desabilitado e 
 - Não inserir chave administrativa no frontend, bundle ou artefatos.
 - Usar somente chave `sb_publishable_` no navegador.
 - Não promover deployment Preview para Production.
-- Não ativar Production antes da homologação completa dos perfis, telas e permissões.
 - Manter apenas um perfil institucional ativo por usuário.
+- Não reintroduzir registros de homologação `HML-*` na base operacional.
+- Não criar novo fallback paralelo sem falha comprovada.
 
 ## 1. Contrato de migrations
 
-Os arquivos em `supabase/migrations` são a única fonte da ordem. Não manter lista manual paralela.
+Os arquivos em `supabase/migrations` são a única fonte da ordem.
 
 ```bash
 supabase migration list --linked
@@ -37,7 +38,7 @@ supabase db push --linked --dry-run
 supabase db push --linked
 ```
 
-O contrato pós-aplicação está em `supabase/verification/remote-post-apply.sql` e deve reconhecer exatamente as 20 migrations versionadas.
+O contrato pós-aplicação em `supabase/verification/remote-post-apply.sql` reconhece exatamente as 20 migrations versionadas.
 
 As migrations patrimoniais são:
 
@@ -46,25 +47,31 @@ As migrations patrimoniais são:
 - `20260721153758_inventory_capital_section_inline_scope.sql` — consolidação nas políticas RLS e remoção da helper transitória;
 - `20260721160056_inventory_generic_asset_scope_by_cre.sql` — correção final da fronteira de CRE no predicado genérico do Inventário.
 
-As quatro permanecem versionadas porque integram o histórico remoto real. A migration 20 impede acesso a escola de outra CRE apenas por possuir bem cadastrado.
-
 ## 2. Estado de dados e Auth
 
-Antes de publicar um Preview, confirmar:
+Confirmar periodicamente:
 
 - 163 escolas;
 - 430 vínculos escola–programa;
 - ausência de referências órfãs;
 - perfil institucional ativo para cada usuário autorizado;
-- vínculo funcional correto com Controlador ou integrante do Inventário;
+- vínculo funcional correto;
 - nenhum usuário com múltiplos perfis ativos;
 - e-mail confirmado e senha configurada no Auth.
 
 As senhas não são armazenadas no repositório nem tratadas por workflows operacionais.
 
+O backup lógico anterior à ativação está registrado em `data_import_runs` com:
+
+```text
+import_id: PROD-ACTIVATION-BACKUP-20260721
+```
+
+A massa `HML-*` foi removida após o backup. As tabelas operacionais iniciam limpas para os lançamentos reais.
+
 ## 3. Preview e Production
 
-O Preview usa:
+### Preview
 
 ```text
 RADAR_DATA_MODE=supabase-preview
@@ -73,7 +80,26 @@ RADAR_SUPABASE_REPOSITORY_ENABLED=true
 RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED=false
 ```
 
-Production deve continuar com:
+### Production
+
+```text
+RADAR_DATA_MODE=supabase-production
+RADAR_ENVIRONMENT=production
+RADAR_SUPABASE_REPOSITORY_ENABLED=true
+RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED=true
+```
+
+O build da Vercel aplica automaticamente o contrato correspondente ao `VERCEL_ENV`. A URL e a chave publicável estão no runtime público; `service_role`, `sb_secret_`, senha de banco e tokens da Vercel são proibidos.
+
+### Rollback emergencial
+
+Definir em Production:
+
+```text
+RADAR_PRODUCTION_FORCE_LOCAL=true
+```
+
+O deployment seguinte retorna a:
 
 ```text
 runtimeEnvironment: local
@@ -82,7 +108,7 @@ supabaseRepositoryEnabled: false
 productionActivationApproved: false
 ```
 
-Nunca publicar no navegador `service_role`, `sb_secret_`, senha de banco ou tokens operacionais da Vercel.
+O rollback não apaga, reverte ou modifica dados do Supabase. Para restaurar a conexão, remover o sinal e publicar novo deployment.
 
 ## 4. Perfis funcionais
 
@@ -104,27 +130,30 @@ Nunca publicar no navegador `service_role`, `sb_secret_`, senha de banco ou toke
 - não recebe bonificação, análise técnica, contatos ou configuração global;
 - não acessa escolas ou bens de outra CRE.
 
-### Assistente, SME e Administrador técnico
+### Assistente, SME e Administrador Técnico
 
-Mantêm as permissões previstas na matriz canônica `docs/reference/SUPABASE_PERMISSIONS_MATRIX.md`.
+Mantêm as permissões previstas em `docs/reference/SUPABASE_PERMISSIONS_MATRIX.md`.
 
-## 5. Homologação
+## 5. Homologação de deployment
 
-Para cada perfil, comprovar login, menus, telas, persistência, auditoria, autoria e bloqueio das operações negativas em desktop e celular.
+O workflow de Production deve comprovar em desktop, Android e iPhone:
 
-Para o Inventário, usar um bem de homologação em estado `Encaminhada`, concluir a inventariação e confirmar responsável, data, status e auditoria. Remover ou reverter o dado ao final.
+- manifesto `supabase-production`;
+- tela de login obrigatória;
+- aplicação operacional inerte antes da autenticação;
+- chave pública sem qualquer segredo administrativo;
+- usuário anônimo recebendo zero escolas pela RLS;
+- ausência de erro fatal e overflow.
+
+Os fluxos autenticados são exercitados pelos usuários reais e permanecem cobertos pelos testes locais de Auth, RLS, pgTAP e E2E.
 
 ## 6. Segurança e recuperação
 
-Antes de Production:
-
-- executar RLS positiva e negativa por perfil;
-- confirmar que usuário anônimo não lê dados institucionais;
-- confirmar colaboração entre Controladores da mesma CRE;
-- confirmar que Inventário vê somente a superfície patrimonial da própria CRE;
-- analisar Security e Performance Advisors;
-- testar backup, restauração e rollback;
-- definir MFA para perfis privilegiados;
-- manter CI verde no mesmo commit implantado.
-
-Sem homologação completa e autorização específica, Production permanece local e fail-closed.
+- usuário anônimo não lê dados institucionais;
+- Controladores colaboram somente dentro da própria CRE;
+- Inventário vê somente a superfície patrimonial da própria CRE;
+- a Edge Function `team-account-management` exige JWT;
+- Security e Performance Advisors devem ser revisados após mudanças de schema;
+- o backup pré-ativação deve ser mantido;
+- MFA deve ser priorizado para perfis privilegiados;
+- CI deve permanecer verde no mesmo commit implantado.

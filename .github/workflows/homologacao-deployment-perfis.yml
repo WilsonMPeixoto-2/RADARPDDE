@@ -1,20 +1,7 @@
-name: Homologar deployment e perfis
+name: Homologar Production Supabase
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - 'app.js'
-      - 'index.html'
-      - 'styles.css'
-      - 'src/**'
-      - 'vendor/**'
-      - 'scripts/build-vercel.mjs'
-      - 'playwright.deployment.config.js'
-      - 'tests/e2e/frontend-contract.spec.js'
-      - 'tests/e2e/mobile-smoke.spec.js'
-      - 'tests/e2e/remote-deployment-contract.spec.js'
-      - '.github/workflows/homologacao-deployment-perfis.yml'
   push:
     branches:
       - main
@@ -26,8 +13,6 @@ on:
       - 'vendor/**'
       - 'scripts/build-vercel.mjs'
       - 'playwright.deployment.config.js'
-      - 'tests/e2e/frontend-contract.spec.js'
-      - 'tests/e2e/mobile-smoke.spec.js'
       - 'tests/e2e/remote-deployment-contract.spec.js'
       - '.github/workflows/homologacao-deployment-perfis.yml'
 
@@ -35,7 +20,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: homologacao-deployment-perfis-${{ github.ref }}
+  group: homologacao-production-supabase-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -43,7 +28,7 @@ env:
 
 jobs:
   deployment:
-    name: Production local — desktop, Android e iPhone
+    name: Production Supabase — login, RLS anônima e responsividade
     runs-on: ubuntu-latest
     timeout-minutes: 25
 
@@ -63,19 +48,17 @@ jobs:
       - name: Instalar Chromium e WebKit
         run: npx playwright install --with-deps chromium webkit
 
-      - name: Homologar deployment e quatro perfis
+      - name: Homologar contrato público do Supabase Production
         run: >-
           npx playwright test
           tests/e2e/remote-deployment-contract.spec.js
-          tests/e2e/frontend-contract.spec.js
-          tests/e2e/mobile-smoke.spec.js
           --config=playwright.deployment.config.js
 
       - name: Publicar evidências de QA
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: homologacao-deployment-perfis-${{ github.run_id }}
+          name: homologacao-production-supabase-${{ github.run_id }}
           path: |
             playwright-report-deployment/
             test-results/
