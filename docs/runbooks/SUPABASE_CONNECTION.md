@@ -4,7 +4,7 @@
 
 O projeto remoto autorizado é `scnryinorqeucbfkioxo`. O schema, a carga canônica e os vínculos funcionais de Auth já foram concluídos e validados para os usuários cadastrados.
 
-O conjunto versionado contém atualmente **19** migrations.
+O conjunto versionado contém atualmente **20** migrations.
 
 A carga remota contém:
 
@@ -31,23 +31,22 @@ Production continua em `localStorage`, com repositório Supabase desabilitado e 
 
 Os arquivos em `supabase/migrations` são a única fonte da ordem. Não manter lista manual paralela.
 
-Comandos canônicos:
-
 ```bash
 supabase migration list --linked
 supabase db push --linked --dry-run
 supabase db push --linked
 ```
 
-O contrato pós-aplicação está em `supabase/verification/remote-post-apply.sql` e deve reconhecer exatamente as 19 migrations versionadas.
+O contrato pós-aplicação está em `supabase/verification/remote-post-apply.sql` e deve reconhecer exatamente as 20 migrations versionadas.
 
-As migrations patrimoniais finais são:
+As migrations patrimoniais são:
 
-- `20260721152515_inventory_cre_read_access.sql` — registra o primeiro ajuste aplicado remotamente;
-- `20260721152634_inventory_capital_section_scope.sql` — separa o acesso patrimonial do predicado genérico;
-- `20260721153758_inventory_capital_section_inline_scope.sql` — consolida o estado final diretamente nas políticas RLS e remove a helper transitória.
+- `20260721152515_inventory_cre_read_access.sql` — primeiro ajuste remoto de leitura por CRE;
+- `20260721152634_inventory_capital_section_scope.sql` — separação do escopo patrimonial;
+- `20260721153758_inventory_capital_section_inline_scope.sql` — consolidação nas políticas RLS e remoção da helper transitória;
+- `20260721160100_inventory_generic_asset_scope_by_cre.sql` — correção final da fronteira de CRE no predicado genérico do Inventário.
 
-A terceira migration é o contrato final vigente. As anteriores permanecem versionadas porque integram o histórico remoto real.
+As quatro permanecem versionadas porque integram o histórico remoto real. A migration 20 complementa o estado final ao impedir acesso a escola de outra CRE apenas por possuir bem cadastrado.
 
 ## 2. Estado de dados e Auth
 
@@ -63,45 +62,18 @@ Antes de publicar um Preview, confirmar:
 
 As senhas não são armazenadas no repositório nem tratadas por workflows operacionais.
 
-## 3. Publicação automática do Preview
+## 3. Preview e Production
 
-A integração Git–Vercel já existente cria deployments Preview para branches e pull requests.
-
-O build `scripts/build-vercel.mjs` aplica automaticamente a configuração pública abaixo quando:
-
-- `VERCEL_ENV=preview`; e
-- nenhuma variável `RADAR_*` de runtime foi definida explicitamente.
+O Preview usa:
 
 ```text
 RADAR_DATA_MODE=supabase-preview
 RADAR_ENVIRONMENT=preview
 RADAR_SUPABASE_REPOSITORY_ENABLED=true
-RADAR_SUPABASE_URL=https://scnryinorqeucbfkioxo.supabase.co
-RADAR_SUPABASE_PUBLISHABLE_KEY=<chave sb_publishable_ versionada>
 RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED=false
 ```
 
-A URL e a chave publicável fazem parte da configuração pública do cliente Supabase. Não utilizar:
-
-- `VERCEL_TOKEN`;
-- `VERCEL_ORG_ID`;
-- `VERCEL_PROJECT_ID`;
-- chave `service_role`;
-- chave `sb_secret_`;
-- senha de banco.
-
-Configuração RADAR explícita prevalece sobre o padrão automático. Isso permite testes controlados sem alterar o contrato normal.
-
-O manifesto do Preview deve apresentar:
-
-```text
-runtimeEnvironment: preview
-dataMode: supabase-preview
-supabaseRepositoryEnabled: true
-productionActivationApproved: false
-```
-
-Production deve continuar apresentando:
+Production deve continuar com:
 
 ```text
 runtimeEnvironment: local
@@ -110,116 +82,58 @@ supabaseRepositoryEnabled: false
 productionActivationApproved: false
 ```
 
-## 4. Homologar autenticação e autorização
+Nunca publicar no navegador `service_role`, `sb_secret_`, senha de banco ou tokens operacionais da Vercel.
 
-Para cada acesso, comprovar:
-
-- login e logout;
-- restauração de sessão após recarregar;
-- perfil institucional correto;
-- menus, abas, telas e ações esperadas;
-- ausência de funções indevidas;
-- funcionamento em desktop e celular.
-
-Perfis mínimos da homologação:
-
-- Administrador técnico;
-- Assistente de Verbas Federais;
-- Controladores;
-- Equipe de Inventário;
-- SME (Gestão), quando houver conta de homologação disponível.
-
-## 5. Matriz funcional mínima
-
-### Administrador técnico
-
-- gerencia perfis, escopos e auditoria;
-- não herda a operação cotidiana da Assistente;
-- não aparece como perfil operacional comum.
-
-### Assistente de Verbas Federais
-
-- acessa toda a 4ª CRE;
-- gerencia controladores e carteiras;
-- gerencia a equipe de Inventário;
-- acompanha dashboards, pendências e próximas ações.
+## 4. Perfis funcionais
 
 ### Controladores
 
-- acessam e executam ações operacionais em todas as escolas da 4ª CRE;
-- iniciam o Dashboard pela própria carteira, usada como recorte padrão e atribuição de responsabilidade;
-- podem consultar outras carteiras e cobrir férias, licenças, ausências ou sobrecarga da equipe;
-- mantêm a autoria individual de cada ação no histórico e na auditoria;
-- não transferem automaticamente a responsabilidade principal da escola ao atuar fora da própria carteira;
-- não acessam escolas de outra CRE sem exceção explícita registrada em `user_school_scopes`.
+- iniciam pelo recorte da própria carteira;
+- acessam e executam ações operacionais nas 163 escolas da 4ª CRE;
+- preservam responsabilidade principal e autoria individual;
+- não acessam outra CRE sem exceção explícita.
 
 ### Equipe de Inventário
 
 - entra automaticamente no perfil operacional `inventario`;
 - acessa o menu e o painel **Capital e Inventário**;
-- consulta as 163 escolas e os 430 vínculos escola–programa da própria `cre_scope` para compor o acompanhamento patrimonial;
-- consulta e atualiza bens patrimoniais da própria CRE, inclusive a ação de concluir a inventariação;
+- consulta as 163 escolas e os 430 vínculos escola–programa da própria `cre_scope`;
+- consulta, cria e atualiza bens patrimoniais permitidos pela interface;
+- pode concluir a inventariação de bem encaminhado;
 - não recebe escrita cadastral nas escolas;
-- não recebe bonificação, análise técnica, pendências operacionais, contatos ou configuração global;
+- não recebe bonificação, análise técnica, contatos ou configuração global;
 - não acessa escolas ou bens de outra CRE.
 
-## 6. Persistência e auditoria
+### Assistente, SME e Administrador técnico
 
-No Preview conectado:
+Mantêm as permissões previstas na matriz canônica `docs/reference/SUPABASE_PERMISSIONS_MATRIX.md`.
 
-1. criar registro de homologação claramente identificado;
-2. recarregar e confirmar persistência;
-3. atualizar o registro;
-4. confirmar incremento e conflito de `row_version`;
-5. confirmar entrada correspondente em `audit_events`;
-6. confirmar ausência de duplicidade;
-7. remover ou reverter o dado de homologação ao final.
+## 5. Homologação
 
-Para o Inventário, o teste deve usar um bem patrimonial de homologação em estado `Encaminhada`, concluir a inventariação e confirmar responsável, data, status e auditoria.
+Para cada perfil, comprovar:
 
-## 7. Gestão de Equipe
+- login, logout e restauração de sessão;
+- menus, abas, telas e ações esperadas;
+- ausência de funções indevidas;
+- funcionamento em desktop e celular;
+- persistência após recarregar;
+- incremento de `row_version` quando aplicável;
+- auditoria e autoria;
+- bloqueio de operações negativas.
 
-Homologar o ciclo completo:
+Para o Inventário, usar um bem de homologação em estado `Encaminhada`, concluir a inventariação e confirmar responsável, data, status e auditoria. Remover ou reverter o dado ao final.
 
-1. convidar integrante;
-2. confirmar conta Auth e perfil;
-3. atribuir carteira ou vínculo funcional;
-4. editar dados permitidos;
-5. desativar acesso;
-6. redistribuir carteira quando necessário;
-7. confirmar bloqueio do usuário desativado;
-8. preservar histórico e auditoria;
-9. repetir a operação para comprovar idempotência.
-
-Credenciais administrativas permanecem exclusivamente na Edge Function.
-
-## 8. Segurança e recuperação
+## 6. Segurança e recuperação
 
 Antes de Production:
 
 - executar RLS positiva e negativa por perfil;
 - confirmar que usuário anônimo não lê dados institucionais;
-- confirmar colaboração entre Controladores da mesma CRE e bloqueio entre CREs sem exceção;
+- confirmar colaboração entre Controladores da mesma CRE;
 - confirmar que Inventário vê somente a superfície patrimonial da própria CRE;
-- confirmar ausência de chave administrativa no bundle;
 - analisar Security e Performance Advisors;
-- tratar bloqueadores reais de segurança;
-- testar backup e restauração;
-- testar rollback;
-- definir política de MFA para perfis privilegiados;
+- testar backup, restauração e rollback;
+- definir MFA para perfis privilegiados;
 - manter CI verde no mesmo commit implantado.
 
-## 9. Critérios para Production
-
-A ativação futura de `supabase-production` exige simultaneamente:
-
-- Preview homologado por todos os perfis;
-- todas as abas e telas avaliadas;
-- persistência, RLS e auditoria aprovadas;
-- Gestão de Equipe aprovada;
-- rollback, backup e restauração comprovados;
-- Advisors tratados;
-- MFA definido;
-- autorização funcional e técnica específica.
-
-Sem esses requisitos, `RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED` permanece `false` e a aplicação deve continuar fail-closed.
+Sem homologação completa e autorização específica, Production permanece local e fail-closed.
