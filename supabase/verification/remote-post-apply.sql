@@ -20,11 +20,13 @@ declare
         '20260721090000',
         '20260721152515',
         '20260721152634',
-        '20260721153758'
+        '20260721153758',
+        '20260721160100'
     ];
     v_actual text[];
     v_missing_extensions text[];
     v_version text;
+    v_access_definition text;
 begin
     select coalesce(array_agg(version order by version), array[]::text[])
       into v_actual
@@ -85,6 +87,15 @@ begin
           and coalesce(with_check, '') ilike '%inventory%'
     ) then
         raise exception 'INVENTORY_ASSET_UPDATE_SCOPE_MISSING';
+    end if;
+
+    select pg_get_functiondef('public.can_access_school(text)'::regprocedure)
+      into v_access_definition;
+
+    if v_access_definition not ilike '%profile_id = ''inventory''%'
+       or v_access_definition not ilike '%join public.assets%'
+       or v_access_definition not ilike '%s.cre = up.cre_scope%' then
+        raise exception 'INVENTORY_GENERIC_ACCESS_NOT_SCOPED_BY_CRE';
     end if;
 
     foreach v_version in array v_actual
