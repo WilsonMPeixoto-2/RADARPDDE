@@ -11,6 +11,7 @@ const requiredFiles = Object.freeze([
     'supabase/migrations/202607190001_team_management_auth_alignment.sql',
     'supabase/migrations/20260720030046_activation_basic_hardening.sql',
     'supabase/migrations/20260720193000_performance_and_rls_hardening.sql',
+    'supabase/migrations/20260721090000_controller_collaborative_cre_access.sql',
     'supabase/functions/_shared/team-account-domain.mjs',
     'supabase/functions/team-account-management/index.ts',
     'supabase/tests/database/team-management-rpc.test.sql',
@@ -77,6 +78,15 @@ function check() {
         findings.push('Separação entre perfis funcionais e papel técnico ausente.');
     }
 
+    const collaborativeMigration = read('supabase/migrations/20260721090000_controller_collaborative_cre_access.sql');
+    if (!/profile_id\s*=\s*'controller'/i.test(collaborativeMigration)
+        || !/s\.cre\s*=\s*up\.cre_scope/i.test(collaborativeMigration)) {
+        findings.push('Acesso colaborativo dos Controladores por CRE não está formalizado.');
+    }
+    if (/s\.controller_id\s*=\s*public\.current_controller_id\(\)/i.test(collaborativeMigration)) {
+        findings.push('A migration colaborativa ainda usa a carteira como fronteira de autorização.');
+    }
+
     const previewBuild = read(previewBuildPath);
     [
         /PREVIEW_SUPABASE_PUBLIC_RUNTIME/,
@@ -102,8 +112,8 @@ function check() {
 
     const migrationCount = fs.readdirSync(path.join(root, 'supabase/migrations'))
         .filter(name => name.endsWith('.sql')).length;
-    if (migrationCount !== 15) {
-        findings.push(`Conjunto final deve conter 15 migrations; encontrado: ${migrationCount}.`);
+    if (migrationCount !== 16) {
+        findings.push(`Conjunto final deve conter 16 migrations; encontrado: ${migrationCount}.`);
     }
 
     return [...new Set(findings)];
