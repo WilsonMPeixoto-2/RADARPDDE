@@ -101,12 +101,34 @@ for (const key of ['technicalAdmin', 'assistant', 'controllerTuane', 'controller
       repository: 'supabase',
       role: user.profileId,
       hasSessionInPublicContext: false,
-      profileSwitcherHidden: true
+      profileSwitcherHidden: key !== 'technicalAdmin'
     });
 
     if (key === 'technicalAdmin') {
-      await expect(page.getByRole('heading', { name: 'Acesso técnico' })).toBeVisible();
-      await expect(page.locator('.sidebar')).toBeHidden();
+      await expect(page.getByRole('heading', { name: 'Acesso técnico' })).toHaveCount(0);
+      await expect(page.locator('.sidebar')).toBeVisible();
+      await expect(page.locator('.profile-switcher')).toBeVisible();
+      expect(await navigateSurfaces(page)).toBeGreaterThan(0);
+
+      const simulatedProfiles = [
+        ['assistente', /Assistente/i],
+        ['sme', /SME/i],
+        ['inventario', /Inventário/i],
+        ['controlador', /Controlador/i]
+      ];
+      for (const [profile, expectedLabel] of simulatedProfiles) {
+        const state = await page.evaluate(simulatedProfile => {
+          window.switchProfile(simulatedProfile);
+          return {
+            label: document.getElementById('profile-btn-label')?.textContent || '',
+            authRole: window.RadarAuthContext?.authorization?.role,
+            bodyRole: document.body.dataset.authRole
+          };
+        }, profile);
+        expect(state.label).toMatch(expectedLabel);
+        expect(state.authRole).toBe('technical_admin');
+        expect(state.bodyRole).toBe('technical_admin');
+      }
     } else {
       expect(await navigateSurfaces(page)).toBeGreaterThan(0);
     }
@@ -120,6 +142,28 @@ for (const key of ['technicalAdmin', 'assistant', 'controllerTuane', 'controller
     await context.close();
   });
 }
+
+test('administrador técnico abre o menu e navega em viewport móvel', async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 412, height: 915 } });
+  const page = await context.newPage();
+  const errors = collectErrors(page);
+  const user = users.technicalAdmin;
+
+  await signIn(page, user);
+  await waitForApplication(page, user.profileId);
+
+  const menuButton = page.locator('#mobile-menu-button');
+  await expect(menuButton).toBeVisible();
+  await expect(page.locator('.sidebar')).toBeHidden();
+  await menuButton.click();
+  await expect(page.locator('.sidebar')).toHaveClass(/mobile-open/);
+  await expect(page.locator('.sidebar .nav-item:visible').first()).toBeVisible();
+  await page.locator('#nav-dashboard').click();
+  await expect(page.locator('#main-container')).toBeVisible();
+  expect(errors).toEqual([]);
+
+  await context.close();
+});
 
 test('administrador técnico consulta toda a massa HML e a auditoria', async ({ browser }) => {
   const { context, page, errors } = await authenticated(browser, 'technicalAdmin');
