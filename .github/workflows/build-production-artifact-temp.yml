@@ -1,4 +1,4 @@
-name: Gerar artefato Production temporário
+name: Validar Production temporariamente
 
 on:
   pull_request:
@@ -9,48 +9,98 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  production-smoke:
     if: github.head_ref == 'ops/build-production-artifact-20260721'
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 20
 
     steps:
-      - name: Obter código da main com workflow operacional
+      - name: Obter suíte validada
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
       - name: Configurar Node.js 24
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: '24'
+          cache: npm
 
-      - name: Gerar artefato Production
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+
+      - name: Instalar Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Validar domínio público
         env:
-          VERCEL_ENV: production
-          VERCEL_GIT_COMMIT_SHA: 11c83b297ac4836b3355499fbc45964461c7173c
-        run: node scripts/build-vercel.mjs
-
-      - name: Validar manifesto gerado
+          RADAR_URL: https://radarpdde-fix.vercel.app
         run: |
           node <<'NODE'
-          const fs = require('node:fs');
-          const manifest = JSON.parse(fs.readFileSync('dist/radar-build-manifest.json', 'utf8'));
-          const expected = {
-            commitSha: '11c83b297ac4836b3355499fbc45964461c7173c',
+          const { chromium } = require('playwright');
+
+          const baseUrl = process.env.RADAR_URL;
+          const expectedCommit = '11c83b297ac4836b3355499fbc45964461c7173c';
+          const supabaseUrl = 'https://scnryinorqeucbfkioxo.supabase.co';
+          const publishableKey = 'sb_publishable_NJYBP3Mh2b_okdWKNypajQ_CYD8QQTO';
+
+          const manifestResponse = await fetch(`${baseUrl}/radar-build-manifest.json`, { cache: 'no-store' });
+          if (!manifestResponse.ok) throw new Error(`Manifesto indisponível: HTTP ${manifestResponse.status}`);
+          const manifest = await manifestResponse.json();
+          const expectedManifest = {
+            commitSha: expectedCommit,
             vercelEnvironment: 'production',
             runtimeEnvironment: 'production',
             dataMode: 'supabase-production',
             supabaseRepositoryEnabled: true,
             productionActivationApproved: true
           };
-          for (const [key, value] of Object.entries(expected)) {
+          for (const [key, value] of Object.entries(expectedManifest)) {
             if (manifest[key] !== value) throw new Error(`${key}: esperado ${value}; recebido ${manifest[key]}`);
           }
-          NODE
 
-      - name: Publicar artefato
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: radar-production-dist
-          path: dist/
-          retention-days: 1
-          if-no-files-found: error
+          const browser = await chromium.launch({ headless: true });
+          const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+          const pageErrors = [];
+          page.on('pageerror', error => pageErrors.push(error.message));
+          await page.goto(baseUrl, { waitUntil: 'networkidle', timeout: 60000 });
+          await page.locator('#radar-auth-gate').waitFor({ state: 'visible', timeout: 15000 });
+          await page.locator('#radar-auth-email').waitFor({ state: 'visible' });
+          await page.locator('#radar-auth-password').waitFor({ state: 'visible' });
+          const logo = page.locator('.radar-auth-brand img.radar-original-logo');
+          await logo.waitFor({ state: 'visible', timeout: 15000 });
+          const logoContract = await logo.evaluate(image => ({
+            sourceIsOriginalWebp: image.src.startsWith('data:image/webp;base64,'),
+            naturalWidth: image.naturalWidth,
+            naturalHeight: image.naturalHeight,
+            width: image.width,
+            height: image.height,
+            alt: image.alt
+          }));
+          if (!logoContract.sourceIsOriginalWebp) throw new Error('A tela de login não usa a imagem WebP original.');
+          if (logoContract.naturalWidth < 1 || logoContract.naturalHeight < 1) throw new Error('A imagem original não foi renderizada.');
+          if (logoContract.width !== 1235 || logoContract.height !== 499) throw new Error(`Dimensões do logo inesperadas: ${logoContract.width}x${logoContract.height}`);
+          if (!logoContract.alt.includes('RADAR PDDE')) throw new Error('Texto alternativo do logo ausente.');
+          if (pageErrors.length) throw new Error(`Erros de página: ${pageErrors.join(' | ')}`);
+          await browser.close();
+
+          const anonymousResponse = await fetch(`${supabaseUrl}/rest/v1/schools?select=id&limit=1`, {
+            headers: {
+              apikey: publishableKey,
+              Authorization: `Bearer ${publishableKey}`
+            }
+          });
+          if (anonymousResponse.ok) {
+            const anonymousRows = await anonymousResponse.json();
+            if (!Array.isArray(anonymousRows) || anonymousRows.length !== 0) {
+              throw new Error('A sessão anônima conseguiu ler escolas institucionais.');
+            }
+          } else if (![401, 403].includes(anonymousResponse.status)) {
+            throw new Error(`Resposta inesperada da RLS anônima: HTTP ${anonymousResponse.status}`);
+          }
+
+          console.log(JSON.stringify({
+            manifest,
+            loginVisible: true,
+            originalLogoRendered: logoContract,
+            anonymousSchoolsBlocked: true
+          }, null, 2));
+          NODE
