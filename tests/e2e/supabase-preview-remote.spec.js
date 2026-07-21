@@ -32,6 +32,9 @@ const candidateSchools = [
   ...fixture.expectations.alziraSchools
 ];
 
+const controllerPendencies = [...fixture.expectations.allHmlPendencies].sort();
+const controllerSchools = [...candidateSchools].sort();
+
 test.describe.configure({ mode: 'serial' });
 
 function collectErrors(page) {
@@ -139,7 +142,7 @@ test('administrador técnico consulta toda a massa HML e a auditoria', async ({ 
   await context.close();
 });
 
-async function controllerScenario(browser, key, ownSchools, ownPendencies, contactId, contactSchool, pendencyId) {
+async function controllerScenario(browser, key, contactId, contactSchool, pendencyId) {
   const { context, page, errors, user } = await authenticated(browser, key);
   const result = await page.evaluate(async input => {
     const client = window.RadarSessionContext.service.client;
@@ -151,15 +154,16 @@ async function controllerScenario(browser, key, ownSchools, ownPendencies, conta
       pendency_id: input.pendencyId,
       contact_type: 'Telefone',
       contact_date: new Date().toISOString().slice(0, 10),
-      description: `[HML ${input.runId}] contato autorizado`,
+      description: `[HML ${input.runId}] cobertura colaborativa entre carteiras`,
       official_charge: false,
-      payload: { homologation: true, hmlRunId: input.runId },
+      payload: { homologation: true, hmlRunId: input.runId, collaborativeCoverage: true },
       created_by: input.userId
-    }).select('id').single();
+    }).select('id, created_by').single();
     return {
       schools: (schools.data || []).map(row => row.id).sort(),
       pendencies: (pendencies.data || []).map(row => row.id).sort(),
       contactId: allowed.data?.id || null,
+      createdBy: allowed.data?.created_by || null,
       contactError: allowed.error?.code || null
     };
   }, {
@@ -170,55 +174,32 @@ async function controllerScenario(browser, key, ownSchools, ownPendencies, conta
     runId: fixture.runId,
     userId: user.userId
   });
-  expect(result.schools).toEqual([...ownSchools].sort());
-  expect(result.pendencies).toEqual([...ownPendencies].sort());
+  expect(result.schools).toEqual(controllerSchools);
+  expect(result.pendencies).toEqual(controllerPendencies);
   expect(result.contactId).toBe(contactId);
+  expect(result.createdBy).toBe(user.userId);
   expect(result.contactError).toBeNull();
   expect(errors).toEqual([]);
   await context.close();
 }
 
-test('controladora Tuane vê e escreve somente em sua carteira', async ({ browser }) => {
+test('controladora Tuane acessa toda a 4ª CRE e cobre a carteira de Alzira', async ({ browser }) => {
   await controllerScenario(
     browser,
     'controllerTuane',
-    fixture.expectations.tuaneSchools,
-    ['HML-PEN-TUANE-OPEN', 'HML-PEN-TUANE-REANALYSIS'],
-    fixture.records.tuaneContact,
-    '04.11.001',
-    'HML-PEN-TUANE-OPEN'
+    fixture.records.tuaneDeniedContact,
+    '04.31.601',
+    'HML-PEN-ALZIRA-RESOLVED'
   );
-
-  const { context, page } = await authenticated(browser, 'controllerTuane');
-  const denied = await page.evaluate(async input => {
-    const client = window.RadarSessionContext.service.client;
-    const result = await client.from('pendency_contacts').insert({
-      id: input.id,
-      school_id: '04.31.601',
-      pendency_id: 'HML-PEN-ALZIRA-RESOLVED',
-      contact_type: 'Telefone',
-      contact_date: new Date().toISOString().slice(0, 10),
-      description: `[HML ${input.runId}] tentativa bloqueada`,
-      official_charge: false,
-      payload: { homologation: true, hmlRunId: input.runId },
-      created_by: input.userId
-    }).select('id');
-    return { rows: result.data || [], error: result.error?.code || null };
-  }, { id: fixture.records.tuaneDeniedContact, runId: fixture.runId, userId: users.controllerTuane.userId });
-  expect(denied.rows).toEqual([]);
-  expect(typeof denied.error).toBe('string');
-  await context.close();
 });
 
-test('controladora Alzira vê e escreve somente em sua carteira', async ({ browser }) => {
+test('controladora Alzira acessa toda a 4ª CRE e cobre a carteira de Tuane', async ({ browser }) => {
   await controllerScenario(
     browser,
     'controllerAlzira',
-    fixture.expectations.alziraSchools,
-    ['HML-PEN-ALZIRA-CANCELED', 'HML-PEN-ALZIRA-RESOLVED'],
     fixture.records.alziraContact,
-    '04.31.601',
-    'HML-PEN-ALZIRA-RESOLVED'
+    '04.11.001',
+    'HML-PEN-TUANE-OPEN'
   );
 });
 
