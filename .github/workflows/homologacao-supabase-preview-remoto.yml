@@ -2,6 +2,9 @@ name: Homologar Preview Supabase remoto
 
 on:
   workflow_dispatch:
+  issue_comment:
+    types:
+      - created
   push:
     branches:
       - qa/supabase-preview-final
@@ -39,6 +42,15 @@ env:
 jobs:
   homologar:
     name: Auth, perfis, RLS e persistência no Preview
+    if: >-
+      ${{
+        github.event_name != 'issue_comment' ||
+        (
+          github.event.issue.pull_request != null &&
+          github.event.comment.body == '/homologar-supabase-preview-final' &&
+          github.event.comment.user.login == 'WilsonMPeixoto-2'
+        )
+      }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
