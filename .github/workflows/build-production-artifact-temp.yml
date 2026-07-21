@@ -34,9 +34,9 @@ jobs:
         env:
           RADAR_URL: https://radarpdde-fix.vercel.app
         run: |
-          node <<'NODE'
-          const fs = require('node:fs');
-          const { chromium } = require('playwright');
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import { chromium } from 'playwright';
 
           const result = {
             checkedAt: new Date().toISOString(),
