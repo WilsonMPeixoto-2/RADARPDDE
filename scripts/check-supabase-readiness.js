@@ -24,7 +24,7 @@ const REQUIRED_MIGRATIONS = Object.freeze([
     '20260721152515_inventory_cre_read_access.sql',
     '20260721152634_inventory_capital_section_scope.sql',
     '20260721153758_inventory_capital_section_inline_scope.sql',
-    '20260721160100_inventory_generic_asset_scope_by_cre.sql'
+    '20260721160056_inventory_generic_asset_scope_by_cre.sql'
 ]);
 
 const REQUIRED_ARTIFACTS = Object.freeze([
