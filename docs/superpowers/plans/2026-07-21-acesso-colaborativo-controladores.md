@@ -84,8 +84,8 @@
 **Files:**
 - Review: todos os arquivos das Tasks 1–4.
 
-- [ ] Executar validação sintática dos arquivos JavaScript e SQL.
-- [ ] Executar os gates locais disponíveis.
-- [ ] Restaurar `vercel.json` para a configuração canônica.
-- [ ] Abrir um único PR e aguardar os gates remotos.
-- [ ] Não aplicar a migration no Preview nem ativar Production sem etapa operacional separada.
+- [x] Executar validação sintática dos arquivos JavaScript e SQL.
+- [x] Executar readiness, smoke das 16 migrations, pgTAP, lint, Auth/RLS local e E2E completo.
+- [ ] Restaurar `vercel.json` para a configuração canônica no SHA final.
+- [x] Abrir o PR #60 e validar os gates com deployments intermediários bloqueados.
+- [x] Não aplicar a migration no Preview nem ativar Production sem etapa operacional separada.
