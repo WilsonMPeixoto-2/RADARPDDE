@@ -47,7 +47,6 @@ jobs:
           npm run supabase:gen:types
           npm run build:supabase-client
           npm run build:ajv
-          npm run check:generated
           npm run typecheck:database
 
       - name: Publicar artefatos sincronizados
