@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/repair-package-lock.yml'
       - 'package-lock.json'
+      - 'package.json'
 
 permissions:
   contents: write
@@ -13,7 +14,7 @@ jobs:
   repair:
     if: github.head_ref == 'activate/supabase-production'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Obter branch de ativação
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
@@ -21,61 +22,30 @@ jobs:
           ref: activate/supabase-production
           fetch-depth: 0
 
-      - name: Extrair lockfile compatível com package.json
-        shell: python
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+
+      - name: Regenerar lockfile pelo registry público
+        shell: bash
         run: |
-          import json
-          import re
-          from pathlib import Path
-
-          path = Path('package-lock.json')
-          source = path.read_text(encoding='utf-8-sig')
-          package = json.loads(Path('package.json').read_text(encoding='utf-8'))
-          expected_dev = package.get('devDependencies', {})
-          expected_prod = package.get('dependencies', {})
-          decoder = json.JSONDecoder()
-
-          matches = list(re.finditer(r'\{\s*"name"\s*:\s*"radar-pdde"', source))
-          candidates = []
-          for match in matches:
-              try:
-                  parsed, end = decoder.raw_decode(source, match.start())
-              except json.JSONDecodeError:
-                  continue
-              root = parsed.get('packages', {}).get('', {})
-              candidates.append((match.start(), end, parsed, root))
-
-          compatible = [
-              item for item in candidates
-              if item[2].get('lockfileVersion') == 3
-              and item[3].get('name') == package.get('name')
-              and item[3].get('version') == package.get('version')
-              and item[3].get('devDependencies', {}) == expected_dev
-              and item[3].get('dependencies', {}) == expected_prod
-          ]
-
-          if len(compatible) != 1:
-              summary = [
-                  {
-                      'start': start,
-                      'end': end,
-                      'devCount': len(root.get('devDependencies', {})),
-                      'prodCount': len(root.get('dependencies', {}))
-                  }
-                  for start, end, _, root in candidates
-              ]
-              raise SystemExit(
-                  f'Esperado exatamente um lockfile compatível; encontrados {len(compatible)}. '
-                  f'Candidatos: {summary}'
-              )
-
-          start, end, document, _ = compatible[0]
-          print(f'Lockfile compatível encontrado entre {start} e {end} de {len(source)} caracteres.')
-          path.write_text(json.dumps(document, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-          json.loads(path.read_text(encoding='utf-8'))
+          set -euo pipefail
+          rm -f package-lock.json
+          npm install \
+            --package-lock-only \
+            --ignore-scripts \
+            --no-audit \
+            --no-fund \
+            --registry=https://registry.npmjs.org
+          node -e "JSON.parse(require('node:fs').readFileSync('package-lock.json', 'utf8'))"
+          if grep -qE '<<<<<<<|=======|>>>>>>>' package-lock.json; then
+            echo 'O lockfile regenerado contém marcador de conflito.' >&2
+            exit 1
+          fi
 
       - name: Validar instalação reproduzível
-        run: npm ci
+        run: npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Publicar lockfile reparado
         run: |
@@ -86,5 +56,5 @@ jobs:
             exit 0
           fi
           git add package-lock.json
-          git commit -m 'fix: repair duplicated package-lock document'
+          git commit -m 'fix: regenerate valid package-lock'
           git push origin HEAD:activate/supabase-production
