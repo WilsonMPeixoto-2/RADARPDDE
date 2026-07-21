@@ -17,7 +17,10 @@ declare
         '202607190001',
         '20260720030046',
         '20260720193000',
-        '20260721090000'
+        '20260721090000',
+        '20260721152515',
+        '20260721152634',
+        '20260721153758'
     ];
     v_actual text[];
     v_missing_extensions text[];
@@ -56,6 +59,32 @@ begin
         'EXECUTE'
     ) then
         raise exception 'TEAM_ACCOUNT_RPC_EXPOSED_TO_AUTHENTICATED';
+    end if;
+
+    if to_regprocedure('public.inventory_can_access_cre_school(text)') is not null then
+        raise exception 'INVENTORY_TRANSIENT_HELPER_STILL_EXPOSED';
+    end if;
+
+    if not exists (
+        select 1 from pg_policies
+        where schemaname = 'public'
+          and tablename = 'schools'
+          and policyname = 'schools_read'
+          and qual ilike '%profile_id = ''inventory''%'
+          and qual ilike '%cre_scope%'
+    ) then
+        raise exception 'INVENTORY_SCHOOL_READ_SCOPE_MISSING';
+    end if;
+
+    if not exists (
+        select 1 from pg_policies
+        where schemaname = 'public'
+          and tablename = 'assets'
+          and policyname = 'assets_update'
+          and coalesce(qual, '') ilike '%inventory%'
+          and coalesce(with_check, '') ilike '%inventory%'
+    ) then
+        raise exception 'INVENTORY_ASSET_UPDATE_SCOPE_MISSING';
     end if;
 
     foreach v_version in array v_actual
