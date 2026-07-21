@@ -35,72 +35,103 @@ jobs:
           RADAR_URL: https://radarpdde-fix.vercel.app
         run: |
           node <<'NODE'
+          const fs = require('node:fs');
           const { chromium } = require('playwright');
 
-          const baseUrl = process.env.RADAR_URL;
-          const expectedCommit = '11c83b297ac4836b3355499fbc45964461c7173c';
-          const supabaseUrl = 'https://scnryinorqeucbfkioxo.supabase.co';
-          const publishableKey = 'sb_publishable_NJYBP3Mh2b_okdWKNypajQ_CYD8QQTO';
-
-          const manifestResponse = await fetch(`${baseUrl}/radar-build-manifest.json`, { cache: 'no-store' });
-          if (!manifestResponse.ok) throw new Error(`Manifesto indisponível: HTTP ${manifestResponse.status}`);
-          const manifest = await manifestResponse.json();
-          const expectedManifest = {
-            commitSha: expectedCommit,
-            vercelEnvironment: 'production',
-            runtimeEnvironment: 'production',
-            dataMode: 'supabase-production',
-            supabaseRepositoryEnabled: true,
-            productionActivationApproved: true
+          const result = {
+            checkedAt: new Date().toISOString(),
+            baseUrl: process.env.RADAR_URL,
+            manifest: null,
+            loginVisible: false,
+            originalLogoRendered: null,
+            pageErrors: [],
+            anonymousSchoolsBlocked: false,
+            error: null
           };
-          for (const [key, value] of Object.entries(expectedManifest)) {
-            if (manifest[key] !== value) throw new Error(`${key}: esperado ${value}; recebido ${manifest[key]}`);
-          }
 
-          const browser = await chromium.launch({ headless: true });
-          const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
-          const pageErrors = [];
-          page.on('pageerror', error => pageErrors.push(error.message));
-          await page.goto(baseUrl, { waitUntil: 'networkidle', timeout: 60000 });
-          await page.locator('#radar-auth-gate').waitFor({ state: 'visible', timeout: 15000 });
-          await page.locator('#radar-auth-email').waitFor({ state: 'visible' });
-          await page.locator('#radar-auth-password').waitFor({ state: 'visible' });
-          const logo = page.locator('.radar-auth-brand img.radar-original-logo');
-          await logo.waitFor({ state: 'visible', timeout: 15000 });
-          const logoContract = await logo.evaluate(image => ({
-            sourceIsOriginalWebp: image.src.startsWith('data:image/webp;base64,'),
-            naturalWidth: image.naturalWidth,
-            naturalHeight: image.naturalHeight,
-            width: image.width,
-            height: image.height,
-            alt: image.alt
-          }));
-          if (!logoContract.sourceIsOriginalWebp) throw new Error('A tela de login não usa a imagem WebP original.');
-          if (logoContract.naturalWidth < 1 || logoContract.naturalHeight < 1) throw new Error('A imagem original não foi renderizada.');
-          if (logoContract.width !== 1235 || logoContract.height !== 499) throw new Error(`Dimensões do logo inesperadas: ${logoContract.width}x${logoContract.height}`);
-          if (!logoContract.alt.includes('RADAR PDDE')) throw new Error('Texto alternativo do logo ausente.');
-          if (pageErrors.length) throw new Error(`Erros de página: ${pageErrors.join(' | ')}`);
-          await browser.close();
+          try {
+            const baseUrl = process.env.RADAR_URL;
+            const expectedCommit = '11c83b297ac4836b3355499fbc45964461c7173c';
+            const supabaseUrl = 'https://scnryinorqeucbfkioxo.supabase.co';
+            const publishableKey = 'sb_publishable_NJYBP3Mh2b_okdWKNypajQ_CYD8QQTO';
 
-          const anonymousResponse = await fetch(`${supabaseUrl}/rest/v1/schools?select=id&limit=1`, {
-            headers: {
-              apikey: publishableKey,
-              Authorization: `Bearer ${publishableKey}`
+            const manifestResponse = await fetch(`${baseUrl}/radar-build-manifest.json`, { cache: 'no-store' });
+            if (!manifestResponse.ok) throw new Error(`Manifesto indisponível: HTTP ${manifestResponse.status}`);
+            const manifest = await manifestResponse.json();
+            result.manifest = manifest;
+            const expectedManifest = {
+              commitSha: expectedCommit,
+              vercelEnvironment: 'production',
+              runtimeEnvironment: 'production',
+              dataMode: 'supabase-production',
+              supabaseRepositoryEnabled: true,
+              productionActivationApproved: true
+            };
+            for (const [key, value] of Object.entries(expectedManifest)) {
+              if (manifest[key] !== value) throw new Error(`${key}: esperado ${value}; recebido ${manifest[key]}`);
             }
-          });
-          if (anonymousResponse.ok) {
-            const anonymousRows = await anonymousResponse.json();
-            if (!Array.isArray(anonymousRows) || anonymousRows.length !== 0) {
-              throw new Error('A sessão anônima conseguiu ler escolas institucionais.');
-            }
-          } else if (![401, 403].includes(anonymousResponse.status)) {
-            throw new Error(`Resposta inesperada da RLS anônima: HTTP ${anonymousResponse.status}`);
-          }
 
-          console.log(JSON.stringify({
-            manifest,
-            loginVisible: true,
-            originalLogoRendered: logoContract,
-            anonymousSchoolsBlocked: true
-          }, null, 2));
+            const browser = await chromium.launch({ headless: true });
+            const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+            page.on('pageerror', error => result.pageErrors.push(error.message));
+            await page.goto(baseUrl, { waitUntil: 'networkidle', timeout: 60000 });
+            await page.locator('#radar-auth-gate').waitFor({ state: 'visible', timeout: 15000 });
+            await page.locator('#radar-auth-email').waitFor({ state: 'visible' });
+            await page.locator('#radar-auth-password').waitFor({ state: 'visible' });
+            result.loginVisible = true;
+
+            const logo = page.locator('.radar-auth-brand img.radar-original-logo');
+            await logo.waitFor({ state: 'visible', timeout: 15000 });
+            const logoContract = await logo.evaluate(image => ({
+              sourceIsOriginalWebp: image.src.startsWith('data:image/webp;base64,'),
+              naturalWidth: image.naturalWidth,
+              naturalHeight: image.naturalHeight,
+              widthAttribute: Number(image.getAttribute('width')),
+              heightAttribute: Number(image.getAttribute('height')),
+              renderedWidth: image.getBoundingClientRect().width,
+              renderedHeight: image.getBoundingClientRect().height,
+              alt: image.alt
+            }));
+            result.originalLogoRendered = logoContract;
+            if (!logoContract.sourceIsOriginalWebp) throw new Error('A tela de login não usa a imagem WebP original.');
+            if (logoContract.naturalWidth < 1 || logoContract.naturalHeight < 1) throw new Error('A imagem original não foi renderizada.');
+            if (logoContract.widthAttribute !== 1235 || logoContract.heightAttribute !== 499) {
+              throw new Error(`Atributos do logo inesperados: ${logoContract.widthAttribute}x${logoContract.heightAttribute}`);
+            }
+            if (logoContract.renderedWidth < 1 || logoContract.renderedHeight < 1) throw new Error('O logo não possui dimensões visíveis.');
+            if (!logoContract.alt.includes('RADAR PDDE')) throw new Error('Texto alternativo do logo ausente.');
+            if (result.pageErrors.length) throw new Error(`Erros de página: ${result.pageErrors.join(' | ')}`);
+            await browser.close();
+
+            const anonymousResponse = await fetch(`${supabaseUrl}/rest/v1/schools?select=id&limit=1`, {
+              headers: {
+                apikey: publishableKey,
+                Authorization: `Bearer ${publishableKey}`
+              }
+            });
+            if (anonymousResponse.ok) {
+              const anonymousRows = await anonymousResponse.json();
+              if (!Array.isArray(anonymousRows) || anonymousRows.length !== 0) {
+                throw new Error('A sessão anônima conseguiu ler escolas institucionais.');
+              }
+            } else if (![401, 403].includes(anonymousResponse.status)) {
+              throw new Error(`Resposta inesperada da RLS anônima: HTTP ${anonymousResponse.status}`);
+            }
+            result.anonymousSchoolsBlocked = true;
+          } catch (error) {
+            result.error = error instanceof Error ? error.message : String(error);
+            throw error;
+          } finally {
+            fs.writeFileSync('production-smoke.json', `${JSON.stringify(result, null, 2)}\n`);
+            console.log(JSON.stringify(result, null, 2));
+          }
           NODE
+
+      - name: Publicar diagnóstico
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: production-smoke-${{ github.run_id }}
+          path: production-smoke.json
+          retention-days: 1
+          if-no-files-found: error
