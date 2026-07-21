@@ -20,7 +20,10 @@ const REQUIRED_MIGRATIONS = Object.freeze([
     '202607190001_team_management_auth_alignment.sql',
     '20260720030046_activation_basic_hardening.sql',
     '20260720193000_performance_and_rls_hardening.sql',
-    '20260721090000_controller_collaborative_cre_access.sql'
+    '20260721090000_controller_collaborative_cre_access.sql',
+    '20260721152515_inventory_cre_read_access.sql',
+    '20260721152634_inventory_capital_section_scope.sql',
+    '20260721153758_inventory_capital_section_inline_scope.sql'
 ]);
 
 const REQUIRED_ARTIFACTS = Object.freeze([
@@ -71,6 +74,7 @@ const REQUIRED_ARTIFACTS = Object.freeze([
     'supabase/tests/database/json-contracts.test.sql',
     'supabase/tests/database/operations-rpc.test.sql',
     'supabase/tests/database/team-management-rpc.test.sql',
+    'supabase/tests/database/inventory-capital-rls.test.sql',
     'tests/unit/auth-database-gate.test.js',
     'tests/unit/auth-bootstrap.test.js',
     'tests/unit/auth-frontend-contract.test.js',
@@ -107,7 +111,7 @@ function decodeJwtRole(token) {
     try {
         const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
         return String(payload?.role || '').trim().toLowerCase();
-    } catch (error) {
+    } catch (_error) {
         return '';
     }
 }
@@ -128,13 +132,11 @@ function scanTextForSecrets(text, label = 'arquivo') {
         }
     }
 
-    const secretKeyPattern = /sb_secret_[A-Za-z0-9_-]{8,}/g;
-    if (secretKeyPattern.test(source)) {
+    if (/sb_secret_[A-Za-z0-9_-]{8,}/.test(source)) {
         findings.push(`${label}: chave sb_secret_ encontrada no repositório.`);
     }
 
-    const jwtPattern = /\b[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]*\b/g;
-    const jwtTokens = source.match(jwtPattern) || [];
+    const jwtTokens = source.match(/\b[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]*\b/g) || [];
     if (jwtTokens.some(token => decodeJwtRole(token) === 'service_role')) {
         findings.push(`${label}: JWT service_role encontrado no repositório.`);
     }
@@ -153,16 +155,13 @@ function scanTextForSecrets(text, label = 'arquivo') {
 function validateRuntimeConfigSource(source) {
     const findings = [];
     const text = String(source || '');
-    const localModePattern = /["']?dataMode["']?\s*:\s*['"]local['"]/;
-    if (!localModePattern.test(text)) {
+    if (!/["']?dataMode["']?\s*:\s*['"]local['"]/.test(text)) {
         findings.push('A configuração publicada deve permanecer em modo local.');
     }
-
-    const repositoryDisabled = /["']?supabaseRepositoryEnabled["']?\s*:\s*false/;
     if (!text.includes('RADAR_PDDE_RUNTIME_INPUT')) {
         findings.push('config.runtime.js deve definir RADAR_PDDE_RUNTIME_INPUT.');
     }
-    if (!repositoryDisabled.test(text)) {
+    if (!/["']?supabaseRepositoryEnabled["']?\s*:\s*false/.test(text)) {
         findings.push('A feature flag supabaseRepositoryEnabled deve permanecer false na configuração publicada.');
     }
     if (/legacyAppBridgeEnabled/i.test(text)) {
@@ -194,9 +193,7 @@ function validateMigrationDocumentation(source, migrationFileNames) {
     if (!documentedCount) {
         findings.push('SUPABASE_CONNECTION.md deve declarar a contagem versionada de migrations.');
     } else if (Number.parseInt(documentedCount[1], 10) !== migrationCount) {
-        findings.push(
-            `SUPABASE_CONNECTION.md declara ${documentedCount[1]} migrations, mas o diretório contém ${migrationCount}.`
-        );
+        findings.push(`SUPABASE_CONNECTION.md declara ${documentedCount[1]} migrations, mas o diretório contém ${migrationCount}.`);
     }
 
     const commandLines = text.split(/\r?\n/).map(line => line.trim());
@@ -206,30 +203,23 @@ function validateMigrationDocumentation(source, migrationFileNames) {
     if (!hasDryRun || !hasEffectivePush || !hasMigrationList) {
         findings.push('SUPABASE_CONNECTION.md deve usar o histórico do CLI como fonte de ordem das migrations.');
     }
-
     if (/Aplicar, nesta ordem:/i.test(text)) {
         findings.push('SUPABASE_CONNECTION.md não deve manter uma segunda lista manual de migrations.');
     }
-
     return findings;
 }
 
 function validateSupabaseApiSchemas(source) {
     const match = String(source || '').match(/^schemas\s*=\s*\[([^\]]*)\]/m);
     if (!match) return ['supabase/config.toml deve declarar explicitamente os schemas da Data API.'];
-
     const schemas = [...match[1].matchAll(/["']([^"']+)["']/g)].map(item => item[1]);
-    if (schemas.length !== 1 || schemas[0] !== 'public') {
-        return ['A Data API do RADAR deve expor somente o schema public; GraphQL não é uma dependência funcional.'];
-    }
-    return [];
+    return schemas.length === 1 && schemas[0] === 'public'
+        ? []
+        : ['A Data API do RADAR deve expor somente o schema public; GraphQL não é uma dependência funcional.'];
 }
 
 function workflowCommandLines(source, command) {
-    return String(source || '')
-        .split(/\r?\n/)
-        .map(line => line.trim())
-        .filter(line => line.includes(command));
+    return String(source || '').split(/\r?\n/).map(line => line.trim()).filter(line => line.includes(command));
 }
 
 function validateRemoteWorkflowContracts(preflightSource, postApplySource) {
@@ -239,10 +229,7 @@ function validateRemoteWorkflowContracts(preflightSource, postApplySource) {
     const preflightPushes = workflowCommandLines(preflight, 'supabase db push');
     const postApplyPushes = workflowCommandLines(postApply, 'supabase db push');
 
-    [
-        ['preflight', preflight],
-        ['pós-aplicação', postApply]
-    ].forEach(([name, workflow]) => {
+    [['preflight', preflight], ['pós-aplicação', postApply]].forEach(([name, workflow]) => {
         if (!/^\s{2}workflow_dispatch:\s*$/m.test(workflow)
             || /^\s{2}(?:push|pull_request|schedule|workflow_run):\s*$/m.test(workflow)) {
             findings.push(`O workflow de ${name} deve possuir somente acionamento manual.`);
@@ -261,8 +248,8 @@ function validateRemoteWorkflowContracts(preflightSource, postApplySource) {
     if (dryRunIndex < 0 || applyIndex < 0 || dryRunIndex > applyIndex) {
         findings.push('O workflow pós-aplicação deve executar dry-run antes do db push efetivo.');
     }
-    if (!postApply.includes('APLICAR_16_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL')) {
-        findings.push('O workflow pós-aplicação exige confirmação textual das 16 migrations no alvo descartável.');
+    if (!postApply.includes('APLICAR_19_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL')) {
+        findings.push('O workflow pós-aplicação exige confirmação textual das 19 migrations no alvo descartável.');
     }
     if (applyIndex >= 0 && !postApplyPushes[applyIndex].includes('--yes')) {
         findings.push('O db push efetivo deve ser não interativo somente após a confirmação explícita.');
@@ -275,33 +262,26 @@ function validateRemoteWorkflowContracts(preflightSource, postApplySource) {
         'supabase db advisors',
         'supabase functions deploy team-account-management'
     ].forEach(fragment => {
-        if (!postApply.includes(fragment)) {
-            findings.push(`Workflow pós-aplicação incompleto: ${fragment} ausente.`);
-        }
+        if (!postApply.includes(fragment)) findings.push(`Workflow pós-aplicação incompleto: ${fragment} ausente.`);
     });
-
     if (/--include-seed\b/.test(preflight) || /--include-seed\b/.test(postApply)) {
         findings.push('Workflows remotos não podem executar seed local.');
     }
-
     return findings;
 }
 
 function validateRemoteVerificationSql(preflightSource, postApplySource) {
     const findings = [];
-    [
-        ['preflight', preflightSource, 'CAPABILITY_OK'],
-        ['pós-aplicação', postApplySource, 'MIGRATION_OK']
-    ].forEach(([name, source, evidenceMarker]) => {
-        const sql = String(source || '').trim();
-        const singleDoBlock = /^(?:--[^\r\n]*(?:\r?\n|$))*\s*do\s+\$\$[\s\S]*\$\$;\s*$/i;
-        if (!singleDoBlock.test(sql)) {
-            findings.push(`A verificação SQL de ${name} deve conter um único bloco executável.`);
-        }
-        if (!sql.includes(evidenceMarker)) {
-            findings.push(`A verificação SQL de ${name} deve registrar evidências seguras.`);
-        }
-    });
+    [['preflight', preflightSource, 'CAPABILITY_OK'], ['pós-aplicação', postApplySource, 'MIGRATION_OK']]
+        .forEach(([name, source, evidenceMarker]) => {
+            const sql = String(source || '').trim();
+            if (!/^(?:--[^\r\n]*(?:\r?\n|$))*\s*do\s+\$\$[\s\S]*\$\$;\s*$/i.test(sql)) {
+                findings.push(`A verificação SQL de ${name} deve conter um único bloco executável.`);
+            }
+            if (!sql.includes(evidenceMarker)) {
+                findings.push(`A verificação SQL de ${name} deve registrar evidências seguras.`);
+            }
+        });
     return findings;
 }
 
@@ -309,23 +289,10 @@ function validateVercelBuildContract(vercelSource, packageSource) {
     const findings = [];
     let vercelConfig;
     let packageConfig;
-    try {
-        vercelConfig = JSON.parse(String(vercelSource || ''));
-    } catch (error) {
-        findings.push('vercel.json inválido.');
-    }
-    try {
-        packageConfig = JSON.parse(String(packageSource || ''));
-    } catch (error) {
-        findings.push('package.json inválido.');
-    }
-
-    if (vercelConfig?.buildCommand !== 'npm run build:vercel') {
-        findings.push('A Vercel deve executar npm run build:vercel.');
-    }
-    if (vercelConfig?.outputDirectory !== 'dist') {
-        findings.push('A Vercel deve publicar exclusivamente o diretório dist.');
-    }
+    try { vercelConfig = JSON.parse(String(vercelSource || '')); } catch (_error) { findings.push('vercel.json inválido.'); }
+    try { packageConfig = JSON.parse(String(packageSource || '')); } catch (_error) { findings.push('package.json inválido.'); }
+    if (vercelConfig?.buildCommand !== 'npm run build:vercel') findings.push('A Vercel deve executar npm run build:vercel.');
+    if (vercelConfig?.outputDirectory !== 'dist') findings.push('A Vercel deve publicar exclusivamente o diretório dist.');
     if (packageConfig?.scripts?.['build:vercel'] !== 'node scripts/build-vercel.mjs') {
         findings.push('package.json deve definir o build Vercel versionado.');
     }
@@ -334,11 +301,7 @@ function validateVercelBuildContract(vercelSource, packageSource) {
 
 function validateRemoteBootstrapCommands(packageSource) {
     let packageConfig;
-    try {
-        packageConfig = JSON.parse(String(packageSource || ''));
-    } catch (error) {
-        return ['package.json inválido.'];
-    }
+    try { packageConfig = JSON.parse(String(packageSource || '')); } catch (_error) { return ['package.json inválido.']; }
     const required = {
         'bootstrap:supabase:validate': 'node scripts/bootstrap-supabase-remote.mjs validate',
         'bootstrap:supabase:plan': 'node scripts/bootstrap-supabase-remote.mjs plan',
@@ -356,8 +319,7 @@ function listFilesRecursively(directory) {
     if (!fs.existsSync(directory)) return [];
     return fs.readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
         const absolute = path.join(directory, entry.name);
-        if (entry.isDirectory()) return listFilesRecursively(absolute);
-        return [absolute];
+        return entry.isDirectory() ? listFilesRecursively(absolute) : [absolute];
     });
 }
 
@@ -379,25 +341,20 @@ function runReadinessChecks(rootDir = path.resolve(__dirname, '..')) {
     const preflightSqlPath = path.join(rootDir, 'supabase', 'verification', 'remote-preflight.sql');
     const postApplySqlPath = path.join(rootDir, 'supabase', 'verification', 'remote-post-apply.sql');
 
-    if (!fs.existsSync(configPath)) {
-        findings.push('config.js não encontrado.');
-    } else {
-        const configSource = fs.readFileSync(configPath, 'utf8');
-        findings.push(...scanTextForSecrets(configSource, 'config.js'));
-        if (!/createRuntimeConfig\(root\.RADAR_PDDE_RUNTIME_INPUT\s*\|\|\s*\{\}\)/.test(configSource)) {
+    if (!fs.existsSync(configPath)) findings.push('config.js não encontrado.');
+    else {
+        const source = fs.readFileSync(configPath, 'utf8');
+        findings.push(...scanTextForSecrets(source, 'config.js'));
+        if (!/createRuntimeConfig\(root\.RADAR_PDDE_RUNTIME_INPUT\s*\|\|\s*\{\}\)/.test(source)) {
             findings.push('config.js deve consumir exclusivamente RADAR_PDDE_RUNTIME_INPUT.');
         }
-        if (/legacyAppBridgeEnabled/i.test(configSource)) {
-            findings.push('config.js ainda contém a ponte legada do Supabase.');
-        }
+        if (/legacyAppBridgeEnabled/i.test(source)) findings.push('config.js ainda contém a ponte legada do Supabase.');
     }
 
-    if (!fs.existsSync(runtimeConfigPath)) {
-        findings.push('config.runtime.js não encontrado.');
-    } else {
-        const runtimeConfigSource = fs.readFileSync(runtimeConfigPath, 'utf8');
-        findings.push(...validateRuntimeConfigSource(runtimeConfigSource));
-        findings.push(...scanTextForSecrets(runtimeConfigSource, 'config.runtime.js'));
+    if (!fs.existsSync(runtimeConfigPath)) findings.push('config.runtime.js não encontrado.');
+    else {
+        const source = fs.readFileSync(runtimeConfigPath, 'utf8');
+        findings.push(...validateRuntimeConfigSource(source), ...scanTextForSecrets(source, 'config.runtime.js'));
     }
 
     const migrationFiles = fs.existsSync(migrationsDir)
@@ -405,82 +362,54 @@ function runReadinessChecks(rootDir = path.resolve(__dirname, '..')) {
         : [];
     findings.push(...validateMigrationManifest(migrationFiles));
 
-    const connectionRunbook = fs.existsSync(connectionRunbookPath)
-        ? fs.readFileSync(connectionRunbookPath, 'utf8')
-        : '';
+    const connectionRunbook = fs.existsSync(connectionRunbookPath) ? fs.readFileSync(connectionRunbookPath, 'utf8') : '';
     findings.push(...validateMigrationDocumentation(connectionRunbook, migrationFiles));
 
-    const supabaseConfigSource = fs.existsSync(supabaseConfigPath)
-        ? fs.readFileSync(supabaseConfigPath, 'utf8')
-        : '';
+    const supabaseConfigSource = fs.existsSync(supabaseConfigPath) ? fs.readFileSync(supabaseConfigPath, 'utf8') : '';
     findings.push(...validateSupabaseApiSchemas(supabaseConfigSource));
 
-    const preflightWorkflowSource = fs.existsSync(preflightWorkflowPath)
-        ? fs.readFileSync(preflightWorkflowPath, 'utf8')
-        : '';
-    const postApplyWorkflowSource = fs.existsSync(postApplyWorkflowPath)
-        ? fs.readFileSync(postApplyWorkflowPath, 'utf8')
-        : '';
-    findings.push(...validateRemoteWorkflowContracts(
-        preflightWorkflowSource,
-        postApplyWorkflowSource
-    ));
+    const preflightWorkflowSource = fs.existsSync(preflightWorkflowPath) ? fs.readFileSync(preflightWorkflowPath, 'utf8') : '';
+    const postApplyWorkflowSource = fs.existsSync(postApplyWorkflowPath) ? fs.readFileSync(postApplyWorkflowPath, 'utf8') : '';
+    findings.push(...validateRemoteWorkflowContracts(preflightWorkflowSource, postApplyWorkflowSource));
 
-    const preflightSqlSource = fs.existsSync(preflightSqlPath)
-        ? fs.readFileSync(preflightSqlPath, 'utf8')
-        : '';
-    const postApplySqlSource = fs.existsSync(postApplySqlPath)
-        ? fs.readFileSync(postApplySqlPath, 'utf8')
-        : '';
+    const preflightSqlSource = fs.existsSync(preflightSqlPath) ? fs.readFileSync(preflightSqlPath, 'utf8') : '';
+    const postApplySqlSource = fs.existsSync(postApplySqlPath) ? fs.readFileSync(postApplySqlPath, 'utf8') : '';
     findings.push(...validateRemoteVerificationSql(preflightSqlSource, postApplySqlSource));
 
-    const vercelConfigSource = fs.existsSync(vercelConfigPath)
-        ? fs.readFileSync(vercelConfigPath, 'utf8')
-        : '';
-    const packageSource = fs.existsSync(packagePath)
-        ? fs.readFileSync(packagePath, 'utf8')
-        : '';
+    const vercelConfigSource = fs.existsSync(vercelConfigPath) ? fs.readFileSync(vercelConfigPath, 'utf8') : '';
+    const packageSource = fs.existsSync(packagePath) ? fs.readFileSync(packagePath, 'utf8') : '';
     findings.push(...validateVercelBuildContract(vercelConfigSource, packageSource));
     findings.push(...validateRemoteBootstrapCommands(packageSource));
 
     migrationFiles.forEach(name => {
-        const source = fs.readFileSync(path.join(migrationsDir, name), 'utf8');
-        if (/sb_secret_/i.test(source)) {
+        if (/sb_secret_/i.test(fs.readFileSync(path.join(migrationsDir, name), 'utf8'))) {
             findings.push(`${name}: migration não deve conter credenciais secretas.`);
         }
     });
 
-    const artifactFiles = REQUIRED_ARTIFACTS.filter(fileName => (
-        fs.existsSync(path.join(rootDir, fileName))
-    ));
+    const artifactFiles = REQUIRED_ARTIFACTS.filter(fileName => fs.existsSync(path.join(rootDir, fileName)));
     findings.push(...validateReadinessArtifacts(artifactFiles));
 
-    const scanFiles = [
+    [
         path.join(rootDir, 'app.js'),
         path.join(rootDir, 'package.json'),
         ...listFilesRecursively(path.join(rootDir, 'src')),
         ...listFilesRecursively(path.join(rootDir, 'scripts')),
         ...listFilesRecursively(path.join(rootDir, 'supabase', 'functions')),
         ...listFilesRecursively(path.join(rootDir, '.github', 'workflows'))
-    ];
-
-    scanFiles
-        .filter(filePath => fs.existsSync(filePath))
+    ].filter(filePath => fs.existsSync(filePath))
         .filter(filePath => /\.(?:js|mjs|cjs|ts|json|ya?ml|env)$/i.test(filePath))
-        .forEach(filePath => {
-            const source = fs.readFileSync(filePath, 'utf8');
-            findings.push(...scanTextForSecrets(source, relative(rootDir, filePath)));
-        });
+        .forEach(filePath => findings.push(...scanTextForSecrets(
+            fs.readFileSync(filePath, 'utf8'),
+            relative(rootDir, filePath)
+        )));
 
     const envExample = path.join(rootDir, '.env.example');
-    if (!fs.existsSync(envExample)) {
-        findings.push('.env.example não encontrado.');
-    } else {
+    if (!fs.existsSync(envExample)) findings.push('.env.example não encontrado.');
+    else {
         const envText = fs.readFileSync(envExample, 'utf8');
         findings.push(...scanTextForSecrets(envText, '.env.example'));
-        if (!/^RADAR_DATA_MODE=local$/m.test(envText)) {
-            findings.push('.env.example deve manter RADAR_DATA_MODE=local.');
-        }
+        if (!/^RADAR_DATA_MODE=local$/m.test(envText)) findings.push('.env.example deve manter RADAR_DATA_MODE=local.');
     }
 
     return [...new Set(findings)];
@@ -497,9 +426,7 @@ function main() {
     console.log('Supabase readiness: aprovado — modo local preservado e artefatos presentes.');
 }
 
-if (require.main === module) {
-    main();
-}
+if (require.main === module) main();
 
 module.exports = Object.freeze({
     REQUIRED_MIGRATIONS,
