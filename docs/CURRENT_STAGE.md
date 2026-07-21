@@ -1,6 +1,6 @@
 # RADAR PDDE — Estado atual do projeto
 
-**Atualizado em:** 20 de julho de 2026  
+**Atualizado em:** 21 de julho de 2026  
 **Natureza:** documento operacional e transitório
 
 ## 1. Regra de leitura
@@ -25,14 +25,29 @@ O RADAR possui:
 - `LocalStorageRepository` operacional;
 - `SupabaseRepository` implementado;
 - concorrência otimista por `row_version`;
-- **15 migrations SQL versionadas e aplicadas remotamente**;
+- **16 migrations SQL versionadas nesta branch; 15 aplicadas remotamente até a revisão da migration colaborativa**;
 - índices de chaves estrangeiras e políticas RLS otimizadas pela migration `20260720193000`;
+- acesso colaborativo dos Controladores da mesma CRE definido pela migration `20260721090000`;
 - RLS, auditoria, importação, reconciliação e rollback;
 - Edge Function e RPCs de Gestão de Equipe preparadas;
 - testes unitários, integração, E2E e pgTAP;
 - Production preservada em modo local e fail-closed.
 
-## 3. Supabase remoto
+## 3. Regra funcional corrigida dos Controladores
+
+A carteira individual é responsabilidade principal, filtro inicial e organização do trabalho. Não é barreira de acesso entre os cinco Controladores da 4ª CRE.
+
+Após aplicação da migration 16 no Preview:
+
+- Controladores poderão consultar e operar todas as escolas da própria `cre_scope`;
+- o Dashboard continuará abrindo pela carteira individual;
+- atuar em escola de colega não mudará automaticamente `schools.controller_id`;
+- a autoria permanecerá associada ao usuário executor;
+- escola de outra CRE continuará bloqueada sem exceção explícita.
+
+A expectativa anterior de bloqueio entre as carteiras de Tuane e Alzira está substituída.
+
+## 4. Supabase remoto
 
 Projeto autorizado: `scnryinorqeucbfkioxo`.
 
@@ -52,7 +67,7 @@ A validação confirmou ausência de referências órfãs e duplicidades materia
 
 Os Advisors de desempenho não apresentam mais chaves estrangeiras sem índice, reavaliação de `auth.uid()` por linha ou políticas permissivas duplicadas. Avisos de índices ainda não utilizados são informativos enquanto o ambiente não recebe carga operacional real.
 
-## 4. Identidades iniciais
+## 5. Identidades iniciais
 
 Foram vinculados e validados:
 
@@ -64,7 +79,7 @@ Os quatro usuários estão confirmados no Auth e possuem um único perfil instit
 
 A proteção contra senhas vazadas foi solicitada pela Management API, mas o Supabase recusou a ativação com HTTP 402 porque a organização está no plano Free. O recurso exige plano Pro ou superior. Nenhuma mudança de plano ou cobrança foi realizada.
 
-## 5. Contrato Vercel
+## 6. Contrato Vercel
 
 ### Production
 
@@ -92,7 +107,7 @@ A URL e a chave `sb_publishable_` são material público do cliente Supabase. Ne
 
 O Preview não pode ser promovido automaticamente para Production.
 
-## 6. Ocorrências operacionais resolvidas
+## 7. Ocorrências operacionais resolvidas
 
 A primeira tentativa de workflow manual falhou porque `VERCEL_TOKEN`, `VERCEL_ORG_ID` e `VERCEL_PROJECT_ID` não estavam cadastrados no GitHub Actions.
 
@@ -105,16 +120,16 @@ A solução vigente elimina essa dependência:
 
 A migration 15 foi aplicada pelo conector do Supabase e teve o identificador do histórico reconciliado para o valor versionado `20260720193000`.
 
-## 7. Próxima tarefa única
+## 8. Próxima tarefa única
 
-1. validar o manifesto do Preview automático;
-2. homologar login, sessão, telas, menus e permissões dos quatro perfis;
-3. executar testes de persistência, RLS, auditoria e Gestão de Equipe;
-4. testar recuperação, backup e rollback;
-5. registrar evidências e pendências;
-6. decidir futuramente sobre plano Pro caso a proteção contra senhas vazadas seja requisito obrigatório.
+1. concluir os gates do PR de acesso colaborativo;
+2. aplicar somente a migration `20260721090000` no Supabase de Preview após revisão;
+3. executar uma única homologação remota corrigida para Tuane e Alzira;
+4. comprovar leitura da 4ª CRE, escrita cruzada e autoria;
+5. confirmar bloqueio fora da CRE e limpeza dos registros HML;
+6. manter Production sem alteração.
 
-## 8. Gate de Production
+## 9. Gate de Production
 
 Production somente poderá usar Supabase após todos os itens abaixo:
 
@@ -131,7 +146,7 @@ Production somente poderá usar Supabase após todos os itens abaixo:
 
 Até lá, `productionActivationApproved` permanece `false`.
 
-## 9. Critério de atualização
+## 10. Critério de atualização
 
 Atualize este documento quando ocorrer:
 
