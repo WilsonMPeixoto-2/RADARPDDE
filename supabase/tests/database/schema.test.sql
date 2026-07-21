@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
 
-select plan(19);
+select plan(23);
 
 select has_table('public', 'schools', 'schools existe');
 select has_table('public', 'registered_invoices', 'registered_invoices existe');
@@ -48,11 +48,6 @@ select ok(
         '{"other": "value"}'::jsonb
     ),
     'jsonb_matches_schema rejeita payload incorreto'
-);
-select ok(
-    (select count(*) >= 12 from supabase_migrations.schema_migrations),
-    'migrações registradas com sucesso'
->>>>>>> Stashed changes
 );
 
 select * from finish();
