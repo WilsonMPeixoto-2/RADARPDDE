@@ -91,24 +91,13 @@
             .radar-original-logo-shell {
                 display: block;
                 width: 100%;
-                max-width: 240px;
+                max-width: 220px;
                 line-height: 0;
-                background: transparent;
             }
 
             .sidebar-logo .radar-original-logo {
                 width: 100%;
-                max-width: 240px;
-                height: auto;
-                mix-blend-mode: multiply;
-                image-rendering: -webkit-optimize-contrast;
-                image-rendering: crisp-edges;
-                filter: contrast(1.15) brightness(0.96);
-            }
-
-            body.dark-theme .sidebar-logo .radar-original-logo {
-                mix-blend-mode: screen;
-                filter: contrast(1.2) brightness(1.1);
+                max-width: 220px;
             }
 
             @media (max-width: 900px) {

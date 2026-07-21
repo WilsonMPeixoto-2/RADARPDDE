@@ -2697,14 +2697,10 @@ body.dark-theme .radar-auth-card {
     mix-blend-mode: multiply;
     max-width: 480px;
     border-radius: 12px;
-    image-rendering: -webkit-optimize-contrast;
-    image-rendering: crisp-edges;
-    filter: contrast(1.12) brightness(0.96);
 }
 
 body.dark-theme .radar-auth-brand .radar-original-logo {
     mix-blend-mode: screen;
-    filter: contrast(1.2) brightness(1.1);
 }
 
 body.dark-theme .radar-auth-brand {
