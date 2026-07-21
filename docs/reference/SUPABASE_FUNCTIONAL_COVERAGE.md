@@ -7,9 +7,9 @@ O RADAR PDDE possui contrato único de persistência e dois adaptadores:
 - `LocalStorageRepository` — backend vigente em Production;
 - `SupabaseRepository` — backend conectado ao Preview e preparado para futura ativação controlada.
 
-A conexão remota de Preview permanece separada de Production. O gate final mantém a equivalência entre a Gestão de Equipe aprovada no frontend e os efeitos necessários em Auth, RLS, banco e implantação.
+A conexão remota de Preview permanece separada de Production. O gate final mantém a equivalência entre frontend, Auth, RLS, banco e implantação.
 
-O conjunto contém **16 migrations** e uma Edge Function protegida para o ciclo de contas da equipe.
+O conjunto contém **19 migrations** e uma Edge Function protegida para o ciclo de contas da equipe.
 
 ## Matriz de cobertura
 
@@ -21,6 +21,7 @@ O conjunto contém **16 migrations** e uma Edge Function protegida para o ciclo 
 | Escolas, programas e atribuição de controlador | Sim | Sim | serviço + RPC transacional |
 | Carteira como filtro padrão e responsabilidade | Sim | Sim | Dashboard, `controller_id` e E2E |
 | Colaboração entre Controladores da mesma CRE | Sim | Sim | migration 16, smoke SQL e E2E remoto |
+| Capital e Inventário nas escolas da própria CRE | Sim | Sim | migrations 17–19, RLS e pgTAP |
 | Gestão plena de controladores pela Assistente | Sim | Sim | `DirectoryService`, gateway, RLS e RPCs |
 | Gestão plena da Equipe de Inventário pela Assistente | Sim | Sim | serviço, Edge Function e RPCs |
 | Convite e criação de conta Auth | Não aplicável | Sim | Edge Function autenticada + Auth Admin |
@@ -30,7 +31,7 @@ O conjunto contém **16 migrations** e uma Edge Function protegida para o ciclo 
 | Tentativas, contatos, cancelamento e reabertura | Sim | Sim | serviços e histórico auditável |
 | Retificação administrativa | Sim | Sim | fluxo funcional preservado |
 | Notas de consumo, serviço e permanente | Sim | Sim | RPCs atômicas de notas |
-| Bem derivado, encaminhamento e inventariação | Sim | Sim | serviço de inventário |
+| Bem derivado, encaminhamento e inventariação | Sim | Sim | serviço de inventário e RLS patrimonial |
 | Auditoria administrativa e técnica | Sim | Sim | unidade de trabalho + triggers |
 | Concorrência otimista | Não aplicável | Sim | `row_version` e testes de conflito |
 | Sessão expirada e autorização negada | Não aplicável | Sim | Auth, RLS e UX de falhas |
@@ -64,6 +65,21 @@ Uma ação realizada fora da carteira:
 - registra o usuário executor em `created_by` e na auditoria;
 - não concede acesso a outra CRE sem exceção explícita.
 
+### Capital e Inventário
+
+O perfil `inventory` é direcionado à interface Equipe de Inventário e à seção **Capital e Inventário**.
+
+O contrato final permite:
+
+- leitura das escolas da própria `cre_scope`, inclusive unidades ainda sem bem cadastrado;
+- leitura dos vínculos escola–programa necessários ao painel;
+- leitura e atualização dos bens patrimoniais da própria CRE;
+- conclusão da inventariação de bem encaminhado;
+- preservação do bloqueio cadastral das escolas e dos módulos não patrimoniais;
+- bloqueio de escolas e bens de outra CRE.
+
+As migrations 17 e 18 registram etapas intermediárias aplicadas no ambiente remoto. A migration 19 consolida a regra final diretamente nas políticas RLS e remove a função auxiliar transitória, preservando o contrato TypeScript público.
+
 ## Gestão de Equipe
 
 O contrato aprovado estabelece que a Assistente:
@@ -87,7 +103,7 @@ A validação ocorre em camadas coordenadas:
 - domínio da Edge Function: normalização de comandos, e-mails, papéis e metadados;
 - PostgreSQL: tipos, constraints, `pg_jsonschema`, RLS e pgTAP.
 
-Os contratos abrangem bonificação, análise, pendências, tentativas, erros, cancelamento, resolução, retificação, auditoria, compatibilidade legada e Gestão de Equipe.
+Os contratos abrangem bonificação, análise, pendências, tentativas, erros, cancelamento, resolução, retificação, inventário, auditoria, compatibilidade legada e Gestão de Equipe.
 
 ## Resiliência
 
@@ -120,6 +136,5 @@ O relatório contém hash SHA-256, contagens, estado dos lotes e diferenças res
 
 - ativação do Supabase em Production;
 - alteração visual ou de navegação;
-- redefinição das permissões de Assistente, Inventário, SME ou Administrador técnico;
-- aplicação automática da migration colaborativa sem revisão e gate remoto;
+- redefinição das permissões de Controlador, Assistente, SME ou Administrador técnico;
 - backup, restauração e MFA de Production.
