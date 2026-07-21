@@ -2,6 +2,15 @@ name: Homologar Preview Supabase remoto
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - qa/supabase-preview-final
+    paths:
+      - 'scripts/ops/prepare-remote-homologation-users.mjs'
+      - 'scripts/ops/cleanup-remote-homologation-users.mjs'
+      - 'tests/e2e/supabase-preview-remote.spec.js'
+      - 'playwright.supabase-preview.config.js'
+      - '.github/workflows/homologacao-supabase-preview-remoto.yml'
   pull_request:
     branches:
       - main
