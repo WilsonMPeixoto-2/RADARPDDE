@@ -38,19 +38,13 @@ test('migration 19 limita a ampliação às políticas patrimoniais da própria 
     assert.match(migration, /up\.cre_scope\s+is\s+not\s+null/i);
     assert.match(migration, /(?:schools|s)\.cre\s*=\s*up\.cre_scope/i);
     assert.match(migration, /current_app_role\(\)\s*=\s*'inventory'/i);
-    assert.doesNotMatch(
-        migration,
-        /create\s+or\s+replace\s+function\s+public\.can_write_school/i
-    );
-    assert.match(
-        migration,
-        /drop\s+function\s+if\s+exists\s+public\.inventory_can_access_cre_school\(text\)/i
-    );
+    assert.doesNotMatch(migration, /create\s+or\s+replace\s+function\s+public\.can_write_school/i);
+    assert.match(migration, /drop\s+function\s+if\s+exists\s+public\.inventory_can_access_cre_school\(text\)/i);
 });
 
 test('migration 20 impede acesso genérico do Inventário a outra CRE', () => {
     const migration = read(
-        'supabase/migrations/20260721160100_inventory_generic_asset_scope_by_cre.sql'
+        'supabase/migrations/20260721160056_inventory_generic_asset_scope_by_cre.sql'
     );
 
     assert.match(migration, /current_app_role\(\)\s*=\s*'inventory'/i);
@@ -58,25 +52,18 @@ test('migration 20 impede acesso genérico do Inventário a outra CRE', () => {
     assert.match(migration, /up\.profile_id\s*=\s*'inventory'/i);
     assert.match(migration, /up\.cre_scope\s+is\s+not\s+null/i);
     assert.match(migration, /s\.cre\s*=\s*up\.cre_scope/i);
-    assert.doesNotMatch(
-        migration,
-        /create\s+or\s+replace\s+function\s+public\.can_write_school/i
-    );
+    assert.doesNotMatch(migration, /create\s+or\s+replace\s+function\s+public\.can_write_school/i);
 });
 
 test('readiness exige o histórico patrimonial completo e o pgTAP específico', () => {
-    const { REQUIRED_MIGRATIONS, REQUIRED_ARTIFACTS } = require(
-        '../../scripts/check-supabase-readiness.js'
-    );
+    const { REQUIRED_MIGRATIONS, REQUIRED_ARTIFACTS } = require('../../scripts/check-supabase-readiness.js');
 
     [
         '20260721152515_inventory_cre_read_access.sql',
         '20260721152634_inventory_capital_section_scope.sql',
         '20260721153758_inventory_capital_section_inline_scope.sql',
-        '20260721160100_inventory_generic_asset_scope_by_cre.sql'
+        '20260721160056_inventory_generic_asset_scope_by_cre.sql'
     ].forEach(name => assert.ok(REQUIRED_MIGRATIONS.includes(name), `Migration não exigida: ${name}`));
 
-    assert.ok(REQUIRED_ARTIFACTS.includes(
-        'supabase/tests/database/inventory-capital-rls.test.sql'
-    ));
+    assert.ok(REQUIRED_ARTIFACTS.includes('supabase/tests/database/inventory-capital-rls.test.sql'));
 });
