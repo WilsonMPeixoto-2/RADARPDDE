@@ -36,7 +36,8 @@ const MIGRATIONS = [
     '20260714220146_preconnection_reversible_import.sql',
     '202607190001_team_management_auth_alignment.sql',
     '20260720030046_activation_basic_hardening.sql',
-    '20260720193000_performance_and_rls_hardening.sql'
+    '20260720193000_performance_and_rls_hardening.sql',
+    '20260721090000_controller_collaborative_cre_access.sql'
 ];
 
 const ARTIFACTS = [
@@ -126,6 +127,21 @@ test('detecta atribuição real de segredo Supabase', () => {
     assert.deepEqual(scanTextForSecrets('Nunca use service_role no frontend.'), []);
 });
 
+test('aceita referências do GitHub Actions ao secret store sem aceitar valor literal', () => {
+    assert.deepEqual(
+        scanTextForSecrets('RADAR_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.RADAR_SUPABASE_SERVICE_ROLE_KEY }}'),
+        []
+    );
+    assert.deepEqual(
+        scanTextForSecrets('SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}'),
+        []
+    );
+    assert.match(
+        scanTextForSecrets('RADAR_SUPABASE_SERVICE_ROLE_KEY: valor-literal').join(' '),
+        /service role/i
+    );
+});
+
 test('detecta JWT legado com role service_role sem bloquear JWT anon', () => {
     assert.match(
         scanTextForSecrets(`const key = '${jwtWithRole('service_role')}';`, 'config.js').join(' '),
@@ -156,13 +172,13 @@ test('valida conjunto obrigatório de migrations', () => {
     assert.deepEqual(validateMigrationManifest(MIGRATIONS), []);
     assert.match(
         validateMigrationManifest(MIGRATIONS.slice(0, -1)).join(' '),
-        /20260720193000_performance_and_rls_hardening\.sql/
+        /20260721090000_controller_collaborative_cre_access\.sql/
     );
 });
 
 test('impede divergência entre a contagem documentada e o diretório de migrations', () => {
     const validRunbook = `
-O conjunto versionado contém atualmente **15** migrations.
+O conjunto versionado contém atualmente **16** migrations.
 supabase migration list --linked
 supabase db push --linked --dry-run
 supabase db push --linked
@@ -171,10 +187,10 @@ supabase db push --linked
 
     assert.match(
         validateMigrationDocumentation(
-            validRunbook.replace('**15**', '**10**'),
+            validRunbook.replace('**16**', '**10**'),
             MIGRATIONS
         ).join(' '),
-        /declara 10 migrations.*contém 15/i
+        /declara 10 migrations.*contém 16/i
     );
     assert.match(
         validateMigrationDocumentation(
@@ -211,7 +227,7 @@ npx --no-install supabase db query --linked --file supabase/verification/remote-
     const postApply = `
 on:
   workflow_dispatch:
-APLICAR_15_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL
+APLICAR_16_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL
 npx --no-install supabase db push --linked --dry-run
 npx --no-install supabase db push --linked --yes
 remote-post-apply.sql
@@ -250,8 +266,18 @@ supabase functions deploy team-account-management
 });
 
 test('mantém cada verificação SQL compatível com a execução preparada do CLI', () => {
-    const preflight = `-- comentário\ndo $$\nbegin\n  raise notice 'CAPABILITY_OK';\nend\n$$;`;
-    const postApply = `-- comentário\ndo $$\nbegin\n  raise notice 'MIGRATION_OK';\nend\n$$;`;
+    const preflight = `-- comentário
+do $$
+begin
+  raise notice 'CAPABILITY_OK';
+end
+$$;`;
+    const postApply = `-- comentário
+do $$
+begin
+  raise notice 'MIGRATION_OK';
+end
+$$;`;
     assert.deepEqual(validateRemoteVerificationSql(preflight, postApply), []);
     assert.match(
         validateRemoteVerificationSql(

@@ -33,7 +33,7 @@ insert into public.schools (
 (
     '04.00.001',
     '04.00.001',
-    'Escola da carteira',
+    'Escola da carteira principal',
     '4ª CRE',
     'controller-test',
     '2026-01'
@@ -41,8 +41,24 @@ insert into public.schools (
 (
     '04.00.002',
     '04.00.002',
-    'Escola com exceção',
+    'Escola de outra carteira da mesma CRE',
     '4ª CRE',
+    'other-controller',
+    '2026-01'
+),
+(
+    '05.00.001',
+    '05.00.001',
+    'Escola de outra CRE com exceção explícita',
+    '5ª CRE',
+    'other-controller',
+    '2026-01'
+),
+(
+    '05.00.002',
+    '05.00.002',
+    'Escola de outra CRE sem exceção',
+    '5ª CRE',
     'other-controller',
     '2026-01'
 );
@@ -50,17 +66,19 @@ insert into public.schools (
 insert into public.user_profiles (
     user_id,
     profile_id,
-    controller_id
+    controller_id,
+    cre_scope
 ) values (
     '00000000-0000-0000-0000-000000000001',
     'controller',
-    'controller-test'
+    'controller-test',
+    '4ª CRE'
 );
 
 insert into public.user_school_scopes (user_id, school_id, can_write)
 values (
     '00000000-0000-0000-0000-000000000001',
-    '04.00.002',
+    '05.00.001',
     false
 );
 
@@ -165,21 +183,31 @@ begin
         raise exception 'controlador não escreve na própria carteira';
     end if;
 
-    if public.can_access_school('04.00.002') is not true then
-        raise exception 'exceção somente leitura não concedeu leitura';
+    if public.can_access_school('04.00.002') is not true
+       or public.can_write_school('04.00.002') is not true then
+        raise exception 'colaboração entre carteiras da mesma CRE não foi autorizada';
     end if;
 
-    if public.can_write_school('04.00.002') is not false then
-        raise exception 'exceção somente leitura concedeu escrita indevida';
+    if public.can_access_school('05.00.001') is not true then
+        raise exception 'exceção somente leitura fora da CRE não concedeu leitura';
+    end if;
+
+    if public.can_write_school('05.00.001') is not false then
+        raise exception 'exceção somente leitura fora da CRE concedeu escrita indevida';
+    end if;
+
+    if public.can_access_school('05.00.002') is not false
+       or public.can_write_school('05.00.002') is not false then
+        raise exception 'controlador recebeu acesso indevido a escola de outra CRE';
     end if;
 
     update public.user_school_scopes
     set can_write = true
     where user_id = '00000000-0000-0000-0000-000000000001'
-      and school_id = '04.00.002';
+      and school_id = '05.00.001';
 
-    if public.can_write_school('04.00.002') is not true then
-        raise exception 'exceção com escrita não foi respeitada';
+    if public.can_write_school('05.00.001') is not true then
+        raise exception 'exceção explícita com escrita fora da CRE não foi respeitada';
     end if;
 
     begin

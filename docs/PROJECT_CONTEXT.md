@@ -19,7 +19,9 @@ Dashboards, carteiras, pendências, competências, prontuários, inventário, re
 
 ### Controlador
 
-Opera a carteira de escolas que lhe foi atribuída, acompanha documentos, análises, bonificação, pendências, tentativas, contatos e próximas ações.
+Possui uma carteira de responsabilidade principal, usada como filtro inicial do Dashboard e organização do trabalho. Também pode consultar e executar ações operacionais nas demais escolas da 4ª CRE para colaboração, substituição e cobertura da equipe.
+
+A atuação fora da própria carteira não transfere automaticamente a responsabilidade principal da escola. `schools.controller_id` permanece como atribuição ordinária, enquanto a autoria real da ação é registrada pelo usuário autenticado.
 
 ### Assistente de Verbas Federais
 
@@ -139,11 +141,13 @@ A credencial administrativa nunca chega ao navegador. Falhas compensam convite, 
 ## 9. Autorização
 
 - anônimo: sem acesso institucional;
-- Controlador: carteira própria e exceções;
+- Controlador: operação nas escolas da própria `cre_scope`, com carteira individual como recorte padrão e responsabilidade principal;
 - Assistente: operação transversal e Gestão de Equipe plena;
 - Inventário: operação patrimonial autorizada;
 - SME: leitura gerencial e parâmetros institucionais;
 - Administrador técnico: infraestrutura, perfis, escopos e auditoria.
+
+Controlador sem `cre_scope` não recebe acesso transversal automático. Escola de outra CRE permanece bloqueada, salvo exceção explícita em `user_school_scopes`.
 
 Exclusão física é excepcional. A remoção funcional de integrante é desativação lógica e auditada.
 

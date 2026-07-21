@@ -210,3 +210,22 @@ Não iniciar novo ciclo deixando o status anterior implícito.
 **Status:** Aprovada
 
 Versões permanecem fixadas e lockfile versionado. Não instalar ORM, biblioteca paralela de schemas, cache ou estado apenas por preferência tecnológica. Atualizações exigem necessidade, changelog e gates completos.
+
+---
+
+## ADR-021 — Carteira organiza responsabilidade, não restringe colaboração
+
+**Status:** Aprovada
+
+A carteira individual do Controlador define responsabilidade principal, filtro inicial do Dashboard, priorização e organização do trabalho. Não constitui fronteira de sigilo ou autorização entre os cinco Controladores da mesma CRE.
+
+Todo Controlador autenticado pode consultar e executar ações operacionais nas escolas da própria `cre_scope`, inclusive para cobrir férias, licenças, ausências ou sobrecarga de colega.
+
+Atuar fora da própria carteira:
+
+- não altera automaticamente `schools.controller_id`;
+- preserva a responsabilidade principal existente;
+- registra a autoria do usuário executor em `created_by`, logs e auditoria;
+- não concede acesso a escola de outra CRE sem exceção explícita.
+
+A interpretação anterior que restringia Controladores à própria carteira está **substituída**.
