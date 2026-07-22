@@ -54,7 +54,7 @@
         if (status === 409 || code === '23505' || message.includes('optimistic_conflict')) {
             return 'OPTIMISTIC_CONFLICT';
         }
-        if (code === 'VALIDATION_ERROR' || code === '23514' || status === 422) {
+        if (code === 'VALIDATION_ERROR' || code === '23514' || code === '22P02' || code === '22023' || status === 422) {
             return 'VALIDATION_FAILED';
         }
         if (code === 'IMPORT_RECONCILIATION_FAILED') return code;
@@ -73,7 +73,12 @@
         const code = classifyError(error, requestedCode);
         if (error instanceof RepositoryError && error.code === code && !options.message) return error;
 
-        return new RepositoryError(
+        const technical = {
+            status: error?.status ?? error?.details?.status ?? null,
+            postgresCode: error?.postgresCode ?? error?.details?.postgresCode ?? null,
+            requestId: error?.requestId ?? error?.details?.requestId ?? null
+        };
+        const mapped = new RepositoryError(
             code,
             options.message || DATA_ERROR_MESSAGES[code] || error?.message || 'A operação de dados não pôde ser concluída.',
             {
@@ -83,10 +88,15 @@
                 details: cloneValue({
                     ...(error?.details || {}),
                     ...(options.details || {}),
+                    ...technical,
                     sourceCode: error?.code || null
                 })
             }
         );
+        mapped.status = technical.status;
+        mapped.postgresCode = technical.postgresCode;
+        mapped.requestId = technical.requestId;
+        return mapped;
     }
 
     function delay(milliseconds) {
