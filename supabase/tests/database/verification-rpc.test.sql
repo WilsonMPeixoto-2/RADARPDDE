@@ -11,7 +11,9 @@ select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000922
 
 insert into public.programs (id, name) values ('VRPC_BASIC', 'Programa RPC Verificação');
 insert into public.competences (id, label, exercise)
-values ('2032-05', 'Maio 2032', 2032);
+values
+    ('2032-05', 'Maio 2032', 2032),
+    ('2032-06', 'Junho 2032', 2032);
 insert into public.schools (id, designation, denomination, cre)
 values ('VRPC-SCHOOL', '04.99.922', 'Escola RPC Verificação', '4ª CRE');
 
@@ -107,16 +109,21 @@ select throws_ok($$
             "payload":{}
         }'::jsonb,
         1,
-        null
+        '{
+            "id":"VRPC-LOG-CONFLICT",
+            "school_id":"VRPC-SCHOOL",
+            "action":"Bonificação Alterada",
+            "details":{"document_key":"extCC"}
+        }'::jsonb
     )
 $$, 'P0001', 'OPTIMISTIC_CONFLICT: verifications/VRPC-SCHOOL::2032-05::VRPC_BASIC', 'versão obsoleta é rejeitada');
 
 select throws_ok($$
     select public.save_verification_with_log(
         '{
-            "id":"VRPC-SCHOOL::2032-05::VRPC_BASIC-ROLLBACK",
+            "id":"VRPC-SCHOOL::2032-06::VRPC_BASIC",
             "school_id":"VRPC-SCHOOL",
-            "competence_id":"2032-05",
+            "competence_id":"2032-06",
             "program_id":"VRPC_BASIC",
             "bonification":{"extCC":"Sim"},
             "analysis":{},
@@ -132,7 +139,7 @@ select throws_ok($$
     )
 $$, 'P0001', 'VALIDATION_ERROR: log administrativo pertence a outra escola', 'log inválido aborta a transação completa');
 select is(
-    (select count(*)::integer from public.verifications where id = 'VRPC-SCHOOL::2032-05::VRPC_BASIC-ROLLBACK'),
+    (select count(*)::integer from public.verifications where id = 'VRPC-SCHOOL::2032-06::VRPC_BASIC'),
     0,
     'verificação não fica gravada após rollback'
 );
@@ -141,7 +148,6 @@ select is(
     0,
     'log inválido também não fica gravado'
 );
-
 
 select throws_ok($$
     select public.save_verification_with_log(
