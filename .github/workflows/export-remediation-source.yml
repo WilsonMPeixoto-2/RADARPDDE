@@ -1,21 +1,33 @@
-name: Export remediation source
+name: Aplicar correção de reconciliação
 
 on:
   pull_request:
     paths:
-      - '.github/remediation-export-trigger.txt'
+      - '.github/task5-reconciliation-fix.patch'
       - '.github/workflows/export-remediation-source.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  export-source:
+  apply-reconciliation-fix:
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
     steps:
-      - name: Checkout
+      - name: Checkout do branch da remediação
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+
+      - name: Verificar e aplicar patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s  %s\n' '4e24a8b01c46634cf6ec314b8e7814a19a10a854919cb9e33e011c07dd6a152e' '.github/task5-reconciliation-fix.patch' | sha256sum -c -
+          git apply --check .github/task5-reconciliation-fix.patch
+          git apply .github/task5-reconciliation-fix.patch
 
       - name: Configurar Node.js 24
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
@@ -24,25 +36,28 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: Instalar dependências reproduzíveis
+      - name: Instalar dependências
         run: npm ci
 
-      - name: Empacotar código-fonte e dependências
+      - name: Validar correção e regressões
+        shell: bash
         run: |
-          tar \
-            --exclude='.git' \
-            --exclude='node_modules' \
-            --exclude='playwright-report' \
-            --exclude='test-results' \
-            -czf "$RUNNER_TEMP/radar-remediation-source.tar.gz" .
-          tar -czf "$RUNNER_TEMP/radar-remediation-node-modules.tar.gz" node_modules
+          set -euo pipefail
+          node --test tests/unit/snapshot-tools.test.js tests/unit/import-coordinator.test.js
+          npm run check
+          npm run test:unit
+          git diff --check
 
-      - name: Publicar código-fonte temporário
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: radar-remediation-source-${{ github.sha }}
-          path: |
-            ${{ runner.temp }}/radar-remediation-source.tar.gz
-            ${{ runner.temp }}/radar-remediation-node-modules.tar.gz
-          if-no-files-found: error
-          retention-days: 1
+      - name: Publicar código validado
+        shell: bash
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          rm -f .github/task5-reconciliation-fix.patch
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/data/snapshot-tools.js tests/unit/snapshot-tools.test.js .github/task5-reconciliation-fix.patch
+          git diff --cached --check
+          git commit -m 'fix: reconciliar snapshots legados com idempotência técnica'
+          git push origin "HEAD:${HEAD_REF}"
