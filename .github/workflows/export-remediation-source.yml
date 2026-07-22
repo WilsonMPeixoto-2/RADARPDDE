@@ -1,71 +1,48 @@
-name: Publish verified Task 5 code
+name: Export remediation source
 
 on:
   pull_request:
     paths:
+      - '.github/remediation-export-trigger.txt'
       - '.github/workflows/export-remediation-source.yml'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  publish-task5:
-    if: github.event.pull_request.head.repo.full_name == github.repository
+  export-source:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 12
     steps:
-      - name: Checkout do branch da remediação
+      - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
-          fetch-depth: 0
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
 
-      - name: Reconstruir e aplicar patches já validados
-        shell: bash
-        run: |
-          set -euo pipefail
-          cat .github/task5-readiness.part00 \
-              .github/task5-readiness.part01 \
-              .github/task5-readiness.part02 \
-              .github/task5-readiness.part03 \
-              .github/task5-readiness.part04 \
-              .github/task5-readiness.part05 > "$RUNNER_TEMP/task5.patch.gz.b64"
-          printf '%s  %s\n' '018c816f4b185af439997858fce791c168c2a12a9b02c89951a2b8e03db8cfe2' "$RUNNER_TEMP/task5.patch.gz.b64" | sha256sum -c -
-          base64 --decode "$RUNNER_TEMP/task5.patch.gz.b64" | gzip -dc > "$RUNNER_TEMP/task5.patch"
-          printf '%s  %s\n' 'bdf7e2ff908ca21e15c96a60318e12e70612d968eaf298d96f70a47263214cea' "$RUNNER_TEMP/task5.patch" | sha256sum -c -
-          printf '%s  %s\n' '4e868b4495db44f59627db8064a72c703da3465c02232fffd84d152162522b01' '.github/task5-audit-fix.patch' | sha256sum -c -
-          git apply --check -p1 "$RUNNER_TEMP/task5.patch"
-          git apply -p1 "$RUNNER_TEMP/task5.patch"
-          git apply --check .github/task5-audit-fix.patch
-          git apply .github/task5-audit-fix.patch
-          git diff --check
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
 
-      - name: Remover arquivos temporários de transporte
-        shell: bash
+      - name: Empacotar código-fonte e dependências
         run: |
-          set -euo pipefail
-          rm -f .github/task5-readiness.part00 \
-                .github/task5-readiness.part01 \
-                .github/task5-readiness.part02 \
-                .github/task5-readiness.part03 \
-                .github/task5-readiness.part04 \
-                .github/task5-readiness.part05 \
-                .github/task5-audit-fix.patch \
-                .github/task5-diagnostics.txt \
-                .github/task5-unit-diagnostics.txt \
-                .github/task5-flaky-unit-diagnostics.txt \
-                .github/task5-publication-unit-failure.txt
+          tar \
+            --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='playwright-report' \
+            --exclude='test-results' \
+            -czf "$RUNNER_TEMP/radar-remediation-source.tar.gz" .
+          tar -czf "$RUNNER_TEMP/radar-remediation-node-modules.tar.gz" node_modules
 
-      - name: Publicar código funcional validado
-        shell: bash
-        env:
-          HEAD_REF: ${{ github.event.pull_request.head.ref }}
-        run: |
-          set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A -- ':!.github/workflows/**'
-          git diff --cached --check
-          git diff --cached --stat
-          git commit -m 'fix: tornar estado remoto autoritativo e atualizar gates'
-          git push origin "HEAD:${HEAD_REF}"
+      - name: Publicar código-fonte temporário
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: radar-remediation-source-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/radar-remediation-source.tar.gz
+            ${{ runner.temp }}/radar-remediation-node-modules.tar.gz
+          if-no-files-found: error
+          retention-days: 1
