@@ -459,9 +459,14 @@
                 );
             }
             validateRecords('verifications', [input.verification], 'saveVerificationWithLog');
-            if (input.administrativeLog) {
-                validateRecords('administrativeLogs', [input.administrativeLog], 'saveVerificationWithLog');
+            if (!input.administrativeLog || typeof input.administrativeLog !== 'object') {
+                throw new RepositoryError(
+                    'VALIDATION_FAILED',
+                    'A RPC de verificação exige o log administrativo da operação.',
+                    { operation: 'saveVerificationWithLog' }
+                );
             }
+            validateRecords('administrativeLogs', [input.administrativeLog], 'saveVerificationWithLog');
             return this.executeRpc('save_verification_with_log', {
                 p_verification: cloneValue(input.verification),
                 p_expected_version: input.expectedVersion ?? null,
@@ -469,6 +474,133 @@
                     ? cloneValue(input.administrativeLog)
                     : null
             }, 'saveVerificationWithLog');
+        }
+
+        async savePendencyCommand(input = {}) {
+            const operation = String(input.operation || '');
+            if (!['open', 'register_attempt', 'update_status'].includes(operation)) {
+                throw new RepositoryError(
+                    'VALIDATION_FAILED',
+                    'Operação de pendência não reconhecida.',
+                    { operation: 'savePendencyCommand' }
+                );
+            }
+            if (!input.pendency || typeof input.pendency !== 'object'
+                || !input.administrativeLog || typeof input.administrativeLog !== 'object') {
+                throw new RepositoryError(
+                    'VALIDATION_FAILED',
+                    'A RPC de pendência exige o registro e o log administrativo.',
+                    { operation: 'savePendencyCommand' }
+                );
+            }
+            validateRecords('pendencies', [input.pendency], 'savePendencyCommand');
+            validateRecords('administrativeLogs', [input.administrativeLog], 'savePendencyCommand');
+            if (input.attempt) validateRecords('pendencyAttempts', [input.attempt], 'savePendencyCommand');
+            if (input.verification) validateRecords('verifications', [input.verification], 'savePendencyCommand');
+            return this.executeRpc('save_pendency_command', {
+                p_operation: operation,
+                p_pendency: cloneValue(input.pendency),
+                p_expected_pendency_version: input.expectedPendencyVersion ?? null,
+                p_attempt: input.attempt ? cloneValue(input.attempt) : null,
+                p_verification: input.verification ? cloneValue(input.verification) : null,
+                p_expected_verification_version: input.expectedVerificationVersion ?? null,
+                p_administrative_log: cloneValue(input.administrativeLog)
+            }, 'savePendencyCommand');
+        }
+
+        async savePendencyContactWithLog(input = {}) {
+            if (!input.contact || typeof input.contact !== 'object') {
+                throw new RepositoryError(
+                    'VALIDATION_FAILED',
+                    'A RPC de contato exige o registro canônico do contato.',
+                    { operation: 'savePendencyContactWithLog' }
+                );
+            }
+            if (!input.operationId) {
+                throw new RepositoryError(
+                    'VALIDATION_FAILED',
+                    'A RPC de contato exige um identificador idempotente da operação.',
+                    { operation: 'savePendencyContactWithLog' }
+                );
+            }
+            if (!input.administrativeLog || typeof input.administrativeLog !== 'object') {
+                throw new RepositoryError(
+                    'VALIDATION_FAILED',
+                    'A RPC de contato exige o log administrativo da operação.',
+                    { operation: 'savePendencyContactWithLog' }
+                );
+            }
+            validateRecords('pendencyContacts', [input.contact], 'savePendencyContactWithLog');
+            validateRecords('administrativeLogs', [input.administrativeLog], 'savePendencyContactWithLog');
+            return this.executeRpc('save_pendency_contact_with_log', {
+                p_contact: cloneValue(input.contact),
+                p_operation_id: String(input.operationId),
+                p_administrative_log: cloneValue(input.administrativeLog)
+            }, 'savePendencyContactWithLog');
+        }
+
+        async saveProgramWithLog(input = {}) {
+            if (!input.program || typeof input.program !== 'object'
+                || !input.administrativeLog || typeof input.administrativeLog !== 'object') {
+                throw new RepositoryError('VALIDATION_FAILED', 'Programa e log são obrigatórios.', {
+                    operation: 'saveProgramWithLog'
+                });
+            }
+            validateRecords('programs', [input.program], 'saveProgramWithLog');
+            validateRecords('administrativeLogs', [input.administrativeLog], 'saveProgramWithLog');
+            return this.executeRpc('save_program_with_log', {
+                p_program: cloneValue(input.program),
+                p_expected_version: input.expectedVersion ?? null,
+                p_administrative_log: cloneValue(input.administrativeLog)
+            }, 'saveProgramWithLog');
+        }
+
+        async saveCalendarWithLog(input = {}) {
+            if (!input.appConfig || typeof input.appConfig !== 'object'
+                || !input.administrativeLog || typeof input.administrativeLog !== 'object') {
+                throw new RepositoryError('VALIDATION_FAILED', 'Calendário e log são obrigatórios.', {
+                    operation: 'saveCalendarWithLog'
+                });
+            }
+            validateRecords('appConfig', [input.appConfig], 'saveCalendarWithLog');
+            validateRecords('administrativeLogs', [input.administrativeLog], 'saveCalendarWithLog');
+            return this.executeRpc('save_calendar_with_log', {
+                p_config: cloneValue(input.appConfig),
+                p_expected_version: input.expectedVersion ?? null,
+                p_administrative_log: cloneValue(input.administrativeLog)
+            }, 'saveCalendarWithLog');
+        }
+
+        async assignControllerWithLog(input = {}) {
+            if (!Array.isArray(input.schools) || input.schools.length === 0
+                || !input.administrativeLog || typeof input.administrativeLog !== 'object') {
+                throw new RepositoryError('VALIDATION_FAILED', 'Escolas e log são obrigatórios na redistribuição.', {
+                    operation: 'assignControllerWithLog'
+                });
+            }
+            validateRecords('administrativeLogs', [input.administrativeLog], 'assignControllerWithLog');
+            return this.executeRpc('assign_controller_with_log', {
+                p_schools: cloneValue(input.schools),
+                p_administrative_log: cloneValue(input.administrativeLog)
+            }, 'assignControllerWithLog');
+        }
+
+        async saveAssetWithLog(input = {}) {
+            if (!input.asset || typeof input.asset !== 'object'
+                || !input.administrativeLog || typeof input.administrativeLog !== 'object') {
+                throw new RepositoryError(
+                    'VALIDATION_FAILED',
+                    'A RPC patrimonial exige o bem e o log administrativo.',
+                    { operation: 'saveAssetWithLog' }
+                );
+            }
+            validateRecords('assets', [input.asset], 'saveAssetWithLog');
+            validateRecords('administrativeLogs', [input.administrativeLog], 'saveAssetWithLog');
+            return this.executeRpc('save_asset_with_log', {
+                p_asset: cloneValue(input.asset),
+                p_expected_version: input.expectedVersion ?? null,
+                p_administrative_log: cloneValue(input.administrativeLog)
+            }, 'saveAssetWithLog');
         }
 
         async saveInvoiceWithEffects(input = {}) {
@@ -510,30 +642,61 @@
         }
 
         async saveExerciseWithCompetences(input = {}) {
+            if (!input.administrativeLog) {
+                throw new RepositoryError(
+                    'VALIDATION_FAILED',
+                    'A criação de exercício exige histórico administrativo atômico.',
+                    { operation: 'saveExerciseWithCompetences' }
+                );
+            }
+            validateRecords('appConfig', [input.appConfig || {}], 'saveExerciseWithCompetences');
+            validateRecords('competences', input.competences || [], 'saveExerciseWithCompetences');
+            validateRecords('administrativeLogs', [input.administrativeLog], 'saveExerciseWithCompetences');
             return this.executeRpc('save_exercise_with_competences', {
                 p_config: cloneValue(input.appConfig || {}),
                 p_competences: cloneValue(input.competences || []),
-                p_administrative_log: input.administrativeLog ? cloneValue(input.administrativeLog) : null
+                p_administrative_log: cloneValue(input.administrativeLog)
             }, 'saveExerciseWithCompetences');
         }
 
         async saveSchoolWithPrograms(input = {}) {
+            if (!input.administrativeLog) {
+                throw new RepositoryError(
+                    'VALIDATION_FAILED',
+                    'A gravação de escola exige histórico administrativo atômico.',
+                    { operation: 'saveSchoolWithPrograms' }
+                );
+            }
+            validateRecords('schools', [input.school || {}], 'saveSchoolWithPrograms');
+            validateRecords('schoolPrograms', input.programs || [], 'saveSchoolWithPrograms');
+            validateRecords('administrativeLogs', [input.administrativeLog], 'saveSchoolWithPrograms');
             return this.executeRpc('save_school_with_programs', {
                 p_school: cloneValue(input.school || {}),
                 p_programs: cloneValue(input.programs || []),
                 p_expected_school_version: input.expectedSchoolVersion ?? null,
-                p_administrative_log: input.administrativeLog ? cloneValue(input.administrativeLog) : null
+                p_administrative_log: cloneValue(input.administrativeLog)
             }, 'saveSchoolWithPrograms');
         }
 
         async reanalyzePendencyWithVerification(input = {}) {
+            if (!input.administrativeLog) {
+                throw new RepositoryError(
+                    'VALIDATION_FAILED',
+                    'A reanálise exige histórico administrativo atômico.',
+                    { operation: 'reanalyzePendencyWithVerification' }
+                );
+            }
+            validateRecords('pendencies', [input.pendency || {}], 'reanalyzePendencyWithVerification');
+            if (input.attempt) validateRecords('pendencyAttempts', [input.attempt], 'reanalyzePendencyWithVerification');
+            validateRecords('verifications', [input.verification || {}], 'reanalyzePendencyWithVerification');
+            validateRecords('administrativeLogs', [input.administrativeLog], 'reanalyzePendencyWithVerification');
             return this.executeRpc('reanalyze_pendency_with_verification', {
                 p_pendency: cloneValue(input.pendency || {}),
                 p_attempt: input.attempt ? cloneValue(input.attempt) : null,
                 p_verification_patch: cloneValue(input.verification || {}),
                 p_expected_pendency_version: input.expectedPendencyVersion ?? null,
                 p_expected_verification_version: input.expectedVerificationVersion ?? null,
-                p_administrative_log: input.administrativeLog ? cloneValue(input.administrativeLog) : null
+                p_administrative_log: cloneValue(input.administrativeLog)
             }, 'reanalyzePendencyWithVerification');
         }
 

@@ -261,7 +261,10 @@
                 prazoBonificacaoProrrogado: Object.prototype.hasOwnProperty.call(config, 'prazoBonificacaoProrrogado')
                     ? cloneValue(config.prazoBonificacaoProrrogado)
                     : false
-            }
+            },
+            ...(Number.isInteger(config.rowVersion || config.row_version)
+                ? { row_version: config.rowVersion || config.row_version }
+                : {})
         });
 
         entities.programs = array(state.programs).flatMap((program, index) => {
@@ -274,7 +277,10 @@
                 id,
                 name: text(program.name) || id,
                 description: text(program.description || program.desc),
-                active: program.active !== false
+                active: program.active !== false,
+                ...(Number.isInteger(program.rowVersion || program.row_version)
+                    ? { row_version: program.rowVersion || program.row_version }
+                    : {})
             }];
         });
 
@@ -334,7 +340,10 @@
                 controller_id: text(school.controladorId) || null,
                 inventory_process: text(school.processoInventario),
                 initial_competence: text(school.competenciaInicial) || null,
-                active: school.active !== false
+                active: school.active !== false,
+                ...(Number.isInteger(school.rowVersion || school.row_version)
+                    ? { row_version: school.rowVersion || school.row_version }
+                    : {})
             }];
         });
 
@@ -470,6 +479,8 @@
                 status,
                 inventory_process: text(asset.processoInventario || asset.inventory_process),
                 notes: text(asset.observacoes || asset.observacao || asset.notes),
+                inventoried_by_member_id: text(asset.inventariadorId || asset.inventoried_by_member_id) || null,
+                inventoried_at: normalizeTimestamp(asset.dataInventariacao || asset.inventoried_at),
                 payload: cloneValue(asset),
                 ...(Number.isInteger(asset.rowVersion || asset.row_version)
                     ? { row_version: asset.rowVersion || asset.row_version }
