@@ -19,6 +19,7 @@ declare
     v_competence_id text := nullif(p_verification ->> 'competence_id', '');
     v_program_id text := nullif(p_verification ->> 'program_id', '');
     v_log_school_id text;
+    v_role text := public.current_app_role();
     v_existing public.verifications%rowtype;
     v_saved public.verifications%rowtype;
     v_log public.administrative_logs%rowtype;
@@ -31,8 +32,19 @@ begin
         raise exception 'VALIDATION_ERROR: verificação canônica inválida';
     end if;
 
+    if v_role not in ('controller', 'federal_assistant', 'technical_admin') then
+        raise exception 'AUTHORIZATION_DENIED: perfil sem permissão para verificações';
+    end if;
+
     if not public.can_write_school(v_school_id) then
         raise exception 'AUTHORIZATION_DENIED: usuário sem escrita para a escola %', v_school_id;
+    end if;
+
+    if p_administrative_log is null
+        or jsonb_typeof(p_administrative_log) <> 'object'
+        or nullif(p_administrative_log ->> 'id', '') is null
+        or nullif(p_administrative_log ->> 'action', '') is null then
+        raise exception 'VALIDATION_ERROR: log administrativo obrigatório e inválido';
     end if;
 
     if not public.radar_jsonb_matches(
@@ -117,50 +129,42 @@ begin
         returning * into v_saved;
     end if;
 
-    if p_administrative_log is not null then
-        if jsonb_typeof(p_administrative_log) <> 'object'
-            or nullif(p_administrative_log ->> 'id', '') is null
-            or nullif(p_administrative_log ->> 'action', '') is null then
-            raise exception 'VALIDATION_ERROR: log administrativo inválido';
-        end if;
-
-        v_log_school_id := nullif(p_administrative_log ->> 'school_id', '');
-        if v_log_school_id is not null and v_log_school_id is distinct from v_school_id then
-            raise exception 'VALIDATION_ERROR: log administrativo pertence a outra escola';
-        end if;
-
-        if not public.radar_jsonb_matches(
-            'auditDetails',
-            coalesce(p_administrative_log -> 'details', '{}'::jsonb)
-        ) then
-            raise exception 'VALIDATION_ERROR: detalhes do log administrativo incompatíveis';
-        end if;
-
-        insert into public.administrative_logs (
-            id,
-            school_id,
-            actor_user_id,
-            user_identifier,
-            profile_name,
-            action,
-            details,
-            event_at
-        ) values (
-            p_administrative_log ->> 'id',
-            v_school_id,
-            auth.uid(),
-            coalesce(p_administrative_log ->> 'user_identifier', ''),
-            coalesce(p_administrative_log ->> 'profile_name', public.current_app_role(), ''),
-            p_administrative_log ->> 'action',
-            coalesce(p_administrative_log -> 'details', '{}'::jsonb),
-            coalesce(nullif(p_administrative_log ->> 'event_at', '')::timestamptz, now())
-        )
-        returning * into v_log;
+    v_log_school_id := nullif(p_administrative_log ->> 'school_id', '');
+    if v_log_school_id is not null and v_log_school_id is distinct from v_school_id then
+        raise exception 'VALIDATION_ERROR: log administrativo pertence a outra escola';
     end if;
+
+    if not public.radar_jsonb_matches(
+        'auditDetails',
+        coalesce(p_administrative_log -> 'details', '{}'::jsonb)
+    ) then
+        raise exception 'VALIDATION_ERROR: detalhes do log administrativo incompatíveis';
+    end if;
+
+    insert into public.administrative_logs (
+        id,
+        school_id,
+        actor_user_id,
+        user_identifier,
+        profile_name,
+        action,
+        details,
+        event_at
+    ) values (
+        p_administrative_log ->> 'id',
+        v_school_id,
+        auth.uid(),
+        coalesce(p_administrative_log ->> 'user_identifier', ''),
+        coalesce(p_administrative_log ->> 'profile_name', v_role, ''),
+        p_administrative_log ->> 'action',
+        coalesce(p_administrative_log -> 'details', '{}'::jsonb),
+        coalesce(nullif(p_administrative_log ->> 'event_at', '')::timestamptz, now())
+    )
+    returning * into v_log;
 
     return jsonb_build_object(
         'verification', to_jsonb(v_saved),
-        'administrative_log', case when v_log.id is null then null else to_jsonb(v_log) end
+        'administrative_log', to_jsonb(v_log)
     );
 end
 $$;
