@@ -120,19 +120,32 @@ jobs:
       - name: Instalar dependências reproduzíveis
         run: npm ci
 
-      - name: Executar verificação integral da Etapa 5
-        shell: bash
-        run: |
-          set -euo pipefail
-          npm run check
-          npm run test:unit
-          npm run test:integration
-          npm run check:supabase
-          npm run check:supabase-final
-          npm run check:generated
-          npm run typecheck:database
-          npm run audit:functional
-          git diff --check
+      - name: Gate — check
+        run: npm run check
+
+      - name: Gate — testes unitários
+        run: npm run test:unit
+
+      - name: Gate — testes de integração
+        run: npm run test:integration
+
+      - name: Gate — contrato Supabase
+        run: npm run check:supabase
+
+      - name: Gate — alinhamento final Supabase
+        run: npm run check:supabase-final
+
+      - name: Gate — artefatos gerados
+        run: npm run check:generated
+
+      - name: Gate — tipos do banco
+        run: npm run typecheck:database
+
+      - name: Gate — auditoria funcional
+        run: npm run audit:functional
+
+      - name: Gate — integridade do diff
+        run: git diff --check
 
       - name: Publicar somente após sucesso integral
         shell: bash
