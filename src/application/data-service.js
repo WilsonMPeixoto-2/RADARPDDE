@@ -44,12 +44,119 @@
     const { toRepositoryError } = errorMapper;
     const { UnitOfWork } = unitOfWorkApi;
     const { assertCanonicalRecords } = jsonContracts;
+    const GENERATED_INSERT_FIELDS = Object.freeze(['row_version', 'created_at', 'updated_at']);
+    const VOLATILE_COMPARISON_FIELDS = Object.freeze(['row_version', 'created_at', 'updated_at']);
 
     function assertSnapshotJson(snapshot, operation) {
         for (const [entity, records] of Object.entries(snapshot?.entities || {})) {
             assertCanonicalRecords(entity, records, { operation });
         }
         return snapshot;
+    }
+
+    function normalizedRecords(records) {
+        return Array.isArray(records) ? records : [];
+    }
+
+    function recordId(record) {
+        const id = record?.id;
+        return id === undefined || id === null || id === '' ? null : String(id);
+    }
+
+    function comparableRecord(record) {
+        const value = cloneValue(record || {});
+        VOLATILE_COMPARISON_FIELDS.forEach(field => delete value[field]);
+        return value;
+    }
+
+    function stableValue(value) {
+        if (Array.isArray(value)) return value.map(stableValue);
+        if (!value || typeof value !== 'object') return value;
+        return Object.keys(value).sort().reduce((result, key) => {
+            result[key] = stableValue(value[key]);
+            return result;
+        }, {});
+    }
+
+    function recordsDiffer(left, right) {
+        return JSON.stringify(stableValue(comparableRecord(left)))
+            !== JSON.stringify(stableValue(comparableRecord(right)));
+    }
+
+    function diffRecords(beforeRecords, afterRecords) {
+        const before = normalizedRecords(beforeRecords);
+        const after = normalizedRecords(afterRecords);
+        const beforeById = new Map();
+        const afterById = new Map();
+
+        before.forEach(record => {
+            const id = recordId(record);
+            if (id) beforeById.set(id, record);
+        });
+        after.forEach(record => {
+            const id = recordId(record);
+            if (id) afterById.set(id, record);
+        });
+
+        const added = [];
+        const updated = [];
+        const removed = [];
+
+        after.forEach(record => {
+            const id = recordId(record);
+            if (!id || !beforeById.has(id)) {
+                added.push(record);
+                return;
+            }
+            if (recordsDiffer(beforeById.get(id), record)) updated.push(record);
+        });
+
+        before.forEach(record => {
+            const id = recordId(record);
+            if (id && !afterById.has(id)) removed.push(record);
+        });
+
+        return { added, updated, removed };
+    }
+
+    function prepareInsertRecord(record) {
+        const value = cloneValue(record || {});
+        GENERATED_INSERT_FIELDS.forEach(field => {
+            const empty = value[field] === null || value[field] === undefined || value[field] === '';
+            const invalidVersion = field === 'row_version'
+                && (!Number.isInteger(value[field]) || value[field] <= 0);
+            if (empty || invalidVersion) delete value[field];
+        });
+        return value;
+    }
+
+    async function persistInsert(repository, entity, records) {
+        const prepared = normalizedRecords(records).map(prepareInsertRecord);
+        if (prepared.length === 0) return;
+        if (typeof repository.insertOnly === 'function') {
+            await repository.insertOnly(entity, prepared);
+            return;
+        }
+        await repository.save(entity, prepared);
+    }
+
+    async function persistRemoteEntity(repository, entity, beforeRecords, afterRecords) {
+        const changes = diffRecords(beforeRecords, afterRecords);
+
+        if (entity === 'administrativeLogs') {
+            await persistInsert(repository, entity, changes.added);
+            return changes;
+        }
+
+        await persistInsert(repository, entity, changes.added);
+        if (changes.updated.length > 0) {
+            await repository.save(entity, changes.updated);
+        }
+        for (const record of changes.removed) {
+            const id = recordId(record);
+            if (id) await repository.remove(entity, id);
+        }
+        return changes;
     }
 
     class DataService {
@@ -192,6 +299,24 @@
             }
         }
 
+        async captureRemoteEntities(changedEntities) {
+            const entities = {};
+            for (const entity of changedEntities) {
+                entities[entity] = await this.repository.load(entity);
+            }
+            return { entities };
+        }
+
+        async refreshRemoteEntities(snapshot, changedEntities) {
+            const refreshed = cloneValue(snapshot);
+            for (const entity of changedEntities) {
+                refreshed.entities[entity] = await this.repository.load(entity);
+            }
+            assertSnapshotJson(refreshed, 'refreshRemoteEntities');
+            await this.statePort.applyCanonical(refreshed);
+            return refreshed;
+        }
+
         async execute(command = {}) {
             if (typeof command.mutate !== 'function') {
                 throw new RepositoryError(
@@ -209,13 +334,26 @@
                 );
             }
             changedEntities.forEach(assertKnownEntity);
-            const beforeRepository = await this.repository.exportSnapshot({ includeEmpty: true });
+            const capabilities = this.repository.capabilities();
+            const remote = capabilities.remote === true;
+            const beforeRepository = remote
+                ? await this.captureRemoteEntities(changedEntities)
+                : await this.repository.exportSnapshot({ includeEmpty: true });
 
             try {
                 const defaultPersist = async ({ snapshot }) => {
                     assertSnapshotJson(snapshot, String(command.name || 'data-command'));
                     for (const entity of changedEntities) {
-                        await this.repository.save(entity, snapshot.entities[entity] || []);
+                        if (remote) {
+                            await persistRemoteEntity(
+                                this.repository,
+                                entity,
+                                beforeRepository.entities?.[entity] || [],
+                                snapshot.entities?.[entity] || []
+                            );
+                        } else {
+                            await this.repository.save(entity, snapshot.entities?.[entity] || []);
+                        }
                     }
                 };
                 const result = await this.unitOfWork.run({
@@ -232,12 +370,33 @@
                         });
                     }
                 });
+
+                let committedSnapshot = result.snapshot;
+                if (remote) {
+                    try {
+                        committedSnapshot = await this.refreshRemoteEntities(result.snapshot, changedEntities);
+                    } catch (refreshError) {
+                        committedSnapshot = result.snapshot;
+                    }
+                }
+
                 return {
                     ok: true,
                     value: cloneValue(result.value),
-                    snapshot: cloneValue(result.snapshot)
+                    snapshot: cloneValue(committedSnapshot)
                 };
             } catch (error) {
+                if (remote) {
+                    if (error instanceof RepositoryError
+                        && error.details?.unitOfWorkPhase === 'mutate') {
+                        throw error;
+                    }
+                    throw toRepositoryError(error, {
+                        operation: String(command.name || 'data-command'),
+                        message: error?.message || 'A gravação no Supabase não pôde ser concluída.'
+                    });
+                }
+
                 let rollbackError = null;
                 try {
                     await this.repository.restoreSnapshot(beforeRepository, { replace: true });
