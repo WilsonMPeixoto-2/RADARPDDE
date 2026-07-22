@@ -1,66 +1,48 @@
-name: Apply verified Task 4 patch
+name: Export remediation source
 
 on:
   pull_request:
     paths:
-      - '.github/task4-patch.part00'
-      - '.github/task4-patch.part01'
-      - '.github/task4-patch.part02'
-      - '.github/task4-patch.part03'
-      - '.github/task4-patch.part04'
+      - '.github/remediation-export-trigger.txt'
       - '.github/workflows/export-remediation-source.yml'
-      - '.github/workflows/apply-task4-patch.yml'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  apply-task4:
-    if: github.event.pull_request.head.repo.full_name == github.repository
+  export-source:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
-      - name: Checkout da branch do PR
+      - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
-          fetch-depth: 0
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
 
-      - name: Reconstruir fragmentos
-        shell: bash
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+
+      - name: Empacotar código-fonte e dependências
         run: |
-          set -euo pipefail
-          for part in .github/task4-patch.part00 .github/task4-patch.part01 .github/task4-patch.part02 .github/task4-patch.part03 .github/task4-patch.part04; do
-            test -f "$part"
-          done
-          cat .github/task4-patch.part00 .github/task4-patch.part01 .github/task4-patch.part02 .github/task4-patch.part03 .github/task4-patch.part04 > /tmp/task4.patch.gz.b64
-          wc -c /tmp/task4.patch.gz.b64
-          sha256sum /tmp/task4.patch.gz.b64
+          tar \
+            --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='playwright-report' \
+            --exclude='test-results' \
+            -czf "$RUNNER_TEMP/radar-remediation-source.tar.gz" .
+          tar -czf "$RUNNER_TEMP/radar-remediation-node-modules.tar.gz" node_modules
 
-      - name: Verificar hash dos fragmentos
-        run: echo '9fa9d25592f25aa14ffade10845339a96337b4eaa572efb40f45fac2ead612ee  /tmp/task4.patch.gz.b64' | sha256sum --check --strict
-
-      - name: Decodificar patch
-        run: base64 --decode /tmp/task4.patch.gz.b64 | gzip -dc > /tmp/task4.patch
-
-      - name: Verificar hash do patch
-        run: echo 'add8f02b7f339b96ddef772f4eefd74186442317cdf74953dd5d5b55f666263d  /tmp/task4.patch' | sha256sum --check --strict
-
-      - name: Verificar compatibilidade do patch
-        run: git apply --check -p1 /tmp/task4.patch
-
-      - name: Aplicar, auditar e publicar a Task 4
-        shell: bash
-        run: |
-          set -euo pipefail
-          git apply -p1 /tmp/task4.patch
-          rm -f .github/task4-patch.part00 .github/task4-patch.part01 .github/task4-patch.part02 .github/task4-patch.part03 .github/task4-patch.part04
-          rm -f .github/task4-operational-commands.patch.gz.b64
-          rm -f .github/workflows/apply-task4-patch.yml
-          git diff --check
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          git diff --cached --check
-          git commit -m 'feat: adicionar comandos operacionais atômicos'
-          git push origin HEAD:${{ github.event.pull_request.head.ref }}
+      - name: Publicar código-fonte temporário
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: radar-remediation-source-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/radar-remediation-source.tar.gz
+            ${{ runner.temp }}/radar-remediation-node-modules.tar.gz
+          if-no-files-found: error
+          retention-days: 1
