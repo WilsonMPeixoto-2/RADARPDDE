@@ -1,0 +1,36 @@
+name: Export remediation source
+
+on:
+  push:
+    branches:
+      - fix/supabase-integral-remediation
+    paths:
+      - '.github/remediation-export-trigger.txt'
+
+permissions:
+  contents: read
+
+jobs:
+  export-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Empacotar código-fonte da branch
+        run: |
+          tar \
+            --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='playwright-report' \
+            --exclude='test-results' \
+            -czf radar-remediation-source.tar.gz .
+
+      - name: Publicar código-fonte temporário
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: radar-remediation-source-${{ github.sha }}
+          path: radar-remediation-source.tar.gz
+          if-no-files-found: error
+          retention-days: 1
