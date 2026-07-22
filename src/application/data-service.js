@@ -299,6 +299,14 @@
             }
         }
 
+        async captureRemoteEntities(changedEntities) {
+            const entities = {};
+            for (const entity of changedEntities) {
+                entities[entity] = await this.repository.load(entity);
+            }
+            return { entities };
+        }
+
         async refreshRemoteEntities(snapshot, changedEntities) {
             const refreshed = cloneValue(snapshot);
             for (const entity of changedEntities) {
@@ -328,7 +336,9 @@
             changedEntities.forEach(assertKnownEntity);
             const capabilities = this.repository.capabilities();
             const remote = capabilities.remote === true;
-            const beforeRepository = await this.repository.exportSnapshot({ includeEmpty: true });
+            const beforeRepository = remote
+                ? await this.captureRemoteEntities(changedEntities)
+                : await this.repository.exportSnapshot({ includeEmpty: true });
 
             try {
                 const defaultPersist = async ({ snapshot }) => {
