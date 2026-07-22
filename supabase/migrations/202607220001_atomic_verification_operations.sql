@@ -18,6 +18,7 @@ declare
     v_school_id text := nullif(p_verification ->> 'school_id', '');
     v_competence_id text := nullif(p_verification ->> 'competence_id', '');
     v_program_id text := nullif(p_verification ->> 'program_id', '');
+    v_log_school_id text;
     v_existing public.verifications%rowtype;
     v_saved public.verifications%rowtype;
     v_log public.administrative_logs%rowtype;
@@ -123,7 +124,8 @@ begin
             raise exception 'VALIDATION_ERROR: log administrativo inválido';
         end if;
 
-        if nullif(p_administrative_log ->> 'school_id', '') is distinct from v_school_id then
+        v_log_school_id := nullif(p_administrative_log ->> 'school_id', '');
+        if v_log_school_id is not null and v_log_school_id is distinct from v_school_id then
             raise exception 'VALIDATION_ERROR: log administrativo pertence a outra escola';
         end if;
 
