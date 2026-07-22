@@ -69,8 +69,18 @@
         return value;
     }
 
+    function stableValue(value) {
+        if (Array.isArray(value)) return value.map(stableValue);
+        if (!value || typeof value !== 'object') return value;
+        return Object.keys(value).sort().reduce((result, key) => {
+            result[key] = stableValue(value[key]);
+            return result;
+        }, {});
+    }
+
     function recordsDiffer(left, right) {
-        return JSON.stringify(comparableRecord(left)) !== JSON.stringify(comparableRecord(right));
+        return JSON.stringify(stableValue(comparableRecord(left)))
+            !== JSON.stringify(stableValue(comparableRecord(right)));
     }
 
     function diffRecords(beforeRecords, afterRecords) {
@@ -112,9 +122,10 @@
     function prepareInsertRecord(record) {
         const value = cloneValue(record || {});
         GENERATED_INSERT_FIELDS.forEach(field => {
-            if (value[field] === null || value[field] === undefined || value[field] === '') {
-                delete value[field];
-            }
+            const empty = value[field] === null || value[field] === undefined || value[field] === '';
+            const invalidVersion = field === 'row_version'
+                && (!Number.isInteger(value[field]) || value[field] <= 0);
+            if (empty || invalidVersion) delete value[field];
         });
         return value;
     }
