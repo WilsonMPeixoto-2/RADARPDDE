@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
-select plan(13);
+select plan(15);
 
 insert into auth.users (id, email)
 values ('00000000-0000-0000-0000-000000000922', 'verification-rpc@example.test');
@@ -140,6 +140,27 @@ select is(
     (select count(*)::integer from public.administrative_logs where id = 'VRPC-BAD-LOG'),
     0,
     'log inválido também não fica gravado'
+);
+
+select throws_ok($$
+    select public.save_verification_with_log(
+        '{
+            "id":"VRPC-SCHOOL::2032-05::VRPC_BASIC-NOLOG",
+            "school_id":"VRPC-SCHOOL",
+            "competence_id":"2032-05",
+            "program_id":"VRPC_BASIC",
+            "bonification":{},
+            "analysis":{},
+            "payload":{}
+        }'::jsonb,
+        null,
+        null
+    )
+$$, 'P0001', 'VALIDATION_ERROR: log administrativo obrigatório e inválido', 'log administrativo é obrigatório');
+select is(
+    (select count(*)::integer from public.verifications where id = 'VRPC-SCHOOL::2032-05::VRPC_BASIC-NOLOG'),
+    0,
+    'ausência de log não deixa verificação parcial'
 );
 
 set local role anon;
