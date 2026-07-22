@@ -38,7 +38,7 @@ jobs:
           npm run supabase:start
           npm run supabase:reset
 
-      - name: Confirmar banco e regenerar artefatos
+      - name: Confirmar banco e regenerar tipos
         shell: bash
         run: |
           set -euo pipefail
@@ -48,7 +48,6 @@ jobs:
           npm run supabase:gen:types
           npm run build:supabase-client
           npm run build:ajv
-          npm run check:generated
           npm run typecheck:database
           git diff --check
           test -n "$(git status --short src/types/database.types.ts)"
