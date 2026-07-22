@@ -12,12 +12,22 @@ permissions:
 jobs:
   export-source:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 12
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
-      - name: Empacotar código-fonte da branch
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+
+      - name: Empacotar código-fonte e dependências
         run: |
           tar \
             --exclude='.git' \
@@ -25,11 +35,14 @@ jobs:
             --exclude='playwright-report' \
             --exclude='test-results' \
             -czf "$RUNNER_TEMP/radar-remediation-source.tar.gz" .
+          tar -czf "$RUNNER_TEMP/radar-remediation-node-modules.tar.gz" node_modules
 
       - name: Publicar código-fonte temporário
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: radar-remediation-source-${{ github.sha }}
-          path: ${{ runner.temp }}/radar-remediation-source.tar.gz
+          path: |
+            ${{ runner.temp }}/radar-remediation-source.tar.gz
+            ${{ runner.temp }}/radar-remediation-node-modules.tar.gz
           if-no-files-found: error
           retention-days: 1
