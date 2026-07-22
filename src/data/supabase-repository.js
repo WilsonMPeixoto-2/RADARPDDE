@@ -156,7 +156,11 @@
     function repositoryError(error, options = {}) {
         if (error instanceof RepositoryError) return error;
         const classified = classifyRemoteError(error);
-        const message = String(error?.message || options.message || 'Falha na operação Supabase.');
+        const causeMessage = String(error?.message || '').trim();
+        const contextMessage = String(options.message || '').trim();
+        const message = contextMessage
+            ? `${contextMessage}${causeMessage ? `: ${causeMessage}` : ''}`
+            : (causeMessage || 'Falha na operação Supabase.');
         const mapped = new RepositoryError(classified.code, message, {
             entity: options.entity || null,
             operation: options.operation || null,
@@ -165,6 +169,7 @@
                 status: classified.status,
                 postgresCode: classified.postgresCode || null,
                 requestId: classified.requestId || null,
+                remoteMessage: causeMessage || null,
                 remoteDetails: error?.details || null,
                 hint: error?.hint || null,
                 table: options.table || null,
@@ -218,7 +223,12 @@
                 if (result?.error) throw result.error;
                 return cloneValue(result?.data || []);
             } catch (error) {
-                throw repositoryError(error, { entity, operation, table });
+                throw repositoryError(error, {
+                    entity,
+                    operation,
+                    table,
+                    message: `Falha na operação ${operation} da entidade ${entity}`
+                });
             }
         }
 
@@ -424,16 +434,41 @@
                 return cloneValue(result?.data ?? null);
             } catch (error) {
                 if (error instanceof RepositoryError) throw error;
-                const message = String(error?.message || 'Falha em operação transacional Supabase.');
+                const remoteMessage = String(error?.message || 'Falha em operação transacional Supabase.');
                 let code = classifyRemoteError(error).code;
-                if (message.includes('OPTIMISTIC_CONFLICT')) code = 'OPTIMISTIC_CONFLICT';
-                else if (message.includes('AUTHORIZATION_DENIED')) code = 'PERMISSION_DENIED';
-                else if (message.includes('VALIDATION_ERROR')) code = 'VALIDATION_FAILED';
-                else if (message.includes('NOT_FOUND')) code = 'NOT_FOUND';
-                const mapped = repositoryError(error, { operation, rpc: name, message });
+                if (remoteMessage.includes('OPTIMISTIC_CONFLICT')) code = 'OPTIMISTIC_CONFLICT';
+                else if (remoteMessage.includes('AUTHORIZATION_DENIED')) code = 'PERMISSION_DENIED';
+                else if (remoteMessage.includes('VALIDATION_ERROR')) code = 'VALIDATION_FAILED';
+                else if (remoteMessage.includes('NOT_FOUND')) code = 'NOT_FOUND';
+                const mapped = repositoryError(error, {
+                    operation,
+                    rpc: name,
+                    message: `Falha na operação transacional ${operation}`
+                });
                 mapped.code = code;
                 throw mapped;
             }
+        }
+
+        async saveVerificationWithLog(input = {}) {
+            if (!input.verification || typeof input.verification !== 'object') {
+                throw new RepositoryError(
+                    'VALIDATION_FAILED',
+                    'A RPC de verificação exige o registro canônico da verificação.',
+                    { operation: 'saveVerificationWithLog' }
+                );
+            }
+            validateRecords('verifications', [input.verification], 'saveVerificationWithLog');
+            if (input.administrativeLog) {
+                validateRecords('administrativeLogs', [input.administrativeLog], 'saveVerificationWithLog');
+            }
+            return this.executeRpc('save_verification_with_log', {
+                p_verification: cloneValue(input.verification),
+                p_expected_version: input.expectedVersion ?? null,
+                p_administrative_log: input.administrativeLog
+                    ? cloneValue(input.administrativeLog)
+                    : null
+            }, 'saveVerificationWithLog');
         }
 
         async saveInvoiceWithEffects(input = {}) {
@@ -555,6 +590,7 @@
                 writable: true,
                 canImportLegacy: false,
                 atomicTransactions: false,
+                atomicVerificationLogs: true,
                 atomicInvoiceEffects: true,
                 atomicExerciseCreation: true,
                 atomicSchoolPrograms: true,
