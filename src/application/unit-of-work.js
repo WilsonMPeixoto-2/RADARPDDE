@@ -22,6 +22,18 @@
 
     const { RepositoryError, assertKnownEntity, cloneValue } = contract;
 
+    function isRecoverableLocalCacheError(error) {
+        const name = String(error?.name || '');
+        const code = Number(error?.code || 0);
+        const message = String(error?.message || '').toLowerCase();
+        return name === 'QuotaExceededError'
+            || name === 'NS_ERROR_DOM_QUOTA_REACHED'
+            || code === 22
+            || code === 1014
+            || message.includes('quota has been exceeded')
+            || message.includes('quota exceeded');
+    }
+
     class UnitOfWork {
         constructor(options = {}) {
             this.statePort = options.statePort;
@@ -67,10 +79,14 @@
                     snapshot: cloneValue(snapshot)
                 });
                 phase = 'commit';
-                if (typeof this.statePort.commitCurrent === 'function') {
-                    this.statePort.commitCurrent(snapshot);
-                } else {
-                    await this.statePort.applyCanonical(snapshot);
+                try {
+                    if (typeof this.statePort.commitCurrent === 'function') {
+                        this.statePort.commitCurrent(snapshot);
+                    } else {
+                        await this.statePort.applyCanonical(snapshot);
+                    }
+                } catch (commitError) {
+                    if (!isRecoverableLocalCacheError(commitError)) throw commitError;
                 }
                 return { value: cloneValue(value), snapshot: cloneValue(snapshot) };
             } catch (error) {
