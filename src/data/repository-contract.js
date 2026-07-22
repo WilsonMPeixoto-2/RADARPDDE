@@ -70,11 +70,20 @@
         return entity;
     }
 
+    function jsonCloneValue(value) {
+        return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+    }
+
     function cloneValue(value) {
         if (typeof structuredClone === 'function') {
-            return structuredClone(value);
+            try {
+                return structuredClone(value);
+            } catch (error) {
+                if (String(error?.name || '') !== 'DataCloneError') throw error;
+                return jsonCloneValue(value);
+            }
         }
-        return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+        return jsonCloneValue(value);
     }
 
     function normalizeCollection(value) {
