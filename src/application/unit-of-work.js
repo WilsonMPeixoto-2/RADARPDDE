@@ -72,23 +72,29 @@
                     exportedAt: command.exportedAt || new Date().toISOString()
                 });
                 phase = 'persist';
-                await command.persist({
+                const persisted = await command.persist({
                     name: String(command.name || 'data-command'),
                     changedEntities,
                     value: cloneValue(value),
                     snapshot: cloneValue(snapshot)
                 });
                 phase = 'commit';
-                try {
-                    if (typeof this.statePort.commitCurrent === 'function') {
-                        this.statePort.commitCurrent(snapshot);
-                    } else {
-                        await this.statePort.applyCanonical(snapshot);
+                if (command.deferLocalCommit !== true) {
+                    try {
+                        if (typeof this.statePort.commitCurrent === 'function') {
+                            this.statePort.commitCurrent(snapshot);
+                        } else {
+                            await this.statePort.applyCanonical(snapshot);
+                        }
+                    } catch (commitError) {
+                        if (!isRecoverableLocalCacheError(commitError)) throw commitError;
                     }
-                } catch (commitError) {
-                    if (!isRecoverableLocalCacheError(commitError)) throw commitError;
                 }
-                return { value: cloneValue(value), snapshot: cloneValue(snapshot) };
+                return {
+                    value: cloneValue(value),
+                    snapshot: cloneValue(snapshot),
+                    persisted: cloneValue(persisted)
+                };
             } catch (error) {
                 try {
                     await this.statePort.restore(capture);

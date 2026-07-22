@@ -21,7 +21,9 @@ declare
         '20260721152515',
         '20260721152634',
         '20260721153758',
-        '20260721160056'
+        '20260721160056',
+        '202607220001',
+        '202607220002'
     ];
     v_actual text[];
     v_missing_extensions text[];
@@ -45,6 +47,16 @@ begin
 
     if v_missing_extensions is not null then
         raise exception 'EXTENSION_NOT_INSTALLED: %', array_to_string(v_missing_extensions, ', ');
+    end if;
+
+    if to_regprocedure('public.save_verification_with_log(jsonb,integer,jsonb)') is null
+       or to_regprocedure('public.save_pendency_contact_with_log(jsonb,text,jsonb)') is null
+       or to_regprocedure('public.save_pendency_command(text,jsonb,integer,jsonb,jsonb,integer,jsonb)') is null
+       or to_regprocedure('public.save_asset_with_log(jsonb,integer,jsonb)') is null
+       or to_regprocedure('public.save_program_with_log(jsonb,integer,jsonb)') is null
+       or to_regprocedure('public.save_calendar_with_log(jsonb,integer,jsonb)') is null
+       or to_regprocedure('public.assign_controller_with_log(jsonb,jsonb)') is null then
+        raise exception 'ATOMIC_OPERATIONAL_RPC_MISSING';
     end if;
 
     if to_regprocedure('public.upsert_team_member_account(jsonb,uuid,text,uuid,jsonb)') is null

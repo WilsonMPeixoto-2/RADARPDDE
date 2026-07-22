@@ -16,10 +16,14 @@ const requiredFiles = Object.freeze([
     'supabase/migrations/20260721152634_inventory_capital_section_scope.sql',
     'supabase/migrations/20260721153758_inventory_capital_section_inline_scope.sql',
     'supabase/migrations/20260721160056_inventory_generic_asset_scope_by_cre.sql',
+    'supabase/migrations/202607220001_atomic_verification_operations.sql',
+    'supabase/migrations/202607220002_atomic_operational_commands.sql',
     'supabase/functions/_shared/team-account-domain.mjs',
     'supabase/functions/team-account-management/index.ts',
     'supabase/tests/database/team-management-rpc.test.sql',
     'supabase/tests/database/inventory-capital-rls.test.sql',
+    'supabase/tests/database/verification-rpc.test.sql',
+    'supabase/tests/database/operational-command-rpc.test.sql',
     previewBuildPath,
     'tests/unit/vercel-preview-workflow.test.js',
     'tests/unit/vercel-preview-defaults.test.js'
@@ -147,8 +151,8 @@ function check() {
 
     const migrationCount = fs.readdirSync(path.join(root, 'supabase/migrations'))
         .filter(name => name.endsWith('.sql')).length;
-    if (migrationCount !== 20) {
-        findings.push(`Conjunto final deve conter 20 migrations; encontrado: ${migrationCount}.`);
+    if (migrationCount !== 22) {
+        findings.push(`Conjunto final deve conter 22 migrations; encontrado: ${migrationCount}.`);
     }
 
     return [...new Set(findings)];

@@ -63,7 +63,9 @@ const CONFIG_FIELD_MAP = Object.freeze({
     exercicios: ['app_config.exercises', 'competences.exercise'],
     competenciaFechamento: ['app_config.closing_competence'],
     prazoBonificacaoProrrogado: ['app_config.bonus_deadline_extended', 'app_config.settings'],
-    competencias: ['competences']
+    competencias: ['competences'],
+    rowVersion: ['app_config.row_version'],
+    row_version: ['app_config.row_version']
 });
 
 const INITIALIZATION_MUTATORS = new Set([
@@ -211,6 +213,7 @@ function inspectJavaScript(files) {
     const persistTables = new Set();
     const configFields = new Set();
     const globalDefinitions = new Set();
+    const callbackAliases = new Map();
 
     files.forEach(({ source, file }) => {
         const ast = parseJavaScript(source, file);
@@ -231,6 +234,17 @@ function inspectJavaScript(files) {
                     functionNames.set(node, name);
                     globalDefinitions.add(name);
                     ensureFunctionRecord(functions, name, file, node.loc?.start.line || null);
+                }
+            }
+
+            if (node.type === 'Property' && node.value?.type === 'Identifier') {
+                const alias = node.key?.type === 'Identifier'
+                    ? node.key.name
+                    : (node.key?.type === 'Literal' ? String(node.key.value) : '');
+                const target = node.value.name;
+                if (alias && target && alias !== target) {
+                    if (!callbackAliases.has(alias)) callbackAliases.set(alias, new Set());
+                    callbackAliases.get(alias).add(target);
                 }
             }
         });
@@ -258,7 +272,14 @@ function inspectJavaScript(files) {
             if (node.type !== 'CallExpression') return;
 
             const called = calleeName(node.callee);
-            if (called) record.calls.add(called);
+            if (called) {
+                record.calls.add(called);
+                const aliasTargets = callbackAliases.get(called);
+                if (aliasTargets?.size === 1) {
+                    const [target] = aliasTargets;
+                    if (functions.has(target)) record.calls.add(target);
+                }
+            }
 
             if (called === 'persist' || called === 'persistSingleTableSupabase') {
                 record.directPersistence = true;

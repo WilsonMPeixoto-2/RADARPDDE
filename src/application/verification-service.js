@@ -169,7 +169,9 @@
                     const schoolId = text(input.schoolId);
                     const compKey = text(input.compKey);
                     const documentKey = text(input.documentKey);
-                    const value = text(input.value);
+                    const value = documentKey === 'consEnviada'
+                        ? input.value === true
+                        : text(input.value);
                     const verification = this.getVerification(schoolId, compKey);
                     persistence.schoolId = schoolId;
                     persistence.compKey = compKey;

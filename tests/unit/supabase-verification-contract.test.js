@@ -103,3 +103,17 @@ test('rejeita JSON canônico inválido antes de enviar a gravação', async () =
 
     assert.equal(client.calls.length, 0);
 });
+
+test('RPC de verificação rejeita operação sem log administrativo', async () => {
+    const client = createClient();
+    const repository = new SupabaseRepository({ client });
+
+    await assert.rejects(
+        repository.saveVerificationWithLog({ verification: canonicalVerification() }),
+        error => error?.code === 'VALIDATION_FAILED'
+            && error?.operation === 'saveVerificationWithLog'
+            && /log administrativo/i.test(error?.message || '')
+    );
+
+    assert.equal(client.calls.length, 0);
+});

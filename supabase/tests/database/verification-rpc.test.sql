@@ -142,6 +142,7 @@ select is(
     'log inválido também não fica gravado'
 );
 
+
 select throws_ok($$
     select public.save_verification_with_log(
         '{

@@ -256,3 +256,18 @@ test('retificação usa a mesma RPC atômica com versão e log', async () => {
     assert.equal(harness.rpcCalls[0].administrativeLog.action, 'Consolidação retificada');
     assert.equal(harness.getDefaultPersistCalls(), 0);
 });
+
+
+test('consulta enviada preserva valor booleano e usa RPC atômica', async () => {
+    const harness = createAtomicHarness();
+    await harness.service.setBonification({
+        profile: 'controlador',
+        schoolId: '04.10.001',
+        compKey: '2026-05_BASIC',
+        documentKey: 'consEnviada',
+        value: true
+    });
+    assert.equal(harness.rpcCalls.length, 1);
+    assert.equal(harness.rpcCalls[0].verification.bonification.consEnviada, true);
+    assert.equal(harness.getDefaultPersistCalls(), 0);
+});
