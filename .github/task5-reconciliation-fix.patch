@@ -1,0 +1,78 @@
+diff --git a/src/data/snapshot-tools.js b/src/data/snapshot-tools.js
+index d5b780f..aff55a0 100644
+--- a/src/data/snapshot-tools.js
++++ b/src/data/snapshot-tools.js
+@@ -293,6 +293,18 @@
+         return new Map((records || []).map(record => [String(record.id), record]));
+     }
+ 
++    function canonicalizeReconciliationRecords(entity, records) {
++        return cloneValue(records || [])
++            .map(record => {
++                const normalized = sortObjectKeys(record);
++                if (entity === 'pendencyContacts' && normalized.operation_id == null) {
++                    delete normalized.operation_id;
++                }
++                return normalized;
++            })
++            .sort((left, right) => String(left.id).localeCompare(String(right.id), 'pt-BR'));
++    }
++
+     function reconcileSnapshots(source, target) {
+         assertValidSnapshot(source);
+         assertValidSnapshot(target);
+@@ -305,8 +317,8 @@
+         let ok = true;
+ 
+         entityNames.forEach(entity => {
+-            const sourceRecords = canonicalizeRecords(source.entities[entity] || []);
+-            const targetRecords = canonicalizeRecords(target.entities[entity] || []);
++            const sourceRecords = canonicalizeReconciliationRecords(entity, source.entities[entity] || []);
++            const targetRecords = canonicalizeReconciliationRecords(entity, target.entities[entity] || []);
+             const sourceIndex = indexById(sourceRecords);
+             const targetIndex = indexById(targetRecords);
+             const missingInTarget = [...sourceIndex.keys()]
+diff --git a/tests/unit/snapshot-tools.test.js b/tests/unit/snapshot-tools.test.js
+index bdcde10..baa12a9 100644
+--- a/tests/unit/snapshot-tools.test.js
++++ b/tests/unit/snapshot-tools.test.js
+@@ -141,3 +141,39 @@ test('estima capacidade local, simula crescimento de 163 escolas e identifica ri
+     assert.ok(report.domains.schools.sizeBytes > 0, 'schools sizeBytes é preenchido');
+     assert.equal(report.riskDetected, false, 'risco não detectado para snapshot pequeno e cota padrão');
+ });
++
++test('reconcilia contato legado sem operation_id com retorno remoto nulo', () => {
++    const source = createSnapshot({
++        pendencyContacts: [{
++            id: 'contact-legacy',
++            school_id: 'school-1',
++            pendency_id: null,
++            contact_type: 'E-mail',
++            contact_date: '2032-01-02',
++            description: 'Contato legado'
++        }]
++    }, {
++        version: '1',
++        importId: 'source-operation-id',
++        exportedAt: '2032-01-01T00:00:00.000Z'
++    });
++    const target = createSnapshot({
++        pendencyContacts: [{
++            id: 'contact-legacy',
++            school_id: 'school-1',
++            pendency_id: null,
++            contact_type: 'E-mail',
++            contact_date: '2032-01-02',
++            description: 'Contato legado',
++            operation_id: null
++        }]
++    }, {
++        version: '1',
++        importId: 'target-operation-id',
++        exportedAt: '2032-01-01T00:00:00.000Z'
++    });
++
++    const report = reconcileSnapshots(source, target);
++    assert.equal(report.ok, true);
++    assert.deepEqual(report.entities.pendencyContacts.changed, []);
++});
