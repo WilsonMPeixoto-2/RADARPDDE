@@ -568,6 +568,7 @@ export type Database = {
           description: string
           id: string
           official_charge: boolean
+          operation_id: string | null
           payload: Json
           pendency_id: string | null
           row_version: number
@@ -582,6 +583,7 @@ export type Database = {
           description: string
           id: string
           official_charge?: boolean
+          operation_id?: string | null
           payload?: Json
           pendency_id?: string | null
           row_version?: number
@@ -596,6 +598,7 @@ export type Database = {
           description?: string
           id?: string
           official_charge?: boolean
+          operation_id?: string | null
           payload?: Json
           pendency_id?: string | null
           row_version?: number
@@ -1082,6 +1085,10 @@ export type Database = {
     }
     Functions: {
       apply_functional_snapshot: { Args: { p_snapshot: Json }; Returns: Json }
+      assign_controller_with_log: {
+        Args: { p_administrative_log: Json; p_schools: Json }
+        Returns: Json
+      }
       begin_data_import: {
         Args: {
           p_entity_counts: Json
@@ -1168,6 +1175,22 @@ export type Database = {
         Returns: Json
       }
       rollback_data_import: { Args: { p_import_id: string }; Returns: Json }
+      save_asset_with_log: {
+        Args: {
+          p_administrative_log: Json
+          p_asset: Json
+          p_expected_version: number
+        }
+        Returns: Json
+      }
+      save_calendar_with_log: {
+        Args: {
+          p_administrative_log: Json
+          p_config: Json
+          p_expected_version: number
+        }
+        Returns: Json
+      }
       save_exercise_with_competences: {
         Args: {
           p_administrative_log?: Json
@@ -1188,12 +1211,48 @@ export type Database = {
         }
         Returns: Json
       }
+      save_pendency_command: {
+        Args: {
+          p_administrative_log: Json
+          p_attempt: Json
+          p_expected_pendency_version: number
+          p_expected_verification_version: number
+          p_operation: string
+          p_pendency: Json
+          p_verification: Json
+        }
+        Returns: Json
+      }
+      save_pendency_contact_with_log: {
+        Args: {
+          p_administrative_log: Json
+          p_contact: Json
+          p_operation_id: string
+        }
+        Returns: Json
+      }
+      save_program_with_log: {
+        Args: {
+          p_administrative_log: Json
+          p_expected_version: number
+          p_program: Json
+        }
+        Returns: Json
+      }
       save_school_with_programs: {
         Args: {
           p_administrative_log?: Json
           p_expected_school_version?: number
           p_programs: Json
           p_school: Json
+        }
+        Returns: Json
+      }
+      save_verification_with_log: {
+        Args: {
+          p_administrative_log?: Json
+          p_expected_version?: number
+          p_verification: Json
         }
         Returns: Json
       }
