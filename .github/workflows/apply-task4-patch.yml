@@ -1,0 +1,65 @@
+name: Apply verified Task 4 patch
+
+on:
+  push:
+    branches:
+      - fix/supabase-integral-remediation
+    paths:
+      - '.github/task4-patch.part00'
+      - '.github/task4-patch.part01'
+      - '.github/task4-patch.part02'
+      - '.github/task4-patch.part03'
+      - '.github/task4-patch.part04'
+      - '.github/workflows/apply-task4-patch.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply-task4:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout da branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: fix/supabase-integral-remediation
+          fetch-depth: 0
+
+      - name: Reconstruir, verificar e aplicar patch
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          parts=(
+            .github/task4-patch.part00
+            .github/task4-patch.part01
+            .github/task4-patch.part02
+            .github/task4-patch.part03
+            .github/task4-patch.part04
+          )
+
+          for part in "${parts[@]}"; do
+            test -f "$part"
+          done
+
+          cat "${parts[@]}" > /tmp/task4.patch.gz.b64
+          echo '9fa9d25592f25aa14ffade10845339a96337b4eaa572efb40f45fac2ead612ee  /tmp/task4.patch.gz.b64' | sha256sum --check --strict
+
+          base64 --decode /tmp/task4.patch.gz.b64 | gzip -dc > /tmp/task4.patch
+          echo 'add8f02b7f339b96ddef772f4eefd74186442317cdf74953dd5d5b55f666263d  /tmp/task4.patch' | sha256sum --check --strict
+
+          git apply --check -p1 /tmp/task4.patch
+          git apply -p1 /tmp/task4.patch
+
+          rm -f "${parts[@]}"
+          rm -f .github/task4-operational-commands.patch.gz.b64
+          rm -f .github/workflows/apply-task4-patch.yml
+
+          git diff --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          git commit -m 'feat: adicionar comandos operacionais atômicos'
+          git push origin HEAD:fix/supabase-integral-remediation
