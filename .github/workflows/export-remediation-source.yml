@@ -1,18 +1,24 @@
-name: Diagnose Task 5 unit tests
+name: Apply verified Task 5 patch
 
 on:
   pull_request:
     paths:
+      - '.github/task5-readiness.part00'
+      - '.github/task5-readiness.part01'
+      - '.github/task5-readiness.part02'
+      - '.github/task5-readiness.part03'
+      - '.github/task5-readiness.part04'
+      - '.github/task5-readiness.part05'
       - '.github/workflows/export-remediation-source.yml'
 
 permissions:
   contents: write
 
 jobs:
-  diagnose-unit-tests:
+  apply-task5:
     if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 40
     steps:
       - name: Checkout do branch da remediação
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
@@ -20,20 +26,90 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
 
-      - name: Reconstruir e aplicar patch verificado
+      - name: Reconstruir e verificar patch
         shell: bash
         run: |
           set -euo pipefail
+          printf '%s  %s\n' '76830f7d3f75b0846778660673d6933036976975e1e094aacae87c5d9400aa23' '.github/task5-readiness.part00' | sha256sum -c -
+          printf '%s  %s\n' '7bdc0db3a18a4f895b1e358a2af3f5510e4b8f684d5305f35bbdd16ea4ad863f' '.github/task5-readiness.part01' | sha256sum -c -
+          printf '%s  %s\n' '19dc0f50af1162aee95cbb533f535b4e57184565b2ee40666a254a6aeefb518b' '.github/task5-readiness.part02' | sha256sum -c -
+          printf '%s  %s\n' 'b659855c25a2f3017d80dcb48a892585c077c7c45ff349d065d090ee9fd8a61b' '.github/task5-readiness.part03' | sha256sum -c -
+          printf '%s  %s\n' 'd37b40feff462e68c694241b59f074ded1e65d34be78cd1baf419d5f7540b266' '.github/task5-readiness.part04' | sha256sum -c -
+          printf '%s  %s\n' '6350cbed2056cc7166afa1c761ad076734844b48b40b2be017fc4ce90cb535ec' '.github/task5-readiness.part05' | sha256sum -c -
           cat .github/task5-readiness.part00 \
               .github/task5-readiness.part01 \
               .github/task5-readiness.part02 \
               .github/task5-readiness.part03 \
               .github/task5-readiness.part04 \
               .github/task5-readiness.part05 > "$RUNNER_TEMP/task5.patch.gz.b64"
+          printf '%s  %s\n' '018c816f4b185af439997858fce791c168c2a12a9b02c89951a2b8e03db8cfe2' "$RUNNER_TEMP/task5.patch.gz.b64" | sha256sum -c -
           base64 --decode "$RUNNER_TEMP/task5.patch.gz.b64" | gzip -dc > "$RUNNER_TEMP/task5.patch"
           printf '%s  %s\n' 'bdf7e2ff908ca21e15c96a60318e12e70612d968eaf298d96f70a47263214cea' "$RUNNER_TEMP/task5.patch" | sha256sum -c -
           git apply --check -p1 "$RUNNER_TEMP/task5.patch"
           git apply -p1 "$RUNNER_TEMP/task5.patch"
+
+      - name: Remover transporte temporário e restaurar workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/task5-readiness.part00 \
+                .github/task5-readiness.part01 \
+                .github/task5-readiness.part02 \
+                .github/task5-readiness.part03 \
+                .github/task5-readiness.part04 \
+                .github/task5-readiness.part05 \
+                .github/task5-diagnostics.txt \
+                .github/task5-unit-diagnostics.txt
+          cat > .github/workflows/export-remediation-source.yml <<'YAML'
+          name: Export remediation source
+
+          on:
+            pull_request:
+              paths:
+                - '.github/remediation-export-trigger.txt'
+                - '.github/workflows/export-remediation-source.yml'
+
+          permissions:
+            contents: read
+
+          jobs:
+            export-source:
+              runs-on: ubuntu-latest
+              timeout-minutes: 12
+              steps:
+                - name: Checkout
+                  uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+                - name: Configurar Node.js 24
+                  uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+                  with:
+                    node-version: '24'
+                    cache: npm
+                    cache-dependency-path: package-lock.json
+
+                - name: Instalar dependências reproduzíveis
+                  run: npm ci
+
+                - name: Empacotar código-fonte e dependências
+                  run: |
+                    tar \
+                      --exclude='.git' \
+                      --exclude='node_modules' \
+                      --exclude='playwright-report' \
+                      --exclude='test-results' \
+                      -czf "$RUNNER_TEMP/radar-remediation-source.tar.gz" .
+                    tar -czf "$RUNNER_TEMP/radar-remediation-node-modules.tar.gz" node_modules
+
+                - name: Publicar código-fonte temporário
+                  uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+                  with:
+                    name: radar-remediation-source-${{ github.sha }}
+                    path: |
+                      ${{ runner.temp }}/radar-remediation-source.tar.gz
+                      ${{ runner.temp }}/radar-remediation-node-modules.tar.gz
+                    if-no-files-found: error
+                    retention-days: 1
+          YAML
 
       - name: Configurar Node.js 24
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
@@ -45,27 +121,37 @@ jobs:
       - name: Instalar dependências reproduzíveis
         run: npm ci
 
-      - name: Executar testes e gerar diagnóstico
-        shell: bash
-        run: |
-          set +e
-          npm run test:unit > "$RUNNER_TEMP/unit.log" 2>&1
-          unit_rc=$?
-          set -e
-          REPORT=.github/task5-unit-diagnostics.txt
-          {
-            echo "head=$(git rev-parse HEAD)"
-            echo "node=$(node --version)"
-            echo "npm=$(npm --version)"
-            echo "unit_rc=${unit_rc}"
-            echo '--- failures ---'
-            grep -n -C 14 '^not ok' "$RUNNER_TEMP/unit.log" || true
-            echo '--- summary ---'
-            tail -n 30 "$RUNNER_TEMP/unit.log"
-          } > "$REPORT"
-          cat "$REPORT"
+      - name: Gate — check
+        run: npm run check
 
-      - name: Publicar diagnóstico unitário
+      - name: Gate — testes unitários
+        run: npm run test:unit
+
+      - name: Gate — testes de integração
+        run: npm run test:integration
+
+      - name: Gate — contrato Supabase
+        run: npm run check:supabase
+
+      - name: Gate — alinhamento final Supabase
+        run: npm run check:supabase-final
+
+      - name: Gate — configuração de runtime
+        run: npm run check:runtime-config
+
+      - name: Gate — artefatos gerados
+        run: npm run check:generated
+
+      - name: Gate — tipos do banco
+        run: npm run typecheck:database
+
+      - name: Gate — auditoria funcional
+        run: npm run audit:functional
+
+      - name: Gate — integridade do diff
+        run: git diff --check
+
+      - name: Publicar somente após sucesso integral
         shell: bash
         env:
           HEAD_REF: ${{ github.event.pull_request.head.ref }}
@@ -73,6 +159,8 @@ jobs:
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add .github/task5-unit-diagnostics.txt
-          git commit -m 'chore: registrar falhas unitárias da etapa 5'
+          git add -A
+          git diff --cached --check
+          git diff --cached --stat
+          git commit -m 'fix: tornar estado remoto autoritativo e atualizar gates'
           git push origin "HEAD:${HEAD_REF}"
