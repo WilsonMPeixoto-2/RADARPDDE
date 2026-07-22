@@ -49,6 +49,8 @@ jobs:
           base64_rc=$?
           gzip -dc "$RUNNER_TEMP/task5.patch.gz" > "$RUNNER_TEMP/task5.patch" 2> "$RUNNER_TEMP/gzip.err"
           gzip_rc=$?
+          git apply --check -p1 "$RUNNER_TEMP/task5.patch" > "$RUNNER_TEMP/apply.out" 2> "$RUNNER_TEMP/apply.err"
+          apply_rc=$?
           set -e
           echo "base64_rc=${base64_rc}" >> "$REPORT"
           echo "gzip_rc=${gzip_rc}" >> "$REPORT"
@@ -58,8 +60,6 @@ jobs:
           echo "patch_sha256=$(sha256sum "$RUNNER_TEMP/task5.patch" | awk '{print $1}')" >> "$REPORT"
           echo "base64_error=$(tr '\n' ' ' < "$RUNNER_TEMP/base64.err")" >> "$REPORT"
           echo "gzip_error=$(tr '\n' ' ' < "$RUNNER_TEMP/gzip.err")" >> "$REPORT"
-          git apply --check -p1 "$RUNNER_TEMP/task5.patch" > "$RUNNER_TEMP/apply.out" 2> "$RUNNER_TEMP/apply.err"
-          apply_rc=$?
           echo "git_apply_check_rc=${apply_rc}" >> "$REPORT"
           echo "git_apply_stdout=$(tr '\n' ' ' < "$RUNNER_TEMP/apply.out")" >> "$REPORT"
           echo "git_apply_stderr=$(tr '\n' ' ' < "$RUNNER_TEMP/apply.err")" >> "$REPORT"
