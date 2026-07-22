@@ -1,0 +1,104 @@
+diff --git a/scripts/audit-functional-persistence.js b/scripts/audit-functional-persistence.js
+index 41c19d1..767c15a 100644
+--- a/scripts/audit-functional-persistence.js
++++ b/scripts/audit-functional-persistence.js
+@@ -63,7 +63,9 @@ const CONFIG_FIELD_MAP = Object.freeze({
+     exercicios: ['app_config.exercises', 'competences.exercise'],
+     competenciaFechamento: ['app_config.closing_competence'],
+     prazoBonificacaoProrrogado: ['app_config.bonus_deadline_extended', 'app_config.settings'],
+-    competencias: ['competences']
++    competencias: ['competences'],
++    rowVersion: ['app_config.row_version'],
++    row_version: ['app_config.row_version']
+ });
+ 
+ const INITIALIZATION_MUTATORS = new Set([
+@@ -211,6 +213,7 @@ function inspectJavaScript(files) {
+     const persistTables = new Set();
+     const configFields = new Set();
+     const globalDefinitions = new Set();
++    const callbackAliases = new Map();
+ 
+     files.forEach(({ source, file }) => {
+         const ast = parseJavaScript(source, file);
+@@ -233,6 +236,17 @@ function inspectJavaScript(files) {
+                     ensureFunctionRecord(functions, name, file, node.loc?.start.line || null);
+                 }
+             }
++
++            if (node.type === 'Property' && node.value?.type === 'Identifier') {
++                const alias = node.key?.type === 'Identifier'
++                    ? node.key.name
++                    : (node.key?.type === 'Literal' ? String(node.key.value) : '');
++                const target = node.value.name;
++                if (alias && target && alias !== target) {
++                    if (!callbackAliases.has(alias)) callbackAliases.set(alias, new Set());
++                    callbackAliases.get(alias).add(target);
++                }
++            }
+         });
+ 
+         walk.fullAncestor(ast, (node, _state, ancestors) => {
+@@ -258,7 +272,14 @@ function inspectJavaScript(files) {
+             if (node.type !== 'CallExpression') return;
+ 
+             const called = calleeName(node.callee);
+-            if (called) record.calls.add(called);
++            if (called) {
++                record.calls.add(called);
++                const aliasTargets = callbackAliases.get(called);
++                if (aliasTargets?.size === 1) {
++                    const [target] = aliasTargets;
++                    if (functions.has(target)) record.calls.add(target);
++                }
++            }
+ 
+             if (called === 'persist' || called === 'persistSingleTableSupabase') {
+                 record.directPersistence = true;
+diff --git a/tests/unit/audit-functional-persistence-contract.test.js b/tests/unit/audit-functional-persistence-contract.test.js
+new file mode 100644
+index 0000000..2073b03
+--- /dev/null
++++ b/tests/unit/audit-functional-persistence-contract.test.js
+@@ -0,0 +1,41 @@
++const test = require('node:test');
++const assert = require('node:assert/strict');
++
++const {
++  CONFIG_FIELD_MAP,
++  inspectJavaScript
++} = require('../../scripts/audit-functional-persistence.js');
++
++test('classifica metadados de concorrência da configuração no Supabase', () => {
++  assert.deepEqual(CONFIG_FIELD_MAP.rowVersion, ['app_config.row_version']);
++  assert.deepEqual(CONFIG_FIELD_MAP.row_version, ['app_config.row_version']);
++});
++
++test('reconhece callback injetado como persistido pelo serviço chamador', () => {
++  const inspection = inspectJavaScript([
++    {
++      file: 'app.js',
++      source: `
++        const verificacoes = {};
++        function ensureProgramVerification() {
++          verificacoes.school = {};
++        }
++        const dependencies = { ensureVerification: ensureProgramVerification };
++      `
++    },
++    {
++      file: 'src/application/verification-service.js',
++      source: `
++        function executeVerification() {
++          this.ensureVerification();
++          persist('verificacoes');
++        }
++      `
++    }
++  ]);
++
++  const record = inspection.mutationFunctions.find(item => item.name === 'ensureProgramVerification');
++  assert.ok(record);
++  assert.equal(record.persistedByCaller, true);
++  assert.deepEqual(record.callers, ['executeVerification']);
++});
