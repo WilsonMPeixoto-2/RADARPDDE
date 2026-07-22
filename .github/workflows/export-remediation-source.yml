@@ -26,36 +26,19 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
 
-      - name: Verificar fragmentos do patch
+      - name: Reconstruir patch e validar conteúdo decodificado
         shell: bash
         run: |
           set -euo pipefail
           for part in 00 01 02 03 04 05; do
             test -s ".github/task5-readiness.part${part}"
           done
-          printf '%s  %s\n' '76830f7d3f75b0846778660673d6933036976975e1e094aacae87c5d9400aa23' '.github/task5-readiness.part00' | sha256sum -c -
-          printf '%s  %s\n' '7bdc0db3a18a4f895b1e358a2af3f5510e4b8f684d5305f35bbdd16ea4ad863f' '.github/task5-readiness.part01' | sha256sum -c -
-          printf '%s  %s\n' '19dc0f50af1162aee95cbb533f535b4e57184565b2ee40666a254a6aeefb518b' '.github/task5-readiness.part02' | sha256sum -c -
-          printf '%s  %s\n' 'b659855c25a2f3017d80dcb48a892585c077c7c45ff349d065d090ee9fd8a61b' '.github/task5-readiness.part03' | sha256sum -c -
-          printf '%s  %s\n' 'd37b40feff462e68c694241b59f074ded1e65d34be78cd1baf419d5f7540b266' '.github/task5-readiness.part04' | sha256sum -c -
-          printf '%s  %s\n' '6350cbed2056cc7166afa1c761ad076734844b48b40b2be017fc4ce90cb535ec' '.github/task5-readiness.part05' | sha256sum -c -
-
-      - name: Montar conteúdo codificado
-        shell: bash
-        run: |
-          set -euo pipefail
           cat .github/task5-readiness.part00 \
               .github/task5-readiness.part01 \
               .github/task5-readiness.part02 \
               .github/task5-readiness.part03 \
               .github/task5-readiness.part04 \
               .github/task5-readiness.part05 > "$RUNNER_TEMP/task5.patch.gz.b64"
-          printf '%s  %s\n' '018c816f4b185af439997858fce791c168c2a12a9b02c89951a2b8e03db8cfe2' "$RUNNER_TEMP/task5.patch.gz.b64" | sha256sum -c -
-
-      - name: Decodificar e verificar patch
-        shell: bash
-        run: |
-          set -euo pipefail
           base64 --decode "$RUNNER_TEMP/task5.patch.gz.b64" | gzip -dc > "$RUNNER_TEMP/task5.patch"
           printf '%s  %s\n' 'bdf7e2ff908ca21e15c96a60318e12e70612d968eaf298d96f70a47263214cea' "$RUNNER_TEMP/task5.patch" | sha256sum -c -
 
