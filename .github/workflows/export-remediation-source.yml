@@ -1,11 +1,10 @@
 name: Export remediation source
 
 on:
-  push:
-    branches:
-      - fix/supabase-integral-remediation
+  pull_request:
     paths:
       - '.github/remediation-export-trigger.txt'
+      - '.github/workflows/export-remediation-source.yml'
 
 permissions:
   contents: read
