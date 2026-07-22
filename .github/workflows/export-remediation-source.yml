@@ -1,27 +1,21 @@
-name: Regenerar tipos Supabase validados
+name: Export remediation source
 
 on:
   pull_request:
     paths:
+      - '.github/remediation-export-trigger.txt'
       - '.github/workflows/export-remediation-source.yml'
 
 permissions:
-  contents: write
-
-env:
-  SUPABASE_TELEMETRY_DISABLED: '1'
+  contents: read
 
 jobs:
-  regenerate-types:
-    if: github.event.pull_request.head.repo.full_name == github.repository
+  export-source:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 12
     steps:
-      - name: Checkout do branch da remediação
+      - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
-          fetch-depth: 0
 
       - name: Configurar Node.js 24
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
@@ -30,42 +24,25 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: Instalar dependências
+      - name: Instalar dependências reproduzíveis
         run: npm ci
 
-      - name: Iniciar e recriar Supabase local
+      - name: Empacotar código-fonte e dependências
         run: |
-          npm run supabase:start
-          npm run supabase:reset
+          tar \
+            --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='playwright-report' \
+            --exclude='test-results' \
+            -czf "$RUNNER_TEMP/radar-remediation-source.tar.gz" .
+          tar -czf "$RUNNER_TEMP/radar-remediation-node-modules.tar.gz" node_modules
 
-      - name: Confirmar banco e regenerar tipos
-        shell: bash
-        run: |
-          set -euo pipefail
-          npm run supabase:test:db
-          npm run supabase:lint:db
-          mkdir -p src/types
-          npm run supabase:gen:types
-          npm run build:supabase-client
-          npm run build:ajv
-          npm run typecheck:database
-          git diff --check
-          test -n "$(git status --short src/types/database.types.ts)"
-          test -z "$(git status --short vendor/supabase-client.js vendor/ajv.js)"
-
-      - name: Encerrar Supabase local
-        if: always()
-        run: npm run supabase:stop || true
-
-      - name: Publicar tipos gerados
-        shell: bash
-        env:
-          HEAD_REF: ${{ github.event.pull_request.head.ref }}
-        run: |
-          set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add src/types/database.types.ts
-          git diff --cached --check
-          git commit -m 'chore: regenerar tipos das operações atômicas'
-          git push origin "HEAD:${HEAD_REF}"
+      - name: Publicar código-fonte temporário
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: radar-remediation-source-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/radar-remediation-source.tar.gz
+            ${{ runner.temp }}/radar-remediation-node-modules.tar.gz
+          if-no-files-found: error
+          retention-days: 1
