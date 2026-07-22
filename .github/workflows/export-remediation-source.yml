@@ -18,7 +18,7 @@ jobs:
   apply-task5:
     if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 45
     steps:
       - name: Checkout do branch da remediação
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
@@ -26,16 +26,10 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
 
-      - name: Reconstruir e verificar patch
+      - name: Reconstruir e aplicar patch verificado
         shell: bash
         run: |
           set -euo pipefail
-          printf '%s  %s\n' '76830f7d3f75b0846778660673d6933036976975e1e094aacae87c5d9400aa23' '.github/task5-readiness.part00' | sha256sum -c -
-          printf '%s  %s\n' '7bdc0db3a18a4f895b1e358a2af3f5510e4b8f684d5305f35bbdd16ea4ad863f' '.github/task5-readiness.part01' | sha256sum -c -
-          printf '%s  %s\n' '19dc0f50af1162aee95cbb533f535b4e57184565b2ee40666a254a6aeefb518b' '.github/task5-readiness.part02' | sha256sum -c -
-          printf '%s  %s\n' 'b659855c25a2f3017d80dcb48a892585c077c7c45ff349d065d090ee9fd8a61b' '.github/task5-readiness.part03' | sha256sum -c -
-          printf '%s  %s\n' 'd37b40feff462e68c694241b59f074ded1e65d34be78cd1baf419d5f7540b266' '.github/task5-readiness.part04' | sha256sum -c -
-          printf '%s  %s\n' '6350cbed2056cc7166afa1c761ad076734844b48b40b2be017fc4ce90cb535ec' '.github/task5-readiness.part05' | sha256sum -c -
           cat .github/task5-readiness.part00 \
               .github/task5-readiness.part01 \
               .github/task5-readiness.part02 \
@@ -47,6 +41,87 @@ jobs:
           printf '%s  %s\n' 'bdf7e2ff908ca21e15c96a60318e12e70612d968eaf298d96f70a47263214cea' "$RUNNER_TEMP/task5.patch" | sha256sum -c -
           git apply --check -p1 "$RUNNER_TEMP/task5.patch"
           git apply -p1 "$RUNNER_TEMP/task5.patch"
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+
+      - name: Gate — check
+        run: npm run check
+
+      - name: Gate — estabilidade unitária em vinte passagens
+        id: unit_stability
+        shell: bash
+        run: |
+          set +e
+          REPORT=.github/task5-publication-unit-failure.txt
+          rm -f "$REPORT"
+          for iteration in $(seq 1 20); do
+            npm run test:unit > "$RUNNER_TEMP/unit-${iteration}.log" 2>&1
+            rc=$?
+            if test "$rc" -ne 0; then
+              {
+                echo "head=$(git rev-parse HEAD)"
+                echo "node=$(node --version)"
+                echo "npm=$(npm --version)"
+                echo "failure_iteration=${iteration}"
+                echo "failure_rc=${rc}"
+                echo '--- failure ---'
+                grep -n -C 18 '^not ok' "$RUNNER_TEMP/unit-${iteration}.log" || true
+                echo '--- summary ---'
+                tail -n 50 "$RUNNER_TEMP/unit-${iteration}.log"
+              } > "$REPORT"
+              cat "$REPORT"
+              echo 'failed=true' >> "$GITHUB_OUTPUT"
+              exit "$rc"
+            fi
+            echo "unit iteration ${iteration}: ok"
+          done
+          echo 'failed=false' >> "$GITHUB_OUTPUT"
+          set -e
+
+      - name: Publicar diagnóstico se a estabilidade falhar
+        if: failure() && steps.unit_stability.outputs.failed == 'true'
+        shell: bash
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/task5-publication-unit-failure.txt
+          git commit -m 'chore: registrar falha unitária do gate da etapa 5'
+          git push origin "HEAD:${HEAD_REF}"
+
+      - name: Gate — testes de integração
+        run: npm run test:integration
+
+      - name: Gate — contrato Supabase
+        run: npm run check:supabase
+
+      - name: Gate — alinhamento final Supabase
+        run: npm run check:supabase-final
+
+      - name: Gate — configuração de runtime
+        run: npm run check:runtime-config
+
+      - name: Gate — artefatos gerados
+        run: npm run check:generated
+
+      - name: Gate — tipos do banco
+        run: npm run typecheck:database
+
+      - name: Gate — auditoria funcional
+        run: npm run audit:functional
+
+      - name: Gate — integridade do diff
+        run: git diff --check
 
       - name: Remover transporte temporário e restaurar workflow
         shell: bash
@@ -60,7 +135,8 @@ jobs:
                 .github/task5-readiness.part05 \
                 .github/task5-diagnostics.txt \
                 .github/task5-unit-diagnostics.txt \
-                .github/task5-flaky-unit-diagnostics.txt
+                .github/task5-flaky-unit-diagnostics.txt \
+                .github/task5-publication-unit-failure.txt
           cat > .github/workflows/export-remediation-source.yml <<'YAML'
           name: Export remediation source
 
@@ -111,50 +187,6 @@ jobs:
                     if-no-files-found: error
                     retention-days: 1
           YAML
-
-      - name: Configurar Node.js 24
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
-        with:
-          node-version: '24'
-          cache: npm
-          cache-dependency-path: package-lock.json
-
-      - name: Instalar dependências reproduzíveis
-        run: npm ci
-
-      - name: Gate — check
-        run: npm run check
-
-      - name: Gate — testes unitários em duas passagens
-        shell: bash
-        run: |
-          set -euo pipefail
-          npm run test:unit
-          npm run test:unit
-
-      - name: Gate — testes de integração
-        run: npm run test:integration
-
-      - name: Gate — contrato Supabase
-        run: npm run check:supabase
-
-      - name: Gate — alinhamento final Supabase
-        run: npm run check:supabase-final
-
-      - name: Gate — configuração de runtime
-        run: npm run check:runtime-config
-
-      - name: Gate — artefatos gerados
-        run: npm run check:generated
-
-      - name: Gate — tipos do banco
-        run: npm run typecheck:database
-
-      - name: Gate — auditoria funcional
-        run: npm run audit:functional
-
-      - name: Gate — integridade do diff
-        run: git diff --check
 
       - name: Publicar somente após sucesso integral
         shell: bash
