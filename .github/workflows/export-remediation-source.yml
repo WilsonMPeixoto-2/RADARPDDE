@@ -24,12 +24,12 @@ jobs:
             --exclude='node_modules' \
             --exclude='playwright-report' \
             --exclude='test-results' \
-            -czf radar-remediation-source.tar.gz .
+            -czf "$RUNNER_TEMP/radar-remediation-source.tar.gz" .
 
       - name: Publicar código-fonte temporário
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: radar-remediation-source-${{ github.sha }}
-          path: radar-remediation-source.tar.gz
+          path: ${{ runner.temp }}/radar-remediation-source.tar.gz
           if-no-files-found: error
           retention-days: 1
