@@ -1,0 +1,13 @@
+head=25b4de188b2f94960056ae89667450c097f618de
+node=v24.18.0
+npm=11.16.0
+parallel_iteration_1_rc=0
+parallel_iteration_2_rc=0
+parallel_iteration_3_rc=0
+parallel_iteration_4_rc=0
+parallel_iteration_5_rc=0
+parallel_iteration_6_rc=0
+parallel_iteration_7_rc=0
+parallel_iteration_8_rc=0
+first_failure_iteration=0
+serial_rc=0
