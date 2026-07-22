@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
-select plan(15);
+select plan(16);
 
 insert into auth.users (id, email)
 values ('00000000-0000-0000-0000-000000000922', 'verification-rpc@example.test');
