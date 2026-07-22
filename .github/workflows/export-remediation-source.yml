@@ -9,10 +9,13 @@ on:
 permissions:
   contents: read
 
+env:
+  SUPABASE_TELEMETRY_DISABLED: '1'
+
 jobs:
   export-source:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
@@ -24,25 +27,37 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: Instalar dependências reproduzíveis
+      - name: Instalar dependências
         run: npm ci
 
-      - name: Empacotar código-fonte e dependências
+      - name: Iniciar e recriar Supabase local
         run: |
-          tar \
-            --exclude='.git' \
-            --exclude='node_modules' \
-            --exclude='playwright-report' \
-            --exclude='test-results' \
-            -czf "$RUNNER_TEMP/radar-remediation-source.tar.gz" .
-          tar -czf "$RUNNER_TEMP/radar-remediation-node-modules.tar.gz" node_modules
+          npm run supabase:start
+          npm run supabase:reset
 
-      - name: Publicar código-fonte temporário
+      - name: Executar pgTAP preservando saída completa
+        id: pgtap
+        shell: bash
+        run: |
+          set +e
+          npm run supabase:test:db > pgtap-diagnostic.log 2>&1
+          status=$?
+          cat pgtap-diagnostic.log
+          echo "status=${status}" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Publicar diagnóstico pgTAP
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: radar-remediation-source-${{ github.sha }}
-          path: |
-            ${{ runner.temp }}/radar-remediation-source.tar.gz
-            ${{ runner.temp }}/radar-remediation-node-modules.tar.gz
+          name: pgtap-diagnostic-${{ github.run_id }}
+          path: pgtap-diagnostic.log
           if-no-files-found: error
           retention-days: 1
+
+      - name: Encerrar Supabase local
+        if: always()
+        run: npm run supabase:stop || true
+
+      - name: Reprovar após preservar o diagnóstico
+        if: steps.pgtap.outputs.status != '0'
+        run: exit 1
