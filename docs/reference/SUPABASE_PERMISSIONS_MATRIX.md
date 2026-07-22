@@ -4,7 +4,7 @@ Esta matriz representa o contrato funcional aprovado para Auth, RLS e operaçõe
 
 ## Perfis funcionais e papel técnico
 
-O produto possui quatro perfis operacionais visíveis e um papel técnico separado:
+O produto possui quatro perfis operacionais e um papel técnico transversal, autorizado a inspecionar todas as superfícies funcionais:
 
 | Papel técnico | Nome exibido | Natureza | Escopo padrão |
 |---|---|---|---|
@@ -12,9 +12,9 @@ O produto possui quatro perfis operacionais visíveis e um papel técnico separa
 | `federal_assistant` | Assistente de Verbas Federais | funcional | gestão operacional transversal da 4ª CRE e liderança da equipe |
 | `inventory` | Equipe de Inventário | funcional | seção Capital e Inventário das escolas da própria CRE |
 | `sme_management` | SME (Gestão) | funcional gerencial | leitura consolidada e parâmetros institucionais |
-| `technical_admin` | Administrador técnico | técnico, fora do seletor operacional | infraestrutura, perfis, escopos e auditoria |
+| `technical_admin` | Administrador técnico | técnico com acesso operacional transversal | todos os recursos, escopos e quatro modos de visualização funcional |
 
-`technical_admin` não é convertido em Assistente e não deve ser usado para operação cotidiana. O banco admite somente um perfil ativo por usuário.
+`technical_admin` não é convertido permanentemente em Assistente nem perde sua identidade técnica. Na interface, inicia pela visualização de Controlador e pode alternar entre Controlador, Assistente de Verbas Federais, SME (Gestão) e Equipe de Inventário para diagnóstico, homologação e suporte. O banco continua admitindo somente um perfil institucional ativo por usuário; a alternância visual não troca o JWT nem reduz as permissões RLS do administrador técnico.
 
 ## Matriz funcional
 
@@ -108,7 +108,18 @@ Possui leitura ampla e visões consolidadas, como Situação Operacional por Coo
 
 ### Administrador técnico
 
-Administra infraestrutura, perfis, escopos, auditoria e procedimentos excepcionais. Não aparece no seletor operacional nem herda telas da Assistente.
+Administra infraestrutura, perfis, escopos, auditoria e procedimentos excepcionais. Também precisa percorrer todas as telas operacionais para diagnosticar relatos, homologar alterações e verificar regressões sob a organização visual de cada perfil.
+
+Ao autenticar:
+
+- recebe a navegação operacional completa;
+- inicia pela visualização de Controlador;
+- vê exclusivamente para sua conta o seletor de simulação funcional;
+- pode alternar entre Controlador, Assistente, SME e Inventário sem novo login;
+- mantém `technical_admin` como papel efetivo no contexto de autenticação e nas políticas RLS;
+- não concede o seletor a usuários operacionais comuns.
+
+A simulação reproduz navegação, componentes, filtros e organização da interface. Como a identidade de banco permanece técnica, testes de bloqueios RLS específicos de um usuário operacional continuam exigindo as contas de homologação correspondentes.
 
 ## Princípios de segurança
 
@@ -122,7 +133,8 @@ Administra infraestrutura, perfis, escopos, auditoria e procedimentos excepciona
 8. exclusão física é excepcional e técnica;
 9. carteira organiza o trabalho, mas não bloqueia colaboração dentro da mesma CRE;
 10. o Inventário recebe somente o escopo necessário à superfície patrimonial;
-11. toda alteração desta matriz exige decisão funcional expressa e testes cruzados de UI, Auth e RLS.
+11. a simulação funcional do Administrador técnico não altera sua identidade Auth nem enfraquece a RLS;
+12. toda alteração desta matriz exige decisão funcional expressa e testes cruzados de UI, Auth e RLS.
 
 ## Casos obrigatórios de homologação
 
@@ -140,7 +152,10 @@ Administra infraestrutura, perfis, escopos, auditoria e procedimentos excepciona
 - Inventário conclui a inventariação de um bem encaminhado;
 - Inventário não altera cadastro escolar, bonificação ou análise técnica;
 - Inventário não acessa escola de outra CRE;
-- Administrador técnico não recebe interface da Assistente;
+- Administrador técnico autentica com navegação operacional completa;
+- Administrador técnico alterna entre as quatro visualizações funcionais;
+- o papel efetivo permanece `technical_admin` após cada alternância visual e recarga;
+- usuários operacionais não visualizam o seletor de simulação;
 - falha após convite remove a conta recém-criada;
 - falha após bloqueio restaura o acesso;
 - repetição idempotente não cria conta duplicada;

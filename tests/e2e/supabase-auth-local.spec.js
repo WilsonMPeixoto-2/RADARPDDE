@@ -58,7 +58,7 @@ for (const [email, role] of identities) {
             repository: 'supabase',
             role,
             hasSessionInPublicContext: false,
-            profileSwitcherHidden: true
+            profileSwitcherHidden: role !== 'technical_admin'
         });
 
         await page.locator('#auth-logout-button').click();
@@ -68,13 +68,37 @@ for (const [email, role] of identities) {
     });
 }
 
-test('Administrador técnico recebe superfície neutra e não herda o painel da Assistente', async ({ page }) => {
+test('Administrador técnico recebe navegação completa e alterna entre os quatro perfis funcionais', async ({ page }) => {
     await signIn(page, fixtures.find(fixture => fixture.profileId === 'technical_admin').email);
     await waitForApplication(page, 'technical_admin');
 
-    await expect(page.getByRole('heading', { name: 'Acesso técnico' })).toBeVisible();
-    await expect(page.locator('.sidebar')).toBeHidden();
-    await expect(page.getByText('Painel do Assistente de Verbas Federais')).toHaveCount(0);
+    await expect(page.locator('.sidebar')).toBeVisible();
+    await expect(page.locator('.profile-switcher')).toBeVisible();
+    await expect(page.locator('.sidebar .nav-item:visible').first()).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Acesso técnico' })).toHaveCount(0);
+
+    const simulatedProfiles = [
+        ['assistente', /Assistente/i],
+        ['sme', /SME/i],
+        ['inventario', /Inventário/i],
+        ['controlador', /Controlador/i]
+    ];
+
+    for (const [profile, expectedLabel] of simulatedProfiles) {
+        const state = await page.evaluate(simulatedProfile => {
+            window.switchProfile(simulatedProfile);
+            return {
+                label: document.getElementById('profile-btn-label')?.textContent || '',
+                authRole: window.RadarAuthContext?.authorization?.role,
+                bodyRole: document.body.dataset.authRole
+            };
+        }, profile);
+        expect(state.label).toMatch(expectedLabel);
+        expect(state.authRole).toBe('technical_admin');
+        expect(state.bodyRole).toBe('technical_admin');
+        await expect(page.locator('.sidebar')).toBeVisible();
+    }
+
     await expect(page.locator('#auth-logout-button')).toBeVisible();
 });
 

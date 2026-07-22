@@ -173,21 +173,18 @@
             }
         }
 
+        setProfileSwitcherVisible(visible) {
+            setForcedDisplay(this.document.querySelector('.profile-switcher'), !visible);
+        }
+
         renderTechnicalAccess(authentication) {
+            const defaultOperationalProfile = 'controlador';
             this.setAuthenticationContext(authentication);
-            this.setOperationalChromeVisible(false);
-            const container = this.document.getElementById('main-container');
-            if (container) {
-                container.innerHTML = `
-                    <section class="panel-card radar-technical-access" aria-labelledby="technical-access-title">
-                        <h1 id="technical-access-title">Acesso técnico</h1>
-                        <p>Esta conta administra segurança, perfis, escopos e infraestrutura do RADAR PDDE.</p>
-                        <p>Não há uma superfície operacional atribuída a este papel. As ações técnicas permanecem separadas do trabalho cotidiano da equipe.</p>
-                    </section>
-                `;
-            }
+            this.setOperationalChromeVisible(true);
+            this.setProfileSwitcherVisible(true);
+            this.root.switchProfile(defaultOperationalProfile);
             this.hide();
-            return null;
+            return defaultOperationalProfile;
         }
 
         applyAuthorization(authentication) {
@@ -199,6 +196,7 @@
 
             const operationalProfile = operationalProfileForRole(authorization.role);
             this.setOperationalChromeVisible(true);
+            this.setProfileSwitcherVisible(false);
             this.setAuthenticationContext(authentication);
             this.root.switchProfile(operationalProfile);
             this.hide();
