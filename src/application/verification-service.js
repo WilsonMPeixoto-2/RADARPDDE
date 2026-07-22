@@ -43,6 +43,10 @@
         return value == null ? '' : String(value).trim();
     }
 
+    function list(value) {
+        return Array.isArray(value) ? value : [];
+    }
+
     function normalizeProfile(value) {
         const normalized = text(value).toLocaleLowerCase('pt-BR');
         if (normalized === 'assistente cre' || normalized === 'assistente de verbas federais') return 'assistente';
@@ -71,6 +75,11 @@
         return separator < 0
             ? { competence: value, programId: suffix }
             : { competence: value.slice(0, separator), programId: value.slice(separator + 1) };
+    }
+
+    function rowVersionOf(record) {
+        const candidate = record?.rowVersion ?? record?.row_version;
+        return Number.isInteger(candidate) && candidate > 0 ? candidate : null;
     }
 
     class VerificationService {
@@ -106,8 +115,52 @@
             return this.ensureVerification(text(schoolId), text(compKey));
         }
 
+        appendSchoolLog(schoolId, action, details) {
+            const log = this.appendLog(action, details, { escolaId: schoolId, schoolId });
+            if (log && typeof log === 'object') {
+                if (!text(log.escolaId) && !text(log.school_id)) log.escolaId = schoolId;
+                const stored = list(this.getState()?.logs).find(item => String(item?.id) === String(log.id));
+                if (stored && !text(stored.escolaId) && !text(stored.school_id)) stored.escolaId = schoolId;
+            }
+            return log || null;
+        }
+
+        async persistAtomicVerification(context, persistence) {
+            const { snapshot, repository, defaultPersist } = context;
+            if (typeof repository.saveVerificationWithLog !== 'function') return defaultPersist();
+
+            const { competence, programId } = splitCompKey(persistence.compKey, persistence.programId);
+            const verification = list(snapshot?.entities?.verifications).find(record => (
+                String(record.school_id) === String(persistence.schoolId)
+                && String(record.competence_id) === String(competence)
+                && String(record.program_id) === String(programId)
+            ));
+            const administrativeLog = list(snapshot?.entities?.administrativeLogs)
+                .find(record => String(record.id) === String(persistence.logId));
+
+            if (!verification || !administrativeLog) {
+                fail(
+                    'PERSISTENCE_CONTEXT_MISSING',
+                    'A verificação ou o histórico da operação não foi produzido para persistência.',
+                    'persistAtomicVerification',
+                    {
+                        schoolId: persistence.schoolId,
+                        compKey: persistence.compKey,
+                        logId: persistence.logId
+                    }
+                );
+            }
+
+            return repository.saveVerificationWithLog({
+                verification,
+                expectedVersion: persistence.expectedVersion,
+                administrativeLog
+            });
+        }
+
         async setBonification(input = {}) {
             const profile = this.assertEditable(input.profile, 'setBonification');
+            const persistence = {};
             return this.dataService.execute({
                 name: 'verification:set-bonification',
                 changedEntities: ['verifications', 'administrativeLogs'],
@@ -118,6 +171,9 @@
                     const documentKey = text(input.documentKey);
                     const value = text(input.value);
                     const verification = this.getVerification(schoolId, compKey);
+                    persistence.schoolId = schoolId;
+                    persistence.compKey = compKey;
+                    persistence.expectedVersion = rowVersionOf(verification);
                     if (verification.resultadoBonif && profile !== 'assistente') {
                         fail(
                             'CONSOLIDATED_VERIFICATION',
@@ -125,7 +181,7 @@
                             'setBonification'
                         );
                     }
-                    const registeredNotes = state.registeredInvoices.filter(note => (
+                    const registeredNotes = list(state.registeredInvoices).filter(note => (
                         note.escolaId === schoolId && note.compKey === compKey
                     ));
                     if (documentKey === 'notaFiscal' && value === 'Não se aplica' && registeredNotes.length > 0) {
@@ -159,19 +215,22 @@
                     }
                     const changed = JSON.stringify(before) !== JSON.stringify(verification.bonificacao);
                     this.reopenConsolidation(schoolId, compKey, verification, changed);
-                    this.appendLog(
+                    const log = this.appendSchoolLog(
+                        schoolId,
                         'Bonificação Alterada',
                         `Bonificação de ${DOCUMENT_LABELS[documentKey] || documentKey} em ${compKey} da escola ${schoolId} alterada para "${value}".`
                     );
+                    persistence.logId = text(log?.id);
                     return { verification: cloneValue(verification) };
-                }
+                },
+                persist: context => this.persistAtomicVerification(context, persistence)
             });
         }
 
         findActivePendency(state, schoolId, compKey, documentKey) {
             if (!pendencyDomain) return null;
             const { competence, programId } = splitCompKey(compKey);
-            return pendencyDomain.findActivePendency(state.pendencies, {
+            return pendencyDomain.findActivePendency(list(state?.pendencies), {
                 escolaId: schoolId,
                 competencia: competence,
                 competenciaOrigem: competence,
@@ -182,6 +241,7 @@
 
         async setTechnicalAnalysis(input = {}) {
             this.assertEditable(input.profile, 'setTechnicalAnalysis');
+            const persistence = {};
             return this.dataService.execute({
                 name: 'verification:set-technical-analysis',
                 changedEntities: ['verifications', 'administrativeLogs'],
@@ -204,6 +264,9 @@
                         );
                     }
                     const verification = this.getVerification(schoolId, compKey);
+                    persistence.schoolId = schoolId;
+                    persistence.compKey = compKey;
+                    persistence.expectedVersion = rowVersionOf(verification);
                     verification.analise = verification.analise || {};
                     verification.bonificacao = verification.bonificacao || {};
                     if (value !== 'Não analisado' && !text(verification.bonificacao[documentKey])) {
@@ -213,7 +276,7 @@
                             'setTechnicalAnalysis'
                         );
                     }
-                    const fiscalNotes = state.registeredInvoices.filter(note => (
+                    const fiscalNotes = list(state.registeredInvoices).filter(note => (
                         note.escolaId === schoolId && note.compKey === compKey
                     ));
                     if (documentKey === 'notaFiscal' && this.flow.shouldRequireFiscalNote({
@@ -229,20 +292,24 @@
                     }
                     const oldValue = verification.analise[documentKey];
                     verification.analise[documentKey] = value;
-                    this.appendLog(
+                    const log = this.appendSchoolLog(
+                        schoolId,
                         'Análise Técnica Alterada',
                         `Análise técnica de ${DOCUMENT_LABELS[documentKey] || documentKey} em ${compKey} da escola ${schoolId} alterada de "${oldValue}" para "${value}".`
                     );
+                    persistence.logId = text(log?.id);
                     return {
                         verification: cloneValue(verification),
                         shouldOpenPendency: value === 'Incorreto'
                     };
-                }
+                },
+                persist: context => this.persistAtomicVerification(context, persistence)
             });
         }
 
         async closeBonification(input = {}) {
             this.assertEditable(input.profile, 'closeBonification');
+            const persistence = {};
             return this.dataService.execute({
                 name: 'verification:close-bonification',
                 changedEntities: ['verifications', 'administrativeLogs'],
@@ -250,6 +317,9 @@
                     const schoolId = text(input.schoolId);
                     const compKey = text(input.compKey);
                     const verification = this.getVerification(schoolId, compKey);
+                    persistence.schoolId = schoolId;
+                    persistence.compKey = compKey;
+                    persistence.expectedVersion = rowVersionOf(verification);
                     const evaluation = this.flow.evaluateBonification(verification.bonificacao);
                     if (!evaluation.canConsolidate) {
                         fail(
@@ -260,12 +330,15 @@
                         );
                     }
                     verification.resultadoBonif = evaluation.status;
-                    this.appendLog(
+                    const log = this.appendSchoolLog(
+                        schoolId,
                         'Bonificação Consolidada',
                         `A bonificação da escola ${schoolId} para ${compKey} foi fechada como "${evaluation.status.toUpperCase()}".`
                     );
+                    persistence.logId = text(log?.id);
                     return { status: evaluation.status, verification: cloneValue(verification) };
-                }
+                },
+                persist: context => this.persistAtomicVerification(context, persistence)
             });
         }
 
@@ -274,6 +347,7 @@
             if (!this.retifications.canRetify(profile)) {
                 fail('FORBIDDEN', 'Retificação permitida somente ao perfil Assistente nesta fase.', 'retify');
             }
+            const persistence = {};
             return this.dataService.execute({
                 name: 'verification:retify',
                 changedEntities: ['verifications', 'administrativeLogs'],
@@ -283,6 +357,10 @@
                     const compKey = text(input.compKey);
                     const { competence, programId } = splitCompKey(compKey, input.programId);
                     const verification = this.getVerification(schoolId, compKey);
+                    persistence.schoolId = schoolId;
+                    persistence.compKey = compKey;
+                    persistence.programId = programId;
+                    persistence.expectedVersion = rowVersionOf(verification);
                     const user = this.getCurrentUser() || {};
                     try {
                         const result = this.retifications.applyRetification(verification, {
@@ -302,10 +380,12 @@
                         });
                         if (!state.verifications[schoolId]) state.verifications[schoolId] = {};
                         state.verifications[schoolId][compKey] = result.verification;
-                        this.appendLog(
+                        const log = this.appendSchoolLog(
+                            schoolId,
                             'Consolidação retificada',
                             `Consolidação da escola ${schoolId} em ${compKey} retificada com justificativa auditável.`
                         );
+                        persistence.logId = text(log?.id);
                         return {
                             verification: cloneValue(result.verification),
                             retification: cloneValue(result.retification)
@@ -313,7 +393,8 @@
                     } catch (error) {
                         throw asRepositoryError(error, 'retify');
                     }
-                }
+                },
+                persist: context => this.persistAtomicVerification(context, persistence)
             });
         }
 
