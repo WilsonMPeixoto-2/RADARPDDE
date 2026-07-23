@@ -1,4 +1,4 @@
-name: Publicar observabilidade validada
+name: Diagnosticar estado final da Task 6
 
 on:
   pull_request:
@@ -6,13 +6,13 @@ on:
       - '.github/workflows/export-remediation-source.yml'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  publish-task6:
+  diagnose-final-task6:
     if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 25
     steps:
       - name: Checkout do branch
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
@@ -30,18 +30,11 @@ jobs:
       - name: Instalar dependências
         run: npm ci
 
-      - name: Aplicar patch íntegro
+      - name: Reproduzir estado final
         run: |
           base64 --decode .github/task6-observability.patch.b64 | gzip --decompress > /tmp/task6.patch
-          test "$(sha256sum /tmp/task6.patch | awk '{print $1}')" = "073a03f06984fe69305aef608df2bf610ff10d1b2e93a8f17bda75b73a544cb7"
-          git apply --check /tmp/task6.patch
           git apply /tmp/task6.patch
           rm .github/task6-observability.patch.b64
-          git diff --check
-
-      - name: Restaurar workflow permanente antes dos validadores
-        shell: bash
-        run: |
           cat > .github/workflows/export-remediation-source.yml <<'YAML'
           name: Export remediation source
 
@@ -61,27 +54,18 @@ jobs:
               steps:
                 - name: Checkout
                   uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-
                 - name: Configurar Node.js 24
                   uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
                   with:
                     node-version: '24'
                     cache: npm
                     cache-dependency-path: package-lock.json
-
                 - name: Instalar dependências reproduzíveis
                   run: npm ci
-
                 - name: Empacotar código-fonte e dependências
                   run: |
-                    tar \
-                      --exclude='.git' \
-                      --exclude='node_modules' \
-                      --exclude='playwright-report' \
-                      --exclude='test-results' \
-                      -czf "$RUNNER_TEMP/radar-remediation-source.tar.gz" .
+                    tar --exclude='.git' --exclude='node_modules' --exclude='playwright-report' --exclude='test-results' -czf "$RUNNER_TEMP/radar-remediation-source.tar.gz" .
                     tar -czf "$RUNNER_TEMP/radar-remediation-node-modules.tar.gz" node_modules
-
                 - name: Publicar código-fonte temporário
                   uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
                   with:
@@ -94,24 +78,37 @@ jobs:
           YAML
           git diff --check
 
-      - name: Reconfirmar suíte Node 24
+      - name: Executar testes com log completo
+        id: tests
+        shell: bash
         run: |
-          npm run check
-          npm run test:unit
-          npm run test:integration
+          set +e
+          {
+            echo '=== STATUS ==='
+            git status --short
+            echo '=== CHECK ==='
+            npm run check
+            check_status=$?
+            echo "CHECK_STATUS=${check_status}"
+            echo '=== UNIT ==='
+            npm run test:unit
+            unit_status=$?
+            echo "UNIT_STATUS=${unit_status}"
+            echo '=== INTEGRATION ==='
+            npm run test:integration
+            integration_status=$?
+            echo "INTEGRATION_STATUS=${integration_status}"
+            test ${check_status} -eq 0 -a ${unit_status} -eq 0 -a ${integration_status} -eq 0
+          } > /tmp/task6-final-tests.log 2>&1
+          status=$?
+          tail -n 240 /tmp/task6-final-tests.log
+          exit ${status}
 
-      - name: Validar UX de erro no Chromium
-        run: |
-          npx playwright install --with-deps chromium
-          npx playwright test tests/e2e/data-error-ux.spec.js --project=desktop-chromium
-
-      - name: Publicar Task 6
-        env:
-          HEAD_REF: ${{ github.event.pull_request.head.ref }}
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          git diff --cached --check
-          git commit -m 'feat: adicionar observabilidade e mensagens verdadeiras'
-          git push origin "HEAD:${HEAD_REF}"
+      - name: Publicar log
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: task6-final-tests-${{ github.run_id }}
+          path: /tmp/task6-final-tests.log
+          if-no-files-found: error
+          retention-days: 1
