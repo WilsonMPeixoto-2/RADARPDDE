@@ -17,7 +17,6 @@ jobs:
     if: github.event.pull_request.head.ref == 'qa/supabase-preview-gate-run'
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    environment: preview
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
