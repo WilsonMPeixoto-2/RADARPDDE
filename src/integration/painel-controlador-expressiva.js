@@ -1,6 +1,18 @@
 (function installPainelControladorExpressiva(root) {
     'use strict';
 
+    function loadIntegration(src) {
+        if (document.querySelector(`script[data-radar-session-extension="${src}"]`)) return;
+        const script = document.createElement('script');
+        script.src = src;
+        script.async = false;
+        script.dataset.radarSessionExtension = src;
+        document.head.appendChild(script);
+    }
+
+    loadIntegration('src/integration/controller-session-context.js');
+    loadIntegration('src/integration/navigation-history.js');
+
     const CARD_KINDS = ['scope', 'bonus', 'open', 'review', 'assets'];
     let scheduled = false;
 
