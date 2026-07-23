@@ -1,4 +1,5 @@
 begin;
+set local role postgres;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
 select plan(16);
@@ -186,7 +187,7 @@ select throws_ok($$
         null
     )
 $$, '42501', null, 'papel anônimo não executa a RPC');
-reset role;
+set local role postgres;
 
 select * from finish();
 rollback;
