@@ -39,6 +39,7 @@ jobs:
           git apply --check "$RUNNER_TEMP/hml-ui.patch"
           git apply "$RUNNER_TEMP/hml-ui.patch"
           git rm .github/hml-ui.patch.gz.b64
+          rm -f .github/workflows/homologacao-remediacao-supabase.yml
           cat > .github/workflows/export-remediation-source.yml <<'YAML'
           name: Export remediation source
 
