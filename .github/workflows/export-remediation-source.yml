@@ -62,6 +62,13 @@ jobs:
       - name: Validar código e contratos estáticos
         run: npm run test:readiness
 
+      - name: Configurar origem local da Edge Function antes do runtime
+        shell: bash
+        run: |
+          mkdir -p supabase/functions
+          printf 'RADAR_ALLOWED_ORIGIN=%s\n' 'http://127.0.0.1:4175' > supabase/functions/.env
+          chmod 600 supabase/functions/.env
+
       - name: Iniciar e recriar Supabase local
         run: |
           npm run supabase:start
@@ -123,8 +130,13 @@ jobs:
         if: always()
         run: npm run supabase:stop || true
 
-      - name: Excluir workflow temporário do commit
-        run: mv /tmp/export-remediation-task7.yml .github/workflows/export-remediation-source.yml
+      - name: Excluir segredos locais e workflow temporário do commit
+        if: always()
+        run: |
+          rm -f supabase/functions/.env
+          if [ -f /tmp/export-remediation-task7.yml ]; then
+            mv /tmp/export-remediation-task7.yml .github/workflows/export-remediation-source.yml
+          fi
 
       - name: Publicar Task 7 validada
         env:
