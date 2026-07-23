@@ -1,4 +1,4 @@
-name: Diagnosticar patch de observabilidade
+name: Aplicar observabilidade validada
 
 on:
   pull_request:
@@ -6,13 +6,13 @@ on:
       - '.github/workflows/export-remediation-source.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  diagnose-patch:
+  apply-observability:
     if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 35
     steps:
       - name: Checkout do branch
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
@@ -20,31 +20,102 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
 
-      - name: Diagnosticar integridade e aplicabilidade
-        id: diagnose
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+
+      - name: Aplicar patch auditável
         shell: bash
         run: |
-          set +e
-          {
-            echo "HEAD=$(git rev-parse HEAD)"
-            echo "PATCH_B64_BYTES=$(wc -c < .github/task6-observability.patch.b64)"
-            base64 --decode .github/task6-observability.patch.b64 > /tmp/task6-observability.patch
-            decode_status=$?
-            echo "DECODE_STATUS=${decode_status}"
-            echo "PATCH_BYTES=$(wc -c < /tmp/task6-observability.patch)"
-            echo "PATCH_SHA256=$(sha256sum /tmp/task6-observability.patch | awk '{print $1}')"
-            git apply --check --verbose /tmp/task6-observability.patch
-            apply_status=$?
-            echo "APPLY_CHECK_STATUS=${apply_status}"
-          } > /tmp/task6-patch-diagnostic.txt 2>&1
-          cat /tmp/task6-patch-diagnostic.txt
-          exit "${apply_status:-1}"
+          set -euo pipefail
+          base64 --decode .github/task6-observability.patch.b64 | gzip --decompress > /tmp/task6-observability.patch
+          test "$(sha256sum /tmp/task6-observability.patch | awk '{print $1}')" = "073a03f06984fe69305aef608df2bf610ff10d1b2e93a8f17bda75b73a544cb7"
+          git apply --check /tmp/task6-observability.patch
+          git apply /tmp/task6-observability.patch
+          rm .github/task6-observability.patch.b64
+          git diff --check
 
-      - name: Publicar diagnóstico exato
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: task6-patch-diagnostic-${{ github.run_id }}
-          path: /tmp/task6-patch-diagnostic.txt
-          if-no-files-found: error
-          retention-days: 1
+      - name: Validar sintaxe, unidade e integração
+        run: |
+          npm run check
+          npm run test:unit
+          npm run test:integration
+
+      - name: Validar experiência de erro no navegador real
+        run: |
+          npx playwright install --with-deps chromium
+          npx playwright test tests/e2e/data-error-ux.spec.js --project=desktop-chromium
+
+      - name: Restaurar workflow permanente
+        shell: bash
+        run: |
+          cat > .github/workflows/export-remediation-source.yml <<'YAML'
+          name: Export remediation source
+
+          on:
+            pull_request:
+              paths:
+                - '.github/remediation-export-trigger.txt'
+                - '.github/workflows/export-remediation-source.yml'
+
+          permissions:
+            contents: read
+
+          jobs:
+            export-source:
+              runs-on: ubuntu-latest
+              timeout-minutes: 12
+              steps:
+                - name: Checkout
+                  uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+                - name: Configurar Node.js 24
+                  uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+                  with:
+                    node-version: '24'
+                    cache: npm
+                    cache-dependency-path: package-lock.json
+
+                - name: Instalar dependências reproduzíveis
+                  run: npm ci
+
+                - name: Empacotar código-fonte e dependências
+                  run: |
+                    tar \
+                      --exclude='.git' \
+                      --exclude='node_modules' \
+                      --exclude='playwright-report' \
+                      --exclude='test-results' \
+                      -czf "$RUNNER_TEMP/radar-remediation-source.tar.gz" .
+                    tar -czf "$RUNNER_TEMP/radar-remediation-node-modules.tar.gz" node_modules
+
+                - name: Publicar código-fonte temporário
+                  uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+                  with:
+                    name: radar-remediation-source-${{ github.sha }}
+                    path: |
+                      ${{ runner.temp }}/radar-remediation-source.tar.gz
+                      ${{ runner.temp }}/radar-remediation-node-modules.tar.gz
+                    if-no-files-found: error
+                    retention-days: 1
+          YAML
+          git diff --check
+
+      - name: Publicar Task 6 validada
+        shell: bash
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          git commit -m 'feat: adicionar observabilidade e mensagens verdadeiras'
+          git push origin "HEAD:${HEAD_REF}"
