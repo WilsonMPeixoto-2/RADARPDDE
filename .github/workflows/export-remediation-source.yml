@@ -12,22 +12,21 @@ concurrency:
   group: homologacao-operacional-remediacao
   cancel-in-progress: false
 
-env:
-  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-  RADAR_SUPABASE_URL: ${{ secrets.RADAR_SUPABASE_URL }}
-  RADAR_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.RADAR_SUPABASE_SERVICE_ROLE_KEY }}
-  RADAR_ALLOW_REMOTE_HOMOLOGATION: 'true'
-  RADAR_E2E_SUPABASE_REMOTE: '1'
-  RADAR_HML_FIXTURE_FILE: ${{ runner.temp }}/radar-hml-users.json
-
 jobs:
   homologar:
     if: github.event.pull_request.head.ref == 'qa/supabase-preview-gate-run'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     environment: preview
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      RADAR_SUPABASE_URL: ${{ secrets.RADAR_SUPABASE_URL }}
+      RADAR_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.RADAR_SUPABASE_SERVICE_ROLE_KEY }}
+      RADAR_ALLOW_REMOTE_HOMOLOGATION: 'true'
+      RADAR_E2E_SUPABASE_REMOTE: '1'
+      RADAR_HML_FIXTURE_FILE: ${{ runner.temp }}/radar-hml-users.json
     steps:
       - name: Obter exatamente o SHA da branch
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
