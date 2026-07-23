@@ -34,6 +34,35 @@
             || message.includes('quota exceeded');
     }
 
+    function createIncidentId(command = {}) {
+        if (command.incidentId) return String(command.incidentId);
+        if (typeof command.createIncidentId === 'function') return String(command.createIncidentId());
+        const time = Date.now().toString(36).toUpperCase();
+        const random = Math.random().toString(36).slice(2, 8).toUpperCase();
+        return `RADAR-${time}-${random}`;
+    }
+
+    function annotateFailure(error, metadata = {}) {
+        const target = error instanceof RepositoryError
+            ? error
+            : new RepositoryError(
+                String(error?.code || 'TRANSACTION_FAILED'),
+                String(error?.message || 'A operação de dados não pôde ser concluída.'),
+                { cause: error, operation: metadata.operation }
+            );
+        target.details = {
+            ...(target.details || {}),
+            incidentId: metadata.incidentId,
+            unitOfWorkPhase: metadata.phase,
+            rollbackConfirmed: metadata.rollbackConfirmed === true,
+            localRestoreConfirmed: metadata.localRestoreConfirmed === true,
+            remoteCommitConfirmed: metadata.remoteCommitConfirmed === true
+        };
+        target.incidentId = metadata.incidentId;
+        target.operation = target.operation || metadata.operation;
+        return target;
+    }
+
     class UnitOfWork {
         constructor(options = {}) {
             this.statePort = options.statePort;
@@ -60,8 +89,11 @@
             }
             const changedEntities = [...new Set(command.changedEntities || [])];
             changedEntities.forEach(assertKnownEntity);
+            const operation = String(command.name || 'data-command');
+            const incidentId = createIncidentId(command);
             const capture = await this.statePort.capture();
             let phase = 'mutate';
+            let remoteCommitConfirmed = false;
 
             try {
                 const value = await command.mutate();
@@ -73,11 +105,13 @@
                 });
                 phase = 'persist';
                 const persisted = await command.persist({
-                    name: String(command.name || 'data-command'),
+                    name: operation,
+                    incidentId,
                     changedEntities,
                     value: cloneValue(value),
                     snapshot: cloneValue(snapshot)
                 });
+                remoteCommitConfirmed = persisted?.remoteCommitConfirmed !== false;
                 phase = 'commit';
                 if (command.deferLocalCommit !== true) {
                     try {
@@ -87,38 +121,68 @@
                             await this.statePort.applyCanonical(snapshot);
                         }
                     } catch (commitError) {
-                        if (!isRecoverableLocalCacheError(commitError)) throw commitError;
+                        if (!isRecoverableLocalCacheError(commitError)) {
+                            throw new RepositoryError(
+                                'TRANSACTION_FAILED',
+                                'A gravação remota foi concluída, mas a atualização local falhou.',
+                                {
+                                    operation,
+                                    cause: commitError,
+                                    details: {
+                                        incidentId,
+                                        unitOfWorkPhase: 'commit',
+                                        rollbackConfirmed: false,
+                                        remoteCommitConfirmed: true
+                                    }
+                                }
+                            );
+                        }
                     }
                 }
                 return {
+                    incidentId,
                     value: cloneValue(value),
                     snapshot: cloneValue(snapshot),
                     persisted: cloneValue(persisted)
                 };
             } catch (error) {
+                let localRestoreConfirmed = false;
                 try {
                     await this.statePort.restore(capture);
+                    localRestoreConfirmed = true;
                 } catch (rollbackError) {
                     throw new RepositoryError(
                         'TRANSACTION_FAILED',
                         'A operação falhou e o estado local não pôde ser restaurado.',
                         {
-                            operation: String(command.name || 'data-command'),
+                            operation,
                             cause: error,
-                            details: { rollbackCode: rollbackError?.code || null }
+                            details: {
+                                incidentId,
+                                unitOfWorkPhase: phase,
+                                rollbackConfirmed: false,
+                                localRestoreConfirmed: false,
+                                remoteCommitConfirmed,
+                                rollbackCode: rollbackError?.code || null
+                            }
                         }
                     );
                 }
-                if (error instanceof RepositoryError && phase === 'mutate') {
-                    error.details = {
-                        ...(error.details || {}),
-                        unitOfWorkPhase: 'mutate'
-                    };
-                }
-                throw error;
+
+                const rollbackConfirmed = phase === 'mutate' || phase === 'export'
+                    ? true
+                    : error?.details?.rollbackConfirmed === true;
+                throw annotateFailure(error, {
+                    incidentId,
+                    operation,
+                    phase,
+                    rollbackConfirmed,
+                    localRestoreConfirmed,
+                    remoteCommitConfirmed: remoteCommitConfirmed || error?.details?.remoteCommitConfirmed === true
+                });
             }
         }
     }
 
-    return Object.freeze({ UnitOfWork });
+    return Object.freeze({ UnitOfWork, createIncidentId });
 }));
