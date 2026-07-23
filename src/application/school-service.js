@@ -18,6 +18,15 @@
         return value == null ? '' : String(value).trim();
     }
 
+    function list(value) {
+        return Array.isArray(value) ? value : [];
+    }
+
+    function rowVersionOf(record) {
+        const candidate = record?.rowVersion ?? record?.row_version;
+        return Number.isInteger(candidate) && candidate > 0 ? candidate : null;
+    }
+
     function fail(code, message, operation) {
         throw new RepositoryError(code, message, { operation });
     }
@@ -60,8 +69,31 @@
             return unique([...activeIds, ...historical]);
         }
 
+        persistControllerAssignment(context, persistence) {
+            const { snapshot, repository, defaultPersist } = context;
+            if (persistence.items.length === 0) return { schools: [], changed: false };
+            if (typeof repository.assignControllerWithLog !== 'function') return defaultPersist();
+            const canonicalSchools = list(snapshot?.entities?.schools);
+            const schools = persistence.items.map(item => {
+                const school = canonicalSchools.find(record => String(record.id) === String(item.id));
+                if (!school) fail('PERSISTENCE_CONTEXT_MISSING', 'Escola ausente na redistribuição.', 'persistControllerAssignment');
+                return {
+                    id: school.id,
+                    controller_id: school.controller_id,
+                    expected_version: item.expectedVersion
+                };
+            });
+            const administrativeLog = list(snapshot?.entities?.administrativeLogs)
+                .find(record => String(record.id) === String(persistence.logId));
+            if (!administrativeLog) {
+                fail('PERSISTENCE_CONTEXT_MISSING', 'Histórico ausente na redistribuição.', 'persistControllerAssignment');
+            }
+            return repository.assignControllerWithLog({ schools, administrativeLog });
+        }
+
         async saveSchool(input = {}) {
             let persistedSchoolId = text(input.id);
+            const persistence = { expectedSchoolVersion: null, logId: null };
             return this.dataService.execute({
                 name: 'school:save',
                 changedEntities: ['schools', 'schoolPrograms', 'administrativeLogs'],
@@ -71,6 +103,7 @@
                     const controller = this.activeController(state, controllerId, 'saveSchool');
                     const existing = input.id ? state.schools.find(item => item.id === input.id) : null;
                     if (input.id && !existing) fail('NOT_FOUND', 'Escola não localizada.', 'saveSchool');
+                    persistence.expectedSchoolVersion = existing ? rowVersionOf(existing) : null;
                     const school = existing || {
                         id: this.createId(),
                         inep: this.createInep(),
@@ -108,7 +141,12 @@
                     if (existing && previousController !== controllerId) {
                         details += ` Controlador alterado para ${controller.name}.`;
                     }
-                    this.appendLog(existing ? 'Escola Atualizada' : 'Escola Cadastrada', details);
+                    const log = this.appendLog(
+                        existing ? 'Escola Atualizada' : 'Escola Cadastrada',
+                        details,
+                        { escolaId: school.id, schoolId: school.id }
+                    );
+                    persistence.logId = text(log?.id);
                     return { school: { ...school, programasIds: [...school.programasIds] } };
                 },
                 persist: async ({ snapshot, repository, defaultPersist }) => {
@@ -119,18 +157,27 @@
                         .find(record => String(record.id) === persistedSchoolId);
                     const programs = (snapshot.entities.schoolPrograms || [])
                         .filter(record => String(record.school_id) === persistedSchoolId);
-                    if (!school) return defaultPersist();
+                    const administrativeLog = list(snapshot?.entities?.administrativeLogs)
+                        .find(record => String(record.id) === String(persistence.logId));
+                    if (!school || !administrativeLog) {
+                        fail(
+                            'PERSISTENCE_CONTEXT_MISSING',
+                            'Escola ou histórico ausente para persistência transacional.',
+                            'saveSchool'
+                        );
+                    }
                     return repository.saveSchoolWithPrograms({
                         school,
                         programs,
-                        expectedSchoolVersion: input.id ? Number(school.row_version || 1) : null,
-                        administrativeLog: snapshot.entities.administrativeLogs?.at(-1) || null
+                        expectedSchoolVersion: persistence.expectedSchoolVersion,
+                        administrativeLog
                     });
                 }
             });
         }
 
         async assignController(input = {}) {
+            const persistence = { items: [] };
             const schoolId = text(input.schoolId);
             const controllerId = text(input.controllerId);
             return this.dataService.execute({
@@ -143,17 +190,22 @@
                     const controller = this.activeController(state, controllerId, 'assignController');
                     if (school.controladorId === controllerId) return { schoolId, changed: false };
                     const previous = state.controllers.find(item => item.id === school.controladorId);
+                    persistence.items = [{ id: school.id, expectedVersion: rowVersionOf(school) }];
                     school.controladorId = controllerId;
-                    this.appendLog(
+                    const log = this.appendLog(
                         'Redistribuição de Carteira',
-                        `Escola ${school.denominação || school.denominaçao} redistribuída de ${previous?.name || 'Ninguém'} para ${controller.name}.`
+                        `Escola ${school.denominação || school.denominaçao} redistribuída de ${previous?.name || 'Ninguém'} para ${controller.name}.`,
+                        { escolaId: school.id, schoolId: school.id }
                     );
+                    persistence.logId = text(log?.id);
                     return { schoolId, changed: true };
-                }
+                },
+                persist: context => this.persistControllerAssignment(context, persistence)
             });
         }
 
         async bulkAssignController(input = {}) {
+            const persistence = { items: [] };
             const schoolIds = unique(input.schoolIds);
             const controllerId = text(input.controllerId);
             if (schoolIds.length === 0) fail('VALIDATION_FAILED', 'Selecione ao menos uma escola.', 'bulkAssignController');
@@ -166,18 +218,21 @@
                     let updatedCount = 0;
                     state.schools.forEach(school => {
                         if (schoolIds.includes(String(school.id)) && school.controladorId !== controllerId) {
+                            persistence.items.push({ id: school.id, expectedVersion: rowVersionOf(school) });
                             school.controladorId = controllerId;
                             updatedCount += 1;
                         }
                     });
                     if (updatedCount > 0) {
-                        this.appendLog(
+                        const log = this.appendLog(
                             'Redistribuição em Lote',
                             `Atribuição em lote realizada: ${updatedCount} escolas redistribuídas para o controlador ${controller.name}.`
                         );
+                        persistence.logId = text(log?.id);
                     }
                     return { updatedCount, controllerId };
-                }
+                },
+                persist: context => this.persistControllerAssignment(context, persistence)
             });
         }
     }

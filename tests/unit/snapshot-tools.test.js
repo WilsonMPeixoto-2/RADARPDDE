@@ -141,3 +141,39 @@ test('estima capacidade local, simula crescimento de 163 escolas e identifica ri
     assert.ok(report.domains.schools.sizeBytes > 0, 'schools sizeBytes é preenchido');
     assert.equal(report.riskDetected, false, 'risco não detectado para snapshot pequeno e cota padrão');
 });
+
+test('reconcilia contato legado sem operation_id com retorno remoto nulo', () => {
+    const source = createSnapshot({
+        pendencyContacts: [{
+            id: 'contact-legacy',
+            school_id: 'school-1',
+            pendency_id: null,
+            contact_type: 'E-mail',
+            contact_date: '2032-01-02',
+            description: 'Contato legado'
+        }]
+    }, {
+        version: '1',
+        importId: 'source-operation-id',
+        exportedAt: '2032-01-01T00:00:00.000Z'
+    });
+    const target = createSnapshot({
+        pendencyContacts: [{
+            id: 'contact-legacy',
+            school_id: 'school-1',
+            pendency_id: null,
+            contact_type: 'E-mail',
+            contact_date: '2032-01-02',
+            description: 'Contato legado',
+            operation_id: null
+        }]
+    }, {
+        version: '1',
+        importId: 'target-operation-id',
+        exportedAt: '2032-01-01T00:00:00.000Z'
+    });
+
+    const report = reconcileSnapshots(source, target);
+    assert.equal(report.ok, true);
+    assert.deepEqual(report.entities.pendencyContacts.changed, []);
+});

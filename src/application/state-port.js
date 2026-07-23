@@ -225,10 +225,12 @@
         }
 
         async function applyCanonical(snapshot, applyOptions = {}) {
+            const persistStorage = applyOptions.persistStorage !== false;
             const result = bridge.restoreCanonicalSnapshotToLegacyStorage(snapshot, storage, {
                 dataVersion: applyOptions.dataVersion || configuredDataVersion,
                 pendencySchemaVersion: applyOptions.pendencySchemaVersion
-                    || configuredPendencyVersion
+                    || configuredPendencyVersion,
+                dryRun: !persistStorage
             });
             await writeMemory(cloneValue(result.state));
             return cloneValue(result.state);

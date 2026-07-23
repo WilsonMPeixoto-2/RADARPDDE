@@ -9,13 +9,8 @@
         : root.RadarErrorMapper;
     const api = factory(contract, errorMapper);
 
-    if (typeof module !== 'undefined' && module.exports) {
-        module.exports = api;
-    }
-
-    if (root) {
-        root.RadarSupabaseRepository = Object.freeze(api);
-    }
+    if (typeof module !== 'undefined' && module.exports) module.exports = api;
+    if (root) root.RadarSupabaseRepository = Object.freeze(api);
 }(typeof window !== 'undefined' ? window : globalThis, function createSupabaseRepositoryApi(contract, errorMapper) {
     'use strict';
 
@@ -95,6 +90,98 @@
         return result;
     }
 
+    function jsonContracts() {
+        const contracts = typeof window !== 'undefined' && window.RadarJsonContracts
+            ? window.RadarJsonContracts
+            : require('../domain/json-contracts.js');
+        if (!contracts || typeof contracts.assertCanonicalRecords !== 'function') {
+            throw new RepositoryError(
+                'MISSING_JSON_CONTRACTS',
+                'A validação canônica de dados não está disponível.',
+                { operation: 'jsonContracts' }
+            );
+        }
+        return contracts;
+    }
+
+    function validateRecords(entity, records, operation) {
+        return jsonContracts().assertCanonicalRecords(entity, records, {
+            entity,
+            operation,
+            message: `A entidade ${entity} contém JSON incompatível com o contrato canônico.`
+        });
+    }
+
+    function headerValue(headers, name) {
+        if (!headers || typeof headers.get !== 'function') return '';
+        try {
+            return String(headers.get(name) || '');
+        } catch (_error) {
+            return '';
+        }
+    }
+
+    function classifyRemoteError(error) {
+        const status = Number(error?.status || error?.context?.status || 0) || null;
+        const postgresCode = String(error?.code || '').trim();
+        const message = String(error?.message || '').trim();
+        const normalized = message.toLowerCase();
+        let code = 'SUPABASE_OPERATION_FAILED';
+
+        if (status === 401 || normalized.includes('jwt') || normalized.includes('session')) {
+            code = 'SESSION_EXPIRED';
+        } else if (status === 403 || postgresCode === '42501' || normalized.includes('row-level security')) {
+            code = 'PERMISSION_DENIED';
+        } else if (status === 409 || postgresCode === '23505' || normalized.includes('duplicate key')) {
+            code = 'CONFLICT';
+        } else if (postgresCode === '23514' || postgresCode === '22P02' || postgresCode === '22023') {
+            code = 'VALIDATION_FAILED';
+        } else if (status === 404 || postgresCode === 'PGRST116') {
+            code = 'NOT_FOUND';
+        } else if (
+            normalized.includes('failed to fetch')
+            || normalized.includes('network')
+            || normalized.includes('timeout')
+            || normalized.includes('load failed')
+        ) {
+            code = 'REMOTE_UNAVAILABLE';
+        }
+
+        const requestId = headerValue(error?.context?.headers, 'x-request-id')
+            || headerValue(error?.context?.headers, 'x-supabase-request-id')
+            || String(error?.requestId || '');
+        return { code, status, postgresCode, requestId };
+    }
+
+    function repositoryError(error, options = {}) {
+        if (error instanceof RepositoryError) return error;
+        const classified = classifyRemoteError(error);
+        const causeMessage = String(error?.message || '').trim();
+        const contextMessage = String(options.message || '').trim();
+        const message = contextMessage
+            ? `${contextMessage}${causeMessage ? `: ${causeMessage}` : ''}`
+            : (causeMessage || 'Falha na operação Supabase.');
+        const mapped = new RepositoryError(classified.code, message, {
+            entity: options.entity || null,
+            operation: options.operation || null,
+            cause: error,
+            details: {
+                status: classified.status,
+                postgresCode: classified.postgresCode || null,
+                requestId: classified.requestId || null,
+                remoteMessage: causeMessage || null,
+                remoteDetails: error?.details || null,
+                hint: error?.hint || null,
+                table: options.table || null,
+                rpc: options.rpc || null
+            }
+        });
+        mapped.status = classified.status;
+        mapped.postgresCode = classified.postgresCode || null;
+        mapped.requestId = classified.requestId || null;
+        return mapped;
+    }
+
     class SupabaseRepository {
         constructor(options = {}) {
             if (!options.client || typeof options.client.from !== 'function') {
@@ -104,17 +191,10 @@
                     { operation: 'construct' }
                 );
             }
-
             this.client = options.client;
-            this.tableMap = Object.freeze({
-                ...DEFAULT_TABLE_MAP,
-                ...(options.tableMap || {})
-            });
+            this.tableMap = Object.freeze({ ...DEFAULT_TABLE_MAP, ...(options.tableMap || {}) });
             this.pageSize = positiveInteger(options.pageSize, DEFAULT_PAGE_SIZE);
-            this.writeBatchSize = positiveInteger(
-                options.writeBatchSize,
-                DEFAULT_WRITE_BATCH_SIZE
-            );
+            this.writeBatchSize = positiveInteger(options.writeBatchSize, DEFAULT_WRITE_BATCH_SIZE);
             this.readRetry = Object.freeze({
                 maxAttempts: positiveInteger(options.readRetry?.maxAttempts, 3),
                 delayMs: Number.isFinite(options.readRetry?.delayMs) && options.readRetry.delayMs >= 0
@@ -137,39 +217,34 @@
         }
 
         async execute(entity, operation, query) {
+            const table = this.tableFor(entity);
             try {
                 const result = await query;
-                if (result && result.error) {
-                    throw result.error;
-                }
-                return cloneValue((result && result.data) || []);
+                if (result?.error) throw result.error;
+                return cloneValue(result?.data || []);
             } catch (error) {
-                if (error instanceof RepositoryError) throw error;
-                throw new RepositoryError(
-                    'SUPABASE_OPERATION_FAILED',
-                    `Falha na operação ${operation} da entidade ${entity}.`,
-                    { entity, operation, cause: error }
-                );
+                throw repositoryError(error, {
+                    entity,
+                    operation,
+                    table,
+                    message: `Falha na operação ${operation} da entidade ${entity}`
+                });
             }
         }
 
         isTransientError(error) {
             if (!error) return false;
-            const status = error.status || error.code;
+            const status = Number(error.status || 0);
             const message = String(error.message || '').toLowerCase();
-            if (status === 429 || status === 408 || status === 502 || status === 503 || status === 504) {
-                return true;
-            }
-            if (message.includes('fetch') || message.includes('network') || message.includes('timeout') || message.includes('failed to fetch') || message.includes('load failed')) {
-                return true;
-            }
-            return false;
+            return [408, 429, 502, 503, 504].includes(status)
+                || message.includes('fetch')
+                || message.includes('network')
+                || message.includes('timeout')
+                || message.includes('load failed');
         }
 
         getRetryDelay(attempt) {
-            const base = 250 * Math.pow(3, attempt);
-            const jitter = Math.random() * 100;
-            return base + jitter;
+            return (250 * Math.pow(3, attempt)) + (Math.random() * 100);
         }
 
         async loadPage(entity, offset = 0, limit = this.pageSize) {
@@ -188,14 +263,12 @@
         async load(entity) {
             const rows = [];
             let offset = 0;
-
             while (true) {
                 const page = await this.loadPage(entity, offset, this.pageSize);
                 rows.push(...page);
                 if (page.length < this.pageSize) break;
                 offset += page.length;
             }
-
             return cloneValue(rows);
         }
 
@@ -203,34 +276,10 @@
             const table = this.tableFor(entity);
             const collection = normalizeCollection(records);
             if (collection.length === 0) return [];
+            validateRecords(entity, collection, 'save');
             const batchSize = positiveInteger(options.batchSize, this.writeBatchSize);
-
-            if (entity === 'verifications') {
-                const contracts = typeof window !== 'undefined' && window.RadarJsonContracts
-                    ? window.RadarJsonContracts
-                    : require('../domain/json-contracts.js');
-                
-                for (const record of collection) {
-                    const payloadToValidate = typeof record.payload === 'string'
-                        ? JSON.parse(record.payload)
-                        : record.payload;
-                    const res = contracts.validateVerification(payloadToValidate || {});
-                    if (!res.valid) {
-                        throw new RepositoryError(
-                            'VALIDATION_FAILED',
-                            `Falha de validação de contrato no payload de verificação: ${res.errors[0].message}`,
-                            { entity, operation: 'save', details: { id: record.id, errors: res.errors } }
-                        );
-                    }
-                }
-            }
-
             for (const batch of chunks(collection, batchSize)) {
-                await this.execute(
-                    entity,
-                    'save',
-                    this.client.from(table).upsert(batch)
-                );
+                await this.execute(entity, 'save', this.client.from(table).upsert(batch));
             }
             return cloneValue(collection);
         }
@@ -239,21 +288,17 @@
             const table = this.tableFor(entity);
             const collection = normalizeCollection(records);
             if (collection.length === 0) return [];
+            validateRecords(entity, collection, 'insertOnly');
             const batchSize = positiveInteger(options.batchSize, this.writeBatchSize);
-
             for (const batch of chunks(collection, batchSize)) {
-                await this.execute(
-                    entity,
-                    'insertOnly',
-                    this.client.from(table).insert(batch)
-                );
+                await this.execute(entity, 'insertOnly', this.client.from(table).insert(batch));
             }
             return cloneValue(collection);
         }
 
         async updateWithVersion(entity, record, expectedVersion) {
             const table = this.tableFor(entity);
-            const id = record && record.id;
+            const id = record?.id;
             if (id === undefined || id === null || id === '') {
                 throw new RepositoryError(
                     'MISSING_RECORD_ID',
@@ -268,47 +313,23 @@
                     { entity, operation: 'updateWithVersion', details: { id, expectedVersion } }
                 );
             }
-
-            if (entity === 'verifications') {
-                const contracts = typeof window !== 'undefined' && window.RadarJsonContracts
-                    ? window.RadarJsonContracts
-                    : require('../domain/json-contracts.js');
-                const payloadToValidate = typeof record.payload === 'string'
-                    ? JSON.parse(record.payload)
-                    : record.payload;
-                const res = contracts.validateVerification(payloadToValidate || {});
-                if (!res.valid) {
-                    throw new RepositoryError(
-                        'VALIDATION_FAILED',
-                        `Falha de validação de contrato no payload de verificação: ${res.errors[0].message}`,
-                        { entity, operation: 'updateWithVersion', details: { id, errors: res.errors } }
-                    );
-                }
-            }
-
+            validateRecords(entity, [record], 'updateWithVersion');
             const payload = cloneValue(record);
             delete payload.id;
             delete payload.row_version;
-
-            let query = this.client.from(table).update(payload).eq('id', id).eq(
-                'row_version',
-                expectedVersion
-            );
+            let query = this.client.from(table)
+                .update(payload)
+                .eq('id', id)
+                .eq('row_version', expectedVersion);
             if (typeof query.select === 'function') query = query.select('*');
             const updatedRows = await this.execute(entity, 'updateWithVersion', query);
-
             if (updatedRows.length === 0) {
                 throw new RepositoryError(
                     'OPTIMISTIC_CONFLICT',
                     `O registro ${String(id)} foi alterado por outra sessão.`,
-                    {
-                        entity,
-                        operation: 'updateWithVersion',
-                        details: { id, expectedVersion }
-                    }
+                    { entity, operation: 'updateWithVersion', details: { id, expectedVersion } }
                 );
             }
-
             return cloneValue(updatedRows[0]);
         }
 
@@ -321,11 +342,16 @@
                 );
             }
             const table = this.tableFor(entity);
-            await this.execute(
-                entity,
-                'remove',
-                this.client.from(table).delete().eq('id', id)
-            );
+            let query = this.client.from(table).delete().eq('id', id);
+            if (typeof query.select === 'function') query = query.select('id');
+            const removed = await this.execute(entity, 'remove', query);
+            if (removed.length === 0) {
+                throw new RepositoryError(
+                    'NOT_FOUND_OR_FORBIDDEN',
+                    `O registro ${String(id)} não foi removido.`,
+                    { entity, operation: 'remove', details: { id } }
+                );
+            }
             return { removedId: id };
         }
 
@@ -333,11 +359,8 @@
             const entities = {};
             for (const entity of RADAR_ENTITIES) {
                 const records = await this.load(entity);
-                if (records.length > 0 || options.includeEmpty === true) {
-                    entities[entity] = records;
-                }
+                if (records.length > 0 || options.includeEmpty === true) entities[entity] = records;
             }
-
             return createSnapshotEnvelope(entities, {
                 version: options.version || options.schemaVersion || '1',
                 importId: options.importId,
@@ -357,7 +380,6 @@
                     { operation: 'restoreSnapshot' }
                 );
             }
-
             const entityNames = Object.keys(snapshot.entities);
             entityNames.forEach(assertKnownEntity);
             const skippedEntities = entityNames
@@ -371,11 +393,9 @@
                     (orderIndex.get(left) ?? Number.MAX_SAFE_INTEGER)
                     - (orderIndex.get(right) ?? Number.MAX_SAFE_INTEGER)
                 ));
-
             for (const entity of orderedEntities) {
                 await this.save(entity, snapshot.entities[entity], options);
             }
-
             return {
                 restoredEntities: orderedEntities.length,
                 orderedEntities,
@@ -394,7 +414,8 @@
                     ok: false,
                     mode: 'supabase',
                     writable: null,
-                    errorCode: error.code || 'SUPABASE_OPERATION_FAILED'
+                    errorCode: error.code || 'SUPABASE_OPERATION_FAILED',
+                    requestId: error.requestId || null
                 };
             }
         }
@@ -413,18 +434,173 @@
                 return cloneValue(result?.data ?? null);
             } catch (error) {
                 if (error instanceof RepositoryError) throw error;
-                const message = String(error?.message || 'Falha em operação transacional Supabase.');
-                let code = 'SUPABASE_OPERATION_FAILED';
-                if (message.includes('OPTIMISTIC_CONFLICT')) code = 'OPTIMISTIC_CONFLICT';
-                else if (message.includes('AUTHORIZATION_DENIED')) code = 'PERMISSION_DENIED';
-                else if (message.includes('VALIDATION_ERROR')) code = 'VALIDATION_FAILED';
-                else if (message.includes('NOT_FOUND')) code = 'NOT_FOUND';
-                throw new RepositoryError(code, message, {
+                const remoteMessage = String(error?.message || 'Falha em operação transacional Supabase.');
+                let code = classifyRemoteError(error).code;
+                if (remoteMessage.includes('OPTIMISTIC_CONFLICT')) code = 'OPTIMISTIC_CONFLICT';
+                else if (remoteMessage.includes('AUTHORIZATION_DENIED')) code = 'PERMISSION_DENIED';
+                else if (remoteMessage.includes('VALIDATION_ERROR')) code = 'VALIDATION_FAILED';
+                else if (remoteMessage.includes('NOT_FOUND')) code = 'NOT_FOUND';
+                const mapped = repositoryError(error, {
                     operation,
-                    cause: error,
-                    details: { rpc: name }
+                    rpc: name,
+                    message: `Falha na operação transacional ${operation}`
+                });
+                mapped.code = code;
+                throw mapped;
+            }
+        }
+
+        async saveVerificationWithLog(input = {}) {
+            if (!input.verification || typeof input.verification !== 'object') {
+                throw new RepositoryError(
+                    'VALIDATION_FAILED',
+                    'A RPC de verificação exige o registro canônico da verificação.',
+                    { operation: 'saveVerificationWithLog' }
+                );
+            }
+            validateRecords('verifications', [input.verification], 'saveVerificationWithLog');
+            if (!input.administrativeLog || typeof input.administrativeLog !== 'object') {
+                throw new RepositoryError(
+                    'VALIDATION_FAILED',
+                    'A RPC de verificação exige o log administrativo da operação.',
+                    { operation: 'saveVerificationWithLog' }
+                );
+            }
+            validateRecords('administrativeLogs', [input.administrativeLog], 'saveVerificationWithLog');
+            return this.executeRpc('save_verification_with_log', {
+                p_verification: cloneValue(input.verification),
+                p_expected_version: input.expectedVersion ?? null,
+                p_administrative_log: input.administrativeLog
+                    ? cloneValue(input.administrativeLog)
+                    : null
+            }, 'saveVerificationWithLog');
+        }
+
+        async savePendencyCommand(input = {}) {
+            const operation = String(input.operation || '');
+            if (!['open', 'register_attempt', 'update_status'].includes(operation)) {
+                throw new RepositoryError(
+                    'VALIDATION_FAILED',
+                    'Operação de pendência não reconhecida.',
+                    { operation: 'savePendencyCommand' }
+                );
+            }
+            if (!input.pendency || typeof input.pendency !== 'object'
+                || !input.administrativeLog || typeof input.administrativeLog !== 'object') {
+                throw new RepositoryError(
+                    'VALIDATION_FAILED',
+                    'A RPC de pendência exige o registro e o log administrativo.',
+                    { operation: 'savePendencyCommand' }
+                );
+            }
+            validateRecords('pendencies', [input.pendency], 'savePendencyCommand');
+            validateRecords('administrativeLogs', [input.administrativeLog], 'savePendencyCommand');
+            if (input.attempt) validateRecords('pendencyAttempts', [input.attempt], 'savePendencyCommand');
+            if (input.verification) validateRecords('verifications', [input.verification], 'savePendencyCommand');
+            return this.executeRpc('save_pendency_command', {
+                p_operation: operation,
+                p_pendency: cloneValue(input.pendency),
+                p_expected_pendency_version: input.expectedPendencyVersion ?? null,
+                p_attempt: input.attempt ? cloneValue(input.attempt) : null,
+                p_verification: input.verification ? cloneValue(input.verification) : null,
+                p_expected_verification_version: input.expectedVerificationVersion ?? null,
+                p_administrative_log: cloneValue(input.administrativeLog)
+            }, 'savePendencyCommand');
+        }
+
+        async savePendencyContactWithLog(input = {}) {
+            if (!input.contact || typeof input.contact !== 'object') {
+                throw new RepositoryError(
+                    'VALIDATION_FAILED',
+                    'A RPC de contato exige o registro canônico do contato.',
+                    { operation: 'savePendencyContactWithLog' }
+                );
+            }
+            if (!input.operationId) {
+                throw new RepositoryError(
+                    'VALIDATION_FAILED',
+                    'A RPC de contato exige um identificador idempotente da operação.',
+                    { operation: 'savePendencyContactWithLog' }
+                );
+            }
+            if (!input.administrativeLog || typeof input.administrativeLog !== 'object') {
+                throw new RepositoryError(
+                    'VALIDATION_FAILED',
+                    'A RPC de contato exige o log administrativo da operação.',
+                    { operation: 'savePendencyContactWithLog' }
+                );
+            }
+            validateRecords('pendencyContacts', [input.contact], 'savePendencyContactWithLog');
+            validateRecords('administrativeLogs', [input.administrativeLog], 'savePendencyContactWithLog');
+            return this.executeRpc('save_pendency_contact_with_log', {
+                p_contact: cloneValue(input.contact),
+                p_operation_id: String(input.operationId),
+                p_administrative_log: cloneValue(input.administrativeLog)
+            }, 'savePendencyContactWithLog');
+        }
+
+        async saveProgramWithLog(input = {}) {
+            if (!input.program || typeof input.program !== 'object'
+                || !input.administrativeLog || typeof input.administrativeLog !== 'object') {
+                throw new RepositoryError('VALIDATION_FAILED', 'Programa e log são obrigatórios.', {
+                    operation: 'saveProgramWithLog'
                 });
             }
+            validateRecords('programs', [input.program], 'saveProgramWithLog');
+            validateRecords('administrativeLogs', [input.administrativeLog], 'saveProgramWithLog');
+            return this.executeRpc('save_program_with_log', {
+                p_program: cloneValue(input.program),
+                p_expected_version: input.expectedVersion ?? null,
+                p_administrative_log: cloneValue(input.administrativeLog)
+            }, 'saveProgramWithLog');
+        }
+
+        async saveCalendarWithLog(input = {}) {
+            if (!input.appConfig || typeof input.appConfig !== 'object'
+                || !input.administrativeLog || typeof input.administrativeLog !== 'object') {
+                throw new RepositoryError('VALIDATION_FAILED', 'Calendário e log são obrigatórios.', {
+                    operation: 'saveCalendarWithLog'
+                });
+            }
+            validateRecords('appConfig', [input.appConfig], 'saveCalendarWithLog');
+            validateRecords('administrativeLogs', [input.administrativeLog], 'saveCalendarWithLog');
+            return this.executeRpc('save_calendar_with_log', {
+                p_config: cloneValue(input.appConfig),
+                p_expected_version: input.expectedVersion ?? null,
+                p_administrative_log: cloneValue(input.administrativeLog)
+            }, 'saveCalendarWithLog');
+        }
+
+        async assignControllerWithLog(input = {}) {
+            if (!Array.isArray(input.schools) || input.schools.length === 0
+                || !input.administrativeLog || typeof input.administrativeLog !== 'object') {
+                throw new RepositoryError('VALIDATION_FAILED', 'Escolas e log são obrigatórios na redistribuição.', {
+                    operation: 'assignControllerWithLog'
+                });
+            }
+            validateRecords('administrativeLogs', [input.administrativeLog], 'assignControllerWithLog');
+            return this.executeRpc('assign_controller_with_log', {
+                p_schools: cloneValue(input.schools),
+                p_administrative_log: cloneValue(input.administrativeLog)
+            }, 'assignControllerWithLog');
+        }
+
+        async saveAssetWithLog(input = {}) {
+            if (!input.asset || typeof input.asset !== 'object'
+                || !input.administrativeLog || typeof input.administrativeLog !== 'object') {
+                throw new RepositoryError(
+                    'VALIDATION_FAILED',
+                    'A RPC patrimonial exige o bem e o log administrativo.',
+                    { operation: 'saveAssetWithLog' }
+                );
+            }
+            validateRecords('assets', [input.asset], 'saveAssetWithLog');
+            validateRecords('administrativeLogs', [input.administrativeLog], 'saveAssetWithLog');
+            return this.executeRpc('save_asset_with_log', {
+                p_asset: cloneValue(input.asset),
+                p_expected_version: input.expectedVersion ?? null,
+                p_administrative_log: cloneValue(input.administrativeLog)
+            }, 'saveAssetWithLog');
         }
 
         async saveInvoiceWithEffects(input = {}) {
@@ -438,15 +614,11 @@
             return this.executeRpc('save_invoice_with_effects', {
                 p_invoice: cloneValue(input.invoice),
                 p_asset: input.asset ? cloneValue(input.asset) : null,
-                p_verification_patch: input.verificationPatch
-                    ? cloneValue(input.verificationPatch)
-                    : null,
+                p_verification_patch: input.verificationPatch ? cloneValue(input.verificationPatch) : null,
                 p_expected_invoice_version: input.expectedInvoiceVersion ?? null,
                 p_expected_asset_version: input.expectedAssetVersion ?? null,
                 p_expected_verification_version: input.expectedVerificationVersion ?? null,
-                p_administrative_log: input.administrativeLog
-                    ? cloneValue(input.administrativeLog)
-                    : null
+                p_administrative_log: input.administrativeLog ? cloneValue(input.administrativeLog) : null
             }, 'saveInvoiceWithEffects');
         }
 
@@ -463,41 +635,68 @@
                 p_expected_invoice_version: input.expectedInvoiceVersion ?? null,
                 p_delete_linked_asset: input.deleteLinkedAsset !== false,
                 p_expected_asset_version: input.expectedAssetVersion ?? null,
-                p_verification_patch: input.verificationPatch
-                    ? cloneValue(input.verificationPatch)
-                    : null,
+                p_verification_patch: input.verificationPatch ? cloneValue(input.verificationPatch) : null,
                 p_expected_verification_version: input.expectedVerificationVersion ?? null,
-                p_administrative_log: input.administrativeLog
-                    ? cloneValue(input.administrativeLog)
-                    : null
+                p_administrative_log: input.administrativeLog ? cloneValue(input.administrativeLog) : null
             }, 'deleteInvoiceWithEffects');
         }
 
         async saveExerciseWithCompetences(input = {}) {
+            if (!input.administrativeLog) {
+                throw new RepositoryError(
+                    'VALIDATION_FAILED',
+                    'A criação de exercício exige histórico administrativo atômico.',
+                    { operation: 'saveExerciseWithCompetences' }
+                );
+            }
+            validateRecords('appConfig', [input.appConfig || {}], 'saveExerciseWithCompetences');
+            validateRecords('competences', input.competences || [], 'saveExerciseWithCompetences');
+            validateRecords('administrativeLogs', [input.administrativeLog], 'saveExerciseWithCompetences');
             return this.executeRpc('save_exercise_with_competences', {
                 p_config: cloneValue(input.appConfig || {}),
                 p_competences: cloneValue(input.competences || []),
-                p_administrative_log: input.administrativeLog ? cloneValue(input.administrativeLog) : null
+                p_administrative_log: cloneValue(input.administrativeLog)
             }, 'saveExerciseWithCompetences');
         }
 
         async saveSchoolWithPrograms(input = {}) {
+            if (!input.administrativeLog) {
+                throw new RepositoryError(
+                    'VALIDATION_FAILED',
+                    'A gravação de escola exige histórico administrativo atômico.',
+                    { operation: 'saveSchoolWithPrograms' }
+                );
+            }
+            validateRecords('schools', [input.school || {}], 'saveSchoolWithPrograms');
+            validateRecords('schoolPrograms', input.programs || [], 'saveSchoolWithPrograms');
+            validateRecords('administrativeLogs', [input.administrativeLog], 'saveSchoolWithPrograms');
             return this.executeRpc('save_school_with_programs', {
                 p_school: cloneValue(input.school || {}),
                 p_programs: cloneValue(input.programs || []),
                 p_expected_school_version: input.expectedSchoolVersion ?? null,
-                p_administrative_log: input.administrativeLog ? cloneValue(input.administrativeLog) : null
+                p_administrative_log: cloneValue(input.administrativeLog)
             }, 'saveSchoolWithPrograms');
         }
 
         async reanalyzePendencyWithVerification(input = {}) {
+            if (!input.administrativeLog) {
+                throw new RepositoryError(
+                    'VALIDATION_FAILED',
+                    'A reanálise exige histórico administrativo atômico.',
+                    { operation: 'reanalyzePendencyWithVerification' }
+                );
+            }
+            validateRecords('pendencies', [input.pendency || {}], 'reanalyzePendencyWithVerification');
+            if (input.attempt) validateRecords('pendencyAttempts', [input.attempt], 'reanalyzePendencyWithVerification');
+            validateRecords('verifications', [input.verification || {}], 'reanalyzePendencyWithVerification');
+            validateRecords('administrativeLogs', [input.administrativeLog], 'reanalyzePendencyWithVerification');
             return this.executeRpc('reanalyze_pendency_with_verification', {
                 p_pendency: cloneValue(input.pendency || {}),
                 p_attempt: input.attempt ? cloneValue(input.attempt) : null,
                 p_verification_patch: cloneValue(input.verification || {}),
                 p_expected_pendency_version: input.expectedPendencyVersion ?? null,
                 p_expected_verification_version: input.expectedVerificationVersion ?? null,
-                p_administrative_log: input.administrativeLog ? cloneValue(input.administrativeLog) : null
+                p_administrative_log: cloneValue(input.administrativeLog)
             }, 'reanalyzePendencyWithVerification');
         }
 
@@ -554,6 +753,7 @@
                 writable: true,
                 canImportLegacy: false,
                 atomicTransactions: false,
+                atomicVerificationLogs: true,
                 atomicInvoiceEffects: true,
                 atomicExerciseCreation: true,
                 atomicSchoolPrograms: true,

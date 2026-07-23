@@ -3,7 +3,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 
 const remoteEnabled = process.env.RADAR_E2E_SUPABASE_REMOTE === '1';
-test.skip(!remoteEnabled, 'Esta suíte exige o workflow seguro de homologação do Preview Supabase remoto.');
+test.skip(!remoteEnabled, 'Esta suíte exige a homologação remota isolada.');
 
 const fixtureFile = process.env.RADAR_HML_FIXTURE_FILE;
 const password = process.env.RADAR_HML_PASSWORD || '';
@@ -16,24 +16,8 @@ if (remoteEnabled && password.length < 24) {
 
 const fixture = remoteEnabled
   ? JSON.parse(fs.readFileSync(path.resolve(fixtureFile), 'utf8'))
-  : {
-      users: [],
-      records: {},
-      expectations: {
-        tuaneSchools: [],
-        alziraSchools: [],
-        inventorySchools: [],
-        allHmlPendencies: []
-      }
-    };
+  : { users: [], school: {}, values: {} };
 const users = Object.fromEntries(fixture.users.map(user => [user.key, user]));
-const candidateSchools = [
-  ...fixture.expectations.tuaneSchools,
-  ...fixture.expectations.alziraSchools
-];
-
-const controllerPendencies = [...fixture.expectations.allHmlPendencies].sort();
-const controllerSchools = [...candidateSchools].sort();
 
 test.describe.configure({ mode: 'serial' });
 
@@ -52,16 +36,11 @@ async function signIn(page, user) {
   await page.locator('#radar-auth-email').fill(user.email);
   await page.locator('#radar-auth-password').fill(password);
   await page.locator('#radar-auth-form button[type="submit"]').click();
-}
-
-async function waitForApplication(page, role) {
   await page.waitForFunction(expectedRole => (
     window.RadarDataContext?.ready === true
     && window.RadarAuthContext?.authorization?.role === expectedRole
-  ), role, { timeout: 30000 });
+  ), user.profileId, { timeout: 30000 });
   await expect(page.locator('#app-layout')).toBeVisible();
-  await expect(page.locator('#radar-auth-gate')).toBeHidden();
-  await expect(page.locator('#auth-logout-button')).toBeVisible();
 }
 
 async function authenticated(browser, key) {
@@ -70,301 +49,202 @@ async function authenticated(browser, key) {
   const errors = collectErrors(page);
   const user = users[key];
   await signIn(page, user);
-  await waitForApplication(page, user.profileId);
   return { context, page, errors, user };
 }
 
-async function navigateSurfaces(page) {
-  const items = page.locator('.sidebar .nav-item:visible');
-  const count = await items.count();
-  for (let index = 0; index < count; index += 1) {
-    await items.nth(index).click();
-    await expect(page.locator('#main-container')).toBeVisible();
-  }
-  return count;
+async function openFixtureSchool(page) {
+  await page.locator('#nav-escolas').click();
+  const search = page.locator('#escola-search-input');
+  await expect(search).toBeVisible();
+  await search.fill(fixture.school.designation);
+  const row = page.locator('#main-container table.data-table tbody tr').filter({
+    hasText: fixture.school.denomination
+  });
+  await expect(row).toHaveCount(1);
+  await row.getByRole('button', { name: 'Ver Unidade', exact: true }).click();
+  await expect(page.getByRole('heading', { name: new RegExp(fixture.school.denomination) })).toBeVisible();
 }
 
-for (const key of ['technicalAdmin', 'assistant', 'controllerTuane', 'controllerAlzira', 'inventory', 'sme']) {
-  test(`${key} autentica, preserva sessão, percorre superfícies e encerra acesso`, async ({ browser }) => {
-    const { context, page, errors, user } = await authenticated(browser, key);
-    const runtime = await page.evaluate(() => ({
-      environment: window.RADAR_PDDE_CONFIG.environment,
-      dataMode: window.RADAR_PDDE_CONFIG.dataMode,
-      repository: window.RadarDataContext.capabilities.mode,
-      role: window.RadarAuthContext.authorization.role,
-      hasSessionInPublicContext: Object.hasOwn(window.RadarDataContext.authentication, 'session'),
-      profileSwitcherHidden: document.querySelector('.profile-switcher')?.hidden
-    }));
-    expect(runtime).toEqual({
-      environment: 'preview',
-      dataMode: 'supabase-preview',
-      repository: 'supabase',
-      role: user.profileId,
-      hasSessionInPublicContext: false,
-      profileSwitcherHidden: key !== 'technicalAdmin'
-    });
-
-    if (key === 'technicalAdmin') {
-      await expect(page.getByRole('heading', { name: 'Acesso técnico' })).toHaveCount(0);
-      await expect(page.locator('.sidebar')).toBeVisible();
-      await expect(page.locator('.profile-switcher')).toBeVisible();
-      expect(await navigateSurfaces(page)).toBeGreaterThan(0);
-
-      const simulatedProfiles = [
-        ['assistente', /Assistente/i],
-        ['sme', /SME/i],
-        ['inventario', /Inventário/i],
-        ['controlador', /Controlador/i]
-      ];
-      for (const [profile, expectedLabel] of simulatedProfiles) {
-        const state = await page.evaluate(simulatedProfile => {
-          window.switchProfile(simulatedProfile);
-          return {
-            label: document.getElementById('profile-btn-label')?.textContent || '',
-            authRole: window.RadarAuthContext?.authorization?.role,
-            bodyRole: document.body.dataset.authRole
-          };
-        }, profile);
-        expect(state.label).toMatch(expectedLabel);
-        expect(state.authRole).toBe('technical_admin');
-        expect(state.bodyRole).toBe('technical_admin');
-      }
-    } else {
-      expect(await navigateSurfaces(page)).toBeGreaterThan(0);
-    }
-
-    await page.reload();
-    await waitForApplication(page, user.profileId);
-    await page.locator('#auth-logout-button').click();
-    await expect(page.locator('#radar-auth-gate')).toBeVisible();
-    await expect(page.locator('#radar-auth-status')).toContainText(/sessão/i);
-    expect(errors).toEqual([]);
-    await context.close();
-  });
+function verificationRow(page, documentKey) {
+  return page.locator(
+    `#prontuario-verif-rows tr[data-program-id="${fixture.school.programId}"]`
+      + `[data-document-key="${documentKey}"]`
+  );
 }
 
-test('administrador técnico abre o menu e navega em viewport móvel', async ({ browser }) => {
-  const context = await browser.newContext({ viewport: { width: 412, height: 915 } });
-  const page = await context.newPage();
-  const errors = collectErrors(page);
-  const user = users.technicalAdmin;
+test('controlador restrito executa comandos reais e confirma persistência após recarga', async ({ browser }) => {
+  const { context, page, errors, user } = await authenticated(browser, 'controller');
 
-  await signIn(page, user);
-  await waitForApplication(page, user.profileId);
-
-  const menuButton = page.locator('#mobile-menu-button');
-  await expect(menuButton).toBeVisible();
-  await expect(page.locator('.sidebar')).toBeHidden();
-  await menuButton.click();
-  await expect(page.locator('.sidebar')).toHaveClass(/mobile-open/);
-  await expect(page.locator('.sidebar .nav-item:visible').first()).toBeVisible();
-  await page.locator('#nav-dashboard').click();
-  await expect(page.locator('#main-container')).toBeVisible();
-  expect(errors).toEqual([]);
-
-  await context.close();
-});
-
-test('administrador técnico consulta toda a massa HML e a auditoria', async ({ browser }) => {
-  const { context, page, errors } = await authenticated(browser, 'technicalAdmin');
-  const result = await page.evaluate(async () => {
-    const client = window.RadarSessionContext.service.client;
-    const pendencies = await client.from('pendencies').select('id').like('id', 'HML-%');
-    const audit = await client.from('audit_events').select('id').limit(1);
-    return {
-      pendencies: (pendencies.data || []).map(row => row.id).sort(),
-      pendencyError: pendencies.error?.code || null,
-      auditReadable: Array.isArray(audit.data),
-      auditError: audit.error?.code || null
-    };
+  const runtime = await page.evaluate(() => ({
+    environment: window.RADAR_PDDE_CONFIG.environment,
+    dataMode: window.RADAR_PDDE_CONFIG.dataMode,
+    repository: window.RadarDataContext.capabilities.mode,
+    role: window.RadarAuthContext.authorization.role
+  }));
+  expect(runtime).toEqual({
+    environment: 'preview',
+    dataMode: 'supabase-preview',
+    repository: 'supabase',
+    role: 'controller'
   });
-  expect(result.pendencies).toEqual([...fixture.expectations.allHmlPendencies].sort());
-  expect(result.pendencyError).toBeNull();
-  expect(result.auditReadable).toBe(true);
-  expect(result.auditError).toBeNull();
-  expect(errors).toEqual([]);
-  await context.close();
-});
 
-async function controllerScenario(browser, key, contactId, contactSchool, pendencyId) {
-  const { context, page, errors, user } = await authenticated(browser, key);
-  const result = await page.evaluate(async input => {
+  const visibleSchoolIds = await page.evaluate(() => escolas.map(item => String(item.id)));
+  expect(visibleSchoolIds).toEqual([fixture.school.id]);
+  await openFixtureSchool(page);
+
+  await page.getByRole('button', { name: 'Editar Dados', exact: true }).click();
+  await expect(page.locator('#modal-escola-edit')).toHaveClass(/show/);
+  await page.locator('#edit-sici').fill(fixture.school.siciAfter);
+  await page.locator('#form-escola-edit button[type="submit"]').click();
+  await expect(page.locator('#modal-escola-edit')).not.toHaveClass(/show/);
+  await expect(page.getByText(fixture.school.siciAfter, { exact: true })).toBeVisible();
+
+  const noteRow = verificationRow(page, 'notaFiscal');
+  await expect(noteRow).toHaveCount(1);
+  await noteRow.getByRole('button', { name: 'Sim', exact: true }).click();
+  await noteRow.getByRole('button', { name: 'Adicionar Nota' }).click();
+  await expect(page.locator('#modal-dados-nota')).toHaveClass(/show/);
+  await page.locator('#nota-desc').fill(fixture.values.invoiceDescription);
+  await page.locator('#nota-tipo').selectOption('custeio');
+  await page.locator('#nota-numero').fill(fixture.values.invoiceNumber);
+  await page.locator('#nota-valor').fill('150.50');
+  await page.locator('#form-dados-nota button[type="submit"]').click();
+  await expect(page.locator('#modal-dados-nota')).not.toHaveClass(/show/);
+  await expect(verificationRow(page, 'notaFiscal')).toContainText(fixture.values.invoiceNumber);
+
+  await page.locator('[data-tab="capital"]').click();
+  const promptAnswers = [fixture.values.assetDescription, '2500', fixture.values.assetInvoiceNumber];
+  const dialogHandler = async dialog => {
+    const answer = promptAnswers.shift();
+    if (dialog.type() === 'prompt') await dialog.accept(answer || '');
+    else await dialog.accept();
+  };
+  page.on('dialog', dialogHandler);
+  await page.getByRole('button', { name: 'Registrar Nova Compra', exact: true }).click();
+  page.off('dialog', dialogHandler);
+  const assetRow = page.locator('#tab-capital tbody tr').filter({ hasText: fixture.values.assetDescription });
+  await expect(assetRow).toBeVisible();
+  await assetRow.getByRole('button', { name: 'Encaminhar', exact: true }).click();
+  await expect(assetRow).toContainText('Encaminhada');
+
+  await page.locator('[data-tab="verificacoes"]').click();
+  const accountRow = verificationRow(page, 'extCC');
+  await accountRow.locator('[data-action="open-document-pendency"]').click();
+  const pendencyModal = page.locator('#modal-nova-pendencia');
+  await expect(pendencyModal).toHaveClass(/show/);
+  await pendencyModal.getByLabel('Documento ilegível', { exact: true }).check();
+  await pendencyModal.locator('#pend-obs').fill(fixture.values.pendencyNote);
+  await pendencyModal.locator('button[type="submit"]').click();
+  await expect(pendencyModal).not.toHaveClass(/show/);
+
+  const pendencyId = await page.evaluate(schoolId => {
+    const item = pendencias.find(candidate => candidate.escolaId === schoolId && candidate.status === 'Aberta');
+    if (!item) throw new Error('Pendência criada pela interface não foi carregada.');
+    return String(item.id);
+  }, fixture.school.id);
+
+  await page.locator('#nav-pendencias').click();
+  const pendencyRow = page.locator(`[data-pendency-id="${pendencyId}"]:visible`).first();
+  await expect(pendencyRow).toBeVisible();
+  await pendencyRow.getByRole('button', { name: 'Ver detalhes', exact: true }).click();
+  const drawer = page.getByRole('complementary', { name: 'Detalhes da pendência' });
+  await drawer.getByRole('button', { name: 'Registrar contato', exact: true }).click();
+  const contactDialog = page.getByRole('dialog', { name: 'Registrar contato da pendência' });
+  await contactDialog.getByLabel('Canal').selectOption('Telefone');
+  await contactDialog.getByLabel('Descrição do contato').fill(fixture.values.contactDescription);
+  await contactDialog.getByRole('button', { name: 'Salvar contato', exact: true }).click();
+  await expect(drawer).toContainText(fixture.values.contactDescription);
+
+  await page.reload();
+  await page.waitForFunction(() => window.RadarDataContext?.ready === true, null, { timeout: 30000 });
+  await openFixtureSchool(page);
+  await expect(page.getByText(fixture.school.siciAfter, { exact: true })).toBeVisible();
+  await expect(verificationRow(page, 'notaFiscal')).toContainText(fixture.values.invoiceNumber);
+  await page.locator('[data-tab="capital"]').click();
+  await expect(page.locator('#tab-capital tbody tr').filter({ hasText: fixture.values.assetDescription })).toContainText('Encaminhada');
+
+  const persisted = await page.evaluate(async expected => {
     const client = window.RadarSessionContext.service.client;
-    const schools = await client.from('schools').select('id').in('id', input.candidateSchools);
-    const pendencies = await client.from('pendencies').select('id').like('id', 'HML-%');
-    const allowed = await client.from('pendency_contacts').insert({
-      id: input.contactId,
-      school_id: input.contactSchool,
-      pendency_id: input.pendencyId,
-      contact_type: 'Telefone',
-      contact_date: new Date().toISOString().slice(0, 10),
-      description: `[HML ${input.runId}] cobertura colaborativa entre carteiras`,
-      official_charge: false,
-      payload: { homologation: true, hmlRunId: input.runId, collaborativeCoverage: true },
-      created_by: input.userId
-    }).select('id, created_by').single();
+    const [school, invoices, assets, pendenciesResult, contacts, verifications, denied] = await Promise.all([
+      client.from('schools').select('id,sici,row_version').eq('id', expected.schoolId).single(),
+      client.from('registered_invoices').select('id,invoice_number,row_version').eq('school_id', expected.schoolId).eq('invoice_number', expected.invoiceNumber),
+      client.from('assets').select('id,description,status,row_version').eq('school_id', expected.schoolId).eq('description', expected.assetDescription),
+      client.from('pendencies').select('id,notes,status,row_version').eq('school_id', expected.schoolId).eq('notes', expected.pendencyNote),
+      client.from('pendency_contacts').select('id,description,row_version').eq('school_id', expected.schoolId).eq('description', expected.contactDescription),
+      client.from('verifications').select('id,row_version').eq('school_id', expected.schoolId),
+      client.from('schools').select('id').neq('id', expected.schoolId).limit(1)
+    ]);
     return {
-      schools: (schools.data || []).map(row => row.id).sort(),
-      pendencies: (pendencies.data || []).map(row => row.id).sort(),
-      contactId: allowed.data?.id || null,
-      createdBy: allowed.data?.created_by || null,
-      contactError: allowed.error?.code || null
+      errors: [school.error, invoices.error, assets.error, pendenciesResult.error, contacts.error, verifications.error, denied.error]
+        .filter(Boolean)
+        .map(error => error.code || error.message),
+      school: school.data,
+      invoices: invoices.data || [],
+      assets: assets.data || [],
+      pendencies: pendenciesResult.data || [],
+      contacts: contacts.data || [],
+      verifications: verifications.data || [],
+      otherSchools: denied.data || []
     };
   }, {
-    candidateSchools,
-    contactId,
-    contactSchool,
-    pendencyId,
-    runId: fixture.runId,
-    userId: user.userId
+    schoolId: fixture.school.id,
+    invoiceNumber: fixture.values.invoiceNumber,
+    assetDescription: fixture.values.assetDescription,
+    pendencyNote: fixture.values.pendencyNote,
+    contactDescription: fixture.values.contactDescription
   });
-  expect(result.schools).toEqual(controllerSchools);
-  expect(result.pendencies).toEqual(controllerPendencies);
-  expect(result.contactId).toBe(contactId);
-  expect(result.createdBy).toBe(user.userId);
-  expect(result.contactError).toBeNull();
+
+  expect(persisted.errors).toEqual([]);
+  expect(persisted.otherSchools).toEqual([]);
+  expect(persisted.school).toMatchObject({ id: fixture.school.id, sici: fixture.school.siciAfter });
+  expect(persisted.school.row_version).toBeGreaterThan(0);
+  expect(persisted.invoices).toHaveLength(1);
+  expect(persisted.assets).toHaveLength(1);
+  expect(persisted.assets[0].status).toBe('Encaminhada');
+  expect(persisted.pendencies).toHaveLength(1);
+  expect(persisted.contacts).toHaveLength(1);
+  expect(persisted.verifications.length).toBeGreaterThan(0);
   expect(errors).toEqual([]);
-  await context.close();
-}
 
-test('controladora Tuane acessa toda a 4ª CRE e cobre a carteira de Alzira', async ({ browser }) => {
-  await controllerScenario(
-    browser,
-    'controllerTuane',
-    fixture.records.tuaneDeniedContact,
-    '04.31.601',
-    'HML-PEN-ALZIRA-RESOLVED'
-  );
-});
-
-test('controladora Alzira acessa toda a 4ª CRE e cobre a carteira de Tuane', async ({ browser }) => {
-  await controllerScenario(
-    browser,
-    'controllerAlzira',
-    fixture.records.alziraContact,
-    '04.11.001',
-    'HML-PEN-TUANE-OPEN'
-  );
-});
-
-test('assistente federal vê toda a massa e registra contato', async ({ browser }) => {
-  const { context, page, errors, user } = await authenticated(browser, 'assistant');
-  const result = await page.evaluate(async input => {
-    const client = window.RadarSessionContext.service.client;
-    const pendencies = await client.from('pendencies').select('id').like('id', 'HML-%');
-    const invoices = await client.from('registered_invoices').select('id').like('id', 'HML-%');
-    const assets = await client.from('assets').select('id').like('id', 'HML-%');
-    const contact = await client.from('pendency_contacts').insert({
-      id: input.id,
-      school_id: '04.31.601',
-      pendency_id: 'HML-PEN-ALZIRA-RESOLVED',
-      contact_type: 'E-mail',
-      contact_date: new Date().toISOString().slice(0, 10),
-      description: `[HML ${input.runId}] contato da Assistente`,
-      official_charge: true,
-      payload: { homologation: true, hmlRunId: input.runId },
-      created_by: input.userId
-    }).select('id').single();
-    return {
-      pendencies: (pendencies.data || []).map(row => row.id).sort(),
-      invoices: (invoices.data || []).map(row => row.id),
-      assets: (assets.data || []).map(row => row.id),
-      contactId: contact.data?.id || null,
-      contactError: contact.error?.code || null
-    };
-  }, { id: fixture.records.assistantContact, runId: fixture.runId, userId: user.userId });
-  expect(result.pendencies).toEqual([...fixture.expectations.allHmlPendencies].sort());
-  expect(result.invoices).toHaveLength(3);
-  expect(result.assets).toHaveLength(2);
-  expect(result.contactId).toBe(fixture.records.assistantContact);
-  expect(result.contactError).toBeNull();
-  expect(errors).toEqual([]);
+  await page.locator('#auth-logout-button').click();
+  await expect(page.locator('#radar-auth-gate')).toBeVisible();
   await context.close();
 });
 
-test('inventário vê escolas com bens e respeita o escopo', async ({ browser }) => {
+test('inventário restrito conclui o bem pela interface e mantém o resultado após recarga', async ({ browser }) => {
   const { context, page, errors } = await authenticated(browser, 'inventory');
-  const result = await page.evaluate(async input => {
-    const client = window.RadarSessionContext.service.client;
-    const schools = await client.from('schools').select('id').in('id', input.candidateSchools);
-    const allowed = await client.from('assets').insert({
-      id: input.allowedId,
-      school_id: '04.11.001',
-      competence_id: null,
-      description: `[HML ${input.runId}] bem temporário do Inventário`,
-      expense_type: 'permanente',
-      invoice_number: `HML-E2E-${input.runId}`,
-      amount: 1,
-      status: 'Não encaminhada',
-      inventory_process: '',
-      notes: 'Registro temporário removido ao final do gate.',
-      payload: { homologation: true, hmlRunId: input.runId }
-    }).select('id').single();
-    const denied = await client.from('assets').insert({
-      id: input.deniedId,
-      school_id: '04.11.002',
-      competence_id: null,
-      description: `[HML ${input.runId}] tentativa bloqueada do Inventário`,
-      expense_type: 'permanente',
-      invoice_number: `HML-E2E-DENIED-${input.runId}`,
-      amount: 1,
-      status: 'Não encaminhada',
-      inventory_process: '',
-      notes: '',
-      payload: { homologation: true, hmlRunId: input.runId }
-    }).select('id');
-    return {
-      schools: (schools.data || []).map(row => row.id).sort(),
-      allowedId: allowed.data?.id || null,
-      allowedError: allowed.error?.code || null,
-      deniedRows: denied.data || [],
-      deniedError: denied.error?.code || null
-    };
-  }, {
-    candidateSchools,
-    allowedId: fixture.records.inventoryAsset,
-    deniedId: fixture.records.inventoryDeniedAsset,
-    runId: fixture.runId
-  });
-  expect(result.schools).toEqual([...fixture.expectations.inventorySchools].sort());
-  expect(result.allowedId).toBe(fixture.records.inventoryAsset);
-  expect(result.allowedError).toBeNull();
-  expect(result.deniedRows).toEqual([]);
-  expect(typeof result.deniedError).toBe('string');
-  expect(errors).toEqual([]);
-  await context.close();
-});
+  const visibleSchoolIds = await page.evaluate(() => escolas.map(item => String(item.id)));
+  expect(visibleSchoolIds).toEqual([fixture.school.id]);
 
-test('Gestão SME consulta visão global e não executa escrita operacional', async ({ browser }) => {
-  const { context, page, errors, user } = await authenticated(browser, 'sme');
-  const result = await page.evaluate(async input => {
-    const client = window.RadarSessionContext.service.client;
-    const pendencies = await client.from('pendencies').select('id').like('id', 'HML-%');
-    const audit = await client.from('audit_events').select('id').limit(1);
-    const denied = await client.from('pendency_contacts').insert({
-      id: input.id,
-      school_id: '04.11.001',
-      pendency_id: 'HML-PEN-TUANE-OPEN',
-      contact_type: 'Telefone',
-      contact_date: new Date().toISOString().slice(0, 10),
-      description: `[HML ${input.runId}] tentativa bloqueada da Gestão SME`,
-      official_charge: false,
-      payload: { homologation: true, hmlRunId: input.runId },
-      created_by: input.userId
-    }).select('id');
-    return {
-      pendencies: (pendencies.data || []).map(row => row.id).sort(),
-      auditReadable: Array.isArray(audit.data),
-      auditError: audit.error?.code || null,
-      deniedRows: denied.data || [],
-      deniedError: denied.error?.code || null
-    };
-  }, { id: fixture.records.smeDeniedContact, runId: fixture.runId, userId: user.userId });
-  expect(result.pendencies).toEqual([...fixture.expectations.allHmlPendencies].sort());
-  expect(result.auditReadable).toBe(true);
-  expect(result.auditError).toBeNull();
-  expect(result.deniedRows).toEqual([]);
-  expect(typeof result.deniedError).toBe('string');
+  await page.locator('#nav-inventario').click();
+  const assetRow = page.locator('#main-container tbody tr').filter({ hasText: fixture.values.assetDescription }).first();
+  await expect(assetRow).toBeVisible();
+  await assetRow.getByRole('button', { name: /Marcar como Inventariado|Inventariar/ }).click();
+  const modal = page.locator('#modal-inventario-confirm');
+  await expect(modal).toHaveClass(/show/);
+  await page.locator('#inventario-observacoes').fill(fixture.values.inventoryNote);
+  await page.locator('#form-inventario-confirm button[type="submit"]').click();
+  await expect(modal).not.toHaveClass(/show/);
+
+  await page.reload();
+  await page.waitForFunction(() => window.RadarDataContext?.ready === true, null, { timeout: 30000 });
+  await page.locator('#nav-inventario').click();
+  await expect(page.locator('#main-container tbody tr').filter({ hasText: fixture.values.assetDescription }).first()).toContainText('Inventariada');
+
+  const stored = await page.evaluate(async expected => {
+    const result = await window.RadarSessionContext.service.client
+      .from('assets')
+      .select('status,notes,inventoried_by_member_id,row_version')
+      .eq('school_id', expected.schoolId)
+      .eq('description', expected.description)
+      .single();
+    return { data: result.data, error: result.error?.code || null };
+  }, { schoolId: fixture.school.id, description: fixture.values.assetDescription });
+  expect(stored.error).toBeNull();
+  expect(stored.data.status).toBe('Inventariada');
+  expect(stored.data.notes).toContain(fixture.values.inventoryNote);
+  expect(stored.data.inventoried_by_member_id).toBeTruthy();
+  expect(stored.data.row_version).toBeGreaterThan(0);
   expect(errors).toEqual([]);
   await context.close();
 });

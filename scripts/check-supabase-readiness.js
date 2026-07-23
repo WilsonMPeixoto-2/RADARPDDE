@@ -24,7 +24,11 @@ const REQUIRED_MIGRATIONS = Object.freeze([
     '20260721152515_inventory_cre_read_access.sql',
     '20260721152634_inventory_capital_section_scope.sql',
     '20260721153758_inventory_capital_section_inline_scope.sql',
-    '20260721160056_inventory_generic_asset_scope_by_cre.sql'
+    '20260721160056_inventory_generic_asset_scope_by_cre.sql',
+    '202607220001_atomic_verification_operations.sql',
+    '202607220002_atomic_operational_commands.sql',
+    '202607230001_enable_pgtap_remote_validation.sql',
+    '20260723043129_security_and_rls_hardening.sql'
 ]);
 
 const REQUIRED_ARTIFACTS = Object.freeze([
@@ -76,6 +80,8 @@ const REQUIRED_ARTIFACTS = Object.freeze([
     'supabase/tests/database/operations-rpc.test.sql',
     'supabase/tests/database/team-management-rpc.test.sql',
     'supabase/tests/database/inventory-capital-rls.test.sql',
+    'supabase/tests/database/verification-rpc.test.sql',
+    'supabase/tests/database/operational-command-rpc.test.sql',
     'tests/unit/auth-database-gate.test.js',
     'tests/unit/auth-bootstrap.test.js',
     'tests/unit/auth-frontend-contract.test.js',
@@ -84,6 +90,10 @@ const REQUIRED_ARTIFACTS = Object.freeze([
     'tests/unit/team-account-gateway.test.js',
     'tests/unit/team-account-domain.test.js',
     'tests/unit/vercel-preview-workflow.test.js',
+    'tests/unit/supabase-verification-contract.test.js',
+    'tests/unit/supabase-repository-errors.test.js',
+    'tests/unit/verification-remote-persistence.test.js',
+    'tests/unit/remote-operational-commands.test.js',
     'tests/e2e/supabase-auth-local.spec.js',
     'tests/e2e/supabase-full-contract.spec.js',
     'tests/e2e/data-error-ux.spec.js',
@@ -249,8 +259,8 @@ function validateRemoteWorkflowContracts(preflightSource, postApplySource) {
     if (dryRunIndex < 0 || applyIndex < 0 || dryRunIndex > applyIndex) {
         findings.push('O workflow pós-aplicação deve executar dry-run antes do db push efetivo.');
     }
-    if (!postApply.includes('APLICAR_20_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL')) {
-        findings.push('O workflow pós-aplicação exige confirmação textual das 20 migrations no alvo descartável.');
+    if (!postApply.includes('APLICAR_24_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL')) {
+        findings.push('O workflow pós-aplicação exige confirmação textual das 24 migrations no alvo descartável.');
     }
     if (applyIndex >= 0 && !postApplyPushes[applyIndex].includes('--yes')) {
         findings.push('O db push efetivo deve ser não interativo somente após a confirmação explícita.');

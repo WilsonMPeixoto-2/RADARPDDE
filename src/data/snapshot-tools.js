@@ -293,6 +293,18 @@
         return new Map((records || []).map(record => [String(record.id), record]));
     }
 
+    function canonicalizeReconciliationRecords(entity, records) {
+        return cloneValue(records || [])
+            .map(record => {
+                const normalized = sortObjectKeys(record);
+                if (entity === 'pendencyContacts' && normalized.operation_id == null) {
+                    delete normalized.operation_id;
+                }
+                return normalized;
+            })
+            .sort((left, right) => String(left.id).localeCompare(String(right.id), 'pt-BR'));
+    }
+
     function reconcileSnapshots(source, target) {
         assertValidSnapshot(source);
         assertValidSnapshot(target);
@@ -305,8 +317,8 @@
         let ok = true;
 
         entityNames.forEach(entity => {
-            const sourceRecords = canonicalizeRecords(source.entities[entity] || []);
-            const targetRecords = canonicalizeRecords(target.entities[entity] || []);
+            const sourceRecords = canonicalizeReconciliationRecords(entity, source.entities[entity] || []);
+            const targetRecords = canonicalizeReconciliationRecords(entity, target.entities[entity] || []);
             const sourceIndex = indexById(sourceRecords);
             const targetIndex = indexById(targetRecords);
             const missingInTarget = [...sourceIndex.keys()]

@@ -1,26 +1,37 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient, type User } from "npm:@supabase/supabase-js@2.110.5";
+import { createClient, type User } from "npm:@supabase/supabase-js@2.110.7";
 import {
   buildInviteMetadata,
   isTeamManagerRole,
   normalizeTeamCommand,
 } from "../_shared/team-account-domain.mjs";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": Deno.env.get("RADAR_ALLOWED_ORIGIN") || "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+function corsHeaders(req: Request): Record<string, string> {
+  const allowedOrigin = requiredEnv("RADAR_ALLOWED_ORIGIN");
+  const requestOrigin = req.headers.get("Origin") || "";
+  if (requestOrigin !== allowedOrigin) {
+    throw new Error("ORIGIN_DENIED: origem não autorizada");
+  }
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Vary": "Origin",
+  };
+}
 
-function json(status: number, body: Record<string, unknown>): Response {
+function json(status: number, body: Record<string, unknown>, headers: Record<string, string>): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: { ...headers, "Content-Type": "application/json" },
   });
 }
 
 function publicError(error: unknown): { code: string; message: string; status: number } {
   const message = String((error as { message?: string })?.message || "Falha na gestão de acesso da equipe.");
+  if (message.includes("ORIGIN_DENIED")) {
+    return { code: "ORIGIN_DENIED", message: "Origem não autorizada.", status: 403 };
+  }
   if (message.includes("AUTHORIZATION_DENIED")) {
     return { code: "PERMISSION_DENIED", message: "Perfil sem permissão para gerir a equipe.", status: 403 };
   }
@@ -240,23 +251,27 @@ async function deactivateMember(
 }
 
 Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
-  if (req.method !== "POST") return json(405, { ok: false, code: "METHOD_NOT_ALLOWED", message: "Método não permitido." });
-
+  let headers: Record<string, string> = {};
   try {
+    headers = corsHeaders(req);
+    if (req.method === "OPTIONS") return new Response("ok", { headers });
+    if (req.method !== "POST") {
+      return json(405, { ok: false, code: "METHOD_NOT_ALLOWED", message: "Método não permitido." }, headers);
+    }
+
     const { user, url } = await authorizeRequest(req);
     const command = await requestCommand(req);
     const admin = adminClient(url);
     const result = command.operation.startsWith("save_")
       ? await saveMember(admin, user, command)
       : await deactivateMember(admin, user, command);
-    return json(200, result);
+    return json(200, result, headers);
   } catch (error) {
     const mapped = publicError(error);
     console.error("team-account-management", {
       code: mapped.code,
       status: mapped.status,
     });
-    return json(mapped.status, { ok: false, code: mapped.code, message: mapped.message });
+    return json(mapped.status, { ok: false, code: mapped.code, message: mapped.message }, headers);
   }
 });

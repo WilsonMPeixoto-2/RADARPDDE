@@ -18,6 +18,15 @@
         return value == null ? '' : String(value).trim();
     }
 
+    function list(value) {
+        return Array.isArray(value) ? value : [];
+    }
+
+    function rowVersionOf(record) {
+        const candidate = record?.rowVersion ?? record?.row_version;
+        return Number.isInteger(candidate) && candidate > 0 ? candidate : null;
+    }
+
     function fail(code, message, operation) {
         throw new RepositoryError(code, message, { operation });
     }
@@ -75,7 +84,27 @@
             }
         }
 
+        persistProgram(context, persistence) {
+            const { snapshot, repository, defaultPersist } = context;
+            if (!repository || typeof repository.saveProgramWithLog !== 'function') {
+                return typeof defaultPersist === 'function' ? defaultPersist() : undefined;
+            }
+            const program = list(snapshot?.entities?.programs)
+                .find(record => String(record.id) === String(persistence.programId));
+            const administrativeLog = list(snapshot?.entities?.administrativeLogs)
+                .find(record => String(record.id) === String(persistence.logId));
+            if (!program || !administrativeLog) {
+                fail('PERSISTENCE_CONTEXT_MISSING', 'Programa ou histórico ausente para persistência.', 'persistProgram');
+            }
+            return repository.saveProgramWithLog({
+                program,
+                expectedVersion: persistence.expectedVersion,
+                administrativeLog
+            });
+        }
+
         async saveProgram(input = {}) {
+            const persistence = {};
             const name = text(input.name);
             const description = text(input.description);
             if (!name) fail('VALIDATION_FAILED', 'Informe o nome do programa.', 'saveProgram');
@@ -87,20 +116,25 @@
                     const existing = input.id ? programs.find(item => item.id === input.id) : null;
                     if (input.id && !existing) fail('NOT_FOUND', 'Programa não localizado.', 'saveProgram');
                     const program = existing || { id: this.createId('prog') };
+                    persistence.programId = program.id;
+                    persistence.expectedVersion = existing ? rowVersionOf(existing) : null;
                     program.name = name;
                     program.desc = description;
                     program.active = true;
                     if (!existing) programs.push(program);
-                    this.appendLog(
+                    const log = this.appendLog(
                         existing ? 'Programa Atualizado' : 'Programa Cadastrado',
                         `${existing ? 'Programa atualizado' : 'Novo programa cadastrado'}: ${name}.`
                     );
+                    persistence.logId = text(log?.id);
                     return { program: { ...program } };
-                }
+                },
+                persist: context => this.persistProgram(context, persistence)
             });
         }
 
         async deactivateProgram(input = {}) {
+            const persistence = {};
             const programId = text(input.programId);
             if (!programId || programId === 'BASIC') {
                 fail('PROTECTED_PROGRAM', 'O programa básico não pode ser desativado.', 'deactivateProgram');
@@ -112,10 +146,14 @@
                     const { programs } = this.getState();
                     const program = programs.find(item => item.id === programId);
                     if (!program) fail('NOT_FOUND', 'Programa não localizado.', 'deactivateProgram');
+                    persistence.programId = program.id;
+                    persistence.expectedVersion = rowVersionOf(program);
                     program.active = false;
-                    this.appendLog('Programa Desativado', `Programa ${program.name || programId} desativado sem apagar seu histórico.`);
+                    const log = this.appendLog('Programa Desativado', `Programa ${program.name || programId} desativado sem apagar seu histórico.`);
+                    persistence.logId = text(log?.id);
                     return { programId };
-                }
+                },
+                persist: context => this.persistProgram(context, persistence)
             });
         }
 

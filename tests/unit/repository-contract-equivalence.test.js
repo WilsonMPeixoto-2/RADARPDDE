@@ -25,9 +25,10 @@ function createSupabaseClient(seed = {}) {
 
     function table(name) {
         if (!tables.has(name)) tables.set(name, []);
-        const state = { operation: 'select', payload: null, filters: [], range: null };
+        const state = { operation: 'select', payload: null, filters: [], range: null, returning: false };
         const query = {
             select() {
+                state.returning = true;
                 return query;
             },
             order() {
@@ -63,9 +64,10 @@ function createSupabaseClient(seed = {}) {
                     return;
                 }
                 if (state.operation === 'delete') {
+                    const removed = rows.filter(matches);
                     rows = rows.filter(row => !matches(row));
                     tables.set(name, rows);
-                    resolve({ data: [], error: null });
+                    resolve({ data: state.returning ? structuredClone(removed) : [], error: null });
                     return;
                 }
                 rows = rows.filter(matches).sort((left, right) => String(left.id).localeCompare(String(right.id)));

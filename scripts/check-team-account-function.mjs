@@ -11,6 +11,7 @@ function required(name) {
 const url = required('RADAR_SUPABASE_URL');
 const publishableKey = required('RADAR_SUPABASE_PUBLISHABLE_KEY');
 const password = required('RADAR_AUTH_FIXTURE_PASSWORD');
+const allowedOrigin = required('RADAR_ALLOWED_ORIGIN');
 
 async function callAs(profileId) {
   const fixture = fixtures.find(item => item.profileId === profileId && item.active);
@@ -30,7 +31,8 @@ async function callAs(profileId) {
     headers: {
       apikey: publishableKey,
       Authorization: `Bearer ${signIn.session.access_token}`,
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      Origin: allowedOrigin
     },
     body: '{}'
   });

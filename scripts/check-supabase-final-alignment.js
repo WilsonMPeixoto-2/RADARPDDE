@@ -16,10 +16,16 @@ const requiredFiles = Object.freeze([
     'supabase/migrations/20260721152634_inventory_capital_section_scope.sql',
     'supabase/migrations/20260721153758_inventory_capital_section_inline_scope.sql',
     'supabase/migrations/20260721160056_inventory_generic_asset_scope_by_cre.sql',
+    'supabase/migrations/202607220001_atomic_verification_operations.sql',
+    'supabase/migrations/202607220002_atomic_operational_commands.sql',
+    'supabase/migrations/202607230001_enable_pgtap_remote_validation.sql',
+    'supabase/migrations/20260723043129_security_and_rls_hardening.sql',
     'supabase/functions/_shared/team-account-domain.mjs',
     'supabase/functions/team-account-management/index.ts',
     'supabase/tests/database/team-management-rpc.test.sql',
     'supabase/tests/database/inventory-capital-rls.test.sql',
+    'supabase/tests/database/verification-rpc.test.sql',
+    'supabase/tests/database/operational-command-rpc.test.sql',
     previewBuildPath,
     'tests/unit/vercel-preview-workflow.test.js',
     'tests/unit/vercel-preview-defaults.test.js'
@@ -74,6 +80,24 @@ function check() {
     if (!/\[functions\.team-account-management\][\s\S]*?verify_jwt\s*=\s*true/i.test(config)) {
         findings.push('A Edge Function de contas deve exigir JWT válido.');
     }
+
+    const edgeFunction = read('supabase/functions/team-account-management/index.ts');
+    if (!/requiredEnv\("RADAR_ALLOWED_ORIGIN"\)/.test(edgeFunction)
+        || !/requestOrigin\s*!==\s*allowedOrigin/.test(edgeFunction)
+        || /RADAR_ALLOWED_ORIGIN"\)\s*\|\|\s*"\*"/.test(edgeFunction)) {
+        findings.push('A Edge Function deve aplicar CORS fail-closed com origem explícita.');
+    }
+
+    const securityMigration = read('supabase/migrations/20260723043129_security_and_rls_hardening.sql');
+    [
+        /create schema if not exists radar_private/i,
+        /function public\.current_app_role\(\)[\s\S]*security invoker/i,
+        /function public\.can_access_school\(p_school_id text\)[\s\S]*security invoker/i,
+        /function public\.delete_invoice_with_effects[\s\S]*security invoker/i,
+        /alter function radar_private\.delete_invoice_with_effects[\s\S]*rename to delete_invoice_with_effects_impl/i
+    ].forEach(pattern => {
+        if (!pattern.test(securityMigration)) findings.push(`Hardening Supabase incompleto: ${pattern}`);
+    });
 
     const authGate = read('src/integration/auth-gate.js');
     if (/technical_admin\s*:\s*['"]assistente['"]/.test(authGate)) {
@@ -147,8 +171,8 @@ function check() {
 
     const migrationCount = fs.readdirSync(path.join(root, 'supabase/migrations'))
         .filter(name => name.endsWith('.sql')).length;
-    if (migrationCount !== 20) {
-        findings.push(`Conjunto final deve conter 20 migrations; encontrado: ${migrationCount}.`);
+    if (migrationCount !== 24) {
+        findings.push(`Conjunto final deve conter 24 migrations; encontrado: ${migrationCount}.`);
     }
 
     return [...new Set(findings)];

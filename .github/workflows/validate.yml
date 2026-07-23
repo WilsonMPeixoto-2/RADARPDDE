@@ -76,12 +76,15 @@ jobs:
         run: npm run audit:functional
 
   homologacao-supabase-preview:
-    name: Auth, perfis, RLS e persistência no Preview
+    name: Mesmo SHA, botões reais, recarga, RLS e banco
     if: ${{ github.event_name == 'pull_request' && github.head_ref == 'qa/supabase-preview-gate-run' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
+    environment: preview
     env:
-      RADAR_DEPLOYMENT_URL: https://radarpdde-d5g8j0esm-wilson-m-peixotos-projects.vercel.app
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
       RADAR_SUPABASE_URL: ${{ secrets.RADAR_SUPABASE_URL }}
       RADAR_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.RADAR_SUPABASE_SERVICE_ROLE_KEY }}
       RADAR_ALLOW_REMOTE_HOMOLOGATION: 'true'
@@ -89,7 +92,7 @@ jobs:
       RADAR_HML_FIXTURE_FILE: ${{ runner.temp }}/radar-hml-users.json
 
     steps:
-      - name: Obter código
+      - name: Obter exatamente o SHA da branch
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
       - name: Configurar Node.js 24
@@ -98,28 +101,71 @@ jobs:
           node-version: '24'
           cache: npm
 
-      - name: Instalar dependências reproduzíveis
-        run: npm ci
+      - name: Instalar dependências e Chromium
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
 
-      - name: Instalar Chromium
-        run: npx playwright install --with-deps chromium
-
-      - name: Validar alvo, segredos e manifesto público
+      - name: Validar alvos e segredos
         shell: bash
         run: |
           set -euo pipefail
+          test -n "${VERCEL_TOKEN}"
+          test -n "${VERCEL_ORG_ID}"
+          test -n "${VERCEL_PROJECT_ID}"
           test -n "${RADAR_SUPABASE_URL}"
           test -n "${RADAR_SUPABASE_SERVICE_ROLE_KEY}"
           test "${RADAR_SUPABASE_URL}" = 'https://scnryinorqeucbfkioxo.supabase.co'
-          node --input-type=module <<'NODE'
-          const response = await fetch(`${process.env.RADAR_DEPLOYMENT_URL}/config.runtime.js`);
-          if (!response.ok) throw new Error(`Manifesto indisponível: ${response.status}`);
-          const source = await response.text();
-          if (!source.includes('"environment": "preview"')) throw new Error('Preview sem environment=preview.');
-          if (!source.includes('"dataMode": "supabase-preview"')) throw new Error('Preview sem dataMode=supabase-preview.');
-          if (!source.includes('"supabaseRepositoryEnabled": true')) throw new Error('Repositório Supabase desativado no Preview.');
-          if (!source.includes('"productionActivationApproved": false')) throw new Error('Preview com ativação de Production indevida.');
-          process.stdout.write('Manifesto Preview validado sem exibir credenciais.\n');
+
+      - name: Construir o artefato Preview do mesmo SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes vercel@56.2.0 pull --yes --environment=preview --token="${VERCEL_TOKEN}"
+          npx --yes vercel@56.2.0 build --token="${VERCEL_TOKEN}"
+          test -f dist/radar-build-manifest.json
+          node <<'NODE'
+          const fs = require('node:fs');
+          const manifest = JSON.parse(fs.readFileSync('dist/radar-build-manifest.json', 'utf8'));
+          const expected = {
+            vercelEnvironment: 'preview',
+            runtimeEnvironment: 'preview',
+            dataMode: 'supabase-preview',
+            supabaseRepositoryEnabled: true,
+            productionActivationApproved: false
+          };
+          for (const [key, value] of Object.entries(expected)) {
+            if (manifest[key] !== value) throw new Error(`Manifesto de Preview inválido em ${key}.`);
+          }
+          if (/sb_secret_|service_role|password|publishableKey|supabaseUrl/i.test(JSON.stringify(manifest))) {
+            throw new Error('Manifesto contém campo ou material proibido.');
+          }
+          NODE
+
+      - name: Publicar exatamente o artefato prebuilt
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes vercel@56.2.0 deploy --prebuilt --token="${VERCEL_TOKEN}" 2>&1 | tee /tmp/vercel-preview-deploy.log
+          PREVIEW_URL="$(grep -Eo 'https://[^ ]+\.vercel\.app' /tmp/vercel-preview-deploy.log | tail -n 1)"
+          test -n "${PREVIEW_URL}"
+          echo "RADAR_DEPLOYMENT_URL=${PREVIEW_URL}" >> "${GITHUB_ENV}"
+          curl --fail --silent --show-error "${PREVIEW_URL}/radar-build-manifest.json" -o /tmp/radar-preview-manifest.json
+
+      - name: Validar manifesto publicado
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const manifest = JSON.parse(fs.readFileSync('/tmp/radar-preview-manifest.json', 'utf8'));
+          const expected = {
+            runtimeEnvironment: 'preview',
+            dataMode: 'supabase-preview',
+            supabaseRepositoryEnabled: true,
+            productionActivationApproved: false
+          };
+          for (const [key, value] of Object.entries(expected)) {
+            if (manifest[key] !== value) throw new Error(`Preview publicado inválido em ${key}.`);
+          }
           NODE
 
       - name: Gerar credencial efêmera protegida
@@ -131,10 +177,10 @@ jobs:
           echo "RADAR_HML_PASSWORD=${password}" >> "${GITHUB_ENV}"
           echo "RADAR_HML_RUN_ID=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "${GITHUB_ENV}"
 
-      - name: Criar identidades temporárias e perfis funcionais
+      - name: Criar identidades e escola temporária isolada
         run: node scripts/ops/prepare-remote-homologation-users.mjs
 
-      - name: Homologar login, sessão, telas, permissões e operações HML
+      - name: Executar homologação autenticada pela interface
         run: >-
           npx playwright test
           tests/e2e/supabase-preview-remote.spec.js
@@ -148,8 +194,11 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: homologacao-supabase-preview-${{ github.run_id }}
+          name: homologacao-interface-remediacao-${{ github.run_id }}
           path: |
+            dist/radar-build-manifest.json
+            /tmp/radar-preview-manifest.json
+            /tmp/vercel-preview-deploy.log
             playwright-report-supabase-preview/
             test-results/
           if-no-files-found: warn

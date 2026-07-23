@@ -1,0 +1,145 @@
+name: Homologação operacional temporária da remediação
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/export-remediation-source.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: homologacao-operacional-remediacao
+  cancel-in-progress: false
+
+jobs:
+  homologar:
+    if: github.event.pull_request.head.ref == 'qa/supabase-preview-gate-run'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      RADAR_E2E_SUPABASE_REMOTE: '1'
+      RADAR_DEPLOYMENT_URL: http://127.0.0.1:4175
+      RADAR_HML_PASSWORD: 'zEAKyn5pdwPP0w0TfObmC4QNhZEaNiPGtUlcf08tLbwA1!'
+    steps:
+      - name: Obter exatamente o SHA da branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Instalar dependências e Chromium
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Construir o artefato Preview do mesmo SHA
+        env:
+          VERCEL_ENV: preview
+          VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          npm run build:vercel
+          test -f dist/radar-build-manifest.json
+          node <<'NODE'
+          const fs = require('node:fs');
+          const manifest = JSON.parse(fs.readFileSync('dist/radar-build-manifest.json', 'utf8'));
+          const expected = {
+            vercelEnvironment: 'preview',
+            runtimeEnvironment: 'preview',
+            dataMode: 'supabase-preview',
+            supabaseRepositoryEnabled: true,
+            productionActivationApproved: false
+          };
+          for (const [key, value] of Object.entries(expected)) {
+            if (manifest[key] !== value) throw new Error(`Manifesto Preview inválido em ${key}.`);
+          }
+          NODE
+
+      - name: Preparar fixture estritamente isolada
+        run: |
+          set -euo pipefail
+          fixture="${RUNNER_TEMP}/radar-hml-users.json"
+          echo "RADAR_HML_FIXTURE_FILE=${fixture}" >> "${GITHUB_ENV}"
+          cat > "${fixture}" <<'JSON'
+          {
+            "runId": "manual-20260723112802",
+            "users": [
+              {
+                "key": "controller",
+                "profileId": "controller",
+                "email": "hml-manual-20260723112802-controller@radar.local",
+                "userId": "fd288b37-90e2-40b8-a5cd-e563d6cd05eb"
+              },
+              {
+                "key": "inventory",
+                "profileId": "inventory",
+                "email": "hml-manual-20260723112802-inventory@radar.local",
+                "userId": "ee7d73d2-ff51-48f3-84af-061da3ac3c5e"
+              }
+            ],
+            "school": {
+              "id": "HML-SCHOOL-manual-20260723112802",
+              "designation": "04.11.HML-260723112802",
+              "denomination": "Unidade Temporária de Homologação 260723112802",
+              "siciAfter": "HML-SICI-OK-260723112802",
+              "programId": "BASIC"
+            },
+            "values": {
+              "invoiceDescription": "Material de homologação 260723112802",
+              "invoiceNumber": "HML-NF-260723112802",
+              "assetDescription": "Computador de homologação 260723112802",
+              "assetInvoiceNumber": "HML-CAP-260723112802",
+              "pendencyNote": "Documento ilegível identificado na homologação 260723112802.",
+              "contactDescription": "Contato operacional confirmado na homologação 260723112802.",
+              "inventoryNote": "Tombamento validado pela homologação 260723112802."
+            }
+          }
+          JSON
+          chmod 600 "${fixture}"
+
+      - name: Servir o artefato gerado
+        run: |
+          set -euo pipefail
+          npx http-server dist -p 4175 -c-1 > /tmp/radar-hml-server.log 2>&1 &
+          echo $! > /tmp/radar-hml-server.pid
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4175/radar-build-manifest.json > /tmp/radar-hml-manifest.json; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/radar-hml-server.log
+          exit 1
+
+      - name: Executar botões reais, recarga, RLS e banco remoto
+        run: >-
+          npx playwright test
+          tests/e2e/supabase-preview-remote.spec.js
+          --config=playwright.supabase-preview.config.js
+
+      - name: Encerrar servidor local
+        if: always()
+        run: |
+          if [ -f /tmp/radar-hml-server.pid ]; then
+            kill "$(cat /tmp/radar-hml-server.pid)" || true
+          fi
+
+      - name: Publicar evidências
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: homologacao-operacional-remediacao-${{ github.run_id }}
+          path: |
+            dist/radar-build-manifest.json
+            /tmp/radar-hml-manifest.json
+            /tmp/radar-hml-server.log
+            playwright-report-supabase-preview/
+            test-results/
+          if-no-files-found: warn
+          retention-days: 14

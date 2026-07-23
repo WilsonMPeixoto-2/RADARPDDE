@@ -41,3 +41,17 @@ test('respostas públicas não expõem causa administrativa detalhada', () => {
     assert.match(source, /console\.error\("team-account-management",\s*\{[\s\S]*code:[\s\S]*status:/);
     assert.doesNotMatch(source, /console\.(?:log|error)\([^\n]*(?:secret|service_role|password|token)/i);
 });
+
+
+test('CORS exige origem configurada e nunca usa wildcard', () => {
+    assert.match(source, /requiredEnv\("RADAR_ALLOWED_ORIGIN"\)/);
+    assert.match(source, /requestOrigin !== allowedOrigin/);
+    assert.match(source, /ORIGIN_DENIED/);
+    assert.match(source, /"Vary": "Origin"/);
+    assert.doesNotMatch(source, /RADAR_ALLOWED_ORIGIN"\) \|\| "\*"/);
+    assert.doesNotMatch(source, /Access-Control-Allow-Origin[\s\S]{0,80}\*/);
+});
+
+test('SDK da Edge Function está fixado na versão homologada', () => {
+    assert.match(source, /supabase-js@2\.110\.7/);
+});

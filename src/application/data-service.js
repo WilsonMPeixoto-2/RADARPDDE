@@ -159,6 +159,64 @@
         return changes;
     }
 
+    const PERSISTED_RESULT_ENTITY_MAP = Object.freeze({
+        app_config: 'appConfig',
+        program: 'programs',
+        controller: 'controllers',
+        inventory_member: 'inventoryTeamMembers',
+        school: 'schools',
+        school_program: 'schoolPrograms',
+        verification: 'verifications',
+        pendency: 'pendencies',
+        attempt: 'pendencyAttempts',
+        contact: 'pendencyContacts',
+        asset: 'assets',
+        invoice: 'registeredInvoices',
+        registered_invoice: 'registeredInvoices',
+        administrative_log: 'administrativeLogs',
+        log: 'administrativeLogs',
+        competences: 'competences'
+    });
+
+    function entityForPersistedResult(key, value) {
+        if (key === 'schools') return 'schools';
+        if (key === 'school_programs') return 'schoolPrograms';
+        if (key === 'programs') {
+            const first = Array.isArray(value) ? value[0] : value;
+            return first?.school_id && first?.program_id ? 'schoolPrograms' : 'programs';
+        }
+        return PERSISTED_RESULT_ENTITY_MAP[key] || null;
+    }
+
+    function mergeRecordsById(currentRecords, nextRecords) {
+        const current = normalizedRecords(currentRecords).map(cloneValue);
+        const byId = new Map(current.map((record, index) => [recordId(record) || `#${index}`, record]));
+        normalizedRecords(nextRecords).forEach((record, index) => {
+            const id = recordId(record);
+            if (id) byId.set(id, cloneValue(record));
+            else byId.set(`new#${index}`, cloneValue(record));
+        });
+        return [...byId.values()];
+    }
+
+    function mergePersistedResult(snapshot, persisted) {
+        const next = cloneValue(snapshot);
+        const appliedEntities = new Set();
+        if (!persisted || typeof persisted !== 'object' || Array.isArray(persisted)) {
+            return { snapshot: next, appliedEntities: [] };
+        }
+        Object.entries(persisted).forEach(([key, value]) => {
+            const entity = entityForPersistedResult(key, value);
+            if (!entity || value == null) return;
+            const records = Array.isArray(value) ? value : [value];
+            if (records.length === 0 || records.some(record => !record || typeof record !== 'object')) return;
+            next.entities[entity] = mergeRecordsById(next.entities[entity], records);
+            appliedEntities.add(entity);
+        });
+        assertSnapshotJson(next, 'mergePersistedResult');
+        return { snapshot: next, appliedEntities: [...appliedEntities] };
+    }
+
     class DataService {
         constructor(options = {}) {
             this.repository = assertRepositoryContract(options.repository);
@@ -313,7 +371,10 @@
                 refreshed.entities[entity] = await this.repository.load(entity);
             }
             assertSnapshotJson(refreshed, 'refreshRemoteEntities');
-            await this.statePort.applyCanonical(refreshed);
+            await this.statePort.applyCanonical(refreshed, {
+                persistStorage: false,
+                source: 'remote-refresh'
+            });
             return refreshed;
         }
 
@@ -359,6 +420,8 @@
                 const result = await this.unitOfWork.run({
                     ...command,
                     changedEntities,
+                    deferLocalCommit: remote,
+                    remotePersistence: remote,
                     persist: async context => {
                         if (typeof command.persist !== 'function') {
                             return defaultPersist(context);
@@ -372,18 +435,46 @@
                 });
 
                 let committedSnapshot = result.snapshot;
+                let refreshPending = false;
+                let stateApplyError = null;
                 if (remote) {
+                    const merged = mergePersistedResult(result.snapshot, result.persisted);
+                    committedSnapshot = merged.snapshot;
+                    if (merged.appliedEntities.length > 0) {
+                        try {
+                            await this.statePort.applyCanonical(committedSnapshot, {
+                                persistStorage: false,
+                                source: 'remote-result'
+                            });
+                        } catch (applyError) {
+                            stateApplyError = applyError;
+                        }
+                    }
                     try {
-                        committedSnapshot = await this.refreshRemoteEntities(result.snapshot, changedEntities);
+                        committedSnapshot = await this.refreshRemoteEntities(committedSnapshot, changedEntities);
                     } catch (refreshError) {
-                        committedSnapshot = result.snapshot;
+                        refreshPending = true;
+                        if (merged.appliedEntities.length === 0) {
+                            try {
+                                await this.statePort.applyCanonical(result.snapshot, {
+                                    persistStorage: false,
+                                    source: 'remote-fallback'
+                                });
+                            } catch (applyError) {
+                                stateApplyError = stateApplyError || applyError;
+                            }
+                        }
                     }
                 }
 
                 return {
                     ok: true,
+                    incidentId: result.incidentId,
                     value: cloneValue(result.value),
-                    snapshot: cloneValue(committedSnapshot)
+                    snapshot: cloneValue(committedSnapshot),
+                    persisted: cloneValue(result.persisted),
+                    refreshPending,
+                    stateApplyErrorCode: stateApplyError?.code || null
                 };
             } catch (error) {
                 if (remote) {

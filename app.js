@@ -10065,28 +10065,23 @@ function abrirEditarNota(notaId, escolaId) {
     openModal('modal-dados-nota');
 }
 
-function toggleConsEnviada(escolaId, compKey, isChecked) {
-    if (currentProfile === 'inventario' || currentProfile === 'sme') return;
-    const v = ensureProgramVerification(escolaId, compKey);
-
-    if (v.resultadoBonif && currentProfile !== 'assistente') {
-        alert('Esta competência já foi consolidada. Apenas o(a) Assistente de Verbas Federais pode fazer ajustes retroativos.');
+async function toggleConsEnviada(escolaId, compKey, isChecked) {
+    if (currentProfile === 'inventario' || currentProfile === 'sme') return false;
+    try {
+        await radarVerificationService.setBonification({
+            schoolId: escolaId,
+            compKey,
+            documentKey: 'consEnviada',
+            value: Boolean(isChecked),
+            profile: currentProfile
+        });
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível alterar o status da consulta à Assessoria.');
         renderProntuario(escolaId);
-        return;
+        return false;
     }
-
-    if (!v.bonificacao) {
-        v.bonificacao = {};
-    }
-    const hasChanged = Boolean(v.bonificacao.consEnviada) !== Boolean(isChecked);
-    v.bonificacao['consEnviada'] = isChecked;
-    reopenConsolidationForAssistant(escolaId, compKey, v, hasChanged);
-
-    const esc = escolas.find(x => x.id === escolaId);
-    registerLog('Consulta Assessoria Enviada Toggled', `Status de consultoria enviada para ${compKey} da escola ${esc ? esc.denominação : escolaId} definido como ${isChecked}.`);
-    
-    persist();
     renderProntuario(escolaId);
+    return true;
 }
 
 async function removerNotaRegistrada(notaId, escolaId) {
@@ -10671,32 +10666,25 @@ function buildCobrancaPreview(escolaId) {
 
 function copyCobrancaText() {
     const previewText = document.getElementById('cobranca-preview-text').innerText;
-    navigator.clipboard.writeText(previewText).then(() => {
+    navigator.clipboard.writeText(previewText).then(async () => {
         alert('Texto de cobrança copiado para a área de transferência! Você já pode colar no e-mail ou WhatsApp.');
-        
-        // Regra: Registrar automaticamente o contato no histórico
         const escolaId = document.getElementById('cobranca-escola-id').value;
-        const esc = escolas.find(e => e.id === escolaId);
-        
-        const newContato = {
-            id: 'cont-' + Date.now(),
-            escolaId: escolaId,
-            tipo: 'E-mail',
-            dataAtendimento: new Date().toISOString().split('T')[0],
-            dataRegistro: new Date().toISOString(),
-            desc: `Mensagem de cobrança consolidada enviada para a escola cobrando pendências selecionadas.`,
-            pendenciaId: null
-        };
-        
-        contatos.push(newContato);
-        registerLog('Cobrança Enviada', `Cobrança consolidada enviada para a escola ${esc ? esc.denominação : ''}.`);
-        persist();
-        
-        closeModal('modal-cobranca');
-        if (currentView === 'prontuario') {
-            renderProntuario(escolaId);
+        try {
+            await radarPendencyService.registerContact({
+                id: `cont-${Date.now()}`,
+                schoolId: escolaId,
+                channel: 'E-mail',
+                serviceDate: new Date().toISOString().slice(0, 10),
+                description: 'Mensagem de cobrança consolidada enviada para a escola cobrando pendências selecionadas.',
+                operationId: `cobranca:${escolaId}:${Date.now()}`
+            });
+        } catch (error) {
+            reportRadarActionError(error, 'O texto foi copiado, mas o contato não pôde ser registrado.');
+            return;
         }
-    });
+        closeModal('modal-cobranca');
+        if (currentView === 'prontuario') renderProntuario(escolaId);
+    }).catch(error => reportRadarActionError(error, 'Não foi possível copiar o texto da cobrança.'));
 }
 
 
@@ -11127,8 +11115,10 @@ function exportDataExcel() {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
     
-    registerLog('Relatório Exportado', `Exportação da planilha consolidada de bonificações efetuada com sucesso.`);
-    persist('logs');
+    radarAuditService.record({
+        action: 'Relatório Exportado',
+        details: 'Exportação da planilha consolidada de bonificações efetuada com sucesso.'
+    }).catch(error => reportRadarPersistenceError(error, { operation: 'audit:report-export' }));
 }
 
 
@@ -11140,8 +11130,10 @@ function toggleTheme() {
     const isDark = document.body.classList.toggle('dark-theme');
     localStorage.setItem('radar_pdde_theme', isDark ? 'dark' : 'light');
     updateThemeIcon(isDark);
-    registerLog('Tema Alterado', `Tema visual alterado para ${isDark ? 'Escuro' : 'Claro'}.`);
-    persist('logs');
+    radarAuditService.record({
+        action: 'Tema Alterado',
+        details: `Tema visual alterado para ${isDark ? 'Escuro' : 'Claro'}.`
+    }).catch(error => reportRadarPersistenceError(error, { operation: 'audit:theme-change' }));
 }
 
 function updateThemeIcon(isDark) {

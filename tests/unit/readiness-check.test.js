@@ -41,7 +41,11 @@ const MIGRATIONS = [
     '20260721152515_inventory_cre_read_access.sql',
     '20260721152634_inventory_capital_section_scope.sql',
     '20260721153758_inventory_capital_section_inline_scope.sql',
-    '20260721160056_inventory_generic_asset_scope_by_cre.sql'
+    '20260721160056_inventory_generic_asset_scope_by_cre.sql',
+    '202607220001_atomic_verification_operations.sql',
+    '202607220002_atomic_operational_commands.sql',
+    '202607230001_enable_pgtap_remote_validation.sql',
+    '20260723043129_security_and_rls_hardening.sql'
 ];
 
 const ARTIFACTS = [
@@ -93,6 +97,8 @@ const ARTIFACTS = [
     'supabase/tests/database/operations-rpc.test.sql',
     'supabase/tests/database/team-management-rpc.test.sql',
     'supabase/tests/database/inventory-capital-rls.test.sql',
+    'supabase/tests/database/verification-rpc.test.sql',
+    'supabase/tests/database/operational-command-rpc.test.sql',
     'tests/unit/auth-database-gate.test.js',
     'tests/unit/auth-bootstrap.test.js',
     'tests/unit/auth-frontend-contract.test.js',
@@ -101,6 +107,10 @@ const ARTIFACTS = [
     'tests/unit/team-account-gateway.test.js',
     'tests/unit/team-account-domain.test.js',
     'tests/unit/vercel-preview-workflow.test.js',
+    'tests/unit/supabase-verification-contract.test.js',
+    'tests/unit/supabase-repository-errors.test.js',
+    'tests/unit/verification-remote-persistence.test.js',
+    'tests/unit/remote-operational-commands.test.js',
     'tests/e2e/supabase-auth-local.spec.js',
     'tests/e2e/supabase-full-contract.spec.js',
     'tests/e2e/data-error-ux.spec.js',
@@ -156,18 +166,18 @@ test('recusa configuração publicada fora do modo local', () => {
 
 test('valida conjunto obrigatório de migrations', () => {
     assert.deepEqual(validateMigrationManifest(MIGRATIONS), []);
-    assert.match(validateMigrationManifest(MIGRATIONS.slice(0, -1)).join(' '), /20260721160056_inventory_generic_asset_scope_by_cre\.sql/);
+    assert.match(validateMigrationManifest(MIGRATIONS.slice(0, -1)).join(' '), /20260723043129_security_and_rls_hardening\.sql/);
 });
 
 test('impede divergência entre a contagem documentada e o diretório de migrations', () => {
     const validRunbook = `
-O conjunto versionado contém atualmente **20** migrations.
+O conjunto versionado contém atualmente **24** migrations.
 supabase migration list --linked
 supabase db push --linked --dry-run
 supabase db push --linked
 `;
     assert.deepEqual(validateMigrationDocumentation(validRunbook, MIGRATIONS), []);
-    assert.match(validateMigrationDocumentation(validRunbook.replace('**20**', '**10**'), MIGRATIONS).join(' '), /declara 10 migrations.*contém 20/i);
+    assert.match(validateMigrationDocumentation(validRunbook.replace('**24**', '**10**'), MIGRATIONS).join(' '), /declara 10 migrations.*contém 24/i);
     assert.match(validateMigrationDocumentation(`${validRunbook}\nAplicar, nesta ordem:\n`, MIGRATIONS).join(' '), /segunda lista manual/i);
     assert.match(validateMigrationDocumentation(validRunbook.replace(/^supabase db push --linked$/m, ''), MIGRATIONS).join(' '), /histórico do CLI/i);
 });
@@ -188,7 +198,7 @@ npx --no-install supabase db query --linked --file supabase/verification/remote-
     const postApply = `
 on:
   workflow_dispatch:
-APLICAR_20_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL
+APLICAR_24_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL
 npx --no-install supabase db push --linked --dry-run
 npx --no-install supabase db push --linked --yes
 remote-post-apply.sql
