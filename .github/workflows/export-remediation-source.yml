@@ -1,4 +1,4 @@
-name: Validar e publicar hardening Supabase
+name: Diagnosticar readiness do hardening
 
 on:
   pull_request:
@@ -6,16 +6,13 @@ on:
       - '.github/workflows/export-remediation-source.yml'
 
 permissions:
-  contents: write
-
-env:
-  SUPABASE_TELEMETRY_DISABLED: '1'
+  contents: read
 
 jobs:
-  publish-task7:
+  diagnose-task7-readiness:
     if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    timeout-minutes: 50
+    timeout-minutes: 20
     steps:
       - name: Checkout do branch
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
@@ -30,106 +27,34 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: Instalar dependências e Chromium
-        run: |
-          npm ci
-          npx playwright install --with-deps chromium
+      - name: Instalar dependências
+        run: npm ci
 
-      - name: Aplicar patch íntegro da Task 7
-        shell: bash
+      - name: Reproduzir hardening e estado inventariado
         run: |
-          set -euo pipefail
-          test "$(sha256sum .github/task7-security.part.0 | awk '{print $1}')" = "8eb4ce300c9d2088ff8a7225305170a681c42153f1ea4f1a21dfbfbce42ec29d"
-          test "$(sha256sum .github/task7-security.part.1 | awk '{print $1}')" = "ff5db4d99a85bfe795ec17c0ae2b162f75e42c804d818486b6fd8c351d0f106a"
-          cat .github/task7-security.part.0 .github/task7-security.part.1 > /tmp/task7.patch.gz.b64
-          base64 --decode /tmp/task7.patch.gz.b64 | gzip --decompress > /tmp/task7.patch
-          test "$(sha256sum /tmp/task7.patch | awk '{print $1}')" = "4cbf2d9275371a0b84429585935a6eae1991bf88aa5d51dad9f92176334d38e7"
-          git apply --check /tmp/task7.patch
+          cat .github/task7-security.part.0 .github/task7-security.part.1 > /tmp/task7.b64
+          base64 --decode /tmp/task7.b64 | gzip --decompress > /tmp/task7.patch
           git apply /tmp/task7.patch
           git rm .github/task7-security.part.0 .github/task7-security.part.1
-          git diff --check
-
-      - name: Restaurar byte a byte o workflow inventariado
-        shell: bash
-        run: |
-          cp .github/workflows/export-remediation-source.yml /tmp/export-remediation-task7.yml
           git show 58ec9f02a02d8b15918413ffc4cbb395520c24e8:.github/workflows/export-remediation-source.yml > .github/workflows/export-remediation-source.yml
           git add .github/workflows/export-remediation-source.yml
           git diff --check
 
-      - name: Validar código e contratos estáticos
-        run: npm run test:readiness
-
-      - name: Iniciar e recriar Supabase local
-        run: |
-          npm run supabase:start
-          npm run supabase:reset
-
-      - name: Validar contratos, pgTAP e lint
-        run: |
-          npx --no-install supabase db query --local --file supabase/verification/remote-preflight.sql
-          npx --no-install supabase db query --local --file supabase/verification/remote-post-apply.sql
-          npm run supabase:test:db
-          npm run supabase:lint:db
-
-      - name: Regenerar e conferir artefatos Supabase
-        run: |
-          mkdir -p src/types
-          npm run supabase:gen:types
-          npm run build:supabase-client
-          npm run build:ajv
-          npm run check:generated
-          npm run typecheck:database
-
-      - name: Preparar identidades Auth e configuração local
+      - name: Executar readiness com log completo
+        id: readiness
         shell: bash
         run: |
-          set -euo pipefail
-          eval "$(npx --no-install supabase status -o env | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=')"
-          FIXTURE_PASSWORD="$(node --input-type=module -e "import { randomBytes } from 'node:crypto'; process.stdout.write(randomBytes(32).toString('base64url') + 'A1!')")"
-          echo "::add-mask::${FIXTURE_PASSWORD}"
-          echo "::add-mask::${SERVICE_ROLE_KEY}"
-          RADAR_ALLOW_LOCAL_AUTH_BOOTSTRAP=true \
-          RADAR_SUPABASE_URL="${API_URL}" \
-          RADAR_SUPABASE_ADMIN_KEY="${SERVICE_ROLE_KEY}" \
-          RADAR_AUTH_FIXTURE_PASSWORD="${FIXTURE_PASSWORD}" \
-          npm run bootstrap:auth-fixtures
-          RADAR_DATA_MODE=supabase-preview \
-          RADAR_ENVIRONMENT=test \
-          RADAR_SUPABASE_REPOSITORY_ENABLED=true \
-          RADAR_SUPABASE_URL="${API_URL}" \
-          RADAR_SUPABASE_PUBLISHABLE_KEY="${ANON_KEY}" \
-          npm run generate:runtime-config
-          {
-            printf 'RADAR_SUPABASE_URL=%s\n' "${API_URL}"
-            printf 'RADAR_SUPABASE_PUBLISHABLE_KEY=%s\n' "${ANON_KEY}"
-            printf 'RADAR_SUPABASE_ADMIN_KEY=%s\n' "${SERVICE_ROLE_KEY}"
-            printf 'RADAR_AUTH_FIXTURE_PASSWORD=%s\n' "${FIXTURE_PASSWORD}"
-            printf 'RADAR_ALLOWED_ORIGIN=%s\n' 'http://127.0.0.1:4175'
-          } >> "${GITHUB_ENV}"
+          set +e
+          npm run test:readiness > /tmp/task7-readiness.log 2>&1
+          status=$?
+          tail -n 240 /tmp/task7-readiness.log
+          exit ${status}
 
-      - name: Validar Auth, Edge Function, RLS e frontend
-        env:
-          RADAR_E2E_SUPABASE_LOCAL: '1'
-        run: |
-          npm run check:auth-fixtures
-          npm run check:team-account-function
-          npx playwright test tests/e2e/supabase-auth-local.spec.js tests/e2e/supabase-full-contract.spec.js --project=desktop-chromium
-
-      - name: Encerrar Supabase local
+      - name: Publicar log completo
         if: always()
-        run: npm run supabase:stop || true
-
-      - name: Excluir workflow temporário do commit
-        run: mv /tmp/export-remediation-task7.yml .github/workflows/export-remediation-source.yml
-
-      - name: Publicar Task 7 validada
-        env:
-          HEAD_REF: ${{ github.event.pull_request.head.ref }}
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          git diff --cached --check
-          git commit -m 'security: endurecer funções, RLS e CORS do Supabase'
-          git push origin "HEAD:${HEAD_REF}"
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: task7-readiness-${{ github.run_id }}
+          path: /tmp/task7-readiness.log
+          if-no-files-found: error
+          retention-days: 1
