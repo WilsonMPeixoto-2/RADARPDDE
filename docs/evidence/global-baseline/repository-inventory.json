@@ -110,7 +110,7 @@
     ]
   },
   "supabase": {
-    "migrationCount": 22
+    "migrationCount": 23
   },
   "summaries": {
     "application": 13,
@@ -124,11 +124,11 @@
     "frontend-core": 3,
     "integration": 19,
     "integration-tests": 2,
-    "migrations": 22,
+    "migrations": 23,
     "other": 54,
     "scripts": 25,
     "styles": 11,
-    "unit-tests": 67,
+    "unit-tests": 68,
     "workflows": 12
   },
   "files": [
@@ -164,8 +164,8 @@
     {
       "path": ".github/workflows/export-remediation-source.yml",
       "category": "workflows",
-      "bytes": 1487,
-      "lines": 49
+      "bytes": 7635,
+      "lines": 107
     },
     {
       "path": ".github/workflows/homologacao-deployment-perfis.yml",
@@ -200,7 +200,7 @@
     {
       "path": ".github/workflows/supabase-readiness.yml",
       "category": "workflows",
-      "bytes": 9930,
+      "bytes": 9931,
       "lines": 298
     },
     {
@@ -377,7 +377,7 @@
     {
       "path": "docs/CURRENT_STAGE.md",
       "category": "documentation",
-      "bytes": 5557,
+      "bytes": 5579,
       "lines": 156
     },
     {
@@ -521,8 +521,8 @@
     {
       "path": "docs/evidence/global-baseline/repository-inventory.json",
       "category": "documentation",
-      "bytes": 45227,
-      "lines": 1696
+      "bytes": 65096,
+      "lines": 2437
     },
     {
       "path": "docs/evidence/shared-interactions/approved-reference.png",
@@ -619,7 +619,7 @@
     {
       "path": "docs/reference/SUPABASE_FUNCTIONAL_COVERAGE.md",
       "category": "documentation",
-      "bytes": 4290,
+      "bytes": 4401,
       "lines": 93
     },
     {
@@ -655,8 +655,8 @@
     {
       "path": "docs/runbooks/SUPABASE_CONNECTION.md",
       "category": "documentation",
-      "bytes": 5787,
-      "lines": 162
+      "bytes": 5920,
+      "lines": 163
     },
     {
       "path": "docs/runbooks/SUPABASE_DATA_BOOTSTRAP.md",
@@ -895,8 +895,8 @@
     {
       "path": "scripts/audit-functional-persistence.js",
       "category": "scripts",
-      "bytes": 21086,
-      "lines": 542
+      "bytes": 22057,
+      "lines": 563
     },
     {
       "path": "scripts/audit/analyze-frontend-precedence.mjs",
@@ -979,14 +979,14 @@
     {
       "path": "scripts/check-supabase-final-alignment.js",
       "category": "scripts",
-      "bytes": 8136,
-      "lines": 175
+      "bytes": 8211,
+      "lines": 176
     },
     {
       "path": "scripts/check-supabase-readiness.js",
       "category": "scripts",
-      "bytes": 21578,
-      "lines": 456
+      "bytes": 21633,
+      "lines": 457
     },
     {
       "path": "scripts/check-team-account-function.mjs",
@@ -1212,8 +1212,8 @@
     {
       "path": "src/data/snapshot-tools.js",
       "category": "data",
-      "bytes": 16808,
-      "lines": 411
+      "bytes": 17356,
+      "lines": 423
     },
     {
       "path": "src/data/state-bridge-metadata.js",
@@ -1482,8 +1482,8 @@
     {
       "path": "src/types/database.types.ts",
       "category": "other",
-      "bytes": 38893,
-      "lines": 1353
+      "bytes": 40419,
+      "lines": 1412
     },
     {
       "path": "src/vendor/ajv-entry.js",
@@ -1659,6 +1659,12 @@
       "lines": 1249
     },
     {
+      "path": "supabase/migrations/202607230001_enable_pgtap_remote_validation.sql",
+      "category": "migrations",
+      "bytes": 285,
+      "lines": 10
+    },
+    {
       "path": "supabase/seed.sql",
       "category": "other",
       "bytes": 1994,
@@ -1709,7 +1715,7 @@
     {
       "path": "supabase/tests/database/schema.test.sql",
       "category": "database-tests",
-      "bytes": 2874,
+      "bytes": 2875,
       "lines": 55
     },
     {
@@ -1721,8 +1727,8 @@
     {
       "path": "supabase/tests/database/verification-rpc.test.sql",
       "category": "database-tests",
-      "bytes": 6069,
-      "lines": 187
+      "bytes": 6278,
+      "lines": 193
     },
     {
       "path": "supabase/tests/smoke.sql",
@@ -1733,8 +1739,8 @@
     {
       "path": "supabase/verification/remote-post-apply.sql",
       "category": "other",
-      "bytes": 4223,
-      "lines": 113
+      "bytes": 4258,
+      "lines": 114
     },
     {
       "path": "supabase/verification/remote-preflight.sql",
@@ -2025,6 +2031,12 @@
       "lines": 49
     },
     {
+      "path": "tests/unit/audit-functional-persistence-contract.test.js",
+      "category": "unit-tests",
+      "bytes": 1284,
+      "lines": 42
+    },
+    {
       "path": "tests/unit/audit-service.test.js",
       "category": "unit-tests",
       "bytes": 1107,
@@ -2045,8 +2057,8 @@
     {
       "path": "tests/unit/auth-database-gate.test.js",
       "category": "unit-tests",
-      "bytes": 8621,
-      "lines": 166
+      "bytes": 8689,
+      "lines": 167
     },
     {
       "path": "tests/unit/auth-frontend-contract.test.js",
@@ -2207,8 +2219,8 @@
     {
       "path": "tests/unit/readiness-check.test.js",
       "category": "unit-tests",
-      "bytes": 11885,
-      "lines": 256
+      "bytes": 11943,
+      "lines": 257
     },
     {
       "path": "tests/unit/remote-admin-bootstrap.test.js",
@@ -2303,8 +2315,8 @@
     {
       "path": "tests/unit/snapshot-tools.test.js",
       "category": "unit-tests",
-      "bytes": 5221,
-      "lines": 144
+      "bytes": 6342,
+      "lines": 180
     },
     {
       "path": "tests/unit/state-bridge-row-version.test.js",

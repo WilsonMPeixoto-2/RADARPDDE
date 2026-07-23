@@ -23,7 +23,8 @@ declare
         '20260721153758',
         '20260721160056',
         '202607220001',
-        '202607220002'
+        '202607220002',
+        '202607230001'
     ];
     v_actual text[];
     v_missing_extensions text[];
@@ -40,7 +41,7 @@ begin
 
     select array_agg(required.name order by required.name)
       into v_missing_extensions
-      from (values ('pgcrypto'), ('pg_jsonschema')) as required(name)
+      from (values ('pgcrypto'), ('pg_jsonschema'), ('pgtap')) as required(name)
      where not exists (
         select 1 from pg_extension installed where installed.extname = required.name
      );

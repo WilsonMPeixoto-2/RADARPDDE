@@ -156,7 +156,8 @@ test('gate final exige as migrations operacionais, escopo patrimonial e Edge Fun
     assert.match(readiness, /inventory_generic_asset_scope_by_cre\.sql/);
     assert.match(readiness, /atomic_verification_operations\.sql/);
     assert.match(readiness, /atomic_operational_commands\.sql/);
-    assert.match(readiness, /22 migrations/);
+    assert.match(readiness, /enable_pgtap_remote_validation\.sql/);
+    assert.match(readiness, /23 migrations/);
     assert.match(readiness, /inventory-capital-rls\.test\.sql/);
     assert.match(readiness, /supabase\/functions\/_shared\/team-account-domain\.mjs/);
     assert.match(readiness, /supabase\/functions\/team-account-management\/index\.ts/);

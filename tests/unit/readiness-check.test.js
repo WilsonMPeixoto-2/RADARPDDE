@@ -43,7 +43,8 @@ const MIGRATIONS = [
     '20260721153758_inventory_capital_section_inline_scope.sql',
     '20260721160056_inventory_generic_asset_scope_by_cre.sql',
     '202607220001_atomic_verification_operations.sql',
-    '202607220002_atomic_operational_commands.sql'
+    '202607220002_atomic_operational_commands.sql',
+    '202607230001_enable_pgtap_remote_validation.sql'
 ];
 
 const ARTIFACTS = [
@@ -164,18 +165,18 @@ test('recusa configuração publicada fora do modo local', () => {
 
 test('valida conjunto obrigatório de migrations', () => {
     assert.deepEqual(validateMigrationManifest(MIGRATIONS), []);
-    assert.match(validateMigrationManifest(MIGRATIONS.slice(0, -1)).join(' '), /202607220002_atomic_operational_commands\.sql/);
+    assert.match(validateMigrationManifest(MIGRATIONS.slice(0, -1)).join(' '), /202607230001_enable_pgtap_remote_validation\.sql/);
 });
 
 test('impede divergência entre a contagem documentada e o diretório de migrations', () => {
     const validRunbook = `
-O conjunto versionado contém atualmente **22** migrations.
+O conjunto versionado contém atualmente **23** migrations.
 supabase migration list --linked
 supabase db push --linked --dry-run
 supabase db push --linked
 `;
     assert.deepEqual(validateMigrationDocumentation(validRunbook, MIGRATIONS), []);
-    assert.match(validateMigrationDocumentation(validRunbook.replace('**22**', '**10**'), MIGRATIONS).join(' '), /declara 10 migrations.*contém 22/i);
+    assert.match(validateMigrationDocumentation(validRunbook.replace('**23**', '**10**'), MIGRATIONS).join(' '), /declara 10 migrations.*contém 23/i);
     assert.match(validateMigrationDocumentation(`${validRunbook}\nAplicar, nesta ordem:\n`, MIGRATIONS).join(' '), /segunda lista manual/i);
     assert.match(validateMigrationDocumentation(validRunbook.replace(/^supabase db push --linked$/m, ''), MIGRATIONS).join(' '), /histórico do CLI/i);
 });
@@ -196,7 +197,7 @@ npx --no-install supabase db query --linked --file supabase/verification/remote-
     const postApply = `
 on:
   workflow_dispatch:
-APLICAR_22_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL
+APLICAR_23_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL
 npx --no-install supabase db push --linked --dry-run
 npx --no-install supabase db push --linked --yes
 remote-post-apply.sql

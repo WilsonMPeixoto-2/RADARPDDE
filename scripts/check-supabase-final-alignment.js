@@ -18,6 +18,7 @@ const requiredFiles = Object.freeze([
     'supabase/migrations/20260721160056_inventory_generic_asset_scope_by_cre.sql',
     'supabase/migrations/202607220001_atomic_verification_operations.sql',
     'supabase/migrations/202607220002_atomic_operational_commands.sql',
+    'supabase/migrations/202607230001_enable_pgtap_remote_validation.sql',
     'supabase/functions/_shared/team-account-domain.mjs',
     'supabase/functions/team-account-management/index.ts',
     'supabase/tests/database/team-management-rpc.test.sql',
@@ -151,8 +152,8 @@ function check() {
 
     const migrationCount = fs.readdirSync(path.join(root, 'supabase/migrations'))
         .filter(name => name.endsWith('.sql')).length;
-    if (migrationCount !== 22) {
-        findings.push(`Conjunto final deve conter 22 migrations; encontrado: ${migrationCount}.`);
+    if (migrationCount !== 23) {
+        findings.push(`Conjunto final deve conter 23 migrations; encontrado: ${migrationCount}.`);
     }
 
     return [...new Set(findings)];
