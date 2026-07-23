@@ -1,21 +1,24 @@
-name: Export remediation source
+name: Publicar alinhamento dos testes E2E
 
 on:
   pull_request:
     paths:
-      - '.github/remediation-export-trigger.txt'
       - '.github/workflows/export-remediation-source.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  export-source:
+  publish-e2e-message-contract:
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 25
     steps:
-      - name: Checkout
+      - name: Checkout do branch
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
 
       - name: Configurar Node.js 24
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
@@ -24,25 +27,37 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: Instalar dependências reproduzíveis
-        run: npm ci
-
-      - name: Empacotar código-fonte e dependências
+      - name: Instalar dependências e Chromium
         run: |
-          tar \
-            --exclude='.git' \
-            --exclude='node_modules' \
-            --exclude='playwright-report' \
-            --exclude='test-results' \
-            -czf "$RUNNER_TEMP/radar-remediation-source.tar.gz" .
-          tar -czf "$RUNNER_TEMP/radar-remediation-node-modules.tar.gz" node_modules
+          npm ci
+          npx playwright install --with-deps chromium
 
-      - name: Publicar código-fonte temporário
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: radar-remediation-source-${{ github.sha }}
-          path: |
-            ${{ runner.temp }}/radar-remediation-source.tar.gz
-            ${{ runner.temp }}/radar-remediation-node-modules.tar.gz
-          if-no-files-found: error
-          retention-days: 1
+      - name: Aplicar contrato atualizado de mensagens
+        run: |
+          set -euo pipefail
+          git apply --check .github/e2e-message-contract.patch
+          git apply .github/e2e-message-contract.patch
+          git rm .github/e2e-message-contract.patch
+          node --check tests/e2e/pendency-cycle.spec.js
+          node --check tests/e2e/shared-interactions.spec.js
+          git diff --check
+
+      - name: Executar regressões afetadas
+        run: >-
+          npx playwright test
+          tests/e2e/pendency-cycle.spec.js
+          tests/e2e/shared-interactions.spec.js
+          --project=desktop-chromium
+          --grep "restaura memória|restaura estado integral|mantém o diálogo"
+
+      - name: Publicar testes alinhados
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          git commit -m 'test: alinhar E2E ao contrato de observabilidade'
+          git push origin "HEAD:${HEAD_REF}"
