@@ -1,4 +1,4 @@
-name: Corrigir papel do pgTAP remoto
+name: Validar remediação no Supabase Production
 
 on:
   pull_request:
@@ -6,49 +6,25 @@ on:
       - '.github/workflows/export-remediation-source.yml'
 
 permissions:
-  contents: write
+  contents: read
 
 env:
   SUPABASE_TELEMETRY_DISABLED: '1'
+  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+  PGPASS_REMOTE: ${{ secrets.SUPABASE_DB_PASSWORD }}
+  PROJECT_REF: scnryinorqeucbfkioxo
 
 jobs:
-  fix-pgtap-role:
+  validate-production-database:
     if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 40
     steps:
-      - name: Checkout do branch
+      - name: Checkout do HEAD exato
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
-
-      - name: Tornar o papel de teste explícito
-        shell: bash
-        run: |
-          set -euo pipefail
-          node <<'NODE'
-          const fs = require('node:fs');
-          const path = require('node:path');
-          const directory = 'supabase/tests/database';
-          const files = fs.readdirSync(directory)
-            .filter(name => name.endsWith('.test.sql'))
-            .sort();
-
-          for (const name of files) {
-            const file = path.join(directory, name);
-            let source = fs.readFileSync(file, 'utf8');
-            if (!source.startsWith('begin;\n')) {
-              throw new Error(`Teste não inicia com transação: ${file}`);
-            }
-            if (!source.startsWith('begin;\nset local role postgres;\n')) {
-              source = source.replace('begin;\n', 'begin;\nset local role postgres;\n');
-            }
-            source = source.replace(/^reset role;$/gm, 'set local role postgres;');
-            fs.writeFileSync(file, source);
-          }
-          NODE
-          git diff --check
 
       - name: Configurar Node.js 24
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
@@ -57,31 +33,69 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: Instalar dependências
+      - name: Instalar dependências reproduzíveis
         run: npm ci
 
-      - name: Validar pgTAP na pilha local completa
+      - name: Validar credenciais protegidas
         shell: bash
         run: |
           set -euo pipefail
-          npm run supabase:start
-          npm run supabase:reset
-          npm run supabase:test:db
-          npm run supabase:lint:db
+          test -n "${SUPABASE_ACCESS_TOKEN}" || { echo 'SUPABASE_ACCESS_TOKEN ausente.' >&2; exit 1; }
+          test -n "${PGPASS_REMOTE}" || { echo 'SUPABASE_DB_PASSWORD ausente.' >&2; exit 1; }
 
-      - name: Encerrar Supabase local
+      - name: Vincular Production sem aplicar migrations
+        run: npx --no-install supabase link --project-ref "${PROJECT_REF}" --password "${PGPASS_REMOTE}"
+
+      - name: Confirmar que não há migration pendente
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --no-install supabase db push --linked --dry-run --password "${PGPASS_REMOTE}" 2>&1 | tee /tmp/supabase-dry-run.txt
+          if grep -Eiq 'Would push|Applying migration|pending migration' /tmp/supabase-dry-run.txt; then
+            echo 'Há migration pendente; validação interrompida sem alterar Production.' >&2
+            exit 1
+          fi
+
+      - name: Confirmar histórico e contratos remotos
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --no-install supabase migration list --linked --password "${PGPASS_REMOTE}" 2>&1 | tee /tmp/supabase-migration-list.txt
+          npx --no-install supabase db query --linked --file supabase/verification/remote-post-apply.sql 2>&1 | tee /tmp/supabase-post-apply-contract.txt
+
+      - name: Executar lint remoto
+        run: npx --no-install supabase db lint --linked --schema public --level warning --fail-on error
+
+      - name: Executar pgTAP remoto em transações reversíveis
+        shell: bash
+        run: |
+          set -o pipefail
+          npx --no-install supabase test db supabase/tests/database --linked 2>&1 | tee /tmp/supabase-pgtap.txt
+
+      - name: Comparar tipos remotos
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --no-install supabase gen types typescript --linked --schema public > /tmp/database.remote.types.ts
+          diff --unified src/types/database.types.ts /tmp/database.remote.types.ts
+
+      - name: Executar Advisors sem alterar configuração
+        shell: bash
+        run: |
+          set -o pipefail
+          npx --no-install supabase db advisors --linked --type all --level info --fail-on error 2>&1 | tee /tmp/supabase-advisors.txt
+
+      - name: Publicar evidências sanitizadas
         if: always()
-        run: npm run supabase:stop || true
-
-      - name: Publicar harness validado
-        shell: bash
-        env:
-          HEAD_REF: ${{ github.event.pull_request.head.ref }}
-        run: |
-          set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add supabase/tests/database
-          git diff --cached --check
-          git commit -m 'test: executar pgTAP remoto sob papel postgres explícito'
-          git push origin "HEAD:${HEAD_REF}"
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: supabase-production-validation-${{ github.run_id }}
+          path: |
+            /tmp/supabase-dry-run.txt
+            /tmp/supabase-migration-list.txt
+            /tmp/supabase-post-apply-contract.txt
+            /tmp/supabase-pgtap.txt
+            /tmp/database.remote.types.ts
+            /tmp/supabase-advisors.txt
+          if-no-files-found: warn
+          retention-days: 14
