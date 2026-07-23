@@ -52,7 +52,8 @@ test('mensagem pública canoniza falha técnica e preserva orientação de valid
         { operation: 'school:save' }
     ));
     assert.equal(session.code, 'SESSION_EXPIRED');
-    assert.equal(session.message, DATA_ERROR_MESSAGES.SESSION_EXPIRED);
+    assert.match(session.message, /sessão expirou/i);
+    assert.match(session.message, /código do incidente/i);
     assert.equal(session.operation, 'school:save');
 
     const business = showDataOperationError(new RepositoryError(

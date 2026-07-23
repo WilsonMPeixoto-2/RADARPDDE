@@ -1,4 +1,5 @@
 begin;
+set local role postgres;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
 select plan(24);
@@ -72,7 +73,7 @@ select lives_ok($$
         '{"id":"log-team-controller","action":"Gestão de Equipe","details":{"effect":"invite"}}'::jsonb
     )
 $$, 'provisionamento de controlador é atômico');
-reset role;
+set local role postgres;
 
 select is((select user_id from public.controllers where id = 'CTRL-TEAM-C'),
     '00000000-0000-0000-0000-000000000902'::uuid,
@@ -97,7 +98,7 @@ select lives_ok($$
         '{"id":"log-team-inventory","action":"Gestão de Equipe","details":{"effect":"invite"}}'::jsonb
     )
 $$, 'provisionamento de integrante do Inventário é atômico');
-reset role;
+set local role postgres;
 
 select is((select user_id from public.inventory_team_members where id = 'INV-TEAM-C'),
     '00000000-0000-0000-0000-000000000903'::uuid,
@@ -115,7 +116,7 @@ select lives_ok($$
         '{"id":"log-team-controller-off","action":"Gestão de Equipe","details":{"effect":"deactivate"}}'::jsonb
     )
 $$, 'desativação de controlador redistribui carteira atomicamente');
-reset role;
+set local role postgres;
 
 select is((select controller_id from public.schools where id = 'TEAM-SCHOOL'),
     'CTRL-TEAM-B',
@@ -135,7 +136,7 @@ select lives_ok($$
         '{"id":"log-team-inventory-off","action":"Gestão de Equipe","details":{"effect":"deactivate"}}'::jsonb
     )
 $$, 'desativação de Inventário preserva o histórico');
-reset role;
+set local role postgres;
 
 select is((select active from public.inventory_team_members where id = 'INV-TEAM-A'),
     false,

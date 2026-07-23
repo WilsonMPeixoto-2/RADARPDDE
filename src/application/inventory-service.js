@@ -27,6 +27,15 @@
         return value == null ? '' : String(value).trim();
     }
 
+    function list(value) {
+        return Array.isArray(value) ? value : [];
+    }
+
+    function rowVersionOf(record) {
+        const candidate = record?.rowVersion ?? record?.row_version;
+        return Number.isInteger(candidate) && candidate > 0 ? candidate : null;
+    }
+
     function normalizeProfile(value) {
         const profile = text(value).toLocaleLowerCase('pt-BR');
         if (profile === 'assistente cre' || profile === 'assistente de verbas federais') return 'assistente';
@@ -72,6 +81,36 @@
             return normalized;
         }
 
+        appendSchoolLog(schoolId, action, details) {
+            const log = this.appendLog(action, details, { escolaId: schoolId, schoolId });
+            if (log && typeof log === 'object' && !text(log.escolaId) && !text(log.school_id)) {
+                log.escolaId = schoolId;
+            }
+            return log || null;
+        }
+
+        persistAsset(context, persistence) {
+            const { snapshot, repository, defaultPersist } = context;
+            if (typeof repository.saveAssetWithLog !== 'function') return defaultPersist();
+            const asset = list(snapshot?.entities?.assets)
+                .find(record => String(record.id) === String(persistence.assetId));
+            const administrativeLog = list(snapshot?.entities?.administrativeLogs)
+                .find(record => String(record.id) === String(persistence.logId));
+            if (!asset || !administrativeLog) {
+                fail(
+                    'PERSISTENCE_CONTEXT_MISSING',
+                    'O bem ou o histórico da operação não foi produzido para persistência.',
+                    'persistAsset',
+                    { assetId: persistence.assetId, logId: persistence.logId }
+                );
+            }
+            return repository.saveAssetWithLog({
+                asset,
+                expectedVersion: persistence.expectedVersion,
+                administrativeLog
+            });
+        }
+
         async updateAsset(input = {}) {
             this.assertOperationalProfile(input.profile, 'inventory:update-asset');
             const field = text(input.field);
@@ -92,6 +131,7 @@
 
         async forward(input = {}) {
             this.assertOperationalProfile(input.profile, 'inventory:forward');
+            const persistence = {};
             return this.dataService.execute({
                 name: 'inventory:forward',
                 changedEntities: ['assets', 'administrativeLogs'],
@@ -99,6 +139,8 @@
                     const state = this.getState();
                     const asset = this.findAsset(state, input.assetId, 'inventory:forward');
                     const school = this.findSchool(state, asset.escolaId, 'inventory:forward');
+                    persistence.assetId = asset.id;
+                    persistence.expectedVersion = rowVersionOf(asset);
                     if (!text(asset.notaFiscal)) {
                         fail(
                             'INVOICE_NUMBER_REQUIRED',
@@ -114,12 +156,16 @@
                         );
                     }
                     asset.status = 'Encaminhada';
-                    this.appendLog(
+                    asset.processoInventario = text(school.processoInventario);
+                    const log = this.appendSchoolLog(
+                        school.id,
                         'Capital Encaminhado',
                         `Aquisição ${asset.item} da escola ${school.denominação || ''} encaminhada ao inventariador com NF ${asset.notaFiscal} no processo ${school.processoInventario}.`
                     );
+                    persistence.logId = text(log?.id);
                     return { asset: cloneValue(asset) };
-                }
+                },
+                persist: context => this.persistAsset(context, persistence)
             });
         }
 
@@ -132,6 +178,7 @@
             if (!responsible) {
                 fail('VALIDATION_FAILED', 'O responsável pela inventariação é obrigatório.', 'inventory:complete');
             }
+            const persistence = {};
             return this.dataService.execute({
                 name: 'inventory:complete',
                 changedEntities: ['assets', 'administrativeLogs'],
@@ -139,6 +186,8 @@
                     const state = this.getState();
                     const asset = this.findAsset(state, input.assetId, 'inventory:complete');
                     const school = this.findSchool(state, asset.escolaId, 'inventory:complete');
+                    persistence.assetId = asset.id;
+                    persistence.expectedVersion = rowVersionOf(asset);
                     const instant = this.now();
                     const iso = instant instanceof Date ? instant.toISOString() : new Date(instant).toISOString();
                     const formatted = new Date(iso).toLocaleDateString('pt-BR', { timeZone: 'UTC' })
@@ -154,17 +203,21 @@
                     asset.observacoes = text(input.notes);
                     asset.inventariadoEm = formatted;
                     asset.dataInventariacao = iso;
-                    this.appendLog(
+                    const log = this.appendSchoolLog(
+                        school.id,
                         'Inventariação Concluída',
                         `Bem patrimonial ${asset.item} da escola ${school.denominação || ''} foi registrado e inventariado por ${responsible}.`
                     );
+                    persistence.logId = text(log?.id);
                     return { asset: cloneValue(asset) };
-                }
+                },
+                persist: context => this.persistAsset(context, persistence)
             });
         }
 
         async createAsset(input = {}) {
             this.assertOperationalProfile(input.profile, 'inventory:create');
+            const persistence = { expectedVersion: null };
             const amount = Number(input.amount);
             if (!text(input.description) || !Number.isFinite(amount) || amount < 0) {
                 fail('VALIDATION_FAILED', 'Descrição e valor válido são obrigatórios.', 'inventory:create');
@@ -191,12 +244,16 @@
                             : 'Não encaminhada'
                     };
                     state.assets.push(asset);
-                    this.appendLog(
+                    const log = this.appendSchoolLog(
+                        school.id,
                         'Bem Cadastrado',
                         `Gasto de capital de R$ ${amount} registrado para ${school.denominação || ''}: ${asset.item}.`
                     );
+                    persistence.assetId = asset.id;
+                    persistence.logId = text(log?.id);
                     return { asset: cloneValue(asset) };
-                }
+                },
+                persist: context => this.persistAsset(context, persistence)
             });
         }
     }

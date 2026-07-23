@@ -122,9 +122,11 @@ test.describe('Ciclo B3 — interações compartilhadas', () => {
 
     await expect(dialog).toBeVisible();
     await expect(recipient).toHaveValue('erica');
-    await expect(dialog.getByRole('alert')).toContainText(
-      'A operação não foi concluída e as alterações foram desfeitas com segurança.'
+    const alert = dialog.getByRole('alert');
+    await expect(alert).toContainText(
+      'Não foi possível confirmar a conclusão da operação. Recarregue os dados antes de tentar novamente.'
     );
+    await expect(alert).toContainText(/Código do incidente: RADAR-[A-Z0-9-]+\./);
     await expect(confirm).toBeFocused();
     await expect(controllerCard(page, 'Alzira de Souza')).toBeVisible();
   });

@@ -142,7 +142,7 @@ test('alinhamento final concede gestão de equipe à Assistente e restringe RPCs
     assert.doesNotMatch(sql, /grant\s+execute[\s\S]+to\s+(?:authenticated|anon)/i);
 });
 
-test('gate final exige a vigésima migration, escopo patrimonial e Edge Function protegida', () => {
+test('gate final exige as migrations operacionais, escopo patrimonial e Edge Function protegida', () => {
     const readiness = read('scripts/check-supabase-final-alignment.js');
     const config = read('supabase/config.toml');
 
@@ -154,7 +154,10 @@ test('gate final exige a vigésima migration, escopo patrimonial e Edge Function
     assert.match(readiness, /inventory_capital_section_scope\.sql/);
     assert.match(readiness, /inventory_capital_section_inline_scope\.sql/);
     assert.match(readiness, /inventory_generic_asset_scope_by_cre\.sql/);
-    assert.match(readiness, /20 migrations/);
+    assert.match(readiness, /atomic_verification_operations\.sql/);
+    assert.match(readiness, /atomic_operational_commands\.sql/);
+    assert.match(readiness, /enable_pgtap_remote_validation\.sql/);
+    assert.match(readiness, /24 migrations/);
     assert.match(readiness, /inventory-capital-rls\.test\.sql/);
     assert.match(readiness, /supabase\/functions\/_shared\/team-account-domain\.mjs/);
     assert.match(readiness, /supabase\/functions\/team-account-management\/index\.ts/);

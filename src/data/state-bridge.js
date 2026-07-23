@@ -264,25 +264,31 @@
                 )
                     ? cloneValue(settings.prazoBonificacaoProrrogado)
                     : (appConfig.bonus_deadline_extended || false),
-                competencias: competences
+                competencias: competences,
+                ...(Number.isInteger(appConfig.row_version)
+                    ? { rowVersion: appConfig.row_version }
+                    : {})
             },
             programs: array(source.programs).map(program => ({
                 id: program.id,
                 name: program.name,
                 desc: program.description || '',
-                active: program.active !== false
+                active: program.active !== false,
+                ...(Number.isInteger(program.row_version) ? { rowVersion: program.row_version } : {})
             })),
             controllers: array(source.controllers).map(controller => ({
                 id: controller.id,
                 name: controller.name,
                 email: controller.email || '',
-                active: controller.active !== false
+                active: controller.active !== false,
+                ...(Number.isInteger(controller.row_version) ? { rowVersion: controller.row_version } : {})
             })),
             inventoryTeamMembers: array(source.inventoryTeamMembers).map(member => ({
                 id: member.id,
                 name: member.name,
                 email: member.email || '',
-                active: member.active !== false
+                active: member.active !== false,
+                ...(Number.isInteger(member.row_version) ? { rowVersion: member.row_version } : {})
             })),
             schools: array(source.schools).map(school => {
                 const links = (programLinksBySchool.get(school.id) || [])
@@ -312,10 +318,12 @@
                         programaId: link.program_id,
                         ativo: link.active !== false,
                         inicio: link.starts_on || null,
-                        fim: link.ends_on || null
+                        fim: link.ends_on || null,
+                        ...(Number.isInteger(link.row_version) ? { rowVersion: link.row_version } : {})
                     })),
                     competenciaInicial: school.initial_competence || null,
-                    active: school.active !== false
+                    active: school.active !== false,
+                    ...(Number.isInteger(school.row_version) ? { rowVersion: school.row_version } : {})
                 };
             }),
             verifications: {},
@@ -360,7 +368,8 @@
                     observacao: attempt.observation || '',
                     link: attempt.drive_url || '',
                     errosEncontrados: array(attempt.errors),
-                    createdBy: attempt.created_by || null
+                    createdBy: attempt.created_by || null,
+                    ...(Number.isInteger(attempt.row_version) ? { rowVersion: attempt.row_version } : {})
                 }));
             return {
                 ...payload,
@@ -379,7 +388,8 @@
                 cancelamento: pendency.canceled_at
                     ? { ...(object(payload.cancelamento)), dataHora: pendency.canceled_at }
                     : (payload.cancelamento || null),
-                tentativas: attempts
+                tentativas: attempts,
+                ...(Number.isInteger(pendency.row_version) ? { rowVersion: pendency.row_version } : {})
             };
         });
 
@@ -393,7 +403,8 @@
             desc: contact.description || '',
             descricao: contact.description || '',
             cobrancaOficial: contact.official_charge === true,
-            createdBy: contact.created_by || null
+            createdBy: contact.created_by || null,
+            ...(Number.isInteger(contact.row_version) ? { rowVersion: contact.row_version } : {})
         }));
 
         state.assets = array(source.assets).map(asset => ({

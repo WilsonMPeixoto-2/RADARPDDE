@@ -261,7 +261,10 @@
                 prazoBonificacaoProrrogado: Object.prototype.hasOwnProperty.call(config, 'prazoBonificacaoProrrogado')
                     ? cloneValue(config.prazoBonificacaoProrrogado)
                     : false
-            }
+            },
+            ...(Number.isInteger(config.rowVersion || config.row_version)
+                ? { row_version: config.rowVersion || config.row_version }
+                : {})
         });
 
         entities.programs = array(state.programs).flatMap((program, index) => {
@@ -274,7 +277,10 @@
                 id,
                 name: text(program.name) || id,
                 description: text(program.description || program.desc),
-                active: program.active !== false
+                active: program.active !== false,
+                ...(Number.isInteger(program.rowVersion || program.row_version)
+                    ? { row_version: program.rowVersion || program.row_version }
+                    : {})
             }];
         });
 
@@ -288,7 +294,10 @@
                 id,
                 name: text(controller.name) || id,
                 email: text(controller.email),
-                active: controller.active !== false
+                active: controller.active !== false,
+                ...(Number.isInteger(controller.rowVersion || controller.row_version)
+                    ? { row_version: controller.rowVersion || controller.row_version }
+                    : {})
             }];
         });
 
@@ -302,7 +311,10 @@
                 id,
                 name: text(member.name) || id,
                 email: text(member.email),
-                active: member.active !== false
+                active: member.active !== false,
+                ...(Number.isInteger(member.rowVersion || member.row_version)
+                    ? { row_version: member.rowVersion || member.row_version }
+                    : {})
             }];
         });
 
@@ -334,13 +346,30 @@
                 controller_id: text(school.controladorId) || null,
                 inventory_process: text(school.processoInventario),
                 initial_competence: text(school.competenciaInicial) || null,
-                active: school.active !== false
+                active: school.active !== false,
+                ...(Number.isInteger(school.rowVersion || school.row_version)
+                    ? { row_version: school.rowVersion || school.row_version }
+                    : {})
             }];
         });
 
         entities.schoolPrograms = array(state.schools).flatMap(school => {
             const schoolId = text(school?.id || school?.designação || school?.designacao);
             if (!schoolId) return [];
+            const versionedLinks = array(school.programasVinculos);
+            if (versionedLinks.length > 0) {
+                return versionedLinks.map(link => ({
+                    id: text(link.id) || deterministicId(schoolId, [link.programaId || link.program_id]),
+                    school_id: schoolId,
+                    program_id: text(link.programaId || link.program_id),
+                    active: link.ativo !== false && link.active !== false,
+                    starts_on: normalizeDate(link.inicio || link.starts_on),
+                    ends_on: normalizeDate(link.fim || link.ends_on),
+                    ...(Number.isInteger(link.rowVersion || link.row_version)
+                        ? { row_version: link.rowVersion || link.row_version }
+                        : {})
+                }));
+            }
             return array(school.programasIds).map(programId => ({
                 id: deterministicId(schoolId, [programId]),
                 school_id: schoolId,
@@ -400,7 +429,10 @@
                 opened_at: normalizeTimestamp(pendency.dataAbertura || pendency.opened_at) || '1970-01-01T00:00:00.000Z',
                 resolved_at: normalizeTimestamp(pendency.dataResolucao || pendency.resolved_at),
                 canceled_at: cancellationAt,
-                payload: cloneValue(pendency)
+                payload: cloneValue(pendency),
+                ...(Number.isInteger(pendency.rowVersion || pendency.row_version)
+                    ? { row_version: pendency.rowVersion || pendency.row_version }
+                    : {})
             });
 
             array(pendency.tentativas).forEach((attempt, attemptIndex) => {
@@ -422,7 +454,10 @@
                     observation: text(attempt.observacao),
                     drive_url: text(attempt.link),
                     errors: array(attempt.errosEncontrados),
-                    payload: cloneValue(attempt)
+                    payload: cloneValue(attempt),
+                    ...(Number.isInteger(attempt.rowVersion || attempt.row_version)
+                        ? { row_version: attempt.rowVersion || attempt.row_version }
+                        : {})
                 });
             });
         });
@@ -446,7 +481,10 @@
                 official_charge: contact.cobrancaOficial === true
                     || contact.cobrancaEnvioRegistro === true
                     || contact.official_charge === true,
-                payload: cloneValue(contact)
+                payload: cloneValue(contact),
+                ...(Number.isInteger(contact.rowVersion || contact.row_version)
+                    ? { row_version: contact.rowVersion || contact.row_version }
+                    : {})
             }];
         });
 
@@ -470,6 +508,8 @@
                 status,
                 inventory_process: text(asset.processoInventario || asset.inventory_process),
                 notes: text(asset.observacoes || asset.observacao || asset.notes),
+                inventoried_by_member_id: text(asset.inventariadorId || asset.inventoried_by_member_id) || null,
+                inventoried_at: normalizeTimestamp(asset.dataInventariacao || asset.inventoried_at),
                 payload: cloneValue(asset),
                 ...(Number.isInteger(asset.rowVersion || asset.row_version)
                     ? { row_version: asset.rowVersion || asset.row_version }

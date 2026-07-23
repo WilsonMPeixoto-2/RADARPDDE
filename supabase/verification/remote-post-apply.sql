@@ -21,7 +21,11 @@ declare
         '20260721152515',
         '20260721152634',
         '20260721153758',
-        '20260721160056'
+        '20260721160056',
+        '202607220001',
+        '202607220002',
+        '202607230001',
+        '20260723043129'
     ];
     v_actual text[];
     v_missing_extensions text[];
@@ -38,13 +42,23 @@ begin
 
     select array_agg(required.name order by required.name)
       into v_missing_extensions
-      from (values ('pgcrypto'), ('pg_jsonschema')) as required(name)
+      from (values ('pgcrypto'), ('pg_jsonschema'), ('pgtap')) as required(name)
      where not exists (
         select 1 from pg_extension installed where installed.extname = required.name
      );
 
     if v_missing_extensions is not null then
         raise exception 'EXTENSION_NOT_INSTALLED: %', array_to_string(v_missing_extensions, ', ');
+    end if;
+
+    if to_regprocedure('public.save_verification_with_log(jsonb,integer,jsonb)') is null
+       or to_regprocedure('public.save_pendency_contact_with_log(jsonb,text,jsonb)') is null
+       or to_regprocedure('public.save_pendency_command(text,jsonb,integer,jsonb,jsonb,integer,jsonb)') is null
+       or to_regprocedure('public.save_asset_with_log(jsonb,integer,jsonb)') is null
+       or to_regprocedure('public.save_program_with_log(jsonb,integer,jsonb)') is null
+       or to_regprocedure('public.save_calendar_with_log(jsonb,integer,jsonb)') is null
+       or to_regprocedure('public.assign_controller_with_log(jsonb,jsonb)') is null then
+        raise exception 'ATOMIC_OPERATIONAL_RPC_MISSING';
     end if;
 
     if to_regprocedure('public.upsert_team_member_account(jsonb,uuid,text,uuid,jsonb)') is null
@@ -55,6 +69,21 @@ begin
 
     if has_function_privilege('authenticated', 'public.upsert_team_member_account(jsonb,uuid,text,uuid,jsonb)', 'EXECUTE') then
         raise exception 'TEAM_ACCOUNT_RPC_EXPOSED_TO_AUTHENTICATED';
+    end if;
+
+
+    if (select prosecdef from pg_proc where oid = 'public.current_app_role()'::regprocedure)
+       or (select prosecdef from pg_proc where oid = 'public.can_access_school(text)'::regprocedure)
+       or (select prosecdef from pg_proc where oid = 'public.can_write_school(text)'::regprocedure)
+       or (select prosecdef from pg_proc where oid = 'public.delete_invoice_with_effects(text,integer,boolean,integer,jsonb,integer,jsonb)'::regprocedure) then
+        raise exception 'PUBLIC_SECURITY_DEFINER_STILL_EXPOSED';
+    end if;
+
+    if to_regprocedure('radar_private.current_app_role()') is null
+       or to_regprocedure('radar_private.can_access_school(text)') is null
+       or to_regprocedure('radar_private.can_write_school(text)') is null
+       or to_regprocedure('radar_private.delete_invoice_with_effects_impl(text,integer,boolean,integer,jsonb,integer,jsonb)') is null then
+        raise exception 'PRIVATE_SECURITY_HELPER_MISSING';
     end if;
 
     if to_regprocedure('public.inventory_can_access_cre_school(text)') is not null then
@@ -83,7 +112,7 @@ begin
         raise exception 'INVENTORY_ASSET_UPDATE_SCOPE_MISSING';
     end if;
 
-    select pg_get_functiondef('public.can_access_school(text)'::regprocedure)
+    select pg_get_functiondef('radar_private.can_access_school(text)'::regprocedure)
       into v_access_definition;
 
     if v_access_definition not ilike '%profile_id = ''inventory''%'

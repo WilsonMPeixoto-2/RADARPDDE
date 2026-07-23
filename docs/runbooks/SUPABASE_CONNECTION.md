@@ -4,7 +4,7 @@
 
 O projeto remoto autorizado é `scnryinorqeucbfkioxo`. O schema, a carga estrutural e os vínculos funcionais de Auth estão concluídos.
 
-O conjunto versionado contém atualmente **20** migrations.
+O conjunto versionado contém atualmente **24** migrations.
 
 A carga estrutural contém:
 
@@ -38,7 +38,7 @@ supabase db push --linked --dry-run
 supabase db push --linked
 ```
 
-O contrato pós-aplicação em `supabase/verification/remote-post-apply.sql` reconhece exatamente as 20 migrations versionadas.
+O contrato pós-aplicação em `supabase/verification/remote-post-apply.sql` reconhece exatamente as 24 migrations versionadas.
 
 As migrations patrimoniais são:
 
@@ -46,6 +46,9 @@ As migrations patrimoniais são:
 - `20260721152634_inventory_capital_section_scope.sql` — separação do escopo patrimonial;
 - `20260721153758_inventory_capital_section_inline_scope.sql` — consolidação nas políticas RLS e remoção da helper transitória;
 - `20260721160056_inventory_generic_asset_scope_by_cre.sql` — correção final da fronteira de CRE no predicado genérico do Inventário.
+- `202607220001_atomic_verification_operations.sql` — verificação e log administrativo na mesma transação;
+- `202607220002_atomic_operational_commands.sql` — contatos, pendências, bens, programas, calendário e redistribuição com comandos atômicos;
+- `202607230001_enable_pgtap_remote_validation.sql` — instala pgTAP no schema `extensions` para homologação transacional remota.
 
 ## 2. Estado de dados e Auth
 
@@ -157,3 +160,15 @@ Os fluxos autenticados são exercitados pelos usuários reais e permanecem cober
 - o backup pré-ativação deve ser mantido;
 - MFA deve ser priorizado para perfis privilegiados;
 - CI deve permanecer verde no mesmo commit implantado.
+
+
+## Hardening obrigatório de Auth e Edge Function
+
+Antes da implantação da Edge Function em Preview ou Production:
+
+1. definir `RADAR_ALLOWED_ORIGIN` com a origem exata do deployment Vercel;
+2. rejeitar qualquer origem diferente e nunca usar `*` como fallback;
+3. executar os Advisors de segurança após migrations e deploy da função;
+4. confirmar no painel do Supabase Auth que **Leaked Password Protection** está ativada.
+
+A proteção de senhas vazadas é configuração operacional do Auth e não é simulada por migration SQL. A implantação não deve ser encerrada sem evidência dessa ativação no projeto remoto.

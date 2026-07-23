@@ -154,6 +154,10 @@ jobs:
           set -euo pipefail
           psql -v ON_ERROR_STOP=1 -f supabase/tests/bootstrap.sql
           for migration in supabase/migrations/*.sql; do
+            if [ "$(basename "${migration}")" = "202607230001_enable_pgtap_remote_validation.sql" ]; then
+              echo "Ignorando ${migration} no PostgreSQL genérico; a extensão pgTAP é validada no job Supabase local."
+              continue
+            fi
             echo "Aplicando ${migration}"
             psql -v ON_ERROR_STOP=1 -f "${migration}"
           done
@@ -182,10 +186,17 @@ jobs:
       - name: Instalar Chromium para o gate Auth local
         run: npx playwright install --with-deps chromium
 
+      - name: Configurar origem local da Edge Function
+        shell: bash
+        run: |
+          mkdir -p supabase/functions
+          printf 'RADAR_ALLOWED_ORIGIN=%s\n' 'http://127.0.0.1:4175' > supabase/functions/.env
+          chmod 600 supabase/functions/.env
+
       - name: Iniciar Supabase local
         run: npm run supabase:start
 
-      - name: Recriar banco com vinte migrations e seed local
+      - name: Recriar banco com vinte e quatro migrations e seed local
         run: npm run supabase:reset
 
       - name: Validar contratos operacionais do preflight remoto
@@ -248,6 +259,7 @@ jobs:
             printf 'RADAR_SUPABASE_URL=%s\n' "${API_URL}"
             printf 'RADAR_SUPABASE_PUBLISHABLE_KEY=%s\n' "${ANON_KEY}"
             printf 'RADAR_AUTH_FIXTURE_PASSWORD=%s\n' "${FIXTURE_PASSWORD}"
+            printf 'RADAR_ALLOWED_ORIGIN=%s\n' 'http://127.0.0.1:4175'
           } >> "${GITHUB_ENV}"
 
       - name: Validar login das sete identidades Auth
@@ -288,9 +300,11 @@ jobs:
           if-no-files-found: warn
           retention-days: 1
 
-      - name: Restaurar configuração pública local
+      - name: Restaurar configuração e remover segredo local
         if: always()
-        run: npm run generate:runtime-config
+        run: |
+          npm run generate:runtime-config
+          rm -f supabase/functions/.env
 
       - name: Encerrar Supabase local
         if: always()

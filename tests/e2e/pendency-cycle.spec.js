@@ -923,7 +923,7 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
       }).click();
       await expect(modal).toHaveClass(/show/);
       await expect(modal.getByRole('alert')).toContainText(
-        'Falha E2E intermediária ao persistir logs.'
+        'A persistência foi concluída, mas a atualização do estado local falhou.'
       );
     } finally {
       await page.evaluate(() => {
@@ -2385,7 +2385,7 @@ test.describe('resultados alternativos, bloqueio e rollback da reanálise', () =
       await modal.getByRole('button', { name: 'Confirmar reanálise', exact: true }).click();
       await expect(modal).toHaveClass(/show/);
       await expect(modal.getByRole('alert')).toContainText(
-        'Falha E2E intermediária ao persistir reanálise.'
+        'A persistência foi concluída, mas a atualização do estado local falhou.'
       );
     } finally {
       await page.evaluate(() => {
