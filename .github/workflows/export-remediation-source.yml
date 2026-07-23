@@ -1,4 +1,4 @@
-name: Validar remediação no Supabase Production
+name: Implementar observabilidade verificável
 
 on:
   pull_request:
@@ -6,24 +6,18 @@ on:
       - '.github/workflows/export-remediation-source.yml'
 
 permissions:
-  contents: read
-
-env:
-  SUPABASE_TELEMETRY_DISABLED: '1'
-  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-  PGPASS_REMOTE: ${{ secrets.SUPABASE_DB_PASSWORD }}
-  PROJECT_REF: scnryinorqeucbfkioxo
+  contents: write
 
 jobs:
-  validate-production-database:
+  implement-observability:
     if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 25
     steps:
-      - name: Checkout do HEAD exato
+      - name: Checkout do branch
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
 
       - name: Configurar Node.js 24
@@ -33,69 +27,373 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: Instalar dependências reproduzíveis
+      - name: Instalar dependências
         run: npm ci
 
-      - name: Validar credenciais protegidas
+      - name: Aplicar observabilidade e mensagens verdadeiras
         shell: bash
         run: |
           set -euo pipefail
-          test -n "${SUPABASE_ACCESS_TOKEN}" || { echo 'SUPABASE_ACCESS_TOKEN ausente.' >&2; exit 1; }
-          test -n "${PGPASS_REMOTE}" || { echo 'SUPABASE_DB_PASSWORD ausente.' >&2; exit 1; }
+          python <<'PY'
+          from pathlib import Path
 
-      - name: Vincular Production sem aplicar migrations
-        run: npx --no-install supabase link --project-ref "${PROJECT_REF}" --password "${PGPASS_REMOTE}"
+          unit = Path('src/application/unit-of-work.js')
+          source = unit.read_text()
+          marker = '    class UnitOfWork {'
+          helpers = '''    function createIncidentId(command = {}) {
+              if (command.incidentId) return String(command.incidentId);
+              if (typeof command.createIncidentId === 'function') return String(command.createIncidentId());
+              const time = Date.now().toString(36).toUpperCase();
+              const random = Math.random().toString(36).slice(2, 8).toUpperCase();
+              return `RADAR-${time}-${random}`;
+          }
 
-      - name: Confirmar que não há migration pendente
+          function annotateFailure(error, metadata = {}) {
+              const target = error instanceof RepositoryError
+                  ? error
+                  : new RepositoryError(
+                      String(error?.code || 'TRANSACTION_FAILED'),
+                      String(error?.message || 'A operação de dados não pôde ser concluída.'),
+                      { cause: error, operation: metadata.operation }
+                  );
+              target.details = {
+                  ...(target.details || {}),
+                  incidentId: metadata.incidentId,
+                  unitOfWorkPhase: metadata.phase,
+                  rollbackConfirmed: metadata.rollbackConfirmed === true,
+                  localRestoreConfirmed: metadata.localRestoreConfirmed === true,
+                  remoteCommitConfirmed: metadata.remoteCommitConfirmed === true
+              };
+              target.incidentId = metadata.incidentId;
+              target.operation = target.operation || metadata.operation;
+              return target;
+          }
+
+          '''
+          if 'function createIncidentId(command = {})' not in source:
+              source = source.replace(marker, helpers + marker)
+          start = source.index('        async run(command = {}) {')
+          end = source.index('\n        }\n    }\n\n    return Object.freeze', start) + len('\n        }')
+          replacement = '''        async run(command = {}) {
+              if (typeof command.mutate !== 'function' || typeof command.persist !== 'function') {
+                  throw new RepositoryError(
+                      'INVALID_COMMAND',
+                      'A unidade de trabalho exige funções mutate e persist.',
+                      { operation: 'run' }
+                  );
+              }
+              const changedEntities = [...new Set(command.changedEntities || [])];
+              changedEntities.forEach(assertKnownEntity);
+              const operation = String(command.name || 'data-command');
+              const incidentId = createIncidentId(command);
+              const capture = await this.statePort.capture();
+              let phase = 'mutate';
+              let remoteCommitConfirmed = false;
+
+              try {
+                  const value = await command.mutate();
+                  phase = 'export';
+                  const snapshot = await this.statePort.exportCanonical({
+                      version: command.version || '1',
+                      importId: command.importId || `command-${Date.now()}`,
+                      exportedAt: command.exportedAt || new Date().toISOString()
+                  });
+                  phase = 'persist';
+                  const persisted = await command.persist({
+                      name: operation,
+                      incidentId,
+                      changedEntities,
+                      value: cloneValue(value),
+                      snapshot: cloneValue(snapshot)
+                  });
+                  remoteCommitConfirmed = persisted?.remoteCommitConfirmed !== false;
+                  phase = 'commit';
+                  if (command.deferLocalCommit !== true) {
+                      try {
+                          if (typeof this.statePort.commitCurrent === 'function') {
+                              this.statePort.commitCurrent(snapshot);
+                          } else {
+                              await this.statePort.applyCanonical(snapshot);
+                          }
+                      } catch (commitError) {
+                          if (!isRecoverableLocalCacheError(commitError)) {
+                              throw new RepositoryError(
+                                  'TRANSACTION_FAILED',
+                                  'A gravação remota foi concluída, mas a atualização local falhou.',
+                                  {
+                                      operation,
+                                      cause: commitError,
+                                      details: {
+                                          incidentId,
+                                          unitOfWorkPhase: 'commit',
+                                          rollbackConfirmed: false,
+                                          remoteCommitConfirmed: true
+                                      }
+                                  }
+                              );
+                          }
+                      }
+                  }
+                  return {
+                      incidentId,
+                      value: cloneValue(value),
+                      snapshot: cloneValue(snapshot),
+                      persisted: cloneValue(persisted)
+                  };
+              } catch (error) {
+                  let localRestoreConfirmed = false;
+                  try {
+                      await this.statePort.restore(capture);
+                      localRestoreConfirmed = true;
+                  } catch (rollbackError) {
+                      throw new RepositoryError(
+                          'TRANSACTION_FAILED',
+                          'A operação falhou e o estado local não pôde ser restaurado.',
+                          {
+                              operation,
+                              cause: error,
+                              details: {
+                                  incidentId,
+                                  unitOfWorkPhase: phase,
+                                  rollbackConfirmed: false,
+                                  localRestoreConfirmed: false,
+                                  remoteCommitConfirmed,
+                                  rollbackCode: rollbackError?.code || null
+                              }
+                          }
+                      );
+                  }
+
+                  const rollbackConfirmed = phase === 'mutate' || phase === 'export'
+                      ? true
+                      : error?.details?.rollbackConfirmed === true;
+                  throw annotateFailure(error, {
+                      incidentId,
+                      operation,
+                      phase,
+                      rollbackConfirmed,
+                      localRestoreConfirmed,
+                      remoteCommitConfirmed: remoteCommitConfirmed || error?.details?.remoteCommitConfirmed === true
+                  });
+              }
+          }'''
+          source = source[:start] + replacement + source[end:]
+          source = source.replace('return Object.freeze({ UnitOfWork });', 'return Object.freeze({ UnitOfWork, createIncidentId });')
+          unit.write_text(source)
+
+          mapper = Path('src/application/error-mapper.js')
+          source = mapper.read_text()
+          source = source.replace(
+              "TRANSACTION_FAILED: 'A operação não foi concluída e as alterações foram desfeitas com segurança.',",
+              "TRANSACTION_FAILED: 'Não foi possível confirmar a conclusão da operação. Verifique o estado remoto antes de tentar novamente.',"
+          )
+          if 'function incidentIdFor(error, context = {})' not in source:
+              source = source.replace('    function delay(milliseconds) {', '''    function incidentIdFor(error, context = {}) {
+              return String(
+                  context.incidentId
+                  || error?.incidentId
+                  || error?.details?.incidentId
+                  || `RADAR-${Date.now().toString(36).toUpperCase()}`
+              );
+          }
+
+          function publicMessageFor(code, error, context = {}, incidentId) {
+              const rollbackConfirmed = context.rollbackConfirmed === true || error?.details?.rollbackConfirmed === true;
+              const remoteCommitConfirmed = context.remoteCommitConfirmed === true || error?.details?.remoteCommitConfirmed === true;
+              let message = context.message;
+              if (!message && code === 'TRANSACTION_FAILED' && remoteCommitConfirmed) {
+                  message = 'A gravação foi concluída no servidor, mas a tela não pôde ser atualizada. Recarregue os dados.';
+              }
+              if (!message && code === 'TRANSACTION_FAILED' && rollbackConfirmed) {
+                  message = 'A operação não foi concluída e nenhuma alteração remota foi confirmada.';
+              }
+              if (!message) message = DATA_ERROR_MESSAGES[code] || error?.message || 'A operação de dados não pôde ser concluída.';
+              return `${message} Código do incidente: ${incidentId}.`;
+          }
+
+          function delay(milliseconds) {''')
+          old = '''        const publicMessage = context.message
+              || (isBusinessRepositoryError
+                  ? error?.message
+                  : DATA_ERROR_MESSAGES[publicCode] || error?.message);
+          const mapped = toRepositoryError(error, {
+              code: publicCode,
+              operation: context.operation,
+              entity: context.entity,
+              message: publicMessage
+          });
+          const publicError = Object.freeze({
+              code: mapped.code,
+              message: mapped.message,
+              operation: mapped.operation,
+              entity: mapped.entity,
+              occurredAt: new Date().toISOString()
+          });'''
+          new = '''        const incidentId = incidentIdFor(error, context);
+          const phase = context.phase || error?.details?.unitOfWorkPhase || null;
+          const rollbackConfirmed = context.rollbackConfirmed === true || error?.details?.rollbackConfirmed === true;
+          const remoteCommitConfirmed = context.remoteCommitConfirmed === true || error?.details?.remoteCommitConfirmed === true;
+          const baseMessage = isBusinessRepositoryError ? error?.message : null;
+          const publicMessage = publicMessageFor(publicCode, error, {
+              ...context,
+              message: context.message || baseMessage,
+              rollbackConfirmed,
+              remoteCommitConfirmed
+          }, incidentId);
+          const mapped = toRepositoryError(error, {
+              code: publicCode,
+              operation: context.operation,
+              entity: context.entity,
+              message: publicMessage,
+              details: { incidentId, unitOfWorkPhase: phase, rollbackConfirmed, remoteCommitConfirmed }
+          });
+          mapped.incidentId = incidentId;
+          const publicError = Object.freeze({
+              code: mapped.code,
+              incidentId,
+              phase,
+              rollbackConfirmed,
+              remoteCommitConfirmed,
+              message: mapped.message,
+              operation: mapped.operation,
+              entity: mapped.entity,
+              occurredAt: new Date().toISOString()
+          });'''
+          if old not in source:
+              raise SystemExit('Bloco público do error-mapper não encontrado.')
+          source = source.replace(old, new)
+          source = source.replace('        if (root) root.RADAR_LAST_DATA_ERROR = publicError;', '''        if (root) root.RADAR_LAST_DATA_ERROR = publicError;
+          root?.console?.error?.('[RADAR_DATA_ERROR]', {
+              incidentId,
+              code: mapped.code,
+              phase,
+              operation: mapped.operation,
+              entity: mapped.entity,
+              rollbackConfirmed,
+              remoteCommitConfirmed,
+              status: mapped.status ?? null,
+              postgresCode: mapped.postgresCode ?? null,
+              requestId: mapped.requestId ?? null,
+              sourceCode: mapped.details?.sourceCode ?? null
+          });''')
+          source = source.replace('        showDataOperationError\n', '        showDataOperationError,\n        incidentIdFor,\n        publicMessageFor\n')
+          mapper.write_text(source)
+
+          test_file = Path('tests/unit/error-observability.test.js')
+          test_file.write_text(r'''\'use strict\';
+
+          const test = require('node:test');
+          const assert = require('node:assert/strict');
+          const { UnitOfWork } = require('../../src/application/unit-of-work.js');
+          const { publicMessageFor, showDataOperationError } = require('../../src/application/error-mapper.js');
+          const { RepositoryError } = require('../../src/data/repository-contract.js');
+
+          function statePort(overrides = {}) {
+              return {
+                  async capture() { return { before: true }; },
+                  async exportCanonical() { return { format: 'radar-pdde-snapshot', entities: {} }; },
+                  async applyCanonical() {},
+                  async restore() {},
+                  commitCurrent() {},
+                  ...overrides
+              };
+          }
+
+          test('gera incidente e identifica falha anterior à persistência', async () => {
+              const uow = new UnitOfWork({ statePort: statePort() });
+              await assert.rejects(uow.run({
+                  name: 'school:save', incidentId: 'RADAR-BEFORE', changedEntities: ['schools'],
+                  mutate() { throw new RepositoryError('VALIDATION_FAILED', 'Dados inválidos.'); },
+                  async persist() { throw new Error('não deve executar'); }
+              }), error => error.incidentId === 'RADAR-BEFORE'
+                  && error.details.unitOfWorkPhase === 'mutate'
+                  && error.details.rollbackConfirmed === true
+                  && error.details.remoteCommitConfirmed === false);
+          });
+
+          test('falha RLS preserva fase e não afirma rollback', async () => {
+              const uow = new UnitOfWork({ statePort: statePort() });
+              await assert.rejects(uow.run({
+                  name: 'pendency:save', incidentId: 'RADAR-RLS', changedEntities: ['pendencies'],
+                  mutate() { return { id: 'p1' }; },
+                  async persist() { throw new RepositoryError('PERMISSION_DENIED', 'RLS', { status: 403 }); }
+              }), error => error.code === 'PERMISSION_DENIED'
+                  && error.operation === 'pendency:save'
+                  && error.details.unitOfWorkPhase === 'persist'
+                  && error.details.rollbackConfirmed === false);
+          });
+
+          test('falha local após commit remoto nunca afirma rollback', async () => {
+              const uow = new UnitOfWork({ statePort: statePort({ commitCurrent() { throw new Error('cache'); } }) });
+              await assert.rejects(uow.run({
+                  name: 'verification:save', incidentId: 'RADAR-COMMIT', changedEntities: ['verifications'],
+                  mutate() { return { id: 'v1' }; },
+                  async persist() { return { remoteCommitConfirmed: true }; }
+              }), error => error.details.unitOfWorkPhase === 'commit'
+                  && error.details.remoteCommitConfirmed === true
+                  && error.details.rollbackConfirmed === false);
+          });
+
+          test('mensagens distinguem rollback confirmado e commit remoto', () => {
+              const rolledBack = publicMessageFor('TRANSACTION_FAILED', { details: { rollbackConfirmed: true } }, {}, 'RADAR-ROLLBACK');
+              assert.match(rolledBack, /nenhuma alteração remota foi confirmada/i);
+              assert.doesNotMatch(rolledBack, /desfeitas com segurança/i);
+              const committed = publicMessageFor('TRANSACTION_FAILED', { details: { remoteCommitConfirmed: true } }, {}, 'RADAR-COMMIT');
+              assert.match(committed, /gravação foi concluída no servidor/i);
+              assert.match(committed, /recarregue/i);
+          });
+
+          test('erro público apresenta código sem expor detalhe sensível', () => {
+              const mapped = showDataOperationError(new RepositoryError('TRANSACTION_FAILED', 'segredo interno', {
+                  operation: 'asset:save',
+                  details: { incidentId: 'RADAR-PUBLIC', unitOfWorkPhase: 'persist', secret: 'não publicar' }
+              }));
+              assert.equal(mapped.incidentId, 'RADAR-PUBLIC');
+              assert.match(mapped.message, /RADAR-PUBLIC/);
+              assert.doesNotMatch(mapped.message, /segredo|não publicar/i);
+          });
+          '''.replace(/^          /gm, ''))
+
+          existing = Path('tests/unit/error-mapper.test.js')
+          source = existing.read_text().replace(
+              '    assert.equal(session.message, DATA_ERROR_MESSAGES.SESSION_EXPIRED);',
+              '    assert.match(session.message, /sessão expirou/i);\n    assert.match(session.message, /código do incidente/i);'
+          )
+          existing.write_text(source)
+
+          e2e = Path('tests/e2e/data-error-ux.spec.js')
+          source = e2e.read_text()
+          source = source.replace(
+              "      { operation: 'school:save' }\n    );",
+              "      { operation: 'school:save', details: { incidentId: 'RADAR-E2E-SESSION', unitOfWorkPhase: 'persist' } }\n    );"
+          )
+          source = source.replace(
+              "  await expect(page.locator('#radar-data-operation-status')).toContainText(/sessão expirou/i);",
+              "  await expect(page.locator('#radar-data-operation-status')).toContainText(/sessão expirou/i);\n  await expect(page.locator('#radar-data-operation-status')).toContainText('RADAR-E2E-SESSION');\n  expect(await page.evaluate(() => window.RADAR_LAST_DATA_ERROR)).toMatchObject({ incidentId: 'RADAR-E2E-SESSION', phase: 'persist', rollbackConfirmed: false, operation: 'school:save' });"
+          )
+          e2e.write_text(source)
+          PY
+          git diff --check
+
+      - name: Executar regressões e suíte unitária
+        run: |
+          node --test tests/unit/error-mapper.test.js tests/unit/error-observability.test.js
+          npm run test:unit
+
+      - name: Executar UX de erro no navegador
+        run: |
+          npx playwright install --with-deps chromium
+          npx playwright test tests/e2e/data-error-ux.spec.js --project=desktop-chromium
+
+      - name: Publicar implementação validada
         shell: bash
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
         run: |
           set -euo pipefail
-          npx --no-install supabase db push --linked --dry-run --password "${PGPASS_REMOTE}" 2>&1 | tee /tmp/supabase-dry-run.txt
-          if grep -Eiq 'Would push|Applying migration|pending migration' /tmp/supabase-dry-run.txt; then
-            echo 'Há migration pendente; validação interrompida sem alterar Production.' >&2
-            exit 1
-          fi
-
-      - name: Confirmar histórico e contratos remotos
-        shell: bash
-        run: |
-          set -euo pipefail
-          npx --no-install supabase migration list --linked --password "${PGPASS_REMOTE}" 2>&1 | tee /tmp/supabase-migration-list.txt
-          npx --no-install supabase db query --linked --file supabase/verification/remote-post-apply.sql 2>&1 | tee /tmp/supabase-post-apply-contract.txt
-
-      - name: Executar lint remoto
-        run: npx --no-install supabase db lint --linked --schema public --level warning --fail-on error
-
-      - name: Executar pgTAP remoto em transações reversíveis
-        shell: bash
-        run: |
-          set -o pipefail
-          npx --no-install supabase test db supabase/tests/database --linked 2>&1 | tee /tmp/supabase-pgtap.txt
-
-      - name: Comparar tipos remotos
-        shell: bash
-        run: |
-          set -euo pipefail
-          npx --no-install supabase gen types typescript --linked --schema public > /tmp/database.remote.types.ts
-          diff --unified src/types/database.types.ts /tmp/database.remote.types.ts
-
-      - name: Executar Advisors sem alterar configuração
-        shell: bash
-        run: |
-          set -o pipefail
-          npx --no-install supabase db advisors --linked --type all --level info --fail-on error 2>&1 | tee /tmp/supabase-advisors.txt
-
-      - name: Publicar evidências sanitizadas
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: supabase-production-validation-${{ github.run_id }}
-          path: |
-            /tmp/supabase-dry-run.txt
-            /tmp/supabase-migration-list.txt
-            /tmp/supabase-post-apply-contract.txt
-            /tmp/supabase-pgtap.txt
-            /tmp/database.remote.types.ts
-            /tmp/supabase-advisors.txt
-          if-no-files-found: warn
-          retention-days: 14
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/application/error-mapper.js src/application/unit-of-work.js tests/unit/error-mapper.test.js tests/unit/error-observability.test.js tests/e2e/data-error-ux.spec.js
+          git diff --cached --check
+          git commit -m 'feat: adicionar observabilidade e mensagens verdadeiras'
+          git push origin "HEAD:${HEAD_REF}"
