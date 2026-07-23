@@ -1,4 +1,4 @@
-name: Diagnosticar validação remota pós-migration
+name: Alinhar gates à migration pgTAP
 
 on:
   pull_request:
@@ -6,22 +6,133 @@ on:
       - '.github/workflows/export-remediation-source.yml'
 
 permissions:
-  contents: read
-
-env:
-  SUPABASE_TELEMETRY_DISABLED: '1'
-  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-  PGPASS_REMOTE: ${{ secrets.SUPABASE_DB_PASSWORD }}
-  PROJECT_REF: scnryinorqeucbfkioxo
+  contents: write
 
 jobs:
-  validate-production:
+  align-pgtap-migration:
     if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 25
     steps:
-      - name: Checkout
+      - name: Checkout do branch
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+
+      - name: Atualizar contratos, testes, workflows e documentação
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('node:fs');
+
+          function replaceOnce(file, from, to) {
+            const original = fs.readFileSync(file, 'utf8');
+            if (!original.includes(from)) {
+              throw new Error(`Trecho esperado não encontrado em ${file}: ${from}`);
+            }
+            const updated = original.replace(from, to);
+            fs.writeFileSync(file, updated);
+          }
+
+          replaceOnce(
+            'scripts/check-supabase-readiness.js',
+            "    '202607220002_atomic_operational_commands.sql'\n]);",
+            "    '202607220002_atomic_operational_commands.sql',\n    '202607230001_enable_pgtap_remote_validation.sql'\n]);"
+          );
+          replaceOnce(
+            'scripts/check-supabase-readiness.js',
+            'APLICAR_22_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL',
+            'APLICAR_23_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL'
+          );
+          replaceOnce(
+            'scripts/check-supabase-readiness.js',
+            'das 22 migrations no alvo descartável',
+            'das 23 migrations no alvo descartável'
+          );
+
+          replaceOnce(
+            'scripts/check-supabase-final-alignment.js',
+            "    'supabase/migrations/202607220002_atomic_operational_commands.sql',\n",
+            "    'supabase/migrations/202607220002_atomic_operational_commands.sql',\n    'supabase/migrations/202607230001_enable_pgtap_remote_validation.sql',\n"
+          );
+          replaceOnce(
+            'scripts/check-supabase-final-alignment.js',
+            'if (migrationCount !== 22)',
+            'if (migrationCount !== 23)'
+          );
+          replaceOnce(
+            'scripts/check-supabase-final-alignment.js',
+            'Conjunto final deve conter 22 migrations',
+            'Conjunto final deve conter 23 migrations'
+          );
+
+          replaceOnce(
+            'docs/runbooks/SUPABASE_CONNECTION.md',
+            'O conjunto versionado contém atualmente **22** migrations.',
+            'O conjunto versionado contém atualmente **23** migrations.'
+          );
+          replaceOnce(
+            'docs/runbooks/SUPABASE_CONNECTION.md',
+            'reconhece exatamente as 22 migrations versionadas',
+            'reconhece exatamente as 23 migrations versionadas'
+          );
+          replaceOnce(
+            'docs/runbooks/SUPABASE_CONNECTION.md',
+            '- `202607220002_atomic_operational_commands.sql` — contatos, pendências, bens, programas, calendário e redistribuição com comandos atômicos.',
+            '- `202607220002_atomic_operational_commands.sql` — contatos, pendências, bens, programas, calendário e redistribuição com comandos atômicos;\n- `202607230001_enable_pgtap_remote_validation.sql` — instala pgTAP no schema `extensions` para homologação transacional remota.'
+          );
+
+          replaceOnce(
+            'supabase/tests/database/schema.test.sql',
+            '(select count(*) = 22 from supabase_migrations.schema_migrations)',
+            '(select count(*) = 23 from supabase_migrations.schema_migrations)'
+          );
+          replaceOnce(
+            'supabase/tests/database/schema.test.sql',
+            'vinte e duas migrations foram registradas',
+            'vinte e três migrations foram registradas'
+          );
+
+          replaceOnce(
+            'supabase/verification/remote-post-apply.sql',
+            "        '202607220001',\n        '202607220002'",
+            "        '202607220001',\n        '202607220002',\n        '202607230001'"
+          );
+          replaceOnce(
+            'supabase/verification/remote-post-apply.sql',
+            "from (values ('pgcrypto'), ('pg_jsonschema')) as required(name)",
+            "from (values ('pgcrypto'), ('pg_jsonschema'), ('pgtap')) as required(name)"
+          );
+
+          replaceOnce(
+            '.github/workflows/supabase-remote-post-apply.yml',
+            'APLICAR_22_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL',
+            'APLICAR_23_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL'
+          );
+          replaceOnce(
+            '.github/workflows/supabase-readiness.yml',
+            'Recriar banco com vinte e duas migrations e seed local',
+            'Recriar banco com vinte e três migrations e seed local'
+          );
+
+          replaceOnce(
+            'docs/CURRENT_STAGE.md',
+            '**22 migrations SQL versionadas na branch de remediação; 20 permanecem aplicadas em Production até a homologação**',
+            '**23 migrations SQL versionadas; 22 migrations operacionais aplicadas em Production e a migration pgTAP preparada para homologação remota**'
+          );
+          replaceOnce(
+            'docs/reference/SUPABASE_FUNCTIONAL_COVERAGE.md',
+            'O conjunto contém **22 migrations**',
+            'O conjunto contém **23 migrations**'
+          );
+          replaceOnce(
+            'docs/reference/SUPABASE_FUNCTIONAL_COVERAGE.md',
+            'As migrations 21 e 22 substituem gravações compostas por comandos atômicos com log obrigatório.',
+            'As migrations 21 e 22 substituem gravações compostas por comandos atômicos com log obrigatório. A migration 23 instala pgTAP no schema de extensões para validar o banco remoto em transações reversíveis.'
+          );
+          NODE
 
       - name: Configurar Node.js 24
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
@@ -33,48 +144,28 @@ jobs:
       - name: Instalar dependências
         run: npm ci
 
-      - name: Vincular produção e confirmar contrato
+      - name: Regenerar inventário e validar alinhamento
         shell: bash
         run: |
           set -euo pipefail
-          npx --no-install supabase link --project-ref "${PROJECT_REF}" --password "${PGPASS_REMOTE}"
-          npx --no-install supabase db query --linked --file supabase/verification/remote-post-apply.sql > remote-post-apply.log 2>&1
-          cat remote-post-apply.log
+          npm run audit:inventory
+          npm run check
+          npm run test:unit
+          npm run test:integration
+          npm run check:supabase
+          npm run check:supabase-final
+          npm run audit:functional
+          git diff --check
 
-      - name: Executar lint remoto com log integral
-        id: lint
+      - name: Publicar arquivos não-workflow
         shell: bash
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
         run: |
-          set +e
-          npx --no-install supabase db lint --linked --schema public --level warning --fail-on error > remote-lint.log 2>&1
-          status=$?
-          cat remote-lint.log
-          echo "status=${status}" >> "$GITHUB_OUTPUT"
-          exit 0
-
-      - name: Executar pgTAP remoto reversível com log integral
-        id: pgtap
-        shell: bash
-        run: |
-          set +e
-          npx --no-install supabase test db supabase/tests/database --linked > remote-pgtap.log 2>&1
-          status=$?
-          cat remote-pgtap.log
-          echo "status=${status}" >> "$GITHUB_OUTPUT"
-          exit 0
-
-      - name: Publicar diagnósticos
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: supabase-production-validation-${{ github.run_id }}
-          path: |
-            remote-post-apply.log
-            remote-lint.log
-            remote-pgtap.log
-          if-no-files-found: error
-          retention-days: 14
-
-      - name: Reprovar após preservar diagnósticos
-        if: steps.lint.outputs.status != '0' || steps.pgtap.outputs.status != '0'
-        run: exit 1
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A -- ':!.github/workflows/**'
+          git diff --cached --check
+          git commit -m 'chore: alinhar contratos à migration pgTAP'
+          git push origin "HEAD:${HEAD_REF}"
