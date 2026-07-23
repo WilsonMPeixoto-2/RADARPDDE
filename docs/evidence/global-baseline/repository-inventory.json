@@ -110,25 +110,25 @@
     ]
   },
   "supabase": {
-    "migrationCount": 23
+    "migrationCount": 24
   },
   "summaries": {
     "application": 13,
     "audit-tests": 2,
     "configuration": 3,
     "data": 9,
-    "database-tests": 11,
+    "database-tests": 12,
     "documentation": 98,
     "domain": 11,
     "e2e-tests": 27,
     "frontend-core": 3,
     "integration": 19,
     "integration-tests": 2,
-    "migrations": 23,
+    "migrations": 24,
     "other": 54,
     "scripts": 25,
     "styles": 11,
-    "unit-tests": 68,
+    "unit-tests": 69,
     "workflows": 12
   },
   "files": [
@@ -164,8 +164,8 @@
     {
       "path": ".github/workflows/export-remediation-source.yml",
       "category": "workflows",
-      "bytes": 7635,
-      "lines": 107
+      "bytes": 1487,
+      "lines": 49
     },
     {
       "path": ".github/workflows/homologacao-deployment-perfis.yml",
@@ -200,8 +200,8 @@
     {
       "path": ".github/workflows/supabase-readiness.yml",
       "category": "workflows",
-      "bytes": 9931,
-      "lines": 298
+      "bytes": 10332,
+      "lines": 306
     },
     {
       "path": ".github/workflows/supabase-remote-post-apply.yml",
@@ -377,7 +377,7 @@
     {
       "path": "docs/CURRENT_STAGE.md",
       "category": "documentation",
-      "bytes": 5579,
+      "bytes": 5590,
       "lines": 156
     },
     {
@@ -521,8 +521,8 @@
     {
       "path": "docs/evidence/global-baseline/repository-inventory.json",
       "category": "documentation",
-      "bytes": 65096,
-      "lines": 2437
+      "bytes": 65566,
+      "lines": 2455
     },
     {
       "path": "docs/evidence/shared-interactions/approved-reference.png",
@@ -619,7 +619,7 @@
     {
       "path": "docs/reference/SUPABASE_FUNCTIONAL_COVERAGE.md",
       "category": "documentation",
-      "bytes": 4401,
+      "bytes": 4602,
       "lines": 93
     },
     {
@@ -991,8 +991,8 @@
     {
       "path": "scripts/check-team-account-function.mjs",
       "category": "scripts",
-      "bytes": 2155,
-      "lines": 59
+      "bytes": 2240,
+      "lines": 61
     },
     {
       "path": "scripts/export-local-snapshot.mjs",
@@ -1057,8 +1057,8 @@
     {
       "path": "src/application/data-service.js",
       "category": "application",
-      "bytes": 21502,
-      "lines": 516
+      "bytes": 21600,
+      "lines": 518
     },
     {
       "path": "src/application/directory-service.js",
@@ -1069,8 +1069,8 @@
     {
       "path": "src/application/error-mapper.js",
       "category": "application",
-      "bytes": 9913,
-      "lines": 217
+      "bytes": 13325,
+      "lines": 283
     },
     {
       "path": "src/application/inventory-service.js",
@@ -1111,8 +1111,8 @@
     {
       "path": "src/application/unit-of-work.js",
       "category": "application",
-      "bytes": 5013,
-      "lines": 125
+      "bytes": 8740,
+      "lines": 200
     },
     {
       "path": "src/application/verification-service.js",
@@ -1523,8 +1523,8 @@
     {
       "path": "supabase/functions/team-account-management/index.ts",
       "category": "other",
-      "bytes": 9991,
-      "lines": 263
+      "bytes": 10539,
+      "lines": 278
     },
     {
       "path": "supabase/migrations/202607130001_core_schema.sql",
@@ -1665,6 +1665,12 @@
       "lines": 10
     },
     {
+      "path": "supabase/migrations/20260723043129_security_and_rls_hardening.sql",
+      "category": "migrations",
+      "bytes": 13119,
+      "lines": 372
+    },
+    {
       "path": "supabase/seed.sql",
       "category": "other",
       "bytes": 1994,
@@ -1679,56 +1685,62 @@
     {
       "path": "supabase/tests/database/inventory-capital-rls.test.sql",
       "category": "database-tests",
-      "bytes": 4116,
-      "lines": 144
+      "bytes": 4141,
+      "lines": 145
     },
     {
       "path": "supabase/tests/database/invoice-rpc.test.sql",
       "category": "database-tests",
-      "bytes": 6946,
-      "lines": 181
+      "bytes": 6971,
+      "lines": 182
     },
     {
       "path": "supabase/tests/database/json-contracts.test.sql",
       "category": "database-tests",
-      "bytes": 2421,
-      "lines": 38
+      "bytes": 2446,
+      "lines": 39
     },
     {
       "path": "supabase/tests/database/operational-command-rpc.test.sql",
       "category": "database-tests",
-      "bytes": 14483,
-      "lines": 200
+      "bytes": 14508,
+      "lines": 201
     },
     {
       "path": "supabase/tests/database/operations-rpc.test.sql",
       "category": "database-tests",
-      "bytes": 4511,
-      "lines": 66
+      "bytes": 4536,
+      "lines": 67
     },
     {
       "path": "supabase/tests/database/rls.test.sql",
       "category": "database-tests",
-      "bytes": 6251,
-      "lines": 174
+      "bytes": 6282,
+      "lines": 175
     },
     {
       "path": "supabase/tests/database/schema.test.sql",
       "category": "database-tests",
-      "bytes": 2875,
-      "lines": 55
+      "bytes": 2901,
+      "lines": 56
+    },
+    {
+      "path": "supabase/tests/database/security-hardening.test.sql",
+      "category": "database-tests",
+      "bytes": 4185,
+      "lines": 102
     },
     {
       "path": "supabase/tests/database/team-management-rpc.test.sql",
       "category": "database-tests",
-      "bytes": 7028,
-      "lines": 170
+      "bytes": 7105,
+      "lines": 171
     },
     {
       "path": "supabase/tests/database/verification-rpc.test.sql",
       "category": "database-tests",
-      "bytes": 6278,
-      "lines": 193
+      "bytes": 6316,
+      "lines": 194
     },
     {
       "path": "supabase/tests/smoke.sql",
@@ -1739,8 +1751,8 @@
     {
       "path": "supabase/verification/remote-post-apply.sql",
       "category": "other",
-      "bytes": 4258,
-      "lines": 114
+      "bytes": 5251,
+      "lines": 130
     },
     {
       "path": "supabase/verification/remote-preflight.sql",
@@ -1793,8 +1805,8 @@
     {
       "path": "tests/e2e/data-error-ux.spec.js",
       "category": "e2e-tests",
-      "bytes": 1532,
-      "lines": 40
+      "bytes": 1988,
+      "lines": 48
     },
     {
       "path": "tests/e2e/excel-export-button.spec.js",
@@ -2111,8 +2123,14 @@
     {
       "path": "tests/unit/error-mapper.test.js",
       "category": "unit-tests",
-      "bytes": 2712,
-      "lines": 68
+      "bytes": 2755,
+      "lines": 69
+    },
+    {
+      "path": "tests/unit/error-observability.test.js",
+      "category": "unit-tests",
+      "bytes": 6050,
+      "lines": 168
     },
     {
       "path": "tests/unit/frontend-precedence-audit.test.js",
@@ -2219,8 +2237,8 @@
     {
       "path": "tests/unit/readiness-check.test.js",
       "category": "unit-tests",
-      "bytes": 11943,
-      "lines": 257
+      "bytes": 11996,
+      "lines": 258
     },
     {
       "path": "tests/unit/remote-admin-bootstrap.test.js",
@@ -2381,8 +2399,8 @@
     {
       "path": "tests/unit/team-account-edge-contract.test.js",
       "category": "unit-tests",
-      "bytes": 1846,
-      "lines": 44
+      "bytes": 2412,
+      "lines": 58
     },
     {
       "path": "tests/unit/team-account-gateway.test.js",

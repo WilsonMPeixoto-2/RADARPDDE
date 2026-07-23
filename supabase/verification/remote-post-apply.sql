@@ -24,7 +24,8 @@ declare
         '20260721160056',
         '202607220001',
         '202607220002',
-        '202607230001'
+        '202607230001',
+        '20260723043129'
     ];
     v_actual text[];
     v_missing_extensions text[];
@@ -70,6 +71,21 @@ begin
         raise exception 'TEAM_ACCOUNT_RPC_EXPOSED_TO_AUTHENTICATED';
     end if;
 
+
+    if (select prosecdef from pg_proc where oid = 'public.current_app_role()'::regprocedure)
+       or (select prosecdef from pg_proc where oid = 'public.can_access_school(text)'::regprocedure)
+       or (select prosecdef from pg_proc where oid = 'public.can_write_school(text)'::regprocedure)
+       or (select prosecdef from pg_proc where oid = 'public.delete_invoice_with_effects(text,integer,boolean,integer,jsonb,integer,jsonb)'::regprocedure) then
+        raise exception 'PUBLIC_SECURITY_DEFINER_STILL_EXPOSED';
+    end if;
+
+    if to_regprocedure('radar_private.current_app_role()') is null
+       or to_regprocedure('radar_private.can_access_school(text)') is null
+       or to_regprocedure('radar_private.can_write_school(text)') is null
+       or to_regprocedure('radar_private.delete_invoice_with_effects_impl(text,integer,boolean,integer,jsonb,integer,jsonb)') is null then
+        raise exception 'PRIVATE_SECURITY_HELPER_MISSING';
+    end if;
+
     if to_regprocedure('public.inventory_can_access_cre_school(text)') is not null then
         raise exception 'INVENTORY_TRANSIENT_HELPER_STILL_EXPOSED';
     end if;
@@ -96,7 +112,7 @@ begin
         raise exception 'INVENTORY_ASSET_UPDATE_SCOPE_MISSING';
     end if;
 
-    select pg_get_functiondef('public.can_access_school(text)'::regprocedure)
+    select pg_get_functiondef('radar_private.can_access_school(text)'::regprocedure)
       into v_access_definition;
 
     if v_access_definition not ilike '%profile_id = ''inventory''%'

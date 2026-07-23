@@ -7,7 +7,7 @@ O RADAR PDDE possui contrato único de persistência e dois adaptadores:
 - `LocalStorageRepository` — backend vigente em Production;
 - `SupabaseRepository` — backend conectado ao Preview e preparado para futura ativação controlada.
 
-A conexão de Preview permanece separada de Production. O conjunto contém **23 migrations** e uma Edge Function protegida para o ciclo de contas da equipe.
+A conexão de Preview permanece separada de Production. O conjunto contém **24 migrations** e uma Edge Function protegida para o ciclo de contas da equipe.
 
 ## Matriz de cobertura
 
@@ -60,7 +60,7 @@ O contrato permite:
 - bloqueio dos módulos não patrimoniais;
 - bloqueio de escolas e bens de outra CRE.
 
-As migrations 17 e 18 registram etapas intermediárias do ajuste remoto. A migration 19 consolida as políticas patrimoniais e remove a função auxiliar transitória. A migration 20 corrige o predicado genérico legado para exigir correspondência entre a CRE da escola com bem e a `cre_scope` do integrante. As migrations 21 e 22 substituem gravações compostas por comandos atômicos com log obrigatório. A migration 23 instala pgTAP no schema de extensões para validar o banco remoto em transações reversíveis.
+As migrations 17 e 18 registram etapas intermediárias do ajuste remoto. A migration 19 consolida as políticas patrimoniais e remove a função auxiliar transitória. A migration 20 corrige o predicado genérico legado para exigir correspondência entre a CRE da escola com bem e a `cre_scope` do integrante. As migrations 21 e 22 substituem gravações compostas por comandos atômicos com log obrigatório. A migration 23 instala pgTAP no schema de extensões para validar o banco remoto em transações reversíveis. A migration 24 desloca funções privilegiadas para schema interno, preserva wrappers públicos SECURITY INVOKER, otimiza as policies sinalizadas pelos Advisors e endurece o CORS da Gestão de Equipe.
 
 ## Gestão de Equipe
 

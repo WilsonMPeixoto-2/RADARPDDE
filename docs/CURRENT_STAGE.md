@@ -25,7 +25,7 @@ O RADAR PDDE possui:
 - `SupabaseRepository` como backend de Preview e Production;
 - `LocalStorageRepository` preservado somente para rollback emergencial;
 - concorrência otimista por `row_version`;
-- **23 migrations SQL versionadas; 22 migrations operacionais aplicadas em Production e a migration pgTAP preparada para homologação remota**;
+- **24 migrations SQL versionadas; 23 já aplicadas em Production e a migration de hardening de segurança aguardando homologação antes da aplicação**;
 - acesso colaborativo dos Controladores da mesma CRE;
 - escopo específico de Capital e Inventário para a própria CRE;
 - RLS, auditoria, importação, reconciliação e rollback;

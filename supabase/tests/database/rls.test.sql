@@ -69,8 +69,8 @@ select is(
 );
 select is(
     (select prosecdef from pg_proc where oid = 'public.delete_invoice_with_effects(text,integer,boolean,integer,jsonb,integer,jsonb)'::regprocedure),
-    true,
-    'RPC de remoção é SECURITY DEFINER com autorização interna e escopo fixo'
+    false,
+    'RPC pública de remoção é SECURITY INVOKER e delega à implementação interna'
 );
 select ok(
     has_schema_privilege('authenticated', 'public', 'USAGE'),

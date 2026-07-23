@@ -4,7 +4,7 @@
 
 O projeto remoto autorizado é `scnryinorqeucbfkioxo`. O schema, a carga estrutural e os vínculos funcionais de Auth estão concluídos.
 
-O conjunto versionado contém atualmente **23** migrations.
+O conjunto versionado contém atualmente **24** migrations.
 
 A carga estrutural contém:
 
@@ -38,7 +38,7 @@ supabase db push --linked --dry-run
 supabase db push --linked
 ```
 
-O contrato pós-aplicação em `supabase/verification/remote-post-apply.sql` reconhece exatamente as 23 migrations versionadas.
+O contrato pós-aplicação em `supabase/verification/remote-post-apply.sql` reconhece exatamente as 24 migrations versionadas.
 
 As migrations patrimoniais são:
 
@@ -160,3 +160,15 @@ Os fluxos autenticados são exercitados pelos usuários reais e permanecem cober
 - o backup pré-ativação deve ser mantido;
 - MFA deve ser priorizado para perfis privilegiados;
 - CI deve permanecer verde no mesmo commit implantado.
+
+
+## Hardening obrigatório de Auth e Edge Function
+
+Antes da implantação da Edge Function em Preview ou Production:
+
+1. definir `RADAR_ALLOWED_ORIGIN` com a origem exata do deployment Vercel;
+2. rejeitar qualquer origem diferente e nunca usar `*` como fallback;
+3. executar os Advisors de segurança após migrations e deploy da função;
+4. confirmar no painel do Supabase Auth que **Leaked Password Protection** está ativada.
+
+A proteção de senhas vazadas é configuração operacional do Auth e não é simulada por migration SQL. A implantação não deve ser encerrada sem evidência dessa ativação no projeto remoto.
