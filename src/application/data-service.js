@@ -421,6 +421,7 @@
                     ...command,
                     changedEntities,
                     deferLocalCommit: remote,
+                    remotePersistence: remote,
                     persist: async context => {
                         if (typeof command.persist !== 'function') {
                             return defaultPersist(context);
@@ -468,6 +469,7 @@
 
                 return {
                     ok: true,
+                    incidentId: result.incidentId,
                     value: cloneValue(result.value),
                     snapshot: cloneValue(committedSnapshot),
                     persisted: cloneValue(result.persisted),

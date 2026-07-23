@@ -17,7 +17,7 @@ test('erro funcional preserva modal, formulário e foco com anúncio acessível'
     const error = new window.RadarRepositoryContract.RepositoryError(
       'SESSION_EXPIRED',
       'Sessão expirada durante o salvamento.',
-      { operation: 'school:save' }
+      { operation: 'school:save', details: { incidentId: 'RADAR-E2E-SESSION', unitOfWorkPhase: 'persist' } }
     );
     window.RadarErrorMapper.showDataOperationError(error, {
       form: '#form-escola-edit',
@@ -28,6 +28,14 @@ test('erro funcional preserva modal, formulário e foco com anúncio acessível'
   await expect(page.locator('#modal-escola-edit')).toHaveClass(/show/);
   await expect(form).toHaveAttribute('data-data-error', 'SESSION_EXPIRED');
   await expect(page.locator('#radar-data-operation-status')).toContainText(/sessão expirou/i);
+  await expect(page.locator('#radar-data-operation-status')).toContainText('RADAR-E2E-SESSION');
+  await expect(form).toHaveAttribute('data-incident-id', 'RADAR-E2E-SESSION');
+  expect(await page.evaluate(() => window.RADAR_LAST_DATA_ERROR)).toMatchObject({
+    incidentId: 'RADAR-E2E-SESSION',
+    phase: 'persist',
+    rollbackConfirmed: false,
+    operation: 'school:save'
+  });
   await expect(email).toBeFocused();
   await expect(page.locator('#modal-escola-edit')).toHaveCSS('opacity', '1');
 

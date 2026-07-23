@@ -56,7 +56,8 @@
             unitOfWorkPhase: metadata.phase,
             rollbackConfirmed: metadata.rollbackConfirmed === true,
             localRestoreConfirmed: metadata.localRestoreConfirmed === true,
-            remoteCommitConfirmed: metadata.remoteCommitConfirmed === true
+            remoteCommitConfirmed: metadata.remoteCommitConfirmed === true,
+            remoteWriteStarted: metadata.remoteWriteStarted === true
         };
         target.incidentId = metadata.incidentId;
         target.operation = target.operation || metadata.operation;
@@ -91,11 +92,14 @@
             changedEntities.forEach(assertKnownEntity);
             const operation = String(command.name || 'data-command');
             const incidentId = createIncidentId(command);
-            const capture = await this.statePort.capture();
-            let phase = 'mutate';
+            let phase = 'capture';
+            let capture = null;
+            let remoteWriteStarted = false;
             let remoteCommitConfirmed = false;
 
             try {
+                capture = await this.statePort.capture();
+                phase = 'mutate';
                 const value = await command.mutate();
                 phase = 'export';
                 const snapshot = await this.statePort.exportCanonical({
@@ -104,6 +108,7 @@
                     exportedAt: command.exportedAt || new Date().toISOString()
                 });
                 phase = 'persist';
+                remoteWriteStarted = command.remotePersistence === true;
                 const persisted = await command.persist({
                     name: operation,
                     incidentId,
@@ -111,7 +116,8 @@
                     value: cloneValue(value),
                     snapshot: cloneValue(snapshot)
                 });
-                remoteCommitConfirmed = persisted?.remoteCommitConfirmed !== false;
+                remoteCommitConfirmed = command.remotePersistence === true
+                    || persisted?.remoteCommitConfirmed === true;
                 phase = 'commit';
                 if (command.deferLocalCommit !== true) {
                     try {
@@ -124,7 +130,7 @@
                         if (!isRecoverableLocalCacheError(commitError)) {
                             throw new RepositoryError(
                                 'TRANSACTION_FAILED',
-                                'A gravação remota foi concluída, mas a atualização local falhou.',
+                                'A persistência foi concluída, mas a atualização do estado local falhou.',
                                 {
                                     operation,
                                     cause: commitError,
@@ -132,7 +138,8 @@
                                         incidentId,
                                         unitOfWorkPhase: 'commit',
                                         rollbackConfirmed: false,
-                                        remoteCommitConfirmed: true
+                                        remoteCommitConfirmed,
+                                        remoteWriteStarted
                                     }
                                 }
                             );
@@ -143,42 +150,46 @@
                     incidentId,
                     value: cloneValue(value),
                     snapshot: cloneValue(snapshot),
-                    persisted: cloneValue(persisted)
+                    persisted: cloneValue(persisted),
+                    remoteCommitConfirmed
                 };
             } catch (error) {
                 let localRestoreConfirmed = false;
-                try {
-                    await this.statePort.restore(capture);
-                    localRestoreConfirmed = true;
-                } catch (rollbackError) {
-                    throw new RepositoryError(
-                        'TRANSACTION_FAILED',
-                        'A operação falhou e o estado local não pôde ser restaurado.',
-                        {
-                            operation,
-                            cause: error,
-                            details: {
-                                incidentId,
-                                unitOfWorkPhase: phase,
-                                rollbackConfirmed: false,
-                                localRestoreConfirmed: false,
-                                remoteCommitConfirmed,
-                                rollbackCode: rollbackError?.code || null
+                if (capture !== null && phase !== 'capture') {
+                    try {
+                        await this.statePort.restore(capture);
+                        localRestoreConfirmed = true;
+                    } catch (rollbackError) {
+                        throw new RepositoryError(
+                            'TRANSACTION_FAILED',
+                            'A operação falhou e o estado local não pôde ser restaurado.',
+                            {
+                                operation,
+                                cause: error,
+                                details: {
+                                    incidentId,
+                                    unitOfWorkPhase: phase,
+                                    rollbackConfirmed: false,
+                                    localRestoreConfirmed: false,
+                                    remoteCommitConfirmed,
+                                    remoteWriteStarted,
+                                    rollbackCode: rollbackError?.code || null
+                                }
                             }
-                        }
-                    );
+                        );
+                    }
                 }
 
-                const rollbackConfirmed = phase === 'mutate' || phase === 'export'
-                    ? true
-                    : error?.details?.rollbackConfirmed === true;
+                const rollbackConfirmed = error?.details?.rollbackConfirmed === true
+                    || (!remoteWriteStarted && ['capture', 'mutate', 'export'].includes(phase));
                 throw annotateFailure(error, {
                     incidentId,
                     operation,
                     phase,
                     rollbackConfirmed,
                     localRestoreConfirmed,
-                    remoteCommitConfirmed: remoteCommitConfirmed || error?.details?.remoteCommitConfirmed === true
+                    remoteCommitConfirmed: remoteCommitConfirmed || error?.details?.remoteCommitConfirmed === true,
+                    remoteWriteStarted
                 });
             }
         }
