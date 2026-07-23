@@ -1,4 +1,4 @@
-name: Aplicar migrations validadas no Supabase de produção
+name: Diagnosticar validação remota pós-migration
 
 on:
   pull_request:
@@ -8,10 +8,6 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: supabase-production-remediation
-  cancel-in-progress: false
-
 env:
   SUPABASE_TELEMETRY_DISABLED: '1'
   SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
@@ -19,16 +15,13 @@ env:
   PROJECT_REF: scnryinorqeucbfkioxo
 
 jobs:
-  apply-production-migrations:
+  validate-production:
     if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 35
     steps:
-      - name: Checkout do branch validado
+      - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
-          fetch-depth: 0
 
       - name: Configurar Node.js 24
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
@@ -37,75 +30,51 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: Instalar dependências reproduzíveis
+      - name: Instalar dependências
         run: npm ci
 
-      - name: Validar alvo e segredos
+      - name: Vincular produção e confirmar contrato
         shell: bash
         run: |
           set -euo pipefail
-          test "${PROJECT_REF}" = 'scnryinorqeucbfkioxo'
-          test -n "${SUPABASE_ACCESS_TOKEN:-}"
-          test -n "${PGPASS_REMOTE:-}"
-          test -f supabase/migrations/202607220001_atomic_verification_operations.sql
-          test -f supabase/migrations/202607220002_atomic_operational_commands.sql
-          sha256sum supabase/migrations/202607220001_atomic_verification_operations.sql \
-                    supabase/migrations/202607220002_atomic_operational_commands.sql
+          npx --no-install supabase link --project-ref "${PROJECT_REF}" --password "${PGPASS_REMOTE}"
+          npx --no-install supabase db query --linked --file supabase/verification/remote-post-apply.sql > remote-post-apply.log 2>&1
+          cat remote-post-apply.log
 
-      - name: Vincular produção
-        run: npx --no-install supabase link --project-ref "${PROJECT_REF}" --password "${PGPASS_REMOTE}"
-
-      - name: Confirmar dry-run restrito às duas migrations aprovadas
+      - name: Executar lint remoto com log integral
+        id: lint
         shell: bash
         run: |
-          set -euo pipefail
-          npx --no-install supabase db push --linked --dry-run --password "${PGPASS_REMOTE}" 2>&1 | tee /tmp/production-dry-run.log
-          grep -q '202607220001_atomic_verification_operations.sql' /tmp/production-dry-run.log
-          grep -q '202607220002_atomic_operational_commands.sql' /tmp/production-dry-run.log
-          if grep -E 'Applying migration [^ ]+' /tmp/production-dry-run.log \
-             | grep -Ev '202607220001_atomic_verification_operations.sql|202607220002_atomic_operational_commands.sql'; then
-            echo 'Dry-run incluiu migration não autorizada.' >&2
-            exit 1
-          fi
+          set +e
+          npx --no-install supabase db lint --linked --schema public --level warning --fail-on error > remote-lint.log 2>&1
+          status=$?
+          cat remote-lint.log
+          echo "status=${status}" >> "$GITHUB_OUTPUT"
+          exit 0
 
-      - name: Aplicar migrations versionadas
+      - name: Executar pgTAP remoto reversível com log integral
+        id: pgtap
         shell: bash
         run: |
-          set -euo pipefail
-          npx --no-install supabase db push --linked --password "${PGPASS_REMOTE}" --yes 2>&1 | tee /tmp/production-apply.log
+          set +e
+          npx --no-install supabase test db supabase/tests/database --linked > remote-pgtap.log 2>&1
+          status=$?
+          cat remote-pgtap.log
+          echo "status=${status}" >> "$GITHUB_OUTPUT"
+          exit 0
 
-      - name: Confirmar histórico e capacidades remotas
-        shell: bash
-        run: |
-          set -euo pipefail
-          npx --no-install supabase migration list --linked --password "${PGPASS_REMOTE}" 2>&1 | tee /tmp/production-migrations.log
-          grep -q '202607220001' /tmp/production-migrations.log
-          grep -q '202607220002' /tmp/production-migrations.log
-          npx --no-install supabase db query --linked --file supabase/verification/remote-post-apply.sql 2>&1 | tee /tmp/production-post-apply.log
-
-      - name: Executar lint e pgTAP remoto reversível
-        shell: bash
-        run: |
-          set -euo pipefail
-          npx --no-install supabase db lint --linked --schema public --level warning --fail-on error
-          npx --no-install supabase test db supabase/tests/database --linked
-
-      - name: Executar Advisors
-        shell: bash
-        run: |
-          set -euo pipefail
-          npx --no-install supabase db advisors --linked --type all --level info --fail-on error 2>&1 | tee /tmp/production-advisors.log
-
-      - name: Publicar evidências da aplicação
+      - name: Publicar diagnósticos
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: supabase-production-remediation-${{ github.run_id }}
+          name: supabase-production-validation-${{ github.run_id }}
           path: |
-            /tmp/production-dry-run.log
-            /tmp/production-apply.log
-            /tmp/production-migrations.log
-            /tmp/production-post-apply.log
-            /tmp/production-advisors.log
-          if-no-files-found: warn
+            remote-post-apply.log
+            remote-lint.log
+            remote-pgtap.log
+          if-no-files-found: error
           retention-days: 14
+
+      - name: Reprovar após preservar diagnósticos
+        if: steps.lint.outputs.status != '0' || steps.pgtap.outputs.status != '0'
+        run: exit 1
