@@ -39,21 +39,19 @@ jobs:
           git rm .github/task6-observability.patch.b64
           git diff --check
 
-      - name: Restaurar workflow permanente antes dos validadores
+      - name: Usar workflow permanente durante os validadores
         shell: bash
         run: |
+          cp .github/workflows/export-remediation-source.yml /tmp/export-remediation-one-off.yml
           cat > .github/workflows/export-remediation-source.yml <<'YAML'
           name: Export remediation source
-
           on:
             pull_request:
               paths:
                 - '.github/remediation-export-trigger.txt'
                 - '.github/workflows/export-remediation-source.yml'
-
           permissions:
             contents: read
-
           jobs:
             export-source:
               runs-on: ubuntu-latest
@@ -83,7 +81,6 @@ jobs:
                     if-no-files-found: error
                     retention-days: 1
           YAML
-          git add .github/workflows/export-remediation-source.yml
           git diff --check
 
       - name: Reconfirmar suíte Node 24
@@ -96,6 +93,9 @@ jobs:
         run: |
           npx playwright install --with-deps chromium
           npx playwright test tests/e2e/data-error-ux.spec.js --project=desktop-chromium
+
+      - name: Excluir workflow temporário do commit
+        run: mv /tmp/export-remediation-one-off.yml .github/workflows/export-remediation-source.yml
 
       - name: Publicar Task 6
         env:
