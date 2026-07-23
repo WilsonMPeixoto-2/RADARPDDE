@@ -15,7 +15,7 @@ on:
           - development-project
           - database-branch
       confirmation:
-        description: Digite APLICAR_22_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL
+        description: Digite APLICAR_23_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL
         required: true
         type: string
 
@@ -61,7 +61,7 @@ jobs:
           test -n "${PROJECT_REF}" || { echo 'project_ref ausente.' >&2; exit 1; }
           test "${TARGET_KIND}" = 'development-project' -o "${TARGET_KIND}" = 'database-branch' \
             || { echo 'Tipo de alvo não autorizado.' >&2; exit 1; }
-          test "${CONFIRMATION}" = 'APLICAR_22_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL' \
+          test "${CONFIRMATION}" = 'APLICAR_23_MIGRATIONS_EM_AMBIENTE_DESCARTAVEL' \
             || { echo 'Confirmação explícita incorreta; nenhuma migration será aplicada.' >&2; exit 1; }
 
       - name: Vincular alvo descartável autorizado
