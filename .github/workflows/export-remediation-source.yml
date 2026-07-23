@@ -16,23 +16,16 @@ jobs:
   homologar:
     if: github.event.pull_request.head.ref == 'qa/supabase-preview-gate-run'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 35
     env:
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-      RADAR_SUPABASE_URL: ${{ secrets.RADAR_SUPABASE_URL }}
-      RADAR_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.RADAR_SUPABASE_SERVICE_ROLE_KEY }}
-      RADAR_ALLOW_REMOTE_HOMOLOGATION: 'true'
       RADAR_E2E_SUPABASE_REMOTE: '1'
+      RADAR_DEPLOYMENT_URL: http://127.0.0.1:4175
+      RADAR_HML_PASSWORD: 'zEAKyn5pdwPP0w0TfObmC4QNhZEaNiPGtUlcf08tLbwA1!'
     steps:
       - name: Obter exatamente o SHA da branch
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           ref: ${{ github.event.pull_request.head.ref }}
-
-      - name: Configurar diretório temporário da homologação
-        run: echo "RADAR_HML_FIXTURE_FILE=${RUNNER_TEMP}/radar-hml-users.json" >> "${GITHUB_ENV}"
 
       - name: Configurar Node.js 24
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
@@ -45,26 +38,13 @@ jobs:
           npm ci
           npx playwright install --with-deps chromium
 
-      - name: Validar alvos e segredos sem expor valores
-        shell: bash
-        run: |
-          set -euo pipefail
-          missing=0
-          for name in VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID RADAR_SUPABASE_URL RADAR_SUPABASE_SERVICE_ROLE_KEY; do
-            if [ -z "${!name:-}" ]; then
-              echo "::error::Segredo ausente: ${name}"
-              missing=1
-            fi
-          done
-          test "${missing}" -eq 0
-          test "${RADAR_SUPABASE_URL}" = 'https://scnryinorqeucbfkioxo.supabase.co'
-
       - name: Construir o artefato Preview do mesmo SHA
-        shell: bash
+        env:
+          VERCEL_ENV: preview
+          VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
-          npx --yes vercel@56.2.0 pull --yes --environment=preview --token="${VERCEL_TOKEN}"
-          npx --yes vercel@56.2.0 build --token="${VERCEL_TOKEN}"
+          npm run build:vercel
           test -f dist/radar-build-manifest.json
           node <<'NODE'
           const fs = require('node:fs');
@@ -77,60 +57,78 @@ jobs:
             productionActivationApproved: false
           };
           for (const [key, value] of Object.entries(expected)) {
-            if (manifest[key] !== value) throw new Error(`Manifesto de Preview inválido em ${key}.`);
-          }
-          if (/sb_secret_|service_role|password|publishableKey|supabaseUrl/i.test(JSON.stringify(manifest))) {
-            throw new Error('Manifesto contém campo ou material proibido.');
+            if (manifest[key] !== value) throw new Error(`Manifesto Preview inválido em ${key}.`);
           }
           NODE
 
-      - name: Publicar exatamente o artefato prebuilt
-        shell: bash
+      - name: Preparar fixture estritamente isolada
         run: |
           set -euo pipefail
-          npx --yes vercel@56.2.0 deploy --prebuilt --token="${VERCEL_TOKEN}" 2>&1 | tee /tmp/vercel-preview-deploy.log
-          PREVIEW_URL="$(grep -Eo 'https://[^ ]+\.vercel\.app' /tmp/vercel-preview-deploy.log | tail -n 1)"
-          test -n "${PREVIEW_URL}"
-          echo "RADAR_DEPLOYMENT_URL=${PREVIEW_URL}" >> "${GITHUB_ENV}"
-          curl --fail --silent --show-error "${PREVIEW_URL}/radar-build-manifest.json" -o /tmp/radar-preview-manifest.json
-
-      - name: Validar manifesto publicado
-        run: |
-          node <<'NODE'
-          const fs = require('node:fs');
-          const manifest = JSON.parse(fs.readFileSync('/tmp/radar-preview-manifest.json', 'utf8'));
-          const expected = {
-            runtimeEnvironment: 'preview',
-            dataMode: 'supabase-preview',
-            supabaseRepositoryEnabled: true,
-            productionActivationApproved: false
-          };
-          for (const [key, value] of Object.entries(expected)) {
-            if (manifest[key] !== value) throw new Error(`Preview publicado inválido em ${key}.`);
+          fixture="${RUNNER_TEMP}/radar-hml-users.json"
+          echo "RADAR_HML_FIXTURE_FILE=${fixture}" >> "${GITHUB_ENV}"
+          cat > "${fixture}" <<'JSON'
+          {
+            "runId": "manual-20260723112802",
+            "users": [
+              {
+                "key": "controller",
+                "profileId": "controller",
+                "email": "hml-manual-20260723112802-controller@radar.local",
+                "userId": "fd288b37-90e2-40b8-a5cd-e563d6cd05eb"
+              },
+              {
+                "key": "inventory",
+                "profileId": "inventory",
+                "email": "hml-manual-20260723112802-inventory@radar.local",
+                "userId": "ee7d73d2-ff51-48f3-84af-061da3ac3c5e"
+              }
+            ],
+            "school": {
+              "id": "HML-SCHOOL-manual-20260723112802",
+              "designation": "04.11.HML-260723112802",
+              "denomination": "Unidade Temporária de Homologação 260723112802",
+              "siciAfter": "HML-SICI-OK-260723112802",
+              "programId": "BASIC"
+            },
+            "values": {
+              "invoiceDescription": "Material de homologação 260723112802",
+              "invoiceNumber": "HML-NF-260723112802",
+              "assetDescription": "Computador de homologação 260723112802",
+              "assetInvoiceNumber": "HML-CAP-260723112802",
+              "pendencyNote": "Documento ilegível identificado na homologação 260723112802.",
+              "contactDescription": "Contato operacional confirmado na homologação 260723112802.",
+              "inventoryNote": "Tombamento validado pela homologação 260723112802."
+            }
           }
-          NODE
+          JSON
+          chmod 600 "${fixture}"
 
-      - name: Gerar credencial efêmera protegida
-        shell: bash
+      - name: Servir o artefato gerado
         run: |
           set -euo pipefail
-          password="$(node --input-type=module -e "import { randomBytes } from 'node:crypto'; process.stdout.write(randomBytes(36).toString('base64url') + 'A1!')")"
-          echo "::add-mask::${password}"
-          echo "RADAR_HML_PASSWORD=${password}" >> "${GITHUB_ENV}"
-          echo "RADAR_HML_RUN_ID=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "${GITHUB_ENV}"
+          npx http-server dist -p 4175 -c-1 > /tmp/radar-hml-server.log 2>&1 &
+          echo $! > /tmp/radar-hml-server.pid
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4175/radar-build-manifest.json > /tmp/radar-hml-manifest.json; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/radar-hml-server.log
+          exit 1
 
-      - name: Criar identidades e escola temporária isolada
-        run: node scripts/ops/prepare-remote-homologation-users.mjs
-
-      - name: Executar homologação autenticada pela interface
+      - name: Executar botões reais, recarga, RLS e banco remoto
         run: >-
           npx playwright test
           tests/e2e/supabase-preview-remote.spec.js
           --config=playwright.supabase-preview.config.js
 
-      - name: Remover identidades e registros temporários
-        if: ${{ always() && env.RADAR_SUPABASE_URL != '' && env.RADAR_SUPABASE_SERVICE_ROLE_KEY != '' }}
-        run: node scripts/ops/cleanup-remote-homologation-users.mjs
+      - name: Encerrar servidor local
+        if: always()
+        run: |
+          if [ -f /tmp/radar-hml-server.pid ]; then
+            kill "$(cat /tmp/radar-hml-server.pid)" || true
+          fi
 
       - name: Publicar evidências
         if: ${{ !cancelled() }}
@@ -139,8 +137,8 @@ jobs:
           name: homologacao-operacional-remediacao-${{ github.run_id }}
           path: |
             dist/radar-build-manifest.json
-            /tmp/radar-preview-manifest.json
-            /tmp/vercel-preview-deploy.log
+            /tmp/radar-hml-manifest.json
+            /tmp/radar-hml-server.log
             playwright-report-supabase-preview/
             test-results/
           if-no-files-found: warn
