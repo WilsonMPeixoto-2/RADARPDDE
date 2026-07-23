@@ -1,21 +1,34 @@
-name: Export remediation source
+name: Aplicar migrations validadas no Supabase de produção
 
 on:
   pull_request:
     paths:
-      - '.github/remediation-export-trigger.txt'
       - '.github/workflows/export-remediation-source.yml'
 
 permissions:
   contents: read
 
+concurrency:
+  group: supabase-production-remediation
+  cancel-in-progress: false
+
+env:
+  SUPABASE_TELEMETRY_DISABLED: '1'
+  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+  PGPASS_REMOTE: ${{ secrets.SUPABASE_DB_PASSWORD }}
+  PROJECT_REF: scnryinorqeucbfkioxo
+
 jobs:
-  export-source:
+  apply-production-migrations:
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 40
     steps:
-      - name: Checkout
+      - name: Checkout do branch validado
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
 
       - name: Configurar Node.js 24
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
@@ -27,22 +40,72 @@ jobs:
       - name: Instalar dependências reproduzíveis
         run: npm ci
 
-      - name: Empacotar código-fonte e dependências
+      - name: Validar alvo e segredos
+        shell: bash
         run: |
-          tar \
-            --exclude='.git' \
-            --exclude='node_modules' \
-            --exclude='playwright-report' \
-            --exclude='test-results' \
-            -czf "$RUNNER_TEMP/radar-remediation-source.tar.gz" .
-          tar -czf "$RUNNER_TEMP/radar-remediation-node-modules.tar.gz" node_modules
+          set -euo pipefail
+          test "${PROJECT_REF}" = 'scnryinorqeucbfkioxo'
+          test -n "${SUPABASE_ACCESS_TOKEN:-}"
+          test -n "${PGPASS_REMOTE:-}"
+          test -f supabase/migrations/202607220001_atomic_verification_operations.sql
+          test -f supabase/migrations/202607220002_atomic_operational_commands.sql
+          sha256sum supabase/migrations/202607220001_atomic_verification_operations.sql \
+                    supabase/migrations/202607220002_atomic_operational_commands.sql
 
-      - name: Publicar código-fonte temporário
+      - name: Vincular produção
+        run: npx --no-install supabase link --project-ref "${PROJECT_REF}" --password "${PGPASS_REMOTE}"
+
+      - name: Confirmar dry-run restrito às duas migrations aprovadas
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --no-install supabase db push --linked --dry-run --password "${PGPASS_REMOTE}" 2>&1 | tee /tmp/production-dry-run.log
+          grep -q '202607220001_atomic_verification_operations.sql' /tmp/production-dry-run.log
+          grep -q '202607220002_atomic_operational_commands.sql' /tmp/production-dry-run.log
+          if grep -E 'Applying migration [^ ]+' /tmp/production-dry-run.log \
+             | grep -Ev '202607220001_atomic_verification_operations.sql|202607220002_atomic_operational_commands.sql'; then
+            echo 'Dry-run incluiu migration não autorizada.' >&2
+            exit 1
+          fi
+
+      - name: Aplicar migrations versionadas
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --no-install supabase db push --linked --password "${PGPASS_REMOTE}" --yes 2>&1 | tee /tmp/production-apply.log
+
+      - name: Confirmar histórico e capacidades remotas
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --no-install supabase migration list --linked --password "${PGPASS_REMOTE}" 2>&1 | tee /tmp/production-migrations.log
+          grep -q '202607220001' /tmp/production-migrations.log
+          grep -q '202607220002' /tmp/production-migrations.log
+          npx --no-install supabase db query --linked --file supabase/verification/remote-post-apply.sql 2>&1 | tee /tmp/production-post-apply.log
+
+      - name: Executar lint e pgTAP remoto reversível
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --no-install supabase db lint --linked --schema public --level warning --fail-on error
+          npx --no-install supabase test db supabase/tests/database --linked
+
+      - name: Executar Advisors
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --no-install supabase db advisors --linked --type all --level info --fail-on error 2>&1 | tee /tmp/production-advisors.log
+
+      - name: Publicar evidências da aplicação
+        if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: radar-remediation-source-${{ github.sha }}
+          name: supabase-production-remediation-${{ github.run_id }}
           path: |
-            ${{ runner.temp }}/radar-remediation-source.tar.gz
-            ${{ runner.temp }}/radar-remediation-node-modules.tar.gz
-          if-no-files-found: error
-          retention-days: 1
+            /tmp/production-dry-run.log
+            /tmp/production-apply.log
+            /tmp/production-migrations.log
+            /tmp/production-post-apply.log
+            /tmp/production-advisors.log
+          if-no-files-found: warn
+          retention-days: 14
