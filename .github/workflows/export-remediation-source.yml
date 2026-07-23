@@ -39,18 +39,7 @@ jobs:
           rm .github/task6-observability.patch.b64
           git diff --check
 
-      - name: Reconfirmar Node 24
-        run: |
-          npm run check
-          npm run test:unit
-          npm run test:integration
-
-      - name: Validar UX de erro no Chromium
-        run: |
-          npx playwright install --with-deps chromium
-          npx playwright test tests/e2e/data-error-ux.spec.js --project=desktop-chromium
-
-      - name: Restaurar workflow permanente
+      - name: Restaurar workflow permanente antes dos validadores
         shell: bash
         run: |
           cat > .github/workflows/export-remediation-source.yml <<'YAML'
@@ -104,6 +93,17 @@ jobs:
                     retention-days: 1
           YAML
           git diff --check
+
+      - name: Reconfirmar suíte Node 24
+        run: |
+          npm run check
+          npm run test:unit
+          npm run test:integration
+
+      - name: Validar UX de erro no Chromium
+        run: |
+          npx playwright install --with-deps chromium
+          npx playwright test tests/e2e/data-error-ux.spec.js --project=desktop-chromium
 
       - name: Publicar Task 6
         env:
