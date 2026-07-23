@@ -1,4 +1,4 @@
-name: Aplicar pgTAP e validar Supabase Production
+name: Diagnosticar pgTAP em Supabase Production
 
 on:
   pull_request:
@@ -8,10 +8,6 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: supabase-production-pgtap
-  cancel-in-progress: false
-
 env:
   SUPABASE_TELEMETRY_DISABLED: '1'
   SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
@@ -19,15 +15,13 @@ env:
   PROJECT_REF: scnryinorqeucbfkioxo
 
 jobs:
-  apply-and-validate:
+  diagnose-production-pgtap:
     if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 35
     steps:
-      - name: Checkout do branch validado
+      - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
 
       - name: Configurar Node.js 24
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
@@ -39,46 +33,31 @@ jobs:
       - name: Instalar dependências
         run: npm ci
 
-      - name: Vincular produção
-        run: npx --no-install supabase link --project-ref "${PROJECT_REF}" --password "${PGPASS_REMOTE}"
+      - name: Vincular e confirmar contrato
+        run: |
+          npx --no-install supabase link --project-ref "${PROJECT_REF}" --password "${PGPASS_REMOTE}"
+          npx --no-install supabase db query --linked --file supabase/verification/remote-post-apply.sql
 
-      - name: Validar dry-run exclusivo da migration pgTAP
+      - name: Executar pgTAP remoto com log integral
+        id: pgtap
         shell: bash
         run: |
-          set -euo pipefail
-          npx --no-install supabase db push --linked --dry-run --password "${PGPASS_REMOTE}" 2>&1 | tee /tmp/pgtap-dry-run.log
-          grep -q '202607230001_enable_pgtap_remote_validation.sql' /tmp/pgtap-dry-run.log
-          if grep -E 'Applying migration [^ ]+|• [0-9].*\.sql' /tmp/pgtap-dry-run.log \
-             | grep -Ev '202607230001_enable_pgtap_remote_validation.sql'; then
-            echo 'Dry-run incluiu migration não autorizada.' >&2
-            exit 1
-          fi
+          set +e
+          npx --no-install supabase test db supabase/tests/database --linked > remote-pgtap-after-install.log 2>&1
+          status=$?
+          cat remote-pgtap-after-install.log
+          echo "status=${status}" >> "$GITHUB_OUTPUT"
+          exit 0
 
-      - name: Aplicar migration pgTAP
-        run: npx --no-install supabase db push --linked --password "${PGPASS_REMOTE}" --yes
-
-      - name: Confirmar histórico e contrato remoto
-        shell: bash
-        run: |
-          set -euo pipefail
-          npx --no-install supabase migration list --linked --password "${PGPASS_REMOTE}" 2>&1 | tee /tmp/pgtap-migrations.log
-          grep -q '202607230001' /tmp/pgtap-migrations.log
-          npx --no-install supabase db query --linked --file supabase/verification/remote-post-apply.sql 2>&1 | tee /tmp/pgtap-post-apply.log
-
-      - name: Executar lint remoto
-        run: npx --no-install supabase db lint --linked --schema public --level warning --fail-on error
-
-      - name: Executar 195 testes pgTAP remotos reversíveis
-        run: npx --no-install supabase test db supabase/tests/database --linked
-
-      - name: Publicar evidências
+      - name: Publicar log completo
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: supabase-production-pgtap-${{ github.run_id }}
-          path: |
-            /tmp/pgtap-dry-run.log
-            /tmp/pgtap-migrations.log
-            /tmp/pgtap-post-apply.log
-          if-no-files-found: warn
+          name: remote-pgtap-after-install-${{ github.run_id }}
+          path: remote-pgtap-after-install.log
+          if-no-files-found: error
           retention-days: 14
+
+      - name: Reprovar após preservar diagnóstico
+        if: steps.pgtap.outputs.status != '0'
+        run: exit 1
