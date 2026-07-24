@@ -14,21 +14,25 @@ function fixture() {
                 designação: '04.31.026',
                 denominação: 'Escola Municipal Herbert Moses',
                 cre: '4ª CRE',
-                programasIds: ['BASIC', 'QUALIDADE']
+                programasIds: ['BASIC', 'CONECTADA', 'PROEC']
             },
             {
                 id: 'school-1',
                 designação: '04.31.001',
                 denominação: 'Escola Municipal Ary Barroso',
                 cre: '4ª CRE',
-                programasIds: ['BASIC', 'EQUIDADE']
+                programasIds: ['BASIC', 'CONECTADA', 'RECURSOS']
             }
         ],
         programas: [
             { id: 'BASIC', name: 'PDDE Básico' },
-            { id: 'QUALIDADE', name: 'PDDE Qualidade' },
-            { id: 'EQUIDADE', name: 'PDDE Equidade' },
-            { id: 'CONECTADA', name: 'Educação Conectada' }
+            { id: 'CONECTADA', name: 'Educação Conectada' },
+            { id: 'PROEC', name: 'Programa Escola e Comunidade' },
+            { id: 'ED_FAMILIA', name: 'Educação e Família' },
+            { id: 'ADOLESCENCIAS', name: 'Escola das Adolescências' },
+            { id: 'LEITURA', name: 'Cantinho da Leitura' },
+            { id: 'TEMPO_APRENDER', name: 'Tempo de Aprender' },
+            { id: 'RECURSOS', name: 'Sala de Recursos' }
         ],
         verificacoes: {
             'school-1': {
@@ -47,7 +51,18 @@ function fixture() {
                     bonificacao: { extCC: 'Não' },
                     resultadoBonif: 'inapta'
                 },
-                '2026-07_EQUIDADE': {
+                '2026-07_CONECTADA': {
+                    bonificacao: {
+                        extCC: 'Sim',
+                        extINV: 'Sim',
+                        notaFiscal: 'Sim',
+                        consAssessoria: 'Não se aplica',
+                        declBBAgil: 'Sim',
+                        encampInventario: 'Sim'
+                    },
+                    resultadoBonif: 'apta'
+                },
+                '2026-07_RECURSOS': {
                     bonificacao: {
                         extCC: 'Sim',
                         extINV: 'Sim',
@@ -71,9 +86,27 @@ function fixture() {
                     },
                     resultadoBonif: 'apta'
                 },
-                '2026-07_QUALIDADE': {
-                    bonificacao: { extCC: 'Sim' },
-                    resultadoBonif: ''
+                '2026-07_CONECTADA': {
+                    bonificacao: {
+                        extCC: 'Sim',
+                        extINV: 'Sim',
+                        notaFiscal: 'Sim',
+                        consAssessoria: 'Não se aplica',
+                        declBBAgil: 'Sim',
+                        encampInventario: 'Sim'
+                    },
+                    resultadoBonif: 'apta'
+                },
+                '2026-07_PROEC': {
+                    bonificacao: {
+                        extCC: 'Não',
+                        extINV: 'Sim',
+                        notaFiscal: 'Não se aplica',
+                        consAssessoria: 'Sim',
+                        declBBAgil: 'Sim',
+                        encampInventario: 'Não se aplica'
+                    },
+                    resultadoBonif: 'inapta'
                 }
             }
         }
@@ -98,6 +131,17 @@ test('gera nome do arquivo e da única aba a partir da competência selecionada'
     assert.equal(model.sheetName, 'JULHO');
     assert.equal(model.fileName, 'RADAR_PDDE_EXCEL_SME_07-2026.xlsx');
     assert.equal(model.columns.length, 26);
+});
+
+test('classifica os programas reais nas contas SME corretas', () => {
+    assert.equal(modelApi.resolveProgramKey({ id: 'BASIC', name: 'PDDE Básico' }), 'BASIC');
+    assert.equal(modelApi.resolveProgramKey({ id: 'CONECTADA', name: 'Educação Conectada' }), 'QUALIDADE');
+    assert.equal(modelApi.resolveProgramKey({ id: 'PROEC', name: 'Programa Escola e Comunidade' }), 'QUALIDADE');
+    assert.equal(modelApi.resolveProgramKey({ id: 'ED_FAMILIA', name: 'Educação e Família' }), 'QUALIDADE');
+    assert.equal(modelApi.resolveProgramKey({ id: 'ADOLESCENCIAS', name: 'Escola das Adolescências' }), 'QUALIDADE');
+    assert.equal(modelApi.resolveProgramKey({ id: 'LEITURA', name: 'Cantinho da Leitura' }), 'QUALIDADE');
+    assert.equal(modelApi.resolveProgramKey({ id: 'TEMPO_APRENDER', name: 'Tempo de Aprender' }), 'QUALIDADE');
+    assert.equal(modelApi.resolveProgramKey({ id: 'RECURSOS', name: 'Sala de Recursos' }), 'EQUIDADE');
 });
 
 test('ordena escolas pela designação e mantém campos administrativos vazios', () => {
@@ -125,17 +169,39 @@ test('preenche somente a competência selecionada e normaliza valores do RADAR',
         ['SIM', 'NÃO', 'NÃO SE APLICA', 'NÃO SE APLICA', 'SIM', 'NÃO SE APLICA']
     );
     assert.deepEqual(
+        modelApi.DOCUMENT_KEYS.map(key => ary[`qualidade_${key}`]),
+        ['SIM', 'SIM', 'SIM', 'NÃO SE APLICA', 'SIM', 'SIM']
+    );
+    assert.deepEqual(
         modelApi.DOCUMENT_KEYS.map(key => ary[`equidade_${key}`]),
         ['SIM', 'SIM', 'SIM', 'NÃO SE APLICA', 'SIM', 'SIM']
     );
+    assert.deepEqual(ary.sourcePrograms, {
+        BASIC: ['BASIC'],
+        QUALIDADE: ['CONECTADA'],
+        EQUIDADE: ['RECURSOS']
+    });
 });
 
-test('deixa vazio o bloco de programa sem consolidação na competência', () => {
+test('agrega programas da conta e faz NÃO prevalecer sobre SIM ou N/A', () => {
+    const model = modelApi.buildSmeMonthlyModel(fixture());
+    const herbert = model.rows[1];
+
+    assert.deepEqual(herbert.sourcePrograms.QUALIDADE, ['CONECTADA', 'PROEC']);
+    assert.deepEqual(
+        modelApi.DOCUMENT_KEYS.map(key => herbert[`qualidade_${key}`]),
+        ['NÃO', 'SIM', 'SIM', 'SIM', 'SIM', 'SIM']
+    );
+    assert.equal(modelApi.aggregateSmeValues(['Não se aplica', 'Sim']), 'SIM');
+    assert.equal(modelApi.aggregateSmeValues(['Sim', 'Não']), 'NÃO');
+});
+
+test('deixa vazio o bloco de conta sem programa consolidado', () => {
     const model = modelApi.buildSmeMonthlyModel(fixture());
     const herbert = model.rows[1];
 
     assert.deepEqual(
-        modelApi.DOCUMENT_KEYS.map(key => herbert[`qualidade_${key}`]),
+        modelApi.DOCUMENT_KEYS.map(key => herbert[`equidade_${key}`]),
         ['', '', '', '', '', '']
     );
     assert.equal(model.diagnostics.schoolCount, 2);
