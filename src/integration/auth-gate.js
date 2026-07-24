@@ -29,6 +29,8 @@
         '#theme-toggle-btn',
         '#alerts-bell-container'
     ]);
+    const AUTH_DESCRIPTION = 'Entre com sua conta autorizada para acessar os dados do RADAR PDDE.';
+    const AUTH_RESOLVING_DESCRIPTION = 'Verificando a sessão existente antes de liberar o acesso…';
 
     function isTechnicalRole(role) {
         return TECHNICAL_ROLES.has(String(role || ''));
@@ -59,6 +61,7 @@
             this.document = options.document;
             this.enabled = this.root?.RADAR_PDDE_CONFIG?.supabase?.connectionEnabled === true;
             this.bound = false;
+            this.phase = 'idle';
         }
 
         initialize() {
@@ -68,9 +71,10 @@
             });
             if (!this.enabled) {
                 this.document.documentElement.classList.remove('radar-auth-required');
+                this.setFormVisible(false);
                 return;
             }
-            this.show('Entre para acessar o RADAR PDDE.');
+            this.showResolving();
         }
 
         bind() {
@@ -89,10 +93,35 @@
             if (logout) logout.hidden = false;
         }
 
-        show(message) {
+        setFormVisible(visible) {
+            const form = this.document.getElementById('radar-auth-form');
+            if (!form) return;
+            form.hidden = !visible;
+            form.inert = !visible;
+            form.setAttribute?.('aria-hidden', visible ? 'false' : 'true');
+        }
+
+        setDescription(message) {
+            const description = this.document.getElementById('radar-auth-description');
+            if (description) description.textContent = message || AUTH_DESCRIPTION;
+        }
+
+        showResolving() {
+            this.phase = 'resolving';
             this.document.documentElement.classList.add('radar-auth-required');
             const app = this.document.getElementById('app-layout');
             if (app) app.inert = true;
+            this.setDescription(AUTH_RESOLVING_DESCRIPTION);
+            this.setFormVisible(false);
+        }
+
+        show(message) {
+            this.phase = 'required';
+            this.document.documentElement.classList.add('radar-auth-required');
+            const app = this.document.getElementById('app-layout');
+            if (app) app.inert = true;
+            this.setDescription(AUTH_DESCRIPTION);
+            this.setFormVisible(true);
             this.setStatus(message || 'Entre para acessar o RADAR PDDE.', 'info');
             this.root.requestAnimationFrame?.(() => {
                 this.document.getElementById('radar-auth-email')?.focus();
@@ -100,9 +129,12 @@
         }
 
         hide() {
+            this.phase = 'authenticated';
             this.document.documentElement.classList.remove('radar-auth-required');
             const app = this.document.getElementById('app-layout');
             if (app) app.inert = false;
+            this.setFormVisible(false);
+            this.setDescription(AUTH_DESCRIPTION);
             this.setStatus('', 'info');
         }
 
@@ -115,6 +147,10 @@
 
         async handleSubmit(event) {
             event.preventDefault();
+            if (this.enabled && this.phase !== 'required') {
+                this.setStatus('A autenticação ainda está inicializando. Aguarde.', 'info');
+                return;
+            }
             const form = event.currentTarget;
             const submit = form.querySelector('[type="submit"]');
             const email = this.document.getElementById('radar-auth-email')?.value || '';
