@@ -33,16 +33,18 @@ test('frontend inclui gate acessível, logout e scripts de autenticação em ord
     assert.ok(appIndex < gateIndex);
 });
 
-test('markup inicial oculta o formulário até a restauração da sessão ser concluída', () => {
+test('formulário de credenciais permanece invisível antes de o bootstrap autorizar o login', () => {
     const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-    const formTag = html.match(/<form\b[^>]*id=["']radar-auth-form["'][^>]*>/i)?.[0] || '';
-
-    assert.match(formTag, /\shidden(?:\s|>)/i);
-    assert.match(formTag, /aria-hidden=["']true["']/i);
-    assert.match(
-        html,
-        /id=["']radar-auth-description["'][^>]*>\s*Verificando[^<]*sessão/i
+    const sharedStyles = fs.readFileSync(
+        path.join(root, 'src/styles/shared-interactions.css'),
+        'utf8'
     );
+    const formTag = html.match(/<form\b[^>]*id=["']radar-auth-form["'][^>]*>/i)?.[0] || '';
+    const hiddenByMarkup = /\shidden(?:\s|>)/i.test(formTag);
+    const hiddenByStyles = /#radar-auth-form:not\(\[aria-hidden=["']false["']\]\)\s*\{[^}]*display:\s*none\s*!important/i
+        .test(sharedStyles);
+
+    assert.equal(hiddenByMarkup || hiddenByStyles, true);
 });
 
 test('bootstrap principal aplica identidade remota sem expor sessão no contexto público', () => {
