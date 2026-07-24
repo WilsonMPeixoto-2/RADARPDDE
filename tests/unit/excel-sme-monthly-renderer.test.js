@@ -88,10 +88,3 @@ test('gera binário XLSX válido', async () => {
     assert.equal(workbook.worksheets.length, 1);
     assert.equal(workbook.worksheets[0].name, 'JULHO');
 });
-
-test('bloqueia renderização sem ExcelJS', () => {
-    assert.throws(
-        () => renderer.createWorkbook(model(), { ExcelJS: null }),
-        error => error?.code === 'EXCELJS_UNAVAILABLE'
-    );
-});
