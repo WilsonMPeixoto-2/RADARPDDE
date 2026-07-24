@@ -33,6 +33,18 @@ test('frontend inclui gate acessível, logout e scripts de autenticação em ord
     assert.ok(appIndex < gateIndex);
 });
 
+test('markup inicial oculta o formulário até a restauração da sessão ser concluída', () => {
+    const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+    const formTag = html.match(/<form\b[^>]*id=["']radar-auth-form["'][^>]*>/i)?.[0] || '';
+
+    assert.match(formTag, /\shidden(?:\s|>)/i);
+    assert.match(formTag, /aria-hidden=["']true["']/i);
+    assert.match(
+        html,
+        /id=["']radar-auth-description["'][^>]*>\s*Verificando[^<]*sessão/i
+    );
+});
+
 test('bootstrap principal aplica identidade remota sem expor sessão no contexto público', () => {
     const app = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
     assert.match(app, /RadarAuthBootstrap\.prepareAuthenticatedClient/);
