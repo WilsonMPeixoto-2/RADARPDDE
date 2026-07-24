@@ -5,15 +5,15 @@
     root.__RADAR_EXCEL_EXPORT_LOADER__ = true;
 
     const coreScripts = [
-        'src/domain/excel-export-model.js',
-        'src/domain/excel-workbook-plan.js',
-        'src/domain/excel-xlsx-renderer.js'
+        '/src/domain/excel-export-model.js',
+        '/src/domain/excel-workbook-plan.js',
+        '/src/domain/excel-xlsx-renderer.js'
     ];
     const smeScripts = [
-        'src/domain/excel-sme-export-model.js',
-        'src/domain/excel-sme-monthly-renderer.js'
+        '/src/domain/excel-sme-export-model.js',
+        '/src/domain/excel-sme-monthly-renderer.js'
     ];
-    const integrationScript = 'src/integration/excel-export-integration.js';
+    const integrationScript = '/src/integration/excel-export-integration.js';
 
     function loadScript(src) {
         return new Promise((resolve, reject) => {
@@ -34,7 +34,7 @@
     async function loadExcelJs() {
         if (root.ExcelJS && typeof root.ExcelJS.Workbook === 'function') return;
         try {
-            await loadScript('vendor/exceljs.min.js');
+            await loadScript('/vendor/exceljs.min.js');
         } catch (productionError) {
             await loadScript('/node_modules/exceljs/dist/exceljs.min.js');
         }
