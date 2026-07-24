@@ -80,8 +80,22 @@ test.describe('Navegação e Ciclo de Foco com Fallback Lógico', () => {
     await page.keyboard.press('Escape');
     await expect(modal).not.toHaveClass(/show/);
 
-    // Certificar que o foco retornou ao fallback de navegação padrão
-    const activeTag = await page.evaluate(() => document.activeElement.tagName.toLowerCase());
-    expect(['body', 'h1', 'h2', 'div', 'main']).toContain(activeTag);
+    // O fallback pode ser um landmark ou outro controle interativo válido da página.
+    const focusState = await page.evaluate(() => {
+      const active = document.activeElement;
+      return {
+        connected: Boolean(active && active.isConnected),
+        removedTriggerFocused: active?.id === 'e2e-trigger-destruido',
+        insideClosedModal: Boolean(active?.closest('#modal-contato')),
+        hidden: Boolean(active?.closest('[hidden], [inert], [aria-hidden="true"]')),
+        tag: active?.tagName?.toLowerCase() || ''
+      };
+    });
+
+    expect(focusState.connected).toBe(true);
+    expect(focusState.removedTriggerFocused).toBe(false);
+    expect(focusState.insideClosedModal).toBe(false);
+    expect(focusState.hidden).toBe(false);
+    expect(['body', 'h1', 'h2', 'div', 'main', 'button', 'a', 'input', 'select']).toContain(focusState.tag);
   });
 });
