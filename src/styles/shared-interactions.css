@@ -156,6 +156,11 @@
     color: var(--text-main);
 }
 
+/* Impede a exposição e o preenchimento visual das credenciais enquanto a sessão persistida é restaurada. */
+#radar-auth-form:not([aria-hidden="false"]) {
+    display: none !important;
+}
+
 /* Identidade visual vetorial do RADAR PDDE. */
 .radar-auth-card {
     width: min(100%, 560px);
