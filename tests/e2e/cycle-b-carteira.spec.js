@@ -118,7 +118,9 @@ test.describe('Ciclo B — Carteira operacional de Escolas', () => {
     await expect(row).toContainText('Última movimentação');
     await expect(row).toContainText('Reanalisar Extrato Investimento');
     await expect(row.getByRole('button', { name: 'Abrir Pendências' })).toBeVisible();
-    await expect(row.getByRole('button', { name: 'Ver Unidade' })).toBeVisible();
+    const schoolLink = row.getByRole('link', { name: 'Ver Unidade' });
+    await expect(schoolLink).toBeVisible();
+    await expect(schoolLink).toHaveAttribute('href', `/escolas/${seeded.awaiting.id}`);
     await expect(row.getByRole('button', { name: 'Editar' })).toBeVisible();
   });
 
@@ -169,7 +171,9 @@ test.describe('Ciclo B — Carteira operacional de Escolas', () => {
     await expect(awaitingCard).toContainText('Última movimentação');
     await expect(awaitingCard).toContainText('Reanalisar Extrato Investimento');
     await expect(awaitingCard.getByRole('button', { name: 'Abrir Pendências' })).toBeVisible();
-    await expect(awaitingCard.getByRole('button', { name: 'Ver Unidade' })).toBeVisible();
+    const schoolLink = awaitingCard.getByRole('link', { name: 'Ver Unidade' });
+    await expect(schoolLink).toBeVisible();
+    await expect(schoolLink).toHaveAttribute('href', `/escolas/${seeded.awaiting.id}`);
     await expect(awaitingCard.getByRole('button', { name: 'Editar' })).toBeVisible();
     await expect(page.locator('.panel-card').filter({
       has: page.getByRole('heading', { name: 'Resultado da carteira' })
