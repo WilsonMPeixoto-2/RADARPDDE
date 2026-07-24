@@ -6,7 +6,7 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, function (root) {
     'use strict';
 
-    const VERSION = '0.1.0';
+    const VERSION = '0.2.0';
     let installed = false;
     let legacyExport = null;
     let observer = null;
@@ -42,6 +42,18 @@
         return { modelApi, planApi, rendererApi };
     }
 
+    function resolveSmeDependencies(overrides = {}) {
+        const modelApi = overrides.modelApi || root.RadarExcelSmeExportModel;
+        const rendererApi = overrides.rendererApi || root.RadarExcelSmeTemplateRenderer;
+        if (!modelApi || typeof modelApi.buildSmeExportModel !== 'function') {
+            throw new Error('Modelo de exportação Excel SME não foi carregado.');
+        }
+        if (!rendererApi || typeof rendererApi.downloadWorkbook !== 'function') {
+            throw new Error('Renderizador do modelo Excel SME não foi carregado.');
+        }
+        return { modelApi, rendererApi };
+    }
+
     function createExportArtifacts(state, options = {}, dependencyOverrides = {}) {
         const dependencies = resolveDependencies(dependencyOverrides);
         const model = dependencies.modelApi.buildExportModel({
@@ -66,6 +78,18 @@
             fileName
         });
         return { model, plan, fileName, dependencies };
+    }
+
+    function createSmeExportArtifacts(state, options = {}, dependencyOverrides = {}) {
+        const dependencies = resolveSmeDependencies(dependencyOverrides);
+        const model = dependencies.modelApi.buildSmeExportModel({
+            escolas: state.escolas,
+            competencias: state.competencias,
+            programas: state.programas,
+            verificacoes: state.verificacoes
+        });
+        const fileName = options.fileName || model.fileName;
+        return { model, fileName, dependencies };
     }
 
     function notify(message) {
@@ -103,6 +127,34 @@
         }
     }
 
+    async function exportSmeXlsx(options = {}) {
+        try {
+            const state = options.state || getBrowserState();
+            const artifacts = createSmeExportArtifacts(state, options, options.dependencies || {});
+            const result = await artifacts.dependencies.rendererApi.downloadWorkbook(artifacts.model, {
+                ...options,
+                fileName: artifacts.fileName
+            });
+            const ignoredCount = artifacts.model.diagnostics.ignoredPrograms
+                .reduce((sum, item) => sum + Number(item.count || 0), 0);
+            logExport(
+                `Arquivo ${artifacts.fileName} gerado no modelo SME com ${artifacts.model.records.length} registros documentais de 2026.`
+                + (ignoredCount ? ` ${ignoredCount} registro(s) de outros programas não integram o modelo SME.` : '')
+            );
+            if (options.silent !== true) {
+                notify(
+                    'Excel SME gerado com os dados documentais disponíveis no RADAR. '
+                    + 'Data de entrega, data de correção, parecer, observações e as colunas de sistemática de dezembro permanecem para conferência e preenchimento no modelo da SME.'
+                );
+            }
+            return { ok: true, ...artifacts, download: result };
+        } catch (error) {
+            console.error('[RADAR PDDE] Falha ao gerar o arquivo no modelo Excel SME.', error);
+            notify(`Não foi possível gerar o Excel SME. ${error && error.message ? error.message : ''}`.trim());
+            return { ok: false, error };
+        }
+    }
+
     function exportCsvLegacy() {
         if (typeof legacyExport !== 'function') {
             notify('A exportação CSV legada não está disponível.');
@@ -133,6 +185,35 @@
         return true;
     }
 
+    function createSmeButton(primaryButton) {
+        const button = primaryButton.cloneNode(false);
+        button.removeAttribute('onclick');
+        button.type = 'button';
+        delete button.dataset.radarXlsxEnhanced;
+        button.dataset.radarSmeExport = 'true';
+        button.dataset.radarExportFormat = 'xlsx-sme';
+        button.classList.remove('btn-primary');
+        button.classList.add('btn-secondary');
+        button.textContent = 'Excel SME';
+        button.title = 'Gerar os dados de bonificação de 2026 no modelo oficial recebido da SME';
+        button.setAttribute('aria-label', 'Gerar relatório no modelo Excel da SME');
+        button.addEventListener('click', async () => {
+            if (button.disabled) return;
+            const originalText = button.textContent;
+            button.disabled = true;
+            button.setAttribute('aria-busy', 'true');
+            button.textContent = 'Gerando Excel SME…';
+            try {
+                await exportSmeXlsx();
+            } finally {
+                button.disabled = false;
+                button.removeAttribute('aria-busy');
+                button.textContent = originalText;
+            }
+        });
+        return button;
+    }
+
     function createCsvButton(primaryButton) {
         const button = primaryButton.cloneNode(false);
         button.removeAttribute('onclick');
@@ -153,11 +234,17 @@
         if (!root.document) return;
         const buttons = root.document.querySelectorAll('[onclick*="exportDataExcel"]');
         buttons.forEach(button => {
-            if (button.dataset.radarXlsxEnhanced === 'true') return;
-            configurePrimaryButton(button);
-            const next = button.nextElementSibling;
-            if (!next || next.dataset.radarCsvFallback !== 'true') {
-                button.insertAdjacentElement('afterend', createCsvButton(button));
+            if (button.dataset.radarXlsxEnhanced !== 'true') configurePrimaryButton(button);
+
+            let smeButton = button.nextElementSibling;
+            if (!smeButton || smeButton.dataset.radarSmeExport !== 'true') {
+                smeButton = createSmeButton(button);
+                button.insertAdjacentElement('afterend', smeButton);
+            }
+
+            const csvCandidate = smeButton.nextElementSibling;
+            if (!csvCandidate || csvCandidate.dataset.radarCsvFallback !== 'true') {
+                smeButton.insertAdjacentElement('afterend', createCsvButton(button));
             }
         });
     }
@@ -169,6 +256,7 @@
         legacyExport = options.legacyExport || (typeof target.exportDataExcel === 'function' ? target.exportDataExcel.bind(target) : null);
         installedRoot = target;
         target.exportDataCsvLegacy = exportCsvLegacy;
+        target.exportDataExcelSme = () => exportSmeXlsx();
         target.exportDataExcel = () => exportXlsx();
         installed = true;
 
@@ -186,6 +274,10 @@
     function uninstall() {
         if (!installed) return false;
         if (installedRoot && legacyExport) installedRoot.exportDataExcel = legacyExport;
+        if (installedRoot) {
+            delete installedRoot.exportDataExcelSme;
+            delete installedRoot.exportDataCsvLegacy;
+        }
         if (observer) observer.disconnect();
         observer = null;
         installed = false;
@@ -198,8 +290,11 @@
         buildFileName,
         configurePrimaryButton,
         createExportArtifacts,
+        createSmeButton,
+        createSmeExportArtifacts,
         enhanceExportButtons,
         exportCsvLegacy,
+        exportSmeXlsx,
         exportXlsx,
         formatActiveCompetence,
         install,
