@@ -35,10 +35,22 @@ test('URLs profundas de escola preservam os recursos relativos do index', () => 
         .filter(item => item.destination !== '/index.html')
         .map(item => [item.source, item.destination]));
 
-    assert.equal(assetRewrites.get('/escolas/:schoolId/src/:path*'), '/src/:path*');
-    assert.equal(assetRewrites.get('/escolas/:schoolId/vendor/:path*'), '/vendor/:path*');
-    assert.equal(assetRewrites.get('/escolas/:schoolId/styles.css'), '/styles.css');
-    assert.equal(assetRewrites.get('/escolas/:schoolId/app.js'), '/app.js');
-    assert.equal(assetRewrites.get('/escolas/:schoolId/config.js'), '/config.js');
-    assert.equal(assetRewrites.get('/escolas/:schoolId/config.runtime.js'), '/config.runtime.js');
+    const expected = new Map([
+        ['/escolas/src/:path*', '/src/:path*'],
+        ['/escolas/vendor/:path*', '/vendor/:path*'],
+        ['/escolas/styles.css', '/styles.css'],
+        ['/escolas/app.js', '/app.js'],
+        ['/escolas/config.js', '/config.js'],
+        ['/escolas/config.runtime.js', '/config.runtime.js'],
+        ['/escolas/:schoolId/src/:path*', '/src/:path*'],
+        ['/escolas/:schoolId/vendor/:path*', '/vendor/:path*'],
+        ['/escolas/:schoolId/styles.css', '/styles.css'],
+        ['/escolas/:schoolId/app.js', '/app.js'],
+        ['/escolas/:schoolId/config.js', '/config.js'],
+        ['/escolas/:schoolId/config.runtime.js', '/config.runtime.js']
+    ]);
+
+    expected.forEach((destination, source) => {
+        assert.equal(assetRewrites.get(source), destination, source);
+    });
 });
