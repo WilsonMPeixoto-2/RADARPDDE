@@ -2,10 +2,12 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const ExcelJS = require('exceljs');
 
+const baseRenderer = require('../../src/domain/excel-xlsx-renderer.js');
 const modelApi = require('../../src/domain/excel-sme-export-model.js');
 const renderer = require('../../src/domain/excel-sme-monthly-renderer.js');
+
+const decoder = new TextDecoder('utf-8');
 
 function model() {
     return modelApi.buildSmeMonthlyModel({
@@ -36,55 +38,69 @@ function model() {
     });
 }
 
-test('cria workbook com uma única aba mensal e 26 colunas', () => {
-    const workbook = renderer.createWorkbook(model(), { ExcelJS, generatedAt: '2026-07-24T12:00:00Z' });
-
-    assert.equal(workbook.worksheets.length, 1);
-    const worksheet = workbook.worksheets[0];
-    assert.equal(worksheet.name, 'JULHO');
-    assert.equal(worksheet.columnCount, 26);
-    assert.equal(worksheet.getRow(1).height, 72);
-    assert.equal(worksheet.getCell('A1').value, 'Nº');
-    assert.equal(worksheet.getCell('D1').value, 'UNIDADE ESCOLAR');
-    assert.equal(worksheet.getCell('E1').value, 'EXTRATO CONTA CORRENTE');
-    assert.equal(worksheet.getCell('Z1').value, 'OBSERVAÇÕES');
-});
-
-test('preenche dados do RADAR e mantém campos administrativos vazios', () => {
-    const worksheet = renderer.createWorkbook(model(), { ExcelJS }).worksheets[0];
-
-    assert.equal(worksheet.getCell('A2').value, 1);
-    assert.equal(worksheet.getCell('C2').value, '04.31.001');
-    assert.equal(worksheet.getCell('D2').value, 'Escola Municipal Ary Barroso');
-    assert.deepEqual(
-        ['E2', 'F2', 'G2', 'H2', 'I2', 'J2'].map(ref => worksheet.getCell(ref).value),
-        ['SIM', 'SIM', 'NÃO SE APLICA', 'NÃO SE APLICA', 'SIM', 'NÃO SE APLICA']
+function inspect(bytes) {
+    return Object.fromEntries(
+        Object.entries(baseRenderer.inspectStoredZip(bytes))
+            .map(([name, value]) => [name, decoder.decode(value)])
     );
-    assert.deepEqual(
-        ['W2', 'X2', 'Y2', 'Z2'].map(ref => worksheet.getCell(ref).value || ''),
-        ['', '', '', '']
-    );
-});
+}
 
-test('configura autofiltro, congelamento e impressão em paisagem', () => {
-    const worksheet = renderer.createWorkbook(model(), { ExcelJS }).worksheets[0];
-
-    assert.deepEqual(worksheet.autoFilter, { from: 'A1', to: 'Z2' });
-    assert.equal(worksheet.views[0].state, 'frozen');
-    assert.equal(worksheet.views[0].xSplit, 4);
-    assert.equal(worksheet.views[0].ySplit, 1);
-    assert.equal(worksheet.pageSetup.orientation, 'landscape');
-    assert.equal(worksheet.pageSetup.fitToWidth, 1);
-    assert.equal(worksheet.pageSetup.printArea, 'A1:Z2');
-});
-
-test('gera binário XLSX válido', async () => {
-    const bytes = await renderer.renderWorkbook(model(), { ExcelJS });
+test('gera pacote XLSX de uma única aba mensal', () => {
+    const bytes = renderer.renderWorkbook(model());
+    const entries = inspect(bytes);
 
     assert.equal(bytes[0], 0x50);
     assert.equal(bytes[1], 0x4B);
-    const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.load(bytes);
-    assert.equal(workbook.worksheets.length, 1);
-    assert.equal(workbook.worksheets[0].name, 'JULHO');
+    assert.deepEqual(Object.keys(entries).sort(), [
+        '[Content_Types].xml',
+        '_rels/.rels',
+        'docProps/app.xml',
+        'docProps/core.xml',
+        'xl/_rels/workbook.xml.rels',
+        'xl/styles.xml',
+        'xl/workbook.xml',
+        'xl/worksheets/sheet1.xml'
+    ]);
+    assert.match(entries['xl/workbook.xml'], /<sheet name="JULHO" sheetId="1" r:id="rId1"\/>/);
+    assert.doesNotMatch(entries['xl/workbook.xml'], /sheetId="2"/);
+});
+
+test('preserva 26 colunas, cabeçalho e dados mensais', () => {
+    const sheet = inspect(renderer.renderWorkbook(model()))['xl/worksheets/sheet1.xml'];
+
+    assert.match(sheet, /<dimension ref="A1:Z2"\/>/);
+    assert.equal((sheet.match(/<col min=/g) || []).length, 26);
+    assert.match(sheet, /<c r="A1" s="1" t="inlineStr">[\s\S]*?<t[^>]*>Nº<\/t>/);
+    assert.match(sheet, /<c r="D1" s="1" t="inlineStr">[\s\S]*?<t[^>]*>UNIDADE ESCOLAR<\/t>/);
+    assert.match(sheet, /<c r="E1" s="2" t="inlineStr">[\s\S]*?<t[^>]*>EXTRATO CONTA CORRENTE<\/t>/);
+    assert.match(sheet, /<c r="Z1" s="5" t="inlineStr">[\s\S]*?<t[^>]*>OBSERVAÇÕES<\/t>/);
+    assert.match(sheet, /<c r="A2" s="6"><v>1<\/v><\/c>/);
+    assert.match(sheet, /<c r="C2" s="6" t="inlineStr">[\s\S]*?<t[^>]*>04\.31\.001<\/t>/);
+    assert.match(sheet, /<c r="D2" s="8" t="inlineStr">[\s\S]*?<t[^>]*>Escola Municipal Ary Barroso<\/t>/);
+    assert.match(sheet, /<c r="E2" s="6" t="inlineStr">[\s\S]*?<t[^>]*>SIM<\/t>/);
+    assert.match(sheet, /<c r="G2" s="6" t="inlineStr">[\s\S]*?<t[^>]*>NÃO SE APLICA<\/t>/);
+    assert.match(sheet, /<c r="W2" s="6" t="inlineStr"><is><t xml:space="preserve"><\/t><\/is><\/c>/);
+});
+
+test('configura filtro, congelamento, validações e impressão', () => {
+    const sheet = inspect(renderer.renderWorkbook(model()))['xl/worksheets/sheet1.xml'];
+
+    assert.match(sheet, /<pane xSplit="4" ySplit="1" topLeftCell="E2"[^>]*state="frozen"\/>/);
+    assert.match(sheet, /<autoFilter ref="A1:Z2"\/>/);
+    assert.match(sheet, /<dataValidations count="18">/);
+    assert.match(sheet, /sqref="E2:E2"/);
+    assert.match(sheet, /<formula1>&quot;SIM,NÃO,NÃO SE APLICA&quot;<\/formula1>/);
+    assert.match(sheet, /<pageSetup paperSize="9" orientation="landscape" fitToWidth="1" fitToHeight="0"\/>/);
+    assert.match(sheet, /CONTROLE DE BONIFICAÇÃO — JULHO 2026/);
+});
+
+test('mantém estilos cromáticos e bordas no pacote', () => {
+    const styles = inspect(renderer.renderWorkbook(model()))['xl/styles.xml'];
+
+    for (const color of ['FF17365D', 'FF4F81BD', 'FF70AD47', 'FFED7D31', 'FF7F8C8D']) {
+        assert.match(styles, new RegExp(color));
+    }
+    assert.match(styles, /<cellXfs count="10">/);
+    assert.match(styles, /FFB7C3D0/);
+    assert.match(styles, /<name val="Arial"\/>/);
 });
