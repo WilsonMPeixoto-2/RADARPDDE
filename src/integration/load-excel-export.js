@@ -8,6 +8,9 @@
         'src/domain/excel-export-model.js',
         'src/domain/excel-workbook-plan.js',
         'src/domain/excel-xlsx-renderer.js',
+        'src/domain/excel-sme-export-model.js',
+        'src/domain/excel-sme-zip.js',
+        'src/domain/excel-sme-template-renderer.js',
         'src/integration/excel-export-integration.js'
     ];
 
