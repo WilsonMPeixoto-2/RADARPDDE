@@ -21,7 +21,7 @@
     "audit:inventory": "node scripts/audit/generate-repository-inventory.mjs",
     "build:supabase-client": "node scripts/build-supabase-client.mjs",
     "generate:runtime-config": "node scripts/generate-runtime-config.mjs",
-    "build:vercel": "node scripts/build-vercel.mjs && node scripts/copy-exceljs-public.mjs",
+    "build:vercel": "node scripts/build-vercel.mjs",
     "typecheck:database": "tsc -p tsconfig.database-types.json --noEmit",
     "start": "http-server . -p 4175 -c-1",
     "supabase:start": "supabase start",
