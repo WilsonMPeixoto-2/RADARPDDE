@@ -138,7 +138,9 @@
         const url = routes.buildRoute(normalizedRoute);
 
         if (replace) {
-            root.history.replaceState(nextState, '', url);
+            if (!sameNavigationState(currentState, nextState)) {
+                root.history.replaceState(nextState, '', url);
+            }
         } else if (!sameNavigationState(currentState, nextState)) {
             root.history.pushState(nextState, '', url);
         }
