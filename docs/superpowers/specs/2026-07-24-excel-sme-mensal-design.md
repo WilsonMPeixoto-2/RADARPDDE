@@ -17,21 +17,23 @@ Adicionar um segundo botão de exportação, **Excel SME**, sem alterar o relat�
 
 A planilha preserva a organização visual essencial do modelo mensal recebido da SME: identificação da unidade nas quatro primeiras colunas; blocos documentais para PDDE Básico, PDDE Qualidade e PDDE Equidade; campos administrativos complementares ao final; cores, bordas, fontes, alinhamentos, larguras, alturas, autofiltro, congelamento de painéis e configuração de impressão semelhantes ao modelo.
 
-Cada bloco de programa possui os seis campos documentais já existentes no RADAR: Extrato Conta Corrente, Extrato Investimento, Notas Fiscais, Consulta Assessoria, Declaração BB Ágil e Encaminhado para Inventariação. Valores são normalizados para `SIM`, `NÃO` e `NÃO SE APLICA`. Campos que não são produzidos pelo RADAR permanecem em branco.
+Cada bloco de conta possui os seis campos documentais já existentes no RADAR: Extrato Conta Corrente, Extrato Investimento, Notas Fiscais, Consulta Assessoria, Declaração BB Ágil e Encaminhado para Inventariação. Valores são normalizados para `SIM`, `NÃO` e `NÃO SE APLICA`. Campos que não são produzidos pelo RADAR permanecem em branco.
 
 ## Regra de inclusão
 
 - A planilha lista as escolas disponíveis no estado atual, ordenadas por designação.
+- Os programas reais são agrupados nas contas Básico, Qualidade e Equidade.
 - Para cada escola, são preenchidos apenas programas vinculados e consolidados na competência selecionada.
 - Ausência de consolidação não impede a inclusão da escola; as células documentais correspondentes permanecem vazias.
+- Quando mais de um programa alimenta a mesma conta, `NÃO` prevalece sobre `SIM`, e `SIM` prevalece sobre `NÃO SE APLICA`.
 
 ## Arquitetura
 
-Um módulo de domínio monta o modelo mensal. Um renderizador dedicado baseado em ExcelJS cria a única aba. A integração existente apenas adiciona o botão, controla seu estado e dispara o download. O build da Vercel copia o bundle de navegador do ExcelJS para `dist/vendor/exceljs.min.js`; o ambiente local usa o pacote instalado em `node_modules` como fallback.
+Um módulo de domínio monta o modelo mensal. Um renderizador dedicado reutiliza o motor OOXML/ZIP já empregado e auditado pelo Excel institucional do RADAR, criando a única aba sem biblioteca ou bundle adicional. A integração existente apenas adiciona o botão, controla seu estado e dispara o download.
 
 ## Tratamento de erros
 
-A geração é bloqueada quando a competência é `TODAS` ou inválida, ExcelJS não está disponível ou não há escolas carregadas. A interface informa o problema sem acionar o Excel institucional atual como fallback.
+A geração é bloqueada quando a competência é `TODAS` ou inválida, o motor XLSX institucional não está disponível ou não há escolas carregadas. A interface informa o problema sem acionar o Excel institucional atual como fallback.
 
 ## Testes obrigatórios
 
@@ -39,10 +41,11 @@ A geração é bloqueada quando a competência é `TODAS` ou inválida, ExcelJS 
 - nome correto do arquivo e da aba;
 - apenas a competência selecionada;
 - escolas ordenadas por designação;
+- programas distribuídos nas contas corretas;
 - valores normalizados e campos indisponíveis em branco;
-- workbook com uma aba, autofiltro, painéis congelados e impressão;
+- pacote XLSX com uma aba, autofiltro, painéis congelados, validações e impressão;
 - regressão protegida para Excel atual e CSV;
-- build público contendo `vendor/exceljs.min.js`.
+- nenhuma dependência ou artefato externo adicional.
 
 ## Fora de escopo
 
