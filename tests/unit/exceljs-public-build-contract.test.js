@@ -17,17 +17,20 @@ function read(relativePath) {
 test('carregador publica ExcelJS antes do modelo e renderer SME', () => {
     const source = read('src/integration/load-excel-export.js');
 
-    assert.match(source, /vendor\/exceljs\.min\.js/);
-    assert.match(source, /node_modules\/exceljs\/dist\/exceljs\.min\.js/);
+    assert.match(source, /\/vendor\/exceljs\.min\.js/);
+    assert.match(source, /\/node_modules\/exceljs\/dist\/exceljs\.min\.js/);
     assert.ok(source.indexOf('await loadExcelJs()') < source.indexOf('for (const src of smeScripts)'));
     assert.ok(source.indexOf('excel-sme-export-model.js') < source.indexOf('excel-sme-monthly-renderer.js'));
     assert.ok(source.indexOf('excel-sme-monthly-renderer.js') < source.indexOf('excel-export-integration.js'));
 });
 
-test('build Vercel executa a cópia do bundle de navegador do ExcelJS', () => {
+test('build Vercel preserva o comando versionado e copia o bundle pelo builder oficial', () => {
     const packageJson = JSON.parse(read('package.json'));
+    const buildSource = read('scripts/build-vercel.mjs');
 
-    assert.match(packageJson.scripts['build:vercel'], /copy-exceljs-public\.mjs/);
+    assert.equal(packageJson.scripts['build:vercel'], 'node scripts/build-vercel.mjs');
+    assert.match(buildSource, /copyExcelJsBrowserBundle/);
+    assert.match(buildSource, /\.\/copy-exceljs-public\.mjs/);
     assert.match(packageJson.scripts.check, /excel-sme-export-model\.js/);
     assert.match(packageJson.scripts.check, /excel-sme-monthly-renderer\.js/);
     assert.match(packageJson.scripts.check, /copy-exceljs-public\.mjs/);
