@@ -1,6 +1,82 @@
 (function installRadarAuthGate(root, factory) {
     'use strict';
 
+    const NAVIGATION_SCRIPTS = Object.freeze([
+        '/src/integration/navigation-routes.js',
+        '/src/integration/navigation-policy.js',
+        '/src/integration/navigation-bootstrap.js',
+        '/src/integration/navigation-history.js'
+    ]);
+
+    function loadScriptOnce(document, src) {
+        const existing = Array.from(document.scripts || []).find(script => (
+            script.dataset?.radarNavigationScript === src
+            || script.getAttribute?.('src') === src
+        ));
+        if (existing?.dataset?.radarLoaded === 'true') return Promise.resolve(existing);
+        if (existing) {
+            return new Promise((resolve, reject) => {
+                existing.addEventListener('load', () => resolve(existing), { once: true });
+                existing.addEventListener('error', () => reject(new Error(`Falha ao carregar ${src}.`)), { once: true });
+            });
+        }
+
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.async = false;
+            script.dataset.radarNavigationScript = src;
+            script.addEventListener('load', () => {
+                script.dataset.radarLoaded = 'true';
+                resolve(script);
+            }, { once: true });
+            script.addEventListener('error', () => reject(new Error(`Falha ao carregar ${src}.`)), { once: true });
+            document.head.appendChild(script);
+        });
+    }
+
+    function waitForAuthorizedData(root) {
+        return new Promise(resolve => {
+            const startedAt = Date.now();
+            const tryApply = () => {
+                const remoteEnabled = root.RADAR_PDDE_CONFIG?.supabase?.connectionEnabled === true;
+                const dataReady = root.RadarDataContext?.ready === true;
+                const authReady = !remoteEnabled || Boolean(root.RadarAuthContext?.authorization);
+                const navigationReady = Boolean(
+                    root.RadarNavigationHistory
+                    && root.__radarNavigationHistoryInstalled
+                );
+                if (dataReady && authReady && navigationReady) {
+                    resolve(root.RadarNavigationHistory.applyPendingRoute(root));
+                    return true;
+                }
+                if (Date.now() - startedAt >= 30000) {
+                    resolve(false);
+                    return true;
+                }
+                return false;
+            };
+
+            if (tryApply()) return;
+            const interval = root.setInterval(() => {
+                if (tryApply()) root.clearInterval(interval);
+            }, 20);
+        });
+    }
+
+    function installNavigationModules(root) {
+        if (root.RadarNavigationReady) return root.RadarNavigationReady;
+        root.RadarNavigationReady = NAVIGATION_SCRIPTS.reduce(
+            (promise, src) => promise.then(() => loadScriptOnce(root.document, src)),
+            Promise.resolve()
+        ).then(() => waitForAuthorizedData(root)).catch(error => {
+            root.RADAR_LAST_NAVIGATION_ERROR = error;
+            console.error('Não foi possível inicializar as rotas internas do RADAR.', error);
+            return false;
+        });
+        return root.RadarNavigationReady;
+    }
+
     const api = factory();
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = api;
@@ -10,6 +86,7 @@
         if (root.document) {
             root.RadarAuthGate = new api.AuthGate({ root, document: root.document });
             root.RadarAuthGate.initialize();
+            installNavigationModules(root);
         }
     }
 }(typeof window !== 'undefined' ? window : globalThis, function createAuthGateApi() {
