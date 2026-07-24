@@ -146,3 +146,64 @@ test('usuário operacional recebe apenas o próprio perfil e não vê o seletor 
     assert.equal(switcher.attributes['aria-hidden'], 'true');
     assert.deepEqual(switcherStyles.get('display'), { value: 'none', priority: 'important' });
 });
+
+test('mantém o formulário oculto enquanto restaura a sessão e só o libera quando o Auth exigir login', () => {
+    const handlers = new Map();
+    const form = {
+        hidden: false,
+        inert: false,
+        attributes: {},
+        addEventListener() {},
+        querySelector() { return null; },
+        setAttribute(name, value) { this.attributes[name] = value; },
+        removeAttribute(name) { delete this.attributes[name]; }
+    };
+    const app = { inert: false };
+    const description = {
+        textContent: 'Entre com sua conta autorizada para acessar os dados do RADAR PDDE.'
+    };
+    const status = { textContent: '', dataset: {} };
+    const email = { focus() {} };
+    const classes = new Set();
+    const document = {
+        body: { dataset: {} },
+        documentElement: {
+            classList: {
+                add(value) { classes.add(value); },
+                remove(value) { classes.delete(value); }
+            }
+        },
+        getElementById(id) {
+            if (id === 'radar-auth-form') return form;
+            if (id === 'app-layout') return app;
+            if (id === 'radar-auth-description') return description;
+            if (id === 'radar-auth-status') return status;
+            if (id === 'radar-auth-email') return email;
+            return null;
+        },
+        querySelector() { return null; }
+    };
+    const root = {
+        RADAR_PDDE_CONFIG: { supabase: { connectionEnabled: true } },
+        addEventListener(type, handler) { handlers.set(type, handler); },
+        requestAnimationFrame(callback) { callback(); }
+    };
+    const gate = new AuthGate({ root, document });
+
+    gate.initialize();
+
+    assert.equal(classes.has('radar-auth-required'), true);
+    assert.equal(app.inert, true);
+    assert.equal(form.hidden, true);
+    assert.equal(form.inert, true);
+    assert.equal(form.attributes['aria-hidden'], 'true');
+    assert.match(description.textContent, /verificando.*sessão/i);
+
+    handlers.get('radar:auth-required')({ detail: { message: 'Entre para continuar.' } });
+
+    assert.equal(form.hidden, false);
+    assert.equal(form.inert, false);
+    assert.equal(form.attributes['aria-hidden'], 'false');
+    assert.match(description.textContent, /entre com sua conta autorizada/i);
+    assert.equal(status.textContent, 'Entre para continuar.');
+});
