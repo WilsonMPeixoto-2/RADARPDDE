@@ -62,7 +62,7 @@ Essa regra evita apresentar uma conta como regular quando uma das ações vincul
 
 ## Apresentação
 
-O renderer ExcelJS cria diretamente uma única planilha com:
+O renderer mensal reutiliza `RadarExcelXlsxRenderer.createZip`, o mesmo motor OOXML/ZIP do relatório institucional, e cria diretamente uma única planilha com:
 
 - cabeçalho em Arial, com grupos cromáticos por conta;
 - bordas e linhas alternadas;
@@ -78,10 +78,10 @@ Não há fórmulas, relações entre abas ou consolidação anual.
 
 ## Runtime
 
-- Node e testes usam `require('exceljs')`.
-- O navegador carrega `/vendor/exceljs.min.js`.
-- O build da Vercel copia `node_modules/exceljs/dist/exceljs.min.js` para `dist/vendor/exceljs.min.js`.
-- O desenvolvimento local possui fallback para `/node_modules/exceljs/dist/exceljs.min.js`.
+- `excel-xlsx-renderer.js` é carregado antes do renderer mensal;
+- o modelo e o renderer SME são módulos UMD/CommonJS independentes;
+- não há CDN, bundle adicional ou nova dependência de produção;
+- o build Vercel e o contrato de dependências permanecem inalterados.
 
 ## Contratos protegidos
 
