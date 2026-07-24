@@ -1,5 +1,9 @@
 const { test, expect } = require('@playwright/test');
 
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 async function waitForRadarRoute(page, expected) {
   await page.waitForFunction(target => {
     const route = window.RadarNavigationHistory?.currentRoute?.(window);
@@ -27,6 +31,7 @@ test('rota de escola, aba de pendências, filtro e histórico permanecem estáve
   const schoolLink = await openCarteira(page);
   const schoolHref = await schoolLink.getAttribute('href');
   const schoolId = decodeURIComponent(schoolHref.split('/').filter(Boolean).at(-1));
+  const escapedSchoolId = escapeRegExp(schoolId);
 
   await schoolLink.click();
   await waitForRadarRoute(page, {
@@ -34,7 +39,7 @@ test('rota de escola, aba de pendências, filtro e histórico permanecem estáve
     param: schoolId,
     section: null
   });
-  await expect(page).toHaveURL(new RegExp(`/escolas/${schoolId.replaceAll('.', '\\.')}$`));
+  await expect(page).toHaveURL(new RegExp(`/escolas/${escapedSchoolId}$`));
   await expect(page.locator('#main-container .school-grid')).toBeVisible();
 
   const pendencyTab = page.locator('.tab-button[data-tab="pendencias"]');
@@ -46,7 +51,7 @@ test('rota de escola, aba de pendências, filtro e histórico permanecem estáve
     section: 'pendencias'
   });
   await expect(page).toHaveURL(
-    new RegExp(`/escolas/${schoolId.replaceAll('.', '\\.')}/pendencias$`)
+    new RegExp(`/escolas/${escapedSchoolId}/pendencias$`)
   );
   await expect(page.locator('#tab-pendencias')).toHaveClass(/active/);
 
@@ -68,7 +73,7 @@ test('rota de escola, aba de pendências, filtro e histórico permanecem estáve
     schoolFilter: schoolId
   });
   await expect(page).toHaveURL(
-    new RegExp(`/pendencias\\?escola=${schoolId.replaceAll('.', '\\.')}$`)
+    new RegExp(`/pendencias\\?escola=${escapedSchoolId}$`)
   );
   await expect(page.locator('[data-radar-pendency-school-filter="true"]')).toBeVisible();
 
@@ -101,7 +106,7 @@ test('link de escola abre em nova aba usando a própria URL', async ({ context, 
   ]);
   await newPage.waitForLoadState('domcontentloaded');
   await waitForRadarRoute(newPage, { view: 'prontuario' });
-  await expect(newPage).toHaveURL(new RegExp(`${schoolHref.replaceAll('.', '\\.')}$`));
+  await expect(newPage).toHaveURL(new RegExp(`${escapeRegExp(schoolHref)}$`));
   await expect(newPage.locator('#main-container .school-grid')).toBeVisible();
   await newPage.close();
 });
@@ -126,5 +131,5 @@ test('escola inexistente e telas proibidas recebem fallback autorizado', async (
   });
   await waitForRadarRoute(page, { view: 'sme-config' });
   await expect(page).toHaveURL(/\/gestao-sme$/);
-  await expect(page.getByRole('heading', { name: /Configurações Gerais SME/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Parâmetros da SME/i })).toBeVisible();
 });
