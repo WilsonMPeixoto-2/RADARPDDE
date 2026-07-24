@@ -17,7 +17,7 @@ module.exports = defineConfig({
     video: 'retain-on-failure'
   },
   webServer: {
-    command: 'npm run start',
+    command: 'node tests/support/spa-server.mjs',
     url: 'http://127.0.0.1:4175',
     reuseExistingServer: !process.env.CI,
     timeout: 120000
@@ -25,12 +25,12 @@ module.exports = defineConfig({
   projects: [
     {
       name: 'mobile-chromium',
-      testMatch: /(?:mobile-smoke|mobile-header-controls|data-error-ux)\.spec\.js/,
+      testMatch: /(?:mobile-smoke|mobile-header-controls|data-error-ux|canonical-routes)\.spec\.js/,
       use: { ...devices['Pixel 7'] }
     },
     {
       name: 'mobile-webkit',
-      testMatch: /(?:mobile-smoke|mobile-header-controls|data-error-ux)\.spec\.js/,
+      testMatch: /(?:mobile-smoke|mobile-header-controls|data-error-ux|canonical-routes)\.spec\.js/,
       use: { ...devices['iPhone 15'] }
     },
     {
