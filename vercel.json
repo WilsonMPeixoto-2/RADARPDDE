@@ -4,6 +4,17 @@
   "outputDirectory": "dist",
   "cleanUrls": true,
   "trailingSlash": false,
+  "rewrites": [
+    { "source": "/dashboard", "destination": "/index.html" },
+    { "source": "/carteira", "destination": "/index.html" },
+    { "source": "/competencias", "destination": "/index.html" },
+    { "source": "/pendencias", "destination": "/index.html" },
+    { "source": "/inventario", "destination": "/index.html" },
+    { "source": "/auditoria", "destination": "/index.html" },
+    { "source": "/equipe", "destination": "/index.html" },
+    { "source": "/gestao-sme", "destination": "/index.html" },
+    { "source": "/escolas/:path*", "destination": "/index.html" }
+  ],
   "git": {
     "deploymentEnabled": false
   }
