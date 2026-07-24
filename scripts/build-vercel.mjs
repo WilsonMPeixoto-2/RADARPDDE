@@ -10,7 +10,6 @@ import {
     buildRuntimeInput,
     renderRuntimeConfig
 } from './generate-runtime-config.mjs';
-import { copyExcelJsBrowserBundle } from './copy-exceljs-public.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -213,10 +212,6 @@ async function buildVercelArtifact({
     for (const entry of RUNTIME_ENTRIES) {
         await copyRuntimeEntry(resolvedRoot, resolvedOutput, entry);
     }
-    const excelJsBundle = await copyExcelJsBrowserBundle({
-        rootDir: resolvedRoot,
-        outputDir: resolvedOutput
-    });
 
     await fs.writeFile(
         path.join(resolvedOutput, 'config.runtime.js'),
@@ -234,8 +229,7 @@ async function buildVercelArtifact({
     return Object.freeze({
         outputDir: resolvedOutput,
         runtimeInput,
-        manifest,
-        excelJsBundle
+        manifest
     });
 }
 
@@ -262,8 +256,7 @@ async function main() {
     console.log(
         `Artefato Vercel gerado em ${relativeOutput}: `
         + `${result.manifest.dataMode} / repositório Supabase `
-        + `${result.manifest.supabaseRepositoryEnabled ? 'habilitado' : 'desabilitado'}; `
-        + `ExcelJS ${result.excelJsBundle.size} bytes.`
+        + `${result.manifest.supabaseRepositoryEnabled ? 'habilitado' : 'desabilitado'}.`
     );
 }
 
