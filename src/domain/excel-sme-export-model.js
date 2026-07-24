@@ -5,7 +5,7 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, function () {
     'use strict';
 
-    const VERSION = '1.0.0';
+    const VERSION = '1.1.0';
     const DOCUMENT_KEYS = Object.freeze([
         'extCC',
         'extINV',
@@ -27,6 +27,18 @@
         'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'
     ]);
     const PROGRAM_KEYS = Object.freeze(['BASIC', 'QUALIDADE', 'EQUIDADE']);
+    const ACCOUNT_PROGRAM_IDS = Object.freeze({
+        BASIC: Object.freeze(['BASIC']),
+        QUALIDADE: Object.freeze([
+            'CONECTADA',
+            'PROEC',
+            'ED_FAMILIA',
+            'ADOLESCENCIAS',
+            'LEITURA',
+            'TEMPO_APRENDER'
+        ]),
+        EQUIDADE: Object.freeze(['RECURSOS'])
+    });
 
     function text(value) {
         return value == null ? '' : String(value).trim();
@@ -65,6 +77,10 @@
     }
 
     function resolveProgramKey(program = {}) {
+        const id = normalizeToken(program.id).replace(/\s+/g, '_');
+        for (const programKey of PROGRAM_KEYS) {
+            if (ACCOUNT_PROGRAM_IDS[programKey].includes(id)) return programKey;
+        }
         const token = normalizeToken([
             program.id,
             program.name,
@@ -74,8 +90,12 @@
             program.desc
         ].filter(Boolean).join(' '));
         if (/\b(BASIC|BASICO)\b/.test(token)) return 'BASIC';
-        if (/\bQUALIDADE\b/.test(token)) return 'QUALIDADE';
-        if (/\bEQUIDADE\b/.test(token)) return 'EQUIDADE';
+        if (/\b(EQUIDADE|SALA DE RECURSOS|RECURSOS MULTIFUNCIONAIS|DIVERSIDADES|AGUA E ESGOTAMENTO)\b/.test(token)) {
+            return 'EQUIDADE';
+        }
+        if (/\b(QUALIDADE|CONECTADA|ESCOLA E COMUNIDADE|PROEC|LEITURA|ADOLESCENCIAS|TEMPO DE APRENDER|EDUCACAO E FAMILIA)\b/.test(token)) {
+            return 'QUALIDADE';
+        }
         return '';
     }
 
@@ -85,6 +105,14 @@
         if (token === 'NAO') return 'NÃO';
         if (['NAO SE APLICA', 'N A', 'NA'].includes(token)) return 'NÃO SE APLICA';
         return '';
+    }
+
+    function aggregateSmeValues(values = []) {
+        const normalized = values.map(normalizeSmeValue).filter(Boolean);
+        if (!normalized.length) return '';
+        if (normalized.includes('NÃO')) return 'NÃO';
+        if (normalized.includes('SIM')) return 'SIM';
+        return 'NÃO SE APLICA';
     }
 
     function designationSortKey(value) {
@@ -135,39 +163,36 @@
     }
 
     function findProgramIdsByKey(programs = []) {
-        const map = new Map(PROGRAM_KEYS.map(key => [key, []]));
+        const map = new Map(PROGRAM_KEYS.map(key => [key, new Set(ACCOUNT_PROGRAM_IDS[key])]));
         programs.forEach(program => {
             const key = resolveProgramKey(program);
-            if (key) map.get(key).push(String(program.id));
+            if (key) map.get(key).add(String(program.id));
         });
-        return map;
+        return new Map([...map.entries()].map(([key, ids]) => [key, [...ids]]));
     }
 
-    function findVerification(state, school, competenceKey, programKey, programIdsByKey) {
+    function findConsolidatedVerifications(state, school, competenceKey, programKey, programIdsByKey) {
         const schoolVerifications = state.verificacoes?.[school.id] || {};
         const linkedIds = Array.isArray(school.programasIds)
             ? school.programasIds.map(String)
             : [];
         const candidates = programIdsByKey.get(programKey) || [];
-        const orderedCandidates = [
-            ...linkedIds.filter(id => candidates.includes(id)),
-            ...candidates.filter(id => !linkedIds.includes(id))
-        ];
-        for (const programId of orderedCandidates) {
-            const verification = schoolVerifications[`${competenceKey}_${programId}`];
-            if (verification) return verification;
-        }
-        return null;
+        const eligibleIds = linkedIds.length
+            ? candidates.filter(id => linkedIds.includes(id))
+            : candidates;
+        return eligibleIds
+            .map(programId => ({
+                programId,
+                verification: schoolVerifications[`${competenceKey}_${programId}`]
+            }))
+            .filter(item => item.verification && text(item.verification.resultadoBonif));
     }
 
-    function buildProgramValues(verification) {
-        if (!verification || !text(verification.resultadoBonif)) {
-            return Object.freeze(Object.fromEntries(DOCUMENT_KEYS.map(key => [key, ''])));
-        }
-        const bonification = verification.bonificacao || {};
-        return Object.freeze(Object.fromEntries(
-            DOCUMENT_KEYS.map(key => [key, normalizeSmeValue(bonification[key])])
-        ));
+    function buildProgramValues(items = []) {
+        return Object.freeze(Object.fromEntries(DOCUMENT_KEYS.map(key => [
+            key,
+            aggregateSmeValues(items.map(item => item.verification?.bonificacao?.[key]))
+        ])));
     }
 
     function buildSmeMonthlyModel(input = {}) {
@@ -196,9 +221,13 @@
         ));
 
         const rows = schools.map((school, index) => {
+            const sourcePrograms = Object.fromEntries(PROGRAM_KEYS.map(programKey => [
+                programKey,
+                findConsolidatedVerifications(state, school, competence.key, programKey, programIdsByKey)
+            ]));
             const valuesByProgram = Object.fromEntries(PROGRAM_KEYS.map(programKey => [
                 programKey,
-                buildProgramValues(findVerification(state, school, competence.key, programKey, programIdsByKey))
+                buildProgramValues(sourcePrograms[programKey])
             ]));
             const row = {
                 order: index + 1,
@@ -208,7 +237,11 @@
                 deliveryDate: '',
                 correctionDate: '',
                 opinion: '',
-                notes: ''
+                notes: '',
+                sourcePrograms: Object.freeze(Object.fromEntries(PROGRAM_KEYS.map(programKey => [
+                    programKey,
+                    Object.freeze(sourcePrograms[programKey].map(item => item.programId))
+                ])))
             };
             PROGRAM_KEYS.forEach(programKey => {
                 DOCUMENT_KEYS.forEach(documentKey => {
@@ -238,11 +271,13 @@
     }
 
     return Object.freeze({
+        ACCOUNT_PROGRAM_IDS,
         DOCUMENT_KEYS,
         DOCUMENT_LABELS,
         MONTH_NAMES,
         PROGRAM_KEYS,
         VERSION,
+        aggregateSmeValues,
         buildColumns,
         buildSmeMonthlyModel,
         designationSortKey,
