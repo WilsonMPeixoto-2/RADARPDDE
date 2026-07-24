@@ -5,14 +5,14 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/dashboard", "destination": "/index.html" },
-    { "source": "/carteira", "destination": "/index.html" },
-    { "source": "/competencias", "destination": "/index.html" },
-    { "source": "/pendencias", "destination": "/index.html" },
-    { "source": "/inventario", "destination": "/index.html" },
-    { "source": "/auditoria", "destination": "/index.html" },
-    { "source": "/equipe", "destination": "/index.html" },
-    { "source": "/gestao-sme", "destination": "/index.html" },
+    { "source": "/dashboard", "destination": "/" },
+    { "source": "/carteira", "destination": "/" },
+    { "source": "/competencias", "destination": "/" },
+    { "source": "/pendencias", "destination": "/" },
+    { "source": "/inventario", "destination": "/" },
+    { "source": "/auditoria", "destination": "/" },
+    { "source": "/equipe", "destination": "/" },
+    { "source": "/gestao-sme", "destination": "/" },
     { "source": "/escolas/src/:path*", "destination": "/src/:path*" },
     { "source": "/escolas/vendor/:path*", "destination": "/vendor/:path*" },
     { "source": "/escolas/styles.css", "destination": "/styles.css" },
@@ -25,7 +25,7 @@
     { "source": "/escolas/:schoolId/app.js", "destination": "/app.js" },
     { "source": "/escolas/:schoolId/config.js", "destination": "/config.js" },
     { "source": "/escolas/:schoolId/config.runtime.js", "destination": "/config.runtime.js" },
-    { "source": "/escolas/:path*", "destination": "/index.html" }
+    { "source": "/escolas/:path*", "destination": "/" }
   ],
   "git": {
     "deploymentEnabled": false
