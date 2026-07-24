@@ -13,6 +13,12 @@
     { "source": "/auditoria", "destination": "/index.html" },
     { "source": "/equipe", "destination": "/index.html" },
     { "source": "/gestao-sme", "destination": "/index.html" },
+    { "source": "/escolas/:schoolId/src/:path*", "destination": "/src/:path*" },
+    { "source": "/escolas/:schoolId/vendor/:path*", "destination": "/vendor/:path*" },
+    { "source": "/escolas/:schoolId/styles.css", "destination": "/styles.css" },
+    { "source": "/escolas/:schoolId/app.js", "destination": "/app.js" },
+    { "source": "/escolas/:schoolId/config.js", "destination": "/config.js" },
+    { "source": "/escolas/:schoolId/config.runtime.js", "destination": "/config.runtime.js" },
     { "source": "/escolas/:path*", "destination": "/index.html" }
   ],
   "git": {
