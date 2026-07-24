@@ -39,6 +39,9 @@ test.describe('ações institucionais de geração do Excel', () => {
     await expect(csvButton).toBeVisible();
     await expect(csvButton).toHaveClass(/btn-secondary/);
 
-    await expect.poll(() => page.evaluate(() => Boolean(window.ExcelJS?.Workbook))).toBe(true);
+    await expect.poll(() => page.evaluate(() => Boolean(
+      window.RadarExcelXlsxRenderer?.createZip
+      && window.RadarExcelSmeMonthlyRenderer?.renderWorkbook
+    ))).toBe(true);
   });
 });
