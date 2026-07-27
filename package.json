@@ -71,7 +71,7 @@
     "esbuild": "0.28.1",
     "eslint": "10.7.0",
     "http-server": "14.1.1",
-    "prettier": "3.9.5",
+    "prettier": "3.9.6",
     "supabase": "2.109.1",
     "typescript": "7.0.2"
   },
