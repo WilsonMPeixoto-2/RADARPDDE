@@ -1,0 +1,31 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "app.js",
+    "config.js",
+    "config.runtime.js",
+    "eslint.config.js",
+    "lighthouserc.cjs",
+    "playwright*.config.js",
+    "scripts/**/*.{js,mjs}",
+    "src/vendor/*-entry.js",
+    "supabase/functions/**/*.{ts,mjs}",
+    "tests/**/*.{js,mjs}"
+  ],
+  "project": [
+    "*.{js,cjs}",
+    "scripts/**/*.{js,mjs}",
+    "src/**/*.js",
+    "supabase/functions/**/*.{ts,mjs}",
+    "tests/**/*.{js,mjs}"
+  ],
+  "ignore": [
+    "artifacts/**",
+    "dist/**",
+    "node_modules/**",
+    "playwright-report/**",
+    "test-results/**",
+    "vendor/**",
+    "src/types/database.types.ts"
+  ]
+}
