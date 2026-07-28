@@ -10,41 +10,36 @@ O valor persistido utiliza exclusivamente:
 YYYY-MM
 ```
 
-Exemplo:
+Exemplo: `2026-08`.
 
-```text
-2026-05
-```
-
-A apresentação para o usuário não é persistida. Ela é derivada pelo módulo `src/domain/competencia.js`.
+A apresentação para o usuário não é persistida. Ela é derivada dos módulos de domínio.
 
 ## Formatos disponíveis
 
 | Identificador | Exemplo | Uso previsto |
 |---|---|---|
-| `display` | `Maio/2026` | títulos, cartões e indicadores |
-| `numeric` | `05/2026` | relatórios compactos |
-| `long` | `Maio de 2026` | textos corridos |
-| `iso` | `2026-05` | persistência e intercâmbio |
-| `filename` | `2026-05` | nomes de arquivos legíveis |
-| `compactFilename` | `2026_05` | nomes sem hífen |
+| `display` | `Agosto/2026` | títulos, cartões e indicadores |
+| `numeric` | `08/2026` | relatórios compactos |
+| `long` | `Agosto de 2026` | textos corridos |
+| `iso` | `2026-08` | persistência e intercâmbio |
+| `filename` | `2026-08` | nomes de arquivos legíveis |
+| `compactFilename` | `2026_08` | nomes sem hífen |
 
 ## Chaves compostas legadas
 
-O adaptador legado ainda representa verificações no formato:
+O adaptador de compatibilidade ainda representa verificações no formato:
 
 ```text
-2026-05_BASIC
+2026-08_BASIC
 ```
 
-O domínio separa:
+O domínio separa competência e programa. No modelo relacional Supabase, esses valores são campos e relacionamentos distintos. A chave composta não deve orientar novas tabelas.
 
-- competência: `2026-05`;
-- programa/contexto: `BASIC`.
+## Componentes do domínio
 
-No modelo relacional Supabase, competência e programa são campos/relacionamentos distintos. A chave composta permanece somente na camada de compatibilidade do estado legado e não deve orientar novas tabelas.
+### Formatação e comparação
 
-## API de domínio
+`src/domain/competencia.js` fornece:
 
 ```javascript
 RadarCompetencia.isValidCompetenciaKey(value);
@@ -56,70 +51,9 @@ RadarCompetencia.splitCompetenciaContext(value);
 RadarCompetencia.formatCompetenciaContext(value, options);
 ```
 
-O módulo funciona no navegador e no Node.js.
+### Contexto mensal global
 
-## Estado operacional em 28/07/2026
-
-O Supabase contém as 12 competências do exercício de 2026, de `2026-01` a `2026-12`.
-
-A aplicação ainda possui limitação composta:
-
-- `activeCompetenciaKey` inicializada em `2026-05` no `app.js`;
-- `app_config.closing_competence = 2026-05`;
-- tela mensal filtrando `key <= closing_competence`;
-- ausência de seletor mensal global acionável no header.
-
-Portanto, os meses posteriores existem no banco, mas não estão integralmente operacionalizados no frontend.
-
-## Decisões vigentes
-
-### Uma competência global
-
-A aplicação deve manter uma única competência ativa para:
-
-- Dashboard;
-- Carteira;
-- Competências;
-- Prontuário;
-- Pendências e alertas;
-- timeline;
-- exportações.
-
-Controles locais não podem criar seleções concorrentes.
-
-### Conceitos distintos
-
-Não confundir:
-
-- **existente:** registro persistido;
-- **planejada:** cadastrada, mas não liberada para lançamento;
-- **disponível:** selecionável e operacional;
-- **fechada:** preservada para consulta e conforme regras de alteração.
-
-`closing_competence` não deve ser usado como filtro genérico para ocultar competências existentes.
-
-### Inicialização
-
-A seleção inicial deve seguir:
-
-1. seleção de sessão válida;
-2. competência de fechamento válida;
-3. competência disponível mais recente;
-4. erro explícito quando não houver competência válida.
-
-Constante mensal fixa no frontend é proibida.
-
-### Persistência e navegação
-
-- persistir apenas `YYYY-MM`;
-- preservar a seleção durante navegação, retorno e recarga da sessão;
-- transportar a competência em drill-downs e filtros;
-- atualizar todas as projeções por evento único;
-- exportações devem usar a mesma chave ativa exibida na interface.
-
-## Contexto global planejado
-
-O plano de oficialização prevê módulo puro:
+`src/domain/competence-context.js` fornece uma fonte única de estado mensal:
 
 ```javascript
 RadarCompetenceContext.initialize({
@@ -131,39 +65,92 @@ RadarCompetenceContext.initialize({
 });
 
 RadarCompetenceContext.getState();
+// {
+//   exercise: '2026',
+//   activeKey: '2026-08',
+//   availableKeys: ['2026-01', ..., '2026-12'],
+//   closingKey: '2026-05'
+// }
+
 RadarCompetenceContext.select(key, options);
+RadarCompetenceContext.selectExercise(exercise, options);
+RadarCompetenceContext.replaceConfiguration(nextState);
 RadarCompetenceContext.subscribe(listener);
 RadarCompetenceContext.getAvailableForExercise(exercise);
 ```
 
-O módulo ainda não existe na `main` em 28/07/2026. Este trecho registra o contrato aprovado para a próxima implementação, não uma funcionalidade já concluída.
+O módulo funciona no navegador e no Node.js e não depende de DOM.
 
-## Decisões que não pertencem ao domínio de formatação
+### Integração visual
 
-`src/domain/competencia.js` não determina:
+`src/integration/global-competence-selector.js`:
+
+- transforma o indicador passivo do header em seletor mensal acessível;
+- utiliza `RadarCompetenceContext` como única fonte de seleção;
+- sincroniza exercício e competência;
+- preserva a competência em `localStorage` durante a sessão e a recarga;
+- atualiza a superfície ativa por evento único;
+- remove o seletor local concorrente da página mensal;
+- mantém compatibilidade com os pontos de entrada legados;
+- aguarda a conclusão do bootstrap remoto antes de assumir o estado mensal.
+
+O carregamento ocorre por `src/integration/exercise-management.js`, preservando a ordem de bootstrap existente.
+
+## Regras de inicialização
+
+A seleção inicial segue esta ordem:
+
+1. competência persistida da sessão, quando existente no conjunto canônico;
+2. competência inicial explicitamente fornecida e pertencente ao exercício resolvido;
+3. `closing_competence`, quando válida para o exercício;
+4. competência cronologicamente mais recente do exercício;
+5. erro explícito quando não houver competência válida.
+
+O exercício inicial é derivado da competência persistida, da competência carregada ou do fechamento, antes de recorrer ao valor inicial da aplicação. Isso evita retornar indevidamente a 2026 após recarregar um exercício posterior.
+
+## Competências de 2026
+
+O Supabase contém `2026-01` a `2026-12`. O contexto global apresenta as 12 competências do exercício aos perfis autorizados.
+
+O PR de contexto global não altera banco ou schema. A configuração de Production permanece com `closing_competence = 2026-05` até a publicação controlada do frontend. Na mesma janela de ativação, o fechamento operacional será alterado para `2026-12` pelo contrato transacional e auditado existente.
+
+Não criar `operational_status` ou migration adicional sem requisito comprovado que exija distinguir estados além das datas, `closed_at` e `closing_competence` já existentes.
+
+## Persistência e navegação
+
+- persistir somente a chave `YYYY-MM`;
+- não persistir rótulo formatado;
+- preservar a seleção ao navegar, trocar perfil, voltar e recarregar;
+- transportar a mesma competência em drill-downs, prontuário, alertas e exportações;
+- não manter seletores mensais independentes por tela;
+- funções de domínio devem receber `competenceKey` explicitamente sempre que possível.
+
+## Responsabilidades separadas
+
+`src/domain/competencia.js` e `src/domain/competence-context.js` não determinam:
 
 - escopo da escola;
-- abertura ou fechamento operacional;
 - aptidão ou inaptidão;
-- permissões de alteração;
-- persistência;
-- regras de programa.
+- autorização de escrita;
+- regras dos programas;
+- resultado técnico de documentos;
+- abertura ou resolução de pendências.
 
-Essas decisões pertencem ao contexto de competência, serviços, configuração e políticas, com testes próprios.
+Essas decisões pertencem aos serviços, políticas de acesso, configurações e domínios específicos.
 
-## Testes obrigatórios
+## Cobertura obrigatória
 
-A evolução deve cobrir:
+O contrato deve permanecer coberto por:
 
-- formato e comparação;
-- seleção inicial;
-- rejeição de chave inexistente;
-- junho a dezembro de 2026;
-- seletor mensal em todas as superfícies aplicáveis;
-- preservação entre telas e History API;
-- consistência de Dashboard, Carteira, Prontuário e Pendências;
-- uso da mesma chave nos dois relatórios Excel;
-- desktop e mobile;
-- todos os perfis autorizados.
+- seleção inicial e persistida;
+- rejeição de chave inexistente ou de outro exercício;
+- troca de exercício;
+- janeiro a dezembro de 2026;
+- ausência de seletor mensal concorrente;
+- preservação entre telas, perfis e recarga;
+- restauração de exercício posterior;
+- header desktop, Android e iPhone;
+- compatibilidade com Supabase local, Auth e RLS;
+- uso da mesma chave nas exportações Excel.
 
-Plano detalhado: [`../superpowers/plans/2026-07-28-oficializacao-operacional-radar-pdde.md`](../superpowers/plans/2026-07-28-oficializacao-operacional-radar-pdde.md).
+Plano de continuidade: [`../superpowers/plans/2026-07-28-oficializacao-operacional-radar-pdde.md`](../superpowers/plans/2026-07-28-oficializacao-operacional-radar-pdde.md).
