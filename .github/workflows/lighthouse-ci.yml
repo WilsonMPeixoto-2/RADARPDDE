@@ -1,0 +1,113 @@
+name: Lighthouse CI
+
+on:
+  pull_request:
+    paths:
+      - 'app.js'
+      - 'config.js'
+      - 'config.runtime.js'
+      - 'index.html'
+      - 'styles.css'
+      - 'src/**'
+      - 'vendor/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'lighthouserc.cjs'
+      - '.github/workflows/lighthouse-ci.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'app.js'
+      - 'config.js'
+      - 'config.runtime.js'
+      - 'index.html'
+      - 'styles.css'
+      - 'src/**'
+      - 'vendor/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'lighthouserc.cjs'
+      - '.github/workflows/lighthouse-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lighthouse-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  baseline:
+    name: Baseline mobile e desktop
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    steps:
+      - name: Obter código
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+
+      - name: Instalar Chromium homologado pelo Playwright
+        run: npx --no-install playwright install --with-deps chromium
+
+      - name: Informar executável do Chromium ao Lighthouse
+        shell: bash
+        run: |
+          chrome_path="$(node -e "process.stdout.write(require('playwright').chromium.executablePath())")"
+          test -x "${chrome_path}"
+          printf 'CHROME_PATH=%s\n' "${chrome_path}" >> "${GITHUB_ENV}"
+
+      - name: Executar baseline mobile
+        id: lighthouse-mobile
+        continue-on-error: true
+        shell: bash
+        run: |
+          mkdir -p artifacts/lighthouse
+          set +e
+          LHCI_PROFILE=mobile npm run audit:lighthouse 2>&1 | tee artifacts/lighthouse/mobile.log
+          status=${PIPESTATUS[0]}
+          set -e
+          printf '{"exitCode":%s}\n' "${status}" > artifacts/lighthouse/mobile-exit.json
+          exit "${status}"
+
+      - name: Executar baseline desktop
+        id: lighthouse-desktop
+        continue-on-error: true
+        shell: bash
+        run: |
+          mkdir -p artifacts/lighthouse
+          set +e
+          LHCI_PROFILE=desktop npm run audit:lighthouse 2>&1 | tee artifacts/lighthouse/desktop.log
+          status=${PIPESTATUS[0]}
+          set -e
+          printf '{"exitCode":%s}\n' "${status}" > artifacts/lighthouse/desktop-exit.json
+          exit "${status}"
+
+      - name: Resumir resultados sem bloquear a adoção inicial
+        if: always()
+        shell: bash
+        run: |
+          echo "### Lighthouse CI" >> "${GITHUB_STEP_SUMMARY}"
+          echo "- Mobile: ${{ steps.lighthouse-mobile.outcome }}" >> "${GITHUB_STEP_SUMMARY}"
+          echo "- Desktop: ${{ steps.lighthouse-desktop.outcome }}" >> "${GITHUB_STEP_SUMMARY}"
+          echo "Os limiares desta primeira versão são informativos e os relatórios completos estão no artefato." >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Publicar relatórios Lighthouse
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: lighthouse-baseline-${{ github.run_id }}
+          path: artifacts/lighthouse
+          retention-days: 30
+          if-no-files-found: warn
