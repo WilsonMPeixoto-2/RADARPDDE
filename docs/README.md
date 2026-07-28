@@ -78,9 +78,9 @@ Orientações expressas do responsável definem intenção e prioridade, mas uma
 
 - [`runbooks/SUPABASE_CONNECTION.md`](runbooks/SUPABASE_CONNECTION.md) — configuração e validação da conexão;
 - [`runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`](runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md) — staging, promoção, reconciliação e rollback;
-- [`runbooks/EXCEL_CERTIFICATION.md`](runbooks/EXCEL_CERTIFICATION.md) — previsto no plano de oficialização;
-- [`runbooks/PRODUCTION_RELEASE.md`](runbooks/PRODUCTION_RELEASE.md) — previsto no plano de oficialização;
-- [`runbooks/USER_ACCEPTANCE_TEST.md`](runbooks/USER_ACCEPTANCE_TEST.md) — previsto no plano de oficialização.
+- `runbooks/EXCEL_CERTIFICATION.md` — criação prevista no plano de oficialização;
+- `runbooks/PRODUCTION_RELEASE.md` — criação prevista no plano de oficialização;
+- `runbooks/USER_ACCEPTANCE_TEST.md` — criação prevista no plano de oficialização.
 
 ## Produto e superfícies
 
