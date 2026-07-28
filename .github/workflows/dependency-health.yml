@@ -8,6 +8,7 @@ on:
       - knip.json
       - eslint.config.js
       - lighthouserc.cjs
+      - scripts/run-lighthouse-baseline.mjs
       - .github/dependabot.yml
       - .github/workflows/dependency-health.yml
   push:
@@ -19,6 +20,7 @@ on:
       - knip.json
       - eslint.config.js
       - lighthouserc.cjs
+      - scripts/run-lighthouse-baseline.mjs
       - .github/dependabot.yml
       - .github/workflows/dependency-health.yml
   schedule:
@@ -56,7 +58,6 @@ jobs:
 
       - name: Inventariar dependências e imports com Knip
         id: knip-audit
-        continue-on-error: true
         shell: bash
         run: |
           set +e
@@ -116,13 +117,14 @@ jobs:
       - name: Registrar árvore instalada
         run: npm ls --all --json > dependency-health/npm-tree.json
 
-      - name: Resumir auditoria gradual
+      - name: Resumir auditoria
         if: always()
         shell: bash
         run: |
           echo "### Saúde das dependências" >> "${GITHUB_STEP_SUMMARY}"
-          echo "- Knip: ${{ steps.knip-audit.outcome }} (informativo nesta fase)" >> "${GITHUB_STEP_SUMMARY}"
-          echo "- Vulnerabilidades altas e críticas continuam bloqueantes." >> "${GITHUB_STEP_SUMMARY}"
+          echo "- Knip: bloqueante para dependências não usadas, não declaradas ou não resolvidas." >> "${GITHUB_STEP_SUMMARY}"
+          echo "- Vulnerabilidades altas e críticas: bloqueantes." >> "${GITHUB_STEP_SUMMARY}"
+          echo "- Assinaturas, pacotes desatualizados, SBOM e árvore instalada: registrados como evidência." >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Publicar evidências de dependências
         if: always()
