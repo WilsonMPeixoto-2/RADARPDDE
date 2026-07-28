@@ -50,15 +50,16 @@
 ### Task 3: Auditoria de dependências com Knip
 
 **Files:**
-- Create: `knip.json`
+- Create: `knip.config.cjs`
 - Modify: `.github/workflows/dependency-health.yml`
 - Modify: `package.json`
 
 - [x] Configurar as entradas explícitas da arquitetura híbrida do RADAR.
-- [x] Evitar a execução da configuração Playwright que depende de ambiente remoto.
+- [x] Fornecer uma URL local somente durante a análise estática, preservando o fail-fast da homologação remota.
+- [x] Evitar a execução indevida de configurações Playwright dependentes de ambiente real.
 - [x] Tratar os protocolos `jsr:` e `npm:` da Edge Function sem ocultar pacotes reais.
 - [x] Limitar a análise a dependências, dependências não declaradas e imports não resolvidos.
-- [x] Tornar o Knip bloqueante no workflow semanal e nos PRs relacionados ao toolchain.
+- [x] Tornar o Knip bloqueante e rejeitar também mensagens de erro interno mesmo quando o processo retornar código zero.
 
 ### Task 4: Auditoria Lighthouse acionável
 
@@ -94,8 +95,8 @@
 
 - [x] Executar `npm ci` no Node.js 24.
 - [x] Executar `npm audit` com zero vulnerabilidades.
-- [ ] Executar `npm run test:readiness` após os últimos ajustes de valor real.
-- [ ] Executar a suíte Playwright completa após os últimos ajustes.
-- [ ] Executar o workflow de saúde das dependências com Knip bloqueante.
+- [ ] Executar `npm run test:readiness` após a configuração dinâmica final do Knip.
+- [ ] Executar a suíte Playwright completa após a configuração dinâmica final do Knip.
+- [ ] Confirmar relatório Knip limpo, sem achados nem erros internos mascarados.
 - [ ] Executar Lighthouse com pisos bloqueantes e resumo acionável.
 - [ ] Revisar o diff, integrar somente com todos os gates verdes e implantar a Edge Function atualizada.
