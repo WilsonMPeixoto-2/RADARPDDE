@@ -1,54 +1,55 @@
 # RADAR PDDE — Estado atual do projeto
 
 **Atualizado em:** 28 de julho de 2026  
-**HEAD remoto auditado:** `a6b1a4628c6f3024740d8d5a6f2cb7ba028f9ff9`  
-**Commit funcional publicado:** `6f165f61016261073eba4b56ce7a0afd0074a904`  
+**PR funcional em validação:** `#92 — feat: implementar competência mensal global`  
+**Commit funcional publicado em Production:** `6f165f61016261073eba4b56ce7a0afd0074a904`  
 **Natureza:** documento operacional e transitório
 
 ## 1. Regra de leitura
 
-Antes de iniciar qualquer tarefa:
+Antes de iniciar tarefa:
 
 1. confirmar o HEAD remoto da `main`;
 2. verificar PRs e workflows posteriores;
 3. confirmar o deployment Vercel correspondente;
-4. confirmar o estado real do projeto Supabase autorizado;
-5. confrontar documentação e artefatos gerados com código e ambientes;
+4. confirmar o estado do Supabase autorizado;
+5. confrontar documentação e artefatos com código e ambientes;
 6. atualizar este documento quando o estado mudar.
 
 Código, banco e deployment prevalecem sobre planos e relatórios históricos.
 
-## 2. Conclusão operacional
+## 2. Situação executiva
 
-A integração técnica entre frontend, Supabase Auth, PostgREST, RLS, PostgreSQL e Vercel Production está ativa.
+A integração entre frontend, Supabase Auth, PostgREST, RLS, PostgreSQL e Vercel Production está ativa. A governança da Gestão SME está aplicada e publicada.
 
-A entrega de governança da Gestão SME está:
+O ciclo de oficialização está em execução. O primeiro PR funcional introduz:
 
-- incorporada ao código;
-- coberta por política de capacidades e guardas de serviço/interface;
-- versionada em migration e pgTAP;
-- aplicada no projeto Production;
-- publicada no deployment funcional vigente;
-- sem erro de runtime observado no período consultado.
+- contexto mensal global sem dependência de DOM;
+- seletor mensal no header;
+- janeiro a dezembro de 2026 no controle global;
+- persistência da seleção durante navegação, troca de perfil e recarga;
+- sincronização entre competência e exercício;
+- eliminação do seletor local concorrente da tela mensal;
+- cobertura unitária, desktop, Android e iPhone;
+- compatibilidade com o bootstrap Supabase existente.
 
-O próximo estágio não é construir novamente a conexão. É **oficializar a operação**, concluindo competência global, jornadas reais, histórico, certificação Excel, navegação, segurança e homologação.
+O PR não altera schema, migrations ou dados. Production permanece no deployment funcional anterior até publicação controlada.
 
 ## 3. Estado por camada
 
 | Camada | Estado |
 |---|---|
-| GitHub | `main` em `a6b1a462...`; deployment automático novamente bloqueado após publicação controlada. |
-| Vercel | deployment Production do commit `6f165f610...` em estado `READY`. |
-| Runtime | `production`, `supabase-production`, ativação aprovada, repositório remoto habilitado. |
+| GitHub | PR #92 em validação; `main` ainda não recebeu o novo contexto mensal. |
+| Vercel Production | deployment do commit `6f165f610...` em estado `READY`. |
+| Runtime publicado | `production`, `supabase-production`, repositório remoto habilitado. |
 | Supabase | projeto `scnryinorqeucbfkioxo` ativo e saudável. |
-| Migrations | migration de governança SME aplicada; políticas observadas correspondem ao SQL versionado. |
-| Auth/RLS | autenticação e escopos ativos; acesso anônimo bloqueado. |
+| Auth/RLS | ativos; acesso anônimo bloqueado. |
 | Governança SME | concluída e publicada. |
-| Excel SME | implementado e corrigido; certificação integral ainda pendente. |
-| Competências | 12 registros em 2026; operação/interface ainda limitadas a maio. |
+| Competência global | implementada no PR #92; publicação pendente dos gates. |
+| Excel SME | implementado; certificação integral pendente. |
 | Liberação oficial | não declarada. |
 
-## 4. Inventário de dados em Production
+## 4. Dados observados em Production
 
 Data de corte: 28/07/2026.
 
@@ -61,7 +62,7 @@ Data de corte: 28/07/2026.
 | Competências | 12 |
 | Escolas | 164 |
 | Vínculos escola–programa | 431 |
-| Perfis de usuário ativos | 13 |
+| Perfis ativos | 13 |
 | Verificações | 6 |
 | Pendências | 3 |
 | Tentativas | 3 |
@@ -69,9 +70,9 @@ Data de corte: 28/07/2026.
 | Registros administrativos | 81 |
 | Bens | 2 |
 
-As quantidades são retrato operacional e podem mudar com o uso real.
+As quantidades são um retrato operacional e podem mudar com o uso real.
 
-## 5. Perfis ativos
+## 5. Perfis
 
 | Perfil | Quantidade |
 |---|---:|
@@ -81,197 +82,106 @@ As quantidades são retrato operacional e podem mudar com o uso real.
 | Gestão SME | 1 |
 | Administrador técnico | 1 |
 
-Não registrar neste documento nomes, e-mails ou identificadores pessoais desnecessários. O detalhamento de contas deve permanecer nos controles administrativos adequados.
+A carteira organiza responsabilidade, mas não impede colaboração entre Controladores da mesma CRE. A Gestão SME permanece somente leitura nas superfícies definidas pela ADR-022. O Inventário permanece restrito ao fluxo patrimonial autorizado.
 
-## 6. Controladores
+## 6. Competências 2026
 
-A carteira individual é responsabilidade principal, filtro inicial e mecanismo de organização. Não é barreira de acesso entre Controladores da mesma CRE.
-
-- cada Controlador consulta e opera escolas da própria CRE conforme a política vigente;
-- atuação fora da carteira não transfere responsabilidade;
-- autoria permanece vinculada ao executor;
-- outra CRE permanece bloqueada sem exceção autorizada;
-- alteração de carteira é evento administrativo explícito.
-
-## 7. Gestão SME
-
-A governança implementada estabelece:
-
-- visão mensal e prontuário com identificação e bonificação, sem análise técnica;
-- pendências em modo consulta, sem criação, alteração, envio, reanálise, resolução, cancelamento ou reabertura;
-- Registros Internos limitados às linhas cujo `actor_user_id` coincide com o `auth.uid()` autenticado;
-- proteção redundante em interface, serviços e RLS;
-- ausência de configuração operacional indevida.
-
-Essa frente está concluída. Novas mudanças de programas e regras não pertencem a essa entrega.
-
-## 8. Capital e Inventário
-
-O perfil de Inventário:
-
-- consulta escolas e bens da própria CRE conforme escopo;
-- cria e atualiza bens autorizados pela interface;
-- conclui inventariação de bem encaminhado;
-- não recebe escrita cadastral geral nas escolas;
-- não recebe bonificação, análise técnica, contatos ou configuração global;
-- não acessa escolas ou bens de outra CRE.
-
-A matriz real deve ser novamente exercitada no gate final de UAT.
-
-## 9. Contrato Vercel
-
-### Production
+O Supabase contém `2026-01` a `2026-12`. A configuração de Production permanece:
 
 ```text
-runtimeEnvironment: production
-dataMode: supabase-production
-supabaseRepositoryEnabled: true
-productionActivationApproved: true
+closing_competence = 2026-05
 ```
 
-O build utiliza somente URL e chave publicável do Supabase no bundle.
+No PR #92, as 12 competências passam a ser apresentadas pelo contexto global. A seleção inicial segue:
 
-### Preview
+1. chave persistida válida;
+2. competência ativa carregada;
+3. fechamento válido;
+4. competência mais recente do exercício.
 
-```text
-runtimeEnvironment: preview
-dataMode: supabase-preview
-supabaseRepositoryEnabled: true
-productionActivationApproved: false
-```
+O exercício é derivado da competência persistida ou carregada. Assim, um exercício futuro não retorna indevidamente a 2026 após recarga.
 
-Preview e Production são artefatos separados.
+### Ativação operacional
 
-### Rollback emergencial
+A alteração de `closing_competence` para `2026-12` ocorrerá somente após:
 
-```text
-RADAR_PRODUCTION_FORCE_LOCAL=true
-```
+1. aprovação de readiness, Supabase local, Playwright, Lighthouse e dependências;
+2. merge do PR #92;
+3. build e publicação controlados;
+4. smoke do deployment novo;
+5. atualização transacional e auditada do calendário;
+6. verificação pós-alteração em todos os perfis.
 
-A variável força novo build local sem apagar o banco. Sua remoção restaura o modo Supabase no deployment seguinte. O procedimento deve ser tratado como contingência, não modo normal.
+Não criar coluna ou migration de status mensal sem requisito adicional comprovado.
 
-## 10. Competências 2026
+## 7. Avaliações e pendências
 
-As competências `2026-01` a `2026-12` existem no banco.
-
-O bloqueio em maio decorre de três fatores combinados:
-
-1. `activeCompetenciaKey` é inicializada em `2026-05` no frontend;
-2. `app_config.closing_competence` permanece em `2026-05`;
-3. a tela mensal filtra as opções com `key <= closing_competence`.
-
-O módulo de exercício mescla os 12 meses, mas não recalcula a competência ativa durante a inicialização normal. O header possui indicador global e seletor anual, porém não possui seletor mensal global.
-
-**Próxima implementação prioritária:** contexto global de competência, disponibilização operacional de junho a dezembro e seletor mensal em todas as superfícies e perfis aplicáveis.
-
-## 11. Avaliações e pendências
-
-O banco já contém registros operacionais de verificação e do ciclo de pendências. A estrutura contempla:
+A estrutura atual contempla:
 
 - avaliação por escola, competência e programa;
 - bonificação e análise técnica independentes;
+- consolidação APTA/INAPTA;
 - pendências `Aberta`, `Aguardando reanálise`, `Resolvida` e `Cancelada`;
-- tentativas com resultado correto, incorreto, arquivo indisponível e estados correlatos;
-- contatos vinculados ou não a pendência;
-- autoria, auditoria e concorrência otimista.
+- tentativas, contatos, autoria, auditoria e concorrência otimista.
 
-A liberação oficial exige jornada automatizada completa, recarga de sessão e coerência entre Dashboard, Carteira, Competências, Prontuário, Pendências e relatórios.
+O próximo PR funcional certificará a jornada completa de avaliação e a coerência entre Dashboard, Carteira, Competências, Prontuário, persistência e nova sessão.
 
-## 12. Excel
+## 8. Excel
 
-O Excel SME mensal:
-
-- usa a competência ativa;
-- consolida Básico, Qualidade e Equidade;
-- possui 26 colunas e uma aba mensal;
-- normaliza `SIM`, `NÃO` e `NÃO SE APLICA`;
-- possui testes de OOXML, estilos, dados, filtro, congelamento e impressão;
-- removeu as validações que faziam o Microsoft Excel reparar o arquivo.
-
-Estado: funcional, mas ainda não certificado para correspondência absoluta em escala.
-
-Gate pendente:
+O Excel SME mensal está implementado e não possui o defeito conhecido de reparo. Permanecem pendentes:
 
 - massa representativa;
 - reconciliação Supabase → frontend → modelo → célula XLSX;
 - isolamento entre competências;
-- certificação dos dois modelos de relatório;
-- abertura no Microsoft Excel desktop sem reparo;
-- manifesto e hash de evidência.
+- correção do escopo mensal do Excel editorial;
+- certificação dos dois modelos;
+- abertura no Microsoft Excel desktop;
+- manifesto e hashes de evidência.
 
-## 13. Segurança operacional
+## 9. Segurança operacional
 
 Comprovado:
 
-- usuário anônimo não acessa dados institucionais;
-- o frontend recebe apenas chave publicável;
-- `service_role`, senha de banco e segredos não entram no bundle;
-- RLS restringe leituras e escritas por papel e escopo;
-- alterações geram auditoria;
+- acesso anônimo bloqueado;
+- somente chave publicável no frontend;
+- RLS por papel e escopo;
 - Edge Function protegida por JWT;
-- backup lógico pré-ativação permanece referência de restauração controlada.
+- alterações auditáveis;
+- backup lógico pré-ativação disponível.
 
-Pendente antes do release oficial:
+Bloqueadores antes do release oficial:
 
 - habilitar proteção contra senhas vazadas no Supabase Auth;
-- fixar a major operacional do Node em vez de permitir atualização automática dentro de faixa ampla;
+- fixar deliberadamente a major do Node;
 - validar backup e restauração em ambiente descartável;
-- executar gate remoto completo por perfil;
-- classificar o 403 observado em inserção de registro administrativo como bloqueio esperado ou falha de jornada.
+- executar gate remoto por perfil;
+- certificar os relatórios Excel;
+- concluir UAT.
 
-## 14. Qualidade e workflows
+## 10. Gates do PR #92
 
-Existem workflows para:
+Obrigatórios:
 
-- validação geral em PR e `main`;
-- readiness Supabase;
-- smoke de migrations;
-- Supabase local, pgTAP e lint SQL;
-- Auth/RLS e Playwright;
-- mobile;
+- sintaxe e lint sem aumento do débito existente;
+- testes unitários do contexto mensal;
+- readiness completo;
+- migration smoke;
+- Supabase local, pgTAP, lint SQL, Auth e RLS;
 - dependências;
-- deployments controlados.
+- Lighthouse;
+- Playwright desktop;
+- Playwright Android e iPhone;
+- preservação da seleção após recarga;
+- ausência de seletor mensal concorrente.
 
-Os novos requisitos precisam entrar nos gates:
+## 11. Ordem das próximas entregas
 
-- seletor mensal global;
-- preservação da competência;
-- jornada de avaliação completa;
-- timeline operacional;
-- paridade dos dois Excels;
-- navegação contextual;
-- matriz visual e acessível por perfil.
+1. concluir, publicar e ativar o contexto global de competência;
+2. certificar avaliação mensal e APTA/INAPTA;
+3. construir timeline cronológica da unidade;
+4. reconciliar e certificar os dois relatórios Excel;
+5. implementar navegação contextual e botões de voltar;
+6. executar polimento editorial e visual;
+7. fortalecer segurança, realizar UAT e decidir a liberação oficial.
 
-## 15. Documentação e artefatos
-
-Foram identificados como desatualizados antes deste alinhamento:
-
-- README principal;
-- índice de `docs/`;
-- este `CURRENT_STAGE.md`;
-- trechos de ambientes em `PROJECT_CONTEXT.md`;
-- ADRs que mantinham Production local como decisão vigente;
-- inventário técnico gerado com 24 migrations e versões anteriores.
-
-O inventário técnico em `docs/evidence/global-baseline/repository-inventory.json` é evidência histórica. Deve ser regenerado pelo script canônico; não deve ser corrigido manualmente.
-
-## 16. Ordem das próximas entregas
-
-1. contexto global de competência;
-2. liberação operacional de junho a dezembro;
-3. seletor mensal transversal;
-4. consistência entre projeções;
-5. certificação da avaliação mensal;
-6. timeline de contatos, pendências, tentativas e reanálises;
-7. reconciliação dos relatórios Excel;
-8. navegação contextual e botões de voltar;
-9. polimento editorial e visual;
-10. segurança, UAT e release oficial.
-
-Plano detalhado:
-
-[`superpowers/plans/2026-07-28-oficializacao-operacional-radar-pdde.md`](superpowers/plans/2026-07-28-oficializacao-operacional-radar-pdde.md)
-
-## 17. Escopo deliberadamente separado
-
-A remodelagem de programas, categorias, exercícios e unidades participantes permanece fora deste ciclo até especificação funcional própria. O ciclo atual preserva os programas e vínculos vigentes enquanto oficializa a operação estabelecida.
+Plano detalhado: [`superpowers/plans/2026-07-28-oficializacao-operacional-radar-pdde.md`](superpowers/plans/2026-07-28-oficializacao-operacional-radar-pdde.md).
