@@ -23,7 +23,7 @@
     "audit:functional:json": "node scripts/audit-functional-persistence.js --json",
     "audit:inventory": "node scripts/audit/generate-repository-inventory.mjs",
     "audit:lighthouse": "node scripts/run-lighthouse-baseline.mjs",
-    "analyze:unused": "knip --config knip.json --include dependencies,devDependencies,unlisted,unresolved",
+    "analyze:unused": "knip --config knip.config.cjs --include dependencies,devDependencies,unlisted,unresolved",
     "build:supabase-client": "node scripts/build-supabase-client.mjs",
     "generate:runtime-config": "node scripts/generate-runtime-config.mjs",
     "build:vercel": "node scripts/build-vercel.mjs",
