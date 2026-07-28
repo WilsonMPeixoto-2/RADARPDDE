@@ -2,9 +2,9 @@
 
 ## Objetivo
 
-Centralizar validação, comparação e apresentação das competências mensais do RADAR PDDE antes da integração com o Supabase.
+Centralizar validação, comparação, apresentação e navegação das competências mensais do RADAR PDDE.
 
-O valor persistido deve utilizar exclusivamente o padrão:
+O valor persistido utiliza exclusivamente:
 
 ```text
 YYYY-MM
@@ -16,35 +16,35 @@ Exemplo:
 2026-05
 ```
 
-A apresentação para o usuário não deve ser persistida. Ela deve ser derivada pelo módulo `src/domain/competencia.js`.
+A apresentação para o usuário não é persistida. Ela é derivada pelo módulo `src/domain/competencia.js`.
 
 ## Formatos disponíveis
 
 | Identificador | Exemplo | Uso previsto |
 |---|---|---|
-| `display` | `Maio/2026` | títulos, cards e indicadores |
+| `display` | `Maio/2026` | títulos, cartões e indicadores |
 | `numeric` | `05/2026` | relatórios compactos |
 | `long` | `Maio de 2026` | textos corridos |
 | `iso` | `2026-05` | persistência e intercâmbio |
 | `filename` | `2026-05` | nomes de arquivos legíveis |
-| `compactFilename` | `2026_05` | nomes de arquivos sem hífen |
+| `compactFilename` | `2026_05` | nomes sem hífen |
 
-## Chaves compostas existentes
+## Chaves compostas legadas
 
-O protótipo utiliza em alguns pontos uma chave composta no formato:
+O adaptador legado ainda representa verificações no formato:
 
 ```text
 2026-05_BASIC
 ```
 
-O módulo separa:
+O domínio separa:
 
 - competência: `2026-05`;
-- contexto/programa: `BASIC`.
+- programa/contexto: `BASIC`.
 
-A chave composta é aceita temporariamente para compatibilidade com o protótipo. No modelo relacional futuro, competência e programa deverão ser campos ou relacionamentos distintos.
+No modelo relacional Supabase, competência e programa são campos/relacionamentos distintos. A chave composta permanece somente na camada de compatibilidade do estado legado e não deve orientar novas tabelas.
 
-## API pública
+## API de domínio
 
 ```javascript
 RadarCompetencia.isValidCompetenciaKey(value);
@@ -56,48 +56,114 @@ RadarCompetencia.splitCompetenciaContext(value);
 RadarCompetencia.formatCompetenciaContext(value, options);
 ```
 
-O arquivo funciona tanto no navegador quanto no Node.js:
+O módulo funciona no navegador e no Node.js.
+
+## Estado operacional em 28/07/2026
+
+O Supabase contém as 12 competências do exercício de 2026, de `2026-01` a `2026-12`.
+
+A aplicação ainda possui limitação composta:
+
+- `activeCompetenciaKey` inicializada em `2026-05` no `app.js`;
+- `app_config.closing_competence = 2026-05`;
+- tela mensal filtrando `key <= closing_competence`;
+- ausência de seletor mensal global acionável no header.
+
+Portanto, os meses posteriores existem no banco, mas não estão integralmente operacionalizados no frontend.
+
+## Decisões vigentes
+
+### Uma competência global
+
+A aplicação deve manter uma única competência ativa para:
+
+- Dashboard;
+- Carteira;
+- Competências;
+- Prontuário;
+- Pendências e alertas;
+- timeline;
+- exportações.
+
+Controles locais não podem criar seleções concorrentes.
+
+### Conceitos distintos
+
+Não confundir:
+
+- **existente:** registro persistido;
+- **planejada:** cadastrada, mas não liberada para lançamento;
+- **disponível:** selecionável e operacional;
+- **fechada:** preservada para consulta e conforme regras de alteração.
+
+`closing_competence` não deve ser usado como filtro genérico para ocultar competências existentes.
+
+### Inicialização
+
+A seleção inicial deve seguir:
+
+1. seleção de sessão válida;
+2. competência de fechamento válida;
+3. competência disponível mais recente;
+4. erro explícito quando não houver competência válida.
+
+Constante mensal fixa no frontend é proibida.
+
+### Persistência e navegação
+
+- persistir apenas `YYYY-MM`;
+- preservar a seleção durante navegação, retorno e recarga da sessão;
+- transportar a competência em drill-downs e filtros;
+- atualizar todas as projeções por evento único;
+- exportações devem usar a mesma chave ativa exibida na interface.
+
+## Contexto global planejado
+
+O plano de oficialização prevê módulo puro:
 
 ```javascript
-const competencia = require('./src/domain/competencia.js');
+RadarCompetenceContext.initialize({
+  competences,
+  currentExercise,
+  closingCompetence,
+  initialCompetence,
+  storage
+});
+
+RadarCompetenceContext.getState();
+RadarCompetenceContext.select(key, options);
+RadarCompetenceContext.subscribe(listener);
+RadarCompetenceContext.getAvailableForExercise(exercise);
 ```
 
-ou, após inclusão antes de `app.js`:
+O módulo ainda não existe na `main` em 28/07/2026. Este trecho registra o contrato aprovado para a próxima implementação, não uma funcionalidade já concluída.
 
-```html
-<script src="src/domain/competencia.js"></script>
-<script src="app.js"></script>
-```
+## Decisões que não pertencem ao domínio de formatação
 
-## Plano de adoção no `app.js`
+`src/domain/competencia.js` não determina:
 
-A adoção deve ocorrer em uma etapa separada e revisável:
-
-1. carregar `src/domain/competencia.js` antes de `app.js`;
-2. substituir a função local `formatCompetenciaText` por um adaptador do módulo;
-3. substituir comparações textuais diretas por `compareCompetencias`;
-4. substituir montagem manual de mês e ano em alertas, relatórios e nomes de arquivo;
-5. executar pesquisa global por `activeCompetenciaKey`, `split('-')`, `replace(' ', '/')` e formatações equivalentes;
-6. manter a chave persistida em `YYYY-MM`;
-7. executar testes e validação visual das telas afetadas.
-
-## Decisões já consolidadas
-
-- formato persistido: `YYYY-MM`;
-- comparação: numérica por ano e mês;
-- intervalo: inclusivo;
-- exibição principal: `Mês/Ano`, por exemplo `Maio/2026`;
-- valores inválidos não são transformados silenciosamente em datas;
-- o modo estrito pode gerar erro explícito para validações de entrada.
-
-## Decisões que não pertencem a este módulo
-
-Este módulo não determina:
-
-- se uma escola está dentro ou fora do escopo;
-- quando uma competência é aberta ou encerrada;
-- situação de aptidão, inaptidão ou andamento;
+- escopo da escola;
+- abertura ou fechamento operacional;
+- aptidão ou inaptidão;
 - permissões de alteração;
-- regras de persistência.
+- persistência;
+- regras de programa.
 
-Essas decisões permanecem na camada de regras de negócio e deverão possuir testes próprios.
+Essas decisões pertencem ao contexto de competência, serviços, configuração e políticas, com testes próprios.
+
+## Testes obrigatórios
+
+A evolução deve cobrir:
+
+- formato e comparação;
+- seleção inicial;
+- rejeição de chave inexistente;
+- junho a dezembro de 2026;
+- seletor mensal em todas as superfícies aplicáveis;
+- preservação entre telas e History API;
+- consistência de Dashboard, Carteira, Prontuário e Pendências;
+- uso da mesma chave nos dois relatórios Excel;
+- desktop e mobile;
+- todos os perfis autorizados.
+
+Plano detalhado: [`../superpowers/plans/2026-07-28-oficializacao-operacional-radar-pdde.md`](../superpowers/plans/2026-07-28-oficializacao-operacional-radar-pdde.md).
