@@ -16,9 +16,14 @@
     if (typeof document === 'undefined') return;
 
     const initializeWhenReady = () => api.initialize();
-    if (document.readyState === 'complete') {
-        initializeWhenReady();
-    } else {
+    api.loadCompetenceExtensions()
+        .then(initializeWhenReady)
+        .catch(error => {
+            console.error('[RADAR PDDE] Não foi possível carregar o contexto global de competência.', error);
+            initializeWhenReady();
+        });
+
+    if (document.readyState !== 'complete') {
         root.addEventListener('load', initializeWhenReady, { once: true });
     }
 }(typeof window !== 'undefined' ? window : globalThis, function createExerciseManagementApi(root) {
@@ -82,6 +87,48 @@
             label: text(record.label) || generated.label,
             bonifPrazo: text(record.bonifPrazo || record.bonus_deadline) || generated.bonifPrazo
         };
+    }
+
+    function loadStylesheetOnce(href) {
+        if (typeof document === 'undefined') return;
+        if (document.querySelector(`link[data-radar-extension="${href}"]`)) return;
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = href;
+        link.dataset.radarExtension = href;
+        document.head.appendChild(link);
+    }
+
+    function loadScriptOnce(src) {
+        if (typeof document === 'undefined') return Promise.resolve();
+        const existing = document.querySelector(`script[data-radar-extension="${src}"]`);
+        if (existing) {
+            if (existing.dataset.radarLoaded === 'true') return Promise.resolve();
+            return new Promise((resolve, reject) => {
+                existing.addEventListener('load', resolve, { once: true });
+                existing.addEventListener('error', () => reject(new Error(`Falha ao carregar ${src}`)), { once: true });
+            });
+        }
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.async = false;
+            script.dataset.radarExtension = src;
+            script.addEventListener('load', () => {
+                script.dataset.radarLoaded = 'true';
+                resolve();
+            }, { once: true });
+            script.addEventListener('error', () => reject(new Error(`Falha ao carregar ${src}`)), { once: true });
+            document.head.appendChild(script);
+        });
+    }
+
+    async function loadCompetenceExtensions() {
+        if (typeof document === 'undefined') return false;
+        loadStylesheetOnce('src/styles/global-competence-selector.css');
+        await loadScriptOnce('src/domain/competence-context.js');
+        await loadScriptOnce('src/integration/global-competence-selector.js');
+        return true;
     }
 
     function getRuntimeCollections() {
@@ -174,13 +221,22 @@
         if (closing.startsWith(`${year}-`) && available.some(item => item.key === closing)) {
             return closing;
         }
-        return available[0]?.key || '';
+        return available[available.length - 1]?.key || '';
     }
 
     function changeExercise(value) {
         const year = normalizeYear(value);
         const { runtimeConfig } = getRuntimeCollections();
         if (!year || !runtimeConfig || !runtimeConfig.exercicios.includes(year)) return false;
+
+        if (root.RadarCompetenceContext?.isInitialized?.()) {
+            try {
+                root.RadarCompetenceContext.selectExercise(year, { source: 'exercise-management' });
+                return true;
+            } catch (error) {
+                return false;
+            }
+        }
 
         if (typeof currentExercise !== 'undefined') currentExercise = year;
         const competence = chooseCompetenceForExercise(year);
@@ -247,6 +303,11 @@
         }
 
         if (yearInput) yearInput.value = '';
+        const storageKey = root.RadarCompetenceContext?.STORAGE_KEY;
+        if (storageKey && result.initialCompetence) {
+            root.localStorage?.setItem(storageKey, result.initialCompetence);
+        }
+        root.RadarGlobalCompetenceSelector?.refreshContext?.({ source: 'exercise-created' });
         renderExerciseSelector();
         if (typeof renderSMEConfig === 'function') renderSMEConfig();
         if (typeof updateGlobalCompetenceIndicator === 'function') updateGlobalCompetenceIndicator();
@@ -274,6 +335,7 @@
         wrapSMEConfigRenderer();
         renderInitialCompetenceOptions();
         removeObsoleteOfficialChargeControl();
+        root.RadarGlobalCompetenceSelector?.install?.();
     }
 
     return Object.freeze({
@@ -282,6 +344,7 @@
         normalizeMonth,
         createCompetence,
         normalizeCompetence,
+        loadCompetenceExtensions,
         mergeConfiguredCompetences,
         renderExerciseSelector,
         renderInitialCompetenceOptions,

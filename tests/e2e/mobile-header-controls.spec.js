@@ -6,7 +6,14 @@ test('mantém competência, exercício e ações integralmente acessíveis no ca
 
   await page.goto('/');
   await expect(page.locator('#app-layout')).toBeVisible();
-  await expect(page.locator('.global-competence-badge')).toContainText('Competência global:');
+
+  const competenceSelect = page.locator('#global-competence-select');
+  await expect(competenceSelect).toBeVisible();
+  await expect(competenceSelect.locator('option')).toHaveCount(12);
+  await competenceSelect.selectOption('2026-08');
+  await expect(competenceSelect).toHaveValue('2026-08');
+  await expect(page.locator('#global-competence-label')).toContainText('Agosto');
+
   await expect(page.locator('#exercise-select')).toBeVisible();
   await expect(page.locator('#theme-toggle-btn')).toBeVisible();
   await expect(page.locator('#alerts-bell-container')).toBeVisible();
@@ -14,7 +21,8 @@ test('mantém competência, exercício e ações integralmente acessíveis no ca
 
   const geometry = await page.evaluate(() => {
     const actions = document.querySelector('.header-actions');
-    const badge = document.querySelector('.global-competence-badge');
+    const badge = document.querySelector('.global-competence-control');
+    const competence = document.querySelector('#global-competence-select');
     const exercise = document.querySelector('#exercise-select');
     const theme = document.querySelector('#theme-toggle-btn');
     const alerts = document.querySelector('#alerts-bell-container');
@@ -42,6 +50,7 @@ test('mantém competência, exercício e ações integralmente acessíveis no ca
         overflowX: getComputedStyle(actions).overflowX
       },
       badge: describe(badge),
+      competence: describe(competence),
       exercise: describe(exercise),
       theme: describe(theme),
       alerts: describe(alerts),
@@ -53,7 +62,7 @@ test('mantém competência, exercício e ações integralmente acessíveis no ca
   expect(geometry.actions.overflowX).not.toMatch(/auto|scroll/);
   expect(geometry.badge.scrollWidth).toBeLessThanOrEqual(geometry.badge.clientWidth + 1);
 
-  for (const control of ['badge', 'exercise', 'theme', 'alerts', 'profile']) {
+  for (const control of ['badge', 'competence', 'exercise', 'theme', 'alerts', 'profile']) {
     expect(geometry[control].visible, `${control} não está visível`).toBe(true);
     expect(geometry[control].withinViewport, `${control} está cortado fora da viewport`).toBe(true);
   }
