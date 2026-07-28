@@ -36,19 +36,20 @@ test('mantém scripts de segurança, dependências e desempenho como gates útei
 
     assert.match(packageJson.scripts['test:readiness'], /lint:security/);
     assert.match(packageJson.scripts['test:readiness'], /lint:e2e/);
-    assert.match(packageJson.scripts['analyze:unused'], /knip/);
+    assert.match(packageJson.scripts['analyze:unused'], /knip\.config\.cjs/);
     assert.match(packageJson.scripts['audit:lighthouse'], /run-lighthouse-baseline\.mjs/);
     assert.match(packageJson.scripts['lint:security'], /--max-warnings 42/);
 
     for (const relativePath of [
         'eslint.config.js',
-        'knip.json',
+        'knip.config.cjs',
         'lighthouserc.cjs',
         'scripts/run-lighthouse-baseline.mjs',
         '.github/workflows/lighthouse-ci.yml'
     ]) {
         assert.equal(fs.existsSync(path.join(ROOT, relativePath)), true, `${relativePath} deve existir`);
     }
+    assert.equal(fs.existsSync(path.join(ROOT, 'knip.json')), false);
 });
 
 test('alinha a Edge Function à versão estável fixada do Supabase JS', () => {
@@ -61,17 +62,32 @@ test('alinha a Edge Function à versão estável fixada do Supabase JS', () => {
 });
 
 test('configura Knip para analisar o projeto híbrido sem falsos positivos de runtime', () => {
-    const knip = readJson('knip.json');
+    const configPath = path.join(ROOT, 'knip.config.cjs');
+    const configSource = read('knip.config.cjs');
     const dependencyWorkflow = read('.github/workflows/dependency-health.yml');
+    const previousDeploymentUrl = process.env.RADAR_DEPLOYMENT_URL;
 
-    assert.deepEqual(knip.playwright?.config, []);
-    assert.deepEqual(knip.playwright?.entry, ['tests/e2e/**/*.spec.js']);
-    assert.ok(knip.ignoreDependencies.includes('jsr'));
-    assert.ok(knip.ignoreDependencies.includes('npm'));
-    assert.equal(knip.entry.includes('eslint.config.js'), false);
-    assert.match(dependencyWorkflow, /Inventariar dependências e imports com Knip/);
-    assert.doesNotMatch(dependencyWorkflow, /id: knip-audit\s+continue-on-error: true/);
-    assert.match(dependencyWorkflow, /Knip: bloqueante/);
+    delete process.env.RADAR_DEPLOYMENT_URL;
+    delete require.cache[require.resolve(configPath)];
+    const knip = require(configPath);
+
+    try {
+        assert.equal(process.env.RADAR_DEPLOYMENT_URL, 'http://127.0.0.1:4175');
+        assert.deepEqual(knip.playwright?.config, []);
+        assert.deepEqual(knip.playwright?.entry, ['tests/e2e/**/*.spec.js']);
+        assert.ok(knip.ignoreDependencies.includes('jsr'));
+        assert.ok(knip.ignoreDependencies.includes('npm'));
+        assert.equal(knip.entry.includes('eslint.config.js'), false);
+        assert.match(configSource, /RADAR_DEPLOYMENT_URL \|\|=/);
+        assert.match(dependencyWorkflow, /Inventariar dependências e imports com Knip/);
+        assert.doesNotMatch(dependencyWorkflow, /id: knip-audit\s+continue-on-error: true/);
+        assert.match(dependencyWorkflow, /Error loading/);
+        assert.match(dependencyWorkflow, /Knip: bloqueante/);
+    } finally {
+        if (previousDeploymentUrl === undefined) delete process.env.RADAR_DEPLOYMENT_URL;
+        else process.env.RADAR_DEPLOYMENT_URL = previousDeploymentUrl;
+        delete require.cache[require.resolve(configPath)];
+    }
 });
 
 test('Lighthouse mede métricas, oportunidades e bloqueia regressões graves', () => {
