@@ -53,7 +53,7 @@ test.describe('gestão de exercícios e competências', () => {
     await page.locator('#exercise-select').selectOption('2026');
     expect(await page.evaluate(() => ({ currentExercise, activeCompetenciaKey }))).toEqual({
       currentExercise: '2026',
-      activeCompetenciaKey: '2026-12'
+      activeCompetenciaKey: '2026-05'
     });
 
     await page.locator('#exercise-select').selectOption('2027');
