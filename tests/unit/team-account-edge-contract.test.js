@@ -5,10 +5,12 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
+const root = path.resolve(__dirname, '../..');
 const source = fs.readFileSync(
-    path.resolve(__dirname, '../../supabase/functions/team-account-management/index.ts'),
+    path.join(root, 'supabase/functions/team-account-management/index.ts'),
     'utf8'
 );
+const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 
 test('Edge Function concentra o ciclo administrativo de Auth fora do navegador', () => {
     assert.match(source, /inviteUserByEmail/);
@@ -42,7 +44,6 @@ test('respostas públicas não expõem causa administrativa detalhada', () => {
     assert.doesNotMatch(source, /console\.(?:log|error)\([^\n]*(?:secret|service_role|password|token)/i);
 });
 
-
 test('CORS exige origem configurada e nunca usa wildcard', () => {
     assert.match(source, /requiredEnv\("RADAR_ALLOWED_ORIGIN"\)/);
     assert.match(source, /requestOrigin !== allowedOrigin/);
@@ -52,6 +53,8 @@ test('CORS exige origem configurada e nunca usa wildcard', () => {
     assert.doesNotMatch(source, /Access-Control-Allow-Origin[\s\S]{0,80}\*/);
 });
 
-test('SDK da Edge Function está fixado na versão homologada', () => {
-    assert.match(source, /supabase-js@2\.110\.7/);
+test('SDK da Edge Function acompanha a versão homologada do projeto', () => {
+    const version = packageJson.devDependencies['@supabase/supabase-js'];
+    const escapedVersion = version.replaceAll('.', '\\.');
+    assert.match(source, new RegExp(`supabase-js@${escapedVersion}`));
 });

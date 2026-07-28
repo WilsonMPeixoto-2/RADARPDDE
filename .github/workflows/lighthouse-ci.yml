@@ -1,0 +1,172 @@
+name: Lighthouse CI
+
+on:
+  pull_request:
+    paths:
+      - 'app.js'
+      - 'config.js'
+      - 'config.runtime.js'
+      - 'index.html'
+      - 'styles.css'
+      - 'src/**'
+      - 'vendor/**'
+      - 'scripts/run-lighthouse-baseline.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'lighthouserc.cjs'
+      - '.github/workflows/lighthouse-ci.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'app.js'
+      - 'config.js'
+      - 'config.runtime.js'
+      - 'index.html'
+      - 'styles.css'
+      - 'src/**'
+      - 'vendor/**'
+      - 'scripts/run-lighthouse-baseline.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'lighthouserc.cjs'
+      - '.github/workflows/lighthouse-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lighthouse-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  baseline:
+    name: Baseline mobile e desktop
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    steps:
+      - name: Obter código
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+
+      - name: Instalar Chromium homologado pelo Playwright
+        run: npx --no-install playwright install --with-deps chromium
+
+      - name: Informar executável do Chromium ao Lighthouse
+        shell: bash
+        run: |
+          chrome_path="$(node -e "process.stdout.write(require('playwright').chromium.executablePath())")"
+          test -x "${chrome_path}"
+          printf 'CHROME_PATH=%s\n' "${chrome_path}" >> "${GITHUB_ENV}"
+
+      - name: Iniciar aplicação local para auditoria
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/lighthouse
+          npm run start > artifacts/lighthouse/server.log 2>&1 &
+          server_pid=$!
+          printf '%s\n' "${server_pid}" > artifacts/lighthouse/server.pid
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error http://127.0.0.1:4175/ > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat artifacts/lighthouse/server.log
+          exit 1
+
+      - name: Executar baseline mobile
+        id: lighthouse-mobile
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          LHCI_PROFILE=mobile npm run audit:lighthouse 2>&1 | tee artifacts/lighthouse/mobile.log
+          status=${PIPESTATUS[0]}
+          set -e
+          printf '{"exitCode":%s}\n' "${status}" > artifacts/lighthouse/mobile-exit.json
+          exit "${status}"
+
+      - name: Executar baseline desktop
+        id: lighthouse-desktop
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          LHCI_PROFILE=desktop npm run audit:lighthouse 2>&1 | tee artifacts/lighthouse/desktop.log
+          status=${PIPESTATUS[0]}
+          set -e
+          printf '{"exitCode":%s}\n' "${status}" > artifacts/lighthouse/desktop-exit.json
+          exit "${status}"
+
+      - name: Encerrar aplicação local
+        if: always()
+        shell: bash
+        run: |
+          if test -f artifacts/lighthouse/server.pid; then
+            kill "$(cat artifacts/lighthouse/server.pid)" 2>/dev/null || true
+          fi
+
+      - name: Publicar resumo acionável
+        if: always()
+        shell: bash
+        run: |
+          echo "# Auditoria Lighthouse" >> "${GITHUB_STEP_SUMMARY}"
+          for profile in mobile desktop; do
+            summary="artifacts/lighthouse/${profile}/summary.md"
+            if test -f "${summary}"; then
+              cat "${summary}" >> "${GITHUB_STEP_SUMMARY}"
+            else
+              echo "## ${profile}" >> "${GITHUB_STEP_SUMMARY}"
+              echo "Relatório não produzido; consulte o log do executor." >> "${GITHUB_STEP_SUMMARY}"
+            fi
+            echo >> "${GITHUB_STEP_SUMMARY}"
+          done
+
+      - name: Validar pisos de qualidade Lighthouse
+        if: always()
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const profiles = ['mobile', 'desktop'];
+          const failures = [];
+          for (const profile of profiles) {
+            const exitFile = `artifacts/lighthouse/${profile}-exit.json`;
+            const summaryFile = `artifacts/lighthouse/${profile}/summary.json`;
+            if (!fs.existsSync(exitFile) || !fs.existsSync(summaryFile)) {
+              failures.push(`${profile}: evidências incompletas`);
+              continue;
+            }
+            const exitCode = Number(JSON.parse(fs.readFileSync(exitFile, 'utf8')).exitCode);
+            const summary = JSON.parse(fs.readFileSync(summaryFile, 'utf8'));
+            if (exitCode !== 0 || (summary.violations || []).length > 0) {
+              failures.push(`${profile}: piso de qualidade não atendido`);
+            }
+          }
+          if (failures.length > 0) {
+            console.error(failures.join('\n'));
+            process.exit(1);
+          }
+          console.log('Pisos de qualidade Lighthouse aprovados em mobile e desktop.');
+          NODE
+
+      - name: Publicar relatórios Lighthouse
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: lighthouse-baseline-${{ github.run_id }}
+          path: artifacts/lighthouse
+          retention-days: 30
+          if-no-files-found: error
