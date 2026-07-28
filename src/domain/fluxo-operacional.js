@@ -141,9 +141,13 @@
         return 'em-analise';
     }
 
-    function getTechnicalCompletion(status) {
-        if (status === 'nao-analisado') return 'not_started';
-        if (status === 'em-analise') return 'in_progress';
+    function getTechnicalCompletion(analysis = {}) {
+        const values = DOCUMENT_KEYS.map(key => (
+            normalizeText(analysis[key]) || 'Não analisado'
+        ));
+        const analyzedCount = values.filter(value => value !== 'Não analisado').length;
+        if (analyzedCount === 0) return 'not_started';
+        if (analyzedCount < DOCUMENT_KEYS.length) return 'in_progress';
         return 'complete';
     }
 
@@ -178,7 +182,7 @@
                 ? bonusEvaluation.status
                 : getProgramBonificationStatus(verification),
             technicalStatus,
-            technicalCompletion: getTechnicalCompletion(technicalStatus),
+            technicalCompletion: getTechnicalCompletion(analysis),
             openPendencyCount,
             awaitingReanalysisCount,
             activePendencyCount
