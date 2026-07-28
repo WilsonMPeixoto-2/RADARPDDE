@@ -5,7 +5,7 @@ on:
     paths:
       - package.json
       - package-lock.json
-      - knip.json
+      - knip.config.cjs
       - eslint.config.js
       - lighthouserc.cjs
       - scripts/run-lighthouse-baseline.mjs
@@ -17,7 +17,7 @@ on:
     paths:
       - package.json
       - package-lock.json
-      - knip.json
+      - knip.config.cjs
       - eslint.config.js
       - lighthouserc.cjs
       - scripts/run-lighthouse-baseline.mjs
@@ -65,6 +65,10 @@ jobs:
           knip_exit=$?
           set -e
           cat dependency-health/knip.txt
+          if grep -Eq '(^ERROR:|Error loading)' dependency-health/knip.txt; then
+            echo 'O Knip registrou erro interno ou falha ao carregar configuração.' >&2
+            knip_exit=1
+          fi
           printf '{"exitCode":%s}\n' "${knip_exit}" > dependency-health/knip-exit.json
           exit "${knip_exit}"
 
@@ -122,7 +126,7 @@ jobs:
         shell: bash
         run: |
           echo "### Saúde das dependências" >> "${GITHUB_STEP_SUMMARY}"
-          echo "- Knip: bloqueante para dependências não usadas, não declaradas ou não resolvidas." >> "${GITHUB_STEP_SUMMARY}"
+          echo "- Knip: bloqueante para dependências não usadas, não declaradas, não resolvidas e falhas internas de análise." >> "${GITHUB_STEP_SUMMARY}"
           echo "- Vulnerabilidades altas e críticas: bloqueantes." >> "${GITHUB_STEP_SUMMARY}"
           echo "- Assinaturas, pacotes desatualizados, SBOM e árvore instalada: registrados como evidência." >> "${GITHUB_STEP_SUMMARY}"
 
