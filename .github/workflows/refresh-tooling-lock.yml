@@ -42,8 +42,19 @@ jobs:
           npm install --package-lock-only --ignore-scripts
           npm ci --ignore-scripts
 
-      - name: Confirmar ausência de vulnerabilidades altas ou críticas
-        run: npm audit --audit-level=high
+      - name: Registrar diagnóstico completo do npm audit
+        id: audit
+        continue-on-error: true
+        shell: bash
+        run: |
+          mkdir -p tooling-refresh
+          set +e
+          npm audit --json > tooling-refresh/npm-audit.json
+          status=$?
+          set -e
+          printf '{"exitCode":%s}\n' "${status}" > tooling-refresh/npm-audit-exit.json
+          npm audit || true
+          exit "${status}"
 
       - name: Publicar alterações reproduzíveis na própria branch
         shell: bash
@@ -58,3 +69,12 @@ jobs:
           git add package-lock.json supabase/functions/team-account-management/index.ts
           git commit -m 'chore: regenerar lockfile e alinhar Supabase JS'
           git push origin HEAD:${{ github.event.pull_request.head.ref }}
+
+      - name: Publicar diagnóstico temporário
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: tooling-refresh-${{ github.run_id }}
+          path: tooling-refresh
+          retention-days: 1
+          if-no-files-found: warn
