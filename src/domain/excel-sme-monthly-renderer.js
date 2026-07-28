@@ -12,7 +12,7 @@
         throw new Error('Motor XLSX institucional não foi carregado.');
     }
 
-    const VERSION = '1.1.0';
+    const VERSION = '1.1.1';
     const XML_HEADER = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
     const STYLE = Object.freeze({
         default: 0,
@@ -105,13 +105,6 @@
             rows.push(`<row r="${rowNumber}" ht="24" customHeight="1">${cells.join('')}</row>`);
         });
 
-        const validationColumns = model.columns
-            .map((column, index) => ({ column, letter: columnLetter(index + 1) }))
-            .filter(item => item.column.programKey);
-        const validations = validationColumns.map(item => (
-            `<dataValidation type="list" allowBlank="1" showErrorMessage="1" errorTitle="Valor inválido" error="Use SIM, NÃO ou NÃO SE APLICA." sqref="${item.letter}2:${item.letter}${lastRow}"><formula1>&quot;SIM,NÃO,NÃO SE APLICA&quot;</formula1></dataValidation>`
-        )).join('');
-
         return XML_HEADER + `<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">`
             + '<sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>'
             + `<dimension ref="A1:Z${lastRow}"/>`
@@ -120,7 +113,6 @@
             + columnsXml(model.columns)
             + `<sheetData>${rows.join('')}</sheetData>`
             + `<autoFilter ref="A1:Z${lastRow}"/>`
-            + `<dataValidations count="${validationColumns.length}">${validations}</dataValidations>`
             + '<printOptions horizontalCentered="1"/>'
             + '<pageMargins left="0.2" right="0.2" top="0.35" bottom="0.35" header="0.15" footer="0.15"/>'
             + '<pageSetup paperSize="9" orientation="landscape" fitToWidth="1" fitToHeight="0"/>'
