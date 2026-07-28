@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 116969)
-Total output lines: 11474
-
 // RADAR PDDE - Lógica Operacional e Gerenciamento de Estado (MVP)
 
 // ==========================================
@@ -2930,7 +2927,6565 @@ const INITIAL_ESCOLAS = [
         "cre": "4ª CRE",
         "ra": "30ª R.A.",
         "sici": "45570",
-        "controladorId"…66969 tokens truncated…btn-primary'} btn-sm"
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004911/2026-26",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "TEMPO_APRENDER"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.807",
+        "denominação": "EDI Maria Amélia Castro e Silva Belfort",
+        "designação": "04.30.807",
+        "telefone": "99341-7774",
+        "telefoneCelularInstitucional": "21993417774",
+        "email": "edimbelfort@rioeduca.net",
+        "diretor": "ANDREZZA HUBEANE NÓBREGA DIAS",
+        "telefoneDiretor": "97902-9777",
+        "diretorAdjunto": "CAMILA DAS GRAÇAS VIEIRA MAIA RODRIGUES",
+        "telefoneDiretorAdjunto": "98256-8424",
+        "inep": "33176043",
+        "cnpj": "28.626.726/0001-53",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "46629",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.005073/2026-16",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.808",
+        "denominação": "EDI Azoilda Trindade (Zô)",
+        "designação": "04.30.808",
+        "telefone": "2081-0835",
+        "telefoneCelularInstitucional": "21993193698",
+        "email": "ediatrindade@rioeduca.net",
+        "diretor": "ARIENE VITALINO DA SILVA",
+        "telefoneDiretor": "99935-4556",
+        "diretorAdjunto": "LUANA RAQUEL DA SILVA REZENDE",
+        "telefoneDiretorAdjunto": "97947-0526",
+        "inep": "33175942",
+        "cnpj": "28.027.038/0001-77",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "46627",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.005095/2026-78",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.809",
+        "denominação": "EDI Medalhista Olímpico Luiz Felipe Marques Fonteles",
+        "designação": "04.30.809",
+        "telefone": "2086-4678",
+        "telefoneCelularInstitucional": "21993013914",
+        "email": "edimfontelles@rioeduca.net",
+        "diretor": "KATIA GOMES DA SILVA",
+        "telefoneDiretor": "98516-2762",
+        "diretorAdjunto": "ANA PAULA DE LANNA",
+        "telefoneDiretorAdjunto": "97001-0156",
+        "inep": "33179514",
+        "cnpj": "31.059.011/0001-70",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "46760",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004981/2026-84",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.810",
+        "denominação": "EDI Medalhista Olímpico Evandro Motta Marcondes Guerra",
+        "designação": "04.30.810",
+        "telefone": "2086-4681",
+        "telefoneCelularInstitucional": "21993013019",
+        "email": "edimguerra@rioeduca.net",
+        "diretor": "VALESKA BARBOTEU PENHA",
+        "telefoneDiretor": "96938-9820",
+        "diretorAdjunto": "ANA ALINE GOMES SEABRA",
+        "telefoneDiretorAdjunto": "98770-8345",
+        "inep": "33179573",
+        "cnpj": "31.538.152/0001-76",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "46759",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.005049/2026-79",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.811",
+        "denominação": "EDI Medalhista Olímpico William Peixoto Arjona",
+        "designação": "04.30.811",
+        "telefone": "2086-3835",
+        "telefoneCelularInstitucional": "21993005782",
+        "email": "edimarjona@rioeduca.net",
+        "diretor": "FERNANADA MEDEIROS RIBEIRO",
+        "telefoneDiretor": "98383-3555",
+        "diretorAdjunto": "NINA CRISTINA VIDA FELINTO",
+        "telefoneDiretorAdjunto": "96483-3895",
+        "inep": "33179549",
+        "cnpj": "31.291.413/0001-04",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "46758",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.005028/2026-53",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.812",
+        "denominação": "EDI Medalhista Olímpico Eder Francis Carbonera",
+        "designação": "04.30.812",
+        "telefone": "2086-2852",
+        "telefoneCelularInstitucional": "21993005161",
+        "email": "edimcarbonera@rioeduca.net",
+        "diretor": "TAÍNA DOS REIS DO CARMO",
+        "telefoneDiretor": "97967-9252",
+        "diretorAdjunto": "DÉBORA CRISTINA RODRIGUES ESTEVES",
+        "telefoneDiretorAdjunto": "99185-8801",
+        "inep": "33179581",
+        "cnpj": "31.471.375/0001-63",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "46845",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004868/2026-07",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.813",
+        "denominação": "EDI Armando de Salles Oliveira",
+        "designação": "04.30.813",
+        "telefone": "99300-1569",
+        "telefoneCelularInstitucional": "21993001569",
+        "email": "emsalles@rioeduca.net",
+        "diretor": "DANIELE LUCIANA CHAVES DE OLIVEIRA PONTES",
+        "telefoneDiretor": "96650-3767",
+        "diretorAdjunto": "JACQUELLINE RODRIGUES ALVES DOS SANTOS",
+        "telefoneDiretorAdjunto": "98157-0936",
+        "inep": "33069123",
+        "cnpj": "01.875.458/0001-57",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "11586",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004944/2026-76",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.814",
+        "denominação": "EDI João Crisóstomo",
+        "designação": "04.30.814",
+        "telefone": "99299-7860",
+        "telefoneCelularInstitucional": "21992997860",
+        "email": "edicrisostomo@rioeduca.net",
+        "diretor": "MÔNICA ALVES SERAPIÃO DA SILVA",
+        "telefoneDiretor": "98141-2117",
+        "diretorAdjunto": "ANDRESSA MEDEIROS DA SILVA",
+        "telefoneDiretorAdjunto": "99392-2228",
+        "inep": "33179565",
+        "cnpj": "31.563.583/0001-92",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "46765",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.004985/2026-62",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.30.815",
+        "denominação": "EDI Pescador Albano Rosa",
+        "designação": "04.30.815",
+        "telefone": "99348-1028",
+        "telefoneCelularInstitucional": "21993481028",
+        "email": "ediprosa@rioeduca.net",
+        "diretor": "THIAGO GENEROSO BARROS",
+        "telefoneDiretor": "99399-3527",
+        "diretorAdjunto": "MARIA ANDRÉA GOMES ALBA BRITTO",
+        "telefoneDiretorAdjunto": "98104-1443",
+        "inep": "33122776",
+        "cnpj": "12.743.515/0001-60",
+        "cre": "4ª CRE",
+        "ra": "30ª R.A.",
+        "sici": "18742",
+        "controladorId": "monica_chagas",
+        "processoInventario": "000704.005081/2026-54",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.001",
+        "denominação": "Escola Municipal Ary Barroso",
+        "designação": "04.31.001",
+        "telefone": "99298-7018",
+        "telefoneCelularInstitucional": "21992987018",
+        "email": "emary@rioeduca.net",
+        "diretor": "LUCIANE DE ASSIS ALMEIDA",
+        "telefoneDiretor": "99495-3366",
+        "diretorAdjunto": "EDUARDO MEIRELLES AZZAM",
+        "telefoneDiretorAdjunto": "99715-3691",
+        "inep": "33070440",
+        "cnpj": "03.056.773/0001-88",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11351",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.004810/2026-55",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.002",
+        "denominação": "Escola Municipal David Perez",
+        "designação": "04.31.002",
+        "telefone": "2482-3830 / 99298-6475",
+        "telefoneCelularInstitucional": "21992986475",
+        "email": "emperez@rioeduca.net",
+        "diretor": "SHAYENNE AZEVEDO DA SILVEIRA MOREIRA",
+        "telefoneDiretor": "96453-8653",
+        "diretorAdjunto": "MARILANE CARDOZO DA SILVA CAVALCANTI",
+        "telefoneDiretorAdjunto": "98892-3274",
+        "inep": "33070539",
+        "cnpj": "01.878.401/0001-01",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11350",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.004912/2026-71",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.003",
+        "denominação": "Escola Municipal Miguel Gustavo",
+        "designação": "04.31.003",
+        "telefone": "2482-3986",
+        "telefoneCelularInstitucional": "21992977460",
+        "email": "emgustavo@rioeduca.net",
+        "diretor": "ERIKA SILVA DE FREITAS",
+        "telefoneDiretor": "97035-5622",
+        "diretorAdjunto": "THAINÁ DA MATA RODRIGUES",
+        "telefoneDiretorAdjunto": "99259-9573",
+        "inep": "33070687",
+        "cnpj": "02.347.032/0001-93",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11349",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.004929/2026-28",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.004",
+        "denominação": "Escola Municipal Alfredo Gomes",
+        "designação": "04.31.004",
+        "telefone": "3137-7550 / 3137-7566",
+        "telefoneCelularInstitucional": "21992977093",
+        "email": "emalfredog@rioeduca.net",
+        "diretor": "TALITA FLÁVIA SODRÉ DA SILVA",
+        "telefoneDiretor": "97649-7732",
+        "diretorAdjunto": "",
+        "telefoneDiretorAdjunto": "",
+        "inep": "33070393",
+        "cnpj": "01.275.362/0001-58",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11346",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.004859/2026-16",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.006",
+        "denominação": "Escola Municipal São João Batista",
+        "designação": "04.31.006",
+        "telefone": "2482-7312",
+        "telefoneCelularInstitucional": "21992973114",
+        "email": "emsaojoao@rioeduca.net",
+        "diretor": "CINTHIA VIANA TAVARES DA SILVA",
+        "telefoneDiretor": "98687-4575",
+        "diretorAdjunto": "ELEZIANI VIEIRA AMORIM SOUZA",
+        "telefoneDiretorAdjunto": "98644-6274",
+        "inep": "33070857",
+        "cnpj": "02.690.400/0001-00",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11344",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.005082/2026-07",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ADOLESCENCIAS",
+            "LEITURA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.007",
+        "denominação": "Escola Municipal Embaixador Barros Hurtado",
+        "designação": "04.31.007",
+        "telefone": "2482-7736 / 2482-7955",
+        "telefoneCelularInstitucional": "21992963180",
+        "email": "emhurtado@rioeduca.net",
+        "diretor": "MARIA CAROLINA SILVEIRA SYLVESTRE",
+        "telefoneDiretor": "98337-2389",
+        "diretorAdjunto": "KAREN DO NASCIMENTO MORENO",
+        "telefoneDiretorAdjunto": "96586-8505",
+        "inep": "33070555",
+        "cnpj": "01.509.987/0001-37",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11343",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.005031/2026-77",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.008",
+        "denominação": "Escola Municipal Odilon Braga",
+        "designação": "04.31.008",
+        "telefone": "2482-4609",
+        "telefoneCelularInstitucional": "21992960557",
+        "email": "embraga@rioeduca.net",
+        "diretor": "ELENITA FONSECA DA SILVA",
+        "telefoneDiretor": "99914-8321",
+        "diretorAdjunto": "ALEXANDRE FAGUNDES ABRANTES",
+        "telefoneDiretorAdjunto": "98088-5553",
+        "inep": "33070741",
+        "cnpj": "01.211.046/0001-12",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11342",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.004960/2026-69",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ADOLESCENCIAS",
+            "RECURSOS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.009",
+        "denominação": "Escola Municipal Roraima",
+        "designação": "04.31.009",
+        "telefone": "2485-1140 / 2485-1150",
+        "telefoneCelularInstitucional": "21992955910",
+        "email": "emroraima@rioeduca.net",
+        "diretor": "ALINE FERREIRA RIBEIRO",
+        "telefoneDiretor": "98623- 7113",
+        "diretorAdjunto": "KASSIA CRISTINA DE ALMEIDA OLIVEIRA DOS SANTOS",
+        "telefoneDiretorAdjunto": "98722-0949",
+        "inep": "33070849",
+        "cnpj": "01.529.826/0001-05",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11341",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.005029/2026-06",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.010",
+        "denominação": "Escola Municipal Armando Fajardo",
+        "designação": "04.31.010",
+        "telefone": "2485-1422 / 99295-2993",
+        "telefoneCelularInstitucional": "21992952993",
+        "email": "emfajardo@rioeduca.net",
+        "diretor": "MICHAEL CHRISTIAN AGUIAR MADEIRA",
+        "telefoneDiretor": "98337-9924",
+        "diretorAdjunto": "MARCELO PASSOS CARREGOSA",
+        "telefoneDiretorAdjunto": "99093-5736",
+        "inep": "33070431",
+        "cnpj": "01.268.540/0001-13",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11340",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.004898/2026-13",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.011",
+        "denominação": "Escola Municipal Raul Pederneiras",
+        "designação": "04.31.011",
+        "telefone": "2485-1433",
+        "telefoneCelularInstitucional": "21992951542",
+        "email": "emraul@rioeduca.net",
+        "diretor": "LUCIANA OLIVEIRA NASCIMENTO DOS SANTOS",
+        "telefoneDiretor": "96456-8359",
+        "diretorAdjunto": "ROSE SAMARA CAVALCANTI SOUZA",
+        "telefoneDiretorAdjunto": "96935-6810",
+        "inep": "33070822",
+        "cnpj": "01.956.704/0001-03",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11338",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.004976/2026-71",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.013",
+        "denominação": "Escola Municipal Montese",
+        "designação": "04.31.013",
+        "telefone": "2485-2200 / 2485-2087",
+        "telefoneCelularInstitucional": "21992943931",
+        "email": "emmontese@rioeduca.net",
+        "diretor": "VALÉRIA DOS ANJOS GUEDES",
+        "telefoneDiretor": "97541-2761",
+        "diretorAdjunto": "ANA PAULA BAPTISTA DE FREITAS ROSA",
+        "telefoneDiretorAdjunto": "98638-3582",
+        "inep": "33070733",
+        "cnpj": "01.187.790/0001-29",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11336",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.005001/2026-61",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.014",
+        "denominação": "Escola Municipal Ministro Lafayette de Andrada",
+        "designação": "04.31.014",
+        "telefone": "2485-1377",
+        "telefoneCelularInstitucional": "21992938870",
+        "email": "emlandrade@rioeduca.net",
+        "diretor": "REJANE PERES NETO COSTA",
+        "telefoneDiretor": "98103-2701",
+        "diretorAdjunto": "EDUARDO DOS SANTOS COUTINHO",
+        "telefoneDiretorAdjunto": "98615-9093",
+        "inep": "33070695",
+        "cnpj": "05.392.564/0001-30",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11335",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.004864/2026-11",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.015",
+        "denominação": "Escola Municipal Joseph Bloch",
+        "designação": "04.31.015",
+        "telefone": "3458-1373",
+        "telefoneCelularInstitucional": "21992935646",
+        "email": "embloch@rioeduca.net",
+        "diretor": "LUCIANA PIMENTEL VIEIRA",
+        "telefoneDiretor": "98580-1343",
+        "diretorAdjunto": "VALERIA PEREIRA BARRETO",
+        "telefoneDiretorAdjunto": "98341-2481",
+        "inep": "33070652",
+        "cnpj": "01.187.789/0001-02",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11334",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.004883/2026-47",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.016",
+        "denominação": "Escola Municipal Cruzada São Sebastião",
+        "designação": "04.31.016",
+        "telefone": "2485-3999",
+        "telefoneCelularInstitucional": "21992934781",
+        "email": "emcruzada@rioeduca.net",
+        "diretor": "ELIANA ALMEIDA DO NASCIMENTO",
+        "telefoneDiretor": "99479-3067",
+        "diretorAdjunto": "ANDRE  LUIS SILVA",
+        "telefoneDiretorAdjunto": "98293-2043",
+        "inep": "33070474",
+        "cnpj": "02.849.204/0001-27",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11333",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.004904/2026-24",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.017",
+        "denominação": "Escola Municipal Cardeal Câmara",
+        "designação": "04.31.017",
+        "telefone": "3452-0179",
+        "telefoneCelularInstitucional": "21992920079",
+        "email": "emcardealc@rioeduca.net",
+        "diretor": "ISAQUE DA SILVA TAVARES",
+        "telefoneDiretor": "96453-9645",
+        "diretorAdjunto": "JULIANA ORNELLAS MOREIRA SANTOS DE OLIVEIRA",
+        "telefoneDiretorAdjunto": "98548-2900",
+        "inep": "33070490",
+        "cnpj": "02.998.816/0001-81",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11332",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.004986/2026-15",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.018",
+        "denominação": "Escola Municipal República do Líbano",
+        "designação": "04.31.018",
+        "telefone": "2475-9200 / 99291-1044",
+        "telefoneCelularInstitucional": "21992911044",
+        "email": "emlibano@rioeduca.net",
+        "diretor": "CARLOS HENRIQUE MATOS DA SILVA",
+        "telefoneDiretor": "97018-1653",
+        "diretorAdjunto": "CARLA LEITE FERNANDES BARROS",
+        "telefoneDiretorAdjunto": "98225-6910",
+        "inep": "33070830",
+        "cnpj": "01.213.617/0001-58",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11331",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.005044/2026-46",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.019",
+        "denominação": "Escola Municipal Jorge de Gouveia",
+        "designação": "04.31.019",
+        "telefone": "2475-9202 / 2475-9204",
+        "telefoneCelularInstitucional": "21992910211",
+        "email": "emgouvea@rioeduca.net",
+        "diretor": "VALÉRIA CRISTINA CARMO DE AQUINO MASSA",
+        "telefoneDiretor": "98878-6291",
+        "diretorAdjunto": "PATRICIA DO NASCIMENTO PAULO",
+        "telefoneDiretorAdjunto": "99881-6758",
+        "inep": "33070644",
+        "cnpj": "01.859.807/0001-47",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11330",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.005107/2026-64",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ED_FAMILIA",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.021",
+        "denominação": "Escola Municipal Heitor Beltrão",
+        "designação": "04.31.021",
+        "telefone": "2475-9207 / 2475-9208'",
+        "telefoneCelularInstitucional": "21992905794",
+        "email": "embeltrao@rioeduca.net",
+        "diretor": "VANESSA SANTOS DE MORAES",
+        "telefoneDiretor": "98320-4010",
+        "diretorAdjunto": "CARLA DE OLIVEIRA BOURA",
+        "telefoneDiretorAdjunto": "97915-1616",
+        "inep": "33070601",
+        "cnpj": "04.494.649/0001-67",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11328",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.004784/2026-65",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.022",
+        "denominação": "Escola Municipal Eneyda Rabello de Andrade",
+        "designação": "04.31.022",
+        "telefone": "2475-9210",
+        "telefoneCelularInstitucional": "21993016649",
+        "email": "emeneyda@rioeduca.net",
+        "diretor": "MARIA CRISTINA DOS SANTOS CAMPOS",
+        "telefoneDiretor": "99340-8173",
+        "diretorAdjunto": "CARLA ELISA DIAS DE OLIVEIRA",
+        "telefoneDiretorAdjunto": "96499-3204",
+        "inep": "33070563",
+        "cnpj": "01.878.402/0001-56",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11327",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.004934/2026-31",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.023",
+        "denominação": "Escola Municipal Presidente Gronchi",
+        "designação": "04.31.023",
+        "telefone": "3855-7107 / 3855-7010",
+        "telefoneCelularInstitucional": "21993186929",
+        "email": "emgronchi@rioeduca.net",
+        "diretor": "ILMA FÁTIMA CONSTANTINO VALVERDE",
+        "telefoneDiretor": "98149-9745",
+        "diretorAdjunto": "ANA CAROLINA TEIXEIRA BATISTA DE MIRANDA",
+        "telefoneDiretorAdjunto": "97064-9817",
+        "inep": "33070776",
+        "cnpj": "03.016.915/0001-83",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11868",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.004797/2026-34",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.024",
+        "denominação": "Escola Municipal Andrade Neves",
+        "designação": "04.31.024",
+        "telefone": "99318-4439 / 2475-7262 / 3372-5902",
+        "telefoneCelularInstitucional": "21993184439",
+        "email": "emaneves@rioeduca.net",
+        "diretor": "ADRIANE FERREIRA REIS MORAES",
+        "telefoneDiretor": "99202-5575",
+        "diretorAdjunto": "ANA CARLA DA SILVA BRANCO",
+        "telefoneDiretorAdjunto": "99473-7133",
+        "inep": "33070415",
+        "cnpj": "01.959.159/0001-09",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11869",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.005084/2026-98",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "LEITURA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.026",
+        "denominação": "Escola Municipal Herbert Moses",
+        "designação": "04.31.026",
+        "telefone": "3855-9566",
+        "telefoneCelularInstitucional": "21993182608",
+        "email": "emmoses@rioeduca.net",
+        "diretor": "RAFAEL LUIZ PINTO PERES",
+        "telefoneDiretor": "97140-1844",
+        "diretorAdjunto": "VÂNIA CRISTINA FRAGA DE FARIA PICULO",
+        "telefoneDiretorAdjunto": "99861-8583",
+        "inep": "33070610",
+        "cnpj": "02.293.014/0001-76",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11568",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.004978/2026-61",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.027",
+        "denominação": "Escola Municipal Zélia Braune",
+        "designação": "04.31.027",
+        "telefone": "3855-9220",
+        "telefoneCelularInstitucional": "21993179184",
+        "email": "embraune@rioeduca.net",
+        "diretor": "WLADIMIR MENDONÇA DA SILVA",
+        "telefoneDiretor": "99578-9247",
+        "diretorAdjunto": "JULIA BEATRIZ GOMES CARVALHO DA SILVA",
+        "telefoneDiretorAdjunto": "98663-8126",
+        "inep": "33070890",
+        "cnpj": "03.827.454/0001-29",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11569",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.005063/2026-72",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ADOLESCENCIAS",
+            "RECURSOS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.501",
+        "denominação": "Ciep Mestre Cartola (Agenor de Oliveira)",
+        "designação": "04.31.501",
+        "telefone": "3453-6464",
+        "telefoneCelularInstitucional": "21993178149",
+        "email": "ciepcartola@rioeduca.net",
+        "diretor": "MARCI DIAS PIRES",
+        "telefoneDiretor": "99793-1538",
+        "diretorAdjunto": "ELIANE BOMBINO DO AMARAL",
+        "telefoneDiretorAdjunto": "99392-3539",
+        "inep": "33069824",
+        "cnpj": "01.878.626/0001-68",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11919",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.005064/2026-17",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.502",
+        "denominação": "Ciep Graciliano Ramos",
+        "designação": "04.31.502",
+        "telefone": "3083-7595 / 99316-8830",
+        "telefoneCelularInstitucional": "21993168830",
+        "email": "ciepgramos@rioeduca.net",
+        "diretor": "LUCIANA DA SILVA NASCIMENTO",
+        "telefoneDiretor": "97272-1717",
+        "diretorAdjunto": "ISABEL FELIPE MOREIRA",
+        "telefoneDiretorAdjunto": "98915-0171",
+        "inep": "33073988",
+        "cnpj": "01.124.831/0001-38",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11325",
+        "controladorId": "wilson_peixoto",
+        "processoInventario": "000704.004940/2026-98",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA",
+            "PROEC",
+            "ADOLESCENCIAS"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.601",
+        "denominação": "Creche Municipal Luís Carlos de Oliveira Câmara",
+        "designação": "04.31.601",
+        "telefone": "3455-5372",
+        "telefoneCelularInstitucional": "21993161033",
+        "email": "cmlcamara@rioeduca.net",
+        "diretor": "ANDRÉA BELARMINO DE CARVALHO ABEL PINTO",
+        "telefoneDiretor": "97693-7001",
+        "diretorAdjunto": "KEZIA GOMES DA SILVA",
+        "telefoneDiretorAdjunto": "99201-4629",
+        "inep": "33144699",
+        "cnpj": "12.329.092/0001-37",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "18710",
+        "controladorId": "alzira_de_souza",
+        "processoInventario": "000704.004928/2026-83",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.602",
+        "denominação": "Creche Municipal Barbosa Lima Sobrinho",
+        "designação": "04.31.602",
+        "telefone": "99315-4511",
+        "telefoneCelularInstitucional": "21993154511",
+        "email": "cmbsobrinho@rioeduca.net",
+        "diretor": "MAYARA SOARES BASILIO",
+        "telefoneDiretor": "97964-8500",
+        "diretorAdjunto": "MARCOS PAULO REGIS FARIA",
+        "telefoneDiretorAdjunto": "97556-4740",
+        "inep": "33137331",
+        "cnpj": "12.582.479/0001-09",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "18643",
+        "controladorId": "alzira_de_souza",
+        "processoInventario": "000704.004905/2026-79",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.603",
+        "denominação": "Creche Municipal Chico Mendes",
+        "designação": "04.31.603",
+        "telefone": "99312-4302 / 3424-6677",
+        "telefoneCelularInstitucional": "21993124302",
+        "email": "cmcmendes@rioeduca.net",
+        "diretor": "MARIA CRISTINA FALBO MARTINS",
+        "telefoneDiretor": "98543-0591",
+        "diretorAdjunto": "MARIA DAS DORES SILVA",
+        "telefoneDiretorAdjunto": "99420-6327",
+        "inep": "33096503",
+        "cnpj": "12.493.499/0001-03",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "18667",
+        "controladorId": "alzira_de_souza",
+        "processoInventario": "000704.005052/2026-92",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.604",
+        "denominação": "Creche Municipal Coração de Geneve",
+        "designação": "04.31.604",
+        "telefone": "2475-9211",
+        "telefoneCelularInstitucional": "21993119466",
+        "email": "cmcgeneve@rioeduca.net",
+        "diretor": "KELLEN DO NASCIMENTO MORENO",
+        "telefoneDiretor": "97366-0594",
+        "diretorAdjunto": "VANICE DA SILVA ELIAS",
+        "telefoneDiretorAdjunto": "96412-1404",
+        "inep": "33096546",
+        "cnpj": "12.470.388/0001-73",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "18670",
+        "controladorId": "alzira_de_souza",
+        "processoInventario": "000704.004889/2026-14",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.605",
+        "denominação": "Creche Municipal Sempre Vida Dique",
+        "designação": "04.31.605",
+        "telefone": "3855-9483",
+        "telefoneCelularInstitucional": "21993111783",
+        "email": "cmdique@rioeduca.net",
+        "diretor": "ANA LUCIA DE SOUSA SANTOS",
+        "telefoneDiretor": "99198-1467",
+        "diretorAdjunto": "FABIANA CASSIMIRO GUERRA DE PAULA",
+        "telefoneDiretorAdjunto": "99157-1759",
+        "inep": "33096520",
+        "cnpj": "12.649.139/0001-40",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "18755",
+        "controladorId": "alzira_de_souza",
+        "processoInventario": "000704.004989/2026-41",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.606",
+        "denominação": "Creche Municipal Visconde de Sabugosa",
+        "designação": "04.31.606",
+        "telefone": "3373-5288",
+        "telefoneCelularInstitucional": "21993106032",
+        "email": "cmvsabugosa@rioeduca.net",
+        "diretor": "ROSANGELA CAMPOS DE PAULA FERNANDES",
+        "telefoneDiretor": "97020-9572",
+        "diretorAdjunto": "DOLORES DA SILVA NORTE",
+        "telefoneDiretorAdjunto": "97985-0226",
+        "inep": "33095892",
+        "cnpj": "16.729.081/0001-03",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "18784",
+        "controladorId": "alzira_de_souza",
+        "processoInventario": "000704.004876/2026-45",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.607",
+        "denominação": "Creche Municipal Acauã",
+        "designação": "04.31.607",
+        "telefone": "3448-0670",
+        "telefoneCelularInstitucional": "21993091397",
+        "email": "cmacaua@rioeduca.net",
+        "diretor": "ALEXSANDRA BEZERRA DA SILVA",
+        "telefoneDiretor": "97482-6141",
+        "diretorAdjunto": "DANIELE DE OLIVEIRA DE FIGUEIREDO",
+        "telefoneDiretorAdjunto": "99257-8318",
+        "inep": "33147248",
+        "cnpj": "12.468.491/0001-89",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "39102",
+        "controladorId": "alzira_de_souza",
+        "processoInventario": "000704.005244/2026-07",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.608",
+        "denominação": "Creche Municipal Ari Pimentel",
+        "designação": "04.31.608",
+        "telefone": "2080-8074",
+        "telefoneCelularInstitucional": "21993089542",
+        "email": "cmapimentel@rioeduca.net",
+        "diretor": "MARCELA SILVA DO NASCIMENTO DE CAMPOS",
+        "telefoneDiretor": "97287-6541",
+        "diretorAdjunto": "LEANDRA SANTOS DA SILVA SCHEMIKO",
+        "telefoneDiretorAdjunto": "97279-7550",
+        "inep": "33144710",
+        "cnpj": "12.219.144/0001-12",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "39764",
+        "controladorId": "alzira_de_souza",
+        "processoInventario": "000704.004953/2026-67",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.801",
+        "denominação": "EDI Carvalho Mourão",
+        "designação": "04.31.801",
+        "telefone": "2485-2269",
+        "telefoneCelularInstitucional": "21993081503",
+        "email": "edicmourao@rioeduca.net",
+        "diretor": "ADRIANA DE ANDRADE DE OLIVEIRA",
+        "telefoneDiretor": "98706-3422",
+        "diretorAdjunto": "JULIANA RAMOS AMARAL VAILLANT",
+        "telefoneDiretorAdjunto": "99652-4445",
+        "inep": "33070504",
+        "cnpj": "01.859.441/0001-06",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11337",
+        "controladorId": "alzira_de_souza",
+        "processoInventario": "000704.004941/2026-32",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.802",
+        "denominação": "EDI Professor Carlos Falseth",
+        "designação": "04.31.802",
+        "telefone": "99308-0298",
+        "telefoneCelularInstitucional": "21993080298",
+        "email": "edicfalseth@rioeduca.net",
+        "diretor": "SHAYANA BRAGA FELIX",
+        "telefoneDiretor": "98870-5380",
+        "diretorAdjunto": "SUANE DE LIMA RIBEIRO",
+        "telefoneDiretorAdjunto": "97169-5012",
+        "inep": "33170991",
+        "cnpj": "23.402.143/0001-25",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "45569",
+        "controladorId": "alzira_de_souza",
+        "processoInventario": "000704.004873/2026-10",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.803",
+        "denominação": "EDI Professor Emmanuel Pereira Filho",
+        "designação": "04.31.803",
+        "telefone": "2482-7202",
+        "telefoneCelularInstitucional": "21993057687",
+        "email": "edipfilho@rioeduca.net",
+        "diretor": "ISABELA VIEIRA DA SILVA",
+        "telefoneDiretor": "99249-1834",
+        "diretorAdjunto": "LUANA DOS SANTOS TRINDADE",
+        "telefoneDiretorAdjunto": "99362-2978",
+        "inep": "33070806",
+        "cnpj": "01.268.536/0001-55",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11345",
+        "controladorId": "alzira_de_souza",
+        "processoInventario": "000704.004971/2026-49",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.804",
+        "denominação": "EDI Alfredo Valladão",
+        "designação": "04.31.804",
+        "telefone": "2475-9205/ 2475-9206",
+        "telefoneCelularInstitucional": "21993051737",
+        "email": "edivalladao@rioeduca.net",
+        "diretor": "KELLY HELLEN CHAVES MANSO",
+        "telefoneDiretor": "98700-3157",
+        "diretorAdjunto": "FERNANDA TELES DE OLIVEIRA",
+        "telefoneDiretorAdjunto": "97107-7222",
+        "inep": "33070407",
+        "cnpj": "01.412.221/0001-30",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11329",
+        "controladorId": "alzira_de_souza",
+        "processoInventario": "000704.004901/2026-91",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    },
+    {
+        "id": "04.31.805",
+        "denominação": "EDI Cônego Fernandes Pinheiro",
+        "designação": "04.31.805",
+        "telefone": "3372-5070 / 99304-1562",
+        "telefoneCelularInstitucional": "21993041562",
+        "email": "emconego@rioeduca.net",
+        "diretor": "ODETTE DOS SANTOS SACRAMENTO TERREZO FARDILHA",
+        "telefoneDiretor": "98876-6559",
+        "diretorAdjunto": "MARIA DO CARMO SERENO CHALO",
+        "telefoneDiretorAdjunto": "98561-5300",
+        "inep": "33070520",
+        "cnpj": "01.294.812/0001-50",
+        "cre": "4ª CRE",
+        "ra": "31ª R.A.",
+        "sici": "11870",
+        "controladorId": "alzira_de_souza",
+        "processoInventario": "000704.004782/2026-76",
+        "programasIds": [
+            "BASIC",
+            "CONECTADA"
+        ],
+        "competenciaInicial": "2026-01"
+    }
+
+];
+
+
+const COMPETENCIAS = [
+
+    { key: '2026-01', label: 'Janeiro 2026', bonifPrazo: '2026-02-15' },
+
+    { key: '2026-02', label: 'Fevereiro 2026', bonifPrazo: '2026-03-15' },
+
+    { key: '2026-03', label: 'Março 2026', bonifPrazo: '2026-04-15' },
+
+    { key: '2026-04', label: 'Abril 2026', bonifPrazo: '2026-05-15' },
+
+    { key: '2026-05', label: 'Maio 2026', bonifPrazo: '2026-06-15' },
+
+    { key: '2026-06', label: 'Junho 2026', bonifPrazo: '2026-07-15' },
+
+    { key: '2026-07', label: 'Julho 2026', bonifPrazo: '2026-08-15' },
+
+    { key: '2026-08', label: 'Agosto 2026', bonifPrazo: '2026-09-15' },
+
+    { key: '2026-09', label: 'Setembro 2026', bonifPrazo: '2026-10-15' },
+
+    { key: '2026-10', label: 'Outubro 2026', bonifPrazo: '2026-11-15' },
+
+    { key: '2026-11', label: 'Novembro 2026', bonifPrazo: '2026-12-15' },
+
+    { key: '2026-12', label: 'Dezembro 2026', bonifPrazo: '2027-01-15' }
+
+];
+
+
+
+const INITIAL_VERIFICACOES = {};
+
+
+
+const INITIAL_PENDENCIAS = [];
+
+const INITIAL_CONTATOS = [];
+
+const INITIAL_LOGS = [];
+
+// Bens de Capital das escolas (para a equipe de Inventário)
+const INITIAL_BENS = [];
+
+const INITIAL_EQUIPE_INVENTARIO = [
+    {
+        "id": "aylane",
+        "name": "Aylane",
+        "email": ""
+    },
+    {
+        "id": "juliana",
+        "name": "Juliana",
+        "email": ""
+    },
+    {
+        "id": "odair",
+        "name": "Odair",
+        "email": ""
+    }
+];
+
+const INITIAL_DATA_VERSION = '2026-07-08-real-cre4-v2';
+const PENDENCY_SCHEMA_STORAGE_KEY = 'radar_pdde_pendency_schema_version';
+
+// Calendário Global configurado pela SME
+const INITIAL_CONFIG = {
+    "exercicios": [
+        "2026"
+    ],
+    "competenciaFechamento": "2026-05",
+    "prazoBonificacaoProrrogado": false
+};
+
+
+// ==========================================
+// 2. CONTROLE DE ESTADO E INICIALIZAÇÃO LOCAL
+// ==========================================
+
+let escolas = [];
+let pendencias = [];
+let contatos = [];
+let logs = [];
+let bens = [];
+
+// Pre-indexed lookups — rebuilt whenever pendencias or bens change
+let _pendenciasByEscolaId = new Map();
+let _bensByEscolaId = new Map();
+
+function rebuildOperationalIndexes() {
+    _pendenciasByEscolaId = new Map();
+    pendencias.forEach(p => {
+        if (!_pendenciasByEscolaId.has(p.escolaId)) _pendenciasByEscolaId.set(p.escolaId, []);
+        _pendenciasByEscolaId.get(p.escolaId).push(p);
+    });
+    _bensByEscolaId = new Map();
+    bens.forEach(b => {
+        if (!_bensByEscolaId.has(b.escolaId)) _bensByEscolaId.set(b.escolaId, []);
+        _bensByEscolaId.get(b.escolaId).push(b);
+    });
+}
+let verificacoes = {};
+let config = {};
+let programas = [];
+let controladores = [];
+let equipeInventario = [];
+let activeEquipeTab = 'controladores'; // controladores, inventario
+
+let currentProfile = 'controlador'; // controlador, assistente, sme, inventario
+let currentExercise = '2026';
+let currentView = 'dashboard'; // dashboard, escolas, competencias, pendencias, inventario, auditoria, sme-config
+
+function getRadarAccessProfile() {
+    return window.RadarAccessPolicy.resolveEffectiveProfile(
+        currentProfile,
+        window.RadarAuthContext?.authorization?.role
+    );
+}
+
+function hasRadarCapability(capability) {
+    return Boolean(window.RadarAccessPolicy?.hasCapability(
+        getRadarAccessProfile(),
+        capability
+    ));
+}
+
+function getAuthenticatedUserId() {
+    return String(window.RadarAuthContext?.user?.id || '').trim();
+}
+
+let activeSchoolId = null; // ID da escola em exibição no prontuário
+let activePendencyDetailId = null; // Pendência destacada na navegação mínima de detalhe
+
+let activeCompetenciaKey = '2026-05'; // Competência selecionada na visão por competência
+
+let searchResultFiltered = null; // Mantido por compatibilidade; a carteira usa escolaSearchQuery + activeEscolaFilters
+
+let escolaSearchQuery = '';
+
+const DEFAULT_ESCOLA_FILTERS = Object.freeze({
+
+    controlador: 'all',
+
+    programa: 'all',
+
+    situacao: 'all',
+
+    pendencias: 'all',
+
+    inventario: 'all',
+
+    ra: 'all'
+
+});
+
+let activeEscolaFilters = { ...DEFAULT_ESCOLA_FILTERS };
+
+let activeControladorRAFilter = 'carteira'; // carteira, todas, 10, 11, 30, 31
+
+let expandedControllerId = null; // ID do controlador expandido na tabela do assistente
+let activeControladorSubFilter = 'all'; // all, naoAnalisadas, pendencias, bens
+let activeInventarioSubFilter = 'all'; // all, naoEncamp, aguardando, concluido
+let activeAssistenteSubFilter = 'all'; // all, apto, inapto, emAndamento, naoAnalisado
+let activeAssistenteControllerFilter = 'all'; // all, or controllerId
+let activeAssistenteRAFilter = 'all'; // all, or RA string
+let activeAssistenteSearchQuery = ''; // persistent search query
+let activeSMECreFilter = null; // null or CRE name (e.g. '4ª CRE')
+let activeProntuarioCompetencia = null; // competência selecionada no prontuário da escola
+
+let notasRegistradas = []; // lista unificada de todas as notas fiscais registradas
+
+let showSMEConsolidado = false; // toggle para exibir relatório detalhado de itens na visão da SME
+
+
+
+const DEFAULT_CONTROLADOR_ID = 'wilson_peixoto';
+
+const DEFAULT_PROFILE_USERS = {
+
+    assistente: { name: 'Luísa Ferreira', role: 'Assistente CRE' },
+
+    sme: { name: 'Valéria dos Anjos', role: 'Gerente 4ª CRE' }
+
+};
+
+const RADAR_STORAGE_KEYS = [
+
+    'radar_pdde_escolas',
+
+    'radar_pdde_pendencias',
+
+    'radar_pdde_contatos',
+
+    'radar_pdde_logs',
+
+    'radar_pdde_bens',
+
+    'radar_pdde_verificacoes',
+
+    'radar_pdde_config',
+
+    'radar_pdde_programas',
+
+    'radar_pdde_controladores',
+
+    'radar_pdde_equipe_inventario',
+
+    'radar_pdde_notas_registradas'
+
+];
+
+
+
+function normalizeEscolaRecord(record) {
+
+    const denominacao = record.denominação || record.denominacao || record['denominaçao'] || record['denominaÃ§Ã£o'];
+    const designacao = record.designação || record.designacao || record['designaçao'] || record['designaÃ§Ã£o'];
+
+    return {
+        ...record,
+        denominação: denominacao || '',
+        designação: designacao || ''
+    };
+}
+
+function normalizeEscolas(records) {
+
+    return (records || []).map(normalizeEscolaRecord);
+
+}
+
+function normalizeControllerRecords(records) {
+    if (window.RadarSharedInteractions?.normalizeControllerRecords) {
+        return window.RadarSharedInteractions.normalizeControllerRecords(records);
+    }
+    return (records || []).map(record => ({ ...record }));
+}
+
+function getActivePrograms() {
+
+    return programas.filter(item => item && item.active !== false);
+
+}
+
+function getActiveControllers() {
+
+    return controladores.filter(item => item && item.active !== false);
+
+}
+
+function getActiveInventoryMembers() {
+
+    return equipeInventario.filter(item => item && item.active !== false);
+
+}
+
+
+function getDefaultControladorId() {
+
+    const available = getActiveControllers().length ? getActiveControllers() : INITIAL_CONTROLADORES;
+    const exists = available.some(c => c.id === DEFAULT_CONTROLADOR_ID);
+
+    return exists ? DEFAULT_CONTROLADOR_ID : ((available[0] || {}).id || '');
+
+}
+
+
+
+function getDefaultControlador() {
+
+    const id = getDefaultControladorId();
+
+    const available = getActiveControllers().length ? getActiveControllers() : INITIAL_CONTROLADORES;
+    return available.find(c => c.id === id) || null;
+
+}
+
+
+
+function getCurrentUser() {
+
+    const authenticated = window.RadarAuthContext;
+    if (authenticated?.user && authenticated?.authorization) {
+        return {
+            name: authenticated.user.displayName || authenticated.user.email || 'Usuário autenticado',
+            role: authenticated.authorization.profile?.label || authenticated.authorization.role
+        };
+    }
+
+    if (currentProfile === 'controlador') {
+
+        const controlador = getDefaultControlador();
+
+        return { name: controlador ? controlador.name : 'Controlador', role: 'Controlador' };
+
+    }
+
+    if (currentProfile === 'inventario') {
+
+        const inventariador = getActiveInventoryMembers()[0] || INITIAL_EQUIPE_INVENTARIO[0];
+
+        return { name: inventariador ? inventariador.name : 'Equipe de Inventário', role: 'Equipe de Inventário' };
+
+    }
+
+    return DEFAULT_PROFILE_USERS[currentProfile] || { name: 'Usuário', role: 'Operação' };
+
+}
+
+
+
+// ==========================================
+// GATEWAY ÚNICO DE DADOS
+// ==========================================
+const runtimeConfig = window.RADAR_PDDE_CONFIG || {};
+const LEGACY_TABLE_ENTITY_MAP = Object.freeze({
+    escolas: ['schools', 'schoolPrograms'],
+    pendencias: ['pendencies', 'pendencyAttempts'],
+    contatos: ['pendencyContacts'],
+    logs: ['administrativeLogs'],
+    bens: ['assets'],
+    verificacoes: ['verifications'],
+    config: ['appConfig', 'competences'],
+    programas: ['programs'],
+    controladores: ['controllers'],
+    equipe_inventario: ['inventoryTeamMembers'],
+    notas_registradas: ['registeredInvoices']
+});
+const ALL_LEGACY_CANONICAL_ENTITIES = Object.freeze([
+    ...new Set(Object.values(LEGACY_TABLE_ENTITY_MAP).flat())
+]);
+
+let radarDataService = null;
+let radarPersistenceQueue = Promise.resolve({ ok: true });
+let radarConfigurationService = null;
+let radarDirectoryService = null;
+let radarSchoolService = null;
+let radarPendencyService = null;
+let radarVerificationService = null;
+let radarAuditService = null;
+let radarInvoiceService = null;
+let radarInventoryService = null;
+
+function cloneRadarValue(value) {
+    return window.RadarRepositoryContract.cloneValue(value);
+}
+
+function createInitialRadarMemoryState() {
+    return {
+        config: cloneRadarValue(INITIAL_CONFIG),
+        programs: cloneRadarValue(INITIAL_PROGRAMS),
+        controllers: normalizeControllerRecords(cloneRadarValue(INITIAL_CONTROLADORES)),
+        inventoryTeamMembers: cloneRadarValue(INITIAL_EQUIPE_INVENTARIO),
+        schools: normalizeEscolas(cloneRadarValue(INITIAL_ESCOLAS)),
+        verifications: cloneRadarValue(INITIAL_VERIFICACOES),
+        pendencies: cloneRadarValue(INITIAL_PENDENCIAS),
+        contacts: cloneRadarValue(INITIAL_CONTATOS),
+        assets: cloneRadarValue(INITIAL_BENS),
+        registeredInvoices: [],
+        logs: cloneRadarValue(INITIAL_LOGS),
+        dataVersion: INITIAL_DATA_VERSION,
+        pendencySchemaVersion: String(window.RadarPendencias.PENDENCY_SCHEMA_VERSION)
+    };
+}
+
+function readInitialRadarMemoryState() {
+    const storedVersion = localStorage.getItem('radar_pdde_data_version');
+    const hasSchools = Boolean(localStorage.getItem('radar_pdde_escolas'));
+    if (storedVersion !== INITIAL_DATA_VERSION || !hasSchools) {
+        return createInitialRadarMemoryState();
+    }
+
+    const state = window.RadarStateBridge.readLegacyState(localStorage);
+    state.controllers = normalizeControllerRecords(state.controllers);
+    const rawPrograms = localStorage.getItem('radar_pdde_programas') || '';
+    if (rawPrograms.includes('BÃ¡sico') || rawPrograms.includes('EducaÃ')) {
+        state.programs = cloneRadarValue(INITIAL_PROGRAMS);
+    }
+    state.pendencySchemaVersion = localStorage.getItem(PENDENCY_SCHEMA_STORAGE_KEY)
+        || String(window.RadarPendencias.PENDENCY_SCHEMA_VERSION);
+    return state;
+}
+
+function captureRadarMemoryState() {
+    return {
+        config: cloneRadarValue(config),
+        programs: cloneRadarValue(programas),
+        controllers: cloneRadarValue(controladores),
+        inventoryTeamMembers: cloneRadarValue(equipeInventario),
+        schools: cloneRadarValue(escolas),
+        verifications: cloneRadarValue(verificacoes),
+        pendencies: cloneRadarValue(pendencias),
+        contacts: cloneRadarValue(contatos),
+        assets: cloneRadarValue(bens),
+        registeredInvoices: cloneRadarValue(notasRegistradas),
+        logs: cloneRadarValue(logs),
+        dataVersion: INITIAL_DATA_VERSION,
+        pendencySchemaVersion: String(window.RadarPendencias.PENDENCY_SCHEMA_VERSION)
+    };
+}
+
+function applyRadarMemoryState(state = {}) {
+    config = cloneRadarValue(state.config || INITIAL_CONFIG);
+    programas = cloneRadarValue(state.programs || []);
+    controladores = cloneRadarValue(state.controllers || []);
+    equipeInventario = cloneRadarValue(state.inventoryTeamMembers || []);
+    escolas = normalizeEscolas(cloneRadarValue(state.schools || []));
+    escolas.forEach(escola => {
+        if (escola.cre === '1ª CRE' || escola.cre === '1\u00aa CRE') escola.cre = '4ª CRE';
+    });
+    verificacoes = cloneRadarValue(state.verifications || {});
+    pendencias = cloneRadarValue(state.pendencies || []);
+    contatos = cloneRadarValue(state.contacts || []);
+    bens = cloneRadarValue(state.assets || []);
+    notasRegistradas = cloneRadarValue(state.registeredInvoices || []);
+    logs = cloneRadarValue(state.logs || [])
+        .sort((left, right) => (right.dataHora || '').localeCompare(left.dataHora || ''));
+    migrateLoadedPendencies();
+    rebuildOperationalIndexes();
+    activeCompetenciaKey = config.competenciaFechamento || activeCompetenciaKey;
+}
+
+function getPendencyAnalysisValue(pendency) {
+    if (!pendency || !pendency.programaId || !pendency.documentoKey) return null;
+    const competencia = pendency.competenciaOrigem || pendency.competencia;
+    const compProgKey = `${competencia}_${pendency.programaId}`;
+    return verificacoes?.[pendency.escolaId]?.[compProgKey]?.analise?.[pendency.documentoKey] || null;
+}
+
+function migrateLoadedPendencies() {
+    const migrationAt = new Date().toISOString();
+    pendencias = window.RadarPendencias.migratePendencyCollection(pendencias, {
+        migrationAt,
+        getAnalysisValue: getPendencyAnalysisValue
+    });
+
+}
+
+async function initializeRadarData() {
+    applyRadarMemoryState(readInitialRadarMemoryState());
+
+    const authenticatedClient = await window.RadarAuthBootstrap.prepareAuthenticatedClient({
+        runtimeConfig,
+        root: window
+    });
+    const remoteClient = authenticatedClient.client;
+    const authentication = authenticatedClient.authentication
+        ? Object.freeze({
+            user: Object.freeze({ ...authenticatedClient.authentication.user }),
+            authorization: Object.freeze({ ...authenticatedClient.authentication.authorization })
+        })
+        : null;
+
+    const repository = window.RadarRepositoryFactory.createRepository(runtimeConfig, {
+        storage: localStorage,
+        schemaVersion: '1',
+        supabaseClient: remoteClient
+    });
+    const statePort = window.RadarStatePort.createStatePort({
+        storage: localStorage,
+        bridge: window.RadarStateBridge,
+        readMemory: captureRadarMemoryState,
+        writeMemory: applyRadarMemoryState,
+        dataVersion: INITIAL_DATA_VERSION,
+        pendencySchemaVersion: String(window.RadarPendencias.PENDENCY_SCHEMA_VERSION)
+    });
+    radarDataService = new window.RadarDataService.DataService({
+        repository,
+        statePort
+    });
+    const bootstrap = await radarDataService.bootstrap();
+    initializeRadarApplicationServices();
+    const capabilities = repository.capabilities();
+
+    window.RadarDataContext = Object.freeze({
+        ready: true,
+        bootstrap: Object.freeze({
+            importedLegacy: bootstrap.importedLegacy,
+            empty: bootstrap.empty
+        }),
+        capabilities: Object.freeze({ ...capabilities }),
+        authentication: authentication
+    });
+    return window.RadarDataContext;
+}
+
+function appendRadarLog(acao, detalhes) {
+    const user = getCurrentUser();
+    const newLog = {
+        id: createPendencyClientId('log'),
+        actorUserId: getAuthenticatedUserId() || null,
+        usuario: user.name,
+        perfil: user.role,
+        dataHora: new Date().toISOString(),
+        acao,
+        detalhes
+    };
+    logs.unshift(newLog);
+    return newLog;
+}
+
+function initializeRadarApplicationServices() {
+    const getState = () => ({
+        config,
+        competences: COMPETENCIAS,
+        programs: programas,
+        controllers: controladores,
+        inventoryTeamMembers: equipeInventario,
+        schools: escolas,
+        verifications: verificacoes,
+        pendencies: pendencias,
+        contacts: contatos,
+        assets: bens,
+        registeredInvoices: notasRegistradas,
+        logs
+    });
+    const dependencies = {
+        dataService: radarDataService,
+        getState,
+        appendLog: appendRadarLog
+    };
+    radarConfigurationService = new window.RadarConfigurationService.ConfigurationService(dependencies);
+    radarDirectoryService = new window.RadarDirectoryService.DirectoryService(dependencies);
+    radarSchoolService = new window.RadarSchoolService.SchoolService(dependencies);
+    const transactionalDependencies = {
+        ...dependencies,
+        getCurrentUser,
+        getCurrentProfile: getRadarAccessProfile,
+        createId: createPendencyClientId,
+        now: () => new Date().toISOString()
+    };
+    radarPendencyService = new window.RadarPendencyService.PendencyService({
+        ...transactionalDependencies,
+        getCorrectAnalysisLabel
+    });
+    radarVerificationService = new window.RadarVerificationService.VerificationService({
+        ...transactionalDependencies,
+        ensureVerification: ensureProgramVerification,
+        reopenConsolidation: reopenConsolidationForAssistant,
+        pendencyService: radarPendencyService
+    });
+    radarAuditService = new window.RadarAuditService.AuditService(transactionalDependencies);
+    radarInvoiceService = new window.RadarInvoiceService.InvoiceService({
+        ...transactionalDependencies,
+        reopenConsolidation: (schoolId, compKey, verification, changed) => (
+            reopenConsolidationForAssistant(schoolId, compKey, verification, changed)
+        )
+    });
+    radarInventoryService = new window.RadarInventoryService.InventoryService(transactionalDependencies);
+    window.RadarApplicationServices = Object.freeze({
+        data: radarDataService,
+        configuration: radarConfigurationService,
+        directory: radarDirectoryService,
+        schools: radarSchoolService,
+        pendencies: radarPendencyService,
+        verifications: radarVerificationService,
+        audit: radarAuditService,
+        invoices: radarInvoiceService,
+        inventory: radarInventoryService
+    });
+}
+
+function reportRadarPersistenceError(error, context = {}) {
+    if (window.RadarErrorMapper?.showDataOperationError) {
+        return window.RadarErrorMapper.showDataOperationError(error, context);
+    }
+    window.RADAR_LAST_DATA_ERROR = error;
+    window.dispatchEvent(new CustomEvent('radar:data-error', {
+        detail: {
+            code: error?.code || 'TRANSACTION_FAILED',
+            message: error?.message || 'Não foi possível salvar a alteração.'
+        }
+    }));
+    return error;
+}
+
+function reportRadarActionError(error, fallbackMessage, context = {}) {
+    const mapped = reportRadarPersistenceError(error, {
+        ...context,
+        message: context.message || null
+    });
+    alert(mapped?.message || fallbackMessage || 'Não foi possível concluir a alteração.');
+    return mapped;
+}
+
+function persist(changedTable = null) {
+    if (!radarDataService) {
+        const error = new window.RadarRepositoryContract.RepositoryError(
+            'TRANSACTION_FAILED',
+            'Gateway de dados ainda não inicializado.',
+            { operation: 'persist' }
+        );
+        reportRadarPersistenceError(error);
+        return Promise.resolve({ ok: false, error });
+    }
+
+    const changedEntities = changedTable
+        ? (LEGACY_TABLE_ENTITY_MAP[changedTable] || [])
+        : ALL_LEGACY_CANONICAL_ENTITIES;
+    if (changedEntities.length === 0) {
+        const error = new window.RadarRepositoryContract.RepositoryError(
+            'VALIDATION_FAILED',
+            `Tabela de compatibilidade desconhecida: ${String(changedTable)}.`,
+            { operation: 'persist' }
+        );
+        reportRadarPersistenceError(error);
+        return Promise.resolve({ ok: false, error });
+    }
+
+    let staged;
+    try {
+        staged = radarDataService.stageCompatibility({
+            name: `persist:${changedTable || 'all'}`,
+            changedEntities
+        });
+    } catch (error) {
+        reportRadarPersistenceError(error);
+        throw error;
+    }
+    const execute = () => radarDataService.persistSnapshot(
+        staged.snapshot,
+        staged.changedEntities,
+        { name: `persist:${changedTable || 'all'}` }
+    );
+    radarPersistenceQueue = radarPersistenceQueue
+        .catch(() => ({ ok: false }))
+        .then(execute)
+        .catch(error => {
+            reportRadarPersistenceError(error);
+            return { ok: false, error };
+        });
+    return radarPersistenceQueue;
+}
+
+window.waitForRadarPersistence = () => radarPersistenceQueue;
+
+function registerLog(acao, detalhes) {
+    return appendRadarLog(acao, detalhes);
+}
+
+
+// ==========================================
+// 3. ENGENHARIA DE ALERTAS E AÇÕES RÁPIDAS
+// ==========================================
+
+function getAlerts() {
+    const alerts = [];
+    const now = new Date();
+    const accessProfile = getRadarAccessProfile();
+    
+    // Alerta 1: Pendências ativas há mais de 10 dias
+    pendencias.forEach(p => {
+        if (window.RadarPendencias.isActivePendency(p)) {
+            // Achar último contato dessa pendência para exibição
+            const pContatos = contatos.filter(c => c.pendenciaId === p.id);
+            let lastDate = new Date(p.dataAbertura);
+            if (pContatos.length > 0) {
+                const dates = pContatos.map(c => new Date(c.dataAtendimento));
+                lastDate = new Date(Math.max.apply(null, dates));
+            }
+            const diffDays = Math.ceil((now - new Date(p.dataAbertura)) / (1000 * 60 * 60 * 24));
+            if (diffDays > 10) {
+                const esc = escolas.find(e => e.id === p.escolaId);
+                const pData = getFormattedPendencyData(p);
+                const ctrl = esc ? controladores.find(c => c.id === esc.controladorId) : null;
+                const ctrlText = ctrl ? ctrl.name : 'Não designado';
+                const desigText = esc ? esc.designação : '';
+                const nextActor = p.responsavel
+                    || window.RadarPendencias.getNextActor(p)
+                    || 'Não definido';
+                const timeLabel = pContatos.length > 0 
+                    ? `Último contato em ${lastDate.toLocaleDateString('pt-BR')}` 
+                    : `Registrada em ${new Date(p.dataAbertura).toLocaleDateString('pt-BR')}`;
+                alerts.push({
+                    alertKind: 'stale-pendency',
+                    schoolId: p.escolaId,
+                    pendencyRef: encodePendencyIdReference(p.id),
+                    type: 'danger',
+                    text: `Pendência (${pData.item}) de ${esc ? esc.denominação : 'Escola'} (${desigText} | Resp: ${ctrlText}). Estado: ${p.status}. Próximo ator: ${nextActor}. Ativa há ${diffDays} dias.`,
+                    time: timeLabel,
+                    action: () => openPendencyDetail(p.id)
+                });
+            }
+        }
+    });
+
+    // Alerta 2: Bens de capital não encaminhados por falta de Nota ou Processo de Inventário
+    bens.forEach(b => {
+        if (b.status === 'Não encaminhada') {
+            const esc = escolas.find(e => e.id === b.escolaId);
+            const faltaNF = !b.notaFiscal;
+            const faltaProc = esc ? !esc.processoInventario : true;
+            if (faltaNF || faltaProc) {
+                const ctrl = esc ? controladores.find(c => c.id === esc.controladorId) : null;
+                const ctrlText = ctrl ? ctrl.name : 'Não designado';
+                const desigText = esc ? esc.designação : '';
+                alerts.push({
+                    id: 'capital-' + b.id,
+                    alertKind: 'capital',
+                    schoolId: b.escolaId,
+                    type: 'warning',
+                    text: `Aquisição de capital em ${esc ? esc.denominação : 'Escola'} (${desigText} | Resp: ${ctrlText}) não encaminhada: ${faltaNF ? 'Falta Nota Fiscal' : ''}${faltaNF && faltaProc ? ' e ' : ''}${faltaProc ? 'Falta Processo de Inventário' : ''}.`,
+                    time: `Pendente de verificação interna`,
+                    action: () => openSchoolVerification(b.escolaId, b.competencia)
+                });
+            }
+        }
+    });
+
+    // Alerta 3: Se perfil é controlador/assistente, mostrar análises de programa sem bonificação preenchida
+    if (accessProfile === 'controlador' || accessProfile === 'assistente') {
+        const targetControlador = accessProfile === 'controlador' ? getDefaultControladorId() : null;
+
+        escolas.forEach(esc => {
+            if (!targetControlador || esc.controladorId === targetControlador) {
+                // Verificar se o monitoramento já começou para essa escola nesta competência
+                if (isCompetenceInScope(esc.competenciaInicial, activeCompetenciaKey)) {
+                    esc.programasIds.forEach(progId => {
+                        const compProgKey = `${activeCompetenciaKey}_${progId}`;
+                        const v = verificacoes[esc.id]?.[compProgKey];
+                        const prog = programas.find(p => p.id === progId);
+                        if (!v || !v.bonificacao || Object.keys(v.bonificacao).length === 0) {
+                            const ctrl = esc ? controladores.find(c => c.id === esc.controladorId) : null;
+                            const ctrlText = ctrl ? ctrl.name : 'Não designado';
+                            const desigText = esc ? esc.designação : '';
+                            alerts.push({
+                                id: `nobonif-${esc.id}-${progId}`,
+                                alertKind: 'missing-bonification',
+                                schoolId: esc.id,
+                                type: 'info',
+                                text: `Bonificação de ${esc.denominação} (${desigText} | Resp: ${ctrlText}) para o programa ${prog ? prog.name : progId} na competência ${activeCompetenciaKey} não registrada.`,
+                                time: `Janela de fechamento ativa`,
+                                action: () => openSchoolVerification(esc.id, activeCompetenciaKey)
+                            });
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    return alerts;
+}
+
+function getAlertActionDataAttributes(alert) {
+    if (alert && alert.pendencyRef) {
+        return `data-alert-kind="${escapeHtml(alert.alertKind)}" data-pendency-ref="${escapeHtml(alert.pendencyRef)}"`;
+    }
+    return `data-alert-id="${escapeHtml(alert && alert.id)}"`;
+}
+
+function updateAlertsBell() {
+    const list = getAlerts();
+    const countEl = document.getElementById('alerts-count');
+    const dropCountEl = document.getElementById('alerts-dropdown-count');
+    const listContainer = document.getElementById('alerts-list');
+    
+    countEl.innerText = list.length;
+    dropCountEl.innerText = list.length;
+    
+    if (list.length === 0) {
+        listContainer.innerHTML = `<div class="alert-empty">Nenhum alerta pendente. Operação em dia!</div>`;
+        return;
+    }
+    
+    listContainer.innerHTML = list.map(a => `
+        <div class="alert-item alert-${a.type}" ${getAlertActionDataAttributes(a)} onclick="handleAlertClick(this)">
+            <div class="alert-icon">
+                ${a.type === 'danger' ? `
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                ` : a.type === 'warning' ? `
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                ` : `
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                `}
+            </div>
+            <div class="alert-content">
+                <div class="alert-text">${escapeHtml(a.text)}</div>
+                <div class="alert-time">${escapeHtml(a.time)}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function findAlertFromActionSource(alerts, alertSource) {
+    const actionElement = alertSource && alertSource.currentTarget
+        ? alertSource.currentTarget
+        : alertSource;
+    if (actionElement && actionElement.dataset) {
+        if (actionElement.dataset.pendencyRef) {
+            let pendencyId;
+            try {
+                pendencyId = decodePendencyIdReference(actionElement.dataset.pendencyRef);
+            } catch (error) {
+                console.error('Não foi possível interpretar a referência do alerta.', error);
+                return null;
+            }
+            return alerts.find(alert => {
+                if (!alert.pendencyRef) return false;
+                try {
+                    return decodePendencyIdReference(alert.pendencyRef) === pendencyId;
+                } catch (error) {
+                    return false;
+                }
+            }) || null;
+        }
+        return alerts.find(alert => alert.id === actionElement.dataset.alertId) || null;
+    }
+    return alerts.find(alert => alert.id === alertSource) || null;
+}
+
+function handleAlertClick(alertSource) {
+    const alerts = getAlerts();
+    const alert = findAlertFromActionSource(alerts, alertSource);
+    if (alert) {
+        alert.action();
+        document.getElementById('alerts-dropdown').classList.remove('show');
+    }
+}
+
+// Helpers para abrir seções específicas do Prontuário a partir do Alerta
+function openSchoolTimeline(schoolId, compKey = null) {
+    activeSchoolId = schoolId;
+    if (compKey) {
+        activeProntuarioCompetencia = compKey;
+    }
+    switchView('prontuario');
+    setTimeout(() => {
+        activateProntuarioTab('tab-contatos');
+    }, 100);
+}
+
+function openSchoolCapital(schoolId, compKey = null) {
+    activeSchoolId = schoolId;
+    if (compKey) {
+        activeProntuarioCompetencia = compKey;
+    }
+    switchView('prontuario');
+    setTimeout(() => {
+        activateProntuarioTab('tab-capital');
+    }, 100);
+}
+
+function openSchoolVerification(schoolId, compKey = null) {
+    activeSchoolId = schoolId;
+    if (compKey) {
+        activeProntuarioCompetencia = compKey;
+    }
+    switchView('prontuario');
+    setTimeout(() => {
+        activateProntuarioTab('tab-verificacoes');
+    }, 100);
+}
+
+
+// ==========================================
+// 4. MUDANÇA DE PERFIS E NAVEGAÇÃO
+// ==========================================
+
+function switchProfile(profile) {
+    currentProfile = profile;
+    activeControladorSubFilter = 'all';
+    activeInventarioSubFilter = 'all';
+    activeAssistenteSubFilter = 'all';
+    activeAssistenteControllerFilter = 'all';
+    activeAssistenteRAFilter = 'all';
+    activeAssistenteSearchQuery = '';
+    activeSMECreFilter = null;
+    document.getElementById('profile-btn-label').innerText = {
+        'controlador': 'Controlador',
+        'assistente': 'Assistente de Verbas Federais',
+        'sme': 'SME (Gestão)',
+        'inventario': 'Equipe de Inventário'
+    }[profile];
+    
+    // Atualiza badge de perfil ativo no sidebar
+    const nameEl = document.getElementById('current-user-name');
+    const roleEl = document.getElementById('current-user-role');
+    const avatarEl = document.getElementById('current-avatar');
+    
+    const user = getCurrentUser();
+
+    nameEl.innerText = user.name;
+
+    roleEl.innerText = user.role;
+
+    avatarEl.innerText = user.name.charAt(0).toUpperCase();
+
+
+    // Exibe ou oculta navegação de Parâmetros SME
+    const smeGroup = document.getElementById('nav-sme-group');
+    if (profile === 'sme') {
+        smeGroup.style.display = 'block';
+    } else {
+        smeGroup.style.display = 'none';
+        if (currentView === 'sme-config') {
+            currentView = 'dashboard';
+        }
+    }
+    
+    // Ajusta links no Sidebar para perfil inventario
+    const navCompetencias = document.getElementById('nav-competencias');
+    const navPendencias = document.getElementById('nav-pendencias');
+    const navAuditoria = document.getElementById('nav-auditoria');
+    
+    if (profile === 'inventario') {
+        if (navCompetencias) navCompetencias.style.display = 'none';
+        if (navPendencias) navPendencias.style.display = 'none';
+        if (navAuditoria) navAuditoria.style.display = 'none';
+        if (['competencias', 'pendencias', 'auditoria'].includes(currentView)) {
+            currentView = 'dashboard';
+        }
+    } else {
+        if (navCompetencias) navCompetencias.style.display = 'flex';
+        if (navPendencias) navPendencias.style.display = 'flex';
+        if (navAuditoria) navAuditoria.style.display = 'flex';
+    }
+    
+    // Ajusta link de equipe para perfil assistente
+    const navEquipe = document.getElementById('nav-equipe');
+    if (profile === 'assistente') {
+        if (navEquipe) navEquipe.style.display = 'flex';
+    } else {
+        if (navEquipe) navEquipe.style.display = 'none';
+        if (currentView === 'equipe') {
+            currentView = 'dashboard';
+        }
+    }
+    
+    // Fechar Dropdown
+    document.getElementById('profile-dropdown').classList.remove('show');
+    
+    // Fechar menu ativo de perfil no switcher
+    document.querySelectorAll('.profile-option').forEach(el => el.classList.remove('active'));
+    document.getElementById(`prof-opt-${profile}`).classList.add('active');
+
+    // Forçar re-render da tela ativa
+    switchView(currentView);
+    updateAlertsBell();
+}
+
+function switchView(view, param = null) {
+    currentView = view;
+    
+    // Atualiza o indicador de competência global
+    updateGlobalCompetenceIndicator();
+    
+    // Atualiza links no Sidebar
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    const navItem = document.getElementById(`nav-${view}`);
+    if (navItem) navItem.classList.add('active');
+    
+    if (view === 'prontuario') {
+        if (param) {
+            if (activeSchoolId !== param) activeProntuarioCompetencia = null;
+            activeSchoolId = param;
+        }
+        renderProntuario(activeSchoolId);
+    } else {
+        activeSchoolId = null;
+        if (view === 'dashboard') renderDashboard();
+        else if (view === 'escolas') renderEscolas();
+        else if (view === 'competencias') renderCompetencias();
+        else if (view === 'pendencias') renderPendencias();
+        else if (view === 'inventario') renderInventarioView();
+        else if (view === 'auditoria') renderAuditoria();
+        else if (view === 'sme-config') renderSMEConfig();
+        else if (view === 'equipe') renderEquipe();
+    }
+}
+
+function toggleProfileDropdown(e) {
+    e.stopPropagation();
+    document.getElementById('profile-dropdown').classList.toggle('show');
+    document.getElementById('alerts-dropdown').classList.remove('show');
+}
+
+function toggleAlertsDropdown(e) {
+    e.stopPropagation();
+    document.getElementById('alerts-dropdown').classList.toggle('show');
+    document.getElementById('profile-dropdown').classList.remove('show');
+}
+
+// Fechar dropdowns ao clicar fora
+window.addEventListener('click', () => {
+    document.getElementById('profile-dropdown').classList.remove('show');
+    document.getElementById('alerts-dropdown').classList.remove('show');
+});
+
+
+// ==========================================
+// 5. REGRA OPERACIONAL: ESCOPO DE COMPETÊNCIA
+// ==========================================
+
+function isCompetenceInScope(inicioMonitoramento, competenciaAtual) {
+    if (!inicioMonitoramento) return true;
+    return competenciaAtual >= inicioMonitoramento;
+}
+
+function getRAFromDesignacao(designacao) {
+    if (!designacao) return '4ª CRE - Geral';
+    const partes = designacao.split('.');
+    if (partes.length < 2) return '4ª CRE - Geral';
+    const raNum = partes[1];
+    if (raNum === '10') return '10ª R.A.';
+    if (raNum === '11') return '11ª R.A.';
+    if (raNum === '30') return '30ª R.A.';
+    if (raNum === '31') return '31ª R.A.';
+    return `${parseInt(raNum)}ª R.A.`;
+}
+
+function isBonificacaoValueStarted(value) {
+    return value !== undefined && value !== null && value !== '' && value !== false;
+}
+
+function isAnaliseValueStarted(value) {
+    return Boolean(value && value !== 'Não analisado');
+}
+
+const VERIFICATION_DOCUMENT_LABELS = Object.freeze({
+    extCC: 'Extrato Conta Corrente',
+    extINV: 'Extrato Investimento',
+    notaFiscal: 'Notas Fiscais',
+    consAssessoria: 'Consulta Assessoria',
+    declBBAgil: 'Declaração BB Ágil',
+    encampInventario: 'Encaminhado para Inventariação'
+});
+
+function buildVerificationSnapshot(verification) {
+    const emptyVerification = window.RadarFluxoOperacional.createEmptyVerification();
+
+    if (!verification) {
+        return emptyVerification;
+    }
+
+    return {
+        ...emptyVerification,
+        ...verification,
+        bonificacao: {
+            ...emptyVerification.bonificacao,
+            ...(verification.bonificacao || {})
+        },
+        analise: {
+            ...emptyVerification.analise,
+            ...(verification.analise || {})
+        },
+        resultadoBonif: verification.resultadoBonif || ''
+    };
+}
+
+function ensureProgramVerification(escolaId, compProgKey) {
+    if (!verificacoes[escolaId]) {
+        verificacoes[escolaId] = {};
+    }
+
+    const verification = buildVerificationSnapshot(verificacoes[escolaId][compProgKey]);
+    verificacoes[escolaId][compProgKey] = verification;
+    return verification;
+}
+
+function reopenConsolidationForAssistant(escolaId, compProgKey, verification, hasChanged) {
+    if (!hasChanged || getRadarAccessProfile() !== 'assistente' || !verification.resultadoBonif) {
+        return;
+    }
+
+    const previousResult = verification.resultadoBonif;
+    verification.resultadoBonif = '';
+    const esc = escolas.find(item => item.id === escolaId);
+    appendRadarLog(
+        'Consolidação Reaberta',
+        `A consolidação ${previousResult.toUpperCase()} da escola ${esc ? esc.denominação : escolaId} para ${compProgKey} foi reaberta após alteração da bonificação.`
+    );
+}
+
+function hasBonificationChanged(before, after) {
+    const keys = new Set([
+        ...Object.keys(before || {}),
+        ...Object.keys(after || {})
+    ]);
+
+    return Array.from(keys).some(key => !Object.is(before?.[key], after?.[key]));
+}
+
+function blockConsolidatedFiscalNoteMutation(escolaId, compProgKey) {
+    const verification = verificacoes[escolaId]?.[compProgKey];
+
+    if (!verification?.resultadoBonif || getRadarAccessProfile() === 'assistente') {
+        return false;
+    }
+
+    alert('Esta competência está consolidada. Apenas o(a) Assistente de Verbas Federais pode incluir, editar ou excluir Notas Fiscais.');
+    renderProntuario(escolaId);
+    return true;
+}
+
+function getProgramBonificationStatus(escolaId, compKey, progId) {
+    const compProgKey = `${compKey}_${progId}`;
+    return window.RadarFluxoOperacional.getProgramBonificationStatus(
+        verificacoes[escolaId]?.[compProgKey]
+    );
+}
+
+function getProgramTechnicalStatus(escolaId, compKey, progId) {
+    const compProgKey = `${compKey}_${progId}`;
+    return window.RadarFluxoOperacional.getProgramTechnicalAnalysisStatus(
+        verificacoes[escolaId]?.[compProgKey]
+    );
+}
+
+function getProgramBonificationMeta(status) {
+    const metas = {
+        apta: { label: 'APTA', badgeClass: 'badge-success' },
+        inapta: { label: 'INAPTA', badgeClass: 'badge-danger' },
+        'em-apuracao': { label: 'Em apuração', badgeClass: 'badge-warning' },
+        'nao-lancada': { label: 'Não lançada', badgeClass: 'badge-gray' }
+    };
+
+    return metas[status] || metas['nao-lancada'];
+}
+
+function getProgramTechnicalMeta(status) {
+    const metas = {
+        correto: { label: 'Correto', badgeClass: 'badge-success' },
+        'correto-atrasado': { label: 'Correto após o prazo', badgeClass: 'badge-success' },
+        incorreto: { label: 'Incorreto', badgeClass: 'badge-danger' },
+        'em-analise': { label: 'Em análise', badgeClass: 'badge-warning' },
+        'nao-analisado': { label: 'Não analisado', badgeClass: 'badge-gray' }
+    };
+
+    return metas[status] || metas['nao-analisado'];
+}
+
+function getSchoolTechnicalAnalysisStatus(esc, compKey) {
+    if (!esc || !Array.isArray(esc.programasIds) || esc.programasIds.length === 0) {
+        return 'nao-analisado';
+    }
+
+    const statuses = esc.programasIds.map(progId => (
+        getProgramTechnicalStatus(esc.id, compKey, progId)
+    ));
+
+    if (statuses.includes('incorreto')) return 'incorreto';
+    if (statuses.every(status => status === 'correto')) return 'correto';
+    if (statuses.every(status => ['correto', 'correto-atrasado'].includes(status))) {
+        return statuses.includes('correto-atrasado') ? 'correto-atrasado' : 'correto';
+    }
+    if (statuses.every(status => status === 'nao-analisado')) return 'nao-analisado';
+    return 'em-analise';
+}
+
+function getEscolasStats(escolasList, compKey) {
+    let apto = 0;
+    let inapto = 0;
+    let emAndamento = 0;
+    let naoAnalisado = 0; // Bonificação de programa ainda não lançada
+    let foraEscopo = 0;
+    
+    const aptoList = [];
+    const inaptoList = [];
+    const emAndamentoList = [];
+    const naoAnalisadoList = [];
+
+    escolasList.forEach(e => {
+        // Verificações existentes preservam a leitura histórica da bonificação.
+        let hasVerifications = false;
+        if (verificacoes[e.id]) {
+            hasVerifications = Object.keys(verificacoes[e.id]).some(k => k.startsWith(compKey));
+        }
+        const forceInScope = hasVerifications;
+
+        if (!forceInScope && !isCompetenceInScope(e.competenciaInicial, compKey)) {
+            foraEscopo++;
+            return;
+        }
+        
+        // Iterar sobre cada programa da escola
+        e.programasIds.forEach(progId => {
+            const compProgKey = `${compKey}_${progId}`;
+            const progStatus = getProgramBonificationStatus(e.id, compKey, progId);
+            
+            // Referência dinâmica contendo dados da escola e o programa associado
+            const schoolProgRef = {
+                ...e,
+                programaId: progId,
+                compProgKey: compProgKey
+            };
+
+            if (progStatus === 'inapta') {
+                inapto++;
+                inaptoList.push(schoolProgRef);
+            } else if (progStatus === 'apta') {
+                apto++;
+                aptoList.push(schoolProgRef);
+            } else if (progStatus === 'em-apuracao') {
+                emAndamento++;
+                emAndamentoList.push(schoolProgRef);
+            } else {
+                naoAnalisado++;
+                naoAnalisadoList.push(schoolProgRef);
+            }
+        });
+    });
+
+    return {
+        apto,
+        inapto,
+        emAndamento,
+        naoAnalisado,
+        foraEscopo,
+        lists: {
+            apto: aptoList,
+            inapto: inaptoList,
+            emAndamento: emAndamentoList,
+            naoAnalisado: naoAnalisadoList
+        }
+    };
+}
+
+
+// ==========================================
+
+// 6. BUSCA INTELIGENTE GLOBAL
+
+// ==========================================
+
+
+
+function normalizeSearchText(value) {
+
+    return String(value || '')
+
+        .toLowerCase()
+
+        .normalize("NFD")
+
+        .replace(/[\u0300-\u036f]/g, "")
+
+        .trim();
+
+}
+
+
+
+function onlyDigits(value) {
+
+    return String(value || '').replace(/\D/g, '');
+
+}
+
+
+
+function escapeHtml(value) {
+
+    return String(value || '')
+
+        .replace(/&/g, '&amp;')
+
+        .replace(/</g, '&lt;')
+
+        .replace(/>/g, '&gt;')
+
+        .replace(/"/g, '&quot;')
+
+        .replace(/'/g, '&#039;');
+
+}
+
+
+
+function selectedAttr(current, expected) {
+
+    return current === expected ? 'selected' : '';
+
+}
+
+
+
+function getControladorName(controladorId) {
+
+    const ctrl = controladores.find(c => c.id === controladorId);
+
+    return ctrl ? ctrl.name : 'Não designado';
+
+}
+
+
+
+function getEscolaProgramNames(esc) {
+
+    return (esc.programasIds || []).map(progId => {
+
+        const programa = programas.find(p => p.id === progId);
+
+        return programa ? programa.name : progId;
+
+    }).filter(Boolean);
+
+}
+
+
+
+// NOTE: relies on _pendenciasByEscolaId and _bensByEscolaId indexes.
+// Call rebuildOperationalIndexes() after any mutation to pendencias or bens.
+function getEscolaOperationalData(esc) {
+    const escolaPendencias = _pendenciasByEscolaId.get(esc.id) || [];
+    const pendenciasAbertas = escolaPendencias.filter(p => (
+        window.RadarPendencias.isActivePendency(p)
+    ));
+    const analiseTecnica = getSchoolTechnicalAnalysisStatus(esc, activeCompetenciaKey);
+    const analiseTecnicaMeta = getProgramTechnicalMeta(analiseTecnica);
+    const nextActors = [...new Set(pendenciasAbertas.map(pendency => (
+        pendency.responsavel
+            || window.RadarPendencias.getNextActor(pendency)
+            || 'Não definido'
+    )))];
+    const proximaAcao = pendenciasAbertas.length === 0
+        ? 'Sem pendência ativa'
+        : nextActors.join(' / ');
+    const escolaBens = _bensByEscolaId.get(esc.id) || [];
+    const bensNaoEncaminhados = escolaBens.filter(b => b.status === 'Não encaminhada').length;
+    const bensEncaminhados = escolaBens.filter(b => b.status === 'Encaminhada').length;
+    const bensInventariados = escolaBens.filter(b => b.status === 'Inventariada').length;
+    const processoInventario = (esc.processoInventario || '').trim();
+
+    return {
+        controladorName: getControladorName(esc.controladorId),
+        programas: getEscolaProgramNames(esc),
+        ra: esc.ra || getRAFromDesignacao(esc.designação),
+        situacao: getSchoolAggregateStatus(esc, activeCompetenciaKey),
+        analiseTecnica,
+        analiseTecnicaMeta,
+        pendenciasAbertas,
+        hasPendencias: pendenciasAbertas.length > 0,
+        proximaAcao,
+        hasInventarioProcess: Boolean(processoInventario),
+        processoInventario,
+        bensTotal: escolaBens.length,
+        bensNaoEncaminhados,
+        bensEncaminhados,
+        bensInventariados
+    };
+}
+
+
+
+function schoolMatchesSearch(esc, rawQuery) {
+
+    const cleanQuery = normalizeSearchText(rawQuery);
+
+    if (!cleanQuery) return true;
+
+
+
+    const textCorpus = normalizeSearchText([
+
+        esc.denominação,
+
+        esc.designação
+
+    ].filter(Boolean).join(' '));
+
+    const designationDigits = onlyDigits(esc.designação);
+
+    const tokens = cleanQuery
+
+        .replace(/[^a-z0-9]+/g, ' ')
+
+        .split(/\s+/)
+
+        .filter(Boolean);
+
+
+
+    if (tokens.length === 0) return true;
+
+
+
+    return tokens.every(token => {
+
+        const tokenDigits = onlyDigits(token);
+
+        return textCorpus.includes(token) || (tokenDigits.length > 0 && designationDigits.includes(tokenDigits));
+
+    });
+
+}
+
+
+
+function getEscolaStatusLabel(status) {
+    const labels = {
+        apto: 'APTA',
+        inapto: 'INAPTA',
+        emAndamento: 'Em apuração',
+        naoAnalisado: 'Não lançada',
+        foraEscopo: 'Fora do escopo'
+    };
+
+    return labels[status] || 'Não lançada';
+}
+
+
+
+function getEscolaStatusBadgeClass(status) {
+
+    const classes = {
+
+        apto: 'badge-success',
+
+        inapto: 'badge-danger',
+
+        emAndamento: 'badge-warning',
+
+        naoAnalisado: 'badge-gray',
+
+        foraEscopo: 'badge-info'
+
+    };
+
+    return classes[status] || 'badge-gray';
+
+}
+
+
+
+function syncGlobalSearchInput() {
+
+    const input = document.getElementById('global-search');
+
+    if (input && input.value !== escolaSearchQuery) {
+
+        input.value = escolaSearchQuery;
+
+    }
+}
+
+function updateGlobalCompetenceIndicator() {
+    const el = document.getElementById('global-competence-label');
+    if (el) {
+        const comp = COMPETENCIAS.find(c => c.key === activeCompetenciaKey);
+        const label = comp ? comp.label : activeCompetenciaKey;
+        el.textContent = label;
+    }
+}
+
+function restoreEscolaSearchFocus(selectionStart = null, selectionEnd = selectionStart) {
+
+    const input = document.getElementById('escola-search-input');
+
+    if (!input) return;
+
+
+
+    input.focus({ preventScroll: true });
+
+
+
+    if (typeof input.setSelectionRange === 'function') {
+
+        const valueLength = input.value.length;
+
+        const start = Number.isInteger(selectionStart) ? Math.min(selectionStart, valueLength) : valueLength;
+
+        const end = Number.isInteger(selectionEnd) ? Math.min(selectionEnd, valueLength) : start;
+
+        input.setSelectionRange(start, end);
+
+    }
+
+}
+
+function handleGlobalSearch(e) {
+
+    escolaSearchQuery = e.target.value || '';
+
+    searchResultFiltered = null;
+
+    activeEscolaFilters = { ...DEFAULT_ESCOLA_FILTERS };
+
+
+    if (currentView !== 'escolas') {
+
+        switchView('escolas');
+
+    } else {
+
+        renderEscolas();
+
+    }
+
+}
+
+
+
+
+
+// ==========================================
+// 7. RENDER DA TELA: DASHBOARDS
+// ==========================================
+
+function renderDashboard() {
+    const container = document.getElementById('main-container');
+    const accessProfile = getRadarAccessProfile();
+    
+    if (accessProfile === 'controlador') {
+        renderDashboardControlador(container);
+    } else if (accessProfile === 'assistente') {
+        renderDashboardAssistente(container);
+    } else if (accessProfile === 'sme') {
+        renderDashboardSME(container);
+    } else if (accessProfile === 'inventario') {
+        renderDashboardInventario(container);
+    }
+}
+
+// 7.1 Dashboard do Controlador
+function renderDashboardControlador(container) {
+
+    const filterRa = activeControladorRAFilter;
+
+    const activeControlador = getDefaultControlador();
+
+    const activeControladorId = getDefaultControladorId();
+
+    const activeControladorName = activeControlador ? activeControlador.name : 'Controlador';
+
+    const activeCompetencia = COMPETENCIAS.find(c => c.key === activeCompetenciaKey);
+
+    const activeCompetenciaLabel = activeCompetencia ? activeCompetencia.label : activeCompetenciaKey;
+
+    let targetEscolas = [];
+
+    
+
+    if (filterRa === 'carteira') {
+
+        targetEscolas = escolas.filter(e => e.controladorId === activeControladorId);
+
+    } else if (filterRa === 'todas') {
+        targetEscolas = escolas;
+    } else {
+        targetEscolas = escolas.filter(e => {
+            const partes = e.designação.split('.');
+            return partes.length >= 2 && partes[1] === filterRa;
+        });
+    }
+
+    const carteiraRAs = [...new Set(escolas
+
+        .filter(e => e.controladorId === activeControladorId)
+
+        .map(e => getRAFromDesignacao(e.designação)))];
+
+    const carteiraRAText = carteiraRAs.length ? carteiraRAs.join(', ') : 'sem R.A. vinculada';
+
+
+    const targetIds = targetEscolas.map(e => e.id);
+    
+    // Contagem de pendências ativas das escolas do filtro
+    const pAtivas = pendencias.filter(p => (
+        targetIds.includes(p.escolaId)
+        && window.RadarPendencias.isActivePendency(p)
+    ));
+    
+    // Contagem de bens não encaminhados
+    const bPendentes = bens.filter(b => targetIds.includes(b.escolaId) && b.status === 'Não encaminhada');
+    
+    // Listas filtradas auxiliares para sub-filtros
+    const escolasNaoAnalisadas = targetEscolas.filter(e => {
+        if (!isCompetenceInScope(e.competenciaInicial, activeCompetenciaKey)) return false;
+        return e.programasIds.some(progId => {
+            return getProgramBonificationStatus(e.id, activeCompetenciaKey, progId) === 'nao-lancada';
+        });
+    });
+
+    const escolasComPendencias = targetEscolas.filter(e => {
+        return pendencias.some(p => (
+            p.escolaId === e.id
+            && window.RadarPendencias.isActivePendency(p)
+        ));
+    });
+
+    const escolasComBensPendentes = targetEscolas.filter(e => {
+        return bens.some(b => b.escolaId === e.id && b.status === 'Não encaminhada');
+    });
+
+    // Calcular estatísticas da carteira filtrada usando getEscolasStats
+    const cStats = getEscolasStats(targetEscolas, activeCompetenciaKey);
+    const naoAnalisadasCount = cStats.naoAnalisado;
+
+    // Aplicar sub-filtro na lista de escolas a renderizar
+    let renderedEscolas = [...targetEscolas];
+    let subFilterLabel = '';
+    if (activeControladorSubFilter === 'naoAnalisadas') {
+        renderedEscolas = escolasNaoAnalisadas;
+        subFilterLabel = ' (Filtrado: Bonificação não lançada)';
+    } else if (activeControladorSubFilter === 'pendencias') {
+        renderedEscolas = escolasComPendencias;
+        subFilterLabel = ' (Filtrado: Com pendências ativas)';
+    } else if (activeControladorSubFilter === 'bens') {
+        renderedEscolas = escolasComBensPendentes;
+        subFilterLabel = ' (Filtrado: Com Bens Não Encaminhados)';
+    }
+
+    container.innerHTML = `
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Painel do Controlador</h1>
+                <p>Carteira ativa: <strong>${activeControladorName}</strong>. R.A. vinculada: <strong>${carteiraRAText}</strong>. Você pode navegar por outras R.As ou pesquisar na CRE.</p>
+
+            </div>
+            <div class="badge badge-info">Mês Ativo: ${COMPETENCIAS.find(c => c.key === activeCompetenciaKey).label}</div>
+        </div>
+
+        <div class="tab-container" style="margin-bottom: 20px;">
+            <button class="tab-button ${filterRa === 'carteira' ? 'active' : ''}" onclick="changeControladorRAFilter('carteira')">Minha Carteira (${activeControladorName.split(' ')[0]})</button>
+
+            <button class="tab-button ${filterRa === '10' ? 'active' : ''}" onclick="changeControladorRAFilter('10')">10ª R.A.</button>
+            <button class="tab-button ${filterRa === '11' ? 'active' : ''}" onclick="changeControladorRAFilter('11')">11ª R.A.</button>
+            <button class="tab-button ${filterRa === '30' ? 'active' : ''}" onclick="changeControladorRAFilter('30')">30ª R.A.</button>
+            <button class="tab-button ${filterRa === '31' ? 'active' : ''}" onclick="changeControladorRAFilter('31')">31ª R.A.</button>
+            <button class="tab-button ${filterRa === 'todas' ? 'active' : ''}" onclick="changeControladorRAFilter('todas')">Todas da CRE</button>
+        </div>
+
+        <div class="grid-stats">
+            <div class="card-stat ${activeControladorSubFilter === 'all' ? 'active-all' : ''}" style="cursor: pointer;" onclick="changeControladorSubFilter('all')">
+                <div class="stat-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                </div>
+                <div class="stat-label">Escolas no Filtro</div>
+                <div class="stat-value">${targetEscolas.length} Unidades</div>
+            </div>
+            <div class="card-stat ${activeControladorSubFilter === 'naoAnalisadas' ? 'active-naoAnalisadas' : ''}" style="cursor: pointer;" onclick="changeControladorSubFilter('naoAnalisadas')">
+
+                <div class="stat-icon" style="background-color: var(--warning-bg); color: var(--warning);">
+
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+
+                </div>
+
+                <div class="stat-label">Bonificação não lançada (${formatCompetenciaText(activeCompetenciaKey)})</div>
+
+                <div class="stat-value">${escolasNaoAnalisadas.length} Escolas</div>
+
+            </div>
+            <div class="card-stat ${activeControladorSubFilter === 'pendencias' ? 'active-pendencias' : ''}" style="cursor: pointer;" onclick="changeControladorSubFilter('pendencias')">
+                <div class="stat-icon" style="background-color: var(--danger-bg); color: var(--danger);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg>
+                </div>
+                <div class="stat-label">Pendências ativas</div>
+                <div class="stat-value">${escolasComPendencias.length} Escolas</div>
+            </div>
+            <div class="card-stat ${activeControladorSubFilter === 'bens' ? 'active-bens' : ''}" style="cursor: pointer;" onclick="changeControladorSubFilter('bens')">
+                <div class="stat-icon" style="background-color: var(--info-bg); color: var(--info);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                </div>
+                <div class="stat-label">Bens Não Encaminhados</div>
+                <div class="stat-value">${escolasComBensPendentes.length} Escolas</div>
+            </div>
+        </div>
+
+        <div class="dash-layout">
+            <!-- Coluna Esquerda: Listagem de Unidades -->
+            <div>
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <h2 class="dashboard-list-heading">
+                            <span>Lista de Escolas - Visualização: ${filterRa === 'carteira' ? 'Minha Carteira' : filterRa === 'todas' ? 'Todas da CRE' : `${filterRa}ª R.A.`}${subFilterLabel}</span>
+                            <span class="dashboard-competencia-pill">Competência vista: ${escapeHtml(formatCompetenciaText(activeCompetenciaKey))}</span>
+                        </h2>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Unidade Escolar</th>
+                                    <th>INEP</th>
+                                    <th>Contatos</th>
+                                    <th class="bonificacao-competencia-col">Bonificação <span>(${escapeHtml(formatCompetenciaText(activeCompetenciaKey))})</span></th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${renderedEscolas.length === 0 ? `
+                                    <tr>
+                                        <td colspan="5" style="text-align:center; color:var(--text-muted); padding:32px;">Nenhuma escola encontrada com este filtro!</td>
+                                    </tr>
+                                ` : renderedEscolas.map(e => {
+                                    let statusHTML = '';
+                                    e.programasIds.forEach(progId => {
+                                        const prog = programas.find(p => p.id === progId);
+                                        const progName = prog ? prog.name : progId;
+                                        const progStatus = getProgramBonificationStatus(e.id, activeCompetenciaKey, progId);
+                                        const statusMeta = getProgramBonificationMeta(progStatus);
+                                        const progBadge = `<span class="badge ${statusMeta.badgeClass} dashboard-status-badge">${statusMeta.label}</span>`;
+
+                                        statusHTML += `<div style="margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                                            <span style="font-size:0.75rem; font-weight:500; color:var(--text-muted);">${escapeHtml(progName)}:</span>
+                                            ${progBadge}
+                                        </div>`;
+                                    });
+                                    
+                                    const cCount = contatos.filter(c => c.escolaId === e.id).length;
+                                    const ctrl = controladores.find(c => c.id === e.controladorId);
+                                    
+                                    const ctrlLabel = e.controladorId === activeControladorId
+
+                                        ? `<span class="badge badge-info" style="font-size:0.65rem; padding: 2px 4px; font-weight:500;">Sua Carteira</span>`
+                                        : `<span style="font-size:0.75rem; color:var(--text-muted);">Controlador: ${escapeHtml(ctrl ? ctrl.name : 'Sem designação')}</span>`;
+
+                                    return `
+                                        <tr>
+                                            <td>
+                                                <strong>${escapeHtml(e.denominação)}</strong><br>
+                                                <small style="color:var(--text-muted)">${escapeHtml(e.designação)} • ${escapeHtml(getRAFromDesignacao(e.designação))}</small><br>
+                                                ${ctrlLabel}
+                                            </td>
+                                            <td>${escapeHtml(e.inep)}</td>
+                                            <td><span class="badge badge-info">${cCount} Contatos</span></td>
+                                            <td class="bonificacao-competencia-cell">${statusHTML}</td>
+                                            <td>
+                                                <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${escapeHtml(e.id)}')">Ver Unidade</button>
+                                            </td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coluna Direita: Alertas Relacionados -->
+            <div>
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <h2>Gargalos de Trabalho (Pendências no Filtro)</h2>
+                    </div>
+                    <div id="controlador-gargalos">
+                        <!-- Será preenchido por alertas locais filtrados -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Injetar os alertas do controlador no painel lateral com base nas escolas filtradas
+    const gargalosEl = document.getElementById('controlador-gargalos');
+    const localAlertKinds = new Set([
+        'stale-pendency',
+        'missing-bonification',
+        'capital'
+    ]);
+    const localAlerts = getAlerts().filter(a => (
+        targetIds.includes(a.schoolId)
+        && localAlertKinds.has(a.alertKind)
+    ));
+    
+    if (localAlerts.length === 0) {
+        gargalosEl.innerHTML = `<div style="text-align:center; padding: 24px; color:var(--text-muted)">Sem pendências críticas neste filtro! Bom trabalho.</div>`;
+    } else {
+        gargalosEl.innerHTML = localAlerts.map(a => `
+            <div class="contact-card" style="border-left: 3px solid var(--${a.type === 'danger' ? 'danger' : a.type === 'warning' ? 'warning' : 'info'}); margin-bottom: 12px; cursor:pointer;" ${getAlertActionDataAttributes(a)} onclick="handleAlertClick(this)">
+                <div class="contact-meta">
+                    <span style="font-weight:700; color:var(--${a.type === 'danger' ? 'danger' : a.type === 'warning' ? 'warning' : 'info'})">${a.type.toUpperCase()}</span>
+                    <span>${escapeHtml(a.time)}</span>
+                </div>
+                <div class="contact-desc" style="font-size:0.8rem">${escapeHtml(a.text)}</div>
+            </div>
+        `).join('');
+    }
+}
+
+function changeControladorRAFilter(filter) {
+    activeControladorRAFilter = filter;
+    activeControladorSubFilter = 'all';
+    renderDashboard();
+}
+
+function changeControladorSubFilter(subFilter) {
+    if (activeControladorSubFilter === subFilter) {
+        activeControladorSubFilter = 'all';
+    } else {
+        activeControladorSubFilter = subFilter;
+    }
+    renderDashboard();
+}
+
+
+function getSchoolAggregateStatus(e, compKey) {
+    const status = getCompMonthStatus(e.id, compKey);
+    if (status === 'out-of-scope') return 'foraEscopo';
+    if (status === 'inapta') return 'inapto';
+    if (status === 'apta') return 'apto';
+    if (status === 'em-andamento') return 'emAndamento';
+    return 'naoAnalisado';
+}
+
+function calculateSMESchoolStats(escolasList, compKey) {
+    const schoolRecords = escolasList.map(escola => ({
+        escola,
+        status: getSchoolAggregateStatus(escola, compKey)
+    }));
+
+    return RadarEstatisticas.calculateSchoolStats(schoolRecords);
+}
+
+function renderDashboardAssistente(container) {
+    // Calcular estatísticas agregadas por escola
+    const stats = {
+        apto: 0,
+        inapto: 0,
+        emAndamento: 0,
+        naoAnalisado: 0,
+        foraEscopo: 0
+    };
+    
+    escolas.forEach(e => {
+        const aggStatus = getSchoolAggregateStatus(e, activeCompetenciaKey);
+        if (aggStatus === 'foraEscopo') stats.foraEscopo++;
+        else stats[aggStatus]++;
+    });
+    
+    const totalEscolasValidas = stats.apto + stats.inapto + stats.emAndamento + stats.naoAnalisado;
+
+    // Consolidações por Controlador
+    const statsControladores = getActiveControllers().map(ctrl => {
+        const carteira = escolas.filter(e => e.controladorId === ctrl.id);
+        
+        let cApto = 0;
+        let cInapto = 0;
+        let cEmAndamento = 0;
+        let cNaoAnalisado = 0;
+        let cForaEscopo = 0;
+        
+        carteira.forEach(e => {
+            const aggStatus = getSchoolAggregateStatus(e, activeCompetenciaKey);
+            if (aggStatus === 'apto') cApto++;
+            else if (aggStatus === 'inapto') cInapto++;
+            else if (aggStatus === 'emAndamento') cEmAndamento++;
+            else if (aggStatus === 'naoAnalisado') cNaoAnalisado++;
+            else if (aggStatus === 'foraEscopo') cForaEscopo++;
+        });
+        
+        const tot = cApto + cInapto + cEmAndamento + cNaoAnalisado;
+        const analisadas = cApto + cInapto;
+        const faltam = cEmAndamento + cNaoAnalisado;
+        const pendentesAtivas = pendencias.filter(p => carteira.map(e => e.id).includes(p.escolaId) && p.status === 'Aberta').length;
+
+        // Montar listas para exibição de escolas pendentes no detalhamento do controlador
+        const emAndamentoList = carteira.filter(e => getSchoolAggregateStatus(e, activeCompetenciaKey) === 'emAndamento');
+        const naoAnalisadoList = carteira.filter(e => getSchoolAggregateStatus(e, activeCompetenciaKey) === 'naoAnalisado');
+
+        return {
+            ...ctrl,
+            stats: {
+                apto: cApto,
+                inapto: cInapto,
+                emAndamento: cEmAndamento,
+                naoAnalisado: cNaoAnalisado,
+                lists: {
+                    emAndamento: emAndamentoList,
+                    naoAnalisado: naoAnalisadoList
+                }
+            },
+            totalEscolas: carteira.length,
+            totalValidos: tot,
+            analisadas: analisadas,
+            faltam: faltam,
+            pendenciasAtivas: pendentesAtivas
+        };
+    });
+
+    const totalPendentesGeral = pendencias.filter(p => p.status === 'Aberta').length;
+    const bensSemEncaminhamento = bens.filter(b => b.status === 'Não encaminhada').length;
+
+    // Calcular escolas filtradas para o visualizador do assistente
+    let filteredEscolas = [...escolas];
+    if (activeAssistenteSubFilter !== 'all') {
+        filteredEscolas = filteredEscolas.filter(e => {
+            const aggStatus = getSchoolAggregateStatus(e, activeCompetenciaKey);
+            return aggStatus === activeAssistenteSubFilter;
+        });
+    }
+    if (activeAssistenteControllerFilter !== 'all') {
+        filteredEscolas = filteredEscolas.filter(e => e.controladorId === activeAssistenteControllerFilter);
+    }
+    if (activeAssistenteRAFilter !== 'all') {
+        filteredEscolas = filteredEscolas.filter(e => {
+            const partes = e.designação.split('.');
+            return partes.length >= 2 && partes[1] === activeAssistenteRAFilter;
+        });
+    }
+    if (activeAssistenteSearchQuery && activeAssistenteSearchQuery.trim() !== '') {
+        const cleanQuery = activeAssistenteSearchQuery.toLowerCase().trim();
+        filteredEscolas = filteredEscolas.filter(e => e.denominação.toLowerCase().includes(cleanQuery));
+    }
+
+    const escolasListHTML = filteredEscolas.length === 0 
+        ? `<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:32px;">Nenhuma unidade escolar encontrada neste filtro.</td></tr>`
+        : filteredEscolas.map(e => {
+            const ctrl = controladores.find(c => c.id === e.controladorId);
+            const aggStatus = getSchoolAggregateStatus(e, activeCompetenciaKey);
+            let statusText = '';
+            let badgeCls = '';
+            
+            if (aggStatus === 'apto') {
+                statusText = 'Apta';
+                badgeCls = 'badge-success';
+            } else if (aggStatus === 'inapto') {
+                statusText = 'Inapta';
+                badgeCls = 'badge-danger';
+            } else if (aggStatus === 'emAndamento') {
+                statusText = 'Em apuração';
+                badgeCls = 'badge-primary';
+            } else {
+                statusText = 'Não lançada';
+                badgeCls = 'badge-secondary';
+            }
+
+            return `
+                <tr class="assistente-escola-row" data-escola="${escapeHtml(e.denominação.toLowerCase())}">
+                    <td><strong>${escapeHtml(e.denominação)}</strong></td>
+                    <td>${escapeHtml(e.designação)} (${escapeHtml(getRAFromDesignacao(e.designação))})</td>
+                    <td>${escapeHtml(ctrl ? ctrl.name : 'Não designado')}</td>
+                    <td><span class="badge ${badgeCls}">${statusText}</span></td>
+                    <td>
+                        <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${escapeHtml(e.id)}')">Ver Unidade</button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+    container.innerHTML = `
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Painel do Assistente de Verbas Federais</h1>
+                <p>Gestão operacional da CRE e suporte aos Controladores de carteiras.</p>
+            </div>
+            <button class="btn btn-primary" onclick="openRedistributionModal()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M17 11l2 2 4-4"></path></svg>
+                Redistribuir Escolas
+            </button>
+        </div>
+
+        <div class="grid-stats">
+            <div class="card-stat ${activeAssistenteSubFilter === 'apto' ? 'active-concluido' : ''}" style="cursor: pointer;" onclick="changeAssistenteSubFilter('apto')">
+                <div class="stat-icon" style="background-color: var(--success-bg); color: var(--success);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                </div>
+                <div class="stat-label">Unidades Aptas (${formatCompetenciaText(activeCompetenciaKey)})</div>
+                <div class="stat-value">${stats.apto} Escolas</div>
+            </div>
+            <div class="card-stat ${activeAssistenteSubFilter === 'inapto' ? 'active-pendencias' : ''}" style="cursor: pointer;" onclick="changeAssistenteSubFilter('inapto')">
+                <div class="stat-icon" style="background-color: var(--danger-bg); color: var(--danger);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                </div>
+                <div class="stat-label">Unidades Inaptas (${formatCompetenciaText(activeCompetenciaKey)})</div>
+                <div class="stat-value">${stats.inapto} Escolas</div>
+            </div>
+            <div class="card-stat ${activeAssistenteSubFilter === 'emAndamento' ? 'active-bens' : ''}" style="cursor: pointer;" onclick="changeAssistenteSubFilter('emAndamento')">
+                <div class="stat-icon" style="background-color: rgba(157, 125, 252, 0.1); color: var(--primary);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                </div>
+                <div class="stat-label">Bonificação em apuração</div>
+                <div class="stat-value">${stats.emAndamento} Escolas</div>
+            </div>
+            <div class="card-stat ${activeAssistenteSubFilter === 'naoAnalisado' ? 'active-naoAnalisadas' : ''}" style="cursor: pointer;" onclick="changeAssistenteSubFilter('naoAnalisado')">
+                <div class="stat-icon" style="background-color: rgba(255, 255, 255, 0.06); color: var(--text-muted);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                </div>
+                <div class="stat-label">Bonificação não lançada</div>
+                <div class="stat-value">${stats.naoAnalisado} Unidades</div>
+            </div>
+        </div>
+
+        <div class="dash-layout">
+            <!-- Esquerda: Produtividade dos Controladores -->
+            <div>
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <h2>Acompanhamento por Carteira / Controlador</h2>
+                        <span style="font-size:0.75rem; color:var(--text-muted)">Clique na linha do controlador para abrir o detalhamento.</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Controlador</th>
+                                    <th>Escolas Ativas (Escopo)</th>
+                                    <th>Progresso da bonificação (${formatCompetenciaText(activeCompetenciaKey)})</th>
+                                    <th>Pendências Abertas</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${statsControladores.map(c => {
+                                    const percent = c.totalValidos > 0 ? Math.round((c.analisadas / c.totalValidos) * 100) : 0;
+                                    let colorCls = 'danger';
+                                    if (percent > 80) colorCls = 'success';
+                                    else if (percent > 40) colorCls = 'warning';
+                                    
+                                    const isExpanded = expandedControllerId === c.id;
+                                    const faltamList = [...c.stats.lists.emAndamento, ...c.stats.lists.naoAnalisado];
+
+                                    return `
+                                        <tr style="cursor: pointer;" onclick="toggleControllerDetail('${escapeHtml(c.id)}')" class="tr-hoverABLE ${isExpanded ? 'tr-expanded-active' : ''}">
+                                            <td>
+                                                <div style="display:flex; align-items:center; gap:8px;">
+                                                    <span style="transform: rotate(${isExpanded ? '90' : '0'}deg); transition: transform 0.2s; color: var(--primary);">▶</span>
+                                                    <strong>${escapeHtml(c.name)}</strong>
+                                                </div>
+                                                <small style="color:var(--text-muted); margin-left: 18px;">${escapeHtml(c.email)}</small>
+                                            </td>
+                                            <td>${c.totalValidos} unidades</td>
+                                            <td>
+                                                <div style="display:flex; align-items:center; gap:8px;">
+                                                    <div style="flex-grow:1; height:6px; background:rgba(255,255,255,0.05); border-radius:3px; position:relative;">
+                                                        <div style="position:absolute; left:0; top:0; bottom:0; width:${percent}%; background:var(--primary); border-radius:3px;"></div>
+                                                    </div>
+                                                    <span>${percent}%</span>
+                                                </div>
+                                            </td>
+                                            <td><span class="badge badge-danger">${c.pendenciasAtivas}</span></td>
+                                            <td>
+                                                <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); toggleControllerDetail('${escapeHtml(c.id)}')">
+                                                    ${isExpanded ? 'Recolher' : 'Detalhamento'}
+                                                 </button>
+                                            </td>
+                                        </tr>
+                                        ${isExpanded ? `
+                                            <tr class="controller-detail-row">
+                                                <td colspan="5">
+                                                    <div class="controller-detail-card" style="padding: 16px; background-color: var(--card-bg-hover); border-radius: 8px; border: 1px dashed var(--border-color); margin: 6px 0;">
+                                                        <div style="display: grid; grid-template-columns: 1.1fr 1.3fr; gap: 20px;">
+                                                            <div>
+                                                                <h4 style="margin-bottom: 10px; color: var(--primary); font-size: 0.9rem;">Situação Operacional da Carteira</h4>
+                                                                <div style="display:flex; flex-direction:column; gap:8px;">
+                                                                    <div style="display:flex; justify-content:space-between; font-size: 0.85rem;">
+                                                                        <span><strong>Bonificações consolidadas</strong></span>
+                                                                        <strong>${c.analisadas} de ${c.totalValidos} (${percent}%)</strong>
+                                                                    </div>
+                                                                    <div style="display:flex; flex-direction:column; gap:6px; margin-left:12px; font-size:0.8rem; color:var(--text-muted)">
+                                                                        <div class="hover-filter-row" style="cursor: pointer; padding: 4px 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;" onclick="event.stopPropagation(); filterAssistenteByStatusAndController('apto', '${escapeHtml(c.id)}')">
+                                                                            <span>• Aptas</span>
+                                                                            <span class="badge badge-success" style="font-size: 0.7rem; padding: 2px 6px;">${c.stats.apto}</span>
+                                                                        </div>
+                                                                        <div class="hover-filter-row" style="cursor: pointer; padding: 4px 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;" onclick="event.stopPropagation(); filterAssistenteByStatusAndController('inapto', '${escapeHtml(c.id)}')">
+                                                                            <span>• Inaptas</span>
+                                                                            <span class="badge badge-danger" style="font-size: 0.7rem; padding: 2px 6px;">${c.stats.inapto}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div style="display:flex; justify-content:space-between; font-size: 0.85rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top:8px; margin-top:4px;">
+                                                                        <span><strong>Falta Analisar</strong></span>
+                                                                        <strong>${c.faltam} de ${c.totalValidos} (${c.totalValidos > 0 ? Math.round((c.faltam / c.totalValidos) * 100) : 0}%)</strong>
+                                                                    </div>
+                                                                    <div style="display:flex; flex-direction:column; gap:6px; margin-left:12px; font-size:0.8rem; color:var(--text-muted)">
+                                                                        <div class="hover-filter-row" style="cursor: pointer; padding: 4px 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;" onclick="event.stopPropagation(); filterAssistenteByStatusAndController('emAndamento', '${escapeHtml(c.id)}')">
+                                                                            <span>• Bonificação em apuração</span>
+                                                                            <span class="badge badge-primary" style="font-size: 0.7rem; padding: 2px 6px;">${c.stats.emAndamento}</span>
+                                                                        </div>
+                                                                        <div class="hover-filter-row" style="cursor: pointer; padding: 4px 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;" onclick="event.stopPropagation(); filterAssistenteByStatusAndController('naoAnalisado', '${escapeHtml(c.id)}')">
+                                                                            <span>• Bonificação não lançada</span>
+                                                                            <span class="badge badge-secondary" style="font-size: 0.7rem; padding: 2px 6px;">${c.stats.naoAnalisado}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+                                                                <h4 style="margin-bottom: 10px; color: var(--warning); font-size: 0.9rem;">Escolas com Análise Pendente (${c.faltam})</h4>
+                                                                ${faltamList.length === 0 ? `
+                                                                    <div style="color: var(--success); font-size: 0.85rem; padding: 12px; text-align: center; border: 1px solid rgba(135,212,143,0.1); border-radius: 6px; background-color: rgba(135,212,143,0.02)">
+                                                                        <strong>Tudo correto!</strong> Todas as escolas deste controlador foram analisadas.
+                                                                    </div>
+                                                                ` : `
+                                                                    <div style="max-height: 190px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px;">
+                                                                        ${faltamList.map(esc => {
+                                                                            const isEmAndamento = c.stats.lists.emAndamento.includes(esc);
+                                                                            const escStatus = isEmAndamento 
+                                                                                 ? `<span class="badge badge-warning" style="font-size:0.65rem; padding: 2px 6px;">Em apuração</span>`
+                                                                                 : `<span class="badge badge-gray" style="font-size:0.65rem; padding: 2px 6px;">Não lançada</span>`;
+                                                                            const raName = getRAFromDesignacao(esc.designação);
+                                                                            return `
+                                                                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; background: rgba(255,255,255,0.02); border-radius: 6px; border: 1px solid rgba(255,255,255,0.03);">
+                                                                                    <div style="flex-grow: 1; padding-right: 8px;">
+                                                                                        <div style="font-size: 0.8rem; font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 240px;" title="${escapeHtml(esc.denominação)}">${escapeHtml(esc.denominação)}</div>
+                                                                                        <div style="font-size: 0.7rem; color: var(--text-muted);">${escapeHtml(esc.designação)} (${escapeHtml(raName)}) | Resp: ${escapeHtml(c.name)}</div>
+                                                                                    </div>
+                                                                                    <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                                                                                        ${escStatus}
+                                                                                        <button class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 0.7rem;" onclick="event.stopPropagation(); switchView('prontuario', '${escapeHtml(esc.id)}')">Ver Unidade</button>
+                                                                                    </div>
+                                                                                </div>
+                                                                            `;
+                                                                        }).join('')}
+                                                                    </div>
+                                                                `}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ` : ''}
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Direita: Gargalos e Alertas de Prazos -->
+            <div>
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <h2>Gargalos de Regularização (Pendências Estagnadas)</h2>
+                    </div>
+                    <div id="assistente-gargalos">
+                        <!-- Preenchido via Alertas -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-card" style="margin-top: 24px;" id="assistente-visualizador-container">
+            <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: none; padding-bottom: 0;">
+                <div>
+                    <h2>Visualizador de Unidades Escolares</h2>
+                    <p style="font-size:0.8rem; color:var(--text-muted)">
+                        Consulte e filtre todas as escolas da CRE e os status de bonificação do mês ativo.
+                    </p>
+                </div>
+                <div>
+                    <input type="text" id="assistente-escola-search" class="form-control" placeholder="Buscar unidade por nome..." style="width: 250px; font-size: 0.85rem; padding: 6px 12px; height: auto;" value="${activeAssistenteSearchQuery}" oninput="filterAssistenteEscolas(this.value)">
+                </div>
+            </div>
+            
+            <!-- Barra de Filtros Avançados -->
+            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 16px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 16px;">
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Status de Bonificação</label>
+                    <select id="filter-assistente-status" class="form-control" style="width: 180px; font-size: 0.85rem; padding: 6px 12px; height: auto;" onchange="changeAssistenteFilter('status', this.value)">
+                        <option value="all" ${activeAssistenteSubFilter === 'all' ? 'selected' : ''}>Todos os Status</option>
+                        <option value="apto" ${activeAssistenteSubFilter === 'apto' ? 'selected' : ''}>Apta</option>
+                        <option value="inapto" ${activeAssistenteSubFilter === 'inapto' ? 'selected' : ''}>Inapta</option>
+                        <option value="emAndamento" ${activeAssistenteSubFilter === 'emAndamento' ? 'selected' : ''}>Em apuração</option>
+                        <option value="naoAnalisado" ${activeAssistenteSubFilter === 'naoAnalisado' ? 'selected' : ''}>Não lançada</option>
+                    </select>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Controlador</label>
+                    <select id="filter-assistente-controlador" class="form-control" style="width: 180px; font-size: 0.85rem; padding: 6px 12px; height: auto;" onchange="changeAssistenteFilter('controlador', this.value)">
+                        <option value="all" ${activeAssistenteControllerFilter === 'all' ? 'selected' : ''}>Todos os Controladores</option>
+                        ${getActiveControllers().map(ctrl => `<option value="${ctrl.id}" ${activeAssistenteControllerFilter === ctrl.id ? 'selected' : ''}>${ctrl.name}</option>`).join('')}
+                    </select>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Região Administrativa (R.A.)</label>
+                    <select id="filter-assistente-ra" class="form-control" style="width: 180px; font-size: 0.85rem; padding: 6px 12px; height: auto;" onchange="changeAssistenteFilter('ra', this.value)">
+                        <option value="all" ${activeAssistenteRAFilter === 'all' ? 'selected' : ''}>Todas as R.As</option>
+                        <option value="10" ${activeAssistenteRAFilter === '10' ? 'selected' : ''}>10ª R.A.</option>
+                        <option value="11" ${activeAssistenteRAFilter === '11' ? 'selected' : ''}>11ª R.A.</option>
+                        <option value="30" ${activeAssistenteRAFilter === '30' ? 'selected' : ''}>30ª R.A.</option>
+                        <option value="31" ${activeAssistenteRAFilter === '31' ? 'selected' : ''}>31ª R.A.</option>
+                    </select>
+                </div>
+                ${(activeAssistenteSubFilter !== 'all' || activeAssistenteControllerFilter !== 'all' || activeAssistenteRAFilter !== 'all' || (activeAssistenteSearchQuery && activeAssistenteSearchQuery.trim() !== '')) ? `
+                    <div style="display: flex; align-items: flex-end; padding-top: 18px;">
+                        <button class="btn btn-secondary btn-sm" onclick="clearAssistenteFilters()" style="padding: 6px 12px; font-size: 0.8rem; border-color: rgba(255,255,255,0.1);">Limpar Filtros</button>
+                    </div>
+                ` : ''}
+            </div>
+
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Unidade Escolar</th>
+                            <th>Designação / R.A.</th>
+                            <th>Controlador</th>
+                            <th>Status de Bonificação</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${escolasListHTML}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+
+    const gargalosEl = document.getElementById('assistente-gargalos');
+    const staleAlerts = getAlerts().filter(a => (
+        a.alertKind === 'stale-pendency' || a.alertKind === 'capital'
+    ));
+    if (staleAlerts.length === 0) {
+        gargalosEl.innerHTML = `<div style="text-align:center; padding: 24px; color:var(--text-muted)">Sem gargalos de pendências ativas nas carteiras!</div>`;
+    } else {
+        gargalosEl.innerHTML = staleAlerts.map(a => `
+            <div class="contact-card" style="border-left: 3px solid var(--${a.type === 'danger' ? 'danger' : 'warning'}); margin-bottom:12px; cursor:pointer;" ${getAlertActionDataAttributes(a)} onclick="handleAlertClick(this)">
+                <div class="contact-meta">
+                    <span style="font-weight:700; color:var(--${a.type === 'danger' ? 'danger' : 'warning'})">${a.type.toUpperCase()}</span>
+                    <span>${escapeHtml(a.time)}</span>
+                </div>
+                <div class="contact-desc" style="font-size:0.8rem">${escapeHtml(a.text)}</div>
+            </div>
+        `).join('');
+    }
+}
+
+function changeAssistenteSubFilter(subFilter) {
+    if (activeAssistenteSubFilter === subFilter) {
+        activeAssistenteSubFilter = 'all';
+    } else {
+        activeAssistenteSubFilter = subFilter;
+    }
+    renderDashboard();
+}
+
+function filterAssistenteEscolas(query) {
+    activeAssistenteSearchQuery = query;
+    const cleanQuery = query.toLowerCase().trim();
+    document.querySelectorAll('.assistente-escola-row').forEach(row => {
+        const schoolText = row.getAttribute('data-escola') || '';
+        if (schoolText.includes(cleanQuery)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+function toggleControllerDetail(ctrlId) {
+    expandedControllerId = (expandedControllerId === ctrlId) ? null : ctrlId;
+    renderDashboard();
+}
+
+function filterAssistenteByStatusAndController(status, controllerId) {
+    activeAssistenteSubFilter = status;
+    activeAssistenteControllerFilter = controllerId;
+    renderDashboard();
+    setTimeout(() => {
+        const visualizer = document.getElementById('assistente-visualizador-container');
+        if (visualizer) {
+            visualizer.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, 100);
+}
+
+function changeAssistenteFilter(type, value) {
+    if (type === 'status') {
+        activeAssistenteSubFilter = value;
+    } else if (type === 'controlador') {
+        activeAssistenteControllerFilter = value;
+    } else if (type === 'ra') {
+        activeAssistenteRAFilter = value;
+    }
+    renderDashboard();
+}
+
+function clearAssistenteFilters() {
+    activeAssistenteSubFilter = 'all';
+    activeAssistenteControllerFilter = 'all';
+    activeAssistenteRAFilter = 'all';
+    activeAssistenteSearchQuery = '';
+    renderDashboard();
+}
+
+
+// 7.3 Dashboard da SME
+function renderDashboardSME(container) {
+    const stats = calculateSMESchoolStats(escolas, activeCompetenciaKey);
+    const totalEscolasValidas = stats.activeTotal;
+
+    // Obter lista de CREs únicas nas escolas cadastradas
+    const activeSMECreList = [...new Set(escolas.map(e => e.cre || '4ª CRE'))];
+    
+    // Computar estatísticas por CRE
+    const cresStats = activeSMECreList.map(creName => {
+        const carteira = escolas.filter(e => e.cre === creName);
+        const cStats = calculateSMESchoolStats(carteira, activeCompetenciaKey);
+        const total = cStats.activeTotal;
+        return { name: creName, stats: cStats, total };
+    });
+
+    let consolidadoHTML = '';
+    if (activeSMECreFilter) {
+        const filteredSMEEscolas = escolas.filter(e => e.cre === activeSMECreFilter);
+        
+        consolidadoHTML = `
+            <div class="panel-card" style="margin-top: 20px; animation: slideDown 0.25s ease;">
+                <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                    <div>
+                        <h2>Resumo de Itens por Unidade - ${activeSMECreFilter} - Mês: ${COMPETENCIAS.find(c => c.key === activeCompetenciaKey).label}</h2>
+                        <p style="font-size:0.8rem; color:var(--text-muted)">Visualização das respostas Sim, Não e N/A que geraram a conformidade das escolas.</p>
+                    </div>
+                    <input type="text" class="form-control" style="width:250px; font-size:0.8rem;" placeholder="Filtrar por escola..." id="sme-detail-filter" onkeyup="filterSMEDetailTable(this.value)">
+                </div>
+                <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                    <table class="data-table" id="sme-detail-table">
+                        <thead>
+                            <tr>
+                                <th>Unidade Escolar</th>
+                                <th>Programa</th>
+                                <th>Ext. CC</th>
+                                <th>Ext. INV</th>
+                                <th>N. Fiscais</th>
+                                <th>Cons. Assessoria</th>
+                                <th>Decl. BB Ágil</th>
+                                <th>Enc. Inventário</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${filteredSMEEscolas.map(e => {
+                                return e.programasIds.map(progId => {
+                                    const compProgKey = `${activeCompetenciaKey}_${progId}`;
+                                    const v = verificacoes[e.id]?.[compProgKey];
+                                    const prog = programas.find(p => p.id === progId);
+                                    const progName = prog ? prog.name : progId;
+                                    
+                                    let extCC = '-';
+                                    let extINV = '-';
+                                    let notaFiscal = '-';
+                                    let consAssessoria = '-';
+                                    let declBBAgil = '-';
+                                    let encampInventario = '-';
+                                    const progStatus = getProgramBonificationStatus(e.id, activeCompetenciaKey, progId);
+                                    const statusMeta = getProgramBonificationMeta(progStatus);
+                                    let statusBadge = `<span class="badge ${statusMeta.badgeClass}">${statusMeta.label}</span>`;
+                                    
+                                    if (v) {
+                                        extCC = v.bonificacao?.['extCC'] || '-';
+                                        extINV = v.bonificacao?.['extINV'] || '-';
+                                        notaFiscal = v.bonificacao?.['notaFiscal'] || '-';
+                                        consAssessoria = v.bonificacao?.['consAssessoria'] || '-';
+                                        declBBAgil = v.bonificacao?.['declBBAgil'] || '-';
+                                        encampInventario = v.bonificacao?.['encampInventario'] || '-';
+                                    }
+                                    
+                                    const formatVal = (val) => {
+                                        if (val === 'Sim') return `<span style="color:var(--success); font-weight:600;">Sim</span>`;
+                                        if (val === 'Não') return `<span style="color:var(--danger); font-weight:600;">Não</span>`;
+                                        if (val === 'Não se aplica' || val === 'N/A') return `<span style="color:var(--text-muted);">N/A</span>`;
+                                        return `<span style="color:var(--text-muted); opacity:0.5;">-</span>`;
+                                    };
+                                    
+                                    return `
+                                        <tr class="sme-detail-row" data-escola="${escapeHtml(e.denominação.toLowerCase())} ${escapeHtml(e.designação.toLowerCase())}">
+                                            <td><strong>${escapeHtml(e.denominação)}</strong><br><small style="color:var(--text-muted)">${escapeHtml(e.designação)}</small></td>
+                                            <td><span class="badge badge-info">${progName}</span></td>
+                                            <td>${formatVal(extCC)}</td>
+                                            <td>${formatVal(extINV)}</td>
+                                            <td>${formatVal(notaFiscal)}</td>
+                                            <td>${formatVal(consAssessoria)}</td>
+                                            <td>${formatVal(declBBAgil)}</td>
+                                            <td>${formatVal(encampInventario)}</td>
+                                            <td>${statusBadge}</td>
+                                        </tr>
+                                    `;
+                                }).join('');
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    }
+
+    container.innerHTML = `
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Painel da Subsecretaria (SME)</h1>
+                <p>Visão Consolidada InterCRE e Definição de Parâmetros de Exercícios.</p>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <label style="font-size:0.85rem; font-weight:600; color:var(--text-main);">Mês de Referência:</label>
+                <select class="form-control" style="width: 150px; font-size: 0.85rem; padding: 6px 12px; height: auto;" onchange="changeSMEMonth(this.value)">
+                    ${COMPETENCIAS.map(c => `<option value="${c.key}" ${activeCompetenciaKey === c.key ? 'selected' : ''}>${c.label}</option>`).join('')}
+                </select>
+            </div>
+        </div>
+
+        <div class="grid-stats">
+            <div class="card-stat">
+                <div class="stat-icon" style="background-color: var(--success-bg); color: var(--success);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                </div>
+                <div class="stat-label">Unidades Aptas (${formatCompetenciaText(activeCompetenciaKey)})</div>
+                <div class="stat-value">${stats.apta} Escolas</div>
+            </div>
+            <div class="card-stat">
+                <div class="stat-icon" style="background-color: var(--danger-bg); color: var(--danger);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                </div>
+                <div class="stat-label">Unidades Inaptas (${formatCompetenciaText(activeCompetenciaKey)})</div>
+                <div class="stat-value">${stats.inapta} Escolas</div>
+            </div>
+            <div class="card-stat">
+                <div class="stat-icon" style="background-color: rgba(157, 125, 252, 0.1); color: var(--primary);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                </div>
+                <div class="stat-label">Bonificação em apuração</div>
+                <div class="stat-value">${stats.emAndamento} Escolas</div>
+            </div>
+            <div class="card-stat">
+                <div class="stat-icon" style="background-color: rgba(255, 255, 255, 0.06); color: var(--text-muted);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                </div>
+                <div class="stat-label">Bonificação não lançada</div>
+                <div class="stat-value">${stats.naoAnalisada} Unidades</div>
+            </div>
+        </div>
+
+        <div class="dash-layout">
+            <div class="panel-card">
+                <div class="panel-header">
+                    <h2>Situação Operacional por Coordenadoria (CRE)</h2>
+                    <span style="font-size:0.75rem; color:var(--text-muted)">Clique na linha da CRE para abrir o detalhamento.</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Coordenadoria (CRE)</th>
+                                <th>Total Escolas Ativas</th>
+                                <th>Aptas (${formatCompetenciaText(activeCompetenciaKey)})</th>
+                                <th>Inaptas (${formatCompetenciaText(activeCompetenciaKey)})</th>
+                                <th>Em apuração</th>
+                                <th>Não lançadas</th>
+                                <th>Taxa de Cumprimento (Aptas)</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${cresStats.map(cs => {
+                                const percent = Math.round(cs.stats.rates.apta);
+                                const isExpanded = activeSMECreFilter === cs.name;
+                                return `
+                                    <tr style="cursor: pointer;" onclick="toggleSMECreFilter('${escapeHtml(cs.name)}')" class="tr-hoverABLE ${isExpanded ? 'tr-expanded-active' : ''}">
+                                        <td>
+                                            <div style="display:flex; align-items:center; gap:8px;">
+                                                <span style="transform: rotate(${isExpanded ? '90' : '0'}deg); transition: transform 0.2s; color: var(--primary);">▶</span>
+                                                <strong>${escapeHtml(cs.name)} - Coordenadoria Regional</strong>
+                                            </div>
+                                        </td>
+                                        <td>${cs.total} unidades</td>
+                                        <td><span style="color:var(--success); font-weight:600;">${cs.stats.apta}</span></td>
+                                        <td><span style="color:var(--danger); font-weight:600;">${cs.stats.inapta}</span></td>
+                                        <td><span style="color:var(--primary); font-weight:600;">${cs.stats.emAndamento}</span></td>
+                                        <td><span style="color:var(--text-muted);">${cs.stats.naoAnalisada}</span></td>
+                                        <td>
+                                            <strong>${percent}%</strong>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); toggleSMECreFilter('${escapeHtml(cs.name)}')">
+                                                ${isExpanded ? 'Recolher' : 'Detalhamento'}
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="panel-card">
+                <div class="panel-header">
+                    <h2>Ações Institucionais SME</h2>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:12px;">
+                    <button class="btn btn-secondary" onclick="switchView('sme-config')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                        Parâmetros Globais e Exercícios
+                    </button>
+                    <button class="btn btn-secondary" onclick="exportDataExcel()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        Exportar Planilha de Bonificação
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        ${consolidadoHTML}
+    `;
+}
+
+function toggleSMECreFilter(creName) {
+    activeSMECreFilter = (activeSMECreFilter === creName) ? null : creName;
+    renderDashboard();
+}
+
+function changeSMEMonth(val) {
+    activeCompetenciaKey = val;
+    renderDashboard();
+}
+
+function filterSMEDetailTable(query) {
+    const cleanQuery = query.toLowerCase().trim();
+    document.querySelectorAll('.sme-detail-row').forEach(row => {
+        const schoolText = row.getAttribute('data-escola') || '';
+        if (schoolText.includes(cleanQuery)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+// 7.4 Dashboard da Equipe de Inventário
+function renderDashboardInventario(container) {
+
+    const listBens = bens;
+
+    const hasBensData = listBens.length > 0;
+
+    const aguardandoBens = listBens.filter(b => b.status === 'Encaminhada').length;
+
+    const naoEncampBens = listBens.filter(b => b.status === 'Não encaminhada').length;
+
+    const concluidoBens = listBens.filter(b => b.status === 'Inventariada').length;
+
+    const escolasComProcesso = escolas.filter(e => e.processoInventario);
+
+    const escolasSemProcesso = escolas.filter(e => !e.processoInventario);
+
+    const escolasInventario = [...escolas].sort((a, b) => a.designação.localeCompare(b.designação));
+
+    const statUnitSingular = hasBensData ? 'Bem' : 'Escola';
+
+    const statUnitPlural = hasBensData ? 'Bens' : 'Escolas';
+
+    const formatStat = count => `${count} ${count === 1 ? statUnitSingular : statUnitPlural}`;
+
+    const formatSchoolStat = count => `${count} ${count === 1 ? 'Escola' : 'Escolas'}`;
+
+    const naoEncamp = hasBensData ? naoEncampBens : escolasSemProcesso.length;
+
+    const aguardando = hasBensData ? aguardandoBens : escolasComProcesso.length;
+
+    const concluido = hasBensData ? concluidoBens : 0;
+
+
+
+    let filteredBens = [...listBens];
+
+    if (activeInventarioSubFilter === 'naoEncamp') {
+
+        filteredBens = filteredBens.filter(b => b.status === 'Não encaminhada');
+
+    } else if (activeInventarioSubFilter === 'aguardando') {
+
+        filteredBens = filteredBens.filter(b => b.status === 'Encaminhada');
+    } else if (activeInventarioSubFilter === 'concluido') {
+        filteredBens = filteredBens.filter(b => b.status === 'Inventariada');
+    }
+
+
+    const orderMap = { 'Não encaminhada': 1, 'Encaminhada': 2, 'Inventariada': 3 };
+
+    const sortedBens = filteredBens.sort((a, b) => orderMap[a.status] - orderMap[b.status]);
+
+    let filteredEscolasInventario = [...escolasInventario];
+
+    if (activeInventarioSubFilter === 'naoEncamp') {
+
+        filteredEscolasInventario = escolasSemProcesso;
+
+    } else if (activeInventarioSubFilter === 'aguardando') {
+
+        filteredEscolasInventario = escolasComProcesso;
+
+    } else if (activeInventarioSubFilter === 'concluido') {
+
+        filteredEscolasInventario = [];
+
+    }
+
+
+
+    const filterLabel = activeInventarioSubFilter === 'naoEncamp'
+
+        ? 'Sem Encarte / Pendente Verbas Federais'
+
+        : activeInventarioSubFilter === 'aguardando'
+
+            ? 'Aguardando Inventariação'
+
+            : activeInventarioSubFilter === 'concluido'
+
+                ? 'Já Inventariados'
+
+                : '';
+
+    const filaTitle = hasBensData ? 'Fila de Inventariação Patrimonial' : 'Acompanhamento de Processos de Inventário';
+
+    const bensTable = `
+
+        <table class="data-table">
+
+            <thead>
+
+                <tr>
+
+                    <th>Unidade Escolar</th>
+
+                    <th>Item Patrimonial</th>
+
+                    <th>Período Referente</th>
+
+                    <th>Valor</th>
+
+                    <th>Nota Fiscal</th>
+
+                    <th>Processo de Inventário</th>
+
+                    <th>Status no Inventário</th>
+
+                    <th>Ação</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                ${sortedBens.length === 0 ? `
+
+                    <tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:32px;">Nenhum bem permanente encontrado nesta categoria.</td></tr>
+
+                ` : sortedBens.map(b => {
+
+                    const esc = escolas.find(e => e.id === b.escolaId);
+
+                    const ctrl = esc ? controladores.find(c => c.id === esc.controladorId) : null;
+
+                    const compLabel = COMPETENCIAS.find(c => c.key === b.competencia)?.label || b.competencia;
+
+                    let actionBtn = '';
+
+                    let statusBadge = '';
+
+
+
+                    if (b.status === 'Não encaminhada') {
+
+                        statusBadge = `<span class="badge badge-danger">Pendente Verbas Federais (Falta Documentos)</span>`;
+
+                    } else if (b.status === 'Encaminhada') {
+
+                        statusBadge = `<span class="badge badge-warning">Aguardando Inventariação</span>`;
+
+                        actionBtn = `<button class="btn btn-primary btn-sm" onclick="inventariarBem('${escapeHtml(b.id)}')">Marcar como Inventariado</button>`;
+
+                    } else {
+
+                        let details = '';
+
+                        if (b.inventariadoPor) {
+
+                            details += `<br><small style="color:var(--text-muted); font-size: 0.75rem;">Por: <strong>${escapeHtml(b.inventariadoPor)}</strong>${b.inventariadoEm ? ' em ' + escapeHtml(b.inventariadoEm) : ''}</small>`;
+                        }
+
+                        if (b.observacoes) {
+
+                            details += `<br><small style="color:var(--text-muted); font-size: 0.75rem; font-style: italic;">Obs: ${escapeHtml(b.observacoes)}</small>`;
+                        }
+
+                        statusBadge = `<span class="badge badge-success">Inventariado</span>${details}`;
+
+                    }
+
+
+
+                    return `
+
+                        <tr>
+
+                            <td>
+
+                                <strong>${escapeHtml(esc ? esc.denominação : 'N/A')}</strong><br>
+                                <small style="color:var(--text-muted)">
+
+                                    Designação: ${escapeHtml(esc ? esc.designação : 'N/A')} • Controlador: ${escapeHtml(ctrl ? ctrl.name : 'Não designado')}
+                                </small>
+
+                            </td>
+
+                            <td>${escapeHtml(b.item)}</td>
+                            <td><span style="font-weight:600; color:var(--primary);">${escapeHtml(compLabel)}</span></td>
+
+                            <td>R$ ${b.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+
+                            <td>${b.notaFiscal ? escapeHtml(b.notaFiscal) : `<span style="color:var(--danger)">Ausente</span>`}</td>
+                            <td>${esc && esc.processoInventario ? escapeHtml(esc.processoInventario) : `<span style="color:var(--danger)">Não cadastrado</span>`}</td>
+                            <td>${statusBadge}</td>
+
+                            <td>${actionBtn}</td>
+
+                        </tr>
+
+                    `;
+
+                }).join('')}
+
+            </tbody>
+
+        </table>
+
+    `;
+
+    const processosTable = `
+
+        <table class="data-table">
+
+            <thead>
+
+                <tr>
+
+                    <th>Unidade Escolar</th>
+
+                    <th>Designação</th>
+
+                    <th>SICI</th>
+
+                    <th>Controlador</th>
+
+                    <th>Processo de Inventário</th>
+
+                    <th>Status no Inventário</th>
+
+                    <th>Programas</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                ${filteredEscolasInventario.length === 0 ? `
+
+                    <tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:32px;">Nenhuma escola encontrada nesta categoria.</td></tr>
+
+                ` : filteredEscolasInventario.map(esc => {
+
+                    const ctrl = controladores.find(c => c.id === esc.controladorId);
+
+                    const progNames = (esc.programasIds || []).map(pid => {
+
+                        const prog = programas.find(p => p.id === pid);
+
+                        return prog ? prog.name : pid;
+
+                    }).join(', ');
+
+                    const statusBadge = esc.processoInventario
+
+                        ? `<span class="badge badge-warning">Aguardando Inventariação</span>`
+
+                        : `<span class="badge badge-danger">Pendente Verbas Federais / Sem Processo</span>`;
+
+
+
+                    return `
+
+                        <tr>
+
+                            <td><strong>${escapeHtml(esc.denominação)}</strong></td>
+                            <td>${escapeHtml(esc.designação)}</td>
+                            <td>${esc.sici ? escapeHtml(esc.sici) : '<span style="color:var(--text-muted)">Não informado</span>'}</td>
+                            <td>${ctrl ? escapeHtml(ctrl.name) : '<span style="color:var(--text-muted)">Não designado</span>'}</td>
+                            <td>${esc.processoInventario ? escapeHtml(esc.processoInventario) : '<span style="color:var(--danger)">Não cadastrado</span>'}</td>
+                            <td>${statusBadge}</td>
+
+                            <td>${escapeHtml(progNames)}</td>
+                        </tr>
+
+                    `;
+
+                }).join('')}
+
+            </tbody>
+
+        </table>
+
+    `;
+
+
+
+    container.innerHTML = `
+
+        <div class="page-header">
+
+            <div class="page-title">
+
+                <h1>Painel da Equipe de Inventário</h1>
+
+                <p>${hasBensData ? 'Inventariação de bens patrimoniais permanentes adquiridos pelas escolas.' : 'Acompanhamento dos processos anuais de inventário das unidades escolares.'}</p>
+
+            </div>
+
+        </div>
+
+
+
+        <div class="grid-stats">
+            <div class="card-stat ${activeInventarioSubFilter === 'naoEncamp' ? 'active-naoEncamp' : ''}" style="cursor: pointer;" onclick="changeInventarioSubFilter('naoEncamp')">
+
+                <div class="stat-icon" style="background-color: var(--danger-bg); color: var(--danger);">
+
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+
+                </div>
+
+                <div class="stat-label">Sem Encarte / Pendente Verbas Federais</div>
+
+                <div class="stat-value">${formatStat(naoEncamp)}</div>
+
+            </div>
+
+            <div class="card-stat ${activeInventarioSubFilter === 'aguardando' ? 'active-aguardando' : ''}" style="cursor: pointer;" onclick="changeInventarioSubFilter('aguardando')">
+
+                <div class="stat-icon" style="background-color: var(--warning-bg); color: var(--warning);">
+
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+
+                </div>
+
+                <div class="stat-label">Aguardando Inventariação</div>
+
+                <div class="stat-value">${formatStat(aguardando)}</div>
+
+            </div>
+
+            <div class="card-stat ${activeInventarioSubFilter === 'concluido' ? 'active-concluido' : ''}" style="cursor: pointer;" onclick="changeInventarioSubFilter('concluido')">
+
+                <div class="stat-icon" style="background-color: var(--success-bg); color: var(--success);">
+
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+
+                </div>
+
+                <div class="stat-label">Já Inventariados</div>
+
+                <div class="stat-value">${formatStat(concluido)}</div>
+
+            </div>
+
+            <div class="card-stat ${activeInventarioSubFilter === 'all' ? 'active-all' : ''}" style="cursor: pointer;" onclick="changeInventarioSubFilter('all')">
+
+                <div class="stat-icon">
+
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+
+                </div>
+
+                <div class="stat-label">Processos de Inventário</div>
+
+                <div class="stat-value">${formatSchoolStat(escolasComProcesso.length)}</div>
+
+            </div>
+
+        </div>
+
+
+        <div class="panel-card">
+
+            <div class="panel-header">
+
+                <h2>${filaTitle} ${filterLabel ? `(${filterLabel})` : ''}</h2>
+
+            </div>
+
+            <div class="table-responsive">
+
+                ${hasBensData ? bensTable : processosTable}
+
+            </div>
+
+        </div>
+
+
+
+        <div class="panel-card" style="margin-top: 20px;">
+
+            <div class="panel-header">
+
+                <h2>Processos de Inventário 2026 por Unidade</h2>
+
+                <span class="badge ${escolasSemProcesso.length === 0 ? 'badge-success' : 'badge-warning'}">${escolasComProcesso.length} com processo / ${escolasSemProcesso.length} pendentes</span>
+
+            </div>
+
+            <div class="table-responsive">
+
+                <table class="data-table school-carteira-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Unidade Escolar</th>
+
+                            <th>Designação</th>
+
+                            <th>SICI</th>
+
+                            <th>Controlador</th>
+
+                            <th>Processo Anual</th>
+
+                            <th>Programas</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        ${escolasInventario.map(esc => {
+
+                            const ctrl = controladores.find(c => c.id === esc.controladorId);
+
+                            const progNames = (esc.programasIds || []).map(pid => {
+
+                                const prog = programas.find(p => p.id === pid);
+
+                                return prog ? prog.name : pid;
+
+                            }).join(', ');
+
+                            return `
+
+                                <tr>
+
+                                    <td><strong>${escapeHtml(esc.denominação)}</strong></td>
+                                    <td>${escapeHtml(esc.designação)}</td>
+                                    <td>${esc.sici ? escapeHtml(esc.sici) : '<span style="color:var(--text-muted)">Não informado</span>'}</td>
+                                    <td>${ctrl ? escapeHtml(ctrl.name) : '<span style="color:var(--text-muted)">Não designado</span>'}</td>
+                                    <td>${esc.processoInventario ? escapeHtml(esc.processoInventario) : '<span style="color:var(--danger)">Não cadastrado</span>'}</td>
+                                    <td>${escapeHtml(progNames)}</td>
+                                </tr>
+
+                            `;
+
+                        }).join('')}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    `;
+
+}
+
+
+
+function inventariarBem(bemId) {
+    const b = bens.find(item => item.id === bemId);
+    if (!b) return;
+
+    const esc = escolas.find(e => e.id === b.escolaId);
+    
+    document.getElementById('inventario-bem-id').value = bemId;
+    document.getElementById('inventario-bem-nome').innerText = b.item;
+    document.getElementById('inventario-bem-escola').innerText = esc ? `Escola: ${esc.denominação} (Designação: ${esc.designação})` : '';
+    
+    // Popula dropdown de responsáveis com integrantes cadastrados no Inventário
+    const respSelect = document.getElementById('inventario-responsavel');
+    if (respSelect) {
+        const activeInventoryMembers = getActiveInventoryMembers();
+        respSelect.innerHTML = activeInventoryMembers.map(inv => `<option value="${escapeHtml(inv.name)}">${escapeHtml(inv.name)}</option>`).join('');
+        if (activeInventoryMembers.length > 0) {
+            respSelect.value = equipeInventario[0].name;
+        }
+    }
+    document.getElementById('inventario-observacoes').value = '';
+
+    openModal('modal-inventario-confirm');
+}
+
+async function salvarInventariacao(e) {
+    e.preventDefault();
+    const bemId = document.getElementById('inventario-bem-id').value;
+    const resp = document.getElementById('inventario-responsavel').value;
+    const obs = document.getElementById('inventario-observacoes').value;
+    const inventoryMember = equipeInventario.find(member => member.name === resp);
+
+    try {
+        await radarInventoryService.inventory({
+            assetId: bemId,
+            responsible: resp,
+            responsibleId: inventoryMember?.id || null,
+            notes: obs,
+            profile: getRadarAccessProfile()
+        });
+        rebuildOperationalIndexes();
+        closeModal('modal-inventario-confirm');
+        if (currentView === 'inventario') {
+            renderInventarioView();
+        } else {
+            renderDashboard();
+        }
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível concluir a inventariação.');
+    }
+}
+
+function changeInventarioSubFilter(subFilter) {
+    if (activeInventarioSubFilter === subFilter) {
+        activeInventarioSubFilter = 'all';
+    } else {
+        activeInventarioSubFilter = subFilter;
+    }
+    if (currentView === 'inventario') {
+        renderInventarioView();
+    } else {
+        renderDashboard();
+    }
+}
+
+
+// ==========================================
+
+// 8. RENDER DA TELA: ESCOLAS (CARTEIRA)
+
+// ==========================================
+
+
+
+function updateEscolasSearch(value, selectionStart = null, selectionEnd = selectionStart) {
+
+    const activeInput = document.getElementById('escola-search-input');
+
+    const shouldRestoreFocus = document.activeElement === activeInput;
+
+    escolaSearchQuery = value || '';
+
+    searchResultFiltered = null;
+
+    syncGlobalSearchInput();
+
+    renderEscolas();
+
+    if (shouldRestoreFocus) {
+
+        restoreEscolaSearchFocus(selectionStart, selectionEnd);
+
+    }
+
+}
+
+
+
+function changeEscolaFilter(filterName, value) {
+
+    activeEscolaFilters = {
+
+        ...activeEscolaFilters,
+
+        [filterName]: value
+
+    };
+
+    renderEscolas();
+
+}
+
+function changeCarteiraCompetencia(value) {
+
+    activeCompetenciaKey = value;
+
+    updateGlobalCompetenceIndicator();
+
+    renderEscolas();
+
+}
+
+
+
+function clearEscolaFilters() {
+
+    escolaSearchQuery = '';
+
+    searchResultFiltered = null;
+
+    activeEscolaFilters = { ...DEFAULT_ESCOLA_FILTERS };
+
+    syncGlobalSearchInput();
+
+    renderEscolas();
+
+}
+
+
+
+function getFilteredEscolas() {
+
+    return escolas.filter(esc => {
+
+        const op = getEscolaOperationalData(esc);
+
+
+
+        if (!schoolMatchesSearch(esc, escolaSearchQuery)) return false;
+
+        if (activeEscolaFilters.controlador !== 'all' && esc.controladorId !== activeEscolaFilters.controlador) return false;
+
+        if (activeEscolaFilters.programa !== 'all' && !(esc.programasIds || []).includes(activeEscolaFilters.programa)) return false;
+
+        if (activeEscolaFilters.situacao !== 'all' && op.situacao !== activeEscolaFilters.situacao) return false;
+
+        if (activeEscolaFilters.pendencias === 'com' && !op.hasPendencias) return false;
+
+        if (activeEscolaFilters.pendencias === 'sem' && op.hasPendencias) return false;
+
+        if (activeEscolaFilters.inventario === 'com' && !op.hasInventarioProcess) return false;
+
+        if (activeEscolaFilters.inventario === 'sem' && op.hasInventarioProcess) return false;
+
+        if (activeEscolaFilters.ra !== 'all' && op.ra !== activeEscolaFilters.ra) return false;
+
+
+
+        return true;
+
+    });
+
+}
+
+
+
+function renderEscolaFilterOptions(options, activeValue) {
+
+    return options.map(option => `
+
+        <option value="${escapeHtml(option.value)}" ${selectedAttr(activeValue, option.value)}>${escapeHtml(option.label)}</option>
+
+    `).join('');
+
+}
+
+
+
+function renderEscolas() {
+
+    const container = document.getElementById('main-container');
+
+    const targetEscolas = getFilteredEscolas();
+
+    const raOptions = [...new Set(escolas.map(e => e.ra || getRAFromDesignacao(e.designação)).filter(Boolean))].sort();
+
+    const competenciaOptions = COMPETENCIAS.filter(c => c.key <= config.competenciaFechamento);
+
+    const pendenciasCount = targetEscolas.filter(e => getEscolaOperationalData(e).hasPendencias).length;
+
+    const inventarioCount = targetEscolas.filter(e => getEscolaOperationalData(e).hasInventarioProcess).length;
+
+    const activeSearchTerm = escolaSearchQuery.trim();
+
+    const activeFilterOnlyCount = Object.keys(activeEscolaFilters).filter(key => activeEscolaFilters[key] !== DEFAULT_ESCOLA_FILTERS[key]).length;
+
+    const activeFiltersCount = activeFilterOnlyCount + (activeSearchTerm ? 1 : 0);
+
+
+
+    container.innerHTML = `
+
+        <div class="page-header">
+
+            <div class="page-title">
+
+                <h1>Escolas e Carteiras</h1>
+
+                <p>Lista pesquisável de unidades escolares sob jurisdição da Coordenadoria de Educação.</p>
+
+            </div>
+
+            ${getRadarAccessProfile() === 'assistente' ? `
+
+                <button class="btn btn-primary" onclick="openEscolaEditModal(null)">
+
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"></path></svg>
+
+                    Cadastrar Escola
+
+                </button>
+            ` : ''}
+
+        </div>
+
+
+
+        <div class="panel-card school-filter-panel">
+
+            <div class="school-filter-header">
+
+                <div>
+
+                    <h2>Busca e filtros da carteira</h2>
+
+                    <p>Pesquise pelo nome da unidade escolar ou pela designação.</p>
+
+                </div>
+
+                <button class="btn btn-secondary btn-sm" onclick="clearEscolaFilters()" ${activeFiltersCount === 0 ? 'disabled' : ''}>Limpar filtros</button>
+
+            </div>
+
+
+
+            <div class="school-filter-grid">
+
+                <div class="filter-field filter-field-wide">
+
+                    <label for="escola-search-input">Busca</label>
+
+                    <input type="text" id="escola-search-input" class="form-control" value="${escapeHtml(escolaSearchQuery)}" placeholder="Ex.: EM Roraima, Roraima, 04.10.001 ou 0410001" oninput="updateEscolasSearch(this.value, this.selectionStart, this.selectionEnd)">
+
+                </div>
+
+
+
+                <div class="filter-field">
+
+                    <label for="filter-escola-controlador">Controlador</label>
+
+                    <select id="filter-escola-controlador" class="form-control" onchange="changeEscolaFilter('controlador', this.value)">
+
+                        <option value="all" ${selectedAttr(activeEscolaFilters.controlador, 'all')}>Todos</option>
+
+                        ${getActiveControllers().map(c => `<option value="${escapeHtml(c.id)}" ${selectedAttr(activeEscolaFilters.controlador, c.id)}>${escapeHtml(c.name)}</option>`).join('')}
+
+                    </select>
+
+                </div>
+
+
+
+                <div class="filter-field">
+
+                    <label for="filter-escola-programa">Programa</label>
+
+                    <select id="filter-escola-programa" class="form-control" onchange="changeEscolaFilter('programa', this.value)">
+
+                        <option value="all" ${selectedAttr(activeEscolaFilters.programa, 'all')}>Todos</option>
+
+                        ${programas.map(p => `<option value="${escapeHtml(p.id)}" ${selectedAttr(activeEscolaFilters.programa, p.id)}>${escapeHtml(p.name)}</option>`).join('')}
+
+                    </select>
+
+                </div>
+
+
+
+                <div class="filter-field">
+
+                    <label for="filter-escola-situacao">Situação da bonificação</label>
+
+                    <select id="filter-escola-situacao" class="form-control" onchange="changeEscolaFilter('situacao', this.value)">
+
+                        ${renderEscolaFilterOptions([
+
+                            { value: 'all', label: 'Todas' },
+
+                            { value: 'apto', label: 'Aptas' },
+
+                            { value: 'inapto', label: 'Inaptas' },
+
+                            { value: 'emAndamento', label: 'Em apuração' },
+
+                            { value: 'naoAnalisado', label: 'Não lançadas' },
+
+                            { value: 'foraEscopo', label: 'Fora do escopo' }
+
+                        ], activeEscolaFilters.situacao)}
+
+                    </select>
+
+                </div>
+
+
+
+                <div class="filter-field">
+
+                    <label for="filter-escola-pendencias">Pendências</label>
+
+                    <select id="filter-escola-pendencias" class="form-control" onchange="changeEscolaFilter('pendencias', this.value)">
+
+                        ${renderEscolaFilterOptions([
+
+                            { value: 'all', label: 'Todas' },
+
+                            { value: 'com', label: 'Com pendências ativas' },
+
+                            { value: 'sem', label: 'Sem pendências ativas' }
+
+                        ], activeEscolaFilters.pendencias)}
+
+                    </select>
+
+                </div>
+
+
+
+                <div class="filter-field">
+
+                    <label for="filter-escola-inventario">Inventário</label>
+
+                    <select id="filter-escola-inventario" class="form-control" onchange="changeEscolaFilter('inventario', this.value)">
+
+                        ${renderEscolaFilterOptions([
+
+                            { value: 'all', label: 'Todos' },
+
+                            { value: 'com', label: 'Com processo' },
+
+                            { value: 'sem', label: 'Sem processo' }
+
+                        ], activeEscolaFilters.inventario)}
+
+                    </select>
+
+                </div>
+
+
+
+                <div class="filter-field">
+
+                    <label for="filter-escola-ra">R.A.</label>
+
+                    <select id="filter-escola-ra" class="form-control" onchange="changeEscolaFilter('ra', this.value)">
+
+                        <option value="all" ${selectedAttr(activeEscolaFilters.ra, 'all')}>Todas</option>
+
+                        ${raOptions.map(ra => `<option value="${escapeHtml(ra)}" ${selectedAttr(activeEscolaFilters.ra, ra)}>${escapeHtml(ra)}</option>`).join('')}
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="school-filter-summary">
+
+                <span><strong>${targetEscolas.length}</strong> de ${escolas.length} escolas exibidas</span>
+
+                ${activeSearchTerm ? `<span>Busca ativa: "${escapeHtml(activeSearchTerm)}"</span>` : ''}
+
+                <span>${pendenciasCount} com pendências ativas</span>
+
+                <span>${inventarioCount} com processo de inventário</span>
+
+            </div>
+
+        </div>
+
+
+
+        <div class="panel-card">
+
+            <div class="panel-header">
+
+                <div>
+
+                    <h2>Resultado da carteira</h2>
+
+                    <p>${activeFiltersCount > 0 ? 'Lista filtrada conforme os critérios selecionados.' : 'Lista completa de escolas cadastradas.'}</p>
+
+                </div>
+
+                <div class="carteira-competencia-control" aria-label="Competência da carteira">
+
+                    <span>Competência</span>
+
+                    <select id="carteira-competencia-select" onchange="changeCarteiraCompetencia(this.value)" title="Selecionar competência da carteira">
+
+                        ${competenciaOptions.map(c => `
+
+                            <option value="${escapeHtml(c.key)}" ${selectedAttr(activeCompetenciaKey, c.key)}>${escapeHtml(c.label)}</option>
+
+                        `).join('')}
+
+                    </select>
+
+                </div>
+
+            </div>
+
+            <div class="table-responsive">
+
+                <table class="data-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Unidade Escolar</th>
+
+                            <th>Identificação</th>
+
+                            <th>Diretor(a) Geral</th>
+
+                            <th>Controlador Responsável</th>
+
+                            <th>Bonificação</th>
+
+                            <th>Análise técnica</th>
+
+                            <th>Pendência / próxima ação</th>
+
+                            <th>Ações</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        ${targetEscolas.length === 0 ? `
+
+                            <tr>
+
+                                <td colspan="8">
+
+                                    <div class="empty-state compact">
+
+                                        <div class="empty-state-icon">⌕</div>
+
+                                        <strong>${activeSearchTerm ? `Nenhuma escola encontrada para "${escapeHtml(activeSearchTerm)}"` : 'Nenhuma escola encontrada'}</strong>
+
+                                        <span>${activeSearchTerm && activeFilterOnlyCount === 0 ? 'Busque pelo nome da unidade escolar ou pela designação.' : 'Ajuste a busca ou limpe os filtros para ampliar o resultado.'}</span>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                        ` : targetEscolas.map(e => {
+
+                            const op = getEscolaOperationalData(e);
+
+                            const statusBadge = getEscolaStatusBadgeClass(op.situacao);
+
+                            const statusLabel = getEscolaStatusLabel(op.situacao);
+
+                            const pendencySummary = op.hasPendencias
+                                ? `<span class="badge badge-warning">${op.pendenciasAbertas.length} ativa(s)</span><br><small>Próximo ator: ${escapeHtml(op.proximaAcao)}</small>`
+                                : '<span class="badge badge-gray">Sem pendência ativa</span>';
+
+                            return `
+
+                                <tr>
+
+                                    <td>
+
+                                        <strong>${escapeHtml(e.denominação)}</strong>
+                                        <br><small style="color:var(--text-muted)">${escapeHtml(e.designação)} • ${escapeHtml(op.ra)}</small>
+                                        <div class="school-program-inline">
+
+                                            ${op.programas.slice(0, 3).map(p => `<span>${escapeHtml(p)}</span>`).join('')}
+
+                                            ${op.programas.length > 3 ? `<span>+${op.programas.length - 3}</span>` : ''}
+
+                                        </div>
+                                    </td>
+                                    <td>
+
+                                        <strong>INEP:</strong> ${escapeHtml(e.inep)}<br>
+                                        <small><strong>CNPJ:</strong> ${escapeHtml(e.cnpj)}</small><br>
+                                        <small><strong>SICI:</strong> ${escapeHtml(e.sici || 'Não informado')}</small>
+                                    </td>
+
+                                    <td>${escapeHtml(e.diretor)}<br><small style="color:var(--text-muted)">${escapeHtml(e.telefone)}</small></td>
+                                    <td>${escapeHtml(op.controladorName)}</td>
+                                    <td><span class="badge ${statusBadge}">${statusLabel}</span></td>
+                                    <td><span class="badge ${op.analiseTecnicaMeta.badgeClass}">${op.analiseTecnicaMeta.label}</span></td>
+                                    <td>${pendencySummary}</td>
+
+                                    <td>
+
+                                        <div class="school-actions-stack">
+
+                                            <button class="btn btn-secondary btn-sm school-action-view" onclick="switchView('prontuario', '${escapeHtml(e.id)}')">Ver Unidade</button>
+                                            ${['assistente', 'controlador'].includes(getRadarAccessProfile()) ? `
+
+                                                <button class="btn btn-secondary btn-sm school-action-edit" onclick="openEscolaEditModal('${escapeHtml(e.id)}')">Editar</button>
+                                            ` : ''}
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+                            `;
+                        }).join('')}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    `;
+
+
+    syncGlobalSearchInput();
+
+}
+
+
+
+
+// ==========================================
+// 9. RENDER DA TELA: COMPETÊNCIAS
+// ==========================================
+
+function renderCompetencias() {
+    const container = document.getElementById('main-container');
+    const canViewTechnicalAnalysis = hasRadarCapability(
+        window.RadarAccessPolicy.CAPABILITIES.VIEW_TECHNICAL_ANALYSIS
+    );
+    const canViewCompetencePendencies = hasRadarCapability(
+        window.RadarAccessPolicy.CAPABILITIES.VIEW_COMPETENCE_PENDENCIES
+    );
+
+    container.innerHTML = `
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Visão por Competência</h1>
+                <p>Verifique o fechamento e a conformidade da bonificação da competência selecionada.</p>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px;">
+                <label for="comp-select-view" style="font-weight:600; font-size:0.85rem;">Competência:</label>
+                <select class="form-control" id="comp-select-view" style="width:180px;" onchange="changeCompetenciaView(this.value)">
+                    ${COMPETENCIAS.filter(c => c.key <= config.competenciaFechamento).map(c => `
+                        <option value="${c.key}" ${c.key === activeCompetenciaKey ? 'selected' : ''}>${c.label}</option>
+                    `).join('')}
+                </select>
+            </div>
+        </div>
+
+        <div class="panel-card">
+            <div class="panel-header">
+                <h2>Lista de Entrega e Bonificação - Competência ${formatCompetenciaText(activeCompetenciaKey)}</h2>
+            </div>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Unidade Escolar</th>
+                            <th>Controlador</th>
+                            <th>Bonificação status</th>
+                            ${canViewTechnicalAnalysis ? '<th>Análise Técnica</th>' : ''}
+                            ${canViewCompetencePendencies ? `
+                                <th>Pendências abertas</th>
+                                <th>Ações</th>
+                            ` : ''}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${escolas.map(e => {
+                            const inScope = isCompetenceInScope(e.competenciaInicial, activeCompetenciaKey);
+                            const ctrl = controladores.find(c => c.id === e.controladorId);
+                            
+                            let bonifStatusHTML = '';
+                            let analiseStatusHTML = '';
+                            const pendentesCount = pendencias.filter(p => (
+                                p.escolaId === e.id
+                                && (p.competenciaOrigem === activeCompetenciaKey || p.competencia === activeCompetenciaKey)
+                                && window.RadarPendencias.isActivePendency(p)
+                            )).length;
+
+                            if (inScope) {
+                                e.programasIds.forEach(progId => {
+                                    const prog = programas.find(p => p.id === progId);
+                                    const progName = prog ? prog.name : progId;
+                                    const bonusStatus = getProgramBonificationStatus(
+                                        e.id,
+                                        activeCompetenciaKey,
+                                        progId
+                                    );
+                                    const bonusMeta = getProgramBonificationMeta(bonusStatus);
+                                    const technicalStatus = getProgramTechnicalStatus(
+                                        e.id,
+                                        activeCompetenciaKey,
+                                        progId
+                                    );
+                                    const technicalMeta = getProgramTechnicalMeta(technicalStatus);
+
+                                    const bStatus = `<span class="badge ${bonusMeta.badgeClass}" style="font-size:0.65rem; padding: 2px 4px; font-weight:500;">${bonusMeta.label}</span>`;
+                                    const aStatus = `<span class="badge ${technicalMeta.badgeClass}" style="font-size:0.65rem; padding: 2px 4px; font-weight:500;">${technicalMeta.label}</span>`;
+
+                                    bonifStatusHTML += `<div style="margin-bottom:4px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                                        <span style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(progName)}:</span>
+                                        ${bStatus}
+                                    </div>`;
+
+                                    analiseStatusHTML += `<div style="margin-bottom:4px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                                        <span style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(progName)}:</span>
+                                        ${aStatus}
+                                    </div>`;
+                                });
+                            } else {
+                                bonifStatusHTML = `<span class="badge badge-gray">Fora de Escopo</span>`;
+                                analiseStatusHTML = `N/A`;
+                            }
+
+                            return `
+                                <tr>
+                                    <td>
+                                        <strong>${escapeHtml(e.denominação)}</strong>
+                                        <br><small style="color:var(--text-muted)">${escapeHtml(e.designação)}</small>
+                                    </td>
+                                    <td>${escapeHtml(ctrl ? ctrl.name : 'N/A')}</td>
+                                    <td>${bonifStatusHTML}</td>
+                                    ${canViewTechnicalAnalysis ? `<td>${analiseStatusHTML}</td>` : ''}
+                                    ${canViewCompetencePendencies ? `
+                                        <td>
+                                            ${pendentesCount > 0 ? `<span class="badge badge-danger">${pendentesCount} Abertas</span>` : `<span class="badge badge-gray">Nenhuma</span>`}
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${escapeHtml(e.id)}')">Ver Unidade</button>
+                                        </td>
+                                    ` : ''}
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        ${canViewCompetencePendencies ? `
+            <div class="panel-card" style="margin-top:24px;">
+                <div class="panel-header">
+                    <h2>Passivo de Regularização (Pendências de Competências Anteriores)</h2>
+                </div>
+                <div id="passivo-competencias-list">
+                    <!-- Injetar passivo de meses anteriores -->
+                </div>
+            </div>
+        ` : ''}
+    `;
+
+    if (canViewCompetencePendencies) renderPassivoAnterior();
+}
+
+function changeCompetenciaView(val) {
+    activeCompetenciaKey = val;
+    updateGlobalCompetenceIndicator();
+    renderCompetencias();
+}
+
+function renderPassivoAnterior() {
+    const listEl = document.getElementById('passivo-competencias-list');
+    if (!listEl) return;
+    
+    // Filtrar pendências abertas que sejam anteriores à competência selecionada ativa
+    const passivo = pendencias.filter(p => p.status === 'Aberta' && p.competencia < activeCompetenciaKey);
+    
+    if (passivo.length === 0) {
+        listEl.innerHTML = `<div style="padding:16px; text-align:center; color:var(--text-muted)">Excelente! Não há passivo de regularização pendente anterior a ${activeCompetenciaKey}.</div>`;
+        return;
+    }
+
+    listEl.innerHTML = `
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Escola</th>
+                        <th>Comp. Origem</th>
+                        <th>Item</th>
+                        <th>Motivo</th>
+                        <th>Responsável pela Ação</th>
+                        <th>Abertura</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${passivo.map(p => {
+                        const esc = escolas.find(e => e.id === p.escolaId);
+                        const compLabel = COMPETENCIAS.find(c => c.key === p.competencia)?.label || p.competencia;
+                        return `
+                            <tr>
+                                <td>
+                                    <strong>${escapeHtml(esc ? esc.denominação : 'N/A')}</strong>
+                                    ${esc ? `<br><small style="color:var(--text-muted)">${escapeHtml(esc.designação)}</small>` : ''}
+                                </td>
+                                <td><span class="badge badge-warning" style="font-weight:600;">${escapeHtml(compLabel)}</span></td>
+                                <td>${escapeHtml(p.item)}</td>
+                                <td><span style="color:var(--danger)">${escapeHtml(p.motivo)}</span></td>
+                                <td><span class="badge badge-info">${escapeHtml(p.responsavel)}</span></td>
+                                <td>${new Date(p.dataAbertura).toLocaleDateString('pt-BR')}</td>
+                                <td>
+                                    <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${escapeHtml(p.escolaId)}')">Tratar</button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+
+// ==========================================
+// 10. RENDER DA TELA: PENDÊNCIAS (PASSIVO GERAL)
+// ==========================================
+
+function getFormattedPendencyData(p) {
+    let formattedComp = formatCompetenciaText(p.competencia);
+    
+    const progMap = {
+        'BASIC': 'PDDE Básico',
+        'CONECTADA': 'Educação Conectada',
+        'PROEC': 'PROEC',
+        'ED_FAMILIA': 'Educação e Família',
+        'ADOLESCENCIAS': 'Escola das Adolescências',
+        'LEITURA': 'Cantinho da Leitura',
+        'TEMPO_APRENDER': 'Tempo de Aprender',
+        'RECURSOS': 'Sala de Recursos'
+    };
+    
+    let formattedItem = p.item || '';
+    Object.keys(progMap).forEach(key => {
+        if (formattedItem.startsWith(key + ' - ')) {
+            formattedItem = formattedItem.replace(key + ' - ', progMap[key] + ' - ');
+        } else if (formattedItem === key) {
+            formattedItem = progMap[key];
+        }
+    });
+    
+    return {
+        competencia: formattedComp,
+        item: formattedItem
+    };
+}
+
+function getCorrectiveSubmissionActionLabel(pendency) {
+    if (!hasRadarCapability(
+        window.RadarAccessPolicy.CAPABILITIES.REGISTER_CORRECTIVE_SUBMISSION
+    )) return '';
+    if (!window.RadarPendencias.isDocumentaryPendency(pendency)) return '';
+    if (pendency.status === 'Aberta') return 'Registrar novo envio';
+    if (pendency.status === 'Aguardando reanálise') {
+        return 'Registrar substituição mais recente';
+    }
+    return '';
+}
+
+function canReanalysePendency(pendency) {
+    return hasRadarCapability(window.RadarAccessPolicy.CAPABILITIES.REANALYZE_PENDENCY)
+        && pendency
+        && pendency.status === 'Aguardando reanálise'
+        && window.RadarPendencias.isDocumentaryPendency(pendency);
+}
+
+function encodePendencyIdReference(pendencyId) {
+    const type = typeof pendencyId;
+    const validString = type === 'string' && pendencyId.length > 0;
+    const validNumber = type === 'number' && Number.isFinite(pendencyId);
+    if (!validString && !validNumber) {
+        throw new Error('Referência de pendência inválida.');
+    }
+
+    return JSON.stringify({ type, value: pendencyId });
+}
+
+function decodePendencyIdReference(serializedReference) {
+    if (typeof serializedReference !== 'string' || !serializedReference) {
+        throw new Error('Referência de pendência ausente.');
+    }
+
+    let reference;
+    try {
+        reference = JSON.parse(serializedReference);
+    } catch (error) {
+        throw new Error('Referência de pendência malformada.');
+    }
+
+    const isObject = reference && typeof reference === 'object' && !Array.isArray(reference);
+    const hasType = isObject && Object.prototype.hasOwnProperty.call(reference, 'type');
+    const hasValue = isObject && Object.prototype.hasOwnProperty.call(reference, 'value');
+    const validString = hasType
+        && reference.type === 'string'
+        && hasValue
+        && typeof reference.value === 'string'
+        && reference.value.length > 0;
+    const validNumber = hasType
+        && reference.type === 'number'
+        && hasValue
+        && typeof reference.value === 'number'
+        && Number.isFinite(reference.value);
+
+    if (!validString && !validNumber) {
+        throw new Error('Referência de pendência inválida.');
+    }
+    return reference.value;
+}
+
+function resolvePendencyIdReference(source) {
+    const actionElement = source && source.currentTarget
+        ? source.currentTarget
+        : source;
+    if (actionElement && actionElement.dataset && actionElement.dataset.pendencyRef) {
+        return decodePendencyIdReference(actionElement.dataset.pendencyRef);
+    }
+
+    return decodePendencyIdReference(encodePendencyIdReference(source));
+}
+
+function findPendencyById(pendencyId) {
+    return pendencias.find(item => item.id === pendencyId);
+}
+
+function elementMatchesPendencyIdReference(element, pendencyId) {
+    if (!element || !element.dataset || !element.dataset.pendencyRef) return false;
+    try {
+        return decodePendencyIdReference(element.dataset.pendencyRef) === pendencyId;
+    } catch (error) {
+        return false;
+    }
+}
+
+function findPendencyElement(selector, pendencyId) {
+    return Array.from(document.querySelectorAll(selector))
+        .find(element => elementMatchesPendencyIdReference(element, pendencyId)) || null;
+}
+
+function renderPendencias() {
+    const container = document.getElementById('main-container');
+    const accessProfile = getRadarAccessProfile();
+    let ativas = pendencias.filter(p => window.RadarPendencias.isActivePendency(p));
+    let resolvidas = pendencias.filter(p => p.status === 'Resolvida');
+    const selectedPendency = pendencias.find(p => p.id === activePendencyDetailId);
+    const showResolvedTab = selectedPendency && selectedPendency.status === 'Resolvida';
+
+    // Se perfil é controlador, ordenar as dele primeiro (e depois todas as outras)
+    if (accessProfile === 'controlador') {
+        const activeCtrlId = getDefaultControladorId();
+
+        const getSortWeight = (p) => {
+            const esc = escolas.find(e => e.id === p.escolaId);
+            return (esc && esc.controladorId === activeCtrlId) ? 0 : 1;
+        };
+        ativas.sort((a, b) => {
+            const wA = getSortWeight(a);
+            const wB = getSortWeight(b);
+            if (wA !== wB) return wA - wB;
+            return b.dataAbertura.localeCompare(a.dataAbertura);
+        });
+        resolvidas.sort((a, b) => {
+            const wA = getSortWeight(a);
+            const wB = getSortWeight(b);
+            if (wA !== wB) return wA - wB;
+            return (b.dataResolucao || '').localeCompare(a.dataResolucao || '');
+        });
+    }
+
+    container.innerHTML = `
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Passivo e Regularizações de Pendências</h1>
+                <p>Acompanhamento centralizado e resolução das pendências documentais e de capital das unidades.</p>
+            </div>
+        </div>
+
+        <div class="tab-container">
+            <button class="tab-button ${showResolvedTab ? '' : 'active'}" onclick="switchPendenciasTab(event, 'p-abertas')">Ativas (${ativas.length})</button>
+            <button class="tab-button ${showResolvedTab ? 'active' : ''}" onclick="switchPendenciasTab(event, 'p-resolvidas')">Histórico Resolvidas (${resolvidas.length})</button>
+        </div>
+
+        <div class="tab-content-panel ${showResolvedTab ? '' : 'active'}" id="p-abertas">
+            <div class="panel-card">
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Escola</th>
+                                <th>Mês de Competência</th>
+                                <th>Item</th>
+                                <th>Motivo da Falha</th>
+                                <th>Situação</th>
+                                <th>Quem deve agir?</th>
+                                <th>Data Abertura</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            ${ativas.length === 0 ? `
+
+                                <tr>
+
+                                    <td colspan="8">
+
+                                        Nenhuma pendência ativa no momento. Quando uma inconsistência for registrada, ela aparecerá nesta lista.
+
+                                    </td>
+
+                                </tr>
+
+                            ` : ativas.map(p => {
+
+                                const esc = escolas.find(e => e.id === p.escolaId);
+
+                                const pData = getFormattedPendencyData(p);
+
+                                const ctrl = esc ? controladores.find(c => c.id === esc.controladorId) : null;
+
+                                const ctrlName = ctrl ? ctrl.name : 'Não designado';
+                                const desig = esc ? esc.designação : '';
+                                const isMine = (accessProfile === 'controlador' && esc && esc.controladorId === getDefaultControladorId());
+                                const isSelected = p.id === activePendencyDetailId;
+                                const submissionActionLabel = getCorrectiveSubmissionActionLabel(p);
+                                const canReanalyse = canReanalysePendency(p);
+
+                                return `
+                                    <tr
+                                        data-pendency-ref="${escapeHtml(encodePendencyIdReference(p.id))}"
+                                        data-pendency-status="${escapeHtml(p.status)}"
+                                        class="${isSelected ? 'pendency-row-selected' : ''}"
+                                        tabindex="-1"
+                                        aria-current="${isSelected ? 'true' : 'false'}"
+                                        style="${isMine ? 'background-color: rgba(157, 125, 252, 0.05);' : ''}"
+                                    >
+                                        <td>
+                                            <div style="display:flex; align-items:center; gap:8px;">
+                                                <strong>${escapeHtml(esc ? esc.denominação : 'N/A')}</strong>
+                                                ${isMine ? `<span class="badge badge-primary" style="font-size: 0.65rem; padding: 2px 6px;">Sua Carteira</span>` : ''}
+                                            </div>
+                                            ${desig ? `<small style="color:var(--text-muted)">${escapeHtml(desig)} | Controlador: ${escapeHtml(ctrlName)}</small>` : ''}
+                                            ${isSelected ? '<span class="pendency-detail-marker">Pendência selecionada</span>' : ''}
+                                        </td>
+                                        <td><span style="font-weight:600; color:var(--primary);">${escapeHtml(pData.competencia)}</span></td>
+                                        <td>${escapeHtml(pData.item)}</td>
+                                        <td><span style="color:var(--danger)">${escapeHtml(p.motivo)}</span></td>
+                                        <td><span class="badge ${p.status === 'Aguardando reanálise' ? 'badge-warning' : 'badge-danger'}">${escapeHtml(p.status)}</span></td>
+                                        <td><span class="badge badge-info">${escapeHtml(p.responsavel)}</span></td>
+                                        <td>${new Date(p.dataAbertura).toLocaleDateString('pt-BR')}</td>
+                                        <td>
+                                            <div style="display:flex; gap:6px;">
+                                                <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${escapeHtml(p.escolaId)}')">Ver Unidade</button>
+                                                ${canReanalyse ? `
+                                                    <button
+                                                        class="btn btn-primary btn-sm"
+                                                        data-action="reanalyse-pendency"
+                                                        data-pendency-ref="${escapeHtml(encodePendencyIdReference(p.id))}"
+                                                        onclick="abrirModalReanalisarPendencia(this)"
+                                                    >Reanalisar</button>
+                                                ` : ''}
+                                                ${submissionActionLabel ? `
+                                                    <button
+                                                        class="btn ${canReanalyse ? 'btn-secondary' : 'btn-primary'} btn-sm"
+                                                        data-action="register-corrective-submission"
+                                                        data-pendency-ref="${escapeHtml(encodePendencyIdReference(p.id))}"
+                                                        onclick="abrirModalRegistrarNovoEnvio(this)"
+                                                    >${escapeHtml(submissionActionLabel)}</button>
+                                                ` : ''}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content-panel ${showResolvedTab ? 'active' : ''}" id="p-resolvidas">
+            <div class="panel-card">
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Escola</th>
+                                <th>Mês de Competência</th>
+                                <th>Item</th>
+                                <th>Motivo da Falha</th>
+                                <th>Justificativa de Resolução</th>
+                                <th>Abertura</th>
+                                <th>Resolvido Em</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            ${resolvidas.length === 0 ? `
+
+                                <tr>
+
+                                    <td colspan="7">
+
+                                        Nenhuma pendência resolvida registrada ainda. O histórico será preenchido conforme as regularizações forem concluídas.
+
+                                    </td>
+
+                                </tr>
+
+                            ` : resolvidas.map(p => {
+
+                                const esc = escolas.find(e => e.id === p.escolaId);
+
+                                const pData = getFormattedPendencyData(p);
+
+                                const ctrl = esc ? controladores.find(c => c.id === esc.controladorId) : null;
+
+                                const ctrlName = ctrl ? ctrl.name : 'Não designado';
+                                const desig = esc ? esc.designação : '';
+                                const isMine = (accessProfile === 'controlador' && esc && esc.controladorId === getDefaultControladorId());
+                                const isSelected = p.id === activePendencyDetailId;
+
+                                return `
+                                    <tr
+                                        data-pendency-ref="${escapeHtml(encodePendencyIdReference(p.id))}"
+                                        class="${isSelected ? 'pendency-row-selected' : ''}"
+                                        tabindex="-1"
+                                        aria-current="${isSelected ? 'true' : 'false'}"
+                                        style="${isMine ? 'background-color: rgba(157, 125, 252, 0.03);' : ''}"
+                                    >
+                                        <td>
+                                            <div style="display:flex; align-items:center; gap:8px;">
+                                                <strong>${escapeHtml(esc ? esc.denominação : 'N/A')}</strong>
+                                                ${isMine ? `<span class="badge badge-primary" style="font-size: 0.65rem; padding: 2px 6px;">Sua Carteira</span>` : ''}
+                                            </div>
+                                            ${desig ? `<small style="color:var(--text-muted)">${escapeHtml(desig)} | Controlador: ${escapeHtml(ctrlName)}</small>` : ''}
+                                            ${isSelected ? '<span class="pendency-detail-marker">Pendência selecionada</span>' : ''}
+                                        </td>
+                                        <td>${escapeHtml(pData.competencia)}</td>
+                                        <td>${escapeHtml(pData.item)}</td>
+                                        <td>${escapeHtml(p.motivo)}</td>
+                                        <td><span style="color:var(--success); font-size:0.8rem;">${escapeHtml(p.justificativaResolucao || 'Resolvida')}</span></td>
+                                        <td>${new Date(p.dataAbertura).toLocaleDateString('pt-BR')}</td>
+                                        <td>${new Date(p.dataResolucao).toLocaleDateString('pt-BR')}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function openPendencyDetail(pendencyId) {
+    const pendency = findPendencyById(pendencyId);
+    if (!pendency) return false;
+
+    activePendencyDetailId = pendency.id;
+    switchView('pendencias');
+
+    const focusSelectedPendency = () => {
+        const row = findPendencyElement('tr[data-pendency-ref]', pendency.id);
+        if (!row) return;
+
+        row.scrollIntoView({ block: 'center', behavior: 'auto' });
+        row.focus({ preventScroll: true });
+    };
+
+    if (typeof requestAnimationFrame === 'function') {
+        requestAnimationFrame(focusSelectedPendency);
+    } else {
+        setTimeout(focusSelectedPendency, 0);
+    }
+    return true;
+}
+
+function switchPendenciasTab(e, tabId) {
+    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+    e.target.classList.add('active');
+    
+    document.querySelectorAll('.tab-content-panel').forEach(pnl => pnl.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+}
+
+let registrarNovoEnvioTrigger = null;
+let registrarNovoEnvioSourceContext = null;
+let reanalisarPendenciaTrigger = null;
+let reanalisarPendenciaSourceContext = null;
+
+const CORRECTIVE_SUBMISSION_PRONTUARIO_TABS = new Set([
+    'tab-pendencias',
+    'tab-verificacoes'
+]);
+
+const ACCESSIBLE_MODAL_FOCUSABLE_SELECTOR = [
+    'button:not([disabled])',
+    'input:not([disabled]):not([type="hidden"])',
+    'textarea:not([disabled])',
+    'select:not([disabled])',
+    'a[href]',
+    '[tabindex]:not([tabindex="-1"])'
+].join(',');
+
+function setAccessibleModalOpen(modalId, initialFocus) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return false;
+
+    modal.removeAttribute('inert');
+    modal.setAttribute('aria-hidden', 'false');
+    openModal(modalId);
+    if (initialFocus && typeof initialFocus.focus === 'function') {
+        initialFocus.focus();
+    }
+    return true;
+}
+
+function setAccessibleModalClosed(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return false;
+
+    modal.classList.remove('show');
+    modal.setAttribute('aria-hidden', 'true');
+    modal.setAttribute('inert', '');
+    return true;
+}
+
+function trapAccessibleModalFocus(event, modal, closeHandler) {
+    if (!modal || modal.getAttribute('aria-hidden') === 'true') return false;
+
+    if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        closeHandler();
+        return true;
+    }
+
+    if (event.key !== 'Tab') return false;
+    const focusable = Array.from(modal.querySelectorAll(
+        ACCESSIBLE_MODAL_FOCUSABLE_SELECTOR
+    ));
+    if (focusable.length === 0) {
+        event.preventDefault();
+        return true;
+    }
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+    }
+    return true;
+}
+
+function resetRegistrarNovoEnvioForm() {
+    const form = document.getElementById('form-registrar-envio');
+    if (!form) return;
+
+    form.reset();
+    document.getElementById('envio-pendencia-id').value = '';
+    document.getElementById('envio-contexto').replaceChildren();
+}
+
+function showRegistrarNovoEnvioError(message) {
+    const context = document.getElementById('envio-contexto');
+    if (!context) return;
+
+    let errorMessage = context.querySelector('[data-envio-error]');
+    if (!errorMessage) {
+        errorMessage = document.createElement('p');
+        errorMessage.dataset.envioError = 'true';
+        errorMessage.setAttribute('role', 'alert');
+        context.prepend(errorMessage);
+    }
+    errorMessage.textContent = message;
+}
+
+function getPendencyActionTrigger(source) {
+    const candidate = source && source.currentTarget
+        ? source.currentTarget
+        : source;
+    if (candidate && candidate.dataset && candidate.dataset.pendencyRef) {
+        return candidate;
+    }
+
+    const activeElement = document.activeElement;
+    return activeElement && typeof activeElement.focus === 'function'
+        ? activeElement
+        : null;
+}
+
+function getPendencyActionProntuarioTab(trigger) {
+    if (currentView !== 'prontuario') return null;
+
+    const triggerPanel = trigger && typeof trigger.closest === 'function'
+        ? trigger.closest('.tab-content-panel')
+        : null;
+    if (triggerPanel && CORRECTIVE_SUBMISSION_PRONTUARIO_TABS.has(triggerPanel.id)) {
+        return triggerPanel.id;
+    }
+
+    const activePanel = Array.from(document.querySelectorAll(
+        '#main-container .tab-content-panel.active'
+    )).find(panel => CORRECTIVE_SUBMISSION_PRONTUARIO_TABS.has(panel.id));
+    return activePanel ? activePanel.id : null;
+}
+
+function capturePendencyActionSourceContext(pendency, trigger) {
+    const competence = pendency.competenciaOrigem || pendency.competencia;
+    return Object.freeze({
+        currentView,
+        escolaId: pendency.escolaId,
+        competencia: competence,
+        prontuarioTabId: getPendencyActionProntuarioTab(trigger)
+    });
+}
+
+function openRegistrarNovoEnvioModal(trigger, sourceContext) {
+    registrarNovoEnvioTrigger = trigger;
+    registrarNovoEnvioSourceContext = sourceContext;
+    setAccessibleModalOpen(
+        'modal-registrar-envio',
+        document.getElementById('envio-data-disponibilizacao')
+    );
+}
+
+function closeRegistrarNovoEnvioModal({ restoreFocus = true } = {}) {
+    const trigger = registrarNovoEnvioTrigger;
+    setAccessibleModalClosed('modal-registrar-envio');
+    registrarNovoEnvioTrigger = null;
+    registrarNovoEnvioSourceContext = null;
+
+    if (restoreFocus && trigger && trigger.isConnected && typeof trigger.focus === 'function') {
+        trigger.focus({ preventScroll: true });
+    }
+}
+
+function handleRegistrarNovoEnvioKeydown(event) {
+    const modal = document.getElementById('modal-registrar-envio');
+    trapAccessibleModalFocus(event, modal, closeRegistrarNovoEnvioModal);
+}
+
+function getPendencyActionFocusScope(sourceContext) {
+    if (sourceContext.currentView === 'prontuario') {
+        const sourcePanel = CORRECTIVE_SUBMISSION_PRONTUARIO_TABS.has(
+            sourceContext.prontuarioTabId
+        )
+            ? document.getElementById(sourceContext.prontuarioTabId)
+            : null;
+        if (sourcePanel && sourcePanel.classList.contains('active')) return sourcePanel;
+
+        return Array.from(document.querySelectorAll(
+            '#main-container .tab-content-panel.active'
+        )).find(panel => CORRECTIVE_SUBMISSION_PRONTUARIO_TABS.has(panel.id)) || null;
+    }
+
+    return ['p-abertas', 'p-resolvidas']
+        .map(panelId => document.getElementById(panelId))
+        .find(panel => panel && panel.classList.contains('active')) || null;
+}
+
+function preparePendencyActionFallbackFocus(scope, pendencyId, sourceContext) {
+    const pendency = findPendencyById(pendencyId);
+    const school = pendency
+        ? escolas.find(item => item.id === pendency.escolaId)
+        : null;
+    const schoolName = school
+        ? (school.denominação || school.denominacao || school.denominaçao || school.id)
+        : sourceContext.escolaId;
+    const documentName = pendency
+        ? (VERIFICATION_DOCUMENT_LABELS[pendency.documentoKey] || pendency.documentoKey)
+        : 'pendência documental';
+    const contextualContainer = scope
+        ? (scope.querySelector('.panel-card') || scope)
+        : document.getElementById('main-container');
+    if (!contextualContainer) return null;
+
+    contextualContainer.setAttribute('tabindex', '-1');
+    contextualContainer.setAttribute('role', 'region');
+    contextualContainer.setAttribute(
+        'aria-label',
+        `Contexto da pendência atualizada: ${documentName}, ${schoolName}, competência ${sourceContext.competencia}.`
+    );
+    return contextualContainer;
+}
+
+function focusPendencyActionAfterRender(pendencyId, sourceContext, actionName) {
+    const focusEquivalentAction = () => {
+        const scope = getPendencyActionFocusScope(sourceContext);
+        const actions = scope ? Array.from(scope.querySelectorAll(
+            `[data-action="${actionName}"][data-pendency-ref]`
+        )) : [];
+        const action = actions.find(candidate => (
+            elementMatchesPendencyIdReference(candidate, pendencyId)
+            && candidate.getClientRects().length > 0
+        ));
+        const rows = scope ? Array.from(scope.querySelectorAll('tr[data-pendency-ref]')) : [];
+        const row = rows.find(candidate => (
+            elementMatchesPendencyIdReference(candidate, pendencyId)
+            && candidate.getClientRects().length > 0
+        ));
+        const target = action
+            || row
+            || preparePendencyActionFallbackFocus(scope, pendencyId, sourceContext);
+        if (!target) return;
+
+        if (typeof target.scrollIntoView === 'function') {
+            target.scrollIntoView({ block: 'nearest', behavior: 'auto' });
+        }
+        target.focus({ preventScroll: true });
+    };
+
+    if (typeof requestAnimationFrame === 'function') {
+        requestAnimationFrame(focusEquivalentAction);
+    } else {
+        setTimeout(focusEquivalentAction, 0);
+    }
+}
+
+function abrirModalRegistrarNovoEnvio(pendencySource) {
+    if (!hasRadarCapability(
+        window.RadarAccessPolicy.CAPABILITIES.REGISTER_CORRECTIVE_SUBMISSION
+    )) return false;
+
+    let pendencyId;
+    try {
+        pendencyId = resolvePendencyIdReference(pendencySource);
+    } catch (error) {
+        console.error('Não foi possível interpretar a referência da pendência.', error);
+        return false;
+    }
+
+    const pendency = findPendencyById(pendencyId);
+    const school = pendency
+        ? escolas.find(item => item.id === pendency.escolaId)
+        : null;
+    const allowedStatus = pendency
+        && ['Aberta', 'Aguardando reanálise'].includes(pendency.status);
+
+    if (!pendency
+        || !school
+        || !allowedStatus
+        || !window.RadarPendencias.isDocumentaryPendency(pendency)) {
+        return false;
+    }
+
+    const competence = pendency.competenciaOrigem || pendency.competencia;
+    const competenceLabel = formatCompetenciaText(competence);
+    const program = programas.find(item => item.id === pendency.programaId);
+    const programName = program ? program.name : pendency.programaId;
+    const documentName = VERIFICATION_DOCUMENT_LABELS[pendency.documentoKey]
+        || pendency.documentoKey;
+    const schoolName = school.denominação || school.denominacao || school.denominaçao || '';
+    const trigger = getPendencyActionTrigger(pendencySource);
+    const sourceContext = capturePendencyActionSourceContext(pendency, trigger);
+
+    resetRegistrarNovoEnvioForm();
+    document.getElementById('envio-pendencia-id').value = encodePendencyIdReference(pendency.id);
+    document.getElementById('envio-contexto').innerHTML = `
+        <dl aria-label="Contexto da pendência">
+            <div>
+                <dt>Escola</dt>
+                <dd>${escapeHtml(schoolName)}</dd>
+            </div>
+            <div>
+                <dt>Competência</dt>
+                <dd>${escapeHtml(competenceLabel)} (${escapeHtml(competence)})</dd>
+            </div>
+            <div>
+                <dt>Programa / documento</dt>
+                <dd>${escapeHtml(programName)} — ${escapeHtml(documentName)}</dd>
+            </div>
+        </dl>
+    `;
+
+    openRegistrarNovoEnvioModal(trigger, sourceContext);
+    return true;
+}
+
+async function confirmarRegistrarNovoEnvio(event) {
+    event.preventDefault();
+    if (!hasRadarCapability(
+        window.RadarAccessPolicy.CAPABILITIES.REGISTER_CORRECTIVE_SUBMISSION
+    )) {
+        showRegistrarNovoEnvioError('Seu perfil possui acesso somente para consulta de pendências.');
+        return false;
+    }
+    const form = document.getElementById('form-registrar-envio');
+    const serializedPendencyId = document.getElementById('envio-pendencia-id').value;
+    const availabilityDateInput = document.getElementById('envio-data-disponibilizacao');
+    const observationInput = document.getElementById('envio-observacao');
+    const linkInput = document.getElementById('envio-link');
+    const availabilityDate = availabilityDateInput.value;
+    const observation = observationInput.value.trim();
+    const link = linkInput.value.trim();
+
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return false;
+    }
+    if (!availabilityDate) {
+        availabilityDateInput.focus();
+        return false;
+    }
+    if (!observation) {
+        observationInput.focus();
+        return false;
+    }
+
+    let pendencyId;
+    try {
+        pendencyId = decodePendencyIdReference(serializedPendencyId);
+    } catch (error) {
+        showRegistrarNovoEnvioError(error.message);
+        return false;
+    }
+
+    const current = findPendencyById(pendencyId);
+    const school = current
+        ? escolas.find(item => item.id === current.escolaId)
+        : null;
+    const allowedStatus = current
+        && ['Aberta', 'Aguardando reanálise'].includes(current.status);
+
+    if (!current
+        || !school
+        || !allowedStatus
+        || !window.RadarPendencias.isDocumentaryPendency(current)) {
+        showRegistrarNovoEnvioError('A pendência documental não está disponível para um novo envio.');
+        return false;
+    }
+
+    const sourceContext = registrarNovoEnvioSourceContext
+        || capturePendencyActionSourceContext(current, registrarNovoEnvioTrigger);
+
+    let nextPendency;
+    try {
+        const result = await radarPendencyService.registerAttempt({
+            pendencyId: current.id,
+            availabilityDate,
+            observation,
+            link
+        });
+        nextPendency = result.value.pendency;
+        rebuildOperationalIndexes();
+    } catch (error) {
+        reportRadarPersistenceError(error);
+        showRegistrarNovoEnvioError(error?.cause?.message || error?.message || 'Não foi possível registrar o novo envio.');
+        return false;
+    }
+
+    closeRegistrarNovoEnvioModal({ restoreFocus: false });
+    resetRegistrarNovoEnvioForm();
+    updateAlertsBell();
+
+    if (sourceContext.currentView === 'prontuario') {
+        activeSchoolId = sourceContext.escolaId;
+        activeProntuarioCompetencia = sourceContext.competencia;
+        renderProntuario(sourceContext.escolaId);
+        activateProntuarioTab(
+            CORRECTIVE_SUBMISSION_PRONTUARIO_TABS.has(sourceContext.prontuarioTabId)
+                ? sourceContext.prontuarioTabId
+                : 'tab-verificacoes'
+        );
+    } else {
+        activePendencyDetailId = current.id;
+        renderPendencias();
+    }
+    focusPendencyActionAfterRender(
+        current.id,
+        sourceContext,
+        'register-corrective-submission'
+    );
+    return true;
+}
+
+function getCorrectAnalysisLabel(competencia, dataDisponibilizacao) {
+    const prazo = COMPETENCIAS.find(item => item.key === competencia)?.bonifPrazo;
+    if (!prazo || !dataDisponibilizacao) return 'Correto';
+    return dataDisponibilizacao > prazo ? 'Correto (Atrasado)' : 'Correto';
+}
+
+function getLatestAwaitingPendencyAttempt(pendency) {
+    const attempts = Array.isArray(pendency && pendency.tentativas)
+        ? pendency.tentativas
+        : [];
+    return [...attempts].reverse().find(attempt => (
+        attempt && attempt.status === 'aguardando'
+    )) || null;
+}
+
+function enforceAbsentDocumentExclusivity(inputs, changedInput) {
+    const absentInput = inputs.find(input => input.value === 'Documento ausente');
+    if (!absentInput || !changedInput) return;
+
+    if (changedInput !== absentInput && changedInput.checked) {
+        absentInput.checked = false;
+    }
+
+    const absentIsExclusive = changedInput === absentInput && absentInput.checked;
+    inputs.forEach(input => {
+        if (input === absentInput) return;
+        input.disabled = absentIsExclusive;
+        if (absentIsExclusive) input.checked = false;
+    });
+
+    if (!absentIsExclusive) {
+        inputs.forEach(input => {
+            if (input !== absentInput) input.disabled = false;
+        });
+    }
+}
+
+function renderReanalysisErrorOptions() {
+    const container = document.getElementById('reanalisar-erros');
+    if (!container) return;
+
+    container.replaceChildren();
+    window.RadarPendencias.DOCUMENT_ERROR_TYPES.forEach(error => {
+        const label = document.createElement('label');
+        label.className = 'pendency-error-option';
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.name = 'reanalisar-erros';
+        input.value = error;
+        input.addEventListener('change', () => {
+            syncReanalysisAbsentErrorExclusivity(input);
+        });
+        const text = document.createElement('span');
+        text.textContent = error;
+        label.append(input, text);
+        container.append(label);
+    });
+}
+
+function syncReanalysisAbsentErrorExclusivity(changedInput) {
+    const inputs = Array.from(
+        document.querySelectorAll('#reanalisar-erros input[name="reanalisar-erros"]')
+    );
+    enforceAbsentDocumentExclusivity(inputs, changedInput);
+}
+
+function updateReanalysisErrorVisibility() {
+    const result = document.getElementById('reanalisar-resultado');
+    const group = document.getElementById('reanalisar-erros-group');
+    const fieldset = document.getElementById('reanalisar-erros-fieldset');
+    if (!result || !group || !fieldset) return;
+
+    const showErrors = result.value === 'incorreto';
+    group.hidden = !showErrors;
+    fieldset.disabled = !showErrors;
+    const inputs = Array.from(fieldset.querySelectorAll('input[name="reanalisar-erros"]'));
+    inputs.forEach(input => {
+        input.disabled = !showErrors;
+        if (!showErrors) input.checked = false;
+    });
+}
+
+function collectReanalysisErrors(result) {
+    if (result !== 'incorreto') return [];
+    const selectedErrors = Array.from(
+        document.querySelectorAll('#reanalisar-erros input[name="reanalisar-erros"]:checked')
+    ).map(input => input.value);
+    return window.RadarPendencias.validateDocumentErrors(selectedErrors);
+}
+
+function resetReanalysisForm() {
+    const form = document.getElementById('form-reanalisar-pendencia');
+    if (!form) return;
+
+    form.reset();
+    document.getElementById('reanalisar-pendencia-id').value = '';
+    document.getElementById('reanalisar-tentativa-atual').replaceChildren();
+    renderReanalysisErrorOptions();
+    updateReanalysisErrorVisibility();
+}
+
+function showReanalysisError(message) {
+    const summary = document.getElementById('reanalisar-tentativa-atual');
+    if (!summary) return;
+
+    let errorMessage = summary.querySelector('[data-reanalysis-error]');
+    if (!errorMessage) {
+        errorMessage = document.createElement('p');
+        errorMessage.dataset.reanalysisError = 'true';
+        errorMessage.setAttribute('role', 'alert');
+        summary.prepend(errorMessage);
+    }
+    errorMessage.textContent = message;
+}
+
+function appendReanalysisSummaryItem(list, label, value) {
+    const row = document.createElement('div');
+    const term = document.createElement('dt');
+    const description = document.createElement('dd');
+    term.textContent = label;
+    if (value instanceof Node) {
+        description.append(value);
+    } else {
+        description.textContent = value || 'Não informado';
+    }
+    row.append(term, description);
+    list.append(row);
+}
+
+function getSafeReanalysisLink(value) {
+    if (typeof value !== 'string' || !value.trim()) return null;
+    try {
+        const parsed = new URL(value.trim());
+        return ['https:', 'http:'].includes(parsed.protocol) ? parsed.href : null;
+    } catch (error) {
+        return null;
+    }
+}
+
+function renderReanalysisAttemptSummary(pendency, attempt, school) {
+    const summary = document.getElementById('reanalisar-tentativa-atual');
+    const list = document.createElement('dl');
+    const competence = pendency.competenciaOrigem || pendency.competencia;
+    const program = programas.find(item => item.id === pendency.programaId);
+    const documentName = VERIFICATION_DOCUMENT_LABELS[pendency.documentoKey]
+        || pendency.documentoKey;
+    const schoolName = school.denominação || school.denominacao || school.id;
+    const nextActor = pendency.responsavel
+        || window.RadarPendencias.getNextActor(pendency)
+        || 'Não definido';
+    const currentErrors = Array.isArray(pendency.errosAtuais)
+        ? pendency.errosAtuais.filter(Boolean)
+        : [];
+    appendReanalysisSummaryItem(list, 'Estado atual', pendency.status);
+    appendReanalysisSummaryItem(list, 'Próximo ator', nextActor);
+    appendReanalysisSummaryItem(
+        list,
+        'Erros atuais',
+        currentErrors.length > 0 ? currentErrors.join(' • ') : 'Nenhum erro registrado'
+    );
+    appendReanalysisSummaryItem(list, 'Escola', schoolName);
+    appendReanalysisSummaryItem(
+        list,
+        'Competência',
+        formatCompetenciaText(competence) + ' (' + competence + ')'
+    );
+    appendReanalysisSummaryItem(
+        list,
+        'Programa / documento',
+        (program ? program.name : pendency.programaId) + ' — ' + documentName
+    );
+    appendReanalysisSummaryItem(
+        list,
+        'Disponibilizado no Drive em',
+        attempt.dataDisponibilizacao
+    );
+    appendReanalysisSummaryItem(list, 'Observação do envio', attempt.observacao);
+
+    const safeLink = getSafeReanalysisLink(attempt.link);
+    if (safeLink) {
+        const link = document.createElement('a');
+        link.href = safeLink;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = 'Abrir arquivo no Drive';
+        appendReanalysisSummaryItem(list, 'Arquivo', link);
+    }
+    summary.replaceChildren(list);
+}
+
+function openReanalysisModal(trigger, sourceContext) {
+    reanalisarPendenciaTrigger = trigger;
+    reanalisarPendenciaSourceContext = sourceContext;
+    setAccessibleModalOpen(
+        'modal-reanalisar-pendencia',
+        document.getElementById('reanalisar-resultado')
+    );
+}
+
+function closeReanalysisModal({ restoreFocus = true } = {}) {
+    const trigger = reanalisarPendenciaTrigger;
+    setAccessibleModalClosed('modal-reanalisar-pendencia');
+    reanalisarPendenciaTrigger = null;
+    reanalisarPendenciaSourceContext = null;
+
+    if (restoreFocus && trigger && trigger.isConnected && typeof trigger.focus === 'function') {
+        trigger.focus({ preventScroll: true });
+    }
+}
+
+function handleReanalysisKeydown(event) {
+    const modal = document.getElementById('modal-reanalisar-pendencia');
+    trapAccessibleModalFocus(event, modal, closeReanalysisModal);
+}
+
+function abrirModalReanalisarPendencia(pendencySource) {
+    if (!hasRadarCapability(
+        window.RadarAccessPolicy.CAPABILITIES.REANALYZE_PENDENCY
+    )) return false;
+
+    let pendencyId;
+    try {
+        pendencyId = resolvePendencyIdReference(pendencySource);
+    } catch (error) {
+        console.error('Não foi possível interpretar a referência da pendência.', error);
+        return false;
+    }
+
+    const pendency = findPendencyById(pendencyId);
+    const school = pendency
+        ? escolas.find(item => item.id === pendency.escolaId)
+        : null;
+    const attempt = getLatestAwaitingPendencyAttempt(pendency);
+    if (!pendency
+        || !school
+        || pendency.status !== 'Aguardando reanálise'
+        || !window.RadarPendencias.isDocumentaryPendency(pendency)
+        || !attempt) {
+        return false;
+    }
+
+    const trigger = getPendencyActionTrigger(pendencySource);
+    const sourceContext = capturePendencyActionSourceContext(pendency, trigger);
+    resetReanalysisForm();
+    document.getElementById('reanalisar-pendencia-id').value = encodePendencyIdReference(
+        pendency.id
+    );
+    renderReanalysisAttemptSummary(pendency, attempt, school);
+    openReanalysisModal(trigger, sourceContext);
+    return true;
+}
+
+async function confirmarReanalisePendencia(event) {
+    event.preventDefault();
+    const form = document.getElementById('form-reanalisar-pendencia');
+    const resultInput = document.getElementById('reanalisar-resultado');
+    const observationInput = document.getElementById('reanalisar-observacao');
+    const serializedPendencyId = document.getElementById('reanalisar-pendencia-id').value;
+    const result = resultInput.value;
+    const observation = observationInput.value.trim();
+
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return false;
+    }
+    if (!hasRadarCapability(
+        window.RadarAccessPolicy.CAPABILITIES.REANALYZE_PENDENCY
+    )) {
+        showReanalysisError('Reanálise permitida somente ao perfil Controlador.');
+        return false;
+    }
+
+    let errors;
+    try {
+        errors = collectReanalysisErrors(result);
+    } catch (error) {
+        showReanalysisError(error.message);
+        const firstError = document.querySelector(
+            '#reanalisar-erros input[name="reanalisar-erros"]'
+        );
+        if (firstError) firstError.focus();
+        return false;
+    }
+
+    let pendencyId;
+    try {
+        pendencyId = decodePendencyIdReference(serializedPendencyId);
+    } catch (error) {
+        showReanalysisError(error.message);
+        return false;
+    }
+
+    const current = findPendencyById(pendencyId);
+    const school = current
+        ? escolas.find(item => item.id === current.escolaId)
+        : null;
+    if (!current
+        || !school
+        || current.status !== 'Aguardando reanálise'
+        || !window.RadarPendencias.isDocumentaryPendency(current)) {
+        showReanalysisError(
+            'A pendência documental não está disponível para reanálise.'
+        );
+        return false;
+    }
+
+    const competence = current.competenciaOrigem || current.competencia;
+    const exactActive = window.RadarPendencias.findActivePendency(
+        pendencias.filter(pendency => window.RadarPendencias.isDocumentaryPendency(pendency)),
+        {
+            escolaId: current.escolaId,
+            competenciaOrigem: competence,
+            programaId: current.programaId,
+            documentoKey: current.documentoKey,
+            item: current.item
+        }
+    );
+    const awaitingAttempt = getLatestAwaitingPendencyAttempt(current);
+    const compProgKey = competence + '_' + current.programaId;
+    const verification = verificacoes[current.escolaId]?.[compProgKey];
+    const hasLinkedAnalysis = verification
+        && verification.analise
+        && Object.prototype.hasOwnProperty.call(verification.analise, current.documentoKey);
+    if (!exactActive
+        || exactActive.id !== current.id
+        || !awaitingAttempt
+        || !hasLinkedAnalysis) {
+        showReanalysisError(
+            'A tentativa ou a análise técnica vinculada não foi encontrada. Nenhum dado foi alterado.'
+        );
+        return false;
+    }
+
+    const sourceContext = reanalisarPendenciaSourceContext
+        || capturePendencyActionSourceContext(current, reanalisarPendenciaTrigger);
+    let nextPendency;
+
+    try {
+        const response = await radarPendencyService.reanalyze({
+            pendencyId: current.id,
+            result,
+            errors,
+            observation
+        });
+        nextPendency = response.value.pendency;
+        rebuildOperationalIndexes();
+    } catch (error) {
+        reportRadarPersistenceError(error);
+        showReanalysisError(error?.cause?.message || error?.message || 'Não foi possível registrar a reanálise.');
+        return false;
+    }
+
+    closeReanalysisModal({ restoreFocus: false });
+    resetReanalysisForm();
+    updateAlertsBell();
+
+    if (sourceContext.currentView === 'prontuario') {
+        activeSchoolId = sourceContext.escolaId;
+        activeProntuarioCompetencia = sourceContext.competencia;
+        renderProntuario(sourceContext.escolaId);
+        activateProntuarioTab(
+            CORRECTIVE_SUBMISSION_PRONTUARIO_TABS.has(sourceContext.prontuarioTabId)
+                ? sourceContext.prontuarioTabId
+                : 'tab-verificacoes'
+        );
+    } else {
+        activePendencyDetailId = current.id;
+        renderPendencias();
+    }
+    focusPendencyActionAfterRender(
+        current.id,
+        sourceContext,
+        nextPendency.status === 'Aberta'
+            ? 'register-corrective-submission'
+            : 'reanalyse-pendency'
+    );
+    return true;
+}
+
+
+// ==========================================
+// 11. RENDER DA TELA: CAPITAL & INVENTÁRIO (INTERNO)
+// ==========================================
+
+function renderInventarioView() {
+    const container = document.getElementById('main-container');
+    renderDashboardInventario(container);
+}
+
+
+// ==========================================
+// 12. RENDER DA TELA: AUDITORIA
+// ==========================================
+
+function renderAuditoria() {
+    const container = document.getElementById('main-container');
+    const visibleLogs = window.RadarAccessPolicy.filterAdministrativeLogs(
+        logs,
+        getRadarAccessProfile(),
+        getAuthenticatedUserId()
+    );
+    const ownLogsOnly = hasRadarCapability(
+        window.RadarAccessPolicy.CAPABILITIES.VIEW_OWN_ADMINISTRATIVE_LOGS
+    ) && !hasRadarCapability(
+        window.RadarAccessPolicy.CAPABILITIES.VIEW_ALL_ADMINISTRATIVE_LOGS
+    );
+
+    container.innerHTML = `
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Registros Internos</h1>
+                <p>${ownLogsOnly
+                    ? 'Ações registradas pelo seu próprio login autenticado.'
+                    : 'Histórico completo de ações de gravação e alteração realizadas na plataforma.'}</p>
+            </div>
+        </div>
+
+        <div class="panel-card">
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Data e Hora</th>
+                            <th>Usuário</th>
+                            <th>Perfil</th>
+                            <th>Ação realizada</th>
+                            <th>Detalhes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${visibleLogs.length ? visibleLogs.map(l => `
+                            <tr>
+                                <td><strong>${new Date(l.dataHora).toLocaleString('pt-BR')}</strong></td>
+                                <td>${escapeHtml(l.usuario)}</td>
+                                <td><span class="badge badge-info">${escapeHtml(l.perfil)}</span></td>
+                                <td><strong>${escapeHtml(l.acao)}</strong></td>
+                                <td>${escapeHtml(l.detalhes)}</td>
+                            </tr>
+                        `).join('') : `
+                            <tr>
+                                <td colspan="5" style="text-align:center; color:var(--text-muted); padding:32px;">
+                                    Nenhum registro interno disponível para este login.
+                                </td>
+                            </tr>
+                        `}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+}
+
+
+// ==========================================
+// 13. RENDER DA TELA: CONFIGURAÇÕES SME
+// ==========================================
+
+function renderSMEConfig() {
+    const container = document.getElementById('main-container');
+
+    container.innerHTML = `
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Parâmetros da SME</h1>
+                <p>Configuração de exercícios, prazos de bonificação e cadastro de novos programas.</p>
+            </div>
+        </div>
+
+        <div class="config-section">
+            <h3>Gerenciamento de Exercícios</h3>
+            <div style="display:flex; gap:16px; margin-bottom:16px;">
+                <div class="form-group" style="flex:1;">
+                    <label for="new-exercise-input">Criar Novo Exercício (Ano)</label>
+                    <input type="number" class="form-control" id="new-exercise-input" placeholder="Ex: 2027">
+                </div>
+                <div class="form-group" style="flex:1;">
+                    <label for="new-exercise-competencia">Competência Inicial</label>
+                    <select class="form-control" id="new-exercise-competencia">
+                        <option value="01">Janeiro</option>
+                        <option value="02">Fevereiro</option>
+                        <option value="03">Março</option>
+                    </select>
+                </div>
+                <div style="display:flex; align-items:flex-end; margin-bottom:16px;">
+                    <button class="btn btn-primary" onclick="criarExercicio()">Criar</button>
+                </div>
+            </div>
+            <div class="program-tag-list">
+                ${config.exercicios.map(ex => `
+                    <span class="program-tag">${ex} (Ativo)</span>
+                `).join('')}
+            </div>
+        </div>
+
+        <div class="config-section">
+            <h3>Calendário e Prazos Operacionais</h3>
+            <form onsubmit="salvarCalendarioSME(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="cfg-comp-fechamento">Competência Operacional Ativa</label>
+                        <select class="form-control" id="cfg-comp-fechamento">
+                            ${COMPETENCIAS.map(c => `
+                                <option value="${c.key}" ${c.key === config.competenciaFechamento ? 'selected' : ''}>${c.label}</option>
+                            `).join('')}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="cfg-prorrogado">Janela de Bonificação Prorrogada?</label>
+                        <select class="form-control" id="cfg-prorrogado">
+                            <option value="false" ${!config.prazoBonificacaoProrrogado ? 'selected' : ''}>Não</option>
+                            <option value="true" ${config.prazoBonificacaoProrrogado ? 'selected' : ''}>Sim (Liberar preenchimento tardio)</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Salvar Parâmetros</button>
+            </form>
+        </div>
+
+        <div class="config-section">
+            <h3>Programas do Exercício</h3>
+            <div style="display:flex; gap:12px; margin-bottom:20px;">
+                <input type="text" class="form-control" id="new-program-name" placeholder="Nome do Programa (ex: PROEFE)">
+                <input type="text" class="form-control" id="new-program-desc" placeholder="Breve descrição do programa">
+                <button class="btn btn-primary" onclick="cadastrarPrograma()">Adicionar</button>
+            </div>
+            <div class="program-tag-list">
+                ${getActivePrograms().map(p => `
+                    <span class="program-tag">
+                        <strong>${escapeHtml(p.name)}</strong> - ${escapeHtml(p.desc)}
+                        ${p.id !== 'BASIC' ? `<button onclick="removerPrograma('${escapeHtml(p.id)}')">×</button>` : ''}
+                    </span>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+async function salvarCalendarioSME(e) {
+    e.preventDefault();
+    const cFechamento = document.getElementById('cfg-comp-fechamento').value;
+    const prorrogado = document.getElementById('cfg-prorrogado').value === 'true';
+    try {
+        await radarConfigurationService.saveCalendar({
+            closingCompetence: cFechamento,
+            bonusWindowExtended: prorrogado
+        });
+        activeCompetenciaKey = cFechamento;
+        renderSMEConfig();
+        alert('Parâmetros operacionais da SME atualizados com sucesso!');
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível atualizar os parâmetros operacionais.');
+    }
+}
+
+async function cadastrarPrograma() {
+    const name = document.getElementById('new-program-name').value.trim();
+    const desc = document.getElementById('new-program-desc').value.trim();
+    try {
+        await radarDirectoryService.saveProgram({ name, description: desc });
+        renderSMEConfig();
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível cadastrar o programa.');
+    }
+}
+
+async function removerPrograma(progId) {
+    try {
+        await radarDirectoryService.deactivateProgram({ programId: progId });
+        renderSMEConfig();
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível desativar o programa.');
+    }
+}
+
+function getCompMonthStatus(escolaId, compKey) {
+    const esc = escolas.find(e => e.id === escolaId);
+    if (!esc) return 'nao-lancado';
+
+    let hasVerifications = false;
+    if (verificacoes[escolaId]) {
+        hasVerifications = Object.keys(verificacoes[escolaId]).some(k => k.startsWith(compKey));
+    }
+
+    if (!hasVerifications && !isCompetenceInScope(esc.competenciaInicial, compKey)) {
+        return 'out-of-scope';
+    }
+
+    if (!hasVerifications && compKey > config.competenciaFechamento) {
+        return 'out-of-scope';
+    }
+
+    const programStatuses = esc.programasIds.map(progId => (
+        getProgramBonificationStatus(escolaId, compKey, progId)
+    ));
+
+    if (programStatuses.includes('inapta')) {
+        return 'inapta';
+    }
+
+    if (programStatuses.length > 0 && programStatuses.every(status => status === 'apta')) {
+        return 'apta';
+    }
+
+    if (programStatuses.some(status => ['apta', 'em-apuracao'].includes(status))) {
+        return 'em-andamento';
+    }
+
+    return 'nao-lancado';
+}
+
+// ==========================================
+// 14. PRONTUÁRIO OPERACIONAL DA ESCOLA
+// ==========================================
+
+function renderProntuario(escolaId) {
+    const container = document.getElementById('main-container');
+    const esc = escolas.find(e => e.id === escolaId);
+    if (!esc) {
+        container.innerHTML = `<div class="alert-empty">Escola não encontrada!</div>`;
+        return;
+    }
+    const accessProfile = getRadarAccessProfile();
+    const canViewTechnicalAnalysis = hasRadarCapability(
+        window.RadarAccessPolicy.CAPABILITIES.VIEW_TECHNICAL_ANALYSIS
+    );
+    const canUseVerificationActions = [
+        window.RadarAccessPolicy.CAPABILITIES.OPEN_PENDENCY,
+        window.RadarAccessPolicy.CAPABILITIES.REGISTER_CORRECTIVE_SUBMISSION,
+        window.RadarAccessPolicy.CAPABILITIES.REANALYZE_PENDENCY
+    ].some(hasRadarCapability);
+    
+    // Inicializa a competência visualizada como a competência ativa atual se não estiver já setada
+    if (!activeProntuarioCompetencia) {
+        activeProntuarioCompetencia = activeCompetenciaKey || '2026-05';
+    }
+
+    const ctrl = controladores.find(c => c.id === esc.controladorId);
+    const pAtivas = pendencias.filter(p => (
+        p.escolaId === esc.id
+        && window.RadarPendencias.isActivePendency(p)
+    ));
+    const process = esc.processoInventario || 'Não registrado';
+
+    container.innerHTML = `
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Unidade Escolar: ${escapeHtml(esc.denominação)} (${escapeHtml(esc.designação)})</h1>
+                <p>${accessProfile === 'sme'
+                    ? 'Consulta mensal das informações de bonificação da unidade escolar.'
+                    : 'Acompanhamento e Histórico Unificado da Unidade Escolar'}</p>
+            </div>
+            <div style="display:flex; gap:12px;">
+                ${accessProfile !== 'inventario' && accessProfile !== 'sme' ? `
+                    <button class="btn btn-secondary" onclick="openContatoModal('${escapeHtml(esc.id)}')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                        Registrar Contato
+                    </button>
+                    <button class="btn btn-secondary" onclick="openCobrancaModal('${escapeHtml(esc.id)}')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+                        Gerar Cobrança
+                    </button>
+                ` : ''}
+                ${accessProfile === 'assistente' || accessProfile === 'controlador' ? `
+                    <button class="btn btn-primary" onclick="openEscolaEditModal('${escapeHtml(esc.id)}')">Editar Dados</button>
+                ` : ''}
+            </div>
+        </div>
+
+        <div class="school-grid">
+            <!-- Sidebar da Escola -->
+            <div class="school-sidebar">
+                <div class="school-info-card">
+                    <div class="info-item">
+                        <div class="info-label">INEP</div>
+                        <div class="info-value">${escapeHtml(esc.inep)}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Designação</div>
+
+                        <div class="info-value">${escapeHtml(esc.designação)}</div>
+                    </div>
+
+                    <div class="info-item">
+
+                        <div class="info-label">SICI</div>
+
+                        <div class="info-value">${escapeHtml(esc.sici || 'Não informado')}</div>
+                    </div>
+
+                    <div class="info-item">
+
+                        <div class="info-label">CNPJ</div>
+
+                        <div class="info-value">${escapeHtml(esc.cnpj)}</div>
+                    </div>
+
+                    <div class="info-item">
+
+                        <div class="info-label">Diretor(a)</div>
+
+                        <div class="info-value">${escapeHtml(esc.diretor)}</div>
+                    </div>
+
+                    <div class="info-item">
+
+                        <div class="info-label">Telefone do Diretor(a)</div>
+
+                        <div class="info-value">${escapeHtml(esc.telefoneDiretor || 'Não informado')}</div>
+                    </div>
+
+                    <div class="info-item">
+
+                        <div class="info-label">Diretor(a) Adjunto(a)</div>
+
+                        <div class="info-value">${escapeHtml(esc.diretorAdjunto || 'Não informado')}</div>
+                    </div>
+
+                    <div class="info-item">
+
+                        <div class="info-label">Telefone do Adjunto(a)</div>
+
+                        <div class="info-value">${escapeHtml(esc.telefoneDiretorAdjunto || 'Não informado')}</div>
+                    </div>
+
+                    <div class="info-item">
+
+                        <div class="info-label">Telefone da Unidade</div>
+
+                        <div class="info-value">${escapeHtml(esc.telefone)}</div>
+                    </div>
+
+                    <div class="info-item">
+
+                        <div class="info-label">Celular Institucional</div>
+
+                        <div class="info-value">${escapeHtml(esc.telefoneCelularInstitucional || 'Não informado')}</div>
+                    </div>
+
+                    <div class="info-item">
+
+                        <div class="info-label">Coordenadoria / RA</div>
+                        <div class="info-value">${escapeHtml(esc.cre)} / ${escapeHtml(getRAFromDesignacao(esc.designação))}</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">E-mail Institucional</div>
+                        <div class="info-value">${escapeHtml(esc.email)}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Controlador Responsável</div>
+                        <div class="info-value">${escapeHtml(ctrl ? ctrl.name : 'Não designado')}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Processo Inventário (Exercício)</div>
+                        <div class="info-value">${escapeHtml(process)}</div>
+                    </div>
+                </div>
+
+                <div class="school-info-card" style="background-color:rgba(157, 125, 252, 0.03)">
+                    <div class="info-label" style="margin-bottom:8px;">Programas Vinculados</div>
+                    <div style="display:flex; flex-direction:column; gap:6px;">
+                        ${esc.programasIds.map(progId => {
+                            const p = programas.find(x => x.id === progId);
+                            return p ? `<span class="badge badge-info" style="justify-content:flex-start;">${escapeHtml(p.name)}</span>` : '';
+                        }).join('')}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Corpo Principal: Abas de Trabalho -->
+            <div>
+                <div class="tab-container">
+                    ${accessProfile === 'inventario' ? `
+                        <button class="tab-button active" data-tab="capital" onclick="switchSchoolTab(event, 'tab-capital')">Registro de Capital</button>
+                    ` : accessProfile === 'sme' ? `
+                        <button class="tab-button active" data-tab="verificacoes" onclick="switchSchoolTab(event, 'tab-verificacoes')">Competências e Bonificação</button>
+                    ` : `
+                        <button class="tab-button active" data-tab="verificacoes" onclick="switchSchoolTab(event, 'tab-verificacoes')">Competências e Análises</button>
+                        <button class="tab-button" data-tab="pendencias" onclick="switchSchoolTab(event, 'tab-pendencias')">Pendências Ativas (${pAtivas.length})</button>
+                        <button class="tab-button" data-tab="contatos" onclick="switchSchoolTab(event, 'tab-contatos')">Histórico de Contatos</button>
+                        <button class="tab-button" data-tab="capital" onclick="switchSchoolTab(event, 'tab-capital')">Registro de Capital</button>
+                        <button class="tab-button" data-tab="auditoria" onclick="switchSchoolTab(event, 'tab-auditoria')">Registros Internos</button>
+                    `}
+                </div>
+
+                ${accessProfile !== 'inventario' ? `
+                <!-- Aba 1: Verificações das Competências -->
+                <div class="tab-content-panel active" id="tab-verificacoes">
+                    <div class="panel-card">
+                        <div class="panel-header" style="border-bottom: none; padding-bottom: 0;">
+                            <h2>Acompanhamento Mensal - Exercício ${currentExercise}</h2>
+                            <p style="font-size:0.8rem; color:var(--text-muted)">${accessProfile === 'sme'
+                                ? 'Consulta somente leitura das informações de bonificação de cada item.'
+                                : 'Clique nos botões de bonificação ou selecione a análise técnica de cada item.'}</p>
+                        </div>
+                        
+                        <div class="comp-tabs-container" style="display: flex; gap: 8px; flex-wrap: wrap; padding: 0 24px 20px 24px; border-bottom: 1px solid var(--border-color); width: 100%;">
+                            ${COMPETENCIAS.map(c => {
+                                const status = getCompMonthStatus(esc.id, c.key);
+                                const isActive = c.key === activeProntuarioCompetencia;
+                                const monthStatusLabels = {
+                                    apta: 'Apta',
+                                    inapta: 'Inapta',
+                                    'em-andamento': 'Em apuração',
+                                    'nao-lancado': 'Não lançada',
+                                    'out-of-scope': 'Fora de escopo'
+                                };
+                                
+                                const statusBadgeClass = 'status-dot-' + status;
+                                const isDisabled = status === 'out-of-scope';
+                                const clickHandler = isDisabled ? '' : `onclick="changeProntuarioCompetencia('${escapeHtml(esc.id)}', '${escapeHtml(c.key)}')"`;
+                                
+                                // Obter nome abreviado do mês (Ex: Janeiro -> Jan)
+                                const monthAbbr = c.label.split(' ')[0].substring(0, 3);
+                                
+                                return `
+                                    <button class="comp-sub-tab ${isActive ? 'active' : ''} ${isDisabled ? 'disabled' : ''}" 
+                                            ${clickHandler} 
+                                            style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: ${isDisabled ? 'not-allowed' : 'pointer'};"
+                                            title="${c.label} - Bonificação: ${monthStatusLabels[status] || 'Não lançada'}">
+                                        <span class="status-dot ${statusBadgeClass}" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block;"></span>
+                                        <span>${monthAbbr}</span>
+                                    </button>
+                                `;
+                            }).join('')}
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Competência</th>
+                                        <th>Item de Verificação</th>
+                                        <th>Bonificação</th>
+                                        ${canViewTechnicalAnalysis ? '<th>Análise Técnica</th>' : ''}
+                                        ${canUseVerificationActions ? '<th>Ações</th>' : ''}
+                                    </tr>
+                                </thead>
+                                <tbody id="prontuario-verif-rows">
+                                    <!-- Injetado por Render Competência da Escola -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
+
+                ${accessProfile !== 'inventario' && accessProfile !== 'sme' ? `
+                <!-- Aba 2: Pendências -->
+                <div class="tab-content-panel" id="tab-pendencias">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <h2>Pendências Operacionais Ativas</h2>
+                            <button class="btn btn-secondary btn-sm" onclick="openNovaPendenciaModal('${escapeHtml(esc.id)}')">Criar Pendência Manual</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Mês Origem</th>
+                                        <th>Documento / Item</th>
+                                        <th>Defeito apontado</th>
+                                        <th>Quem deve agir?</th>
+                                        <th>Abertura</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${pAtivas.length === 0 ? `
+                                        <tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:32px;">Nenhuma pendência ativa nesta escola! Tudo regularizado.</td></tr>
+                                    ` : pAtivas.map(p => {
+                                        const pData = getFormattedPendencyData(p);
+                                        const submissionActionLabel = getCorrectiveSubmissionActionLabel(p);
+                                        const canReanalyse = canReanalysePendency(p);
+                                        return `
+                                            <tr
+                                                data-pendency-ref="${escapeHtml(encodePendencyIdReference(p.id))}"
+                                                data-pendency-status="${escapeHtml(p.status)}"
+                                                tabindex="-1"
+                                            >
+                                                <td><span style="font-weight:600; color:var(--primary);">${escapeHtml(pData.competencia)}</span></td>
+                                                <td>${escapeHtml(pData.item)}</td>
+                                                <td><span style="color:var(--danger)">${escapeHtml(p.motivo)}</span><br><small style="color:var(--text-muted)">${escapeHtml(p.observacao)}</small></td>
+                                                <td><span class="badge badge-info">${escapeHtml(p.responsavel)}</span></td>
+                                                <td>${new Date(p.dataAbertura).toLocaleDateString('pt-BR')}</td>
+                                                <td>
+                                                    ${canReanalyse || submissionActionLabel ? `
+                                                        <div class="pendency-actions">
+                                                            ${canReanalyse ? `
+                                                                <button
+                                                                    type="button"
+                                                                    class="btn btn-primary btn-sm"
+                                                                    data-action="reanalyse-pendency"
+                                                                    data-pendency-ref="${escapeHtml(encodePendencyIdReference(p.id))}"
+                                                                    onclick="abrirModalReanalisarPendencia(this)"
+                                                                >Reanalisar</button>
+                                                            ` : ''}
+                                                            ${submissionActionLabel ? `
+                                                                <button
+                                                                    type="button"
+                                                                    class="btn ${canReanalyse ? 'btn-secondary' : 'btn-primary'} btn-sm"
                                                                     data-action="register-corrective-submission"
                                                                     data-pendency-ref="${escapeHtml(encodePendencyIdReference(p.id))}"
                                                                     onclick="abrirModalRegistrarNovoEnvio(this)"
