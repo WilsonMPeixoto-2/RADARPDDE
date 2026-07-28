@@ -53,7 +53,7 @@ test.describe('gestão de exercícios e competências', () => {
     await page.locator('#exercise-select').selectOption('2026');
     expect(await page.evaluate(() => ({ currentExercise, activeCompetenciaKey }))).toEqual({
       currentExercise: '2026',
-      activeCompetenciaKey: '2026-01'
+      activeCompetenciaKey: '2026-12'
     });
 
     await page.locator('#exercise-select').selectOption('2027');
@@ -63,14 +63,20 @@ test.describe('gestão de exercícios e competências', () => {
     });
 
     await page.reload();
-    await page.waitForFunction(() => Boolean(window.RadarExerciseManagement));
+    await page.waitForFunction(() => Boolean(window.RadarCompetenceContext?.isInitialized?.()));
     await expect(page.locator('#exercise-select option')).toHaveCount(2);
+    await expect(page.locator('#exercise-select')).toHaveValue('2027');
+    await expect(page.locator('#global-competence-select')).toHaveValue('2027-04');
     expect(await page.evaluate(() => ({
       exercises: [...config.exercicios],
+      currentExercise,
+      activeCompetence: activeCompetenciaKey,
       competenceCount: COMPETENCIAS.filter(item => item.key.startsWith('2027-')).length,
       storedClosing: config.competenciaFechamento
     }))).toEqual({
       exercises: ['2026', '2027'],
+      currentExercise: '2027',
+      activeCompetence: '2027-04',
       competenceCount: 12,
       storedClosing: '2027-04'
     });
