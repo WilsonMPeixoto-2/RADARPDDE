@@ -1,11 +1,15 @@
 const { test, expect } = require('@playwright/test');
 
-async function documentRow(page, label) {
-  return page.locator('#prontuario-verif-rows tr').filter({ hasText: label }).first();
+function programRows(page, programId = 'BASIC') {
+  return page.locator(`#prontuario-verif-rows tr[data-program-id="${programId}"]`);
 }
 
-async function markDeliveredAndCorrect(page, label) {
-  const row = await documentRow(page, label);
+function documentRow(page, label, programId = 'BASIC') {
+  return programRows(page, programId).filter({ hasText: label }).first();
+}
+
+async function markDeliveredAndCorrect(page, label, programId = 'BASIC') {
+  const row = documentRow(page, label, programId);
   await row.getByRole('button', { name: 'Sim', exact: true }).click();
   await row.locator('select.select-analise').selectOption('Correto');
   await expect(row.locator('select.select-analise')).toHaveValue('Correto');
@@ -52,17 +56,19 @@ test('controlador lança agosto, consolida APTA e recupera o mesmo estado após 
   });
 
   expect(context.competencia).toBe('2026-08');
+  await expect(programRows(page, 'BASIC')).toHaveCount(6);
 
   await markDeliveredAndCorrect(page, 'Extrato Conta Corrente');
   await markDeliveredAndCorrect(page, 'Extrato Investimento');
   await markDeliveredAndCorrect(page, 'Declaração BB Ágil');
 
-  const fiscalRow = await documentRow(page, 'Notas Fiscais');
+  const fiscalRow = documentRow(page, 'Notas Fiscais');
   await fiscalRow.getByRole('button', { name: 'N/A', exact: true }).click();
   await expect(fiscalRow.locator('select.select-analise')).toHaveValue('Correto');
 
-  await page.getByRole('button', { name: 'Consolidar', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Consolidada', exact: true })).toBeVisible();
+  const basicProgramFirstRow = programRows(page, 'BASIC').first();
+  await basicProgramFirstRow.getByRole('button', { name: 'Consolidar', exact: true }).click();
+  await expect(basicProgramFirstRow.getByRole('button', { name: 'Consolidada', exact: true })).toBeVisible();
 
   const consolidated = await page.evaluate(({ escolaId, compProgKey }) => {
     const verification = verificacoes[escolaId][compProgKey];
@@ -101,7 +107,10 @@ test('controlador lança agosto, consolida APTA e recupera o mesmo estado após 
     switchView('prontuario', escolaId);
   }, context);
 
-  await expect(page.getByRole('button', { name: 'Consolidada', exact: true })).toBeVisible();
+  await expect(programRows(page, 'BASIC').first().getByRole('button', {
+    name: 'Consolidada',
+    exact: true
+  })).toBeVisible();
   expect(await page.evaluate(({ escolaId, compProgKey }) => ({
     result: verificacoes[escolaId][compProgKey].resultadoBonif,
     evaluation: radarVerificationService.getMonthlyEvaluation({
