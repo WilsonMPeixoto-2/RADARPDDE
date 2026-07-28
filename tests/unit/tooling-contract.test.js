@@ -21,11 +21,14 @@ test('mantém o renderer XLSX interno sem ExcelJS e fixa o toolchain aprovado', 
 
     assert.equal(packageJson.dependencies?.exceljs, undefined);
     assert.doesNotMatch(lockfile, /"node_modules\/exceljs"/);
+    assert.doesNotMatch(lockfile, /"node_modules\/@lhci\/cli"/);
     assert.equal(packageJson.devDependencies.prettier, '3.9.6');
     assert.equal(packageJson.devDependencies.knip, '6.29.0');
     assert.equal(packageJson.devDependencies['eslint-plugin-no-unsanitized'], '4.1.5');
     assert.equal(packageJson.devDependencies['eslint-plugin-playwright'], '2.10.5');
-    assert.equal(packageJson.devDependencies['@lhci/cli'], '0.15.1');
+    assert.equal(packageJson.devDependencies.lighthouse, '13.4.1');
+    assert.equal(packageJson.devDependencies['@lhci/cli'], undefined);
+    assert.equal(packageJson.overrides['brace-expansion@5.0.7'], '5.0.8');
 });
 
 test('mantém scripts e configurações graduais de segurança, dependências e desempenho', () => {
@@ -34,12 +37,13 @@ test('mantém scripts e configurações graduais de segurança, dependências e 
     assert.match(packageJson.scripts['test:readiness'], /lint:security/);
     assert.match(packageJson.scripts['test:readiness'], /lint:e2e/);
     assert.match(packageJson.scripts['analyze:unused'], /knip/);
-    assert.match(packageJson.scripts['audit:lighthouse'], /lhci autorun/);
+    assert.match(packageJson.scripts['audit:lighthouse'], /run-lighthouse-baseline\.mjs/);
 
     for (const relativePath of [
         'eslint.config.js',
         'knip.json',
         'lighthouserc.cjs',
+        'scripts/run-lighthouse-baseline.mjs',
         '.github/workflows/lighthouse-ci.yml'
     ]) {
         assert.equal(fs.existsSync(path.join(ROOT, relativePath)), true, `${relativePath} deve existir`);
@@ -64,4 +68,5 @@ test('mantém Knip e Lighthouse como auditorias informativas na adoção inicial
     assert.match(lighthouseWorkflow, /Executar baseline mobile/);
     assert.match(lighthouseWorkflow, /Executar baseline desktop/);
     assert.match(lighthouseWorkflow, /continue-on-error: true/);
+    assert.match(lighthouseWorkflow, /npm run start/);
 });
