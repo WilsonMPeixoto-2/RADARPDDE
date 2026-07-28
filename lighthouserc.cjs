@@ -8,13 +8,34 @@ module.exports = Object.freeze({
         'accessibility',
         'best-practices'
     ]),
-    thresholds: Object.freeze({
-        performance: 0.5,
-        accessibility: 0.85,
-        'best-practices': 0.8
-    }),
     profiles: Object.freeze({
-        mobile: Object.freeze({ args: Object.freeze([]) }),
-        desktop: Object.freeze({ args: Object.freeze(['--preset=desktop']) })
+        mobile: Object.freeze({
+            args: Object.freeze([]),
+            thresholds: Object.freeze({
+                performance: 0.5,
+                accessibility: 0.85,
+                'best-practices': 0.95
+            }),
+            metricBudgets: Object.freeze({
+                'first-contentful-paint': 6000,
+                'largest-contentful-paint': 15000,
+                'total-blocking-time': 500,
+                'cumulative-layout-shift': 0.1
+            })
+        }),
+        desktop: Object.freeze({
+            args: Object.freeze(['--preset=desktop']),
+            thresholds: Object.freeze({
+                performance: 0.75,
+                accessibility: 0.95,
+                'best-practices': 0.95
+            }),
+            metricBudgets: Object.freeze({
+                'first-contentful-paint': 2000,
+                'largest-contentful-paint': 3500,
+                'total-blocking-time': 250,
+                'cumulative-layout-shift': 0.1
+            })
+        })
     })
 });
