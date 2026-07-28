@@ -19,6 +19,16 @@
         return value == null ? '' : String(value).trim();
     }
 
+    function competenceExercise(value) {
+        const match = /^(\d{4})-(0[1-9]|1[0-2])$/.exec(text(value));
+        return match ? match[1] : '';
+    }
+
+    function competenceExists(value) {
+        const key = text(value);
+        return COMPETENCIAS.some(item => text(item?.key || item?.id) === key);
+    }
+
     function runtimeReady() {
         return Boolean(
             root.RadarCompetenceContext
@@ -33,13 +43,25 @@
     }
 
     function readRuntimeState() {
+        const closingCompetence = text(config.competenciaFechamento);
+        const initialCompetence = typeof activeCompetenciaKey !== 'undefined'
+            ? text(activeCompetenciaKey)
+            : '';
+        const storedCompetence = text(
+            root.localStorage?.getItem(root.RadarCompetenceContext.STORAGE_KEY)
+        );
+        const persistedCompetence = competenceExists(storedCompetence) ? storedCompetence : '';
+        const resolvedExercise = competenceExercise(persistedCompetence)
+            || competenceExercise(initialCompetence)
+            || competenceExercise(closingCompetence)
+            || text(currentExercise)
+            || text(config.exercicios?.[0]);
+
         return {
             competences: COMPETENCIAS,
-            currentExercise: text(currentExercise) || text(config.exercicios?.[0]),
-            closingCompetence: text(config.competenciaFechamento),
-            initialCompetence: typeof activeCompetenciaKey !== 'undefined'
-                ? text(activeCompetenciaKey)
-                : ''
+            currentExercise: resolvedExercise,
+            closingCompetence,
+            initialCompetence
         };
     }
 
