@@ -1,0 +1,76 @@
+name: Diagnóstico de artefatos Supabase
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/tooling-supabase-diagnostic.yml'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'scripts/build-supabase-client.mjs'
+      - 'scripts/build-ajv.mjs'
+      - 'supabase/**'
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      SUPABASE_TELEMETRY_DISABLED: '1'
+
+    steps:
+      - name: Obter código
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Gerar bundle Supabase
+        id: bundle-supabase
+        continue-on-error: true
+        run: npm run build:supabase-client
+
+      - name: Gerar bundle Ajv
+        id: bundle-ajv
+        continue-on-error: true
+        run: npm run build:ajv
+
+      - name: Iniciar Supabase local
+        id: start-supabase
+        continue-on-error: true
+        run: npm run supabase:start
+
+      - name: Recriar banco local
+        id: reset-supabase
+        if: steps.start-supabase.outcome == 'success'
+        continue-on-error: true
+        run: npm run supabase:reset
+
+      - name: Gerar tipos do banco
+        id: generate-types
+        if: steps.reset-supabase.outcome == 'success'
+        continue-on-error: true
+        run: npm run supabase:gen:types
+
+      - name: Resumir diagnóstico
+        if: always()
+        run: |
+          echo "### Diagnóstico de artefatos" >> "${GITHUB_STEP_SUMMARY}"
+          echo "- Bundle Supabase: ${{ steps.bundle-supabase.outcome }}" >> "${GITHUB_STEP_SUMMARY}"
+          echo "- Bundle Ajv: ${{ steps.bundle-ajv.outcome }}" >> "${GITHUB_STEP_SUMMARY}"
+          echo "- Supabase start: ${{ steps.start-supabase.outcome }}" >> "${GITHUB_STEP_SUMMARY}"
+          echo "- Supabase reset: ${{ steps.reset-supabase.outcome }}" >> "${GITHUB_STEP_SUMMARY}"
+          echo "- Tipos: ${{ steps.generate-types.outcome }}" >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Encerrar Supabase local
+        if: always()
+        run: npm run supabase:stop || true
