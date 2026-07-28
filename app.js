@@ -4211,6 +4211,24 @@ let currentProfile = 'controlador'; // controlador, assistente, sme, inventario
 let currentExercise = '2026';
 let currentView = 'dashboard'; // dashboard, escolas, competencias, pendencias, inventario, auditoria, sme-config
 
+function getRadarAccessProfile() {
+    return window.RadarAccessPolicy.resolveEffectiveProfile(
+        currentProfile,
+        window.RadarAuthContext?.authorization?.role
+    );
+}
+
+function hasRadarCapability(capability) {
+    return Boolean(window.RadarAccessPolicy?.hasCapability(
+        getRadarAccessProfile(),
+        capability
+    ));
+}
+
+function getAuthenticatedUserId() {
+    return String(window.RadarAuthContext?.user?.id || '').trim();
+}
+
 let activeSchoolId = null; // ID da escola em exibição no prontuário
 let activePendencyDetailId = null; // Pendência destacada na navegação mínima de detalhe
 
@@ -4571,6 +4589,7 @@ function appendRadarLog(acao, detalhes) {
     const user = getCurrentUser();
     const newLog = {
         id: createPendencyClientId('log'),
+        actorUserId: getAuthenticatedUserId() || null,
         usuario: user.name,
         perfil: user.role,
         dataHora: new Date().toISOString(),
@@ -4607,6 +4626,7 @@ function initializeRadarApplicationServices() {
     const transactionalDependencies = {
         ...dependencies,
         getCurrentUser,
+        getCurrentProfile: getRadarAccessProfile,
         createId: createPendencyClientId,
         now: () => new Date().toISOString()
     };
@@ -4727,6 +4747,7 @@ function registerLog(acao, detalhes) {
 function getAlerts() {
     const alerts = [];
     const now = new Date();
+    const accessProfile = getRadarAccessProfile();
     
     // Alerta 1: Pendências ativas há mais de 10 dias
     pendencias.forEach(p => {
@@ -4788,8 +4809,8 @@ function getAlerts() {
     });
 
     // Alerta 3: Se perfil é controlador/assistente, mostrar análises de programa sem bonificação preenchida
-    if (currentProfile === 'controlador' || currentProfile === 'assistente') {
-        const targetControlador = currentProfile === 'controlador' ? getDefaultControladorId() : null;
+    if (accessProfile === 'controlador' || accessProfile === 'assistente') {
+        const targetControlador = accessProfile === 'controlador' ? getDefaultControladorId() : null;
 
         escolas.forEach(esc => {
             if (!targetControlador || esc.controladorId === targetControlador) {
@@ -5139,7 +5160,7 @@ function ensureProgramVerification(escolaId, compProgKey) {
 }
 
 function reopenConsolidationForAssistant(escolaId, compProgKey, verification, hasChanged) {
-    if (!hasChanged || currentProfile !== 'assistente' || !verification.resultadoBonif) {
+    if (!hasChanged || getRadarAccessProfile() !== 'assistente' || !verification.resultadoBonif) {
         return;
     }
 
@@ -5164,7 +5185,7 @@ function hasBonificationChanged(before, after) {
 function blockConsolidatedFiscalNoteMutation(escolaId, compProgKey) {
     const verification = verificacoes[escolaId]?.[compProgKey];
 
-    if (!verification?.resultadoBonif || currentProfile === 'assistente') {
+    if (!verification?.resultadoBonif || getRadarAccessProfile() === 'assistente') {
         return false;
     }
 
@@ -5580,14 +5601,15 @@ function handleGlobalSearch(e) {
 
 function renderDashboard() {
     const container = document.getElementById('main-container');
+    const accessProfile = getRadarAccessProfile();
     
-    if (currentProfile === 'controlador') {
+    if (accessProfile === 'controlador') {
         renderDashboardControlador(container);
-    } else if (currentProfile === 'assistente') {
+    } else if (accessProfile === 'assistente') {
         renderDashboardAssistente(container);
-    } else if (currentProfile === 'sme') {
+    } else if (accessProfile === 'sme') {
         renderDashboardSME(container);
-    } else if (currentProfile === 'inventario') {
+    } else if (accessProfile === 'inventario') {
         renderDashboardInventario(container);
     }
 }
@@ -7077,7 +7099,7 @@ async function salvarInventariacao(e) {
             responsible: resp,
             responsibleId: inventoryMember?.id || null,
             notes: obs,
-            profile: currentProfile
+            profile: getRadarAccessProfile()
         });
         rebuildOperationalIndexes();
         closeModal('modal-inventario-confirm');
@@ -7261,7 +7283,7 @@ function renderEscolas() {
 
             </div>
 
-            ${currentProfile === 'assistente' ? `
+            ${getRadarAccessProfile() === 'assistente' ? `
 
                 <button class="btn btn-primary" onclick="openEscolaEditModal(null)">
 
@@ -7570,7 +7592,7 @@ function renderEscolas() {
                                         <div class="school-actions-stack">
 
                                             <button class="btn btn-secondary btn-sm school-action-view" onclick="switchView('prontuario', '${escapeHtml(e.id)}')">Ver Unidade</button>
-                                            ${currentProfile === 'assistente' || currentProfile === 'controlador' ? `
+                                            ${['assistente', 'controlador'].includes(getRadarAccessProfile()) ? `
 
                                                 <button class="btn btn-secondary btn-sm school-action-edit" onclick="openEscolaEditModal('${escapeHtml(e.id)}')">Editar</button>
                                             ` : ''}
@@ -7607,6 +7629,12 @@ function renderEscolas() {
 
 function renderCompetencias() {
     const container = document.getElementById('main-container');
+    const canViewTechnicalAnalysis = hasRadarCapability(
+        window.RadarAccessPolicy.CAPABILITIES.VIEW_TECHNICAL_ANALYSIS
+    );
+    const canViewCompetencePendencies = hasRadarCapability(
+        window.RadarAccessPolicy.CAPABILITIES.VIEW_COMPETENCE_PENDENCIES
+    );
 
     container.innerHTML = `
         <div class="page-header">
@@ -7635,9 +7663,11 @@ function renderCompetencias() {
                             <th>Unidade Escolar</th>
                             <th>Controlador</th>
                             <th>Bonificação status</th>
-                            <th>Análise Técnica</th>
-                            <th>Pendências abertas</th>
-                            <th>Ações</th>
+                            ${canViewTechnicalAnalysis ? '<th>Análise Técnica</th>' : ''}
+                            ${canViewCompetencePendencies ? `
+                                <th>Pendências abertas</th>
+                                <th>Ações</th>
+                            ` : ''}
                         </tr>
                     </thead>
                     <tbody>
@@ -7696,13 +7726,15 @@ function renderCompetencias() {
                                     </td>
                                     <td>${escapeHtml(ctrl ? ctrl.name : 'N/A')}</td>
                                     <td>${bonifStatusHTML}</td>
-                                    <td>${analiseStatusHTML}</td>
-                                    <td>
-                                        ${pendentesCount > 0 ? `<span class="badge badge-danger">${pendentesCount} Abertas</span>` : `<span class="badge badge-gray">Nenhuma</span>`}
-                                    </td>
-                                    <td>
-                                        <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${escapeHtml(e.id)}')">Ver Unidade</button>
-                                    </td>
+                                    ${canViewTechnicalAnalysis ? `<td>${analiseStatusHTML}</td>` : ''}
+                                    ${canViewCompetencePendencies ? `
+                                        <td>
+                                            ${pendentesCount > 0 ? `<span class="badge badge-danger">${pendentesCount} Abertas</span>` : `<span class="badge badge-gray">Nenhuma</span>`}
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${escapeHtml(e.id)}')">Ver Unidade</button>
+                                        </td>
+                                    ` : ''}
                                 </tr>
                             `;
                         }).join('')}
@@ -7711,17 +7743,19 @@ function renderCompetencias() {
             </div>
         </div>
 
-        <div class="panel-card" style="margin-top:24px;">
-            <div class="panel-header">
-                <h2>Passivo de Regularização (Pendências de Competências Anteriores)</h2>
+        ${canViewCompetencePendencies ? `
+            <div class="panel-card" style="margin-top:24px;">
+                <div class="panel-header">
+                    <h2>Passivo de Regularização (Pendências de Competências Anteriores)</h2>
+                </div>
+                <div id="passivo-competencias-list">
+                    <!-- Injetar passivo de meses anteriores -->
+                </div>
             </div>
-            <div id="passivo-competencias-list">
-                <!-- Injetar passivo de meses anteriores -->
-            </div>
-        </div>
+        ` : ''}
     `;
 
-    renderPassivoAnterior();
+    if (canViewCompetencePendencies) renderPassivoAnterior();
 }
 
 function changeCompetenciaView(val) {
@@ -7732,6 +7766,7 @@ function changeCompetenciaView(val) {
 
 function renderPassivoAnterior() {
     const listEl = document.getElementById('passivo-competencias-list');
+    if (!listEl) return;
     
     // Filtrar pendências abertas que sejam anteriores à competência selecionada ativa
     const passivo = pendencias.filter(p => p.status === 'Aberta' && p.competencia < activeCompetenciaKey);
@@ -7817,6 +7852,9 @@ function getFormattedPendencyData(p) {
 }
 
 function getCorrectiveSubmissionActionLabel(pendency) {
+    if (!hasRadarCapability(
+        window.RadarAccessPolicy.CAPABILITIES.REGISTER_CORRECTIVE_SUBMISSION
+    )) return '';
     if (!window.RadarPendencias.isDocumentaryPendency(pendency)) return '';
     if (pendency.status === 'Aberta') return 'Registrar novo envio';
     if (pendency.status === 'Aguardando reanálise') {
@@ -7826,7 +7864,7 @@ function getCorrectiveSubmissionActionLabel(pendency) {
 }
 
 function canReanalysePendency(pendency) {
-    return currentProfile === 'controlador'
+    return hasRadarCapability(window.RadarAccessPolicy.CAPABILITIES.REANALYZE_PENDENCY)
         && pendency
         && pendency.status === 'Aguardando reanálise'
         && window.RadarPendencias.isDocumentaryPendency(pendency);
@@ -7906,13 +7944,14 @@ function findPendencyElement(selector, pendencyId) {
 
 function renderPendencias() {
     const container = document.getElementById('main-container');
+    const accessProfile = getRadarAccessProfile();
     let ativas = pendencias.filter(p => window.RadarPendencias.isActivePendency(p));
     let resolvidas = pendencias.filter(p => p.status === 'Resolvida');
     const selectedPendency = pendencias.find(p => p.id === activePendencyDetailId);
     const showResolvedTab = selectedPendency && selectedPendency.status === 'Resolvida';
 
     // Se perfil é controlador, ordenar as dele primeiro (e depois todas as outras)
-    if (currentProfile === 'controlador') {
+    if (accessProfile === 'controlador') {
         const activeCtrlId = getDefaultControladorId();
 
         const getSortWeight = (p) => {
@@ -7987,7 +8026,7 @@ function renderPendencias() {
 
                                 const ctrlName = ctrl ? ctrl.name : 'Não designado';
                                 const desig = esc ? esc.designação : '';
-                                const isMine = (currentProfile === 'controlador' && esc && esc.controladorId === getDefaultControladorId());
+                                const isMine = (accessProfile === 'controlador' && esc && esc.controladorId === getDefaultControladorId());
                                 const isSelected = p.id === activePendencyDetailId;
                                 const submissionActionLabel = getCorrectiveSubmissionActionLabel(p);
                                 const canReanalyse = canReanalysePendency(p);
@@ -8026,7 +8065,7 @@ function renderPendencias() {
                                                         onclick="abrirModalReanalisarPendencia(this)"
                                                     >Reanalisar</button>
                                                 ` : ''}
-                                                ${submissionActionLabel && currentProfile !== 'inventario' ? `
+                                                ${submissionActionLabel ? `
                                                     <button
                                                         class="btn ${canReanalyse ? 'btn-secondary' : 'btn-primary'} btn-sm"
                                                         data-action="register-corrective-submission"
@@ -8085,7 +8124,7 @@ function renderPendencias() {
 
                                 const ctrlName = ctrl ? ctrl.name : 'Não designado';
                                 const desig = esc ? esc.designação : '';
-                                const isMine = (currentProfile === 'controlador' && esc && esc.controladorId === getDefaultControladorId());
+                                const isMine = (accessProfile === 'controlador' && esc && esc.controladorId === getDefaultControladorId());
                                 const isSelected = p.id === activePendencyDetailId;
 
                                 return `
@@ -8391,6 +8430,10 @@ function focusPendencyActionAfterRender(pendencyId, sourceContext, actionName) {
 }
 
 function abrirModalRegistrarNovoEnvio(pendencySource) {
+    if (!hasRadarCapability(
+        window.RadarAccessPolicy.CAPABILITIES.REGISTER_CORRECTIVE_SUBMISSION
+    )) return false;
+
     let pendencyId;
     try {
         pendencyId = resolvePendencyIdReference(pendencySource);
@@ -8448,6 +8491,12 @@ function abrirModalRegistrarNovoEnvio(pendencySource) {
 
 async function confirmarRegistrarNovoEnvio(event) {
     event.preventDefault();
+    if (!hasRadarCapability(
+        window.RadarAccessPolicy.CAPABILITIES.REGISTER_CORRECTIVE_SUBMISSION
+    )) {
+        showRegistrarNovoEnvioError('Seu perfil possui acesso somente para consulta de pendências.');
+        return false;
+    }
     const form = document.getElementById('form-registrar-envio');
     const serializedPendencyId = document.getElementById('envio-pendencia-id').value;
     const availabilityDateInput = document.getElementById('envio-data-disponibilizacao');
@@ -8753,7 +8802,9 @@ function handleReanalysisKeydown(event) {
 }
 
 function abrirModalReanalisarPendencia(pendencySource) {
-    if (currentProfile !== 'controlador') return false;
+    if (!hasRadarCapability(
+        window.RadarAccessPolicy.CAPABILITIES.REANALYZE_PENDENCY
+    )) return false;
 
     let pendencyId;
     try {
@@ -8800,7 +8851,9 @@ async function confirmarReanalisePendencia(event) {
         form.reportValidity();
         return false;
     }
-    if (currentProfile !== 'controlador') {
+    if (!hasRadarCapability(
+        window.RadarAccessPolicy.CAPABILITIES.REANALYZE_PENDENCY
+    )) {
         showReanalysisError('Reanálise permitida somente ao perfil Controlador.');
         return false;
     }
@@ -8929,12 +8982,24 @@ function renderInventarioView() {
 
 function renderAuditoria() {
     const container = document.getElementById('main-container');
+    const visibleLogs = window.RadarAccessPolicy.filterAdministrativeLogs(
+        logs,
+        getRadarAccessProfile(),
+        getAuthenticatedUserId()
+    );
+    const ownLogsOnly = hasRadarCapability(
+        window.RadarAccessPolicy.CAPABILITIES.VIEW_OWN_ADMINISTRATIVE_LOGS
+    ) && !hasRadarCapability(
+        window.RadarAccessPolicy.CAPABILITIES.VIEW_ALL_ADMINISTRATIVE_LOGS
+    );
 
     container.innerHTML = `
         <div class="page-header">
             <div class="page-title">
-                <h1>Log de Auditoria e Rastreabilidade</h1>
-                <p>Histórico completo de ações de gravação e alteração realizadas na plataforma.</p>
+                <h1>Registros Internos</h1>
+                <p>${ownLogsOnly
+                    ? 'Ações registradas pelo seu próprio login autenticado.'
+                    : 'Histórico completo de ações de gravação e alteração realizadas na plataforma.'}</p>
             </div>
         </div>
 
@@ -8951,7 +9016,7 @@ function renderAuditoria() {
                         </tr>
                     </thead>
                     <tbody>
-                        ${logs.map(l => `
+                        ${visibleLogs.length ? visibleLogs.map(l => `
                             <tr>
                                 <td><strong>${new Date(l.dataHora).toLocaleString('pt-BR')}</strong></td>
                                 <td>${escapeHtml(l.usuario)}</td>
@@ -8959,7 +9024,13 @@ function renderAuditoria() {
                                 <td><strong>${escapeHtml(l.acao)}</strong></td>
                                 <td>${escapeHtml(l.detalhes)}</td>
                             </tr>
-                        `).join('')}
+                        `).join('') : `
+                            <tr>
+                                <td colspan="5" style="text-align:center; color:var(--text-muted); padding:32px;">
+                                    Nenhum registro interno disponível para este login.
+                                </td>
+                            </tr>
+                        `}
                     </tbody>
                 </table>
             </div>
@@ -9136,6 +9207,15 @@ function renderProntuario(escolaId) {
         container.innerHTML = `<div class="alert-empty">Escola não encontrada!</div>`;
         return;
     }
+    const accessProfile = getRadarAccessProfile();
+    const canViewTechnicalAnalysis = hasRadarCapability(
+        window.RadarAccessPolicy.CAPABILITIES.VIEW_TECHNICAL_ANALYSIS
+    );
+    const canUseVerificationActions = [
+        window.RadarAccessPolicy.CAPABILITIES.OPEN_PENDENCY,
+        window.RadarAccessPolicy.CAPABILITIES.REGISTER_CORRECTIVE_SUBMISSION,
+        window.RadarAccessPolicy.CAPABILITIES.REANALYZE_PENDENCY
+    ].some(hasRadarCapability);
     
     // Inicializa a competência visualizada como a competência ativa atual se não estiver já setada
     if (!activeProntuarioCompetencia) {
@@ -9153,10 +9233,12 @@ function renderProntuario(escolaId) {
         <div class="page-header">
             <div class="page-title">
                 <h1>Unidade Escolar: ${escapeHtml(esc.denominação)} (${escapeHtml(esc.designação)})</h1>
-                <p>Acompanhamento e Histórico Unificado da Unidade Escolar</p>
+                <p>${accessProfile === 'sme'
+                    ? 'Consulta mensal das informações de bonificação da unidade escolar.'
+                    : 'Acompanhamento e Histórico Unificado da Unidade Escolar'}</p>
             </div>
             <div style="display:flex; gap:12px;">
-                ${currentProfile !== 'inventario' && currentProfile !== 'sme' ? `
+                ${accessProfile !== 'inventario' && accessProfile !== 'sme' ? `
                     <button class="btn btn-secondary" onclick="openContatoModal('${escapeHtml(esc.id)}')">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                         Registrar Contato
@@ -9166,7 +9248,7 @@ function renderProntuario(escolaId) {
                         Gerar Cobrança
                     </button>
                 ` : ''}
-                ${currentProfile === 'assistente' || currentProfile === 'controlador' ? `
+                ${accessProfile === 'assistente' || accessProfile === 'controlador' ? `
                     <button class="btn btn-primary" onclick="openEscolaEditModal('${escapeHtml(esc.id)}')">Editar Dados</button>
                 ` : ''}
             </div>
@@ -9276,10 +9358,10 @@ function renderProntuario(escolaId) {
             <!-- Corpo Principal: Abas de Trabalho -->
             <div>
                 <div class="tab-container">
-                    ${currentProfile === 'inventario' ? `
+                    ${accessProfile === 'inventario' ? `
                         <button class="tab-button active" data-tab="capital" onclick="switchSchoolTab(event, 'tab-capital')">Registro de Capital</button>
-                    ` : currentProfile === 'sme' ? `
-                        <button class="tab-button active" data-tab="verificacoes" onclick="switchSchoolTab(event, 'tab-verificacoes')">Competências e Análises</button>
+                    ` : accessProfile === 'sme' ? `
+                        <button class="tab-button active" data-tab="verificacoes" onclick="switchSchoolTab(event, 'tab-verificacoes')">Competências e Bonificação</button>
                     ` : `
                         <button class="tab-button active" data-tab="verificacoes" onclick="switchSchoolTab(event, 'tab-verificacoes')">Competências e Análises</button>
                         <button class="tab-button" data-tab="pendencias" onclick="switchSchoolTab(event, 'tab-pendencias')">Pendências Ativas (${pAtivas.length})</button>
@@ -9289,13 +9371,15 @@ function renderProntuario(escolaId) {
                     `}
                 </div>
 
-                ${currentProfile !== 'inventario' ? `
+                ${accessProfile !== 'inventario' ? `
                 <!-- Aba 1: Verificações das Competências -->
                 <div class="tab-content-panel active" id="tab-verificacoes">
                     <div class="panel-card">
                         <div class="panel-header" style="border-bottom: none; padding-bottom: 0;">
                             <h2>Acompanhamento Mensal - Exercício ${currentExercise}</h2>
-                            <p style="font-size:0.8rem; color:var(--text-muted)">Clique nos botões de bonificação ou selecione a análise técnica de cada item.</p>
+                            <p style="font-size:0.8rem; color:var(--text-muted)">${accessProfile === 'sme'
+                                ? 'Consulta somente leitura das informações de bonificação de cada item.'
+                                : 'Clique nos botões de bonificação ou selecione a análise técnica de cada item.'}</p>
                         </div>
                         
                         <div class="comp-tabs-container" style="display: flex; gap: 8px; flex-wrap: wrap; padding: 0 24px 20px 24px; border-bottom: 1px solid var(--border-color); width: 100%;">
@@ -9334,9 +9418,9 @@ function renderProntuario(escolaId) {
                                     <tr>
                                         <th>Competência</th>
                                         <th>Item de Verificação</th>
-                                        <th>Entrega Drive (Bonif)</th>
-                                        <th>Análise Técnica</th>
-                                        <th>Ações</th>
+                                        <th>Bonificação</th>
+                                        ${canViewTechnicalAnalysis ? '<th>Análise Técnica</th>' : ''}
+                                        ${canUseVerificationActions ? '<th>Ações</th>' : ''}
                                     </tr>
                                 </thead>
                                 <tbody id="prontuario-verif-rows">
@@ -9348,7 +9432,7 @@ function renderProntuario(escolaId) {
                 </div>
                 ` : ''}
 
-                ${currentProfile !== 'inventario' && currentProfile !== 'sme' ? `
+                ${accessProfile !== 'inventario' && accessProfile !== 'sme' ? `
                 <!-- Aba 2: Pendências -->
                 <div class="tab-content-panel" id="tab-pendencias">
                     <div class="panel-card">
@@ -9442,16 +9526,16 @@ function renderProntuario(escolaId) {
                 </div>
                 ` : ''}
 
-                ${currentProfile !== 'sme' ? `
+                ${accessProfile !== 'sme' ? `
                 <!-- Aba 4: Capital -->
-                <div class="tab-content-panel ${currentProfile === 'inventario' ? 'active' : ''}" id="tab-capital">
+                <div class="tab-content-panel ${accessProfile === 'inventario' ? 'active' : ''}" id="tab-capital">
                         <div class="panel-card">
                         <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 10px;">
                             <div>
                                 <h2>Aquisição de Bens Permanentes (Natureza de Capital)</h2>
                                 <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Processo de Inventário 2026: <strong>${esc.processoInventario ? escapeHtml(esc.processoInventario) : '<span style="color:var(--danger)">Não cadastrado na escola</span>'}</strong></div>
                             </div>
-                            ${currentProfile !== 'inventario' ? `
+                            ${accessProfile !== 'inventario' ? `
                                 <button class="btn btn-secondary btn-sm" onclick="openNovoCapitalModal('${escapeHtml(esc.id)}')">Registrar Nova Compra</button>
                             ` : ''}
                         </div>
@@ -9478,7 +9562,7 @@ function renderProntuario(escolaId) {
                                                 <td>${escapeHtml(formatCompetenciaText(b.competencia))}</td>
                                                 <td>R$ ${b.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                                                 <td>
-                                                    <input type="text" class="form-control" style="width:110px; font-size:0.75rem; padding:4px;" value="${escapeHtml(b.notaFiscal)}" onchange="updateCapitalDoc('${escapeHtml(b.id)}', 'notaFiscal', this.value)" placeholder="NF-XXXX" ${currentProfile === 'inventario' || currentProfile === 'sme' ? 'disabled' : ''}>
+                                                    <input type="text" class="form-control" style="width:110px; font-size:0.75rem; padding:4px;" value="${escapeHtml(b.notaFiscal)}" onchange="updateCapitalDoc('${escapeHtml(b.id)}', 'notaFiscal', this.value)" placeholder="NF-XXXX" ${accessProfile === 'inventario' || accessProfile === 'sme' ? 'disabled' : ''}>
                                                 </td>
                                                 <td>
                                                     <span class="badge ${statusCls}">${escapeHtml(b.status)}</span>
@@ -9491,8 +9575,8 @@ function renderProntuario(escolaId) {
                                                 </td>
                                                 <td>
                                                     ${b.status === 'Não encaminhada' ? `
-                                                        <button class="btn btn-primary btn-sm" onclick="encaminharCapital('${escapeHtml(b.id)}')" ${currentProfile === 'inventario' || currentProfile === 'sme' ? 'disabled' : ''}>Encaminhar</button>
-                                                    ` : (b.status === 'Encaminhada' && currentProfile === 'inventario') ? `
+                                                        <button class="btn btn-primary btn-sm" onclick="encaminharCapital('${escapeHtml(b.id)}')" ${accessProfile === 'inventario' || accessProfile === 'sme' ? 'disabled' : ''}>Encaminhar</button>
+                                                    ` : (b.status === 'Encaminhada' && accessProfile === 'inventario') ? `
                                                         <button class="btn btn-primary btn-sm" onclick="inventariarBem('${escapeHtml(b.id)}')">Inventariar</button>
                                                     ` : `<span style="font-size:0.75rem; color:var(--text-muted)">${b.status === 'Encaminhada' ? 'Encaminhado' : 'Inventariado'}</span>`}
                                                 </td>
@@ -9506,7 +9590,7 @@ function renderProntuario(escolaId) {
                 </div>
                 ` : ''}
 
-                ${currentProfile !== 'inventario' && currentProfile !== 'sme' ? `
+                ${accessProfile !== 'inventario' && accessProfile !== 'sme' ? `
                 <!-- Aba 5: Auditoria Local -->
                 <div class="tab-content-panel" id="tab-auditoria">
                     <div class="panel-card">
@@ -9586,6 +9670,25 @@ function switchSchoolTab(event, tabId) {
 function renderProntuarioVerificacoes(esc) {
     const container = document.getElementById('prontuario-verif-rows');
     if (!container) return;
+    const accessProfile = getRadarAccessProfile();
+    const canViewTechnicalAnalysis = hasRadarCapability(
+        window.RadarAccessPolicy.CAPABILITIES.VIEW_TECHNICAL_ANALYSIS
+    );
+    const canOpenPendency = hasRadarCapability(
+        window.RadarAccessPolicy.CAPABILITIES.OPEN_PENDENCY
+    );
+    const canRegisterCorrectiveSubmission = hasRadarCapability(
+        window.RadarAccessPolicy.CAPABILITIES.REGISTER_CORRECTIVE_SUBMISSION
+    );
+    const canReanalyzePendency = hasRadarCapability(
+        window.RadarAccessPolicy.CAPABILITIES.REANALYZE_PENDENCY
+    );
+    const canUseVerificationActions = canOpenPendency
+        || canRegisterCorrectiveSubmission
+        || canReanalyzePendency;
+    const visibleColumnCount = 3
+        + (canViewTechnicalAnalysis ? 1 : 0)
+        + (canUseVerificationActions ? 1 : 0);
     const documentaryPendencies = pendencias.filter(pendency => (
         window.RadarPendencias.isDocumentaryPendency(pendency)
     ));
@@ -9621,7 +9724,7 @@ function renderProntuarioVerificacoes(esc) {
         if (!inScope) {
             rowsHTML += `
                 <tr style="opacity: 0.6; background-color: rgba(255,255,255,0.01);">
-                    <td colspan="5" style="text-align:center; color:var(--text-muted); padding:32px;">Fora do escopo de monitoramento (início em ${COMPETENCIAS.find(cm => cm.key === esc.competenciaInicial)?.label || esc.competenciaInicial})</td>
+                    <td colspan="${visibleColumnCount}" style="text-align:center; color:var(--text-muted); padding:32px;">Fora do escopo de monitoramento (início em ${COMPETENCIAS.find(cm => cm.key === esc.competenciaInicial)?.label || esc.competenciaInicial})</td>
                 </tr>
             `;
         } else {
@@ -9643,10 +9746,12 @@ function renderProntuarioVerificacoes(esc) {
                             <span>Bonificação</span>
                             <span class="badge ${bonusMeta.badgeClass}" data-status-dimension="bonificacao">${bonusMeta.label}</span>
                         </div>
-                        <div>
-                            <span>Análise técnica</span>
-                            <span class="badge ${technicalMeta.badgeClass}" data-status-dimension="analise">${technicalMeta.label}</span>
-                        </div>
+                        ${canViewTechnicalAnalysis ? `
+                            <div>
+                                <span>Análise técnica</span>
+                                <span class="badge ${technicalMeta.badgeClass}" data-status-dimension="analise">${technicalMeta.label}</span>
+                            </div>
+                        ` : ''}
                     </div>
                 `;
 
@@ -9654,9 +9759,9 @@ function renderProntuarioVerificacoes(esc) {
                 docItems.forEach((doc, idx) => {
                     const bonifValue = v.bonificacao[doc.key] || '';
                     const analiseValue = v.analise[doc.key] || 'Não analisado';
-                    const isBonifLocked = (v.resultadoBonif && currentProfile !== 'assistente')
-                        || currentProfile === 'inventario'
-                        || currentProfile === 'sme';
+                    const isBonifLocked = (v.resultadoBonif && accessProfile !== 'assistente')
+                        || accessProfile === 'inventario'
+                        || accessProfile === 'sme';
                     
                     const pendencyContext = window.RadarFluxoOperacional.buildPendencyContext({
                         compProgKey,
@@ -9681,12 +9786,12 @@ function renderProntuarioVerificacoes(esc) {
                         && window.RadarPendencias.buildDocumentContextKey(pendency)
                             === exactPendencyKey
                     ));
-                    const isAnaliseLocked = currentProfile === 'inventario'
-                        || currentProfile === 'sme'
+                    const isAnaliseLocked = accessProfile === 'inventario'
+                        || accessProfile === 'sme'
                         || Boolean(activePend);
                     const analysisLockId = `analysis-lock-${progId}-${doc.key}`;
                     let pendStatusHTML = '';
-                    if (activePend) {
+                    if (canUseVerificationActions && activePend) {
                         const submissionActionLabel = getCorrectiveSubmissionActionLabel(activePend);
                         const canReanalyse = canReanalysePendency(activePend);
                         const instruction = activePend.status === 'Aguardando reanálise'
@@ -9703,7 +9808,7 @@ function renderProntuarioVerificacoes(esc) {
                                         style="font-size:0.7rem; padding:2px 6px;"
                                     >Reanalisar</button>
                                 ` : ''}
-                                ${submissionActionLabel && currentProfile !== 'inventario' ? `
+                                ${submissionActionLabel && canRegisterCorrectiveSubmission ? `
                                     <button
                                         class="btn ${canReanalyse ? 'btn-secondary' : 'btn-primary'} btn-sm"
                                         data-action="register-corrective-submission"
@@ -9715,9 +9820,9 @@ function renderProntuarioVerificacoes(esc) {
                             </div>
                             <p id="${escapeHtml(analysisLockId)}" style="font-size:0.7rem; color:var(--text-muted); margin-top:6px;">${escapeHtml(instruction)}</p>
                         `;
-                    } else if (resolvedPend && analiseValue === 'Não analisado') {
+                    } else if (canUseVerificationActions && resolvedPend && analiseValue === 'Não analisado') {
                         pendStatusHTML = `<span class="badge badge-success" style="font-size:0.7rem;" title="Justificativa: ${escapeHtml(resolvedPend.justificativaResolucao || resolvedPend.observacao || '')}">Resolvida - reanalisar</span>`;
-                    } else if (analiseValue === 'Incorreto') {
+                    } else if (canOpenPendency && analiseValue === 'Incorreto') {
                         pendStatusHTML = `<button class="btn btn-secondary btn-sm" data-action="open-document-pendency" onclick="openNovaPendenciaModalWithDefaults('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(progName)}', '${escapeHtml(doc.key)}', '${escapeHtml(doc.name)}')" style="font-size:0.7rem; padding:2px 6px;">Abrir Pendência</button>`;
                     }
 
@@ -9729,14 +9834,14 @@ function renderProntuarioVerificacoes(esc) {
                         const notesBadges = notes.map(n => `
                             <span class="badge badge-info" style="display: inline-flex; align-items: center; margin-right: 4px; margin-bottom: 4px; padding: 4px 8px; font-size: 0.7rem; font-weight: 500;">
                                 NF: ${escapeHtml(n.numero)} (R$ ${n.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})})
-                                ${currentProfile !== 'inventario' && currentProfile !== 'sme' && !isBonifLocked ? `
+                                ${accessProfile !== 'inventario' && accessProfile !== 'sme' && !isBonifLocked ? `
                                     <span style="margin-left: 6px; cursor: pointer; font-weight: bold; color: var(--warning); font-size: 0.85rem;" onclick="abrirEditarNota('${escapeHtml(n.id)}', '${escapeHtml(esc.id)}')" title="Editar Nota">✎</span>
                                     <span style="margin-left: 6px; cursor: pointer; font-weight: bold; color: var(--danger); font-size: 0.85rem;" onclick="removerNotaRegistrada('${escapeHtml(n.id)}', '${escapeHtml(esc.id)}')" title="Excluir Nota">×</span>
                                 ` : ''}
                             </span>
                         `).join('');
                         
-                        const addBtn = window.RadarFluxoOperacional.canRegisterFiscalNote(currentProfile, bonifValue) && !isBonifLocked ? `
+                        const addBtn = window.RadarFluxoOperacional.canRegisterFiscalNote(accessProfile, bonifValue) && !isBonifLocked ? `
                             <button class="btn btn-secondary btn-sm" style="font-size:0.65rem; padding: 2px 6px; display: inline-flex; align-items: center; margin-bottom: 4px;" onclick="openModalDadosNota('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">
                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:2px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                                 Adicionar Nota
@@ -9763,12 +9868,18 @@ function renderProntuarioVerificacoes(esc) {
                                             Ref. Serviço NF: ${escapeHtml(serviceNotes.map(n => n.numero).join(', '))}
                                         </span>
                                     </div>
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <label style="font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; cursor: pointer; margin-top: 2px;">
-                                            <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleConsEnviada('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', this.checked)" ${isBonifLocked ? 'disabled' : ''}>
-                                            <span>Consultoria realmente enviada para Assessoria</span>
-                                        </label>
-                                    </div>
+                                    ${accessProfile === 'sme' ? `
+                                        <span class="badge ${isChecked ? 'badge-success' : 'badge-gray'}" data-bonification-detail="consEnviada">
+                                            Consultoria enviada: ${isChecked ? 'Sim' : 'Não'}
+                                        </span>
+                                    ` : `
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <label style="font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; cursor: pointer; margin-top: 2px;">
+                                                <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleConsEnviada('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', this.checked)" ${isBonifLocked ? 'disabled' : ''}>
+                                                <span>Consultoria realmente enviada para Assessoria</span>
+                                            </label>
+                                        </div>
+                                    `}
                                 </div>
                             `;
                         }
@@ -9785,7 +9896,7 @@ function renderProntuarioVerificacoes(esc) {
                                 <span style="font-size:0.75rem; color:var(--primary); font-weight:600;">${escapeHtml(progName)}</span>
                                 <div style="margin-top:16px;">
                                     ${programStatusSummary}
-                                    ${currentProfile !== 'inventario' && currentProfile !== 'sme' ? (
+                                    ${accessProfile !== 'inventario' && accessProfile !== 'sme' ? (
                                         v.resultadoBonif ? `
                                             <button class="btn btn-secondary btn-sm" style="width:100%; justify-content:center; font-size:0.75rem;" disabled>Consolidada</button>
                                         ` : `
@@ -9796,34 +9907,45 @@ function renderProntuarioVerificacoes(esc) {
                             </td>` : ''}
                             <td><span style="font-size:0.85rem; font-weight:500;">${escapeHtml(doc.name)}</span>${extraContentHTML}</td>
                             <td>
-                                <div class="btn-group-toggle">
-                                    <button class="btn-toggle ${bonifValue === 'Sim' ? 'active-sim' : ''}" 
-                                            onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', 'Sim')" 
-                                            ${isBonifLocked ? 'disabled' : ''}>Sim</button>
-                                    <button class="btn-toggle ${bonifValue === 'Não' ? 'active-nao' : ''}" 
-                                            onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', 'Não')" 
-                                            ${isBonifLocked ? 'disabled' : ''}>Não</button>
-                                    ${doc.allowNaoAplica ? `
-                                        <button class="btn-toggle ${bonifValue === 'Não se aplica' ? 'active-naoseaplica' : ''}" 
-                                                onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', 'Não se aplica')" 
-                                                ${isBonifLocked ? 'disabled' : ''}>N/A</button>
-                                    ` : ''}
-                                </div>
+                                ${accessProfile === 'sme' ? `
+                                    <span
+                                        class="badge ${bonifValue === 'Sim'
+                                            ? 'badge-success'
+                                            : bonifValue === 'Não'
+                                                ? 'badge-danger'
+                                                : 'badge-gray'}"
+                                        data-bonification-value="${escapeHtml(bonifValue || '')}"
+                                    >${escapeHtml(bonifValue || 'Não informado')}</span>
+                                ` : `
+                                    <div class="btn-group-toggle">
+                                        <button class="btn-toggle ${bonifValue === 'Sim' ? 'active-sim' : ''}"
+                                                onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', 'Sim')"
+                                                ${isBonifLocked ? 'disabled' : ''}>Sim</button>
+                                        <button class="btn-toggle ${bonifValue === 'Não' ? 'active-nao' : ''}"
+                                                onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', 'Não')"
+                                                ${isBonifLocked ? 'disabled' : ''}>Não</button>
+                                        ${doc.allowNaoAplica ? `
+                                            <button class="btn-toggle ${bonifValue === 'Não se aplica' ? 'active-naoseaplica' : ''}"
+                                                    onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', 'Não se aplica')"
+                                                    ${isBonifLocked ? 'disabled' : ''}>N/A</button>
+                                        ` : ''}
+                                    </div>
+                                `}
                             </td>
-                            <td>
-                                <select class="select-analise select-analise-comp analise-${analiseValue.toLowerCase().replace(/\s+/g, '-').replace(/[()]/g, '')}" 
-                                        onchange="changeAnaliseTecnica('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', this.value, this)"
-                                        ${activePend ? `aria-describedby="${escapeHtml(analysisLockId)}"` : ''}
-                                        ${isAnaliseLocked ? 'disabled' : ''}>
-                                    <option value="Não analisado" ${analiseValue === 'Não analisado' ? 'selected' : ''}>Não analisado</option>
-                                    <option value="Correto" ${analiseValue === 'Correto' ? 'selected' : ''}>Correto</option>
-                                    <option value="Correto (Atrasado)" ${analiseValue === 'Correto (Atrasado)' ? 'selected' : ''}>Correto (Atrasado)</option>
-                                    <option value="Incorreto" ${analiseValue === 'Incorreto' ? 'selected' : ''}>Incorreto</option>
-                                </select>
-                            </td>
-                            <td>
-                                ${pendStatusHTML}
-                            </td>
+                            ${canViewTechnicalAnalysis ? `
+                                <td>
+                                    <select class="select-analise select-analise-comp analise-${analiseValue.toLowerCase().replace(/\s+/g, '-').replace(/[()]/g, '')}"
+                                            onchange="changeAnaliseTecnica('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', this.value, this)"
+                                            ${activePend ? `aria-describedby="${escapeHtml(analysisLockId)}"` : ''}
+                                            ${isAnaliseLocked ? 'disabled' : ''}>
+                                        <option value="Não analisado" ${analiseValue === 'Não analisado' ? 'selected' : ''}>Não analisado</option>
+                                        <option value="Correto" ${analiseValue === 'Correto' ? 'selected' : ''}>Correto</option>
+                                        <option value="Correto (Atrasado)" ${analiseValue === 'Correto (Atrasado)' ? 'selected' : ''}>Correto (Atrasado)</option>
+                                        <option value="Incorreto" ${analiseValue === 'Incorreto' ? 'selected' : ''}>Incorreto</option>
+                                    </select>
+                                </td>
+                            ` : ''}
+                            ${canUseVerificationActions ? `<td>${pendStatusHTML}</td>` : ''}
                         </tr>
                     `;
                 });
@@ -9841,14 +9963,15 @@ function changeProntuarioCompetencia(escolaId, compKey) {
 
 // 14.2 Operações de Clique Bonificação
 async function toggleBonif(escolaId, compKey, docKey, value) {
-    if (currentProfile === 'inventario' || currentProfile === 'sme') return;
+    const accessProfile = getRadarAccessProfile();
+    if (accessProfile === 'inventario' || accessProfile === 'sme') return;
     try {
         await radarVerificationService.setBonification({
             schoolId: escolaId,
             compKey,
             documentKey: docKey,
             value,
-            profile: currentProfile
+            profile: accessProfile
         });
     } catch (error) {
         reportRadarActionError(error, 'Não foi possível alterar a bonificação.');
@@ -9884,7 +10007,8 @@ function findActivePendencyForTechnicalAnalysis(escolaId, compProgKey, documento
 
 // 14.3 Operações de Clique Análise Técnica
 async function changeAnaliseTecnica(escolaId, compKey, docKey, value, selectElement = null) {
-    if (currentProfile === 'inventario' || currentProfile === 'sme') return false;
+    const accessProfile = getRadarAccessProfile();
+    if (accessProfile === 'inventario' || accessProfile === 'sme') return false;
 
     const activePendency = findActivePendencyForTechnicalAnalysis(
         escolaId,
@@ -9922,7 +10046,7 @@ async function changeAnaliseTecnica(escolaId, compKey, docKey, value, selectElem
             compKey,
             documentKey: docKey,
             value,
-            profile: currentProfile,
+            profile: accessProfile,
             activePendency
         });
         shouldOpenPendency = response.value.shouldOpenPendency;
@@ -9986,14 +10110,16 @@ async function changeAnaliseTecnica(escolaId, compKey, docKey, value, selectElem
 
 // 14.5 Operações de Registro de Dados da Nota Fiscal (Via Análise Técnica)
 function openModalDadosNota(escolaId, compKey) {
+    const accessProfile = getRadarAccessProfile();
+    if (accessProfile === 'inventario' || accessProfile === 'sme') return false;
     if (blockConsolidatedFiscalNoteMutation(escolaId, compKey)) {
-        return;
+        return false;
     }
 
     const v = verificacoes[escolaId]?.[compKey];
     if (v && v.bonificacao && v.bonificacao['notaFiscal'] === 'Não se aplica') {
         alert('Não é possível adicionar notas fiscais para competências marcadas como "Não se aplica".');
-        return;
+        return false;
     }
     document.getElementById('form-dados-nota').reset();
     document.getElementById('nota-escola-id').value = escolaId;
@@ -10005,11 +10131,13 @@ function openModalDadosNota(escolaId, compKey) {
     document.querySelector('#modal-dados-nota button[type="submit"]').innerText = 'Salvar Gasto';
     
     openModal('modal-dados-nota');
+    return true;
 }
 
 async function salvarDadosNota(e) {
     e.preventDefault();
-    if (currentProfile === 'inventario' || currentProfile === 'sme') return;
+    const accessProfile = getRadarAccessProfile();
+    if (accessProfile === 'inventario' || accessProfile === 'sme') return false;
     const notaId = document.getElementById('nota-id').value;
     const escolaId = document.getElementById('nota-escola-id').value;
     const compKey = document.getElementById('nota-comp-key').value;
@@ -10027,7 +10155,7 @@ async function salvarDadosNota(e) {
             expenseType: tipo,
             invoiceNumber: numero,
             amount: valor,
-            profile: currentProfile
+            profile: accessProfile
         });
         rebuildOperationalIndexes();
         if (result.value.warnings.includes('SERVICE_ADVISORY_REQUIRED')) {
@@ -10046,9 +10174,11 @@ async function salvarDadosNota(e) {
 
 
 function abrirEditarNota(notaId, escolaId) {
+    const accessProfile = getRadarAccessProfile();
+    if (accessProfile === 'inventario' || accessProfile === 'sme') return false;
     const nota = notasRegistradas.find(n => n.id === notaId);
-    if (!nota) return;
-    if (blockConsolidatedFiscalNoteMutation(escolaId, nota.compKey)) return;
+    if (!nota) return false;
+    if (blockConsolidatedFiscalNoteMutation(escolaId, nota.compKey)) return false;
 
     document.getElementById('nota-escola-id').value = escolaId;
     document.getElementById('nota-comp-key').value = nota.compKey;
@@ -10063,17 +10193,19 @@ function abrirEditarNota(notaId, escolaId) {
     document.querySelector('#modal-dados-nota button[type="submit"]').innerText = 'Salvar Alterações';
 
     openModal('modal-dados-nota');
+    return true;
 }
 
 async function toggleConsEnviada(escolaId, compKey, isChecked) {
-    if (currentProfile === 'inventario' || currentProfile === 'sme') return false;
+    const accessProfile = getRadarAccessProfile();
+    if (accessProfile === 'inventario' || accessProfile === 'sme') return false;
     try {
         await radarVerificationService.setBonification({
             schoolId: escolaId,
             compKey,
             documentKey: 'consEnviada',
             value: Boolean(isChecked),
-            profile: currentProfile
+            profile: accessProfile
         });
     } catch (error) {
         reportRadarActionError(error, 'Não foi possível alterar o status da consulta à Assessoria.');
@@ -10085,7 +10217,8 @@ async function toggleConsEnviada(escolaId, compKey, isChecked) {
 }
 
 async function removerNotaRegistrada(notaId, escolaId) {
-    if (currentProfile === 'inventario' || currentProfile === 'sme') return;
+    const accessProfile = getRadarAccessProfile();
+    if (accessProfile === 'inventario' || accessProfile === 'sme') return false;
     const nota = notasRegistradas.find(item => item.id === notaId);
     if (!nota) return;
     if (blockConsolidatedFiscalNoteMutation(escolaId, nota.compKey)) return;
@@ -10095,7 +10228,7 @@ async function removerNotaRegistrada(notaId, escolaId) {
         const result = await radarInvoiceService.remove({
             id: notaId,
             schoolId: escolaId,
-            profile: currentProfile
+            profile: accessProfile
         });
         rebuildOperationalIndexes();
         if (result.value.resetFiscalAnalysis) {
@@ -10111,12 +10244,13 @@ async function removerNotaRegistrada(notaId, escolaId) {
 
 // 14.4 Regra de Consolidação de Bonificação (Apta / Inapta)
 async function calcularEFecharBonificacao(escolaId, compKey) {
-    if (currentProfile === 'inventario' || currentProfile === 'sme') return;
+    const accessProfile = getRadarAccessProfile();
+    if (accessProfile === 'inventario' || accessProfile === 'sme') return false;
     try {
         await radarVerificationService.closeBonification({
             schoolId: escolaId,
             compKey,
-            profile: currentProfile
+            profile: accessProfile
         });
     } catch (error) {
         reportRadarActionError(error, 'Não foi possível consolidar a bonificação.');
@@ -10135,13 +10269,14 @@ async function calcularEFecharBonificacao(escolaId, compKey) {
 // ==========================================
 
 async function updateCapitalDoc(bemId, field, value) {
-    if (currentProfile === 'inventario' || currentProfile === 'sme') return;
+    const accessProfile = getRadarAccessProfile();
+    if (accessProfile === 'inventario' || accessProfile === 'sme') return false;
     try {
         await radarInventoryService.updateAsset({
             assetId: bemId,
             field,
             value,
-            profile: currentProfile
+            profile: accessProfile
         });
         rebuildOperationalIndexes();
     } catch (error) {
@@ -10151,11 +10286,12 @@ async function updateCapitalDoc(bemId, field, value) {
 }
 
 async function encaminharCapital(bemId) {
-    if (currentProfile === 'inventario' || currentProfile === 'sme') return;
+    const accessProfile = getRadarAccessProfile();
+    if (accessProfile === 'inventario' || accessProfile === 'sme') return false;
     try {
         await radarInventoryService.forward({
             assetId: bemId,
-            profile: currentProfile
+            profile: accessProfile
         });
         rebuildOperationalIndexes();
         renderProntuario(activeSchoolId);
@@ -10193,6 +10329,9 @@ function closeModal(id) {
 
 // 16.1 Salvar Contato / Atendimento
 function openContatoModal(escolaId) {
+    if (!hasRadarCapability(
+        window.RadarAccessPolicy.CAPABILITIES.REGISTER_PENDENCY_CONTACT
+    )) return false;
     document.getElementById('contato-escola-id').value = escolaId;
     document.getElementById('contato-data-atendimento').value = new Date().toISOString().split('T')[0];
     
@@ -10209,6 +10348,9 @@ function openContatoModal(escolaId) {
 
 async function saveContato(e) {
     e.preventDefault();
+    if (!hasRadarCapability(
+        window.RadarAccessPolicy.CAPABILITIES.REGISTER_PENDENCY_CONTACT
+    )) return false;
     const escolaId = document.getElementById('contato-escola-id').value;
     const tipo = document.getElementById('contato-tipo').value;
     const dataAtend = document.getElementById('contato-data-atendimento').value;
@@ -10331,6 +10473,9 @@ function resetNovaPendenciaForm() {
 }
 
 function openNovaPendenciaModal(escolaId, isManual = true) {
+    if (!hasRadarCapability(
+        window.RadarAccessPolicy.CAPABILITIES.OPEN_PENDENCY
+    )) return false;
     resetNovaPendenciaForm();
     clearPendencyNotice();
     document.getElementById('pendencia-escola-id').value = escolaId;
@@ -10344,6 +10489,7 @@ function openNovaPendenciaModal(escolaId, isManual = true) {
     configurePendencyFormMode(!isManual);
 
     openModal('modal-nova-pendencia');
+    return true;
 }
 
 function openNovaPendenciaModalWithDefaults(
@@ -10359,7 +10505,7 @@ function openNovaPendenciaModalWithDefaults(
         documentoKey,
         documentoNome
     });
-    openNovaPendenciaModal(escolaId, false);
+    if (!openNovaPendenciaModal(escolaId, false)) return false;
     document.getElementById('pend-competencia').value = context.competencia;
     document.getElementById('pend-programa-id').value = context.programaId;
     document.getElementById('pend-documento-key').value = context.documentoKey;
@@ -10371,10 +10517,14 @@ function openNovaPendenciaModalWithDefaults(
     contextualOption.dataset.contextual = 'true';
     itemSelect.appendChild(contextualOption);
     itemSelect.value = context.item;
+    return true;
 }
 
 async function saveNovaPendencia(e) {
     e.preventDefault();
+    if (!hasRadarCapability(
+        window.RadarAccessPolicy.CAPABILITIES.OPEN_PENDENCY
+    )) return false;
     const sourceView = currentView;
     const escolaId = document.getElementById('pendencia-escola-id').value;
     const comp = document.getElementById('pend-competencia').value;
@@ -10445,6 +10595,7 @@ async function saveNovaPendencia(e) {
 
 // 16.3 Editar Cadastro da Escola
 function openEscolaEditModal(escolaId) {
+    if (!['assistente', 'controlador'].includes(getRadarAccessProfile())) return false;
     const selectCtrl = document.getElementById('edit-controlador');
     selectCtrl.innerHTML = getActiveControllers().map(c => `
         <option value="${escapeHtml(c.id)}">${escapeHtml(c.name)}</option>
@@ -10498,10 +10649,12 @@ function openEscolaEditModal(escolaId) {
     }
 
     openModal('modal-escola-edit');
+    return true;
 }
 
 async function saveEscolaEdit(e) {
     e.preventDefault();
+    if (!['assistente', 'controlador'].includes(getRadarAccessProfile())) return false;
     const id = document.getElementById('edit-escola-id').value;
     const sici = document.getElementById('edit-sici').value.trim();
     const email = document.getElementById('edit-email').value.trim();
@@ -10547,7 +10700,8 @@ async function saveEscolaEdit(e) {
 
 // 16.4 Registrar Novo Bem de Capital
 async function openNovoCapitalModal(escolaId) {
-    if (currentProfile === 'inventario' || currentProfile === 'sme') return;
+    const accessProfile = getRadarAccessProfile();
+    if (accessProfile === 'inventario' || accessProfile === 'sme') return false;
     const dec = prompt('Descreva o bem patrimonial comprado (ex: Computador Desktop Dell):');
     if (!dec) return;
     const valStr = prompt('Informe o valor da compra (ex: 2500):');
@@ -10565,7 +10719,7 @@ async function openNovoCapitalModal(escolaId) {
             description: dec,
             amount: val,
             invoiceNumber: nf,
-            profile: currentProfile
+            profile: accessProfile
         });
         rebuildOperationalIndexes();
         renderProntuario(escolaId);
@@ -10583,8 +10737,11 @@ async function openNovoCapitalModal(escolaId) {
 // ==========================================
 
 function openCobrancaModal(escolaId) {
+    if (!hasRadarCapability(
+        window.RadarAccessPolicy.CAPABILITIES.REGISTER_PENDENCY_CONTACT
+    )) return false;
     const esc = escolas.find(e => e.id == escolaId);
-    if (!esc) return;
+    if (!esc) return false;
 
     document.getElementById('cobranca-escola-id').value = escolaId;
     
@@ -10596,7 +10753,7 @@ function openCobrancaModal(escolaId) {
         container.innerHTML = `<div style="color:var(--text-muted); font-size:0.8rem">Nenhuma pendência externa sob responsabilidade da Escola.</div>`;
         document.getElementById('cobranca-preview-text').innerText = `Prezado(a) Diretor(a) de ${esc.denominação},\n\nConstatamos que não há pendências ativas de obrigações do PDDE sob responsabilidade da unidade escolar no RADAR PDDE.\n\nAtenciosamente,\nComitê PDDE / Verbas Federais`;
         openModal('modal-cobranca');
-        return;
+        return true;
     }
 
     container.innerHTML = pEscola.map(p => {
@@ -10614,6 +10771,7 @@ function openCobrancaModal(escolaId) {
 
     buildCobrancaPreview(escolaId);
     openModal('modal-cobranca');
+    return true;
 }
 
 function formatCompetenciaText(key) {
@@ -10665,8 +10823,11 @@ function buildCobrancaPreview(escolaId) {
 }
 
 function copyCobrancaText() {
+    if (!hasRadarCapability(
+        window.RadarAccessPolicy.CAPABILITIES.REGISTER_PENDENCY_CONTACT
+    )) return false;
     const previewText = document.getElementById('cobranca-preview-text').innerText;
-    navigator.clipboard.writeText(previewText).then(async () => {
+    return navigator.clipboard.writeText(previewText).then(async () => {
         alert('Texto de cobrança copiado para a área de transferência! Você já pode colar no e-mail ou WhatsApp.');
         const escolaId = document.getElementById('cobranca-escola-id').value;
         try {

@@ -89,6 +89,7 @@
             this.ensureVerification = options.ensureVerification;
             this.appendLog = options.appendLog;
             this.getCurrentUser = options.getCurrentUser || (() => ({ name: 'Sistema', role: 'sistema' }));
+            this.getCurrentProfile = options.getCurrentProfile || (() => '');
             this.createId = options.createId || (prefix => `${prefix}-${Date.now()}`);
             this.now = options.now || (() => new Date().toISOString());
             this.flow = options.fluxo || defaultFlow;
@@ -104,7 +105,7 @@
         }
 
         assertEditable(profile, operation) {
-            const normalized = normalizeProfile(profile);
+            const normalized = normalizeProfile(this.getCurrentProfile() || profile);
             if (!EDITABLE_PROFILES.has(normalized)) {
                 fail('FORBIDDEN', 'O perfil atual não pode alterar verificações documentais.', operation);
             }
@@ -345,7 +346,7 @@
         }
 
         async retify(input = {}) {
-            const profile = normalizeProfile(input.profile);
+            const profile = normalizeProfile(this.getCurrentProfile() || input.profile);
             if (!this.retifications.canRetify(profile)) {
                 fail('FORBIDDEN', 'Retificação permitida somente ao perfil Assistente nesta fase.', 'retify');
             }

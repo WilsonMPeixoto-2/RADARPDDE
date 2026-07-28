@@ -158,7 +158,10 @@
     }
 
     function renderMobileActions(school, projection) {
-        const canEdit = currentProfile === 'assistente' || currentProfile === 'controlador';
+        const profile = typeof root.getRadarAccessProfile === 'function'
+            ? root.getRadarAccessProfile()
+            : currentProfile;
+        const canEdit = profile === 'assistente' || profile === 'controlador';
         return `
             <div class="school-actions-stack cycle-b-wallet-actions">
                 <button type="button" class="btn btn-secondary btn-sm" onclick="switchView('prontuario', '${escapeHtml(school.id)}')">Ver Unidade</button>

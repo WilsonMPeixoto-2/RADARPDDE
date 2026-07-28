@@ -26,7 +26,8 @@ Legenda: **L** leitura; **C** criação; **A** alteração ou desativação lóg
 | Distribuição de carteiras | L | L/C/A | L | L | L/C/A/E |
 | Programas | L | L | L patrimonial | L/C/A | L/C/A/E |
 | Competências | L | L | L | L/C/A | L/C/A/E |
-| Bonificação e análise | L/C/A | L/C/A | — | L | L/C/A/E |
+| Bonificação | L/C/A | L/C/A | — | L | L/C/A/E |
+| Análise técnica | L/C/A | L/C/A | — | — | L/C/A/E |
 | Pendências | L/C/A | L/C/A | L patrimonial restrita | L | L/C/A/E |
 | Tentativas de regularização | L/C/A | L/C/A | L patrimonial restrita | L | L/C/A/E |
 | Contatos e cobranças | L/C/A | L/C/A | — | L | L/C/A/E |
@@ -37,7 +38,7 @@ Legenda: **L** leitura; **C** criação; **A** alteração ou desativação lóg
 | Equipe de Inventário | L | L/C/A/S | L própria | L | L/C/A/E/S |
 | Convites e contas Auth da equipe | — | C/A/S | — | — | C/A/S |
 | Perfis e escopos | própria associação | própria associação | própria associação | L | L/C/A/E |
-| Logs administrativos | L da 4ª CRE | L da 4ª CRE | L do escopo patrimonial | L amplo | L amplo/E excepcional |
+| Logs administrativos | L da 4ª CRE | L da 4ª CRE | L do escopo patrimonial | L da própria autoria por UUID | L amplo/E excepcional |
 | Auditoria técnica | — | — | — | L | L |
 | Execuções de importação | — | L/C/A | — | L | L/C/A/E |
 
@@ -104,7 +105,13 @@ A ampliação é implementada diretamente nas políticas de `schools`, `school_p
 
 ### SME (Gestão)
 
-Possui leitura ampla e visões consolidadas, como Situação Operacional por Coordenadoria. Administra parâmetros institucionais autorizados, mas não substitui a liderança local da Assistente na equipe da CRE.
+Possui visões consolidadas, como Situação Operacional por Coordenadoria, e administra parâmetros institucionais autorizados, mas não substitui a liderança local da Assistente na equipe da CRE.
+
+- nas visões mensal e do prontuário, vê identificação e bonificação, sem análise técnica ou ações;
+- em Pendências Operacionais, consulta filas, detalhes, tentativas, contatos e navegação, sem executar mutações;
+- em Registros Internos, vê somente linhas com `actor_user_id = auth.uid()`;
+- registros antigos sem UUID de autor ficam restritos aos perfis com leitura ampla;
+- a mesma organização visual é aplicada quando o Administrador técnico simula a Gestão SME.
 
 ### Administrador técnico
 

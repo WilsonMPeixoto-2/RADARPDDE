@@ -41,6 +41,7 @@
             this.dataService = options.dataService;
             this.getState = options.getState;
             this.appendLog = options.appendLog;
+            this.getCurrentProfile = options.getCurrentProfile || (() => '');
             this.createId = options.createId || (prefix => `${prefix}-${Date.now()}`);
             this.now = options.now || (() => new Date().toISOString());
             this.reopenConsolidation = options.reopenConsolidation || (() => {});
@@ -52,7 +53,7 @@
         }
 
         assertEditable(profile, operation) {
-            const normalized = normalizeProfile(profile);
+            const normalized = normalizeProfile(this.getCurrentProfile() || profile);
             if (!['controlador', 'assistente'].includes(normalized)) {
                 fail('FORBIDDEN', 'O perfil atual não pode alterar notas fiscais.', operation);
             }

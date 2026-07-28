@@ -52,6 +52,7 @@
             this.dataService = options.dataService;
             this.getState = options.getState;
             this.appendLog = options.appendLog;
+            this.getCurrentProfile = options.getCurrentProfile || (() => '');
             this.createId = options.createId || (prefix => `${prefix}-${Date.now()}`);
             this.now = options.now || (() => new Date());
             if (!this.dataService || typeof this.dataService.execute !== 'function'
@@ -74,7 +75,7 @@
         }
 
         assertOperationalProfile(profile, operation) {
-            const normalized = normalizeProfile(profile);
+            const normalized = normalizeProfile(this.getCurrentProfile() || profile);
             if (!['controlador', 'assistente'].includes(normalized)) {
                 fail('FORBIDDEN', 'O perfil atual não pode alterar este registro patrimonial.', operation);
             }
@@ -170,7 +171,7 @@
         }
 
         async inventory(input = {}) {
-            const profile = normalizeProfile(input.profile);
+            const profile = normalizeProfile(this.getCurrentProfile() || input.profile);
             if (!['inventario', 'assistente', 'controlador'].includes(profile)) {
                 fail('FORBIDDEN', 'O perfil atual não pode concluir a inventariação.', 'inventory:complete');
             }
@@ -260,4 +261,3 @@
 
     return Object.freeze({ InventoryService });
 }));
-

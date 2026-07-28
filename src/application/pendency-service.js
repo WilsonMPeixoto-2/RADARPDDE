@@ -7,15 +7,22 @@
     const domain = typeof module !== 'undefined' && module.exports
         ? require('../domain/pendencias.js')
         : root.RadarPendencias;
-    const api = factory(contract, domain);
+    const accessPolicy = typeof module !== 'undefined' && module.exports
+        ? require('../domain/access-policy.js')
+        : root.RadarAccessPolicy;
+    const api = factory(contract, domain, accessPolicy);
 
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
     if (root) root.RadarPendencyService = Object.freeze(api);
-}(typeof window !== 'undefined' ? window : globalThis, function createPendencyServiceApi(contract, defaultDomain) {
+}(typeof window !== 'undefined' ? window : globalThis, function createPendencyServiceApi(
+    contract,
+    defaultDomain,
+    accessPolicy
+) {
     'use strict';
 
-    if (!contract || !defaultDomain) {
-        throw new Error('Contrato de dados e domínio de pendências são obrigatórios.');
+    if (!contract || !defaultDomain || !accessPolicy) {
+        throw new Error('Contrato de dados, domínio de pendências e política de acesso são obrigatórios.');
     }
     const { RepositoryError, cloneValue } = contract;
 
@@ -51,6 +58,7 @@
             this.getState = options.getState;
             this.appendLog = options.appendLog;
             this.getCurrentUser = options.getCurrentUser || (() => ({ name: 'Sistema', role: 'sistema' }));
+            this.getCurrentProfile = options.getCurrentProfile || (() => 'controlador');
             this.createId = options.createId || (prefix => `${prefix}-${Date.now()}`);
             this.now = options.now || (() => new Date().toISOString());
             this.getCorrectAnalysisLabel = options.getCorrectAnalysisLabel || (() => 'Correto');
@@ -58,6 +66,18 @@
                 || typeof this.getState !== 'function'
                 || typeof this.appendLog !== 'function') {
                 fail('INVALID_PENDENCY_SERVICE', 'Dependências do serviço de pendências inválidas.', 'construct');
+            }
+        }
+
+        assertCapability(capability, operation) {
+            const profile = this.getCurrentProfile();
+            if (!accessPolicy.hasCapability(profile, capability)) {
+                fail(
+                    'FORBIDDEN',
+                    'O perfil atual possui acesso somente para consulta nesta operação.',
+                    operation,
+                    { profile: accessPolicy.normalizeProfile(profile), capability }
+                );
             }
         }
 
@@ -137,6 +157,7 @@
         }
 
         async open(input = {}) {
+            this.assertCapability(accessPolicy.CAPABILITIES.OPEN_PENDENCY, 'open');
             const persistence = { operation: 'open', expectedPendencyVersion: null };
             return this.dataService.execute({
                 name: 'pendency:open',
@@ -209,6 +230,10 @@
         }
 
         async registerAttempt(input = {}) {
+            this.assertCapability(
+                accessPolicy.CAPABILITIES.REGISTER_CORRECTIVE_SUBMISSION,
+                'registerAttempt'
+            );
             const persistence = { operation: 'register_attempt' };
             return this.dataService.execute({
                 name: 'pendency:register-attempt',
@@ -261,6 +286,7 @@
         }
 
         async reanalyze(input = {}) {
+            this.assertCapability(accessPolicy.CAPABILITIES.REANALYZE_PENDENCY, 'reanalyze');
             const persistence = {};
             return this.dataService.execute({
                 name: 'pendency:reanalyze',
@@ -360,6 +386,7 @@
         }
 
         async cancel(input = {}) {
+            this.assertCapability(accessPolicy.CAPABILITIES.CANCEL_PENDENCY, 'cancel');
             return this.updateStatus('cancel', input, (pendency) => this.domain.cancelPendency(
                 pendency,
                 { justificativa: text(input.justification || input.justificativa) },
@@ -368,6 +395,7 @@
         }
 
         async reopen(input = {}) {
+            this.assertCapability(accessPolicy.CAPABILITIES.REOPEN_PENDENCY, 'reopen');
             return this.updateStatus('reopen', input, (pendency) => this.domain.reopenPendency(
                 pendency,
                 {
@@ -379,6 +407,18 @@
         }
 
         async updateStatus(operation, input, updater, logAction) {
+            const capability = {
+                cancel: accessPolicy.CAPABILITIES.CANCEL_PENDENCY,
+                reopen: accessPolicy.CAPABILITIES.REOPEN_PENDENCY
+            }[operation];
+            if (!capability) {
+                fail(
+                    'VALIDATION_FAILED',
+                    'Operação de status de pendência não suportada.',
+                    operation
+                );
+            }
+            this.assertCapability(capability, operation);
             const persistence = { operation: 'update_status' };
             return this.dataService.execute({
                 name: `pendency:${operation}`,
@@ -403,6 +443,10 @@
         }
 
         async registerContact(input = {}) {
+            this.assertCapability(
+                accessPolicy.CAPABILITIES.REGISTER_PENDENCY_CONTACT,
+                'registerContact'
+            );
             const persistence = {};
             return this.dataService.execute({
                 name: 'pendency:register-contact',

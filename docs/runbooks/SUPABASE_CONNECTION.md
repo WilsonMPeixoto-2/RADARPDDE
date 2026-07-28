@@ -4,7 +4,7 @@
 
 O projeto remoto autorizado é `scnryinorqeucbfkioxo`. O schema, a carga estrutural e os vínculos funcionais de Auth estão concluídos.
 
-O conjunto versionado contém atualmente **24** migrations.
+O conjunto versionado contém atualmente **25** migrations.
 
 A carga estrutural contém:
 
@@ -38,7 +38,7 @@ supabase db push --linked --dry-run
 supabase db push --linked
 ```
 
-O contrato pós-aplicação em `supabase/verification/remote-post-apply.sql` reconhece exatamente as 24 migrations versionadas.
+O contrato pós-aplicação em `supabase/verification/remote-post-apply.sql` reconhece exatamente as 25 migrations versionadas.
 
 As migrations patrimoniais são:
 
@@ -49,6 +49,7 @@ As migrations patrimoniais são:
 - `202607220001_atomic_verification_operations.sql` — verificação e log administrativo na mesma transação;
 - `202607220002_atomic_operational_commands.sql` — contatos, pendências, bens, programas, calendário e redistribuição com comandos atômicos;
 - `202607230001_enable_pgtap_remote_validation.sql` — instala pgTAP no schema `extensions` para homologação transacional remota.
+- `20260728182226_sme_access_governance.sql` — restringe os Registros Internos da Gestão SME ao UUID autenticado e valida a autoria das gravações.
 
 ## 2. Estado de dados e Auth
 

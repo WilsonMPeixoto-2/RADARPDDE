@@ -9,6 +9,7 @@
     function dependenciesReady() {
         return Boolean(
             root.RadarPendencias
+            && root.RadarAccessPolicy
             && root.RadarApplicationServices?.pendencies
             && root.RadarTask9PendencyPage
             && typeof root.renderPendencias === 'function'
@@ -18,7 +19,20 @@
     }
 
     function getProfile() {
+        if (typeof root.getRadarAccessProfile === 'function') {
+            return root.getRadarAccessProfile();
+        }
         return typeof currentProfile !== 'undefined' ? currentProfile : '';
+    }
+
+    function hasCapability(capability) {
+        return root.RadarAccessPolicy.hasCapability(getProfile(), capability);
+    }
+
+    function requireCapability(capability) {
+        if (hasCapability(capability)) return true;
+        announce('Seu perfil possui acesso somente para consulta de pendências.', 'error');
+        return false;
     }
 
     function findPendency(id) {
@@ -227,6 +241,9 @@
     }
 
     function openPendencyContactModal(source) {
+        if (!requireCapability(
+            root.RadarAccessPolicy.CAPABILITIES.REGISTER_PENDENCY_CONTACT
+        )) return false;
         const id = resolveId(source);
         const pendency = findPendency(id);
         if (!pendency || !root.RadarPendencias.isActivePendency(pendency)) {
@@ -241,6 +258,9 @@
 
     async function savePendencyContact(event) {
         event.preventDefault();
+        if (!requireCapability(
+            root.RadarAccessPolicy.CAPABILITIES.REGISTER_PENDENCY_CONTACT
+        )) return false;
         try {
             const reference = JSON.parse(document.getElementById('pendency-contact-id').value);
             const id = reference.value;
@@ -268,6 +288,9 @@
     }
 
     function openCancelPendencyModal(source) {
+        if (!requireCapability(
+            root.RadarAccessPolicy.CAPABILITIES.CANCEL_PENDENCY
+        )) return false;
         const id = resolveId(source);
         const pendency = findPendency(id);
         if (!pendency || !root.RadarPendencias.isActivePendency(pendency)) {
@@ -281,6 +304,9 @@
 
     async function confirmCancelPendency(event) {
         event.preventDefault();
+        if (!requireCapability(
+            root.RadarAccessPolicy.CAPABILITIES.CANCEL_PENDENCY
+        )) return false;
         try {
             const reference = JSON.parse(document.getElementById('pendency-cancel-id').value);
             const pendency = findPendency(reference.value);
@@ -304,6 +330,9 @@
     }
 
     function openReopenPendencyModal(source) {
+        if (!requireCapability(
+            root.RadarAccessPolicy.CAPABILITIES.REOPEN_PENDENCY
+        )) return false;
         const id = resolveId(source);
         const pendency = findPendency(id);
         if (!pendency || pendency.status !== 'Resolvida') {
@@ -318,6 +347,9 @@
 
     async function confirmReopenPendency(event) {
         event.preventDefault();
+        if (!requireCapability(
+            root.RadarAccessPolicy.CAPABILITIES.REOPEN_PENDENCY
+        )) return false;
         try {
             const reference = JSON.parse(document.getElementById('pendency-reopen-id').value);
             const pendency = findPendency(reference.value);
@@ -357,9 +389,14 @@
     function enhanceActionGroup(group, pendency, reference) {
         if (!group || group.dataset.taskOperationsEnhanced === 'true') return;
         if (root.RadarPendencias.isActivePendency(pendency)) {
-            group.appendChild(createActionButton('Registrar contato', 'btn-secondary', 'openPendencyContactModal', reference));
-            group.appendChild(createActionButton('Cancelar pendência', 'btn-danger', 'openCancelPendencyModal', reference));
-        } else if (pendency.status === 'Resolvida') {
+            if (hasCapability(root.RadarAccessPolicy.CAPABILITIES.REGISTER_PENDENCY_CONTACT)) {
+                group.appendChild(createActionButton('Registrar contato', 'btn-secondary', 'openPendencyContactModal', reference));
+            }
+            if (hasCapability(root.RadarAccessPolicy.CAPABILITIES.CANCEL_PENDENCY)) {
+                group.appendChild(createActionButton('Cancelar pendência', 'btn-danger', 'openCancelPendencyModal', reference));
+            }
+        } else if (pendency.status === 'Resolvida'
+            && hasCapability(root.RadarAccessPolicy.CAPABILITIES.REOPEN_PENDENCY)) {
             group.appendChild(createActionButton('Reabrir pendência', 'btn-secondary', 'openReopenPendencyModal', reference));
         }
         group.dataset.taskOperationsEnhanced = 'true';

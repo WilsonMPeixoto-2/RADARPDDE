@@ -455,7 +455,10 @@
             getActiveFilter: () => activeDashboardFilter
         });
         installed = true;
-        if (typeof currentView !== 'undefined' && currentView === 'dashboard' && currentProfile === 'controlador') {
+        const profile = typeof root.getRadarAccessProfile === 'function'
+            ? root.getRadarAccessProfile()
+            : currentProfile;
+        if (typeof currentView !== 'undefined' && currentView === 'dashboard' && profile === 'controlador') {
             root.renderDashboardControlador(document.getElementById('main-container'));
         }
         return true;

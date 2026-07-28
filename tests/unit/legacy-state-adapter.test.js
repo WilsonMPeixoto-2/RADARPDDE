@@ -150,6 +150,7 @@ function createLegacyStorage() {
             {
                 id: 'log-1',
                 escolaId: '04.31.001',
+                actorUserId: '00000000-0000-4000-8000-000000000001',
                 usuario: 'Wilson Peixoto',
                 perfil: 'Controlador',
                 acao: 'Atualização',
@@ -215,6 +216,10 @@ test('transforma o estado atual em entidades relacionais com IDs canônicos', ()
     assert.equal(result.entities.pendencyContacts[0].id, 'contato-1');
     assert.equal(result.entities.assets[0].id, 'bem-1');
     assert.equal(result.entities.registeredInvoices[0].invoice_number, 'NF-1');
+    assert.equal(
+        result.entities.administrativeLogs[0].actor_user_id,
+        '00000000-0000-4000-8000-000000000001'
+    );
     assert.deepEqual(result.entities.administrativeLogs[0].details, {
         text: 'Registro alterado.'
     });

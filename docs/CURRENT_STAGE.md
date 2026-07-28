@@ -1,7 +1,7 @@
 # RADAR PDDE — Estado atual do projeto
 
-**Atualizado em:** 21 de julho de 2026  
-**Commit-base da ativação:** `1d500884ddec0424c1e6dab59eb474dc9cde6fe1`  
+**Atualizado em:** 28 de julho de 2026
+**Commit-base desta entrega:** `f4b81eec3e092d70b1e2ceb58432f9e52b28ada9`
 **Natureza:** documento operacional e transitório
 
 ## 1. Regra de leitura
@@ -25,7 +25,7 @@ O RADAR PDDE possui:
 - `SupabaseRepository` como backend de Preview e Production;
 - `LocalStorageRepository` preservado somente para rollback emergencial;
 - concorrência otimista por `row_version`;
-- **24 migrations SQL versionadas; 23 já aplicadas em Production e a migration de hardening de segurança aguardando homologação antes da aplicação**;
+- **25 migrations SQL versionadas; 24 aplicadas em Production e a migration de governança SME desta entrega aguardando homologação e aplicação**;
 - acesso colaborativo dos Controladores da mesma CRE;
 - escopo específico de Capital e Inventário para a própria CRE;
 - RLS, auditoria, importação, reconciliação e rollback;
@@ -46,7 +46,7 @@ Projeto autorizado: `scnryinorqeucbfkioxo`.
 | Equipe de Inventário no diretório | 3 |
 | Competências | 12 |
 | Escolas | 163 |
-| Vínculos escola–programa | 430 |
+| Vínculos escola–programa | 431 |
 
 Antes da ativação de Production foi registrado o backup lógico:
 
@@ -138,18 +138,22 @@ O build retorna ao modo local, sem apagar ou modificar o banco. A remoção da v
 - o frontend recebe apenas chave `sb_publishable_`;
 - `service_role`, senha de banco e chaves secretas não entram no bundle;
 - RLS restringe leituras e escritas por papel e `cre_scope`;
+- Gestão SME consulta pendências sem executar mutações operacionais;
+- Gestão SME recebe apenas bonificação nas visões mensal e do prontuário;
+- Gestão SME consulta em Registros Internos somente linhas cujo `actor_user_id` coincide com seu `auth.uid()`;
 - a Edge Function exige JWT;
 - alterações são registradas em auditoria;
 - o backup pré-ativação permanece disponível para restauração controlada.
 
-## 9. Próxima tarefa única
+## 9. Entrega em andamento
 
-A conexão está encerrada tecnicamente. A próxima atividade é a entrada em operação:
+A frente atual é exclusivamente a governança de acesso da Gestão SME:
 
-1. cada usuário realiza o primeiro login com sua senha;
-2. os Controladores iniciam os lançamentos reais;
-3. a Assistente acompanha competências e verificações;
-4. Odair e Aylane iniciam os registros de Capital e Inventário;
-5. o Administrador Técnico acompanha Auth, auditoria e eventuais bloqueios.
+1. política de capacidades compartilhada pela interface e pelo serviço de pendências;
+2. visão mensal e prontuário limitados à bonificação;
+3. pendências disponíveis somente para consulta, detalhes e navegação;
+4. Registros Internos filtrados por UUID autenticado na interface e na RLS;
+5. migration, pgTAP, testes unitários e E2E versionados;
+6. homologação do PR, aplicação da migration e publicação controlada ainda pendentes.
 
-Não criar nova camada de integração ou fallback paralelo sem uma falha comprovada no contrato atual.
+A remodelagem de programas, categorias, exercícios e unidades participantes está deliberadamente fora desta entrega e será tratada em ciclo posterior.

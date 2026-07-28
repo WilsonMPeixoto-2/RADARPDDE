@@ -546,7 +546,7 @@
             return [{
                 id,
                 school_id: text(log?.escolaId || log?.school_id) || null,
-                actor_user_id: null,
+                actor_user_id: text(log?.actorUserId || log?.actor_user_id) || null,
                 user_identifier: text(log?.usuario || log?.user_identifier),
                 profile_name: text(log?.perfil || log?.profile_name),
                 action: text(log?.acao || log?.action) || 'Registro legado',
