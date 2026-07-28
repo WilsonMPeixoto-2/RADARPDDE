@@ -82,14 +82,13 @@ test('preserva 26 colunas, cabeçalho e dados mensais', () => {
     assert.match(sheet, /<c r="W2" s="6" t="inlineStr"><is><t xml:space="preserve"><\/t><\/is><\/c>/);
 });
 
-test('configura filtro, congelamento, validações e impressão', () => {
+test('configura filtro, congelamento e impressão sem validações reparáveis', () => {
     const sheet = inspect(renderer.renderWorkbook(model()))['xl/worksheets/sheet1.xml'];
 
     assert.match(sheet, /<pane xSplit="4" ySplit="1" topLeftCell="E2"[^>]*state="frozen"\/>/);
     assert.match(sheet, /<autoFilter ref="A1:Z2"\/>/);
-    assert.match(sheet, /<dataValidations count="18">/);
-    assert.match(sheet, /sqref="E2:E2"/);
-    assert.match(sheet, /<formula1>&quot;SIM,NÃO,NÃO SE APLICA&quot;<\/formula1>/);
+    assert.doesNotMatch(sheet, /<dataValidations\b/);
+    assert.doesNotMatch(sheet, /<dataValidation\b/);
     assert.match(sheet, /<pageSetup paperSize="9" orientation="landscape" fitToWidth="1" fitToHeight="0"\/>/);
     assert.match(sheet, /CONTROLE DE BONIFICAÇÃO — JULHO 2026/);
 });
