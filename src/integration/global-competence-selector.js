@@ -52,6 +52,16 @@
         return key;
     }
 
+    function createElement(tagName, properties = {}) {
+        const element = document.createElement(tagName);
+        Object.entries(properties).forEach(([key, value]) => {
+            if (key === 'textContent') element.textContent = value;
+            else if (key === 'className') element.className = value;
+            else element.setAttribute(key, value);
+        });
+        return element;
+    }
+
     function ensureControlMarkup() {
         const badge = document.getElementById('global-competence-badge');
         if (!badge) return null;
@@ -62,19 +72,29 @@
         badge.dataset.radarCompetenceControl = 'true';
         badge.classList.add('global-competence-control');
         badge.removeAttribute('title');
-        badge.innerHTML = `
-            <label for="global-competence-select">Competência</label>
-            <select
-                id="global-competence-select"
-                class="global-competence-select"
-                aria-describedby="global-competence-help global-competence-label"
-            ></select>
-            <span id="global-competence-label" class="global-competence-current" aria-live="polite"></span>
-            <span id="global-competence-help" class="sr-only">
-                A seleção atualiza todas as telas e exportações mensais.
-            </span>
-        `;
-        return document.getElementById('global-competence-select');
+        badge.replaceChildren();
+
+        const controlLabel = createElement('label', {
+            for: 'global-competence-select',
+            textContent: 'Competência'
+        });
+        const select = createElement('select', {
+            id: 'global-competence-select',
+            className: 'global-competence-select',
+            'aria-describedby': 'global-competence-help global-competence-label'
+        });
+        const currentLabel = createElement('span', {
+            id: 'global-competence-label',
+            className: 'global-competence-current',
+            'aria-live': 'polite'
+        });
+        const help = createElement('span', {
+            id: 'global-competence-help',
+            className: 'sr-only',
+            textContent: 'A seleção atualiza todas as telas e exportações mensais.'
+        });
+        badge.append(controlLabel, select, currentLabel, help);
+        return select;
     }
 
     function renderSelector(state = root.RadarCompetenceContext.getState()) {
@@ -82,9 +102,14 @@
         if (!select) return false;
         const records = root.RadarCompetenceContext.getAvailableForExercise(state.exercise);
         const previous = select.value;
-        select.innerHTML = records
-            .map(item => `<option value="${item.key}">${item.label || formatLabel(item.key)}</option>`)
-            .join('');
+        const fragment = document.createDocumentFragment();
+        records.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.key;
+            option.textContent = item.label || formatLabel(item.key);
+            fragment.appendChild(option);
+        });
+        select.replaceChildren(fragment);
         select.value = records.some(item => item.key === state.activeKey)
             ? state.activeKey
             : (previous || records[0]?.key || '');
