@@ -7,7 +7,7 @@ O RADAR PDDE possui contrato único de persistência e dois adaptadores:
 - `LocalStorageRepository` — backend vigente em Production;
 - `SupabaseRepository` — backend conectado ao Preview e preparado para futura ativação controlada.
 
-A conexão de Preview permanece separada de Production. O conjunto contém **24 migrations** e uma Edge Function protegida para o ciclo de contas da equipe.
+A conexão de Preview permanece separada de Production. O conjunto contém **25 migrations** e uma Edge Function protegida para o ciclo de contas da equipe.
 
 ## Matriz de cobertura
 

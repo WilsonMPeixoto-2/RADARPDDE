@@ -108,6 +108,9 @@
 
         function getProfile() {
             try {
+                if (typeof root.getRadarAccessProfile === 'function') {
+                    return root.getRadarAccessProfile();
+                }
                 return typeof currentProfile !== 'undefined' ? currentProfile : 'controlador';
             } catch (_error) {
                 return 'controlador';

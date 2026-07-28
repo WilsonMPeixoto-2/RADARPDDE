@@ -16,7 +16,10 @@
     }
 
     function enhanceResultPanel() {
-        if (typeof currentProfile !== 'undefined' && currentProfile !== 'controlador') return false;
+        const profile = typeof root.getRadarAccessProfile === 'function'
+            ? root.getRadarAccessProfile()
+            : (typeof currentProfile !== 'undefined' ? currentProfile : '');
+        if (profile !== 'controlador') return false;
         if (typeof currentView !== 'undefined' && currentView !== 'dashboard') return false;
 
         const panel = document.querySelector('#main-container .dash-layout > div:first-child .panel-card');

@@ -20,12 +20,15 @@ const requiredFiles = Object.freeze([
     'supabase/migrations/202607220002_atomic_operational_commands.sql',
     'supabase/migrations/202607230001_enable_pgtap_remote_validation.sql',
     'supabase/migrations/20260723043129_security_and_rls_hardening.sql',
+    'supabase/migrations/20260728182226_sme_access_governance.sql',
     'supabase/functions/_shared/team-account-domain.mjs',
     'supabase/functions/team-account-management/index.ts',
     'supabase/tests/database/team-management-rpc.test.sql',
     'supabase/tests/database/inventory-capital-rls.test.sql',
     'supabase/tests/database/verification-rpc.test.sql',
     'supabase/tests/database/operational-command-rpc.test.sql',
+    'supabase/tests/database/sme-access-governance.test.sql',
+    'src/domain/access-policy.js',
     previewBuildPath,
     'tests/unit/vercel-preview-workflow.test.js',
     'tests/unit/vercel-preview-defaults.test.js'
@@ -97,6 +100,19 @@ function check() {
         /alter function radar_private\.delete_invoice_with_effects[\s\S]*rename to delete_invoice_with_effects_impl/i
     ].forEach(pattern => {
         if (!pattern.test(securityMigration)) findings.push(`Hardening Supabase incompleto: ${pattern}`);
+    });
+
+    const smeAccessMigration = read(
+        'supabase/migrations/20260728182226_sme_access_governance.sql'
+    );
+    [
+        /current_app_role\(\)\)\s*=\s*'sme_management'[\s\S]+actor_user_id\s*=\s*\(select auth\.uid\(\)\)/i,
+        /current_app_role\(\)\)\s*=\s*'technical_admin'/i,
+        /create policy administrative_logs_insert[\s\S]+actor_user_id\s*=\s*\(select auth\.uid\(\)\)/i
+    ].forEach(pattern => {
+        if (!pattern.test(smeAccessMigration)) {
+            findings.push(`Governança de acesso da Gestão SME incompleta: ${pattern}`);
+        }
     });
 
     const authGate = read('src/integration/auth-gate.js');
@@ -171,8 +187,8 @@ function check() {
 
     const migrationCount = fs.readdirSync(path.join(root, 'supabase/migrations'))
         .filter(name => name.endsWith('.sql')).length;
-    if (migrationCount !== 24) {
-        findings.push(`Conjunto final deve conter 24 migrations; encontrado: ${migrationCount}.`);
+    if (migrationCount !== 25) {
+        findings.push(`Conjunto final deve conter 25 migrations; encontrado: ${migrationCount}.`);
     }
 
     return [...new Set(findings)];

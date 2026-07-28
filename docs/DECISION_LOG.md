@@ -229,3 +229,21 @@ Atuar fora da própria carteira:
 - não concede acesso a escola de outra CRE sem exceção explícita.
 
 A interpretação anterior que restringia Controladores à própria carteira está **substituída**.
+
+---
+
+## ADR-022 — Gestão SME separa consulta gerencial de operação
+
+**Status:** Aprovada
+
+Na visão da Gestão SME:
+
+- a tela mensal e o prontuário exibem identificação da unidade e informações de bonificação, sem análise técnica nem controles operacionais;
+- pendências, tentativas, contatos e detalhes permanecem consultáveis, mas novo envio, substituição, reanálise, contato, cancelamento, reabertura e criação de pendência são proibidos;
+- Registros Internos exibem somente linhas cujo `actor_user_id` coincide com o `auth.uid()` autenticado;
+- registros históricos sem UUID de autor não são exibidos à SME;
+- Administrador técnico mantém leitura integral quando opera em sua visão técnica, mas a simulação visual SME reproduz o mesmo recorte somente leitura da interface.
+
+A autorização de mutações de pendência é aplicada na política de capacidades, nos handlers, no serviço de aplicação e na RLS. Ocultar botões isoladamente não satisfaz esta decisão.
+
+A modelagem e a configuração de programas por exercício não fazem parte desta decisão.

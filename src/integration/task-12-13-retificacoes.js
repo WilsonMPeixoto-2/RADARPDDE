@@ -30,6 +30,9 @@
     }
 
     function currentProfileValue() {
+        if (typeof root.getRadarAccessProfile === 'function') {
+            return root.getRadarAccessProfile();
+        }
         return typeof currentProfile !== 'undefined' ? currentProfile : '';
     }
 

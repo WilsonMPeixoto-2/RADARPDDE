@@ -37,7 +37,7 @@ Luísa Ferreira representa a liderança operacional da GAD da 4ª CRE. O perfil:
 
 ### SME (Gestão)
 
-Acompanha a situação operacional das coordenadorias por visões consolidadas, administra parâmetros institucionais autorizados e realiza leitura gerencial ampla. Não substitui a Assistente na gestão cotidiana da equipe da CRE.
+Acompanha a situação operacional das coordenadorias por visões consolidadas e administra parâmetros institucionais autorizados. Nas visões mensal e do prontuário, consulta identificação da unidade e bonificação, sem análise técnica ou ações. Consulta pendências e seus detalhes sem registrar novo envio, substituição, reanálise, contato, cancelamento, reabertura ou nova pendência. Em Registros Internos, consulta somente ações vinculadas ao próprio UUID autenticado.
 
 ### Equipe de Inventário
 
@@ -116,7 +116,7 @@ Contrato de repositório
    └── SupabaseRepository
 ```
 
-Production permanece local até homologação e autorização. O adaptador remoto utiliza paginação, lotes, tratamento padronizado de erros, concorrência otimista, snapshots e operações RPC compostas.
+Preview e Production usam o `SupabaseRepository`; o `LocalStorageRepository` permanece apenas como rollback emergencial. O adaptador remoto utiliza paginação, lotes, tratamento padronizado de erros, concorrência otimista, snapshots e operações RPC compostas.
 
 ## 8. Gestão de contas da equipe
 
@@ -144,10 +144,12 @@ A credencial administrativa nunca chega ao navegador. Falhas compensam convite, 
 - Controlador: operação nas escolas da própria `cre_scope`, com carteira individual como recorte padrão e responsabilidade principal;
 - Assistente: operação transversal e Gestão de Equipe plena;
 - Inventário: operação patrimonial autorizada;
-- SME: leitura gerencial e parâmetros institucionais;
+- SME: leitura gerencial; pendências somente leitura; bonificação sem análise técnica; Registros Internos limitados ao próprio `auth.uid()`; parâmetros institucionais autorizados;
 - Administrador técnico: infraestrutura, perfis, escopos e auditoria.
 
 Controlador sem `cre_scope` não recebe acesso transversal automático. Escola de outra CRE permanece bloqueada, salvo exceção explícita em `user_school_scopes`.
+
+A simulação de perfil do Administrador técnico respeita a política visual do perfil selecionado. Ao simular SME, a interface permanece somente leitura e filtra Registros Internos pelo UUID do administrador, embora o JWT continue técnico para fins de RLS.
 
 Exclusão física é excepcional. A remoção funcional de integrante é desativação lógica e auditada.
 

@@ -25,7 +25,8 @@ declare
         '202607220001',
         '202607220002',
         '202607230001',
-        '20260723043129'
+        '20260723043129',
+        '20260728182226'
     ];
     v_actual text[];
     v_missing_extensions text[];
@@ -110,6 +111,32 @@ begin
           and coalesce(with_check, '') ilike '%inventory%'
     ) then
         raise exception 'INVENTORY_ASSET_UPDATE_SCOPE_MISSING';
+    end if;
+
+    if not exists (
+        select 1
+          from pg_policies
+         where schemaname = 'public'
+           and tablename = 'administrative_logs'
+           and policyname = 'administrative_logs_read'
+           and coalesce(qual, '') ilike '%sme_management%'
+           and coalesce(qual, '') ilike '%actor_user_id%'
+           and coalesce(qual, '') ilike '%auth.uid%'
+           and coalesce(qual, '') ilike '%technical_admin%'
+    ) then
+        raise exception 'SME_OWN_ADMINISTRATIVE_LOG_SCOPE_MISSING';
+    end if;
+
+    if not exists (
+        select 1
+          from pg_policies
+         where schemaname = 'public'
+           and tablename = 'administrative_logs'
+           and policyname = 'administrative_logs_insert'
+           and coalesce(with_check, '') ilike '%actor_user_id%'
+           and coalesce(with_check, '') ilike '%auth.uid%'
+    ) then
+        raise exception 'ADMINISTRATIVE_LOG_AUTHORSHIP_POLICY_MISSING';
     end if;
 
     select pg_get_functiondef('radar_private.can_access_school(text)'::regprocedure)

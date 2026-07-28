@@ -51,11 +51,19 @@
         return Boolean(
             root.RadarPendenciasViewModel
             && root.RadarPendencias
+            && root.RadarAccessPolicy
             && typeof root.renderPendencias === 'function'
             && typeof root.switchView === 'function'
             && typeof root.encodePendencyIdReference === 'function'
             && typeof root.resolvePendencyIdReference === 'function'
         );
+    }
+
+    function hasCapability(capability) {
+        const profile = typeof root.getRadarAccessProfile === 'function'
+            ? root.getRadarAccessProfile()
+            : (typeof currentProfile !== 'undefined' ? currentProfile : '');
+        return root.RadarAccessPolicy.hasCapability(profile, capability);
     }
 
     function isMobileViewport() {
@@ -198,7 +206,9 @@
         if (!drawer) {
             buttons.push(`<button class="btn btn-secondary btn-sm" data-action="open-pendency-detail" data-pendency-ref="${reference}" onclick="openPendencyDetail(this)">Ver detalhes</button>`);
         }
-        if (record.status === 'Aberta' && documentary && currentProfile !== 'inventario') {
+        if (record.status === 'Aberta'
+            && documentary
+            && hasCapability(root.RadarAccessPolicy.CAPABILITIES.REGISTER_CORRECTIVE_SUBMISSION)) {
             buttons.push(`
                 <button class="btn btn-primary btn-sm" data-action="register-corrective-submission" data-pendency-ref="${reference}" onclick="abrirModalRegistrarNovoEnvio(this)">Registrar novo envio</button>
             `);
@@ -208,7 +218,9 @@
                 <button class="btn btn-primary btn-sm" data-action="reanalyse-pendency" data-pendency-ref="${reference}" onclick="abrirModalReanalisarPendencia(this)">Reanalisar</button>
             `);
         }
-        if (record.status === 'Aguardando reanálise' && documentary && currentProfile !== 'inventario') {
+        if (record.status === 'Aguardando reanálise'
+            && documentary
+            && hasCapability(root.RadarAccessPolicy.CAPABILITIES.REGISTER_CORRECTIVE_SUBMISSION)) {
             buttons.push(`
                 <button class="btn btn-secondary btn-sm" data-action="register-corrective-submission" data-pendency-ref="${reference}" onclick="abrirModalRegistrarNovoEnvio(this)">Registrar substituição mais recente</button>
             `);

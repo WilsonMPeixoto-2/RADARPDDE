@@ -7,7 +7,7 @@ const fluxo = require('../../src/domain/fluxo-operacional.js');
 const retificacoes = require('../../src/domain/retificacoes.js');
 const { VerificationService } = require('../../src/application/verification-service.js');
 
-function createHarness() {
+function createHarness(currentProfile = '') {
     const verification = {
         bonificacao: {
             extCC: '',
@@ -50,6 +50,7 @@ function createHarness() {
         ensureVerification: () => verification,
         appendLog: (action, details) => state.logs.unshift({ action, details }),
         getCurrentUser: () => ({ name: 'Assistente Teste', role: 'Assistente CRE' }),
+        getCurrentProfile: () => currentProfile,
         createId: prefix => `${prefix}-${++id}`,
         now: () => '2026-07-14T12:00:00.000Z',
         fluxo,
@@ -60,6 +61,34 @@ function createHarness() {
     });
     return { state, calls, verification, service };
 }
+
+test('perfil SME autenticado não eleva acesso informando outro perfil na chamada', async () => {
+    const harness = createHarness('sme');
+
+    await assert.rejects(
+        () => harness.service.setBonification({
+            schoolId: 'ESC-1',
+            compKey: '2026-05_BASIC',
+            documentKey: 'extCC',
+            value: 'Sim',
+            profile: 'controlador'
+        }),
+        error => error?.code === 'FORBIDDEN'
+    );
+    await assert.rejects(
+        () => harness.service.retify({
+            schoolId: 'ESC-1',
+            compKey: '2026-05_BASIC',
+            programId: 'BASIC',
+            bonification: { extCC: 'Não' },
+            bonusResult: 'inapta',
+            justification: 'Tentativa indevida.',
+            profile: 'assistente'
+        }),
+        error => error?.code === 'FORBIDDEN'
+    );
+    assert.equal(harness.calls.length, 0);
+});
 
 test('altera bonificação e aplica dependências de N/A sem duplicar a regra operacional', async () => {
     const harness = createHarness();
@@ -133,4 +162,3 @@ test('consolida somente preenchimento válido e retifica com antes/depois audit�
     assert.equal(retified.value.retification.justificativa, 'Correção administrativa documentada.');
     assert.equal(harness.state.logs[0].action, 'Consolidação retificada');
 });
-
