@@ -64,7 +64,7 @@
     "format:check": "prettier --check --ignore-unknown",
     "dev": "http-server . -p 4175 -c-1",
     "lint": "npm run lint:security && npm run lint:e2e",
-    "lint:security": "eslint app.js config.js \"src/**/*.js\"",
+    "lint:security": "eslint app.js config.js \"src/**/*.js\" --max-warnings 42",
     "lint:e2e": "eslint \"tests/e2e/**/*.spec.js\""
   },
   "devDependencies": {
