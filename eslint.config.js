@@ -98,6 +98,14 @@ module.exports = [
         }
     },
     {
+        name: 'radar/vendor-esm-entrypoints',
+        files: ['src/vendor/*-entry.js'],
+        languageOptions: {
+            ecmaVersion: 'latest',
+            sourceType: 'module'
+        }
+    },
+    {
         name: 'radar/playwright',
         files: ['tests/e2e/**/*.spec.js'],
         languageOptions: {
