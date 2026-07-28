@@ -91,13 +91,14 @@ Estados documentais existentes:
 - `Incorreto`;
 - estados intermediários compatíveis com a interface vigente.
 
-A projeção sintetiza:
+A situação técnica e o grau de conclusão são calculados de forma independente:
 
 | Situação dos documentos | `technicalStatus` | `technicalCompletion` |
 |---|---|---|
 | todos não analisados | `nao-analisado` | `not_started` |
-| mistura de estados incompletos | `em-analise` | `in_progress` |
-| algum incorreto | `incorreto` | `complete` |
+| estados parciais sem incorreção | `em-analise` | `in_progress` |
+| algum incorreto e ainda há item não analisado | `incorreto` | `in_progress` |
+| algum incorreto e todos foram analisados | `incorreto` | `complete` |
 | todos corretos | `correto` | `complete` |
 | todos corretos, com atraso em algum item | `correto-atrasado` | `complete` |
 
@@ -150,6 +151,7 @@ A política de capacidades, os handlers, o serviço e a RLS permanecem cumulativ
 - campo vazio;
 - `Não se aplica` indevido;
 - análise não iniciada, em andamento e completa;
+- situação incorreta com análise ainda incompleta;
 - contagem de pendências ativas.
 
 ### Serviço
