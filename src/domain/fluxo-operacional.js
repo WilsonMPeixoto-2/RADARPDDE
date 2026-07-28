@@ -26,6 +26,7 @@
     const VALID_VALUES = new Set(['Sim', 'Não', 'Não se aplica']);
     const EDITABLE_PROFILES = new Set(['controlador', 'assistente']);
     const CORRECT_ANALYSES = new Set(['Correto', 'Correto (Atrasado)']);
+    const ACTIVE_PENDENCY_STATUSES = new Set(['Aberta', 'Aguardando reanálise']);
 
     function normalizeText(value) {
         return typeof value === 'string' ? value.trim() : '';
@@ -140,6 +141,54 @@
         return 'em-analise';
     }
 
+    function getTechnicalCompletion(analysis = {}) {
+        const values = DOCUMENT_KEYS.map(key => (
+            normalizeText(analysis[key]) || 'Não analisado'
+        ));
+        const analyzedCount = values.filter(value => value !== 'Não analisado').length;
+        if (analyzedCount === 0) return 'not_started';
+        if (analyzedCount < DOCUMENT_KEYS.length) return 'in_progress';
+        return 'complete';
+    }
+
+    function evaluateMonthlyEvaluation(input = {}) {
+        const bonification = input.bonification || input.bonificacao || {};
+        const analysis = input.analysis || input.analise || {};
+        const pendencies = Array.isArray(input.pendencies)
+            ? input.pendencies
+            : (Array.isArray(input.pendencias) ? input.pendencias : []);
+        const bonusEvaluation = evaluateBonification(bonification);
+        const verification = {
+            bonificacao: bonification,
+            analise: analysis,
+            resultadoBonif: bonusEvaluation.canConsolidate ? bonusEvaluation.status : ''
+        };
+        const technicalStatus = getProgramTechnicalAnalysisStatus(verification);
+        const openPendencyCount = pendencies.filter(pendency => (
+            normalizeText(pendency && pendency.status) === 'Aberta'
+        )).length;
+        const awaitingReanalysisCount = pendencies.filter(pendency => (
+            normalizeText(pendency && pendency.status) === 'Aguardando reanálise'
+        )).length;
+        const activePendencyCount = pendencies.filter(pendency => (
+            ACTIVE_PENDENCY_STATUSES.has(normalizeText(pendency && pendency.status))
+        )).length;
+
+        return Object.freeze({
+            canConsolidate: bonusEvaluation.canConsolidate,
+            bonusResult: bonusEvaluation.status,
+            missingFields: Object.freeze([...bonusEvaluation.missingFields]),
+            bonificationStatus: bonusEvaluation.canConsolidate
+                ? bonusEvaluation.status
+                : getProgramBonificationStatus(verification),
+            technicalStatus,
+            technicalCompletion: getTechnicalCompletion(analysis),
+            openPendencyCount,
+            awaitingReanalysisCount,
+            activePendencyCount
+        });
+    }
+
     function canRegisterFiscalNote(profile, bonificacaoNotaFiscal) {
         return EDITABLE_PROFILES.has(profile) && bonificacaoNotaFiscal === 'Sim';
     }
@@ -159,6 +208,7 @@
         canRegisterFiscalNote,
         createEmptyVerification,
         evaluateBonification,
+        evaluateMonthlyEvaluation,
         getProgramBonificationStatus,
         getProgramTechnicalAnalysisStatus,
         pendencyMatchesContext,
