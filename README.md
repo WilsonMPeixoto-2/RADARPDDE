@@ -8,7 +8,7 @@ O produto atende Controladores, Assistente de Verbas Federais, Gestão SME, Equi
 
 | Camada | Situação comprovada |
 |---|---|
-| Código-fonte | `main` em `a6b1a4628c6f3024740d8d5a6f2cb7ba028f9ff9`. |
+| Linha de base funcional auditada | Commit `a6b1a4628c6f3024740d8d5a6f2cb7ba028f9ff9`; o PR #90 alterou somente documentação. |
 | Deployment funcional | Commit `6f165f61016261073eba4b56ce7a0afd0074a904`, Vercel Production `READY`. |
 | Runtime publicado | `environment: production`, `dataMode: supabase-production`, repositório Supabase habilitado. |
 | Supabase | Projeto `RADAR PDDE 2026` ativo e saudável, com Auth, RLS, migrations e dados institucionais. |
