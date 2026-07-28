@@ -303,8 +303,12 @@
         }
 
         if (yearInput) yearInput.value = '';
-        renderExerciseSelector();
+        const storageKey = root.RadarCompetenceContext?.STORAGE_KEY;
+        if (storageKey && result.initialCompetence) {
+            root.localStorage?.setItem(storageKey, result.initialCompetence);
+        }
         root.RadarGlobalCompetenceSelector?.refreshContext?.({ source: 'exercise-created' });
+        renderExerciseSelector();
         if (typeof renderSMEConfig === 'function') renderSMEConfig();
         if (typeof updateGlobalCompetenceIndicator === 'function') updateGlobalCompetenceIndicator();
         root.alert?.(`Exercício ${result.year} criado com sucesso.`);
