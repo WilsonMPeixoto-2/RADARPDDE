@@ -105,6 +105,21 @@ test('distingue análise não iniciada, em andamento e concluída', () => {
   assert.equal(delayed.technicalCompletion, 'complete');
 });
 
+test('mantém situação incorreta separada da conclusão ainda em andamento', () => {
+  const result = flow.evaluateMonthlyEvaluation({
+    bonification: completeBonification,
+    analysis: {
+      ...completeAnalysis,
+      extCC: 'Incorreto',
+      extINV: 'Não analisado'
+    },
+    pendencies: [{ status: 'Aberta' }]
+  });
+
+  assert.equal(result.technicalStatus, 'incorreto');
+  assert.equal(result.technicalCompletion, 'in_progress');
+});
+
 test('contabiliza separadamente providência da escola e reanálise do controlador', () => {
   const result = flow.evaluateMonthlyEvaluation({
     bonification: completeBonification,
