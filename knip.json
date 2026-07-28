@@ -4,7 +4,6 @@
     "app.js",
     "config.js",
     "config.runtime.js",
-    "eslint.config.js",
     "lighthouserc.cjs",
     "playwright*.config.js",
     "scripts/**/*.{js,mjs}",
@@ -19,6 +18,11 @@
     "supabase/functions/**/*.{ts,mjs}",
     "tests/**/*.{js,mjs}"
   ],
+  "playwright": {
+    "config": [],
+    "entry": ["tests/e2e/**/*.spec.js"]
+  },
+  "ignoreDependencies": ["jsr", "npm"],
   "ignore": [
     "artifacts/**",
     "dist/**",
