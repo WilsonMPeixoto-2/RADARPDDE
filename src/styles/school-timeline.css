@@ -1,0 +1,213 @@
+.school-timeline-panel {
+    overflow: hidden;
+}
+
+.school-timeline-panel-header {
+    align-items: flex-start;
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+}
+
+.school-timeline-panel-header p {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    margin: 0.35rem 0 0;
+}
+
+.school-timeline-count {
+    align-items: center;
+    background: var(--bg-soft, rgba(127, 127, 127, 0.08));
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    color: var(--text-muted);
+    display: inline-flex;
+    flex: 0 0 auto;
+    font-size: 0.75rem;
+    font-weight: 700;
+    min-height: 2rem;
+    padding: 0.35rem 0.75rem;
+}
+
+.school-timeline-content {
+    padding: 0 1.5rem 1.5rem;
+}
+
+.school-timeline-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    position: relative;
+}
+
+.school-timeline-list::before {
+    background: var(--border-color);
+    bottom: 1.25rem;
+    content: '';
+    left: 1rem;
+    position: absolute;
+    top: 1.25rem;
+    width: 2px;
+}
+
+.school-timeline-item {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: 2rem minmax(0, 1fr);
+    padding: 0 0 1rem;
+    position: relative;
+}
+
+.school-timeline-item:last-child {
+    padding-bottom: 0;
+}
+
+.school-timeline-marker {
+    align-items: center;
+    background: var(--surface-color, var(--bg-primary));
+    border: 2px solid var(--primary-color, var(--primary));
+    border-radius: 50%;
+    color: var(--primary-color, var(--primary));
+    display: inline-flex;
+    font-size: 0.65rem;
+    font-weight: 800;
+    height: 2rem;
+    justify-content: center;
+    position: relative;
+    width: 2rem;
+    z-index: 1;
+}
+
+.school-timeline-card {
+    background: var(--surface-color, var(--bg-primary));
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    padding: 1rem;
+}
+
+.school-timeline-card-header {
+    align-items: flex-start;
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+}
+
+.school-timeline-heading h3 {
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    line-height: 1.35;
+    margin: 0.2rem 0 0;
+}
+
+.school-timeline-type {
+    color: var(--primary-color, var(--primary));
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.school-timeline-card time {
+    color: var(--text-muted);
+    flex: 0 0 auto;
+    font-size: 0.72rem;
+    white-space: nowrap;
+}
+
+.school-timeline-description {
+    color: var(--text-secondary, var(--text-muted));
+    font-size: 0.82rem;
+    line-height: 1.55;
+    margin: 0.75rem 0 0;
+}
+
+.school-timeline-metadata {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem 1.25rem;
+    margin: 0.9rem 0 0;
+}
+
+.school-timeline-metadata div {
+    display: grid;
+    gap: 0.1rem;
+}
+
+.school-timeline-metadata dt {
+    color: var(--text-muted);
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.school-timeline-metadata dd {
+    color: var(--text-primary);
+    font-size: 0.76rem;
+    margin: 0;
+}
+
+.school-timeline-empty {
+    border: 1px dashed var(--border-color);
+    border-radius: 0.75rem;
+    color: var(--text-muted);
+    padding: 2rem;
+    text-align: center;
+}
+
+.school-timeline-empty p {
+    font-size: 0.82rem;
+    line-height: 1.5;
+    margin: 0.5rem auto 0;
+    max-width: 42rem;
+}
+
+@media (max-width: 720px) {
+    .school-timeline-panel-header,
+    .school-timeline-card-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .school-timeline-count {
+        align-self: flex-start;
+    }
+
+    .school-timeline-content {
+        padding: 0 1rem 1rem;
+    }
+
+    .school-timeline-card time {
+        white-space: normal;
+    }
+
+    .school-timeline-metadata {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 420px) {
+    .school-timeline-item {
+        gap: 0.65rem;
+        grid-template-columns: 1.75rem minmax(0, 1fr);
+    }
+
+    .school-timeline-list::before {
+        left: 0.875rem;
+    }
+
+    .school-timeline-marker {
+        height: 1.75rem;
+        width: 1.75rem;
+    }
+
+    .school-timeline-card {
+        padding: 0.85rem;
+    }
+
+    .school-timeline-metadata {
+        grid-template-columns: 1fr;
+    }
+}
