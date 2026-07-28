@@ -10,6 +10,7 @@ on:
       - 'styles.css'
       - 'src/**'
       - 'vendor/**'
+      - 'scripts/run-lighthouse-baseline.mjs'
       - 'package.json'
       - 'package-lock.json'
       - 'lighthouserc.cjs'
@@ -25,6 +26,7 @@ on:
       - 'styles.css'
       - 'src/**'
       - 'vendor/**'
+      - 'scripts/run-lighthouse-baseline.mjs'
       - 'package.json'
       - 'package-lock.json'
       - 'lighthouserc.cjs'
@@ -68,12 +70,28 @@ jobs:
           test -x "${chrome_path}"
           printf 'CHROME_PATH=%s\n' "${chrome_path}" >> "${GITHUB_ENV}"
 
+      - name: Iniciar aplicação local para auditoria
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/lighthouse
+          npm run start > artifacts/lighthouse/server.log 2>&1 &
+          server_pid=$!
+          printf '%s\n' "${server_pid}" > artifacts/lighthouse/server.pid
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error http://127.0.0.1:4175/ > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat artifacts/lighthouse/server.log
+          exit 1
+
       - name: Executar baseline mobile
         id: lighthouse-mobile
         continue-on-error: true
         shell: bash
         run: |
-          mkdir -p artifacts/lighthouse
           set +e
           LHCI_PROFILE=mobile npm run audit:lighthouse 2>&1 | tee artifacts/lighthouse/mobile.log
           status=${PIPESTATUS[0]}
@@ -86,7 +104,6 @@ jobs:
         continue-on-error: true
         shell: bash
         run: |
-          mkdir -p artifacts/lighthouse
           set +e
           LHCI_PROFILE=desktop npm run audit:lighthouse 2>&1 | tee artifacts/lighthouse/desktop.log
           status=${PIPESTATUS[0]}
@@ -94,14 +111,22 @@ jobs:
           printf '{"exitCode":%s}\n' "${status}" > artifacts/lighthouse/desktop-exit.json
           exit "${status}"
 
+      - name: Encerrar aplicação local
+        if: always()
+        shell: bash
+        run: |
+          if test -f artifacts/lighthouse/server.pid; then
+            kill "$(cat artifacts/lighthouse/server.pid)" 2>/dev/null || true
+          fi
+
       - name: Resumir resultados sem bloquear a adoção inicial
         if: always()
         shell: bash
         run: |
-          echo "### Lighthouse CI" >> "${GITHUB_STEP_SUMMARY}"
+          echo "### Lighthouse" >> "${GITHUB_STEP_SUMMARY}"
           echo "- Mobile: ${{ steps.lighthouse-mobile.outcome }}" >> "${GITHUB_STEP_SUMMARY}"
           echo "- Desktop: ${{ steps.lighthouse-desktop.outcome }}" >> "${GITHUB_STEP_SUMMARY}"
-          echo "Os limiares desta primeira versão são informativos e os relatórios completos estão no artefato." >> "${GITHUB_STEP_SUMMARY}"
+          echo "Os limiares desta primeira versão são informativos; falhas do executor permanecem visíveis nos artefatos." >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Publicar relatórios Lighthouse
         if: always()
