@@ -43,7 +43,7 @@ test.describe('competência mensal global', () => {
     await page.evaluate(() => switchView('competencias'));
 
     await expect(page.locator('#global-competence-select')).toHaveValue('2026-12');
-    await expect(page.locator('#competencia-select')).toHaveCount(0);
+    await expect(page.locator('#comp-select-view')).toHaveCount(0);
     expect(await page.evaluate(() => ({
       currentExercise,
       activeCompetenciaKey,
