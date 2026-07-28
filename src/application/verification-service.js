@@ -82,6 +82,21 @@
         return Number.isInteger(candidate) && candidate > 0 ? candidate : null;
     }
 
+    function pendencyMatchesMonthlyContext(pendency, context) {
+        const schoolId = text(pendency?.escolaId || pendency?.school_id);
+        const competence = text(
+            pendency?.competenciaOrigem
+            || pendency?.competencia
+            || pendency?.competence_origin
+            || pendency?.competence_id
+        );
+        const programId = text(pendency?.programaId || pendency?.program_id);
+        if (schoolId !== context.schoolId) return false;
+        if (competence && competence !== context.competence) return false;
+        if (programId && context.programId && programId !== context.programId) return false;
+        return true;
+    }
+
     class VerificationService {
         constructor(options = {}) {
             this.dataService = options.dataService;
@@ -114,6 +129,22 @@
 
         getVerification(schoolId, compKey) {
             return this.ensureVerification(text(schoolId), text(compKey));
+        }
+
+        getMonthlyEvaluation(input = {}) {
+            const schoolId = text(input.schoolId);
+            const compKey = text(input.compKey);
+            const { competence, programId } = splitCompKey(compKey, input.programId);
+            const verification = input.verification || this.getVerification(schoolId, compKey);
+            const state = this.getState() || {};
+            const pendencies = list(state.pendencies || state.pendencias).filter(pendency => (
+                pendencyMatchesMonthlyContext(pendency, { schoolId, competence, programId })
+            ));
+            return this.flow.evaluateMonthlyEvaluation({
+                bonification: verification?.bonificacao || verification?.bonification || {},
+                analysis: verification?.analise || verification?.analysis || {},
+                pendencies
+            });
         }
 
         appendSchoolLog(schoolId, action, details) {
@@ -323,7 +354,11 @@
                     persistence.schoolId = schoolId;
                     persistence.compKey = compKey;
                     persistence.expectedVersion = rowVersionOf(verification);
-                    const evaluation = this.flow.evaluateBonification(verification.bonificacao);
+                    const evaluation = this.getMonthlyEvaluation({
+                        schoolId,
+                        compKey,
+                        verification
+                    });
                     if (!evaluation.canConsolidate) {
                         fail(
                             'INCOMPLETE_BONIFICATION',
@@ -332,14 +367,18 @@
                             { missingFields: [...evaluation.missingFields] }
                         );
                     }
-                    verification.resultadoBonif = evaluation.status;
+                    verification.resultadoBonif = evaluation.bonusResult;
                     const log = this.appendSchoolLog(
                         schoolId,
                         'Bonificação Consolidada',
-                        `A bonificação da escola ${schoolId} para ${compKey} foi fechada como "${evaluation.status.toUpperCase()}".`
+                        `A bonificação da escola ${schoolId} para ${compKey} foi fechada como "${evaluation.bonusResult.toUpperCase()}".`
                     );
                     persistence.logId = text(log?.id);
-                    return { status: evaluation.status, verification: cloneValue(verification) };
+                    return {
+                        status: evaluation.bonusResult,
+                        evaluation: cloneValue(evaluation),
+                        verification: cloneValue(verification)
+                    };
                 },
                 persist: context => this.persistAtomicVerification(context, persistence)
             });
