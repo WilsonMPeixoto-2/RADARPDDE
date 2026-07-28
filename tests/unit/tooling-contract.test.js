@@ -81,7 +81,7 @@ test('Lighthouse mede métricas, oportunidades e bloqueia regressões graves', (
 
     assert.match(lighthouseConfig, /metricBudgets/);
     assert.match(lighthouseConfig, /thresholds/);
-    assert.match(lighthouseRunner, /import\.meta\.resolve\('lighthouse\/cli\/index\.js'\)/);
+    assert.match(lighthouseRunner, /import\.meta\.resolve\('lighthouse'\)/);
     assert.match(lighthouseRunner, /accessibilityFindings/);
     assert.match(lighthouseRunner, /opportunities/);
     assert.match(lighthouseRunner, /summary\.md/);
