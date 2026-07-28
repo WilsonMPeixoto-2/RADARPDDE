@@ -98,6 +98,15 @@
             });
         }
 
+        function stateSignature(state = snapshot()) {
+            return JSON.stringify({
+                exercise: state.exercise,
+                activeKey: state.activeKey,
+                availableKeys: state.availableKeys,
+                closingKey: state.closingKey
+            });
+        }
+
         function notify(meta = {}) {
             const state = snapshot();
             listeners.forEach(listener => listener(state, Object.freeze({ ...meta })));
@@ -131,6 +140,7 @@
         }
 
         function replaceConfiguration(next = {}) {
+            const previousSignature = stateSignature();
             const nextCompetences = next.competences === undefined
                 ? competences
                 : normalizeCompetences(next.competences);
@@ -145,6 +155,8 @@
             if (!keys.length) throw createSelectionError(requestedExercise);
             if (!keys.includes(activeKey)) activeKey = chooseInitial(exercise, next.initialCompetence);
             persistSelection();
+            const state = snapshot();
+            if (stateSignature(state) === previousSignature) return state;
             return notify({ source: text(next.source) || 'replace-configuration' });
         }
 
