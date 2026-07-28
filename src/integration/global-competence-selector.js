@@ -12,8 +12,7 @@
     let installed = false;
     let contextUnsubscribe = null;
     let retryTimer = null;
-    let originalRenderCompetencias = null;
-    let originalCreateExerciseFromForm = null;
+    let mainObserver = null;
 
     function text(value) {
         return value == null ? '' : String(value).trim();
@@ -148,6 +147,15 @@
         else select.remove();
     }
 
+    function observeMainContainer() {
+        if (mainObserver || typeof MutationObserver !== 'function') return;
+        const container = document.getElementById('main-container');
+        if (!container) return;
+        mainObserver = new MutationObserver(() => removeLocalCompetenceControl());
+        mainObserver.observe(container, { childList: true, subtree: true });
+        removeLocalCompetenceControl();
+    }
+
     function refreshCurrentView() {
         if (typeof updateGlobalCompetenceIndicator === 'function') {
             updateGlobalCompetenceIndicator();
@@ -171,6 +179,26 @@
         }));
     }
 
+    function installLegacyEntryPoints() {
+        root.changeExercise = function changeExerciseFromGlobalContext(value) {
+            try {
+                root.RadarCompetenceContext.selectExercise(value, { source: 'exercise-selector' });
+                return true;
+            } catch (error) {
+                return false;
+            }
+        };
+
+        root.changeCompetenciaView = function changeCompetenceFromLegacyControl(value) {
+            try {
+                root.RadarCompetenceContext.select(value, { source: 'legacy-competence-control' });
+                return true;
+            } catch (error) {
+                return false;
+            }
+        };
+    }
+
     function initializeContext() {
         if (!runtimeReady()) return false;
         const runtimeState = readRuntimeState();
@@ -182,7 +210,8 @@
         contextUnsubscribe = root.RadarCompetenceContext.subscribe((state, meta) => applyState(state, meta));
         const state = root.RadarCompetenceContext.getState();
         applyState(state, { initial: true, source: 'initialize' });
-        wrapLegacyEntryPoints();
+        installLegacyEntryPoints();
+        observeMainContainer();
         return true;
     }
 
@@ -202,48 +231,6 @@
         select.addEventListener('change', handleCompetenceChange);
     }
 
-    function wrapLegacyEntryPoints() {
-        root.changeExercise = function changeExerciseFromGlobalContext(value) {
-            try {
-                root.RadarCompetenceContext.selectExercise(value, { source: 'exercise-selector' });
-                return true;
-            } catch (error) {
-                return false;
-            }
-        };
-
-        root.changeCompetenciaView = function changeCompetenceFromLegacyControl(value) {
-            try {
-                root.RadarCompetenceContext.select(value, { source: 'legacy-competence-control' });
-                return true;
-            } catch (error) {
-                return false;
-            }
-        };
-
-        if (typeof root.renderCompetencias === 'function' && !root.renderCompetencias.__globalCompetenceWrapped) {
-            originalRenderCompetencias = root.renderCompetencias;
-            const wrapped = function renderCompetenciasWithoutLocalSelector(...args) {
-                const result = originalRenderCompetencias.apply(this, args);
-                removeLocalCompetenceControl();
-                return result;
-            };
-            wrapped.__globalCompetenceWrapped = true;
-            root.renderCompetencias = wrapped;
-        }
-
-        if (typeof root.criarExercicio === 'function' && !root.criarExercicio.__globalCompetenceWrapped) {
-            originalCreateExerciseFromForm = root.criarExercicio;
-            const wrapped = async function createExerciseAndRefreshContext(...args) {
-                const result = await originalCreateExerciseFromForm.apply(this, args);
-                if (result !== false) refreshContext({ source: 'exercise-created' });
-                return result;
-            };
-            wrapped.__globalCompetenceWrapped = true;
-            root.criarExercicio = wrapped;
-        }
-    }
-
     function refreshContext(meta = {}) {
         if (!runtimeReady()) return false;
         if (!root.RadarCompetenceContext.isInitialized()) return initializeContext();
@@ -253,7 +240,8 @@
             source: text(meta.source) || 'refresh'
         });
         renderSelector();
-        wrapLegacyEntryPoints();
+        installLegacyEntryPoints();
+        observeMainContainer();
         return true;
     }
 
