@@ -12,6 +12,7 @@
 
     const STORAGE_KEY = 'radar_pdde_navigation_return_context_v1';
     const MAX_STACK_SIZE = 12;
+    const MAX_FOCUS_RESTORE_FRAMES = 30;
     const CONTEXTUAL_VIEWS = new Set(['prontuario', 'pendencias']);
     const VIEW_LABELS = Object.freeze({
         dashboard: 'Dashboard',
@@ -202,13 +203,18 @@
         return null;
     }
 
-    function afterRender(root) {
+    function nextFrame(root) {
         return new Promise(resolve => {
             const frame = typeof root?.requestAnimationFrame === 'function'
                 ? root.requestAnimationFrame.bind(root)
                 : callback => setTimeout(callback, 0);
-            frame(() => frame(resolve));
+            frame(resolve);
         });
+    }
+
+    async function afterRender(root) {
+        await nextFrame(root);
+        await nextFrame(root);
     }
 
     function restoreCompetence(root, competenceKey) {
@@ -229,10 +235,17 @@
         return true;
     }
 
-    function restoreViewport(root, context) {
+    async function restoreViewport(root, context) {
         root?.scrollTo?.({ top: context.scrollY, left: 0, behavior: 'auto' });
-        const target = findFocusTarget(root, context.focus || {});
-        target?.focus?.({ preventScroll: true });
+        for (let attempt = 0; attempt < MAX_FOCUS_RESTORE_FRAMES; attempt += 1) {
+            const target = findFocusTarget(root, context.focus || {});
+            if (target) {
+                target.focus?.({ preventScroll: true });
+                return true;
+            }
+            await nextFrame(root);
+        }
+        return false;
     }
 
     function navigate(root, route) {
@@ -252,7 +265,7 @@
                 restoreCompetence(root, context.competenceKey);
                 navigate(root, context.origin);
                 await afterRender(root);
-                restoreViewport(root, context);
+                await restoreViewport(root, context);
                 ensureBackButton(root);
                 return context;
             }
@@ -377,6 +390,7 @@
     return Object.freeze({
         STORAGE_KEY,
         MAX_STACK_SIZE,
+        MAX_FOCUS_RESTORE_FRAMES,
         CONTEXTUAL_VIEWS,
         normalizeRoute,
         createReturnContext,
