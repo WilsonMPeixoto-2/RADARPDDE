@@ -102,13 +102,14 @@ O retorno segue esta ordem:
 3. navegar por `RadarNavigationHistory.navigate()`;
 4. aguardar a renderização inicial;
 5. restaurar scrollport e posição;
-6. procurar o alvo por até 30 frames;
-7. aplicar foco com `preventScroll`;
-8. exigir estabilidade do mesmo alvo por dois frames;
-9. reaplicar a posição do scrollport;
-10. recalcular o botão contextual.
+6. acompanhar por até 30 frames a representação visível do alvo;
+7. aplicar foco com `preventScroll` quando o alvo aparece ou perde o foco;
+8. refocar a nova representação quando a lista substitui o elemento durante a estabilização;
+9. confirmar o alvo visível final;
+10. reaplicar a posição do scrollport;
+11. recalcular o botão contextual.
 
-A espera possui limite determinístico. A ausência do alvo não bloqueia a navegação.
+A vigilância possui limite determinístico, equivalente a uma janela curta de estabilização. A ausência do alvo não bloqueia a navegação nem cria repetição contínua.
 
 A busca do foco usa `id`, referência da pendência, ação ou identificador da escola. Antes da seleção, candidatos ocultos são descartados quando apresentam:
 
@@ -143,9 +144,10 @@ tests/unit/navigation-context.test.js
 tests/unit/navigation-context-delayed-focus.test.js
 tests/unit/navigation-context-scrollport.test.js
 tests/unit/navigation-context-visible-focus.test.js
+tests/unit/navigation-context-focus-monitor.test.js
 ```
 
-Comprovam normalização, pilha em sessão, competência, rotas, scrollports responsivos, foco tardio e estável, seleção do alvo visível, idempotência e fallback.
+Comprovam normalização, pilha em sessão, competência, rotas, scrollports responsivos, foco tardio, seleção do alvo visível, substituição responsiva do elemento durante a estabilização, idempotência e fallback.
 
 ### Jornada
 
