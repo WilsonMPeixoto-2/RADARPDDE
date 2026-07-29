@@ -120,10 +120,13 @@ O retorno segue esta ordem:
 1. retirar o último contexto da pilha;
 2. restaurar a competência global, quando diferente;
 3. navegar pela API `RadarNavigationHistory.navigate()`;
-4. aguardar dois frames de renderização;
+4. aguardar a estabilização inicial da renderização;
 5. restaurar a posição vertical;
-6. restaurar o foco no elemento de origem;
-7. recalcular a presença e o rótulo do botão contextual.
+6. procurar o alvo de foco por até 30 frames, permitindo que links legados sejam convertidos em rotas canônicas;
+7. restaurar o foco com `preventScroll` quando o alvo estiver disponível;
+8. recalcular a presença e o rótulo do botão contextual.
+
+A espera possui limite determinístico. A ausência do alvo não bloqueia a navegação nem cria repetição infinita.
 
 A busca do foco usa, nesta ordem:
 
@@ -158,6 +161,8 @@ Não armazena nomes de pessoas, e-mails, telefones, observações, valores finan
 
 A montagem do botão usa `createElement`, `textContent` e atributos controlados. Não utiliza `innerHTML`.
 
+A reaplicação do botão é idempotente: texto e rótulo acessível somente são escritos quando mudam, evitando retroalimentação do `MutationObserver`.
+
 ## 9. Compatibilidade
 
 O recurso preserva:
@@ -176,9 +181,10 @@ O recurso preserva:
 
 ```text
 tests/unit/navigation-context.test.js
+tests/unit/navigation-context-delayed-focus.test.js
 ```
 
-Comprova:
+Comprovam:
 
 - normalização do contrato;
 - pilha em sessão;
@@ -186,6 +192,8 @@ Comprova:
 - restauração da competência;
 - navegação para origem;
 - rolagem e foco;
+- espera limitada pela decoração assíncrona do link;
+- idempotência do botão sob `MutationObserver`;
 - fallback para Carteira.
 
 ### Jornada
