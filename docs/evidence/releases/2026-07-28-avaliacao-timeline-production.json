@@ -1,0 +1,62 @@
+{
+  "release": "avaliacao-mensal-e-timeline-cronologica",
+  "recorded_at": "2026-07-28T23:08:00-03:00",
+  "repository": "WilsonMPeixoto-2/RADARPDDE",
+  "functional_components": {
+    "monthly_evaluation": {
+      "pull_request": 98,
+      "merge_commit": "d7e3fb4361680200c4c900a8b36b920ea3d7dc63"
+    },
+    "school_timeline": {
+      "pull_request": 100,
+      "merge_commit": "fcf1ced6fca0cfda1d021915b17328aa299c1224",
+      "validated_head": "a98142c16584f07ce9c598918870d0b3fe1efc82"
+    }
+  },
+  "publication": {
+    "pull_request": 101,
+    "production_commit": "e85d3260683b99e2d67e51e07cf4bac8690b0700",
+    "deployment_id": "dpl_7dAaUfecP9NkTigAfpbaAk9DpHEN",
+    "deployment_state": "READY",
+    "runtime_environment": "production",
+    "data_mode": "supabase-production",
+    "production_activation_approved": true,
+    "supabase_repository_enabled": true
+  },
+  "validated_gates": {
+    "readiness": "success",
+    "migration_smoke": "success",
+    "supabase_local": "success",
+    "pgtap": "success",
+    "database_lint": "success",
+    "generated_artifacts": "success",
+    "auth_identities": 7,
+    "edge_function_authorization": "success",
+    "frontend_auth_rls_journey": "success",
+    "playwright_total": 129,
+    "playwright_passed": 113,
+    "playwright_skipped": 16,
+    "playwright_failed": 0,
+    "lighthouse_mobile": "success",
+    "lighthouse_desktop": "success",
+    "dependency_review": "success",
+    "dependency_audit": "success"
+  },
+  "production_smoke": {
+    "runtime_config": "success",
+    "monthly_evaluation_domain": "success",
+    "school_timeline_domain": "success",
+    "product_extensions_bootstrap": "success"
+  },
+  "database_changes": {
+    "migration": false,
+    "schema_change": false,
+    "data_update": false
+  },
+  "deployment_control": {
+    "automatic_deployment_before_window": false,
+    "automatic_deployment_during_window": true,
+    "automatic_deployment_restored_to_blocked": true
+  },
+  "contains_personal_data": false
+}
