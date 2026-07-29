@@ -1,0 +1,387 @@
+(function installRadarNavigationContext(root, factory) {
+    'use strict';
+
+    const api = factory();
+    if (typeof module !== 'undefined' && module.exports) module.exports = api;
+    if (root) {
+        root.RadarNavigationContext = Object.freeze(api);
+        if (root.document) api.install(root);
+    }
+}(typeof window !== 'undefined' ? window : globalThis, function createNavigationContextApi() {
+    'use strict';
+
+    const STORAGE_KEY = 'radar_pdde_navigation_return_context_v1';
+    const MAX_STACK_SIZE = 12;
+    const CONTEXTUAL_VIEWS = new Set(['prontuario', 'pendencias']);
+    const VIEW_LABELS = Object.freeze({
+        dashboard: 'Dashboard',
+        escolas: 'Carteira',
+        competencias: 'Competências',
+        pendencias: 'Pendências',
+        inventario: 'Inventário',
+        auditoria: 'Registros internos',
+        equipe: 'Gestão de equipe',
+        'sme-config': 'Configurações SME',
+        prontuario: 'Prontuário'
+    });
+
+    function text(value) {
+        return value == null ? '' : String(value).trim();
+    }
+
+    function safeStorage(storage) {
+        return storage && typeof storage.getItem === 'function' && typeof storage.setItem === 'function'
+            ? storage
+            : null;
+    }
+
+    function normalizeFilters(filters) {
+        const result = {};
+        if (!filters || typeof filters !== 'object') return result;
+        Object.entries(filters).forEach(([key, value]) => {
+            const normalizedKey = text(key);
+            const normalizedValue = text(value);
+            if (normalizedKey && normalizedValue) result[normalizedKey] = normalizedValue;
+        });
+        return result;
+    }
+
+    function normalizeRoute(route = {}) {
+        return {
+            view: text(route.view) || 'dashboard',
+            param: text(route.param) || null,
+            section: text(route.section) || null,
+            filters: normalizeFilters(route.filters)
+        };
+    }
+
+    function normalizeFocus(focus = {}) {
+        return {
+            id: text(focus.id),
+            schoolId: text(focus.schoolId),
+            pendencyRef: text(focus.pendencyRef),
+            action: text(focus.action)
+        };
+    }
+
+    function createReturnContext(input = {}) {
+        return {
+            version: 1,
+            capturedAt: text(input.capturedAt) || new Date().toISOString(),
+            origin: normalizeRoute(input.origin),
+            target: normalizeRoute(input.target),
+            competenceKey: text(input.competenceKey),
+            scrollY: Math.max(0, Number.isFinite(Number(input.scrollY)) ? Number(input.scrollY) : 0),
+            focus: normalizeFocus(input.focus)
+        };
+    }
+
+    function readStack(storage) {
+        const target = safeStorage(storage);
+        if (!target) return [];
+        try {
+            const parsed = JSON.parse(target.getItem(STORAGE_KEY) || '[]');
+            if (!Array.isArray(parsed)) return [];
+            return parsed
+                .filter(item => item && item.version === 1 && item.origin && item.target)
+                .map(createReturnContext)
+                .slice(-MAX_STACK_SIZE);
+        } catch (_error) {
+            return [];
+        }
+    }
+
+    function writeStack(storage, stack) {
+        const target = safeStorage(storage);
+        if (!target) return false;
+        const normalized = (Array.isArray(stack) ? stack : [])
+            .map(createReturnContext)
+            .slice(-MAX_STACK_SIZE);
+        if (normalized.length === 0) target.removeItem?.(STORAGE_KEY);
+        else target.setItem(STORAGE_KEY, JSON.stringify(normalized));
+        return true;
+    }
+
+    function pushReturnContext(storage, context) {
+        const stack = readStack(storage);
+        const normalized = createReturnContext(context);
+        const previous = stack.at(-1);
+        const sameTransition = previous
+            && JSON.stringify(previous.origin) === JSON.stringify(normalized.origin)
+            && JSON.stringify(previous.target) === JSON.stringify(normalized.target);
+        if (sameTransition) stack[stack.length - 1] = normalized;
+        else stack.push(normalized);
+        writeStack(storage, stack);
+        return normalized;
+    }
+
+    function peekReturnContext(storage) {
+        return readStack(storage).at(-1) || null;
+    }
+
+    function popReturnContext(storage) {
+        const stack = readStack(storage);
+        const context = stack.pop() || null;
+        writeStack(storage, stack);
+        return context;
+    }
+
+    function shouldCaptureTransition(origin, target) {
+        const from = normalizeRoute(origin);
+        const to = normalizeRoute(target);
+        return CONTEXTUAL_VIEWS.has(to.view) && from.view !== to.view;
+    }
+
+    function schoolIdFromElement(element, root) {
+        const direct = text(element?.dataset?.schoolId);
+        if (direct) return direct;
+        const href = text(element?.getAttribute?.('href'));
+        if (!href) return '';
+        try {
+            const url = new URL(href, root?.location?.href || 'https://radar.invalid/');
+            const match = /^\/escolas\/([^/]+)(?:\/pendencias)?$/.exec(url.pathname);
+            return match ? decodeURIComponent(match[1]) : '';
+        } catch (_error) {
+            return '';
+        }
+    }
+
+    function captureFocus(root) {
+        const element = root?.document?.activeElement;
+        if (!element || element === root.document.body) return normalizeFocus();
+        return normalizeFocus({
+            id: element.id,
+            schoolId: schoolIdFromElement(element, root),
+            pendencyRef: element.dataset?.pendencyRef,
+            action: element.dataset?.action
+        });
+    }
+
+    function currentCompetence(root) {
+        try {
+            if (root?.RadarCompetenceContext?.isInitialized?.()) {
+                return text(root.RadarCompetenceContext.getState().activeKey);
+            }
+        } catch (_error) {
+            return '';
+        }
+        return '';
+    }
+
+    function captureContext(root, origin, target) {
+        return createReturnContext({
+            origin,
+            target,
+            competenceKey: currentCompetence(root),
+            scrollY: Number(root?.scrollY) || 0,
+            focus: captureFocus(root)
+        });
+    }
+
+    function findFocusTarget(root, focus) {
+        const document = root?.document;
+        if (!document) return null;
+        if (focus.id) {
+            const byId = document.getElementById?.(focus.id);
+            if (byId) return byId;
+        }
+        const candidates = Array.from(document.querySelectorAll?.(
+            '[data-school-id], [data-pendency-ref], [data-action], a[data-radar-route="true"]'
+        ) || []);
+        if (focus.pendencyRef) {
+            const byPendency = candidates.find(item => text(item.dataset?.pendencyRef) === focus.pendencyRef);
+            if (byPendency) return byPendency;
+        }
+        if (focus.action) {
+            const byAction = candidates.find(item => text(item.dataset?.action) === focus.action);
+            if (byAction) return byAction;
+        }
+        if (focus.schoolId) {
+            return candidates.find(item => schoolIdFromElement(item, root) === focus.schoolId) || null;
+        }
+        return null;
+    }
+
+    function afterRender(root) {
+        return new Promise(resolve => {
+            const frame = typeof root?.requestAnimationFrame === 'function'
+                ? root.requestAnimationFrame.bind(root)
+                : callback => setTimeout(callback, 0);
+            frame(() => frame(resolve));
+        });
+    }
+
+    function restoreCompetence(root, competenceKey) {
+        const key = text(competenceKey);
+        const context = root?.RadarCompetenceContext;
+        if (!key || !context?.isInitialized?.()) return false;
+        const state = context.getState();
+        if (state.activeKey === key) return true;
+        const exercise = key.slice(0, 4);
+        if (state.exercise !== exercise && typeof context.selectExercise === 'function') {
+            context.selectExercise(exercise, {
+                initialCompetence: key,
+                source: 'contextual-return'
+            });
+            return true;
+        }
+        context.select(key, { source: 'contextual-return' });
+        return true;
+    }
+
+    function restoreViewport(root, context) {
+        root?.scrollTo?.({ top: context.scrollY, left: 0, behavior: 'auto' });
+        const target = findFocusTarget(root, context.focus || {});
+        target?.focus?.({ preventScroll: true });
+    }
+
+    function navigate(root, route) {
+        if (root?.RadarNavigationHistory?.navigate) {
+            return root.RadarNavigationHistory.navigate(root, normalizeRoute(route));
+        }
+        root?.switchView?.(route.view, route.param);
+        return normalizeRoute(route);
+    }
+
+    async function returnToOrigin(root) {
+        const storage = root?.sessionStorage;
+        const context = popReturnContext(storage);
+        root.__radarContextualNavigationRestoring = true;
+        try {
+            if (context) {
+                restoreCompetence(root, context.competenceKey);
+                navigate(root, context.origin);
+                await afterRender(root);
+                restoreViewport(root, context);
+                ensureBackButton(root);
+                return context;
+            }
+            const fallbackRoute = normalizeRoute({ view: 'escolas' });
+            navigate(root, fallbackRoute);
+            await afterRender(root);
+            root?.scrollTo?.({ top: 0, left: 0, behavior: 'auto' });
+            ensureBackButton(root);
+            return { fallback: true, origin: fallbackRoute };
+        } finally {
+            root.__radarContextualNavigationRestoring = false;
+        }
+    }
+
+    function currentRoute(root) {
+        return root?.RadarNavigationHistory?.currentRoute?.(root) || normalizeRoute({ view: 'dashboard' });
+    }
+
+    function routeLabel(route) {
+        return VIEW_LABELS[normalizeRoute(route).view] || 'tela anterior';
+    }
+
+    function ensureBackButton(root) {
+        const document = root?.document;
+        if (!document) return false;
+        const route = currentRoute(root);
+        const existing = document.querySelector?.('[data-radar-contextual-back="true"]');
+        if (!CONTEXTUAL_VIEWS.has(route.view)) {
+            existing?.remove?.();
+            return false;
+        }
+        const header = document.querySelector?.('#main-container .page-header');
+        if (!header) return false;
+        const context = peekReturnContext(root.sessionStorage);
+        const label = context ? routeLabel(context.origin) : 'Carteira';
+        const button = existing || document.createElement('button');
+        button.type = 'button';
+        button.className = 'btn btn-secondary btn-sm radar-contextual-back';
+        button.dataset.radarContextualBack = 'true';
+        button.setAttribute('aria-label', `Voltar para ${label}`);
+        button.textContent = `← Voltar para ${label}`;
+        button.style.alignSelf = 'flex-start';
+        button.style.flexShrink = '0';
+        if (!existing) {
+            button.addEventListener('click', () => {
+                returnToOrigin(root).catch(error => {
+                    root.RADAR_LAST_CONTEXTUAL_NAVIGATION_ERROR = error;
+                    console.error('Não foi possível restaurar a navegação contextual.', error);
+                });
+            });
+            header.prepend(button);
+        }
+        return true;
+    }
+
+    function targetRouteFromLink(root, anchor) {
+        if (!anchor || !root?.RadarNavigationRoutes?.parseRoute) return null;
+        try {
+            const url = new URL(anchor.href, root.location?.href || undefined);
+            const parsed = root.RadarNavigationRoutes.parseRoute(url.pathname, url.search);
+            return parsed?.valid ? normalizeRoute(parsed) : null;
+        } catch (_error) {
+            return null;
+        }
+    }
+
+    function scheduleEnsure(root) {
+        const frame = typeof root?.requestAnimationFrame === 'function'
+            ? root.requestAnimationFrame.bind(root)
+            : callback => setTimeout(callback, 0);
+        frame(() => ensureBackButton(root));
+    }
+
+    function install(root) {
+        if (!root || root.__radarNavigationContextInstalled) return false;
+        if (!root.document || !root.RadarNavigationHistory || typeof root.switchView !== 'function') {
+            return false;
+        }
+
+        const originalSwitchView = root.switchView.bind(root);
+        root.switchView = function switchViewWithContext(view, param = null) {
+            const origin = currentRoute(root);
+            const target = normalizeRoute({ view, param });
+            if (!root.__radarContextualNavigationRestoring && shouldCaptureTransition(origin, target)) {
+                pushReturnContext(root.sessionStorage, captureContext(root, origin, target));
+            }
+            const result = originalSwitchView(view, param);
+            scheduleEnsure(root);
+            return result;
+        };
+
+        root.document.addEventListener('click', event => {
+            const anchor = event.target?.closest?.('a[data-radar-route="true"]');
+            if (!anchor || root.__radarContextualNavigationRestoring) return;
+            const origin = currentRoute(root);
+            const target = targetRouteFromLink(root, anchor);
+            if (target && shouldCaptureTransition(origin, target)) {
+                pushReturnContext(root.sessionStorage, captureContext(root, origin, target));
+                scheduleEnsure(root);
+            }
+        }, true);
+
+        const container = root.document.getElementById?.('main-container');
+        if (container && typeof root.MutationObserver === 'function') {
+            const observer = new root.MutationObserver(() => ensureBackButton(root));
+            observer.observe(container, { childList: true, subtree: true });
+            root.__radarNavigationContextObserver = observer;
+        }
+
+        root.returnToRadarOrigin = () => returnToOrigin(root);
+        root.__radarNavigationContextInstalled = true;
+        scheduleEnsure(root);
+        return true;
+    }
+
+    return Object.freeze({
+        STORAGE_KEY,
+        MAX_STACK_SIZE,
+        CONTEXTUAL_VIEWS,
+        normalizeRoute,
+        createReturnContext,
+        pushReturnContext,
+        peekReturnContext,
+        popReturnContext,
+        shouldCaptureTransition,
+        captureContext,
+        restoreCompetence,
+        returnToOrigin,
+        ensureBackButton,
+        install
+    });
+}));
