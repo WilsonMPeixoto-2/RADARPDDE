@@ -43,7 +43,7 @@ src/integration/navigation-context.js
 
 - capturar a origem antes da entrada em uma superfície contextual;
 - manter uma pilha limitada na sessão;
-- restaurar competência, rota, rolagem e foco;
+- restaurar competência, rota, scrollport, posição e foco;
 - inserir o botão **Voltar para …** por DOM seguro;
 - usar Carteira como fallback quando a origem não existe.
 
@@ -88,6 +88,7 @@ Cada item possui:
     filters
   },
   competenceKey,
+  scrollTarget, // content-area ou window
   scrollY,
   focus: {
     id,
@@ -100,6 +101,8 @@ Cada item possui:
 
 A pilha é limitada a 12 itens e existe somente durante a sessão da aba. Não é persistida no Supabase nem incorporada a logs administrativos.
 
+Contextos antigos sem `scrollTarget` permanecem compatíveis e usam `window` como fallback.
+
 ## 5. Captura
 
 A origem é capturada quando a transição entra em:
@@ -111,9 +114,36 @@ Não há nova captura quando a navegação ocorre entre abas do mesmo Prontuári
 
 Links canônicos `a[data-radar-route="true"]` são observados na fase de captura do evento. Assim, o contexto é registrado antes que `navigation-bootstrap.js` execute a navegação na fase de propagação.
 
+O próprio link acionado é usado como fonte prioritária do descritor de foco. Isso evita depender do comportamento de foco automático de navegadores móveis.
+
 Chamadas legadas de `switchView()` são cobertas por um wrapper compatível.
 
-## 6. Retorno
+## 6. Scrollport
+
+O layout principal usa:
+
+```css
+main.content-area {
+  height: 100vh;
+  overflow-y: auto;
+}
+```
+
+Portanto, a posição operacional não é necessariamente `window.scrollY`.
+
+A captura segue esta prioridade:
+
+1. `main.content-area`, quando existe e é rolável;
+2. `window` e `document.scrollingElement` como fallback.
+
+O contexto armazena separadamente:
+
+- `scrollTarget`;
+- `scrollY`.
+
+Na restauração, a posição é aplicada antes do foco e reaplicada depois dele. A segunda aplicação neutraliza deslocamentos residuais provocados por foco, decoração tardia ou substituição de elementos.
+
+## 7. Retorno
 
 O retorno segue esta ordem:
 
@@ -121,10 +151,12 @@ O retorno segue esta ordem:
 2. restaurar a competência global, quando diferente;
 3. navegar pela API `RadarNavigationHistory.navigate()`;
 4. aguardar a estabilização inicial da renderização;
-5. restaurar a posição vertical;
+5. restaurar o scrollport e a posição vertical;
 6. procurar o alvo de foco por até 30 frames, permitindo que links legados sejam convertidos em rotas canônicas;
-7. restaurar o foco com `preventScroll` quando o alvo estiver disponível;
-8. recalcular a presença e o rótulo do botão contextual.
+7. aplicar o foco com `preventScroll`;
+8. exigir que o mesmo alvo permaneça focado e presente por dois frames consecutivos;
+9. reaplicar a posição do scrollport;
+10. recalcular a presença e o rótulo do botão contextual.
 
 A espera possui limite determinístico. A ausência do alvo não bloqueia a navegação nem cria repetição infinita.
 
@@ -135,7 +167,7 @@ A busca do foco usa, nesta ordem:
 3. ação do controle;
 4. identificador da escola presente em `data-school-id` ou na rota `/escolas/:id`.
 
-## 7. Fallback
+## 8. Fallback
 
 Quando a tela é acessada diretamente, por nova aba, favorito ou URL compartilhada, pode não existir origem contextual.
 
@@ -143,10 +175,10 @@ Nessa situação:
 
 - o botão é exibido como **Voltar para Carteira**;
 - o retorno navega para `/carteira`;
-- a rolagem volta ao topo;
+- o scrollport ativo volta ao topo;
 - nenhuma entrada artificial é criada na pilha.
 
-## 8. Segurança e privacidade
+## 9. Segurança e privacidade
 
 O contexto armazena somente dados de interface necessários ao retorno:
 
@@ -154,6 +186,7 @@ O contexto armazena somente dados de interface necessários ao retorno:
 - identificadores operacionais já presentes na rota;
 - competência;
 - filtros canônicos;
+- identificador do scrollport;
 - posição de rolagem;
 - descritores mínimos de foco.
 
@@ -163,7 +196,7 @@ A montagem do botão usa `createElement`, `textContent` e atributos controlados.
 
 A reaplicação do botão é idempotente: texto e rótulo acessível somente são escritos quando mudam, evitando retroalimentação do `MutationObserver`.
 
-## 9. Compatibilidade
+## 10. Compatibilidade
 
 O recurso preserva:
 
@@ -175,13 +208,14 @@ O recurso preserva:
 - filtros mantidos pelos módulos de origem;
 - desktop, Android e iPhone.
 
-## 10. Testes
+## 11. Testes
 
 ### Unidade
 
 ```text
 tests/unit/navigation-context.test.js
 tests/unit/navigation-context-delayed-focus.test.js
+tests/unit/navigation-context-scrollport.test.js
 ```
 
 Comprovam:
@@ -191,8 +225,10 @@ Comprovam:
 - seleção de transições capturáveis;
 - restauração da competência;
 - navegação para origem;
-- rolagem e foco;
+- captura e restauração de `main.content-area`;
+- reaplicação deliberada da posição após foco;
 - espera limitada pela decoração assíncrona do link;
+- estabilidade do foco por dois frames;
 - idempotência do botão sob `MutationObserver`;
 - fallback para Carteira.
 
@@ -206,12 +242,13 @@ Comprova em desktop, Android e iPhone:
 
 - abertura do Prontuário a partir da Carteira;
 - presença do botão contextual;
+- contexto capturado com escola, competência e scrollport;
 - retorno para `/carteira`;
 - preservação da competência ativa;
-- restauração de rolagem;
+- restauração do `main.content-area`;
 - restauração do foco no link da unidade.
 
-## 11. Critério de aceite
+## 12. Critério de aceite
 
 O ciclo somente pode ser mesclado quando:
 
