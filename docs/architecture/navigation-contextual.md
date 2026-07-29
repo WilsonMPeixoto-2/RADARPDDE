@@ -25,13 +25,7 @@ Modais continuam usando **Fechar** ou **Cancelar**. A navegação contextual nã
 src/integration/navigation-history.js
 ```
 
-Continua responsável por:
-
-- URL canônica;
-- `pushState` e `replaceState`;
-- `popstate`;
-- restauração pelo botão nativo do navegador;
-- autorização e fallback de rota.
+Continua responsável por URL canônica, histórico do navegador, autorização e fallback de rota.
 
 ### Contexto de retorno
 
@@ -53,13 +47,7 @@ src/integration/navigation-context.js
 src/integration/navigation-context-bootstrap.js
 ```
 
-Aguarda a instalação de `RadarNavigationHistory` e só então carrega o módulo contextual. Isso evita corrida entre os módulos dinâmicos sem alterar a sequência canônica de autenticação e autorização.
-
-O bootstrap é carregado por:
-
-```text
-src/integration/product-extensions-bootstrap.js
-```
+Aguarda a instalação de `RadarNavigationHistory` e só então carrega o módulo contextual. O bootstrap é carregado por `src/integration/product-extensions-bootstrap.js`.
 
 ## 4. Contrato persistido
 
@@ -75,138 +63,76 @@ Cada item possui:
 {
   version: 1,
   capturedAt,
-  origin: {
-    view,
-    param,
-    section,
-    filters
-  },
-  target: {
-    view,
-    param,
-    section,
-    filters
-  },
+  origin: { view, param, section, filters },
+  target: { view, param, section, filters },
   competenceKey,
   scrollTarget, // content-area ou window
   scrollY,
-  focus: {
-    id,
-    schoolId,
-    pendencyRef,
-    action
-  }
+  focus: { id, schoolId, pendencyRef, action }
 }
 ```
 
-A pilha é limitada a 12 itens e existe somente durante a sessão da aba. Não é persistida no Supabase nem incorporada a logs administrativos.
-
-Contextos antigos sem `scrollTarget` permanecem compatíveis e usam `window` como fallback.
+A pilha é limitada a 12 itens e existe somente durante a sessão da aba. Não é persistida no Supabase nem incorporada a logs administrativos. Contextos antigos sem `scrollTarget` permanecem compatíveis e usam `window` como fallback.
 
 ## 5. Captura
 
-A origem é capturada quando a transição entra em:
+A origem é capturada quando a transição entra em `prontuario` ou `pendencias` a partir de outra tela. Não há nova captura quando a navegação ocorre entre abas do mesmo Prontuário.
 
-- `prontuario` a partir de outra tela;
-- `pendencias` a partir de outra tela.
+Links canônicos `a[data-radar-route="true"]` são observados na fase de captura do evento. O próprio link acionado é usado como fonte prioritária do descritor de foco, evitando depender do foco automático dos navegadores móveis.
 
-Não há nova captura quando a navegação ocorre entre abas do mesmo Prontuário. Nesse caso, a origem útil permanece a tela que levou ao Prontuário.
+Chamadas legadas de `switchView()` permanecem cobertas por wrapper compatível.
 
-Links canônicos `a[data-radar-route="true"]` são observados na fase de captura do evento. Assim, o contexto é registrado antes que `navigation-bootstrap.js` execute a navegação na fase de propagação.
+## 6. Scrollport responsivo
 
-O próprio link acionado é usado como fonte prioritária do descritor de foco. Isso evita depender do comportamento de foco automático de navegadores móveis.
+No desktop, o layout principal usa `main.content-area` como área rolável. Em layouts móveis, a rolagem pode ocorrer em `window` e `document.scrollingElement`.
 
-Chamadas legadas de `switchView()` são cobertas por um wrapper compatível.
+A captura detecta o scrollport efetivamente deslocado:
 
-## 6. Scrollport
-
-O layout principal usa:
-
-```css
-main.content-area {
-  height: 100vh;
-  overflow-y: auto;
-}
-```
-
-Portanto, a posição operacional não é necessariamente `window.scrollY`.
-
-A captura segue esta prioridade:
-
-1. `main.content-area`, quando existe e é rolável;
+1. `main.content-area`, quando rolável e com posição própria;
 2. `window` e `document.scrollingElement` como fallback.
 
-O contexto armazena separadamente:
+O contexto armazena separadamente `scrollTarget` e `scrollY`. Na restauração, a posição é aplicada antes do foco e reaplicada depois dele para neutralizar deslocamentos residuais.
 
-- `scrollTarget`;
-- `scrollY`.
-
-Na restauração, a posição é aplicada antes do foco e reaplicada depois dele. A segunda aplicação neutraliza deslocamentos residuais provocados por foco, decoração tardia ou substituição de elementos.
-
-## 7. Retorno
+## 7. Retorno e foco
 
 O retorno segue esta ordem:
 
 1. retirar o último contexto da pilha;
-2. restaurar a competência global, quando diferente;
-3. navegar pela API `RadarNavigationHistory.navigate()`;
-4. aguardar a estabilização inicial da renderização;
-5. restaurar o scrollport e a posição vertical;
-6. procurar o alvo de foco por até 30 frames, permitindo que links legados sejam convertidos em rotas canônicas;
-7. aplicar o foco com `preventScroll`;
-8. exigir que o mesmo alvo permaneça focado e presente por dois frames consecutivos;
+2. restaurar a competência global;
+3. navegar por `RadarNavigationHistory.navigate()`;
+4. aguardar a renderização inicial;
+5. restaurar scrollport e posição;
+6. procurar o alvo por até 30 frames;
+7. aplicar foco com `preventScroll`;
+8. exigir estabilidade do mesmo alvo por dois frames;
 9. reaplicar a posição do scrollport;
-10. recalcular a presença e o rótulo do botão contextual.
+10. recalcular o botão contextual.
 
-A espera possui limite determinístico. A ausência do alvo não bloqueia a navegação nem cria repetição infinita.
+A espera possui limite determinístico. A ausência do alvo não bloqueia a navegação.
 
-A busca do foco usa, nesta ordem:
+A busca do foco usa `id`, referência da pendência, ação ou identificador da escola. Antes da seleção, candidatos ocultos são descartados quando apresentam:
 
-1. `id` do elemento;
-2. referência da pendência;
-3. ação do controle;
-4. identificador da escola presente em `data-school-id` ou na rota `/escolas/:id`.
+- atributo `hidden`;
+- `aria-hidden="true"` no elemento ou ancestral;
+- estado `disabled`;
+- `display: none` ou `visibility: hidden`;
+- ausência de retângulo visível no layout.
+
+Essa filtragem evita focar a tabela oculta no layout de cartões ou o cartão oculto no layout de tabela.
 
 ## 8. Fallback
 
-Quando a tela é acessada diretamente, por nova aba, favorito ou URL compartilhada, pode não existir origem contextual.
-
-Nessa situação:
-
-- o botão é exibido como **Voltar para Carteira**;
-- o retorno navega para `/carteira`;
-- o scrollport ativo volta ao topo;
-- nenhuma entrada artificial é criada na pilha.
+Quando a tela é acessada diretamente, por nova aba, favorito ou URL compartilhada, o botão é exibido como **Voltar para Carteira**. O retorno navega para `/carteira`, leva o scrollport ativo ao topo e não cria entrada artificial na pilha.
 
 ## 9. Segurança e privacidade
 
-O contexto armazena somente dados de interface necessários ao retorno:
+O contexto armazena somente dados de interface necessários ao retorno. Não armazena nomes de pessoas, e-mails, telefones, observações, valores financeiros ou conteúdo documental.
 
-- nomes de views;
-- identificadores operacionais já presentes na rota;
-- competência;
-- filtros canônicos;
-- identificador do scrollport;
-- posição de rolagem;
-- descritores mínimos de foco.
-
-Não armazena nomes de pessoas, e-mails, telefones, observações, valores financeiros ou conteúdo documental.
-
-A montagem do botão usa `createElement`, `textContent` e atributos controlados. Não utiliza `innerHTML`.
-
-A reaplicação do botão é idempotente: texto e rótulo acessível somente são escritos quando mudam, evitando retroalimentação do `MutationObserver`.
+A montagem do botão usa `createElement`, `textContent` e atributos controlados. Não utiliza `innerHTML`. A reaplicação é idempotente para não retroalimentar o `MutationObserver`.
 
 ## 10. Compatibilidade
 
-O recurso preserva:
-
-- rotas canônicas;
-- botão Voltar/Avançar do navegador;
-- abertura de link em nova aba;
-- autorização por perfil;
-- seletor global de competência;
-- filtros mantidos pelos módulos de origem;
-- desktop, Android e iPhone.
+O recurso preserva rotas canônicas, Voltar/Avançar do navegador, abertura em nova aba, autorização por perfil, seletor global de competência, filtros de origem e layouts desktop, Android e iPhone.
 
 ## 11. Testes
 
@@ -216,21 +142,10 @@ O recurso preserva:
 tests/unit/navigation-context.test.js
 tests/unit/navigation-context-delayed-focus.test.js
 tests/unit/navigation-context-scrollport.test.js
+tests/unit/navigation-context-visible-focus.test.js
 ```
 
-Comprovam:
-
-- normalização do contrato;
-- pilha em sessão;
-- seleção de transições capturáveis;
-- restauração da competência;
-- navegação para origem;
-- captura e restauração de `main.content-area`;
-- reaplicação deliberada da posição após foco;
-- espera limitada pela decoração assíncrona do link;
-- estabilidade do foco por dois frames;
-- idempotência do botão sob `MutationObserver`;
-- fallback para Carteira.
+Comprovam normalização, pilha em sessão, competência, rotas, scrollports responsivos, foco tardio e estável, seleção do alvo visível, idempotência e fallback.
 
 ### Jornada
 
@@ -242,19 +157,12 @@ Comprova em desktop, Android e iPhone:
 
 - abertura do Prontuário a partir da Carteira;
 - presença do botão contextual;
-- contexto capturado com escola, competência e scrollport;
+- captura da escola, competência e scrollport efetivo;
 - retorno para `/carteira`;
-- preservação da competência ativa;
-- restauração do `main.content-area`;
-- restauração do foco no link da unidade.
+- preservação da competência;
+- restauração da posição no scrollport real;
+- foco na representação visível da unidade.
 
 ## 12. Critério de aceite
 
-O ciclo somente pode ser mesclado quando:
-
-- readiness aprovar os módulos e testes;
-- limite de lint de segurança não aumentar;
-- migrations e Supabase local permanecerem aprovados;
-- Playwright passar em desktop, Android e iPhone;
-- Lighthouse e dependências não apresentarem regressão;
-- a documentação representar o SHA validado.
+O ciclo somente pode ser mesclado quando readiness, migrations, Supabase local, Playwright desktop/Android/iPhone, Lighthouse e dependências estiverem aprovados no mesmo SHA documentado.
