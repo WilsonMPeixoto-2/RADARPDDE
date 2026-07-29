@@ -99,12 +99,23 @@ test('botão Voltar restaura a origem contextual, competência, rolagem e foco',
   const schoolId = decodeURIComponent(schoolHref.split('/').filter(Boolean).at(-1));
   const activeCompetence = await page.evaluate(() => window.RadarCompetenceContext.getState().activeKey);
 
-  await schoolLink.evaluate(element => {
-    window.scrollTo(0, 360);
+  const capturedTop = await schoolLink.evaluate(element => {
+    const scrollPort = document.querySelector('main.content-area');
+    scrollPort.scrollTo({ top: 360, left: 0, behavior: 'auto' });
+    const top = Math.round(scrollPort.scrollTop);
     element.focus({ preventScroll: true });
     element.click();
+    return top;
   });
+  expect(capturedTop).toBeGreaterThan(0);
   await waitForRadarRoute(page, { view: 'prontuario', param: schoolId, section: null });
+
+  const capturedContext = await page.evaluate(() => (
+    window.RadarNavigationContext.peekReturnContext(window.sessionStorage)
+  ));
+  expect(capturedContext.scrollTarget).toBe('content-area');
+  expect(Math.round(capturedContext.scrollY)).toBe(capturedTop);
+  expect(capturedContext.focus.schoolId).toBe(schoolId);
 
   const backButton = page.locator('[data-radar-contextual-back="true"]');
   await expect(backButton).toBeVisible();
@@ -115,8 +126,9 @@ test('botão Voltar restaura a origem contextual, competência, rolagem e foco',
   await expect(page).toHaveURL(/\/carteira$/);
   await expect.poll(() => page.evaluate(() => window.RadarCompetenceContext.getState().activeKey))
     .toBe(activeCompetence);
-  await expect.poll(() => page.evaluate(() => Math.round(window.scrollY)))
-    .toBeGreaterThanOrEqual(300);
+  await expect.poll(() => page.evaluate(() => (
+    Math.round(document.querySelector('main.content-area').scrollTop)
+  ))).toBeGreaterThanOrEqual(Math.max(1, capturedTop - 2));
 
   const restoredLink = page.locator(`a[data-radar-route="true"][href="${schoolHref}"]`);
   await expect(restoredLink).toBeFocused();
