@@ -93,6 +93,35 @@ test('rota de escola, aba de pendências, filtro e histórico permanecem estáve
   await expect(page.locator('[data-radar-pendency-school-filter="true"]')).toBeVisible();
 });
 
+test('botão Voltar restaura a origem contextual, competência, rolagem e foco', async ({ page }) => {
+  const schoolLink = await openCarteira(page);
+  const schoolHref = await schoolLink.getAttribute('href');
+  const schoolId = decodeURIComponent(schoolHref.split('/').filter(Boolean).at(-1));
+  const activeCompetence = await page.evaluate(() => window.RadarCompetenceContext.getState().activeKey);
+
+  await schoolLink.evaluate(element => {
+    window.scrollTo(0, 360);
+    element.focus({ preventScroll: true });
+    element.click();
+  });
+  await waitForRadarRoute(page, { view: 'prontuario', param: schoolId, section: null });
+
+  const backButton = page.locator('[data-radar-contextual-back="true"]');
+  await expect(backButton).toBeVisible();
+  await expect(backButton).toContainText(/Voltar/);
+  await backButton.click();
+
+  await waitForRadarRoute(page, { view: 'escolas' });
+  await expect(page).toHaveURL(/\/carteira$/);
+  await expect.poll(() => page.evaluate(() => window.RadarCompetenceContext.getState().activeKey))
+    .toBe(activeCompetence);
+  await expect.poll(() => page.evaluate(() => Math.round(window.scrollY)))
+    .toBeGreaterThanOrEqual(300);
+
+  const restoredLink = page.locator(`a[data-radar-route="true"][href="${schoolHref}"]`);
+  await expect(restoredLink).toBeFocused();
+});
+
 test('link de escola abre em nova aba usando a própria URL', async ({ context, page }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop-chromium', 'Nova aba é homologada no desktop.');
 
