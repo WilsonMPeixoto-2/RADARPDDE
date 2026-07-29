@@ -71,7 +71,7 @@ function fixture() {
       'SCHOOL-A': {
         '2026-07_BASIC': verification('apta'),
         '2026-08_BASIC': verification('apta'),
-        '2026-08_CONECTADA': verification('inapta', { extINV: 'Não' })
+        '2026-08_CONECTADA': verification('inapta', { extCC: 'Não' })
       },
       'SCHOOL-B': {
         '2026-08_BASIC': verification('apta', { notaFiscal: 'Sim', encampInventario: 'Sim' })
