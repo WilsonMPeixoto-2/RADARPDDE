@@ -10,7 +10,8 @@
     ]);
     const scripts = Object.freeze([
         '/src/domain/school-timeline.js',
-        '/src/integration/school-timeline.js'
+        '/src/integration/school-timeline.js',
+        '/src/integration/navigation-context-bootstrap.js'
     ]);
 
     function loadStyleOnce(href) {
