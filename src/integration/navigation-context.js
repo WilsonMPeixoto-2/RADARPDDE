@@ -283,7 +283,7 @@
 
     async function restoreFocus(root, focus) {
         const document = root?.document;
-        const canVerify = Boolean(document && Object.hasOwn(document, 'activeElement'));
+        const canVerify = Boolean(document && 'activeElement' in document);
         for (let attempt = 0; attempt < MAX_FOCUS_RESTORE_FRAMES; attempt += 1) {
             const target = findFocusTarget(root, focus || {});
             if (!target) {
