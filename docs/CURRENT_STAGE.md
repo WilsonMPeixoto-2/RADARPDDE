@@ -1,10 +1,10 @@
 # RADAR PDDE — Estado atual do projeto
 
-**Atualizado em:** 28 de julho de 2026  
-**HEAD da `main`:** `6310270e20be024bb296da9b89f9029b4ccee7c3`  
+**Atualizado em:** 29 de julho de 2026  
+**HEAD da `main`:** `5401d860e6edc3bc46e9f027145a92ec0c7a8b20`  
 **HEAD funcional publicado:** `e85d3260683b99e2d67e51e07cf4bac8690b0700`  
 **Deployment funcional em Production:** `dpl_7dAaUfecP9NkTigAfpbaAk9DpHEN` — estado `READY`  
-**Frente em validação:** certificação integral dos relatórios Excel — PR #103  
+**Frente em validação:** navegação contextual e botões de voltar — PR #104  
 **Natureza:** documento operacional e transitório
 
 ## 1. Regra de leitura
@@ -23,6 +23,8 @@ Código, banco e deployment prevalecem sobre planos e relatórios históricos.
 ## 2. Situação executiva
 
 A integração entre frontend, Supabase Auth, PostgREST, RLS, PostgreSQL e Vercel Production está ativa. A governança da Gestão SME, o contexto mensal global, a avaliação mensal canônica e a timeline cronológica estão publicados.
+
+A certificação automatizada dos dois produtos Excel foi mesclada na `main`. A frente atual implementa o retorno contextual sem criar um roteador paralelo.
 
 ### Ciclo 1 — competência mensal global
 
@@ -57,19 +59,18 @@ A integração entre frontend, Supabase Auth, PostgREST, RLS, PostgreSQL e Verce
 - aba **Histórico cronológico** incorporada ao Prontuário;
 - carregamento pós-`app.js` idempotente e degradável;
 - montagem integral por DOM seguro, sem `innerHTML`;
-- 129 testes Playwright aprovados no gate final;
 - PR #100 mesclado como `fcf1ced6fca0cfda1d021915b17328aa299c1224`;
 - publicado em Production no deployment `dpl_7dAaUfecP9NkTigAfpbaAk9DpHEN`.
 
 ### Ciclo 4 — certificação integral dos relatórios Excel
 
-Implementado no PR #103 e em validação:
+Concluído e mesclado no PR #103 como `5401d860e6edc3bc46e9f027145a92ec0c7a8b20`:
 
 - auditoria de `resultadoBonif` contra `evaluateMonthlyEvaluation`;
 - relatório institucional preservado como histórico e multicompetência;
 - Excel SME preservado como mensal e restrito à competência ativa;
 - equivalência institucional com o CSV legado;
-- extração das worksheets produzidas pelos renderers reais;
+- execução dos modelos, planos e renderers reais;
 - comparação endereço a endereço e valor a valor;
 - validação das entradas OOXML obrigatórias;
 - confirmação de quatro abas institucionais e uma aba SME;
@@ -77,13 +78,28 @@ Implementado no PR #103 e em validação:
 - hash estrutural, hash de conteúdo e hash do manifesto;
 - contexto de divergência anonimizado por SHA-256;
 - massa sintética sem dados pessoais;
-- manifesto versionado e regenerado obrigatoriamente pelo readiness.
+- manifesto versionado e regenerado obrigatoriamente pelo readiness;
+- todos os workflows aprovados, incluindo Playwright desktop, Android e iPhone.
+
+### Ciclo 5 — navegação contextual
+
+Em validação no PR #104:
+
+- extensão do histórico canônico existente;
+- pilha de origens em `sessionStorage`;
+- captura antes da entrada em Prontuário ou Pendências;
+- preservação de competência, rota, rolagem e foco;
+- botão **Voltar para …** em superfícies de aprofundamento;
+- fallback **Voltar para Carteira** em acesso direto;
+- montagem segura por DOM;
+- ausência de nova tabela, RPC ou persistência remota;
+- contrato unitário e jornada real em desktop, Android e iPhone.
 
 ## 3. Estado por camada
 
 | Camada | Estado |
 |---|---|
-| GitHub | `main` contém competências, avaliação e timeline; certificação Excel em PR #103. |
+| GitHub | `main` contém os ciclos 1 a 4; ciclo 5 em PR #104. |
 | Vercel Production | deployment `dpl_7dAaUfecP9NkTigAfpbaAk9DpHEN` em estado `READY`. |
 | Runtime publicado | `production`, `supabase-production`, repositório remoto habilitado. |
 | Supabase | projeto `scnryinorqeucbfkioxo` ativo e saudável. |
@@ -93,9 +109,10 @@ Implementado no PR #103 e em validação:
 | Competência global | concluída, publicada e operacionalizada. |
 | Avaliação mensal | concluída e publicada. |
 | Timeline da unidade | concluída e publicada. |
-| Excel institucional | modelo e renderer implementados; certificação automatizada em gate final. |
-| Excel SME mensal | modelo e renderer implementados; certificação automatizada em gate final. |
-| Deployment automático | bloqueio restaurado após a janela controlada. |
+| Excel institucional | certificação automatizada concluída; botão institucional ainda usa CSV. |
+| Excel SME mensal | certificação automatizada concluída. |
+| Navegação contextual | implementada no PR #104; gate final pendente. |
+| Deployment automático | bloqueio restaurado após as janelas controladas. |
 | Liberação oficial | não declarada. |
 
 ## 4. Dados observados em Production
@@ -169,7 +186,7 @@ A timeline combina, por unidade e competência:
 
 A timeline não cria tabela, migration, RPC ou nova fonte de verdade.
 
-## 8. Certificação Excel — frente atual
+## 8. Certificação Excel
 
 ### 8.1 Produtos distintos
 
@@ -218,8 +235,6 @@ estado de origem
 | Abas SME | 1 |
 | `dataValidations` | ausente |
 
-Hashes da evidência versionada:
-
 ```text
 manifestHash = ee589e0d6f7361c9dd8176baccbcd9ceb931f4b34eb698c2f5dd97a49877f58b
 institutional.contentHash = a268bf40e6a9d3fc4d498af7568fc58d83d7960f64b9c99bf0d2fc074308acc3
@@ -232,18 +247,32 @@ Evidência:
 docs/evidence/excel-certification/synthetic-manifest.json
 ```
 
-O readiness executa o gerador em modo `--check`. Qualquer divergência entre o manifesto regenerado e a evidência versionada bloqueia o PR.
+### 8.4 Limites ainda existentes
 
-### 8.4 Limites
-
-Esta entrega não:
+A certificação automatizada não:
 
 - substitui o botão institucional ainda vinculado ao CSV;
 - altera a regra de inclusão dos relatórios;
 - consulta ou grava dados em Production;
 - comprova abertura manual no Microsoft Excel desktop.
 
-## 9. Segurança operacional
+## 9. Navegação contextual
+
+O ciclo 5 complementa as rotas canônicas:
+
+```text
+origem operacional
+→ captura de competência, rota, rolagem e foco
+→ Prontuário ou Pendências
+→ Voltar para origem
+→ restauração do contexto
+```
+
+O contexto existe somente durante a sessão da aba e é limitado a 12 itens. Não contém dados pessoais ou conteúdo documental.
+
+Arquitetura: [`architecture/navigation-contextual.md`](architecture/navigation-contextual.md).
+
+## 10. Segurança operacional
 
 Comprovado:
 
@@ -258,19 +287,19 @@ Comprovado:
 
 Bloqueadores antes do release oficial:
 
+- concluir o gate do PR #104;
+- realizar homologação manual dos arquivos no Microsoft Excel desktop;
 - habilitar proteção contra senhas vazadas no Supabase Auth;
 - fixar deliberadamente a major do Node;
 - validar backup e restauração em ambiente descartável;
 - executar gate remoto por perfil;
-- concluir o gate do PR #103;
-- realizar homologação manual dos arquivos no Microsoft Excel desktop;
 - concluir UAT.
 
-## 10. Ordem das próximas entregas
+## 11. Ordem das próximas entregas
 
-1. concluir e mesclar a certificação automatizada dos relatórios Excel;
-2. implementar navegação contextual e botões de voltar;
-3. executar polimento editorial e visual;
-4. fortalecer segurança, realizar UAT e decidir a liberação oficial.
+1. concluir, mesclar e publicar a navegação contextual;
+2. executar polimento editorial e visual;
+3. fortalecer segurança e infraestrutura de release;
+4. realizar UAT e decidir a liberação oficial.
 
 Plano detalhado: [`superpowers/plans/2026-07-28-oficializacao-operacional-radar-pdde.md`](superpowers/plans/2026-07-28-oficializacao-operacional-radar-pdde.md).
