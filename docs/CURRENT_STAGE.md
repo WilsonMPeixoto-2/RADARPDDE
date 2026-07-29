@@ -1,9 +1,10 @@
 # RADAR PDDE — Estado atual do projeto
 
 **Atualizado em:** 28 de julho de 2026  
+**HEAD da `main`:** `6310270e20be024bb296da9b89f9029b4ccee7c3`  
 **HEAD funcional publicado:** `e85d3260683b99e2d67e51e07cf4bac8690b0700`  
 **Deployment funcional em Production:** `dpl_7dAaUfecP9NkTigAfpbaAk9DpHEN` — estado `READY`  
-**Frente em execução:** certificação integral dos relatórios Excel  
+**Frente em validação:** certificação integral dos relatórios Excel — PR #103  
 **Natureza:** documento operacional e transitório
 
 ## 1. Regra de leitura
@@ -60,13 +61,29 @@ A integração entre frontend, Supabase Auth, PostgREST, RLS, PostgreSQL e Verce
 - PR #100 mesclado como `fcf1ced6fca0cfda1d021915b17328aa299c1224`;
 - publicado em Production no deployment `dpl_7dAaUfecP9NkTigAfpbaAk9DpHEN`.
 
-A publicação conjunta dos ciclos 2 e 3 foi confirmada por smoke direto do runtime Production, da projeção mensal, do domínio da timeline e do bootstrap das extensões.
+### Ciclo 4 — certificação integral dos relatórios Excel
+
+Implementado no PR #103 e em validação:
+
+- auditoria de `resultadoBonif` contra `evaluateMonthlyEvaluation`;
+- relatório institucional preservado como histórico e multicompetência;
+- Excel SME preservado como mensal e restrito à competência ativa;
+- equivalência institucional com o CSV legado;
+- extração das worksheets produzidas pelos renderers reais;
+- comparação endereço a endereço e valor a valor;
+- validação das entradas OOXML obrigatórias;
+- confirmação de quatro abas institucionais e uma aba SME;
+- confirmação de ausência de `dataValidations`;
+- hash estrutural, hash de conteúdo e hash do manifesto;
+- contexto de divergência anonimizado por SHA-256;
+- massa sintética sem dados pessoais;
+- manifesto versionado e regenerado obrigatoriamente pelo readiness.
 
 ## 3. Estado por camada
 
 | Camada | Estado |
 |---|---|
-| GitHub | `main` contém competência global, avaliação mensal e timeline cronológica. |
+| GitHub | `main` contém competências, avaliação e timeline; certificação Excel em PR #103. |
 | Vercel Production | deployment `dpl_7dAaUfecP9NkTigAfpbaAk9DpHEN` em estado `READY`. |
 | Runtime publicado | `production`, `supabase-production`, repositório remoto habilitado. |
 | Supabase | projeto `scnryinorqeucbfkioxo` ativo e saudável. |
@@ -76,8 +93,8 @@ A publicação conjunta dos ciclos 2 e 3 foi confirmada por smoke direto do runt
 | Competência global | concluída, publicada e operacionalizada. |
 | Avaliação mensal | concluída e publicada. |
 | Timeline da unidade | concluída e publicada. |
-| Excel institucional | implementado; certificação célula a célula pendente. |
-| Excel SME mensal | implementado; certificação célula a célula pendente. |
+| Excel institucional | modelo e renderer implementados; certificação automatizada em gate final. |
+| Excel SME mensal | modelo e renderer implementados; certificação automatizada em gate final. |
 | Deployment automático | bloqueio restaurado após a janela controlada. |
 | Liberação oficial | não declarada. |
 
@@ -150,27 +167,20 @@ A timeline combina, por unidade e competência:
 - bens permanentes e inventariação;
 - registros administrativos autorizados.
 
-Contrato de cada evento:
-
-```text
-id, occurredAt, type, title, description, actor, status,
-competenceKey, programId, pendencyId, visibility, sourceEntity, sourceId
-```
-
 A timeline não cria tabela, migration, RPC ou nova fonte de verdade.
 
 ## 8. Certificação Excel — frente atual
 
-Existem dois produtos distintos e ambos devem preservar seus contratos próprios:
+### 8.1 Produtos distintos
 
-### Relatório institucional
+#### Relatório institucional
 
 - histórico e multicompetência;
 - uma linha por escola, competência e programa consolidado;
 - quatro abas: `BONIFICACOES`, `SINTESE`, `QUALIDADE_DADOS` e `METADADOS`;
 - equivalência com o relatório lógico original obrigatória.
 
-### Excel SME mensal
+#### Excel SME mensal
 
 - uma única competência por arquivo;
 - todas as unidades escolares no escopo;
@@ -179,27 +189,59 @@ Existem dois produtos distintos e ambos devem preservar seus contratos próprios
 - uma única planilha com o nome do mês;
 - ausência das validações que provocavam reparo pelo Microsoft Excel.
 
-A certificação deverá comprovar, separadamente:
+### 8.2 Cadeia certificada
 
 ```text
 estado de origem
 → evaluateMonthlyEvaluation
-→ modelo lógico do relatório
+→ modelo lógico
+→ plano do workbook, quando aplicável
 → pacote OOXML
-→ endereço e valor da célula XLSX
+→ endereço e valor da célula
+→ manifesto SHA-256
 ```
 
-Gates previstos:
+### 8.3 Resultado da massa sintética
 
-- resultado armazenado compatível com a projeção canônica;
-- isolamento absoluto da competência no Excel SME;
-- preservação deliberada do escopo histórico no relatório institucional;
-- correspondência célula a célula;
-- contagens, resumos e agregações reconciliados;
-- pacote OOXML íntegro;
-- arquivo sem reparo;
-- manifesto determinístico com hashes e divergências;
-- evidência sem dados pessoais desnecessários.
+| Verificação | Resultado |
+|---|---:|
+| Resultados canônicos auditados | 4 |
+| Divergências canônicas | 0 |
+| Linhas institucionais | 4 |
+| Células institucionais certificadas | 48 |
+| Divergências de célula institucional | 0 |
+| Abas institucionais | 4 |
+| Escolas no Excel SME | 2 |
+| Colunas SME | 26 |
+| Células SME certificadas | 78 |
+| Divergências de célula SME | 0 |
+| Abas SME | 1 |
+| `dataValidations` | ausente |
+
+Hashes da evidência versionada:
+
+```text
+manifestHash = ee589e0d6f7361c9dd8176baccbcd9ceb931f4b34eb698c2f5dd97a49877f58b
+institutional.contentHash = a268bf40e6a9d3fc4d498af7568fc58d83d7960f64b9c99bf0d2fc074308acc3
+smeMonthly.contentHash = 7e6ce22739f5323193ceb284e43678648fe8772e21775467bf625340a766bcba
+```
+
+Evidência:
+
+```text
+docs/evidence/excel-certification/synthetic-manifest.json
+```
+
+O readiness executa o gerador em modo `--check`. Qualquer divergência entre o manifesto regenerado e a evidência versionada bloqueia o PR.
+
+### 8.4 Limites
+
+Esta entrega não:
+
+- substitui o botão institucional ainda vinculado ao CSV;
+- altera a regra de inclusão dos relatórios;
+- consulta ou grava dados em Production;
+- comprova abertura manual no Microsoft Excel desktop.
 
 ## 9. Segurança operacional
 
@@ -211,7 +253,8 @@ Comprovado:
 - Edge Function protegida por JWT;
 - alterações auditáveis;
 - backup lógico pré-ativação disponível;
-- deployments automáticos bloqueados após as janelas controladas.
+- deployments automáticos bloqueados após as janelas controladas;
+- evidência Excel sintética sem dados pessoais.
 
 Bloqueadores antes do release oficial:
 
@@ -219,12 +262,13 @@ Bloqueadores antes do release oficial:
 - fixar deliberadamente a major do Node;
 - validar backup e restauração em ambiente descartável;
 - executar gate remoto por perfil;
-- concluir a certificação dos relatórios Excel;
+- concluir o gate do PR #103;
+- realizar homologação manual dos arquivos no Microsoft Excel desktop;
 - concluir UAT.
 
 ## 10. Ordem das próximas entregas
 
-1. reconciliar e certificar os dois relatórios Excel;
+1. concluir e mesclar a certificação automatizada dos relatórios Excel;
 2. implementar navegação contextual e botões de voltar;
 3. executar polimento editorial e visual;
 4. fortalecer segurança, realizar UAT e decidir a liberação oficial.
