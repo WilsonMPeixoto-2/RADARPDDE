@@ -208,16 +208,29 @@
         });
     }
 
+    function isVisibleFocusCandidate(element, root) {
+        if (!element || element.hidden || element.disabled) return false;
+        if (element.getAttribute?.('aria-hidden') === 'true') return false;
+        if (element.closest?.('[hidden], [aria-hidden="true"]')) return false;
+        if (typeof element.getClientRects === 'function' && element.getClientRects().length === 0) {
+            return false;
+        }
+        const style = typeof root?.getComputedStyle === 'function'
+            ? root.getComputedStyle(element)
+            : null;
+        return !style || (style.display !== 'none' && style.visibility !== 'hidden');
+    }
+
     function findFocusTarget(root, focus) {
         const document = root?.document;
         if (!document) return null;
         if (focus.id) {
             const byId = document.getElementById?.(focus.id);
-            if (byId) return byId;
+            if (isVisibleFocusCandidate(byId, root)) return byId;
         }
         const candidates = Array.from(document.querySelectorAll?.(
             '[data-school-id], [data-pendency-ref], [data-action], a[data-radar-route="true"]'
-        ) || []);
+        ) || []).filter(item => isVisibleFocusCandidate(item, root));
         if (focus.pendencyRef) {
             const byPendency = candidates.find(item => text(item.dataset?.pendencyRef) === focus.pendencyRef);
             if (byPendency) return byPendency;
@@ -465,6 +478,7 @@
         captureContext,
         restoreCompetence,
         restoreScrollState,
+        isVisibleFocusCandidate,
         returnToOrigin,
         ensureBackButton,
         install
