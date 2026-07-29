@@ -56,15 +56,21 @@ test('captura e restaura o scroll de main.content-area em vez de window', async 
     assert.equal(contentArea.scrollTop, 360);
 });
 
-test('considera o foco restaurado somente depois de permanecer estável no alvo final', async () => {
+test('considera activeElement herdado e exige foco estável no alvo final', async () => {
     const storage = createStorage();
-    const document = {
-        activeElement: null,
+    let activeElement = null;
+    const documentPrototype = {};
+    Object.defineProperty(documentPrototype, 'activeElement', {
+        get() { return activeElement; },
+        set(value) { activeElement = value; },
+        configurable: true
+    });
+    const document = Object.assign(Object.create(documentPrototype), {
         body: {},
         querySelector() { return null; },
         querySelectorAll() { return [target]; },
         getElementById() { return null; }
-    };
+    });
     let focusAttempts = 0;
     const target = {
         dataset: {},
