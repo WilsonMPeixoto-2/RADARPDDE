@@ -7,13 +7,6 @@
 
     const document = root.document;
 
-    function html(value) {
-        if (typeof root.escapeHtml === 'function') return root.escapeHtml(value == null ? '' : String(value));
-        const node = document.createElement('span');
-        node.textContent = value == null ? '' : String(value);
-        return node.innerHTML;
-    }
-
     function formatDateTime(value) {
         const date = new Date(value);
         if (Number.isNaN(date.getTime())) return '';
@@ -78,63 +71,113 @@
         };
     }
 
+    function competenceLabel(input) {
+        try {
+            const item = typeof COMPETENCIAS !== 'undefined'
+                ? COMPETENCIAS.find(candidate => candidate.key === input.competenceKey)
+                : null;
+            return item?.label || input.competenceKey;
+        } catch (_error) {
+            return input.competenceKey;
+        }
+    }
+
+    function textElement(tagName, className, value) {
+        const element = document.createElement(tagName);
+        if (className) element.className = className;
+        element.textContent = value == null ? '' : String(value);
+        return element;
+    }
+
+    function appendMeta(container, label, value) {
+        if (!value) return;
+        const item = document.createElement('span');
+        const strong = document.createElement('strong');
+        strong.textContent = `${label}:`;
+        item.append(strong, document.createTextNode(` ${value}`));
+        container.appendChild(item);
+    }
+
+    function buildTimelineItem(event) {
+        const article = document.createElement('article');
+        article.className = 'school-timeline-item';
+        article.setAttribute('role', 'listitem');
+        article.dataset.timelineEventType = event.type;
+        article.dataset.timelineSource = event.sourceEntity;
+
+        const marker = textElement('div', 'school-timeline-marker', iconFor(event.type));
+        marker.setAttribute('aria-hidden', 'true');
+
+        const content = document.createElement('div');
+        content.className = 'school-timeline-content';
+
+        const topLine = document.createElement('div');
+        topLine.className = 'school-timeline-topline';
+        const titleBlock = document.createElement('div');
+        titleBlock.appendChild(textElement('h3', '', event.title));
+        const time = textElement('time', '', formatDateTime(event.occurredAt));
+        time.dateTime = event.occurredAt;
+        titleBlock.appendChild(time);
+        topLine.appendChild(titleBlock);
+        if (event.status) topLine.appendChild(textElement('span', 'school-timeline-status', event.status));
+        content.appendChild(topLine);
+
+        if (event.description) content.appendChild(textElement('p', '', event.description));
+
+        const meta = document.createElement('div');
+        meta.className = 'school-timeline-meta';
+        appendMeta(meta, 'Responsável', event.actor || 'Sistema');
+        appendMeta(meta, 'Programa', event.programId);
+        appendMeta(meta, 'Pendência', event.pendencyId);
+        content.appendChild(meta);
+
+        article.append(marker, content);
+        return article;
+    }
+
+    function buildTimelineCard(input, events) {
+        const card = document.createElement('div');
+        card.className = 'panel-card school-timeline-card';
+
+        const header = document.createElement('div');
+        header.className = 'panel-header school-timeline-header';
+        const heading = document.createElement('div');
+        heading.appendChild(textElement('h2', '', 'Histórico cronológico da unidade'));
+        heading.appendChild(textElement(
+            'p',
+            '',
+            `Eventos consolidados da competência ${competenceLabel(input)}.`
+        ));
+        const count = textElement(
+            'span',
+            'badge badge-info',
+            `${events.length} ${events.length === 1 ? 'evento' : 'eventos'}`
+        );
+        header.append(heading, count);
+        card.appendChild(header);
+
+        const listElement = document.createElement('div');
+        listElement.className = 'school-timeline';
+        listElement.setAttribute('role', 'list');
+        listElement.setAttribute('aria-label', 'Histórico cronológico da unidade');
+        if (events.length) {
+            events.forEach(event => listElement.appendChild(buildTimelineItem(event)));
+        } else {
+            listElement.appendChild(textElement(
+                'div',
+                'school-timeline-empty',
+                'Nenhum evento foi registrado para esta unidade na competência selecionada.'
+            ));
+        }
+        card.appendChild(listElement);
+        return card;
+    }
+
     function renderTimeline(panel, schoolId) {
         if (!panel) return;
         const input = timelineInput(schoolId);
         const events = root.RadarSchoolTimeline.buildSchoolTimeline(input);
-        const competenceLabel = (() => {
-            try {
-                const item = typeof COMPETENCIAS !== 'undefined'
-                    ? COMPETENCIAS.find(candidate => candidate.key === input.competenceKey)
-                    : null;
-                return item?.label || input.competenceKey;
-            } catch (_error) {
-                return input.competenceKey;
-            }
-        })();
-
-        panel.innerHTML = `
-            <div class="panel-card school-timeline-card">
-                <div class="panel-header school-timeline-header">
-                    <div>
-                        <h2>Histórico cronológico da unidade</h2>
-                        <p>Eventos consolidados da competência ${html(competenceLabel)}.</p>
-                    </div>
-                    <span class="badge badge-info">${events.length} ${events.length === 1 ? 'evento' : 'eventos'}</span>
-                </div>
-                <div class="school-timeline" role="list" aria-label="Histórico cronológico da unidade">
-                    ${events.length ? events.map(event => `
-                        <article
-                            class="school-timeline-item"
-                            role="listitem"
-                            data-timeline-event-type="${html(event.type)}"
-                            data-timeline-source="${html(event.sourceEntity)}"
-                        >
-                            <div class="school-timeline-marker" aria-hidden="true">${html(iconFor(event.type))}</div>
-                            <div class="school-timeline-content">
-                                <div class="school-timeline-topline">
-                                    <div>
-                                        <h3>${html(event.title)}</h3>
-                                        <time datetime="${html(event.occurredAt)}">${html(formatDateTime(event.occurredAt))}</time>
-                                    </div>
-                                    ${event.status ? `<span class="school-timeline-status">${html(event.status)}</span>` : ''}
-                                </div>
-                                ${event.description ? `<p>${html(event.description)}</p>` : ''}
-                                <div class="school-timeline-meta">
-                                    <span><strong>Responsável:</strong> ${html(event.actor || 'Sistema')}</span>
-                                    ${event.programId ? `<span><strong>Programa:</strong> ${html(event.programId)}</span>` : ''}
-                                    ${event.pendencyId ? `<span><strong>Pendência:</strong> ${html(event.pendencyId)}</span>` : ''}
-                                </div>
-                            </div>
-                        </article>
-                    `).join('') : `
-                        <div class="school-timeline-empty">
-                            Nenhum evento foi registrado para esta unidade na competência selecionada.
-                        </div>
-                    `}
-                </div>
-            </div>
-        `;
+        panel.replaceChildren(buildTimelineCard(input, events));
     }
 
     function activateTimeline(event, panel, schoolId) {
@@ -192,6 +235,7 @@
         wrapped.__radarTimelineWrapped = true;
         wrapped.__radarOriginal = originalRenderProntuario;
         root.renderProntuario = wrapped;
+        try { renderProntuario = wrapped; } catch (_error) { /* global binding already linked */ }
     }
 
     const mainContainer = document.getElementById('main-container');
