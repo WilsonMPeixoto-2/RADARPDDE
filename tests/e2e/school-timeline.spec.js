@@ -17,8 +17,8 @@ async function openTimeline(page, profile = 'controlador') {
     verificacoes[school.id] = verificacoes[school.id] || {};
     verificacoes[school.id][compKey] = {
       bonificacao: {
-        extCC: 'Sim', extINV: 'Sim', notaFiscal: 'Não se aplica',
-        consAssessoria: 'Não se aplica', declBBAgil: 'Sim', encampInventario: 'Não se aplica'
+        extCC: 'Sim', extINV: 'Sim', notaFiscal: 'Sim',
+        consAssessoria: 'Não se aplica', declBBAgil: 'Sim', encampInventario: 'Sim'
       },
       analise: {
         extCC: 'Correto', extINV: 'Correto', notaFiscal: 'Correto',
@@ -76,7 +76,9 @@ async function openTimeline(page, profile = 'controlador') {
       escolaId: school.id,
       compKey,
       numero: 'NF-100',
-      desc: 'Material pedagógico',
+      desc: 'Material pedagógico permanente',
+      tipo: 'Capital',
+      valor: 1250,
       dataRegistro: '2026-08-12T09:00:00.000Z'
     });
 
@@ -86,10 +88,14 @@ async function openTimeline(page, profile = 'controlador') {
       escolaId: school.id,
       competencia: competence,
       item: 'Projetor',
-      status: 'Inventariado',
+      valor: 1250,
+      notaFiscal: 'NF-100',
+      status: 'Inventariada',
       dataRegistro: '2026-08-13T09:00:00.000Z',
       dataInventariacao: '2026-08-25T16:00:00.000Z',
-      responsavelInventario: 'Inventariador E2E'
+      responsavelInventario: 'Inventariador E2E',
+      inventariadoPor: 'Inventariador E2E',
+      inventariadoEm: '25/08/2026'
     });
 
     logs = logs.filter(item => !['TIMELINE-LOG', 'TIMELINE-TECHNICAL'].includes(item.id));
