@@ -155,8 +155,10 @@ test('Gestão SME mantém eventos gerenciais e oculta detalhe técnico restrito'
   await page.waitForFunction(() => window.RadarProductExtensionsReady);
   await openTimeline(page, 'sme');
 
+  const consolidations = page.locator('[data-timeline-event-type="verification_consolidated"]');
   await expect(page.locator('[data-timeline-source="administrative_logs"]')).toHaveCount(1);
   await expect(page.locator('[data-timeline-event-type="technical_analysis_changed"]')).toHaveCount(0);
-  await expect(page.locator('[data-timeline-event-type="verification_consolidated"]')).toBeVisible();
+  await expect(consolidations).toHaveCount(2);
+  await expect(consolidations.first()).toBeVisible();
   await expect(page.locator('[data-timeline-event-type="pendency_contact"]')).toBeVisible();
 });
