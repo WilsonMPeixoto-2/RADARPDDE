@@ -118,7 +118,8 @@ test('restaura competência, rota, rolagem e foco; sem contexto usa Carteira', a
         { type: 'competence', key: '2026-08', meta: { source: 'contextual-return' } },
         { type: 'navigate', route: { view: 'escolas', param: null, section: null, filters: {} } },
         { type: 'scroll', options: { top: 420, left: 0, behavior: 'auto' } },
-        { type: 'focus', options: { preventScroll: true } }
+        { type: 'focus', options: { preventScroll: true } },
+        { type: 'scroll', options: { top: 420, left: 0, behavior: 'auto' } }
     ]);
 
     calls.length = 0;
