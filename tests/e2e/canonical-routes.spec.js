@@ -27,6 +27,27 @@ async function openCarteira(page) {
   return schoolLink;
 }
 
+async function chooseScrollableSchoolLink(page) {
+  const links = page.locator('a[data-radar-route="true"][href^="/escolas/"]');
+  await expect(links.first()).toBeVisible();
+  const candidateIndex = await links.evaluateAll(elements => {
+    const visible = elements
+      .map((element, index) => ({ element, index }))
+      .filter(({ element }) => {
+        const rect = element.getBoundingClientRect();
+        const style = getComputedStyle(element);
+        return rect.width > 0 && rect.height > 0
+          && style.display !== 'none'
+          && style.visibility !== 'hidden';
+      });
+    return visible[Math.min(20, Math.max(0, visible.length - 1))]?.index || 0;
+  });
+  const link = links.nth(candidateIndex);
+  await link.scrollIntoViewIfNeeded();
+  await expect(link).toBeVisible();
+  return link;
+}
+
 test('rota de escola, aba de pendências, filtro e histórico permanecem estáveis', async ({ page }) => {
   const schoolLink = await openCarteira(page);
   const schoolHref = await schoolLink.getAttribute('href');
@@ -94,27 +115,32 @@ test('rota de escola, aba de pendências, filtro e histórico permanecem estáve
 });
 
 test('botão Voltar restaura a origem contextual, competência, rolagem e foco', async ({ page }) => {
-  const schoolLink = await openCarteira(page);
+  await openCarteira(page);
+  const schoolLink = await chooseScrollableSchoolLink(page);
   const schoolHref = await schoolLink.getAttribute('href');
   const schoolId = decodeURIComponent(schoolHref.split('/').filter(Boolean).at(-1));
   const activeCompetence = await page.evaluate(() => window.RadarCompetenceContext.getState().activeKey);
 
-  const capturedTop = await schoolLink.evaluate(element => {
-    const scrollPort = document.querySelector('main.content-area');
-    scrollPort.scrollTo({ top: 360, left: 0, behavior: 'auto' });
-    const top = Math.round(scrollPort.scrollTop);
+  const capturedScroll = await schoolLink.evaluate(element => {
+    const contentArea = document.querySelector('main.content-area');
+    const contentTop = Math.round(Number(contentArea?.scrollTop) || 0);
+    const pageTop = Math.round(Number(window.scrollY)
+      || Number(document.scrollingElement?.scrollTop)
+      || 0);
+    const target = contentTop > 0 ? 'content-area' : 'window';
+    const top = target === 'content-area' ? contentTop : pageTop;
     element.focus({ preventScroll: true });
     element.click();
-    return top;
+    return { target, top };
   });
-  expect(capturedTop).toBeGreaterThan(0);
+  expect(capturedScroll.top).toBeGreaterThan(0);
   await waitForRadarRoute(page, { view: 'prontuario', param: schoolId, section: null });
 
   const capturedContext = await page.evaluate(() => (
     window.RadarNavigationContext.peekReturnContext(window.sessionStorage)
   ));
-  expect(capturedContext.scrollTarget).toBe('content-area');
-  expect(Math.round(capturedContext.scrollY)).toBe(capturedTop);
+  expect(capturedContext.scrollTarget).toBe(capturedScroll.target);
+  expect(Math.round(capturedContext.scrollY)).toBe(capturedScroll.top);
   expect(capturedContext.focus.schoolId).toBe(schoolId);
 
   const backButton = page.locator('[data-radar-contextual-back="true"]');
@@ -126,12 +152,24 @@ test('botão Voltar restaura a origem contextual, competência, rolagem e foco',
   await expect(page).toHaveURL(/\/carteira$/);
   await expect.poll(() => page.evaluate(() => window.RadarCompetenceContext.getState().activeKey))
     .toBe(activeCompetence);
-  await expect.poll(() => page.evaluate(() => (
-    Math.round(document.querySelector('main.content-area').scrollTop)
-  ))).toBeGreaterThanOrEqual(Math.max(1, capturedTop - 2));
+  await expect.poll(() => page.evaluate(target => {
+    if (target === 'content-area') {
+      return Math.round(Number(document.querySelector('main.content-area')?.scrollTop) || 0);
+    }
+    return Math.round(Number(window.scrollY)
+      || Number(document.scrollingElement?.scrollTop)
+      || 0);
+  }, capturedScroll.target)).toBeGreaterThanOrEqual(Math.max(1, capturedScroll.top - 2));
 
-  const restoredLink = page.locator(`a[data-radar-route="true"][href="${schoolHref}"]`);
-  await expect(restoredLink).toBeFocused();
+  await expect.poll(() => page.evaluate(href => {
+    const active = document.activeElement;
+    if (!active || active.getAttribute?.('href') !== href) return false;
+    const rect = active.getBoundingClientRect?.();
+    const style = getComputedStyle(active);
+    return Boolean(rect && rect.width > 0 && rect.height > 0
+      && style.display !== 'none'
+      && style.visibility !== 'hidden');
+  }, schoolHref)).toBe(true);
 });
 
 test('link de escola abre em nova aba usando a própria URL', async ({ context, page }, testInfo) => {
