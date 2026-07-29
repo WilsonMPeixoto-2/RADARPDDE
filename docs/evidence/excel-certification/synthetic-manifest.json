@@ -1,0 +1,115 @@
+{
+  "canonicalResults": {
+    "auditedCount": 4,
+    "mismatchCount": 0,
+    "mismatches": []
+  },
+  "generatedAt": "2026-07-29T02:30:00.000Z",
+  "manifestHash": "ee589e0d6f7361c9dd8176baccbcd9ceb931f4b34eb698c2f5dd97a49877f58b",
+  "passed": true,
+  "products": {
+    "institutional": {
+      "canonicalMismatchCount": 0,
+      "cellCertification": {
+        "actualCellCount": 70,
+        "checkedCellCount": 48,
+        "mismatchCount": 0,
+        "mismatches": [],
+        "samples": [
+          {
+            "address": "A9",
+            "value": "00000001"
+          },
+          {
+            "address": "D9",
+            "value": "07-2026"
+          },
+          {
+            "address": "L9",
+            "value": "APTA"
+          },
+          {
+            "address": "D10",
+            "value": "08-2026"
+          },
+          {
+            "address": "L11",
+            "value": "INAPTA"
+          }
+        ]
+      },
+      "competenceKeys": [
+        "2026-07",
+        "2026-08"
+      ],
+      "contentHash": "a268bf40e6a9d3fc4d498af7568fc58d83d7960f64b9c99bf0d2fc074308acc3",
+      "legacyEquivalence": {
+        "actualRowCount": 4,
+        "equivalent": true,
+        "expectedRowCount": 4,
+        "mismatchCount": 0
+      },
+      "logicalRowCount": 4,
+      "ooxml": {
+        "entryCount": 19,
+        "expectedSheetCount": 4,
+        "hasDataValidations": false,
+        "missingEntries": [],
+        "sheetCount": 4,
+        "structuralHash": "8643b43c6904d4cca0c3954860d7b90396ebedc0bb031910462a433f038f2c39",
+        "valid": true
+      },
+      "passed": true,
+      "scope": "historical-multi-competence"
+    },
+    "smeMonthly": {
+      "canonicalMismatchCount": 0,
+      "cellCertification": {
+        "actualCellCount": 78,
+        "checkedCellCount": 78,
+        "mismatchCount": 0,
+        "mismatches": [],
+        "samples": [
+          {
+            "address": "A2",
+            "value": 1
+          },
+          {
+            "address": "C2",
+            "value": "04.00.001"
+          },
+          {
+            "address": "E2",
+            "value": "SIM"
+          },
+          {
+            "address": "K2",
+            "value": "NÃO"
+          },
+          {
+            "address": "C3",
+            "value": "04.00.002"
+          }
+        ]
+      },
+      "columnCount": 26,
+      "competenceKeys": [
+        "2026-08"
+      ],
+      "contentHash": "7e6ce22739f5323193ceb284e43678648fe8772e21775467bf625340a766bcba",
+      "ooxml": {
+        "entryCount": 8,
+        "expectedSheetCount": 1,
+        "hasDataValidations": false,
+        "missingEntries": [],
+        "sheetCount": 1,
+        "structuralHash": "7a34b6fc655c18271be00a1f3ad9dd0264133f4c27bee9927ccac68d603c29c6",
+        "valid": true
+      },
+      "passed": true,
+      "schoolCount": 2,
+      "scope": "single-competence"
+    }
+  },
+  "version": "1.0.0"
+}
