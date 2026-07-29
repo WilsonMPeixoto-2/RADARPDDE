@@ -180,15 +180,33 @@
         panel.replaceChildren(buildTimelineCard(input, events));
     }
 
+    function activateExtendedTab(event, panel) {
+        const targetButton = event?.currentTarget;
+        const tabContainer = targetButton?.closest?.('.tab-container');
+        const panelContainer = panel?.parentElement;
+        if (!targetButton || !tabContainer || !panelContainer) return false;
+
+        Array.from(tabContainer.children).forEach(element => {
+            if (element.classList.contains('tab-button')) element.classList.remove('active');
+        });
+        Array.from(panelContainer.children).forEach(element => {
+            if (element.classList.contains('tab-content-panel')) element.classList.remove('active');
+        });
+        targetButton.classList.add('active');
+        panel.classList.add('active');
+        return true;
+    }
+
     function activateTimeline(event, panel, schoolId) {
-        if (typeof switchSchoolTab === 'function') {
-            switchSchoolTab(event, 'tab-historico');
-        } else {
-            document.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
-            document.querySelectorAll('.tab-content-panel').forEach(content => content.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-            panel.classList.add('active');
+        let activated = false;
+        try {
+            if (typeof activateProntuarioTab === 'function') {
+                activated = activateProntuarioTab('tab-historico') === true;
+            }
+        } catch (_error) {
+            activated = false;
         }
+        if (!activated) activateExtendedTab(event, panel);
         renderTimeline(panel, schoolId);
     }
 
