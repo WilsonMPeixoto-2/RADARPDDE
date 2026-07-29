@@ -297,21 +297,25 @@
     async function restoreFocus(root, focus) {
         const document = root?.document;
         const canVerify = Boolean(document && 'activeElement' in document);
+        let focused = false;
+
         for (let attempt = 0; attempt < MAX_FOCUS_RESTORE_FRAMES; attempt += 1) {
             const target = findFocusTarget(root, focus || {});
-            if (!target) {
-                await nextFrame(root);
-                continue;
+            if (target && (!canVerify || document.activeElement !== target)) {
+                target.focus?.({ preventScroll: true });
+                focused = true;
+                if (!canVerify) return true;
             }
-            target.focus?.({ preventScroll: true });
-            if (!canVerify) return true;
             await nextFrame(root);
-            if (document.activeElement !== target) continue;
-            await nextFrame(root);
-            const stableTarget = findFocusTarget(root, focus || {});
-            if (document.activeElement === target && stableTarget === target) return true;
         }
-        return false;
+
+        if (!canVerify) return focused;
+        const finalTarget = findFocusTarget(root, focus || {});
+        if (finalTarget && document.activeElement !== finalTarget) {
+            finalTarget.focus?.({ preventScroll: true });
+            await nextFrame(root);
+        }
+        return Boolean(finalTarget && document.activeElement === finalTarget);
     }
 
     async function restoreViewport(root, context) {
