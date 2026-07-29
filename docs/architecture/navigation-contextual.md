@@ -102,10 +102,10 @@ O retorno segue esta ordem:
 3. navegar por `RadarNavigationHistory.navigate()`;
 4. aguardar a renderização inicial;
 5. restaurar scrollport e posição;
-6. acompanhar por até 30 frames a representação visível do alvo;
+6. acompanhar por até 30 frames a representação visível e acionável do alvo;
 7. aplicar foco com `preventScroll` quando o alvo aparece ou perde o foco;
 8. refocar a nova representação quando a lista substitui o elemento durante a estabilização;
-9. confirmar o alvo visível final;
+9. confirmar o alvo acionável final;
 10. reaplicar a posição do scrollport;
 11. recalcular o botão contextual.
 
@@ -119,7 +119,9 @@ A busca do foco usa `id`, referência da pendência, ação ou identificador da 
 - `display: none` ou `visibility: hidden`;
 - ausência de retângulo visível no layout.
 
-Essa filtragem evita focar a tabela oculta no layout de cartões ou o cartão oculto no layout de tabela.
+Além de visível, o alvo precisa ser um controle acionável: link, botão, campo de formulário, elemento editável ou item com `tabindex` não negativo. Linhas de tabela, cartões e outros contêineres estruturais podem conter o identificador da escola, mas não recebem o foco de retorno.
+
+Essa filtragem evita focar a tabela oculta no layout de cartões, o cartão oculto no layout de tabela ou o contêiner da escola no lugar do link **Ver Unidade**.
 
 ## 8. Fallback
 
@@ -145,9 +147,10 @@ tests/unit/navigation-context-delayed-focus.test.js
 tests/unit/navigation-context-scrollport.test.js
 tests/unit/navigation-context-visible-focus.test.js
 tests/unit/navigation-context-focus-monitor.test.js
+tests/unit/navigation-context-focusable-target.test.js
 ```
 
-Comprovam normalização, pilha em sessão, competência, rotas, scrollports responsivos, foco tardio, seleção do alvo visível, substituição responsiva do elemento durante a estabilização, idempotência e fallback.
+Comprovam normalização, pilha em sessão, competência, rotas, scrollports responsivos, foco tardio, seleção do alvo visível e acionável, rejeição de contêineres estruturais, substituição responsiva do elemento durante a estabilização, idempotência e fallback.
 
 ### Jornada
 
@@ -163,7 +166,7 @@ Comprova em desktop, Android e iPhone:
 - retorno para `/carteira`;
 - preservação da competência;
 - restauração da posição no scrollport real;
-- foco na representação visível da unidade.
+- foco no controle visível e acionável da unidade.
 
 ## 12. Critério de aceite
 
