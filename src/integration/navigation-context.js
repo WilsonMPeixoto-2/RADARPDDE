@@ -66,7 +66,7 @@
     }
 
     function createReturnContext(input = {}) {
-        return {
+        const context = {
             version: 1,
             capturedAt: text(input.capturedAt) || new Date().toISOString(),
             origin: normalizeRoute(input.origin),
@@ -75,6 +75,9 @@
             scrollY: Math.max(0, Number.isFinite(Number(input.scrollY)) ? Number(input.scrollY) : 0),
             focus: normalizeFocus(input.focus)
         };
+        const scrollTarget = text(input.scrollTarget);
+        if (scrollTarget) context.scrollTarget = scrollTarget;
+        return context;
     }
 
     function readStack(storage) {
@@ -147,9 +150,9 @@
         }
     }
 
-    function captureFocus(root) {
-        const element = root?.document?.activeElement;
-        if (!element || element === root.document.body) return normalizeFocus();
+    function captureFocus(root, sourceElement = null) {
+        const element = sourceElement || root?.document?.activeElement;
+        if (!element || element === root?.document?.body) return normalizeFocus();
         return normalizeFocus({
             id: element.id,
             schoolId: schoolIdFromElement(element, root),
@@ -169,13 +172,39 @@
         return '';
     }
 
-    function captureContext(root, origin, target) {
+    function contentScrollPort(root) {
+        const candidate = root?.document?.querySelector?.('main.content-area');
+        if (!candidate) return null;
+        const scrollTop = Number(candidate.scrollTop) || 0;
+        const scrollHeight = Number(candidate.scrollHeight) || 0;
+        const clientHeight = Number(candidate.clientHeight) || 0;
+        return scrollTop > 0 || scrollHeight > clientHeight ? candidate : null;
+    }
+
+    function captureScrollState(root) {
+        const contentArea = contentScrollPort(root);
+        if (contentArea) {
+            return {
+                scrollTarget: 'content-area',
+                scrollY: Math.max(0, Number(contentArea.scrollTop) || 0)
+            };
+        }
+        const documentTop = Number(root?.document?.scrollingElement?.scrollTop) || 0;
+        return {
+            scrollTarget: 'window',
+            scrollY: Math.max(0, Number(root?.scrollY) || documentTop)
+        };
+    }
+
+    function captureContext(root, origin, target, sourceElement = null) {
+        const scroll = captureScrollState(root);
         return createReturnContext({
             origin,
             target,
             competenceKey: currentCompetence(root),
-            scrollY: Number(root?.scrollY) || 0,
-            focus: captureFocus(root)
+            scrollTarget: scroll.scrollTarget,
+            scrollY: scroll.scrollY,
+            focus: captureFocus(root, sourceElement)
         });
     }
 
@@ -235,17 +264,47 @@
         return true;
     }
 
-    async function restoreViewport(root, context) {
-        root?.scrollTo?.({ top: context.scrollY, left: 0, behavior: 'auto' });
-        for (let attempt = 0; attempt < MAX_FOCUS_RESTORE_FRAMES; attempt += 1) {
-            const target = findFocusTarget(root, context.focus || {});
-            if (target) {
-                target.focus?.({ preventScroll: true });
+    function restoreScrollState(root, context) {
+        const top = Math.max(0, Number(context?.scrollY) || 0);
+        if (context?.scrollTarget === 'content-area') {
+            const contentArea = root?.document?.querySelector?.('main.content-area');
+            if (contentArea) {
+                if (typeof contentArea.scrollTo === 'function') {
+                    contentArea.scrollTo({ top, left: 0, behavior: 'auto' });
+                } else {
+                    contentArea.scrollTop = top;
+                }
                 return true;
             }
+        }
+        root?.scrollTo?.({ top, left: 0, behavior: 'auto' });
+        return true;
+    }
+
+    async function restoreFocus(root, focus) {
+        const document = root?.document;
+        const canVerify = Boolean(document && Object.hasOwn(document, 'activeElement'));
+        for (let attempt = 0; attempt < MAX_FOCUS_RESTORE_FRAMES; attempt += 1) {
+            const target = findFocusTarget(root, focus || {});
+            if (!target) {
+                await nextFrame(root);
+                continue;
+            }
+            target.focus?.({ preventScroll: true });
+            if (!canVerify) return true;
             await nextFrame(root);
+            if (document.activeElement !== target) continue;
+            await nextFrame(root);
+            const stableTarget = findFocusTarget(root, focus || {});
+            if (document.activeElement === target && stableTarget === target) return true;
         }
         return false;
+    }
+
+    async function restoreViewport(root, context) {
+        restoreScrollState(root, context);
+        await restoreFocus(root, context.focus || {});
+        restoreScrollState(root, context);
     }
 
     function navigate(root, route) {
@@ -272,7 +331,11 @@
             const fallbackRoute = normalizeRoute({ view: 'escolas' });
             navigate(root, fallbackRoute);
             await afterRender(root);
-            root?.scrollTo?.({ top: 0, left: 0, behavior: 'auto' });
+            const fallbackContext = {
+                scrollTarget: contentScrollPort(root) ? 'content-area' : 'window',
+                scrollY: 0
+            };
+            restoreScrollState(root, fallbackContext);
             ensureBackButton(root);
             return { fallback: true, origin: fallbackRoute };
         } finally {
@@ -369,7 +432,7 @@
             const origin = currentRoute(root);
             const target = targetRouteFromLink(root, anchor);
             if (target && shouldCaptureTransition(origin, target)) {
-                pushReturnContext(root.sessionStorage, captureContext(root, origin, target));
+                pushReturnContext(root.sessionStorage, captureContext(root, origin, target, anchor));
                 scheduleEnsure(root);
             }
         }, true);
@@ -398,8 +461,10 @@
         peekReturnContext,
         popReturnContext,
         shouldCaptureTransition,
+        captureScrollState,
         captureContext,
         restoreCompetence,
+        restoreScrollState,
         returnToOrigin,
         ensureBackButton,
         install
