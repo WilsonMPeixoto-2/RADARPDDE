@@ -1,0 +1,146 @@
+.school-timeline-card {
+    overflow: hidden;
+}
+
+.school-timeline-header {
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.school-timeline-header p {
+    margin: 6px 0 0;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.school-timeline {
+    position: relative;
+    display: grid;
+    gap: 0;
+    padding: 8px 24px 24px;
+}
+
+.school-timeline::before {
+    content: '';
+    position: absolute;
+    top: 28px;
+    bottom: 38px;
+    left: 43px;
+    width: 2px;
+    background: var(--border-color);
+}
+
+.school-timeline-item {
+    position: relative;
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 16px;
+    padding: 16px 0;
+}
+
+.school-timeline-marker {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    background: var(--surface, var(--card-bg));
+    color: var(--primary);
+    font-size: 0.75rem;
+    font-weight: 800;
+    box-shadow: 0 0 0 5px var(--surface, var(--card-bg));
+}
+
+.school-timeline-content {
+    min-width: 0;
+    padding: 14px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--card-bg) 94%, var(--primary) 6%);
+}
+
+.school-timeline-topline {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.school-timeline-topline h3 {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.35;
+}
+
+.school-timeline-topline time {
+    display: inline-block;
+    margin-top: 4px;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+.school-timeline-content > p {
+    margin: 10px 0 0;
+    color: var(--text-secondary, var(--text-muted));
+    font-size: 0.85rem;
+    line-height: 1.55;
+}
+
+.school-timeline-status {
+    flex: 0 0 auto;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: rgba(47, 111, 165, 0.12);
+    color: var(--primary);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.school-timeline-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin-top: 12px;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+}
+
+.school-timeline-empty {
+    padding: 36px 20px;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+@media (max-width: 720px) {
+    .school-timeline {
+        padding-inline: 14px;
+    }
+
+    .school-timeline::before {
+        left: 31px;
+    }
+
+    .school-timeline-item {
+        grid-template-columns: 32px minmax(0, 1fr);
+        gap: 10px;
+    }
+
+    .school-timeline-marker {
+        width: 32px;
+        height: 32px;
+        box-shadow: 0 0 0 4px var(--surface, var(--card-bg));
+    }
+
+    .school-timeline-topline {
+        display: grid;
+    }
+
+    .school-timeline-status {
+        justify-self: start;
+    }
+}

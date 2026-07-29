@@ -1,9 +1,9 @@
 # RADAR PDDE — Estado atual do projeto
 
 **Atualizado em:** 28 de julho de 2026  
-**HEAD da `main`:** `503a3f5a6539f84663a674464aef8696a1a546a0`  
+**HEAD da `main`:** `d7e3fb4361680200c4c900a8b36b920ea3d7dc63`  
 **Deployment funcional em Production:** `dpl_6tjSL6iFXAR2CkhPoRBm8kvtyvtJ` — commit `4964049e426181fef1d01cb7d2309b898a7bf9d7`  
-**Frente em validação:** certificação da avaliação mensal e do resultado APTA/INAPTA  
+**Frente em validação:** timeline cronológica da unidade — PR #100  
 **Natureza:** documento operacional e transitório
 
 ## 1. Regra de leitura
@@ -21,28 +21,40 @@ Código, banco e deployment prevalecem sobre planos e relatórios históricos.
 
 ## 2. Situação executiva
 
-A integração entre frontend, Supabase Auth, PostgREST, RLS, PostgreSQL e Vercel Production está ativa. A governança da Gestão SME está aplicada e publicada.
+A integração entre frontend, Supabase Auth, PostgREST, RLS, PostgreSQL e Vercel Production está ativa. A governança da Gestão SME e o contexto mensal global estão publicados.
 
-O primeiro ciclo da oficialização foi concluído:
+Dois ciclos da oficialização já foram concluídos no código:
 
-- contexto mensal global publicado;
-- seletor de competência disponível no header;
-- competências `2026-01` a `2026-12` selecionáveis;
-- seleção preservada entre telas, perfis e recarga;
+### Ciclo 1 — competência mensal global
+
+- seletor global de competência;
+- janeiro a dezembro de 2026 disponíveis;
+- preservação da seleção entre telas, perfis e recarga;
 - sincronização entre exercício e competência;
-- seletor local concorrente removido;
-- cobertura desktop, Android e iPhone aprovada;
-- `closing_competence` alterada de `2026-05` para `2026-12`;
-- alteração registrada com autoria técnica, log e `row_version = 5`;
-- deployments automáticos novamente bloqueados.
+- `closing_competence = 2026-12`;
+- alteração auditada com `row_version = 5`;
+- publicação Production concluída;
+- deployment automático novamente bloqueado.
 
-A frente atual certifica que a mesma regra de avaliação mensal sustenta domínio, serviço, interface, persistência e recarga.
+### Ciclo 2 — avaliação mensal certificada
+
+- projeção canônica única de APTA/INAPTA;
+- campos obrigatórios e `Não se aplica` indevido tratados;
+- situação técnica separada do grau de conclusão;
+- pendências filtradas por escola, competência e programa;
+- consolidação usando a mesma projeção da consulta;
+- persistência atômica, autoria, log e `row_version` preservados;
+- jornada real em agosto validada após recarga;
+- readiness, migrations, Supabase local, Auth/RLS, Playwright e Lighthouse aprovados;
+- PR #98 mesclado na `main` como `d7e3fb4361680200c4c900a8b36b920ea3d7dc63`.
+
+A avaliação mensal ainda não foi publicada em novo deployment. A publicação será agrupada com a timeline após o gate do PR #100.
 
 ## 3. Estado por camada
 
 | Camada | Estado |
 |---|---|
-| GitHub | `main` contém o ciclo de competência global; ciclo de avaliação em branch isolada. |
+| GitHub | `main` contém competência global e avaliação mensal certificada; timeline em PR #100. |
 | Vercel Production | deployment `dpl_6tjSL6iFXAR2CkhPoRBm8kvtyvtJ` em estado `READY`. |
 | Runtime publicado | `production`, `supabase-production`, repositório remoto habilitado. |
 | Supabase | projeto `scnryinorqeucbfkioxo` ativo e saudável. |
@@ -50,7 +62,8 @@ A frente atual certifica que a mesma regra de avaliação mensal sustenta domín
 | Auth/RLS | ativos; acesso anônimo bloqueado. |
 | Governança SME | concluída e publicada. |
 | Competência global | concluída, publicada e operacionalizada. |
-| Avaliação mensal | projeção e jornada em certificação. |
+| Avaliação mensal | concluída na `main`; publicação agrupada pendente. |
+| Timeline da unidade | domínio, integração e testes em validação no PR #100. |
 | Excel SME | implementado; certificação integral pendente. |
 | Liberação oficial | não declarada. |
 
@@ -89,35 +102,15 @@ As quantidades são retrato operacional e podem mudar com o uso real.
 
 A carteira organiza responsabilidade, mas não impede colaboração entre Controladores da mesma CRE. A Gestão SME permanece somente leitura nas superfícies definidas pela ADR-022. O Inventário permanece restrito ao fluxo patrimonial autorizado.
 
-## 6. Competências 2026
+## 6. Competências e avaliação mensal
 
-O Supabase contém `2026-01` a `2026-12` e Production utiliza:
-
-```text
-closing_competence = 2026-12
-row_version = 5
-```
-
-A seleção inicial segue:
-
-1. chave persistida válida;
-2. competência ativa carregada;
-3. fechamento válido;
-4. competência mais recente do exercício.
-
-O exercício é derivado da competência persistida ou carregada. A seleção mensal orienta Dashboard, Carteira, Competências, Prontuário, Pendências, alertas e exportações.
-
-Não criar coluna ou migration de status mensal sem requisito adicional comprovado.
-
-## 7. Avaliação mensal — frente atual
-
-A avaliação é identificada por:
+A identidade operacional é:
 
 ```text
 escola + competência + programa
 ```
 
-A projeção canônica em validação reúne:
+A projeção canônica reúne:
 
 - possibilidade de consolidação;
 - resultado `apta`, `inapta` ou nulo;
@@ -129,52 +122,52 @@ A projeção canônica em validação reúne:
 - itens aguardando reanálise;
 - total de pendências ativas.
 
-O `VerificationService` utiliza a mesma projeção para consultar e consolidar, preservando:
+A situação técnica e a conclusão são independentes. Uma análise pode apresentar documento incorreto e permanecer incompleta quando outros documentos ainda não foram analisados.
 
-- persistência atômica existente;
-- `row_version`;
-- log administrativo;
-- autoria;
-- validações de nota fiscal;
-- bloqueio por perfil;
-- impedimento de sobrescrita silenciosa.
+## 7. Timeline cronológica — frente atual
 
-### Jornada obrigatória
+O PR #100 cria uma projeção sem nova tabela e sem persistência paralela. A timeline combina, por unidade e competência:
 
-1. selecionar uma competência posterior a maio;
-2. abrir uma unidade com PDDE Básico;
-3. preencher entrega e análise dos documentos;
-4. consolidar como APTA ou INAPTA;
-5. confirmar o mesmo resultado no objeto canônico e no estado persistido;
-6. recarregar a aplicação;
-7. confirmar competência, consolidação e projeção;
-8. confirmar log e ausência de erro de página.
+- consolidações de bonificação;
+- abertura, resolução e cancelamento de pendências;
+- novos envios e reanálises;
+- contatos e cobranças;
+- notas fiscais;
+- bens permanentes e inventariação;
+- registros administrativos autorizados.
 
-## 8. Pendências e histórico
+Contrato de cada evento:
 
-A estrutura contempla:
+```text
+id, occurredAt, type, title, description, actor, status,
+competenceKey, programId, pendencyId, visibility, sourceEntity, sourceId
+```
 
-- pendências `Aberta`, `Aguardando reanálise`, `Resolvida` e `Cancelada`;
-- tentativas, contatos, autoria, auditoria e concorrência otimista;
-- novo envio sem resolução automática;
-- reanálise positiva para resolução;
-- reanálise negativa com retorno da providência.
+Regras obrigatórias:
 
-O ciclo seguinte construirá uma timeline única por unidade, sem criar tabela paralela.
+1. ordenação decrescente por data e desempate estável por identificador;
+2. ausência de abertura duplicada entre pendência e histórico incorporado;
+3. isolamento por escola e competência;
+4. preservação dos vínculos com programa e pendência;
+5. visibilidade gerencial da Gestão SME sem detalhes técnicos restritos;
+6. aba acessível no Prontuário;
+7. ausência de nova fonte de verdade.
 
-## 9. Excel
+A extensão é carregada depois de `app.js` por bootstrap próprio e compõe o renderizador do Prontuário com os wrappers de navegação existentes.
+
+## 8. Excel
 
 O Excel SME mensal está implementado e não possui o defeito conhecido de reparo. Permanecem pendentes:
 
 - massa representativa;
-- reconciliação Supabase → frontend → modelo → célula XLSX;
+- reconciliação Supabase → frontend → projeção canônica → modelo → célula XLSX;
 - isolamento entre competências;
 - correção do escopo mensal do Excel editorial;
 - certificação dos dois modelos;
 - abertura no Microsoft Excel desktop;
 - manifesto e hashes de evidência.
 
-## 10. Segurança operacional
+## 9. Segurança operacional
 
 Comprovado:
 
@@ -195,13 +188,12 @@ Bloqueadores antes do release oficial:
 - certificar os relatórios Excel;
 - concluir UAT.
 
-## 11. Ordem das próximas entregas
+## 10. Ordem das próximas entregas
 
-1. certificar avaliação mensal e APTA/INAPTA;
-2. construir timeline cronológica da unidade;
-3. reconciliar e certificar os dois relatórios Excel;
-4. implementar navegação contextual e botões de voltar;
-5. executar polimento editorial e visual;
-6. fortalecer segurança, realizar UAT e decidir a liberação oficial.
+1. concluir, mesclar e publicar a timeline juntamente com a avaliação mensal;
+2. reconciliar e certificar os dois relatórios Excel;
+3. implementar navegação contextual e botões de voltar;
+4. executar polimento editorial e visual;
+5. fortalecer segurança, realizar UAT e decidir a liberação oficial.
 
 Plano detalhado: [`superpowers/plans/2026-07-28-oficializacao-operacional-radar-pdde.md`](superpowers/plans/2026-07-28-oficializacao-operacional-radar-pdde.md).

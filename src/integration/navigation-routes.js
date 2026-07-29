@@ -1,12 +1,28 @@
 (function installRadarNavigationRoutes(root, factory) {
     'use strict';
 
+    function installProductExtensionsBootstrap(target) {
+        if (!target?.document || target.RadarProductExtensionsReady) return;
+        const src = '/src/integration/product-extensions-bootstrap.js';
+        const existing = Array.from(target.document.scripts || []).find(script => (
+            script.getAttribute?.('src') === src
+            || script.dataset?.radarProductBootstrap === 'true'
+        ));
+        if (existing) return;
+        const script = target.document.createElement('script');
+        script.src = src;
+        script.async = false;
+        script.dataset.radarProductBootstrap = 'true';
+        target.document.head.appendChild(script);
+    }
+
     const api = factory();
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = api;
     }
     if (root) {
         root.RadarNavigationRoutes = Object.freeze(api);
+        installProductExtensionsBootstrap(root);
     }
 }(typeof window !== 'undefined' ? window : globalThis, function createNavigationRoutesApi() {
     'use strict';
