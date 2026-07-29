@@ -129,3 +129,39 @@ test('restaura competência, rota, rolagem e foco; sem contexto usa Carteira', a
         { type: 'scroll', options: { top: 0, left: 0, behavior: 'auto' } }
     ]);
 });
+
+test('reaplicar o botão já correto não reescreve seu texto nem retroalimenta o observer', () => {
+    let textWrites = 0;
+    let currentText = '← Voltar para Carteira';
+    const button = {
+        type: 'button',
+        className: 'btn btn-secondary btn-sm radar-contextual-back',
+        dataset: { radarContextualBack: 'true' },
+        style: {},
+        get textContent() { return currentText; },
+        set textContent(value) { textWrites += 1; currentText = value; },
+        setAttribute() {},
+        remove() {}
+    };
+    const root = {
+        sessionStorage: createStorage(),
+        RadarNavigationHistory: {
+            currentRoute() {
+                return { view: 'prontuario', param: '04.31.026', section: null, filters: {} };
+            }
+        },
+        document: {
+            querySelector(selector) {
+                if (selector === '[data-radar-contextual-back="true"]') return button;
+                if (selector === '#main-container .page-header') return { prepend() {} };
+                return null;
+            },
+            createElement() {
+                throw new Error('Não deveria criar outro botão.');
+            }
+        }
+    };
+
+    assert.equal(navigationContext.ensureBackButton(root), true);
+    assert.equal(textWrites, 0);
+});
