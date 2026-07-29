@@ -1,9 +1,9 @@
 # RADAR PDDE — Estado atual do projeto
 
 **Atualizado em:** 28 de julho de 2026  
-**HEAD da `main`:** `d7e3fb4361680200c4c900a8b36b920ea3d7dc63`  
-**Deployment funcional em Production:** `dpl_6tjSL6iFXAR2CkhPoRBm8kvtyvtJ` — commit `4964049e426181fef1d01cb7d2309b898a7bf9d7`  
-**Frente em validação:** timeline cronológica da unidade — PR #100  
+**HEAD funcional publicado:** `e85d3260683b99e2d67e51e07cf4bac8690b0700`  
+**Deployment funcional em Production:** `dpl_7dAaUfecP9NkTigAfpbaAk9DpHEN` — estado `READY`  
+**Frente em execução:** certificação integral dos relatórios Excel  
 **Natureza:** documento operacional e transitório
 
 ## 1. Regra de leitura
@@ -21,9 +21,7 @@ Código, banco e deployment prevalecem sobre planos e relatórios históricos.
 
 ## 2. Situação executiva
 
-A integração entre frontend, Supabase Auth, PostgREST, RLS, PostgreSQL e Vercel Production está ativa. A governança da Gestão SME e o contexto mensal global estão publicados.
-
-Dois ciclos da oficialização já foram concluídos no código:
+A integração entre frontend, Supabase Auth, PostgREST, RLS, PostgreSQL e Vercel Production está ativa. A governança da Gestão SME, o contexto mensal global, a avaliação mensal canônica e a timeline cronológica estão publicados.
 
 ### Ciclo 1 — competência mensal global
 
@@ -33,8 +31,7 @@ Dois ciclos da oficialização já foram concluídos no código:
 - sincronização entre exercício e competência;
 - `closing_competence = 2026-12`;
 - alteração auditada com `row_version = 5`;
-- publicação Production concluída;
-- deployment automático novamente bloqueado.
+- publicação Production concluída.
 
 ### Ciclo 2 — avaliação mensal certificada
 
@@ -45,26 +42,43 @@ Dois ciclos da oficialização já foram concluídos no código:
 - consolidação usando a mesma projeção da consulta;
 - persistência atômica, autoria, log e `row_version` preservados;
 - jornada real em agosto validada após recarga;
-- readiness, migrations, Supabase local, Auth/RLS, Playwright e Lighthouse aprovados;
-- PR #98 mesclado na `main` como `d7e3fb4361680200c4c900a8b36b920ea3d7dc63`.
+- PR #98 mesclado como `d7e3fb4361680200c4c900a8b36b920ea3d7dc63`;
+- publicado em Production no deployment `dpl_7dAaUfecP9NkTigAfpbaAk9DpHEN`.
 
-A avaliação mensal ainda não foi publicada em novo deployment. A publicação será agrupada com a timeline após o gate do PR #100.
+### Ciclo 3 — timeline cronológica da unidade
+
+- projeção somente leitura por unidade e competência;
+- verificações, pendências, tentativas, contatos, notas fiscais, bens e logs consolidados;
+- ordenação decrescente e desempate estável;
+- abertura de pendência sem duplicidade;
+- vínculos por programa, competência e pendência preservados;
+- detalhe técnico restrito ocultado da Gestão SME;
+- aba **Histórico cronológico** incorporada ao Prontuário;
+- carregamento pós-`app.js` idempotente e degradável;
+- montagem integral por DOM seguro, sem `innerHTML`;
+- 129 testes Playwright aprovados no gate final;
+- PR #100 mesclado como `fcf1ced6fca0cfda1d021915b17328aa299c1224`;
+- publicado em Production no deployment `dpl_7dAaUfecP9NkTigAfpbaAk9DpHEN`.
+
+A publicação conjunta dos ciclos 2 e 3 foi confirmada por smoke direto do runtime Production, da projeção mensal, do domínio da timeline e do bootstrap das extensões.
 
 ## 3. Estado por camada
 
 | Camada | Estado |
 |---|---|
-| GitHub | `main` contém competência global e avaliação mensal certificada; timeline em PR #100. |
-| Vercel Production | deployment `dpl_6tjSL6iFXAR2CkhPoRBm8kvtyvtJ` em estado `READY`. |
+| GitHub | `main` contém competência global, avaliação mensal e timeline cronológica. |
+| Vercel Production | deployment `dpl_7dAaUfecP9NkTigAfpbaAk9DpHEN` em estado `READY`. |
 | Runtime publicado | `production`, `supabase-production`, repositório remoto habilitado. |
 | Supabase | projeto `scnryinorqeucbfkioxo` ativo e saudável. |
 | Calendário | `closing_competence = 2026-12`, `row_version = 5`. |
 | Auth/RLS | ativos; acesso anônimo bloqueado. |
 | Governança SME | concluída e publicada. |
 | Competência global | concluída, publicada e operacionalizada. |
-| Avaliação mensal | concluída na `main`; publicação agrupada pendente. |
-| Timeline da unidade | domínio, integração e testes em validação no PR #100. |
-| Excel SME | implementado; certificação integral pendente. |
+| Avaliação mensal | concluída e publicada. |
+| Timeline da unidade | concluída e publicada. |
+| Excel institucional | implementado; certificação célula a célula pendente. |
+| Excel SME mensal | implementado; certificação célula a célula pendente. |
+| Deployment automático | bloqueio restaurado após a janela controlada. |
 | Liberação oficial | não declarada. |
 
 ## 4. Dados observados em Production
@@ -124,9 +138,9 @@ A projeção canônica reúne:
 
 A situação técnica e a conclusão são independentes. Uma análise pode apresentar documento incorreto e permanecer incompleta quando outros documentos ainda não foram analisados.
 
-## 7. Timeline cronológica — frente atual
+## 7. Timeline cronológica
 
-O PR #100 cria uma projeção sem nova tabela e sem persistência paralela. A timeline combina, por unidade e competência:
+A timeline combina, por unidade e competência:
 
 - consolidações de bonificação;
 - abertura, resolução e cancelamento de pendências;
@@ -143,29 +157,49 @@ id, occurredAt, type, title, description, actor, status,
 competenceKey, programId, pendencyId, visibility, sourceEntity, sourceId
 ```
 
-Regras obrigatórias:
+A timeline não cria tabela, migration, RPC ou nova fonte de verdade.
 
-1. ordenação decrescente por data e desempate estável por identificador;
-2. ausência de abertura duplicada entre pendência e histórico incorporado;
-3. isolamento por escola e competência;
-4. preservação dos vínculos com programa e pendência;
-5. visibilidade gerencial da Gestão SME sem detalhes técnicos restritos;
-6. aba acessível no Prontuário;
-7. ausência de nova fonte de verdade.
+## 8. Certificação Excel — frente atual
 
-A extensão é carregada depois de `app.js` por bootstrap próprio e compõe o renderizador do Prontuário com os wrappers de navegação existentes.
+Existem dois produtos distintos e ambos devem preservar seus contratos próprios:
 
-## 8. Excel
+### Relatório institucional
 
-O Excel SME mensal está implementado e não possui o defeito conhecido de reparo. Permanecem pendentes:
+- histórico e multicompetência;
+- uma linha por escola, competência e programa consolidado;
+- quatro abas: `BONIFICACOES`, `SINTESE`, `QUALIDADE_DADOS` e `METADADOS`;
+- equivalência com o relatório lógico original obrigatória.
 
-- massa representativa;
-- reconciliação Supabase → frontend → projeção canônica → modelo → célula XLSX;
-- isolamento entre competências;
-- correção do escopo mensal do Excel editorial;
-- certificação dos dois modelos;
-- abertura no Microsoft Excel desktop;
-- manifesto e hashes de evidência.
+### Excel SME mensal
+
+- uma única competência por arquivo;
+- todas as unidades escolares no escopo;
+- 26 colunas;
+- agrupamentos PDDE Básico, Qualidade e Equidade;
+- uma única planilha com o nome do mês;
+- ausência das validações que provocavam reparo pelo Microsoft Excel.
+
+A certificação deverá comprovar, separadamente:
+
+```text
+estado de origem
+→ evaluateMonthlyEvaluation
+→ modelo lógico do relatório
+→ pacote OOXML
+→ endereço e valor da célula XLSX
+```
+
+Gates previstos:
+
+- resultado armazenado compatível com a projeção canônica;
+- isolamento absoluto da competência no Excel SME;
+- preservação deliberada do escopo histórico no relatório institucional;
+- correspondência célula a célula;
+- contagens, resumos e agregações reconciliados;
+- pacote OOXML íntegro;
+- arquivo sem reparo;
+- manifesto determinístico com hashes e divergências;
+- evidência sem dados pessoais desnecessários.
 
 ## 9. Segurança operacional
 
@@ -177,7 +211,7 @@ Comprovado:
 - Edge Function protegida por JWT;
 - alterações auditáveis;
 - backup lógico pré-ativação disponível;
-- deployments automáticos bloqueados após a janela controlada.
+- deployments automáticos bloqueados após as janelas controladas.
 
 Bloqueadores antes do release oficial:
 
@@ -185,15 +219,14 @@ Bloqueadores antes do release oficial:
 - fixar deliberadamente a major do Node;
 - validar backup e restauração em ambiente descartável;
 - executar gate remoto por perfil;
-- certificar os relatórios Excel;
+- concluir a certificação dos relatórios Excel;
 - concluir UAT.
 
 ## 10. Ordem das próximas entregas
 
-1. concluir, mesclar e publicar a timeline juntamente com a avaliação mensal;
-2. reconciliar e certificar os dois relatórios Excel;
-3. implementar navegação contextual e botões de voltar;
-4. executar polimento editorial e visual;
-5. fortalecer segurança, realizar UAT e decidir a liberação oficial.
+1. reconciliar e certificar os dois relatórios Excel;
+2. implementar navegação contextual e botões de voltar;
+3. executar polimento editorial e visual;
+4. fortalecer segurança, realizar UAT e decidir a liberação oficial.
 
 Plano detalhado: [`superpowers/plans/2026-07-28-oficializacao-operacional-radar-pdde.md`](superpowers/plans/2026-07-28-oficializacao-operacional-radar-pdde.md).
