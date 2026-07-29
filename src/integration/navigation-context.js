@@ -288,12 +288,18 @@
         if (!header) return false;
         const context = peekReturnContext(root.sessionStorage);
         const label = context ? routeLabel(context.origin) : 'Carteira';
+        const ariaLabel = `Voltar para ${label}`;
+        const buttonText = `← Voltar para ${label}`;
         const button = existing || document.createElement('button');
         button.type = 'button';
         button.className = 'btn btn-secondary btn-sm radar-contextual-back';
         button.dataset.radarContextualBack = 'true';
-        button.setAttribute('aria-label', `Voltar para ${label}`);
-        button.textContent = `← Voltar para ${label}`;
+        if (button.getAttribute?.('aria-label') !== ariaLabel) {
+            button.setAttribute('aria-label', ariaLabel);
+        }
+        if (button.textContent !== buttonText) {
+            button.textContent = buttonText;
+        }
         button.style.alignSelf = 'flex-start';
         button.style.flexShrink = '0';
         if (!existing) {
