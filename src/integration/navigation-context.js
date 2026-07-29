@@ -221,6 +221,18 @@
         return !style || (style.display !== 'none' && style.visibility !== 'hidden');
     }
 
+    function isActionableFocusCandidate(element, root) {
+        if (!isVisibleFocusCandidate(element, root)) return false;
+        if (text(element.getAttribute?.('href'))) return true;
+        const tagName = text(element.tagName || element.nodeName).toLowerCase();
+        if (['button', 'input', 'select', 'textarea', 'summary'].includes(tagName)) return true;
+        if (element.isContentEditable) return true;
+        const contentEditable = element.getAttribute?.('contenteditable');
+        if (contentEditable != null && text(contentEditable).toLowerCase() !== 'false') return true;
+        const tabIndex = element.getAttribute?.('tabindex');
+        return tabIndex != null && Number.isFinite(Number(tabIndex)) && Number(tabIndex) >= 0;
+    }
+
     function findFocusTarget(root, focus) {
         const document = root?.document;
         if (!document) return null;
@@ -230,7 +242,7 @@
         }
         const candidates = Array.from(document.querySelectorAll?.(
             '[data-school-id], [data-pendency-ref], [data-action], a[data-radar-route="true"]'
-        ) || []).filter(item => isVisibleFocusCandidate(item, root));
+        ) || []).filter(item => isActionableFocusCandidate(item, root));
         if (focus.pendencyRef) {
             const byPendency = candidates.find(item => text(item.dataset?.pendencyRef) === focus.pendencyRef);
             if (byPendency) return byPendency;
@@ -483,6 +495,7 @@
         restoreCompetence,
         restoreScrollState,
         isVisibleFocusCandidate,
+        isActionableFocusCandidate,
         returnToOrigin,
         ensureBackButton,
         install
