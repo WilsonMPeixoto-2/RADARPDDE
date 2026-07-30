@@ -16,28 +16,32 @@ Concluídos:
 - timeline cronológica;
 - certificação dos relatórios Excel;
 - navegação contextual;
-- reconciliação do histórico da migration SME;
+- reconciliação da migration SME;
 - Node.js fixado em `24.x`;
-- gate remoto por papel institucional e viewport;
-- correção do conflito entre seletor técnico e logout no mobile.
+- gate remoto por papel e viewport;
+- correção do logout técnico no mobile;
+- backup e restauração em duas pilhas Supabase descartáveis;
+- exclusão dos dumps SQL dos artefatos do CI.
 
-A liberação oficial ainda depende de segurança Auth, backup/restauração, homologação manual no Excel, UAT, polimento e decisão formal.
+A checagem de credenciais comprometidas é recurso do plano Pro ou superior e não integra os critérios do projeto no plano Free atual.
+
+A liberação oficial ainda depende de homologação manual no Excel, Advisors quando aplicável, UAT, polimento e decisão formal.
 
 ## 2. Ordem de leitura
 
-1. [`../AGENTS.md`](../AGENTS.md) — regras permanentes do repositório;
-2. [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — estado material e bloqueadores atuais;
-3. [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — visão de produto e arquitetura;
-4. [`DECISION_LOG.md`](DECISION_LOG.md) — decisões arquiteturais acumuladas;
-5. [`decisions/ADR-035-node24-e-gate-remoto.md`](decisions/ADR-035-node24-e-gate-remoto.md) — decisão deste ciclo;
-6. [`architecture/testing.md`](architecture/testing.md) — estratégia de testes e gates;
-7. [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md) — classificação documental.
+1. [`../AGENTS.md`](../AGENTS.md) — regras permanentes;
+2. [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — estado e bloqueadores;
+3. [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — produto e arquitetura;
+4. [`DECISION_LOG.md`](DECISION_LOG.md) — decisões acumuladas;
+5. [`architecture/testing.md`](architecture/testing.md) — estratégia de testes;
+6. [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md) — classificação documental.
 
 ## 3. Arquitetura vigente
 
 - [`architecture/overview.md`](architecture/overview.md)
 - [`architecture/data-flow.md`](architecture/data-flow.md)
 - [`architecture/supabase.md`](architecture/supabase.md)
+- [`architecture/supabase-readiness.md`](architecture/supabase-readiness.md)
 - [`architecture/testing.md`](architecture/testing.md)
 
 ## 4. Runbooks
@@ -58,6 +62,10 @@ A liberação oficial ainda depende de segurança Auth, backup/restauração, ho
 
 ## 6. Evidências recentes
 
+### Backup e restauração
+
+- [`audits/2026-07-30-backup-restore-disposable.md`](audits/2026-07-30-backup-restore-disposable.md)
+
 ### Node e gate remoto
 
 - [`decisions/ADR-035-node24-e-gate-remoto.md`](decisions/ADR-035-node24-e-gate-remoto.md)
@@ -66,7 +74,7 @@ A liberação oficial ainda depende de segurança Auth, backup/restauração, ho
 ### Reconciliação da migration SME
 
 - [`audits/2026-07-29-reconciliacao-migration-sme-evidencias.md`](audits/2026-07-29-reconciliacao-migration-sme-evidencias.md)
-- [`audits/2026-07-29-rastreabilidade-migration-sme.md`](audits/2026-07-29-rastreabilidade-migration-sme.md) — achado histórico resolvido;
+- [`audits/2026-07-29-rastreabilidade-migration-sme.md`](audits/2026-07-29-rastreabilidade-migration-sme.md) — achado histórico resolvido
 
 ### Alinhamento documental
 
@@ -82,10 +90,10 @@ A liberação oficial ainda depende de segurança Auth, backup/restauração, ho
 
 Uma mudança material deve atualizar, no mesmo ciclo:
 
-- o contrato executável;
-- o teste de regressão;
-- a documentação canônica afetada;
-- a evidência do mesmo SHA;
-- a lista de bloqueadores, sem marcar requisito como cumprido antes da validação.
+- contrato executável;
+- teste de regressão;
+- documentação canônica afetada;
+- evidência do mesmo SHA;
+- lista de bloqueadores.
 
-Planos e relatórios históricos não são reescritos para parecerem atuais. Quando superados, recebem classificação explícita e a fonte canônica atual é indicada.
+Planos e relatórios históricos não são reescritos para parecerem atuais. Quando superados, recebem classificação explícita e apontam para a fonte canônica atual.

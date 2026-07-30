@@ -2,7 +2,7 @@
 
 Sistema institucional de acompanhamento operacional do PDDE, com visão mensal, carteira de unidades, prontuário, pendências, registros internos, inventário, acompanhamento gerencial da Gestão SME e exportações institucionais.
 
-> **Estado em 30 de julho de 2026:** conectado ao Supabase Production autorizado e publicado na Vercel Production. A liberação oficial ainda depende dos gates externos remanescentes descritos em [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md).
+> **Estado em 30 de julho de 2026:** conectado ao Supabase Production autorizado e publicado na Vercel Production. A liberação oficial ainda depende dos gates remanescentes descritos em [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md).
 
 ## Estado funcional
 
@@ -18,9 +18,15 @@ Estão implementados e publicados:
 - certificação automatizada de paridade integral;
 - CSV legado como fallback;
 - integração canônica com Supabase Production;
-- reconciliação do histórico da migration SME;
-- fixação deliberada do Node.js em `24.x`;
-- gate remoto por papel institucional e viewport.
+- reconciliação do histórico da migration SME.
+
+Hardening concluído e integrado ao repositório:
+
+- Node.js fixado em `24.x`;
+- gate remoto por papel institucional e viewport;
+- backup lógico e restauração comprovados em duas pilhas Supabase descartáveis;
+- comparação automatizada de schema, dados e histórico de migrations;
+- publicação exclusiva de evidência sanitizada, sem dumps SQL no artefato do CI.
 
 ## Perfis e papéis
 
@@ -44,8 +50,6 @@ frontend estático
 → PostgreSQL 17
 ```
 
-Ambientes:
-
 | Ambiente | Persistência | Finalidade |
 |---|---|---|
 | local/teste | Supabase descartável ou LocalStorage controlado | desenvolvimento, regressão e contingência |
@@ -56,9 +60,7 @@ Ambientes:
 
 ## Runtime Node.js
 
-A major operacional está fixada em Node.js `24.x`.
-
-Contratos versionados:
+A major operacional está fixada em Node.js `24.x`:
 
 ```text
 package.json        engines.node = 24.x
@@ -69,48 +71,60 @@ GitHub Actions      node-version: 24
 Vercel              nodeVersion: 24.x
 ```
 
-A fixação consolida a major já utilizada pela Vercel e pelos workflows; não representa promoção para uma major sem histórico de testes.
-
 ## Gate remoto de perfis e viewports
 
-O workflow canônico é:
+Workflow canônico:
 
 ```text
 .github/workflows/gate-remoto-perfis-viewports.yml
 ```
 
-Ele executa em runner remoto do GitHub Actions e:
+Ele inicia um Supabase descartável, aplica as 25 migrations, cria identidades Auth efêmeras, valida Auth/RLS e executa cinco papéis institucionais em Desktop Chrome, Pixel 7/Chromium e iPhone 15/WebKit. Não usa dados nem segredos de Production.
 
-1. inicia um Supabase descartável;
-2. aplica as 25 migrations versionadas;
-3. cria identidades Auth efêmeras;
-4. valida contratos Auth e RLS no desktop;
-5. serve o código do próprio PR;
-6. executa cinco papéis institucionais em:
-   - Desktop Chrome;
-   - Android / Pixel 7 / Chromium;
-   - iPhone 15 / WebKit;
-7. publica evidências e destrói o ambiente.
+## Backup e restauração descartáveis
 
-O gate não usa dados nem segredos de Production. A implementação também corrigiu a sobreposição móvel entre o seletor do Administrador técnico e o botão **Sair**.
+Workflow canônico:
+
+```text
+.github/workflows/backup-restore-disposable.yml
+```
+
+Comando local controlado:
+
+```bash
+RADAR_ALLOW_DISPOSABLE_BACKUP_RESTORE=true npm run test:backup-restore
+```
+
+O gate:
+
+1. inicia uma pilha Supabase de origem;
+2. aplica migrations e seed versionados;
+3. gera dumps lógicos de papéis, schema, dados e histórico de migrations;
+4. inicia uma segunda pilha isolada;
+5. restaura o backup de forma transacional;
+6. compara schema, tabelas, contagens, conteúdo e histórico;
+7. publica somente `evidence.json`;
+8. destrói os ambientes descartáveis.
+
+A execução é bloqueada sem a variável explícita de segurança e não aceita conexão `--linked` nem segredo remoto.
+
+## Recurso pago excluído do escopo
+
+A verificação de credenciais presentes em vazamentos conhecidos é oferecida pelo Supabase apenas no plano Pro ou superior. Como o projeto permanece no plano Free e não existe autorização de despesa, essa configuração não constitui bloqueador de release. A decisão deve ser revista caso o plano seja alterado.
 
 ## Requisitos de desenvolvimento
 
 - Node.js `24.x`;
 - npm compatível com o lockfile;
 - Docker para a pilha local do Supabase;
+- cliente PostgreSQL para o teste de restauração;
 - Supabase CLI conforme `package-lock.json`;
 - Chromium e WebKit para os gates Playwright aplicáveis.
 
-Instalação:
+Instalação e readiness:
 
 ```bash
 npm ci
-```
-
-Readiness principal:
-
-```bash
 npm run test:readiness
 ```
 
@@ -138,8 +152,6 @@ npm run certify:excel:fixture
 
 ## Fontes de verdade
 
-Para qualquer decisão técnica ou funcional, consultar nesta ordem:
-
 1. [`AGENTS.md`](AGENTS.md);
 2. [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md);
 3. [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md);
@@ -147,21 +159,17 @@ Para qualquer decisão técnica ou funcional, consultar nesta ordem:
 5. código e migrations da `main`;
 6. estado efetivo do Supabase e da Vercel para dados mutáveis.
 
-A memória de conversas e documentos históricos não substitui a verificação do código e dos ambientes.
-
 ## Bloqueadores remanescentes para release
 
-Após a fixação do Node e a implantação do gate remoto, permanecem:
+1. homologar manualmente os arquivos no Microsoft Excel desktop;
+2. revisar os Advisors do Supabase quando aplicável;
+3. executar UAT funcional com representantes dos papéis reais;
+4. realizar polimento editorial e visual;
+5. registrar decisão formal de liberação.
 
-1. habilitar proteção contra senhas vazadas no Supabase Auth;
-2. testar backup e restauração em ambiente descartável;
-3. homologar manualmente os arquivos no Microsoft Excel desktop;
-4. executar UAT funcional com representantes dos papéis reais;
-5. realizar polimento editorial e visual;
-6. registrar decisão formal de liberação.
+## Evidências recentes
 
-## Evidência deste ciclo
-
+- [`docs/audits/2026-07-30-backup-restore-disposable.md`](docs/audits/2026-07-30-backup-restore-disposable.md)
 - [`docs/audits/2026-07-30-node24-gate-remoto-perfis-viewports.md`](docs/audits/2026-07-30-node24-gate-remoto-perfis-viewports.md)
 - [`docs/audits/2026-07-29-reconciliacao-migration-sme-evidencias.md`](docs/audits/2026-07-29-reconciliacao-migration-sme-evidencias.md)
 
@@ -169,6 +177,7 @@ Após a fixação do Node e a implantação do gate remoto, permanecem:
 
 - chaves administrativas nunca pertencem ao frontend;
 - testes remotos usam ambientes e identidades descartáveis;
-- Auth e RLS devem ser validados por papel e escopo;
+- Auth e RLS são validados por papel e escopo;
+- dumps SQL não são publicados como artefatos do CI;
 - migrations exigem histórico alinhado, reset local, pgTAP, lint, tipos, dry-run, backup e rollback;
 - nenhuma alteração em Production é inferida apenas porque o CI ficou verde.

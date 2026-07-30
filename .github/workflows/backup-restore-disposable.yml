@@ -1,0 +1,101 @@
+name: Backup e restauração descartáveis
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'supabase/**'
+      - 'scripts/bootstrap-local-auth-fixtures.mjs'
+      - 'scripts/verify-supabase-backup-restore.mjs'
+      - 'tests/unit/backup-restore-gate-contract.test.js'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/backup-restore-disposable.yml'
+      - 'docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup-restore-disposable-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SUPABASE_TELEMETRY_DISABLED: '1'
+  RADAR_ALLOW_DISPOSABLE_BACKUP_RESTORE: 'true'
+
+jobs:
+  comprovar:
+    name: Dump, restauração e equivalência
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Obter código
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+
+      - name: Instalar cliente PostgreSQL
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client
+
+      - name: Iniciar Supabase descartável de origem
+        run: npm run supabase:start
+
+      - name: Recriar origem com migrations e seed versionados
+        run: npm run supabase:reset
+
+      - name: Criar identidades Auth efêmeras na origem
+        shell: bash
+        run: |
+          set -euo pipefail
+          eval "$(npx supabase status -o env | grep -E '^(API_URL|SERVICE_ROLE_KEY)=')"
+          test -n "${API_URL:-}"
+          test -n "${SERVICE_ROLE_KEY:-}"
+          FIXTURE_PASSWORD="$(node --input-type=module -e "import { randomBytes } from 'node:crypto'; process.stdout.write(randomBytes(32).toString('base64url') + 'A1!')")"
+          echo "::add-mask::${SERVICE_ROLE_KEY}"
+          echo "::add-mask::${FIXTURE_PASSWORD}"
+          RADAR_ALLOW_LOCAL_AUTH_BOOTSTRAP=true \
+          RADAR_SUPABASE_URL="${API_URL}" \
+          RADAR_SUPABASE_ADMIN_KEY="${SERVICE_ROLE_KEY}" \
+          RADAR_AUTH_FIXTURE_PASSWORD="${FIXTURE_PASSWORD}" \
+          npm run bootstrap:auth-fixtures
+
+      - name: Isolar serviços auxiliares da pilha de restauração
+        run: |
+          cat >> supabase/config.toml <<'EOF'
+
+          [analytics]
+          enabled = false
+
+          [db.pooler]
+          enabled = false
+          EOF
+
+      - name: Comprovar backup e restauração na segunda pilha
+        run: npm run test:backup-restore
+
+      - name: Publicar evidência sanitizada
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: backup-restore-disposable-${{ github.run_id }}
+          path: artifacts/backup-restore/evidence.json
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Encerrar Supabase descartável de origem
+        if: always()
+        run: npm run supabase:stop || true
