@@ -9,7 +9,6 @@ import { fileURLToPath } from 'node:url';
 const require = createRequire(import.meta.url);
 const modelApi = require('../src/domain/excel-sme-export-model.js');
 const renderer = require('../src/domain/excel-sme-monthly-renderer.js');
-const baseRenderer = require('../src/domain/excel-xlsx-renderer.js');
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_OUTPUT = path.join(
@@ -92,30 +91,52 @@ function fixture() {
   };
 }
 
-function main() {
-  const args = parseArguments(process.argv.slice(2));
-  const model = modelApi.buildSmeMonthlyModel(fixture());
-  const bytes = renderer.renderWorkbook(model);
-  const entries = baseRenderer.inspectStoredZip(bytes);
-  const workbook = new TextDecoder('utf-8').decode(entries['xl/workbook.xml']);
-
-  if (/<workbookPr\b/.test(workbook)) {
-    throw new Error('O arquivo de homologação ainda contém propriedades vazias reparáveis no workbook.');
+function validateWorkbook(model, workbook) {
+  const worksheet = workbook.worksheets[0];
+  if (workbook.worksheets.length !== 1 || worksheet?.name !== 'DEZEMBRO') {
+    throw new Error('O arquivo de homologação não preservou a única aba mensal esperada.');
   }
-  if (!workbook.includes('_xlnm.Print_Area') || !workbook.includes('_xlnm.Print_Titles')) {
+  if (worksheet.columnCount !== 30) {
+    throw new Error('O arquivo de homologação não preservou as 30 colunas do modelo original.');
+  }
+  const headers = model.columns.map((_, index) => worksheet.getRow(1).getCell(index + 1).value || '');
+  if (JSON.stringify(headers) !== JSON.stringify(modelApi.ORIGINAL_HEADER_LABELS)) {
+    throw new Error('O arquivo de homologação alterou os textos do modelo original.');
+  }
+  if (!worksheet.getCell('A1').isMerged || !worksheet.getCell('B1').isMerged) {
+    throw new Error('O arquivo de homologação perdeu a mesclagem CRE em A1:B1.');
+  }
+  const view = worksheet.views[0] || {};
+  if (view.state !== 'frozen' || view.xSplit !== 4 || view.ySplit !== 1) {
+    throw new Error('O arquivo de homologação perdeu o congelamento das quatro primeiras colunas e do cabeçalho.');
+  }
+  if (worksheet.autoFilter !== 'A1:AD3') {
+    throw new Error('O arquivo de homologação perdeu o autofiltro integral.');
+  }
+  if (worksheet.pageSetup.printArea !== 'A1:AD3' || worksheet.pageSetup.printTitlesRow !== '1:1') {
     throw new Error('O arquivo de homologação perdeu os contratos de impressão.');
   }
+  if (Object.keys(worksheet.dataValidations.model || {}).length > 0) {
+    throw new Error('O arquivo de homologação reintroduziu validações de dados incompatíveis.');
+  }
+}
+
+async function main() {
+  const args = parseArguments(process.argv.slice(2));
+  const model = modelApi.buildSmeMonthlyModel(fixture());
+  const workbook = renderer.buildWorkbook(model);
+  validateWorkbook(model, workbook);
+  const bytes = await renderer.renderWorkbook(model);
 
   fs.mkdirSync(path.dirname(args.output), { recursive: true });
   fs.writeFileSync(args.output, bytes);
   process.stdout.write(`Excel SME de homologação gerado: ${path.relative(ROOT, args.output)}\n`);
   process.stdout.write(`Renderer: ${renderer.VERSION}\n`);
+  process.stdout.write(`Colunas: ${model.columns.length}\n`);
   process.stdout.write(`Bytes: ${bytes.length}\n`);
 }
 
-try {
-  main();
-} catch (error) {
+main().catch(error => {
   console.error(error?.stack || error?.message || error);
   process.exitCode = 1;
-}
+});
