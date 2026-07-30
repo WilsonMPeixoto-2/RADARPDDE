@@ -39,13 +39,14 @@ test('Node 24 fica fixado no projeto, lockfile e ambientes de desenvolvimento', 
 test('gate remoto cobre todos os perfis em desktop, Android e iPhone sobre o código do PR', () => {
   const workflow = read('.github/workflows/homologacao-supabase-preview-remoto.yml');
   const config = read('playwright.supabase-preview.config.js');
-  const spec = read('tests/e2e/supabase-preview-remote.spec.js');
+  const matrixSpec = read('tests/e2e/supabase-preview-profile-viewport.spec.js');
 
   for (const requiredPath of ["'app.js'", "'src/**'", "'supabase/migrations/**'", "'package.json'"]) {
     assert.match(workflow, new RegExp(requiredPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
   assert.match(workflow, /npm run generate:runtime-config/);
   assert.match(workflow, /playwright install --with-deps chromium webkit/);
+  assert.match(workflow, /http:\/\/127\.0\.0\.1:4175/);
 
   for (const project of [
     'supabase-preview-desktop-chromium',
@@ -58,6 +59,7 @@ test('gate remoto cobre todos os perfis em desktop, Android e iPhone sobre o có
   assert.match(config, /Pixel 7/);
   assert.match(config, /iPhone 15/);
   assert.match(config, /webServer/);
+  assert.match(config, /supabase-preview-profile-viewport/);
 
   for (const profile of [
     'technicalAdmin',
@@ -67,9 +69,10 @@ test('gate remoto cobre todos os perfis em desktop, Android e iPhone sobre o có
     'inventory',
     'sme'
   ]) {
-    assert.match(spec, new RegExp(profile));
+    assert.match(matrixSpec, new RegExp(profile));
   }
-  assert.match(spec, /contextOptionsForProject/);
-  assert.match(spec, /isDesktopProject/);
-  assert.match(spec, /ensureNavigationOpen/);
+  assert.match(matrixSpec, /isDesktopProject/);
+  assert.match(matrixSpec, /ensureNavigationOpen/);
+  assert.match(matrixSpec, /documentWidth/);
+  assert.match(matrixSpec, /hasSessionInPublicContext/);
 });
