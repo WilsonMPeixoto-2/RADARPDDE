@@ -1,81 +1,45 @@
-# Runbook — conexão controlada com Supabase
+# Runbook — conexão e operação controlada do Supabase
 
-## Situação atual
+**Estado:** vigente; Production conectada  
+**Atualizado em:** 29 de julho de 2026
 
-O projeto remoto autorizado é `scnryinorqeucbfkioxo`. O schema, a carga estrutural e os vínculos funcionais de Auth estão concluídos.
+## 1. Objetivo
 
-O conjunto versionado contém atualmente **25** migrations.
+Orientar validação, operação, diagnóstico, contingência e recuperação da conexão entre o RADAR PDDE e o projeto Supabase autorizado.
 
-A carga estrutural contém:
+Este runbook não autoriza mudança de schema, reparo de migrations, importação de dados ou release. Essas ações exigem procedimentos próprios.
 
-- 1 configuração geral;
-- 8 programas;
-- 5 controladores;
-- 3 integrantes no diretório de Inventário;
-- 12 competências;
-- 163 escolas;
-- 430 vínculos escola–programa.
-
-Production utiliza `SupabaseRepository` em `supabase-production`. O `LocalStorageRepository` permanece somente como rollback emergencial explícito.
-
-## Regras permanentes
-
-- Não reutilizar projeto Supabase de outra aplicação.
-- Não inserir chave administrativa no frontend, bundle ou artefatos.
-- Usar somente chave `sb_publishable_` no navegador.
-- Não promover deployment Preview para Production.
-- Manter apenas um perfil institucional ativo por usuário.
-- Não reintroduzir registros de homologação `HML-*` na base operacional.
-- Não criar novo fallback paralelo sem falha comprovada.
-
-## 1. Contrato de migrations
-
-Os arquivos em `supabase/migrations` são a única fonte da ordem.
-
-```bash
-supabase migration list --linked
-supabase db push --linked --dry-run
-supabase db push --linked
-```
-
-O contrato pós-aplicação em `supabase/verification/remote-post-apply.sql` reconhece exatamente as 25 migrations versionadas.
-
-As migrations patrimoniais são:
-
-- `20260721152515_inventory_cre_read_access.sql` — primeiro ajuste remoto de leitura por CRE;
-- `20260721152634_inventory_capital_section_scope.sql` — separação do escopo patrimonial;
-- `20260721153758_inventory_capital_section_inline_scope.sql` — consolidação nas políticas RLS e remoção da helper transitória;
-- `20260721160056_inventory_generic_asset_scope_by_cre.sql` — correção final da fronteira de CRE no predicado genérico do Inventário.
-- `202607220001_atomic_verification_operations.sql` — verificação e log administrativo na mesma transação;
-- `202607220002_atomic_operational_commands.sql` — contatos, pendências, bens, programas, calendário e redistribuição com comandos atômicos;
-- `202607230001_enable_pgtap_remote_validation.sql` — instala pgTAP no schema `extensions` para homologação transacional remota.
-- `20260728182226_sme_access_governance.sql` — restringe os Registros Internos da Gestão SME ao UUID autenticado e valida a autoria das gravações.
-
-## 2. Estado de dados e Auth
-
-Confirmar periodicamente:
-
-- 163 escolas;
-- 430 vínculos escola–programa;
-- ausência de referências órfãs;
-- perfil institucional ativo para cada usuário autorizado;
-- vínculo funcional correto;
-- nenhum usuário com múltiplos perfis ativos;
-- e-mail confirmado e senha configurada no Auth.
-
-As senhas não são armazenadas no repositório nem tratadas por workflows operacionais.
-
-O backup lógico anterior à ativação está registrado em `data_import_runs` com:
+## 2. Situação de referência
 
 ```text
-import_id: PROD-ACTIVATION-BACKUP-20260721
+projeto: scnryinorqeucbfkioxo
+estado: ACTIVE_HEALTHY
+PostgreSQL: 17
+runtime Production: supabase-production
+repositório normal: SupabaseRepository
+contingência: LocalStorageRepository por novo build controlado
 ```
 
-A massa `HML-*` foi removida após o backup. As tabelas operacionais iniciam limpas para os lançamentos reais.
+O repositório contém 25 arquivos de migration. O histórico remoto possui equivalência funcional, com divergência conhecida de identificador na migration SME.
 
-## 3. Preview e Production
+Contagens de escolas, vínculos, usuários e registros são dados operacionais mutáveis. Para diagnóstico, devem ser consultadas no ambiente e registradas com data de corte; não usar números antigos deste runbook como invariantes.
 
-### Preview
+## 3. Regras permanentes
+
+- não reutilizar projeto Supabase de outra aplicação;
+- não inserir chave administrativa no frontend, bundle, GitHub ou log;
+- usar somente chave publicável no navegador;
+- não promover Preview como artefato de Production;
+- manter um perfil institucional ativo por usuário;
+- não reintroduzir massa `HML-*` na base operacional;
+- não criar fallback paralelo sem falha comprovada;
+- não aplicar seed automaticamente em banco vazio;
+- não executar alteração de schema enquanto o histórico de migrations estiver divergente;
+- não interpretar contingência local como sincronização bidirecional.
+
+## 4. Configuração por ambiente
+
+### 4.1 Preview
 
 ```text
 RADAR_DATA_MODE=supabase-preview
@@ -84,7 +48,7 @@ RADAR_SUPABASE_REPOSITORY_ENABLED=true
 RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED=false
 ```
 
-### Production
+### 4.2 Production
 
 ```text
 RADAR_DATA_MODE=supabase-production
@@ -93,17 +57,187 @@ RADAR_SUPABASE_REPOSITORY_ENABLED=true
 RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED=true
 ```
 
-O build da Vercel aplica automaticamente o contrato correspondente ao `VERCEL_ENV`. A URL e a chave publicável estão no runtime público; `service_role`, `sb_secret_`, senha de banco e tokens da Vercel são proibidos.
+O build público pode conter URL e chave publicável. São proibidos:
 
-### Rollback emergencial
+- `service_role`;
+- `sb_secret_*`;
+- senha de banco;
+- token da Vercel;
+- credencial administrativa da Edge Function.
 
-Definir em Production:
+## 5. Validação da conexão
+
+### 5.1 Código e runtime
+
+```bash
+npm ci
+npm run test:readiness
+npm run check:runtime-config
+npm run build:vercel
+```
+
+Confirmar no manifesto:
+
+- ambiente esperado;
+- `dataMode` correto;
+- `activeRepository = supabase`;
+- autorização de Production somente no build de Production;
+- ausência de segredo.
+
+### 5.2 Banco local
+
+```bash
+npm run supabase:start
+npm run supabase:reset
+npm run supabase:test:db
+npm run supabase:lint:db
+npm run typecheck:database
+```
+
+### 5.3 Ambiente remoto
+
+Confirmar:
+
+- projeto correto;
+- saúde dos serviços;
+- Auth operacional;
+- RLS ativa;
+- usuário anônimo sem dados institucionais;
+- perfil e `cre_scope` coerentes;
+- sem múltiplos perfis ativos;
+- Edge Function exigindo JWT;
+- Advisors revisados quando houver alteração relevante.
+
+## 6. Contrato de migrations
+
+Arquivos em `supabase/migrations` definem a ordem local.
+
+Comandos de inspeção:
+
+```bash
+supabase migration list --linked
+supabase db push --linked --dry-run
+```
+
+O `db push --linked` real somente pode ser executado quando:
+
+- histórico local e remoto estiver reconciliado;
+- migration nova tiver passado por reset local, pgTAP, lint e tipos;
+- backup e rollback estiverem aprovados;
+- janela e responsáveis estiverem definidos.
+
+### 6.1 Divergência SME conhecida
+
+```text
+arquivo local: 20260728182226_sme_access_governance.sql
+registro remoto: 20260728190344_sme_access_governance
+```
+
+Equivalência comprovada:
+
+```text
+comprimento: 1.411 caracteres em ambos
+SHA-256: cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
+```
+
+Até a reconciliação:
+
+- não renomear o arquivo;
+- não reaplicar o SQL;
+- não apagar ou inserir linha manualmente no histórico;
+- não criar migration compensatória vazia;
+- não executar `db push` real;
+- seguir [`SUPABASE_MIGRATION_AND_ROLLBACK.md`](SUPABASE_MIGRATION_AND_ROLLBACK.md).
+
+## 7. Perfis funcionais
+
+### 7.1 Controlador
+
+- inicia pela própria carteira;
+- colabora nas escolas da mesma CRE;
+- preserva responsável principal e autoria real;
+- não acessa outra CRE sem exceção explícita.
+
+### 7.2 Assistente
+
+- acompanha transversalmente a CRE;
+- administra Controladores e Inventário;
+- executa ações autorizadas e auditadas;
+- usa Edge Function protegida para contas da equipe.
+
+### 7.3 Gestão SME
+
+- consulta identificação e bonificação nas visões definidas;
+- consulta Pendências sem mutações operacionais;
+- recebe Registros Internos apenas do próprio UUID;
+- permanece limitada por interface, serviço e RLS.
+
+### 7.4 Inventário
+
+- acessa a superfície patrimonial da própria CRE;
+- lê escolas e vínculos necessários;
+- cria e atualiza bens autorizados;
+- conclui inventariação;
+- não recebe módulos não patrimoniais.
+
+### 7.5 Administrador técnico
+
+- infraestrutura, perfis, escopos, importação e auditoria;
+- não equivale à Assistente;
+- simulação visual não altera JWT.
+
+## 8. Gestão de contas
+
+Antes de implantar ou atualizar `team-account-management`:
+
+1. definir `RADAR_ALLOWED_ORIGIN` com a origem exata;
+2. rejeitar origem diferente;
+3. manter JWT obrigatório;
+4. confirmar validação de papel no servidor;
+5. testar convite, edição, desativação, idempotência e compensação;
+6. revisar logs sem dados sensíveis;
+7. executar Advisors.
+
+A credencial Auth Admin permanece exclusivamente server-side.
+
+## 9. Proteção contra senhas vazadas
+
+`Leaked Password Protection` está desabilitada na data de corte e constitui bloqueador de liberação oficial.
+
+Antes do release oficial e antes de nova publicação de funcionalidade privilegiada:
+
+1. habilitar a proteção no projeto remoto;
+2. registrar evidência da configuração;
+3. validar login e redefinição de senha;
+4. confirmar que nenhum fluxo de teste depende de senha comprometida conhecida;
+5. atualizar `CURRENT_STAGE.md`.
+
+O fato de deployments anteriores existirem não transforma a pendência em requisito cumprido.
+
+## 10. Homologação do deployment
+
+No SHA candidato, comprovar:
+
+- manifesto `supabase-production`;
+- tela de login obrigatória;
+- aplicação inerte antes da autenticação;
+- chave pública sem segredo;
+- anônimo com zero acesso institucional;
+- jornadas autenticadas por perfil;
+- desktop, Android e iPhone;
+- ausência de erro fatal e overflow;
+- logs sem erro de RLS inesperado;
+- deployment correspondente ao SHA aprovado.
+
+## 11. Rollback emergencial de frontend
+
+Definir:
 
 ```text
 RADAR_PRODUCTION_FORCE_LOCAL=true
 ```
 
-O deployment seguinte retorna a:
+O deployment seguinte deve produzir:
 
 ```text
 runtimeEnvironment: local
@@ -112,64 +246,45 @@ supabaseRepositoryEnabled: false
 productionActivationApproved: false
 ```
 
-O rollback não apaga, reverte ou modifica dados do Supabase. Para restaurar a conexão, remover o sinal e publicar novo deployment.
+Esse rollback:
 
-## 4. Perfis funcionais
+- não apaga ou reverte o banco;
+- não sincroniza alterações locais de volta ao Supabase;
+- exige comunicação de contingência;
+- exige plano para restaurar a conexão remota;
+- deve ser removido por novo build controlado após solução.
 
-### Controladores
+## 12. Diagnóstico
 
-- iniciam pelo recorte da própria carteira;
-- acessam e executam ações operacionais nas 163 escolas da 4ª CRE;
-- preservam responsabilidade principal e autoria individual;
-- não acessam outra CRE sem exceção explícita.
+Quando a aplicação não carrega dados:
 
-### Equipe de Inventário
+1. confirmar projeto e deployment;
+2. verificar manifesto do runtime;
+3. validar sessão Auth e perfil ativo;
+4. validar `cre_scope` e exceções escolares;
+5. inspecionar resposta PostgREST e política RLS;
+6. consultar logs de Auth, API, Postgres e Edge Function;
+7. distinguir falha de conectividade, autorização, dado ausente e conflito de versão;
+8. não acionar fallback local antes de classificar o incidente.
 
-- entra automaticamente no perfil operacional `inventario`;
-- acessa o menu e o painel **Capital e Inventário**;
-- consulta as 163 escolas e os 430 vínculos escola–programa da própria `cre_scope`;
-- consulta, cria e atualiza bens patrimoniais permitidos pela interface;
-- pode concluir a inventariação de bem encaminhado;
-- não recebe escrita cadastral nas escolas;
-- não recebe bonificação, análise técnica, contatos ou configuração global;
-- não acessa escolas ou bens de outra CRE.
+## 13. Backup e recuperação
 
-### Assistente, SME e Administrador Técnico
+O backup lógico anterior à ativação está associado a:
 
-Mantêm as permissões previstas em `docs/reference/SUPABASE_PERMISSIONS_MATRIX.md`.
+```text
+PROD-ACTIVATION-BACKUP-20260721
+```
 
-## 5. Homologação de deployment
+Ele deve ser preservado conforme a política do projeto. Antes da liberação oficial, backup e restauração precisam ser testados em ambiente descartável com reconciliação do resultado.
 
-O workflow de Production deve comprovar em desktop, Android e iPhone:
+## 14. Critério de encerramento
 
-- manifesto `supabase-production`;
-- tela de login obrigatória;
-- aplicação operacional inerte antes da autenticação;
-- chave pública sem qualquer segredo administrativo;
-- usuário anônimo recebendo zero escolas pela RLS;
-- ausência de erro fatal e overflow.
+Uma validação de conexão termina somente quando:
 
-Os fluxos autenticados são exercitados pelos usuários reais e permanecem cobertos pelos testes locais de Auth, RLS, pgTAP e E2E.
-
-## 6. Segurança e recuperação
-
-- usuário anônimo não lê dados institucionais;
-- Controladores colaboram somente dentro da própria CRE;
-- Inventário vê somente a superfície patrimonial da própria CRE;
-- a Edge Function `team-account-management` exige JWT;
-- Security e Performance Advisors devem ser revisados após mudanças de schema;
-- o backup pré-ativação deve ser mantido;
-- MFA deve ser priorizado para perfis privilegiados;
-- CI deve permanecer verde no mesmo commit implantado.
-
-
-## Hardening obrigatório de Auth e Edge Function
-
-Antes da implantação da Edge Function em Preview ou Production:
-
-1. definir `RADAR_ALLOWED_ORIGIN` com a origem exata do deployment Vercel;
-2. rejeitar qualquer origem diferente e nunca usar `*` como fallback;
-3. executar os Advisors de segurança após migrations e deploy da função;
-4. confirmar no painel do Supabase Auth que **Leaked Password Protection** está ativada.
-
-A proteção de senhas vazadas é configuração operacional do Auth e não é simulada por migration SQL. A implantação não deve ser encerrada sem evidência dessa ativação no projeto remoto.
+- runtime e projeto estão corretos;
+- Auth e RLS funcionam por perfil;
+- nenhum segredo foi exposto;
+- migrations não apresentam desvio novo;
+- evidências estão ligadas ao SHA;
+- pendências de release continuam explícitas;
+- nenhuma mudança funcional foi inferida apenas pela conectividade.
