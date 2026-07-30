@@ -29,6 +29,7 @@ Documentação desatualizada deve ser corrigida para representar código e ambie
 | Competências | 12; `closing_competence = 2026-12` |
 | Governança SME | concluída e publicada |
 | Ciclos 1 a 5 | concluídos, mesclados e publicados |
+| Histórico de migrations | divergência de versão limitada à migration SME; SQL local e remoto idêntico |
 | Liberação oficial | não declarada |
 
 O commit `598361dd...` é posterior ao deployment funcional e apenas restaura o bloqueio automático da Vercel.
@@ -42,8 +43,9 @@ O commit `598361dd...` é posterior ao deployment funcional e apenas restaura o 
 | Registro de decisões | ADRs vigentes e substituídas | **Canônico** | `docs/DECISION_LOG.md` |
 | Índice de documentação | Navegação e classificação das fontes | **Canônico** | `docs/README.md` |
 | Auditoria pós-ciclos 1 a 5 | Reconciliação entre código, GitHub, Vercel, Supabase e documentos | **Vigente** | `docs/audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md` |
+| Auditoria da migration SME | Divergência de identificador, equivalência do SQL e regra de tratamento | **Vigente até a reconciliação do histórico** | `docs/audits/2026-07-29-rastreabilidade-migration-sme.md` |
 | Auditoria de alinhamento de 28/07/2026 | Linha de base anterior à execução dos ciclos | **Histórica relevante** | `docs/audits/2026-07-28-alinhamento-codigo-ambientes-documentacao.md` |
-| Plano de oficialização de 28/07/2026 | Plano que originou os ciclos 1 a 5 e os gates de release | **Executado quanto aos ciclos 1 a 5; histórico para essa parte; ainda referencial para gates finais** | `docs/superpowers/plans/2026-07-28-oficializacao-operacional-radar-pdde.md` |
+| Plano de oficialização de 28/07/2026 | Plano que originou os ciclos 1 a 5 e gates de release | **Executado quanto aos ciclos; histórico para essa parte; referencial para gates finais** | `docs/superpowers/plans/2026-07-28-oficializacao-operacional-radar-pdde.md` |
 | Adendo do plano de oficialização | Restrições técnicas para competência, timeline e Excel | **Executado e preservado como histórico de decisão** | `docs/superpowers/plans/2026-07-28-oficializacao-operacional-radar-pdde-addendum.md` |
 | Dossiê Consolidado v1.0 | Contexto e regras históricas | **Referência; não inventário técnico atual** | `docs/reference/RADAR_PDDE_Dossie_Contexto_Regras_Decisoes_v1_0.docx` |
 | Plano do Lote 2 — Revisão Consolidada v2.0 | Contrato funcional, visual e de navegação original | **Referência de produto** | `docs/reference/RADAR_PDDE_Plano_Lote_2_Revisao_Consolidada_v2_0.docx` |
@@ -51,10 +53,10 @@ O commit `598361dd...` é posterior ao deployment funcional e apenas restaura o 
 | Relatório de estado atual — 12/07/2026 | Registro dos PRs 18 e 19 | **Histórico** | `docs/reports/RELATORIO_ESTADO_ATUAL_2026-07-12.md` |
 | Protótipo Excel conservador v2.1 | Referência editorial congelada | **Referência aprovada** | `docs/reference/RADAR_PDDE_Prototipo_Exportacao_Conservadora_v2-1.xlsx` |
 | Arquitetura de prontidão Supabase | Contrato criado durante pré-conexão | **Vigente nos contratos; trechos de estágio são históricos** | `docs/architecture/supabase-readiness.md` |
-| Dicionário de dados Supabase | Modelo relacional e relacionamentos | **Vigente nas tabelas; introduções de “futura persistência” ou “modo local” são históricas e não prevalecem sobre migrations/tipos** | `docs/reference/SUPABASE_DATA_DICTIONARY.md` |
+| Dicionário de dados Supabase | Modelo relacional e relacionamentos | **Vigente nas tabelas; introduções de “futura persistência” ou “modo local” são históricas** | `docs/reference/SUPABASE_DATA_DICTIONARY.md` |
 | Matriz de permissões Supabase | Perfis e RLS | **Aplicada; conferir ADR-022 e migrations atuais** | `docs/reference/SUPABASE_PERMISSIONS_MATRIX.md` |
 | Runbook de conexão Supabase | Configuração e validação | **Executado; permanece para operação e recuperação** | `docs/runbooks/SUPABASE_CONNECTION.md` |
-| Runbook de migração e rollback | Promoção, reconciliação e retorno | **Vigente** | `docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md` |
+| Runbook de migração e rollback | Promoção, reconciliação e retorno | **Vigente; deve incorporar a divergência da migration SME antes da próxima alteração de schema** | `docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md` |
 | Arquitetura de competências | Contexto mensal global | **Vigente e implementada** | `docs/architecture/competencias.md` |
 | Arquitetura da avaliação mensal | Projeção canônica APTA/INAPTA | **Vigente e implementada** | `docs/architecture/avaliacao-mensal.md` |
 | Arquitetura da timeline | Histórico como projeção | **Vigente e implementada** | `docs/architecture/timeline-unidade.md` |
@@ -80,6 +82,7 @@ O commit `598361dd...` é posterior ao deployment funcional e apenas restaura o 
 
 ### Pendentes antes da liberação oficial
 
+- reconciliação do identificador da migration SME no histórico local/remoto;
 - homologação manual dos relatórios no Microsoft Excel desktop;
 - proteção contra senhas vazadas no Supabase Auth;
 - fixação deliberada da major operacional do Node;
@@ -89,7 +92,21 @@ O commit `598361dd...` é posterior ao deployment funcional e apenas restaura o 
 - polimento editorial e visual;
 - decisão formal de liberação.
 
-## 5. Integridade dos binários verificados
+## 5. Rastreabilidade da migration SME
+
+| Item | Valor |
+|---|---|
+| Arquivo versionado | `20260728182226_sme_access_governance.sql` |
+| Versão registrada em Production | `20260728190344` |
+| Nome registrado | `sme_access_governance` |
+| Comprimento do SQL | 1.411 caracteres em ambos |
+| SHA-256 do SQL | `cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e` em ambos |
+| Divergência funcional | não identificada |
+| Divergência de rastreabilidade | presente |
+
+Não renomear, reaplicar, excluir ou editar diretamente o histórico remoto sem plano específico, dry-run e mecanismo suportado.
+
+## 6. Integridade dos binários verificados
 
 | Arquivo | SHA-256 |
 |---|---|
@@ -100,7 +117,7 @@ O commit `598361dd...` é posterior ao deployment funcional e apenas restaura o 
 
 Hashes identificam os binários verificados. Não garantem que o conteúdo represente o estado técnico atual.
 
-## 6. Regras de preservação
+## 7. Regras de preservação
 
 - documentos históricos não devem ser reescritos para simular atualidade;
 - artefatos gerados devem ser regenerados pelo script canônico, não editados manualmente;
@@ -109,7 +126,7 @@ Hashes identificam os binários verificados. Não garantem que o conteúdo repre
 - alterações de capacidades, caminhos, componentes, colunas, permissões ou fluxos exigem decisão e testes correspondentes;
 - polimento não pode reduzir capacidade, informação ou acessibilidade.
 
-## 7. Próxima decisão
+## 8. Próxima decisão
 
 Os ciclos 1 a 5 estão encerrados. A próxima frente ainda não foi escolhida e deve partir dos bloqueadores reais restantes.
 
