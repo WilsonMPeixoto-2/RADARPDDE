@@ -17,10 +17,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Consultar execução válida mais recente
+      - name: Consultar execução do Supabase descartável
         env:
           GH_TOKEN: ${{ github.token }}
-          EXPECTED_SHA: 660e6b1f35c09f880418c69ac6e9c9dbb615eb36
+          EXPECTED_SHA: 63537f38ecda9843add2fb5d5b2a9feaa3eac051
         shell: bash
         run: |
           set -euo pipefail
@@ -34,4 +34,4 @@ jobs:
           if [[ -n "${run_id}" ]]; then
             jobs="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs" --jq '[.jobs[] | {id,name,status,conclusion}]')"
           fi
-          gh pr comment 111 --repo "${GITHUB_REPOSITORY}" --body "Execução válida do gate remoto: run **${run_id:-não encontrado}**, estado **${status}**, conclusão **${conclusion}**, SHA \`${EXPECTED_SHA}\`. Jobs: \`${jobs}\`. ${url}"
+          gh pr comment 111 --repo "${GITHUB_REPOSITORY}" --body "Gate com Supabase descartável: run **${run_id:-não encontrado}**, estado **${status}**, conclusão **${conclusion}**, SHA \`${EXPECTED_SHA}\`. Jobs: \`${jobs}\`. ${url}"
