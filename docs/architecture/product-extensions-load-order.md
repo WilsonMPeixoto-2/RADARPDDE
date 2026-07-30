@@ -1,102 +1,168 @@
 # Cadeia de carregamento das extensões de produto
 
+**Estado:** vigente  
+**Atualizado em:** 29 de julho de 2026
+
 ## 1. Finalidade
 
-Este documento complementa `frontend-load-order.md` após a criação da timeline cronológica. Os números históricos daquela auditoria continuam descrevendo o baseline anterior; a cadeia registrada aqui é adicional e executa depois de `app.js`.
+Registrar a cadeia efetiva das extensões que precisam executar depois de `app.js`, quando as funções e coleções globais do núcleo legado já estão disponíveis.
+
+Este documento complementa [`frontend-load-order.md`](frontend-load-order.md). O primeiro descreve as camadas gerais e as extensões declaradas por `config.js`; este descreve especificamente o bootstrap pós-`app.js`.
 
 ## 2. Motivação
 
-A timeline precisa acessar funções e variáveis globais léxicas definidas pelo núcleo, inclusive `renderProntuario`, competência ativa e coleções operacionais. Por isso, domínio e integração não podem ser executados antes de `app.js`.
+Timeline e navegação contextual dependem de elementos produzidos por:
 
-Também não se deve inserir novos scripts diretamente depois de `auth-gate.js`, pois esse módulo já inicia a composição assíncrona das rotas canônicas. A solução adotada cria um bootstrap idempotente acionado por `navigation-routes.js`.
+- `app.js`;
+- autenticação e política de rotas;
+- `RadarNavigationHistory`;
+- renderizadores do Prontuário, Carteira e Pendências;
+- contexto global de competência.
 
-## 3. Ordem efetiva
+Esses módulos não podem ser antecipados para a fase estática sem quebrar seus pré-requisitos. Também não devem criar carregadores concorrentes.
+
+## 3. Cadeia efetiva
 
 ```text
 index.html
 → app.js
 → auth-gate.js
+→ navigation-bootstrap.js
+→ navigation-policy.js
 → navigation-routes.js
 → product-extensions-bootstrap.js
-→ school-timeline.css
-→ src/domain/school-timeline.js
-→ src/integration/school-timeline.js
+   ├─ school-timeline.css
+   ├─ src/domain/school-timeline.js
+   ├─ src/integration/school-timeline.js
+   └─ src/integration/navigation-context-bootstrap.js
+      ├─ aguarda RadarNavigationHistory
+      └─ src/integration/navigation-context.js
 ```
 
-`navigation-routes.js` apenas injeta o bootstrap. O carregador registra:
+`navigation-routes.js` injeta `product-extensions-bootstrap.js` uma única vez.
+
+## 4. Promessas de readiness
+
+### 4.1 Extensões de produto
 
 ```javascript
 window.RadarProductExtensionsReady
 ```
 
-O valor é uma `Promise` que resolve para `true` quando todas as extensões foram carregadas e inicializadas. Em falha, resolve para `false`, registra `RADAR_LAST_PRODUCT_EXTENSION_ERROR` e preserva a aplicação principal.
+Resolve para:
 
-## 4. Idempotência
+- `true`, quando os scripts declarados no vetor do bootstrap foram carregados;
+- `false`, quando uma extensão falhou, preservando a aplicação principal.
 
-Cada camada possui marcador próprio:
+A falha é registrada em:
 
-- `data-radar-product-bootstrap` para o bootstrap;
-- `data-radar-product-style` para folhas de estilo;
-- `data-radar-product-script` para scripts;
-- `__radarSchoolTimelineIntegrationInstalled` para a integração;
-- `__radarTimelineWrapped` para o wrapper de `renderProntuario`.
+```javascript
+window.RADAR_LAST_PRODUCT_EXTENSION_ERROR
+```
 
-A repetição do bootstrap não duplica folhas, scripts, observadores ou wrappers.
+### 4.2 Navegação contextual
 
-## 5. Composição com navegação
+```javascript
+window.RadarNavigationContextReady
+```
 
-A cadeia de rotas e a timeline podem terminar em ordens relativas diferentes sem perder comportamento:
+O bootstrap aguarda até dez segundos pela instalação de `RadarNavigationHistory`. Em seguida, carrega `navigation-context.js` e instala a integração.
 
-- quando a navegação envolve `renderProntuario` primeiro, a timeline captura o wrapper da navegação;
-- quando a timeline envolve primeiro, a navegação captura o wrapper da timeline.
+Falha ou timeout resolvem para `false` e registram:
 
-Em ambos os casos, o vínculo global é atualizado e cada wrapper mantém referência ao estágio anterior.
+```javascript
+window.RADAR_LAST_CONTEXTUAL_NAVIGATION_ERROR
+```
 
-A nova aba não pertence à lista fechada histórica de `activateProntuarioTab`. A integração tenta a ativação canônica e, quando rejeitada, aplica a mesma alternância de classes dentro do escopo do Prontuário. Nenhuma rota nova é criada nesta entrega.
+A timeline permanece independente da conclusão da navegação contextual.
 
-## 6. Segurança de renderização
+## 5. Idempotência
 
-A timeline é montada com:
+Marcadores vigentes:
+
+- `data-radar-product-bootstrap` — bootstrap pós-`app.js`;
+- `data-radar-product-style` — folhas de estilo;
+- `data-radar-product-script` — scripts do vetor ordenado;
+- `data-radar-navigation-context` — script contextual;
+- `__radarSchoolTimelineIntegrationInstalled` — integração da timeline;
+- `__radarTimelineWrapped` — wrapper de `renderProntuario`;
+- `__radarNavigationContextInstalled` — integração contextual;
+- `RadarProductExtensionsReady` e `RadarNavigationContextReady` — promessas únicas.
+
+Repetir a inicialização não pode duplicar estilos, scripts, observadores, wrappers ou botões.
+
+## 6. Ordem interna
+
+O vetor atual de scripts em `product-extensions-bootstrap.js` é:
+
+1. `/src/domain/school-timeline.js`;
+2. `/src/integration/school-timeline.js`;
+3. `/src/integration/navigation-context-bootstrap.js`.
+
+Cada script usa `async = false` e é aguardado pela redução sequencial de promessas. O módulo contextual carregado pelo último bootstrap também usa `async = false`.
+
+A ordem garante que:
+
+- o domínio da timeline exista antes de sua integração;
+- a timeline envolva o Prontuário antes ou depois dos wrappers de rota sem recursão;
+- a navegação contextual somente seja instalada após o histórico canônico.
+
+## 7. Composição de wrappers
+
+Timeline e navegação podem envolver renderizadores em ordens relativas distintas. Cada integração deve:
+
+1. capturar a função anterior;
+2. instalar um único wrapper;
+3. preservar retorno, argumentos e efeitos do estágio anterior;
+4. atualizar o vínculo global;
+5. impedir recursão por marcador próprio.
+
+Nenhuma extensão substitui as rotas canônicas nem cria fonte paralela de estado.
+
+## 8. Segurança de renderização
+
+Timeline e botão contextual usam DOM seguro:
 
 - `document.createElement`;
 - `textContent`;
-- `append` e `appendChild`;
-- `replaceChildren`;
-- atributos e `dataset` definidos explicitamente.
+- `append`, `appendChild` e `replaceChildren`;
+- atributos e `dataset` controlados.
 
-Não é utilizado `innerHTML`. A extensão não aumenta o limite histórico de avisos `nounsanitized/property`.
+Não utilizar `innerHTML` com conteúdo operacional.
 
-## 7. Degradação segura
+## 9. Degradação segura
 
-Se o bootstrap ou a timeline falharem:
+Se uma extensão falhar:
 
-- o Prontuário original continua disponível;
-- nenhuma escrita é realizada;
-- nenhuma tabela ou estado derivado é criado;
+- autenticação, rotas e aplicação principal continuam disponíveis;
+- nenhuma escrita remota é disparada pelo bootstrap;
+- o Prontuário original permanece utilizável;
 - o erro fica disponível para diagnóstico;
-- os demais módulos de navegação e autenticação continuam independentes.
+- a falha não autoriza fallback silencioso para outra persistência.
 
-## 8. Verificação obrigatória
+## 10. Verificação obrigatória
 
 Mudanças nesta cadeia exigem:
 
-1. readiness sem aumento do débito de lint;
-2. testes unitários da projeção;
-3. E2E da aba e dos recortes por perfil;
-4. teste de precedência do frontend;
-5. Playwright desktop, Android e iPhone;
-6. Lighthouse mobile e desktop;
-7. Supabase local e migration smoke, ainda que não exista alteração de banco;
-8. confirmação de ausência de `pageerror`.
+1. `npm run test:readiness`;
+2. testes unitários dos domínios tocados;
+3. E2E das superfícies envolvidas;
+4. `npm run audit:frontend-precedence:check`;
+5. `npm run test:frontend-precedence`;
+6. Playwright desktop, Android e iPhone;
+7. Lighthouse mobile e desktop;
+8. confirmação de ausência de `pageerror`;
+9. inspeção de duplicidade de scripts, wrappers e observadores.
 
-## 9. Regra de evolução
+## 11. Regra de evolução
 
-Novas extensões pós-`app.js` devem ser acrescentadas no vetor ordenado de `product-extensions-bootstrap.js` e possuir:
+Novas extensões pós-`app.js` devem entrar no vetor ordenado existente e possuir:
 
-- API ou marcador de conclusão explícito;
+- pré-requisito global documentado;
+- API ou marcador de conclusão;
 - inicialização idempotente;
 - degradação segura;
-- documentação do pré-requisito global;
-- testes de ordem e integração.
+- testes de ordem e integração;
+- documentação da interação com wrappers existentes.
 
-Não adicionar carregadores concorrentes sem ADR e sem demonstrar que o bootstrap atual não atende ao requisito.
+Novo carregador concorrente exige ADR e prova de que o bootstrap atual não atende ao requisito.

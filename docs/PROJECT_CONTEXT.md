@@ -32,7 +32,8 @@ Na data de corte:
 - existem 12 competências de 2026;
 - `closing_competence = 2026-12`;
 - `app_config.row_version = 5`;
-- as 25 migrations estão alinhadas por versão e nome entre GitHub e Supabase Production;
+- o relatório institucional XLSX e o Excel SME estão integrados em runtime;
+- o CSV legado permanece disponível como botão secundário e fallback;
 - o deployment automático está novamente bloqueado;
 - a liberação oficial ainda não foi declarada.
 
@@ -245,7 +246,7 @@ Serviços de aplicação e unidade de trabalho
    ↓
 Contrato de repositório
    ├── SupabaseRepository — Preview e Production
-   └── LocalStorageRepository — rollback emergencial
+   └── LocalStorageRepository — contingência por novo build
 ```
 
 O adaptador remoto utiliza paginação, lotes, erros padronizados, concorrência otimista por `row_version`, snapshots, RPCs compostas, reconciliação e rollback.
@@ -291,31 +292,31 @@ snapshot → validação → plano → dry-run → staging
 
 Seed local não é dado institucional. Importação administrativa não ocorre no navegador.
 
-### Migration SME reconciliada
+### Divergência da migration SME
 
-O arquivo canônico criado e testado no GitHub permanece:
+O repositório possui:
 
 ```text
 20260728182226_sme_access_governance.sql
 ```
 
-O Supabase Production agora registra:
+O histórico de Production registra:
 
 ```text
-version = 20260728182226
+version = 20260728190344
 name = sme_access_governance
 ```
 
-O registro derivado `20260728190344` foi removido pelo mecanismo oficial de `migration repair`, sem reaplicação do SQL. As 25 migrations agora correspondem por versão e nome.
-
-A migration reparada foi armazenada pelo CLI em quatro instruções. A reconstrução preserva:
+As outras 24 migrations correspondem por versão e nome. O SQL da migration SME é equivalente nos dois lados:
 
 ```text
 comprimento = 1.411 caracteres
 SHA-256 = cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
 ```
 
-O teste de regressão exige o identificador canônico, a ausência do identificador derivado no repositório e a integridade do hash.
+Não há divergência funcional identificada. Existe divergência de rastreabilidade que deve ser reconciliada, por mecanismo suportado e testado, antes da próxima migration de Production.
+
+Não renomear, reaplicar, excluir ou editar diretamente o histórico remoto sem plano, dry-run e evidência.
 
 Backup e restauração ainda precisam ser exercitados em ambiente descartável antes da liberação oficial.
 
@@ -368,9 +369,9 @@ estado de origem
 - histórico e multicompetência;
 - quatro abas: `BONIFICACOES`, `SINTESE`, `QUALIDADE_DADOS` e `METADADOS`;
 - equivalência com o relatório lógico original e o CSV legado;
-- hashes estrutural e de conteúdo.
-
-O botão institucional ainda permanece vinculado ao CSV.
+- hashes estrutural e de conteúdo;
+- botão principal integrado ao XLSX em runtime;
+- CSV legado preservado como botão secundário e fallback.
 
 ### Excel SME mensal
 
@@ -381,7 +382,8 @@ O botão institucional ainda permanece vinculado ao CSV.
 - uma planilha mensal;
 - ausência de `dataValidations`;
 - isolamento entre competências;
-- comparação célula a célula.
+- comparação célula a célula;
+- botão próprio habilitado somente para competência mensal.
 
 A evidência sintética não consulta Production, não grava dados institucionais e não substitui homologação manual no Microsoft Excel desktop.
 
@@ -406,19 +408,19 @@ Comprovado:
 - autoria e auditoria das mutações;
 - concorrência otimista;
 - deployments automáticos bloqueados;
-- evidência Excel sem dados pessoais;
-- histórico das 25 migrations alinhado entre GitHub e Supabase Production.
+- evidência Excel sem dados pessoais.
 
 Permanecem como bloqueadores:
 
-1. homologação manual dos relatórios no Microsoft Excel desktop;
-2. proteção contra senhas vazadas no Supabase Auth;
-3. fixação da major operacional do Node;
-4. backup e restauração em ambiente descartável;
-5. gate remoto por perfil e viewport;
-6. UAT funcional;
-7. polimento editorial e visual;
-8. decisão formal de liberação.
+1. reconciliação do identificador da migration SME;
+2. homologação manual dos relatórios no Microsoft Excel desktop;
+3. proteção contra senhas vazadas no Supabase Auth;
+4. fixação da major operacional do Node;
+5. backup e restauração em ambiente descartável;
+6. gate remoto por perfil e viewport;
+7. UAT funcional;
+8. polimento editorial e visual;
+9. decisão formal de liberação.
 
 ## 20. Direção de desenvolvimento vigente
 
@@ -428,17 +430,45 @@ A sequência funcional anterior foi encerrada:
 2. janeiro a dezembro de 2026 — concluído;
 3. avaliação mensal certificada — concluída;
 4. timeline cronológica — concluída;
-5. certificação automatizada Excel — concluída;
+5. certificação e integração Excel — concluídas;
 6. navegação contextual — concluída.
 
-A próxima frente ainda não foi escolhida. Nenhum novo ciclo funcional está autorizado por este documento.
+A próxima frente ainda não foi escolhida.
 
-O cadastro e a disponibilização de programas por exercício continuam fora do escopo até decisão específica.
+Frentes elegíveis:
 
-Referências:
+- polimento editorial e visual;
+- hardening, homologação e release;
+- configuração de programas por exercício, em pacote separado.
+
+A escolha deve ser expressa e antecedida por escopo, branch própria, gates e atualização documental.
+
+## 21. Restrições permanentes
+
+Não é permitido:
+
+- alterar código para coincidir com documento histórico;
+- criar fonte paralela de competência, avaliação, timeline ou exportação;
+- enfraquecer Auth, RLS ou autoria por conveniência de interface;
+- conceder mutação operacional à Gestão SME;
+- transformar a carteira em fronteira entre Controladores da mesma CRE;
+- ocultar informação funcional no mobile;
+- introduzir segredo no frontend ou no repositório;
+- executar nova migration antes da reconciliação do histórico SME;
+- reintroduzir `dataValidations` no Excel SME sem nova prova OOXML e homologação;
+- remover o CSV de fallback sem decisão e plano de reversão.
+
+## 22. Referências
 
 - [`CURRENT_STAGE.md`](CURRENT_STAGE.md);
-- [`audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md`](audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md);
-- [`audits/2026-07-29-rastreabilidade-migration-sme.md`](audits/2026-07-29-rastreabilidade-migration-sme.md);
-- [`audits/2026-07-29-reconciliacao-migration-sme-plano.md`](audits/2026-07-29-reconciliacao-migration-sme-plano.md);
-- [`audits/2026-07-29-reconciliacao-migration-sme-evidencias.md`](audits/2026-07-29-reconciliacao-migration-sme-evidencias.md).
+- [`DECISION_LOG.md`](DECISION_LOG.md);
+- [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md);
+- [`architecture/competencias.md`](architecture/competencias.md);
+- [`architecture/avaliacao-mensal.md`](architecture/avaliacao-mensal.md);
+- [`architecture/timeline-unidade.md`](architecture/timeline-unidade.md);
+- [`architecture/navigation-contextual.md`](architecture/navigation-contextual.md);
+- [`architecture/excel-export.md`](architecture/excel-export.md);
+- [`architecture/excel-sme-mensal.md`](architecture/excel-sme-mensal.md);
+- [`architecture/supabase-readiness.md`](architecture/supabase-readiness.md);
+- [`runbooks/SUPABASE_CONNECTION.md`](runbooks/SUPABASE_CONNECTION.md);
+- [`runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`](runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md).

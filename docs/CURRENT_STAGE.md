@@ -1,305 +1,260 @@
 # RADAR PDDE — Estado atual do projeto
 
 **Atualizado em:** 29 de julho de 2026  
-**Baseline funcional auditada da `main`:** `598361dd784563f4d70d1e25df3818f4ee066da8`  
+**Baseline funcional da `main`:** `598361dd784563f4d70d1e25df3818f4ee066da8`  
 **Commit funcional publicado:** `dfc8aa3030b02edb73f764f5f56bd6759a7a1d77`  
 **Deployment Production:** `dpl_7tLM3RZ7MEuRRTzvGmc9EiAARmDY` — `READY`  
-**Estado da frente anterior:** concluída, mesclada e publicada  
-**Próxima frente:** ainda não escolhida  
-**Natureza:** documento operacional e transitório
+**Última consolidação documental anterior:** `05f51cbdd433844f11db036bcdefa5f9d8941e45` — PR #108  
+**Frente documental atual:** alinhamento integral concluído nesta linha de trabalho  
+**Próxima frente:** ainda não escolhida
 
-## 1. Regra de leitura
+## 1. Como usar este documento
 
 Antes de iniciar tarefa:
 
-1. confirmar a baseline funcional da `main` e os commits posteriores;
+1. consultar o `main` atual e commits posteriores à baseline funcional;
 2. verificar PRs e workflows abertos;
-3. confirmar o deployment Vercel Production correspondente;
-4. confirmar o projeto Supabase autorizado e seu estado;
-5. comparar o histórico local e remoto de migrations quando houver alteração de banco;
-6. confrontar documentação e artefatos com código e ambientes;
-7. atualizar este documento quando o estado material mudar.
+3. confirmar deployment e SHA na Vercel;
+4. confirmar projeto e estado do Supabase;
+5. comparar migrations local/remoto quando houver assunto de banco;
+6. ler `PROJECT_CONTEXT.md` e `DECISION_LOG.md`;
+7. verificar a arquitetura da frente escolhida;
+8. atualizar este arquivo quando o estado material mudar.
 
-Código, banco e deployment prevalecem sobre planos, relatórios e memórias de chat.
+Código, banco e deployment prevalecem sobre plano, relatório ou memória de chat.
 
 ## 2. Situação executiva
 
 A integração entre frontend, Supabase Auth, PostgREST, RLS, PostgreSQL e Vercel Production está ativa.
 
-Estão concluídos e publicados:
+Concluídos e publicados:
 
 - governança da Gestão SME;
 - competência mensal global;
+- disponibilização de janeiro a dezembro de 2026;
 - avaliação mensal canônica;
 - timeline cronológica da unidade;
-- certificação automatizada dos relatórios Excel;
-- navegação contextual e retorno seguro.
+- certificação automatizada integral dos relatórios Excel;
+- integração dos botões XLSX institucional e Excel SME, com CSV legado preservado;
+- navegação contextual com retorno seguro;
+- restauração do bloqueio de deployments automáticos.
 
-O código funcional dos ciclos 1 a 5 integra a baseline `598361dd...`. O deployment funcional vigente foi gerado pelo commit `dfc8aa3...`. O commit posterior apenas restaurou `git.deploymentEnabled: false` e não abriu nova publicação.
+Concluído na documentação:
 
-A divergência de identificador da migration SME foi reconciliada sem reaplicação do SQL. A liberação oficial ainda não foi declarada porque permanecem gates de segurança, homologação, restauração, UAT e decisão formal.
+- reconciliação de contratos de competências e avaliação;
+- atualização da ordem de carregamento;
+- atualização da estratégia de testes;
+- correção da arquitetura e cobertura Supabase;
+- atualização do dicionário de dados;
+- correção dos contratos Excel;
+- incorporação do gate de migrations nos runbooks;
+- atualização das ADRs e da matriz de validade documental.
 
-## 3. Estado por camada
+A liberação oficial do produto ainda não foi declarada.
 
-| Camada | Estado comprovado |
-|---|---|
-| GitHub | `main` contém governança SME e ciclos 1 a 5. |
-| Baseline funcional | `598361dd784563f4d70d1e25df3818f4ee066da8`. |
-| Vercel Production | `dpl_7tLM3RZ7MEuRRTzvGmc9EiAARmDY`, `READY`. |
-| Commit publicado | `dfc8aa3030b02edb73f764f5f56bd6759a7a1d77`. |
-| Runtime | `production`, `supabase-production`, repositório remoto habilitado. |
-| Supabase | projeto `scnryinorqeucbfkioxo`, `ACTIVE_HEALTHY`, PostgreSQL 17. |
-| Calendário | `closing_competence = 2026-12`, `row_version = 5`. |
-| Auth/RLS | ativos; acesso anônimo bloqueado. |
-| Gestão SME | concluída e publicada. |
-| Competência global | concluída e publicada. |
-| Avaliação mensal | concluída e publicada. |
-| Timeline da unidade | concluída e publicada. |
-| Excel institucional | certificação automatizada concluída; botão institucional ainda usa CSV. |
-| Excel SME mensal | certificação automatizada concluída. |
-| Navegação contextual | concluída, publicada e validada em desktop e mobile. |
-| Histórico de migrations | 25 versões correspondentes entre GitHub e Supabase Production; migration SME reconciliada. |
-| Deployment automático | bloqueado após a janela controlada. |
-| Liberação oficial | não declarada. |
+## 3. Produção
 
-## 4. Governança da Gestão SME
-
-Concluída pelos PRs #87, #88 e #89.
-
-Regras vigentes:
-
-- visão mensal e Prontuário exibem identificação e bonificação, sem análise técnica nem ações;
-- Pendências permanecem consultáveis, sem novo envio, substituição, reanálise, contato, cancelamento, reabertura ou criação;
-- guardas existem na política de capacidades, handlers e serviços;
-- Registros Internos usam `actor_user_id = auth.uid()`;
-- a RLS de `administrative_logs` aplica o mesmo recorte;
-- o Administrador técnico preserva leitura integral em sua visão técnica;
-- programas por exercício continuam fora desse escopo.
-
-## 5. Ciclo 1 — competência mensal global
-
-Concluído pelo PR #92 e publicado pelos PRs #95 e #96.
-
-- domínio `RadarCompetenceContext`;
-- seletor global de competência;
-- janeiro a dezembro de 2026 disponíveis;
-- prioridade de inicialização por seleção persistida, explícita, fechamento e fallback cronológico;
-- sincronização entre exercício e competência;
-- preservação entre telas e recarga;
-- `closing_competence = 2026-12` por fluxo auditado;
-- `app_config.row_version = 5`.
-
-## 6. Ciclo 2 — avaliação mensal certificada
-
-Concluído pelo PR #98 e publicado pelos PRs #101 e #102.
-
-- projeção canônica `evaluateMonthlyEvaluation`;
-- resultado `apta`, `inapta` ou nulo;
-- campos obrigatórios ausentes;
-- estágio da bonificação;
-- situação técnica e conclusão técnica separadas;
-- pendências recortadas por escola, competência e programa;
-- consulta e consolidação usam a mesma projeção;
-- persistência atômica, autoria, log e `row_version` preservados;
-- jornada de agosto validada após recarga.
-
-## 7. Ciclo 3 — timeline cronológica da unidade
-
-Concluído pelo PR #100 e publicado pelos PRs #101 e #102.
-
-- domínio `RadarSchoolTimeline`;
-- projeção somente leitura por unidade e competência;
-- verificações, pendências, tentativas, contatos, notas, bens e logs consolidados;
-- ordenação decrescente e desempate estável;
-- abertura de pendência sem duplicidade;
-- vínculos por programa, competência e pendência preservados;
-- detalhe técnico restrito ocultado da Gestão SME;
-- aba **Histórico cronológico** no Prontuário;
-- carregamento pós-`app.js` idempotente;
-- DOM seguro, sem nova fonte de verdade.
-
-## 8. Ciclo 4 — certificação integral dos relatórios Excel
-
-Concluído pelo PR #103 e incorporado ao deployment do PR #105.
-
-### Relatório institucional
-
-- histórico e multicompetência;
-- quatro abas: `BONIFICACOES`, `SINTESE`, `QUALIDADE_DADOS` e `METADADOS`;
-- equivalência com o CSV legado;
-- comparação de células e pacote OOXML;
-- manifesto e hashes determinísticos.
-
-### Excel SME mensal
-
-- uma competência por arquivo;
-- uma aba mensal;
-- 26 colunas;
-- agrupamentos PDDE Básico, Qualidade e Equidade;
-- ausência de `dataValidations`;
-- isolamento temporal entre competências;
-- comparação endereço a endereço e valor a valor.
-
-### Evidência sintética
-
-| Verificação | Resultado |
-|---|---:|
-| Resultados canônicos auditados | 4 |
-| Divergências canônicas | 0 |
-| Células institucionais certificadas | 48 |
-| Divergências institucionais | 0 |
-| Células SME certificadas | 78 |
-| Divergências SME | 0 |
-| Abas institucionais | 4 |
-| Abas SME | 1 |
-| `dataValidations` | ausente |
+### 3.1 Vercel
 
 ```text
-manifestHash = ee589e0d6f7361c9dd8176baccbcd9ceb931f4b34eb698c2f5dd97a49877f58b
+project: radarpdde
+production deployment: dpl_7tLM3RZ7MEuRRTzvGmc9EiAARmDY
+state: READY
+artifactCommitSha: dfc8aa3030b02edb73f764f5f56bd6759a7a1d77
 ```
 
-Evidência: `docs/evidence/excel-certification/synthetic-manifest.json`.
+O commit funcional publicado é anterior ao commit operacional que restaurou o bloqueio automático. Essa diferença é esperada e documentada.
 
-Limites:
-
-- o botão institucional ainda permanece vinculado ao CSV;
-- a certificação automatizada não substitui a abertura manual no Microsoft Excel desktop;
-- a massa sintética não consulta nem grava Production.
-
-## 9. Ciclo 5 — navegação contextual
-
-Concluído pelo PR #104 e publicado pelos PRs #105 e #106.
-
-- módulo `RadarNavigationContext`;
-- captura antes da entrada em Prontuário ou Pendências;
-- pilha de até 12 transições em `sessionStorage`;
-- preservação de competência, rota, filtros, rolagem e foco;
-- retorno ao controle acionável da unidade;
-- fallback **Voltar para Carteira** em acesso direto;
-- scroll próprio no desktop e scroll da página no mobile;
-- foco somente em elemento acionável e visível;
-- montagem segura e idempotente;
-- nenhuma tabela, migration, RPC ou persistência remota.
-
-O SHA final do PR #104 passou em:
-
-- Supabase readiness;
-- Lighthouse CI;
-- Saúde das dependências;
-- Playwright desktop, Android e iPhone.
-
-## 10. Dados observados em Production
-
-Data de corte: 29/07/2026.
-
-| Entidade | Quantidade |
-|---|---:|
-| Configuração global | 1 |
-| Programas | 8 |
-| Competências | 12 |
-| Escolas | 164 |
-| Vínculos escola–programa | 431 |
-| Perfis ativos | 13 |
-| Verificações | 6 |
-| Pendências | 3 |
-| Tentativas | 3 |
-| Contatos | 5 |
-| Registros administrativos | 82 |
-| Bens | 2 |
-
-As quantidades são retrato operacional e podem mudar com o uso real.
-
-## 11. Rastreabilidade da migration SME — resolvida
-
-O arquivo canônico criado e testado no GitHub é:
+### 3.2 Supabase
 
 ```text
-20260728182226_sme_access_governance.sql
+project: scnryinorqeucbfkioxo
+status: ACTIVE_HEALTHY
+PostgreSQL: 17
+runtime Production: supabase-production
+activeRepository: supabase
 ```
 
-O histórico do Supabase Production agora registra o mesmo identificador:
+Estado de configuração confirmado na data de corte:
 
 ```text
-version = 20260728182226
-name = sme_access_governance
+closing_competence = 2026-12
+app_config.row_version = 5
 ```
 
-O registro derivado `20260728190344` foi removido exclusivamente pelo mecanismo oficial de `migration repair`. Nenhuma instrução funcional foi reaplicada.
+Contagens operacionais devem ser consultadas novamente quando forem necessárias. Não tratá-las como invariantes.
 
-Verificações posteriores:
+## 4. Ciclos concluídos
+
+### Ciclo 1 — competência global
+
+- seletor mensal transversal;
+- persistência e recarga;
+- janeiro a dezembro de 2026;
+- alteração auditada de `closing_competence` para `2026-12`;
+- ausência de seletor concorrente.
+
+### Ciclo 2 — avaliação mensal
+
+- regra canônica APTA/INAPTA;
+- bonificação, análise técnica e pendência separadas;
+- persistência atômica e `row_version`;
+- mesma projeção nas superfícies.
+
+### Ciclo 3 — timeline
+
+- projeção cronológica somente leitura;
+- autoria, data, origem e vínculos;
+- visibilidade por perfil;
+- deduplicação sem eliminar fatos legítimos.
+
+### Ciclo 4 — certificação e integração Excel
+
+- institucional histórico de quatro abas;
+- botão principal institucional integrado ao XLSX;
+- Excel SME mensal de uma aba integrado em botão próprio;
+- CSV legado preservado como botão secundário e fallback;
+- comparação até a célula OOXML;
+- equivalência com CSV;
+- hashes e manifesto sintético;
+- ausência deliberada de `dataValidations` no produto SME.
+
+### Ciclo 5 — navegação contextual
+
+- retorno para origem real;
+- preservação de competência e filtros;
+- restauração do scrollport efetivo;
+- foco no controle visível e acionável;
+- suporte desktop, Android e iPhone.
+
+## 5. Governança da Gestão SME
+
+Permanece vigente:
+
+- identificação e bonificação nas visões mensal e do Prontuário;
+- ausência de análise técnica e controles operacionais nessas superfícies;
+- Pendências em somente leitura;
+- Registros Internos limitados a `actor_user_id = auth.uid()`;
+- restrição cumulativa em interface, serviço e RLS;
+- configuração de programas por exercício fora deste pacote.
+
+## 6. Migrações
+
+O repositório contém 25 arquivos locais.
+
+Divergência conhecida:
 
 ```text
-migrations remotas = 25
-registro canônico = 1
-registro derivado = 0
-comprimento reconstruído = 1.411 caracteres
-SHA-256 reconstruído = cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
+local: 20260728182226_sme_access_governance.sql
+remoto: 20260728190344_sme_access_governance
 ```
 
-O CLI armazenou o conteúdo em quatro instruções separadas. A reconstrução das quatro instruções reproduz exatamente o SQL canônico. O teste `tests/unit/sme-migration-history-alignment.test.js` protege versão, ausência do identificador derivado e hash.
+Equivalência:
 
-Evidências:
+```text
+comprimento: 1.411 caracteres
+SHA-256: cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
+```
 
-- [`audits/2026-07-29-rastreabilidade-migration-sme.md`](audits/2026-07-29-rastreabilidade-migration-sme.md) — registro do achado original;
-- [`audits/2026-07-29-reconciliacao-migration-sme-plano.md`](audits/2026-07-29-reconciliacao-migration-sme-plano.md) — estratégia executada;
-- [`audits/2026-07-29-reconciliacao-migration-sme-evidencias.md`](audits/2026-07-29-reconciliacao-migration-sme-evidencias.md) — comprovação posterior.
+Não há divergência funcional identificada, mas a rastreabilidade não está alinhada.
 
-## 12. Toolchain e gates
+**Gate:** nenhuma nova migration de Production antes da reconciliação suportada, testada e documentada.
 
-O `test:readiness` vigente executa:
+Não:
 
-- verificação de sintaxe;
-- lint de segurança;
-- lint dos testes E2E;
-- testes unitários;
-- certificação Excel sintética;
-- testes de integração;
-- readiness e alinhamento final do Supabase;
-- configuração de runtime;
-- verificação de artefatos gerados;
-- tipagem do banco;
-- auditoria funcional.
+- renomear ou reaplicar o arquivo;
+- editar diretamente o histórico;
+- criar migration vazia compensatória;
+- executar `db push` real para contornar o desvio.
 
-Também existem gates para Supabase local/pgTAP, Playwright, Lighthouse, saúde das dependências e build Vercel.
+Runbook: `docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`.
 
-A faixa de Node permanece `>=24 <27`; a fixação deliberada da major operacional ainda é pendência de release.
+## 7. Estado dos relatórios Excel
 
-## 13. Segurança operacional e bloqueadores
+### Institucional
 
-Comprovado:
+- modelo, renderer, quatro abas e certificação: concluídos;
+- botão principal: integrado ao XLSX em runtime;
+- CSV: preservado em botão secundário e fallback em falha;
+- abertura manual no Excel desktop: pendente.
 
-- acesso anônimo bloqueado;
-- somente chave publicável no frontend;
-- RLS por papel e escopo;
-- Edge Function protegida por JWT;
-- alterações auditáveis;
-- deployments automáticos bloqueados após janelas controladas;
-- evidência Excel sem dados pessoais;
-- histórico de migrations reconciliado entre GitHub e Supabase Production.
+### SME mensal
 
-Bloqueadores reais restantes:
+- modelo, renderer, integração e certificação: concluídos;
+- botão próprio: habilitado somente para competência mensal;
+- `dataValidations`: ausente por contrato;
+- abertura manual no Excel desktop: pendente.
 
-1. homologar manualmente os relatórios no Microsoft Excel desktop;
+## 8. Gates antes da liberação oficial
+
+1. reconciliar o histórico da migration SME;
 2. habilitar proteção contra senhas vazadas no Supabase Auth;
-3. fixar deliberadamente a major do Node;
+3. fixar deliberadamente a major operacional do Node;
 4. testar backup e restauração em ambiente descartável;
-5. executar gate remoto por perfil e viewport;
-6. concluir UAT;
-7. realizar polimento editorial e visual;
-8. registrar decisão formal de liberação.
+5. abrir os dois produtos no Microsoft Excel desktop sem reparo;
+6. executar matriz remota por perfil e viewport;
+7. revisar Advisors quando aplicável;
+8. concluir UAT;
+9. realizar polimento editorial e visual sem alterar produto;
+10. registrar decisão formal de release.
 
-O advisor de segurança do Supabase confirma que a proteção contra senhas vazadas permanece desabilitada.
+## 9. Próximas frentes elegíveis
 
-## 14. PRs residuais
+Nenhuma foi escolhida ainda.
 
-- PR #94: fechado sem merge; substituído pelo PR #100;
-- PR #70: fechado sem merge; execução temporária expressamente não integrável;
-- PR #5: permanece aberto para decisão própria sobre uma fundação segura de CSV e não integra a sequência corrente.
+### A. Polimento editorial e visual
 
-## 15. Próxima decisão
+Escopo possível:
 
-Os ciclos 1 a 5 estão encerrados e a rastreabilidade da migration SME está reconciliada. Não existe nova implementação funcional autorizada neste documento.
+- hierarquia;
+- espaçamento;
+- densidade;
+- tabelas e cartões;
+- ícones e estados;
+- responsividade;
+- mensagens operacionais.
 
-A próxima frente deve ser escolhida entre os bloqueadores remanescentes da seção 13. O cadastro e a disponibilização de programas por exercício permanecem fora do escopo até decisão específica.
+Restrições:
 
-Auditoria geral: [`audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md`](audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md).
+- preservar paleta e logomarca;
+- preservar capacidades;
+- preservar nomenclatura canônica;
+- não misturar configuração de programas;
+- não esconder conteúdo mobile.
+
+### B. Hardening e release
+
+Escopo possível:
+
+- migration history;
+- senha vazada;
+- Node;
+- backup/restauração;
+- homologação Excel;
+- matriz remota;
+- UAT;
+- decisão de release.
+
+### C. Configuração de programas por exercício
+
+Frente funcional separada. Exige desenho próprio e não deve ser misturada com Gestão SME ou polimento.
+
+## 10. Regra de escolha
+
+A próxima frente deve ser escolhida expressamente. Antes de implementar:
+
+1. criar spec ou confirmar contrato existente;
+2. registrar escopo e fora de escopo;
+3. trabalhar em branch própria;
+4. verificar impacto em produto, banco e deployment;
+5. definir gates;
+6. atualizar documentação no mesmo ciclo.
+
+## 11. Documentos de continuidade
+
+- `README.md`;
+- `docs/README.md`;
+- `docs/PROJECT_CONTEXT.md`;
+- `docs/DECISION_LOG.md`;
+- `docs/reference/STATUS_DOCUMENTOS.md`;
+- `docs/audits/2026-07-29-alinhamento-documental-integral-pos-pr108.md`.

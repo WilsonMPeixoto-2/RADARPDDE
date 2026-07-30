@@ -1,137 +1,170 @@
-# Status dos documentos do RADAR PDDE
+# Matriz de validade documental
 
 **Atualizado em:** 29 de julho de 2026
 
-## 1. Precedência vigente
+## 1. Finalidade
 
-Quando houver divergência entre fontes, aplicar nesta ordem:
+Definir quais arquivos controlam o estado presente e quais permanecem apenas como histórico, evidência ou apoio.
 
-1. código-fonte remoto vigente;
-2. migrations, funções, políticas, Auth e dados efetivos do Supabase autorizado;
-3. artefato efetivamente implantado na Vercel;
-4. testes e evidências reproduzíveis;
-5. decisões expressas vigentes compatíveis com as fontes técnicas;
-6. documentação canônica atualizada;
-7. documentos, planos e evidências históricas.
+## 2. Classificações
 
-A orientação do responsável define intenção, prioridade e decisão de produto. Uma afirmação sobre o que está implementado ou implantado precisa ser confirmada nas fontes operacionais.
-
-Documentação desatualizada deve ser corrigida para representar código e ambientes. O código não deve ser alterado apenas para coincidir com documento histórico.
-
-## 2. Estado operacional de referência
-
-| Camada | Estado em 29/07/2026 |
+| Estado | Uso |
 |---|---|
-| Baseline funcional da `main` | `598361dd784563f4d70d1e25df3818f4ee066da8` |
-| Vercel Production | `dpl_7tLM3RZ7MEuRRTzvGmc9EiAARmDY`, `READY` |
-| Commit funcional publicado | `dfc8aa3030b02edb73f764f5f56bd6759a7a1d77` |
-| Supabase | `scnryinorqeucbfkioxo`, `ACTIVE_HEALTHY` |
-| Competências | 12; `closing_competence = 2026-12` |
-| Governança SME | concluída e publicada |
-| Ciclos 1 a 5 | concluídos, mesclados e publicados |
-| Histórico de migrations | 25 versões alinhadas entre GitHub e Supabase Production; migration SME reconciliada |
-| Liberação oficial | não declarada |
+| **Vigente** | contrato ou procedimento aplicável ao estado atual |
+| **Vigente com dado mutável** | estrutura vigente; números e estados remotos exigem nova consulta |
+| **Vigente com gate pendente** | contrato válido, mas há ação externa não concluída |
+| **Histórico** | retrato datado; não controla o presente |
+| **Histórico substituído** | existe para rastreabilidade; há fonte sucessora explícita |
+| **Plano executado** | plano preservado; tarefas devem ser confrontadas com o estado atual |
+| **Plano substituído** | não executar; outra frente ou PR prevaleceu |
+| **Evidência gerada** | artefato reproduzível; regenerar pelo script, não editar manualmente |
+| **Referência parcial** | conteúdo útil, mas não suficiente para decidir sozinho |
+| **Procedimento histórico/restrito** | operação já executada ou excepcional; não repetir sem plano específico |
 
-O commit `598361dd...` é posterior ao deployment funcional e apenas restaura o bloqueio automático da Vercel.
+## 3. Documentos canônicos de entrada
 
-## 3. Matriz documental
+| Documento | Estado | Observação |
+|---|---|---|
+| `AGENTS.md` | Vigente com dado mutável | instruções operacionais para agentes; revalidar ambientes |
+| `README.md` | Vigente com dado mutável | visão executiva; SHAs e deployment têm data de corte |
+| `docs/README.md` | Vigente | índice e ordem de leitura |
+| `docs/CURRENT_STAGE.md` | Vigente com dado mutável | controla próxima decisão e bloqueadores |
+| `docs/PROJECT_CONTEXT.md` | Vigente | regras de produto e arquitetura |
+| `docs/DECISION_LOG.md` | Vigente | ADRs 001–033 |
+| `docs/reference/STATUS_DOCUMENTOS.md` | Vigente | esta matriz |
+| `.env.example` | Vigente | exemplo exclusivamente local; não representa Production |
 
-| Documento | Papel | Situação | Caminho |
-|---|---|---|---|
-| Estado atual | Estado operacional, bloqueadores e próxima decisão | **Canônico e transitório** | `docs/CURRENT_STAGE.md` |
-| Contexto do projeto | Finalidade, perfis, arquitetura e contratos | **Canônico** | `docs/PROJECT_CONTEXT.md` |
-| Registro de decisões | ADRs vigentes e substituídas | **Canônico** | `docs/DECISION_LOG.md` |
-| Índice de documentação | Navegação e classificação das fontes | **Canônico** | `docs/README.md` |
-| Auditoria pós-ciclos 1 a 5 | Reconciliação entre código, GitHub, Vercel, Supabase e documentos | **Vigente** | `docs/audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md` |
-| Achado original da migration SME | Divergência detectada, equivalência do SQL e regra preventiva | **Histórico resolvido** | `docs/audits/2026-07-29-rastreabilidade-migration-sme.md` |
-| Plano de reconciliação SME | Estratégia efetivamente executada para alinhar o histórico remoto | **Executado** | `docs/audits/2026-07-29-reconciliacao-migration-sme-plano.md` |
-| Evidências da reconciliação SME | Estado anterior, comandos controlados, estado posterior e proteção contra regressão | **Vigente** | `docs/audits/2026-07-29-reconciliacao-migration-sme-evidencias.md` |
-| Auditoria de alinhamento de 28/07/2026 | Linha de base anterior à execução dos ciclos | **Histórica relevante** | `docs/audits/2026-07-28-alinhamento-codigo-ambientes-documentacao.md` |
-| Plano de oficialização de 28/07/2026 | Plano que originou os ciclos 1 a 5 e gates de release | **Executado quanto aos ciclos; histórico para essa parte; referencial para gates finais** | `docs/superpowers/plans/2026-07-28-oficializacao-operacional-radar-pdde.md` |
-| Adendo técnico do plano | Correções técnicas sobre competência, timeline e certificação | **Executado e preservado como histórico de decisão** | `docs/superpowers/plans/2026-07-28-oficializacao-operacional-radar-pdde-addendum.md` |
-| Dossiê Consolidado v1.0 | Contexto e regras históricas | **Referência; não inventário técnico atual** | `docs/reference/RADAR_PDDE_Dossie_Contexto_Regras_Decisoes_v1_0.docx` |
-| Plano do Lote 2 — Revisão Consolidada v2.0 | Contrato funcional, visual e de navegação original | **Referência de produto** | `docs/reference/RADAR_PDDE_Plano_Lote_2_Revisao_Consolidada_v2_0.docx` |
-| Relatório e Guia do Ciclo A v1.0 | Explicação funcional de ciclo anterior | **Histórico produzido** | `docs/reports/RADAR_PDDE_Relatorio_Guia_Ciclo_A_v1_0.docx` |
-| Relatório de estado atual — 12/07/2026 | Registro dos PRs 18 e 19 | **Histórico** | `docs/reports/RELATORIO_ESTADO_ATUAL_2026-07-12.md` |
-| Protótipo Excel conservador v2.1 | Referência editorial congelada | **Referência aprovada** | `docs/reference/RADAR_PDDE_Prototipo_Exportacao_Conservadora_v2-1.xlsx` |
-| Arquitetura de prontidão Supabase | Contrato criado durante pré-conexão | **Vigente nos contratos; trechos de estágio são históricos** | `docs/architecture/supabase-readiness.md` |
-| Dicionário de dados Supabase | Modelo relacional e relacionamentos | **Vigente nas tabelas; introduções de “futura persistência” ou “modo local” são históricas** | `docs/reference/SUPABASE_DATA_DICTIONARY.md` |
-| Matriz de permissões Supabase | Perfis e RLS | **Aplicada; conferir ADR-022 e migrations atuais** | `docs/reference/SUPABASE_PERMISSIONS_MATRIX.md` |
-| Runbook de conexão Supabase | Configuração e validação | **Executado; permanece para operação e recuperação** | `docs/runbooks/SUPABASE_CONNECTION.md` |
-| Runbook de migração e rollback | Promoção, reconciliação e retorno | **Vigente; histórico SME reconciliado** | `docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md` |
-| Arquitetura de competências | Contexto mensal global | **Vigente e implementada** | `docs/architecture/competencias.md` |
-| Arquitetura da avaliação mensal | Projeção canônica APTA/INAPTA | **Vigente e implementada** | `docs/architecture/avaliacao-mensal.md` |
-| Arquitetura da timeline | Histórico como projeção | **Vigente e implementada** | `docs/architecture/timeline-unidade.md` |
-| Certificação integral Excel | Paridade dos dois produtos Excel | **Vigente e implementada no gate automatizado** | `docs/architecture/excel-integral-certification.md` |
-| Navegação contextual | Preservação de origem, competência, rolagem e foco | **Vigente e implementada** | `docs/architecture/navigation-contextual.md` |
-| Specs e planos de pré-conexão | Registro do desenho e execução anteriores | **Históricos** | `docs/superpowers/specs/` e `docs/superpowers/plans/` |
-| Inventário técnico global gerado | Evidência determinística de linha de base anterior | **Histórico; deve ser regenerado pelo script canônico quando necessário** | `docs/evidence/global-baseline/repository-inventory.json` |
+Ordem mínima:
 
-## 4. Estado das entregas
+1. `AGENTS.md`;
+2. `README.md`;
+3. `docs/README.md`;
+4. `docs/CURRENT_STAGE.md`;
+5. `docs/PROJECT_CONTEXT.md`;
+6. `docs/DECISION_LOG.md`;
+7. código e ambientes para qualquer dado mutável.
 
-### Concluídas e publicadas
+## 4. Arquitetura vigente
 
-- conexão do frontend ao Supabase Production;
-- Auth, PostgREST, RLS, migrations e auditoria;
-- governança da Gestão SME;
-- 12 competências de 2026 e contexto mensal global;
-- avaliação mensal canônica;
-- timeline cronológica da unidade;
-- certificação automatizada dos relatórios Excel;
-- navegação contextual e retorno seguro;
-- validação desktop, Android e iPhone do Ciclo 5;
-- bloqueio automático da Vercel restaurado após cada janela controlada;
-- reconciliação do identificador da migration SME entre GitHub e Supabase Production.
+| Documento | Estado | Observação |
+|---|---|---|
+| `architecture/README.md` | Vigente | índice da pasta |
+| `architecture/competencias.md` | Vigente | `closing_competence = 2026-12` já implementada |
+| `architecture/avaliacao-mensal.md` | Vigente | regra canônica única |
+| `architecture/modelo-operacional.md` | Vigente | projeção compartilhada |
+| `architecture/timeline-unidade.md` | Vigente | projeção somente leitura |
+| `architecture/navigation-contextual.md` | Vigente | retorno contextual publicado |
+| `architecture/estatisticas.md` | Vigente | denominadores independentes |
+| `architecture/retificacoes.md` | Vigente | histórico e correções operacionais |
+| `architecture/frontend-load-order.md` | Vigente | arquitetura atual; números do manifesto são datados |
+| `architecture/product-extensions-load-order.md` | Vigente | timeline e navegação contextual pós-`app.js` |
+| `architecture/testing.md` | Vigente | readiness e gates cumulativos |
+| `architecture/supabase-readiness.md` | Vigente com gate pendente | Supabase ativo; hardening ainda pendente |
+| `architecture/excel-export.md` | Vigente com gate pendente | XLSX e fallback CSV integrados; homologação manual pendente |
+| `architecture/excel-workbook-plan.md` | Vigente | plano do workbook institucional |
+| `architecture/excel-xlsx-runtime.md` | Vigente com gate pendente | integração ativa e reversível; homologação manual pendente |
+| `architecture/excel-sme-mensal.md` | Vigente com gate pendente | botão e produto certificados; homologação manual pendente |
+| `architecture/excel-integral-certification.md` | Vigente | certificação automatizada |
+| `architecture/roadmap-pre-supabase.md` | Histórico | planejamento anterior à ativação remota |
 
-### Pendentes antes da liberação oficial
+## 5. Referências vigentes
 
-- homologação manual dos relatórios no Microsoft Excel desktop;
-- proteção contra senhas vazadas no Supabase Auth;
-- fixação deliberada da major operacional do Node;
-- backup e restauração em ambiente descartável;
-- gate remoto por perfil e viewport;
-- UAT;
-- polimento editorial e visual;
-- decisão formal de liberação.
+| Documento | Estado | Observação |
+|---|---|---|
+| `reference/SUPABASE_DATA_DICTIONARY.md` | Vigente | resumo do schema efetivo; tipos gerados prevalecem |
+| `reference/SUPABASE_PERMISSIONS_MATRIX.md` | Vigente | Auth, RLS e capacidades |
+| `reference/SUPABASE_FUNCTIONAL_COVERAGE.md` | Vigente com gate pendente | cobertura atual e bloqueadores |
+| `reference/PRODUCT_SURFACE_CATALOG.md` | Vigente | superfícies S-01 a S-18 e recortes atuais |
+| `reference/PRODUCT_DECISIONS.md` | Histórico substituído | índice legado; `DECISION_LOG.md` prevalece |
+| `reference/CHANGE_CLASSIFICATION.md` | Vigente | classificação de mudanças e gates |
+| `reference/DADOS_HOMOLOGACAO.md` | Referência parcial | massa de teste; não é dado operacional |
+| `reference/SUPABASE_INTEGRATION_AUDIT.md` | Histórico | auditoria anterior à ativação atual |
+| `reference/POST_PR22_PRIORITIZED_BACKLOG.md` | Histórico | backlog anterior aos ciclos atuais |
 
-## 5. Rastreabilidade da migration SME — resolvida
+## 6. Runbooks
 
-| Item | Valor |
-|---|---|
-| Arquivo versionado | `20260728182226_sme_access_governance.sql` |
-| Versão registrada em Production | `20260728182226` |
-| Nome registrado | `sme_access_governance` |
-| Registro derivado anterior | `20260728190344`, removido por `migration repair` |
-| Total de migrations remotas | 25 |
-| Comprimento reconstruído do SQL | 1.411 caracteres |
-| SHA-256 reconstruído | `cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e` |
-| Divergência funcional | não identificada |
-| Divergência de rastreabilidade | resolvida |
+| Documento | Estado | Observação |
+|---|---|---|
+| `runbooks/SUPABASE_CONNECTION.md` | Vigente com gate pendente | Production ativa; proteção de senha e recuperação pendentes |
+| `runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md` | Vigente com gate pendente | incorpora divergência SME; reparo ainda não executado |
+| `runbooks/SUPABASE_DATA_BOOTSTRAP.md` | Procedimento histórico/restrito | carga inicial; não usar como rotina normal |
+| `runbooks/SUPABASE_AUTH_BOOTSTRAP.md` | Procedimento histórico/restrito | primeiro admin; não repetir sem plano específico |
 
-O arquivo canônico foi preservado. O reparo alterou apenas o histórico gerenciado pelo Supabase CLI, sem reaplicação do SQL. Um teste de regressão protege a versão local e o hash.
+Runbook autoriza procedimento somente quando os gates e responsáveis nele previstos estiverem satisfeitos.
 
-## 6. Integridade dos binários verificados
+## 7. Auditorias recentes
 
-| Arquivo | SHA-256 |
-|---|---|
-| `RADAR_PDDE_Dossie_Contexto_Regras_Decisoes_v1_0.docx` | `e550800f0dd5fb734ba21131d5679a592be51557cf2fb9048918e01ef1d25c26` |
-| `RADAR_PDDE_Plano_Lote_2_Revisao_Consolidada_v2_0.docx` | `9cd8ad8ffb993bb2426c9dd47a459818098891b5a69e418fd8e24f99f814f206` |
-| `RADAR_PDDE_Prototipo_Exportacao_Conservadora_v2-1.xlsx` | `e22d46e7474ff5b9c489e39bdf8b21691fb67cfcc11b76b5d1776429445d5203` |
-| `RADAR_PDDE_Relatorio_Guia_Ciclo_A_v1_0.docx` | `bd63666aac323a122b16d5eda429956cae1ffd242fd45825973a310e9c6d7aa8` |
+| Documento | Estado | Finalidade |
+|---|---|---|
+| `audits/2026-07-29-alinhamento-documental-integral-pos-pr108.md` | Histórico vinculante da correção | reconciliação integral de documentos vigentes |
+| `audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md` | Histórico | estado pós-Ciclos 1–5 |
+| `audits/2026-07-29-rastreabilidade-migration-sme.md` | Histórico com gate atual | prova da divergência de identificador |
+| `audits/2026-07-28-alinhamento-codigo-ambientes-documentacao.md` | Histórico | base da oficialização |
+| auditorias anteriores | Histórico | retrato da data indicada |
 
-Hashes identificam os binários verificados. Não garantem que o conteúdo represente o estado técnico atual.
+Auditoria datada não substitui consulta atual ao ambiente, mas seus gates permanecem enquanto não houver evidência de superação.
 
-## 7. Regras de preservação
+## 8. Planos e especificações
 
-- documentos históricos não devem ser reescritos para simular atualidade;
-- artefatos gerados devem ser regenerados pelo script canônico, não editados manualmente;
-- PRs substituídos devem ser fechados sem merge e preservados como histórico quando úteis;
-- melhorias visuais devem preservar paleta, identidade e decisões de produto;
-- alterações de capacidades, caminhos, componentes, colunas, permissões ou fluxos exigem decisão e testes correspondentes;
-- polimento não pode reduzir capacidade, informação ou acessibilidade.
+### `docs/superpowers/specs/`
 
-## 8. Próxima decisão
+**Estado padrão:** Histórico.
 
-Os ciclos 1 a 5 estão encerrados e a migration SME está reconciliada. A próxima frente ainda não foi escolhida e deve partir dos bloqueadores reais restantes.
+Especificações registram desenho aprovado na data. Quando o recurso já foi implementado, o contrato vigente deve ser lido nos documentos de arquitetura e no código.
 
-O cadastro e a disponibilização de programas por exercício permanecem fora do escopo até decisão específica.
+### `docs/superpowers/plans/`
+
+**Estado padrão:** Plano executado ou Histórico.
+
+Caixa não marcada em plano antigo não prova pendência atual. Conferir:
+
+- `CURRENT_STAGE.md`;
+- PRs e commits;
+- auditoria posterior;
+- código e ambientes.
+
+Planos explicitamente marcados como substituídos não devem ser retomados.
+
+## 9. Evidências
+
+| Diretório | Estado | Regra |
+|---|---|---|
+| `evidence/frontend-precedence/` | Evidência gerada | regenerar com scripts de auditoria |
+| `evidence/excel-certification/` | Evidência gerada | massa sintética e hashes |
+| `evidence/global-baseline/` | Evidência gerada | linha de base datada |
+| outros manifests/capturas | Evidência gerada ou Histórico | não editar manualmente |
+
+## 10. Handoffs e relatórios
+
+- `handoff/`: Histórico;
+- `reports/`: Histórico;
+- relatórios de estado antigo não controlam a próxima etapa;
+- handoff deve apontar para `CURRENT_STAGE.md` e não repetir decisões divergentes.
+
+## 11. Regras contra desatualização
+
+1. documentos canônicos devem separar estado atual, histórico e pendência;
+2. números remotos recebem data de corte;
+3. contagens operacionais mutáveis não são invariantes arquiteturais;
+4. nova entrega material atualiza arquitetura, decisão, estágio e evidência aplicáveis;
+5. artefatos gerados são regenerados, não corrigidos manualmente;
+6. plano antigo não é reaberto sem nova verificação;
+7. código e ambientes prevalecem sobre memória e texto desatualizado;
+8. nova migration de Production permanece bloqueada até reconciliação do histórico SME;
+9. índice não deve apontar para arquivo inexistente;
+10. arquivo de instrução para agentes deve ser revisado quando o backend ou estágio mudar.
+
+## 12. Fonte de verdade para a próxima frente
+
+Após o merge do alinhamento integral:
+
+```text
+AGENTS.md
+→ CURRENT_STAGE.md
+→ PROJECT_CONTEXT.md
+→ DECISION_LOG.md
+→ arquitetura da frente escolhida
+→ código e ambientes
+```
+
+A escolha da próxima frente continua sendo decisão expressa do responsável pelo produto.

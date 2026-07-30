@@ -1,47 +1,81 @@
-# Integração runtime da exportação XLSX
+# Integração runtime das exportações Excel
 
-## Objetivo
+**Estado:** vigente e implementado  
+**Atualizado em:** 29 de julho de 2026
 
-Ativar no aplicativo a geração do workbook `.xlsx` aprovado sem modificar o arquivo monolítico `app.js` e sem remover a exportação CSV existente.
+## 1. Objetivo
 
-## Encadeamento
+Ativar no aplicativo os dois produtos `.xlsx` sem modificar o núcleo monolítico `app.js`, preservando o CSV legado como contingência e mantendo instalação reversível.
 
-A integração é carregada após a aplicação principal e utiliza quatro camadas:
+## 2. Encadeamento
 
-1. `excel-export-model.js` — seleciona os registros e comprova equivalência com o CSV;
-2. `excel-workbook-plan.js` — descreve o workbook aprovado;
-3. `excel-xlsx-renderer.js` — produz diretamente o pacote Office Open XML;
-4. `excel-export-integration.js` — conecta o gerador ao botão e mantém o CSV legado.
+`src/integration/load-excel-export.js` carrega sequencialmente:
 
-O carregamento sequencial é feito por `load-excel-export.js`, acionado pelo bootstrap mínimo de `config.js`.
+1. `excel-export-model.js` — universo institucional e equivalência com o CSV;
+2. `excel-workbook-plan.js` — plano declarativo do workbook institucional;
+3. `excel-xlsx-renderer.js` — pacote Office Open XML institucional;
+4. `excel-sme-export-model.js` — modelo mensal SME;
+5. `excel-sme-monthly-renderer.js` — pacote OOXML SME;
+6. `excel-export-integration.js` — integração dos botões e fallback.
 
-## Comportamento do botão
+O loader é acionado por `config.js` após o evento `load`. Seus filhos usam ordem sequencial e `async = false`.
 
-A função global existente `exportDataExcel()` é preservada como `exportDataCsvLegacy()` e substituída, em tempo de execução, pela geração do novo `.xlsx`.
+## 3. Comportamento institucional
 
-O botão principal passa a gerar:
+Na instalação:
 
-- `BONIFICACOES`;
-- `SINTESE`;
-- `QUALIDADE_DADOS`;
-- `METADADOS`.
+1. a função global legada `exportDataExcel()` é capturada;
+2. a função legada fica disponível por `exportDataCsvLegacy()`;
+3. `exportDataExcel()` passa a apontar para o gerador institucional XLSX;
+4. o botão principal é configurado como **Gerar relatório Excel (.xlsx)**;
+5. o workbook contém:
+   - `BONIFICACOES`;
+   - `SINTESE`;
+   - `QUALIDADE_DADOS`;
+   - `METADADOS`;
+6. um botão secundário **CSV** é inserido como exportação legada e fallback.
 
-Um botão secundário `CSV` é inserido ao lado da ação principal sempre que o elemento de exportação estiver visível.
+O relatório institucional permanece histórico e não é limitado pela competência ativa.
 
-## Barreiras de segurança
+## 4. Comportamento do Excel SME
+
+A integração insere um botão **Excel SME** entre o botão principal e o CSV.
+
+O botão:
+
+- exige competência mensal `YYYY-MM`;
+- fica desabilitado em `TODAS` ou valor inválido;
+- atualiza `aria-disabled`, título e competência associada;
+- impede múltiplas gerações simultâneas;
+- gera arquivo mensal de uma aba;
+- registra o evento de exportação.
+
+## 5. Barreiras de segurança
+
+### Institucional
 
 A geração é interrompida quando:
 
 - não há registros consolidados;
 - a equivalência com o CSV não foi comprovada;
 - o modelo não contém os doze campos originais;
-- qualquer camada necessária não foi carregada.
+- qualquer dependência não foi carregada.
 
-Em falhas técnicas, o usuário recebe a opção de baixar o CSV legado.
+Em falha técnica, a interface pode oferecer o CSV legado.
 
-## Renderização
+### SME
 
-O arquivo é produzido sem dependência externa, diretamente como pacote Office Open XML. O renderizador inclui:
+A geração é interrompida quando:
+
+- não há competência mensal válida;
+- modelo ou renderer não foram carregados;
+- o contrato mensal é inválido.
+
+Não existe fallback CSV para o produto SME porque ele possui granularidade e estrutura distintas.
+
+## 6. Renderização OOXML
+
+O renderer institucional produz diretamente:
 
 - quatro planilhas;
 - estilos e formatação numérica;
@@ -53,6 +87,53 @@ O arquivo é produzido sem dependência externa, diretamente como pacote Office 
 - gráfico da síntese;
 - metadados do arquivo.
 
-## Reversão
+O renderer SME produz uma planilha de 26 colunas e não inclui `dataValidations`.
 
-A integração pode ser revertida removendo o bootstrap de `config.js`. O `app.js` e sua função original permanecem sem alterações, reduzindo o impacto de rollback.
+Não há dependência de CDN no runtime.
+
+## 7. Idempotência
+
+A instalação:
+
+- usa flag interna para impedir repetição;
+- evita duplicar botões por `dataset`;
+- observa mutações do DOM para renderizações tardias;
+- reage a mudança de competência;
+- preserva uma única função legada capturada;
+- fornece fluxo de `uninstall()` para restaurar `exportDataExcel`.
+
+## 8. Auditoria
+
+Exports bem-sucedidos registram log funcional com nome do arquivo, escopo e quantidade de registros/unidades, sem conteúdo sensível.
+
+A geração não grava dados de negócio no Supabase.
+
+## 9. Certificação
+
+A integração depende dos contratos certificados em:
+
+- [`excel-export.md`](excel-export.md);
+- [`excel-sme-mensal.md`](excel-sme-mensal.md);
+- [`excel-integral-certification.md`](excel-integral-certification.md).
+
+A certificação automatizada não substitui abertura manual no Microsoft Excel desktop.
+
+## 10. Reversão
+
+A integração pode ser revertida por:
+
+- remoção controlada do bootstrap Excel em novo build;
+- desinstalação da integração no ambiente de teste;
+- restauração da função legada preservada.
+
+O `app.js` não foi reescrito para acomodar o XLSX, reduzindo o impacto do rollback.
+
+## 11. Gate pendente
+
+Antes da liberação oficial:
+
+- abrir o institucional no Microsoft Excel desktop sem reparo;
+- abrir o Excel SME sem reparo;
+- confirmar o botão CSV e o fallback;
+- validar downloads nos perfis autorizados;
+- registrar evidência e UAT.
