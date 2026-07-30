@@ -7,6 +7,9 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'scripts/build-exceljs.mjs'
+      - 'scripts/apply-exceljs-certification-patch.mjs'
+      - 'src/domain/excel-integral-certification.js'
+      - 'tests/unit/excel-integral-certification.test.js'
       - 'vendor/exceljs.min.js'
 
 permissions:
@@ -47,6 +50,16 @@ jobs:
           fs.writeFileSync(file, `${JSON.stringify(pkg, null, 2)}\n`);
           NODE
 
+      - name: Adaptar certificação ao workbook ExcelJS
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -q 'smeRenderer.buildPackageEntries' src/domain/excel-integral-certification.js; then
+            node scripts/apply-exceljs-certification-patch.mjs
+          else
+            echo 'Certificação ExcelJS já aplicada.'
+          fi
+
       - name: Gerar bundle oficial para o navegador
         run: npm run build:exceljs
 
@@ -56,17 +69,18 @@ jobs:
           node -e "const p=require('./package-lock.json'); if(p.packages?.['node_modules/exceljs']?.version!=='4.4.0') process.exit(1);"
           test -s vendor/exceljs.min.js
           grep -q 'ExcelJS' vendor/exceljs.min.js
+          grep -q 'inspectExcelJsWorkbook' src/domain/excel-integral-certification.js
 
       - name: Gravar artefatos na branch
         shell: bash
         run: |
           set -euo pipefail
-          if git diff --quiet -- package.json package-lock.json vendor/exceljs.min.js; then
-            echo 'ExcelJS e o bundle já estão atualizados.'
+          if git diff --quiet -- package.json package-lock.json vendor/exceljs.min.js src/domain/excel-integral-certification.js tests/unit/excel-integral-certification.test.js; then
+            echo 'ExcelJS, bundle e certificação já estão atualizados.'
             exit 0
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add package.json package-lock.json vendor/exceljs.min.js
-          git commit -m 'build: gerar bundle do ExcelJS 4.4.0'
+          git add package.json package-lock.json vendor/exceljs.min.js src/domain/excel-integral-certification.js tests/unit/excel-integral-certification.test.js
+          git commit -m 'build: concluir integração do ExcelJS 4.4.0'
           git push origin HEAD:${{ github.event.pull_request.head.ref }}
