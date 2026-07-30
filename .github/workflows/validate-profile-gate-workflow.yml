@@ -30,18 +30,38 @@ jobs:
 
       - run: npm ci
 
-      - name: Validar sintaxe e contratos
+      - name: Instalar actionlint
+        shell: bash
+        run: bash <(curl -sSfL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
+
+      - name: Validar sintaxe específica do GitHub Actions
+        id: actionlint
+        shell: bash
+        run: |
+          set +e
+          ./actionlint -color=never .github/workflows/gate-remoto-perfis-viewports.yml 2>&1 | tee actionlint.log
+          status=${PIPESTATUS[0]}
+          echo "status=${status}" >> "${GITHUB_OUTPUT}"
+          exit 0
+
+      - name: Validar contratos do projeto
         run: |
           npx prettier --check .github/workflows/gate-remoto-perfis-viewports.yml
           node --check playwright.supabase-preview.config.js
           node --check tests/e2e/supabase-preview-profile-viewport.spec.js
           node --test tests/unit/release-hardening-contract.test.js
 
-      - name: Registrar resultado
+      - name: Registrar diagnóstico completo
         if: always()
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          JOB_RESULT: ${{ job.status }}
+          ACTIONLINT_STATUS: ${{ steps.actionlint.outputs.status }}
+        shell: bash
         run: |
-          gh pr comment 111 --repo "${GITHUB_REPOSITORY}" --body "Diagnóstico estático do gate remoto: **${JOB_RESULT}**. Execução: ${RUN_URL}"
+          output="$(tr '\n' ' ' < actionlint.log | cut -c1-5000)"
+          gh pr comment 111 --repo "${GITHUB_REPOSITORY}" --body "Actionlint do gate remoto: status **${ACTIONLINT_STATUS:-indisponível}**. Saída: \`${output}\`. Execução: ${RUN_URL}"
+
+      - name: Reprovar se actionlint encontrou erro
+        if: ${{ steps.actionlint.outputs.status != '0' }}
+        run: exit 1
