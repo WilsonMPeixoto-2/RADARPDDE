@@ -1,0 +1,142 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const { test, expect } = require('@playwright/test');
+
+const remoteEnabled = process.env.RADAR_E2E_SUPABASE_REMOTE === '1';
+test.skip(!remoteEnabled, 'Esta suíte exige o workflow seguro de homologação do Preview Supabase remoto.');
+
+const fixtureFile = process.env.RADAR_HML_FIXTURE_FILE;
+const password = process.env.RADAR_HML_PASSWORD || '';
+if (remoteEnabled && (!fixtureFile || !fs.existsSync(fixtureFile))) {
+  throw new Error('Fixture remota de homologação ausente.');
+}
+if (remoteEnabled && password.length < 24) {
+  throw new Error('Senha efêmera da homologação ausente.');
+}
+
+const fixture = remoteEnabled
+  ? JSON.parse(fs.readFileSync(path.resolve(fixtureFile), 'utf8'))
+  : { users: [] };
+const users = Object.fromEntries(fixture.users.map(user => [user.key, user]));
+const PROFILE_KEYS = Object.freeze([
+  'technicalAdmin',
+  'assistant',
+  'controllerTuane',
+  'controllerAlzira',
+  'inventory',
+  'sme'
+]);
+
+test.describe.configure({ mode: 'serial' });
+
+function collectErrors(page) {
+  const errors = [];
+  page.on('pageerror', error => errors.push(`pageerror: ${error.message}`));
+  page.on('console', message => {
+    if (message.type() === 'error') errors.push(`console: ${message.text()}`);
+  });
+  return errors;
+}
+
+function isDesktopProject(testInfo) {
+  return testInfo.project.name === 'supabase-preview-desktop-chromium';
+}
+
+async function signIn(page, user) {
+  await page.goto('/');
+  await expect(page.locator('#radar-auth-gate')).toBeVisible();
+  await page.locator('#radar-auth-email').fill(user.email);
+  await page.locator('#radar-auth-password').fill(password);
+  await page.locator('#radar-auth-form button[type="submit"]').click();
+  await page.waitForFunction(expectedRole => (
+    window.RadarDataContext?.ready === true
+    && window.RadarAuthContext?.authorization?.role === expectedRole
+  ), user.profileId, { timeout: 30000 });
+  await expect(page.locator('#app-layout')).toBeVisible();
+  await expect(page.locator('#radar-auth-gate')).toBeHidden();
+}
+
+async function ensureNavigationOpen(page) {
+  const sidebar = page.locator('.sidebar');
+  if (await sidebar.isVisible()) return;
+
+  const mobileMenu = page.locator('#mobile-menu-button');
+  await expect(mobileMenu).toBeVisible();
+  await mobileMenu.click();
+  await expect(sidebar).toHaveClass(/mobile-open/);
+  await expect(sidebar).toBeVisible();
+}
+
+async function navigateAvailableSurfaces(page, testInfo) {
+  await ensureNavigationOpen(page);
+  const visibleItems = page.locator('.sidebar .nav-item:visible');
+  const count = await visibleItems.count();
+  expect(count).toBeGreaterThan(0);
+
+  const limit = isDesktopProject(testInfo) ? count : Math.min(count, 3);
+  for (let index = 0; index < limit; index += 1) {
+    await ensureNavigationOpen(page);
+    const item = page.locator('.sidebar .nav-item:visible').nth(index);
+    await item.click();
+    await expect(page.locator('#main-container')).toBeVisible();
+  }
+}
+
+async function expectResponsiveLayout(page) {
+  const metrics = await page.evaluate(() => ({
+    viewportWidth: document.documentElement.clientWidth,
+    documentWidth: document.documentElement.scrollWidth,
+    bodyWidth: document.body.scrollWidth,
+    authRole: document.body.dataset.authRole || '',
+    logoutHidden: document.getElementById('auth-logout-button')?.hidden ?? true
+  }));
+
+  expect(metrics.documentWidth).toBeLessThanOrEqual(metrics.viewportWidth + 2);
+  expect(metrics.bodyWidth).toBeLessThanOrEqual(metrics.viewportWidth + 2);
+  expect(metrics.logoutHidden).toBe(false);
+  return metrics;
+}
+
+for (const key of PROFILE_KEYS) {
+  test(`${key} mantém identidade, permissões e navegação responsiva`, async ({ page }, testInfo) => {
+    const errors = collectErrors(page);
+    const user = users[key];
+    expect(user, `fixture ausente para ${key}`).toBeTruthy();
+
+    await signIn(page, user);
+
+    const runtime = await page.evaluate(() => ({
+      environment: window.RADAR_PDDE_CONFIG.environment,
+      dataMode: window.RADAR_PDDE_CONFIG.dataMode,
+      repository: window.RadarDataContext.capabilities.mode,
+      role: window.RadarAuthContext.authorization.role,
+      hasSessionInPublicContext: Object.hasOwn(window.RadarDataContext.authentication, 'session'),
+      profileSwitcherHidden: document.querySelector('.profile-switcher')?.hidden
+    }));
+
+    expect(runtime).toEqual({
+      environment: 'preview',
+      dataMode: 'supabase-preview',
+      repository: 'supabase',
+      role: user.profileId,
+      hasSessionInPublicContext: false,
+      profileSwitcherHidden: key !== 'technicalAdmin'
+    });
+
+    const layout = await expectResponsiveLayout(page);
+    expect(layout.authRole).toBe(user.profileId);
+    await navigateAvailableSurfaces(page, testInfo);
+
+    await page.reload();
+    await page.waitForFunction(expectedRole => (
+      window.RadarDataContext?.ready === true
+      && window.RadarAuthContext?.authorization?.role === expectedRole
+    ), user.profileId, { timeout: 30000 });
+    await expect(page.locator('#radar-auth-gate')).toBeHidden();
+
+    await page.locator('#auth-logout-button').click();
+    await expect(page.locator('#radar-auth-gate')).toBeVisible();
+    await expect(page.locator('#radar-auth-status')).toContainText(/sessão/i);
+    expect(errors).toEqual([]);
+  });
+}
