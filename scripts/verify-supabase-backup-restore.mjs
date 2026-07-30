@@ -15,6 +15,10 @@ const NPM = process.platform === 'win32' ? 'npx.cmd' : 'npx';
 const PSQL = process.platform === 'win32' ? 'psql.exe' : 'psql';
 const RESTORE_PROJECT_ID = 'radar-pdde-restore';
 const RESTORE_PORTS = Object.freeze({ api: 55321, db: 55322, shadow: 55320 });
+const AUTH_TABLES = Object.freeze([
+  { name: 'users', qualified: 'auth.users' },
+  { name: 'identities', qualified: 'auth.identities' }
+]);
 
 if (process.env.RADAR_ALLOW_DISPOSABLE_BACKUP_RESTORE !== 'true') {
   throw new Error(
@@ -46,9 +50,7 @@ function run(command, args, { capture = false, cwd = ROOT, env = process.env, la
 }
 
 function runSupabase(args, { workdir, capture = false, label } = {}) {
-  const env = workdir
-    ? { ...process.env, SUPABASE_WORKDIR: workdir }
-    : process.env;
+  const env = workdir ? { ...process.env, SUPABASE_WORKDIR: workdir } : process.env;
   return run(NPM, ['supabase', ...args], {
     capture,
     env,
@@ -158,6 +160,17 @@ SELECT item FROM objects ORDER BY item;`;
   return sha256(psqlQuery(dbUrl, sql));
 }
 
+function deterministicTableEvidence(dbUrl, qualified) {
+  const sql = `
+SELECT count(*)::text || '|' || COALESCE(
+  md5(string_agg(row_data, E'\\n' ORDER BY row_data)),
+  md5('')
+)
+FROM (SELECT to_jsonb(source_row)::text AS row_data FROM ${qualified} AS source_row) rows;`;
+  const [count, fingerprint] = psqlQuery(dbUrl, sql).split('|');
+  return { count: Number(count), fingerprint };
+}
+
 function tableDataEvidence(dbUrl) {
   const tables = psqlQuery(
     dbUrl,
@@ -169,21 +182,24 @@ function tableDataEvidence(dbUrl) {
 
   const evidence = {};
   for (const table of tables) {
-    const qualified = `public.${quoteIdentifier(table)}`;
-    const sql = `
-SELECT count(*)::text || '|' || COALESCE(
-  md5(string_agg(row_data, E'\\n' ORDER BY row_data)),
-  md5('')
-)
-FROM (SELECT to_jsonb(source_row)::text AS row_data FROM ${qualified} AS source_row) rows;`;
-    const [count, fingerprint] = psqlQuery(dbUrl, sql).split('|');
-    evidence[table] = { count: Number(count), fingerprint };
+    evidence[table] = deterministicTableEvidence(dbUrl, `public.${quoteIdentifier(table)}`);
   }
   return evidence;
 }
 
 function dataFingerprint(dbUrl) {
   const tables = tableDataEvidence(dbUrl);
+  return {
+    tables,
+    sha256: sha256(JSON.stringify(tables))
+  };
+}
+
+function authFingerprint(dbUrl) {
+  const tables = {};
+  for (const table of AUTH_TABLES) {
+    tables[table.name] = deterministicTableEvidence(dbUrl, table.qualified);
+  }
   return {
     tables,
     sha256: sha256(JSON.stringify(tables))
@@ -260,12 +276,11 @@ async function dumpSource(sourceDbUrl) {
 }
 
 function restoreBackup(targetDbUrl, files) {
-  psql(targetDbUrl, [
-    '--variable',
-    'ON_ERROR_STOP=1',
-    '--command',
-    'DROP SCHEMA IF EXISTS supabase_migrations CASCADE;'
-  ], { label: 'Preparar histórico vazio no destino' });
+  psql(
+    targetDbUrl,
+    ['--variable', 'ON_ERROR_STOP=1', '--command', 'DROP SCHEMA IF EXISTS supabase_migrations CASCADE;'],
+    { label: 'Preparar histórico vazio no destino' }
+  );
 
   psql(
     targetDbUrl,
@@ -312,6 +327,7 @@ async function main() {
     const source = {
       schemaFingerprint: schemaFingerprint(sourceDbUrl),
       dataFingerprint: dataFingerprint(sourceDbUrl),
+      authFingerprint: authFingerprint(sourceDbUrl),
       migrationFingerprint: migrationFingerprint(sourceDbUrl)
     };
 
@@ -334,6 +350,7 @@ async function main() {
     const target = {
       schemaFingerprint: schemaFingerprint(targetDbUrl),
       dataFingerprint: dataFingerprint(targetDbUrl),
+      authFingerprint: authFingerprint(targetDbUrl),
       migrationFingerprint: migrationFingerprint(targetDbUrl)
     };
 
@@ -342,6 +359,7 @@ async function main() {
     evidence.comparisons = {
       schema: source.schemaFingerprint === target.schemaFingerprint,
       data: source.dataFingerprint.sha256 === target.dataFingerprint.sha256,
+      auth: source.authFingerprint.sha256 === target.authFingerprint.sha256,
       migrations: source.migrationFingerprint === target.migrationFingerprint
     };
 
