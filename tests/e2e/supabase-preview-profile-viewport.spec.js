@@ -38,7 +38,7 @@ function collectErrors(page) {
   const errors = [];
   page.on('pageerror', error => errors.push(`pageerror: ${error.message}`));
   page.on('console', message => {
-    if (message.type() === 'error') errors.push(`console: ${message.text()}`);
+    if (message.type() === 'error') errors.push(`console: ${message.text()}`));
   });
   return errors;
 }
@@ -63,27 +63,53 @@ async function signIn(page, user) {
 
 async function ensureNavigationOpen(page) {
   const sidebar = page.locator('.sidebar');
-  if (await sidebar.isVisible()) return;
-
   const mobileMenu = page.locator('#mobile-menu-button');
-  await expect(mobileMenu).toBeVisible();
-  await mobileMenu.click();
+
+  if (!(await mobileMenu.isVisible())) {
+    await expect(sidebar).toBeVisible();
+    return;
+  }
+
+  const open = await sidebar.evaluate(element => element.classList.contains('mobile-open'));
+  if (!open) {
+    await expect(mobileMenu).toHaveAttribute('aria-expanded', 'false');
+    await mobileMenu.click();
+  }
+
+  await expect(mobileMenu).toHaveAttribute('aria-expanded', 'true');
   await expect(sidebar).toHaveClass(/mobile-open/);
+  await page.waitForFunction(() => {
+    const element = document.querySelector('.sidebar');
+    if (!element?.classList.contains('mobile-open')) return false;
+    const style = window.getComputedStyle(element);
+    return style.visibility === 'visible'
+      && style.pointerEvents !== 'none'
+      && ['none', 'matrix(1, 0, 0, 1, 0, 0)'].includes(style.transform);
+  });
   await expect(sidebar).toBeVisible();
 }
 
 async function navigateAvailableSurfaces(page, testInfo) {
   await ensureNavigationOpen(page);
   const visibleItems = page.locator('.sidebar .nav-item:visible');
-  const count = await visibleItems.count();
-  expect(count).toBeGreaterThan(0);
+  const targetIds = await visibleItems.evaluateAll(items => items
+    .map(item => item.id)
+    .filter(Boolean));
+  expect(targetIds.length).toBeGreaterThan(0);
 
-  const limit = isDesktopProject(testInfo) ? count : Math.min(count, 3);
-  for (let index = 0; index < limit; index += 1) {
+  const limit = isDesktopProject(testInfo) ? targetIds.length : Math.min(targetIds.length, 3);
+  for (const targetId of targetIds.slice(0, limit)) {
     await ensureNavigationOpen(page);
-    const item = page.locator('.sidebar .nav-item:visible').nth(index);
+    const item = page.locator(`#${targetId}`);
+    await expect(item).toBeVisible();
+    await item.scrollIntoViewIfNeeded();
     await item.click();
     await expect(page.locator('#main-container')).toBeVisible();
+
+    if (!isDesktopProject(testInfo)) {
+      await expect(page.locator('#mobile-menu-button')).toHaveAttribute('aria-expanded', 'false');
+      await expect(page.locator('.sidebar')).not.toHaveClass(/mobile-open/);
+    }
   }
 }
 
