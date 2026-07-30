@@ -56,10 +56,10 @@ Ordem mínima:
 | `architecture/product-extensions-load-order.md` | Vigente | timeline e navegação contextual pós-`app.js` |
 | `architecture/testing.md` | Vigente | readiness e gates cumulativos |
 | `architecture/supabase-readiness.md` | Vigente com gate pendente | Supabase ativo; hardening ainda pendente |
-| `architecture/excel-export.md` | Vigente com gate pendente | produto certificado; botão institucional ainda no CSV |
+| `architecture/excel-export.md` | Vigente com gate pendente | XLSX e fallback CSV integrados; homologação manual pendente |
 | `architecture/excel-workbook-plan.md` | Vigente | plano do workbook institucional |
-| `architecture/excel-xlsx-runtime.md` | Vigente com gate pendente | renderer e integração reversível |
-| `architecture/excel-sme-mensal.md` | Vigente com gate pendente | produto certificado; homologação manual pendente |
+| `architecture/excel-xlsx-runtime.md` | Vigente com gate pendente | integração ativa e reversível; homologação manual pendente |
+| `architecture/excel-sme-mensal.md` | Vigente com gate pendente | botão e produto certificados; homologação manual pendente |
 | `architecture/excel-integral-certification.md` | Vigente | certificação automatizada |
 | `architecture/roadmap-pre-supabase.md` | Histórico | planejamento anterior à ativação remota |
 
