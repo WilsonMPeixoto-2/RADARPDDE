@@ -32,10 +32,10 @@ Na data de corte:
 - existem 12 competências de 2026;
 - `closing_competence = 2026-12`;
 - `app_config.row_version = 5`;
-- o deployment automático está novamente bloqueado após a janela controlada;
+- o deployment automático está novamente bloqueado;
 - a liberação oficial ainda não foi declarada.
 
-O commit posterior ao deployment funcional apenas restaurou `git.deploymentEnabled: false` em `vercel.json`.
+O commit posterior ao deployment funcional apenas restaurou `git.deploymentEnabled: false`.
 
 ## 3. Regra de precedência
 
@@ -94,12 +94,7 @@ Em Registros Internos:
 
 - consulta somente linhas cujo `actor_user_id` corresponde ao próprio `auth.uid()`.
 
-A restrição é aplicada por:
-
-- política de capacidades;
-- guardas de interface;
-- handlers e serviços de aplicação;
-- RLS do Supabase.
+A restrição é aplicada por política de capacidades, guardas de interface, handlers, serviços e RLS.
 
 A classificação, o cadastro e a disponibilização de programas por exercício permanecem fora desse escopo.
 
@@ -113,7 +108,7 @@ Executa o fluxo patrimonial autorizado, acompanha bens permanentes, encaminhamen
 
 A simulação visual de perfil altera a política exibida, mas não substitui o JWT nem concede comportamento contrário ao perfil simulado.
 
-## 5. Superfícies principais
+## 5. Superfícies e recortes
 
 O produto contém, conforme o perfil:
 
@@ -129,32 +124,13 @@ O produto contém, conforme o perfil:
 - Configurações e visões gerenciais SME;
 - alertas, modais e exportações.
 
-Toda alteração deve considerar as superfícies em que o dado aparece e os recortes por:
-
-- competência;
-- exercício;
-- Controlador;
-- CRE e região administrativa;
-- escola;
-- programa;
-- documento;
-- situação;
-- autoria;
-- perfil efetivo.
+Toda alteração deve considerar os recortes por competência, exercício, Controlador, CRE, região administrativa, escola, programa, documento, situação, autoria e perfil efetivo.
 
 ## 6. Competência como contexto transversal
 
 A competência canônica usa `YYYY-MM`.
 
-O contexto mensal é único para toda a aplicação e orienta:
-
-- Dashboard;
-- Carteira;
-- Competências;
-- Prontuário;
-- Pendências e alertas;
-- timeline;
-- exportações Excel.
+O contexto mensal é único para Dashboard, Carteira, Competências, Prontuário, Pendências, alertas, timeline e exportações Excel.
 
 O domínio `RadarCompetenceContext`:
 
@@ -167,7 +143,7 @@ O domínio `RadarCompetenceContext`:
 
 As 12 competências de 2026 estão disponíveis. A aplicação não mantém seletores mensais concorrentes por tela.
 
-Competência existente, competência disponível e competência formalmente fechada são conceitos distintos.
+Competência existente, disponível e formalmente fechada são conceitos distintos.
 
 ## 7. Avaliação mensal canônica
 
@@ -189,9 +165,7 @@ A projeção `evaluateMonthlyEvaluation` reúne:
 - itens aguardando reanálise;
 - total de pendências ativas.
 
-Situação técnica e grau de conclusão são dimensões independentes. Um documento incorreto não significa necessariamente que toda a análise da unidade esteja concluída.
-
-Consulta, consolidação, telas e certificação dos relatórios utilizam a mesma regra canônica.
+Situação técnica e grau de conclusão são independentes. Consulta, consolidação, telas e certificação dos relatórios utilizam a mesma regra canônica.
 
 ## 8. Pendências e regularização
 
@@ -202,15 +176,7 @@ Estados canônicos:
 - `Resolvida`;
 - `Cancelada`.
 
-Resultados de tentativa incluem:
-
-- aguardando;
-- correto;
-- incorreto;
-- arquivo indisponível;
-- substituída antes da análise.
-
-O sistema preserva motivo, documento, escola, programa, responsável, tentativas, contatos, datas, resultado, histórico e próxima ação.
+Resultados de tentativa incluem aguardando, correto, incorreto, arquivo indisponível e substituída antes da análise.
 
 Regras essenciais:
 
@@ -231,30 +197,17 @@ O domínio `RadarSchoolTimeline` consolida, por unidade e competência:
 - abertura, resolução, cancelamento e reabertura de pendências;
 - novos envios e reanálises;
 - contatos e cobranças;
-- notas fiscais e despesas registradas;
+- notas fiscais e despesas;
 - bens permanentes, encaminhamento e inventariação;
 - registros administrativos autorizados.
 
-A projeção preserva:
-
-- ordem cronológica decrescente;
-- desempate estável;
-- autoria;
-- competência;
-- programa;
-- vínculo com pendência;
-- origem do evento;
-- visibilidade por perfil.
-
-A abertura já representada no histórico da pendência não é duplicada. A Gestão SME não recebe detalhes técnicos restritos.
+A projeção preserva ordem, desempate estável, autoria, competência, programa, vínculo com pendência, origem e visibilidade por perfil. A abertura já representada no histórico da pendência não é duplicada. A Gestão SME não recebe detalhes técnicos restritos.
 
 A aba **Histórico cronológico** integra o Prontuário e é montada por DOM seguro.
 
 ## 10. Navegação contextual
 
 O módulo `RadarNavigationContext` complementa as rotas canônicas sem criar roteador paralelo.
-
-Fluxo:
 
 ```text
 origem operacional
@@ -266,37 +219,19 @@ origem operacional
 
 Características:
 
-- contexto armazenado somente em `sessionStorage`;
+- contexto somente em `sessionStorage`;
 - pilha limitada a 12 transições;
-- captura antes da entrada em telas de aprofundamento;
 - restauração da competência pelo contexto global;
-- suporte a scroll próprio no desktop e scroll da página no mobile;
-- foco restaurado somente em elemento visível e acionável;
-- fallback **Voltar para Carteira** em acesso direto, favorito ou nova aba;
-- nenhuma persistência remota;
-- nenhum dado documental armazenado no contexto de retorno.
+- scroll próprio no desktop e scroll da página no mobile;
+- foco somente em elemento visível e acionável;
+- fallback **Voltar para Carteira** em acesso direto;
+- nenhuma persistência remota ou dado documental no contexto.
 
 A jornada foi validada em desktop, Android e iPhone.
 
 ## 11. Entidades canônicas
 
-O contrato de repositório inclui:
-
-- configuração;
-- programas;
-- perfis e perfis de usuário;
-- escopos escolares;
-- Controladores;
-- equipe de Inventário;
-- escolas e programas por escola;
-- competências;
-- verificações;
-- pendências, tentativas e contatos;
-- bens;
-- notas registradas;
-- logs administrativos;
-- execuções de importação;
-- eventos de auditoria.
+O contrato de repositório inclui configuração, programas, perfis, escopos escolares, Controladores, equipe de Inventário, escolas, vínculos escola–programa, competências, verificações, pendências, tentativas, contatos, bens, notas, logs administrativos, importações e auditoria.
 
 Nenhuma superfície deve persistir cópia paralela capaz de divergir dessas entidades.
 
@@ -312,14 +247,7 @@ Contrato de repositório
    └── LocalStorageRepository — rollback emergencial
 ```
 
-O adaptador remoto utiliza:
-
-- paginação e lotes;
-- tratamento padronizado de erros;
-- concorrência otimista por `row_version`;
-- snapshots;
-- operações RPC compostas;
-- reconciliação e rollback.
+O adaptador remoto utiliza paginação, lotes, erros padronizados, concorrência otimista por `row_version`, snapshots, RPCs compostas, reconciliação e rollback.
 
 Production e Preview usam Supabase. O modo local não é a fonte normal dos dados institucionais.
 
@@ -333,10 +261,6 @@ TeamAccountGateway
 Edge Function autenticada
    ├── Supabase Auth Admin
    └── RPC PostgreSQL transacional
-        ├── diretório organizacional
-        ├── user_profiles
-        ├── redistribuição, quando aplicável
-        └── administrative_logs
 ```
 
 A credencial administrativa nunca chega ao navegador. Falhas compensam convite, edição ou bloqueio para evitar divergência entre conta e diretório.
@@ -344,7 +268,7 @@ A credencial administrativa nunca chega ao navegador. Falhas compensam convite, 
 ## 14. Autorização
 
 - anônimo: sem acesso institucional;
-- Controlador: operação nas escolas da própria `cre_scope`, com carteira como recorte padrão;
+- Controlador: operação nas escolas da própria `cre_scope`;
 - Assistente: operação transversal e Gestão de Equipe plena;
 - Inventário: operação patrimonial autorizada;
 - SME: leitura gerencial conforme governança restritiva;
@@ -354,7 +278,7 @@ Controlador sem `cre_scope` não recebe acesso transversal automático. Escola d
 
 Exclusão física é excepcional. A remoção funcional de integrante é desativação lógica e auditada.
 
-## 15. Migração, backup e restauração
+## 15. Migração, backup, restauração e rastreabilidade
 
 Fluxo obrigatório:
 
@@ -366,15 +290,41 @@ snapshot → validação → plano → dry-run → staging
 
 Seed local não é dado institucional. Importação administrativa não ocorre no navegador.
 
-O projeto possui contratos, scripts e runbooks de migração e rollback. Antes da liberação oficial, backup e restauração ainda precisam ser exercitados em ambiente descartável com evidência reproduzível.
+### Divergência da migration SME
+
+O repositório possui:
+
+```text
+20260728182226_sme_access_governance.sql
+```
+
+O histórico de Production registra:
+
+```text
+version = 20260728190344
+name = sme_access_governance
+```
+
+As outras 24 migrations correspondem por versão e nome. O SQL da migration SME é equivalente nos dois lados:
+
+```text
+comprimento = 1.411 caracteres
+SHA-256 = cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
+```
+
+Não há divergência funcional identificada. Existe divergência de rastreabilidade que deve ser reconciliada, por mecanismo suportado e testado, antes da próxima migration de Production.
+
+Não renomear, reaplicar, excluir ou editar diretamente o histórico remoto sem plano, dry-run e evidência.
+
+Backup e restauração ainda precisam ser exercitados em ambiente descartável antes da liberação oficial.
 
 ## 16. Ambientes
 
-### 16.1 Desenvolvimento local
+### Desenvolvimento local
 
 Pode usar Supabase local e fixtures descartáveis. Não representa Production.
 
-### 16.2 Preview
+### Preview
 
 ```text
 environment: preview
@@ -383,9 +333,7 @@ supabaseRepositoryEnabled: true
 productionActivationApproved: false
 ```
 
-Usado para homologação remota, identidades temporárias e testes antes de Production.
-
-### 16.3 Production
+### Production
 
 ```text
 environment: production
@@ -396,13 +344,11 @@ productionActivationApproved: true
 
 O projeto autorizado é `scnryinorqeucbfkioxo`. O build público contém somente configuração publicável.
 
-### 16.4 Rollback emergencial
+### Rollback emergencial
 
-`RADAR_PRODUCTION_FORCE_LOCAL=true` força novo build local sem apagar o banco. Esse modo é contingência excepcional e exige decisão, evidência e plano de retorno.
+`RADAR_PRODUCTION_FORCE_LOCAL=true` força novo build local sem apagar o banco. É contingência excepcional e exige decisão, evidência e plano de retorno.
 
 ## 17. Excel como produto institucional
-
-Os relatórios Excel são produtos finais do sistema e devem corresponder aos lançamentos canônicos.
 
 A certificação automatizada percorre:
 
@@ -416,71 +362,39 @@ estado de origem
 → manifesto SHA-256
 ```
 
-### 17.1 Relatório institucional
+### Relatório institucional
 
 - histórico e multicompetência;
-- uma linha por escola, competência e programa consolidado;
 - quatro abas: `BONIFICACOES`, `SINTESE`, `QUALIDADE_DADOS` e `METADADOS`;
 - equivalência com o relatório lógico original e o CSV legado;
 - hashes estrutural e de conteúdo.
 
 O botão institucional ainda permanece vinculado ao CSV.
 
-### 17.2 Excel SME mensal
+### Excel SME mensal
 
 - uma competência por arquivo;
 - todas as unidades no escopo;
 - 26 colunas;
 - agrupamentos PDDE Básico, Qualidade e Equidade;
 - uma planilha mensal;
-- ausência de `dataValidations` que provocavam reparo;
+- ausência de `dataValidations`;
 - isolamento entre competências;
 - comparação célula a célula.
 
-### 17.3 Limite do gate automatizado
+A evidência sintética não consulta Production, não grava dados institucionais e não substitui homologação manual no Microsoft Excel desktop.
 
-A evidência sintética:
+## 18. Qualidade e gates
 
-- não consulta Production;
-- não grava dados institucionais;
-- não substitui homologação manual no Microsoft Excel desktop.
+Uma implementação está concluída quando representa os dados, permite localizar a próxima ação, mantém coerência entre visões e exportações, funciona para todos os perfis, preserva desktop/mobile/acessibilidade, mantém histórico e rastreabilidade, possui autorização compatível e passa pelos gates aplicáveis.
 
-## 18. Qualidade de produto
+O `npm run test:readiness` inclui sintaxe, lint, testes unitários, certificação Excel sintética, integração, readiness Supabase, configuração de runtime, artefatos gerados, tipagem do banco e auditoria funcional.
 
-Uma implementação está concluída quando:
-
-- representa corretamente os dados;
-- permite localizar e executar a próxima ação;
-- mantém coerência entre visões e exportações;
-- funciona para todos os perfis afetados;
-- preserva desktop e mobile;
-- mantém acessibilidade, histórico e rastreabilidade;
-- possui autorização e persistência compatíveis com o frontend;
-- possui feedback sem expor infraestrutura;
-- passa pelos testes e gates aplicáveis;
-- atualiza documentação e evidências.
-
-## 19. Toolchain e testes
-
-O gate `npm run test:readiness` inclui:
-
-- sintaxe dos módulos;
-- lint de segurança;
-- lint Playwright;
-- testes unitários;
-- certificação Excel sintética;
-- testes de integração;
-- readiness e alinhamento final do Supabase;
-- configuração de runtime;
-- artefatos gerados;
-- tipagem do banco;
-- auditoria funcional.
-
-A cobertura remota inclui Supabase local/pgTAP, Playwright desktop, Android e iPhone, Lighthouse e saúde das dependências.
+A cobertura remota inclui pgTAP, Playwright desktop/Android/iPhone, Lighthouse e saúde das dependências.
 
 A faixa de Node permanece `>=24 <27`; a major operacional deve ser fixada deliberadamente antes do release oficial.
 
-## 20. Segurança e liberação oficial
+## 19. Segurança e liberação oficial
 
 Comprovado:
 
@@ -490,21 +404,22 @@ Comprovado:
 - Edge Function protegida por JWT;
 - autoria e auditoria das mutações;
 - concorrência otimista;
-- deployments automáticos novamente bloqueados;
+- deployments automáticos bloqueados;
 - evidência Excel sem dados pessoais.
 
 Permanecem como bloqueadores:
 
-1. homologação manual dos relatórios no Microsoft Excel desktop;
-2. habilitação da proteção contra senhas vazadas no Supabase Auth;
-3. fixação da major operacional do Node;
-4. teste de backup e restauração em ambiente descartável;
-5. gate remoto por perfil e viewport;
-6. UAT funcional;
-7. polimento editorial e visual;
-8. decisão formal de liberação.
+1. reconciliação do identificador da migration SME;
+2. homologação manual dos relatórios no Microsoft Excel desktop;
+3. proteção contra senhas vazadas no Supabase Auth;
+4. fixação da major operacional do Node;
+5. backup e restauração em ambiente descartável;
+6. gate remoto por perfil e viewport;
+7. UAT funcional;
+8. polimento editorial e visual;
+9. decisão formal de liberação.
 
-## 21. Direção de desenvolvimento vigente
+## 20. Direção de desenvolvimento vigente
 
 A sequência funcional anterior foi encerrada:
 
@@ -519,5 +434,8 @@ A próxima frente ainda não foi escolhida. Nenhum novo ciclo funcional está au
 
 O cadastro e a disponibilização de programas por exercício continuam fora do escopo até decisão específica.
 
-Referência operacional: [`CURRENT_STAGE.md`](CURRENT_STAGE.md).  
-Auditoria: [`audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md`](audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md).
+Referências:
+
+- [`CURRENT_STAGE.md`](CURRENT_STAGE.md);
+- [`audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md`](audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md);
+- [`audits/2026-07-29-rastreabilidade-migration-sme.md`](audits/2026-07-29-rastreabilidade-migration-sme.md).
