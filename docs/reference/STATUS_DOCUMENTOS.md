@@ -29,7 +29,7 @@ Documentação desatualizada deve ser corrigida para representar código e ambie
 | Competências | 12; `closing_competence = 2026-12` |
 | Governança SME | concluída e publicada |
 | Ciclos 1 a 5 | concluídos, mesclados e publicados |
-| Histórico de migrations | divergência de versão limitada à migration SME; SQL local e remoto idêntico |
+| Histórico de migrations | 25 versões alinhadas entre GitHub e Supabase Production; migration SME reconciliada |
 | Liberação oficial | não declarada |
 
 O commit `598361dd...` é posterior ao deployment funcional e apenas restaura o bloqueio automático da Vercel.
@@ -43,7 +43,9 @@ O commit `598361dd...` é posterior ao deployment funcional e apenas restaura o 
 | Registro de decisões | ADRs vigentes e substituídas | **Canônico** | `docs/DECISION_LOG.md` |
 | Índice de documentação | Navegação e classificação das fontes | **Canônico** | `docs/README.md` |
 | Auditoria pós-ciclos 1 a 5 | Reconciliação entre código, GitHub, Vercel, Supabase e documentos | **Vigente** | `docs/audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md` |
-| Auditoria da migration SME | Divergência de identificador, equivalência do SQL e regra de tratamento | **Vigente até a reconciliação do histórico** | `docs/audits/2026-07-29-rastreabilidade-migration-sme.md` |
+| Achado original da migration SME | Divergência detectada, equivalência do SQL e regra preventiva | **Histórico resolvido** | `docs/audits/2026-07-29-rastreabilidade-migration-sme.md` |
+| Plano de reconciliação SME | Estratégia efetivamente executada para alinhar o histórico remoto | **Executado** | `docs/audits/2026-07-29-reconciliacao-migration-sme-plano.md` |
+| Evidências da reconciliação SME | Estado anterior, comandos controlados, estado posterior e proteção contra regressão | **Vigente** | `docs/audits/2026-07-29-reconciliacao-migration-sme-evidencias.md` |
 | Auditoria de alinhamento de 28/07/2026 | Linha de base anterior à execução dos ciclos | **Histórica relevante** | `docs/audits/2026-07-28-alinhamento-codigo-ambientes-documentacao.md` |
 | Plano de oficialização de 28/07/2026 | Plano que originou os ciclos 1 a 5 e gates de release | **Executado quanto aos ciclos; histórico para essa parte; referencial para gates finais** | `docs/superpowers/plans/2026-07-28-oficializacao-operacional-radar-pdde.md` |
 | Adendo técnico do plano | Correções técnicas sobre competência, timeline e certificação | **Executado e preservado como histórico de decisão** | `docs/superpowers/plans/2026-07-28-oficializacao-operacional-radar-pdde-addendum.md` |
@@ -56,7 +58,7 @@ O commit `598361dd...` é posterior ao deployment funcional e apenas restaura o 
 | Dicionário de dados Supabase | Modelo relacional e relacionamentos | **Vigente nas tabelas; introduções de “futura persistência” ou “modo local” são históricas** | `docs/reference/SUPABASE_DATA_DICTIONARY.md` |
 | Matriz de permissões Supabase | Perfis e RLS | **Aplicada; conferir ADR-022 e migrations atuais** | `docs/reference/SUPABASE_PERMISSIONS_MATRIX.md` |
 | Runbook de conexão Supabase | Configuração e validação | **Executado; permanece para operação e recuperação** | `docs/runbooks/SUPABASE_CONNECTION.md` |
-| Runbook de migração e rollback | Promoção, reconciliação e retorno | **Vigente; deve incorporar a divergência da migration SME antes da próxima alteração de schema** | `docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md` |
+| Runbook de migração e rollback | Promoção, reconciliação e retorno | **Vigente; histórico SME reconciliado** | `docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md` |
 | Arquitetura de competências | Contexto mensal global | **Vigente e implementada** | `docs/architecture/competencias.md` |
 | Arquitetura da avaliação mensal | Projeção canônica APTA/INAPTA | **Vigente e implementada** | `docs/architecture/avaliacao-mensal.md` |
 | Arquitetura da timeline | Histórico como projeção | **Vigente e implementada** | `docs/architecture/timeline-unidade.md` |
@@ -78,11 +80,11 @@ O commit `598361dd...` é posterior ao deployment funcional e apenas restaura o 
 - certificação automatizada dos relatórios Excel;
 - navegação contextual e retorno seguro;
 - validação desktop, Android e iPhone do Ciclo 5;
-- bloqueio automático da Vercel restaurado após cada janela controlada.
+- bloqueio automático da Vercel restaurado após cada janela controlada;
+- reconciliação do identificador da migration SME entre GitHub e Supabase Production.
 
 ### Pendentes antes da liberação oficial
 
-- reconciliação do identificador da migration SME no histórico local/remoto;
 - homologação manual dos relatórios no Microsoft Excel desktop;
 - proteção contra senhas vazadas no Supabase Auth;
 - fixação deliberada da major operacional do Node;
@@ -92,19 +94,21 @@ O commit `598361dd...` é posterior ao deployment funcional e apenas restaura o 
 - polimento editorial e visual;
 - decisão formal de liberação.
 
-## 5. Rastreabilidade da migration SME
+## 5. Rastreabilidade da migration SME — resolvida
 
 | Item | Valor |
 |---|---|
 | Arquivo versionado | `20260728182226_sme_access_governance.sql` |
-| Versão registrada em Production | `20260728190344` |
+| Versão registrada em Production | `20260728182226` |
 | Nome registrado | `sme_access_governance` |
-| Comprimento do SQL | 1.411 caracteres em ambos |
-| SHA-256 do SQL | `cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e` em ambos |
+| Registro derivado anterior | `20260728190344`, removido por `migration repair` |
+| Total de migrations remotas | 25 |
+| Comprimento reconstruído do SQL | 1.411 caracteres |
+| SHA-256 reconstruído | `cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e` |
 | Divergência funcional | não identificada |
-| Divergência de rastreabilidade | presente |
+| Divergência de rastreabilidade | resolvida |
 
-Não renomear, reaplicar, excluir ou editar diretamente o histórico remoto sem plano específico, dry-run e mecanismo suportado.
+O arquivo canônico foi preservado. O reparo alterou apenas o histórico gerenciado pelo Supabase CLI, sem reaplicação do SQL. Um teste de regressão protege a versão local e o hash.
 
 ## 6. Integridade dos binários verificados
 
@@ -128,6 +132,6 @@ Hashes identificam os binários verificados. Não garantem que o conteúdo repre
 
 ## 8. Próxima decisão
 
-Os ciclos 1 a 5 estão encerrados. A próxima frente ainda não foi escolhida e deve partir dos bloqueadores reais restantes.
+Os ciclos 1 a 5 estão encerrados e a migration SME está reconciliada. A próxima frente ainda não foi escolhida e deve partir dos bloqueadores reais restantes.
 
 O cadastro e a disponibilização de programas por exercício permanecem fora do escopo até decisão específica.

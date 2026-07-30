@@ -37,7 +37,7 @@ Estão concluídos e publicados:
 
 O código funcional dos ciclos 1 a 5 integra a baseline `598361dd...`. O deployment funcional vigente foi gerado pelo commit `dfc8aa3...`. O commit posterior apenas restaurou `git.deploymentEnabled: false` e não abriu nova publicação.
 
-A liberação oficial ainda não foi declarada porque permanecem gates de segurança, homologação, restauração, rastreabilidade de migrations, UAT e decisão formal.
+A divergência de identificador da migration SME foi reconciliada sem reaplicação do SQL. A liberação oficial ainda não foi declarada porque permanecem gates de segurança, homologação, restauração, UAT e decisão formal.
 
 ## 3. Estado por camada
 
@@ -58,7 +58,7 @@ A liberação oficial ainda não foi declarada porque permanecem gates de segura
 | Excel institucional | certificação automatizada concluída; botão institucional ainda usa CSV. |
 | Excel SME mensal | certificação automatizada concluída. |
 | Navegação contextual | concluída, publicada e validada em desktop e mobile. |
-| Histórico de migrations | 24 versões correspondentes; migration SME com versão remota diferente do arquivo local, mas SQL idêntico. |
+| Histórico de migrations | 25 versões correspondentes entre GitHub e Supabase Production; migration SME reconciliada. |
 | Deployment automático | bloqueado após a janela controlada. |
 | Liberação oficial | não declarada. |
 
@@ -209,36 +209,40 @@ Data de corte: 29/07/2026.
 
 As quantidades são retrato operacional e podem mudar com o uso real.
 
-## 11. Divergência de rastreabilidade da migration SME
+## 11. Rastreabilidade da migration SME — resolvida
 
-O repositório contém:
+O arquivo canônico criado e testado no GitHub é:
 
 ```text
 20260728182226_sme_access_governance.sql
 ```
 
-O Supabase Production registra:
+O histórico do Supabase Production agora registra o mesmo identificador:
 
 ```text
-version = 20260728190344
+version = 20260728182226
 name = sme_access_governance
 ```
 
-A comparação do SQL confirmou equivalência integral:
+O registro derivado `20260728190344` foi removido exclusivamente pelo mecanismo oficial de `migration repair`. Nenhuma instrução funcional foi reaplicada.
+
+Verificações posteriores:
 
 ```text
-comprimento = 1.411 caracteres
-SHA-256 = cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
+migrations remotas = 25
+registro canônico = 1
+registro derivado = 0
+comprimento reconstruído = 1.411 caracteres
+SHA-256 reconstruído = cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
 ```
 
-Portanto:
+O CLI armazenou o conteúdo em quatro instruções separadas. A reconstrução das quatro instruções reproduz exatamente o SQL canônico. O teste `tests/unit/sme-migration-history-alignment.test.js` protege versão, ausência do identificador derivado e hash.
 
-- não há divergência funcional ou de política identificada;
-- existe divergência de identificador no histórico de migrations;
-- não deve haver renomeação, reaplicação ou edição direta do histórico sem plano;
-- a reconciliação precisa ocorrer antes da próxima migration de Production e antes do release oficial.
+Evidências:
 
-Auditoria específica: [`audits/2026-07-29-rastreabilidade-migration-sme.md`](audits/2026-07-29-rastreabilidade-migration-sme.md).
+- [`audits/2026-07-29-rastreabilidade-migration-sme.md`](audits/2026-07-29-rastreabilidade-migration-sme.md) — registro do achado original;
+- [`audits/2026-07-29-reconciliacao-migration-sme-plano.md`](audits/2026-07-29-reconciliacao-migration-sme-plano.md) — estratégia executada;
+- [`audits/2026-07-29-reconciliacao-migration-sme-evidencias.md`](audits/2026-07-29-reconciliacao-migration-sme-evidencias.md) — comprovação posterior.
 
 ## 12. Toolchain e gates
 
@@ -270,19 +274,19 @@ Comprovado:
 - Edge Function protegida por JWT;
 - alterações auditáveis;
 - deployments automáticos bloqueados após janelas controladas;
-- evidência Excel sem dados pessoais.
+- evidência Excel sem dados pessoais;
+- histórico de migrations reconciliado entre GitHub e Supabase Production.
 
 Bloqueadores reais restantes:
 
-1. reconciliar o identificador da migration SME no histórico local/remoto por procedimento suportado e testado;
-2. homologar manualmente os relatórios no Microsoft Excel desktop;
-3. habilitar proteção contra senhas vazadas no Supabase Auth;
-4. fixar deliberadamente a major do Node;
-5. testar backup e restauração em ambiente descartável;
-6. executar gate remoto por perfil e viewport;
-7. concluir UAT;
-8. realizar polimento editorial e visual;
-9. registrar decisão formal de liberação.
+1. homologar manualmente os relatórios no Microsoft Excel desktop;
+2. habilitar proteção contra senhas vazadas no Supabase Auth;
+3. fixar deliberadamente a major do Node;
+4. testar backup e restauração em ambiente descartável;
+5. executar gate remoto por perfil e viewport;
+6. concluir UAT;
+7. realizar polimento editorial e visual;
+8. registrar decisão formal de liberação.
 
 O advisor de segurança do Supabase confirma que a proteção contra senhas vazadas permanece desabilitada.
 
@@ -294,8 +298,8 @@ O advisor de segurança do Supabase confirma que a proteção contra senhas vaza
 
 ## 15. Próxima decisão
 
-Os ciclos 1 a 5 estão encerrados. Não existe nova implementação funcional autorizada neste documento.
+Os ciclos 1 a 5 estão encerrados e a rastreabilidade da migration SME está reconciliada. Não existe nova implementação funcional autorizada neste documento.
 
-A próxima frente deve ser escolhida entre os bloqueadores da seção 13. O cadastro e a disponibilização de programas por exercício permanecem fora do escopo até decisão específica.
+A próxima frente deve ser escolhida entre os bloqueadores remanescentes da seção 13. O cadastro e a disponibilização de programas por exercício permanecem fora do escopo até decisão específica.
 
 Auditoria geral: [`audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md`](audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md).

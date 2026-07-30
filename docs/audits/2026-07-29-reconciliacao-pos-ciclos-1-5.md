@@ -44,7 +44,8 @@ Documentos anteriores foram tratados como históricos quando divergiam das fonte
 - região: `sa-east-1`;
 - estado: `ACTIVE_HEALTHY`;
 - PostgreSQL: 17;
-- migration mais recente registrada: `20260728190344_sme_access_governance`;
+- migration mais recente registrada: `20260728182226_sme_access_governance`;
+- total de migrations registradas: 25;
 - `closing_competence = 2026-12`;
 - `app_config.row_version = 5`.
 
@@ -205,48 +206,64 @@ Antes desta reconciliação:
 - o PR #70 permanecia aberto apesar de sua própria descrição determinar encerramento sem merge;
 - o PR #5 permanecia aberto, antigo e conflitante, mas contém uma proposta autônoma de serialização CSV e foi preservado para decisão específica.
 
-## 8. Divergência de rastreabilidade da migration SME
+## 8. Achado e resolução da migration SME
 
-A comparação dos 25 registros do histórico remoto com os 25 arquivos locais demonstrou:
+A comparação inicial dos 25 registros do histórico remoto com os 25 arquivos locais demonstrou:
 
-- 24 migrations correspondem por versão e nome;
-- a migration de governança SME possui versão diferente;
-- o nome lógico e o SQL aplicado são equivalentes.
+- 24 migrations correspondiam por versão e nome;
+- a migration de governança SME possuía versão diferente;
+- o nome lógico e o SQL aplicado eram equivalentes.
 
-| Elemento | Repositório | Supabase Production |
+| Elemento | Repositório | Supabase Production antes do reparo |
 |---|---|---|
 | Versão | `20260728182226` | `20260728190344` |
 | Nome | `sme_access_governance` | `sme_access_governance` |
 | Comprimento do SQL | 1.411 | 1.411 |
 | SHA-256 do SQL | `cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e` | `cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e` |
 
-Conclusão:
+A investigação histórica confirmou que `20260728182226` foi criada e testada no GitHub antes do surgimento do identificador remoto. O arquivo local foi preservado e o histórico remoto foi reconciliado pelo mecanismo oficial de `migration repair`:
 
-- não foi identificada divergência funcional, de RLS ou de segurança no SQL aplicado;
-- existe divergência de identificador no histórico de migrations;
-- a diferença pode interferir em comparações da CLI, `db push`, promoção ou reparo futuros;
-- não deve haver renomeação, reaplicação ou edição direta do histórico remoto sem plano, dry-run e mecanismo suportado.
+```text
+20260728182226 → applied
+20260728190344 → reverted
+```
 
-Auditoria específica: [`2026-07-29-rastreabilidade-migration-sme.md`](2026-07-29-rastreabilidade-migration-sme.md).
+Estado posterior:
+
+| Verificação | Resultado |
+|---|---|
+| Migrations remotas | 25 |
+| Versão canônica | `20260728182226`, presente |
+| Versão derivada | `20260728190344`, ausente |
+| Nome | `sme_access_governance` |
+| Conteúdo reconstruído | 1.411 caracteres |
+| SHA-256 reconstruído | `cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e` |
+
+Nenhum SQL funcional foi reaplicado, e schema, RLS e dados permaneceram inalterados. O CLI armazenou a migration em quatro instruções separadas; a reconstrução reproduz exatamente o conteúdo canônico.
+
+Auditorias específicas:
+
+- [`2026-07-29-rastreabilidade-migration-sme.md`](2026-07-29-rastreabilidade-migration-sme.md);
+- [`2026-07-29-reconciliacao-migration-sme-plano.md`](2026-07-29-reconciliacao-migration-sme-plano.md);
+- [`2026-07-29-reconciliacao-migration-sme-evidencias.md`](2026-07-29-reconciliacao-migration-sme-evidencias.md).
 
 ## 9. Bloqueadores reais restantes
 
 A liberação oficial continua não declarada. Permanecem:
 
-1. reconciliar o identificador da migration SME no histórico local/remoto antes da próxima migration de Production;
-2. homologar manualmente os relatórios no Microsoft Excel desktop;
-3. habilitar a proteção contra senhas vazadas no Supabase Auth;
-4. fixar deliberadamente a major operacional do Node;
-5. testar backup e restauração em ambiente descartável;
-6. executar gate remoto por perfil e viewport com identidades controladas;
-7. concluir UAT funcional;
-8. realizar polimento editorial e visual sem alterar regras de produto;
-9. registrar decisão formal de liberação, liberação com restrições ou não liberação.
+1. homologar manualmente os relatórios no Microsoft Excel desktop;
+2. habilitar a proteção contra senhas vazadas no Supabase Auth;
+3. fixar deliberadamente a major operacional do Node;
+4. testar backup e restauração em ambiente descartável;
+5. executar gate remoto por perfil e viewport com identidades controladas;
+6. concluir UAT funcional;
+7. realizar polimento editorial e visual sem alterar regras de produto;
+8. registrar decisão formal de liberação, liberação com restrições ou não liberação.
 
 O advisor de segurança do Supabase confirma que a proteção contra senhas vazadas permanece desabilitada.
 
 ## 10. Próxima decisão
 
-Nenhuma nova frente funcional foi escolhida nesta auditoria. A documentação passa a reconhecer que os ciclos 1 a 5 estão concluídos e publicados.
+Nenhuma nova frente funcional foi escolhida nesta auditoria. A documentação reconhece que os ciclos 1 a 5 estão concluídos e publicados e que a rastreabilidade da migration SME foi resolvida.
 
 A próxima etapa deve ser decidida entre os bloqueadores reais restantes, sem reabrir entregas concluídas nem retomar o cadastro de programas por exercício sem decisão específica.
