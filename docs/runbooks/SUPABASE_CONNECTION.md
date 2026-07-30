@@ -1,7 +1,7 @@
 # Runbook — conexão e operação controlada do Supabase
 
 **Estado:** vigente; Production conectada  
-**Atualizado em:** 29 de julho de 2026
+**Atualizado em:** 30 de julho de 2026
 
 ## 1. Objetivo
 
@@ -20,7 +20,7 @@ repositório normal: SupabaseRepository
 contingência: LocalStorageRepository por novo build controlado
 ```
 
-O repositório contém 25 arquivos de migration. O histórico remoto possui equivalência funcional, com divergência conhecida de identificador na migration SME.
+O conjunto versionado contém atualmente **25** migrations. O histórico remoto está reconciliado com os arquivos de `supabase/migrations`, inclusive para `20260728182226_sme_access_governance.sql`.
 
 Contagens de escolas, vínculos, usuários e registros são dados operacionais mutáveis. Para diagnóstico, devem ser consultadas no ambiente e registradas com data de corte; não usar números antigos deste runbook como invariantes.
 
@@ -34,7 +34,7 @@ Contagens de escolas, vínculos, usuários e registros são dados operacionais m
 - não reintroduzir massa `HML-*` na base operacional;
 - não criar fallback paralelo sem falha comprovada;
 - não aplicar seed automaticamente em banco vazio;
-- não executar alteração de schema enquanto o histórico de migrations estiver divergente;
+- não executar alteração de schema quando o histórico de migrations estiver divergente;
 - não interpretar contingência local como sincronização bidirecional.
 
 ## 4. Configuração por ambiente
@@ -110,44 +110,50 @@ Confirmar:
 
 ## 6. Contrato de migrations
 
-Arquivos em `supabase/migrations` definem a ordem local.
+Os arquivos em `supabase/migrations` são a fonte versionada do código; a ordem efetivamente reconhecida pelo ambiente remoto deve ser confirmada pelo histórico oficial da CLI.
 
-Comandos de inspeção:
+Comandos de inspeção e aplicação controlada:
 
 ```bash
 supabase migration list --linked
 supabase db push --linked --dry-run
+supabase db push --linked
 ```
 
-O `db push --linked` real somente pode ser executado quando:
+O terceiro comando não é uma autorização automática. O `db push --linked` real somente pode ser executado quando:
 
 - histórico local e remoto estiver reconciliado;
 - migration nova tiver passado por reset local, pgTAP, lint e tipos;
+- o dry-run não indicar desvio inesperado;
 - backup e rollback estiverem aprovados;
 - janela e responsáveis estiverem definidos.
 
-### 6.1 Divergência SME conhecida
+### 6.1 Migration SME reconciliada
 
 ```text
 arquivo local: 20260728182226_sme_access_governance.sql
-registro remoto: 20260728190344_sme_access_governance
+registro remoto: 20260728182226_sme_access_governance
+registro derivado 20260728190344: ausente
 ```
 
-Equivalência comprovada:
+Integridade comprovada:
 
 ```text
-comprimento: 1.411 caracteres em ambos
+comprimento: 1.411 caracteres
 SHA-256: cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
 ```
 
-Até a reconciliação:
+A reconciliação:
 
-- não renomear o arquivo;
-- não reaplicar o SQL;
-- não apagar ou inserir linha manualmente no histórico;
-- não criar migration compensatória vazia;
-- não executar `db push` real;
-- seguir [`SUPABASE_MIGRATION_AND_ROLLBACK.md`](SUPABASE_MIGRATION_AND_ROLLBACK.md).
+- utilizou o mecanismo oficial de `migration repair`;
+- não reaplicou nem reverteu o SQL funcional;
+- não alterou schema, dados ou políticas RLS;
+- deixou 25 versões correspondentes;
+- deixou o `db push --linked --dry-run` sem migration pendente;
+- está protegida pelo teste `tests/unit/sme-migration-history-alignment.test.js`;
+- possui evidência em `docs/audits/2026-07-29-reconciliacao-migration-sme-evidencias.md`.
+
+Antes de qualquer migration futura, seguir [`SUPABASE_MIGRATION_AND_ROLLBACK.md`](SUPABASE_MIGRATION_AND_ROLLBACK.md).
 
 ## 7. Perfis funcionais
 
@@ -228,6 +234,8 @@ No SHA candidato, comprovar:
 - ausência de erro fatal e overflow;
 - logs sem erro de RLS inesperado;
 - deployment correspondente ao SHA aprovado.
+
+O gate versionado para a matriz remota é `.github/workflows/gate-remoto-perfis-viewports.yml`. Ele serve o código do próprio PR, gera o manifesto de Preview local e utiliza identidades efêmeras no Supabase autorizado.
 
 ## 11. Rollback emergencial de frontend
 

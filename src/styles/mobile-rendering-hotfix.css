@@ -130,14 +130,15 @@
     /*
        Os controles do cabeçalho deixam de formar uma faixa horizontal oculta.
        A competência ocupa a primeira linha e os controles de ação permanecem
-       integralmente acessíveis na segunda linha.
+       integralmente acessíveis na segunda linha. O Administrador técnico recebe
+       posições distintas para alternância de perfil e encerramento da sessão.
     */
     .header-actions {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) repeat(3, 44px);
+        grid-template-columns: minmax(0, 1fr) repeat(4, 44px);
         grid-template-areas:
-            "competence competence competence competence"
-            "exercise theme alerts session";
+            "competence competence competence competence competence"
+            "exercise theme alerts session profile";
         align-items: center;
         width: 100%;
         min-width: 0;
@@ -184,9 +185,15 @@
         min-width: 44px;
     }
 
-    .auth-logout-button,
-    .profile-switcher {
+    .auth-logout-button {
         grid-area: session;
+        width: 44px;
+        min-width: 44px;
+        max-width: 44px;
+    }
+
+    .profile-switcher {
+        grid-area: profile;
         width: 44px;
         min-width: 44px;
         max-width: 44px;

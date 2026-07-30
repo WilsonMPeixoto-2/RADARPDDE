@@ -1,180 +1,174 @@
 # RADAR PDDE
 
-O **RADAR PDDE** é uma aplicação web institucional para acompanhar entrega, análise, regularização, consolidação, inventário e histórico dos programas do PDDE por unidade escolar, competência, programa e documento.
+Sistema institucional de acompanhamento operacional do PDDE, com visão mensal, carteira de unidades, prontuário, pendências, registros internos, inventário, acompanhamento gerencial da Gestão SME e exportações institucionais.
 
-Atende Controladores, Assistente de Verbas Federais, Gestão SME, Equipe de Inventário e Administração técnica, com autenticação institucional, autorização em profundidade, Supabase, auditoria, concorrência otimista e exportações estruturadas.
+> **Estado em 30 de julho de 2026:** conectado ao Supabase Production autorizado e publicado na Vercel Production. A liberação oficial ainda depende dos gates externos remanescentes descritos em [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md).
 
-## Estado operacional — 29/07/2026
+## Estado funcional
 
-| Camada | Situação comprovada |
-|---|---|
-| Baseline funcional da `main` | `598361dd784563f4d70d1e25df3818f4ee066da8` |
-| Reconciliação do histórico SME | `79cb67c84720b1850879d9c50c262e1623d5d8cc` |
-| Vercel Production | `dpl_7tLM3RZ7MEuRRTzvGmc9EiAARmDY`, `READY` |
-| Commit funcional publicado | `dfc8aa3030b02edb73f764f5f56bd6759a7a1d77` |
-| Runtime | `production`, `supabase-production` |
-| Supabase | `scnryinorqeucbfkioxo`, `ACTIVE_HEALTHY`, PostgreSQL 17 |
-| Persistência normal | `SupabaseRepository` |
-| Contingência | `LocalStorageRepository` por novo build controlado |
-| Calendário | janeiro a dezembro de 2026; `closing_competence = 2026-12`; `row_version = 5` |
-| Gestão SME | governança somente leitura em interface, serviços e RLS |
-| Ciclos de oficialização | 1 a 5 concluídos, mesclados e publicados |
-| Migrations | 25 versões correspondentes entre GitHub e Supabase Production |
-| Deployment automático | bloqueado após janela controlada |
-| Liberação oficial | ainda não declarada |
+Estão implementados e publicados:
 
-O commit funcional publicado é anterior ao commit que restaurou o bloqueio automático. A reconciliação posterior da migration SME alterou somente histórico, proteção de regressão e documentação; não reaplicou SQL funcional.
+- governança de acesso da Gestão SME;
+- competência global de janeiro a dezembro de 2026;
+- avaliação mensal canônica;
+- timeline cronológica da unidade;
+- navegação contextual com preservação de competência, filtros, rolagem e foco;
+- relatório institucional XLSX;
+- Excel SME mensal;
+- certificação automatizada de paridade integral;
+- CSV legado como fallback;
+- integração canônica com Supabase Production;
+- reconciliação do histórico da migration SME;
+- fixação deliberada do Node.js em `24.x`;
+- gate remoto por papel institucional e viewport.
 
-## Entregas concluídas
+## Perfis e papéis
 
-### Ciclo 1 — competência global
+O sistema diferencia:
 
-- seletor mensal transversal;
-- persistência entre telas e recarga;
-- doze competências de 2026;
-- `closing_competence = 2026-12`.
+- **Controlador:** carteira principal e colaboração autorizada na própria CRE;
+- **Assistente de Verbas Federais:** acompanhamento transversal e gestão autorizada da equipe da CRE;
+- **Gestão SME:** consulta gerencial com restrições cumulativas de interface, serviço e RLS;
+- **Equipe de Inventário:** superfície patrimonial da própria CRE;
+- **Administrador técnico:** infraestrutura, escopos, importação, auditoria e simulação visual autorizada.
 
-### Ciclo 2 — avaliação mensal
+O Administrador técnico não constitui quinto perfil funcional visível e não substitui a Assistente na rotina da CRE.
 
-- regra canônica APTA/INAPTA;
-- bonificação, análise técnica e pendência independentes;
-- persistência atômica e concorrência otimista.
-
-### Ciclo 3 — timeline
-
-- visão cronológica por unidade e competência;
-- autoria, origem, vínculos e visibilidade;
-- projeção somente leitura.
-
-### Ciclo 4 — Excel
-
-- relatório institucional histórico de quatro abas;
-- botão principal institucional integrado ao XLSX;
-- Excel SME mensal integrado em botão próprio;
-- CSV legado preservado como botão secundário e fallback;
-- comparação célula a célula no OOXML;
-- manifesto e hashes sintéticos;
-- ausência deliberada de `dataValidations` no produto SME;
-- homologação manual no Microsoft Excel desktop ainda pendente.
-
-### Ciclo 5 — navegação contextual
-
-- rotas canônicas;
-- retorno para origem real;
-- preservação de competência, filtros e rolagem;
-- foco no controle visível e acionável;
-- desktop, Android e iPhone.
-
-## Arquitetura
+## Arquitetura operacional
 
 ```text
-Interface e integrações idempotentes
-        ↓
-Serviços de aplicação + UnitOfWork
-        ↓
-Contrato único de persistência
-        ├── SupabaseRepository — Preview/Production
-        └── LocalStorageRepository — contingência
-        ↓
-Supabase Auth + PostgREST + PostgreSQL + RLS + RPCs + auditoria
+frontend estático
+→ contratos de aplicação e serviços
+→ SupabaseRepository
+→ Auth + PostgREST + RLS + RPC + Edge Function
+→ PostgreSQL 17
 ```
 
-Princípios:
+Ambientes:
 
-- domínio puro para regras compartilhadas;
-- `app.js` preservado como núcleo legado;
-- extensões carregadas de forma ordenada;
-- segurança cumulativa em interface, serviço, Auth e RLS;
-- timeline e relatórios derivados de fontes canônicas;
-- nenhuma escrita remota implícita.
+| Ambiente | Persistência | Finalidade |
+|---|---|---|
+| local/teste | Supabase descartável ou LocalStorage controlado | desenvolvimento, regressão e contingência |
+| Preview | Supabase autorizado com manifesto de Preview | homologação anterior à Production |
+| Production | Supabase Production canônico | operação institucional |
 
-## Perfis
+`LocalStorageRepository` permanece somente como contingência por novo build controlado. Não existe sincronização automática do estado local para o Supabase.
 
-### Controlador
+## Runtime Node.js
 
-Carteira como responsabilidade principal e filtro inicial. Pode colaborar nas escolas da mesma CRE, preservando responsável principal e autoria real.
+A major operacional está fixada em Node.js `24.x`.
 
-### Assistente de Verbas Federais
-
-Acompanhamento transversal da CRE e Gestão de Equipe, inclusive contas Auth por Edge Function protegida.
-
-### Gestão SME
-
-Consulta identificação e bonificação nas superfícies definidas, sem análise técnica ou mutações operacionais. Registros Internos limitados à própria autoria por UUID.
-
-### Equipe de Inventário
-
-Opera Capital e Inventário dentro da própria CRE, sem acesso aos módulos não patrimoniais.
-
-### Administrador técnico
-
-Infraestrutura, perfis, escopos, importações e auditoria. Pode simular organização visual dos perfis sem alterar JWT.
-
-## Histórico de migrations
-
-A migration SME está alinhada pelo identificador canônico:
+Contratos versionados:
 
 ```text
-arquivo GitHub: 20260728182226_sme_access_governance.sql
-registro Supabase: 20260728182226_sme_access_governance
-registro derivado 20260728190344: ausente
-SHA-256: cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
+package.json        engines.node = 24.x
+package-lock.json   packages[""].engines.node = 24.x
+.nvmrc              24
+.node-version       24
+GitHub Actions      node-version: 24
+Vercel              nodeVersion: 24.x
 ```
 
-A reconciliação utilizou o mecanismo oficial de `migration repair`, sem reaplicar o SQL. O teste `tests/unit/sme-migration-history-alignment.test.js` protege versão, ausência do identificador derivado e hash.
+A fixação consolida a major já utilizada pela Vercel e pelos workflows; não representa promoção para uma major sem histórico de testes.
 
-Antes de migration futura, executar o runbook, comparar histórico local/remoto, rodar o teste de alinhamento, reset local, pgTAP, lint, tipos, dry-run, backup e rollback.
+## Gate remoto de perfis e viewports
 
-## Gates antes da liberação oficial
+O workflow canônico é:
 
-1. habilitar proteção contra senhas vazadas no Supabase Auth;
-2. fixar deliberadamente a major do Node;
-3. testar backup e restauração;
-4. homologar os dois produtos no Microsoft Excel desktop;
-5. executar matriz remota por perfil e viewport;
-6. concluir UAT;
-7. realizar polimento editorial/visual sem alterar produto;
-8. registrar decisão formal de release.
+```text
+.github/workflows/gate-remoto-perfis-viewports.yml
+```
 
-## Documentação obrigatória
+Ele executa em runner remoto do GitHub Actions e:
 
-1. [`AGENTS.md`](AGENTS.md);
-2. [`docs/README.md`](docs/README.md);
-3. [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md);
-4. [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md);
-5. [`docs/DECISION_LOG.md`](docs/DECISION_LOG.md);
-6. [`docs/reference/STATUS_DOCUMENTOS.md`](docs/reference/STATUS_DOCUMENTOS.md);
-7. [`docs/audits/2026-07-29-alinhamento-documental-integral-pos-pr108.md`](docs/audits/2026-07-29-alinhamento-documental-integral-pos-pr108.md);
-8. [`docs/audits/2026-07-29-reconciliacao-migration-sme-evidencias.md`](docs/audits/2026-07-29-reconciliacao-migration-sme-evidencias.md).
+1. inicia um Supabase descartável;
+2. aplica as 25 migrations versionadas;
+3. cria identidades Auth efêmeras;
+4. valida contratos Auth e RLS no desktop;
+5. serve o código do próprio PR;
+6. executa cinco papéis institucionais em:
+   - Desktop Chrome;
+   - Android / Pixel 7 / Chromium;
+   - iPhone 15 / WebKit;
+7. publica evidências e destrói o ambiente.
 
-## Desenvolvimento
+O gate não usa dados nem segredos de Production. A implementação também corrigiu a sobreposição móvel entre o seletor do Administrador técnico e o botão **Sair**.
+
+## Requisitos de desenvolvimento
+
+- Node.js `24.x`;
+- npm compatível com o lockfile;
+- Docker para a pilha local do Supabase;
+- Supabase CLI conforme `package-lock.json`;
+- Chromium e WebKit para os gates Playwright aplicáveis.
+
+Instalação:
 
 ```bash
 npm ci
-npm run test:readiness
-npm run test:e2e
-npm run test:mobile
-npm run audit:lighthouse
-npm run build:vercel
 ```
 
-Para banco:
+Readiness principal:
+
+```bash
+npm run test:readiness
+```
+
+Supabase local:
 
 ```bash
 npm run supabase:start
 npm run supabase:reset
 npm run supabase:test:db
 npm run supabase:lint:db
-npm run typecheck:database
 ```
 
-## Regra de continuidade
+Interface:
 
-A próxima frente ainda não foi escolhida. Antes de implementar:
+```bash
+npm run test:e2e
+npm run test:mobile
+```
 
-- confirmar `main`, PRs e ambientes;
-- escolher expressamente o objetivo;
-- registrar escopo e fora de escopo;
-- trabalhar em branch própria;
-- executar os gates aplicáveis;
-- atualizar documentação e evidências no mesmo ciclo.
+Certificação Excel:
+
+```bash
+npm run certify:excel:fixture
+```
+
+## Fontes de verdade
+
+Para qualquer decisão técnica ou funcional, consultar nesta ordem:
+
+1. [`AGENTS.md`](AGENTS.md);
+2. [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md);
+3. [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md);
+4. [`docs/DECISION_LOG.md`](docs/DECISION_LOG.md);
+5. código e migrations da `main`;
+6. estado efetivo do Supabase e da Vercel para dados mutáveis.
+
+A memória de conversas e documentos históricos não substitui a verificação do código e dos ambientes.
+
+## Bloqueadores remanescentes para release
+
+Após a fixação do Node e a implantação do gate remoto, permanecem:
+
+1. habilitar proteção contra senhas vazadas no Supabase Auth;
+2. testar backup e restauração em ambiente descartável;
+3. homologar manualmente os arquivos no Microsoft Excel desktop;
+4. executar UAT funcional com representantes dos papéis reais;
+5. realizar polimento editorial e visual;
+6. registrar decisão formal de liberação.
+
+## Evidência deste ciclo
+
+- [`docs/audits/2026-07-30-node24-gate-remoto-perfis-viewports.md`](docs/audits/2026-07-30-node24-gate-remoto-perfis-viewports.md)
+- [`docs/audits/2026-07-29-reconciliacao-migration-sme-evidencias.md`](docs/audits/2026-07-29-reconciliacao-migration-sme-evidencias.md)
+
+## Segurança
+
+- chaves administrativas nunca pertencem ao frontend;
+- testes remotos usam ambientes e identidades descartáveis;
+- Auth e RLS devem ser validados por papel e escopo;
+- migrations exigem histórico alinhado, reset local, pgTAP, lint, tipos, dry-run, backup e rollback;
+- nenhuma alteração em Production é inferida apenas porque o CI ficou verde.
