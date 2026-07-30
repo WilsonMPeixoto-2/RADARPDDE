@@ -130,7 +130,7 @@ test('gera nome do arquivo e da única aba a partir da competência selecionada'
     assert.equal(model.competenceKey, '2026-07');
     assert.equal(model.sheetName, 'JULHO');
     assert.equal(model.fileName, 'RADAR_PDDE_EXCEL_SME_07-2026.xlsx');
-    assert.equal(model.columns.length, 26);
+    assert.equal(model.columns.length, 30);
 });
 
 test('classifica os programas reais nas contas SME corretas', () => {
@@ -144,10 +144,10 @@ test('classifica os programas reais nas contas SME corretas', () => {
     assert.equal(modelApi.resolveProgramKey({ id: 'RECURSOS', name: 'Sala de Recursos' }), 'EQUIDADE');
 });
 
-test('ordena escolas pela designação e mantém campos administrativos vazios', () => {
+test('ordena escolas pela designação e mantém campos administrativos sem fonte vazios', () => {
     const model = modelApi.buildSmeMonthlyModel(fixture());
 
-    assert.deepEqual(model.rows.map(row => row.designation), ['04.31.001', '04.31.026']);
+    assert.deepEqual(model.rows.map(row => row.designation), [431001, 431026]);
     assert.deepEqual(model.rows.map(row => row.order), [1, 2]);
     assert.deepEqual(
         {
@@ -181,6 +181,10 @@ test('preenche somente a competência selecionada e normaliza valores do RADAR',
         QUALIDADE: ['CONECTADA'],
         EQUIDADE: ['RECURSOS']
     });
+    assert.equal(ary.basic_systematic, 'SIM');
+    assert.equal(ary.qualidade_systematic, 'SIM');
+    assert.equal(ary.equidade_systematic, 'SIM');
+    assert.equal(ary.status, 'INAPTA');
 });
 
 test('agrega programas da conta e faz NÃO prevalecer sobre SIM ou N/A', () => {
@@ -194,6 +198,7 @@ test('agrega programas da conta e faz NÃO prevalecer sobre SIM ou N/A', () => {
     );
     assert.equal(modelApi.aggregateSmeValues(['Não se aplica', 'Sim']), 'SIM');
     assert.equal(modelApi.aggregateSmeValues(['Sim', 'Não']), 'NÃO');
+    assert.equal(herbert.status, 'INAPTA');
 });
 
 test('deixa vazio o bloco de conta sem programa consolidado', () => {
@@ -204,6 +209,7 @@ test('deixa vazio o bloco de conta sem programa consolidado', () => {
         modelApi.DOCUMENT_KEYS.map(key => herbert[`equidade_${key}`]),
         ['', '', '', '', '', '']
     );
+    assert.equal(herbert.equidade_systematic, '');
     assert.equal(model.diagnostics.schoolCount, 2);
 });
 
