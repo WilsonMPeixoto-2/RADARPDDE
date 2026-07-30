@@ -25,6 +25,7 @@ Na data de corte:
 
 - a `main` contém a governança da Gestão SME e os ciclos 1 a 5 da oficialização;
 - a baseline funcional auditada é `598361dd784563f4d70d1e25df3818f4ee066da8`;
+- a reconciliação do histórico SME foi integrada em `79cb67c84720b1850879d9c50c262e1623d5d8cc`;
 - a Vercel Production está `READY` no deployment `dpl_7tLM3RZ7MEuRRTzvGmc9EiAARmDY`;
 - o commit funcional publicado é `dfc8aa3030b02edb73f764f5f56bd6759a7a1d77`;
 - o runtime opera em `production` e `supabase-production`;
@@ -32,12 +33,13 @@ Na data de corte:
 - existem 12 competências de 2026;
 - `closing_competence = 2026-12`;
 - `app_config.row_version = 5`;
+- as 25 versões de migration correspondem entre GitHub e Supabase Production;
 - o relatório institucional XLSX e o Excel SME estão integrados em runtime;
 - o CSV legado permanece disponível como botão secundário e fallback;
 - o deployment automático está novamente bloqueado;
 - a liberação oficial ainda não foi declarada.
 
-O commit posterior ao deployment funcional apenas restaurou `git.deploymentEnabled: false`.
+O commit posterior ao deployment funcional apenas restaurou `git.deploymentEnabled: false`. A reconciliação posterior do histórico de migrations não alterou o schema funcional nem o artefato publicado.
 
 ## 3. Regra de precedência
 
@@ -282,7 +284,7 @@ Exclusão física é excepcional. A remoção funcional de integrante é desativ
 
 ## 15. Migração, backup, restauração e rastreabilidade
 
-Fluxo obrigatório:
+Fluxo obrigatório de dados:
 
 ```text
 snapshot → validação → plano → dry-run → staging
@@ -292,31 +294,28 @@ snapshot → validação → plano → dry-run → staging
 
 Seed local não é dado institucional. Importação administrativa não ocorre no navegador.
 
-### Divergência da migration SME
+### Histórico SME reconciliado
 
-O repositório possui:
-
-```text
-20260728182226_sme_access_governance.sql
-```
-
-O histórico de Production registra:
+O repositório e o Supabase Production possuem o identificador canônico:
 
 ```text
-version = 20260728190344
-name = sme_access_governance
+20260728182226_sme_access_governance
 ```
 
-As outras 24 migrations correspondem por versão e nome. O SQL da migration SME é equivalente nos dois lados:
+O identificador remoto derivado `20260728190344` foi marcado como revertido no histórico e está ausente da listagem final. O identificador canônico foi marcado como aplicado.
 
-```text
-comprimento = 1.411 caracteres
-SHA-256 = cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
-```
+A reconciliação:
 
-Não há divergência funcional identificada. Existe divergência de rastreabilidade que deve ser reconciliada, por mecanismo suportado e testado, antes da próxima migration de Production.
+- usou `supabase migration repair`;
+- não executou, reaplicou ou reverteu o SQL funcional;
+- preservou o schema e as políticas existentes;
+- manteve o SQL com 1.411 caracteres;
+- preservou o SHA-256 `cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e`;
+- deixou 25 versões correspondentes entre local e remoto;
+- deixou `db push --dry-run` sem pendência;
+- ganhou teste unitário de regressão.
 
-Não renomear, reaplicar, excluir ou editar diretamente o histórico remoto sem plano, dry-run e evidência.
+Antes de qualquer migration futura, executar o runbook e o teste `tests/unit/sme-migration-history-alignment.test.js`.
 
 Backup e restauração ainda precisam ser exercitados em ambiente descartável antes da liberação oficial.
 
@@ -407,20 +406,20 @@ Comprovado:
 - Edge Function protegida por JWT;
 - autoria e auditoria das mutações;
 - concorrência otimista;
+- histórico de migrations alinhado e protegido por teste;
 - deployments automáticos bloqueados;
 - evidência Excel sem dados pessoais.
 
 Permanecem como bloqueadores:
 
-1. reconciliação do identificador da migration SME;
-2. homologação manual dos relatórios no Microsoft Excel desktop;
-3. proteção contra senhas vazadas no Supabase Auth;
-4. fixação da major operacional do Node;
-5. backup e restauração em ambiente descartável;
-6. gate remoto por perfil e viewport;
-7. UAT funcional;
-8. polimento editorial e visual;
-9. decisão formal de liberação.
+1. homologação manual dos relatórios no Microsoft Excel desktop;
+2. proteção contra senhas vazadas no Supabase Auth;
+3. fixação da major operacional do Node;
+4. backup e restauração em ambiente descartável;
+5. gate remoto por perfil e viewport;
+6. UAT funcional;
+7. polimento editorial e visual;
+8. decisão formal de liberação.
 
 ## 20. Direção de desenvolvimento vigente
 
@@ -431,7 +430,8 @@ A sequência funcional anterior foi encerrada:
 3. avaliação mensal certificada — concluída;
 4. timeline cronológica — concluída;
 5. certificação e integração Excel — concluídas;
-6. navegação contextual — concluída.
+6. navegação contextual — concluída;
+7. reconciliação do histórico da migration SME — concluída.
 
 A próxima frente ainda não foi escolhida.
 
@@ -454,7 +454,8 @@ Não é permitido:
 - transformar a carteira em fronteira entre Controladores da mesma CRE;
 - ocultar informação funcional no mobile;
 - introduzir segredo no frontend ou no repositório;
-- executar nova migration antes da reconciliação do histórico SME;
+- aplicar migration futura sem histórico alinhado, teste, reset local, pgTAP, lint, tipos, dry-run, backup e rollback;
+- editar diretamente a tabela de histórico de migrations;
 - reintroduzir `dataValidations` no Excel SME sem nova prova OOXML e homologação;
 - remover o CSV de fallback sem decisão e plano de reversão.
 
@@ -471,4 +472,5 @@ Não é permitido:
 - [`architecture/excel-sme-mensal.md`](architecture/excel-sme-mensal.md);
 - [`architecture/supabase-readiness.md`](architecture/supabase-readiness.md);
 - [`runbooks/SUPABASE_CONNECTION.md`](runbooks/SUPABASE_CONNECTION.md);
-- [`runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`](runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md).
+- [`runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`](runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md);
+- [`audits/2026-07-29-reconciliacao-migration-sme-evidencias.md`](audits/2026-07-29-reconciliacao-migration-sme-evidencias.md).
