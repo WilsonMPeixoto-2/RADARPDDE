@@ -1,22 +1,25 @@
 # Avaliação mensal — contrato canônico
 
+**Estado:** vigente, implementado e publicado  
+**Atualizado em:** 29 de julho de 2026
+
 ## 1. Finalidade
 
-A avaliação mensal registra, para cada combinação de unidade escolar, competência e programa, três dimensões relacionadas e independentes:
+A avaliação mensal representa, para cada combinação de unidade escolar, competência e programa, três dimensões relacionadas e independentes:
 
 1. bonificação pela entrega dos documentos;
 2. análise técnica da qualidade documental;
 3. pendências e regularizações decorrentes.
 
-A aplicação não pode calcular resultados diferentes em Dashboard, Carteira, Competências, Prontuário ou exportações.
+Dashboard, Carteira, Competências, Prontuário, timeline e exportações não podem calcular resultados distintos para o mesmo contexto.
 
-## 2. Identidade do registro
+## 2. Identidade
 
 ```text
 schoolId + competenceKey + programId
 ```
 
-Na camada de compatibilidade do frontend, a chave pode aparecer como:
+Na camada de compatibilidade, a chave pode aparecer como:
 
 ```text
 2026-08_BASIC
@@ -36,7 +39,7 @@ evaluateMonthlyEvaluation({
 });
 ```
 
-E retorna:
+E devolve uma projeção serializável:
 
 ```javascript
 {
@@ -52,7 +55,7 @@ E retorna:
 }
 ```
 
-A projeção é pura, serializável e não persiste dados.
+A projeção é pura e não persiste dados.
 
 ## 4. Bonificação
 
@@ -76,14 +79,14 @@ Extrato da Conta Corrente, Extrato de Investimento e Declaração BB Ágil não 
 ### Resultado
 
 - todos os campos válidos e nenhum `Não`: `apta`;
-- todos os campos válidos e pelo menos um `Não`: `inapta`;
+- todos os campos válidos e ao menos um `Não`: `inapta`;
 - campo ausente ou `Não se aplica` indevido: resultado nulo e consolidação bloqueada.
 
 A regularização posterior não reescreve automaticamente a bonificação histórica.
 
 ## 5. Análise técnica
 
-Estados documentais existentes:
+Estados documentais existentes incluem:
 
 - `Não analisado`;
 - `Correto`;
@@ -91,58 +94,81 @@ Estados documentais existentes:
 - `Incorreto`;
 - estados intermediários compatíveis com a interface vigente.
 
-A situação técnica e o grau de conclusão são calculados de forma independente:
+Situação e grau de conclusão são independentes:
 
 | Situação dos documentos | `technicalStatus` | `technicalCompletion` |
 |---|---|---|
 | todos não analisados | `nao-analisado` | `not_started` |
 | estados parciais sem incorreção | `em-analise` | `in_progress` |
-| algum incorreto e ainda há item não analisado | `incorreto` | `in_progress` |
-| algum incorreto e todos foram analisados | `incorreto` | `complete` |
+| algum incorreto e item não analisado | `incorreto` | `in_progress` |
+| algum incorreto e todos analisados | `incorreto` | `complete` |
 | todos corretos | `correto` | `complete` |
-| todos corretos, com atraso em algum item | `correto-atrasado` | `complete` |
+| todos corretos, com atraso | `correto-atrasado` | `complete` |
 
 Análise técnica não altera automaticamente o resultado da bonificação.
 
 ## 6. Pendências
 
-A projeção contabiliza apenas pendências da mesma escola, competência e programa.
+A projeção contabiliza somente pendências da mesma escola, competência e programa:
 
-- `openPendencyCount`: estado `Aberta`;
-- `awaitingReanalysisCount`: estado `Aguardando reanálise`;
-- `activePendencyCount`: soma dos dois estados ativos.
+- `openPendencyCount`: `Aberta`;
+- `awaitingReanalysisCount`: `Aguardando reanálise`;
+- `activePendencyCount`: soma dos estados ativos.
 
-Pendências `Resolvida` e `Cancelada` permanecem no histórico, mas não entram na contagem ativa.
+`Resolvida` e `Cancelada` permanecem no histórico, mas não integram a contagem ativa.
 
 ## 7. Serviço de aplicação
 
-`VerificationService.getMonthlyEvaluation()` resolve o registro canônico e filtra as pendências correspondentes.
+`VerificationService.getMonthlyEvaluation()` resolve o registro canônico e recorta as pendências correspondentes.
 
 `VerificationService.closeBonification()`:
 
-1. confirma que o perfil pode editar;
+1. valida a capacidade do perfil;
 2. lê o registro da escola, competência e programa;
 3. obtém a projeção canônica;
 4. bloqueia consolidação incompleta;
 5. grava `resultadoBonif` igual a `bonusResult`;
 6. registra log administrativo;
 7. persiste verificação e log pela operação atômica existente;
-8. utiliza `row_version` para impedir sobrescrita silenciosa;
+8. aplica `row_version`;
 9. devolve a mesma projeção usada na decisão.
 
-Nenhuma tabela, RPC ou migration nova é necessária para este contrato.
+Nenhuma tabela, RPC ou migration adicional foi necessária para este contrato.
 
 ## 8. Perfis
 
-- Controlador: lança e consolida nas escolas autorizadas da própria CRE;
-- Assistente: lança, consolida e executa ajustes autorizados;
-- Gestão SME: consulta bonificação, sem análise técnica ou mutações operacionais;
-- Inventário: não lança avaliação mensal;
-- Administrador técnico: não herda operação cotidiana por padrão.
+- **Controlador:** lança e consolida nas escolas autorizadas da própria CRE;
+- **Assistente:** lança, consolida e executa ajustes autorizados;
+- **Gestão SME:** consulta bonificação, sem análise técnica ou mutações operacionais;
+- **Inventário:** não lança avaliação mensal;
+- **Administrador técnico:** não herda operação cotidiana por padrão.
 
-A política de capacidades, os handlers, o serviço e a RLS permanecem cumulativos.
+Política de capacidades, handlers, serviços e RLS são cumulativos.
 
-## 9. Testes obrigatórios
+## 9. Relação com a timeline
+
+A timeline consome o estado e os logs existentes para projetar consolidações e alterações técnicas. Ela não recalcula nem persiste uma avaliação paralela.
+
+## 10. Relação com os relatórios Excel
+
+A certificação integral já está implementada. Os dois produtos executam a regra canônica e comparam o resultado até a célula OOXML:
+
+```text
+estado de origem
+→ evaluateMonthlyEvaluation
+→ modelo de exportação
+→ plano do workbook, quando aplicável
+→ célula XLSX
+→ manifesto SHA-256
+```
+
+Divergência entre `resultadoBonif` armazenado e `bonusResult` canônico bloqueia a certificação.
+
+Contrato detalhado: [`excel-integral-certification.md`](excel-integral-certification.md).
+
+A homologação manual no Microsoft Excel desktop permanece gate separado da certificação automatizada.
+
+## 11. Testes obrigatórios
 
 ### Domínio
 
@@ -151,32 +177,30 @@ A política de capacidades, os handlers, o serviço e a RLS permanecem cumulativ
 - campo vazio;
 - `Não se aplica` indevido;
 - análise não iniciada, em andamento e completa;
-- situação incorreta com análise ainda incompleta;
+- situação incorreta ainda incompleta;
 - contagem de pendências ativas.
 
 ### Serviço
 
 - recorte por escola, competência e programa;
 - consolidação devolvendo a projeção persistida;
-- estado incompleto sem alteração do resultado;
-- persistência atômica e log já cobertos pelos testes remotos existentes;
+- estado incompleto sem alteração de resultado;
+- persistência atômica e log;
 - concorrência por `row_version`.
 
-### Interface
+### Interface e integração
 
-- seleção de competência posterior a maio;
+- competência posterior a maio;
 - lançamento no Prontuário;
 - consolidação do PDDE Básico;
-- correspondência entre tela, objeto canônico e armazenamento;
+- correspondência entre tela, serviço, estado e armazenamento;
 - recarga preservando competência e resultado;
-- ausência de erros de página.
+- certificação Excel sem divergências;
+- ausência de `pageerror`.
 
-## 10. Relação com Excel
+## 12. Referências
 
-Os dois modelos Excel devem consumir o mesmo resultado canônico. A certificação posterior comparará:
-
-```text
-Supabase → estado carregado → evaluateMonthlyEvaluation → modelo → célula XLSX
-```
-
-Nenhum exportador pode manter regra própria de APTA/INAPTA.
+- [`competencias.md`](competencias.md);
+- [`timeline-unidade.md`](timeline-unidade.md);
+- [`excel-integral-certification.md`](excel-integral-certification.md);
+- [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md).
