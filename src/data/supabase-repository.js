@@ -76,6 +76,7 @@
     const NON_RESTORABLE_SET = new Set(NON_RESTORABLE_ENTITIES);
     const DEFAULT_PAGE_SIZE = 500;
     const DEFAULT_WRITE_BATCH_SIZE = 250;
+    const DEFAULT_READ_CONCURRENCY = 6;
     const { withSafeReadRetry } = errorMapper;
 
     function positiveInteger(value, fallback) {
@@ -88,6 +89,39 @@
             result.push(records.slice(offset, offset + size));
         }
         return result;
+    }
+
+    function selectedEntities(value) {
+        if (value === undefined) return [...RADAR_ENTITIES];
+        if (!Array.isArray(value)) {
+            throw new RepositoryError(
+                'INVALID_ENTITY_SELECTION',
+                'A seleção de entidades do snapshot deve ser um array.',
+                { operation: 'exportSnapshot' }
+            );
+        }
+        const entities = [...new Set(value.map(String))];
+        entities.forEach(assertKnownEntity);
+        return entities;
+    }
+
+    async function mapWithConcurrency(items, limit, worker) {
+        const results = new Array(items.length);
+        let cursor = 0;
+        async function consume() {
+            while (true) {
+                const index = cursor;
+                cursor += 1;
+                if (index >= items.length) return;
+                results[index] = await worker(items[index], index);
+            }
+        }
+        const workers = Array.from(
+            { length: Math.min(positiveInteger(limit, DEFAULT_READ_CONCURRENCY), items.length) },
+            () => consume()
+        );
+        await Promise.all(workers);
+        return results;
     }
 
     function jsonContracts() {
@@ -195,6 +229,7 @@
             this.tableMap = Object.freeze({ ...DEFAULT_TABLE_MAP, ...(options.tableMap || {}) });
             this.pageSize = positiveInteger(options.pageSize, DEFAULT_PAGE_SIZE);
             this.writeBatchSize = positiveInteger(options.writeBatchSize, DEFAULT_WRITE_BATCH_SIZE);
+            this.readConcurrency = positiveInteger(options.readConcurrency, DEFAULT_READ_CONCURRENCY);
             this.readRetry = Object.freeze({
                 maxAttempts: positiveInteger(options.readRetry?.maxAttempts, 3),
                 delayMs: Number.isFinite(options.readRetry?.delayMs) && options.readRetry.delayMs >= 0
@@ -356,11 +391,16 @@
         }
 
         async exportSnapshot(options = {}) {
+            const entityNames = selectedEntities(options.entities);
+            const entries = await mapWithConcurrency(
+                entityNames,
+                options.readConcurrency || this.readConcurrency,
+                async entity => [entity, await this.load(entity)]
+            );
             const entities = {};
-            for (const entity of RADAR_ENTITIES) {
-                const records = await this.load(entity);
+            entries.forEach(([entity, records]) => {
                 if (records.length > 0 || options.includeEmpty === true) entities[entity] = records;
-            }
+            });
             return createSnapshotEnvelope(entities, {
                 version: options.version || options.schemaVersion || '1',
                 importId: options.importId,

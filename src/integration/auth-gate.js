@@ -108,6 +108,7 @@
     ]);
     const AUTH_DESCRIPTION = 'Entre com sua conta autorizada para acessar os dados do RADAR PDDE.';
     const AUTH_RESOLVING_DESCRIPTION = 'Verificando a sessão existente antes de liberar o acesso…';
+    const AUTH_LOADING_DATA_DESCRIPTION = 'Sessão reconhecida. Carregando os dados autorizados…';
 
     function isTechnicalRole(role) {
         return TECHNICAL_ROLES.has(String(role || ''));
@@ -145,6 +146,9 @@
             this.bind();
             this.root.addEventListener('radar:auth-required', event => {
                 this.show(event?.detail?.message || 'Entre para acessar o RADAR PDDE.');
+            });
+            this.root.addEventListener('radar:auth-resolved', event => {
+                this.showLoadingData(event?.detail?.authentication || null);
             });
             if (!this.enabled) {
                 this.document.documentElement.classList.remove('radar-auth-required');
@@ -190,6 +194,17 @@
             if (app) app.inert = true;
             this.setDescription(AUTH_RESOLVING_DESCRIPTION);
             this.setFormVisible(false);
+        }
+
+        showLoadingData(authentication) {
+            this.phase = 'loading_data';
+            this.document.documentElement.classList.add('radar-auth-required');
+            const app = this.document.getElementById('app-layout');
+            if (app) app.inert = true;
+            if (authentication?.authorization) this.setAuthenticationContext(authentication);
+            this.setDescription(AUTH_LOADING_DATA_DESCRIPTION);
+            this.setFormVisible(false);
+            this.setStatus('Acesso confirmado. Preparando o ambiente de trabalho…', 'success');
         }
 
         show(message) {
