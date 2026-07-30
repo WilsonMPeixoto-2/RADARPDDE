@@ -65,6 +65,14 @@ test('gera pacote XLSX de uma única aba mensal', () => {
     assert.doesNotMatch(entries['xl/workbook.xml'], /sheetId="2"/);
 });
 
+test('não emite propriedades vazias reparáveis no workbook e preserva a impressão', () => {
+    const workbook = inspect(renderer.renderWorkbook(model()))['xl/workbook.xml'];
+
+    assert.doesNotMatch(workbook, /<workbookPr\b/);
+    assert.match(workbook, /<definedName name="_xlnm\.Print_Area" localSheetId="0">'JULHO'!\$A\$1:\$Z\$2<\/definedName>/);
+    assert.match(workbook, /<definedName name="_xlnm\.Print_Titles" localSheetId="0">'JULHO'!\$1:\$1<\/definedName>/);
+});
+
 test('preserva 26 colunas, cabeçalho e dados mensais', () => {
     const sheet = inspect(renderer.renderWorkbook(model()))['xl/worksheets/sheet1.xml'];
 
