@@ -1,92 +1,172 @@
 # Cobertura funcional — Supabase
 
-## Situação
+**Estado:** vigente em Preview e Production  
+**Atualizado em:** 29 de julho de 2026
+
+## 1. Situação
 
 O RADAR PDDE possui contrato único de persistência e dois adaptadores:
 
-- `LocalStorageRepository` — backend vigente em Production;
-- `SupabaseRepository` — backend conectado ao Preview e preparado para futura ativação controlada.
+- `SupabaseRepository` — backend canônico de Preview e Production;
+- `LocalStorageRepository` — desenvolvimento controlado e contingência explícita.
 
-A conexão de Preview permanece separada de Production. O conjunto contém **25 migrations** e uma Edge Function protegida para o ciclo de contas da equipe.
+Production está conectada ao projeto `scnryinorqeucbfkioxo` com Auth, PostgREST, PostgreSQL, RLS, RPCs, auditoria e concorrência otimista.
 
-## Matriz de cobertura
+O repositório contém 25 arquivos de migration e uma Edge Function protegida para o ciclo de contas da equipe. Existe divergência conhecida de identificador na migration SME, sem divergência de SQL, que bloqueia a próxima alteração de schema até reconciliação.
 
-| Domínio ou fluxo | Modo local | Supabase local/Preview | Evidência principal |
-|---|---:|---:|---|
-| Bootstrap e hidratação canônica | Sim | Sim | serviços de dados e E2E |
-| Configuração, exercícios e competências | Sim | Sim | serviço + RPC transacional |
-| Escolas, programas e controlador | Sim | Sim | serviço + RLS/RPC |
-| Carteira como filtro e responsabilidade | Sim | Sim | Dashboard e E2E |
-| Colaboração entre Controladores da mesma CRE | Sim | Sim | migration 16, smoke e E2E |
-| Capital e Inventário da própria CRE | Sim | Sim | migrations 17–22 e pgTAP |
-| Gestão de controladores pela Assistente | Sim | Sim | gateway, RLS e RPCs |
-| Gestão da Equipe de Inventário | Sim | Sim | serviço, Edge Function e RPCs |
-| Convite e conta Auth | Não aplicável | Sim | Edge Function + Auth Admin |
-| Bonificação e análise técnica | Sim | Sim | serviço de verificações |
-| Pendências, tentativas e contatos | Sim | Sim | serviços e histórico |
-| Notas e bens derivados | Sim | Sim | RPCs atômicas e inventário |
-| Auditoria | Sim | Sim | unidade de trabalho + triggers |
-| Concorrência otimista | Não aplicável | Sim | `row_version` |
-| Importação, reconciliação e rollback | Sim | Sim | coordenador + RPCs |
-| Desktop, Android e iPhone | Sim | Sim | Playwright |
-| Acessibilidade automatizada | Sim | Sim | axe, foco e teclado |
+## 2. Matriz de cobertura
 
-## Perfis
+| Domínio ou fluxo | Local/contingência | Supabase local | Preview/Production | Evidência principal |
+|---|---:|---:|---:|---|
+| Bootstrap e hidratação canônica | Sim | Sim | Sim | serviços, runtime e E2E |
+| Configuração, exercícios e competências | Sim | Sim | Sim | serviço + RPC transacional |
+| Competência global janeiro–dezembro | Sim | Sim | Sim | domínio, integração e E2E |
+| Escolas, programas e responsável principal | Sim | Sim | Sim | serviço + RLS/RPC |
+| Colaboração entre Controladores da mesma CRE | Sim | Sim | Sim | RLS, pgTAP e E2E |
+| Gestão da equipe pela Assistente | Parcial | Sim | Sim | gateway, Edge Function e RPCs |
+| Convite e conta Auth | Não aplicável | Sim | Sim | Edge Function + Auth Admin |
+| Bonificação e avaliação mensal | Sim | Sim | Sim | domínio + serviço + persistência |
+| Análise técnica | Sim | Sim | Sim | serviço de verificações |
+| Pendências, tentativas e contatos | Sim | Sim | Sim | serviços, RLS e histórico |
+| Timeline cronológica | Sim | Sim | Sim | projeção somente leitura |
+| Notas e bens derivados | Sim | Sim | Sim | RPCs atômicas e inventário |
+| Capital e Inventário por CRE | Sim | Sim | Sim | RLS, pgTAP e E2E |
+| Registros Internos | Sim | Sim | Sim | autoria, políticas e RLS |
+| Gestão SME somente leitura | Sim | Sim | Sim | capacidades, handlers, serviços e RLS |
+| Navegação contextual | Sim | Sim | Sim | sessão, rotas e Playwright |
+| Relatório institucional certificado | Sim | Sim | Sim | modelo, renderer e manifesto sintético |
+| Excel SME mensal certificado | Sim | Sim | Sim | modelo, renderer e manifesto sintético |
+| Auditoria | Sim | Sim | Sim | UnitOfWork + triggers/logs |
+| Concorrência otimista | Não aplicável | Sim | Sim | `row_version` |
+| Importação, reconciliação e rollback | Sim | Sim | Controlado | coordenador + RPCs |
+| Desktop, Android e iPhone | Sim | Sim | Sim | Playwright |
+| Acessibilidade automatizada | Sim | Sim | Sim | axe, foco e teclado |
 
-A interface possui quatro perfis funcionais:
+`Controlado` significa que a capacidade existe, mas sua execução sobre Production depende de janela, responsáveis, cópia autorizada, backup e plano específico.
+
+## 3. Perfis
+
+A interface possui quatro perfis funcionais visíveis:
 
 1. `controller` — Controlador;
 2. `federal_assistant` — Assistente de Verbas Federais;
-3. `sme_management` — SME (Gestão);
+3. `sme_management` — Gestão SME;
 4. `inventory` — Equipe de Inventário.
 
-`technical_admin` é um papel técnico separado do seletor operacional.
+`technical_admin` é papel técnico separado do seletor operacional.
 
-### Controlador
+### 3.1 Controlador
 
-A carteira personaliza o Dashboard e identifica o responsável principal. O perfil pode operar as escolas da mesma `cre_scope`, preservando autoria e responsabilidade, sem acessar outra CRE sem exceção explícita.
+A carteira identifica responsabilidade principal e organiza o trabalho. O perfil pode consultar e executar ações operacionais nas escolas da mesma `cre_scope`, preservando autoria e responsável principal, sem acesso a outra CRE salvo exceção explícita.
 
-### Capital e Inventário
+### 3.2 Assistente
 
-O perfil `inventory` é direcionado à interface Equipe de Inventário e à seção **Capital e Inventário**.
+A Assistente acompanha transversalmente a CRE e administra Controladores e integrantes de Inventário. No modo Supabase, o `TeamAccountGateway` chama Edge Function autenticada, que valida JWT e usa Auth Admin e RPCs restritas.
 
-O contrato permite:
+### 3.3 Gestão SME
 
-- leitura das escolas da própria `cre_scope`, inclusive sem bem cadastrado;
-- leitura dos vínculos escola–programa necessários ao painel;
-- leitura, criação e atualização dos bens da própria CRE;
-- conclusão da inventariação de bem encaminhado;
-- bloqueio da escrita cadastral das escolas;
-- bloqueio dos módulos não patrimoniais;
-- bloqueio de escolas e bens de outra CRE.
+- consulta identificação e bonificação nas visões mensal e do Prontuário;
+- não recebe análise técnica nessas superfícies;
+- consulta Pendências sem mutações operacionais;
+- consulta em Registros Internos somente linhas cujo `actor_user_id` corresponda ao próprio `auth.uid()`;
+- mantém recorte somente leitura na interface, serviços e RLS.
 
-As migrations 17 e 18 registram etapas intermediárias do ajuste remoto. A migration 19 consolida as políticas patrimoniais e remove a função auxiliar transitória. A migration 20 corrige o predicado genérico legado para exigir correspondência entre a CRE da escola com bem e a `cre_scope` do integrante. As migrations 21 e 22 substituem gravações compostas por comandos atômicos com log obrigatório. A migration 23 instala pgTAP no schema de extensões para validar o banco remoto em transações reversíveis. A migration 24 desloca funções privilegiadas para schema interno, preserva wrappers públicos SECURITY INVOKER, otimiza as policies sinalizadas pelos Advisors e endurece o CORS da Gestão de Equipe.
+### 3.4 Inventário
 
-## Gestão de Equipe
+O perfil pode:
 
-A Assistente cadastra, convida, edita e desativa Controladores e integrantes do Inventário. No modo Supabase, o `TeamAccountGateway` chama Edge Function autenticada, que valida o JWT, usa Auth Admin e RPCs restritas ao `service_role`.
+- ler escolas e vínculos da própria CRE necessários ao painel;
+- ler, criar e atualizar bens autorizados;
+- concluir inventariação de bem encaminhado;
+- operar apenas a superfície patrimonial;
+- permanecer bloqueado para escolas e bens de outra CRE.
 
-## Contratos de dados
+### 3.5 Administrador técnico
+
+Opera infraestrutura, perfis, escopos, importações e auditoria. Não herda automaticamente a operação cotidiana da Assistente.
+
+## 4. Contratos de dados
 
 A validação ocorre em camadas:
 
 - navegador: Ajv;
-- domínio da Edge Function;
+- domínio e serviços;
+- Edge Function;
 - PostgreSQL: tipos, constraints, `pg_jsonschema`, RLS e pgTAP.
 
-Gravações não são repetidas automaticamente. Operações de conta usam idempotência e compensação explícita.
+Escritas não são repetidas automaticamente. Operações compostas usam transação, idempotência, concorrência otimista ou compensação explícita.
 
-## Migração operacional
+## 5. Cobertura das migrations
+
+As migrations versionadas cobrem:
+
+- schema canônico;
+- grants e RLS;
+- Auth e perfis;
+- escopos por CRE e escola;
+- Gestão de Equipe;
+- inventário;
+- operações atômicas;
+- pgTAP remoto;
+- funções privilegiadas e CORS;
+- governança da Gestão SME.
+
+### Divergência conhecida
 
 ```text
-exportar → validar → planejar → staging
-        → retomar lotes → reconciliar
-        → promover atomicamente → rollback controlado
+local: 20260728182226_sme_access_governance.sql
+remoto: 20260728190344_sme_access_governance
 ```
 
-## Fora do escopo deste pacote
+O SQL possui o mesmo comprimento e SHA-256. A divergência é de histórico, não de regra aplicada.
 
-- ativação do Supabase em Production;
-- alteração visual ou de navegação;
-- redefinição das permissões dos demais perfis;
-- backup, restauração e MFA de Production.
+A próxima migration de Production permanece bloqueada até reconciliação suportada, testada e documentada.
+
+## 6. Importação operacional
+
+```text
+exportar
+→ validar
+→ planejar
+→ dry-run
+→ staging
+→ retomar lotes
+→ reconciliar
+→ promover atomicamente
+→ reconciliar destino
+→ rollback controlado
+```
+
+O protocolo não autoriza seed implícito nem importação pelo navegador.
+
+## 7. Relatórios
+
+### 7.1 Institucional
+
+O produto XLSX de quatro abas está implementado e certificado contra o modelo lógico e o CSV legado. O botão institucional da interface continua vinculado ao CSV até decisão específica de substituição.
+
+### 7.2 SME mensal
+
+O produto mensal de uma aba e 26 colunas está implementado e certificado. A ausência de `dataValidations` é requisito atual para evitar reparo no Microsoft Excel.
+
+A homologação manual no Excel desktop ainda é bloqueador de release.
+
+## 8. Gates pendentes de liberação oficial
+
+- reconciliar o identificador da migration SME;
+- habilitar proteção contra senhas vazadas;
+- fixar deliberadamente a major operacional do Node;
+- testar backup e restauração em ambiente descartável;
+- homologar os arquivos no Microsoft Excel desktop;
+- executar matriz remota por perfil e viewport;
+- concluir UAT;
+- registrar decisão formal de release.
+
+## 9. Referências
+
+- [`../architecture/supabase-readiness.md`](../architecture/supabase-readiness.md);
+- [`SUPABASE_PERMISSIONS_MATRIX.md`](SUPABASE_PERMISSIONS_MATRIX.md);
+- [`SUPABASE_DATA_DICTIONARY.md`](SUPABASE_DATA_DICTIONARY.md);
+- [`../runbooks/SUPABASE_CONNECTION.md`](../runbooks/SUPABASE_CONNECTION.md);
+- [`../runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`](../runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md);
+- [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md).
