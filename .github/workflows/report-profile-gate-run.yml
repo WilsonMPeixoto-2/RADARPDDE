@@ -1,0 +1,33 @@
+name: Consultar execução do gate remoto
+
+on:
+  push:
+    branches:
+      - hardening/node24-profile-viewport-gate
+    paths:
+      - '.github/workflows/report-profile-gate-run.yml'
+
+permissions:
+  actions: read
+  contents: read
+  pull-requests: write
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Consultar execução mais recente
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          response="$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/gate-remoto-perfis-viewports.yml/runs?branch=hardening/node24-profile-viewport-gate&per_page=5")"
+          run_id="$(jq -r '.workflow_runs[0].id // empty' <<<"${response}")"
+          status="$(jq -r '.workflow_runs[0].status // "ausente"' <<<"${response}")"
+          conclusion="$(jq -r '.workflow_runs[0].conclusion // "pendente"' <<<"${response}")"
+          url="$(jq -r '.workflow_runs[0].html_url // empty' <<<"${response}")"
+          event="$(jq -r '.workflow_runs[0].event // "desconhecido"' <<<"${response}")"
+          head_sha="$(jq -r '.workflow_runs[0].head_sha // "desconhecido"' <<<"${response}")"
+          gh pr comment 111 --repo "${GITHUB_REPOSITORY}" --body "Consulta do gate remoto: run **${run_id:-não encontrado}**, evento **${event}**, estado **${status}**, conclusão **${conclusion}**, SHA \`${head_sha}\`. ${url}"
