@@ -147,7 +147,7 @@ test('usuário operacional recebe apenas o próprio perfil e não vê o seletor 
     assert.deepEqual(switcherStyles.get('display'), { value: 'none', priority: 'important' });
 });
 
-test('mantém o formulário oculto enquanto restaura a sessão e só o libera quando o Auth exigir login', () => {
+test('mantém o formulário oculto durante sessão e dados, liberando-o apenas quando o Auth exigir login', () => {
     const handlers = new Map();
     const form = {
         hidden: false,
@@ -198,6 +198,26 @@ test('mantém o formulário oculto enquanto restaura a sessão e só o libera qu
     assert.equal(form.inert, true);
     assert.equal(form.attributes['aria-hidden'], 'true');
     assert.match(description.textContent, /verificando.*sessão/i);
+
+    handlers.get('radar:auth-resolved')({
+        detail: {
+            authentication: {
+                user: { id: 'controller-1', email: 'controller@radar.test' },
+                authorization: {
+                    role: 'controller',
+                    profile: { label: 'Controlador' }
+                }
+            }
+        }
+    });
+
+    assert.equal(app.inert, true);
+    assert.equal(form.hidden, true);
+    assert.equal(form.inert, true);
+    assert.equal(form.attributes['aria-hidden'], 'true');
+    assert.match(description.textContent, /sessão reconhecida.*carregando/i);
+    assert.equal(status.textContent, 'Acesso confirmado. Preparando o ambiente de trabalho…');
+    assert.equal(status.dataset.state, 'success');
 
     handlers.get('radar:auth-required')({ detail: { message: 'Entre para continuar.' } });
 
