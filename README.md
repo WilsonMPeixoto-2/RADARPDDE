@@ -2,265 +2,177 @@
 
 O **RADAR PDDE** é uma aplicação web institucional para acompanhar entrega, análise, regularização, consolidação, inventário e histórico dos programas do PDDE por unidade escolar, competência, programa e documento.
 
-O produto atende Controladores, Assistente de Verbas Federais, Gestão SME, Equipe de Inventário e Administração técnica, com autenticação institucional, autorização por perfil, persistência no Supabase, auditoria, concorrência otimista e exportações estruturadas.
+Atende Controladores, Assistente de Verbas Federais, Gestão SME, Equipe de Inventário e Administração técnica, com autenticação institucional, autorização em profundidade, Supabase, auditoria, concorrência otimista e exportações estruturadas.
 
-## Estado operacional verificado em 29/07/2026
+## Estado operacional — 29/07/2026
 
 | Camada | Situação comprovada |
 |---|---|
 | Baseline funcional da `main` | `598361dd784563f4d70d1e25df3818f4ee066da8` |
+| Última consolidação documental anterior | `05f51cbdd433844f11db036bcdefa5f9d8941e45` — PR #108 |
 | Vercel Production | `dpl_7tLM3RZ7MEuRRTzvGmc9EiAARmDY`, `READY` |
 | Commit funcional publicado | `dfc8aa3030b02edb73f764f5f56bd6759a7a1d77` |
 | Runtime | `production`, `supabase-production` |
 | Supabase | `scnryinorqeucbfkioxo`, `ACTIVE_HEALTHY`, PostgreSQL 17 |
-| Calendário | 12 competências; `closing_competence = 2026-12`; `row_version = 5` |
-| Gestão SME | governança somente leitura aplicada no frontend, serviços e RLS |
-| Ciclos de oficialização | ciclos 1 a 5 concluídos, mesclados e publicados |
-| Histórico de migrations | 24 versões correspondentes; migration SME com versão remota distinta, mas SQL idêntico |
-| Deployment automático | bloqueado após a janela controlada |
+| Persistência normal | `SupabaseRepository` |
+| Contingência | `LocalStorageRepository` por novo build controlado |
+| Calendário | janeiro a dezembro de 2026; `closing_competence = 2026-12`; `row_version = 5` |
+| Gestão SME | governança somente leitura em interface, serviços e RLS |
+| Ciclos de oficialização | 1 a 5 concluídos, mesclados e publicados |
+| Migrations | 25 arquivos locais; identificador SME divergente no histórico remoto, com SQL idêntico |
+| Deployment automático | bloqueado após janela controlada |
 | Liberação oficial | ainda não declarada |
 
-O commit `598361dd...` é posterior ao deployment funcional e apenas restaura `git.deploymentEnabled: false`.
+O commit `598361dd...` é posterior ao artefato funcional e restaura o bloqueio automático, sem mudança de produto.
 
-Referências:
+## Entregas concluídas
 
-- [`Estado atual`](docs/CURRENT_STAGE.md);
-- [`Auditoria pós-ciclos 1 a 5`](docs/audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md);
-- [`Rastreabilidade da migration SME`](docs/audits/2026-07-29-rastreabilidade-migration-sme.md).
+### Ciclo 1 — competência global
 
-## Regra de precedência
-
-O estado do sistema é determinado por:
-
-1. código-fonte remoto;
-2. migrations, políticas, funções e dados efetivos do Supabase autorizado;
-3. artefato implantado na Vercel;
-4. testes e evidências reproduzíveis;
-5. decisões funcionais vigentes;
-6. documentação alinhada às fontes anteriores.
-
-Planos, relatórios e documentos históricos não prevalecem sobre código e ambientes reais.
-
-## Entregas consolidadas
-
-### Governança da Gestão SME
-
-- visão mensal e Prontuário restritos à identificação e bonificação;
-- Pendências consultáveis em modo somente leitura;
-- mutações bloqueadas na política de capacidades, handlers e serviços;
-- Registros Internos limitados ao próprio `actor_user_id`;
-- RLS de `administrative_logs` vinculada ao `auth.uid()`;
-- programas por exercício preservados fora desse escopo.
-
-### Ciclo 1 — competência mensal global
-
-- contexto único `RadarCompetenceContext`;
-- janeiro a dezembro de 2026 disponíveis;
 - seletor mensal transversal;
-- sincronização entre exercício e competência;
-- preservação da seleção entre telas e recarga;
-- fechamento configurado em dezembro de 2026.
+- persistência entre telas e recarga;
+- doze competências de 2026;
+- `closing_competence = 2026-12`.
 
-### Ciclo 2 — avaliação mensal certificada
+### Ciclo 2 — avaliação mensal
 
-- projeção canônica `evaluateMonthlyEvaluation`;
-- resultado APTA/INAPTA;
-- identificação de campos ausentes;
-- situação e conclusão técnica separadas;
-- pendências recortadas por escola, competência e programa;
-- consulta e consolidação baseadas na mesma projeção;
-- persistência atômica, autoria, auditoria e `row_version` preservados.
+- regra canônica APTA/INAPTA;
+- bonificação, análise técnica e pendência independentes;
+- persistência atômica e concorrência otimista.
 
-### Ciclo 3 — timeline cronológica
+### Ciclo 3 — timeline
 
-- projeção somente leitura por unidade e competência;
-- verificações, pendências, tentativas, contatos, notas, bens e logs consolidados;
-- ordenação estável e deduplicação de eventos;
-- vínculos e autoria preservados;
-- recorte de visibilidade para Gestão SME;
-- aba **Histórico cronológico** no Prontuário;
-- nenhuma tabela paralela de timeline.
+- visão cronológica por unidade e competência;
+- autoria, origem, vínculos e visibilidade;
+- projeção somente leitura.
 
-### Ciclo 4 — certificação dos relatórios Excel
+### Ciclo 4 — Excel
 
-- certificação separada do relatório institucional e do Excel SME mensal;
-- comparação endereço a endereço e valor a valor no OOXML;
-- quatro abas institucionais e uma aba SME;
-- ausência de `dataValidations` no Excel SME;
-- hashes e manifesto determinístico;
-- massa sintética sem dados pessoais;
-- evidência regenerada pelo `test:readiness`.
+- relatório institucional histórico de quatro abas;
+- Excel SME mensal de uma aba e 26 colunas;
+- comparação célula a célula no OOXML;
+- manifesto e hashes sintéticos;
+- ausência deliberada de `dataValidations` no produto SME.
 
-Limites atuais:
-
-- o botão institucional permanece vinculado ao CSV;
-- a abertura manual no Microsoft Excel desktop ainda integra o gate final.
+O botão institucional continua no CSV até homologação e PR específicos.
 
 ### Ciclo 5 — navegação contextual
 
-- retorno entre Carteira, Dashboard, Pendências e Prontuário;
-- preservação de competência, rota, filtros, rolagem e foco;
-- pilha de até 12 transições em `sessionStorage`;
-- foco restaurado somente em controle acionável visível;
-- suporte validado em desktop, Android e iPhone;
-- fallback **Voltar para Carteira** em acesso direto;
-- nenhuma persistência remota adicional.
-
-## Modelo funcional
-
-### Bonificação
-
-Avalia a entrega tempestiva dos documentos exigidos e produz o resultado **APTA** ou **INAPTA** conforme a competência e o programa.
-
-### Análise técnica
-
-Registra a qualidade e a correção de cada documento: não analisado, em análise, incorreto, correto ou correto após o prazo.
-
-### Pendência operacional
-
-```text
-Aberta
-  ↓ novo envio
-Aguardando reanálise
-  ├─ reanálise correta → Resolvida
-  └─ reanálise incorreta → Aberta
-```
-
-Também existe `Cancelada`, com preservação de motivo, autoria e histórico.
-
-Bonificação, análise e pendência são dimensões independentes. Regularização posterior não reescreve automaticamente o resultado histórico da bonificação.
-
-## Perfis
-
-- **Controlador:** carteira principal com colaboração nas demais escolas da própria CRE e autoria real preservada;
-- **Assistente de Verbas Federais:** acompanhamento transversal, Gestão de Equipe, retificações e ações autorizadas;
-- **Gestão SME:** consulta gerencial, sem mutações operacionais nas superfícies definidas;
-- **Equipe de Inventário:** fluxo patrimonial autorizado;
-- **Administrador técnico:** infraestrutura, perfis, escopos, importações e auditoria.
+- rotas canônicas;
+- retorno para origem real;
+- preservação de competência, filtros e rolagem;
+- foco no controle visível e acionável;
+- desktop, Android e iPhone.
 
 ## Arquitetura
 
 ```text
-Frontend
-   ↓
-Serviços de aplicação e unidade de trabalho
-   ↓
-Contrato único de repositório
-   ├── SupabaseRepository — Preview e Production
-   └── LocalStorageRepository — rollback emergencial
-   ↓
-Supabase Auth + PostgreSQL + RLS + RPCs + auditoria
+Interface e integrações idempotentes
+        ↓
+Serviços de aplicação + UnitOfWork
+        ↓
+Contrato único de persistência
+        ├── SupabaseRepository — Preview/Production
+        └── LocalStorageRepository — contingência
+        ↓
+Supabase Auth + PostgREST + PostgreSQL + RLS + RPCs + auditoria
 ```
 
-Requisitos estruturais:
+Princípios:
 
-- autenticação institucional;
-- autorização por papel e escopo;
-- RLS em profundidade;
-- operações compostas transacionais;
-- concorrência otimista por `row_version`;
-- autoria real em mutações;
-- snapshots, importação controlada, reconciliação e rollback;
-- credencial administrativa exclusivamente server-side.
+- domínio puro para regras compartilhadas;
+- `app.js` preservado como núcleo legado;
+- extensões carregadas de forma ordenada;
+- segurança cumulativa em interface, serviço, Auth e RLS;
+- timeline e relatórios derivados de fontes canônicas;
+- nenhuma escrita remota implícita.
 
-Nunca utilizar `service_role`, `sb_secret_*`, senha do banco ou token administrativo no frontend, GitHub ou logs.
+## Perfis
 
-## Dados observados em Production
+### Controlador
 
-Data de corte: 29/07/2026.
+Carteira como responsabilidade principal e filtro inicial. Pode colaborar nas escolas da mesma CRE, preservando responsável principal e autoria real.
 
-| Entidade | Quantidade |
-|---|---:|
-| Escolas | 164 |
-| Programas | 8 |
-| Vínculos escola–programa | 431 |
-| Perfis ativos | 13 |
-| Competências | 12 |
-| Verificações | 6 |
-| Pendências | 3 |
-| Tentativas | 3 |
-| Contatos | 5 |
-| Registros administrativos | 82 |
-| Bens | 2 |
+### Assistente de Verbas Federais
 
-Essas quantidades são um retrato operacional, não constantes de negócio.
+Acompanhamento transversal da CRE e Gestão de Equipe, inclusive contas Auth por Edge Function protegida.
 
-## Rastreabilidade da migration SME
+### Gestão SME
 
-O arquivo local é:
+Consulta identificação e bonificação nas superfícies definidas, sem análise técnica ou mutações operacionais. Registros Internos limitados à própria autoria por UUID.
+
+### Equipe de Inventário
+
+Opera Capital e Inventário dentro da própria CRE, sem acesso aos módulos não patrimoniais.
+
+### Administrador técnico
+
+Infraestrutura, perfis, escopos, importações e auditoria. Pode simular organização visual dos perfis sem alterar JWT.
+
+## Gate de migrations
+
+Divergência conhecida:
 
 ```text
-20260728182226_sme_access_governance.sql
+local: 20260728182226_sme_access_governance.sql
+remoto: 20260728190344_sme_access_governance
 ```
 
-O Supabase registra:
+O SQL possui o mesmo comprimento e SHA-256. O problema é de rastreabilidade, não de regra aplicada.
 
-```text
-version = 20260728190344
-name = sme_access_governance
-```
+**Nenhuma nova migration de Production pode avançar antes da reconciliação suportada, testada e documentada.**
 
-O conteúdo possui o mesmo comprimento e o mesmo SHA-256 nos dois lados:
+Não renomear, reaplicar, editar diretamente o histórico ou criar migration vazia para mascarar a diferença.
 
-```text
-cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
-```
+## Gates antes da liberação oficial
 
-Não há divergência funcional identificada, mas o histórico deve ser reconciliado por procedimento suportado e testado antes da próxima migration de Production. Não renomear, reaplicar ou editar diretamente o histórico remoto sem plano específico.
+1. reconciliar o histórico da migration SME;
+2. habilitar proteção contra senhas vazadas no Supabase Auth;
+3. fixar deliberadamente a major do Node;
+4. testar backup e restauração;
+5. homologar os dois produtos no Microsoft Excel desktop;
+6. executar matriz remota por perfil e viewport;
+7. concluir UAT;
+8. realizar polimento editorial/visual sem alterar produto;
+9. registrar decisão formal de release.
 
-## Executar localmente
+## Documentação obrigatória
+
+1. [`docs/README.md`](docs/README.md);
+2. [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md);
+3. [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md);
+4. [`docs/DECISION_LOG.md`](docs/DECISION_LOG.md);
+5. [`docs/reference/STATUS_DOCUMENTOS.md`](docs/reference/STATUS_DOCUMENTOS.md);
+6. [`docs/audits/2026-07-29-alinhamento-documental-integral-pos-pr108.md`](docs/audits/2026-07-29-alinhamento-documental-integral-pos-pr108.md).
+
+## Desenvolvimento
 
 ```bash
 npm ci
-npm start
+npm run test:readiness
+npm run test:e2e
+npm run test:mobile
+npm run audit:lighthouse
+npm run build:vercel
 ```
 
-Aplicação local:
-
-```text
-http://127.0.0.1:4175
-```
-
-## Gates principais
+Para banco:
 
 ```bash
-npm run test:readiness
 npm run supabase:start
 npm run supabase:reset
 npm run supabase:test:db
 npm run supabase:lint:db
-npm run test:e2e
-npm run test:mobile
-npm run build:vercel
+npm run typecheck:database
 ```
 
-O `test:readiness` inclui sintaxe, lint, testes unitários e de integração, certificação Excel, readiness Supabase, tipagem de banco, configuração de runtime, artefatos gerados e auditoria funcional.
+## Regra de continuidade
 
-## Bloqueadores antes da liberação oficial
+A próxima frente ainda não foi escolhida. Antes de implementar:
 
-1. reconciliar a versão da migration SME no histórico local/remoto;
-2. homologar manualmente os relatórios no Microsoft Excel desktop;
-3. habilitar proteção contra senhas vazadas no Supabase Auth;
-4. fixar deliberadamente a major operacional do Node;
-5. testar backup e restauração em ambiente descartável;
-6. executar gate remoto por perfil e viewport;
-7. concluir UAT;
-8. realizar polimento editorial e visual preservando identidade e regras de produto;
-9. registrar decisão formal de liberação.
-
-## Documentação
-
-Índice principal: [`docs/README.md`](docs/README.md).
-
-Documentos de entrada:
-
-- [`Estado atual`](docs/CURRENT_STAGE.md);
-- [`Contexto funcional e arquitetural`](docs/PROJECT_CONTEXT.md);
-- [`Registro de decisões`](docs/DECISION_LOG.md);
-- [`Status documental`](docs/reference/STATUS_DOCUMENTOS.md);
-- [`Auditoria pós-ciclos`](docs/audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md);
-- [`Auditoria da migration SME`](docs/audits/2026-07-29-rastreabilidade-migration-sme.md).
-
-## Próxima frente
-
-Os ciclos 1 a 5 estão encerrados. A próxima frente ainda não foi escolhida e deve partir dos bloqueadores reais, sem reabrir entregas concluídas e sem retomar programas por exercício sem decisão específica.
+- confirmar `main`, PRs e ambientes;
+- escolher expressamente o objetivo;
+- registrar escopo e fora de escopo;
+- trabalhar em branch própria;
+- executar os gates aplicáveis;
+- atualizar documentação e evidências no mesmo ciclo.
