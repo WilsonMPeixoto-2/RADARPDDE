@@ -23,7 +23,7 @@ Documentos anteriores foram tratados como históricos quando divergiam das fonte
 
 - repositório: `WilsonMPeixoto-2/RADARPDDE`;
 - branch padrão: `main`;
-- baseline funcional e operacional auditada: `598361dd784563f4d70d1e25df3818f4ee066da8`;
+- baseline funcional auditada: `598361dd784563f4d70d1e25df3818f4ee066da8`;
 - esse commit apenas restaura `vercel.json > git.deploymentEnabled` para `false` após a publicação do Ciclo 5;
 - o código funcional dos ciclos 1 a 5 já está contido nessa baseline.
 
@@ -44,7 +44,7 @@ Documentos anteriores foram tratados como históricos quando divergiam das fonte
 - região: `sa-east-1`;
 - estado: `ACTIVE_HEALTHY`;
 - PostgreSQL: 17;
-- migration mais recente observada: `20260728190344_sme_access_governance`;
+- migration mais recente registrada: `20260728190344_sme_access_governance`;
 - `closing_competence = 2026-12`;
 - `app_config.row_version = 5`.
 
@@ -202,23 +202,51 @@ Antes desta reconciliação:
 - `docs/PROJECT_CONTEXT.md` ainda tratava competência global, timeline, certificação e navegação como direção futura;
 - `docs/reference/STATUS_DOCUMENTOS.md` ainda descrevia a operação mensal limitada a maio;
 - o PR #94 permanecia aberto apesar de substituído pelo PR #100;
-- os PRs #70 e #5 permaneciam abertos como artefatos históricos não canônicos.
+- o PR #70 permanecia aberto apesar de sua própria descrição determinar encerramento sem merge;
+- o PR #5 permanecia aberto, antigo e conflitante, mas contém uma proposta autônoma de serialização CSV e foi preservado para decisão específica.
 
-## 8. Bloqueadores reais restantes
+## 8. Divergência de rastreabilidade da migration SME
+
+A comparação dos 25 registros do histórico remoto com os 25 arquivos locais demonstrou:
+
+- 24 migrations correspondem por versão e nome;
+- a migration de governança SME possui versão diferente;
+- o nome lógico e o SQL aplicado são equivalentes.
+
+| Elemento | Repositório | Supabase Production |
+|---|---|---|
+| Versão | `20260728182226` | `20260728190344` |
+| Nome | `sme_access_governance` | `sme_access_governance` |
+| Comprimento do SQL | 1.411 | 1.411 |
+| SHA-256 do SQL | `cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e` | `cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e` |
+
+Conclusão:
+
+- não foi identificada divergência funcional, de RLS ou de segurança no SQL aplicado;
+- existe divergência de identificador no histórico de migrations;
+- a diferença pode interferir em comparações da CLI, `db push`, promoção ou reparo futuros;
+- não deve haver renomeação, reaplicação ou edição direta do histórico remoto sem plano, dry-run e mecanismo suportado.
+
+Auditoria específica: [`2026-07-29-rastreabilidade-migration-sme.md`](2026-07-29-rastreabilidade-migration-sme.md).
+
+## 9. Bloqueadores reais restantes
 
 A liberação oficial continua não declarada. Permanecem:
 
-1. homologação manual dos relatórios no Microsoft Excel desktop;
-2. habilitação da proteção contra senhas vazadas no Supabase Auth;
-3. fixação deliberada da major operacional do Node;
-4. teste de backup e restauração em ambiente descartável;
-5. gate remoto por perfil e viewport com identidades controladas;
-6. UAT funcional;
-7. polimento editorial e visual sem alteração das regras de produto;
-8. decisão formal de liberação, liberação com restrições ou não liberação.
+1. reconciliar o identificador da migration SME no histórico local/remoto antes da próxima migration de Production;
+2. homologar manualmente os relatórios no Microsoft Excel desktop;
+3. habilitar a proteção contra senhas vazadas no Supabase Auth;
+4. fixar deliberadamente a major operacional do Node;
+5. testar backup e restauração em ambiente descartável;
+6. executar gate remoto por perfil e viewport com identidades controladas;
+7. concluir UAT funcional;
+8. realizar polimento editorial e visual sem alterar regras de produto;
+9. registrar decisão formal de liberação, liberação com restrições ou não liberação.
 
 O advisor de segurança do Supabase confirma que a proteção contra senhas vazadas permanece desabilitada.
 
-## 9. Próxima decisão
+## 10. Próxima decisão
 
-Nenhuma nova frente funcional foi escolhida nesta auditoria. A documentação passa a reconhecer que os ciclos 1 a 5 estão concluídos e publicados. A próxima etapa deve ser decidida entre os bloqueadores reais restantes, sem reabrir entregas já concluídas nem retomar o cadastro de programas por exercício sem decisão específica.
+Nenhuma nova frente funcional foi escolhida nesta auditoria. A documentação passa a reconhecer que os ciclos 1 a 5 estão concluídos e publicados.
+
+A próxima etapa deve ser decidida entre os bloqueadores reais restantes, sem reabrir entregas concluídas nem retomar o cadastro de programas por exercício sem decisão específica.
