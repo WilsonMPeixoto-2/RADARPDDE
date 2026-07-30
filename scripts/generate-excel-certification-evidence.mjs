@@ -132,6 +132,7 @@ function main() {
     }
     const existing = fs.readFileSync(args.output, 'utf8');
     if (existing !== output) {
+      process.stdout.write(`EXCEL_CERTIFICATION_EXPECTED=${JSON.stringify(report)}\n`);
       throw new Error('O manifesto Excel regenerado diverge da evidência versionada.');
     }
     process.stdout.write(`Manifesto Excel reproduzido: ${path.relative(ROOT, args.output)}\n`);
