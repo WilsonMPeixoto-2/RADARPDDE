@@ -65,7 +65,9 @@ test('parte do template original e entrega somente a aba mensal solicitada', asy
 test('preserva textos, mesclagem, larguras e validações do modelo original', async () => {
     const { model, worksheet } = await generate();
 
-    const headers = model.columns.map((_, index) => worksheet.getRow(1).getCell(index + 1).value || '');
+    const headers = model.columns.map((column, index) => (
+        column.mergedHeader ? '' : (worksheet.getRow(1).getCell(index + 1).value || '')
+    ));
     assert.deepEqual(headers, modelApi.ORIGINAL_HEADER_LABELS);
     assert.equal(worksheet.getCell('A1').isMerged, true);
     assert.equal(worksheet.getCell('B1').isMerged, true);
