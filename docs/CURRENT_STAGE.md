@@ -16,8 +16,9 @@ Antes de iniciar tarefa:
 2. verificar PRs e workflows abertos;
 3. confirmar o deployment Vercel Production correspondente;
 4. confirmar o projeto Supabase autorizado e seu estado;
-5. confrontar documentação e artefatos com código e ambientes;
-6. atualizar este documento quando o estado material mudar.
+5. comparar o histórico local e remoto de migrations quando houver alteração de banco;
+6. confrontar documentação e artefatos com código e ambientes;
+7. atualizar este documento quando o estado material mudar.
 
 Código, banco e deployment prevalecem sobre planos, relatórios e memórias de chat.
 
@@ -34,9 +35,9 @@ Estão concluídos e publicados:
 - certificação automatizada dos relatórios Excel;
 - navegação contextual e retorno seguro.
 
-O código funcional dos ciclos 1 a 5 integra a baseline `598361dd...`. O último deployment funcional de Production foi gerado pelo commit `dfc8aa3...`. O commit posterior restaurou `git.deploymentEnabled: false` e não abriu nova publicação.
+O código funcional dos ciclos 1 a 5 integra a baseline `598361dd...`. O deployment funcional vigente foi gerado pelo commit `dfc8aa3...`. O commit posterior apenas restaurou `git.deploymentEnabled: false` e não abriu nova publicação.
 
-A liberação oficial ainda não foi declarada porque permanecem gates de segurança, homologação manual, restauração, UAT e decisão formal.
+A liberação oficial ainda não foi declarada porque permanecem gates de segurança, homologação, restauração, rastreabilidade de migrations, UAT e decisão formal.
 
 ## 3. Estado por camada
 
@@ -57,6 +58,7 @@ A liberação oficial ainda não foi declarada porque permanecem gates de segura
 | Excel institucional | certificação automatizada concluída; botão institucional ainda usa CSV. |
 | Excel SME mensal | certificação automatizada concluída. |
 | Navegação contextual | concluída, publicada e validada em desktop e mobile. |
+| Histórico de migrations | 24 versões correspondentes; migration SME com versão remota diferente do arquivo local, mas SQL idêntico. |
 | Deployment automático | bloqueado após a janela controlada. |
 | Liberação oficial | não declarada. |
 
@@ -207,7 +209,38 @@ Data de corte: 29/07/2026.
 
 As quantidades são retrato operacional e podem mudar com o uso real.
 
-## 11. Toolchain e gates
+## 11. Divergência de rastreabilidade da migration SME
+
+O repositório contém:
+
+```text
+20260728182226_sme_access_governance.sql
+```
+
+O Supabase Production registra:
+
+```text
+version = 20260728190344
+name = sme_access_governance
+```
+
+A comparação do SQL confirmou equivalência integral:
+
+```text
+comprimento = 1.411 caracteres
+SHA-256 = cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
+```
+
+Portanto:
+
+- não há divergência funcional ou de política identificada;
+- existe divergência de identificador no histórico de migrations;
+- não deve haver renomeação, reaplicação ou edição direta do histórico sem plano;
+- a reconciliação precisa ocorrer antes da próxima migration de Production e antes do release oficial.
+
+Auditoria específica: [`audits/2026-07-29-rastreabilidade-migration-sme.md`](audits/2026-07-29-rastreabilidade-migration-sme.md).
+
+## 12. Toolchain e gates
 
 O `test:readiness` vigente executa:
 
@@ -223,17 +256,11 @@ O `test:readiness` vigente executa:
 - tipagem do banco;
 - auditoria funcional.
 
-Também existem gates para:
-
-- Supabase local, pgTAP e lint SQL;
-- Playwright desktop, Android e iPhone;
-- Lighthouse mobile e desktop;
-- saúde das dependências;
-- build Vercel.
+Também existem gates para Supabase local/pgTAP, Playwright, Lighthouse, saúde das dependências e build Vercel.
 
 A faixa de Node permanece `>=24 <27`; a fixação deliberada da major operacional ainda é pendência de release.
 
-## 12. Segurança operacional
+## 13. Segurança operacional e bloqueadores
 
 Comprovado:
 
@@ -247,25 +274,28 @@ Comprovado:
 
 Bloqueadores reais restantes:
 
-1. homologar manualmente os relatórios no Microsoft Excel desktop;
-2. habilitar proteção contra senhas vazadas no Supabase Auth;
-3. fixar deliberadamente a major do Node;
-4. testar backup e restauração em ambiente descartável;
-5. executar gate remoto por perfil e viewport;
-6. concluir UAT;
-7. realizar polimento editorial e visual;
-8. registrar decisão formal de liberação.
+1. reconciliar o identificador da migration SME no histórico local/remoto por procedimento suportado e testado;
+2. homologar manualmente os relatórios no Microsoft Excel desktop;
+3. habilitar proteção contra senhas vazadas no Supabase Auth;
+4. fixar deliberadamente a major do Node;
+5. testar backup e restauração em ambiente descartável;
+6. executar gate remoto por perfil e viewport;
+7. concluir UAT;
+8. realizar polimento editorial e visual;
+9. registrar decisão formal de liberação.
 
 O advisor de segurança do Supabase confirma que a proteção contra senhas vazadas permanece desabilitada.
 
-## 13. PRs residuais
+## 14. PRs residuais
 
-Após o encerramento documental, PRs históricos substituídos devem permanecer fechados e não mesclados. Branches podem ser preservadas para rastreabilidade, mas não devem aparecer como frentes ativas.
+- PR #94: fechado sem merge; substituído pelo PR #100;
+- PR #70: fechado sem merge; execução temporária expressamente não integrável;
+- PR #5: permanece aberto para decisão própria sobre uma fundação segura de CSV e não integra a sequência corrente.
 
-## 14. Próxima decisão
+## 15. Próxima decisão
 
 Os ciclos 1 a 5 estão encerrados. Não existe nova implementação funcional autorizada neste documento.
 
-A próxima frente deve ser escolhida entre os bloqueadores reais da seção 12. O cadastro e a disponibilização de programas por exercício permanecem fora do escopo até decisão específica.
+A próxima frente deve ser escolhida entre os bloqueadores da seção 13. O cadastro e a disponibilização de programas por exercício permanecem fora do escopo até decisão específica.
 
-Auditoria completa: [`audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md`](audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md).
+Auditoria geral: [`audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md`](audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md).
