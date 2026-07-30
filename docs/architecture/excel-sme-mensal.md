@@ -1,19 +1,19 @@
 # Exportação Excel SME mensal
 
-**Estado:** modelo e renderer implementados; certificação automatizada concluída  
+**Estado:** modelo, renderer, integração e certificação automatizada concluídos  
 **Atualizado em:** 29 de julho de 2026
 
 ## 1. Finalidade
 
 O botão **Excel SME** gera uma planilha mensal próxima ao modelo operacional recebido da SME, preenchida com os dados canônicos do RADAR para a competência selecionada.
 
-O produto é distinto do relatório institucional histórico:
+O produto é distinto do relatório institucional:
 
 - **Excel SME:** uma competência, uma aba, uma linha por unidade;
 - **relatório institucional XLSX:** histórico, quatro abas, uma linha por escola × competência × programa consolidado;
-- **CSV institucional:** formato legado ainda associado ao botão institucional da interface.
+- **CSV institucional:** formato legado preservado como botão secundário e fallback do relatório institucional.
 
-O produto SME não substitui o CSV nem redefine o contrato institucional.
+O produto SME não substitui o relatório institucional nem o CSV de contingência.
 
 ## 2. Regra temporal
 
@@ -92,13 +92,18 @@ A validação de lista para `SIM`, `NÃO` e `NÃO SE APLICA` foi removida porque
 
 Os valores exportados continuam textos estáticos derivados do modelo canônico.
 
-## 7. Runtime
+## 7. Integração de runtime
 
-- o renderer institucional é carregado antes do renderer SME;
-- modelo e renderer SME são módulos UMD/CommonJS independentes;
-- não existe CDN, bundle adicional ou dependência de produção nova;
-- o modelo é mensal e não possui fórmulas ou relações entre abas;
-- todas as escolas carregadas no escopo são listadas, ainda que sem consolidação no mês.
+`src/integration/excel-export-integration.js` insere o botão `Excel SME` entre o botão principal do relatório institucional e o botão secundário `CSV`.
+
+A integração:
+
+- habilita o botão apenas para competência mensal;
+- atualiza estado e `aria-disabled` quando a competência muda;
+- impede clique concorrente durante a geração;
+- registra o evento de exportação;
+- mantém o botão idempotente em renderizações tardias;
+- não altera o escopo histórico do relatório institucional.
 
 ## 8. Certificação
 
@@ -145,11 +150,12 @@ A homologação manual sem reparo permanece gate obrigatório da liberação ofi
 - nenhuma informação inventada;
 - ausência de `dataValidations`;
 - isolamento temporal;
-- independência do CSV e do relatório institucional histórico.
+- independência do relatório institucional e do CSV de fallback.
 
 ## 11. Referências
 
 - [`excel-integral-certification.md`](excel-integral-certification.md);
 - [`excel-export.md`](excel-export.md);
+- [`excel-xlsx-runtime.md`](excel-xlsx-runtime.md);
 - [`avaliacao-mensal.md`](avaliacao-mensal.md);
 - [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md).
