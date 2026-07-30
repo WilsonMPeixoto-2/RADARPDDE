@@ -1,4 +1,4 @@
-name: Homologar Preview Supabase remoto
+name: Gate remoto de perfis e viewports
 
 on:
   workflow_dispatch:
@@ -9,19 +9,49 @@ on:
     branches:
       - qa/supabase-preview-final
     paths:
+      - 'app.js'
+      - 'index.html'
+      - 'styles.css'
+      - 'config.js'
+      - 'src/**'
+      - 'vendor/**'
+      - 'supabase/migrations/**'
+      - 'supabase/functions/**'
+      - 'scripts/generate-runtime-config.mjs'
       - 'scripts/ops/prepare-remote-homologation-users.mjs'
       - 'scripts/ops/cleanup-remote-homologation-users.mjs'
       - 'tests/e2e/supabase-preview-remote.spec.js'
+      - 'tests/e2e/supabase-preview-profile-viewport.spec.js'
+      - 'tests/support/spa-server.mjs'
       - 'playwright.supabase-preview.config.js'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.nvmrc'
+      - '.node-version'
       - '.github/workflows/homologacao-supabase-preview-remoto.yml'
   pull_request:
     branches:
       - main
     paths:
+      - 'app.js'
+      - 'index.html'
+      - 'styles.css'
+      - 'config.js'
+      - 'src/**'
+      - 'vendor/**'
+      - 'supabase/migrations/**'
+      - 'supabase/functions/**'
+      - 'scripts/generate-runtime-config.mjs'
       - 'scripts/ops/prepare-remote-homologation-users.mjs'
       - 'scripts/ops/cleanup-remote-homologation-users.mjs'
       - 'tests/e2e/supabase-preview-remote.spec.js'
+      - 'tests/e2e/supabase-preview-profile-viewport.spec.js'
+      - 'tests/support/spa-server.mjs'
       - 'playwright.supabase-preview.config.js'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.nvmrc'
+      - '.node-version'
       - '.github/workflows/homologacao-supabase-preview-remoto.yml'
 
 permissions:
@@ -30,11 +60,12 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: homologacao-supabase-preview-remoto
-  cancel-in-progress: false
+  group: gate-remoto-perfis-viewports-${{ github.event.pull_request.number || github.event.issue.number || github.ref }}
+  cancel-in-progress: true
 
 env:
-  RADAR_DEPLOYMENT_URL: https://radarpdde-d5g8j0esm-wilson-m-peixotos-projects.vercel.app
+  RADAR_DEPLOYMENT_URL: http://127.0.0.1:4175
+  RADAR_REFERENCE_PREVIEW_URL: https://radarpdde-d5g8j0esm-wilson-m-peixotos-projects.vercel.app
   RADAR_SUPABASE_URL: ${{ secrets.RADAR_SUPABASE_URL }}
   RADAR_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.RADAR_SUPABASE_SERVICE_ROLE_KEY }}
   RADAR_ALLOW_REMOTE_HOMOLOGATION: 'true'
@@ -43,14 +74,28 @@ env:
 
 jobs:
   homologar:
-    name: Auth, perfis, RLS e persistência no Preview
-    if: github.event_name != 'issue_comment' || (github.event.issue.pull_request && github.event.comment.body == '/homologar-supabase-preview-final' && github.actor == 'WilsonMPeixoto-2')
+    name: Perfis × Desktop, Android e iPhone
+    if: >-
+      (github.event_name != 'issue_comment'
+        || (github.event.issue.pull_request
+          && github.event.comment.body == '/homologar-supabase-preview-final'
+          && github.actor == 'WilsonMPeixoto-2'))
+      && (github.event_name != 'pull_request'
+        || (github.event.pull_request.head.repo.full_name == github.repository
+          && github.actor != 'dependabot[bot]'))
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
 
     steps:
-      - name: Obter código
+      - name: Obter código do evento
+        if: ${{ github.event_name != 'issue_comment' }}
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Obter código do PR comentado
+        if: ${{ github.event_name == 'issue_comment' }}
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: refs/pull/${{ github.event.issue.number }}/head
 
       - name: Registrar início da homologação no PR
         if: ${{ github.event_name == 'issue_comment' }}
@@ -60,7 +105,7 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: >-
           gh api "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments"
-          -f "body=Homologação remota iniciada. Execução: ${RUN_URL}"
+          -f "body=Gate remoto por perfil e viewport iniciado. Execução: ${RUN_URL}"
 
       - name: Configurar Node.js 24
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
@@ -71,10 +116,10 @@ jobs:
       - name: Instalar dependências reproduzíveis
         run: npm ci
 
-      - name: Instalar Chromium
-        run: npx playwright install --with-deps chromium
+      - name: Instalar Chromium e WebKit
+        run: npx playwright install --with-deps chromium webkit
 
-      - name: Validar alvo, segredos e manifesto público
+      - name: Validar alvo remoto e obter chave publicável
         shell: bash
         run: |
           set -euo pipefail
@@ -82,15 +127,39 @@ jobs:
           test -n "${RADAR_SUPABASE_SERVICE_ROLE_KEY}"
           test "${RADAR_SUPABASE_URL}" = 'https://scnryinorqeucbfkioxo.supabase.co'
           node --input-type=module <<'NODE'
-          const response = await fetch(`${process.env.RADAR_DEPLOYMENT_URL}/config.runtime.js`);
+          import fs from 'node:fs';
+          import vm from 'node:vm';
+
+          const response = await fetch(`${process.env.RADAR_REFERENCE_PREVIEW_URL}/config.runtime.js`);
           if (!response.ok) throw new Error(`Manifesto indisponível: ${response.status}`);
           const source = await response.text();
-          if (!source.includes('"environment": "preview"')) throw new Error('Preview sem environment=preview.');
-          if (!source.includes('"dataMode": "supabase-preview"')) throw new Error('Preview sem dataMode=supabase-preview.');
-          if (!source.includes('"supabaseRepositoryEnabled": true')) throw new Error('Repositório Supabase desativado no Preview.');
-          if (!source.includes('"productionActivationApproved": false')) throw new Error('Preview com ativação de Production indevida.');
+          const sandbox = { window: {} };
+          vm.runInNewContext(source, sandbox, { timeout: 1000 });
+          const runtime = sandbox.window.RADAR_PDDE_RUNTIME_INPUT;
+          if (runtime?.environment !== 'preview') throw new Error('Preview sem environment=preview.');
+          if (runtime?.dataMode !== 'supabase-preview') throw new Error('Preview sem dataMode=supabase-preview.');
+          if (runtime?.features?.supabaseRepositoryEnabled !== true) throw new Error('Repositório Supabase desativado no Preview.');
+          if (runtime?.productionActivationApproved !== false) throw new Error('Preview com ativação de Production indevida.');
+          if (runtime?.supabase?.url !== process.env.RADAR_SUPABASE_URL) throw new Error('Preview aponta para projeto Supabase inesperado.');
+          const publishableKey = String(runtime?.supabase?.publishableKey || '').trim();
+          if (!publishableKey.startsWith('sb_publishable_') && !publishableKey.startsWith('eyJ')) {
+            throw new Error('Chave publicável ausente ou inválida.');
+          }
+          console.log(`::add-mask::${publishableKey}`);
+          fs.appendFileSync(process.env.GITHUB_ENV, `RADAR_SUPABASE_PUBLISHABLE_KEY=${publishableKey}\n`);
           process.stdout.write('Manifesto Preview validado sem exibir credenciais.\n');
           NODE
+
+      - name: Gerar manifesto local do código do PR
+        env:
+          RADAR_DATA_MODE: supabase-preview
+          RADAR_ENVIRONMENT: preview
+          RADAR_SUPABASE_REPOSITORY_ENABLED: 'true'
+          RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED: 'false'
+          RADAR_SUPABASE_SERVICE_ROLE_KEY: ''
+        run: |
+          npm run generate:runtime-config
+          npm run generate:runtime-config -- --check
 
       - name: Gerar credencial efêmera protegida
         shell: bash
@@ -104,10 +173,9 @@ jobs:
       - name: Criar identidades temporárias e perfis funcionais
         run: node scripts/ops/prepare-remote-homologation-users.mjs
 
-      - name: Homologar login, sessão, telas, permissões e operações HML
+      - name: Homologar perfis, viewports, RLS e persistência
         run: >-
           npx playwright test
-          tests/e2e/supabase-preview-remote.spec.js
           --config=playwright.supabase-preview.config.js
 
       - name: Remover identidades e registros temporários
@@ -118,7 +186,7 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: homologacao-supabase-preview-${{ github.run_id }}
+          name: gate-remoto-perfis-viewports-${{ github.run_id }}
           path: |
             playwright-report-supabase-preview/
             test-results/
@@ -135,8 +203,8 @@ jobs:
         shell: bash
         run: |
           if [[ "${JOB_RESULT}" == "success" ]]; then
-            message="Homologação remota concluída com sucesso. Execução: ${RUN_URL}"
+            message="Gate remoto por perfil e viewport concluído com sucesso. Execução: ${RUN_URL}"
           else
-            message="Homologação remota concluída com falha. Execução: ${RUN_URL}"
+            message="Gate remoto por perfil e viewport concluído com falha. Execução: ${RUN_URL}"
           fi
           gh api "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" -f "body=${message}"
