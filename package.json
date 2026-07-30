@@ -5,7 +5,7 @@
   "license": "UNLICENSED",
   "private": true,
   "engines": {
-    "node": ">=24 <27"
+    "node": "24.x"
   },
   "overrides": {
     "brace-expansion@5.0.7": "5.0.8"
