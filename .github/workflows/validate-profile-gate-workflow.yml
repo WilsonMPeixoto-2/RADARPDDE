@@ -1,0 +1,47 @@
+name: Diagnosticar workflow do gate remoto
+
+on:
+  push:
+    branches:
+      - hardening/node24-profile-viewport-gate
+    paths:
+      - '.github/workflows/validate-profile-gate-workflow.yml'
+      - '.github/workflows/gate-remoto-perfis-viewports.yml'
+      - 'playwright.supabase-preview.config.js'
+      - 'tests/e2e/supabase-preview-profile-viewport.spec.js'
+      - 'tests/unit/release-hardening-contract.test.js'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Validar sintaxe e contratos
+        run: |
+          npx prettier --check .github/workflows/gate-remoto-perfis-viewports.yml
+          node --check playwright.supabase-preview.config.js
+          node --check tests/e2e/supabase-preview-profile-viewport.spec.js
+          node --test tests/unit/release-hardening-contract.test.js
+
+      - name: Registrar resultado
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          JOB_RESULT: ${{ job.status }}
+        run: |
+          gh pr comment 111 --repo "${GITHUB_REPOSITORY}" --body "Diagnóstico estático do gate remoto: **${JOB_RESULT}**. Execução: ${RUN_URL}"
