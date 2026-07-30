@@ -39,7 +39,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          ./actionlint -color=never .github/workflows/gate-remoto-perfis-viewports.yml 2>&1 | tee actionlint.log
+          ./actionlint -no-color .github/workflows/gate-remoto-perfis-viewports.yml 2>&1 | tee actionlint.log
           status=${PIPESTATUS[0]}
           echo "status=${status}" >> "${GITHUB_OUTPUT}"
           exit 0
