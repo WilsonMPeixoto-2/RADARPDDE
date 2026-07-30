@@ -28,6 +28,6 @@
     { "source": "/escolas/:path*", "destination": "/" }
   ],
   "git": {
-    "deploymentEnabled": true
+    "deploymentEnabled": false
   }
 }
