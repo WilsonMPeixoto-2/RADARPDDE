@@ -12,7 +12,7 @@
         throw new Error('Motor XLSX institucional não foi carregado.');
     }
 
-    const VERSION = '1.1.1';
+    const VERSION = '1.1.2';
     const XML_HEADER = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
     const STYLE = Object.freeze({
         default: 0,
@@ -158,7 +158,7 @@
         const printName = model.sheetName.replace(/'/g, "''");
         const lastRow = Math.max(2, model.rows.length + 1);
         return XML_HEADER + '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
-            + '<fileVersion appName="xl"/><workbookPr/>'
+            + '<fileVersion appName="xl"/>'
             + '<bookViews><workbookView xWindow="0" yWindow="0" windowWidth="24000" windowHeight="12000" activeTab="0"/></bookViews>'
             + `<sheets><sheet name="${sheetName}" sheetId="1" r:id="rId1"/></sheets>`
             + `<definedNames><definedName name="_xlnm.Print_Area" localSheetId="0">'${printName}'!$A$1:$Z$${lastRow}</definedName><definedName name="_xlnm.Print_Titles" localSheetId="0">'${printName}'!$1:$1</definedName></definedNames>`
