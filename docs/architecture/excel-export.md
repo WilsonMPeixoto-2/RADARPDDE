@@ -1,13 +1,13 @@
 # Relatório institucional Excel do RADAR PDDE
 
-**Estado:** modelo, renderer e certificação implementados; troca do botão institucional pendente  
+**Estado:** modelo, renderer, certificação e integração do botão implementados  
 **Atualizado em:** 29 de julho de 2026
 
 ## 1. Finalidade
 
 O relatório institucional `.xlsx` preserva integralmente o universo e os doze campos do CSV legado, acrescentando estrutura editorial, sínteses e controles de qualidade sem reduzir ou reinterpretar a base original.
 
-A implementação existe e é certificada automaticamente. O botão institucional da interface ainda permanece associado ao CSV. A eventual substituição do botão é decisão separada e reversível.
+A integração de runtime já substitui a função global `exportDataExcel()` pela geração XLSX e preserva o CSV como botão secundário e fallback de segurança.
 
 ## 2. Estado por camada
 
@@ -20,7 +20,8 @@ A implementação existe e é certificada automaticamente. O botão instituciona
 | Equivalência com CSV | certificada |
 | Comparação célula a célula | certificada |
 | Manifesto e hashes | implementados |
-| Botão institucional usando XLSX | pendente |
+| Botão institucional principal usando XLSX | implementado em runtime |
+| Botão secundário CSV | implementado como fallback |
 | Homologação manual no Excel desktop | pendente |
 
 ## 3. Contrato do relatório legado
@@ -170,7 +171,7 @@ A comparação verifica:
 4. presença de consolidados;
 5. ausência de não consolidados.
 
-Qualquer divergência bloqueia a certificação e a futura troca do botão.
+Qualquer divergência bloqueia a exportação XLSX e oferece o CSV legado como alternativa de segurança.
 
 ## 12. Certificação integral
 
@@ -198,22 +199,36 @@ Critérios:
 
 Evidência: [`../evidence/excel-certification/synthetic-manifest.json`](../evidence/excel-certification/synthetic-manifest.json).
 
-## 13. Troca do botão institucional
+## 13. Integração de runtime
 
-A mudança do botão de CSV para XLSX não integra a entrega de certificação.
+`src/integration/load-excel-export.js` carrega sequencialmente modelo, plano, renderer institucional, modelo SME, renderer SME e integração.
 
-Antes da troca:
+`src/integration/excel-export-integration.js`:
+
+1. captura a função CSV legada;
+2. expõe `exportDataCsvLegacy`;
+3. substitui `exportDataExcel` por `exportXlsx`;
+4. transforma o botão principal em “Gerar relatório Excel (.xlsx)”;
+5. insere o botão `Excel SME`;
+6. insere o botão secundário `CSV`;
+7. preserva fallback CSV em falha técnica;
+8. observa renderizações tardias de modo idempotente.
+
+A integração pode ser revertida removendo o bootstrap ou chamando seu fluxo de desinstalação em ambiente controlado. O `app.js` conserva a função original.
+
+## 14. Homologação pendente
+
+Antes da liberação oficial:
 
 1. abrir o arquivo no Microsoft Excel desktop sem reparo;
 2. homologar conteúdo e apresentação com massa representativa;
-3. manter o CSV acessível durante a transição;
-4. implementar em PR próprio;
-5. garantir reversão imediata;
-6. atualizar documentação e UAT.
+3. confirmar o fallback CSV;
+4. validar o download nos perfis autorizados;
+5. registrar evidência e UAT.
 
-## 14. Relação com o Excel SME
+A integração já existe; o gate pendente é a homologação manual, não a troca do botão.
 
-Os produtos não são intercambiáveis:
+## 15. Relação com o Excel SME
 
 | Dimensão | Institucional | SME mensal |
 |---|---|---|
@@ -221,20 +236,21 @@ Os produtos não são intercambiáveis:
 | Granularidade | escola × competência × programa | uma linha por escola |
 | Abas | quatro | uma |
 | Colunas principais | doze | 26 |
-| Botão atual | CSV legado | Excel SME |
+| Ação | botão principal XLSX | botão secundário `Excel SME` |
+| Fallback | botão `CSV` | não aplicável |
 
 Contrato SME: [`excel-sme-mensal.md`](excel-sme-mensal.md).
 
-## 15. Limites
+## 16. Limites
 
 A implementação não:
 
-- altera automaticamente o botão legado;
 - consulta Production durante a certificação sintética;
 - grava no Supabase;
 - substitui homologação manual;
-- autoriza novas análises sem origem e regra documentadas.
+- autoriza novas análises sem origem e regra documentadas;
+- remove o CSV legado.
 
-## 16. Evolução
+## 17. Evolução
 
 Novas abas ou análises devem ser opcionais, rastreáveis e incapazes de modificar `BONIFICACOES`. Mudança de granularidade, campos ou regra de inclusão exige decisão específica e nova certificação integral.
