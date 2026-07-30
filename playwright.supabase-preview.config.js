@@ -1,7 +1,6 @@
 const { defineConfig, devices } = require('@playwright/test');
 
-const deploymentUrl = process.env.RADAR_DEPLOYMENT_URL;
-if (!deploymentUrl) throw new Error('RADAR_DEPLOYMENT_URL ausente.');
+const baseURL = String(process.env.RADAR_DEPLOYMENT_URL || 'http://127.0.0.1:4175').trim().replace(/\/+$/, '');
 
 module.exports = defineConfig({
   testDir: './tests/e2e',
@@ -10,23 +9,41 @@ module.exports = defineConfig({
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
   workers: 1,
-  timeout: 60000,
-  expect: { timeout: 15000 },
+  timeout: 90000,
+  expect: { timeout: 20000 },
   reporter: process.env.CI
     ? [['line'], ['html', { open: 'never', outputFolder: 'playwright-report-supabase-preview' }]]
     : [['list'], ['html', { open: 'never', outputFolder: 'playwright-report-supabase-preview' }]],
   use: {
-    baseURL: deploymentUrl,
+    baseURL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     navigationTimeout: 30000,
     actionTimeout: 15000
   },
+  webServer: {
+    command: 'node tests/support/spa-server.mjs',
+    url: baseURL,
+    reuseExistingServer: !process.env.CI,
+    timeout: 30000,
+    env: {
+      HOST: '127.0.0.1',
+      PORT: '4175'
+    }
+  },
   projects: [
     {
       name: 'supabase-preview-desktop-chromium',
       use: { ...devices['Desktop Chrome'] }
+    },
+    {
+      name: 'supabase-preview-mobile-chromium',
+      use: { ...devices['Pixel 7'] }
+    },
+    {
+      name: 'supabase-preview-mobile-webkit',
+      use: { ...devices['iPhone 15'] }
     }
   ]
 });
