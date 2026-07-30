@@ -7,6 +7,7 @@ on:
       - main
     paths:
       - 'supabase/**'
+      - 'scripts/bootstrap-local-auth-fixtures.mjs'
       - 'scripts/verify-supabase-backup-restore.mjs'
       - 'tests/unit/backup-restore-gate-contract.test.js'
       - 'package.json'
@@ -55,6 +56,22 @@ jobs:
 
       - name: Recriar origem com migrations e seed versionados
         run: npm run supabase:reset
+
+      - name: Criar identidades Auth efêmeras na origem
+        shell: bash
+        run: |
+          set -euo pipefail
+          eval "$(npx supabase status -o env | grep -E '^(API_URL|SERVICE_ROLE_KEY)=')"
+          test -n "${API_URL:-}"
+          test -n "${SERVICE_ROLE_KEY:-}"
+          FIXTURE_PASSWORD="$(node --input-type=module -e "import { randomBytes } from 'node:crypto'; process.stdout.write(randomBytes(32).toString('base64url') + 'A1!')")"
+          echo "::add-mask::${SERVICE_ROLE_KEY}"
+          echo "::add-mask::${FIXTURE_PASSWORD}"
+          RADAR_ALLOW_LOCAL_AUTH_BOOTSTRAP=true \
+          RADAR_SUPABASE_URL="${API_URL}" \
+          RADAR_SUPABASE_ADMIN_KEY="${SERVICE_ROLE_KEY}" \
+          RADAR_AUTH_FIXTURE_PASSWORD="${FIXTURE_PASSWORD}" \
+          npm run bootstrap:auth-fixtures
 
       - name: Isolar serviços auxiliares da pilha de restauração
         run: |
