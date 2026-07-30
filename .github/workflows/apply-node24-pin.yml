@@ -1,0 +1,44 @@
+name: Aplicar fixação Node 24 na branch
+
+on:
+  push:
+    branches:
+      - hardening/node24-profile-viewport-gate
+    paths:
+      - '.github/workflows/apply-node24-pin.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply-node-pin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout da branch
+        uses: actions/checkout@v4
+        with:
+          ref: hardening/node24-profile-viewport-gate
+
+      - name: Configurar Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Sincronizar contratos de runtime
+        run: node scripts/ops/sync-node-runtime.mjs
+
+      - name: Publicar arquivos gerados
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- package.json package-lock.json .nvmrc .node-version; then
+            echo 'Nenhuma alteração pendente.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add package.json package-lock.json .nvmrc .node-version
+          git commit -m 'chore: fixar Node 24.x [node-pin-applied]'
+          git push origin HEAD:hardening/node24-profile-viewport-gate
