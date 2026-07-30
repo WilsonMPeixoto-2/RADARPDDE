@@ -37,7 +37,7 @@ test('Node 24 fica fixado no projeto, lockfile e ambientes de desenvolvimento', 
 });
 
 test('gate remoto cobre todos os perfis em desktop, Android e iPhone sobre o código do PR', () => {
-  const workflow = read('.github/workflows/homologacao-supabase-preview-remoto.yml');
+  const workflow = read('.github/workflows/gate-remoto-perfis-viewports.yml');
   const config = read('playwright.supabase-preview.config.js');
   const matrixSpec = read('tests/e2e/supabase-preview-profile-viewport.spec.js');
 
