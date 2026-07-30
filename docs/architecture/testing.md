@@ -15,7 +15,7 @@ Nenhum comando isolado representa o gate completo. A seleção depende das camad
 domínio puro e contratos
 → serviços e integrações
 → persistência local e Supabase
-→ banco, Auth e RLS
+→ banco, Auth, RLS e histórico de migrations
 → jornadas de interface
 → acessibilidade e responsividade
 → artefato Vercel
@@ -35,7 +35,7 @@ O script executa, na ordem vigente:
 1. `npm run check` — sintaxe dos arquivos críticos;
 2. `npm run lint:security` — regras de segurança do frontend;
 3. `npm run lint:e2e` — qualidade dos testes Playwright;
-4. `npm run test:unit` — domínios e contratos puros;
+4. `npm run test:unit` — domínios, contratos puros e regressões, inclusive alinhamento da migration SME;
 5. `npm run certify:excel:fixture` — certificação integral da massa sintética;
 6. `npm run test:integration` — serviços, repositórios e integrações;
 7. `npm run check:supabase` — prontidão do contrato Supabase;
@@ -65,7 +65,16 @@ Devem cobrir regras puras e regressões em:
 - modelos e renderers Excel;
 - certificação célula a célula;
 - contratos JSON;
-- adaptadores e normalizações.
+- adaptadores e normalizações;
+- identidade, ausência de alias derivado e hash da migration SME.
+
+Teste específico:
+
+```bash
+node --test tests/unit/sme-migration-history-alignment.test.js
+```
+
+Ele protege o identificador canônico `20260728182226`, a ausência do identificador `20260728190344` e o SHA-256 do SQL já aplicado.
 
 Correção de regressão deve acrescentar caso que falhe antes da correção e passe depois.
 
@@ -87,11 +96,12 @@ Validam, entre outros:
 - integração de Auth e diretórios;
 - contratos de runtime e build.
 
-## 6. Banco local e pgTAP
+## 6. Banco local, migrations e pgTAP
 
 Para mudanças que afetem banco, RLS, RPC, Auth, Edge Function ou tipos:
 
 ```bash
+node --test tests/unit/sme-migration-history-alignment.test.js
 npm run supabase:start
 npm run supabase:reset
 npm run supabase:test:db
@@ -102,13 +112,18 @@ npm run typecheck:database
 
 Requisitos:
 
+- `supabase migration list --linked` apresenta histórico local/remoto alinhado;
+- o identificador derivado `20260728190344` não reaparece;
 - migrations aplicam do zero;
 - pgTAP aprova leitura e escrita por perfil e escopo;
-- lint SQL sem erro bloqueante;
-- tipos regenerados quando o schema muda;
+- lint SQL não apresenta erro bloqueante;
+- tipos são regenerados quando o schema muda;
 - acesso anônimo continua bloqueado;
 - funções privilegiadas e wrappers preservam o modelo de segurança;
-- migration nova não avança enquanto o histórico local/remoto estiver divergente.
+- `db push --linked --dry-run` contém somente a migration deliberadamente nova;
+- backup e rollback existem antes de qualquer operação remota.
+
+`migration repair` altera o histórico e não reverte SQL. Não deve ser usado como atalho para corrigir falha funcional.
 
 ## 7. Certificação dos relatórios Excel
 
@@ -235,7 +250,8 @@ Além dos comandos locais:
 - verificar proteção contra senhas vazadas no Auth;
 - confirmar CORS exato da Edge Function;
 - manter dependências fixadas e lockfile versionado;
-- não introduzir segredo em frontend, GitHub, artefato ou log.
+- não introduzir segredo em frontend, GitHub, artefato ou log;
+- não editar diretamente a tabela de histórico de migrations.
 
 ## 14. Mesmo SHA
 
@@ -257,13 +273,13 @@ Ausência de workflow associado não equivale a aprovação. Deve ser relatada c
 
 Mesmo com CI verde, permanecem necessários:
 
-- reconciliação do histórico da migration SME;
 - proteção contra senhas vazadas;
 - fixação deliberada da major do Node;
 - backup e restauração em ambiente descartável;
 - homologação manual dos arquivos Excel;
 - matriz remota por perfil e viewport;
 - UAT;
+- polimento editorial/visual;
 - decisão formal de release.
 
 ## 16. Critério de conclusão
