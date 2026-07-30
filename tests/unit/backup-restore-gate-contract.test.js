@@ -23,11 +23,16 @@ test('backup e restauração usam duas pilhas Supabase descartáveis e comparam 
   assert.match(script, /SUPABASE_WORKDIR/);
   assert.match(script, /schemaFingerprint/);
   assert.match(script, /dataFingerprint/);
+  assert.match(script, /authFingerprint/);
+  assert.match(script, /auth\.users/);
+  assert.match(script, /auth\.identities/);
   assert.match(script, /finally/);
   assert.match(script, /supabase stop/);
 
   assert.match(workflow, /npm run supabase:start/);
   assert.match(workflow, /npm run supabase:reset/);
+  assert.match(workflow, /npm run bootstrap:auth-fixtures/);
+  assert.match(workflow, /RADAR_ALLOW_LOCAL_AUTH_BOOTSTRAP=true/);
   assert.match(workflow, /RADAR_ALLOW_DISPOSABLE_BACKUP_RESTORE:\s*'true'/);
   assert.match(workflow, /npm run test:backup-restore/);
   assert.match(workflow, /actions\/upload-artifact@/);
