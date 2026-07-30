@@ -1,15 +1,15 @@
 # Plano de implementação — alinhamento documental integral pós-PR #108
 
-> **Status:** em execução  
+> **Status:** concluído; aguardando verificação final e merge  
 > **Data-base:** 29/07/2026  
 > **Branch:** `docs/alinhamento-integral-pos-pr108-20260729`  
 > **Base:** `05f51cbdd433844f11db036bcdefa5f9d8941e45`
 
 ## Objetivo
 
-Eliminar divergências remanescentes entre a documentação vigente e o estado comprovado do código, da Vercel Production e do Supabase Production antes da abertura de uma nova frente do produto.
+Eliminar divergências remanescentes entre a documentação vigente e o estado comprovado do código, da Vercel Production e do Supabase Production antes da abertura de nova frente do produto.
 
-A alteração é exclusivamente documental. Não modifica runtime, frontend, serviços, migrations, RLS, dados, Auth, dependências ou configuração de deployment.
+A alteração é documental e de configuração exemplificativa. Não modifica runtime, frontend, serviços, migrations, RLS, dados, Auth, dependências ou deployment. O único arquivo não Markdown alterado é `.env.example`, corrigido como exemplo seguro de desenvolvimento local.
 
 ## Fontes de verdade
 
@@ -17,109 +17,111 @@ A alteração é exclusivamente documental. Não modifica runtime, frontend, ser
 2. migrations, políticas, funções e histórico efetivo do Supabase autorizado;
 3. artefato vigente na Vercel Production;
 4. testes, manifests e evidências reproduzíveis;
-5. ADRs e decisões funcionais ainda vigentes;
+5. ADRs e decisões funcionais vigentes;
 6. documentação, ajustada às fontes anteriores.
 
-## Achados que exigem correção
+## Achados corrigidos
 
-1. contrato de competências ainda descreve `closing_competence = 2026-05` como estado futuro;
-2. contrato de avaliação mensal trata a certificação Excel já implementada como etapa posterior;
-3. documentação da cadeia pós-`app.js` omite a navegação contextual;
-4. inventário narrativo de carregamento do frontend não representa as extensões atuais;
-5. estratégia de testes ainda descreve a suíte inicial, anterior ao readiness, Supabase, Playwright, Lighthouse e certificação Excel;
-6. arquitetura e cobertura Supabase ainda apresentam Production como local e a ativação remota como futura;
-7. contrato do Excel SME ainda menciona `dataValidations`, embora a ausência desse elemento seja requisito certificado;
-8. contrato do Excel institucional não separa claramente produto implementado, certificação concluída e troca do botão ainda pendente;
-9. runbook de conexão repete contagens operacionais antigas e contém regra de hardening incompatível com o estado já implantado;
-10. runbook de migrations não incorpora o gate obrigatório da divergência de identificador da migration SME;
-11. ADR-026 preserva uma hipótese de implementação por migration adicional que não foi necessária;
-12. índices e matriz documental precisam refletir os documentos corrigidos e a nova auditoria.
+1. contrato de competências descrevia `closing_competence = 2026-05` como estado vigente;
+2. avaliação mensal tratava certificação Excel concluída como etapa futura;
+3. cadeia pós-`app.js` omitia navegação contextual;
+4. inventário narrativo do frontend não representava as extensões atuais;
+5. estratégia de testes descrevia suíte anterior ao readiness integral;
+6. arquitetura e cobertura Supabase ainda apresentavam Production local;
+7. contrato SME afirmava presença de `dataValidations`;
+8. parte da documentação afirmava incorretamente que o botão institucional permanecia no CSV;
+9. runbooks não separavam bootstrap inicial, operação normal e reparo de histórico;
+10. runbook de migrations não incorporava o gate da migration SME;
+11. ADR-026 preservava hipótese desnecessária de migration adicional;
+12. dicionário de dados descrevia schema futuro e incompleto;
+13. `AGENTS.md` orientava agentes segundo o estágio pré-Supabase;
+14. `.env.example` dizia que a aplicação publicada permanecia local;
+15. índice legado de decisões continha estados já substituídos;
+16. catálogo de superfícies atribuía capacidades e ambientes antigos;
+17. índices apontavam para arquivos inexistentes ou omitiam fontes atuais;
+18. documentos históricos de pré-conexão não exibiam classificação explícita.
 
-## Tarefas
+## Tarefas concluídas
 
-### 1. Reconciliação dos contratos de produto
+### 1. Contratos de produto
 
-Atualizar:
+Atualizados:
 
 - `docs/architecture/competencias.md`;
 - `docs/architecture/avaliacao-mensal.md`;
 - `docs/architecture/excel-sme-mensal.md`;
-- `docs/architecture/excel-export.md`.
+- `docs/architecture/excel-export.md`;
+- `docs/architecture/excel-xlsx-runtime.md`;
+- `docs/PROJECT_CONTEXT.md`;
+- `docs/reference/PRODUCT_SURFACE_CATALOG.md`.
 
-Critério: presente, passado concluído e pendências futuras devem aparecer em seções distintas, sem promessas já cumpridas nem capacidades inexistentes.
+### 2. Arquitetura de carregamento
 
-### 2. Reconciliação da arquitetura de carregamento
-
-Atualizar:
+Atualizados:
 
 - `docs/architecture/frontend-load-order.md`;
-- `docs/architecture/product-extensions-load-order.md`.
+- `docs/architecture/product-extensions-load-order.md`;
+- `docs/architecture/README.md`.
 
-Critério: representar `config.js`, `navigation-routes.js`, `product-extensions-bootstrap.js`, timeline e navegação contextual conforme o código atual, preservando manifests antigos como evidência datada.
+### 3. Qualidade e testes
 
-### 3. Reconciliação de qualidade e testes
+Reescrito:
 
-Reescrever `docs/architecture/testing.md` com:
+- `docs/architecture/testing.md`.
 
-- `test:readiness`;
-- Supabase local, pgTAP e lint SQL;
-- certificação Excel;
-- Playwright desktop e mobile;
-- Lighthouse;
-- build Vercel;
-- validação no mesmo SHA;
-- requisitos de evidência e documentação.
+O contrato agora inclui readiness, Supabase local, pgTAP, lint SQL, certificação Excel, Playwright, Lighthouse, precedência do frontend, build Vercel, mesmo SHA e gates externos.
 
-### 4. Reconciliação Supabase
+### 4. Supabase
 
-Atualizar:
+Atualizados:
 
 - `docs/architecture/supabase-readiness.md`;
 - `docs/reference/SUPABASE_FUNCTIONAL_COVERAGE.md`;
+- `docs/reference/SUPABASE_DATA_DICTIONARY.md`;
 - `docs/runbooks/SUPABASE_CONNECTION.md`;
-- `docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`.
+- `docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`;
+- `docs/runbooks/SUPABASE_DATA_BOOTSTRAP.md`;
+- `docs/runbooks/SUPABASE_AUTH_BOOTSTRAP.md`;
+- `docs/reference/SUPABASE_INTEGRATION_AUDIT.md`.
 
-Critério: Production deve ser descrita com `SupabaseRepository` canônico, LocalStorage somente como contingência, 25 arquivos locais de migration, divergência de identificador SME explicitada e nenhuma alteração futura de schema autorizada antes da reconciliação.
+### 5. Decisões
 
-### 5. Decisões arquiteturais
+Atualizados:
 
-Atualizar `docs/DECISION_LOG.md` para:
+- `docs/DECISION_LOG.md` — ADRs 001–033;
+- `docs/reference/PRODUCT_DECISIONS.md` — índice histórico substituído;
+- `docs/reference/CHANGE_CLASSIFICATION.md` — exemplos atuais.
 
-- registrar o cumprimento da ADR-026 sem migration adicional;
-- formalizar a reutilização do contrato existente de competências;
-- formalizar o gate de reconciliação do histórico da migration SME.
+### 6. Instruções, índices e estado
 
-### 6. Índices e estado operacional
+Atualizados:
 
-Atualizar:
-
+- `AGENTS.md`;
+- `.env.example`;
 - `README.md`;
 - `docs/README.md`;
 - `docs/CURRENT_STAGE.md`;
-- `docs/reference/STATUS_DOCUMENTOS.md`.
+- `docs/reference/STATUS_DOCUMENTOS.md`;
+- `docs/architecture/roadmap-pre-supabase.md`.
 
-Critério: uma única lista de bloqueadores, classificação coerente dos documentos e referência à auditoria final.
+### 7. Auditoria
 
-### 7. Auditoria final
+Criado e revisado:
 
-Criar `docs/audits/2026-07-29-alinhamento-documental-integral-pos-pr108.md` contendo:
+- `docs/audits/2026-07-29-alinhamento-documental-integral-pos-pr108.md`.
 
-- fontes verificadas;
-- divergências corrigidas;
-- documentos históricos preservados;
-- escopo do diff;
-- limitações de validação;
-- estado autorizado para o próximo passo.
+## Verificação final
 
-## Verificação
-
-1. comparar a branch com `main`;
-2. confirmar que todos os arquivos alterados são Markdown;
+1. comparar branch com `main`;
+2. confirmar que o diff contém somente documentação Markdown e `.env.example`;
 3. conferir links relativos dos documentos tocados;
-4. buscar resíduos das expressões materiais obsoletas;
-5. revisar cada documento para contradição entre estado atual, histórico e pendência;
-6. consultar status combinado do SHA final;
-7. registrar explicitamente quando não houver workflow associado ao SHA documental.
+4. procurar resíduos materiais de estados obsoletos em documentos vigentes;
+5. confirmar que ocorrências remanescentes pertencem a histórico classificado ou decisão substituída;
+6. revisar coerência entre código Excel e documentação;
+7. consultar status combinado do SHA final;
+8. verificar workflows associados;
+9. abrir PR e revisar o patch final;
+10. fazer merge somente após evidência suficiente.
 
 ## Fora do escopo
 
