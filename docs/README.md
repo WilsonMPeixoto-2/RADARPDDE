@@ -15,7 +15,7 @@ Estão concluídos e publicados:
 - certificação automatizada dos relatórios Excel;
 - navegação contextual e retorno seguro.
 
-A liberação oficial ainda não foi declarada.
+A rastreabilidade da migration SME foi reconciliada entre GitHub e Supabase Production. A liberação oficial ainda não foi declarada.
 
 ## Entrada obrigatória
 
@@ -24,7 +24,8 @@ A liberação oficial ainda não foi declarada.
 3. [`DECISION_LOG.md`](DECISION_LOG.md) — decisões vigentes e substituídas;
 4. [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md) — classificação e precedência documental;
 5. [`audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md`](audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md) — reconstrução do estado real;
-6. [`audits/2026-07-29-rastreabilidade-migration-sme.md`](audits/2026-07-29-rastreabilidade-migration-sme.md) — divergência de versão, equivalência do SQL e regra de tratamento.
+6. [`audits/2026-07-29-rastreabilidade-migration-sme.md`](audits/2026-07-29-rastreabilidade-migration-sme.md) — registro histórico do achado;
+7. [`audits/2026-07-29-reconciliacao-migration-sme-evidencias.md`](audits/2026-07-29-reconciliacao-migration-sme-evidencias.md) — comprovação da solução.
 
 ## Regra de precedência
 
@@ -52,7 +53,7 @@ Orientações do responsável definem intenção e prioridade. Afirmações sobr
 | Timeline | projeção cronológica concluída e publicada. |
 | Excel | certificação automatizada concluída para os dois produtos. |
 | Navegação contextual | concluída e publicada em desktop e mobile. |
-| Migrations | 24 versões correspondentes; migration SME com identificador remoto distinto e SQL idêntico. |
+| Migrations | 25 versões correspondentes; migration SME reconciliada no identificador `20260728182226`. |
 | Segurança | proteção contra senhas vazadas ainda desabilitada. |
 | Liberação oficial | não declarada. |
 
@@ -65,7 +66,9 @@ Orientações do responsável definem intenção e prioridade. Afirmações sobr
 | [`CURRENT_STAGE.md`](CURRENT_STAGE.md) | Estado operacional e próxima decisão | Vigente e transitório |
 | [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md) | Classificação documental | Vigente |
 | [`audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md`](audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md) | Auditoria pós-ciclos | Vigente |
-| [`audits/2026-07-29-rastreabilidade-migration-sme.md`](audits/2026-07-29-rastreabilidade-migration-sme.md) | Rastreabilidade da migration SME | Vigente até a reconciliação |
+| [`audits/2026-07-29-rastreabilidade-migration-sme.md`](audits/2026-07-29-rastreabilidade-migration-sme.md) | Achado original da migration SME | Histórico resolvido |
+| [`audits/2026-07-29-reconciliacao-migration-sme-plano.md`](audits/2026-07-29-reconciliacao-migration-sme-plano.md) | Estratégia efetivamente executada | Executado |
+| [`audits/2026-07-29-reconciliacao-migration-sme-evidencias.md`](audits/2026-07-29-reconciliacao-migration-sme-evidencias.md) | Evidências posteriores do reparo | Vigente |
 | [`audits/2026-07-28-alinhamento-codigo-ambientes-documentacao.md`](audits/2026-07-28-alinhamento-codigo-ambientes-documentacao.md) | Linha de base anterior aos ciclos | Histórico relevante |
 | Plano de oficialização de 28/07/2026 | Sequência que originou os ciclos 1 a 5 | Executado quanto aos ciclos; referencial para gates finais |
 | Dossiê Consolidado v1.0 | Contexto e regras históricas | Referência histórica |
@@ -103,7 +106,7 @@ Orientações do responsável definem intenção e prioridade. Afirmações sobr
 - [`runbooks/SUPABASE_CONNECTION.md`](runbooks/SUPABASE_CONNECTION.md) — conexão e validação;
 - [`runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`](runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md) — promoção e rollback.
 
-Antes da próxima migration de Production, o runbook deve incorporar a reconciliação do identificador local/remoto da migration SME.
+A migration SME já está reconciliada. A próxima alteração de schema deve iniciar por `migration list` e `db push --dry-run`, preservando a correspondência das 25 versões atuais.
 
 Runbooks ainda necessários antes da liberação oficial:
 
@@ -123,6 +126,8 @@ Runbooks ainda necessários antes da liberação oficial:
 
 - [`audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md`](audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md);
 - [`audits/2026-07-29-rastreabilidade-migration-sme.md`](audits/2026-07-29-rastreabilidade-migration-sme.md);
+- [`audits/2026-07-29-reconciliacao-migration-sme-plano.md`](audits/2026-07-29-reconciliacao-migration-sme-plano.md);
+- [`audits/2026-07-29-reconciliacao-migration-sme-evidencias.md`](audits/2026-07-29-reconciliacao-migration-sme-evidencias.md);
 - [`evidence/excel-certification/synthetic-manifest.json`](evidence/excel-certification/synthetic-manifest.json);
 - [`architecture/competencias.md`](architecture/competencias.md);
 - [`architecture/avaliacao-mensal.md`](architecture/avaliacao-mensal.md);
@@ -157,18 +162,18 @@ Concluídos:
 3. avaliação mensal certificada;
 4. timeline cronológica;
 5. certificação automatizada dos relatórios Excel;
-6. navegação contextual.
+6. navegação contextual;
+7. reconciliação do identificador da migration SME.
 
 Pendentes:
 
-1. reconciliação do identificador da migration SME;
-2. homologação manual dos arquivos no Microsoft Excel desktop;
-3. polimento editorial e visual;
-4. proteção contra senhas vazadas;
-5. fixação da major do Node;
-6. backup e restauração testados;
-7. gate remoto por perfil e viewport;
-8. UAT;
-9. decisão formal de liberação.
+1. homologação manual dos arquivos no Microsoft Excel desktop;
+2. polimento editorial e visual;
+3. proteção contra senhas vazadas;
+4. fixação da major do Node;
+5. backup e restauração testados;
+6. gate remoto por perfil e viewport;
+7. UAT;
+8. decisão formal de liberação.
 
 A próxima frente ainda não foi escolhida.
