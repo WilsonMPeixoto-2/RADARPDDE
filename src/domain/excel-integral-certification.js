@@ -299,6 +299,7 @@ function certifyInstitutional(input, canonicalAudit, generatedAt) {
 function smeExpectedCells(model) {
   const expected = [];
   model.columns.forEach((column, columnIndex) => {
+    if (column.mergedHeader) return;
     expected.push({
       address: `${institutionalRendererColumn(columnIndex + 1)}1`,
       value: column.label
@@ -315,15 +316,68 @@ function smeExpectedCells(model) {
   return expected;
 }
 
+function excelJsCellValue(value) {
+  if (value && typeof value === 'object') {
+    if (Object.hasOwn(value, 'result')) return value.result;
+    if (typeof value.text === 'string') return value.text;
+    if (Array.isArray(value.richText)) return value.richText.map(part => part.text || '').join('');
+  }
+  return value;
+}
+
+function extractExcelJsCells(worksheet) {
+  const cells = new Map();
+  worksheet.eachRow({ includeEmpty: true }, row => {
+    row.eachCell({ includeEmpty: true }, cell => {
+      if (cell.isMerged && cell.master && cell.master.address !== cell.address) return;
+      cells.set(cell.address, normalizeCellValue(excelJsCellValue(cell.value)));
+    });
+  });
+  return cells;
+}
+
+function inspectExcelJsWorkbook(workbook, worksheet) {
+  const validations = worksheet.dataValidations?.model || {};
+  const hasDataValidations = Object.keys(validations).length > 0;
+  const structural = {
+    worksheetName: worksheet.name,
+    columns: worksheet.columns.map(column => ({ key: column.key || '', width: column.width || null })),
+    merges: Array.isArray(worksheet.model?.merges) ? worksheet.model.merges : [],
+    views: worksheet.views,
+    autoFilter: worksheet.autoFilter,
+    pageSetup: {
+      orientation: worksheet.pageSetup.orientation,
+      paperSize: worksheet.pageSetup.paperSize,
+      fitToPage: worksheet.pageSetup.fitToPage,
+      fitToWidth: worksheet.pageSetup.fitToWidth,
+      fitToHeight: worksheet.pageSetup.fitToHeight,
+      printArea: worksheet.pageSetup.printArea,
+      printTitlesRow: worksheet.pageSetup.printTitlesRow
+    },
+    headers: worksheet.getRow(1).values.slice(1)
+  };
+  return {
+    valid: workbook.worksheets.length === 1
+      && worksheet.name.length > 0
+      && worksheet.columnCount === 30
+      && !hasDataValidations,
+    entryCount: 1,
+    sheetCount: workbook.worksheets.length,
+    expectedSheetCount: 1,
+    missingEntries: [],
+    hasDataValidations,
+    structuralHash: sha256(structural)
+  };
+}
+
 function certifySmeMonthly(input, canonicalAudit) {
   const model = smeModel.buildSmeMonthlyModel(input);
-  const entries = smeRenderer.buildPackageEntries(model);
-  const sheetEntry = entries.find(entry => entry.name === 'xl/worksheets/sheet1.xml');
-  const sheetXml = decodeEntryData(sheetEntry?.data);
-  const cells = extractWorksheetCells(sheetXml);
+  const workbook = smeRenderer.buildWorkbook(model);
+  const worksheet = workbook.worksheets[0];
+  const cells = extractExcelJsCells(worksheet);
   const cellCertification = compareCells(smeExpectedCells(model), cells);
   cellCertification.samples = sampleCells(cells, ['A2', 'C2', 'E2', 'K2', 'C3']);
-  const ooxml = packageInspection(entries, 1);
+  const ooxml = inspectExcelJsWorkbook(workbook, worksheet);
   const relevantCanonicalMismatches = canonicalAudit.mismatches.filter(item => (
     item.competenceKey === model.competenceKey
   ));
@@ -332,7 +386,6 @@ function certifySmeMonthly(input, canonicalAudit) {
     competenceKey: model.competenceKey,
     columns: model.columns.map(column => column.key),
     rows: model.rows.map(row => model.columns.map(column => row[column.key] || '')),
-    worksheetHash: sha256(sheetXml),
     structuralHash: ooxml.structuralHash
   });
   const passed = cellCertification.mismatchCount === 0
