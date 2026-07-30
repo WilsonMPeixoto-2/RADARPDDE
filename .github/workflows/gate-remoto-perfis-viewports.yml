@@ -13,14 +13,15 @@ on:
       - 'config.js'
       - 'src/**'
       - 'vendor/**'
-      - 'supabase/migrations/**'
-      - 'supabase/functions/**'
+      - 'supabase/**'
+      - 'scripts/bootstrap-local-auth-fixtures.mjs'
+      - 'scripts/check-local-auth-fixtures.mjs'
       - 'scripts/generate-runtime-config.mjs'
-      - 'scripts/ops/prepare-remote-homologation-users.mjs'
-      - 'scripts/ops/cleanup-remote-homologation-users.mjs'
-      - 'tests/e2e/supabase-preview-remote.spec.js'
+      - 'tests/e2e/supabase-auth-local.spec.js'
+      - 'tests/e2e/supabase-full-contract.spec.js'
       - 'tests/e2e/supabase-preview-profile-viewport.spec.js'
       - 'tests/support/spa-server.mjs'
+      - 'playwright.config.js'
       - 'playwright.supabase-preview.config.js'
       - 'package.json'
       - 'package-lock.json'
@@ -37,14 +38,15 @@ on:
       - 'config.js'
       - 'src/**'
       - 'vendor/**'
-      - 'supabase/migrations/**'
-      - 'supabase/functions/**'
+      - 'supabase/**'
+      - 'scripts/bootstrap-local-auth-fixtures.mjs'
+      - 'scripts/check-local-auth-fixtures.mjs'
       - 'scripts/generate-runtime-config.mjs'
-      - 'scripts/ops/prepare-remote-homologation-users.mjs'
-      - 'scripts/ops/cleanup-remote-homologation-users.mjs'
-      - 'tests/e2e/supabase-preview-remote.spec.js'
+      - 'tests/e2e/supabase-auth-local.spec.js'
+      - 'tests/e2e/supabase-full-contract.spec.js'
       - 'tests/e2e/supabase-preview-profile-viewport.spec.js'
       - 'tests/support/spa-server.mjs'
+      - 'playwright.config.js'
       - 'playwright.supabase-preview.config.js'
       - 'package.json'
       - 'package-lock.json'
@@ -60,18 +62,14 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  SUPABASE_TELEMETRY_DISABLED: '1'
   RADAR_DEPLOYMENT_URL: http://127.0.0.1:4175
-  RADAR_REFERENCE_PREVIEW_URL: https://radarpdde-d5g8j0esm-wilson-m-peixotos-projects.vercel.app
-  RADAR_SUPABASE_URL: ${{ secrets.RADAR_SUPABASE_URL }}
-  RADAR_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.RADAR_SUPABASE_SERVICE_ROLE_KEY }}
-  RADAR_ALLOW_REMOTE_HOMOLOGATION: 'true'
-  RADAR_E2E_SUPABASE_REMOTE: '1'
 
 jobs:
   homologar:
     name: Perfis × Desktop, Android e iPhone
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 45
 
     steps:
       - name: Obter código
@@ -82,6 +80,7 @@ jobs:
         with:
           node-version: '24'
           cache: npm
+          cache-dependency-path: package-lock.json
 
       - name: Instalar dependências reproduzíveis
         run: npm ci
@@ -89,78 +88,84 @@ jobs:
       - name: Instalar Chromium e WebKit
         run: npx playwright install --with-deps chromium webkit
 
-      - name: Preparar caminhos temporários do runner
+      - name: Configurar origem local da Edge Function
         shell: bash
-        run: echo "RADAR_HML_FIXTURE_FILE=${RUNNER_TEMP}/radar-hml-users.json" >> "${GITHUB_ENV}"
+        run: |
+          mkdir -p supabase/functions
+          printf 'RADAR_ALLOWED_ORIGIN=%s\n' 'http://127.0.0.1:4175' > supabase/functions/.env
+          chmod 600 supabase/functions/.env
 
-      - name: Validar alvo remoto e obter chave publicável
+      - name: Iniciar Supabase descartável
+        run: npm run supabase:start
+
+      - name: Recriar banco com as migrations versionadas
+        run: npm run supabase:reset
+
+      - name: Preparar identidades, runtime e credenciais efêmeras
         shell: bash
         run: |
           set -euo pipefail
-          test -n "${RADAR_SUPABASE_URL}"
-          test -n "${RADAR_SUPABASE_SERVICE_ROLE_KEY}"
-          test "${RADAR_SUPABASE_URL}" = 'https://scnryinorqeucbfkioxo.supabase.co'
-          node --input-type=module <<'NODE'
-          import fs from 'node:fs';
-          import vm from 'node:vm';
-
-          const response = await fetch(`${process.env.RADAR_REFERENCE_PREVIEW_URL}/config.runtime.js`);
-          if (!response.ok) throw new Error(`Manifesto indisponível: ${response.status}`);
-          const source = await response.text();
-          const sandbox = { window: {} };
-          vm.runInNewContext(source, sandbox, { timeout: 1000 });
-          const runtime = sandbox.window.RADAR_PDDE_RUNTIME_INPUT;
-          if (runtime?.environment !== 'preview') throw new Error('Preview sem environment=preview.');
-          if (runtime?.dataMode !== 'supabase-preview') throw new Error('Preview sem dataMode=supabase-preview.');
-          if (runtime?.features?.supabaseRepositoryEnabled !== true) throw new Error('Repositório Supabase desativado no Preview.');
-          if (runtime?.productionActivationApproved !== false) throw new Error('Preview com ativação de Production indevida.');
-          if (runtime?.supabase?.url !== process.env.RADAR_SUPABASE_URL) throw new Error('Preview aponta para projeto Supabase inesperado.');
-          const publishableKey = String(runtime?.supabase?.publishableKey || '').trim();
-          if (!publishableKey.startsWith('sb_publishable_') && !publishableKey.startsWith('eyJ')) {
-            throw new Error('Chave publicável ausente ou inválida.');
-          }
-          console.log(`::add-mask::${publishableKey}`);
-          fs.appendFileSync(process.env.GITHUB_ENV, `RADAR_SUPABASE_PUBLISHABLE_KEY=${publishableKey}\n`);
-          process.stdout.write('Manifesto Preview validado sem exibir credenciais.\n');
-          NODE
-
-      - name: Gerar manifesto local do código do PR
-        env:
-          RADAR_DATA_MODE: supabase-preview
-          RADAR_ENVIRONMENT: preview
-          RADAR_SUPABASE_REPOSITORY_ENABLED: 'true'
-          RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED: 'false'
-          RADAR_SUPABASE_SERVICE_ROLE_KEY: ''
-        run: |
+          eval "$(npx supabase status -o env | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=')"
+          test -n "${API_URL:-}"
+          test -n "${ANON_KEY:-}"
+          test -n "${SERVICE_ROLE_KEY:-}"
+          FIXTURE_PASSWORD="$(node --input-type=module -e "import { randomBytes } from 'node:crypto'; process.stdout.write(randomBytes(32).toString('base64url') + 'A1!')")"
+          echo "::add-mask::${FIXTURE_PASSWORD}"
+          echo "::add-mask::${SERVICE_ROLE_KEY}"
+          RADAR_ALLOW_LOCAL_AUTH_BOOTSTRAP=true \
+          RADAR_SUPABASE_URL="${API_URL}" \
+          RADAR_SUPABASE_ADMIN_KEY="${SERVICE_ROLE_KEY}" \
+          RADAR_AUTH_FIXTURE_PASSWORD="${FIXTURE_PASSWORD}" \
+          npm run bootstrap:auth-fixtures
+          RADAR_DATA_MODE=supabase-preview \
+          RADAR_ENVIRONMENT=test \
+          RADAR_SUPABASE_REPOSITORY_ENABLED=true \
+          RADAR_SUPABASE_URL="${API_URL}" \
+          RADAR_SUPABASE_PUBLISHABLE_KEY="${ANON_KEY}" \
           npm run generate:runtime-config
-          npm run generate:runtime-config -- --check
+          {
+            printf 'RADAR_SUPABASE_URL=%s\n' "${API_URL}"
+            printf 'RADAR_SUPABASE_PUBLISHABLE_KEY=%s\n' "${ANON_KEY}"
+            printf 'RADAR_AUTH_FIXTURE_PASSWORD=%s\n' "${FIXTURE_PASSWORD}"
+            printf 'RADAR_HML_FIXTURE_FILE=%s/supabase/fixtures/auth-users.json\n' "${GITHUB_WORKSPACE}"
+            printf 'RADAR_E2E_PROFILE_VIEWPORT_GATE=%s\n' '1'
+            printf 'RADAR_EXPECTED_RUNTIME_ENVIRONMENT=%s\n' 'test'
+            printf 'RADAR_ALLOWED_ORIGIN=%s\n' 'http://127.0.0.1:4175'
+          } >> "${GITHUB_ENV}"
 
-      - name: Gerar credencial efêmera protegida
-        shell: bash
-        run: |
-          set -euo pipefail
-          password="$(node --input-type=module -e "import { randomBytes } from 'node:crypto'; process.stdout.write(randomBytes(36).toString('base64url') + 'A1!')")"
-          echo "::add-mask::${password}"
-          echo "RADAR_HML_PASSWORD=${password}" >> "${GITHUB_ENV}"
-          echo "RADAR_HML_RUN_ID=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "${GITHUB_ENV}"
+      - name: Validar autenticação das identidades descartáveis
+        run: npm run check:auth-fixtures
 
-      - name: Criar identidades temporárias e perfis funcionais
-        run: node scripts/ops/prepare-remote-homologation-users.mjs
+      - name: Validar contratos Auth e RLS no desktop
+        env:
+          RADAR_E2E_SUPABASE_LOCAL: '1'
+        run: >-
+          npx playwright test
+          tests/e2e/supabase-auth-local.spec.js
+          tests/e2e/supabase-full-contract.spec.js
+          --project=desktop-chromium
 
-      - name: Homologar perfis, viewports, RLS e persistência
+      - name: Validar papéis e viewports
         run: npx playwright test --config=playwright.supabase-preview.config.js
 
-      - name: Remover identidades e registros temporários
-        if: always()
-        run: node scripts/ops/cleanup-remote-homologation-users.mjs
-
-      - name: Publicar evidências da homologação
+      - name: Publicar evidências do gate
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: gate-remoto-perfis-viewports-${{ github.run_id }}
           path: |
-            playwright-report-supabase-preview/
+            playwright-report/
+            playwright-report-profile-viewport/
             test-results/
           if-no-files-found: warn
           retention-days: 14
+
+      - name: Restaurar configuração e remover credencial local
+        if: always()
+        run: |
+          npm run generate:runtime-config
+          rm -f supabase/functions/.env
+
+      - name: Encerrar Supabase descartável
+        if: always()
+        run: npm run supabase:stop || true
