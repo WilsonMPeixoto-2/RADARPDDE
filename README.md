@@ -16,7 +16,7 @@ O produto atende Controladores, Assistente de Verbas Federais, Gestão SME, Equi
 | Calendário | 12 competências; `closing_competence = 2026-12`; `row_version = 5` |
 | Gestão SME | governança somente leitura aplicada no frontend, serviços e RLS |
 | Ciclos de oficialização | ciclos 1 a 5 concluídos, mesclados e publicados |
-| Histórico de migrations | 24 versões correspondentes; migration SME com versão remota distinta, mas SQL idêntico |
+| Histórico de migrations | 25 versões correspondentes entre GitHub e Supabase Production; migration SME reconciliada |
 | Deployment automático | bloqueado após a janela controlada |
 | Liberação oficial | ainda não declarada |
 
@@ -26,7 +26,8 @@ Referências:
 
 - [`Estado atual`](docs/CURRENT_STAGE.md);
 - [`Auditoria pós-ciclos 1 a 5`](docs/audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md);
-- [`Rastreabilidade da migration SME`](docs/audits/2026-07-29-rastreabilidade-migration-sme.md).
+- [`Achado original de rastreabilidade`](docs/audits/2026-07-29-rastreabilidade-migration-sme.md);
+- [`Reconciliação executada da migration SME`](docs/audits/2026-07-29-reconciliacao-migration-sme-evidencias.md).
 
 ## Regra de precedência
 
@@ -185,28 +186,28 @@ Data de corte: 29/07/2026.
 
 Essas quantidades são um retrato operacional, não constantes de negócio.
 
-## Rastreabilidade da migration SME
+## Rastreabilidade da migration SME — resolvida
 
-O arquivo local é:
+O arquivo canônico no GitHub permanece:
 
 ```text
 20260728182226_sme_access_governance.sql
 ```
 
-O Supabase registra:
+O histórico do Supabase Production foi reconciliado para o mesmo identificador:
 
 ```text
-version = 20260728190344
+version = 20260728182226
 name = sme_access_governance
 ```
 
-O conteúdo possui o mesmo comprimento e o mesmo SHA-256 nos dois lados:
+O registro derivado `20260728190344` foi removido exclusivamente pelo mecanismo oficial de `migration repair`. Nenhuma instrução funcional foi reaplicada. O histórico remoto permanece com 25 migrations e o conteúdo reconstruído mantém 1.411 caracteres e o SHA-256 canônico:
 
 ```text
 cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
 ```
 
-Não há divergência funcional identificada, mas o histórico deve ser reconciliado por procedimento suportado e testado antes da próxima migration de Production. Não renomear, reaplicar ou editar diretamente o histórico remoto sem plano específico.
+A proteção contra regressão exige a permanência do arquivo canônico, a ausência do identificador derivado no repositório e a integridade do hash.
 
 ## Executar localmente
 
@@ -238,15 +239,14 @@ O `test:readiness` inclui sintaxe, lint, testes unitários e de integração, ce
 
 ## Bloqueadores antes da liberação oficial
 
-1. reconciliar a versão da migration SME no histórico local/remoto;
-2. homologar manualmente os relatórios no Microsoft Excel desktop;
-3. habilitar proteção contra senhas vazadas no Supabase Auth;
-4. fixar deliberadamente a major operacional do Node;
-5. testar backup e restauração em ambiente descartável;
-6. executar gate remoto por perfil e viewport;
-7. concluir UAT;
-8. realizar polimento editorial e visual preservando identidade e regras de produto;
-9. registrar decisão formal de liberação.
+1. homologar manualmente os relatórios no Microsoft Excel desktop;
+2. habilitar proteção contra senhas vazadas no Supabase Auth;
+3. fixar deliberadamente a major operacional do Node;
+4. testar backup e restauração em ambiente descartável;
+5. executar gate remoto por perfil e viewport;
+6. concluir UAT;
+7. realizar polimento editorial e visual preservando identidade e regras de produto;
+8. registrar decisão formal de liberação.
 
 ## Documentação
 
@@ -259,8 +259,10 @@ Documentos de entrada:
 - [`Registro de decisões`](docs/DECISION_LOG.md);
 - [`Status documental`](docs/reference/STATUS_DOCUMENTOS.md);
 - [`Auditoria pós-ciclos`](docs/audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md);
-- [`Auditoria da migration SME`](docs/audits/2026-07-29-rastreabilidade-migration-sme.md).
+- [`Achado original da migration SME`](docs/audits/2026-07-29-rastreabilidade-migration-sme.md);
+- [`Plano executado de reconciliação`](docs/audits/2026-07-29-reconciliacao-migration-sme-plano.md);
+- [`Evidências da reconciliação`](docs/audits/2026-07-29-reconciliacao-migration-sme-evidencias.md).
 
 ## Próxima frente
 
-Os ciclos 1 a 5 estão encerrados. A próxima frente ainda não foi escolhida e deve partir dos bloqueadores reais, sem reabrir entregas concluídas e sem retomar programas por exercício sem decisão específica.
+Os ciclos 1 a 5 estão encerrados e a divergência da migration SME foi resolvida. A próxima frente ainda não foi escolhida e deve partir dos bloqueadores remanescentes, sem reabrir entregas concluídas e sem retomar programas por exercício sem decisão específica.
