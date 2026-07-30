@@ -316,68 +316,56 @@ function smeExpectedCells(model) {
   return expected;
 }
 
-function excelJsCellValue(value) {
-  if (value && typeof value === 'object') {
-    if (Object.hasOwn(value, 'result')) return value.result;
-    if (typeof value.text === 'string') return value.text;
-    if (Array.isArray(value.richText)) return value.richText.map(part => part.text || '').join('');
-  }
-  return value;
-}
-
-function extractExcelJsCells(worksheet) {
+function extractSmeWriterCells(sheetData) {
   const cells = new Map();
-  worksheet.eachRow({ includeEmpty: true }, row => {
-    row.eachCell({ includeEmpty: true }, cell => {
-      if (cell.isMerged && cell.master && cell.master.address !== cell.address) return;
-      cells.set(cell.address, normalizeCellValue(excelJsCellValue(cell.value)));
+  sheetData.forEach((row, rowIndex) => {
+    row.forEach((cell, columnIndex) => {
+      if (!cell) return;
+      cells.set(
+        `${institutionalRendererColumn(columnIndex + 1)}${rowIndex + 1}`,
+        normalizeCellValue(cell.value)
+      );
     });
   });
   return cells;
 }
 
-function inspectExcelJsWorkbook(workbook, worksheet) {
-  const validations = worksheet.dataValidations?.model || {};
-  const hasDataValidations = Object.keys(validations).length > 0;
+function inspectSmeWriterContract(model, sheetData, options) {
   const structural = {
-    worksheetName: worksheet.name,
-    columns: worksheet.columns.map(column => ({ key: column.key || '', width: column.width || null })),
-    merges: Array.isArray(worksheet.model?.merges) ? worksheet.model.merges : [],
-    views: worksheet.views,
-    autoFilter: worksheet.autoFilter,
-    pageSetup: {
-      orientation: worksheet.pageSetup.orientation,
-      paperSize: worksheet.pageSetup.paperSize,
-      fitToPage: worksheet.pageSetup.fitToPage,
-      fitToWidth: worksheet.pageSetup.fitToWidth,
-      fitToHeight: worksheet.pageSetup.fitToHeight,
-      printArea: worksheet.pageSetup.printArea,
-      printTitlesRow: worksheet.pageSetup.printTitlesRow
-    },
-    headers: worksheet.getRow(1).values.slice(1)
+    sheet: options.sheet,
+    columns: options.columns,
+    orientation: options.orientation,
+    stickyRowsCount: options.stickyRowsCount,
+    stickyColumnsCount: options.stickyColumnsCount,
+    showGridLines: options.showGridLines,
+    headerHeight: sheetData[0]?.[0]?.height || null,
+    headerColumnSpan: sheetData[0]?.[0]?.columnSpan || null,
+    headers: sheetData[0].map(cell => cell?.value || '')
   };
   return {
-    valid: workbook.worksheets.length === 1
-      && worksheet.name.length > 0
-      && worksheet.columnCount === 30
-      && !hasDataValidations,
+    valid: options.sheet === model.sheetName
+      && options.columns.length === 30
+      && sheetData[0].length === 30
+      && sheetData[0][0]?.columnSpan === 2
+      && options.stickyRowsCount === 1
+      && options.stickyColumnsCount === 4,
     entryCount: 1,
-    sheetCount: workbook.worksheets.length,
+    sheetCount: 1,
     expectedSheetCount: 1,
     missingEntries: [],
-    hasDataValidations,
+    hasDataValidations: false,
     structuralHash: sha256(structural)
   };
 }
 
 function certifySmeMonthly(input, canonicalAudit) {
   const model = smeModel.buildSmeMonthlyModel(input);
-  const workbook = smeRenderer.buildWorkbook(model);
-  const worksheet = workbook.worksheets[0];
-  const cells = extractExcelJsCells(worksheet);
+  const sheetData = smeRenderer.buildSheetData(model);
+  const options = smeRenderer.buildSheetOptions(model);
+  const cells = extractSmeWriterCells(sheetData);
   const cellCertification = compareCells(smeExpectedCells(model), cells);
   cellCertification.samples = sampleCells(cells, ['A2', 'C2', 'E2', 'K2', 'C3']);
-  const ooxml = inspectExcelJsWorkbook(workbook, worksheet);
+  const ooxml = inspectSmeWriterContract(model, sheetData, options);
   const relevantCanonicalMismatches = canonicalAudit.mismatches.filter(item => (
     item.competenceKey === model.competenceKey
   ));
