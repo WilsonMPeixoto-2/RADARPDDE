@@ -1,4 +1,4 @@
-name: Instalar ExcelJS e gerar bundle
+name: Instalar gerador Excel seguro
 
 on:
   pull_request:
@@ -6,11 +6,10 @@ on:
       - '.github/workflows/install-exceljs-lock.yml'
       - 'package.json'
       - 'package-lock.json'
-      - 'scripts/build-exceljs.mjs'
-      - 'scripts/apply-exceljs-certification-patch.mjs'
+      - 'scripts/build-excel-writer.mjs'
+      - 'scripts/apply-write-excel-file-certification-patch.mjs'
       - 'src/domain/excel-integral-certification.js'
-      - 'tests/unit/excel-integral-certification.test.js'
-      - 'vendor/exceljs.min.js'
+      - 'vendor/write-excel-file.min.js'
 
 permissions:
   contents: write
@@ -34,8 +33,10 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: Instalar ExcelJS com versão fixada
-        run: npm install --save-exact exceljs@4.4.0
+      - name: Remover ExcelJS e instalar write-excel-file
+        run: |
+          npm uninstall exceljs
+          npm install --save-exact write-excel-file@4.1.1
 
       - name: Registrar scripts de build e verificação
         run: |
@@ -43,44 +44,50 @@ jobs:
           const fs = require('node:fs');
           const file = 'package.json';
           const pkg = JSON.parse(fs.readFileSync(file, 'utf8'));
-          pkg.scripts['build:exceljs'] = 'node scripts/build-exceljs.mjs';
-          if (!pkg.scripts.check.includes('node --check scripts/build-exceljs.mjs')) {
-            pkg.scripts.check += ' && node --check scripts/build-exceljs.mjs';
-          }
+          delete pkg.scripts['build:exceljs'];
+          pkg.scripts['build:excel-writer'] = 'node scripts/build-excel-writer.mjs';
+          pkg.scripts.check = pkg.scripts.check
+            .replace(/\s*&& node --check scripts\/build-exceljs\.mjs/g, '')
+            .replace(/\s*&& node --check scripts\/build-excel-writer\.mjs/g, '');
+          pkg.scripts.check += ' && node --check scripts/build-excel-writer.mjs';
           fs.writeFileSync(file, `${JSON.stringify(pkg, null, 2)}\n`);
           NODE
 
-      - name: Adaptar certificação ao workbook ExcelJS
+      - name: Adaptar certificação ao novo gerador
         shell: bash
         run: |
           set -euo pipefail
-          if grep -q 'smeRenderer.buildPackageEntries' src/domain/excel-integral-certification.js; then
-            node scripts/apply-exceljs-certification-patch.mjs
+          if grep -q 'function excelJsCellValue' src/domain/excel-integral-certification.js; then
+            node scripts/apply-write-excel-file-certification-patch.mjs
           else
-            echo 'Certificação ExcelJS já aplicada.'
+            echo 'Certificação do novo gerador já aplicada.'
           fi
 
       - name: Gerar bundle oficial para o navegador
-        run: npm run build:exceljs
+        run: npm run build:excel-writer
 
-      - name: Confirmar dependência, lockfile e bundle
+      - name: Remover bundle anterior
+        run: rm -f vendor/exceljs.min.js
+
+      - name: Confirmar segurança e reprodutibilidade
         run: |
-          node -e "const p=require('./package.json'); if(p.dependencies?.exceljs!=='4.4.0'||p.scripts?.['build:exceljs']!=='node scripts/build-exceljs.mjs') process.exit(1);"
-          node -e "const p=require('./package-lock.json'); if(p.packages?.['node_modules/exceljs']?.version!=='4.4.0') process.exit(1);"
-          test -s vendor/exceljs.min.js
-          grep -q 'ExcelJS' vendor/exceljs.min.js
-          grep -q 'inspectExcelJsWorkbook' src/domain/excel-integral-certification.js
+          node -e "const p=require('./package.json'); if(p.dependencies?.['write-excel-file']!=='4.1.1'||p.dependencies?.exceljs) process.exit(1);"
+          node -e "const p=require('./package-lock.json'); if(p.packages?.['node_modules/write-excel-file']?.version!=='4.1.1'||p.packages?.['node_modules/exceljs']) process.exit(1);"
+          npm audit --audit-level=high
+          test -s vendor/write-excel-file.min.js
+          grep -q 'writeXlsxFile' vendor/write-excel-file.min.js
+          grep -q 'inspectSmeWriterContract' src/domain/excel-integral-certification.js
 
       - name: Gravar artefatos na branch
         shell: bash
         run: |
           set -euo pipefail
-          if git diff --quiet -- package.json package-lock.json vendor/exceljs.min.js src/domain/excel-integral-certification.js tests/unit/excel-integral-certification.test.js; then
-            echo 'ExcelJS, bundle e certificação já estão atualizados.'
+          if git diff --quiet -- package.json package-lock.json vendor src/domain/excel-integral-certification.js; then
+            echo 'Gerador Excel seguro e certificação já estão atualizados.'
             exit 0
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add package.json package-lock.json vendor/exceljs.min.js src/domain/excel-integral-certification.js tests/unit/excel-integral-certification.test.js
-          git commit -m 'build: concluir integração do ExcelJS 4.4.0'
+          git add -A package.json package-lock.json vendor src/domain/excel-integral-certification.js
+          git commit -m 'build: substituir ExcelJS por write-excel-file 4.1.1'
           git push origin HEAD:${{ github.event.pull_request.head.ref }}
