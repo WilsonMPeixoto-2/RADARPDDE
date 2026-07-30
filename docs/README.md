@@ -14,18 +14,20 @@ Concluídos e publicados:
 - competência global janeiro–dezembro;
 - avaliação mensal canônica;
 - timeline cronológica da unidade;
-- certificação automatizada dos dois produtos Excel;
+- certificação e integração dos dois produtos Excel;
+- CSV legado preservado como fallback;
 - navegação contextual e retorno seguro.
 
 A liberação oficial ainda não foi declarada.
 
 ## 2. Entrada obrigatória
 
-1. [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — estado operacional, bloqueadores e próxima decisão;
-2. [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — finalidade, perfis, arquitetura e contratos;
-3. [`DECISION_LOG.md`](DECISION_LOG.md) — ADRs vigentes, implementadas e substituídas;
-4. [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md) — validade e precedência dos documentos;
-5. [`audits/2026-07-29-alinhamento-documental-integral-pos-pr108.md`](audits/2026-07-29-alinhamento-documental-integral-pos-pr108.md) — auditoria da reconciliação atual.
+1. [`../AGENTS.md`](../AGENTS.md) — instruções operacionais e fontes de verdade;
+2. [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — estado, bloqueadores e próxima decisão;
+3. [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — finalidade, perfis, arquitetura e contratos;
+4. [`DECISION_LOG.md`](DECISION_LOG.md) — ADRs vigentes, implementadas e substituídas;
+5. [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md) — validade e precedência dos documentos;
+6. [`audits/2026-07-29-alinhamento-documental-integral-pos-pr108.md`](audits/2026-07-29-alinhamento-documental-integral-pos-pr108.md) — auditoria da reconciliação atual.
 
 Para dado mutável, confirmar sempre código, Supabase e Vercel.
 
@@ -34,6 +36,7 @@ Para dado mutável, confirmar sempre código, Supabase e Vercel.
 | Tema | Documento |
 |---|---|
 | índice de arquitetura | [`architecture/README.md`](architecture/README.md) |
+| catálogo de superfícies | [`reference/PRODUCT_SURFACE_CATALOG.md`](reference/PRODUCT_SURFACE_CATALOG.md) |
 | competências | [`architecture/competencias.md`](architecture/competencias.md) |
 | avaliação mensal | [`architecture/avaliacao-mensal.md`](architecture/avaliacao-mensal.md) |
 | projeção operacional | [`architecture/modelo-operacional.md`](architecture/modelo-operacional.md) |
@@ -43,6 +46,7 @@ Para dado mutável, confirmar sempre código, Supabase e Vercel.
 | retificações | [`architecture/retificacoes.md`](architecture/retificacoes.md) |
 | relatório institucional | [`architecture/excel-export.md`](architecture/excel-export.md) |
 | Excel SME mensal | [`architecture/excel-sme-mensal.md`](architecture/excel-sme-mensal.md) |
+| runtime Excel | [`architecture/excel-xlsx-runtime.md`](architecture/excel-xlsx-runtime.md) |
 | certificação Excel | [`architecture/excel-integral-certification.md`](architecture/excel-integral-certification.md) |
 
 ## 4. Arquitetura técnica
@@ -53,10 +57,19 @@ Para dado mutável, confirmar sempre código, Supabase e Vercel.
 | ordem do frontend | [`architecture/frontend-load-order.md`](architecture/frontend-load-order.md) |
 | extensões pós-`app.js` | [`architecture/product-extensions-load-order.md`](architecture/product-extensions-load-order.md) |
 | estratégia de testes | [`architecture/testing.md`](architecture/testing.md) |
-| runtime OOXML | [`architecture/excel-xlsx-runtime.md`](architecture/excel-xlsx-runtime.md) |
 | plano do workbook | [`architecture/excel-workbook-plan.md`](architecture/excel-workbook-plan.md) |
 
-## 5. Supabase
+## 5. Decisões e referências
+
+| Documento | Uso |
+|---|---|
+| [`DECISION_LOG.md`](DECISION_LOG.md) | fonte vigente das decisões duradouras |
+| [`reference/PRODUCT_DECISIONS.md`](reference/PRODUCT_DECISIONS.md) | mapeamento histórico dos antigos IDs de decisão |
+| [`reference/PRODUCT_SURFACE_CATALOG.md`](reference/PRODUCT_SURFACE_CATALOG.md) | superfícies S-01 a S-18 |
+| [`reference/CHANGE_CLASSIFICATION.md`](reference/CHANGE_CLASSIFICATION.md) | classificação de achados e condutas |
+| [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md) | classificação dos documentos |
+
+## 6. Supabase
 
 | Documento | Uso |
 |---|---|
@@ -77,9 +90,9 @@ local: 20260728182226
 remoto: 20260728190344
 ```
 
-O SQL é idêntico; o desvio é de histórico. O runbook já incorpora o procedimento de preflight e reparo suportado, mas nenhum reparo foi executado.
+O SQL é idêntico; o desvio é de histórico. O runbook incorpora o preflight e a estratégia de reparo suportado, mas nenhum reparo foi executado.
 
-## 6. Vercel
+## 7. Vercel
 
 O estado deve ser verificado por:
 
@@ -91,7 +104,7 @@ O estado deve ser verificado por:
 
 Preview e Production são artefatos distintos. Confirmar SHA, manifesto e ambiente antes de homologar.
 
-## 7. Auditorias recentes
+## 8. Auditorias recentes
 
 - [`audits/2026-07-29-alinhamento-documental-integral-pos-pr108.md`](audits/2026-07-29-alinhamento-documental-integral-pos-pr108.md);
 - [`audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md`](audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md);
@@ -100,7 +113,7 @@ Preview e Production são artefatos distintos. Confirmar SHA, manifesto e ambien
 
 Auditorias são datadas. Seus gates permanecem até evidência de superação, mas estados remotos devem ser consultados novamente.
 
-## 8. Planos, especificações e evidências
+## 9. Planos, especificações e evidências
 
 ### Planos e especificações
 
@@ -116,7 +129,7 @@ Auditorias são datadas. Seus gates permanecem até evidência de superação, m
 - não editar artefato gerado manualmente;
 - distinguir evidência sintética de homologação real.
 
-## 9. Bloqueadores atuais
+## 10. Bloqueadores atuais
 
 1. reconciliar o histórico da migration SME;
 2. habilitar proteção contra senhas vazadas;
@@ -128,11 +141,11 @@ Auditorias são datadas. Seus gates permanecem até evidência de superação, m
 8. executar polimento editorial/visual;
 9. registrar decisão formal de release.
 
-## 10. Regra para a próxima tarefa
+## 11. Regra para a próxima tarefa
 
 Antes de implementar:
 
-1. ler `CURRENT_STAGE.md`;
+1. ler `AGENTS.md` e `CURRENT_STAGE.md`;
 2. confirmar que o objetivo não contradiz ADR vigente;
 3. verificar código e ambientes;
 4. declarar escopo e fora de escopo;
