@@ -2,12 +2,10 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const ExcelJS = require('exceljs');
 
-const baseRenderer = require('../../src/domain/excel-xlsx-renderer.js');
 const modelApi = require('../../src/domain/excel-sme-export-model.js');
 const renderer = require('../../src/domain/excel-sme-monthly-renderer.js');
-
-const decoder = new TextDecoder('utf-8');
 
 function model() {
     return modelApi.buildSmeMonthlyModel({
@@ -38,76 +36,78 @@ function model() {
     });
 }
 
-function inspect(bytes) {
-    return Object.fromEntries(
-        Object.entries(baseRenderer.inspectStoredZip(bytes))
-            .map(([name, value]) => [name, decoder.decode(value)])
-    );
+async function loadWorkbook() {
+    const bytes = await renderer.renderWorkbook(model());
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(bytes);
+    return { bytes, workbook, worksheet: workbook.worksheets[0] };
 }
 
-test('gera pacote XLSX de uma única aba mensal', () => {
-    const bytes = renderer.renderWorkbook(model());
-    const entries = inspect(bytes);
+test('gera um XLSX ExcelJS válido com uma única aba mensal', async () => {
+    const { bytes, workbook, worksheet } = await loadWorkbook();
 
     assert.equal(bytes[0], 0x50);
     assert.equal(bytes[1], 0x4B);
-    assert.deepEqual(Object.keys(entries).sort(), [
-        '[Content_Types].xml',
-        '_rels/.rels',
-        'docProps/app.xml',
-        'docProps/core.xml',
-        'xl/_rels/workbook.xml.rels',
-        'xl/styles.xml',
-        'xl/workbook.xml',
-        'xl/worksheets/sheet1.xml'
-    ]);
-    assert.match(entries['xl/workbook.xml'], /<sheet name="JULHO" sheetId="1" r:id="rId1"\/>/);
-    assert.doesNotMatch(entries['xl/workbook.xml'], /sheetId="2"/);
+    assert.equal(workbook.worksheets.length, 1);
+    assert.equal(worksheet.name, 'JULHO');
+    assert.equal(renderer.VERSION, '2.0.0');
 });
 
-test('não emite propriedades vazias reparáveis no workbook e preserva a impressão', () => {
-    const workbook = inspect(renderer.renderWorkbook(model()))['xl/workbook.xml'];
+test('preserva os trinta cabeçalhos literais e a mesclagem CRE do original', async () => {
+    const { worksheet } = await loadWorkbook();
+    const headers = modelApi.ORIGINAL_HEADER_LABELS;
 
-    assert.doesNotMatch(workbook, /<workbookPr\b/);
-    assert.match(workbook, /<definedName name="_xlnm\.Print_Area" localSheetId="0">'JULHO'!\$A\$1:\$Z\$2<\/definedName>/);
-    assert.match(workbook, /<definedName name="_xlnm\.Print_Titles" localSheetId="0">'JULHO'!\$1:\$1<\/definedName>/);
+    assert.equal(worksheet.columnCount, 30);
+    assert.deepEqual(
+        headers.map((_, index) => worksheet.getRow(1).getCell(index + 1).value || ''),
+        headers
+    );
+    assert.equal(worksheet.getCell('A1').isMerged, true);
+    assert.equal(worksheet.getCell('B1').isMerged, true);
+    assert.equal(worksheet.getCell('A1').value, 'CRE');
 });
 
-test('preserva 26 colunas, cabeçalho e dados mensais', () => {
-    const sheet = inspect(renderer.renderWorkbook(model()))['xl/worksheets/sheet1.xml'];
+test('projeta dados canônicos sem descaracterizar designação, CRE ou denominação', async () => {
+    const { worksheet } = await loadWorkbook();
 
-    assert.match(sheet, /<dimension ref="A1:Z2"\/>/);
-    assert.equal((sheet.match(/<col min=/g) || []).length, 26);
-    assert.match(sheet, /<c r="A1" s="1" t="inlineStr">[\s\S]*?<t[^>]*>Nº<\/t>/);
-    assert.match(sheet, /<c r="D1" s="1" t="inlineStr">[\s\S]*?<t[^>]*>UNIDADE ESCOLAR<\/t>/);
-    assert.match(sheet, /<c r="E1" s="2" t="inlineStr">[\s\S]*?<t[^>]*>EXTRATO CONTA CORRENTE<\/t>/);
-    assert.match(sheet, /<c r="Z1" s="5" t="inlineStr">[\s\S]*?<t[^>]*>OBSERVAÇÕES<\/t>/);
-    assert.match(sheet, /<c r="A2" s="6"><v>1<\/v><\/c>/);
-    assert.match(sheet, /<c r="C2" s="6" t="inlineStr">[\s\S]*?<t[^>]*>04\.31\.001<\/t>/);
-    assert.match(sheet, /<c r="D2" s="8" t="inlineStr">[\s\S]*?<t[^>]*>Escola Municipal Ary Barroso<\/t>/);
-    assert.match(sheet, /<c r="E2" s="6" t="inlineStr">[\s\S]*?<t[^>]*>SIM<\/t>/);
-    assert.match(sheet, /<c r="G2" s="6" t="inlineStr">[\s\S]*?<t[^>]*>NÃO SE APLICA<\/t>/);
-    assert.match(sheet, /<c r="W2" s="6" t="inlineStr"><is><t xml:space="preserve"><\/t><\/is><\/c>/);
+    assert.equal(worksheet.getCell('A2').value, 1);
+    assert.equal(worksheet.getCell('B2').value, '4ª');
+    assert.equal(worksheet.getCell('C2').value, 431001);
+    assert.equal(worksheet.getCell('D2').value, 'ESCOLA MUNICIPAL ARY BARROSO');
+    assert.equal(worksheet.getCell('E2').value, 'SIM');
+    assert.equal(worksheet.getCell('G2').value, 'NÃO SE APLICA');
+    assert.equal(worksheet.getCell('K2').value, 'SIM');
+    assert.equal(worksheet.getCell('Z2').value, 'APTA');
+    assert.equal(worksheet.getCell('AA2').value, '');
+    assert.equal(worksheet.getCell('AD2').value, '');
 });
 
-test('configura filtro, congelamento e impressão sem validações reparáveis', () => {
-    const sheet = inspect(renderer.renderWorkbook(model()))['xl/worksheets/sheet1.xml'];
+test('configura congelamento, filtro e impressão sem validações de dados', async () => {
+    const { worksheet } = await loadWorkbook();
+    const view = worksheet.views[0];
 
-    assert.match(sheet, /<pane xSplit="4" ySplit="1" topLeftCell="E2"[^>]*state="frozen"\/>/);
-    assert.match(sheet, /<autoFilter ref="A1:Z2"\/>/);
-    assert.doesNotMatch(sheet, /<dataValidations\b/);
-    assert.doesNotMatch(sheet, /<dataValidation\b/);
-    assert.match(sheet, /<pageSetup paperSize="9" orientation="landscape" fitToWidth="1" fitToHeight="0"\/>/);
-    assert.match(sheet, /CONTROLE DE BONIFICAÇÃO — JULHO 2026/);
+    assert.equal(view.state, 'frozen');
+    assert.equal(view.xSplit, 4);
+    assert.equal(view.ySplit, 1);
+    assert.equal(view.topLeftCell, 'E2');
+    assert.deepEqual(worksheet.autoFilter, 'A1:AD2');
+    assert.equal(worksheet.pageSetup.orientation, 'landscape');
+    assert.equal(worksheet.pageSetup.fitToWidth, 1);
+    assert.equal(worksheet.pageSetup.fitToHeight, 0);
+    assert.equal(worksheet.pageSetup.printArea, 'A1:AD2');
+    assert.equal(worksheet.pageSetup.printTitlesRow, '1:1');
+    assert.deepEqual(worksheet.dataValidations.model, {});
 });
 
-test('mantém estilos cromáticos e bordas no pacote', () => {
-    const styles = inspect(renderer.renderWorkbook(model()))['xl/styles.xml'];
+test('mantém a identidade cromática por bloco com leitura mais clara', async () => {
+    const { worksheet } = await loadWorkbook();
 
-    for (const color of ['FF17365D', 'FF4F81BD', 'FF70AD47', 'FFED7D31', 'FF7F8C8D']) {
-        assert.match(styles, new RegExp(color));
-    }
-    assert.match(styles, /<cellXfs count="10">/);
-    assert.match(styles, /FFB7C3D0/);
-    assert.match(styles, /<name val="Arial"\/>/);
+    assert.equal(worksheet.getCell('A1').fill.fgColor.argb, renderer.COLORS.identity);
+    assert.equal(worksheet.getCell('E1').fill.fgColor.argb, renderer.COLORS.basic);
+    assert.equal(worksheet.getCell('L1').fill.fgColor.argb, renderer.COLORS.quality);
+    assert.equal(worksheet.getCell('S1').fill.fgColor.argb, renderer.COLORS.equity);
+    assert.equal(worksheet.getCell('Z1').fill.fgColor.argb, renderer.COLORS.status);
+    assert.equal(worksheet.getCell('AD1').fill.fgColor.argb, renderer.COLORS.administrative);
+    assert.equal(worksheet.getRow(1).height, 105);
+    assert.equal(worksheet.getColumn(4).width, 60.29);
 });
