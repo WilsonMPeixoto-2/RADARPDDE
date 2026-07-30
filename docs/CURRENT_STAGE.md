@@ -44,7 +44,7 @@ Concluídos no hardening anterior ao release:
 - correção do logout do Administrador técnico no mobile;
 - backup lógico com Supabase CLI;
 - restauração em segunda pilha Supabase descartável;
-- equivalência comprovada de schema, dados e histórico de migrations;
+- equivalência comprovada de schema, dados públicos, identidades Auth e migrations;
 - evidência sanitizada sem publicação dos dumps SQL.
 
 A liberação oficial do produto ainda não foi declarada.
@@ -85,8 +85,6 @@ O teste de backup/restauração não acessa esse projeto. Origem e destino são 
 
 ## 4. Runtime Node.js
 
-Contrato canônico:
-
 ```text
 package.json        engines.node = 24.x
 package-lock.json   packages[""].engines.node = 24.x
@@ -96,11 +94,7 @@ GitHub Actions      node-version: 24
 Vercel              nodeVersion: 24.x
 ```
 
-Proteção automatizada:
-
-```text
-tests/unit/release-hardening-contract.test.js
-```
+Proteção: `tests/unit/release-hardening-contract.test.js`.
 
 ## 5. Gate remoto por papel e viewport
 
@@ -128,15 +122,8 @@ A matriz contém 15 cenários de papel × viewport. Auth/RLS mutáveis são exec
 
 ## 6. Backup e restauração descartáveis
 
-Workflow:
-
 ```text
 .github/workflows/backup-restore-disposable.yml
-```
-
-Implementação:
-
-```text
 scripts/verify-supabase-backup-restore.mjs
 tests/unit/backup-restore-gate-contract.test.js
 npm run test:backup-restore
@@ -145,17 +132,18 @@ npm run test:backup-restore
 Fluxo comprovado:
 
 1. origem Supabase descartável;
-2. reset com 25 migrations e seed versionado;
-3. dumps de papéis, schema, dados e histórico;
-4. segunda pilha isolada por `SUPABASE_WORKDIR`;
-5. restauração transacional com `psql`;
-6. comparação integral;
-7. limpeza das duas pilhas.
+2. reset com 25 migrations e seed;
+3. criação de sete identidades Auth efêmeras;
+4. dumps de papéis, schema, dados e histórico;
+5. segunda pilha isolada por `SUPABASE_WORKDIR`;
+6. restauração transacional com `psql`;
+7. comparação de schema, dados públicos, `auth.users`, `auth.identities` e migrations;
+8. limpeza das duas pilhas.
 
-Evidência funcional inicial:
+Evidência funcional ampliada:
 
 ```text
-GitHub Actions run: 30537076528
+GitHub Actions run: 30538395958
 job: Dump, restauração e equivalência
 conclusão: success
 ```
@@ -164,21 +152,27 @@ Fingerprints coincidentes:
 
 ```text
 schema:     0edda0a68fdbd4a6984f68d4d0332a3f4b8fe9965ea34911f1ea17b7a3150948
-dados:      fa1f775a1eae802d59dfa889347cbe013e30b6b20b45b74e4694db750dff0cc7
+dados:      ba4e33c2189455a676d52d0ef5f7f0ec7f816a4348641c0cf85b0043643a2d84
+Auth:       e3776cc47f5628c5f2a8365dd105837cefffdc79952df683787addda0ed4b477
 migrations: 18caf36e3032a4c2dfb2064b18ad2cf1c0dbf59df8c12ff8319ab7d7bd679e6b
 ```
 
-O artefato permanente contém somente `evidence.json`; os SQLs permanecem no runner efêmero e não são publicados.
+Contagens Auth restauradas:
+
+```text
+auth.users: 7
+auth.identities: 7
+```
+
+O artefato publicado possui 1.441 bytes e contém somente `evidence.json`. Os SQLs permanecem no runner efêmero.
 
 ## 7. Recurso dependente de plano
 
-A checagem de senhas comprometidas é disponibilizada pelo Supabase apenas no plano Pro ou superior. Como o projeto opera no plano Free e não há autorização de despesa, ela foi retirada dos critérios de liberação. A decisão deve ser reavaliada se houver mudança de plano.
+A checagem de senhas comprometidas é disponibilizada pelo Supabase apenas no plano Pro ou superior. Como o projeto opera no plano Free e não há autorização de despesa, ela foi retirada dos critérios de liberação. Reavaliar se houver mudança de plano.
 
 ## 8. Migrações
 
 O GitHub e o Supabase Production possuem 25 versões correspondentes.
-
-Migration SME canônica:
 
 ```text
 arquivo local: 20260728182226_sme_access_governance.sql
@@ -229,14 +223,12 @@ Node, matriz remota e backup/restauração estão cumpridos e não integram mais
 
 ### Homologação manual no Microsoft Excel desktop
 
-Objetivos:
-
 - abrir o relatório institucional de quatro abas;
 - abrir o Excel SME mensal;
 - confirmar ausência de aviso de reparo;
 - conferir fórmulas, estilos, filtros, congelamento, larguras e impressão;
 - registrar versão do Excel, arquivos, data e resultado;
-- corrigir qualquer divergência e repetir a certificação automatizada.
+- corrigir divergências e repetir a certificação automatizada.
 
 Depois disso, seguir para Advisors, UAT, polimento e decisão de release.
 
