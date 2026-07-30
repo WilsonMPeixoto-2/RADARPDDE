@@ -46,7 +46,6 @@ O commit `598361dd...` é posterior ao deployment funcional e apenas restaura o 
 | Auditoria da migration SME | Divergência de identificador, equivalência do SQL e regra de tratamento | **Vigente até a reconciliação do histórico** | `docs/audits/2026-07-29-rastreabilidade-migration-sme.md` |
 | Auditoria de alinhamento de 28/07/2026 | Linha de base anterior à execução dos ciclos | **Histórica relevante** | `docs/audits/2026-07-28-alinhamento-codigo-ambientes-documentacao.md` |
 | Plano de oficialização de 28/07/2026 | Plano que originou os ciclos 1 a 5 e gates de release | **Executado quanto aos ciclos; histórico para essa parte; referencial para gates finais** | `docs/superpowers/plans/2026-07-28-oficializacao-operacional-radar-pdde.md` |
-| Adendo do plano de oficialização | Restrições técnicas para competência, timeline e Excel | **Executado e preservado como histórico de decisão** | `docs/superpowers/plans/2026-07-28-oficializacao-operacional-radar-pdde-addendum.md` |
 | Dossiê Consolidado v1.0 | Contexto e regras históricas | **Referência; não inventário técnico atual** | `docs/reference/RADAR_PDDE_Dossie_Contexto_Regras_Decisoes_v1_0.docx` |
 | Plano do Lote 2 — Revisão Consolidada v2.0 | Contrato funcional, visual e de navegação original | **Referência de produto** | `docs/reference/RADAR_PDDE_Plano_Lote_2_Revisao_Consolidada_v2_0.docx` |
 | Relatório e Guia do Ciclo A v1.0 | Explicação funcional de ciclo anterior | **Histórico produzido** | `docs/reports/RADAR_PDDE_Relatorio_Guia_Ciclo_A_v1_0.docx` |
