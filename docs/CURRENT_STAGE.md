@@ -4,8 +4,8 @@
 **Commit funcional publicado:** `dfc8aa3030b02edb73f764f5f56bd6759a7a1d77`  
 **Deployment Production:** `dpl_7tLM3RZ7MEuRRTzvGmc9EiAARmDY` — `READY`  
 **Reconciliação da migration SME:** `79cb67c84720b1850879d9c50c262e1623d5d8cc`  
-**Hardening atual:** Node 24 e gate remoto por papel/viewport concluídos e validados  
-**Próxima frente:** ainda não escolhida
+**Hardening atual:** Node 24, gate perfil/viewport e backup/restauração descartáveis concluídos  
+**Próxima frente sugerida:** homologação manual dos relatórios no Microsoft Excel desktop
 
 ## 1. Como usar este documento
 
@@ -32,25 +32,20 @@ Concluídos e publicados:
 - competência global de janeiro a dezembro de 2026;
 - avaliação mensal canônica;
 - timeline cronológica da unidade;
-- certificação automatizada dos relatórios Excel;
-- integração dos botões XLSX institucional e Excel SME;
+- relatórios XLSX institucional e SME;
 - CSV legado preservado como fallback;
-- navegação contextual com retorno seguro;
-- restauração do bloqueio de deployments automáticos;
+- navegação contextual;
 - reconciliação do histórico da migration SME.
 
-Concluídos neste ciclo de hardening:
+Concluídos no hardening anterior ao release:
 
-- compatibilidade do Node.js 24 confirmada;
-- major operacional fixada em `24.x`;
-- `.nvmrc` e `.node-version` versionados;
-- contratos de `package.json`, `package-lock.json`, GitHub Actions e Vercel alinhados;
-- gate remoto permanente por papel institucional e viewport;
-- Supabase descartável no runner do GitHub Actions;
-- validação de Auth/RLS no desktop;
-- matriz de cinco papéis em Desktop Chrome, Pixel 7 e iPhone 15;
-- correção da sobreposição entre seletor técnico e botão **Sair** no cabeçalho móvel;
-- regressões automatizadas para o runtime, o workflow e o layout móvel.
+- Node.js fixado em `24.x`;
+- gate remoto de cinco papéis em três viewports;
+- correção do logout do Administrador técnico no mobile;
+- backup lógico com Supabase CLI;
+- restauração em segunda pilha Supabase descartável;
+- equivalência comprovada de schema, dados e histórico de migrations;
+- evidência sanitizada sem publicação dos dumps SQL.
 
 A liberação oficial do produto ainda não foi declarada.
 
@@ -59,14 +54,14 @@ A liberação oficial do produto ainda não foi declarada.
 ### 3.1 Vercel
 
 ```text
-project: radarpdde
+project: radarpdde-fix
 production deployment: dpl_7tLM3RZ7MEuRRTzvGmc9EiAARmDY
 state: READY
 artifactCommitSha: dfc8aa3030b02edb73f764f5f56bd6759a7a1d77
 nodeVersion: 24.x
 ```
 
-O hardening de Node, testes e documentação não exige publicação funcional em Production. O artefato publicado permanece inalterado até nova janela deliberada.
+O hardening deste ciclo não exige publicação funcional. O artefato Production permanece inalterado até nova janela deliberada.
 
 ### 3.2 Supabase
 
@@ -86,7 +81,7 @@ closing_competence = 2026-12
 app_config.row_version = 5
 ```
 
-Contagens operacionais devem ser consultadas novamente quando forem necessárias; não são invariantes documentais.
+O teste de backup/restauração não acessa esse projeto. Origem e destino são pilhas locais descartáveis no runner do GitHub Actions.
 
 ## 4. Runtime Node.js
 
@@ -101,43 +96,21 @@ GitHub Actions      node-version: 24
 Vercel              nodeVersion: 24.x
 ```
 
-A fixação consolida a major já usada na Vercel e nos workflows. Não houve promoção para uma major sem histórico de compatibilidade.
-
 Proteção automatizada:
 
 ```text
 tests/unit/release-hardening-contract.test.js
 ```
 
-O teste rejeita:
-
-- reabertura da faixa para outra major;
-- divergência entre package e lockfile;
-- ausência dos arquivos de versão;
-- workflow com Node 20, 22 ou 26.
-
 ## 5. Gate remoto por papel e viewport
 
-Workflow canônico:
+Workflow:
 
 ```text
 .github/workflows/gate-remoto-perfis-viewports.yml
 ```
 
-O gate é executado em runner remoto do GitHub Actions e não utiliza segredo de Production. Ele:
-
-1. instala Node 24 e dependências reproduzíveis;
-2. instala Chromium e WebKit;
-3. inicia um Supabase descartável;
-4. aplica as 25 migrations versionadas;
-5. cria identidades Auth efêmeras;
-6. valida autenticação e contratos RLS no desktop;
-7. serve o código do próprio PR;
-8. executa a matriz responsiva;
-9. publica artefatos Playwright;
-10. restaura a configuração e destrói o ambiente.
-
-Papéis cobertos:
+Papéis:
 
 - Administrador técnico;
 - Assistente de Verbas Federais;
@@ -145,40 +118,63 @@ Papéis cobertos:
 - Equipe de Inventário;
 - Gestão SME.
 
-Viewports cobertos:
+Viewports:
 
 - Desktop Chrome;
 - Pixel 7 / Chromium;
 - iPhone 15 / WebKit.
 
-A matriz responsiva contém 15 cenários de papel × viewport. Os contratos Auth/RLS mutáveis são executados uma única vez no desktop para evitar efeitos duplicados.
+A matriz contém 15 cenários de papel × viewport. Auth/RLS mutáveis são executados uma única vez no desktop.
 
-Evidência principal do ciclo:
+## 6. Backup e restauração descartáveis
+
+Workflow:
 
 ```text
-GitHub Actions run: 30516532485
-job: Perfis × Desktop, Android e iPhone
+.github/workflows/backup-restore-disposable.yml
+```
+
+Implementação:
+
+```text
+scripts/verify-supabase-backup-restore.mjs
+tests/unit/backup-restore-gate-contract.test.js
+npm run test:backup-restore
+```
+
+Fluxo comprovado:
+
+1. origem Supabase descartável;
+2. reset com 25 migrations e seed versionado;
+3. dumps de papéis, schema, dados e histórico;
+4. segunda pilha isolada por `SUPABASE_WORKDIR`;
+5. restauração transacional com `psql`;
+6. comparação integral;
+7. limpeza das duas pilhas.
+
+Evidência funcional inicial:
+
+```text
+GitHub Actions run: 30537076528
+job: Dump, restauração e equivalência
 conclusão: success
 ```
 
-## 6. Defeito móvel corrigido pelo gate
-
-Em telas de até 520 px, o seletor de perfil do Administrador técnico e o botão **Sair** ocupavam a mesma área da grade. O seletor interceptava o toque no logout.
-
-O cabeçalho passou a reservar áreas distintas:
+Fingerprints coincidentes:
 
 ```text
-exercise | theme | alerts | session | profile
+schema:     0edda0a68fdbd4a6984f68d4d0332a3f4b8fe9965ea34911f1ea17b7a3150948
+dados:      fa1f775a1eae802d59dfa889347cbe013e30b6b20b45b74e4694db750dff0cc7
+migrations: 18caf36e3032a4c2dfb2064b18ad2cf1c0dbf59df8c12ff8319ab7d7bd679e6b
 ```
 
-Proteções:
+O artefato permanente contém somente `evidence.json`; os SQLs permanecem no runner efêmero e não são publicados.
 
-- teste E2E em Android e iPhone;
-- teste unitário do contrato CSS;
-- ausência de overflow horizontal relevante;
-- logout real após recarga da sessão.
+## 7. Recurso dependente de plano
 
-## 7. Migrações
+A checagem de senhas comprometidas é disponibilizada pelo Supabase apenas no plano Pro ou superior. Como o projeto opera no plano Free e não há autorização de despesa, ela foi retirada dos critérios de liberação. A decisão deve ser reavaliada se houver mudança de plano.
+
+## 8. Migrações
 
 O GitHub e o Supabase Production possuem 25 versões correspondentes.
 
@@ -198,17 +194,18 @@ Migration futura exige:
 3. reset local;
 4. pgTAP e lint SQL;
 5. tipos regenerados;
-6. `db push --linked --dry-run`;
-7. backup e rollback;
-8. evidência no mesmo SHA.
+6. backup/restauração descartáveis;
+7. `db push --linked --dry-run`;
+8. plano de rollback;
+9. evidência no mesmo SHA.
 
-## 8. Relatórios Excel
+## 9. Relatórios Excel
 
 ### Institucional
 
 - modelo, renderer, quatro abas e certificação: concluídos;
-- botão principal: integrado ao XLSX;
-- CSV: preservado como secundário e fallback;
+- botão principal integrado ao XLSX;
+- CSV preservado como secundário e fallback;
 - abertura manual no Excel desktop: pendente.
 
 ### SME mensal
@@ -218,70 +215,39 @@ Migration futura exige:
 - `dataValidations`: ausente por contrato;
 - abertura manual no Excel desktop: pendente.
 
-## 9. Gates remanescentes antes da liberação oficial
+## 10. Gates remanescentes antes da liberação oficial
 
-1. habilitar proteção contra senhas vazadas no Supabase Auth;
-2. testar backup e restauração em ambiente descartável;
-3. abrir os dois produtos no Microsoft Excel desktop sem reparo;
-4. revisar Advisors quando aplicável;
-5. concluir UAT funcional;
-6. realizar polimento editorial e visual sem alterar produto;
-7. registrar decisão formal de release.
+1. abrir os dois produtos no Microsoft Excel desktop sem reparo;
+2. revisar Advisors quando aplicável;
+3. concluir UAT funcional;
+4. realizar polimento editorial e visual sem alterar produto;
+5. registrar decisão formal de release.
 
-A fixação do Node e a matriz remota por papel/viewport estão cumpridas e não integram mais os bloqueadores.
+Node, matriz remota e backup/restauração estão cumpridos e não integram mais os bloqueadores.
 
-## 10. Próximas frentes elegíveis
+## 11. Próxima frente recomendada
 
-Nenhuma foi escolhida expressamente.
+### Homologação manual no Microsoft Excel desktop
 
-### A. Segurança e recuperação
+Objetivos:
 
-- proteção contra senhas vazadas;
-- teste de backup e restauração;
-- revisão de Advisors;
-- evidências de contingência.
+- abrir o relatório institucional de quatro abas;
+- abrir o Excel SME mensal;
+- confirmar ausência de aviso de reparo;
+- conferir fórmulas, estilos, filtros, congelamento, larguras e impressão;
+- registrar versão do Excel, arquivos, data e resultado;
+- corrigir qualquer divergência e repetir a certificação automatizada.
 
-### B. Homologação operacional
-
-- Microsoft Excel desktop;
-- UAT por papel real;
-- registro e priorização dos achados;
-- reteste após ajustes.
-
-### C. Polimento editorial e visual
-
-- hierarquia;
-- espaçamento;
-- densidade;
-- tabelas e cartões;
-- ícones e estados;
-- mensagens operacionais.
-
-Restrições: preservar paleta, logomarca, capacidades, nomenclatura canônica e equivalência mobile.
-
-### D. Configuração de programas por exercício
-
-Frente funcional separada. Exige desenho próprio e não deve ser misturada com Gestão SME ou polimento.
-
-## 11. Regra de escolha
-
-A próxima frente deve ser escolhida expressamente. Antes de implementar:
-
-1. confirmar o contrato ou criar especificação;
-2. registrar escopo e fora de escopo;
-3. trabalhar em branch própria;
-4. verificar impacto em produto, banco e deployment;
-5. definir gates;
-6. atualizar documentação no mesmo ciclo.
+Depois disso, seguir para Advisors, UAT, polimento e decisão de release.
 
 ## 12. Documentos de continuidade
 
 - `AGENTS.md`;
 - `README.md`;
-- `docs/README.md`;
 - `docs/PROJECT_CONTEXT.md`;
 - `docs/DECISION_LOG.md`;
 - `docs/architecture/testing.md`;
 - `docs/reference/STATUS_DOCUMENTOS.md`;
+- `docs/audits/2026-07-30-backup-restore-disposable.md`;
 - `docs/audits/2026-07-30-node24-gate-remoto-perfis-viewports.md`;
 - `docs/audits/2026-07-29-reconciliacao-migration-sme-evidencias.md`.
