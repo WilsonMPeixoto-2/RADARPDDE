@@ -4,7 +4,7 @@
 **Baseline funcional da `main`:** `598361dd784563f4d70d1e25df3818f4ee066da8`  
 **Commit funcional publicado:** `dfc8aa3030b02edb73f764f5f56bd6759a7a1d77`  
 **Deployment Production:** `dpl_7tLM3RZ7MEuRRTzvGmc9EiAARmDY` — `READY`  
-**Última consolidação documental anterior:** `05f51cbdd433844f11db036bcdefa5f9d8941e45` — PR #108  
+**Reconciliação do histórico SME:** `79cb67c84720b1850879d9c50c262e1623d5d8cc`  
 **Frente documental atual:** alinhamento integral concluído nesta linha de trabalho  
 **Próxima frente:** ainda não escolhida
 
@@ -17,9 +17,10 @@ Antes de iniciar tarefa:
 3. confirmar deployment e SHA na Vercel;
 4. confirmar projeto e estado do Supabase;
 5. comparar migrations local/remoto quando houver assunto de banco;
-6. ler `PROJECT_CONTEXT.md` e `DECISION_LOG.md`;
-7. verificar a arquitetura da frente escolhida;
-8. atualizar este arquivo quando o estado material mudar.
+6. executar o teste de alinhamento da migration SME antes de nova migration;
+7. ler `PROJECT_CONTEXT.md` e `DECISION_LOG.md`;
+8. verificar a arquitetura da frente escolhida;
+9. atualizar este arquivo quando o estado material mudar.
 
 Código, banco e deployment prevalecem sobre plano, relatório ou memória de chat.
 
@@ -37,7 +38,9 @@ Concluídos e publicados:
 - certificação automatizada integral dos relatórios Excel;
 - integração dos botões XLSX institucional e Excel SME, com CSV legado preservado;
 - navegação contextual com retorno seguro;
-- restauração do bloqueio de deployments automáticos.
+- restauração do bloqueio de deployments automáticos;
+- reconciliação do identificador da migration SME sem reaplicação do SQL;
+- teste de regressão do histórico da migration SME.
 
 Concluído na documentação:
 
@@ -47,8 +50,8 @@ Concluído na documentação:
 - correção da arquitetura e cobertura Supabase;
 - atualização do dicionário de dados;
 - correção dos contratos Excel;
-- incorporação do gate de migrations nos runbooks;
-- atualização das ADRs e da matriz de validade documental.
+- classificação dos bootstraps e documentos de pré-conexão;
+- atualização de `AGENTS.md`, índices, ADRs e catálogo de superfícies.
 
 A liberação oficial do produto ainda não foi declarada.
 
@@ -63,7 +66,7 @@ state: READY
 artifactCommitSha: dfc8aa3030b02edb73f764f5f56bd6759a7a1d77
 ```
 
-O commit funcional publicado é anterior ao commit operacional que restaurou o bloqueio automático. Essa diferença é esperada e documentada.
+O commit funcional publicado é anterior ao commit operacional que restaurou o bloqueio automático. A reconciliação documental e do histórico de migration não alterou o artefato funcional.
 
 ### 3.2 Supabase
 
@@ -140,32 +143,37 @@ Permanece vigente:
 
 ## 6. Migrações
 
-O repositório contém 25 arquivos locais.
+O repositório e o Supabase Production possuem 25 versões correspondentes.
 
-Divergência conhecida:
-
-```text
-local: 20260728182226_sme_access_governance.sql
-remoto: 20260728190344_sme_access_governance
-```
-
-Equivalência:
+Estado canônico da migration SME:
 
 ```text
-comprimento: 1.411 caracteres
+arquivo local: 20260728182226_sme_access_governance.sql
+registro remoto: 20260728182226_sme_access_governance
+registro derivado 20260728190344: ausente
+comprimento do SQL: 1.411 caracteres
 SHA-256: cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
 ```
 
-Não há divergência funcional identificada, mas a rastreabilidade não está alinhada.
+A reconciliação:
 
-**Gate:** nenhuma nova migration de Production antes da reconciliação suportada, testada e documentada.
+- utilizou o mecanismo oficial de reparo do histórico;
+- marcou o identificador derivado como revertido;
+- marcou o identificador canônico como aplicado;
+- não reaplicou nem reverteu o SQL funcional;
+- preservou schema e políticas;
+- deixou `db push --dry-run` sem migration pendente;
+- acrescentou teste unitário de regressão.
 
-Não:
+Proteção obrigatória antes de migration futura:
 
-- renomear ou reaplicar o arquivo;
-- editar diretamente o histórico;
-- criar migration vazia compensatória;
-- executar `db push` real para contornar o desvio.
+1. `supabase migration list --linked`;
+2. `node --test tests/unit/sme-migration-history-alignment.test.js`;
+3. reset local;
+4. pgTAP e lint SQL;
+5. tipos regenerados;
+6. dry-run, backup e rollback;
+7. comparação do mesmo SHA.
 
 Runbook: `docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`.
 
@@ -187,16 +195,15 @@ Runbook: `docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`.
 
 ## 8. Gates antes da liberação oficial
 
-1. reconciliar o histórico da migration SME;
-2. habilitar proteção contra senhas vazadas no Supabase Auth;
-3. fixar deliberadamente a major operacional do Node;
-4. testar backup e restauração em ambiente descartável;
-5. abrir os dois produtos no Microsoft Excel desktop sem reparo;
-6. executar matriz remota por perfil e viewport;
-7. revisar Advisors quando aplicável;
-8. concluir UAT;
-9. realizar polimento editorial e visual sem alterar produto;
-10. registrar decisão formal de release.
+1. habilitar proteção contra senhas vazadas no Supabase Auth;
+2. fixar deliberadamente a major operacional do Node;
+3. testar backup e restauração em ambiente descartável;
+4. abrir os dois produtos no Microsoft Excel desktop sem reparo;
+5. executar matriz remota por perfil e viewport;
+6. revisar Advisors quando aplicável;
+7. concluir UAT;
+8. realizar polimento editorial e visual sem alterar produto;
+9. registrar decisão formal de release.
 
 ## 9. Próximas frentes elegíveis
 
@@ -226,9 +233,8 @@ Restrições:
 
 Escopo possível:
 
-- migration history;
-- senha vazada;
-- Node;
+- proteção de senha;
+- fixação do Node;
 - backup/restauração;
 - homologação Excel;
 - matriz remota;
@@ -252,9 +258,11 @@ A próxima frente deve ser escolhida expressamente. Antes de implementar:
 
 ## 11. Documentos de continuidade
 
+- `AGENTS.md`;
 - `README.md`;
 - `docs/README.md`;
 - `docs/PROJECT_CONTEXT.md`;
 - `docs/DECISION_LOG.md`;
 - `docs/reference/STATUS_DOCUMENTOS.md`;
-- `docs/audits/2026-07-29-alinhamento-documental-integral-pos-pr108.md`.
+- `docs/audits/2026-07-29-alinhamento-documental-integral-pos-pr108.md`;
+- `docs/audits/2026-07-29-reconciliacao-migration-sme-evidencias.md`.
