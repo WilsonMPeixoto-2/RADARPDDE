@@ -36,7 +36,7 @@ test('Node 24 fica fixado no projeto, lockfile e ambientes de desenvolvimento', 
   }
 });
 
-test('gate remoto cobre todos os perfis em desktop, Android e iPhone sobre o código do PR', () => {
+test('gate remoto cobre papéis institucionais e três viewports no código do PR', () => {
   const workflow = read('.github/workflows/gate-remoto-perfis-viewports.yml');
   const config = read('playwright.supabase-preview.config.js');
   const matrixSpec = read('tests/e2e/supabase-preview-profile-viewport.spec.js');
@@ -44,9 +44,17 @@ test('gate remoto cobre todos os perfis em desktop, Android e iPhone sobre o có
   for (const requiredPath of ["'app.js'", "'src/**'", "'supabase/migrations/**'", "'package.json'"]) {
     assert.match(workflow, new RegExp(requiredPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
+  assert.match(workflow, /npm run supabase:start/);
+  assert.match(workflow, /npm run supabase:reset/);
+  assert.match(workflow, /npm run bootstrap:auth-fixtures/);
   assert.match(workflow, /npm run generate:runtime-config/);
+  assert.match(workflow, /supabase-auth-local\.spec\.js/);
+  assert.match(workflow, /supabase-full-contract\.spec\.js/);
   assert.match(workflow, /playwright install --with-deps chromium webkit/);
+  assert.match(workflow, /RADAR_E2E_PROFILE_VIEWPORT_GATE/);
   assert.match(workflow, /http:\/\/127\.0\.0\.1:4175/);
+  assert.doesNotMatch(workflow, /secrets\.RADAR_SUPABASE_SERVICE_ROLE_KEY/);
+  assert.doesNotMatch(workflow, /RADAR_REFERENCE_PREVIEW_URL/);
 
   for (const project of [
     'supabase-preview-desktop-chromium',
@@ -61,18 +69,12 @@ test('gate remoto cobre todos os perfis em desktop, Android e iPhone sobre o có
   assert.match(config, /webServer/);
   assert.match(config, /supabase-preview-profile-viewport/);
 
-  for (const profile of [
-    'technicalAdmin',
-    'assistant',
-    'controllerTuane',
-    'controllerAlzira',
-    'inventory',
-    'sme'
-  ]) {
+  for (const profile of ['technicalAdmin', 'assistant', 'controller', 'inventory', 'sme']) {
     assert.match(matrixSpec, new RegExp(profile));
   }
   assert.match(matrixSpec, /isDesktopProject/);
   assert.match(matrixSpec, /ensureNavigationOpen/);
   assert.match(matrixSpec, /documentWidth/);
   assert.match(matrixSpec, /hasSessionInPublicContext/);
+  assert.match(matrixSpec, /RADAR_AUTH_FIXTURE_PASSWORD/);
 });
