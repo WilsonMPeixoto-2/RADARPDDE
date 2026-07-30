@@ -22,6 +22,8 @@ migrations correspondentes: 25
 Node: 24.x
 ```
 
+O conjunto versionado contém atualmente **25** migrations. O histórico oficial reconhecido pela Supabase CLI é a fonte para conferir versões aplicadas e sua ordem efetiva; não manter uma segunda lista manual de aplicação.
+
 Contagens operacionais são mutáveis e devem ser consultadas no ambiente com data de corte.
 
 ## 3. Regras permanentes
@@ -89,12 +91,15 @@ Confirmar projeto, saúde, Auth, RLS, bloqueio anônimo, perfil, `cre_scope`, pe
 
 ## 6. Contrato de migrations
 
+Os comandos canônicos são:
+
 ```bash
 supabase migration list --linked
 supabase db push --linked --dry-run
+supabase db push --linked
 ```
 
-`db push --linked` real exige histórico alinhado, migration aprovada em reset/pgTAP/lint/tipos, backup, rollback, janela e autorização.
+O terceiro comando é destrutivo e não constitui autorização automática. O `db push --linked` real exige histórico alinhado, migration aprovada em reset/pgTAP/lint/tipos, backup, rollback, janela e autorização.
 
 Migration SME:
 
@@ -161,12 +166,13 @@ O procedimento:
 6. publica somente `evidence.json`;
 7. encerra os ambientes.
 
-Evidência inicial:
+Evidência ampliada:
 
 ```text
-run: 30537076528
+run: 30538395958
 schema: true
 data: true
+auth: true
 migrations: true
 ```
 
