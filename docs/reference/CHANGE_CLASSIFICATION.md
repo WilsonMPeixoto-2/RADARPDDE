@@ -1,5 +1,8 @@
 # Classificação de mudanças do RADAR PDDE
 
+**Estado:** vigente  
+**Atualizado em:** 29 de julho de 2026
+
 ## Regra geral
 
 Nenhum achado entra no backlog sem código, evidência e conduta. A classificação descreve o estado do elemento analisado; não substitui prioridade, impacto ou esforço.
@@ -18,7 +21,7 @@ Nenhum achado entra no backlog sem código, evidência e conduta. A classificaç
 - **Evidência mínima:** fonte canônica ou confirmação expressa.
 - **Conduta permitida:** documentar, proteger e indicar a razão.
 - **Conduta proibida:** reinterpretar como defeito sem nova autoridade.
-- **Exemplo:** inexistência do estado canônico `Vencida`.
+- **Exemplo:** ausência deliberada de `dataValidations` no Excel SME para evitar reparo no Microsoft Excel.
 
 ## `FA` — Funcional e aprimorável
 
@@ -34,7 +37,7 @@ Nenhum achado entra no backlog sem código, evidência e conduta. A classificaç
 - **Evidência mínima:** duas ou mais implementações mapeadas, com diferença de comportamento ou precedência.
 - **Conduta permitida:** consolidar após mapa de consumidores e testes de equivalência.
 - **Conduta proibida:** remover camada por nome, idade ou impressão de obsolescência.
-- **Exemplo:** nove folhas de extensão carregadas sequencialmente, incluindo camadas `final` e `hotfix`.
+- **Exemplo:** camadas CSS `final` e `hotfix` atuando sobre a mesma superfície sem inventário de precedência atualizado.
 
 ## `DC` — Defeito comprovado
 
@@ -42,7 +45,7 @@ Nenhum achado entra no backlog sem código, evidência e conduta. A classificaç
 - **Evidência mínima:** reprodução, teste falhando, erro de console ou divergência inequívoca de contrato.
 - **Conduta permitida:** corrigir com teste de regressão e menor mudança suficiente.
 - **Conduta proibida:** ampliar escopo para refatoração não relacionada.
-- **Exemplo:** variável CSS utilizada sem definição, quando a inspeção computada confirmar efeito incorreto.
+- **Exemplo:** ação visível para Gestão SME que aciona mutação operacional proibida pela política de capacidades.
 
 ## `DQ` — Dúvida de produto ou regra
 
@@ -58,7 +61,7 @@ Nenhum achado entra no backlog sem código, evidência e conduta. A classificaç
 - **Evidência mínima:** plano, arquitetura ou runbook que a posicione em etapa posterior.
 - **Conduta permitida:** registrar dependência, gate e momento correto.
 - **Conduta proibida:** apresentar como falha esquecida do estado atual.
-- **Exemplo:** usuários reais, Auth/RLS remotos, Advisors, backup, restauração e MFA.
+- **Exemplo:** homologação manual dos relatórios no Excel desktop, teste de restauração e UAT antes da liberação oficial.
 
 ## `EP` — Evolução posterior
 
@@ -83,4 +86,13 @@ Nenhum achado entra no backlog sem código, evidência e conduta. A classificaç
 
 ## Registro mínimo
 
-Todo achado deve declarar: superfície, evidência, código, consequência, preservações, dependências, necessidade de decisão humana e condição de aceite.
+Todo achado deve declarar:
+
+- superfície;
+- evidência;
+- código;
+- consequência;
+- preservações;
+- dependências;
+- necessidade de decisão humana;
+- condição de aceite.
