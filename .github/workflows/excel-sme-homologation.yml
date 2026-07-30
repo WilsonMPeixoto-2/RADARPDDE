@@ -1,0 +1,78 @@
+name: Homologação do Excel SME
+
+on:
+  pull_request:
+    paths:
+      - 'assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx'
+      - 'src/domain/excel-sme-export-model.js'
+      - 'src/domain/excel-sme-template-renderer.js'
+      - 'src/domain/excel-sme-monthly-renderer.js'
+      - 'src/domain/excel-integral-certification.js'
+      - 'src/integration/excel-sme-runtime-loader.js'
+      - 'src/integration/excel-export-integration.js'
+      - 'scripts/generate-excel-sme-homologation.mjs'
+      - 'tests/unit/excel-sme-*.test.js'
+      - 'docs/evidence/excel-certification/synthetic-manifest.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/excel-sme-homologation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gerar-e-validar:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+
+      - name: Validar tradução, template, runtime e certificação
+        run: |
+          node --test \
+            tests/unit/excel-sme-canonical-translation.test.js \
+            tests/unit/excel-sme-export-model.test.js \
+            tests/unit/excel-sme-original-contract.test.js \
+            tests/unit/excel-sme-template-renderer.test.js \
+            tests/unit/excel-sme-runtime-loader.test.js \
+            tests/unit/excel-export-integration.test.js \
+            tests/unit/excel-integral-certification.test.js
+          node scripts/generate-excel-certification-evidence.mjs --check
+
+      - name: Gerar e reabrir arquivo pelo motor real
+        run: node scripts/generate-excel-sme-homologation.mjs
+
+      - name: Validar pacote OOXML
+        run: unzip -t artifacts/excel-homologation/RADAR_PDDE_EXCEL_SME_HOMOLOGACAO_EXCELJS_12-2026.xlsx
+
+      - name: Resumir homologação automatizada
+        shell: bash
+        run: |
+          echo '### Excel SME — candidato de homologação' >> "${GITHUB_STEP_SUMMARY}"
+          echo '- Motor: ExcelJS 4.4.0, workbook documental.' >> "${GITHUB_STEP_SUMMARY}"
+          echo '- Fonte visual: template canônico normalizado do modelo SME.' >> "${GITHUB_STEP_SUMMARY}"
+          echo '- Cenários: APTA, INAPTA, não iniciado e parcial.' >> "${GITHUB_STEP_SUMMARY}"
+          echo '- Gate final pendente: abertura no Microsoft Excel desktop sem reparo.' >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Publicar candidato e evidência sanitizada
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: excel-sme-exceljs-homologacao-${{ github.run_id }}
+          path: |
+            artifacts/excel-homologation/RADAR_PDDE_EXCEL_SME_HOMOLOGACAO_EXCELJS_12-2026.xlsx
+            artifacts/excel-homologation/evidence.json
+          if-no-files-found: error
+          retention-days: 7
