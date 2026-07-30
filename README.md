@@ -9,17 +9,24 @@ O produto atende Controladores, Assistente de Verbas Federais, Gestão SME, Equi
 | Camada | Situação comprovada |
 |---|---|
 | Baseline funcional da `main` | `598361dd784563f4d70d1e25df3818f4ee066da8` |
-| Vercel Production | deployment `dpl_7tLM3RZ7MEuRRTzvGmc9EiAARmDY`, estado `READY` |
-| Commit publicado | `dfc8aa3030b02edb73f764f5f56bd6759a7a1d77` |
-| Runtime | `environment: production`, `dataMode: supabase-production` |
-| Supabase | projeto `RADAR PDDE 2026` (`scnryinorqeucbfkioxo`) `ACTIVE_HEALTHY` |
+| Vercel Production | `dpl_7tLM3RZ7MEuRRTzvGmc9EiAARmDY`, `READY` |
+| Commit funcional publicado | `dfc8aa3030b02edb73f764f5f56bd6759a7a1d77` |
+| Runtime | `production`, `supabase-production` |
+| Supabase | `scnryinorqeucbfkioxo`, `ACTIVE_HEALTHY`, PostgreSQL 17 |
 | Calendário | 12 competências; `closing_competence = 2026-12`; `row_version = 5` |
 | Gestão SME | governança somente leitura aplicada no frontend, serviços e RLS |
 | Ciclos de oficialização | ciclos 1 a 5 concluídos, mesclados e publicados |
-| Deployment automático | bloqueado em `vercel.json` após a janela controlada |
+| Histórico de migrations | 24 versões correspondentes; migration SME com versão remota distinta, mas SQL idêntico |
+| Deployment automático | bloqueado após a janela controlada |
 | Liberação oficial | ainda não declarada |
 
-Auditoria detalhada: [`docs/audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md`](docs/audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md).
+O commit `598361dd...` é posterior ao deployment funcional e apenas restaura `git.deploymentEnabled: false`.
+
+Referências:
+
+- [`Estado atual`](docs/CURRENT_STAGE.md);
+- [`Auditoria pós-ciclos 1 a 5`](docs/audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md);
+- [`Rastreabilidade da migration SME`](docs/audits/2026-07-29-rastreabilidade-migration-sme.md).
 
 ## Regra de precedência
 
@@ -27,7 +34,7 @@ O estado do sistema é determinado por:
 
 1. código-fonte remoto;
 2. migrations, políticas, funções e dados efetivos do Supabase autorizado;
-3. artefato efetivamente implantado na Vercel;
+3. artefato implantado na Vercel;
 4. testes e evidências reproduzíveis;
 5. decisões funcionais vigentes;
 6. documentação alinhada às fontes anteriores.
@@ -111,8 +118,6 @@ Registra a qualidade e a correção de cada documento: não analisado, em análi
 
 ### Pendência operacional
 
-Controla o saneamento de documento ausente ou incorreto. Estados canônicos:
-
 ```text
 Aberta
   ↓ novo envio
@@ -127,25 +132,11 @@ Bonificação, análise e pendência são dimensões independentes. Regularizaç
 
 ## Perfis
 
-### Controlador
-
-Possui carteira principal, mas pode colaborar nas demais escolas da própria CRE. A atuação não transfere automaticamente `schools.controller_id` e registra a autoria real.
-
-### Assistente de Verbas Federais
-
-Acompanha transversalmente a operação, administra equipe e carteiras, executa retificações e demais ações autorizadas.
-
-### Gestão SME
-
-Realiza acompanhamento gerencial. Nas visões mensal e do Prontuário, consulta identificação e bonificação sem análise técnica nem ações. Consulta Pendências em modo somente leitura. Registros Internos são limitados ao próprio UUID autenticado.
-
-### Equipe de Inventário
-
-Executa o fluxo patrimonial autorizado, incluindo bens, encaminhamentos e inventariação.
-
-### Administrador técnico
-
-Administra infraestrutura, perfis, escopos, importações e auditoria. Não é equivalente operacional da Assistente.
+- **Controlador:** carteira principal com colaboração nas demais escolas da própria CRE e autoria real preservada;
+- **Assistente de Verbas Federais:** acompanhamento transversal, Gestão de Equipe, retificações e ações autorizadas;
+- **Gestão SME:** consulta gerencial, sem mutações operacionais nas superfícies definidas;
+- **Equipe de Inventário:** fluxo patrimonial autorizado;
+- **Administrador técnico:** infraestrutura, perfis, escopos, importações e auditoria.
 
 ## Arquitetura
 
@@ -194,9 +185,30 @@ Data de corte: 29/07/2026.
 
 Essas quantidades são um retrato operacional, não constantes de negócio.
 
-## Executar localmente
+## Rastreabilidade da migration SME
 
-Requisitos: Node.js compatível com a faixa vigente do projeto e npm.
+O arquivo local é:
+
+```text
+20260728182226_sme_access_governance.sql
+```
+
+O Supabase registra:
+
+```text
+version = 20260728190344
+name = sme_access_governance
+```
+
+O conteúdo possui o mesmo comprimento e o mesmo SHA-256 nos dois lados:
+
+```text
+cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
+```
+
+Não há divergência funcional identificada, mas o histórico deve ser reconciliado por procedimento suportado e testado antes da próxima migration de Production. Não renomear, reaplicar ou editar diretamente o histórico remoto sem plano específico.
+
+## Executar localmente
 
 ```bash
 npm ci
@@ -226,14 +238,15 @@ O `test:readiness` inclui sintaxe, lint, testes unitários e de integração, ce
 
 ## Bloqueadores antes da liberação oficial
 
-- homologar manualmente os relatórios no Microsoft Excel desktop;
-- habilitar proteção contra senhas vazadas no Supabase Auth;
-- fixar deliberadamente a major operacional do Node;
-- testar backup e restauração em ambiente descartável;
-- executar gate remoto por perfil e viewport;
-- concluir UAT;
-- realizar polimento editorial e visual preservando identidade e regras de produto;
-- registrar decisão formal de liberação.
+1. reconciliar a versão da migration SME no histórico local/remoto;
+2. homologar manualmente os relatórios no Microsoft Excel desktop;
+3. habilitar proteção contra senhas vazadas no Supabase Auth;
+4. fixar deliberadamente a major operacional do Node;
+5. testar backup e restauração em ambiente descartável;
+6. executar gate remoto por perfil e viewport;
+7. concluir UAT;
+8. realizar polimento editorial e visual preservando identidade e regras de produto;
+9. registrar decisão formal de liberação.
 
 ## Documentação
 
@@ -245,8 +258,9 @@ Documentos de entrada:
 - [`Contexto funcional e arquitetural`](docs/PROJECT_CONTEXT.md);
 - [`Registro de decisões`](docs/DECISION_LOG.md);
 - [`Status documental`](docs/reference/STATUS_DOCUMENTOS.md);
-- [`Auditoria pós-ciclos 1 a 5`](docs/audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md).
+- [`Auditoria pós-ciclos`](docs/audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md);
+- [`Auditoria da migration SME`](docs/audits/2026-07-29-rastreabilidade-migration-sme.md).
 
 ## Próxima frente
 
-Os ciclos 1 a 5 estão encerrados. A próxima frente ainda não foi escolhida. A decisão deve partir dos bloqueadores reais restantes, sem reabrir entregas concluídas e sem retomar programas por exercício sem decisão específica.
+Os ciclos 1 a 5 estão encerrados. A próxima frente ainda não foi escolhida e deve partir dos bloqueadores reais, sem reabrir entregas concluídas e sem retomar programas por exercício sem decisão específica.
