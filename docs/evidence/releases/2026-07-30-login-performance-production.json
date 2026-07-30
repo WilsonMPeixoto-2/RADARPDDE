@@ -1,0 +1,53 @@
+{
+  "release": "login-performance-2026-07-30",
+  "publishedAt": "2026-07-30T14:07:16Z",
+  "functionalPullRequest": 113,
+  "publicationPullRequest": 114,
+  "functionalMergeCommit": "9979330465af3dc186047d4fc0870bf8a3ff947e",
+  "publicationCommit": "0536dd321f27f537ff9f0135e60516fb2c479441",
+  "vercel": {
+    "project": "radarpdde-fix",
+    "deploymentId": "dpl_GNamjaq9WHCpyW1hsWAifC4uALyF",
+    "state": "READY",
+    "target": "production",
+    "artifactCommitSha": "0536dd321f27f537ff9f0135e60516fb2c479441",
+    "canonicalUrl": "https://radarpdde-fix.vercel.app"
+  },
+  "runtime": {
+    "environment": "production",
+    "dataMode": "supabase-production",
+    "supabaseRepositoryEnabled": true,
+    "productionActivationApproved": true
+  },
+  "smoke": {
+    "root": 200,
+    "sessionService": {
+      "status": 200,
+      "singleFlightEstablish": true,
+      "parallelAuthorization": true
+    },
+    "supabaseRepository": {
+      "status": 200,
+      "boundedReadConcurrency": 6,
+      "entitySubsetSupported": true
+    },
+    "dataService": {
+      "status": 200,
+      "remoteBootstrapEntityCount": 14
+    },
+    "authBootstrap": {
+      "status": 200,
+      "authResolvedEvent": true
+    },
+    "authGate": {
+      "status": 200,
+      "loadingDataPhase": true,
+      "message": "Sessão reconhecida. Carregando os dados autorizados…"
+    }
+  },
+  "databaseChanges": false,
+  "migrationChanges": false,
+  "rlsChanges": false,
+  "productionDataChanges": false,
+  "deploymentWindowClosedBy": "ops/restaurar-bloqueio-deploy-login-20260730"
+}
