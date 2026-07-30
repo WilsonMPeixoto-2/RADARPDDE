@@ -1,214 +1,195 @@
 # Ordem de carregamento e precedência do frontend
 
-## Finalidade
+**Estado:** vigente  
+**Atualizado em:** 29 de julho de 2026
 
-Este documento registra o contrato efetivo de carregamento do RADAR PDDE após o Ciclo A pós-PR 22. Ele deve ser consultado antes de reordenar, fundir, excluir ou renomear qualquer folha de estilo ou script de extensão.
+## 1. Finalidade
 
-A fonte reproduzível dos números e relações é [`../evidence/frontend-precedence/manifest.json`](../evidence/frontend-precedence/manifest.json). O comando de verificação é:
+Registrar o contrato atual de carregamento do RADAR PDDE antes de reordenar, fundir, excluir ou renomear scripts e folhas de estilo.
+
+A aplicação combina:
+
+1. recursos estáticos declarados em `index.html`;
+2. extensões ordenadas carregadas por `config.js`;
+3. loader Excel assíncrono;
+4. autenticação e rotas canônicas;
+5. extensões de produto pós-`app.js`.
+
+## 2. Fontes reproduzíveis
+
+O manifesto em [`../evidence/frontend-precedence/manifest.json`](../evidence/frontend-precedence/manifest.json) representa a linha de base gerada pelo analisador na data de sua última regeneração. Ele não deve ser tratado como inventário eterno quando `index.html`, `config.js` ou os bootstraps mudarem.
+
+Comandos canônicos:
 
 ```bash
+npm run audit:frontend-precedence
 npm run audit:frontend-precedence:check
 npm run test:frontend-precedence
 ```
 
-## Visão geral
+Após mudança estrutural, o manifesto deve ser regenerado pelo script. Não editar números manualmente para aparentar alinhamento.
+
+## 3. Visão geral atual
 
 ```mermaid
 flowchart TD
     HTML["index.html"] --> CSS0["styles.css + shared-interactions.css"]
-    HTML --> STATIC["36 scripts estáticos e síncronos"]
-    STATIC --> CONFIG["config.js"]
-    CONFIG --> CSSX["9 folhas CSS de extensão"]
-    CONFIG --> ORDERED["15 extensões com async=false"]
-    CONFIG --> ASYNC["load-excel-export.js com async=true"]
+    HTML --> STATIC["scripts estáticos síncronos"]
+    STATIC --> CONFIG["config.runtime.js + config.js"]
+    CONFIG --> CSSX["extensões CSS ordenadas"]
+    CONFIG --> ORDERED["extensões JS com async=false"]
+    CONFIG --> EXCEL["load-excel-export.js com async=true"]
     STATIC --> APP["app.js"]
     APP --> AUTH["auth-gate.js"]
-    AUTH --> ORDERED
-    ORDERED --> WRAPPERS["wrappers e APIs globais compostos"]
-    ASYNC --> LOAD["evento load"]
-    LOAD --> EXCEL1["excel-export-model.js"]
-    EXCEL1 --> EXCEL2["excel-workbook-plan.js"]
-    EXCEL2 --> EXCEL3["excel-xlsx-renderer.js"]
-    EXCEL3 --> EXCEL4["excel-export-integration.js"]
+    AUTH --> ROUTES["bootstrap, policy, routes e history"]
+    ROUTES --> PRODUCT["product-extensions-bootstrap.js"]
+    PRODUCT --> TIMELINE["timeline"]
+    PRODUCT --> CONTEXT["navigation-context-bootstrap.js"]
+    CONTEXT --> NAVCTX["navigation-context.js"]
+    EXCEL --> XLSX["modelos e renderers Excel"]
 ```
 
-O grafo distingue ordem relativa de posição absoluta. O loader Excel é assíncrono e pode executar antes ou depois de algumas extensões ordenadas; seus quatro filhos continuam sequenciais e só começam após o evento `load`.
+A ordem relativa entre o loader Excel e alguns scripts síncronos não é usada como contrato. Os filhos do loader permanecem sequenciais depois do evento `load`.
 
-## Folhas de estilo
+## 4. Folhas de estilo
 
-### Ordem efetiva
+### 4.1 Estáticas
 
-| Ordem | Arquivo | Blocos de regra | Ocorrências de seletor | Declarações | `!important` |
-|---:|---|---:|---:|---:|---:|
-| 0 | `styles.css` | 429 | 469 | 1.417 | 50 |
-| 1 | `src/styles/shared-interactions.css` | 24 | 28 | 86 | 0 |
-| 2 | `src/styles/mobile-responsive.css` | 58 | 111 | 242 | 6 |
-| 3 | `src/styles/mobile-rendering-hotfix.css` | 18 | 48 | 46 | 10 |
-| 4 | `src/styles/task-9-pendencias.css` | 93 | 110 | 306 | 2 |
-| 5 | `src/styles/task-9-cross-view.css` | 22 | 24 | 41 | 0 |
-| 6 | `src/styles/task-10-11-pendency-actions.css` | 24 | 26 | 97 | 0 |
-| 7 | `src/styles/task-12-13-retificacoes.css` | 45 | 47 | 153 | 0 |
-| 8 | `src/styles/cycle-b-carteira.css` | 37 | 39 | 95 | 0 |
-| 9 | `src/styles/cycle-b-dashboard.css` | 35 | 39 | 99 | 0 |
-| 10 | `src/styles/cycle-b-dashboard-final.css` | 12 | 13 | 32 | 0 |
-| **Total** | **11 folhas** | **797** | **954** | **2.614** | **68** |
+`index.html` declara:
 
-O HTML carrega as duas primeiras folhas; `config.js` acrescenta as nove extensões restantes exatamente nessa ordem. Como todas são links no mesmo documento, a posição posterior participa da cascata mesmo quando o download termina em outra ordem.
+1. `styles.css`;
+2. `src/styles/shared-interactions.css`.
 
-### Como as colisões são medidas
+### 4.2 Extensões declaradas por `config.js`
 
-Uma ocorrência é comparada por:
+Ordem atual:
+
+1. `src/styles/mobile-responsive.css`;
+2. `src/styles/mobile-rendering-hotfix.css`;
+3. `src/styles/task-9-pendencias.css`;
+4. `src/styles/task-9-cross-view.css`;
+5. `src/styles/task-10-11-pendency-actions.css`;
+6. `src/styles/task-12-13-retificacoes.css`;
+7. `src/styles/cycle-b-carteira.css`;
+8. `src/styles/cycle-b-dashboard.css`;
+9. `src/styles/cycle-b-dashboard-final.css`;
+10. `src/styles/painel-controlador-expressiva.css`.
+
+### 4.3 Extensões pós-`app.js`
+
+`product-extensions-bootstrap.js` carrega:
+
+- `src/styles/school-timeline.css`.
+
+A posição posterior participa da cascata. Download concluído fora de ordem não altera a posição do link no documento.
+
+## 5. Colisões CSS
+
+Repetição de seletor não é defeito automático. A auditoria considera:
 
 ```text
 contexto condicional + seletor exato + propriedade
 ```
 
-Assim, `.card` no contexto global não colide com `.card` dentro de `@media (max-width: 900px)`. Seletores iguais no mesmo contexto são colisões somente quando a mesma propriedade recebe valores diferentes.
+Regras:
 
-O estado atual contém:
+- seletores em media queries diferentes não são a mesma ocorrência;
+- especificidade, herança e ordem ainda podem afetar elementos mesmo sem colisão exata;
+- `cycle-b-dashboard-final.css` complementa e não substitui `cycle-b-dashboard.css`;
+- arquivos mobile não devem ser fundidos sem comparação de computed styles e capturas nos breakpoints vigentes;
+- o novo arquivo do painel expressivo deve ser incluído em qualquer regeneração do manifesto.
 
-- 162 seletores repetidos considerando qualquer contexto;
-- 113 seletores presentes em mais de um contexto;
-- 129 repetições no mesmo contexto;
-- 68 repetições no mesmo contexto com ao menos uma propriedade divergente;
-- 37 colisões entre arquivos diferentes;
-- 31 colisões internas ao mesmo arquivo.
+## 6. Scripts ordenados por `config.js`
 
-Das 37 colisões entre arquivos:
-
-- 24 estão em `@media (max-width: 900px)`;
-- 10 estão em `@media (max-width: 520px)`;
-- 3 são globais.
-
-As 34 colisões mobile concentram-se em `styles.css`, `mobile-responsive.css` e `mobile-rendering-hotfix.css`. Elas registram a solução vigente de layout e estabilidade de pintura; não são defeitos automaticamente.
-
-As três colisões globais são:
-
-| Seletor | Arquivos | Propriedades divergentes | Regra vigente |
-|---|---|---|---|
-| `.pendency-detail-marker` | `styles.css` → `task-9-pendencias.css` | `background`, `color`, `display`, `font-size`, `font-weight`, `padding` | Task 9 prevalece |
-| `.pendency-row-selected` | `styles.css` → `task-9-pendencias.css` | `outline` | Task 9 prevalece |
-| `.pendency-drawer-layer` | `task-9-pendencias.css` → `task-9-cross-view.css` | `z-index` | Cross-view prevalece |
-
-Não existe colisão exata no mesmo contexto entre `cycle-b-dashboard.css` e `cycle-b-dashboard-final.css`. O segundo arquivo acrescenta estados selecionados, ações por linha, vazio e filtro de resultado. O nome `final` não significa que o primeiro possa ser removido.
-
-## Scripts estáticos
-
-O HTML carrega 36 scripts na seguinte ordem:
-
-| Ordem | Script |
-|---:|---|
-| 1 | `src/domain/competencia.js` |
-| 2 | `src/domain/estatisticas.js` |
-| 3 | `src/domain/fluxo-operacional.js` |
-| 4 | `src/domain/pendencias.js` |
-| 5 | `src/domain/retificacoes.js` |
-| 6 | `config.runtime.js` |
-| 7 | `config.js` |
-| 8 | `vendor/supabase-client.js` |
-| 9 | `src/data/repository-contract.js` |
-| 10 | `vendor/ajv.js` |
-| 11 | `src/domain/json-contracts.js` |
-| 12 | `src/application/error-mapper.js` |
-| 13 | `src/auth/session-service.js` |
-| 14 | `src/integration/auth-bootstrap.js` |
-| 15 | `src/data/local-storage-repository.js` |
-| 16 | `src/data/supabase-repository.js` |
-| 17 | `src/data/repository-factory.js` |
-| 18 | `src/data/snapshot-tools.js` |
-| 19 | `src/data/import-coordinator.js` |
-| 20 | `src/data/legacy-state-adapter.js` |
-| 21 | `src/data/state-bridge.js` |
-| 22 | `src/data/state-bridge-metadata.js` |
-| 23 | `src/application/state-port.js` |
-| 24 | `src/application/unit-of-work.js` |
-| 25 | `src/application/data-service.js` |
-| 26 | `src/application/configuration-service.js` |
-| 27 | `src/application/directory-service.js` |
-| 28 | `src/application/school-service.js` |
-| 29 | `src/application/pendency-service.js` |
-| 30 | `src/application/verification-service.js` |
-| 31 | `src/application/audit-service.js` |
-| 32 | `src/application/invoice-service.js` |
-| 33 | `src/application/inventory-service.js` |
-| 34 | `src/integration/shared-interactions.js` |
-| 35 | `app.js` |
-| 36 | `src/integration/auth-gate.js` |
-
-`shared-interactions.js` precisa executar antes de `app.js`: o núcleo usa sua normalização compatível durante a criação e leitura do estado inicial e integra o diálogo de desativação da equipe. O módulo não depende do núcleo durante a carga; sua camada DOM reutiliza `openModal` e `closeModal` somente no momento da interação, quando essas funções já existem.
-
-`src/domain/retificacoes.js` possui `data-radar-extension` no HTML. Quando `config.js` tenta declará-lo novamente, o seletor de deduplicação encontra esse marcador. O arquivo executa uma única vez.
-
-## Extensões ordenadas
-
-Depois da deduplicação, quinze extensões usam `async = false` e preservam esta ordem relativa:
+Depois da deduplicação por `data-radar-extension`, `config.js` declara com `async = false`:
 
 1. `src/domain/pendencias-view-model.js`;
 2. `src/domain/operational-projection.js`;
-3. `src/integration/mobile-navigation.js`;
-4. `src/integration/modal-accessibility.js`;
-5. `src/integration/task-9-pendencias-page.js`;
-6. `src/integration/task-9-focus-bridge.js`;
-7. `src/integration/task-9-cross-view.js`;
-8. `src/integration/task-10-11-pendency-actions.js`;
-9. `src/integration/task-12-13-retificacoes.js`;
-10. `src/integration/cycle-b-carteira.js`;
-11. `src/integration/cycle-b-dashboard.js`;
-12. `src/integration/cycle-b-dashboard-result.js`;
-13. `src/integration/task-10-alerts-competence.js`;
-14. `src/integration/exercise-management.js`;
-15. `src/integration/exercise-early-init.js`.
+3. `src/domain/retificacoes.js`;
+4. `src/integration/mobile-navigation.js`;
+5. `src/integration/modal-accessibility.js`;
+6. `src/integration/task-9-pendencias-page.js`;
+7. `src/integration/task-9-focus-bridge.js`;
+8. `src/integration/task-9-cross-view.js`;
+9. `src/integration/task-10-11-pendency-actions.js`;
+10. `src/integration/task-12-13-retificacoes.js`;
+11. `src/integration/cycle-b-carteira.js`;
+12. `src/integration/cycle-b-dashboard.js`;
+13. `src/integration/cycle-b-dashboard-result.js`;
+14. `src/integration/task-10-alerts-competence.js`;
+15. `src/integration/exercise-management.js`;
+16. `src/integration/exercise-early-init.js`;
+17. `src/integration/painel-controlador-expressiva.js`.
 
-O teste com atraso artificial dos scripts posteriores a `config.js` comprovou que essa ordem relativa e a inicialização final continuam válidas no ambiente auditado.
+`retificacoes.js` também possui marcador no HTML legado. A deduplicação impede segunda execução.
 
-## Loader Excel assíncrono
+## 7. Composição de wrappers
 
-`src/integration/load-excel-export.js` usa `async = true`. Sua posição entre as extensões ordenadas variou durante a própria auditoria, comportamento válido e agora coberto pelo teste.
+A ordem é funcionalmente relevante quando módulos capturam APIs globais anteriores.
 
-O contrato exigido é:
+Exemplos vigentes:
 
-1. o loader executa uma vez;
-2. registra o início após `load`;
-3. carrega os quatro filhos com `await`, nesta ordem:
-   - `src/domain/excel-export-model.js`;
-   - `src/domain/excel-workbook-plan.js`;
-   - `src/domain/excel-xlsx-renderer.js`;
-   - `src/integration/excel-export-integration.js`;
-4. `RadarExcelExportIntegration` fica disponível sem erro.
+- ações de pendência envolvem `renderPendencias` e `openPendencyDetail`;
+- acessibilidade envolve `openModal` e `closeModal`;
+- cross-view envolve `renderCompetencias`;
+- retificações envolvem `renderProntuario`, `toggleBonif` e `toggleConsEnviada`;
+- Carteira e Dashboard envolvem seus renderizadores e filtros;
+- competência de alertas envolve `getAlerts`;
+- gestão de exercícios envolve `renderSMEConfig`;
+- timeline e navegação contextual compõem wrappers pós-`app.js`.
 
-## Composição de globais
+Mover um módulo antes do escritor de sua dependência pode capturar `undefined` ou substituir comportamento anterior.
 
-Os vinte arquivos efetivos analisados — dezesseis extensões e quatro filhos Excel — escrevem 66 nomes globais distintos e consultam 28 pré-requisitos explícitos por `typeof`.
+## 8. Loader Excel
 
-Dois nomes possuem mais de um escritor:
+`src/integration/load-excel-export.js` usa `async = true` e inicia os módulos Excel após `load`.
 
-| Global | Primeiro escritor | Segundo escritor | Consequência da ordem |
-|---|---|---|---|
-| `renderPendencias` | `task-9-pendencias-page.js` | `task-10-11-pendency-actions.js` | Task 10/11 captura e envolve o renderizador da Task 9 |
-| `openPendencyDetail` | `task-9-pendencias-page.js` | `task-10-11-pendency-actions.js` | Task 10/11 envolve a abertura e acrescenta ações |
+O contrato é:
 
-Outros wrappers de um único estágio também dependem do núcleo já disponível:
+1. loader único;
+2. filhos carregados sequencialmente;
+3. modelo institucional e modelo SME disponíveis antes das integrações correspondentes;
+4. nenhum CDN ou dependência remota no runtime;
+5. falha explícita sem substituir silenciosamente o CSV.
 
-- `modal-accessibility.js` envolve `openModal` e `closeModal`;
-- `task-9-cross-view.js` envolve `renderCompetencias`;
-- `task-12-13-retificacoes.js` envolve `renderProntuario`, `toggleBonif` e `toggleConsEnviada`;
-- `cycle-b-carteira.js` envolve busca, filtro, limpeza e renderização da Carteira;
-- `cycle-b-dashboard.js` envolve o Dashboard do Controlador;
-- `task-10-alerts-competence.js` envolve `getAlerts`;
-- `exercise-management.js` envolve `renderSMEConfig`.
+A certificação integral executa os renderers reais fora do bundle do navegador e está descrita em [`excel-integral-certification.md`](excel-integral-certification.md).
 
-Nove módulos usam polling limitado para aguardar pré-requisitos, e três usam `MutationObserver` para acompanhar conteúdo produzido depois. Esses mecanismos fazem parte do comportamento atual; removê-los exige um entrypoint explícito e testes equivalentes.
+## 9. Extensões pós-`app.js`
 
-## Regras para alterações futuras
+A cadeia detalhada está em [`product-extensions-load-order.md`](product-extensions-load-order.md).
 
-1. Não mover `task-10-11-pendency-actions.js` antes de `task-9-pendencias-page.js`.
-2. Não transformar o loader Excel assíncrono em script ordenado sem medir o impacto de carregamento.
-3. Não remover `retificacoes.js` do HTML sem substituir a deduplicação e validar todos os consumidores.
-4. Não excluir `cycle-b-dashboard.css` por causa do nome do arquivo posterior.
-5. Não fundir os três arquivos mobile sem comparar computed styles e capturas nos breakpoints de 900 px e 520 px.
-6. Não interpretar repetição entre contextos distintos como duplicação eliminável.
-7. Reexecutar o manifesto, o teste de precedência, a baseline visual e os E2E das superfícies tocadas após qualquer mudança.
+Ordem resumida:
 
-## Limites da auditoria estática
+```text
+navigation-routes.js
+→ product-extensions-bootstrap.js
+→ timeline
+→ navigation-context-bootstrap.js
+→ navigation-context.js
+```
 
-O analisador compara seletores exatos. Seletores diferentes ainda podem atingir o mesmo elemento por especificidade, herança ou ordem. Por isso, o manifesto não autoriza consolidação sozinho. O próximo pacote deverá acrescentar comparação de computed styles e evidência visual antes/depois para os elementos realmente alterados.
+Essa cadeia possui promessas de readiness, marcadores idempotentes e degradação segura.
+
+## 10. Polling e observadores
+
+Polling limitado e `MutationObserver` fazem parte da compatibilidade atual com conteúdo produzido pelo núcleo legado. Removê-los exige:
+
+- entrypoint explícito equivalente;
+- prova de que todos os pré-requisitos continuam disponíveis;
+- teste de ausência de duplicidade e recursão;
+- validação de foco, renderização tardia e responsividade.
+
+## 11. Regras para alterações futuras
+
+1. não mover ações de pendência antes da página-base de Pendências;
+2. não remover `retificacoes.js` do HTML sem validar deduplicação e consumidores;
+3. não excluir `cycle-b-dashboard.css` por causa do arquivo `final`;
+4. não fundir folhas mobile apenas por repetição de seletor;
+5. não transformar o loader Excel em síncrono sem medir o carregamento;
+6. acrescentar extensões pós-`app.js` ao bootstrap existente;
+7. reexecutar auditoria, baseline visual, E2E e Lighthouse das superfícies tocadas;
+8. regenerar o manifesto quando o conjunto efetivo mudar.
+
+## 12. Limites da auditoria estática
+
+O analisador não substitui inspeção visual. Seletores diferentes podem atingir o mesmo elemento por especificidade, herança ou ordem. Qualquer consolidação CSS exige computed styles e evidência visual antes/depois.

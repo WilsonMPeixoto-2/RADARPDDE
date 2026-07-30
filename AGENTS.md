@@ -1,48 +1,75 @@
 # AGENTS.md — RADAR PDDE 2026
 
+**Atualizado em:** 29 de julho de 2026
+
 ## 1. Leitura obrigatória
 
 Antes de analisar ou alterar o repositório, leia:
 
-1. `docs/PROJECT_CONTEXT.md` — domínio e arquitetura estáveis;
-2. `docs/CURRENT_STAGE.md` — estágio transitório e próxima entrega;
-3. `docs/DECISION_LOG.md` — decisões consolidadas;
-4. o código remoto real da `main`, PRs relevantes e deployment correspondente.
+1. `docs/CURRENT_STAGE.md` — estado transitório, bloqueadores e próxima decisão;
+2. `docs/PROJECT_CONTEXT.md` — domínio e arquitetura estáveis;
+3. `docs/DECISION_LOG.md` — decisões vigentes e substituídas;
+4. `docs/reference/STATUS_DOCUMENTOS.md` — validade dos documentos;
+5. a arquitetura específica da frente;
+6. o código remoto real da `main`, PRs relevantes e ambientes correspondentes.
 
-Documentos antigos de “estado atual”, planos e relatórios são hipóteses históricas. Não prevalecem sobre o código remoto ou decisões posteriores.
+Documentos antigos de “estado atual”, planos, relatórios, specs e handoffs são fontes históricas. Não prevalecem sobre código, ambientes e decisões posteriores.
 
 ## 2. Identidade do produto
 
-O RADAR PDDE é um sistema de gestão, controle, acompanhamento e apoio à decisão para o PDDE da 4ª CRE/SME-Rio. Não é um CRUD genérico.
+O RADAR PDDE é sistema institucional de gestão, controle, acompanhamento e apoio à decisão para o PDDE da 4ª CRE/SME-Rio. Não é CRUD genérico.
 
 Toda entrega deve ser avaliada por:
 
 - correção técnica;
 - aderência ao fluxo real do PDDE;
-- usabilidade pelo usuário administrativo;
+- usabilidade administrativa;
 - coerência entre perfis, telas e dados;
-- integridade, rastreabilidade e auditabilidade.
+- integridade, rastreabilidade e auditabilidade;
+- acessibilidade e equivalência mobile;
+- clareza da próxima ação.
 
 Passar em testes técnicos não basta quando a funcionalidade está difícil de localizar, compreender ou operar.
 
 ## 3. Fontes de verdade
 
-Para estado atual, use nesta ordem:
+Para determinar o estado implementado:
 
-1. decisão explícita mais recente do responsável pelo produto;
-2. GitHub remoto e código da branch/commit analisados;
-3. Vercel efetivamente implantada, vinculada ao commit;
-4. Supabase efetivamente existente e configurado;
-5. `docs/CURRENT_STAGE.md`;
-6. `docs/DECISION_LOG.md`;
-7. `docs/PROJECT_CONTEXT.md`;
+1. código-fonte remoto da branch/commit analisado;
+2. migrations, funções, políticas, Auth e dados efetivos do Supabase autorizado;
+3. artefato efetivamente implantado na Vercel e seu SHA;
+4. testes e evidências reproduzíveis;
+5. decisões expressas vigentes;
+6. `docs/CURRENT_STAGE.md`;
+7. `docs/PROJECT_CONTEXT.md` e contratos de arquitetura;
 8. documentos históricos.
 
-Não use clone local antigo, memória isolada de chat, última tarefa cronológica ou texto de PR como prova de estado sem conferir o código.
+A orientação mais recente do responsável define intenção, prioridade e decisão de produto, mas afirmação técnica deve ser confirmada nas fontes operacionais.
 
-## 4. Perfis e autorização consolidados
+Não use clone antigo, memória isolada de chat, última tarefa cronológica ou texto de PR como prova sem conferir o estado remoto.
 
-O frontend possui quatro perfis funcionais visíveis:
+## 4. Estado operacional de referência
+
+Na data de corte:
+
+```text
+Supabase: scnryinorqeucbfkioxo — ACTIVE_HEALTHY
+Production dataMode: supabase-production
+repositório canônico: SupabaseRepository
+contingência: LocalStorageRepository por novo build controlado
+closing_competence: 2026-12
+migrations: 25 versões alinhadas entre GitHub e Supabase Production
+ciclos 1–5: concluídos e publicados
+liberação oficial: ainda não declarada
+```
+
+A migration SME foi reconciliada para o identificador canônico `20260728182226`, sem reaplicação do SQL. O teste `tests/unit/sme-migration-history-alignment.test.js` protege versão, ausência do identificador derivado e hash.
+
+Esses dados são mutáveis. Revalidar antes de tarefa que dependa do estado atual.
+
+## 5. Perfis e autorização
+
+A interface possui quatro perfis funcionais visíveis:
 
 - Controlador (`controller`);
 - Assistente de Verbas Federais (`federal_assistant`);
@@ -51,98 +78,176 @@ O frontend possui quatro perfis funcionais visíveis:
 
 `technical_admin` é papel técnico separado:
 
-- não aparece no seletor operacional;
-- não herda a interface da Assistente;
-- administra infraestrutura, perfis, escopos e auditoria;
-- não é utilizado no trabalho cotidiano.
+- não é quinto perfil operacional comum;
+- administra infraestrutura, perfis, escopos, importações e auditoria;
+- pode simular a organização visual dos quatro perfis para suporte e homologação;
+- mantém JWT e identidade técnica durante a simulação;
+- não substitui testes com contas operacionais reais.
 
-A Assistente de Verbas Federais é a liderança direta dos controladores da GAD da 4ª CRE e possui gestão plena de:
+### 5.1 Assistente
 
-- cadastro, edição e desativação de controladores;
+A Assistente de Verbas Federais é a liderança direta da equipe da GAD/CRE e possui gestão autorizada de:
+
+- cadastro, edição e desativação de Controladores;
 - convite e conta de acesso;
-- distribuição e redistribuição das escolas;
+- distribuição e redistribuição de escolas;
 - cadastro, edição e desativação da Equipe de Inventário;
-- efeitos correspondentes em Auth, perfis, RLS e auditoria.
+- efeitos em Auth, perfis, RLS e auditoria.
 
-A SME acompanha gerencialmente as CREs e não substitui essa liderança local.
+A Gestão SME acompanha gerencialmente e não substitui essa liderança local.
 
-### Carteiras dos Controladores
+### 5.2 Carteiras dos Controladores
 
-A carteira representa responsabilidade principal, filtro inicial e organização do trabalho. Não é fronteira de sigilo ou autorização entre os cinco Controladores da mesma CRE.
+A carteira representa responsabilidade principal, filtro inicial e organização do trabalho. Não é fronteira de autorização entre Controladores da mesma CRE.
 
-Controladores autenticados podem consultar e executar ações operacionais em todas as escolas da própria `cre_scope`. Atuar na carteira de colega não altera automaticamente `schools.controller_id`; a autoria real permanece vinculada ao usuário executor. Escola de outra CRE continua bloqueada sem exceção explícita.
+Controladores autenticados podem consultar e executar ações operacionais em escolas da própria `cre_scope`:
 
-Não reabra essas decisões sem solicitação expressa do responsável.
+- sem transferir automaticamente `schools.controller_id`;
+- preservando o responsável principal;
+- registrando autoria real;
+- sem acesso a outra CRE, salvo exceção explícita.
 
-## 5. Regra de impacto entre camadas
+### 5.3 Gestão SME
+
+Nas superfícies definidas:
+
+- consulta identificação e bonificação;
+- não visualiza análise técnica;
+- não executa mutações operacionais em Pendências;
+- consulta Registros Internos somente quando `actor_user_id = auth.uid()`.
+
+A restrição deve existir cumulativamente em capacidades, componentes, handlers, serviços e RLS.
+
+Não reabra essas decisões sem solicitação expressa do responsável pelo produto.
+
+## 6. Regra de impacto entre camadas
 
 Toda alteração deve verificar, conforme o caso:
 
 ```text
 layout/frontend
-→ visibilidade por perfil
-→ serviço de aplicação
+→ visibilidade e capacidade por perfil
+→ domínio e serviço de aplicação
 → contrato de persistência
 → banco/migration/RPC
 → Auth/RLS
-→ auditoria
+→ autoria e auditoria
 → testes unitários, pgTAP e E2E
-→ documentação
+→ documentação e evidências
 → build/deployment
 ```
 
-Uma tarefa não está concluída quando apenas uma dessas camadas foi alterada e as demais ficaram incoerentes.
+Uma tarefa não está concluída quando somente uma camada foi alterada e as demais ficaram incoerentes.
 
-## 6. Todos os perfis e superfícies
+## 7. Superfícies e dispositivos
 
-Ao modificar um dado ou fluxo, examine:
+Ao modificar dado ou fluxo, examine:
 
-- todas as abas e telas dos perfis afetados;
-- dashboard, carteira, listas, prontuário, relatórios e exportações;
+- Dashboard;
+- Carteira;
+- Competências;
+- Prontuário e timeline;
+- Pendências;
+- Gestão de Equipe;
+- Capital e Inventário;
+- Registros Internos;
+- configurações e visões SME;
+- relatórios e exportações;
 - desktop, Android e iPhone;
 - estados vazios, filtros, menus e modais;
 - permissões positivas e negativas;
 - última movimentação, próxima ação, prazo e responsável.
 
-Mobile pode reorganizar tabelas em cartões, mas não remover informação ou capacidade operacional essencial.
+Mobile pode reorganizar tabelas em cartões, mas não remover informação ou capacidade essencial.
 
-## 7. Arquitetura de persistência
+## 8. Competência, avaliação, timeline e navegação
 
-O projeto mantém um contrato único com:
+Contratos vigentes:
 
-- `LocalStorageRepository` — vigente em Production;
-- `SupabaseRepository` — preparado para conexão controlada.
+- uma única competência global `YYYY-MM`;
+- janeiro a dezembro de 2026 disponíveis conforme permissão;
+- avaliação mensal canônica para bonificação, análise técnica e pendências;
+- timeline como projeção somente leitura das entidades existentes;
+- navegação contextual preservando competência, rota, filtros, rolagem e foco.
 
-Funcionalidades novas devem usar serviços de aplicação e o contrato existente. Não acesse diretamente `localStorage` ou Supabase quando a operação já possui porta própria.
+Não criar fonte paralela de estado para qualquer desses domínios.
+
+## 9. Relatórios Excel
+
+Estado vigente:
+
+- botão principal institucional gera XLSX histórico de quatro abas;
+- botão `Excel SME` gera produto mensal de uma aba;
+- CSV legado permanece em botão secundário e como fallback;
+- certificação automatizada compara até a célula OOXML;
+- Excel SME não contém `dataValidations`;
+- homologação manual no Microsoft Excel desktop ainda é gate de release.
+
+Não reverter o botão principal para CSV, remover o fallback ou reintroduzir validação de lista sem decisão, testes e atualização documental.
+
+## 10. Persistência e Supabase
+
+O contrato único possui:
+
+- `SupabaseRepository` — canônico em Preview e Production;
+- `LocalStorageRepository` — desenvolvimento controlado e contingência excepcional.
+
+Funcionalidades novas devem usar serviços de aplicação e o contrato existente. Não acessar diretamente `localStorage` ou Supabase quando a operação possui porta própria.
 
 Operações compostas devem ser atômicas. Conflitos usam `row_version` e não podem sobrescrever silenciosamente outra sessão.
 
-Não introduza ORM, segunda biblioteca de schemas, cache ou arquitetura paralela sem limitação comprovada.
+Não introduzir ORM, segunda biblioteca de schemas, cache ou arquitetura paralela sem limitação comprovada.
 
-## 8. Supabase
+Regras:
 
-- Production permanece local até autorização específica;
-- primeira conexão ocorre apenas em projeto exclusivo de Preview;
 - somente chave publicável chega ao navegador;
-- credenciais administrativas ficam em backend/Edge Function;
-- migrations são aplicadas em ordem, sem seed institucional implícito;
-- importação usa staging, reconciliação, promoção e rollback;
-- RLS deve refletir exatamente as ações visíveis do frontend;
+- credenciais administrativas permanecem server-side;
+- migrations são versionadas e aplicadas em ordem;
+- nenhum seed institucional implícito;
+- importação usa validação, staging, reconciliação, promoção e rollback;
+- RLS deve refletir exatamente capacidades aprovadas;
 - Edge Functions administrativas exigem JWT e validação de papel;
-- nenhuma criação, conexão ou alteração remota sem autorização expressa.
+- nenhuma alteração remota sem escopo e autorização.
 
-## 9. Vercel
+### 10.1 Proteção do histórico de migrations
+
+O histórico está alinhado:
+
+```text
+arquivo canônico: 20260728182226_sme_access_governance.sql
+registro remoto canônico: 20260728182226
+registro derivado 20260728190344: ausente
+SHA-256: cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
+```
+
+A reconciliação utilizou o mecanismo oficial de `migration repair` e não reaplicou o SQL.
+
+Antes de qualquer migration futura:
+
+- executar `supabase migration list --linked`;
+- executar o teste de alinhamento da migration SME;
+- confirmar que o identificador derivado não reapareceu;
+- executar reset local, pgTAP, lint e tipos;
+- produzir backup, dry-run e rollback;
+- não editar diretamente a tabela de histórico;
+- não usar `migration repair` como rollback funcional de SQL.
+
+Seguir `docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`.
+
+## 11. Vercel
 
 - separar Production, Preview e local;
-- Production permanece `dataMode: local` e fail-closed;
-- Preview conectado deve ser produzido por `vercel build` e publicado com `vercel deploy --prebuilt`;
+- Production usa `dataMode: supabase-production`;
+- Preview conectado usa `supabase-preview`;
 - validar `radar-build-manifest.json`;
-- confirmar que o deployment corresponde ao mesmo commit analisado;
-- nunca promover Preview conectado diretamente para Production.
+- confirmar que deployment e evidências correspondem ao SHA analisado;
+- não promover Preview como se fosse o artefato de Production;
+- manter deployments automáticos bloqueados fora de janela controlada;
+- não publicar mudança documental como mudança funcional.
 
-## 10. Git e integração
+## 12. Git e integração
 
-Não trabalhe diretamente na `main`.
+Não trabalhar diretamente na `main`.
 
 Fluxo:
 
@@ -155,28 +260,55 @@ Fluxo:
 7. confirmar checks no SHA final;
 8. fazer merge somente após conclusão integral.
 
-Não misture funcionalidade, arquitetura, dependências, migração, ativação remota e polimento visual não relacionado no mesmo PR.
+Não misturar funcionalidade, arquitetura, dependências, migration, ativação remota e polimento visual não relacionado no mesmo PR.
 
-## 11. Testes e critérios de conclusão
+## 13. Testes e conclusão
 
-A conclusão exige evidência de:
+Usar `npm run test:readiness` como gate local base e acrescentar, conforme impacto:
 
-- testes unitários aplicáveis;
-- integração e pgTAP quando banco/RLS mudarem;
-- E2E por perfil e dispositivo afetado;
+- Supabase local, pgTAP, lint SQL e tipos;
+- Playwright desktop e mobile;
+- Lighthouse;
+- certificação Excel;
+- precedência do frontend;
+- build Vercel;
+- Advisors;
+- homologação manual;
+- UAT.
+
+A conclusão exige:
+
+- testes aplicáveis;
 - ausência de regressão relevante;
 - documentação e estado atualizados;
 - nenhum segredo no diff ou artefato;
-- correspondência entre commit, build e deployment quando houver publicação.
+- correspondência entre commit, build e deployment quando houver publicação;
+- relato explícito quando não existir workflow associado ao SHA.
 
-## 12. Prevenção de loops
+## 14. Gates de liberação oficial
 
-Ao concluir um PR relevante:
+Permanecem pendentes:
 
-- atualize `docs/CURRENT_STAGE.md`;
-- registre decisões duradouras em `docs/DECISION_LOG.md`;
-- atualize `docs/PROJECT_CONTEXT.md` apenas para mudanças estáveis;
-- feche ou marque como substituídos PRs/documentos que contradigam o novo estado;
-- não inicie nova frente antes de declarar explicitamente se a anterior foi concluída, bloqueada ou substituída.
+1. proteção contra senhas vazadas;
+2. fixação deliberada da major do Node;
+3. backup e restauração em ambiente descartável;
+4. homologação manual dos relatórios Excel;
+5. matriz remota por perfil e viewport;
+6. UAT;
+7. polimento editorial/visual;
+8. decisão formal de release.
 
-Quando código, documentação e decisão funcional divergirem e não for possível determinar qual mudança foi intencional, interrompa somente a parte afetada e pergunte ao responsável.
+Não declarar o produto oficialmente liberado antes do gate cumulativo.
+
+## 15. Prevenção de loops
+
+Ao concluir PR relevante:
+
+- atualizar `docs/CURRENT_STAGE.md`;
+- registrar decisões duradouras em `docs/DECISION_LOG.md`;
+- atualizar `docs/PROJECT_CONTEXT.md` para mudanças estáveis;
+- atualizar contratos específicos e evidências;
+- classificar documentos substituídos ou históricos;
+- não iniciar nova frente antes de declarar a anterior concluída, bloqueada ou substituída.
+
+Quando código, documentação e decisão funcional divergirem, verificar primeiro as fontes operacionais. Interromper apenas a parte que permanecer realmente indeterminada.

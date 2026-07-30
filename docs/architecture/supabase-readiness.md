@@ -1,49 +1,82 @@
-# Arquitetura de prontidão para Supabase
+# Arquitetura de persistência e prontidão Supabase
 
-## Estado arquitetural
+**Estado:** vigente; conexão de Production ativa  
+**Atualizado em:** 29 de julho de 2026
+
+## 1. Estado arquitetural
 
 ```text
-Frontend aprovado
-       ↓
-Serviços de aplicação
-       ↓
-Unidade de trabalho e contrato único de persistência
-       ├── LocalStorageRepository — modo vigente
-       └── SupabaseRepository — modo preparado
+Frontend
+   ↓
+Serviços de aplicação e UnitOfWork
+   ↓
+Contrato único de persistência
+   ├── SupabaseRepository — Preview e Production
+   └── LocalStorageRepository — contingência explícita
+   ↓
+Supabase Auth + PostgREST + PostgreSQL + RLS + RPCs + auditoria
 ```
 
-A seleção ocorre por configuração pública gerada. A cópia versionada permanece em modo local e bloqueia qualquer inicialização remota.
+Production opera com `SupabaseRepository` como persistência canônica. O modo local não é o backend normal de Production e permanece apenas para desenvolvimento controlado e rollback emergencial por novo build.
 
-## Componentes
+## 2. Runtime de referência
 
-### Interface
+### Preview
 
-Os handlers permanecem responsáveis por DOM, mensagens, abertura de modais e renderização. Regras institucionais e mutações não são persistidas diretamente pela camada visual.
+```text
+environment: preview
+dataMode: supabase-preview
+supabaseRepositoryEnabled: true
+productionActivationApproved: false
+```
 
-### Serviços de aplicação
+### Production
+
+```text
+environment: production
+dataMode: supabase-production
+supabaseRepositoryEnabled: true
+productionActivationApproved: true
+```
+
+Projeto autorizado:
+
+```text
+scnryinorqeucbfkioxo
+```
+
+A configuração pública contém somente URL e chave publicável. `service_role`, `sb_secret_*`, senha do banco e tokens administrativos são proibidos no navegador, GitHub, logs e artefatos.
+
+## 3. Componentes
+
+### 3.1 Interface
+
+Handlers cuidam de DOM, mensagens, modais e renderização. Regras institucionais e mutações não são persistidas diretamente pela camada visual.
+
+### 3.2 Serviços de aplicação
 
 Serviços especializados cobrem:
 
-- configurações e exercícios;
-- diretórios e cadastros;
-- escolas e carteira;
-- verificações;
+- configurações, exercícios e competências;
+- diretórios e contas da equipe;
+- escolas, vínculos e carteira;
+- verificações e avaliação mensal;
 - pendências, tentativas e contatos;
 - notas fiscais;
 - bens e inventário;
 - auditoria.
 
-### Unidade de trabalho
+### 3.3 Unidade de trabalho
 
-`DataService` e `UnitOfWork` capturam o estado anterior, executam a regra, persistem e restauram memória, armazenamento e repositório em caso de falha.
+`DataService` e `UnitOfWork` capturam estado anterior, executam a regra, persistem e restauram memória e repositório em caso de falha.
 
-### Porta de estado
+### 3.4 Porta de estado
 
-A porta traduz o modelo legado do frontend para o snapshot canônico e realiza o caminho inverso. As chaves `radar_pdde_*` continuam preservadas para operação local e rollback.
+A porta traduz o modelo legado do frontend para o snapshot canônico e realiza o caminho inverso. Chaves `radar_pdde_*` são preservadas para compatibilidade e contingência, não como fonte normal de Production.
 
-### Repositórios
+### 3.5 Repositórios
 
-Ambos implementam:
+Ambos implementam o contrato comum:
 
 - `load`;
 - `save`;
@@ -53,79 +86,192 @@ Ambos implementam:
 - `healthCheck`;
 - `capabilities`.
 
-O adaptador Supabase acrescenta paginação, lotes, concorrência otimista, RPCs compostas e protocolo de importação.
+O adaptador Supabase acrescenta paginação, lotes, concorrência otimista, RPCs compostas, Auth, RLS e protocolo de importação.
 
-## Modelo de dados
+## 4. Modelo de dados
 
-O banco normaliza entidades funcionais e mantém JSONB somente onde a estrutura é realmente variável. Contratos JSON compartilhados são validados por Ajv no navegador e `pg_jsonschema` no PostgreSQL.
+O banco normaliza entidades funcionais e mantém JSONB somente para estruturas variáveis. Contratos JSON compartilhados são validados por Ajv no navegador e `pg_jsonschema` no PostgreSQL.
 
-Tabelas expostas possuem RLS. A Data API exige grants explícitos e não concede acesso institucional ao papel `anon`.
+Tabelas expostas possuem RLS. A Data API exige grants explícitos e não concede dados institucionais ao papel `anon`.
 
-## Autenticação e autorização
+Entidades canônicas incluem configuração, programas, competências, escolas, vínculos, perfis, escopos, Controladores, Inventário, verificações, pendências, tentativas, contatos, notas, bens, logs, importações e auditoria.
 
-No modo local, o seletor de perfil vigente continua disponível. No modo Supabase, a identidade vem exclusivamente da sessão Auth e das tabelas protegidas de perfil e escopo.
+## 5. Autenticação e autorização
 
-Autorização combina:
+No modo Supabase, identidade e perfil efetivo derivam da sessão Auth e das tabelas protegidas.
 
-- perfil ativo único;
-- carteira do controlador;
-- escopo explícito por escola;
+A autorização combina:
+
+- perfil institucional ativo;
+- `cre_scope`;
+- carteira como responsabilidade principal;
+- exceções explícitas por escola;
 - distinção entre leitura e escrita;
-- permissões específicas do inventário;
-- privilégios administrativos restritos.
+- capacidades específicas de Inventário;
+- governança somente leitura da Gestão SME;
+- privilégios técnicos separados.
 
-## Operações atômicas
+A simulação visual de perfil não altera o JWT nem concede capacidade remota.
 
-RPCs transacionais evitam persistências parciais nos seguintes fluxos:
+## 6. Gestão de contas
 
-- criação de exercício e competências;
+```text
+DirectoryService
+→ TeamAccountGateway
+→ Edge Function autenticada
+   ├── Supabase Auth Admin
+   └── RPC PostgreSQL transacional
+```
+
+A credencial administrativa permanece server-side. Convite, edição e desativação usam idempotência e compensação para impedir divergência entre Auth e diretório funcional.
+
+## 7. Operações atômicas
+
+RPCs e transações evitam persistência parcial em:
+
+- exercício e competências;
 - escola e programas;
+- verificação e log;
 - reanálise e efeitos documentais;
-- nota, bem e verificação;
-- promoção de dados staged.
+- contato, pendência, nota e bem;
+- Gestão de Equipe;
+- importação, promoção e rollback.
 
-## Migração
+Conflitos de `row_version` não são sobrescritos silenciosamente.
 
-O protocolo não semeia banco vazio automaticamente. A migração é uma operação deliberada:
+## 8. Migrations
 
-1. exportar o estado local;
-2. validar estrutura e referências;
-3. calcular hash e plano;
-4. gravar lotes em staging por `importId`;
-5. retomar lotes interrompidos sem duplicação;
-6. reconciliar staging;
-7. promover o snapshot em transação única;
-8. reconciliar o destino;
-9. concluir ou reverter.
+O repositório e o Supabase Production possuem 25 versões correspondentes.
 
-A comparação canônica normaliza representações ISO equivalentes de um mesmo instante, sem alterar datas civis ou dados persistidos.
+Estado canônico da migration SME:
 
-## Resiliência e UX
+```text
+arquivo local: 20260728182226_sme_access_governance.sql
+registro remoto: 20260728182226_sme_access_governance
+registro derivado 20260728190344: ausente
+comprimento do SQL: 1.411 caracteres
+SHA-256: cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
+```
 
-Falhas técnicas são convertidas em categorias estáveis e mensagens funcionais. O formulário permanece aberto, o foco é preservado e tecnologias assistivas recebem anúncio em região `aria-live`.
+A reconciliação utilizou o mecanismo oficial de reparo do histórico, sem executar, reaplicar ou reverter o SQL funcional. O schema e as políticas permaneceram inalterados, `migration list` terminou alinhado e `db push --dry-run` não apresentou migration pendente.
 
-Retry automático é limitado a leituras seguras com erro transitório. Escritas nunca são repetidas silenciosamente.
+O teste `tests/unit/sme-migration-history-alignment.test.js` protege:
 
-## Invariantes de segurança
+- o identificador canônico do arquivo;
+- a ausência do identificador derivado;
+- o hash do SQL.
 
-- produção padrão: `local`;
-- conexão remota exige autorização explícita de configuração;
-- nenhum segredo no navegador, repositório ou logs;
-- nenhuma migration aplicada automaticamente em projeto remoto;
+Antes de qualquer migration futura:
+
+1. executar `supabase migration list --linked`;
+2. executar o teste de alinhamento SME;
+3. aplicar reset local;
+4. executar pgTAP e lint SQL;
+5. regenerar e validar tipos;
+6. revisar o dry-run;
+7. preparar backup e rollback;
+8. manter aprovação e evidências no mesmo SHA.
+
+`migration repair` altera o histórico e não substitui rollback funcional de SQL.
+
+Runbook: [`../runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`](../runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md).
+
+## 9. Importação, reconciliação e rollback
+
+```text
+snapshot
+→ validação
+→ plano
+→ dry-run
+→ staging
+→ retomada
+→ reconciliação
+→ promoção atômica
+→ reconciliação do destino
+→ rollback comprovado
+```
+
+Seed local não é dado institucional. Importação administrativa não ocorre no navegador e não é disparada implicitamente por banco vazio.
+
+## 10. Resiliência e UX
+
+Falhas são convertidas em categorias estáveis e mensagens funcionais. Formulários permanecem abertos, foco é preservado e tecnologias assistivas recebem anúncios em `aria-live`.
+
+Retry automático é limitado a leituras seguras com erro transitório. Escritas não são repetidas silenciosamente.
+
+## 11. Rollback emergencial de runtime
+
+```text
+RADAR_PRODUCTION_FORCE_LOCAL=true
+```
+
+O sinal exige novo build e retorna o frontend ao repositório local sem apagar ou alterar o Supabase. É contingência excepcional e exige:
+
+- decisão registrada;
+- diagnóstico do incidente;
+- evidência do build;
+- plano de retorno ao Supabase;
+- comunicação sobre a ausência de sincronização automática entre os modos.
+
+## 12. Invariantes de segurança
+
+- Production normal usa Supabase;
+- acesso remoto exige configuração explícita e válida;
+- nenhum segredo no frontend ou repositório;
+- nenhuma migration remota automática;
 - nenhum seed implícito;
-- rollback local preservado após futura ativação;
-- layout, botões e regras aprovadas não dependem do backend escolhido.
+- Auth e RLS permanecem obrigatórios;
+- autoria e auditoria acompanham mutações;
+- rollback local não redefine o banco canônico;
+- mudança de backend não pode alterar regras de produto;
+- histórico de migrations não é editado diretamente.
 
-## Ativação futura
+## 13. Estado de hardening
 
-A etapa remota deverá consistir principalmente em:
+Comprovado:
 
-1. criar ou selecionar o projeto;
-2. configurar URL e chave publicável em Preview;
-3. aplicar as 12 migrations;
-4. confirmar extensões e versões;
-5. criar usuários de homologação;
-6. executar Auth, RLS, importação e reconciliação remotos;
-7. executar Advisors, backup, restauração e MFA;
-8. homologar Preview;
-9. autorizar produção.
+- usuário anônimo sem acesso institucional;
+- RLS por perfil e escopo;
+- chave exclusivamente publicável no frontend;
+- Edge Function protegida por JWT;
+- operações compostas auditáveis;
+- histórico de migrations alinhado e protegido por teste;
+- deployments automáticos bloqueados fora de janelas controladas.
+
+Pendente antes da liberação oficial:
+
+- proteção contra senhas vazadas no Supabase Auth;
+- fixação deliberada da major operacional do Node;
+- backup e restauração em ambiente descartável;
+- homologação manual dos relatórios Excel;
+- matriz remota por perfil e viewport;
+- UAT;
+- polimento editorial/visual;
+- decisão formal de release.
+
+## 14. Verificação obrigatória
+
+```bash
+npm run test:readiness
+node --test tests/unit/sme-migration-history-alignment.test.js
+npm run supabase:start
+npm run supabase:reset
+npm run supabase:test:db
+npm run supabase:lint:db
+npm run typecheck:database
+npm run test:e2e
+npm run test:mobile
+npm run build:vercel
+```
+
+Mudança de schema também exige Advisors, comparação local/remota de migrations, tipos regenerados, backup, rollback e aprovação no mesmo SHA.
+
+## 15. Referências
+
+- [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md);
+- [`../reference/SUPABASE_DATA_DICTIONARY.md`](../reference/SUPABASE_DATA_DICTIONARY.md);
+- [`../reference/SUPABASE_PERMISSIONS_MATRIX.md`](../reference/SUPABASE_PERMISSIONS_MATRIX.md);
+- [`../reference/SUPABASE_FUNCTIONAL_COVERAGE.md`](../reference/SUPABASE_FUNCTIONAL_COVERAGE.md);
+- [`../runbooks/SUPABASE_CONNECTION.md`](../runbooks/SUPABASE_CONNECTION.md);
+- [`../runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`](../runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md);
+- [`../audits/2026-07-29-reconciliacao-migration-sme-evidencias.md`](../audits/2026-07-29-reconciliacao-migration-sme-evidencias.md).

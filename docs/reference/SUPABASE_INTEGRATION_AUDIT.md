@@ -1,10 +1,16 @@
 # Auditoria de integração — Gate de Pré-conexão Supabase
 
-## Conclusão executiva
+**Classificação:** auditoria histórica encerrada  
+**Período:** antes da ativação do Supabase em Production  
+**Fonte atual:** [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md)
 
-O RADAR PDDE está estruturalmente preparado para futura conexão ao Supabase sem nova refatoração de arquitetura. A produção permanece no modo local, sem URL, chave ou conexão remota ativa.
+> As afirmações de que Production permanecia local e de que Supabase ainda não estava implantado eram corretas na data desta auditoria, mas foram substituídas pela ativação registrada na ADR-023. O conteúdo abaixo é preservado como evidência do gate de preparação e não deve orientar o estado atual.
 
-Não é correto afirmar que o Supabase está implantado. A formulação correta é:
+## Conclusão executiva histórica
+
+O RADAR PDDE estava estruturalmente preparado para futura conexão ao Supabase sem nova refatoração de arquitetura. Naquele estágio, Production permanecia no modo local, sem URL, chave ou conexão remota ativa.
+
+A formulação correta naquele momento era:
 
 > O RADAR está integralmente preparado para conexão ao Supabase, condicionada à criação e homologação do projeto remoto.
 
@@ -31,11 +37,11 @@ A auditoria automatizada não encontrou:
 - mutadores sem mapeamento para serviços de aplicação;
 - credenciais administrativas no frontend ou no repositório.
 
-O bootstrap permanece *fail-closed*: o modo versionado é `local`, `supabaseRepositoryEnabled` é `false`, URL e chave publicável são vazias.
+Naquele gate, o bootstrap permanecia *fail-closed*: o modo versionado era `local`, `supabaseRepositoryEnabled` era `false`, URL e chave publicável eram vazias.
 
-## Banco de dados
+## Banco de dados naquele estágio
 
-O conjunto possui 12 migrations versionadas:
+O conjunto possuía 12 migrations versionadas:
 
 1. esquema relacional principal;
 2. autenticação, perfis e RLS;
@@ -50,9 +56,11 @@ O conjunto possui 12 migrations versionadas:
 11. contratos JSON e RPCs compostas;
 12. importação reversível por staging, promoção e rollback.
 
-As migrations são exercitadas em PostgreSQL 17 independente e na pilha Supabase local.
+As migrations eram exercitadas em PostgreSQL 17 independente e na pilha Supabase local.
 
-## Segurança
+O estado atual possui 25 arquivos locais de migration e Production remota ativa. Consultar o runbook vigente.
+
+## Segurança verificada
 
 - RLS habilitada em todas as tabelas expostas;
 - `anon` sem acesso a dados institucionais;
@@ -67,7 +75,7 @@ As migrations são exercitadas em PostgreSQL 17 independente e na pilha Supabase
 
 ## Integridade transacional
 
-As operações compostas possuem equivalência local/remota:
+As operações compostas possuíam equivalência local/remota:
 
 - exercício e 12 competências;
 - escola e vínculos de programas;
@@ -75,11 +83,11 @@ As operações compostas possuem equivalência local/remota:
 - nota, bem derivado, verificação e log;
 - promoção de snapshot funcional.
 
-A importação usa `importId`, hash SHA-256, lotes idempotentes, checkpoint, reconciliação obrigatória e rollback controlado. A substituição atômica declara explicitamente as exclusões totais, mantendo compatibilidade com o modo `safeupdate` do Supabase.
+A importação usava `importId`, hash SHA-256, lotes idempotentes, checkpoint, reconciliação obrigatória e rollback controlado.
 
-## Evidências de teste
+## Evidências históricas de teste
 
-O gate consolidado executa:
+O gate consolidado executava:
 
 - verificação de sintaxe;
 - 146 testes unitários;
@@ -93,11 +101,9 @@ O gate consolidado executa:
 - axe e navegação por teclado;
 - auditoria funcional e de persistência.
 
-Os números devem ser atualizados caso a suíte cresça; a fonte de verdade é o workflow associado ao HEAD final do PR 22.
+Esses números são evidência histórica do PR 22 e não representam a suíte atual. A estratégia vigente está em [`../architecture/testing.md`](../architecture/testing.md).
 
-## Riscos residuais
-
-Não são lacunas de preparação, mas atividades dependentes do ambiente remoto:
+## Riscos residuais identificados naquele momento
 
 - disponibilidade real de extensões e versões;
 - configuração de ambientes Vercel;
@@ -107,6 +113,10 @@ Não são lacunas de preparação, mas atividades dependentes do ambiente remoto
 - MFA para perfis privilegiados;
 - homologação com usuários e dados controlados.
 
-## Parecer
+Parte desses itens foi superada; outros permanecem gates de release. Consultar `CURRENT_STAGE.md`.
 
-O Gate de Pré-conexão pode ser encerrado quando o HEAD final apresentar todas as pipelines verdes e um Preview correspondente ao mesmo commit for validado. O merge não ativa o Supabase: incorpora apenas a arquitetura pronta, mantendo produção em `localStorage`.
+## Parecer histórico
+
+O parecer autorizava encerrar o Gate de Pré-conexão após pipelines verdes e Preview correspondente ao mesmo commit. O merge daquele gate não ativava Supabase e mantinha Production em LocalStorage.
+
+Essa condição foi posteriormente substituída pela ativação de Production. O documento permanece somente para demonstrar a preparação anterior.

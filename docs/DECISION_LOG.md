@@ -1,23 +1,27 @@
 # RADAR PDDE — Registro de decisões
 
-Este documento registra decisões duradouras. Não é diário de commits. Uma decisão só deve ser substituída por nova decisão expressa, com impacto analisado e registro do status anterior.
+**Atualizado em:** 29 de julho de 2026
+
+Este documento registra decisões duradouras. Não é diário de commits. Uma decisão somente é substituída por decisão expressa com impacto e status documentados.
 
 ## Convenções
 
 - **Aprovada:** vigente;
+- **Aprovada e implementada:** vigente e refletida no produto;
+- **Cumprida:** gate ou condição já satisfeita;
 - **Substituída:** outra decisão passou a prevalecer;
 - **Revogada:** deixou de valer;
-- **Proposta:** ainda depende de decisão.
+- **Proposta:** depende de decisão.
 
 ---
 
 ## ADR-001 — Contrato único de repositório
 
-**Status:** Aprovada
+**Status:** Aprovada e implementada
 
-Manter `LocalStorageRepository` e `SupabaseRepository` sob o mesmo contrato. Frontend e serviços não dependem diretamente do mecanismo concreto de persistência.
+`LocalStorageRepository` e `SupabaseRepository` implementam o mesmo contrato. Interface e serviços não dependem do mecanismo concreto.
 
-**Consequências:** transição progressiva, equivalência testável e rollback; nenhuma arquitetura concorrente sem limitação comprovada.
+**Consequência:** Supabase é canônico em Preview/Production; LocalStorage permanece para desenvolvimento e contingência, sem arquitetura paralela de negócio.
 
 ---
 
@@ -25,86 +29,57 @@ Manter `LocalStorageRepository` e `SupabaseRepository` sob o mesmo contrato. Fro
 
 **Status:** Substituída pela ADR-023
 
-Production permaneceu com `dataMode: local`, repositório Supabase desabilitado e ativação não aprovada durante o gate de pré-conexão.
-
-Essa decisão cumpriu sua finalidade de proteção e deixou de representar o ambiente após a ativação controlada do Supabase Production.
+Production permaneceu local durante o gate de pré-conexão. A decisão cumpriu sua finalidade de proteção e não representa o ambiente atual.
 
 ---
 
 ## ADR-003 — Primeira conexão em Preview exclusivo
 
-**Status:** Substituída pela ADR-023 quanto ao estágio operacional; preservada como regra histórica de ativação
+**Status:** Substituída pela ADR-023 quanto ao estágio; vigente como regra de ativação
 
-A primeira conexão real ocorreu em ambiente isolado e não autorizava automaticamente Production. O requisito foi satisfeito durante a homologação e ativação controlada.
-
-Para futuras mudanças de infraestrutura, Preview continua sendo o ambiente obrigatório de primeira validação.
+Mudança nova de infraestrutura deve ser validada primeiro em ambiente isolado. Preview aprovado não autoriza automaticamente Production.
 
 ---
 
 ## ADR-004 — Quatro perfis funcionais visíveis
 
-**Status:** Aprovada
+**Status:** Aprovada e implementada
 
-O seletor operacional apresenta exatamente:
-
-1. Controlador;
-2. Assistente de Verbas Federais;
-3. SME (Gestão);
-4. Equipe de Inventário.
-
-`technical_admin` não é um quinto perfil visual.
+O seletor operacional apresenta Controlador, Assistente de Verbas Federais, SME (Gestão) e Equipe de Inventário. `technical_admin` não é quinto perfil funcional visível.
 
 ---
 
 ## ADR-005 — Administrador técnico separado da Assistente
 
-**Status:** Aprovada
+**Status:** Aprovada e implementada
 
-`technical_admin` não é convertido em `federal_assistant`, não recebe identidade funcional da Assistente e não opera a Gestão de Equipe cotidiana. É papel de infraestrutura, perfis, escopos e auditoria.
-
-Uma área administrativa visual própria poderá ser criada posteriormente, sem alterar essa separação.
+`technical_admin` opera infraestrutura, perfis, escopos, importações e auditoria. Não recebe identidade nem operação cotidiana da Assistente.
 
 ---
 
-## ADR-006 — Assistente lidera e administra plenamente a equipe da CRE
+## ADR-006 — Assistente lidera e administra a equipe da CRE
 
-**Status:** Aprovada
+**Status:** Aprovada e implementada
 
-A Assistente de Verbas Federais é a liderança operacional dos Controladores na GAD da CRE e possui permissão para:
+A Assistente pode cadastrar, editar, convidar, desativar e redistribuir Controladores e integrantes do Inventário dentro do escopo autorizado, com efeitos em persistência, Auth e auditoria.
 
-- cadastrar, editar e desativar Controladores;
-- distribuir e redistribuir escolas;
-- cadastrar, editar e desativar integrantes de Inventário;
-- produzir os efeitos autorizados em persistência, acesso e auditoria.
-
-A decisão anterior que atribuía manutenção cotidiana dos diretórios à SME está **substituída**.
+A atribuição anterior de manutenção cotidiana à SME está substituída.
 
 ---
 
 ## ADR-007 — Cadastro de integrante inclui convite e conta
 
-**Status:** Aprovada
+**Status:** Aprovada e implementada
 
-Cadastrar Controlador ou integrante do Inventário deve:
-
-- criar ou atualizar registro organizacional;
-- enviar convite e criar conta Supabase Auth;
-- criar ou reativar `user_profiles`;
-- vincular `user_id` ao integrante;
-- registrar a operação;
-- impedir duplicidade.
-
-Desativação bloqueia o acesso e preserva histórico. Falha parcial deve ser compensada.
+O cadastro cria ou atualiza diretório, conta Auth, perfil e vínculo funcional, impede duplicidade e registra auditoria. Desativação bloqueia acesso e preserva histórico. Falha parcial exige compensação.
 
 ---
 
 ## ADR-008 — Gestão de contas ocorre em backend protegido
 
-**Status:** Aprovada
+**Status:** Aprovada e implementada
 
-O navegador chama Edge Function autenticada. Auth Admin e RPCs administrativas permanecem server-side. Chave secreta ou `service_role` nunca chegam ao frontend.
-
-RPCs de provisionamento/desativação são restritas ao `service_role`; a Edge Function valida JWT e papel `federal_assistant` ou `technical_admin`.
+O navegador chama Edge Function autenticada. Auth Admin e RPCs privilegiadas permanecem server-side. `service_role` ou segredo equivalente nunca chega ao frontend.
 
 ---
 
@@ -112,33 +87,37 @@ RPCs de provisionamento/desativação são restritas ao `service_role`; a Edge F
 
 **Status:** Aprovada
 
-A SME acompanha a situação operacional das CREs, consulta dados consolidados e mantém parâmetros institucionais autorizados. Não substitui a Assistente na gestão cotidiana dos Controladores e do Inventário da CRE.
+A SME acompanha CREs, dados consolidados e parâmetros autorizados. Não substitui a Assistente na gestão cotidiana da equipe da CRE. O recorte operacional é detalhado pela ADR-022.
 
 ---
 
 ## ADR-010 — Exclusão física é técnica e excepcional
 
-**Status:** Aprovada
+**Status:** Aprovada e implementada
 
-A ação visual de remover integrante executa desativação lógica, redistribuição quando necessária, bloqueio de acesso e auditoria. `DELETE` físico permanece restrito ao Administrador técnico.
+Remover integrante na interface significa desativação lógica, redistribuição quando necessária, bloqueio de acesso e auditoria. `DELETE` físico permanece excepcional e técnico.
 
 ---
 
 ## ADR-011 — Operações compostas são atômicas
 
-**Status:** Aprovada
+**Status:** Aprovada e implementada
 
-Mudanças interdependentes usam transação/RPC: exercício e competências, escola e programas, reanálise, efeitos de nota, Gestão de Equipe, importação, promoção e rollback.
-
-Nenhum fluxo pode deixar estado parcialmente persistido após falha.
+Mudanças interdependentes usam transação ou RPC: competências, escola e programas, verificação e log, reanálise, nota, bem, Gestão de Equipe, importação, promoção e rollback.
 
 ---
 
-## ADR-012 — Migração progressiva e reversível
+## ADR-012 — Migração de dados progressiva e reversível
 
 **Status:** Aprovada
 
-Fluxo obrigatório: snapshot, validação, plano, dry-run, staging, retomada, reconciliação, promoção atômica e rollback comprovado.
+Fluxo obrigatório:
+
+```text
+snapshot → validação → plano → dry-run → staging
+         → retomada → reconciliação → promoção atômica
+         → reconciliação do destino → rollback comprovado
+```
 
 Seed local não é dado institucional e não é aplicado implicitamente em ambiente remoto.
 
@@ -146,9 +125,9 @@ Seed local não é dado institucional e não é aplicado implicitamente em ambie
 
 ## ADR-013 — Concorrência otimista explícita
 
-**Status:** Aprovada
+**Status:** Aprovada e implementada
 
-Registros mutáveis usam `row_version`. Conflito não é sobrescrito silenciosamente; o usuário deve ser informado e reavaliar a versão atual.
+Registros mutáveis usam `row_version`. Conflitos não são sobrescritos silenciosamente; o usuário deve reavaliar o estado atual.
 
 ---
 
@@ -156,9 +135,7 @@ Registros mutáveis usam `row_version`. Conflito não é sobrescrito silenciosam
 
 **Status:** Aprovada
 
-Preview conectado deve executar `vercel build`, confirmar `radar-build-manifest.json` e publicar com `vercel deploy --prebuilt`. O workflow não aceita `--prod`.
-
-Production e Preview são builds independentes do mesmo código.
+Preview conectado deve usar build verificado e manifesto próprio. Preview não usa `--prod` e não é promovido como artefato de Production.
 
 ---
 
@@ -166,15 +143,15 @@ Production e Preview são builds independentes do mesmo código.
 
 **Status:** Aprovada
 
-O estado atual é determinado por código remoto, deployment real e infraestrutura efetivamente existente. Memória de chat e documentos históricos ajudam, mas não substituem verificação.
+O estado atual é determinado por código remoto, banco/autorização efetivos e deployment real. Memória de chat e documentos históricos não substituem verificação.
 
 ---
 
-## ADR-016 — Alterações devem acompanhar todas as camadas
+## ADR-016 — Alterações acompanham todas as camadas
 
 **Status:** Aprovada
 
-Mudança de ação, perfil ou fluxo exige verificar frontend, serviço, persistência, migration/RPC, Auth/RLS, auditoria, testes, documentação e implantação. Alterar apenas uma camada não conclui a tarefa.
+Mudança de ação, perfil ou fluxo exige verificar interface, serviço, persistência, migration/RPC, Auth/RLS, auditoria, testes, documentação e implantação.
 
 ---
 
@@ -190,7 +167,7 @@ Responsividade pode reorganizar tabelas em cartões, mas não remover informaç�
 
 **Status:** Aprovada
 
-Ajustes visuais, textuais ou pequenos hotfixes não substituem automaticamente a tarefa estrutural em andamento. `docs/CURRENT_STAGE.md` registra a sequência vigente.
+Hotfix visual ou textual não substitui automaticamente a frente estrutural vigente. `CURRENT_STAGE.md` controla a sequência operacional.
 
 ---
 
@@ -198,14 +175,7 @@ Ajustes visuais, textuais ou pequenos hotfixes não substituem automaticamente a
 
 **Status:** Aprovada
 
-Ao finalizar uma sessão ou PR, declarar explicitamente se a tarefa foi:
-
-- concluída;
-- bloqueada;
-- substituída;
-- parcialmente concluída, com itens restantes.
-
-Não iniciar novo ciclo deixando o status anterior implícito.
+Cada sessão ou PR declara a tarefa como concluída, bloqueada, substituída ou parcialmente concluída, com itens restantes explícitos.
 
 ---
 
@@ -213,52 +183,38 @@ Não iniciar novo ciclo deixando o status anterior implícito.
 
 **Status:** Aprovada
 
-Versões permanecem fixadas e lockfile versionado. Não instalar ORM, biblioteca paralela de schemas, cache ou estado apenas por preferência tecnológica. Atualizações exigem necessidade, changelog e gates completos.
-
-A major operacional do Node deve ser deliberada. Faixa que permita adoção automática de nova major em Production deve ser restringida antes do release oficial.
+Versões permanecem fixadas e lockfile versionado. Nova biblioteca exige necessidade comprovada, análise de changelog e gates completos. A major operacional do Node deve ser deliberadamente fixada antes do release oficial.
 
 ---
 
 ## ADR-021 — Carteira organiza responsabilidade, não restringe colaboração
 
-**Status:** Aprovada
+**Status:** Aprovada e implementada
 
-A carteira individual do Controlador define responsabilidade principal, filtro inicial, priorização e organização do trabalho. Não constitui fronteira de sigilo ou autorização entre Controladores da mesma CRE.
-
-Todo Controlador autenticado pode consultar e executar ações operacionais nas escolas da própria `cre_scope`, inclusive para cobrir férias, licenças, ausências ou sobrecarga de colega.
-
-Atuar fora da própria carteira:
-
-- não altera automaticamente `schools.controller_id`;
-- preserva a responsabilidade principal existente;
-- registra a autoria do usuário executor em `created_by`, logs e auditoria;
-- não concede acesso a escola de outra CRE sem exceção explícita.
-
-A interpretação anterior que restringia Controladores à própria carteira está **substituída**.
+A carteira define responsável principal, filtro inicial e priorização. Controladores podem atuar nas escolas da mesma `cre_scope`, preservando `schools.controller_id` e autoria real. Outra CRE exige exceção explícita.
 
 ---
 
 ## ADR-022 — Gestão SME separa consulta gerencial de operação
 
-**Status:** Aprovada
+**Status:** Aprovada e implementada
 
-Na visão da Gestão SME:
+Na Gestão SME:
 
-- a tela mensal e o prontuário exibem identificação da unidade e informações de bonificação, sem análise técnica nem controles operacionais;
-- pendências, tentativas, contatos e detalhes permanecem consultáveis, mas novo envio, substituição, reanálise, contato, cancelamento, reabertura e criação de pendência são proibidos;
-- Registros Internos exibem somente linhas cujo `actor_user_id` coincide com o `auth.uid()` autenticado;
-- registros históricos sem UUID de autor não são exibidos à SME;
-- Administrador técnico mantém leitura integral quando opera em sua visão técnica, mas a simulação visual SME reproduz o mesmo recorte somente leitura da interface.
+- visão mensal e Prontuário exibem identificação e bonificação, sem análise técnica ou controles operacionais;
+- Pendências são consultáveis, mas mutações operacionais são proibidas;
+- Registros Internos exibem somente `actor_user_id = auth.uid()`;
+- registros sem UUID de autor não são exibidos;
+- Administrador técnico mantém leitura integral em sua visão técnica;
+- simulação SME reproduz o recorte visual, sem alterar JWT.
 
-A autorização de mutações de pendência é aplicada na política de capacidades, nos handlers, no serviço de aplicação e na RLS. Ocultar botões isoladamente não satisfaz esta decisão.
-
-A modelagem e a configuração de programas por exercício não fazem parte desta decisão.
+A restrição é cumulativa em capacidades, handlers, serviços e RLS. Programas por exercício não integram esta decisão.
 
 ---
 
 ## ADR-023 — Production usa Supabase como persistência canônica
 
-**Status:** Aprovada
+**Status:** Aprovada e implementada
 
 Production opera com:
 
@@ -269,108 +225,81 @@ supabaseRepositoryEnabled: true
 productionActivationApproved: true
 ```
 
-O projeto autorizado é `scnryinorqeucbfkioxo`. O `SupabaseRepository` é a persistência normal de Preview e Production. O `LocalStorageRepository` permanece somente como rollback emergencial acionado por build controlado.
+Projeto autorizado: `scnryinorqeucbfkioxo`.
 
-A ativação de Production não autoriza relaxar Auth, RLS, auditoria, concorrência, reconciliação ou rollback.
+`LocalStorageRepository` permanece somente como contingência por build controlado. Ativação não relaxa Auth, RLS, auditoria, concorrência, reconciliação ou rollback.
 
 ---
 
-## ADR-024 — Documentação segue código e ambientes, não o contrário
+## ADR-024 — Documentação segue código e ambientes
 
 **Status:** Aprovada
 
-READMEs, estágio atual, contexto, decisões, planos, inventários e handoffs devem ser atualizados após mudanças materiais.
+Após mudança material, atualizar READMEs, estágio, contexto, decisões, inventários e handoffs. Quando houver divergência:
 
-Quando houver divergência:
-
-1. verificar código, migrations, políticas, deployment e dados;
-2. corrigir a documentação para representar o estado comprovado;
-3. não modificar código apenas para fazê-lo coincidir com documento desatualizado;
-4. preservar documentos históricos com classificação explícita.
-
-Artefato gerado deve ser regenerado pelo script canônico; não deve ser editado manualmente para aparentar alinhamento.
+1. verificar código, migrations, banco e deployment;
+2. corrigir a documentação;
+3. não modificar código apenas para coincidir com documento antigo;
+4. preservar históricos com classificação explícita;
+5. regenerar artefatos pelo script canônico.
 
 ---
 
 ## ADR-025 — Competência mensal é contexto global único
 
-**Status:** Aprovada
+**Status:** Aprovada e implementada
 
-A competência ativa deve ser uma única fonte de contexto consumida por Dashboard, Carteira, Competências, Prontuário, Pendências, alertas, timeline e exportações.
-
-Requisitos:
-
-- seletor mensal disponível em todas as superfícies e perfis aplicáveis;
-- preservação da seleção durante navegação, retorno e recarga da sessão;
-- nenhuma constante mensal fixa em `app.js`;
-- funções de domínio recebem `competenceKey` explicitamente;
-- controles locais não criam seleção concorrente.
-
-Competência existente, disponível para lançamento e fechada são conceitos distintos. `closing_competence` não deve ser usado como filtro genérico para ocultar meses existentes.
+Dashboard, Carteira, Competências, Prontuário, Pendências, alertas, timeline e exportações consomem uma única competência ativa.
 
 ---
 
 ## ADR-026 — Competências restantes de 2026 devem ser operacionalizadas
 
-**Status:** Aprovada
+**Status:** Aprovada e implementada; método esclarecido pela ADR-032
 
-As competências de junho a dezembro de 2026 devem ser disponibilizadas a todos os perfis conforme suas permissões, preservando janeiro a maio e sem apagar registros.
+Janeiro a dezembro de 2026 estão disponíveis aos perfis conforme permissões, preservando registros anteriores.
 
-A abertura deve ser expressa em dado/regra canônica, com migration, contratos, testes e homologação. Não será implementada apenas por inclusão visual de opções.
+O objetivo foi cumprido com as doze competências existentes e alteração transacional de `closing_competence` para `2026-12`. Não houve migration adicional.
 
 ---
 
-## ADR-027 — Histórico cronológico é projeção, não nova fonte de verdade
+## ADR-027 — Histórico cronológico é projeção
 
-**Status:** Aprovada
+**Status:** Aprovada e implementada
 
-O histórico da unidade consolida verificações, pendências, tentativas, contatos, logs, notas e bens em uma projeção cronológica normalizada.
-
-Não criar tabela paralela de timeline quando os eventos já possuem entidades canônicas. A projeção deve preservar autoria, data, competência, programa, vínculo e visibilidade por perfil, evitando duplicidade sem apagar eventos relevantes.
+A timeline consolida verificações, pendências, tentativas, contatos, logs, notas e bens em leitura cronológica. Não cria tabela paralela quando os eventos já possuem entidades canônicas.
 
 ---
 
 ## ADR-028 — Excel exige certificação de paridade integral
 
-**Status:** Aprovada
+**Status:** Aprovada e implementada quanto ao gate automatizado
 
-Os relatórios Excel são produtos finais institucionais. A liberação oficial exige reconciliação automatizada:
+Relatórios Excel são produtos finais institucionais. A certificação percorre:
 
 ```text
-Supabase → estado carregado → modelo de exportação → célula XLSX
+estado canônico → modelo → workbook/OOXML → célula XLSX
 ```
 
-O gate deve cobrir:
-
-- modelo SME;
-- modelo editorial RADAR;
-- todas as colunas e linhas de massa representativa;
-- isolamento entre competências;
-- normalização de valores;
-- abertura no Microsoft Excel desktop sem reparo;
-- manifesto, hash e zero divergências.
-
-Testes de estrutura OOXML selecionados são necessários, mas não suficientes para declarar correspondência absoluta.
+O botão principal institucional gera XLSX, o Excel SME possui botão próprio e o CSV permanece fallback. Abertura manual no Excel desktop continua gate de release.
 
 ---
 
 ## ADR-029 — Navegação de retorno preserva contexto operacional
 
-**Status:** Aprovada
+**Status:** Aprovada e implementada
 
-Botões de voltar devem ser implementados em telas secundárias e drill-downs quando houver origem contextual útil.
-
-O retorno deve preservar competência, filtros, busca, paginação, escola, pendência, perfil efetivo e foco relevante. Não adicionar botão redundante em telas raiz nem substituir ações Fechar/Cancelar de modais.
+Telas de aprofundamento usam retorno contextual com competência, rota, filtros, rolagem e foco. Telas raiz não recebem botão redundante e modais continuam com Fechar/Cancelar.
 
 ---
 
-## ADR-030 — Polimento visual preserva identidade e decisões de produto
+## ADR-030 — Polimento visual preserva identidade e produto
 
 **Status:** Aprovada
 
-O ciclo de acabamento pode melhorar hierarquia tipográfica, espaçamento, legibilidade, ícones, botões, tabelas, cartões, estados e responsividade.
+O acabamento pode melhorar hierarquia, espaçamento, legibilidade, ícones, botões, tabelas, cartões, estados e responsividade.
 
-Não pode alterar paleta, logomarca, capacidades, nomenclatura canônica, fluxos ou decisões de produto sem decisão específica. Mensagens de infraestrutura não devem aparecer como conteúdo operacional ao usuário final.
+Não pode alterar paleta, logomarca, capacidades, nomenclatura canônica ou fluxos sem decisão específica.
 
 ---
 
@@ -378,17 +307,54 @@ Não pode alterar paleta, logomarca, capacidades, nomenclatura canônica, fluxos
 
 **Status:** Aprovada
 
-O sistema somente será declarado liberado para operação oficial após:
+O sistema somente será declarado liberado após jornadas por perfil, avaliação mensal, timeline, exportações homologadas, desktop/mobile, segurança, backup/restauração, UAT, documentação e decisão formal.
 
-- competências autorizadas acessíveis;
-- jornadas reais por perfil aprovadas;
-- avaliação mensal persistente e coerente;
-- timeline íntegra;
-- exportações certificadas;
-- desktop e mobile homologados;
-- proteção contra senhas vazadas habilitada;
-- backup e restauração testados;
-- segurança, migrations, Auth/RLS e auditoria aprovados;
-- documentação e evidências atualizadas.
+A decisão final deve registrar: liberado, liberado com restrições ou não liberado com bloqueadores objetivos.
 
-A decisão final deve ser registrada como liberado, liberado com restrições expressas ou não liberado com bloqueadores objetivos.
+---
+
+## ADR-032 — Disponibilização de competências reutiliza o contrato existente
+
+**Status:** Aprovada e implementada
+
+Quando as competências já existem e o requisito é alterar disponibilidade ou fechamento, reutilizar registros, `closing_competence`, datas e RPC/auditoria existentes. Migration adicional somente cabe quando houver mudança real de schema ou regra não representável.
+
+**Aplicação em 2026:** `closing_competence` foi alterada de `2026-05` para `2026-12`, com `row_version = 5`, sem migration nova.
+
+---
+
+## ADR-033 — Divergência do histórico SME bloqueia nova migration
+
+**Status:** Cumprida pela ADR-034
+
+Enquanto os identificadores local e remoto da migration SME divergiam, novas migrations de Production ficaram bloqueadas. O SQL era idêntico e não podia ser reaplicado, renomeado ou mascarado por migration vazia.
+
+A decisão protegeu o schema até a reconciliação suportada.
+
+---
+
+## ADR-034 — Histórico SME reconciliado sem reaplicação de SQL
+
+**Status:** Aprovada e implementada
+
+O histórico remoto foi reconciliado para o identificador canônico:
+
+```text
+GitHub e Supabase Production: 20260728182226_sme_access_governance
+identificador derivado 20260728190344: ausente
+SHA-256 do SQL: cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
+```
+
+A operação usou o mecanismo oficial `migration repair` para alterar somente o histórico:
+
+1. o identificador derivado foi marcado como `reverted`;
+2. o identificador canônico foi marcado como `applied`;
+3. o SQL funcional não foi executado, reaplicado ou revertido;
+4. schema e políticas permaneceram inalterados;
+5. `migration list` terminou com 25 versões correspondentes;
+6. `db push --dry-run` ficou sem migration pendente;
+7. `tests/unit/sme-migration-history-alignment.test.js` passou a proteger versão, ausência do identificador derivado e hash.
+
+**Consequência permanente:** migration futura exige histórico alinhado, teste de regressão, reset local, pgTAP, lint, tipos, dry-run, backup e rollback. `migration repair` não é rollback funcional de SQL.
+
+**Evidência:** `docs/audits/2026-07-29-reconciliacao-migration-sme-evidencias.md`.
