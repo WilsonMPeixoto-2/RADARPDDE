@@ -7,7 +7,8 @@ Este documento registra decisões duradouras. Não é diário de commits. Uma de
 ## Convenções
 
 - **Aprovada:** vigente;
-- **Aprovada e implementada:** vigente e já refletida no produto;
+- **Aprovada e implementada:** vigente e refletida no produto;
+- **Cumprida:** gate ou condição já satisfeita;
 - **Substituída:** outra decisão passou a prevalecer;
 - **Revogada:** deixou de valer;
 - **Proposta:** depende de decisão.
@@ -36,7 +37,7 @@ Production permaneceu local durante o gate de pré-conexão. A decisão cumpriu 
 
 **Status:** Substituída pela ADR-023 quanto ao estágio; vigente como regra de ativação
 
-Toda nova mudança de infraestrutura deve ser validada primeiro em ambiente isolado. Homologar Preview não autoriza automaticamente Production.
+Mudança nova de infraestrutura deve ser validada primeiro em ambiente isolado. Preview aprovado não autoriza automaticamente Production.
 
 ---
 
@@ -44,14 +45,7 @@ Toda nova mudança de infraestrutura deve ser validada primeiro em ambiente isol
 
 **Status:** Aprovada e implementada
 
-O seletor operacional apresenta:
-
-1. Controlador;
-2. Assistente de Verbas Federais;
-3. SME (Gestão);
-4. Equipe de Inventário.
-
-`technical_admin` não é quinto perfil funcional visível.
+O seletor operacional apresenta Controlador, Assistente de Verbas Federais, SME (Gestão) e Equipe de Inventário. `technical_admin` não é quinto perfil funcional visível.
 
 ---
 
@@ -77,7 +71,7 @@ A atribuição anterior de manutenção cotidiana à SME está substituída.
 
 **Status:** Aprovada e implementada
 
-O cadastro deve criar ou atualizar diretório, conta Auth, perfil e vínculo funcional, impedir duplicidade e registrar auditoria. Desativação bloqueia acesso e preserva histórico. Falha parcial exige compensação.
+O cadastro cria ou atualiza diretório, conta Auth, perfil e vínculo funcional, impede duplicidade e registra auditoria. Desativação bloqueia acesso e preserva histórico. Falha parcial exige compensação.
 
 ---
 
@@ -93,9 +87,7 @@ O navegador chama Edge Function autenticada. Auth Admin e RPCs privilegiadas per
 
 **Status:** Aprovada
 
-A SME acompanha CREs, dados consolidados e parâmetros autorizados. Não substitui a Assistente na gestão cotidiana da equipe da CRE.
-
-O recorte operacional é detalhado pela ADR-022.
+A SME acompanha CREs, dados consolidados e parâmetros autorizados. Não substitui a Assistente na gestão cotidiana da equipe da CRE. O recorte operacional é detalhado pela ADR-022.
 
 ---
 
@@ -113,11 +105,9 @@ Remover integrante na interface significa desativação lógica, redistribuiçã
 
 Mudanças interdependentes usam transação ou RPC: competências, escola e programas, verificação e log, reanálise, nota, bem, Gestão de Equipe, importação, promoção e rollback.
 
-Nenhum fluxo pode deixar estado parcialmente persistido.
-
 ---
 
-## ADR-012 — Migração progressiva e reversível
+## ADR-012 — Migração de dados progressiva e reversível
 
 **Status:** Aprovada
 
@@ -157,11 +147,11 @@ O estado atual é determinado por código remoto, banco/autorização efetivos e
 
 ---
 
-## ADR-016 — Alterações devem acompanhar todas as camadas
+## ADR-016 — Alterações acompanham todas as camadas
 
 **Status:** Aprovada
 
-Mudança de ação, perfil ou fluxo exige verificar interface, serviço, persistência, migration/RPC, Auth/RLS, auditoria, testes, documentação e implantação. Alterar apenas uma camada não conclui a tarefa.
+Mudança de ação, perfil ou fluxo exige verificar interface, serviço, persistência, migration/RPC, Auth/RLS, auditoria, testes, documentação e implantação.
 
 ---
 
@@ -185,7 +175,7 @@ Hotfix visual ou textual não substitui automaticamente a frente estrutural vige
 
 **Status:** Aprovada
 
-Cada sessão ou PR deve declarar a tarefa como concluída, bloqueada, substituída ou parcialmente concluída, com itens restantes explícitos.
+Cada sessão ou PR declara a tarefa como concluída, bloqueada, substituída ou parcialmente concluída, com itens restantes explícitos.
 
 ---
 
@@ -203,8 +193,6 @@ Versões permanecem fixadas e lockfile versionado. Nova biblioteca exige necessi
 
 A carteira define responsável principal, filtro inicial e priorização. Controladores podem atuar nas escolas da mesma `cre_scope`, preservando `schools.controller_id` e autoria real. Outra CRE exige exceção explícita.
 
-A interpretação que isolava Controladores à própria carteira está substituída.
-
 ---
 
 ## ADR-022 — Gestão SME separa consulta gerencial de operação
@@ -214,7 +202,7 @@ A interpretação que isolava Controladores à própria carteira está substitu�
 Na Gestão SME:
 
 - visão mensal e Prontuário exibem identificação e bonificação, sem análise técnica ou controles operacionais;
-- Pendências são consultáveis, mas novo envio, substituição, reanálise, contato, cancelamento, reabertura e criação são proibidos;
+- Pendências são consultáveis, mas mutações operacionais são proibidas;
 - Registros Internos exibem somente `actor_user_id = auth.uid()`;
 - registros sem UUID de autor não são exibidos;
 - Administrador técnico mantém leitura integral em sua visão técnica;
@@ -263,23 +251,15 @@ Após mudança material, atualizar READMEs, estágio, contexto, decisões, inven
 
 Dashboard, Carteira, Competências, Prontuário, Pendências, alertas, timeline e exportações consomem uma única competência ativa.
 
-Requisitos:
-
-- seletor transversal;
-- preservação entre navegação e recarga;
-- funções de domínio com `competenceKey` explícita;
-- ausência de seletores concorrentes;
-- distinção entre competência existente, disponível e fechada.
-
 ---
 
 ## ADR-026 — Competências restantes de 2026 devem ser operacionalizadas
 
 **Status:** Aprovada e implementada; método esclarecido pela ADR-032
 
-Janeiro a dezembro de 2026 devem estar disponíveis aos perfis conforme permissões, preservando registros anteriores.
+Janeiro a dezembro de 2026 estão disponíveis aos perfis conforme permissões, preservando registros anteriores.
 
-O objetivo foi cumprido com as doze competências canônicas já existentes e alteração transacional de `closing_competence` para `2026-12`. Não houve necessidade de migration adicional.
+O objetivo foi cumprido com as doze competências existentes e alteração transacional de `closing_competence` para `2026-12`. Não houve migration adicional.
 
 ---
 
@@ -288,8 +268,6 @@ O objetivo foi cumprido com as doze competências canônicas já existentes e al
 **Status:** Aprovada e implementada
 
 A timeline consolida verificações, pendências, tentativas, contatos, logs, notas e bens em leitura cronológica. Não cria tabela paralela quando os eventos já possuem entidades canônicas.
-
-A projeção preserva autoria, data, competência, programa, vínculo e visibilidade, evitando duplicidade sem apagar fatos legítimos.
 
 ---
 
@@ -303,9 +281,7 @@ Relatórios Excel são produtos finais institucionais. A certificação percorre
 estado canônico → modelo → workbook/OOXML → célula XLSX
 ```
 
-Cobre modelo SME, modelo institucional, colunas, linhas, escopo temporal, normalização, hashes e zero divergências.
-
-Abertura manual no Microsoft Excel desktop permanece gate de liberação oficial.
+O botão principal institucional gera XLSX, o Excel SME possui botão próprio e o CSV permanece fallback. Abertura manual no Excel desktop continua gate de release.
 
 ---
 
@@ -323,7 +299,7 @@ Telas de aprofundamento usam retorno contextual com competência, rota, filtros,
 
 O acabamento pode melhorar hierarquia, espaçamento, legibilidade, ícones, botões, tabelas, cartões, estados e responsividade.
 
-Não pode alterar paleta, logomarca, capacidades, nomenclatura canônica ou fluxos sem decisão específica. Mensagens de infraestrutura não devem aparecer como conteúdo operacional.
+Não pode alterar paleta, logomarca, capacidades, nomenclatura canônica ou fluxos sem decisão específica.
 
 ---
 
@@ -331,18 +307,7 @@ Não pode alterar paleta, logomarca, capacidades, nomenclatura canônica ou flux
 
 **Status:** Aprovada
 
-O sistema somente será declarado liberado após:
-
-- competências autorizadas acessíveis;
-- jornadas reais por perfil aprovadas;
-- avaliação mensal coerente;
-- timeline íntegra;
-- exportações certificadas e homologadas;
-- desktop e mobile aprovados;
-- proteção contra senhas vazadas habilitada;
-- backup e restauração testados;
-- segurança, migrations, Auth/RLS e auditoria aprovados;
-- documentação e evidências atualizadas.
+O sistema somente será declarado liberado após jornadas por perfil, avaliação mensal, timeline, exportações homologadas, desktop/mobile, segurança, backup/restauração, UAT, documentação e decisão formal.
 
 A decisão final deve registrar: liberado, liberado com restrições ou não liberado com bloqueadores objetivos.
 
@@ -352,39 +317,44 @@ A decisão final deve registrar: liberado, liberado com restrições ou não lib
 
 **Status:** Aprovada e implementada
 
-Quando as competências já existem canonicamente no banco e o requisito é alterar disponibilidade ou fechamento, reutilizar:
-
-- registros de competência existentes;
-- `closing_competence`;
-- datas e `closed_at` já modelados;
-- RPC e auditoria existentes.
-
-Não criar migration ou nova coluna apenas para representar estado já suportado. Migration adicional somente é cabível quando houver mudança real de schema ou regra não representável.
+Quando as competências já existem e o requisito é alterar disponibilidade ou fechamento, reutilizar registros, `closing_competence`, datas e RPC/auditoria existentes. Migration adicional somente cabe quando houver mudança real de schema ou regra não representável.
 
 **Aplicação em 2026:** `closing_competence` foi alterada de `2026-05` para `2026-12`, com `row_version = 5`, sem migration nova.
 
 ---
 
-## ADR-033 — Divergência do histórico da migration SME bloqueia nova migration
+## ADR-033 — Divergência do histórico SME bloqueia nova migration
 
-**Status:** Aprovada
+**Status:** Cumprida pela ADR-034
 
-Existe divergência entre:
+Enquanto os identificadores local e remoto da migration SME divergiam, novas migrations de Production ficaram bloqueadas. O SQL era idêntico e não podia ser reaplicado, renomeado ou mascarado por migration vazia.
+
+A decisão protegeu o schema até a reconciliação suportada.
+
+---
+
+## ADR-034 — Histórico SME reconciliado sem reaplicação de SQL
+
+**Status:** Aprovada e implementada
+
+O histórico remoto foi reconciliado para o identificador canônico:
 
 ```text
-local: 20260728182226_sme_access_governance.sql
-remoto: 20260728190344_sme_access_governance
+GitHub e Supabase Production: 20260728182226_sme_access_governance
+identificador derivado 20260728190344: ausente
+SHA-256 do SQL: cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
 ```
 
-O SQL é idêntico em comprimento e SHA-256, portanto não há divergência funcional identificada. O problema é de rastreabilidade.
+A operação usou o mecanismo oficial `migration repair` para alterar somente o histórico:
 
-Até a reconciliação:
+1. o identificador derivado foi marcado como `reverted`;
+2. o identificador canônico foi marcado como `applied`;
+3. o SQL funcional não foi executado, reaplicado ou revertido;
+4. schema e políticas permaneceram inalterados;
+5. `migration list` terminou com 25 versões correspondentes;
+6. `db push --dry-run` ficou sem migration pendente;
+7. `tests/unit/sme-migration-history-alignment.test.js` passou a proteger versão, ausência do identificador derivado e hash.
 
-- não renomear ou reaplicar o SQL;
-- não editar diretamente a tabela de histórico;
-- não criar migration compensatória vazia;
-- não executar nova migration em Production.
+**Consequência permanente:** migration futura exige histórico alinhado, teste de regressão, reset local, pgTAP, lint, tipos, dry-run, backup e rollback. `migration repair` não é rollback funcional de SQL.
 
-O reparo deve usar mecanismo suportado pelo Supabase para histórico, primeiro em ambiente descartável, com backup, dry-run, hashes, rollback e evidência. `migration repair` altera o histórico e não substitui rollback funcional de SQL.
-
-Runbook: [`runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`](runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md).
+**Evidência:** `docs/audits/2026-07-29-reconciliacao-migration-sme-evidencias.md`.
