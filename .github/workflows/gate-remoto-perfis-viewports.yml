@@ -66,7 +66,6 @@ env:
   RADAR_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.RADAR_SUPABASE_SERVICE_ROLE_KEY }}
   RADAR_ALLOW_REMOTE_HOMOLOGATION: 'true'
   RADAR_E2E_SUPABASE_REMOTE: '1'
-  RADAR_HML_FIXTURE_FILE: ${{ runner.temp }}/radar-hml-users.json
 
 jobs:
   homologar:
@@ -89,6 +88,10 @@ jobs:
 
       - name: Instalar Chromium e WebKit
         run: npx playwright install --with-deps chromium webkit
+
+      - name: Preparar caminhos temporários do runner
+        shell: bash
+        run: echo "RADAR_HML_FIXTURE_FILE=${RUNNER_TEMP}/radar-hml-users.json" >> "${GITHUB_ENV}"
 
       - name: Validar alvo remoto e obter chave publicável
         shell: bash
