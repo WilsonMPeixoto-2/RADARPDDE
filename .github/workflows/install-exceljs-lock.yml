@@ -8,7 +8,9 @@ on:
       - 'package-lock.json'
       - 'scripts/build-excel-writer.mjs'
       - 'scripts/apply-write-excel-file-certification-patch.mjs'
+      - 'scripts/generate-excel-certification-evidence.mjs'
       - 'src/domain/excel-integral-certification.js'
+      - 'docs/evidence/excel-certification/synthetic-manifest.json'
       - 'vendor/write-excel-file.min.js'
 
 permissions:
@@ -33,9 +35,9 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: Remover ExcelJS e instalar write-excel-file
+      - name: Garantir write-excel-file na versão fixada
         run: |
-          npm uninstall exceljs
+          npm uninstall exceljs || true
           npm install --save-exact write-excel-file@4.1.1
 
       - name: Registrar scripts de build e verificação
@@ -69,6 +71,9 @@ jobs:
       - name: Remover bundle anterior
         run: rm -f vendor/exceljs.min.js
 
+      - name: Regenerar manifesto criptográfico pelo código atual
+        run: node scripts/generate-excel-certification-evidence.mjs
+
       - name: Confirmar segurança e reprodutibilidade
         run: |
           node -e "const p=require('./package.json'); if(p.dependencies?.['write-excel-file']!=='4.1.1'||p.dependencies?.exceljs) process.exit(1);"
@@ -77,17 +82,18 @@ jobs:
           test -s vendor/write-excel-file.min.js
           grep -q 'writeXlsxFile' vendor/write-excel-file.min.js
           grep -q 'inspectSmeWriterContract' src/domain/excel-integral-certification.js
+          node scripts/generate-excel-certification-evidence.mjs --check
 
       - name: Gravar artefatos na branch
         shell: bash
         run: |
           set -euo pipefail
-          if git diff --quiet -- package.json package-lock.json vendor src/domain/excel-integral-certification.js; then
-            echo 'Gerador Excel seguro e certificação já estão atualizados.'
+          if git diff --quiet -- package.json package-lock.json vendor src/domain/excel-integral-certification.js docs/evidence/excel-certification/synthetic-manifest.json; then
+            echo 'Gerador Excel seguro, bundle e evidência já estão atualizados.'
             exit 0
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A package.json package-lock.json vendor src/domain/excel-integral-certification.js
-          git commit -m 'build: substituir ExcelJS por write-excel-file 4.1.1'
+          git add -A package.json package-lock.json vendor src/domain/excel-integral-certification.js docs/evidence/excel-certification/synthetic-manifest.json
+          git commit -m 'build: consolidar gerador Excel seguro e evidência'
           git push origin HEAD:${{ github.event.pull_request.head.ref }}
