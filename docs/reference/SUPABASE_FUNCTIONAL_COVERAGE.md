@@ -34,8 +34,9 @@ O repositório contém 25 arquivos de migration e uma Edge Function protegida pa
 | Registros Internos | Sim | Sim | Sim | autoria, políticas e RLS |
 | Gestão SME somente leitura | Sim | Sim | Sim | capacidades, handlers, serviços e RLS |
 | Navegação contextual | Sim | Sim | Sim | sessão, rotas e Playwright |
-| Relatório institucional certificado | Sim | Sim | Sim | modelo, renderer e manifesto sintético |
-| Excel SME mensal certificado | Sim | Sim | Sim | modelo, renderer e manifesto sintético |
+| Relatório institucional XLSX | Sim | Sim | Sim | modelo, renderer, integração e manifesto sintético |
+| CSV institucional de fallback | Sim | Sim | Sim | função legada preservada e botão secundário |
+| Excel SME mensal | Sim | Sim | Sim | modelo, renderer, integração e manifesto sintético |
 | Auditoria | Sim | Sim | Sim | UnitOfWork + triggers/logs |
 | Concorrência otimista | Não aplicável | Sim | Sim | `row_version` |
 | Importação, reconciliação e rollback | Sim | Sim | Controlado | coordenador + RPCs |
@@ -143,13 +144,26 @@ O protocolo não autoriza seed implícito nem importação pelo navegador.
 
 ### 7.1 Institucional
 
-O produto XLSX de quatro abas está implementado e certificado contra o modelo lógico e o CSV legado. O botão institucional da interface continua vinculado ao CSV até decisão específica de substituição.
+O produto XLSX histórico de quatro abas está implementado, certificado e integrado ao botão principal.
+
+A integração:
+
+- captura a função CSV legada;
+- substitui `exportDataExcel` pela geração XLSX;
+- configura o botão principal para o workbook de quatro abas;
+- mantém o CSV como botão secundário;
+- oferece fallback CSV quando a geração XLSX falha;
+- observa renderizações tardias de forma idempotente.
 
 ### 7.2 SME mensal
 
-O produto mensal de uma aba e 26 colunas está implementado e certificado. A ausência de `dataValidations` é requisito atual para evitar reparo no Microsoft Excel.
+O produto mensal de uma aba e 26 colunas está implementado, certificado e integrado em botão próprio, habilitado somente para competência mensal.
 
-A homologação manual no Excel desktop ainda é bloqueador de release.
+A ausência de `dataValidations` é requisito atual para evitar reparo no Microsoft Excel.
+
+### 7.3 Gate externo
+
+A homologação manual dos dois produtos no Microsoft Excel desktop ainda é bloqueador de release.
 
 ## 8. Gates pendentes de liberação oficial
 
@@ -167,6 +181,8 @@ A homologação manual no Excel desktop ainda é bloqueador de release.
 - [`../architecture/supabase-readiness.md`](../architecture/supabase-readiness.md);
 - [`SUPABASE_PERMISSIONS_MATRIX.md`](SUPABASE_PERMISSIONS_MATRIX.md);
 - [`SUPABASE_DATA_DICTIONARY.md`](SUPABASE_DATA_DICTIONARY.md);
+- [`../architecture/excel-export.md`](../architecture/excel-export.md);
+- [`../architecture/excel-sme-mensal.md`](../architecture/excel-sme-mensal.md);
 - [`../runbooks/SUPABASE_CONNECTION.md`](../runbooks/SUPABASE_CONNECTION.md);
 - [`../runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`](../runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md);
 - [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md).
