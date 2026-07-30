@@ -83,8 +83,8 @@
     }
 
     function verifyHeaderContract(worksheet, model) {
-        const actual = model.columns.map((_, index) => (
-            worksheet.getRow(1).getCell(index + 1).value || ''
+        const actual = model.columns.map((column, index) => (
+            column.mergedHeader ? '' : (worksheet.getRow(1).getCell(index + 1).value || '')
         ));
         const expected = model.columns.map(column => column.label);
         if (JSON.stringify(actual) !== JSON.stringify(expected)) {
