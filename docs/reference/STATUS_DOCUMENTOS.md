@@ -18,6 +18,7 @@ Definir quais arquivos controlam o estado presente e quais permanecem apenas com
 | **Plano substituído** | não executar; outra frente ou PR prevaleceu |
 | **Evidência gerada** | artefato reproduzível; regenerar pelo script, não editar manualmente |
 | **Referência parcial** | conteúdo útil, mas não suficiente para decidir sozinho |
+| **Procedimento histórico/restrito** | operação já executada ou excepcional; não repetir sem plano específico |
 
 ## 3. Documentos canônicos de entrada
 
@@ -43,21 +44,24 @@ Ordem mínima:
 
 | Documento | Estado | Observação |
 |---|---|---|
+| `architecture/README.md` | Vigente | índice da pasta |
 | `architecture/competencias.md` | Vigente | `closing_competence = 2026-12` já implementada |
 | `architecture/avaliacao-mensal.md` | Vigente | regra canônica única |
 | `architecture/modelo-operacional.md` | Vigente | projeção compartilhada |
 | `architecture/timeline-unidade.md` | Vigente | projeção somente leitura |
 | `architecture/navigation-contextual.md` | Vigente | retorno contextual publicado |
+| `architecture/estatisticas.md` | Vigente | denominadores independentes |
+| `architecture/retificacoes.md` | Vigente | histórico e correções operacionais |
 | `architecture/frontend-load-order.md` | Vigente | arquitetura atual; números do manifesto são datados |
 | `architecture/product-extensions-load-order.md` | Vigente | timeline e navegação contextual pós-`app.js` |
 | `architecture/testing.md` | Vigente | readiness e gates cumulativos |
 | `architecture/supabase-readiness.md` | Vigente com gate pendente | Supabase ativo; hardening ainda pendente |
 | `architecture/excel-export.md` | Vigente com gate pendente | produto certificado; botão institucional ainda no CSV |
+| `architecture/excel-workbook-plan.md` | Vigente | plano do workbook institucional |
+| `architecture/excel-xlsx-runtime.md` | Vigente com gate pendente | renderer e integração reversível |
 | `architecture/excel-sme-mensal.md` | Vigente com gate pendente | produto certificado; homologação manual pendente |
 | `architecture/excel-integral-certification.md` | Vigente | certificação automatizada |
-| `architecture/spa-navigation.md` | Vigente | rotas canônicas |
-| `architecture/responsabilidades.md` | Vigente | limites por camada |
-| `architecture/supabase-data-flow.md` | Vigente | fluxo de persistência |
+| `architecture/roadmap-pre-supabase.md` | Histórico | planejamento anterior à ativação remota |
 
 ## 5. Referências vigentes
 
@@ -66,7 +70,11 @@ Ordem mínima:
 | `reference/SUPABASE_DATA_DICTIONARY.md` | Vigente | resumo do schema efetivo; tipos gerados prevalecem |
 | `reference/SUPABASE_PERMISSIONS_MATRIX.md` | Vigente | Auth, RLS e capacidades |
 | `reference/SUPABASE_FUNCTIONAL_COVERAGE.md` | Vigente com gate pendente | cobertura atual e bloqueadores |
+| `reference/PRODUCT_DECISIONS.md` | Referência parcial | decisões antigas devem ser confrontadas com ADRs |
+| `reference/PRODUCT_SURFACE_CATALOG.md` | Referência parcial | catálogo datado de superfícies |
+| `reference/CHANGE_CLASSIFICATION.md` | Vigente | classificação de mudanças e gates |
 | `reference/DADOS_HOMOLOGACAO.md` | Referência parcial | massa de teste; não é dado operacional |
+| `reference/SUPABASE_INTEGRATION_AUDIT.md` | Histórico | auditoria anterior à ativação atual |
 | `reference/POST_PR22_PRIORITIZED_BACKLOG.md` | Histórico | backlog anterior aos ciclos atuais |
 
 ## 6. Runbooks
@@ -75,7 +83,8 @@ Ordem mínima:
 |---|---|---|
 | `runbooks/SUPABASE_CONNECTION.md` | Vigente com gate pendente | Production ativa; proteção de senha e recuperação pendentes |
 | `runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md` | Vigente com gate pendente | incorpora divergência SME; reparo ainda não executado |
-| `runbooks/VERCEL_PREVIEW.md` | Vigente com dado mutável | confirmar projeto, deployment e variáveis antes do uso |
+| `runbooks/SUPABASE_DATA_BOOTSTRAP.md` | Procedimento histórico/restrito | carga inicial; não usar como rotina normal |
+| `runbooks/SUPABASE_AUTH_BOOTSTRAP.md` | Procedimento histórico/restrito | primeiro admin; não repetir sem plano específico |
 
 Runbook autoriza procedimento somente quando os gates e responsáveis nele previstos estiverem satisfeitos.
 
@@ -89,7 +98,7 @@ Runbook autoriza procedimento somente quando os gates e responsáveis nele previ
 | `audits/2026-07-28-alinhamento-codigo-ambientes-documentacao.md` | Histórico | base da oficialização |
 | auditorias anteriores | Histórico | retrato da data indicada |
 
-Auditoria datada não substitui consulta atual ao ambiente, mas seus achados permanecem válidos enquanto não houver evidência de superação.
+Auditoria datada não substitui consulta atual ao ambiente, mas seus gates permanecem enquanto não houver evidência de superação.
 
 ## 8. Planos e especificações
 
@@ -123,7 +132,7 @@ Planos explicitamente marcados como substituídos não devem ser retomados.
 
 ## 10. Handoffs e relatórios
 
-- `handoffs/`: Histórico;
+- `handoff/`: Histórico;
 - `reports/`: Histórico;
 - relatórios de estado antigo não controlam a próxima etapa;
 - handoff deve apontar para `CURRENT_STAGE.md` e não repetir decisões divergentes.
@@ -137,7 +146,8 @@ Planos explicitamente marcados como substituídos não devem ser retomados.
 5. artefatos gerados são regenerados, não corrigidos manualmente;
 6. plano antigo não é reaberto sem nova verificação;
 7. código e ambientes prevalecem sobre memória e texto desatualizado;
-8. nova migration de Production permanece bloqueada até reconciliação do histórico SME.
+8. nova migration de Production permanece bloqueada até reconciliação do histórico SME;
+9. índice não deve apontar para arquivo inexistente.
 
 ## 12. Fonte de verdade para a próxima frente
 
