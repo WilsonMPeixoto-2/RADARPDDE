@@ -1,10 +1,11 @@
 const { defineConfig, devices } = require('@playwright/test');
 
 const baseURL = String(process.env.RADAR_DEPLOYMENT_URL || 'http://127.0.0.1:4175').trim().replace(/\/+$/, '');
+const profileViewportSpec = /supabase-preview-profile-viewport\.spec\.js/;
 
 module.exports = defineConfig({
   testDir: './tests/e2e',
-  testMatch: /supabase-preview-remote\.spec\.js/,
+  testMatch: /supabase-preview-(?:remote|profile-viewport)\.spec\.js/,
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
@@ -39,10 +40,12 @@ module.exports = defineConfig({
     },
     {
       name: 'supabase-preview-mobile-chromium',
+      testMatch: profileViewportSpec,
       use: { ...devices['Pixel 7'] }
     },
     {
       name: 'supabase-preview-mobile-webkit',
+      testMatch: profileViewportSpec,
       use: { ...devices['iPhone 15'] }
     }
   ]
