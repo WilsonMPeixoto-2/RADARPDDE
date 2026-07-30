@@ -33,12 +33,14 @@ Para dado mutável, confirmar sempre código, Supabase e Vercel.
 
 | Tema | Documento |
 |---|---|
+| índice de arquitetura | [`architecture/README.md`](architecture/README.md) |
 | competências | [`architecture/competencias.md`](architecture/competencias.md) |
 | avaliação mensal | [`architecture/avaliacao-mensal.md`](architecture/avaliacao-mensal.md) |
 | projeção operacional | [`architecture/modelo-operacional.md`](architecture/modelo-operacional.md) |
 | timeline | [`architecture/timeline-unidade.md`](architecture/timeline-unidade.md) |
 | navegação contextual | [`architecture/navigation-contextual.md`](architecture/navigation-contextual.md) |
-| rotas canônicas | [`architecture/spa-navigation.md`](architecture/spa-navigation.md) |
+| estatísticas | [`architecture/estatisticas.md`](architecture/estatisticas.md) |
+| retificações | [`architecture/retificacoes.md`](architecture/retificacoes.md) |
 | relatório institucional | [`architecture/excel-export.md`](architecture/excel-export.md) |
 | Excel SME mensal | [`architecture/excel-sme-mensal.md`](architecture/excel-sme-mensal.md) |
 | certificação Excel | [`architecture/excel-integral-certification.md`](architecture/excel-integral-certification.md) |
@@ -48,11 +50,11 @@ Para dado mutável, confirmar sempre código, Supabase e Vercel.
 | Tema | Documento |
 |---|---|
 | persistência e Supabase | [`architecture/supabase-readiness.md`](architecture/supabase-readiness.md) |
-| fluxo de dados | [`architecture/supabase-data-flow.md`](architecture/supabase-data-flow.md) |
-| responsabilidades | [`architecture/responsabilidades.md`](architecture/responsabilidades.md) |
 | ordem do frontend | [`architecture/frontend-load-order.md`](architecture/frontend-load-order.md) |
 | extensões pós-`app.js` | [`architecture/product-extensions-load-order.md`](architecture/product-extensions-load-order.md) |
 | estratégia de testes | [`architecture/testing.md`](architecture/testing.md) |
+| runtime OOXML | [`architecture/excel-xlsx-runtime.md`](architecture/excel-xlsx-runtime.md) |
+| plano do workbook | [`architecture/excel-workbook-plan.md`](architecture/excel-workbook-plan.md) |
 
 ## 5. Supabase
 
@@ -63,6 +65,8 @@ Para dado mutável, confirmar sempre código, Supabase e Vercel.
 | [`reference/SUPABASE_FUNCTIONAL_COVERAGE.md`](reference/SUPABASE_FUNCTIONAL_COVERAGE.md) | cobertura por fluxo |
 | [`runbooks/SUPABASE_CONNECTION.md`](runbooks/SUPABASE_CONNECTION.md) | operação e diagnóstico da conexão |
 | [`runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`](runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md) | schema, reconciliação, dados e rollback |
+| [`runbooks/SUPABASE_DATA_BOOTSTRAP.md`](runbooks/SUPABASE_DATA_BOOTSTRAP.md) | procedimento histórico/restrito de carga inicial |
+| [`runbooks/SUPABASE_AUTH_BOOTSTRAP.md`](runbooks/SUPABASE_AUTH_BOOTSTRAP.md) | procedimento histórico/restrito do primeiro administrador |
 
 ### Gate vigente de migrations
 
@@ -77,9 +81,13 @@ O SQL é idêntico; o desvio é de histórico. O runbook já incorpora o procedi
 
 ## 6. Vercel
 
-- [`runbooks/VERCEL_PREVIEW.md`](runbooks/VERCEL_PREVIEW.md);
-- [`architecture/vercel-static-spa.md`](architecture/vercel-static-spa.md), quando aplicável;
-- manifests do build e registros de deployment.
+O estado deve ser verificado por:
+
+- deployment efetivamente associado ao projeto `radarpdde`;
+- SHA e manifesto do artefato;
+- configuração pública gerada pelo build;
+- relatórios e auditorias datados;
+- `vercel.json` para a política de deployments automáticos.
 
 Preview e Production são artefatos distintos. Confirmar SHA, manifesto e ambiente antes de homologar.
 
