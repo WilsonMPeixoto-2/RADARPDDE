@@ -1,34 +1,28 @@
 (function (root, factory) {
-    const ExcelJS = typeof module === 'object' && module.exports
-        ? require('exceljs')
-        : root && root.ExcelJS;
-    const api = factory(root, ExcelJS);
+    const api = factory(root);
     if (typeof module === 'object' && module.exports) module.exports = api;
     if (root) root.RadarExcelSmeMonthlyRenderer = api;
-}(typeof globalThis !== 'undefined' ? globalThis : this, function (root, ExcelJS) {
+}(typeof globalThis !== 'undefined' ? globalThis : this, function (root) {
     'use strict';
 
-    if (!ExcelJS || typeof ExcelJS.Workbook !== 'function') {
-        throw new Error('ExcelJS não foi carregado para gerar o Excel SME.');
-    }
-
-    const VERSION = '2.0.0';
-    const LAST_COLUMN = 'AD';
+    const VERSION = '2.1.0';
     const COLORS = Object.freeze({
-        identity: 'FF8DB4E2',
-        basic: 'FFF4CCCC',
-        quality: 'FFD9EAD3',
-        equity: 'FFE4DFEC',
-        administrative: 'FF8DB4E2',
-        status: 'FFF4CCCC',
-        border: 'FF7F8C8D',
-        alternate: 'FFF7F9FC',
-        text: 'FF1F2937',
-        positive: 'FFE2F0D9',
-        positiveText: 'FF2E6B2E',
-        negative: 'FFF4CCCC',
-        negativeText: 'FF9C0006'
+        identity: '#8DB4E2',
+        basic: '#F4CCCC',
+        quality: '#D9EAD3',
+        equity: '#E4DFEC',
+        administrative: '#8DB4E2',
+        status: '#F4CCCC',
+        border: '#7F8C8D',
+        alternate: '#F7F9FC',
+        text: '#1F2937',
+        positive: '#E2F0D9',
+        positiveText: '#2E6B2E',
+        negative: '#F4CCCC',
+        negativeText: '#9C0006'
     });
+
+    let nodeWriterPromise = null;
 
     function validateModel(model) {
         if (!model || !Array.isArray(model.columns) || model.columns.length !== 30) {
@@ -48,175 +42,138 @@
         return COLORS.identity;
     }
 
-    function borderStyle() {
+    function commonCellStyle(column, rowIndex) {
         return {
-            top: { style: 'thin', color: { argb: COLORS.border } },
-            left: { style: 'thin', color: { argb: COLORS.border } },
-            bottom: { style: 'thin', color: { argb: COLORS.border } },
-            right: { style: 'thin', color: { argb: COLORS.border } }
+            fontFamily: 'Arial',
+            fontSize: 9,
+            textColor: COLORS.text,
+            align: column.alignment === 'left' ? 'left' : 'center',
+            alignVertical: 'center',
+            wrap: true,
+            borderColor: COLORS.border,
+            borderStyle: 'thin',
+            height: 24,
+            ...(rowIndex % 2 === 0 ? { backgroundColor: COLORS.alternate } : {})
         };
     }
 
-    function styleHeader(worksheet, model) {
-        const row = worksheet.getRow(1);
-        row.height = 105;
-        model.columns.forEach((column, index) => {
-            const cell = row.getCell(index + 1);
-            cell.value = column.label;
-            cell.font = {
-                name: 'Arial',
-                size: 8,
-                bold: true,
-                color: { argb: COLORS.text }
-            };
-            cell.fill = {
-                type: 'pattern',
-                pattern: 'solid',
-                fgColor: { argb: groupFill(column, index) }
-            };
-            cell.alignment = {
-                horizontal: 'center',
-                vertical: 'middle',
-                wrapText: true,
-                shrinkToFit: true
-            };
-            cell.border = borderStyle();
-        });
-        worksheet.mergeCells('A1:B1');
-        worksheet.getCell('A1').alignment = {
-            horizontal: 'center',
-            vertical: 'middle',
-            wrapText: true
+    function headerCell(column, columnIndex) {
+        return {
+            value: column.label,
+            type: String,
+            fontFamily: 'Arial',
+            fontSize: 8,
+            fontWeight: 'bold',
+            textColor: COLORS.text,
+            backgroundColor: groupFill(column, columnIndex),
+            align: 'center',
+            alignVertical: 'center',
+            wrap: true,
+            borderColor: COLORS.border,
+            borderStyle: 'thin',
+            height: 105,
+            ...(column.mergeAcross ? { columnSpan: column.mergeAcross } : {})
         };
     }
 
-    function styleBodyCell(cell, column, rowIndex) {
-        cell.font = { name: 'Arial', size: 9, color: { argb: COLORS.text } };
-        cell.alignment = {
-            horizontal: column.alignment === 'left' ? 'left' : 'center',
-            vertical: 'middle',
-            wrapText: true
+    function bodyCell(column, value, rowIndex) {
+        const safeValue = value == null ? '' : value;
+        const cell = {
+            value: safeValue,
+            type: typeof safeValue === 'number' ? Number : String,
+            ...commonCellStyle(column, rowIndex)
         };
-        cell.border = borderStyle();
-        if (rowIndex % 2 === 0) {
-            cell.fill = {
-                type: 'pattern',
-                pattern: 'solid',
-                fgColor: { argb: COLORS.alternate }
-            };
-        }
-    }
-
-    function styleStatus(cell) {
-        const value = String(cell.value || '').toUpperCase();
-        if (value === 'APTA') {
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.positive } };
-            cell.font = { name: 'Arial', size: 9, bold: true, color: { argb: COLORS.positiveText } };
-        } else if (value === 'INAPTA') {
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.negative } };
-            cell.font = { name: 'Arial', size: 9, bold: true, color: { argb: COLORS.negativeText } };
-        }
-    }
-
-    function buildWorkbook(model) {
-        validateModel(model);
-        const workbook = new ExcelJS.Workbook();
-        workbook.creator = 'RADAR PDDE';
-        workbook.lastModifiedBy = 'RADAR PDDE';
-        const referenceDate = new Date(Date.UTC(model.competence.year, model.competence.month - 1, 1));
-        workbook.created = referenceDate;
-        workbook.modified = referenceDate;
-        workbook.calcProperties.fullCalcOnLoad = false;
-
-        const worksheet = workbook.addWorksheet(model.sheetName, {
-            properties: { defaultRowHeight: 20 },
-            views: [{
-                state: 'frozen',
-                xSplit: 4,
-                ySplit: 1,
-                topLeftCell: 'E2',
-                activeCell: 'E2'
-            }],
-            pageSetup: {
-                paperSize: 9,
-                orientation: 'landscape',
-                fitToPage: true,
-                fitToWidth: 1,
-                fitToHeight: 0,
-                horizontalCentered: true,
-                margins: {
-                    left: 0.511811024,
-                    right: 0.511811024,
-                    top: 0.787401575,
-                    bottom: 0.787401575,
-                    header: 0.31496062,
-                    footer: 0.31496062
-                }
+        if (column.key === 'designation' && typeof safeValue === 'number') cell.format = '0';
+        if (column.key === 'status') {
+            const status = String(safeValue).toUpperCase();
+            if (status === 'APTA') {
+                cell.backgroundColor = COLORS.positive;
+                cell.textColor = COLORS.positiveText;
+                cell.fontWeight = 'bold';
+            } else if (status === 'INAPTA') {
+                cell.backgroundColor = COLORS.negative;
+                cell.textColor = COLORS.negativeText;
+                cell.fontWeight = 'bold';
             }
+        }
+        return cell;
+    }
+
+    function buildSheetData(model) {
+        validateModel(model);
+        const header = model.columns.map((column, index) => (
+            column.mergedHeader ? null : headerCell(column, index)
+        ));
+        const body = model.rows.map((source, rowIndex) => (
+            model.columns.map(column => bodyCell(column, source[column.key], rowIndex))
+        ));
+        return Object.freeze([Object.freeze(header), ...body.map(Object.freeze)]);
+    }
+
+    function buildSheetOptions(model) {
+        validateModel(model);
+        return Object.freeze({
+            sheet: model.sheetName,
+            columns: Object.freeze(model.columns.map(column => Object.freeze({ width: column.width }))),
+            orientation: 'landscape',
+            stickyRowsCount: 1,
+            stickyColumnsCount: 4,
+            showGridLines: false,
+            zoomScale: 0.85
         });
+    }
 
-        worksheet.columns = model.columns.map(column => ({
-            key: column.key,
-            width: column.width,
-            style: { font: { name: 'Arial', size: 9 } }
-        }));
+    async function resolveWriter() {
+        if (root && typeof root.writeXlsxFile === 'function') return root.writeXlsxFile;
+        if (typeof module === 'object' && module.exports) {
+            if (!nodeWriterPromise) {
+                nodeWriterPromise = import('write-excel-file/node').then(imported => imported.default || imported);
+            }
+            return nodeWriterPromise;
+        }
+        throw new Error('O gerador write-excel-file não foi carregado.');
+    }
 
-        styleHeader(worksheet, model);
-
-        model.rows.forEach((source, index) => {
-            const row = worksheet.getRow(index + 2);
-            row.height = 24;
-            model.columns.forEach((column, columnIndex) => {
-                const cell = row.getCell(columnIndex + 1);
-                const value = source[column.key];
-                cell.value = value == null ? '' : value;
-                styleBodyCell(cell, column, index);
-                if (column.key === 'designation' && typeof cell.value === 'number') {
-                    cell.numFmt = '0';
-                }
-                if (column.key === 'status') styleStatus(cell);
-            });
-        });
-
-        const lastRow = Math.max(2, model.rows.length + 1);
-        worksheet.autoFilter = `A1:${LAST_COLUMN}${lastRow}`;
-        worksheet.pageSetup.printArea = `A1:${LAST_COLUMN}${lastRow}`;
-        worksheet.pageSetup.printTitlesRow = '1:1';
-
-        return workbook;
+    async function createOutput(model) {
+        const writeExcelFile = await resolveWriter();
+        return writeExcelFile(
+            buildSheetData(model),
+            buildSheetOptions(model),
+            { fontFamily: 'Arial', fontSize: 9 }
+        );
     }
 
     async function renderWorkbook(model) {
-        const workbook = buildWorkbook(model);
-        const buffer = await workbook.xlsx.writeBuffer({ useStyles: true, useSharedStrings: true });
-        return buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
+        const output = await createOutput(model);
+        if (typeof output.toBuffer === 'function') {
+            const buffer = await output.toBuffer();
+            return buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
+        }
+        if (typeof output.toBlob === 'function') {
+            const blob = await output.toBlob();
+            return new Uint8Array(await blob.arrayBuffer());
+        }
+        throw new Error('O gerador Excel não disponibilizou saída binária compatível.');
     }
 
     async function downloadWorkbook(model, options = {}) {
-        const bytes = await renderWorkbook(model);
         const fileName = options.fileName || model.fileName;
-        if (!root?.document || typeof root.URL?.createObjectURL !== 'function') {
-            return { bytes, fileName, size: bytes.length };
+        const output = await createOutput(model);
+        if (root?.document && typeof output.toFile === 'function') {
+            await output.toFile(fileName);
+            return { fileName };
         }
-        const blob = new Blob([bytes], {
-            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        });
-        const url = root.URL.createObjectURL(blob);
-        const link = root.document.createElement('a');
-        link.href = url;
-        link.download = fileName;
-        link.style.display = 'none';
-        root.document.body.appendChild(link);
-        link.click();
-        link.remove();
-        root.setTimeout(() => root.URL.revokeObjectURL(url), 1000);
-        return { bytes, blob, url, fileName, size: bytes.length };
+        const bytes = typeof output.toBuffer === 'function'
+            ? new Uint8Array(await output.toBuffer())
+            : new Uint8Array(await (await output.toBlob()).arrayBuffer());
+        return { bytes, fileName, size: bytes.length };
     }
 
     return Object.freeze({
         COLORS,
         VERSION,
-        buildWorkbook,
+        buildSheetData,
+        buildSheetOptions,
         downloadWorkbook,
         renderWorkbook
     });
