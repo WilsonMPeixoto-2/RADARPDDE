@@ -15,7 +15,7 @@ Estão concluídos e publicados:
 - certificação automatizada dos relatórios Excel;
 - navegação contextual e retorno seguro.
 
-A liberação oficial para operação integral ainda não foi declarada.
+A liberação oficial ainda não foi declarada.
 
 ## Entrada obrigatória
 
@@ -23,7 +23,8 @@ A liberação oficial para operação integral ainda não foi declarada.
 2. [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — finalidade, perfis, arquitetura e contratos;
 3. [`DECISION_LOG.md`](DECISION_LOG.md) — decisões vigentes e substituídas;
 4. [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md) — classificação e precedência documental;
-5. [`audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md`](audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md) — reconstrução do estado real após os cinco ciclos.
+5. [`audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md`](audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md) — reconstrução do estado real;
+6. [`audits/2026-07-29-rastreabilidade-migration-sme.md`](audits/2026-07-29-rastreabilidade-migration-sme.md) — divergência de versão, equivalência do SQL e regra de tratamento.
 
 ## Regra de precedência
 
@@ -42,7 +43,7 @@ Orientações do responsável definem intenção e prioridade. Afirmações sobr
 | Dimensão | Estado |
 |---|---|
 | GitHub | baseline funcional `598361dd...`; ciclos 1 a 5 presentes. |
-| Production | deployment `dpl_7tLM3...`, commit `dfc8aa3...`, estado `READY`. |
+| Production | deployment `dpl_7tLM3...`, commit `dfc8aa3...`, `READY`. |
 | Supabase | `scnryinorqeucbfkioxo`, `ACTIVE_HEALTHY`, PostgreSQL 17. |
 | Auth/RLS | ativos; políticas por perfil e escopo. |
 | Gestão SME | somente leitura nas superfícies definidas; logs por UUID. |
@@ -51,6 +52,7 @@ Orientações do responsável definem intenção e prioridade. Afirmações sobr
 | Timeline | projeção cronológica concluída e publicada. |
 | Excel | certificação automatizada concluída para os dois produtos. |
 | Navegação contextual | concluída e publicada em desktop e mobile. |
+| Migrations | 24 versões correspondentes; migration SME com identificador remoto distinto e SQL idêntico. |
 | Segurança | proteção contra senhas vazadas ainda desabilitada. |
 | Liberação oficial | não declarada. |
 
@@ -63,8 +65,9 @@ Orientações do responsável definem intenção e prioridade. Afirmações sobr
 | [`CURRENT_STAGE.md`](CURRENT_STAGE.md) | Estado operacional e próxima decisão | Vigente e transitório |
 | [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md) | Classificação documental | Vigente |
 | [`audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md`](audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md) | Auditoria pós-ciclos | Vigente |
+| [`audits/2026-07-29-rastreabilidade-migration-sme.md`](audits/2026-07-29-rastreabilidade-migration-sme.md) | Rastreabilidade da migration SME | Vigente até a reconciliação |
 | [`audits/2026-07-28-alinhamento-codigo-ambientes-documentacao.md`](audits/2026-07-28-alinhamento-codigo-ambientes-documentacao.md) | Linha de base anterior aos ciclos | Histórico relevante |
-| Plano de oficialização de 28/07/2026 | Sequência que originou os ciclos 1 a 5 | Executado parcialmente; preservar como histórico de planejamento |
+| Plano de oficialização de 28/07/2026 | Sequência que originou os ciclos 1 a 5 | Executado quanto aos ciclos; referencial para gates finais |
 | Dossiê Consolidado v1.0 | Contexto e regras históricas | Referência histórica |
 | Plano do Lote 2 v2.0 | Contrato funcional e visual original | Referência de produto |
 | Protótipo Excel v2.1 | Estrutura editorial | Referência congelada |
@@ -89,7 +92,7 @@ Orientações do responsável definem intenção e prioridade. Afirmações sobr
 
 ### Referências
 
-- [`reference/SUPABASE_DATA_DICTIONARY.md`](reference/SUPABASE_DATA_DICTIONARY.md) — modelo relacional; introduções de pré-conexão não representam o estágio atual e devem ser lidas com migrations e tipos vigentes;
+- [`reference/SUPABASE_DATA_DICTIONARY.md`](reference/SUPABASE_DATA_DICTIONARY.md) — modelo relacional; introduções de pré-conexão devem ser lidas com migrations e tipos vigentes;
 - [`reference/SUPABASE_PERMISSIONS_MATRIX.md`](reference/SUPABASE_PERMISSIONS_MATRIX.md) — perfis e permissões;
 - [`reference/SUPABASE_FUNCTIONAL_COVERAGE.md`](reference/SUPABASE_FUNCTIONAL_COVERAGE.md) — fluxos e equivalência;
 - [`reference/SUPABASE_INTEGRATION_AUDIT.md`](reference/SUPABASE_INTEGRATION_AUDIT.md) — auditoria técnica;
@@ -99,6 +102,8 @@ Orientações do responsável definem intenção e prioridade. Afirmações sobr
 
 - [`runbooks/SUPABASE_CONNECTION.md`](runbooks/SUPABASE_CONNECTION.md) — conexão e validação;
 - [`runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`](runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md) — promoção e rollback.
+
+Antes da próxima migration de Production, o runbook deve incorporar a reconciliação do identificador local/remoto da migration SME.
 
 Runbooks ainda necessários antes da liberação oficial:
 
@@ -117,6 +122,7 @@ Runbooks ainda necessários antes da liberação oficial:
 ## Evidências vigentes
 
 - [`audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md`](audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md);
+- [`audits/2026-07-29-rastreabilidade-migration-sme.md`](audits/2026-07-29-rastreabilidade-migration-sme.md);
 - [`evidence/excel-certification/synthetic-manifest.json`](evidence/excel-certification/synthetic-manifest.json);
 - [`architecture/competencias.md`](architecture/competencias.md);
 - [`architecture/avaliacao-mensal.md`](architecture/avaliacao-mensal.md);
@@ -155,13 +161,14 @@ Concluídos:
 
 Pendentes:
 
-1. homologação manual dos arquivos no Microsoft Excel desktop;
-2. polimento editorial e visual;
-3. proteção contra senhas vazadas;
-4. fixação da major do Node;
-5. backup e restauração testados;
-6. gate remoto por perfil e viewport;
-7. UAT;
-8. decisão formal de liberação.
+1. reconciliação do identificador da migration SME;
+2. homologação manual dos arquivos no Microsoft Excel desktop;
+3. polimento editorial e visual;
+4. proteção contra senhas vazadas;
+5. fixação da major do Node;
+6. backup e restauração testados;
+7. gate remoto por perfil e viewport;
+8. UAT;
+9. decisão formal de liberação.
 
 A próxima frente ainda não foi escolhida.
