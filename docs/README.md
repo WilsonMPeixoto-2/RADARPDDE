@@ -28,9 +28,10 @@ A liberação oficial ainda depende de segurança Auth, backup/restauração, ho
 1. [`../AGENTS.md`](../AGENTS.md) — regras permanentes do repositório;
 2. [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — estado material e bloqueadores atuais;
 3. [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — visão de produto e arquitetura;
-4. [`DECISION_LOG.md`](DECISION_LOG.md) — decisões arquiteturais;
-5. [`architecture/testing.md`](architecture/testing.md) — estratégia de testes e gates;
-6. [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md) — classificação documental.
+4. [`DECISION_LOG.md`](DECISION_LOG.md) — decisões arquiteturais acumuladas;
+5. [`decisions/ADR-035-node24-e-gate-remoto.md`](decisions/ADR-035-node24-e-gate-remoto.md) — decisão deste ciclo;
+6. [`architecture/testing.md`](architecture/testing.md) — estratégia de testes e gates;
+7. [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md) — classificação documental.
 
 ## 3. Arquitetura vigente
 
@@ -59,6 +60,7 @@ A liberação oficial ainda depende de segurança Auth, backup/restauração, ho
 
 ### Node e gate remoto
 
+- [`decisions/ADR-035-node24-e-gate-remoto.md`](decisions/ADR-035-node24-e-gate-remoto.md)
 - [`audits/2026-07-30-node24-gate-remoto-perfis-viewports.md`](audits/2026-07-30-node24-gate-remoto-perfis-viewports.md)
 
 ### Reconciliação da migration SME
