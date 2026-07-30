@@ -14,6 +14,7 @@ Definir quais arquivos controlam o estado presente e quais permanecem apenas com
 | **Vigente com dado mutável** | estrutura vigente; números e estados remotos exigem nova consulta |
 | **Vigente com gate pendente** | contrato válido, mas há ação externa não concluída |
 | **Histórico** | retrato datado; não controla o presente |
+| **Histórico substituído** | existe para rastreabilidade; há fonte sucessora explícita |
 | **Plano executado** | plano preservado; tarefas devem ser confrontadas com o estado atual |
 | **Plano substituído** | não executar; outra frente ou PR prevaleceu |
 | **Evidência gerada** | artefato reproduzível; regenerar pelo script, não editar manualmente |
@@ -24,21 +25,24 @@ Definir quais arquivos controlam o estado presente e quais permanecem apenas com
 
 | Documento | Estado | Observação |
 |---|---|---|
+| `AGENTS.md` | Vigente com dado mutável | instruções operacionais para agentes; revalidar ambientes |
 | `README.md` | Vigente com dado mutável | visão executiva; SHAs e deployment têm data de corte |
 | `docs/README.md` | Vigente | índice e ordem de leitura |
 | `docs/CURRENT_STAGE.md` | Vigente com dado mutável | controla próxima decisão e bloqueadores |
 | `docs/PROJECT_CONTEXT.md` | Vigente | regras de produto e arquitetura |
 | `docs/DECISION_LOG.md` | Vigente | ADRs 001–033 |
 | `docs/reference/STATUS_DOCUMENTOS.md` | Vigente | esta matriz |
+| `.env.example` | Vigente | exemplo exclusivamente local; não representa Production |
 
 Ordem mínima:
 
-1. `README.md`;
-2. `docs/README.md`;
-3. `docs/CURRENT_STAGE.md`;
-4. `docs/PROJECT_CONTEXT.md`;
-5. `docs/DECISION_LOG.md`;
-6. código e ambientes para qualquer dado mutável.
+1. `AGENTS.md`;
+2. `README.md`;
+3. `docs/README.md`;
+4. `docs/CURRENT_STAGE.md`;
+5. `docs/PROJECT_CONTEXT.md`;
+6. `docs/DECISION_LOG.md`;
+7. código e ambientes para qualquer dado mutável.
 
 ## 4. Arquitetura vigente
 
@@ -70,8 +74,8 @@ Ordem mínima:
 | `reference/SUPABASE_DATA_DICTIONARY.md` | Vigente | resumo do schema efetivo; tipos gerados prevalecem |
 | `reference/SUPABASE_PERMISSIONS_MATRIX.md` | Vigente | Auth, RLS e capacidades |
 | `reference/SUPABASE_FUNCTIONAL_COVERAGE.md` | Vigente com gate pendente | cobertura atual e bloqueadores |
-| `reference/PRODUCT_DECISIONS.md` | Referência parcial | decisões antigas devem ser confrontadas com ADRs |
-| `reference/PRODUCT_SURFACE_CATALOG.md` | Referência parcial | catálogo datado de superfícies |
+| `reference/PRODUCT_SURFACE_CATALOG.md` | Vigente | superfícies S-01 a S-18 e recortes atuais |
+| `reference/PRODUCT_DECISIONS.md` | Histórico substituído | índice legado; `DECISION_LOG.md` prevalece |
 | `reference/CHANGE_CLASSIFICATION.md` | Vigente | classificação de mudanças e gates |
 | `reference/DADOS_HOMOLOGACAO.md` | Referência parcial | massa de teste; não é dado operacional |
 | `reference/SUPABASE_INTEGRATION_AUDIT.md` | Histórico | auditoria anterior à ativação atual |
@@ -147,14 +151,16 @@ Planos explicitamente marcados como substituídos não devem ser retomados.
 6. plano antigo não é reaberto sem nova verificação;
 7. código e ambientes prevalecem sobre memória e texto desatualizado;
 8. nova migration de Production permanece bloqueada até reconciliação do histórico SME;
-9. índice não deve apontar para arquivo inexistente.
+9. índice não deve apontar para arquivo inexistente;
+10. arquivo de instrução para agentes deve ser revisado quando o backend ou estágio mudar.
 
 ## 12. Fonte de verdade para a próxima frente
 
 Após o merge do alinhamento integral:
 
 ```text
-CURRENT_STAGE.md
+AGENTS.md
+→ CURRENT_STAGE.md
 → PROJECT_CONTEXT.md
 → DECISION_LOG.md
 → arquitetura da frente escolhida
