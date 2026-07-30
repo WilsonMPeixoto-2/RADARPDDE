@@ -9,7 +9,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_REPORT = path.join(ROOT, 'dependency-health/npm-audit.json');
 
 const ALLOWED_ADVISORIES = Object.freeze(new Map([
-  ['GHSA-mh99-v99m-4gvg', Object.freeze({
+  ['GHSA-MH99-V99M-4GVG', Object.freeze({
     packages: Object.freeze(new Set([
       'archiver',
       'archiver-utils',
@@ -23,7 +23,7 @@ const ALLOWED_ADVISORIES = Object.freeze(new Map([
     ])),
     reason: 'Cadeia de glob/streaming do Node não alcançada pelo workbook documental do navegador.'
   })],
-  ['GHSA-w5hq-g745-h8pq', Object.freeze({
+  ['GHSA-W5HQ-G745-H8PQ', Object.freeze({
     packages: Object.freeze(new Set(['exceljs', 'uuid'])),
     reason: 'Advisory restrito a uuid v3/v5/v6 com buffer; o caminho usado pelo ExcelJS emprega uuid v4.'
   })]
