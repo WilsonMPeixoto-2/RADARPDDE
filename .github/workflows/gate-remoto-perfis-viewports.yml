@@ -194,18 +194,28 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-      - name: Registrar resultado da homologação no PR
-        if: ${{ always() && github.event_name == 'issue_comment' }}
+      - name: Registrar resultado verificável no PR
+        if: ${{ always() }}
         env:
           GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.issue.number }}
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           JOB_RESULT: ${{ job.status }}
         shell: bash
         run: |
+          set -euo pipefail
+          pr_number="${EVENT_PR_NUMBER}"
+          if [[ -z "${pr_number}" || "${pr_number}" == "null" ]]; then
+            pr_number="$(gh pr list --repo "${GITHUB_REPOSITORY}" --head "${GITHUB_REF_NAME}" --state open --json number --jq '.[0].number // empty')"
+          fi
+          if [[ -z "${pr_number}" ]]; then
+            echo 'Nenhum PR aberto associado; resultado preservado apenas no Actions.'
+            exit 0
+          fi
           if [[ "${JOB_RESULT}" == "success" ]]; then
             message="Gate remoto por perfil e viewport concluído com sucesso. Execução: ${RUN_URL}"
           else
             message="Gate remoto por perfil e viewport concluído com falha. Execução: ${RUN_URL}"
           fi
-          gh api "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" -f "body=${message}"
+          gh pr comment "${pr_number}" --repo "${GITHUB_REPOSITORY}" --body "${message}"
