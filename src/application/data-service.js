@@ -46,6 +46,22 @@
     const { assertCanonicalRecords } = jsonContracts;
     const GENERATED_INSERT_FIELDS = Object.freeze(['row_version', 'created_at', 'updated_at']);
     const VOLATILE_COMPARISON_FIELDS = Object.freeze(['row_version', 'created_at', 'updated_at']);
+    const REMOTE_BOOTSTRAP_ENTITIES = Object.freeze([
+        'appConfig',
+        'programs',
+        'controllers',
+        'inventoryTeamMembers',
+        'schools',
+        'schoolPrograms',
+        'competences',
+        'verifications',
+        'pendencies',
+        'pendencyAttempts',
+        'pendencyContacts',
+        'assets',
+        'registeredInvoices',
+        'administrativeLogs'
+    ]);
 
     function assertSnapshotJson(snapshot, operation) {
         for (const [entity, records] of Object.entries(snapshot?.entities || {})) {
@@ -233,9 +249,15 @@
             this.unitOfWork = options.unitOfWork || new UnitOfWork({ statePort: this.statePort });
         }
 
-        async bootstrap() {
+        async bootstrap(options = {}) {
             const capabilities = this.repository.capabilities();
-            const current = await this.repository.exportSnapshot({ includeEmpty: true });
+            const requestedEntities = Array.isArray(options.entities)
+                ? options.entities
+                : (capabilities.remote === true ? REMOTE_BOOTSTRAP_ENTITIES : null);
+            const current = await this.repository.exportSnapshot({
+                includeEmpty: true,
+                ...(requestedEntities ? { entities: requestedEntities } : {})
+            });
             assertSnapshotJson(current, 'bootstrap');
             const empty = isSnapshotEmpty(current);
 
@@ -513,5 +535,5 @@
         }
     }
 
-    return Object.freeze({ DataService });
+    return Object.freeze({ DataService, REMOTE_BOOTSTRAP_ENTITIES });
 }));

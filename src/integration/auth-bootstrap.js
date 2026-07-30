@@ -18,6 +18,15 @@
         }));
     }
 
+    function emitAuthResolved(root, authentication) {
+        if (!authentication
+            || typeof root?.dispatchEvent !== 'function'
+            || typeof root?.CustomEvent !== 'function') return;
+        root.dispatchEvent(new root.CustomEvent('radar:auth-resolved', {
+            detail: { authentication }
+        }));
+    }
+
     function publicAuthentication(state) {
         if (state?.status !== 'authenticated' || !state.user || !state.authorization) return null;
         return {
@@ -77,15 +86,18 @@
             state = await sessionService.waitForAuthenticated();
         }
 
+        const authentication = publicAuthentication(state);
+        emitAuthResolved(root, authentication);
         return {
             client,
             sessionService,
-            authentication: publicAuthentication(state)
+            authentication
         };
     }
 
     return Object.freeze({
         emitAuthRequired,
+        emitAuthResolved,
         publicAuthentication,
         prepareAuthenticatedClient
     });

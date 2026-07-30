@@ -70,6 +70,7 @@
             this.listeners = new Set();
             this.waiters = new Set();
             this.subscription = null;
+            this.establishing = null;
         }
 
         createSignedOutState() {
@@ -178,8 +179,21 @@
         }
 
         async establish(session) {
-            const user = session?.user;
-            if (!user?.id) fail('SESSION_EXPIRED', 'A sessão autenticada não possui usuário válido.', 'establish');
+            const userId = String(session?.user?.id || '');
+            if (!userId) fail('SESSION_EXPIRED', 'A sessão autenticada não possui usuário válido.', 'establish');
+            if (this.establishing?.userId === userId) return this.establishing.promise;
+
+            const promise = this.establishFresh(session);
+            this.establishing = { userId, promise };
+            try {
+                return await promise;
+            } finally {
+                if (this.establishing?.promise === promise) this.establishing = null;
+            }
+        }
+
+        async establishFresh(session) {
+            const user = session.user;
             const authorization = await this.loadAuthorization(user);
             return this.publish({
                 status: 'authenticated',
@@ -190,13 +204,31 @@
         }
 
         async loadAuthorization(user) {
-            const profilesResult = await this.client
+            const profilesPromise = this.client
                 .from('user_profiles')
                 .select('user_id, profile_id, controller_id, inventory_member_id, cre_scope, active, profiles ( id, label, active )')
                 .eq('user_id', user.id)
                 .order('created_at', { ascending: true });
+            const rolePromise = this.client.rpc('current_app_role');
+            const scopesPromise = this.client
+                .from('user_school_scopes')
+                .select('school_id, can_write')
+                .eq('user_id', user.id)
+                .order('school_id', { ascending: true });
+            const [profilesResult, roleResult, scopesResult] = await Promise.all([
+                profilesPromise,
+                rolePromise,
+                scopesPromise
+            ]);
+
             if (profilesResult.error) {
                 fail('AUTHORIZATION_UNAVAILABLE', 'Não foi possível carregar o perfil institucional.', 'loadAuthorization', profilesResult.error);
+            }
+            if (roleResult.error) {
+                fail('AUTHORIZATION_UNAVAILABLE', 'Não foi possível confirmar o papel institucional.', 'loadAuthorization', roleResult.error);
+            }
+            if (scopesResult.error) {
+                fail('AUTHORIZATION_UNAVAILABLE', 'Não foi possível carregar os escopos de escolas.', 'loadAuthorization', scopesResult.error);
             }
 
             const rows = Array.isArray(profilesResult.data) ? profilesResult.data : [];
@@ -219,21 +251,8 @@
                 label: profileRow.profile_id,
                 active: true
             };
-            const roleResult = await this.client.rpc('current_app_role');
-            if (roleResult.error) {
-                fail('AUTHORIZATION_UNAVAILABLE', 'Não foi possível confirmar o papel institucional.', 'loadAuthorization', roleResult.error);
-            }
             if (roleResult.data !== profileRow.profile_id) {
                 fail('AUTHORIZATION_INCONSISTENT', 'O perfil do usuário diverge da autorização efetiva do banco.', 'loadAuthorization');
-            }
-
-            const scopesResult = await this.client
-                .from('user_school_scopes')
-                .select('school_id, can_write')
-                .eq('user_id', user.id)
-                .order('school_id', { ascending: true });
-            if (scopesResult.error) {
-                fail('AUTHORIZATION_UNAVAILABLE', 'Não foi possível carregar os escopos de escolas.', 'loadAuthorization', scopesResult.error);
             }
 
             return {
