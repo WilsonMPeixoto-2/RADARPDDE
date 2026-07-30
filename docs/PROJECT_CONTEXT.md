@@ -32,6 +32,7 @@ Na data de corte:
 - existem 12 competências de 2026;
 - `closing_competence = 2026-12`;
 - `app_config.row_version = 5`;
+- as 25 migrations estão alinhadas por versão e nome entre GitHub e Supabase Production;
 - o deployment automático está novamente bloqueado;
 - a liberação oficial ainda não foi declarada.
 
@@ -290,31 +291,31 @@ snapshot → validação → plano → dry-run → staging
 
 Seed local não é dado institucional. Importação administrativa não ocorre no navegador.
 
-### Divergência da migration SME
+### Migration SME reconciliada
 
-O repositório possui:
+O arquivo canônico criado e testado no GitHub permanece:
 
 ```text
 20260728182226_sme_access_governance.sql
 ```
 
-O histórico de Production registra:
+O Supabase Production agora registra:
 
 ```text
-version = 20260728190344
+version = 20260728182226
 name = sme_access_governance
 ```
 
-As outras 24 migrations correspondem por versão e nome. O SQL da migration SME é equivalente nos dois lados:
+O registro derivado `20260728190344` foi removido pelo mecanismo oficial de `migration repair`, sem reaplicação do SQL. As 25 migrations agora correspondem por versão e nome.
+
+A migration reparada foi armazenada pelo CLI em quatro instruções. A reconstrução preserva:
 
 ```text
 comprimento = 1.411 caracteres
 SHA-256 = cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
 ```
 
-Não há divergência funcional identificada. Existe divergência de rastreabilidade que deve ser reconciliada, por mecanismo suportado e testado, antes da próxima migration de Production.
-
-Não renomear, reaplicar, excluir ou editar diretamente o histórico remoto sem plano, dry-run e evidência.
+O teste de regressão exige o identificador canônico, a ausência do identificador derivado no repositório e a integridade do hash.
 
 Backup e restauração ainda precisam ser exercitados em ambiente descartável antes da liberação oficial.
 
@@ -405,19 +406,19 @@ Comprovado:
 - autoria e auditoria das mutações;
 - concorrência otimista;
 - deployments automáticos bloqueados;
-- evidência Excel sem dados pessoais.
+- evidência Excel sem dados pessoais;
+- histórico das 25 migrations alinhado entre GitHub e Supabase Production.
 
 Permanecem como bloqueadores:
 
-1. reconciliação do identificador da migration SME;
-2. homologação manual dos relatórios no Microsoft Excel desktop;
-3. proteção contra senhas vazadas no Supabase Auth;
-4. fixação da major operacional do Node;
-5. backup e restauração em ambiente descartável;
-6. gate remoto por perfil e viewport;
-7. UAT funcional;
-8. polimento editorial e visual;
-9. decisão formal de liberação.
+1. homologação manual dos relatórios no Microsoft Excel desktop;
+2. proteção contra senhas vazadas no Supabase Auth;
+3. fixação da major operacional do Node;
+4. backup e restauração em ambiente descartável;
+5. gate remoto por perfil e viewport;
+6. UAT funcional;
+7. polimento editorial e visual;
+8. decisão formal de liberação.
 
 ## 20. Direção de desenvolvimento vigente
 
@@ -438,4 +439,6 @@ Referências:
 
 - [`CURRENT_STAGE.md`](CURRENT_STAGE.md);
 - [`audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md`](audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md);
-- [`audits/2026-07-29-rastreabilidade-migration-sme.md`](audits/2026-07-29-rastreabilidade-migration-sme.md).
+- [`audits/2026-07-29-rastreabilidade-migration-sme.md`](audits/2026-07-29-rastreabilidade-migration-sme.md);
+- [`audits/2026-07-29-reconciliacao-migration-sme-plano.md`](audits/2026-07-29-reconciliacao-migration-sme-plano.md);
+- [`audits/2026-07-29-reconciliacao-migration-sme-evidencias.md`](audits/2026-07-29-reconciliacao-migration-sme-evidencias.md).
