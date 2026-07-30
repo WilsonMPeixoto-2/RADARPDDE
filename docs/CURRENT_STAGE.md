@@ -1,10 +1,10 @@
 # RADAR PDDE — Estado atual do projeto
 
 **Atualizado em:** 30 de julho de 2026  
-**Commit funcional publicado:** `dfc8aa3030b02edb73f764f5f56bd6759a7a1d77`  
-**Deployment Production:** `dpl_7tLM3RZ7MEuRRTzvGmc9EiAARmDY` — `READY`  
-**Reconciliação da migration SME:** `79cb67c84720b1850879d9c50c262e1623d5d8cc`  
-**Hardening atual:** Node 24, gate perfil/viewport e backup/restauração descartáveis concluídos  
+**Commit funcional da correção do login:** `9979330465af3dc186047d4fc0870bf8a3ff947e`  
+**Commit do artefato publicado:** `0536dd321f27f537ff9f0135e60516fb2c479441`  
+**Deployment Production:** `dpl_GNamjaq9WHCpyW1hsWAifC4uALyF` — `READY`  
+**Hardening atual:** Node 24, gates remotos, backup/restauração e desempenho de autenticação concluídos  
 **Próxima frente sugerida:** homologação manual dos relatórios no Microsoft Excel desktop
 
 ## 1. Como usar este documento
@@ -35,7 +35,8 @@ Concluídos e publicados:
 - relatórios XLSX institucional e SME;
 - CSV legado preservado como fallback;
 - navegação contextual;
-- reconciliação do histórico da migration SME.
+- reconciliação do histórico da migration SME;
+- correção de desempenho do login e da restauração de sessão.
 
 Concluídos no hardening anterior ao release:
 
@@ -55,13 +56,17 @@ A liberação oficial do produto ainda não foi declarada.
 
 ```text
 project: radarpdde-fix
-production deployment: dpl_7tLM3RZ7MEuRRTzvGmc9EiAARmDY
+production deployment: dpl_GNamjaq9WHCpyW1hsWAifC4uALyF
 state: READY
-artifactCommitSha: dfc8aa3030b02edb73f764f5f56bd6759a7a1d77
+artifactCommitSha: 0536dd321f27f537ff9f0135e60516fb2c479441
+functionalMergeCommit: 9979330465af3dc186047d4fc0870bf8a3ff947e
 nodeVersion: 24.x
+git.deploymentEnabled: false
 ```
 
-O hardening deste ciclo não exige publicação funcional. O artefato Production permanece inalterado até nova janela deliberada.
+A correção do login foi publicada por janela controlada. O bloqueio automático foi restaurado após o deployment ficar `READY` e os contratos publicados passarem pelo smoke.
+
+Evidência: `docs/evidence/releases/2026-07-30-login-performance-production.json`.
 
 ### 3.2 Supabase
 
@@ -81,9 +86,73 @@ closing_competence = 2026-12
 app_config.row_version = 5
 ```
 
-O teste de backup/restauração não acessa esse projeto. Origem e destino são pilhas locais descartáveis no runner do GitHub Actions.
+A correção de desempenho não alterou schema, dados, RLS, Auth remoto ou migrations.
 
-## 4. Runtime Node.js
+## 4. Desempenho do login e da restauração de sessão
+
+### 4.1 Defeito comprovado
+
+A tela de acesso permanecia por vários segundos em **Verificando a sessão**, inclusive quando o navegador já possuía sessão válida. O login manual também acumulava espera antes de liberar a aplicação.
+
+Causas:
+
+1. evento Auth e chamada explícita podiam validar a mesma sessão duas vezes;
+2. perfil, papel efetivo e escopos escolares eram consultados em série;
+3. o bootstrap carregava todas as 19 entidades do repositório em sequência;
+4. entidades não necessárias ao estado inicial, como `audit_events`, entravam no caminho crítico.
+
+### 4.2 Correção publicada
+
+- validação em voo único por usuário autenticado;
+- deduplicação entre restauração, login e `onAuthStateChange`;
+- perfil, papel efetivo e escopos iniciados em paralelo;
+- snapshot remoto com subconjunto explícito;
+- leituras concorrentes limitadas a seis;
+- bootstrap inicial restrito às 14 entidades operacionais;
+- snapshot integral preservado para operações que o exigem;
+- aplicação mantida inerte até o carregamento autorizado terminar.
+
+Nova sequência visual:
+
+```text
+Verificando a sessão existente…
+→ Sessão reconhecida. Carregando os dados autorizados…
+→ ambiente de trabalho liberado
+```
+
+Redução estrutural:
+
+```text
+antes: até 6 consultas Auth duplicadas/serializadas
+       + até 24 leituras HTTP em fila no escopo técnico observado
+
+depois: 3 consultas Auth em uma rodada paralela
+        + 14 entidades operacionais em lotes concorrentes limitados
+```
+
+A duração absoluta ainda depende da rede do usuário e da resposta do Supabase, mas as esperas desnecessárias do frontend foram removidas.
+
+### 4.3 Evidências
+
+PR funcional: `#113`.
+
+SHA validado:
+
+```text
+f647941feffe89ccd4bcb2b75ed19faf999007b2
+```
+
+Gates aprovados:
+
+- snapshot canônico — run `30548549278`;
+- Supabase readiness — run `30548549003`;
+- Playwright E2E — run `30548549099`;
+- perfis × desktop, Android e iPhone — run `30548548995`;
+- Lighthouse CI — run `30548549280`.
+
+Auditoria: `docs/audits/2026-07-30-performance-login-restauracao-sessao.md`.
+
+## 5. Runtime Node.js
 
 ```text
 package.json        engines.node = 24.x
@@ -96,7 +165,7 @@ Vercel              nodeVersion: 24.x
 
 Proteção: `tests/unit/release-hardening-contract.test.js`.
 
-## 5. Gate remoto por papel e viewport
+## 6. Gate remoto por papel e viewport
 
 Workflow:
 
@@ -120,7 +189,7 @@ Viewports:
 
 A matriz contém 15 cenários de papel × viewport. Auth/RLS mutáveis são executados uma única vez no desktop.
 
-## 6. Backup e restauração descartáveis
+## 7. Backup e restauração descartáveis
 
 ```text
 .github/workflows/backup-restore-disposable.yml
@@ -129,48 +198,23 @@ tests/unit/backup-restore-gate-contract.test.js
 npm run test:backup-restore
 ```
 
-Fluxo comprovado:
+O gate comprova, sem acessar Production:
 
 1. origem Supabase descartável;
 2. reset com 25 migrations e seed;
 3. criação de sete identidades Auth efêmeras;
 4. dumps de papéis, schema, dados e histórico;
-5. segunda pilha isolada por `SUPABASE_WORKDIR`;
-6. restauração transacional com `psql`;
-7. comparação de schema, dados públicos, `auth.users`, `auth.identities` e migrations;
-8. limpeza das duas pilhas.
+5. restauração transacional em segunda pilha;
+6. equivalência de schema, dados públicos, `auth.users`, `auth.identities` e migrations;
+7. limpeza dos ambientes.
 
-Evidência funcional ampliada:
+O artefato publicado contém somente `evidence.json`; os SQLs permanecem no runner efêmero.
 
-```text
-GitHub Actions run: 30538395958
-job: Dump, restauração e equivalência
-conclusão: success
-```
+## 8. Recurso dependente de plano
 
-Fingerprints coincidentes:
+A checagem de senhas comprometidas é disponibilizada pelo Supabase apenas no plano Pro ou superior. Como o projeto opera no plano Free e não há autorização de despesa, ela não integra os critérios atuais de liberação. Reavaliar se houver mudança de plano.
 
-```text
-schema:     0edda0a68fdbd4a6984f68d4d0332a3f4b8fe9965ea34911f1ea17b7a3150948
-dados:      ba4e33c2189455a676d52d0ef5f7f0ec7f816a4348641c0cf85b0043643a2d84
-Auth:       e3776cc47f5628c5f2a8365dd105837cefffdc79952df683787addda0ed4b477
-migrations: 18caf36e3032a4c2dfb2064b18ad2cf1c0dbf59df8c12ff8319ab7d7bd679e6b
-```
-
-Contagens Auth restauradas:
-
-```text
-auth.users: 7
-auth.identities: 7
-```
-
-O artefato publicado possui 1.441 bytes e contém somente `evidence.json`. Os SQLs permanecem no runner efêmero.
-
-## 7. Recurso dependente de plano
-
-A checagem de senhas comprometidas é disponibilizada pelo Supabase apenas no plano Pro ou superior. Como o projeto opera no plano Free e não há autorização de despesa, ela foi retirada dos critérios de liberação. Reavaliar se houver mudança de plano.
-
-## 8. Migrações
+## 9. Migrações
 
 O GitHub e o Supabase Production possuem 25 versões correspondentes.
 
@@ -193,7 +237,7 @@ Migration futura exige:
 8. plano de rollback;
 9. evidência no mesmo SHA.
 
-## 9. Relatórios Excel
+## 10. Relatórios Excel
 
 ### Institucional
 
@@ -209,7 +253,7 @@ Migration futura exige:
 - `dataValidations`: ausente por contrato;
 - abertura manual no Excel desktop: pendente.
 
-## 10. Gates remanescentes antes da liberação oficial
+## 11. Gates remanescentes antes da liberação oficial
 
 1. abrir os dois produtos no Microsoft Excel desktop sem reparo;
 2. revisar Advisors quando aplicável;
@@ -217,9 +261,9 @@ Migration futura exige:
 4. realizar polimento editorial e visual sem alterar produto;
 5. registrar decisão formal de release.
 
-Node, matriz remota e backup/restauração estão cumpridos e não integram mais os bloqueadores.
+Node, matriz remota, backup/restauração e desempenho do login estão cumpridos e não integram mais os bloqueadores.
 
-## 11. Próxima frente recomendada
+## 12. Próxima frente recomendada
 
 ### Homologação manual no Microsoft Excel desktop
 
@@ -232,7 +276,7 @@ Node, matriz remota e backup/restauração estão cumpridos e não integram mais
 
 Depois disso, seguir para Advisors, UAT, polimento e decisão de release.
 
-## 12. Documentos de continuidade
+## 13. Documentos de continuidade
 
 - `AGENTS.md`;
 - `README.md`;
@@ -240,6 +284,8 @@ Depois disso, seguir para Advisors, UAT, polimento e decisão de release.
 - `docs/DECISION_LOG.md`;
 - `docs/architecture/testing.md`;
 - `docs/reference/STATUS_DOCUMENTOS.md`;
+- `docs/audits/2026-07-30-performance-login-restauracao-sessao.md`;
+- `docs/evidence/releases/2026-07-30-login-performance-production.json`;
 - `docs/audits/2026-07-30-backup-restore-disposable.md`;
 - `docs/audits/2026-07-30-node24-gate-remoto-perfis-viewports.md`;
 - `docs/audits/2026-07-29-reconciliacao-migration-sme-evidencias.md`.
