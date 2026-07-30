@@ -70,12 +70,12 @@ jobs:
       - name: Comprovar backup e restauração na segunda pilha
         run: npm run test:backup-restore
 
-      - name: Publicar evidências sanitizadas
+      - name: Publicar evidência sanitizada
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: backup-restore-disposable-${{ github.run_id }}
-          path: artifacts/backup-restore/
+          path: artifacts/backup-restore/evidence.json
           if-no-files-found: error
           retention-days: 14
 
