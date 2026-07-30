@@ -1,55 +1,122 @@
 # RADAR PDDE
 
-O **RADAR PDDE** é uma aplicação web institucional para acompanhar entrega, análise, regularização, consolidação e inventário dos programas do PDDE por unidade escolar, competência, programa e documento.
+O **RADAR PDDE** é uma aplicação web institucional para acompanhar entrega, análise, regularização, consolidação, inventário e histórico dos programas do PDDE por unidade escolar, competência, programa e documento.
 
-O produto atende Controladores, Assistente de Verbas Federais, Gestão SME, Equipe de Inventário e Administração técnica, com autenticação institucional, autorização por perfil, histórico auditável, persistência no Supabase e exportações Excel.
+O produto atende Controladores, Assistente de Verbas Federais, Gestão SME, Equipe de Inventário e Administração técnica, com autenticação institucional, autorização por perfil, persistência no Supabase, auditoria, concorrência otimista e exportações estruturadas.
 
-## Estado operacional verificado em 28/07/2026
+## Estado operacional verificado em 29/07/2026
 
 | Camada | Situação comprovada |
 |---|---|
-| Linha de base funcional auditada | Commit `a6b1a4628c6f3024740d8d5a6f2cb7ba028f9ff9`; o PR #90 alterou somente documentação. |
-| Deployment funcional | Commit `6f165f61016261073eba4b56ce7a0afd0074a904`, Vercel Production `READY`. |
-| Runtime publicado | `environment: production`, `dataMode: supabase-production`, repositório Supabase habilitado. |
-| Supabase | Projeto `RADAR PDDE 2026` ativo e saudável, com Auth, RLS, migrations e dados institucionais. |
-| Governança SME | Implementada no frontend, serviços e RLS; migration aplicada e publicada. |
-| Excel SME mensal | Implementado, com regressão para impedir reparo do arquivo; certificação integral banco–tela–arquivo ainda é gate pendente. |
-| Competências 2026 | Janeiro a dezembro existem no banco; a operação permanece configurada em maio e a interface ainda oculta meses posteriores. |
-| Liberação oficial | Ainda não declarada. Restam competências globais, homologação transversal, certificação Excel e gate de segurança/release. |
+| Baseline funcional da `main` | `598361dd784563f4d70d1e25df3818f4ee066da8` |
+| Vercel Production | `dpl_7tLM3RZ7MEuRRTzvGmc9EiAARmDY`, `READY` |
+| Commit funcional publicado | `dfc8aa3030b02edb73f764f5f56bd6759a7a1d77` |
+| Runtime | `production`, `supabase-production` |
+| Supabase | `scnryinorqeucbfkioxo`, `ACTIVE_HEALTHY`, PostgreSQL 17 |
+| Calendário | 12 competências; `closing_competence = 2026-12`; `row_version = 5` |
+| Gestão SME | governança somente leitura aplicada no frontend, serviços e RLS |
+| Ciclos de oficialização | ciclos 1 a 5 concluídos, mesclados e publicados |
+| Histórico de migrations | 24 versões correspondentes; migration SME com versão remota distinta, mas SQL idêntico |
+| Deployment automático | bloqueado após a janela controlada |
+| Liberação oficial | ainda não declarada |
 
-A descrição detalhada do estado auditado está em:
+O commit `598361dd...` é posterior ao deployment funcional e apenas restaura `git.deploymentEnabled: false`.
 
-- [`Auditoria de alinhamento de 28/07/2026`](docs/audits/2026-07-28-alinhamento-codigo-ambientes-documentacao.md);
-- [`Estágio atual`](docs/CURRENT_STAGE.md);
-- [`Plano de oficialização operacional`](docs/superpowers/plans/2026-07-28-oficializacao-operacional-radar-pdde.md).
+Referências:
+
+- [`Estado atual`](docs/CURRENT_STAGE.md);
+- [`Auditoria pós-ciclos 1 a 5`](docs/audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md);
+- [`Rastreabilidade da migration SME`](docs/audits/2026-07-29-rastreabilidade-migration-sme.md).
 
 ## Regra de precedência
 
 O estado do sistema é determinado por:
 
 1. código-fonte remoto;
-2. migrations, funções, políticas e dados efetivamente existentes no Supabase autorizado;
-3. artefato efetivamente implantado na Vercel;
+2. migrations, políticas, funções e dados efetivos do Supabase autorizado;
+3. artefato implantado na Vercel;
 4. testes e evidências reproduzíveis;
-5. documentação alinhada às fontes anteriores.
+5. decisões funcionais vigentes;
+6. documentação alinhada às fontes anteriores.
 
-Planos, relatórios e documentos históricos não prevalecem sobre o código e os ambientes reais.
+Planos, relatórios e documentos históricos não prevalecem sobre código e ambientes reais.
+
+## Entregas consolidadas
+
+### Governança da Gestão SME
+
+- visão mensal e Prontuário restritos à identificação e bonificação;
+- Pendências consultáveis em modo somente leitura;
+- mutações bloqueadas na política de capacidades, handlers e serviços;
+- Registros Internos limitados ao próprio `actor_user_id`;
+- RLS de `administrative_logs` vinculada ao `auth.uid()`;
+- programas por exercício preservados fora desse escopo.
+
+### Ciclo 1 — competência mensal global
+
+- contexto único `RadarCompetenceContext`;
+- janeiro a dezembro de 2026 disponíveis;
+- seletor mensal transversal;
+- sincronização entre exercício e competência;
+- preservação da seleção entre telas e recarga;
+- fechamento configurado em dezembro de 2026.
+
+### Ciclo 2 — avaliação mensal certificada
+
+- projeção canônica `evaluateMonthlyEvaluation`;
+- resultado APTA/INAPTA;
+- identificação de campos ausentes;
+- situação e conclusão técnica separadas;
+- pendências recortadas por escola, competência e programa;
+- consulta e consolidação baseadas na mesma projeção;
+- persistência atômica, autoria, auditoria e `row_version` preservados.
+
+### Ciclo 3 — timeline cronológica
+
+- projeção somente leitura por unidade e competência;
+- verificações, pendências, tentativas, contatos, notas, bens e logs consolidados;
+- ordenação estável e deduplicação de eventos;
+- vínculos e autoria preservados;
+- recorte de visibilidade para Gestão SME;
+- aba **Histórico cronológico** no Prontuário;
+- nenhuma tabela paralela de timeline.
+
+### Ciclo 4 — certificação dos relatórios Excel
+
+- certificação separada do relatório institucional e do Excel SME mensal;
+- comparação endereço a endereço e valor a valor no OOXML;
+- quatro abas institucionais e uma aba SME;
+- ausência de `dataValidations` no Excel SME;
+- hashes e manifesto determinístico;
+- massa sintética sem dados pessoais;
+- evidência regenerada pelo `test:readiness`.
+
+Limites atuais:
+
+- o botão institucional permanece vinculado ao CSV;
+- a abertura manual no Microsoft Excel desktop ainda integra o gate final.
+
+### Ciclo 5 — navegação contextual
+
+- retorno entre Carteira, Dashboard, Pendências e Prontuário;
+- preservação de competência, rota, filtros, rolagem e foco;
+- pilha de até 12 transições em `sessionStorage`;
+- foco restaurado somente em controle acionável visível;
+- suporte validado em desktop, Android e iPhone;
+- fallback **Voltar para Carteira** em acesso direto;
+- nenhuma persistência remota adicional.
 
 ## Modelo funcional
 
-O RADAR mantém dimensões relacionadas, mas não intercambiáveis.
-
 ### Bonificação
 
-Avalia a entrega tempestiva dos documentos exigidos e produz o resultado **APTA** ou **INAPTA**, conforme a regra canônica da competência e do programa.
+Avalia a entrega tempestiva dos documentos exigidos e produz o resultado **APTA** ou **INAPTA** conforme a competência e o programa.
 
 ### Análise técnica
 
 Registra a qualidade e a correção de cada documento: não analisado, em análise, incorreto, correto ou correto após o prazo.
 
 ### Pendência operacional
-
-Controla o saneamento de documento ausente ou incorreto e as providências internas. Estados canônicos:
 
 ```text
 Aberta
@@ -59,46 +126,17 @@ Aguardando reanálise
   └─ reanálise incorreta → Aberta
 ```
 
-Também existe `Cancelada`, preservando motivo, autoria e histórico.
+Também existe `Cancelada`, com preservação de motivo, autoria e histórico.
 
-Bonificação, análise e pendência podem coexistir sem apagar o passado. Uma regularização posterior não reescreve automaticamente o resultado histórico da bonificação.
+Bonificação, análise e pendência são dimensões independentes. Regularização posterior não reescreve automaticamente o resultado histórico da bonificação.
 
 ## Perfis
 
-### Controlador
-
-Possui carteira de responsabilidade principal, mas pode colaborar nas demais escolas da própria CRE. A atuação não transfere automaticamente `schools.controller_id` e registra a autoria real.
-
-### Assistente de Verbas Federais
-
-Acompanha transversalmente a operação, administra equipe e carteiras, executa retificações e demais ações autorizadas.
-
-### Gestão SME
-
-Realiza acompanhamento gerencial. Nas visões mensal e do prontuário, consulta identificação e bonificação sem análise técnica nem ações. Consulta pendências em modo somente leitura. Registros Internos são limitados ao próprio UUID autenticado.
-
-### Equipe de Inventário
-
-Executa o fluxo patrimonial autorizado, incluindo bens, encaminhamentos e inventariação.
-
-### Administrador técnico
-
-Administra infraestrutura, perfis, escopos, importações e auditoria. Não é perfil operacional equivalente à Assistente.
-
-## Superfícies principais
-
-- Dashboard;
-- Carteira de Escolas;
-- Competências Mensais;
-- Prontuário da unidade;
-- Pendências Operacionais;
-- Gestão de Equipe;
-- Capital e Inventário;
-- Registros Internos;
-- Configurações e visões gerenciais SME;
-- alertas, modais e exportações.
-
-Todas as superfícies representam o mesmo universo de dados e devem manter coerência de competência, perfil, escola, programa, pendência e autoria.
+- **Controlador:** carteira principal com colaboração nas demais escolas da própria CRE e autoria real preservada;
+- **Assistente de Verbas Federais:** acompanhamento transversal, Gestão de Equipe, retificações e ações autorizadas;
+- **Gestão SME:** consulta gerencial, sem mutações operacionais nas superfícies definidas;
+- **Equipe de Inventário:** fluxo patrimonial autorizado;
+- **Administrador técnico:** infraestrutura, perfis, escopos, importações e auditoria.
 
 ## Arquitetura
 
@@ -123,59 +161,54 @@ Requisitos estruturais:
 - concorrência otimista por `row_version`;
 - autoria real em mutações;
 - snapshots, importação controlada, reconciliação e rollback;
-- chave administrativa exclusivamente server-side.
+- credencial administrativa exclusivamente server-side.
 
-Nunca utilizar `service_role`, `sb_secret_*`, senha do banco ou token administrativo no frontend, no GitHub ou em logs.
+Nunca utilizar `service_role`, `sb_secret_*`, senha do banco ou token administrativo no frontend, GitHub ou logs.
 
 ## Dados observados em Production
 
-Data de corte: 28/07/2026.
+Data de corte: 29/07/2026.
 
 | Entidade | Quantidade |
 |---|---:|
 | Escolas | 164 |
 | Programas | 8 |
 | Vínculos escola–programa | 431 |
-| Controladores | 6 |
-| Integrantes no diretório de Inventário | 4 |
-| Perfis de usuário ativos | 13 |
+| Perfis ativos | 13 |
 | Competências | 12 |
 | Verificações | 6 |
 | Pendências | 3 |
 | Tentativas | 3 |
 | Contatos | 5 |
-| Registros administrativos | 81 |
+| Registros administrativos | 82 |
 | Bens | 2 |
 
 Essas quantidades são um retrato operacional, não constantes de negócio.
 
-## Competências
+## Rastreabilidade da migration SME
 
-As 12 competências de 2026 estão persistidas. O estado atual ainda possui:
+O arquivo local é:
 
 ```text
-closing_competence: 2026-05
-activeCompetenciaKey inicial: 2026-05
+20260728182226_sme_access_governance.sql
 ```
 
-A tela mensal filtra competências posteriores ao fechamento configurado. A correção deve separar competência existente, disponível e fechada, criar contexto mensal único e disponibilizar seletor mensal global em todas as superfícies aplicáveis.
+O Supabase registra:
 
-## Excel
+```text
+version = 20260728190344
+name = sme_access_governance
+```
 
-O sistema possui exportação mensal SME e exportação institucional/editorial. O Excel SME:
+O conteúdo possui o mesmo comprimento e o mesmo SHA-256 nos dois lados:
 
-- usa a competência ativa;
-- consolida Básico, Qualidade e Equidade;
-- normaliza `SIM`, `NÃO` e `NÃO SE APLICA`;
-- gera uma aba mensal;
-- possui testes estruturais do pacote OOXML;
-- não inclui as validações que faziam o Microsoft Excel reparar o arquivo.
+```text
+cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
+```
 
-Antes da liberação oficial, ambos os produtos Excel devem passar por reconciliação célula a célula entre Supabase, estado carregado, modelo de exportação e arquivo final.
+Não há divergência funcional identificada, mas o histórico deve ser reconciliado por procedimento suportado e testado antes da próxima migration de Production. Não renomear, reaplicar ou editar diretamente o histórico remoto sem plano específico.
 
 ## Executar localmente
-
-Requisitos: Node.js 24 e npm.
 
 ```bash
 npm ci
@@ -190,62 +223,44 @@ http://127.0.0.1:4175
 
 ## Gates principais
 
-Validação estrutural:
-
 ```bash
 npm run test:readiness
-```
-
-Supabase local:
-
-```bash
 npm run supabase:start
 npm run supabase:reset
 npm run supabase:test:db
 npm run supabase:lint:db
-npm run supabase:stop
-```
-
-Interface:
-
-```bash
 npm run test:e2e
 npm run test:mobile
-```
-
-Build Vercel:
-
-```bash
 npm run build:vercel
 ```
 
-## Segurança e release
+O `test:readiness` inclui sintaxe, lint, testes unitários e de integração, certificação Excel, readiness Supabase, tipagem de banco, configuração de runtime, artefatos gerados e auditoria funcional.
 
-Bloqueadores/requisitos antes da oficialização:
+## Bloqueadores antes da liberação oficial
 
-- habilitar proteção contra senhas vazadas no Supabase Auth;
-- fixar a major operacional do Node no contrato de Production;
-- executar matriz de jornadas reais por perfil, competência e viewport;
-- comprovar backup e restauração em ambiente descartável;
-- certificar os dois relatórios Excel;
-- publicar evidências e decisão formal de liberação.
+1. reconciliar a versão da migration SME no histórico local/remoto;
+2. homologar manualmente os relatórios no Microsoft Excel desktop;
+3. habilitar proteção contra senhas vazadas no Supabase Auth;
+4. fixar deliberadamente a major operacional do Node;
+5. testar backup e restauração em ambiente descartável;
+6. executar gate remoto por perfil e viewport;
+7. concluir UAT;
+8. realizar polimento editorial e visual preservando identidade e regras de produto;
+9. registrar decisão formal de liberação.
 
 ## Documentação
 
 Índice principal: [`docs/README.md`](docs/README.md).
 
-Documentos canônicos:
+Documentos de entrada:
 
+- [`Estado atual`](docs/CURRENT_STAGE.md);
 - [`Contexto funcional e arquitetural`](docs/PROJECT_CONTEXT.md);
 - [`Registro de decisões`](docs/DECISION_LOG.md);
-- [`Estágio atual`](docs/CURRENT_STAGE.md);
-- [`Dicionário de dados`](docs/reference/SUPABASE_DATA_DICTIONARY.md);
-- [`Matriz de permissões`](docs/reference/SUPABASE_PERMISSIONS_MATRIX.md);
-- [`Runbook Supabase`](docs/runbooks/SUPABASE_CONNECTION.md);
-- [`Migração e rollback`](docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md);
-- [`Auditoria de alinhamento`](docs/audits/2026-07-28-alinhamento-codigo-ambientes-documentacao.md);
-- [`Plano de oficialização`](docs/superpowers/plans/2026-07-28-oficializacao-operacional-radar-pdde.md).
+- [`Status documental`](docs/reference/STATUS_DOCUMENTOS.md);
+- [`Auditoria pós-ciclos`](docs/audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md);
+- [`Auditoria da migration SME`](docs/audits/2026-07-29-rastreabilidade-migration-sme.md).
 
 ## Próxima frente
 
-A próxima implementação de valor funcional é o **contexto global de competência**, incluindo liberação operacional de junho a dezembro, seletor mensal disponível em todas as superfícies e preservação da competência durante navegação, retorno, recarga e exportação.
+Os ciclos 1 a 5 estão encerrados. A próxima frente ainda não foi escolhida e deve partir dos bloqueadores reais, sem reabrir entregas concluídas e sem retomar programas por exercício sem decisão específica.
