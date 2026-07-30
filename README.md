@@ -49,12 +49,13 @@ O commit `598361dd...` é posterior ao artefato funcional e restaura o bloqueio 
 ### Ciclo 4 — Excel
 
 - relatório institucional histórico de quatro abas;
-- Excel SME mensal de uma aba e 26 colunas;
+- botão principal institucional integrado ao XLSX;
+- Excel SME mensal integrado em botão próprio;
+- CSV legado preservado como botão secundário e fallback;
 - comparação célula a célula no OOXML;
 - manifesto e hashes sintéticos;
-- ausência deliberada de `dataValidations` no produto SME.
-
-O botão institucional continua no CSV até homologação e PR específicos.
+- ausência deliberada de `dataValidations` no produto SME;
+- homologação manual no Microsoft Excel desktop ainda pendente.
 
 ### Ciclo 5 — navegação contextual
 
