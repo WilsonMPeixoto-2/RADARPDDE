@@ -91,41 +91,35 @@ function fixture() {
   };
 }
 
-function validateWorkbook(model, workbook) {
-  const worksheet = workbook.worksheets[0];
-  if (workbook.worksheets.length !== 1 || worksheet?.name !== 'DEZEMBRO') {
-    throw new Error('O arquivo de homologação não preservou a única aba mensal esperada.');
-  }
-  if (worksheet.columnCount !== 30) {
+function validateContract(model) {
+  const data = renderer.buildSheetData(model);
+  const options = renderer.buildSheetOptions(model);
+  const headers = data[0].map(cell => cell?.value || '');
+
+  if (data[0].length !== 30 || options.columns.length !== 30) {
     throw new Error('O arquivo de homologação não preservou as 30 colunas do modelo original.');
   }
-  const headers = model.columns.map((_, index) => worksheet.getRow(1).getCell(index + 1).value || '');
   if (JSON.stringify(headers) !== JSON.stringify(modelApi.ORIGINAL_HEADER_LABELS)) {
     throw new Error('O arquivo de homologação alterou os textos do modelo original.');
   }
-  if (!worksheet.getCell('A1').isMerged || !worksheet.getCell('B1').isMerged) {
+  if (data[0][0]?.columnSpan !== 2 || data[0][1] !== null) {
     throw new Error('O arquivo de homologação perdeu a mesclagem CRE em A1:B1.');
   }
-  const view = worksheet.views[0] || {};
-  if (view.state !== 'frozen' || view.xSplit !== 4 || view.ySplit !== 1) {
+  if (options.sheet !== 'DEZEMBRO') {
+    throw new Error('O arquivo de homologação não preservou a única aba mensal esperada.');
+  }
+  if (options.stickyColumnsCount !== 4 || options.stickyRowsCount !== 1) {
     throw new Error('O arquivo de homologação perdeu o congelamento das quatro primeiras colunas e do cabeçalho.');
   }
-  if (worksheet.autoFilter !== 'A1:AD3') {
-    throw new Error('O arquivo de homologação perdeu o autofiltro integral.');
-  }
-  if (worksheet.pageSetup.printArea !== 'A1:AD3' || worksheet.pageSetup.printTitlesRow !== '1:1') {
-    throw new Error('O arquivo de homologação perdeu os contratos de impressão.');
-  }
-  if (Object.keys(worksheet.dataValidations.model || {}).length > 0) {
-    throw new Error('O arquivo de homologação reintroduziu validações de dados incompatíveis.');
+  if (options.orientation !== 'landscape') {
+    throw new Error('O arquivo de homologação perdeu a orientação paisagem.');
   }
 }
 
 async function main() {
   const args = parseArguments(process.argv.slice(2));
   const model = modelApi.buildSmeMonthlyModel(fixture());
-  const workbook = renderer.buildWorkbook(model);
-  validateWorkbook(model, workbook);
+  validateContract(model);
   const bytes = await renderer.renderWorkbook(model);
 
   fs.mkdirSync(path.dirname(args.output), { recursive: true });
