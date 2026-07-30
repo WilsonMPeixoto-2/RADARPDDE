@@ -31,6 +31,8 @@ test('backup e restauração usam duas pilhas Supabase descartáveis e comparam 
   assert.match(workflow, /RADAR_ALLOW_DISPOSABLE_BACKUP_RESTORE:\s*'true'/);
   assert.match(workflow, /npm run test:backup-restore/);
   assert.match(workflow, /actions\/upload-artifact@/);
+  assert.match(workflow, /path:\s*artifacts\/backup-restore\/evidence\.json/);
+  assert.doesNotMatch(workflow, /path:\s*artifacts\/backup-restore\/[\s\S]*\.sql/);
   assert.doesNotMatch(workflow, /secrets\./);
   assert.doesNotMatch(workflow, /--linked/);
 });
