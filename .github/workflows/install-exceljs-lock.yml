@@ -1,4 +1,4 @@
-name: Instalar ExcelJS e atualizar lockfile
+name: Instalar ExcelJS e gerar bundle
 
 on:
   pull_request:
@@ -6,6 +6,8 @@ on:
       - '.github/workflows/install-exceljs-lock.yml'
       - 'package.json'
       - 'package-lock.json'
+      - 'scripts/build-exceljs.mjs'
+      - 'vendor/exceljs.min.js'
 
 permissions:
   contents: write
@@ -32,21 +34,39 @@ jobs:
       - name: Instalar ExcelJS com versão fixada
         run: npm install --save-exact exceljs@4.4.0
 
-      - name: Confirmar dependência e lockfile
+      - name: Registrar scripts de build e verificação
         run: |
-          node -e "const p=require('./package.json'); if(p.dependencies?.exceljs!=='4.4.0') process.exit(1);"
-          node -e "const p=require('./package-lock.json'); if(p.packages?.['node_modules/exceljs']?.version!=='4.4.0') process.exit(1);"
+          node <<'NODE'
+          const fs = require('node:fs');
+          const file = 'package.json';
+          const pkg = JSON.parse(fs.readFileSync(file, 'utf8'));
+          pkg.scripts['build:exceljs'] = 'node scripts/build-exceljs.mjs';
+          if (!pkg.scripts.check.includes('node --check scripts/build-exceljs.mjs')) {
+            pkg.scripts.check += ' && node --check scripts/build-exceljs.mjs';
+          }
+          fs.writeFileSync(file, `${JSON.stringify(pkg, null, 2)}\n`);
+          NODE
 
-      - name: Gravar instalação na branch
+      - name: Gerar bundle oficial para o navegador
+        run: npm run build:exceljs
+
+      - name: Confirmar dependência, lockfile e bundle
+        run: |
+          node -e "const p=require('./package.json'); if(p.dependencies?.exceljs!=='4.4.0'||p.scripts?.['build:exceljs']!=='node scripts/build-exceljs.mjs') process.exit(1);"
+          node -e "const p=require('./package-lock.json'); if(p.packages?.['node_modules/exceljs']?.version!=='4.4.0') process.exit(1);"
+          test -s vendor/exceljs.min.js
+          grep -q 'ExcelJS' vendor/exceljs.min.js
+
+      - name: Gravar artefatos na branch
         shell: bash
         run: |
           set -euo pipefail
-          if git diff --quiet -- package.json package-lock.json; then
-            echo 'ExcelJS já está instalado e o lockfile está atualizado.'
+          if git diff --quiet -- package.json package-lock.json vendor/exceljs.min.js; then
+            echo 'ExcelJS e o bundle já estão atualizados.'
             exit 0
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add package.json package-lock.json
-          git commit -m 'build: instalar ExcelJS 4.4.0'
+          git add package.json package-lock.json vendor/exceljs.min.js
+          git commit -m 'build: gerar bundle do ExcelJS 4.4.0'
           git push origin HEAD:${{ github.event.pull_request.head.ref }}
