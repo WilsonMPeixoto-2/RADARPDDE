@@ -41,7 +41,7 @@ test('gate remoto cobre papéis institucionais e três viewports no código do P
   const config = read('playwright.supabase-preview.config.js');
   const matrixSpec = read('tests/e2e/supabase-preview-profile-viewport.spec.js');
 
-  for (const requiredPath of ["'app.js'", "'src/**'", "'supabase/migrations/**'", "'package.json'"]) {
+  for (const requiredPath of ["'app.js'", "'src/**'", "'supabase/**'", "'package.json'"]) {
     assert.match(workflow, new RegExp(requiredPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
   assert.match(workflow, /npm run supabase:start/);
