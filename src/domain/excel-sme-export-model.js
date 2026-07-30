@@ -1,11 +1,18 @@
 (function (root, factory) {
-    const api = factory();
+    const flowApi = typeof module === 'object' && module.exports
+        ? require('./fluxo-operacional.js')
+        : root && root.RadarFluxoOperacional;
+    const api = factory(flowApi);
     if (typeof module === 'object' && module.exports) module.exports = api;
     if (root) root.RadarExcelSmeExportModel = api;
-}(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+}(typeof globalThis !== 'undefined' ? globalThis : this, function (flowApi) {
     'use strict';
 
-    const VERSION = '1.1.0';
+    if (!flowApi || typeof flowApi.evaluateMonthlyEvaluation !== 'function') {
+        throw new Error('As regras canônicas do fluxo operacional não foram carregadas.');
+    }
+
+    const VERSION = '2.0.0';
     const DOCUMENT_KEYS = Object.freeze([
         'extCC',
         'extINV',
@@ -13,14 +20,6 @@
         'consAssessoria',
         'declBBAgil',
         'encampInventario'
-    ]);
-    const DOCUMENT_LABELS = Object.freeze([
-        'EXTRATO CONTA CORRENTE',
-        'EXTRATO INVESTIMENTO',
-        'NOTAS FISCAIS',
-        'CONSULTA ASSESSORIA',
-        'DECLARAÇÃO BB ÁGIL',
-        'ENCAMINHADO PARA INVENTARIAÇÃO'
     ]);
     const MONTH_NAMES = Object.freeze([
         'JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO',
@@ -39,6 +38,49 @@
         ]),
         EQUIDADE: Object.freeze(['RECURSOS'])
     });
+    const ACCOUNT_HEADERS = Object.freeze({
+        BASIC: Object.freeze([
+            'EXTRATO CONTA CORRENTE (DO MÊS FECHADO)                 BÁSICO',
+            ' EXTRATO INVESTIMENTO (DO MÊS FECHADO)               BÁSICO',
+            'NOTAS FISCAIS     (CASO TENHA EFETUADO DESPESA)               BÁSICO',
+            'CONSULTA ASSESSORIA (NO CASO DE PRESTAÇÃO DE SERVIÇOS)           BÁSICO',
+            'DECLARAÇÃO BB ÁGIL (CASO TENHA DESPESAS A SEREM LANÇADAS)                 BÁSICO',
+            'ENCAMINHADO P/ INVENTARIAÇÃO (AQUISIÇÃO COM A NATUREZA DE CAPITAL)               BÁSICO',
+            'SISTEMÁTICA PREENCHIDA'
+        ]),
+        QUALIDADE: Object.freeze([
+            'EXTRATO CONTA CORRENTE (DO MÊS FECHADO)                QUALIDADE',
+            ' EXTRATO INVESTIMENTO (DO MÊS FECHADO)               QUALIDADE',
+            'NOTAS FISCAIS     (CASO TENHA EFETUADO DESPESA)              QUALIDADE',
+            'CONSULTA ASSESSORIA (NO CASO DE PRESTAÇÃO DE SERVIÇOS)          QUALIDADE',
+            'DECLARAÇÃO BB ÁGIL (CASO TENHA DESPESAS A SEREM LANÇADAS)                 QUALIDADE',
+            'ENCAMINHADO P/ INVENTARIAÇÃO (AQUISIÇÃO COM A NATUREZA DE CAPITAL)               QUALIDADE',
+            'SISTEMÁTICA PREENCHIDA'
+        ]),
+        EQUIDADE: Object.freeze([
+            'EXTRATO CONTA CORRENTE (DO MÊS FECHADO)                EQUIDADE',
+            ' EXTRATO INVESTIMENTO (DO MÊS FECHADO)               EQUIDADE',
+            'NOTAS FISCAIS     (CASO TENHA EFETUADO DESPESA)              EQUIDADE',
+            'CONSULTA ASSESSORIA (NO CASO DE PRESTAÇÃO DE SERVIÇOS)          EQUIDADE',
+            'DECLARAÇÃO BB ÁGIL (CASO TENHA DESPESAS A SEREM LANÇADAS)                 EQUIDADE',
+            'ENCAMINHADO P/ INVENTARIAÇÃO (AQUISIÇÃO COM A NATUREZA DE CAPITAL)               EQUIDADE',
+            'SISTEMÁTICA PREENCHIDA'
+        ])
+    });
+    const ORIGINAL_HEADER_LABELS = Object.freeze([
+        'CRE',
+        '',
+        'DESIGNAÇÃO',
+        'ESCOLA',
+        ...ACCOUNT_HEADERS.BASIC,
+        ...ACCOUNT_HEADERS.QUALIDADE,
+        ...ACCOUNT_HEADERS.EQUIDADE,
+        'STATUS',
+        'DATA DA ENTREGA DE DOCUMENTOS',
+        'DATA DA CORREÇÃO DOS DOCUMENTOS ENVIADOS',
+        'PARECER               (CORREÇÃO MENSAL DA PRESTAÇÃO DE CONTAS)',
+        'OBSERVAÇÕES'
+    ]);
 
     function text(value) {
         return value == null ? '' : String(value).trim();
@@ -115,6 +157,25 @@
         return 'NÃO SE APLICA';
     }
 
+    function hasStartedValue(value) {
+        return value !== undefined && value !== null && value !== '' && value !== false;
+    }
+
+    function hasStartedVerification(verification) {
+        if (!verification || typeof verification !== 'object') return false;
+        const bonification = verification.bonificacao || verification.bonification || {};
+        return DOCUMENT_KEYS.some(key => hasStartedValue(bonification[key]));
+    }
+
+    function evaluateVerification(verification) {
+        const candidate = verification && typeof verification === 'object' ? verification : {};
+        return flowApi.evaluateMonthlyEvaluation({
+            bonificacao: candidate.bonificacao || candidate.bonification || {},
+            analise: candidate.analise || candidate.analysis || {},
+            pendencias: []
+        });
+    }
+
     function designationSortKey(value) {
         const digits = text(value).replace(/\D/g, '');
         return digits ? Number.parseInt(digits, 10) : Number.MAX_SAFE_INTEGER;
@@ -132,46 +193,58 @@
         return text(school.cre || school.coordenadoria || school.regional || '4ª CRE');
     }
 
-    function buildColumns() {
-        const identity = [
-            { key: 'order', label: 'Nº', group: 'IDENTIFICAÇÃO', width: 7, alignment: 'center' },
-            { key: 'cre', label: 'CRE', group: 'IDENTIFICAÇÃO', width: 10, alignment: 'center' },
-            { key: 'designation', label: 'DESIGNAÇÃO', group: 'IDENTIFICAÇÃO', width: 17, alignment: 'center' },
-            { key: 'denomination', label: 'UNIDADE ESCOLAR', group: 'IDENTIFICAÇÃO', width: 42, alignment: 'left' }
-        ];
-        const programLabels = {
-            BASIC: 'PDDE BÁSICO',
-            QUALIDADE: 'PDDE QUALIDADE',
-            EQUIDADE: 'PDDE EQUIDADE'
-        };
-        const programs = PROGRAM_KEYS.flatMap(programKey => DOCUMENT_LABELS.map((label, index) => ({
-            key: `${programKey.toLowerCase()}_${DOCUMENT_KEYS[index]}`,
-            label,
-            group: programLabels[programKey],
+    function accountColumns(programKey, startColumn) {
+        const columns = DOCUMENT_KEYS.map((documentKey, index) => ({
+            key: `${programKey.toLowerCase()}_${documentKey}`,
+            label: ACCOUNT_HEADERS[programKey][index],
+            group: programKey,
             programKey,
-            documentKey: DOCUMENT_KEYS[index],
-            width: index === 5 ? 23 : 18,
+            documentKey,
+            sourceColumn: startColumn + index,
+            width: 19.43,
             alignment: 'center'
-        })));
-        const administrative = [
-            { key: 'deliveryDate', label: 'DATA DE ENTREGA', group: 'INFORMAÇÕES COMPLEMENTARES', width: 16, alignment: 'center' },
-            { key: 'correctionDate', label: 'DATA DE CORREÇÃO', group: 'INFORMAÇÕES COMPLEMENTARES', width: 16, alignment: 'center' },
-            { key: 'opinion', label: 'PARECER', group: 'INFORMAÇÕES COMPLEMENTARES', width: 20, alignment: 'left' },
-            { key: 'notes', label: 'OBSERVAÇÕES', group: 'INFORMAÇÕES COMPLEMENTARES', width: 34, alignment: 'left' }
+        }));
+        columns.push({
+            key: `${programKey.toLowerCase()}_systematic`,
+            label: ACCOUNT_HEADERS[programKey][6],
+            group: programKey,
+            programKey,
+            systematic: true,
+            sourceColumn: startColumn + 6,
+            width: 19.43,
+            alignment: 'center'
+        });
+        return columns;
+    }
+
+    function buildColumns() {
+        const columns = [
+            { key: 'order', label: 'CRE', group: 'IDENTIFICAÇÃO', width: 5, alignment: 'center', mergeAcross: 2 },
+            { key: 'cre', label: '', group: 'IDENTIFICAÇÃO', width: 3.86, alignment: 'center', mergedHeader: true },
+            { key: 'designation', label: 'DESIGNAÇÃO', group: 'IDENTIFICAÇÃO', width: 12.86, alignment: 'center' },
+            { key: 'denomination', label: 'ESCOLA', group: 'IDENTIFICAÇÃO', width: 60.29, alignment: 'left' },
+            ...accountColumns('BASIC', 5),
+            ...accountColumns('QUALIDADE', 12),
+            ...accountColumns('EQUIDADE', 19),
+            { key: 'status', label: 'STATUS', group: 'ADMINISTRATIVO', width: 15.29, alignment: 'center' },
+            { key: 'deliveryDate', label: 'DATA DA ENTREGA DE DOCUMENTOS', group: 'ADMINISTRATIVO', width: 15.29, alignment: 'center' },
+            { key: 'correctionDate', label: 'DATA DA CORREÇÃO DOS DOCUMENTOS ENVIADOS', group: 'ADMINISTRATIVO', width: 15.29, alignment: 'center' },
+            { key: 'opinion', label: 'PARECER               (CORREÇÃO MENSAL DA PRESTAÇÃO DE CONTAS)', group: 'ADMINISTRATIVO', width: 22.29, alignment: 'left' },
+            { key: 'notes', label: 'OBSERVAÇÕES', group: 'ADMINISTRATIVO', width: 52.71, alignment: 'left' }
         ];
-        return Object.freeze([...identity, ...programs, ...administrative].map(Object.freeze));
+        return Object.freeze(columns.map(Object.freeze));
     }
 
     function findProgramIdsByKey(programs = []) {
         const map = new Map(PROGRAM_KEYS.map(key => [key, new Set(ACCOUNT_PROGRAM_IDS[key])]));
         programs.forEach(program => {
             const key = resolveProgramKey(program);
-            if (key) map.get(key).add(String(program.id));
+            if (key && program.id != null) map.get(key).add(String(program.id));
         });
         return new Map([...map.entries()].map(([key, ids]) => [key, [...ids]]));
     }
 
-    function findConsolidatedVerifications(state, school, competenceKey, programKey, programIdsByKey) {
+    function collectProgramContexts(state, school, competenceKey, programKey, programIdsByKey) {
         const schoolVerifications = state.verificacoes?.[school.id] || {};
         const linkedIds = Array.isArray(school.programasIds)
             ? school.programasIds.map(String)
@@ -179,20 +252,47 @@
         const candidates = programIdsByKey.get(programKey) || [];
         const eligibleIds = linkedIds.length
             ? candidates.filter(id => linkedIds.includes(id))
-            : candidates;
-        return eligibleIds
-            .map(programId => ({
+            : candidates.filter(id => schoolVerifications[`${competenceKey}_${id}`]);
+        return eligibleIds.map(programId => {
+            const verification = schoolVerifications[`${competenceKey}_${programId}`] || null;
+            return Object.freeze({
                 programId,
-                verification: schoolVerifications[`${competenceKey}_${programId}`]
-            }))
-            .filter(item => item.verification && text(item.verification.resultadoBonif));
+                verification,
+                started: hasStartedVerification(verification),
+                evaluation: evaluateVerification(verification)
+            });
+        });
     }
 
-    function buildProgramValues(items = []) {
+    function buildProgramValues(contexts = []) {
         return Object.freeze(Object.fromEntries(DOCUMENT_KEYS.map(key => [
             key,
-            aggregateSmeValues(items.map(item => item.verification?.bonificacao?.[key]))
+            aggregateSmeValues(contexts.map(context => (
+                context.verification?.bonificacao?.[key]
+                ?? context.verification?.bonification?.[key]
+            )))
         ])));
+    }
+
+    function resolveSystematicStatus(contexts = []) {
+        if (!contexts.length || !contexts.some(context => context.started)) return '';
+        return contexts.every(context => context.started && context.evaluation.canConsolidate)
+            ? 'SIM'
+            : 'NÃO';
+    }
+
+    function resolveSchoolStatus(contextsByProgram = {}) {
+        const contexts = PROGRAM_KEYS.flatMap(programKey => contextsByProgram[programKey] || []);
+        if (!contexts.length || !contexts.some(context => context.started)) return '';
+        if (contexts.some(context => context.evaluation.canConsolidate && context.evaluation.bonusResult === 'inapta')) {
+            return 'INAPTA';
+        }
+        if (contexts.every(context => context.started
+            && context.evaluation.canConsolidate
+            && context.evaluation.bonusResult === 'apta')) {
+            return 'APTA';
+        }
+        return '';
     }
 
     function buildSmeMonthlyModel(input = {}) {
@@ -221,32 +321,34 @@
         ));
 
         const rows = schools.map((school, index) => {
-            const sourcePrograms = Object.fromEntries(PROGRAM_KEYS.map(programKey => [
+            const contextsByProgram = Object.fromEntries(PROGRAM_KEYS.map(programKey => [
                 programKey,
-                findConsolidatedVerifications(state, school, competence.key, programKey, programIdsByKey)
+                collectProgramContexts(state, school, competence.key, programKey, programIdsByKey)
             ]));
             const valuesByProgram = Object.fromEntries(PROGRAM_KEYS.map(programKey => [
                 programKey,
-                buildProgramValues(sourcePrograms[programKey])
+                buildProgramValues(contextsByProgram[programKey])
             ]));
             const row = {
                 order: index + 1,
                 cre: getSchoolCre(school),
                 designation: getSchoolDesignation(school),
                 denomination: getSchoolDenomination(school),
+                status: resolveSchoolStatus(contextsByProgram),
                 deliveryDate: '',
                 correctionDate: '',
                 opinion: '',
                 notes: '',
                 sourcePrograms: Object.freeze(Object.fromEntries(PROGRAM_KEYS.map(programKey => [
                     programKey,
-                    Object.freeze(sourcePrograms[programKey].map(item => item.programId))
+                    Object.freeze(contextsByProgram[programKey].map(context => context.programId))
                 ])))
             };
             PROGRAM_KEYS.forEach(programKey => {
                 DOCUMENT_KEYS.forEach(documentKey => {
                     row[`${programKey.toLowerCase()}_${documentKey}`] = valuesByProgram[programKey][documentKey];
                 });
+                row[`${programKey.toLowerCase()}_systematic`] = resolveSystematicStatus(contextsByProgram[programKey]);
             });
             return Object.freeze(row);
         });
@@ -261,28 +363,33 @@
             rows: Object.freeze(rows),
             diagnostics: Object.freeze({
                 schoolCount: rows.length,
-                consolidatedCells: rows.reduce((sum, row) => (
+                populatedCells: rows.reduce((sum, row) => (
                     sum + PROGRAM_KEYS.reduce((programSum, programKey) => (
                         programSum + DOCUMENT_KEYS.filter(key => row[`${programKey.toLowerCase()}_${key}`]).length
                     ), 0)
-                ), 0)
+                ), 0),
+                determinedStatuses: rows.filter(row => row.status).length
             })
         });
     }
 
     return Object.freeze({
+        ACCOUNT_HEADERS,
         ACCOUNT_PROGRAM_IDS,
         DOCUMENT_KEYS,
-        DOCUMENT_LABELS,
         MONTH_NAMES,
+        ORIGINAL_HEADER_LABELS,
         PROGRAM_KEYS,
         VERSION,
         aggregateSmeValues,
         buildColumns,
         buildSmeMonthlyModel,
+        collectProgramContexts,
         designationSortKey,
         normalizeSmeValue,
         parseCompetence,
-        resolveProgramKey
+        resolveProgramKey,
+        resolveSchoolStatus,
+        resolveSystematicStatus
     });
 }));

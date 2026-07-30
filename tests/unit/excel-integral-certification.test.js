@@ -100,7 +100,7 @@ test('certifica separadamente o relatório institucional histórico e o Excel SM
   assert.equal(report.products.smeMonthly.scope, 'single-competence');
   assert.deepEqual(report.products.smeMonthly.competenceKeys, ['2026-08']);
   assert.equal(report.products.smeMonthly.schoolCount, 2);
-  assert.equal(report.products.smeMonthly.columnCount, 26);
+  assert.equal(report.products.smeMonthly.columnCount, 30);
   assert.equal(report.products.smeMonthly.cellCertification.mismatchCount, 0);
   assert.equal(report.products.smeMonthly.ooxml.sheetCount, 1);
   assert.equal(report.products.smeMonthly.ooxml.hasDataValidations, false);
@@ -123,7 +123,7 @@ test('reconcilia endereços e valores concretos nas planilhas OOXML', () => {
     { address: 'A2', value: 1 },
     { address: 'C2', value: '04.00.001' },
     { address: 'E2', value: 'SIM' },
-    { address: 'K2', value: 'NÃO' },
+    { address: 'K2', value: 'SIM' },
     { address: 'C3', value: '04.00.002' }
   ]);
 });
@@ -138,12 +138,16 @@ test('detecta resultado consolidado incompatível com a projeção canônica e b
   assert.equal(report.canonicalResults.mismatchCount, 1);
   assert.equal(report.products.institutional.passed, false);
   assert.equal(report.products.smeMonthly.passed, false);
-  assert.deepEqual(report.canonicalResults.mismatches.map(item => item.code), [
+  assert.deepEqual(certificationResultCodes(report), [
     'STORED_RESULT_DIFFERS_FROM_CANONICAL'
   ]);
   assert.match(report.canonicalResults.mismatches[0].contextHash, /^[a-f0-9]{16}$/);
   assert.equal(Object.hasOwn(report.canonicalResults.mismatches[0], 'schoolId'), false);
 });
+
+function certificationResultCodes(report) {
+  return report.canonicalResults.mismatches.map(item => item.code);
+}
 
 test('manifesto é determinístico, não inclui dados pessoais e altera hash quando uma célula muda', () => {
   const first = certification.certifyExcelProducts(fixture());

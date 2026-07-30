@@ -33,6 +33,7 @@
             competencias: typeof COMPETENCIAS !== 'undefined' && Array.isArray(COMPETENCIAS) ? COMPETENCIAS : [],
             programas: typeof programas !== 'undefined' && Array.isArray(programas) ? programas : [],
             verificacoes: typeof verificacoes !== 'undefined' && verificacoes ? verificacoes : {},
+            pendencias: typeof pendencias !== 'undefined' && Array.isArray(pendencias) ? pendencias : [],
             activeCompetenciaKey: typeof activeCompetenciaKey !== 'undefined' ? activeCompetenciaKey : 'TODAS'
         };
     }
@@ -50,13 +51,17 @@
     function resolveSmeDependencies(overrides = {}) {
         const modelApi = overrides.modelApi || root.RadarExcelSmeExportModel;
         const rendererApi = overrides.rendererApi || root.RadarExcelSmeMonthlyRenderer;
+        const runtimeLoader = overrides.runtimeLoader || root.RadarExcelSmeRuntimeLoader || null;
         if (!modelApi || typeof modelApi.buildSmeMonthlyModel !== 'function') {
             throw new Error('Modelo mensal do Excel SME não foi carregado.');
         }
         if (!rendererApi || typeof rendererApi.downloadWorkbook !== 'function') {
             throw new Error('Renderizador mensal do Excel SME não foi carregado.');
         }
-        return { modelApi, rendererApi };
+        if (runtimeLoader && typeof runtimeLoader.loadExcelSmeRuntime !== 'function') {
+            throw new Error('Carregador sob demanda do Excel SME é inválido.');
+        }
+        return { modelApi, rendererApi, runtimeLoader };
     }
 
     function createExportArtifacts(state, options = {}, dependencyOverrides = {}) {
@@ -91,6 +96,7 @@
             escolas: state.escolas,
             programas: state.programas,
             verificacoes: state.verificacoes,
+            pendencias: state.pendencias,
             activeCompetenciaKey: state.activeCompetenciaKey
         });
         const fileName = options.fileName || model.fileName;
@@ -136,8 +142,12 @@
         try {
             const state = options.state || getBrowserState();
             const artifacts = createSmeExportArtifacts(state, options, options.dependencies || {});
+            const runtime = options.runtime || (artifacts.dependencies.runtimeLoader
+                ? await artifacts.dependencies.runtimeLoader.loadExcelSmeRuntime()
+                : {});
             const result = await artifacts.dependencies.rendererApi.downloadWorkbook(artifacts.model, {
                 ...options,
+                ...runtime,
                 fileName: artifacts.fileName
             });
             logExport(

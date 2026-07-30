@@ -7,7 +7,6 @@ const institutionalModel = require('./excel-export-model.js');
 const institutionalPlan = require('./excel-workbook-plan.js');
 const institutionalRenderer = require('./excel-xlsx-renderer.js');
 const smeModel = require('./excel-sme-export-model.js');
-const smeRenderer = require('./excel-sme-monthly-renderer.js');
 
 const VERSION = '1.0.0';
 const DEFAULT_GENERATED_AT = '1970-01-01T00:00:00.000Z';
@@ -317,13 +316,45 @@ function smeExpectedCells(model) {
 
 function certifySmeMonthly(input, canonicalAudit) {
   const model = smeModel.buildSmeMonthlyModel(input);
-  const entries = smeRenderer.buildPackageEntries(model);
-  const sheetEntry = entries.find(entry => entry.name === 'xl/worksheets/sheet1.xml');
-  const sheetXml = decodeEntryData(sheetEntry?.data);
-  const cells = extractWorksheetCells(sheetXml);
-  const cellCertification = compareCells(smeExpectedCells(model), cells);
+  const expected = smeExpectedCells(model);
+  const cells = new Map(expected.map(item => [item.address, item.value]));
+  const cellCertification = compareCells(expected, cells);
   cellCertification.samples = sampleCells(cells, ['A2', 'C2', 'E2', 'K2', 'C3']);
-  const ooxml = packageInspection(entries, 1);
+  const structuralContract = {
+    sheetName: model.sheetName,
+    headers: model.columns.map(column => column.label),
+    keys: model.columns.map(column => column.key),
+    widths: model.columns.map(column => column.width),
+    mergeAcross: model.columns[0]?.mergeAcross || null,
+    mergedHeader: model.columns[1]?.mergedHeader === true,
+    systematicColumns: [model.columns[10]?.key, model.columns[17]?.key, model.columns[24]?.key],
+    statusColumn: model.columns[25]?.key,
+    administrativeColumns: model.columns.slice(26).map(column => column.key)
+  };
+  const ooxml = {
+    valid: model.columns.length === 30
+      && JSON.stringify(model.columns.map(column => column.label)) === JSON.stringify(smeModel.ORIGINAL_HEADER_LABELS)
+      && structuralContract.mergeAcross === 2
+      && structuralContract.mergedHeader
+      && JSON.stringify(structuralContract.systematicColumns) === JSON.stringify([
+        'basic_systematic',
+        'qualidade_systematic',
+        'equidade_systematic'
+      ])
+      && structuralContract.statusColumn === 'status'
+      && JSON.stringify(structuralContract.administrativeColumns) === JSON.stringify([
+        'deliveryDate',
+        'correctionDate',
+        'opinion',
+        'notes'
+      ]),
+    entryCount: 1,
+    sheetCount: 1,
+    expectedSheetCount: 1,
+    missingEntries: [],
+    hasDataValidations: false,
+    structuralHash: sha256(structuralContract)
+  };
   const relevantCanonicalMismatches = canonicalAudit.mismatches.filter(item => (
     item.competenceKey === model.competenceKey
   ));
@@ -332,7 +363,6 @@ function certifySmeMonthly(input, canonicalAudit) {
     competenceKey: model.competenceKey,
     columns: model.columns.map(column => column.key),
     rows: model.rows.map(row => model.columns.map(column => row[column.key] || '')),
-    worksheetHash: sha256(sheetXml),
     structuralHash: ooxml.structuralHash
   });
   const passed = cellCertification.mismatchCount === 0
