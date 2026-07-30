@@ -9,7 +9,6 @@ on:
 
 permissions:
   actions: read
-  checks: read
   contents: read
   pull-requests: write
 
@@ -18,16 +17,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Extrair diagnóstico do run inválido
+      - name: Consultar execução válida mais recente
         env:
           GH_TOKEN: ${{ github.token }}
-          RUN_ID: '30515035570'
+          EXPECTED_SHA: 660e6b1f35c09f880418c69ac6e9c9dbb615eb36
         shell: bash
         run: |
           set -euo pipefail
-          metadata="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}")"
-          view="$(gh run view "${RUN_ID}" --repo "${GITHUB_REPOSITORY}" 2>&1 || true)"
-          failed="$(gh run view "${RUN_ID}" --repo "${GITHUB_REPOSITORY}" --log-failed 2>&1 || true)"
-          metadata_summary="$(jq -c '{id,status,conclusion,event,path,display_title,head_sha,run_attempt,created_at,updated_at}' <<<"${metadata}")"
-          body="Diagnóstico nativo do gate remoto. Metadados: \`${metadata_summary}\`. gh run view: \`$(tr '\n' ' ' <<<"${view}" | cut -c1-1800)\`. log-failed: \`$(tr '\n' ' ' <<<"${failed}" | cut -c1-1800)\`."
-          gh pr comment 111 --repo "${GITHUB_REPOSITORY}" --body "${body}"
+          response="$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/gate-remoto-perfis-viewports.yml/runs?branch=hardening/node24-profile-viewport-gate&per_page=20")"
+          selected="$(jq --arg sha "${EXPECTED_SHA}" '.workflow_runs | map(select(.head_sha == $sha)) | .[0] // {}' <<<"${response}")"
+          run_id="$(jq -r '.id // empty' <<<"${selected}")"
+          status="$(jq -r '.status // "ausente"' <<<"${selected}")"
+          conclusion="$(jq -r '.conclusion // "pendente"' <<<"${selected}")"
+          url="$(jq -r '.html_url // empty' <<<"${selected}")"
+          jobs='[]'
+          if [[ -n "${run_id}" ]]; then
+            jobs="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs" --jq '[.jobs[] | {id,name,status,conclusion}]')"
+          fi
+          gh pr comment 111 --repo "${GITHUB_REPOSITORY}" --body "Execução válida do gate remoto: run **${run_id:-não encontrado}**, estado **${status}**, conclusão **${conclusion}**, SHA \`${EXPECTED_SHA}\`. Jobs: \`${jobs}\`. ${url}"
