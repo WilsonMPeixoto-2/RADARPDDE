@@ -9,7 +9,7 @@ Atende Controladores, Assistente de Verbas Federais, Gestão SME, Equipe de Inve
 | Camada | Situação comprovada |
 |---|---|
 | Baseline funcional da `main` | `598361dd784563f4d70d1e25df3818f4ee066da8` |
-| Última consolidação documental anterior | `05f51cbdd433844f11db036bcdefa5f9d8941e45` — PR #108 |
+| Reconciliação do histórico SME | `79cb67c84720b1850879d9c50c262e1623d5d8cc` |
 | Vercel Production | `dpl_7tLM3RZ7MEuRRTzvGmc9EiAARmDY`, `READY` |
 | Commit funcional publicado | `dfc8aa3030b02edb73f764f5f56bd6759a7a1d77` |
 | Runtime | `production`, `supabase-production` |
@@ -19,11 +19,11 @@ Atende Controladores, Assistente de Verbas Federais, Gestão SME, Equipe de Inve
 | Calendário | janeiro a dezembro de 2026; `closing_competence = 2026-12`; `row_version = 5` |
 | Gestão SME | governança somente leitura em interface, serviços e RLS |
 | Ciclos de oficialização | 1 a 5 concluídos, mesclados e publicados |
-| Migrations | 25 arquivos locais; identificador SME divergente no histórico remoto, com SQL idêntico |
+| Migrations | 25 versões correspondentes entre GitHub e Supabase Production |
 | Deployment automático | bloqueado após janela controlada |
 | Liberação oficial | ainda não declarada |
 
-O commit `598361dd...` é posterior ao artefato funcional e restaura o bloqueio automático, sem mudança de produto.
+O commit funcional publicado é anterior ao commit que restaurou o bloqueio automático. A reconciliação posterior da migration SME alterou somente histórico, proteção de regressão e documentação; não reaplicou SQL funcional.
 
 ## Entregas concluídas
 
@@ -110,41 +110,42 @@ Opera Capital e Inventário dentro da própria CRE, sem acesso aos módulos não
 
 Infraestrutura, perfis, escopos, importações e auditoria. Pode simular organização visual dos perfis sem alterar JWT.
 
-## Gate de migrations
+## Histórico de migrations
 
-Divergência conhecida:
+A migration SME está alinhada pelo identificador canônico:
 
 ```text
-local: 20260728182226_sme_access_governance.sql
-remoto: 20260728190344_sme_access_governance
+arquivo GitHub: 20260728182226_sme_access_governance.sql
+registro Supabase: 20260728182226_sme_access_governance
+registro derivado 20260728190344: ausente
+SHA-256: cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
 ```
 
-O SQL possui o mesmo comprimento e SHA-256. O problema é de rastreabilidade, não de regra aplicada.
+A reconciliação utilizou o mecanismo oficial de `migration repair`, sem reaplicar o SQL. O teste `tests/unit/sme-migration-history-alignment.test.js` protege versão, ausência do identificador derivado e hash.
 
-**Nenhuma nova migration de Production pode avançar antes da reconciliação suportada, testada e documentada.**
-
-Não renomear, reaplicar, editar diretamente o histórico ou criar migration vazia para mascarar a diferença.
+Antes de migration futura, executar o runbook, comparar histórico local/remoto, rodar o teste de alinhamento, reset local, pgTAP, lint, tipos, dry-run, backup e rollback.
 
 ## Gates antes da liberação oficial
 
-1. reconciliar o histórico da migration SME;
-2. habilitar proteção contra senhas vazadas no Supabase Auth;
-3. fixar deliberadamente a major do Node;
-4. testar backup e restauração;
-5. homologar os dois produtos no Microsoft Excel desktop;
-6. executar matriz remota por perfil e viewport;
-7. concluir UAT;
-8. realizar polimento editorial/visual sem alterar produto;
-9. registrar decisão formal de release.
+1. habilitar proteção contra senhas vazadas no Supabase Auth;
+2. fixar deliberadamente a major do Node;
+3. testar backup e restauração;
+4. homologar os dois produtos no Microsoft Excel desktop;
+5. executar matriz remota por perfil e viewport;
+6. concluir UAT;
+7. realizar polimento editorial/visual sem alterar produto;
+8. registrar decisão formal de release.
 
 ## Documentação obrigatória
 
-1. [`docs/README.md`](docs/README.md);
-2. [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md);
-3. [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md);
-4. [`docs/DECISION_LOG.md`](docs/DECISION_LOG.md);
-5. [`docs/reference/STATUS_DOCUMENTOS.md`](docs/reference/STATUS_DOCUMENTOS.md);
-6. [`docs/audits/2026-07-29-alinhamento-documental-integral-pos-pr108.md`](docs/audits/2026-07-29-alinhamento-documental-integral-pos-pr108.md).
+1. [`AGENTS.md`](AGENTS.md);
+2. [`docs/README.md`](docs/README.md);
+3. [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md);
+4. [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md);
+5. [`docs/DECISION_LOG.md`](docs/DECISION_LOG.md);
+6. [`docs/reference/STATUS_DOCUMENTOS.md`](docs/reference/STATUS_DOCUMENTOS.md);
+7. [`docs/audits/2026-07-29-alinhamento-documental-integral-pos-pr108.md`](docs/audits/2026-07-29-alinhamento-documental-integral-pos-pr108.md);
+8. [`docs/audits/2026-07-29-reconciliacao-migration-sme-evidencias.md`](docs/audits/2026-07-29-reconciliacao-migration-sme-evidencias.md).
 
 ## Desenvolvimento
 
