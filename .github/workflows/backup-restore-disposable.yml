@@ -56,6 +56,17 @@ jobs:
       - name: Recriar origem com migrations e seed versionados
         run: npm run supabase:reset
 
+      - name: Isolar serviços auxiliares da pilha de restauração
+        run: |
+          cat >> supabase/config.toml <<'EOF'
+
+          [analytics]
+          enabled = false
+
+          [db.pooler]
+          enabled = false
+          EOF
+
       - name: Comprovar backup e restauração na segunda pilha
         run: npm run test:backup-restore
 
