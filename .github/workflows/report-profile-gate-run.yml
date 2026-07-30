@@ -21,20 +21,22 @@ jobs:
       - name: Consultar execução mais recente
         env:
           GH_TOKEN: ${{ github.token }}
+          EXPECTED_SHA: 9264071b9af03efef2180748f070119de626fd79
         shell: bash
         run: |
           set -euo pipefail
-          response="$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/gate-remoto-perfis-viewports.yml/runs?branch=hardening/node24-profile-viewport-gate&per_page=5")"
-          run_id="$(jq -r '.workflow_runs[0].id // empty' <<<"${response}")"
-          status="$(jq -r '.workflow_runs[0].status // "ausente"' <<<"${response}")"
-          conclusion="$(jq -r '.workflow_runs[0].conclusion // "pendente"' <<<"${response}")"
-          url="$(jq -r '.workflow_runs[0].html_url // empty' <<<"${response}")"
-          event="$(jq -r '.workflow_runs[0].event // "desconhecido"' <<<"${response}")"
-          head_sha="$(jq -r '.workflow_runs[0].head_sha // "desconhecido"' <<<"${response}")"
-          check_suite_id="$(jq -r '.workflow_runs[0].check_suite_id // empty' <<<"${response}")"
+          response="$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/gate-remoto-perfis-viewports.yml/runs?branch=hardening/node24-profile-viewport-gate&per_page=10")"
+          selected="$(jq --arg sha "${EXPECTED_SHA}" '.workflow_runs | map(select(.head_sha == $sha)) | .[0] // .[0] // {}' <<<"${response}")"
+          run_id="$(jq -r '.id // empty' <<<"${selected}")"
+          status="$(jq -r '.status // "ausente"' <<<"${selected}")"
+          conclusion="$(jq -r '.conclusion // "pendente"' <<<"${selected}")"
+          url="$(jq -r '.html_url // empty' <<<"${selected}")"
+          event="$(jq -r '.event // "desconhecido"' <<<"${selected}")"
+          head_sha="$(jq -r '.head_sha // "desconhecido"' <<<"${selected}")"
+          check_suite_id="$(jq -r '.check_suite_id // empty' <<<"${selected}")"
           detail='sem check run ou anotação disponível'
           if [[ -n "${check_suite_id}" ]]; then
             checks="$(gh api "repos/${GITHUB_REPOSITORY}/check-suites/${check_suite_id}/check-runs")"
-            detail="$(jq -r '[.check_runs[]? | {name, status, conclusion, title: .output.title, summary: .output.summary}] | tostring' <<<"${checks}")"
+            detail="$(jq -c '[.check_runs[]? | {name, status, conclusion, title: .output.title, summary: .output.summary}]' <<<"${checks}")"
           fi
-          gh pr comment 111 --repo "${GITHUB_REPOSITORY}" --body "Diagnóstico do gate remoto: run **${run_id:-não encontrado}**, evento **${event}**, estado **${status}**, conclusão **${conclusion}**, SHA \`${head_sha}\`. Detalhes: \`${detail}\`. ${url}"
+          gh pr comment 111 --repo "${GITHUB_REPOSITORY}" --body "Gate simplificado: run **${run_id:-não encontrado}**, evento **${event}**, estado **${status}**, conclusão **${conclusion}**, SHA \`${head_sha}\`. Detalhes: \`${detail}\`. ${url}"
