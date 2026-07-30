@@ -17,7 +17,7 @@ Contrato único de persistência
 Supabase Auth + PostgREST + PostgreSQL + RLS + RPCs + auditoria
 ```
 
-Production opera com `SupabaseRepository` como persistência canônica. O modo local não é mais o backend normal de Production e permanece apenas para desenvolvimento controlado e rollback emergencial por novo build.
+Production opera com `SupabaseRepository` como persistência canônica. O modo local não é o backend normal de Production e permanece apenas para desenvolvimento controlado e rollback emergencial por novo build.
 
 ## 2. Runtime de referência
 
@@ -141,30 +141,38 @@ Conflitos de `row_version` não são sobrescritos silenciosamente.
 
 ## 8. Migrations
 
-O repositório contém 25 arquivos de migration. O histórico remoto corresponde ao conteúdo aplicado, com uma divergência conhecida de identificador:
+O repositório e o Supabase Production possuem 25 versões correspondentes.
+
+Estado canônico da migration SME:
 
 ```text
 arquivo local: 20260728182226_sme_access_governance.sql
-versão remota: 20260728190344
-nome remoto: sme_access_governance
+registro remoto: 20260728182226_sme_access_governance
+registro derivado 20260728190344: ausente
+comprimento do SQL: 1.411 caracteres
+SHA-256: cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
 ```
 
-O SQL local e o SQL registrado como aplicado possuem:
+A reconciliação utilizou o mecanismo oficial de reparo do histórico, sem executar, reaplicar ou reverter o SQL funcional. O schema e as políticas permaneceram inalterados, `migration list` terminou alinhado e `db push --dry-run` não apresentou migration pendente.
 
-```text
-comprimento = 1.411 caracteres
-SHA-256 = cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
-```
+O teste `tests/unit/sme-migration-history-alignment.test.js` protege:
 
-Não foi identificada divergência funcional. Existe divergência de rastreabilidade.
+- o identificador canônico do arquivo;
+- a ausência do identificador derivado;
+- o hash do SQL.
 
-Até a reconciliação:
+Antes de qualquer migration futura:
 
-- não criar nem aplicar nova migration em Production;
-- não renomear ou reaplicar o arquivo SME;
-- não editar manualmente a tabela de histórico;
-- não usar `db push` para contornar o desvio;
-- executar qualquer reparo primeiro em ambiente descartável, com backup, dry-run e evidência.
+1. executar `supabase migration list --linked`;
+2. executar o teste de alinhamento SME;
+3. aplicar reset local;
+4. executar pgTAP e lint SQL;
+5. regenerar e validar tipos;
+6. revisar o dry-run;
+7. preparar backup e rollback;
+8. manter aprovação e evidências no mesmo SHA.
+
+`migration repair` altera o histórico e não substitui rollback funcional de SQL.
 
 Runbook: [`../runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`](../runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md).
 
@@ -215,7 +223,8 @@ O sinal exige novo build e retorna o frontend ao repositório local sem apagar o
 - Auth e RLS permanecem obrigatórios;
 - autoria e auditoria acompanham mutações;
 - rollback local não redefine o banco canônico;
-- mudança de backend não pode alterar regras de produto.
+- mudança de backend não pode alterar regras de produto;
+- histórico de migrations não é editado diretamente.
 
 ## 13. Estado de hardening
 
@@ -226,21 +235,25 @@ Comprovado:
 - chave exclusivamente publicável no frontend;
 - Edge Function protegida por JWT;
 - operações compostas auditáveis;
+- histórico de migrations alinhado e protegido por teste;
 - deployments automáticos bloqueados fora de janelas controladas.
 
 Pendente antes da liberação oficial:
 
 - proteção contra senhas vazadas no Supabase Auth;
-- reconciliação do histórico da migration SME;
+- fixação deliberada da major operacional do Node;
 - backup e restauração em ambiente descartável;
+- homologação manual dos relatórios Excel;
 - matriz remota por perfil e viewport;
 - UAT;
+- polimento editorial/visual;
 - decisão formal de release.
 
 ## 14. Verificação obrigatória
 
 ```bash
 npm run test:readiness
+node --test tests/unit/sme-migration-history-alignment.test.js
 npm run supabase:start
 npm run supabase:reset
 npm run supabase:test:db
@@ -260,4 +273,5 @@ Mudança de schema também exige Advisors, comparação local/remota de migratio
 - [`../reference/SUPABASE_PERMISSIONS_MATRIX.md`](../reference/SUPABASE_PERMISSIONS_MATRIX.md);
 - [`../reference/SUPABASE_FUNCTIONAL_COVERAGE.md`](../reference/SUPABASE_FUNCTIONAL_COVERAGE.md);
 - [`../runbooks/SUPABASE_CONNECTION.md`](../runbooks/SUPABASE_CONNECTION.md);
-- [`../runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`](../runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md).
+- [`../runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`](../runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md);
+- [`../audits/2026-07-29-reconciliacao-migration-sme-evidencias.md`](../audits/2026-07-29-reconciliacao-migration-sme-evidencias.md).
