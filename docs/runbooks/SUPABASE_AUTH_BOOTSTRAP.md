@@ -1,31 +1,52 @@
 # Bootstrap do primeiro administrador técnico
 
-## Objetivo
+**Classificação:** procedimento histórico e restrito  
+**Estado atual:** o Supabase Production está ativo; este documento não é rotina operacional  
+**Atualizado em:** 29 de julho de 2026
 
-Criar ou reconciliar de forma idempotente a primeira identidade Auth do
-`technical_admin`. Este procedimento é administrativo, manual e restrito ao
-projeto Supabase de Preview autorizado. Não altera a configuração pública do
-RADAR, que permanece em modo local.
+## 1. Finalidade original
 
-## Pré-requisitos
+Este procedimento foi criado para estabelecer ou reconciliar, de forma idempotente, a primeira identidade Auth com perfil `technical_admin` durante a preparação de um projeto Supabase isolado.
 
-- as migrations do RADAR foram aplicadas e `profiles.id = 'technical_admin'`
-  existe;
-- a autorização para a operação remota foi registrada separadamente;
-- um operador autorizado disponibilizou, somente no ambiente do processo, as
-  quatro variáveis `RADAR_SUPABASE_URL`, `RADAR_SUPABASE_SERVICE_ROLE_KEY`,
-  `RADAR_BOOTSTRAP_ADMIN_EMAIL` e `RADAR_BOOTSTRAP_ADMIN_PASSWORD`;
-- nenhuma das quatro variáveis foi gravada em arquivo do repositório, enviada
-  como argumento de linha de comando, exibida no terminal ou incluída em
-  histórico de shell.
+A operação já não representa o estado normal do RADAR PDDE. Production usa Supabase e possui identidades institucionais. Não executar este bootstrap novamente no projeto autorizado sem plano específico de recuperação, evidência de ausência ou inconsistência do primeiro administrador e autorização expressa.
 
-Use o gerenciador de segredos do ambiente ou uma sessão administrativa de curta
-duração para fornecer as variáveis. Nunca use `.env`, commit, issue, chat,
-log ou argumento de CLI para esse fim.
+## 2. Quando o documento pode ser usado
 
-## Comandos
+Somente em uma destas situações:
 
-Com as variáveis já presentes no ambiente seguro:
+1. criação de novo projeto Supabase isolado e autorizado;
+2. ambiente descartável de recuperação;
+3. reconstrução formal após incidente, com diagnóstico comprovado;
+4. reconciliação de identidade administrativa ausente ou inconsistente, aprovada pelos responsáveis.
+
+Não usar para:
+
+- cadastrar administrador adicional;
+- substituir Gestão de Equipe;
+- alterar perfil de usuário existente;
+- contornar RLS ou Edge Function;
+- redefinir credenciais em Production;
+- testar informalmente uma conta.
+
+## 3. Pré-requisitos
+
+- projeto e ambiente confirmados;
+- migrations aplicadas e histórico alinhado;
+- `profiles.id = 'technical_admin'` existente;
+- autorização registrada;
+- backup e plano de recuperação quando aplicável;
+- operador autorizado;
+- quatro variáveis disponíveis somente no processo:
+  - `RADAR_SUPABASE_URL`;
+  - `RADAR_SUPABASE_SERVICE_ROLE_KEY`;
+  - `RADAR_BOOTSTRAP_ADMIN_EMAIL`;
+  - `RADAR_BOOTSTRAP_ADMIN_PASSWORD`.
+
+Nenhuma variável pode ser gravada no repositório, `.env` versionado, argumento de linha de comando, ticket, chat ou log compartilhado.
+
+## 4. Comandos
+
+Em ambiente autorizado e isolado:
 
 ```powershell
 npm run bootstrap:supabase:admin -- validate
@@ -34,27 +55,77 @@ npm run bootstrap:supabase:admin
 npm run bootstrap:supabase:admin -- reconcile
 ```
 
-`validate` confirma apenas a presença do ambiente administrativo. `plan` não
-faz chamada remota e confirma o plano estático. O comando sem argumento é
-`apply`: consulta Auth, cria a identidade confirmada somente quando ausente,
-garante o perfil e registra a auditoria sanitizada. `reconcile` executa a mesma
-convergência idempotente de `apply`.
+- `validate`: verifica somente o ambiente necessário;
+- `plan`: apresenta o plano estático sem chamada remota;
+- comando sem argumento: executa `apply`;
+- `reconcile`: repete a convergência idempotente.
 
-O relatório de sucesso contém exclusivamente `ok`, `created`, `userId`,
-`profileId` e `active`. Ele nunca inclui e-mail, senha, token, chave secreta
-ou chave administrativa.
+Antes de `apply`, registrar projeto, ambiente, responsável, motivo, resultado esperado e critério de aborto.
 
-## Regras de segurança e recuperação
+## 5. Contrato
 
-O perfil criado é exatamente `technical_admin`, ativo, com escopo `4ª CRE` e
-com `controller_id` e `inventory_member_id` nulos. A existência de usuário,
-perfil ou log incompatível interrompe a operação sem sobrescrever dados.
+O perfil criado ou reconciliado é:
 
-Se o vínculo ou a auditoria falhar após a criação Auth, a ferramenta remove a
-identidade recém-criada; quando essa remoção não estiver disponível, tenta
-bani-la. Ela jamais compensa, bloqueia ou remove uma identidade preexistente.
+```text
+profile_id = technical_admin
+active = true
+cre_scope = 4ª CRE
+controller_id = null
+inventory_member_id = null
+```
 
-Após uma execução autorizada, confirme no console administrativo que há uma
-identidade confirmada e um `user_profiles` ativo sem carteira. Não copie
-valores de credenciais para a evidência; registre apenas o relatório sanitizado
-e o identificador do usuário quando necessário.
+O relatório sanitizado contém somente:
+
+- `ok`;
+- `created`;
+- `userId`;
+- `profileId`;
+- `active`.
+
+Nunca contém e-mail, senha, token ou chave administrativa.
+
+## 6. Compensação
+
+Se vínculo ou auditoria falhar após criação Auth, a ferramenta tenta remover a identidade recém-criada e, quando isso não estiver disponível, bani-la.
+
+Ela não deve:
+
+- remover identidade preexistente;
+- bloquear usuário preexistente para forçar convergência;
+- sobrescrever perfil incompatível;
+- criar segunda associação ativa.
+
+Qualquer incompatibilidade interrompe a operação e exige revisão humana.
+
+## 7. Verificação posterior
+
+Confirmar no console administrativo:
+
+- identidade confirmada;
+- um único `user_profiles` ativo;
+- papel `technical_admin`;
+- escopo esperado;
+- nenhuma carteira ou vínculo de Inventário;
+- log sanitizado;
+- ausência de segredo na evidência.
+
+Executar também os testes de Auth e RLS aplicáveis.
+
+## 8. Relação com o estado atual
+
+O cadastro e manutenção cotidianos de Controladores e Inventário passam pela Gestão de Equipe, Edge Function autenticada, Auth Admin server-side e RPCs autorizadas.
+
+Este bootstrap não substitui:
+
+- `team-account-management`;
+- `TeamAccountGateway`;
+- políticas de RLS;
+- runbook de conexão;
+- plano de recuperação de Production.
+
+## 9. Referências
+
+- [`SUPABASE_CONNECTION.md`](SUPABASE_CONNECTION.md);
+- [`SUPABASE_MIGRATION_AND_ROLLBACK.md`](SUPABASE_MIGRATION_AND_ROLLBACK.md);
+- [`../reference/SUPABASE_PERMISSIONS_MATRIX.md`](../reference/SUPABASE_PERMISSIONS_MATRIX.md);
+- [`../reference/STATUS_DOCUMENTOS.md`](../reference/STATUS_DOCUMENTOS.md).
