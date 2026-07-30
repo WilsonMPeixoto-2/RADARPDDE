@@ -9,6 +9,7 @@ on:
 
 permissions:
   actions: read
+  checks: read
   contents: read
   pull-requests: write
 
@@ -30,4 +31,10 @@ jobs:
           url="$(jq -r '.workflow_runs[0].html_url // empty' <<<"${response}")"
           event="$(jq -r '.workflow_runs[0].event // "desconhecido"' <<<"${response}")"
           head_sha="$(jq -r '.workflow_runs[0].head_sha // "desconhecido"' <<<"${response}")"
-          gh pr comment 111 --repo "${GITHUB_REPOSITORY}" --body "Consulta do gate remoto: run **${run_id:-não encontrado}**, evento **${event}**, estado **${status}**, conclusão **${conclusion}**, SHA \`${head_sha}\`. ${url}"
+          check_suite_id="$(jq -r '.workflow_runs[0].check_suite_id // empty' <<<"${response}")"
+          detail='sem check run ou anotação disponível'
+          if [[ -n "${check_suite_id}" ]]; then
+            checks="$(gh api "repos/${GITHUB_REPOSITORY}/check-suites/${check_suite_id}/check-runs")"
+            detail="$(jq -r '[.check_runs[]? | {name, status, conclusion, title: .output.title, summary: .output.summary}] | tostring' <<<"${checks}")"
+          fi
+          gh pr comment 111 --repo "${GITHUB_REPOSITORY}" --body "Diagnóstico do gate remoto: run **${run_id:-não encontrado}**, evento **${event}**, estado **${status}**, conclusão **${conclusion}**, SHA \`${head_sha}\`. Detalhes: \`${detail}\`. ${url}"
