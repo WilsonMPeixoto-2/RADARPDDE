@@ -1,174 +1,133 @@
 # Documentação do RADAR PDDE
 
-Este diretório organiza fontes funcionais, arquiteturais, operacionais, históricas e de evidência do projeto.
+**Estado de referência:** 29 de julho de 2026
 
-## Estado de referência — 29/07/2026
+Este diretório separa contratos vigentes, procedimentos, decisões, planos históricos e evidências geradas.
 
-O RADAR está conectado ao Supabase Production autorizado e publicado na Vercel Production com `dataMode: supabase-production`.
+## 1. Estado resumido
 
-Estão concluídos e publicados:
+O RADAR PDDE está conectado ao Supabase Production autorizado e publicado na Vercel Production com `dataMode: supabase-production`.
+
+Concluídos e publicados:
 
 - governança da Gestão SME;
-- competência mensal global;
+- competência global janeiro–dezembro;
 - avaliação mensal canônica;
 - timeline cronológica da unidade;
-- certificação automatizada dos relatórios Excel;
+- certificação automatizada dos dois produtos Excel;
 - navegação contextual e retorno seguro.
 
 A liberação oficial ainda não foi declarada.
 
-## Entrada obrigatória
+## 2. Entrada obrigatória
 
 1. [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — estado operacional, bloqueadores e próxima decisão;
 2. [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — finalidade, perfis, arquitetura e contratos;
-3. [`DECISION_LOG.md`](DECISION_LOG.md) — decisões vigentes e substituídas;
-4. [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md) — classificação e precedência documental;
-5. [`audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md`](audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md) — reconstrução do estado real;
-6. [`audits/2026-07-29-rastreabilidade-migration-sme.md`](audits/2026-07-29-rastreabilidade-migration-sme.md) — divergência de versão, equivalência do SQL e regra de tratamento.
+3. [`DECISION_LOG.md`](DECISION_LOG.md) — ADRs vigentes, implementadas e substituídas;
+4. [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md) — validade e precedência dos documentos;
+5. [`audits/2026-07-29-alinhamento-documental-integral-pos-pr108.md`](audits/2026-07-29-alinhamento-documental-integral-pos-pr108.md) — auditoria da reconciliação atual.
 
-## Regra de precedência
+Para dado mutável, confirmar sempre código, Supabase e Vercel.
 
-1. código-fonte remoto vigente;
-2. migrations, funções, políticas, Auth e dados do Supabase autorizado;
-3. artefato efetivamente implantado na Vercel;
-4. testes e evidências reproduzíveis;
-5. decisões funcionais vigentes;
-6. documentação atualizada;
-7. documentos históricos.
+## 3. Arquitetura de produto
 
-Orientações do responsável definem intenção e prioridade. Afirmações sobre implementação ou implantação precisam ser comprovadas nas fontes operacionais.
-
-## Situação operacional resumida
-
-| Dimensão | Estado |
+| Tema | Documento |
 |---|---|
-| GitHub | baseline funcional `598361dd...`; ciclos 1 a 5 presentes. |
-| Production | deployment `dpl_7tLM3...`, commit `dfc8aa3...`, `READY`. |
-| Supabase | `scnryinorqeucbfkioxo`, `ACTIVE_HEALTHY`, PostgreSQL 17. |
-| Auth/RLS | ativos; políticas por perfil e escopo. |
-| Gestão SME | somente leitura nas superfícies definidas; logs por UUID. |
-| Competências | 12 meses; `closing_competence = 2026-12`. |
-| Avaliação mensal | projeção canônica concluída e publicada. |
-| Timeline | projeção cronológica concluída e publicada. |
-| Excel | certificação automatizada concluída para os dois produtos. |
-| Navegação contextual | concluída e publicada em desktop e mobile. |
-| Migrations | 24 versões correspondentes; migration SME com identificador remoto distinto e SQL idêntico. |
-| Segurança | proteção contra senhas vazadas ainda desabilitada. |
-| Liberação oficial | não declarada. |
+| competências | [`architecture/competencias.md`](architecture/competencias.md) |
+| avaliação mensal | [`architecture/avaliacao-mensal.md`](architecture/avaliacao-mensal.md) |
+| projeção operacional | [`architecture/modelo-operacional.md`](architecture/modelo-operacional.md) |
+| timeline | [`architecture/timeline-unidade.md`](architecture/timeline-unidade.md) |
+| navegação contextual | [`architecture/navigation-contextual.md`](architecture/navigation-contextual.md) |
+| rotas canônicas | [`architecture/spa-navigation.md`](architecture/spa-navigation.md) |
+| relatório institucional | [`architecture/excel-export.md`](architecture/excel-export.md) |
+| Excel SME mensal | [`architecture/excel-sme-mensal.md`](architecture/excel-sme-mensal.md) |
+| certificação Excel | [`architecture/excel-integral-certification.md`](architecture/excel-integral-certification.md) |
 
-## Referências canônicas
+## 4. Arquitetura técnica
 
-| Documento | Finalidade | Status |
-|---|---|---|
-| [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) | Contexto funcional e arquitetural | Vigente |
-| [`DECISION_LOG.md`](DECISION_LOG.md) | Decisões de arquitetura e produto | Vigente |
-| [`CURRENT_STAGE.md`](CURRENT_STAGE.md) | Estado operacional e próxima decisão | Vigente e transitório |
-| [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md) | Classificação documental | Vigente |
-| [`audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md`](audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md) | Auditoria pós-ciclos | Vigente |
-| [`audits/2026-07-29-rastreabilidade-migration-sme.md`](audits/2026-07-29-rastreabilidade-migration-sme.md) | Rastreabilidade da migration SME | Vigente até a reconciliação |
-| [`audits/2026-07-28-alinhamento-codigo-ambientes-documentacao.md`](audits/2026-07-28-alinhamento-codigo-ambientes-documentacao.md) | Linha de base anterior aos ciclos | Histórico relevante |
-| Plano de oficialização de 28/07/2026 | Sequência que originou os ciclos 1 a 5 | Executado quanto aos ciclos; referencial para gates finais |
-| Dossiê Consolidado v1.0 | Contexto e regras históricas | Referência histórica |
-| Plano do Lote 2 v2.0 | Contrato funcional e visual original | Referência de produto |
-| Protótipo Excel v2.1 | Estrutura editorial | Referência congelada |
+| Tema | Documento |
+|---|---|
+| persistência e Supabase | [`architecture/supabase-readiness.md`](architecture/supabase-readiness.md) |
+| fluxo de dados | [`architecture/supabase-data-flow.md`](architecture/supabase-data-flow.md) |
+| responsabilidades | [`architecture/responsabilidades.md`](architecture/responsabilidades.md) |
+| ordem do frontend | [`architecture/frontend-load-order.md`](architecture/frontend-load-order.md) |
+| extensões pós-`app.js` | [`architecture/product-extensions-load-order.md`](architecture/product-extensions-load-order.md) |
+| estratégia de testes | [`architecture/testing.md`](architecture/testing.md) |
 
-## Arquitetura
+## 5. Supabase
 
-- [`architecture/competencias.md`](architecture/competencias.md) — contexto global de competência;
-- [`architecture/avaliacao-mensal.md`](architecture/avaliacao-mensal.md) — projeção mensal canônica;
-- [`architecture/timeline-unidade.md`](architecture/timeline-unidade.md) — timeline como projeção;
-- [`architecture/navigation-contextual.md`](architecture/navigation-contextual.md) — retorno e restauração de contexto;
-- [`architecture/product-extensions-load-order.md`](architecture/product-extensions-load-order.md) — carregamento das extensões;
-- [`architecture/excel-integral-certification.md`](architecture/excel-integral-certification.md) — certificação dos dois produtos Excel;
-- [`architecture/excel-sme-mensal.md`](architecture/excel-sme-mensal.md) — modelo SME mensal;
-- [`architecture/excel-export.md`](architecture/excel-export.md) — exportação estruturada;
-- [`architecture/modelo-operacional.md`](architecture/modelo-operacional.md) — projeções compartilhadas;
-- [`architecture/retificacoes.md`](architecture/retificacoes.md) — retificação auditável;
-- [`architecture/testing.md`](architecture/testing.md) — estratégia de validação;
-- [`architecture/frontend-load-order.md`](architecture/frontend-load-order.md) — ordem do frontend;
-- [`architecture/supabase-readiness.md`](architecture/supabase-readiness.md) — persistência; estágios pré-conexão são históricos.
+| Documento | Uso |
+|---|---|
+| [`reference/SUPABASE_DATA_DICTIONARY.md`](reference/SUPABASE_DATA_DICTIONARY.md) | resumo do schema vigente |
+| [`reference/SUPABASE_PERMISSIONS_MATRIX.md`](reference/SUPABASE_PERMISSIONS_MATRIX.md) | Auth, RLS, perfis e escopos |
+| [`reference/SUPABASE_FUNCTIONAL_COVERAGE.md`](reference/SUPABASE_FUNCTIONAL_COVERAGE.md) | cobertura por fluxo |
+| [`runbooks/SUPABASE_CONNECTION.md`](runbooks/SUPABASE_CONNECTION.md) | operação e diagnóstico da conexão |
+| [`runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`](runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md) | schema, reconciliação, dados e rollback |
 
-## Supabase
+### Gate vigente de migrations
 
-### Referências
+A próxima migration de Production está bloqueada até a reconciliação do identificador da migration SME:
 
-- [`reference/SUPABASE_DATA_DICTIONARY.md`](reference/SUPABASE_DATA_DICTIONARY.md) — modelo relacional; introduções de pré-conexão devem ser lidas com migrations e tipos vigentes;
-- [`reference/SUPABASE_PERMISSIONS_MATRIX.md`](reference/SUPABASE_PERMISSIONS_MATRIX.md) — perfis e permissões;
-- [`reference/SUPABASE_FUNCTIONAL_COVERAGE.md`](reference/SUPABASE_FUNCTIONAL_COVERAGE.md) — fluxos e equivalência;
-- [`reference/SUPABASE_INTEGRATION_AUDIT.md`](reference/SUPABASE_INTEGRATION_AUDIT.md) — auditoria técnica;
-- [`reference/DATA_CLASSIFICATION_AND_ENVIRONMENTS.md`](reference/DATA_CLASSIFICATION_AND_ENVIRONMENTS.md) — classificação de dados e ambientes.
+```text
+local: 20260728182226
+remoto: 20260728190344
+```
 
-### Runbooks
+O SQL é idêntico; o desvio é de histórico. O runbook já incorpora o procedimento de preflight e reparo suportado, mas nenhum reparo foi executado.
 
-- [`runbooks/SUPABASE_CONNECTION.md`](runbooks/SUPABASE_CONNECTION.md) — conexão e validação;
-- [`runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`](runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md) — promoção e rollback.
+## 6. Vercel
 
-Antes da próxima migration de Production, o runbook deve incorporar a reconciliação do identificador local/remoto da migration SME.
+- [`runbooks/VERCEL_PREVIEW.md`](runbooks/VERCEL_PREVIEW.md);
+- [`architecture/vercel-static-spa.md`](architecture/vercel-static-spa.md), quando aplicável;
+- manifests do build e registros de deployment.
 
-Runbooks ainda necessários antes da liberação oficial:
+Preview e Production são artefatos distintos. Confirmar SHA, manifesto e ambiente antes de homologar.
 
-- certificação/homologação manual no Microsoft Excel;
-- release de Production;
-- UAT;
-- backup e restauração em ambiente descartável.
+## 7. Auditorias recentes
 
-## Produto e superfícies
-
-- [`reference/PRODUCT_DECISIONS.md`](reference/PRODUCT_DECISIONS.md) — decisões e fronteiras;
-- [`reference/PRODUCT_SURFACE_CATALOG.md`](reference/PRODUCT_SURFACE_CATALOG.md) — catálogo de superfícies;
-- [`reference/CHANGE_CLASSIFICATION.md`](reference/CHANGE_CLASSIFICATION.md) — classificação de mudanças;
-- [`reference/POST_PR22_PRIORITIZED_BACKLOG.md`](reference/POST_PR22_PRIORITIZED_BACKLOG.md) — backlog histórico, não representa a próxima frente atual.
-
-## Evidências vigentes
-
+- [`audits/2026-07-29-alinhamento-documental-integral-pos-pr108.md`](audits/2026-07-29-alinhamento-documental-integral-pos-pr108.md);
 - [`audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md`](audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md);
 - [`audits/2026-07-29-rastreabilidade-migration-sme.md`](audits/2026-07-29-rastreabilidade-migration-sme.md);
-- [`evidence/excel-certification/synthetic-manifest.json`](evidence/excel-certification/synthetic-manifest.json);
-- [`architecture/competencias.md`](architecture/competencias.md);
-- [`architecture/avaliacao-mensal.md`](architecture/avaliacao-mensal.md);
-- [`architecture/timeline-unidade.md`](architecture/timeline-unidade.md);
-- [`architecture/navigation-contextual.md`](architecture/navigation-contextual.md).
+- [`audits/2026-07-28-alinhamento-codigo-ambientes-documentacao.md`](audits/2026-07-28-alinhamento-codigo-ambientes-documentacao.md).
 
-Evidências antigas, inventários gerados e handoffs anteriores devem ser preservados como histórico, não editados manualmente para aparentar atualização.
+Auditorias são datadas. Seus gates permanecem até evidência de superação, mas estados remotos devem ser consultados novamente.
 
-## Regras funcionais vigentes
+## 8. Planos, especificações e evidências
 
-- a unidade escolar é a entidade monitorada;
-- bonificação, análise técnica e pendência são dimensões independentes;
-- novo envio não resolve a pendência;
-- reanálise positiva resolve e reanálise negativa retorna ao estado aberto;
-- pendência não altera automaticamente a bonificação;
-- retificação não altera automaticamente análise ou pendência;
-- `Aberta` e `Aguardando reanálise` são estados ativos;
-- não existe estado canônico `Vencida`;
-- indicadores operacionais podem se sobrepor;
-- carteira define responsabilidade principal, não isolamento entre Controladores da mesma CRE;
-- Gestão SME não executa mutações operacionais descritas na ADR-022;
-- timeline é projeção e não nova fonte de verdade;
-- competência mensal é contexto global único;
-- navegação de retorno preserva contexto operacional.
+### Planos e especificações
 
-## Estado do plano de oficialização
+- `superpowers/specs/`: desenho aprovado na data;
+- `superpowers/plans/`: execução datada;
+- caixas não marcadas em plano antigo não provam pendência atual;
+- plano substituído não deve ser retomado.
 
-Concluídos:
+### Evidências
 
-1. competência global;
-2. disponibilização de janeiro a dezembro;
-3. avaliação mensal certificada;
-4. timeline cronológica;
-5. certificação automatizada dos relatórios Excel;
-6. navegação contextual.
+- `evidence/`: manifests, hashes, capturas e inventários gerados;
+- regenerar com o script canônico;
+- não editar artefato gerado manualmente;
+- distinguir evidência sintética de homologação real.
 
-Pendentes:
+## 9. Bloqueadores atuais
 
-1. reconciliação do identificador da migration SME;
-2. homologação manual dos arquivos no Microsoft Excel desktop;
-3. polimento editorial e visual;
-4. proteção contra senhas vazadas;
-5. fixação da major do Node;
-6. backup e restauração testados;
-7. gate remoto por perfil e viewport;
-8. UAT;
-9. decisão formal de liberação.
+1. reconciliar o histórico da migration SME;
+2. habilitar proteção contra senhas vazadas;
+3. fixar deliberadamente a major do Node;
+4. testar backup e restauração;
+5. abrir e homologar os arquivos no Microsoft Excel desktop;
+6. executar matriz remota por perfil e viewport;
+7. concluir UAT;
+8. executar polimento editorial/visual;
+9. registrar decisão formal de release.
 
-A próxima frente ainda não foi escolhida.
+## 10. Regra para a próxima tarefa
+
+Antes de implementar:
+
+1. ler `CURRENT_STAGE.md`;
+2. confirmar que o objetivo não contradiz ADR vigente;
+3. verificar código e ambientes;
+4. declarar escopo e fora de escopo;
+5. trabalhar em branch própria;
+6. executar gates aplicáveis;
+7. atualizar documentação e evidências no mesmo ciclo.
