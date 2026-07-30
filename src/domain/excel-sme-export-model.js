@@ -5,7 +5,7 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, function () {
     'use strict';
 
-    const VERSION = '1.1.0';
+    const VERSION = '2.0.0';
     const DOCUMENT_KEYS = Object.freeze([
         'extCC',
         'extINV',
@@ -13,14 +13,6 @@
         'consAssessoria',
         'declBBAgil',
         'encampInventario'
-    ]);
-    const DOCUMENT_LABELS = Object.freeze([
-        'EXTRATO CONTA CORRENTE',
-        'EXTRATO INVESTIMENTO',
-        'NOTAS FISCAIS',
-        'CONSULTA ASSESSORIA',
-        'DECLARAÇÃO BB ÁGIL',
-        'ENCAMINHADO PARA INVENTARIAÇÃO'
     ]);
     const MONTH_NAMES = Object.freeze([
         'JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO',
@@ -39,6 +31,51 @@
         ]),
         EQUIDADE: Object.freeze(['RECURSOS'])
     });
+
+    const ACCOUNT_HEADERS = Object.freeze({
+        BASIC: Object.freeze([
+            'EXTRATO CONTA CORRENTE (DO MÊS FECHADO)                 BÁSICO',
+            ' EXTRATO INVESTIMENTO (DO MÊS FECHADO)               BÁSICO',
+            'NOTAS FISCAIS     (CASO TENHA EFETUADO DESPESA)               BÁSICO',
+            'CONSULTA ASSESSORIA (NO CASO DE PRESTAÇÃO DE SERVIÇOS)           BÁSICO',
+            'DECLARAÇÃO BB ÁGIL (CASO TENHA DESPESAS A SEREM LANÇADAS)                 BÁSICO',
+            'ENCAMINHADO P/ INVENTARIAÇÃO (AQUISIÇÃO COM A NATUREZA DE CAPITAL)               BÁSICO',
+            'SISTEMÁTICA PREENCHIDA'
+        ]),
+        QUALIDADE: Object.freeze([
+            'EXTRATO CONTA CORRENTE (DO MÊS FECHADO)                QUALIDADE',
+            ' EXTRATO INVESTIMENTO (DO MÊS FECHADO)               QUALIDADE',
+            'NOTAS FISCAIS     (CASO TENHA EFETUADO DESPESA)              QUALIDADE',
+            'CONSULTA ASSESSORIA (NO CASO DE PRESTAÇÃO DE SERVIÇOS)          QUALIDADE',
+            'DECLARAÇÃO BB ÁGIL (CASO TENHA DESPESAS A SEREM LANÇADAS)                 QUALIDADE',
+            'ENCAMINHADO P/ INVENTARIAÇÃO (AQUISIÇÃO COM A NATUREZA DE CAPITAL)               QUALIDADE',
+            'SISTEMÁTICA PREENCHIDA'
+        ]),
+        EQUIDADE: Object.freeze([
+            'EXTRATO CONTA CORRENTE (DO MÊS FECHADO)                EQUIDADE',
+            ' EXTRATO INVESTIMENTO (DO MÊS FECHADO)               EQUIDADE',
+            'NOTAS FISCAIS     (CASO TENHA EFETUADO DESPESA)              EQUIDADE',
+            'CONSULTA ASSESSORIA (NO CASO DE PRESTAÇÃO DE SERVIÇOS)          EQUIDADE',
+            'DECLARAÇÃO BB ÁGIL (CASO TENHA DESPESAS A SEREM LANÇADAS)                 EQUIDADE',
+            'ENCAMINHADO P/ INVENTARIAÇÃO (AQUISIÇÃO COM A NATUREZA DE CAPITAL)               EQUIDADE',
+            'SISTEMÁTICA PREENCHIDA'
+        ])
+    });
+
+    const ORIGINAL_HEADER_LABELS = Object.freeze([
+        'CRE',
+        '',
+        'DESIGNAÇÃO',
+        'ESCOLA',
+        ...ACCOUNT_HEADERS.BASIC,
+        ...ACCOUNT_HEADERS.QUALIDADE,
+        ...ACCOUNT_HEADERS.EQUIDADE,
+        'STATUS',
+        'DATA DA ENTREGA DE DOCUMENTOS',
+        'DATA DA CORREÇÃO DOS DOCUMENTOS ENVIADOS',
+        'PARECER               (CORREÇÃO MENSAL DA PRESTAÇÃO DE CONTAS)',
+        'OBSERVAÇÕES'
+    ]);
 
     function text(value) {
         return value == null ? '' : String(value).trim();
@@ -115,6 +152,24 @@
         return 'NÃO SE APLICA';
     }
 
+    function normalizeResult(value) {
+        const token = normalizeToken(value);
+        if (token === 'APTA') return 'APTA';
+        if (token === 'INAPTA') return 'INAPTA';
+        return '';
+    }
+
+    function aggregateStatus(itemsByProgram = {}) {
+        const values = PROGRAM_KEYS.flatMap(programKey => (
+            Array.isArray(itemsByProgram[programKey])
+                ? itemsByProgram[programKey].map(item => normalizeResult(item.verification?.resultadoBonif))
+                : []
+        )).filter(Boolean);
+        if (values.includes('INAPTA')) return 'INAPTA';
+        if (values.includes('APTA')) return 'APTA';
+        return '';
+    }
+
     function designationSortKey(value) {
         const digits = text(value).replace(/\D/g, '');
         return digits ? Number.parseInt(digits, 10) : Number.MAX_SAFE_INTEGER;
@@ -124,42 +179,66 @@
         return text(school.designação || school.designacao || school.id);
     }
 
+    function formatSmeDesignation(value) {
+        const digits = text(value).replace(/\D/g, '');
+        if (!digits) return text(value);
+        const numeric = Number.parseInt(digits, 10);
+        return Number.isSafeInteger(numeric) ? numeric : digits;
+    }
+
     function getSchoolDenomination(school = {}) {
-        return text(school.denominação || school.denominacao || school.name || school.nome);
+        return text(school.denominação || school.denominacao || school.name || school.nome).toUpperCase();
     }
 
     function getSchoolCre(school = {}) {
-        return text(school.cre || school.coordenadoria || school.regional || '4ª CRE');
+        return text(school.cre || school.coordenadoria || school.regional || '4ª CRE')
+            .replace(/\s*CRE$/i, '')
+            .trim();
+    }
+
+    function accountColumns(programKey, startIndex) {
+        const group = programKey;
+        const documentColumns = DOCUMENT_KEYS.map((documentKey, index) => ({
+            key: `${programKey.toLowerCase()}_${documentKey}`,
+            label: ACCOUNT_HEADERS[programKey][index],
+            group,
+            programKey,
+            documentKey,
+            width: 19.43,
+            alignment: 'center',
+            sourceColumn: startIndex + index
+        }));
+        return [
+            ...documentColumns,
+            {
+                key: `${programKey.toLowerCase()}_systematic`,
+                label: ACCOUNT_HEADERS[programKey][6],
+                group,
+                programKey,
+                systematic: true,
+                width: 19.43,
+                alignment: 'center',
+                sourceColumn: startIndex + 6
+            }
+        ];
     }
 
     function buildColumns() {
-        const identity = [
-            { key: 'order', label: 'Nº', group: 'IDENTIFICAÇÃO', width: 7, alignment: 'center' },
-            { key: 'cre', label: 'CRE', group: 'IDENTIFICAÇÃO', width: 10, alignment: 'center' },
-            { key: 'designation', label: 'DESIGNAÇÃO', group: 'IDENTIFICAÇÃO', width: 17, alignment: 'center' },
-            { key: 'denomination', label: 'UNIDADE ESCOLAR', group: 'IDENTIFICAÇÃO', width: 42, alignment: 'left' }
+        const columns = [
+            { key: 'order', label: 'CRE', group: 'IDENTIFICAÇÃO', width: 5, alignment: 'center', mergeAcross: 2 },
+            { key: 'cre', label: '', group: 'IDENTIFICAÇÃO', width: 3.86, alignment: 'center', mergedHeader: true },
+            { key: 'designation', label: 'DESIGNAÇÃO', group: 'IDENTIFICAÇÃO', width: 12.86, alignment: 'center' },
+            { key: 'denomination', label: 'ESCOLA', group: 'IDENTIFICAÇÃO', width: 60.29, alignment: 'left' },
+            ...accountColumns('BASIC', 5),
+            ...accountColumns('QUALIDADE', 12),
+            ...accountColumns('EQUIDADE', 19),
+            { key: 'status', label: 'STATUS', group: 'ADMINISTRATIVO', width: 15.29, alignment: 'center' },
+            { key: 'deliveryDate', label: 'DATA DA ENTREGA DE DOCUMENTOS', group: 'ADMINISTRATIVO', width: 15.29, alignment: 'center' },
+            { key: 'correctionDate', label: 'DATA DA CORREÇÃO DOS DOCUMENTOS ENVIADOS', group: 'ADMINISTRATIVO', width: 15.29, alignment: 'center' },
+            { key: 'opinion', label: 'PARECER               (CORREÇÃO MENSAL DA PRESTAÇÃO DE CONTAS)', group: 'ADMINISTRATIVO', width: 22.29, alignment: 'left' },
+            { key: 'notes', label: 'OBSERVAÇÕES', group: 'ADMINISTRATIVO', width: 52.71, alignment: 'left' }
         ];
-        const programLabels = {
-            BASIC: 'PDDE BÁSICO',
-            QUALIDADE: 'PDDE QUALIDADE',
-            EQUIDADE: 'PDDE EQUIDADE'
-        };
-        const programs = PROGRAM_KEYS.flatMap(programKey => DOCUMENT_LABELS.map((label, index) => ({
-            key: `${programKey.toLowerCase()}_${DOCUMENT_KEYS[index]}`,
-            label,
-            group: programLabels[programKey],
-            programKey,
-            documentKey: DOCUMENT_KEYS[index],
-            width: index === 5 ? 23 : 18,
-            alignment: 'center'
-        })));
-        const administrative = [
-            { key: 'deliveryDate', label: 'DATA DE ENTREGA', group: 'INFORMAÇÕES COMPLEMENTARES', width: 16, alignment: 'center' },
-            { key: 'correctionDate', label: 'DATA DE CORREÇÃO', group: 'INFORMAÇÕES COMPLEMENTARES', width: 16, alignment: 'center' },
-            { key: 'opinion', label: 'PARECER', group: 'INFORMAÇÕES COMPLEMENTARES', width: 20, alignment: 'left' },
-            { key: 'notes', label: 'OBSERVAÇÕES', group: 'INFORMAÇÕES COMPLEMENTARES', width: 34, alignment: 'left' }
-        ];
-        return Object.freeze([...identity, ...programs, ...administrative].map(Object.freeze));
+        return Object.freeze(columns.map(Object.freeze));
     }
 
     function findProgramIdsByKey(programs = []) {
@@ -232,8 +311,9 @@
             const row = {
                 order: index + 1,
                 cre: getSchoolCre(school),
-                designation: getSchoolDesignation(school),
+                designation: formatSmeDesignation(getSchoolDesignation(school)),
                 denomination: getSchoolDenomination(school),
+                status: aggregateStatus(sourcePrograms),
                 deliveryDate: '',
                 correctionDate: '',
                 opinion: '',
@@ -247,6 +327,7 @@
                 DOCUMENT_KEYS.forEach(documentKey => {
                     row[`${programKey.toLowerCase()}_${documentKey}`] = valuesByProgram[programKey][documentKey];
                 });
+                row[`${programKey.toLowerCase()}_systematic`] = sourcePrograms[programKey].length ? 'SIM' : '';
             });
             return Object.freeze(row);
         });
@@ -271,16 +352,19 @@
     }
 
     return Object.freeze({
+        ACCOUNT_HEADERS,
         ACCOUNT_PROGRAM_IDS,
         DOCUMENT_KEYS,
-        DOCUMENT_LABELS,
         MONTH_NAMES,
+        ORIGINAL_HEADER_LABELS,
         PROGRAM_KEYS,
         VERSION,
         aggregateSmeValues,
+        aggregateStatus,
         buildColumns,
         buildSmeMonthlyModel,
         designationSortKey,
+        formatSmeDesignation,
         normalizeSmeValue,
         parseCompetence,
         resolveProgramKey
