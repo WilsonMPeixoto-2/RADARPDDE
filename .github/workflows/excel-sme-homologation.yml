@@ -3,13 +3,16 @@ name: Homologação do Excel SME
 on:
   pull_request:
     paths:
+      - 'package.json'
+      - 'package-lock.json'
       - 'src/domain/excel-sme-export-model.js'
       - 'src/domain/excel-sme-monthly-renderer.js'
-      - 'src/domain/excel-xlsx-renderer.js'
       - 'src/domain/excel-integral-certification.js'
       - 'scripts/generate-excel-sme-homologation.mjs'
       - 'tests/unit/excel-sme-monthly-renderer.test.js'
+      - 'tests/unit/excel-sme-original-contract.test.js'
       - 'docs/evidence/excel-certification/synthetic-manifest.json'
+      - 'vendor/write-excel-file.min.js'
       - '.github/workflows/excel-sme-homologation.yml'
   workflow_dispatch:
 
@@ -19,7 +22,7 @@ permissions:
 jobs:
   gerar-e-validar:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
 
     steps:
       - name: Checkout
@@ -29,12 +32,28 @@ jobs:
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
 
-      - name: Validar renderer mensal
-        run: node --test tests/unit/excel-sme-monthly-renderer.test.js
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+
+      - name: Validar modelo e renderer mensal
+        run: node --test tests/unit/excel-sme-original-contract.test.js tests/unit/excel-sme-monthly-renderer.test.js
 
       - name: Gerar arquivo pelo renderer real
         run: node scripts/generate-excel-sme-homologation.mjs
+
+      - name: Validar integridade ZIP e contratos OOXML
+        shell: bash
+        run: |
+          set -euo pipefail
+          file='artifacts/excel-homologation/RADAR_PDDE_EXCEL_SME_HOMOLOGACAO_12-2026.xlsx'
+          unzip -t "${file}"
+          unzip -p "${file}" xl/workbook.xml | grep -q 'name="DEZEMBRO"'
+          unzip -p "${file}" xl/worksheets/sheet1.xml | grep -q 'mergeCell ref="A1:B1"'
+          unzip -p "${file}" xl/worksheets/sheet1.xml | grep -q 'xSplit="4"'
+          unzip -p "${file}" xl/worksheets/sheet1.xml | grep -q 'ySplit="1"'
 
       - name: Publicar arquivo para abertura no Excel desktop
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
