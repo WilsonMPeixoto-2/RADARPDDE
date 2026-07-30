@@ -78,3 +78,13 @@ test('gate remoto cobre papéis institucionais e três viewports no código do P
   assert.match(matrixSpec, /hasSessionInPublicContext/);
   assert.match(matrixSpec, /RADAR_AUTH_FIXTURE_PASSWORD/);
 });
+
+test('cabeçalho móvel reserva posições distintas para perfil técnico e logout', () => {
+  const mobileCss = read('src/styles/mobile-rendering-hotfix.css');
+
+  assert.match(mobileCss, /grid-template-columns:\s*minmax\(0,\s*1fr\)\s+repeat\(4,\s*44px\)/);
+  assert.match(mobileCss, /"exercise theme alerts session profile"/);
+  assert.match(mobileCss, /\.auth-logout-button\s*\{[^}]*grid-area:\s*session/s);
+  assert.match(mobileCss, /\.profile-switcher\s*\{[^}]*grid-area:\s*profile/s);
+  assert.doesNotMatch(mobileCss, /\.auth-logout-button,\s*\n\s*\.profile-switcher\s*\{[^}]*grid-area:\s*session/s);
+});
