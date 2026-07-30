@@ -35,6 +35,7 @@ Concluídos e publicados:
 - avaliação mensal canônica;
 - timeline cronológica da unidade;
 - certificação automatizada integral dos relatórios Excel;
+- integração dos botões XLSX institucional e Excel SME, com CSV legado preservado;
 - navegação contextual com retorno seguro;
 - restauração do bloqueio de deployments automáticos.
 
@@ -107,10 +108,12 @@ Contagens operacionais devem ser consultadas novamente quando forem necessárias
 - visibilidade por perfil;
 - deduplicação sem eliminar fatos legítimos.
 
-### Ciclo 4 — certificação Excel
+### Ciclo 4 — certificação e integração Excel
 
 - institucional histórico de quatro abas;
-- Excel SME mensal de uma aba;
+- botão principal institucional integrado ao XLSX;
+- Excel SME mensal de uma aba integrado em botão próprio;
+- CSV legado preservado como botão secundário e fallback;
 - comparação até a célula OOXML;
 - equivalência com CSV;
 - hashes e manifesto sintético;
@@ -171,14 +174,14 @@ Runbook: `docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`.
 ### Institucional
 
 - modelo, renderer, quatro abas e certificação: concluídos;
-- botão institucional: continua no CSV;
-- troca do botão: pendente e deve ocorrer em PR próprio;
+- botão principal: integrado ao XLSX em runtime;
+- CSV: preservado em botão secundário e fallback em falha;
 - abertura manual no Excel desktop: pendente.
 
 ### SME mensal
 
-- modelo, renderer e certificação: concluídos;
-- botão específico: existente;
+- modelo, renderer, integração e certificação: concluídos;
+- botão próprio: habilitado somente para competência mensal;
 - `dataValidations`: ausente por contrato;
 - abertura manual no Excel desktop: pendente.
 
