@@ -58,9 +58,12 @@ Production dataMode: supabase-production
 repositório canônico: SupabaseRepository
 contingência: LocalStorageRepository por novo build controlado
 closing_competence: 2026-12
+migrations: 25 versões alinhadas entre GitHub e Supabase Production
 ciclos 1–5: concluídos e publicados
 liberação oficial: ainda não declarada
 ```
+
+A migration SME foi reconciliada para o identificador canônico `20260728182226`, sem reaplicação do SQL. O teste `tests/unit/sme-migration-history-alignment.test.js` protege versão, ausência do identificador derivado e hash.
 
 Esses dados são mutáveis. Revalidar antes de tarefa que dependa do estado atual.
 
@@ -206,23 +209,28 @@ Regras:
 - Edge Functions administrativas exigem JWT e validação de papel;
 - nenhuma alteração remota sem escopo e autorização.
 
-### 10.1 Gate de migrations
+### 10.1 Proteção do histórico de migrations
 
-Existe divergência de identificador na migration SME:
+O histórico está alinhado:
 
 ```text
-local: 20260728182226
-remoto: 20260728190344
-SQL: idêntico por comprimento e SHA-256
+arquivo canônico: 20260728182226_sme_access_governance.sql
+registro remoto canônico: 20260728182226
+registro derivado 20260728190344: ausente
+SHA-256: cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
 ```
 
-Até a reconciliação:
+A reconciliação utilizou o mecanismo oficial de `migration repair` e não reaplicou o SQL.
 
-- não criar/aplicar nova migration em Production;
-- não renomear ou reaplicar o arquivo;
-- não editar diretamente o histórico;
-- não criar migration vazia compensatória;
-- não usar `db push` para contornar o desvio.
+Antes de qualquer migration futura:
+
+- executar `supabase migration list --linked`;
+- executar o teste de alinhamento da migration SME;
+- confirmar que o identificador derivado não reapareceu;
+- executar reset local, pgTAP, lint e tipos;
+- produzir backup, dry-run e rollback;
+- não editar diretamente a tabela de histórico;
+- não usar `migration repair` como rollback funcional de SQL.
 
 Seguir `docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`.
 
@@ -281,15 +289,14 @@ A conclusão exige:
 
 Permanecem pendentes:
 
-1. reconciliação do histórico da migration SME;
-2. proteção contra senhas vazadas;
-3. fixação deliberada da major do Node;
-4. backup e restauração em ambiente descartável;
-5. homologação manual dos relatórios Excel;
-6. matriz remota por perfil e viewport;
-7. UAT;
-8. polimento editorial/visual;
-9. decisão formal de release.
+1. proteção contra senhas vazadas;
+2. fixação deliberada da major do Node;
+3. backup e restauração em ambiente descartável;
+4. homologação manual dos relatórios Excel;
+5. matriz remota por perfil e viewport;
+6. UAT;
+7. polimento editorial/visual;
+8. decisão formal de release.
 
 Não declarar o produto oficialmente liberado antes do gate cumulativo.
 
