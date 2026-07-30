@@ -26,7 +26,9 @@ Estado atual:
 
 - modelos e renderers implementados;
 - certificação automatizada concluída;
-- botão institucional ainda no CSV;
+- botão principal institucional integrado ao XLSX;
+- botão `Excel SME` integrado e condicionado à competência mensal;
+- CSV legado preservado como botão secundário e fallback;
 - homologação manual no Microsoft Excel desktop pendente.
 
 ## Frontend e integração
