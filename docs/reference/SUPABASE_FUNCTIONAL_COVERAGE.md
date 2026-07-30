@@ -12,7 +12,7 @@ O RADAR PDDE possui contrato único de persistência e dois adaptadores:
 
 Production está conectada ao projeto `scnryinorqeucbfkioxo` com Auth, PostgREST, PostgreSQL, RLS, RPCs, auditoria e concorrência otimista.
 
-O repositório contém 25 arquivos de migration e uma Edge Function protegida para o ciclo de contas da equipe. Existe divergência conhecida de identificador na migration SME, sem divergência de SQL, que bloqueia a próxima alteração de schema até reconciliação.
+O repositório e o Supabase Production possuem 25 versões correspondentes de migration. O histórico SME foi reconciliado para o identificador canônico `20260728182226`, sem reaplicação do SQL, e está protegido por teste de regressão.
 
 ## 2. Matriz de cobertura
 
@@ -40,6 +40,7 @@ O repositório contém 25 arquivos de migration e uma Edge Function protegida pa
 | Auditoria | Sim | Sim | Sim | UnitOfWork + triggers/logs |
 | Concorrência otimista | Não aplicável | Sim | Sim | `row_version` |
 | Importação, reconciliação e rollback | Sim | Sim | Controlado | coordenador + RPCs |
+| Histórico de migrations | Não aplicável | Sim | Sim | `migration list`, evidência e teste SME |
 | Desktop, Android e iPhone | Sim | Sim | Sim | Playwright |
 | Acessibilidade automatizada | Sim | Sim | Sim | axe, foco e teclado |
 
@@ -112,16 +113,18 @@ As migrations versionadas cobrem:
 - funções privilegiadas e CORS;
 - governança da Gestão SME.
 
-### Divergência conhecida
+### Histórico SME reconciliado
 
 ```text
-local: 20260728182226_sme_access_governance.sql
-remoto: 20260728190344_sme_access_governance
+local e remoto: 20260728182226_sme_access_governance
+identificador derivado 20260728190344: ausente
+SQL: 1.411 caracteres
+SHA-256: cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
 ```
 
-O SQL possui o mesmo comprimento e SHA-256. A divergência é de histórico, não de regra aplicada.
+A operação alterou somente o histórico e não reaplicou o SQL. O teste `tests/unit/sme-migration-history-alignment.test.js` protege versão, ausência do alias derivado e hash.
 
-A próxima migration de Production permanece bloqueada até reconciliação suportada, testada e documentada.
+Antes de migration futura, exigir histórico alinhado, teste, reset local, pgTAP, lint, tipos, dry-run, backup e rollback.
 
 ## 6. Importação operacional
 
@@ -167,13 +170,13 @@ A homologação manual dos dois produtos no Microsoft Excel desktop ainda é blo
 
 ## 8. Gates pendentes de liberação oficial
 
-- reconciliar o identificador da migration SME;
 - habilitar proteção contra senhas vazadas;
 - fixar deliberadamente a major operacional do Node;
 - testar backup e restauração em ambiente descartável;
 - homologar os arquivos no Microsoft Excel desktop;
 - executar matriz remota por perfil e viewport;
 - concluir UAT;
+- realizar polimento editorial/visual;
 - registrar decisão formal de release.
 
 ## 9. Referências
@@ -185,4 +188,5 @@ A homologação manual dos dois produtos no Microsoft Excel desktop ainda é blo
 - [`../architecture/excel-sme-mensal.md`](../architecture/excel-sme-mensal.md);
 - [`../runbooks/SUPABASE_CONNECTION.md`](../runbooks/SUPABASE_CONNECTION.md);
 - [`../runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`](../runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md);
+- [`../audits/2026-07-29-reconciliacao-migration-sme-evidencias.md`](../audits/2026-07-29-reconciliacao-migration-sme-evidencias.md);
 - [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md).
