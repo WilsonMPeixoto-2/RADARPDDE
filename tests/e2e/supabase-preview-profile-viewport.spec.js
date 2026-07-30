@@ -2,30 +2,35 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 
-const remoteEnabled = process.env.RADAR_E2E_SUPABASE_REMOTE === '1';
-test.skip(!remoteEnabled, 'Esta suíte exige o workflow seguro de homologação do Preview Supabase remoto.');
+const gateEnabled = process.env.RADAR_E2E_PROFILE_VIEWPORT_GATE === '1';
+test.skip(!gateEnabled, 'Esta suíte exige o gate remoto de perfis e viewports no GitHub Actions.');
 
 const fixtureFile = process.env.RADAR_HML_FIXTURE_FILE;
-const password = process.env.RADAR_HML_PASSWORD || '';
-if (remoteEnabled && (!fixtureFile || !fs.existsSync(fixtureFile))) {
-  throw new Error('Fixture remota de homologação ausente.');
+const password = process.env.RADAR_AUTH_FIXTURE_PASSWORD || '';
+const expectedEnvironment = process.env.RADAR_EXPECTED_RUNTIME_ENVIRONMENT || 'test';
+
+if (gateEnabled && (!fixtureFile || !fs.existsSync(fixtureFile))) {
+  throw new Error('Fixture de identidades do gate ausente.');
 }
-if (remoteEnabled && password.length < 24) {
-  throw new Error('Senha efêmera da homologação ausente.');
+if (gateEnabled && password.length < 24) {
+  throw new Error('Senha efêmera do gate ausente.');
 }
 
-const fixture = remoteEnabled
+const parsedFixture = gateEnabled
   ? JSON.parse(fs.readFileSync(path.resolve(fixtureFile), 'utf8'))
-  : { users: [] };
-const users = Object.fromEntries(fixture.users.map(user => [user.key, user]));
-const PROFILE_KEYS = Object.freeze([
-  'technicalAdmin',
-  'assistant',
-  'controllerTuane',
-  'controllerAlzira',
-  'inventory',
-  'sme'
+  : [];
+const fixtureUsers = Array.isArray(parsedFixture) ? parsedFixture : (parsedFixture.users || []);
+const PROFILE_DEFINITIONS = Object.freeze([
+  ['technicalAdmin', 'technical_admin'],
+  ['assistant', 'federal_assistant'],
+  ['controller', 'controller'],
+  ['inventory', 'inventory'],
+  ['sme', 'sme_management']
 ]);
+const users = Object.fromEntries(PROFILE_DEFINITIONS.map(([key, profileId]) => [
+  key,
+  fixtureUsers.find(user => user.profileId === profileId && user.active !== false)
+]));
 
 test.describe.configure({ mode: 'serial' });
 
@@ -97,11 +102,11 @@ async function expectResponsiveLayout(page) {
   return metrics;
 }
 
-for (const key of PROFILE_KEYS) {
+for (const [key] of PROFILE_DEFINITIONS) {
   test(`${key} mantém identidade, permissões e navegação responsiva`, async ({ page }, testInfo) => {
     const errors = collectErrors(page);
     const user = users[key];
-    expect(user, `fixture ausente para ${key}`).toBeTruthy();
+    expect(user, `fixture ativa ausente para ${key}`).toBeTruthy();
 
     await signIn(page, user);
 
@@ -115,7 +120,7 @@ for (const key of PROFILE_KEYS) {
     }));
 
     expect(runtime).toEqual({
-      environment: 'preview',
+      environment: expectedEnvironment,
       dataMode: 'supabase-preview',
       repository: 'supabase',
       role: user.profileId,
