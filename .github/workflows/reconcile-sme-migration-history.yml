@@ -1,0 +1,162 @@
+name: Reconciliar histórico da migration SME
+
+on:
+  push:
+    branches:
+      - agent/reconcile-sme-migration-history
+    paths:
+      - .github/workflows/reconcile-sme-migration-history.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: reconcile-sme-migration-history-production
+  cancel-in-progress: false
+
+env:
+  SUPABASE_TELEMETRY_DISABLED: '1'
+  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+  PGPASS_REMOTE: ${{ secrets.SUPABASE_DB_PASSWORD }}
+  PROJECT_REF: scnryinorqeucbfkioxo
+
+jobs:
+  repair-history:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+
+      - name: Validar alvo, segredos e migration local
+        run: |
+          set -euo pipefail
+          test "${PROJECT_REF}" = 'scnryinorqeucbfkioxo'
+          test -n "${SUPABASE_ACCESS_TOKEN}" || { echo 'SUPABASE_ACCESS_TOKEN ausente.' >&2; exit 1; }
+          test -n "${PGPASS_REMOTE}" || { echo 'SUPABASE_DB_PASSWORD ausente.' >&2; exit 1; }
+          test -f supabase/migrations/20260728182226_sme_access_governance.sql
+          test ! -e supabase/migrations/20260728190344_sme_access_governance.sql
+          test "$(python - <<'PY'
+          from pathlib import Path
+          import hashlib
+          content = Path('supabase/migrations/20260728182226_sme_access_governance.sql').read_text(encoding='utf-8').rstrip('\n')
+          print(hashlib.sha256(content.encode()).hexdigest())
+          PY
+          )" = 'cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e'
+
+      - name: Vincular Production
+        run: npx --no-install supabase link --project-ref "${PROJECT_REF}" --password "${PGPASS_REMOTE}"
+
+      - name: Confirmar pré-condições remotas
+        run: |
+          cat > /tmp/sme-migration-precheck.sql <<'SQL'
+          do $$
+          declare
+              migration_hash text;
+          begin
+              if (select count(*) from supabase_migrations.schema_migrations) <> 25 then
+                  raise exception 'Contagem remota inesperada antes do reparo.';
+              end if;
+
+              if exists (
+                  select 1 from supabase_migrations.schema_migrations
+                  where version = '20260728182226'
+              ) then
+                  raise exception 'A versão local já está registrada remotamente; abortando.';
+              end if;
+
+              select encode(extensions.digest(rtrim(statements[1], E'\n'), 'sha256'), 'hex')
+              into migration_hash
+              from supabase_migrations.schema_migrations
+              where version = '20260728190344'
+                and name = 'sme_access_governance';
+
+              if migration_hash is distinct from 'cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e' then
+                  raise exception 'Migration remota divergente ou ausente; abortando.';
+              end if;
+          end
+          $$;
+          SQL
+          npx --no-install supabase db query --linked --file /tmp/sme-migration-precheck.sql 2>&1 \
+            | tee /tmp/sme-migration-precheck.txt
+          npx --no-install supabase migration list --linked --password "${PGPASS_REMOTE}" 2>&1 \
+            | tee /tmp/sme-migration-list-before.txt
+
+      - name: Registrar versão canônica como aplicada
+        run: |
+          set -o pipefail
+          npx --no-install supabase migration repair 20260728182226 \
+            --linked --status applied --password "${PGPASS_REMOTE}" 2>&1 \
+            | tee /tmp/sme-migration-repair-applied.txt
+
+      - name: Remover exclusivamente o registro derivado
+        run: |
+          set -o pipefail
+          npx --no-install supabase migration repair 20260728190344 \
+            --linked --status reverted --password "${PGPASS_REMOTE}" 2>&1 \
+            | tee /tmp/sme-migration-repair-reverted.txt
+
+      - name: Validar histórico reconciliado
+        run: |
+          cat > /tmp/sme-migration-postcheck.sql <<'SQL'
+          do $$
+          declare
+              migration_hash text;
+          begin
+              if (select count(*) from supabase_migrations.schema_migrations) <> 25 then
+                  raise exception 'Contagem remota inesperada após o reparo.';
+              end if;
+
+              if exists (
+                  select 1 from supabase_migrations.schema_migrations
+                  where version = '20260728190344'
+              ) then
+                  raise exception 'O registro derivado ainda existe após o reparo.';
+              end if;
+
+              select encode(extensions.digest(rtrim(statements[1], E'\n'), 'sha256'), 'hex')
+              into migration_hash
+              from supabase_migrations.schema_migrations
+              where version = '20260728182226'
+                and name = 'sme_access_governance';
+
+              if migration_hash is distinct from 'cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e' then
+                  raise exception 'Registro canônico ausente ou com conteúdo divergente.';
+              end if;
+          end
+          $$;
+          SQL
+          npx --no-install supabase db query --linked --file /tmp/sme-migration-postcheck.sql 2>&1 \
+            | tee /tmp/sme-migration-postcheck.txt
+          npx --no-install supabase migration list --linked --password "${PGPASS_REMOTE}" 2>&1 \
+            | tee /tmp/sme-migration-list-after.txt
+          npx --no-install supabase db push --linked --dry-run --password "${PGPASS_REMOTE}" 2>&1 \
+            | tee /tmp/sme-migration-dry-run-after.txt
+          grep -q 'Remote database is up to date' /tmp/sme-migration-dry-run-after.txt
+
+      - name: Publicar evidências
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: sme-migration-history-reconciliation-${{ github.run_id }}
+          path: |
+            /tmp/sme-migration-precheck.txt
+            /tmp/sme-migration-list-before.txt
+            /tmp/sme-migration-repair-applied.txt
+            /tmp/sme-migration-repair-reverted.txt
+            /tmp/sme-migration-postcheck.txt
+            /tmp/sme-migration-list-after.txt
+            /tmp/sme-migration-dry-run-after.txt
+          if-no-files-found: warn
+          retention-days: 30
