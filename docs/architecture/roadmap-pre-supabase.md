@@ -1,6 +1,12 @@
 # Roteiro técnico anterior ao Supabase
 
-Este roteiro organiza as entregas que podem ser concluídas enquanto o RADAR PDDE ainda utiliza persistência local.
+**Classificação:** histórico substituído  
+**Período:** etapa em que o RADAR ainda utilizava persistência local  
+**Fonte atual:** [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md)
+
+> Este roteiro não representa pendências atuais. Vários itens não marcados foram implementados posteriormente por outras frentes, PRs e arquiteturas. Não retomar caixas deste documento sem verificar código, ambientes e documentação vigente.
+
+Este roteiro organizava as entregas que poderiam ser concluídas enquanto o RADAR PDDE ainda utilizava persistência local.
 
 ## Etapa 1 — Fundação lógica
 
@@ -44,6 +50,8 @@ Este roteiro organiza as entregas que podem ser concluídas enquanto o RADAR PDD
 - [ ] Documentar o modelo relacional futuro.
 - [ ] Documentar a matriz de permissões.
 
-## Regra de execução
+## Regra histórica de execução
 
-Cada etapa deve ser entregue em pull requests pequenos e revisáveis. Mudanças de regra de negócio devem possuir casos de teste antes de serem integradas à interface.
+Cada etapa deveria ser entregue em pull requests pequenos e revisáveis. Mudanças de regra de negócio deveriam possuir casos de teste antes de serem integradas à interface.
+
+A regra de execução permanece válida, mas a lista acima é histórica. Usar `AGENTS.md`, `CURRENT_STAGE.md` e os contratos atuais para qualquer nova tarefa.
