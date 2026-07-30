@@ -1,6 +1,6 @@
 # AGENTS.md — RADAR PDDE 2026
 
-**Atualizado em:** 29 de julho de 2026
+**Atualizado em:** 30 de julho de 2026
 
 ## 1. Leitura obrigatória
 
@@ -13,7 +13,7 @@ Antes de analisar ou alterar o repositório, leia:
 5. a arquitetura específica da frente;
 6. o código remoto real da `main`, PRs relevantes e ambientes correspondentes.
 
-Documentos antigos de “estado atual”, planos, relatórios, specs e handoffs são fontes históricas. Não prevalecem sobre código, ambientes e decisões posteriores.
+Documentos históricos não prevalecem sobre código, ambientes e decisões posteriores.
 
 ## 2. Identidade do produto
 
@@ -35,22 +35,18 @@ Passar em testes técnicos não basta quando a funcionalidade está difícil de 
 
 Para determinar o estado implementado:
 
-1. código-fonte remoto da branch/commit analisado;
+1. código-fonte remoto da branch ou commit analisado;
 2. migrations, funções, políticas, Auth e dados efetivos do Supabase autorizado;
-3. artefato efetivamente implantado na Vercel e seu SHA;
+3. artefato implantado na Vercel e seu SHA;
 4. testes e evidências reproduzíveis;
 5. decisões expressas vigentes;
 6. `docs/CURRENT_STAGE.md`;
 7. `docs/PROJECT_CONTEXT.md` e contratos de arquitetura;
 8. documentos históricos.
 
-A orientação mais recente do responsável define intenção, prioridade e decisão de produto, mas afirmação técnica deve ser confirmada nas fontes operacionais.
-
-Não use clone antigo, memória isolada de chat, última tarefa cronológica ou texto de PR como prova sem conferir o estado remoto.
+A orientação mais recente do responsável define intenção e prioridade, mas afirmação técnica deve ser confirmada nas fontes operacionais.
 
 ## 4. Estado operacional de referência
-
-Na data de corte:
 
 ```text
 Supabase: scnryinorqeucbfkioxo — ACTIVE_HEALTHY
@@ -58,56 +54,36 @@ Production dataMode: supabase-production
 repositório canônico: SupabaseRepository
 contingência: LocalStorageRepository por novo build controlado
 closing_competence: 2026-12
-migrations: 25 versões alinhadas entre GitHub e Supabase Production
+migrations: 25 versões alinhadas
+Node: 24.x
 ciclos 1–5: concluídos e publicados
 liberação oficial: ainda não declarada
 ```
 
-A migration SME foi reconciliada para o identificador canônico `20260728182226`, sem reaplicação do SQL. O teste `tests/unit/sme-migration-history-alignment.test.js` protege versão, ausência do identificador derivado e hash.
+A migration SME está reconciliada no identificador canônico `20260728182226`. O teste `tests/unit/sme-migration-history-alignment.test.js` protege versão, ausência do identificador derivado e hash.
 
-Esses dados são mutáveis. Revalidar antes de tarefa que dependa do estado atual.
+Revalidar dados mutáveis antes de qualquer tarefa dependente do estado atual.
 
 ## 5. Perfis e autorização
 
-A interface possui quatro perfis funcionais visíveis:
+Perfis funcionais visíveis:
 
 - Controlador (`controller`);
 - Assistente de Verbas Federais (`federal_assistant`);
-- SME (Gestão) (`sme_management`);
+- Gestão SME (`sme_management`);
 - Equipe de Inventário (`inventory`).
 
-`technical_admin` é papel técnico separado:
+`technical_admin` é papel técnico separado. Administra infraestrutura, perfis, escopos, importações e auditoria; pode simular a organização visual dos perfis, mas não substitui testes com contas operacionais reais.
 
-- não é quinto perfil operacional comum;
-- administra infraestrutura, perfis, escopos, importações e auditoria;
-- pode simular a organização visual dos quatro perfis para suporte e homologação;
-- mantém JWT e identidade técnica durante a simulação;
-- não substitui testes com contas operacionais reais.
+### Assistente
 
-### 5.1 Assistente
+A Assistente de Verbas Federais é a liderança direta da equipe da GAD/CRE e possui gestão autorizada de Controladores e Equipe de Inventário, incluindo conta, convite, distribuição de escolas, desativação, Auth, RLS e auditoria.
 
-A Assistente de Verbas Federais é a liderança direta da equipe da GAD/CRE e possui gestão autorizada de:
+### Carteiras dos Controladores
 
-- cadastro, edição e desativação de Controladores;
-- convite e conta de acesso;
-- distribuição e redistribuição de escolas;
-- cadastro, edição e desativação da Equipe de Inventário;
-- efeitos em Auth, perfis, RLS e auditoria.
+A carteira representa responsabilidade principal e filtro inicial. Controladores autenticados podem atuar nas escolas da própria `cre_scope`, preservando responsável principal, autoria e isolamento entre CREs.
 
-A Gestão SME acompanha gerencialmente e não substitui essa liderança local.
-
-### 5.2 Carteiras dos Controladores
-
-A carteira representa responsabilidade principal, filtro inicial e organização do trabalho. Não é fronteira de autorização entre Controladores da mesma CRE.
-
-Controladores autenticados podem consultar e executar ações operacionais em escolas da própria `cre_scope`:
-
-- sem transferir automaticamente `schools.controller_id`;
-- preservando o responsável principal;
-- registrando autoria real;
-- sem acesso a outra CRE, salvo exceção explícita.
-
-### 5.3 Gestão SME
+### Gestão SME
 
 Nas superfícies definidas:
 
@@ -117,8 +93,6 @@ Nas superfícies definidas:
 - consulta Registros Internos somente quando `actor_user_id = auth.uid()`.
 
 A restrição deve existir cumulativamente em capacidades, componentes, handlers, serviços e RLS.
-
-Não reabra essas decisões sem solicitação expressa do responsável pelo produto.
 
 ## 6. Regra de impacto entre camadas
 
@@ -137,11 +111,11 @@ layout/frontend
 → build/deployment
 ```
 
-Uma tarefa não está concluída quando somente uma camada foi alterada e as demais ficaram incoerentes.
+Uma tarefa não está concluída quando apenas uma camada foi alterada.
 
 ## 7. Superfícies e dispositivos
 
-Ao modificar dado ou fluxo, examine:
+Examinar:
 
 - Dashboard;
 - Carteira;
@@ -160,96 +134,103 @@ Ao modificar dado ou fluxo, examine:
 
 Mobile pode reorganizar tabelas em cartões, mas não remover informação ou capacidade essencial.
 
-## 8. Competência, avaliação, timeline e navegação
-
-Contratos vigentes:
+## 8. Contratos de produto
 
 - uma única competência global `YYYY-MM`;
 - janeiro a dezembro de 2026 disponíveis conforme permissão;
-- avaliação mensal canônica para bonificação, análise técnica e pendências;
-- timeline como projeção somente leitura das entidades existentes;
-- navegação contextual preservando competência, rota, filtros, rolagem e foco.
+- avaliação mensal canônica;
+- timeline como projeção somente leitura;
+- navegação contextual preservando competência, rota, filtros, rolagem e foco;
+- relatório institucional XLSX de quatro abas;
+- Excel SME mensal de uma aba;
+- CSV legado como secundário e fallback;
+- Excel SME sem `dataValidations`.
 
-Não criar fonte paralela de estado para qualquer desses domínios.
+A homologação manual no Microsoft Excel desktop permanece necessária.
 
-## 9. Relatórios Excel
+## 9. Persistência e Supabase
 
-Estado vigente:
-
-- botão principal institucional gera XLSX histórico de quatro abas;
-- botão `Excel SME` gera produto mensal de uma aba;
-- CSV legado permanece em botão secundário e como fallback;
-- certificação automatizada compara até a célula OOXML;
-- Excel SME não contém `dataValidations`;
-- homologação manual no Microsoft Excel desktop ainda é gate de release.
-
-Não reverter o botão principal para CSV, remover o fallback ou reintroduzir validação de lista sem decisão, testes e atualização documental.
-
-## 10. Persistência e Supabase
-
-O contrato único possui:
+Contrato único:
 
 - `SupabaseRepository` — canônico em Preview e Production;
 - `LocalStorageRepository` — desenvolvimento controlado e contingência excepcional.
 
-Funcionalidades novas devem usar serviços de aplicação e o contrato existente. Não acessar diretamente `localStorage` ou Supabase quando a operação possui porta própria.
-
-Operações compostas devem ser atômicas. Conflitos usam `row_version` e não podem sobrescrever silenciosamente outra sessão.
-
-Não introduzir ORM, segunda biblioteca de schemas, cache ou arquitetura paralela sem limitação comprovada.
-
 Regras:
 
+- usar serviços de aplicação e portas existentes;
+- operações compostas devem ser atômicas;
+- conflitos usam `row_version`;
 - somente chave publicável chega ao navegador;
 - credenciais administrativas permanecem server-side;
 - migrations são versionadas e aplicadas em ordem;
 - nenhum seed institucional implícito;
 - importação usa validação, staging, reconciliação, promoção e rollback;
-- RLS deve refletir exatamente capacidades aprovadas;
-- Edge Functions administrativas exigem JWT e validação de papel;
+- RLS reflete exatamente as capacidades aprovadas;
+- Edge Functions administrativas exigem JWT e papel autorizado;
 - nenhuma alteração remota sem escopo e autorização.
 
-### 10.1 Proteção do histórico de migrations
-
-O histórico está alinhado:
+### Histórico de migrations
 
 ```text
 arquivo canônico: 20260728182226_sme_access_governance.sql
-registro remoto canônico: 20260728182226
+registro remoto: 20260728182226
 registro derivado 20260728190344: ausente
 SHA-256: cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
 ```
 
-A reconciliação utilizou o mecanismo oficial de `migration repair` e não reaplicou o SQL.
+Antes de migration futura:
 
-Antes de qualquer migration futura:
+- `supabase migration list --linked`;
+- teste de alinhamento SME;
+- reset local, pgTAP, lint e tipos;
+- backup/restauração descartáveis;
+- `db push --linked --dry-run`;
+- plano de rollback;
+- nenhuma edição direta do histórico.
 
-- executar `supabase migration list --linked`;
-- executar o teste de alinhamento da migration SME;
-- confirmar que o identificador derivado não reapareceu;
-- executar reset local, pgTAP, lint e tipos;
-- produzir backup, dry-run e rollback;
-- não editar diretamente a tabela de histórico;
-- não usar `migration repair` como rollback funcional de SQL.
+## 10. Backup e restauração
 
-Seguir `docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`.
+Gate canônico:
 
-## 11. Vercel
+```text
+.github/workflows/backup-restore-disposable.yml
+scripts/verify-supabase-backup-restore.mjs
+npm run test:backup-restore
+```
+
+O teste deve:
+
+1. usar somente pilhas locais descartáveis;
+2. exigir `RADAR_ALLOW_DISPOSABLE_BACKUP_RESTORE=true`;
+3. gerar dumps lógicos de papéis, schema, dados e histórico;
+4. restaurar em segunda pilha isolada por `SUPABASE_WORKDIR`;
+5. comparar schema, dados e migrations;
+6. publicar somente `evidence.json`;
+7. destruir as pilhas ao final;
+8. nunca usar `--linked`, segredo remoto ou Production.
+
+O run `30537076528` comprovou a restauração integral antes da restrição final do artefato. O SHA final deve repetir todos os gates.
+
+## 11. Recursos dependentes de plano
+
+A checagem de credenciais comprometidas é restrita pelo Supabase ao plano Pro ou superior. O projeto está no plano Free e não possui autorização de despesa. Esse recurso não é requisito de liberação enquanto essa condição permanecer; reavaliar após eventual mudança de plano.
+
+## 12. Vercel
 
 - separar Production, Preview e local;
-- Production usa `dataMode: supabase-production`;
+- Production usa `supabase-production`;
 - Preview conectado usa `supabase-preview`;
 - validar `radar-build-manifest.json`;
-- confirmar que deployment e evidências correspondem ao SHA analisado;
-- não promover Preview como se fosse o artefato de Production;
+- confirmar correspondência entre deployment e SHA;
+- não promover Preview como Production;
 - manter deployments automáticos bloqueados fora de janela controlada;
-- não publicar mudança documental como mudança funcional.
+- não publicar mudança documental como funcional.
 
-## 12. Git e integração
+## 13. Git e integração
 
 Não trabalhar diretamente na `main`.
 
-Fluxo:
+Fluxo obrigatório:
 
 1. confirmar HEAD remoto;
 2. criar branch específica;
@@ -260,14 +241,16 @@ Fluxo:
 7. confirmar checks no SHA final;
 8. fazer merge somente após conclusão integral.
 
-Não misturar funcionalidade, arquitetura, dependências, migration, ativação remota e polimento visual não relacionado no mesmo PR.
+Não misturar funcionalidade, arquitetura, dependências, migration, ativação remota e polimento não relacionado no mesmo PR.
 
-## 13. Testes e conclusão
+## 14. Testes e conclusão
 
-Usar `npm run test:readiness` como gate local base e acrescentar, conforme impacto:
+Usar `npm run test:readiness` como gate base e acrescentar, conforme impacto:
 
 - Supabase local, pgTAP, lint SQL e tipos;
+- backup/restauração descartáveis;
 - Playwright desktop e mobile;
+- gate por perfil e viewport;
 - Lighthouse;
 - certificação Excel;
 - precedência do frontend;
@@ -278,37 +261,32 @@ Usar `npm run test:readiness` como gate local base e acrescentar, conforme impac
 
 A conclusão exige:
 
-- testes aplicáveis;
+- testes aplicáveis verdes no SHA final;
 - ausência de regressão relevante;
-- documentação e estado atualizados;
+- documentação atualizada;
 - nenhum segredo no diff ou artefato;
 - correspondência entre commit, build e deployment quando houver publicação;
 - relato explícito quando não existir workflow associado ao SHA.
 
-## 14. Gates de liberação oficial
+## 15. Gates de liberação oficial
 
 Permanecem pendentes:
 
-1. proteção contra senhas vazadas;
-2. fixação deliberada da major do Node;
-3. backup e restauração em ambiente descartável;
-4. homologação manual dos relatórios Excel;
-5. matriz remota por perfil e viewport;
-6. UAT;
-7. polimento editorial/visual;
-8. decisão formal de release.
+1. homologação manual dos relatórios no Microsoft Excel desktop;
+2. revisão dos Advisors quando aplicável;
+3. UAT funcional;
+4. polimento editorial e visual;
+5. decisão formal de release.
 
 Não declarar o produto oficialmente liberado antes do gate cumulativo.
 
-## 15. Prevenção de loops
+## 16. Prevenção de loops
 
 Ao concluir PR relevante:
 
 - atualizar `docs/CURRENT_STAGE.md`;
 - registrar decisões duradouras em `docs/DECISION_LOG.md`;
-- atualizar `docs/PROJECT_CONTEXT.md` para mudanças estáveis;
-- atualizar contratos específicos e evidências;
+- atualizar `docs/PROJECT_CONTEXT.md` quando necessário;
+- atualizar contratos e evidências;
 - classificar documentos substituídos ou históricos;
 - não iniciar nova frente antes de declarar a anterior concluída, bloqueada ou substituída.
-
-Quando código, documentação e decisão funcional divergirem, verificar primeiro as fontes operacionais. Interromper apenas a parte que permanecer realmente indeterminada.
