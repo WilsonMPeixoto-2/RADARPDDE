@@ -8,6 +8,7 @@ on:
   push:
     branches:
       - qa/supabase-preview-final
+      - hardening/node24-profile-viewport-gate
     paths:
       - 'app.js'
       - 'index.html'
