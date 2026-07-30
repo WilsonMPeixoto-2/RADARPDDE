@@ -23,6 +23,8 @@ A auditoria não altera código, banco, dados, Auth, RLS, dependências, Vercel 
 - `src/integration/navigation-routes.js`;
 - `src/integration/product-extensions-bootstrap.js`;
 - `src/integration/navigation-context-bootstrap.js`;
+- `src/integration/load-excel-export.js`;
+- `src/integration/excel-export-integration.js`;
 - `src/types/database.types.ts`;
 - contratos arquiteturais, runbooks, ADRs e evidências.
 
@@ -56,9 +58,10 @@ app_config.row_version: 5
 4. comparar inventários narrativos com loaders atuais;
 5. comparar scripts de qualidade com `package.json`;
 6. comparar referências Supabase com tipos gerados e runbooks;
-7. separar documentos vigentes de planos, auditorias e evidências históricas;
-8. corrigir somente documentação operacional/canônica;
-9. preservar arquivos históricos sem reescrita retrospectiva.
+7. comparar o comportamento documentado dos relatórios com a integração efetivamente instalada;
+8. separar documentos vigentes de planos, auditorias e evidências históricas;
+9. corrigir somente documentação operacional/canônica;
+10. preservar arquivos históricos sem reescrita retrospectiva.
 
 ## 4. Divergências encontradas
 
@@ -110,13 +113,21 @@ app_config.row_version: 5
 
 **Correção:** contrato SME corrigido.
 
-### 4.7 Relatório institucional
+### 4.7 Relatório institucional e botões de exportação
 
-**Antes:** texto de projeto futuro não distinguia implementação, certificação e integração do botão.
+**Antes:** parte da documentação tratava o produto XLSX como futuro ou afirmava que o botão institucional ainda permanecia no CSV.
 
-**Estado real:** modelo, renderer, quatro abas e certificação estão implementados; botão institucional continua no CSV; homologação manual permanece pendente.
+**Estado real comprovado no código:**
 
-**Correção:** estados separados por camada.
+- `load-excel-export.js` carrega modelo, plano, renderer institucional, modelo SME, renderer SME e integração;
+- `excel-export-integration.js` captura a função CSV legada;
+- `exportDataExcel` é substituída pela geração XLSX;
+- o botão principal passa a gerar o workbook institucional de quatro abas;
+- o botão `Excel SME` é inserido separadamente;
+- o CSV permanece em botão secundário e como fallback em falha de XLSX;
+- a instalação é idempotente e observa renderizações tardias.
+
+**Correção:** contratos e documentos executivos atualizados para separar integração concluída de homologação manual ainda pendente.
 
 ### 4.8 Migrations
 
@@ -142,8 +153,21 @@ app_config.row_version: 5
 
 **Correção:** dicionário refeito a partir de `src/types/database.types.ts` e das migrations.
 
+### 4.11 Índices e links
+
+**Antes:** índices documentais incompletos e, durante a primeira rodada desta correção, algumas referências propostas apontavam para arquivos inexistentes.
+
+**Estado real:** a pasta de arquitetura e os runbooks disponíveis possuem conjunto diferente do presumido pelos índices antigos.
+
+**Correção:** `docs/README.md`, `docs/architecture/README.md` e `STATUS_DOCUMENTOS.md` passaram a listar somente arquivos existentes e a classificar procedimentos históricos/restritos.
+
 ## 5. Documentos corrigidos
 
+- `README.md`;
+- `docs/README.md`;
+- `docs/CURRENT_STAGE.md`;
+- `docs/DECISION_LOG.md`;
+- `docs/architecture/README.md`;
 - `docs/architecture/competencias.md`;
 - `docs/architecture/avaliacao-mensal.md`;
 - `docs/architecture/frontend-load-order.md`;
@@ -152,16 +176,17 @@ app_config.row_version: 5
 - `docs/architecture/supabase-readiness.md`;
 - `docs/architecture/excel-sme-mensal.md`;
 - `docs/architecture/excel-export.md`;
+- `docs/reference/STATUS_DOCUMENTOS.md`;
 - `docs/reference/SUPABASE_FUNCTIONAL_COVERAGE.md`;
 - `docs/reference/SUPABASE_DATA_DICTIONARY.md`;
 - `docs/runbooks/SUPABASE_CONNECTION.md`;
 - `docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`;
-- `docs/DECISION_LOG.md`;
-- documentos canônicos de entrada e matriz de status, após fechamento desta branch.
+- procedimentos de bootstrap, após classificação final desta branch;
+- plano e auditoria desta própria execução.
 
 ## 6. Documentos históricos preservados
 
-Não foram reescritos:
+Não foram reescritos retrospectivamente:
 
 - planos em `docs/superpowers/plans/` anteriores a esta auditoria;
 - especificações em `docs/superpowers/specs/`;
@@ -174,6 +199,8 @@ Não foram reescritos:
 
 Esses arquivos registram o conhecimento disponível na data da execução e não devem controlar o estado atual quando contradizem `CURRENT_STAGE.md`, ADRs vigentes ou código.
 
+Procedimentos antigos de bootstrap podem receber apenas cabeçalho e restrições de reutilização para impedir que sejam interpretados como rotina vigente.
+
 ## 7. Decisões que permanecem vinculantes
 
 - Supabase é canônico em Production;
@@ -183,6 +210,7 @@ Esses arquivos registram o conhecimento disponível na data da execução e não
 - avaliação mensal possui regra canônica única;
 - timeline é projeção somente leitura;
 - Excel exige paridade integral;
+- XLSX institucional é a ação principal; CSV permanece fallback;
 - navegação contextual preserva competência, origem, rolagem e foco;
 - polimento visual não altera produto ou identidade;
 - release depende de gate cumulativo;
@@ -216,7 +244,7 @@ A conclusão exige:
 A documentação canônica passa a descrever o produto já publicado e os bloqueadores reais, sem misturar:
 
 - entregas concluídas;
-- capacidades existentes mas ainda não integradas à interface;
+- integrações já ativas;
 - gates pendentes;
 - planos históricos;
 - decisões futuras.
