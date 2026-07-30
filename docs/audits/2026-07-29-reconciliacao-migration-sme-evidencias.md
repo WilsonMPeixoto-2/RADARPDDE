@@ -38,7 +38,21 @@ supabase migration repair 20260728190344 --linked --status reverted
 
 A primeira operação registrou a versão canônica usando o arquivo local. A segunda removeu somente o registro derivado. Nenhum comando `db push` efetivo foi executado e nenhuma instrução de schema foi reaplicada.
 
-## 4. Estado posterior
+## 4. Falso negativo da primeira checagem posterior
+
+O workflow operacional aplicou o reparo, mas sua primeira checagem posterior calculava o hash apenas de `statements[1]`. O Supabase CLI havia armazenado o arquivo reparado em quatro instruções separadas, de modo que essa checagem produziu um falso negativo após a alteração correta do histórico.
+
+A falha foi tratada como falha do verificador, não como sucesso presumido:
+
+1. o estado remoto foi consultado diretamente;
+2. as quatro instruções foram inspecionadas;
+3. o conteúdo foi reconstruído com `array_to_string(statements, ';\n\n') || ';'`;
+4. comprimento e hash voltaram a coincidir integralmente com o arquivo local;
+5. um segundo workflow estritamente somente leitura executou a validação corrigida e `db push --dry-run`.
+
+O primeiro workflow e o segundo verificador foram removidos da branch após o uso.
+
+## 5. Estado posterior
 
 | Verificação | Resultado |
 |---|---|
@@ -53,7 +67,20 @@ A primeira operação registrou a versão canônica usando o arquivo local. A se
 
 O CLI armazena a migration reparada em quatro instruções separadas. A concatenação das quatro instruções com os delimitadores SQL originais reproduz exatamente o conteúdo canônico e o mesmo hash.
 
-## 5. Proteção contra regressão
+## 6. Gate remoto somente leitura
+
+O run GitHub Actions `30505481038` confirmou:
+
+- 25 migrations alinhadas;
+- `20260728182226` presente;
+- `20260728190344` ausente;
+- SQL reconstruído com 1.411 caracteres;
+- SHA-256 canônico;
+- `supabase db push --linked --dry-run` com Production atualizada.
+
+A conclusão foi registrada automaticamente no PR #109. O workflow de verificação não integra o diff final.
+
+## 7. Proteção contra regressão
 
 O teste `tests/unit/sme-migration-history-alignment.test.js` exige cumulativamente:
 
@@ -61,8 +88,6 @@ O teste `tests/unit/sme-migration-history-alignment.test.js` exige cumulativamen
 - ausência de `20260728190344_sme_access_governance.sql` no repositório;
 - SHA-256 canônico do SQL.
 
-O workflow usado para o reparo foi removido da branch após a execução para impedir reacionamento acidental.
-
-## 6. Conclusão
+## 8. Conclusão
 
 A divergência de rastreabilidade foi eliminada. GitHub e Supabase Production agora utilizam o mesmo identificador `20260728182226` para a migration de governança SME, preservando o estado funcional já existente.
