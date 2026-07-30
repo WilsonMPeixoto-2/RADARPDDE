@@ -1,72 +1,93 @@
-# Exportação Excel do RADAR PDDE
+# Relatório institucional Excel do RADAR PDDE
 
-## Finalidade
+**Estado:** modelo, renderer e certificação implementados; troca do botão institucional pendente  
+**Atualizado em:** 29 de julho de 2026
 
-Evoluir o relatório CSV existente para um arquivo `.xlsx` real, acrescentando organização, significado visual e análises opcionais sem reduzir o conteúdo originalmente exportado.
+## 1. Finalidade
 
-A versão visual aprovada em 10/07/2026 passa a ser a referência funcional e editorial para a implementação. O padrão deve ser adaptado à finalidade operacional do RADAR, sem reproduzir mecanicamente todos os componentes do sistema editorial.
+O relatório institucional `.xlsx` preserva integralmente o universo e os doze campos do CSV legado, acrescentando estrutura editorial, sínteses e controles de qualidade sem reduzir ou reinterpretar a base original.
 
-## Contrato do relatório original
+A implementação existe e é certificada automaticamente. O botão institucional da interface ainda permanece associado ao CSV. A eventual substituição do botão é decisão separada e reversível.
 
-A função atual `exportDataExcel()` percorre, nesta ordem:
+## 2. Estado por camada
 
-1. todas as escolas;
-2. todas as competências configuradas;
-3. todos os programas vinculados a cada escola.
+| Camada | Estado |
+|---|---|
+| Modelo lógico institucional | implementado |
+| Plano do workbook | implementado |
+| Renderer OOXML/ZIP | implementado |
+| Quatro abas | implementadas |
+| Equivalência com CSV | certificada |
+| Comparação célula a célula | certificada |
+| Manifesto e hashes | implementados |
+| Botão institucional usando XLSX | pendente |
+| Homologação manual no Excel desktop | pendente |
 
-Uma linha é exportada somente quando existe verificação para a combinação `escola + competência + programa` e `resultadoBonif` está preenchido. A granularidade original é:
+## 3. Contrato do relatório legado
 
-> uma linha por escola, competência e programa com bonificação consolidada.
+A rotina lógica percorre:
 
-A competência ativa participa apenas do nome do arquivo CSV. Ela não limita o conteúdo, que abrange todas as competências disponíveis.
+1. escolas;
+2. competências configuradas;
+3. programas vinculados a cada escola.
 
-## Campos obrigatoriamente preservados
+Uma linha existe quando há verificação para `escola + competência + programa` e `resultadoBonif` está preenchido.
 
-A aba principal `BONIFICACOES` deve manter os doze campos do CSV original, na mesma ordem lógica:
+Granularidade:
 
-| Nº | Campo original | Rótulo aprimorado | Origem |
+```text
+escola × competência × programa consolidado
+```
+
+A competência ativa não limita o conteúdo institucional. O produto é histórico e multicompetência.
+
+## 4. Campos obrigatórios
+
+A aba `BONIFICACOES` mantém, na mesma ordem lógica:
+
+| Nº | Campo | Rótulo | Origem |
 |---:|---|---|---|
-| 1 | `INEP` | INEP | cadastro da escola |
-| 2 | `Denominacao` | Denominação | cadastro da escola |
-| 3 | `Designacao` | Designação | cadastro da escola |
+| 1 | `INEP` | INEP | escola |
+| 2 | `Denominacao` | Denominação | escola |
+| 3 | `Designacao` | Designação | escola |
 | 4 | `Competencia` | Competência | competência iterada |
-| 5 | `Programa` | Programa | programa vinculado |
+| 5 | `Programa` | Programa | vínculo escola–programa |
 | 6 | `CC` | Conta corrente | `bonificacao.extCC` |
 | 7 | `Investimento` | Investimento | `bonificacao.extINV` |
 | 8 | `NF` | Nota fiscal | `bonificacao.notaFiscal` |
 | 9 | `Assessoria` | Assessoria | `bonificacao.consAssessoria` |
 | 10 | `BBAgil` | BB Ágil | `bonificacao.declBBAgil` |
 | 11 | `EncaminhadoInventario` | Encaminhado ao inventário | `bonificacao.encampInventario` |
-| 12 | `StatusBonificacao` | Status da bonificação | `resultadoBonif` consolidado |
+| 12 | `StatusBonificacao` | Status da bonificação | `resultadoBonif` |
 
-Nenhum desses campos pode ser removido, agregado, substituído por indicador ou transferido exclusivamente para outra aba.
+Nenhum campo pode ser removido, agregado ou transferido exclusivamente para outra aba.
 
-## Estrutura aprovada do arquivo
+## 5. Estrutura do workbook
 
-A ordem das abas é fixa:
+Ordem fixa:
 
-1. `BONIFICACOES` — base principal obrigatória;
-2. `SINTESE` — análises derivadas opcionais;
-3. `QUALIDADE_DADOS` — controle auxiliar opcional;
-4. `METADADOS` — contrato, fonte e dicionário opcional.
+1. `BONIFICACOES`;
+2. `SINTESE`;
+3. `QUALIDADE_DADOS`;
+4. `METADADOS`.
 
-Somente `BONIFICACOES` é indispensável. As demais abas podem ser removidas sem perda do relatório básico.
+As abas auxiliares não alteram a base principal.
 
-## Aba `BONIFICACOES`
+## 6. Aba `BONIFICACOES`
 
-A base oficial deverá:
+Contrato:
 
-- conservar o universo de linhas do relatório original;
-- preservar a ordem de escolas, competências e programas;
-- manter o formato legado `MM-AAAA` na coluna Competência;
-- exibir `APTA` e `INAPTA` em texto, mesmo quando houver cor semântica;
-- manter INEP, designação e competência como texto;
-- disponibilizar filtros e ordenação;
-- congelar as oito primeiras linhas e as três primeiras colunas;
-- iniciar o cabeçalho da tabela na linha 8 e os dados na linha 9;
-- não inserir gráficos ou resumos dentro da base principal.
+- universo e ordem equivalentes ao CSV;
+- competência no formato legado esperado pelo relatório;
+- `APTA` e `INAPTA` em texto;
+- INEP, designação e competência preservados como texto;
+- filtros e ordenação;
+- congelamento das oito primeiras linhas e três primeiras colunas;
+- cabeçalho na linha 8;
+- dados a partir da linha 9;
+- nenhum gráfico dentro da base principal.
 
-### Larguras e alinhamentos aprovados
+### Larguras e alinhamentos
 
 | Coluna | Campo | Largura | Alinhamento |
 |---|---|---:|---|
@@ -83,103 +104,137 @@ A base oficial deverá:
 | K | Encaminhado ao inventário | 20 | centralizado |
 | L | Status da bonificação | 21 | centralizado |
 
-## Aba `SINTESE`
+## 7. Aba `SINTESE`
 
-A aba aprovada reúne, sem alterar a base:
+Reúne, sem modificar a base:
 
 - consolidadas, aptas, inaptas e taxa de aptidão por competência;
 - consolidadas, aptas e inaptas por programa;
 - indicadores gerais calculados sobre linhas consolidadas;
-- gráfico simples por competência, quando útil.
+- visualizações simples quando suportadas pelo renderer.
 
-A unidade estatística deve ser declarada como `escola × competência × programa`, não como escola única.
+A unidade estatística deve ser declarada como `escola × competência × programa`.
 
-## Aba `QUALIDADE_DADOS`
+## 8. Aba `QUALIDADE_DADOS`
 
-A aba auxiliar deverá:
+Localiza campos ausentes ou representados de forma inválida e referencia a linha correspondente da aba principal.
 
-- localizar campos ausentes, vazios ou representados por traço;
-- referenciar a linha correspondente da aba `BONIFICACOES`;
-- considerar que a primeira linha de dados da base é a linha 9;
-- ter finalidade de controle, sem reclassificar `APTA` ou `INAPTA`.
+Finalidade:
 
-### Larguras e alinhamentos aprovados
+- controle de completude;
+- rastreabilidade da linha;
+- apoio à revisão;
+- nenhuma reclassificação autônoma de APTA/INAPTA.
 
-| Campo | Largura | Alinhamento |
-|---|---:|---|
-| Linha na base | 17 | centralizado |
-| INEP | 14 | centralizado |
-| Designação | 16 | centralizado |
-| Competência | 14 | centralizado |
-| Programa | 26 | esquerda |
-| Campos ausentes | 17 | centralizado |
-| Detalhamento | 40 | esquerda |
-| Situação | 15 | centralizado |
+A primeira linha de dados da base é a linha 9.
 
-## Aba `METADADOS`
+## 9. Aba `METADADOS`
 
-Deverá registrar:
+Registra:
 
 - data e hora da geração;
 - versão do modelo;
 - regra de inclusão;
 - granularidade;
 - escopo temporal;
-- estrutura aprovada das abas;
+- ordem das abas;
 - dicionário dos doze campos;
-- fonte dos dados.
+- fonte dos dados;
+- versão dos componentes relevantes.
 
-Os conteúdos textuais permanecem alinhados à esquerda.
+## 10. Semântica visual
 
-## Semântica visual
-
-A paleta segue o sistema editorial, adaptada ao uso operacional:
-
-- azul estrutural: títulos e estrutura;
-- azul informacional: cabeçalhos;
+- azul: estrutura e informação;
 - verde: situação positiva;
 - vermelho: situação crítica;
-- âmbar: atenção e revisão;
-- roxo: análise e indicadores derivados;
-- cinza: informação funcional e neutra.
+- âmbar: atenção;
+- roxo: análise derivada;
+- cinza: informação neutra.
 
-A cor nunca substitui o texto. `APTA`, `INAPTA`, `Completa` e `Revisar` devem permanecer escritos.
+Cor nunca substitui texto. Estados permanecem escritos.
 
-## Teste de equivalência
+## 11. Equivalência lógica
 
-O módulo mantém duas rotas lógicas separadas:
+Rotas separadas:
 
-- `buildLegacyLogicalRows()`: espelho da rotina CSV atual;
-- `buildBaseRows()`: modelo da futura aba `BONIFICACOES`.
+```text
+buildLegacyLogicalRows()
+buildBaseRows()
+```
 
-O relatório de equivalência compara, linha a linha e coluna a coluna:
+A comparação verifica:
 
-1. a quantidade de registros;
-2. a ordem dos registros;
-3. os doze valores lógicos;
-4. a presença de consolidados;
-5. a ausência de registros não consolidados.
+1. quantidade de registros;
+2. ordem;
+3. doze valores lógicos;
+4. presença de consolidados;
+5. ausência de não consolidados.
 
-Qualquer diferença deve bloquear a substituição do CSV.
+Qualquer divergência bloqueia a certificação e a futura troca do botão.
 
-## Regra de aceite para integração
+## 12. Certificação integral
 
-A exportação `.xlsx` somente poderá substituir a atual quando:
+A certificação executa:
 
-1. o relatório de equivalência retornar `equivalent: true`;
-2. todos os testes automatizados forem aprovados;
-3. a prévia visual reproduzir a versão aprovada;
-4. o CSV atual permanecer disponível até a validação final em produção;
-5. o botão do site for alterado em PR separado, com possibilidade de reversão imediata.
+```text
+estado de origem
+→ evaluateMonthlyEvaluation
+→ modelo institucional
+→ plano do workbook
+→ pacote OOXML
+→ endereço e valor da célula
+→ hashes e manifesto
+```
 
-## Oportunidades posteriores
+Critérios:
 
-Novas análises podem ser acrescentadas em abas opcionais, sempre com origem e regra documentadas:
+- zero divergência canônica;
+- equivalência com CSV;
+- quatro abas na ordem;
+- todas as células esperadas presentes;
+- valores normalizados idênticos;
+- escopo histórico preservado;
+- manifesto determinístico.
 
-- análise técnica por documento;
-- pendências abertas e resolvidas;
-- inventário e bens permanentes;
-- carteira por controlador e região administrativa;
-- trilha de auditoria da exportação.
+Evidência: [`../evidence/excel-certification/synthetic-manifest.json`](../evidence/excel-certification/synthetic-manifest.json).
 
-Essas extensões não poderão modificar o conteúdo da aba `BONIFICACOES`.
+## 13. Troca do botão institucional
+
+A mudança do botão de CSV para XLSX não integra a entrega de certificação.
+
+Antes da troca:
+
+1. abrir o arquivo no Microsoft Excel desktop sem reparo;
+2. homologar conteúdo e apresentação com massa representativa;
+3. manter o CSV acessível durante a transição;
+4. implementar em PR próprio;
+5. garantir reversão imediata;
+6. atualizar documentação e UAT.
+
+## 14. Relação com o Excel SME
+
+Os produtos não são intercambiáveis:
+
+| Dimensão | Institucional | SME mensal |
+|---|---|---|
+| Escopo | histórico | competência ativa |
+| Granularidade | escola × competência × programa | uma linha por escola |
+| Abas | quatro | uma |
+| Colunas principais | doze | 26 |
+| Botão atual | CSV legado | Excel SME |
+
+Contrato SME: [`excel-sme-mensal.md`](excel-sme-mensal.md).
+
+## 15. Limites
+
+A implementação não:
+
+- altera automaticamente o botão legado;
+- consulta Production durante a certificação sintética;
+- grava no Supabase;
+- substitui homologação manual;
+- autoriza novas análises sem origem e regra documentadas.
+
+## 16. Evolução
+
+Novas abas ou análises devem ser opcionais, rastreáveis e incapazes de modificar `BONIFICACOES`. Mudança de granularidade, campos ou regra de inclusão exige decisão específica e nova certificação integral.
