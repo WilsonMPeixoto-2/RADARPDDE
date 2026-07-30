@@ -217,7 +217,7 @@ test('mantém o formulário oculto durante sessão e dados, liberando-o apenas q
     assert.equal(form.attributes['aria-hidden'], 'true');
     assert.match(description.textContent, /sessão reconhecida.*carregando/i);
     assert.equal(status.textContent, 'Acesso confirmado. Preparando o ambiente de trabalho…');
-    assert.equal(status.dataset.state, 'success');
+    assert.equal(status.dataset.type, 'success');
 
     handlers.get('radar:auth-required')({ detail: { message: 'Entre para continuar.' } });
 
