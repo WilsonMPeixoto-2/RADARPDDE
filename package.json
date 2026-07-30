@@ -87,5 +87,8 @@
     "prettier": "3.9.6",
     "supabase": "2.109.1",
     "typescript": "7.0.2"
+  },
+  "dependencies": {
+    "exceljs": "4.4.0"
   }
 }
