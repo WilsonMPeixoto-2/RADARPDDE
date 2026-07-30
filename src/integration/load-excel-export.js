@@ -8,7 +8,7 @@
         '/src/domain/excel-export-model.js',
         '/src/domain/excel-workbook-plan.js',
         '/src/domain/excel-xlsx-renderer.js',
-        '/vendor/exceljs.min.js',
+        '/vendor/write-excel-file.min.js',
         '/src/domain/excel-sme-export-model.js',
         '/src/domain/excel-sme-monthly-renderer.js',
         '/src/integration/excel-export-integration.js'
