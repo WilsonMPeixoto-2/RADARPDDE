@@ -1,12 +1,13 @@
 'use strict';
 
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
+const { execFileSync } = require('node:child_process');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const ExcelJS = require('exceljs');
-const JSZip = require('jszip');
 const modelApi = require('../../src/domain/excel-sme-export-model.js');
 const renderer = require('../../src/domain/excel-sme-template-renderer.js');
 
@@ -53,13 +54,23 @@ function fixture(activeCompetenciaKey = '2026-05') {
     };
 }
 
+function readZipEntry(bytes, entry) {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'radar-excel-sme-'));
+    const file = path.join(directory, 'candidate.xlsx');
+    try {
+        fs.writeFileSync(file, bytes);
+        return execFileSync('unzip', ['-p', file, entry], { encoding: 'utf8' });
+    } finally {
+        fs.rmSync(directory, { recursive: true, force: true });
+    }
+}
+
 async function generate(activeCompetenciaKey = '2026-05') {
     const templateBytes = fs.readFileSync(TEMPLATE);
     const model = modelApi.buildSmeMonthlyModel(fixture(activeCompetenciaKey));
     const bytes = await renderer.renderWorkbook(model, { ExcelJS, templateBytes });
-    const zip = await JSZip.loadAsync(bytes);
-    const workbookXml = await zip.file('xl/workbook.xml').async('string');
-    const sheetXml = await zip.file('xl/worksheets/sheet1.xml').async('string');
+    const workbookXml = readZipEntry(bytes, 'xl/workbook.xml');
+    const sheetXml = readZipEntry(bytes, 'xl/worksheets/sheet1.xml');
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.load(bytes);
     return { model, workbook, workbookXml, sheetXml };
