@@ -100,8 +100,8 @@ test('grava uma visualização válida da pasta de trabalho', async () => {
 test('grava área de impressão com referências integralmente absolutas', async () => {
     const { workbookXml } = await generate();
 
-    assert.match(workbookXml, /'MAIO'!\$A\$1:\$AD\$164/);
-    assert.doesNotMatch(workbookXml, /'MAIO'!\$A1:\$AD164/);
+    assert.match(workbookXml, /(?:'|&apos;)MAIO(?:'|&apos;)!\$A\$1:\$AD\$164/);
+    assert.doesNotMatch(workbookXml, /(?:'|&apos;)MAIO(?:'|&apos;)!\$A1:\$AD164/);
 });
 
 test('grava exatamente sete validações sem intervalos duplicados ou sobrepostos', async () => {
