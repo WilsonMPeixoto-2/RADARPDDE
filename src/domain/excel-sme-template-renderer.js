@@ -5,12 +5,15 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, function (root) {
     'use strict';
 
-    const VERSION = '2.0.0';
+    const VERSION = '2.1.0';
     const FIRST_DATA_ROW = 2;
     const FIRST_MONTHLY_COLUMN = 5;
     const LAST_COLUMN = 30;
     const LAST_COLUMN_LETTER = 'AD';
     const TEMPLATE_SHEET_NAME = 'DEZEMBRO';
+    const DOCUMENT_VALUES = Object.freeze(['SIM', 'NÃO', 'NÃO SE APLICA']);
+    const SYSTEMATIC_VALUES = Object.freeze(['SIM', 'NÃO']);
+    const OPINION_VALUES = Object.freeze(['APROVADA', ' ENVIADO PARA CORREÇÃO']);
 
     function validateModel(model) {
         if (!model || !Array.isArray(model.columns) || model.columns.length !== LAST_COLUMN) {
@@ -60,7 +63,6 @@
         target.fill = cloneValue(source.fill) || {};
         target.font = cloneValue(source.font) || {};
         target.protection = cloneValue(source.protection) || {};
-        target.dataValidation = cloneValue(source.dataValidation) || {};
     }
 
     function copyRowPresentation(sourceRow, targetRow) {
@@ -147,8 +149,29 @@
         }
     }
 
+    function listValidation(values) {
+        return Object.freeze({
+            type: 'list',
+            allowBlank: true,
+            formulae: [`"${values.join(',')}"`]
+        });
+    }
+
+    function configureDataValidations(worksheet, finalRow) {
+        worksheet.dataValidations.model = {};
+        const add = (range, values) => worksheet.dataValidations.add(range, listValidation(values));
+        add(`E${FIRST_DATA_ROW}:J${finalRow}`, DOCUMENT_VALUES);
+        add(`K${FIRST_DATA_ROW}:K${finalRow}`, SYSTEMATIC_VALUES);
+        add(`L${FIRST_DATA_ROW}:Q${finalRow}`, DOCUMENT_VALUES);
+        add(`R${FIRST_DATA_ROW}:R${finalRow}`, SYSTEMATIC_VALUES);
+        add(`S${FIRST_DATA_ROW}:X${finalRow}`, DOCUMENT_VALUES);
+        add(`Y${FIRST_DATA_ROW}:Y${finalRow}`, SYSTEMATIC_VALUES);
+        add(`AC${FIRST_DATA_ROW}:AC${finalRow}`, OPINION_VALUES);
+    }
+
     function configureWorksheet(worksheet, model) {
         worksheet.name = model.sheetName;
+        worksheet.state = 'visible';
         worksheet.views = [{
             state: 'frozen',
             xSplit: 4,
@@ -158,6 +181,7 @@
         }];
         const finalRow = Math.max(FIRST_DATA_ROW, worksheet.rowCount);
         worksheet.autoFilter = `A1:${LAST_COLUMN_LETTER}${finalRow}`;
+        configureDataValidations(worksheet, finalRow);
         worksheet.pageSetup = {
             ...worksheet.pageSetup,
             paperSize: 9,
@@ -166,7 +190,7 @@
             fitToWidth: 1,
             fitToHeight: 0,
             horizontalCentered: true,
-            printArea: `A1:${LAST_COLUMN_LETTER}${finalRow}`,
+            printArea: `A$1:${LAST_COLUMN_LETTER}$${finalRow}`,
             printTitlesRow: '1:1',
             margins: {
                 left: 0.25,
@@ -177,6 +201,18 @@
                 footer: 0.2
             }
         };
+    }
+
+    function configureWorkbook(workbook) {
+        workbook.views = [{
+            x: 0,
+            y: 0,
+            width: 24000,
+            height: 12000,
+            firstSheet: 0,
+            activeTab: 0,
+            visibility: 'visible'
+        }];
     }
 
     async function buildWorkbook(model, options = {}) {
@@ -202,6 +238,7 @@
         }
 
         configureWorksheet(worksheet, model);
+        configureWorkbook(workbook);
         workbook.creator = 'RADAR PDDE';
         workbook.lastModifiedBy = 'RADAR PDDE';
         const referenceDate = new Date(Date.UTC(model.competence.year, model.competence.month - 1, 1));
@@ -244,6 +281,7 @@
         LAST_COLUMN_LETTER,
         VERSION,
         buildWorkbook,
+        configureDataValidations,
         downloadWorkbook,
         normalizeDesignation,
         renderWorkbook
