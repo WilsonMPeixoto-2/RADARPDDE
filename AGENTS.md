@@ -1,6 +1,6 @@
 # AGENTS.md — RADAR PDDE 2026
 
-**Atualizado em:** 30 de julho de 2026
+**Atualizado em:** 1º de agosto de 2026
 
 ## 1. Leitura obrigatória
 
@@ -57,6 +57,7 @@ closing_competence: 2026-12
 migrations: 25 versões alinhadas
 Node: 24.x
 ciclos 1–5: concluídos e publicados
+Excel SME: concluído, homologado sem reparo e publicado
 liberação oficial: ainda não declarada
 ```
 
@@ -146,7 +147,7 @@ Mobile pode reorganizar tabelas em cartões, mas não remover informação ou ca
 - CSV legado como secundário e fallback;
 - Excel SME sem `dataValidations`.
 
-A homologação manual no Microsoft Excel desktop permanece necessária.
+A homologação manual do Excel SME no Microsoft Excel desktop está concluída e não deve ser tratada como pendência. O relatório institucional é produto preexistente e independente; eventual homologação manual desse arquivo pertence ao gate global de release, não ao escopo encerrado do Excel SME.
 
 ## 9. Persistência e Supabase
 
@@ -252,6 +253,7 @@ Usar `npm run test:readiness` como gate base e acrescentar, conforme impacto:
 - Playwright desktop e mobile;
 - gate por perfil e viewport;
 - Lighthouse;
+- dependências;
 - certificação Excel;
 - precedência do frontend;
 - build Vercel;
@@ -268,11 +270,11 @@ A conclusão exige:
 - correspondência entre commit, build e deployment quando houver publicação;
 - relato explícito quando não existir workflow associado ao SHA.
 
-## 15. Gates de liberação oficial
+## 15. Gates globais de liberação oficial
 
-Permanecem pendentes:
+Permanecem pendentes no processo geral do produto, sem constituir pendência do Excel SME:
 
-1. homologação manual dos relatórios no Microsoft Excel desktop;
+1. homologação manual do relatório institucional preexistente no Microsoft Excel desktop, caso essa frente seja priorizada;
 2. revisão dos Advisors quando aplicável;
 3. UAT funcional;
 4. polimento editorial e visual;
