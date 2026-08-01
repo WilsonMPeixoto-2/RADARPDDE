@@ -1,11 +1,11 @@
 # RADAR PDDE — Estado atual do projeto
 
-**Atualizado em:** 30 de julho de 2026  
-**Commit funcional da correção do login:** `9979330465af3dc186047d4fc0870bf8a3ff947e`  
-**Commit do artefato publicado:** `0536dd321f27f537ff9f0135e60516fb2c479441`  
-**Deployment Production:** `dpl_GNamjaq9WHCpyW1hsWAifC4uALyF` — `READY`  
-**Hardening atual:** Node 24, gates remotos, backup/restauração e desempenho de autenticação concluídos  
-**Próxima frente sugerida:** homologação manual dos relatórios no Microsoft Excel desktop
+- **Atualizado em:** 1º de agosto de 2026
+- **Commit funcional do Excel SME:** `baeea25201ed304f351ea7e3144b0f13147bc3a7`
+- **Commit do artefato publicado:** `b15718ecdd57e82baeaf2116de34af51f8ed1cc0`
+- **Deployment Production:** `dpl_HjpGHuFNzgTRKDsofzzogbBTAe5h` — `READY`
+- **Hardening atual:** Node 24, gates remotos, backup/restauração, autenticação e Excel SME compatível concluídos
+- **Próxima frente sugerida:** homologação manual do relatório institucional no Microsoft Excel desktop
 
 ## 1. Como usar este documento
 
@@ -36,7 +36,8 @@ Concluídos e publicados:
 - CSV legado preservado como fallback;
 - navegação contextual;
 - reconciliação do histórico da migration SME;
-- correção de desempenho do login e da restauração de sessão.
+- correção de desempenho do login e da restauração de sessão;
+- Excel SME mensal reconstruído sobre o template canônico de 30 colunas com ExcelJS 4.4.0, vinculado à competência ativa e homologado no Microsoft Excel desktop.
 
 Concluídos no hardening anterior ao release:
 
@@ -56,17 +57,17 @@ A liberação oficial do produto ainda não foi declarada.
 
 ```text
 project: radarpdde-fix
-production deployment: dpl_GNamjaq9WHCpyW1hsWAifC4uALyF
+production deployment: dpl_HjpGHuFNzgTRKDsofzzogbBTAe5h
 state: READY
-artifactCommitSha: 0536dd321f27f537ff9f0135e60516fb2c479441
-functionalMergeCommit: 9979330465af3dc186047d4fc0870bf8a3ff947e
+artifactCommitSha: b15718ecdd57e82baeaf2116de34af51f8ed1cc0
+functionalMergeCommit: baeea25201ed304f351ea7e3144b0f13147bc3a7
 nodeVersion: 24.x
 git.deploymentEnabled: false
 ```
 
-A correção do login foi publicada por janela controlada. O bloqueio automático foi restaurado após o deployment ficar `READY` e os contratos publicados passarem pelo smoke.
+O Excel SME compatível foi publicado por janela controlada. O bloqueio automático foi restaurado após o deployment ficar `READY` e os contratos publicados passarem pelos smokes HTTP e visual.
 
-Evidência: `docs/evidence/releases/2026-07-30-login-performance-production.json`.
+Evidência: `docs/evidence/releases/2026-08-01-excel-sme-production.json`.
 
 ### 3.2 Supabase
 
@@ -86,7 +87,7 @@ closing_competence = 2026-12
 app_config.row_version = 5
 ```
 
-A correção de desempenho não alterou schema, dados, RLS, Auth remoto ou migrations.
+A publicação do Excel SME não alterou schema, dados, RLS, Auth remoto ou migrations.
 
 ## 4. Desempenho do login e da restauração de sessão
 
@@ -248,14 +249,15 @@ Migration futura exige:
 
 ### SME mensal
 
-- modelo, renderer, integração e certificação: concluídos;
-- botão próprio por competência mensal;
+- template canônico, modelo de tradução, renderer ExcelJS, integração e certificação: concluídos;
+- 30 colunas literais do modelo original e uma aba associada à competência mensal ativa;
+- botão próprio habilitado apenas para competência mensal válida;
 - `dataValidations`: ausente por contrato;
-- abertura manual no Excel desktop: pendente.
+- abertura manual no Excel desktop: aprovada sem aviso de reparo, com conteúdo visível e alinhamentos revisados.
 
 ## 11. Gates remanescentes antes da liberação oficial
 
-1. abrir os dois produtos no Microsoft Excel desktop sem reparo;
+1. abrir o relatório institucional de quatro abas no Microsoft Excel desktop sem reparo;
 2. revisar Advisors quando aplicável;
 3. concluir UAT funcional;
 4. realizar polimento editorial e visual sem alterar produto;
@@ -265,16 +267,15 @@ Node, matriz remota, backup/restauração e desempenho do login estão cumpridos
 
 ## 12. Próxima frente recomendada
 
-### Homologação manual no Microsoft Excel desktop
+### Homologação manual do relatório institucional no Microsoft Excel desktop
 
 - abrir o relatório institucional de quatro abas;
-- abrir o Excel SME mensal;
 - confirmar ausência de aviso de reparo;
 - conferir fórmulas, estilos, filtros, congelamento, larguras e impressão;
 - registrar versão do Excel, arquivos, data e resultado;
 - corrigir divergências e repetir a certificação automatizada.
 
-Depois disso, seguir para Advisors, UAT, polimento e decisão de release.
+O Excel SME mensal já cumpriu esse gate. Depois do relatório institucional, seguir para Advisors, UAT, polimento e decisão de release.
 
 ## 13. Documentos de continuidade
 
@@ -285,6 +286,7 @@ Depois disso, seguir para Advisors, UAT, polimento e decisão de release.
 - `docs/architecture/testing.md`;
 - `docs/reference/STATUS_DOCUMENTOS.md`;
 - `docs/audits/2026-07-30-performance-login-restauracao-sessao.md`;
+- `docs/evidence/releases/2026-08-01-excel-sme-production.json`;
 - `docs/evidence/releases/2026-07-30-login-performance-production.json`;
 - `docs/audits/2026-07-30-backup-restore-disposable.md`;
 - `docs/audits/2026-07-30-node24-gate-remoto-perfis-viewports.md`;

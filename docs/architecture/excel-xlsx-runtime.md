@@ -1,7 +1,7 @@
 # Integração runtime das exportações Excel
 
 **Estado:** vigente e implementado  
-**Atualizado em:** 29 de julho de 2026
+**Atualizado em:** 1º de agosto de 2026
 
 ## 1. Objetivo
 
@@ -15,8 +15,10 @@ Ativar no aplicativo os dois produtos `.xlsx` sem modificar o núcleo monolític
 2. `excel-workbook-plan.js` — plano declarativo do workbook institucional;
 3. `excel-xlsx-renderer.js` — pacote Office Open XML institucional;
 4. `excel-sme-export-model.js` — modelo mensal SME;
-5. `excel-sme-monthly-renderer.js` — pacote OOXML SME;
-6. `excel-export-integration.js` — integração dos botões e fallback.
+5. `excel-sme-template-renderer.js` — aplicação do template canônico por ExcelJS;
+6. `excel-sme-monthly-renderer.js` — adaptador estável para o renderer do template;
+7. `excel-sme-runtime-loader.js` — ExcelJS e template carregados sob demanda;
+8. `excel-export-integration.js` — integração dos botões e fallback.
 
 O loader é acionado por `config.js` após o evento `load`. Seus filhos usam ordem sequencial e `async = false`.
 
@@ -47,7 +49,8 @@ O botão:
 - fica desabilitado em `TODAS` ou valor inválido;
 - atualiza `aria-disabled`, título e competência associada;
 - impede múltiplas gerações simultâneas;
-- gera arquivo mensal de uma aba;
+- gera arquivo mensal de uma aba e 30 colunas, com nome, aba e dados derivados da competência ativa;
+- carrega ExcelJS 4.4.0 e o template canônico somente após o acionamento do botão;
 - registra o evento de exportação.
 
 ## 5. Barreiras de segurança
@@ -87,9 +90,9 @@ O renderer institucional produz diretamente:
 - gráfico da síntese;
 - metadados do arquivo.
 
-O renderer SME produz uma planilha de 26 colunas e não inclui `dataValidations`.
+O renderer SME aplica os dados canônicos ao template oficial de 30 colunas, preserva sua apresentação e não inclui `dataValidations`.
 
-Não há dependência de CDN no runtime.
+Não há dependência de CDN no runtime. O bundle versionado de ExcelJS e o template residem no próprio artefato da aplicação.
 
 ## 7. Idempotência
 
@@ -116,7 +119,7 @@ A integração depende dos contratos certificados em:
 - [`excel-sme-mensal.md`](excel-sme-mensal.md);
 - [`excel-integral-certification.md`](excel-integral-certification.md).
 
-A certificação automatizada não substitui abertura manual no Microsoft Excel desktop.
+A certificação automatizada não substitui abertura manual no Microsoft Excel desktop. A implementação funcional do Excel SME integrada pelo PR #117 já passou por essa homologação; o produto institucional mantém gate separado.
 
 ## 10. Reversão
 
@@ -128,12 +131,11 @@ A integração pode ser revertida por:
 
 O `app.js` não foi reescrito para acomodar o XLSX, reduzindo o impacto do rollback.
 
-## 11. Gate pendente
+## 11. Gates de liberação ainda pendentes
 
 Antes da liberação oficial:
 
 - abrir o institucional no Microsoft Excel desktop sem reparo;
-- abrir o Excel SME sem reparo;
 - confirmar o botão CSV e o fallback;
 - validar downloads nos perfis autorizados;
 - registrar evidência e UAT.

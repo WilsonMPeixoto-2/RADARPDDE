@@ -1,11 +1,12 @@
 # Exportação Excel SME mensal
 
-**Estado:** modelo, renderer, integração e certificação automatizada concluídos  
-**Atualizado em:** 29 de julho de 2026
+**Estado:** template canônico, renderer ExcelJS, integração, certificação e homologação desktop concluídos
+
+**Atualizado em:** 1º de agosto de 2026
 
 ## 1. Finalidade
 
-O botão **Excel SME** gera uma planilha mensal próxima ao modelo operacional recebido da SME, preenchida com os dados canônicos do RADAR para a competência selecionada.
+O botão **Excel SME** gera uma tradução fiel do modelo operacional recebido da SME, preenchida com os dados canônicos do RADAR para a competência selecionada.
 
 O produto é distinto do relatório institucional:
 
@@ -33,19 +34,20 @@ A única aba recebe o nome do mês em português.
 
 ## 3. Estrutura
 
-A planilha possui 26 colunas:
+A planilha possui 30 colunas:
 
 1. número sequencial;
 2. CRE;
 3. designação;
 4. unidade escolar;
-5. seis campos documentais da Conta PDDE Básico;
-6. seis campos documentais da Conta PDDE Qualidade;
-7. seis campos documentais da Conta PDDE Equidade;
-8. data de entrega;
-9. data de correção;
-10. parecer;
-11. observações.
+5. seis campos documentais e `SISTEMÁTICA PREENCHIDA` da Conta PDDE Básico;
+6. seis campos documentais e `SISTEMÁTICA PREENCHIDA` da Conta PDDE Qualidade;
+7. seis campos documentais e `SISTEMÁTICA PREENCHIDA` da Conta PDDE Equidade;
+8. `STATUS`;
+9. data de entrega;
+10. data de correção;
+11. parecer;
+12. observações.
 
 Os quatro campos administrativos finais permanecem vazios quando não existe fonte canônica no RADAR. A exportação não inventa conteúdo.
 
@@ -72,17 +74,16 @@ Essa regra evita apresentar uma conta como regular quando uma ação vinculada p
 
 ## 6. Apresentação
 
-O renderer reutiliza o motor OOXML/ZIP institucional e cria uma única planilha com:
+O renderer usa ExcelJS 4.4.0 e o template canônico `assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx` para criar uma única planilha com:
 
-- cabeçalho em Arial;
-- grupos visuais por conta;
-- bordas e linhas alternadas;
-- larguras e alturas ajustadas;
-- textos longos com quebra automática;
-- autofiltro;
-- quatro primeiras colunas e cabeçalho congelados;
+- 30 cabeçalhos literais do documento original;
+- mesclagem `A1:B1`, estilos, bordas, larguras e alturas preservados;
+- textos descritivos alinhados à esquerda com recuo leve;
+- valores categóricos centralizados;
+- alinhamento vertical e quebra automática coerentes em todas as células;
+- autofiltro e painel congelado em `E2`;
 - impressão em paisagem ajustada à largura;
-- cabeçalho e rodapé de impressão.
+- uma única aba, nomeada pelo mês da competência ativa.
 
 ### Ausência deliberada de validação de lista
 
@@ -122,7 +123,7 @@ Critérios específicos:
 
 - uma única competência;
 - uma única aba;
-- 26 colunas;
+- 30 colunas;
 - quantidade de escolas igual à massa de entrada;
 - células do cabeçalho e dos dados sem divergência;
 - ausência de `dataValidations`;
@@ -139,17 +140,18 @@ A certificação automatizada:
 - não grava no Supabase;
 - não comprova abertura manual no Microsoft Excel desktop.
 
-A homologação manual sem reparo permanece gate obrigatório da liberação oficial.
+O candidato correspondente à implementação funcional integrada pelo PR #117 foi aberto no Microsoft Excel desktop sem aviso de reparo, exibiu o conteúdo e teve os alinhamentos revisados. Essa evidência cumpre o gate manual específico do Excel SME; o relatório institucional mantém homologação própria.
 
 ## 10. Contratos protegidos
 
 - competência mensal única;
 - uma linha por unidade escolar;
-- 26 colunas;
+- 30 colunas literais do template canônico;
 - três agrupamentos de conta;
 - nenhuma informação inventada;
 - ausência de `dataValidations`;
 - isolamento temporal;
+- nome da aba, nome do arquivo e dados vinculados à competência ativa;
 - independência do relatório institucional e do CSV de fallback.
 
 ## 11. Referências
@@ -158,4 +160,5 @@ A homologação manual sem reparo permanece gate obrigatório da liberação ofi
 - [`excel-export.md`](excel-export.md);
 - [`excel-xlsx-runtime.md`](excel-xlsx-runtime.md);
 - [`avaliacao-mensal.md`](avaliacao-mensal.md);
+- [`../evidence/releases/2026-08-01-excel-sme-production.json`](../evidence/releases/2026-08-01-excel-sme-production.json);
 - [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md).

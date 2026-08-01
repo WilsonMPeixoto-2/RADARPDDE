@@ -1,6 +1,6 @@
 # RADAR PDDE 2026 — Contexto funcional e arquitetural
 
-**Atualizado em:** 30 de julho de 2026
+**Atualizado em:** 1º de agosto de 2026
 
 ## 1. Finalidade
 
@@ -24,15 +24,16 @@ Dashboard, Carteira, Competências, Prontuário, Pendências, Inventário, Regis
 - a `main` contém governança da Gestão SME e ciclos 1 a 5;
 - o runtime Node está fixado em `24.x`;
 - a reconciliação SME foi integrada em `79cb67c84720b1850879d9c50c262e1623d5d8cc`;
-- Vercel Production: `dpl_7tLM3RZ7MEuRRTzvGmc9EiAARmDY`, `READY`;
-- commit funcional publicado: `dfc8aa3030b02edb73f764f5f56bd6759a7a1d77`;
+- Vercel Production: `dpl_HjpGHuFNzgTRKDsofzzogbBTAe5h`, `READY`;
+- commit funcional publicado: `baeea25201ed304f351ea7e3144b0f13147bc3a7`;
+- commit do artefato publicado: `b15718ecdd57e82baeaf2116de34af51f8ed1cc0`;
 - runtime: `production` e `supabase-production`;
 - Supabase: `scnryinorqeucbfkioxo`, `ACTIVE_HEALTHY`;
 - 12 competências de 2026;
 - `closing_competence = 2026-12`;
 - `app_config.row_version = 5`;
 - 25 migrations correspondentes entre GitHub e Supabase Production;
-- XLSX institucional e Excel SME integrados;
+- XLSX institucional integrado e Excel SME de 30 colunas publicado sobre template canônico com ExcelJS 4.4.0;
 - CSV legado preservado como secundário e fallback;
 - deployments automáticos bloqueados;
 - gate remoto perfil/viewport concluído;
@@ -245,12 +246,14 @@ Projeto autorizado: `scnryinorqeucbfkioxo`. O build público contém somente con
 
 - uma competência por arquivo;
 - todas as unidades no escopo;
-- 26 colunas;
-- uma planilha mensal;
+- 30 colunas literais do modelo original;
+- uma planilha com nome, arquivo e dados derivados da competência mensal ativa;
+- template canônico e ExcelJS 4.4.0 carregados sob demanda;
 - ausência de `dataValidations`;
-- comparação célula a célula.
+- comparação célula a célula;
+- abertura no Microsoft Excel desktop aprovada sem reparo, com conteúdo visível e alinhamentos revisados.
 
-A evidência sintética não consulta Production e não substitui abertura manual no Excel desktop.
+A evidência sintética não consulta Production. A homologação manual do Excel SME foi concluída; a do relatório institucional permanece separada e pendente.
 
 ## 18. Runtime e gates
 
@@ -286,7 +289,7 @@ A checagem de credenciais comprometidas depende do plano Pro ou superior. No pla
 
 ## 20. Bloqueadores remanescentes
 
-1. homologação manual dos relatórios no Microsoft Excel desktop;
+1. homologação manual do relatório institucional no Microsoft Excel desktop;
 2. revisão dos Advisors quando aplicável;
 3. UAT funcional;
 4. polimento editorial e visual;
