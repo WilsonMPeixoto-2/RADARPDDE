@@ -1,5 +1,7 @@
 # Certificação integral dos relatórios Excel
 
+**Atualizado em:** 1º de agosto de 2026
+
 ## 1. Finalidade
 
 A certificação integral comprova que os relatórios Excel do RADAR PDDE preservam seus contratos funcionais desde o estado de origem até o valor efetivamente gravado em cada célula do pacote OOXML.
@@ -41,7 +43,7 @@ Contrato preservado:
 - uma única competência por arquivo;
 - todas as unidades escolares no escopo da Gestão SME;
 - uma linha por unidade;
-- 26 colunas;
+- 30 colunas literais do template canônico;
 - agrupamentos PDDE Básico, Qualidade e Equidade;
 - uma planilha com o nome do mês;
 - cabeçalho na linha `1` e dados a partir da linha `2`;
@@ -113,12 +115,13 @@ Uma divergência canônica bloqueia todos os produtos que incluam o contexto afe
 
 ### 5.1 Extração
 
-O módulo usa as entradas produzidas pelos próprios renderers:
+Para o produto institucional, o módulo usa as entradas produzidas pelo próprio renderer:
 
 - `RadarExcelXlsxRenderer.buildPackageEntries()`;
-- `RadarExcelSmeMonthlyRenderer.buildPackageEntries()`.
 
-A planilha XML é lida diretamente. Células `inlineStr` e numéricas são normalizadas sem biblioteca paralela de planilhas.
+A planilha XML institucional é lida diretamente. Células `inlineStr` e numéricas são normalizadas sem biblioteca paralela de planilhas.
+
+Para o Excel SME, a certificação do manifesto valida o contrato lógico de 30 colunas, cabeçalhos literais, posições das três sistemáticas, `STATUS`, quatro campos administrativos e isolamento temporal. Os testes do renderer carregam o template, executam o round-trip pelo ExcelJS e verificam a planilha resultante, incluindo estilos, alinhamentos, filtro, congelamento e impressão.
 
 ### 5.2 Comparação institucional
 
@@ -141,7 +144,7 @@ buildSmeMonthlyModel
 → model.columns + model.rows
 ```
 
-O cabeçalho é comparado na linha `1`; os dados, a partir de `A2`.
+O cabeçalho lógico é comparado na linha `1`; os dados, a partir de `A2`. A igualdade com o template canônico e com o workbook gerado é protegida pelos testes do renderer e de compatibilidade Office.
 
 Qualquer célula ausente ou divergente gera:
 
@@ -158,7 +161,7 @@ A certificação exige as entradas estruturais:
 - `xl/_rels/workbook.xml.rels`;
 - `xl/styles.xml`.
 
-Também verifica:
+Também verifica, conforme o produto:
 
 - quantidade de worksheets;
 - ausência de `<dataValidations>`;
@@ -248,15 +251,12 @@ node scripts/generate-excel-certification-evidence.mjs --check
 10. não existem `dataValidations`;
 11. o manifesto é determinístico.
 
-## 12. Limites desta entrega
+## 12. Limites e homologação manual
 
 A certificação não:
 
-- altera o botão institucional ainda vinculado ao CSV;
-- substitui o relatório CSV;
-- altera a regra de inclusão dos exportadores;
 - consulta diretamente Production;
 - grava dados no Supabase;
 - declara que o arquivo foi aberto manualmente no Microsoft Excel desktop.
 
-A substituição do CSV e a homologação manual no Excel permanecem decisões posteriores, apoiadas pelas evidências automatizadas desta entrega.
+O candidato correspondente à implementação funcional integrada pelo PR #117 foi aberto manualmente no Microsoft Excel desktop sem reparo, com conteúdo visível e alinhamentos revisados. Essa evidência é externa à certificação automatizada. O relatório institucional e o CSV mantêm contratos e gates próprios.

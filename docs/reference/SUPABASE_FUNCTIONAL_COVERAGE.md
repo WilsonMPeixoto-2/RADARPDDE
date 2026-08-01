@@ -160,13 +160,13 @@ A integração:
 
 ### 7.2 SME mensal
 
-O produto mensal de uma aba e 26 colunas está implementado, certificado e integrado em botão próprio, habilitado somente para competência mensal.
+O produto mensal de uma aba e 30 colunas literais do template canônico está implementado, certificado, homologado no Microsoft Excel desktop e integrado em botão próprio, habilitado somente para competência mensal.
 
 A ausência de `dataValidations` é requisito atual para evitar reparo no Microsoft Excel.
 
 ### 7.3 Gate externo
 
-A homologação manual dos dois produtos no Microsoft Excel desktop ainda é bloqueador de release.
+A homologação manual do Excel SME foi concluída. A abertura do relatório institucional no Microsoft Excel desktop ainda é bloqueador de release.
 
 ## 8. Gates pendentes de liberação oficial
 

@@ -1,0 +1,65 @@
+{
+  "release": "excel-sme-template-exceljs-2026-08-01",
+  "publishedAt": "2026-08-01T05:34:06.749Z",
+  "functionalPullRequest": 117,
+  "publicationPullRequest": 118,
+  "functionalMergeCommit": "baeea25201ed304f351ea7e3144b0f13147bc3a7",
+  "publicationCommit": "b15718ecdd57e82baeaf2116de34af51f8ed1cc0",
+  "vercel": {
+    "project": "radarpdde-fix",
+    "deploymentId": "dpl_HjpGHuFNzgTRKDsofzzogbBTAe5h",
+    "state": "READY",
+    "target": "production",
+    "artifactCommitSha": "b15718ecdd57e82baeaf2116de34af51f8ed1cc0",
+    "canonicalUrl": "https://radarpdde-fix.vercel.app",
+    "buildDurationMilliseconds": 5903
+  },
+  "runtime": {
+    "environment": "production",
+    "dataMode": "supabase-production",
+    "supabaseRepositoryEnabled": true,
+    "productionActivationApproved": true
+  },
+  "smoke": {
+    "root": {
+      "status": 200,
+      "title": "RADAR PDDE - Registro de Acompanhamento das Demandas, Análises e Regularizações",
+      "visualLoginRendered": true
+    },
+    "runtimeConfig": {
+      "status": 200,
+      "environment": "production",
+      "dataMode": "supabase-production"
+    },
+    "excelSmeRenderer": {
+      "status": 200,
+      "version": "2.3.0",
+      "canonicalTemplate": true,
+      "columnCount": 30,
+      "descriptiveAlignment": true
+    },
+    "competenceBinding": {
+      "status": 200,
+      "activeCompetenciaKey": true
+    },
+    "excelJsBundle": {
+      "status": 200,
+      "loadedOnDemand": true
+    },
+    "buildCompleted": true,
+    "fatalBuildErrors": 0,
+    "runtimeErrorsLast30Minutes": 0
+  },
+  "excelDesktopHomologation": {
+    "status": "passed",
+    "opensWithoutRepair": true,
+    "contentVisible": true,
+    "alignmentReviewed": true,
+    "candidateCompetence": "2026-12"
+  },
+  "databaseChanges": false,
+  "migrationChanges": false,
+  "rlsChanges": false,
+  "productionDataChanges": false,
+  "deploymentWindowClosedBy": "ops/restaurar-bloqueio-excel-sme-20260801"
+}

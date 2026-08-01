@@ -194,12 +194,12 @@ Todas as superfícies devem:
 | Campo | Contrato atual |
 |---|---|
 | Institucional | botão principal XLSX, histórico e quatro abas |
-| SME | botão próprio, uma competência, uma aba e 26 colunas |
+| SME | botão próprio, uma competência, uma aba e 30 colunas do template canônico |
 | CSV | botão secundário e fallback institucional |
 | Certificação | regra canônica até a célula OOXML e hashes |
 | `dataValidations` SME | ausente por contrato |
 | Persistência | nenhuma escrita no Supabase |
-| Gate pendente | abertura manual no Microsoft Excel desktop |
+| Gate pendente | abertura manual do relatório institucional no Microsoft Excel desktop; Excel SME aprovado |
 
 ## S-15 — Autenticação
 

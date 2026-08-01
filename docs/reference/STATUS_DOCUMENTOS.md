@@ -1,6 +1,6 @@
 # Matriz de validade documental
 
-**Atualizado em:** 30 de julho de 2026
+**Atualizado em:** 1º de agosto de 2026
 
 ## 1. Finalidade
 
@@ -43,7 +43,6 @@ Definir quais arquivos controlam o estado presente e quais permanecem apenas com
 | `docs/runbooks/SUPABASE_CONNECTION.md` | vigente; conexão, migrations e recuperação alinhadas |
 | `docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md` | vigente; inclui gate descartável de restauração |
 | `docs/runbooks/SUPABASE_REMOTE_PREFLIGHT.md` | vigente |
-| `docs/runbooks/VERCEL_DEPLOY.md` | vigente |
 | `docs/runbooks/MIGRATION_FIREBASE_SUPABASE.md` | vigente para planejamento de migração |
 | `docs/runbooks/IMPORT_EXECUTION.md` | vigente quando houver pacote autorizado |
 | `docs/runbooks/INCIDENT_RESPONSE.md` | vigente |
@@ -54,12 +53,13 @@ Definir quais arquivos controlam o estado presente e quais permanecem apenas com
 |---|---|---|
 | `docs/decisions/ADR-036-backup-restauracao-e-recurso-pago-auth.md` | Decisão vigente | gate de recuperação e exclusão de requisito dependente do plano Pro |
 | `docs/audits/2026-07-30-backup-restore-disposable.md` | Evidência | restauração equivalente e segurança do artefato |
+| `docs/evidence/releases/2026-08-01-excel-sme-production.json` | Evidência | homologação desktop, publicação Production, smokes e ausência de mudança no Supabase |
 | `docs/decisions/ADR-035-node24-e-gate-remoto.md` | Decisão vigente | Node 24 e matriz remota |
 | `docs/audits/2026-07-30-node24-gate-remoto-perfis-viewports.md` | Evidência | runtime, perfis, viewports e correção móvel |
 | `docs/audits/2026-07-29-reconciliacao-migration-sme-evidencias.md` | Evidência | reparo oficial da migration SME |
 | `docs/audits/2026-07-29-rastreabilidade-migration-sme.md` | Evidência histórica resolvida | achado original |
 | `docs/audits/2026-07-29-alinhamento-documental-integral-pos-pr108.md` | Evidência | reconciliação documental |
-| `docs/evidence/excel/certification-manifest.json` | Evidência gerada | certificação sintética Excel |
+| `docs/evidence/excel-certification/synthetic-manifest.json` | Evidência gerada | certificação sintética Excel |
 
 ## 6. Contratos executáveis
 
