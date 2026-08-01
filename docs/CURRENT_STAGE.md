@@ -5,7 +5,7 @@
 - **Commit do artefato publicado:** `b15718ecdd57e82baeaf2116de34af51f8ed1cc0`
 - **Deployment Production:** `dpl_HjpGHuFNzgTRKDsofzzogbBTAe5h` — `READY`
 - **Hardening atual:** Node 24, gates remotos, backup/restauração, autenticação e Excel SME compatível concluídos
-- **Próxima frente sugerida:** homologação manual do relatório institucional no Microsoft Excel desktop
+- **Frente Excel SME:** concluída, homologada e publicada, sem pendência remanescente no escopo
 
 ## 1. Como usar este documento
 
@@ -49,7 +49,7 @@ Concluídos no hardening anterior ao release:
 - equivalência comprovada de schema, dados públicos, identidades Auth e migrations;
 - evidência sanitizada sem publicação dos dumps SQL.
 
-A liberação oficial do produto ainda não foi declarada.
+A liberação oficial do produto ainda não foi declarada. Essa condição global não representa pendência da frente Excel SME.
 
 ## 3. Produção
 
@@ -242,10 +242,11 @@ Migration futura exige:
 
 ### Institucional
 
-- modelo, renderer, quatro abas e certificação: concluídos;
+- produto preexistente e independente da frente Excel SME;
+- modelo, renderer, quatro abas e certificação automatizada: concluídos;
 - botão principal integrado ao XLSX;
 - CSV preservado como secundário e fallback;
-- abertura manual no Excel desktop: pendente.
+- eventual homologação manual futura pertence ao gate global de release e não ao escopo do reparo do Excel SME.
 
 ### SME mensal
 
@@ -253,29 +254,36 @@ Migration futura exige:
 - 30 colunas literais do modelo original e uma aba associada à competência mensal ativa;
 - botão próprio habilitado apenas para competência mensal válida;
 - `dataValidations`: ausente por contrato;
-- abertura manual no Excel desktop: aprovada sem aviso de reparo, com conteúdo visível e alinhamentos revisados.
+- abertura manual no Excel desktop: aprovada sem aviso de reparo, com conteúdo visível e alinhamentos revisados;
+- publicação em Production: concluída;
+- escopo de criação/correção da geração: encerrado com sucesso.
 
-## 11. Gates remanescentes antes da liberação oficial
+## 11. Gates globais remanescentes antes da liberação oficial
 
-1. abrir o relatório institucional de quatro abas no Microsoft Excel desktop sem reparo;
+Os itens abaixo pertencem ao processo geral de liberação do produto e não constituem pendências do Excel SME:
+
+1. homologar o relatório institucional preexistente no Microsoft Excel desktop, caso essa frente seja priorizada;
 2. revisar Advisors quando aplicável;
 3. concluir UAT funcional;
 4. realizar polimento editorial e visual sem alterar produto;
 5. registrar decisão formal de release.
 
-Node, matriz remota, backup/restauração e desempenho do login estão cumpridos e não integram mais os bloqueadores.
+Node, matriz remota, backup/restauração, desempenho do login e Excel SME estão cumpridos e não integram mais os bloqueadores de suas respectivas frentes.
 
-## 12. Próxima frente recomendada
+## 12. Encerramento da frente Excel SME
 
-### Homologação manual do relatório institucional no Microsoft Excel desktop
+A frente iniciada para criar/corrigir a geração do arquivo **Excel SME** está concluída integralmente:
 
-- abrir o relatório institucional de quatro abas;
-- confirmar ausência de aviso de reparo;
-- conferir fórmulas, estilos, filtros, congelamento, larguras e impressão;
-- registrar versão do Excel, arquivos, data e resultado;
-- corrigir divergências e repetir a certificação automatizada.
+- implementação funcional integrada pelo PR `#117`;
+- template canônico e ExcelJS 4.4.0 em uso;
+- competência ativa vinculada ao arquivo e à aba;
+- abertura no Microsoft Excel desktop sem reparo;
+- conteúdo e alinhamentos homologados;
+- publicação Production concluída pelo PR `#118`;
+- janela de deployment encerrada pelo PR `#119`;
+- nenhuma mudança em banco, migration, RLS ou dados de Production.
 
-O Excel SME mensal já cumpriu esse gate. Depois do relatório institucional, seguir para Advisors, UAT, polimento e decisão de release.
+Nenhuma nova frente foi definida como continuação automática desse trabalho. O relatório institucional de quatro abas permanece um produto separado, preexistente e fora do escopo encerrado.
 
 ## 13. Documentos de continuidade
 
@@ -284,8 +292,8 @@ O Excel SME mensal já cumpriu esse gate. Depois do relatório institucional, se
 - `docs/PROJECT_CONTEXT.md`;
 - `docs/DECISION_LOG.md`;
 - `docs/architecture/testing.md`;
+- `docs/architecture/excel-sme-mensal.md`;
 - `docs/reference/STATUS_DOCUMENTOS.md`;
-- `docs/audits/2026-07-30-performance-login-restauracao-sessao.md`;
 - `docs/evidence/releases/2026-08-01-excel-sme-production.json`;
 - `docs/evidence/releases/2026-07-30-login-performance-production.json`;
 - `docs/audits/2026-07-30-backup-restore-disposable.md`;

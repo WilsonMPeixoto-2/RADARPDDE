@@ -2,7 +2,7 @@
 
 Sistema institucional de acompanhamento operacional do PDDE, com visão mensal, carteira de unidades, prontuário, pendências, registros internos, inventário, acompanhamento gerencial da Gestão SME e exportações institucionais.
 
-> **Estado em 30 de julho de 2026:** conectado ao Supabase Production autorizado e publicado na Vercel Production. A liberação oficial ainda depende dos gates remanescentes descritos em [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md).
+> **Estado em 1º de agosto de 2026:** conectado ao Supabase Production autorizado e publicado na Vercel Production. A frente de criação/correção do Excel SME foi concluída, homologada no Microsoft Excel desktop e publicada. A liberação oficial do produto ainda depende dos gates globais descritos em [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md).
 
 ## Estado funcional
 
@@ -13,8 +13,8 @@ Estão implementados e publicados:
 - avaliação mensal canônica;
 - timeline cronológica da unidade;
 - navegação contextual com preservação de competência, filtros, rolagem e foco;
-- relatório institucional XLSX;
-- Excel SME mensal;
+- relatório institucional XLSX preexistente;
+- Excel SME mensal de 30 colunas, baseado no template canônico, homologado sem reparo no Microsoft Excel desktop;
 - certificação automatizada de paridade integral;
 - CSV legado como fallback;
 - integração canônica com Supabase Production;
@@ -150,6 +150,18 @@ Certificação Excel:
 npm run certify:excel:fixture
 ```
 
+## Exportações Excel
+
+### Excel SME
+
+O botão **Excel SME** gera uma única aba para a competência mensal ativa, com 30 colunas literais do modelo recebido da SME. A implementação usa o template canônico e ExcelJS 4.4.0, não inclui `dataValidations` e foi homologada no Microsoft Excel desktop sem aviso de reparo.
+
+Essa frente foi concluída pelos PRs `#117`, `#118` e `#119`, incluindo implementação, publicação controlada e encerramento da janela de deployment.
+
+### Relatório institucional
+
+O relatório institucional XLSX de quatro abas já existia antes da correção do Excel SME e permanece produto independente. Qualquer homologação ou evolução futura desse arquivo não constitui pendência da frente Excel SME.
+
 ## Fontes de verdade
 
 1. [`AGENTS.md`](AGENTS.md);
@@ -159,9 +171,11 @@ npm run certify:excel:fixture
 5. código e migrations da `main`;
 6. estado efetivo do Supabase e da Vercel para dados mutáveis.
 
-## Bloqueadores remanescentes para release
+## Gates globais remanescentes para release
 
-1. homologar manualmente os arquivos no Microsoft Excel desktop;
+Os itens abaixo pertencem ao processo geral de liberação do produto e não são pendências do Excel SME:
+
+1. homologar o relatório institucional preexistente no Microsoft Excel desktop, caso essa frente seja priorizada;
 2. revisar os Advisors do Supabase quando aplicável;
 3. executar UAT funcional com representantes dos papéis reais;
 4. realizar polimento editorial e visual;
@@ -169,6 +183,7 @@ npm run certify:excel:fixture
 
 ## Evidências recentes
 
+- [`docs/evidence/releases/2026-08-01-excel-sme-production.json`](docs/evidence/releases/2026-08-01-excel-sme-production.json)
 - [`docs/audits/2026-07-30-backup-restore-disposable.md`](docs/audits/2026-07-30-backup-restore-disposable.md)
 - [`docs/audits/2026-07-30-node24-gate-remoto-perfis-viewports.md`](docs/audits/2026-07-30-node24-gate-remoto-perfis-viewports.md)
 - [`docs/audits/2026-07-29-reconciliacao-migration-sme-evidencias.md`](docs/audits/2026-07-29-reconciliacao-migration-sme-evidencias.md)
