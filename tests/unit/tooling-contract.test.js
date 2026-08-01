@@ -15,12 +15,17 @@ function readJson(relativePath) {
     return JSON.parse(read(relativePath));
 }
 
-test('mantém o renderer XLSX interno sem ExcelJS e fixa o toolchain aprovado', () => {
+test('mantém o renderer institucional interno e fixa ExcelJS somente para o produto SME', () => {
     const packageJson = readJson('package.json');
     const lockfile = read('package-lock.json');
+    const initialLoader = read('src/integration/load-excel-export.js');
+    const runtimeLoader = read('src/integration/excel-sme-runtime-loader.js');
 
-    assert.equal(packageJson.dependencies?.exceljs, undefined);
-    assert.doesNotMatch(lockfile, /"node_modules\/exceljs"/);
+    assert.equal(packageJson.dependencies?.exceljs, '4.4.0');
+    assert.match(lockfile, /"node_modules\/exceljs"/);
+    assert.equal(fs.existsSync(path.join(ROOT, 'vendor/exceljs.min.js')), true);
+    assert.doesNotMatch(initialLoader, /vendor\/exceljs\.min\.js/);
+    assert.match(runtimeLoader, /\/vendor\/exceljs\.min\.js/);
     assert.doesNotMatch(lockfile, /"node_modules\/@lhci\/cli"/);
     assert.equal(packageJson.devDependencies.prettier, '3.9.6');
     assert.equal(packageJson.devDependencies.knip, '6.29.0');

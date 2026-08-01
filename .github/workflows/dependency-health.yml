@@ -9,6 +9,13 @@ on:
       - eslint.config.js
       - lighthouserc.cjs
       - scripts/run-lighthouse-baseline.mjs
+      - scripts/check-exceljs-audit-policy.mjs
+      - vendor/exceljs.min.js
+      - src/domain/excel-sme-template-renderer.js
+      - src/domain/excel-sme-monthly-renderer.js
+      - src/integration/excel-sme-runtime-loader.js
+      - src/integration/excel-export-integration.js
+      - src/integration/load-excel-export.js
       - .github/dependabot.yml
       - .github/workflows/dependency-health.yml
   push:
@@ -21,6 +28,13 @@ on:
       - eslint.config.js
       - lighthouserc.cjs
       - scripts/run-lighthouse-baseline.mjs
+      - scripts/check-exceljs-audit-policy.mjs
+      - vendor/exceljs.min.js
+      - src/domain/excel-sme-template-renderer.js
+      - src/domain/excel-sme-monthly-renderer.js
+      - src/integration/excel-sme-runtime-loader.js
+      - src/integration/excel-export-integration.js
+      - src/integration/load-excel-export.js
       - .github/dependabot.yml
       - .github/workflows/dependency-health.yml
   schedule:
@@ -81,20 +95,8 @@ jobs:
           set -e
           printf '{"exitCode":%s}\n' "$audit_exit" > dependency-health/npm-audit-exit.json
 
-      - name: Bloquear vulnerabilidades altas ou críticas
-        run: |
-          node <<'NODE'
-          const fs = require('node:fs');
-          const report = JSON.parse(fs.readFileSync('dependency-health/npm-audit.json', 'utf8'));
-          const counts = report.metadata?.vulnerabilities || {};
-          const high = Number(counts.high || 0);
-          const critical = Number(counts.critical || 0);
-          console.log(`Vulnerabilidades: moderate=${Number(counts.moderate || 0)}, high=${high}, critical=${critical}`);
-          if (high > 0 || critical > 0) {
-            console.error('Foram encontradas vulnerabilidades altas ou críticas.');
-            process.exit(1);
-          }
-          NODE
+      - name: Aplicar política de alcance e bloquear alertas novos
+        run: npm run audit:exceljs-policy
 
       - name: Verificar assinaturas e proveniência
         continue-on-error: true
@@ -127,8 +129,9 @@ jobs:
         run: |
           echo "### Saúde das dependências" >> "${GITHUB_STEP_SUMMARY}"
           echo "- Knip: bloqueante para dependências não usadas, não declaradas, não resolvidas e falhas internas de análise." >> "${GITHUB_STEP_SUMMARY}"
-          echo "- Vulnerabilidades altas e críticas: bloqueantes." >> "${GITHUB_STEP_SUMMARY}"
-          echo "- Assinaturas, pacotes desatualizados, SBOM e árvore instalada: registrados como evidência." >> "${GITHUB_STEP_SUMMARY}"
+          echo "- Vulnerabilidades: relatório integral preservado; alertas novos e críticos continuam bloqueantes." >> "${GITHUB_STEP_SUMMARY}"
+          echo "- ExcelJS: somente dois advisories conhecidos podem ser aceitos nos caminhos transitivos não alcançados pelo runtime documental do navegador." >> "${GITHUB_STEP_SUMMARY}"
+          echo "- Bundle oficial, escopo de runtime, assinaturas, pacotes desatualizados, SBOM e árvore instalada são verificados ou registrados como evidência." >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Publicar evidências de dependências
         if: always()

@@ -18,6 +18,17 @@ function state(activeCompetenciaKey = '2026-07') {
         programas: [{ id: 'BASIC', name: 'PDDE Básico' }],
         verificacoes: {
             'school-1': {
+                '2026-05_BASIC': {
+                    bonificacao: {
+                        extCC: 'Não',
+                        extINV: 'Sim',
+                        notaFiscal: 'Não se aplica',
+                        consAssessoria: 'Não se aplica',
+                        declBBAgil: 'Sim',
+                        encampInventario: 'Não se aplica'
+                    },
+                    resultadoBonif: 'inapta'
+                },
                 '2026-07_BASIC': {
                     bonificacao: {
                         extCC: 'Sim',
@@ -46,6 +57,27 @@ test('cria artefato SME mensal independente do Excel institucional', () => {
     assert.equal(artifacts.model.sheetName, 'JULHO');
     assert.equal(artifacts.model.rows.length, 1);
     assert.equal(integration.buildFileName('2026-07'), 'RADAR_PDDE_BONIFICACOES_07-2026.xlsx');
+});
+
+test('usa somente os dados da competência ativa no fluxo real de exportação', () => {
+    const rendererApi = { async downloadWorkbook() {} };
+    const maio = integration.createSmeExportArtifacts(
+        state('2026-05'),
+        {},
+        { modelApi, rendererApi }
+    );
+    const julho = integration.createSmeExportArtifacts(
+        state('2026-07'),
+        {},
+        { modelApi, rendererApi }
+    );
+
+    assert.equal(maio.fileName, 'RADAR_PDDE_EXCEL_SME_05-2026.xlsx');
+    assert.equal(maio.model.sheetName, 'MAIO');
+    assert.equal(maio.model.rows[0].basic_extCC, 'NÃO');
+    assert.equal(julho.fileName, 'RADAR_PDDE_EXCEL_SME_07-2026.xlsx');
+    assert.equal(julho.model.sheetName, 'JULHO');
+    assert.equal(julho.model.rows[0].basic_extCC, 'SIM');
 });
 
 test('executa download pelo renderer exclusivo do Excel SME', async () => {

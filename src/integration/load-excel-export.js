@@ -9,7 +9,9 @@
         '/src/domain/excel-workbook-plan.js',
         '/src/domain/excel-xlsx-renderer.js',
         '/src/domain/excel-sme-export-model.js',
+        '/src/domain/excel-sme-template-renderer.js',
         '/src/domain/excel-sme-monthly-renderer.js',
+        '/src/integration/excel-sme-runtime-loader.js',
         '/src/integration/excel-export-integration.js'
     ];
 

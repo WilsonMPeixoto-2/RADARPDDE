@@ -5,7 +5,7 @@
     "mismatches": []
   },
   "generatedAt": "2026-07-29T02:30:00.000Z",
-  "manifestHash": "ee589e0d6f7361c9dd8176baccbcd9ceb931f4b34eb698c2f5dd97a49877f58b",
+  "manifestHash": "14d6f42854604526b5fdd1391a50699e44f6dd74cb9e3d4361e47e3e664ad1ca",
   "passed": true,
   "products": {
     "institutional": {
@@ -65,8 +65,8 @@
     "smeMonthly": {
       "canonicalMismatchCount": 0,
       "cellCertification": {
-        "actualCellCount": 78,
-        "checkedCellCount": 78,
+        "actualCellCount": 90,
+        "checkedCellCount": 90,
         "mismatchCount": 0,
         "mismatches": [],
         "samples": [
@@ -84,7 +84,7 @@
           },
           {
             "address": "K2",
-            "value": "NÃO"
+            "value": "SIM"
           },
           {
             "address": "C3",
@@ -92,18 +92,18 @@
           }
         ]
       },
-      "columnCount": 26,
+      "columnCount": 30,
       "competenceKeys": [
         "2026-08"
       ],
-      "contentHash": "7e6ce22739f5323193ceb284e43678648fe8772e21775467bf625340a766bcba",
+      "contentHash": "b07a976ae439e329ab7a15751fd697fb713cfc4f425170ead11743d2cb04dbf3",
       "ooxml": {
-        "entryCount": 8,
+        "entryCount": 1,
         "expectedSheetCount": 1,
         "hasDataValidations": false,
         "missingEntries": [],
         "sheetCount": 1,
-        "structuralHash": "7a34b6fc655c18271be00a1f3ad9dd0264133f4c27bee9927ccac68d603c29c6",
+        "structuralHash": "2639db9f6c971ec5b732987bf61f397b76e2ff5c0b6b2825cfc71b59224f91bd",
         "valid": true
       },
       "passed": true,

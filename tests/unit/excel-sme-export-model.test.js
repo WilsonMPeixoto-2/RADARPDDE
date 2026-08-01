@@ -130,7 +130,7 @@ test('gera nome do arquivo e da única aba a partir da competência selecionada'
     assert.equal(model.competenceKey, '2026-07');
     assert.equal(model.sheetName, 'JULHO');
     assert.equal(model.fileName, 'RADAR_PDDE_EXCEL_SME_07-2026.xlsx');
-    assert.equal(model.columns.length, 26);
+    assert.equal(model.columns.length, 30);
 });
 
 test('classifica os programas reais nas contas SME corretas', () => {
