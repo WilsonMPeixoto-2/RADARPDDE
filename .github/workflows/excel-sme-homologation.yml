@@ -49,7 +49,7 @@ jobs:
             tests/unit/excel-sme-template-renderer.test.js \
             tests/unit/excel-sme-office-compatibility.test.js \
             tests/unit/excel-sme-runtime-loader.test.js \
-            tests/unit/excel-export-integration.test.js \
+            tests/unit/excel-sme-export-integration.test.js \
             tests/unit/excel-integral-certification.test.js
           node scripts/generate-excel-certification-evidence.mjs --check
 
@@ -66,7 +66,8 @@ jobs:
           echo '- Motor: ExcelJS 4.4.0, workbook documental.' >> "${GITHUB_STEP_SUMMARY}"
           echo '- Fonte visual: template canônico normalizado do modelo SME.' >> "${GITHUB_STEP_SUMMARY}"
           echo '- A competência ativa controla aba, nome do arquivo e dados exportados.' >> "${GITHUB_STEP_SUMMARY}"
-          echo '- Compatibilidade: workbookView, referências absolutas e sete validações não sobrepostas.' >> "${GITHUB_STEP_SUMMARY}"
+          echo '- Compatibilidade: workbookView, referências absolutas e ausência de dataValidations incompatíveis.' >> "${GITHUB_STEP_SUMMARY}"
+          echo '- Apresentação: descrições com recuo, valores categóricos centralizados e quebra de texto preservada.' >> "${GITHUB_STEP_SUMMARY}"
           echo '- Cenários: APTA, INAPTA, não iniciado e parcial.' >> "${GITHUB_STEP_SUMMARY}"
           echo '- Gate final pendente: abertura no Microsoft Excel desktop sem reparo.' >> "${GITHUB_STEP_SUMMARY}"
 

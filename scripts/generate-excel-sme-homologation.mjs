@@ -173,10 +173,8 @@ function validateWorkbook(workbook, model) {
       || worksheet.pageSetup.printTitlesRow !== '1:1') {
     throw new Error('O candidato perdeu os contratos de impressão.');
   }
-  for (const address of ['E2', 'K2', 'R2', 'Y2', 'AC2']) {
-    if (worksheet.getCell(address).dataValidation?.type !== 'list') {
-      throw new Error(`A validação de lista foi perdida em ${address}.`);
-    }
+  if (Object.keys(worksheet.dataValidations.model || {}).length !== 0) {
+    throw new Error('O candidato reintroduziu dataValidations incompatíveis.');
   }
   return worksheet;
 }
@@ -215,7 +213,7 @@ async function main() {
     contracts: {
       literalHeaders: true,
       mergedCre: true,
-      validations: true,
+      dataValidations: false,
       frozenPane: 'E2',
       printArea: 'A1:AD164',
       administrativeFieldsBlank: true,

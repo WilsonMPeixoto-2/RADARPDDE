@@ -36,7 +36,9 @@ Responsabilidades:
 O renderer deve:
 
 - preservar os 30 cabeçalhos literais;
-- preservar A1:B1 mesclado, larguras, alturas, estilos, bordas, filtros, congelamento, validações e configuração de impressão;
+- preservar A1:B1 mesclado, larguras, alturas, estilos, bordas, filtros, congelamento e configuração de impressão;
+- manter campos descritivos à esquerda com recuo leve e valores categóricos centralizados, sempre com alinhamento vertical e quebra de texto coerentes;
+- remover `dataValidations`, pois esse recurso já provocou reparo e planilha vazia em clientes Microsoft Excel;
 - limpar somente os valores mensais E:AD antes do preenchimento;
 - substituir fórmulas antigas de `STATUS` pelo resultado canônico do RADAR;
 - manter AA:AD vazias quando não houver fonte correspondente no sistema;
@@ -87,7 +89,7 @@ Não será adicionado outro motor de XLSX. Ferramentas complementares só serão
 - regressões de campos vazios intencionais;
 - matriz de APTA, INAPTA, incompleta e não iniciada;
 - igualdade literal dos 30 cabeçalhos;
-- preservação de mesclagem, estilos, validações, filtro, congelamento e impressão;
+- preservação de mesclagem, estilos, filtro, congelamento e impressão, sem `dataValidations`;
 - round-trip de leitura e escrita pelo ExcelJS;
 - inspeção do pacote OOXML;
 - geração de artefato sintético para homologação;

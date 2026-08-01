@@ -59,7 +59,11 @@ function readZipEntry(bytes, entry) {
     const file = path.join(directory, 'candidate.xlsx');
     try {
         fs.writeFileSync(file, bytes);
-        return execFileSync('unzip', ['-p', file, entry], { encoding: 'utf8' });
+        const command = process.platform === 'win32' ? 'tar.exe' : 'unzip';
+        const args = process.platform === 'win32'
+            ? ['-xOf', file, entry]
+            : ['-p', file, entry];
+        return execFileSync(command, args, { encoding: 'utf8' });
     } finally {
         fs.rmSync(directory, { recursive: true, force: true });
     }
@@ -74,10 +78,6 @@ async function generate(activeCompetenciaKey = '2026-05') {
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.load(bytes);
     return { model, workbook, workbookXml, sheetXml };
-}
-
-function occurrences(text, pattern) {
-    return [...text.matchAll(pattern)].length;
 }
 
 test('a competência ativa controla aba, nome do arquivo e conjunto de dados', async () => {
@@ -104,22 +104,16 @@ test('grava área de impressão com referências integralmente absolutas', async
     assert.doesNotMatch(workbookXml, /(?:'|&apos;)MAIO(?:'|&apos;)!\$A1:\$AD164/);
 });
 
-test('grava exatamente sete validações sem intervalos duplicados ou sobrepostos', async () => {
+test('remove outlinePr sem agrupamentos para manter sheetPr válido no Excel', async () => {
     const { sheetXml } = await generate();
-    const expectedRanges = [
-        'E2:J164',
-        'K2:K164',
-        'L2:Q164',
-        'R2:R164',
-        'S2:X164',
-        'Y2:Y164',
-        'AC2:AC164'
-    ];
 
-    assert.match(sheetXml, /<dataValidations count="7">/);
-    expectedRanges.forEach(range => {
-        const escaped = range.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        assert.equal(occurrences(sheetXml, new RegExp(`sqref="${escaped}"`, 'g')), 1);
-    });
-    assert.doesNotMatch(sheetXml, /sqref="(?:E|K|L|R|S|Y|AC)10:/);
+    assert.match(sheetXml, /<sheetPr><pageSetUpPr fitToPage="1"\/><\/sheetPr>/);
+    assert.doesNotMatch(sheetXml, /<outlinePr\b/);
+});
+
+test('não grava dataValidations que provoquem reparo ou planilha vazia no Excel', async () => {
+    const { sheetXml } = await generate();
+
+    assert.doesNotMatch(sheetXml, /<dataValidations\b/i);
+    assert.doesNotMatch(sheetXml, /<dataValidation\b/i);
 });

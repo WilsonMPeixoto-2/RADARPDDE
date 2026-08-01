@@ -62,7 +62,7 @@ test('parte do template original e entrega somente a aba mensal solicitada', asy
     assert.equal(worksheet.columnCount, 30);
 });
 
-test('preserva textos, mesclagem, larguras e validações do modelo original', async () => {
+test('preserva textos, mesclagem e larguras sem reintroduzir validações incompatíveis', async () => {
     const { model, worksheet } = await generate();
 
     const headers = model.columns.map((column, index) => (
@@ -72,9 +72,34 @@ test('preserva textos, mesclagem, larguras e validações do modelo original', a
     assert.equal(worksheet.getCell('A1').isMerged, true);
     assert.equal(worksheet.getCell('B1').isMerged, true);
     assert.equal(worksheet.getColumn(4).width, 60.28515625);
-    assert.equal(worksheet.getCell('E2').dataValidation.type, 'list');
-    assert.equal(worksheet.getCell('K2').dataValidation.type, 'list');
-    assert.equal(worksheet.getCell('AC2').dataValidation.type, 'list');
+    assert.deepEqual(worksheet.dataValidations.model, {});
+});
+
+test('dá respiro aos campos descritivos sem perder alinhamento vertical e quebra de texto', async () => {
+    const { worksheet } = await generate();
+
+    assert.deepEqual(worksheet.getCell('D2').alignment, {
+        horizontal: 'left',
+        vertical: 'middle',
+        wrapText: true,
+        indent: 1
+    });
+    assert.deepEqual(worksheet.getCell('AD2').alignment, {
+        horizontal: 'left',
+        vertical: 'middle',
+        wrapText: true,
+        indent: 1
+    });
+});
+
+test('centraliza o parecer como valor categórico', async () => {
+    const { worksheet } = await generate();
+
+    assert.deepEqual(worksheet.getCell('AC2').alignment, {
+        horizontal: 'center',
+        vertical: 'middle',
+        wrapText: true
+    });
 });
 
 test('traduz os dados do RADAR sem preencher campos administrativos sem fonte', async () => {

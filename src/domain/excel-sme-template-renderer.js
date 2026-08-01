@@ -5,15 +5,12 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, function (root) {
     'use strict';
 
-    const VERSION = '2.1.0';
+    const VERSION = '2.3.0';
     const FIRST_DATA_ROW = 2;
     const FIRST_MONTHLY_COLUMN = 5;
     const LAST_COLUMN = 30;
     const LAST_COLUMN_LETTER = 'AD';
     const TEMPLATE_SHEET_NAME = 'DEZEMBRO';
-    const DOCUMENT_VALUES = Object.freeze(['SIM', 'NÃO', 'NÃO SE APLICA']);
-    const SYSTEMATIC_VALUES = Object.freeze(['SIM', 'NÃO']);
-    const OPINION_VALUES = Object.freeze(['APROVADA', ' ENVIADO PARA CORREÇÃO']);
 
     function validateModel(model) {
         if (!model || !Array.isArray(model.columns) || model.columns.length !== LAST_COLUMN) {
@@ -63,6 +60,11 @@
         target.fill = cloneValue(source.fill) || {};
         target.font = cloneValue(source.font) || {};
         target.protection = cloneValue(source.protection) || {};
+    }
+
+    function applyCellAlignment(cell, alignment) {
+        cell.style = cloneValue(cell.style) || {};
+        cell.alignment = cloneValue(alignment) || {};
     }
 
     function copyRowPresentation(sourceRow, targetRow) {
@@ -149,29 +151,14 @@
         }
     }
 
-    function listValidation(values) {
-        return Object.freeze({
-            type: 'list',
-            allowBlank: true,
-            formulae: [`"${values.join(',')}"`]
-        });
-    }
-
-    function configureDataValidations(worksheet, finalRow) {
-        worksheet.dataValidations.model = {};
-        const add = (range, values) => worksheet.dataValidations.add(range, listValidation(values));
-        add(`E${FIRST_DATA_ROW}:J${finalRow}`, DOCUMENT_VALUES);
-        add(`K${FIRST_DATA_ROW}:K${finalRow}`, SYSTEMATIC_VALUES);
-        add(`L${FIRST_DATA_ROW}:Q${finalRow}`, DOCUMENT_VALUES);
-        add(`R${FIRST_DATA_ROW}:R${finalRow}`, SYSTEMATIC_VALUES);
-        add(`S${FIRST_DATA_ROW}:X${finalRow}`, DOCUMENT_VALUES);
-        add(`Y${FIRST_DATA_ROW}:Y${finalRow}`, SYSTEMATIC_VALUES);
-        add(`AC${FIRST_DATA_ROW}:AC${finalRow}`, OPINION_VALUES);
-    }
-
     function configureWorksheet(worksheet, model) {
         worksheet.name = model.sheetName;
         worksheet.state = 'visible';
+        worksheet.dataValidations.model = {};
+        // O template não usa agrupamentos. Remover essa propriedade evita que o
+        // ExcelJS serialize outlinePr depois de pageSetUpPr, uma ordem rejeitada
+        // pelo Excel desktop quando fitToPage também está habilitado.
+        delete worksheet.properties.outlineProperties;
         worksheet.views = [{
             state: 'frozen',
             xSplit: 4,
@@ -180,8 +167,23 @@
             activeCell: 'E2'
         }];
         const finalRow = Math.max(FIRST_DATA_ROW, worksheet.rowCount);
+        const descriptiveAlignment = {
+            horizontal: 'left',
+            vertical: 'middle',
+            wrapText: true,
+            indent: 1
+        };
+        const categoricalAlignment = {
+            horizontal: 'center',
+            vertical: 'middle',
+            wrapText: true
+        };
+        for (let rowNumber = FIRST_DATA_ROW; rowNumber <= finalRow; rowNumber += 1) {
+            applyCellAlignment(worksheet.getCell(rowNumber, 4), descriptiveAlignment);
+            applyCellAlignment(worksheet.getCell(rowNumber, 29), categoricalAlignment);
+            applyCellAlignment(worksheet.getCell(rowNumber, 30), descriptiveAlignment);
+        }
         worksheet.autoFilter = `A1:${LAST_COLUMN_LETTER}${finalRow}`;
-        configureDataValidations(worksheet, finalRow);
         worksheet.pageSetup = {
             ...worksheet.pageSetup,
             paperSize: 9,
@@ -281,7 +283,6 @@
         LAST_COLUMN_LETTER,
         VERSION,
         buildWorkbook,
-        configureDataValidations,
         downloadWorkbook,
         normalizeDesignation,
         renderWorkbook
