@@ -133,12 +133,12 @@
 
         function resolveDefinition(name) {
             const normalized = normalizeFloatingName(name);
-            const config = selectors[normalized];
-            if (!config) return null;
+            const selectorConfig = selectors[normalized];
+            if (!selectorConfig) return null;
             return {
-                ...config,
-                reference: document.querySelector(config.reference),
-                floating: document.querySelector(config.floating)
+                ...selectorConfig,
+                reference: document.querySelector(selectorConfig.reference),
+                floating: document.querySelector(selectorConfig.floating)
             };
         }
 
