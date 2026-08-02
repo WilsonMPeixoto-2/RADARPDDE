@@ -269,6 +269,22 @@
                 && !event.altKey;
         }
 
+        function closeMobileNavigationIfOpen() {
+            const sidebar = document.querySelector('aside.sidebar.mobile-open');
+            if (!sidebar) return false;
+
+            const overlay = document.querySelector('.mobile-sidebar-overlay');
+            const menuButton = document.getElementById('mobile-menu-button');
+            sidebar.classList.remove('mobile-open');
+            sidebar.setAttribute('aria-hidden', 'true');
+            overlay?.classList.remove('is-visible');
+            overlay?.setAttribute('aria-hidden', 'true');
+            document.body?.classList.remove('mobile-nav-open');
+            menuButton?.setAttribute('aria-expanded', 'false');
+            menuButton?.setAttribute('aria-label', 'Abrir menu de navegação');
+            return true;
+        }
+
         function navigateFromSidebarEvent(event) {
             const view = viewFromNavigationTarget(event?.target);
             if (!view || !shouldInterceptNavigationEvent(event) || transitionInFlight) return;
@@ -278,6 +294,7 @@
             intent.consume();
 
             startTransition(() => {
+                closeMobileNavigationIfOpen();
                 if (root.RadarNavigationHistory?.navigate) {
                     return root.RadarNavigationHistory.navigate(root, { view });
                 }
