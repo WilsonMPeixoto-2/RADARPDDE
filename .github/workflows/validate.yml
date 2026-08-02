@@ -28,6 +28,9 @@ jobs:
       - name: Instalar dependências reproduzíveis
         run: npm ci
 
+      - name: Validar referências locais dos workflows
+        run: node scripts/check-workflow-references.mjs
+
       - name: Auditar dependências npm
         run: npm audit --audit-level=high
 
