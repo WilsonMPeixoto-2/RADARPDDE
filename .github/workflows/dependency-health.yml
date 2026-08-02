@@ -11,7 +11,12 @@ on:
       - scripts/run-lighthouse-baseline.mjs
       - scripts/check-exceljs-audit-policy.mjs
       - scripts/check-workflow-references.mjs
-      - scripts/apply-round-2-lazy-loading.mjs
+      - scripts/build-search-ui-vendors.mjs
+      - src/vendor/fuse-entry.js
+      - src/vendor/floating-ui-entry.js
+      - vendor/fuse.js
+      - vendor/floating-ui.js
+      - tests/unit/search-ui-vendor-contract.test.js
       - tests/unit/workflow-references.test.js
       - vendor/exceljs.min.js
       - src/domain/excel-sme-template-renderer.js
@@ -33,6 +38,12 @@ on:
       - scripts/run-lighthouse-baseline.mjs
       - scripts/check-exceljs-audit-policy.mjs
       - scripts/check-workflow-references.mjs
+      - scripts/build-search-ui-vendors.mjs
+      - src/vendor/fuse-entry.js
+      - src/vendor/floating-ui-entry.js
+      - vendor/fuse.js
+      - vendor/floating-ui.js
+      - tests/unit/search-ui-vendor-contract.test.js
       - tests/unit/workflow-references.test.js
       - vendor/exceljs.min.js
       - src/domain/excel-sme-template-renderer.js
@@ -47,53 +58,13 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: dependency-health-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  aplicar-lazy-loading:
-    name: Remover vendors da carga inicial
-    if: ${{ github.event_name == 'pull_request' && github.head_ref == 'feat/rodada-2-busca-flutuantes-transicoes-20260801' && github.actor != 'github-actions[bot]' }}
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-
-    steps:
-      - name: Obter branch da rodada
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: feat/rodada-2-busca-flutuantes-transicoes-20260801
-          fetch-depth: 0
-
-      - name: Configurar Node.js 24
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
-        with:
-          node-version: 24
-
-      - name: Remover carregamento antecipado
-        run: node scripts/apply-round-2-lazy-loading.mjs
-
-      - name: Validar contratos de desempenho e comportamento
-        run: |
-          node --test tests/unit/search-ui-vendor-contract.test.js tests/unit/view-transitions.test.js tests/unit/global-search-index.test.js tests/unit/global-search-integration.test.js tests/unit/floating-ui-bootstrap.test.js
-          node --check src/integration/global-search.js
-          node --check src/integration/floating-ui-bootstrap.js
-          node --check src/integration/view-transitions.js
-
-      - name: Registrar alteração permanente
-        shell: bash
-        run: |
-          rm -f scripts/apply-round-2-lazy-loading.mjs
-          git diff --check
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html
-          git add -A scripts/apply-round-2-lazy-loading.mjs
-          git commit -m 'perf: carregar busca e flutuantes sob demanda'
-          git push origin HEAD:feat/rodada-2-busca-flutuantes-transicoes-20260801
-
   audit:
     name: Vulnerabilidades, integridade e inventário
     runs-on: ubuntu-24.04
@@ -114,6 +85,9 @@ jobs:
 
       - name: Validar referências locais dos workflows
         run: node scripts/check-workflow-references.mjs
+
+      - name: Validar bundles locais da busca e dos flutuantes
+        run: npm run check:search-ui-vendors
 
       - name: Preparar diretório de evidências
         run: mkdir -p dependency-health
@@ -180,6 +154,7 @@ jobs:
         run: |
           echo "### Saúde das dependências" >> "${GITHUB_STEP_SUMMARY}"
           echo "- ESLint: relatório HTML navegável preservado como evidência do lint de segurança." >> "${GITHUB_STEP_SUMMARY}"
+          echo "- Busca e flutuantes: bundles locais reproduzíveis e sincronizados com as versões fixadas." >> "${GITHUB_STEP_SUMMARY}"
           echo "- Referências locais de workflows: bloqueantes quando apontam para arquivos, ações locais ou scripts npm inexistentes." >> "${GITHUB_STEP_SUMMARY}"
           echo "- Knip: bloqueante para dependências não usadas, não declaradas, não resolvidas e falhas internas de análise." >> "${GITHUB_STEP_SUMMARY}"
           echo "- Vulnerabilidades: relatório integral preservado; alertas novos e críticos continuam bloqueantes." >> "${GITHUB_STEP_SUMMARY}"
