@@ -1,0 +1,100 @@
+{
+  "release": "rodadas-1-2-production-2026-08-02",
+  "publishedAt": "2026-08-02T05:38:29.157Z",
+  "functionalPullRequests": [52, 122, 123],
+  "publicationPullRequest": 124,
+  "functionalCommits": {
+    "rodada1EslintAcorn": "ea0871e0ab0f6d6dc62f76ca7bad0e7021433a92",
+    "rodada1Checkout": "20b4da15d100169d358f38070901891c99e4f3d7",
+    "rodada2": "8e0a88e88621f4caac48b24049e774700688bd08"
+  },
+  "publicationCommit": "f72a1471023f00eec0bc615c192fd25f5c29a920",
+  "vercel": {
+    "project": "radarpdde-fix",
+    "projectId": "prj_GfXuUuO3dF2jykpp9QgyqIDsxg4U",
+    "deploymentId": "dpl_2Sgq4LJKvSvXro81EYwFJHYEHHqp",
+    "state": "READY",
+    "target": "production",
+    "artifactCommitSha": "f72a1471023f00eec0bc615c192fd25f5c29a920",
+    "canonicalUrl": "https://radarpdde-fix.vercel.app",
+    "buildDurationMilliseconds": 4712,
+    "aliasError": null
+  },
+  "runtime": {
+    "environment": "production",
+    "dataMode": "supabase-production",
+    "supabaseRepositoryEnabled": true,
+    "productionActivationApproved": true,
+    "supabaseProject": "scnryinorqeucbfkioxo"
+  },
+  "publishedCapabilities": {
+    "rodada1": {
+      "eslint": "10.8.0",
+      "acorn": "8.18.0",
+      "actionsCheckout": "7.0.1",
+      "eslintHtmlEvidence": true,
+      "inlineHandlerSyntaxAudit": true
+    },
+    "rodada2": {
+      "fuseJs": "7.5.0",
+      "floatingUiDom": "1.8.0",
+      "intelligentSearch": true,
+      "responsiveFloatingElements": true,
+      "progressiveViewTransitions": true,
+      "commandPalette": false,
+      "ctrlKShortcut": false,
+      "vendorsLoadedOnDemand": true
+    }
+  },
+  "smoke": {
+    "root": {
+      "status": 200,
+      "title": "RADAR PDDE - Registro de Acompanhamento das Demandas, Análises e Regularizações",
+      "institutionalLoginRendered": true,
+      "round2StylesLinked": true,
+      "round2ModulesLinked": true
+    },
+    "canonicalRoute": {
+      "path": "/carteira",
+      "status": 200,
+      "spaRewriteApplied": true
+    },
+    "runtimeConfig": {
+      "status": 200,
+      "environment": "production",
+      "dataMode": "supabase-production"
+    },
+    "fuseBundle": {
+      "status": 200,
+      "version": "7.5.0",
+      "localVendor": true
+    },
+    "floatingUiBundle": {
+      "status": 200,
+      "version": "1.8.0",
+      "localVendor": true
+    },
+    "buildCompleted": true,
+    "fatalBuildErrors": 0,
+    "runtimeErrorsAfterDeployment": 0
+  },
+  "prePublicationValidation": {
+    "dependencyHealth": "passed",
+    "canonicalSnapshot": "passed",
+    "excelSme": "passed",
+    "lighthouseMobileDesktop": "passed",
+    "supabaseReadiness": "passed",
+    "migrations": 25,
+    "pgTap": "passed",
+    "authRlsEdgeFunction": "passed",
+    "backupRestore": "passed",
+    "playwrightE2E": "passed",
+    "fiveProfilesDesktopAndroidIphone": "passed"
+  },
+  "databaseChanges": false,
+  "migrationChanges": false,
+  "rlsChanges": false,
+  "authChanges": false,
+  "productionDataChanges": false,
+  "deploymentWindowClosedBy": "ops/fechar-janela-rodadas-1-2-20260802"
+}
