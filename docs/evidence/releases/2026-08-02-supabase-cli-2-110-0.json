@@ -5,6 +5,7 @@
   "branch": "chore/rodada-3b-supabase-cli-2-110-0-20260802",
   "baseCommit": "0718bd984ef9db4d6c52e40d43067599b4fb8a39",
   "validatedFunctionalCommit": "c16c600619736391c49b3997c7e8c97f77dc6492",
+  "validatedDocumentationCommit": "35b27e6276e988f9a8707822ef0486569a31cc53",
   "from": "2.109.1",
   "to": "2.110.0",
   "runtime": {
@@ -60,27 +61,27 @@
   },
   "gates": {
     "dependencyHealth": {
-      "runId": 30771809102,
+      "runId": 30772069206,
       "result": "success"
     },
     "excelSme": {
-      "runId": 30771809133,
+      "runId": 30772069203,
       "result": "success"
     },
     "lighthouse": {
-      "runId": 30771809106,
+      "runId": 30772069216,
       "result": "success"
     },
     "supabaseReadiness": {
-      "runId": 30771809104,
+      "runId": 30772069190,
       "result": "success"
     },
     "backupRestore": {
-      "runId": 30771809127,
+      "runId": 30772069209,
       "result": "success"
     },
     "profilesAndViewports": {
-      "runId": 30771809159,
+      "runId": 30772069198,
       "result": "success",
       "profiles": 5,
       "viewports": [
@@ -90,7 +91,7 @@
       ]
     },
     "playwrightE2E": {
-      "runId": 30771809124,
+      "runId": 30772069217,
       "result": "success"
     }
   },
@@ -106,5 +107,5 @@
   },
   "temporaryWorkflowsRemoved": true,
   "laterVersionObservedButExcluded": "2.111.0",
-  "finalStatus": "approved-pending-final-documentation-rerun"
+  "finalStatus": "approved"
 }
