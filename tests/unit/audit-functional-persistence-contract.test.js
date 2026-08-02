@@ -56,3 +56,11 @@ test('valida sintaxe de handler inline preservando a localização do markup', (
   assert.equal(inspection.syntaxErrors[0].line, 2);
   assert.ok(inspection.syntaxErrors[0].column > 30);
 });
+
+test('aceita handler inline válido iniciado por comando de controle', () => {
+  const markup = '<button onclick="if (ready) { openPanel(); }">Abrir</button>';
+
+  const inspection = inspectInlineHandlers(markup, 'index.html');
+
+  assert.equal(inspection.syntaxErrors.length, 0);
+});
