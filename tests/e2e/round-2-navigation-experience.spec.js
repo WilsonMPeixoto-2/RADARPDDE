@@ -79,7 +79,7 @@ test('menus carregam Floating UI no primeiro uso, permanecem na viewport e fecha
   expect(pageErrors).toEqual([]);
 });
 
-test('troca de tela usa transição progressiva quando a API está disponível', async ({ page }) => {
+test('transição começa somente após a montagem inicial e acompanha a navegação do usuário', async ({ page }) => {
   await page.addInitScript(() => {
     window.__radarViewTransitionCalls = 0;
     document.startViewTransition = update => {
@@ -95,6 +95,11 @@ test('troca de tela usa transição progressiva quando a API está disponível',
   });
 
   const pageErrors = await openApplication(page);
+  await expect.poll(() => page.evaluate(
+    () => window.__radarViewTransitionsController?.isActive?.()
+  )).toBe(true);
+  expect(await page.evaluate(() => window.__radarViewTransitionCalls)).toBe(0);
+
   await page.locator('#nav-competencias').click();
   await expect(page.locator('#nav-competencias')).toHaveClass(/active/);
   await expect.poll(() => page.evaluate(() => window.__radarViewTransitionCalls)).toBeGreaterThan(0);
