@@ -416,6 +416,10 @@ function decodeHtmlEntities(value) {
         .replace(/&amp;/gi, '&');
 }
 
+function decodeStaticJavaScriptEscapes(value) {
+    return String(value || '').replace(/\\(['"\\])/g, '$1');
+}
+
 function inspectInlineHandlers(text, file = '<markup>') {
     const handlers = new Set();
     const syntaxErrors = [];
@@ -428,7 +432,10 @@ function inspectInlineHandlers(text, file = '<markup>') {
         const assignmentIndex = match[0].indexOf('=');
         const quoteIndex = match[0].indexOf(quote, assignmentIndex);
         const rawOffset = match.index + quoteIndex + 1;
-        const decoded = decodeHtmlEntities(raw);
+        const htmlDecoded = decodeHtmlEntities(raw);
+        const decoded = /\.(?:c|m)?js$/i.test(file)
+            ? decodeStaticJavaScriptEscapes(htmlDecoded)
+            : htmlDecoded;
         const nameMatch = decoded.trimStart().match(/^([A-Za-z_$][\w$]*)/);
 
         if (nameMatch && !INLINE_GLOBALS.has(nameMatch[1])) {
@@ -446,11 +453,19 @@ function inspectInlineHandlers(text, file = '<markup>') {
                 allowReturnOutsideFunction: true,
                 locations: true
             };
-            acorn.parse(decoded, parseOptions);
-            if (nameMatch) {
-                acorn.parseExpressionAt(decoded, decoded.indexOf(nameMatch[1]), {
+            const program = acorn.parse(decoded, parseOptions);
+            const firstStatement = program.body[0];
+            if (firstStatement?.type === 'ExpressionStatement') {
+                const relativeStart = firstStatement.expression.loc?.start || { line: 1, column: 0 };
+                const expressionStartLocation = {
+                    line: startLocation.line + relativeStart.line - 1,
+                    column: relativeStart.line === 1
+                        ? startLocation.column + relativeStart.column
+                        : relativeStart.column
+                };
+                acorn.parseExpressionAt(decoded, firstStatement.expression.start, {
                     ...parseOptions,
-                    startLocation
+                    startLocation: expressionStartLocation
                 });
             }
         } catch (error) {
