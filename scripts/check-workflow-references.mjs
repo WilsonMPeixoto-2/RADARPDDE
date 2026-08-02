@@ -125,6 +125,31 @@ function referenceExists(rootDir, reference, repositoryEntries) {
     return fs.existsSync(path.resolve(rootDir, normalized));
 }
 
+function validateLocalActionReference(rootDir, reference) {
+    const normalized = cleanReference(reference);
+    const target = path.resolve(rootDir, normalized);
+
+    if (!fs.existsSync(target)) {
+        return { passed: false, code: 'MISSING_LOCAL_REFERENCE' };
+    }
+
+    const stat = fs.statSync(target);
+    if (stat.isFile()) {
+        return { passed: true, code: null };
+    }
+
+    if (!stat.isDirectory()) {
+        return { passed: false, code: 'MISSING_LOCAL_ACTION_METADATA' };
+    }
+
+    const hasMetadata = ['action.yml', 'action.yaml']
+        .some(fileName => fs.existsSync(path.join(target, fileName)));
+
+    return hasMetadata
+        ? { passed: true, code: null }
+        : { passed: false, code: 'MISSING_LOCAL_ACTION_METADATA' };
+}
+
 function addReference(target, workflow, kind, value, options = {}) {
     const reference = cleanReference(value);
     if (isDynamicReference(reference)) return;
@@ -251,6 +276,13 @@ export function analyzeWorkflowReferences(rootDir = process.cwd()) {
             return Object.prototype.hasOwnProperty.call(packageScripts, item.reference)
                 ? []
                 : [{ ...item, code: 'MISSING_NPM_SCRIPT' }];
+        }
+
+        if (item.kind === 'local-action') {
+            const validation = validateLocalActionReference(rootDir, item.reference);
+            return validation.passed
+                ? []
+                : [{ ...item, code: validation.code }];
         }
 
         return referenceExists(rootDir, item.reference, repositoryEntries)
