@@ -270,11 +270,11 @@
         }
 
         function closeMobileNavigationIfOpen() {
-            const sidebar = document.querySelector('aside.sidebar.mobile-open');
+            const sidebar = document.querySelector?.('aside.sidebar.mobile-open');
             if (!sidebar) return false;
 
-            const overlay = document.querySelector('.mobile-sidebar-overlay');
-            const menuButton = document.getElementById('mobile-menu-button');
+            const overlay = document.querySelector?.('.mobile-sidebar-overlay');
+            const menuButton = document.getElementById?.('mobile-menu-button');
             sidebar.classList.remove('mobile-open');
             sidebar.setAttribute('aria-hidden', 'true');
             overlay?.classList.remove('is-visible');
