@@ -1,0 +1,58 @@
+name: Temporary Supabase CLI 2.110.0 lockfile
+
+on:
+  push:
+    branches:
+      - chore/rodada-3b-supabase-cli-2-110-0-20260802
+    paths:
+      - .github/workflows/temporary-supabase-cli-2-110-0-lockfile.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: temporary-supabase-cli-2-110-0-lockfile
+  cancel-in-progress: false
+
+jobs:
+  generate-lockfile:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: chore/rodada-3b-supabase-cli-2-110-0-20260802
+          fetch-depth: 0
+
+      - name: Use Node.js 24
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install exact Supabase CLI and regenerate lockfile
+        run: npm install --save-dev --save-exact supabase@2.110.0
+
+      - name: Verify exact version
+        run: |
+          test "$(node -p "require('./package.json').devDependencies.supabase")" = "2.110.0"
+          test "$(node -p "require('./package-lock.json').packages['node_modules/supabase'].version")" = "2.110.0"
+          test "$(npx supabase --version)" = "2.110.0"
+
+      - name: Restrict generated diff
+        run: |
+          changed="$(git diff --name-only)"
+          printf '%s\n' "$changed"
+          test -n "$changed"
+          unexpected="$(printf '%s\n' "$changed" | grep -Ev '^(package.json|package-lock.json)$' || true)"
+          test -z "$unexpected"
+
+      - name: Commit generated dependency files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          git commit -m "chore: atualizar Supabase CLI para 2.110.0"
+          git push origin HEAD:chore/rodada-3b-supabase-cli-2-110-0-20260802
