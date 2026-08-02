@@ -1,0 +1,46 @@
+#main-container {
+    view-transition-name: radar-main-content;
+}
+
+::view-transition-old(radar-main-content),
+::view-transition-new(radar-main-content) {
+    animation-duration: 180ms;
+    animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+::view-transition-old(radar-main-content) {
+    animation-name: radarViewFadeOut;
+}
+
+::view-transition-new(radar-main-content) {
+    animation-name: radarViewFadeIn;
+}
+
+@keyframes radarViewFadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-3px);
+    }
+}
+
+@keyframes radarViewFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(radar-main-content),
+    ::view-transition-new(radar-main-content) {
+        animation: none;
+    }
+}
