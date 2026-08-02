@@ -9,7 +9,8 @@ const {
     shouldAnimateNavigation,
     runViewTransition,
     createNavigationActivation,
-    createNavigationIntent
+    createNavigationIntent,
+    install
 } = require('../../src/integration/view-transitions.js');
 
 const repoRoot = path.resolve(__dirname, '../..');
@@ -169,6 +170,73 @@ test('consome intenção somente em navegação principal ou resultado da busca'
     assert.equal(intent.consume(), false);
 
     microtasks.forEach(handler => handler());
+});
+
+test('reengloba switchView quando o bootstrap de rotas substitui a função', () => {
+    const frames = [];
+    const listeners = new Map();
+    let transitionCalls = 0;
+    let navigationCalls = 0;
+    const root = {
+        document: {
+            readyState: 'complete',
+            addEventListener(type, handler) {
+                listeners.set(type, handler);
+            },
+            startViewTransition(update) {
+                transitionCalls += 1;
+                const updateCallbackDone = Promise.resolve(update());
+                return {
+                    ready: Promise.resolve(),
+                    updateCallbackDone,
+                    finished: updateCallbackDone
+                };
+            }
+        },
+        requestAnimationFrame(handler) {
+            frames.push(handler);
+        },
+        queueMicrotask(handler) {
+            handler();
+        },
+        matchMedia() {
+            return { matches: false };
+        },
+        switchView() {
+            navigationCalls += 1;
+        }
+    };
+
+    assert.equal(install(root), true);
+    const firstWrapper = root.switchView;
+    root.switchView = function routeBootstrapWrapper(...args) {
+        return firstWrapper(...args);
+    };
+
+    root.switchView('dashboard');
+    frames.shift()();
+    frames.shift()();
+
+    assert.equal(root.__radarViewTransitionsController.getWrapCount(), 2);
+    assert.notEqual(root.switchView.name, 'routeBootstrapWrapper');
+
+    let trusted = true;
+    const navigationTarget = {
+        closest(selector) {
+            return selector.includes('.nav-item') ? this : null;
+        },
+        matches() { return false; }
+    };
+    listeners.get('click')({
+        type: 'click',
+        get isTrusted() { return trusted; },
+        target: navigationTarget
+    });
+    trusted = false;
+    root.switchView('competencias');
+
+    assert.equal(transitionCalls, 1);
+    assert.equal(navigationCalls, 2);
 });
 
 test('não aplica nome de transição ao conteúdo durante a carga inicial', () => {
