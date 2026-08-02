@@ -1,0 +1,110 @@
+{
+  "release": "supabase-cli-2.110.0-2026-08-02",
+  "repository": "WilsonMPeixoto-2/RADARPDDE",
+  "pullRequest": 126,
+  "branch": "chore/rodada-3b-supabase-cli-2-110-0-20260802",
+  "baseCommit": "0718bd984ef9db4d6c52e40d43067599b4fb8a39",
+  "validatedFunctionalCommit": "c16c600619736391c49b3997c7e8c97f77dc6492",
+  "from": "2.109.1",
+  "to": "2.110.0",
+  "runtime": {
+    "node": "24.18.0",
+    "npm": "11.16.0"
+  },
+  "dependencyScope": {
+    "supabaseCliUpdated": true,
+    "supabaseJsChanged": false,
+    "otherPackagesIntentionallyUpdated": false,
+    "platformBinaryPackagesUpdated": 8
+  },
+  "lockfileEvidence": {
+    "packageJsonSha256": "0b6ef521dbbf970a29a4c68f5032e68138653ad5c78d4e00ca0912e3d5d5cabb",
+    "packageLockSha256": "8095099916654341a477c958915e2b19457814894fd5cdd4c348271de01da0a8",
+    "artifactDigest": "sha256:a3134d05080e01b1e3cc6e64baa36972c864e31376e2863b4cc786c2ff64f6a5"
+  },
+  "npmAudit": {
+    "moderate": 2,
+    "high": 0,
+    "critical": 0
+  },
+  "database": {
+    "migrations": 25,
+    "migrationsChanged": false,
+    "schemaChanged": false,
+    "seedChanged": false,
+    "dataChanged": false,
+    "pgtapPassed": true,
+    "plpgsqlLintPassed": true,
+    "generatedTypesReproducible": true
+  },
+  "authAndSecurity": {
+    "authIdentitiesValidated": 7,
+    "rlsPassed": true,
+    "edgeFunctionAuthorizationPassed": true,
+    "edgeFunctionCodeChanged": false,
+    "edgeFunctionDeployed": false
+  },
+  "backupRestore": {
+    "passed": true,
+    "sourceAndTargetDisposable": true,
+    "schemaEquivalent": true,
+    "dataEquivalent": true,
+    "authEquivalent": true,
+    "migrationHistoryEquivalent": true,
+    "compatibilityFix": {
+      "file": "scripts/verify-supabase-backup-restore.mjs",
+      "reason": "A CLI 2.110.0 valida o caminho da Edge Function ao iniciar a segunda pilha descartável.",
+      "change": "Copiar recursivamente supabase/functions para o workdir temporário.",
+      "productionImpact": false
+    }
+  },
+  "gates": {
+    "dependencyHealth": {
+      "runId": 30771809102,
+      "result": "success"
+    },
+    "excelSme": {
+      "runId": 30771809133,
+      "result": "success"
+    },
+    "lighthouse": {
+      "runId": 30771809106,
+      "result": "success"
+    },
+    "supabaseReadiness": {
+      "runId": 30771809104,
+      "result": "success"
+    },
+    "backupRestore": {
+      "runId": 30771809127,
+      "result": "success"
+    },
+    "profilesAndViewports": {
+      "runId": 30771809159,
+      "result": "success",
+      "profiles": 5,
+      "viewports": [
+        "desktop",
+        "android",
+        "iphone"
+      ]
+    },
+    "playwrightE2E": {
+      "runId": 30771809124,
+      "result": "success"
+    }
+  },
+  "production": {
+    "supabaseAccessed": false,
+    "databaseChanged": false,
+    "migrationsApplied": false,
+    "authChanged": false,
+    "rlsChanged": false,
+    "edgeFunctionDeployed": false,
+    "vercelDeployment": false,
+    "vercelGitDeploymentEnabled": false
+  },
+  "temporaryWorkflowsRemoved": true,
+  "laterVersionObservedButExcluded": "2.111.0",
+  "finalStatus": "approved-pending-final-documentation-rerun"
+}
