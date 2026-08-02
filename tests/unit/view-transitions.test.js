@@ -8,7 +8,8 @@ const path = require('node:path');
 const {
     shouldAnimateNavigation,
     runViewTransition,
-    createNavigationActivation
+    createNavigationActivation,
+    createNavigationIntent
 } = require('../../src/integration/view-transitions.js');
 
 const repoRoot = path.resolve(__dirname, '../..');
@@ -106,6 +107,68 @@ test('reinicia a estabilização quando outra rota inicial é aplicada', () => {
     frames.shift()();
     frames.shift()();
     assert.equal(activation.isActive(), true);
+});
+
+test('consome intenção somente em navegação principal ou resultado da busca', () => {
+    const listeners = new Map();
+    const microtasks = [];
+    const document = {
+        addEventListener(type, handler) {
+            listeners.set(type, handler);
+        }
+    };
+    const intent = createNavigationIntent({
+        document,
+        queueMicrotask(handler) {
+            microtasks.push(handler);
+        }
+    });
+
+    const navigationTarget = {
+        closest(selector) {
+            return selector.includes('.nav-item') ? this : null;
+        },
+        matches() { return false; }
+    };
+    listeners.get('click')({
+        type: 'click',
+        isTrusted: true,
+        target: navigationTarget
+    });
+    assert.equal(intent.consume(), true);
+    assert.equal(intent.consume(), false);
+
+    const tabTarget = {
+        closest() { return null; },
+        matches() { return false; }
+    };
+    listeners.get('click')({
+        type: 'click',
+        isTrusted: true,
+        target: tabTarget
+    });
+    assert.equal(intent.consume(), false);
+
+    const searchInput = {
+        closest() { return null; },
+        matches(selector) { return selector === '#global-search'; }
+    };
+    listeners.get('keydown')({
+        type: 'keydown',
+        key: 'Enter',
+        isTrusted: true,
+        target: searchInput
+    });
+    assert.equal(intent.consume(), true);
+
+    listeners.get('click')({
+        type: 'click',
+        isTrusted: false,
+        target: navigationTarget
+    });
+    assert.equal(intent.consume(), false);
+
+    microtasks.forEach(handler => handler());
 });
 
 test('não aplica nome de transição ao conteúdo durante a carga inicial', () => {
