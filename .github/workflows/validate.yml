@@ -7,9 +7,58 @@ on:
       - main
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
+  aplicar-rodada-2:
+    name: Gerar dependências e wiring da Rodada 2
+    if: ${{ github.event_name == 'pull_request' && github.head_ref == 'feat/rodada-2-busca-flutuantes-transicoes-20260801' && github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Obter branch da rodada
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: feat/rodada-2-busca-flutuantes-transicoes-20260801
+          fetch-depth: 0
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Aplicar package e ligação ao HTML
+        run: node scripts/apply-round-2-wiring.mjs
+
+      - name: Regenerar lockfile e instalar dependências
+        run: |
+          npm install --package-lock-only --ignore-scripts
+          npm ci
+
+      - name: Gerar bundles locais
+        run: npm run build:search-ui-vendors
+
+      - name: Validar implementação focal
+        run: |
+          node --test tests/unit/search-ui-vendor-contract.test.js tests/unit/global-search-index.test.js tests/unit/global-search-integration.test.js tests/unit/floating-ui-bootstrap.test.js tests/unit/view-transitions.test.js
+          npm run check
+          npm run check:search-ui-vendors
+
+      - name: Registrar somente artefatos permanentes
+        shell: bash
+        run: |
+          rm -f scripts/apply-round-2-wiring.mjs
+          git diff --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add package.json package-lock.json index.html vendor/fuse.js vendor/floating-ui.js
+          git add -A scripts/apply-round-2-wiring.mjs
+          git commit -m 'build: integrar dependências da rodada 2'
+          git push origin HEAD:feat/rodada-2-busca-flutuantes-transicoes-20260801
+
   validate:
     name: Sintaxe, auditoria e testes de domínio
     runs-on: ubuntu-latest
