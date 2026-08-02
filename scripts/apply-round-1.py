@@ -89,7 +89,7 @@ function extractFormControls'''
 
 audit, count = re.subn(
     r'function extractInlineHandlers\(text\) \{.*?\n\}\n\nfunction extractFormControls',
-    inline_block,
+    lambda _match: inline_block,
     audit,
     count=1,
     flags=re.S
@@ -132,7 +132,7 @@ function buildFindings'''
 
 audit, count = re.subn(
     r'function inspectMarkup\(files\) \{.*?\n\}\n\nfunction buildFindings',
-    inspect_markup,
+    lambda _match: inspect_markup,
     audit,
     count=1,
     flags=re.S
