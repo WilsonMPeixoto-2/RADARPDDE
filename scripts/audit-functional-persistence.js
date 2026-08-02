@@ -395,14 +395,83 @@ function inspectJavaScript(files) {
     };
 }
 
-function extractInlineHandlers(text) {
-    const handlers = [];
-    const pattern = /\bon(?:click|submit|change|input|blur|keydown|keyup)\s*=\s*["']\s*([A-Za-z_$][\w$]*)/gi;
+function sourceLocationAt(text, offset) {
+    const prefix = String(text || '').slice(0, offset);
+    const line = (prefix.match(/\n/g) || []).length + 1;
+    const lastBreak = prefix.lastIndexOf('\n');
+    return {
+        line,
+        column: lastBreak === -1 ? prefix.length : prefix.length - lastBreak - 1
+    };
+}
+
+function decodeHtmlEntities(value) {
+    return String(value || '')
+        .replace(/&#x([0-9a-f]+);/gi, (_match, code) => String.fromCodePoint(Number.parseInt(code, 16)))
+        .replace(/&#(\d+);/g, (_match, code) => String.fromCodePoint(Number.parseInt(code, 10)))
+        .replace(/&quot;/gi, '"')
+        .replace(/&apos;|&#39;/gi, "'")
+        .replace(/&lt;/gi, '<')
+        .replace(/&gt;/gi, '>')
+        .replace(/&amp;/gi, '&');
+}
+
+function inspectInlineHandlers(text, file = '<markup>') {
+    const handlers = new Set();
+    const syntaxErrors = [];
+    const pattern = /\bon(?:click|submit|change|input|blur|keydown|keyup)\s*=\s*(?:"([^"\r\n]*)"|'([^'\r\n]*)')/gi;
     let match;
+
     while ((match = pattern.exec(text)) !== null) {
-        if (!INLINE_GLOBALS.has(match[1])) handlers.push(match[1]);
+        const raw = match[1] ?? match[2] ?? '';
+        const quote = match[1] !== undefined ? '"' : "'";
+        const assignmentIndex = match[0].indexOf('=');
+        const quoteIndex = match[0].indexOf(quote, assignmentIndex);
+        const rawOffset = match.index + quoteIndex + 1;
+        const decoded = decodeHtmlEntities(raw);
+        const nameMatch = decoded.trimStart().match(/^([A-Za-z_$][\w$]*)/);
+
+        if (nameMatch && !INLINE_GLOBALS.has(nameMatch[1])) {
+            handlers.add(nameMatch[1]);
+        }
+
+        if (!decoded.trim() || decoded.includes('${')) continue;
+
+        const startLocation = sourceLocationAt(text, rawOffset);
+        try {
+            const parseOptions = {
+                ecmaVersion: 'latest',
+                sourceType: 'script',
+                allowAwaitOutsideFunction: true,
+                allowReturnOutsideFunction: true,
+                locations: true
+            };
+            acorn.parse(decoded, parseOptions);
+            if (nameMatch) {
+                acorn.parseExpressionAt(decoded, decoded.indexOf(nameMatch[1]), {
+                    ...parseOptions,
+                    startLocation
+                });
+            }
+        } catch (error) {
+            const relativeLine = error.loc?.line || 1;
+            const relativeColumn = error.loc?.column ?? 0;
+            syntaxErrors.push({
+                file,
+                line: startLocation.line + relativeLine - 1,
+                column: relativeLine === 1
+                    ? startLocation.column + relativeColumn
+                    : relativeColumn,
+                message: String(error.message || 'JavaScript inválido')
+                    .replace(/\s*\(\d+:\d+\)\s*$/, '')
+            });
+        }
     }
-    return handlers;
+
+    return {
+        handlers: [...handlers].sort(),
+        syntaxErrors
+    };
 }
 
 function extractFormControls(text) {
@@ -422,7 +491,14 @@ function inspectMarkup(files) {
     const html = fs.existsSync(htmlPath) ? fs.readFileSync(htmlPath, 'utf8') : '';
     const jsText = files.map(file => file.source).join('\n');
     const allText = `${html}\n${jsText}`;
-    const handlers = [...new Set(extractInlineHandlers(allText))].sort();
+    const inlineInspections = [
+        inspectInlineHandlers(html, 'index.html'),
+        ...files.map(file => inspectInlineHandlers(file.source, file.file))
+    ];
+    const handlers = [...new Set(
+        inlineInspections.flatMap(inspection => inspection.handlers)
+    )].sort();
+    const syntaxErrors = inlineInspections.flatMap(inspection => inspection.syntaxErrors);
     const controls = extractFormControls(allText)
         .filter((control, index, collection) => (
             collection.findIndex(candidate => candidate.id === control.id) === index
@@ -438,7 +514,7 @@ function inspectMarkup(files) {
         })
         .sort((left, right) => left.id.localeCompare(right.id));
 
-    return { handlers, controls, unusedControls };
+    return { handlers, controls, unusedControls, syntaxErrors };
 }
 
 function buildFindings(jsInspection, markupInspection, files) {
@@ -481,6 +557,13 @@ function buildFindings(jsInspection, markupInspection, files) {
         }
     });
 
+    markupInspection.syntaxErrors.forEach(error => {
+        findings.push(
+            `Handler inline com JavaScript inválido: ${error.file}:${error.line}:${error.column} `
+            + `(${error.message}).`
+        );
+    });
+
     markupInspection.handlers.forEach(handler => {
         if (!jsInspection.globalDefinitions.has(handler)) {
             findings.push(`Handler de interface sem definição global encontrada: ${handler}.`);
@@ -518,6 +601,7 @@ function runAudit() {
         })),
         mutationFunctions: jsInspection.mutationFunctions,
         inlineHandlers: markupInspection.handlers,
+        inlineHandlerSyntaxErrors: markupInspection.syntaxErrors,
         formControls: markupInspection.controls,
         findings
     };
@@ -558,5 +642,6 @@ module.exports = Object.freeze({
     CONFIG_FIELD_MAP,
     runAudit,
     inspectJavaScript,
+    inspectInlineHandlers,
     inspectMarkup
 });
