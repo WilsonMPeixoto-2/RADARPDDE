@@ -49,10 +49,11 @@ jobs:
           mkdir -p dependency-health
           npm run lint:security:html
 
-      - name: Remover automações temporárias
+      - name: Limitar o commit a código e lockfile
         run: |
+          git checkout HEAD -- .github/workflows
+          rm -rf dependency-health
           rm -f scripts/apply-round-1.py scripts/fix-round-1-location.py
-          rm -f .github/workflows/rodada-1-aplicar-atualizacoes.yml
 
       - name: Registrar alterações reproduzíveis na branch
         shell: bash
@@ -60,6 +61,7 @@ jobs:
           git diff --check
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add --all
+          git add package.json package-lock.json scripts/audit-functional-persistence.js tests/unit/audit-functional-persistence-contract.test.js
+          git add -A scripts/apply-round-1.py scripts/fix-round-1-location.py
           git commit -m 'chore: aplicar atualizações técnicas da rodada 1'
           git push origin HEAD:chore/rodada-1-baixo-risco-20260801
