@@ -175,6 +175,7 @@ test('consome intenção somente em navegação principal ou resultado da busca'
 test('reengloba switchView quando o bootstrap de rotas substitui a função', () => {
     const frames = [];
     const listeners = new Map();
+    const microtasks = [];
     let transitionCalls = 0;
     let navigationCalls = 0;
     const root = {
@@ -197,7 +198,7 @@ test('reengloba switchView quando o bootstrap de rotas substitui a função', ()
             frames.push(handler);
         },
         queueMicrotask(handler) {
-            handler();
+            microtasks.push(handler);
         },
         matchMedia() {
             return { matches: false };
@@ -220,7 +221,6 @@ test('reengloba switchView quando o bootstrap de rotas substitui a função', ()
     assert.equal(root.__radarViewTransitionsController.getWrapCount(), 2);
     assert.notEqual(root.switchView.name, 'routeBootstrapWrapper');
 
-    let trusted = true;
     const navigationTarget = {
         closest(selector) {
             return selector.includes('.nav-item') ? this : null;
@@ -229,14 +229,14 @@ test('reengloba switchView quando o bootstrap de rotas substitui a função', ()
     };
     listeners.get('click')({
         type: 'click',
-        get isTrusted() { return trusted; },
+        isTrusted: true,
         target: navigationTarget
     });
-    trusted = false;
     root.switchView('competencias');
 
     assert.equal(transitionCalls, 1);
     assert.equal(navigationCalls, 2);
+    microtasks.forEach(handler => handler());
 });
 
 test('não aplica nome de transição ao conteúdo durante a carga inicial', () => {
