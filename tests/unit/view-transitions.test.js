@@ -7,7 +7,8 @@ const path = require('node:path');
 
 const {
     shouldAnimateNavigation,
-    runViewTransition
+    runViewTransition,
+    createNavigationActivation
 } = require('../../src/integration/view-transitions.js');
 
 const repoRoot = path.resolve(__dirname, '../..');
@@ -28,10 +29,11 @@ function createRoot({ supported = true, reduced = false } = {}) {
     return { root, calls };
 }
 
-test('anima somente quando a API existe e não há redução de movimento', () => {
-    assert.equal(shouldAnimateNavigation(createRoot().root), true);
-    assert.equal(shouldAnimateNavigation(createRoot({ supported: false }).root), false);
-    assert.equal(shouldAnimateNavigation(createRoot({ reduced: true }).root), false);
+test('anima somente quando a API existe, a página está estável e não há redução de movimento', () => {
+    assert.equal(shouldAnimateNavigation(createRoot().root, true), true);
+    assert.equal(shouldAnimateNavigation(createRoot().root, false), false);
+    assert.equal(shouldAnimateNavigation(createRoot({ supported: false }).root, true), false);
+    assert.equal(shouldAnimateNavigation(createRoot({ reduced: true }).root, true), false);
 });
 
 test('executa a atualização uma única vez com ou sem transição', async () => {
@@ -52,6 +54,33 @@ test('executa a atualização uma única vez com ou sem transição', async () =
     });
     assert.equal(result, 'fallback');
     assert.equal(fallbackUpdates, 1);
+});
+
+test('ativa transições somente após load e dois frames estáveis', () => {
+    let loadHandler;
+    const frames = [];
+    const root = {
+        document: { readyState: 'loading' },
+        addEventListener(type, handler) {
+            if (type === 'load') loadHandler = handler;
+        },
+        requestAnimationFrame(handler) {
+            frames.push(handler);
+        }
+    };
+
+    const activation = createNavigationActivation(root);
+    assert.equal(activation.isActive(), false);
+    assert.equal(typeof loadHandler, 'function');
+
+    loadHandler();
+    assert.equal(activation.isActive(), false);
+    assert.equal(frames.length, 1);
+    frames.shift()();
+    assert.equal(activation.isActive(), false);
+    assert.equal(frames.length, 1);
+    frames.shift()();
+    assert.equal(activation.isActive(), true);
 });
 
 test('não aplica nome de transição ao conteúdo durante a carga inicial', () => {
