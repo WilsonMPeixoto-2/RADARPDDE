@@ -2,11 +2,15 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const {
     shouldAnimateNavigation,
     runViewTransition
 } = require('../../src/integration/view-transitions.js');
+
+const repoRoot = path.resolve(__dirname, '../..');
 
 function createRoot({ supported = true, reduced = false } = {}) {
     const calls = [];
@@ -48,4 +52,20 @@ test('executa a atualização uma única vez com ou sem transição', async () =
     });
     assert.equal(result, 'fallback');
     assert.equal(fallbackUpdates, 1);
+});
+
+test('não aplica nome de transição ao conteúdo durante a carga inicial', () => {
+    const script = fs.readFileSync(
+        path.join(repoRoot, 'src/integration/view-transitions.js'),
+        'utf8'
+    );
+    const styles = fs.readFileSync(
+        path.join(repoRoot, 'src/styles/view-transitions.css'),
+        'utf8'
+    );
+
+    assert.doesNotMatch(script, /style\.viewTransitionName\s*=/);
+    assert.doesNotMatch(styles, /#main-container\s*\{[^}]*view-transition-name/s);
+    assert.match(styles, /::view-transition-old\(root\)/);
+    assert.match(styles, /::view-transition-new\(root\)/);
 });
