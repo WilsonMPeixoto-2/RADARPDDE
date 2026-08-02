@@ -1,6 +1,6 @@
 # RADAR PDDE — Registro de decisões
 
-**Atualizado em:** 29 de julho de 2026
+**Atualizado em:** 1º de agosto de 2026
 
 Este documento registra decisões duradouras. Não é diário de commits. Uma decisão somente é substituída por decisão expressa com impacto e status documentados.
 
@@ -273,7 +273,7 @@ A timeline consolida verificações, pendências, tentativas, contatos, logs, no
 
 ## ADR-028 — Excel exige certificação de paridade integral
 
-**Status:** Aprovada e implementada quanto ao gate automatizado
+**Status:** Aprovada e implementada
 
 Relatórios Excel são produtos finais institucionais. A certificação percorre:
 
@@ -281,7 +281,9 @@ Relatórios Excel são produtos finais institucionais. A certificação percorre
 estado canônico → modelo → workbook/OOXML → célula XLSX
 ```
 
-O botão principal institucional gera XLSX, o Excel SME possui botão próprio e o CSV permanece fallback. Abertura manual no Excel desktop continua gate de release.
+O botão principal institucional gera XLSX, o Excel SME possui botão próprio e o CSV permanece fallback. Cada mudança material do gerador exige proteção automatizada e homologação humana no Excel desktop antes da publicação.
+
+**Aplicação ao Excel SME:** a abertura no Microsoft Excel desktop foi concluída em 1º de agosto de 2026, sem reparo ou aviso de conteúdo inválido, e a versão homologada foi publicada. O workflow permanece como proteção regressiva; não representa gate pendente do escopo já encerrado.
 
 ---
 
@@ -358,3 +360,35 @@ A operação usou o mecanismo oficial `migration repair` para alterar somente o 
 **Consequência permanente:** migration futura exige histórico alinhado, teste de regressão, reset local, pgTAP, lint, tipos, dry-run, backup e rollback. `migration repair` não é rollback funcional de SQL.
 
 **Evidência:** `docs/audits/2026-07-29-reconciliacao-migration-sme-evidencias.md`.
+
+---
+
+## ADR-035 — Node 24 e gate remoto por papel/viewport
+
+**Status:** Aprovada e implementada
+
+Node.js permanece fixado em `24.x` no projeto, Vercel e workflows. O gate remoto sobe Supabase descartável, aplica migrations e valida os cinco papéis institucionais em Desktop Chrome, Pixel 7/Chromium e iPhone 15/WebKit, sem utilizar Production.
+
+**Documento integral:** `docs/decisions/ADR-035-node24-e-gate-remoto.md`.
+
+---
+
+## ADR-036 — Backup restaurável e recurso pago do Supabase Auth
+
+**Status:** Aprovada e implementada quanto ao gate disponível
+
+Backup lógico e restauração são verificados em pilhas Supabase descartáveis, incluindo schema, dados, Auth e histórico de migrations. A proteção de senhas comprometidas não é requisito enquanto o projeto permanecer no plano Free e não houver autorização financeira.
+
+**Documento integral:** `docs/decisions/ADR-036-backup-restauracao-e-recurso-pago-auth.md`.
+
+---
+
+## ADR-037 — Integridade de referências locais dos workflows
+
+**Status:** Aprovada e implementada
+
+Workflows devem falhar quando chamadas estáticas verificáveis apontarem para scripts, testes, configurações Playwright, scripts npm, diretórios de trabalho, cache manifests ou Actions locais inexistentes. Expressões dinâmicas, heredocs e artefatos gerados em runtime ficam fora desse verificador conservador.
+
+O gate é executado pela validação principal e pela saúde das dependências, sem introduzir nova dependência npm.
+
+**Documento integral:** `docs/decisions/ADR-037-integridade-de-referencias-dos-workflows.md`.
