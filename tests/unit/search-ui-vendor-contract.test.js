@@ -24,3 +24,16 @@ test('fixa e empacota as dependências de busca e posicionamento', () => {
     assert.match(read('scripts/build-search-ui-vendors.mjs'), /vendor\/fuse\.js/);
     assert.match(read('scripts/build-search-ui-vendors.mjs'), /vendor\/floating-ui\.js/);
 });
+
+test('carrega Fuse.js e Floating UI somente no primeiro uso', () => {
+    const html = read('index.html');
+    const searchIntegration = read('src/integration/global-search.js');
+    const floatingIntegration = read('src/integration/floating-ui-bootstrap.js');
+
+    assert.doesNotMatch(html, /<script\s+src="vendor\/fuse\.js"/);
+    assert.doesNotMatch(html, /<script\s+src="vendor\/floating-ui\.js"/);
+    assert.match(searchIntegration, /vendor\/fuse\.js/);
+    assert.match(floatingIntegration, /vendor\/floating-ui\.js/);
+    assert.match(searchIntegration, /loadScriptOnce/);
+    assert.match(floatingIntegration, /loadScriptOnce/);
+});
