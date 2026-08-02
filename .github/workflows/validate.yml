@@ -1,67 +1,159 @@
-name: Aplicar transformação da Rodada 1
+name: Validar RADAR PDDE
 
 on:
   pull_request:
-    paths:
-      - .github/workflows/validate.yml
-      - scripts/apply-round-1.py
-      - scripts/fix-round-1-location.py
+  push:
+    branches:
+      - main
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  aplicar:
-    if: ${{ github.head_ref == 'chore/rodada-1-baixo-risco-20260801' && github.actor != 'github-actions[bot]' }}
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
+  validate:
+    name: Sintaxe, auditoria e testes de domínio
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Obter branch da rodada
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Obter código
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Configurar Node.js LTS
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          ref: chore/rodada-1-baixo-risco-20260801
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+
+      - name: Validar referências locais dos workflows
+        run: node scripts/check-workflow-references.mjs
+
+      - name: Auditar dependências npm
+        run: npm audit --audit-level=high
+
+      - name: Verificar sintaxe da aplicação e infraestrutura
+        run: npm run check
+
+      - name: Executar testes de domínio existentes
+        run: node --test tests/*.test.js
+
+      - name: Executar testes de integração da migração
+        run: npm run test:integration
+
+      - name: Executar testes unitários com relatório estruturado
+        id: unit_tests
+        shell: bash
+        run: |
+          set +e
+          node --test --test-reporter=junit tests/unit/*.test.js > unit-tests.xml
+          status=$?
+          set -e
+          exit $status
+
+      - name: Publicar relatório dos testes unitários
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: unit-tests-report
+          path: unit-tests.xml
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Gerar relatório detalhado da auditoria
+        if: ${{ !cancelled() }}
+        run: npm run audit:functional:json > functional-persistence-audit.json || true
+
+      - name: Publicar relatório detalhado da auditoria
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: functional-persistence-audit
+          path: functional-persistence-audit.json
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Auditar cobertura funcional e de persistência
+        run: npm run audit:functional
+
+  homologacao-supabase-preview:
+    name: Auth, perfis, RLS e persistência no Preview
+    if: ${{ github.event_name == 'pull_request' && github.head_ref == 'qa/supabase-preview-gate-run' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      RADAR_DEPLOYMENT_URL: https://radarpdde-d5g8j0esm-wilson-m-peixotos-projects.vercel.app
+      RADAR_SUPABASE_URL: ${{ secrets.RADAR_SUPABASE_URL }}
+      RADAR_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.RADAR_SUPABASE_SERVICE_ROLE_KEY }}
+      RADAR_ALLOW_REMOTE_HOMOLOGATION: 'true'
+      RADAR_E2E_SUPABASE_REMOTE: '1'
+      RADAR_HML_FIXTURE_FILE: ${{ runner.temp }}/radar-hml-users.json
+
+    steps:
+      - name: Obter código
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
       - name: Configurar Node.js 24
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
-          node-version: 24
+          node-version: '24'
           cache: npm
 
-      - name: Restaurar o workflow canônico antes da transformação
-        run: |
-          git fetch origin main --depth=1
-          git show FETCH_HEAD:.github/workflows/validate.yml > .github/workflows/validate.yml
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
 
-      - name: Aplicar versões e integrações pertinentes
-        run: |
-          python scripts/apply-round-1.py
-          python scripts/fix-round-1-location.py
+      - name: Instalar Chromium
+        run: npx playwright install --with-deps chromium
 
-      - name: Regenerar lockfile sem executar scripts de instalação
-        run: npm install --package-lock-only --ignore-scripts
-
-      - name: Validar implementação dirigida pelo teste
-        run: |
-          npm ci
-          node --test tests/unit/audit-functional-persistence-contract.test.js
-          npm run check
-          mkdir -p dependency-health
-          npm run lint:security:html
-
-      - name: Limitar o commit a código e lockfile
-        run: |
-          git checkout HEAD -- .github/workflows
-          rm -rf dependency-health
-          rm -f scripts/apply-round-1.py scripts/fix-round-1-location.py
-
-      - name: Registrar alterações reproduzíveis na branch
+      - name: Validar alvo, segredos e manifesto público
         shell: bash
         run: |
-          git diff --check
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add package.json package-lock.json scripts/audit-functional-persistence.js tests/unit/audit-functional-persistence-contract.test.js
-          git add -A scripts/apply-round-1.py scripts/fix-round-1-location.py
-          git commit -m 'chore: aplicar atualizações técnicas da rodada 1'
-          git push origin HEAD:chore/rodada-1-baixo-risco-20260801
+          set -euo pipefail
+          test -n "${RADAR_SUPABASE_URL}"
+          test -n "${RADAR_SUPABASE_SERVICE_ROLE_KEY}"
+          test "${RADAR_SUPABASE_URL}" = 'https://scnryinorqeucbfkioxo.supabase.co'
+          node --input-type=module <<'NODE'
+          const response = await fetch(`${process.env.RADAR_DEPLOYMENT_URL}/config.runtime.js`);
+          if (!response.ok) throw new Error(`Manifesto indisponível: ${response.status}`);
+          const source = await response.text();
+          if (!source.includes('"environment": "preview"')) throw new Error('Preview sem environment=preview.');
+          if (!source.includes('"dataMode": "supabase-preview"')) throw new Error('Preview sem dataMode=supabase-preview.');
+          if (!source.includes('"supabaseRepositoryEnabled": true')) throw new Error('Repositório Supabase desativado no Preview.');
+          if (!source.includes('"productionActivationApproved": false')) throw new Error('Preview com ativação de Production indevida.');
+          process.stdout.write('Manifesto Preview validado sem exibir credenciais.\n');
+          NODE
+
+      - name: Gerar credencial efêmera protegida
+        shell: bash
+        run: |
+          set -euo pipefail
+          password="$(node --input-type=module -e "import { randomBytes } from 'node:crypto'; process.stdout.write(randomBytes(36).toString('base64url') + 'A1!')")"
+          echo "::add-mask::${password}"
+          echo "RADAR_HML_PASSWORD=${password}" >> "${GITHUB_ENV}"
+          echo "RADAR_HML_RUN_ID=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "${GITHUB_ENV}"
+
+      - name: Criar identidades temporárias e perfis funcionais
+        run: node scripts/ops/prepare-remote-homologation-users.mjs
+
+      - name: Homologar login, sessão, telas, permissões e operações HML
+        run: >-
+          npx playwright test
+          tests/e2e/supabase-preview-remote.spec.js
+          --config=playwright.supabase-preview.config.js
+
+      - name: Remover identidades e registros temporários
+        if: always()
+        run: node scripts/ops/cleanup-remote-homologation-users.mjs
+
+      - name: Publicar evidências da homologação
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: homologacao-supabase-preview-${{ github.run_id }}
+          path: |
+            playwright-report-supabase-preview/
+            test-results/
+          if-no-files-found: warn
+          retention-days: 14
