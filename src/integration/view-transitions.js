@@ -188,11 +188,37 @@
         if (!root || root.__radarViewTransitionsInstalled) return false;
         if (!root.document || typeof root.switchView !== 'function') return false;
 
+        const document = root.document;
         const intent = createNavigationIntent(root);
         let activation;
         let currentWrapper = null;
         let transitionInFlight = false;
         let wrapCount = 0;
+
+        function startTransition(update) {
+            if (transitionInFlight || !shouldAnimateNavigation(root, activation?.isActive())) {
+                return update();
+            }
+
+            let updateStarted = false;
+            let result;
+            try {
+                transitionInFlight = true;
+                const transition = root.document.startViewTransition(() => {
+                    updateStarted = true;
+                    result = update();
+                    return result;
+                });
+                observeTransition(root, transition, () => {
+                    transitionInFlight = false;
+                });
+                return result;
+            } catch (error) {
+                transitionInFlight = false;
+                if (updateStarted) throw error;
+                return update();
+            }
+        }
 
         function wrapCurrentSwitchView() {
             const candidate = root.switchView;
@@ -207,28 +233,10 @@
                 }
 
                 const userInitiated = intent.consume();
-                if (!userInitiated || transitionInFlight || !shouldAnimateNavigation(root, true)) {
+                if (!userInitiated) {
                     return originalSwitchView(...args);
                 }
-
-                let updateStarted = false;
-                let result;
-                try {
-                    transitionInFlight = true;
-                    const transition = root.document.startViewTransition(() => {
-                        updateStarted = true;
-                        result = originalSwitchView(...args);
-                        return result;
-                    });
-                    observeTransition(root, transition, () => {
-                        transitionInFlight = false;
-                    });
-                    return result;
-                } catch (error) {
-                    transitionInFlight = false;
-                    if (updateStarted) throw error;
-                    return originalSwitchView(...args);
-                }
+                return startTransition(() => originalSwitchView(...args));
             };
 
             currentWrapper = wrapper;
@@ -238,8 +246,49 @@
             return true;
         }
 
+        function viewFromNavigationTarget(target) {
+            const item = target?.closest?.('.nav-item[id^="nav-"]');
+            if (!item?.id) return null;
+            return item.id.replace(/^nav-/, '') || null;
+        }
+
+        function shouldInterceptNavigationEvent(event) {
+            if (!activation?.isActive() || !shouldAnimateNavigation(root, true)) return false;
+            if (!event || event.defaultPrevented || event.isTrusted !== true) return false;
+            if (event.type === 'click') {
+                return Number(event.button || 0) === 0
+                    && !event.metaKey
+                    && !event.ctrlKey
+                    && !event.shiftKey
+                    && !event.altKey;
+            }
+            return event.type === 'keydown'
+                && (event.key === 'Enter' || event.key === ' ')
+                && !event.metaKey
+                && !event.ctrlKey
+                && !event.altKey;
+        }
+
+        function navigateFromSidebarEvent(event) {
+            const view = viewFromNavigationTarget(event?.target);
+            if (!view || !shouldInterceptNavigationEvent(event) || transitionInFlight) return;
+
+            event.preventDefault?.();
+            event.stopImmediatePropagation?.();
+            intent.consume();
+
+            startTransition(() => {
+                if (root.RadarNavigationHistory?.navigate) {
+                    return root.RadarNavigationHistory.navigate(root, { view });
+                }
+                return root.switchView(view);
+            });
+        }
+
         activation = createNavigationActivation(root, wrapCurrentSwitchView);
         wrapCurrentSwitchView();
+        document.addEventListener('click', navigateFromSidebarEvent, true);
+        document.addEventListener('keydown', navigateFromSidebarEvent, true);
 
         root.__radarViewTransitionsController = Object.freeze({
             shouldAnimate: () => shouldAnimateNavigation(root, activation.isActive()),
