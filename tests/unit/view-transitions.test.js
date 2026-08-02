@@ -172,18 +172,23 @@ test('consome intenção somente em navegação principal ou resultado da busca'
     microtasks.forEach(handler => handler());
 });
 
-test('reengloba switchView quando o bootstrap de rotas substitui a função', () => {
+test('reengloba switchView e intercepta o evento canônico após o bootstrap de rotas', () => {
     const frames = [];
     const listeners = new Map();
     const microtasks = [];
     let transitionCalls = 0;
     let navigationCalls = 0;
+
+    function addListener(type, handler) {
+        const handlers = listeners.get(type) || [];
+        handlers.push(handler);
+        listeners.set(type, handlers);
+    }
+
     const root = {
         document: {
             readyState: 'complete',
-            addEventListener(type, handler) {
-                listeners.set(type, handler);
-            },
+            addEventListener: addListener,
             startViewTransition(update) {
                 transitionCalls += 1;
                 const updateCallbackDone = Promise.resolve(update());
@@ -222,18 +227,24 @@ test('reengloba switchView quando o bootstrap de rotas substitui a função', ()
     assert.notEqual(root.switchView.name, 'routeBootstrapWrapper');
 
     const navigationTarget = {
+        id: 'nav-competencias',
         closest(selector) {
             return selector.includes('.nav-item') ? this : null;
         },
         matches() { return false; }
     };
-    listeners.get('click')({
+    const event = {
         type: 'click',
+        button: 0,
+        defaultPrevented: false,
         isTrusted: true,
-        target: navigationTarget
-    });
-    root.switchView('competencias');
+        target: navigationTarget,
+        preventDefault() { this.defaultPrevented = true; },
+        stopImmediatePropagation() {}
+    };
+    for (const handler of listeners.get('click') || []) handler(event);
 
+    assert.equal(event.defaultPrevented, true);
     assert.equal(transitionCalls, 1);
     assert.equal(navigationCalls, 2);
     microtasks.forEach(handler => handler());
