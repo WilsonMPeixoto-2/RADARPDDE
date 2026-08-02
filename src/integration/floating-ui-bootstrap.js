@@ -8,11 +8,9 @@
     if (root) {
         root.RadarFloatingUI = Object.freeze(api);
         if (root.document) {
-            if (!api.install(root)) {
-                const interval = root.setInterval?.(() => {
-                    if (api.install(root)) root.clearInterval?.(interval);
-                }, 25);
-                root.setTimeout?.(() => root.clearInterval?.(interval), 10000);
+            const install = () => api.install(root);
+            if (!install() && root.document.readyState === 'loading') {
+                root.document.addEventListener('DOMContentLoaded', install, { once: true });
             }
         }
     }
@@ -20,6 +18,7 @@
     'use strict';
 
     const FLOATING_NAMES = Object.freeze(['alerts', 'profile', 'search']);
+    const FLOATING_VENDOR_URL = 'vendor/floating-ui.js';
 
     function normalizeFloatingName(value) {
         const normalized = String(value || '').trim().toLowerCase();
@@ -59,61 +58,165 @@
         };
     }
 
+    function loadScriptOnce(root, source, globalName) {
+        if (root?.RadarGlobalSearch?.loadScriptOnce) {
+            return root.RadarGlobalSearch.loadScriptOnce(root, source, globalName);
+        }
+        if (!root || !root.document) {
+            return Promise.reject(new Error(`Documento indisponível para carregar ${source}.`));
+        }
+        if (root[globalName]) return Promise.resolve(root[globalName]);
+
+        const registry = root.__radarLazyScriptPromises
+            || (root.__radarLazyScriptPromises = Object.create(null));
+        if (registry[source]) return registry[source];
+
+        registry[source] = new Promise((resolve, reject) => {
+            const document = root.document;
+            const selector = `script[data-radar-lazy-source="${source}"]`;
+            let script = document.querySelector?.(selector);
+            const finish = () => {
+                if (root[globalName]) {
+                    resolve(root[globalName]);
+                } else {
+                    delete registry[source];
+                    reject(new Error(`${source} carregado sem expor ${globalName}.`));
+                }
+            };
+            const fail = () => {
+                delete registry[source];
+                reject(new Error(`Não foi possível carregar ${source}.`));
+            };
+
+            if (script) {
+                script.addEventListener('load', finish, { once: true });
+                script.addEventListener('error', fail, { once: true });
+                return;
+            }
+
+            script = document.createElement('script');
+            script.src = source;
+            script.async = true;
+            script.dataset.radarLazySource = source;
+            script.addEventListener('load', finish, { once: true });
+            script.addEventListener('error', fail, { once: true });
+            (document.head || document.documentElement).appendChild(script);
+        });
+        return registry[source];
+    }
+
     function install(root) {
         if (!root || root.__radarFloatingUIInstalled) return false;
         const document = root.document;
-        const floatingApi = root.FloatingUIDOM;
-        if (!document || !floatingApi?.computePosition || !floatingApi?.autoUpdate) return false;
+        if (!document) return false;
 
-        const definitions = {
+        const selectors = {
             alerts: {
-                reference: document.querySelector('#alerts-bell-container .bell-button'),
-                floating: document.getElementById('alerts-dropdown'),
+                reference: '#alerts-bell-container .bell-button',
+                floating: '#alerts-dropdown',
                 placement: 'bottom-end',
                 role: 'menu'
             },
             profile: {
-                reference: document.querySelector('.profile-switcher .profile-button'),
-                floating: document.getElementById('profile-dropdown'),
+                reference: '.profile-switcher .profile-button',
+                floating: '#profile-dropdown',
                 placement: 'bottom-end',
                 role: 'menu'
             },
             search: {
-                reference: document.getElementById('global-search'),
-                floating: document.getElementById('global-search-results'),
+                reference: '#global-search',
+                floating: '#global-search-results',
                 placement: 'bottom-start',
                 role: 'listbox'
             }
         };
 
-        if (!definitions.alerts.reference || !definitions.alerts.floating
-            || !definitions.profile.reference || !definitions.profile.floating) {
+        function resolveDefinition(name) {
+            const normalized = normalizeFloatingName(name);
+            const config = selectors[normalized];
+            if (!config) return null;
+            return {
+                ...config,
+                reference: document.querySelector(config.reference),
+                floating: document.querySelector(config.floating)
+            };
+        }
+
+        const initialAlerts = resolveDefinition('alerts');
+        const initialProfile = resolveDefinition('profile');
+        if (!initialAlerts?.reference || !initialAlerts?.floating
+            || !initialProfile?.reference || !initialProfile?.floating) {
             return false;
         }
 
         const cleanups = new Map();
         let activeName = null;
+        let openRequest = 0;
 
-        Object.entries(definitions).forEach(([name, definition]) => {
-            if (!definition.reference || !definition.floating) return;
+        function configureDefinition(name) {
+            const definition = resolveDefinition(name);
+            if (!definition?.reference || !definition?.floating) return null;
             definition.reference.setAttribute('aria-haspopup', definition.role);
             definition.reference.setAttribute('aria-controls', definition.floating.id);
-            definition.reference.setAttribute('aria-expanded', 'false');
+            if (!definition.reference.hasAttribute('aria-expanded')) {
+                definition.reference.setAttribute('aria-expanded', 'false');
+            }
             definition.floating.setAttribute('role', definition.role);
             definition.floating.dataset.radarFloating = name;
-        });
+            return definition;
+        }
 
-        function updatePosition(name) {
-            const normalized = normalizeFloatingName(name);
-            const definition = definitions[normalized];
-            if (!definition?.reference || !definition?.floating || definition.floating.hidden) {
-                return Promise.resolve(false);
+        FLOATING_NAMES.forEach(configureDefinition);
+
+        function positionFallback(definition) {
+            const referenceRect = definition.reference.getBoundingClientRect();
+            const floatingRect = definition.floating.getBoundingClientRect();
+            const viewportWidth = root.innerWidth || document.documentElement.clientWidth;
+            const viewportHeight = root.innerHeight || document.documentElement.clientHeight;
+            const padding = 8;
+            const alignEnd = definition.placement.endsWith('-end');
+            const preferredLeft = alignEnd
+                ? referenceRect.right - floatingRect.width
+                : referenceRect.left;
+            const left = Math.min(
+                Math.max(padding, preferredLeft),
+                Math.max(padding, viewportWidth - floatingRect.width - padding)
+            );
+            const preferredTop = referenceRect.bottom + 8;
+            const top = preferredTop + floatingRect.height <= viewportHeight - padding
+                ? preferredTop
+                : Math.max(padding, referenceRect.top - floatingRect.height - 8);
+            Object.assign(definition.floating.style, {
+                position: 'fixed',
+                left: `${Math.round(left)}px`,
+                top: `${Math.round(top)}px`,
+                right: 'auto',
+                maxWidth: `${Math.max(220, viewportWidth - padding * 2)}px`,
+                maxHeight: `${Math.max(120, viewportHeight - padding * 2)}px`
+            });
+            return true;
+        }
+
+        async function ensureFloatingApi() {
+            if (root.FloatingUIDOM?.computePosition && root.FloatingUIDOM?.autoUpdate) {
+                return root.FloatingUIDOM;
             }
-            return floatingApi.computePosition(
-                definition.reference,
-                definition.floating,
-                createPositionOptions(floatingApi, definition.placement)
-            ).then(({ x, y }) => {
+            return loadScriptOnce(root, FLOATING_VENDOR_URL, 'FloatingUIDOM');
+        }
+
+        async function updatePosition(name) {
+            const normalized = normalizeFloatingName(name);
+            const definition = resolveDefinition(normalized);
+            if (!definition?.reference || !definition?.floating || definition.floating.hidden) {
+                return false;
+            }
+            try {
+                const floatingApi = await ensureFloatingApi();
+                const { x, y } = await floatingApi.computePosition(
+                    definition.reference,
+                    definition.floating,
+                    createPositionOptions(floatingApi, definition.placement)
+                );
                 Object.assign(definition.floating.style, {
                     position: 'fixed',
                     left: `${Math.round(x)}px`,
@@ -121,7 +224,9 @@
                     right: 'auto'
                 });
                 return true;
-            });
+            } catch (_error) {
+                return positionFallback(definition);
+            }
         }
 
         function stopAutoUpdate(name) {
@@ -132,8 +237,9 @@
 
         function closeFloating(name, { restoreFocus = false } = {}) {
             const normalized = normalizeFloatingName(name);
-            const definition = definitions[normalized];
+            const definition = resolveDefinition(normalized);
             if (!definition?.floating) return false;
+            openRequest += 1;
             stopAutoUpdate(normalized);
             definition.floating.classList.remove('show');
             definition.floating.hidden = true;
@@ -144,40 +250,58 @@
         }
 
         function closeAll(options = {}) {
+            const focusedName = activeName;
             FLOATING_NAMES.forEach(name => closeFloating(name, {
-                restoreFocus: options.restoreFocus === true && activeName === name
+                restoreFocus: options.restoreFocus === true && focusedName === name
             }));
         }
 
-        function openFloating(name) {
+        async function openFloating(name) {
             const normalized = normalizeFloatingName(name);
-            const definition = definitions[normalized];
+            const definition = configureDefinition(normalized);
             if (!definition?.reference || !definition?.floating) return false;
+            const request = ++openRequest;
 
             FLOATING_NAMES.filter(other => other !== normalized)
-                .forEach(other => closeFloating(other));
+                .forEach(other => {
+                    const otherDefinition = resolveDefinition(other);
+                    if (!otherDefinition?.floating) return;
+                    stopAutoUpdate(other);
+                    otherDefinition.floating.classList.remove('show');
+                    otherDefinition.floating.hidden = true;
+                    otherDefinition.reference?.setAttribute('aria-expanded', 'false');
+                });
             stopAutoUpdate(normalized);
             definition.floating.hidden = false;
             definition.floating.classList.add('show');
             definition.reference.setAttribute('aria-expanded', 'true');
             activeName = normalized;
+            positionFallback(definition);
 
-            const update = () => updatePosition(normalized);
-            cleanups.set(normalized, floatingApi.autoUpdate(
-                definition.reference,
-                definition.floating,
-                update
-            ));
-            update();
+            try {
+                const floatingApi = await ensureFloatingApi();
+                if (request !== openRequest || activeName !== normalized) return false;
+                const update = () => updatePosition(normalized);
+                cleanups.set(normalized, floatingApi.autoUpdate(
+                    definition.reference,
+                    definition.floating,
+                    update
+                ));
+                await update();
+            } catch (_error) {
+                if (request === openRequest && activeName === normalized) {
+                    positionFallback(definition);
+                }
+            }
             return true;
         }
 
         function toggleFloating(name) {
             const normalized = normalizeFloatingName(name);
-            const definition = definitions[normalized];
-            if (!definition?.floating) return false;
+            const definition = resolveDefinition(normalized);
+            if (!definition?.floating) return Promise.resolve(false);
             return definition.floating.classList.contains('show')
-                ? closeFloating(normalized)
+                ? Promise.resolve(closeFloating(normalized))
                 : openFloating(normalized);
         }
 
@@ -199,7 +323,7 @@
         });
         document.addEventListener('pointerdown', event => {
             if (!activeName) return;
-            const definition = definitions[activeName];
+            const definition = resolveDefinition(activeName);
             if (definition?.reference?.contains(event.target) || definition?.floating?.contains(event.target)) {
                 return;
             }
@@ -215,7 +339,8 @@
             toggleFloating,
             updatePosition,
             getActiveName: () => activeName,
-            getAutoUpdateCount: () => cleanups.size
+            getAutoUpdateCount: () => cleanups.size,
+            isVendorLoaded: () => Boolean(root.FloatingUIDOM)
         });
         root.__radarFloatingUIInstalled = true;
         return true;
@@ -223,9 +348,11 @@
 
     return Object.freeze({
         FLOATING_NAMES,
+        FLOATING_VENDOR_URL,
         normalizeFloatingName,
         nextExpandedState,
         createPositionOptions,
+        loadScriptOnce,
         install
     });
 }));
