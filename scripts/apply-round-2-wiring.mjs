@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+// Script temporário executado apenas pelo runner da branch da Rodada 2.
 import fs from 'node:fs/promises';
 
 const packagePath = new URL('../package.json', import.meta.url);
