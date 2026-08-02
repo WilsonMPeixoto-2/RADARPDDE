@@ -13,11 +13,9 @@
     if (root) {
         root.RadarGlobalSearch = Object.freeze(api);
         if (root.document) {
-            if (!api.install(root)) {
-                const interval = root.setInterval?.(() => {
-                    if (api.install(root)) root.clearInterval?.(interval);
-                }, 25);
-                root.setTimeout?.(() => root.clearInterval?.(interval), 10000);
+            const install = () => api.install(root);
+            if (!install() && root.document.readyState === 'loading') {
+                root.document.addEventListener('DOMContentLoaded', install, { once: true });
             }
         }
     }
@@ -25,6 +23,7 @@
     'use strict';
 
     const RESULT_LIMIT = 8;
+    const FUSE_VENDOR_URL = 'vendor/fuse.js';
 
     function shouldOpenForQuery(query) {
         return String(query || '').trim().length >= 2;
@@ -59,6 +58,52 @@
                 ? { ...route.filters }
                 : {}
         };
+    }
+
+    function loadScriptOnce(root, source, globalName) {
+        if (!root || !root.document) {
+            return Promise.reject(new Error(`Documento indisponível para carregar ${source}.`));
+        }
+        if (root[globalName]) return Promise.resolve(root[globalName]);
+
+        const registry = root.__radarLazyScriptPromises
+            || (root.__radarLazyScriptPromises = Object.create(null));
+        if (registry[source]) return registry[source];
+
+        registry[source] = new Promise((resolve, reject) => {
+            const document = root.document;
+            const selector = `script[data-radar-lazy-source="${source}"]`;
+            let script = document.querySelector?.(selector);
+
+            const finish = () => {
+                if (root[globalName]) {
+                    resolve(root[globalName]);
+                } else {
+                    delete registry[source];
+                    reject(new Error(`${source} carregado sem expor ${globalName}.`));
+                }
+            };
+            const fail = () => {
+                delete registry[source];
+                reject(new Error(`Não foi possível carregar ${source}.`));
+            };
+
+            if (script) {
+                script.addEventListener('load', finish, { once: true });
+                script.addEventListener('error', fail, { once: true });
+                return;
+            }
+
+            script = document.createElement('script');
+            script.src = source;
+            script.async = true;
+            script.dataset.radarLazySource = source;
+            script.addEventListener('load', finish, { once: true });
+            script.addEventListener('error', fail, { once: true });
+            (document.head || document.documentElement).appendChild(script);
+        });
+
+        return registry[source];
     }
 
     function readGlobalCollection(name) {
@@ -143,11 +188,28 @@
         return labels[type] || 'Resultado';
     }
 
+    function createFallbackEngine(items) {
+        return {
+            search(query, options = {}) {
+                const normalized = indexApi.normalizeSearchText(query);
+                const limit = Number.isInteger(options.limit) ? options.limit : RESULT_LIMIT;
+                return items
+                    .filter(item => indexApi.normalizeSearchText([
+                        item.title,
+                        item.subtitle,
+                        ...(item.keywords || [])
+                    ].join(' ')).includes(normalized))
+                    .slice(0, limit)
+                    .map(item => ({ item, score: 0 }));
+            }
+        };
+    }
+
     function install(root) {
         if (!root || root.__radarGlobalSearchInstalled) return false;
         const document = root.document;
         const input = document?.getElementById?.('global-search');
-        if (!document || !input || !indexApi || typeof root.Fuse !== 'function') return false;
+        if (!document || !input || !indexApi) return false;
 
         const container = input.closest('.search-bar-container') || input.parentElement;
         if (!container) return false;
@@ -173,12 +235,25 @@
             results: [],
             activeIndex: -1,
             engine: null,
-            catalog: []
+            catalog: [],
+            requestId: 0,
+            vendorLoaded: Boolean(root.Fuse)
         };
 
-        function rebuildEngine() {
+        async function rebuildEngine() {
             state.catalog = indexApi.createSearchCatalog(createSearchContext(root, document));
-            state.engine = indexApi.createSearchEngine(root.Fuse, state.catalog);
+            let FuseCtor = root.Fuse;
+            if (typeof FuseCtor !== 'function') {
+                try {
+                    FuseCtor = await loadScriptOnce(root, FUSE_VENDOR_URL, 'Fuse');
+                    state.vendorLoaded = true;
+                } catch (_error) {
+                    state.vendorLoaded = false;
+                    state.engine = createFallbackEngine(state.catalog);
+                    return state.engine;
+                }
+            }
+            state.engine = indexApi.createSearchEngine(FuseCtor, state.catalog);
             return state.engine;
         }
 
@@ -273,13 +348,15 @@
             root.dispatchEvent?.(new root.CustomEvent('radar:search-open'));
         }
 
-        function search(query) {
+        async function search(query) {
+            const currentRequest = ++state.requestId;
             if (!shouldOpenForQuery(query)) {
                 close();
                 return [];
             }
-            rebuildEngine();
-            const results = indexApi.searchCatalog(state.engine, query, RESULT_LIMIT);
+            const engine = await rebuildEngine();
+            if (currentRequest !== state.requestId || input.value !== query) return [];
+            const results = indexApi.searchCatalog(engine, query, RESULT_LIMIT);
             renderResults(results, query);
             return results;
         }
@@ -304,6 +381,7 @@
             } else if (action.type === 'activate') {
                 navigateToResult(state.results[action.index]);
             } else if (action.type === 'close') {
+                state.requestId += 1;
                 close({ restoreFocus: true });
             }
         }
@@ -315,7 +393,10 @@
             if (shouldOpenForQuery(input.value)) search(input.value);
         });
         document.addEventListener('pointerdown', event => {
-            if (!container.contains(event.target)) close();
+            if (!container.contains(event.target)) {
+                state.requestId += 1;
+                close();
+            }
         });
 
         root.handleGlobalSearch = handleInput;
@@ -328,19 +409,21 @@
             getState: () => ({
                 activeIndex: state.activeIndex,
                 resultCount: state.results.length,
-                catalogSize: state.catalog.length
+                catalogSize: state.catalog.length,
+                vendorLoaded: state.vendorLoaded
             })
         });
         root.__radarGlobalSearchInstalled = true;
-        rebuildEngine();
         return true;
     }
 
     return Object.freeze({
         RESULT_LIMIT,
+        FUSE_VENDOR_URL,
         shouldOpenForQuery,
         keyActionFor,
         destinationForResult,
+        loadScriptOnce,
         install
     });
 }));
