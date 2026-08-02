@@ -1,0 +1,44 @@
+[data-radar-floating] {
+    position: fixed;
+    inset: auto;
+    margin: 0;
+    z-index: 250;
+}
+
+[data-radar-floating][hidden] {
+    display: none !important;
+}
+
+.alerts-dropdown[data-radar-floating],
+.profile-dropdown[data-radar-floating] {
+    right: auto;
+    top: auto;
+    max-width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+}
+
+.alerts-dropdown[data-radar-floating].show,
+.profile-dropdown[data-radar-floating].show,
+.global-search-results[data-radar-floating].show {
+    display: block;
+    animation: radarFloatingIn 160ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+@keyframes radarFloatingIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px) scale(0.99);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .alerts-dropdown[data-radar-floating].show,
+    .profile-dropdown[data-radar-floating].show,
+    .global-search-results[data-radar-floating].show {
+        animation: none;
+    }
+}
