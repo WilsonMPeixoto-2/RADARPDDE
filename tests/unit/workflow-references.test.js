@@ -37,7 +37,7 @@ test('aceita scripts, testes, globs, configuração Playwright e ação local ex
     const checker = await import(CHECKER_URL);
     const root = createRepository();
 
-    write(root, '.github/workflows/valid.yml', `name: Valid\non:\n  pull_request:\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: ./.github/actions/example\n      - uses: actions/setup-node@sha\n        with:\n          cache-dependency-path: package-lock.json\n      - working-directory: scripts\n        run: node --check existing.mjs\n      - run: |\n          node --test \\\n            tests/unit/*.test.js\n          npm run check:local\n          npx playwright test tests/e2e/example.spec.js --config=playwright.config.js\n`);
+    write(root, '.github/workflows/valid.yml', `name: Valid\non:\n  pull_request:\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: ./.github/actions/example\n      - uses: actions/setup-node@sha\n        with:\n          cache-dependency-path: package-lock.json\n      - working-directory: scripts\n        run: pwd\n      - run: node --check scripts/existing.mjs\n      - run: |\n          node --test \\\n            tests/unit/*.test.js\n          npm run check:local\n          npx playwright test tests/e2e/example.spec.js --config=playwright.config.js\n`);
 
     const result = checker.analyzeWorkflowReferences(root);
 
