@@ -5,6 +5,7 @@ on:
     paths:
       - .github/workflows/validate.yml
       - scripts/apply-round-1.py
+      - scripts/fix-round-1-location.py
 
 permissions:
   contents: write
@@ -33,7 +34,9 @@ jobs:
           git show FETCH_HEAD:.github/workflows/validate.yml > .github/workflows/validate.yml
 
       - name: Aplicar versões e integrações pertinentes
-        run: python scripts/apply-round-1.py
+        run: |
+          python scripts/apply-round-1.py
+          python scripts/fix-round-1-location.py
 
       - name: Regenerar lockfile sem executar scripts de instalação
         run: npm install --package-lock-only --ignore-scripts
@@ -48,7 +51,7 @@ jobs:
 
       - name: Remover automações temporárias
         run: |
-          rm -f scripts/apply-round-1.py
+          rm -f scripts/apply-round-1.py scripts/fix-round-1-location.py
           rm -f .github/workflows/rodada-1-aplicar-atualizacoes.yml
 
       - name: Registrar alterações reproduzíveis na branch
