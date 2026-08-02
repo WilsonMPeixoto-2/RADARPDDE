@@ -77,6 +77,9 @@ jobs:
       - name: Preparar diretório de evidências
         run: mkdir -p dependency-health
 
+      - name: Gerar relatório HTML do lint de segurança
+        run: npm run lint:security:html
+
       - name: Inventariar dependências e imports com Knip
         id: knip-audit
         shell: bash
@@ -135,6 +138,7 @@ jobs:
         shell: bash
         run: |
           echo "### Saúde das dependências" >> "${GITHUB_STEP_SUMMARY}"
+          echo "- ESLint: relatório HTML navegável preservado como evidência do lint de segurança." >> "${GITHUB_STEP_SUMMARY}"
           echo "- Referências locais de workflows: bloqueantes quando apontam para arquivos, ações locais ou scripts npm inexistentes." >> "${GITHUB_STEP_SUMMARY}"
           echo "- Knip: bloqueante para dependências não usadas, não declaradas, não resolvidas e falhas internas de análise." >> "${GITHUB_STEP_SUMMARY}"
           echo "- Vulnerabilidades: relatório integral preservado; alertas novos e críticos continuam bloqueantes." >> "${GITHUB_STEP_SUMMARY}"

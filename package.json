@@ -70,18 +70,19 @@
     "lint": "npm run lint:security && npm run lint:e2e",
     "lint:security": "eslint app.js config.js \"src/**/*.js\" --max-warnings 42",
     "lint:e2e": "eslint \"tests/e2e/**/*.spec.js\"",
-    "build:exceljs": "node scripts/build-exceljs.mjs"
+    "build:exceljs": "node scripts/build-exceljs.mjs",
+    "lint:security:html": "eslint app.js config.js \"src/**/*.js\" --format html --output-file dependency-health/eslint-security.html --max-warnings 42"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.12.1",
     "@eslint/js": "10.0.1",
     "@playwright/test": "1.61.1",
     "@supabase/supabase-js": "2.110.8",
-    "acorn": "8.17.0",
+    "acorn": "8.18.0",
     "acorn-walk": "8.3.5",
     "ajv": "8.20.0",
     "esbuild": "0.28.1",
-    "eslint": "10.7.0",
+    "eslint": "10.8.0",
     "eslint-plugin-no-unsanitized": "4.1.5",
     "eslint-plugin-playwright": "2.10.5",
     "http-server": "14.1.1",

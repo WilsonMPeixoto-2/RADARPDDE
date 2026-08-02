@@ -3,7 +3,8 @@ const assert = require('node:assert/strict');
 
 const {
   CONFIG_FIELD_MAP,
-  inspectJavaScript
+  inspectJavaScript,
+  inspectInlineHandlers
 } = require('../../scripts/audit-functional-persistence.js');
 
 test('classifica metadados de concorrência da configuração no Supabase', () => {
@@ -38,4 +39,37 @@ test('reconhece callback injetado como persistido pelo serviço chamador', () =>
   assert.ok(record);
   assert.equal(record.persistedByCaller, true);
   assert.deepEqual(record.callers, ['executeVerification']);
+});
+
+test('valida sintaxe de handler inline preservando a localização do markup', () => {
+  const markup = [
+    '<section>',
+    '  <button type="button" onclick="openPanel(]">Abrir</button>',
+    '</section>'
+  ].join('\n');
+
+  const inspection = inspectInlineHandlers(markup, 'index.html');
+
+  assert.deepEqual(inspection.handlers, ['openPanel']);
+  assert.equal(inspection.syntaxErrors.length, 1);
+  assert.equal(inspection.syntaxErrors[0].file, 'index.html');
+  assert.equal(inspection.syntaxErrors[0].line, 2);
+  assert.ok(inspection.syntaxErrors[0].column > 30);
+});
+
+test('aceita handler inline válido iniciado por comando de controle', () => {
+  const markup = '<button onclick="if (ready) { openPanel(); }">Abrir</button>';
+
+  const inspection = inspectInlineHandlers(markup, 'index.html');
+
+  assert.equal(inspection.syntaxErrors.length, 0);
+});
+
+test('aceita aspas escapadas em HTML construído dentro de JavaScript', () => {
+  const source = "const html = `<button onclick=\"switchView(\\'pendencias\\')\">Abrir</button>`;";
+
+  const inspection = inspectInlineHandlers(source, 'src/integration/example.js');
+
+  assert.deepEqual(inspection.handlers, ['switchView']);
+  assert.equal(inspection.syntaxErrors.length, 0);
 });
