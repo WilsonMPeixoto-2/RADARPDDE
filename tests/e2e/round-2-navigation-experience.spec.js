@@ -9,15 +9,17 @@ async function openApplication(page) {
   return pageErrors;
 }
 
-test('busca aproximada navega pelo teclado sem central de comandos', async ({ page }) => {
+test('busca aproximada carrega Fuse.js no primeiro uso e navega pelo teclado sem central de comandos', async ({ page }) => {
   const pageErrors = await openApplication(page);
   const input = page.locator('#global-search');
   const results = page.locator('#global-search-results');
 
+  await expect.poll(() => page.evaluate(() => typeof window.Fuse)).toBe('undefined');
   await input.fill('Cartera de Escolas');
   await expect(results).toBeVisible();
   await expect(results.getByRole('option').first()).toContainText('Carteira de Escolas');
   await expect(input).toHaveAttribute('aria-expanded', 'true');
+  await expect.poll(() => page.evaluate(() => typeof window.Fuse)).toBe('function');
 
   await input.press('ArrowDown');
   await input.press('Enter');
@@ -40,14 +42,16 @@ test('busca aproximada navega pelo teclado sem central de comandos', async ({ pa
   expect(pageErrors).toEqual([]);
 });
 
-test('menus flutuantes permanecem dentro da viewport e fecham por Escape', async ({ page }) => {
+test('menus carregam Floating UI no primeiro uso, permanecem na viewport e fecham por Escape', async ({ page }) => {
   const pageErrors = await openApplication(page);
   const alertsButton = page.locator('#alerts-bell-container .bell-button');
   const alerts = page.locator('#alerts-dropdown');
 
+  await expect.poll(() => page.evaluate(() => typeof window.FloatingUIDOM)).toBe('undefined');
   await alertsButton.click();
   await expect(alerts).toBeVisible();
   await expect(alertsButton).toHaveAttribute('aria-expanded', 'true');
+  await expect.poll(() => page.evaluate(() => typeof window.FloatingUIDOM)).toBe('object');
 
   const geometry = await alerts.evaluate(element => {
     const rect = element.getBoundingClientRect();
