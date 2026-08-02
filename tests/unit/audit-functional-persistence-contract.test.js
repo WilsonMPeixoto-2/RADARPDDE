@@ -66,7 +66,7 @@ test('aceita handler inline válido iniciado por comando de controle', () => {
 });
 
 test('aceita aspas escapadas em HTML construído dentro de JavaScript', () => {
-  const source = String.raw`const html = \`<button onclick="switchView(\\'pendencias\\')">Abrir</button>\`;`;
+  const source = "const html = `<button onclick=\"switchView(\\'pendencias\\')\">Abrir</button>`;";
 
   const inspection = inspectInlineHandlers(source, 'src/integration/example.js');
 
