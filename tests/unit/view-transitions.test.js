@@ -56,7 +56,7 @@ test('executa a atualização uma única vez com ou sem transição', async () =
     assert.equal(fallbackUpdates, 1);
 });
 
-test('ativa transições somente após load e dois frames estáveis', () => {
+test('ativa transições somente após load, primeira rota e dois frames estáveis', () => {
     let loadHandler;
     const frames = [];
     const root = {
@@ -75,10 +75,35 @@ test('ativa transições somente após load e dois frames estáveis', () => {
 
     loadHandler();
     assert.equal(activation.isActive(), false);
+    assert.equal(frames.length, 0);
+
+    activation.noteNavigation();
     assert.equal(frames.length, 1);
     frames.shift()();
     assert.equal(activation.isActive(), false);
     assert.equal(frames.length, 1);
+    frames.shift()();
+    assert.equal(activation.isActive(), true);
+});
+
+test('reinicia a estabilização quando outra rota inicial é aplicada', () => {
+    const frames = [];
+    const root = {
+        document: { readyState: 'complete' },
+        requestAnimationFrame(handler) {
+            frames.push(handler);
+        }
+    };
+    const activation = createNavigationActivation(root);
+
+    activation.noteNavigation();
+    const firstFrame = frames.shift();
+    activation.noteNavigation();
+    firstFrame();
+    frames.shift()();
+    assert.equal(activation.isActive(), false);
+
+    frames.shift()();
     frames.shift()();
     assert.equal(activation.isActive(), true);
 });
