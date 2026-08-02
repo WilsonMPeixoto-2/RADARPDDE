@@ -36,7 +36,7 @@
         );
     }
 
-    function createNavigationActivation(root) {
+    function createNavigationActivation(root, onActivated = () => {}) {
         let active = false;
         let loadReady = root?.document?.readyState === 'complete';
         let navigationSeen = false;
@@ -57,6 +57,7 @@
                 requestFrame(() => {
                     if (scheduledGeneration !== generation || !loadReady || !navigationSeen) return;
                     active = true;
+                    onActivated();
                 });
             });
         }
@@ -187,48 +188,65 @@
         if (!root || root.__radarViewTransitionsInstalled) return false;
         if (!root.document || typeof root.switchView !== 'function') return false;
 
-        const activation = createNavigationActivation(root);
         const intent = createNavigationIntent(root);
-        const originalSwitchView = root.switchView.bind(root);
+        let activation;
+        let currentWrapper = null;
         let transitionInFlight = false;
+        let wrapCount = 0;
 
-        root.switchView = function switchViewWithTransition(...args) {
-            if (!activation.isActive()) {
-                const result = originalSwitchView(...args);
-                activation.noteNavigation();
-                return result;
-            }
+        function wrapCurrentSwitchView() {
+            const candidate = root.switchView;
+            if (typeof candidate !== 'function' || candidate === currentWrapper) return false;
 
-            const userInitiated = intent.consume();
-            if (!userInitiated || transitionInFlight || !shouldAnimateNavigation(root, true)) {
-                return originalSwitchView(...args);
-            }
-
-            let updateStarted = false;
-            let result;
-            try {
-                transitionInFlight = true;
-                const transition = root.document.startViewTransition(() => {
-                    updateStarted = true;
-                    result = originalSwitchView(...args);
+            const originalSwitchView = candidate.bind(root);
+            const wrapper = function switchViewWithTransition(...args) {
+                if (!activation?.isActive()) {
+                    const result = originalSwitchView(...args);
+                    activation?.noteNavigation();
                     return result;
-                });
-                observeTransition(root, transition, () => {
+                }
+
+                const userInitiated = intent.consume();
+                if (!userInitiated || transitionInFlight || !shouldAnimateNavigation(root, true)) {
+                    return originalSwitchView(...args);
+                }
+
+                let updateStarted = false;
+                let result;
+                try {
+                    transitionInFlight = true;
+                    const transition = root.document.startViewTransition(() => {
+                        updateStarted = true;
+                        result = originalSwitchView(...args);
+                        return result;
+                    });
+                    observeTransition(root, transition, () => {
+                        transitionInFlight = false;
+                    });
+                    return result;
+                } catch (error) {
                     transitionInFlight = false;
-                });
-                return result;
-            } catch (error) {
-                transitionInFlight = false;
-                if (updateStarted) throw error;
-                return originalSwitchView(...args);
-            }
-        };
-        try { switchView = root.switchView; } catch (_error) { /* global lexical fallback */ }
+                    if (updateStarted) throw error;
+                    return originalSwitchView(...args);
+                }
+            };
+
+            currentWrapper = wrapper;
+            root.switchView = wrapper;
+            try { switchView = wrapper; } catch (_error) { /* global lexical fallback */ }
+            wrapCount += 1;
+            return true;
+        }
+
+        activation = createNavigationActivation(root, wrapCurrentSwitchView);
+        wrapCurrentSwitchView();
 
         root.__radarViewTransitionsController = Object.freeze({
             shouldAnimate: () => shouldAnimateNavigation(root, activation.isActive()),
             isActive: activation.isActive,
             isTransitionInFlight: () => transitionInFlight,
+            getWrapCount: () => wrapCount,
+            refreshNavigationBinding: wrapCurrentSwitchView,
             run: update => runViewTransition(root, update, activation.isActive())
         });
         root.__radarViewTransitionsInstalled = true;
