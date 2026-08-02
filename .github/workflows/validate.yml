@@ -28,7 +28,9 @@ jobs:
           cache: npm
 
       - name: Restaurar o workflow canônico antes da transformação
-        run: git show origin/main:.github/workflows/validate.yml > .github/workflows/validate.yml
+        run: |
+          git fetch origin main --depth=1
+          git show FETCH_HEAD:.github/workflows/validate.yml > .github/workflows/validate.yml
 
       - name: Aplicar versões e integrações pertinentes
         run: python scripts/apply-round-1.py
