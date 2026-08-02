@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
-import { mkdtemp, mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { cp, mkdtemp, mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
@@ -230,6 +230,9 @@ async function prepareRestoreWorkdir(workdir) {
   const sourceConfig = await readFile(path.join(ROOT, 'supabase/config.toml'), 'utf8');
   await writeFile(path.join(supabaseDir, 'config.toml'), createRestoreConfig(sourceConfig));
   await writeFile(path.join(supabaseDir, 'seed.sql'), '-- restauração descartável: seed desativado\n');
+  await cp(path.join(ROOT, 'supabase/functions'), path.join(supabaseDir, 'functions'), {
+    recursive: true
+  });
 }
 
 async function dumpSource(sourceDbUrl) {
