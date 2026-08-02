@@ -2,7 +2,8 @@ import pathlib
 
 path = pathlib.Path('scripts/audit-functional-persistence.js')
 source = path.read_text(encoding='utf-8')
-old = """            acorn.parse(decoded, parseOptions);
+
+old_expression = """            acorn.parse(decoded, parseOptions);
             if (nameMatch) {
                 acorn.parseExpressionAt(decoded, decoded.indexOf(nameMatch[1]), {
                     ...parseOptions,
@@ -10,7 +11,7 @@ old = """            acorn.parse(decoded, parseOptions);
                 });
             }
 """
-new = """            const program = acorn.parse(decoded, parseOptions);
+new_expression = """            const program = acorn.parse(decoded, parseOptions);
             const firstStatement = program.body[0];
             if (firstStatement?.type === 'ExpressionStatement') {
                 const relativeStart = firstStatement.expression.loc?.start || { line: 1, column: 0 };
@@ -26,6 +27,37 @@ new = """            const program = acorn.parse(decoded, parseOptions);
                 });
             }
 """
-if old not in source:
+if old_expression not in source:
     raise SystemExit('Trecho de parseExpressionAt não encontrado.')
-path.write_text(source.replace(old, new, 1), encoding='utf-8')
+source = source.replace(old_expression, new_expression, 1)
+
+html_decoder_end = """        .replace(/&amp;/gi, '&');
+}
+
+function inspectInlineHandlers"""
+static_decoder = """        .replace(/&amp;/gi, '&');
+}
+
+function decodeStaticJavaScriptEscapes(value) {
+    return String(value || '').replace(/\\\\(['\"\\\\])/g, '$1');
+}
+
+function inspectInlineHandlers"""
+if html_decoder_end not in source:
+    raise SystemExit('Ponto de inserção do decodificador JavaScript não encontrado.')
+source = source.replace(html_decoder_end, static_decoder, 1)
+
+old_decoded = """        const decoded = decodeHtmlEntities(raw);
+        const nameMatch = decoded.trimStart().match(/^([A-Za-z_$][\\w$]*)/);
+"""
+new_decoded = """        const htmlDecoded = decodeHtmlEntities(raw);
+        const decoded = /\\.(?:c|m)?js$/i.test(file)
+            ? decodeStaticJavaScriptEscapes(htmlDecoded)
+            : htmlDecoded;
+        const nameMatch = decoded.trimStart().match(/^([A-Za-z_$][\\w$]*)/);
+"""
+if old_decoded not in source:
+    raise SystemExit('Construção do handler decodificado não encontrada.')
+source = source.replace(old_decoded, new_decoded, 1)
+
+path.write_text(source, encoding='utf-8')
