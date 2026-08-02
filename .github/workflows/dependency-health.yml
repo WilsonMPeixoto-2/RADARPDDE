@@ -11,6 +11,12 @@ on:
       - scripts/run-lighthouse-baseline.mjs
       - scripts/check-exceljs-audit-policy.mjs
       - scripts/check-workflow-references.mjs
+      - scripts/build-search-ui-vendors.mjs
+      - src/vendor/fuse-entry.js
+      - src/vendor/floating-ui-entry.js
+      - vendor/fuse.js
+      - vendor/floating-ui.js
+      - tests/unit/search-ui-vendor-contract.test.js
       - tests/unit/workflow-references.test.js
       - vendor/exceljs.min.js
       - src/domain/excel-sme-template-renderer.js
@@ -32,6 +38,12 @@ on:
       - scripts/run-lighthouse-baseline.mjs
       - scripts/check-exceljs-audit-policy.mjs
       - scripts/check-workflow-references.mjs
+      - scripts/build-search-ui-vendors.mjs
+      - src/vendor/fuse-entry.js
+      - src/vendor/floating-ui-entry.js
+      - vendor/fuse.js
+      - vendor/floating-ui.js
+      - tests/unit/search-ui-vendor-contract.test.js
       - tests/unit/workflow-references.test.js
       - vendor/exceljs.min.js
       - src/domain/excel-sme-template-renderer.js
@@ -73,6 +85,9 @@ jobs:
 
       - name: Validar referências locais dos workflows
         run: node scripts/check-workflow-references.mjs
+
+      - name: Validar bundles locais da busca e dos flutuantes
+        run: npm run check:search-ui-vendors
 
       - name: Preparar diretório de evidências
         run: mkdir -p dependency-health
@@ -139,6 +154,7 @@ jobs:
         run: |
           echo "### Saúde das dependências" >> "${GITHUB_STEP_SUMMARY}"
           echo "- ESLint: relatório HTML navegável preservado como evidência do lint de segurança." >> "${GITHUB_STEP_SUMMARY}"
+          echo "- Busca e flutuantes: bundles locais reproduzíveis e sincronizados com as versões fixadas." >> "${GITHUB_STEP_SUMMARY}"
           echo "- Referências locais de workflows: bloqueantes quando apontam para arquivos, ações locais ou scripts npm inexistentes." >> "${GITHUB_STEP_SUMMARY}"
           echo "- Knip: bloqueante para dependências não usadas, não declaradas, não resolvidas e falhas internas de análise." >> "${GITHUB_STEP_SUMMARY}"
           echo "- Vulnerabilidades: relatório integral preservado; alertas novos e críticos continuam bloqueantes." >> "${GITHUB_STEP_SUMMARY}"
