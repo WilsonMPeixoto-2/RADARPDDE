@@ -125,9 +125,10 @@ function referenceExists(rootDir, reference, repositoryEntries) {
     return fs.existsSync(path.resolve(rootDir, normalized));
 }
 
-function addReference(target, workflow, kind, value) {
+function addReference(target, workflow, kind, value, options = {}) {
     const reference = cleanReference(value);
-    if (!looksLikeLocalPath(reference)) return;
+    if (isDynamicReference(reference)) return;
+    if (options.allowBare !== true && !looksLikeLocalPath(reference)) return;
     target.push({ workflow, kind, reference });
 }
 
@@ -201,16 +202,16 @@ function extractPlaywrightReferences(workflow, content, references) {
 }
 
 function extractYamlPathReferences(workflow, content, references) {
-    const keyPattern = /^\s*(cache-dependency-path|working-directory):\s*([^#\r\n]+?)\s*$/gm;
+    const keyPattern = /^\s*(?:-\s*)?(cache-dependency-path|working-directory):\s*([^#\r\n]+?)\s*$/gm;
     let match;
 
     while ((match = keyPattern.exec(content)) !== null) {
-        addReference(references, workflow, match[1], match[2]);
+        addReference(references, workflow, match[1], match[2], { allowBare: true });
     }
 
     const actionPattern = /^\s*(?:-\s*)?uses:\s*['"]?(\.[^'"\s#]+)['"]?\s*(?:#.*)?$/gm;
     while ((match = actionPattern.exec(content)) !== null) {
-        addReference(references, workflow, 'local-action', match[1]);
+        addReference(references, workflow, 'local-action', match[1], { allowBare: true });
     }
 }
 
