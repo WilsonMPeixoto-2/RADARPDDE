@@ -10,6 +10,8 @@ on:
       - lighthouserc.cjs
       - scripts/run-lighthouse-baseline.mjs
       - scripts/check-exceljs-audit-policy.mjs
+      - scripts/check-workflow-references.mjs
+      - tests/unit/workflow-references.test.js
       - vendor/exceljs.min.js
       - src/domain/excel-sme-template-renderer.js
       - src/domain/excel-sme-monthly-renderer.js
@@ -17,7 +19,7 @@ on:
       - src/integration/excel-export-integration.js
       - src/integration/load-excel-export.js
       - .github/dependabot.yml
-      - .github/workflows/dependency-health.yml
+      - .github/workflows/**
   push:
     branches:
       - main
@@ -29,6 +31,8 @@ on:
       - lighthouserc.cjs
       - scripts/run-lighthouse-baseline.mjs
       - scripts/check-exceljs-audit-policy.mjs
+      - scripts/check-workflow-references.mjs
+      - tests/unit/workflow-references.test.js
       - vendor/exceljs.min.js
       - src/domain/excel-sme-template-renderer.js
       - src/domain/excel-sme-monthly-renderer.js
@@ -36,7 +40,7 @@ on:
       - src/integration/excel-export-integration.js
       - src/integration/load-excel-export.js
       - .github/dependabot.yml
-      - .github/workflows/dependency-health.yml
+      - .github/workflows/**
   schedule:
     - cron: '0 13 * * 2'
   workflow_dispatch:
@@ -66,6 +70,9 @@ jobs:
 
       - name: Instalar dependências reproduzíveis
         run: npm ci
+
+      - name: Validar referências locais dos workflows
+        run: node scripts/check-workflow-references.mjs
 
       - name: Preparar diretório de evidências
         run: mkdir -p dependency-health
@@ -128,6 +135,7 @@ jobs:
         shell: bash
         run: |
           echo "### Saúde das dependências" >> "${GITHUB_STEP_SUMMARY}"
+          echo "- Referências locais de workflows: bloqueantes quando apontam para arquivos, ações locais ou scripts npm inexistentes." >> "${GITHUB_STEP_SUMMARY}"
           echo "- Knip: bloqueante para dependências não usadas, não declaradas, não resolvidas e falhas internas de análise." >> "${GITHUB_STEP_SUMMARY}"
           echo "- Vulnerabilidades: relatório integral preservado; alertas novos e críticos continuam bloqueantes." >> "${GITHUB_STEP_SUMMARY}"
           echo "- ExcelJS: somente dois advisories conhecidos podem ser aceitos nos caminhos transitivos não alcançados pelo runtime documental do navegador." >> "${GITHUB_STEP_SUMMARY}"
