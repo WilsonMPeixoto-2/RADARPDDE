@@ -208,7 +208,7 @@ function extractYamlPathReferences(workflow, content, references) {
         addReference(references, workflow, match[1], match[2]);
     }
 
-    const actionPattern = /^\s*uses:\s*['"]?(\.[^'"\s#]+)['"]?\s*(?:#.*)?$/gm;
+    const actionPattern = /^\s*(?:-\s*)?uses:\s*['"]?(\.[^'"\s#]+)['"]?\s*(?:#.*)?$/gm;
     while ((match = actionPattern.exec(content)) !== null) {
         addReference(references, workflow, 'local-action', match[1]);
     }
