@@ -8,11 +8,9 @@
     if (root) {
         root.RadarViewTransitions = Object.freeze(api);
         if (root.document) {
-            if (!api.install(root)) {
-                const interval = root.setInterval?.(() => {
-                    if (api.install(root)) root.clearInterval?.(interval);
-                }, 20);
-                root.setTimeout?.(() => root.clearInterval?.(interval), 10000);
+            const install = () => api.install(root);
+            if (!install() && root.document.readyState === 'loading') {
+                root.document.addEventListener('DOMContentLoaded', install, { once: true });
             }
         }
     }
@@ -75,10 +73,7 @@
         if (!root || root.__radarViewTransitionsInstalled) return false;
         if (!root.document || typeof root.switchView !== 'function') return false;
 
-        const container = root.document.getElementById('main-container');
-        if (container) container.style.viewTransitionName = 'radar-main-content';
         const originalSwitchView = root.switchView.bind(root);
-
         root.switchView = function switchViewWithTransition(...args) {
             return runViewTransitionPreservingSync(root, () => originalSwitchView(...args));
         };
