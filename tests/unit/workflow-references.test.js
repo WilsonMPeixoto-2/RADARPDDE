@@ -45,6 +45,7 @@ test('aceita scripts, testes, globs, configuração Playwright e ação local ex
     assert.equal(result.violations.length, 0);
     assert.ok(result.references.some(item => item.reference === 'tests/unit/*.test.js'));
     assert.ok(result.references.some(item => item.reference === 'playwright.config.js'));
+    assert.ok(result.references.some(item => item.kind === 'working-directory' && item.reference === 'scripts'));
 });
 
 test('bloqueia arquivo de teste inexistente chamado por node --test', async () => {
@@ -88,17 +89,17 @@ test('ignora heredoc, expressões dinâmicas e artefatos gerados em runtime', as
     assert.equal(result.violations.length, 0);
 });
 
-test('bloqueia cache dependency path e ação local inexistentes', async () => {
+test('bloqueia caminhos YAML locais inexistentes', async () => {
     const checker = await import(CHECKER_URL);
     const root = createRepository();
 
-    write(root, '.github/workflows/invalid-yaml-path.yml', `name: Invalid\non: workflow_dispatch\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: ./.github/actions/missing\n      - uses: actions/setup-node@sha\n        with:\n          cache-dependency-path: missing-lock.json\n`);
+    write(root, '.github/workflows/invalid-yaml-path.yml', `name: Invalid\non: workflow_dispatch\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: ./.github/actions/missing\n      - uses: actions/setup-node@sha\n        with:\n          cache-dependency-path: missing-lock.json\n      - working-directory: missing-directory\n        run: pwd\n`);
 
     const result = checker.analyzeWorkflowReferences(root);
 
     assert.equal(result.passed, false);
     assert.deepEqual(
         new Set(result.violations.map(item => item.kind)),
-        new Set(['local-action', 'cache-dependency-path'])
+        new Set(['local-action', 'cache-dependency-path', 'working-directory'])
     );
 });
