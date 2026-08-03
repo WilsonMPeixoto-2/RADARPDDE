@@ -57,9 +57,25 @@ test('gera artefato local somente com rollback explícito e sem publicar credenc
     await fs.access(path.join(outputDir, 'index.html'));
     await fs.access(path.join(outputDir, 'src/data/supabase-repository.js'));
     await fs.access(path.join(outputDir, 'vendor/supabase-client.js'));
-    await fs.access(path.join(outputDir, 'assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx'));
     await assert.rejects(fs.access(path.join(outputDir, 'package.json')));
     await assert.rejects(fs.access(path.join(outputDir, 'supabase')));
+});
+
+test('inclui o template canônico do Excel SME no artefato público da Vercel', async context => {
+    const { buildVercelArtifact } = await loadBuilder();
+    const outputDir = await createOutputDirectory(context);
+
+    await buildVercelArtifact({
+        rootDir: projectRoot,
+        outputDir,
+        environment: {
+            VERCEL_ENV: 'production'
+        }
+    });
+
+    await fs.access(
+        path.join(outputDir, 'assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx')
+    );
 });
 
 test('gera artefato de Preview com configuração pública e manifesto sem a chave', async context => {
