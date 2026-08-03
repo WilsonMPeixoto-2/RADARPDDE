@@ -1,0 +1,90 @@
+name: Alinhar testes do readiness ao Build Output API
+
+on:
+  push:
+    branches:
+      - fix/excel-sme-build-output-api-20260803
+    paths:
+      - '.github/workflows/align-readiness-tests-hotfix.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: align-readiness-tests-hotfix
+  cancel-in-progress: true
+
+jobs:
+  alinhar:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout da branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: fix/excel-sme-build-output-api-20260803
+
+      - name: Atualizar fixtures e contrato do teste
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const target = 'tests/unit/readiness-check.test.js';
+          let source = fs.readFileSync(target, 'utf8');
+
+          const artifactNeedle = "    'scripts/build-vercel.mjs',\n";
+          const artifactReplacement = [
+            "    'scripts/build-vercel.mjs',",
+            "    'scripts/build-vercel-output.mjs',",
+            "    'scripts/verify-excel-sme-template.mjs',",
+            ''
+          ].join('\n');
+          if (!source.includes(artifactNeedle)) {
+            throw new Error('Fixture de artefatos Vercel não encontrada.');
+          }
+          source = source.replace(artifactNeedle, artifactReplacement);
+
+          const oldTest = [
+            "test('exige build versionado e diretório público isolado na Vercel', () => {",
+            "    const packageSource = JSON.stringify({ scripts: { 'build:vercel': 'node scripts/build-vercel.mjs' } });",
+            "    const vercelSource = JSON.stringify({ buildCommand: 'npm run build:vercel', outputDirectory: 'dist' });",
+            "    assert.deepEqual(validateVercelBuildContract(vercelSource, packageSource), []);",
+            "    assert.match(validateVercelBuildContract(JSON.stringify({ outputDirectory: '.' }), packageSource).join(' '), /build:vercel|diretório dist/i);",
+            "});"
+          ].join('\n');
+          const newTest = [
+            "test('exige build versionado e Build Output API isolada na Vercel', () => {",
+            "    const packageSource = JSON.stringify({ scripts: { 'build:vercel': 'node scripts/build-vercel.mjs' } });",
+            "    const vercelSource = JSON.stringify({",
+            "        buildCommand: 'node scripts/build-vercel.mjs && node scripts/build-vercel-output.mjs'",
+            "    });",
+            "    assert.deepEqual(validateVercelBuildContract(vercelSource, packageSource), []);",
+            "    const invalidSource = JSON.stringify({",
+            "        buildCommand: 'node scripts/build-vercel.mjs',",
+            "        outputDirectory: 'dist'",
+            "    });",
+            "    assert.match(",
+            "        validateVercelBuildContract(invalidSource, packageSource).join(' '),",
+            "        /Build Output API|outputDirectory/i",
+            "    );",
+            "});"
+          ].join('\n');
+          if (!source.includes(oldTest)) {
+            throw new Error('Teste Vercel antigo não encontrado.');
+          }
+          source = source.replace(oldTest, newTest);
+
+          fs.writeFileSync(target, source);
+          fs.rmSync('.github/workflows/align-readiness-tests-hotfix.yml');
+          NODE
+
+      - name: Validar testes atualizados
+        run: node --test tests/unit/readiness-check.test.js
+
+      - name: Registrar a correção
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tests/unit/readiness-check.test.js .github/workflows/align-readiness-tests-hotfix.yml
+          git commit -m 'test: alinhar readiness à Build Output API da Vercel'
+          git push origin HEAD:fix/excel-sme-build-output-api-20260803
