@@ -114,9 +114,11 @@ A integração:
 /assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx
 ```
 
-Consequentemente, o build público da Vercel deve copiar `assets` para `dist`, preservando o mesmo caminho relativo. A presença de `dist/assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx` é contrato executável de `tests/unit/vercel-build.test.js`.
+Consequentemente, o build público da Vercel deve copiar a entrada exata `assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx` para `dist`, preservando o mesmo caminho relativo. A presença de `dist/assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx` é contrato executável de `tests/unit/vercel-build.test.js`.
 
 Esse gate protege uma falha que não era detectada pela certificação do conteúdo: o template podia existir e ser válido na árvore do repositório, mas ficar ausente do artefato implantado. Alterar o caminho, o nome do arquivo ou as entradas públicas do build exige atualizar conjuntamente carregador, build, teste e smoke do ambiente publicado.
+
+A entrada pública deve permanecer restrita ao arquivo necessário. A publicação indiscriminada da pasta `assets` somente caberia após revisão expressa do conteúdo e da necessidade operacional.
 
 ## 8. Certificação
 
