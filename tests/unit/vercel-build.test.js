@@ -57,6 +57,7 @@ test('gera artefato local somente com rollback explícito e sem publicar credenc
     await fs.access(path.join(outputDir, 'index.html'));
     await fs.access(path.join(outputDir, 'src/data/supabase-repository.js'));
     await fs.access(path.join(outputDir, 'vendor/supabase-client.js'));
+    await fs.access(path.join(outputDir, 'assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx'));
     await assert.rejects(fs.access(path.join(outputDir, 'package.json')));
     await assert.rejects(fs.access(path.join(outputDir, 'supabase')));
 });
