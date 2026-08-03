@@ -1,3 +1,4 @@
+const fs = require('node:fs/promises');
 const { test, expect } = require('@playwright/test');
 
 test.describe('ações institucionais de geração do Excel', () => {
@@ -43,5 +44,34 @@ test.describe('ações institucionais de geração do Excel', () => {
       window.RadarExcelXlsxRenderer?.createZip
       && window.RadarExcelSmeMonthlyRenderer?.renderWorkbook
     ))).toBe(true);
+  });
+
+  test('gera, baixa e valida o arquivo Excel SME pelo botão real', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+    test.setTimeout(90_000);
+
+    await page.goto('/');
+    await page.evaluate(() => switchProfile('sme'));
+    await page.evaluate(() => changeSMEMonth('2026-07'));
+
+    const smeButton = page.getByRole('button', {
+      name: 'Gerar relatório no modelo Excel da SME'
+    });
+    await expect(smeButton).toBeVisible();
+    await expect(smeButton).toBeEnabled();
+
+    const downloadPromise = page.waitForEvent('download');
+    await smeButton.click();
+    const download = await downloadPromise;
+
+    expect(await download.failure()).toBeNull();
+    expect(download.suggestedFilename()).toMatch(/^RADAR_PDDE_EXCEL_SME_07-2026\.xlsx$/);
+
+    const downloadPath = await download.path();
+    expect(downloadPath).not.toBeNull();
+    const bytes = await fs.readFile(downloadPath);
+
+    expect(bytes.length).toBeGreaterThan(1000);
+    expect(Array.from(bytes.subarray(0, 4))).toEqual([0x50, 0x4B, 0x03, 0x04]);
   });
 });
