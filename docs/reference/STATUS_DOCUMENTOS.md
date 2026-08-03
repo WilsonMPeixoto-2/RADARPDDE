@@ -96,8 +96,9 @@ O roadmap não prova implementação. Status concluído deve apontar para códig
 
 | Documento | Classe | Uso |
 |---|---|---|
+| `docs/audits/2026-08-03-hotfix-excel-sme-template-404.md` | Evidência | causa do HTTP 404, reprodução TDD, correção e critérios de encerramento |
 | `docs/audits/2026-07-30-backup-restore-disposable.md` | Evidência | restauração equivalente e segurança do artefato |
-| `docs/evidence/releases/2026-08-01-excel-sme-production.json` | Evidência | homologação desktop, publicação e smokes |
+| `docs/evidence/releases/2026-08-01-excel-sme-production.json` | Evidência parcial | homologa conteúdo no Excel desktop e registra publicação anterior; não comprova presença do template no artefato Vercel vigente |
 | `docs/audits/2026-07-30-node24-gate-remoto-perfis-viewports.md` | Evidência | runtime, perfis, viewports e correção móvel |
 | `docs/audits/2026-07-29-reconciliacao-migration-sme-evidencias.md` | Evidência | reparo oficial da migration SME |
 | `docs/audits/2026-07-29-rastreabilidade-migration-sme.md` | Evidência histórica resolvida | achado original |
@@ -115,6 +116,8 @@ O roadmap não prova implementação. Status concluído deve apontar para códig
 | `.github/workflows/backup-restore-disposable.yml` | Canônico executável | dump, restauração, equivalência e evidência sanitizada |
 | `scripts/verify-supabase-backup-restore.mjs` | Canônico executável | duas pilhas, funções, fingerprints e limpeza |
 | `scripts/check-workflow-references.mjs` | Canônico executável | referências estáticas verificáveis nos workflows |
+| `scripts/build-vercel.mjs` | Canônico executável | artefato público inclui `assets`, código de runtime e manifesto seguro |
+| `tests/unit/vercel-build.test.js` | Canônico executável | template do Excel SME presente no `dist` e proteções do build Vercel |
 | `tests/unit/backup-restore-gate-contract.test.js` | Canônico executável | guardas, isolamento e vedação de dumps no artefato |
 | `playwright.supabase-preview.config.js` | Canônico executável | Desktop, Pixel 7 e iPhone 15 |
 | `tests/e2e/supabase-preview-profile-viewport.spec.js` | Canônico executável | cinco papéis em três viewports |
@@ -134,6 +137,7 @@ Arquivos em `docs/plans/`, `docs/reports/` e `docs/superpowers/plans/` permanece
 
 | Documento ou classe | Motivo |
 |---|---|
+| afirmação de que o Excel SME estava integralmente funcional em Production | o conteúdo foi homologado, mas o deployment vigente omitiu o template e retorna HTTP 404; prevalecem o incidente e o hotfix do PR `#133` |
 | `CURRENT_STAGE.md` anterior a 3 de agosto de 2026 | não continha Rodadas 0, 1, 2 e 3B nem o roadmap consolidado |
 | `docs/README.md` com estado de 30 de julho | anterior às rodadas de atualização |
 | lista técnica isolada como próxima sequência integral | substituída pelo roadmap canônico das duas frentes |
