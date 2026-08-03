@@ -1,17 +1,18 @@
 # AGENTS.md — RADAR PDDE 2026
 
-**Atualizado em:** 1º de agosto de 2026
+**Atualizado em:** 3 de agosto de 2026
 
 ## 1. Leitura obrigatória
 
 Antes de analisar ou alterar o repositório, leia:
 
 1. `docs/CURRENT_STAGE.md` — estado transitório, bloqueadores e próxima decisão;
-2. `docs/PROJECT_CONTEXT.md` — domínio e arquitetura estáveis;
-3. `docs/DECISION_LOG.md` — decisões vigentes e substituídas;
-4. `docs/reference/STATUS_DOCUMENTOS.md` — validade dos documentos;
-5. a arquitetura específica da frente;
-6. o código remoto real da `main`, PRs relevantes e ambientes correspondentes.
+2. `docs/ROADMAP_ATUALIZACOES_2026.md` — atualizações técnicas, modernização e evolução funcional;
+3. `docs/PROJECT_CONTEXT.md` — domínio e arquitetura estáveis;
+4. `docs/DECISION_LOG.md` — decisões vigentes e substituídas;
+5. `docs/reference/STATUS_DOCUMENTOS.md` — validade dos documentos;
+6. a arquitetura específica da frente;
+7. o código remoto real da `main`, PRs relevantes e ambientes correspondentes.
 
 Documentos históricos não prevalecem sobre código, ambientes e decisões posteriores.
 
@@ -41,8 +42,9 @@ Para determinar o estado implementado:
 4. testes e evidências reproduzíveis;
 5. decisões expressas vigentes;
 6. `docs/CURRENT_STAGE.md`;
-7. `docs/PROJECT_CONTEXT.md` e contratos de arquitetura;
-8. documentos históricos.
+7. `docs/ROADMAP_ATUALIZACOES_2026.md`;
+8. `docs/PROJECT_CONTEXT.md` e contratos de arquitetura;
+9. documentos históricos.
 
 A orientação mais recente do responsável define intenção e prioridade, mas afirmação técnica deve ser confirmada nas fontes operacionais.
 
@@ -56,9 +58,24 @@ contingência: LocalStorageRepository por novo build controlado
 closing_competence: 2026-12
 migrations: 25 versões alinhadas
 Node: 24.x
-ciclos 1–5: concluídos e publicados
+ciclos funcionais 1–5: concluídos e publicados
+Rodadas 0, 1 e 2 de atualização: concluídas
+Rodada 2: publicada em dpl_2Sgq4LJKvSvXro81EYwFJHYEHHqp
+Rodada 3B: Supabase CLI 2.110.0 integrada à main, sem necessidade de Production
 Excel SME: concluído, homologado sem reparo e publicado
 liberação oficial: ainda não declarada
+```
+
+Baseline da `main` após a Rodada 3B:
+
+```text
+520b51e7080ddae0f4e3f03cf4c045cbea0a233d
+```
+
+Commit funcional vigente em Production:
+
+```text
+f72a1471023f00eec0bc615c192fd25f5c29a920
 ```
 
 A migration SME está reconciliada no identificador canônico `20260728182226`. O teste `tests/unit/sme-migration-history-alignment.test.js` protege versão, ausência do identificador derivado e hash.
@@ -114,7 +131,47 @@ layout/frontend
 
 Uma tarefa não está concluída quando apenas uma camada foi alterada.
 
-## 7. Superfícies e dispositivos
+## 7. Avaliação tecnológica proativa
+
+Toda tarefa — correção, melhoria visual, mudança de fluxo ou nova funcionalidade — deve avaliar se o resultado fica materialmente melhor com atualização, instalação ou capacidade tecnológica moderna.
+
+Não ficar preso aos limites da implementação atual quando existir caminho maduro, seguro e compatível para solução superior.
+
+### 7.1 Quando a proposta é obrigatória
+
+Apresentar proposta tecnológica quando:
+
+- a solução possível na pilha atual for paliativa;
+- uma queixa ou erro decorrer de limitação estrutural da tecnologia usada;
+- biblioteca ou capacidade especializada melhorar materialmente acessibilidade, segurança, desempenho, consistência ou manutenção;
+- o recurso solicitado puder ser entregue com maior robustez por ampliação tecnológica;
+- insistir na abordagem existente reduzir perceptivelmente a qualidade final;
+- correção de layout, tabela, formulário, diálogo, gráfico, cache, sincronização ou navegação estiver sendo resolvida artesanalmente apesar de existir solução especializada pertinente.
+
+### 7.2 Conteúdo mínimo da proposta
+
+Informar:
+
+1. problema ou limite observado;
+2. tecnologia, atualização ou capacidade sugerida;
+3. ganho concreto para usuários e projeto;
+4. alternativa sem nova dependência;
+5. custo, risco e manutenção adicional;
+6. impacto em bundle, carregamento, dados, permissões, LGPD e ambientes;
+7. testes, rollback e evidências necessários;
+8. necessidade de Vercel, Supabase ou ambas.
+
+### 7.3 Limites
+
+- proposta não significa autorização de instalação;
+- não ampliar escopo silenciosamente;
+- não instalar pacote apenas por novidade;
+- manter solução existente quando ela produzir resultado equivalente com menor custo;
+- seguir ADR-020, ADR-038 e ADR-039;
+- separar atualização, integração funcional e ativação de Production quando isso melhorar segurança e rastreabilidade;
+- registrar oportunidade nova no roadmap quando ela não for executada no ciclo atual.
+
+## 8. Superfícies e dispositivos
 
 Examinar:
 
@@ -135,7 +192,7 @@ Examinar:
 
 Mobile pode reorganizar tabelas em cartões, mas não remover informação ou capacidade essencial.
 
-## 8. Contratos de produto
+## 9. Contratos de produto
 
 - uma única competência global `YYYY-MM`;
 - janeiro a dezembro de 2026 disponíveis conforme permissão;
@@ -149,7 +206,7 @@ Mobile pode reorganizar tabelas em cartões, mas não remover informação ou ca
 
 A homologação manual do Excel SME no Microsoft Excel desktop está concluída e não deve ser tratada como pendência. O relatório institucional é produto preexistente e independente; eventual homologação manual desse arquivo pertence ao gate global de release, não ao escopo encerrado do Excel SME.
 
-## 9. Persistência e Supabase
+## 10. Persistência e Supabase
 
 Contrato único:
 
@@ -189,7 +246,7 @@ Antes de migration futura:
 - plano de rollback;
 - nenhuma edição direta do histórico.
 
-## 10. Backup e restauração
+## 11. Backup e restauração
 
 Gate canônico:
 
@@ -205,18 +262,19 @@ O teste deve:
 2. exigir `RADAR_ALLOW_DISPOSABLE_BACKUP_RESTORE=true`;
 3. gerar dumps lógicos de papéis, schema, dados e histórico;
 4. restaurar em segunda pilha isolada por `SUPABASE_WORKDIR`;
-5. comparar schema, dados e migrations;
-6. publicar somente `evidence.json`;
-7. destruir as pilhas ao final;
-8. nunca usar `--linked`, segredo remoto ou Production.
+5. copiar as Edge Functions exigidas pela configuração antes de iniciar a pilha de restauração;
+6. comparar schema, dados, Auth e migrations;
+7. publicar somente `evidence.json`;
+8. destruir as pilhas ao final;
+9. nunca usar `--linked`, segredo remoto ou Production.
 
-O run `30537076528` comprovou a restauração integral antes da restrição final do artefato. O SHA final deve repetir todos os gates.
+A Rodada 3B comprovou esse contrato com Supabase CLI 2.110.0.
 
-## 11. Recursos dependentes de plano
+## 12. Recursos dependentes de plano
 
 A checagem de credenciais comprometidas é restrita pelo Supabase ao plano Pro ou superior. O projeto está no plano Free e não possui autorização de despesa. Esse recurso não é requisito de liberação enquanto essa condição permanecer; reavaliar após eventual mudança de plano.
 
-## 12. Vercel
+## 13. Vercel
 
 - separar Production, Preview e local;
 - Production usa `supabase-production`;
@@ -225,9 +283,10 @@ A checagem de credenciais comprometidas é restrita pelo Supabase ao plano Pro o
 - confirmar correspondência entre deployment e SHA;
 - não promover Preview como Production;
 - manter deployments automáticos bloqueados fora de janela controlada;
-- não publicar mudança documental como funcional.
+- não publicar mudança documental ou ferramenta interna como funcional;
+- distinguir explicitamente mudança integrada à `main` de mudança presente em Production.
 
-## 13. Git e integração
+## 14. Git e integração
 
 Não trabalhar diretamente na `main`.
 
@@ -244,7 +303,7 @@ Fluxo obrigatório:
 
 Não misturar funcionalidade, arquitetura, dependências, migration, ativação remota e polimento não relacionado no mesmo PR.
 
-## 14. Testes e conclusão
+## 15. Testes e conclusão
 
 Usar `npm run test:readiness` como gate base e acrescentar, conforme impacto:
 
@@ -270,9 +329,9 @@ A conclusão exige:
 - correspondência entre commit, build e deployment quando houver publicação;
 - relato explícito quando não existir workflow associado ao SHA.
 
-## 15. Gates globais de liberação oficial
+## 16. Gates globais de liberação oficial
 
-Permanecem pendentes no processo geral do produto, sem constituir pendência do Excel SME:
+Permanecem pendentes no processo geral do produto, sem constituir pendência do Excel SME ou das rodadas técnicas:
 
 1. homologação manual do relatório institucional preexistente no Microsoft Excel desktop, caso essa frente seja priorizada;
 2. revisão dos Advisors quando aplicável;
@@ -282,13 +341,15 @@ Permanecem pendentes no processo geral do produto, sem constituir pendência do 
 
 Não declarar o produto oficialmente liberado antes do gate cumulativo.
 
-## 16. Prevenção de loops
+## 17. Prevenção de loops
 
 Ao concluir PR relevante:
 
 - atualizar `docs/CURRENT_STAGE.md`;
+- atualizar `docs/ROADMAP_ATUALIZACOES_2026.md` quando houver item técnico ou funcional afetado;
 - registrar decisões duradouras em `docs/DECISION_LOG.md`;
 - atualizar `docs/PROJECT_CONTEXT.md` quando necessário;
 - atualizar contratos e evidências;
 - classificar documentos substituídos ou históricos;
-- não iniciar nova frente antes de declarar a anterior concluída, bloqueada ou substituída.
+- registrar oportunidades tecnológicas identificadas e não executadas;
+- não iniciar nova frente antes de declarar a anterior concluída, bloqueada, adiada ou substituída.
