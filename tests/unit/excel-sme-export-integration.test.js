@@ -9,6 +9,10 @@ const integration = require('../../src/integration/excel-export-integration.js')
 function state(activeCompetenciaKey = '2026-07') {
     return {
         activeCompetenciaKey,
+        competencias: [
+            { key: '2026-05', label: 'Maio 2026' },
+            { key: '2026-07', label: 'Julho 2026' }
+        ],
         escolas: [{
             id: 'school-1',
             designação: '04.31.001',
@@ -97,6 +101,43 @@ test('executa download pelo renderer exclusivo do Excel SME', async () => {
     assert.equal(result.ok, true);
     assert.equal(received.model.sheetName, 'JULHO');
     assert.equal(received.options.fileName, 'RADAR_PDDE_EXCEL_SME_07-2026.xlsx');
+});
+
+test('normaliza TODAS para o mês visível antes de gerar o Excel SME', async () => {
+    let received = null;
+    const rendererApi = {
+        async downloadWorkbook(model, options) {
+            received = { model, options };
+            return { fileName: options.fileName, bytes: new Uint8Array([0x50, 0x4B]) };
+        }
+    };
+    const document = {
+        querySelector() {
+            return { value: '2026-07' };
+        }
+    };
+
+    const result = await integration.exportSmeXlsx({
+        state: state('TODAS'),
+        document,
+        dependencies: { modelApi, rendererApi }
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(received.model.sheetName, 'JULHO');
+    assert.equal(received.options.fileName, 'RADAR_PDDE_EXCEL_SME_07-2026.xlsx');
+});
+
+test('resolve competência mensal pela interface e pela lista de competências', () => {
+    const document = {
+        querySelector() {
+            return { value: '2026-07' };
+        }
+    };
+
+    assert.equal(integration.resolveSmeCompetence(state('TODAS'), document), '2026-07');
+    assert.equal(integration.resolveSmeCompetence(state('TODAS'), null), '2026-05');
+    assert.equal(integration.resolveSmeCompetence(state('2026-07'), document), '2026-07');
 });
 
 test('reconhece somente competências mensais válidas', () => {
