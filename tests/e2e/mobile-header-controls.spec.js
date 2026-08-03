@@ -76,3 +76,42 @@ test('mantém competência, exercício e ações integralmente acessíveis no ca
 
   expect(pageErrors).toEqual([]);
 });
+
+test('reserva a geometria final do cabeçalho antes do bootstrap móvel', async ({ page }, testInfo) => {
+  test.skip(!/mobile.*chromium/i.test(testInfo.project.name), 'LayoutShift é homologado no projeto Chromium móvel.');
+
+  await page.addInitScript(() => {
+    window.__radarLayoutShiftSupported = Boolean(
+      window.PerformanceObserver
+      && Array.isArray(window.PerformanceObserver.supportedEntryTypes)
+      && window.PerformanceObserver.supportedEntryTypes.includes('layout-shift')
+    );
+    window.__radarLayoutShiftScore = 0;
+    if (!window.__radarLayoutShiftSupported) return;
+    const observer = new PerformanceObserver(list => {
+      for (const entry of list.getEntries()) {
+        if (!entry.hadRecentInput) window.__radarLayoutShiftScore += entry.value;
+      }
+    });
+    observer.observe({ type: 'layout-shift', buffered: true });
+    window.__radarLayoutShiftObserver = observer;
+  });
+
+  await page.goto('/');
+  await expect(page.locator('#mobile-menu-button')).toBeVisible();
+  await expect(page.locator('#global-competence-select')).toBeVisible();
+  await expect(page.locator('#main-container')).toBeVisible();
+  await page.waitForTimeout(1500);
+
+  const measurement = await page.evaluate(() => ({
+    supported: window.__radarLayoutShiftSupported,
+    score: window.__radarLayoutShiftScore,
+    headerHeight: document.querySelector('header.top-header')?.getBoundingClientRect().height || 0,
+    mainTop: document.querySelector('#main-container')?.getBoundingClientRect().top || 0
+  }));
+
+  expect(measurement.supported).toBe(true);
+  expect(measurement.headerHeight).toBeGreaterThanOrEqual(230);
+  expect(measurement.mainTop).toBeGreaterThanOrEqual(230);
+  expect(measurement.score).toBeLessThan(0.05);
+});
