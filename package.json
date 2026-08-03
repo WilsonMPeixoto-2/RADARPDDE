@@ -81,7 +81,7 @@
     "@eslint/js": "10.0.1",
     "@floating-ui/dom": "1.8.0",
     "@playwright/test": "1.62.0",
-    "@supabase/supabase-js": "2.110.8",
+    "@supabase/supabase-js": "2.111.0",
     "acorn": "8.18.0",
     "acorn-walk": "8.3.5",
     "ajv": "8.20.0",
@@ -94,7 +94,7 @@
     "knip": "6.29.0",
     "lighthouse": "13.4.1",
     "prettier": "3.9.6",
-    "supabase": "2.110.0",
+    "supabase": "2.111.0",
     "typescript": "7.0.2"
   },
   "dependencies": {
