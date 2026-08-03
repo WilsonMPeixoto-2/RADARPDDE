@@ -34,7 +34,7 @@ src
 vendor
 ```
 
-A pasta `assets` não integrava o artefato publicado. A consulta direta ao caminho canônico em Production retornou HTTP `404` com `x-vercel-error: NOT_FOUND`.
+O template sob `assets/templates` não integrava o artefato publicado. A consulta direta ao caminho canônico em Production retornou HTTP `404` com `x-vercel-error: NOT_FOUND`.
 
 Portanto, a causa não era corrupção do XLSX, incompatibilidade do ExcelJS, erro do renderer nem ausência do arquivo na `main`. O defeito estava na composição do artefato de implantação.
 
@@ -64,19 +64,25 @@ A falha demonstrou que o teste detectava a causa real do incidente.
 
 ## 4. Correção — GREEN
 
-O build da Vercel passou a incluir `assets` entre as entradas públicas obrigatórias de `RUNTIME_ENTRIES`.
+O build da Vercel passou a incluir o arquivo canônico abaixo como entrada pública obrigatória de `RUNTIME_ENTRIES`:
+
+```text
+assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx
+```
 
 A alteração é restrita a:
 
-- publicar a pasta já versionada no diretório `dist`;
+- copiar somente o template necessário para o diretório `dist`;
 - preservar o caminho absoluto consumido pelo carregador;
-- proteger a presença do template por teste unitário específico.
+- proteger a presença do arquivo por teste unitário específico.
 
 O teste foi isolado com o nome:
 
 ```text
 inclui o template canônico do Excel SME no artefato público da Vercel
 ```
+
+A opção pela entrada exata, em vez de publicar indiscriminadamente toda a pasta `assets`, reduz a superfície pública e mantém o artefato mínimo.
 
 ## 5. Escopo preservado
 
