@@ -1,0 +1,56 @@
+name: Temporary generate Playwright 1.62 lockfile
+
+on:
+  push:
+    branches:
+      - chore/rodada-4b-playwright-1-62-0-20260803
+    paths:
+      - .github/workflows/temporary-generate-playwright-lockfile.yml
+      - package.json
+      - package-lock.json
+
+permissions:
+  contents: write
+
+concurrency:
+  group: temporary-playwright-lockfile-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  generate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Obter código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: chore/rodada-4b-playwright-1-62-0-20260803
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Atualizar versão e regenerar lockfile
+        run: npm install --save-dev --save-exact @playwright/test@1.62.0 --package-lock-only --ignore-scripts
+
+      - name: Verificar instalação reproduzível e versão
+        run: |
+          npm ci --ignore-scripts
+          test "$(node -p "require('@playwright/test/package.json').version")" = "1.62.0"
+          npx playwright --version
+
+      - name: Commitar arquivos gerados quando necessário
+        shell: bash
+        run: |
+          if git diff --quiet -- package.json package-lock.json; then
+            echo "Lockfile já está reproduzível."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          git commit -m "build(deps-dev): atualizar Playwright para 1.62.0"
+          git push origin HEAD:chore/rodada-4b-playwright-1-62-0-20260803
