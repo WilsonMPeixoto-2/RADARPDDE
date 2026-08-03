@@ -248,6 +248,16 @@ async function dumpSource(sourceDbUrl) {
   runSupabase(['db', 'dump', '--db-url', sourceDbUrl, '-f', files.roles, '--role-only'], {
     label: 'Gerar backup de papéis'
   });
+
+  // Remove SET log_min_messages que requer superusuário e falha na restauração.
+  const rolesContent = await readFile(files.roles, 'utf8');
+  await writeFile(
+    files.roles,
+    rolesContent
+      .split('\n')
+      .filter((line) => !/^\s*SET\s+log_min_messages\s*=/i.test(line))
+      .join('\n')
+  );
   runSupabase(['db', 'dump', '--db-url', sourceDbUrl, '-f', files.schema], {
     label: 'Gerar backup de schema'
   });
