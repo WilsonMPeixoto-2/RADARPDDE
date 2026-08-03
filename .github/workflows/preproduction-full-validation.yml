@@ -1,0 +1,314 @@
+name: Homologação integral pré-production
+
+on:
+  push:
+    branches:
+      - fix/excel-sme-build-output-api-20260803
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  SUPABASE_TELEMETRY_DISABLED: '1'
+
+concurrency:
+  group: preproduction-full-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  readiness:
+    name: Prontidão completa
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+      - name: Executar gates de prontidão
+        run: npm run test:readiness
+
+  migration-smoke:
+    name: Migrations em PostgreSQL limpo
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: radar_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d radar_test"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: radar_test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Instalar cliente PostgreSQL
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client
+      - name: Aplicar bootstrap e migrations
+        run: |
+          set -euo pipefail
+          psql -v ON_ERROR_STOP=1 -f supabase/tests/bootstrap.sql
+          for migration in supabase/migrations/*.sql; do
+            if [ "$(basename "${migration}")" = "202607230001_enable_pgtap_remote_validation.sql" ]; then
+              continue
+            fi
+            psql -v ON_ERROR_STOP=1 -f "${migration}"
+          done
+      - name: Executar smoke do banco
+        run: psql -v ON_ERROR_STOP=1 -f supabase/tests/smoke.sql
+
+  supabase-local:
+    name: Supabase local, Auth, RLS e pgTAP
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+      - name: Instalar Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Configurar origem local da Edge Function
+        run: |
+          mkdir -p supabase/functions
+          printf 'RADAR_ALLOWED_ORIGIN=%s\n' 'http://127.0.0.1:4175' > supabase/functions/.env
+          chmod 600 supabase/functions/.env
+      - name: Iniciar e recriar Supabase local
+        run: |
+          npm run supabase:start
+          npm run supabase:reset
+      - name: Validar SQL, pgTAP e lint
+        run: |
+          npx supabase db query --local --file supabase/verification/remote-preflight.sql
+          npx supabase db query --local --file supabase/verification/remote-post-apply.sql
+          npm run supabase:test:db
+          npm run supabase:lint:db
+      - name: Regenerar e conferir artefatos
+        run: |
+          mkdir -p src/types
+          npm run supabase:gen:types
+          npm run build:supabase-client
+          npm run build:ajv
+          npm run check:generated
+          npm run typecheck:database
+      - name: Preparar identidades Auth
+        shell: bash
+        run: |
+          set -euo pipefail
+          eval "$(npx supabase status -o env | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=')"
+          FIXTURE_PASSWORD="$(node --input-type=module -e "import { randomBytes } from 'node:crypto'; process.stdout.write(randomBytes(32).toString('base64url') + 'A1!')")"
+          echo "::add-mask::${FIXTURE_PASSWORD}"
+          echo "::add-mask::${SERVICE_ROLE_KEY}"
+          RADAR_ALLOW_LOCAL_AUTH_BOOTSTRAP=true \
+          RADAR_SUPABASE_URL="${API_URL}" \
+          RADAR_SUPABASE_ADMIN_KEY="${SERVICE_ROLE_KEY}" \
+          RADAR_AUTH_FIXTURE_PASSWORD="${FIXTURE_PASSWORD}" \
+          npm run bootstrap:auth-fixtures
+          RADAR_DATA_MODE=supabase-preview \
+          RADAR_ENVIRONMENT=test \
+          RADAR_SUPABASE_REPOSITORY_ENABLED=true \
+          RADAR_SUPABASE_URL="${API_URL}" \
+          RADAR_SUPABASE_PUBLISHABLE_KEY="${ANON_KEY}" \
+          npm run generate:runtime-config
+          {
+            printf 'RADAR_SUPABASE_URL=%s\n' "${API_URL}"
+            printf 'RADAR_SUPABASE_PUBLISHABLE_KEY=%s\n' "${ANON_KEY}"
+            printf 'RADAR_AUTH_FIXTURE_PASSWORD=%s\n' "${FIXTURE_PASSWORD}"
+            printf 'RADAR_ALLOWED_ORIGIN=%s\n' 'http://127.0.0.1:4175'
+          } >> "${GITHUB_ENV}"
+      - name: Validar identidades e Edge Function
+        run: |
+          npm run check:auth-fixtures
+          npm run check:team-account-function
+      - name: Exercitar frontend, Auth e RLS
+        env:
+          RADAR_E2E_SUPABASE_LOCAL: '1'
+        run: npx playwright test tests/e2e/supabase-auth-local.spec.js tests/e2e/supabase-full-contract.spec.js --project=desktop-chromium
+      - name: Restaurar configuração e encerrar Supabase
+        if: always()
+        run: |
+          npm run generate:runtime-config || true
+          rm -f supabase/functions/.env
+          npm run supabase:stop || true
+
+  e2e:
+    name: Playwright completo
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+      - name: Instalar navegadores homologados
+        run: npx playwright install --with-deps chromium webkit
+      - name: Executar toda a suíte E2E
+        run: npm run test:e2e
+      - name: Publicar relatório em caso de falha
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: preproduction-playwright-${{ github.run_id }}
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: warn
+          retention-days: 7
+
+  excel-sme:
+    name: Excel SME, OOXML e rota pública local
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+      - name: Executar testes funcionais e de publicação
+        run: |
+          node --test \
+            tests/unit/excel-sme-canonical-translation.test.js \
+            tests/unit/excel-sme-export-model.test.js \
+            tests/unit/excel-sme-template-renderer.test.js \
+            tests/unit/excel-sme-office-compatibility.test.js \
+            tests/unit/excel-sme-runtime-loader.test.js \
+            tests/unit/excel-sme-export-integration.test.js \
+            tests/unit/excel-integral-certification.test.js \
+            tests/unit/vercel-build.test.js \
+            tests/unit/vercel-build-output.test.js
+          node scripts/generate-excel-certification-evidence.mjs --check
+          node scripts/build-vercel.mjs
+          node scripts/build-vercel-output.mjs
+          node scripts/verify-excel-sme-template.mjs --file dist/assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx
+          node scripts/verify-excel-sme-template.mjs --file .vercel/output/static/assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx
+          node scripts/generate-excel-sme-homologation.mjs
+          unzip -t artifacts/excel-homologation/RADAR_PDDE_EXCEL_SME_HOMOLOGACAO_EXCELJS_12-2026.xlsx
+
+  dependencies:
+    name: Dependências e segurança
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+      - name: Verificar referências, bundles, lint e inventário
+        run: |
+          npm run check:workflow-references
+          npm run check:search-ui-vendors
+          npm run lint:security
+          npm run analyze:unused
+      - name: Aplicar política de vulnerabilidades
+        run: |
+          mkdir -p dependency-health
+          set +e
+          npm audit --json > dependency-health/npm-audit.json
+          set -e
+          npm run audit:exceljs-policy
+      - name: Gerar SBOM e conferir árvore
+        run: |
+          npm sbom --sbom-format cyclonedx --sbom-type application > dependency-health/sbom.cdx.json
+          npm ls --all --json > dependency-health/npm-tree.json
+
+  lighthouse:
+    name: Lighthouse CI
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+      - name: Instalar Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Executar auditoria Lighthouse
+        run: npm run audit:lighthouse
+
+  backup-restore:
+    name: Backup e restauração descartáveis
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+      - name: Executar backup, restauração e comparação
+        run: npm run test:backup-restore
+
+  gate:
+    name: Gate final pré-production
+    if: always()
+    needs:
+      - readiness
+      - migration-smoke
+      - supabase-local
+      - e2e
+      - excel-sme
+      - dependencies
+      - lighthouse
+      - backup-restore
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Exigir sucesso de todos os testes
+        shell: bash
+        run: |
+          results='${{ toJSON(needs) }}'
+          echo "${results}"
+          if echo "${results}" | grep -Eq '"result": "(failure|cancelled|skipped)"'; then
+            echo 'Gate pré-production bloqueado.' >&2
+            exit 1
+          fi
+          echo 'Todos os testes pré-production foram aprovados.'
