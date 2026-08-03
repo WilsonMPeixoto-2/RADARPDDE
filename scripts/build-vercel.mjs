@@ -20,6 +20,7 @@ const RUNTIME_ENTRIES = Object.freeze([
     'app.js',
     'config.js',
     'styles.css',
+    'assets',
     'src',
     'vendor'
 ]);
