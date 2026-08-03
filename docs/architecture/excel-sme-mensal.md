@@ -1,8 +1,8 @@
 # Exportação Excel SME mensal
 
-**Estado:** template canônico, renderer ExcelJS, integração, certificação e homologação desktop concluídos
+**Estado:** template canônico, renderer ExcelJS, integração, certificação e homologação desktop concluídos; empacotamento Vercel protegido por teste
 
-**Atualizado em:** 1º de agosto de 2026
+**Atualizado em:** 3 de agosto de 2026
 
 ## 1. Finalidade
 
@@ -106,6 +106,18 @@ A integração:
 - mantém o botão idempotente em renderizações tardias;
 - não altera o escopo histórico do relatório institucional.
 
+### 7.1 Contrato de publicação do template
+
+`src/integration/excel-sme-runtime-loader.js` carrega sob demanda o caminho absoluto:
+
+```text
+/assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx
+```
+
+Consequentemente, o build público da Vercel deve copiar `assets` para `dist`, preservando o mesmo caminho relativo. A presença de `dist/assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx` é contrato executável de `tests/unit/vercel-build.test.js`.
+
+Esse gate protege uma falha que não era detectada pela certificação do conteúdo: o template podia existir e ser válido na árvore do repositório, mas ficar ausente do artefato implantado. Alterar o caminho, o nome do arquivo ou as entradas públicas do build exige atualizar conjuntamente carregador, build, teste e smoke do ambiente publicado.
+
 ## 8. Certificação
 
 A certificação integral compara:
@@ -138,9 +150,12 @@ A certificação automatizada:
 - usa massa sintética;
 - não consulta Production;
 - não grava no Supabase;
-- não comprova abertura manual no Microsoft Excel desktop.
+- não comprova abertura manual no Microsoft Excel desktop;
+- não substitui a verificação de disponibilidade HTTP do template no deployment.
 
-O candidato correspondente à implementação funcional integrada pelo PR #117 foi aberto no Microsoft Excel desktop sem aviso de reparo, exibiu o conteúdo e teve os alinhamentos revisados. Essa evidência cumpre o gate manual específico do Excel SME; o relatório institucional mantém homologação própria.
+O candidato correspondente à implementação funcional integrada pelo PR #117 foi aberto no Microsoft Excel desktop sem aviso de reparo, exibiu o conteúdo e teve os alinhamentos revisados. Essa evidência cumpre o gate manual específico do conteúdo do Excel SME; o relatório institucional mantém homologação própria.
+
+A disponibilidade operacional ainda exige que o artefato implantado sirva o template com HTTP `200` e que o fluxo real conclua geração e download.
 
 ## 10. Contratos protegidos
 
@@ -152,7 +167,9 @@ O candidato correspondente à implementação funcional integrada pelo PR #117 f
 - ausência de `dataValidations`;
 - isolamento temporal;
 - nome da aba, nome do arquivo e dados vinculados à competência ativa;
-- independência do relatório institucional e do CSV de fallback.
+- independência do relatório institucional e do CSV de fallback;
+- template canônico presente no artefato público da Vercel;
+- smoke HTTP e funcional após deployment.
 
 ## 11. Referências
 
@@ -160,5 +177,6 @@ O candidato correspondente à implementação funcional integrada pelo PR #117 f
 - [`excel-export.md`](excel-export.md);
 - [`excel-xlsx-runtime.md`](excel-xlsx-runtime.md);
 - [`avaliacao-mensal.md`](avaliacao-mensal.md);
+- [`../audits/2026-08-03-hotfix-excel-sme-template-404.md`](../audits/2026-08-03-hotfix-excel-sme-template-404.md);
 - [`../evidence/releases/2026-08-01-excel-sme-production.json`](../evidence/releases/2026-08-01-excel-sme-production.json);
 - [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md).
