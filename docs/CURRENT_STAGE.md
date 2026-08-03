@@ -50,7 +50,7 @@ A integração entre frontend, Supabase Auth, PostgREST, RLS, PostgreSQL e Verce
 - reconciliação do histórico da migration SME;
 - bloqueio automático de deployment restaurado.
 
-A homologação do conteúdo do Excel SME permanece válida. O incidente atual é de empacotamento: o deployment vigente não contém a pasta pública `assets`, impedindo que o navegador carregue o template antes da geração.
+A homologação do conteúdo do Excel SME permanece válida. O incidente atual é de empacotamento: o deployment vigente não contém `assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx`, impedindo que o navegador carregue o template antes da geração.
 
 ### 2.2 Rodadas de atualização
 
@@ -70,10 +70,10 @@ Diagnóstico confirmado em 3 de agosto de 2026:
 - o runtime solicita `/assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx`;
 - o arquivo existe na `main`;
 - o build Vercel copiava apenas `index.html`, `app.js`, `config.js`, `styles.css`, `src` e `vendor`;
-- o artefato publicado não continha `assets`;
+- o artefato publicado não continha o template;
 - a URL canônica do template retorna HTTP `404` em Production.
 
-A correção do PR `#133` inclui `assets` no artefato `dist` e acrescenta teste específico para impedir regressão. Não altera XLSX, renderer, ExcelJS, Supabase, dados, migrations, Auth ou RLS.
+A correção do PR `#133` inclui `assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx` como entrada pública obrigatória do artefato `dist` e acrescenta teste específico para impedir regressão. Não altera XLSX, renderer, ExcelJS, Supabase, dados, migrations, Auth ou RLS.
 
 A disponibilidade aos usuários depende de integração, publicação controlada e smoke de Production. Até novo deployment, o incidente permanece ativo no ambiente publicado.
 
