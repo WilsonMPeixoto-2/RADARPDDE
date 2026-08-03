@@ -9,6 +9,7 @@
 - **Node.js:** `24.x`
 - **Playwright validado:** `1.62.0`
 - **Supabase CLI:** `2.110.0`
+- **Incidente funcional aberto:** Excel SME retorna `404` em Production; correção no PR `#133`
 - **Deployment automático:** bloqueado fora de janela controlada
 - **Roadmap canônico:** `docs/ROADMAP_ATUALIZACOES_2026.md`
 
@@ -41,13 +42,15 @@ A integração entre frontend, Supabase Auth, PostgREST, RLS, PostgreSQL e Verce
 - timeline cronológica da unidade;
 - navegação contextual;
 - correção de desempenho do login e da restauração de sessão;
-- relatório institucional XLSX e Excel SME mensal;
-- Excel SME homologado no Microsoft Excel desktop e publicado;
+- relatório institucional XLSX;
+- motor, modelo e template do Excel SME homologados no Microsoft Excel desktop;
 - Node.js fixado em `24.x`;
 - gate remoto de cinco papéis em três viewports;
 - backup e restauração em duas pilhas Supabase descartáveis;
 - reconciliação do histórico da migration SME;
 - bloqueio automático de deployment restaurado.
+
+A homologação do conteúdo do Excel SME permanece válida. O incidente atual é de empacotamento: o deployment vigente não contém `assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx`, impedindo que o navegador carregue o template antes da geração.
 
 ### 2.2 Rodadas de atualização
 
@@ -59,6 +62,20 @@ A integração entre frontend, Supabase Auth, PostgREST, RLS, PostgreSQL e Verce
 | **3B** | concluída | Supabase CLI 2.110.0 e compatibilidade do backup/restauração | não exigida |
 | **4A** | concluída | roadmap canônico e evolução tecnológica proativa | não exigida |
 | **4B** | validada no PR `#128` | Playwright 1.62.0 e navegadores correspondentes | não exigida |
+
+### 2.3 Hotfix do template Excel SME
+
+Diagnóstico confirmado em 3 de agosto de 2026:
+
+- o runtime solicita `/assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx`;
+- o arquivo existe na `main`;
+- o build Vercel copiava apenas `index.html`, `app.js`, `config.js`, `styles.css`, `src` e `vendor`;
+- o artefato publicado não continha o template;
+- a URL canônica do template retorna HTTP `404` em Production.
+
+A correção do PR `#133` inclui `assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx` como entrada pública obrigatória do artefato `dist` e acrescenta teste específico para impedir regressão. Não altera XLSX, renderer, ExcelJS, Supabase, dados, migrations, Auth ou RLS.
+
+A disponibilidade aos usuários depende de integração, publicação controlada e smoke de Production. Até novo deployment, o incidente permanece ativo no ambiente publicado.
 
 ## 3. Rodada 4B — Playwright 1.62.0
 
@@ -150,6 +167,8 @@ git.deploymentEnabled: false
 
 A Rodada 4B altera ferramenta de desenvolvimento e teste. Não modifica o bundle servido ao usuário e não exige novo deployment.
 
+O deployment vigente, porém, não contém `assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx`. A correção do PR `#133` modifica o artefato servido e exige novo deployment de Production antes de ser considerada disponível.
+
 ### 4.2 Supabase
 
 ```text
@@ -162,7 +181,7 @@ closing_competence: 2026-12
 app_config.row_version: 5
 ```
 
-A Rodada 4B não altera migrations, schema, dados, Auth, RLS, Edge Functions ou configuração remota.
+A Rodada 4B e o hotfix do Excel SME não alteram migrations, schema, dados, Auth, RLS, Edge Functions ou configuração remota.
 
 ## 5. Desvios operacionais registrados
 
@@ -185,7 +204,18 @@ A tentativa foi descartada antes da validação final. O lockfile definitivo foi
 
 ## 6. Próxima sequência técnica
 
-Com a Rodada 4B validada, a sequência recomendada passa a ser:
+A prioridade imediata é concluir o hotfix do Excel SME:
+
+```text
+validar SHA final do PR #133
+→ integrar à main
+→ abrir janela controlada de deployment
+→ publicar em Production
+→ confirmar HTTP 200 e geração do arquivo
+→ restaurar bloqueio automático
+```
+
+Após o encerramento do incidente, a sequência recomendada volta a ser:
 
 ```text
 Rodada 5 — verificar CodeQL, Dependency Review e actionlint; avaliar zizmor
@@ -199,11 +229,12 @@ Correções urgentes podem alterar a ordem. A ADR-039 continua obrigando a avali
 
 A liberação oficial ainda não foi declarada. Permanecem no processo geral:
 
-1. homologar o relatório institucional preexistente no Microsoft Excel desktop, caso essa frente seja priorizada;
-2. revisar Advisors quando aplicável;
-3. concluir UAT funcional;
-4. realizar polimento editorial e visual;
-5. registrar decisão formal de release.
+1. encerrar o incidente do Excel SME no ambiente publicado;
+2. homologar o relatório institucional preexistente no Microsoft Excel desktop, caso essa frente seja priorizada;
+3. revisar Advisors quando aplicável;
+4. concluir UAT funcional;
+5. realizar polimento editorial e visual;
+6. registrar decisão formal de release.
 
 Esses gates não devem ser confundidos com o roadmap de pacotes e modernização incremental.
 
@@ -215,5 +246,6 @@ Esses gates não devem ser confundidos com o roadmap de pacotes e modernização
 4. `docs/PROJECT_CONTEXT.md`;
 5. `docs/DECISION_LOG.md`;
 6. `docs/reference/STATUS_DOCUMENTOS.md`;
-7. `docs/audits/2026-08-03-rodada-4b-playwright-1-62-0.md`;
-8. `docs/evidence/releases/2026-08-03-playwright-1-62-0.json`.
+7. `docs/audits/2026-08-03-hotfix-excel-sme-template-404.md`;
+8. `docs/audits/2026-08-03-rodada-4b-playwright-1-62-0.md`;
+9. `docs/evidence/releases/2026-08-03-playwright-1-62-0.json`.

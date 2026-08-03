@@ -20,6 +20,7 @@ const RUNTIME_ENTRIES = Object.freeze([
     'app.js',
     'config.js',
     'styles.css',
+    'assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx',
     'src',
     'vendor'
 ]);
