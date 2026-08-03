@@ -1,55 +1,144 @@
 # RADAR PDDE — Estado atual do projeto
 
-- **Atualizado em:** 1º de agosto de 2026
-- **Commit funcional do Excel SME:** `baeea25201ed304f351ea7e3144b0f13147bc3a7`
-- **Commit do artefato publicado:** `b15718ecdd57e82baeaf2116de34af51f8ed1cc0`
-- **Deployment Production:** `dpl_HjpGHuFNzgTRKDsofzzogbBTAe5h` — `READY`
-- **Hardening atual:** Node 24, gates remotos, backup/restauração, autenticação e Excel SME compatível concluídos
-- **Frente Excel SME:** concluída, homologada e publicada, sem pendência remanescente no escopo
+- **Atualizado em:** 3 de agosto de 2026
+- **Baseline da `main` após a Rodada 3B:** `520b51e7080ddae0f4e3f03cf4c045cbea0a233d`
+- **Deployment Production vigente:** `dpl_2Sgq4LJKvSvXro81EYwFJHYEHHqp` — `READY`
+- **Commit funcional publicado:** `f72a1471023f00eec0bc615c192fd25f5c29a920`
+- **Projeto Supabase autorizado:** `scnryinorqeucbfkioxo` — `ACTIVE_HEALTHY`
+- **Runtime Production:** `supabase-production`
+- **Migrations correspondentes:** 25
+- **Deployment automático:** bloqueado fora de janela controlada
+- **Roadmap canônico:** `docs/ROADMAP_ATUALIZACOES_2026.md`
 
 ## 1. Como usar este documento
 
-Antes de iniciar tarefa:
+Este arquivo controla o estágio corrente, o estado dos ambientes e a próxima sequência. O portfólio completo de atualizações técnicas e funcionais está em `docs/ROADMAP_ATUALIZACOES_2026.md`.
 
-1. consultar a `main` atual e os PRs abertos;
-2. verificar workflows e checks do SHA candidato;
-3. confirmar deployment e SHA na Vercel;
-4. confirmar projeto e estado do Supabase;
-5. comparar migrations local/remoto quando houver assunto de banco;
-6. ler `PROJECT_CONTEXT.md` e `DECISION_LOG.md`;
-7. verificar os gates exigidos pela camada alterada;
-8. atualizar este arquivo quando o estado material mudar.
+Antes de iniciar qualquer tarefa:
 
-Código, banco e deployment prevalecem sobre plano, relatório ou memória de chat.
+1. consultar a `main` e os PRs abertos;
+2. confirmar o deployment e o SHA efetivamente publicados;
+3. confirmar Supabase, migrations e estado remoto quando a tarefa depender dessas camadas;
+4. ler `ROADMAP_ATUALIZACOES_2026.md`, `PROJECT_CONTEXT.md` e `DECISION_LOG.md`;
+5. verificar se a frente anterior foi declarada concluída, bloqueada, adiada ou substituída;
+6. avaliar se a tarefa pode alcançar resultado materialmente melhor por atualização, instalação ou capacidade tecnológica moderna;
+7. executar somente os gates correspondentes ao impacto real, sem reduzir os pisos vigentes;
+8. atualizar os documentos canônicos no mesmo ciclo de mudança material.
+
+Código, ambientes efetivos e evidências reproduzíveis prevalecem sobre memória de chat, planos históricos e afirmações documentais antigas.
 
 ## 2. Situação executiva
 
 A integração entre frontend, Supabase Auth, PostgREST, RLS, PostgreSQL e Vercel Production está ativa.
 
-Concluídos e publicados:
+### 2.1 Produto e infraestrutura já concluídos
 
-- governança da Gestão SME;
+- governança de acesso da Gestão SME;
 - competência global de janeiro a dezembro de 2026;
 - avaliação mensal canônica;
 - timeline cronológica da unidade;
-- relatórios XLSX institucional e SME;
-- CSV legado preservado como fallback;
 - navegação contextual;
-- reconciliação do histórico da migration SME;
 - correção de desempenho do login e da restauração de sessão;
-- Excel SME mensal reconstruído sobre o template canônico de 30 colunas com ExcelJS 4.4.0, vinculado à competência ativa e homologado no Microsoft Excel desktop.
-
-Concluídos no hardening anterior ao release:
-
+- relatório institucional XLSX e Excel SME mensal;
+- Excel SME homologado no Microsoft Excel desktop e publicado;
 - Node.js fixado em `24.x`;
 - gate remoto de cinco papéis em três viewports;
-- correção do logout do Administrador técnico no mobile;
-- backup lógico com Supabase CLI;
-- restauração em segunda pilha Supabase descartável;
-- equivalência comprovada de schema, dados públicos, identidades Auth e migrations;
-- evidência sanitizada sem publicação dos dumps SQL.
+- backup e restauração em duas pilhas Supabase descartáveis;
+- reconciliação do histórico da migration SME;
+- bloqueio automático de deployment restaurado.
 
-A liberação oficial do produto ainda não foi declarada. Essa condição global não representa pendência da frente Excel SME.
+### 2.2 Rodadas de atualização concluídas
+
+#### Rodada 0 — preparação obrigatória
+
+- corrigiu a referência inexistente no workflow do Excel SME;
+- criou verificador de referências locais dos workflows;
+- integrou o gate à validação e à saúde das dependências;
+- registrou o baseline técnico.
+
+Referências:
+
+```text
+PR: #121
+commit: ad2fed06d7d951cd510d3f93cf8b3232d0026c1e
+auditoria: docs/audits/2026-08-01-rodada-0-baseline.md
+```
+
+Nenhum efeito em Production.
+
+#### Rodada 1 — atualizações técnicas de baixo risco
+
+- ESLint `10.7.0 → 10.8.0`;
+- Acorn `8.17.0 → 8.18.0`;
+- relatório HTML navegável do lint;
+- validação de handlers inline com arquivo, linha e coluna;
+- `actions/checkout` `7.0.0 → 7.0.1` em 14 workflows;
+- ADR-038 sobre integração pertinente de atualizações.
+
+Referências:
+
+```text
+PR principal: #122
+commit ESLint/Acorn: ea0871e0ab0f6d6dc62f76ca7bad0e7021433a92
+commit checkout: 20b4da15d100169d358f38070901891c99e4f3d7
+auditoria: docs/audits/2026-08-01-rodada-1-baixo-risco.md
+```
+
+Esses componentes são predominantemente internos. Sua inclusão no pacote publicado não cria funcionalidade própria para o usuário.
+
+#### Rodada 2 — busca, elementos flutuantes e transições
+
+- Fuse.js `7.5.0` aplicado à busca existente;
+- busca por escolas autorizadas, módulos, programas, competências e pendências consultáveis;
+- tolerância a acentos, fragmentos e erros moderados;
+- navegação por teclado;
+- Floating UI `1.8.0` para menus e resultados;
+- View Transition API com ativação progressiva e `prefers-reduced-motion`;
+- bundles locais e carregamento sob demanda;
+- central de comandos `Ctrl + K` deliberadamente excluída.
+
+Referências:
+
+```text
+PR funcional: #123
+commit funcional: 8e0a88e88621f4caac48b24049e774700688bd08
+publicação: PR #124
+commit publicado: f72a1471023f00eec0bc615c192fd25f5c29a920
+deployment: dpl_2Sgq4LJKvSvXro81EYwFJHYEHHqp
+fechamento da janela: PR #125
+```
+
+A Rodada 2 está **concluída e publicada**.
+
+#### Rodada 3B — Supabase CLI 2.110.0
+
+- Supabase CLI `2.109.1 → 2.110.0`;
+- adaptação da segunda pilha descartável de restauração à validação do caminho de Edge Functions;
+- 25 migrations e 225 testes pgTAP aprovados;
+- lint, tipos, Auth, RLS, Edge Function e backup/restauração aprovados;
+- nenhum acesso ou alteração no Supabase Production;
+- nenhum deployment Vercel.
+
+Referências:
+
+```text
+PR: #126
+commit: 520b51e7080ddae0f4e3f03cf4c045cbea0a233d
+evidência: docs/evidence/releases/2026-08-02-supabase-cli-2-110-0.json
+```
+
+A versão `2.111.0` foi analisada e adiada por não justificar uma nova rodada imediata.
+
+#### Rodada 4A — reconciliação canônica do roadmap
+
+Esta atualização documental:
+
+- cria `docs/ROADMAP_ATUALIZACOES_2026.md`;
+- reconcilia integralmente as listas técnica e funcional;
+- registra status, prioridade, dependências, implantação e próxima decisão;
+- atualiza os documentos canônicos posteriores às Rodadas 0, 1, 2 e 3B;
+- institui avaliação tecnológica proativa em todas as tarefas futuras;
+- não altera produto, dependências, banco ou Production.
 
 ## 3. Produção
 
@@ -57,17 +146,21 @@ A liberação oficial do produto ainda não foi declarada. Essa condição globa
 
 ```text
 project: radarpdde-fix
-production deployment: dpl_HjpGHuFNzgTRKDsofzzogbBTAe5h
+deployment: dpl_2Sgq4LJKvSvXro81EYwFJHYEHHqp
 state: READY
-artifactCommitSha: b15718ecdd57e82baeaf2116de34af51f8ed1cc0
-functionalMergeCommit: baeea25201ed304f351ea7e3144b0f13147bc3a7
+target: production
+artifactCommitSha: f72a1471023f00eec0bc615c192fd25f5c29a920
 nodeVersion: 24.x
 git.deploymentEnabled: false
 ```
 
-O Excel SME compatível foi publicado por janela controlada. O bloqueio automático foi restaurado após o deployment ficar `READY` e os contratos publicados passarem pelos smokes HTTP e visual.
+O deployment vigente inclui as Rodadas 1 e 2. A Rodada 3B é uma atualização interna da CLI e corretamente não gerou novo deployment.
 
-Evidência: `docs/evidence/releases/2026-08-01-excel-sme-production.json`.
+Evidência:
+
+```text
+docs/evidence/releases/2026-08-02-rodadas-1-2-production.json
+```
 
 ### 3.2 Supabase
 
@@ -78,224 +171,135 @@ PostgreSQL: 17
 runtime Production: supabase-production
 activeRepository: supabase
 migrations correspondentes: 25
+closing_competence: 2026-12
+app_config.row_version: 5
 ```
 
-Estado de configuração confirmado:
+As Rodadas 0, 1, 2, 3B e 4A não criaram migration nem alteraram dados, Auth, RLS, Edge Functions ou configuração remota do Supabase Production.
+
+## 4. Estado das atualizações
+
+O estado completo está no roadmap canônico. Em síntese:
+
+### 4.1 Técnica
+
+Concluídos:
+
+- correção e prevenção de referências quebradas em workflows;
+- ESLint 10.8.0;
+- Acorn 8.18.0;
+- `actions/checkout` 7.0.1;
+- Supabase CLI 2.110.0.
+
+Próxima atualização técnica recomendada:
 
 ```text
-closing_competence = 2026-12
-app_config.row_version = 5
+Playwright 1.61.1 → 1.62.0
 ```
 
-A publicação do Excel SME não alterou schema, dados, RLS, Auth remoto ou migrations.
+Ela deve ser recriada sobre a `main`, pois o PR Dependabot `#79` foi aberto em base anterior. A atualização exige navegadores correspondentes, E2E integral, cinco perfis, Desktop Chrome, Pixel 7/Chromium e iPhone 15/WebKit. Não exige Production.
 
-## 4. Desempenho do login e da restauração de sessão
+Pendências posteriores:
 
-### 4.1 Defeito comprovado
+- confirmar o estado real do CodeQL nas configurações do GitHub;
+- Dependency Review Action;
+- `actionlint`;
+- baseline informativo do `zizmor`;
+- baseline de cobertura de testes.
 
-A tela de acesso permanecia por vários segundos em **Verificando a sessão**, inclusive quando o navegador já possuía sessão válida. O login manual também acumulava espera antes de liberar a aplicação.
+### 4.2 Funcional
 
-Causas:
+Concluídos e publicados:
 
-1. evento Auth e chamada explícita podiam validar a mesma sessão duas vezes;
-2. perfil, papel efetivo e escopos escolares eram consultados em série;
-3. o bootstrap carregava todas as 19 entidades do repositório em sequência;
-4. entidades não necessárias ao estado inicial, como `audit_events`, entravam no caminho crítico.
+- busca inteligente;
+- posicionamento responsivo de elementos flutuantes;
+- transições progressivas de navegação.
 
-### 4.2 Correção publicada
+Parcial ou deliberadamente não executados:
 
-- validação em voo único por usuário autenticado;
-- deduplicação entre restauração, login e `onAuthStateChange`;
-- perfil, papel efetivo e escopos iniciados em paralelo;
-- snapshot remoto com subconjunto explícito;
-- leituras concorrentes limitadas a seis;
-- bootstrap inicial restrito às 14 entidades operacionais;
-- snapshot integral preservado para operações que o exigem;
-- aplicação mantida inerte até o carregamento autorizado terminar.
+- central de comandos `Ctrl + K` — adiada;
+- data grid/Tabulator — adiado por baixo valor imediato frente ao custo;
+- modularização ampla com esbuild — parcial;
+- atalhos de teclado — parciais;
+- histórico antes/depois — timeline existente, comparação estruturada pendente.
 
-Nova sequência visual:
+Continuam como candidatos sujeitos a avaliação:
+
+- sistema comum de componentes;
+- ajuda contextual;
+- gráficos operacionais;
+- Supabase Realtime;
+- PWA e recuperação de rascunhos;
+- visualizações salvas;
+- indicadores de prazo e risco;
+- assistência contextual baseada nas regras do PDDE;
+- detecção de inconsistências;
+- demais capacidades listadas no roadmap.
+
+Nenhum desses candidatos está automaticamente autorizado para implementação.
+
+## 5. Sequência vigente
 
 ```text
-Verificando a sessão existente…
-→ Sessão reconhecida. Carregando os dados autorizados…
-→ ambiente de trabalho liberado
+Rodada 4A — concluir e integrar a reconciliação documental
+Rodada 4B — Playwright 1.62.0
+Rodada 5  — segurança de CI e dependências
+Rodada 6  — baseline de cobertura
+Rodada 7  — escolher a próxima evolução funcional por benefício
 ```
 
-Redução estrutural:
+Correções urgentes podem alterar a ordem. Em qualquer tarefa, deve ser avaliado se atualização ou instalação pertinente oferece solução materialmente superior.
 
-```text
-antes: até 6 consultas Auth duplicadas/serializadas
-       + até 24 leituras HTTP em fila no escopo técnico observado
+## 6. Regra de evolução tecnológica proativa
 
-depois: 3 consultas Auth em uma rodada paralela
-        + 14 entidades operacionais em lotes concorrentes limitados
-```
+Toda correção, melhoria de layout, mudança de fluxo ou nova capacidade deve verificar se a pilha atual limita o resultado.
 
-A duração absoluta ainda depende da rede do usuário e da resposta do Supabase, mas as esperas desnecessárias do frontend foram removidas.
+Quando nova biblioteca, atualização ou capacidade moderna puder melhorar materialmente acessibilidade, desempenho, segurança, consistência, manutenção ou qualidade da experiência, a proposta deve ser apresentada antes de aceitar uma solução limitada.
 
-### 4.3 Evidências
+A proposta deve explicar:
 
-PR funcional: `#113`.
+1. limite observado;
+2. tecnologia sugerida;
+3. ganho concreto;
+4. alternativa sem nova dependência;
+5. custo e risco;
+6. impacto em bundle, dados, permissões e Production;
+7. testes, rollback e evidências.
 
-SHA validado:
+A proposta não autoriza instalação automática nem ampliação silenciosa de escopo. Solução existente continua preferível quando entrega resultado equivalente com menor custo.
 
-```text
-f647941feffe89ccd4bcb2b75ed19faf999007b2
-```
+## 7. Gates globais de liberação oficial
 
-Gates aprovados:
-
-- snapshot canônico — run `30548549278`;
-- Supabase readiness — run `30548549003`;
-- Playwright E2E — run `30548549099`;
-- perfis × desktop, Android e iPhone — run `30548548995`;
-- Lighthouse CI — run `30548549280`.
-
-Auditoria: `docs/audits/2026-07-30-performance-login-restauracao-sessao.md`.
-
-## 5. Runtime Node.js
-
-```text
-package.json        engines.node = 24.x
-package-lock.json   packages[""].engines.node = 24.x
-.nvmrc              24
-.node-version       24
-GitHub Actions      node-version: 24
-Vercel              nodeVersion: 24.x
-```
-
-Proteção: `tests/unit/release-hardening-contract.test.js`.
-
-## 6. Gate remoto por papel e viewport
-
-Workflow:
-
-```text
-.github/workflows/gate-remoto-perfis-viewports.yml
-```
-
-Papéis:
-
-- Administrador técnico;
-- Assistente de Verbas Federais;
-- Controlador;
-- Equipe de Inventário;
-- Gestão SME.
-
-Viewports:
-
-- Desktop Chrome;
-- Pixel 7 / Chromium;
-- iPhone 15 / WebKit.
-
-A matriz contém 15 cenários de papel × viewport. Auth/RLS mutáveis são executados uma única vez no desktop.
-
-## 7. Backup e restauração descartáveis
-
-```text
-.github/workflows/backup-restore-disposable.yml
-scripts/verify-supabase-backup-restore.mjs
-tests/unit/backup-restore-gate-contract.test.js
-npm run test:backup-restore
-```
-
-O gate comprova, sem acessar Production:
-
-1. origem Supabase descartável;
-2. reset com 25 migrations e seed;
-3. criação de sete identidades Auth efêmeras;
-4. dumps de papéis, schema, dados e histórico;
-5. restauração transacional em segunda pilha;
-6. equivalência de schema, dados públicos, `auth.users`, `auth.identities` e migrations;
-7. limpeza dos ambientes.
-
-O artefato publicado contém somente `evidence.json`; os SQLs permanecem no runner efêmero.
-
-## 8. Recurso dependente de plano
-
-A checagem de senhas comprometidas é disponibilizada pelo Supabase apenas no plano Pro ou superior. Como o projeto opera no plano Free e não há autorização de despesa, ela não integra os critérios atuais de liberação. Reavaliar se houver mudança de plano.
-
-## 9. Migrações
-
-O GitHub e o Supabase Production possuem 25 versões correspondentes.
-
-```text
-arquivo local: 20260728182226_sme_access_governance.sql
-registro remoto: 20260728182226_sme_access_governance
-registro derivado 20260728190344: ausente
-SHA-256: cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
-```
-
-Migration futura exige:
-
-1. `supabase migration list --linked`;
-2. teste de alinhamento SME;
-3. reset local;
-4. pgTAP e lint SQL;
-5. tipos regenerados;
-6. backup/restauração descartáveis;
-7. `db push --linked --dry-run`;
-8. plano de rollback;
-9. evidência no mesmo SHA.
-
-## 10. Relatórios Excel
-
-### Institucional
-
-- produto preexistente e independente da frente Excel SME;
-- modelo, renderer, quatro abas e certificação automatizada: concluídos;
-- botão principal integrado ao XLSX;
-- CSV preservado como secundário e fallback;
-- eventual homologação manual futura pertence ao gate global de release e não ao escopo do reparo do Excel SME.
-
-### SME mensal
-
-- template canônico, modelo de tradução, renderer ExcelJS, integração e certificação: concluídos;
-- 30 colunas literais do modelo original e uma aba associada à competência mensal ativa;
-- botão próprio habilitado apenas para competência mensal válida;
-- `dataValidations`: ausente por contrato;
-- abertura manual no Excel desktop: aprovada sem aviso de reparo, com conteúdo visível e alinhamentos revisados;
-- publicação em Production: concluída;
-- escopo de criação/correção da geração: encerrado com sucesso.
-
-## 11. Gates globais remanescentes antes da liberação oficial
-
-Os itens abaixo pertencem ao processo geral de liberação do produto e não constituem pendências do Excel SME:
+A liberação oficial ainda não foi declarada. Permanecem no processo geral:
 
 1. homologar o relatório institucional preexistente no Microsoft Excel desktop, caso essa frente seja priorizada;
 2. revisar Advisors quando aplicável;
 3. concluir UAT funcional;
-4. realizar polimento editorial e visual sem alterar produto;
+4. realizar polimento editorial e visual;
 5. registrar decisão formal de release.
 
-Node, matriz remota, backup/restauração, desempenho do login e Excel SME estão cumpridos e não integram mais os bloqueadores de suas respectivas frentes.
+Esses gates não devem ser confundidos com o roadmap de pacotes e modernização incremental.
 
-## 12. Encerramento da frente Excel SME
+## 8. Documentos de continuidade
 
-A frente iniciada para criar/corrigir a geração do arquivo **Excel SME** está concluída integralmente:
+Ordem recomendada:
 
-- implementação funcional integrada pelo PR `#117`;
-- template canônico e ExcelJS 4.4.0 em uso;
-- competência ativa vinculada ao arquivo e à aba;
-- abertura no Microsoft Excel desktop sem reparo;
-- conteúdo e alinhamentos homologados;
-- publicação Production concluída pelo PR `#118`;
-- janela de deployment encerrada pelo PR `#119`;
-- nenhuma mudança em banco, migration, RLS ou dados de Production.
+1. `AGENTS.md`;
+2. `docs/CURRENT_STAGE.md`;
+3. `docs/ROADMAP_ATUALIZACOES_2026.md`;
+4. `docs/PROJECT_CONTEXT.md`;
+5. `docs/DECISION_LOG.md`;
+6. `docs/reference/STATUS_DOCUMENTOS.md`;
+7. arquitetura específica da próxima frente;
+8. especificações, planos, auditorias e evidências correspondentes.
 
-Nenhuma nova frente foi definida como continuação automática desse trabalho. O relatório institucional de quatro abas permanece um produto separado, preexistente e fora do escopo encerrado.
+Referências recentes:
 
-## 13. Documentos de continuidade
-
-- `AGENTS.md`;
-- `README.md`;
-- `docs/PROJECT_CONTEXT.md`;
-- `docs/DECISION_LOG.md`;
-- `docs/architecture/testing.md`;
-- `docs/architecture/excel-sme-mensal.md`;
-- `docs/reference/STATUS_DOCUMENTOS.md`;
-- `docs/evidence/releases/2026-08-01-excel-sme-production.json`;
-- `docs/evidence/releases/2026-07-30-login-performance-production.json`;
-- `docs/audits/2026-07-30-backup-restore-disposable.md`;
-- `docs/audits/2026-07-30-node24-gate-remoto-perfis-viewports.md`;
-- `docs/audits/2026-07-29-reconciliacao-migration-sme-evidencias.md`.
+- `docs/audits/2026-08-01-rodada-0-baseline.md`;
+- `docs/audits/2026-08-01-rodada-1-baixo-risco.md`;
+- `docs/audits/2026-08-01-rodada-2-busca-flutuantes-transicoes.md`;
+- `docs/audits/2026-08-02-rodada-3b-supabase-cli-2-110-0.md`;
+- `docs/evidence/releases/2026-08-02-rodadas-1-2-production.json`;
+- `docs/evidence/releases/2026-08-02-supabase-cli-2-110-0.json`;
+- `docs/superpowers/specs/2026-08-03-rodada-4a-roadmap-atualizacoes-design.md`;
+- `docs/superpowers/plans/2026-08-03-rodada-4a-roadmap-atualizacoes.md`.

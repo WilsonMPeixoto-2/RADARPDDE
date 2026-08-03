@@ -1,6 +1,6 @@
 # RADAR PDDE — Registro de decisões
 
-**Atualizado em:** 1º de agosto de 2026
+**Atualizado em:** 3 de agosto de 2026
 
 Este documento registra decisões duradouras. Não é diário de commits. Uma decisão somente é substituída por decisão expressa com impacto e status documentados.
 
@@ -392,3 +392,40 @@ Workflows devem falhar quando chamadas estáticas verificáveis apontarem para s
 O gate é executado pela validação principal e pela saúde das dependências, sem introduzir nova dependência npm.
 
 **Documento integral:** `docs/decisions/ADR-037-integridade-de-referencias-dos-workflows.md`.
+
+---
+
+## ADR-038 — Atualizações devem produzir integração pertinente
+
+**Status:** Aprovada e implementada
+
+Atualizar biblioteca, ferramenta ou Action apenas para alterar número de versão não basta quando a versão oferece capacidade útil ao RADAR. Cada atualização deve registrar motivo, recursos relevantes, integração adotada, recursos adiados, itens não aplicáveis e evidências.
+
+Não se deve forçar uso artificial de recurso novo. Atualização somente de versão é aceitável quando o ganho concreto for correção, segurança, compatibilidade, suporte ou manutenção e a ausência de integração adicional estiver justificada.
+
+**Documento integral:** `docs/decisions/ADR-038-atualizacoes-com-integracao-pertinente.md`.
+
+---
+
+## ADR-039 — Evolução tecnológica proativa orientada ao melhor resultado
+
+**Status:** Aprovada
+
+Toda correção, melhoria de layout, mudança de fluxo ou nova capacidade deve avaliar se a tecnologia atual limita o resultado possível.
+
+Quando nova biblioteca, atualização ou capacidade moderna puder melhorar materialmente acessibilidade, desempenho, segurança, consistência, manutenção ou experiência, a proposta deve ser apresentada antes de aceitar solução paliativa ou limitada.
+
+A proposta deve informar:
+
+1. limite observado;
+2. tecnologia sugerida;
+3. ganho concreto;
+4. alternativa sem nova dependência;
+5. custo e risco;
+6. impacto em bundle, dados, permissões, LGPD e Production;
+7. testes, rollback e evidências;
+8. necessidade de Vercel, Supabase ou ambas.
+
+Propor não significa instalar. Adoção continua dependente de aprovação, branch isolada, versão fixada, análise de segurança, gates completos e implantação controlada. A solução existente permanece preferível quando entrega resultado equivalente com menor custo.
+
+**Documento integral:** `docs/decisions/ADR-039-evolucao-tecnologica-proativa.md`.
