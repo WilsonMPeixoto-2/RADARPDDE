@@ -80,7 +80,15 @@ function createVercelBuildOutputConfig() {
             { src: '/escolas/[^/]+/app\\.js', dest: '/app.js' },
             { src: '/escolas/[^/]+/config\\.js', dest: '/config.js' },
             { src: '/escolas/[^/]+/config\\.runtime\\.js', dest: '/config.runtime.js' },
-            { src: '/(.*)', dest: '/index.html' }
+            { src: '/dashboard', dest: '/index.html' },
+            { src: '/carteira', dest: '/index.html' },
+            { src: '/competencias', dest: '/index.html' },
+            { src: '/pendencias', dest: '/index.html' },
+            { src: '/inventario', dest: '/index.html' },
+            { src: '/auditoria', dest: '/index.html' },
+            { src: '/equipe', dest: '/index.html' },
+            { src: '/gestao-sme', dest: '/index.html' },
+            { src: '/escolas/(.*)', dest: '/index.html' }
         ]
     });
 }
