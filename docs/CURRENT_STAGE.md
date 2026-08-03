@@ -1,37 +1,39 @@
 # RADAR PDDE — Estado atual do projeto
 
 - **Atualizado em:** 3 de agosto de 2026
-- **Baseline da `main` após a Rodada 3B:** `520b51e7080ddae0f4e3f03cf4c045cbea0a233d`
 - **Deployment Production vigente:** `dpl_2Sgq4LJKvSvXro81EYwFJHYEHHqp` — `READY`
 - **Commit funcional publicado:** `f72a1471023f00eec0bc615c192fd25f5c29a920`
 - **Projeto Supabase autorizado:** `scnryinorqeucbfkioxo` — `ACTIVE_HEALTHY`
 - **Runtime Production:** `supabase-production`
 - **Migrations correspondentes:** 25
+- **Node.js:** `24.x`
+- **Playwright validado:** `1.62.0`
+- **Supabase CLI:** `2.110.0`
 - **Deployment automático:** bloqueado fora de janela controlada
 - **Roadmap canônico:** `docs/ROADMAP_ATUALIZACOES_2026.md`
 
 ## 1. Como usar este documento
 
-Este arquivo controla o estágio corrente, o estado dos ambientes e a próxima sequência. O portfólio completo de atualizações técnicas e funcionais está em `docs/ROADMAP_ATUALIZACOES_2026.md`.
+Este arquivo controla o estágio corrente, os ambientes e a próxima sequência. O portfólio completo de atualizações técnicas e funcionais está em `docs/ROADMAP_ATUALIZACOES_2026.md`.
 
 Antes de iniciar qualquer tarefa:
 
 1. consultar a `main` e os PRs abertos;
 2. confirmar o deployment e o SHA efetivamente publicados;
 3. confirmar Supabase, migrations e estado remoto quando a tarefa depender dessas camadas;
-4. ler `ROADMAP_ATUALIZACOES_2026.md`, `PROJECT_CONTEXT.md` e `DECISION_LOG.md`;
-5. verificar se a frente anterior foi declarada concluída, bloqueada, adiada ou substituída;
-6. avaliar se a tarefa pode alcançar resultado materialmente melhor por atualização, instalação ou capacidade tecnológica moderna;
-7. executar somente os gates correspondentes ao impacto real, sem reduzir os pisos vigentes;
+4. ler o roadmap, o contexto do projeto e o registro de decisões;
+5. verificar se a frente anterior foi concluída, bloqueada, adiada ou substituída;
+6. avaliar se atualização, instalação ou capacidade moderna permite resultado materialmente melhor;
+7. executar os gates correspondentes ao impacto real, sem reduzir os pisos vigentes;
 8. atualizar os documentos canônicos no mesmo ciclo de mudança material.
 
-Código, ambientes efetivos e evidências reproduzíveis prevalecem sobre memória de chat, planos históricos e afirmações documentais antigas.
+Código, ambientes efetivos e evidências reproduzíveis prevalecem sobre memória de chat, planos históricos e afirmações antigas.
 
 ## 2. Situação executiva
 
 A integração entre frontend, Supabase Auth, PostgREST, RLS, PostgreSQL e Vercel Production está ativa.
 
-### 2.1 Produto e infraestrutura já concluídos
+### 2.1 Produto e infraestrutura concluídos
 
 - governança de acesso da Gestão SME;
 - competência global de janeiro a dezembro de 2026;
@@ -47,102 +49,94 @@ A integração entre frontend, Supabase Auth, PostgREST, RLS, PostgreSQL e Verce
 - reconciliação do histórico da migration SME;
 - bloqueio automático de deployment restaurado.
 
-### 2.2 Rodadas de atualização concluídas
+### 2.2 Rodadas de atualização
 
-#### Rodada 0 — preparação obrigatória
+| Rodada | Estado | Resultado principal | Production |
+|---|---|---|---|
+| **0** | concluída | workflow do Excel SME e integridade de referências dos workflows | não exigida |
+| **1** | concluída | ESLint 10.8.0, Acorn 8.18.0 e `actions/checkout` 7.0.1 | ferramentas internas |
+| **2** | concluída e publicada | busca inteligente, Floating UI e View Transitions | deployment vigente |
+| **3B** | concluída | Supabase CLI 2.110.0 e compatibilidade do backup/restauração | não exigida |
+| **4A** | concluída | roadmap canônico e evolução tecnológica proativa | não exigida |
+| **4B** | validada no PR `#128` | Playwright 1.62.0 e navegadores correspondentes | não exigida |
 
-- corrigiu a referência inexistente no workflow do Excel SME;
-- criou verificador de referências locais dos workflows;
-- integrou o gate à validação e à saúde das dependências;
-- registrou o baseline técnico.
+## 3. Rodada 4B — Playwright 1.62.0
 
-Referências:
+### 3.1 Alteração
 
-```text
-PR: #121
-commit: ad2fed06d7d951cd510d3f93cf8b3232d0026c1e
-auditoria: docs/audits/2026-08-01-rodada-0-baseline.md
-```
+- `@playwright/test`: `1.61.1 → 1.62.0`;
+- `playwright`: `1.61.1 → 1.62.0`;
+- `playwright-core`: `1.61.1 → 1.62.0`;
+- requisito interno do Playwright: Node.js 20 ou superior;
+- projeto preservado em Node.js 24.x;
+- `fsevents` reorganizado automaticamente pelo npm no lockfile;
+- Supabase CLI preservado em `2.110.0`;
+- nenhuma outra dependência alterada.
 
-Nenhum efeito em Production.
+O lockfile foi regenerado pelo npm sobre a `main` corrente. O PR Dependabot `#79`, aberto sobre base antiga, foi fechado como substituído pelo PR `#128`.
 
-#### Rodada 1 — atualizações técnicas de baixo risco
+### 3.2 Matriz preservada
 
-- ESLint `10.7.0 → 10.8.0`;
-- Acorn `8.17.0 → 8.18.0`;
-- relatório HTML navegável do lint;
-- validação de handlers inline com arquivo, linha e coluna;
-- `actions/checkout` `7.0.0 → 7.0.1` em 14 workflows;
-- ADR-038 sobre integração pertinente de atualizações.
+A rodada não adicionou Firefox nem alterou:
 
-Referências:
+- projetos Playwright;
+- locators;
+- timeouts;
+- retries;
+- reporters;
+- screenshots;
+- limites Lighthouse;
+- regras de produto.
 
-```text
-PR principal: #122
-commit ESLint/Acorn: ea0871e0ab0f6d6dc62f76ca7bad0e7021433a92
-commit checkout: 20b4da15d100169d358f38070901891c99e4f3d7
-auditoria: docs/audits/2026-08-01-rodada-1-baixo-risco.md
-```
+Os novos recursos disponibilizados pela versão 1.62.0 não foram ativados sem caso de uso comprovado.
 
-Esses componentes são predominantemente internos. Sua inclusão no pacote publicado não cria funcionalidade própria para o usuário.
+### 3.3 Evidência funcional
 
-#### Rodada 2 — busca, elementos flutuantes e transições
-
-- Fuse.js `7.5.0` aplicado à busca existente;
-- busca por escolas autorizadas, módulos, programas, competências e pendências consultáveis;
-- tolerância a acentos, fragmentos e erros moderados;
-- navegação por teclado;
-- Floating UI `1.8.0` para menus e resultados;
-- View Transition API com ativação progressiva e `prefers-reduced-motion`;
-- bundles locais e carregamento sob demanda;
-- central de comandos `Ctrl + K` deliberadamente excluída.
-
-Referências:
+Pacote validado no SHA:
 
 ```text
-PR funcional: #123
-commit funcional: 8e0a88e88621f4caac48b24049e774700688bd08
-publicação: PR #124
-commit publicado: f72a1471023f00eec0bc615c192fd25f5c29a920
-deployment: dpl_2Sgq4LJKvSvXro81EYwFJHYEHHqp
-fechamento da janela: PR #125
+6c03169ce0fab5833f818689bb87c8e07e1f122d
 ```
 
-A Rodada 2 está **concluída e publicada**.
+Workflows aprovados:
 
-#### Rodada 3B — Supabase CLI 2.110.0
+| Gate | Run | Resultado |
+|---|---:|---|
+| Saúde das dependências | `30786138787` | success |
+| Homologação do Excel SME | `30786138685` | success |
+| Lighthouse CI | `30786138689` | success |
+| Supabase readiness | `30786138713` | success |
+| Backup e restauração descartáveis | `30786138677` | success |
+| Testes E2E Playwright | `30786138676` | success |
+| Perfis × desktop, Android e iPhone | `30786138715` | success |
 
-- Supabase CLI `2.109.1 → 2.110.0`;
-- adaptação da segunda pilha descartável de restauração à validação do caminho de Edge Functions;
-- 25 migrations e 225 testes pgTAP aprovados;
-- lint, tipos, Auth, RLS, Edge Function e backup/restauração aprovados;
-- nenhum acesso ou alteração no Supabase Production;
-- nenhum deployment Vercel.
+A saúde das dependências confirmou:
 
-Referências:
+- Node.js `24.18.0` e npm `11.16.0`;
+- `npm ci` reproduzível;
+- 376 pacotes auditados;
+- 2 vulnerabilidades moderadas já aceitas pela política do ExcelJS;
+- 0 altas e 0 críticas;
+- referências dos workflows, bundles, lint, Knip, assinaturas, SBOM e árvore instalada aprovados ou registrados.
 
-```text
-PR: #126
-commit: 520b51e7080ddae0f4e3f03cf4c045cbea0a233d
-evidência: docs/evidence/releases/2026-08-02-supabase-cli-2-110-0.json
-```
+### 3.4 Supabase descartável
 
-A versão `2.111.0` foi analisada e adiada por não justificar uma nova rodada imediata.
+Os gates repetiram com sucesso:
 
-#### Rodada 4A — reconciliação canônica do roadmap
+- 25 migrations;
+- 225 testes pgTAP;
+- lint SQL;
+- tipos reproduzíveis;
+- sete identidades Auth efêmeras;
+- login, Auth, RLS e autorização da Edge Function;
+- backup lógico e restauração em segunda pilha;
+- equivalência de schema, dados, Auth e migrations.
 
-Esta atualização documental:
+Nenhuma dessas operações usou Production.
 
-- cria `docs/ROADMAP_ATUALIZACOES_2026.md`;
-- reconcilia integralmente as listas técnica e funcional;
-- registra status, prioridade, dependências, implantação e próxima decisão;
-- atualiza os documentos canônicos posteriores às Rodadas 0, 1, 2 e 3B;
-- institui avaliação tecnológica proativa em todas as tarefas futuras;
-- não altera produto, dependências, banco ou Production.
+## 4. Produção
 
-## 3. Produção
-
-### 3.1 Vercel
+### 4.1 Vercel
 
 ```text
 project: radarpdde-fix
@@ -154,119 +148,52 @@ nodeVersion: 24.x
 git.deploymentEnabled: false
 ```
 
-O deployment vigente inclui as Rodadas 1 e 2. A Rodada 3B é uma atualização interna da CLI e corretamente não gerou novo deployment.
+A Rodada 4B altera ferramenta de desenvolvimento e teste. Não modifica o bundle servido ao usuário e não exige novo deployment.
 
-Evidência:
-
-```text
-docs/evidence/releases/2026-08-02-rodadas-1-2-production.json
-```
-
-### 3.2 Supabase
+### 4.2 Supabase
 
 ```text
 project: scnryinorqeucbfkioxo
 status: ACTIVE_HEALTHY
 PostgreSQL: 17
 runtime Production: supabase-production
-activeRepository: supabase
 migrations correspondentes: 25
 closing_competence: 2026-12
 app_config.row_version: 5
 ```
 
-As Rodadas 0, 1, 2, 3B e 4A não criaram migration nem alteraram dados, Auth, RLS, Edge Functions ou configuração remota do Supabase Production.
+A Rodada 4B não altera migrations, schema, dados, Auth, RLS, Edge Functions ou configuração remota.
 
-## 4. Estado das atualizações
+## 5. Desvios operacionais registrados
 
-O estado completo está no roadmap canônico. Em síntese:
+### 5.1 Documento criado fora da branch
 
-### 4.1 Técnica
+A especificação da Rodada 4B foi criada por engano diretamente na `main` no commit `f99f17ec9eadbfbe5691b3c148f27374e4975459` e removida imediatamente no commit `e9f625c436fef31a18bd729f9a6791280ed59310`.
 
-Concluídos:
+Consequências:
 
-- correção e prevenção de referências quebradas em workflows;
-- ESLint 10.8.0;
-- Acorn 8.18.0;
-- `actions/checkout` 7.0.1;
-- Supabase CLI 2.110.0.
+- árvore da `main` restaurada antes da criação da branch;
+- somente um arquivo Markdown esteve envolvido;
+- nenhuma dependência, código funcional ou ambiente foi alterado;
+- a branch definitiva foi criada a partir da `main` restaurada.
 
-Próxima atualização técnica recomendada:
+### 5.2 Lockfile de base antiga
 
-```text
-Playwright 1.61.1 → 1.62.0
-```
+A primeira tentativa usou como referência os blobs do PR Dependabot `#79`. A revisão detectou que a base antiga também recuava o Supabase CLI de `2.110.0` para `2.109.1`.
 
-Ela deve ser recriada sobre a `main`, pois o PR Dependabot `#79` foi aberto em base anterior. A atualização exige navegadores correspondentes, E2E integral, cinco perfis, Desktop Chrome, Pixel 7/Chromium e iPhone 15/WebKit. Não exige Production.
+A tentativa foi descartada antes da validação final. O lockfile definitivo foi regenerado pelo npm sobre a `main` atual e preserva o Supabase CLI `2.110.0`.
 
-Pendências posteriores:
+## 6. Próxima sequência técnica
 
-- confirmar o estado real do CodeQL nas configurações do GitHub;
-- Dependency Review Action;
-- `actionlint`;
-- baseline informativo do `zizmor`;
-- baseline de cobertura de testes.
-
-### 4.2 Funcional
-
-Concluídos e publicados:
-
-- busca inteligente;
-- posicionamento responsivo de elementos flutuantes;
-- transições progressivas de navegação.
-
-Parcial ou deliberadamente não executados:
-
-- central de comandos `Ctrl + K` — adiada;
-- data grid/Tabulator — adiado por baixo valor imediato frente ao custo;
-- modularização ampla com esbuild — parcial;
-- atalhos de teclado — parciais;
-- histórico antes/depois — timeline existente, comparação estruturada pendente.
-
-Continuam como candidatos sujeitos a avaliação:
-
-- sistema comum de componentes;
-- ajuda contextual;
-- gráficos operacionais;
-- Supabase Realtime;
-- PWA e recuperação de rascunhos;
-- visualizações salvas;
-- indicadores de prazo e risco;
-- assistência contextual baseada nas regras do PDDE;
-- detecção de inconsistências;
-- demais capacidades listadas no roadmap.
-
-Nenhum desses candidatos está automaticamente autorizado para implementação.
-
-## 5. Sequência vigente
+Com a Rodada 4B validada, a sequência recomendada passa a ser:
 
 ```text
-Rodada 4A — concluir e integrar a reconciliação documental
-Rodada 4B — Playwright 1.62.0
-Rodada 5  — segurança de CI e dependências
-Rodada 6  — baseline de cobertura
-Rodada 7  — escolher a próxima evolução funcional por benefício
+Rodada 5 — verificar CodeQL, Dependency Review e actionlint; avaliar zizmor
+Rodada 6 — baseline de cobertura de testes
+Rodada 7 — selecionar a próxima evolução funcional por benefício
 ```
 
-Correções urgentes podem alterar a ordem. Em qualquer tarefa, deve ser avaliado se atualização ou instalação pertinente oferece solução materialmente superior.
-
-## 6. Regra de evolução tecnológica proativa
-
-Toda correção, melhoria de layout, mudança de fluxo ou nova capacidade deve verificar se a pilha atual limita o resultado.
-
-Quando nova biblioteca, atualização ou capacidade moderna puder melhorar materialmente acessibilidade, desempenho, segurança, consistência, manutenção ou qualidade da experiência, a proposta deve ser apresentada antes de aceitar uma solução limitada.
-
-A proposta deve explicar:
-
-1. limite observado;
-2. tecnologia sugerida;
-3. ganho concreto;
-4. alternativa sem nova dependência;
-5. custo e risco;
-6. impacto em bundle, dados, permissões e Production;
-7. testes, rollback e evidências.
-
-A proposta não autoriza instalação automática nem ampliação silenciosa de escopo. Solução existente continua preferível quando entrega resultado equivalente com menor custo.
+Correções urgentes podem alterar a ordem. A ADR-039 continua obrigando a avaliar oportunidades tecnológicas durante qualquer tarefa.
 
 ## 7. Gates globais de liberação oficial
 
@@ -282,24 +209,11 @@ Esses gates não devem ser confundidos com o roadmap de pacotes e modernização
 
 ## 8. Documentos de continuidade
 
-Ordem recomendada:
-
 1. `AGENTS.md`;
 2. `docs/CURRENT_STAGE.md`;
 3. `docs/ROADMAP_ATUALIZACOES_2026.md`;
 4. `docs/PROJECT_CONTEXT.md`;
 5. `docs/DECISION_LOG.md`;
 6. `docs/reference/STATUS_DOCUMENTOS.md`;
-7. arquitetura específica da próxima frente;
-8. especificações, planos, auditorias e evidências correspondentes.
-
-Referências recentes:
-
-- `docs/audits/2026-08-01-rodada-0-baseline.md`;
-- `docs/audits/2026-08-01-rodada-1-baixo-risco.md`;
-- `docs/audits/2026-08-01-rodada-2-busca-flutuantes-transicoes.md`;
-- `docs/audits/2026-08-02-rodada-3b-supabase-cli-2-110-0.md`;
-- `docs/evidence/releases/2026-08-02-rodadas-1-2-production.json`;
-- `docs/evidence/releases/2026-08-02-supabase-cli-2-110-0.json`;
-- `docs/superpowers/specs/2026-08-03-rodada-4a-roadmap-atualizacoes-design.md`;
-- `docs/superpowers/plans/2026-08-03-rodada-4a-roadmap-atualizacoes.md`.
+7. `docs/audits/2026-08-03-rodada-4b-playwright-1-62-0.md`;
+8. `docs/evidence/releases/2026-08-03-playwright-1-62-0.json`.

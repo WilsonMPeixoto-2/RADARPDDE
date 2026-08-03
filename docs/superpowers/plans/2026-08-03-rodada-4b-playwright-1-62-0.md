@@ -4,7 +4,7 @@
 
 **Goal:** Atualizar o runner E2E do RADAR PDDE para Playwright 1.62.0 sem alterar o produto nem os ambientes remotos.
 
-**Architecture:** A versão direta e as dependências internas `playwright` e `playwright-core` permanecem fixadas no lockfile. A matriz existente de Chromium desktop/mobile e WebKit mobile continua inalterada. A validação ocorre no CI do PR, incluindo gates de produto, Supabase descartável, Excel, Lighthouse e perfis/viewports.
+**Architecture:** A versão direta e as dependências internas `playwright` e `playwright-core` permanecem fixadas no lockfile. A matriz existente de Chromium desktop/mobile e WebKit mobile continua inalterada. A validação ocorre no CI do PR, incluindo produto, Supabase descartável, Excel, Lighthouse e perfis/viewports.
 
 **Tech Stack:** Node.js 24.x, npm lockfile v3, Playwright Test 1.62.0, GitHub Actions.
 
@@ -27,44 +27,43 @@
 
 - [x] **Step 1: Confirmar a versão oficial estável**
 
-Confirmado Playwright 1.62.0 nas release notes oficiais e no npm.
+Playwright 1.62.0 confirmado nas fontes oficiais.
 
-- [x] **Step 2: Reaplicar o lockfile oficial gerado pelo Dependabot**
+- [x] **Step 2: Regenerar o lockfile sobre a `main` atual**
 
-Aplicar os blobs de `package.json` e `package-lock.json` do PR #79 sobre a `main` atual, preservando todos os demais arquivos.
+O npm atualizou exclusivamente Playwright e reorganizou `fsevents`, preservando Supabase CLI 2.110.0.
 
-- [ ] **Step 3: Verificar instalação e versão efetiva no CI**
+- [x] **Step 3: Verificar instalação reproduzível**
 
-Esperado:
+`npm ci` foi aprovado no workflow de saúde das dependências.
 
-```text
-npm ci: exit 0
-npx playwright --version: Version 1.62.0
-```
+### Task 2: Executar gates do pacote funcional
 
-### Task 2: Executar gates do PR
+- [x] **Saúde das dependências** — run `30786138787`.
+- [x] **E2E Playwright completo** — run `30786138676`.
+- [x] **Cinco perfis em desktop, Android e iPhone** — run `30786138715`.
+- [x] **Lighthouse mobile e desktop** — run `30786138689`.
+- [x] **Supabase readiness** — run `30786138713`.
+- [x] **Backup e restauração descartáveis** — run `30786138677`.
+- [x] **Homologação automatizada do Excel SME** — run `30786138685`.
 
-**Files:**
-- No production-code changes expected.
-
-- [ ] **Step 1: Saúde das dependências**
-- [ ] **Step 2: E2E Playwright completo**
-- [ ] **Step 3: Cinco perfis em desktop, Android e iPhone**
-- [ ] **Step 4: Lighthouse mobile e desktop**
-- [ ] **Step 5: Supabase readiness**
-- [ ] **Step 6: Backup e restauração descartáveis**
-- [ ] **Step 7: Homologação automatizada do Excel SME**
-
-### Task 3: Reconciliar documentação e encerrar o PR antigo
+### Task 3: Reconciliar documentação e PRs
 
 **Files:**
 - Modify: `docs/CURRENT_STAGE.md`
 - Modify: `docs/ROADMAP_ATUALIZACOES_2026.md`
+- Modify: `docs/superpowers/specs/2026-08-03-rodada-4b-playwright-1-62-0-design.md`
 - Create: `docs/audits/2026-08-03-rodada-4b-playwright-1-62-0.md`
 - Create: `docs/evidence/releases/2026-08-03-playwright-1-62-0.json`
 
-- [ ] **Step 1: Registrar resultados reais dos workflows**
-- [ ] **Step 2: Marcar Playwright 1.62.0 como concluído no roadmap**
-- [ ] **Step 3: Registrar ausência de impacto em Production**
-- [ ] **Step 4: Fechar o PR Dependabot #79 como substituído**
-- [ ] **Step 5: Revisar diff final e confirmar branch zero commits atrás**
+- [x] **Registrar os resultados dos sete workflows.**
+- [x] **Marcar Playwright 1.62.0 como concluído no roadmap.**
+- [x] **Registrar ausência de impacto em Production.**
+- [x] **Fechar o PR Dependabot #79 como substituído.**
+- [ ] **Confirmar os checks no SHA documental final e concluir a revisão do PR #128.**
+
+## Observações de execução
+
+- uma especificação foi criada por engano diretamente na `main` e imediatamente removida antes da criação da branch;
+- uma primeira tentativa de reaproveitar blobs do Dependabot foi descartada ao detectar regressão do Supabase CLI;
+- os dois desvios estão descritos na auditoria, sem ocultação e sem impacto em Production.

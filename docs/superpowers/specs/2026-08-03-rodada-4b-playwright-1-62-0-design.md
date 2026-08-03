@@ -1,7 +1,7 @@
 # Rodada 4B — Playwright 1.62.0
 
 **Data:** 3 de agosto de 2026  
-**Estado:** aprovado para execução
+**Estado:** validado
 
 ## Objetivo
 
@@ -11,35 +11,50 @@ Atualizar exclusivamente `@playwright/test` de `1.61.1` para `1.62.0`, preservan
 
 - `package.json` e `package-lock.json`;
 - documentação e evidência da rodada;
-- instalação dos navegadores correspondentes no CI;
+- navegadores correspondentes no CI;
 - execução dos gates aplicáveis.
 
 ## Compatibilidade
 
-Playwright 1.62.0 exige Node.js 20 ou superior. O projeto está fixado em Node.js 24.x, portanto o requisito é atendido.
+Playwright 1.62.0 exige Node.js 20 ou superior. O projeto permanece fixado em Node.js 24.x.
 
-A atualização traz Chromium 151, Firefox 153 e WebKit 26.5. O RADAR continuará usando Chromium e WebKit nos projetos já existentes; Firefox não será acrescentado nesta rodada.
+A atualização traz novos builds de Chromium, Firefox e WebKit. O RADAR continua usando somente Chromium e WebKit nos projetos existentes; Firefox não foi acrescentado nesta rodada.
+
+## Método do lockfile
+
+O PR Dependabot `#79` foi usado apenas como referência para a alteração esperada. Como ele estava sobre base anterior e recuava o Supabase CLI, seus blobs não foram adotados no resultado final.
+
+O lockfile definitivo foi regenerado pelo npm sobre a `main` corrente com:
+
+```text
+npm install --save-dev --save-exact @playwright/test@1.62.0 --package-lock-only --ignore-scripts
+npm ci --ignore-scripts
+```
+
+O resultado preserva `supabase@2.110.0` e altera somente Playwright e a posição automática de `fsevents` no lockfile.
 
 ## Decisões
 
-- não ativar component testing, AbortSignal, WebP, retry isolado, MCP ou outros recursos novos apenas por estarem disponíveis;
-- não alterar locators, timeouts, retries, screenshots, reporters ou projetos sem falha comprovada;
+- não ativar component testing, AbortSignal, WebP, retry isolado, MCP ou outros recursos novos sem caso de uso comprovado;
+- não alterar locators, timeouts, retries, screenshots, reporters ou projetos;
 - não alterar código funcional;
 - não executar deployment Vercel;
 - não acessar ou modificar Supabase Production;
-- reutilizar o lockfile oficial gerado pelo Dependabot para a mesma atualização, reaplicado sobre a `main` atual.
+- manter `git.deploymentEnabled: false`.
 
-## Gates
+## Gates aprovados no SHA funcional
 
-- instalação reproduzível com `npm ci`;
-- versão efetiva `1.62.0`;
-- auditoria de dependências;
-- saúde das dependências;
-- E2E Playwright completo;
-- matriz de cinco perfis em desktop, Android e iPhone;
-- Lighthouse;
-- Supabase readiness e backup/restauração, para detectar regressões indiretas do ambiente de CI;
-- Excel SME.
+```text
+6c03169ce0fab5833f818689bb87c8e07e1f122d
+```
+
+- Saúde das dependências — run `30786138787`;
+- Homologação do Excel SME — run `30786138685`;
+- Lighthouse CI — run `30786138689`;
+- Supabase readiness — run `30786138713`;
+- Backup e restauração descartáveis — run `30786138677`;
+- Testes E2E Playwright — run `30786138676`;
+- cinco perfis em desktop, Android e iPhone — run `30786138715`.
 
 ## Production
 
