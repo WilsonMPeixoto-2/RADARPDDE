@@ -5,9 +5,11 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, function (root) {
     'use strict';
 
-    const VERSION = '1.0.0';
+    const VERSION = '1.1.0';
     const EXCELJS_URL = '/vendor/exceljs.min.js';
-    const TEMPLATE_URL = '/assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx';
+    const TEMPLATE_BASE_URL = '/assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx';
+    const TEMPLATE_VERSION = '2026-08-03.2';
+    const TEMPLATE_URL = `${TEMPLATE_BASE_URL}?v=${TEMPLATE_VERSION}`;
 
     function createRuntimeLoader(environment = {}) {
         const runtimeRoot = environment.root || root;
@@ -15,6 +17,7 @@
         const runtimeFetch = environment.fetch
             || (typeof runtimeRoot?.fetch === 'function' ? runtimeRoot.fetch.bind(runtimeRoot) : null);
         const customScriptLoader = environment.loadScript || null;
+        const now = typeof environment.now === 'function' ? environment.now : Date.now;
         let inFlight = null;
         let cachedTemplate = null;
 
@@ -67,24 +70,54 @@
             return loadScriptFromDocument(EXCELJS_URL);
         }
 
-        async function loadTemplate() {
-            if (cachedTemplate) return new Uint8Array(cachedTemplate);
-            if (typeof runtimeFetch !== 'function') {
-                throw new Error('O navegador não disponibilizou o carregamento do template Excel SME.');
-            }
-            const response = await runtimeFetch(TEMPLATE_URL, {
+        function isValidXlsx(bytes) {
+            return bytes.length >= 4
+                && bytes[0] === 0x50
+                && bytes[1] === 0x4B
+                && bytes[2] === 0x03
+                && bytes[3] === 0x04;
+        }
+
+        async function fetchTemplate(url) {
+            const response = await runtimeFetch(url, {
                 method: 'GET',
-                cache: 'force-cache',
+                cache: 'no-store',
                 credentials: 'same-origin'
             });
             if (!response || response.ok !== true || typeof response.arrayBuffer !== 'function') {
                 const status = response?.status ? ` (${response.status})` : '';
                 throw new Error(`Não foi possível carregar o template Excel SME${status}.`);
             }
-            const buffer = await response.arrayBuffer();
-            cachedTemplate = new Uint8Array(buffer);
-            if (!cachedTemplate.length) throw new Error('O template Excel SME está vazio.');
-            return new Uint8Array(cachedTemplate);
+            const bytes = new Uint8Array(await response.arrayBuffer());
+            if (!bytes.length) throw new Error('O template Excel SME está vazio.');
+            if (!isValidXlsx(bytes)) {
+                throw new Error('O template Excel SME retornado não é um arquivo XLSX válido.');
+            }
+            return bytes;
+        }
+
+        async function loadTemplate() {
+            if (cachedTemplate) return new Uint8Array(cachedTemplate);
+            if (typeof runtimeFetch !== 'function') {
+                throw new Error('O navegador não disponibilizou o carregamento do template Excel SME.');
+            }
+
+            const urls = [
+                TEMPLATE_URL,
+                `${TEMPLATE_BASE_URL}?v=${TEMPLATE_VERSION}&retry=${now()}`
+            ];
+            let lastError = null;
+
+            for (const url of urls) {
+                try {
+                    cachedTemplate = await fetchTemplate(url);
+                    return new Uint8Array(cachedTemplate);
+                } catch (error) {
+                    lastError = error;
+                }
+            }
+
+            throw lastError || new Error('Não foi possível carregar o template Excel SME.');
         }
 
         async function performLoad() {
@@ -129,7 +162,9 @@
 
     return Object.freeze({
         EXCELJS_URL,
+        TEMPLATE_BASE_URL,
         TEMPLATE_URL,
+        TEMPLATE_VERSION,
         VERSION,
         createRuntimeLoader,
         loadExcelSmeRuntime: defaultLoader.loadExcelSmeRuntime
