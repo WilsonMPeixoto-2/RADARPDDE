@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - fix/excel-sme-build-output-api-20260803
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
