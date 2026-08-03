@@ -10,9 +10,14 @@ on:
       - 'src/domain/excel-integral-certification.js'
       - 'src/integration/excel-sme-runtime-loader.js'
       - 'src/integration/excel-export-integration.js'
+      - 'scripts/build-vercel.mjs'
+      - 'scripts/build-vercel-output.mjs'
+      - 'scripts/verify-excel-sme-template.mjs'
       - 'scripts/generate-excel-sme-homologation.mjs'
       - 'tests/unit/excel-sme-*.test.js'
+      - 'tests/unit/vercel-build*.test.js'
       - 'docs/evidence/excel-certification/synthetic-manifest.json'
+      - 'vercel.json'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/excel-sme-homologation.yml'
@@ -40,7 +45,7 @@ jobs:
       - name: Instalar dependências reproduzíveis
         run: npm ci
 
-      - name: Validar tradução, template, runtime e certificação
+      - name: Validar tradução, template, runtime, publicação e certificação
         run: |
           node --test \
             tests/unit/excel-sme-canonical-translation.test.js \
@@ -49,8 +54,20 @@ jobs:
             tests/unit/excel-sme-office-compatibility.test.js \
             tests/unit/excel-sme-runtime-loader.test.js \
             tests/unit/excel-sme-export-integration.test.js \
-            tests/unit/excel-integral-certification.test.js
+            tests/unit/excel-integral-certification.test.js \
+            tests/unit/vercel-build.test.js \
+            tests/unit/vercel-build-output.test.js
           node scripts/generate-excel-certification-evidence.mjs --check
+
+      - name: Gerar e validar artefato público da Vercel
+        run: |
+          node scripts/build-vercel.mjs
+          node scripts/build-vercel-output.mjs
+          node scripts/verify-excel-sme-template.mjs \
+            --file dist/assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx
+          node scripts/verify-excel-sme-template.mjs \
+            --file .vercel/output/static/assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx
+          test -f .vercel/output/config.json
 
       - name: Gerar e reabrir arquivo pelo motor real
         run: node scripts/generate-excel-sme-homologation.mjs
@@ -66,6 +83,8 @@ jobs:
           echo '- Fonte visual: template canônico normalizado do modelo SME.' >> "${GITHUB_STEP_SUMMARY}"
           echo '- A competência ativa controla aba, nome do arquivo e dados exportados.' >> "${GITHUB_STEP_SUMMARY}"
           echo '- Compatibilidade: workbookView, referências absolutas e ausência de dataValidations incompatíveis.' >> "${GITHUB_STEP_SUMMARY}"
+          echo '- Publicação: dist e .vercel/output/static contêm o mesmo XLSX estruturalmente válido.' >> "${GITHUB_STEP_SUMMARY}"
+          echo '- Rota pública: o caminho exato é testado por HTTP local antes do deployment.' >> "${GITHUB_STEP_SUMMARY}"
           echo '- Apresentação: descrições com recuo, valores categóricos centralizados e quebra de texto preservada.' >> "${GITHUB_STEP_SUMMARY}"
           echo '- Cenários: APTA, INAPTA, não iniciado e parcial.' >> "${GITHUB_STEP_SUMMARY}"
           echo '- Homologação humana concluída: abertura no Microsoft Excel desktop sem reparo em 1º de agosto de 2026.' >> "${GITHUB_STEP_SUMMARY}"
