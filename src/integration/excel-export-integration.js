@@ -6,7 +6,7 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, function (root) {
     'use strict';
 
-    const VERSION = '0.2.0';
+    const VERSION = '0.3.0';
     let installed = false;
     let legacyExport = null;
     let observer = null;
@@ -35,6 +35,32 @@
             verificacoes: typeof verificacoes !== 'undefined' && verificacoes ? verificacoes : {},
             pendencias: typeof pendencias !== 'undefined' && Array.isArray(pendencias) ? pendencias : [],
             activeCompetenciaKey: typeof activeCompetenciaKey !== 'undefined' ? activeCompetenciaKey : 'TODAS'
+        };
+    }
+
+    function resolveSmeCompetence(state = {}, documentRef = root?.document || null) {
+        if (isMonthlyCompetence(state.activeCompetenciaKey)) return state.activeCompetenciaKey;
+
+        const visibleSelect = documentRef?.querySelector?.('select[onchange*="changeSMEMonth"]');
+        if (isMonthlyCompetence(visibleSelect?.value)) return visibleSelect.value;
+
+        const monthlyCompetence = Array.isArray(state.competencias)
+            ? state.competencias.find(item => isMonthlyCompetence(item?.key))
+            : null;
+        return monthlyCompetence?.key || null;
+    }
+
+    function normalizeSmeState(state = getBrowserState(), documentRef = root?.document || null) {
+        const competenceKey = resolveSmeCompetence(state, documentRef);
+        if (!competenceKey || competenceKey === state.activeCompetenciaKey) return state;
+
+        if (root && typeof root.changeSMEMonth === 'function') {
+            root.changeSMEMonth(competenceKey);
+        }
+
+        return {
+            ...state,
+            activeCompetenciaKey: competenceKey
         };
     }
 
@@ -140,7 +166,11 @@
 
     async function exportSmeXlsx(options = {}) {
         try {
-            const state = options.state || getBrowserState();
+            const rawState = options.state || getBrowserState();
+            const state = normalizeSmeState(rawState, options.document || root?.document || null);
+            if (!isMonthlyCompetence(state.activeCompetenciaKey)) {
+                throw new Error('Selecione uma competência mensal para gerar o Excel SME.');
+            }
             const artifacts = createSmeExportArtifacts(state, options, options.dependencies || {});
             const runtime = options.runtime || (artifacts.dependencies.runtimeLoader
                 ? await artifacts.dependencies.runtimeLoader.loadExcelSmeRuntime()
@@ -215,10 +245,16 @@
         button.classList.add('btn-secondary');
         button.textContent = 'Excel SME';
         button.setAttribute('aria-label', 'Gerar relatório no modelo Excel da SME');
-        updateSmeButtonState(button, getBrowserState().activeCompetenciaKey);
+        const initialState = getBrowserState();
+        updateSmeButtonState(button, resolveSmeCompetence(initialState));
         button.addEventListener('click', async () => {
-            const state = getBrowserState();
-            if (!updateSmeButtonState(button, state.activeCompetenciaKey) || button.dataset.radarBusy === 'true') return;
+            const state = normalizeSmeState(getBrowserState());
+            if (!updateSmeButtonState(button, state.activeCompetenciaKey) || button.dataset.radarBusy === 'true') {
+                if (!isMonthlyCompetence(state.activeCompetenciaKey)) {
+                    notify('Selecione uma competência mensal para gerar o Excel SME.');
+                }
+                return;
+            }
             const originalText = button.textContent;
             button.dataset.radarBusy = 'true';
             button.disabled = true;
@@ -230,7 +266,8 @@
                 button.dataset.radarBusy = 'false';
                 button.removeAttribute('aria-busy');
                 button.textContent = originalText;
-                updateSmeButtonState(button, getBrowserState().activeCompetenciaKey);
+                const refreshedState = normalizeSmeState(getBrowserState());
+                updateSmeButtonState(button, refreshedState.activeCompetenciaKey);
             }
         });
         return button;
@@ -254,7 +291,7 @@
 
     function enhanceExportButtons() {
         if (!root.document) return;
-        const state = getBrowserState();
+        const state = normalizeSmeState(getBrowserState());
         const buttons = root.document.querySelectorAll('[onclick*="exportDataExcel"]');
         buttons.forEach(button => {
             if (button.dataset.radarXlsxEnhanced !== 'true') configurePrimaryButton(button);
@@ -329,6 +366,8 @@
         formatActiveCompetence,
         install,
         isMonthlyCompetence,
+        normalizeSmeState,
+        resolveSmeCompetence,
         uninstall,
         updateSmeButtonState
     });
