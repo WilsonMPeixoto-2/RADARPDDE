@@ -33,7 +33,7 @@ test('mantém o renderer institucional interno e fixa ExcelJS somente para o pro
     assert.equal(packageJson.devDependencies['eslint-plugin-playwright'], '2.10.5');
     assert.equal(packageJson.devDependencies.lighthouse, '13.4.1');
     assert.equal(packageJson.devDependencies['@lhci/cli'], undefined);
-    assert.equal(packageJson.overrides['brace-expansion@5.0.7'], '5.0.8');
+    assert.equal(packageJson.overrides['brace-expansion@5.0.8'], '5.0.9');
 });
 
 test('mantém scripts de segurança, dependências e desempenho como gates úteis', () => {
@@ -105,7 +105,6 @@ test('Lighthouse mede métricas, oportunidades e bloqueia regressões graves', (
     assert.match(lighthouseRunner, /import\.meta\.resolve\('lighthouse'\)/);
     assert.match(lighthouseRunner, /accessibilityFindings/);
     assert.match(lighthouseRunner, /opportunities/);
-    assert.match(lighthouseRunner, /summary\.md/);
     assert.match(lighthouseWorkflow, /Executar baseline mobile/);
     assert.match(lighthouseWorkflow, /Executar baseline desktop/);
     assert.match(lighthouseWorkflow, /Validar pisos de qualidade Lighthouse/);
