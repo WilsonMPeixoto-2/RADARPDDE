@@ -1,0 +1,58 @@
+name: Smoke de Production do Excel SME
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx'
+      - 'scripts/build-vercel.mjs'
+      - 'scripts/build-vercel-output.mjs'
+      - 'scripts/verify-excel-sme-template.mjs'
+      - 'tests/unit/vercel-build.test.js'
+      - 'tests/unit/vercel-build-output.test.js'
+      - 'vercel.json'
+      - '.github/workflows/excel-sme-production-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: excel-sme-production-smoke
+  cancel-in-progress: false
+
+jobs:
+  verificar-production:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+
+      - name: Validar verificador
+        run: node --check scripts/verify-excel-sme-template.mjs
+
+      - name: Aguardar deployment e validar o XLSX publicado
+        env:
+          EXPECTED_COMMIT_SHA: ${{ github.sha }}
+        run: |
+          node scripts/verify-excel-sme-template.mjs \
+            --url https://radarpdde-fix.vercel.app/assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx \
+            --manifest-url https://radarpdde-fix.vercel.app/radar-build-manifest.json \
+            --expected-commit "${EXPECTED_COMMIT_SHA}" \
+            --attempts 60 \
+            --interval-ms 10000
+
+      - name: Registrar evidência
+        run: |
+          echo '### Excel SME — smoke de Production' >> "${GITHUB_STEP_SUMMARY}"
+          echo '- Alias: radarpdde-fix.vercel.app' >> "${GITHUB_STEP_SUMMARY}"
+          echo '- Commit esperado: `${{ github.sha }}`' >> "${GITHUB_STEP_SUMMARY}"
+          echo '- Template: HTTP 200, assinatura PK\\x03\\x04 e estrutura OOXML verificadas.' >> "${GITHUB_STEP_SUMMARY}"
