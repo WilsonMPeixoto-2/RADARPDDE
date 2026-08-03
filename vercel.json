@@ -3,6 +3,29 @@
   "buildCommand": "node scripts/build-vercel.mjs && node scripts/build-vercel-output.mjs",
   "cleanUrls": true,
   "trailingSlash": false,
+  "rewrites": [
+    { "source": "/dashboard", "destination": "/" },
+    { "source": "/carteira", "destination": "/" },
+    { "source": "/competencias", "destination": "/" },
+    { "source": "/pendencias", "destination": "/" },
+    { "source": "/inventario", "destination": "/" },
+    { "source": "/auditoria", "destination": "/" },
+    { "source": "/equipe", "destination": "/" },
+    { "source": "/gestao-sme", "destination": "/" },
+    { "source": "/escolas/src/:path*", "destination": "/src/:path*" },
+    { "source": "/escolas/vendor/:path*", "destination": "/vendor/:path*" },
+    { "source": "/escolas/styles.css", "destination": "/styles.css" },
+    { "source": "/escolas/app.js", "destination": "/app.js" },
+    { "source": "/escolas/config.js", "destination": "/config.js" },
+    { "source": "/escolas/config.runtime.js", "destination": "/config.runtime.js" },
+    { "source": "/escolas/:schoolId/src/:path*", "destination": "/src/:path*" },
+    { "source": "/escolas/:schoolId/vendor/:path*", "destination": "/vendor/:path*" },
+    { "source": "/escolas/:schoolId/styles.css", "destination": "/styles.css" },
+    { "source": "/escolas/:schoolId/app.js", "destination": "/app.js" },
+    { "source": "/escolas/:schoolId/config.js", "destination": "/config.js" },
+    { "source": "/escolas/:schoolId/config.runtime.js", "destination": "/config.runtime.js" },
+    { "source": "/escolas/:path*", "destination": "/" }
+  ],
   "git": {
     "deploymentEnabled": true
   }
