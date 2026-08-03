@@ -90,7 +90,7 @@
     "eslint-plugin-playwright": "2.10.5",
     "fuse.js": "7.5.0",
     "http-server": "14.1.1",
-    "knip": "6.29.0",
+    "knip": "6.30.0",
     "lighthouse": "13.4.1",
     "prettier": "3.9.6",
     "supabase": "2.110.0",
