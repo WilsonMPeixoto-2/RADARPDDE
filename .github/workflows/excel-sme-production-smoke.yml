@@ -11,8 +11,6 @@ on:
       - 'scripts/verify-excel-sme-template.mjs'
       - 'tests/unit/vercel-build.test.js'
       - 'tests/unit/vercel-build-output.test.js'
-      - 'vercel.json'
-      - '.github/workflows/excel-sme-production-smoke.yml'
   workflow_dispatch:
 
 permissions:
