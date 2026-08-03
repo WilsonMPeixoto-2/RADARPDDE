@@ -256,9 +256,9 @@ jobs:
           npm ls --all --json > dependency-health/npm-tree.json
 
   lighthouse:
-    name: Lighthouse CI
+    name: Lighthouse CI móvel e desktop
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -271,13 +271,60 @@ jobs:
         run: npm ci
       - name: Instalar Chromium
         run: npx playwright install --with-deps chromium
-      - name: Executar auditoria Lighthouse
+      - name: Resolver executável Chromium
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHROME_PATH="$(node -e "const { chromium } = require('playwright'); process.stdout.write(chromium.executablePath())")"
+          test -x "${CHROME_PATH}"
+          echo "CHROME_PATH=${CHROME_PATH}" >> "${GITHUB_ENV}"
+      - name: Iniciar servidor local
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run start > preproduction-lighthouse-server.log 2>&1 &
+          echo "$!" > preproduction-lighthouse-server.pid
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent --show-error http://127.0.0.1:4175/ > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat preproduction-lighthouse-server.log
+          exit 1
+      - name: Auditar perfil móvel
+        env:
+          LHCI_PROFILE: mobile
         run: npm run audit:lighthouse
+      - name: Auditar perfil desktop
+        env:
+          LHCI_PROFILE: desktop
+        run: npm run audit:lighthouse
+      - name: Encerrar servidor local
+        if: always()
+        shell: bash
+        run: |
+          if [ -f preproduction-lighthouse-server.pid ]; then
+            kill "$(cat preproduction-lighthouse-server.pid)" 2>/dev/null || true
+          fi
+      - name: Publicar evidências em caso de falha
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: preproduction-lighthouse-${{ github.run_id }}
+          path: |
+            .lighthouseci/
+            artifacts/lighthouse/
+            preproduction-lighthouse-server.log
+          if-no-files-found: warn
+          retention-days: 7
 
   backup-restore:
     name: Backup e restauração descartáveis
     runs-on: ubuntu-24.04
-    timeout-minutes: 35
+    timeout-minutes: 40
+    env:
+      RADAR_ALLOW_DISPOSABLE_BACKUP_RESTORE: 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -288,8 +335,42 @@ jobs:
           cache: npm
       - name: Instalar dependências reproduzíveis
         run: npm ci
+      - name: Instalar cliente PostgreSQL
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client
+      - name: Iniciar e recriar Supabase descartável
+        run: |
+          npm run supabase:start
+          npm run supabase:reset
+      - name: Criar identidades Auth efêmeras
+        shell: bash
+        run: |
+          set -euo pipefail
+          eval "$(npx supabase status -o env | grep -E '^(API_URL|SERVICE_ROLE_KEY)=')"
+          FIXTURE_PASSWORD="$(node --input-type=module -e "import { randomBytes } from 'node:crypto'; process.stdout.write(randomBytes(32).toString('base64url') + 'A1!')")"
+          echo "::add-mask::${FIXTURE_PASSWORD}"
+          echo "::add-mask::${SERVICE_ROLE_KEY}"
+          RADAR_ALLOW_LOCAL_AUTH_BOOTSTRAP=true \
+          RADAR_SUPABASE_URL="${API_URL}" \
+          RADAR_SUPABASE_ADMIN_KEY="${SERVICE_ROLE_KEY}" \
+          RADAR_AUTH_FIXTURE_PASSWORD="${FIXTURE_PASSWORD}" \
+          npm run bootstrap:auth-fixtures
+      - name: Desabilitar serviços não necessários ao ensaio
+        run: |
+          cat >> supabase/config.toml <<'EOF'
+
+          [analytics]
+          enabled = false
+
+          [db.pooler]
+          enabled = false
+          EOF
       - name: Executar backup, restauração e comparação
         run: npm run test:backup-restore
+      - name: Encerrar Supabase descartável
+        if: always()
+        run: npm run supabase:stop || true
 
   gate:
     name: Gate final pré-production
