@@ -128,6 +128,16 @@
 
 @media (max-width: 520px) {
     /*
+       O HTML inicial possui um indicador compacto que é promovido, durante o
+       bootstrap, ao seletor completo de competência. Reservar desde o primeiro
+       paint a altura final do cabeçalho impede que #main-container seja deslocado
+       quando o menu móvel, a competência e as ações institucionais são instalados.
+    */
+    header.top-header {
+        min-height: 233px;
+    }
+
+    /*
        Os controles do cabeçalho deixam de formar uma faixa horizontal oculta.
        A competência ocupa a primeira linha e os controles de ação permanecem
        integralmente acessíveis na segunda linha. O Administrador técnico recebe
