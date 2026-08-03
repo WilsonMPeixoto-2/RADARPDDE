@@ -80,6 +80,8 @@ const ARTIFACTS = [
     'scripts/migration-cli.mjs',
     'scripts/generate-runtime-config.mjs',
     'scripts/build-vercel.mjs',
+    'scripts/build-vercel-output.mjs',
+    'scripts/verify-excel-sme-template.mjs',
     'scripts/check-generated-artifacts.js',
     'scripts/export-local-snapshot.mjs',
     'scripts/lib/remote-bootstrap.mjs',
@@ -238,11 +240,20 @@ $$;`;
     assert.match(validateRemoteVerificationSql(`${preflight}\nselect 1;`, postApply).join(' '), /único bloco executável/i);
 });
 
-test('exige build versionado e diretório público isolado na Vercel', () => {
+test('exige build versionado e Build Output API isolada na Vercel', () => {
     const packageSource = JSON.stringify({ scripts: { 'build:vercel': 'node scripts/build-vercel.mjs' } });
-    const vercelSource = JSON.stringify({ buildCommand: 'npm run build:vercel', outputDirectory: 'dist' });
+    const vercelSource = JSON.stringify({
+        buildCommand: 'node scripts/build-vercel.mjs && node scripts/build-vercel-output.mjs'
+    });
     assert.deepEqual(validateVercelBuildContract(vercelSource, packageSource), []);
-    assert.match(validateVercelBuildContract(JSON.stringify({ outputDirectory: '.' }), packageSource).join(' '), /build:vercel|diretório dist/i);
+    const invalidSource = JSON.stringify({
+        buildCommand: 'node scripts/build-vercel.mjs',
+        outputDirectory: 'dist'
+    });
+    assert.match(
+        validateVercelBuildContract(invalidSource, packageSource).join(' '),
+        /Build Output API|outputDirectory/i
+    );
 });
 
 test('exige todos os artefatos e comandos de bootstrap remoto', () => {
