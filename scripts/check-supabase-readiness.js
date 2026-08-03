@@ -63,6 +63,8 @@ const REQUIRED_ARTIFACTS = Object.freeze([
     'scripts/migration-cli.mjs',
     'scripts/generate-runtime-config.mjs',
     'scripts/build-vercel.mjs',
+    'scripts/build-vercel-output.mjs',
+    'scripts/verify-excel-sme-template.mjs',
     'scripts/check-generated-artifacts.js',
     'scripts/export-local-snapshot.mjs',
     'scripts/lib/remote-bootstrap.mjs',
@@ -309,8 +311,16 @@ function validateVercelBuildContract(vercelSource, packageSource) {
     let packageConfig;
     try { vercelConfig = JSON.parse(String(vercelSource || '')); } catch (_error) { findings.push('vercel.json inválido.'); }
     try { packageConfig = JSON.parse(String(packageSource || '')); } catch (_error) { findings.push('package.json inválido.'); }
-    if (vercelConfig?.buildCommand !== 'npm run build:vercel') findings.push('A Vercel deve executar npm run build:vercel.');
-    if (vercelConfig?.outputDirectory !== 'dist') findings.push('A Vercel deve publicar exclusivamente o diretório dist.');
+    const buildCommand = String(vercelConfig?.buildCommand || '');
+    if (!buildCommand.includes('node scripts/build-vercel.mjs')) {
+        findings.push('A Vercel deve gerar o artefato público versionado em dist.');
+    }
+    if (!buildCommand.includes('node scripts/build-vercel-output.mjs')) {
+        findings.push('A Vercel deve gerar .vercel/output pela Build Output API.');
+    }
+    if (Object.prototype.hasOwnProperty.call(vercelConfig || {}, 'outputDirectory')) {
+        findings.push('A configuração Build Output API não deve declarar outputDirectory paralelo.');
+    }
     if (packageConfig?.scripts?.['build:vercel'] !== 'node scripts/build-vercel.mjs') {
         findings.push('package.json deve definir o build Vercel versionado.');
     }
