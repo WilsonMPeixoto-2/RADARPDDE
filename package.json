@@ -79,7 +79,7 @@
     "@axe-core/playwright": "4.12.1",
     "@eslint/js": "10.0.1",
     "@floating-ui/dom": "1.8.0",
-    "@playwright/test": "1.61.1",
+    "@playwright/test": "1.62.0",
     "@supabase/supabase-js": "2.110.8",
     "acorn": "8.18.0",
     "acorn-walk": "8.3.5",
@@ -93,7 +93,7 @@
     "knip": "6.29.0",
     "lighthouse": "13.4.1",
     "prettier": "3.9.6",
-    "supabase": "2.110.0",
+    "supabase": "2.109.1",
     "typescript": "7.0.2"
   },
   "dependencies": {
