@@ -1,7 +1,7 @@
 # Runbook — conexão e operação controlada do Supabase
 
 **Estado:** vigente; Production conectada  
-**Atualizado em:** 30 de julho de 2026
+**Atualizado em:** 4 de agosto de 2026
 
 ## 1. Objetivo
 
@@ -18,11 +18,11 @@ PostgreSQL: 17
 runtime Production: supabase-production
 repositório normal: SupabaseRepository
 contingência: LocalStorageRepository por novo build
-migrations correspondentes: 25
+migrations correspondentes: 26
 Node: 24.x
 ```
 
-O conjunto versionado contém atualmente **25** migrations. O histórico oficial reconhecido pela Supabase CLI é a fonte para conferir versões aplicadas e sua ordem efetiva; não manter uma segunda lista manual de aplicação.
+O conjunto versionado contém atualmente **26** migrations. O histórico oficial reconhecido pela Supabase CLI é a fonte para conferir versões aplicadas e sua ordem efetiva; não manter uma segunda lista manual de aplicação.
 
 Contagens operacionais são mutáveis e devem ser consultadas no ambiente com data de corte.
 
