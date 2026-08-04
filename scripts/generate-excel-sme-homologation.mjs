@@ -132,14 +132,30 @@ function validateWorkbook(workbook, model) {
   if (worksheet.name !== 'DEZEMBRO' || worksheet.columnCount !== 27) {
     throw new Error('O candidato não preservou a aba DEZEMBRO e as 27 colunas originais.');
   }
-  if (JSON.stringify(normalizeHeaderValues(worksheet, model.columns)) !== JSON.stringify(modelApi.ORIGINAL_HEADER_LABELS)) {
-    throw new Error('O candidato alterou textos do modelo original.');
+  const expectedHeaders = modelApi.ORIGINAL_HEADER_LABELS.map(label => (
+    label ? renderer.formatHeaderLabel(label) : ''
+  ));
+  if (JSON.stringify(normalizeHeaderValues(worksheet, model.columns)) !== JSON.stringify(expectedHeaders)) {
+    throw new Error('O candidato não preservou o conteúdo normalizado dos títulos originais.');
   }
   if (model.columns.some(column => column.label === 'SISTEMÁTICA PREENCHIDA')) {
     throw new Error('O candidato reintroduziu uma coluna SISTEMÁTICA PREENCHIDA.');
   }
   if (!worksheet.getCell('A1').isMerged || !worksheet.getCell('B1').isMerged) {
     throw new Error('O candidato perdeu a mesclagem CRE em A1:B1.');
+  }
+  if (worksheet.getRow(1).height !== renderer.HEADER_ROW_HEIGHT) {
+    throw new Error('O candidato perdeu a altura canônica do cabeçalho.');
+  }
+  for (let column = 1; column <= worksheet.columnCount; column += 1) {
+    if (column === 2) continue;
+    const alignment = worksheet.getRow(1).getCell(column).alignment || {};
+    if (alignment.horizontal !== 'center'
+        || alignment.vertical !== 'middle'
+        || alignment.wrapText !== true
+        || alignment.indent) {
+      throw new Error(`O título da coluna ${column} não está centralizado uniformemente.`);
+    }
   }
 
   const expected = {
@@ -227,7 +243,8 @@ async function main() {
     outputSha256: sha256(bytes),
     outputBytes: bytes.length,
     contracts: {
-      literalHeaders: true,
+      normalizedHeaders: true,
+      centeredHeaderAlignment: true,
       mergedCre: true,
       dataValidations: false,
       frozenPane: 'E2',
