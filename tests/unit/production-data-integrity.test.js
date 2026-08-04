@@ -25,6 +25,9 @@ const healthyPayload = {
     inventory_profiles_without_valid_member: 0,
     controller_profile_user_id_mismatch: 0,
     inventory_profile_user_id_mismatch: 0,
+    users_with_multiple_active_profiles: 0,
+    active_controllers_sharing_user_id: 0,
+    active_inventory_members_sharing_user_id: 0,
     active_school_programs_with_inactive_endpoint: 0,
     resolved_pendencies_without_resolved_at: 0,
     canceled_pendencies_without_canceled_at: 0,
@@ -41,7 +44,7 @@ test('aceita somente payload completo e saudável', async () => {
   const result = validateIntegrityPayload(healthyPayload);
   assert.equal(result.status, 'healthy');
   assert.equal(result.totalIssues, 0);
-  assert.equal(Object.keys(result.checks).length, 17);
+  assert.equal(Object.keys(result.checks).length, 20);
 });
 
 test('rejeita divergência entre total, status e contagens', async () => {
@@ -111,6 +114,7 @@ test('consulta a RPC com service role sem expor a chave no resumo', async () => 
   assert.equal(calls[0].init.headers.apikey, 'service-role-secret-test');
   assert.equal(result.totalIssues, 0);
   assert.equal(result.status, 'healthy');
+  assert.equal(result.checkCount, 20);
   assert.doesNotMatch(JSON.stringify(result), /service-role-secret-test/u);
 });
 
