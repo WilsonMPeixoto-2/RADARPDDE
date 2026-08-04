@@ -5,7 +5,7 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, function (root) {
     'use strict';
 
-    const VERSION = '3.1.0';
+    const VERSION = '3.2.0';
     const FIRST_DATA_ROW = 2;
     const FIRST_MONTHLY_COLUMN = 5;
     const LAST_COLUMN = 27;
@@ -191,10 +191,12 @@
     }
 
     function formatDesignation(value) {
-        const digits = String(value == null ? '' : value).replace(/\D/g, '');
-        if (!digits) return String(value == null ? '' : value).trim();
-        const normalized = digits.replace(/^0+/, '');
-        return normalized || '0';
+        const source = String(value == null ? '' : value).trim();
+        const digits = source.replace(/\D/g, '');
+        if (!digits) return source;
+        if (digits.length > 7) return source;
+        const canonical = digits.padStart(7, '0');
+        return `${canonical.slice(0, 2)}.${canonical.slice(2, 4)}.${canonical.slice(4)}`;
     }
 
     function formatCre(value) {
