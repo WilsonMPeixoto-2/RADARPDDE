@@ -172,3 +172,109 @@ test('rejeita argumentos incompletos ou numéricos inválidos', async () => {
     '--attempts', '0'
   ]));
 });
+
+test('extrai somente a configuração pública de Supabase Production', async () => {
+  const { parseRuntimeConfigScript } = await subject();
+  const runtime = parseRuntimeConfigScript(`window.RADAR_PDDE_RUNTIME_INPUT = Object.freeze({
+    "environment": "production",
+    "dataMode": "supabase-production",
+    "productionActivationApproved": true,
+    "features": { "supabaseRepositoryEnabled": true },
+    "supabase": {
+      "url": "https://project-ref.supabase.co",
+      "publishableKey": "sb_publishable_public-test"
+    }
+  });`);
+
+  assert.deepEqual(runtime, {
+    supabaseUrl: 'https://project-ref.supabase.co/',
+    publishableKey: 'sb_publishable_public-test'
+  });
+
+  expectCode(() => parseRuntimeConfigScript('window.RADAR_PDDE_RUNTIME_INPUT = {};'), 'PRODUCTION_RUNTIME_INVALID');
+});
+
+test('executa o smoke completo sem incluir a chave pública no resumo', async () => {
+  const { runProductionSystemSmoke } = await subject();
+  const commitSha = '41c0b8412d36c4feb05a5ddba31471c6c883b7ce';
+  const baseUrl = 'https://radarpdde-fix.vercel.app/';
+  const runtimeScript = `window.RADAR_PDDE_RUNTIME_INPUT = Object.freeze({
+    "environment": "production",
+    "dataMode": "supabase-production",
+    "productionActivationApproved": true,
+    "features": { "supabaseRepositoryEnabled": true },
+    "supabase": {
+      "url": "https://project-ref.supabase.co",
+      "publishableKey": "sb_publishable_public-test"
+    }
+  });`;
+
+  const fetchImpl = async (input, init = {}) => {
+    const url = new URL(String(input));
+    if (url.hostname === 'project-ref.supabase.co') {
+      assert.equal(url.pathname, '/rest/v1/schools');
+      assert.equal(init.headers.apikey, 'sb_publishable_public-test');
+      return new Response('[]', {
+        status: 200,
+        headers: { 'content-type': 'application/json' }
+      });
+    }
+    if (url.pathname === '/radar-build-manifest.json') {
+      return Response.json({
+        schemaVersion: 1,
+        commitSha,
+        vercelEnvironment: 'production',
+        runtimeEnvironment: 'production',
+        dataMode: 'supabase-production',
+        supabaseRepositoryEnabled: true,
+        productionActivationApproved: true
+      });
+    }
+    if (url.pathname === '/') {
+      return new Response(`<!doctype html><html><head>
+        <title>RADAR PDDE</title>
+        <link rel="stylesheet" href="styles.css">
+      </head><body>
+        <form id="radar-auth-form"><input id="radar-auth-email"><input id="radar-auth-password"></form>
+        <script src="config.runtime.js"></script>
+        <script src="app.js"></script>
+      </body></html>`, {
+        status: 200,
+        headers: { 'content-type': 'text/html; charset=utf-8' }
+      });
+    }
+    if (url.pathname === '/config.runtime.js') {
+      return new Response(runtimeScript, {
+        status: 200,
+        headers: { 'content-type': 'text/javascript; charset=utf-8' }
+      });
+    }
+    if (url.pathname === '/app.js') {
+      return new Response('window.RADAR_READY = true;', {
+        status: 200,
+        headers: { 'content-type': 'text/javascript; charset=utf-8' }
+      });
+    }
+    if (url.pathname === '/styles.css') {
+      return new Response('body { display: block; }', {
+        status: 200,
+        headers: { 'content-type': 'text/css; charset=utf-8' }
+      });
+    }
+    return new Response('not found', { status: 404 });
+  };
+
+  const result = await runProductionSystemSmoke({
+    baseUrl,
+    expectedCommitSha: commitSha,
+    fetchImpl,
+    timeoutMs: 5000,
+    now: () => 1000
+  });
+
+  assert.equal(result.commitSha, commitSha);
+  assert.equal(result.assetCount, 3);
+  assert.equal(result.anonymousRls, 'approved');
+  assert.equal(result.baseUrl, baseUrl);
+  assert.doesNotMatch(JSON.stringify(result), /sb_publishable_public-test/);
+});
