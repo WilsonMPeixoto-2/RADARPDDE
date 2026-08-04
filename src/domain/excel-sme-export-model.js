@@ -12,7 +12,7 @@
         throw new Error('As regras canônicas do fluxo operacional não foram carregadas.');
     }
 
-    const VERSION = '2.1.0';
+    const VERSION = '2.2.0';
     const DOCUMENT_KEYS = Object.freeze([
         'extCC',
         'extINV',
@@ -45,8 +45,7 @@
             'NOTAS FISCAIS     (CASO TENHA EFETUADO DESPESA)               BÁSICO',
             'CONSULTA ASSESSORIA (NO CASO DE PRESTAÇÃO DE SERVIÇOS)           BÁSICO',
             'DECLARAÇÃO BB ÁGIL (CASO TENHA DESPESAS A SEREM LANÇADAS)                 BÁSICO',
-            'ENCAMINHADO P/ INVENTARIAÇÃO (AQUISIÇÃO COM A NATUREZA DE CAPITAL)               BÁSICO',
-            'SISTEMÁTICA PREENCHIDA'
+            'ENCAMINHADO P/ INVENTARIAÇÃO (AQUISIÇÃO COM A NATUREZA DE CAPITAL)               BÁSICO'
         ]),
         QUALIDADE: Object.freeze([
             'EXTRATO CONTA CORRENTE (DO MÊS FECHADO)                QUALIDADE',
@@ -54,8 +53,7 @@
             'NOTAS FISCAIS     (CASO TENHA EFETUADO DESPESA)              QUALIDADE',
             'CONSULTA ASSESSORIA (NO CASO DE PRESTAÇÃO DE SERVIÇOS)          QUALIDADE',
             'DECLARAÇÃO BB ÁGIL (CASO TENHA DESPESAS A SEREM LANÇADAS)                 QUALIDADE',
-            'ENCAMINHADO P/ INVENTARIAÇÃO (AQUISIÇÃO COM A NATUREZA DE CAPITAL)               QUALIDADE',
-            'SISTEMÁTICA PREENCHIDA'
+            'ENCAMINHADO P/ INVENTARIAÇÃO (AQUISIÇÃO COM A NATUREZA DE CAPITAL)               QUALIDADE'
         ]),
         EQUIDADE: Object.freeze([
             'EXTRATO CONTA CORRENTE (DO MÊS FECHADO)                EQUIDADE',
@@ -63,8 +61,7 @@
             'NOTAS FISCAIS     (CASO TENHA EFETUADO DESPESA)              EQUIDADE',
             'CONSULTA ASSESSORIA (NO CASO DE PRESTAÇÃO DE SERVIÇOS)          EQUIDADE',
             'DECLARAÇÃO BB ÁGIL (CASO TENHA DESPESAS A SEREM LANÇADAS)                 EQUIDADE',
-            'ENCAMINHADO P/ INVENTARIAÇÃO (AQUISIÇÃO COM A NATUREZA DE CAPITAL)               EQUIDADE',
-            'SISTEMÁTICA PREENCHIDA'
+            'ENCAMINHADO P/ INVENTARIAÇÃO (AQUISIÇÃO COM A NATUREZA DE CAPITAL)               EQUIDADE'
         ])
     });
     const ORIGINAL_HEADER_LABELS = Object.freeze([
@@ -231,7 +228,7 @@
     }
 
     function accountColumns(programKey, startColumn) {
-        const columns = DOCUMENT_KEYS.map((documentKey, index) => ({
+        return DOCUMENT_KEYS.map((documentKey, index) => ({
             key: `${programKey.toLowerCase()}_${documentKey}`,
             label: ACCOUNT_HEADERS[programKey][index],
             group: programKey,
@@ -241,17 +238,6 @@
             width: 19.43,
             alignment: 'center'
         }));
-        columns.push({
-            key: `${programKey.toLowerCase()}_systematic`,
-            label: ACCOUNT_HEADERS[programKey][6],
-            group: programKey,
-            programKey,
-            systematic: true,
-            sourceColumn: startColumn + 6,
-            width: 19.43,
-            alignment: 'center'
-        });
-        return columns;
     }
 
     function buildColumns() {
@@ -261,8 +247,8 @@
             { key: 'designation', label: 'DESIGNAÇÃO', group: 'IDENTIFICAÇÃO', width: 12.86, alignment: 'center' },
             { key: 'denomination', label: 'ESCOLA', group: 'IDENTIFICAÇÃO', width: 60.29, alignment: 'left' },
             ...accountColumns('BASIC', 5),
-            ...accountColumns('QUALIDADE', 12),
-            ...accountColumns('EQUIDADE', 19),
+            ...accountColumns('QUALIDADE', 11),
+            ...accountColumns('EQUIDADE', 17),
             { key: 'status', label: 'STATUS', group: 'ADMINISTRATIVO', width: 15.29, alignment: 'center' },
             { key: 'deliveryDate', label: 'DATA DA ENTREGA DE DOCUMENTOS', group: 'ADMINISTRATIVO', width: 15.29, alignment: 'center' },
             { key: 'correctionDate', label: 'DATA DA CORREÇÃO DOS DOCUMENTOS ENVIADOS', group: 'ADMINISTRATIVO', width: 15.29, alignment: 'center' },
@@ -386,7 +372,6 @@
                 DOCUMENT_KEYS.forEach(documentKey => {
                     row[`${programKey.toLowerCase()}_${documentKey}`] = valuesByProgram[programKey][documentKey];
                 });
-                row[`${programKey.toLowerCase()}_systematic`] = resolveSystematicStatus(contextsByProgram[programKey]);
             });
             return Object.freeze(row);
         });
