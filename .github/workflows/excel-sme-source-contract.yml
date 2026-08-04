@@ -1,0 +1,80 @@
+name: Contratos-fonte do Excel SME
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/excel-sme-source-contract.yml'
+      - 'app.js'
+      - 'src/integration/excel-export-integration.js'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  aplicar-e-validar:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout do branch do PR
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
+
+      - name: Aplicar atributo estável com correspondência única
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
+          const path = 'app.js';
+          const source = fs.readFileSync(path, 'utf8');
+          const oldFragment = 'onchange="changeSMEMonth(this.value)"';
+          const stableFragment = 'data-radar-sme-competence="true" onchange="changeSMEMonth(this.value)"';
+          const stableCount = source.split(stableFragment).length - 1;
+          if (stableCount === 1) {
+            console.log('Contrato estável já aplicado.');
+            process.exit(0);
+          }
+          if (stableCount !== 0) {
+            throw new Error(`Quantidade inválida do contrato estável: ${stableCount}.`);
+          }
+          const count = source.split(oldFragment).length - 1;
+          if (count !== 1) {
+            throw new Error(`Esperada uma ocorrência do seletor legado; encontradas ${count}.`);
+          }
+          fs.writeFileSync(path, source.replace(oldFragment, stableFragment), 'utf8');
+          NODE
+
+      - name: Validar contratos-fonte
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
+          const app = fs.readFileSync('app.js', 'utf8');
+          const integration = fs.readFileSync('src/integration/excel-export-integration.js', 'utf8');
+          const stable = 'data-radar-sme-competence="true" onchange="changeSMEMonth(this.value)"';
+          if ((app.split(stable).length - 1) !== 1) throw new Error('Seletor SME estável ausente ou duplicado.');
+          if (integration.includes('state.competencias.find(item => isMonthlyCompetence')) {
+            throw new Error('Fallback silencioso para a primeira competência foi reintroduzido.');
+          }
+          if (!integration.includes('SME_COMPETENCE_MISMATCH')) {
+            throw new Error('Contrato de divergência de competência ausente.');
+          }
+          NODE
+
+      - name: Versionar correção pontual no branch do PR
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add app.js
+          if git diff --cached --quiet; then
+            echo 'app.js já atende ao contrato estável.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'fix: identificar seletor mensal SME de forma estável'
+          git push origin HEAD:${{ github.event.pull_request.head.ref || github.ref_name }}
