@@ -5,19 +5,20 @@ import {
   isTeamManagerRole,
   normalizeTeamCommand,
 } from "../_shared/team-account-domain.mjs";
+import { corsHeadersForOrigin } from "../_shared/cors-policy.mjs";
+
+function configuredAllowedOrigins(): string {
+  return [
+    Deno.env.get("RADAR_ALLOWED_ORIGIN"),
+    Deno.env.get("RADAR_ALLOWED_ORIGINS"),
+  ].filter(Boolean).join(",");
+}
 
 function corsHeaders(req: Request): Record<string, string> {
-  const allowedOrigin = requiredEnv("RADAR_ALLOWED_ORIGIN");
-  const requestOrigin = req.headers.get("Origin") || "";
-  if (requestOrigin !== allowedOrigin) {
-    throw new Error("ORIGIN_DENIED: origem não autorizada");
-  }
-  return {
-    "Access-Control-Allow-Origin": allowedOrigin,
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Vary": "Origin",
-  };
+  return corsHeadersForOrigin(
+    req.headers.get("Origin") || "",
+    configuredAllowedOrigins(),
+  );
 }
 
 function json(status: number, body: Record<string, unknown>, headers: Record<string, string>): Response {
@@ -34,6 +35,13 @@ function publicError(error: unknown): { code: string; message: string; status: n
   }
   if (message.includes("AUTHORIZATION_DENIED")) {
     return { code: "PERMISSION_DENIED", message: "Perfil sem permissão para gerir a equipe.", status: 403 };
+  }
+  if (message.includes("CONFIGURATION_ERROR")) {
+    return {
+      code: "REMOTE_UNAVAILABLE",
+      message: "O serviço administrativo de contas está temporariamente indisponível.",
+      status: 503,
+    };
   }
   if (message.includes("COMPENSATION_FAILED")) {
     return {
