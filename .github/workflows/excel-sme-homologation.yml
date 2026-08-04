@@ -4,20 +4,31 @@ on:
   pull_request:
     paths:
       - 'assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx'
+      - 'vendor/exceljs.min.js'
       - 'src/domain/excel-sme-export-model.js'
       - 'src/domain/excel-sme-template-renderer.js'
       - 'src/domain/excel-sme-monthly-renderer.js'
       - 'src/domain/excel-integral-certification.js'
+      - 'src/integration/excel-export-bootstrap-guard.js'
       - 'src/integration/excel-sme-runtime-loader.js'
       - 'src/integration/excel-export-integration.js'
+      - 'src/integration/load-excel-export.js'
       - 'scripts/build-vercel.mjs'
       - 'scripts/build-vercel-output.mjs'
+      - 'scripts/generate-excel-sme-assets-manifest.mjs'
       - 'scripts/verify-excel-sme-template.mjs'
+      - 'scripts/verify-excel-sme-production-assets.mjs'
       - 'scripts/generate-excel-sme-homologation.mjs'
+      - 'tests/e2e/excel-export-button.spec.js'
+      - 'tests/integration/excel-sme-assets-manifest.test.js'
+      - 'tests/support/spa-server.mjs'
+      - 'tests/unit/excel-export-bootstrap-guard.test.js'
       - 'tests/unit/excel-sme-*.test.js'
+      - 'tests/unit/load-excel-export.test.js'
       - 'tests/unit/vercel-build*.test.js'
       - 'docs/evidence/excel-certification/synthetic-manifest.json'
       - 'vercel.json'
+      - 'playwright.config.js'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/excel-sme-homologation.yml'
@@ -29,7 +40,7 @@ permissions:
 jobs:
   gerar-e-validar:
     runs-on: ubuntu-24.04
-    timeout-minutes: 12
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
@@ -48,15 +59,20 @@ jobs:
       - name: Validar tradução, template, runtime, publicação e certificação
         run: |
           node --test \
+            tests/unit/excel-export-bootstrap-guard.test.js \
+            tests/unit/excel-sme-assets-runtime.test.js \
             tests/unit/excel-sme-canonical-translation.test.js \
             tests/unit/excel-sme-export-model.test.js \
             tests/unit/excel-sme-template-renderer.test.js \
             tests/unit/excel-sme-office-compatibility.test.js \
             tests/unit/excel-sme-runtime-loader.test.js \
             tests/unit/excel-sme-export-integration.test.js \
+            tests/unit/excel-sme-production-assets.test.js \
             tests/unit/excel-integral-certification.test.js \
+            tests/unit/load-excel-export.test.js \
             tests/unit/vercel-build.test.js \
             tests/unit/vercel-build-output.test.js
+          node --test tests/integration/excel-sme-assets-manifest.test.js
           node scripts/generate-excel-certification-evidence.mjs --check
 
       - name: Gerar e validar artefato público da Vercel
@@ -67,7 +83,17 @@ jobs:
             --file dist/assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx
           node scripts/verify-excel-sme-template.mjs \
             --file .vercel/output/static/assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx
+          test -f dist/excel-sme-assets.json
+          test -f .vercel/output/static/excel-sme-assets.json
           test -f .vercel/output/config.json
+
+      - name: Instalar Chromium da homologação
+        run: npx playwright install --with-deps chromium
+
+      - name: Executar botão real contra o artefato público
+        env:
+          RADAR_E2E_ROOT: dist
+        run: npx playwright test tests/e2e/excel-export-button.spec.js --project=desktop-chromium
 
       - name: Gerar e reabrir arquivo pelo motor real
         run: node scripts/generate-excel-sme-homologation.mjs
@@ -80,15 +106,15 @@ jobs:
         run: |
           echo '### Excel SME — proteção regressiva' >> "${GITHUB_STEP_SUMMARY}"
           echo '- Motor: ExcelJS 4.4.0, workbook documental.' >> "${GITHUB_STEP_SUMMARY}"
-          echo '- Fonte visual: template canônico normalizado do modelo SME.' >> "${GITHUB_STEP_SUMMARY}"
-          echo '- A competência ativa controla aba, nome do arquivo e dados exportados.' >> "${GITHUB_STEP_SUMMARY}"
+          echo '- Fonte visual: template canônico; cadastro atual reescreve integralmente as linhas.' >> "${GITHUB_STEP_SUMMARY}"
+          echo '- A competência ativa controla aba, nome do arquivo e dados exportados sem fallback silencioso.' >> "${GITHUB_STEP_SUMMARY}"
+          echo '- Recuperação: bootstrap, ExcelJS e template possuem timeout e retry real.' >> "${GITHUB_STEP_SUMMARY}"
           echo '- Compatibilidade: workbookView, referências absolutas e ausência de dataValidations incompatíveis.' >> "${GITHUB_STEP_SUMMARY}"
-          echo '- Publicação: dist e .vercel/output/static contêm o mesmo XLSX estruturalmente válido.' >> "${GITHUB_STEP_SUMMARY}"
-          echo '- Rota pública: o caminho exato é testado por HTTP local antes do deployment.' >> "${GITHUB_STEP_SUMMARY}"
-          echo '- Apresentação: descrições com recuo, valores categóricos centralizados e quebra de texto preservada.' >> "${GITHUB_STEP_SUMMARY}"
-          echo '- Cenários: APTA, INAPTA, não iniciado e parcial.' >> "${GITHUB_STEP_SUMMARY}"
-          echo '- Homologação humana concluída: abertura no Microsoft Excel desktop sem reparo em 1º de agosto de 2026.' >> "${GITHUB_STEP_SUMMARY}"
-          echo '- Este workflow preserva a compatibilidade automatizada de releases futuras; não reabre o gate já cumprido.' >> "${GITHUB_STEP_SUMMARY}"
+          echo '- Publicação: dist e .vercel/output/static contêm manifesto, ExcelJS e XLSX coerentes por SHA-256.' >> "${GITHUB_STEP_SUMMARY}"
+          echo '- Navegador: o botão real é executado contra dist e o download é reaberto semanticamente.' >> "${GITHUB_STEP_SUMMARY}"
+          echo '- Cenários de falha: 404 inicial, falha do ExcelJS e HTML no lugar do XLSX.' >> "${GITHUB_STEP_SUMMARY}"
+          echo '- Homologação humana anterior: abertura no Microsoft Excel desktop sem reparo em 1º de agosto de 2026.' >> "${GITHUB_STEP_SUMMARY}"
+          echo '- A validação manual da nova versão permanece necessária antes do merge final.' >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Publicar candidato e evidência sanitizada
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
