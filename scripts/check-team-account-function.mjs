@@ -12,6 +12,47 @@ const url = required('RADAR_SUPABASE_URL');
 const publishableKey = required('RADAR_SUPABASE_PUBLISHABLE_KEY');
 const password = required('RADAR_AUTH_FIXTURE_PASSWORD');
 const allowedOrigin = required('RADAR_ALLOWED_ORIGIN');
+const functionUrl = `${url}/functions/v1/team-account-management`;
+
+async function callPreflight(origin) {
+  const response = await fetch(functionUrl, {
+    method: 'OPTIONS',
+    headers: {
+      Origin: origin,
+      'Access-Control-Request-Method': 'POST',
+      'Access-Control-Request-Headers': 'authorization,apikey,content-type,x-client-info'
+    }
+  });
+  const body = await response.json().catch(async () => ({ text: await response.text().catch(() => '') }));
+  return {
+    status: response.status,
+    body,
+    allowOrigin: response.headers.get('access-control-allow-origin'),
+    allowMethods: response.headers.get('access-control-allow-methods'),
+    allowHeaders: response.headers.get('access-control-allow-headers'),
+    vary: response.headers.get('vary')
+  };
+}
+
+async function validatePreflight() {
+  const allowed = await callPreflight(allowedOrigin);
+  if (allowed.status !== 200
+      || allowed.allowOrigin !== allowedOrigin
+      || !String(allowed.allowMethods || '').includes('POST')
+      || !String(allowed.allowMethods || '').includes('OPTIONS')
+      || !String(allowed.allowHeaders || '').toLowerCase().includes('authorization')
+      || !String(allowed.vary || '').toLowerCase().includes('origin')) {
+    throw new Error(`Preflight autorizado inválido: ${JSON.stringify(allowed)}`);
+  }
+
+  const deniedOrigin = 'https://origem-nao-autorizada.invalid';
+  const denied = await callPreflight(deniedOrigin);
+  if (denied.status !== 403
+      || denied.body?.code !== 'ORIGIN_DENIED'
+      || denied.allowOrigin) {
+    throw new Error(`Preflight de origem indevida não foi bloqueado: ${JSON.stringify(denied)}`);
+  }
+}
 
 async function callAs(profileId) {
   const fixture = fixtures.find(item => item.profileId === profileId && item.active);
@@ -26,7 +67,7 @@ async function callAs(profileId) {
   if (signInError || !signIn.session?.access_token) {
     throw signInError || new Error(`Sessão ausente para ${profileId}.`);
   }
-  const response = await fetch(`${url}/functions/v1/team-account-management`, {
+  const response = await fetch(functionUrl, {
     method: 'POST',
     headers: {
       apikey: publishableKey,
@@ -40,6 +81,8 @@ async function callAs(profileId) {
   await client.auth.signOut({ scope: 'local' });
   return { status: response.status, body };
 }
+
+await validatePreflight();
 
 const assistant = await callAs('federal_assistant');
 if (assistant.status !== 400 || assistant.body?.code !== 'VALIDATION_FAILED') {
@@ -57,4 +100,4 @@ if (sme.status !== 403 || sme.body?.code !== 'PERMISSION_DENIED') {
   })}`);
 }
 
-console.log('Edge Function de Gestão de Equipe: compilada e autorização validada.');
+console.log('Edge Function de Gestão de Equipe: preflight, compilação e autorização validados.');
