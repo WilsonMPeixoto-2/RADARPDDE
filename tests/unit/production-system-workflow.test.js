@@ -20,11 +20,12 @@ test('monitor de Production executa após main, a cada hora e manualmente', () =
   assert.match(source, /^\s{2}workflow_dispatch:\s*$/mu);
 });
 
-test('monitor usa permissões mínimas, concorrência serial e limite de duração', () => {
+test('monitor usa somente leitura de conteúdo e escrita de incidentes', () => {
   const source = workflowSource();
   assert.match(source, /^permissions:\s*$/mu);
   assert.match(source, /^\s{2}contents:\s*read\s*$/mu);
-  assert.doesNotMatch(source, /^\s{2}(?:actions|checks|deployments|issues|pull-requests):\s*write\s*$/mu);
+  assert.match(source, /^\s{2}issues:\s*write\s*$/mu);
+  assert.doesNotMatch(source, /^\s{2}(?:actions|checks|deployments|pull-requests):\s*write\s*$/mu);
   assert.match(source, /^concurrency:\s*$/mu);
   assert.match(source, /cancel-in-progress:\s*false/u);
   assert.match(source, /timeout-minutes:\s*15/u);
@@ -48,6 +49,17 @@ test('monitor valida sistema inteiro e preflight com ações fixadas por SHA', (
   assert.match(source, /node scripts\/check-production-team-account-preflight\.mjs/u);
 });
 
+test('monitor gerencia incidentes fora de pull requests sem mascarar o resultado principal', () => {
+  const source = workflowSource();
+  assert.match(source, /name:\s*Gerenciar incidente automático/u);
+  assert.match(source, /if:\s*always\(\)\s*&&\s*github\.event_name\s*!=\s*'pull_request'/u);
+  assert.match(source, /continue-on-error:\s*true/u);
+  assert.match(source, /GITHUB_TOKEN:\s*\$\{\{ github\.token \}\}/u);
+  assert.match(source, /node scripts\/manage-production-incident\.mjs/u);
+  assert.match(source, /--core-status "\$\{CORE_STATUS\}"/u);
+  assert.match(source, /--preflight-status "\$\{PREFLIGHT_STATUS\}"/u);
+});
+
 test('monitor aguarda propagação no push e sempre publica resumo', () => {
   const source = workflowSource();
   assert.match(source, /GITHUB_EVENT_NAME.*push/u);
@@ -55,4 +67,5 @@ test('monitor aguarda propagação no push e sempre publica resumo', () => {
   assert.match(source, /ATTEMPTS=1/u);
   assert.match(source, /if:\s*always\(\)/u);
   assert.match(source, /GITHUB_STEP_SUMMARY/u);
+  assert.match(source, /Gestão automática do incidente/u);
 });
