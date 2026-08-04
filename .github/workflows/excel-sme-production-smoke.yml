@@ -11,16 +11,20 @@ on:
       - 'scripts/build-vercel.mjs'
       - 'scripts/build-vercel-output.mjs'
       - 'scripts/generate-excel-sme-assets-manifest.mjs'
+      - 'scripts/generate-excel-sme-homologation.mjs'
       - 'scripts/verify-excel-sme-template.mjs'
       - 'scripts/verify-excel-sme-production-assets.mjs'
       - 'src/domain/excel-sme-export-model.js'
       - 'src/domain/excel-sme-template-renderer.js'
       - 'src/domain/excel-sme-monthly-renderer.js'
+      - 'src/integration/excel-export-bootstrap-guard.js'
       - 'src/integration/excel-sme-runtime-loader.js'
       - 'src/integration/excel-export-integration.js'
       - 'src/integration/load-excel-export.js'
       - 'tests/e2e/excel-export-button.spec.js'
       - 'tests/integration/excel-sme-assets-manifest.test.js'
+      - 'tests/support/spa-server.mjs'
+      - 'tests/unit/excel-export-bootstrap-guard.test.js'
       - 'tests/unit/excel-sme-*.test.js'
       - 'tests/unit/load-excel-export.test.js'
       - 'tests/unit/vercel-build.test.js'
@@ -52,6 +56,7 @@ jobs:
         run: |
           node --check scripts/verify-excel-sme-template.mjs
           node --check scripts/verify-excel-sme-production-assets.mjs
+          node --test tests/unit/excel-sme-production-assets.test.js
 
       - name: Aguardar deployment e validar assets publicados
         env:
@@ -71,3 +76,4 @@ jobs:
           echo '- Manifesto: versão, caminhos, tamanhos e SHA-256 verificados.' >> "${GITHUB_STEP_SUMMARY}"
           echo '- Template: HTTP 200, hash, tamanho, assinatura ZIP e estrutura OOXML verificados.' >> "${GITHUB_STEP_SUMMARY}"
           echo '- ExcelJS: HTTP 200, hash, tamanho e conteúdo não HTML verificados.' >> "${GITHUB_STEP_SUMMARY}"
+          echo '- Bootstrap: index referencia o guard e o contrato JavaScript publicado foi validado.' >> "${GITHUB_STEP_SUMMARY}"
