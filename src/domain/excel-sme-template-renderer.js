@@ -5,7 +5,7 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, function (root) {
     'use strict';
 
-    const VERSION = '3.0.0';
+    const VERSION = '3.0.1';
     const FIRST_DATA_ROW = 2;
     const FIRST_MONTHLY_COLUMN = 5;
     const LAST_COLUMN = 30;
@@ -195,6 +195,17 @@
             .toUpperCase();
     }
 
+    function clearDataValues(worksheet) {
+        const finalTemplateRow = worksheet.rowCount;
+        for (let rowNumber = FIRST_DATA_ROW; rowNumber <= finalTemplateRow; rowNumber += 1) {
+            const row = worksheet.getRow(rowNumber);
+            for (let column = 1; column <= LAST_COLUMN; column += 1) {
+                row.getCell(column).value = null;
+            }
+        }
+        return finalTemplateRow;
+    }
+
     function writeModelRow(worksheet, rowNumber, model, modelRow, presentation) {
         const target = worksheet.getRow(rowNumber);
         applyRowPresentation(presentation, target);
@@ -212,11 +223,8 @@
     }
 
     function rebuildDataRows(worksheet, model) {
-        const sourceRow = worksheet.getRow(FIRST_DATA_ROW);
-        const presentation = captureRowPresentation(sourceRow);
-        const rowsToRemove = Math.max(0, worksheet.rowCount - FIRST_DATA_ROW + 1);
-        if (rowsToRemove) worksheet.spliceRows(FIRST_DATA_ROW, rowsToRemove);
-
+        const presentation = captureRowPresentation(worksheet.getRow(FIRST_DATA_ROW));
+        clearDataValues(worksheet);
         model.rows.forEach((modelRow, index) => {
             writeModelRow(worksheet, FIRST_DATA_ROW + index, model, modelRow, presentation);
         });
@@ -378,6 +386,7 @@
         VERSION,
         assertUniqueTemplateDesignations,
         buildWorkbook,
+        clearDataValues,
         createRendererError,
         downloadWorkbook,
         formatCre,
