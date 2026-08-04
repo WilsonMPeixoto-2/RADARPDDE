@@ -87,7 +87,7 @@ test('gera workbook A:AA sem K, R e Y sistemáticas e preserva campos posteriore
     assert.equal(worksheet.getCell('Y1').value, 'DATA DA CORREÇÃO DOS DOCUMENTOS ENVIADOS');
     assert.equal(
         worksheet.getCell('Z1').value,
-        'PARECER               (CORREÇÃO MENSAL DA PRESTAÇÃO DE CONTAS)'
+        'PARECER (CORREÇÃO MENSAL DA PRESTAÇÃO DE CONTAS)'
     );
     assert.equal(worksheet.getCell('AA1').value, 'OBSERVAÇÕES');
     assert.equal(worksheet.autoFilter, 'A1:AA2');
