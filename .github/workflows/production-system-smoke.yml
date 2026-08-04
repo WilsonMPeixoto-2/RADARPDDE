@@ -1,0 +1,113 @@
+name: Monitoramento contínuo de Production
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/production-system-smoke.yml"
+      - "scripts/check-production-system.mjs"
+      - "scripts/check-production-team-account-preflight.mjs"
+      - "scripts/lib/production-system-smoke.mjs"
+      - "tests/unit/production-anonymous-rls.test.js"
+      - "tests/unit/production-system-smoke.test.js"
+      - "tests/unit/production-system-workflow.test.js"
+  schedule:
+    - cron: '23 * * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-system-smoke
+  cancel-in-progress: false
+
+env:
+  RADAR_PRODUCTION_URL: https://radarpdde-fix.vercel.app
+
+jobs:
+  production-smoke:
+    name: Site, assets, bloqueio anônimo e Edge Functions
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Obter código monitorado
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          check-latest: false
+
+      - name: Resolver commit e janela de propagação
+        id: context
+        shell: bash
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          EXPECTED_COMMIT="${GITHUB_SHA}"
+          ATTEMPTS=1
+
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            EXPECTED_COMMIT="${PR_BASE_SHA}"
+          fi
+
+          if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
+            ATTEMPTS=60
+          fi
+
+          printf 'expected_commit=%s\n' "${EXPECTED_COMMIT}" >> "${GITHUB_OUTPUT}"
+          printf 'attempts=%s\n' "${ATTEMPTS}" >> "${GITHUB_OUTPUT}"
+
+      - name: Verificar Production publicada
+        id: smoke
+        shell: bash
+        env:
+          EXPECTED_COMMIT: ${{ steps.context.outputs.expected_commit }}
+          ATTEMPTS: ${{ steps.context.outputs.attempts }}
+        run: |
+          set +e
+
+          node scripts/check-production-system.mjs \
+            --base-url "${RADAR_PRODUCTION_URL}" \
+            --expected-commit "${EXPECTED_COMMIT}" \
+            --attempts "${ATTEMPTS}" \
+            --interval-ms 10000
+          CORE_STATUS=$?
+
+          node scripts/check-production-team-account-preflight.mjs
+          PREFLIGHT_STATUS=$?
+
+          printf 'core_status=%s\n' "${CORE_STATUS}" >> "${GITHUB_OUTPUT}"
+          printf 'preflight_status=%s\n' "${PREFLIGHT_STATUS}" >> "${GITHUB_OUTPUT}"
+
+          if [ "${CORE_STATUS}" -ne 0 ] || [ "${PREFLIGHT_STATUS}" -ne 0 ]; then
+            exit 1
+          fi
+
+      - name: Resumir garantia operacional
+        if: always()
+        shell: bash
+        env:
+          EXPECTED_COMMIT: ${{ steps.context.outputs.expected_commit }}
+          CORE_STATUS: ${{ steps.smoke.outputs.core_status }}
+          PREFLIGHT_STATUS: ${{ steps.smoke.outputs.preflight_status }}
+        run: |
+          {
+            echo '### Monitoramento contínuo de Production'
+            echo
+            echo "- Ambiente: \`${RADAR_PRODUCTION_URL}\`"
+            echo "- Commit esperado: \`${EXPECTED_COMMIT:-não resolvido}\`"
+            echo "- Site, manifesto, assets e bloqueio anônimo: \`${CORE_STATUS:-não executado}\`"
+            echo "- Preflight das Edge Functions catalogadas: \`${PREFLIGHT_STATUS:-não executado}\`"
+            echo "- Evento: \`${GITHUB_EVENT_NAME}\`"
+          } >> "${GITHUB_STEP_SUMMARY}"

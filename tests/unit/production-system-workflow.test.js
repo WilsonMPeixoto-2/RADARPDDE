@@ -1,0 +1,58 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+
+const root = path.resolve(__dirname, '../..');
+const workflowPath = path.join(root, '.github/workflows/production-system-smoke.yml');
+
+function workflowSource() {
+  return fs.readFileSync(workflowPath, 'utf8');
+}
+
+test('monitor de Production executa após main, a cada hora e manualmente', () => {
+  const source = workflowSource();
+  assert.match(source, /^name:\s*Monitoramento contínuo de Production$/mu);
+  assert.match(source, /^\s{2}push:\s*$/mu);
+  assert.match(source, /^\s{6}- main\s*$/mu);
+  assert.match(source, /^\s{2}schedule:\s*$/mu);
+  assert.match(source, /cron:\s*['"]23 \* \* \* \*['"]/u);
+  assert.match(source, /^\s{2}workflow_dispatch:\s*$/mu);
+});
+
+test('monitor usa permissões mínimas, concorrência serial e limite de duração', () => {
+  const source = workflowSource();
+  assert.match(source, /^permissions:\s*$/mu);
+  assert.match(source, /^\s{2}contents:\s*read\s*$/mu);
+  assert.doesNotMatch(source, /^\s{2}(?:actions|checks|deployments|issues|pull-requests):\s*write\s*$/mu);
+  assert.match(source, /^concurrency:\s*$/mu);
+  assert.match(source, /cancel-in-progress:\s*false/u);
+  assert.match(source, /timeout-minutes:\s*15/u);
+});
+
+test('monitor não instala dependências nem persiste credenciais do checkout', () => {
+  const source = workflowSource();
+  assert.match(source, /persist-credentials:\s*false/u);
+  assert.doesNotMatch(source, /\bnpm\s+(?:ci|install)\b/u);
+  assert.doesNotMatch(source, /\bnpx\b/u);
+});
+
+test('monitor valida sistema inteiro e preflight com ações fixadas por SHA', () => {
+  const source = workflowSource();
+  assert.match(source, /actions\/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1/u);
+  assert.match(source, /actions\/setup-node@820762786026740c76f36085b0efc47a31fe5020/u);
+  assert.match(source, /node scripts\/check-production-system\.mjs/u);
+  assert.match(source, /--base-url "\$\{RADAR_PRODUCTION_URL\}"/u);
+  assert.match(source, /--expected-commit "\$\{EXPECTED_COMMIT\}"/u);
+  assert.match(source, /--attempts "\$\{ATTEMPTS\}"/u);
+  assert.match(source, /node scripts\/check-production-team-account-preflight\.mjs/u);
+});
+
+test('monitor aguarda propagação no push e sempre publica resumo', () => {
+  const source = workflowSource();
+  assert.match(source, /GITHUB_EVENT_NAME.*push/u);
+  assert.match(source, /ATTEMPTS=60/u);
+  assert.match(source, /ATTEMPTS=1/u);
+  assert.match(source, /if:\s*always\(\)/u);
+  assert.match(source, /GITHUB_STEP_SUMMARY/u);
+});
