@@ -13,6 +13,7 @@ on:
       - "scripts/check-production-system.mjs"
       - "scripts/check-production-team-account-preflight.mjs"
       - "scripts/lib/production-system-smoke.mjs"
+      - "tests/unit/production-anonymous-rls.test.js"
       - "tests/unit/production-system-smoke.test.js"
       - "tests/unit/production-system-workflow.test.js"
   schedule:
@@ -30,7 +31,7 @@ env:
 
 jobs:
   production-smoke:
-    name: Site, assets, RLS e Edge Functions
+    name: Site, assets, bloqueio anônimo e Edge Functions
     runs-on: ubuntu-24.04
     timeout-minutes: 15
 
@@ -106,7 +107,7 @@ jobs:
             echo
             echo "- Ambiente: \`${RADAR_PRODUCTION_URL}\`"
             echo "- Commit esperado: \`${EXPECTED_COMMIT:-não resolvido}\`"
-            echo "- Site, manifesto, assets e RLS anônima: \`${CORE_STATUS:-não executado}\`"
+            echo "- Site, manifesto, assets e bloqueio anônimo: \`${CORE_STATUS:-não executado}\`"
             echo "- Preflight das Edge Functions catalogadas: \`${PREFLIGHT_STATUS:-não executado}\`"
             echo "- Evento: \`${GITHUB_EVENT_NAME}\`"
           } >> "${GITHUB_STEP_SUMMARY}"
