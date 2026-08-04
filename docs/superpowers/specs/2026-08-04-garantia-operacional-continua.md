@@ -22,9 +22,9 @@ Executar após cada atualização da `main`, a cada hora e manualmente:
 - confirmar que o alias oficial responde;
 - confirmar que o manifesto aponta para Production, Supabase Production e o commit esperado;
 - validar o shell de login e a ausência de página de erro;
-- descobrir e baixar todos os arquivos locais referenciados no HTML;
+- descobrir e baixar todos os arquivos locais referenciados por `src` e por elementos `link` do HTML;
 - rejeitar JavaScript ou CSS substituído por HTML, arquivo vazio ou resposta não bem-sucedida;
-- confirmar que o usuário anônimo não lê escolas;
+- confirmar que o usuário anônimo não lê escolas, aceitando bloqueio explícito `401`/`403` ou consulta vazia sujeita à RLS;
 - validar o preflight das Edge Functions catalogadas;
 - registrar resumo legível no GitHub Actions.
 
@@ -54,8 +54,8 @@ Esta entrega implementa somente a Fase 1 e prepara contratos reutilizáveis para
 
 1. O monitor falha quando o site, manifesto ou asset obrigatório está indisponível ou inconsistente.
 2. O monitor aguarda a propagação do deployment antes de declarar divergência de commit.
-3. O monitor valida todos os `src` e `href` locais presentes no HTML, sem seguir URLs externas, `data:`, âncoras ou links de navegação.
-4. O monitor confirma o bloqueio anônimo da tabela `schools`.
+3. O monitor valida todos os `src` locais e todos os `href` locais de elementos `link`, sem seguir URLs externas, `data:`, âncoras ou links de navegação.
+4. O monitor confirma o bloqueio anônimo da tabela `schools` por `401`, `403` ou retorno `200` sem registros.
 5. O workflow executa em `push` para `main`, a cada hora e por acionamento manual.
 6. A origem oficial da Edge Function continua aprovada e uma origem indevida continua bloqueada.
 7. A bateria unitária, readiness e smoke remoto terminam sem falhas.
