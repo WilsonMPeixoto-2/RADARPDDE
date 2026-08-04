@@ -110,7 +110,7 @@ test('usa o cadastro atual como fonte de verdade para as colunas A a D', async (
 
     assert.equal(worksheet.getCell('A2').value, 1);
     assert.equal(worksheet.getCell('B2').value, '4ª');
-    assert.equal(worksheet.getCell('C2').value, '410001');
+    assert.equal(worksheet.getCell('C2').value, '04.10.001');
     assert.equal(worksheet.getCell('C2').numFmt, '@');
     assert.equal(worksheet.getCell('D2').value, 'EM CADASTRO ATUALIZADO');
 });
@@ -140,7 +140,7 @@ test('remove valores cadastrais obsoletos e dimensiona navegação pela lista at
         }
     }
 
-    assert.deepEqual(populatedDesignations, ['410001']);
+    assert.deepEqual(populatedDesignations, ['04.10.001']);
     assert.equal(worksheet.getCell('C3').value, null);
     assert.equal(view.state, 'frozen');
     assert.equal(view.xSplit, 4);
