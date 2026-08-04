@@ -100,7 +100,7 @@ test('certifica separadamente o relatório institucional histórico e o Excel SM
   assert.equal(report.products.smeMonthly.scope, 'single-competence');
   assert.deepEqual(report.products.smeMonthly.competenceKeys, ['2026-08']);
   assert.equal(report.products.smeMonthly.schoolCount, 2);
-  assert.equal(report.products.smeMonthly.columnCount, 30);
+  assert.equal(report.products.smeMonthly.columnCount, 27);
   assert.equal(report.products.smeMonthly.cellCertification.mismatchCount, 0);
   assert.equal(report.products.smeMonthly.ooxml.sheetCount, 1);
   assert.equal(report.products.smeMonthly.ooxml.hasDataValidations, false);
@@ -123,8 +123,8 @@ test('reconcilia endereços e valores concretos nas planilhas OOXML', () => {
     { address: 'A2', value: 1 },
     { address: 'C2', value: '04.00.001' },
     { address: 'E2', value: 'SIM' },
-    { address: 'K2', value: 'SIM' },
-    { address: 'C3', value: '04.00.002' }
+    { address: 'W2', value: 'INAPTA' },
+    { address: 'AA2', value: '' }
   ]);
 });
 
