@@ -10,10 +10,13 @@ on:
       - main
     paths:
       - ".github/workflows/production-system-smoke.yml"
+      - "docs/superpowers/plans/2026-08-04-alertas-incidentes-production.md"
       - "scripts/check-production-system.mjs"
       - "scripts/check-production-team-account-preflight.mjs"
       - "scripts/lib/production-system-smoke.mjs"
+      - "scripts/manage-production-incident.mjs"
       - "tests/unit/production-anonymous-rls.test.js"
+      - "tests/unit/production-incident-manager.test.js"
       - "tests/unit/production-system-smoke.test.js"
       - "tests/unit/production-system-workflow.test.js"
   schedule:
@@ -21,6 +24,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 concurrency:
   group: production-system-smoke
@@ -94,6 +98,37 @@ jobs:
             exit 1
           fi
 
+      - name: Gerenciar incidente automático
+        id: incident
+        if: always() && github.event_name != 'pull_request'
+        continue-on-error: true
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          EXPECTED_COMMIT: ${{ steps.context.outputs.expected_commit }}
+          CORE_STATUS: ${{ steps.smoke.outputs.core_status }}
+          PREFLIGHT_STATUS: ${{ steps.smoke.outputs.preflight_status }}
+        run: |
+          set -euo pipefail
+          CORE_STATUS="${CORE_STATUS:-1}"
+          PREFLIGHT_STATUS="${PREFLIGHT_STATUS:-1}"
+          EXPECTED_COMMIT="${EXPECTED_COMMIT:-${GITHUB_SHA}}"
+          INCIDENT_STATUS=failure
+
+          if [ "${CORE_STATUS}" = "0" ] && [ "${PREFLIGHT_STATUS}" = "0" ]; then
+            INCIDENT_STATUS=success
+          fi
+
+          node scripts/manage-production-incident.mjs \
+            --status "${INCIDENT_STATUS}" \
+            --repository "${GITHUB_REPOSITORY}" \
+            --commit "${EXPECTED_COMMIT}" \
+            --event "${GITHUB_EVENT_NAME}" \
+            --core-status "${CORE_STATUS}" \
+            --preflight-status "${PREFLIGHT_STATUS}" \
+            --run-url "https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
+            --observed-at "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
       - name: Resumir garantia operacional
         if: always()
         shell: bash
@@ -101,6 +136,7 @@ jobs:
           EXPECTED_COMMIT: ${{ steps.context.outputs.expected_commit }}
           CORE_STATUS: ${{ steps.smoke.outputs.core_status }}
           PREFLIGHT_STATUS: ${{ steps.smoke.outputs.preflight_status }}
+          INCIDENT_OUTCOME: ${{ steps.incident.outcome }}
         run: |
           {
             echo '### Monitoramento contínuo de Production'
@@ -109,5 +145,6 @@ jobs:
             echo "- Commit esperado: \`${EXPECTED_COMMIT:-não resolvido}\`"
             echo "- Site, manifesto, assets e bloqueio anônimo: \`${CORE_STATUS:-não executado}\`"
             echo "- Preflight das Edge Functions catalogadas: \`${PREFLIGHT_STATUS:-não executado}\`"
+            echo "- Gestão automática do incidente: \`${INCIDENT_OUTCOME:-não executada}\`"
             echo "- Evento: \`${GITHUB_EVENT_NAME}\`"
           } >> "${GITHUB_STEP_SUMMARY}"
