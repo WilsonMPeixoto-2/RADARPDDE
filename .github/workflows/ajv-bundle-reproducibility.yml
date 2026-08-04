@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   verificar:
@@ -20,8 +20,10 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Checkout
+      - name: Checkout do branch do PR
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
 
       - name: Configurar Node.js 24
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -60,6 +62,20 @@ jobs:
             cat /tmp/second.sha256
             echo '```'
           } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Versionar saída reproduzida no branch do PR
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add vendor/ajv.js
+          if git diff --cached --quiet; then
+            echo 'vendor/ajv.js já corresponde ao gerador e ao lockfile atuais.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'build: atualizar bundle Ajv reproduzível'
+          git push origin HEAD:${{ github.event.pull_request.head.ref || github.ref_name }}
 
       - name: Publicar bundle reproduzido
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
