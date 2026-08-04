@@ -140,11 +140,20 @@ test('traduz os dados do RADAR sem preencher campos administrativos sem fonte', 
     );
 });
 
-test('remove linhas cadastrais obsoletas e dimensiona navegação pela lista atual', async () => {
+test('remove valores cadastrais obsoletos e dimensiona navegação pela lista atual', async () => {
     const { worksheet } = await generate();
     const view = worksheet.views[0];
+    const populatedDesignations = [];
 
-    assert.equal(worksheet.rowCount, 2);
+    for (let rowNumber = 2; rowNumber <= worksheet.rowCount; rowNumber += 1) {
+        const value = worksheet.getCell(rowNumber, 3).value;
+        if (value !== null && value !== undefined && value !== '') {
+            populatedDesignations.push(String(value));
+        }
+    }
+
+    assert.deepEqual(populatedDesignations, ['410001']);
+    assert.equal(worksheet.getCell('C3').value, null);
     assert.equal(view.state, 'frozen');
     assert.equal(view.xSplit, 4);
     assert.equal(view.ySplit, 1);
