@@ -77,13 +77,16 @@ test('parte do template original e entrega somente a aba mensal solicitada', asy
     assert.equal(worksheet.columnCount, 27);
 });
 
-test('preserva textos, mesclagem e larguras sem reintroduzir validações incompatíveis', async () => {
+test('preserva conteúdo, mesclagem e larguras sem reintroduzir validações incompatíveis', async () => {
     const { model, worksheet } = await generate();
 
     const headers = model.columns.map((column, index) => (
         column.mergedHeader ? '' : (worksheet.getRow(1).getCell(index + 1).value || '')
     ));
-    assert.deepEqual(headers, modelApi.ORIGINAL_HEADER_LABELS);
+    const expectedHeaders = modelApi.ORIGINAL_HEADER_LABELS.map(label => (
+        label ? renderer.formatHeaderLabel(label) : ''
+    ));
+    assert.deepEqual(headers, expectedHeaders);
     assert.equal(headers.includes('SISTEMÁTICA PREENCHIDA'), false);
     assert.equal(worksheet.getCell('A1').isMerged, true);
     assert.equal(worksheet.getCell('B1').isMerged, true);
