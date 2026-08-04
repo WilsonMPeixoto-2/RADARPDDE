@@ -153,6 +153,24 @@ function validateAssetResponse(assetPath, response) {
   }
 }
 
+function validateAnonymousRlsResponse({ status, value }) {
+  const responseStatus = Number(status || 0);
+  if (responseStatus === 401) return 'blocked-401';
+  if (responseStatus === 403) return 'blocked-403';
+  if (responseStatus === 200 && Array.isArray(value) && value.length === 0) {
+    return 'empty-200';
+  }
+
+  throw createProductionSmokeError(
+    'PRODUCTION_ANON_RLS_FAILED',
+    'A consulta anônima de escolas não comprovou o bloqueio pela RLS.',
+    {
+      status: responseStatus,
+      returnedRows: Array.isArray(value) ? value.length : null
+    }
+  );
+}
+
 function positiveInteger(value, name) {
   const parsed = Number.parseInt(String(value), 10);
   if (!Number.isSafeInteger(parsed) || parsed <= 0) {
@@ -375,7 +393,7 @@ async function runProductionSystemSmoke({
   const schoolsUrl = new URL('/rest/v1/schools', runtime.supabaseUrl);
   schoolsUrl.searchParams.set('select', 'id');
   schoolsUrl.searchParams.set('limit', '1');
-  const anonymousSchools = await fetchJson(
+  const anonymousResource = await fetchBuffer(
     schoolsUrl.toString(),
     {
       ...requestOptions,
@@ -383,22 +401,33 @@ async function runProductionSystemSmoke({
         apikey: runtime.publishableKey,
         accept: 'application/json'
       }
-    },
-    'PRODUCTION_ANON_RLS_FAILED'
+    }
   );
-  if (!Array.isArray(anonymousSchools) || anonymousSchools.length !== 0) {
-    throw createProductionSmokeError(
-      'PRODUCTION_ANON_RLS_FAILED',
-      'A consulta anônima de escolas não foi bloqueada pela RLS.',
-      { returnedRows: Array.isArray(anonymousSchools) ? anonymousSchools.length : null }
-    );
+
+  let anonymousValue = null;
+  if (anonymousResource.status === 200) {
+    try {
+      anonymousValue = JSON.parse(anonymousResource.text);
+    } catch (error) {
+      throw createProductionSmokeError(
+        'PRODUCTION_ANON_RLS_FAILED',
+        'A resposta anônima de escolas não contém JSON válido.',
+        { status: anonymousResource.status },
+        error
+      );
+    }
   }
+  const anonymousRlsEvidence = validateAnonymousRlsResponse({
+    status: anonymousResource.status,
+    value: anonymousValue
+  });
 
   return Object.freeze({
     baseUrl: normalizedBase,
     commitSha: manifest.commitSha,
     assetCount: assetPaths.length,
     anonymousRls: 'approved',
+    anonymousRlsEvidence,
     durationMs: Math.max(0, now() - startedAt)
   });
 }
@@ -429,6 +458,7 @@ export {
   parseProductionSmokeArguments,
   parseRuntimeConfigScript,
   runProductionSystemSmoke,
+  validateAnonymousRlsResponse,
   validateAssetResponse,
   validateProductionManifest,
   validateProductionShell,
