@@ -127,3 +127,38 @@ test('mantém parecer e observações alinhados como campos descritivos', async 
     assert.deepEqual(worksheet.getCell('Z2').alignment, expected);
     assert.deepEqual(worksheet.getCell('AA2').alignment, expected);
 });
+
+test('normaliza o espaçamento e centraliza uniformemente todos os títulos', async () => {
+    const { worksheet } = await generate();
+    const expectedAlignment = {
+        horizontal: 'center',
+        vertical: 'middle',
+        wrapText: true
+    };
+
+    assert.equal(
+        worksheet.getCell('F1').value,
+        'EXTRATO INVESTIMENTO (DO MÊS FECHADO) BÁSICO'
+    );
+    assert.equal(
+        worksheet.getCell('G1').value,
+        'NOTAS FISCAIS (CASO TENHA EFETUADO DESPESA) BÁSICO'
+    );
+    assert.equal(
+        worksheet.getCell('H1').value,
+        'CONSULTA ASSESSORIA (NO CASO DE PRESTAÇÃO DE SERVIÇOS) BÁSICO'
+    );
+    assert.equal(
+        worksheet.getCell('Z1').value,
+        'PARECER (CORREÇÃO MENSAL DA PRESTAÇÃO DE CONTAS)'
+    );
+    assert.equal(worksheet.getRow(1).height, 105);
+
+    for (let column = 1; column <= 27; column += 1) {
+        if (column === 2) continue;
+        const cell = worksheet.getRow(1).getCell(column);
+        const value = String(cell.value || '');
+        assert.equal(value, value.trim().replace(/\s+/g, ' '));
+        assert.deepEqual(cell.alignment, expectedAlignment);
+    }
+});
