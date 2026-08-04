@@ -94,10 +94,12 @@ test('gera workbook A:AA sem K, R e Y sistemáticas e preserva campos posteriore
     assert.equal(worksheet.pageSetup.printArea, 'A1:AA2');
 });
 
-test('grava designação como texto sem formato decimal', async () => {
+test('grava designação como texto institucional sem formato decimal', async () => {
     const { worksheet } = await generate();
 
-    assert.equal(worksheet.getCell('C2').value, '410001');
+    assert.equal(renderer.formatDesignation('04.10.001'), '04.10.001');
+    assert.equal(renderer.formatDesignation(410001), '04.10.001');
+    assert.equal(worksheet.getCell('C2').value, '04.10.001');
     assert.equal(worksheet.getCell('C2').numFmt, '@');
 });
 
