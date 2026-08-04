@@ -10,6 +10,10 @@ import {
     buildRuntimeInput,
     renderRuntimeConfig
 } from './generate-runtime-config.mjs';
+import {
+    MANIFEST_FILE_NAME as EXCEL_SME_ASSETS_MANIFEST_FILE,
+    generateExcelSmeAssetsManifest
+} from './generate-excel-sme-assets-manifest.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -227,10 +231,16 @@ async function buildVercelArtifact({
         'utf8'
     );
 
+    const excelSmeAssets = await generateExcelSmeAssetsManifest({
+        rootDir: resolvedRoot,
+        outputFile: path.join(resolvedOutput, EXCEL_SME_ASSETS_MANIFEST_FILE)
+    });
+
     return Object.freeze({
         outputDir: resolvedOutput,
         runtimeInput,
-        manifest
+        manifest,
+        excelSmeAssets
     });
 }
 
@@ -257,7 +267,8 @@ async function main() {
     console.log(
         `Artefato Vercel gerado em ${relativeOutput}: `
         + `${result.manifest.dataMode} / repositório Supabase `
-        + `${result.manifest.supabaseRepositoryEnabled ? 'habilitado' : 'desabilitado'}.`
+        + `${result.manifest.supabaseRepositoryEnabled ? 'habilitado' : 'desabilitado'}; `
+        + `Excel SME ${result.excelSmeAssets.template.sha256.slice(0, 12)}.`
     );
 }
 
@@ -269,6 +280,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
 }
 
 export {
+    EXCEL_SME_ASSETS_MANIFEST_FILE,
     PREVIEW_SUPABASE_PUBLIC_RUNTIME,
     PRODUCTION_LOCAL_ROLLBACK_RUNTIME,
     PRODUCTION_SUPABASE_PUBLIC_RUNTIME,
