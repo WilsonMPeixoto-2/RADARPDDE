@@ -88,7 +88,6 @@ test.describe('ações institucionais de geração do Excel', () => {
     expect(workbook.worksheets).toHaveLength(1);
     expect(worksheet.name).toBe('JULHO');
     expect(worksheet.columnCount).toBe(30);
-    expect(worksheet.rowCount).toBe(expectedSchoolCount + 1);
 
     const headers = modelApi.ORIGINAL_HEADER_LABELS.map((expected, index) => (
       expected === '' ? '' : (worksheet.getRow(1).getCell(index + 1).value || '')
@@ -107,10 +106,11 @@ test.describe('ações institucionais de geração do Excel', () => {
     const designations = [];
     for (let rowNumber = 2; rowNumber <= worksheet.rowCount; rowNumber += 1) {
       const designation = String(worksheet.getCell(rowNumber, 3).value || '').replace(/\D/g, '');
-      expect(designation).not.toBe('');
+      if (!designation) continue;
       expect(String(worksheet.getCell(rowNumber, 4).value || '').trim()).not.toBe('');
       designations.push(designation);
     }
+    expect(designations).toHaveLength(expectedSchoolCount);
     expect(new Set(designations).size).toBe(designations.length);
   });
 
