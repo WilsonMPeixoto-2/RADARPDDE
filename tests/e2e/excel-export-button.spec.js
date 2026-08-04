@@ -2,6 +2,7 @@ const fs = require('node:fs/promises');
 const ExcelJS = require('exceljs');
 const { test, expect } = require('@playwright/test');
 const modelApi = require('../../src/domain/excel-sme-export-model.js');
+const renderer = require('../../src/domain/excel-sme-template-renderer.js');
 
 async function openDownloadedWorkbook(download) {
   expect(await download.failure()).toBeNull();
@@ -92,10 +93,19 @@ test.describe('ações institucionais de geração do Excel', () => {
     const headers = modelApi.ORIGINAL_HEADER_LABELS.map((expected, index) => (
       expected === '' ? '' : (worksheet.getRow(1).getCell(index + 1).value || '')
     ));
-    expect(headers).toEqual(modelApi.ORIGINAL_HEADER_LABELS);
+    const expectedHeaders = modelApi.ORIGINAL_HEADER_LABELS.map(label => (
+      label ? renderer.formatHeaderLabel(label) : ''
+    ));
+    expect(headers).toEqual(expectedHeaders);
     expect(headers).not.toContain('SISTEMÁTICA PREENCHIDA');
     expect(worksheet.getCell('A1').isMerged).toBe(true);
     expect(worksheet.getCell('B1').isMerged).toBe(true);
+    expect(worksheet.getRow(1).height).toBe(105);
+    expect(worksheet.getCell('F1').alignment).toEqual({
+      horizontal: 'center',
+      vertical: 'middle',
+      wrapText: true
+    });
     expect(worksheet.autoFilter).toBe(`A1:AA${expectedSchoolCount + 1}`);
     expect(worksheet.views[0]).toMatchObject({
       state: 'frozen',
