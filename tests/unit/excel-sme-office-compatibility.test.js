@@ -89,7 +89,7 @@ test('a competência ativa controla aba, nome do arquivo e conjunto de dados', a
     assert.equal(worksheet.name, 'MAIO');
     assert.equal(worksheet.getCell('E2').value, 'NÃO');
     assert.equal(worksheet.getCell('W2').value, 'INAPTA');
-    assert.equal(worksheet.getCell('C2').value, '410001');
+    assert.equal(worksheet.getCell('C2').value, '04.10.001');
     assert.equal(worksheet.getCell('C2').numFmt, '@');
 });
 
