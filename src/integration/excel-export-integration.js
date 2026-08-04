@@ -6,8 +6,10 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, function (root) {
     'use strict';
 
-    const VERSION = '0.4.0';
+    const VERSION = '0.5.0';
     const SME_COMPETENCE_SELECTOR = 'select[data-radar-sme-competence="true"], select[onchange*="changeSMEMonth"]';
+    const ASSISTANT_DASHBOARD_TITLE = 'Painel do Assistente de Verbas Federais';
+    const ASSISTANT_EXPORT_GROUP_SELECTOR = '[data-radar-assistant-export-actions="true"]';
     let installed = false;
     let legacyExport = null;
     let observer = null;
@@ -44,6 +46,59 @@
             pendencias: typeof pendencias !== 'undefined' && Array.isArray(pendencias) ? pendencias : [],
             activeCompetenciaKey: typeof activeCompetenciaKey !== 'undefined' ? activeCompetenciaKey : 'TODAS'
         };
+    }
+
+    function normalizeProfile(value) {
+        const normalized = String(value || '')
+            .trim()
+            .toLocaleLowerCase('pt-BR')
+            .replace(/\s+/g, ' ');
+        const aliases = {
+            federal_assistant: 'assistente',
+            'assistente cre': 'assistente',
+            'assistente de verbas federais': 'assistente'
+        };
+        return aliases[normalized] || normalized;
+    }
+
+    function resolveEffectiveProfile(options = {}) {
+        let profile = options.profile || '';
+        if (!profile && root && typeof root.getRadarAccessProfile === 'function') {
+            try {
+                profile = root.getRadarAccessProfile();
+            } catch (error) {
+                profile = '';
+            }
+        }
+        if (!profile && typeof getRadarAccessProfile === 'function') {
+            try {
+                profile = getRadarAccessProfile();
+            } catch (error) {
+                profile = '';
+            }
+        }
+        if (!profile && root?.currentProfile) profile = root.currentProfile;
+        const policy = root?.RadarAccessPolicy;
+        if (policy && typeof policy.normalizeProfile === 'function') {
+            return policy.normalizeProfile(profile);
+        }
+        return normalizeProfile(profile);
+    }
+
+    function getAssistantDashboardHeader(documentRef = root?.document || null) {
+        if (!documentRef || typeof documentRef.querySelector !== 'function') return null;
+        const header = documentRef.querySelector('#main-container .page-header');
+        if (!header) return null;
+        const title = typeof header.querySelector === 'function'
+            ? header.querySelector('.page-title h1')
+            : documentRef.querySelector('#main-container .page-header .page-title h1');
+        if (String(title?.textContent || '').trim() !== ASSISTANT_DASHBOARD_TITLE) return null;
+        return header;
+    }
+
+    function isAssistantDashboard(documentRef = root?.document || null, profile = '') {
+        return normalizeProfile(profile) === 'assistente'
+            && Boolean(getAssistantDashboardHeader(documentRef));
     }
 
     function isElementVisible(element, documentRef = root?.document || null) {
@@ -301,7 +356,10 @@
         return enabled;
     }
 
-    function createSmeButton(primaryButton) {
+    function createSmeButton(primaryButton, options = {}) {
+        const documentRef = options.document || root?.document || null;
+        const getState = typeof options.getState === 'function' ? options.getState : getBrowserState;
+        const exportAction = typeof options.exportAction === 'function' ? options.exportAction : exportSmeXlsx;
         const button = primaryButton.cloneNode(false);
         button.removeAttribute('onclick');
         button.type = 'button';
@@ -312,7 +370,7 @@
         button.classList.add('btn-secondary');
         button.textContent = 'Excel SME';
         button.setAttribute('aria-label', 'Gerar relatório no modelo Excel da SME');
-        const initialResolution = resolveSmeCompetence(getBrowserState(), root?.document || null);
+        const initialResolution = resolveSmeCompetence(getState(), documentRef);
         updateSmeButtonState(
             button,
             initialResolution.competenceKey,
@@ -320,8 +378,8 @@
         );
         button.addEventListener('click', async () => {
             if (button.dataset.radarBusy === 'true') return;
-            const rawState = getBrowserState();
-            const resolution = resolveSmeCompetence(rawState, root?.document || null);
+            const rawState = getState();
+            const resolution = resolveSmeCompetence(rawState, documentRef);
             if (!updateSmeButtonState(button, resolution.competenceKey, resolution.message)) {
                 notify(resolution.message || 'Selecione uma competência mensal para gerar o Excel SME.');
                 return;
@@ -336,15 +394,12 @@
             button.setAttribute('aria-busy', 'true');
             button.textContent = 'Gerando Excel SME…';
             try {
-                await exportSmeXlsx({ state, document: root?.document || null });
+                await exportAction({ state, document: documentRef });
             } finally {
                 button.dataset.radarBusy = 'false';
                 button.removeAttribute('aria-busy');
                 button.textContent = originalText;
-                const refreshedResolution = resolveSmeCompetence(
-                    getBrowserState(),
-                    root?.document || null
-                );
+                const refreshedResolution = resolveSmeCompetence(getState(), documentRef);
                 updateSmeButtonState(
                     button,
                     refreshedResolution.competenceKey,
@@ -371,6 +426,97 @@
         return button;
     }
 
+    function createAssistantInstitutionalButton(documentRef, options = {}) {
+        if (!documentRef || typeof documentRef.createElement !== 'function') return null;
+        const getState = typeof options.getState === 'function' ? options.getState : getBrowserState;
+        const exportAction = typeof options.exportAction === 'function' ? options.exportAction : exportXlsx;
+        const button = documentRef.createElement('button');
+        button.type = 'button';
+        button.className = 'btn btn-primary';
+        button.dataset.radarAssistantExport = 'institutional';
+        button.dataset.radarExportFormat = 'xlsx';
+        button.textContent = 'Relatório RADAR PDDE';
+        button.title = 'Gerar o relatório institucional RADAR PDDE em formato Excel';
+        button.setAttribute('aria-label', 'Gerar relatório RADAR PDDE em formato Excel');
+        button.addEventListener('click', async () => {
+            if (button.dataset.radarBusy === 'true') return;
+            const originalText = button.textContent;
+            button.dataset.radarBusy = 'true';
+            button.disabled = true;
+            button.setAttribute('aria-busy', 'true');
+            button.textContent = 'Gerando relatório…';
+            try {
+                await Promise.resolve(exportAction({ state: getState() }));
+            } finally {
+                button.dataset.radarBusy = 'false';
+                button.disabled = false;
+                button.removeAttribute('aria-busy');
+                button.textContent = originalText;
+            }
+        });
+        return button;
+    }
+
+    function createAssistantExportActions(documentRef, options = {}) {
+        if (!documentRef || typeof documentRef.createElement !== 'function') return null;
+        const getState = typeof options.getState === 'function' ? options.getState : getBrowserState;
+        const group = documentRef.createElement('div');
+        group.dataset.radarAssistantExportActions = 'true';
+        group.className = 'radar-assistant-export-actions';
+        group.setAttribute('role', 'group');
+        group.setAttribute('aria-label', 'Exportações em Excel');
+        group.style.display = 'flex';
+        group.style.gap = '8px';
+        group.style.flexWrap = 'wrap';
+        group.style.justifyContent = 'flex-end';
+        group.style.alignItems = 'center';
+
+        const institutionalButton = createAssistantInstitutionalButton(documentRef, {
+            getState,
+            exportAction: options.exportInstitutional
+        });
+        const smeButton = createSmeButton(institutionalButton, {
+            document: documentRef,
+            getState,
+            exportAction: options.exportSme
+        });
+        smeButton.dataset.radarAssistantExport = 'sme';
+        group.append(institutionalButton, smeButton);
+        return group;
+    }
+
+    function removeAssistantExportActions(documentRef = root?.document || null) {
+        if (!documentRef || typeof documentRef.querySelector !== 'function') return false;
+        const group = documentRef.querySelector(ASSISTANT_EXPORT_GROUP_SELECTOR);
+        if (!group) return false;
+        group.remove();
+        return true;
+    }
+
+    function ensureAssistantExportActions(options = {}) {
+        const documentRef = options.document || root?.document || null;
+        const profile = resolveEffectiveProfile(options);
+        if (!isAssistantDashboard(documentRef, profile)) {
+            removeAssistantExportActions(documentRef);
+            return null;
+        }
+
+        const header = getAssistantDashboardHeader(documentRef);
+        let group = typeof header.querySelector === 'function'
+            ? header.querySelector(ASSISTANT_EXPORT_GROUP_SELECTOR)
+            : null;
+        if (!group) {
+            group = createAssistantExportActions(documentRef, options);
+            header.appendChild(group);
+        }
+
+        const getState = typeof options.getState === 'function' ? options.getState : getBrowserState;
+        const resolution = resolveSmeCompetence(getState(), documentRef);
+        const smeButton = group.querySelector('[data-radar-assistant-export="sme"]');
+        updateSmeButtonState(smeButton, resolution.competenceKey, resolution.message);
+        return group;
+    }
+
     function enhanceExportButtons() {
         if (!root.document) return;
         const resolution = resolveSmeCompetence(getBrowserState(), root.document);
@@ -388,6 +534,7 @@
                 smeButton.insertAdjacentElement('afterend', createCsvButton(button));
             }
         });
+        ensureAssistantExportActions();
     }
 
     function install(options = {}) {
@@ -425,6 +572,7 @@
                 installedRoot.document.removeEventListener('change', documentChangeHandler, true);
                 installedRoot.removeEventListener?.('radar:competence-change', documentChangeHandler);
             }
+            removeAssistantExportActions(installedRoot.document);
         }
         if (observer) observer.disconnect();
         observer = null;
@@ -435,24 +583,34 @@
     }
 
     return Object.freeze({
+        ASSISTANT_DASHBOARD_TITLE,
+        ASSISTANT_EXPORT_GROUP_SELECTOR,
         SME_COMPETENCE_SELECTOR,
         VERSION,
         buildFileName,
         configurePrimaryButton,
+        createAssistantExportActions,
+        createAssistantInstitutionalButton,
         createExportArtifacts,
         createSmeButton,
         createSmeError,
         createSmeExportArtifacts,
         enhanceExportButtons,
+        ensureAssistantExportActions,
         exportCsvLegacy,
         exportSmeXlsx,
         exportXlsx,
         findVisibleSmeCompetenceSelects,
         formatActiveCompetence,
+        getAssistantDashboardHeader,
         install,
+        isAssistantDashboard,
         isElementVisible,
         isMonthlyCompetence,
+        normalizeProfile,
         normalizeSmeState,
+        removeAssistantExportActions,
+        resolveEffectiveProfile,
         resolveSmeCompetence,
         uninstall,
         updateSmeButtonState
