@@ -7,11 +7,13 @@ import { pathToFileURL } from 'node:url';
 import { verifyExcelSmeTemplateBuffer } from './verify-excel-sme-template.mjs';
 
 const SHA256_PATTERN = /^[0-9a-f]{64}$/u;
+const BOOTSTRAP_GUARD_PATH = '/src/integration/excel-export-bootstrap-guard.js';
 
-function createVerificationError(code, message, details = null) {
+function createVerificationError(code, message, details = null, cause = null) {
     const error = new Error(message);
     error.code = code;
     if (details) error.details = details;
+    if (cause) error.cause = cause;
     return error;
 }
 
@@ -58,11 +60,15 @@ function assetUrl(baseUrl, descriptor) {
     return url.toString();
 }
 
-async function fetchJson(url, fetchImpl) {
-    const response = await fetchImpl(url, {
+function noCacheOptions() {
+    return {
         redirect: 'follow',
         headers: { 'cache-control': 'no-cache', pragma: 'no-cache' }
-    });
+    };
+}
+
+async function fetchJson(url, fetchImpl) {
+    const response = await fetchImpl(url, noCacheOptions());
     if (!response.ok) {
         throw createVerificationError(
             'SME_PRODUCTION_HTTP_FAILED',
@@ -82,11 +88,41 @@ async function fetchJson(url, fetchImpl) {
     }
 }
 
-async function fetchAsset(url, descriptor, fetchImpl) {
-    const response = await fetchImpl(url, {
-        redirect: 'follow',
-        headers: { 'cache-control': 'no-cache', pragma: 'no-cache' }
+async function fetchTextResource(url, fetchImpl, options = {}) {
+    const response = await fetchImpl(url, noCacheOptions());
+    if (!response.ok) {
+        throw createVerificationError(
+            'SME_PRODUCTION_HTTP_FAILED',
+            `${url}: HTTP ${response.status} ${response.statusText || ''}.`.trim(),
+            { url, status: response.status }
+        );
+    }
+    const contentType = String(response.headers?.get?.('content-type') || '').toLowerCase();
+    if (options.rejectHtml === true && contentType.includes('text/html')) {
+        throw createVerificationError(
+            'SME_PRODUCTION_ASSET_INVALID',
+            `${url}: resposta HTML recebida no lugar do asset.`,
+            { url, contentType }
+        );
+    }
+    const text = await response.text();
+    if (!text.trim()) {
+        throw createVerificationError(
+            'SME_PRODUCTION_ASSET_INVALID',
+            `${url}: recurso publicado está vazio.`,
+            { url, contentType }
+        );
+    }
+    return Object.freeze({
+        text,
+        bytes: Buffer.byteLength(text, 'utf8'),
+        contentType,
+        sha256: crypto.createHash('sha256').update(text, 'utf8').digest('hex')
     });
+}
+
+async function fetchAsset(url, descriptor, fetchImpl) {
+    const response = await fetchImpl(url, noCacheOptions());
     if (!response.ok) {
         throw createVerificationError(
             'SME_PRODUCTION_HTTP_FAILED',
@@ -159,6 +195,27 @@ async function verifyExcelSmeProductionAssets({
         assetsManifest.exceljs,
         fetchImpl
     );
+    const indexUrl = new URL('/', normalizedBaseUrl);
+    indexUrl.searchParams.set('smoke', String(Date.now()));
+    const index = await fetchTextResource(indexUrl.toString(), fetchImpl);
+    if (!index.text.includes(BOOTSTRAP_GUARD_PATH)) {
+        throw createVerificationError(
+            'SME_PRODUCTION_BOOTSTRAP_GUARD_MISSING',
+            'O index publicado não referencia o guard do bootstrap Excel.',
+            { path: BOOTSTRAP_GUARD_PATH }
+        );
+    }
+    const guardUrl = new URL(BOOTSTRAP_GUARD_PATH, normalizedBaseUrl);
+    guardUrl.searchParams.set('smoke', String(Date.now()));
+    const guard = await fetchTextResource(guardUrl.toString(), fetchImpl, { rejectHtml: true });
+    if (!guard.text.includes('RadarExcelExportBootstrapGuard')) {
+        throw createVerificationError(
+            'SME_PRODUCTION_BOOTSTRAP_GUARD_INVALID',
+            'O guard do bootstrap Excel publicado não contém o contrato esperado.',
+            { path: BOOTSTRAP_GUARD_PATH }
+        );
+    }
+
     const ooxml = verifyExcelSmeTemplateBuffer(template.buffer, {
         source: `${normalizedBaseUrl}${assetsManifest.template.path}`
     });
@@ -176,6 +233,13 @@ async function verifyExcelSmeProductionAssets({
             bytes: exceljs.bytes,
             sha256: exceljs.sha256,
             contentType: exceljs.contentType
+        }),
+        bootstrapGuard: Object.freeze({
+            path: BOOTSTRAP_GUARD_PATH,
+            bytes: guard.bytes,
+            sha256: guard.sha256,
+            contentType: guard.contentType,
+            referencedByIndex: true
         })
     });
 }
@@ -257,8 +321,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
 }
 
 export {
+    BOOTSTRAP_GUARD_PATH,
     assetUrl,
     fetchAsset,
+    fetchTextResource,
     validateAssetsManifest,
     verifyExcelSmeProductionAssets,
     verifyWithRetries
