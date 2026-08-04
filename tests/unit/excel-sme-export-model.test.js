@@ -124,13 +124,14 @@ test('bloqueia geração quando a competência está em TODAS ou é inválida', 
     );
 });
 
-test('gera nome do arquivo e da única aba a partir da competência selecionada', () => {
+test('gera nome do arquivo e única aba a partir da competência selecionada', () => {
     const model = modelApi.buildSmeMonthlyModel(fixture());
 
     assert.equal(model.competenceKey, '2026-07');
     assert.equal(model.sheetName, 'JULHO');
     assert.equal(model.fileName, 'RADAR_PDDE_EXCEL_SME_07-2026.xlsx');
-    assert.equal(model.columns.length, 30);
+    assert.equal(model.columns.length, 27);
+    assert.equal(model.columns.some(column => /_systematic$/i.test(column.key)), false);
 });
 
 test('classifica os programas reais nas contas SME corretas', () => {
