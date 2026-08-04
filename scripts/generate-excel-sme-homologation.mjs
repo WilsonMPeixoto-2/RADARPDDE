@@ -129,21 +129,24 @@ function validateWorkbook(workbook, model) {
     throw new Error('O candidato deve conter somente uma aba mensal.');
   }
   const worksheet = workbook.worksheets[0];
-  if (worksheet.name !== 'DEZEMBRO' || worksheet.columnCount !== 30) {
-    throw new Error('O candidato não preservou a aba DEZEMBRO e as 30 colunas.');
+  if (worksheet.name !== 'DEZEMBRO' || worksheet.columnCount !== 27) {
+    throw new Error('O candidato não preservou a aba DEZEMBRO e as 27 colunas originais.');
   }
   if (JSON.stringify(normalizeHeaderValues(worksheet, model.columns)) !== JSON.stringify(modelApi.ORIGINAL_HEADER_LABELS)) {
     throw new Error('O candidato alterou textos do modelo original.');
+  }
+  if (model.columns.some(column => column.label === 'SISTEMÁTICA PREENCHIDA')) {
+    throw new Error('O candidato reintroduziu uma coluna SISTEMÁTICA PREENCHIDA.');
   }
   if (!worksheet.getCell('A1').isMerged || !worksheet.getCell('B1').isMerged) {
     throw new Error('O candidato perdeu a mesclagem CRE em A1:B1.');
   }
 
   const expected = {
-    E2: 'SIM', K2: 'SIM', Z2: 'APTA',
-    E3: 'NÃO', K3: 'SIM', Z3: 'INAPTA',
-    E4: '', K4: '', Z4: '',
-    E5: 'SIM', K5: 'SIM', L5: 'NÃO', R5: 'NÃO', Y5: '', Z5: ''
+    E2: 'SIM', W2: 'APTA',
+    E3: 'NÃO', W3: 'INAPTA',
+    E4: '', W4: '',
+    E5: 'SIM', K5: 'NÃO', Q5: '', W5: ''
   };
   for (const [address, value] of Object.entries(expected)) {
     const actual = worksheet.getCell(address).value || '';
@@ -152,15 +155,19 @@ function validateWorkbook(workbook, model) {
     }
   }
   for (let row = 2; row <= 5; row += 1) {
-    for (const column of ['AA', 'AB', 'AC', 'AD']) {
+    for (const column of ['X', 'Y', 'Z', 'AA']) {
       if ((worksheet.getCell(`${column}${row}`).value || '') !== '') {
         throw new Error(`O campo administrativo ${column}${row} deveria permanecer vazio.`);
       }
     }
+    const designation = worksheet.getCell(`C${row}`);
+    if (typeof designation.value !== 'string' || designation.numFmt !== '@') {
+      throw new Error(`A designação C${row} não foi gravada como texto.`);
+    }
   }
 
   const finalRow = model.rows.length + 1;
-  const expectedRange = `A1:AD${finalRow}`;
+  const expectedRange = `A1:AA${finalRow}`;
   const view = worksheet.views[0] || {};
   if (view.state !== 'frozen' || view.xSplit !== 4 || view.ySplit !== 1 || view.topLeftCell !== 'E2') {
     throw new Error('O candidato perdeu o congelamento de E2.');
@@ -177,6 +184,12 @@ function validateWorkbook(workbook, model) {
   }
   if (Object.keys(worksheet.dataValidations.model || {}).length !== 0) {
     throw new Error('O candidato reintroduziu dataValidations incompatíveis.');
+  }
+  for (const address of ['A1', 'AA1', 'A2', 'AA2']) {
+    const border = worksheet.getCell(address).border;
+    if (!['left', 'right', 'top', 'bottom'].every(side => border[side]?.style === 'thin')) {
+      throw new Error(`O candidato não aplicou a grade completa em ${address}.`);
+    }
   }
   return worksheet;
 }
@@ -195,9 +208,9 @@ async function main() {
   fs.mkdirSync(path.dirname(args.evidence), { recursive: true });
   fs.writeFileSync(args.output, bytes);
 
-  const finalRange = `A1:AD${model.rows.length + 1}`;
+  const finalRange = `A1:AA${model.rows.length + 1}`;
   const evidence = {
-    version: 2,
+    version: 3,
     rendererVersion: renderer.VERSION,
     modelVersion: model.VERSION,
     competenceKey: model.competenceKey,
@@ -221,6 +234,9 @@ async function main() {
       printArea: finalRange,
       administrativeFieldsBlank: true,
       obsoleteTemplateValuesCleared: true,
+      systematicColumnsRemoved: true,
+      designationStoredAsText: true,
+      gridBorders: true,
       roundTripExcelJs: true
     }
   };
