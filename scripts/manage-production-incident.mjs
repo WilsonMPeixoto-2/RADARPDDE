@@ -22,7 +22,7 @@ function normalizedTimestamp(value, name) {
   const candidate = requireValue(value, name);
   const date = new Date(candidate);
   if (!Number.isFinite(date.getTime())) throw new Error(`${name} deve ser um instante ISO válido.`);
-  return date.toISOString();
+  return date.toISOString().replace('.000Z', 'Z');
 }
 
 function normalizedExitStatus(value, name) {
