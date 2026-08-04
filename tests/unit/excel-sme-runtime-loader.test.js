@@ -12,6 +12,88 @@ const TEMPLATE = path.resolve(
     '../../assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx'
 );
 
+function templateArrayBuffer() {
+    const template = fs.readFileSync(TEMPLATE);
+    return template.buffer.slice(
+        template.byteOffset,
+        template.byteOffset + template.byteLength
+    );
+}
+
+function successfulTemplateResponse() {
+    return {
+        ok: true,
+        status: 200,
+        async arrayBuffer() {
+            return templateArrayBuffer();
+        }
+    };
+}
+
+function createFakeDocument(onAppend) {
+    let currentScript = null;
+
+    function createScript() {
+        const listeners = new Map();
+        return {
+            dataset: {},
+            parentNode: null,
+            addEventListener(type, handler) {
+                const bucket = listeners.get(type) || new Set();
+                bucket.add(handler);
+                listeners.set(type, bucket);
+            },
+            removeEventListener(type, handler) {
+                listeners.get(type)?.delete(handler);
+            },
+            dispatch(type) {
+                [...(listeners.get(type) || [])].forEach(handler => handler());
+            },
+            remove() {
+                if (currentScript === this) currentScript = null;
+                this.parentNode = null;
+            }
+        };
+    }
+
+    const head = {
+        appendChild(script) {
+            currentScript = script;
+            script.parentNode = head;
+            onAppend(script);
+            return script;
+        },
+        removeChild(script) {
+            script.remove();
+        }
+    };
+
+    return {
+        head,
+        createElement(tagName) {
+            assert.equal(tagName, 'script');
+            return createScript();
+        },
+        querySelector(selector) {
+            assert.match(selector, /data-radar-excel-runtime/);
+            return currentScript;
+        },
+        get currentScript() {
+            return currentScript;
+        }
+    };
+}
+
+function rejectAfter(milliseconds, code = 'TEST_TIMEOUT') {
+    return new Promise((_, reject) => {
+        setTimeout(() => {
+            const error = new Error('A operação de teste não foi concluída.');
+            error.code = code;
+            reject(error);
+        }, milliseconds);
+    });
+}
+
 test('não carrega biblioteca nem template antes da solicitação de exportação', () => {
     let scriptCalls = 0;
     let fetchCalls = 0;
@@ -30,7 +112,6 @@ test('não carrega biblioteca nem template antes da solicitação de exportaçã
 test('carrega ExcelJS e template uma única vez sem reutilizar cache HTTP obsoleto', async () => {
     let scriptCalls = 0;
     let fetchCalls = 0;
-    const template = fs.readFileSync(TEMPLATE);
     const ExcelJS = require('exceljs');
     const root = {};
     const loader = loaderApi.createRuntimeLoader({
@@ -45,15 +126,7 @@ test('carrega ExcelJS e template uma única vez sem reutilizar cache HTTP obsole
             assert.match(url, /^\/assets\/templates\/CRE_04_CONTROLE_ONEDRIVE2026\.xlsx\?v=/);
             assert.equal(options.cache, 'no-store');
             assert.equal(options.credentials, 'same-origin');
-            return {
-                ok: true,
-                async arrayBuffer() {
-                    return template.buffer.slice(
-                        template.byteOffset,
-                        template.byteOffset + template.byteLength
-                    );
-                }
-            };
+            return successfulTemplateResponse();
         }
     });
 
@@ -72,7 +145,6 @@ test('carrega ExcelJS e template uma única vez sem reutilizar cache HTTP obsole
 });
 
 test('repete o carregamento com parâmetro único após resposta HTTP inválida', async () => {
-    const template = fs.readFileSync(TEMPLATE);
     const ExcelJS = require('exceljs');
     const requests = [];
     const root = { ExcelJS };
@@ -88,15 +160,7 @@ test('repete o carregamento com parâmetro único após resposta HTTP inválida'
                     async arrayBuffer() { return new ArrayBuffer(0); }
                 };
             }
-            return {
-                ok: true,
-                async arrayBuffer() {
-                    return template.buffer.slice(
-                        template.byteOffset,
-                        template.byteOffset + template.byteLength
-                    );
-                }
-            };
+            return successfulTemplateResponse();
         }
     });
 
@@ -123,14 +187,13 @@ test('rejeita resposta 200 que não contenha um arquivo XLSX', async () => {
 
     await assert.rejects(
         loader.loadExcelSmeRuntime(),
-        /não é um arquivo XLSX válido/
+        error => error?.code === 'SME_TEMPLATE_INVALID'
     );
 });
 
-test('libera nova tentativa após uma falha transitória', async () => {
+test('libera nova tentativa após uma falha transitória do carregador injetado', async () => {
     let scriptCalls = 0;
     const ExcelJS = require('exceljs');
-    const template = fs.readFileSync(TEMPLATE);
     const root = {};
     const loader = loaderApi.createRuntimeLoader({
         root,
@@ -139,18 +202,105 @@ test('libera nova tentativa após uma falha transitória', async () => {
             if (scriptCalls === 1) throw new Error('falha transitória');
             target.ExcelJS = ExcelJS;
         },
-        fetch: async () => ({
-            ok: true,
-            async arrayBuffer() {
-                return template.buffer.slice(template.byteOffset, template.byteOffset + template.byteLength);
-            }
-        })
+        fetch: async () => successfulTemplateResponse()
     });
 
-    await assert.rejects(loader.loadExcelSmeRuntime(), /falha transitória/);
+    await assert.rejects(
+        loader.loadExcelSmeRuntime(),
+        error => error?.code === 'SME_EXCELJS_LOAD_FAILED'
+    );
     const runtime = await loader.loadExcelSmeRuntime();
 
     assert.equal(scriptCalls, 2);
+    assert.equal(runtime.ExcelJS, ExcelJS);
+});
+
+test('remove o script que falhou no DOM e cria um novo na tentativa seguinte', async () => {
+    const ExcelJS = require('exceljs');
+    const root = {};
+    let appendCalls = 0;
+    const document = createFakeDocument(script => {
+        appendCalls += 1;
+        queueMicrotask(() => {
+            if (appendCalls === 1) {
+                script.dispatch('error');
+                return;
+            }
+            root.ExcelJS = ExcelJS;
+            script.dispatch('load');
+        });
+    });
+    root.document = document;
+
+    const loader = loaderApi.createRuntimeLoader({
+        root,
+        document,
+        timeoutMs: 30,
+        fetch: async () => successfulTemplateResponse()
+    });
+
+    await assert.rejects(
+        loader.loadExcelSmeRuntime(),
+        error => error?.code === 'SME_EXCELJS_LOAD_FAILED'
+    );
+    assert.equal(document.currentScript, null);
+
+    const runtime = await Promise.race([
+        loader.loadExcelSmeRuntime(),
+        rejectAfter(100)
+    ]);
+
+    assert.equal(appendCalls, 2);
+    assert.equal(runtime.ExcelJS, ExcelJS);
+});
+
+test('encerra carregamento do ExcelJS com erro tipado quando o evento nunca ocorre', async () => {
+    const root = {};
+    const document = createFakeDocument(() => {});
+    root.document = document;
+    const loader = loaderApi.createRuntimeLoader({
+        root,
+        document,
+        timeoutMs: 10,
+        fetch: async () => successfulTemplateResponse()
+    });
+
+    await assert.rejects(
+        Promise.race([loader.loadExcelSmeRuntime(), rejectAfter(100)]),
+        error => error?.code === 'SME_EXCELJS_LOAD_TIMEOUT'
+    );
+    assert.equal(document.currentScript, null);
+});
+
+test('aborta template pendente e permite nova tentativa sem recarregar a página', async () => {
+    const ExcelJS = require('exceljs');
+    const root = { ExcelJS };
+    let fetchCalls = 0;
+    const loader = loaderApi.createRuntimeLoader({
+        root,
+        timeoutMs: 10,
+        fetch: async (_url, options) => {
+            fetchCalls += 1;
+            if (fetchCalls <= 2) {
+                return new Promise((_, reject) => {
+                    options.signal?.addEventListener('abort', () => {
+                        const error = new Error('aborted');
+                        error.name = 'AbortError';
+                        reject(error);
+                    }, { once: true });
+                });
+            }
+            return successfulTemplateResponse();
+        }
+    });
+
+    await assert.rejects(
+        Promise.race([loader.loadExcelSmeRuntime(), rejectAfter(150)]),
+        error => error?.code === 'SME_TEMPLATE_TIMEOUT'
+    );
+
+    const runtime = await loader.loadExcelSmeRuntime();
+    assert.equal(fetchCalls, 3);
     assert.equal(runtime.ExcelJS, ExcelJS);
 });
 
