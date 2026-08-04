@@ -74,6 +74,151 @@ function documentWithSelects(selects = []) {
     };
 }
 
+function dataProperty(name) {
+    return name.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+}
+
+function matchesSelector(element, selector) {
+    const dataMatch = /^\[data-([a-z0-9-]+)(?:="([^"]*)")?\]$/.exec(selector);
+    if (dataMatch) {
+        const property = dataProperty(dataMatch[1]);
+        if (dataMatch[2] === undefined) return Object.hasOwn(element.dataset, property);
+        return element.dataset[property] === dataMatch[2];
+    }
+    return false;
+}
+
+function createFakeElement(tagName = 'div') {
+    const attributes = {};
+    const listeners = new Map();
+    const children = [];
+    const classNames = new Set();
+    const element = {
+        tagName: String(tagName).toUpperCase(),
+        dataset: {},
+        style: {},
+        title: '',
+        disabled: false,
+        textContent: '',
+        parentElement: null,
+        className: '',
+        get children() { return children; },
+        classList: {
+            add(...names) {
+                names.filter(Boolean).forEach(name => classNames.add(name));
+                element.className = [...classNames].join(' ');
+            },
+            remove(...names) {
+                names.forEach(name => classNames.delete(name));
+                element.className = [...classNames].join(' ');
+            },
+            contains(name) { return classNames.has(name); }
+        },
+        setAttribute(name, value) {
+            attributes[name] = String(value);
+            if (name.startsWith('data-')) {
+                element.dataset[dataProperty(name.slice(5))] = String(value);
+            }
+        },
+        getAttribute(name) {
+            return Object.hasOwn(attributes, name) ? attributes[name] : null;
+        },
+        removeAttribute(name) {
+            delete attributes[name];
+            if (name.startsWith('data-')) delete element.dataset[dataProperty(name.slice(5))];
+        },
+        appendChild(child) {
+            child.parentElement = element;
+            children.push(child);
+            return child;
+        },
+        append(...items) {
+            items.forEach(item => element.appendChild(item));
+        },
+        cloneNode() {
+            const clone = createFakeElement(tagName);
+            String(element.className || '').split(/\s+/).filter(Boolean).forEach(name => clone.classList.add(name));
+            return clone;
+        },
+        addEventListener(type, handler) {
+            const handlers = listeners.get(type) || [];
+            handlers.push(handler);
+            listeners.set(type, handlers);
+        },
+        async click() {
+            const handlers = listeners.get('click') || [];
+            for (const handler of handlers) {
+                await handler({ target: element, currentTarget: element });
+            }
+        },
+        querySelector(selector) {
+            for (const child of children) {
+                if (matchesSelector(child, selector)) return child;
+                const nested = child.querySelector(selector);
+                if (nested) return nested;
+            }
+            return null;
+        },
+        insertAdjacentElement(position, child) {
+            if (position !== 'afterend' || !element.parentElement) return null;
+            const siblings = element.parentElement.children;
+            const index = siblings.indexOf(element);
+            child.parentElement = element.parentElement;
+            siblings.splice(index + 1, 0, child);
+            return child;
+        },
+        remove() {
+            if (!element.parentElement) return;
+            const siblings = element.parentElement.children;
+            const index = siblings.indexOf(element);
+            if (index >= 0) siblings.splice(index, 1);
+            element.parentElement = null;
+        }
+    };
+    return element;
+}
+
+function assistantDashboardDocument(titleText = 'Painel do Assistente de Verbas Federais') {
+    const header = createFakeElement('div');
+    header.classList.add('page-header');
+    const title = createFakeElement('h1');
+    title.textContent = titleText;
+    const redistribution = createFakeElement('button');
+    redistribution.textContent = 'Redistribuir Escolas';
+    header.appendChild(redistribution);
+    const originalHeaderQuery = header.querySelector.bind(header);
+    header.querySelector = selector => (
+        selector === '.page-title h1' ? title : originalHeaderQuery(selector)
+    );
+
+    const document = {
+        defaultView: {
+            getComputedStyle(element) {
+                return {
+                    display: element.style.display || '',
+                    visibility: element.style.visibility || ''
+                };
+            }
+        },
+        createElement,
+        querySelector(selector) {
+            if (selector === '#main-container .page-header') return header;
+            if (selector === '#main-container .page-header .page-title h1') return title;
+            return header.querySelector(selector);
+        },
+        querySelectorAll(selector) {
+            if (/radar-sme-competence|changeSMEMonth/.test(selector)) return [];
+            return [];
+        }
+    };
+
+    function createElement(tagName) {
+        return createFakeElement(tagName);
+    }
+
+    return { document, header, title, redistribution };
+}
+
 test('cria artefato SME mensal independente do Excel institucional', () => {
     const rendererApi = { async downloadWorkbook() {} };
     const artifacts = integration.createSmeExportArtifacts(
@@ -249,6 +394,125 @@ test('desabilita o botão em TODAS e habilita em competência mensal', () => {
     assert.equal(button.disabled, false);
     assert.equal(attributes['aria-disabled'], 'false');
     assert.match(button.title, /07-2026/);
+});
+
+test('reconhece somente o dashboard inicial da Assistente', () => {
+    const assistant = assistantDashboardDocument();
+    const controller = assistantDashboardDocument();
+    const otherPage = assistantDashboardDocument('Carteira de Escolas');
+
+    assert.equal(integration.isAssistantDashboard(assistant.document, 'assistente'), true);
+    assert.equal(integration.isAssistantDashboard(controller.document, 'controlador'), false);
+    assert.equal(integration.isAssistantDashboard(otherPage.document, 'assistente'), false);
+});
+
+test('cria exatamente os dois botões Excel no dashboard da Assistente', async () => {
+    const surface = assistantDashboardDocument();
+    let institutionalCalls = 0;
+    let smeCalls = 0;
+
+    const group = integration.ensureAssistantExportActions({
+        document: surface.document,
+        profile: 'assistente',
+        getState: () => state('2026-07'),
+        exportInstitutional: async () => { institutionalCalls += 1; },
+        exportSme: async () => { smeCalls += 1; }
+    });
+
+    assert.ok(group);
+    assert.equal(group.dataset.radarAssistantExportActions, 'true');
+    assert.equal(group.children.length, 2);
+    const institutionalButton = group.querySelector('[data-radar-assistant-export="institutional"]');
+    const smeButton = group.querySelector('[data-radar-assistant-export="sme"]');
+    assert.ok(institutionalButton);
+    assert.ok(smeButton);
+    assert.equal(group.querySelector('[data-radar-export-format="csv"]'), null);
+    assert.equal(institutionalButton.textContent, 'Relatório RADAR PDDE');
+    assert.equal(smeButton.textContent, 'Excel SME');
+
+    await institutionalButton.click();
+    await smeButton.click();
+    assert.equal(institutionalCalls, 1);
+    assert.equal(smeCalls, 1);
+});
+
+test('não duplica o grupo de exportações em novas observações do DOM', () => {
+    const surface = assistantDashboardDocument();
+    const options = {
+        document: surface.document,
+        profile: 'assistente',
+        getState: () => state('2026-07')
+    };
+
+    const first = integration.ensureAssistantExportActions(options);
+    const second = integration.ensureAssistantExportActions(options);
+    const groups = surface.header.children.filter(child => (
+        child.dataset.radarAssistantExportActions === 'true'
+    ));
+
+    assert.equal(first, second);
+    assert.equal(groups.length, 1);
+});
+
+test('remove o grupo quando o perfil deixa de ser Assistente', () => {
+    const surface = assistantDashboardDocument();
+    integration.ensureAssistantExportActions({
+        document: surface.document,
+        profile: 'assistente',
+        getState: () => state('2026-07')
+    });
+
+    const result = integration.ensureAssistantExportActions({
+        document: surface.document,
+        profile: 'controlador',
+        getState: () => state('2026-07')
+    });
+
+    assert.equal(result, null);
+    assert.equal(surface.header.querySelector('[data-radar-assistant-export-actions="true"]'), null);
+});
+
+test('em TODAS desabilita somente o Excel SME no dashboard da Assistente', () => {
+    const surface = assistantDashboardDocument();
+    const group = integration.ensureAssistantExportActions({
+        document: surface.document,
+        profile: 'assistente',
+        getState: () => state('TODAS')
+    });
+
+    const institutionalButton = group.querySelector('[data-radar-assistant-export="institutional"]');
+    const smeButton = group.querySelector('[data-radar-assistant-export="sme"]');
+    assert.equal(institutionalButton.disabled, false);
+    assert.equal(smeButton.disabled, true);
+    assert.equal(smeButton.getAttribute('aria-disabled'), 'true');
+    assert.match(smeButton.title, /Selecione uma competência mensal/);
+});
+
+test('impede clique duplicado durante a geração institucional', async () => {
+    const surface = assistantDashboardDocument();
+    let calls = 0;
+    let release;
+    const pending = new Promise(resolve => { release = resolve; });
+    const group = integration.ensureAssistantExportActions({
+        document: surface.document,
+        profile: 'assistente',
+        getState: () => state('2026-07'),
+        exportInstitutional: async () => {
+            calls += 1;
+            await pending;
+        }
+    });
+    const button = group.querySelector('[data-radar-assistant-export="institutional"]');
+
+    const firstClick = button.click();
+    const secondClick = button.click();
+    assert.equal(calls, 1);
+    assert.equal(button.dataset.radarBusy, 'true');
+    assert.equal(button.getAttribute('aria-busy'), 'true');
+    release();
+    await Promise.all([firstClick, secondClick]);
+    assert.equal(button.dataset.radarBusy, 'false');
+    assert.equal(button.getAttribute('aria-busy'), null);
 });
 
 test('instala a ação SME sem alterar a restauração do exportador legado', () => {
