@@ -5,10 +5,24 @@ on:
     branches:
       - main
     paths:
+      - '.github/workflows/excel-sme-production-smoke.yml'
       - 'assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx'
+      - 'vendor/exceljs.min.js'
       - 'scripts/build-vercel.mjs'
       - 'scripts/build-vercel-output.mjs'
+      - 'scripts/generate-excel-sme-assets-manifest.mjs'
       - 'scripts/verify-excel-sme-template.mjs'
+      - 'scripts/verify-excel-sme-production-assets.mjs'
+      - 'src/domain/excel-sme-export-model.js'
+      - 'src/domain/excel-sme-template-renderer.js'
+      - 'src/domain/excel-sme-monthly-renderer.js'
+      - 'src/integration/excel-sme-runtime-loader.js'
+      - 'src/integration/excel-export-integration.js'
+      - 'src/integration/load-excel-export.js'
+      - 'tests/e2e/excel-export-button.spec.js'
+      - 'tests/integration/excel-sme-assets-manifest.test.js'
+      - 'tests/unit/excel-sme-*.test.js'
+      - 'tests/unit/load-excel-export.test.js'
       - 'tests/unit/vercel-build.test.js'
       - 'tests/unit/vercel-build-output.test.js'
   workflow_dispatch:
@@ -34,16 +48,17 @@ jobs:
         with:
           node-version: '24'
 
-      - name: Validar verificador
-        run: node --check scripts/verify-excel-sme-template.mjs
+      - name: Validar verificadores
+        run: |
+          node --check scripts/verify-excel-sme-template.mjs
+          node --check scripts/verify-excel-sme-production-assets.mjs
 
-      - name: Aguardar deployment e validar o XLSX publicado
+      - name: Aguardar deployment e validar assets publicados
         env:
           EXPECTED_COMMIT_SHA: ${{ github.sha }}
         run: |
-          node scripts/verify-excel-sme-template.mjs \
-            --url https://radarpdde-fix.vercel.app/assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx \
-            --manifest-url https://radarpdde-fix.vercel.app/radar-build-manifest.json \
+          node scripts/verify-excel-sme-production-assets.mjs \
+            --base-url https://radarpdde-fix.vercel.app \
             --expected-commit "${EXPECTED_COMMIT_SHA}" \
             --attempts 60 \
             --interval-ms 10000
@@ -53,4 +68,6 @@ jobs:
           echo '### Excel SME — smoke de Production' >> "${GITHUB_STEP_SUMMARY}"
           echo '- Alias: radarpdde-fix.vercel.app' >> "${GITHUB_STEP_SUMMARY}"
           echo '- Commit esperado: `${{ github.sha }}`' >> "${GITHUB_STEP_SUMMARY}"
-          echo '- Template: HTTP 200, assinatura PK\\x03\\x04 e estrutura OOXML verificadas.' >> "${GITHUB_STEP_SUMMARY}"
+          echo '- Manifesto: versão, caminhos, tamanhos e SHA-256 verificados.' >> "${GITHUB_STEP_SUMMARY}"
+          echo '- Template: HTTP 200, hash, tamanho, assinatura ZIP e estrutura OOXML verificados.' >> "${GITHUB_STEP_SUMMARY}"
+          echo '- ExcelJS: HTTP 200, hash, tamanho e conteúdo não HTML verificados.' >> "${GITHUB_STEP_SUMMARY}"
