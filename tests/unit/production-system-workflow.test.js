@@ -30,6 +30,13 @@ test('monitor usa permissões mínimas, concorrência serial e limite de duraç�
   assert.match(source, /timeout-minutes:\s*15/u);
 });
 
+test('monitor não instala dependências nem persiste credenciais do checkout', () => {
+  const source = workflowSource();
+  assert.match(source, /persist-credentials:\s*false/u);
+  assert.doesNotMatch(source, /\bnpm\s+(?:ci|install)\b/u);
+  assert.doesNotMatch(source, /\bnpx\b/u);
+});
+
 test('monitor valida sistema inteiro e preflight com ações fixadas por SHA', () => {
   const source = workflowSource();
   assert.match(source, /actions\/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1/u);
