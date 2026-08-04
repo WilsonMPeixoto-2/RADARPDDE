@@ -6,6 +6,7 @@ const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
 const previewBuildPath = 'scripts/build-vercel.mjs';
+const corsPolicyPath = 'supabase/functions/_shared/cors-policy.mjs';
 const requiredFiles = Object.freeze([
     'src/application/team-account-gateway.js',
     'supabase/migrations/202607190001_team_management_auth_alignment.sql',
@@ -22,6 +23,7 @@ const requiredFiles = Object.freeze([
     'supabase/migrations/20260723043129_security_and_rls_hardening.sql',
     'supabase/migrations/20260728182226_sme_access_governance.sql',
     'supabase/functions/_shared/team-account-domain.mjs',
+    corsPolicyPath,
     'supabase/functions/team-account-management/index.ts',
     'supabase/tests/database/team-management-rpc.test.sql',
     'supabase/tests/database/inventory-capital-rls.test.sql',
@@ -85,10 +87,20 @@ function check() {
     }
 
     const edgeFunction = read('supabase/functions/team-account-management/index.ts');
-    if (!/requiredEnv\("RADAR_ALLOWED_ORIGIN"\)/.test(edgeFunction)
-        || !/requestOrigin\s*!==\s*allowedOrigin/.test(edgeFunction)
-        || /RADAR_ALLOWED_ORIGIN"\)\s*\|\|\s*"\*"/.test(edgeFunction)) {
-        findings.push('A Edge Function deve aplicar CORS fail-closed com origem explícita.');
+    const corsPolicy = read(corsPolicyPath);
+    const edgeUsesSharedCors = /from\s+["']\.\.\/_shared\/cors-policy\.mjs["']/.test(edgeFunction)
+        && /corsHeadersForOrigin\s*\(/.test(edgeFunction)
+        && /req\.headers\.get\(["']Origin["']\)/.test(edgeFunction)
+        && !/requiredEnv\(["']RADAR_ALLOWED_ORIGIN["']\)/.test(edgeFunction);
+    const policyIsFailClosed = /https:\/\/radarpdde-fix\.vercel\.app/.test(corsPolicy)
+        && /throw new Error\(["']ORIGIN_DENIED: origem não autorizada["']\)/.test(corsPolicy)
+        && /['"]Access-Control-Allow-Origin['"]\s*:\s*origin/.test(corsPolicy)
+        && /['"]Access-Control-Allow-Methods['"]\s*:\s*['"]POST, OPTIONS['"]/.test(corsPolicy)
+        && /['"]Vary['"]\s*:\s*['"]Origin['"]/.test(corsPolicy)
+        && !/Access-Control-Allow-Origin[\s\S]{0,100}['"]\*['"]/.test(corsPolicy)
+        && !/configuredOrigins\([\s\S]{0,300}['"]\*['"]/.test(corsPolicy);
+    if (!edgeUsesSharedCors || !policyIsFailClosed) {
+        findings.push('A Edge Function deve aplicar CORS fail-closed com allowlist explícita e política compartilhada.');
     }
 
     const securityMigration = read('supabase/migrations/20260723043129_security_and_rls_hardening.sql');

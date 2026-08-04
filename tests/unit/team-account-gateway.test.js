@@ -71,6 +71,26 @@ test('converte autorização negada em erro público estável', async () => {
     );
 });
 
+test('classifica origem negada como permissão e falha de configuração como indisponibilidade', async () => {
+    const deniedOrigin = createHarness({
+        data: { ok: false, code: 'ORIGIN_DENIED', message: 'Origem não autorizada.' },
+        error: null
+    });
+    await assert.rejects(
+        () => deniedOrigin.gateway.saveController({ controller: { id: 'CTRL-4' } }),
+        error => error && error.code === 'PERMISSION_DENIED'
+    );
+
+    const unavailable = createHarness({
+        data: { ok: false, code: 'REMOTE_UNAVAILABLE', message: 'Serviço administrativo indisponível.' },
+        error: null
+    });
+    await assert.rejects(
+        () => unavailable.gateway.saveController({ controller: { id: 'CTRL-4' } }),
+        error => error && error.code === 'REMOTE_UNAVAILABLE'
+    );
+});
+
 test('preserva conflito de conta e validação retornados pela função', async () => {
     const conflict = createHarness({
         data: { ok: false, code: 'ACCOUNT_CONFLICT', message: 'E-mail já vinculado.' },

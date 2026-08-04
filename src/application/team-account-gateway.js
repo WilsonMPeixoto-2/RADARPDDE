@@ -16,12 +16,20 @@
     const FUNCTION_NAME = 'team-account-management';
 
     function errorCode(error, data) {
-        const explicit = String(data?.code || error?.code || '').trim();
-        if (explicit) return explicit;
+        const explicit = String(data?.code || error?.code || '').trim().toUpperCase();
         const message = String(data?.message || error?.message || '');
         const status = Number(error?.status || data?.status || 0);
+
+        if (explicit === 'ORIGIN_DENIED' || explicit === 'PERMISSION_DENIED') {
+            return 'PERMISSION_DENIED';
+        }
+        if (explicit === 'REMOTE_UNAVAILABLE' || explicit === 'TEAM_ACCOUNT_OPERATION_FAILED') {
+            return 'REMOTE_UNAVAILABLE';
+        }
+        if (explicit) return explicit;
         if (status === 401 || message.includes('SESSION_EXPIRED')) return 'SESSION_EXPIRED';
         if (status === 403 || message.includes('AUTHORIZATION_DENIED')) return 'PERMISSION_DENIED';
+        if (status >= 500 || message.includes('CONFIGURATION_ERROR')) return 'REMOTE_UNAVAILABLE';
         if (message.includes('ACCOUNT_CONFLICT')) return 'ACCOUNT_CONFLICT';
         if (message.includes('VALIDATION')) return 'VALIDATION_FAILED';
         return 'REMOTE_UNAVAILABLE';

@@ -7,14 +7,19 @@ test.skip(!enabled, 'Exige Supabase local, Auth e RLS reais.');
 const fixtures = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../supabase/fixtures/auth-users.json'), 'utf8'));
 const password = process.env.RADAR_AUTH_FIXTURE_PASSWORD || '';
 
-async function signInAdmin(page) {
-  const admin = fixtures.find(item => item.profileId === 'technical_admin');
+async function signInProfile(page, profileId) {
+  const fixture = fixtures.find(item => item.profileId === profileId && item.active);
+  if (!fixture) throw new Error(`Fixture ativa ausente para ${profileId}.`);
   await page.goto('/');
-  await page.locator('#radar-auth-email').fill(admin.email);
+  await page.locator('#radar-auth-email').fill(fixture.email);
   await page.locator('#radar-auth-password').fill(password);
   await page.locator('#radar-auth-form button[type="submit"]').click();
-  await page.waitForFunction(() => window.RadarDataContext?.ready === true
-    && window.RadarAuthContext?.authorization?.role === 'technical_admin');
+  await page.waitForFunction(expectedRole => window.RadarDataContext?.ready === true
+    && window.RadarAuthContext?.authorization?.role === expectedRole, profileId);
+}
+
+async function signInAdmin(page) {
+  await signInProfile(page, 'technical_admin');
 }
 
 test('contrato integral migra, retoma, reconcilia e reverte contra Supabase local', async ({ page }) => {
@@ -71,4 +76,108 @@ test('contrato integral migra, retoma, reconcilia e reverte contra Supabase loca
   expect(result.reconciliationOk).toBe(true);
   expect(result.rollbackStatus).toBe('rolled_back');
   expect(result.rollbackSchoolIds).toEqual(result.originalSchoolIds);
+});
+
+test('Assistente executa cadastro, edição, redistribuição e desativação reais na Gestão de Equipe', async ({ page }) => {
+  await signInProfile(page, 'federal_assistant');
+
+  const result = await page.evaluate(async () => {
+    const services = window.RadarApplicationServices;
+    const repository = services.data.repository;
+    const client = window.RadarSessionContext?.service?.client;
+    const stamp = Date.now();
+    const originalSchool = escolas.find(school => school.controladorId
+      && controladores.some(controller => controller.id === school.controladorId && controller.active !== false));
+    if (!originalSchool) throw new Error('Escola com controlador ativo ausente para o teste.');
+    if (!client) throw new Error('Cliente autenticado ausente para o teste.');
+
+    const originalControllerId = originalSchool.controladorId;
+    const controllerCreated = await services.directory.saveController({
+      name: `Controlador E2E ${stamp}`,
+      email: `controlador.e2e.${stamp}@rioeduca.net`
+    });
+    const controllerId = controllerCreated.value.controller.id;
+
+    const controllerLinkGap = await client.from('controllers')
+      .update({ user_id: null })
+      .eq('id', controllerId);
+    if (controllerLinkGap.error) throw controllerLinkGap.error;
+
+    const controllerEdited = await services.directory.saveController({
+      id: controllerId,
+      name: `Controlador E2E Editado ${stamp}`,
+      email: `controlador.e2e.editado.${stamp}@rioeduca.net`
+    });
+
+    const assigned = await services.schools.bulkAssignController({
+      schoolIds: [originalSchool.id],
+      controllerId
+    });
+    const schoolAfterAssignment = (await repository.load('schools'))
+      .find(school => school.id === originalSchool.id);
+
+    const memberCreated = await services.directory.saveInventoryMember({
+      name: `Inventário E2E ${stamp}`,
+      email: `inventario.e2e.${stamp}@rioeduca.net`
+    });
+    const memberId = memberCreated.value.member.id;
+
+    const memberLinkGap = await client.from('inventory_team_members')
+      .update({ user_id: null })
+      .eq('id', memberId);
+    if (memberLinkGap.error) throw memberLinkGap.error;
+
+    const memberEdited = await services.directory.saveInventoryMember({
+      id: memberId,
+      name: `Inventário E2E Editado ${stamp}`,
+      email: `inventario.e2e.editado.${stamp}@rioeduca.net`
+    });
+    await services.directory.deactivateInventoryMember({ memberId });
+
+    const controllerDeactivated = await services.directory.deactivateController({
+      controllerId,
+      fallbackControllerId: originalControllerId
+    });
+
+    const [remoteControllers, remoteMembers, remoteSchools, remoteLogs] = await Promise.all([
+      repository.load('controllers'),
+      repository.load('inventoryTeamMembers'),
+      repository.load('schools'),
+      repository.load('administrativeLogs')
+    ]);
+    const finalController = remoteControllers.find(controller => controller.id === controllerId);
+    const finalMember = remoteMembers.find(member => member.id === memberId);
+    const finalSchool = remoteSchools.find(school => school.id === originalSchool.id);
+
+    return {
+      controllerId,
+      memberId,
+      editedControllerName: controllerEdited.value.controller.name,
+      editedMemberName: memberEdited.value.member.name,
+      assignedCount: assigned.value.updatedCount,
+      assignedControllerId: schoolAfterAssignment?.controller_id,
+      deactivatedControllerId: controllerDeactivated.value.controllerId,
+      finalControllerActive: finalController?.active,
+      finalControllerUserId: finalController?.user_id,
+      finalMemberActive: finalMember?.active,
+      finalMemberUserId: finalMember?.user_id,
+      finalSchoolControllerId: finalSchool?.controller_id,
+      managementLogCount: remoteLogs.filter(log => [
+        'Gestão de Equipe',
+        'Redistribuição em Lote'
+      ].includes(log.action)).length
+    };
+  });
+
+  expect(result.editedControllerName).toContain('Editado');
+  expect(result.editedMemberName).toContain('Editado');
+  expect(result.assignedCount).toBe(1);
+  expect(result.assignedControllerId).toBe(result.controllerId);
+  expect(result.deactivatedControllerId).toBe(result.controllerId);
+  expect(result.finalControllerActive).toBe(false);
+  expect(result.finalControllerUserId).toBeTruthy();
+  expect(result.finalMemberActive).toBe(false);
+  expect(result.finalMemberUserId).toBeTruthy();
+  expect(result.finalSchoolControllerId).not.toBe(result.controllerId);
+  expect(result.managementLogCount).toBeGreaterThanOrEqual(5);
 });

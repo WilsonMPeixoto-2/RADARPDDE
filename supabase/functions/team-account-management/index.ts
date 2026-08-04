@@ -5,19 +5,20 @@ import {
   isTeamManagerRole,
   normalizeTeamCommand,
 } from "../_shared/team-account-domain.mjs";
+import { corsHeadersForOrigin } from "../_shared/cors-policy.mjs";
+
+function configuredAllowedOrigins(): string {
+  return [
+    Deno.env.get("RADAR_ALLOWED_ORIGIN"),
+    Deno.env.get("RADAR_ALLOWED_ORIGINS"),
+  ].filter(Boolean).join(",");
+}
 
 function corsHeaders(req: Request): Record<string, string> {
-  const allowedOrigin = requiredEnv("RADAR_ALLOWED_ORIGIN");
-  const requestOrigin = req.headers.get("Origin") || "";
-  if (requestOrigin !== allowedOrigin) {
-    throw new Error("ORIGIN_DENIED: origem não autorizada");
-  }
-  return {
-    "Access-Control-Allow-Origin": allowedOrigin,
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Vary": "Origin",
-  };
+  return corsHeadersForOrigin(
+    req.headers.get("Origin") || "",
+    configuredAllowedOrigins(),
+  );
 }
 
 function json(status: number, body: Record<string, unknown>, headers: Record<string, string>): Response {
@@ -35,6 +36,13 @@ function publicError(error: unknown): { code: string; message: string; status: n
   if (message.includes("AUTHORIZATION_DENIED")) {
     return { code: "PERMISSION_DENIED", message: "Perfil sem permissão para gerir a equipe.", status: 403 };
   }
+  if (message.includes("CONFIGURATION_ERROR")) {
+    return {
+      code: "REMOTE_UNAVAILABLE",
+      message: "O serviço administrativo de contas está temporariamente indisponível.",
+      status: 503,
+    };
+  }
   if (message.includes("COMPENSATION_FAILED")) {
     return {
       code: "COMPENSATION_FAILED",
@@ -48,7 +56,7 @@ function publicError(error: unknown): { code: string; message: string; status: n
   if (message.includes("VALIDATION") || /obrigatóri|inválid/i.test(message)) {
     return { code: "VALIDATION_FAILED", message: message.replace(/^.*VALIDATION_ERROR:\s*/i, ""), status: 400 };
   }
-  if (/already|registered|duplicate|unique|vinculad/i.test(message)) {
+  if (/already|registered|duplicate|unique|vinculad|ACCOUNT_CONFLICT/i.test(message)) {
     return { code: "ACCOUNT_CONFLICT", message: "O e-mail ou a conta já está vinculado a outro integrante.", status: 409 };
   }
   return { code: "TEAM_ACCOUNT_OPERATION_FAILED", message: "Não foi possível concluir a gestão de acesso da equipe.", status: 500 };
@@ -110,6 +118,46 @@ async function currentEntity(admin: ReturnType<typeof createClient>, profileId: 
   return data as { id: string; user_id: string | null; name: string; email: string; active: boolean } | null;
 }
 
+async function linkedProfileUserId(
+  admin: ReturnType<typeof createClient>,
+  profileId: string,
+  entityId: string,
+): Promise<string> {
+  const linkColumn = profileId === "controller" ? "controller_id" : "inventory_member_id";
+  const { data, error } = await admin
+    .from("user_profiles")
+    .select("user_id,active")
+    .eq("profile_id", profileId)
+    .eq(linkColumn, entityId)
+    .order("active", { ascending: false })
+    .limit(2);
+  if (error) throw error;
+
+  const userIds = [...new Set(
+    (data || [])
+      .map((row: { user_id?: string | null }) => String(row.user_id || "").trim())
+      .filter(Boolean),
+  )];
+  if (userIds.length > 1) {
+    throw new Error("ACCOUNT_CONFLICT: integrante vinculado a mais de uma conta");
+  }
+  return userIds[0] || "";
+}
+
+async function resolveMemberUserId(
+  admin: ReturnType<typeof createClient>,
+  profileId: string,
+  entityId: string,
+  entityUserId: string | null | undefined,
+): Promise<string> {
+  const directUserId = String(entityUserId || "").trim();
+  const profileUserId = await linkedProfileUserId(admin, profileId, entityId);
+  if (directUserId && profileUserId && directUserId !== profileUserId) {
+    throw new Error("ACCOUNT_CONFLICT: diretório e perfil apontam para contas diferentes");
+  }
+  return directUserId || profileUserId;
+}
+
 async function authUser(admin: ReturnType<typeof createClient>, userId: string): Promise<User | null> {
   const { data, error } = await admin.auth.admin.getUserById(userId);
   if (error) throw error;
@@ -164,13 +212,19 @@ async function saveMember(
   const entity = command.entity!;
   const existing = await currentEntity(admin, command.profileId, entity.id);
   const metadata = buildInviteMetadata(command);
-  let userId = existing?.user_id || "";
+  let userId = await resolveMemberUserId(
+    admin,
+    command.profileId,
+    entity.id,
+    existing?.user_id,
+  );
   let createdUser = false;
   let previousUser: User | null = null;
 
   try {
     if (userId) {
       previousUser = await authUser(admin, userId);
+      if (!previousUser) throw new Error("NOT_FOUND: conta Auth vinculada não localizada");
       const { error } = await admin.auth.admin.updateUserById(userId, {
         email: entity.email,
         user_metadata: metadata,
@@ -195,7 +249,7 @@ async function saveMember(
       p_administrative_log: command.administrativeLog,
     });
     if (error) throw error;
-    return { ok: true, userId, invited: createdUser, result: data };
+    return { ok: true, userId, invited: createdUser, recoveredLink: Boolean(!existing?.user_id && userId), result: data };
   } catch (error) {
     if (createdUser && userId) {
       await removeInvitedUser(admin, userId);
@@ -213,7 +267,12 @@ async function deactivateMember(
 ) {
   const existing = await currentEntity(admin, command.profileId, command.entityId!);
   if (!existing) throw new Error("NOT_FOUND: integrante ativo não localizado");
-  const userId = existing.user_id;
+  const userId = await resolveMemberUserId(
+    admin,
+    command.profileId,
+    command.entityId!,
+    existing.user_id,
+  );
   let banned = false;
   try {
     if (userId) {
@@ -241,7 +300,7 @@ async function deactivateMember(
       };
     const { data, error } = await admin.rpc(rpc, args);
     if (error) throw error;
-    return { ok: true, userId, accessDisabled: Boolean(userId), result: data };
+    return { ok: true, userId, accessDisabled: Boolean(userId), recoveredLink: Boolean(!existing.user_id && userId), result: data };
   } catch (error) {
     if (banned && userId) {
       await restoreAccess(admin, userId);
