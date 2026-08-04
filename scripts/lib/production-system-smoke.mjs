@@ -216,7 +216,7 @@ function isRetryableProductionSmokeError(error) {
 function parseRuntimeConfigScript(script) {
   const source = String(script || '').trim();
   const match = source.match(
-    /window\.RADAR_PDDE_RUNTIME_INPUT\s*=\s*Object\.freeze\(\s*({[\s\S]*})\s*\)\s*;?\s*$/u
+    /window\.RADAR_PDDE_RUNTIME_INPUT\s*=\s*Object\.freeze\(\s*(\{[\s\S]*\})\s*\)\s*;?\s*$/u
   );
   let runtime = null;
   try {
