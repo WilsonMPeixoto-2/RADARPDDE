@@ -73,7 +73,6 @@ jobs:
             tests/unit/vercel-build.test.js \
             tests/unit/vercel-build-output.test.js
           node --test tests/integration/excel-sme-assets-manifest.test.js
-          node scripts/generate-excel-certification-evidence.mjs --stdout
           node scripts/generate-excel-certification-evidence.mjs --check
 
       - name: Gerar e validar artefato público da Vercel
