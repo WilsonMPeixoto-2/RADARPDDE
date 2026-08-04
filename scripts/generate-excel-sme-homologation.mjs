@@ -159,19 +159,21 @@ function validateWorkbook(workbook, model) {
     }
   }
 
+  const finalRow = model.rows.length + 1;
+  const expectedRange = `A1:AD${finalRow}`;
   const view = worksheet.views[0] || {};
   if (view.state !== 'frozen' || view.xSplit !== 4 || view.ySplit !== 1 || view.topLeftCell !== 'E2') {
     throw new Error('O candidato perdeu o congelamento de E2.');
   }
-  if (worksheet.autoFilter !== 'A1:AD164') {
-    throw new Error('O candidato perdeu o autofiltro integral.');
+  if (worksheet.autoFilter !== expectedRange) {
+    throw new Error(`O candidato perdeu o autofiltro dinâmico ${expectedRange}.`);
   }
   if (worksheet.pageSetup.orientation !== 'landscape'
       || worksheet.pageSetup.fitToWidth !== 1
       || worksheet.pageSetup.fitToHeight !== 0
-      || worksheet.pageSetup.printArea !== 'A1:AD164'
+      || worksheet.pageSetup.printArea !== expectedRange
       || worksheet.pageSetup.printTitlesRow !== '1:1') {
-    throw new Error('O candidato perdeu os contratos de impressão.');
+    throw new Error(`O candidato perdeu os contratos de impressão dinâmicos ${expectedRange}.`);
   }
   if (Object.keys(worksheet.dataValidations.model || {}).length !== 0) {
     throw new Error('O candidato reintroduziu dataValidations incompatíveis.');
@@ -193,14 +195,15 @@ async function main() {
   fs.mkdirSync(path.dirname(args.evidence), { recursive: true });
   fs.writeFileSync(args.output, bytes);
 
+  const finalRange = `A1:AD${model.rows.length + 1}`;
   const evidence = {
-    version: 1,
+    version: 2,
     rendererVersion: renderer.VERSION,
     modelVersion: model.VERSION,
     competenceKey: model.competenceKey,
     sheetName: worksheet.name,
     columnCount: worksheet.columnCount,
-    rowCount: worksheet.rowCount,
+    styledRowCount: worksheet.rowCount,
     scenarioCount: model.rows.length,
     statuses: {
       apta: model.rows.filter(row => row.status === 'APTA').length,
@@ -215,8 +218,9 @@ async function main() {
       mergedCre: true,
       dataValidations: false,
       frozenPane: 'E2',
-      printArea: 'A1:AD164',
+      printArea: finalRange,
       administrativeFieldsBlank: true,
+      obsoleteTemplateValuesCleared: true,
       roundTripExcelJs: true
     }
   };

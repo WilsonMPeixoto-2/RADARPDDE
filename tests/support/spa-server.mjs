@@ -7,7 +7,15 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
-const root = path.resolve(path.dirname(__filename), '../..');
+const repositoryRoot = path.resolve(path.dirname(__filename), '../..');
+const requestedRoot = process.env.RADAR_E2E_ROOT
+    ? path.resolve(repositoryRoot, process.env.RADAR_E2E_ROOT)
+    : repositoryRoot;
+const requestedRootRelative = path.relative(repositoryRoot, requestedRoot);
+if (requestedRootRelative.startsWith('..') || path.isAbsolute(requestedRootRelative)) {
+    throw new Error('RADAR_E2E_ROOT deve permanecer dentro do repositório.');
+}
+const root = requestedRoot;
 const port = Number(process.env.PORT || 4175);
 const host = process.env.HOST || '127.0.0.1';
 
@@ -19,7 +27,8 @@ const MIME_TYPES = Object.freeze({
     '.mjs': 'application/javascript; charset=utf-8',
     '.png': 'image/png',
     '.svg': 'image/svg+xml',
-    '.webp': 'image/webp'
+    '.webp': 'image/webp',
+    '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 });
 
 const STATIC_APPLICATION_ROUTES = new Set([
@@ -41,14 +50,14 @@ function isApplicationRoute(pathname) {
 
 function resolveDeepAsset(pathname) {
     const directoryAsset = pathname.match(
-        /^\/escolas\/(?:[^/]+\/)?(src|vendor)\/(.+)$/
+        /^\/escolas\/(?:[^/]+\/)?(src|vendor|assets)\/(.+)$/
     );
     if (directoryAsset) {
         return `/${directoryAsset[1]}/${directoryAsset[2]}`;
     }
 
     const rootAsset = pathname.match(
-        /^\/escolas\/(?:[^/]+\/)?(styles\.css|app\.js|config\.js|config\.runtime\.js)$/
+        /^\/escolas\/(?:[^/]+\/)?(styles\.css|app\.js|config\.js|config\.runtime\.js|excel-sme-assets\.json)$/
     );
     return rootAsset ? `/${rootAsset[1]}` : null;
 }
@@ -101,7 +110,7 @@ const server = http.createServer(async (request, response) => {
 });
 
 server.listen(port, host, () => {
-    console.log(`RADAR SPA test server listening at http://${host}:${port}`);
+    console.log(`RADAR SPA test server listening at http://${host}:${port} from ${root}`);
 });
 
 for (const signal of ['SIGINT', 'SIGTERM']) {

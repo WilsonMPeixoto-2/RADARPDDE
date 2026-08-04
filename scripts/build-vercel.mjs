@@ -10,6 +10,10 @@ import {
     buildRuntimeInput,
     renderRuntimeConfig
 } from './generate-runtime-config.mjs';
+import {
+    MANIFEST_FILE_NAME as EXCEL_SME_ASSETS_MANIFEST_FILE,
+    generateExcelSmeAssetsManifest
+} from './generate-excel-sme-assets-manifest.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,6 +28,8 @@ const RUNTIME_ENTRIES = Object.freeze([
     'src',
     'vendor'
 ]);
+const EXCEL_BOOTSTRAP_GUARD_PATH = '/src/integration/excel-export-bootstrap-guard.js';
+const EXCEL_BOOTSTRAP_GUARD_TAG = `<script defer src="${EXCEL_BOOTSTRAP_GUARD_PATH}"></script>`;
 
 const VERCEL_ENVIRONMENTS = new Set(['development', 'preview', 'production']);
 
@@ -195,6 +201,21 @@ async function copyRuntimeEntry(rootDir, outputDir, entry) {
     await fs.copyFile(source, destination);
 }
 
+async function injectExcelBootstrapGuard(outputDir) {
+    const indexPath = path.join(outputDir, 'index.html');
+    const html = await fs.readFile(indexPath, 'utf8');
+    if (html.includes(EXCEL_BOOTSTRAP_GUARD_PATH)) return false;
+    if (!/<\/body>/iu.test(html)) {
+        throw new Error('index.html público não possui fechamento de body para injetar o guard Excel.');
+    }
+    const updated = html.replace(
+        /<\/body>/iu,
+        `    ${EXCEL_BOOTSTRAP_GUARD_TAG}\n</body>`
+    );
+    await fs.writeFile(indexPath, updated, 'utf8');
+    return true;
+}
+
 async function buildVercelArtifact({
     rootDir = root,
     outputDir = path.join(rootDir, 'dist'),
@@ -213,6 +234,7 @@ async function buildVercelArtifact({
     for (const entry of RUNTIME_ENTRIES) {
         await copyRuntimeEntry(resolvedRoot, resolvedOutput, entry);
     }
+    await injectExcelBootstrapGuard(resolvedOutput);
 
     await fs.writeFile(
         path.join(resolvedOutput, 'config.runtime.js'),
@@ -227,10 +249,16 @@ async function buildVercelArtifact({
         'utf8'
     );
 
+    const excelSmeAssets = await generateExcelSmeAssetsManifest({
+        rootDir: resolvedRoot,
+        outputFile: path.join(resolvedOutput, EXCEL_SME_ASSETS_MANIFEST_FILE)
+    });
+
     return Object.freeze({
         outputDir: resolvedOutput,
         runtimeInput,
-        manifest
+        manifest,
+        excelSmeAssets
     });
 }
 
@@ -257,7 +285,8 @@ async function main() {
     console.log(
         `Artefato Vercel gerado em ${relativeOutput}: `
         + `${result.manifest.dataMode} / repositório Supabase `
-        + `${result.manifest.supabaseRepositoryEnabled ? 'habilitado' : 'desabilitado'}.`
+        + `${result.manifest.supabaseRepositoryEnabled ? 'habilitado' : 'desabilitado'}; `
+        + `Excel SME ${result.excelSmeAssets.template.sha256.slice(0, 12)}.`
     );
 }
 
@@ -269,6 +298,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
 }
 
 export {
+    EXCEL_BOOTSTRAP_GUARD_PATH,
+    EXCEL_BOOTSTRAP_GUARD_TAG,
+    EXCEL_SME_ASSETS_MANIFEST_FILE,
     PREVIEW_SUPABASE_PUBLIC_RUNTIME,
     PRODUCTION_LOCAL_ROLLBACK_RUNTIME,
     PRODUCTION_SUPABASE_PUBLIC_RUNTIME,
@@ -280,6 +312,7 @@ export {
     buildVercelArtifact,
     createPublicBuildManifest,
     hasExplicitRadarRuntime,
+    injectExcelBootstrapGuard,
     normalizeVercelEnvironment,
     productionForceLocal,
     resolveVercelRuntimeEnvironment,

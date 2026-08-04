@@ -1,0 +1,48 @@
+name: Contratos-fonte do Excel SME
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/excel-sme-source-contract.yml'
+      - 'app.js'
+      - 'src/integration/excel-export-integration.js'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validar:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Validar contratos-fonte
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
+          const app = fs.readFileSync('app.js', 'utf8');
+          const integration = fs.readFileSync('src/integration/excel-export-integration.js', 'utf8');
+          const stable = 'data-radar-sme-competence="true" onchange="changeSMEMonth(this.value)"';
+          const legacy = 'onchange="changeSMEMonth(this.value)"';
+          if ((app.split(stable).length - 1) !== 1) {
+            throw new Error('Seletor SME estável ausente ou duplicado.');
+          }
+          if ((app.split(legacy).length - 1) !== 1) {
+            throw new Error('Contrato onchange do seletor SME foi alterado de forma inesperada.');
+          }
+          if (integration.includes('state.competencias.find(item => isMonthlyCompetence')) {
+            throw new Error('Fallback silencioso para a primeira competência foi reintroduzido.');
+          }
+          if (!integration.includes('SME_COMPETENCE_MISMATCH')) {
+            throw new Error('Contrato de divergência de competência ausente.');
+          }
+          if (!integration.includes('SME_COMPETENCE_AMBIGUOUS')) {
+            throw new Error('Contrato de seletor ambíguo ausente.');
+          }
+          NODE

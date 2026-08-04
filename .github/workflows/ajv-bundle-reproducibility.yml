@@ -1,0 +1,60 @@
+name: Reprodutibilidade do bundle Ajv
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/ajv-bundle-reproducibility.yml'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'src/vendor/ajv-entry.js'
+      - 'scripts/build-ajv.mjs'
+      - 'vendor/ajv.js'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verificar:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+
+      - name: Confirmar que o bundle versionado é reproduzível
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp vendor/ajv.js /tmp/ajv-versioned.js
+          sha256sum /tmp/ajv-versioned.js | tee /tmp/versioned.sha256
+          npm run build:ajv
+          cp vendor/ajv.js /tmp/ajv-first.js
+          sha256sum /tmp/ajv-first.js | tee /tmp/first.sha256
+          npm run build:ajv
+          cp vendor/ajv.js /tmp/ajv-second.js
+          sha256sum /tmp/ajv-second.js | tee /tmp/second.sha256
+          cmp --silent /tmp/ajv-first.js /tmp/ajv-second.js
+          cmp --silent /tmp/ajv-versioned.js /tmp/ajv-second.js
+          node -e "const fs=require('fs'); const source=fs.readFileSync('/tmp/ajv-second.js','utf8'); if(!source.includes('Ajv 8.20.0') || !source.includes('RadarAjv')) process.exit(1);"
+          {
+            echo '### Bundle Ajv'
+            echo '- O bundle versionado coincide com duas gerações consecutivas após `npm ci`.'
+            echo '- Versão: Ajv 8.20.0.'
+            echo '- Empacotador: esbuild 0.28.1.'
+            echo '- SHA-256:'
+            echo '```'
+            cat /tmp/second.sha256
+            echo '```'
+          } >> "${GITHUB_STEP_SUMMARY}"

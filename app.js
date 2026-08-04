@@ -6477,7 +6477,7 @@ function renderDashboardSME(container) {
             </div>
             <div style="display:flex; align-items:center; gap:8px;">
                 <label style="font-size:0.85rem; font-weight:600; color:var(--text-main);">Mês de Referência:</label>
-                <select class="form-control" style="width: 150px; font-size: 0.85rem; padding: 6px 12px; height: auto;" onchange="changeSMEMonth(this.value)">
+                <select class="form-control" style="width: 150px; font-size: 0.85rem; padding: 6px 12px; height: auto;" data-radar-sme-competence="true" onchange="changeSMEMonth(this.value)">
                     ${COMPETENCIAS.map(c => `<option value="${c.key}" ${activeCompetenciaKey === c.key ? 'selected' : ''}>${c.label}</option>`).join('')}
                 </select>
             </div>

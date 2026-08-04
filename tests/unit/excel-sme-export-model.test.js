@@ -213,3 +213,21 @@ test('bloqueia geração quando não há escolas carregadas', () => {
         error => error?.code === 'NO_SME_SCHOOLS'
     );
 });
+
+test('bloqueia designações duplicadas após normalização', () => {
+    const duplicated = fixture();
+    duplicated.escolas = [
+        duplicated.escolas[0],
+        {
+            ...duplicated.escolas[1],
+            id: 'school-duplicate',
+            designação: '0431026'
+        }
+    ];
+
+    assert.throws(
+        () => modelApi.buildSmeMonthlyModel(duplicated),
+        error => error?.code === 'SME_DUPLICATE_DESIGNATION'
+            && error?.details?.designationKey === '0431026'
+    );
+});

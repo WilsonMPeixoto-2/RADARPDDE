@@ -97,11 +97,12 @@ test('grava uma visualização válida da pasta de trabalho', async () => {
     assert.match(workbookXml, /<bookViews><workbookView\b[^>]*activeTab="0"[^>]*\/><\/bookViews>/);
 });
 
-test('grava área de impressão com referências integralmente absolutas', async () => {
+test('grava área de impressão absoluta limitada à lista atual', async () => {
     const { workbookXml } = await generate();
 
-    assert.match(workbookXml, /(?:'|&apos;)MAIO(?:'|&apos;)!\$A\$1:\$AD\$164/);
-    assert.doesNotMatch(workbookXml, /(?:'|&apos;)MAIO(?:'|&apos;)!\$A1:\$AD164/);
+    assert.match(workbookXml, /(?:'|&apos;)MAIO(?:'|&apos;)!\$A\$1:\$AD\$2/);
+    assert.doesNotMatch(workbookXml, /(?:'|&apos;)MAIO(?:'|&apos;)!\$A1:\$AD2/);
+    assert.doesNotMatch(workbookXml, /\$AD\$164/);
 });
 
 test('remove outlinePr sem agrupamentos para manter sheetPr válido no Excel', async () => {
