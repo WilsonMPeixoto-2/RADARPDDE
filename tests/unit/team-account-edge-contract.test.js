@@ -10,6 +10,10 @@ const source = fs.readFileSync(
     path.join(root, 'supabase/functions/team-account-management/index.ts'),
     'utf8'
 );
+const corsSource = fs.readFileSync(
+    path.join(root, 'supabase/functions/_shared/cors-policy.mjs'),
+    'utf8'
+);
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 
 test('Edge Function concentra o ciclo administrativo de Auth fora do navegador', () => {
@@ -44,13 +48,16 @@ test('respostas públicas não expõem causa administrativa detalhada', () => {
     assert.doesNotMatch(source, /console\.(?:log|error)\([^\n]*(?:secret|service_role|password|token)/i);
 });
 
-test('CORS exige origem configurada e nunca usa wildcard', () => {
-    assert.match(source, /requiredEnv\("RADAR_ALLOWED_ORIGIN"\)/);
-    assert.match(source, /requestOrigin !== allowedOrigin/);
-    assert.match(source, /ORIGIN_DENIED/);
-    assert.match(source, /"Vary": "Origin"/);
-    assert.doesNotMatch(source, /RADAR_ALLOWED_ORIGIN"\) \|\| "\*"/);
-    assert.doesNotMatch(source, /Access-Control-Allow-Origin[\s\S]{0,80}\*/);
+test('CORS usa política compartilhada, origem canônica e configuração opcional sem wildcard', () => {
+    assert.match(source, /cors-policy\.mjs/);
+    assert.match(source, /corsHeadersForOrigin/);
+    assert.match(source, /Deno\.env\.get\("RADAR_ALLOWED_ORIGIN"\)/);
+    assert.match(source, /Deno\.env\.get\("RADAR_ALLOWED_ORIGINS"\)/);
+    assert.doesNotMatch(source, /requiredEnv\("RADAR_ALLOWED_ORIGIN"\)/);
+    assert.match(corsSource, /https:\/\/radarpdde-fix\.vercel\.app/);
+    assert.match(corsSource, /ORIGIN_DENIED/);
+    assert.match(corsSource, /'Vary': 'Origin'/);
+    assert.doesNotMatch(corsSource, /Access-Control-Allow-Origin[\s\S]{0,80}\*/);
 });
 
 test('SDK da Edge Function acompanha a versão homologada do projeto', () => {
