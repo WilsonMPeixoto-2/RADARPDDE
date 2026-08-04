@@ -10,6 +10,7 @@ const assert = require('node:assert/strict');
 const ROOT = path.resolve(__dirname, '../..');
 const TEMPLATE_PATH = 'assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx';
 const EXCELJS_PATH = 'vendor/exceljs.min.js';
+const GUARD_PATH = '/src/integration/excel-export-bootstrap-guard.js';
 
 async function sha256(filePath) {
     const bytes = await fs.readFile(filePath);
@@ -19,7 +20,7 @@ async function sha256(filePath) {
     };
 }
 
-test('build público gera manifesto coerente com template e ExcelJS publicados', async t => {
+test('build público gera manifesto coerente e injeta proteção do bootstrap Excel', async t => {
     const { buildVercelArtifact } = await import('../../scripts/build-vercel.mjs');
     const temporaryRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'radar-vercel-build-'));
     const outputDir = path.join(temporaryRoot, 'dist');
@@ -41,6 +42,7 @@ test('build público gera manifesto coerente com template e ExcelJS publicados',
     const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
     const template = await sha256(path.join(ROOT, TEMPLATE_PATH));
     const exceljs = await sha256(path.join(ROOT, EXCELJS_PATH));
+    const publicIndex = await fs.readFile(path.join(outputDir, 'index.html'), 'utf8');
 
     assert.equal(manifest.schemaVersion, 1);
     assert.deepEqual(manifest.template, {
@@ -51,6 +53,11 @@ test('build público gera manifesto coerente com template e ExcelJS publicados',
         path: `/${EXCELJS_PATH}`,
         ...exceljs
     });
+    assert.match(
+        publicIndex,
+        new RegExp(`<script\\s+defer\\s+src="${GUARD_PATH.replaceAll('/', '\\/')}"`)
+    );
+    assert.equal((publicIndex.match(/excel-export-bootstrap-guard\.js/g) || []).length, 1);
 
     assert.deepEqual(
         await sha256(path.join(outputDir, TEMPLATE_PATH)),
