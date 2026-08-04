@@ -88,7 +88,9 @@ test('a competência ativa controla aba, nome do arquivo e conjunto de dados', a
     assert.equal(model.fileName, 'RADAR_PDDE_EXCEL_SME_05-2026.xlsx');
     assert.equal(worksheet.name, 'MAIO');
     assert.equal(worksheet.getCell('E2').value, 'NÃO');
-    assert.equal(worksheet.getCell('Z2').value, 'INAPTA');
+    assert.equal(worksheet.getCell('W2').value, 'INAPTA');
+    assert.equal(worksheet.getCell('C2').value, '410001');
+    assert.equal(worksheet.getCell('C2').numFmt, '@');
 });
 
 test('grava uma visualização válida da pasta de trabalho', async () => {
@@ -100,9 +102,10 @@ test('grava uma visualização válida da pasta de trabalho', async () => {
 test('grava área de impressão absoluta limitada à lista atual', async () => {
     const { workbookXml } = await generate();
 
-    assert.match(workbookXml, /(?:'|&apos;)MAIO(?:'|&apos;)!\$A\$1:\$AD\$2/);
-    assert.doesNotMatch(workbookXml, /(?:'|&apos;)MAIO(?:'|&apos;)!\$A1:\$AD2/);
-    assert.doesNotMatch(workbookXml, /\$AD\$164/);
+    assert.match(workbookXml, /(?:'|&apos;)MAIO(?:'|&apos;)!\$A\$1:\$AA\$2/);
+    assert.doesNotMatch(workbookXml, /(?:'|&apos;)MAIO(?:'|&apos;)!\$A1:\$AA2/);
+    assert.doesNotMatch(workbookXml, /\$AA\$164/);
+    assert.doesNotMatch(workbookXml, /\$AD\$/);
 });
 
 test('remove outlinePr sem agrupamentos para manter sheetPr válido no Excel', async () => {
