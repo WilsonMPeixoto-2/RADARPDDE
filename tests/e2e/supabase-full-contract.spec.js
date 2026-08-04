@@ -84,10 +84,12 @@ test('Assistente executa cadastro, edição, redistribuição e desativação re
   const result = await page.evaluate(async () => {
     const services = window.RadarApplicationServices;
     const repository = services.data.repository;
+    const client = window.RadarSessionContext?.service?.client;
     const stamp = Date.now();
     const originalSchool = escolas.find(school => school.controladorId
       && controladores.some(controller => controller.id === school.controladorId && controller.active !== false));
     if (!originalSchool) throw new Error('Escola com controlador ativo ausente para o teste.');
+    if (!client) throw new Error('Cliente autenticado ausente para o teste.');
 
     const originalControllerId = originalSchool.controladorId;
     const controllerCreated = await services.directory.saveController({
@@ -95,6 +97,11 @@ test('Assistente executa cadastro, edição, redistribuição e desativação re
       email: `controlador.e2e.${stamp}@rioeduca.net`
     });
     const controllerId = controllerCreated.value.controller.id;
+
+    const controllerLinkGap = await client.from('controllers')
+      .update({ user_id: null })
+      .eq('id', controllerId);
+    if (controllerLinkGap.error) throw controllerLinkGap.error;
 
     const controllerEdited = await services.directory.saveController({
       id: controllerId,
@@ -114,6 +121,12 @@ test('Assistente executa cadastro, edição, redistribuição e desativação re
       email: `inventario.e2e.${stamp}@rioeduca.net`
     });
     const memberId = memberCreated.value.member.id;
+
+    const memberLinkGap = await client.from('inventory_team_members')
+      .update({ user_id: null })
+      .eq('id', memberId);
+    if (memberLinkGap.error) throw memberLinkGap.error;
+
     const memberEdited = await services.directory.saveInventoryMember({
       id: memberId,
       name: `Inventário E2E Editado ${stamp}`,
@@ -145,7 +158,9 @@ test('Assistente executa cadastro, edição, redistribuição e desativação re
       assignedControllerId: schoolAfterAssignment?.controller_id,
       deactivatedControllerId: controllerDeactivated.value.controllerId,
       finalControllerActive: finalController?.active,
+      finalControllerUserId: finalController?.user_id,
       finalMemberActive: finalMember?.active,
+      finalMemberUserId: finalMember?.user_id,
       finalSchoolControllerId: finalSchool?.controller_id,
       managementLogCount: remoteLogs.filter(log => [
         'Gestão de Equipe',
@@ -160,7 +175,9 @@ test('Assistente executa cadastro, edição, redistribuição e desativação re
   expect(result.assignedControllerId).toBe(result.controllerId);
   expect(result.deactivatedControllerId).toBe(result.controllerId);
   expect(result.finalControllerActive).toBe(false);
+  expect(result.finalControllerUserId).toBeTruthy();
   expect(result.finalMemberActive).toBe(false);
+  expect(result.finalMemberUserId).toBeTruthy();
   expect(result.finalSchoolControllerId).not.toBe(result.controllerId);
   expect(result.managementLogCount).toBeGreaterThanOrEqual(5);
 });
