@@ -5,12 +5,15 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, function (root) {
     'use strict';
 
-    const VERSION = '3.0.1';
+    const VERSION = '3.3.0';
     const FIRST_DATA_ROW = 2;
     const FIRST_MONTHLY_COLUMN = 5;
-    const LAST_COLUMN = 30;
-    const LAST_COLUMN_LETTER = 'AD';
+    const LAST_COLUMN = 27;
+    const LAST_COLUMN_LETTER = 'AA';
+    const HEADER_ROW_HEIGHT = 105;
     const TEMPLATE_SHEET_NAME = 'DEZEMBRO';
+    const SOURCE_SYSTEMATIC_COLUMNS = Object.freeze([25, 18, 11]);
+    const THIN_BORDER = Object.freeze({ style: 'thin' });
 
     function createRendererError(code, message, details = null, cause = null) {
         const error = new Error(message);
@@ -24,7 +27,7 @@
         if (!model || !Array.isArray(model.columns) || model.columns.length !== LAST_COLUMN) {
             throw createRendererError(
                 'SME_MODEL_INVALID',
-                'Modelo mensal do Excel SME inválido: são esperadas 30 colunas.'
+                'Modelo mensal do Excel SME inválido: são esperadas 27 colunas.'
             );
         }
         if (!Array.isArray(model.rows) || !model.sheetName || !model.fileName || !model.competenceKey) {
@@ -71,6 +74,10 @@
         if (!digits) return '';
         const numeric = Number.parseInt(digits, 10);
         return Number.isSafeInteger(numeric) ? String(numeric) : digits.replace(/^0+/, '');
+    }
+
+    function formatHeaderLabel(value) {
+        return String(value == null ? '' : value).trim().replace(/\s+/g, ' ');
     }
 
     function cloneValue(value) {
@@ -137,6 +144,20 @@
         }
     }
 
+    function projectTemplateToOriginalColumns(worksheet) {
+        SOURCE_SYSTEMATIC_COLUMNS.forEach(columnNumber => {
+            const label = String(worksheet.getRow(1).getCell(columnNumber).value || '').trim();
+            if (label !== 'SISTEMÁTICA PREENCHIDA') {
+                throw createRendererError(
+                    'SME_TEMPLATE_CONTRACT_MISMATCH',
+                    `O template do Excel SME não possui a coluna técnica esperada na posição ${columnNumber}.`,
+                    { columnNumber, label }
+                );
+            }
+            worksheet.spliceColumns(columnNumber, 1);
+        });
+    }
+
     function verifyHeaderContract(worksheet, model) {
         const actual = model.columns.map((column, index) => (
             column.mergedHeader ? '' : (worksheet.getRow(1).getCell(index + 1).value || '')
@@ -145,7 +166,7 @@
         if (JSON.stringify(actual) !== JSON.stringify(expected)) {
             throw createRendererError(
                 'SME_TEMPLATE_CONTRACT_MISMATCH',
-                'O template do Excel SME diverge dos 30 textos canônicos do documento original.'
+                'O template do Excel SME diverge dos 27 textos canônicos do documento original.'
             );
         }
         if (!worksheet.getCell('A1').isMerged || !worksheet.getCell('B1').isMerged) {
@@ -154,6 +175,21 @@
                 'O template do Excel SME perdeu a mesclagem canônica CRE em A1:B1.'
             );
         }
+    }
+
+    function formatHeaderRow(worksheet, model) {
+        const header = worksheet.getRow(1);
+        header.height = HEADER_ROW_HEIGHT;
+        model.columns.forEach((column, index) => {
+            if (column.mergedHeader) return;
+            const cell = header.getCell(index + 1);
+            cell.value = formatHeaderLabel(column.label);
+            applyCellAlignment(cell, {
+                horizontal: 'center',
+                vertical: 'middle',
+                wrapText: true
+            });
+        });
     }
 
     function assertUniqueTemplateDesignations(worksheet) {
@@ -175,10 +211,12 @@
     }
 
     function formatDesignation(value) {
-        const digits = String(value == null ? '' : value).replace(/\D/g, '');
-        if (!digits) return String(value == null ? '' : value).trim();
-        const numeric = Number.parseInt(digits, 10);
-        return Number.isSafeInteger(numeric) ? numeric : digits;
+        const source = String(value == null ? '' : value).trim();
+        const digits = source.replace(/\D/g, '');
+        if (!digits) return source;
+        if (digits.length > 7) return source;
+        const canonical = digits.padStart(7, '0');
+        return `${canonical.slice(0, 2)}.${canonical.slice(2, 4)}.${canonical.slice(4)}`;
     }
 
     function formatCre(value) {
@@ -212,6 +250,7 @@
         target.getCell(1).value = modelRow.order;
         target.getCell(2).value = formatCre(modelRow.cre);
         target.getCell(3).value = formatDesignation(modelRow.designation);
+        target.getCell(3).numFmt = '@';
         target.getCell(4).value = formatDenomination(modelRow.denomination);
 
         for (let index = FIRST_MONTHLY_COLUMN - 1; index < model.columns.length; index += 1) {
@@ -230,6 +269,46 @@
         });
     }
 
+    function alignmentForColumn(column) {
+        if (column?.alignment === 'left') {
+            return {
+                horizontal: 'left',
+                vertical: 'middle',
+                wrapText: true,
+                indent: 1
+            };
+        }
+        return {
+            horizontal: 'center',
+            vertical: 'middle',
+            wrapText: true
+        };
+    }
+
+    function applyBodyAlignments(worksheet, model, finalRow) {
+        for (let rowNumber = FIRST_DATA_ROW; rowNumber <= finalRow; rowNumber += 1) {
+            model.columns.forEach((column, index) => {
+                applyCellAlignment(
+                    worksheet.getCell(rowNumber, index + 1),
+                    alignmentForColumn(column)
+                );
+            });
+        }
+    }
+
+    function applyGridBorders(worksheet, finalRow) {
+        for (let rowNumber = 1; rowNumber <= finalRow; rowNumber += 1) {
+            for (let columnNumber = 1; columnNumber <= LAST_COLUMN; columnNumber += 1) {
+                worksheet.getCell(rowNumber, columnNumber).border = {
+                    left: { ...THIN_BORDER },
+                    right: { ...THIN_BORDER },
+                    top: { ...THIN_BORDER },
+                    bottom: { ...THIN_BORDER }
+                };
+            }
+        }
+    }
+
     function configureWorksheet(worksheet, model) {
         worksheet.name = model.sheetName;
         worksheet.state = 'visible';
@@ -243,22 +322,9 @@
             activeCell: 'E2'
         }];
         const finalRow = Math.max(FIRST_DATA_ROW, FIRST_DATA_ROW + model.rows.length - 1);
-        const descriptiveAlignment = {
-            horizontal: 'left',
-            vertical: 'middle',
-            wrapText: true,
-            indent: 1
-        };
-        const categoricalAlignment = {
-            horizontal: 'center',
-            vertical: 'middle',
-            wrapText: true
-        };
-        for (let rowNumber = FIRST_DATA_ROW; rowNumber <= finalRow; rowNumber += 1) {
-            applyCellAlignment(worksheet.getCell(rowNumber, 4), descriptiveAlignment);
-            applyCellAlignment(worksheet.getCell(rowNumber, 29), categoricalAlignment);
-            applyCellAlignment(worksheet.getCell(rowNumber, 30), descriptiveAlignment);
-        }
+        formatHeaderRow(worksheet, model);
+        applyBodyAlignments(worksheet, model, finalRow);
+        applyGridBorders(worksheet, finalRow);
         worksheet.autoFilter = `A1:${LAST_COLUMN_LETTER}${finalRow}`;
         worksheet.pageSetup = {
             ...worksheet.pageSetup,
@@ -317,8 +383,9 @@
         }
 
         keepOnlySheet(workbook, worksheet);
-        verifyHeaderContract(worksheet, model);
         assertUniqueTemplateDesignations(worksheet);
+        projectTemplateToOriginalColumns(worksheet);
+        verifyHeaderContract(worksheet, model);
         rebuildDataRows(worksheet, model);
         configureWorksheet(worksheet, model);
         configureWorkbook(workbook);
@@ -381,8 +448,10 @@
     return Object.freeze({
         FIRST_DATA_ROW,
         FIRST_MONTHLY_COLUMN,
+        HEADER_ROW_HEIGHT,
         LAST_COLUMN,
         LAST_COLUMN_LETTER,
+        SOURCE_SYSTEMATIC_COLUMNS,
         VERSION,
         assertUniqueTemplateDesignations,
         buildWorkbook,
@@ -392,7 +461,9 @@
         formatCre,
         formatDenomination,
         formatDesignation,
+        formatHeaderLabel,
         normalizeDesignation,
+        projectTemplateToOriginalColumns,
         renderWorkbook
     });
 }));

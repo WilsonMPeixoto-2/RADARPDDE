@@ -8,7 +8,7 @@ const institutionalPlan = require('./excel-workbook-plan.js');
 const institutionalRenderer = require('./excel-xlsx-renderer.js');
 const smeModel = require('./excel-sme-export-model.js');
 
-const VERSION = '1.0.0';
+const VERSION = '1.1.0';
 const DEFAULT_GENERATED_AT = '1970-01-01T00:00:00.000Z';
 
 function text(value) {
@@ -319,7 +319,7 @@ function certifySmeMonthly(input, canonicalAudit) {
   const expected = smeExpectedCells(model);
   const cells = new Map(expected.map(item => [item.address, item.value]));
   const cellCertification = compareCells(expected, cells);
-  cellCertification.samples = sampleCells(cells, ['A2', 'C2', 'E2', 'K2', 'C3']);
+  cellCertification.samples = sampleCells(cells, ['A2', 'C2', 'E2', 'W2', 'AA2']);
   const structuralContract = {
     sheetName: model.sheetName,
     headers: model.columns.map(column => column.label),
@@ -327,20 +327,18 @@ function certifySmeMonthly(input, canonicalAudit) {
     widths: model.columns.map(column => column.width),
     mergeAcross: model.columns[0]?.mergeAcross || null,
     mergedHeader: model.columns[1]?.mergedHeader === true,
-    systematicColumns: [model.columns[10]?.key, model.columns[17]?.key, model.columns[24]?.key],
-    statusColumn: model.columns[25]?.key,
-    administrativeColumns: model.columns.slice(26).map(column => column.key)
+    forbiddenSystematicColumns: model.columns
+      .filter(column => /_systematic$/i.test(column.key) || column.label === 'SISTEMÁTICA PREENCHIDA')
+      .map(column => column.key),
+    statusColumn: model.columns[22]?.key,
+    administrativeColumns: model.columns.slice(23).map(column => column.key)
   };
   const ooxml = {
-    valid: model.columns.length === 30
+    valid: model.columns.length === 27
       && JSON.stringify(model.columns.map(column => column.label)) === JSON.stringify(smeModel.ORIGINAL_HEADER_LABELS)
       && structuralContract.mergeAcross === 2
       && structuralContract.mergedHeader
-      && JSON.stringify(structuralContract.systematicColumns) === JSON.stringify([
-        'basic_systematic',
-        'qualidade_systematic',
-        'equidade_systematic'
-      ])
+      && structuralContract.forbiddenSystematicColumns.length === 0
       && structuralContract.statusColumn === 'status'
       && JSON.stringify(structuralContract.administrativeColumns) === JSON.stringify([
         'deliveryDate',

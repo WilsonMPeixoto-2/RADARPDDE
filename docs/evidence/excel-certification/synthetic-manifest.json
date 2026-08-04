@@ -5,7 +5,7 @@
     "mismatches": []
   },
   "generatedAt": "2026-07-29T02:30:00.000Z",
-  "manifestHash": "3d77e13604d770b81e9fd4e6ec2c75af9ba2d63fcd3182fe5ac71d6fc882c10f",
+  "manifestHash": "e8ddfb5e008aaad006db8dc29d81f665b5a07038183a61818a00581783fc88e1",
   "passed": true,
   "products": {
     "institutional": {
@@ -65,8 +65,8 @@
     "smeMonthly": {
       "canonicalMismatchCount": 0,
       "cellCertification": {
-        "actualCellCount": 90,
-        "checkedCellCount": 90,
+        "actualCellCount": 81,
+        "checkedCellCount": 81,
         "mismatchCount": 0,
         "mismatches": [],
         "samples": [
@@ -83,27 +83,27 @@
             "value": "SIM"
           },
           {
-            "address": "K2",
-            "value": "SIM"
+            "address": "W2",
+            "value": "INAPTA"
           },
           {
-            "address": "C3",
-            "value": "04.00.002"
+            "address": "AA2",
+            "value": ""
           }
         ]
       },
-      "columnCount": 30,
+      "columnCount": 27,
       "competenceKeys": [
         "2026-08"
       ],
-      "contentHash": "8b51e95360a5b25a15256a7069da4181e1a584d23449eb353a451d2b6d07a840",
+      "contentHash": "8a4bf53618c823776ec384c00b2f1a30848bc03618e1ca784f20949fd659281c",
       "ooxml": {
         "entryCount": 1,
         "expectedSheetCount": 1,
         "hasDataValidations": false,
         "missingEntries": [],
         "sheetCount": 1,
-        "structuralHash": "2639db9f6c971ec5b732987bf61f397b76e2ff5c0b6b2825cfc71b59224f91bd",
+        "structuralHash": "439d94191ac9ca8233eda61fcb725a0d4eed542399e1a0f4e621e61521ce4740",
         "valid": true
       },
       "passed": true,
@@ -111,5 +111,5 @@
       "scope": "single-competence"
     }
   },
-  "version": "1.0.0"
+  "version": "1.1.0"
 }

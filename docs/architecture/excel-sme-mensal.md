@@ -1,30 +1,28 @@
 # Exportação Excel SME mensal
 
-**Estado:** template canônico, renderer ExcelJS, integração, certificação e homologação desktop concluídos; empacotamento Vercel protegido por teste
+**Estado:** contrato público de 27 colunas, renderer ExcelJS, integração, certificação e homologação automatizada protegidos por testes
 
-**Atualizado em:** 3 de agosto de 2026
+**Atualizado em:** 4 de agosto de 2026
 
 ## 1. Finalidade
 
-O botão **Excel SME** gera uma tradução fiel do modelo operacional recebido da SME, preenchida com os dados canônicos do RADAR para a competência selecionada.
+O botão **Excel SME** gera uma tradução do modelo operacional da SME com os dados canônicos do RADAR para uma única competência mensal.
 
-O produto é distinto do relatório institucional:
+O produto é independente do relatório institucional:
 
-- **Excel SME:** uma competência, uma aba, uma linha por unidade;
-- **relatório institucional XLSX:** histórico, quatro abas, uma linha por escola × competência × programa consolidado;
-- **CSV institucional:** formato legado preservado como botão secundário e fallback do relatório institucional.
-
-O produto SME não substitui o relatório institucional nem o CSV de contingência.
+- **Excel SME:** uma competência, uma aba e uma linha por unidade escolar;
+- **relatório institucional XLSX:** histórico, quatro abas e uma linha por escola × competência × programa consolidado;
+- **CSV institucional:** formato legado preservado como contingência do relatório institucional.
 
 ## 2. Regra temporal
 
-A geração exige `activeCompetenciaKey` em `YYYY-MM`.
+A geração exige `activeCompetenciaKey` no formato `YYYY-MM`.
 
 - competência mensal válida: geração habilitada;
 - `TODAS`: geração desabilitada;
-- valor inexistente ou inválido: geração bloqueada.
+- valor inexistente, inválido ou divergente da interface: geração bloqueada.
 
-Nome do arquivo:
+O arquivo segue o padrão:
 
 ```text
 RADAR_PDDE_EXCEL_SME_MM-AAAA.xlsx
@@ -32,26 +30,43 @@ RADAR_PDDE_EXCEL_SME_MM-AAAA.xlsx
 
 A única aba recebe o nome do mês em português.
 
-## 3. Estrutura
+## 3. Contrato público de 27 colunas
 
-A planilha possui 30 colunas:
+A planilha exportada ocupa **A:AA**:
 
-1. número sequencial;
-2. CRE;
-3. designação;
-4. unidade escolar;
-5. seis campos documentais e `SISTEMÁTICA PREENCHIDA` da Conta PDDE Básico;
-6. seis campos documentais e `SISTEMÁTICA PREENCHIDA` da Conta PDDE Qualidade;
-7. seis campos documentais e `SISTEMÁTICA PREENCHIDA` da Conta PDDE Equidade;
-8. `STATUS`;
-9. data de entrega;
-10. data de correção;
-11. parecer;
-12. observações.
+| Intervalo | Conteúdo |
+|---|---|
+| A:D | sequência, CRE, designação e unidade escolar |
+| E:J | seis documentos da Conta PDDE Básico |
+| K:P | seis documentos da Conta PDDE Qualidade |
+| Q:V | seis documentos da Conta PDDE Equidade |
+| W | `STATUS` |
+| X | data da entrega de documentos |
+| Y | data da correção dos documentos enviados |
+| Z | parecer |
+| AA | observações |
+
+As colunas técnicas `SISTEMÁTICA PREENCHIDA`, anteriormente presentes nas posições-fonte **K, R e Y**, não pertencem ao arquivo original destinado ao usuário e são eliminadas antes da geração final.
+
+Os campos administrativos posteriores permanecem integralmente preservados. Após a remoção física das três colunas técnicas, os campos originalmente posteriores deslocam-se para W:AA; nenhum deles é descartado.
 
 Os quatro campos administrativos finais permanecem vazios quando não existe fonte canônica no RADAR. A exportação não inventa conteúdo.
 
-## 4. Mapeamento das contas
+## 4. Projeção do template-fonte
+
+O template versionado `assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx` ainda possui 30 colunas. O renderer não o publica diretamente.
+
+Antes de validar ou preencher a planilha, `src/domain/excel-sme-template-renderer.js` executa uma projeção determinística:
+
+1. valida que as posições 25, 18 e 11 contêm exatamente `SISTEMÁTICA PREENCHIDA`;
+2. remove essas colunas em ordem decrescente, equivalentes a Y, R e K no template-fonte;
+3. valida os 27 cabeçalhos restantes contra o contrato canônico;
+4. reconstrói as linhas usando o cadastro e o estado atual do RADAR;
+5. limita filtro, impressão, bordas e estilos ao intervalo final A:AA.
+
+A validação posicional impede que uma mudança silenciosa no template remova outra coluna por engano.
+
+## 5. Mapeamento das contas
 
 | Conta SME | Programas do RADAR |
 |---|---|
@@ -61,7 +76,7 @@ Os quatro campos administrativos finais permanecem vazios quando não existe fon
 
 O agrupamento preserva ações com saldo ou histórico operacional existentes no sistema.
 
-## 5. Consolidação documental
+## 6. Consolidação documental
 
 Quando mais de um programa consolidado pertence à mesma conta no mesmo mês, cada campo documental segue:
 
@@ -72,64 +87,65 @@ Quando mais de um programa consolidado pertence à mesma conta no mesmo mês, ca
 
 Essa regra evita apresentar uma conta como regular quando uma ação vinculada possui ausência documental.
 
-## 6. Apresentação
+## 7. Apresentação e compatibilidade
 
-O renderer usa ExcelJS 4.4.0 e o template canônico `assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx` para criar uma única planilha com:
+O renderer usa ExcelJS 4.4.0 e produz uma planilha com:
 
-- 30 cabeçalhos literais do documento original;
-- mesclagem `A1:B1`, estilos, bordas, larguras e alturas preservados;
-- textos descritivos alinhados à esquerda com recuo leve;
+- 27 cabeçalhos literais do contrato público;
+- mesclagem `A1:B1`;
+- borda fina completa em todas as células de A1:AA até a última linha exportada;
+- designação gravada como **texto** com formato `@`, evitando interpretação decimal e exibição com `,000`;
+- unidade escolar, parecer e observações alinhados à esquerda, com quebra automática e recuo leve;
 - valores categóricos centralizados;
-- alinhamento vertical e quebra automática coerentes em todas as células;
-- autofiltro e painel congelado em `E2`;
-- impressão em paisagem ajustada à largura;
-- uma única aba, nomeada pelo mês da competência ativa.
+- painel congelado em `E2`;
+- autofiltro de `A1:AA<última linha>`;
+- impressão em paisagem, ajustada à largura e limitada a `A1:AA<última linha>`;
+- uma única aba mensal;
+- ausência de linhas, colunas, fórmulas ou validações ocultas introduzidas pelo renderer.
 
 ### Ausência deliberada de validação de lista
 
-O arquivo **não contém** `dataValidations`.
+O arquivo não contém `dataValidations`.
 
-A validação de lista para `SIM`, `NÃO` e `NÃO SE APLICA` foi removida porque a estrutura provocava reparo no Microsoft Excel. A ausência desse elemento é verificada pela certificação automatizada e não deve ser reintroduzida sem nova implementação OOXML, abertura manual sem reparo e atualização dos testes.
+A validação de lista para `SIM`, `NÃO` e `NÃO SE APLICA` permanece ausente porque a estrutura anterior provocava reparo no Microsoft Excel. Essa ausência é verificada automaticamente e não deve ser revertida sem nova implementação OOXML e abertura manual sem reparo.
 
-Os valores exportados continuam textos estáticos derivados do modelo canônico.
+## 8. Integração de runtime
 
-## 7. Integração de runtime
-
-`src/integration/excel-export-integration.js` insere o botão `Excel SME` entre o botão principal do relatório institucional e o botão secundário `CSV`.
+`src/integration/excel-export-integration.js` reutiliza o mesmo pipeline mensal nos pontos autorizados da interface.
 
 A integração:
 
-- habilita o botão apenas para competência mensal;
-- atualiza estado e `aria-disabled` quando a competência muda;
+- habilita o Excel SME apenas para competência mensal;
+- acompanha a competência global selecionada;
 - impede clique concorrente durante a geração;
 - registra o evento de exportação;
-- mantém o botão idempotente em renderizações tardias;
+- mantém os botões idempotentes em renderizações tardias;
 - não altera o escopo histórico do relatório institucional.
 
-### 7.1 Contrato de publicação do template
+O seletor global mantém rótulo, lista e competência atual. A frase explicativa `A seleção atualiza todas as telas e exportações mensais.` não é renderizada, pois descreve uma regra interna e não integra a interface destinada aos usuários.
 
-`src/integration/excel-sme-runtime-loader.js` carrega sob demanda o caminho absoluto:
+## 9. Contrato de publicação
+
+`src/integration/excel-sme-runtime-loader.js` carrega sob demanda:
 
 ```text
 /assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx
 ```
 
-Consequentemente, o build público da Vercel deve copiar a entrada exata `assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx` para `dist`, preservando o mesmo caminho relativo. A presença de `dist/assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx` é contrato executável de `tests/unit/vercel-build.test.js`.
+O build público da Vercel deve preservar esse caminho e publicar também o manifesto de assets e o ExcelJS versionados por hash. Alterar caminho, nome ou conteúdo exige atualização conjunta do carregador, build, manifesto, testes e smoke do ambiente publicado.
 
-Esse gate protege uma falha que não era detectada pela certificação do conteúdo: o template podia existir e ser válido na árvore do repositório, mas ficar ausente do artefato implantado. Alterar o caminho, o nome do arquivo ou as entradas públicas do build exige atualizar conjuntamente carregador, build, teste e smoke do ambiente publicado.
-
-A entrada pública deve permanecer restrita ao arquivo necessário. A publicação indiscriminada da pasta `assets` somente caberia após revisão expressa do conteúdo e da necessidade operacional.
-
-## 8. Certificação
+## 10. Certificação
 
 A certificação integral compara:
 
 ```text
 competência ativa
-→ modelo SME
-→ colunas e linhas
+→ modelo SME de 27 colunas
+→ projeção do template-fonte
+→ workbook reaberto pelo ExcelJS
 → pacote OOXML
-→ endereço e valor de cada célula
+→ endereços e valores
+→ formatos, bordas, filtro e impressão
 → hash de conteúdo
 ```
 
@@ -137,48 +153,51 @@ Critérios específicos:
 
 - uma única competência;
 - uma única aba;
-- 30 colunas;
+- exatamente 27 colunas;
+- nenhuma coluna `SISTEMÁTICA PREENCHIDA`;
 - quantidade de escolas igual à massa de entrada;
+- designação armazenada como texto;
+- grade completa;
+- filtro e impressão limitados a A:AA;
 - células do cabeçalho e dos dados sem divergência;
 - ausência de `dataValidations`;
 - alteração em outra competência sem impacto no `contentHash`.
 
-Evidência: [`../evidence/excel-certification/synthetic-manifest.json`](../evidence/excel-certification/synthetic-manifest.json).
-
-## 9. Limites
+## 11. Limites da automação
 
 A certificação automatizada:
 
 - usa massa sintética;
-- não consulta Production;
-- não grava no Supabase;
-- não comprova abertura manual no Microsoft Excel desktop;
-- não substitui a verificação de disponibilidade HTTP do template no deployment.
+- não consulta nem grava em Production;
+- não altera Supabase, Auth, RLS ou migrations;
+- reabre o arquivo pelo ExcelJS e inspeciona o OOXML;
+- não substitui a abertura humana do novo candidato no Microsoft Excel desktop.
 
-O candidato correspondente à implementação funcional integrada pelo PR #117 foi aberto no Microsoft Excel desktop sem aviso de reparo, exibiu o conteúdo e teve os alinhamentos revisados. Essa evidência cumpre o gate manual específico do conteúdo do Excel SME; o relatório institucional mantém homologação própria.
+A versão anterior do Excel SME foi confirmada manualmente no Excel desktop sem aviso de reparo. Como esta correção altera estrutura e estilos, o novo candidato deve ser aberto novamente antes do merge.
 
-A disponibilidade operacional ainda exige que o artefato implantado sirva o template com HTTP `200` e que o fluxo real conclua geração e download.
-
-## 10. Contratos protegidos
+## 12. Contratos protegidos
 
 - competência mensal única;
 - uma linha por unidade escolar;
-- 30 colunas literais do template canônico;
-- três agrupamentos de conta;
+- 27 colunas A:AA;
+- remoção exclusiva das posições-fonte K, R e Y;
+- preservação dos campos administrativos posteriores;
+- três agrupamentos de conta, cada um com seis documentos;
 - nenhuma informação inventada;
+- designação textual;
+- grade completa;
 - ausência de `dataValidations`;
 - isolamento temporal;
 - nome da aba, nome do arquivo e dados vinculados à competência ativa;
-- independência do relatório institucional e do CSV de fallback;
-- template canônico presente no artefato público da Vercel;
+- independência do relatório institucional e do CSV;
+- template, manifesto e runtime presentes no artefato público;
 - smoke HTTP e funcional após deployment.
 
-## 11. Referências
+## 13. Referências
 
 - [`excel-integral-certification.md`](excel-integral-certification.md);
 - [`excel-export.md`](excel-export.md);
 - [`excel-xlsx-runtime.md`](excel-xlsx-runtime.md);
 - [`avaliacao-mensal.md`](avaliacao-mensal.md);
 - [`../audits/2026-08-03-hotfix-excel-sme-template-404.md`](../audits/2026-08-03-hotfix-excel-sme-template-404.md);
-- [`../evidence/releases/2026-08-01-excel-sme-production.json`](../evidence/releases/2026-08-01-excel-sme-production.json);
 - [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md).

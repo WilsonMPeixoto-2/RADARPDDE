@@ -132,6 +132,9 @@ function main() {
     }
     const existing = fs.readFileSync(args.output, 'utf8');
     if (existing !== output) {
+      process.stdout.write('--- MANIFESTO EXCEL REGENERADO ---\n');
+      process.stdout.write(output);
+      process.stdout.write('--- FIM DO MANIFESTO EXCEL REGENERADO ---\n');
       throw new Error('O manifesto Excel regenerado diverge da evidência versionada.');
     }
     process.stdout.write(`Manifesto Excel reproduzido: ${path.relative(ROOT, args.output)}\n`);

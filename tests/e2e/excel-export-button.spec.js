@@ -2,6 +2,7 @@ const fs = require('node:fs/promises');
 const ExcelJS = require('exceljs');
 const { test, expect } = require('@playwright/test');
 const modelApi = require('../../src/domain/excel-sme-export-model.js');
+const renderer = require('../../src/domain/excel-sme-template-renderer.js');
 
 async function openDownloadedWorkbook(download) {
   expect(await download.failure()).toBeNull();
@@ -87,15 +88,25 @@ test.describe('ações institucionais de geração do Excel', () => {
 
     expect(workbook.worksheets).toHaveLength(1);
     expect(worksheet.name).toBe('JULHO');
-    expect(worksheet.columnCount).toBe(30);
+    expect(worksheet.columnCount).toBe(27);
 
     const headers = modelApi.ORIGINAL_HEADER_LABELS.map((expected, index) => (
       expected === '' ? '' : (worksheet.getRow(1).getCell(index + 1).value || '')
     ));
-    expect(headers).toEqual(modelApi.ORIGINAL_HEADER_LABELS);
+    const expectedHeaders = modelApi.ORIGINAL_HEADER_LABELS.map(label => (
+      label ? renderer.formatHeaderLabel(label) : ''
+    ));
+    expect(headers).toEqual(expectedHeaders);
+    expect(headers).not.toContain('SISTEMÁTICA PREENCHIDA');
     expect(worksheet.getCell('A1').isMerged).toBe(true);
     expect(worksheet.getCell('B1').isMerged).toBe(true);
-    expect(worksheet.autoFilter).toBe(`A1:AD${expectedSchoolCount + 1}`);
+    expect(worksheet.getRow(1).height).toBe(105);
+    expect(worksheet.getCell('F1').alignment).toEqual({
+      horizontal: 'center',
+      vertical: 'middle',
+      wrapText: true
+    });
+    expect(worksheet.autoFilter).toBe(`A1:AA${expectedSchoolCount + 1}`);
     expect(worksheet.views[0]).toMatchObject({
       state: 'frozen',
       xSplit: 4,
@@ -105,13 +116,24 @@ test.describe('ações institucionais de geração do Excel', () => {
 
     const designations = [];
     for (let rowNumber = 2; rowNumber <= worksheet.rowCount; rowNumber += 1) {
-      const designation = String(worksheet.getCell(rowNumber, 3).value || '').replace(/\D/g, '');
+      const designationCell = worksheet.getCell(rowNumber, 3);
+      const designation = String(designationCell.value || '').replace(/\D/g, '');
       if (!designation) continue;
+      expect(typeof designationCell.value).toBe('string');
+      expect(designationCell.numFmt).toBe('@');
       expect(String(worksheet.getCell(rowNumber, 4).value || '').trim()).not.toBe('');
       designations.push(designation);
     }
     expect(designations).toHaveLength(expectedSchoolCount);
     expect(new Set(designations).size).toBe(designations.length);
+
+    for (const address of ['A1', 'AA1', 'A2', 'AA2']) {
+      const border = worksheet.getCell(address).border;
+      expect(border.left?.style).toBe('thin');
+      expect(border.right?.style).toBe('thin');
+      expect(border.top?.style).toBe('thin');
+      expect(border.bottom?.style).toBe('thin');
+    }
   });
 
   test('repete o template após 404 inicial e conclui o download sem recarregar a página', async ({ page }, testInfo) => {

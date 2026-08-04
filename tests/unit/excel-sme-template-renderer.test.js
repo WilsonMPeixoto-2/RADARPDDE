@@ -74,16 +74,20 @@ test('parte do template original e entrega somente a aba mensal solicitada', asy
     assert.equal(bytes[1], 0x4B);
     assert.equal(workbook.worksheets.length, 1);
     assert.equal(worksheet.name, 'DEZEMBRO');
-    assert.equal(worksheet.columnCount, 30);
+    assert.equal(worksheet.columnCount, 27);
 });
 
-test('preserva textos, mesclagem e larguras sem reintroduzir validações incompatíveis', async () => {
+test('preserva conteúdo, mesclagem e larguras sem reintroduzir validações incompatíveis', async () => {
     const { model, worksheet } = await generate();
 
     const headers = model.columns.map((column, index) => (
         column.mergedHeader ? '' : (worksheet.getRow(1).getCell(index + 1).value || '')
     ));
-    assert.deepEqual(headers, modelApi.ORIGINAL_HEADER_LABELS);
+    const expectedHeaders = modelApi.ORIGINAL_HEADER_LABELS.map(label => (
+        label ? renderer.formatHeaderLabel(label) : ''
+    ));
+    assert.deepEqual(headers, expectedHeaders);
+    assert.equal(headers.includes('SISTEMÁTICA PREENCHIDA'), false);
     assert.equal(worksheet.getCell('A1').isMerged, true);
     assert.equal(worksheet.getCell('B1').isMerged, true);
     assert.equal(worksheet.getColumn(4).width, 60.28515625);
@@ -92,29 +96,16 @@ test('preserva textos, mesclagem e larguras sem reintroduzir validações incomp
 
 test('dá respiro aos campos descritivos sem perder alinhamento vertical e quebra de texto', async () => {
     const { worksheet } = await generate();
-
-    assert.deepEqual(worksheet.getCell('D2').alignment, {
+    const expected = {
         horizontal: 'left',
         vertical: 'middle',
         wrapText: true,
         indent: 1
-    });
-    assert.deepEqual(worksheet.getCell('AD2').alignment, {
-        horizontal: 'left',
-        vertical: 'middle',
-        wrapText: true,
-        indent: 1
-    });
-});
+    };
 
-test('centraliza o parecer como valor categórico', async () => {
-    const { worksheet } = await generate();
-
-    assert.deepEqual(worksheet.getCell('AC2').alignment, {
-        horizontal: 'center',
-        vertical: 'middle',
-        wrapText: true
-    });
+    assert.deepEqual(worksheet.getCell('D2').alignment, expected);
+    assert.deepEqual(worksheet.getCell('Z2').alignment, expected);
+    assert.deepEqual(worksheet.getCell('AA2').alignment, expected);
 });
 
 test('usa o cadastro atual como fonte de verdade para as colunas A a D', async () => {
@@ -122,7 +113,8 @@ test('usa o cadastro atual como fonte de verdade para as colunas A a D', async (
 
     assert.equal(worksheet.getCell('A2').value, 1);
     assert.equal(worksheet.getCell('B2').value, '4ª');
-    assert.equal(worksheet.getCell('C2').value, 410001);
+    assert.equal(worksheet.getCell('C2').value, '04.10.001');
+    assert.equal(worksheet.getCell('C2').numFmt, '@');
     assert.equal(worksheet.getCell('D2').value, 'EM CADASTRO ATUALIZADO');
 });
 
@@ -132,10 +124,9 @@ test('traduz os dados do RADAR sem preencher campos administrativos sem fonte', 
     assert.equal(worksheet.getCell('E2').value, 'SIM');
     assert.equal(worksheet.getCell('F2').value, 'SIM');
     assert.equal(worksheet.getCell('G2').value, 'NÃO SE APLICA');
-    assert.equal(worksheet.getCell('K2').value, 'SIM');
-    assert.equal(worksheet.getCell('Z2').value, 'APTA');
+    assert.equal(worksheet.getCell('W2').value, 'APTA');
     assert.deepEqual(
-        ['AA2', 'AB2', 'AC2', 'AD2'].map(address => worksheet.getCell(address).value || ''),
+        ['X2', 'Y2', 'Z2', 'AA2'].map(address => worksheet.getCell(address).value || ''),
         ['', '', '', '']
     );
 });
@@ -152,18 +143,30 @@ test('remove valores cadastrais obsoletos e dimensiona navegação pela lista at
         }
     }
 
-    assert.deepEqual(populatedDesignations, ['410001']);
+    assert.deepEqual(populatedDesignations, ['04.10.001']);
     assert.equal(worksheet.getCell('C3').value, null);
     assert.equal(view.state, 'frozen');
     assert.equal(view.xSplit, 4);
     assert.equal(view.ySplit, 1);
     assert.equal(view.topLeftCell, 'E2');
-    assert.equal(worksheet.autoFilter, 'A1:AD2');
+    assert.equal(worksheet.autoFilter, 'A1:AA2');
     assert.equal(worksheet.pageSetup.orientation, 'landscape');
     assert.equal(worksheet.pageSetup.fitToWidth, 1);
     assert.equal(worksheet.pageSetup.fitToHeight, 0);
-    assert.equal(worksheet.pageSetup.printArea, 'A1:AD2');
+    assert.equal(worksheet.pageSetup.printArea, 'A1:AA2');
     assert.equal(worksheet.pageSetup.printTitlesRow, '1:1');
+});
+
+test('aplica bordas finas em todo o intervalo exportável', async () => {
+    const { worksheet } = await generate();
+
+    for (const address of ['A1', 'K1', 'AA1', 'A2', 'K2', 'AA2']) {
+        const border = worksheet.getCell(address).border;
+        assert.equal(border.left?.style, 'thin');
+        assert.equal(border.right?.style, 'thin');
+        assert.equal(border.top?.style, 'thin');
+        assert.equal(border.bottom?.style, 'thin');
+    }
 });
 
 test('bloqueia template com designações duplicadas em vez de sobrescrever linhas', async () => {
