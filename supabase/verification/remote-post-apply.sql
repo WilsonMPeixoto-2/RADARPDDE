@@ -26,7 +26,8 @@ declare
         '202607220002',
         '202607230001',
         '20260723043129',
-        '20260728182226'
+        '20260728182226',
+        '202608040001'
     ];
     v_actual text[];
     v_missing_extensions text[];
@@ -72,11 +73,22 @@ begin
         raise exception 'TEAM_ACCOUNT_RPC_EXPOSED_TO_AUTHENTICATED';
     end if;
 
+    if to_regprocedure('radar_private.production_integrity_check()') is null
+       or to_regprocedure('public.production_integrity_check()') is null then
+        raise exception 'PRODUCTION_INTEGRITY_CONTRACT_MISSING';
+    end if;
+
+    if has_function_privilege('anon', 'public.production_integrity_check()', 'EXECUTE')
+       or has_function_privilege('authenticated', 'public.production_integrity_check()', 'EXECUTE')
+       or not has_function_privilege('service_role', 'public.production_integrity_check()', 'EXECUTE') then
+        raise exception 'PRODUCTION_INTEGRITY_PRIVILEGES_INVALID';
+    end if;
 
     if (select prosecdef from pg_proc where oid = 'public.current_app_role()'::regprocedure)
        or (select prosecdef from pg_proc where oid = 'public.can_access_school(text)'::regprocedure)
        or (select prosecdef from pg_proc where oid = 'public.can_write_school(text)'::regprocedure)
-       or (select prosecdef from pg_proc where oid = 'public.delete_invoice_with_effects(text,integer,boolean,integer,jsonb,integer,jsonb)'::regprocedure) then
+       or (select prosecdef from pg_proc where oid = 'public.delete_invoice_with_effects(text,integer,boolean,integer,jsonb,integer,jsonb)'::regprocedure)
+       or (select prosecdef from pg_proc where oid = 'public.production_integrity_check()'::regprocedure) then
         raise exception 'PUBLIC_SECURITY_DEFINER_STILL_EXPOSED';
     end if;
 
