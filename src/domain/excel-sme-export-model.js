@@ -12,7 +12,7 @@
         throw new Error('As regras canônicas do fluxo operacional não foram carregadas.');
     }
 
-    const VERSION = '2.0.0';
+    const VERSION = '2.1.0';
     const DOCUMENT_KEYS = Object.freeze([
         'extCC',
         'extINV',
@@ -193,6 +193,43 @@
         return text(school.cre || school.coordenadoria || school.regional || '4ª CRE');
     }
 
+    function normalizeDesignationKey(value) {
+        const digits = text(value).replace(/\D/g, '');
+        if (digits) return digits;
+        return normalizeToken(value).replace(/\s+/g, '');
+    }
+
+    function assertUniqueSchoolDesignations(schools = []) {
+        const seen = new Map();
+        schools.forEach(school => {
+            const designation = getSchoolDesignation(school);
+            const designationKey = normalizeDesignationKey(designation);
+            if (!designationKey) {
+                throw createError(
+                    'SME_MISSING_DESIGNATION',
+                    'Uma unidade escolar não possui designação válida para o Excel SME.',
+                    { schoolId: text(school?.id) || null }
+                );
+            }
+            const previous = seen.get(designationKey);
+            if (previous) {
+                throw createError(
+                    'SME_DUPLICATE_DESIGNATION',
+                    `A designação ${designation} aparece mais de uma vez no cadastro do Excel SME.`,
+                    {
+                        designationKey,
+                        firstSchoolId: text(previous.id) || null,
+                        secondSchoolId: text(school?.id) || null,
+                        firstDesignation: getSchoolDesignation(previous),
+                        secondDesignation: designation
+                    }
+                );
+            }
+            seen.set(designationKey, school);
+        });
+        return true;
+    }
+
     function accountColumns(programKey, startColumn) {
         const columns = DOCUMENT_KEYS.map((documentKey, index) => ({
             key: `${programKey.toLowerCase()}_${documentKey}`,
@@ -307,6 +344,7 @@
         if (!schools.length) {
             throw createError('NO_SME_SCHOOLS', 'Não há unidades escolares carregadas para gerar o Excel SME.');
         }
+        assertUniqueSchoolDesignations(schools);
         const programs = Array.isArray(input.programas) ? input.programas : [];
         const state = {
             verificacoes: input.verificacoes && typeof input.verificacoes === 'object'
@@ -382,10 +420,12 @@
         PROGRAM_KEYS,
         VERSION,
         aggregateSmeValues,
+        assertUniqueSchoolDesignations,
         buildColumns,
         buildSmeMonthlyModel,
         collectProgramContexts,
         designationSortKey,
+        normalizeDesignationKey,
         normalizeSmeValue,
         parseCompetence,
         resolveProgramKey,
