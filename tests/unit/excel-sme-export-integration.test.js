@@ -49,6 +49,31 @@ function state(activeCompetenciaKey = '2026-07') {
     };
 }
 
+function createSelect(value, options = {}) {
+    return {
+        value,
+        hidden: options.hidden === true,
+        style: {
+            display: options.display || '',
+            visibility: options.visibility || ''
+        },
+        dataset: {},
+        getAttribute(name) {
+            if (name === 'aria-hidden') return options.ariaHidden ? 'true' : null;
+            return null;
+        }
+    };
+}
+
+function documentWithSelects(selects = []) {
+    return {
+        querySelectorAll(selector) {
+            assert.match(selector, /radar-sme-competence|changeSMEMonth/);
+            return selects;
+        }
+    };
+}
+
 test('cria artefato SME mensal independente do Excel institucional', () => {
     const rendererApi = { async downloadWorkbook() {} };
     const artifacts = integration.createSmeExportArtifacts(
@@ -103,7 +128,7 @@ test('executa download pelo renderer exclusivo do Excel SME', async () => {
     assert.equal(received.options.fileName, 'RADAR_PDDE_EXCEL_SME_07-2026.xlsx');
 });
 
-test('normaliza TODAS para o mês visível antes de gerar o Excel SME', async () => {
+test('resolve TODAS somente pelo único seletor SME visível', async () => {
     let received = null;
     const rendererApi = {
         async downloadWorkbook(model, options) {
@@ -111,11 +136,15 @@ test('normaliza TODAS para o mês visível antes de gerar o Excel SME', async ()
             return { fileName: options.fileName, bytes: new Uint8Array([0x50, 0x4B]) };
         }
     };
-    const document = {
-        querySelector() {
-            return { value: '2026-07' };
-        }
-    };
+    const select = createSelect('2026-07');
+    const document = documentWithSelects([select]);
+
+    const resolution = integration.resolveSmeCompetence(state('TODAS'), document);
+    assert.deepEqual(
+        { ok: resolution.ok, competenceKey: resolution.competenceKey, code: resolution.code },
+        { ok: true, competenceKey: '2026-07', code: null }
+    );
+    assert.equal(select.dataset.radarSmeCompetence, 'true');
 
     const result = await integration.exportSmeXlsx({
         state: state('TODAS'),
@@ -125,19 +154,75 @@ test('normaliza TODAS para o mês visível antes de gerar o Excel SME', async ()
 
     assert.equal(result.ok, true);
     assert.equal(received.model.sheetName, 'JULHO');
-    assert.equal(received.options.fileName, 'RADAR_PDDE_EXCEL_SME_07-2026.xlsx');
 });
 
-test('resolve competência mensal pela interface e pela lista de competências', () => {
-    const document = {
-        querySelector() {
-            return { value: '2026-07' };
+test('não usa a primeira competência cadastrada como fallback', () => {
+    const resolution = integration.resolveSmeCompetence(state('TODAS'), documentWithSelects([]));
+
+    assert.equal(resolution.ok, false);
+    assert.equal(resolution.competenceKey, null);
+    assert.equal(resolution.code, 'SME_INVALID_COMPETENCE');
+});
+
+test('ignora seletor oculto e bloqueia competência não confirmada', () => {
+    const resolution = integration.resolveSmeCompetence(
+        state('TODAS'),
+        documentWithSelects([createSelect('2026-07', { display: 'none' })])
+    );
+
+    assert.equal(resolution.ok, false);
+    assert.equal(resolution.code, 'SME_INVALID_COMPETENCE');
+});
+
+test('bloqueia quando há mais de um seletor SME visível', () => {
+    const resolution = integration.resolveSmeCompetence(
+        state('TODAS'),
+        documentWithSelects([createSelect('2026-05'), createSelect('2026-07')])
+    );
+
+    assert.equal(resolution.ok, false);
+    assert.equal(resolution.code, 'SME_COMPETENCE_AMBIGUOUS');
+});
+
+test('bloqueia divergência entre estado mensal e seletor visível', async () => {
+    let rendererCalls = 0;
+    const rendererApi = {
+        async downloadWorkbook() {
+            rendererCalls += 1;
         }
     };
+    const document = documentWithSelects([createSelect('2026-05')]);
+    const resolution = integration.resolveSmeCompetence(state('2026-07'), document);
 
-    assert.equal(integration.resolveSmeCompetence(state('TODAS'), document), '2026-07');
-    assert.equal(integration.resolveSmeCompetence(state('TODAS'), null), '2026-05');
-    assert.equal(integration.resolveSmeCompetence(state('2026-07'), document), '2026-07');
+    assert.equal(resolution.ok, false);
+    assert.equal(resolution.code, 'SME_COMPETENCE_MISMATCH');
+
+    const result = await integration.exportSmeXlsx({
+        state: state('2026-07'),
+        document,
+        dependencies: { modelApi, rendererApi }
+    });
+
+    assert.equal(result.ok, false);
+    assert.equal(result.error.code, 'SME_COMPETENCE_MISMATCH');
+    assert.equal(rendererCalls, 0);
+});
+
+test('normalização permanece pura e nunca altera a competência global', () => {
+    let changeCalls = 0;
+    const previous = globalThis.changeSMEMonth;
+    globalThis.changeSMEMonth = () => { changeCalls += 1; };
+    try {
+        const normalized = integration.normalizeSmeState(
+            state('TODAS'),
+            documentWithSelects([createSelect('2026-07')])
+        );
+        assert.equal(normalized.activeCompetenciaKey, '2026-07');
+        assert.equal(changeCalls, 0);
+    } finally {
+        if (previous === undefined) delete globalThis.changeSMEMonth;
+        else globalThis.changeSMEMonth = previous;
+    }
 });
 
 test('reconhece somente competências mensais válidas', () => {
