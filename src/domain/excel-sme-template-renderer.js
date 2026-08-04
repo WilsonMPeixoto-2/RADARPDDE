@@ -5,11 +5,12 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, function (root) {
     'use strict';
 
-    const VERSION = '3.2.0';
+    const VERSION = '3.3.0';
     const FIRST_DATA_ROW = 2;
     const FIRST_MONTHLY_COLUMN = 5;
     const LAST_COLUMN = 27;
     const LAST_COLUMN_LETTER = 'AA';
+    const HEADER_ROW_HEIGHT = 105;
     const TEMPLATE_SHEET_NAME = 'DEZEMBRO';
     const SOURCE_SYSTEMATIC_COLUMNS = Object.freeze([25, 18, 11]);
     const THIN_BORDER = Object.freeze({ style: 'thin' });
@@ -73,6 +74,10 @@
         if (!digits) return '';
         const numeric = Number.parseInt(digits, 10);
         return Number.isSafeInteger(numeric) ? String(numeric) : digits.replace(/^0+/, '');
+    }
+
+    function formatHeaderLabel(value) {
+        return String(value == null ? '' : value).trim().replace(/\s+/g, ' ');
     }
 
     function cloneValue(value) {
@@ -170,6 +175,21 @@
                 'O template do Excel SME perdeu a mesclagem canônica CRE em A1:B1.'
             );
         }
+    }
+
+    function formatHeaderRow(worksheet, model) {
+        const header = worksheet.getRow(1);
+        header.height = HEADER_ROW_HEIGHT;
+        model.columns.forEach((column, index) => {
+            if (column.mergedHeader) return;
+            const cell = header.getCell(index + 1);
+            cell.value = formatHeaderLabel(column.label);
+            applyCellAlignment(cell, {
+                horizontal: 'center',
+                vertical: 'middle',
+                wrapText: true
+            });
+        });
     }
 
     function assertUniqueTemplateDesignations(worksheet) {
@@ -302,6 +322,7 @@
             activeCell: 'E2'
         }];
         const finalRow = Math.max(FIRST_DATA_ROW, FIRST_DATA_ROW + model.rows.length - 1);
+        formatHeaderRow(worksheet, model);
         applyBodyAlignments(worksheet, model, finalRow);
         applyGridBorders(worksheet, finalRow);
         worksheet.autoFilter = `A1:${LAST_COLUMN_LETTER}${finalRow}`;
@@ -427,6 +448,7 @@
     return Object.freeze({
         FIRST_DATA_ROW,
         FIRST_MONTHLY_COLUMN,
+        HEADER_ROW_HEIGHT,
         LAST_COLUMN,
         LAST_COLUMN_LETTER,
         SOURCE_SYSTEMATIC_COLUMNS,
@@ -439,6 +461,7 @@
         formatCre,
         formatDenomination,
         formatDesignation,
+        formatHeaderLabel,
         normalizeDesignation,
         projectTemplateToOriginalColumns,
         renderWorkbook
