@@ -18,6 +18,7 @@ const buildOutputUrl = pathToFileURL(
 const verifierUrl = pathToFileURL(
     path.join(projectRoot, 'scripts/verify-excel-sme-template.mjs')
 ).href;
+const guardPath = 'src/integration/excel-export-bootstrap-guard.js';
 
 async function createTemporaryLayout(context) {
     const temporaryRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'radar-vercel-build-'));
@@ -66,10 +67,15 @@ async function startStaticServer(context, staticDirectory) {
             }
 
             const body = await fs.readFile(candidate);
+            const contentType = relativePath.endsWith('.xlsx')
+                ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                : relativePath.endsWith('.json')
+                    ? 'application/json; charset=utf-8'
+                    : relativePath.endsWith('.js')
+                        ? 'application/javascript; charset=utf-8'
+                        : 'application/octet-stream';
             response.writeHead(200, {
-                'content-type': relativePath.endsWith('.xlsx')
-                    ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                    : 'application/octet-stream',
+                'content-type': contentType,
                 'content-length': String(body.length)
             });
             response.end(body);
@@ -88,11 +94,19 @@ async function startStaticServer(context, staticDirectory) {
     return `http://127.0.0.1:${address.port}`;
 }
 
-test('gera .vercel/output/static com template XLSX válido e configuração v3', async context => {
+test('gera .vercel/output/static com template, manifesto, guard e configuração v3', async context => {
     const { result, outputDirectory } = await buildTemporaryOutput(context);
     const config = JSON.parse(
         await fs.readFile(path.join(outputDirectory, 'config.json'), 'utf8')
     );
+    const indexHtml = await fs.readFile(
+        path.join(result.staticDirectory, 'index.html'),
+        'utf8'
+    );
+    const assetManifest = JSON.parse(await fs.readFile(
+        path.join(result.staticDirectory, 'excel-sme-assets.json'),
+        'utf8'
+    ));
 
     assert.equal(config.version, 3);
     assert.ok(config.routes.some(route => route.handle === 'filesystem'));
@@ -104,11 +118,15 @@ test('gera .vercel/output/static com template XLSX válido e configuração v3',
     assert.equal(result.templateVerification.signature, 'PK\\x03\\x04');
     assert.ok(result.templateVerification.entryCount > 0);
     assert.ok(result.templateVerification.worksheetCount > 0);
-    await fs.access(path.join(result.staticDirectory, 'index.html'));
+    assert.equal(assetManifest.schemaVersion, 1);
+    assert.match(assetManifest.template.sha256, /^[0-9a-f]{64}$/);
+    assert.match(assetManifest.exceljs.sha256, /^[0-9a-f]{64}$/);
+    assert.match(indexHtml, /excel-export-bootstrap-guard\.js/);
+    await fs.access(path.join(result.staticDirectory, guardPath));
     await fs.access(result.templatePath);
 });
 
-test('serve o caminho público exato do template com HTTP 200 e pacote OOXML íntegro', async context => {
+test('serve template, manifesto e guard pelos caminhos públicos exatos', async context => {
     const { result } = await buildTemporaryOutput(context);
     const baseUrl = await startStaticServer(context, result.staticDirectory);
     const { fetchExcelSmeTemplate } = await import(verifierUrl);
@@ -116,6 +134,10 @@ test('serve o caminho público exato do template com HTTP 200 e pacote OOXML ín
     const verification = await fetchExcelSmeTemplate(
         `${baseUrl}/assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx`
     );
+    const manifestResponse = await fetch(`${baseUrl}/excel-sme-assets.json`);
+    const guardResponse = await fetch(`${baseUrl}/${guardPath}`);
+    const manifest = await manifestResponse.json();
+    const guardSource = await guardResponse.text();
 
     assert.equal(verification.status, 200);
     assert.equal(verification.signature, 'PK\\x03\\x04');
@@ -125,6 +147,10 @@ test('serve o caminho público exato do template com HTTP 200 e pacote OOXML ín
         verification.contentType,
         /application\/vnd\.openxmlformats-officedocument\.spreadsheetml\.sheet/u
     );
+    assert.equal(manifestResponse.status, 200);
+    assert.equal(manifest.schemaVersion, 1);
+    assert.equal(guardResponse.status, 200);
+    assert.match(guardSource, /RadarExcelExportBootstrapGuard/);
 });
 
 test('recusa apagar destino que não seja .vercel/output em área segura', async context => {
