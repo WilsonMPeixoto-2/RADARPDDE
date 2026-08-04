@@ -16,21 +16,18 @@ const ORIGINAL_HEADERS = Object.freeze([
     'CONSULTA ASSESSORIA (NO CASO DE PRESTAÇÃO DE SERVIÇOS)           BÁSICO',
     'DECLARAÇÃO BB ÁGIL (CASO TENHA DESPESAS A SEREM LANÇADAS)                 BÁSICO',
     'ENCAMINHADO P/ INVENTARIAÇÃO (AQUISIÇÃO COM A NATUREZA DE CAPITAL)               BÁSICO',
-    'SISTEMÁTICA PREENCHIDA',
     'EXTRATO CONTA CORRENTE (DO MÊS FECHADO)                QUALIDADE',
     ' EXTRATO INVESTIMENTO (DO MÊS FECHADO)               QUALIDADE',
     'NOTAS FISCAIS     (CASO TENHA EFETUADO DESPESA)              QUALIDADE',
     'CONSULTA ASSESSORIA (NO CASO DE PRESTAÇÃO DE SERVIÇOS)          QUALIDADE',
     'DECLARAÇÃO BB ÁGIL (CASO TENHA DESPESAS A SEREM LANÇADAS)                 QUALIDADE',
     'ENCAMINHADO P/ INVENTARIAÇÃO (AQUISIÇÃO COM A NATUREZA DE CAPITAL)               QUALIDADE',
-    'SISTEMÁTICA PREENCHIDA',
     'EXTRATO CONTA CORRENTE (DO MÊS FECHADO)                EQUIDADE',
     ' EXTRATO INVESTIMENTO (DO MÊS FECHADO)               EQUIDADE',
     'NOTAS FISCAIS     (CASO TENHA EFETUADO DESPESA)              EQUIDADE',
     'CONSULTA ASSESSORIA (NO CASO DE PRESTAÇÃO DE SERVIÇOS)          EQUIDADE',
     'DECLARAÇÃO BB ÁGIL (CASO TENHA DESPESAS A SEREM LANÇADAS)                 EQUIDADE',
     'ENCAMINHADO P/ INVENTARIAÇÃO (AQUISIÇÃO COM A NATUREZA DE CAPITAL)               EQUIDADE',
-    'SISTEMÁTICA PREENCHIDA',
     'STATUS',
     'DATA DA ENTREGA DE DOCUMENTOS',
     'DATA DA CORREÇÃO DOS DOCUMENTOS ENVIADOS',
@@ -113,12 +110,13 @@ function state() {
     };
 }
 
-test('preserva literalmente as trinta colunas do modelo original', () => {
+test('preserva literalmente as vinte e sete colunas do arquivo original', () => {
     const model = modelApi.buildSmeMonthlyModel(state());
 
-    assert.equal(model.columns.length, 30);
+    assert.equal(model.columns.length, 27);
     assert.deepEqual(model.columns.map(column => column.label), ORIGINAL_HEADERS);
     assert.equal(model.columns[0].mergeAcross, 2);
+    assert.equal(model.columns.some(column => column.label === 'SISTEMÁTICA PREENCHIDA'), false);
 });
 
 test('mantém lançamentos parciais e traduz campos ausentes sem inventar valores', () => {
@@ -128,9 +126,9 @@ test('mantém lançamentos parciais e traduz campos ausentes sem inventar valore
         modelApi.DOCUMENT_KEYS.map(key => row[`qualidade_${key}`]),
         ['NÃO', 'SIM', 'SIM', 'NÃO SE APLICA', 'SIM', 'NÃO SE APLICA']
     );
-    assert.equal(row.basic_systematic, 'SIM');
-    assert.equal(row.qualidade_systematic, 'NÃO');
-    assert.equal(row.equidade_systematic, '');
+    assert.equal(Object.hasOwn(row, 'basic_systematic'), false);
+    assert.equal(Object.hasOwn(row, 'qualidade_systematic'), false);
+    assert.equal(Object.hasOwn(row, 'equidade_systematic'), false);
     assert.deepEqual(
         [row.deliveryDate, row.correctionDate, row.opinion, row.notes],
         ['', '', '', '']
