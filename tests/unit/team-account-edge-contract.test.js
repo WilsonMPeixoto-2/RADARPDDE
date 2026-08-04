@@ -27,6 +27,18 @@ test('Edge Function concentra o ciclo administrativo de Auth fora do navegador',
     assert.match(source, /deactivate_inventory_member_account/);
 });
 
+test('recupera vínculo Auth preexistente quando o diretório legado perdeu user_id', () => {
+    assert.match(source, /async function linkedProfileUserId/);
+    assert.match(source, /\.from\("user_profiles"\)/);
+    assert.match(source, /controller_id/);
+    assert.match(source, /inventory_member_id/);
+    assert.match(source, /async function resolveMemberUserId/);
+    assert.match(source, /diretório e perfil apontam para contas diferentes/);
+    assert.match(source, /recoveredLink/);
+    assert.match(source, /await resolveMemberUserId\([\s\S]*existing\?\.user_id/);
+    assert.match(source, /await resolveMemberUserId\([\s\S]*existing\.user_id/);
+});
+
 test('falhas de compensação são detectadas e não são ignoradas silenciosamente', () => {
     assert.match(source, /COMPENSATION_FAILED/);
     assert.match(source, /removeInvitedUser/);
