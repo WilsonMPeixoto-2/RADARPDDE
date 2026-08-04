@@ -7,6 +7,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '..');
 const previewBuildPath = 'scripts/build-vercel.mjs';
 const corsPolicyPath = 'supabase/functions/_shared/cors-policy.mjs';
+const integrityMigrationPath = 'supabase/migrations/202608040001_production_integrity_monitor.sql';
 const requiredFiles = Object.freeze([
     'src/application/team-account-gateway.js',
     'supabase/migrations/202607190001_team_management_auth_alignment.sql',
@@ -22,6 +23,7 @@ const requiredFiles = Object.freeze([
     'supabase/migrations/202607230001_enable_pgtap_remote_validation.sql',
     'supabase/migrations/20260723043129_security_and_rls_hardening.sql',
     'supabase/migrations/20260728182226_sme_access_governance.sql',
+    integrityMigrationPath,
     'supabase/functions/_shared/team-account-domain.mjs',
     corsPolicyPath,
     'supabase/functions/team-account-management/index.ts',
@@ -30,6 +32,11 @@ const requiredFiles = Object.freeze([
     'supabase/tests/database/verification-rpc.test.sql',
     'supabase/tests/database/operational-command-rpc.test.sql',
     'supabase/tests/database/sme-access-governance.test.sql',
+    'supabase/tests/database/production-integrity-monitor.test.sql',
+    'scripts/check-production-data-integrity.mjs',
+    '.github/workflows/production-data-integrity.yml',
+    'tests/unit/production-data-integrity.test.js',
+    'tests/unit/production-data-integrity-workflow.test.js',
     'src/domain/access-policy.js',
     previewBuildPath,
     'tests/unit/vercel-preview-workflow.test.js',
@@ -127,6 +134,23 @@ function check() {
         }
     });
 
+    const integrityMigration = read(integrityMigrationPath);
+    [
+        /function radar_private\.production_integrity_check\(\)[\s\S]*security definer/i,
+        /function public\.production_integrity_check\(\)[\s\S]*security invoker/i,
+        /revoke all on function public\.production_integrity_check\(\) from anon/i,
+        /revoke all on function public\.production_integrity_check\(\) from authenticated/i,
+        /grant execute on function public\.production_integrity_check\(\) to service_role/i,
+        /'schemaVersion',\s*1/i,
+        /'totalIssues'/i,
+        /active_controllers_without_user_id/i,
+        /linked_invoice_asset_context_mismatch/i
+    ].forEach(pattern => {
+        if (!pattern.test(integrityMigration)) {
+            findings.push(`Auditoria de integridade de Production incompleta: ${pattern}`);
+        }
+    });
+
     const authGate = read('src/integration/auth-gate.js');
     if (/technical_admin\s*:\s*['"]assistente['"]/.test(authGate)) {
         findings.push('Administrador técnico ainda herda o perfil da Assistente.');
@@ -199,8 +223,8 @@ function check() {
 
     const migrationCount = fs.readdirSync(path.join(root, 'supabase/migrations'))
         .filter(name => name.endsWith('.sql')).length;
-    if (migrationCount !== 25) {
-        findings.push(`Conjunto final deve conter 25 migrations; encontrado: ${migrationCount}.`);
+    if (migrationCount !== 26) {
+        findings.push(`Conjunto final deve conter 26 migrations; encontrado: ${migrationCount}.`);
     }
 
     return [...new Set(findings)];
