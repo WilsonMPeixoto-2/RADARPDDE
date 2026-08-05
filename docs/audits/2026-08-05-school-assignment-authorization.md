@@ -21,10 +21,17 @@ A manutenção autorizada por `postgres` ou `service_role` permanece disponível
 
 ## Evidência
 
+- a etapa RED falhou exclusivamente porque o serviço e a interface ainda permitiam a troca;
+- 573 testes unitários aprovados após a implementação;
+- 7 testes de integração aprovados;
 - teste unitário negativo para Controlador;
 - teste unitário positivo para Assistente;
 - contrato estático da interface;
-- pgTAP negativo e positivo da RPC;
+- aplicação limpa das 27 migrations aprovada em PostgreSQL descartável;
+- pgTAP negativo e positivo da RPC incluído na suíte Supabase;
+- gate final atualizado para exigir a migration, o trigger e o teste específico;
 - nenhuma alteração de dados reais durante a homologação.
 
-A migration somente será aplicada em Production após aprovação integral dos gates e integração do PR.
+## Estado remoto
+
+Production permanece com 26 migrations aplicadas enquanto este PR estiver aberto. A migration somente será aplicada após aprovação integral dos gates, integração do PR e conferência do histórico remoto.
