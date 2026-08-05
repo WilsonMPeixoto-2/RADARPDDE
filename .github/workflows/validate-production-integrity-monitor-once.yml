@@ -1,0 +1,44 @@
+name: Validar monitor permanente de integridade — execução única
+
+on:
+  push:
+    branches:
+      - ops/apply-production-integrity-20260805
+    paths:
+      - '.github/workflows/validate-production-integrity-monitor-once.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      SUPABASE_TELEMETRY_DISABLED: '1'
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PGPASS_REMOTE: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      PROJECT_REF: scnryinorqeucbfkioxo
+
+    steps:
+      - name: Obter exatamente a branch candidata
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: fix/production-integrity-schedule-20260805
+          persist-credentials: false
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+
+      - name: Vincular Production
+        run: npx --no-install supabase link --project-ref "${PROJECT_REF}" --password "${PGPASS_REMOTE}"
+
+      - name: Executar exatamente a prova SQL permanente
+        run: npx --no-install supabase db query --linked --file supabase/verification/production-integrity-health.sql
