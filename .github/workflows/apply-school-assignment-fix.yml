@@ -1,0 +1,92 @@
+name: Aplicar correção autorizativa de escola
+
+on:
+  push:
+    branches:
+      - fix/school-assignment-authorization-20260805
+    paths:
+      - .github/workflows/apply-school-assignment-fix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: fix/school-assignment-authorization-20260805
+          fetch-depth: 0
+      - name: Aplicar alterações mínimas
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+              file = Path(path)
+              text = file.read_text(encoding='utf-8')
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{path}: esperado 1 trecho, encontrado {count}')
+              file.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          replace_once(
+              'src/application/school-service.js',
+              "            this.createDenomination = options.createDenomination || (() => `Nova Unidade Escolar ${Math.floor(Math.random() * 100)}`);\n            if (!this.dataService || typeof this.dataService.execute !== 'function'",
+              "            this.createDenomination = options.createDenomination || (() => `Nova Unidade Escolar ${Math.floor(Math.random() * 100)}`);\n            this.getCurrentProfile = options.getCurrentProfile || (() => '');\n            if (!this.dataService || typeof this.dataService.execute !== 'function'"
+          )
+
+          replace_once(
+              'src/application/school-service.js',
+              "                    const existing = input.id ? state.schools.find(item => item.id === input.id) : null;\n                    if (input.id && !existing) fail('NOT_FOUND', 'Escola não localizada.', 'saveSchool');\n                    persistence.expectedSchoolVersion = existing ? rowVersionOf(existing) : null;",
+              "                    const existing = input.id ? state.schools.find(item => item.id === input.id) : null;\n                    if (input.id && !existing) fail('NOT_FOUND', 'Escola não localizada.', 'saveSchool');\n                    const currentProfile = text(this.getCurrentProfile()).toLocaleLowerCase('pt-BR');\n                    if (existing\n                        && controllerId !== text(existing.controladorId)\n                        && currentProfile !== 'assistente') {\n                        fail(\n                            'AUTHORIZATION_DENIED',\n                            'A redistribuição de carteira é exclusiva do Assistente de Verbas Federais.',\n                            'saveSchool'\n                        );\n                    }\n                    persistence.expectedSchoolVersion = existing ? rowVersionOf(existing) : null;"
+          )
+
+          replace_once(
+              'tests/unit/school-service.test.js',
+              "        getState: () => state,\n        appendLog: (action, details) => state.logs.unshift({ action, details }),",
+              "        getState: () => state,\n        getCurrentProfile: () => 'assistente',\n        appendLog: (action, details) => state.logs.unshift({ action, details }),"
+          )
+
+          replace_once(
+              'app.js',
+              "    const dependencies = {\n        dataService: radarDataService,\n        getState,\n        appendLog: appendRadarLog\n    };",
+              "    const dependencies = {\n        dataService: radarDataService,\n        getState,\n        getCurrentProfile: getRadarAccessProfile,\n        appendLog: appendRadarLog\n    };"
+          )
+
+          replace_once(
+              'app.js',
+              "function openEscolaEditModal(escolaId) {\n    if (!['assistente', 'controlador'].includes(getRadarAccessProfile())) return false;\n    const selectCtrl = document.getElementById('edit-controlador');\n    selectCtrl.innerHTML = getActiveControllers().map(c => `",
+              "function openEscolaEditModal(escolaId) {\n    if (!['assistente', 'controlador'].includes(getRadarAccessProfile())) return false;\n    const canManageControllerAssignment = getRadarAccessProfile() === 'assistente';\n    if (!escolaId && !canManageControllerAssignment) return false;\n    const selectCtrl = document.getElementById('edit-controlador');\n    selectCtrl.disabled = !canManageControllerAssignment;\n    selectCtrl.setAttribute('aria-disabled', canManageControllerAssignment ? 'false' : 'true');\n    selectCtrl.title = canManageControllerAssignment\n        ? 'Selecione o controlador responsável pela unidade.'\n        : 'A redistribuição de carteira é exclusiva da Gestão de Equipe.';\n    selectCtrl.innerHTML = getActiveControllers().map(c => `"
+          )
+
+          app_path = Path('app.js')
+          app = app_path.read_text(encoding='utf-8')
+          start = app.index('async function saveEscolaEdit(e) {')
+          end = app.index('// 16.4 Registrar Novo Bem de Capital', start)
+          segment = app[start:end]
+          old_header = "    const id = document.getElementById('edit-escola-id').value;\n    const sici = document.getElementById('edit-sici').value.trim();"
+          new_header = "    const id = document.getElementById('edit-escola-id').value;\n    const existingSchool = id ? escolas.find(item => item.id === id) : null;\n    const existingControllerId = existingSchool?.controladorId || '';\n    const canManageControllerAssignment = getRadarAccessProfile() === 'assistente';\n    const sici = document.getElementById('edit-sici').value.trim();"
+          if segment.count(old_header) != 1:
+              raise SystemExit('app.js: cabeçalho de saveEscolaEdit não encontrado de forma única')
+          segment = segment.replace(old_header, new_header, 1)
+          if segment.count('            controllerId: ctrlId,') != 1:
+              raise SystemExit('app.js: payload controllerId não encontrado de forma única')
+          segment = segment.replace(
+              '            controllerId: ctrlId,',
+              '            controllerId: canManageControllerAssignment ? ctrlId : existingControllerId,',
+              1
+          )
+          app_path.write_text(app[:start] + segment + app[end:], encoding='utf-8')
+          PY
+      - name: Remover workflow temporário e publicar
+        shell: bash
+        run: |
+          git rm .github/workflows/apply-school-assignment-fix.yml
+          git add app.js src/application/school-service.js tests/unit/school-service.test.js
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "fix: bloquear redistribuição pela edição cadastral"
+          git push origin HEAD:fix/school-assignment-authorization-20260805
