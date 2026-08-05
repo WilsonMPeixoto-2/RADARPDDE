@@ -1,35 +1,39 @@
 # Cadeia de carregamento das extensões de produto
 
 **Estado:** vigente  
-**Atualizado em:** 29 de julho de 2026
+**Atualizado em:** 5 de agosto de 2026
 
 ## 1. Finalidade
 
-Registrar a cadeia efetiva das extensões que precisam executar depois de `app.js`, quando as funções e coleções globais do núcleo legado já estão disponíveis.
+Registrar a cadeia que executa depois de `app.js`, quando funções e coleções do núcleo estão disponíveis. Complementa [`frontend-load-order.md`](frontend-load-order.md).
 
-Este documento complementa [`frontend-load-order.md`](frontend-load-order.md). O primeiro descreve as camadas gerais e as extensões declaradas por `config.js`; este descreve especificamente o bootstrap pós-`app.js`.
+As integrações estáticas `view-transitions.js`, `global-search.js` e `floating-ui-bootstrap.js` também são carregadas após `app.js`, mas não pertencem ao bootstrap de timeline e navegação contextual descrito aqui.
 
-## 2. Motivação
+## 2. Pré-requisitos
 
-Timeline e navegação contextual dependem de elementos produzidos por:
+Timeline e navegação contextual dependem de:
 
 - `app.js`;
-- autenticação e política de rotas;
-- `RadarNavigationHistory`;
-- renderizadores do Prontuário, Carteira e Pendências;
-- contexto global de competência.
+- Auth gate e perfil aplicado;
+- política e histórico de rotas;
+- renderizadores de Prontuário, Carteira e Pendências;
+- competência global.
 
-Esses módulos não podem ser antecipados para a fase estática sem quebrar seus pré-requisitos. Também não devem criar carregadores concorrentes.
+Não podem ser antecipadas para a fase de domínio inicial nem criar carregador concorrente.
 
-## 3. Cadeia efetiva
+## 3. Cadeia
 
 ```text
 index.html
 → app.js
+→ view-transitions.js
+→ global-search.js
+→ floating-ui-bootstrap.js
 → auth-gate.js
 → navigation-bootstrap.js
 → navigation-policy.js
 → navigation-routes.js
+→ navigation-history.js
 → product-extensions-bootstrap.js
    ├─ school-timeline.css
    ├─ src/domain/school-timeline.js
@@ -39,130 +43,99 @@ index.html
       └─ src/integration/navigation-context.js
 ```
 
-`navigation-routes.js` injeta `product-extensions-bootstrap.js` uma única vez.
+A cadeia de navegação é instalada de forma idempotente pelo bootstrap acionado após o Auth gate.
 
-## 4. Promessas de readiness
+## 4. Readiness
 
-### 4.1 Extensões de produto
+### Extensões de produto
 
 ```javascript
 window.RadarProductExtensionsReady
 ```
 
-Resolve para:
-
-- `true`, quando os scripts declarados no vetor do bootstrap foram carregados;
-- `false`, quando uma extensão falhou, preservando a aplicação principal.
-
-A falha é registrada em:
+Resolve `true` quando os scripts carregam e `false` em degradação segura. A falha fica em:
 
 ```javascript
 window.RADAR_LAST_PRODUCT_EXTENSION_ERROR
 ```
 
-### 4.2 Navegação contextual
+### Navegação contextual
 
 ```javascript
 window.RadarNavigationContextReady
 ```
 
-O bootstrap aguarda até dez segundos pela instalação de `RadarNavigationHistory`. Em seguida, carrega `navigation-context.js` e instala a integração.
-
-Falha ou timeout resolvem para `false` e registram:
+Aguarda `RadarNavigationHistory`, carrega a integração e registra falha em:
 
 ```javascript
 window.RADAR_LAST_CONTEXTUAL_NAVIGATION_ERROR
 ```
 
-A timeline permanece independente da conclusão da navegação contextual.
+Timeline e aplicação principal permanecem disponíveis se a navegação contextual falhar.
 
 ## 5. Idempotência
 
-Marcadores vigentes:
+Marcadores:
 
-- `data-radar-product-bootstrap` — bootstrap pós-`app.js`;
-- `data-radar-product-style` — folhas de estilo;
-- `data-radar-product-script` — scripts do vetor ordenado;
-- `data-radar-navigation-context` — script contextual;
-- `__radarSchoolTimelineIntegrationInstalled` — integração da timeline;
-- `__radarTimelineWrapped` — wrapper de `renderProntuario`;
-- `__radarNavigationContextInstalled` — integração contextual;
-- `RadarProductExtensionsReady` e `RadarNavigationContextReady` — promessas únicas.
+- `data-radar-product-bootstrap`;
+- `data-radar-product-style`;
+- `data-radar-product-script`;
+- `data-radar-navigation-context`;
+- `__radarSchoolTimelineIntegrationInstalled`;
+- `__radarTimelineWrapped`;
+- `__radarNavigationContextInstalled`;
+- promessas únicas de readiness.
 
-Repetir a inicialização não pode duplicar estilos, scripts, observadores, wrappers ou botões.
+Repetição não pode duplicar estilos, scripts, observadores, wrappers ou botões.
 
 ## 6. Ordem interna
 
-O vetor atual de scripts em `product-extensions-bootstrap.js` é:
+`product-extensions-bootstrap.js` carrega sequencialmente:
 
 1. `/src/domain/school-timeline.js`;
 2. `/src/integration/school-timeline.js`;
 3. `/src/integration/navigation-context-bootstrap.js`.
 
-Cada script usa `async = false` e é aguardado pela redução sequencial de promessas. O módulo contextual carregado pelo último bootstrap também usa `async = false`.
+Os scripts usam `async = false` e são aguardados em sequência. O módulo contextual somente instala após o histórico de navegação.
 
-A ordem garante que:
+## 7. Wrappers
 
-- o domínio da timeline exista antes de sua integração;
-- a timeline envolva o Prontuário antes ou depois dos wrappers de rota sem recursão;
-- a navegação contextual somente seja instalada após o histórico canônico.
-
-## 7. Composição de wrappers
-
-Timeline e navegação podem envolver renderizadores em ordens relativas distintas. Cada integração deve:
+Cada integração deve:
 
 1. capturar a função anterior;
-2. instalar um único wrapper;
-3. preservar retorno, argumentos e efeitos do estágio anterior;
-4. atualizar o vínculo global;
-5. impedir recursão por marcador próprio.
+2. instalar uma única camada;
+3. preservar argumentos, retorno e efeitos;
+4. atualizar a referência global;
+5. impedir recursão;
+6. não criar rota ou estado paralelo.
 
-Nenhuma extensão substitui as rotas canônicas nem cria fonte paralela de estado.
+## 8. Renderização segura
 
-## 8. Segurança de renderização
+Timeline e retorno contextual usam criação explícita de elementos, `textContent`, atributos e `dataset` controlados. Conteúdo operacional não deve ser interpolado diretamente em HTML.
 
-Timeline e botão contextual usam DOM seguro:
+## 9. Degradação
 
-- `document.createElement`;
-- `textContent`;
-- `append`, `appendChild` e `replaceChildren`;
-- atributos e `dataset` controlados.
+Se a extensão falhar:
 
-Não utilizar `innerHTML` com conteúdo operacional.
+- Auth, rotas e núcleo continuam disponíveis;
+- nenhuma escrita remota é disparada;
+- Prontuário original permanece utilizável;
+- erro fica disponível para diagnóstico;
+- não há troca silenciosa de repositório.
 
-## 9. Degradação segura
+## 10. Verificação
 
-Se uma extensão falhar:
+Mudança exige:
 
-- autenticação, rotas e aplicação principal continuam disponíveis;
-- nenhuma escrita remota é disparada pelo bootstrap;
-- o Prontuário original permanece utilizável;
-- o erro fica disponível para diagnóstico;
-- a falha não autoriza fallback silencioso para outra persistência.
+- `npm run test:readiness`;
+- unitários dos módulos tocados;
+- precedência do frontend;
+- E2E das superfícies;
+- desktop, Android e iPhone;
+- Lighthouse;
+- ausência de `pageerror`;
+- inspeção de scripts, wrappers e observadores duplicados.
 
-## 10. Verificação obrigatória
+## 11. Evolução
 
-Mudanças nesta cadeia exigem:
-
-1. `npm run test:readiness`;
-2. testes unitários dos domínios tocados;
-3. E2E das superfícies envolvidas;
-4. `npm run audit:frontend-precedence:check`;
-5. `npm run test:frontend-precedence`;
-6. Playwright desktop, Android e iPhone;
-7. Lighthouse mobile e desktop;
-8. confirmação de ausência de `pageerror`;
-9. inspeção de duplicidade de scripts, wrappers e observadores.
-
-## 11. Regra de evolução
-
-Novas extensões pós-`app.js` devem entrar no vetor ordenado existente e possuir:
-
-- pré-requisito global documentado;
-- API ou marcador de conclusão;
-- inicialização idempotente;
-- degradação segura;
-- testes de ordem e integração;
-- documentação da interação com wrappers existentes.
-
-Novo carregador concorrente exige ADR e prova de que o bootstrap atual não atende ao requisito.
+Nova extensão pós-`app.js` deve declarar pré-requisitos, marcador de conclusão, idempotência, degradação, interação com wrappers e testes de ordem. Novo carregador concorrente exige ADR.
