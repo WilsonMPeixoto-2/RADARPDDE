@@ -89,7 +89,6 @@ jobs:
       RADAR_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.RADAR_SUPABASE_SERVICE_ROLE_KEY }}
       RADAR_ALLOW_REMOTE_HOMOLOGATION: 'true'
       RADAR_E2E_SUPABASE_REMOTE: '1'
-      RADAR_HML_FIXTURE_FILE: ${{ runner.temp }}/radar-hml-users.json
 
     steps:
       - name: Obter código
@@ -133,6 +132,7 @@ jobs:
           echo "::add-mask::${password}"
           echo "RADAR_HML_PASSWORD=${password}" >> "${GITHUB_ENV}"
           echo "RADAR_HML_RUN_ID=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "${GITHUB_ENV}"
+          echo "RADAR_HML_FIXTURE_FILE=${RUNNER_TEMP}/radar-hml-users.json" >> "${GITHUB_ENV}"
 
       - name: Criar identidades temporárias e perfis funcionais
         run: node scripts/ops/prepare-remote-homologation-users.mjs
