@@ -1,25 +1,24 @@
 # Ordem de carregamento e precedência do frontend
 
 **Estado:** vigente  
-**Atualizado em:** 29 de julho de 2026
+**Atualizado em:** 5 de agosto de 2026
 
 ## 1. Finalidade
 
-Registrar o contrato atual de carregamento do RADAR PDDE antes de reordenar, fundir, excluir ou renomear scripts e folhas de estilo.
+Registrar a ordem efetiva de scripts, estilos e bootstraps antes de mover, fundir, remover ou renomear recursos.
 
 A aplicação combina:
 
-1. recursos estáticos declarados em `index.html`;
-2. extensões ordenadas carregadas por `config.js`;
-3. loader Excel assíncrono;
-4. autenticação e rotas canônicas;
-5. extensões de produto pós-`app.js`.
+1. CSS e scripts estáticos do `index.html`;
+2. configuração pública e validação fail-closed;
+3. extensões ordenadas de `config.js`;
+4. domínio, persistência e serviços;
+5. núcleo `app.js`;
+6. integrações modernas pós-núcleo;
+7. Auth gate, navegação e extensões de produto;
+8. runtime Excel assíncrono e recuperável.
 
-## 2. Fontes reproduzíveis
-
-O manifesto em [`../evidence/frontend-precedence/manifest.json`](../evidence/frontend-precedence/manifest.json) representa a linha de base gerada pelo analisador na data de sua última regeneração. Ele não deve ser tratado como inventário eterno quando `index.html`, `config.js` ou os bootstraps mudarem.
-
-Comandos canônicos:
+## 2. Verificação reproduzível
 
 ```bash
 npm run audit:frontend-precedence
@@ -27,42 +26,16 @@ npm run audit:frontend-precedence:check
 npm run test:frontend-precedence
 ```
 
-Após mudança estrutural, o manifesto deve ser regenerado pelo script. Não editar números manualmente para aparentar alinhamento.
+O manifesto em `docs/evidence/frontend-precedence/manifest.json` é gerado. Não editar contagens manualmente.
 
-## 3. Visão geral atual
+## 3. CSS
 
-```mermaid
-flowchart TD
-    HTML["index.html"] --> CSS0["styles.css + shared-interactions.css"]
-    HTML --> STATIC["scripts estáticos síncronos"]
-    STATIC --> CONFIG["config.runtime.js + config.js"]
-    CONFIG --> CSSX["extensões CSS ordenadas"]
-    CONFIG --> ORDERED["extensões JS com async=false"]
-    CONFIG --> EXCEL["load-excel-export.js com async=true"]
-    STATIC --> APP["app.js"]
-    APP --> AUTH["auth-gate.js"]
-    AUTH --> ROUTES["bootstrap, policy, routes e history"]
-    ROUTES --> PRODUCT["product-extensions-bootstrap.js"]
-    PRODUCT --> TIMELINE["timeline"]
-    PRODUCT --> CONTEXT["navigation-context-bootstrap.js"]
-    CONTEXT --> NAVCTX["navigation-context.js"]
-    EXCEL --> XLSX["modelos e renderers Excel"]
-```
-
-A ordem relativa entre o loader Excel e alguns scripts síncronos não é usada como contrato. Os filhos do loader permanecem sequenciais depois do evento `load`.
-
-## 4. Folhas de estilo
-
-### 4.1 Estáticas
-
-`index.html` declara:
+### Estático
 
 1. `styles.css`;
 2. `src/styles/shared-interactions.css`.
 
-### 4.2 Extensões declaradas por `config.js`
-
-Ordem atual:
+### Inserido por `config.js`
 
 1. `src/styles/mobile-responsive.css`;
 2. `src/styles/mobile-rendering-hotfix.css`;
@@ -75,33 +48,101 @@ Ordem atual:
 9. `src/styles/cycle-b-dashboard-final.css`;
 10. `src/styles/painel-controlador-expressiva.css`.
 
-### 4.3 Extensões pós-`app.js`
+### Extensões de produto
 
-`product-extensions-bootstrap.js` carrega:
+`product-extensions-bootstrap.js` adiciona `src/styles/school-timeline.css`.
 
-- `src/styles/school-timeline.css`.
+Repetição de seletor não prova conflito. Consolidação exige computed styles e regressão visual nos breakpoints.
 
-A posição posterior participa da cascata. Download concluído fora de ordem não altera a posição do link no documento.
+## 4. Scripts estáticos antes de `app.js`
 
-## 5. Colisões CSS
+Ordem declarada em `index.html`:
 
-Repetição de seletor não é defeito automático. A auditoria considera:
+### Domínio inicial
 
-```text
-contexto condicional + seletor exato + propriedade
-```
+1. `src/domain/competencia.js`;
+2. `src/domain/estatisticas.js`;
+3. `src/domain/fluxo-operacional.js`;
+4. `src/domain/pendencias.js`;
+5. `src/domain/access-policy.js`;
+6. `src/domain/global-search-index.js`;
+7. `src/domain/retificacoes.js`, já marcado para deduplicação.
 
-Regras:
+### Configuração
 
-- seletores em media queries diferentes não são a mesma ocorrência;
-- especificidade, herança e ordem ainda podem afetar elementos mesmo sem colisão exata;
-- `cycle-b-dashboard-final.css` complementa e não substitui `cycle-b-dashboard.css`;
-- arquivos mobile não devem ser fundidos sem comparação de computed styles e capturas nos breakpoints vigentes;
-- o novo arquivo do painel expressivo deve ser incluído em qualquer regeneração do manifesto.
+8. `config.runtime.js`;
+9. `config.js`.
 
-## 6. Scripts ordenados por `config.js`
+`config.js` valida ambiente, modo de dados, URL e chave publicável, bloqueia chave administrativa e registra extensões antes do bootstrap da aplicação.
 
-Depois da deduplicação por `data-radar-extension`, `config.js` declara com `async = false`:
+### Cliente e persistência
+
+10. `vendor/supabase-client.js`;
+11. `src/data/repository-contract.js`;
+12. `vendor/ajv.js`;
+13. `src/domain/json-contracts.js`;
+14. `src/application/error-mapper.js`;
+15. `src/auth/session-service.js`;
+16. `src/integration/auth-bootstrap.js`;
+17. `src/data/local-storage-repository.js`;
+18. `src/data/supabase-repository.js`;
+19. `src/data/repository-factory.js`;
+20. `src/data/snapshot-tools.js`;
+21. `src/data/import-coordinator.js`;
+22. `src/data/legacy-state-adapter.js`;
+23. `src/data/state-bridge.js`;
+24. `src/data/state-bridge-metadata.js`.
+
+### Aplicação
+
+25. `src/application/state-port.js`;
+26. `src/application/unit-of-work.js`;
+27. `src/application/data-service.js`;
+28. `src/application/configuration-service.js`;
+29. `src/application/directory-service.js`;
+30. `src/application/school-service.js`;
+31. `src/application/pendency-service.js`;
+32. `src/application/verification-service.js`;
+33. `src/application/audit-service.js`;
+34. `src/application/invoice-service.js`;
+35. `src/application/inventory-service.js`;
+36. `src/integration/shared-interactions.js`.
+
+### Núcleo
+
+37. `app.js`.
+
+## 5. Integrações estáticas pós-`app.js`
+
+38. `src/integration/view-transitions.js`;
+39. `src/integration/global-search.js`;
+40. `src/integration/floating-ui-bootstrap.js`;
+41. `src/integration/auth-gate.js`.
+
+### View Transitions
+
+- envolve navegação principal iniciada pelo usuário;
+- respeita `prefers-reduced-motion`;
+- não anima montagem inicial;
+- degrada para navegação normal.
+
+### Busca global
+
+- usa `global-search-index.js` já carregado;
+- carrega Fuse.js sob demanda;
+- mantém fallback funcional;
+- respeita o universo autorizado.
+
+### Floating UI
+
+- carrega o bundle local sob demanda;
+- posiciona menus e resultados com fallback;
+- fecha por Escape ou clique externo;
+- restaura foco.
+
+## 6. Extensões ordenadas por `config.js`
+
+Scripts inseridos com `async = false`:
 
 1. `src/domain/pendencias-view-model.js`;
 2. `src/domain/operational-projection.js`;
@@ -121,75 +162,74 @@ Depois da deduplicação por `data-radar-extension`, `config.js` declara com `as
 16. `src/integration/exercise-early-init.js`;
 17. `src/integration/painel-controlador-expressiva.js`.
 
-`retificacoes.js` também possui marcador no HTML legado. A deduplicação impede segunda execução.
+A marca `data-radar-extension` impede duplicação de `retificacoes.js`.
 
-## 7. Composição de wrappers
+## 7. Runtime Excel
 
-A ordem é funcionalmente relevante quando módulos capturam APIs globais anteriores.
+`config.js` insere `src/integration/load-excel-export.js` com `async = true`.
 
-Exemplos vigentes:
+O bootstrap Excel versão 2.0.0 mantém estado `idle/loading/ready/failed`, timeout de 15 segundos, remoção de script fracassado e retry.
 
-- ações de pendência envolvem `renderPendencias` e `openPendencyDetail`;
-- acessibilidade envolve `openModal` e `closeModal`;
-- cross-view envolve `renderCompetencias`;
-- retificações envolvem `renderProntuario`, `toggleBonif` e `toggleConsEnviada`;
-- Carteira e Dashboard envolvem seus renderizadores e filtros;
-- competência de alertas envolve `getAlerts`;
-- gestão de exercícios envolve `renderSMEConfig`;
-- timeline e navegação contextual compõem wrappers pós-`app.js`.
+Módulos sequenciais:
 
-Mover um módulo antes do escritor de sua dependência pode capturar `undefined` ou substituir comportamento anterior.
+1. `/src/domain/excel-export-model.js`;
+2. `/src/domain/excel-workbook-plan.js`;
+3. `/src/domain/excel-xlsx-renderer.js`;
+4. `/src/domain/excel-sme-export-model.js`;
+5. `/src/domain/excel-sme-template-renderer.js`;
+6. `/src/domain/excel-sme-monthly-renderer.js`;
+7. `/src/integration/excel-sme-runtime-loader.js`;
+8. `/src/integration/excel-export-integration.js`.
 
-## 8. Loader Excel
+Um `<script>` existente somente é aceito se o contrato global esperado estiver pronto. Falha, timeout ou contrato inválido remove o elemento e permite nova tentativa.
 
-`src/integration/load-excel-export.js` usa `async = true` e inicia os módulos Excel após `load`.
+## 8. Auth, rotas e extensões de produto
 
-O contrato é:
+Após `auth-gate.js`, a cadeia de navegação instala política, rotas, histórico e extensões pós-núcleo. O detalhe permanece em [`product-extensions-load-order.md`](product-extensions-load-order.md).
 
-1. loader único;
-2. filhos carregados sequencialmente;
-3. modelo institucional e modelo SME disponíveis antes das integrações correspondentes;
-4. nenhum CDN ou dependência remota no runtime;
-5. falha explícita sem substituir silenciosamente o CSV.
-
-A certificação integral executa os renderers reais fora do bundle do navegador e está descrita em [`excel-integral-certification.md`](excel-integral-certification.md).
-
-## 9. Extensões pós-`app.js`
-
-A cadeia detalhada está em [`product-extensions-load-order.md`](product-extensions-load-order.md).
-
-Ordem resumida:
+Resumo:
 
 ```text
-navigation-routes.js
-→ product-extensions-bootstrap.js
+auth-gate
+→ navigation bootstrap/policy/routes/history
+→ product-extensions-bootstrap
 → timeline
-→ navigation-context-bootstrap.js
-→ navigation-context.js
+→ navigation-context-bootstrap
+→ navigation-context
 ```
 
-Essa cadeia possui promessas de readiness, marcadores idempotentes e degradação segura.
+A aplicação operacional permanece inerte até a autorização terminar.
+
+## 9. Composição de wrappers
+
+Módulos podem envolver renderizadores globais. Cada wrapper deve:
+
+- capturar a função anterior;
+- instalar uma única camada;
+- preservar argumentos, retorno e efeitos;
+- marcar idempotência;
+- evitar recursão;
+- não criar estado paralelo.
+
+Ordem incorreta pode capturar `undefined`, perder comportamento ou duplicar observadores.
 
 ## 10. Polling e observadores
 
-Polling limitado e `MutationObserver` fazem parte da compatibilidade atual com conteúdo produzido pelo núcleo legado. Removê-los exige:
+`MutationObserver` e polling limitado sustentam compatibilidade com renderização tardia do núcleo. Remoção exige entrypoint explícito equivalente e testes de duplicidade, foco e responsividade.
 
-- entrypoint explícito equivalente;
-- prova de que todos os pré-requisitos continuam disponíveis;
-- teste de ausência de duplicidade e recursão;
-- validação de foco, renderização tardia e responsividade.
+## 11. Regras para mudança
 
-## 11. Regras para alterações futuras
+1. não mover módulo antes de sua dependência;
+2. não remover marcador de deduplicação sem inventário de consumidores;
+3. não fundir CSS por repetição textual;
+4. não tornar o loader Excel síncrono sem medir bootstrap;
+5. não criar carregador concorrente sem ADR;
+6. atualizar manifesto e este documento quando a ordem mudar;
+7. executar readiness, precedência, E2E, mobile e Lighthouse;
+8. verificar `pageerror`, scripts duplicados, wrappers e observadores;
+9. confirmar assets no artefato Vercel;
+10. registrar evidência no mesmo SHA.
 
-1. não mover ações de pendência antes da página-base de Pendências;
-2. não remover `retificacoes.js` do HTML sem validar deduplicação e consumidores;
-3. não excluir `cycle-b-dashboard.css` por causa do arquivo `final`;
-4. não fundir folhas mobile apenas por repetição de seletor;
-5. não transformar o loader Excel em síncrono sem medir o carregamento;
-6. acrescentar extensões pós-`app.js` ao bootstrap existente;
-7. reexecutar auditoria, baseline visual, E2E e Lighthouse das superfícies tocadas;
-8. regenerar o manifesto quando o conjunto efetivo mudar.
+## 12. Limites
 
-## 12. Limites da auditoria estática
-
-O analisador não substitui inspeção visual. Seletores diferentes podem atingir o mesmo elemento por especificidade, herança ou ordem. Qualquer consolidação CSS exige computed styles e evidência visual antes/depois.
+A auditoria estática não substitui execução. Especificidade, herança, ordem de resolução assíncrona e wrappers somente são comprovados por inspeção de runtime e testes das superfícies afetadas.

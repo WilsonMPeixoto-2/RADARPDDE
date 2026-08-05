@@ -1,251 +1,299 @@
 # RADAR PDDE — Estado atual do projeto
 
-- **Atualizado em:** 3 de agosto de 2026
-- **Deployment Production vigente:** `dpl_2Sgq4LJKvSvXro81EYwFJHYEHHqp` — `READY`
-- **Commit funcional publicado:** `f72a1471023f00eec0bc615c192fd25f5c29a920`
-- **Projeto Supabase autorizado:** `scnryinorqeucbfkioxo` — `ACTIVE_HEALTHY`
+- **Atualizado em:** 5 de agosto de 2026
+- **`main` vigente:** `f812e5dbf3aaa18fb9851948445b0820ac7a5435`
+- **Deployment Production:** `dpl_7G3Wmh1YiV4c4aXVwe2P5tN7N7Y4` — `READY`
+- **Commit publicado:** `f812e5dbf3aaa18fb9851948445b0820ac7a5435`
+- **Projeto Vercel:** `radarpdde-fix`
+- **Supabase:** `scnryinorqeucbfkioxo` — `ACTIVE_HEALTHY`
+- **PostgreSQL:** `17.6.1.147`
+- **Migrations em Production:** 25
+- **Competência de fechamento:** `2026-12`
+- **`app_config.row_version`:** 20
+- **Edge Function:** `team-account-management`, versão 95, `ACTIVE`, JWT obrigatório
 - **Runtime Production:** `supabase-production`
-- **Migrations correspondentes:** 25
 - **Node.js:** `24.x`
-- **Playwright validado:** `1.62.0`
-- **Supabase CLI:** `2.110.0`
-- **Incidente funcional aberto:** Excel SME retorna `404` em Production; correção no PR `#133`
-- **Deployment automático:** bloqueado fora de janela controlada
-- **Roadmap canônico:** `docs/ROADMAP_ATUALIZACOES_2026.md`
+- **Deployment automático:** controlado por configuração do repositório e monitorado após `push` na `main`
+- **Incidente funcional aberto:** nenhum incidente funcional conhecido confirmado nesta data de corte
+- **PR funcional em andamento:** nº 141, rascunho, auditoria contínua de integridade dos dados
 
-## 1. Como usar este documento
+## 1. Função deste documento
 
-Este arquivo controla o estágio corrente, os ambientes e a próxima sequência. O portfólio completo de atualizações técnicas e funcionais está em `docs/ROADMAP_ATUALIZACOES_2026.md`.
+Este arquivo controla o estágio corrente, o que está efetivamente integrado e publicado, as frentes ainda abertas e a ordem de execução recomendada.
 
 Antes de iniciar qualquer tarefa:
 
-1. consultar a `main` e os PRs abertos;
-2. confirmar o deployment e o SHA efetivamente publicados;
-3. confirmar Supabase, migrations e estado remoto quando a tarefa depender dessas camadas;
-4. ler o roadmap, o contexto do projeto e o registro de decisões;
-5. verificar se a frente anterior foi concluída, bloqueada, adiada ou substituída;
-6. avaliar se atualização, instalação ou capacidade moderna permite resultado materialmente melhor;
-7. executar os gates correspondentes ao impacto real, sem reduzir os pisos vigentes;
-8. atualizar os documentos canônicos no mesmo ciclo de mudança material.
+1. conferir a `main` remota e os PRs abertos;
+2. confirmar deployment, target e SHA publicados;
+3. confirmar Supabase, migrations, Edge Functions e dados mutáveis quando relevantes;
+4. verificar a documentação canônica e as decisões vigentes;
+5. distinguir recurso implementado, publicado, comprovado e ainda pendente;
+6. identificar todas as camadas atravessadas pela ação do usuário;
+7. criar regressão antes de corrigir falha reproduzida;
+8. manter branch e PR isolados;
+9. não realizar merge ou alteração de Production sem autorização expressa.
 
-Código, ambientes efetivos e evidências reproduzíveis prevalecem sobre memória de chat, planos históricos e afirmações antigas.
+Código e ambientes efetivos prevalecem sobre memória de chat, planos ou evidências antigas.
 
 ## 2. Situação executiva
 
-A integração entre frontend, Supabase Auth, PostgREST, RLS, PostgreSQL e Vercel Production está ativa.
+O RADAR PDDE opera com frontend estático na Vercel e Supabase Production como backend canônico. Auth, PostgREST, RLS, RPCs, Edge Function e PostgreSQL participam dos fluxos operacionais.
 
-### 2.1 Produto e infraestrutura concluídos
+O sistema possui ampla cobertura automatizada, mas os erros recentes demonstraram que uma função visualmente presente pode falhar em outra camada:
 
-- governança de acesso da Gestão SME;
+- o Excel SME existia, porém o template não estava corretamente servido no deployment e o runtime possuía fragilidades de recuperação;
+- a Gestão de Equipe existia, porém o preflight CORS falhava antes de a ação alcançar a Edge Function, e vínculos Auth históricos exigiam reconciliação.
+
+A prioridade atual é transformar a confiabilidade ponta a ponta em contrato permanente por perfil, tela e operação.
+
+## 3. Funcionalidades publicadas
+
+### 3.1 Núcleo operacional
+
 - competência global de janeiro a dezembro de 2026;
-- avaliação mensal canônica;
-- timeline cronológica da unidade;
+- avaliação mensal por escola, competência e programa;
+- dashboards por perfil;
+- Carteira, Competências, Prontuário e timeline;
+- pendências, tentativas, contatos, reanálise, cancelamento e reabertura;
+- notas fiscais e bens vinculados;
+- encaminhamento e inventariação;
+- registros administrativos e autoria;
+- busca inteligente;
 - navegação contextual;
-- correção de desempenho do login e da restauração de sessão;
-- relatório institucional XLSX;
-- motor, modelo e template do Excel SME homologados no Microsoft Excel desktop;
-- Node.js fixado em `24.x`;
-- gate remoto de cinco papéis em três viewports;
-- backup e restauração em duas pilhas Supabase descartáveis;
-- reconciliação do histórico da migration SME;
-- bloqueio automático de deployment restaurado.
+- desktop, Android e iPhone.
 
-A homologação do conteúdo do Excel SME permanece válida. O incidente atual é de empacotamento: o deployment vigente não contém `assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx`, impedindo que o navegador carregue o template antes da geração.
+### 3.2 Gestão SME
 
-### 2.2 Rodadas de atualização
+A governança de acesso está integrada e publicada. O perfil possui consulta gerencial e configurações autorizadas, com restrições cumulativas sobre análise técnica, pendências operacionais e logs de terceiros.
 
-| Rodada | Estado | Resultado principal | Production |
-|---|---|---|---|
-| **0** | concluída | workflow do Excel SME e integridade de referências dos workflows | não exigida |
-| **1** | concluída | ESLint 10.8.0, Acorn 8.18.0 e `actions/checkout` 7.0.1 | ferramentas internas |
-| **2** | concluída e publicada | busca inteligente, Floating UI e View Transitions | deployment vigente |
-| **3B** | concluída | Supabase CLI 2.110.0 e compatibilidade do backup/restauração | não exigida |
-| **4A** | concluída | roadmap canônico e evolução tecnológica proativa | não exigida |
-| **4B** | validada no PR `#128` | Playwright 1.62.0 e navegadores correspondentes | não exigida |
+As configurações de programas precisam ser confirmadas como regra de produto antes de nova alteração, pois sua implementação atual existe no frontend e no Supabase, mas havia decisão anterior de tratar essa frente separadamente.
 
-### 2.3 Hotfix do template Excel SME
+### 3.3 Excel SME
 
-Diagnóstico confirmado em 3 de agosto de 2026:
+Estado final publicado após os PRs nº 136 e 137:
 
-- o runtime solicita `/assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx`;
-- o arquivo existe na `main`;
-- o build Vercel copiava apenas `index.html`, `app.js`, `config.js`, `styles.css`, `src` e `vendor`;
-- o artefato publicado não continha o template;
-- a URL canônica do template retorna HTTP `404` em Production.
+- botão disponível nas superfícies autorizadas, inclusive dashboard da Assistente;
+- competência mensal resolvida de forma estrita;
+- carregamento resiliente do motor e do template;
+- manifesto de assets e hashes;
+- arquivo de 27 colunas A:AA;
+- remoção exclusiva das posições-fonte K, R e Y;
+- designação textual `XX.XX.XXX`;
+- bordas completas;
+- cabeçalho centralizado e normalizado;
+- filtro, impressão e congelamento preservados;
+- abertura aprovada no Microsoft Excel desktop.
 
-A correção do PR `#133` inclui `assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx` como entrada pública obrigatória do artefato `dist` e acrescenta teste específico para impedir regressão. Não altera XLSX, renderer, ExcelJS, Supabase, dados, migrations, Auth ou RLS.
+Não existe incidente 404 conhecido no deployment vigente.
 
-A disponibilidade aos usuários depende de integração, publicação controlada e smoke de Production. Até novo deployment, o incidente permanece ativo no ambiente publicado.
+### 3.4 Gestão de Equipe
 
-## 3. Rodada 4B — Playwright 1.62.0
+Estado final publicado após o PR nº 138:
 
-### 3.1 Alteração
+- CORS compartilhado e fail-closed;
+- origens institucionais canônicas aceitas;
+- origem indevida rejeitada;
+- JWT obrigatório;
+- papel da Assistente validado;
+- cadastro, edição e desativação de Controladores e Inventário;
+- Auth Admin restrito ao backend;
+- RPC transacional;
+- recuperação segura de vínculos históricos;
+- redistribuição individual e em lote;
+- compensação de falhas parciais;
+- smoke independente do preflight em Production.
 
-- `@playwright/test`: `1.61.1 → 1.62.0`;
-- `playwright`: `1.61.1 → 1.62.0`;
-- `playwright-core`: `1.61.1 → 1.62.0`;
-- requisito interno do Playwright: Node.js 20 ou superior;
-- projeto preservado em Node.js 24.x;
-- `fsevents` reorganizado automaticamente pelo npm no lockfile;
-- Supabase CLI preservado em `2.110.0`;
-- nenhuma outra dependência alterada.
+## 4. Garantia operacional contínua
 
-O lockfile foi regenerado pelo npm sobre a `main` corrente. O PR Dependabot `#79`, aberto sobre base antiga, foi fechado como substituído pelo PR `#128`.
+### Fase 1 — monitor geral de Production
 
-### 3.2 Matriz preservada
+Integrada pelo PR nº 139.
 
-A rodada não adicionou Firefox nem alterou:
+O workflow `.github/workflows/production-system-smoke.yml` valida:
 
-- projetos Playwright;
-- locators;
-- timeouts;
-- retries;
-- reporters;
-- screenshots;
-- limites Lighthouse;
-- regras de produto.
+- commit esperado e commit publicado;
+- `radar-build-manifest.json`;
+- ambiente e modo de dados;
+- tela pública e gate de autenticação;
+- assets locais referenciados;
+- bloqueio de leitura anônima do Supabase;
+- preflight das Edge Functions catalogadas;
+- execução após `push` na `main`, a cada hora e manualmente.
 
-Os novos recursos disponibilizados pela versão 1.62.0 não foram ativados sem caso de uso comprovado.
+### Fase 2 — incidentes automáticos
 
-### 3.3 Evidência funcional
+Integrada pelo PR nº 140.
 
-Pacote validado no SHA:
+- falha confirmada abre ou atualiza uma única issue automática;
+- falhas recorrentes atualizam o mesmo incidente;
+- recuperação confirmada registra comentário e encerra o incidente;
+- issues humanas e pull requests não são alterados;
+- falha do mecanismo de alerta não mascara o resultado do monitor.
+
+### Fase 3 — integridade de dados
+
+PR nº 141, ainda em rascunho.
+
+Escopo proposto:
+
+- identidades e perfis;
+- diretórios de equipe;
+- escolas e carteiras;
+- programas escolares;
+- pendências;
+- inventário;
+- notas fiscais e bens vinculados.
+
+Enquanto não for integrado, os 25 migrations de Production permanecem a referência. A migration e os 26 migrations presentes na branch do PR nº 141 não pertencem à `main` nem a Production.
+
+## 5. Ambientes
+
+### GitHub
 
 ```text
-6c03169ce0fab5833f818689bb87c8e07e1f122d
+main: f812e5dbf3aaa18fb9851948445b0820ac7a5435
+PR #141: aberto, rascunho, não integrado
+branch documental atual: docs/reconciliacao-integral-20260805
 ```
 
-Workflows aprovados:
-
-| Gate | Run | Resultado |
-|---|---:|---|
-| Saúde das dependências | `30786138787` | success |
-| Homologação do Excel SME | `30786138685` | success |
-| Lighthouse CI | `30786138689` | success |
-| Supabase readiness | `30786138713` | success |
-| Backup e restauração descartáveis | `30786138677` | success |
-| Testes E2E Playwright | `30786138676` | success |
-| Perfis × desktop, Android e iPhone | `30786138715` | success |
-
-A saúde das dependências confirmou:
-
-- Node.js `24.18.0` e npm `11.16.0`;
-- `npm ci` reproduzível;
-- 376 pacotes auditados;
-- 2 vulnerabilidades moderadas já aceitas pela política do ExcelJS;
-- 0 altas e 0 críticas;
-- referências dos workflows, bundles, lint, Knip, assinaturas, SBOM e árvore instalada aprovados ou registrados.
-
-### 3.4 Supabase descartável
-
-Os gates repetiram com sucesso:
-
-- 25 migrations;
-- 225 testes pgTAP;
-- lint SQL;
-- tipos reproduzíveis;
-- sete identidades Auth efêmeras;
-- login, Auth, RLS e autorização da Edge Function;
-- backup lógico e restauração em segunda pilha;
-- equivalência de schema, dados, Auth e migrations.
-
-Nenhuma dessas operações usou Production.
-
-## 4. Produção
-
-### 4.1 Vercel
+### Vercel Production
 
 ```text
 project: radarpdde-fix
-deployment: dpl_2Sgq4LJKvSvXro81EYwFJHYEHHqp
+deployment: dpl_7G3Wmh1YiV4c4aXVwe2P5tN7N7Y4
 state: READY
 target: production
-artifactCommitSha: f72a1471023f00eec0bc615c192fd25f5c29a920
-nodeVersion: 24.x
-git.deploymentEnabled: false
+commit: f812e5dbf3aaa18fb9851948445b0820ac7a5435
 ```
 
-A Rodada 4B altera ferramenta de desenvolvimento e teste. Não modifica o bundle servido ao usuário e não exige novo deployment.
+Deployments de Preview do PR nº 141 não alteram o alias oficial de Production.
 
-O deployment vigente, porém, não contém `assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx`. A correção do PR `#133` modifica o artefato servido e exige novo deployment de Production antes de ser considerada disponível.
-
-### 4.2 Supabase
+### Supabase Production
 
 ```text
 project: scnryinorqeucbfkioxo
 status: ACTIVE_HEALTHY
-PostgreSQL: 17
-runtime Production: supabase-production
-migrations correspondentes: 25
+region: sa-east-1
+PostgreSQL: 17.6.1.147
+migrations: 25
 closing_competence: 2026-12
-app_config.row_version: 5
+app_config.row_version: 20
 ```
 
-A Rodada 4B e o hotfix do Excel SME não alteram migrations, schema, dados, Auth, RLS, Edge Functions ou configuração remota.
-
-## 5. Desvios operacionais registrados
-
-### 5.1 Documento criado fora da branch
-
-A especificação da Rodada 4B foi criada por engano diretamente na `main` no commit `f99f17ec9eadbfbe5691b3c148f27374e4975459` e removida imediatamente no commit `e9f625c436fef31a18bd729f9a6791280ed59310`.
-
-Consequências:
-
-- árvore da `main` restaurada antes da criação da branch;
-- somente um arquivo Markdown esteve envolvido;
-- nenhuma dependência, código funcional ou ambiente foi alterado;
-- a branch definitiva foi criada a partir da `main` restaurada.
-
-### 5.2 Lockfile de base antiga
-
-A primeira tentativa usou como referência os blobs do PR Dependabot `#79`. A revisão detectou que a base antiga também recuava o Supabase CLI de `2.110.0` para `2.109.1`.
-
-A tentativa foi descartada antes da validação final. O lockfile definitivo foi regenerado pelo npm sobre a `main` atual e preserva o Supabase CLI `2.110.0`.
-
-## 6. Próxima sequência técnica
-
-A prioridade imediata é concluir o hotfix do Excel SME:
+### Edge Function
 
 ```text
-validar SHA final do PR #133
-→ integrar à main
-→ abrir janela controlada de deployment
-→ publicar em Production
-→ confirmar HTTP 200 e geração do arquivo
-→ restaurar bloqueio automático
+slug: team-account-management
+status: ACTIVE
+version: 95
+verify_jwt: true
 ```
 
-Após o encerramento do incidente, a sequência recomendada volta a ser:
+## 6. Ferramentas e manutenção
+
+Versões integradas na `main`:
+
+| Ferramenta | Versão |
+|---|---:|
+| Node.js | `24.x` |
+| Playwright | `1.62.0` |
+| Supabase JS | `2.110.8` |
+| Supabase CLI | `2.110.0` |
+| ESLint | `10.8.0` |
+| eslint-plugin-playwright | `2.10.5` |
+| Knip | `6.29.0` |
+| ExcelJS | `4.4.0` |
+
+PRs Dependabot abertos indicam atualizações pequenas para Playwright 1.62.1, eslint-plugin-playwright 2.11.0, Knip 6.30.0 e Supabase JS/CLI 2.111.0. Nenhuma deve ser integrada automaticamente. A atualização de Supabase exige repetir Auth, RLS, Edge Functions, migrations, backup/restauração e fluxos funcionais.
+
+## 7. Prioridade corrente
+
+### Etapa A — reconciliação documental
+
+Em execução nesta branch. Deve concluir:
+
+- estado executivo;
+- cronologia dos PRs nº 136 a 141;
+- contratos de Excel e Gestão de Equipe;
+- baseline de Vercel e Supabase;
+- roadmap de confiabilidade funcional;
+- matriz de validade documental.
+
+### Etapa B — matriz funcional ponta a ponta
+
+Criar catálogo por perfil, tela e ação com:
 
 ```text
-Rodada 5 — verificar CodeQL, Dependency Review e actionlint; avaliar zizmor
-Rodada 6 — baseline de cobertura de testes
-Rodada 7 — selecionar a próxima evolução funcional por benefício
+controle
+→ handler
+→ serviço
+→ repositório
+→ tabela/RPC/Edge Function
+→ política RLS
+→ retorno
+→ renderização
+→ releitura
+→ erro e compensação
 ```
 
-Correções urgentes podem alterar a ordem. A ADR-039 continua obrigando a avaliar oportunidades tecnológicas durante qualquer tarefa.
+### Etapa C — smoke autenticado de leitura
 
-## 7. Gates globais de liberação oficial
+Usar contas técnicas por perfil para provar consultas reais em Production sem mutação.
 
-A liberação oficial ainda não foi declarada. Permanecem no processo geral:
+### Etapa D — provas controladas de escrita
 
-1. encerrar o incidente do Excel SME no ambiente publicado;
-2. homologar o relatório institucional preexistente no Microsoft Excel desktop, caso essa frente seja priorizada;
-3. revisar Advisors quando aplicável;
-4. concluir UAT funcional;
-5. realizar polimento editorial e visual;
-6. registrar decisão formal de release.
+Usar ambiente descartável equivalente ou registros técnicos reversíveis para confirmar:
 
-Esses gates não devem ser confundidos com o roadmap de pacotes e modernização incremental.
+- criar;
+- editar;
+- desativar ou excluir logicamente;
+- recarregar;
+- confirmar persistência;
+- desfazer;
+- confirmar ausência de resíduos;
+- testar compensação.
 
-## 8. Documentos de continuidade
+### Etapa E — integridade e manutenção
+
+- concluir ou reavaliar o PR nº 141;
+- executar atualizações menores em PRs isolados;
+- repetir todos os gates aplicáveis.
+
+## 8. Critério de conclusão de uma função crítica
+
+Uma função não está concluída apenas porque o botão existe ou o teste unitário passou. É necessário comprovar:
+
+1. visibilidade correta por perfil;
+2. acionamento real no navegador;
+3. payload correto;
+4. serviço e repositório corretos;
+5. backend alcançado;
+6. autorização positiva e negativa;
+7. persistência ou consulta concluída;
+8. atualização da interface;
+9. manutenção do resultado após recarregar;
+10. erro compreensível;
+11. ausência de estado parcial após falha;
+12. regressão permanente no CI.
+
+## 9. Gates gerais ainda pendentes
+
+- matriz funcional integral por perfil;
+- smoke autenticado recorrente;
+- provas controladas de escrita e compensação;
+- conclusão ou decisão sobre o PR nº 141;
+- homologação do relatório institucional no Excel desktop, caso priorizada;
+- UAT com servidores reais;
+- polimento editorial e visual;
+- decisão formal de liberação.
+
+## 10. Documentos de continuidade
 
 1. `AGENTS.md`;
-2. `docs/CURRENT_STAGE.md`;
-3. `docs/ROADMAP_ATUALIZACOES_2026.md`;
+2. `README.md`;
+3. `docs/CURRENT_STAGE.md`;
 4. `docs/PROJECT_CONTEXT.md`;
-5. `docs/DECISION_LOG.md`;
-6. `docs/reference/STATUS_DOCUMENTOS.md`;
-7. `docs/audits/2026-08-03-hotfix-excel-sme-template-404.md`;
-8. `docs/audits/2026-08-03-rodada-4b-playwright-1-62-0.md`;
-9. `docs/evidence/releases/2026-08-03-playwright-1-62-0.json`.
+5. `docs/ROADMAP_ATUALIZACOES_2026.md`;
+6. `docs/DECISION_LOG.md`;
+7. `docs/reference/STATUS_DOCUMENTOS.md`;
+8. `docs/audits/2026-08-05-reconciliacao-documental-integral.md`.

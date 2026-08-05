@@ -1,252 +1,237 @@
 # Catálogo de superfícies do RADAR PDDE
 
 **Estado:** referência operacional vigente  
-**Atualizado em:** 29 de julho de 2026
+**Atualizado em:** 5 de agosto de 2026
 
 ## 1. Regra de leitura
 
-Este catálogo descreve finalidade, recortes e conexões das superfícies atuais. Não substitui:
+Este catálogo descreve finalidade, perfis, dados, ações e integração. A autorização efetiva é cumulativa entre interface, capacidades, serviços, Auth, RLS, RPCs e Edge Functions.
 
-- política de capacidades;
-- serviços de aplicação;
-- Auth e RLS;
-- contratos de arquitetura;
-- testes por perfil;
-- verificação do código vigente.
-
-Quando uma linha mencionar perfis “conforme capacidade”, a decisão efetiva deve ser obtida em `src/application/capabilities.js`, guardas de interface, serviços e RLS.
-
-## 2. Princípios transversais
-
-Todas as superfícies devem:
+Toda superfície deve:
 
 - consumir entidades canônicas;
-- respeitar competência global;
+- respeitar competência e exercício;
 - preservar autoria e escopo;
-- apresentar próxima ação quando houver trabalho pendente;
-- não esconder conteúdo essencial no mobile;
-- manter foco, teclado e semântica acessível;
-- não criar persistência paralela;
-- refletir a governança restritiva da Gestão SME.
+- indicar próxima ação;
+- manter conteúdo e capacidade no mobile;
+- usar serviços de aplicação e repositório;
+- atualizar a interface após o backend;
+- preservar o resultado após recarregar;
+- tratar falha e conflito de forma compreensível.
 
 ## S-01 — Dashboard
 
-| Campo | Contrato atual |
+| Campo | Contrato |
 |---|---|
 | Rota | `dashboard` |
+| Perfis | Controlador, Assistente, SME e Inventário conforme recorte |
 | Finalidade | sintetizar estado, prioridade e próximos passos |
-| Perfis | Controlador, Assistente, Gestão SME e Inventário conforme recorte |
-| Contextos | competência, CRE, carteira, escola, programa e situação |
-| Dados | escolas, verificações, pendências e projeções operacionais |
-| Ações | filtros, cartões e navegação contextual |
-| Mobile | mesmos indicadores e universos, reorganizados |
-| Restrições | cartões não podem somar universos sobrepostos nem conceder ação proibida |
+| Dados | escolas, verificações, pendências, bens e projeções |
+| Ações | filtros, cartões, navegação e exportações autorizadas |
+| Assistente | grupo com Relatório RADAR PDDE e Excel SME, além de Redistribuir Escolas |
+| Restrições | universos não sobrepostos e ações somente por capacidade |
 
 ## S-02 — Carteira de Escolas
 
-| Campo | Contrato atual |
+| Campo | Contrato |
 |---|---|
 | Rota | `escolas` |
 | Finalidade | pesquisar, comparar e abrir unidade |
-| Perfis | Controlador e Assistente; leitura gerencial autorizada para SME |
-| Responsabilidade | `controller_id` identifica responsável principal |
-| Colaboração | Controladores atuam nas escolas da mesma CRE sem transferência automática |
-| Desktop | tabela operacional completa |
-| Mobile | cartões com o mesmo conteúdo funcional |
-| Conexões | Dashboard, Prontuário e Pendências |
+| Perfis | Controlador, Assistente e SME em leitura autorizada |
+| Responsabilidade | `controller_id` define responsável principal |
+| Colaboração | Controladores da mesma CRE podem atuar sem transferência automática |
+| Ações | abrir prontuário e editar quando autorizado |
+| Mobile | mesmos dados e ações em organização responsiva |
 
 ## S-03 — Competências Mensais
 
-| Campo | Contrato atual |
+| Campo | Contrato |
 |---|---|
 | Rota | `competencias` |
-| Finalidade | acompanhar bonificação, análise e pendências por mês |
 | Contexto | competência global única `YYYY-MM` |
-| Perfis | Controlador e Assistente operam; SME consulta bonificação sem análise técnica |
+| Finalidade | acompanhar bonificação, análise e pendências por mês |
+| Perfis | Controlador e Assistente operam; SME consulta recorte gerencial |
 | Dados | competências, programas, verificações, pendências e prazos |
-| Conexões | Prontuário, Pendências, alertas, Dashboard e exportações |
-| Restrições | nenhum seletor mensal concorrente; nenhuma mutação SME |
+| Restrições | nenhum seletor concorrente; nenhuma análise técnica para SME |
 
 ## S-04 — Pendências Operacionais
 
-| Campo | Contrato atual |
+| Campo | Contrato |
 |---|---|
 | Rota | `pendencias` |
-| Finalidade | gerir fila, envio, reanálise, contato e encerramento |
 | Estados | Aberta, Aguardando reanálise, Resolvida e Cancelada |
-| Perfis | Controlador e Assistente conforme capacidade; SME somente leitura |
-| Dados | pendências, tentativas, contatos, documentos, escola e verificação |
-| Ações | registrar envio, reanalisar, contatar, cancelar e reabrir quando autorizado |
-| Restrições | novo envio não resolve; regularização não reescreve bonificação |
-| Conexões | Competências, Prontuário, Dashboard e timeline |
+| Perfis | Controlador e Assistente operam; SME consulta; Inventário vê recorte patrimonial |
+| Ações | abrir, registrar envio, reanalisar, contatar, cancelar e reabrir conforme capacidade |
+| Regra | novo envio não resolve; reanálise decide a transição |
+| Persistência | pendência, tentativa, contato, verificação e log |
 
 ## S-05 — Prontuário
 
-| Campo | Contrato atual |
+| Campo | Contrato |
 |---|---|
 | Rota | `prontuario` + escola |
-| Finalidade | concentrar contexto completo da unidade |
-| Perfis | Controlador, Assistente, Inventário e SME conforme capacidade |
-| Conteúdo | identificação, programas, verificações, pendências, notas, bens e histórico |
-| SME | identificação e bonificação; sem análise técnica ou controles operacionais |
-| Navegação | retorno contextual para origem real |
-| Timeline | aba de leitura cronológica derivada |
-| Restrições | não duplicar fonte de estado; respeitar competência ativa |
+| Finalidade | concentrar contexto da unidade |
+| Conteúdo | identificação, programas, verificações, pendências, notas, bens e timeline |
+| Perfis | todos conforme capacidade e escopo |
+| SME | identificação e bonificação, sem análise técnica ou controles operacionais |
+| Navegação | retorno contextual com competência, filtros, rolagem e foco |
 
 ## S-06 — Capital e Inventário
 
-| Campo | Contrato atual |
+| Campo | Contrato |
 |---|---|
 | Rota | `inventario` |
-| Finalidade | acompanhar bens permanentes, encaminhamento e inventariação |
-| Perfis | Equipe de Inventário e Assistente; demais somente quando capacidade expressa existir |
-| Escopo | própria CRE, escola e bem autorizado |
-| Dados | bens, notas permanentes, processos e autoria |
-| Ações | registrar ou atualizar situação patrimonial conforme perfil |
-| Conexões | Prontuário, notas, escolas e auditoria |
-| Restrições | não conceder módulos não patrimoniais ao Inventário |
+| Perfis | Inventário e Assistente; leitura autorizada para outros perfis |
+| Dados | bens, notas permanentes, processos, responsável e tombamento |
+| Ações | encaminhar, atualizar e concluir inventariação |
+| Backend | `InventoryService`, `assets` e RPCs compostas |
+| Restrições | perfil Inventário não recebe módulos não patrimoniais |
 
 ## S-07 — Registros Internos
 
-| Campo | Contrato atual |
+| Campo | Contrato |
 |---|---|
 | Rota | `auditoria` |
-| Finalidade | consultar registros administrativos e rastreabilidade |
-| Controlador/Assistente | leitura conforme escopo e capacidade |
-| Gestão SME | somente registros com `actor_user_id = auth.uid()` |
-| Administrador técnico | leitura técnica integral autorizada |
 | Dados | `administrative_logs` e contexto funcional |
-| Restrições | registros antigos sem UUID não são expostos à SME |
+| Controlador/Assistente | leitura conforme escopo |
+| SME | somente `actor_user_id = auth.uid()` |
+| Admin técnico | leitura ampla e procedimentos excepcionais |
+| Restrições | registros antigos sem UUID não aparecem no recorte SME |
 
-## S-08 — Configurações e Gestão SME
+## S-08 — Configurações SME
 
-| Campo | Contrato atual |
+| Campo | Contrato |
 |---|---|
 | Rota | `sme-config` |
-| Finalidade | apresentar parâmetros e funções gerenciais autorizadas |
-| Perfis | Gestão SME e Administrador técnico conforme capacidade específica |
-| Dados | configuração, exercício, competências e parâmetros autorizados |
-| Restrições | não inferir mutação ampla apenas pelo nome da tela |
-| Programas por exercício | frente separada ainda não implementada |
-| Segurança | toda escrita exige serviço, autorização e auditoria |
+| Perfis | Gestão SME e administrador técnico |
+| Dados | exercício, competência, prazo, programas e configuração global |
+| Backend | `ConfigurationService`, tabelas de configuração e RPCs |
+| Estado atual | funções de exercício, calendário e programas existem no frontend e no Supabase |
+| Pendência funcional | confirmar o escopo de programas antes de nova mudança |
+| Regra | acesso visual não substitui serviço, RLS, auditoria e concorrência |
 
 ## S-09 — Gestão de Equipe
 
-| Campo | Contrato atual |
+| Campo | Contrato |
 |---|---|
 | Rota | `equipe` |
-| Finalidade | administrar Controladores, Inventário e atribuições |
-| Perfil funcional responsável | Assistente de Verbas Federais |
-| Perfil técnico | Administrador técnico para suporte autorizado |
-| Backend | `TeamAccountGateway` + Edge Function autenticada + Auth Admin + RPC |
-| Ações | convidar, editar, desativar e redistribuir |
-| Restrições | Gestão SME não substitui a liderança local; exclusão física é excepcional |
-| Auditoria | autoria, idempotência e compensação obrigatórias |
+| Responsável | Assistente de Verbas Federais |
+| Dados | Controladores, Inventário, perfis Auth e carteiras |
+| Ações | cadastrar, editar, redistribuir e desativar |
+| Frontend | `DirectoryService` e `TeamAccountGateway` |
+| Backend | `team-account-management` v95 + Auth Admin + RPC |
+| Proteções | CORS, JWT, papel, idempotência, vínculo histórico e compensação |
+| Releitura | resultado deve permanecer após recarregar |
 
 ## S-10 — Exercícios
 
-| Campo | Contrato atual |
+| Campo | Contrato |
 |---|---|
-| Finalidade | selecionar contexto anual e criar exercício quando autorizado |
-| Dados | exercícios, competências, prazos e configuração global |
-| Criação | operação atômica com doze competências |
-| Contexto | exercício e competência permanecem sincronizados |
-| Perfis | somente capacidades administrativas expressas |
-| Restrições | não alterar fechamento ou calendário por acesso visual isolado |
+| Finalidade | selecionar ou criar contexto anual autorizado |
+| Dados | exercícios, competências, prazos e configuração |
+| Criação | operação composta com competências correspondentes |
+| Perfil | capacidade administrativa expressa |
+| Regra | exercício e competência permanecem sincronizados |
 
 ## S-11 — Programas
 
-| Campo | Contrato atual |
+| Campo | Contrato |
 |---|---|
-| Finalidade | catálogo global e vínculos escola–programa |
 | Dados | `programs` e `school_programs` |
+| Finalidade | catálogo global e vínculos escolares |
 | Histórico | desativação preserva registros anteriores |
-| Perfis | somente capacidades administrativas expressas |
-| Frente futura | classificação e configuração por exercício exigem desenho próprio |
-| Restrições | não misturar essa frente ao polimento ou à governança SME já concluída |
+| Perfil | SME e administrador conforme políticas atuais; leitura para perfis operacionais |
+| Pendência | confirmar regra institucional da manutenção por SME |
+| Restrições | não alterar junto com polimento ou outra frente não relacionada |
 
 ## S-12 — Alertas
 
-| Campo | Contrato atual |
+| Campo | Contrato |
 |---|---|
-| Local | sino do header e dropdown |
+| Local | sino e dropdown do cabeçalho |
 | Finalidade | localizar itens que exigem atenção |
-| Contexto | competência global, pendências e prazos |
-| Ação | transportar recorte e origem para a superfície adequada |
-| Persistência | nenhuma escrita de negócio |
-| Acessibilidade | teclado, foco, nome e estado do controle |
-| Restrições | prioridade deve refletir regra canônica, não contagem arbitrária |
+| Contexto | competência, escola, pendência, bem e prazo |
+| Ação | transportar filtros e origem para a superfície correta |
+| Persistência | nenhuma mutação de negócio |
+| Acessibilidade | foco, teclado, estado e fechamento seguro |
 
 ## S-13 — Busca global
 
-| Campo | Contrato atual |
+| Campo | Contrato |
 |---|---|
-| Local | header |
-| Finalidade | localizar escola por nome, designação ou INEP |
-| Dados | cadastro de escolas do escopo autorizado |
-| Resultado | navegação para Carteira ou Prontuário |
-| Segurança | não revelar escola fora do escopo remoto |
-| Mobile | campo e resultados acessíveis |
-| Restrições | busca não concede acesso por si só |
+| Local | cabeçalho |
+| Motor | Fuse.js carregado sob demanda, com fallback |
+| Conteúdo | escolas autorizadas, módulos, programas, competências e pendências consultáveis |
+| Ação | navegação contextual para o destino |
+| Segurança | não revela recurso fora do escopo |
+| Acessibilidade | clique, setas, Enter e Escape |
 
-## S-14 — Exportações Excel
+## S-14 — Exportações
 
-| Campo | Contrato atual |
+| Campo | Contrato |
 |---|---|
-| Institucional | botão principal XLSX, histórico e quatro abas |
-| SME | botão próprio, uma competência, uma aba e 30 colunas do template canônico |
-| CSV | botão secundário e fallback institucional |
-| Certificação | regra canônica até a célula OOXML e hashes |
-| `dataValidations` SME | ausente por contrato |
-| Persistência | nenhuma escrita no Supabase |
-| Gate pendente | abertura manual do relatório institucional no Microsoft Excel desktop; Excel SME aprovado |
+| Institucional | XLSX histórico de quatro abas |
+| SME | uma competência, uma aba e **27 colunas A:AA** |
+| Template SME | 30 colunas apenas como base visual; K, R e Y removidas na projeção |
+| CSV | secundário e fallback institucional |
+| Assets | manifesto, tamanho e SHA do ExcelJS e template |
+| Certificação | modelo, workbook, reabertura, OOXML, células e hashes |
+| Persistência | nenhuma escrita de dados de negócio |
+| Homologação | Excel SME aprovado no Microsoft Excel desktop |
 
 ## S-15 — Autenticação
 
-| Campo | Contrato atual |
+| Campo | Contrato |
 |---|---|
-| Backend | Supabase Auth em Preview e Production |
-| Estado pré-auth | aplicação operacional inerte e acesso institucional bloqueado |
-| Sessão | restauração, expiração e logout controlados |
-| Perfil | derivado de `user_profiles`, não de seletor visual |
-| RLS | segunda linha obrigatória de autorização |
-| Anônimo | zero acesso a dados institucionais |
-| Gate pendente | proteção contra senhas vazadas |
+| Backend | Supabase Auth |
+| Estado pré-auth | aplicação inerte |
+| Sessão | restauração, renovação e logout controlados |
+| Perfil | `user_profiles`, perfil ativo, papel efetivo e escopos |
+| RLS | autorização obrigatória adicional |
+| Anônimo | nenhum dado institucional |
+| Monitor | shell, gate e bloqueio anônimo verificados continuamente |
 
 ## S-16 — Modais e confirmações
 
-| Campo | Contrato atual |
+| Campo | Contrato |
 |---|---|
-| Finalidade | editar, confirmar ou concluir ação contextual |
-| Acessibilidade | foco inicial, trap, Escape, retorno e `aria-live` |
-| Segurança | mutação somente após validação e confirmação aplicável |
-| Mobile | diálogo integral dentro do viewport |
-| Legado | `alert/confirm` ainda pode existir, mas não é padrão desejado |
-| Restrições | um único modal acessível por ação; sem duplicação de handlers |
+| Finalidade | editar ou confirmar ação contextual |
+| Acessibilidade | foco inicial, Escape, retorno e anúncio |
+| Escrita | somente após validação e confirmação aplicável |
+| Mobile | conteúdo integral no viewport |
+| Estado | salvando, sucesso e erro sem duplicação de clique |
 
 ## S-17 — Formulários
 
-| Campo | Contrato atual |
+| Campo | Contrato |
 |---|---|
 | Estados | intocado, alterado, inválido, salvando, erro e sucesso |
-| Dados | campos do domínio e contexto da entidade |
-| Persistência | serviços de aplicação e unidade de trabalho |
-| Erro | preservar valores e foco; mapear mensagem funcional |
-| Escrita | sem retry automático silencioso |
-| Auditoria | autoria e contexto da operação |
-| Acessibilidade | rótulo, obrigatoriedade, erro associado e teclado |
+| Persistência | serviço de aplicação e unidade de trabalho |
+| Erro | preservar valores, foco e mensagem funcional |
+| Escrita | sem repetição automática silenciosa |
+| Auditoria | autoria e contexto |
+| Releitura | salvar, recarregar e confirmar o mesmo resultado |
 
 ## S-18 — Estados vazios, loading e erro
 
-| Campo | Contrato atual |
+| Campo | Contrato |
 |---|---|
-| Tipos | vazio, carregando, rede, sessão, RLS, conflito e validação |
+| Tipos | vazio, carregando, sessão, rede, CORS, RLS, conflito, validação e asset |
 | Finalidade | explicar o estado e oferecer próxima ação segura |
-| Retry | somente leitura segura e falha transitória |
+| Retry | somente quando idempotente ou explicitamente protegido |
 | Escrita | nunca repetida silenciosamente |
-| Acessibilidade | anúncio em `aria-live` e foco quando necessário |
-| Conteúdo | não exibir mensagens de infraestrutura como texto operacional bruto |
-| Consistência | mesmo erro deve produzir orientação equivalente entre superfícies |
+| Consistência | mesmo código de falha produz orientação equivalente |
+
+## S-19 — Monitoramento de Production
+
+| Campo | Contrato |
+|---|---|
+| Superfície | GitHub Actions e Issues |
+| Finalidade | detectar falha do ambiente publicado |
+| Frequência | push na `main`, hora em hora e manual |
+| Verificações | SHA, manifesto, assets, Auth gate, bloqueio anônimo e preflight |
+| Incidente | issue automática única, atualizada e encerrada após recuperação |
+| Limite | não substitui smoke autenticado nem mutações |
 
 ## 3. Relações obrigatórias
 
@@ -258,20 +243,21 @@ Dashboard
 ↔ Pendências
 ↔ Timeline
 ↔ Alertas
+↔ Busca
 ↔ Exportações
 ```
 
-Gestão de Equipe, Inventário, Registros Internos e Configurações conectam-se a esse núcleo por capacidades específicas, sem alterar as regras canônicas.
+Gestão de Equipe, Inventário, Registros Internos e Configurações conectam-se ao núcleo por capacidades específicas.
 
 ## 4. Gate para alteração de superfície
 
-Antes de modificar uma superfície:
-
-1. verificar código e perfil efetivo;
-2. identificar dados lidos e escritos;
-3. mapear conexões e estado global;
-4. validar desktop, Android e iPhone;
-5. validar foco, teclado e semântica;
-6. testar autorização positiva e negativa;
-7. preservar conteúdo e rastreabilidade;
-8. atualizar este catálogo quando o contrato material mudar.
+1. identificar perfis autorizados e negados;
+2. mapear dados lidos e escritos;
+3. localizar handler, serviço, repositório e backend;
+4. testar autorização positiva e negativa;
+5. confirmar atualização e releitura;
+6. testar erro, conflito e compensação;
+7. validar desktop, Android e iPhone;
+8. validar foco, teclado e semântica;
+9. atualizar catálogo e documentação;
+10. confirmar ambiente e SHA da evidência.

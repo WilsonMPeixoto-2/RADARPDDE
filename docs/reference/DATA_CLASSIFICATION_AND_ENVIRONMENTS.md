@@ -1,84 +1,118 @@
 # Classificação de dados e ambientes do RADAR PDDE
 
-## Objetivo
+**Atualizado em:** 5 de agosto de 2026
 
-Definir onde cada classe de dado pode existir e separar três situações que não devem ser confundidas:
+## 1. Objetivo
 
-1. exposição existente no repositório ou bundle atual;
-2. proteção que já existe no modo local;
-3. proteção que depende da implantação remota do Supabase, Auth e RLS.
+Definir onde cada classe de dado pode existir e distinguir repositório, navegador, CI, Preview, Supabase e Production.
 
-## Classes
+O RADAR PDDE é ferramenta interna de equipe reduzida. Dados cadastrais funcionais podem ser públicos ou institucionais, mas segredos, credenciais e conteúdos operacionais continuam sujeitos a finalidade e controle de acesso.
 
-| Código | Classe | Exemplos | Git | Bundle | Preview | Produção | Logs |
-|---|---|---|---|---|---|---|---|
-| D0 | público institucional | nome público da escola, designação, INEP público | permitido | permitido se necessário | permitido | permitido | mínimo |
-| D1 | interno institucional | status, atribuição, observação operacional | somente fixture fictícia | somente quando indispensável | protegido | protegido | sem conteúdo integral |
-| D2 | pessoal/contato | nome de diretor, e-mail, telefone | não versionar sem necessidade e base | evitar | protegido e minimizado | protegido e minimizado | proibido salvo identificador técnico |
-| D3 | credencial/segredo | senha, service role, token administrativo | proibido | proibido | secret store | secret store | proibido |
-| D4 | configuração pública | modo, URL pública, chave publicável | exemplo vazio permitido | permitido quando autorizado | permitido | permitido | diagnóstico sem segredo |
-| D5 | fixture/demonstração | escola e usuário fictícios | permitido | permitido | permitido | não usar como dado real | permitido sem dado pessoal |
-| D6 | log/auditoria | ator, ação, data, versão | schema permitido | por permissão | protegido | protegido | retenção definida |
-| D7 | snapshot/migração | estado canônico e staging | não versionar com dados reais | proibido | armazenamento controlado | armazenamento controlado | somente contagens e hash |
+## 2. Classes
 
-## Princípios
-
-- **Finalidade:** coletar e exibir somente o necessário para a tarefa institucional.
-- **Minimização:** preferir identificadores técnicos e evitar replicar contato pessoal em telas, logs e artefatos.
-- **Fonte oficial:** cada dado deve ter origem, responsável por atualização e regra de vigência.
-- **Menor privilégio:** acesso remoto será determinado por perfil, escola, carteira e área funcional.
-- **Separação de ambientes:** fixtures e dados de demonstração não podem ser promovidos como dados reais.
-- **Rastreabilidade:** logs registram ator, ação, instante, entidade e versão, sem reproduzir conteúdo integral desnecessário.
-- **Mascaramento:** screenshots, traces, relatórios de CI e exemplos devem substituir nome de usuário e dados de contato.
-- **Retenção:** snapshots e artefatos de migração devem possuir prazo, acesso e descarte definidos.
-
-## Matriz por ambiente
-
-| Ambiente | Finalidade | Classes permitidas | Restrições |
+| Código | Classe | Exemplos | Regra principal |
 |---|---|---|---|
-| repositório público | código, schemas, fixtures fictícias e documentação | D0, D4 vazio, D5, estrutura D6 | D1/D2 reais e D3/D7 reais proibidos |
-| bundle do navegador local | operação atual no dispositivo | D0; D1/D2 somente se indispensáveis e autorizados; D4 | qualquer conteúdo é inspecionável pelo usuário do navegador |
-| `localStorage` | persistência oficial atual | D0–D2/D6 conforme operação local autorizada | sem isolamento por RLS; depende do dispositivo e perfil de uso |
-| teste local | validação determinística | D5 e dados sintéticos | não copiar base real por conveniência |
-| CI | validação automatizada | D5, D4 de teste, logs minimizados | segredos somente no secret store; artefatos com retenção curta |
-| Preview | homologação | D0, D1/D2 minimizados e autorizados, D4, D5, D6 | autenticação, RLS, controle de acesso e política de dados |
-| Supabase de homologação | validar migrations, Auth/RLS e migração | D0–D2/D4/D6/D7 controlados | projeto autorizado, usuários reais limitados e reconciliação |
-| produção | operação institucional | D0–D2/D4/D6; D7 em processo controlado | menor privilégio, backup, restauração, logs e incidentes |
+| D0 | público institucional | escola, designação, INEP, CNPJ institucional | pode ser exibido quando necessário |
+| D1 | interno operacional | status, carteira, pendência, observação | somente usuários autorizados |
+| D2 | contato funcional | nomes, e-mails e telefones de função | usar conforme finalidade institucional |
+| D3 | segredo | senha, `service_role`, token, chave administrativa | proibido em Git, bundle e logs |
+| D4 | configuração pública | modo, URL e chave publicável | permitida no frontend autorizado |
+| D5 | fixture | escolas e usuários sintéticos | permitida em testes e CI |
+| D6 | log e auditoria | ator, ação, data e versão | acesso e retenção controlados |
+| D7 | snapshot/importação | pacote canônico e staging | fora do Git; processo controlado |
 
-## Configuração pública e segredos
+## 3. Ambientes
 
-- URL Supabase e chave publicável podem existir no frontend apenas no ambiente autorizado.
-- `service_role`, `sb_secret_*`, senha de banco, token administrativo e chave de bootstrap nunca entram no bundle, Git ou logs.
-- `config.js` bloqueia chave proibida, ambiente inválido, modo de produção sem autorização e Preview em produção.
-- `.env.example` permanece vazio e declarativo.
+| Ambiente | Persistência | Uso | Restrições |
+|---|---|---|---|
+| GitHub | código, migrations e documentação | fonte de versão | nenhum D3; fixtures preferencialmente sintéticas |
+| Navegador | memória, UI e configuração pública | operação do usuário | conteúdo é inspecionável pelo usuário autenticado |
+| LocalStorage | adaptador local | desenvolvimento e contingência por novo build | não sincroniza automaticamente com Supabase |
+| Supabase local | pilha descartável | migrations, Auth, RLS e testes | dados sintéticos e identidades efêmeras |
+| CI | validação automatizada | testes, build e evidências | secrets no secret store; artefatos minimizados |
+| Preview | homologação | código candidato com backend autorizado | não é Production |
+| Production | Supabase canônico | operação institucional | Auth, RLS, auditoria, backup e monitoramento |
 
-## Estado local e Supabase
+## 4. Estado corrente
 
-A persistência local não oferece isolamento remoto por usuário; ela é o backend deliberadamente vigente. RLS não é uma “proteção faltante” do modo local: é parte do backend remoto preparado e será aplicada quando o Ciclo F criar o projeto, usuários e ambientes.
+```text
+Production: supabase-production
+repositório canônico: SupabaseRepository
+projeto: scnryinorqeucbfkioxo
+LocalStorageRepository: desenvolvimento e contingência controlada
+```
 
-Essa distinção não elimina riscos independentes do Supabase. Dados reais versionados em repositório público ou embutidos no bundle permanecem acessíveis mesmo depois de um banco protegido ser conectado, até serem removidos da árvore ativa e, conforme decisão, do histórico.
+A afirmação histórica de que LocalStorage era o backend oficial foi substituída pela ativação do Supabase em Production.
 
-## Evidências e artefatos
+## 5. Configuração e segredos
 
-- capturas do Ciclo A usam `Usuário de teste`;
-- `mailto:` e `tel:` são neutralizados antes da screenshot;
-- campos de e-mail e telefone são esvaziados;
-- manifesto registra metadados técnicos, não conteúdo pessoal;
-- traces e vídeos não são produzidos pela configuração de baseline;
-- artefatos temporários de workspace têm retenção de um dia.
+Podem estar no frontend autorizado:
 
-## Histórico Git
+- URL do Supabase;
+- chave publicável;
+- modo e ambiente;
+- hashes e caminhos de assets públicos.
 
-Remover um dado da versão atual não o remove de commits anteriores. Qualquer saneamento de histórico deve avaliar impacto sobre clones, PRs, tags, links, Vercel e rastreabilidade. A ação exige plano autônomo, backup e autorização expressa.
+Nunca podem estar no frontend, repositório ou log:
 
-## Incidentes
+- `service_role`;
+- `sb_secret_*`;
+- senha de banco;
+- token Vercel ou GitHub;
+- senha de usuário;
+- credencial Auth Admin;
+- chave de bootstrap.
 
-Ao identificar segredo real ou dado pessoal indevido:
+## 6. Dados funcionais
 
-1. interromper divulgação e novas cópias;
-2. registrar apenas metadados mínimos do incidente;
-3. revogar ou rotacionar credencial, quando aplicável;
-4. remover da árvore ativa;
-5. decidir sobre histórico Git;
-6. revisar logs e artefatos;
-7. documentar causa e prevenção.
+Nomes, e-mails, telefones, CNPJs e processos podem integrar o cadastro operacional quando necessários à atividade institucional. Seu uso deve:
+
+- corresponder a uma finalidade do sistema;
+- ser visível somente nos perfis e telas pertinentes;
+- evitar reprodução desnecessária em logs e evidências;
+- ser mantido na fonte canônica;
+- respeitar correção e atualização cadastral.
+
+A classificação de prioridade do projeto é funcional: confiabilidade do fluxo não deve ser adiada por uma discussão abstrata de exposição quando os dados são públicos ou funcionais e o uso é interno controlado. Isso não autoriza incluir segredos ou dados alheios à finalidade.
+
+## 7. Evidências e testes
+
+- preferir massa sintética;
+- evidências Excel usam dados sintéticos;
+- CI publica contagens, hashes e códigos, não snapshots integrais;
+- backup/restauração descartáveis não publicam dumps;
+- incidentes automáticos não copiam logs completos;
+- traces e screenshots devem evitar conteúdo desnecessário.
+
+## 8. Importação e snapshots
+
+- armazenar fora do Git;
+- registrar hash, origem, formato e contagens;
+- validar antes de staging;
+- promover em operação controlada;
+- reconciliar destino;
+- preservar snapshot de rollback;
+- não usar importação pelo navegador.
+
+## 9. Histórico Git
+
+Remover conteúdo da árvore atual não apaga commits anteriores. Saneamento de histórico é operação autônoma e somente deve ser iniciado quando houver necessidade concreta, análise de impacto e autorização.
+
+## 10. Incidentes
+
+Para segredo real:
+
+1. interromper uso;
+2. rotacionar ou revogar;
+3. remover da árvore ativa;
+4. revisar logs e artefatos;
+5. decidir sobre histórico;
+6. registrar causa e prevenção.
+
+Para erro funcional ou de autorização:
+
+1. identificar camada exata;
+2. preservar evidência mínima;
+3. corrigir com regressão;
+4. confirmar backend, interface e releitura;
+5. atualizar documentação.

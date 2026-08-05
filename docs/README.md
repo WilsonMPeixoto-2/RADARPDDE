@@ -1,161 +1,153 @@
 # Documentação do RADAR PDDE
 
-**Estado de referência:** 3 de agosto de 2026
+**Estado de referência:** 5 de agosto de 2026
 
-Este diretório separa contratos vigentes, estado corrente, roadmap, procedimentos, decisões, planos históricos e evidências.
+Este diretório separa estado corrente, contratos vigentes, decisões, procedimentos restritos, planos e evidências históricas.
 
-## 1. Estado resumido
-
-O RADAR PDDE está conectado ao Supabase Production autorizado e publicado na Vercel Production com `dataMode: supabase-production`.
-
-Estado operacional:
+## 1. Baseline atual
 
 ```text
-main após Rodada 3B: 520b51e7080ddae0f4e3f03cf4c045cbea0a233d
-Production: dpl_2Sgq4LJKvSvXro81EYwFJHYEHHqp — READY
-commit publicado: f72a1471023f00eec0bc615c192fd25f5c29a920
+main: f812e5dbf3aaa18fb9851948445b0820ac7a5435
+Production: dpl_7G3Wmh1YiV4c4aXVwe2P5tN7N7Y4 — READY
+commit publicado: f812e5dbf3aaa18fb9851948445b0820ac7a5435
 Supabase: scnryinorqeucbfkioxo — ACTIVE_HEALTHY
-migrations: 25
-Node: 24.x
-deployment automático: bloqueado
+PostgreSQL: 17.6.1.147
+migrations em Production: 25
+Edge Function: team-account-management v95, ACTIVE, JWT obrigatório
 ```
 
-Concluídos e publicados:
-
-- governança da Gestão SME;
-- competência global janeiro–dezembro;
-- avaliação mensal canônica;
-- timeline cronológica;
-- navegação contextual;
-- correção de desempenho do login;
-- relatórios Excel;
-- busca inteligente;
-- posicionamento responsivo dos elementos flutuantes;
-- transições progressivas.
-
-Concluídos como ferramentas internas:
-
-- Node 24 e gate remoto por papel/viewport;
-- backup e restauração descartáveis;
-- correção e prevenção de referências quebradas nos workflows;
-- ESLint 10.8.0 e relatório HTML;
-- Acorn 8.18.0 e análise de handlers;
-- `actions/checkout` 7.0.1;
-- Supabase CLI 2.110.0.
-
-O portfólio técnico e funcional completo está em [`ROADMAP_ATUALIZACOES_2026.md`](ROADMAP_ATUALIZACOES_2026.md).
+O PR nº 141 está aberto em rascunho e não integra esse baseline.
 
 ## 2. Ordem de leitura
 
-1. [`../AGENTS.md`](../AGENTS.md) — regras permanentes;
-2. [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — estado, ambientes, sequência e bloqueadores;
-3. [`ROADMAP_ATUALIZACOES_2026.md`](ROADMAP_ATUALIZACOES_2026.md) — lista técnica e funcional consolidada;
-4. [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — produto e arquitetura;
-5. [`DECISION_LOG.md`](DECISION_LOG.md) — decisões acumuladas;
-6. [`architecture/testing.md`](architecture/testing.md) — estratégia de testes;
-7. [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md) — classificação documental.
+1. [`../AGENTS.md`](../AGENTS.md);
+2. [`CURRENT_STAGE.md`](CURRENT_STAGE.md);
+3. [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md);
+4. [`ROADMAP_ATUALIZACOES_2026.md`](ROADMAP_ATUALIZACOES_2026.md);
+5. [`DECISION_LOG.md`](DECISION_LOG.md);
+6. [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md);
+7. [`architecture/README.md`](architecture/README.md);
+8. [`audits/2026-08-05-reconciliacao-documental-integral.md`](audits/2026-08-05-reconciliacao-documental-integral.md).
 
 ## 3. Documentos canônicos
 
 - [`CURRENT_STAGE.md`](CURRENT_STAGE.md)
-- [`ROADMAP_ATUALIZACOES_2026.md`](ROADMAP_ATUALIZACOES_2026.md)
 - [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md)
+- [`ROADMAP_ATUALIZACOES_2026.md`](ROADMAP_ATUALIZACOES_2026.md)
 - [`DECISION_LOG.md`](DECISION_LOG.md)
 - [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md)
+- [`../README.md`](../README.md)
+- [`../AGENTS.md`](../AGENTS.md)
 
 ## 4. Arquitetura vigente
 
-- [`architecture/overview.md`](architecture/overview.md)
-- [`architecture/data-flow.md`](architecture/data-flow.md)
-- [`architecture/supabase.md`](architecture/supabase.md)
-- [`architecture/supabase-readiness.md`](architecture/supabase-readiness.md)
-- [`architecture/testing.md`](architecture/testing.md)
-- [`architecture/excel-sme-mensal.md`](architecture/excel-sme-mensal.md)
-- [`architecture/navigation-contextual.md`](architecture/navigation-contextual.md)
-- [`architecture/timeline-unidade.md`](architecture/timeline-unidade.md)
+### Produto
 
-## 5. Runbooks
+- [`architecture/competencias.md`](architecture/competencias.md)
+- [`architecture/avaliacao-mensal.md`](architecture/avaliacao-mensal.md)
+- [`architecture/modelo-operacional.md`](architecture/modelo-operacional.md)
+- [`architecture/timeline-unidade.md`](architecture/timeline-unidade.md)
+- [`architecture/navigation-contextual.md`](architecture/navigation-contextual.md)
+- [`architecture/testing.md`](architecture/testing.md)
+
+### Frontend e Supabase
+
+- [`architecture/frontend-load-order.md`](architecture/frontend-load-order.md)
+- [`architecture/product-extensions-load-order.md`](architecture/product-extensions-load-order.md)
+- [`architecture/supabase-readiness.md`](architecture/supabase-readiness.md)
+
+### Excel
+
+- [`architecture/excel-export.md`](architecture/excel-export.md)
+- [`architecture/excel-workbook-plan.md`](architecture/excel-workbook-plan.md)
+- [`architecture/excel-xlsx-runtime.md`](architecture/excel-xlsx-runtime.md)
+- [`architecture/excel-sme-mensal.md`](architecture/excel-sme-mensal.md)
+- [`architecture/excel-integral-certification.md`](architecture/excel-integral-certification.md)
+
+O Excel SME público possui 27 colunas A:AA. O template-fonte de 30 colunas é somente base visual.
+
+## 5. Referências Supabase
+
+- [`reference/SUPABASE_DATA_DICTIONARY.md`](reference/SUPABASE_DATA_DICTIONARY.md)
+- [`reference/SUPABASE_FUNCTIONAL_COVERAGE.md`](reference/SUPABASE_FUNCTIONAL_COVERAGE.md)
+- [`reference/SUPABASE_INTEGRATION_AUDIT.md`](reference/SUPABASE_INTEGRATION_AUDIT.md)
+- [`reference/SUPABASE_PERMISSIONS_MATRIX.md`](reference/SUPABASE_PERMISSIONS_MATRIX.md)
+
+## 6. Procedimentos Supabase
+
+### Runbooks vigentes
 
 - [`runbooks/SUPABASE_CONNECTION.md`](runbooks/SUPABASE_CONNECTION.md)
 - [`runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`](runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md)
-- [`runbooks/SUPABASE_REMOTE_PREFLIGHT.md`](runbooks/SUPABASE_REMOTE_PREFLIGHT.md)
-- [`runbooks/VERCEL_DEPLOY.md`](runbooks/VERCEL_DEPLOY.md)
-- [`runbooks/MIGRATION_FIREBASE_SUPABASE.md`](runbooks/MIGRATION_FIREBASE_SUPABASE.md)
-- [`runbooks/IMPORT_EXECUTION.md`](runbooks/IMPORT_EXECUTION.md)
-- [`runbooks/INCIDENT_RESPONSE.md`](runbooks/INCIDENT_RESPONSE.md)
 
-## 6. Referências
+### Procedimentos históricos e restritos
 
-- [`reference/DATA_DICTIONARY.md`](reference/DATA_DICTIONARY.md)
-- [`reference/SURFACES_CATALOG.md`](reference/SURFACES_CATALOG.md)
-- [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md)
+- [`runbooks/SUPABASE_AUTH_BOOTSTRAP.md`](runbooks/SUPABASE_AUTH_BOOTSTRAP.md) — somente novo projeto, recuperação formal ou reconciliação autorizada;
+- [`runbooks/SUPABASE_DATA_BOOTSTRAP.md`](runbooks/SUPABASE_DATA_BOOTSTRAP.md) — carga inicial já concluída; não usar como rotina de Production.
 
-## 7. Rodadas recentes de atualização
+## 7. Catálogos de produto
 
-### Rodada 0 — preparação
+- [`reference/PRODUCT_SURFACE_CATALOG.md`](reference/PRODUCT_SURFACE_CATALOG.md)
+- [`reference/PRODUCT_DECISIONS.md`](reference/PRODUCT_DECISIONS.md)
+- [`reference/CHANGE_CLASSIFICATION.md`](reference/CHANGE_CLASSIFICATION.md)
+- [`reference/DATA_CLASSIFICATION_AND_ENVIRONMENTS.md`](reference/DATA_CLASSIFICATION_AND_ENVIRONMENTS.md)
 
-- [`audits/2026-08-01-rodada-0-baseline.md`](audits/2026-08-01-rodada-0-baseline.md)
-- [`superpowers/plans/2026-08-01-rodada-0-preparacao-obrigatoria.md`](superpowers/plans/2026-08-01-rodada-0-preparacao-obrigatoria.md)
+## 8. Correções recentes
 
-### Rodada 1 — ESLint, Acorn e checkout
+### Excel SME
 
-- [`audits/2026-08-01-rodada-1-baixo-risco.md`](audits/2026-08-01-rodada-1-baixo-risco.md)
-- [`decisions/ADR-038-atualizacoes-com-integracao-pertinente.md`](decisions/ADR-038-atualizacoes-com-integracao-pertinente.md)
+- PR nº 136 — runtime, assets e botões no dashboard da Assistente;
+- PR nº 137 — 27 colunas, designação textual, bordas e cabeçalho;
+- [`architecture/excel-sme-mensal.md`](architecture/excel-sme-mensal.md).
 
-### Rodada 2 — busca, Floating UI e transições
+### Gestão de Equipe
 
-- [`superpowers/specs/2026-08-01-rodada-2-busca-flutuantes-transicoes-design.md`](superpowers/specs/2026-08-01-rodada-2-busca-flutuantes-transicoes-design.md)
-- [`superpowers/plans/2026-08-01-rodada-2-busca-flutuantes-transicoes.md`](superpowers/plans/2026-08-01-rodada-2-busca-flutuantes-transicoes.md)
-- [`audits/2026-08-01-rodada-2-busca-flutuantes-transicoes.md`](audits/2026-08-01-rodada-2-busca-flutuantes-transicoes.md)
-- [`evidence/releases/2026-08-02-rodadas-1-2-production.json`](evidence/releases/2026-08-02-rodadas-1-2-production.json)
+- PR nº 138 — CORS, Auth, vínculos históricos, cadastro, edição, redistribuição e desativação;
+- [`reference/SUPABASE_PERMISSIONS_MATRIX.md`](reference/SUPABASE_PERMISSIONS_MATRIX.md).
 
-### Rodada 3B — Supabase CLI 2.110.0
+### Monitoramento
 
-- [`superpowers/specs/2026-08-02-rodada-3b-supabase-cli-2-110-0-design.md`](superpowers/specs/2026-08-02-rodada-3b-supabase-cli-2-110-0-design.md)
-- [`superpowers/plans/2026-08-02-rodada-3b-supabase-cli-2-110-0.md`](superpowers/plans/2026-08-02-rodada-3b-supabase-cli-2-110-0.md)
-- [`audits/2026-08-02-rodada-3b-supabase-cli-2-110-0.md`](audits/2026-08-02-rodada-3b-supabase-cli-2-110-0.md)
-- [`evidence/releases/2026-08-02-supabase-cli-2-110-0.json`](evidence/releases/2026-08-02-supabase-cli-2-110-0.json)
+- PR nº 139 — monitor geral;
+- PR nº 140 — incidentes automáticos;
+- [`superpowers/plans/2026-08-04-monitoramento-production-fase-1.md`](superpowers/plans/2026-08-04-monitoramento-production-fase-1.md);
+- [`superpowers/plans/2026-08-04-alertas-incidentes-production.md`](superpowers/plans/2026-08-04-alertas-incidentes-production.md).
 
-### Rodada 4A — roadmap canônico
+### Integridade dos dados
 
-- [`superpowers/specs/2026-08-03-rodada-4a-roadmap-atualizacoes-design.md`](superpowers/specs/2026-08-03-rodada-4a-roadmap-atualizacoes-design.md)
-- [`superpowers/plans/2026-08-03-rodada-4a-roadmap-atualizacoes.md`](superpowers/plans/2026-08-03-rodada-4a-roadmap-atualizacoes.md)
-- [`decisions/ADR-039-evolucao-tecnologica-proativa.md`](decisions/ADR-039-evolucao-tecnologica-proativa.md)
-- [`audits/2026-08-03-rodada-4a-roadmap-atualizacoes.md`](audits/2026-08-03-rodada-4a-roadmap-atualizacoes.md)
+O PR nº 141 permanece em andamento. Seus arquivos não são tratados como documentação integrada enquanto o PR estiver aberto.
 
-## 8. Outras evidências atuais
+## 9. Decisões recentes
 
-### Backup e restauração
+- [`decisions/ADR-040-garantia-operacional-contínua.md`](decisions/ADR-040-garantia-operacional-contínua.md)
+- [`decisions/ADR-041-confiabilidade-funcional-ponta-a-ponta.md`](decisions/ADR-041-confiabilidade-funcional-ponta-a-ponta.md)
+- [`decisions/ADR-042-reconciliacao-documental-remota.md`](decisions/ADR-042-reconciliacao-documental-remota.md)
 
+Esses três ADRs pertencem à branch documental até eventual integração.
+
+## 10. Evidências atuais
+
+- [`audits/2026-08-05-reconciliacao-documental-integral.md`](audits/2026-08-05-reconciliacao-documental-integral.md)
+- [`evidence/excel-certification/synthetic-manifest.json`](evidence/excel-certification/synthetic-manifest.json)
 - [`audits/2026-07-30-backup-restore-disposable.md`](audits/2026-07-30-backup-restore-disposable.md)
-
-### Node e gate remoto
-
-- [`decisions/ADR-035-node24-e-gate-remoto.md`](decisions/ADR-035-node24-e-gate-remoto.md)
 - [`audits/2026-07-30-node24-gate-remoto-perfis-viewports.md`](audits/2026-07-30-node24-gate-remoto-perfis-viewports.md)
-
-### Reconciliação da migration SME
-
 - [`audits/2026-07-29-reconciliacao-migration-sme-evidencias.md`](audits/2026-07-29-reconciliacao-migration-sme-evidencias.md)
-- [`audits/2026-07-29-rastreabilidade-migration-sme.md`](audits/2026-07-29-rastreabilidade-migration-sme.md) — achado histórico resolvido
 
-### Certificação Excel
+Evidência datada não substitui o estado corrente.
 
-- [`evidence/excel/README.md`](evidence/excel/README.md)
-- [`evidence/excel/certification-manifest.json`](evidence/excel/certification-manifest.json)
+## 11. Prioridade
 
-## 9. Regra de atualização
+```text
+reconciliação documental
+→ matriz funcional por perfil/tela/ação
+→ smoke autenticado de leitura
+→ provas controladas de escrita e compensação
+→ integridade contínua dos dados
+→ atualizações menores
+→ UAT e liberação
+```
 
-Uma mudança material deve atualizar, no mesmo ciclo:
+## 12. Regra de manutenção
 
-- contrato executável;
-- teste de regressão;
-- documentação canônica afetada;
-- roadmap técnico/funcional, quando aplicável;
-- evidência do mesmo SHA;
-- lista de bloqueadores;
-- classificação documental.
+Mudança material deve atualizar código, teste, documentos canônicos, roadmap, evidência, validade documental e estado de publicação.
 
-Toda tarefa deve também avaliar se atualização, instalação ou capacidade tecnológica moderna produz resultado materialmente superior. A proposta deve ser apresentada quando houver ganho real, sem autorizar instalação automática nem ampliação silenciosa de escopo.
-
-Planos e relatórios históricos não são reescritos para parecerem atuais. Quando superados, recebem classificação explícita e apontam para a fonte canônica atual.
+Planos e auditorias históricos não são reescritos para parecer atuais; recebem classificação e apontam para a fonte vigente.

@@ -1,98 +1,94 @@
 # Classificação de mudanças do RADAR PDDE
 
 **Estado:** vigente  
-**Atualizado em:** 29 de julho de 2026
+**Atualizado em:** 5 de agosto de 2026
 
 ## Regra geral
 
-Nenhum achado entra no backlog sem código, evidência e conduta. A classificação descreve o estado do elemento analisado; não substitui prioridade, impacto ou esforço.
+Nenhum achado entra no backlog sem evidência, consequência e conduta. A classe descreve a natureza do achado; prioridade e esforço são dimensões separadas.
 
 ## `CP` — Correto e protegido
 
-- **Definição:** comportamento coerente com regras, testes e finalidade real.
-- **Evidência mínima:** teste, fluxo executado e fonte documental compatíveis.
-- **Conduta permitida:** preservar; ampliar teste apenas quando a proteção for insuficiente.
-- **Conduta proibida:** substituir por preferência técnica ou estética.
-- **Exemplo:** independência entre bonificação, análise técnica e pendência.
+- **Definição:** comportamento coerente com regras, testes e finalidade.
+- **Evidência:** contrato, fluxo executado e regressão compatíveis.
+- **Conduta:** preservar e ampliar proteção quando necessário.
+- **Exemplo:** independência entre bonificação, análise e pendência.
 
 ## `ID` — Intencional e deliberado
 
-- **Definição:** comportamento cuja forma atual deriva de decisão expressa, ainda que pareça incomum fora do contexto institucional.
-- **Evidência mínima:** fonte canônica ou confirmação expressa.
-- **Conduta permitida:** documentar, proteger e indicar a razão.
-- **Conduta proibida:** reinterpretar como defeito sem nova autoridade.
-- **Exemplo:** ausência deliberada de `dataValidations` no Excel SME para evitar reparo no Microsoft Excel.
+- **Definição:** forma atual deriva de decisão expressa, ainda que pareça incomum.
+- **Evidência:** decisão ou contrato canônico.
+- **Conduta:** documentar e proteger; não reinterpretar sem autoridade.
+- **Exemplo:** ausência de `dataValidations` no Excel SME para evitar reparo.
 
 ## `FA` — Funcional e aprimorável
 
-- **Definição:** solução correta que entrega a tarefa, mas possui ganho demonstrável de clareza, produtividade, acessibilidade, desempenho ou manutenção.
-- **Evidência mínima:** fluxo atual observado e consequência concreta da limitação.
-- **Conduta permitida:** propor alternativas, resultado esperado e preservações.
-- **Conduta proibida:** usar rótulos vagos de modernização ou experiência sem evidência.
-- **Exemplo:** tabela desktop da Carteira é completa, porém demanda estudo de densidade e personalização.
+- **Definição:** entrega a tarefa, mas há ganho demonstrável de clareza, produtividade, acessibilidade, desempenho ou manutenção.
+- **Evidência:** fluxo observado e consequência concreta.
+- **Conduta:** propor resultado, preservações, custo e teste.
+- **Exemplo:** densidade de uma tabela correta que pode ser reorganizada sem perda.
 
 ## `IC` — Inconsistente ou duplicado
 
-- **Definição:** capacidades equivalentes possuem contratos, estilos ou implementações concorrentes.
-- **Evidência mínima:** duas ou mais implementações mapeadas, com diferença de comportamento ou precedência.
-- **Conduta permitida:** consolidar após mapa de consumidores e testes de equivalência.
-- **Conduta proibida:** remover camada por nome, idade ou impressão de obsolescência.
-- **Exemplo:** camadas CSS `final` e `hotfix` atuando sobre a mesma superfície sem inventário de precedência atualizado.
+- **Definição:** capacidades equivalentes possuem contratos ou implementações concorrentes.
+- **Evidência:** consumidores e divergências mapeados.
+- **Conduta:** consolidar somente após equivalência e precedência.
+- **Exemplo:** duas camadas CSS alterando a mesma propriedade sem contrato claro.
 
 ## `DC` — Defeito comprovado
 
-- **Definição:** comportamento incorreto, inacessível, inseguro ou incompatível com regra vigente.
-- **Evidência mínima:** reprodução, teste falhando, erro de console ou divergência inequívoca de contrato.
-- **Conduta permitida:** corrigir com teste de regressão e menor mudança suficiente.
-- **Conduta proibida:** ampliar escopo para refatoração não relacionada.
-- **Exemplo:** ação visível para Gestão SME que aciona mutação operacional proibida pela política de capacidades.
+- **Definição:** comportamento incorreto, inacessível ou incompatível com regra vigente.
+- **Evidência:** reprodução, erro, teste falhando ou divergência inequívoca.
+- **Conduta:** corrigir causa raiz com regressão e menor mudança suficiente.
+- **Exemplos:** botão do Excel sem asset publicado; Gestão de Equipe interrompida pelo preflight CORS.
 
 ## `DQ` — Dúvida de produto ou regra
 
-- **Definição:** intenção, consequência ou autoridade não pode ser determinada com segurança.
-- **Evidência mínima:** fontes conflitantes, ausência de fonte ou alternativas com trade-off material.
-- **Conduta permitida:** formular pergunta específica, alternativas e consequências.
-- **Conduta proibida:** transformar recomendação provisória em decisão final.
-- **Exemplo:** decidir se colunas secundárias da Carteira devem ser ocultáveis ou sempre visíveis.
+- **Definição:** intenção ou autoridade não pode ser determinada com segurança.
+- **Evidência:** fontes conflitantes ou alternativas com consequência material.
+- **Conduta:** formular pergunta específica e não implementar unilateralmente.
+- **Exemplo atual:** extensão exata das configurações de programas permitidas à Gestão SME.
 
 ## `DF` — Dependente de etapa futura
 
-- **Definição:** atividade deliberadamente prevista para ambiente, integração ou ciclo ainda não executado.
-- **Evidência mínima:** plano, arquitetura ou runbook que a posicione em etapa posterior.
-- **Conduta permitida:** registrar dependência, gate e momento correto.
-- **Conduta proibida:** apresentar como falha esquecida do estado atual.
-- **Exemplo:** homologação manual dos relatórios no Excel desktop, teste de restauração e UAT antes da liberação oficial.
+- **Definição:** atividade prevista para etapa ainda não executada.
+- **Evidência:** roadmap, plano ou dependência técnica.
+- **Conduta:** registrar gate e momento correto; não apresentar como esquecimento.
+- **Exemplos atuais:** smoke autenticado recorrente, provas controladas de escrita e UAT.
+
+O Excel SME e o backup/restauração descartável não são exemplos de `DF`: essas etapas foram concluídas.
 
 ## `EP` — Evolução posterior
 
-- **Definição:** capacidade útil, mas não bloqueadora e ainda não suficientemente prioritária para execução imediata.
-- **Evidência mínima:** benefício plausível e dependências conhecidas.
-- **Conduta permitida:** manter no roadmap e reavaliar após ciclos anteriores.
-- **Conduta proibida:** competir com risco crítico sem justificativa.
-- **Exemplo:** indicadores preditivos de risco de atraso após estabilização dos dados.
+- **Definição:** capacidade útil, não bloqueadora e ainda sem prioridade imediata.
+- **Evidência:** benefício e dependências conhecidos.
+- **Conduta:** manter no roadmap e reavaliar depois das frentes prioritárias.
+- **Exemplo:** indicadores preditivos após estabilização e UAT.
 
 ## Relação com prioridade
 
 | Classe | Pode ser P0? | Observação |
 |---|---|---|
-| `CP` | não como implementação | entra como proteção |
-| `ID` | não como implementação | entra como decisão preservada |
-| `FA` | excepcionalmente | depende do impacto real |
-| `IC` | sim | quando causa regressão ou bloqueio |
+| `CP` | não como correção | preservar |
+| `ID` | não como correção | decisão protegida |
+| `FA` | excepcionalmente | depende do impacto |
+| `IC` | sim | quando causa regressão |
 | `DC` | sim | conforme gravidade |
-| `DQ` | não antes da decisão | pode bloquear pacote |
-| `DF` | não no ciclo atual | pode ser prioridade do ciclo futuro |
-| `EP` | normalmente P3/P4 | reavaliar por evidência |
+| `DQ` | bloqueia decisão | não implementar antes de resolver |
+| `DF` | pode ser P1 futuro | respeitar sequência |
+| `EP` | normalmente P3 | reavaliar |
 
 ## Registro mínimo
 
-Todo achado deve declarar:
+Todo achado declara:
 
-- superfície;
+- perfil e superfície;
+- passos de reprodução;
+- camada em que falha;
 - evidência;
-- código;
-- consequência;
+- consequência ao usuário;
+- classe e prioridade;
 - preservações;
 - dependências;
-- necessidade de decisão humana;
-- condição de aceite.
+- decisão humana necessária;
+- critério de aceite ponta a ponta.
