@@ -7,6 +7,9 @@ const REQUIRED_PROFILES = Object.freeze([
   'sme_management',
   'technical_admin'
 ]);
+const ALLOWED_READ_RPC_PATHS = Object.freeze(new Set([
+  '/rest/v1/rpc/current_app_role'
+]));
 
 function text(value) {
   return value == null ? '' : String(value).trim();
@@ -76,11 +79,13 @@ function isSuspiciousMutationRequest(method, rawUrl) {
   try {
     pathname = new URL(rawUrl).pathname;
   } catch (_error) {
-    pathname = text(rawUrl);
+    pathname = text(rawUrl).split('?')[0];
   }
 
   if (pathname.includes('/auth/v1/token')) return false;
-  if (pathname.includes('/rest/v1/rpc/')) return false;
+  if (pathname.startsWith('/rest/v1/rpc/')) {
+    return !ALLOWED_READ_RPC_PATHS.has(pathname);
+  }
   if (pathname.includes('/rest/v1/')) return true;
   if (pathname.includes('/functions/v1/')) return true;
   return false;
@@ -95,6 +100,7 @@ function sanitizeObservedError(value) {
 
 module.exports = Object.freeze({
   REQUIRED_PROFILES,
+  ALLOWED_READ_RPC_PATHS,
   validateAccountsDocument,
   isSuspiciousMutationRequest,
   sanitizeObservedError
