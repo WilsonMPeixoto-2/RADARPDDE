@@ -7,6 +7,7 @@ on:
     paths:
       - '.github/workflows/update-supabase-js-2-110-9-temp.yml'
       - 'scripts/build-supabase-client.mjs'
+      - 'tests/unit/supabase-modernization.test.js'
 
 permissions:
   contents: write
