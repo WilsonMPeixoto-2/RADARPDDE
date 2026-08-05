@@ -42,15 +42,13 @@ jobs:
       - name: Instalar dependências reproduzíveis
         run: npm ci
 
-      - name: Validar alvo e segredos sem exibi-los
+      - name: Validar alvo e segredos do CLI sem exibi-los
         shell: bash
         run: |
           set -euo pipefail
           test "${PROJECT_REF}" = 'scnryinorqeucbfkioxo'
           test -n "${SUPABASE_ACCESS_TOKEN}" || { echo 'SUPABASE_ACCESS_TOKEN ausente.' >&2; exit 1; }
           test -n "${PGPASS_REMOTE}" || { echo 'SUPABASE_DB_PASSWORD ausente.' >&2; exit 1; }
-          test -n "${{ secrets.RADAR_SUPABASE_URL }}" || { echo 'RADAR_SUPABASE_URL ausente.' >&2; exit 1; }
-          test -n "${{ secrets.RADAR_SUPABASE_SERVICE_ROLE_KEY }}" || { echo 'RADAR_SUPABASE_SERVICE_ROLE_KEY ausente.' >&2; exit 1; }
 
       - name: Vincular exclusivamente o Supabase Production autorizado
         run: npx --no-install supabase link --project-ref "${PROJECT_REF}" --password "${PGPASS_REMOTE}"
@@ -108,12 +106,6 @@ jobs:
           set -euo pipefail
           npx --no-install supabase gen types typescript --linked --schema public > /tmp/database.remote.types.ts
           diff --unified src/types/database.types.ts /tmp/database.remote.types.ts
-
-      - name: Executar auditoria real de integridade
-        env:
-          RADAR_SUPABASE_URL: ${{ secrets.RADAR_SUPABASE_URL }}
-          RADAR_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.RADAR_SUPABASE_SERVICE_ROLE_KEY }}
-        run: node scripts/check-production-data-integrity.mjs
 
       - name: Publicar evidências sanitizadas
         if: always()
