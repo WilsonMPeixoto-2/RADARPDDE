@@ -1,0 +1,131 @@
+name: Aplicar auditoria de integridade em Production — execução única
+
+on:
+  push:
+    branches:
+      - ops/apply-production-integrity-20260805
+    paths:
+      - '.github/workflows/apply-production-integrity-once.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-production-migration
+  cancel-in-progress: false
+
+env:
+  SUPABASE_TELEMETRY_DISABLED: '1'
+  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+  PGPASS_REMOTE: ${{ secrets.SUPABASE_DB_PASSWORD }}
+  PROJECT_REF: scnryinorqeucbfkioxo
+  EXPECTED_MIGRATION: '202608040001'
+
+jobs:
+  apply-and-validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout do commit publicado
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+
+      - name: Validar alvo e segredos sem exibi-los
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${PROJECT_REF}" = 'scnryinorqeucbfkioxo'
+          test -n "${SUPABASE_ACCESS_TOKEN}" || { echo 'SUPABASE_ACCESS_TOKEN ausente.' >&2; exit 1; }
+          test -n "${PGPASS_REMOTE}" || { echo 'SUPABASE_DB_PASSWORD ausente.' >&2; exit 1; }
+          test -n "${{ secrets.RADAR_SUPABASE_URL }}" || { echo 'RADAR_SUPABASE_URL ausente.' >&2; exit 1; }
+          test -n "${{ secrets.RADAR_SUPABASE_SERVICE_ROLE_KEY }}" || { echo 'RADAR_SUPABASE_SERVICE_ROLE_KEY ausente.' >&2; exit 1; }
+
+      - name: Vincular exclusivamente o Supabase Production autorizado
+        run: npx --no-install supabase link --project-ref "${PROJECT_REF}" --password "${PGPASS_REMOTE}"
+
+      - name: Confirmar linha-base de 25 migrations
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --no-install supabase migration list --linked --password "${PGPASS_REMOTE}" 2>&1 \
+            | tee /tmp/migrations-before.txt
+          if grep -q "${EXPECTED_MIGRATION}" /tmp/migrations-before.txt; then
+            echo 'A migration já consta no histórico; execução interrompida para evitar reaplicação.' >&2
+            exit 1
+          fi
+
+      - name: Executar dry-run e exigir somente a migration autorizada
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --no-install supabase db push --linked --dry-run --password "${PGPASS_REMOTE}" 2>&1 \
+            | tee /tmp/migration-dry-run.txt
+          grep -q "${EXPECTED_MIGRATION}_production_integrity_monitor.sql" /tmp/migration-dry-run.txt
+          pending_count="$(grep -Ec '^[[:space:]]*[0-9]{12,}_.+\.sql[[:space:]]*$' /tmp/migration-dry-run.txt || true)"
+          test "${pending_count}" -le 1 || {
+            echo "Dry-run encontrou mais de uma migration pendente (${pending_count})." >&2
+            exit 1
+          }
+
+      - name: Aplicar migration versionada sem seed
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --no-install supabase db push --linked --password "${PGPASS_REMOTE}" --yes 2>&1 \
+            | tee /tmp/migration-apply.txt
+
+      - name: Confirmar histórico e contrato remoto
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --no-install supabase migration list --linked --password "${PGPASS_REMOTE}" 2>&1 \
+            | tee /tmp/migrations-after.txt
+          grep -q "${EXPECTED_MIGRATION}" /tmp/migrations-after.txt
+          npx --no-install supabase db query --linked --file supabase/verification/remote-post-apply.sql 2>&1 \
+            | tee /tmp/remote-post-apply.txt
+
+      - name: Executar lint remoto
+        run: npx --no-install supabase db lint --linked --schema public --level warning --fail-on error
+
+      - name: Executar pgTAP remoto em transações reversíveis
+        run: npx --no-install supabase test db supabase/tests/database --linked
+
+      - name: Comparar tipos remotos com os tipos versionados
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --no-install supabase gen types typescript --linked --schema public > /tmp/database.remote.types.ts
+          diff --unified src/types/database.types.ts /tmp/database.remote.types.ts
+
+      - name: Executar auditoria real de integridade
+        env:
+          RADAR_SUPABASE_URL: ${{ secrets.RADAR_SUPABASE_URL }}
+          RADAR_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.RADAR_SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/check-production-data-integrity.mjs
+
+      - name: Publicar evidências sanitizadas
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: production-integrity-apply-${{ github.run_id }}
+          path: |
+            /tmp/migrations-before.txt
+            /tmp/migration-dry-run.txt
+            /tmp/migration-apply.txt
+            /tmp/migrations-after.txt
+            /tmp/remote-post-apply.txt
+            /tmp/database.remote.types.ts
+          if-no-files-found: warn
+          retention-days: 7
