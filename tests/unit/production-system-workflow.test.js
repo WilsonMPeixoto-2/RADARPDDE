@@ -45,12 +45,13 @@ test('monitor valida sistema inteiro e preflight com ações fixadas por SHA', (
   assert.match(source, /actions\/setup-node@820762786026740c76f36085b0efc47a31fe5020/u);
   assert.match(source, /node scripts\/check-production-system\.mjs/u);
   assert.match(source, /--base-url "\$\{RADAR_PRODUCTION_URL\}"/u);
-  assert.match(source, /--expected-commit "\$\{EXPECTED_COMMIT\}"/u);
+  assert.match(source, /SMOKE_ARGS/u);
+  assert.match(source, /--expected-commit/u);
   assert.match(source, /--attempts "\$\{ATTEMPTS\}"/u);
   assert.match(source, /node scripts\/check-production-team-account-preflight\.mjs/u);
 });
 
-test('monitor exige deployment somente para entradas reais do artefato web', () => {
+test('monitor exige SHA apenas quando o artefato web mudou e evita corrida com deployment automático', () => {
   const source = workflowSource();
   assert.match(source, /radar-build-manifest\.json/u);
   assert.match(source, /CURRENT_DEPLOYED_COMMIT/u);
@@ -60,8 +61,14 @@ test('monitor exige deployment somente para entradas reais do artefato web', () 
   assert.match(source, /assets\/templates\/\*\|src\/\*\|vendor\/\*/u);
   assert.match(source, /scripts\/build-vercel\.mjs/u);
   assert.match(source, /DEPLOYMENT_REQUIRED=true/u);
-  assert.match(source, /EXPECTED_COMMIT="\$\{CURRENT_DEPLOYED_COMMIT\}"/u);
+  assert.match(source, /EXPECTED_COMMIT=""/u);
+  assert.match(source, /MONITORED_COMMIT="\$\{CURRENT_DEPLOYED_COMMIT\}"/u);
   assert.match(source, /EXPECTED_COMMIT="\$\{GITHUB_SHA\}"/u);
+  assert.match(source, /MONITORED_COMMIT="\$\{GITHUB_SHA\}"/u);
+  assert.match(source, /if \[ -n "\$\{EXPECTED_COMMIT\}" \]; then/u);
+  assert.match(source, /SMOKE_ARGS\+=\(--expected-commit "\$\{EXPECTED_COMMIT\}"\)/u);
+  assert.match(source, /--commit "\$\{MONITORED_COMMIT\}"/u);
+  assert.doesNotMatch(source, /EXPECTED_COMMIT="\$\{CURRENT_DEPLOYED_COMMIT\}"/u);
 });
 
 test('monitor gerencia incidentes fora de pull requests sem mascarar o resultado principal', () => {
@@ -83,5 +90,6 @@ test('monitor aguarda propagação apenas quando o artefato web mudou e sempre p
   assert.match(source, /if:\s*always\(\)/u);
   assert.match(source, /GITHUB_STEP_SUMMARY/u);
   assert.match(source, /Novo deployment exigido/u);
+  assert.match(source, /Política de commit/u);
   assert.match(source, /Gestão automática do incidente/u);
 });
