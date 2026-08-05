@@ -18,7 +18,7 @@
     function errorCode(error, data) {
         const explicit = String(data?.code || error?.code || '').trim().toUpperCase();
         const message = String(data?.message || error?.message || '');
-        const status = Number(error?.status || data?.status || 0);
+        const status = Number(error?.status || data?.status || error?.context?.status || 0);
 
         if (explicit === 'ORIGIN_DENIED' || explicit === 'PERMISSION_DENIED') {
             return 'PERMISSION_DENIED';
@@ -33,6 +33,21 @@
         if (message.includes('ACCOUNT_CONFLICT')) return 'ACCOUNT_CONFLICT';
         if (message.includes('VALIDATION')) return 'VALIDATION_FAILED';
         return 'REMOTE_UNAVAILABLE';
+    }
+
+    async function functionErrorPayload(error) {
+        const context = error?.context;
+        if (!context || typeof context.json !== 'function') return null;
+
+        try {
+            const response = typeof context.clone === 'function' ? context.clone() : context;
+            const payload = await response.json();
+            return payload && typeof payload === 'object' && !Array.isArray(payload)
+                ? payload
+                : null;
+        } catch (_error) {
+            return null;
+        }
     }
 
     class TeamAccountGateway {
@@ -62,17 +77,27 @@
                     body: { operation, ...cloneValue(payload) }
                 });
             } catch (error) {
+                const remotePayload = await functionErrorPayload(error);
                 throw new RepositoryError(
-                    errorCode(error),
-                    error?.message || 'Não foi possível acessar o serviço de contas da equipe.',
-                    { operation, cause: error }
+                    errorCode(error, remotePayload),
+                    remotePayload?.message
+                        || error?.message
+                        || 'Não foi possível acessar o serviço de contas da equipe.',
+                    {
+                        operation,
+                        cause: error,
+                        details: cloneValue(remotePayload?.details || {})
+                    }
                 );
             }
 
             if (result?.error || result?.data?.ok === false) {
-                const source = result?.data || result?.error || {};
+                const remotePayload = result?.error
+                    ? await functionErrorPayload(result.error)
+                    : null;
+                const source = remotePayload || result?.data || result?.error || {};
                 throw new RepositoryError(
-                    errorCode(result?.error, result?.data),
+                    errorCode(result?.error, source),
                     source.message || 'A operação de acesso da equipe foi recusada.',
                     {
                         operation,

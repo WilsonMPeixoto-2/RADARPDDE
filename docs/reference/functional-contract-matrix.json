@@ -93,8 +93,8 @@
       "production": []
     },
     "team": {
-      "unit": ["tests/unit/team-account-gateway.test.js", "tests/unit/team-account-domain.test.js"],
-      "e2e": ["tests/e2e/supabase-full-contract.spec.js"],
+      "unit": ["tests/unit/team-account-gateway.test.js", "tests/unit/team-account-domain.test.js", "tests/unit/team-account-role-transition.test.js"],
+      "e2e": ["tests/e2e/supabase-full-contract.spec.js", "scripts/check-team-account-function.mjs"],
       "database": ["supabase/tests/database/team-management-rpc.test.sql", "supabase/tests/database/rls.test.sql"],
       "production": [".github/workflows/production-team-account-preflight.yml"]
     },
