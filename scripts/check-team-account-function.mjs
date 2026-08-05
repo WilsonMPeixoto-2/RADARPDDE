@@ -2,6 +2,9 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { createClient } from '@supabase/supabase-js';
 import fixtures from '../supabase/fixtures/auth-users.json' with { type: 'json' };
 
@@ -35,6 +38,40 @@ function localServiceRoleKey() {
   const match = output.match(/^SERVICE_ROLE_KEY="?([^"\r\n]+)"?$/m);
   if (!match?.[1]) throw new Error('SERVICE_ROLE_KEY local não pôde ser resolvida.');
   return match[1];
+}
+
+function sqlLiteral(value) {
+  return `'${String(value).replaceAll("'", "''")}'`;
+}
+
+function sqlUuid(value) {
+  return `${sqlLiteral(value)}::uuid`;
+}
+
+function sqlTextArray(values) {
+  return `array[${values.map(sqlLiteral).join(', ')}]::text[]`;
+}
+
+function sqlUuidArray(values) {
+  return `array[${values.map(sqlUuid).join(', ')}]::uuid[]`;
+}
+
+function runLocalSql(sql) {
+  if (!isLocalStack) throw new Error('SQL direto é permitido somente na pilha local descartável.');
+  const directory = mkdtempSync(join(tmpdir(), 'radar-team-hml-'));
+  const file = join(directory, 'query.sql');
+  writeFileSync(file, sql, { encoding: 'utf8', mode: 0o600 });
+  try {
+    return execFileSync('npx', ['supabase', 'db', 'query', '--local', '--file', file], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe']
+    });
+  } catch (error) {
+    const detail = String(error?.stderr || error?.stdout || error?.message || error).trim();
+    throw new Error(`SQL local da homologação falhou: ${detail}`, { cause: error });
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
 }
 
 async function callPreflight(origin) {
@@ -83,7 +120,7 @@ async function validatePreflight() {
   // No ambiente local, o Kong responde ao OPTIONS antes da Edge Function e usa
   // os cabeçalhos permissivos próprios do gateway descartável. A política
   // fail-closed da função é validada por teste unitário e pelo smoke remoto de
-  // produção, onde a requisição alcança efetivamente o código publicado.
+  // Production, onde a requisição alcança efetivamente o código publicado.
   if (isLocalStack) return;
 
   if (allowed.allowOrigin !== allowedOrigin
@@ -160,27 +197,128 @@ function expectSuccess(response, operation) {
   return response.body;
 }
 
+function insertSyntheticSchool(state) {
+  runLocalSql(`
+    begin;
+    insert into public.schools (
+      id,
+      designation,
+      denomination,
+      cre,
+      controller_id,
+      active
+    ) values (
+      ${sqlLiteral(state.schoolId)},
+      ${sqlLiteral(`99.99.${state.suffix}`)},
+      ${sqlLiteral('Unidade sintética para transferência HML')},
+      ${sqlLiteral('4ª CRE')},
+      ${sqlLiteral(state.sourceControllerId)},
+      true
+    );
+    commit;
+  `);
+}
+
+function verifySyntheticState(state) {
+  const targetUserId = state.userIds[0];
+  runLocalSql(`
+    do $$
+    declare
+      v_active_profiles integer;
+      v_target_controller_active boolean;
+      v_inventory_history_inactive boolean;
+      v_school_controller text;
+    begin
+      select count(*)
+      into v_active_profiles
+      from public.user_profiles
+      where user_id = ${sqlUuid(targetUserId)}
+        and active is true;
+
+      if v_active_profiles <> 1 then
+        raise exception 'HML_ACTIVE_PROFILE_COUNT:%', v_active_profiles;
+      end if;
+
+      select exists (
+        select 1
+        from public.user_profiles
+        where user_id = ${sqlUuid(targetUserId)}
+          and profile_id = 'controller'
+          and controller_id = ${sqlLiteral(state.targetControllerId)}
+          and inventory_member_id is null
+          and active is true
+      ) into v_target_controller_active;
+
+      if not v_target_controller_active then
+        raise exception 'HML_TARGET_CONTROLLER_PROFILE_MISSING';
+      end if;
+
+      select exists (
+        select 1
+        from public.user_profiles
+        where user_id = ${sqlUuid(targetUserId)}
+          and profile_id = 'inventory'
+          and inventory_member_id = ${sqlLiteral(state.inventoryMemberId)}
+          and active is false
+      ) into v_inventory_history_inactive;
+
+      if not v_inventory_history_inactive then
+        raise exception 'HML_INVENTORY_HISTORY_NOT_PRESERVED';
+      end if;
+
+      select controller_id
+      into v_school_controller
+      from public.schools
+      where id = ${sqlLiteral(state.schoolId)};
+
+      if v_school_controller is distinct from ${sqlLiteral(state.targetControllerId)} then
+        raise exception 'HML_SCHOOL_NOT_REASSIGNED:%', coalesce(v_school_controller, 'null');
+      end if;
+    end
+    $$;
+  `);
+}
+
 async function cleanupSyntheticState(admin, state) {
   const failures = [];
-  async function cleanup(label, operation) {
-    try {
-      const { error } = await operation();
-      if (error) throw error;
-    } catch (error) {
-      failures.push(`${label}: ${String(error?.message || error)}`);
-    }
-  }
-
-  await cleanup('escola sintética', () => admin.from('schools').delete().eq('id', state.schoolId));
-  if (state.userIds.length) {
-    await cleanup('perfis sintéticos', () => admin.from('user_profiles').delete().in('user_id', state.userIds));
-  }
-  await cleanup('controladores sintéticos', () => admin.from('controllers').delete().in('id', [
+  const recordIds = [
+    state.schoolId,
+    state.inventoryMemberId,
     state.targetControllerId,
-    state.sourceControllerId
-  ]));
-  await cleanup('inventário sintético', () => admin.from('inventory_team_members').delete().eq('id', state.inventoryMemberId));
-  await cleanup('logs sintéticos', () => admin.from('administrative_logs').delete().in('id', state.logIds));
+    state.sourceControllerId,
+    ...state.logIds
+  ];
+
+  try {
+    if (state.userIds.length) {
+      runLocalSql(`
+        begin;
+        delete from public.schools
+        where id = ${sqlLiteral(state.schoolId)};
+
+        delete from public.user_profiles
+        where user_id = any(${sqlUuidArray(state.userIds)});
+
+        delete from public.controllers
+        where id = any(${sqlTextArray([state.targetControllerId, state.sourceControllerId])});
+
+        delete from public.inventory_team_members
+        where id = ${sqlLiteral(state.inventoryMemberId)};
+
+        delete from public.administrative_logs
+        where id = any(${sqlTextArray(state.logIds)});
+
+        delete from public.audit_events
+        where record_id = any(${sqlTextArray(recordIds)})
+           or actor_user_id = any(${sqlUuidArray(state.userIds)})
+           or coalesce(old_record ->> 'user_id', '') = any(${sqlTextArray(state.userIds)})
+           or coalesce(new_record ->> 'user_id', '') = any(${sqlTextArray(state.userIds)});
+        commit;
+      `);
+    }
+  } catch (error) {
+    failures.push(`dados sintéticos: ${String(error?.message || error)}`);
+  }
 
   for (const userId of [...state.userIds].reverse()) {
     try {
@@ -203,6 +341,7 @@ async function validateRoleTransitionLifecycle() {
   });
   const suffix = randomUUID().slice(0, 8);
   const state = {
+    suffix,
     targetEmail: `transicao-${suffix}@radar.local`,
     sourceEmail: `origem-${suffix}@radar.local`,
     inventoryMemberId: `hml-inventory-${suffix}`,
@@ -219,6 +358,8 @@ async function validateRoleTransitionLifecycle() {
     ]
   };
   const session = await signInAs('federal_assistant');
+  let lifecycleError = null;
+  let cleanupError = null;
 
   try {
     for (const [email, name] of [
@@ -302,15 +443,7 @@ async function validateRoleTransitionLifecycle() {
     }), 'cadastro do controlador de origem');
     assert.equal(sourceControllerSave.userId, sourceUserId);
 
-    const { error: schoolError } = await admin.from('schools').insert({
-      id: state.schoolId,
-      designation: `99.99.${suffix}`,
-      denomination: 'Unidade sintética para transferência HML',
-      cre: '4ª CRE',
-      controller_id: state.sourceControllerId,
-      active: true
-    });
-    if (schoolError) throw schoolError;
+    insertSyntheticSchool(state);
 
     const reassignment = expectSuccess(await callFunction(session.accessToken, {
       operation: 'deactivate_controller',
@@ -323,30 +456,9 @@ async function validateRoleTransitionLifecycle() {
         details: { synthetic: true }
       }
     }), 'transferência da carteira e desativação da origem');
-    assert.equal(reassignment.body?.result?.reassigned_count ?? reassignment.result?.reassigned_count, 1);
+    assert.equal(reassignment.result?.reassigned_count, 1);
 
-    const [{ data: profiles, error: profilesError }, { data: school, error: schoolReadError }] = await Promise.all([
-      admin.from('user_profiles')
-        .select('profile_id,controller_id,inventory_member_id,active')
-        .eq('user_id', targetUserId)
-        .order('profile_id'),
-      admin.from('schools')
-        .select('controller_id')
-        .eq('id', state.schoolId)
-        .single()
-    ]);
-    if (profilesError) throw profilesError;
-    if (schoolReadError) throw schoolReadError;
-
-    assert.equal(profiles.filter(row => row.active).length, 1);
-    assert.deepEqual(profiles.find(row => row.active), {
-      profile_id: 'controller',
-      controller_id: state.targetControllerId,
-      inventory_member_id: null,
-      active: true
-    });
-    assert.equal(profiles.find(row => row.profile_id === 'inventory')?.active, false);
-    assert.equal(school.controller_id, state.targetControllerId);
+    verifySyntheticState(state);
 
     const targetClient = publicClient();
     const { data: targetSignIn, error: targetSignInError } = await targetClient.auth.signInWithPassword({
@@ -356,14 +468,32 @@ async function validateRoleTransitionLifecycle() {
     if (targetSignInError || !targetSignIn.session) {
       throw targetSignInError || new Error('Conta convertida não recuperou acesso.');
     }
-    const { data: currentRole, error: roleError } = await targetClient.rpc('current_app_role');
-    if (roleError) throw roleError;
-    assert.equal(currentRole, 'controller');
-    await targetClient.auth.signOut({ scope: 'local' });
+    try {
+      const { data: currentRole, error: roleError } = await targetClient.rpc('current_app_role');
+      if (roleError) throw roleError;
+      assert.equal(currentRole, 'controller');
+    } finally {
+      await targetClient.auth.signOut({ scope: 'local' });
+    }
+  } catch (error) {
+    lifecycleError = error;
   } finally {
     await session.client.auth.signOut({ scope: 'local' });
-    await cleanupSyntheticState(admin, state);
+    try {
+      await cleanupSyntheticState(admin, state);
+    } catch (error) {
+      cleanupError = error;
+    }
   }
+
+  if (lifecycleError && cleanupError) {
+    throw new AggregateError(
+      [lifecycleError, cleanupError],
+      `A homologação funcional falhou e a limpeza também encontrou erro: ${lifecycleError.message}`
+    );
+  }
+  if (lifecycleError) throw lifecycleError;
+  if (cleanupError) throw cleanupError;
 }
 
 await validatePreflight();
