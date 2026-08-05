@@ -1,0 +1,61 @@
+name: Ajuste temporário do ensaio de equipe
+
+on:
+  push:
+    branches:
+      - hotfix/p0-transicao-perfil-equipe-20260805
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: hotfix/p0-transicao-perfil-equipe-20260805
+      - name: Aplicar correção determinística
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('scripts/check-team-account-function.mjs')
+          content = path.read_text(encoding='utf-8')
+          content = content.replace(
+              "  runLocalSql(`\n    begin;\n    insert into public.schools (",
+              "  runLocalSql(`\n    insert into public.schools (",
+              1,
+          )
+          content = content.replace(
+              "      true\n    );\n    commit;\n  `);",
+              "      true\n    );\n  `);",
+              1,
+          )
+          content = content.replace(
+              "      runLocalSql(`\n        begin;\n        delete from public.schools",
+              "      runLocalSql(`\n        do $$\n        begin\n        delete from public.schools",
+              1,
+          )
+          content = content.replace(
+              "           or coalesce(new_record ->> 'user_id', '') = any(${sqlTextArray(state.userIds)});\n        commit;\n      `);",
+              "           or coalesce(new_record ->> 'user_id', '') = any(${sqlTextArray(state.userIds)});\n        end\n        $$;\n      `);",
+              1,
+          )
+          path.write_text(content, encoding='utf-8')
+          PY
+          node --check scripts/check-team-account-function.mjs
+      - name: Versionar ajuste
+        shell: bash
+        run: |
+          if git diff --quiet -- scripts/check-team-account-function.mjs; then
+            echo 'Nenhuma alteração necessária.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add scripts/check-team-account-function.mjs
+          git commit -m 'test: executar SQL local como instrução única'
+          git push origin HEAD:hotfix/p0-transicao-perfil-equipe-20260805
