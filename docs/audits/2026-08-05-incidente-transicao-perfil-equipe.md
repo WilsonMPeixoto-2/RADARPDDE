@@ -1,9 +1,9 @@
 # Incidente P0 — transição de perfil Inventário → Controlador
 
 **Data:** 5 de agosto de 2026  
-**Issue:** nº 149  
-**Hotfix:** PR nº 150  
-**Estado deste registro:** correção implementada e homologada em ambiente descartável; ainda não integrada nem publicada em Production
+**Issue:** nº 149 — encerrada  
+**Hotfix:** PR nº 150 — integrado e publicado  
+**Estado deste registro:** correção disponível em Production; operação real não repetida automaticamente
 
 ## 1. Impacto funcional
 
@@ -11,7 +11,7 @@ Na tela **Gestão de Equipe**, a Assistente de Verbas Federais conseguiu desativ
 
 A interface exibiu a mensagem genérica de indisponibilidade do serviço de dados, embora o Supabase estivesse disponível e a operação tivesse sido recusada por um conflito conhecido de conta.
 
-## 2. Evidência de Production
+## 2. Evidência do incidente
 
 A análise sanitizada dos logs e do estado relacional demonstrou:
 
@@ -32,7 +32,7 @@ O PR nº 138 corrigiu problemas reais de CORS, vínculos históricos nulos, cada
 
 A recuperação implementada procurava vínculo histórico apenas para o mesmo perfil e a mesma entidade. No percurso Inventário → Controlador, o novo registro de Controlador ainda não existia; por isso, o código concluiu incorretamente que era necessário enviar outro convite.
 
-A descrição de correção integral do PR nº 138 excedeu a cobertura efetivamente comprovada.
+A descrição de correção integral do PR nº 138 excedeu a cobertura efetivamente comprovada. O PR nº 150 acrescentou a prova específica que faltava.
 
 ## 4. Causa raiz
 
@@ -54,11 +54,11 @@ A descrição de correção integral do PR nº 138 excedeu a cobertura efetivame
 - não existia percurso integral Inventário → desativação → Controlador → redistribuição → novo login;
 - não existia regressão que obrigasse o conflito funcional a atravessar Edge Function, gateway e interface.
 
-## 5. Correção
+## 5. Correção implementada
 
 ### Edge Function `team-account-management`
 
-- procura conta Auth existente pelo e-mail antes de convidar;
+- procura conta Auth existente pelo e-mail normalizado antes de convidar;
 - reutiliza e reativa a conta quando não existe vínculo ativo conflitante;
 - rejeita troca de função enquanto outro perfil ainda estiver ativo, com mensagem funcional;
 - mantém um único perfil ativo e preserva perfis históricos inativos;
@@ -80,7 +80,7 @@ A descrição de correção integral do PR nº 138 excedeu a cobertura efetivame
 
 ## 6. Prova funcional descartável
 
-O gate executa:
+O gate executou:
 
 ```text
 criar contas Auth sintéticas
@@ -98,18 +98,31 @@ criar contas Auth sintéticas
 → remover integralmente usuários e dados sintéticos
 ```
 
-O percurso concluiu com sucesso no Supabase descartável, junto com as 26 migrations, 241 testes pgTAP, lint do banco, Auth, RLS e frontend local.
+O percurso concluiu com sucesso no Supabase descartável, junto com as 26 migrations, 241 testes pgTAP, lint do banco, Auth, RLS e frontend local. Os onze workflows do SHA final do PR foram aprovados.
 
-## 7. Limites e publicação
+## 7. Publicação em Production
 
-Este hotfix não altera migrations nem dados reais. O estado de Juliana, Érica e suas escolas não foi modificado durante a investigação ou a homologação.
+```text
+PR integrado: 150
+merge commit: 2ae98da8a547d46cd7e8e64977b855b1a90a2495
+Vercel deployment: dpl_BvrxJUahgWpaRbtn6Y5FrfzknKAw
+Vercel estado: READY
+Vercel commit: 2ae98da8a547d46cd7e8e64977b855b1a90a2495
+Supabase project: scnryinorqeucbfkioxo
+Edge Function: team-account-management
+Edge Function versão: 103
+Edge Function estado: ACTIVE
+verify_jwt: true
+Supabase JS: 2.110.9
+monitor pós-merge: run 31050471726 — success
+```
 
-A correção somente estará disponível aos usuários depois de:
+A função publicada contém a busca por e-mail, a validação de vínculo ativo, a reutilização segura e a compensação que preserva o bloqueio anterior. O monitor geral confirmou o ambiente publicado após o merge.
 
-1. todos os gates do SHA final concluírem com sucesso;
-2. autorização expressa para integrar o PR nº 150;
-3. publicação da Edge Function corrigida;
-4. publicação do frontend corrigido;
-5. smoke e verificação dos logs em Production.
+## 8. Limites e próxima ação operacional
 
-A operação real de converter a usuária e transferir a carteira deverá ser repetida pela Assistente após a publicação ou executada de forma controlada somente mediante autorização específica.
+O hotfix não alterou migrations, RLS, grants ou dados reais. O estado de Juliana, Érica e suas escolas não foi modificado automaticamente durante a investigação, homologação ou publicação.
+
+A Assistente poderá repetir o percurso funcional no sistema publicado. A conversão de uma pessoa real e a redistribuição de carteira continuam sendo operações administrativas explícitas e não fazem parte do deployment.
+
+A issue nº 149 foi encerrada pelo merge do PR nº 150. Nova ocorrência deve ser registrada com horário, perfil, operação, código funcional e identificador do deployment, sem dados pessoais nos logs públicos.
