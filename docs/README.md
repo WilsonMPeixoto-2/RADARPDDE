@@ -2,34 +2,34 @@
 
 **Estado de referência:** 5 de agosto de 2026
 
-Este diretório separa estado corrente, contratos vigentes, decisões, procedimentos restritos, planos e evidências históricas.
+Este diretório separa estado corrente, contratos executáveis, arquitetura, decisões, procedimentos e evidências históricas.
 
-## 1. Baseline atual
+## 1. Baseline
 
 ```text
-main: f812e5dbf3aaa18fb9851948445b0820ac7a5435
-Production: dpl_7G3Wmh1YiV4c4aXVwe2P5tN7N7Y4 — READY
-commit publicado: f812e5dbf3aaa18fb9851948445b0820ac7a5435
+main: 2e7b18ffa4b81300cf44c96ffde9c222cf98b895
+Production: dpl_FZe29TXs9DXeJSLg3bQCsgrgrinW — READY
+commit publicado: 2e7b18ffa4b81300cf44c96ffde9c222cf98b895
 Supabase: scnryinorqeucbfkioxo — ACTIVE_HEALTHY
 PostgreSQL: 17.6.1.147
 migrations em Production: 25
 Edge Function: team-account-management v95, ACTIVE, JWT obrigatório
 ```
 
-O PR nº 141 está aberto em rascunho e não integra esse baseline.
+O PR nº 141 permanece aberto em rascunho e independente.
 
 ## 2. Ordem de leitura
 
 1. [`../AGENTS.md`](../AGENTS.md);
 2. [`CURRENT_STAGE.md`](CURRENT_STAGE.md);
-3. [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md);
-4. [`ROADMAP_ATUALIZACOES_2026.md`](ROADMAP_ATUALIZACOES_2026.md);
-5. [`DECISION_LOG.md`](DECISION_LOG.md);
-6. [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md);
-7. [`architecture/README.md`](architecture/README.md);
-8. [`audits/2026-08-05-reconciliacao-documental-integral.md`](audits/2026-08-05-reconciliacao-documental-integral.md).
+3. [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md);
+4. [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md);
+5. [`ROADMAP_ATUALIZACOES_2026.md`](ROADMAP_ATUALIZACOES_2026.md);
+6. [`DECISION_LOG.md`](DECISION_LOG.md);
+7. [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md);
+8. [`architecture/README.md`](architecture/README.md).
 
-## 3. Documentos canônicos
+## 3. Fontes canônicas
 
 - [`CURRENT_STAGE.md`](CURRENT_STAGE.md)
 - [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md)
@@ -39,7 +39,26 @@ O PR nº 141 está aberto em rascunho e não integra esse baseline.
 - [`../README.md`](../README.md)
 - [`../AGENTS.md`](../AGENTS.md)
 
-## 4. Arquitetura vigente
+## 4. Matriz funcional ponta a ponta
+
+### Fonte executável
+
+- [`reference/functional-contract-matrix.json`](reference/functional-contract-matrix.json) — perfis, superfícies, evidências e arquivos de operações;
+- `reference/functional-contract-matrix/*.json` — quarenta operações críticas;
+- [`../scripts/check-functional-contract-matrix.mjs`](../scripts/check-functional-contract-matrix.mjs) — validação e geração;
+- [`../tests/unit/functional-contract-matrix.test.js`](../tests/unit/functional-contract-matrix.test.js) — regressões;
+- [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md) — visão gerada.
+
+Comandos:
+
+```bash
+npm run generate:functional-matrix
+npm run check:functional-matrix
+```
+
+A matriz bloqueia referências quebradas, perfis incoerentes, permissões incompletas e mutações críticas sem releitura, concorrência ou compensação.
+
+## 5. Arquitetura vigente
 
 ### Produto
 
@@ -64,26 +83,21 @@ O PR nº 141 está aberto em rascunho e não integra esse baseline.
 - [`architecture/excel-sme-mensal.md`](architecture/excel-sme-mensal.md)
 - [`architecture/excel-integral-certification.md`](architecture/excel-integral-certification.md)
 
-O Excel SME público possui 27 colunas A:AA. O template-fonte de 30 colunas é somente base visual.
+O Excel SME público possui 27 colunas A:AA. O template de 30 colunas é somente fonte visual.
 
-## 5. Referências Supabase
+## 6. Supabase e permissões
 
 - [`reference/SUPABASE_DATA_DICTIONARY.md`](reference/SUPABASE_DATA_DICTIONARY.md)
 - [`reference/SUPABASE_FUNCTIONAL_COVERAGE.md`](reference/SUPABASE_FUNCTIONAL_COVERAGE.md)
 - [`reference/SUPABASE_INTEGRATION_AUDIT.md`](reference/SUPABASE_INTEGRATION_AUDIT.md)
 - [`reference/SUPABASE_PERMISSIONS_MATRIX.md`](reference/SUPABASE_PERMISSIONS_MATRIX.md)
-
-## 6. Procedimentos Supabase
-
-### Runbooks vigentes
-
 - [`runbooks/SUPABASE_CONNECTION.md`](runbooks/SUPABASE_CONNECTION.md)
 - [`runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`](runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md)
 
-### Procedimentos históricos e restritos
+Procedimentos históricos restritos:
 
-- [`runbooks/SUPABASE_AUTH_BOOTSTRAP.md`](runbooks/SUPABASE_AUTH_BOOTSTRAP.md) — somente novo projeto, recuperação formal ou reconciliação autorizada;
-- [`runbooks/SUPABASE_DATA_BOOTSTRAP.md`](runbooks/SUPABASE_DATA_BOOTSTRAP.md) — carga inicial já concluída; não usar como rotina de Production.
+- [`runbooks/SUPABASE_AUTH_BOOTSTRAP.md`](runbooks/SUPABASE_AUTH_BOOTSTRAP.md);
+- [`runbooks/SUPABASE_DATA_BOOTSTRAP.md`](runbooks/SUPABASE_DATA_BOOTSTRAP.md).
 
 ## 7. Catálogos de produto
 
@@ -92,39 +106,24 @@ O Excel SME público possui 27 colunas A:AA. O template-fonte de 30 colunas é s
 - [`reference/CHANGE_CLASSIFICATION.md`](reference/CHANGE_CLASSIFICATION.md)
 - [`reference/DATA_CLASSIFICATION_AND_ENVIRONMENTS.md`](reference/DATA_CLASSIFICATION_AND_ENVIRONMENTS.md)
 
-## 8. Correções recentes
+## 8. Cronologia recente
 
-### Excel SME
-
-- PR nº 136 — runtime, assets e botões no dashboard da Assistente;
-- PR nº 137 — 27 colunas, designação textual, bordas e cabeçalho;
-- [`architecture/excel-sme-mensal.md`](architecture/excel-sme-mensal.md).
-
-### Gestão de Equipe
-
-- PR nº 138 — CORS, Auth, vínculos históricos, cadastro, edição, redistribuição e desativação;
-- [`reference/SUPABASE_PERMISSIONS_MATRIX.md`](reference/SUPABASE_PERMISSIONS_MATRIX.md).
-
-### Monitoramento
-
-- PR nº 139 — monitor geral;
+- PR nº 136 — runtime e assets do Excel SME;
+- PR nº 137 — Excel SME de 27 colunas;
+- PR nº 138 — Gestão de Equipe, CORS e Auth;
+- PR nº 139 — monitor geral de Production;
 - PR nº 140 — incidentes automáticos;
-- [`superpowers/plans/2026-08-04-monitoramento-production-fase-1.md`](superpowers/plans/2026-08-04-monitoramento-production-fase-1.md);
-- [`superpowers/plans/2026-08-04-alertas-incidentes-production.md`](superpowers/plans/2026-08-04-alertas-incidentes-production.md).
+- PR nº 141 — integridade dos dados, ainda em rascunho;
+- PR nº 142 — reconciliação documental integral, integrada e publicada;
+- branch atual — matriz funcional executável.
 
-### Integridade dos dados
-
-O PR nº 141 permanece em andamento. Seus arquivos não são tratados como documentação integrada enquanto o PR estiver aberto.
-
-## 9. Decisões recentes
+## 9. Decisões centrais
 
 - [`decisions/ADR-040-garantia-operacional-contínua.md`](decisions/ADR-040-garantia-operacional-contínua.md)
 - [`decisions/ADR-041-confiabilidade-funcional-ponta-a-ponta.md`](decisions/ADR-041-confiabilidade-funcional-ponta-a-ponta.md)
 - [`decisions/ADR-042-reconciliacao-documental-remota.md`](decisions/ADR-042-reconciliacao-documental-remota.md)
 
-Esses três ADRs pertencem à branch documental até eventual integração.
-
-## 10. Evidências atuais
+## 10. Evidências recentes
 
 - [`audits/2026-08-05-reconciliacao-documental-integral.md`](audits/2026-08-05-reconciliacao-documental-integral.md)
 - [`evidence/excel-certification/synthetic-manifest.json`](evidence/excel-certification/synthetic-manifest.json)
@@ -134,20 +133,20 @@ Esses três ADRs pertencem à branch documental até eventual integração.
 
 Evidência datada não substitui o estado corrente.
 
-## 11. Prioridade
+## 11. Sequência
 
 ```text
-reconciliação documental
-→ matriz funcional por perfil/tela/ação
+reconciliação documental                         concluída
+→ matriz funcional executável                   em andamento
 → smoke autenticado de leitura
-→ provas controladas de escrita e compensação
+→ escrita controlada, releitura e compensação
+→ decisões/correções derivadas
 → integridade contínua dos dados
-→ atualizações menores
 → UAT e liberação
 ```
 
 ## 12. Regra de manutenção
 
-Mudança material deve atualizar código, teste, documentos canônicos, roadmap, evidência, validade documental e estado de publicação.
+Mudança funcional material deve atualizar o código, a operação correspondente na matriz, a evidência, os testes, o roadmap e o estado de publicação.
 
-Planos e auditorias históricos não são reescritos para parecer atuais; recebem classificação e apontam para a fonte vigente.
+Planos e auditorias históricos não são reescritos para parecer atuais.
