@@ -21,6 +21,7 @@ runtime Production: supabase-production
 repositório normal: SupabaseRepository
 contingência: LocalStorageRepository por novo build
 migrations em Production: 26
+migrations versionadas no PR nº 154: 27
 closing_competence: 2026-12
 app_config.row_version: 20
 Edge Function: team-account-management v103, ACTIVE, JWT obrigatório
@@ -30,9 +31,11 @@ auditoria de integridade: healthy, totalIssues=0, schemaVersion=1
 Node.js: 24.x
 ```
 
-O conjunto versionado contém atualmente **26** migrations. O histórico oficial reconhecido pela Supabase CLI é a fonte de verdade para conferir versões aplicadas e sua ordem efetiva; não manter uma segunda lista manual de aplicação.
+O conjunto versionado contém atualmente **27** migrations. Production permanece com **26 migrations aplicadas** até a aprovação e a execução controlada da migration `202608050001_school_assignment_authorization`. O histórico oficial reconhecido pela Supabase CLI é a fonte de verdade para conferir versões aplicadas e sua ordem efetiva; não manter uma segunda lista manual de aplicação.
 
 A migration `202608040001_production_integrity_monitor` está aplicada em Production. A RPC pública é `SECURITY INVOKER`, a implementação privilegiada permanece em `radar_private`, e a execução é concedida somente ao `service_role`.
+
+A migration `202608050001_school_assignment_authorization` está versionada no PR nº 154 e ainda não foi aplicada em Production. Ela bloqueia a alteração de `schools.controller_id` por usuários autenticados sem papel `federal_assistant` ou `technical_admin`, preservando manutenção administrativa autorizada.
 
 Última publicação funcional relacionada à conexão:
 
@@ -234,6 +237,15 @@ No percurso autorizado entre Inventário e Controlador:
 
 Quando `user_id` do diretório estiver nulo, aceitar somente correspondência única e compatível em `user_profiles`. Quando também não houver vínculo histórico no perfil de destino, procurar a conta Auth pelo e-mail antes de convidar. Rejeitar ambiguidade e nunca reenviar convite sem essa verificação.
 
+### Redistribuição da carteira escolar
+
+- a redistribuição funcional deve ocorrer pela Gestão de Equipe;
+- o perfil Controlador pode editar os dados cadastrais das escolas da própria carteira, mas não pode alterar `controller_id`;
+- a interface deve manter o seletor de controlador imutável para o Controlador;
+- o serviço deve rejeitar a alteração antes de persistir;
+- o banco deve bloquear a tentativa mesmo quando a rota genérica for chamada diretamente;
+- somente `federal_assistant`, `technical_admin` ou manutenção administrativa autorizada podem alterar a atribuição.
+
 ## 11. Smoke autenticado de leitura
 
 O PR nº 148 prepara cobertura somente leitura para os cinco perfis. Enquanto não houver identidades técnicas exclusivas e autorização específica:
@@ -292,6 +304,7 @@ Classificar a fronteira exata antes de propor correção.
 | convite diz conta existente | conta Auth pelo e-mail, perfis ativos e histórico |
 | troca de função é recusada | perfil anterior ainda ativo ou vínculo conflitante |
 | interface diz indisponibilidade em conflito | payload de `FunctionsHttpError.context` no gateway |
+| Controlador consegue trocar a própria carteira | seletor cadastral, serviço e trigger de `controller_id` |
 | grava e volta ao estado anterior | persistência, conflito e releitura |
 | Excel não gera | competência, manifesto, ExcelJS, template e download |
 | monitor abre incidente | job e componente exato antes de rollback |
