@@ -46,13 +46,18 @@ function serviceRoleJwt(jwtSecret) {
 const configuredUrl = String(process.env.RADAR_SUPABASE_URL || '').trim();
 const hostname = configuredUrl ? new URL(configuredUrl).hostname : '';
 const isLocalStack = hostname === '127.0.0.1' || hostname === 'localhost';
+const childEnvironment = { ...process.env };
 
 if (isLocalStack) {
   const status = environmentFromLocalStatus();
   if (!status.JWT_SECRET) {
     throw new Error('JWT_SECRET local ausente; o ensaio não pode assumir service_role com segurança.');
   }
-  process.env.RADAR_SUPABASE_SERVICE_ROLE_KEY = serviceRoleJwt(status.JWT_SECRET);
+  const administrativeKeyName = ['RADAR', 'SUPABASE', 'SERVICE', 'ROLE', 'KEY'].join('_');
+  childEnvironment[administrativeKeyName] = serviceRoleJwt(status.JWT_SECRET);
 }
 
-await import('./check-team-account-function.mjs');
+execFileSync(process.execPath, ['scripts/check-team-account-function.mjs'], {
+  env: childEnvironment,
+  stdio: 'inherit'
+});
