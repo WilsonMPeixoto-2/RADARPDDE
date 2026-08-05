@@ -48,7 +48,7 @@ jobs:
           fs.writeFileSync(file, after);
           NODE
 
-      - name: Regenerar bundle oficial do navegador
+      - name: Regenerar somente o bundle oficial do cliente Supabase
         run: npm run build:supabase-client
 
       - name: Verificar escopo exato da atualização
@@ -68,6 +68,7 @@ jobs:
           NODE
           node --test tests/unit/supabase-modernization.test.js
           npm run check:generated
+          git diff --exit-code -- vendor/ajv.js
 
       - name: Versionar somente os artefatos autorizados
         shell: bash
