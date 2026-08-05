@@ -17,15 +17,15 @@ Integração, aplicação no Supabase, publicação na Vercel e comprovação fu
 ## 2. Baseline
 
 ```text
-main: 30bdecc1116bbcd007448d21db57326b28d9a003
-Vercel Production: dpl_FZe29TXs9DXeJSLg3bQCsgrgrinW — READY
-commit público: 2e7b18ffa4b81300cf44c96ffde9c222cf98b895
+main: 1444b8df5aa11168e063ec55db635d5a2091214d
+Vercel Production: dpl_6ciDyuemHM6uzZ53EVndnyuKaDKr — READY
+commit público: 1444b8df5aa11168e063ec55db635d5a2091214d
 Supabase: scnryinorqeucbfkioxo — ACTIVE_HEALTHY
 migrations em Production: 26
 última migration: 202608040001_production_integrity_monitor
+Supabase JS: 2.110.9
+Supabase CLI: 2.110.0
 ```
-
-O PR nº 141 foi integrado e aplicado no Supabase. Como não alterou o frontend, a Vercel permanece no artefato do PR nº 142.
 
 ## 3. Cronologia recente
 
@@ -38,7 +38,9 @@ O PR nº 141 foi integrado e aplicado no Supabase. Como não alterou o frontend,
 | 140 | concluído e publicado | incidentes automáticos |
 | 142 | concluído e publicado | reconciliação documental integral |
 | 141 | concluído e aplicado | auditoria de vinte invariantes de integridade |
-| matriz funcional | em andamento | contrato executável de 41 operações |
+| 145 | concluído e publicado | matriz funcional executável de 41 operações |
+| 146 | concluído e publicado | Supabase JS 2.110.9 |
+| smoke autenticado | em andamento | leituras reais protegidas por cinco perfis |
 
 ## 4. Confiabilidade funcional
 
@@ -46,12 +48,12 @@ O PR nº 141 foi integrado e aplicado no Supabase. Como não alterou o frontend,
 |---|---|---:|---|
 | Excel SME | comprovado e publicado | P0 | manter regressões e smoke |
 | Gestão de Equipe | comprovada e publicada | P0 | manter preflight e observação |
-| Matriz funcional executável | em andamento | P0 | concluir PR e integrar mediante autorização |
-| Smoke autenticado de leitura | pendente | P0 | cobrir seis operações sem mutação |
-| Escrita controlada e reversível | pendente | P0 | cobrir 23 operações |
+| Matriz funcional executável | concluída e publicada | P0 | manter no readiness |
+| Smoke autenticado de leitura | implementação em andamento | P0 | concluir PR e provisionar contas técnicas mediante autorização |
+| Escrita controlada e reversível | pendente | P0 | corrigir `ASSET-02` e cobrir 23 operações |
 | UAT com servidores reais | pendente | P1 | executar após os gates técnicos |
 
-### Resultado da matriz
+### Resultado vigente da matriz
 
 | Cobertura | Operações |
 |---|---:|
@@ -71,7 +73,35 @@ O PR nº 141 foi integrado e aplicado no Supabase. Como não alterou o frontend,
 | decisão funcional expressa | 2 |
 | observação contínua em Production | 5 |
 
-## 5. Achados derivados
+As seis leituras somente mudarão para cobertura comprovada após uma execução manual e outra agendada com identidades técnicas dedicadas.
+
+## 5. Smoke autenticado de leitura
+
+### Escopo
+
+- `AUTH-01` — autenticação e restauração da sessão;
+- `NAV-02` — busca limitada ao recorte autorizado;
+- `READ-01` — Dashboard;
+- `READ-02` — Carteira ou negativa correta para Inventário;
+- `READ-03` — Prontuário e timeline;
+- `READ-04` — Pendências.
+
+### Estado
+
+| Componente | Estado |
+|---|---|
+| suíte Playwright remota | implementada na branch |
+| detecção de requisições mutantes | implementada |
+| sanitização de erros | implementada |
+| workflow manual/agendado | implementado, protegido por variável |
+| validação contratual em PR | implementada |
+| contas técnicas dedicadas | não provisionadas |
+| segredo protegido | não configurado |
+| execução real em Production | não realizada |
+
+Nenhuma conta pessoal será reutilizada. A criação das cinco identidades técnicas é uma operação controlada e exige autorização separada.
+
+## 6. Achados derivados
 
 ### `ASSET-02` — P0
 
@@ -85,7 +115,7 @@ A manutenção de programas pela Gestão SME existe tecnicamente, mas a autorida
 
 **Próxima ação:** decisão expressa antes de alterar frontend, serviço ou RLS.
 
-## 6. Garantia operacional
+## 7. Garantia operacional
 
 | Item | Estado | Prioridade |
 |---|---|---:|
@@ -95,21 +125,23 @@ A manutenção de programas pela Gestão SME existe tecnicamente, mas a autorida
 | bloqueio anônimo | concluído e publicado | P0 |
 | auditoria de vinte invariantes | concluída e aplicada | P0 |
 | backup/restauração descartáveis | concluído | P0 |
+| smoke autenticado por perfil | em implementação | P0 |
 | política institucional de retenção/DR | pendente de decisão | P2 |
 
-## 7. Supabase e integração
+## 8. Supabase e integração
 
 | Item | Estado | Próxima ação |
 |---|---|---|
 | 26 migrations alinhadas | concluído | manter histórico e dry-run |
-| Auth, perfis e escopos | parcialmente comprovado | smoke autenticado |
-| RLS positiva e negativa | parcialmente comprovada | ligar aos IDs da matriz |
+| Supabase JS 2.110.9 | concluído e publicado | manter regressões de Auth/RLS |
+| Auth, perfis e escopos | parcialmente comprovado | executar smoke autenticado |
+| RLS positiva e negativa | parcialmente comprovada | ligar resultados aos IDs da matriz |
 | RPCs compostas | parcialmente comprovadas | provar escrita, releitura e falha |
 | Edge Function de equipe | concluída | manter CORS, JWT e compensação |
 | integridade lógica agregada | concluída | observar execução recorrente |
 | programas SME | decisão pendente | resolver `CFG-03` e `CFG-04` |
 
-## 8. Manutenção técnica
+## 9. Manutenção técnica
 
 Versões correntes:
 
@@ -117,33 +149,34 @@ Versões correntes:
 Playwright 1.62.0
 eslint-plugin-playwright 2.10.5
 Knip 6.29.0
-Supabase JS 2.110.8
+Supabase JS 2.110.9
 Supabase CLI 2.110.0
 ExcelJS 4.4.0
 ```
 
-Atualizações permanecem em PRs isolados e somente depois da matriz e dos gates funcionais prioritários. ExcelJS continua congelado até necessidade comprovada e nova homologação desktop.
+Atualizações permanecem em PRs isolados. ExcelJS continua congelado até necessidade comprovada e nova homologação desktop.
 
-## 9. Evolução do produto
+## 10. Evolução do produto
 
 Busca inteligente, Floating UI e View Transitions estão publicadas. Diálogos comuns, ajuda contextual, gráficos, modularização e novas capacidades permanecem posteriores à confiabilidade e ao UAT. PWA/offline e migração integral de framework não são prioridades atuais.
 
-## 10. Sequência
+## 11. Sequência
 
 ```text
 1. reconciliação documental                         concluída
 2. integridade contínua dos dados                  concluída
-3. matriz funcional executável                     em andamento
-4. smoke autenticado de leitura
-5. correção ASSET-02 e escrita controlada
-6. decisão sobre programas SME
-7. atualizações menores isoladas
-8. UAT e correções
-9. polimento editorial/visual
-10. decisão formal de liberação
+3. matriz funcional executável                     concluída
+4. Supabase JS 2.110.9                             concluído
+5. implementar smoke autenticado de leitura        em andamento
+6. provisionar contas e executar duas provas       depende de autorização
+7. corrigir ASSET-02 e provar escritas
+8. decidir programas SME
+9. UAT e correções
+10. polimento editorial/visual
+11. decisão formal de liberação
 ```
 
-## 11. Critério para nova frente
+## 12. Critério para nova frente
 
 - problema e usuários afetados;
 - ID ou lacuna na matriz;
