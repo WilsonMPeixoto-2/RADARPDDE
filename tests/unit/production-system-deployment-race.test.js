@@ -16,6 +16,7 @@ test('permite validar Production íntegra sem fixar SHA quando não houve mudan�
 
   assert.deepEqual(parseProductionSmokeArguments([
     '--base-url', 'https://radarpdde-fix.vercel.app',
+    '--allow-any-commit',
     '--attempts', '1',
     '--interval-ms', '10000'
   ]), {
@@ -24,4 +25,14 @@ test('permite validar Production íntegra sem fixar SHA quando não houve mudan�
     attempts: 1,
     intervalMs: 10000
   });
+});
+
+test('não permite combinar modo livre com SHA obrigatório', async () => {
+  const { parseProductionSmokeArguments } = await subject();
+
+  assert.throws(() => parseProductionSmokeArguments([
+    '--base-url', 'https://radarpdde-fix.vercel.app',
+    '--allow-any-commit',
+    '--expected-commit', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+  ]));
 });
