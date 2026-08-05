@@ -199,7 +199,6 @@ function expectSuccess(response, operation) {
 
 function insertSyntheticSchool(state) {
   runLocalSql(`
-    begin;
     insert into public.schools (
       id,
       designation,
@@ -215,7 +214,6 @@ function insertSyntheticSchool(state) {
       ${sqlLiteral(state.sourceControllerId)},
       true
     );
-    commit;
   `);
 }
 
@@ -292,7 +290,8 @@ async function cleanupSyntheticState(admin, state) {
   try {
     if (state.userIds.length) {
       runLocalSql(`
-        begin;
+        do $$
+        begin
         delete from public.schools
         where id = ${sqlLiteral(state.schoolId)};
 
@@ -313,7 +312,8 @@ async function cleanupSyntheticState(admin, state) {
            or actor_user_id = any(${sqlUuidArray(state.userIds)})
            or coalesce(old_record ->> 'user_id', '') = any(${sqlTextArray(state.userIds)})
            or coalesce(new_record ->> 'user_id', '') = any(${sqlTextArray(state.userIds)});
-        commit;
+        end
+        $$;
       `);
     }
   } catch (error) {
