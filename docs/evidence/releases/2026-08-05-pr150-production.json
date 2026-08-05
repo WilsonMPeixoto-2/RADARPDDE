@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-08-05T21:57:00Z",
+  "release": {
+    "pullRequest": 150,
+    "issue": 149,
+    "mergeCommit": "2ae98da8a547d46cd7e8e64977b855b1a90a2495",
+    "scope": "Transição segura de perfil Inventário para Controlador e preservação do payload funcional da Gestão de Equipe"
+  },
+  "vercel": {
+    "project": "radarpdde-fix",
+    "deploymentId": "dpl_BvrxJUahgWpaRbtn6Y5FrfzknKAw",
+    "target": "production",
+    "state": "READY",
+    "commit": "2ae98da8a547d46cd7e8e64977b855b1a90a2495"
+  },
+  "supabase": {
+    "projectRef": "scnryinorqeucbfkioxo",
+    "migrations": 26,
+    "supabaseJs": "2.110.9",
+    "edgeFunction": {
+      "name": "team-account-management",
+      "version": 103,
+      "status": "ACTIVE",
+      "verifyJwt": true,
+      "sha256": "76e048ea6694779938128968a5a803517a040718d8bb5d0a8f29dcc68962e258"
+    }
+  },
+  "verification": {
+    "pullRequestWorkflowCount": 11,
+    "pullRequestWorkflowsPassed": true,
+    "productionMonitorRunId": 31050471726,
+    "productionMonitorConclusion": "success",
+    "issueClosed": true
+  },
+  "safety": {
+    "migrationChanged": false,
+    "rlsChanged": false,
+    "grantsChanged": false,
+    "realDataChangedAutomatically": false,
+    "realAdministrativeOperationRepeated": false
+  },
+  "notes": [
+    "A prova integral de transição foi executada somente com identidades e dados sintéticos em Supabase descartável.",
+    "A Assistente deve repetir a operação administrativa real somente quando necessário e de forma consciente no sistema publicado.",
+    "O PR 148 permanece como próxima frente cronológica e não possui identidades técnicas de Production provisionadas."
+  ]
+}
