@@ -7,41 +7,82 @@
 
 Garantir regras de negócio, persistência, autorização, acessibilidade, responsividade, relatórios, recuperabilidade e operação remota.
 
-O princípio corrente é:
-
 > Nenhuma função crítica é aprovada apenas porque o DOM, o serviço ou o banco funciona isoladamente.
 
-## 2. Pirâmide e percurso
+## 2. Percurso de confiança
 
 ```text
 domínio e contratos
 → serviços e integrações
 → repositórios
 → banco, Auth, RLS, RPC e Edge Function
-→ jornadas no navegador
+→ navegador
 → releitura após refresh
 → artefato publicado
 → monitor de Production
 → UAT
 ```
 
-Para mutação crítica, acrescentar falha parcial, conflito e compensação.
+Mutação crítica acrescenta conflito, falha parcial, rollback e compensação.
 
 ## 3. Runtime
 
 Node.js está fixado em `24.x` no projeto, lockfile, arquivos de versão, workflows e Vercel.
 
-## 4. Readiness principal
+## 4. Matriz funcional executável
+
+Fontes:
+
+```text
+docs/reference/functional-contract-matrix.json
+docs/reference/functional-contract-matrix/*.json
+docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md
+scripts/check-functional-contract-matrix.mjs
+tests/unit/functional-contract-matrix.test.js
+```
+
+Comandos:
+
+```bash
+npm run generate:functional-matrix
+npm run check:functional-matrix
+```
+
+O verificador confirma:
+
+- IDs únicos;
+- perfis e superfícies conhecidos;
+- classificação integral entre permitido e negado;
+- arquivos e símbolos de código existentes;
+- evidências versionadas existentes;
+- coerência entre cobertura e lacunas;
+- releitura, concorrência e compensação nas mutações P0/P1;
+- correspondência exata entre JSON e Markdown gerado.
+
+Toda mudança funcional material deve atualizar a operação correspondente. O readiness falha quando a matriz diverge.
+
+## 5. Readiness principal
 
 ```bash
 npm run test:readiness
 ```
 
-Inclui sintaxe, referências de workflows, bundles, lint, unitários, certificação Excel, integração, Supabase, tipos, artefatos e auditoria funcional.
+Inclui:
+
+- sintaxe;
+- matriz funcional;
+- referências de workflows;
+- bundles e vendors;
+- lint de segurança e E2E;
+- testes unitários e integração;
+- certificação Excel;
+- Supabase e tipos;
+- artefatos gerados;
+- auditoria funcional.
 
 Readiness é necessário, mas não substitui E2E, banco local, Preview, Production smoke ou homologação humana.
 
-## 5. Unitários e integração
+## 6. Unitários e integração
 
 ```bash
 npm run test:unit
@@ -56,13 +97,14 @@ Coberturas centrais:
 - pendências, timeline e navegação;
 - capacidades e autorização;
 - serviços e unidade de trabalho;
-- modelos, renderers e runtime Excel;
+- modelos e runtime Excel;
 - CORS e classificação de erros;
 - Gestão de Equipe e compensação;
 - importação e rollback;
-- monitoramento de Production.
+- monitoramento de Production;
+- integridade da matriz funcional.
 
-## 6. Supabase local
+## 7. Supabase local
 
 ```bash
 npm run supabase:start
@@ -73,19 +115,19 @@ npm run supabase:gen:types
 npm run typecheck:database
 ```
 
-Na `main` e em Production existem 25 migrations. Branch que adiciona migration deve declarar sua própria contagem sem reescrever o estado remoto antes da aplicação.
+Production possui 25 migrations. Branch com migration adicional declara a própria contagem sem reescrever o estado remoto antes da aplicação.
 
 Requisitos:
 
 - migrations do zero;
 - pgTAP por perfil e escopo;
 - anônimo bloqueado;
-- funções privilegiadas e grants corretos;
+- funções privilegiadas e grants;
 - tipos alinhados;
-- histórico local/remoto reconciliado;
-- dry-run e plano de reversão antes de aplicação.
+- histórico reconciliado;
+- dry-run e reversão antes de aplicação.
 
-## 7. Backup e restauração
+## 8. Backup e restauração
 
 ```bash
 RADAR_ALLOW_DISPOSABLE_BACKUP_RESTORE=true npm run test:backup-restore
@@ -97,9 +139,9 @@ Workflow:
 .github/workflows/backup-restore-disposable.yml
 ```
 
-Compara schema, dados, Auth e migrations entre duas pilhas descartáveis. Publica somente `evidence.json` e não usa Production.
+Compara schema, dados, Auth e migrations entre duas pilhas descartáveis. Não usa Production.
 
-## 8. Excel
+## 9. Excel
 
 ```bash
 npm run certify:excel:fixture
@@ -117,13 +159,12 @@ npm run certify:excel:fixture
 - 27 colunas A:AA;
 - ausência de K, R e Y no produto final;
 - designação textual;
-- bordas e alinhamento;
-- filtro, impressão e congelamento;
+- bordas, alinhamento, filtro, impressão e congelamento;
 - manifesto e assets;
-- download real e reabertura;
-- abertura manual no Microsoft Excel desktop quando estrutura ou estilo material muda.
+- download e reabertura;
+- homologação no Microsoft Excel desktop quando houver alteração material.
 
-## 9. Playwright
+## 10. Playwright
 
 ```bash
 npm run test:e2e
@@ -136,18 +177,9 @@ Projetos mínimos:
 - Pixel 7/Chromium;
 - iPhone 15/WebKit.
 
-Jornadas devem incluir:
+Jornadas incluem login, perfis, competência, Dashboard, Carteira, Prontuário, Pendências, Inventário, Gestão SME, Gestão de Equipe, exportações, erros, foco e overflow.
 
-- login e restauração de sessão;
-- perfis e navegação;
-- competência;
-- Dashboard, Carteira, Prontuário, Pendências e Inventário;
-- Gestão SME;
-- Gestão de Equipe;
-- exportações;
-- erros, foco e overflow.
-
-## 10. Gate remoto por perfil e viewport
+## 11. Gate remoto por perfil e viewport
 
 ```text
 .github/workflows/gate-remoto-perfis-viewports.yml
@@ -155,11 +187,11 @@ Jornadas devem incluir:
 
 Usa Supabase descartável, identidades efêmeras e três viewports. Prova Auth/RLS e organização da interface sem usar Production.
 
-Esse gate não substitui smoke autenticado recorrente no ambiente publicado.
+Não substitui smoke autenticado recorrente no ambiente publicado.
 
-## 11. Contrato ponta a ponta
+## 12. Contrato ponta a ponta
 
-Para cada ação crítica, a regressão ideal comprova:
+Cada operação P0/P1 deve comprovar, conforme a matriz:
 
 1. perfil autorizado e perfil negado;
 2. controle visível e acionável;
@@ -167,43 +199,40 @@ Para cada ação crítica, a regressão ideal comprova:
 4. serviço e repositório esperados;
 5. backend alcançado;
 6. estado no banco;
-7. resposta e nova renderização;
+7. resposta e renderização;
 8. persistência após recarregar;
 9. conflito de versão;
 10. falha parcial e compensação;
 11. mensagem funcional.
 
-A matriz dessa cobertura é a próxima entrega estrutural.
+A matriz atual classifica:
 
-## 12. Monitor de Production
+- 6 operações para smoke autenticado de leitura;
+- 23 para escrita controlada e reversível;
+- 2 para decisão funcional;
+- 5 para observação contínua;
+- 4 sem nova prova imediata.
+
+## 13. Monitor de Production
 
 ```text
 .github/workflows/production-system-smoke.yml
 ```
 
-Executa após `push` na `main`, a cada hora e manualmente.
-
-Verifica:
-
-- SHA publicado;
-- manifesto e modo de dados;
-- shell, gate e assets;
-- bloqueio anônimo;
-- preflight das Edge Functions;
-- incidente automático.
+Executa após `push` na `main`, a cada hora e manualmente. Verifica SHA, manifesto, shell, Auth gate, assets, bloqueio anônimo, preflight e incidente automático.
 
 O monitor não executa todas as jornadas autenticadas.
 
-## 13. Acessibilidade e responsividade
+## 14. Acessibilidade e responsividade
 
 - teclado, foco e retorno;
 - modais e anúncios;
 - nomes, papéis e estados;
 - equivalência de tabelas e cartões;
 - ausência de sobreposição e overflow;
-- ações essenciais disponíveis no mobile.
+- ações essenciais no mobile.
 
-## 14. Desempenho, precedência e build
+## 15. Desempenho, precedência e build
 
 ```bash
 npm run audit:lighthouse
@@ -213,9 +242,9 @@ npm run test:frontend-precedence
 npm run build:vercel
 ```
 
-Executar conforme impacto. Oscilação de Lighthouse deve ser repetida no mesmo SHA sem reduzir o piso silenciosamente.
+Oscilação deve ser repetida no mesmo SHA sem reduzir o piso silenciosamente.
 
-## 15. Dependências
+## 16. Dependências
 
 ```bash
 npm run lint
@@ -223,28 +252,30 @@ npm run analyze:unused
 npm run check:team-account-function
 ```
 
-Atualizações devem usar PR isolado, versão fixada, changelog, lockfile e todos os gates afetados. Supabase JS/CLI exige nova bateria de Auth, RLS, migrations, Edge Function e backup.
+Atualização exige PR isolado, versão fixada, changelog, lockfile e gates afetados. Supabase JS/CLI exige Auth, RLS, migrations, Edge Function e backup.
 
-## 16. Mesmo SHA
+## 17. Mesmo SHA
 
 Antes de declarar conclusão:
 
 1. fixar SHA candidato;
 2. executar gates nesse SHA;
 3. confirmar que a branch não mudou;
-4. verificar todos os checks;
+4. verificar checks;
 5. publicar somente o commit aprovado;
 6. repetir smokes após Production.
 
-## 17. Gates externos
+## 18. Gates externos
 
-- matriz funcional completa;
+- integração autorizada da matriz;
 - smoke autenticado de leitura;
-- provas controladas de escrita e compensação;
+- escrita controlada e compensação;
+- decisão sobre programas SME;
+- correção da lacuna `ASSET-02`;
 - UAT;
-- homologação humana de arquivos quando aplicável;
+- homologação humana quando aplicável;
 - decisão formal de liberação.
 
-## 18. Critério de conclusão
+## 19. Critério de conclusão
 
-A mudança deve representar a regra correta, funcionar ponta a ponta, preservar autorização e autoria, manter desktop/mobile, passar pelos gates aplicáveis, atualizar documentação e declarar ambiente e SHA da evidência.
+A mudança deve representar a regra correta, funcionar ponta a ponta, preservar autorização e autoria, manter desktop/mobile, passar pelos gates, atualizar matriz e documentação e declarar ambiente e SHA da evidência.
