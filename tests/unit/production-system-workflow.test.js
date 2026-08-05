@@ -47,6 +47,7 @@ test('monitor valida sistema inteiro e preflight com ações fixadas por SHA', (
   assert.match(source, /--base-url "\$\{RADAR_PRODUCTION_URL\}"/u);
   assert.match(source, /SMOKE_ARGS/u);
   assert.match(source, /--expected-commit/u);
+  assert.match(source, /--allow-any-commit/u);
   assert.match(source, /--attempts "\$\{ATTEMPTS\}"/u);
   assert.match(source, /node scripts\/check-production-team-account-preflight\.mjs/u);
 });
@@ -67,6 +68,7 @@ test('monitor exige SHA apenas quando o artefato web mudou e evita corrida com d
   assert.match(source, /MONITORED_COMMIT="\$\{GITHUB_SHA\}"/u);
   assert.match(source, /if \[ -n "\$\{EXPECTED_COMMIT\}" \]; then/u);
   assert.match(source, /SMOKE_ARGS\+=\(--expected-commit "\$\{EXPECTED_COMMIT\}"\)/u);
+  assert.match(source, /SMOKE_ARGS\+=\(--allow-any-commit\)/u);
   assert.match(source, /--commit "\$\{MONITORED_COMMIT\}"/u);
   assert.doesNotMatch(source, /EXPECTED_COMMIT="\$\{CURRENT_DEPLOYED_COMMIT\}"/u);
 });
