@@ -4,13 +4,15 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
-import packageJson from '../package.json' with { type: 'json' };
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const root = path.resolve(__dirname, '..');
 const outputDirectory = path.join(root, 'vendor');
 const outputFile = path.join(outputDirectory, 'supabase-client.js');
+const packageJson = JSON.parse(
+    await fs.readFile(path.join(root, 'package.json'), 'utf8')
+);
 const supabaseVersion = packageJson.devDependencies['@supabase/supabase-js'];
 
 await fs.mkdir(outputDirectory, { recursive: true });
