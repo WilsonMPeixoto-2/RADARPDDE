@@ -17,6 +17,7 @@ on:
       - "scripts/manage-production-incident.mjs"
       - "tests/unit/production-anonymous-rls.test.js"
       - "tests/unit/production-incident-manager.test.js"
+      - "tests/unit/production-system-deployment-race.test.js"
       - "tests/unit/production-system-smoke.test.js"
       - "tests/unit/production-system-workflow.test.js"
   schedule:
@@ -77,7 +78,8 @@ jobs:
           NODE
           )"
 
-          EXPECTED_COMMIT="${CURRENT_DEPLOYED_COMMIT}"
+          EXPECTED_COMMIT=""
+          MONITORED_COMMIT="${CURRENT_DEPLOYED_COMMIT}"
           ATTEMPTS=1
           DEPLOYMENT_REQUIRED=false
 
@@ -102,10 +104,12 @@ jobs:
 
           if [ "${DEPLOYMENT_REQUIRED}" = "true" ]; then
             EXPECTED_COMMIT="${GITHUB_SHA}"
+            MONITORED_COMMIT="${GITHUB_SHA}"
             ATTEMPTS=60
           fi
 
           printf 'expected_commit=%s\n' "${EXPECTED_COMMIT}" >> "${GITHUB_OUTPUT}"
+          printf 'monitored_commit=%s\n' "${MONITORED_COMMIT}" >> "${GITHUB_OUTPUT}"
           printf 'attempts=%s\n' "${ATTEMPTS}" >> "${GITHUB_OUTPUT}"
           printf 'deployment_required=%s\n' "${DEPLOYMENT_REQUIRED}" >> "${GITHUB_OUTPUT}"
 
@@ -118,11 +122,18 @@ jobs:
         run: |
           set +e
 
-          node scripts/check-production-system.mjs \
-            --base-url "${RADAR_PRODUCTION_URL}" \
-            --expected-commit "${EXPECTED_COMMIT}" \
-            --attempts "${ATTEMPTS}" \
+          SMOKE_ARGS=(
+            --base-url "${RADAR_PRODUCTION_URL}"
+            --attempts "${ATTEMPTS}"
             --interval-ms 10000
+          )
+          if [ -n "${EXPECTED_COMMIT}" ]; then
+            SMOKE_ARGS+=(--expected-commit "${EXPECTED_COMMIT}")
+          else
+            SMOKE_ARGS+=(--allow-any-commit)
+          fi
+
+          node scripts/check-production-system.mjs "${SMOKE_ARGS[@]}"
           CORE_STATUS=$?
 
           node scripts/check-production-team-account-preflight.mjs
@@ -142,14 +153,14 @@ jobs:
         shell: bash
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          EXPECTED_COMMIT: ${{ steps.context.outputs.expected_commit }}
+          MONITORED_COMMIT: ${{ steps.context.outputs.monitored_commit }}
           CORE_STATUS: ${{ steps.smoke.outputs.core_status }}
           PREFLIGHT_STATUS: ${{ steps.smoke.outputs.preflight_status }}
         run: |
           set -euo pipefail
           CORE_STATUS="${CORE_STATUS:-1}"
           PREFLIGHT_STATUS="${PREFLIGHT_STATUS:-1}"
-          EXPECTED_COMMIT="${EXPECTED_COMMIT:-${GITHUB_SHA}}"
+          MONITORED_COMMIT="${MONITORED_COMMIT:-${GITHUB_SHA}}"
           INCIDENT_STATUS=failure
 
           if [ "${CORE_STATUS}" = "0" ] && [ "${PREFLIGHT_STATUS}" = "0" ]; then
@@ -159,7 +170,7 @@ jobs:
           node scripts/manage-production-incident.mjs \
             --status "${INCIDENT_STATUS}" \
             --repository "${GITHUB_REPOSITORY}" \
-            --commit "${EXPECTED_COMMIT}" \
+            --commit "${MONITORED_COMMIT}" \
             --event "${GITHUB_EVENT_NAME}" \
             --core-status "${CORE_STATUS}" \
             --preflight-status "${PREFLIGHT_STATUS}" \
@@ -171,17 +182,24 @@ jobs:
         shell: bash
         env:
           EXPECTED_COMMIT: ${{ steps.context.outputs.expected_commit }}
+          MONITORED_COMMIT: ${{ steps.context.outputs.monitored_commit }}
           DEPLOYMENT_REQUIRED: ${{ steps.context.outputs.deployment_required }}
           CORE_STATUS: ${{ steps.smoke.outputs.core_status }}
           PREFLIGHT_STATUS: ${{ steps.smoke.outputs.preflight_status }}
           INCIDENT_OUTCOME: ${{ steps.incident.outcome }}
         run: |
+          if [ -n "${EXPECTED_COMMIT}" ]; then
+            COMMIT_POLICY="exigir ${EXPECTED_COMMIT}"
+          else
+            COMMIT_POLICY="aceitar manifesto íntegro atualmente publicado; referência inicial ${MONITORED_COMMIT}"
+          fi
+
           {
             echo '### Monitoramento contínuo de Production'
             echo
             echo "- Ambiente: \`${RADAR_PRODUCTION_URL}\`"
             echo "- Novo deployment exigido: \`${DEPLOYMENT_REQUIRED:-não resolvido}\`"
-            echo "- Commit esperado: \`${EXPECTED_COMMIT:-não resolvido}\`"
+            echo "- Política de commit: \`${COMMIT_POLICY}\`"
             echo "- Site, manifesto, assets e bloqueio anônimo: \`${CORE_STATUS:-não executado}\`"
             echo "- Preflight das Edge Functions catalogadas: \`${PREFLIGHT_STATUS:-não executado}\`"
             echo "- Gestão automática do incidente: \`${INCIDENT_OUTCOME:-não executada}\`"
