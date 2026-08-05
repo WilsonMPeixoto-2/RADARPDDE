@@ -20,16 +20,17 @@ PostgreSQL: 17.6.1.147
 runtime Production: supabase-production
 repositório normal: SupabaseRepository
 contingência: LocalStorageRepository por novo build
-migrations em Production: 25
+migrations em Production: 26
 closing_competence: 2026-12
 app_config.row_version: 20
 Edge Function: team-account-management v95, ACTIVE, JWT obrigatório
+auditoria de integridade: healthy, totalIssues=0, schemaVersion=1
 Node.js: 24.x
 ```
 
-O conjunto versionado contém atualmente **26** migrations nesta branch. O histórico oficial reconhecido pela Supabase CLI é a fonte de verdade para conferir versões aplicadas e sua ordem efetiva; não manter uma segunda lista manual de aplicação.
+O conjunto versionado contém atualmente **26** migrations. O histórico oficial reconhecido pela Supabase CLI é a fonte de verdade para conferir versões aplicadas e sua ordem efetiva; não manter uma segunda lista manual de aplicação.
 
-O PR nº 141 contém a 26ª migration somente em sua branch. Não usar essa contagem para Production antes de integração e aplicação autorizada.
+A migration `202608040001_production_integrity_monitor` está aplicada em Production. A RPC pública é `SECURITY INVOKER`, a implementação privilegiada permanece em `radar_private`, e a execução é concedida somente ao `service_role`.
 
 ## 3. Regras permanentes
 
@@ -96,7 +97,8 @@ Antes de diagnosticar falha funcional, confirmar:
 7. contagem e histórico de migrations;
 8. Edge Functions ativas e JWT;
 9. logs de Auth, API, Postgres e Edge Function;
-10. incidentes automáticos abertos pelo monitor.
+10. resultado da auditoria de integridade;
+11. incidentes automáticos abertos pelo monitor.
 
 Não imprimir chaves ou payloads pessoais nos registros de diagnóstico.
 
@@ -128,15 +130,18 @@ Seguir [`SUPABASE_MIGRATION_AND_ROLLBACK.md`](SUPABASE_MIGRATION_AND_ROLLBACK.md
 
 ## 8. Monitor geral de Production
 
-Workflow:
+Workflows:
 
 ```text
 .github/workflows/production-system-smoke.yml
+.github/workflows/production-data-integrity.yml
 ```
 
-Executa após `push` na `main`, a cada hora e manualmente. Verifica commit publicado, manifesto, ambiente, modo de dados, shell, gate de autenticação, assets, bloqueio anônimo, preflight das Edge Functions e gestão automática de incidente.
+O monitor geral executa após `push` na `main`, a cada hora e manualmente. Verifica commit publicado, manifesto, ambiente, modo de dados, shell, gate de autenticação, assets, bloqueio anônimo, preflight das Edge Functions e gestão automática de incidente.
 
-Falha do monitor deve ser investigada pelo componente exato antes de assumir indisponibilidade geral do Supabase.
+A auditoria de dados executa a cada seis horas e manualmente. Usa conexão PostgreSQL administrativa efêmera com os secrets existentes do Supabase CLI, chama `public.production_integrity_check()` e falha quando o contrato, o status ou o total agregado estiverem incorretos. Nenhum dado pessoal é publicado.
+
+Falha de monitor deve ser investigada pelo componente exato antes de assumir indisponibilidade geral do Supabase.
 
 ## 9. Auth e perfis
 
@@ -245,6 +250,7 @@ Classificar a fronteira exata antes de propor correção.
 | grava e volta ao estado anterior | persistência, conflito e releitura |
 | Excel não gera | competência, manifesto, ExcelJS, template e download |
 | monitor abre incidente | job e componente exato antes de rollback |
+| auditoria retorna inconsistência | código da invariante e contagem agregada antes de consultar registros |
 
 ## 14. Contingência local
 
