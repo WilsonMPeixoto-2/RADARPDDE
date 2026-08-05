@@ -6,6 +6,7 @@ on:
       - maintenance/supabase-js-2.110.9-20260805
     paths:
       - '.github/workflows/update-supabase-js-2-110-9-temp.yml'
+      - 'scripts/build-supabase-client.mjs'
 
 permissions:
   contents: write
