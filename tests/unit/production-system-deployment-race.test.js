@@ -4,7 +4,7 @@ const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 
 const moduleUrl = pathToFileURL(
-  path.resolve(__dirname, '../../scripts/lib/production-system-smoke.mjs')
+  path.resolve(__dirname, '../../scripts/check-production-system.mjs')
 ).href;
 
 async function subject() {
@@ -12,9 +12,9 @@ async function subject() {
 }
 
 test('permite validar Production íntegra sem fixar SHA quando não houve mudança no artefato web', async () => {
-  const { parseProductionSmokeArguments } = await subject();
+  const { parseCheckProductionSystemArguments } = await subject();
 
-  assert.deepEqual(parseProductionSmokeArguments([
+  assert.deepEqual(parseCheckProductionSystemArguments([
     '--base-url', 'https://radarpdde-fix.vercel.app',
     '--allow-any-commit',
     '--attempts', '1',
@@ -28,9 +28,9 @@ test('permite validar Production íntegra sem fixar SHA quando não houve mudan�
 });
 
 test('não permite combinar modo livre com SHA obrigatório', async () => {
-  const { parseProductionSmokeArguments } = await subject();
+  const { parseCheckProductionSystemArguments } = await subject();
 
-  assert.throws(() => parseProductionSmokeArguments([
+  assert.throws(() => parseCheckProductionSystemArguments([
     '--base-url', 'https://radarpdde-fix.vercel.app',
     '--allow-any-commit',
     '--expected-commit', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
