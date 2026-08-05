@@ -36,16 +36,7 @@ npm run generate:functional-matrix
 npm run check:functional-matrix
 ```
 
-O verificador confirma:
-
-- IDs únicos;
-- perfis e superfícies conhecidos;
-- classificação integral entre permitido e negado;
-- arquivos e símbolos existentes;
-- evidências versionadas;
-- coerência entre cobertura e lacunas;
-- releitura, concorrência e compensação nas mutações P0/P1;
-- correspondência exata entre JSON e Markdown gerado.
+O verificador confirma IDs, perfis, superfícies, permissões, âncoras, evidências, cobertura e contratos de releitura, concorrência e compensação.
 
 Toda mudança funcional material deve atualizar a operação correspondente.
 
@@ -56,6 +47,8 @@ npm run test:readiness
 ```
 
 Inclui sintaxe, matriz funcional, referências de workflows, vendors, lint, unitários, certificação Excel, integração, Supabase, tipos, artefatos e auditoria funcional.
+
+Os testes unitários do smoke autenticado e o lint da suíte remota integram esse percurso. O acesso real a Production permanece separado e protegido por segredo e variável.
 
 ## 4. Unitários e integração
 
@@ -77,7 +70,8 @@ Coberturas centrais:
 - importação e rollback;
 - monitor geral e incidentes;
 - auditoria de integridade;
-- matriz funcional.
+- matriz funcional;
+- validação das contas técnicas, ausência de mutação e proteção do workflow autenticado.
 
 ## 5. Supabase local
 
@@ -133,11 +127,43 @@ Projetos mínimos:
 
 Jornadas incluem login, perfis, competência, Dashboard, Carteira, Prontuário, Pendências, Inventário, Gestão SME, Gestão de Equipe, exportações, erros, foco e overflow.
 
-## 9. Gate remoto por perfil e viewport
+## 9. Gate remoto descartável por perfil e viewport
 
-`.github/workflows/gate-remoto-perfis-viewports.yml` usa Supabase descartável, identidades efêmeras e três viewports. Não substitui smoke autenticado recorrente em Production.
+`.github/workflows/gate-remoto-perfis-viewports.yml` usa Supabase descartável, identidades efêmeras e três viewports. Prova Auth/RLS e responsividade sem tocar Production.
 
-## 10. Contrato ponta a ponta
+## 10. Smoke autenticado de leitura em Production
+
+Arquivos:
+
+```text
+.github/workflows/production-authenticated-read.yml
+playwright.production-authenticated-read.config.js
+tests/e2e/production-authenticated-read.spec.js
+tests/support/production-authenticated-read.js
+```
+
+O monitor cobre cinco perfis e seis operações:
+
+- autenticação, restauração e logout;
+- busca global autorizada;
+- Dashboard;
+- Carteira ou negativa correta para Inventário;
+- Prontuário e timeline;
+- Pendências.
+
+Regras obrigatórias:
+
+1. cinco contas técnicas dedicadas, nunca contas pessoais;
+2. execução real somente fora de pull requests;
+3. segredo em arquivo temporário com permissão `600` e remoção obrigatória;
+4. trace, screenshot, vídeo e upload de artefatos desabilitados;
+5. nenhuma service role no navegador;
+6. falha imediata diante de `POST` operacional, Edge Function, `PATCH`, `PUT` ou `DELETE`;
+7. erros sanitizados antes de qualquer resumo.
+
+A execução remota só ocorre quando `RADAR_PRODUCTION_AUTH_READ_ENABLED=true` e o segredo `RADAR_PRODUCTION_READ_ACCOUNTS_JSON` está presente. Sem provisionamento, o workflow registra o bloqueio de forma segura e não afirma cobertura.
+
+## 11. Contrato ponta a ponta
 
 Cada operação P0/P1 deve comprovar, conforme a matriz:
 
@@ -161,7 +187,7 @@ A matriz atual classifica:
 - 5 para observação contínua;
 - 5 sem nova prova imediata.
 
-## 11. Production
+## 12. Production
 
 ### Monitor geral
 
@@ -171,9 +197,13 @@ A matriz atual classifica:
 
 `.github/workflows/production-data-integrity.yml` consulta vinte invariantes agregadas pela função privada `radar_private.production_integrity_check()` e publica somente contagens sanitizadas.
 
-Essas camadas não executam todas as jornadas autenticadas nem mutações.
+### Leitura autenticada
 
-## 12. Acessibilidade, desempenho e build
+`.github/workflows/production-authenticated-read.yml` comprova jornadas reais somente após provisionamento autorizado. Enquanto desabilitado, não altera a classificação de cobertura da matriz.
+
+Essas camadas não substituem as provas controladas das 23 mutações.
+
+## 13. Acessibilidade, desempenho e build
 
 ```bash
 npm run audit:lighthouse
@@ -185,7 +215,7 @@ npm run build:vercel
 
 Validar teclado, foco, modais, equivalência mobile, ausência de overflow e piso de desempenho no mesmo SHA.
 
-## 13. Dependências
+## 14. Dependências
 
 ```bash
 npm run lint
@@ -195,7 +225,7 @@ npm run check:team-account-function
 
 Atualização exige PR isolado, versão fixada, changelog, lockfile e gates afetados.
 
-## 14. Mesmo SHA
+## 15. Mesmo SHA
 
 Antes de declarar conclusão:
 
@@ -206,10 +236,11 @@ Antes de declarar conclusão:
 5. publicar somente o commit aprovado;
 6. repetir smokes após Production.
 
-## 15. Gates externos
+## 16. Gates externos
 
-- integração autorizada da matriz;
-- smoke autenticado de leitura;
+- concluir e integrar o monitor autenticado;
+- autorizar e provisionar as cinco contas técnicas;
+- aprovar uma execução manual e outra agendada;
 - escrita controlada e compensação;
 - decisão sobre programas SME;
 - correção de `ASSET-02`;
