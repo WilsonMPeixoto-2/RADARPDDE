@@ -44,6 +44,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+          fetch-depth: 2
 
       - name: Configurar Node.js 24
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
@@ -55,22 +56,58 @@ jobs:
         id: context
         shell: bash
         env:
-          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BEFORE_SHA: ${{ github.event.before }}
         run: |
           set -euo pipefail
-          EXPECTED_COMMIT="${GITHUB_SHA}"
-          ATTEMPTS=1
 
-          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
-            EXPECTED_COMMIT="${PR_BASE_SHA}"
-          fi
+          CURRENT_DEPLOYED_COMMIT="$(node --input-type=module <<'NODE'
+          const manifestUrl = new URL('/radar-build-manifest.json', process.env.RADAR_PRODUCTION_URL);
+          const response = await fetch(manifestUrl, {
+            headers: { 'cache-control': 'no-cache' }
+          });
+          if (!response.ok) {
+            throw new Error(`Manifesto de Production indisponível: HTTP ${response.status}.`);
+          }
+          const manifest = await response.json();
+          const commit = String(manifest?.commitSha || '').trim().toLowerCase();
+          if (!/^[0-9a-f]{40}$/.test(commit)) {
+            throw new Error('Manifesto de Production não contém commit SHA válido.');
+          }
+          process.stdout.write(commit);
+          NODE
+          )"
+
+          EXPECTED_COMMIT="${CURRENT_DEPLOYED_COMMIT}"
+          ATTEMPTS=1
+          DEPLOYMENT_REQUIRED=false
 
           if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
+            if [ -z "${BEFORE_SHA:-}" ] \
+              || [ "${BEFORE_SHA}" = "0000000000000000000000000000000000000000" ] \
+              || ! git cat-file -e "${BEFORE_SHA}^{commit}" 2>/dev/null; then
+              DEPLOYMENT_REQUIRED=true
+            else
+              while IFS= read -r changed_file; do
+                case "${changed_file}" in
+                  src/types/*)
+                    ;;
+                  index.html|app.js|config.js|styles.css|vercel.json|package.json|package-lock.json|assets/templates/*|src/*|vendor/*|scripts/build-vercel.mjs|scripts/generate-runtime-config.mjs|scripts/generate-excel-sme-assets-manifest.mjs)
+                    DEPLOYMENT_REQUIRED=true
+                    break
+                    ;;
+                esac
+              done < <(git diff --name-only "${BEFORE_SHA}" "${GITHUB_SHA}")
+            fi
+          fi
+
+          if [ "${DEPLOYMENT_REQUIRED}" = "true" ]; then
+            EXPECTED_COMMIT="${GITHUB_SHA}"
             ATTEMPTS=60
           fi
 
           printf 'expected_commit=%s\n' "${EXPECTED_COMMIT}" >> "${GITHUB_OUTPUT}"
           printf 'attempts=%s\n' "${ATTEMPTS}" >> "${GITHUB_OUTPUT}"
+          printf 'deployment_required=%s\n' "${DEPLOYMENT_REQUIRED}" >> "${GITHUB_OUTPUT}"
 
       - name: Verificar Production publicada
         id: smoke
@@ -134,6 +171,7 @@ jobs:
         shell: bash
         env:
           EXPECTED_COMMIT: ${{ steps.context.outputs.expected_commit }}
+          DEPLOYMENT_REQUIRED: ${{ steps.context.outputs.deployment_required }}
           CORE_STATUS: ${{ steps.smoke.outputs.core_status }}
           PREFLIGHT_STATUS: ${{ steps.smoke.outputs.preflight_status }}
           INCIDENT_OUTCOME: ${{ steps.incident.outcome }}
@@ -142,6 +180,7 @@ jobs:
             echo '### Monitoramento contínuo de Production'
             echo
             echo "- Ambiente: \`${RADAR_PRODUCTION_URL}\`"
+            echo "- Novo deployment exigido: \`${DEPLOYMENT_REQUIRED:-não resolvido}\`"
             echo "- Commit esperado: \`${EXPECTED_COMMIT:-não resolvido}\`"
             echo "- Site, manifesto, assets e bloqueio anônimo: \`${CORE_STATUS:-não executado}\`"
             echo "- Preflight das Edge Functions catalogadas: \`${PREFLIGHT_STATUS:-não executado}\`"
