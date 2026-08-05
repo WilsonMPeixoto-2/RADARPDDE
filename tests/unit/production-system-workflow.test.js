@@ -34,6 +34,7 @@ test('monitor usa somente leitura de conteúdo e escrita de incidentes', () => {
 test('monitor não instala dependências nem persiste credenciais do checkout', () => {
   const source = workflowSource();
   assert.match(source, /persist-credentials:\s*false/u);
+  assert.match(source, /fetch-depth:\s*2/u);
   assert.doesNotMatch(source, /\bnpm\s+(?:ci|install)\b/u);
   assert.doesNotMatch(source, /\bnpx\b/u);
 });
@@ -49,6 +50,20 @@ test('monitor valida sistema inteiro e preflight com ações fixadas por SHA', (
   assert.match(source, /node scripts\/check-production-team-account-preflight\.mjs/u);
 });
 
+test('monitor exige deployment somente para entradas reais do artefato web', () => {
+  const source = workflowSource();
+  assert.match(source, /radar-build-manifest\.json/u);
+  assert.match(source, /CURRENT_DEPLOYED_COMMIT/u);
+  assert.match(source, /git diff --name-only "\$\{BEFORE_SHA\}" "\$\{GITHUB_SHA\}"/u);
+  assert.match(source, /src\/types\/\*/u);
+  assert.match(source, /index\.html\|app\.js\|config\.js\|styles\.css/u);
+  assert.match(source, /assets\/templates\/\*\|src\/\*\|vendor\/\*/u);
+  assert.match(source, /scripts\/build-vercel\.mjs/u);
+  assert.match(source, /DEPLOYMENT_REQUIRED=true/u);
+  assert.match(source, /EXPECTED_COMMIT="\$\{CURRENT_DEPLOYED_COMMIT\}"/u);
+  assert.match(source, /EXPECTED_COMMIT="\$\{GITHUB_SHA\}"/u);
+});
+
 test('monitor gerencia incidentes fora de pull requests sem mascarar o resultado principal', () => {
   const source = workflowSource();
   assert.match(source, /name:\s*Gerenciar incidente automático/u);
@@ -60,12 +75,13 @@ test('monitor gerencia incidentes fora de pull requests sem mascarar o resultado
   assert.match(source, /--preflight-status "\$\{PREFLIGHT_STATUS\}"/u);
 });
 
-test('monitor aguarda propagação no push e sempre publica resumo', () => {
+test('monitor aguarda propagação apenas quando o artefato web mudou e sempre publica resumo', () => {
   const source = workflowSource();
   assert.match(source, /GITHUB_EVENT_NAME.*push/u);
   assert.match(source, /ATTEMPTS=60/u);
   assert.match(source, /ATTEMPTS=1/u);
   assert.match(source, /if:\s*always\(\)/u);
   assert.match(source, /GITHUB_STEP_SUMMARY/u);
+  assert.match(source, /Novo deployment exigido/u);
   assert.match(source, /Gestão automática do incidente/u);
 });
