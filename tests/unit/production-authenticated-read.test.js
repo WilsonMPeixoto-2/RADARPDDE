@@ -4,6 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
   REQUIRED_PROFILES,
+  ALLOWED_READ_RPC_PATHS,
   validateAccountsDocument,
   isSuspiciousMutationRequest,
   sanitizeObservedError
@@ -40,10 +41,12 @@ test('rejeita perfil ausente, duplicidade e senha insuficiente sem expor a senha
   assert.doesNotMatch(result.errors.join(' '), /curta/);
 });
 
-test('classifica apenas chamadas potencialmente mutantes', () => {
+test('classifica somente autenticação e RPC expressamente somente leitura como POST permitido', () => {
+  assert.deepEqual([...ALLOWED_READ_RPC_PATHS], ['/rest/v1/rpc/current_app_role']);
   assert.equal(isSuspiciousMutationRequest('GET', 'https://example.test/rest/v1/schools'), false);
   assert.equal(isSuspiciousMutationRequest('POST', 'https://example.test/auth/v1/token?grant_type=password'), false);
-  assert.equal(isSuspiciousMutationRequest('POST', 'https://example.test/rest/v1/rpc/read_context'), false);
+  assert.equal(isSuspiciousMutationRequest('POST', 'https://example.test/rest/v1/rpc/current_app_role'), false);
+  assert.equal(isSuspiciousMutationRequest('POST', 'https://example.test/rest/v1/rpc/save_school_with_programs'), true);
   assert.equal(isSuspiciousMutationRequest('POST', 'https://example.test/rest/v1/pendencies'), true);
   assert.equal(isSuspiciousMutationRequest('POST', 'https://example.test/functions/v1/team-account-management'), true);
   assert.equal(isSuspiciousMutationRequest('PATCH', 'https://example.test/rest/v1/schools?id=eq.1'), true);
