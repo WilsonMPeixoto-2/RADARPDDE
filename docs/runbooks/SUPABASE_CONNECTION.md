@@ -27,6 +27,8 @@ Edge Function: team-account-management v95, ACTIVE, JWT obrigatório
 Node.js: 24.x
 ```
 
+O conjunto versionado contém atualmente **25** migrations. O histórico oficial reconhecido pela Supabase CLI é a fonte de verdade para conferir versões aplicadas e sua ordem efetiva; não manter uma segunda lista manual de aplicação.
+
 O PR nº 141 contém uma 26ª migration somente em sua branch. Não usar essa contagem para Production antes de integração e aplicação autorizada.
 
 ## 3. Regras permanentes
@@ -72,11 +74,6 @@ npm ci
 npm run test:readiness
 npm run check:runtime-config
 npm run build:vercel
-```
-
-Supabase descartável:
-
-```bash
 npm run supabase:start
 npm run supabase:reset
 npm run supabase:test:db
@@ -84,15 +81,7 @@ npm run supabase:lint:db
 npm run typecheck:database
 ```
 
-Confirmar:
-
-- scripts e bundles reproduzíveis;
-- migrations aplicadas em ordem;
-- pgTAP verde;
-- tipos alinhados;
-- Auth local e perfis efêmeros;
-- RLS positiva e negativa;
-- Edge Function exercitada quando aplicável.
+Confirmar scripts e bundles reproduzíveis, migrations aplicadas em ordem, pgTAP, tipos, Auth local, RLS positiva e negativa e Edge Function quando aplicável.
 
 ## 6. Validação remota somente leitura
 
@@ -111,7 +100,33 @@ Antes de diagnosticar falha funcional, confirmar:
 
 Não imprimir chaves ou payloads pessoais nos registros de diagnóstico.
 
-## 7. Monitor geral de Production
+## 7. Histórico e aplicação de migrations
+
+### Consultas e dry-run
+
+```bash
+supabase migration list --linked
+supabase db push --linked --dry-run
+```
+
+### Aplicação real, somente em janela autorizada
+
+```bash
+supabase db push --linked
+```
+
+A presença do comando neste runbook não constitui autorização. Aplicação real exige branch e PR específicos, histórico alinhado, reset local, pgTAP, lint, tipos, backup/restauração, análise do SQL, plano de reversão, janela operacional e autorização expressa.
+
+Migration SME canônica:
+
+```text
+20260728182226_sme_access_governance
+SHA-256: cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
+```
+
+Seguir [`SUPABASE_MIGRATION_AND_ROLLBACK.md`](SUPABASE_MIGRATION_AND_ROLLBACK.md).
+
+## 8. Monitor geral de Production
 
 Workflow:
 
@@ -119,25 +134,11 @@ Workflow:
 .github/workflows/production-system-smoke.yml
 ```
 
-Execução:
+Executa após `push` na `main`, a cada hora e manualmente. Verifica commit publicado, manifesto, ambiente, modo de dados, shell, gate de autenticação, assets, bloqueio anônimo, preflight das Edge Functions e gestão automática de incidente.
 
-- após `push` na `main`;
-- a cada hora;
-- manualmente.
+Falha do monitor deve ser investigada pelo componente exato antes de assumir indisponibilidade geral do Supabase.
 
-Verifica:
-
-- commit publicado;
-- manifesto, ambiente e modo de dados;
-- shell e gate de autenticação;
-- assets locais;
-- bloqueio de leitura anônima;
-- preflight das Edge Functions catalogadas;
-- gestão automática de incidente.
-
-Falha do monitor deve ser investigada antes de assumir indisponibilidade do Supabase; o resumo identifica o componente que falhou.
-
-## 8. Auth e perfis
+## 9. Auth e perfis
 
 Papéis vigentes:
 
@@ -149,19 +150,17 @@ Papéis vigentes:
 
 Diagnóstico de login:
 
-1. verificar sessão existente;
+1. verificar sessão;
 2. confirmar `user_profiles.active`;
-3. confirmar perfil em `profiles.active`;
-4. confirmar papel retornado por `current_app_role()`;
+3. confirmar `profiles.active`;
+4. confirmar `current_app_role()`;
 5. verificar `cre_scope`, `controller_id` e `user_school_scopes`;
-6. confirmar que a aplicação permanece inerte até autorização;
-7. diferenciar falha de sessão, perfil, escopo e leitura de dados.
+6. confirmar aplicação inerte até autorização;
+7. diferenciar sessão, perfil, escopo e leitura de dados.
 
 A simulação visual do administrador técnico não altera JWT.
 
-## 9. Gestão de Equipe
-
-Fluxo:
+## 10. Gestão de Equipe
 
 ```text
 DirectoryService
@@ -183,16 +182,14 @@ verify_jwt: true
 - origem oficial deve retornar sucesso;
 - origem indevida deve ser rejeitada;
 - ausência de variável opcional não pode eliminar a allowlist canônica;
-- resposta `OPTIONS` não deve depender de autenticação do usuário;
-- requisição funcional posterior exige JWT.
+- `OPTIONS` não depende de autenticação do usuário;
+- requisição funcional exige JWT.
 
-### Operações
+### Cadastro, edição ou desativação
 
-Para cadastro, edição ou desativação:
-
-1. confirmar papel `federal_assistant` ou técnico autorizado;
+1. confirmar papel autorizado;
 2. validar diretório e e-mail;
-3. verificar conta existente e vínculo histórico;
+3. verificar conta e vínculo histórico;
 4. executar Auth Admin;
 5. executar RPC transacional;
 6. compensar etapa anterior se a posterior falhar;
@@ -200,87 +197,34 @@ Para cadastro, edição ou desativação:
 8. recarregar e confirmar persistência;
 9. verificar log administrativo.
 
-### Diagnóstico de vínculo
-
-Quando `user_id` do diretório estiver nulo:
-
-- procurar vínculo coerente em `user_profiles`;
-- aceitar somente correspondência única e compatível;
-- rejeitar ambiguidade;
-- não reenviar convite para conta existente sem verificação.
-
-## 10. Contrato de migrations
-
-Comandos de inspeção:
-
-```bash
-supabase migration list --linked
-supabase db push --linked --dry-run
-```
-
-Aplicação real exige:
-
-- branch e PR específicos;
-- histórico alinhado;
-- reset local;
-- pgTAP, lint e tipos;
-- backup/restauração descartáveis;
-- análise do SQL;
-- plano de reversão;
-- janela operacional;
-- autorização expressa.
-
-Migration SME canônica:
-
-```text
-20260728182226_sme_access_governance
-SHA-256: cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
-```
-
-Seguir [`SUPABASE_MIGRATION_AND_ROLLBACK.md`](SUPABASE_MIGRATION_AND_ROLLBACK.md).
+Quando `user_id` do diretório estiver nulo, aceitar somente correspondência única e compatível em `user_profiles`; rejeitar ambiguidade e não reenviar convite sem verificar conta existente.
 
 ## 11. Backup e recuperação
-
-Gate:
 
 ```text
 .github/workflows/backup-restore-disposable.yml
 scripts/verify-supabase-backup-restore.mjs
 ```
 
-Comando local controlado:
-
 ```bash
 RADAR_ALLOW_DISPOSABLE_BACKUP_RESTORE=true npm run test:backup-restore
 ```
 
-O gate:
-
-1. inicia pilha de origem;
-2. aplica migrations e seed;
-3. cria identidades Auth efêmeras;
-4. gera dumps lógicos;
-5. restaura em segunda pilha;
-6. compara schema, dados, Auth e migrations;
-7. publica somente `evidence.json`;
-8. remove os ambientes.
-
-Isso prova o procedimento técnico, não substitui política institucional de retenção remota.
+O gate usa duas pilhas descartáveis, compara schema, dados, Auth e migrations, publica somente `evidence.json` e não substitui política institucional de retenção remota.
 
 ## 12. Diagnóstico funcional por camadas
 
-Quando botão ou fluxo não funcionar, não concluir imediatamente que “o Supabase caiu”. Verificar na ordem:
+Quando botão ou fluxo não funcionar, verificar:
 
 ```text
 controle visível e habilitado
-→ handler realmente executado
-→ erro no console
-→ payload e competência
+→ handler executado
+→ console e payload
 → serviço de aplicação
 → repositório escolhido
 → requisição HTTP
 → CORS, JWT e status
-→ política RLS/RPC
+→ RLS ou RPC
 → alteração no banco
 → resposta ao frontend
 → renderização
@@ -293,14 +237,14 @@ Classificar a fronteira exata antes de propor correção.
 
 | Sintoma | Verificação inicial |
 |---|---|
-| tela de login não avança | sessão, perfil, papel e bootstrap |
-| tela carrega sem dados | escopo, RLS, entidade do bootstrap e PostgREST |
-| botão não faz nada | handler, capacidade por perfil e erro de JavaScript |
-| operação retorna CORS | preflight, origem e versão da Edge Function |
+| login não avança | sessão, perfil, papel e bootstrap |
+| tela sem dados | escopo, RLS, entidade e PostgREST |
+| botão não faz nada | handler, capacidade e erro JavaScript |
+| operação retorna CORS | preflight, origem e versão da função |
 | convite diz conta existente | vínculo Auth histórico e `user_profiles` |
-| grava e volta ao estado anterior | persistência, conflito de versão e releitura |
+| grava e volta ao estado anterior | persistência, conflito e releitura |
 | Excel não gera | competência, manifesto, ExcelJS, template e download |
-| monitor abre incidente | consultar job e componente exato antes de rollback |
+| monitor abre incidente | job e componente exato antes de rollback |
 
 ## 14. Contingência local
 
@@ -312,13 +256,4 @@ Exige novo build controlado. Não apaga o Supabase, não sincroniza estado local
 
 ## 15. Critério de encerramento
 
-A investigação termina quando:
-
-- componente causador foi identificado;
-- fluxo autorizado funciona de ponta a ponta;
-- fluxo indevido permanece bloqueado;
-- dado persiste e é relido;
-- falha parcial não deixou resíduo;
-- regressão foi criada;
-- documentação foi atualizada;
-- evidência está ligada ao SHA e ao ambiente corretos.
+A investigação termina quando a causa foi identificada, o fluxo autorizado funciona de ponta a ponta, o indevido permanece bloqueado, o dado persiste e é relido, a falha parcial não deixa resíduo, existe regressão e a evidência corresponde ao SHA e ao ambiente corretos.
