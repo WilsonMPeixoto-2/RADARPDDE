@@ -7,7 +7,7 @@
 
 Orientar validação, diagnóstico, contingência e recuperação da conexão entre o RADAR PDDE e o Supabase autorizado.
 
-Este runbook não autoriza migration, importação, alteração de Auth/RLS, deployment de Edge Function ou release.
+Este runbook não autoriza migration, importação, alteração de Auth/RLS, deployment de Edge Function ou release. Cada operação remota depende de escopo e autorização expressos.
 
 ## 2. Baseline
 
@@ -23,7 +23,9 @@ contingência: LocalStorageRepository por novo build
 migrations em Production: 26
 closing_competence: 2026-12
 app_config.row_version: 20
-Edge Function: team-account-management v95, ACTIVE, JWT obrigatório
+Edge Function: team-account-management v103, ACTIVE, JWT obrigatório
+Supabase JS: 2.110.9
+Supabase CLI: 2.110.0
 auditoria de integridade: healthy, totalIssues=0, schemaVersion=1
 Node.js: 24.x
 ```
@@ -32,6 +34,15 @@ O conjunto versionado contém atualmente **26** migrations. O histórico oficial
 
 A migration `202608040001_production_integrity_monitor` está aplicada em Production. A RPC pública é `SECURITY INVOKER`, a implementação privilegiada permanece em `radar_private`, e a execução é concedida somente ao `service_role`.
 
+Última publicação funcional relacionada à conexão:
+
+```text
+PR: 150
+merge commit: 2ae98da8a547d46cd7e8e64977b855b1a90a2495
+Vercel deployment: dpl_BvrxJUahgWpaRbtn6Y5FrfzknKAw — READY
+Edge Function: team-account-management v103 — ACTIVE — verify_jwt=true
+```
+
 ## 3. Regras permanentes
 
 - não reutilizar projeto de outra aplicação;
@@ -39,12 +50,14 @@ A migration `202608040001_production_integrity_monitor` está aplicada em Produc
 - usar somente chave publicável no navegador;
 - não confundir Preview com Production;
 - manter um perfil institucional ativo por usuário;
+- preservar perfis históricos inativos quando houver troca autorizada de função;
 - não aplicar seed automaticamente em banco remoto;
 - não alterar schema com histórico divergente;
 - não interpretar contingência local como sincronização;
 - não publicar dumps SQL como evidência;
 - não executar operação remota apenas porque um teste local passou;
-- não realizar merge ou mudança de Production sem autorização expressa.
+- não realizar merge ou mudança de Production sem autorização expressa;
+- não reutilizar contas pessoais como identidades técnicas de monitoramento.
 
 ## 4. Configuração por ambiente
 
@@ -95,7 +108,7 @@ Antes de diagnosticar falha funcional, confirmar:
 5. sessão e papel efetivo;
 6. `cre_scope` e escopos escolares;
 7. contagem e histórico de migrations;
-8. Edge Functions ativas e JWT;
+8. Edge Functions ativas, versão e JWT;
 9. logs de Auth, API, Postgres e Edge Function;
 10. resultado da auditoria de integridade;
 11. incidentes automáticos abertos pelo monitor.
@@ -137,7 +150,7 @@ Workflows:
 .github/workflows/production-data-integrity.yml
 ```
 
-O monitor geral executa após `push` na `main`, a cada hora e manualmente. Verifica commit publicado, manifesto, ambiente, modo de dados, shell, gate de autenticação, assets, bloqueio anônimo, preflight das Edge Functions e gestão automática de incidente.
+O monitor geral executa após `push` na `main`, a cada hora e manualmente. Verifica commit publicado quando a mudança exige novo artefato web, manifesto, ambiente, modo de dados, shell, gate de autenticação, assets, bloqueio anônimo, preflight das Edge Functions e gestão automática de incidente.
 
 A auditoria de dados executa a cada seis horas e manualmente. Usa conexão PostgreSQL administrativa efêmera com os secrets existentes do Supabase CLI, chama `public.production_integrity_check()` e falha quando o contrato, o status ou o total agregado estiverem incorretos. Nenhum dado pessoal é publicado.
 
@@ -178,8 +191,9 @@ Estado remoto:
 
 ```text
 status: ACTIVE
-version: 95
+version: 103
 verify_jwt: true
+Supabase JS: 2.110.9
 ```
 
 ### Preflight
@@ -195,16 +209,45 @@ verify_jwt: true
 1. confirmar papel autorizado;
 2. validar diretório e e-mail;
 3. verificar conta e vínculo histórico;
-4. executar Auth Admin;
-5. executar RPC transacional;
-6. compensar etapa anterior se a posterior falhar;
-7. confirmar retorno ao frontend;
-8. recarregar e confirmar persistência;
-9. verificar log administrativo.
+4. procurar conta Auth única pelo e-mail normalizado antes de convidar;
+5. reutilizar conta existente somente quando não houver perfil ativo conflitante;
+6. executar Auth Admin;
+7. executar RPC transacional;
+8. compensar etapa anterior se a posterior falhar;
+9. confirmar retorno funcional ao frontend;
+10. recarregar e confirmar persistência;
+11. verificar log administrativo.
 
-Quando `user_id` do diretório estiver nulo, aceitar somente correspondência única e compatível em `user_profiles`; rejeitar ambiguidade e não reenviar convite sem verificar conta existente.
+### Transição entre perfis
 
-## 11. Backup e recuperação
+No percurso autorizado entre Inventário e Controlador:
+
+- o perfil de origem deve estar inativo antes da ativação do destino;
+- a mesma conta Auth pode ser reutilizada, sem novo convite;
+- deve existir no máximo um perfil institucional ativo para o usuário;
+- registros históricos inativos devem ser preservados;
+- e-mail e metadados devem ser atualizados para o perfil de destino;
+- o estado de bloqueio anterior deve ser restaurado se a RPC falhar;
+- vínculo ativo conflitante deve retornar `ACCOUNT_CONFLICT` com orientação funcional;
+- o gateway deve ler `FunctionsHttpError.context` e preservar `code`, `message` e `details`;
+- conflito funcional não pode ser exibido como indisponibilidade geral.
+
+Quando `user_id` do diretório estiver nulo, aceitar somente correspondência única e compatível em `user_profiles`. Quando também não houver vínculo histórico no perfil de destino, procurar a conta Auth pelo e-mail antes de convidar. Rejeitar ambiguidade e nunca reenviar convite sem essa verificação.
+
+## 11. Smoke autenticado de leitura
+
+O PR nº 148 prepara cobertura somente leitura para os cinco perfis. Enquanto não houver identidades técnicas exclusivas e autorização específica:
+
+- manter o workflow remoto desabilitado;
+- não reutilizar contas reais;
+- não criar contas automaticamente em PR;
+- não habilitar service role no navegador ou no Playwright;
+- não registrar screenshots, vídeos, traces ou credenciais de Production;
+- permitir somente autenticação, leitura e a RPC `current_app_role`.
+
+A ativação exige cinco contas técnicas, segredo protegido, variável de habilitação, execução manual aprovada e execução agendada aprovada.
+
+## 12. Backup e recuperação
 
 ```text
 .github/workflows/backup-restore-disposable.yml
@@ -217,7 +260,7 @@ RADAR_ALLOW_DISPOSABLE_BACKUP_RESTORE=true npm run test:backup-restore
 
 O gate usa duas pilhas descartáveis, compara schema, dados, Auth e migrations, publica somente `evidence.json` e não substitui política institucional de retenção remota.
 
-## 12. Diagnóstico funcional por camadas
+## 13. Diagnóstico funcional por camadas
 
 Quando botão ou fluxo não funcionar, verificar:
 
@@ -238,7 +281,7 @@ controle visível e habilitado
 
 Classificar a fronteira exata antes de propor correção.
 
-## 13. Falhas comuns
+## 14. Falhas comuns
 
 | Sintoma | Verificação inicial |
 |---|---|
@@ -246,13 +289,15 @@ Classificar a fronteira exata antes de propor correção.
 | tela sem dados | escopo, RLS, entidade e PostgREST |
 | botão não faz nada | handler, capacidade e erro JavaScript |
 | operação retorna CORS | preflight, origem e versão da função |
-| convite diz conta existente | vínculo Auth histórico e `user_profiles` |
+| convite diz conta existente | conta Auth pelo e-mail, perfis ativos e histórico |
+| troca de função é recusada | perfil anterior ainda ativo ou vínculo conflitante |
+| interface diz indisponibilidade em conflito | payload de `FunctionsHttpError.context` no gateway |
 | grava e volta ao estado anterior | persistência, conflito e releitura |
 | Excel não gera | competência, manifesto, ExcelJS, template e download |
 | monitor abre incidente | job e componente exato antes de rollback |
 | auditoria retorna inconsistência | código da invariante e contagem agregada antes de consultar registros |
 
-## 14. Contingência local
+## 15. Contingência local
 
 ```text
 RADAR_PRODUCTION_FORCE_LOCAL=true
@@ -260,6 +305,6 @@ RADAR_PRODUCTION_FORCE_LOCAL=true
 
 Exige novo build controlado. Não apaga o Supabase, não sincroniza estado local de volta e não deve ser ativado antes do diagnóstico.
 
-## 15. Critério de encerramento
+## 16. Critério de encerramento
 
 A investigação termina quando a causa foi identificada, o fluxo autorizado funciona de ponta a ponta, o indevido permanece bloqueado, o dado persiste e é relido, a falha parcial não deixa resíduo, existe regressão e a evidência corresponde ao SHA e ao ambiente corretos.

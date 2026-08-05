@@ -1,8 +1,10 @@
 # Plano — Smoke autenticado de leitura em Production
 
 **Data:** 5 de agosto de 2026  
-**Baseline:** `1444b8df5aa11168e063ec55db635d5a2091214d`  
-**Vercel Production:** `dpl_6ciDyuemHM6uzZ53EVndnyuKaDKr` — `READY`  
+**Baseline reconciliado:** `4c182a318ef6a2037af7358bbfe52a77543cc769`  
+**Baseline funcional publicado:** `2ae98da8a547d46cd7e8e64977b855b1a90a2495`  
+**Vercel Production:** `dpl_BvrxJUahgWpaRbtn6Y5FrfzknKAw` — `READY`  
+**Edge Function de equipe:** versão 103 — `ACTIVE` — JWT obrigatório  
 **Natureza:** garantia operacional não destrutiva  
 **Matriz de origem:** `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md`
 
@@ -34,15 +36,15 @@ A Equipe de Inventário deve permanecer sem acesso à Carteira, conforme a matri
 1. não reutilizar contas pessoais ou institucionais de servidores;
 2. usar cinco identidades técnicas dedicadas, uma por perfil;
 3. não inserir, editar, excluir, desativar ou acionar Edge Functions;
-4. permitir apenas autenticação, refresh de sessão, `GET` do PostgREST e RPCs exclusivamente de leitura;
-5. falhar se o navegador emitir `POST` para tabela, Edge Function ou métodos `PATCH`, `PUT` e `DELETE`;
+4. permitir apenas autenticação, refresh de sessão, `GET` do PostgREST e a RPC exclusivamente de leitura `current_app_role`;
+5. falhar se o navegador emitir `POST` para tabela, outra RPC, Edge Function ou métodos `PATCH`, `PUT` e `DELETE`;
 6. não publicar e-mail, senha, token, trace, screenshot, vídeo ou conteúdo institucional;
 7. manter o arquivo de credenciais em `${RUNNER_TEMP}`, permissão `600`, com remoção obrigatória;
 8. não executar o acesso remoto em pull requests.
 
 ## 4. Provisionamento
 
-A consulta agregada em Production encontrou usuários funcionais ativos, mas nenhuma conta provável de monitoramento. Portanto, esta fase não cria identidades automaticamente.
+A consulta agregada em Production encontrou usuários funcionais ativos, mas nenhuma conta provável de monitoramento. Esta fase não cria identidades automaticamente.
 
 Para ativar a execução remota serão necessários:
 
@@ -100,7 +102,7 @@ A suíte confirma:
 
 ## 7. Critério de conclusão
 
-A fase somente será considerada concluída quando:
+A infraestrutura de teste pode ser integrada desabilitada. A fase de monitoramento somente será considerada concluída quando:
 
 1. as cinco contas técnicas estiverem provisionadas de forma autorizada;
 2. o segredo e a variável estiverem configurados;
@@ -118,3 +120,12 @@ A fase somente será considerada concluída quando:
 - correção de `ASSET-02`;
 - decisão sobre `CFG-03` e `CFG-04`;
 - incidentes automáticos antes da estabilização inicial do monitor.
+
+## 9. Reconciliação cronológica
+
+Esta entrega foi reconciliada depois dos PRs nº 150 e 151. A árvore preserva:
+
+- o hotfix de transição Inventário → Controlador;
+- a Edge Function versão 103 publicada;
+- o estado canônico e a evidência da release;
+- a ativação remota bloqueada até autorização específica.

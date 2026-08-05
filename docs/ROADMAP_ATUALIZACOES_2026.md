@@ -17,15 +17,18 @@ Integração, aplicação no Supabase, publicação na Vercel e comprovação fu
 ## 2. Baseline
 
 ```text
-main: 1444b8df5aa11168e063ec55db635d5a2091214d
-Vercel Production: dpl_6ciDyuemHM6uzZ53EVndnyuKaDKr — READY
-commit público: 1444b8df5aa11168e063ec55db635d5a2091214d
+main: 2ae98da8a547d46cd7e8e64977b855b1a90a2495
+Vercel Production: dpl_BvrxJUahgWpaRbtn6Y5FrfzknKAw — READY
+commit público: 2ae98da8a547d46cd7e8e64977b855b1a90a2495
 Supabase: scnryinorqeucbfkioxo — ACTIVE_HEALTHY
 migrations em Production: 26
 última migration: 202608040001_production_integrity_monitor
+Edge Function team-account-management: versão 103 — ACTIVE — JWT obrigatório
 Supabase JS: 2.110.9
 Supabase CLI: 2.110.0
 ```
+
+A `main`, a Vercel Production e a Edge Function estão alinhadas ao PR nº 150. A issue nº 149 foi encerrada. O hotfix não alterou migrations, RLS, grants ou dados reais.
 
 ## 3. Cronologia recente
 
@@ -33,27 +36,31 @@ Supabase CLI: 2.110.0
 |---:|---|---|
 | 136 | concluído e publicado | runtime e assets do Excel SME |
 | 137 | concluído e publicado | Excel SME de 27 colunas |
-| 138 | concluído e publicado | Gestão de Equipe, CORS e Auth |
+| 138 | concluído e publicado | Gestão de Equipe, CORS e vínculos do mesmo perfil |
 | 139 | concluído e publicado | monitor geral de Production |
 | 140 | concluído e publicado | incidentes automáticos |
 | 142 | concluído e publicado | reconciliação documental integral |
 | 141 | concluído e aplicado | auditoria de vinte invariantes de integridade |
-| 145 | concluído e publicado | matriz funcional executável de 41 operações |
+| 145 | concluído | matriz funcional executável de 41 operações |
 | 146 | concluído e publicado | Supabase JS 2.110.9 |
-| smoke autenticado | em andamento | leituras reais protegidas por cinco perfis |
+| 147 | concluído | correção de inicialização do workflow principal |
+| 150 | concluído e publicado | transição Inventário → Controlador com conta Auth existente |
+| 148 | em rascunho | smoke autenticado de leitura preparado, ainda desativado |
 
 ## 4. Confiabilidade funcional
 
 | Item | Estado | Prioridade | Próxima ação |
 |---|---|---:|---|
 | Excel SME | comprovado e publicado | P0 | manter regressões e smoke |
-| Gestão de Equipe | comprovada e publicada | P0 | manter preflight e observação |
-| Matriz funcional executável | concluída e publicada | P0 | manter no readiness |
-| Smoke autenticado de leitura | implementação em andamento | P0 | concluir PR e provisionar contas técnicas mediante autorização |
-| Escrita controlada e reversível | pendente | P0 | corrigir `ASSET-02` e cobrir 23 operações |
+| Gestão de Equipe — operações no mesmo perfil | comprovada e publicada | P0 | manter preflight e regressões |
+| Gestão de Equipe — transição entre perfis | corrigida e publicada | P0 | repetir operação administrativa quando necessário e observar logs |
+| Matriz funcional executável | integrada | P0 | usar lacunas para ordenar as próximas provas |
+| Smoke autenticado de leitura | preparado, não integrado e desativado | P0 | reconciliar PR nº 148 com a `main` e integrar sem ativação |
+| Identidades técnicas do smoke | não provisionadas | P0 | exigir autorização específica antes de criar contas e segredo |
+| Escrita controlada e reversível | pendente | P0 | cobrir 23 operações após `ASSET-02` |
 | UAT com servidores reais | pendente | P1 | executar após os gates técnicos |
 
-### Resultado vigente da matriz
+### Resultado da matriz
 
 | Cobertura | Operações |
 |---|---:|
@@ -73,33 +80,18 @@ Supabase CLI: 2.110.0
 | decisão funcional expressa | 2 |
 | observação contínua em Production | 5 |
 
-As seis leituras somente mudarão para cobertura comprovada após uma execução manual e outra agendada com identidades técnicas dedicadas.
+## 5. Incidente P0 nº 149
 
-## 5. Smoke autenticado de leitura
+A causa raiz foi a tentativa de convidar novamente uma conta Auth existente após a desativação do perfil de Inventário. O PR nº 150 acrescentou:
 
-### Escopo
+- busca de conta por e-mail normalizado antes do convite;
+- reutilização somente sem vínculo ativo conflitante;
+- preservação de um único perfil ativo e do histórico inativo;
+- compensação com restauração do bloqueio anterior;
+- interpretação do payload de `FunctionsHttpError` pelo gateway;
+- prova integral Inventário → Controlador → redistribuição → novo login.
 
-- `AUTH-01` — autenticação e restauração da sessão;
-- `NAV-02` — busca limitada ao recorte autorizado;
-- `READ-01` — Dashboard;
-- `READ-02` — Carteira ou negativa correta para Inventário;
-- `READ-03` — Prontuário e timeline;
-- `READ-04` — Pendências.
-
-### Estado
-
-| Componente | Estado |
-|---|---|
-| suíte Playwright remota | implementada na branch |
-| detecção de requisições mutantes | implementada |
-| sanitização de erros | implementada |
-| workflow manual/agendado | implementado, protegido por variável |
-| validação contratual em PR | implementada |
-| contas técnicas dedicadas | não provisionadas |
-| segredo protegido | não configurado |
-| execução real em Production | não realizada |
-
-Nenhuma conta pessoal será reutilizada. A criação das cinco identidades técnicas é uma operação controlada e exige autorização separada.
+A publicação está ativa na Vercel e na Edge Function versão 103. Nenhuma pessoa ou escola real foi alterada automaticamente.
 
 ## 6. Achados derivados
 
@@ -125,7 +117,7 @@ A manutenção de programas pela Gestão SME existe tecnicamente, mas a autorida
 | bloqueio anônimo | concluído e publicado | P0 |
 | auditoria de vinte invariantes | concluída e aplicada | P0 |
 | backup/restauração descartáveis | concluído | P0 |
-| smoke autenticado por perfil | em implementação | P0 |
+| smoke autenticado de cinco perfis | preparado, desativado | P0 |
 | política institucional de retenção/DR | pendente de decisão | P2 |
 
 ## 8. Supabase e integração
@@ -133,11 +125,10 @@ A manutenção de programas pela Gestão SME existe tecnicamente, mas a autorida
 | Item | Estado | Próxima ação |
 |---|---|---|
 | 26 migrations alinhadas | concluído | manter histórico e dry-run |
-| Supabase JS 2.110.9 | concluído e publicado | manter regressões de Auth/RLS |
-| Auth, perfis e escopos | parcialmente comprovado | executar smoke autenticado |
-| RLS positiva e negativa | parcialmente comprovada | ligar resultados aos IDs da matriz |
+| Auth, perfis e escopos | parcialmente comprovado | ativar smoke autenticado após provisionamento autorizado |
+| RLS positiva e negativa | parcialmente comprovada | ligar aos IDs da matriz |
 | RPCs compostas | parcialmente comprovadas | provar escrita, releitura e falha |
-| Edge Function de equipe | concluída | manter CORS, JWT e compensação |
+| Edge Function de equipe | versão 103 publicada | manter CORS, JWT, reutilização segura e compensação |
 | integridade lógica agregada | concluída | observar execução recorrente |
 | programas SME | decisão pendente | resolver `CFG-03` e `CFG-04` |
 
@@ -152,9 +143,12 @@ Knip 6.29.0
 Supabase JS 2.110.9
 Supabase CLI 2.110.0
 ExcelJS 4.4.0
+Node.js 24.x
 ```
 
-Atualizações permanecem em PRs isolados. ExcelJS continua congelado até necessidade comprovada e nova homologação desktop.
+Atualizações permanecem em PRs isolados e não devem ser misturadas às provas funcionais prioritárias. ExcelJS continua congelado até necessidade comprovada e nova homologação desktop.
+
+PRs automáticos abertos de dependências não fazem parte da sequência funcional até análise e autorização específicas.
 
 ## 10. Evolução do produto
 
@@ -163,14 +157,14 @@ Busca inteligente, Floating UI e View Transitions estão publicadas. Diálogos c
 ## 11. Sequência
 
 ```text
-1. reconciliação documental                         concluída
-2. integridade contínua dos dados                  concluída
-3. matriz funcional executável                     concluída
-4. Supabase JS 2.110.9                             concluído
-5. implementar smoke autenticado de leitura        em andamento
-6. provisionar contas e executar duas provas       depende de autorização
-7. corrigir ASSET-02 e provar escritas
-8. decidir programas SME
+1. reconciliação documental pós-PR 150             em conclusão
+2. reconciliar e integrar PR 148 desativado
+3. autorizar e provisionar contas técnicas do smoke
+4. aprovar execução manual e execução agendada
+5. corrigir ASSET-02
+6. executar escrita controlada e reversível
+7. decidir autoridade sobre programas SME
+8. avaliar atualizações menores isoladas
 9. UAT e correções
 10. polimento editorial/visual
 11. decisão formal de liberação

@@ -5,107 +5,60 @@
 ## 1. Baseline efetivo
 
 ```text
-GitHub main: 1444b8df5aa11168e063ec55db635d5a2091214d
-Últimos merges: PR #145 — matriz funcional; PR #146 — Supabase JS 2.110.9
-Branch corrente: feat/smoke-autenticado-leitura-production-20260805
-Vercel Production: dpl_6ciDyuemHM6uzZ53EVndnyuKaDKr — READY
-Commit publicado na Vercel: 1444b8df5aa11168e063ec55db635d5a2091214d
+GitHub main: 2ae98da8a547d46cd7e8e64977b855b1a90a2495
+Último merge funcional: PR #150 — transição de perfil na Gestão de Equipe
+Vercel Production: dpl_BvrxJUahgWpaRbtn6Y5FrfzknKAw — READY
+Commit publicado na Vercel: 2ae98da8a547d46cd7e8e64977b855b1a90a2495
 Supabase Production: scnryinorqeucbfkioxo — ACTIVE_HEALTHY
 PostgreSQL: 17.6.1.147
 Migrations em Production: 26
 Última migration: 202608040001_production_integrity_monitor
 Competência de fechamento: 2026-12
-Edge Function team-account-management: ACTIVE, versão 95, JWT obrigatório
+Edge Function team-account-management: ACTIVE, versão 103, JWT obrigatório
 Supabase JS: 2.110.9
 Supabase CLI: 2.110.0
 Node.js: 24.x
 ```
 
-A `main`, o artefato público da Vercel e o cliente Supabase do navegador estão alinhados no commit `1444b8df…`.
+A `main`, o frontend publicado e a Edge Function estão alinhados ao hotfix do PR nº 150. A issue nº 149 foi encerrada. Nenhuma migration ou alteração automática de dados reais integrou essa publicação.
 
 ## 2. Estado executivo
 
-Estão integrados e publicados:
+O RADAR PDDE opera com frontend estático na Vercel e Supabase Production como backend canônico. Estão integrados:
 
 - núcleo operacional por competência, escola e programa;
 - Dashboard, Carteira, Competências, Prontuário, timeline e Pendências;
 - notas fiscais, bens, encaminhamento e inventariação;
-- Gestão de Equipe com Auth, CORS, RPC e compensação;
+- Gestão de Equipe com Auth, CORS, RPC, compensação e transição segura entre perfis;
 - Gestão SME com recortes gerenciais e configurações vigentes;
 - Excel SME mensal de 27 colunas homologado no Excel desktop;
 - monitor geral de Production e incidentes automáticos;
-- auditoria agregada de vinte invariantes de integridade;
+- auditoria agregada e somente leitura de vinte invariantes de integridade em Production;
+- backup/restauração descartáveis e gate por perfil/viewport;
 - matriz funcional executável de 41 operações;
-- Supabase JS 2.110.9 no frontend e na Edge Function.
+- Supabase JS 2.110.9 no navegador e na Edge Function.
 
-A prioridade corrente é provar as seis leituras críticas diretamente no site publicado, usando identidades técnicas dedicadas e sem qualquer mutação operacional.
+A prioridade corrente é concluir a camada de smoke autenticado somente leitura e, depois, avançar para as provas controladas de escrita.
 
-## 3. Fase corrente — smoke autenticado de leitura
+## 3. Matriz funcional ponta a ponta
 
-A fase cobre:
+A fonte canônica integrada pelo PR nº 145 relaciona:
 
-| ID | Operação |
-|---|---|
-| `AUTH-01` | autenticar, restaurar sessão e aplicar perfil/escopo |
-| `NAV-02` | pesquisar somente entidades autorizadas |
-| `READ-01` | consultar Dashboard |
-| `READ-02` | consultar Carteira quando autorizada |
-| `READ-03` | consultar Prontuário e timeline |
-| `READ-04` | consultar Pendências |
+```text
+perfil
+× superfície
+× ação
+× serviço
+× repositório
+× tabela/RPC/Edge Function
+× autorização
+× concorrência
+× releitura
+× compensação
+× evidência
+```
 
-Perfis:
-
-- Controlador;
-- Assistente de Verbas Federais;
-- Gestão SME;
-- Equipe de Inventário;
-- Administrador técnico.
-
-### Implementação preparada
-
-- `.github/workflows/production-authenticated-read.yml`;
-- `playwright.production-authenticated-read.config.js`;
-- `tests/e2e/production-authenticated-read.spec.js`;
-- `tests/support/production-authenticated-read.js`;
-- testes unitários do contrato e do workflow;
-- plano de provisionamento e ativação.
-
-O monitor valida ambiente, papel, recorte, busca, Dashboard, Carteira ou sua negativa, Prontuário, Pendências, refresh e logout. Ele falha se detectar `POST` operacional, Edge Function ou métodos `PATCH`, `PUT` e `DELETE`.
-
-## 4. Estado do provisionamento
-
-A consulta agregada ao Supabase Production confirmou usuários funcionais ativos, mas não encontrou identidade provável de monitoramento para nenhum perfil.
-
-Por segurança:
-
-- nenhuma conta pessoal será reutilizada;
-- nenhuma identidade foi criada automaticamente;
-- nenhum segredo foi gravado no repositório;
-- o acesso remoto permanece desabilitado em pull requests;
-- a execução recorrente permanece bloqueada até autorização específica para criar cinco contas técnicas.
-
-A ativação exigirá:
-
-1. cinco contas técnicas dedicadas no Supabase Auth;
-2. perfis e escopos mínimos representativos;
-3. segredo `RADAR_PRODUCTION_READ_ACCOUNTS_JSON` no GitHub;
-4. variável `RADAR_PRODUCTION_AUTH_READ_ENABLED=true`;
-5. execução manual aprovada;
-6. execução agendada subsequente aprovada.
-
-Até essa ativação, a fase está **implementada, mas não comprovada em Production**. As seis operações permanecem `partial/authenticated-read` na matriz.
-
-## 5. Matriz funcional integrada
-
-O PR nº 145 integrou:
-
-- fonte JSON canônica;
-- visão Markdown gerada;
-- verificador determinístico;
-- testes de IDs, perfis, âncoras, evidências e mutações;
-- integração ao readiness.
-
-Resultado vigente:
+### Resultado registrado
 
 | Cobertura | Operações |
 |---|---:|
@@ -115,47 +68,139 @@ Resultado vigente:
 | Decisão funcional pendente | 2 |
 | **Total** | **41** |
 
-## 6. Achados estruturais ainda abertos
+| Próxima prova | Operações |
+|---|---:|
+| manter regressão existente | 5 |
+| smoke autenticado de leitura | 6 |
+| escrita controlada e reversível | 23 |
+| decisão funcional expressa | 2 |
+| observação contínua em Production | 5 |
+
+### Contratos versionados
+
+- `docs/reference/functional-contract-matrix.json`;
+- `docs/reference/functional-contract-matrix/*.json`;
+- `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md`;
+- `scripts/check-functional-contract-matrix.mjs`;
+- `tests/unit/functional-contract-matrix.test.js`.
+
+O verificador integra o readiness e bloqueia IDs duplicados, perfis ou superfícies desconhecidos, permissões incompletas, âncoras/evidências inexistentes e mutações críticas sem releitura, concorrência ou compensação.
+
+## 4. Correção P0 mais recente — Gestão de Equipe
+
+O PR nº 150 corrigiu o percurso:
+
+```text
+Inventário
+→ desativar integrante
+→ cadastrar a mesma pessoa como Controladora
+→ reutilizar a conta Auth existente
+→ redistribuir carteira
+→ autenticar com o novo papel
+```
+
+Proteções vigentes:
+
+- busca única por e-mail normalizado antes de enviar convite;
+- reutilização somente sem vínculo ativo conflitante;
+- um único perfil institucional ativo por usuário;
+- histórico inativo preservado;
+- estado anterior de bloqueio restaurado em compensação;
+- payload funcional da Edge Function preservado pelo gateway;
+- conflito apresentado como conflito, não como falsa indisponibilidade.
+
+A prova integral foi executada com identidades e dados sintéticos em Supabase descartável. A operação com pessoas reais não foi executada automaticamente.
+
+## 5. Frente aberta — smoke autenticado de leitura
+
+O PR nº 148 prepara uma prova recorrente, autenticada e não destrutiva para:
+
+- autenticação, perfil, escopo, refresh e logout;
+- busca global autorizada;
+- Dashboard;
+- Carteira ou negativa correta para Inventário;
+- Prontuário e timeline;
+- Pendências.
+
+Perfis previstos:
+
+- Controlador;
+- Assistente de Verbas Federais;
+- Gestão SME;
+- Equipe de Inventário;
+- Administrador técnico.
+
+Estado atual:
+
+- implementação e contratos concluídos na branch;
+- gates locais e descartáveis aprovados no SHA registrado pelo PR;
+- PR ainda em rascunho e precisa ser reconciliado com a `main` após o PR nº 150;
+- execução remota permanece desabilitada;
+- cinco contas técnicas, segredo e variável de ativação não foram criados;
+- nenhuma conta pessoal deve ser reutilizada para monitoramento.
+
+A infraestrutura poderá ser integrada desativada. O provisionamento das identidades técnicas e a ativação recorrente exigem autorização operacional específica.
+
+## 6. Achados estruturais da matriz
 
 ### `ASSET-02` — lacuna técnica
 
-A edição genérica de bem patrimonial ainda usa persistência padrão, sem o mesmo RPC atômico, log e versão das demais mutações. Deve ser corrigida antes da prova controlada de escrita.
+A edição genérica de bem patrimonial usa `DataService.defaultPersist`, sem o mesmo RPC atômico, log e versão empregados pelas demais mutações patrimoniais. A correção deverá ocorrer em PR próprio antes da prova controlada de escrita.
 
 ### `CFG-03` e `CFG-04` — decisão funcional
 
-A manutenção de programas pela Gestão SME existe tecnicamente, mas sua autoridade funcional precisa ser confirmada antes de alteração de frontend, serviço ou RLS.
+Cadastrar, editar e desativar programas existe no frontend e no Supabase, mas a autoridade da Gestão SME deve ser confirmada antes de expansão, retirada ou mudança de RLS.
 
 ## 7. Sequência cronológica
 
-1. reconciliação documental — concluída pelo PR nº 142;
-2. integridade contínua — concluída pelo PR nº 141;
-3. matriz funcional — concluída pelo PR nº 145;
-4. Supabase JS 2.110.9 — concluído e publicado pelo PR nº 146;
-5. smoke autenticado de leitura — implementação atual;
-6. provisionamento protegido e duas execuções reais — dependem de autorização;
-7. correção de `ASSET-02` e provas de escrita controlada;
-8. decisão sobre programas da Gestão SME;
-9. UAT e decisão formal de liberação.
+1. **Reconciliação documental:** PR nº 142 concluído; atualização pós-PR nº 150 em curso.
+2. **Integridade contínua dos dados:** PR nº 141 concluído; 26ª migration aplicada.
+3. **Matriz funcional executável:** PR nº 145 concluído.
+4. **Atualização Supabase JS:** PR nº 146 concluído e publicado em `2.110.9`.
+5. **Correção do workflow principal:** PR nº 147 concluído.
+6. **Hotfix da transição de perfil:** PR nº 150 concluído e publicado.
+7. **Smoke autenticado de leitura:** reconciliar e integrar o PR nº 148 mantendo a ativação bloqueada.
+8. **Provisionamento técnico do smoke:** criar cinco identidades exclusivas somente após autorização específica.
+9. **Correção de `ASSET-02` e escrita controlada:** PRs isolados, com releitura e reversão.
+10. **Decisão sobre programas da Gestão SME:** confirmação funcional antes de código.
+11. **UAT e liberação:** após os gates técnicos e funcionais.
 
-## 8. Gates ainda pendentes
+## 8. Critério de conclusão funcional
 
-- concluir o PR do monitor autenticado;
-- autorizar e provisionar cinco identidades técnicas;
-- executar o smoke manual e o agendado em Production;
-- atualizar a cobertura das seis operações após evidência real;
-- corrigir `ASSET-02`;
-- provar 23 mutações com releitura e reversão;
-- resolver `CFG-03` e `CFG-04`;
-- realizar UAT com servidores reais;
-- formalizar a liberação.
+Uma função crítica somente é considerada concluída quando houver prova de:
 
-## 9. Continuidade
+1. visibilidade correta por perfil;
+2. acionamento real no navegador;
+3. payload correto;
+4. serviço e repositório esperados;
+5. backend alcançado;
+6. autorização positiva e negativa;
+7. consulta ou gravação concluída;
+8. interface atualizada;
+9. resultado preservado após recarregar;
+10. conflito tratado;
+11. falha parcial compensada;
+12. regressão permanente no CI.
+
+## 9. Gates ainda pendentes
+
+- reconciliar e integrar o PR nº 148;
+- autorizar e provisionar identidades técnicas exclusivas para o smoke;
+- aprovar uma execução manual e outra agendada em Production;
+- provas controladas de escrita, releitura e compensação;
+- decisão funcional sobre programas SME;
+- correção da edição patrimonial genérica;
+- homologação do relatório institucional quando priorizada;
+- UAT com servidores reais;
+- decisão formal de liberação.
+
+## 10. Continuidade
 
 1. `AGENTS.md`;
 2. `README.md`;
 3. `docs/CURRENT_STAGE.md`;
 4. `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md`;
-5. `docs/ROADMAP_ATUALIZACOES_2026.md`;
-6. `docs/superpowers/plans/2026-08-05-smoke-autenticado-leitura-production.md`;
-7. `docs/PROJECT_CONTEXT.md`;
-8. `docs/DECISION_LOG.md`.
+5. `docs/PROJECT_CONTEXT.md`;
+6. `docs/ROADMAP_ATUALIZACOES_2026.md`;
+7. `docs/DECISION_LOG.md`;
+8. `docs/reference/STATUS_DOCUMENTOS.md`.
