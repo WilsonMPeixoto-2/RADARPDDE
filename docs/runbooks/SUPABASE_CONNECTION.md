@@ -27,9 +27,9 @@ Edge Function: team-account-management v95, ACTIVE, JWT obrigatório
 Node.js: 24.x
 ```
 
-O conjunto versionado contém atualmente **25** migrations. O histórico oficial reconhecido pela Supabase CLI é a fonte de verdade para conferir versões aplicadas e sua ordem efetiva; não manter uma segunda lista manual de aplicação.
+O conjunto versionado contém atualmente **26** migrations nesta branch. O histórico oficial reconhecido pela Supabase CLI é a fonte de verdade para conferir versões aplicadas e sua ordem efetiva; não manter uma segunda lista manual de aplicação.
 
-O PR nº 141 contém uma 26ª migration somente em sua branch. Não usar essa contagem para Production antes de integração e aplicação autorizada.
+O PR nº 141 contém a 26ª migration somente em sua branch. Não usar essa contagem para Production antes de integração e aplicação autorizada.
 
 ## 3. Regras permanentes
 

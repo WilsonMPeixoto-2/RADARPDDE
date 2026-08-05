@@ -1,0 +1,89 @@
+name: Integridade contínua dos dados de Production
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '41 */6 * * *'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/production-data-integrity.yml"
+      - "docs/superpowers/plans/2026-08-04-integridade-continua-production.md"
+      - "scripts/check-production-data-integrity.mjs"
+      - "supabase/migrations/202608040001_production_integrity_monitor.sql"
+      - "supabase/tests/database/production-integrity-monitor.test.sql"
+      - "tests/unit/production-data-integrity.test.js"
+      - "tests/unit/production-data-integrity-workflow.test.js"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-data-integrity
+  cancel-in-progress: false
+
+jobs:
+  integrity-contracts:
+    name: Contratos locais da auditoria
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Obter código sem persistir credenciais
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          check-latest: false
+
+      - name: Validar sintaxe e contratos
+        run: |
+          set -euo pipefail
+          node --check scripts/check-production-data-integrity.mjs
+          node --test tests/unit/production-data-integrity.test.js
+          node --test tests/unit/production-data-integrity-workflow.test.js
+
+  production-integrity:
+    name: Auditar invariantes agregadas em Production
+    if: github.event_name != 'pull_request'
+    needs: integrity-contracts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Obter código sem persistir credenciais
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          check-latest: false
+
+      - name: Consultar integridade de Production
+        id: integrity
+        env:
+          RADAR_SUPABASE_URL: ${{ secrets.RADAR_SUPABASE_URL }}
+          RADAR_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.RADAR_SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/check-production-data-integrity.mjs
+
+      - name: Resumir auditoria de integridade
+        if: always()
+        env:
+          INTEGRITY_OUTCOME: ${{ steps.integrity.outcome }}
+        run: |
+          {
+            echo '### Integridade contínua dos dados de Production'
+            echo
+            echo "- Resultado: \`${INTEGRITY_OUTCOME:-não executado}\`"
+            echo '- Escopo: identidade, equipe, escolas, programas, pendências, inventário e notas fiscais.'
+            echo '- Retorno: somente contagens agregadas; nenhum dado pessoal é publicado.'
+            echo "- Evento: \`${GITHUB_EVENT_NAME}\`"
+          } >> "${GITHUB_STEP_SUMMARY}"

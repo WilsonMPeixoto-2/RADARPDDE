@@ -1149,6 +1149,7 @@ export type Database = {
         Returns: string
       }
       load_staged_import: { Args: { p_import_id: string }; Returns: Json }
+      production_integrity_check: { Args: never; Returns: Json }
       promote_data_import: {
         Args: {
           p_entity_counts: Json
