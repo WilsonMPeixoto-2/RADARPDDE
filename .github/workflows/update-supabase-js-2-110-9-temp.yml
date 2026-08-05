@@ -61,12 +61,10 @@ jobs:
           fs.writeFileSync(file, after);
           NODE
 
-      - name: Regenerar bundles por geradores independentes
-        run: |
-          npm run build:supabase-client
-          npm run build:ajv
+      - name: Regenerar somente o cliente Supabase
+        run: npm run build:supabase-client
 
-      - name: Verificar escopo exato da atualização
+      - name: Verificar versões e escopo exato
         shell: bash
         run: |
           set -euo pipefail
@@ -80,13 +78,22 @@ jobs:
           if (lock.packages[''].devDependencies['@supabase/supabase-js'] !== '2.110.9') throw new Error('Lockfile raiz não registra Supabase JS 2.110.9.');
           if (lock.packages[''].devDependencies.supabase !== '2.110.0') throw new Error('Lockfile alterou a Supabase CLI.');
           if (lock.packages[''].devDependencies.ajv !== '8.20.0') throw new Error('Lockfile alterou o Ajv.');
+          const supabasePackage = lock.packages['node_modules/@supabase/supabase-js'];
+          if (supabasePackage?.version !== '2.110.9') throw new Error('Pacote instalado não ficou em Supabase JS 2.110.9.');
           const supabaseBundle = fs.readFileSync('vendor/supabase-client.js', 'utf8');
-          const ajvBundle = fs.readFileSync('vendor/ajv.js', 'utf8');
+          const edgeFunction = fs.readFileSync('supabase/functions/team-account-management/index.ts', 'utf8');
           if (!supabaseBundle.includes('@supabase/supabase-js 2.110.9')) throw new Error('Bundle não identifica Supabase JS 2.110.9.');
-          if (!ajvBundle.includes('Ajv 8.20.0')) throw new Error('Bundle Ajv não identifica a versão fixa 8.20.0.');
+          if (!edgeFunction.includes('@supabase/supabase-js@2.110.9')) throw new Error('Edge Function não fixa Supabase JS 2.110.9.');
+          if (edgeFunction.includes('@supabase/supabase-js@2.110.8')) throw new Error('Edge Function ainda referencia Supabase JS 2.110.8.');
           NODE
           node --test tests/unit/supabase-modernization.test.js
-          npm run check:generated
+          git diff --exit-code -- vendor/ajv.js
+          changed="$({ git diff --name-only; git ls-files --others --exclude-standard; } | sort -u)"
+          unexpected="$(printf '%s\n' "$changed" | grep -Ev '^(package\.json|package-lock\.json|vendor/supabase-client\.js|supabase/functions/team-account-management/index\.ts)$' || true)"
+          if [ -n "$unexpected" ]; then
+            printf 'Arquivos inesperados na atualização:\n%s\n' "$unexpected" >&2
+            exit 1
+          fi
 
       - name: Versionar somente os artefatos autorizados
         shell: bash
@@ -94,7 +101,17 @@ jobs:
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add package.json package-lock.json vendor/supabase-client.js vendor/ajv.js supabase/functions/team-account-management/index.ts
+          git add package.json package-lock.json vendor/supabase-client.js supabase/functions/team-account-management/index.ts
           git diff --cached --quiet && { echo 'Nenhuma alteração gerada.'; exit 1; }
           git commit -m 'chore: atualizar Supabase JS para 2.110.9'
-          git push origin HEAD:maintenance/supabase-js-2.110.9-20260805
+
+      - name: Validar artefatos já versionados
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run check:generated
+          node --test tests/unit/supabase-modernization.test.js
+          test -z "$(git status --porcelain)"
+
+      - name: Publicar commit gerado na branch
+        run: git push origin HEAD:maintenance/supabase-js-2.110.9-20260805
