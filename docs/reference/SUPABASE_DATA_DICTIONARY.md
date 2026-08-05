@@ -1,38 +1,45 @@
 # Dicionário de dados — Supabase
 
 **Estado:** vigente em Preview e Production  
-**Atualizado em:** 29 de julho de 2026
+**Atualizado em:** 5 de agosto de 2026
 
-## 1. Fonte canônica
-
-Este documento resume o schema efetivo do RADAR PDDE. A fonte exata de tipos é:
+## 1. Fontes exatas
 
 ```text
 src/types/database.types.ts
+supabase/migrations/
+schema remoto verificado
 ```
 
-A fonte da evolução é:
+Tipos gerados, migrations aplicadas e schema remoto prevalecem sobre este resumo.
+
+## 2. Baseline
 
 ```text
-supabase/migrations/
+projeto: scnryinorqeucbfkioxo
+PostgreSQL: 17.6.1.147
+migrations em Production: 25
+app_config.id: global
+closing_competence: 2026-12
+app_config.row_version: 20
 ```
 
-Em caso de divergência, migrations aplicadas, schema remoto verificado e tipos regenerados prevalecem sobre este resumo.
+`row_version` é mutável e deve ser consultado novamente antes de escrita concorrente. O PR nº 141 permanece em rascunho e sua proposta de 26ª migration não integra Production.
 
-## 2. Convenções
+## 3. Convenções
 
-- nomes SQL em `snake_case`;
-- IDs funcionais legados preservados como `text` quando necessário;
-- IDs técnicos podem usar UUID, identidade ou chave composta;
-- `row_version` controla concorrência otimista nas tabelas mutáveis;
-- `created_at` e `updated_at` são timestamps técnicos;
-- datas do domínio permanecem em colunas próprias;
-- `payload jsonb` preserva atributos variáveis ou compatibilidade sem substituir campos relacionais essenciais;
-- Auth identifica o usuário; `user_profiles` define papel e escopo;
+- SQL em `snake_case`;
+- IDs funcionais legados podem permanecer `text`;
+- `row_version` controla concorrência otimista;
+- `created_at` e `updated_at` são técnicos;
+- JSONB é usado para estruturas variáveis, não para substituir relacionamentos essenciais;
+- Auth identifica o usuário;
+- `user_profiles` define papel e escopo;
 - RLS é obrigatória nas tabelas expostas;
-- `audit_events` e `administrative_logs` cumprem finalidades diferentes.
+- `administrative_logs` é histórico funcional;
+- `audit_events` é trilha técnica.
 
-## 3. Visão geral das tabelas
+## 4. Tabelas
 
 | Grupo | Tabelas |
 |---|---|
@@ -40,156 +47,120 @@ Em caso de divergência, migrations aplicadas, schema remoto verificado e tipos 
 | escolas | `schools`, `school_programs` |
 | equipe e acesso | `controllers`, `inventory_team_members`, `profiles`, `user_profiles`, `user_school_scopes` |
 | acompanhamento | `verifications`, `pendencies`, `pendency_attempts`, `pendency_contacts` |
-| financeiro/patrimonial | `registered_invoices`, `assets` |
-| logs e auditoria | `administrative_logs`, `audit_events` |
+| financeiro e patrimônio | `registered_invoices`, `assets` |
+| logs | `administrative_logs`, `audit_events` |
 | importação | `data_import_runs`, `data_import_staging` |
 
-## 4. Configuração
+## 5. Configuração
 
-### 4.1 `app_config`
+### `app_config`
 
-Registro global da aplicação.
+| Campo | Regra |
+|---|---|
+| `id` | registro global |
+| `exercises` | exercícios em JSONB |
+| `closing_competence` | FK para competência |
+| `bonus_deadline_extended` | prazo excepcional opcional |
+| `settings` | parâmetros adicionais |
+| `row_version` | concorrência |
+| timestamps | controle técnico |
 
-| Campo | Tipo | Regra |
-|---|---|---|
-| `id` | `text` | chave primária; valor canônico `global` |
-| `exercises` | `jsonb` | exercícios disponíveis |
-| `closing_competence` | `text` | FK para `competences.id` |
-| `bonus_deadline_extended` | `date` | prazo excepcional opcional |
-| `settings` | `jsonb` | demais parâmetros autorizados |
-| `row_version` | `integer` | concorrência otimista |
-| `created_at`, `updated_at` | `timestamptz` | controle técnico |
+### `competences`
 
-Estado de referência de 29/07/2026:
-
-```text
-id = global
-closing_competence = 2026-12
-row_version = 5
-```
-
-### 4.2 `competences`
-
-| Campo | Tipo | Regra |
-|---|---|---|
-| `id` | `text` | `YYYY-MM` |
-| `label` | `text` | rótulo mensal |
-| `exercise` | `integer` | exercício |
-| `starts_on`, `ends_on` | `date` | janela opcional |
-| `bonus_deadline` | `date` | prazo da bonificação |
-| `closed_at` | `timestamptz` | fechamento formal opcional |
-| `row_version` | `integer` | concorrência |
+- `id` em `YYYY-MM`;
+- rótulo e exercício;
+- início, fim e prazo;
+- fechamento formal opcional;
+- `row_version`.
 
 As doze competências de 2026 estão cadastradas.
 
-### 4.3 `programs`
+### `programs`
 
-| Campo | Tipo | Regra |
-|---|---|---|
-| `id` | `text` | identificador funcional |
-| `name` | `text` | nome |
-| `description` | `text` | descrição |
-| `active` | `boolean` | vigência lógica |
-| `row_version` | `integer` | concorrência |
+- identificador, nome e descrição;
+- `active` para vigência lógica;
+- `row_version`.
 
-Programas são globais. Configuração por exercício permanece frente futura e não deve ser inferida desta tabela sem contrato adicional.
+Programas são globais no modelo atual. A regra de manutenção por Gestão SME deve ser confirmada antes de nova alteração funcional.
 
-## 5. Escolas e vínculos
+## 6. Escolas
 
-### 5.1 `schools`
+### `schools`
 
-| Campo | Finalidade |
-|---|---|
-| `id` | identificador funcional da unidade |
-| `designation` | designação única |
-| `denomination` | nome da unidade |
-| `phone`, `institutional_mobile`, `email` | contatos institucionais |
-| `director_name`, `director_phone` | direção geral |
-| `deputy_director_name`, `deputy_director_phone` | direção adjunta |
-| `inep`, `cnpj`, `sici` | identificadores administrativos |
-| `cre`, `ra` | escopo organizacional |
-| `controller_id` | responsável principal; FK para `controllers` |
-| `inventory_process` | processo patrimonial |
-| `initial_competence` | FK para `competences` |
-| `active` | desativação lógica |
-| `row_version` | concorrência |
+Campos principais:
 
-`controller_id` organiza responsabilidade principal, mas não impede colaboração de Controladores da mesma CRE.
+- `id`, `designation`, `denomination`;
+- contatos institucionais;
+- direção geral e adjunta;
+- INEP, CNPJ e SICI;
+- `cre` e `ra`;
+- `controller_id` como responsável principal;
+- processo patrimonial;
+- competência inicial;
+- `active` e `row_version`.
 
-### 5.2 `school_programs`
+A carteira organiza responsabilidade, mas a regra vigente permite colaboração entre Controladores da mesma CRE.
 
-Relação N:N entre escola e programa.
+### `school_programs`
 
-| Campo | Regra |
-|---|---|
-| `id` | identificador funcional do vínculo |
-| `school_id` | FK para escola |
-| `program_id` | FK para programa |
-| `active` | vínculo vigente |
-| `starts_on`, `ends_on` | vigência opcional |
-| `row_version` | concorrência |
+Relação entre escola e programa:
 
-A combinação escola–programa é única segundo as constraints do schema.
+- `school_id`;
+- `program_id`;
+- vigência lógica e temporal;
+- `row_version`;
+- unicidade conforme constraints do schema.
 
-## 6. Equipe, Auth e escopos
+## 7. Equipe, Auth e escopos
 
-### 6.1 `controllers`
+### `controllers`
 
-| Campo | Regra |
-|---|---|
-| `id` | identificador funcional |
-| `name`, `email` | diretório |
-| `user_id` | vínculo opcional com `auth.users` |
-| `active` | desativação lógica |
-| `row_version` | concorrência |
+- `id`, `name`, `email`;
+- `user_id` para `auth.users`;
+- `active`;
+- `row_version`.
 
-### 6.2 `inventory_team_members`
+### `inventory_team_members`
 
-Estrutura equivalente à de Controladores para integrantes do Inventário, com `user_id`, `active` e `row_version`.
+Estrutura equivalente para integrantes do Inventário.
 
-### 6.3 `profiles`
+### `profiles`
 
-Catálogo de papéis institucionais.
+Papéis:
 
-| Campo | Regra |
-|---|---|
-| `id` | `controller`, `federal_assistant`, `sme_management`, `inventory` ou `technical_admin` |
-| `label`, `description` | apresentação |
-| `priority` | precedência técnica |
-| `active` | vigência |
-| `row_version` | concorrência |
+- `controller`;
+- `federal_assistant`;
+- `sme_management`;
+- `inventory`;
+- `technical_admin`.
 
-### 6.4 `user_profiles`
+Possui rótulo, descrição, prioridade, vigência e versão.
 
-Vínculo entre Auth e papel institucional.
+### `user_profiles`
 
-| Campo | Regra |
-|---|---|
-| `user_id` | UUID de `auth.users` |
-| `profile_id` | FK para `profiles` |
-| `controller_id` | FK opcional |
-| `inventory_member_id` | FK opcional |
-| `cre_scope` | CRE padrão |
-| `active` | perfil ativo |
-| `row_version` | concorrência |
+- `user_id`;
+- `profile_id`;
+- `controller_id` opcional;
+- `inventory_member_id` opcional;
+- `cre_scope`;
+- `active`;
+- `row_version`.
 
 Regra funcional: um perfil institucional ativo por usuário.
 
-### 6.5 `user_school_scopes`
+### `user_school_scopes`
 
-Exceções explícitas por escola.
+Exceções por escola:
 
-| Campo | Regra |
-|---|---|
-| `user_id` | usuário Auth |
-| `school_id` | escola |
-| `can_write` | distingue leitura e escrita |
+- usuário;
+- escola;
+- `can_write`.
 
-Não substitui o escopo padrão por CRE; complementa-o.
+Complementa o escopo por CRE.
 
-## 7. Acompanhamento mensal
+## 8. Acompanhamento mensal
 
-### 7.1 `verifications`
+### `verifications`
 
 Identidade lógica:
 
@@ -197,148 +168,101 @@ Identidade lógica:
 school_id + competence_id + program_id
 ```
 
-| Campo | Regra |
-|---|---|
-| `id` | identificador canônico |
-| `school_id` | FK para escola |
-| `competence_id` | FK para competência |
-| `program_id` | FK para programa |
-| `bonification` | JSON validado |
-| `analysis` | JSON validado |
-| `bonus_result` | resultado consolidado ou nulo |
-| `payload` | compatibilidade/extensões |
-| `row_version` | concorrência |
-
-A regra APTA/INAPTA pertence ao domínio e deve coincidir com `bonus_result` persistido.
-
-### 7.2 `pendencies`
-
-| Campo | Regra |
-|---|---|
-| `id` | identificador |
-| `school_id` | escola |
-| `competence_origin` | FK para competência de origem |
-| `program_id` | FK opcional |
-| `document_key` | documento/item |
-| `status` | Aberta, Aguardando reanálise, Resolvida ou Cancelada |
-| `responsible_area`, `next_actor` | responsabilidade operacional |
-| `reason`, `notes` | motivação e observações |
-| `opened_at`, `resolved_at`, `canceled_at` | marcos |
-| `payload` | extensões |
-| `row_version` | concorrência |
-
-### 7.3 `pendency_attempts`
-
-| Campo | Regra |
-|---|---|
-| `pendency_id` | FK para pendência |
-| `attempt_number` | sequência |
-| `submitted_at` | envio |
-| `analyzed_at` | análise opcional |
-| `result` | resultado da tentativa |
-| `drive_url` | referência documental autorizada |
-| `observation`, `errors` | contexto |
-| `created_by` | autoria |
-| `row_version` | concorrência |
-
-### 7.4 `pendency_contacts`
-
-| Campo | Regra |
-|---|---|
-| `school_id` | escola |
-| `pendency_id` | pendência opcional |
-| `contact_date`, `contact_type` | ocorrência |
-| `description` | registro |
-| `official_charge` | cobrança oficial |
-| `created_by` | autoria |
-| `operation_id` | correlação opcional |
-| `row_version` | concorrência |
-
-## 8. Financeiro e patrimônio
-
-### 8.1 `registered_invoices`
-
-| Campo | Regra |
-|---|---|
-| `school_id` | escola |
-| `competence_id` | competência opcional |
-| `program_id` | programa opcional |
-| `verification_id` | verificação opcional |
-| `invoice_number` | número da nota |
-| `description`, `expense_type`, `amount` | conteúdo financeiro |
-| `registered_at` | data de registro |
-| `linked_asset_id` | bem derivado opcional |
-| `source_context_key` | rastreabilidade |
-| `row_version` | concorrência |
-
-### 8.2 `assets`
-
-| Campo | Regra |
-|---|---|
-| `school_id` | escola |
-| `competence_id` | competência opcional |
-| `description`, `expense_type`, `amount` | identificação do bem |
-| `invoice_number` | origem financeira |
-| `inventory_process` | processo |
-| `status` | estado patrimonial |
-| `inventoried_at` | conclusão opcional |
-| `inventoried_by_member_id` | integrante responsável |
-| `notes`, `payload` | contexto |
-| `row_version` | concorrência |
-
-## 9. Logs e auditoria
-
-### 9.1 `administrative_logs`
-
-Registro funcional legível pela aplicação.
-
-| Campo | Regra |
-|---|---|
-| `action` | ação de domínio |
-| `event_at` | instante |
-| `school_id` | escola opcional |
-| `actor_user_id` | UUID Auth opcional |
-| `user_identifier`, `profile_name` | contexto legado/funcional |
-| `details` | JSON do evento |
-
-A Gestão SME somente consulta linhas de própria autoria por UUID. Registros antigos sem UUID não são expostos a esse perfil.
-
-### 9.2 `audit_events`
-
-Trilha técnica gerada por triggers e mecanismos internos.
-
-| Campo | Regra |
-|---|---|
-| `table_name`, `record_id`, `action` | alvo |
-| `actor_user_id` | autoria |
-| `old_record`, `new_record` | estados |
-| `changed_fields` | campos alterados |
-| `request_id` | correlação |
-| `occurred_at` | instante |
-
-Usuários autenticados não inserem, alteram ou excluem diretamente essa tabela.
-
-## 10. Importação
-
-### 10.1 `data_import_runs`
-
-Controla execução, fonte, hashes, lotes, reconciliação e snapshot de rollback.
-
 Campos centrais:
 
+- bonificação e análise validadas;
+- `bonus_result`;
+- payload de compatibilidade;
+- `row_version`.
+
+O resultado persistido deve coincidir com a regra canônica do domínio.
+
+### `pendencies`
+
+- escola e competência de origem;
+- programa e documento opcionais;
+- estados Aberta, Aguardando reanálise, Resolvida e Cancelada;
+- responsável e próximo ator;
+- motivo e observações;
+- datas de abertura, resolução e cancelamento;
+- payload e versão.
+
+### `pendency_attempts`
+
+- pendência e número da tentativa;
+- envio e análise;
+- resultado;
+- referência documental;
+- observação, erros e autoria;
+- versão.
+
+### `pendency_contacts`
+
+- escola e pendência opcional;
+- data, canal e descrição;
+- indicador de cobrança oficial;
+- autoria e correlação;
+- versão.
+
+## 9. Financeiro e patrimônio
+
+### `registered_invoices`
+
+- escola, competência, programa e verificação;
+- número, descrição, natureza e valor;
+- data de registro;
+- bem vinculado opcional;
+- chave de contexto;
+- versão.
+
+### `assets`
+
+- escola e competência;
+- descrição, natureza, valor e nota;
+- processo e status;
+- data e responsável pela inventariação;
+- observações e payload;
+- versão.
+
+Nota permanente e bem vinculado devem manter escola, competência e número da nota coerentes.
+
+## 10. Logs
+
+### `administrative_logs`
+
+- ação de domínio;
+- instante;
+- escola opcional;
+- `actor_user_id`;
+- identificador, perfil e detalhes.
+
+Gestão SME consulta somente registros da própria autoria por UUID.
+
+### `audit_events`
+
+- tabela, registro e ação;
+- ator;
+- estado anterior e posterior;
+- campos alterados;
+- correlação e instante.
+
+Usuários operacionais não escrevem diretamente nessa tabela.
+
+## 11. Importação
+
+### `data_import_runs`
+
+Controla:
+
 - `import_id`;
-- `source_hash`;
-- `snapshot_format` e `snapshot_version`;
-- `entity_counts`;
-- `completed_batches`;
-- `reconciliation_report`;
-- `rollback_snapshot`;
-- `status`, `started_at`, `completed_at`;
-- `created_by`, `error_message`.
+- hash e formato da fonte;
+- contagens;
+- lotes concluídos;
+- reconciliação;
+- snapshot de rollback;
+- estado, datas, autor e erro.
 
-### 10.2 `data_import_staging`
-
-Armazena lotes idempotentes antes da promoção.
+### `data_import_staging`
 
 Identidade prática:
 
@@ -346,61 +270,69 @@ Identidade prática:
 import_id + entity + record_id
 ```
 
-Campos: `batch_index`, `source_hash`, `payload`, timestamps e FK para `data_import_runs.import_id`.
+Armazena lotes idempotentes antes da promoção.
 
-## 11. Funções e RPCs
+## 12. Funções e RPCs
 
-O schema expõe funções para:
+O schema contém funções para:
 
-- verificar papel e acesso escolar;
-- salvar verificação com log;
-- reanalisar pendência com efeitos;
-- salvar e excluir nota com efeitos;
-- salvar bem com log;
-- registrar contatos e pendências;
-- criar exercício e competências;
-- atribuir Controlador;
-- administrar contas da equipe;
-- iniciar, carregar, promover, reconciliar e reverter importação;
-- capturar e aplicar snapshot;
-- validar contratos JSON.
+- papel atual e acesso escolar;
+- verificação e log;
+- pendências, tentativas, contatos e reanálise;
+- notas e bens com efeitos compostos;
+- exercício, competências e configurações;
+- atribuição de Controlador;
+- Gestão de Equipe;
+- importação, promoção, reconciliação e rollback;
+- contratos JSON e snapshots.
 
-A lista exata e as assinaturas devem ser consultadas em `src/types/database.types.ts` e nas migrations.
+Assinaturas exatas devem ser consultadas nos tipos e migrations.
 
-## 12. Concorrência e transações
+## 13. Edge Function
 
-- tabelas mutáveis usam `row_version`;
-- operações compostas usam RPC/transação;
-- versão esperada divergente gera conflito;
-- interface não deve sobrescrever silenciosamente;
-- retry automático de escrita é proibido.
+```text
+slug: team-account-management
+version: 95
+status: ACTIVE
+verify_jwt: true
+```
 
-## 13. RLS
+Ela administra contas Auth da equipe e chama RPCs server-side. Não é tabela nem substitui RLS.
 
-RLS combina:
+## 14. Concorrência
+
+- escrita usa versão esperada quando o contrato exigir;
+- divergência gera conflito;
+- interface não sobrescreve silenciosamente;
+- operação composta usa RPC/transação;
+- repetição automática de escrita é proibida;
+- compensação é obrigatória quando Auth e banco participam de etapas diferentes.
+
+## 15. RLS
+
+A autorização combina:
 
 - `auth.uid()`;
 - papel ativo;
 - `cre_scope`;
-- responsável principal;
-- exceção em `user_school_scopes`;
-- natureza do recurso;
+- carteira principal;
+- exceção escolar;
 - leitura versus escrita;
-- governança específica da Gestão SME;
-- acesso técnico excepcional.
+- políticas específicas de Inventário e SME;
+- privilégios técnicos.
 
-Matriz: [`SUPABASE_PERMISSIONS_MATRIX.md`](SUPABASE_PERMISSIONS_MATRIX.md).
+Consultar [`SUPABASE_PERMISSIONS_MATRIX.md`](SUPABASE_PERMISSIONS_MATRIX.md).
 
-## 14. Atualização do dicionário
+## 16. Atualização do dicionário
 
 Após mudança de schema:
 
-1. aplicar migrations localmente;
+1. aplicar localmente;
 2. executar pgTAP e lint;
 3. regenerar tipos;
 4. atualizar este documento;
-5. atualizar matriz de permissões quando necessário;
-6. verificar Advisors;
-7. registrar evidência no mesmo SHA.
-
-Nenhuma nova migration de Production pode ser aplicada antes da reconciliação do identificador SME descrita em [`../runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`](../runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md).
+5. atualizar permissões e cobertura;
+6. executar backup/restauração;
+7. validar dry-run remoto;
+8. registrar evidência no mesmo SHA;
+9. aplicar em Production somente com autorização.

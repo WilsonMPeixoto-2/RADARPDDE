@@ -1,44 +1,49 @@
 # Runbook — conexão e operação controlada do Supabase
 
 **Estado:** vigente; Production conectada  
-**Atualizado em:** 30 de julho de 2026
+**Atualizado em:** 5 de agosto de 2026
 
 ## 1. Objetivo
 
-Orientar validação, operação, diagnóstico, contingência e recuperação da conexão entre o RADAR PDDE e o projeto Supabase autorizado.
+Orientar validação, diagnóstico, contingência e recuperação da conexão entre o RADAR PDDE e o Supabase autorizado.
 
-Este runbook não autoriza mudança de schema, importação, reparo de migrations ou release.
+Este runbook não autoriza migration, importação, alteração de Auth/RLS, deployment de Edge Function ou release.
 
-## 2. Situação de referência
+## 2. Baseline
 
 ```text
 projeto: scnryinorqeucbfkioxo
+nome: RADAR PDDE 2026
 estado: ACTIVE_HEALTHY
-PostgreSQL: 17
+região: sa-east-1
+PostgreSQL: 17.6.1.147
 runtime Production: supabase-production
 repositório normal: SupabaseRepository
 contingência: LocalStorageRepository por novo build
-migrations correspondentes: 25
-Node: 24.x
+migrations em Production: 25
+closing_competence: 2026-12
+app_config.row_version: 20
+Edge Function: team-account-management v95, ACTIVE, JWT obrigatório
+Node.js: 24.x
 ```
 
-O conjunto versionado contém atualmente **25** migrations. O histórico oficial reconhecido pela Supabase CLI é a fonte para conferir versões aplicadas e sua ordem efetiva; não manter uma segunda lista manual de aplicação.
+O conjunto versionado contém atualmente **25** migrations. O histórico oficial reconhecido pela Supabase CLI é a fonte de verdade para conferir versões aplicadas e sua ordem efetiva; não manter uma segunda lista manual de aplicação.
 
-Contagens operacionais são mutáveis e devem ser consultadas no ambiente com data de corte.
+O PR nº 141 contém uma 26ª migration somente em sua branch. Não usar essa contagem para Production antes de integração e aplicação autorizada.
 
 ## 3. Regras permanentes
 
 - não reutilizar projeto de outra aplicação;
-- não inserir chave administrativa no frontend, bundle, GitHub, log ou artefato;
+- não inserir chave administrativa no frontend, GitHub, logs ou artefatos;
 - usar somente chave publicável no navegador;
-- não promover Preview como Production;
+- não confundir Preview com Production;
 - manter um perfil institucional ativo por usuário;
-- não reintroduzir massa `HML-*` na base operacional;
-- não criar fallback paralelo sem falha comprovada;
-- não aplicar seed automaticamente em banco vazio;
+- não aplicar seed automaticamente em banco remoto;
 - não alterar schema com histórico divergente;
 - não interpretar contingência local como sincronização;
-- não publicar dumps SQL como evidência do CI.
+- não publicar dumps SQL como evidência;
+- não executar operação remota apenas porque um teste local passou;
+- não realizar merge ou mudança de Production sem autorização expressa.
 
 ## 4. Configuração por ambiente
 
@@ -60,24 +65,15 @@ RADAR_SUPABASE_REPOSITORY_ENABLED=true
 RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED=true
 ```
 
-O build público pode conter URL e chave publicável. São proibidos `service_role`, `sb_secret_*`, senha de banco, token Vercel e credencial administrativa.
+O build público pode conter URL e chave publicável. São proibidos `service_role`, `sb_secret_*`, senha de banco, token administrativo e credencial Auth Admin.
 
-## 5. Validação da conexão
-
-### Código e runtime
+## 5. Validação estática e local
 
 ```bash
 npm ci
 npm run test:readiness
 npm run check:runtime-config
 npm run build:vercel
-```
-
-Confirmar ambiente, `dataMode`, `activeRepository`, autorização de Production e ausência de segredo.
-
-### Banco local
-
-```bash
 npm run supabase:start
 npm run supabase:reset
 npm run supabase:test:db
@@ -85,144 +81,179 @@ npm run supabase:lint:db
 npm run typecheck:database
 ```
 
-### Ambiente remoto
+Confirmar scripts e bundles reproduzíveis, migrations aplicadas em ordem, pgTAP, tipos, Auth local, RLS positiva e negativa e Edge Function quando aplicável.
 
-Confirmar projeto, saúde, Auth, RLS, bloqueio anônimo, perfil, `cre_scope`, perfil único, JWT da Edge Function e Advisors quando aplicável.
+## 6. Validação remota somente leitura
 
-## 6. Contrato de migrations
+Antes de diagnosticar falha funcional, confirmar:
 
-Os comandos canônicos são:
+1. projeto correto e `ACTIVE_HEALTHY`;
+2. deployment de Production e SHA;
+3. `radar-build-manifest.json`;
+4. `dataMode = supabase-production`;
+5. sessão e papel efetivo;
+6. `cre_scope` e escopos escolares;
+7. contagem e histórico de migrations;
+8. Edge Functions ativas e JWT;
+9. logs de Auth, API, Postgres e Edge Function;
+10. incidentes automáticos abertos pelo monitor.
+
+Não imprimir chaves ou payloads pessoais nos registros de diagnóstico.
+
+## 7. Histórico e aplicação de migrations
+
+### Consultas e dry-run
 
 ```bash
 supabase migration list --linked
 supabase db push --linked --dry-run
+```
+
+### Aplicação real, somente em janela autorizada
+
+```bash
 supabase db push --linked
 ```
 
-O terceiro comando é destrutivo e não constitui autorização automática. O `db push --linked` real exige histórico alinhado, migration aprovada em reset/pgTAP/lint/tipos, backup, rollback, janela e autorização.
+A presença do comando neste runbook não constitui autorização. Aplicação real exige branch e PR específicos, histórico alinhado, reset local, pgTAP, lint, tipos, backup/restauração, análise do SQL, plano de reversão, janela operacional e autorização expressa.
 
-Migration SME:
+Migration SME canônica:
 
 ```text
-arquivo: 20260728182226_sme_access_governance.sql
-registro remoto: 20260728182226_sme_access_governance
-registro derivado 20260728190344: ausente
+20260728182226_sme_access_governance
 SHA-256: cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
 ```
 
-A reconciliação não alterou schema, dados ou RLS. Antes de migration futura, seguir [`SUPABASE_MIGRATION_AND_ROLLBACK.md`](SUPABASE_MIGRATION_AND_ROLLBACK.md).
+Seguir [`SUPABASE_MIGRATION_AND_ROLLBACK.md`](SUPABASE_MIGRATION_AND_ROLLBACK.md).
 
-## 7. Perfis
+## 8. Monitor geral de Production
 
-- Controlador: carteira principal e colaboração na própria CRE;
-- Assistente: acompanhamento transversal e Gestão de Equipe;
-- Gestão SME: leitura gerencial restritiva;
-- Inventário: operação patrimonial da própria CRE;
-- Administrador técnico: infraestrutura, perfis, escopos e auditoria.
-
-Simulação visual não altera JWT.
-
-## 8. Gestão de contas
-
-Antes de implantar `team-account-management`:
-
-1. definir origem CORS exata;
-2. manter JWT obrigatório;
-3. validar papel no servidor;
-4. testar convite, edição, desativação, idempotência e compensação;
-5. revisar logs sem dados sensíveis;
-6. executar Advisors.
-
-A credencial Auth Admin permanece server-side.
-
-## 9. Recurso condicionado ao plano
-
-A checagem de credenciais comprometidas é oferecida pelo Supabase apenas em plano Pro ou superior. O projeto opera no plano Free e não possui autorização de despesa. Portanto, a ausência dessa função não bloqueia a liberação atual. Reavaliar se houver mudança de plano.
-
-## 10. Gate remoto de perfis
+Workflow:
 
 ```text
-.github/workflows/gate-remoto-perfis-viewports.yml
+.github/workflows/production-system-smoke.yml
 ```
 
-O gate serve o código do PR, usa Supabase descartável, cria identidades efêmeras e valida cinco papéis em desktop, Android e iPhone. Não usa Production.
+Executa após `push` na `main`, a cada hora e manualmente. Verifica commit publicado, manifesto, ambiente, modo de dados, shell, gate de autenticação, assets, bloqueio anônimo, preflight das Edge Functions e gestão automática de incidente.
+
+Falha do monitor deve ser investigada pelo componente exato antes de assumir indisponibilidade geral do Supabase.
+
+## 9. Auth e perfis
+
+Papéis vigentes:
+
+- `controller`;
+- `federal_assistant`;
+- `sme_management`;
+- `inventory`;
+- `technical_admin`.
+
+Diagnóstico de login:
+
+1. verificar sessão;
+2. confirmar `user_profiles.active`;
+3. confirmar `profiles.active`;
+4. confirmar `current_app_role()`;
+5. verificar `cre_scope`, `controller_id` e `user_school_scopes`;
+6. confirmar aplicação inerte até autorização;
+7. diferenciar sessão, perfil, escopo e leitura de dados.
+
+A simulação visual do administrador técnico não altera JWT.
+
+## 10. Gestão de Equipe
+
+```text
+DirectoryService
+→ TeamAccountGateway
+→ team-account-management
+→ Auth Admin + RPC transacional
+```
+
+Estado remoto:
+
+```text
+status: ACTIVE
+version: 95
+verify_jwt: true
+```
+
+### Preflight
+
+- origem oficial deve retornar sucesso;
+- origem indevida deve ser rejeitada;
+- ausência de variável opcional não pode eliminar a allowlist canônica;
+- `OPTIONS` não depende de autenticação do usuário;
+- requisição funcional exige JWT.
+
+### Cadastro, edição ou desativação
+
+1. confirmar papel autorizado;
+2. validar diretório e e-mail;
+3. verificar conta e vínculo histórico;
+4. executar Auth Admin;
+5. executar RPC transacional;
+6. compensar etapa anterior se a posterior falhar;
+7. confirmar retorno ao frontend;
+8. recarregar e confirmar persistência;
+9. verificar log administrativo.
+
+Quando `user_id` do diretório estiver nulo, aceitar somente correspondência única e compatível em `user_profiles`; rejeitar ambiguidade e não reenviar convite sem verificar conta existente.
 
 ## 11. Backup e recuperação
-
-Gate lógico:
 
 ```text
 .github/workflows/backup-restore-disposable.yml
 scripts/verify-supabase-backup-restore.mjs
 ```
 
-O procedimento:
-
-1. inicia origem descartável;
-2. aplica migrations e seed;
-3. gera dumps de papéis, schema, dados e histórico;
-4. restaura em segunda pilha isolada;
-5. compara fingerprints;
-6. publica somente `evidence.json`;
-7. encerra os ambientes.
-
-Evidência ampliada:
-
-```text
-run: 30538395958
-schema: true
-data: true
-auth: true
-migrations: true
+```bash
+RADAR_ALLOW_DISPOSABLE_BACKUP_RESTORE=true npm run test:backup-restore
 ```
 
-O backup lógico anterior à ativação, `PROD-ACTIVATION-BACKUP-20260721`, deve permanecer preservado conforme política do projeto. O gate descartável comprova o procedimento, mas não substitui retenção e exportação remota periódica.
+O gate usa duas pilhas descartáveis, compara schema, dados, Auth e migrations, publica somente `evidence.json` e não substitui política institucional de retenção remota.
 
-## 12. Homologação do deployment
+## 12. Diagnóstico funcional por camadas
 
-No SHA candidato, comprovar:
+Quando botão ou fluxo não funcionar, verificar:
 
-- manifesto correto;
-- login obrigatório;
-- aplicação inerte antes do Auth;
-- chave pública sem segredo;
-- anônimo sem dados;
-- jornadas por perfil;
-- desktop, Android e iPhone;
-- ausência de erro fatal e overflow;
-- logs sem erro inesperado de RLS;
-- deployment correspondente ao SHA.
+```text
+controle visível e habilitado
+→ handler executado
+→ console e payload
+→ serviço de aplicação
+→ repositório escolhido
+→ requisição HTTP
+→ CORS, JWT e status
+→ RLS ou RPC
+→ alteração no banco
+→ resposta ao frontend
+→ renderização
+→ releitura após refresh
+```
 
-## 13. Rollback emergencial
+Classificar a fronteira exata antes de propor correção.
+
+## 13. Falhas comuns
+
+| Sintoma | Verificação inicial |
+|---|---|
+| login não avança | sessão, perfil, papel e bootstrap |
+| tela sem dados | escopo, RLS, entidade e PostgREST |
+| botão não faz nada | handler, capacidade e erro JavaScript |
+| operação retorna CORS | preflight, origem e versão da função |
+| convite diz conta existente | vínculo Auth histórico e `user_profiles` |
+| grava e volta ao estado anterior | persistência, conflito e releitura |
+| Excel não gera | competência, manifesto, ExcelJS, template e download |
+| monitor abre incidente | job e componente exato antes de rollback |
+
+## 14. Contingência local
 
 ```text
 RADAR_PRODUCTION_FORCE_LOCAL=true
 ```
 
-O novo build local não apaga o banco, não sincroniza estado de volta ao Supabase e exige comunicação, diagnóstico e plano de retorno.
-
-## 14. Diagnóstico
-
-Quando a aplicação não carregar dados:
-
-1. confirmar projeto e deployment;
-2. verificar manifesto;
-3. validar sessão e perfil;
-4. validar `cre_scope` e exceções;
-5. inspecionar PostgREST e RLS;
-6. consultar logs de Auth, API, Postgres e Edge Function;
-7. classificar conectividade, autorização, dado ausente ou conflito;
-8. não acionar fallback antes do diagnóstico.
+Exige novo build controlado. Não apaga o Supabase, não sincroniza estado local de volta e não deve ser ativado antes do diagnóstico.
 
 ## 15. Critério de encerramento
 
-A validação termina quando:
-
-- runtime e projeto estão corretos;
-- Auth e RLS funcionam por perfil;
-- nenhum segredo foi exposto;
-- migrations não apresentam desvio;
-- backup/restauração aplicáveis estão aprovados;
-- evidências estão ligadas ao SHA;
-- pendências de release permanecem explícitas;
-- conectividade não é confundida com mudança funcional.
+A investigação termina quando a causa foi identificada, o fluxo autorizado funciona de ponta a ponta, o indevido permanece bloqueado, o dado persiste e é relido, a falha parcial não deixa resíduo, existe regressão e a evidência corresponde ao SHA e ao ambiente corretos.

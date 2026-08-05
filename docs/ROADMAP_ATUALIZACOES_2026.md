@@ -1,193 +1,199 @@
 # RADAR PDDE — Roadmap canônico de atualizações 2026
 
-**Atualizado em:** 3 de agosto de 2026  
+**Atualizado em:** 5 de agosto de 2026  
 **Classe documental:** Canônico  
-**Controla:** manutenção técnica, modernização da experiência e evolução funcional
+**Controla:** confiabilidade funcional, manutenção técnica, modernização e evolução do produto
 
 ## 1. Finalidade
 
-Este documento acompanha duas frentes independentes:
+Este documento organiza quatro frentes independentes e ordenadas:
 
-1. **manutenção técnica:** dependências, CI, segurança, testes, qualidade e ferramentas de desenvolvimento;
-2. **modernização e evolução funcional:** melhorias perceptíveis na experiência, produtividade e capacidade do produto.
+1. **confiabilidade funcional:** provar que cada ação visível conclui o fluxo no backend e permanece correta após releitura;
+2. **saúde operacional:** monitorar Production, integridade dos dados, incidentes, backup e recuperação;
+3. **manutenção técnica:** dependências, CI, testes, qualidade e ferramentas;
+4. **evolução do produto:** melhorias de experiência, produtividade e capacidade.
 
-`docs/CURRENT_STAGE.md` controla a etapa corrente e os ambientes. Este roadmap impede que uma atualização isolada seja confundida com o plano integral.
+`docs/CURRENT_STAGE.md` controla a etapa corrente. Integração à `main` não equivale automaticamente a presença em Production, e presença em Production não prova todas as jornadas funcionais.
 
-## 2. Precedência
+## 2. Baseline
 
-A situação de cada item deve ser confrontada com:
+```text
+main: f812e5dbf3aaa18fb9851948445b0820ac7a5435
+Production: dpl_7G3Wmh1YiV4c4aXVwe2P5tN7N7Y4 — READY
+commit publicado: f812e5dbf3aaa18fb9851948445b0820ac7a5435
+Supabase: scnryinorqeucbfkioxo — ACTIVE_HEALTHY
+migrations em Production: 25
+Edge Function team-account-management: versão 95, ACTIVE, JWT obrigatório
+```
 
-- código e dependências da `main`;
-- PRs, commits e checks;
-- Vercel Production e seu SHA;
-- Supabase autorizado quando aplicável;
-- evidências e decisões posteriores.
-
-Integração à `main` não equivale automaticamente a presença em Production.
+O PR nº 141 está aberto em rascunho e não integra esse baseline.
 
 ## 3. Taxonomia
-
-### 3.1 Status
 
 | Status | Significado |
 |---|---|
 | **Concluído** | integrado e validado; não exige publicação do site |
 | **Concluído e publicado** | integrado, validado e presente em Production |
+| **Em andamento** | branch ou PR ativo, ainda não integrado |
 | **Parcialmente concluído** | parte entregue; restante explicitado |
-| **Adiado** | postergado conscientemente após análise |
 | **Pendente de execução** | pertinência reconhecida; implementação não iniciada |
 | **Pendente de avaliação** | candidato sujeito a diagnóstico e decisão |
+| **Adiado** | postergado conscientemente |
 | **Mantido/congelado** | versão ou arquitetura preservada deliberadamente |
 | **Não aplicável agora** | adoção não recomendada no estágio atual |
 
-### 3.2 Prioridade
+Prioridades:
 
-- **P0:** pré-condição ou correção bloqueante;
-- **P1:** próxima frente recomendada ou ganho alto e maduro;
-- **P2:** melhoria relevante dependente de diagnóstico ou etapa anterior;
-- **P3:** evolução condicional, experimental ou de menor urgência.
+- **P0:** falha funcional, integridade ou disponibilidade capaz de desamparar o usuário;
+- **P1:** próxima frente necessária para confiança operacional;
+- **P2:** manutenção ou melhoria relevante;
+- **P3:** evolução condicional ou de menor urgência.
 
-### 3.3 Implantação
+## 4. Cronologia reconciliada
 
-- **Interna:** documentação, CI, teste ou ferramenta; não exige deployment;
-- **Vercel:** altera recurso servido pelo frontend;
-- **Supabase:** altera banco, Auth, RLS, Edge Function, Storage ou configuração remota;
-- **Vercel + Supabase:** exige coordenação das duas camadas;
-- **Nenhuma:** decisão, diagnóstico ou preservação.
+| PR/Rodada | Estado | Resultado |
+|---|---|---|
+| Rodada 0 / PR nº 121 | concluída | integridade de referências dos workflows |
+| Rodada 1 / PR nº 122 | concluída | ESLint 10.8.0, Acorn 8.18.0 e melhorias de auditoria |
+| Rodada 2 / PR nº 123 | concluída e publicada | busca inteligente, Floating UI e View Transitions |
+| Rodada 3B / PR nº 126 | concluída | Supabase CLI 2.110.0 e adaptação do backup/restauração |
+| Rodada 4A / PR nº 127 | concluída | roadmap e evolução tecnológica proativa |
+| Rodada 4B / PR nº 128 | concluída | Playwright 1.62.0 |
+| PR nº 136 | concluído e publicado | runtime do Excel SME e relatórios no dashboard da Assistente |
+| PR nº 137 | concluído e publicado | Excel SME de 27 colunas e alinhamento final |
+| PR nº 138 | concluído e publicado | Gestão de Equipe, CORS, Auth e vínculos históricos |
+| PR nº 139 | concluído e publicado | monitor geral de Production |
+| PR nº 140 | concluído e publicado | incidentes automáticos |
+| PR nº 141 | em andamento | auditoria agregada de integridade dos dados |
+| Reconciliação documental de 5/8 | em andamento | baseline e documentação canônica |
 
-## 4. Rodadas reconciliadas
+## 5. Frente P0/P1 — confiabilidade funcional
 
-| Rodada | Estado | Resultado | Referências | Production |
-|---|---|---|---|---|
-| **0 — preparação** | concluída | workflow do Excel SME, verificador de referências e baseline | PR `#121`; commit `ad2fed06d7d951cd510d3f93cf8b3232d0026c1e` | não exigida |
-| **1 — baixo risco** | concluída | ESLint 10.8.0, Acorn 8.18.0, relatório HTML, handlers e `actions/checkout` 7.0.1 | PR `#122`; commits `ea0871e…` e `20b4da1…` | ferramentas internas |
-| **2 — experiência incremental** | concluída e publicada | Fuse.js, Floating UI e View Transitions | PR `#123`; commit `8e0a88e…`; deployment `dpl_2Sgq4LJKvSvXro81EYwFJHYEHHqp` | publicada |
-| **3B — Supabase CLI** | concluída | CLI 2.110.0 e compatibilidade do backup/restauração | PR `#126`; commit `520b51e…` | não exigida |
-| **4A — roadmap** | concluída | fonte canônica única e ADR-039 | PR `#127`; commit `a32e272…` | não exigida |
-| **4B — Playwright** | validada no PR `#128` | Playwright 1.62.0 e navegadores correspondentes | SHA funcional `6c03169…`; sete workflows verdes | não exigida |
-
-## 5. Roadmap técnico
-
-| Item | Status | Prioridade | Implantação | Evidência/decisão | Próxima ação |
-|---|---|---:|---|---|---|
-| Corrigir referência inexistente no workflow do Excel SME | Concluído | P0 | Interna | Rodada 0 / PR `#121` | manter regressão |
-| Verificador de referências locais dos workflows | Concluído | P0 | Interna | ADR-037 | manter nos gates |
-| `actions/checkout` `7.0.0 → 7.0.1` | Concluído | P1 | Interna | commit `20b4da1…` | acompanhar Dependabot |
-| ESLint `10.7.0 → 10.8.0` | Concluído | P1 | Interna | Rodada 1 | manter versão fixada |
-| Relatório HTML navegável do ESLint | Concluído | P1 | Interna | `lint:security:html` | preservar mesmo escopo do lint bloqueante |
-| Acorn `8.17.0 → 8.18.0` | Concluído | P1 | Interna | Rodada 1 | manter análise de handlers |
-| Localização real de erros em handlers inline | Concluído | P1 | Interna | auditoria da Rodada 1 | manter contratos |
-| Playwright `1.61.1 → 1.62.0` | Concluído | P1 | Interna | PR `#128`; SHA validado `6c03169…`; sete workflows | manter versão exata e matriz atual |
-| Supabase CLI `2.109.1 → 2.110.0` | Concluído | P1 | Interna | Rodada 3B / PR `#126` | manter versão exata |
-| Supabase CLI `2.111.0` | Adiado | P3 | Interna | ganho incremental insuficiente para nova rodada imediata | reavaliar em manutenção futura |
-| Supabase JS `2.110.8` | Mantido/congelado | P2 | Vercel | versão atual | atualizar apenas com benefício e bateria completa |
-| ExcelJS `4.4.0` | Mantido/congelado | P0 | Vercel | homologado no Excel desktop | não trocar sem necessidade comprovada |
-| Verificar configuração padrão do CodeQL | Pendente de execução | P1 | Interna | ausência de workflow não comprova desativação | consultar Advanced Security e registrar estado real |
-| Dependency Review Action | Pendente de execução | P1 | Interna | recomendação técnica | adicionar gate de vulnerabilidade e licença |
-| `actionlint` | Pendente de execução | P1 | Interna | complementa o verificador próprio | validar YAML e expressões de Actions |
-| `zizmor` | Pendente de avaliação | P2 | Interna | candidato de segurança de CI | executar baseline informativo |
-| `eslint-plugin-n` | Pendente de avaliação | P2 | Interna | aplicável aos arquivos Node | medir ganho e escopo |
-| Cobertura consolidada de testes | Pendente de execução | P2 | Interna | suíte ampla sem baseline único | começar como evidência, sem percentual artificial |
-| CodeQL avançado customizado | Pendente de avaliação | P3 | Interna | depende da verificação padrão | adotar apenas se consultas padrão forem insuficientes |
-| Renovate | Não aplicável agora | P3 | Nenhuma | duplicaria Dependabot | não instalar |
-| `npm-check-updates` | Não aplicável agora | P3 | Nenhuma | Dependabot e `npm outdated` cobrem a necessidade | não instalar |
-| Jest ou Vitest | Não aplicável agora | P3 | Nenhuma | `node:test` já integrado | não migrar sem problema concreto |
-| Bundler geral por substituição imediata | Não aplicável agora | P3 | Nenhuma | mudança estrutural ampla | modernizar esbuild incrementalmente |
-| `typescript-eslint` amplo | Não aplicável agora | P3 | Nenhuma | pouco TypeScript autoral | reavaliar se o código TS crescer |
-| Novo motor de Excel | Não aplicável agora | P0 | Nenhuma | risco alto sobre funcionalidade homologada | preservar ExcelJS |
-| Sentry ou telemetria externa | Pendente de avaliação | P3 | Vercel + governança | exige decisão de LGPD e operação | criar frente própria somente com necessidade |
-| Troca do `http-server` | Não aplicável agora | P3 | Nenhuma | ferramenta local sem risco relevante | manter |
-
-## 6. Modernização da experiência
-
-| Frente | Status | Prioridade | Implantação | Próxima decisão |
+| Item | Status | Prioridade | Evidência atual | Próxima ação |
 |---|---|---:|---|---|
-| Sistema de componentes com Lit/Web Components | Pendente de avaliação | P2 | Vercel | avaliar piloto em superfície complexa |
-| Diálogos, mensagens, confirmações e estados comuns | Pendente de avaliação | P1 | Vercel | diagnosticar inconsistências e escolher abordagem |
-| Data grid com Tabulator | Adiado | P2 | Vercel | reavaliar somente com caso operacional concreto |
-| TanStack Table Core | Pendente de avaliação | P3 | Vercel | comparar se data grid voltar a ser priorizado |
-| Busca inteligente com Fuse.js | Concluído e publicado | P1 | Vercel | manter e medir uso |
-| Central de comandos `Ctrl + K` | Adiado | P2 | Vercel | reavaliar após observar a busca atual |
-| Ajuda contextual com Driver.js | Pendente de avaliação | P1 | Vercel | escolher uma jornada crítica para piloto |
-| Gráficos com Apache ECharts | Pendente de avaliação | P2 | Vercel | aprovar somente gráficos acionáveis e acessíveis |
-| Floating UI | Concluído e publicado | P1 | Vercel | expandir somente com necessidade comprovada |
-| Supabase Realtime para mudanças | Pendente de avaliação | P2 | Vercel + Supabase | começar por aviso de dado desatualizado |
-| Presença e colaboração em tempo real | Pendente de avaliação | P3 | Vercel + Supabase | depende de governança e valor comprovado |
-| PWA com Workbox | Pendente de avaliação | P2 | Vercel | diagnosticar conectividade antes do service worker |
-| Dexie/IndexedDB para rascunhos | Pendente de avaliação | P2 | Vercel | priorizar recuperação de rascunho, não mutação offline |
-| Sincronização offline de mutações | Não aplicável agora | P3 | Vercel + Supabase | não implementar sem concorrência e reconciliação |
-| View Transition API | Concluído e publicado | P1 | Vercel | manter uso restrito e acessível |
-| Modularização ampla com esbuild | Parcialmente concluído | P2 | Vercel | mapear entradas e ganhos antes de ampliar |
-| Migração integral para framework | Não aplicável agora | P3 | Vercel | custo e risco superam o ganho imediato |
+| Excel SME gerar e baixar arquivo válido | Concluído e publicado | P0 | PRs nº 136 e 137; Excel desktop; smoke e OOXML | manter monitor e regressões |
+| Gestão de Equipe alcançar Edge Function e concluir operação | Concluído e publicado | P0 | PR nº 138; Auth/RLS/CORS reais | manter smoke e ciclo integral |
+| Matriz completa perfil × tela × ação × backend | Pendente de execução | P0 | cobertura dispersa | criar catálogo canônico e gaps |
+| Smoke autenticado de leitura por perfil em Production | Pendente de execução | P1 | gate atual usa Supabase descartável | criar contas técnicas e prova não destrutiva |
+| Provas controladas de escrita e releitura | Pendente de execução | P0 | Gestão de Equipe possui cobertura específica | generalizar para todas as mutações críticas |
+| Provas de falha parcial e compensação | Parcialmente concluído | P0 | equipe, importação e operações compostas possuem contratos | mapear todos os fluxos compostos |
+| Persistência após recarregar | Parcialmente concluído | P0 | coberta em fluxos específicos | tornar requisito padrão de E2E |
+| Mensagens úteis para indisponibilidade de backend | Parcialmente concluído | P1 | Excel e Gestão de Equipe possuem erros tipados | revisar outras ações críticas |
+| Conflito de `row_version` por fluxo | Parcialmente concluído | P1 | suporte arquitetural existente | provar interface e recuperação por módulo |
+| UAT com servidores reais | Pendente de execução | P1 | automação não substitui uso real | executar após matriz funcional |
 
-## 7. Novas capacidades do produto
+## 6. Frente P1 — garantia operacional
 
-| Capacidade | Status | Prioridade | Implantação | Dependência/critério |
+| Item | Status | Prioridade | Implantação | Próxima ação |
 |---|---|---:|---|---|
-| Visualizações salvas | Pendente de avaliação | P1 | Vercel ou Vercel + Supabase | definir preferência local ou institucional |
-| Ações em lote | Pendente de avaliação | P2 | Vercel + Supabase | autorização, atomicidade e auditoria |
-| Central de notificações e tarefas | Pendente de avaliação | P2 | Vercel + Supabase | distinguir alerta de tarefa |
-| Favoritos e escolas recentes | Pendente de avaliação | P2 | Vercel ou Vercel + Supabase | definir privacidade e persistência |
-| Painel “Minha jornada hoje” | Pendente de avaliação | P2 | Vercel | depende de prazos e responsabilidades confiáveis |
-| Histórico antes/depois | Parcialmente concluído | P2 | Vercel + Supabase | timeline existe; diff estruturado pendente |
-| Comentários e menções | Pendente de avaliação | P3 | Vercel + Supabase | governança, notificação e retenção |
-| Indicadores de prazo e risco | Pendente de avaliação | P1 | Vercel | regras objetivas e explicáveis |
-| Atalhos globais | Parcialmente concluído | P2 | Vercel | mapear ações seguras e conflitos |
-| Exportações personalizáveis | Pendente de avaliação | P2 | Vercel | preservar relatórios institucionais canônicos |
-| Painéis configuráveis por perfil | Pendente de avaliação | P3 | Vercel + Supabase | modelo de preferências e limites editoriais |
-| Anexos com Supabase Storage | Pendente de avaliação | P3 | Vercel + Supabase | LGPD, retenção, antivírus e limites |
-| Assistência contextual de regras do PDDE | Pendente de avaliação | P1 | Vercel | regras determinísticas, fonte e explicabilidade |
-| Resumo automático da situação | Pendente de avaliação | P2 | Vercel | derivar de dados canônicos e apontar fontes |
-| Detecção de inconsistências | Pendente de avaliação | P1 | Vercel | regras objetivas e testáveis |
-| Modo gerencial SME/CRE | Pendente de avaliação | P2 | Vercel | preservar recortes de visibilidade |
+| Monitor geral de Production | Concluído e publicado | P0 | GitHub Actions + Vercel + Supabase | manter execução horária |
+| Incidentes automáticos | Concluído e publicado | P0 | GitHub Issues | validar comportamento em ocorrência real |
+| Preflight remoto das Edge Functions | Concluído e publicado | P0 | Supabase | catalogar qualquer nova função automaticamente |
+| Bloqueio anônimo do Supabase | Concluído e publicado | P0 | Supabase RLS | manter prova contínua |
+| Auditoria contínua de integridade dos dados | Em andamento no PR nº 141 | P1 | Supabase + GitHub Actions | revisar, integrar e aplicar somente com autorização |
+| Painel/resumo de saúde operacional | Pendente de avaliação | P2 | GitHub ou interface técnica | primeiro estabilizar monitores e códigos |
+| Runbook de incidente funcional | Pendente de atualização | P1 | documentação | ligar monitor, diagnóstico e rollback |
+| Backup/restauração descartáveis | Concluído | P0 | CI | manter equivalência de schema, dados, Auth e migrations |
+| Política institucional de retenção/DR | Pendente de decisão | P2 | Supabase e governança | separar do teste descartável |
 
-## 8. Regra permanente de oportunidade tecnológica
+## 7. Frente P1/P2 — Supabase e integração
 
-Toda tarefa deve avaliar se o resultado fica materialmente melhor com atualização, instalação ou capacidade moderna.
+| Item | Status | Prioridade | Próxima ação |
+|---|---|---:|---|
+| 25 migrations alinhadas | Concluído | P0 | manter teste de histórico e dry-run |
+| Auth, perfis e escopos | Concluído, com verificação contínua parcial | P0 | incluir no smoke autenticado |
+| RLS positiva e negativa por entidade | Parcialmente concluído | P0 | gerar matriz executável por operação |
+| RPCs compostas | Parcialmente concluído | P0 | mapear consumidor frontend e prova de atomicidade |
+| Edge Function de equipe | Concluído e publicado | P0 | manter versão, CORS, JWT e compensação |
+| Correspondência frontend ↔ tabela/RPC/função | Pendente de consolidação | P0 | criar catálogo de integração |
+| Integridade lógica dos dados | Em andamento no PR nº 141 | P1 | revisar invariantes e execução remota |
+| Configurações da Gestão SME | Pendente de confirmação funcional | P1 | decidir exercício, calendário e programas |
+| Escopo de escrita do Controlador na CRE | Pendente de confirmação funcional | P1 | validar regra institucional antes de alterar RLS |
 
-### Quando propor
+## 8. Frente P2 — manutenção técnica e dependências
 
-- solução atual paliativa ou limitada pela tecnologia;
-- componente especializado maduro melhora acessibilidade, segurança, desempenho, consistência ou manutenção;
-- queixa recorrente indica problema estrutural;
-- recurso solicitado pode ser mais robusto com ampliação tecnológica;
-- insistir na pilha atual reduz a qualidade final.
+Versões correntes:
 
-### Conteúdo mínimo
+```text
+Playwright 1.62.0
+eslint-plugin-playwright 2.10.5
+Knip 6.29.0
+Supabase JS 2.110.8
+Supabase CLI 2.110.0
+ExcelJS 4.4.0
+```
 
-1. limite observado;
-2. tecnologia e versão sugeridas;
-3. ganho concreto;
-4. alternativa sem nova dependência;
-5. custo e risco;
-6. impacto em bundle, dados, permissões e Production;
-7. testes, rollback e evidências.
+| Atualização | Status | Prioridade | Regra de execução |
+|---|---|---:|---|
+| Playwright 1.62.1 | Pendente de execução | P2 | PR isolado; repetir matriz completa |
+| eslint-plugin-playwright 2.11.0 | Pendente de execução | P2 | revisar novas regras e falsos positivos |
+| Knip 6.30.0 | Pendente de execução | P2 | validar inventário e referências |
+| Supabase JS 2.111.0 | Pendente de avaliação | P2 | repetir sessão, Auth, RLS e bootstrap |
+| Supabase CLI 2.111.0 | Pendente de avaliação | P2 | repetir reset, migrations, Edge Functions e backup |
+| ExcelJS | Mantido/congelado | P0 | não alterar sem necessidade e nova homologação desktop |
+| Dependency Review Action | Pendente de execução | P2 | gate de vulnerabilidade e licença |
+| `actionlint` | Pendente de execução | P2 | complementar verificador próprio |
+| CodeQL | Pendente de confirmação | P3 | verificar configuração disponível |
+| baseline de cobertura | Pendente de execução | P2 | começar informativo, sem piso arbitrário |
 
-Propor não significa instalar. Não ampliar escopo silenciosamente nem adotar pacote apenas por novidade.
+Atualizações não devem ser agrupadas com correções funcionais.
 
-## 9. Sequência posterior à Rodada 4B
+## 9. Modernização da experiência
 
-| Ordem | Frente | Estado de decisão |
-|---:|---|---|
-| **5** | verificar CodeQL, adicionar Dependency Review e `actionlint`; avaliar `zizmor` | próxima frente técnica recomendada |
-| **6** | baseline de cobertura | iniciar como evidência, sem limite global arbitrário |
-| **7** | escolher a próxima evolução funcional por benefício | comparar candidatos antes de instalar ou implementar |
+| Frente | Status | Prioridade | Decisão |
+|---|---|---:|---|
+| Busca inteligente | Concluída e publicada | P1 | manter |
+| Floating UI | Concluída e publicada | P1 | expandir somente quando necessário |
+| View Transitions | Concluída e publicada | P2 | manter progressiva e acessível |
+| Sistema comum de diálogos e mensagens | Pendente de avaliação | P2 | revisar após confiabilidade funcional |
+| Ajuda contextual | Pendente de avaliação | P2 | piloto em jornada crítica após UAT |
+| Gráficos acionáveis | Pendente de avaliação | P3 | somente com pergunta gerencial clara |
+| PWA/offline | Não aplicável agora | P3 | não introduzir mutações offline |
+| Migração integral para framework | Não aplicável agora | P3 | custo superior ao ganho atual |
+| Modularização incremental de `app.js` | Pendente de planejamento | P2 | extrair por superfície sem reescrita ampla |
 
-A ordem não impede correção urgente. A ADR-039 continua aplicável em todas as tarefas.
+## 10. Evolução funcional futura
 
-## 10. Critérios para aprovar item pendente
+Somente após confiabilidade e UAT:
+
+- visualizações salvas;
+- indicadores de prazo e risco;
+- favoritos e escolas recentes;
+- painel de jornada diária;
+- histórico antes/depois;
+- exportações personalizáveis;
+- assistência contextual de regras;
+- resumo automático explicável;
+- modo gerencial ampliado.
+
+Cada item exige regra de negócio, perfil, persistência, acessibilidade, teste e rollback próprios.
+
+## 11. Sequência recomendada
+
+```text
+1. reconciliar documentação
+2. criar matriz funcional ponta a ponta
+3. smoke autenticado de leitura
+4. provas controladas de escrita e compensação
+5. concluir/reavaliar PR #141
+6. executar atualizações menores isoladas
+7. UAT e correções encontradas
+8. polimento editorial/visual
+9. decisão formal de liberação
+```
+
+Correção funcional urgente pode interromper a ordem, mas deve atualizar este roadmap e o estado corrente.
+
+## 12. Critério para aprovar nova frente
 
 - problema real e usuários afetados;
-- benefício perceptível e operacional;
-- compatibilidade arquitetural;
-- acessibilidade e equivalência mobile;
-- impacto em segurança, LGPD, autoria e auditoria;
-- custo de bundle, desempenho e manutenção;
-- alternativa sem nova dependência;
-- testes e rollback;
-- necessidade de Vercel, Supabase ou ambas;
-- critério objetivo de sucesso.
-
-## 11. Manutenção
-
-Atualizar este documento quando uma rodada mudar de estado, surgir oportunidade tecnológica material, um candidato for aprovado ou rejeitado, ou mudar a necessidade de Production. Planos históricos permanecem preservados.
+- benefício operacional claro;
+- aderência ao domínio do PDDE;
+- contrato ponta a ponta definido;
+- permissões positivas e negativas;
+- compatibilidade desktop/mobile;
+- persistência e releitura;
+- tratamento de falha e rollback;
+- evidência do mesmo SHA;
+- documentação atualizada;
+- autorização separada para merge e Production.

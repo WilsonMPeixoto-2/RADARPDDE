@@ -1,10 +1,10 @@
 # RADAR PDDE 2026 — Contexto funcional e arquitetural
 
-**Atualizado em:** 1º de agosto de 2026
+**Atualizado em:** 5 de agosto de 2026
 
 ## 1. Finalidade
 
-O RADAR PDDE organiza o ciclo de entrega, análise, acompanhamento, regularização, consolidação, prestação de contas, inventário, histórico e apoio à decisão dos programas do PDDE no âmbito da 4ª CRE/SME-Rio.
+O RADAR PDDE organiza o ciclo de entrega, análise, acompanhamento, regularização, consolidação, inventário, histórico e apoio à decisão dos programas do PDDE no âmbito da 4ª CRE/SME-Rio.
 
 O sistema deve permitir que cada usuário compreenda:
 
@@ -15,30 +15,27 @@ O sistema deve permitir que cada usuário compreenda:
 5. onde realizar essa ação;
 6. como o histórico foi formado;
 7. qual competência e programa sustentam a informação;
-8. como a informação foi refletida nos relatórios institucionais.
+8. como a informação é refletida nos relatórios institucionais.
 
 Dashboard, Carteira, Competências, Prontuário, Pendências, Inventário, Registros Internos, timeline e exportações representam o mesmo universo de dados. Nenhuma superfície pode criar fonte de verdade independente.
 
-## 2. Estado operacional de referência
+## 2. Baseline operacional
 
-- a `main` contém governança da Gestão SME e ciclos 1 a 5;
-- o runtime Node está fixado em `24.x`;
-- a reconciliação SME foi integrada em `79cb67c84720b1850879d9c50c262e1623d5d8cc`;
-- Vercel Production: `dpl_HjpGHuFNzgTRKDsofzzogbBTAe5h`, `READY`;
-- commit funcional publicado: `baeea25201ed304f351ea7e3144b0f13147bc3a7`;
-- commit do artefato publicado: `b15718ecdd57e82baeaf2116de34af51f8ed1cc0`;
-- runtime: `production` e `supabase-production`;
-- Supabase: `scnryinorqeucbfkioxo`, `ACTIVE_HEALTHY`;
-- 12 competências de 2026;
-- `closing_competence = 2026-12`;
-- `app_config.row_version = 5`;
-- 25 migrations correspondentes entre GitHub e Supabase Production;
-- XLSX institucional integrado e Excel SME de 30 colunas publicado sobre template canônico com ExcelJS 4.4.0;
-- CSV legado preservado como secundário e fallback;
-- deployments automáticos bloqueados;
-- gate remoto perfil/viewport concluído;
-- backup/restauração descartáveis concluídos;
-- liberação oficial ainda não declarada.
+```text
+GitHub main: f812e5dbf3aaa18fb9851948445b0820ac7a5435
+Vercel Production: dpl_7G3Wmh1YiV4c4aXVwe2P5tN7N7Y4 — READY
+Commit publicado: f812e5dbf3aaa18fb9851948445b0820ac7a5435
+Supabase: scnryinorqeucbfkioxo — ACTIVE_HEALTHY
+PostgreSQL: 17.6.1.147
+Migrations em Production: 25
+closing_competence: 2026-12
+app_config.row_version: 20
+Edge Function team-account-management: ACTIVE, versão 95, JWT obrigatório
+Runtime: production / supabase-production
+Node.js: 24.x
+```
+
+O PR nº 141 permanece aberto em rascunho. Sua migration e seu workflow de integridade não pertencem à `main` nem a Production.
 
 Dados mutáveis devem ser revalidados antes de tarefa que dependa deles.
 
@@ -46,7 +43,7 @@ Dados mutáveis devem ser revalidados antes de tarefa que dependa deles.
 
 1. código-fonte remoto vigente;
 2. migrations, políticas, funções, Auth e dados do Supabase autorizado;
-3. artefato implantado na Vercel;
+3. artefato implantado na Vercel e seu SHA;
 4. testes e evidências reproduzíveis;
 5. decisões funcionais vigentes;
 6. documentação canônica;
@@ -66,7 +63,9 @@ Lidera operacionalmente a GAD/CRE, acompanha escolas, administra Controladores e
 
 ### Gestão SME
 
-Realiza acompanhamento gerencial. Consulta identificação e bonificação, não visualiza análise técnica nem executa mutações operacionais. Em Registros Internos, consulta somente linhas do próprio `auth.uid()`.
+Realiza acompanhamento gerencial. Consulta identificação e bonificação, não visualiza análise técnica nem executa mutações operacionais em Pendências. Em Registros Internos, consulta somente linhas do próprio `auth.uid()`.
+
+A superfície de configurações SME possui exercício, calendário, competência e programas. Alteração futura dessas regras deve ser precedida de confirmação funcional, pois a frente de programas havia sido separada para decisão posterior.
 
 ### Equipe de Inventário
 
@@ -76,7 +75,7 @@ Executa o fluxo patrimonial autorizado dentro do escopo da CRE.
 
 `technical_admin` atua em segurança, infraestrutura, perfis, escopos, importações e auditoria. A simulação visual não altera JWT nem substitui contas operacionais reais.
 
-## 5. Superfícies e recortes
+## 5. Superfícies
 
 O produto contém, conforme o perfil:
 
@@ -89,7 +88,7 @@ O produto contém, conforme o perfil:
 - Capital e Inventário;
 - Registros Internos;
 - configurações SME;
-- alertas, modais e exportações.
+- alertas, busca, modais e exportações.
 
 Toda alteração deve considerar competência, exercício, Controlador, CRE, escola, programa, documento, situação, autoria e perfil efetivo.
 
@@ -99,7 +98,9 @@ A competência canônica usa `YYYY-MM` e é única para Dashboard, Carteira, Com
 
 `RadarCompetenceContext` normaliza, valida, seleciona, sincroniza exercício, persiste durante a sessão e notifica as superfícies.
 
-As 12 competências de 2026 estão disponíveis. Competência existente, disponível e formalmente fechada são conceitos distintos.
+As doze competências de 2026 estão disponíveis. Competência existente, disponível e formalmente fechada são conceitos distintos.
+
+A frase interna que explicava a sincronização não é exibida ao usuário; o seletor, o rótulo e a competência atual permanecem.
 
 ## 7. Avaliação mensal
 
@@ -137,35 +138,62 @@ Frontend
 → serviços de aplicação e unidade de trabalho
 → contrato de repositório
    ├── SupabaseRepository — Preview e Production
-   └── LocalStorageRepository — contingência por novo build
+   └── LocalStorageRepository — desenvolvimento e contingência por novo build
 ```
 
 O adaptador remoto usa paginação, lotes, erros padronizados, `row_version`, snapshots, RPCs, reconciliação e rollback.
 
-## 12. Gestão de contas
+A aplicação carrega um estado inicial local de compatibilidade antes do bootstrap remoto, mas Production somente é liberada após autenticação, autorização e leitura do Supabase. O estado institucional canônico é remoto.
+
+## 12. Auth e sessão
+
+O cliente Supabase usa sessão persistente e renovação automática. O bootstrap:
+
+1. reconhece ou cria a sessão;
+2. valida perfil, papel efetivo e escopos;
+3. cria cliente autenticado;
+4. carrega as entidades operacionais autorizadas;
+5. aplica o perfil à interface;
+6. mantém a aplicação inerte enquanto a autorização não termina.
+
+Validações duplicadas são deduplicadas por voo único, e consultas de autorização são paralelizadas.
+
+## 13. Gestão de contas
 
 ```text
 DirectoryService
 → TeamAccountGateway
-→ Edge Function autenticada
+→ Edge Function team-account-management
    ├── Supabase Auth Admin
    └── RPC PostgreSQL transacional
 ```
 
-Credencial administrativa nunca chega ao navegador. Falhas compensam operações para evitar divergência entre Auth e diretório.
+A Edge Function ativa é a versão 95 e exige JWT. A autorização também verifica o papel institucional.
 
-## 13. Autorização
+O PR nº 138 corrigiu:
+
+- preflight CORS;
+- allowlist de origens institucionais;
+- classificação de erros no frontend;
+- recuperação segura de vínculos Auth históricos;
+- divergência entre diretório e `user_profiles`;
+- cadastro, edição, convite, redistribuição e desativação;
+- compensação quando Auth ou banco falha.
+
+Credencial administrativa nunca chega ao navegador.
+
+## 14. Autorização
 
 - anônimo: sem acesso institucional;
-- Controlador: escolas da própria `cre_scope`;
+- Controlador: escolas da própria `cre_scope` e escopos adicionais autorizados;
 - Assistente: operação transversal e Gestão de Equipe;
 - Inventário: operação patrimonial autorizada;
-- SME: leitura gerencial restritiva;
+- SME: leitura gerencial restritiva e configurações explicitamente autorizadas;
 - Administrador técnico: infraestrutura e auditoria.
 
 A desativação de integrantes é lógica e auditada.
 
-## 14. Histórico de migrations
+## 15. Histórico de migrations
 
 Migration SME canônica:
 
@@ -176,9 +204,11 @@ SHA-256 cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
 
 O identificador derivado `20260728190344` está ausente. A reconciliação usou `migration repair`, não alterou SQL funcional e deixou 25 versões correspondentes.
 
-Antes de migration futura: histórico, teste SME, reset, pgTAP, lint, tipos, backup/restauração, dry-run e rollback.
+O PR nº 141 contém uma 26ª migration apenas em sua branch. Enquanto não houver integração e aplicação autorizada, Production permanece com 25.
 
-## 15. Backup e restauração
+Antes de migration futura: histórico, teste SME, reset, pgTAP, lint, tipos, backup/restauração, dry-run, plano de rollback e autorização.
+
+## 16. Backup e restauração
 
 Gate:
 
@@ -192,18 +222,17 @@ Fluxo:
 ```text
 origem descartável
 → migrations + seed
+→ identidades Auth efêmeras
 → dumps de papéis, schema, dados e histórico
 → segunda pilha isolada
 → restauração transacional
-→ fingerprints de schema, dados e migrations
+→ comparação de schema, dados, Auth e migrations
 → limpeza
 ```
 
-O run `30537076528` comprovou equivalência integral. O CI publica somente `evidence.json`; dumps SQL não são publicados.
+O CI publica somente `evidence.json`; dumps SQL não são publicados. O gate não acessa Production e não substitui uma política institucional de retenção.
 
-O gate não acessa Production e não substitui retenção, cópia remota periódica ou plano institucional de desastre.
-
-## 16. Ambientes
+## 17. Ambientes
 
 ### Desenvolvimento local
 
@@ -229,9 +258,7 @@ productionActivationApproved: true
 
 Projeto autorizado: `scnryinorqeucbfkioxo`. O build público contém somente configuração publicável.
 
-`RADAR_PRODUCTION_FORCE_LOCAL=true` exige novo build controlado e é contingência excepcional.
-
-## 17. Excel institucional
+## 18. Exportações
 
 ### Relatório institucional
 
@@ -245,17 +272,57 @@ Projeto autorizado: `scnryinorqeucbfkioxo`. O build público contém somente con
 ### Excel SME mensal
 
 - uma competência por arquivo;
-- todas as unidades no escopo;
-- 30 colunas literais do modelo original;
-- uma planilha com nome, arquivo e dados derivados da competência mensal ativa;
-- template canônico e ExcelJS 4.4.0 carregados sob demanda;
-- ausência de `dataValidations`;
-- comparação célula a célula;
-- abertura no Microsoft Excel desktop aprovada sem reparo, com conteúdo visível e alinhamentos revisados.
+- uma aba;
+- 27 colunas A:AA;
+- template-fonte com 30 colunas usado apenas como base visual;
+- remoção exclusiva das posições-fonte K, R e Y;
+- campos administrativos posteriores preservados;
+- designação como texto `XX.XX.XXX`;
+- bordas completas;
+- cabeçalho centralizado e normalizado;
+- filtro, impressão e congelamento preservados;
+- ausência deliberada de `dataValidations` incompatíveis;
+- comparação célula a célula, reabertura pelo ExcelJS e inspeção OOXML;
+- abertura no Microsoft Excel desktop aprovada sem reparo.
 
-A evidência sintética não consulta Production. A homologação manual do Excel SME foi concluída; a do relatório institucional permanece separada e pendente.
+## 19. Garantia operacional de Production
 
-## 18. Runtime e gates
+O monitor geral integrado pelos PRs nº 139 e 140 verifica:
+
+- SHA publicado;
+- manifesto de build;
+- shell e gate de autenticação;
+- assets locais;
+- bloqueio anônimo do Supabase;
+- preflight das Edge Functions;
+- criação, atualização e encerramento de incidente automático.
+
+Ele executa após `push` na `main`, a cada hora e manualmente.
+
+Essa camada detecta indisponibilidade e inconsistências de publicação, mas não substitui prova autenticada de todas as mutações.
+
+## 20. Confiabilidade funcional ponta a ponta
+
+Uma função crítica deve ser rastreada por:
+
+```text
+superfície
+→ controle
+→ handler
+→ serviço
+→ repositório
+→ tabela/RPC/Edge Function
+→ Auth/RLS
+→ resposta
+→ estado em memória
+→ renderização
+→ releitura após refresh
+→ falha e compensação
+```
+
+A prioridade corrente é criar essa matriz para cada perfil e transformar os fluxos críticos em regressões completas.
+
+## 21. Runtime e gates
 
 Node oficial: `24.x`.
 
@@ -269,56 +336,45 @@ Cobertura automatizada:
 - Lighthouse;
 - dependências;
 - certificação Excel;
-- backup/restauração descartáveis.
+- backup/restauração descartáveis;
+- monitor geral de Production;
+- preflight remoto de Edge Functions.
 
-A checagem de credenciais comprometidas depende do plano Pro ou superior. No plano Free atual e sem autorização de despesa, não constitui gate de liberação.
+## 22. Próxima sequência
 
-## 19. Segurança comprovada
+1. concluir a reconciliação documental;
+2. criar catálogo funcional por perfil, tela e ação;
+3. implementar smoke autenticado somente leitura;
+4. implementar provas controladas de escrita, releitura e compensação;
+5. concluir ou reavaliar o PR nº 141;
+6. atualizar dependências menores em PRs separados;
+7. realizar UAT e decisão formal de liberação.
 
-- acesso anônimo bloqueado;
-- RLS por papel e escopo;
-- somente chave publicável no frontend;
-- Edge Function protegida por JWT;
-- autoria e auditoria;
-- concorrência otimista;
-- histórico alinhado;
-- deployments automáticos bloqueados;
-- evidência Excel sem dados pessoais;
-- dumps SQL excluídos dos artefatos do CI;
-- procedimento lógico de restauração comprovado.
-
-## 20. Bloqueadores remanescentes
-
-1. homologação manual do relatório institucional no Microsoft Excel desktop;
-2. revisão dos Advisors quando aplicável;
-3. UAT funcional;
-4. polimento editorial e visual;
-5. decisão formal de liberação.
-
-## 21. Restrições permanentes
+## 23. Restrições permanentes
 
 Não é permitido:
 
 - alterar código para coincidir com documento histórico;
 - criar fonte paralela de competência, avaliação, timeline ou exportação;
 - enfraquecer Auth, RLS ou autoria;
-- conceder mutação operacional à Gestão SME;
 - transformar carteira em fronteira entre Controladores da mesma CRE;
 - ocultar informação funcional no mobile;
-- introduzir segredo no frontend ou repositório;
-- publicar dumps SQL em artefato;
+- introduzir segredo no frontend;
 - aplicar migration sem histórico, testes, backup, dry-run e rollback;
 - editar diretamente a tabela de migrations;
 - reintroduzir `dataValidations` no Excel SME sem nova prova;
-- remover o CSV de fallback sem decisão.
+- restaurar o contrato público de 30 colunas do Excel SME;
+- tratar PR aberto como funcionalidade integrada;
+- declarar função pronta apenas pela presença visual;
+- realizar merge ou publicação sem autorização expressa.
 
-## 22. Referências
+## 24. Referências
 
 - [`CURRENT_STAGE.md`](CURRENT_STAGE.md);
+- [`ROADMAP_ATUALIZACOES_2026.md`](ROADMAP_ATUALIZACOES_2026.md);
 - [`DECISION_LOG.md`](DECISION_LOG.md);
 - [`architecture/testing.md`](architecture/testing.md);
 - [`architecture/supabase-readiness.md`](architecture/supabase-readiness.md);
+- [`architecture/excel-sme-mensal.md`](architecture/excel-sme-mensal.md);
 - [`runbooks/SUPABASE_CONNECTION.md`](runbooks/SUPABASE_CONNECTION.md);
-- [`runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`](runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md);
-- [`audits/2026-07-30-backup-restore-disposable.md`](audits/2026-07-30-backup-restore-disposable.md);
-- [`audits/2026-07-30-node24-gate-remoto-perfis-viewports.md`](audits/2026-07-30-node24-gate-remoto-perfis-viewports.md).
+- [`audits/2026-08-05-reconciliacao-documental-integral.md`](audits/2026-08-05-reconciliacao-documental-integral.md).

@@ -1,141 +1,157 @@
 # Integração runtime das exportações Excel
 
-**Estado:** vigente e implementado  
-**Atualizado em:** 1º de agosto de 2026
+**Estado:** vigente, homologado e publicado  
+**Atualizado em:** 5 de agosto de 2026
 
-## 1. Objetivo
+## 1. Produtos
 
-Ativar no aplicativo os dois produtos `.xlsx` sem modificar o núcleo monolítico `app.js`, preservando o CSV legado como contingência e mantendo instalação reversível.
+A integração mantém três saídas independentes:
+
+1. relatório institucional XLSX de quatro abas;
+2. Excel SME mensal de uma aba e 27 colunas;
+3. CSV legado como fallback do relatório institucional.
 
 ## 2. Encadeamento
 
-`src/integration/load-excel-export.js` carrega sequencialmente:
+`src/integration/load-excel-export.js` carrega os módulos de modelo, plano, renderer, runtime SME e integração dos botões. O ExcelJS e o template SME são carregados somente no clique.
 
-1. `excel-export-model.js` — universo institucional e equivalência com o CSV;
-2. `excel-workbook-plan.js` — plano declarativo do workbook institucional;
-3. `excel-xlsx-renderer.js` — pacote Office Open XML institucional;
-4. `excel-sme-export-model.js` — modelo mensal SME;
-5. `excel-sme-template-renderer.js` — aplicação do template canônico por ExcelJS;
-6. `excel-sme-monthly-renderer.js` — adaptador estável para o renderer do template;
-7. `excel-sme-runtime-loader.js` — ExcelJS e template carregados sob demanda;
-8. `excel-export-integration.js` — integração dos botões e fallback.
+Fluxo mensal:
 
-O loader é acionado por `config.js` após o evento `load`. Seus filhos usam ordem sequencial e `async = false`.
+```text
+competência visível e estado global
+→ resolução estrita
+→ modelo SME imutável
+→ carregamento do manifesto
+→ ExcelJS versionado
+→ template versionado
+→ projeção de 30 para 27 colunas
+→ workbook
+→ download
+```
 
-## 3. Comportamento institucional
+## 3. Relatório institucional
 
-Na instalação:
+- botão principal **Gerar relatório Excel (.xlsx)**;
+- abas `BONIFICACOES`, `SINTESE`, `QUALIDADE_DADOS` e `METADADOS`;
+- histórico multicompetência;
+- equivalência obrigatória com CSV;
+- CSV secundário e fallback em falha do XLSX.
 
-1. a função global legada `exportDataExcel()` é capturada;
-2. a função legada fica disponível por `exportDataCsvLegacy()`;
-3. `exportDataExcel()` passa a apontar para o gerador institucional XLSX;
-4. o botão principal é configurado como **Gerar relatório Excel (.xlsx)**;
-5. o workbook contém:
-   - `BONIFICACOES`;
-   - `SINTESE`;
-   - `QUALIDADE_DADOS`;
-   - `METADADOS`;
-6. um botão secundário **CSV** é inserido como exportação legada e fallback.
-
-O relatório institucional permanece histórico e não é limitado pela competência ativa.
-
-## 4. Comportamento do Excel SME
-
-A integração insere um botão **Excel SME** entre o botão principal e o CSV.
+## 4. Excel SME
 
 O botão:
 
 - exige competência mensal `YYYY-MM`;
-- fica desabilitado em `TODAS` ou valor inválido;
-- atualiza `aria-disabled`, título e competência associada;
-- impede múltiplas gerações simultâneas;
-- gera arquivo mensal de uma aba e 30 colunas, com nome, aba e dados derivados da competência ativa;
-- carrega ExcelJS 4.4.0 e o template canônico somente após o acionamento do botão;
+- fica desabilitado em `TODAS`, valor ausente, oculto, ambíguo ou divergente;
+- usa a mesma competência para dados, nome do arquivo e aba;
+- impede cliques concorrentes;
+- registra estado de processamento;
+- gera uma aba e **27 colunas A:AA**;
+- grava designação como texto `XX.XX.XXX`;
 - registra o evento de exportação.
 
-## 5. Barreiras de segurança
+### Superfícies
 
-### Institucional
+- superfície de exportações já autorizada;
+- dashboard inicial da Assistente, ao lado de **Redistribuir Escolas**;
+- grupo da Assistente contém exatamente **Relatório RADAR PDDE** e **Excel SME**;
+- não inclui CSV nessa superfície;
+- o grupo é removido quando o perfil ou a tela muda.
 
-A geração é interrompida quando:
+## 5. Runtime resiliente
 
-- não há registros consolidados;
-- a equivalência com o CSV não foi comprovada;
-- o modelo não contém os doze campos originais;
-- qualquer dependência não foi carregada.
+O carregador do Excel SME possui:
 
-Em falha técnica, a interface pode oferecer o CSV legado.
+- estados explícitos de carregamento;
+- timeout;
+- limpeza de listeners;
+- remoção de `<script>` fracassado;
+- retry real sem recarregar a aplicação;
+- `AbortController` para o template;
+- validação do manifesto antes do uso;
+- erros distintos para motor, manifesto, template, competência, parse, serialização e download.
 
-### SME
+A presença de um elemento `<script>` não é tratada automaticamente como carregamento concluído.
 
-A geração é interrompida quando:
+## 6. Assets publicados
 
-- não há competência mensal válida;
-- modelo ou renderer não foram carregados;
-- o contrato mensal é inválido.
+O artefato contém:
 
-Não existe fallback CSV para o produto SME porque ele possui granularidade e estrutura distintas.
+- `excel-sme-assets.json`;
+- bundle local do ExcelJS 4.4.0;
+- `assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx`;
+- hashes e tamanhos esperados.
 
-## 6. Renderização OOXML
+Build, `.vercel/output/static`, smoke e runtime compartilham a identidade dos assets. O template não pode ser substituído pelo fallback HTML da SPA.
 
-O renderer institucional produz diretamente:
+## 7. Projeção do template SME
 
-- quatro planilhas;
-- estilos e formatação numérica;
-- mesclagens;
-- congelamento de painéis;
-- tabelas e autofiltros;
-- formatação condicional;
-- fórmulas com valores em cache;
-- gráfico da síntese;
-- metadados do arquivo.
+O template-fonte possui 30 colunas. Antes do preenchimento:
 
-O renderer SME aplica os dados canônicos ao template oficial de 30 colunas, preserva sua apresentação e não inclui `dataValidations`.
+1. o renderer valida que Y, R e K contêm `SISTEMÁTICA PREENCHIDA`;
+2. remove essas posições em ordem decrescente;
+3. valida os 27 cabeçalhos finais;
+4. limpa os valores antigos;
+5. reconstrói as linhas com o cadastro atual;
+6. limita bordas, filtro, impressão e conteúdo a A:AA.
 
-Não há dependência de CDN no runtime. O bundle versionado de ExcelJS e o template residem no próprio artefato da aplicação.
+Os campos administrativos posteriores são preservados.
 
-## 7. Idempotência
+## 8. Formatação e compatibilidade
 
-A instalação:
+- borda fina completa;
+- cabeçalho horizontal e verticalmente centralizado;
+- quebra automática;
+- recuo zero no cabeçalho;
+- altura 105;
+- denominação, parecer e observações como textos descritivos;
+- designação em formato `@`;
+- congelamento `E2`;
+- filtro e área de impressão A:AA;
+- ausência deliberada de `dataValidations` incompatíveis.
 
-- usa flag interna para impedir repetição;
-- evita duplicar botões por `dataset`;
-- observa mutações do DOM para renderizações tardias;
-- reage a mudança de competência;
-- preserva uma única função legada capturada;
-- fornece fluxo de `uninstall()` para restaurar `exportDataExcel`.
+## 9. Barreiras
 
-## 8. Auditoria
+A geração SME é bloqueada quando:
 
-Exports bem-sucedidos registram log funcional com nome do arquivo, escopo e quantidade de registros/unidades, sem conteúdo sensível.
+- a competência não é mensal;
+- há mais de um seletor mensal visível;
+- seletor e estado divergem;
+- manifesto ou hash divergem;
+- ExcelJS ou template não carregam;
+- cabeçalhos do template não correspondem ao contrato;
+- designação está ausente ou duplicada;
+- parse, serialização ou download falham.
 
-A geração não grava dados de negócio no Supabase.
+Não existe fallback CSV para o produto SME.
 
-## 9. Certificação
+## 10. Idempotência
 
-A integração depende dos contratos certificados em:
+- instalação única;
+- botões identificados por `dataset`;
+- observação de renderizações tardias;
+- remoção ao sair da superfície;
+- atualização quando a competência muda;
+- bloqueio de clique duplicado;
+- restauração da função CSV legada no fluxo de desinstalação de teste.
+
+## 11. Certificação
+
+- geração pelo botão real;
+- reabertura pelo ExcelJS;
+- inspeção OOXML;
+- manifesto sintético determinístico;
+- teste do artefato Vercel;
+- desktop, Android e iPhone;
+- perfis autorizados e não autorizados;
+- abertura manual no Microsoft Excel desktop sem reparo.
+
+Referências:
 
 - [`excel-export.md`](excel-export.md);
 - [`excel-sme-mensal.md`](excel-sme-mensal.md);
 - [`excel-integral-certification.md`](excel-integral-certification.md).
 
-A certificação automatizada não substitui abertura manual no Microsoft Excel desktop. A implementação funcional do Excel SME integrada pelo PR #117 já passou por essa homologação; o produto institucional mantém gate separado.
+## 12. Reversão
 
-## 10. Reversão
-
-A integração pode ser revertida por:
-
-- remoção controlada do bootstrap Excel em novo build;
-- desinstalação da integração no ambiente de teste;
-- restauração da função legada preservada.
-
-O `app.js` não foi reescrito para acomodar o XLSX, reduzindo o impacto do rollback.
-
-## 11. Gates de liberação ainda pendentes
-
-Antes da liberação oficial:
-
-- abrir o institucional no Microsoft Excel desktop sem reparo;
-- confirmar o botão CSV e o fallback;
-- validar downloads nos perfis autorizados;
-- registrar evidência e UAT.
+A integração pode ser removida em novo build controlado sem alterar dados do Supabase. O runtime Excel não grava dados de negócio.

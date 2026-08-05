@@ -1,42 +1,35 @@
 # Estratégia de testes e gates de qualidade
 
 **Estado:** vigente  
-**Atualizado em:** 30 de julho de 2026
+**Atualizado em:** 5 de agosto de 2026
 
 ## 1. Objetivo
 
-Garantir que cada mudança preserve regras de negócio, persistência, autorização, acessibilidade, responsividade, navegação, relatórios, recuperabilidade e operação remota do RADAR PDDE.
+Garantir regras de negócio, persistência, autorização, acessibilidade, responsividade, relatórios, recuperabilidade e operação remota.
 
-Nenhum comando isolado representa o gate completo. A seleção depende das camadas tocadas, e a decisão de release exige evidências cumulativas no mesmo SHA.
+O princípio corrente é:
 
-## 2. Runtime de teste
+> Nenhuma função crítica é aprovada apenas porque o DOM, o serviço ou o banco funciona isoladamente.
 
-A major operacional do Node.js está fixada em `24.x`:
-
-```text
-package.json        engines.node = 24.x
-package-lock.json   packages[""].engines.node = 24.x
-.nvmrc              24
-.node-version       24
-GitHub Actions      node-version: 24
-Vercel              nodeVersion: 24.x
-```
-
-O teste `tests/unit/release-hardening-contract.test.js` rejeita divergências.
-
-## 3. Pirâmide de validação
+## 2. Pirâmide e percurso
 
 ```text
-domínio puro e contratos
+domínio e contratos
 → serviços e integrações
-→ persistência local e Supabase
-→ banco, Auth, RLS e migrations
-→ backup e restauração
-→ jornadas de interface
-→ acessibilidade e responsividade
-→ artefato Vercel
-→ homologação operacional e UAT
+→ repositórios
+→ banco, Auth, RLS, RPC e Edge Function
+→ jornadas no navegador
+→ releitura após refresh
+→ artefato publicado
+→ monitor de Production
+→ UAT
 ```
+
+Para mutação crítica, acrescentar falha parcial, conflito e compensação.
+
+## 3. Runtime
+
+Node.js está fixado em `24.x` no projeto, lockfile, arquivos de versão, workflows e Vercel.
 
 ## 4. Readiness principal
 
@@ -44,38 +37,34 @@ domínio puro e contratos
 npm run test:readiness
 ```
 
-Executa sintaxe, lint, testes unitários e de integração, certificação Excel, prontidão Supabase, alinhamento remoto, runtime, artefatos, tipos e auditoria funcional.
+Inclui sintaxe, referências de workflows, bundles, lint, unitários, certificação Excel, integração, Supabase, tipos, artefatos e auditoria funcional.
 
-Readiness aprovado é necessário, mas não suficiente, para mudanças de banco, layout, navegação ou release.
+Readiness é necessário, mas não substitui E2E, banco local, Preview, Production smoke ou homologação humana.
 
-## 5. Testes unitários e de integração
+## 5. Unitários e integração
 
 ```bash
 npm run test:unit
 npm run test:integration
 ```
 
-Coberturas relevantes:
+Toda correção deve criar caso que falha antes e passa depois.
+
+Coberturas centrais:
 
 - competência e avaliação mensal;
-- pendências e timeline;
-- navegação contextual;
-- autorização e capacidades;
-- modelos e renderers Excel;
-- contratos JSON;
-- identidade da migration SME;
-- Node 24 e workflows;
-- layout móvel;
-- backup/restauração e segurança do artefato;
-- serviços, unidade de trabalho e persistência atômica;
-- importação, reconciliação e rollback.
+- pendências, timeline e navegação;
+- capacidades e autorização;
+- serviços e unidade de trabalho;
+- modelos, renderers e runtime Excel;
+- CORS e classificação de erros;
+- Gestão de Equipe e compensação;
+- importação e rollback;
+- monitoramento de Production.
 
-Toda correção deve acrescentar caso que falhe antes e passe depois.
-
-## 6. Banco local, migrations e pgTAP
+## 6. Supabase local
 
 ```bash
-node --test tests/unit/sme-migration-history-alignment.test.js
 npm run supabase:start
 npm run supabase:reset
 npm run supabase:test:db
@@ -84,20 +73,23 @@ npm run supabase:gen:types
 npm run typecheck:database
 ```
 
+Na `main` e em Production existem 25 migrations. Branch que adiciona migration deve declarar sua própria contagem sem reescrever o estado remoto antes da aplicação.
+
 Requisitos:
 
-- histórico local/remoto alinhado;
-- identificador derivado `20260728190344` ausente;
-- migrations aplicadas do zero;
-- pgTAP aprovado por papel e escopo;
-- lint SQL sem erro bloqueante;
-- tipos regenerados quando o schema muda;
-- acesso anônimo bloqueado;
-- funções privilegiadas preservadas;
-- dry-run remoto contendo somente mudança deliberada;
-- backup e plano de rollback antes de operação remota.
+- migrations do zero;
+- pgTAP por perfil e escopo;
+- anônimo bloqueado;
+- funções privilegiadas e grants corretos;
+- tipos alinhados;
+- histórico local/remoto reconciliado;
+- dry-run e plano de reversão antes de aplicação.
 
-## 7. Gate de backup e restauração
+## 7. Backup e restauração
+
+```bash
+RADAR_ALLOW_DISPOSABLE_BACKUP_RESTORE=true npm run test:backup-restore
+```
 
 Workflow:
 
@@ -105,57 +97,33 @@ Workflow:
 .github/workflows/backup-restore-disposable.yml
 ```
 
-Comando:
+Compara schema, dados, Auth e migrations entre duas pilhas descartáveis. Publica somente `evidence.json` e não usa Production.
 
-```bash
-RADAR_ALLOW_DISPOSABLE_BACKUP_RESTORE=true npm run test:backup-restore
-```
-
-O gate:
-
-1. inicia origem Supabase descartável;
-2. aplica 25 migrations e seed;
-3. gera dumps de papéis, schema, dados e histórico;
-4. inicia segunda pilha isolada;
-5. restaura em transação única;
-6. compara schema, políticas, funções, triggers, tabelas, contagens, conteúdo e migrations;
-7. publica somente `evidence.json`;
-8. encerra as pilhas.
-
-Proibições:
-
-- `--linked`;
-- segredo remoto;
-- conexão Production;
-- publicação de dumps SQL.
-
-Evidência inicial:
-
-```text
-run 30537076528
-job Dump, restauração e equivalência
-conclusão success
-```
-
-Fingerprints coincidentes:
-
-```text
-schema:     0edda0a68fdbd4a6984f68d4d0332a3f4b8fe9965ea34911f1ea17b7a3150948
-dados:      fa1f775a1eae802d59dfa889347cbe013e30b6b20b45b74e4694db750dff0cc7
-migrations: 18caf36e3032a4c2dfb2064b18ad2cf1c0dbf59df8c12ff8319ab7d7bd679e6b
-```
-
-## 8. Certificação dos relatórios Excel
+## 8. Excel
 
 ```bash
 npm run certify:excel:fixture
 ```
 
-Verifica regra de avaliação, equivalência com CSV, células dos dois produtos, estrutura OOXML, abas, ausência de `dataValidations` no produto SME, determinismo e hashes.
+### Institucional
 
-A massa é sintética. Antes do release, os arquivos devem ser abertos manualmente no Microsoft Excel desktop sem reparo.
+- quatro abas;
+- equivalência com CSV;
+- células, fórmulas e OOXML.
 
-## 9. Playwright local
+### SME
+
+- competência mensal única;
+- 27 colunas A:AA;
+- ausência de K, R e Y no produto final;
+- designação textual;
+- bordas e alinhamento;
+- filtro, impressão e congelamento;
+- manifesto e assets;
+- download real e reabertura;
+- abertura manual no Microsoft Excel desktop quando estrutura ou estilo material muda.
+
+## 9. Playwright
 
 ```bash
 npm run test:e2e
@@ -165,40 +133,77 @@ npm run test:mobile
 Projetos mínimos:
 
 - desktop Chromium;
-- Android/Chromium;
-- iPhone/WebKit.
+- Pixel 7/Chromium;
+- iPhone 15/WebKit.
 
-Jornadas cobrem login, capacidades, competência, Carteira, Dashboard, Prontuário, timeline, Gestão SME, Inventário, erros de página e overflow.
+Jornadas devem incluir:
 
-## 10. Gate remoto por papel e viewport
+- login e restauração de sessão;
+- perfis e navegação;
+- competência;
+- Dashboard, Carteira, Prontuário, Pendências e Inventário;
+- Gestão SME;
+- Gestão de Equipe;
+- exportações;
+- erros, foco e overflow.
 
-Workflow:
+## 10. Gate remoto por perfil e viewport
 
 ```text
 .github/workflows/gate-remoto-perfis-viewports.yml
 ```
 
-O gate usa Supabase descartável, aplica migrations, cria identidades efêmeras, valida Auth/RLS e executa cinco papéis em Desktop Chrome, Pixel 7 e iPhone 15.
+Usa Supabase descartável, identidades efêmeras e três viewports. Prova Auth/RLS e organização da interface sem usar Production.
 
-A matriz possui 15 cenários. Os testes mutáveis são executados uma vez no desktop.
+Esse gate não substitui smoke autenticado recorrente no ambiente publicado.
 
-## 11. Acessibilidade e responsividade
+## 11. Contrato ponta a ponta
 
-Cobrir:
+Para cada ação crítica, a regressão ideal comprova:
 
-- teclado e foco;
-- modais acessíveis;
-- `aria-live`;
+1. perfil autorizado e perfil negado;
+2. controle visível e acionável;
+3. payload correto;
+4. serviço e repositório esperados;
+5. backend alcançado;
+6. estado no banco;
+7. resposta e nova renderização;
+8. persistência após recarregar;
+9. conflito de versão;
+10. falha parcial e compensação;
+11. mensagem funcional.
+
+A matriz dessa cobertura é a próxima entrega estrutural.
+
+## 12. Monitor de Production
+
+```text
+.github/workflows/production-system-smoke.yml
+```
+
+Executa após `push` na `main`, a cada hora e manualmente.
+
+Verifica:
+
+- SHA publicado;
+- manifesto e modo de dados;
+- shell, gate e assets;
+- bloqueio anônimo;
+- preflight das Edge Functions;
+- incidente automático.
+
+O monitor não executa todas as jornadas autenticadas.
+
+## 13. Acessibilidade e responsividade
+
+- teclado, foco e retorno;
+- modais e anúncios;
 - nomes, papéis e estados;
-- contraste e semântica;
-- equivalência entre tabela e cartões mobile;
-- ausência de sobreposição;
-- logout acionável por toque;
-- ausência de overflow relevante.
+- equivalência de tabelas e cartões;
+- ausência de sobreposição e overflow;
+- ações essenciais disponíveis no mobile.
 
-Mudança visual não pode reduzir conteúdo, filtros, ações ou informação acessível.
-
-## 12. Lighthouse, precedência e build
+## 14. Desempenho, precedência e build
 
 ```bash
 npm run audit:lighthouse
@@ -208,9 +213,9 @@ npm run test:frontend-precedence
 npm run build:vercel
 ```
 
-Aplicar conforme impacto em layout, carregamento, estilos, navegação, configuração ou ordem de bootstraps. Preview e Production são builds independentes.
+Executar conforme impacto. Oscilação de Lighthouse deve ser repetida no mesmo SHA sem reduzir o piso silenciosamente.
 
-## 13. Segurança e dependências
+## 15. Dependências
 
 ```bash
 npm run lint
@@ -218,52 +223,28 @@ npm run analyze:unused
 npm run check:team-account-function
 ```
 
-Além disso:
+Atualizações devem usar PR isolado, versão fixada, changelog, lockfile e todos os gates afetados. Supabase JS/CLI exige nova bateria de Auth, RLS, migrations, Edge Function e backup.
 
-- revisar Advisors após alteração relevante;
-- confirmar CORS exato da Edge Function;
-- manter lockfile versionado;
-- não introduzir segredo em frontend, GitHub, artefato ou log;
-- não editar diretamente o histórico de migrations;
-- não publicar dumps SQL.
+## 16. Mesmo SHA
 
-A verificação de credenciais comprometidas depende de plano Pro ou superior e não é gate no plano Free atual.
+Antes de declarar conclusão:
 
-## 14. Mesmo SHA
-
-Antes de declarar ciclo concluído:
-
-1. registrar o SHA candidato;
-2. executar gates aplicáveis nesse SHA;
-3. confirmar que o PR não mudou depois dos testes;
-4. verificar checks e workflows associados;
+1. fixar SHA candidato;
+2. executar gates nesse SHA;
+3. confirmar que a branch não mudou;
+4. verificar todos os checks;
 5. publicar somente o commit aprovado;
-6. documentar eventual commit operacional posterior.
+6. repetir smokes após Production.
 
-Ausência de workflow não equivale a aprovação.
+## 17. Gates externos
 
-## 15. Gates externos remanescentes
-
-Mesmo com CI verde, permanecem:
-
-- homologação manual dos arquivos Excel;
-- revisão dos Advisors quando aplicável;
+- matriz funcional completa;
+- smoke autenticado de leitura;
+- provas controladas de escrita e compensação;
 - UAT;
-- polimento editorial e visual;
-- decisão formal de release.
+- homologação humana de arquivos quando aplicável;
+- decisão formal de liberação.
 
-Node, matriz remota e backup/restauração estão cumpridos.
+## 18. Critério de conclusão
 
-## 16. Critério de conclusão
-
-Uma mudança está concluída quando:
-
-- representa corretamente o dado e a regra;
-- preserva autoria, auditoria e histórico;
-- aplica autorização em profundidade;
-- mantém coerência entre superfícies e exportações;
-- funciona em desktop e mobile;
-- mantém acessibilidade;
-- passa pelos gates aplicáveis;
-- atualiza documentação e evidências;
-- declara explicitamente o estado final.
+A mudança deve representar a regra correta, funcionar ponta a ponta, preservar autorização e autoria, manter desktop/mobile, passar pelos gates aplicáveis, atualizar documentação e declarar ambiente e SHA da evidência.
