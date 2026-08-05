@@ -1,20 +1,20 @@
 # AGENTS.md — RADAR PDDE 2026
 
-**Atualizado em:** 3 de agosto de 2026
+**Atualizado em:** 5 de agosto de 2026
 
 ## 1. Leitura obrigatória
 
 Antes de analisar ou alterar o repositório, leia:
 
-1. `docs/CURRENT_STAGE.md` — estado transitório, bloqueadores e próxima decisão;
-2. `docs/ROADMAP_ATUALIZACOES_2026.md` — atualizações técnicas, modernização e evolução funcional;
-3. `docs/PROJECT_CONTEXT.md` — domínio e arquitetura estáveis;
-4. `docs/DECISION_LOG.md` — decisões vigentes e substituídas;
-5. `docs/reference/STATUS_DOCUMENTOS.md` — validade dos documentos;
-6. a arquitetura específica da frente;
-7. o código remoto real da `main`, PRs relevantes e ambientes correspondentes.
+1. `docs/CURRENT_STAGE.md` — estado corrente, ambientes, prioridades e pendências;
+2. `docs/PROJECT_CONTEXT.md` — produto, domínio e arquitetura vigente;
+3. `docs/ROADMAP_ATUALIZACOES_2026.md` — manutenção, confiabilidade e evolução;
+4. `docs/DECISION_LOG.md` — decisões duradouras;
+5. `docs/reference/STATUS_DOCUMENTOS.md` — validade documental;
+6. a arquitetura e o runbook específicos da frente;
+7. código remoto, PRs, Vercel e Supabase correspondentes.
 
-Documentos históricos não prevalecem sobre código, ambientes e decisões posteriores.
+Documentos históricos não prevalecem sobre código, ambientes ou decisões posteriores.
 
 ## 2. Identidade do produto
 
@@ -28,9 +28,10 @@ Toda entrega deve ser avaliada por:
 - coerência entre perfis, telas e dados;
 - integridade, rastreabilidade e auditabilidade;
 - acessibilidade e equivalência mobile;
-- clareza da próxima ação.
+- clareza da próxima ação;
+- confiabilidade ponta a ponta.
 
-Passar em testes técnicos não basta quando a funcionalidade está difícil de localizar, compreender ou operar.
+Uma função não está pronta apenas porque aparece na interface ou passa em teste unitário.
 
 ## 3. Fontes de verdade
 
@@ -41,46 +42,34 @@ Para determinar o estado implementado:
 3. artefato implantado na Vercel e seu SHA;
 4. testes e evidências reproduzíveis;
 5. decisões expressas vigentes;
-6. `docs/CURRENT_STAGE.md`;
-7. `docs/ROADMAP_ATUALIZACOES_2026.md`;
-8. `docs/PROJECT_CONTEXT.md` e contratos de arquitetura;
-9. documentos históricos.
+6. documentação canônica;
+7. documentos históricos.
 
 A orientação mais recente do responsável define intenção e prioridade, mas afirmação técnica deve ser confirmada nas fontes operacionais.
 
 ## 4. Estado operacional de referência
 
 ```text
+GitHub main: f812e5dbf3aaa18fb9851948445b0820ac7a5435
+Vercel Production: dpl_7G3Wmh1YiV4c4aXVwe2P5tN7N7Y4 — READY
+Commit publicado: f812e5dbf3aaa18fb9851948445b0820ac7a5435
 Supabase: scnryinorqeucbfkioxo — ACTIVE_HEALTHY
+PostgreSQL: 17.6.1.147
 Production dataMode: supabase-production
-repositório canônico: SupabaseRepository
-contingência: LocalStorageRepository por novo build controlado
+Migrations aplicadas: 25
 closing_competence: 2026-12
-migrations: 25 versões alinhadas
-Node: 24.x
-ciclos funcionais 1–5: concluídos e publicados
-Rodadas 0, 1 e 2 de atualização: concluídas
-Rodada 2: publicada em dpl_2Sgq4LJKvSvXro81EYwFJHYEHHqp
-Rodada 3B: Supabase CLI 2.110.0 integrada à main, sem necessidade de Production
-Excel SME: concluído, homologado sem reparo e publicado
-liberação oficial: ainda não declarada
+app_config.row_version: 20
+Edge Function team-account-management: ACTIVE, versão 95, JWT obrigatório
+Node.js: 24.x
+Excel SME: 27 colunas A:AA, homologado e publicado
+Gestão de Equipe: corrigida e publicada
+Monitor geral de Production: ativo
+Incidentes automáticos: ativos
+PR #141: aberto em rascunho, não integrado
+Liberação oficial: ainda não declarada
 ```
 
-Baseline da `main` após a Rodada 3B:
-
-```text
-520b51e7080ddae0f4e3f03cf4c045cbea0a233d
-```
-
-Commit funcional vigente em Production:
-
-```text
-f72a1471023f00eec0bc615c192fd25f5c29a920
-```
-
-A migration SME está reconciliada no identificador canônico `20260728182226`. O teste `tests/unit/sme-migration-history-alignment.test.js` protege versão, ausência do identificador derivado e hash.
-
-Revalidar dados mutáveis antes de qualquer tarefa dependente do estado atual.
+Revalidar informações mutáveis antes de tarefa dependente do ambiente.
 
 ## 5. Perfis e autorização
 
@@ -91,11 +80,11 @@ Perfis funcionais visíveis:
 - Gestão SME (`sme_management`);
 - Equipe de Inventário (`inventory`).
 
-`technical_admin` é papel técnico separado. Administra infraestrutura, perfis, escopos, importações e auditoria; pode simular a organização visual dos perfis, mas não substitui testes com contas operacionais reais.
+`technical_admin` é papel técnico separado. Administra infraestrutura, perfis, escopos, importações e auditoria; pode simular a organização visual, mas não substitui contas operacionais reais.
 
 ### Assistente
 
-A Assistente de Verbas Federais é a liderança direta da equipe da GAD/CRE e possui gestão autorizada de Controladores e Equipe de Inventário, incluindo conta, convite, distribuição de escolas, desativação, Auth, RLS e auditoria.
+A Assistente lidera a equipe da GAD/CRE e possui gestão autorizada de Controladores e Inventário, incluindo conta, convite, redistribuição, desativação, Auth, RLS e auditoria.
 
 ### Carteiras dos Controladores
 
@@ -103,14 +92,13 @@ A carteira representa responsabilidade principal e filtro inicial. Controladores
 
 ### Gestão SME
 
-Nas superfícies definidas:
-
 - consulta identificação e bonificação;
 - não visualiza análise técnica;
 - não executa mutações operacionais em Pendências;
-- consulta Registros Internos somente quando `actor_user_id = auth.uid()`.
+- consulta Registros Internos somente quando `actor_user_id = auth.uid()`;
+- acessa configurações autorizadas pelo produto e pelo Supabase.
 
-A restrição deve existir cumulativamente em capacidades, componentes, handlers, serviços e RLS.
+A frente de programas deve ser confirmada como decisão funcional antes de qualquer expansão ou retirada, pois havia separação anterior dessa etapa.
 
 ## 6. Regra de impacto entre camadas
 
@@ -119,11 +107,16 @@ Toda alteração deve verificar, conforme o caso:
 ```text
 layout/frontend
 → visibilidade e capacidade por perfil
+→ handler
 → domínio e serviço de aplicação
 → contrato de persistência
-→ banco/migration/RPC
+→ tabela, migration, RPC ou Edge Function
 → Auth/RLS
 → autoria e auditoria
+→ retorno e estado em memória
+→ nova renderização
+→ releitura após refresh
+→ erro e compensação
 → testes unitários, pgTAP e E2E
 → documentação e evidências
 → build/deployment
@@ -131,47 +124,48 @@ layout/frontend
 
 Uma tarefa não está concluída quando apenas uma camada foi alterada.
 
-## 7. Avaliação tecnológica proativa
+## 7. Contrato de confiabilidade funcional
 
-Toda tarefa — correção, melhoria visual, mudança de fluxo ou nova funcionalidade — deve avaliar se o resultado fica materialmente melhor com atualização, instalação ou capacidade tecnológica moderna.
+Para cada função crítica, comprovar:
 
-Não ficar preso aos limites da implementação atual quando existir caminho maduro, seguro e compatível para solução superior.
+1. disponibilidade para o perfil correto;
+2. ausência para o perfil indevido;
+3. acionamento real no navegador;
+4. payload e competência corretos;
+5. serviço, repositório e backend corretos;
+6. autorização positiva e negativa;
+7. consulta ou gravação concluída;
+8. interface atualizada;
+9. resultado preservado após recarregar;
+10. conflito de versão tratado;
+11. falha parcial compensada;
+12. mensagem útil ao usuário;
+13. regressão permanente no CI.
 
-### 7.1 Quando a proposta é obrigatória
+Os casos do Excel SME e da Gestão de Equipe demonstram que validar somente o DOM, somente o código ou somente o banco é insuficiente.
 
-Apresentar proposta tecnológica quando:
+## 8. Garantia operacional contínua
 
-- a solução possível na pilha atual for paliativa;
-- uma queixa ou erro decorrer de limitação estrutural da tecnologia usada;
-- biblioteca ou capacidade especializada melhorar materialmente acessibilidade, segurança, desempenho, consistência ou manutenção;
-- o recurso solicitado puder ser entregue com maior robustez por ampliação tecnológica;
-- insistir na abordagem existente reduzir perceptivelmente a qualidade final;
-- correção de layout, tabela, formulário, diálogo, gráfico, cache, sincronização ou navegação estiver sendo resolvida artesanalmente apesar de existir solução especializada pertinente.
+### Monitor de Production
 
-### 7.2 Conteúdo mínimo da proposta
+`.github/workflows/production-system-smoke.yml` deve permanecer capaz de validar:
 
-Informar:
+- commit publicado;
+- manifesto, shell e assets;
+- gate de autenticação;
+- bloqueio anônimo do Supabase;
+- preflight de todas as Edge Functions catalogadas;
+- execução após `push`, a cada hora e manualmente.
 
-1. problema ou limite observado;
-2. tecnologia, atualização ou capacidade sugerida;
-3. ganho concreto para usuários e projeto;
-4. alternativa sem nova dependência;
-5. custo, risco e manutenção adicional;
-6. impacto em bundle, carregamento, dados, permissões, LGPD e ambientes;
-7. testes, rollback e evidências necessários;
-8. necessidade de Vercel, Supabase ou ambas.
+### Incidentes automáticos
 
-### 7.3 Limites
+Falha confirmada abre ou atualiza incidente automático; recuperação confirmada encerra o incidente. Issues humanas e pull requests não podem ser alterados.
 
-- proposta não significa autorização de instalação;
-- não ampliar escopo silenciosamente;
-- não instalar pacote apenas por novidade;
-- manter solução existente quando ela produzir resultado equivalente com menor custo;
-- seguir ADR-020, ADR-038 e ADR-039;
-- separar atualização, integração funcional e ativação de Production quando isso melhorar segurança e rastreabilidade;
-- registrar oportunidade nova no roadmap quando ela não for executada no ciclo atual.
+### Integridade dos dados
 
-## 8. Superfícies e dispositivos
+O PR nº 141 é trabalho em andamento. Não registrar sua 26ª migration ou seu workflow como integrados enquanto o PR estiver aberto.
+
+## 9. Superfícies e dispositivos
 
 Examinar:
 
@@ -183,16 +177,16 @@ Examinar:
 - Gestão de Equipe;
 - Capital e Inventário;
 - Registros Internos;
-- configurações e visões SME;
+- configurações SME;
 - relatórios e exportações;
 - desktop, Android e iPhone;
-- estados vazios, filtros, menus e modais;
+- estados vazios, filtros, busca, menus e modais;
 - permissões positivas e negativas;
 - última movimentação, próxima ação, prazo e responsável.
 
 Mobile pode reorganizar tabelas em cartões, mas não remover informação ou capacidade essencial.
 
-## 9. Contratos de produto
+## 10. Contratos de produto
 
 - uma única competência global `YYYY-MM`;
 - janeiro a dezembro de 2026 disponíveis conforme permissão;
@@ -200,22 +194,24 @@ Mobile pode reorganizar tabelas em cartões, mas não remover informação ou ca
 - timeline como projeção somente leitura;
 - navegação contextual preservando competência, rota, filtros, rolagem e foco;
 - relatório institucional XLSX de quatro abas;
-- Excel SME mensal de uma aba;
+- Excel SME mensal de uma aba e 27 colunas A:AA;
 - CSV legado como secundário e fallback;
-- Excel SME sem `dataValidations`.
+- Excel SME sem `dataValidations` incompatíveis;
+- posições-fonte K, R e Y removidas somente na projeção pública do Excel SME;
+- campos administrativos posteriores preservados.
 
-A homologação manual do Excel SME no Microsoft Excel desktop está concluída e não deve ser tratada como pendência. O relatório institucional é produto preexistente e independente; eventual homologação manual desse arquivo pertence ao gate global de release, não ao escopo encerrado do Excel SME.
+A homologação manual do Excel SME no Microsoft Excel desktop está concluída. O relatório institucional é produto independente.
 
-## 10. Persistência e Supabase
+## 11. Persistência e Supabase
 
 Contrato único:
 
 - `SupabaseRepository` — canônico em Preview e Production;
-- `LocalStorageRepository` — desenvolvimento controlado e contingência excepcional.
+- `LocalStorageRepository` — desenvolvimento controlado e contingência excepcional por novo build.
 
 Regras:
 
-- usar serviços de aplicação e portas existentes;
+- usar serviços e portas existentes;
 - operações compostas devem ser atômicas;
 - conflitos usam `row_version`;
 - somente chave publicável chega ao navegador;
@@ -223,30 +219,60 @@ Regras:
 - migrations são versionadas e aplicadas em ordem;
 - nenhum seed institucional implícito;
 - importação usa validação, staging, reconciliação, promoção e rollback;
-- RLS reflete exatamente as capacidades aprovadas;
+- RLS reflete capacidades aprovadas;
 - Edge Functions administrativas exigem JWT e papel autorizado;
 - nenhuma alteração remota sem escopo e autorização.
 
-### Histórico de migrations
+Production possui 25 migrations na data de corte. A 26ª migration do PR nº 141 não pertence à `main` nem ao ambiente remoto.
+
+## 12. Gestão de Equipe e Edge Function
+
+Fluxo vigente:
 
 ```text
-arquivo canônico: 20260728182226_sme_access_governance.sql
-registro remoto: 20260728182226
-registro derivado 20260728190344: ausente
-SHA-256: cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
+DirectoryService
+→ TeamAccountGateway
+→ team-account-management
+→ Auth Admin + RPC transacional
 ```
 
-Antes de migration futura:
+Preservar:
 
-- `supabase migration list --linked`;
-- teste de alinhamento SME;
-- reset local, pgTAP, lint e tipos;
-- backup/restauração descartáveis;
-- `db push --linked --dry-run`;
-- plano de rollback;
-- nenhuma edição direta do histórico.
+- CORS fail-closed;
+- allowlist canônica;
+- preflight remoto;
+- JWT obrigatório;
+- papel da Assistente;
+- recuperação segura de vínculos legados;
+- rejeição de divergência ambígua;
+- compensação quando Auth ou banco falhar;
+- testes de cadastro, edição, redistribuição e desativação.
 
-## 11. Backup e restauração
+## 13. Excel SME
+
+Contrato vigente:
+
+```text
+template-fonte: 30 colunas
+produto público: 27 colunas A:AA
+motor: ExcelJS 4.4.0
+competência: mensal e estrita
+```
+
+O renderer:
+
+1. valida K, R e Y como `SISTEMÁTICA PREENCHIDA` no template-fonte;
+2. remove as posições em ordem decrescente;
+3. valida os 27 cabeçalhos restantes;
+4. usa o cadastro atual para A:D;
+5. grava designação como texto `XX.XX.XXX`;
+6. aplica bordas e alinhamentos;
+7. preserva filtro, impressão e congelamento;
+8. certifica OOXML e reabertura.
+
+Template e ExcelJS devem estar presentes no artefato publicado e corresponder ao manifesto de hashes.
+
+## 14. Backup e restauração
 
 Gate canônico:
 
@@ -256,37 +282,37 @@ scripts/verify-supabase-backup-restore.mjs
 npm run test:backup-restore
 ```
 
-O teste deve:
+O teste deve usar somente pilhas descartáveis, comparar schema, dados, Auth e migrations e publicar apenas `evidence.json`.
 
-1. usar somente pilhas locais descartáveis;
-2. exigir `RADAR_ALLOW_DISPOSABLE_BACKUP_RESTORE=true`;
-3. gerar dumps lógicos de papéis, schema, dados e histórico;
-4. restaurar em segunda pilha isolada por `SUPABASE_WORKDIR`;
-5. copiar as Edge Functions exigidas pela configuração antes de iniciar a pilha de restauração;
-6. comparar schema, dados, Auth e migrations;
-7. publicar somente `evidence.json`;
-8. destruir as pilhas ao final;
-9. nunca usar `--linked`, segredo remoto ou Production.
+## 15. Recursos e dependências
 
-A Rodada 3B comprovou esse contrato com Supabase CLI 2.110.0.
+Versões correntes:
 
-## 12. Recursos dependentes de plano
+```text
+@playwright/test 1.62.0
+@supabase/supabase-js 2.110.8
+supabase CLI 2.110.0
+eslint 10.8.0
+eslint-plugin-playwright 2.10.5
+knip 6.29.0
+exceljs 4.4.0
+```
 
-A checagem de credenciais comprometidas é restrita pelo Supabase ao plano Pro ou superior. O projeto está no plano Free e não possui autorização de despesa. Esse recurso não é requisito de liberação enquanto essa condição permanecer; reavaliar após eventual mudança de plano.
+Atualizações menores abertas devem ser tratadas em PRs isolados. Supabase JS/CLI exige bateria completa de Auth, RLS, Edge Function, migrations, backup/restauração e perfis.
 
-## 13. Vercel
+Não atualizar ExcelJS sem necessidade comprovada e nova homologação no Excel desktop.
 
-- separar Production, Preview e local;
-- Production usa `supabase-production`;
-- Preview conectado usa `supabase-preview`;
-- validar `radar-build-manifest.json`;
-- confirmar correspondência entre deployment e SHA;
+## 16. Vercel
+
+- distinguir Production, Preview e local;
+- confirmar `radar-build-manifest.json`;
+- verificar correspondência entre deployment e SHA;
 - não promover Preview como Production;
-- manter deployments automáticos bloqueados fora de janela controlada;
-- não publicar mudança documental ou ferramenta interna como funcional;
-- distinguir explicitamente mudança integrada à `main` de mudança presente em Production.
+- distinguir `target: production` de Preview;
+- não tratar deployment de branch como publicação oficial;
+- monitorar assets críticos e preflight após `push` na `main`.
 
-## 14. Git e integração
+## 17. Git e integração
 
 Não trabalhar diretamente na `main`.
 
@@ -294,16 +320,18 @@ Fluxo obrigatório:
 
 1. confirmar HEAD remoto;
 2. criar branch específica;
-3. escrever teste que falha quando aplicável;
+3. criar teste vermelho quando aplicável;
 4. implementar mudança mínima coerente;
 5. executar gates;
-6. abrir PR com riscos, limites e evidências;
+6. abrir PR em rascunho com riscos, limites e evidências;
 7. confirmar checks no SHA final;
-8. fazer merge somente após conclusão integral.
+8. apresentar diff e estado;
+9. fazer merge somente após autorização expressa;
+10. publicar em Production somente após autorização expressa.
 
 Não misturar funcionalidade, arquitetura, dependências, migration, ativação remota e polimento não relacionado no mesmo PR.
 
-## 15. Testes e conclusão
+## 18. Testes e conclusão
 
 Usar `npm run test:readiness` como gate base e acrescentar, conforme impacto:
 
@@ -316,40 +344,32 @@ Usar `npm run test:readiness` como gate base e acrescentar, conforme impacto:
 - certificação Excel;
 - precedência do frontend;
 - build Vercel;
-- Advisors;
+- smoke de Production;
+- preflight remoto;
 - homologação manual;
 - UAT.
 
-A conclusão exige:
+A conclusão exige testes aplicáveis verdes no SHA final, documentação atualizada e nenhum segredo no diff ou artefato.
 
-- testes aplicáveis verdes no SHA final;
-- ausência de regressão relevante;
-- documentação atualizada;
-- nenhum segredo no diff ou artefato;
-- correspondência entre commit, build e deployment quando houver publicação;
-- relato explícito quando não existir workflow associado ao SHA.
+## 19. Prioridade corrente
 
-## 16. Gates globais de liberação oficial
+1. concluir a reconciliação documental;
+2. criar matriz funcional completa;
+3. implantar smoke autenticado de leitura;
+4. implantar provas controladas de escrita e compensação;
+5. concluir ou reavaliar o PR nº 141;
+6. atualizar dependências menores;
+7. realizar UAT e decisão formal de liberação.
 
-Permanecem pendentes no processo geral do produto, sem constituir pendência do Excel SME ou das rodadas técnicas:
-
-1. homologação manual do relatório institucional preexistente no Microsoft Excel desktop, caso essa frente seja priorizada;
-2. revisão dos Advisors quando aplicável;
-3. UAT funcional;
-4. polimento editorial e visual;
-5. decisão formal de release.
-
-Não declarar o produto oficialmente liberado antes do gate cumulativo.
-
-## 17. Prevenção de loops
+## 20. Prevenção de loops
 
 Ao concluir PR relevante:
 
 - atualizar `docs/CURRENT_STAGE.md`;
-- atualizar `docs/ROADMAP_ATUALIZACOES_2026.md` quando houver item técnico ou funcional afetado;
-- registrar decisões duradouras em `docs/DECISION_LOG.md`;
-- atualizar `docs/PROJECT_CONTEXT.md` quando necessário;
-- atualizar contratos e evidências;
-- classificar documentos substituídos ou históricos;
-- registrar oportunidades tecnológicas identificadas e não executadas;
-- não iniciar nova frente antes de declarar a anterior concluída, bloqueada, adiada ou substituída.
+- atualizar o roadmap;
+- registrar decisões duradouras;
+- atualizar contexto e arquitetura;
+- atualizar matriz documental;
+- registrar evidência do mesmo SHA;
+- declarar a frente concluída, bloqueada, adiada ou substituída;
+- não iniciar nova frente antes de fechar o estado da anterior.
