@@ -3,6 +3,7 @@ import { createClient, type User } from "npm:@supabase/supabase-js@2.110.9";
 import {
   buildInviteMetadata,
   isTeamManagerRole,
+  normalizeEmail,
   normalizeTeamCommand,
 } from "../_shared/team-account-domain.mjs";
 import { corsHeadersForOrigin } from "../_shared/cors-policy.mjs";
@@ -57,7 +58,14 @@ function publicError(error: unknown): { code: string; message: string; status: n
     return { code: "VALIDATION_FAILED", message: message.replace(/^.*VALIDATION_ERROR:\s*/i, ""), status: 400 };
   }
   if (/already|registered|duplicate|unique|vinculad|ACCOUNT_CONFLICT/i.test(message)) {
-    return { code: "ACCOUNT_CONFLICT", message: "O e-mail ou a conta já está vinculado a outro integrante.", status: 409 };
+    const activeBinding = message.match(/ACCOUNT_CONFLICT:\s*(desative o vínculo atual antes de alterar a função[^.]*)/i);
+    return {
+      code: "ACCOUNT_CONFLICT",
+      message: activeBinding?.[1]
+        ? `${activeBinding[1]}.`
+        : "O e-mail ou a conta já está vinculado a outro integrante.",
+      status: 409,
+    };
   }
   return { code: "TEAM_ACCOUNT_OPERATION_FAILED", message: "Não foi possível concluir a gestão de acesso da equipe.", status: 500 };
 }
@@ -164,6 +172,60 @@ async function authUser(admin: ReturnType<typeof createClient>, userId: string):
   return data.user || null;
 }
 
+async function authUserByEmail(
+  admin: ReturnType<typeof createClient>,
+  email: string,
+): Promise<User | null> {
+  const normalizedEmail = normalizeEmail(email);
+  const matches: User[] = [];
+  const perPage = 100;
+
+  for (let page = 1; page <= 100; page += 1) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
+    if (error) throw error;
+    const users = data.users || [];
+    matches.push(...users.filter((user: User) =>
+      String(user.email || "").trim().toLowerCase() === normalizedEmail
+    ));
+    if (users.length < perPage) break;
+  }
+
+  if (matches.length > 1) {
+    throw new Error("ACCOUNT_CONFLICT: mais de uma conta Auth encontrada para o mesmo e-mail");
+  }
+  return matches[0] || null;
+}
+
+async function assertReusableAccount(
+  admin: ReturnType<typeof createClient>,
+  userId: string,
+  targetProfileId: string,
+  targetEntityId: string,
+) {
+  const { data, error } = await admin
+    .from("user_profiles")
+    .select("profile_id,controller_id,inventory_member_id,active")
+    .eq("user_id", userId)
+    .eq("active", true)
+    .limit(2);
+  if (error) throw error;
+
+  const conflicting = (data || []).find((profile: {
+    profile_id?: string | null;
+    controller_id?: string | null;
+    inventory_member_id?: string | null;
+  }) => {
+    const linkedEntityId = targetProfileId === "controller"
+      ? profile.controller_id
+      : profile.inventory_member_id;
+    return profile.profile_id !== targetProfileId || linkedEntityId !== targetEntityId;
+  });
+
+  if (conflicting) {
+    throw new Error("ACCOUNT_CONFLICT: desative o vínculo atual antes de alterar a função");
+  }
+}
+
 function compensationFailure(action: string, cause: unknown): Error {
   const reason = String((cause as { message?: string })?.message || "erro não informado");
   return new Error(`COMPENSATION_FAILED: ${action}: ${reason}`);
@@ -178,6 +240,13 @@ async function removeInvitedUser(admin: ReturnType<typeof createClient>, userId:
   }
 }
 
+function restorationBanDuration(previousUser: User): string {
+  const bannedUntil = Date.parse(String(previousUser.banned_until || ""));
+  const remainingMs = bannedUntil - Date.now();
+  if (!Number.isFinite(bannedUntil) || remainingMs <= 0) return "none";
+  return `${Math.max(1, Math.ceil(remainingMs / 3_600_000))}h`;
+}
+
 async function restoreUser(
   admin: ReturnType<typeof createClient>,
   userId: string,
@@ -187,7 +256,7 @@ async function restoreUser(
     const { error } = await admin.auth.admin.updateUserById(userId, {
       email: previousUser.email,
       user_metadata: previousUser.user_metadata,
-      ban_duration: "none",
+      ban_duration: restorationBanDuration(previousUser),
     });
     if (error) throw error;
   } catch (error) {
@@ -195,9 +264,15 @@ async function restoreUser(
   }
 }
 
-async function restoreAccess(admin: ReturnType<typeof createClient>, userId: string) {
+async function restoreAccess(
+  admin: ReturnType<typeof createClient>,
+  userId: string,
+  previousUser: User,
+) {
   try {
-    const { error } = await admin.auth.admin.updateUserById(userId, { ban_duration: "none" });
+    const { error } = await admin.auth.admin.updateUserById(userId, {
+      ban_duration: restorationBanDuration(previousUser),
+    });
     if (error) throw error;
   } catch (error) {
     throw compensationFailure("não foi possível restaurar o acesso da conta", error);
@@ -219,12 +294,23 @@ async function saveMember(
     existing?.user_id,
   );
   let createdUser = false;
+  let reusedExistingAccount = false;
   let previousUser: User | null = null;
 
   try {
+    if (!userId) {
+      const existingAuthUser = await authUserByEmail(admin, entity.email);
+      if (existingAuthUser) {
+        userId = existingAuthUser.id;
+        previousUser = existingAuthUser;
+        reusedExistingAccount = true;
+      }
+    }
+
     if (userId) {
-      previousUser = await authUser(admin, userId);
+      previousUser = previousUser || await authUser(admin, userId);
       if (!previousUser) throw new Error("NOT_FOUND: conta Auth vinculada não localizada");
+      await assertReusableAccount(admin, userId, command.profileId, entity.id);
       const { error } = await admin.auth.admin.updateUserById(userId, {
         email: entity.email,
         user_metadata: metadata,
@@ -249,7 +335,14 @@ async function saveMember(
       p_administrative_log: command.administrativeLog,
     });
     if (error) throw error;
-    return { ok: true, userId, invited: createdUser, recoveredLink: Boolean(!existing?.user_id && userId), result: data };
+    return {
+      ok: true,
+      userId,
+      invited: createdUser,
+      reusedExistingAccount,
+      recoveredLink: Boolean(!existing?.user_id && !createdUser && userId),
+      result: data,
+    };
   } catch (error) {
     if (createdUser && userId) {
       await removeInvitedUser(admin, userId);
@@ -273,9 +366,12 @@ async function deactivateMember(
     command.entityId!,
     existing.user_id,
   );
+  let previousUser: User | null = null;
   let banned = false;
   try {
     if (userId) {
+      previousUser = await authUser(admin, userId);
+      if (!previousUser) throw new Error("NOT_FOUND: conta Auth vinculada não localizada");
       const { error } = await admin.auth.admin.updateUserById(userId, {
         ban_duration: "876000h",
       });
@@ -302,8 +398,8 @@ async function deactivateMember(
     if (error) throw error;
     return { ok: true, userId, accessDisabled: Boolean(userId), recoveredLink: Boolean(!existing.user_id && userId), result: data };
   } catch (error) {
-    if (banned && userId) {
-      await restoreAccess(admin, userId);
+    if (banned && userId && previousUser) {
+      await restoreAccess(admin, userId, previousUser);
     }
     throw error;
   }
