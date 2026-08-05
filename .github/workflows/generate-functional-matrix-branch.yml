@@ -32,7 +32,7 @@ jobs:
       - name: Versionar somente o arquivo gerado
         shell: bash
         run: |
-          if git diff --quiet -- docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md; then
+          if [[ -z "$(git status --porcelain -- docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md)" ]]; then
             echo "A matriz gerada já está atualizada."
             exit 0
           fi
