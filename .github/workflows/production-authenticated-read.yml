@@ -1,0 +1,156 @@
+name: Smoke autenticado de leitura em Production
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 */6 * * *'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/production-authenticated-read.yml'
+      - 'playwright.production-authenticated-read.config.js'
+      - 'tests/e2e/production-authenticated-read.spec.js'
+      - 'tests/support/production-authenticated-read.js'
+      - 'tests/unit/production-authenticated-read.test.js'
+      - 'tests/unit/production-authenticated-read-workflow.test.js'
+      - 'docs/superpowers/plans/2026-08-05-smoke-autenticado-leitura-production.md'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-authenticated-read
+  cancel-in-progress: false
+
+env:
+  RADAR_PRODUCTION_URL: https://radarpdde-fix.vercel.app
+
+jobs:
+  contracts:
+    name: Contratos do smoke autenticado
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+
+    steps:
+      - name: Obter código sem persistir credenciais
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          check-latest: false
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+
+      - name: Validar sintaxe e contratos sem acessar Production
+        run: |
+          set -euo pipefail
+          node --check tests/support/production-authenticated-read.js
+          node --check tests/e2e/production-authenticated-read.spec.js
+          node --check playwright.production-authenticated-read.config.js
+          node --test \
+            tests/unit/production-authenticated-read.test.js \
+            tests/unit/production-authenticated-read-workflow.test.js
+
+  authenticated-read:
+    name: Cinco perfis × seis leituras reais
+    if: github.event_name != 'pull_request' && vars.RADAR_PRODUCTION_AUTH_READ_ENABLED == 'true'
+    needs: contracts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    steps:
+      - name: Obter código sem persistir credenciais
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+          check-latest: false
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+
+      - name: Instalar Chromium homologado
+        run: npx playwright install --with-deps chromium
+
+      - name: Preparar contas técnicas sem expor credenciais
+        id: credentials
+        shell: bash
+        env:
+          ACCOUNTS_JSON: ${{ secrets.RADAR_PRODUCTION_READ_ACCOUNTS_JSON }}
+        run: |
+          set -euo pipefail
+          umask 077
+          if [ -z "${ACCOUNTS_JSON:-}" ]; then
+            echo 'O segredo RADAR_PRODUCTION_READ_ACCOUNTS_JSON não está configurado.' >&2
+            exit 1
+          fi
+          ACCOUNTS_FILE="${RUNNER_TEMP}/radar-production-read-accounts.json"
+          printf '%s' "${ACCOUNTS_JSON}" > "${ACCOUNTS_FILE}"
+          chmod 600 "${ACCOUNTS_FILE}"
+          printf 'accounts_file=%s\n' "${ACCOUNTS_FILE}" >> "${GITHUB_OUTPUT}"
+
+      - name: Executar leituras autenticadas sem mutação operacional
+        id: smoke
+        env:
+          RADAR_E2E_PRODUCTION_AUTHENTICATED_READ: '1'
+          RADAR_PRODUCTION_READ_ACCOUNTS_FILE: ${{ steps.credentials.outputs.accounts_file }}
+        run: npx playwright test --config=playwright.production-authenticated-read.config.js
+
+      - name: Remover material de autenticação
+        if: always()
+        shell: bash
+        env:
+          ACCOUNTS_FILE: ${{ steps.credentials.outputs.accounts_file }}
+        run: |
+          set -euo pipefail
+          if [ -n "${ACCOUNTS_FILE:-}" ]; then
+            rm -f -- "${ACCOUNTS_FILE}"
+          fi
+
+      - name: Resumir execução sem dados institucionais
+        if: always()
+        shell: bash
+        env:
+          SMOKE_OUTCOME: ${{ steps.smoke.outcome }}
+        run: |
+          {
+            echo '### Smoke autenticado de leitura em Production'
+            echo
+            echo "- Resultado: \`${SMOKE_OUTCOME:-não executado}\`"
+            echo '- Perfis: Controlador, Assistente, Inventário, Gestão SME e Administrador técnico.'
+            echo '- Operações: autenticação/sessão, busca, dashboard, carteira autorizada, prontuário e pendências.'
+            echo '- Regra: nenhuma alteração operacional, nenhum trace, screenshot, vídeo ou dado institucional publicado.'
+            echo "- Evento: \`${GITHUB_EVENT_NAME}\`"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+  provisioning-required:
+    name: Provisionamento protegido pendente
+    if: github.event_name != 'pull_request' && vars.RADAR_PRODUCTION_AUTH_READ_ENABLED != 'true'
+    needs: contracts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+
+    steps:
+      - name: Registrar estado sem falhar o monitor
+        run: |
+          {
+            echo '### Smoke autenticado de leitura em Production'
+            echo
+            echo '- Estado: aguardando cinco contas técnicas dedicadas e o segredo protegido.'
+            echo '- Nenhuma conta pessoal foi reutilizada e nenhuma identidade foi criada automaticamente.'
+            echo '- Para ativar: configurar o segredo `RADAR_PRODUCTION_READ_ACCOUNTS_JSON` e a variável `RADAR_PRODUCTION_AUTH_READ_ENABLED=true`.'
+          } >> "${GITHUB_STEP_SUMMARY}"
