@@ -27,7 +27,8 @@ declare
         '202607230001',
         '20260723043129',
         '20260728182226',
-        '202608040001'
+        '202608040001',
+        '202608050001'
     ];
     v_actual text[];
     v_missing_extensions text[];
@@ -84,11 +85,35 @@ begin
         raise exception 'PRODUCTION_INTEGRITY_PRIVILEGES_INVALID';
     end if;
 
+    if to_regprocedure('public.enforce_school_controller_assignment_authorization()') is null then
+        raise exception 'SCHOOL_ASSIGNMENT_AUTHORIZATION_FUNCTION_MISSING';
+    end if;
+
+    if not exists (
+        select 1
+          from pg_trigger trigger_definition
+          join pg_class relation on relation.oid = trigger_definition.tgrelid
+          join pg_namespace relation_schema on relation_schema.oid = relation.relnamespace
+         where relation_schema.nspname = 'public'
+           and relation.relname = 'schools'
+           and trigger_definition.tgname = 'schools_controller_assignment_authorization'
+           and not trigger_definition.tgisinternal
+    ) then
+        raise exception 'SCHOOL_ASSIGNMENT_AUTHORIZATION_TRIGGER_MISSING';
+    end if;
+
+    if has_function_privilege('anon', 'public.enforce_school_controller_assignment_authorization()', 'EXECUTE')
+       or not has_function_privilege('authenticated', 'public.enforce_school_controller_assignment_authorization()', 'EXECUTE')
+       or not has_function_privilege('service_role', 'public.enforce_school_controller_assignment_authorization()', 'EXECUTE') then
+        raise exception 'SCHOOL_ASSIGNMENT_AUTHORIZATION_PRIVILEGES_INVALID';
+    end if;
+
     if (select prosecdef from pg_proc where oid = 'public.current_app_role()'::regprocedure)
        or (select prosecdef from pg_proc where oid = 'public.can_access_school(text)'::regprocedure)
        or (select prosecdef from pg_proc where oid = 'public.can_write_school(text)'::regprocedure)
        or (select prosecdef from pg_proc where oid = 'public.delete_invoice_with_effects(text,integer,boolean,integer,jsonb,integer,jsonb)'::regprocedure)
-       or (select prosecdef from pg_proc where oid = 'public.production_integrity_check()'::regprocedure) then
+       or (select prosecdef from pg_proc where oid = 'public.production_integrity_check()'::regprocedure)
+       or (select prosecdef from pg_proc where oid = 'public.enforce_school_controller_assignment_authorization()'::regprocedure) then
         raise exception 'PUBLIC_SECURITY_DEFINER_STILL_EXPOSED';
     end if;
 
