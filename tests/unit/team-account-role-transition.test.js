@@ -6,22 +6,23 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const { TeamAccountGateway } = require('../../src/application/team-account-gateway.js');
+const errorMapper = require('../../src/application/error-mapper.js');
 
 const edgeSource = fs.readFileSync(
     path.resolve(__dirname, '../../supabase/functions/team-account-management/index.ts'),
     'utf8'
 );
 
-test('gateway preserva ACCOUNT_CONFLICT recebido no corpo de FunctionsHttpError', async () => {
+function gatewayReturningConflict(message = 'A conta já existe e não pode receber um novo convite.') {
     const context = new Response(JSON.stringify({
         ok: false,
         code: 'ACCOUNT_CONFLICT',
-        message: 'A conta já existe e não pode receber um novo convite.'
+        message
     }), {
         status: 409,
         headers: { 'content-type': 'application/json' }
     });
-    const gateway = new TeamAccountGateway({
+    return new TeamAccountGateway({
         enabled: true,
         client: {
             functions: {
@@ -38,6 +39,10 @@ test('gateway preserva ACCOUNT_CONFLICT recebido no corpo de FunctionsHttpError'
             }
         }
     });
+}
+
+test('gateway preserva ACCOUNT_CONFLICT recebido no corpo de FunctionsHttpError', async () => {
+    const gateway = gatewayReturningConflict();
 
     await assert.rejects(
         () => gateway.saveController({ controller: { id: 'CTRL-JULIANA' } }),
@@ -45,6 +50,30 @@ test('gateway preserva ACCOUNT_CONFLICT recebido no corpo de FunctionsHttpError'
             && error.code === 'ACCOUNT_CONFLICT'
             && error.message === 'A conta já existe e não pode receber um novo convite.'
     );
+});
+
+test('interface exibe conflito funcional em vez de falsa indisponibilidade', async () => {
+    const expectedMessage = 'Desative o vínculo atual antes de alterar a função.';
+    const gateway = gatewayReturningConflict(expectedMessage);
+    let caught;
+    try {
+        await gateway.saveController({ controller: { id: 'CTRL-JULIANA' } });
+    } catch (error) {
+        caught = error;
+    }
+
+    const originalConsoleError = globalThis.console.error;
+    globalThis.console.error = () => {};
+    try {
+        const mapped = errorMapper.showDataOperationError(caught, {
+            incidentId: 'RADAR-TEST-ACCOUNT-CONFLICT'
+        });
+        assert.equal(mapped.code, 'VALIDATION_FAILED');
+        assert.match(mapped.message, /Desative o vínculo atual antes de alterar a função\./);
+        assert.doesNotMatch(mapped.message, /temporariamente indisponível/i);
+    } finally {
+        globalThis.console.error = originalConsoleError;
+    }
 });
 
 test('Edge Function procura conta Auth pelo e-mail antes de enviar convite', () => {
