@@ -1,6 +1,6 @@
 # RADAR PDDE — Registro de decisões
 
-**Atualizado em:** 3 de agosto de 2026
+**Atualizado em:** 5 de agosto de 2026
 
 Este documento registra decisões duradouras. Não é diário de commits. Uma decisão somente é substituída por decisão expressa com impacto e status documentados.
 
@@ -208,7 +208,7 @@ Na Gestão SME:
 - Administrador técnico mantém leitura integral em sua visão técnica;
 - simulação SME reproduz o recorte visual, sem alterar JWT.
 
-A restrição é cumulativa em capacidades, handlers, serviços e RLS. Programas por exercício não integram esta decisão.
+A restrição é cumulativa em capacidades, handlers, serviços e RLS. Programas por exercício não integram esta decisão e exigem confirmação funcional própria.
 
 ---
 
@@ -233,7 +233,7 @@ Projeto autorizado: `scnryinorqeucbfkioxo`.
 
 ## ADR-024 — Documentação segue código e ambientes
 
-**Status:** Aprovada
+**Status:** Aprovada; ampliada pela ADR-042
 
 Após mudança material, atualizar READMEs, estágio, contexto, decisões, inventários e handoffs. Quando houver divergência:
 
@@ -283,7 +283,7 @@ estado canônico → modelo → workbook/OOXML → célula XLSX
 
 O botão principal institucional gera XLSX, o Excel SME possui botão próprio e o CSV permanece fallback. Cada mudança material do gerador exige proteção automatizada e homologação humana no Excel desktop antes da publicação.
 
-**Aplicação ao Excel SME:** a abertura no Microsoft Excel desktop foi concluída em 1º de agosto de 2026, sem reparo ou aviso de conteúdo inválido, e a versão homologada foi publicada. O workflow permanece como proteção regressiva; não representa gate pendente do escopo já encerrado.
+**Aplicação atual ao Excel SME:** o produto público possui 27 colunas A:AA. O template-fonte de 30 colunas é projetado com remoção exclusiva das posições K, R e Y. A versão atual foi aberta no Microsoft Excel desktop sem reparo e publicada pelos PRs nº 136 e 137.
 
 ---
 
@@ -313,6 +313,8 @@ O sistema somente será declarado liberado após jornadas por perfil, avaliaçã
 
 A decisão final deve registrar: liberado, liberado com restrições ou não liberado com bloqueadores objetivos.
 
+A ADR-041 esclarece que as jornadas devem provar o percurso ponta a ponta, não apenas telas ou camadas isoladas.
+
 ---
 
 ## ADR-032 — Disponibilização de competências reutiliza o contrato existente
@@ -321,7 +323,7 @@ A decisão final deve registrar: liberado, liberado com restrições ou não lib
 
 Quando as competências já existem e o requisito é alterar disponibilidade ou fechamento, reutilizar registros, `closing_competence`, datas e RPC/auditoria existentes. Migration adicional somente cabe quando houver mudança real de schema ou regra não representável.
 
-**Aplicação em 2026:** `closing_competence` foi alterada de `2026-05` para `2026-12`, com `row_version = 5`, sem migration nova.
+**Aplicação histórica em 2026:** `closing_competence` foi alterada de `2026-05` para `2026-12`, quando o registro alcançou `row_version = 5`, sem migration nova. `row_version` é mutável e estava em 20 na consulta de 5 de agosto de 2026.
 
 ---
 
@@ -330,8 +332,6 @@ Quando as competências já existem e o requisito é alterar disponibilidade ou 
 **Status:** Cumprida pela ADR-034
 
 Enquanto os identificadores local e remoto da migration SME divergiam, novas migrations de Production ficaram bloqueadas. O SQL era idêntico e não podia ser reaplicado, renomeado ou mascarado por migration vazia.
-
-A decisão protegeu o schema até a reconciliação suportada.
 
 ---
 
@@ -347,17 +347,7 @@ identificador derivado 20260728190344: ausente
 SHA-256 do SQL: cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
 ```
 
-A operação usou o mecanismo oficial `migration repair` para alterar somente o histórico:
-
-1. o identificador derivado foi marcado como `reverted`;
-2. o identificador canônico foi marcado como `applied`;
-3. o SQL funcional não foi executado, reaplicado ou revertido;
-4. schema e políticas permaneceram inalterados;
-5. `migration list` terminou com 25 versões correspondentes;
-6. `db push --dry-run` ficou sem migration pendente;
-7. `tests/unit/sme-migration-history-alignment.test.js` passou a proteger versão, ausência do identificador derivado e hash.
-
-**Consequência permanente:** migration futura exige histórico alinhado, teste de regressão, reset local, pgTAP, lint, tipos, dry-run, backup e rollback. `migration repair` não é rollback funcional de SQL.
+A operação usou o mecanismo oficial `migration repair` para alterar somente o histórico. O SQL funcional não foi reaplicado. Production possuía 25 versões correspondentes em 5 de agosto de 2026.
 
 **Evidência:** `docs/audits/2026-07-29-reconciliacao-migration-sme-evidencias.md`.
 
@@ -367,7 +357,7 @@ A operação usou o mecanismo oficial `migration repair` para alterar somente o 
 
 **Status:** Aprovada e implementada
 
-Node.js permanece fixado em `24.x` no projeto, Vercel e workflows. O gate remoto sobe Supabase descartável, aplica migrations e valida os cinco papéis institucionais em Desktop Chrome, Pixel 7/Chromium e iPhone 15/WebKit, sem utilizar Production.
+Node.js permanece fixado em `24.x` no projeto, Vercel e workflows. O gate remoto sobe Supabase descartável e valida os papéis institucionais em Desktop Chrome, Pixel 7/Chromium e iPhone 15/WebKit, sem utilizar Production.
 
 **Documento integral:** `docs/decisions/ADR-035-node24-e-gate-remoto.md`.
 
@@ -387,9 +377,7 @@ Backup lógico e restauração são verificados em pilhas Supabase descartáveis
 
 **Status:** Aprovada e implementada
 
-Workflows devem falhar quando chamadas estáticas verificáveis apontarem para scripts, testes, configurações Playwright, scripts npm, diretórios de trabalho, cache manifests ou Actions locais inexistentes. Expressões dinâmicas, heredocs e artefatos gerados em runtime ficam fora desse verificador conservador.
-
-O gate é executado pela validação principal e pela saúde das dependências, sem introduzir nova dependência npm.
+Workflows devem falhar quando chamadas estáticas verificáveis apontarem para scripts, testes, configurações Playwright, scripts npm, diretórios de trabalho, cache manifests ou Actions locais inexistentes.
 
 **Documento integral:** `docs/decisions/ADR-037-integridade-de-referencias-dos-workflows.md`.
 
@@ -401,7 +389,7 @@ O gate é executado pela validação principal e pela saúde das dependências, 
 
 Atualizar biblioteca, ferramenta ou Action apenas para alterar número de versão não basta quando a versão oferece capacidade útil ao RADAR. Cada atualização deve registrar motivo, recursos relevantes, integração adotada, recursos adiados, itens não aplicáveis e evidências.
 
-Não se deve forçar uso artificial de recurso novo. Atualização somente de versão é aceitável quando o ganho concreto for correção, segurança, compatibilidade, suporte ou manutenção e a ausência de integração adicional estiver justificada.
+Atualização somente de versão é aceitável quando o ganho concreto for correção, segurança, compatibilidade, suporte ou manutenção e a ausência de integração adicional estiver justificada.
 
 **Documento integral:** `docs/decisions/ADR-038-atualizacoes-com-integracao-pertinente.md`.
 
@@ -413,19 +401,40 @@ Não se deve forçar uso artificial de recurso novo. Atualização somente de ve
 
 Toda correção, melhoria de layout, mudança de fluxo ou nova capacidade deve avaliar se a tecnologia atual limita o resultado possível.
 
-Quando nova biblioteca, atualização ou capacidade moderna puder melhorar materialmente acessibilidade, desempenho, segurança, consistência, manutenção ou experiência, a proposta deve ser apresentada antes de aceitar solução paliativa ou limitada.
-
-A proposta deve informar:
-
-1. limite observado;
-2. tecnologia sugerida;
-3. ganho concreto;
-4. alternativa sem nova dependência;
-5. custo e risco;
-6. impacto em bundle, dados, permissões, LGPD e Production;
-7. testes, rollback e evidências;
-8. necessidade de Vercel, Supabase ou ambas.
-
-Propor não significa instalar. Adoção continua dependente de aprovação, branch isolada, versão fixada, análise de segurança, gates completos e implantação controlada. A solução existente permanece preferível quando entrega resultado equivalente com menor custo.
+Propor não significa instalar. Adoção depende de aprovação, branch isolada, versão fixada, análise, gates completos e implantação controlada.
 
 **Documento integral:** `docs/decisions/ADR-039-evolucao-tecnologica-proativa.md`.
+
+---
+
+## ADR-040 — Garantia operacional contínua de Production
+
+**Status:** Aprovada e implementada quanto às fases 1 e 2
+
+Production possui monitor recorrente de commit, manifesto, shell, assets, gate de autenticação, bloqueio anônimo e preflight das Edge Functions. Falha confirmada cria ou atualiza incidente automático; recuperação confirmada encerra o incidente.
+
+Integrada pelos PRs nº 139 e 140.
+
+**Documento integral:** `docs/decisions/ADR-040-garantia-operacional-contínua.md`.
+
+---
+
+## ADR-041 — Confiabilidade funcional ponta a ponta
+
+**Status:** Aprovada
+
+Função crítica somente é considerada concluída quando interface, evento, serviço, repositório, backend, Auth/RLS, persistência, retorno, renderização, releitura e compensação forem comprovados.
+
+A próxima frente deve criar matriz `perfil × tela × ação × backend × permissão × evidência`, seguida de smoke autenticado e provas controladas de escrita.
+
+**Documento integral:** `docs/decisions/ADR-041-confiabilidade-funcional-ponta-a-ponta.md`.
+
+---
+
+## ADR-042 — Reconciliação documental baseada nas fontes remotas
+
+**Status:** Aprovada
+
+Documentação corrente deve ser reconciliada com código, Supabase, Vercel, PRs e evidências. PR aberto não é integrado; Preview não é Production; migration em branch não altera a contagem remota; evidência datada não substitui estado atual.
+
+**Documento integral:** `docs/decisions/ADR-042-reconciliacao-documental-remota.md`.
