@@ -1,118 +1,110 @@
 # Decisões de produto do RADAR PDDE — índice histórico
 
 **Classificação:** referência histórica substituída  
-**Fonte decisória vigente:** [`../DECISION_LOG.md`](../DECISION_LOG.md)  
-**Atualizado em:** 29 de julho de 2026
+**Fonte vigente:** [`../DECISION_LOG.md`](../DECISION_LOG.md)  
+**Atualizado em:** 5 de agosto de 2026
 
 ## 1. Finalidade
 
-Este arquivo preserva a existência dos antigos identificadores `PD-*`, `PS-*`, `PV-*` e `PG-*`, usados em fases anteriores do projeto.
+Preservar os identificadores legados `PD-*`, `PS-*`, `PV-*` e `PG-*`. Este arquivo não controla o estado atual.
 
-Ele **não controla mais o estado atual**. Algumas decisões originais foram cumpridas, outras substituídas após a ativação do Supabase e a conclusão dos Ciclos 1 a 5.
-
-Para qualquer implementação, usar:
+Usar, nesta ordem:
 
 1. código e ambientes efetivos;
 2. [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md);
 3. [`../PROJECT_CONTEXT.md`](../PROJECT_CONTEXT.md);
 4. [`../DECISION_LOG.md`](../DECISION_LOG.md);
-5. contratos de arquitetura vigentes.
+5. contratos vigentes.
 
-## 2. Mapeamento das decisões de domínio
+## 2. Decisões de domínio
 
-| ID legado | Conteúdo preservado | Estado atual | Fonte vigente |
+| ID | Conteúdo | Estado | Fonte vigente |
 |---|---|---|---|
-| PD-001 | unidade escolar como entidade monitorada | vigente | `PROJECT_CONTEXT.md` |
-| PD-002 | bonificação, análise técnica e pendência independentes | vigente | ADR-025 e `avaliacao-mensal.md` |
-| PD-003 | novo envio não resolve pendência | vigente | `PROJECT_CONTEXT.md` |
-| PD-004 | reanálise positiva resolve; negativa reabre | vigente | `PROJECT_CONTEXT.md` |
-| PD-005 | pendência não altera automaticamente bonificação | vigente | `avaliacao-mensal.md` |
-| PD-006 | retificação não altera automaticamente análise ou pendência | vigente | `retificacoes.md` |
-| PD-007 | Aberta e Aguardando reanálise são estados ativos | vigente | `avaliacao-mensal.md` |
-| PD-008 | não existe estado canônico Vencida | vigente | contratos de pendência |
-| PD-009 | indicadores podem se sobrepor | vigente | `estatisticas.md` |
-| PD-010 | regularização não reescreve bonificação histórica | vigente | `avaliacao-mensal.md` |
-| PD-011 | notas e bens possuem regras próprias | vigente | serviços, RLS e testes |
+| PD-001 | escola como entidade monitorada | vigente | contexto do projeto |
+| PD-002 | bonificação, análise e pendência independentes | vigente | avaliação mensal |
+| PD-003 | novo envio não resolve | vigente | pendências |
+| PD-004 | reanálise positiva resolve e negativa reabre | vigente | pendências |
+| PD-005 | pendência não altera bonificação automaticamente | vigente | avaliação mensal |
+| PD-006 | retificação preserva estados independentes | vigente | retificações |
+| PD-007 | Aberta e Aguardando reanálise são ativas | vigente | pendências |
+| PD-008 | não existe estado canônico Vencida | vigente | pendências |
+| PD-009 | indicadores podem se sobrepor | vigente | estatísticas |
+| PD-010 | regularização não reescreve histórico | vigente | avaliação mensal |
+| PD-011 | notas e bens possuem regras próprias | vigente | serviços e Supabase |
 
-## 3. Mapeamento das decisões de persistência
+## 3. Persistência
 
-| ID legado | Decisão antiga | Estado atual | Sucessora |
+| ID | Decisão antiga | Estado | Sucessora |
 |---|---|---|---|
-| PS-001 | Production permanecia em LocalStorage até autorização | cumprida e substituída | ADR-023 — Production usa Supabase |
-| PS-002 | Supabase remoto ainda não implantado | substituída | ADR-023 |
-| PS-003 | Auth/RLS remotos eram etapa futura | substituída | ADR-023 e `supabase-readiness.md` |
-| PS-004 | segredos administrativos nunca entram no frontend | vigente | ADR-008 e ADR-023 |
-| PS-005 | migração exige cópia, reconciliação e rollback | vigente | ADR-012 e ADR-033 |
-| PS-006 | modo local não emite requisição Supabase | vigente para modo local | contrato de runtime |
+| PS-001 | Production em LocalStorage | substituída | ADR-023 |
+| PS-002 | Supabase não implantado | substituída | ADR-023 |
+| PS-003 | Auth/RLS como etapa futura | substituída | ADR-023 |
+| PS-004 | segredo administrativo fora do frontend | vigente | ADR-008 e ADR-023 |
+| PS-005 | migração com cópia, reconciliação e rollback | vigente | ADR-012 e ADR-034 |
+| PS-006 | modo local sem requisição remota | vigente no adaptador local | runtime |
 | PS-007 | banco vazio não autoriza seed implícito | vigente | ADR-012 |
-| PS-008 | Local e Supabase obedecem ao mesmo contrato funcional | vigente | ADR-001 |
+| PS-008 | Local e Supabase compartilham contrato | vigente | ADR-001 |
 
 Estado atual:
 
 ```text
-Production: supabase-production
-repositório canônico: SupabaseRepository
-LocalStorageRepository: contingência por novo build
+Production: SupabaseRepository
+LocalStorageRepository: desenvolvimento e contingência por novo build
 ```
 
-## 4. Mapeamento visual, navegação e exportação
+## 4. Visual, navegação e exportação
 
-| ID legado | Conteúdo | Estado atual | Fonte vigente |
+| ID | Conteúdo | Estado | Fonte |
 |---|---|---|---|
-| PV-001 | alteração material de layout exige proposta e aprovação | vigente | ADR-030 |
-| PV-002 | preservar informação, ações e permissões | vigente | ADR-017 e ADR-030 |
-| PV-003 | Carteira mobile usa cartões | vigente | contratos de frontend |
-| PV-004 | Excel v2.1 era referência congelada | substituída pela implementação certificada | ADR-028 e contratos Excel |
-| PV-005 | superfícies formam fluxo conectado | vigente e ampliada | ADR-025, ADR-027 e ADR-029 |
-| PV-006 | modais controlam foco e teclado | vigente | estratégia de testes e acessibilidade |
+| PV-001 | mudança material exige proposta e aprovação | vigente | ADR-030 |
+| PV-002 | preservar informações, ações e permissões | vigente | ADR-017 |
+| PV-003 | Carteira mobile reorganizada sem perda | vigente | frontend |
+| PV-004 | Excel v2.1 congelado | substituída | ADR-028 |
+| PV-005 | superfícies conectadas | vigente e ampliada | ADRs 025, 027 e 029 |
+| PV-006 | modais controlam foco e teclado | vigente | estratégia de testes |
 | PV-007 | polimento não empobrece o domínio | vigente | ADR-030 |
 
-Estado atual das exportações:
+Exportações atuais:
 
-- botão principal institucional: XLSX de quatro abas;
-- botão próprio: Excel SME mensal;
-- botão secundário: CSV legado;
-- certificação automatizada: concluída;
-- homologação manual no Excel desktop: pendente.
+- relatório institucional XLSX de quatro abas;
+- Excel SME mensal com 27 colunas A:AA;
+- CSV secundário e fallback institucional;
+- Excel SME homologado no Microsoft Excel desktop;
+- relatório institucional mantém gate humano próprio quando priorizado.
 
-## 5. Mapeamento de governança
+## 5. Governança
 
-| ID legado | Conteúdo | Estado atual | Fonte vigente |
+| ID | Conteúdo | Estado | Fonte |
 |---|---|---|---|
-| PG-001 | auditar estado antes de alterar | vigente | ADR-015 e ADR-024 |
-| PG-002 | classificação de achados | método histórico; usar quando aplicável | `CHANGE_CLASSIFICATION.md` |
-| PG-003 | dúvida material submetida ao responsável | vigente após verificação técnica | `AGENTS.md` |
-| PG-004 | merge e Production são autorizações distintas | vigente | ADR-003 e ADR-031 |
-| PG-005 | ausência de alteração pode ser resultado válido | vigente | governança de manutenção |
+| PG-001 | auditar antes de alterar | vigente | ADRs 015 e 042 |
+| PG-002 | classificar achados | vigente quando aplicável | `CHANGE_CLASSIFICATION.md` |
+| PG-003 | dúvida material submetida após verificação | vigente | `AGENTS.md` |
+| PG-004 | merge e Production são autorizações distintas | vigente | ADRs 003 e 031 |
+| PG-005 | não alterar pode ser resultado válido | vigente | governança |
 
-## 6. Novas decisões sem ID legado
+## 6. Decisões posteriores
 
-As fases posteriores acrescentaram decisões que não existiam neste índice:
+Sem ID legado:
 
-- carteira como responsabilidade principal, não limite entre Controladores da mesma CRE — ADR-021;
-- governança restritiva da Gestão SME — ADR-022;
-- Supabase canônico em Production — ADR-023;
-- documentação acompanha código e ambientes — ADR-024;
-- competência global única — ADR-025;
-- competências de 2026 operacionalizadas — ADR-026 e ADR-032;
+- carteira como responsabilidade principal — ADR-021;
+- governança da SME — ADR-022;
+- Supabase canônico — ADR-023;
+- documentação segue ambientes — ADR-024 e ADR-042;
+- competência global — ADR-025;
 - timeline como projeção — ADR-027;
-- certificação Excel integral — ADR-028;
+- certificação Excel — ADR-028;
 - navegação contextual — ADR-029;
-- polimento sem alteração de produto — ADR-030;
-- gate cumulativo de release — ADR-031;
-- bloqueio de migration por divergência SME — ADR-033.
+- gate cumulativo — ADR-031;
+- histórico SME reconciliado — ADR-034;
+- Node 24 e gate remoto — ADR-035;
+- backup/restauração — ADR-036;
+- integridade de workflows — ADR-037;
+- atualizações intencionais — ADR-038;
+- evolução tecnológica proativa — ADR-039;
+- monitor e incidentes de Production — ADR-040;
+- confiabilidade funcional ponta a ponta — ADR-041;
+- reconciliação documental remota — ADR-042.
 
 ## 7. Regra de manutenção
 
-Não adicionar nova decisão a este arquivo.
-
-Toda decisão nova ou substituição deve ser registrada em `docs/DECISION_LOG.md`, com:
-
-- status;
-- contexto;
-- decisão;
-- consequência;
-- sucessora ou decisão substituída;
-- referência técnica.
-
-Os IDs legados permanecem apenas para rastreabilidade histórica.
+Não adicionar novas decisões aqui. Registrar em `docs/DECISION_LOG.md` e, quando necessário, em ADR próprio.
