@@ -34,6 +34,14 @@ test('ferramentas Supabase modernas estão fixadas e reproduzíveis', () => {
     assert.equal(pkg.scripts['check:generated'], 'node scripts/check-generated-artifacts.js');
 });
 
+test('gerador do cliente Supabase não recompila nem altera o bundle Ajv', () => {
+    const source = read('scripts/build-supabase-client.mjs');
+
+    assert.match(source, /vendor["']?\)?[\s\S]*supabase-client\.js/);
+    assert.doesNotMatch(source, /vendor["']?\)?[\s\S]*ajv\.js/);
+    assert.doesNotMatch(source, /ajvVersion|ajvOutputFile|src\/vendor\/ajv-entry\.js/);
+});
+
 test('cliente do navegador e Edge Function usam exatamente Supabase JS 2.110.9', () => {
     const bundle = read('vendor/supabase-client.js');
     const edgeFunction = read('supabase/functions/team-account-management/index.ts');
