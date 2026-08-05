@@ -1,7 +1,8 @@
 # Plano — Smoke autenticado de leitura em Production
 
 **Data:** 5 de agosto de 2026  
-**Baseline:** `b7846bfee64902b2a72f156e74da4b111ab2d4fe`  
+**Baseline:** `1444b8df5aa11168e063ec55db635d5a2091214d`  
+**Vercel Production:** `dpl_6ciDyuemHM6uzZ53EVndnyuKaDKr` — `READY`  
 **Natureza:** garantia operacional não destrutiva  
 **Matriz de origem:** `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md`
 
@@ -106,7 +107,7 @@ A fase somente será considerada concluída quando:
 3. uma execução manual no SHA candidato for aprovada;
 4. uma execução agendada subsequente for aprovada;
 5. a matriz alterar as seis operações de `partial/authenticated-read` para cobertura comprovada;
-6. o monitor permanecer documentado e incorporado ao readiness.
+6. o monitor permanecer documentado e protegido por testes permanentes.
 
 ## 8. Fora do escopo
 
