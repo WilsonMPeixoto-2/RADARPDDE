@@ -157,7 +157,11 @@ test('gate final exige as migrations operacionais, escopo patrimonial e Edge Fun
     assert.match(readiness, /atomic_verification_operations\.sql/);
     assert.match(readiness, /atomic_operational_commands\.sql/);
     assert.match(readiness, /enable_pgtap_remote_validation\.sql/);
-    assert.match(readiness, /26 migrations/);
+    assert.match(readiness, /202608050001_school_assignment_authorization\.sql/);
+    assert.match(readiness, /27 migrations/);
+    assert.match(readiness, /school-assignment-authorization\.test\.sql/);
+    assert.match(readiness, /enforce_school_controller_assignment_authorization/);
+    assert.match(readiness, /schools_controller_assignment_authorization/);
     assert.match(readiness, /inventory-capital-rls\.test\.sql/);
     assert.match(readiness, /supabase\/functions\/_shared\/team-account-domain\.mjs/);
     assert.match(readiness, /supabase\/functions\/team-account-management\/index\.ts/);
