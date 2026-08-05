@@ -12,6 +12,7 @@ on:
       - "docs/superpowers/plans/2026-08-04-integridade-continua-production.md"
       - "scripts/check-production-data-integrity.mjs"
       - "supabase/migrations/202608040001_production_integrity_monitor.sql"
+      - "supabase/verification/production-integrity-health.sql"
       - "supabase/tests/database/production-integrity-monitor.test.sql"
       - "tests/unit/production-data-integrity.test.js"
       - "tests/unit/production-data-integrity-workflow.test.js"
@@ -53,7 +54,12 @@ jobs:
     if: github.event_name != 'pull_request'
     needs: integrity-contracts
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 10
+    env:
+      SUPABASE_TELEMETRY_DISABLED: '1'
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PGPASS_REMOTE: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      PROJECT_REF: scnryinorqeucbfkioxo
 
     steps:
       - name: Obter código sem persistir credenciais
@@ -66,13 +72,26 @@ jobs:
         with:
           node-version: 24
           check-latest: false
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+
+      - name: Validar alvo e credenciais administrativas
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${PROJECT_REF}" = 'scnryinorqeucbfkioxo'
+          test -n "${SUPABASE_ACCESS_TOKEN}" || { echo 'SUPABASE_ACCESS_TOKEN ausente.' >&2; exit 1; }
+          test -n "${PGPASS_REMOTE}" || { echo 'SUPABASE_DB_PASSWORD ausente.' >&2; exit 1; }
+
+      - name: Vincular o Supabase Production autorizado
+        run: npx --no-install supabase link --project-ref "${PROJECT_REF}" --password "${PGPASS_REMOTE}"
 
       - name: Consultar integridade de Production
         id: integrity
-        env:
-          RADAR_SUPABASE_URL: ${{ secrets.RADAR_SUPABASE_URL }}
-          RADAR_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.RADAR_SUPABASE_SERVICE_ROLE_KEY }}
-        run: node scripts/check-production-data-integrity.mjs
+        run: npx --no-install supabase db query --linked --file supabase/verification/production-integrity-health.sql
 
       - name: Resumir auditoria de integridade
         if: always()
@@ -84,6 +103,7 @@ jobs:
             echo
             echo "- Resultado: \`${INTEGRITY_OUTCOME:-não executado}\`"
             echo '- Escopo: identidade, equipe, escolas, programas, pendências, inventário e notas fiscais.'
-            echo '- Retorno: somente contagens agregadas; nenhum dado pessoal é publicado.'
+            echo '- Retorno: somente estado e total agregado; nenhum dado pessoal é publicado.'
+            echo '- Acesso: conexão PostgreSQL administrativa efêmera, sem persistência de credenciais.'
             echo "- Evento: \`${GITHUB_EVENT_NAME}\`"
           } >> "${GITHUB_STEP_SUMMARY}"
