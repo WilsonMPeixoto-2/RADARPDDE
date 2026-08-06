@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-08-06",
+  "baseline": {
+    "mainCommit": "97c8bedbd7c93d82d527e183762b37a0934bd5f0",
+    "vercel": {
+      "teamId": "team_EFJunPOtGozS99jZ6zkIQXHF",
+      "projectId": "prj_GfXuUuO3dF2jykpp9QgyqIDsxg4U",
+      "projectName": "radarpdde-fix",
+      "productionDeploymentId": "dpl_3XkgxsWF58VKiScasmUkUcwtJWxu",
+      "state": "READY",
+      "commit": "97c8bedbd7c93d82d527e183762b37a0934bd5f0"
+    },
+    "supabase": {
+      "projectId": "scnryinorqeucbfkioxo",
+      "productionMigrationCount": 27,
+      "latestMigration": "202608050001_school_assignment_authorization",
+      "integrityStatus": "healthy",
+      "integrityTotalIssues": 0,
+      "integritySchemaVersion": 1,
+      "edgeFunctions": {
+        "team-account-management": {
+          "version": 108,
+          "status": "ACTIVE",
+          "verifyJwt": true
+        }
+      }
+    },
+    "versions": {
+      "supabaseJs": "2.110.9",
+      "supabaseCli": "2.110.0"
+    },
+    "recentRelevantPullRequests": [138, 150, 154, 155],
+    "openAutomaticIncidents": [],
+    "mainWorkflowRunsObserved": {
+      "count": 6,
+      "failures": 0
+    }
+  },
+  "sourceOfTruth": {
+    "primary": [
+      "repository main code",
+      "Supabase Production state",
+      "Vercel Production deployment"
+    ],
+    "secondary": [
+      "project documentation",
+      "pull request descriptions",
+      "workflow summaries"
+    ]
+  },
+  "knownItemsToRevalidate": [
+    {
+      "id": "SCH-01-identifiers",
+      "status": "hypothesis",
+      "description": "Cadastro de escola pode substituir identificadores institucionais por valores artificiais."
+    },
+    {
+      "id": "ASSET-02-atomicity",
+      "status": "matrix-gap",
+      "description": "Edição genérica de bem pode usar persistência padrão sem o mesmo RPC atômico, log e versão."
+    },
+    {
+      "id": "EXP-AUD-persistence",
+      "status": "hypothesis",
+      "description": "Auditoria de exportações XLSX pode permanecer apenas no estado local ou ser rejeitada pela persistência/RLS."
+    },
+    {
+      "id": "AUTH-READ-production",
+      "status": "known-limitation",
+      "description": "Smoke autenticado de leitura em Production está versionado, mas desativado sem cinco identidades técnicas autorizadas."
+    }
+  ],
+  "operations": [
+    {"id":"AUTH-01","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"NAV-01","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"NAV-02","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"COMP-01","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"READ-01","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"READ-02","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"READ-03","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"READ-04","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"EXP-01","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"EXP-02","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"CFG-01","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"CFG-02","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"CFG-03","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"CFG-04","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"SCH-01","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"SCH-02","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"SCH-03","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"TEAM-01","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"TEAM-02","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"TEAM-03","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"TEAM-04","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"VER-01","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"VER-02","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"VER-03","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"VER-04","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"PEND-01","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"PEND-02","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"PEND-03","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"PEND-04","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"PEND-05","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"PEND-06","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"INV-01","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"INV-02","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"ASSET-01","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"ASSET-02","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"ASSET-03","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"ASSET-04","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"AUD-01","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"TECH-01","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"OPS-01","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
+    {"id":"OPS-02","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]}
+  ]
+}
