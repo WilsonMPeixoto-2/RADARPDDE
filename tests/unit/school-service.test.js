@@ -83,6 +83,7 @@ test('cadastra escola somente com identificadores institucionais informados', as
 
     const result = await harness.service.saveSchool({
         id: 'ESC-NEW',
+        isNewSchool: true,
         designation: '04.01.999',
         denomination: 'Escola Municipal Nova',
         inep: '33099999',
@@ -111,6 +112,7 @@ test('bloqueia cadastro sem dados institucionais completos', async () => {
     await assert.rejects(
         harness.service.saveSchool({
             id: 'ESC-NEW',
+            isNewSchool: true,
             designation: '04.01.999',
             denomination: 'Escola Municipal Nova',
             email: 'nova@rio.edu.br',
@@ -131,6 +133,7 @@ test('bloqueia identificadores institucionais duplicados', async () => {
     await assert.rejects(
         harness.service.saveSchool({
             id: 'ESC-NEW',
+            isNewSchool: true,
             designation: '04.01.999',
             denomination: 'Escola Municipal Nova',
             inep: '33000001',
@@ -144,6 +147,27 @@ test('bloqueia identificadores institucionais duplicados', async () => {
         }),
         error => error && error.code === 'DUPLICATE_INSTITUTIONAL_IDENTIFIER'
     );
+});
+
+test('rejeita edição de uma escola que deixou de existir sem recriar o cadastro', async () => {
+    const harness = createHarness();
+
+    await assert.rejects(
+        harness.service.saveSchool({
+            id: 'ESC-REMOVED',
+            designation: '04.01.998',
+            denomination: 'Escola Removida',
+            inep: '33099998',
+            cnpj: '12.345.678/0001-80',
+            sici: 'SICI-998',
+            controllerId: 'CTRL-1',
+            programIds: ['NEW'],
+            initialCompetence: '2026-05'
+        }),
+        error => error && error.code === 'NOT_FOUND'
+    );
+
+    assert.equal(harness.state.schools.length, 1);
 });
 
 test('atribui uma escola e uma seleção em lote sem contabilizar registros inalterados', async () => {
