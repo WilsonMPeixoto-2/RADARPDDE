@@ -20,8 +20,8 @@ PostgreSQL: 17.6.1.147
 runtime Production: supabase-production
 repositório normal: SupabaseRepository
 contingência: LocalStorageRepository por novo build
-migrations em Production: 26
-migrations versionadas no PR nº 154: 27
+migrations em Production: 27
+migrations versionadas na main: 27
 closing_competence: 2026-12
 app_config.row_version: 20
 Edge Function: team-account-management v103, ACTIVE, JWT obrigatório
@@ -31,18 +31,19 @@ auditoria de integridade: healthy, totalIssues=0, schemaVersion=1
 Node.js: 24.x
 ```
 
-O conjunto versionado contém atualmente **27** migrations. Production permanece com **26 migrations aplicadas** até a aprovação e a execução controlada da migration `202608050001_school_assignment_authorization`. O histórico oficial reconhecido pela Supabase CLI é a fonte de verdade para conferir versões aplicadas e sua ordem efetiva; não manter uma segunda lista manual de aplicação.
+O conjunto versionado e o histórico remoto contêm atualmente **27 migrations**. O histórico oficial reconhecido pela Supabase CLI é a fonte de verdade para conferir versões aplicadas e sua ordem efetiva; não manter uma segunda lista manual de aplicação.
 
 A migration `202608040001_production_integrity_monitor` está aplicada em Production. A RPC pública é `SECURITY INVOKER`, a implementação privilegiada permanece em `radar_private`, e a execução é concedida somente ao `service_role`.
 
-A migration `202608050001_school_assignment_authorization` está versionada no PR nº 154 e ainda não foi aplicada em Production. Ela bloqueia a alteração de `schools.controller_id` por usuários autenticados sem papel `federal_assistant` ou `technical_admin`, preservando manutenção administrativa autorizada.
+A migration `202608050001_school_assignment_authorization` está aplicada em Production. Ela bloqueia a alteração de `schools.controller_id` por usuários autenticados sem papel `federal_assistant` ou `technical_admin`, preservando manutenção administrativa autorizada. A função `public.enforce_school_controller_assignment_authorization()` permanece `SECURITY INVOKER`, e o trigger `schools_controller_assignment_authorization` está ativo na tabela `public.schools`.
 
-Última publicação funcional relacionada à conexão:
+Última publicação funcional relacionada à autorização da carteira:
 
 ```text
-PR: 150
-merge commit: 2ae98da8a547d46cd7e8e64977b855b1a90a2495
-Vercel deployment: dpl_BvrxJUahgWpaRbtn6Y5FrfzknKAw — READY
+PR: 154
+merge commit: 48a1b07deffab96746382b3db65ba22a4ecf80e5
+Vercel deployment: dpl_F37c95nWHCdEUSj2825VL81nBV5g — READY — Production
+migration: 202608050001_school_assignment_authorization — aplicada
 Edge Function: team-account-management v103 — ACTIVE — verify_jwt=true
 ```
 
