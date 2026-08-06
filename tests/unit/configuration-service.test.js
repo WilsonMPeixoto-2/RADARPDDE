@@ -157,6 +157,10 @@ test('envia ao RPC somente as doze competências do novo exercício', async () =
     assert.equal(harness.state.competences.length, 24);
     assert.equal(harness.persisted.length, 1);
     assert.equal(harness.persisted[0].competences.length, 12);
+    assert.equal(
+        harness.persisted[0].competences.some(item => item.id.startsWith('2026-')),
+        false
+    );
     assert.deepEqual(
         harness.persisted[0].competences.map(item => item.id),
         Array.from({ length: 12 }, (_item, index) => `2027-${String(index + 1).padStart(2, '0')}`)
