@@ -12,6 +12,9 @@ create role service_role nologin bypassrls;
 create table auth.users (
     id uuid primary key,
     email text,
+    confirmation_token text,
+    recovery_token text,
+    email_change_token_new text,
     created_at timestamptz not null default now()
 );
 

@@ -27,6 +27,12 @@ test('Edge Function concentra o ciclo administrativo de Auth fora do navegador',
     assert.match(source, /deactivate_inventory_member_account/);
 });
 
+test('lookup de e-mail usa RPC administrativa restrita e não percorre usuários Auth', () => {
+    assert.match(source, /resolve_team_auth_user_id_by_email/);
+    assert.match(source, /admin\.rpc\("resolve_team_auth_user_id_by_email"/);
+    assert.doesNotMatch(source, /admin\.auth\.admin\.listUsers/);
+});
+
 test('recupera vínculo Auth preexistente quando o diretório legado perdeu user_id', () => {
     assert.match(source, /async function linkedProfileUserId/);
     assert.match(source, /\.from\("user_profiles"\)/);

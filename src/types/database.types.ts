@@ -1175,6 +1175,10 @@ export type Database = {
         }
         Returns: Json
       }
+      resolve_team_auth_user_id_by_email: {
+        Args: { p_email: string }
+        Returns: string
+      }
       rollback_data_import: { Args: { p_import_id: string }; Returns: Json }
       save_asset_with_log: {
         Args: {
@@ -1409,4 +1413,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-

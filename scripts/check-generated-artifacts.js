@@ -39,7 +39,8 @@ if (fs.existsSync(typeFile)) {
         'delete_invoice_with_effects',
         'upsert_team_member_account',
         'deactivate_controller_account',
-        'deactivate_inventory_member_account'
+        'deactivate_inventory_member_account',
+        'resolve_team_auth_user_id_by_email'
     ].forEach(identifier => {
         if (!types.includes(identifier)) {
             findings.push(`database.types.ts não contém ${identifier}.`);

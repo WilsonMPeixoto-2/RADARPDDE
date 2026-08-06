@@ -76,15 +76,16 @@ test('interface exibe conflito funcional em vez de falsa indisponibilidade', asy
     }
 });
 
-test('Edge Function procura conta Auth pelo e-mail antes de enviar convite', () => {
-    assert.match(edgeSource, /async function authUserByEmail/);
-    assert.match(edgeSource, /admin\.auth\.admin\.listUsers/);
-    assert.match(edgeSource, /await authUserByEmail\(admin, entity\.email\)/);
+test('Edge Function resolve conta Auth pelo e-mail via RPC sem varrer todo o catálogo', () => {
+    assert.match(edgeSource, /async function authUserIdByEmail/);
+    assert.match(edgeSource, /admin\.rpc\("resolve_team_auth_user_id_by_email"/);
+    assert.match(edgeSource, /await authUserIdByEmail\(admin, entity\.email\)/);
+    assert.doesNotMatch(edgeSource, /admin\.auth\.admin\.listUsers/);
 
-    const lookupPosition = edgeSource.indexOf('await authUserByEmail(admin, entity.email)');
+    const lookupPosition = edgeSource.indexOf('await authUserIdByEmail(admin, entity.email)');
     const invitePosition = edgeSource.indexOf('inviteUserByEmail(entity.email');
-    assert.ok(lookupPosition >= 0, 'a busca de conta Auth pelo e-mail deve existir');
-    assert.ok(invitePosition > lookupPosition, 'o convite só pode ocorrer depois da busca pelo e-mail');
+    assert.ok(lookupPosition >= 0, 'a resolução isolada da conta Auth deve existir');
+    assert.ok(invitePosition > lookupPosition, 'o convite só pode ocorrer depois da resolução por e-mail');
 });
 
 test('transição de perfil só reutiliza conta sem vínculo ativo conflitante', () => {
