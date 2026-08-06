@@ -82,13 +82,31 @@ Por isso, a pessoa não pode aparecer no seletor de redistribuição de carteira
 
 Os registros PostgreSQL `permission denied for table schools` observados no mesmo período vieram de preflights anônimos automatizados executados por Node. Eles não correspondem ao clique do usuário e não constituem a causa desta falha.
 
+## Validação transacional contra Production
+
+Foram executadas três simulações com `BEGIN` e `ROLLBACK`, sem deixar qualquer alteração:
+
+1. **Normalização Auth:** os três campos nulos puderam ser atualizados para string vazia e a consulta interna confirmou ausência de nulos antes do rollback.
+2. **RPC administrativa:** a função de lookup exato foi criada, `service_role` recebeu execução, `anon` e `authenticated` permaneceram bloqueados, o e-mail solicitado retornou o UUID correto e um e-mail inexistente retornou `null`.
+3. **Limpeza HML:** escola, vínculos, diretórios, perfis e usuários Auth sintéticos foram removidos dentro da transação; a verificação confirmou ausência de resíduos, preservação do histórico real inativo e manutenção das 39 escolas da carteira real.
+
+A primeira versão da migration tentou definir defaults em `auth.users`. A simulação foi bloqueada com `must be owner of table users`, pois a estrutura dessa tabela pertence ao schema gerenciado do Supabase. Essa alteração foi retirada. A migration final normaliza os dados existentes, mas não altera a estrutura de `auth.users`.
+
+Após os rollbacks, foi comprovado que:
+
+- os resíduos HML continuam presentes em Production;
+- os dois usuários continuam com os campos nulos;
+- a RPC não permanece criada;
+- a transição real continua pendente;
+- as 39 escolas permanecem com a responsável original.
+
 ## Correção definida
 
 1. substituir `listUsers` por RPC administrativa que resolve somente o UUID do e-mail solicitado;
 2. restringir a RPC a `service_role`;
 3. normalizar campos textuais Auth nulos incompatíveis com GoTrue;
-4. definir defaults vazios para impedir nova inserção direta com os mesmos nulos;
-5. remover exclusivamente o conjunto HML conhecido;
+4. preservar a estrutura do schema Auth gerenciado e impedir novas inserções diretas pelo fluxo da aplicação;
+5. remover exclusivamente o conjunto HML conhecido, com guardas contra vínculos reais;
 6. homologar cadastro, transição, desativação e redistribuição com releitura e limpeza;
 7. concluir separadamente a criação da controladora real, preservando o histórico de Inventário e sem mover escolas automaticamente.
 
