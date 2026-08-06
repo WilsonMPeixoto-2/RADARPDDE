@@ -1,0 +1,84 @@
+name: Aplicar migration autorizativa da escola
+
+on:
+  push:
+    branches:
+      - ops/apply-school-assignment-migration-20260805
+    paths:
+      - .github/workflows/apply-school-assignment-migration.yml
+
+permissions:
+  contents: read
+
+env:
+  SUPABASE_TELEMETRY_DISABLED: '1'
+  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+  SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout do commit integrado
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: 48a1b07deffab96746382b3db65ba22a4ecf80e5
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependências reproduzíveis
+        run: npm ci
+
+      - name: Vincular ao projeto autorizado
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${SUPABASE_ACCESS_TOKEN:-}"
+          test -n "${SUPABASE_DB_PASSWORD:-}"
+          npx supabase link --project-ref scnryinorqeucbfkioxo --password "${SUPABASE_DB_PASSWORD}"
+
+      - name: Confirmar histórico anterior e dry-run único
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx supabase migration list --linked | tee migration-before.log
+          grep -q '202608040001' migration-before.log
+          if grep -q '202608050001' migration-before.log; then
+            echo 'A migration 202608050001 já está aplicada; interrompendo para evitar duplicidade.' >&2
+            exit 1
+          fi
+          npx supabase db push --linked --dry-run | tee migration-dry-run.log
+          grep -q '202608050001_school_assignment_authorization.sql' migration-dry-run.log
+          count="$(grep -cE '^.*202[0-9]{9}.*\.sql' migration-dry-run.log || true)"
+          test "${count}" -eq 1
+
+      - name: Aplicar somente a migration versionada
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx supabase db push --linked
+
+      - name: Confirmar histórico posterior
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx supabase migration list --linked | tee migration-after.log
+          grep -q '202608050001' migration-after.log
+
+      - name: Publicar evidência sanitizada
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: school-assignment-migration-evidence
+          path: |
+            migration-before.log
+            migration-dry-run.log
+            migration-after.log
+          if-no-files-found: warn
+          retention-days: 1
