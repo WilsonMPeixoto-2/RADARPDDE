@@ -146,7 +146,12 @@ jobs:
             await controller.selectOption(controllerValue);
 
             await modal.getByRole('button', { name: 'Salvar Alterações' }).click();
-            await expect(modal).toBeHidden();
+            await page.waitForFunction(() => {
+              const element = document.getElementById('modal-escola-edit');
+              return element?.getAttribute('aria-hidden') === 'true'
+                && element.hasAttribute('inert')
+                && !element.classList.contains('show');
+            });
 
             const evidence = await page.evaluate(async expectedSici => {
               const client = window.RadarSessionContext.service.client;
