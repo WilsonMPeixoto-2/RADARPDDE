@@ -31,7 +31,7 @@ auditoria de integridade: healthy, totalIssues=0, schemaVersion=1
 Node.js: 24.x
 ```
 
-O conjunto versionado e o histórico remoto contêm atualmente **27 migrations**. O histórico oficial reconhecido pela Supabase CLI é a fonte de verdade para conferir versões aplicadas e sua ordem efetiva; não manter uma segunda lista manual de aplicação.
+O conjunto versionado contém atualmente **27** migrations. O histórico remoto contém as mesmas 27 versões aplicadas. O histórico oficial reconhecido pela Supabase CLI é a fonte de verdade para conferir versões aplicadas e sua ordem efetiva; não manter uma segunda lista manual de aplicação.
 
 A migration `202608040001_production_integrity_monitor` está aplicada em Production. A RPC pública é `SECURITY INVOKER`, a implementação privilegiada permanece em `radar_private`, e a execução é concedida somente ao `service_role`.
 
