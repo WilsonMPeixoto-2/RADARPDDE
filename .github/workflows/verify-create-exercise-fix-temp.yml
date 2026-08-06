@@ -1,0 +1,42 @@
+name: Verificar correção da criação de exercício
+
+on:
+  push:
+    branches:
+      - fix/create-exercise-existing-competences-20260806
+    paths:
+      - src/application/configuration-service.js
+      - tests/unit/configuration-service.test.js
+      - .github/workflows/verify-create-exercise-fix-temp.yml
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obter branch funcional
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: fix/create-exercise-existing-competences-20260806
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Confirmar GREEN da regressão
+        run: node --test tests/unit/configuration-service.test.js
+
+      - name: Remover workflow temporário
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/verify-create-exercise-fix-temp.yml
+          git commit -m "chore: remover verificação temporária da criação de exercício"
+          git push origin HEAD:fix/create-exercise-existing-competences-20260806
