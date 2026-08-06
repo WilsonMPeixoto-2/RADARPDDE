@@ -1,0 +1,155 @@
+name: Auditoria local de configurações verificações e pendências
+
+on:
+  push:
+    branches:
+      - docs/auditoria-funcional-frontend-supabase-design-20260806
+    paths:
+      - .github/workflows/audit-config-verification-pendency-local.yml
+      - tests/e2e/audit-task5-temp.spec.js
+
+permissions:
+  contents: write
+
+env:
+  SUPABASE_TELEMETRY_DISABLED: '1'
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: docs/auditoria-funcional-frontend-supabase-design-20260806
+          fetch-depth: 0
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependências e Chromium
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Executar contratos unitários da Task 5
+        run: |
+          node --test \
+            tests/unit/configuration-service.test.js \
+            tests/unit/verification-remote-persistence.test.js \
+            tests/unit/remote-operational-commands.test.js \
+            tests/unit/pendency-service.test.js \
+            tests/unit/pendency-service-access.test.js
+
+      - name: Exercitar formulários e governança no modo sintético compatível
+        run: |
+          npx playwright test \
+            tests/e2e/exercise-management.spec.js \
+            tests/e2e/sme-access-governance.spec.js \
+            tests/e2e/application-services.spec.js \
+            --project=desktop-chromium \
+            --reporter=line
+
+      - name: Iniciar e recriar Supabase local
+        run: |
+          npm run supabase:start
+          npm run supabase:reset
+
+      - name: Executar contratos completos do banco
+        run: npm run supabase:test:db
+
+      - name: Criar identidades e runtime autenticado
+        shell: bash
+        run: |
+          set -euo pipefail
+          eval "$(npx supabase status -o env | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=')"
+          test -n "${API_URL:-}"
+          test -n "${ANON_KEY:-}"
+          test -n "${SERVICE_ROLE_KEY:-}"
+          FIXTURE_PASSWORD="$(node --input-type=module -e "import { randomBytes } from 'node:crypto'; process.stdout.write(randomBytes(32).toString('base64url') + 'A1!')")"
+          echo "::add-mask::${FIXTURE_PASSWORD}"
+          echo "::add-mask::${SERVICE_ROLE_KEY}"
+          RADAR_ALLOW_LOCAL_AUTH_BOOTSTRAP=true \
+          RADAR_SUPABASE_URL="${API_URL}" \
+          RADAR_SUPABASE_ADMIN_KEY="${SERVICE_ROLE_KEY}" \
+          RADAR_AUTH_FIXTURE_PASSWORD="${FIXTURE_PASSWORD}" \
+          npm run bootstrap:auth-fixtures
+          RADAR_SUPABASE_URL="${API_URL}" \
+          RADAR_SUPABASE_PUBLISHABLE_KEY="${ANON_KEY}" \
+          RADAR_AUTH_FIXTURE_PASSWORD="${FIXTURE_PASSWORD}" \
+          npm run check:auth-fixtures
+          RADAR_DATA_MODE=supabase-preview \
+          RADAR_ENVIRONMENT=test \
+          RADAR_SUPABASE_REPOSITORY_ENABLED=true \
+          RADAR_SUPABASE_URL="${API_URL}" \
+          RADAR_SUPABASE_PUBLISHABLE_KEY="${ANON_KEY}" \
+          npm run generate:runtime-config
+          {
+            printf 'RADAR_SUPABASE_URL=%s\n' "${API_URL}"
+            printf 'RADAR_SUPABASE_PUBLISHABLE_KEY=%s\n' "${ANON_KEY}"
+            printf 'RADAR_AUTH_FIXTURE_PASSWORD=%s\n' "${FIXTURE_PASSWORD}"
+          } >> "${GITHUB_ENV}"
+
+      - name: Exercitar serviços reais e releitura após reload
+        env:
+          RADAR_E2E_SUPABASE_LOCAL: '1'
+        run: |
+          npx playwright test \
+            tests/e2e/audit-task5-temp.spec.js \
+            --project=desktop-chromium \
+            --reporter=line
+
+      - name: Comprovar limpeza integral do banco descartável
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run supabase:reset
+          COUNTS="$(docker exec supabase_db_radar-pdde psql -U postgres -d postgres -Atc "
+            select
+              (select count(*) from public.programs where name like 'AUDIT5%') || ',' ||
+              (select count(*) from public.pendencies where id like 'AUDIT5-%') || ',' ||
+              (select count(*) from public.pendency_contacts where operation_id like 'AUDIT5-%') || ',' ||
+              (select count(*) from public.competences where exercise between 2095 and 2099);
+          ")"
+          test "${COUNTS}" = "0,0,0,0"
+          echo 'Limpeza confirmada: nenhum registro sintético da Task 5 permaneceu.'
+
+      - name: Registrar resumo seguro
+        if: success()
+        shell: bash
+        run: |
+          {
+            echo '## Task 5 — configurações, verificações e pendências'
+            echo ''
+            echo '- contratos unitários e formulários sintéticos aprovados'
+            echo '- 27 migrations e suíte pgTAP completa aprovadas'
+            echo '- CFG-01 a CFG-04 comprovadas com Gestão SME, versão, log e reload'
+            echo '- VER-01 a VER-04 comprovadas com Assistente, versão, autoria e reload'
+            echo '- PEND-01 a PEND-06 comprovadas com Controlador, tentativas, reanálises, contato, invariantes e reload'
+            echo '- conflitos otimistas, idempotência, rollback e negativas permanecem cobertos por pgTAP e testes unitários'
+            echo '- banco recriado e ausência de resíduos comprovada por SQL direto'
+            echo '- nenhuma conta ou dado de Production utilizado'
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Restaurar runtime e encerrar ambiente
+        if: always()
+        run: |
+          git checkout -- config.runtime.js || true
+          npm run supabase:stop || true
+
+      - name: Remover ensaio temporário após sucesso
+        if: success()
+        shell: bash
+        run: |
+          git rm \
+            .github/workflows/audit-config-verification-pendency-local.yml \
+            tests/e2e/audit-task5-temp.spec.js
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: remover ensaio temporário da Task 5"
+          git push origin HEAD:docs/auditoria-funcional-frontend-supabase-design-20260806
