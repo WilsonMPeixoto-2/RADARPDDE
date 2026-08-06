@@ -1,7 +1,7 @@
 # Auditoria funcional Frontend ↔ Supabase
 
 **Data de abertura:** 6 de agosto de 2026  
-**Estado:** Tasks 1 e 2 concluídas — baseline e revisão estática das 41 operações  
+**Estado:** primeiro checkpoint concluído — Tasks 1, 2 e 3  
 **Registro estruturado:** `docs/audits/2026-08-06-functional-supabase-audit.json`
 
 ## Hierarquia das fontes
@@ -33,17 +33,7 @@ Nenhuma conclusão desta auditoria será baseada apenas em documentação.
 
 ## Operações auditadas
 
-O registro estruturado contém exatamente 41 operações, distribuídas nos seguintes grupos:
-
-| Grupo | Quantidade |
-|---|---:|
-| autenticação, navegação, leituras e exportações | 10 |
-| configurações, escolas e Gestão de Equipe | 11 |
-| verificações, pendências, notas, bens e auditoria | 17 |
-| operações técnicas e monitoramento | 3 |
-| **Total** | **41** |
-
-Cada operação contém controle ou âncora de frontend, serviço, repositório, recursos remotos, perfis permitidos e negados, forma de persistência, concorrência, releitura, evidências e achados.
+O registro estruturado contém exatamente 41 operações. Cada operação registra controles ou âncoras de frontend, serviço, repositório, recursos remotos, perfis permitidos e negados, forma de persistência, concorrência, releitura, evidências e achados.
 
 ## Resultado da revisão estática
 
@@ -70,20 +60,71 @@ Essas quatro lacunas serão reproduzidas em ambiente local ou descartável antes
 - **CFG-03 e CFG-04:** a matriz ainda marca a gestão de programas como decisão pendente. O código, o serviço, a RPC e as permissões atuais implementam a operação para Gestão SME e Administrador técnico. A auditoria não alterará essa regra; somente reconciliará a documentação.
 - O manifesto da matriz ainda aponta o commit `30bdecc…`, anterior aos PRs 150, 154 e 155.
 
-### Percursos estáticos confirmados
+## Prova dinâmica de autenticação, leitura e navegação
 
-Os demais 35 percursos possuem ligação identificável entre interface, serviço, repositório e backend. Os principais padrões encontrados foram:
+### Ambiente
 
-- configurações e programas usam RPCs atômicas com `row_version` e `administrative_logs`;
-- Gestão de Equipe usa `DirectoryService` → `TeamAccountGateway` → Edge Function → RPC transacional;
-- redistribuição de carteira usa RPC atômica e proteção adicional no banco;
-- verificações e pendências usam RPCs específicas com controle de versão, idempotência ou compensação;
-- notas fiscais preservam efeitos vinculados em bens, verificações e logs na mesma transação;
-- criação, encaminhamento e inventariação de bens usam `saveAssetWithLog`;
-- `AuditService.record` usa a rota append-only correta, embora as exportações ainda não o utilizem;
-- importação, monitor geral e auditoria de integridade possuem percursos técnicos próprios.
+- Supabase local integralmente descartável;
+- 27 migrations;
+- sete identidades Auth sintéticas;
+- cinco perfis ativos, um histórico inativo e uma identidade sem perfil;
+- nenhuma conta ou dado de Production utilizado;
+- nenhuma mutação em Production.
 
-`static-confirmed` não equivale a funcionamento integral comprovado. Significa apenas que o caminho estático existe e é coerente; persistência, autorização negativa e releitura serão exercitadas nas próximas tarefas.
+### Resultado válido
+
+A execução `31071643516` passou integralmente após separar os modos compatíveis:
+
+1. **Modo Supabase autenticado**
+   - login e logout dos cinco perfis;
+   - negativa para perfil inativo e usuário sem perfil;
+   - papel efetivo e simulação técnica;
+   - RLS de Controlador, Assistente e Gestão SME;
+   - ciclo real da Gestão de Equipe contra banco e Auth locais.
+
+2. **Modo sintético da interface**
+   - rotas canônicas;
+   - histórico, reload, nova aba e fallback autorizado;
+   - preservação de competência, foco e rolagem;
+   - Carteira, filtros, dados e ações;
+   - transporte para Prontuário e Pendências;
+   - contratos de handlers e IDs do frontend.
+
+### Diagnóstico da primeira execução
+
+A execução `31071070501` não revelou defeito do produto. Ela misturou `canonical-routes` e `cycle-b-carteira`, que não fazem login e manipulam o estado sintético diretamente, com o runtime `supabase-preview`, que exige autenticação. O gate permaneceu fechado e as telas não ficaram visíveis.
+
+A hipótese foi testada sem alterar o produto: as suítes autenticadas permaneceram no runtime Supabase e as suítes sem login foram executadas depois da restauração de `config.runtime.js`. Ambas passaram. O workflow temporário foi removido após o sucesso.
+
+### Classificação dinâmica deste checkpoint
+
+| Operação | Estado atual |
+|---|---|
+| `AUTH-01` | comprovada localmente; parcial em Production porque o smoke autenticado recorrente permanece desativado |
+| `NAV-01` | comprovada |
+| `NAV-02` | comprovada localmente; parcial em Production |
+| `COMP-01` | comprovada |
+| `READ-01` | comprovada localmente; parcial em Production |
+| `READ-02` | comprovada localmente; parcial em Production |
+| `READ-03` | comprovada localmente; parcial em Production |
+| `READ-04` | comprovada localmente; parcial em Production |
+
+A limitação de Production é deliberada: o PR nº 148 preparou o smoke autenticado, mas ele não será ativado nem receberá identidades técnicas nesta auditoria sem autorização específica.
+
+## Percursos estáticos confirmados
+
+Os demais percursos coerentes usam, conforme o domínio:
+
+- RPCs atômicas com `row_version` e `administrative_logs`;
+- `DirectoryService` → `TeamAccountGateway` → Edge Function → RPC transacional;
+- proteção de redistribuição de carteira também no banco;
+- RPCs específicas para verificações e pendências;
+- transações de notas fiscais com efeitos vinculados;
+- `saveAssetWithLog` para criação, encaminhamento e inventariação de bens;
+- `AuditService.record` para auditoria append-only, embora as exportações ainda não o utilizem;
+- rotas próprias de importação, monitoramento e integridade.
+
+`static-confirmed` não equivale a funcionamento integral comprovado. Persistência, autorização negativa e releitura serão exercitadas nas próximas tarefas.
 
 ## Limites preservados
 
@@ -96,4 +137,4 @@ Os demais 35 percursos possuem ligação identificável entre interface, serviç
 
 ## Próxima etapa
 
-A Task 3 comprovará autenticação, leitura, navegação e escopos com Supabase local e identidades sintéticas. Production continuará limitada a manifesto, bloqueio anônimo, preflight, integridade agregada e outras consultas não destrutivas. O smoke autenticado remoto permanecerá desativado.
+O segundo lote começará pela Task 4: Gestão de Equipe, escolas e carteira. A prioridade imediata será reproduzir o cadastro de escola nova e comprovar o comportamento dos identificadores institucionais, preservando as regras já confirmadas de perfil e autorização.
