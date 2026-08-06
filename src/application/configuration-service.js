@@ -170,9 +170,15 @@
                             'createExercise'
                         );
                     }
+                    const exerciseCompetences = list(snapshot?.entities?.competences)
+                        .filter(record => {
+                            const competenceKey = text(record?.key || record?.id);
+                            return competenceKey.startsWith(`${year}-`)
+                                || text(record?.exercise) === year;
+                        });
                     return repository.saveExerciseWithCompetences({
                         appConfig: snapshot.entities.appConfig?.[0] || {},
-                        competences: snapshot.entities.competences || [],
+                        competences: exerciseCompetences,
                         administrativeLog
                     });
                 }
@@ -182,4 +188,3 @@
 
     return Object.freeze({ ConfigurationService, normalizeYear, normalizeMonth, createCompetence });
 }));
-
