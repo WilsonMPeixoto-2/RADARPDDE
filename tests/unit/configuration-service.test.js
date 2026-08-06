@@ -33,6 +33,74 @@ function createHarness() {
     return { state, calls, service };
 }
 
+function createRemoteExerciseHarness() {
+    const existingCompetences = Array.from({ length: 12 }, (_item, index) => {
+        const month = String(index + 1).padStart(2, '0');
+        return {
+            key: `2026-${month}`,
+            label: `Competência ${month}/2026`,
+            bonifPrazo: `2026-${month}-15`
+        };
+    });
+    const state = {
+        config: {
+            exercicios: ['2026'],
+            competenciaFechamento: '2026-05',
+            prazoBonificacaoProrrogado: false,
+            competencias: existingCompetences.map(item => ({ ...item }))
+        },
+        competences: existingCompetences.map(item => ({ ...item })),
+        logs: []
+    };
+    const persisted = [];
+    const repository = {
+        async saveExerciseWithCompetences(input) {
+            persisted.push(input);
+            return { ok: true };
+        }
+    };
+    const appendLog = (action, details) => {
+        const log = {
+            id: `log-${state.logs.length + 1}`,
+            action,
+            details
+        };
+        state.logs.unshift(log);
+        return log;
+    };
+    const dataService = {
+        async execute(command) {
+            const value = await command.mutate();
+            const snapshot = {
+                entities: {
+                    appConfig: [{ id: 'global' }],
+                    competences: state.competences.map(item => ({
+                        id: item.key,
+                        exercise: Number(item.key.slice(0, 4)),
+                        label: item.label,
+                        bonus_deadline: item.bonifPrazo
+                    })),
+                    administrativeLogs: state.logs.map(item => ({ ...item }))
+                }
+            };
+            await command.persist({
+                snapshot,
+                repository,
+                defaultPersist: async () => {
+                    throw new Error('A criação remota deve usar o RPC transacional.');
+                }
+            });
+            return { ok: true, value };
+        }
+    };
+    const service = new ConfigurationService({
+        dataService,
+        getState: () => state,
+        appendLog
+    });
+    return { state, persisted, service };
+}
+
 test('salva calendário e prorrogação com auditoria na mesma unidade de trabalho', async () => {
     const harness = createHarness();
     harness.state.competences.push({ key: '2026-06', label: 'Junho 2026', bonifPrazo: '2026-07-15' });
@@ -81,3 +149,16 @@ test('cria exercício com doze competências, prazo e auditoria sem duplicar ano
     );
 });
 
+test('envia ao RPC somente as doze competências do novo exercício', async () => {
+    const harness = createRemoteExerciseHarness();
+
+    await harness.service.createExercise({ year: '2027', initialMonth: '05' });
+
+    assert.equal(harness.state.competences.length, 24);
+    assert.equal(harness.persisted.length, 1);
+    assert.equal(harness.persisted[0].competences.length, 12);
+    assert.deepEqual(
+        harness.persisted[0].competences.map(item => item.id),
+        Array.from({ length: 12 }, (_item, index) => `2027-${String(index + 1).padStart(2, '0')}`)
+    );
+});
