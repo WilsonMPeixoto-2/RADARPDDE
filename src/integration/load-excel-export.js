@@ -15,7 +15,7 @@
 }(typeof window !== 'undefined' ? window : globalThis, function (root) {
     'use strict';
 
-    const VERSION = '2.0.0';
+    const VERSION = '2.1.0';
     const DEFAULT_TIMEOUT_MS = 15000;
     const DEFAULT_SCRIPTS = Object.freeze([
         Object.freeze({
@@ -49,6 +49,10 @@
         Object.freeze({
             src: '/src/integration/excel-export-integration.js',
             isReady: target => typeof target.RadarExcelExportIntegration?.exportSmeXlsx === 'function'
+        }),
+        Object.freeze({
+            src: '/src/integration/excel-export-audit.js',
+            isReady: target => target.__radarExcelExportAuditInstalled === true
         })
     ]);
 
