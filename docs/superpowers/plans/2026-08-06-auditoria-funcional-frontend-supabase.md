@@ -41,13 +41,13 @@
 
 - [ ] **Step 1: Confirmar fontes remotas**
 
-Registrar no JSON e no Markdown:
+Registrar no JSON e no Markdown o SHA efetivamente confirmado no início da execução. O valor inicial é:
 
 ```json
 {
   "schemaVersion": 1,
   "baseline": {
-    "mainCommit": "<SHA confirmado>",
+    "mainCommit": "97c8bedbd7c93d82d527e183762b37a0934bd5f0",
     "productionMigrationCount": 27,
     "latestMigration": "202608050001_school_assignment_authorization",
     "supabaseProject": "scnryinorqeucbfkioxo",
@@ -58,11 +58,9 @@ Registrar no JSON e no Markdown:
 }
 ```
 
-Confirmar também o deployment Vercel, a versão ativa de `team-account-management`, os PRs nº 138, 150, 154 e 155 e os incidentes automáticos ainda abertos.
+Confirmar também o deployment Vercel, a versão ativa de `team-account-management`, os PRs nº 138, 150, 154 e 155 e os incidentes automáticos ainda abertos. Se a `main` tiver avançado, substituir o valor de `mainCommit` pelo SHA observado antes de continuar.
 
 - [ ] **Step 2: Validar a matriz existente**
-
-Run:
 
 ```bash
 npm ci
@@ -74,7 +72,7 @@ Expected: ambos os contratos aprovados; qualquer falha vira achado de baseline a
 
 - [ ] **Step 3: Criar 41 entradas iniciais**
 
-Cada entrada deve conter:
+Cada entrada deve usar este contrato:
 
 ```json
 {
@@ -106,11 +104,11 @@ git commit -m "docs: fixar baseline da auditoria funcional Supabase"
 - Modify: `docs/audits/2026-08-06-functional-supabase-audit.json`
 - Modify: `docs/audits/2026-08-06-functional-supabase-audit.md`
 - Read: `app.js`
-- Read: `src/integration/**`
-- Read: `src/application/**`
+- Read: `src/integration/`
+- Read: `src/application/`
 - Read: `src/data/supabase-repository.js`
-- Read: `supabase/functions/**`
-- Read: `supabase/migrations/**`
+- Read: `supabase/functions/`
+- Read: `supabase/migrations/`
 
 **Interfaces:**
 - Consumes: as 41 entradas pendentes.
@@ -161,7 +159,7 @@ documentation-divergence
 - [ ] **Step 6: Commit do mapa estático**
 
 ```bash
-git add docs/audits/2026-08-06-functional-supabase-audit.*
+git add docs/audits/2026-08-06-functional-supabase-audit.json docs/audits/2026-08-06-functional-supabase-audit.md
 git commit -m "docs: mapear percursos frontend Supabase"
 ```
 
@@ -191,10 +189,18 @@ Expected: 27 migrations e seed local aplicados.
 
 - [ ] **Step 2: Preparar as sete identidades locais**
 
-Usar os mesmos comandos do workflow `.github/workflows/supabase-readiness.yml`, com `RADAR_ALLOW_LOCAL_AUTH_BOOTSTRAP=true`, e executar:
-
 ```bash
+set -euo pipefail
+eval "$(npx supabase status -o env | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=')"
+FIXTURE_PASSWORD="$(node --input-type=module -e "import { randomBytes } from 'node:crypto'; process.stdout.write(randomBytes(32).toString('base64url') + 'A1!')")"
+RADAR_ALLOW_LOCAL_AUTH_BOOTSTRAP=true \
+RADAR_SUPABASE_URL="${API_URL}" \
+RADAR_SUPABASE_ADMIN_KEY="${SERVICE_ROLE_KEY}" \
+RADAR_AUTH_FIXTURE_PASSWORD="${FIXTURE_PASSWORD}" \
 npm run bootstrap:auth-fixtures
+RADAR_SUPABASE_URL="${API_URL}" \
+RADAR_SUPABASE_PUBLISHABLE_KEY="${ANON_KEY}" \
+RADAR_AUTH_FIXTURE_PASSWORD="${FIXTURE_PASSWORD}" \
 npm run check:auth-fixtures
 ```
 
@@ -231,9 +237,11 @@ npm run supabase:stop
 ### Task 4: Comprovar Gestão de Equipe, escolas e carteira
 
 **Files:**
-- Modify: `docs/audits/2026-08-06-functional-supabase-audit.*`
+- Modify: `docs/audits/2026-08-06-functional-supabase-audit.json`
+- Modify: `docs/audits/2026-08-06-functional-supabase-audit.md`
 - Test: `tests/unit/team-account-role-transition.test.js`
 - Test: `tests/unit/school-assignment-authorization.test.js`
+- Test: `tests/unit/team-account-gateway.test.js`
 - Test: `tests/e2e/supabase-full-contract.spec.js`
 - Test: `supabase/tests/database/team-management-rpc.test.sql`
 - Test: `supabase/tests/database/school-assignment-authorization.test.sql`
@@ -263,11 +271,11 @@ npm run supabase:reset
 npm run supabase:test:db
 ```
 
-Confirmar a reutilização segura da conta Auth, um único perfil ativo, compensação, trigger de `controller_id` e negativas por perfil.
+Confirmar reutilização segura da conta Auth, um único perfil ativo, compensação, trigger de `controller_id` e negativas por perfil.
 
 - [ ] **Step 3: Exercitar o fluxo completo com dados sintéticos**
 
-Executar o percurso já existente no E2E: cadastrar, editar, desativar, redistribuir, reler e limpar. Verificar `administrative_logs` e ausência de resíduos.
+Executar o percurso existente no E2E: cadastrar, editar, desativar, redistribuir, reler e limpar. Verificar `administrative_logs` e ausência de resíduos.
 
 - [ ] **Step 4: Verificar o cadastro institucional da escola**
 
@@ -282,7 +290,8 @@ npm run supabase:stop
 ### Task 5: Comprovar configurações, verificações e pendências
 
 **Files:**
-- Modify: `docs/audits/2026-08-06-functional-supabase-audit.*`
+- Modify: `docs/audits/2026-08-06-functional-supabase-audit.json`
+- Modify: `docs/audits/2026-08-06-functional-supabase-audit.md`
 - Test: `tests/unit/configuration-service.test.js`
 - Test: `tests/unit/verification-remote-persistence.test.js`
 - Test: `tests/unit/remote-operational-commands.test.js`
@@ -313,7 +322,7 @@ npx playwright test \
 
 - [ ] **Step 2: Confirmar escrita e releitura no Supabase local**
 
-Para cada operação, comparar o retorno da RPC, a tabela persistida, `row_version`, log administrativo e o estado após novo carregamento.
+Para cada operação, comparar retorno da RPC, tabela persistida, `row_version`, log administrativo e estado após novo carregamento.
 
 - [ ] **Step 3: Preservar regras de programas**
 
@@ -326,7 +335,8 @@ Nenhuma entrada criada durante a prova pode permanecer após o teste.
 ### Task 6: Comprovar notas fiscais, bens e importações
 
 **Files:**
-- Modify: `docs/audits/2026-08-06-functional-supabase-audit.*`
+- Modify: `docs/audits/2026-08-06-functional-supabase-audit.json`
+- Modify: `docs/audits/2026-08-06-functional-supabase-audit.md`
 - Inspect: `src/application/invoice-service.js`
 - Inspect: `src/application/inventory-service.js`
 - Inspect: `src/data/import-coordinator.js`
@@ -363,7 +373,8 @@ Confirmar staging, promoção, rollback e comparação final. Não executar impo
 ### Task 7: Comprovar exportações e auditoria
 
 **Files:**
-- Modify: `docs/audits/2026-08-06-functional-supabase-audit.*`
+- Modify: `docs/audits/2026-08-06-functional-supabase-audit.json`
+- Modify: `docs/audits/2026-08-06-functional-supabase-audit.md`
 - Inspect: `src/integration/excel-export-integration.js`
 - Inspect: `src/domain/excel-xlsx-renderer.js`
 - Inspect: `src/domain/excel-sme-monthly-renderer.js`
@@ -405,17 +416,15 @@ Se o log for apenas inserido no array local ou descartado pela RLS/persistência
 ### Task 8: Triar e corrigir falhas comprovadas
 
 **Files:**
-- Create por achado: `docs/superpowers/plans/2026-08-06-<achado>.md`
-- Create por achado: `docs/audits/2026-08-06-<achado>.md`
-- Modify apenas os arquivos diretamente envolvidos no percurso quebrado.
+- Create por achado: `docs/superpowers/plans/2026-08-06-<identificador-do-achado>.md`
+- Create por achado: `docs/audits/2026-08-06-<identificador-do-achado>.md`
+- Modify: somente os arquivos diretamente envolvidos no percurso quebrado.
 
 **Interfaces:**
 - Consumes: achados com reprodução e evidência.
 - Produces: PRs pequenos, testados e documentados.
 
 - [ ] **Step 1: Priorizar**
-
-Ordem obrigatória:
 
 ```text
 P0 perda/alteração incorreta de dados
@@ -427,8 +436,6 @@ P2 erro de UX ou documentação
 ```
 
 - [ ] **Step 2: Aplicar debugging sistemático e TDD**
-
-Para cada achado:
 
 ```text
 reproduzir → localizar primeira fronteira divergente → teste RED → implementação mínima → GREEN → regressões do domínio → readiness
@@ -454,8 +461,9 @@ Frontend, migration e Edge Function devem ser tratados separadamente e conferido
 - Modify: `docs/CURRENT_STAGE.md`
 - Modify: `docs/ROADMAP_ATUALIZACOES_2026.md`
 - Modify: `docs/architecture/testing.md`
-- Modify quando necessário: `docs/runbooks/SUPABASE_CONNECTION.md`
-- Finalize: `docs/audits/2026-08-06-functional-supabase-audit.*`
+- Modify when required: `docs/runbooks/SUPABASE_CONNECTION.md`
+- Finalize: `docs/audits/2026-08-06-functional-supabase-audit.json`
+- Finalize: `docs/audits/2026-08-06-functional-supabase-audit.md`
 
 **Interfaces:**
 - Consumes: todas as evidências e PRs corretivos concluídos.
@@ -501,6 +509,18 @@ contradições funcionais reais
 - [ ] **Step 6: Commit e PR documental final**
 
 ```bash
-git add docs/reference docs/CURRENT_STAGE.md docs/ROADMAP_ATUALIZACOES_2026.md docs/architecture/testing.md docs/runbooks/SUPABASE_CONNECTION.md docs/audits
+git add \
+  docs/reference/functional-contract-matrix.json \
+  docs/reference/functional-contract-matrix/core.json \
+  docs/reference/functional-contract-matrix/configuration.json \
+  docs/reference/functional-contract-matrix/operations.json \
+  docs/reference/functional-contract-matrix/technical.json \
+  docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md \
+  docs/CURRENT_STAGE.md \
+  docs/ROADMAP_ATUALIZACOES_2026.md \
+  docs/architecture/testing.md \
+  docs/runbooks/SUPABASE_CONNECTION.md \
+  docs/audits/2026-08-06-functional-supabase-audit.json \
+  docs/audits/2026-08-06-functional-supabase-audit.md
 git commit -m "docs: concluir auditoria funcional frontend Supabase"
 ```
