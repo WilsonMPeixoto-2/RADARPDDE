@@ -8,6 +8,7 @@ const root = path.resolve(__dirname, '..');
 const previewBuildPath = 'scripts/build-vercel.mjs';
 const corsPolicyPath = 'supabase/functions/_shared/cors-policy.mjs';
 const integrityMigrationPath = 'supabase/migrations/202608040001_production_integrity_monitor.sql';
+const assignmentMigrationPath = 'supabase/migrations/202608050001_school_assignment_authorization.sql';
 const requiredFiles = Object.freeze([
     'src/application/team-account-gateway.js',
     'supabase/migrations/202607190001_team_management_auth_alignment.sql',
@@ -24,6 +25,7 @@ const requiredFiles = Object.freeze([
     'supabase/migrations/20260723043129_security_and_rls_hardening.sql',
     'supabase/migrations/20260728182226_sme_access_governance.sql',
     integrityMigrationPath,
+    assignmentMigrationPath,
     'supabase/functions/_shared/team-account-domain.mjs',
     corsPolicyPath,
     'supabase/functions/team-account-management/index.ts',
@@ -33,6 +35,7 @@ const requiredFiles = Object.freeze([
     'supabase/tests/database/operational-command-rpc.test.sql',
     'supabase/tests/database/sme-access-governance.test.sql',
     'supabase/tests/database/production-integrity-monitor.test.sql',
+    'supabase/tests/database/school-assignment-authorization.test.sql',
     'scripts/check-production-data-integrity.mjs',
     '.github/workflows/production-data-integrity.yml',
     'tests/unit/production-data-integrity.test.js',
@@ -151,6 +154,18 @@ function check() {
         }
     });
 
+    const assignmentMigration = read(assignmentMigrationPath);
+    [
+        /function public\.enforce_school_controller_assignment_authorization\(\)[\s\S]*security invoker/i,
+        /old\.controller_id is distinct from new\.controller_id/i,
+        /v_role not in \('federal_assistant', 'technical_admin'\)/i,
+        /create trigger schools_controller_assignment_authorization[\s\S]*before update of controller_id on public\.schools/i
+    ].forEach(pattern => {
+        if (!pattern.test(assignmentMigration)) {
+            findings.push(`Autorização da carteira escolar incompleta: ${pattern}`);
+        }
+    });
+
     const authGate = read('src/integration/auth-gate.js');
     if (/technical_admin\s*:\s*['"]assistente['"]/.test(authGate)) {
         findings.push('Administrador técnico ainda herda o perfil da Assistente.');
@@ -223,8 +238,8 @@ function check() {
 
     const migrationCount = fs.readdirSync(path.join(root, 'supabase/migrations'))
         .filter(name => name.endsWith('.sql')).length;
-    if (migrationCount !== 26) {
-        findings.push(`Conjunto final deve conter 26 migrations; encontrado: ${migrationCount}.`);
+    if (migrationCount !== 27) {
+        findings.push(`Conjunto final deve conter 27 migrations; encontrado: ${migrationCount}.`);
     }
 
     return [...new Set(findings)];

@@ -45,6 +45,7 @@
             this.createCnpj = options.createCnpj || (() => `00.000.000/0001-${Math.floor(10 + Math.random() * 89)}`);
             this.createDesignation = options.createDesignation || (() => `01.09.${Math.floor(100 + Math.random() * 900)}`);
             this.createDenomination = options.createDenomination || (() => `Nova Unidade Escolar ${Math.floor(Math.random() * 100)}`);
+            this.getCurrentProfile = options.getCurrentProfile || (() => '');
             if (!this.dataService || typeof this.dataService.execute !== 'function'
                 || typeof this.getState !== 'function'
                 || typeof this.appendLog !== 'function') {
@@ -103,6 +104,16 @@
                     const controller = this.activeController(state, controllerId, 'saveSchool');
                     const existing = input.id ? state.schools.find(item => item.id === input.id) : null;
                     if (input.id && !existing) fail('NOT_FOUND', 'Escola não localizada.', 'saveSchool');
+                    const currentProfile = text(this.getCurrentProfile()).toLocaleLowerCase('pt-BR');
+                    if (existing
+                        && controllerId !== text(existing.controladorId)
+                        && currentProfile !== 'assistente') {
+                        fail(
+                            'AUTHORIZATION_DENIED',
+                            'A redistribuição de carteira é exclusiva do Assistente de Verbas Federais.',
+                            'saveSchool'
+                        );
+                    }
                     persistence.expectedSchoolVersion = existing ? rowVersionOf(existing) : null;
                     const school = existing || {
                         id: this.createId(),

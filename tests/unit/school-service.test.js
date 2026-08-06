@@ -51,6 +51,7 @@ function createHarness() {
     const service = new SchoolService({
         dataService,
         getState: () => state,
+        getCurrentProfile: () => 'assistente',
         appendLog: (action, details) => state.logs.unshift({ action, details }),
         createId: () => 'ESC-NEW',
         createInep: () => '33099999',

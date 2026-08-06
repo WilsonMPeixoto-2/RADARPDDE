@@ -4618,6 +4618,7 @@ function initializeRadarApplicationServices() {
     const dependencies = {
         dataService: radarDataService,
         getState,
+        getCurrentProfile: getRadarAccessProfile,
         appendLog: appendRadarLog
     };
     radarConfigurationService = new window.RadarConfigurationService.ConfigurationService(dependencies);
@@ -10596,7 +10597,14 @@ async function saveNovaPendencia(e) {
 // 16.3 Editar Cadastro da Escola
 function openEscolaEditModal(escolaId) {
     if (!['assistente', 'controlador'].includes(getRadarAccessProfile())) return false;
+    const canManageControllerAssignment = getRadarAccessProfile() === 'assistente';
+    if (!escolaId && !canManageControllerAssignment) return false;
     const selectCtrl = document.getElementById('edit-controlador');
+    selectCtrl.disabled = !canManageControllerAssignment;
+    selectCtrl.setAttribute('aria-disabled', canManageControllerAssignment ? 'false' : 'true');
+    selectCtrl.title = canManageControllerAssignment
+        ? 'Selecione o controlador responsável pela unidade.'
+        : 'A redistribuição de carteira é exclusiva da Gestão de Equipe.';
     selectCtrl.innerHTML = getActiveControllers().map(c => `
         <option value="${escapeHtml(c.id)}">${escapeHtml(c.name)}</option>
     `).join('');
@@ -10656,6 +10664,9 @@ async function saveEscolaEdit(e) {
     e.preventDefault();
     if (!['assistente', 'controlador'].includes(getRadarAccessProfile())) return false;
     const id = document.getElementById('edit-escola-id').value;
+    const existingSchool = id ? escolas.find(item => item.id === id) : null;
+    const existingControllerId = existingSchool?.controladorId || '';
+    const canManageControllerAssignment = getRadarAccessProfile() === 'assistente';
     const sici = document.getElementById('edit-sici').value.trim();
     const email = document.getElementById('edit-email').value.trim();
     const diretor = document.getElementById('edit-diretor').value.trim();
@@ -10681,7 +10692,7 @@ async function saveEscolaEdit(e) {
             deputyDirectorPhone: telefoneDiretorAdjunto,
             phone: tel,
             institutionalMobile: celularInstitucional,
-            controllerId: ctrlId,
+            controllerId: canManageControllerAssignment ? ctrlId : existingControllerId,
             inventoryProcess: processo,
             programIds: progIds,
             initialCompetence: activeCompetenciaKey || '2026-05'
