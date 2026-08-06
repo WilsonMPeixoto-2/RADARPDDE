@@ -48,7 +48,8 @@ revoke all on function public.resolve_team_auth_user_id_by_email(text) from auth
 grant execute on function public.resolve_team_auth_user_id_by_email(text) to service_role;
 
 -- O conjunto abaixo é exclusivamente sintético, criado para homologação manual.
--- As guardas impedem que identificadores reaproveitados sejam apagados.
+-- As guardas impedem exclusão se qualquer identificador tiver sido reaproveitado
+-- ou se os usuários HML tiverem adquirido vínculos fora do cenário confirmado.
 do $$
 begin
     if exists (
@@ -59,6 +60,7 @@ begin
               cre = 'HML'
               and ra = 'HML'
               and designation = '04.11.HML-260723112802'
+              and controller_id = 'hml_controller_20260723112802'
           )
     ) then
         raise exception 'VALIDATION_ERROR: escola HML não corresponde ao registro sintético esperado';
@@ -75,11 +77,28 @@ begin
 
     if exists (
         select 1
+        from public.schools
+        where controller_id = 'hml_controller_20260723112802'
+          and id <> 'HML-SCHOOL-manual-20260723112802'
+    ) then
+        raise exception 'VALIDATION_ERROR: controlador HML possui escola fora do cenário sintético';
+    end if;
+
+    if exists (
+        select 1
         from public.inventory_team_members
         where id = 'hml_inventory_20260723112802'
           and lower(email) <> 'hml-manual-20260723112802-inventory@radar.local'
     ) then
         raise exception 'VALIDATION_ERROR: integrante HML não corresponde ao registro sintético esperado';
+    end if;
+
+    if exists (
+        select 1
+        from public.assets
+        where inventoried_by_member_id = 'hml_inventory_20260723112802'
+    ) then
+        raise exception 'VALIDATION_ERROR: integrante HML possui bem patrimonial associado';
     end if;
 
     if exists (
@@ -99,6 +118,36 @@ begin
     ) then
         raise exception 'VALIDATION_ERROR: conta Auth do Inventário HML diverge do registro sintético';
     end if;
+
+    if exists (
+        select 1
+        from public.user_profiles
+        where controller_id = 'hml_controller_20260723112802'
+          and user_id <> 'fd288b37-90e2-40b8-a5cd-e563d6cd05eb'::uuid
+    ) then
+        raise exception 'VALIDATION_ERROR: controlador HML está vinculado a outra conta';
+    end if;
+
+    if exists (
+        select 1
+        from public.user_profiles
+        where inventory_member_id = 'hml_inventory_20260723112802'
+          and user_id <> 'ee7d73d2-ff51-48f3-84af-061da3ac3c5e'::uuid
+    ) then
+        raise exception 'VALIDATION_ERROR: integrante HML está vinculado a outra conta';
+    end if;
+
+    if exists (
+        select 1
+        from public.user_school_scopes
+        where user_id in (
+            'fd288b37-90e2-40b8-a5cd-e563d6cd05eb'::uuid,
+            'ee7d73d2-ff51-48f3-84af-061da3ac3c5e'::uuid
+        )
+          and school_id <> 'HML-SCHOOL-manual-20260723112802'
+    ) then
+        raise exception 'VALIDATION_ERROR: conta HML possui escopo sobre escola real';
+    end if;
 end
 $$;
 
@@ -106,7 +155,8 @@ delete from public.schools
 where id = 'HML-SCHOOL-manual-20260723112802'
   and cre = 'HML'
   and ra = 'HML'
-  and designation = '04.11.HML-260723112802';
+  and designation = '04.11.HML-260723112802'
+  and controller_id = 'hml_controller_20260723112802';
 
 delete from public.user_profiles
 where user_id in (
