@@ -18,9 +18,14 @@ test('exige row_version e conflito otimista na criação de exercício', () => {
     assert.match(sql, /generate_series\(1, 12\)/);
 });
 
-test('remove o bem derivado quando a nota perde o vínculo', () => {
-    assert.match(sql, /create or replace function public\.delete_unlinked_invoice_asset/);
+test('remove o bem derivado com privilégio limitado quando a nota perde o vínculo', () => {
+    assert.match(
+        sql,
+        /create or replace function public\.delete_unlinked_invoice_asset\(\)[\s\S]*?security definer/i
+    );
+    assert.match(sql, /revoke all on function public\.delete_unlinked_invoice_asset\(\) from public/i);
     assert.match(sql, /after update of linked_asset_id on public\.registered_invoices/);
+    assert.match(sql, /where id = old\.linked_asset_id[\s\S]*?and school_id = old\.school_id/);
     assert.match(sql, /delete from public\.assets/);
 });
 
