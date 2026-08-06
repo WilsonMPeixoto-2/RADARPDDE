@@ -13,6 +13,14 @@
 
     if (!contract) throw new Error('RadarRepositoryContract é obrigatório.');
     const { RepositoryError } = contract;
+    const INSTITUTIONAL_FIELDS = Object.freeze([
+        ['id', 'código institucional'],
+        ['designation', 'designação'],
+        ['denomination', 'denominação'],
+        ['inep', 'INEP'],
+        ['cnpj', 'CNPJ'],
+        ['sici', 'SICI']
+    ]);
 
     function text(value) {
         return value == null ? '' : String(value).trim();
@@ -27,12 +35,16 @@
         return Number.isInteger(candidate) && candidate > 0 ? candidate : null;
     }
 
-    function fail(code, message, operation) {
-        throw new RepositoryError(code, message, { operation });
+    function fail(code, message, operation, details = null) {
+        throw new RepositoryError(code, message, { operation, details });
     }
 
     function unique(values) {
         return [...new Set((Array.isArray(values) ? values : []).map(text).filter(Boolean))];
+    }
+
+    function identifierKey(value) {
+        return text(value).toLocaleLowerCase('pt-BR').replace(/[^0-9a-zà-ÿ]+/g, '');
     }
 
     class SchoolService {
@@ -40,11 +52,6 @@
             this.dataService = options.dataService;
             this.getState = options.getState;
             this.appendLog = options.appendLog;
-            this.createId = options.createId || (() => `esc-${Date.now()}`);
-            this.createInep = options.createInep || (() => `330${Math.floor(10000 + Math.random() * 90000)}`);
-            this.createCnpj = options.createCnpj || (() => `00.000.000/0001-${Math.floor(10 + Math.random() * 89)}`);
-            this.createDesignation = options.createDesignation || (() => `01.09.${Math.floor(100 + Math.random() * 900)}`);
-            this.createDenomination = options.createDenomination || (() => `Nova Unidade Escolar ${Math.floor(Math.random() * 100)}`);
             this.getCurrentProfile = options.getCurrentProfile || (() => '');
             if (!this.dataService || typeof this.dataService.execute !== 'function'
                 || typeof this.getState !== 'function'
@@ -68,6 +75,62 @@
                 return program && program.active === false;
             });
             return unique([...activeIds, ...historical]);
+        }
+
+        institutionalValues(input, existing) {
+            return {
+                id: existing?.id || text(input.id),
+                designation: existing && !Object.prototype.hasOwnProperty.call(input, 'designation')
+                    ? text(existing.designação)
+                    : text(input.designation),
+                denomination: existing && !Object.prototype.hasOwnProperty.call(input, 'denomination')
+                    ? text(existing.denominação)
+                    : text(input.denomination),
+                inep: existing && !Object.prototype.hasOwnProperty.call(input, 'inep')
+                    ? text(existing.inep)
+                    : text(input.inep),
+                cnpj: existing && !Object.prototype.hasOwnProperty.call(input, 'cnpj')
+                    ? text(existing.cnpj)
+                    : text(input.cnpj),
+                sici: existing && !Object.prototype.hasOwnProperty.call(input, 'sici')
+                    ? text(existing.sici)
+                    : text(input.sici)
+            };
+        }
+
+        validateInstitutionalData(state, values, existing) {
+            const missing = INSTITUTIONAL_FIELDS
+                .filter(([field]) => !text(values[field]))
+                .map(([, label]) => label);
+            if (missing.length > 0) {
+                fail(
+                    'INSTITUTIONAL_DATA_REQUIRED',
+                    `Informe os dados institucionais obrigatórios: ${missing.join(', ')}.`,
+                    'saveSchool',
+                    { missing }
+                );
+            }
+
+            const duplicateFields = [
+                ['id', 'id'],
+                ['designation', 'designação'],
+                ['inep', 'inep'],
+                ['cnpj', 'cnpj'],
+                ['sici', 'sici']
+            ].filter(([source, target]) => state.schools.some(school => (
+                school !== existing
+                && identifierKey(school[target])
+                && identifierKey(school[target]) === identifierKey(values[source])
+            ))).map(([source]) => source);
+
+            if (duplicateFields.length > 0) {
+                fail(
+                    'DUPLICATE_INSTITUTIONAL_IDENTIFIER',
+                    `Já existe escola com o(s) identificador(es): ${duplicateFields.join(', ')}.`,
+                    'saveSchool',
+                    { duplicateFields }
+                );
+            }
         }
 
         persistControllerAssignment(context, persistence) {
@@ -103,7 +166,9 @@
                     const controllerId = text(input.controllerId);
                     const controller = this.activeController(state, controllerId, 'saveSchool');
                     const existing = input.id ? state.schools.find(item => item.id === input.id) : null;
-                    if (input.id && !existing) fail('NOT_FOUND', 'Escola não localizada.', 'saveSchool');
+                    if (input.id && !existing && !text(input.designation)) {
+                        fail('NOT_FOUND', 'Escola não localizada.', 'saveSchool');
+                    }
                     const currentProfile = text(this.getCurrentProfile()).toLocaleLowerCase('pt-BR');
                     if (existing
                         && controllerId !== text(existing.controladorId)
@@ -114,21 +179,35 @@
                             'saveSchool'
                         );
                     }
+
+                    const institutional = this.institutionalValues(input, existing);
+                    this.validateInstitutionalData(state, institutional, existing);
+                    const initialCompetence = existing?.competenciaInicial
+                        || text(input.initialCompetence);
+                    if (!existing && !/^\d{4}-(0[1-9]|1[0-2])$/.test(initialCompetence)) {
+                        fail(
+                            'INVALID_INITIAL_COMPETENCE',
+                            'Informe uma competência inicial válida para a nova escola.',
+                            'saveSchool'
+                        );
+                    }
+
                     persistence.expectedSchoolVersion = existing ? rowVersionOf(existing) : null;
                     const school = existing || {
-                        id: this.createId(),
-                        inep: this.createInep(),
-                        cnpj: this.createCnpj(),
-                        denominação: this.createDenomination(),
-                        designação: this.createDesignation(),
-                        cre: '4ª CRE',
-                        ra: 'Geral',
-                        competenciaInicial: text(input.initialCompetence) || '2026-05',
+                        id: institutional.id,
+                        cre: text(input.cre) || '4ª CRE',
+                        ra: text(input.ra),
+                        competenciaInicial: initialCompetence,
                         active: true
                     };
+                    school.designação = institutional.designation;
+                    school.denominação = institutional.denomination;
+                    school.inep = institutional.inep;
+                    school.cnpj = institutional.cnpj;
+                    school.sici = institutional.sici;
+
                     const previousController = school.controladorId;
                     const mappings = {
-                        sici: 'sici',
                         email: 'email',
                         director: 'diretor',
                         directorPhone: 'telefoneDiretor',
@@ -148,7 +227,7 @@
                     persistedSchoolId = String(school.id);
                     let details = existing
                         ? `Dados da escola ${school.denominação} atualizados.`
-                        : `Nova escola cadastrada: ${school.denominação} com controlador designado.`;
+                        : `Nova escola cadastrada: ${school.denominação} (${school.designação}), com identificadores institucionais informados e controlador designado.`;
                     if (existing && previousController !== controllerId) {
                         details += ` Controlador alterado para ${controller.name}.`;
                     }
@@ -250,4 +329,3 @@
 
     return Object.freeze({ SchoolService });
 }));
-
