@@ -102,15 +102,20 @@ function check() {
         /confirmation_token\s*=\s*coalesce\(confirmation_token, ''\)/i,
         /recovery_token\s*=\s*coalesce\(recovery_token, ''\)/i,
         /email_change_token_new\s*=\s*coalesce\(email_change_token_new, ''\)/i,
-        /alter column confirmation_token set default ''/i,
         /HML-SCHOOL-manual-20260723112802/,
         /hml_controller_20260723112802/,
-        /hml_inventory_20260723112802/
+        /hml_inventory_20260723112802/,
+        /controlador HML possui escola fora do cenário sintético/,
+        /integrante HML possui bem patrimonial associado/,
+        /conta HML possui escopo sobre escola real/
     ].forEach(pattern => {
         if (!pattern.test(teamAuthRepairMigration)) {
             findings.push(`Reparação Auth da Gestão de Equipe incompleta: ${pattern}`);
         }
     });
+    if (/alter\s+table\s+auth\.users/i.test(teamAuthRepairMigration)) {
+        findings.push('Migration não pode alterar a estrutura da tabela Auth gerenciada.');
+    }
 
     const config = read('supabase/config.toml');
     if (!/\[functions\.team-account-management\][\s\S]*?verify_jwt\s*=\s*true/i.test(config)) {
