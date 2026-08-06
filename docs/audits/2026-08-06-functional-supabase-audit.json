@@ -30,7 +30,12 @@
       "supabaseJs": "2.110.9",
       "supabaseCli": "2.110.0"
     },
-    "recentRelevantPullRequests": [138, 150, 154, 155],
+    "recentRelevantPullRequests": [
+      138,
+      150,
+      154,
+      155
+    ],
     "openAutomaticIncidents": [],
     "mainWorkflowRunsObserved": {
       "count": 6,
@@ -52,66 +57,1966 @@
   "knownItemsToRevalidate": [
     {
       "id": "SCH-01-identifiers",
-      "status": "hypothesis",
-      "description": "Cadastro de escola pode substituir identificadores institucionais por valores artificiais."
+      "status": "static-confirmed-gap",
+      "description": "Cadastro de escola nova gera identificadores institucionais artificiais e não recebe esses campos do formulário."
     },
     {
       "id": "ASSET-02-atomicity",
-      "status": "matrix-gap",
-      "description": "Edição genérica de bem pode usar persistência padrão sem o mesmo RPC atômico, log e versão."
+      "status": "static-confirmed-gap",
+      "description": "Edição genérica de bem usa persistência padrão sem RPC atômico, log ou versão explícita."
     },
     {
       "id": "EXP-AUD-persistence",
-      "status": "hypothesis",
-      "description": "Auditoria de exportações XLSX pode permanecer apenas no estado local ou ser rejeitada pela persistência/RLS."
+      "status": "static-confirmed-gap",
+      "description": "Exportações XLSX usam persistência legada do snapshot integral de logs e não AuditService.record."
     },
     {
       "id": "AUTH-READ-production",
       "status": "known-limitation",
-      "description": "Smoke autenticado de leitura em Production está versionado, mas desativado sem cinco identidades técnicas autorizadas."
+      "description": "Smoke autenticado de leitura em Production continua desativado sem cinco identidades técnicas autorizadas."
     }
   ],
   "operations": [
-    {"id":"AUTH-01","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"NAV-01","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"NAV-02","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"COMP-01","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"READ-01","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"READ-02","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"READ-03","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"READ-04","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"EXP-01","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"EXP-02","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"CFG-01","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"CFG-02","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"CFG-03","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"CFG-04","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"SCH-01","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"SCH-02","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"SCH-03","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"TEAM-01","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"TEAM-02","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"TEAM-03","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"TEAM-04","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"VER-01","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"VER-02","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"VER-03","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"VER-04","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"PEND-01","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"PEND-02","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"PEND-03","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"PEND-04","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"PEND-05","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"PEND-06","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"INV-01","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"INV-02","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"ASSET-01","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"ASSET-02","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"ASSET-03","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"ASSET-04","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"AUD-01","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"TECH-01","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"OPS-01","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]},
-    {"id":"OPS-02","status":"pending","frontend":null,"service":null,"repository":null,"backend":null,"authorization":null,"persistence":null,"reload":null,"errorHandling":null,"evidence":[],"findings":[]}
-  ]
+    {
+      "id": "AUTH-01",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/integration/auth-gate.js",
+          "symbol": null
+        },
+        {
+          "path": "src/integration/auth-bootstrap.js",
+          "symbol": null
+        },
+        {
+          "path": "src/auth/session-service.js",
+          "symbol": null
+        }
+      ],
+      "service": "RadarSessionService.bootstrap/restore",
+      "repository": "Supabase Auth + SupabaseRepository",
+      "backend": [
+        "auth.users",
+        "user_profiles",
+        "profiles",
+        "user_school_scopes"
+      ],
+      "authorization": {
+        "allow": [
+          "controller",
+          "federal_assistant",
+          "sme_management",
+          "inventory",
+          "technical_admin"
+        ],
+        "deny": [
+          "anonymous"
+        ]
+      },
+      "persistence": {
+        "mode": "not_applicable",
+        "concurrency": "session"
+      },
+      "reload": false,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "auth",
+        "src/integration/auth-gate.js",
+        "src/integration/auth-bootstrap.js",
+        "src/auth/session-service.js"
+      ],
+      "findings": [
+        "A prova autenticada recorrente em Production continua desativada sem identidades técnicas autorizadas."
+      ]
+    },
+    {
+      "id": "NAV-01",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/integration/navigation-routes.js",
+          "symbol": null
+        },
+        {
+          "path": "src/integration/navigation-history.js",
+          "symbol": null
+        },
+        {
+          "path": "src/integration/navigation-context.js",
+          "symbol": null
+        }
+      ],
+      "service": "RadarNavigationContext.navigate/restore",
+      "repository": "sessionStorage",
+      "backend": [
+        "route",
+        "competence",
+        "filters",
+        "scroll",
+        "focus"
+      ],
+      "authorization": {
+        "allow": [
+          "controller",
+          "federal_assistant",
+          "sme_management",
+          "inventory",
+          "technical_admin"
+        ],
+        "deny": [
+          "anonymous"
+        ]
+      },
+      "persistence": {
+        "mode": "not_applicable",
+        "concurrency": "session"
+      },
+      "reload": false,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "navigation",
+        "src/integration/navigation-routes.js",
+        "src/integration/navigation-history.js",
+        "src/integration/navigation-context.js"
+      ],
+      "findings": []
+    },
+    {
+      "id": "NAV-02",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/integration/global-search.js",
+          "symbol": null
+        },
+        {
+          "path": "src/domain/global-search-index.js",
+          "symbol": null
+        }
+      ],
+      "service": "RadarGlobalSearch.search",
+      "repository": "state projection",
+      "backend": [
+        "schools",
+        "programs",
+        "competences",
+        "pendencies"
+      ],
+      "authorization": {
+        "allow": [
+          "controller",
+          "federal_assistant",
+          "sme_management",
+          "inventory",
+          "technical_admin"
+        ],
+        "deny": [
+          "anonymous"
+        ]
+      },
+      "persistence": {
+        "mode": "not_applicable",
+        "concurrency": "not_applicable"
+      },
+      "reload": false,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "search",
+        "src/integration/global-search.js",
+        "src/domain/global-search-index.js"
+      ],
+      "findings": [
+        "A prova autenticada recorrente de ausência de vazamento em Production continua desativada."
+      ]
+    },
+    {
+      "id": "COMP-01",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/integration/global-competence-selector.js",
+          "symbol": null
+        },
+        {
+          "path": "src/domain/competence-context.js",
+          "symbol": null
+        }
+      ],
+      "service": "RadarCompetenceContext.select",
+      "repository": "session state",
+      "backend": [
+        "competences",
+        "app_config"
+      ],
+      "authorization": {
+        "allow": [
+          "controller",
+          "federal_assistant",
+          "sme_management",
+          "inventory",
+          "technical_admin"
+        ],
+        "deny": [
+          "anonymous"
+        ]
+      },
+      "persistence": {
+        "mode": "not_applicable",
+        "concurrency": "session"
+      },
+      "reload": false,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "competence",
+        "src/integration/global-competence-selector.js",
+        "src/domain/competence-context.js"
+      ],
+      "findings": []
+    },
+    {
+      "id": "READ-01",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/integration/cycle-b-dashboard.js",
+          "symbol": null
+        },
+        {
+          "path": "src/integration/cycle-b-dashboard-result.js",
+          "symbol": null
+        }
+      ],
+      "service": "OperationalProjection.dashboard",
+      "repository": "SupabaseRepository.read",
+      "backend": [
+        "schools",
+        "verifications",
+        "pendencies",
+        "assets"
+      ],
+      "authorization": {
+        "allow": [
+          "controller",
+          "federal_assistant",
+          "sme_management",
+          "inventory",
+          "technical_admin"
+        ],
+        "deny": [
+          "anonymous"
+        ]
+      },
+      "persistence": {
+        "mode": "not_applicable",
+        "concurrency": "not_applicable"
+      },
+      "reload": false,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "read",
+        "src/integration/cycle-b-dashboard.js",
+        "src/integration/cycle-b-dashboard-result.js"
+      ],
+      "findings": [
+        "A prova autenticada recorrente em Production continua desativada."
+      ]
+    },
+    {
+      "id": "READ-02",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/integration/cycle-b-carteira.js",
+          "symbol": null
+        }
+      ],
+      "service": "OperationalProjection.portfolio",
+      "repository": "SupabaseRepository.read",
+      "backend": [
+        "schools",
+        "controllers",
+        "school_programs"
+      ],
+      "authorization": {
+        "allow": [
+          "controller",
+          "federal_assistant",
+          "sme_management",
+          "technical_admin"
+        ],
+        "deny": [
+          "anonymous",
+          "inventory"
+        ]
+      },
+      "persistence": {
+        "mode": "not_applicable",
+        "concurrency": "not_applicable"
+      },
+      "reload": false,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "portfolio-read",
+        "src/integration/cycle-b-carteira.js"
+      ],
+      "findings": [
+        "A prova autenticada recorrente em Production continua desativada."
+      ]
+    },
+    {
+      "id": "READ-03",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/integration/school-timeline.js",
+          "symbol": null
+        },
+        {
+          "path": "src/domain/school-timeline.js",
+          "symbol": null
+        }
+      ],
+      "service": "RadarSchoolTimeline.project",
+      "repository": "SupabaseRepository.read",
+      "backend": [
+        "schools",
+        "verifications",
+        "pendencies",
+        "pendency_attempts",
+        "pendency_contacts",
+        "registered_invoices",
+        "assets",
+        "administrative_logs"
+      ],
+      "authorization": {
+        "allow": [
+          "controller",
+          "federal_assistant",
+          "sme_management",
+          "inventory",
+          "technical_admin"
+        ],
+        "deny": [
+          "anonymous"
+        ]
+      },
+      "persistence": {
+        "mode": "not_applicable",
+        "concurrency": "not_applicable"
+      },
+      "reload": false,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "read",
+        "src/integration/school-timeline.js",
+        "src/domain/school-timeline.js"
+      ],
+      "findings": [
+        "A prova autenticada recorrente em Production continua desativada."
+      ]
+    },
+    {
+      "id": "READ-04",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/integration/task-9-pendencias-page.js",
+          "symbol": null
+        },
+        {
+          "path": "src/domain/pendencias-view-model.js",
+          "symbol": null
+        }
+      ],
+      "service": "PendencyViewModel.project",
+      "repository": "SupabaseRepository.read",
+      "backend": [
+        "pendencies",
+        "pendency_attempts",
+        "pendency_contacts"
+      ],
+      "authorization": {
+        "allow": [
+          "controller",
+          "federal_assistant",
+          "sme_management",
+          "inventory",
+          "technical_admin"
+        ],
+        "deny": [
+          "anonymous"
+        ]
+      },
+      "persistence": {
+        "mode": "not_applicable",
+        "concurrency": "not_applicable"
+      },
+      "reload": false,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "read",
+        "src/integration/task-9-pendencias-page.js",
+        "src/domain/pendencias-view-model.js"
+      ],
+      "findings": [
+        "A prova autenticada recorrente em Production continua desativada."
+      ]
+    },
+    {
+      "id": "EXP-01",
+      "status": "static-gap",
+      "frontend": [
+        {
+          "path": "src/integration/excel-export-integration.js",
+          "symbol": null
+        },
+        {
+          "path": "src/domain/excel-xlsx-renderer.js",
+          "symbol": null
+        }
+      ],
+      "service": "ExcelExportIntegration.generateInstitutionalWorkbook",
+      "repository": "download",
+      "backend": [
+        "authorized in-memory state"
+      ],
+      "authorization": {
+        "allow": [
+          "federal_assistant",
+          "sme_management",
+          "technical_admin"
+        ],
+        "deny": [
+          "anonymous",
+          "controller",
+          "inventory"
+        ]
+      },
+      "persistence": {
+        "mode": "not_applicable",
+        "concurrency": "not_applicable"
+      },
+      "reload": false,
+      "errorHandling": "Primeira fronteira divergente identificada; reprodução dinâmica obrigatória antes da correção.",
+      "evidence": [
+        "institutional-export",
+        "src/integration/excel-export-integration.js",
+        "src/domain/excel-xlsx-renderer.js"
+      ],
+      "findings": [
+        "A geração do arquivo está conectada, mas o log chama registerLog + persist(logs) em modo fire-and-forget.",
+        "A persistência legada envia o snapshot integral de administrativeLogs por upsert, em vez de inserir somente o evento novo.",
+        "A exportação pode informar sucesso antes de uma falha assíncrona de auditoria."
+      ]
+    },
+    {
+      "id": "EXP-02",
+      "status": "static-gap",
+      "frontend": [
+        {
+          "path": "src/integration/excel-export-integration.js",
+          "symbol": null
+        },
+        {
+          "path": "src/domain/excel-sme-monthly-renderer.js",
+          "symbol": null
+        },
+        {
+          "path": "src/integration/excel-sme-runtime-loader.js",
+          "symbol": null
+        }
+      ],
+      "service": "ExcelSmeRuntime.generate",
+      "repository": "download",
+      "backend": [
+        "authorized monthly state",
+        "template asset",
+        "ExcelJS asset"
+      ],
+      "authorization": {
+        "allow": [
+          "federal_assistant",
+          "sme_management",
+          "technical_admin"
+        ],
+        "deny": [
+          "anonymous",
+          "controller",
+          "inventory"
+        ]
+      },
+      "persistence": {
+        "mode": "not_applicable",
+        "concurrency": "not_applicable"
+      },
+      "reload": false,
+      "errorHandling": "Primeira fronteira divergente identificada; reprodução dinâmica obrigatória antes da correção.",
+      "evidence": [
+        "sme-export",
+        "src/integration/excel-export-integration.js",
+        "src/domain/excel-sme-monthly-renderer.js",
+        "src/integration/excel-sme-runtime-loader.js"
+      ],
+      "findings": [
+        "O pipeline mensal e o download estão conectados.",
+        "O registro da exportação repete a rota legada de snapshot integral e não usa AuditService.record.",
+        "A falha de auditoria não altera o resultado já devolvido ao usuário."
+      ]
+    },
+    {
+      "id": "CFG-01",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/application/configuration-service.js",
+          "symbol": "async saveCalendar"
+        },
+        {
+          "path": "src/data/supabase-repository.js",
+          "symbol": "saveCalendarWithLog"
+        }
+      ],
+      "service": "ConfigurationService.saveCalendar",
+      "repository": "saveCalendarWithLog",
+      "backend": [
+        "app_config",
+        "administrative_logs"
+      ],
+      "authorization": {
+        "allow": [
+          "sme_management",
+          "technical_admin"
+        ],
+        "deny": [
+          "anonymous",
+          "controller",
+          "federal_assistant",
+          "inventory"
+        ]
+      },
+      "persistence": {
+        "mode": "atomic_rpc",
+        "concurrency": "row_version"
+      },
+      "reload": true,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "configuration",
+        "src/application/configuration-service.js",
+        "src/data/supabase-repository.js"
+      ],
+      "findings": []
+    },
+    {
+      "id": "CFG-02",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/application/configuration-service.js",
+          "symbol": "async createExercise"
+        },
+        {
+          "path": "src/data/supabase-repository.js",
+          "symbol": "saveExerciseWithCompetences"
+        }
+      ],
+      "service": "ConfigurationService.createExercise",
+      "repository": "saveExerciseWithCompetences",
+      "backend": [
+        "app_config",
+        "competences",
+        "administrative_logs"
+      ],
+      "authorization": {
+        "allow": [
+          "sme_management",
+          "technical_admin"
+        ],
+        "deny": [
+          "anonymous",
+          "controller",
+          "federal_assistant",
+          "inventory"
+        ]
+      },
+      "persistence": {
+        "mode": "atomic_rpc",
+        "concurrency": "row_version"
+      },
+      "reload": true,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "exercise",
+        "src/application/configuration-service.js",
+        "src/data/supabase-repository.js"
+      ],
+      "findings": []
+    },
+    {
+      "id": "CFG-03",
+      "status": "documentation-divergence",
+      "frontend": [
+        {
+          "path": "src/application/directory-service.js",
+          "symbol": "async saveProgram"
+        },
+        {
+          "path": "src/data/supabase-repository.js",
+          "symbol": "saveProgramWithLog"
+        }
+      ],
+      "service": "DirectoryService.saveProgram",
+      "repository": "saveProgramWithLog",
+      "backend": [
+        "programs",
+        "administrative_logs"
+      ],
+      "authorization": {
+        "allow": [
+          "sme_management",
+          "technical_admin"
+        ],
+        "deny": [
+          "anonymous",
+          "controller",
+          "federal_assistant",
+          "inventory"
+        ]
+      },
+      "persistence": {
+        "mode": "atomic_rpc",
+        "concurrency": "row_version"
+      },
+      "reload": true,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "program",
+        "src/application/directory-service.js",
+        "src/data/supabase-repository.js"
+      ],
+      "findings": [
+        "A matriz classifica a autoridade sobre programas como decisão pendente, mas frontend, DirectoryService, RPC e RLS atuais implementam Gestão SME e Administrador técnico de forma coerente.",
+        "A correção necessária é documental; nenhuma regra de negócio será alterada."
+      ]
+    },
+    {
+      "id": "CFG-04",
+      "status": "documentation-divergence",
+      "frontend": [
+        {
+          "path": "src/application/directory-service.js",
+          "symbol": "async deactivateProgram"
+        },
+        {
+          "path": "src/data/supabase-repository.js",
+          "symbol": "saveProgramWithLog"
+        }
+      ],
+      "service": "DirectoryService.deactivateProgram",
+      "repository": "saveProgramWithLog",
+      "backend": [
+        "programs",
+        "administrative_logs"
+      ],
+      "authorization": {
+        "allow": [
+          "sme_management",
+          "technical_admin"
+        ],
+        "deny": [
+          "anonymous",
+          "controller",
+          "federal_assistant",
+          "inventory"
+        ]
+      },
+      "persistence": {
+        "mode": "atomic_rpc",
+        "concurrency": "row_version"
+      },
+      "reload": true,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "program",
+        "src/application/directory-service.js",
+        "src/data/supabase-repository.js"
+      ],
+      "findings": [
+        "A matriz classifica a desativação de programas como decisão pendente, mas o código e o backend atuais implementam a operação para Gestão SME e Administrador técnico.",
+        "A correção necessária é documental; nenhuma regra de negócio será alterada."
+      ]
+    },
+    {
+      "id": "SCH-01",
+      "status": "static-gap",
+      "frontend": [
+        {
+          "path": "src/application/school-service.js",
+          "symbol": "async saveSchool"
+        },
+        {
+          "path": "src/data/supabase-repository.js",
+          "symbol": "saveSchoolWithPrograms"
+        }
+      ],
+      "service": "SchoolService.saveSchool",
+      "repository": "saveSchoolWithPrograms",
+      "backend": [
+        "schools",
+        "school_programs",
+        "administrative_logs"
+      ],
+      "authorization": {
+        "allow": [
+          "controller",
+          "federal_assistant",
+          "technical_admin"
+        ],
+        "deny": [
+          "anonymous",
+          "sme_management",
+          "inventory"
+        ]
+      },
+      "persistence": {
+        "mode": "atomic_rpc",
+        "concurrency": "row_version"
+      },
+      "reload": true,
+      "errorHandling": "Primeira fronteira divergente identificada; reprodução dinâmica obrigatória antes da correção.",
+      "evidence": [
+        "remote",
+        "src/application/school-service.js",
+        "src/data/supabase-repository.js"
+      ],
+      "findings": [
+        "A criação monta id, INEP, CNPJ, designação e denominação por geradores artificiais.",
+        "O formulário atual não coleta nem envia esses identificadores institucionais.",
+        "A matriz combina criação e edição e ainda inclui Controlador no allow da ação combinada; o código atual permite somente edição ao Controlador."
+      ]
+    },
+    {
+      "id": "SCH-02",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/application/school-service.js",
+          "symbol": "async assignController"
+        },
+        {
+          "path": "src/data/supabase-repository.js",
+          "symbol": "assignControllerWithLog"
+        }
+      ],
+      "service": "SchoolService.assignController",
+      "repository": "assignControllerWithLog",
+      "backend": [
+        "schools",
+        "administrative_logs"
+      ],
+      "authorization": {
+        "allow": [
+          "federal_assistant",
+          "technical_admin"
+        ],
+        "deny": [
+          "anonymous",
+          "controller",
+          "sme_management",
+          "inventory"
+        ]
+      },
+      "persistence": {
+        "mode": "atomic_rpc",
+        "concurrency": "row_version"
+      },
+      "reload": true,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "remote",
+        "src/application/school-service.js",
+        "src/data/supabase-repository.js"
+      ],
+      "findings": []
+    },
+    {
+      "id": "SCH-03",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/application/school-service.js",
+          "symbol": "async bulkAssignController"
+        },
+        {
+          "path": "src/data/supabase-repository.js",
+          "symbol": "assignControllerWithLog"
+        }
+      ],
+      "service": "SchoolService.bulkAssignController",
+      "repository": "assignControllerWithLog",
+      "backend": [
+        "schools",
+        "administrative_logs"
+      ],
+      "authorization": {
+        "allow": [
+          "federal_assistant",
+          "technical_admin"
+        ],
+        "deny": [
+          "anonymous",
+          "controller",
+          "sme_management",
+          "inventory"
+        ]
+      },
+      "persistence": {
+        "mode": "atomic_rpc",
+        "concurrency": "row_version"
+      },
+      "reload": true,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "remote",
+        "src/application/school-service.js",
+        "src/data/supabase-repository.js"
+      ],
+      "findings": []
+    },
+    {
+      "id": "TEAM-01",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/application/directory-service.js",
+          "symbol": "async saveController"
+        },
+        {
+          "path": "src/application/team-account-gateway.js",
+          "symbol": "saveController"
+        },
+        {
+          "path": "supabase/functions/team-account-management/index.ts",
+          "symbol": null
+        }
+      ],
+      "service": "DirectoryService.saveController",
+      "repository": "team-account-management + RPC",
+      "backend": [
+        "auth.users",
+        "controllers",
+        "user_profiles",
+        "administrative_logs"
+      ],
+      "authorization": {
+        "allow": [
+          "federal_assistant",
+          "technical_admin"
+        ],
+        "deny": [
+          "anonymous",
+          "controller",
+          "sme_management",
+          "inventory"
+        ]
+      },
+      "persistence": {
+        "mode": "covered",
+        "concurrency": "row_version"
+      },
+      "reload": true,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "team",
+        "src/application/directory-service.js",
+        "src/application/team-account-gateway.js",
+        "supabase/functions/team-account-management/index.ts"
+      ],
+      "findings": []
+    },
+    {
+      "id": "TEAM-02",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/application/directory-service.js",
+          "symbol": "async deactivateController"
+        },
+        {
+          "path": "src/application/team-account-gateway.js",
+          "symbol": "deactivateController"
+        },
+        {
+          "path": "supabase/functions/team-account-management/index.ts",
+          "symbol": null
+        }
+      ],
+      "service": "DirectoryService.deactivateController",
+      "repository": "team-account-management + RPC",
+      "backend": [
+        "auth.users",
+        "controllers",
+        "schools",
+        "user_profiles",
+        "administrative_logs"
+      ],
+      "authorization": {
+        "allow": [
+          "federal_assistant",
+          "technical_admin"
+        ],
+        "deny": [
+          "anonymous",
+          "controller",
+          "sme_management",
+          "inventory"
+        ]
+      },
+      "persistence": {
+        "mode": "covered",
+        "concurrency": "row_version"
+      },
+      "reload": true,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "team",
+        "src/application/directory-service.js",
+        "src/application/team-account-gateway.js",
+        "supabase/functions/team-account-management/index.ts"
+      ],
+      "findings": []
+    },
+    {
+      "id": "TEAM-03",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/application/directory-service.js",
+          "symbol": "async saveInventoryMember"
+        },
+        {
+          "path": "src/application/team-account-gateway.js",
+          "symbol": "saveInventoryMember"
+        },
+        {
+          "path": "supabase/functions/team-account-management/index.ts",
+          "symbol": null
+        }
+      ],
+      "service": "DirectoryService.saveInventoryMember",
+      "repository": "team-account-management + RPC",
+      "backend": [
+        "auth.users",
+        "inventory_team_members",
+        "user_profiles",
+        "administrative_logs"
+      ],
+      "authorization": {
+        "allow": [
+          "federal_assistant",
+          "technical_admin"
+        ],
+        "deny": [
+          "anonymous",
+          "controller",
+          "sme_management",
+          "inventory"
+        ]
+      },
+      "persistence": {
+        "mode": "covered",
+        "concurrency": "row_version"
+      },
+      "reload": true,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "team",
+        "src/application/directory-service.js",
+        "src/application/team-account-gateway.js",
+        "supabase/functions/team-account-management/index.ts"
+      ],
+      "findings": []
+    },
+    {
+      "id": "TEAM-04",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/application/directory-service.js",
+          "symbol": "async deactivateInventoryMember"
+        },
+        {
+          "path": "src/application/team-account-gateway.js",
+          "symbol": "deactivateInventoryMember"
+        },
+        {
+          "path": "supabase/functions/team-account-management/index.ts",
+          "symbol": null
+        }
+      ],
+      "service": "DirectoryService.deactivateInventoryMember",
+      "repository": "team-account-management + RPC",
+      "backend": [
+        "auth.users",
+        "inventory_team_members",
+        "user_profiles",
+        "administrative_logs"
+      ],
+      "authorization": {
+        "allow": [
+          "federal_assistant",
+          "technical_admin"
+        ],
+        "deny": [
+          "anonymous",
+          "controller",
+          "sme_management",
+          "inventory"
+        ]
+      },
+      "persistence": {
+        "mode": "covered",
+        "concurrency": "row_version"
+      },
+      "reload": true,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "team",
+        "src/application/directory-service.js",
+        "src/application/team-account-gateway.js",
+        "supabase/functions/team-account-management/index.ts"
+      ],
+      "findings": []
+    },
+    {
+      "id": "VER-01",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/application/verification-service.js",
+          "symbol": "async setBonification"
+        },
+        {
+          "path": "src/data/supabase-repository.js",
+          "symbol": "saveVerificationWithLog"
+        }
+      ],
+      "service": "VerificationService.setBonification",
+      "repository": "saveVerificationWithLog",
+      "backend": [
+        "verifications",
+        "administrative_logs"
+      ],
+      "authorization": {
+        "allow": [
+          "controller",
+          "federal_assistant"
+        ],
+        "deny": [
+          "anonymous",
+          "sme_management",
+          "inventory",
+          "technical_admin"
+        ]
+      },
+      "persistence": {
+        "mode": "atomic_rpc",
+        "concurrency": "row_version"
+      },
+      "reload": true,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "verification",
+        "src/application/verification-service.js",
+        "src/data/supabase-repository.js"
+      ],
+      "findings": []
+    },
+    {
+      "id": "VER-02",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/application/verification-service.js",
+          "symbol": "async setTechnicalAnalysis"
+        },
+        {
+          "path": "src/data/supabase-repository.js",
+          "symbol": "saveVerificationWithLog"
+        }
+      ],
+      "service": "VerificationService.setTechnicalAnalysis",
+      "repository": "saveVerificationWithLog",
+      "backend": [
+        "verifications",
+        "pendencies",
+        "administrative_logs"
+      ],
+      "authorization": {
+        "allow": [
+          "controller",
+          "federal_assistant"
+        ],
+        "deny": [
+          "anonymous",
+          "sme_management",
+          "inventory",
+          "technical_admin"
+        ]
+      },
+      "persistence": {
+        "mode": "atomic_rpc",
+        "concurrency": "row_version"
+      },
+      "reload": true,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "verification",
+        "src/application/verification-service.js",
+        "src/data/supabase-repository.js"
+      ],
+      "findings": []
+    },
+    {
+      "id": "VER-03",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/application/verification-service.js",
+          "symbol": "async closeBonification"
+        },
+        {
+          "path": "src/data/supabase-repository.js",
+          "symbol": "saveVerificationWithLog"
+        }
+      ],
+      "service": "VerificationService.closeBonification",
+      "repository": "saveVerificationWithLog",
+      "backend": [
+        "verifications",
+        "pendencies",
+        "administrative_logs"
+      ],
+      "authorization": {
+        "allow": [
+          "controller",
+          "federal_assistant"
+        ],
+        "deny": [
+          "anonymous",
+          "sme_management",
+          "inventory",
+          "technical_admin"
+        ]
+      },
+      "persistence": {
+        "mode": "atomic_rpc",
+        "concurrency": "row_version"
+      },
+      "reload": true,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "verification",
+        "src/application/verification-service.js",
+        "src/data/supabase-repository.js"
+      ],
+      "findings": []
+    },
+    {
+      "id": "VER-04",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/application/verification-service.js",
+          "symbol": "async retify"
+        },
+        {
+          "path": "src/data/supabase-repository.js",
+          "symbol": "saveVerificationWithLog"
+        }
+      ],
+      "service": "VerificationService.retify",
+      "repository": "saveVerificationWithLog",
+      "backend": [
+        "verifications",
+        "administrative_logs"
+      ],
+      "authorization": {
+        "allow": [
+          "federal_assistant"
+        ],
+        "deny": [
+          "anonymous",
+          "controller",
+          "sme_management",
+          "inventory",
+          "technical_admin"
+        ]
+      },
+      "persistence": {
+        "mode": "atomic_rpc",
+        "concurrency": "row_version"
+      },
+      "reload": true,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "verification",
+        "src/application/verification-service.js",
+        "src/data/supabase-repository.js"
+      ],
+      "findings": []
+    },
+    {
+      "id": "PEND-01",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/application/pendency-service.js",
+          "symbol": "async open"
+        },
+        {
+          "path": "src/data/supabase-repository.js",
+          "symbol": "savePendencyCommand"
+        }
+      ],
+      "service": "PendencyService.open",
+      "repository": "savePendencyCommand",
+      "backend": [
+        "pendencies",
+        "administrative_logs"
+      ],
+      "authorization": {
+        "allow": [
+          "controller",
+          "federal_assistant"
+        ],
+        "deny": [
+          "anonymous",
+          "sme_management",
+          "inventory",
+          "technical_admin"
+        ]
+      },
+      "persistence": {
+        "mode": "atomic_rpc",
+        "concurrency": "row_version"
+      },
+      "reload": true,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "pendency",
+        "src/application/pendency-service.js",
+        "src/data/supabase-repository.js"
+      ],
+      "findings": []
+    },
+    {
+      "id": "PEND-02",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/application/pendency-service.js",
+          "symbol": "async registerAttempt"
+        },
+        {
+          "path": "src/data/supabase-repository.js",
+          "symbol": "savePendencyCommand"
+        }
+      ],
+      "service": "PendencyService.registerAttempt",
+      "repository": "savePendencyCommand",
+      "backend": [
+        "pendencies",
+        "pendency_attempts",
+        "verifications",
+        "administrative_logs"
+      ],
+      "authorization": {
+        "allow": [
+          "controller",
+          "federal_assistant"
+        ],
+        "deny": [
+          "anonymous",
+          "sme_management",
+          "inventory",
+          "technical_admin"
+        ]
+      },
+      "persistence": {
+        "mode": "atomic_rpc",
+        "concurrency": "row_version"
+      },
+      "reload": true,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "pendency",
+        "src/application/pendency-service.js",
+        "src/data/supabase-repository.js"
+      ],
+      "findings": []
+    },
+    {
+      "id": "PEND-03",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/application/pendency-service.js",
+          "symbol": "async reanalyze"
+        },
+        {
+          "path": "src/data/supabase-repository.js",
+          "symbol": "reanalyzePendencyWithVerification"
+        }
+      ],
+      "service": "PendencyService.reanalyze",
+      "repository": "reanalyzePendencyWithVerification",
+      "backend": [
+        "pendencies",
+        "pendency_attempts",
+        "verifications",
+        "administrative_logs"
+      ],
+      "authorization": {
+        "allow": [
+          "controller",
+          "federal_assistant"
+        ],
+        "deny": [
+          "anonymous",
+          "sme_management",
+          "inventory",
+          "technical_admin"
+        ]
+      },
+      "persistence": {
+        "mode": "atomic_rpc",
+        "concurrency": "row_version"
+      },
+      "reload": true,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "pendency",
+        "src/application/pendency-service.js",
+        "src/data/supabase-repository.js"
+      ],
+      "findings": []
+    },
+    {
+      "id": "PEND-04",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/application/pendency-service.js",
+          "symbol": "async cancel"
+        },
+        {
+          "path": "src/data/supabase-repository.js",
+          "symbol": "savePendencyCommand"
+        }
+      ],
+      "service": "PendencyService.cancel",
+      "repository": "savePendencyCommand",
+      "backend": [
+        "pendencies",
+        "administrative_logs"
+      ],
+      "authorization": {
+        "allow": [
+          "controller",
+          "federal_assistant"
+        ],
+        "deny": [
+          "anonymous",
+          "sme_management",
+          "inventory",
+          "technical_admin"
+        ]
+      },
+      "persistence": {
+        "mode": "atomic_rpc",
+        "concurrency": "row_version"
+      },
+      "reload": true,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "pendency",
+        "src/application/pendency-service.js",
+        "src/data/supabase-repository.js"
+      ],
+      "findings": []
+    },
+    {
+      "id": "PEND-05",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/application/pendency-service.js",
+          "symbol": "async reopen"
+        },
+        {
+          "path": "src/data/supabase-repository.js",
+          "symbol": "savePendencyCommand"
+        }
+      ],
+      "service": "PendencyService.reopen",
+      "repository": "savePendencyCommand",
+      "backend": [
+        "pendencies",
+        "administrative_logs"
+      ],
+      "authorization": {
+        "allow": [
+          "controller",
+          "federal_assistant"
+        ],
+        "deny": [
+          "anonymous",
+          "sme_management",
+          "inventory",
+          "technical_admin"
+        ]
+      },
+      "persistence": {
+        "mode": "atomic_rpc",
+        "concurrency": "row_version"
+      },
+      "reload": true,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "pendency",
+        "src/application/pendency-service.js",
+        "src/data/supabase-repository.js"
+      ],
+      "findings": []
+    },
+    {
+      "id": "PEND-06",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/application/pendency-service.js",
+          "symbol": "async registerContact"
+        },
+        {
+          "path": "src/data/supabase-repository.js",
+          "symbol": "savePendencyContactWithLog"
+        }
+      ],
+      "service": "PendencyService.registerContact",
+      "repository": "savePendencyContactWithLog",
+      "backend": [
+        "pendency_contacts",
+        "administrative_logs"
+      ],
+      "authorization": {
+        "allow": [
+          "controller",
+          "federal_assistant"
+        ],
+        "deny": [
+          "anonymous",
+          "sme_management",
+          "inventory",
+          "technical_admin"
+        ]
+      },
+      "persistence": {
+        "mode": "atomic_rpc",
+        "concurrency": "operation_id"
+      },
+      "reload": true,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "pendency",
+        "src/application/pendency-service.js",
+        "src/data/supabase-repository.js"
+      ],
+      "findings": []
+    },
+    {
+      "id": "INV-01",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/application/invoice-service.js",
+          "symbol": "async save"
+        },
+        {
+          "path": "src/data/supabase-repository.js",
+          "symbol": "saveInvoiceWithEffects"
+        }
+      ],
+      "service": "InvoiceService.save",
+      "repository": "saveInvoiceWithEffects",
+      "backend": [
+        "registered_invoices",
+        "assets",
+        "verifications",
+        "administrative_logs"
+      ],
+      "authorization": {
+        "allow": [
+          "controller",
+          "federal_assistant"
+        ],
+        "deny": [
+          "anonymous",
+          "sme_management",
+          "inventory",
+          "technical_admin"
+        ]
+      },
+      "persistence": {
+        "mode": "atomic_rpc",
+        "concurrency": "row_version"
+      },
+      "reload": true,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "invoice",
+        "src/application/invoice-service.js",
+        "src/data/supabase-repository.js"
+      ],
+      "findings": []
+    },
+    {
+      "id": "INV-02",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/application/invoice-service.js",
+          "symbol": "async remove"
+        },
+        {
+          "path": "src/data/supabase-repository.js",
+          "symbol": "deleteInvoiceWithEffects"
+        }
+      ],
+      "service": "InvoiceService.remove",
+      "repository": "deleteInvoiceWithEffects",
+      "backend": [
+        "registered_invoices",
+        "assets",
+        "verifications",
+        "administrative_logs"
+      ],
+      "authorization": {
+        "allow": [
+          "controller",
+          "federal_assistant"
+        ],
+        "deny": [
+          "anonymous",
+          "sme_management",
+          "inventory",
+          "technical_admin"
+        ]
+      },
+      "persistence": {
+        "mode": "atomic_rpc",
+        "concurrency": "row_version"
+      },
+      "reload": true,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "invoice",
+        "src/application/invoice-service.js",
+        "src/data/supabase-repository.js"
+      ],
+      "findings": []
+    },
+    {
+      "id": "ASSET-01",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/application/inventory-service.js",
+          "symbol": "async createAsset"
+        },
+        {
+          "path": "src/data/supabase-repository.js",
+          "symbol": "saveAssetWithLog"
+        }
+      ],
+      "service": "InventoryService.createAsset",
+      "repository": "saveAssetWithLog",
+      "backend": [
+        "assets",
+        "administrative_logs"
+      ],
+      "authorization": {
+        "allow": [
+          "controller",
+          "federal_assistant"
+        ],
+        "deny": [
+          "anonymous",
+          "sme_management",
+          "inventory",
+          "technical_admin"
+        ]
+      },
+      "persistence": {
+        "mode": "atomic_rpc",
+        "concurrency": "row_version"
+      },
+      "reload": true,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "asset",
+        "src/application/inventory-service.js",
+        "src/data/supabase-repository.js"
+      ],
+      "findings": []
+    },
+    {
+      "id": "ASSET-02",
+      "status": "static-gap",
+      "frontend": [
+        {
+          "path": "src/application/inventory-service.js",
+          "symbol": "async updateAsset"
+        }
+      ],
+      "service": "InventoryService.updateAsset",
+      "repository": "DataService.defaultPersist",
+      "backend": [
+        "assets"
+      ],
+      "authorization": {
+        "allow": [
+          "controller",
+          "federal_assistant"
+        ],
+        "deny": [
+          "anonymous",
+          "sme_management",
+          "inventory",
+          "technical_admin"
+        ]
+      },
+      "persistence": {
+        "mode": "unit_of_work_rollback",
+        "concurrency": "snapshot_default"
+      },
+      "reload": true,
+      "errorHandling": "Primeira fronteira divergente identificada; reprodução dinâmica obrigatória antes da correção.",
+      "evidence": [
+        "asset",
+        "src/application/inventory-service.js"
+      ],
+      "findings": [
+        "A edição genérica não usa saveAssetWithLog.",
+        "Não produz administrative_log.",
+        "Não envia expected row_version e depende de persistência genérica por upsert."
+      ]
+    },
+    {
+      "id": "ASSET-03",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/application/inventory-service.js",
+          "symbol": "async forward"
+        },
+        {
+          "path": "src/data/supabase-repository.js",
+          "symbol": "saveAssetWithLog"
+        }
+      ],
+      "service": "InventoryService.forward",
+      "repository": "saveAssetWithLog",
+      "backend": [
+        "assets",
+        "schools",
+        "administrative_logs"
+      ],
+      "authorization": {
+        "allow": [
+          "controller",
+          "federal_assistant"
+        ],
+        "deny": [
+          "anonymous",
+          "sme_management",
+          "inventory",
+          "technical_admin"
+        ]
+      },
+      "persistence": {
+        "mode": "atomic_rpc",
+        "concurrency": "row_version"
+      },
+      "reload": true,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "asset",
+        "src/application/inventory-service.js",
+        "src/data/supabase-repository.js"
+      ],
+      "findings": []
+    },
+    {
+      "id": "ASSET-04",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/application/inventory-service.js",
+          "symbol": "async inventory"
+        },
+        {
+          "path": "src/data/supabase-repository.js",
+          "symbol": "saveAssetWithLog"
+        }
+      ],
+      "service": "InventoryService.inventory",
+      "repository": "saveAssetWithLog",
+      "backend": [
+        "assets",
+        "administrative_logs"
+      ],
+      "authorization": {
+        "allow": [
+          "controller",
+          "federal_assistant",
+          "inventory"
+        ],
+        "deny": [
+          "anonymous",
+          "sme_management",
+          "technical_admin"
+        ]
+      },
+      "persistence": {
+        "mode": "atomic_rpc",
+        "concurrency": "row_version"
+      },
+      "reload": true,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "asset",
+        "src/application/inventory-service.js",
+        "src/data/supabase-repository.js"
+      ],
+      "findings": []
+    },
+    {
+      "id": "AUD-01",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/application/audit-service.js",
+          "symbol": "async record"
+        }
+      ],
+      "service": "AuditService.record",
+      "repository": "DataService.defaultPersist",
+      "backend": [
+        "administrative_logs"
+      ],
+      "authorization": {
+        "allow": [
+          "controller",
+          "federal_assistant",
+          "sme_management",
+          "inventory",
+          "technical_admin"
+        ],
+        "deny": [
+          "anonymous"
+        ]
+      },
+      "persistence": {
+        "mode": "unit_of_work_rollback",
+        "concurrency": "append_only"
+      },
+      "reload": true,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "audit",
+        "src/application/audit-service.js"
+      ],
+      "findings": [
+        "AuditService.record usa DataService.execute e inserção append-only corretamente; as exportações não utilizam esse serviço."
+      ]
+    },
+    {
+      "id": "TECH-01",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "src/data/import-coordinator.js",
+          "symbol": null
+        },
+        {
+          "path": "scripts/migration-cli.mjs",
+          "symbol": null
+        },
+        {
+          "path": "scripts/verify-supabase-backup-restore.mjs",
+          "symbol": null
+        }
+      ],
+      "service": "ImportCoordinator + migration CLI",
+      "repository": "staging + RPCs de promoção e rollback",
+      "backend": [
+        "data_import_runs",
+        "data_import_staging",
+        "domain tables",
+        "administrative_logs"
+      ],
+      "authorization": {
+        "allow": [
+          "technical_admin"
+        ],
+        "deny": [
+          "anonymous",
+          "controller",
+          "federal_assistant",
+          "sme_management",
+          "inventory"
+        ]
+      },
+      "persistence": {
+        "mode": "snapshot_rollback",
+        "concurrency": "row_version_and_import_id"
+      },
+      "reload": true,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "technical",
+        "src/data/import-coordinator.js",
+        "scripts/migration-cli.mjs",
+        "scripts/verify-supabase-backup-restore.mjs"
+      ],
+      "findings": []
+    },
+    {
+      "id": "OPS-01",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "scripts/check-production-system.mjs",
+          "symbol": null
+        },
+        {
+          "path": ".github/workflows/production-system-smoke.yml",
+          "symbol": null
+        }
+      ],
+      "service": "Production system smoke",
+      "repository": "GitHub Actions + Vercel + Supabase",
+      "backend": [
+        "deployment manifest",
+        "public assets",
+        "Auth gate",
+        "anonymous RLS",
+        "Edge Functions"
+      ],
+      "authorization": {
+        "allow": [
+          "technical_admin"
+        ],
+        "deny": [
+          "anonymous",
+          "controller",
+          "federal_assistant",
+          "sme_management",
+          "inventory"
+        ]
+      },
+      "persistence": {
+        "mode": "not_applicable",
+        "concurrency": "not_applicable"
+      },
+      "reload": false,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "monitor",
+        "scripts/check-production-system.mjs",
+        ".github/workflows/production-system-smoke.yml"
+      ],
+      "findings": [
+        "O monitor do baseline atual está aprovado."
+      ]
+    },
+    {
+      "id": "OPS-02",
+      "status": "static-confirmed",
+      "frontend": [
+        {
+          "path": "scripts/check-production-data-integrity.mjs",
+          "symbol": null
+        },
+        {
+          "path": ".github/workflows/production-data-integrity.yml",
+          "symbol": null
+        },
+        {
+          "path": "supabase/migrations/202608040001_production_integrity_monitor.sql",
+          "symbol": "radar_private.production_integrity_check"
+        }
+      ],
+      "service": "Production data integrity audit",
+      "repository": "security-definer function + GitHub Actions",
+      "backend": [
+        "identities",
+        "team directories",
+        "schools",
+        "programs",
+        "pendencies",
+        "assets",
+        "registered_invoices"
+      ],
+      "authorization": {
+        "allow": [
+          "technical_admin"
+        ],
+        "deny": [
+          "anonymous",
+          "controller",
+          "federal_assistant",
+          "sme_management",
+          "inventory"
+        ]
+      },
+      "persistence": {
+        "mode": "not_applicable",
+        "concurrency": "not_applicable"
+      },
+      "reload": false,
+      "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
+      "evidence": [
+        "integrity",
+        "scripts/check-production-data-integrity.mjs",
+        ".github/workflows/production-data-integrity.yml",
+        "supabase/migrations/202608040001_production_integrity_monitor.sql"
+      ],
+      "findings": [
+        "A auditoria de Production retorna healthy, schemaVersion=1 e totalIssues=0."
+      ]
+    }
+  ],
+  "staticReview": {
+    "sourceCommit": "97c8bedbd7c93d82d527e183762b37a0934bd5f0",
+    "matrixSourceCommit": "30bdecc1116bbcd007448d21db57326b28d9a003",
+    "classificationCounts": {
+      "static-confirmed": 35,
+      "static-gap": 4,
+      "documentation-divergence": 2
+    },
+    "gaps": [
+      "SCH-01",
+      "ASSET-02",
+      "EXP-01",
+      "EXP-02"
+    ],
+    "documentationDivergences": [
+      "CFG-03",
+      "CFG-04"
+    ],
+    "matrixManifestStale": true
+  }
 }

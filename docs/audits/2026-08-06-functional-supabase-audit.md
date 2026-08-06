@@ -83,3 +83,30 @@ controle visível
 ```
 
 A classificação estática permitida será: `static-confirmed`, `static-gap`, `authorization-mismatch`, `backend-mismatch` ou `documentation-divergence`.
+
+## Resultado da revisão estática
+
+A revisão direta do código da `main` classificou as 41 operações sem reaproveitar automaticamente os estados documentais anteriores.
+
+| Classificação | Quantidade |
+|---|---:|
+| Percurso estático confirmado | 35 |
+| Lacuna técnica comprovada | 4 |
+| Divergência documental | 2 |
+| **Total** | **41** |
+
+### Lacunas técnicas
+
+1. **SCH-01 — cadastro de escola:** novas escolas recebem id, INEP, CNPJ, designação e denominação artificiais; o formulário não fornece os identificadores institucionais.
+2. **ASSET-02 — edição de bem:** usa persistência genérica, sem `saveAssetWithLog`, log administrativo ou versão otimista explícita.
+3. **EXP-01 — relatório institucional:** o arquivo é gerado, mas a auditoria usa `registerLog` + `persist('logs')`, reenviando o snapshot integral por upsert.
+4. **EXP-02 — Excel SME:** o pipeline mensal está conectado, porém repete a mesma rota problemática de auditoria assíncrona.
+
+### Divergências documentais
+
+- **CFG-03 e CFG-04:** a matriz ainda marca a gestão de programas como decisão pendente. O código, o serviço, a RPC e as permissões atuais implementam a operação para Gestão SME e Administrador técnico. A auditoria não alterará essa regra; somente reconciliará a documentação.
+- O manifesto da matriz ainda aponta o commit `30bdecc…`, anterior aos PRs 150, 154 e 155.
+
+### Limite da conclusão estática
+
+Os 35 percursos confirmados ainda serão submetidos às provas dinâmicas previstas. `static-confirmed` significa que controle, serviço, repositório e backend correspondentes existem e estão ligados; não substitui a prova de persistência e releitura.
