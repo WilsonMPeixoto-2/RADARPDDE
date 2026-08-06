@@ -172,28 +172,15 @@ async function authUser(admin: ReturnType<typeof createClient>, userId: string):
   return data.user || null;
 }
 
-async function authUserByEmail(
+async function authUserIdByEmail(
   admin: ReturnType<typeof createClient>,
   email: string,
-): Promise<User | null> {
-  const normalizedEmail = normalizeEmail(email);
-  const matches: User[] = [];
-  const perPage = 100;
-
-  for (let page = 1; page <= 100; page += 1) {
-    const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
-    if (error) throw error;
-    const users = data.users || [];
-    matches.push(...users.filter((user: User) =>
-      String(user.email || "").trim().toLowerCase() === normalizedEmail
-    ));
-    if (users.length < perPage) break;
-  }
-
-  if (matches.length > 1) {
-    throw new Error("ACCOUNT_CONFLICT: mais de uma conta Auth encontrada para o mesmo e-mail");
-  }
-  return matches[0] || null;
+): Promise<string> {
+  const { data, error } = await admin.rpc("resolve_team_auth_user_id_by_email", {
+    p_email: normalizeEmail(email),
+  });
+  if (error) throw error;
+  return String(data || "").trim();
 }
 
 async function assertReusableAccount(
@@ -299,10 +286,11 @@ async function saveMember(
 
   try {
     if (!userId) {
-      const existingAuthUser = await authUserByEmail(admin, entity.email);
-      if (existingAuthUser) {
-        userId = existingAuthUser.id;
-        previousUser = existingAuthUser;
+      const existingAuthUserId = await authUserIdByEmail(admin, entity.email);
+      if (existingAuthUserId) {
+        userId = existingAuthUserId;
+        previousUser = await authUser(admin, userId);
+        if (!previousUser) throw new Error("NOT_FOUND: conta Auth vinculada não localizada");
         reusedExistingAccount = true;
       }
     }
