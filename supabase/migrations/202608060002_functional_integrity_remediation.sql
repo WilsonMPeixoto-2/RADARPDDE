@@ -212,11 +212,16 @@ grant execute on function public.save_exercise_with_competences(jsonb, jsonb, js
 -- INV-01 — o bem derivado deixa de existir na mesma transação em que a nota
 -- perde ou troca o vínculo. O gatilho também protege futuros percursos de
 -- escrita que atualizem registered_invoices fora da RPC atual.
+--
+-- A função do gatilho usa SECURITY DEFINER porque a política DELETE de assets
+-- permanece deliberadamente restrita ao technical_admin. O privilégio elevado
+-- fica limitado ao id do bem anteriormente vinculado e à mesma escola da nota;
+-- nenhum EXECUTE é concedido a clientes.
 -- ---------------------------------------------------------------------------
 create or replace function public.delete_unlinked_invoice_asset()
 returns trigger
 language plpgsql
-security invoker
+security definer
 set search_path = pg_catalog, public
 as $$
 begin
