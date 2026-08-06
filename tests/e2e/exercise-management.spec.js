@@ -110,18 +110,17 @@ test.describe('gestão de exercícios e competências', () => {
     }))).toEqual({ exercises: ['2026'], count: 12 });
   });
 
-  test('restaura competências persistidas antes do primeiro render do Controlador', async ({ page }, testInfo) => {
+  test('aplica competências restauradas antes do primeiro render do Controlador', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Regressão de bootstrap exclusiva do desktop.');
 
     const pageErrors = [];
     page.on('pageerror', error => pageErrors.push(error.message));
 
     await page.goto('/');
-    await page.waitForFunction(() => Boolean(window.RadarExerciseManagement));
-    await page.evaluate(() => {
-      const configKey = 'radar_pdde_config';
-      const stored = JSON.parse(localStorage.getItem(configKey));
-      const remoteCompetences = Array.from({ length: 12 }, (_unused, index) => {
+    await page.waitForFunction(() => Boolean(window.RadarDataContext?.ready));
+
+    const state = await page.evaluate(() => {
+      const restoredCompetences = Array.from({ length: 12 }, (_unused, index) => {
         const month = String(index + 1).padStart(2, '0');
         const nextMonth = new Date(Date.UTC(2098, index + 1, 15));
         return {
@@ -130,23 +129,20 @@ test.describe('gestão de exercícios e competências', () => {
           bonifPrazo: nextMonth.toISOString().slice(0, 10)
         };
       });
-      localStorage.setItem(configKey, JSON.stringify({
-        ...stored,
+      const nextState = captureRadarMemoryState();
+      nextState.config = {
+        ...nextState.config,
         exercicios: ['2026', '2098'],
         competenciaFechamento: '2098-04',
         competencias: [
           ...COMPETENCIAS.map(item => ({ ...item })),
-          ...remoteCompetences
+          ...restoredCompetences
         ]
-      }));
-      localStorage.setItem('radar_pdde_active_competence', '2098-04');
-    });
+      };
 
-    await page.reload();
-    await page.waitForFunction(() => Boolean(window.RadarDataContext?.ready));
-
-    const state = await page.evaluate(() => {
+      applyRadarMemoryState(nextState);
       switchProfile('controlador');
+
       return {
         activeCompetence: activeCompetenciaKey,
         currentExercise,
