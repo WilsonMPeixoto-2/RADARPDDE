@@ -84,14 +84,16 @@ test('captura a primeira falha ao abrir o Controlador após novo exercício glob
     };
   });
 
-  console.log('AUDIT_CONTROLLER_BOOTSTRAP_DIAGNOSTIC', JSON.stringify({
-    created,
-    diagnostics,
-    pageErrors,
-    consoleErrors
-  }));
+  const evidence = { created, diagnostics, pageErrors, consoleErrors };
+  fs.mkdirSync(path.resolve('test-results/controller-bootstrap-diagnostic'), { recursive: true });
+  fs.writeFileSync(
+    path.resolve('test-results/controller-bootstrap-diagnostic/evidence.json'),
+    `${JSON.stringify(evidence, null, 2)}\n`,
+    'utf8'
+  );
+  console.log('AUDIT_CONTROLLER_BOOTSTRAP_DIAGNOSTIC', JSON.stringify(evidence));
 
-  expect(pageErrors, JSON.stringify({ diagnostics, pageErrors, consoleErrors })).toEqual([]);
+  expect(pageErrors, JSON.stringify(evidence)).toEqual([]);
   await expect(controllerPage.locator('#app-layout')).toBeVisible({ timeout: 15000 });
   await controllerContext.close();
 });
