@@ -142,7 +142,21 @@ test('alinhamento final concede gestão de equipe à Assistente e restringe RPCs
     assert.doesNotMatch(sql, /grant\s+execute[\s\S]+to\s+(?:authenticated|anon)/i);
 });
 
-test('gate final exige as migrations operacionais, escopo patrimonial e Edge Function protegida', () => {
+test('reparação Auth isola lookup por e-mail e normaliza registros legados', () => {
+    const sql = read('supabase/migrations/202608060001_team_auth_legacy_repair.sql');
+    const edge = read('supabase/functions/team-account-management/index.ts');
+
+    assert.match(sql, /resolve_team_auth_user_id_by_email\(p_email text\)[\s\S]+security definer/i);
+    assert.match(sql, /revoke all on function public\.resolve_team_auth_user_id_by_email\(text\) from anon/i);
+    assert.match(sql, /revoke all on function public\.resolve_team_auth_user_id_by_email\(text\) from authenticated/i);
+    assert.match(sql, /grant execute on function public\.resolve_team_auth_user_id_by_email\(text\) to service_role/i);
+    assert.match(sql, /confirmation_token\s*=\s*coalesce\(confirmation_token, ''\)/i);
+    assert.match(sql, /alter column confirmation_token set default ''/i);
+    assert.match(edge, /admin\.rpc\("resolve_team_auth_user_id_by_email"/);
+    assert.doesNotMatch(edge, /admin\.auth\.admin\.listUsers/);
+});
+
+test('gate final exige as migrations operacionais, reparação Auth e Edge Function protegida', () => {
     const readiness = read('scripts/check-supabase-final-alignment.js');
     const config = read('supabase/config.toml');
 
@@ -158,10 +172,12 @@ test('gate final exige as migrations operacionais, escopo patrimonial e Edge Fun
     assert.match(readiness, /atomic_operational_commands\.sql/);
     assert.match(readiness, /enable_pgtap_remote_validation\.sql/);
     assert.match(readiness, /202608050001_school_assignment_authorization\.sql/);
-    assert.match(readiness, /27 migrations/);
+    assert.match(readiness, /202608060001_team_auth_legacy_repair\.sql/);
+    assert.match(readiness, /28 migrations/);
     assert.match(readiness, /school-assignment-authorization\.test\.sql/);
     assert.match(readiness, /enforce_school_controller_assignment_authorization/);
     assert.match(readiness, /schools_controller_assignment_authorization/);
+    assert.match(readiness, /resolve_team_auth_user_id_by_email/);
     assert.match(readiness, /inventory-capital-rls\.test\.sql/);
     assert.match(readiness, /supabase\/functions\/_shared\/team-account-domain\.mjs/);
     assert.match(readiness, /supabase\/functions\/team-account-management\/index\.ts/);
