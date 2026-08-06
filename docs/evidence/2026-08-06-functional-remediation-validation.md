@@ -52,7 +52,7 @@ As duas falhas eram das próprias expectativas de teste, não novos defeitos de 
 1. o inventário técnico ainda esperava 27 migrations, enquanto o branch passou a conter 30;
 2. o cenário de cadastro incompleto não distinguia uma nova unidade parcialmente preenchida de uma edição apontando para id inexistente.
 
-As duas expectativas foram corrigidas antes de uma nova execução. O build permanece bloqueante: o Preview só pode ficar `READY` quando `npm run check` e `npm run test:unit` terminarem sem falhas.
+As duas expectativas foram corrigidas. O contrato final passou a marcar explicitamente novos cadastros com `isNewSchool` e a rejeitar uma edição obsoleta sem recriar silenciosamente a escola. O build permanece bloqueante: o Preview só pode ficar `READY` quando `npm run check` e `npm run test:unit` terminarem sem falhas.
 
 ## Dados atuais compatíveis com as migrations
 
