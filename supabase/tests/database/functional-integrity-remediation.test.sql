@@ -2,7 +2,7 @@ begin;
 set local role postgres;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
-select plan(17);
+select plan(18);
 
 select ok(
     to_regprocedure('public.save_exercise_with_competences(jsonb,jsonb,jsonb)') is not null,
@@ -40,6 +40,14 @@ select ok(
         and p.proname = 'save_exercise_with_competences'),
     'RPC de exercício usa SECURITY INVOKER'
 );
+select ok(
+    (select p.prosecdef
+       from pg_proc p
+       join pg_namespace n on n.oid = p.pronamespace
+      where n.nspname = 'public'
+        and p.proname = 'delete_unlinked_invoice_asset'),
+    'gatilho de limpeza usa SECURITY DEFINER restrito'
+);
 
 insert into auth.users (id, email) values
 ('00000000-0000-0000-0000-000000000981', 'integrity-admin@example.test'),
@@ -58,6 +66,11 @@ insert into public.schools (
 ) values (
     'INT-SCHOOL', '04.99.981', 'Escola Integridade', '4ª CRE', '2039-12', 'INT-CTRL', '07/981/2039'
 );
+
+-- As escritas operacionais são executadas como controlador real, sob RLS.
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000982', true);
+select set_config('request.jwt.claim.role', 'authenticated', true);
+set local role authenticated;
 
 -- INV-01: a nota deixa de apontar para o bem e o bem derivado é apagado na mesma transação.
 insert into public.assets (
@@ -82,7 +95,7 @@ where id = 'INT-INVOICE';
 select is(
     (select count(*)::integer from public.assets where id = 'INT-ASSET'),
     0,
-    'desvincular nota permanente elimina o bem derivado'
+    'controlador desvincula nota permanente e o bem derivado é eliminado'
 );
 select is(
     (select linked_asset_id from public.registered_invoices where id = 'INT-INVOICE'),
@@ -90,7 +103,7 @@ select is(
     'nota convertida permanece sem vínculo patrimonial'
 );
 
--- PEND-02: a autoridade do agregado atualiza a tabela própria.
+-- PEND-02: a autoridade do agregado atualiza a tabela própria sob o mesmo perfil.
 insert into public.pendencies (
     id, school_id, competence_origin, program_id, document_key, status,
     responsible_area, next_actor, reason, notes, payload
@@ -120,7 +133,9 @@ select is(
     'sincronização preserva a quantidade e o histórico de tentativas'
 );
 
--- CFG-02: criação válida, doze meses e conflito otimista.
+reset role;
+
+-- CFG-02: criação válida, doze meses e conflito otimista como administrador técnico.
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000981', true);
 select set_config('request.jwt.claim.role', 'authenticated', true);
 set local role authenticated;
