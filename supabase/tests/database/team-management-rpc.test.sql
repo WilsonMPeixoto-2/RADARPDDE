@@ -2,7 +2,7 @@ begin;
 set local role postgres;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
-select plan(24);
+select plan(30);
 
 select ok(
     has_function_privilege(
@@ -45,12 +45,63 @@ select ok(
     'service_role executa desativação de Inventário'
 );
 
+select ok(
+    to_regprocedure('public.resolve_team_auth_user_id_by_email(text)') is not null,
+    'lookup Auth administrativo por e-mail existe'
+);
+select ok(
+    coalesce((
+        select has_function_privilege('service_role', p.oid, 'EXECUTE')
+        from pg_proc p
+        join pg_namespace n on n.oid = p.pronamespace
+        where n.nspname = 'public'
+          and p.proname = 'resolve_team_auth_user_id_by_email'
+          and pg_get_function_identity_arguments(p.oid) = 'p_email text'
+    ), false),
+    'service_role executa lookup Auth por e-mail'
+);
+select ok(
+    not coalesce((
+        select has_function_privilege('authenticated', p.oid, 'EXECUTE')
+        from pg_proc p
+        join pg_namespace n on n.oid = p.pronamespace
+        where n.nspname = 'public'
+          and p.proname = 'resolve_team_auth_user_id_by_email'
+          and pg_get_function_identity_arguments(p.oid) = 'p_email text'
+    ), false),
+    'authenticated não executa lookup Auth administrativo'
+);
+select ok(
+    not coalesce((
+        select has_function_privilege('anon', p.oid, 'EXECUTE')
+        from pg_proc p
+        join pg_namespace n on n.oid = p.pronamespace
+        where n.nspname = 'public'
+          and p.proname = 'resolve_team_auth_user_id_by_email'
+          and pg_get_function_identity_arguments(p.oid) = 'p_email text'
+    ), false),
+    'anon não executa lookup Auth administrativo'
+);
+
 insert into auth.users (id, email) values
 ('00000000-0000-0000-0000-000000000901', 'assistant-team@example.test'),
 ('00000000-0000-0000-0000-000000000902', 'controller-team@example.test'),
 ('00000000-0000-0000-0000-000000000903', 'inventory-team@example.test');
 insert into public.user_profiles (user_id, profile_id, cre_scope)
 values ('00000000-0000-0000-0000-000000000901', 'federal_assistant', '4ª CRE');
+
+set local role service_role;
+select results_eq(
+    $$select public.resolve_team_auth_user_id_by_email(' CONTROLLER-TEAM@EXAMPLE.TEST ')$$,
+    $$values ('00000000-0000-0000-0000-000000000902'::uuid)$$,
+    'lookup normaliza e-mail e retorna somente o usuário correspondente'
+);
+select results_eq(
+    $$select public.resolve_team_auth_user_id_by_email('missing-team@example.test')$$,
+    $$values (null::uuid)$$,
+    'lookup retorna nulo quando a conta Auth ainda não existe'
+);
+set local role postgres;
 
 insert into public.controllers (id, name, email) values
 ('CTRL-TEAM-A', 'Controlador A', 'a@example.test'),
