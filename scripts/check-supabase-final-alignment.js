@@ -9,6 +9,7 @@ const previewBuildPath = 'scripts/build-vercel.mjs';
 const corsPolicyPath = 'supabase/functions/_shared/cors-policy.mjs';
 const integrityMigrationPath = 'supabase/migrations/202608040001_production_integrity_monitor.sql';
 const assignmentMigrationPath = 'supabase/migrations/202608050001_school_assignment_authorization.sql';
+const teamAuthRepairMigrationPath = 'supabase/migrations/202608060001_team_auth_legacy_repair.sql';
 const requiredFiles = Object.freeze([
     'src/application/team-account-gateway.js',
     'supabase/migrations/202607190001_team_management_auth_alignment.sql',
@@ -26,6 +27,7 @@ const requiredFiles = Object.freeze([
     'supabase/migrations/20260728182226_sme_access_governance.sql',
     integrityMigrationPath,
     assignmentMigrationPath,
+    teamAuthRepairMigrationPath,
     'supabase/functions/_shared/team-account-domain.mjs',
     corsPolicyPath,
     'supabase/functions/team-account-management/index.ts',
@@ -91,6 +93,25 @@ function check() {
         findings.push('RPC administrativa foi exposta diretamente ao navegador.');
     }
 
+    const teamAuthRepairMigration = read(teamAuthRepairMigrationPath);
+    [
+        /create or replace function public\.resolve_team_auth_user_id_by_email\(p_email text\)[\s\S]*security definer/i,
+        /revoke all on function public\.resolve_team_auth_user_id_by_email\(text\) from anon/i,
+        /revoke all on function public\.resolve_team_auth_user_id_by_email\(text\) from authenticated/i,
+        /grant execute on function public\.resolve_team_auth_user_id_by_email\(text\) to service_role/i,
+        /confirmation_token\s*=\s*coalesce\(confirmation_token, ''\)/i,
+        /recovery_token\s*=\s*coalesce\(recovery_token, ''\)/i,
+        /email_change_token_new\s*=\s*coalesce\(email_change_token_new, ''\)/i,
+        /alter column confirmation_token set default ''/i,
+        /HML-SCHOOL-manual-20260723112802/,
+        /hml_controller_20260723112802/,
+        /hml_inventory_20260723112802/
+    ].forEach(pattern => {
+        if (!pattern.test(teamAuthRepairMigration)) {
+            findings.push(`Reparação Auth da Gestão de Equipe incompleta: ${pattern}`);
+        }
+    });
+
     const config = read('supabase/config.toml');
     if (!/\[functions\.team-account-management\][\s\S]*?verify_jwt\s*=\s*true/i.test(config)) {
         findings.push('A Edge Function de contas deve exigir JWT válido.');
@@ -111,6 +132,10 @@ function check() {
         && !/configuredOrigins\([\s\S]{0,300}['"]\*['"]/.test(corsPolicy);
     if (!edgeUsesSharedCors || !policyIsFailClosed) {
         findings.push('A Edge Function deve aplicar CORS fail-closed com allowlist explícita e política compartilhada.');
+    }
+    if (!/admin\.rpc\(["']resolve_team_auth_user_id_by_email["']/.test(edgeFunction)
+        || /admin\.auth\.admin\.listUsers/.test(edgeFunction)) {
+        findings.push('A Gestão de Equipe deve resolver somente o usuário Auth solicitado, sem varredura global.');
     }
 
     const securityMigration = read('supabase/migrations/20260723043129_security_and_rls_hardening.sql');
@@ -238,8 +263,8 @@ function check() {
 
     const migrationCount = fs.readdirSync(path.join(root, 'supabase/migrations'))
         .filter(name => name.endsWith('.sql')).length;
-    if (migrationCount !== 27) {
-        findings.push(`Conjunto final deve conter 27 migrations; encontrado: ${migrationCount}.`);
+    if (migrationCount !== 28) {
+        findings.push(`Conjunto final deve conter 28 migrations; encontrado: ${migrationCount}.`);
     }
 
     return [...new Set(findings)];
