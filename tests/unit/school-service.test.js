@@ -111,6 +111,8 @@ test('bloqueia cadastro sem dados institucionais completos', async () => {
     await assert.rejects(
         harness.service.saveSchool({
             id: 'ESC-NEW',
+            designation: '04.01.999',
+            denomination: 'Escola Municipal Nova',
             email: 'nova@rio.edu.br',
             director: 'Diretora',
             controllerId: 'CTRL-1',
