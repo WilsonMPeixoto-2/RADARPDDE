@@ -37,6 +37,23 @@ invoice_unlinked = true
 
 A consulta de resíduos após o rollback retornou zero para assets, notas, pendências, tentativas, competências futuras e logs sintéticos.
 
+## Execução da suíte JavaScript
+
+O primeiro build de Preview executou a suíte integral de testes unitários como barreira obrigatória:
+
+```text
+tests: 590
+pass: 588
+fail: 2
+```
+
+As duas falhas eram das próprias expectativas de teste, não novos defeitos de runtime:
+
+1. o inventário técnico ainda esperava 27 migrations, enquanto o branch passou a conter 30;
+2. o cenário de cadastro incompleto não distinguia uma nova unidade parcialmente preenchida de uma edição apontando para id inexistente.
+
+As duas expectativas foram corrigidas antes de uma nova execução. O build permanece bloqueante: o Preview só pode ficar `READY` quando `npm run check` e `npm run test:unit` terminarem sem falhas.
+
 ## Dados atuais compatíveis com as migrations
 
 Antes da publicação persistente das migrations, o banco foi inspecionado:
