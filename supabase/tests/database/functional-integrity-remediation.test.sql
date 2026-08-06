@@ -2,7 +2,7 @@ begin;
 set local role postgres;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
-select plan(15);
+select plan(17);
 
 select ok(
     to_regprocedure('public.save_exercise_with_competences(jsonb,jsonb,jsonb)') is not null,
@@ -173,11 +173,11 @@ select throws_like($test$
     select public.save_exercise_with_competences(
         jsonb_build_object(
             'id', 'global',
-            'exercises', '["2026","2041"]'::jsonb,
+            'exercises', (select exercises || '["2041"]'::jsonb from public.app_config where id = 'global'),
             'closing_competence', '2041-05',
             'bonus_deadline_extended', '',
-            'settings', '{}',
-            'row_version', 1
+            'settings', (select settings from public.app_config where id = 'global'),
+            'row_version', (select row_version - 1 from public.app_config where id = 'global')
         ),
         (
             select jsonb_agg(jsonb_build_object(
@@ -206,7 +206,7 @@ select throws_like($test$
             'exercises', (select exercises || '["2042"]'::jsonb from public.app_config where id='global'),
             'closing_competence', '2042-05',
             'bonus_deadline_extended', '',
-            'settings', '{}',
+            'settings', (select settings from public.app_config where id='global'),
             'row_version', (select row_version from public.app_config where id='global')
         ),
         (
