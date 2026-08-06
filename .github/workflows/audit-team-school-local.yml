@@ -1,0 +1,246 @@
+name: Auditoria local de equipe e escolas
+
+on:
+  push:
+    branches:
+      - docs/auditoria-funcional-frontend-supabase-design-20260806
+    paths:
+      - .github/workflows/audit-team-school-local.yml
+
+permissions:
+  contents: write
+
+env:
+  SUPABASE_TELEMETRY_DISABLED: '1'
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: docs/auditoria-funcional-frontend-supabase-design-20260806
+          fetch-depth: 0
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependências e Chromium
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Executar contratos unitários da Gestão de Equipe e carteira
+        run: |
+          node --test \
+            tests/unit/team-account-role-transition.test.js \
+            tests/unit/school-assignment-authorization.test.js \
+            tests/unit/team-account-gateway.test.js
+
+      - name: Configurar origem local da Edge Function
+        shell: bash
+        run: |
+          mkdir -p supabase/functions
+          printf 'RADAR_ALLOWED_ORIGIN=%s\n' 'http://127.0.0.1:4175' > supabase/functions/.env
+          chmod 600 supabase/functions/.env
+
+      - name: Iniciar e recriar Supabase local
+        run: |
+          npm run supabase:start
+          npm run supabase:reset
+
+      - name: Executar contratos de banco
+        run: npm run supabase:test:db
+
+      - name: Criar identidades e runtime autenticado
+        shell: bash
+        run: |
+          set -euo pipefail
+          eval "$(npx supabase status -o env | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=')"
+          test -n "${API_URL:-}"
+          test -n "${ANON_KEY:-}"
+          test -n "${SERVICE_ROLE_KEY:-}"
+          FIXTURE_PASSWORD="$(node --input-type=module -e "import { randomBytes } from 'node:crypto'; process.stdout.write(randomBytes(32).toString('base64url') + 'A1!')")"
+          echo "::add-mask::${FIXTURE_PASSWORD}"
+          echo "::add-mask::${SERVICE_ROLE_KEY}"
+          RADAR_ALLOW_LOCAL_AUTH_BOOTSTRAP=true \
+          RADAR_SUPABASE_URL="${API_URL}" \
+          RADAR_SUPABASE_ADMIN_KEY="${SERVICE_ROLE_KEY}" \
+          RADAR_AUTH_FIXTURE_PASSWORD="${FIXTURE_PASSWORD}" \
+          npm run bootstrap:auth-fixtures
+          RADAR_SUPABASE_URL="${API_URL}" \
+          RADAR_SUPABASE_PUBLISHABLE_KEY="${ANON_KEY}" \
+          RADAR_AUTH_FIXTURE_PASSWORD="${FIXTURE_PASSWORD}" \
+          npm run check:auth-fixtures
+          RADAR_DATA_MODE=supabase-preview \
+          RADAR_ENVIRONMENT=test \
+          RADAR_SUPABASE_REPOSITORY_ENABLED=true \
+          RADAR_SUPABASE_URL="${API_URL}" \
+          RADAR_SUPABASE_PUBLISHABLE_KEY="${ANON_KEY}" \
+          npm run generate:runtime-config
+          {
+            printf 'RADAR_SUPABASE_URL=%s\n' "${API_URL}"
+            printf 'RADAR_SUPABASE_PUBLISHABLE_KEY=%s\n' "${ANON_KEY}"
+            printf 'RADAR_AUTH_FIXTURE_PASSWORD=%s\n' "${FIXTURE_PASSWORD}"
+            printf 'RADAR_ALLOWED_ORIGIN=%s\n' 'http://127.0.0.1:4175'
+          } >> "${GITHUB_ENV}"
+
+      - name: Criar reprodução efêmera do cadastro institucional
+        shell: bash
+        run: |
+          cat > tests/e2e/audit-school-registration-temp.spec.js <<'EOF'
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const { test, expect } = require('@playwright/test');
+
+          const fixtures = JSON.parse(fs.readFileSync(
+            path.resolve(__dirname, '../../supabase/fixtures/auth-users.json'),
+            'utf8'
+          ));
+          const password = process.env.RADAR_AUTH_FIXTURE_PASSWORD || '';
+          const assistant = fixtures.find(item => item.profileId === 'federal_assistant' && item.active);
+
+          async function authenticate(page) {
+            await page.goto('/carteira');
+            await expect(page.locator('#radar-auth-gate')).toBeVisible();
+            await page.locator('#radar-auth-email').fill(assistant.email);
+            await page.locator('#radar-auth-password').fill(password);
+            await page.locator('#radar-auth-form button[type="submit"]').click();
+            await page.waitForFunction(() => (
+              window.RadarDataContext?.ready === true
+              && window.RadarAuthContext?.authorization?.role === 'federal_assistant'
+            ));
+            await expect(page.locator('#app-layout')).toBeVisible();
+          }
+
+          test('modal real persiste identificadores institucionais gerados artificialmente', async ({ page }) => {
+            await authenticate(page);
+            const sici = `AUDIT-SICI-${Date.now()}`;
+
+            const opened = await page.evaluate(() => window.openEscolaEditModal(null));
+            expect(opened).toBe(true);
+            const modal = page.locator('#modal-escola-edit');
+            await expect(modal).toBeVisible();
+
+            await page.locator('#edit-sici').fill(sici);
+            await page.locator('#edit-email').fill('escola-auditoria@example.test');
+            await page.locator('#edit-diretor').fill('Direção Sintética');
+            await page.locator('#edit-telefone-diretor').fill('2100000000');
+            await page.locator('#edit-diretor-adjunto').fill('Direção Adjunta Sintética');
+            await page.locator('#edit-telefone-adjunto').fill('21900000000');
+            await page.locator('#edit-telefone').fill('2100000001');
+            await page.locator('#edit-celular-institucional').fill('21900000001');
+            await page.locator('#edit-processo').fill('AUDIT-PROCESS-LOCAL');
+
+            const controller = page.locator('#edit-controlador');
+            const controllerValue = await controller.locator('option').evaluateAll(options => (
+              options.map(option => option.value).find(Boolean) || ''
+            ));
+            expect(controllerValue).not.toBe('');
+            await controller.selectOption(controllerValue);
+
+            await modal.getByRole('button', { name: 'Salvar Alterações' }).click();
+            await expect(modal).toBeHidden();
+
+            const evidence = await page.evaluate(async expectedSici => {
+              const client = window.RadarSessionContext.service.client;
+              const schoolResult = await client.from('schools')
+                .select('id, inep, cnpj, designation, denomination, sici, controller_id')
+                .eq('sici', expectedSici)
+                .single();
+              if (schoolResult.error) throw schoolResult.error;
+              const programsResult = await client.from('school_programs')
+                .select('school_id, program_id')
+                .eq('school_id', schoolResult.data.id);
+              if (programsResult.error) throw programsResult.error;
+              const logsResult = await client.from('administrative_logs')
+                .select('school_id, action, actor_user_id')
+                .eq('school_id', schoolResult.data.id)
+                .eq('action', 'Escola Cadastrada');
+              if (logsResult.error) throw logsResult.error;
+              return {
+                school: schoolResult.data,
+                programIds: programsResult.data.map(item => item.program_id),
+                logs: logsResult.data
+              };
+            }, sici);
+
+            expect(evidence.school.id).toMatch(/^esc-\d+$/);
+            expect(evidence.school.inep).toMatch(/^330\d{5}$/);
+            expect(evidence.school.cnpj).toMatch(/^00\.000\.000\/0001-\d{2}$/);
+            expect(evidence.school.designation).toMatch(/^01\.09\.\d{3}$/);
+            expect(evidence.school.denomination).toMatch(/^Nova Unidade Escolar \d{1,2}$/);
+            expect(evidence.school.sici).toBe(sici);
+            expect(evidence.school.controller_id).toBe(controllerValue);
+            expect(evidence.programIds).toContain('BASIC');
+            expect(evidence.logs).toHaveLength(1);
+            expect(evidence.logs[0].actor_user_id).toBeTruthy();
+          });
+          EOF
+
+      - name: Exercitar Gestão de Equipe e cadastro escolar reais
+        env:
+          RADAR_E2E_SUPABASE_LOCAL: '1'
+        run: |
+          npx playwright test \
+            tests/e2e/supabase-full-contract.spec.js \
+            tests/e2e/audit-school-registration-temp.spec.js \
+            --project=desktop-chromium \
+            --reporter=line
+
+      - name: Comprovar limpeza do banco descartável
+        shell: bash
+        run: |
+          rm -f tests/e2e/audit-school-registration-temp.spec.js
+          npm run supabase:reset
+          eval "$(npx supabase status -o env | grep -E '^(API_URL|SERVICE_ROLE_KEY)=')"
+          RADAR_SUPABASE_URL="${API_URL}" RADAR_SUPABASE_ADMIN_KEY="${SERVICE_ROLE_KEY}" node --input-type=module <<'EOF'
+          import { createClient } from '@supabase/supabase-js';
+          const client = createClient(process.env.RADAR_SUPABASE_URL, process.env.RADAR_SUPABASE_ADMIN_KEY, {
+            auth: { persistSession: false, autoRefreshToken: false }
+          });
+          const result = await client.from('schools').select('id', { count: 'exact', head: true }).like('sici', 'AUDIT-SICI-%');
+          if (result.error) throw result.error;
+          if (result.count !== 0) throw new Error(`Resíduos de auditoria encontrados: ${result.count}`);
+          console.log('Limpeza confirmada: nenhum cadastro sintético da auditoria permaneceu.');
+          EOF
+
+      - name: Registrar resumo seguro
+        if: success()
+        shell: bash
+        run: |
+          {
+            echo '## Task 4 — Gestão de Equipe, escolas e carteira'
+            echo ''
+            echo '- contratos unitários de transição, gateway e redistribuição aprovados'
+            echo '- pgTAP aprovado no banco descartável'
+            echo '- fluxo real da Gestão de Equipe aprovado com Auth e banco locais'
+            echo '- cadastro pela interface confirmou geração artificial de id, INEP, CNPJ, designação e denominação'
+            echo '- vínculo BASIC e log administrativo confirmados'
+            echo '- banco recriado e ausência de resíduos comprovada'
+            echo '- nenhuma conta ou dado de Production utilizado'
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Restaurar arquivos e encerrar ambiente
+        if: always()
+        run: |
+          rm -f tests/e2e/audit-school-registration-temp.spec.js
+          git checkout -- config.runtime.js || true
+          rm -f supabase/functions/.env
+          npm run supabase:stop || true
+
+      - name: Remover workflow temporário após sucesso
+        if: success()
+        shell: bash
+        run: |
+          git rm .github/workflows/audit-team-school-local.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: remover workflow temporário da Task 4"
+          git push origin HEAD:docs/auditoria-funcional-frontend-supabase-design-20260806
