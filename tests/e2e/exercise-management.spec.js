@@ -109,4 +109,58 @@ test.describe('gestão de exercícios e competências', () => {
       count: COMPETENCIAS.filter(item => item.key.startsWith('2026-')).length
     }))).toEqual({ exercises: ['2026'], count: 12 });
   });
+
+  test('restaura competências persistidas antes do primeiro render do Controlador', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Regressão de bootstrap exclusiva do desktop.');
+
+    const pageErrors = [];
+    page.on('pageerror', error => pageErrors.push(error.message));
+
+    await page.goto('/');
+    await page.waitForFunction(() => Boolean(window.RadarExerciseManagement));
+    await page.evaluate(() => {
+      const configKey = 'radar_pdde_config';
+      const stored = JSON.parse(localStorage.getItem(configKey));
+      const remoteCompetences = Array.from({ length: 12 }, (_unused, index) => {
+        const month = String(index + 1).padStart(2, '0');
+        const nextMonth = new Date(Date.UTC(2098, index + 1, 15));
+        return {
+          key: `2098-${month}`,
+          label: `${month}/2098`,
+          bonifPrazo: nextMonth.toISOString().slice(0, 10)
+        };
+      });
+      localStorage.setItem(configKey, JSON.stringify({
+        ...stored,
+        exercicios: ['2026', '2098'],
+        competenciaFechamento: '2098-04',
+        competencias: [
+          ...COMPETENCIAS.map(item => ({ ...item })),
+          ...remoteCompetences
+        ]
+      }));
+      localStorage.setItem('radar_pdde_active_competence', '2098-04');
+    });
+
+    await page.reload();
+    await page.waitForFunction(() => Boolean(window.RadarDataContext?.ready));
+
+    const state = await page.evaluate(() => {
+      switchProfile('controlador');
+      return {
+        activeCompetence: activeCompetenciaKey,
+        currentExercise,
+        restoredKeys: COMPETENCIAS
+          .filter(item => item.key.startsWith('2098-'))
+          .map(item => item.key),
+        appDisplay: getComputedStyle(document.getElementById('app-layout')).display
+      };
+    });
+
+    expect(state.activeCompetence).toBe('2098-04');
+    expect(state.currentExercise).toBe('2098');
+    expect(state.restoredKeys).toHaveLength(12);
+    expect(state.appDisplay).not.toBe('none');
+    expect(pageErrors).toEqual([]);
+  });
 });
