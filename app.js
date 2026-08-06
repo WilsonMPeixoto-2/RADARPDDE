@@ -4502,6 +4502,14 @@ function captureRadarMemoryState() {
 
 function applyRadarMemoryState(state = {}) {
     config = cloneRadarValue(state.config || INITIAL_CONFIG);
+    const restoredCompetences = Array.isArray(config.competencias)
+        ? cloneRadarValue(config.competencias).filter(item => (
+            item && /^\d{4}-(0[1-9]|1[0-2])$/.test(String(item.key || ''))
+        ))
+        : [];
+    if (restoredCompetences.length > 0) {
+        COMPETENCIAS.splice(0, COMPETENCIAS.length, ...restoredCompetences);
+    }
     programas = cloneRadarValue(state.programs || []);
     controladores = cloneRadarValue(state.controllers || []);
     equipeInventario = cloneRadarValue(state.inventoryTeamMembers || []);
@@ -4519,6 +4527,13 @@ function applyRadarMemoryState(state = {}) {
     migrateLoadedPendencies();
     rebuildOperationalIndexes();
     activeCompetenciaKey = config.competenciaFechamento || activeCompetenciaKey;
+    const restoredExercise = /^\d{4}/.exec(String(activeCompetenciaKey || ''))?.[0] || '';
+    const configuredExercises = Array.isArray(config.exercicios)
+        ? config.exercicios.map(String)
+        : [];
+    if (restoredExercise && configuredExercises.includes(restoredExercise)) {
+        currentExercise = restoredExercise;
+    }
 }
 
 function getPendencyAnalysisValue(pendency) {
@@ -5704,6 +5719,10 @@ function renderDashboardControlador(container) {
         subFilterLabel = ' (Filtrado: Com Bens Não Encaminhados)';
     }
 
+    const activeCompetenceLabel = COMPETENCIAS.find(
+        competence => competence.key === activeCompetenciaKey
+    )?.label || formatCompetenciaText(activeCompetenciaKey);
+
     container.innerHTML = `
         <div class="page-header">
             <div class="page-title">
@@ -5711,7 +5730,7 @@ function renderDashboardControlador(container) {
                 <p>Carteira ativa: <strong>${activeControladorName}</strong>. R.A. vinculada: <strong>${carteiraRAText}</strong>. Você pode navegar por outras R.As ou pesquisar na CRE.</p>
 
             </div>
-            <div class="badge badge-info">Mês Ativo: ${COMPETENCIAS.find(c => c.key === activeCompetenciaKey).label}</div>
+            <div class="badge badge-info">Mês Ativo: ${activeCompetenceLabel}</div>
         </div>
 
         <div class="tab-container" style="margin-bottom: 20px;">
