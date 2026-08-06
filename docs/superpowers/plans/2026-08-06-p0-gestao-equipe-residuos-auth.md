@@ -4,7 +4,7 @@
 
 **Goal:** Restabelecer cadastro, transição de perfil, desativação e redistribuição na Gestão de Equipe, impedindo que usuários Auth legados malformados bloqueiem operações não relacionadas e removendo exclusivamente os resíduos sintéticos HML conhecidos.
 
-**Architecture:** A Edge Function deixará de percorrer todo o catálogo Auth com `listUsers` e consultará somente o UUID correspondente ao e-mail solicitado por RPC administrativa `SECURITY DEFINER`, executável apenas por `service_role`. Uma migration normalizará campos textuais nulos incompatíveis com o GoTrue e eliminará o conjunto HML validado por identificador e e-mail. A conciliação da transição funcional real será executada separadamente, sem movimentar automaticamente a carteira escolar.
+**Architecture:** A Edge Function deixará de percorrer todo o catálogo Auth com `listUsers` e consultará somente o UUID correspondente ao e-mail solicitado por RPC administrativa `SECURITY DEFINER`, executável apenas por `service_role`. Uma migration normalizará os campos textuais nulos incompatíveis com o GoTrue e eliminará o conjunto HML validado por identificador, e-mail e ausência de vínculos reais. A estrutura da tabela `auth.users` não será alterada, pois pertence ao schema gerenciado do Supabase. A conciliação da transição funcional real será executada separadamente, sem movimentar automaticamente a carteira escolar.
 
 **Tech Stack:** TypeScript/Deno, Supabase JS 2.110.9, PostgreSQL 17, Supabase CLI 2.110.0, pgTAP, Node.js 24 e GitHub Actions.
 
@@ -45,13 +45,17 @@
 - [x] Criar RPC administrativa de lookup exato por e-mail normalizado.
 - [x] Revogar execução de `public`, `anon` e `authenticated`; conceder somente a `service_role`.
 - [x] Normalizar `confirmation_token`, `recovery_token` e `email_change_token_new` quando nulos.
-- [x] Definir defaults vazios para inserções técnicas futuras.
-- [x] Remover exclusivamente a escola, os diretórios, perfis e usuários Auth HML conhecidos, com guardas contra reaproveitamento dos identificadores.
+- [x] Preservar a estrutura do schema Auth gerenciado e impedir novas inserções técnicas diretas pelo fluxo da aplicação.
+- [x] Remover exclusivamente a escola, os diretórios, perfis e usuários Auth HML conhecidos, com guardas contra reaproveitamento dos identificadores e vínculos com dados reais.
 - [x] Trocar a varredura global pela nova RPC.
-- [ ] Regenerar e versionar `database.types.ts` pelo Supabase local.
+- [x] Atualizar `database.types.ts` com a assinatura da nova RPC; a equivalência final será conferida pela geração local do Supabase.
 
-## Task 3 — Prova integral em ambiente descartável
+## Task 3 — Prova técnica e ambiente descartável
 
+- [x] Simular em transação revertida a normalização dos três campos Auth no banco de Production.
+- [x] Simular em transação revertida a criação, grants e lookup da RPC no banco de Production.
+- [x] Simular em transação revertida a limpeza integral HML, preservando a transição real pendente e as 39 escolas da carteira real.
+- [x] Confirmar após `ROLLBACK` que Production permaneceu inalterada.
 - [ ] Aplicar as 28 migrations em PostgreSQL genérico e Supabase local.
 - [ ] Executar pgTAP completo.
 - [ ] Executar cadastro e edição de controlador.
