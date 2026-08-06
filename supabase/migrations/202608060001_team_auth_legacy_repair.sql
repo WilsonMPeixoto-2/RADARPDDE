@@ -10,11 +10,6 @@ where confirmation_token is null
    or recovery_token is null
    or email_change_token_new is null;
 
-alter table auth.users
-    alter column confirmation_token set default '',
-    alter column recovery_token set default '',
-    alter column email_change_token_new set default '';
-
 create or replace function public.resolve_team_auth_user_id_by_email(p_email text)
 returns uuid
 language plpgsql
