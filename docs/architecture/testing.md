@@ -67,6 +67,7 @@ Coberturas centrais:
 - serviços e unidade de trabalho;
 - runtime e certificação Excel;
 - CORS, Auth e Gestão de Equipe;
+- autorização da redistribuição da carteira escolar;
 - importação e rollback;
 - monitor geral e incidentes;
 - auditoria de integridade;
@@ -84,7 +85,7 @@ npm run supabase:gen:types
 npm run typecheck:database
 ```
 
-Na `main` e em Production existem 26 migrations. A última cria `radar_private.production_integrity_check()` e permanece restrita ao contexto administrativo apropriado.
+Na `main` e em Production existem 27 migrations. A última, `202608050001_school_assignment_authorization`, protege a alteração de `schools.controller_id` por usuários autenticados e mantém a operação autorizada de `federal_assistant`, `technical_admin` e manutenção administrativa.
 
 Requisitos:
 
