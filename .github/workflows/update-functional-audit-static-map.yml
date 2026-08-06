@@ -1,0 +1,171 @@
+name: Consolidar mapa estático da auditoria
+
+on:
+  push:
+    branches:
+      - docs/auditoria-funcional-frontend-supabase-design-20260806
+    paths:
+      - .github/workflows/update-functional-audit-static-map.yml
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: docs/auditoria-funcional-frontend-supabase-design-20260806
+          fetch-depth: 0
+
+      - name: Reconciliar as 41 operações com o código atual
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = require('node:path');
+
+          const auditPath = 'docs/audits/2026-08-06-functional-supabase-audit.json';
+          const reportPath = 'docs/audits/2026-08-06-functional-supabase-audit.md';
+          const matrixRoot = 'docs/reference/functional-contract-matrix';
+          const operationFiles = ['core.json', 'configuration.json', 'operations.json', 'technical.json'];
+          const operations = operationFiles.flatMap(file => JSON.parse(fs.readFileSync(path.join(matrixRoot, file), 'utf8')));
+          if (operations.length !== 41) throw new Error(`Esperadas 41 operações; encontradas ${operations.length}.`);
+          if (new Set(operations.map(item => item.id)).size !== 41) throw new Error('IDs duplicados na matriz funcional.');
+
+          const gaps = new Set(['SCH-01', 'ASSET-02', 'EXP-01', 'EXP-02']);
+          const documentationDivergences = new Set(['CFG-03', 'CFG-04']);
+          const findings = {
+            'SCH-01': [
+              'A criação monta id, INEP, CNPJ, designação e denominação por geradores artificiais.',
+              'O formulário atual não coleta nem envia esses identificadores institucionais.',
+              'A matriz combina criação e edição e ainda inclui Controlador no allow da ação combinada; o código atual permite somente edição ao Controlador.'
+            ],
+            'ASSET-02': [
+              'A edição genérica não usa saveAssetWithLog.',
+              'Não produz administrative_log.',
+              'Não envia expected row_version e depende de persistência genérica por upsert.'
+            ],
+            'EXP-01': [
+              'A geração do arquivo está conectada, mas o log chama registerLog + persist(logs) em modo fire-and-forget.',
+              'A persistência legada envia o snapshot integral de administrativeLogs por upsert, em vez de inserir somente o evento novo.',
+              'A exportação pode informar sucesso antes de uma falha assíncrona de auditoria.'
+            ],
+            'EXP-02': [
+              'O pipeline mensal e o download estão conectados.',
+              'O registro da exportação repete a rota legada de snapshot integral e não usa AuditService.record.',
+              'A falha de auditoria não altera o resultado já devolvido ao usuário.'
+            ],
+            'CFG-03': [
+              'A matriz classifica a autoridade sobre programas como decisão pendente, mas frontend, DirectoryService, RPC e RLS atuais implementam Gestão SME e Administrador técnico de forma coerente.',
+              'A correção necessária é documental; nenhuma regra de negócio será alterada.'
+            ],
+            'CFG-04': [
+              'A matriz classifica a desativação de programas como decisão pendente, mas o código e o backend atuais implementam a operação para Gestão SME e Administrador técnico.',
+              'A correção necessária é documental; nenhuma regra de negócio será alterada.'
+            ],
+            'AUD-01': [
+              'AuditService.record usa DataService.execute e inserção append-only corretamente; as exportações não utilizam esse serviço.'
+            ],
+            'AUTH-01': ['A prova autenticada recorrente em Production continua desativada sem identidades técnicas autorizadas.'],
+            'NAV-02': ['A prova autenticada recorrente de ausência de vazamento em Production continua desativada.'],
+            'READ-01': ['A prova autenticada recorrente em Production continua desativada.'],
+            'READ-02': ['A prova autenticada recorrente em Production continua desativada.'],
+            'READ-03': ['A prova autenticada recorrente em Production continua desativada.'],
+            'READ-04': ['A prova autenticada recorrente em Production continua desativada.'],
+            'OPS-01': ['O monitor do baseline atual está aprovado.'],
+            'OPS-02': ['A auditoria de Production retorna healthy, schemaVersion=1 e totalIssues=0.']
+          };
+
+          const audit = JSON.parse(fs.readFileSync(auditPath, 'utf8'));
+          const previousById = new Map(audit.operations.map(item => [item.id, item]));
+          audit.staticReview = {
+            sourceCommit: '97c8bedbd7c93d82d527e183762b37a0934bd5f0',
+            matrixSourceCommit: '30bdecc1116bbcd007448d21db57326b28d9a003',
+            classificationCounts: {
+              'static-confirmed': 35,
+              'static-gap': 4,
+              'documentation-divergence': 2
+            },
+            gaps: [...gaps],
+            documentationDivergences: [...documentationDivergences],
+            matrixManifestStale: true
+          };
+          audit.knownItemsToRevalidate = [
+            {
+              id: 'SCH-01-identifiers',
+              status: 'static-confirmed-gap',
+              description: 'Cadastro de escola nova gera identificadores institucionais artificiais e não recebe esses campos do formulário.'
+            },
+            {
+              id: 'ASSET-02-atomicity',
+              status: 'static-confirmed-gap',
+              description: 'Edição genérica de bem usa persistência padrão sem RPC atômico, log ou versão explícita.'
+            },
+            {
+              id: 'EXP-AUD-persistence',
+              status: 'static-confirmed-gap',
+              description: 'Exportações XLSX usam persistência legada do snapshot integral de logs e não AuditService.record.'
+            },
+            {
+              id: 'AUTH-READ-production',
+              status: 'known-limitation',
+              description: 'Smoke autenticado de leitura em Production continua desativado sem cinco identidades técnicas autorizadas.'
+            }
+          ];
+          audit.operations = operations.map(item => {
+            const previous = previousById.get(item.id) || {};
+            const status = gaps.has(item.id)
+              ? 'static-gap'
+              : (documentationDivergences.has(item.id) ? 'documentation-divergence' : 'static-confirmed');
+            return {
+              id: item.id,
+              status,
+              frontend: (item.anchors || []).map(anchor => ({ path: anchor[0], symbol: anchor[1] || null })),
+              service: item.service || null,
+              repository: item.repository || null,
+              backend: item.resources || [],
+              authorization: { allow: item.allow || [], deny: item.deny || [] },
+              persistence: {
+                mode: item.compensation || null,
+                concurrency: item.concurrency || null
+              },
+              reload: item.reload === true,
+              errorHandling: status === 'static-gap'
+                ? 'Primeira fronteira divergente identificada; reprodução dinâmica obrigatória antes da correção.'
+                : 'Caminho de erro identificado; prova dinâmica permanece conforme o plano.',
+              evidence: [...new Set([...(previous.evidence || []), item.evidence, ...(item.anchors || []).map(anchor => anchor[0])].filter(Boolean))],
+              findings: findings[item.id] || []
+            };
+          });
+          const counts = audit.operations.reduce((result, item) => {
+            result[item.status] = (result[item.status] || 0) + 1;
+            return result;
+          }, {});
+          if (counts['static-confirmed'] !== 35 || counts['static-gap'] !== 4 || counts['documentation-divergence'] !== 2) {
+            throw new Error(`Contagens estáticas inesperadas: ${JSON.stringify(counts)}`);
+          }
+          fs.writeFileSync(auditPath, `${JSON.stringify(audit, null, 2)}\n`);
+
+          let report = fs.readFileSync(reportPath, 'utf8');
+          const marker = '## Resultado da revisão estática';
+          const section = `## Resultado da revisão estática\n\nA revisão direta do código da \`main\` classificou as 41 operações sem reaproveitar automaticamente os estados documentais anteriores.\n\n| Classificação | Quantidade |\n|---|---:|\n| Percurso estático confirmado | 35 |\n| Lacuna técnica comprovada | 4 |\n| Divergência documental | 2 |\n| **Total** | **41** |\n\n### Lacunas técnicas\n\n1. **SCH-01 — cadastro de escola:** novas escolas recebem id, INEP, CNPJ, designação e denominação artificiais; o formulário não fornece os identificadores institucionais.\n2. **ASSET-02 — edição de bem:** usa persistência genérica, sem \`saveAssetWithLog\`, log administrativo ou versão otimista explícita.\n3. **EXP-01 — relatório institucional:** o arquivo é gerado, mas a auditoria usa \`registerLog\` + \`persist('logs')\`, reenviando o snapshot integral por upsert.\n4. **EXP-02 — Excel SME:** o pipeline mensal está conectado, porém repete a mesma rota problemática de auditoria assíncrona.\n\n### Divergências documentais\n\n- **CFG-03 e CFG-04:** a matriz ainda marca a gestão de programas como decisão pendente. O código, o serviço, a RPC e as permissões atuais implementam a operação para Gestão SME e Administrador técnico. A auditoria não alterará essa regra; somente reconciliará a documentação.\n- O manifesto da matriz ainda aponta o commit \`30bdecc…\`, anterior aos PRs 150, 154 e 155.\n\n### Limite da conclusão estática\n\nOs 35 percursos confirmados ainda serão submetidos às provas dinâmicas previstas. \`static-confirmed\` significa que controle, serviço, repositório e backend correspondentes existem e estão ligados; não substitui a prova de persistência e releitura.\n`;
+          if (report.includes(marker)) {
+            report = report.slice(0, report.indexOf(marker)).trimEnd() + '\n\n' + section;
+          } else {
+            report = report.trimEnd() + '\n\n' + section;
+          }
+          fs.writeFileSync(reportPath, report);
+          NODE
+
+      - name: Validar registro e remover workflow temporário
+        shell: bash
+        run: |
+          node -e "const a=require('./docs/audits/2026-08-06-functional-supabase-audit.json'); if(a.operations.length!==41) process.exit(1); if(new Set(a.operations.map(x=>x.id)).size!==41) process.exit(1);"
+          git rm .github/workflows/update-functional-audit-static-map.yml
+          git add docs/audits/2026-08-06-functional-supabase-audit.json docs/audits/2026-08-06-functional-supabase-audit.md
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "docs: mapear percursos frontend Supabase"
+          git push origin HEAD:docs/auditoria-funcional-frontend-supabase-design-20260806
