@@ -180,7 +180,8 @@
                     const controllerId = text(input.controllerId);
                     const controller = this.activeController(state, controllerId, 'saveSchool');
                     const existing = input.id ? state.schools.find(item => item.id === input.id) : null;
-                    if (input.id && !existing && !text(input.designation)) {
+                    const isNewSchool = input.isNewSchool === true || !text(input.id);
+                    if (input.id && !existing && !isNewSchool) {
                         fail('NOT_FOUND', 'Escola não localizada.', 'saveSchool');
                     }
                     const currentProfile = text(this.getCurrentProfile()).toLocaleLowerCase('pt-BR');
