@@ -11,7 +11,8 @@ function createHarness() {
             exercicios: ['2026'],
             competenciaFechamento: '2026-05',
             prazoBonificacaoProrrogado: false,
-            competencias: []
+            competencias: [],
+            rowVersion: 3
         },
         competences: [],
         logs: []
@@ -47,7 +48,8 @@ function createRemoteExerciseHarness() {
             exercicios: ['2026'],
             competenciaFechamento: '2026-05',
             prazoBonificacaoProrrogado: false,
-            competencias: existingCompetences.map(item => ({ ...item }))
+            competencias: existingCompetences.map(item => ({ ...item })),
+            rowVersion: 7
         },
         competences: existingCompetences.map(item => ({ ...item })),
         logs: []
@@ -73,7 +75,7 @@ function createRemoteExerciseHarness() {
             const value = await command.mutate();
             const snapshot = {
                 entities: {
-                    appConfig: [{ id: 'global' }],
+                    appConfig: [{ id: 'global', row_version: 7 }],
                     competences: state.competences.map(item => ({
                         id: item.key,
                         exercise: Number(item.key.slice(0, 4)),
@@ -149,13 +151,14 @@ test('cria exercício com doze competências, prazo e auditoria sem duplicar ano
     );
 });
 
-test('envia ao RPC somente as doze competências do novo exercício', async () => {
+test('envia ao RPC somente as doze competências do novo exercício e a versão esperada', async () => {
     const harness = createRemoteExerciseHarness();
 
     await harness.service.createExercise({ year: '2027', initialMonth: '05' });
 
     assert.equal(harness.state.competences.length, 24);
     assert.equal(harness.persisted.length, 1);
+    assert.equal(harness.persisted[0].expectedVersion, 7);
     assert.equal(harness.persisted[0].competences.length, 12);
     assert.equal(
         harness.persisted[0].competences.some(item => item.id.startsWith('2026-')),
