@@ -1,0 +1,177 @@
+name: Registrar resultado da Task 4
+
+on:
+  push:
+    branches:
+      - docs/auditoria-funcional-frontend-supabase-design-20260806
+    paths:
+      - .github/workflows/update-functional-audit-task4.yml
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: docs/auditoria-funcional-frontend-supabase-design-20260806
+          fetch-depth: 0
+
+      - name: Atualizar registro estruturado e relatório
+        run: |
+          node <<'EOF'
+          const fs = require('node:fs');
+
+          const jsonPath = 'docs/audits/2026-08-06-functional-supabase-audit.json';
+          const mdPath = 'docs/audits/2026-08-06-functional-supabase-audit.md';
+          const audit = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+          const run = 'GitHub Actions run 31101490701';
+
+          function appendUnique(list, values) {
+            const result = Array.isArray(list) ? [...list] : [];
+            for (const value of values) {
+              if (!result.includes(value)) result.push(value);
+            }
+            return result;
+          }
+
+          function operation(id) {
+            const item = audit.operations.find(entry => entry.id === id);
+            if (!item) throw new Error(`Operação ausente: ${id}`);
+            return item;
+          }
+
+          function confirm(id, evidence, finding) {
+            const item = operation(id);
+            item.dynamicStatus = 'confirmed';
+            item.evidence = appendUnique(item.evidence, [run, ...evidence]);
+            item.findings = appendUnique(item.findings, [finding]);
+          }
+
+          const knownSchool = audit.knownItemsToRevalidate.find(item => item.id === 'SCH-01-identifiers');
+          if (!knownSchool) throw new Error('Item conhecido SCH-01-identifiers ausente.');
+          knownSchool.status = 'dynamic-confirmed-gap';
+          knownSchool.description = 'Cadastro real pela interface persiste id, INEP, CNPJ, designação e denominação gerados artificialmente; SICI, controlador, programa BASIC e log são persistidos corretamente.';
+
+          const schoolCreate = operation('SCH-01');
+          schoolCreate.dynamicStatus = 'broken';
+          schoolCreate.evidence = appendUnique(schoolCreate.evidence, [
+            run,
+            'reprodução efêmera do modal real de cadastro escolar',
+            'src/application/school-service.js',
+            'app.js: openEscolaEditModal/saveEscolaEdit',
+            'Supabase local descartável com releitura de schools, school_programs e administrative_logs'
+          ]);
+          schoolCreate.findings = appendUnique(schoolCreate.findings, [
+            'A interface não solicita id, INEP, CNPJ, designação ou denominação para escola nova; SchoolService gera valores artificiais e saveSchoolWithPrograms os persiste atomicamente no banco.',
+            'SICI, controlador, vínculo com BASIC, autoria e log Escola Cadastrada foram persistidos corretamente; a falha está no conteúdo institucional dos cinco identificadores gerados.'
+          ]);
+          schoolCreate.errorHandling = 'O fluxo apresenta sucesso técnico mesmo quando os identificadores institucionais persistidos são artificiais; trata-se de falha de integridade semântica, não de transporte ou transação.';
+
+          confirm(
+            'SCH-02',
+            ['tests/unit/school-assignment-authorization.test.js', 'tests/e2e/supabase-full-contract.spec.js'],
+            'Edição de unidade preserva identificadores, programas, controlador autorizado, versão e log; persistência e releitura passaram no Supabase descartável.'
+          );
+          confirm(
+            'SCH-03',
+            ['tests/unit/school-assignment-authorization.test.js', 'tests/e2e/supabase-full-contract.spec.js'],
+            'Redistribuição de carteira passou pelas proteções de frontend, serviço, Edge Function/RPC e banco, com rejeição do perfil Controlador e execução pelo Assistente.'
+          );
+
+          const teamEvidence = [
+            'tests/unit/team-account-role-transition.test.js',
+            'tests/unit/team-account-gateway.test.js',
+            'tests/e2e/supabase-full-contract.spec.js',
+            'supabase/tests/database/team-management-rpc.test.sql'
+          ];
+          confirm('TEAM-01', teamEvidence, 'Criação e atualização de Controlador passaram pelo fluxo autenticado real, com Auth, diretório, perfil, log e releitura no banco descartável.');
+          confirm('TEAM-02', teamEvidence, 'Desativação de Controlador com redistribuição passou de forma transacional, preservando histórico e removendo o acesso ativo.');
+          confirm('TEAM-03', teamEvidence, 'Criação e atualização de integrante da Equipe de Inventário passaram pelo fluxo autenticado real, com perfil, diretório, log e releitura.');
+          confirm('TEAM-04', teamEvidence, 'Desativação de integrante da Equipe de Inventário passou com preservação de histórico e bloqueio de acesso ativo.');
+
+          if (audit.operations.length !== 41 || new Set(audit.operations.map(item => item.id)).size !== 41) {
+            throw new Error('O registro deixou de conter 41 operações únicas.');
+          }
+          fs.writeFileSync(jsonPath, `${JSON.stringify(audit, null, 2)}\n`);
+
+          let md = fs.readFileSync(mdPath, 'utf8');
+          md = md.replace(
+            '**Estado:** primeiro checkpoint concluído — Tasks 1, 2 e 3',
+            '**Estado:** segundo checkpoint concluído — Tasks 1, 2, 3 e 4'
+          );
+          md = md.replace(
+            'Essas quatro lacunas serão reproduzidas em ambiente local ou descartável antes de qualquer correção. Nenhuma mudança funcional foi feita nesta branch.',
+            'A lacuna `SCH-01` já foi reproduzida dinamicamente na Task 4. As demais continuam aguardando reprodução controlada. Nenhuma mudança funcional foi feita nesta branch.'
+          );
+
+          const section = `## Prova dinâmica de Gestão de Equipe, escolas e carteira
+
+### Ambiente e execução
+
+A execução \`31101490701\` foi concluída com sucesso em Supabase local descartável:
+
+- 14 contratos unitários de transição de perfil, gateway e autorização de carteira;
+- 27 migrations e 244 testes pgTAP;
+- sete identidades Auth sintéticas;
+- três percursos Playwright autenticados;
+- recriação final do banco e consulta SQL direta com zero registros residuais da auditoria;
+- nenhuma conta, dado ou escrita de Production.
+
+### Percursos confirmados
+
+| Operação | Resultado |
+|---|---|
+| \`TEAM-01\` | criar e atualizar Controlador, incluindo Auth, perfil, diretório, log e releitura |
+| \`TEAM-02\` | desativar Controlador e redistribuir carteira de forma transacional |
+| \`TEAM-03\` | criar e atualizar integrante da Equipe de Inventário |
+| \`TEAM-04\` | desativar integrante da Equipe de Inventário preservando histórico |
+| \`SCH-02\` | editar unidade, programas e responsável autorizado com versão e log |
+| \`SCH-03\` | redistribuir carteira somente pelo perfil autorizado, com proteção também no backend |
+
+### Lacuna dinâmica confirmada — \`SCH-01\`
+
+O cadastro foi executado pelo **modal real do produto**, autenticado como Assistente, e relido diretamente em \`schools\`, \`school_programs\` e \`administrative_logs\`.
+
+O fluxo técnico funciona: a transação grava a escola, vincula o programa \`BASIC\`, preserva o controlador escolhido e registra \`Escola Cadastrada\` com autoria. Entretanto, o formulário não solicita cinco identificadores institucionais essenciais. Para uma escola nova, o serviço gera e persiste:
+
+- ID no padrão \`esc-<timestamp>\`;
+- INEP aleatório no padrão \`330xxxxx\`;
+- CNPJ fictício no padrão \`00.000.000/0001-xx\`;
+- designação artificial no padrão \`01.09.xxx\`;
+- denominação \`Nova Unidade Escolar xx\`.
+
+Portanto, \`SCH-01\` está classificada como **broken/P0** por integridade semântica. Não há falha de rede, RLS ou atomicidade: o problema é que valores artificiais são aceitos como dados institucionais definitivos e o sucesso técnico oculta essa incorreção.
+
+### Fronteira da correção
+
+A branch de auditoria não alterará o cadastro. A correção deve ocorrer em frente separada e somente após fixar o contrato funcional dos campos institucionais, suas validações e a regra do identificador primário, sem inventar dados ou critérios não aprovados.
+
+`;
+
+          if (!md.includes('## Prova dinâmica de Gestão de Equipe, escolas e carteira')) {
+            md = md.replace('## Percursos estáticos confirmados', `${section}## Percursos estáticos confirmados`);
+          }
+          md = md.replace(
+            'O segundo lote começará pela Task 4: Gestão de Equipe, escolas e carteira. A prioridade imediata será reproduzir o cadastro de escola nova e comprovar o comportamento dos identificadores institucionais, preservando as regras já confirmadas de perfil e autorização.',
+            'A Task 5 auditará verificações, pendências e concorrência: alterações documentais, consolidação e retificação, abertura e reanálise de pendências, idempotência, conflitos otimistas, releitura e mensagens de erro.'
+          );
+          fs.writeFileSync(mdPath, md);
+          EOF
+
+      - name: Validar atualização
+        run: |
+          node -e "const a=require('./docs/audits/2026-08-06-functional-supabase-audit.json'); if(a.operations.length!==41 || new Set(a.operations.map(x=>x.id)).size!==41) process.exit(1); const s=a.operations.find(x=>x.id==='SCH-01'); if(s.dynamicStatus!=='broken') process.exit(1); for(const id of ['SCH-02','SCH-03','TEAM-01','TEAM-02','TEAM-03','TEAM-04']) if(a.operations.find(x=>x.id===id)?.dynamicStatus!=='confirmed') process.exit(1);"
+          grep -q 'Prova dinâmica de Gestão de Equipe, escolas e carteira' docs/audits/2026-08-06-functional-supabase-audit.md
+
+      - name: Remover workflow e versionar resultado
+        run: |
+          git rm .github/workflows/update-functional-audit-task4.yml
+          git add docs/audits/2026-08-06-functional-supabase-audit.json docs/audits/2026-08-06-functional-supabase-audit.md
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "docs: registrar resultado dinâmico da Task 4"
+          git push origin HEAD:docs/auditoria-funcional-frontend-supabase-design-20260806
