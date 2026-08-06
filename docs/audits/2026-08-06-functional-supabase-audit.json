@@ -124,11 +124,15 @@
         "auth",
         "src/integration/auth-gate.js",
         "src/integration/auth-bootstrap.js",
-        "src/auth/session-service.js"
+        "src/auth/session-service.js",
+        "GitHub Actions run 31071643516",
+        "tests/e2e/supabase-auth-local.spec.js"
       ],
       "findings": [
-        "A prova autenticada recorrente em Production continua desativada sem identidades técnicas autorizadas."
-      ]
+        "A prova autenticada recorrente em Production continua desativada sem identidades técnicas autorizadas.",
+        "Cinco perfis ativos autenticaram; usuário inativo e usuário sem perfil foram negados; logout e simulação técnica passaram. O smoke autenticado recorrente de Production permanece desativado."
+      ],
+      "dynamicStatus": "local-confirmed-production-partial"
     },
     {
       "id": "NAV-01",
@@ -178,9 +182,15 @@
         "navigation",
         "src/integration/navigation-routes.js",
         "src/integration/navigation-history.js",
-        "src/integration/navigation-context.js"
+        "src/integration/navigation-context.js",
+        "GitHub Actions run 31071643516",
+        "tests/e2e/canonical-routes.spec.js",
+        "tests/e2e/frontend-contract.spec.js"
       ],
-      "findings": []
+      "findings": [
+        "Rotas canônicas, histórico, fallback autorizado, foco, rolagem e contratos de handlers passaram no modo sintético apropriado."
+      ],
+      "dynamicStatus": "confirmed"
     },
     {
       "id": "NAV-02",
@@ -224,11 +234,15 @@
       "evidence": [
         "search",
         "src/integration/global-search.js",
-        "src/domain/global-search-index.js"
+        "src/domain/global-search-index.js",
+        "GitHub Actions run 31071643516",
+        "tests/e2e/supabase-auth-local.spec.js"
       ],
       "findings": [
-        "A prova autenticada recorrente de ausência de vazamento em Production continua desativada."
-      ]
+        "A prova autenticada recorrente de ausência de vazamento em Production continua desativada.",
+        "Escopos e negativas de leitura/escrita passaram localmente; a prova autenticada recorrente de Production permanece desativada."
+      ],
+      "dynamicStatus": "local-confirmed-production-partial"
     },
     {
       "id": "COMP-01",
@@ -270,9 +284,15 @@
       "evidence": [
         "competence",
         "src/integration/global-competence-selector.js",
-        "src/domain/competence-context.js"
+        "src/domain/competence-context.js",
+        "GitHub Actions run 31071643516",
+        "tests/e2e/canonical-routes.spec.js",
+        "tests/e2e/cycle-b-carteira.spec.js"
       ],
-      "findings": []
+      "findings": [
+        "Competência e contexto foram preservados em navegação, Carteira e retorno contextual."
+      ],
+      "dynamicStatus": "confirmed"
     },
     {
       "id": "READ-01",
@@ -316,11 +336,16 @@
       "evidence": [
         "read",
         "src/integration/cycle-b-dashboard.js",
-        "src/integration/cycle-b-dashboard-result.js"
+        "src/integration/cycle-b-dashboard-result.js",
+        "GitHub Actions run 31071643516",
+        "tests/e2e/supabase-auth-local.spec.js",
+        "tests/e2e/frontend-contract.spec.js"
       ],
       "findings": [
-        "A prova autenticada recorrente em Production continua desativada."
-      ]
+        "A prova autenticada recorrente em Production continua desativada.",
+        "Dashboard e bootstrap por perfil passaram localmente; Production continua sem smoke autenticado agendado."
+      ],
+      "dynamicStatus": "local-confirmed-production-partial"
     },
     {
       "id": "READ-02",
@@ -358,11 +383,16 @@
       "errorHandling": "Caminho de erro identificado; prova dinâmica permanece conforme o plano.",
       "evidence": [
         "portfolio-read",
-        "src/integration/cycle-b-carteira.js"
+        "src/integration/cycle-b-carteira.js",
+        "GitHub Actions run 31071643516",
+        "tests/e2e/cycle-b-carteira.spec.js",
+        "tests/e2e/supabase-auth-local.spec.js"
       ],
       "findings": [
-        "A prova autenticada recorrente em Production continua desativada."
-      ]
+        "A prova autenticada recorrente em Production continua desativada.",
+        "Carteira, filtros, dados, ações e escopos passaram; Production continua sem smoke autenticado agendado."
+      ],
+      "dynamicStatus": "local-confirmed-production-partial"
     },
     {
       "id": "READ-03",
@@ -410,11 +440,15 @@
       "evidence": [
         "read",
         "src/integration/school-timeline.js",
-        "src/domain/school-timeline.js"
+        "src/domain/school-timeline.js",
+        "GitHub Actions run 31071643516",
+        "tests/e2e/canonical-routes.spec.js"
       ],
       "findings": [
-        "A prova autenticada recorrente em Production continua desativada."
-      ]
+        "A prova autenticada recorrente em Production continua desativada.",
+        "Prontuário, aba de pendências, reload, histórico e nova aba passaram; Production continua sem smoke autenticado agendado."
+      ],
+      "dynamicStatus": "local-confirmed-production-partial"
     },
     {
       "id": "READ-04",
@@ -457,11 +491,16 @@
       "evidence": [
         "read",
         "src/integration/task-9-pendencias-page.js",
-        "src/domain/pendencias-view-model.js"
+        "src/domain/pendencias-view-model.js",
+        "GitHub Actions run 31071643516",
+        "tests/e2e/canonical-routes.spec.js",
+        "tests/e2e/cycle-b-carteira.spec.js"
       ],
       "findings": [
-        "A prova autenticada recorrente em Production continua desativada."
-      ]
+        "A prova autenticada recorrente em Production continua desativada.",
+        "Pendências e transporte de filtros passaram no modo sintético; Production continua sem smoke autenticado agendado."
+      ],
+      "dynamicStatus": "local-confirmed-production-partial"
     },
     {
       "id": "EXP-01",
@@ -2018,5 +2057,17 @@
       "CFG-04"
     ],
     "matrixManifestStale": true
+  },
+  "dynamicReadReview": {
+    "completed": true,
+    "successfulRunId": 31071643516,
+    "diagnosticRunId": 31071070501,
+    "environment": "Supabase local descartável + runtime sintético isolado",
+    "migrationsApplied": 27,
+    "syntheticAuthIdentities": 7,
+    "productionDataUsed": false,
+    "productionMutation": false,
+    "result": "success",
+    "diagnosis": "A execução inicial misturou suítes sem login com runtime supabase-preview. A repetição separou o modo autenticado do modo sintético e ambos passaram sem alteração do produto."
   }
 }
