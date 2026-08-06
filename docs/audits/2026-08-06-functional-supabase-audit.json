@@ -57,8 +57,8 @@
   "knownItemsToRevalidate": [
     {
       "id": "SCH-01-identifiers",
-      "status": "static-confirmed-gap",
-      "description": "Cadastro de escola nova gera identificadores institucionais artificiais e não recebe esses campos do formulário."
+      "status": "dynamic-confirmed-gap",
+      "description": "Cadastro real pela interface persiste id, INEP, CNPJ, designação e denominação gerados artificialmente; SICI, controlador, programa BASIC e log são persistidos corretamente."
     },
     {
       "id": "ASSET-02-atomicity",
@@ -823,17 +823,24 @@
         "concurrency": "row_version"
       },
       "reload": true,
-      "errorHandling": "Primeira fronteira divergente identificada; reprodução dinâmica obrigatória antes da correção.",
+      "errorHandling": "O fluxo apresenta sucesso técnico mesmo quando os identificadores institucionais persistidos são artificiais; trata-se de falha de integridade semântica, não de transporte ou transação.",
       "evidence": [
         "remote",
         "src/application/school-service.js",
-        "src/data/supabase-repository.js"
+        "src/data/supabase-repository.js",
+        "GitHub Actions run 31101490701",
+        "reprodução efêmera do modal real de cadastro escolar",
+        "app.js: openEscolaEditModal/saveEscolaEdit",
+        "Supabase local descartável com releitura de schools, school_programs e administrative_logs"
       ],
       "findings": [
         "A criação monta id, INEP, CNPJ, designação e denominação por geradores artificiais.",
         "O formulário atual não coleta nem envia esses identificadores institucionais.",
-        "A matriz combina criação e edição e ainda inclui Controlador no allow da ação combinada; o código atual permite somente edição ao Controlador."
-      ]
+        "A matriz combina criação e edição e ainda inclui Controlador no allow da ação combinada; o código atual permite somente edição ao Controlador.",
+        "A interface não solicita id, INEP, CNPJ, designação ou denominação para escola nova; SchoolService gera valores artificiais e saveSchoolWithPrograms os persiste atomicamente no banco.",
+        "SICI, controlador, vínculo com BASIC, autoria e log Escola Cadastrada foram persistidos corretamente; a falha está no conteúdo institucional dos cinco identificadores gerados."
+      ],
+      "dynamicStatus": "broken"
     },
     {
       "id": "SCH-02",
@@ -875,9 +882,15 @@
       "evidence": [
         "remote",
         "src/application/school-service.js",
-        "src/data/supabase-repository.js"
+        "src/data/supabase-repository.js",
+        "GitHub Actions run 31101490701",
+        "tests/unit/school-assignment-authorization.test.js",
+        "tests/e2e/supabase-full-contract.spec.js"
       ],
-      "findings": []
+      "findings": [
+        "Edição de unidade preserva identificadores, programas, controlador autorizado, versão e log; persistência e releitura passaram no Supabase descartável."
+      ],
+      "dynamicStatus": "confirmed"
     },
     {
       "id": "SCH-03",
@@ -919,9 +932,15 @@
       "evidence": [
         "remote",
         "src/application/school-service.js",
-        "src/data/supabase-repository.js"
+        "src/data/supabase-repository.js",
+        "GitHub Actions run 31101490701",
+        "tests/unit/school-assignment-authorization.test.js",
+        "tests/e2e/supabase-full-contract.spec.js"
       ],
-      "findings": []
+      "findings": [
+        "Redistribuição de carteira passou pelas proteções de frontend, serviço, Edge Function/RPC e banco, com rejeição do perfil Controlador e execução pelo Assistente."
+      ],
+      "dynamicStatus": "confirmed"
     },
     {
       "id": "TEAM-01",
@@ -970,9 +989,17 @@
         "team",
         "src/application/directory-service.js",
         "src/application/team-account-gateway.js",
-        "supabase/functions/team-account-management/index.ts"
+        "supabase/functions/team-account-management/index.ts",
+        "GitHub Actions run 31101490701",
+        "tests/unit/team-account-role-transition.test.js",
+        "tests/unit/team-account-gateway.test.js",
+        "tests/e2e/supabase-full-contract.spec.js",
+        "supabase/tests/database/team-management-rpc.test.sql"
       ],
-      "findings": []
+      "findings": [
+        "Criação e atualização de Controlador passaram pelo fluxo autenticado real, com Auth, diretório, perfil, log e releitura no banco descartável."
+      ],
+      "dynamicStatus": "confirmed"
     },
     {
       "id": "TEAM-02",
@@ -1022,9 +1049,17 @@
         "team",
         "src/application/directory-service.js",
         "src/application/team-account-gateway.js",
-        "supabase/functions/team-account-management/index.ts"
+        "supabase/functions/team-account-management/index.ts",
+        "GitHub Actions run 31101490701",
+        "tests/unit/team-account-role-transition.test.js",
+        "tests/unit/team-account-gateway.test.js",
+        "tests/e2e/supabase-full-contract.spec.js",
+        "supabase/tests/database/team-management-rpc.test.sql"
       ],
-      "findings": []
+      "findings": [
+        "Desativação de Controlador com redistribuição passou de forma transacional, preservando histórico e removendo o acesso ativo."
+      ],
+      "dynamicStatus": "confirmed"
     },
     {
       "id": "TEAM-03",
@@ -1073,9 +1108,17 @@
         "team",
         "src/application/directory-service.js",
         "src/application/team-account-gateway.js",
-        "supabase/functions/team-account-management/index.ts"
+        "supabase/functions/team-account-management/index.ts",
+        "GitHub Actions run 31101490701",
+        "tests/unit/team-account-role-transition.test.js",
+        "tests/unit/team-account-gateway.test.js",
+        "tests/e2e/supabase-full-contract.spec.js",
+        "supabase/tests/database/team-management-rpc.test.sql"
       ],
-      "findings": []
+      "findings": [
+        "Criação e atualização de integrante da Equipe de Inventário passaram pelo fluxo autenticado real, com perfil, diretório, log e releitura."
+      ],
+      "dynamicStatus": "confirmed"
     },
     {
       "id": "TEAM-04",
@@ -1124,9 +1167,17 @@
         "team",
         "src/application/directory-service.js",
         "src/application/team-account-gateway.js",
-        "supabase/functions/team-account-management/index.ts"
+        "supabase/functions/team-account-management/index.ts",
+        "GitHub Actions run 31101490701",
+        "tests/unit/team-account-role-transition.test.js",
+        "tests/unit/team-account-gateway.test.js",
+        "tests/e2e/supabase-full-contract.spec.js",
+        "supabase/tests/database/team-management-rpc.test.sql"
       ],
-      "findings": []
+      "findings": [
+        "Desativação de integrante da Equipe de Inventário passou com preservação de histórico e bloqueio de acesso ativo."
+      ],
+      "dynamicStatus": "confirmed"
     },
     {
       "id": "VER-01",

@@ -1,7 +1,7 @@
 # Auditoria funcional Frontend ↔ Supabase
 
 **Data de abertura:** 6 de agosto de 2026  
-**Estado:** primeiro checkpoint concluído — Tasks 1, 2 e 3  
+**Estado:** segundo checkpoint concluído — Tasks 1, 2, 3 e 4  
 **Registro estruturado:** `docs/audits/2026-08-06-functional-supabase-audit.json`
 
 ## Hierarquia das fontes
@@ -53,7 +53,7 @@ A revisão direta do código da `main` classificou as 41 operações sem reaprov
 3. **EXP-01 — relatório institucional:** o arquivo é gerado, mas a auditoria usa `registerLog` + `persist('logs')`, reenviando o snapshot integral por `upsert`.
 4. **EXP-02 — Excel SME:** o pipeline mensal está conectado, porém repete a mesma rota problemática de auditoria assíncrona.
 
-Essas quatro lacunas serão reproduzidas em ambiente local ou descartável antes de qualquer correção. Nenhuma mudança funcional foi feita nesta branch.
+A lacuna `SCH-01` já foi reproduzida dinamicamente na Task 4. As demais continuam aguardando reprodução controlada. Nenhuma mudança funcional foi feita nesta branch.
 
 ### Divergências documentais
 
@@ -111,6 +111,48 @@ A hipótese foi testada sem alterar o produto: as suítes autenticadas permanece
 
 A limitação de Production é deliberada: o PR nº 148 preparou o smoke autenticado, mas ele não será ativado nem receberá identidades técnicas nesta auditoria sem autorização específica.
 
+## Prova dinâmica de Gestão de Equipe, escolas e carteira
+
+### Ambiente e execução
+
+A execução `31101490701` foi concluída com sucesso em Supabase local descartável:
+
+- 14 contratos unitários de transição de perfil, gateway e autorização de carteira;
+- 27 migrations e 244 testes pgTAP;
+- sete identidades Auth sintéticas;
+- três percursos Playwright autenticados;
+- recriação final do banco e consulta SQL direta com zero registros residuais da auditoria;
+- nenhuma conta, dado ou escrita de Production.
+
+### Percursos confirmados
+
+| Operação | Resultado |
+|---|---|
+| `TEAM-01` | criar e atualizar Controlador, incluindo Auth, perfil, diretório, log e releitura |
+| `TEAM-02` | desativar Controlador e redistribuir carteira de forma transacional |
+| `TEAM-03` | criar e atualizar integrante da Equipe de Inventário |
+| `TEAM-04` | desativar integrante da Equipe de Inventário preservando histórico |
+| `SCH-02` | editar unidade, programas e responsável autorizado com versão e log |
+| `SCH-03` | redistribuir carteira somente pelo perfil autorizado, com proteção também no backend |
+
+### Lacuna dinâmica confirmada — `SCH-01`
+
+O cadastro foi executado pelo **modal real do produto**, autenticado como Assistente, e relido diretamente em `schools`, `school_programs` e `administrative_logs`.
+
+O fluxo técnico funciona: a transação grava a escola, vincula o programa `BASIC`, preserva o controlador escolhido e registra `Escola Cadastrada` com autoria. Entretanto, o formulário não solicita cinco identificadores institucionais essenciais. Para uma escola nova, o serviço gera e persiste:
+
+- ID no padrão `esc-<timestamp>`;
+- INEP aleatório no padrão `330xxxxx`;
+- CNPJ fictício no padrão `00.000.000/0001-xx`;
+- designação artificial no padrão `01.09.xxx`;
+- denominação `Nova Unidade Escolar xx`.
+
+Portanto, `SCH-01` está classificada como **broken/P0** por integridade semântica. Não há falha de rede, RLS ou atomicidade: o problema é que valores artificiais são aceitos como dados institucionais definitivos e o sucesso técnico oculta essa incorreção.
+
+### Fronteira da correção
+
+A branch de auditoria não alterará o cadastro. A correção deve ocorrer em frente separada e somente após fixar o contrato funcional dos campos institucionais, suas validações e a regra do identificador primário, sem inventar dados ou critérios não aprovados.
+
 ## Percursos estáticos confirmados
 
 Os demais percursos coerentes usam, conforme o domínio:
@@ -137,4 +179,4 @@ Os demais percursos coerentes usam, conforme o domínio:
 
 ## Próxima etapa
 
-O segundo lote começará pela Task 4: Gestão de Equipe, escolas e carteira. A prioridade imediata será reproduzir o cadastro de escola nova e comprovar o comportamento dos identificadores institucionais, preservando as regras já confirmadas de perfil e autorização.
+A Task 5 auditará verificações, pendências e concorrência: alterações documentais, consolidação e retificação, abertura e reanálise de pendências, idempotência, conflitos otimistas, releitura e mensagens de erro.
