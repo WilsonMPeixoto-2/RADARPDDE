@@ -98,17 +98,28 @@
             };
         }
 
+        institutionalIdentityChanged(existing, values) {
+            if (!existing) return false;
+            return text(existing.designação) !== values.designation
+                || text(existing.denominação) !== values.denomination
+                || text(existing.inep) !== values.inep
+                || text(existing.cnpj) !== values.cnpj
+                || text(existing.sici) !== values.sici;
+        }
+
         validateInstitutionalData(state, values, existing) {
-            const missing = INSTITUTIONAL_FIELDS
-                .filter(([field]) => !text(values[field]))
-                .map(([, label]) => label);
-            if (missing.length > 0) {
-                fail(
-                    'INSTITUTIONAL_DATA_REQUIRED',
-                    `Informe os dados institucionais obrigatórios: ${missing.join(', ')}.`,
-                    'saveSchool',
-                    { missing }
-                );
+            if (!existing) {
+                const missing = INSTITUTIONAL_FIELDS
+                    .filter(([field]) => !text(values[field]))
+                    .map(([, label]) => label);
+                if (missing.length > 0) {
+                    fail(
+                        'INSTITUTIONAL_DATA_REQUIRED',
+                        `Informe os dados institucionais obrigatórios: ${missing.join(', ')}.`,
+                        'saveSchool',
+                        { missing }
+                    );
+                }
             }
 
             const duplicateFields = [
@@ -117,11 +128,14 @@
                 ['inep', 'inep'],
                 ['cnpj', 'cnpj'],
                 ['sici', 'sici']
-            ].filter(([source, target]) => state.schools.some(school => (
-                school !== existing
-                && identifierKey(school[target])
-                && identifierKey(school[target]) === identifierKey(values[source])
-            ))).map(([source]) => source);
+            ].filter(([source, target]) => (
+                identifierKey(values[source])
+                && state.schools.some(school => (
+                    school !== existing
+                    && identifierKey(school[target])
+                    && identifierKey(school[target]) === identifierKey(values[source])
+                ))
+            )).map(([source]) => source);
 
             if (duplicateFields.length > 0) {
                 fail(
@@ -181,6 +195,15 @@
                     }
 
                     const institutional = this.institutionalValues(input, existing);
+                    if (existing
+                        && this.institutionalIdentityChanged(existing, institutional)
+                        && currentProfile !== 'assistente') {
+                        fail(
+                            'AUTHORIZATION_DENIED',
+                            'A alteração da identificação institucional da escola é exclusiva do Assistente de Verbas Federais.',
+                            'saveSchool'
+                        );
+                    }
                     this.validateInstitutionalData(state, institutional, existing);
                     const initialCompetence = existing?.competenciaInicial
                         || text(input.initialCompetence);
