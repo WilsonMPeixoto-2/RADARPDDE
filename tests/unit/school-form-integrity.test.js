@@ -33,6 +33,7 @@ test('completa o comando de cadastro com valores institucionais informados no fo
 
     assert.deepEqual(input, {
         id: 'ESC-999',
+        isNewSchool: true,
         designation: '04.01.999',
         denomination: 'Escola Municipal Nova',
         inep: '33099999',
@@ -54,6 +55,7 @@ test('preserva o id existente durante a edição', () => {
     }), { id: 'ESC-1' });
 
     assert.equal(input.id, 'ESC-1');
+    assert.equal(input.isNewSchool, false);
 });
 
 test('normaliza aliases do perfil assistente', () => {
