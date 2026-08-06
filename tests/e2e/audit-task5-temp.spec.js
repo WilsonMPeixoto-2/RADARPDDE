@@ -193,7 +193,7 @@ test('VER-01 a VER-04 usam RPC atômica, versão, autoria e releitura', async ({
       competence,
       programId,
       verificationId,
-      consolidatedResult: consolidated.value.result,
+      consolidatedResult: consolidated.value.status,
       bonification: saved?.bonification,
       analysis: saved?.analysis,
       bonusResult: saved?.bonus_result,
