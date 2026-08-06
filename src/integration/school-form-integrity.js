@@ -116,6 +116,7 @@
         const persistedId = text(originalInput.id);
         return {
             ...originalInput,
+            isNewSchool: originalInput.isNewSchool === true || !persistedId,
             id: persistedId || fieldValue(documentRef, 'edit-school-code'),
             designation: fieldValue(documentRef, 'edit-designation'),
             denomination: fieldValue(documentRef, 'edit-denomination'),
