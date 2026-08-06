@@ -202,19 +202,12 @@ jobs:
       - name: Comprovar limpeza do banco descartável
         shell: bash
         run: |
+          set -euo pipefail
           rm -f tests/e2e/audit-school-registration-temp.spec.js
           npm run supabase:reset
-          eval "$(npx supabase status -o env | grep -E '^(API_URL|SERVICE_ROLE_KEY)=')"
-          RADAR_SUPABASE_URL="${API_URL}" RADAR_SUPABASE_ADMIN_KEY="${SERVICE_ROLE_KEY}" node --input-type=module <<'EOF'
-          import { createClient } from '@supabase/supabase-js';
-          const client = createClient(process.env.RADAR_SUPABASE_URL, process.env.RADAR_SUPABASE_ADMIN_KEY, {
-            auth: { persistSession: false, autoRefreshToken: false }
-          });
-          const result = await client.from('schools').select('id', { count: 'exact', head: true }).like('sici', 'AUDIT-SICI-%');
-          if (result.error) throw result.error;
-          if (result.count !== 0) throw new Error(`Resíduos de auditoria encontrados: ${result.count}`);
-          console.log('Limpeza confirmada: nenhum cadastro sintético da auditoria permaneceu.');
-          EOF
+          RESIDUE_COUNT="$(docker exec supabase_db_radar-pdde psql -U postgres -d postgres -Atc "select count(*) from public.schools where sici like 'AUDIT-SICI-%';")"
+          test "${RESIDUE_COUNT}" = "0"
+          echo 'Limpeza confirmada: nenhum cadastro sintético da auditoria permaneceu.'
 
       - name: Registrar resumo seguro
         if: success()
@@ -228,7 +221,7 @@ jobs:
             echo '- fluxo real da Gestão de Equipe aprovado com Auth e banco locais'
             echo '- cadastro pela interface confirmou geração artificial de id, INEP, CNPJ, designação e denominação'
             echo '- vínculo BASIC e log administrativo confirmados'
-            echo '- banco recriado e ausência de resíduos comprovada'
+            echo '- banco recriado e ausência de resíduos comprovada por SQL direto'
             echo '- nenhuma conta ou dado de Production utilizado'
           } >> "${GITHUB_STEP_SUMMARY}"
 
