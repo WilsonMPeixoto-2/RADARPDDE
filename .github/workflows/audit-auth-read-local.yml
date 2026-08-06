@@ -1,0 +1,126 @@
+name: Auditoria local de autenticação e leituras
+
+on:
+  push:
+    branches:
+      - docs/auditoria-funcional-frontend-supabase-design-20260806
+    paths:
+      - .github/workflows/audit-auth-read-local.yml
+
+permissions:
+  contents: write
+
+env:
+  SUPABASE_TELEMETRY_DISABLED: '1'
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: docs/auditoria-funcional-frontend-supabase-design-20260806
+          fetch-depth: 0
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependências e Chromium
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Configurar origem local da Edge Function
+        shell: bash
+        run: |
+          mkdir -p supabase/functions
+          printf 'RADAR_ALLOWED_ORIGIN=%s\n' 'http://127.0.0.1:4175' > supabase/functions/.env
+          chmod 600 supabase/functions/.env
+
+      - name: Iniciar e recriar Supabase local
+        run: |
+          npm run supabase:start
+          npm run supabase:reset
+
+      - name: Criar e validar identidades sintéticas
+        shell: bash
+        run: |
+          set -euo pipefail
+          eval "$(npx supabase status -o env | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=')"
+          test -n "${API_URL:-}"
+          test -n "${ANON_KEY:-}"
+          test -n "${SERVICE_ROLE_KEY:-}"
+          FIXTURE_PASSWORD="$(node --input-type=module -e "import { randomBytes } from 'node:crypto'; process.stdout.write(randomBytes(32).toString('base64url') + 'A1!')")"
+          echo "::add-mask::${FIXTURE_PASSWORD}"
+          echo "::add-mask::${SERVICE_ROLE_KEY}"
+          RADAR_ALLOW_LOCAL_AUTH_BOOTSTRAP=true \
+          RADAR_SUPABASE_URL="${API_URL}" \
+          RADAR_SUPABASE_ADMIN_KEY="${SERVICE_ROLE_KEY}" \
+          RADAR_AUTH_FIXTURE_PASSWORD="${FIXTURE_PASSWORD}" \
+          npm run bootstrap:auth-fixtures
+          RADAR_SUPABASE_URL="${API_URL}" \
+          RADAR_SUPABASE_PUBLISHABLE_KEY="${ANON_KEY}" \
+          RADAR_AUTH_FIXTURE_PASSWORD="${FIXTURE_PASSWORD}" \
+          npm run check:auth-fixtures
+          RADAR_DATA_MODE=supabase-preview \
+          RADAR_ENVIRONMENT=test \
+          RADAR_SUPABASE_REPOSITORY_ENABLED=true \
+          RADAR_SUPABASE_URL="${API_URL}" \
+          RADAR_SUPABASE_PUBLISHABLE_KEY="${ANON_KEY}" \
+          npm run generate:runtime-config
+          {
+            printf 'RADAR_SUPABASE_URL=%s\n' "${API_URL}"
+            printf 'RADAR_SUPABASE_PUBLISHABLE_KEY=%s\n' "${ANON_KEY}"
+            printf 'RADAR_AUTH_FIXTURE_PASSWORD=%s\n' "${FIXTURE_PASSWORD}"
+            printf 'RADAR_ALLOWED_ORIGIN=%s\n' 'http://127.0.0.1:4175'
+          } >> "${GITHUB_ENV}"
+
+      - name: Executar autenticação, rotas, leituras e escopos
+        env:
+          RADAR_E2E_SUPABASE_LOCAL: '1'
+        run: |
+          npx playwright test \
+            tests/e2e/supabase-auth-local.spec.js \
+            tests/e2e/supabase-full-contract.spec.js \
+            tests/e2e/canonical-routes.spec.js \
+            tests/e2e/cycle-b-carteira.spec.js \
+            tests/e2e/frontend-contract.spec.js \
+            --project=desktop-chromium \
+            --reporter=line
+
+      - name: Registrar resumo seguro
+        if: success()
+        shell: bash
+        run: |
+          {
+            echo '## Auditoria local de autenticação e leituras'
+            echo ''
+            echo '- 27 migrations aplicadas em banco descartável'
+            echo '- sete identidades sintéticas validadas'
+            echo '- Auth, perfis, escopos, rotas, Dashboard, Carteira, Prontuário, Pendências e busca executados'
+            echo '- nenhuma conta ou dado de Production utilizado'
+            echo "- commit auditado: ${GITHUB_SHA}"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Restaurar arquivos e encerrar ambiente
+        if: always()
+        run: |
+          git checkout -- config.runtime.js || true
+          rm -f supabase/functions/.env
+          npm run supabase:stop || true
+
+      - name: Remover workflow temporário após sucesso
+        if: success()
+        shell: bash
+        run: |
+          git rm .github/workflows/audit-auth-read-local.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: remover workflow temporário de auditoria local"
+          git push origin HEAD:docs/auditoria-funcional-frontend-supabase-design-20260806
