@@ -1,0 +1,51 @@
+name: Promover tipos Supabase gerados
+
+on:
+  push:
+    branches:
+      - docs/reconciliacao-integral-pos-pr162-20260807
+    paths:
+      - .github/workflows/promote-generated-supabase-types-temp.yml
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout da branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: docs/reconciliacao-integral-pos-pr162-20260807
+          fetch-depth: 0
+
+      - name: Baixar artefato gerado pelo readiness
+        run: gh run download 31206548200 --repo WilsonMPeixoto-2/RADARPDDE --name generated-supabase-artifacts --dir generated
+
+      - name: Promover exatamente o tipo gerado
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f generated/src/types/database.types.ts
+          test "$(git hash-object generated/src/types/database.types.ts)" = "528f00a8fc13bb4a1d07dffb04c856087464e84f"
+          cp generated/src/types/database.types.ts src/types/database.types.ts
+          test "$(git hash-object src/types/database.types.ts)" = "528f00a8fc13bb4a1d07dffb04c856087464e84f"
+
+      - name: Remover ferramenta temporária e publicar
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf generated
+          git rm .github/workflows/promote-generated-supabase-types-temp.yml
+          git add src/types/database.types.ts
+          git diff --cached --check
+          test "$(git diff --cached --name-only | sort)" = $'.github/workflows/promote-generated-supabase-types-temp.yml\nsrc/types/database.types.ts'
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: atualizar tipos Supabase ao schema atual"
+          git push origin HEAD:docs/reconciliacao-integral-pos-pr162-20260807
