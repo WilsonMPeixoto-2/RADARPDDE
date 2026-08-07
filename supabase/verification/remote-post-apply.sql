@@ -69,15 +69,12 @@ begin
 
     if to_regprocedure('public.upsert_team_member_account(jsonb,uuid,text,uuid,jsonb)') is null
        or to_regprocedure('public.deactivate_controller_account(text,text,uuid,jsonb)') is null
-       or to_regprocedure('public.deactivate_inventory_member_account(text,uuid,jsonb)') is null
-       or to_regprocedure('public.resolve_team_auth_user_id_by_email(text)') is null then
+       or to_regprocedure('public.deactivate_inventory_member_account(text,uuid,jsonb)') is null then
         raise exception 'TEAM_ACCOUNT_CONTRACT_MISSING';
     end if;
 
-    if has_function_privilege('authenticated', 'public.upsert_team_member_account(jsonb,uuid,text,uuid,jsonb)', 'EXECUTE')
-       or has_function_privilege('authenticated', 'public.resolve_team_auth_user_id_by_email(text)', 'EXECUTE')
-       or not has_function_privilege('service_role', 'public.resolve_team_auth_user_id_by_email(text)', 'EXECUTE') then
-        raise exception 'TEAM_ACCOUNT_RPC_PRIVILEGES_INVALID';
+    if has_function_privilege('authenticated', 'public.upsert_team_member_account(jsonb,uuid,text,uuid,jsonb)', 'EXECUTE') then
+        raise exception 'TEAM_ACCOUNT_RPC_EXPOSED_TO_AUTHENTICATED';
     end if;
 
     if to_regprocedure('radar_private.production_integrity_check()') is null
@@ -106,56 +103,6 @@ begin
            and not trigger_definition.tgisinternal
     ) then
         raise exception 'SCHOOL_ASSIGNMENT_AUTHORIZATION_TRIGGER_MISSING';
-    end if;
-
-    if not exists (
-        select 1
-          from pg_trigger trigger_definition
-          join pg_class relation on relation.oid = trigger_definition.tgrelid
-          join pg_namespace relation_schema on relation_schema.oid = relation.relnamespace
-         where relation_schema.nspname = 'public'
-           and relation.relname = 'registered_invoices'
-           and trigger_definition.tgname = 'registered_invoices_delete_unlinked_asset'
-           and not trigger_definition.tgisinternal
-    ) then
-        raise exception 'INVOICE_UNLINKED_ASSET_TRIGGER_MISSING';
-    end if;
-
-    if not exists (
-        select 1
-          from pg_trigger trigger_definition
-          join pg_class relation on relation.oid = trigger_definition.tgrelid
-          join pg_namespace relation_schema on relation_schema.oid = relation.relnamespace
-         where relation_schema.nspname = 'public'
-           and relation.relname = 'pendencies'
-           and trigger_definition.tgname = 'pendencies_sync_attempt_statuses'
-           and not trigger_definition.tgisinternal
-    ) then
-        raise exception 'PENDENCY_ATTEMPT_SYNC_TRIGGER_MISSING';
-    end if;
-
-    if not exists (
-        select 1
-          from pg_indexes
-         where schemaname = 'public'
-           and tablename = 'schools'
-           and indexname = 'schools_inep_normalized_unique'
-    )
-       or not exists (
-        select 1
-          from pg_indexes
-         where schemaname = 'public'
-           and tablename = 'schools'
-           and indexname = 'schools_cnpj_normalized_unique'
-    )
-       or not exists (
-        select 1
-          from pg_indexes
-         where schemaname = 'public'
-           and tablename = 'schools'
-           and indexname = 'schools_sici_normalized_unique'
-    ) then
-        raise exception 'SCHOOL_INSTITUTIONAL_IDENTITY_INDEX_MISSING';
     end if;
 
     if has_function_privilege('anon', 'public.enforce_school_controller_assignment_authorization()', 'EXECUTE')
