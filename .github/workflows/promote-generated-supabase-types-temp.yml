@@ -32,9 +32,9 @@ jobs:
         run: |
           set -euo pipefail
           test -f generated/src/types/database.types.ts
-          test "$(git hash-object generated/src/types/database.types.ts)" = "528f00a8fc13bb4a1d07dffb04c856087464e84f"
+          test "$(git hash-object generated/src/types/database.types.ts)" = "d11ba441b3022f52f6b7c38b208447d0658ee95d"
           cp generated/src/types/database.types.ts src/types/database.types.ts
-          test "$(git hash-object src/types/database.types.ts)" = "528f00a8fc13bb4a1d07dffb04c856087464e84f"
+          test "$(git hash-object src/types/database.types.ts)" = "d11ba441b3022f52f6b7c38b208447d0658ee95d"
 
       - name: Remover ferramenta temporária e publicar
         shell: bash
