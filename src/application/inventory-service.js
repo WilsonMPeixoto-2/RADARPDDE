@@ -13,15 +13,7 @@
 
     if (!contract) throw new Error('Contrato de dados obrigatório para inventário.');
     const { RepositoryError, cloneValue } = contract;
-    const ASSET_FIELDS = new Set([
-        'item',
-        'descricao',
-        'valor',
-        'notaFiscal',
-        'status',
-        'processoInventario',
-        'observacoes'
-    ]);
+    const DIRECT_EDIT_FIELDS = new Set(['notaFiscal']);
 
     function text(value) {
         return value == null ? '' : String(value).trim();
@@ -115,18 +107,34 @@
         async updateAsset(input = {}) {
             this.assertOperationalProfile(input.profile, 'inventory:update-asset');
             const field = text(input.field);
-            if (!ASSET_FIELDS.has(field)) {
-                fail('VALIDATION_FAILED', 'Campo patrimonial não permitido.', 'inventory:update-asset', { field });
+            if (!DIRECT_EDIT_FIELDS.has(field)) {
+                fail(
+                    'VALIDATION_FAILED',
+                    'Este campo exige um fluxo patrimonial específico e não pode ser alterado pela edição rápida.',
+                    'inventory:update-asset',
+                    { field }
+                );
             }
+            const persistence = {};
             return this.dataService.execute({
                 name: 'inventory:update-asset',
-                changedEntities: ['assets'],
+                changedEntities: ['assets', 'administrativeLogs'],
                 mutate: () => {
                     const state = this.getState();
                     const asset = this.findAsset(state, input.assetId, 'inventory:update-asset');
-                    asset[field] = input.value;
+                    persistence.assetId = asset.id;
+                    persistence.expectedVersion = rowVersionOf(asset);
+                    const previousValue = text(asset[field]);
+                    asset[field] = text(input.value);
+                    const log = this.appendSchoolLog(
+                        asset.escolaId,
+                        'Bem Patrimonial Atualizado',
+                        `Nota fiscal do bem ${asset.item || asset.descricao || asset.id} alterada de ${previousValue || 'não informada'} para ${asset[field] || 'não informada'}.`
+                    );
+                    persistence.logId = text(log?.id);
                     return { asset: cloneValue(asset) };
-                }
+                },
+                persist: context => this.persistAsset(context, persistence)
             });
         }
 

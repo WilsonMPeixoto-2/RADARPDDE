@@ -20,32 +20,53 @@ function createHarness() {
             tipo: 'permanente',
             valor: 5000,
             notaFiscal: 'NF-001',
-            status: 'Não encaminhada'
+            status: 'Não encaminhada',
+            rowVersion: 4
         }],
         logs: []
     };
     const calls = [];
+    const persisted = [];
     let sequence = 0;
+    const repository = {
+        async saveAssetWithLog(input) {
+            persisted.push(input);
+            return { ok: true };
+        }
+    };
     const service = new InventoryService({
         dataService: {
             async execute(command) {
                 calls.push(command);
-                return { ok: true, value: await command.mutate() };
+                const value = await command.mutate();
+                if (typeof command.persist === 'function') {
+                    await command.persist({
+                        snapshot: {
+                            entities: {
+                                assets: state.assets.map(asset => ({ ...asset })),
+                                administrativeLogs: state.logs.map(log => ({ ...log }))
+                            }
+                        },
+                        repository,
+                        defaultPersist: async () => ({ ok: true })
+                    });
+                }
+                return { ok: true, value };
             }
         },
         getState: () => state,
-        appendLog: (action, details) => {
-            const log = { id: `log-${++sequence}`, action, details };
+        appendLog: (action, details, context = {}) => {
+            const log = { id: `log-${++sequence}`, action, details, ...context };
             state.logs.unshift(log);
             return log;
         },
         createId: prefix => `${prefix}-${++sequence}`,
         now: () => new Date('2026-07-14T14:30:00.000Z')
     });
-    return { state, calls, service };
+    return { state, calls, persisted, service };
 }
 
-test('atualiza documento do bem pelo gateway sem alterar outras propriedades', async () => {
+test('atualiza somente a nota fiscal pelo comando versionado e registra auditoria', async () => {
     const harness = createHarness();
     await harness.service.updateAsset({
         assetId: 'bem-1',
@@ -56,7 +77,31 @@ test('atualiza documento do bem pelo gateway sem alterar outras propriedades', a
 
     assert.equal(harness.state.assets[0].notaFiscal, 'NF-001-A');
     assert.equal(harness.state.assets[0].item, 'Notebook');
-    assert.deepEqual(harness.calls[0].changedEntities, ['assets']);
+    assert.equal(harness.state.logs[0].action, 'Bem Patrimonial Atualizado');
+    assert.deepEqual(harness.calls[0].changedEntities, ['assets', 'administrativeLogs']);
+    assert.equal(harness.persisted.length, 1);
+    assert.equal(harness.persisted[0].asset.id, 'bem-1');
+    assert.equal(harness.persisted[0].expectedVersion, 4);
+    assert.equal(harness.persisted[0].administrativeLog.id, harness.state.logs[0].id);
+});
+
+test('bloqueia alteração genérica de status, valor e processo', async () => {
+    const harness = createHarness();
+
+    for (const field of ['status', 'valor', 'processoInventario']) {
+        await assert.rejects(
+            harness.service.updateAsset({
+                assetId: 'bem-1',
+                field,
+                value: 'alteração indevida',
+                profile: 'controlador'
+            }),
+            error => error && error.code === 'VALIDATION_FAILED'
+        );
+    }
+
+    assert.equal(harness.state.assets[0].status, 'Não encaminhada');
+    assert.equal(harness.persisted.length, 0);
 });
 
 test('encaminha capital somente com nota e processo e registra auditoria na mesma transação', async () => {
@@ -111,4 +156,3 @@ test('cria bem manual preservando competência, nota e estado derivado do proces
     assert.equal(result.value.asset.tipo, 'permanente');
     assert.equal(harness.state.logs[0].action, 'Bem Cadastrado');
 });
-

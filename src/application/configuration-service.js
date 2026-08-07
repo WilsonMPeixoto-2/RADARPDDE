@@ -124,7 +124,7 @@
             if (!year || !initialMonth) {
                 fail('INVALID_PERIOD', 'Exercício ou competência inicial inválidos.', 'createExercise');
             }
-            const persistence = { logId: null };
+            const persistence = { logId: null, expectedVersion: null };
             return this.dataService.execute({
                 name: 'configuration:create-exercise',
                 changedEntities: ['appConfig', 'competences', 'administrativeLogs'],
@@ -133,10 +133,11 @@
                     if (!config || !Array.isArray(competences)) {
                         fail('RUNTIME_UNAVAILABLE', 'Configuração operacional indisponível.', 'createExercise');
                     }
-                    const exercises = Array.isArray(config.exercicios) ? config.exercicios : [];
+                    const exercises = Array.isArray(config.exercicios) ? [...config.exercicios] : [];
                     if (exercises.map(String).includes(year)) {
                         fail('DUPLICATE_EXERCISE', `O exercício ${year} já está cadastrado.`, 'createExercise');
                     }
+                    persistence.expectedVersion = rowVersionOf(config);
                     exercises.push(year);
                     exercises.sort();
                     config.exercicios = exercises;
@@ -179,6 +180,7 @@
                     return repository.saveExerciseWithCompetences({
                         appConfig: snapshot.entities.appConfig?.[0] || {},
                         competences: exerciseCompetences,
+                        expectedVersion: persistence.expectedVersion,
                         administrativeLog
                     });
                 }

@@ -1,7 +1,7 @@
 # Ordem de carregamento e precedência do frontend
 
 **Estado:** vigente  
-**Atualizado em:** 5 de agosto de 2026
+**Atualizado em:** 6 de agosto de 2026
 
 ## 1. Finalidade
 
@@ -16,7 +16,7 @@ A aplicação combina:
 5. núcleo `app.js`;
 6. integrações modernas pós-núcleo;
 7. Auth gate, navegação e extensões de produto;
-8. runtime Excel assíncrono e recuperável.
+8. runtime Excel assíncrono, recuperável e com auditoria obrigatória.
 
 ## 2. Verificação reproduzível
 
@@ -160,7 +160,10 @@ Scripts inseridos com `async = false`:
 14. `src/integration/task-10-alerts-competence.js`;
 15. `src/integration/exercise-management.js`;
 16. `src/integration/exercise-early-init.js`;
-17. `src/integration/painel-controlador-expressiva.js`.
+17. `src/integration/painel-controlador-expressiva.js`;
+18. `src/integration/school-form-integrity.js`.
+
+`school-form-integrity.js` completa o comando de cadastro com a identificação institucional informada no formulário e preserva a identidade existente durante a edição.
 
 A marca `data-radar-extension` impede duplicação de `retificacoes.js`.
 
@@ -168,7 +171,7 @@ A marca `data-radar-extension` impede duplicação de `retificacoes.js`.
 
 `config.js` insere `src/integration/load-excel-export.js` com `async = true`.
 
-O bootstrap Excel versão 2.0.0 mantém estado `idle/loading/ready/failed`, timeout de 15 segundos, remoção de script fracassado e retry.
+O bootstrap Excel versão 2.1.0 mantém estado `idle/loading/ready/failed`, timeout de 15 segundos, remoção de script fracassado e retry.
 
 Módulos sequenciais:
 
@@ -179,7 +182,10 @@ Módulos sequenciais:
 5. `/src/domain/excel-sme-template-renderer.js`;
 6. `/src/domain/excel-sme-monthly-renderer.js`;
 7. `/src/integration/excel-sme-runtime-loader.js`;
-8. `/src/integration/excel-export-integration.js`.
+8. `/src/integration/excel-export-integration.js`;
+9. `/src/integration/excel-export-audit.js`.
+
+A última camada exige a confirmação do evento inicial no `AuditService` antes de liberar o download, elimina a duplicação do log legado e registra a conclusão da exportação institucional ou SME.
 
 Um `<script>` existente somente é aceito se o contrato global esperado estiver pronto. Falha, timeout ou contrato inválido remove o elemento e permite nova tentativa.
 
