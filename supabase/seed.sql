@@ -33,6 +33,9 @@ insert into public.schools (
     id,
     designation,
     denomination,
+    inep,
+    cnpj,
+    sici,
     cre,
     ra,
     controller_id,
@@ -40,8 +43,32 @@ insert into public.schools (
     inventory_process
 )
 values
-    ('ESC-LOCAL', '04.00.001', 'Escola Local Autorizada', '4ª CRE', '10', 'controller-local', '2026-05', 'PROC-LOCAL-1'),
-    ('ESC-OTHER', '04.00.002', 'Escola Local de Outro Controlador', '4ª CRE', '11', 'controller-other', '2026-05', 'PROC-LOCAL-2')
+    (
+        'ESC-LOCAL',
+        '04.00.001',
+        'Escola Local Autorizada',
+        '33900001',
+        '90.000.001/0001-01',
+        'SICI-LOCAL-001',
+        '4ª CRE',
+        '10',
+        'controller-local',
+        '2026-05',
+        'PROC-LOCAL-1'
+    ),
+    (
+        'ESC-OTHER',
+        '04.00.002',
+        'Escola Local de Outro Controlador',
+        '33900002',
+        '90.000.002/0001-02',
+        'SICI-LOCAL-002',
+        '4ª CRE',
+        '11',
+        'controller-other',
+        '2026-05',
+        'PROC-LOCAL-2'
+    )
 on conflict (id) do nothing;
 
 insert into public.school_programs (id, school_id, program_id, active, starts_on)
