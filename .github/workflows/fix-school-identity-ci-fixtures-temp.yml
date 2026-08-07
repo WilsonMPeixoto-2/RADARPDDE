@@ -1,0 +1,58 @@
+name: Corrigir fixtures de identidade escolar pós-PR162
+
+on:
+  push:
+    branches:
+      - docs/reconciliacao-integral-pos-pr162-20260807
+    paths:
+      - .github/workflows/fix-school-identity-ci-fixtures-temp.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout da branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: docs/reconciliacao-integral-pos-pr162-20260807
+          fetch-depth: 0
+
+      - name: Corrigir somente os dois fixtures comprovadamente obsoletos
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          team = Path('scripts/check-team-account-function.mjs')
+          source = team.read_text()
+          old = '''    insert into public.schools (\n      id,\n      designation,\n      denomination,\n      cre,\n      controller_id,\n      active\n    ) values (\n      ${sqlLiteral(state.schoolId)},\n      ${sqlLiteral(`99.99.${state.suffix}`)},\n      ${sqlLiteral('Unidade sintética para transferência HML')},\n      ${sqlLiteral('4ª CRE')},\n      ${sqlLiteral(state.sourceControllerId)},\n      true\n    );'''
+          new = '''    insert into public.schools (\n      id,\n      designation,\n      denomination,\n      cre,\n      inep,\n      cnpj,\n      sici,\n      controller_id,\n      active\n    ) values (\n      ${sqlLiteral(state.schoolId)},\n      ${sqlLiteral(`99.99.${state.suffix}`)},\n      ${sqlLiteral('Unidade sintética para transferência HML')},\n      ${sqlLiteral('4ª CRE')},\n      ${sqlLiteral(`HML-INEP-${state.suffix}`)},\n      ${sqlLiteral(`HML-CNPJ-${state.suffix}`)},\n      ${sqlLiteral(`HML-SICI-${state.suffix}`)},\n      ${sqlLiteral(state.sourceControllerId)},\n      true\n    );'''
+          if source.count(old) != 1:
+              raise SystemExit('Bloco esperado de insertSyntheticSchool não encontrado de forma única.')
+          team.write_text(source.replace(old, new, 1))
+
+          spec = Path('tests/e2e/supabase-full-contract.spec.js')
+          source = spec.read_text()
+          old = "inep: '', cnpj: '', cre: '4ª CRE', ra: '', sici: ''"
+          new = "inep: 'FULL-INEP-2032', cnpj: 'FULL-CNPJ-2032', cre: '4ª CRE', ra: '', sici: 'FULL-SICI-2032'"
+          if source.count(old) != 1:
+              raise SystemExit('Fixture FULL-SCHOOL esperado não encontrado de forma única.')
+          spec.write_text(source.replace(old, new, 1))
+          PY
+
+      - name: Validar escopo, remover ferramenta temporária e publicar
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/fix-school-identity-ci-fixtures-temp.yml
+          git add scripts/check-team-account-function.mjs tests/e2e/supabase-full-contract.spec.js
+          test "$(git diff --cached --name-only | sort)" = $'.github/workflows/fix-school-identity-ci-fixtures-temp.yml\nscripts/check-team-account-function.mjs\ntests/e2e/supabase-full-contract.spec.js'
+          git diff --cached --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "test: alinhar fixtures escolares à identidade institucional"
+          git push origin HEAD:docs/reconciliacao-integral-pos-pr162-20260807
