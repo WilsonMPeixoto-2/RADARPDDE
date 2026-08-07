@@ -43,8 +43,8 @@ jobs:
           rm -rf generated
           git rm .github/workflows/promote-generated-supabase-types-temp.yml
           git add src/types/database.types.ts
-          git diff --cached --check
           test "$(git diff --cached --name-only | sort)" = $'.github/workflows/promote-generated-supabase-types-temp.yml\nsrc/types/database.types.ts'
+          test "$(git hash-object src/types/database.types.ts)" = "d11ba441b3022f52f6b7c38b208447d0658ee95d"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "chore: atualizar tipos Supabase ao schema atual"
