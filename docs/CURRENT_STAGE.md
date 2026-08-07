@@ -1,9 +1,9 @@
 # RADAR PDDE — Estado atual do projeto
 
 **Atualizado em:** 7 de agosto de 2026  
-**Classe documental:** Canônico — baseline mutável único
+**Classe documental:** Canônico — guia de estado corrente e revalidação
 
-> Este é o único documento canônico destinado a concentrar valores altamente mutáveis do ambiente, como SHA da `main`, deployment, quantidade de migrations e versão de Edge Function. Antes de qualquer ação dependente do ambiente, revalidar GitHub, Vercel e Supabase. Os demais documentos devem referenciar este baseline em vez de copiar números mutáveis.
+> Este documento descreve o estado corrente, as prioridades e como revalidar o ambiente. Valores que podem mudar em consequência da própria atualização documental, especialmente SHA da `main`, deployment e versão de Edge Function, não são congelados aqui como “estado atual”. Eles devem ser consultados diretamente no GitHub, Vercel e Supabase. Snapshots exatos ficam em checkpoints históricos datados.
 
 ## 1. Hierarquia das fontes
 
@@ -19,29 +19,37 @@ Para determinar o estado implementado, usar nesta ordem:
 
 Nenhum documento prevalece sobre código ou ambiente real.
 
-## 2. Baseline remoto confirmado
+## 2. Estado remoto e checkpoint verificável
+
+A fonte canônica para valores operacionais mutáveis é o ambiente remoto correspondente:
+
+- GitHub: branch `main` e SHA efetivamente consultado;
+- Vercel: deployment Production associado ao SHA vigente;
+- Supabase: projeto `scnryinorqeucbfkioxo`, migrations aplicadas, configuração, integridade e Edge Functions efetivas.
+
+Não registrar aqui como “atual” o SHA da própria `main`, o deployment decorrente desse SHA ou a versão numérica da Edge Function, porque um commit meramente documental pode alterar esses valores e invalidar o documento no instante do merge.
+
+O último snapshot exato verificado antes deste fechamento está preservado em `docs/audits/2026-08-07-checkpoint-pos-pr163.md`. Esse arquivo é evidência histórica e não pretende acompanhar mudanças futuras.
+
+Contratos estáveis confirmados no fechamento:
 
 ```text
 GitHub repository: WilsonMPeixoto-2/RADARPDDE
-GitHub main: b347b854bf5af99c3ec9d9b091b77b854cc53a4b
-Último merge funcional: PR #162 — remediação funcional integral
+Última reconciliação documental integrada: PR #163
+Último baseline funcional anterior à reconciliação: PR #162
 
 Vercel project: radarpdde-fix
 Vercel project id: prj_GfXuUuO3dF2jykpp9QgyqIDsxg4U
-Vercel Production: dpl_DYHMyxDLGp9nzFz63AWxT7Wej87T — READY
-Commit publicado: b347b854bf5af99c3ec9d9b091b77b854cc53a4b
 Alias principal: radarpdde-fix.vercel.app
 
 Supabase project: scnryinorqeucbfkioxo — RADAR PDDE 2026
-Supabase status: ACTIVE_HEALTHY
 Região: sa-east-1
 PostgreSQL: 17.6.1.147
-Migrations aplicadas em Production: 30
-Última migration: 202608060003_school_institutional_identity
-closing_competence: 2026-12
-app_config.row_version: 20
-production_integrity_check(): healthy / totalIssues = 0 / schemaVersion = 1
-Edge Function team-account-management: v112 — ACTIVE — verify_jwt=true
+Migrations aplicadas no checkpoint: 30
+Última migration no checkpoint: 202608060003_school_institutional_identity
+closing_competence no checkpoint: 2026-12
+app_config.row_version no checkpoint: 20
+production_integrity_check() no checkpoint: healthy / totalIssues = 0 / schemaVersion = 1
 
 Node.js: 24.x
 @supabase/supabase-js: 2.110.9
@@ -50,7 +58,7 @@ Supabase CLI: 2.110.0
 ExcelJS: 4.4.0
 ```
 
-Na verificação que originou esta reconciliação, a Vercel não apresentou erros de runtime no intervalo consultado e não havia GitHub Issues abertas.
+Antes de qualquer tarefa que dependa desses valores, revalidar o remoto. O checkpoint pós-PR #163 confirmou Vercel Production `READY`, ausência de erros de runtime no intervalo consultado e Supabase `ACTIVE_HEALTHY`.
 
 ## 3. Estado executivo
 
@@ -103,6 +111,12 @@ Corrigiu os achados confirmados da auditoria:
 - `EXP-01` e `EXP-02`: auditoria pelo `AuditService` tornou-se obrigatória antes do download e o log legado duplicado foi neutralizado.
 
 As migrations `202608060002_functional_integrity_remediation` e `202608060003_school_institutional_identity` estão efetivamente aplicadas em Production.
+
+### PR #163 — reconciliação documental e dos contratos executáveis
+
+Reconciliou documentação canônica, matriz funcional, fixtures, sentinelas de CI e tipos gerados com o schema efetivo de 30 migrations. A matriz ficou em 9 operações `covered`, 32 `partial`, 0 `gap` e 0 `decision`. Todos os sete gates normais passaram no mesmo SHA candidato antes do merge, incluindo readiness completo, 268 testes pgTAP, Playwright, perfis/viewports, backup/restauração, Lighthouse e homologação integral.
+
+A validação revelou e corrigiu fixtures anteriores à identidade institucional obrigatória de escolas, contagens endurecidas de migrations e artefatos derivados desatualizados, sem modificar regras funcionais, migrations, Auth/RLS ou dados de Production.
 
 ## 5. Matriz funcional após a conciliação
 
@@ -161,12 +175,13 @@ Para continuidade:
 
 A reconciliação de 7 de agosto de 2026 estabelece:
 
-- `CURRENT_STAGE.md` como baseline mutável único;
+- `CURRENT_STAGE.md` como guia canônico de estado corrente e revalidação;
 - documentos canônicos e referências vigentes sem cópias desnecessárias de números voláteis;
 - auditorias e evidências datadas preservadas como registros históricos do momento em que foram produzidas;
 - planos executados preservados, não reescritos para parecer atuais;
 - matriz funcional atualizada na fonte JSON e na visão gerada;
-- PR #156 classificado como trabalho histórico não canônico enquanto permanecer aberto.
+- PR #156 classificado como trabalho histórico não canônico e destinado a encerramento sem merge;
+- snapshots exatos de ambiente registrados em checkpoints históricos, sem autorreferência do documento canônico.
 
 Relatório: `docs/audits/2026-08-07-reconciliacao-documental-integral-pos-pr162.md`.
 
