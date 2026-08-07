@@ -15,7 +15,7 @@ Antes de analisar ou alterar o repositório, leia:
 7. arquitetura e runbook específicos da frente;
 8. código, GitHub, Vercel e Supabase correspondentes.
 
-`docs/CURRENT_STAGE.md` é o único documento destinado a concentrar valores altamente mutáveis do ambiente. Revalidar esses valores remotamente antes de tarefa que dependa deles.
+`docs/CURRENT_STAGE.md` é o guia canônico do estado corrente e da revalidação remota. Ele não deve congelar SHA da própria `main`, deployment ou versão de Edge Function quando a atualização documental puder alterar esses valores. Snapshots exatos ficam em checkpoints históricos datados.
 
 Documentos históricos não prevalecem sobre código, ambientes ou decisões posteriores.
 
@@ -51,7 +51,7 @@ A orientação mais recente do responsável define intenção e prioridade; afir
 
 ## 4. Estado operacional
 
-O baseline mutável vigente está em `docs/CURRENT_STAGE.md` e não deve ser duplicado aqui.
+O estado corrente, as prioridades e o procedimento de revalidação estão em `docs/CURRENT_STAGE.md`. Valores voláteis devem ser consultados ao vivo; checkpoints exatos são evidências históricas datadas.
 
 Contratos estáveis atuais:
 

@@ -5,7 +5,7 @@
 
 ## 1. Baseline
 
-O baseline mutável completo fica exclusivamente em [`CURRENT_STAGE.md`](CURRENT_STAGE.md). Não replicar aqui SHA, deployment, contagem de migrations ou versão de Edge Function.
+O estado corrente e o procedimento de revalidação ficam em [`CURRENT_STAGE.md`](CURRENT_STAGE.md). SHA da própria `main`, deployment e versão de Edge Function não devem ser congelados como “estado atual” em documento versionado, pois a própria atualização pode alterá-los. Valores exatos pertencem a checkpoints históricos datados.
 
 Regra de precedência:
 
@@ -49,7 +49,7 @@ A matriz contém 41 operações e integra o readiness. Após a reconciliação p
 
 ## 4. Documentos canônicos
 
-- [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — baseline mutável único;
+- [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — guia canônico de estado corrente e revalidação;
 - [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — contrato funcional e arquitetural;
 - [`ROADMAP_ATUALIZACOES_2026.md`](ROADMAP_ATUALIZACOES_2026.md) — sequência e prioridades;
 - [`DECISION_LOG.md`](DECISION_LOG.md) — decisões duradouras;
