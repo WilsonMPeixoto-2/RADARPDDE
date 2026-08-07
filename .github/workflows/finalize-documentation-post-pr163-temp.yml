@@ -1,0 +1,214 @@
+name: Fechar documentação pós-PR163
+
+on:
+  push:
+    branches:
+      - docs/fechamento-pos-pr163-20260807
+    paths:
+      - .github/workflows/finalize-documentation-post-pr163-temp.yml
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout da branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: docs/fechamento-pos-pr163-20260807
+          fetch-depth: 0
+
+      - name: Eliminar baseline autorreferente e registrar checkpoint
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          agents = Path('AGENTS.md')
+          text = agents.read_text()
+          text = text.replace(
+              '`docs/CURRENT_STAGE.md` é o único documento destinado a concentrar valores altamente mutáveis do ambiente. Revalidar esses valores remotamente antes de tarefa que dependa deles.',
+              '`docs/CURRENT_STAGE.md` é o guia canônico do estado corrente e da revalidação remota. Ele não deve congelar SHA da própria `main`, deployment ou versão de Edge Function quando a atualização documental puder alterar esses valores. Snapshots exatos ficam em checkpoints históricos datados.'
+          )
+          text = text.replace(
+              'O baseline mutável vigente está em `docs/CURRENT_STAGE.md` e não deve ser duplicado aqui.',
+              'O estado corrente, as prioridades e o procedimento de revalidação estão em `docs/CURRENT_STAGE.md`. Valores voláteis devem ser consultados ao vivo; checkpoints exatos são evidências históricas datadas.'
+          )
+          agents.write_text(text)
+
+          index = Path('docs/README.md')
+          text = index.read_text()
+          text = text.replace(
+              'O baseline mutável completo fica exclusivamente em [`CURRENT_STAGE.md`](CURRENT_STAGE.md). Não replicar aqui SHA, deployment, contagem de migrations ou versão de Edge Function.',
+              'O estado corrente e o procedimento de revalidação ficam em [`CURRENT_STAGE.md`](CURRENT_STAGE.md). SHA da própria `main`, deployment e versão de Edge Function não devem ser congelados como “estado atual” em documento versionado, pois a própria atualização pode alterá-los. Valores exatos pertencem a checkpoints históricos datados.'
+          )
+          text = text.replace(
+              '- [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — baseline mutável único;',
+              '- [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — guia canônico de estado corrente e revalidação;'
+          )
+          index.write_text(text)
+
+          stage = Path('docs/CURRENT_STAGE.md')
+          text = stage.read_text()
+          text = text.replace(
+              '**Classe documental:** Canônico — baseline mutável único',
+              '**Classe documental:** Canônico — guia de estado corrente e revalidação'
+          )
+          old_intro = '> Este é o único documento canônico destinado a concentrar valores altamente mutáveis do ambiente, como SHA da `main`, deployment, quantidade de migrations e versão de Edge Function. Antes de qualquer ação dependente do ambiente, revalidar GitHub, Vercel e Supabase. Os demais documentos devem referenciar este baseline em vez de copiar números mutáveis.'
+          new_intro = '> Este documento descreve o estado corrente, as prioridades e como revalidar o ambiente. Valores que podem mudar em consequência da própria atualização documental, especialmente SHA da `main`, deployment e versão de Edge Function, não são congelados aqui como “estado atual”. Eles devem ser consultados diretamente no GitHub, Vercel e Supabase. Snapshots exatos ficam em checkpoints históricos datados.'
+          if old_intro not in text:
+              raise SystemExit('Introdução autorreferente esperada não encontrada em CURRENT_STAGE.md')
+          text = text.replace(old_intro, new_intro, 1)
+
+          start = text.index('## 2. Baseline remoto confirmado')
+          end = text.index('\n## 3. Estado executivo', start)
+          section = '''## 2. Estado remoto e checkpoint verificável
+
+A fonte canônica para valores operacionais mutáveis é o ambiente remoto correspondente:
+
+- GitHub: branch `main` e SHA efetivamente consultado;
+- Vercel: deployment Production associado ao SHA vigente;
+- Supabase: projeto `scnryinorqeucbfkioxo`, migrations aplicadas, configuração, integridade e Edge Functions efetivas.
+
+Não registrar aqui como “atual” o SHA da própria `main`, o deployment decorrente desse SHA ou a versão numérica da Edge Function, porque um commit meramente documental pode alterar esses valores e invalidar o documento no instante do merge.
+
+O último snapshot exato verificado antes deste fechamento está preservado em `docs/audits/2026-08-07-checkpoint-pos-pr163.md`. Esse arquivo é evidência histórica e não pretende acompanhar mudanças futuras.
+
+Contratos estáveis confirmados no fechamento:
+
+```text
+GitHub repository: WilsonMPeixoto-2/RADARPDDE
+Última reconciliação documental integrada: PR #163
+Último baseline funcional anterior à reconciliação: PR #162
+
+Vercel project: radarpdde-fix
+Vercel project id: prj_GfXuUuO3dF2jykpp9QgyqIDsxg4U
+Alias principal: radarpdde-fix.vercel.app
+
+Supabase project: scnryinorqeucbfkioxo — RADAR PDDE 2026
+Região: sa-east-1
+PostgreSQL: 17.6.1.147
+Migrations aplicadas no checkpoint: 30
+Última migration no checkpoint: 202608060003_school_institutional_identity
+closing_competence no checkpoint: 2026-12
+app_config.row_version no checkpoint: 20
+production_integrity_check() no checkpoint: healthy / totalIssues = 0 / schemaVersion = 1
+
+Node.js: 24.x
+@supabase/supabase-js: 2.110.9
+Supabase CLI: 2.110.0
+@playwright/test: 1.62.0
+ExcelJS: 4.4.0
+```
+
+Antes de qualquer tarefa que dependa desses valores, revalidar o remoto. O checkpoint pós-PR #163 confirmou Vercel Production `READY`, ausência de erros de runtime no intervalo consultado e Supabase `ACTIVE_HEALTHY`.
+'''
+          text = text[:start] + section + text[end:]
+
+          anchor = 'As migrations `202608060002_functional_integrity_remediation` e `202608060003_school_institutional_identity` estão efetivamente aplicadas em Production.\n'
+          addition = '''
+### PR #163 — reconciliação documental e dos contratos executáveis
+
+Reconciliou documentação canônica, matriz funcional, fixtures, sentinelas de CI e tipos gerados com o schema efetivo de 30 migrations. A matriz ficou em 9 operações `covered`, 32 `partial`, 0 `gap` e 0 `decision`. Todos os sete gates normais passaram no mesmo SHA candidato antes do merge, incluindo readiness completo, 268 testes pgTAP, Playwright, perfis/viewports, backup/restauração, Lighthouse e homologação integral.
+
+A validação revelou e corrigiu fixtures anteriores à identidade institucional obrigatória de escolas, contagens endurecidas de migrations e artefatos derivados desatualizados, sem modificar regras funcionais, migrations, Auth/RLS ou dados de Production.
+'''
+          if anchor not in text:
+              raise SystemExit('Âncora do PR #162 não encontrada')
+          text = text.replace(anchor, anchor + addition, 1)
+          text = text.replace(
+              '- `CURRENT_STAGE.md` como baseline mutável único;',
+              '- `CURRENT_STAGE.md` como guia canônico de estado corrente e revalidação;'
+          )
+          text = text.replace(
+              '- PR #156 classificado como trabalho histórico não canônico enquanto permanecer aberto.',
+              '- PR #156 classificado como trabalho histórico não canônico e destinado a encerramento sem merge;\n- snapshots exatos de ambiente registrados em checkpoints históricos, sem autorreferência do documento canônico.'
+          )
+          stage.write_text(text)
+
+          checkpoint = Path('docs/audits/2026-08-07-checkpoint-pos-pr163.md')
+          checkpoint.write_text('''# RADAR PDDE — checkpoint remoto pós-PR #163
+
+**Data da verificação:** 7 de agosto de 2026  
+**Classe documental:** Histórico — evidência pontual pós-merge
+
+Este arquivo preserva o snapshot remoto exato imediatamente após a integração do PR #163. Não é documento de estado corrente e não deve ser atualizado para acompanhar mudanças futuras.
+
+## GitHub
+
+- repositório: `WilsonMPeixoto-2/RADARPDDE`;
+- PR #163: integrado com sucesso;
+- `main` verificada: `d1562bd1b9996b65c6713d3cd9387abbccd4238b`;
+- merge com assinatura GitHub verificada;
+- candidato pré-merge: `e9050f4a383569291cb47fa3fce0add5f6fc973a`.
+
+No candidato `e9050f4a383569291cb47fa3fce0add5f6fc973a`, os sete gates normais concluíram com sucesso:
+
+1. `Validar RADAR PDDE`;
+2. `Lighthouse CI`;
+3. `Supabase readiness`;
+4. `Backup e restauração descartáveis`;
+5. `Gate remoto de perfis e viewports`;
+6. `Homologação integral pré-production`;
+7. `Testes E2E Playwright`.
+
+O readiness comprovou aplicação das 30 migrations, seed, contratos pre/post apply, 268 testes pgTAP, lint SQL, artefatos reproduzíveis, sete identidades Auth, autorização da Edge Function de Gestão de Equipe e frontend/Auth/RLS na pilha local.
+
+## Vercel Production
+
+- projeto: `radarpdde-fix`;
+- project id: `prj_GfXuUuO3dF2jykpp9QgyqIDsxg4U`;
+- deployment: `dpl_3aD71xz2HFpS2Sa4r6ryhEe2dhCX`;
+- estado: `READY`;
+- target: `production`;
+- commit publicado: `d1562bd1b9996b65c6713d3cd9387abbccd4238b`;
+- região: `gru1`;
+- alias principal: `radarpdde-fix.vercel.app`;
+- `aliasError`: ausente;
+- erros de runtime nas 24 horas consultadas: nenhum.
+
+## Supabase Production
+
+- project ref: `scnryinorqeucbfkioxo`;
+- nome: `RADAR PDDE 2026`;
+- status: `ACTIVE_HEALTHY`;
+- região: `sa-east-1`;
+- PostgreSQL: `17.6.1.147`;
+- migrations aplicadas: 30;
+- última migration: `202608060003_school_institutional_identity`;
+- `closing_competence`: `2026-12`;
+- `app_config.row_version`: `20`;
+- `production_integrity_check()`: `healthy`, `totalIssues = 0`, `schemaVersion = 1`;
+- Edge Function `team-account-management`: versão 113, `ACTIVE`, `verify_jwt = true`.
+
+A versão 113 da Edge Function foi observada após o merge do PR #163. O número da versão é deliberadamente mantido somente neste checkpoint histórico; versões futuras devem ser consultadas diretamente no Supabase.
+
+## Matriz funcional
+
+- total: 41 operações;
+- `covered`: 9;
+- `partial`: 32;
+- `gap`: 0;
+- `decision`: 0.
+
+## Conclusão do checkpoint
+
+No instante desta verificação, GitHub, Vercel e Supabase estavam operacionalmente coerentes, Production não apresentava incidente sistêmico conhecido e a reconciliação do PR #163 estava publicada. Valores remotos posteriores devem ser revalidados nas fontes efetivas e não inferidos deste registro histórico.
+''')
+          PY
+
+      - name: Validar escopo, remover ferramenta temporária e publicar
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/finalize-documentation-post-pr163-temp.yml
+          git add AGENTS.md docs/CURRENT_STAGE.md docs/README.md docs/audits/2026-08-07-checkpoint-pos-pr163.md
+          git diff --cached --check
+          test "$(git diff --cached --name-only | sort)" = $'.github/workflows/finalize-documentation-post-pr163-temp.yml\nAGENTS.md\ndocs/CURRENT_STAGE.md\ndocs/README.md\ndocs/audits/2026-08-07-checkpoint-pos-pr163.md'
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "docs: estabilizar baseline canônico pós-PR163"
+          git push origin HEAD:docs/fechamento-pos-pr163-20260807
