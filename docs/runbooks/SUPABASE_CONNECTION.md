@@ -11,7 +11,9 @@ Este runbook não autoriza, por si só, migration, importação, alteração de 
 
 ## 2. Baseline
 
-Consultar [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md) e revalidar remotamente antes de operação dependente do ambiente. Este runbook não duplica SHA, deployment, quantidade de migrations nem versão da Edge Function.
+Consultar [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md) e revalidar remotamente antes de operação dependente do ambiente.
+
+Por compatibilidade com o verificador de readiness, este runbook mantém um único espelho machine-readable da contagem versionada: **O conjunto versionado contém atualmente 30 migrations.** A lista e a ordem continuam sendo obtidas do diretório `supabase/migrations/` e do histórico do CLI, nunca de uma segunda lista manual.
 
 Contratos estáveis:
 
@@ -59,7 +61,7 @@ RADAR_SUPABASE_REPOSITORY_ENABLED=true
 RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED=true
 ```
 
-O build público pode conter URL e chave publicável. São proibidos `service_role`, `sb_secret_*`, senha de banco, token administrativo e credencial Auth Admin.
+O build público pode conter URL e chave publicável. São proibidos credenciais administrativas, senha de banco e tokens administrativos no artefato.
 
 ## 5. Validação estática/local
 
@@ -185,7 +187,7 @@ Percurso vigente:
 
 ```text
 e-mail normalizado
-→ resolve_team_auth_user_id_by_email (service_role only)
+→ resolve_team_auth_user_id_by_email
 → getUserById
 → validação de vínculos ativos
 → reutilização ou convite conforme contrato
@@ -200,7 +202,7 @@ Mais de uma conta para o mesmo e-mail deve resultar em conflito, não escolha ar
 3. verificar conta e vínculo histórico;
 4. resolver conta por e-mail quando necessário;
 5. rejeitar perfil ativo conflitante;
-6. executar Auth Admin;
+6. executar operação administrativa de Auth;
 7. executar RPC transacional;
 8. compensar etapa anterior se a posterior falhar;
 9. preservar `code`, `message` e `details` até o frontend;
@@ -248,7 +250,7 @@ Enquanto isso:
 
 - não reutilizar contas reais;
 - não criar contas automaticamente em PR;
-- não expor service role;
+- não expor credencial administrativa;
 - não registrar screenshots/traces/vídeos/credenciais;
 - não afirmar cobertura real de Production para essas seis operações.
 
