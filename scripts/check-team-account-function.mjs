@@ -204,6 +204,9 @@ function insertSyntheticSchool(state) {
       designation,
       denomination,
       cre,
+      inep,
+      cnpj,
+      sici,
       controller_id,
       active
     ) values (
@@ -211,6 +214,9 @@ function insertSyntheticSchool(state) {
       ${sqlLiteral(`99.99.${state.suffix}`)},
       ${sqlLiteral('Unidade sintética para transferência HML')},
       ${sqlLiteral('4ª CRE')},
+      ${sqlLiteral(`HML-INEP-${state.suffix}`)},
+      ${sqlLiteral(`HML-CNPJ-${state.suffix}`)},
+      ${sqlLiteral(`HML-SICI-${state.suffix}`)},
       ${sqlLiteral(state.sourceControllerId)},
       true
     );
