@@ -111,8 +111,8 @@ insert into public.inventory_team_members (id, name, email) values
 ('INV-TEAM-B', 'Inventário B', 'invb@example.test');
 insert into public.competences (id, label, exercise)
 values ('2031-01', 'Janeiro de 2031', 2031);
-insert into public.schools (id, designation, denomination, cre, controller_id, initial_competence)
-values ('TEAM-SCHOOL', '04.31.901', 'Escola Gestão de Equipe', '4ª CRE', 'CTRL-TEAM-A', '2031-01');
+insert into public.schools (id, designation, denomination, cre, controller_id, initial_competence, inep, cnpj, sici)
+values('TEAM-SCHOOL', '04.31.901', 'Escola Gestão de Equipe', '4ª CRE', 'CTRL-TEAM-A', '2031-01', '33075847', '90.075.847/0001-43', 'SICI-TEST-74E3A487298E');
 
 set local role service_role;
 select lives_ok($$

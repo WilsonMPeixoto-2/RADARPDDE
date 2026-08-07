@@ -1,7 +1,7 @@
 # Exportação Excel SME mensal
 
-**Estado:** contrato público de 27 colunas, renderer ExcelJS, integração, certificação, homologação desktop e publicação concluídos  
-**Atualizado em:** 5 de agosto de 2026
+**Estado:** contrato público de 27 colunas, renderer ExcelJS, integração, auditoria obrigatória, certificação, homologação desktop e publicação concluídos  
+**Atualizado em:** 7 de agosto de 2026
 
 ## 1. Finalidade
 
@@ -11,7 +11,7 @@ O produto é independente do relatório institucional:
 
 - **Excel SME:** uma competência, uma aba e uma linha por unidade escolar;
 - **relatório institucional XLSX:** histórico, quatro abas e uma linha por escola × competência × programa consolidado;
-- **CSV institucional:** formato legado preservado como contingência do relatório institucional.
+- **CSV institucional:** formato legado preservado como contingência.
 
 ## 2. Regra temporal
 
@@ -21,7 +21,7 @@ A geração exige `activeCompetenciaKey` no formato `YYYY-MM`.
 - `TODAS`: geração desabilitada;
 - valor inexistente, inválido ou divergente da interface: geração bloqueada.
 
-O arquivo segue:
+Arquivo:
 
 ```text
 RADAR_PDDE_EXCEL_SME_MM-AAAA.xlsx
@@ -43,7 +43,7 @@ A única aba recebe o nome do mês em português.
 | Z | parecer |
 | AA | observações |
 
-As colunas técnicas `SISTEMÁTICA PREENCHIDA`, presentes nas posições-fonte K, R e Y, são eliminadas antes da geração final.
+As colunas técnicas `SISTEMÁTICA PREENCHIDA`, presentes nas posições-fonte K, R e Y do template original, são eliminadas antes da geração final.
 
 Os campos administrativos posteriores são preservados e deslocados para W:AA. Campos sem fonte canônica permanecem vazios; a exportação não inventa conteúdo.
 
@@ -58,8 +58,6 @@ O renderer:
 3. valida os 27 cabeçalhos finais;
 4. reconstrói as linhas com o cadastro atual;
 5. limita conteúdo, filtro, impressão, bordas e estilos a A:AA.
-
-A validação posicional impede remoção silenciosa de outra coluna.
 
 ## 5. Mapeamento das contas
 
@@ -87,30 +85,38 @@ Quando mais de um programa pertence à mesma conta:
 - unidade, parecer e observações alinhados à esquerda;
 - valores categóricos centralizados;
 - cabeçalho centralizado horizontal e verticalmente;
-- quebra automática e recuo zero no cabeçalho;
+- quebra automática e recuo zero;
 - altura 105;
 - congelamento `E2`;
 - filtro e impressão em A:AA;
 - uma aba mensal;
 - nenhuma linha, coluna, fórmula ou validação oculta adicionada.
 
-### `dataValidations`
+`dataValidations` permanecem deliberadamente ausentes porque a estrutura anterior provocava reparo no Microsoft Excel.
 
-Não existem `dataValidations`. A estrutura anterior provocava reparo no Microsoft Excel e não pode ser reintroduzida sem nova implementação e homologação.
+## 8. Integração e auditoria
 
-## 8. Integração
+`excel-export-integration.js` resolve competência, estado dos botões, runtime e download. A camada carregada em seguida, `excel-export-audit.js`, controla a auditoria funcional.
 
-`src/integration/excel-export-integration.js`:
+Percurso vigente:
 
-- habilita somente para competência mensal;
-- acompanha a competência global;
-- impede clique concorrente;
-- registra exportação;
-- mantém botões idempotentes;
-- disponibiliza o produto nas superfícies autorizadas, inclusive dashboard da Assistente;
-- não altera o relatório institucional.
+```text
+clique no Excel SME
+→ RadarExcelExportAudit
+→ AuditService.record('Exportação Excel Iniciada')
+→ confirmação obrigatória
+→ ExcelSmeRuntime.generate
+→ download
+→ AuditService.record('Relatório Excel SME Exportado')
+```
 
-A frase interna `A seleção atualiza todas as telas e exportações mensais.` não é renderizada.
+Regras:
+
+- falha da auditoria inicial bloqueia o download;
+- o filtro de compatibilidade impede duplicação do evento legado durante a geração;
+- falha de geração não registra conclusão;
+- falha da auditoria final depois de arquivo gerado é reportada separadamente;
+- clique concorrente continua bloqueado pela integração.
 
 ## 9. Publicação
 
@@ -150,14 +156,14 @@ Critérios:
 
 ## 11. Homologação final
 
-O candidato correspondente aos PRs nº 136 e 137 foi:
+O contrato atual foi:
 
 - gerado pelo botão real;
 - reaberto pelo ExcelJS;
 - inspecionado no pacote OOXML;
 - validado em desktop, Android e iPhone;
 - aberto no Microsoft Excel desktop sem reparo;
-- aprovado visualmente após o ajuste de alinhamento do cabeçalho;
+- aprovado visualmente;
 - publicado em Production.
 
 Nova alteração material de estrutura, estilo ou motor exige novo candidato e nova abertura humana antes de publicação.
@@ -172,10 +178,11 @@ Nova alteração material de estrutura, estilo ou motor exige novo candidato e n
 - três grupos de seis documentos;
 - nenhuma informação inventada;
 - designação textual;
-- bordas e cabeçalho;
 - ausência de `dataValidations`;
 - isolamento temporal;
 - template, manifesto e runtime no artefato;
+- auditoria inicial antes do download;
+- ausência de duplicação do log legado;
 - smoke HTTP e funcional após deployment.
 
 ## 13. Referências
@@ -183,6 +190,6 @@ Nova alteração material de estrutura, estilo ou motor exige novo candidato e n
 - [`excel-integral-certification.md`](excel-integral-certification.md);
 - [`excel-export.md`](excel-export.md);
 - [`excel-xlsx-runtime.md`](excel-xlsx-runtime.md);
+- [`frontend-load-order.md`](frontend-load-order.md);
 - [`avaliacao-mensal.md`](avaliacao-mensal.md);
-- [`../audits/2026-08-03-hotfix-excel-sme-template-404.md`](../audits/2026-08-03-hotfix-excel-sme-template-404.md);
 - [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md).

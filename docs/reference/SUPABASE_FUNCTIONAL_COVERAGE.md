@@ -1,22 +1,11 @@
 # Cobertura funcional — Supabase
 
-**Estado:** vigente em Preview e Production  
-**Atualizado em:** 5 de agosto de 2026
+**Estado:** referência vigente em Preview e Production  
+**Atualizado em:** 7 de agosto de 2026
 
 ## 1. Baseline
 
-```text
-projeto: scnryinorqeucbfkioxo
-estado: ACTIVE_HEALTHY
-região: sa-east-1
-PostgreSQL: 17.6.1.147
-migrations aplicadas em Production: 25
-closing_competence: 2026-12
-app_config.row_version: 20
-Edge Function: team-account-management v95, ACTIVE, JWT obrigatório
-```
-
-O PR nº 141 contém proposta de 26ª migration apenas em sua branch. Até integração e aplicação autorizada, Production permanece com 25.
+O baseline mutável fica em [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md). Este documento registra o contrato de cobertura e não duplica SHA, contagem de migrations ou versão de Edge Function.
 
 ## 2. Contrato de persistência
 
@@ -37,74 +26,90 @@ interface
 → renderização
 ```
 
-## 3. Matriz de cobertura
+## 3. Cobertura por domínio
 
 Legenda:
 
-- **Comprovado:** possui integração e evidência automatizada específica;
-- **Parcial:** existe e é testado, mas falta prova completa de releitura ou Production;
-- **Controlado:** execução remota depende de janela e autorização;
-- **Em expansão:** próxima frente de confiabilidade.
+- **Comprovado:** possui integração e evidência suficiente para o estágio atual;
+- **Parcial:** contrato implementado, mas falta prova padronizada de uma ou mais jornadas/negações/releituras;
+- **Controlado:** execução remota depende de pacote/janela/autorização.
 
-| Domínio ou fluxo | Estado | Backend principal | Evidência atual | Lacuna seguinte |
+| Domínio ou fluxo | Estado | Backend principal | Evidência atual | Próxima prova |
 |---|---|---|---|---|
-| Sessão, perfil e escopos | Comprovado | Auth + `user_profiles` + RPC | unitários, pgTAP, perfil/viewport | smoke autenticado em Production |
-| Bootstrap das entidades operacionais | Comprovado | PostgREST | integração e E2E | monitor de leitura autenticada |
-| Configuração, exercícios e competência | Comprovado | `app_config`, `competences`, RPC | serviço, RLS, pgTAP | confirmar regra funcional de programas |
-| Escolas e programas vinculados | Comprovado | `schools`, `school_programs` | RLS, serviço, E2E | matriz de todas as mutações |
-| Carteiras dos Controladores | Comprovado | `schools.controller_id` | Gestão de Equipe e E2E | releitura sistemática após cada alteração |
-| Gestão de Controladores | Comprovado | Edge Function + Auth Admin + RPC | PR nº 138, ciclo integral | manter smoke e compensação |
-| Gestão do Inventário | Comprovado | Edge Function + Auth Admin + RPC | PR nº 138, ciclo integral | manter smoke e compensação |
-| Bonificação mensal | Comprovado | `verifications` + serviço | domínio, pgTAP, E2E | catálogo ponta a ponta por ação |
-| Análise técnica | Comprovado | `verifications` | serviço, RLS, E2E | conflito de versão na interface |
-| Pendências | Comprovado | `pendencies` + RPCs | serviço, RLS, E2E | releitura e falhas por estado |
-| Tentativas de regularização | Comprovado | `pendency_attempts` | serviço e histórico | matriz de todas as transições |
-| Contatos e cobranças | Comprovado | `pendency_contacts` | serviço e E2E | prova de persistência após refresh |
-| Notas fiscais | Comprovado | `registered_invoices` + RPC | atomicidade, E2E | ampliar casos de conflito |
-| Bens permanentes | Comprovado | `assets` + RPC | inventário, E2E | ampliar compensação nota/bem |
-| Inventariação | Comprovado | `assets` | RLS, perfil/viewport | releitura recorrente por perfil |
-| Registros administrativos | Comprovado | `administrative_logs` | autoria, políticas e testes | confirmar recortes em Production |
-| Gestão SME | Parcial | tabelas de configuração e leitura | interface, serviços, RLS | confirmar regras de programas e calendário |
-| Importação e promoção | Controlado | staging + RPCs | ambiente descartável | executar somente com pacote autorizado |
-| Rollback de importação | Controlado | RPCs | testes descartáveis | runbook específico por operação real |
-| Relatório institucional XLSX | Comprovado | dados em memória autorizados | modelo, renderer, equivalência | homologação desktop se priorizada |
-| Excel SME mensal | Comprovado e publicado | dados em memória + assets Vercel | PRs nº 136/137, OOXML, desktop | monitorar assets e competência |
-| Monitor geral de Production | Comprovado e publicado | GitHub Actions + Vercel + Supabase | PR nº 139 | smoke autenticado |
-| Incidentes automáticos | Comprovado e publicado | GitHub Issues | PR nº 140 | observar ocorrência real |
-| Integridade lógica dos dados | Em expansão | RPC service-role | PR nº 141 em rascunho | revisar e integrar com autorização |
+| Sessão, perfil e escopos | Parcial | Auth + `user_profiles` + RPC | unitários, pgTAP, perfil/viewport | smoke autenticado recorrente em Production |
+| Bootstrap das entidades | Parcial | PostgREST | integração e E2E | leitura autenticada protegida |
+| Competência global | Comprovado | estado + `competences`/`app_config` | rotas, carteira, sincronização pós-PR #160 | manter regressão |
+| Configuração e exercícios | Parcial | `app_config`, `competences`, RPC | serviço, pgTAP, E2E e remediação de CFG-02 | escrita/releitura controladas |
+| Programas | Parcial | `programs`, RPC de programa e log | serviço, RLS, E2E | escrita/releitura controladas |
+| Escolas e programas vinculados | Parcial | `schools`, `school_programs`, RPC | RLS, serviço, E2E, identidade institucional | criação/edição controlada por perfil |
+| Carteiras | Parcial | `schools.controller_id` | Gestão de Equipe, PR #154, E2E | redistribuição e reversão controladas |
+| Gestão de Controladores | Comprovado | Edge Function + Auth Admin + RPC | PRs #150/#161, testes e observação | observação contínua |
+| Gestão do Inventário | Comprovado | Edge Function + Auth Admin + RPC | PRs #150/#161, testes e observação | observação contínua |
+| Bonificação mensal | Parcial | `verifications` + RPC | domínio, pgTAP, E2E | escrita/releitura controladas |
+| Análise técnica | Parcial | `verifications` + RPC | serviço, RLS, E2E | conflito e releitura controlados |
+| Pendências | Parcial | `pendencies` + RPCs | serviço, RLS, E2E | ciclo completo por estado |
+| Tentativas | Parcial | `pendency_attempts` + trigger de sincronização | serviço, remediação PEND-02 | escrita/releitura controladas |
+| Contatos/cobranças | Parcial | `pendency_contacts` | idempotência e E2E | persistência/releitura controladas |
+| Notas fiscais | Parcial | `registered_invoices` + RPC/trigger | atomicidade, remediação INV-01 | casos controlados de vínculo/desvínculo |
+| Bens permanentes | Parcial | `assets` + `saveAssetWithLog` | inventário, PR #162, testes | escrita/releitura por perfil |
+| Inventariação | Parcial | `assets` | RLS, perfil/viewport | releitura recorrente por perfil |
+| Registros administrativos | Parcial | `administrative_logs` | autoria, políticas e testes | recorte/leitura controlados |
+| Gestão SME | Parcial | leitura + configuração/programas | interface, serviços, RPCs, RLS | provas controladas dos comandos |
+| Importação/promoção | Controlado | staging + RPCs | ambiente descartável | pacote real somente com autorização |
+| Rollback de importação | Controlado | RPCs | testes descartáveis | procedimento específico quando houver operação real |
+| Relatório institucional | Parcial | memória autorizada + AuditService | renderer, export audit, E2E | observação/homologação quando priorizada |
+| Excel SME mensal | Comprovado | memória + assets + AuditService | PRs #136/#137/#162, OOXML, desktop | manter regressão |
+| Monitor geral de Production | Comprovado | GitHub Actions + Vercel + Supabase | PRs #139/#153 e execuções recorrentes | manter regressão |
+| Incidentes automáticos | Comprovado | GitHub Issues | PR #140 | observação contínua |
+| Integridade lógica dos dados | Comprovado | RPC privilegiada + workflow | PR #141 e `totalIssues=0` no baseline corrente | manter regressão |
 
-## 4. Perfis
+## 4. Matriz funcional executável
+
+A fonte oficial da granularidade por operação é `FUNCTIONAL_CONTRACT_MATRIX.md`/JSON.
+
+Estado reconciliado:
+
+| Cobertura | Operações |
+|---|---:|
+| Comprovada | 9 |
+| Parcial | 32 |
+| Lacuna | 0 |
+| Decisão pendente | 0 |
+
+A ausência de `gap` não significa UAT concluído. Significa que nenhuma das 41 operações está atualmente classificada como defeito estrutural conhecido sem remediação.
+
+## 5. Perfis
 
 ### Controlador
 
 - lê escolas da própria `cre_scope`;
-- carteira define responsável principal e filtro inicial;
-- pode colaborar em escolas da mesma CRE conforme regra vigente;
+- carteira define responsável principal/filtro, não fronteira entre Controladores da mesma CRE;
+- pode atuar em escola de colega autorizada sem transferir `controller_id`;
+- não altera identidade institucional da escola;
 - executa bonificação, análise, pendências, contatos, notas e bens autorizados;
 - não acessa outra CRE sem escopo explícito.
 
 ### Assistente de Verbas Federais
 
 - acesso transversal à CRE;
-- Gestão de Equipe;
+- Gestão de Equipe e contas Auth;
 - redistribuição de carteiras;
+- identidade institucional das escolas;
 - ações operacionais autorizadas;
-- relatórios e exportações.
+- relatórios/exportações.
 
 ### Gestão SME
 
 - leitura gerencial de identificação e bonificação;
 - sem análise técnica nas superfícies restritas;
 - Pendências sem mutações operacionais;
-- Registros Internos limitados à própria autoria;
-- configurações globais autorizadas pelo frontend e RLS.
-
-A extensão exata sobre programas e calendário deve ser confirmada antes de nova mudança.
+- Registros Internos conforme recorte de autoria;
+- configuração de calendário/exercícios e manutenção de programas segundo o contrato atualmente implementado.
 
 ### Inventário
 
 - lê escolas e bens da própria CRE;
-- opera encaminhamento e inventariação;
+- opera fluxo patrimonial autorizado;
 - não altera bonificação, análise técnica, carteiras ou configuração global.
 
 ### Administrador técnico
@@ -112,7 +117,7 @@ A extensão exata sobre programas e calendário deve ser confirmada antes de nov
 - infraestrutura, perfis, escopos, importação e auditoria;
 - pode simular visualmente perfis sem alterar o papel efetivo do JWT.
 
-## 5. Gestão de Equipe
+## 6. Gestão de Equipe
 
 Fluxo vigente:
 
@@ -121,81 +126,45 @@ DirectoryService
 → TeamAccountGateway
 → team-account-management
 → Auth Admin
-→ RPC transacional
-→ controllers/inventory_team_members/user_profiles/auditoria
+→ resolve_team_auth_user_id_by_email / RPCs transacionais
+→ diretórios, perfis e auditoria
 ```
 
 Contratos comprovados:
 
-- preflight CORS institucional retorna sucesso;
-- origem indevida é rejeitada;
-- JWT e papel autorizado são obrigatórios;
-- cadastro cria diretório, conta, perfil e vínculo;
-- edição altera diretório e conta quando necessário;
-- desativação bloqueia acesso e preserva histórico;
-- carteira é redistribuída de forma explícita;
-- vínculo legado pode ser recuperado quando não há ambiguidade;
+- CORS oficial passa e origem indevida falha;
+- JWT/papel são obrigatórios;
+- cadastro/edição/desativação preservam histórico e auditoria;
+- conta existente pode ser reutilizada quando não há vínculo ativo conflitante;
+- diretório/perfil divergente é rejeitado;
+- lookup por e-mail é exato e não depende de `listUsers`;
 - falha parcial executa compensação.
 
-## 6. Migrations e banco
+## 7. Remediações do PR #162
 
-As 25 migrations de Production cobrem:
+As seguintes lacunas técnicas foram corrigidas, mas as operações correspondentes permanecem parciais quando a matriz ainda exige prova controlada:
 
-- schema e constraints;
-- grants e RLS;
-- Auth, perfis e escopos;
-- Gestão de Equipe;
-- inventário e notas;
-- operações compostas;
-- importação e rollback;
-- Gestão SME;
-- histórico e auditoria.
+- `SCH-01` — identidade institucional real e duplicidades;
+- `CFG-02` — versão/conteúdo do novo exercício;
+- `INV-01` — bem derivado ao desvincular nota;
+- `ASSET-02` — edição versionada e auditada;
+- `PEND-02` — sincronização de tentativas;
+- `EXP-01` e `EXP-02` — auditoria obrigatória da exportação.
 
-Migration SME canônica:
+## 8. Smoke autenticado
 
-```text
-20260728182226_sme_access_governance
-SHA-256: cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
-```
+A infraestrutura do PR #148 está integrada e protegida, mas não executa jornadas reais sem cinco identidades técnicas exclusivas e habilitação explícita. Essa ausência mantém seis operações de leitura como `partial`.
 
-## 7. Excel
+## 9. Auditoria funcional histórica
 
-### Relatório institucional
+O PR #156 não deve ser tratado como matriz atual. Suas evidências podem ser reutilizadas após confrontação com a `main`, mas o fechamento da auditoria deve ocorrer sobre o código atual.
 
-- quatro abas;
-- histórico multicompetência;
-- equivalência com CSV;
-- CSV secundário e fallback.
-
-### Excel SME
-
-- uma competência e uma aba;
-- 27 colunas A:AA;
-- template-fonte de 30 colunas apenas visual;
-- remoção de K, R e Y na projeção;
-- designação textual;
-- bordas e cabeçalho normalizados;
-- ausência deliberada de `dataValidations` incompatíveis;
-- assets protegidos por manifesto e hash;
-- homologado no Microsoft Excel desktop.
-
-## 8. Próxima expansão da cobertura
-
-```text
-matriz perfil × tela × ação × backend
-→ smoke autenticado somente leitura
-→ provas controladas de escrita
-→ releitura após refresh
-→ conflito e compensação
-→ integridade contínua dos dados
-```
-
-## 9. Referências
+## 10. Referências
 
 - [`SUPABASE_PERMISSIONS_MATRIX.md`](SUPABASE_PERMISSIONS_MATRIX.md);
 - [`SUPABASE_DATA_DICTIONARY.md`](SUPABASE_DATA_DICTIONARY.md);
 - [`SUPABASE_INTEGRATION_AUDIT.md`](SUPABASE_INTEGRATION_AUDIT.md);
+- [`FUNCTIONAL_CONTRACT_MATRIX.md`](FUNCTIONAL_CONTRACT_MATRIX.md);
 - [`../architecture/supabase-readiness.md`](../architecture/supabase-readiness.md);
-- [`../architecture/excel-sme-mensal.md`](../architecture/excel-sme-mensal.md);
 - [`../runbooks/SUPABASE_CONNECTION.md`](../runbooks/SUPABASE_CONNECTION.md);
 - [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md).

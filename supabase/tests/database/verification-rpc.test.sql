@@ -15,8 +15,8 @@ insert into public.competences (id, label, exercise)
 values
     ('2032-05', 'Maio 2032', 2032),
     ('2032-06', 'Junho 2032', 2032);
-insert into public.schools (id, designation, denomination, cre)
-values ('VRPC-SCHOOL', '04.99.922', 'Escola RPC Verificação', '4ª CRE');
+insert into public.schools (id, designation, denomination, cre, inep, cnpj, sici)
+values('VRPC-SCHOOL', '04.99.922', 'Escola RPC Verificação', '4ª CRE', '33783578', '90.783.578/0001-57', 'SICI-TEST-5EE0B09A3E32');
 
 select ok(
     to_regprocedure('public.save_verification_with_log(jsonb,integer,jsonb)') is not null,

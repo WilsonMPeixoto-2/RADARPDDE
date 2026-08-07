@@ -26,6 +26,9 @@ insert into public.schools (
     id,
     designation,
     denomination,
+    inep,
+    cnpj,
+    sici,
     cre,
     controller_id,
     initial_competence
@@ -34,6 +37,9 @@ insert into public.schools (
     '04.00.001',
     '04.00.001',
     'Escola da carteira principal',
+    '33000001',
+    '00.000.001/0001-01',
+    'SICI-SMOKE-001',
     '4ª CRE',
     'controller-test',
     '2026-01'
@@ -42,6 +48,9 @@ insert into public.schools (
     '04.00.002',
     '04.00.002',
     'Escola de outra carteira da mesma CRE',
+    '33000002',
+    '00.000.002/0001-02',
+    'SICI-SMOKE-002',
     '4ª CRE',
     'other-controller',
     '2026-01'
@@ -50,6 +59,9 @@ insert into public.schools (
     '05.00.001',
     '05.00.001',
     'Escola de outra CRE com exceção explícita',
+    '33000003',
+    '00.000.003/0001-03',
+    'SICI-SMOKE-003',
     '5ª CRE',
     'other-controller',
     '2026-01'
@@ -58,6 +70,9 @@ insert into public.schools (
     '05.00.002',
     '05.00.002',
     'Escola de outra CRE sem exceção',
+    '33000004',
+    '00.000.004/0001-04',
+    'SICI-SMOKE-004',
     '5ª CRE',
     'other-controller',
     '2026-01'

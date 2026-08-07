@@ -1,22 +1,20 @@
 # Arquitetura de persistência e prontidão Supabase
 
 **Estado:** vigente; Production ativa  
-**Atualizado em:** 5 de agosto de 2026
+**Atualizado em:** 7 de agosto de 2026
 
 ## 1. Baseline
 
-```text
-Supabase: scnryinorqeucbfkioxo
-estado: ACTIVE_HEALTHY
-região: sa-east-1
-PostgreSQL: 17.6.1.147
-migrations em Production: 25
-closing_competence: 2026-12
-app_config.row_version: 20
-team-account-management: v95, ACTIVE, JWT obrigatório
-```
+O baseline mutável do Supabase, Vercel e GitHub fica exclusivamente em [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md). Antes de operação remota, revalidar projeto, migrations, Edge Functions e integridade diretamente no ambiente.
 
-O PR nº 141 propõe uma 26ª migration, mas permanece aberto em rascunho e não altera Production.
+Contratos estáveis:
+
+- Supabase Production é a persistência canônica;
+- PostgreSQL 17;
+- `SupabaseRepository` é o adaptador normal de Preview/Production;
+- `LocalStorageRepository` permanece desenvolvimento/contingência por novo build;
+- Auth, RLS, RPCs e Edge Functions são fronteiras de autorização reais;
+- nenhuma credencial administrativa chega ao navegador.
 
 ## 2. Arquitetura
 
@@ -25,9 +23,9 @@ Frontend
 → serviços de aplicação e UnitOfWork
 → RepositoryContract
    ├── SupabaseRepository — canônico em Preview/Production
-   └── LocalStorageRepository — desenvolvimento e contingência por novo build
-→ Auth + PostgREST + RLS + RPC + Edge Function
-→ PostgreSQL 17
+   └── LocalStorageRepository — desenvolvimento e contingência
+→ PostgREST / RPC / Edge Function
+→ Auth + RLS + PostgreSQL
 ```
 
 ## 3. Runtime
@@ -86,63 +84,85 @@ DirectoryService
 
 Contratos vigentes:
 
-- CORS fail-closed;
-- allowlist institucional;
-- preflight independente de autenticação e operação funcional com JWT;
-- validação do papel da Assistente;
-- vínculo Auth histórico recuperado somente quando inequívoco;
-- idempotência;
-- redistribuição de carteira;
-- desativação lógica;
+- CORS fail-closed e allowlist institucional;
+- preflight independente da autenticação e operação funcional com JWT;
+- validação do papel institucional;
+- lookup de conta Auth por e-mail usando `resolve_team_auth_user_id_by_email`, restrita a `service_role`;
+- ausência de varredura global `listUsers` como caminho normal;
+- normalização/reparo de registros Auth legados incompatíveis;
+- recuperação de vínculo histórico somente quando inequívoca;
+- reutilização de conta existente em transição autorizada;
+- um único perfil institucional ativo por usuário;
+- idempotência, redistribuição e desativação lógica;
 - compensação em falha parcial.
 
-A correção integral foi publicada pelo PR nº 138.
+Os PRs #138, #150 e #161 formam a sequência histórica da correção da Gestão de Equipe. Nenhum deles isoladamente deve ser tratado como descrição completa do contrato atual.
 
 ## 7. Operações compostas
 
-RPCs e transações protegem:
+RPCs/transações protegem:
 
 - exercício e competências;
 - escola e programas;
+- atribuição de Controlador;
 - verificação e log;
-- pendência, tentativa e reanálise;
+- pendência, tentativa, contato e reanálise;
 - nota e bem vinculado;
+- bem e log administrativo;
 - Gestão de Equipe;
 - importação, promoção e rollback.
 
-Conflitos de `row_version` não devem ser sobrescritos silenciosamente.
+Conflitos de `row_version` não podem ser sobrescritos silenciosamente.
 
-## 8. Migrations
+## 8. Remediações de integridade incorporadas
 
-Production possui 25 versões correspondentes.
+### CFG-02
 
-```text
-migration SME: 20260728182226_sme_access_governance
-alias derivado: ausente
-SHA-256: cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
-```
+`save_exercise_with_competences` exige `row_version` positivo, exatamente doze competências de um único exercício, meses janeiro a dezembro e conflito otimista no `app_config`.
 
-Antes de migration futura:
+### INV-01
 
-1. histórico local/remoto;
-2. reset local;
-3. pgTAP e lint;
-4. tipos;
-5. backup/restauração;
-6. dry-run;
-7. plano de reversão;
-8. autorização para aplicação.
+O trigger `registered_invoices_delete_unlinked_asset` chama `delete_unlinked_invoice_asset()` quando `linked_asset_id` muda, impedindo que o bem derivado anterior permaneça órfão.
 
-## 9. Backup e restauração
+### PEND-02
+
+O trigger `pendencies_sync_attempt_statuses` mantém `pendency_attempts.payload.status` sincronizado com o agregado da pendência. A migration reconciliou registros existentes de forma idempotente.
+
+### SCH-01
+
+A tabela `schools` exige identidade institucional não vazia e índices únicos normalizados para INEP, CNPJ e SICI. O serviço também valida duplicidades antes da persistência.
+
+### ASSET-02
+
+`InventoryService.updateAsset` restringe a edição rápida ao campo autorizado e persiste via `saveAssetWithLog` com versão esperada e log.
+
+## 9. Migrations
+
+A contagem atual e as últimas versões ficam em `CURRENT_STAGE.md`. A regra operacional permanece:
+
+1. comparar histórico local/remoto;
+2. resetar localmente;
+3. executar pgTAP e lint;
+4. regenerar tipos;
+5. executar backup/restauração;
+6. analisar SQL e privilégios;
+7. executar dry-run remoto;
+8. documentar reversão;
+9. aplicar em Production somente dentro do escopo autorizado;
+10. executar verificação posterior e registrar evidência.
+
+Histórico de migrations não é editado diretamente. `migration repair` altera histórico, não desfaz SQL.
+
+## 10. Backup e restauração
 
 ```text
 .github/workflows/backup-restore-disposable.yml
 scripts/verify-supabase-backup-restore.mjs
 ```
 
-Duas pilhas descartáveis comprovam equivalência de schema, dados, Auth e migrations. O CI publica apenas evidência sanitizada e não usa Production.
+Duas pilhas descartáveis comprovam equivalência de schema, dados, Auth e migrations. O CI publica apenas evidência sanitizada e não substitui política institucional de retenção/DR.
 
-## 10. Importação
+## 11. Importação
 
 ```text
 snapshot
@@ -159,23 +179,23 @@ snapshot
 
 Importação remota exige pacote, janela e autorização específicos.
 
-## 11. Monitoramento contínuo
+## 12. Monitoramento contínuo
 
-O workflow de Production verifica:
+### Sistema publicado
 
-- SHA publicado;
-- manifesto e modo de dados;
-- shell e assets;
-- gate de autenticação;
-- bloqueio anônimo;
-- preflight de Edge Functions;
-- incidentes automáticos.
+O monitor geral verifica SHA quando aplicável, manifesto, shell, assets, gate de autenticação, bloqueio anônimo, preflight e incidentes.
 
-Esse monitor cobre disponibilidade e publicação, não todas as jornadas autenticadas.
+### Integridade dos dados
 
-## 12. Prontidão funcional
+A auditoria agregada chama `production_integrity_check()` e valida vinte invariantes sem publicar identificadores de registros. O estado atual deve ser consultado em `CURRENT_STAGE.md` e no próprio Supabase.
 
-A arquitetura está pronta para a próxima fase quando cada ação crítica tiver mapeamento:
+### Leitura autenticada
+
+A infraestrutura de smoke autenticado está integrada, mas permanece desativada até provisionamento autorizado de cinco identidades técnicas exclusivas.
+
+## 13. Prontidão funcional
+
+A arquitetura de backend está estabelecida. O ganho de confiança remanescente está em completar, operação por operação:
 
 ```text
 perfil
@@ -187,40 +207,37 @@ perfil
 → RLS
 → persistência
 → releitura
+→ conflito
 → compensação
 ```
 
-Lacunas prioritárias:
+Após a reconciliação pós-PR #162, a matriz executável não registra lacuna técnica aberta, mas ainda possui operações `partial` que exigem provas controladas.
 
-- matriz funcional completa;
-- smoke autenticado de leitura em Production;
-- provas controladas de escrita;
-- conflito de versão na interface;
-- integridade contínua dos dados;
-- confirmação da regra de programas SME.
-
-## 13. Contingência
+## 14. Contingência
 
 ```text
 RADAR_PRODUCTION_FORCE_LOCAL=true
 ```
 
-Exige novo build, decisão registrada e plano de retorno. Não apaga o banco e não sincroniza dados locais automaticamente.
+Exige novo build, decisão registrada e plano de retorno. Não apaga o Supabase e não sincroniza dados locais automaticamente.
 
-## 14. Invariantes
+## 15. Invariantes
 
 - Supabase é canônico em Production;
 - nenhum segredo administrativo no frontend;
-- nenhuma migration remota automática;
+- nenhuma migration remota automática por mero merge;
 - nenhum seed implícito;
 - Auth e RLS obrigatórios;
 - autoria e auditoria nas mutações;
 - histórico de migrations não é editado diretamente;
 - dump SQL não é publicado;
-- PR aberto não altera o baseline remoto;
-- merge e aplicação remota exigem autorização expressa.
+- PR/Preview não altera baseline de Production;
+- conta Auth de equipe é resolvida por lookup exato, não catálogo global;
+- identidade institucional de escola não é sintetizada;
+- edição patrimonial rápida permanece versionada e auditada;
+- exportação não é liberada antes da auditoria inicial.
 
-## 15. Verificação
+## 16. Verificação
 
 ```bash
 npm run test:readiness
@@ -235,7 +252,7 @@ npm run test:mobile
 npm run build:vercel
 ```
 
-## 16. Referências
+## 17. Referências
 
 - [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md);
 - [`testing.md`](testing.md);

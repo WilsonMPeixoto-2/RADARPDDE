@@ -10,6 +10,8 @@ const corsPolicyPath = 'supabase/functions/_shared/cors-policy.mjs';
 const integrityMigrationPath = 'supabase/migrations/202608040001_production_integrity_monitor.sql';
 const assignmentMigrationPath = 'supabase/migrations/202608050001_school_assignment_authorization.sql';
 const teamAuthRepairMigrationPath = 'supabase/migrations/202608060001_team_auth_legacy_repair.sql';
+const functionalIntegrityMigrationPath = 'supabase/migrations/202608060002_functional_integrity_remediation.sql';
+const schoolIdentityMigrationPath = 'supabase/migrations/202608060003_school_institutional_identity.sql';
 const requiredFiles = Object.freeze([
     'src/application/team-account-gateway.js',
     'supabase/migrations/202607190001_team_management_auth_alignment.sql',
@@ -28,6 +30,8 @@ const requiredFiles = Object.freeze([
     integrityMigrationPath,
     assignmentMigrationPath,
     teamAuthRepairMigrationPath,
+    functionalIntegrityMigrationPath,
+    schoolIdentityMigrationPath,
     'supabase/functions/_shared/team-account-domain.mjs',
     corsPolicyPath,
     'supabase/functions/team-account-management/index.ts',
@@ -38,10 +42,13 @@ const requiredFiles = Object.freeze([
     'supabase/tests/database/sme-access-governance.test.sql',
     'supabase/tests/database/production-integrity-monitor.test.sql',
     'supabase/tests/database/school-assignment-authorization.test.sql',
+    'supabase/tests/database/functional-integrity-remediation.test.sql',
     'scripts/check-production-data-integrity.mjs',
     '.github/workflows/production-data-integrity.yml',
     'tests/unit/production-data-integrity.test.js',
     'tests/unit/production-data-integrity-workflow.test.js',
+    'tests/unit/functional-integrity-migration.test.js',
+    'tests/unit/school-institutional-identity-migration.test.js',
     'src/domain/access-policy.js',
     previewBuildPath,
     'tests/unit/vercel-preview-workflow.test.js',
@@ -268,8 +275,8 @@ function check() {
 
     const migrationCount = fs.readdirSync(path.join(root, 'supabase/migrations'))
         .filter(name => name.endsWith('.sql')).length;
-    if (migrationCount !== 28) {
-        findings.push(`Conjunto final deve conter 28 migrations; encontrado: ${migrationCount}.`);
+    if (migrationCount !== 30) {
+        findings.push(`Conjunto final deve conter 30 migrations; encontrado: ${migrationCount}.`);
     }
 
     return [...new Set(findings)];

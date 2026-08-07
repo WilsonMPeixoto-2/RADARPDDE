@@ -1,133 +1,73 @@
 # RADAR PDDE 2026
 
-Sistema institucional de acompanhamento operacional do PDDE da 4ª CRE/SME-Rio. O produto organiza competência mensal, carteira de unidades, prontuário, análise documental, pendências, contatos, notas fiscais, inventário, gestão da equipe, acompanhamento gerencial e exportações.
+Sistema institucional de acompanhamento operacional do PDDE da 4ª CRE/SME-Rio. O produto organiza competência mensal, carteira de unidades, prontuário, análise documental, pendências, contatos, notas fiscais, patrimônio, Gestão de Equipe, acompanhamento gerencial e exportações.
 
-> **Estado em 5 de agosto de 2026:** `main`, Vercel Production e Supabase Production estão conectados e operacionais. As correções recentes do Excel SME e da Gestão de Equipe estão publicadas. A prioridade atual é ampliar a garantia funcional ponta a ponta para impedir que ações visíveis deixem de alcançar o backend ou concluam apenas parte do fluxo.
+> **Estado reconciliado em 7 de agosto de 2026:** GitHub `main`, Vercel Production e Supabase Production estão operacionais e alinhados ao pacote funcional do PR #162. O baseline mutável completo fica exclusivamente em [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md) e deve ser revalidado antes de qualquer ação dependente do ambiente.
 
-## Baseline remoto
+## Fontes de verdade
 
-```text
-GitHub main: f812e5dbf3aaa18fb9851948445b0820ac7a5435
-Vercel Production: dpl_7G3Wmh1YiV4c4aXVwe2P5tN7N7Y4 — READY
-Commit publicado: f812e5dbf3aaa18fb9851948445b0820ac7a5435
-Supabase: scnryinorqeucbfkioxo — ACTIVE_HEALTHY
-PostgreSQL: 17.6.1.147
-Migrations aplicadas em Production: 25
-Competência de fechamento: 2026-12
-app_config.row_version: 20
-Edge Function team-account-management: ACTIVE, versão 95, JWT obrigatório
-Node.js: 24.x
-```
+Para saber o que existe de fato:
 
-Informações mutáveis devem ser confirmadas novamente antes de qualquer ação dependente do ambiente atual.
+1. código da `main` ou SHA analisado;
+2. Supabase efetivo, incluindo migrations, Auth, RLS, funções e dados;
+3. deployment Vercel e SHA publicado;
+4. testes e evidências reproduzíveis;
+5. decisões vigentes;
+6. documentação canônica;
+7. históricos e planos.
 
-## Funcionalidades publicadas
+Documentação antiga não redefine o código para ficar “coerente”. Quando diverge, a documentação é que deve ser reconciliada.
+
+## Produto publicado
 
 ### Operação do PDDE
 
-- competência global de janeiro a dezembro de 2026;
-- avaliação mensal por escola, competência e programa;
-- dashboard, carteira, competências, prontuário e timeline;
-- pendências documentais e manuais com tentativas, reanálise, contatos, cancelamento e reabertura;
-- notas fiscais, bens permanentes, encaminhamento e inventariação;
-- registros administrativos e autoria;
-- busca inteligente, navegação contextual, elementos flutuantes responsivos e transições progressivas.
+- competência global e exercício;
+- Dashboard, Carteira e Competências;
+- Prontuário e timeline;
+- bonificação e análise técnica;
+- Pendências, tentativas, reanálises e contatos;
+- notas fiscais e efeitos associados;
+- bens permanentes, encaminhamento e inventariação;
+- Registros Internos;
+- busca e navegação contextual.
 
 ### Perfis
 
-- **Controlador:** carteira principal e colaboração autorizada na própria CRE;
-- **Assistente de Verbas Federais:** acompanhamento transversal, operação e gestão da equipe da CRE;
-- **Gestão SME:** consulta gerencial e configurações autorizadas, com restrições operacionais cumulativas;
-- **Equipe de Inventário:** fluxo patrimonial autorizado na própria CRE;
-- **Administrador técnico:** infraestrutura, perfis, escopos, importação, auditoria e homologação técnica.
+- **Controlador:** operação autorizada na própria CRE, com carteira como responsabilidade principal;
+- **Assistente de Verbas Federais:** operação transversal e Gestão de Equipe da CRE;
+- **Gestão SME:** acompanhamento gerencial e configurações atualmente autorizadas;
+- **Equipe de Inventário:** fluxo patrimonial autorizado;
+- **Administrador técnico:** papel técnico de infraestrutura, escopos, importação, auditoria e homologação.
 
-`technical_admin` é papel técnico, não um quinto perfil funcional de uso cotidiano.
+`technical_admin` não é quinto perfil funcional cotidiano.
 
-## Correções funcionais recentes
+## Correções consolidadas recentes
 
-### Excel SME
+O baseline atual incorpora, entre outros:
 
-Os PRs nº 136 e 137 corrigiram o fluxo completo e o arquivo final:
+- PR #150: transição segura entre perfis da equipe usando a mesma conta Auth;
+- PR #154: redistribuição de carteira bloqueada ao Controlador também no serviço e banco;
+- PR #157: criação de exercício com lote correto de doze competências;
+- PR #160: sincronização de competências remotas antes do primeiro render;
+- PR #161: remoção da dependência de `listUsers`, lookup Auth exato e reparo de resíduos legados;
+- PR #162: remediações `SCH-01`, `CFG-02`, `INV-01`, `ASSET-02`, `PEND-02`, `EXP-01` e `EXP-02`.
 
-- runtime resiliente, timeout, retry e mensagens por tipo de falha;
-- template e ExcelJS identificados por manifesto, tamanho e SHA-256;
-- dois botões de exportação no dashboard da Assistente;
-- arquivo mensal com **27 colunas, de A até AA**;
-- remoção exclusiva das posições-fonte K, R e Y, denominadas `SISTEMÁTICA PREENCHIDA`;
-- preservação dos campos administrativos posteriores;
-- designação textual no padrão `XX.XX.XXX`;
-- bordas completas;
-- cabeçalho centralizado, com quebra automática e sem espaçamento artificial;
-- abertura homologada no Microsoft Excel desktop sem solicitação de reparo.
+A correção de `ASSET-02`, por exemplo, já existe no código com `saveAssetWithLog`, versão esperada e auditoria. A matriz continua distinguindo **correção implementada** de **prova ponta a ponta completa**.
 
-O template-fonte permanece com 30 colunas e é projetado de forma determinística para o contrato público de 27 colunas.
+## Garantia operacional
 
-### Gestão de Equipe
+O projeto possui:
 
-O PR nº 138 corrigiu o ciclo integral de Controladores e Inventário:
+- monitor geral de Production;
+- gestão automática de incidentes;
+- auditoria agregada de vinte invariantes de integridade;
+- backup/restauração em pilhas descartáveis;
+- gate remoto por perfil e viewport;
+- matriz funcional executável de 41 operações;
+- infraestrutura integrada de smoke autenticado somente leitura.
 
-- preflight CORS das origens institucionais;
-- autenticação JWT e validação do papel da Assistente;
-- cadastro, edição e desativação de integrantes;
-- criação, convite, alteração e bloqueio de contas Auth;
-- recuperação segura de vínculos históricos por `user_profiles`;
-- redistribuição individual e em lote das carteiras;
-- compensação quando uma etapa posterior falha;
-- homologação com Supabase, Auth, RLS e Edge Function reais.
-
-## Garantia operacional contínua
-
-Os PRs nº 139 e 140 adicionaram uma camada permanente de verificação de Production:
-
-- validação do commit realmente publicado;
-- validação do manifesto, shell e assets locais;
-- confirmação do gate de autenticação;
-- prova de bloqueio do acesso anônimo ao Supabase;
-- preflight das Edge Functions catalogadas;
-- execução após `push` na `main`, a cada hora e manualmente;
-- criação ou atualização de incidente automático quando o monitor falha;
-- encerramento do incidente após recuperação confirmada.
-
-O PR nº 141 permanece **aberto em rascunho**. Ele propõe auditoria agregada de integridade dos dados e não integra a `main` nem Production.
-
-## Arquitetura operacional
-
-```text
-interface estática
-→ domínio e serviços de aplicação
-→ contrato único de repositório
-→ SupabaseRepository
-→ Auth + PostgREST + RLS + RPC + Edge Function
-→ PostgreSQL 17
-```
-
-| Ambiente | Persistência | Uso |
-|---|---|---|
-| Local e CI | Supabase descartável ou LocalStorage controlado | desenvolvimento, regressão, backup/restauração e contingência |
-| Preview | Supabase autorizado e artefato de Preview | homologação anterior à Production |
-| Production | Supabase Production canônico | operação institucional |
-
-`LocalStorageRepository` não sincroniza automaticamente com o Supabase. Seu uso em contingência exige novo build controlado.
-
-## Critério de confiança funcional
-
-Uma função crítica somente deve ser considerada pronta quando houver evidência de todo o percurso:
-
-```text
-controle visível
-→ evento do usuário
-→ serviço de aplicação
-→ repositório
-→ tabela, RPC ou Edge Function
-→ Auth e RLS
-→ gravação ou consulta
-→ retorno ao frontend
-→ nova renderização
-→ releitura após recarregar
-→ tratamento da falha e compensação
-```
-
-A próxima fase do projeto deve expandir essa prova para cada perfil, tela e mutação relevante.
+O smoke autenticado de Production permanece desativado até provisionamento explícito de cinco identidades técnicas exclusivas. Contas pessoais ou operacionais não devem ser reutilizadas para monitoramento.
 
 ## Exportações
 
@@ -135,31 +75,19 @@ A próxima fase do projeto deve expandir essa prova para cada perfil, tela e mut
 
 - histórico multicompetência;
 - abas `BONIFICACOES`, `SINTESE`, `QUALIDADE_DADOS` e `METADADOS`;
-- equivalência lógica com o CSV;
-- CSV preservado como fallback.
+- CSV secundário e de contingência;
+- auditoria inicial obrigatória antes de liberar download.
 
 ### Excel SME
 
-- uma competência mensal;
+- uma competência mensal por arquivo;
 - uma aba;
 - 27 colunas A:AA;
-- template visual canônico e dados atuais do RADAR;
-- ausência deliberada de `dataValidations` incompatíveis;
-- certificação OOXML, reabertura pelo ExcelJS e homologação no Excel desktop.
-
-## Ferramentas e versões
-
-```text
-@playwright/test: 1.62.0
-@supabase/supabase-js: 2.110.8
-Supabase CLI: 2.110.0
-ESLint: 10.8.0
-eslint-plugin-playwright: 2.10.5
-Knip: 6.29.0
-ExcelJS: 4.4.0
-```
-
-Atualizações menores abertas serão avaliadas em PRs próprios depois da reconciliação documental e da definição da matriz funcional.
+- template-fonte de 30 colunas usado apenas como base visual;
+- designação textual;
+- certificação OOXML e reabertura;
+- homologação no Microsoft Excel desktop;
+- auditoria inicial obrigatória antes do download.
 
 ## Desenvolvimento e verificação
 
@@ -179,33 +107,35 @@ npm run supabase:test:db
 npm run supabase:lint:db
 ```
 
-Backup e restauração:
+Matriz funcional:
 
 ```bash
-RADAR_ALLOW_DISPOSABLE_BACKUP_RESTORE=true npm run test:backup-restore
+npm run generate:functional-matrix
+npm run check:functional-matrix
 ```
 
-## Fontes de verdade e continuidade
+## Documentação
+
+Ordem de leitura:
 
 1. [`AGENTS.md`](AGENTS.md);
 2. [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md);
-3. [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md);
-4. [`docs/ROADMAP_ATUALIZACOES_2026.md`](docs/ROADMAP_ATUALIZACOES_2026.md);
-5. [`docs/DECISION_LOG.md`](docs/DECISION_LOG.md);
-6. [`docs/reference/STATUS_DOCUMENTOS.md`](docs/reference/STATUS_DOCUMENTOS.md);
-7. código, migrations e contratos executáveis da `main`;
-8. estado efetivo do GitHub, Vercel e Supabase.
+3. [`docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md`](docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md);
+4. [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md);
+5. [`docs/ROADMAP_ATUALIZACOES_2026.md`](docs/ROADMAP_ATUALIZACOES_2026.md);
+6. [`docs/DECISION_LOG.md`](docs/DECISION_LOG.md);
+7. [`docs/reference/STATUS_DOCUMENTOS.md`](docs/reference/STATUS_DOCUMENTOS.md).
 
-Baseline da reconciliação: [`docs/audits/2026-08-05-reconciliacao-documental-integral.md`](docs/audits/2026-08-05-reconciliacao-documental-integral.md).
+A reconciliação integral vigente está registrada em [`docs/audits/2026-08-07-reconciliacao-documental-integral-pos-pr162.md`](docs/audits/2026-08-07-reconciliacao-documental-integral-pos-pr162.md).
 
 ## Próxima sequência
 
-1. concluir e revisar esta reconciliação documental;
-2. construir matriz funcional completa por perfil, tela e ação;
-3. ampliar smokes autenticados de leitura;
-4. criar provas controladas de escrita, releitura, rollback e compensação;
-5. concluir ou reavaliar o PR nº 141;
-6. executar atualizações menores de dependências em escopo isolado;
+1. fechar a divergência histórica do PR #156 sem merge cego;
+2. retomar a auditoria funcional remanescente a partir da `main` atual;
+3. executar provas controladas das operações ainda parciais;
+4. decidir separadamente sobre ativação do smoke autenticado;
+5. verificar a demanda pendente da tela de detalhes da escola;
+6. tratar dependências em PRs isolados;
 7. realizar UAT e decisão formal de liberação.
 
-Nenhum merge ou deployment é autorizado apenas porque uma documentação ou PR ficou tecnicamente pronto.
+Nenhum PR, documento ou Preview autoriza por si só merge, migration ou mudança de Production fora do escopo aprovado.

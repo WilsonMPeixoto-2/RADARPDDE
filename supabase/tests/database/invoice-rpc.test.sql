@@ -15,8 +15,8 @@ values ('2028-01', 'Janeiro de 2028', 2028, '2028-02-15');
 insert into public.programs (id, name)
 values ('RPC_BASIC', 'Programa de teste RPC');
 
-insert into public.schools (id, designation, denomination, cre, initial_competence)
-values ('04.99.101', '04.99.101', 'Escola RPC', '4ª CRE', '2028-01');
+insert into public.schools (id, designation, denomination, cre, initial_competence, inep, cnpj, sici)
+values('04.99.101', '04.99.101', 'Escola RPC', '4ª CRE', '2028-01', '33008821', '90.008.821/0001-31', 'SICI-TEST-D398D5F5ED98');
 
 insert into public.verifications (
     id,

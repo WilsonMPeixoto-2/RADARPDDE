@@ -36,16 +36,18 @@ insert into public.schools (
     denomination,
     cre,
     initial_competence,
-    inventory_process
-) values
-(
+    inventory_process,
+    inep,
+    cnpj,
+    sici)
+values(
     '04.INV.001',
     '04.INV.001',
     'Escola patrimonial com bem',
     '4ª CRE',
     '2099-01',
     'PROC-INV-001'
-),
+, '33569274', '90.569.274/0001-35', 'SICI-TEST-261F0D7AAD8B'),
 (
     '04.INV.002',
     '04.INV.002',
@@ -53,7 +55,7 @@ insert into public.schools (
     '4ª CRE',
     '2099-01',
     'PROC-INV-002'
-),
+, '33977276', '90.977.276/0001-01', 'SICI-TEST-89726BBCD36A'),
 (
     '05.INV.001',
     '05.INV.001',
@@ -61,7 +63,7 @@ insert into public.schools (
     '5ª CRE',
     '2099-01',
     'PROC-INV-003'
-);
+, '33199225', '90.199.225/0001-34', 'SICI-TEST-E0F5B5B97E8A');
 
 insert into public.school_programs (id, school_id, program_id)
 values

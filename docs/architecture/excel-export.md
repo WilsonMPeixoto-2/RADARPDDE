@@ -1,13 +1,13 @@
 # Relatório institucional Excel do RADAR PDDE
 
-**Estado:** modelo, renderer, certificação e integração do botão implementados  
-**Atualizado em:** 29 de julho de 2026
+**Estado:** modelo, renderer, certificação, integração e auditoria obrigatória implementados  
+**Atualizado em:** 7 de agosto de 2026
 
 ## 1. Finalidade
 
-O relatório institucional `.xlsx` preserva integralmente o universo e os doze campos do CSV legado, acrescentando estrutura editorial, sínteses e controles de qualidade sem reduzir ou reinterpretar a base original.
+O relatório institucional `.xlsx` preserva o universo e os doze campos do CSV legado, acrescentando estrutura editorial, sínteses e controles de qualidade sem reduzir ou reinterpretar a base original.
 
-A integração de runtime já substitui a função global `exportDataExcel()` pela geração XLSX e preserva o CSV como botão secundário e fallback de segurança.
+A integração de runtime substitui a ação principal por XLSX e preserva o CSV como contingência. O download institucional é envolvido por auditoria obrigatória via `RadarExcelExportAudit`.
 
 ## 2. Estado por camada
 
@@ -22,17 +22,14 @@ A integração de runtime já substitui a função global `exportDataExcel()` pe
 | Manifesto e hashes | implementados |
 | Botão institucional principal usando XLSX | implementado em runtime |
 | Botão secundário CSV | implementado como fallback |
-| Homologação manual no Excel desktop | pendente |
+| Auditoria inicial antes do download | implementada e obrigatória |
+| Registro de conclusão | implementado |
+| Neutralização do log legado duplicado | implementada |
+| Homologação manual do relatório institucional no Excel desktop | pendente quando priorizada |
 
-## 3. Contrato do relatório legado
+## 3. Contrato do relatório
 
-A rotina lógica percorre:
-
-1. escolas;
-2. competências configuradas;
-3. programas vinculados a cada escola.
-
-Uma linha existe quando há verificação para `escola + competência + programa` e `resultadoBonif` está preenchido.
+A rotina lógica percorre escolas, competências configuradas e programas vinculados. Uma linha existe quando há verificação para `escola + competência + programa` e `resultadoBonif` está preenchido.
 
 Granularidade:
 
@@ -46,20 +43,20 @@ A competência ativa não limita o conteúdo institucional. O produto é histór
 
 A aba `BONIFICACOES` mantém, na mesma ordem lógica:
 
-| Nº | Campo | Rótulo | Origem |
-|---:|---|---|---|
-| 1 | `INEP` | INEP | escola |
-| 2 | `Denominacao` | Denominação | escola |
-| 3 | `Designacao` | Designação | escola |
-| 4 | `Competencia` | Competência | competência iterada |
-| 5 | `Programa` | Programa | vínculo escola–programa |
-| 6 | `CC` | Conta corrente | `bonificacao.extCC` |
-| 7 | `Investimento` | Investimento | `bonificacao.extINV` |
-| 8 | `NF` | Nota fiscal | `bonificacao.notaFiscal` |
-| 9 | `Assessoria` | Assessoria | `bonificacao.consAssessoria` |
-| 10 | `BBAgil` | BB Ágil | `bonificacao.declBBAgil` |
-| 11 | `EncaminhadoInventario` | Encaminhado ao inventário | `bonificacao.encampInventario` |
-| 12 | `StatusBonificacao` | Status da bonificação | `resultadoBonif` |
+| Nº | Campo | Origem |
+|---:|---|---|
+| 1 | INEP | escola |
+| 2 | Denominação | escola |
+| 3 | Designação | escola |
+| 4 | Competência | competência iterada |
+| 5 | Programa | vínculo escola–programa |
+| 6 | Conta corrente | bonificação |
+| 7 | Investimento | bonificação |
+| 8 | Nota fiscal | bonificação |
+| 9 | Assessoria | bonificação |
+| 10 | BB Ágil | bonificação |
+| 11 | Encaminhado ao inventário | bonificação |
+| 12 | Status da bonificação | `resultadoBonif` |
 
 Nenhum campo pode ser removido, agregado ou transferido exclusivamente para outra aba.
 
@@ -76,181 +73,111 @@ As abas auxiliares não alteram a base principal.
 
 ## 6. Aba `BONIFICACOES`
 
-Contrato:
-
 - universo e ordem equivalentes ao CSV;
-- competência no formato legado esperado pelo relatório;
 - `APTA` e `INAPTA` em texto;
-- INEP, designação e competência preservados como texto;
+- identificadores textuais preservados;
 - filtros e ordenação;
 - congelamento das oito primeiras linhas e três primeiras colunas;
 - cabeçalho na linha 8;
 - dados a partir da linha 9;
 - nenhum gráfico dentro da base principal.
 
-### Larguras e alinhamentos
+## 7. `SINTESE`, qualidade e metadados
 
-| Coluna | Campo | Largura | Alinhamento |
-|---|---|---:|---|
-| A | INEP | 12 | centralizado |
-| B | Denominação | 34 | esquerda |
-| C | Designação | 14 | centralizado |
-| D | Competência | 13 | centralizado |
-| E | Programa | 24 | esquerda |
-| F | Conta corrente | 17 | centralizado |
-| G | Investimento | 17 | centralizado |
-| H | Nota fiscal | 17 | centralizado |
-| I | Assessoria | 17 | centralizado |
-| J | BB Ágil | 17 | centralizado |
-| K | Encaminhado ao inventário | 20 | centralizado |
-| L | Status da bonificação | 21 | centralizado |
+`SINTESE` agrega indicadores sem modificar a base. `QUALIDADE_DADOS` localiza campos ausentes/representações inválidas e referencia a linha correspondente. `METADADOS` registra geração, versão do modelo, regra de inclusão, granularidade, escopo temporal e dicionário.
 
-## 7. Aba `SINTESE`
+A unidade estatística deve permanecer declarada como `escola × competência × programa`.
 
-Reúne, sem modificar a base:
+## 8. Equivalência e certificação
 
-- consolidadas, aptas, inaptas e taxa de aptidão por competência;
-- consolidadas, aptas e inaptas por programa;
-- indicadores gerais calculados sobre linhas consolidadas;
-- visualizações simples quando suportadas pelo renderer.
+A comparação entre rota lógica legada e base XLSX verifica quantidade, ordem, doze valores, consolidados e ausência de não consolidados.
 
-A unidade estatística deve ser declarada como `escola × competência × programa`.
-
-## 8. Aba `QUALIDADE_DADOS`
-
-Localiza campos ausentes ou representados de forma inválida e referencia a linha correspondente da aba principal.
-
-Finalidade:
-
-- controle de completude;
-- rastreabilidade da linha;
-- apoio à revisão;
-- nenhuma reclassificação autônoma de APTA/INAPTA.
-
-A primeira linha de dados da base é a linha 9.
-
-## 9. Aba `METADADOS`
-
-Registra:
-
-- data e hora da geração;
-- versão do modelo;
-- regra de inclusão;
-- granularidade;
-- escopo temporal;
-- ordem das abas;
-- dicionário dos doze campos;
-- fonte dos dados;
-- versão dos componentes relevantes.
-
-## 10. Semântica visual
-
-- azul: estrutura e informação;
-- verde: situação positiva;
-- vermelho: situação crítica;
-- âmbar: atenção;
-- roxo: análise derivada;
-- cinza: informação neutra.
-
-Cor nunca substitui texto. Estados permanecem escritos.
-
-## 11. Equivalência lógica
-
-Rotas separadas:
-
-```text
-buildLegacyLogicalRows()
-buildBaseRows()
-```
-
-A comparação verifica:
-
-1. quantidade de registros;
-2. ordem;
-3. doze valores lógicos;
-4. presença de consolidados;
-5. ausência de não consolidados.
-
-Qualquer divergência bloqueia a exportação XLSX e oferece o CSV legado como alternativa de segurança.
-
-## 12. Certificação integral
-
-A certificação executa:
+A certificação percorre:
 
 ```text
 estado de origem
 → evaluateMonthlyEvaluation
 → modelo institucional
 → plano do workbook
-→ pacote OOXML
-→ endereço e valor da célula
+→ OOXML
+→ células
 → hashes e manifesto
 ```
 
-Critérios:
+Divergência lógica bloqueia a exportação XLSX e mantém o CSV como contingência.
 
-- zero divergência canônica;
-- equivalência com CSV;
-- quatro abas na ordem;
-- todas as células esperadas presentes;
-- valores normalizados idênticos;
-- escopo histórico preservado;
-- manifesto determinístico.
+## 9. Runtime e ordem de carregamento
 
-Evidência: [`../evidence/excel-certification/synthetic-manifest.json`](../evidence/excel-certification/synthetic-manifest.json).
+`src/integration/load-excel-export.js` carrega sequencialmente os módulos de domínio/renderização, `excel-export-integration.js` e, ao final, `excel-export-audit.js`.
 
-## 13. Integração de runtime
+A integração principal preserva a função CSV legada, disponibiliza XLSX/SME/CSV e mantém fallback técnico. A camada `RadarExcelExportAudit` passa a controlar a liberação do download.
 
-`src/integration/load-excel-export.js` carrega sequencialmente modelo, plano, renderer institucional, modelo SME, renderer SME e integração.
+## 10. Auditoria obrigatória da exportação
 
-`src/integration/excel-export-integration.js`:
+Percurso vigente:
 
-1. captura a função CSV legada;
-2. expõe `exportDataCsvLegacy`;
-3. substitui `exportDataExcel` por `exportXlsx`;
-4. transforma o botão principal em “Gerar relatório Excel (.xlsx)”;
-5. insere o botão `Excel SME`;
-6. insere o botão secundário `CSV`;
-7. preserva fallback CSV em falha técnica;
-8. observa renderizações tardias de modo idempotente.
+```text
+clique autorizado
+→ RadarExcelExportAudit
+→ AuditService.record('Exportação Excel Iniciada')
+→ confirmação obrigatória
+→ geração/download
+→ AuditService.record(ação de conclusão)
+```
 
-A integração pode ser revertida removendo o bootstrap ou chamando seu fluxo de desinstalação em ambiente controlado. O `app.js` conserva a função original.
+Regras:
 
-## 14. Homologação pendente
+1. se `AuditService` estiver indisponível ou o evento inicial falhar, a exportação é bloqueada;
+2. durante o pipeline, o filtro de compatibilidade neutraliza `registerLog` para os eventos legados de exportação, evitando duplicação;
+3. se a geração falhar, não se afirma conclusão;
+4. se o arquivo for gerado mas o registro final falhar, o retorno distingue `exportCompleted` de `auditFailed` e orienta o usuário;
+5. XLSX institucional e Excel SME usam a mesma regra de auditoria inicial.
 
-Antes da liberação oficial:
+Essa camada foi incorporada pelo PR #162 e substitui o contrato documental antigo de persistência assíncrona do snapshot integral de logs.
 
-1. abrir o arquivo no Microsoft Excel desktop sem reparo;
-2. homologar conteúdo e apresentação com massa representativa;
-3. confirmar o fallback CSV;
-4. validar o download nos perfis autorizados;
-5. registrar evidência e UAT.
+## 11. Certificação do deployment
 
-A integração já existe; o gate pendente é a homologação manual, não a troca do botão.
+A disponibilidade do produto exige:
 
-## 15. Relação com o Excel SME
+- assets e manifestos esperados;
+- HTTP válido;
+- botão real concluindo o percurso;
+- workbook reaberto/inspecionado;
+- commit publicado coerente;
+- auditoria inicial disponível.
+
+## 12. Homologação humana
+
+O Excel SME possui homologação própria concluída para o contrato atual. O relatório institucional mantém sua homologação humana independente quando priorizada. Certificação automatizada não substitui abertura humana diante de mudança estrutural ou visual material.
+
+## 13. Relação com o Excel SME
 
 | Dimensão | Institucional | SME mensal |
 |---|---|---|
 | Escopo | histórico | competência ativa |
 | Granularidade | escola × competência × programa | uma linha por escola |
 | Abas | quatro | uma |
-| Colunas principais | doze | 26 |
-| Ação | botão principal XLSX | botão secundário `Excel SME` |
-| Fallback | botão `CSV` | não aplicável |
+| Colunas principais | doze | **27 A:AA** |
+| Ação | XLSX institucional | Excel SME |
+| Fallback | CSV | não aplicável |
+| Auditoria inicial | obrigatória | obrigatória |
 
 Contrato SME: [`excel-sme-mensal.md`](excel-sme-mensal.md).
 
-## 16. Limites
+## 14. Limites
 
 A implementação não:
 
-- consulta Production durante a certificação sintética;
-- grava no Supabase;
-- substitui homologação manual;
-- autoriza novas análises sem origem e regra documentadas;
-- remove o CSV legado.
+- consulta Production durante certificação sintética;
+- inventa dados para completar o relatório;
+- substitui homologação humana;
+- remove o CSV legado;
+- libera download institucional sem registro inicial de auditoria.
 
-## 17. Evolução
+## 15. Referências
 
-Novas abas ou análises devem ser opcionais, rastreáveis e incapazes de modificar `BONIFICACOES`. Mudança de granularidade, campos ou regra de inclusão exige decisão específica e nova certificação integral.
+- [`excel-integral-certification.md`](excel-integral-certification.md);
+- [`excel-sme-mensal.md`](excel-sme-mensal.md);
+- [`excel-xlsx-runtime.md`](excel-xlsx-runtime.md);
+- [`frontend-load-order.md`](frontend-load-order.md);
+- [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md).
