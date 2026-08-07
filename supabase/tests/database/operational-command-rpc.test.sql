@@ -181,7 +181,7 @@ select is((select min(row_version) from public.schools where id in ('OPS-SCHOOL-
 -- RPCs preexistentes agora exigem log correlacionado.
 select throws_ok($$
     select public.save_exercise_with_competences(
-        jsonb_build_object('id','global','exercises',jsonb_build_array('2026','2035'),'closing_competence','2034-02','settings','{}'::jsonb),
+        jsonb_build_object('id','global','exercises',jsonb_build_array('2026','2035'),'closing_competence','2035-01','settings','{}'::jsonb,'row_version',(select row_version from public.app_config where id='global')),
         (select jsonb_agg(jsonb_build_object('id', format('2035-%s', lpad(month::text,2,'0')), 'label', format('Mês %s',month), 'exercise',2035)) from generate_series(1,12) month),
         null
     )
