@@ -1,0 +1,76 @@
+name: Diagnosticar pgTAP pós-reconciliação
+
+on:
+  push:
+    branches:
+      - docs/reconciliacao-integral-pos-pr162-20260807
+    paths:
+      - .github/workflows/diagnose-pgtap-current-schema-temp.yml
+
+permissions:
+  contents: read
+
+env:
+  SUPABASE_TELEMETRY_DISABLED: '1'
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Configurar Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Iniciar e recriar Supabase
+        run: |
+          npm run supabase:start
+          npm run supabase:reset
+
+      - name: schema.test.sql
+        if: always()
+        run: npx supabase test db supabase/tests/database/schema.test.sql
+
+      - name: functional-integrity-remediation.test.sql
+        if: always()
+        run: npx supabase test db supabase/tests/database/functional-integrity-remediation.test.sql
+
+      - name: inventory-capital-rls.test.sql
+        if: always()
+        run: npx supabase test db supabase/tests/database/inventory-capital-rls.test.sql
+
+      - name: invoice-rpc.test.sql
+        if: always()
+        run: npx supabase test db supabase/tests/database/invoice-rpc.test.sql
+
+      - name: json-contracts.test.sql
+        if: always()
+        run: npx supabase test db supabase/tests/database/json-contracts.test.sql
+
+      - name: operational-command-rpc.test.sql
+        if: always()
+        run: npx supabase test db supabase/tests/database/operational-command-rpc.test.sql
+
+      - name: operations-rpc.test.sql
+        if: always()
+        run: npx supabase test db supabase/tests/database/operations-rpc.test.sql
+
+      - name: team-management-rpc.test.sql
+        if: always()
+        run: npx supabase test db supabase/tests/database/team-management-rpc.test.sql
+
+      - name: verification-rpc.test.sql
+        if: always()
+        run: npx supabase test db supabase/tests/database/verification-rpc.test.sql
+
+      - name: Encerrar Supabase
+        if: always()
+        run: npm run supabase:stop || true
