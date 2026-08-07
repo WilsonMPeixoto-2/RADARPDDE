@@ -10,7 +10,7 @@ select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000808
 
 select lives_ok($$
     select public.save_exercise_with_competences(
-        '{"id":"global","exercises":["2030"],"closing_competence":"2030-01","settings":{}}'::jsonb,
+        jsonb_set('{"id":"global","exercises":["2030"],"closing_competence":"2030-01","settings":{}}'::jsonb, '{row_version}', to_jsonb((select row_version from public.app_config where id = 'global')), true),
         (select jsonb_agg(jsonb_build_object('id', format('2030-%s', lpad(month::text, 2, '0')), 'label', month::text, 'exercise', 2030)) from generate_series(1,12) month),
         '{"id":"log-exercise","action":"Exercício Criado","details":{"year":2030}}'::jsonb
     )
@@ -23,7 +23,7 @@ insert into public.controllers (id, name) values ('CTRL-OPS', 'Controlador RPC')
 insert into public.programs (id, name) values ('OPS_BASIC', 'Programa RPC');
 select lives_ok($$
     select public.save_school_with_programs(
-        '{"id":"OPS-SCHOOL","designation":"04.99.808","denomination":"Escola Operações","cre":"4ª CRE","controller_id":"CTRL-OPS","initial_competence":"2030-01","active":true}'::jsonb,
+        '{"id":"OPS-SCHOOL","designation":"04.99.808","denomination":"Escola Operações","cre":"4ª CRE","controller_id":"CTRL-OPS","initial_competence":"2030-01","active":true,"inep":"33906265","cnpj":"90.906.265/0001-84","sici":"SICI-TEST-C50C2059F4FA"}'::jsonb,
         '[{"id":"OPS-SCHOOL::OPS_BASIC","school_id":"OPS-SCHOOL","program_id":"OPS_BASIC","active":true}]'::jsonb,
         null,
         '{"id":"log-school","school_id":"OPS-SCHOOL","action":"Escola Cadastrada","details":{}}'::jsonb

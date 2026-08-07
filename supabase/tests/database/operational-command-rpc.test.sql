@@ -47,9 +47,9 @@ insert into public.competences (id, label, exercise) values
 ('2034-01', 'Janeiro 2034', 2034),
 ('2034-02', 'Fevereiro 2034', 2034);
 insert into public.programs (id, name) values ('OPS_BASIC', 'Programa Operacional');
-insert into public.schools (id, designation, denomination, cre, initial_competence, controller_id, inventory_process) values
-('OPS-SCHOOL-1', '04.99.941', 'Escola Operacional 1', '4ª CRE', '2034-01', 'OPS-CTRL', '07/941/2034'),
-('OPS-SCHOOL-2', '04.99.942', 'Escola Operacional 2', '4ª CRE', '2034-01', 'OPS-CTRL', '07/942/2034');
+insert into public.schools (id, designation, denomination, cre, initial_competence, controller_id, inventory_process, inep, cnpj, sici)
+values('OPS-SCHOOL-1', '04.99.941', 'Escola Operacional 1', '4ª CRE', '2034-01', 'OPS-CTRL', '07/941/2034', '33404245', '90.404.245/0001-09', 'SICI-TEST-9D1513D51F84'),
+('OPS-SCHOOL-2', '04.99.942', 'Escola Operacional 2', '4ª CRE', '2034-01', 'OPS-CTRL', '07/942/2034', '33746329', '90.746.329/0001-56', 'SICI-TEST-548117990B3F');
 insert into public.verifications (id, school_id, competence_id, program_id, bonification, analysis, payload)
 values ('OPS-SCHOOL-1::2034-01::OPS_BASIC', 'OPS-SCHOOL-1', '2034-01', 'OPS_BASIC', '{"extCC":"Sim"}', '{"extCC":"Incorreto"}', '{}');
 

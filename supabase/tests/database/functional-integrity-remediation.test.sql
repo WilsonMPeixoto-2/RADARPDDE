@@ -62,10 +62,13 @@ insert into public.competences (id, label, exercise) values
 insert into public.programs (id, name) values
 ('INT_BASIC', 'Programa de Integridade');
 insert into public.schools (
-    id, designation, denomination, cre, initial_competence, controller_id, inventory_process
-) values (
+    id, designation, denomination, cre, initial_competence, controller_id, inventory_process,
+    inep,
+    cnpj,
+    sici)
+values(
     'INT-SCHOOL', '04.99.981', 'Escola Integridade', '4ª CRE', '2039-12', 'INT-CTRL', '07/981/2039'
-);
+, '33589650', '90.589.650/0001-08', 'SICI-TEST-97D92212378A');
 
 -- As escritas operacionais são executadas como controlador real, sob RLS.
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000982', true);

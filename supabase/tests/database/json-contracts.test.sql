@@ -13,7 +13,8 @@ select ok(not public.radar_jsonb_matches('errors', '{"codigo":"VALOR"}'::jsonb),
 
 insert into public.competences (id, label, exercise) values ('2029-01', 'Janeiro 2029', 2029);
 insert into public.programs (id, name) values ('JSON_BASIC', 'Programa JSON');
-insert into public.schools (id, designation, denomination, cre) values ('JSON-SCHOOL', '04.99.901', 'Escola JSON', '4ª CRE');
+insert into public.schools (id, designation, denomination, cre, inep, cnpj, sici)
+values('JSON-SCHOOL', '04.99.901', 'Escola JSON', '4ª CRE', '33217488', '90.217.488/0001-54', 'SICI-TEST-DD9F7F10F98F');
 
 select throws_ok(
     $$insert into public.verifications (id, school_id, competence_id, program_id, bonification, analysis)
