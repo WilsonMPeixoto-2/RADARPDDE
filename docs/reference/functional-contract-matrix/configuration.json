@@ -27,7 +27,7 @@
     "criticality": "P0",
     "allow": ["sme_management", "technical_admin"],
     "deny": ["anonymous", "controller", "federal_assistant", "inventory"],
-    "anchors": [["src/application/configuration-service.js", "async createExercise"], ["src/data/supabase-repository.js", "saveExerciseWithCompetences"]],
+    "anchors": [["src/application/configuration-service.js", "async createExercise"], ["src/data/supabase-repository.js", "saveExerciseWithCompetences"], ["supabase/migrations/202608060002_functional_integrity_remediation.sql", "save_exercise_with_competences"]],
     "service": "ConfigurationService.createExercise",
     "repository": "saveExerciseWithCompetences",
     "resources": ["app_config", "competences", "administrative_logs"],
@@ -36,7 +36,7 @@
     "compensation": "atomic_rpc",
     "evidence": "exercise",
     "coverage": "partial",
-    "gaps": ["Falta prova controlada de criação e limpeza integral do exercício."],
+    "gaps": ["A correção de lote, row_version e calendário mensal está integrada; falta concluir a prova controlada de criação, releitura por perfil e limpeza/reversão do exercício."],
     "next": "controlled-write"
   },
   {
@@ -55,9 +55,9 @@
     "concurrency": "row_version",
     "compensation": "atomic_rpc",
     "evidence": "program",
-    "coverage": "decision",
-    "gaps": ["A autoridade funcional da Gestão SME sobre programas precisa de confirmação antes de nova expansão ou retirada."],
-    "next": "functional-decision"
+    "coverage": "partial",
+    "gaps": ["O contrato vigente já autoriza Gestão SME e administrador técnico; falta prova controlada de criação/edição, negativa aos demais perfis, autoria e releitura."],
+    "next": "controlled-write"
   },
   {
     "id": "CFG-04",
@@ -75,19 +75,19 @@
     "concurrency": "row_version",
     "compensation": "atomic_rpc",
     "evidence": "program",
-    "coverage": "decision",
-    "gaps": ["A autoridade funcional da Gestão SME sobre programas precisa de confirmação."],
-    "next": "functional-decision"
+    "coverage": "partial",
+    "gaps": ["O contrato vigente já autoriza Gestão SME e administrador técnico; falta prova controlada de desativação, preservação de histórico, negativa aos demais perfis e releitura."],
+    "next": "controlled-write"
   },
   {
     "id": "SCH-01",
     "surface": "portfolio",
-    "action": "Cadastrar ou editar unidade escolar e programas",
+    "action": "Cadastrar nova unidade pela Assistente ou editar cadastro escolar autorizado",
     "mode": "write",
     "criticality": "P0",
     "allow": ["controller", "federal_assistant", "technical_admin"],
     "deny": ["anonymous", "sme_management", "inventory"],
-    "anchors": [["src/application/school-service.js", "async saveSchool"], ["src/data/supabase-repository.js", "saveSchoolWithPrograms"]],
+    "anchors": [["src/application/school-service.js", "async saveSchool"], ["src/integration/school-form-integrity.js", ""], ["src/data/supabase-repository.js", "saveSchoolWithPrograms"], ["supabase/migrations/202608060003_school_institutional_identity.sql", "schools_institutional_identity_nonempty"]],
     "service": "SchoolService.saveSchool",
     "repository": "saveSchoolWithPrograms",
     "resources": ["schools", "school_programs", "administrative_logs"],
@@ -96,7 +96,7 @@
     "compensation": "atomic_rpc",
     "evidence": "remote",
     "coverage": "partial",
-    "gaps": ["Falta prova controlada por perfil com releitura e limpeza do cadastro técnico."],
+    "gaps": ["A geração artificial de identidade foi removida e as duplicidades estão protegidas; falta prova controlada completa diferenciando criação pela Assistente, edição autorizada pelo Controlador, negativas de identidade/carteira e releitura."],
     "next": "controlled-write"
   },
   {
@@ -116,7 +116,7 @@
     "compensation": "atomic_rpc",
     "evidence": "remote",
     "coverage": "partial",
-    "gaps": ["Falta prova controlada de ida, releitura e retorno ao responsável original."],
+    "gaps": ["Falta prova controlada de ida, releitura, negativa ao Controlador e retorno ao responsável original."],
     "next": "controlled-write"
   },
   {
@@ -136,7 +136,7 @@
     "compensation": "atomic_rpc",
     "evidence": "remote",
     "coverage": "partial",
-    "gaps": ["Falta prova controlada de lote, releitura, rollback e conflito parcial."],
+    "gaps": ["Falta prova controlada de lote, releitura, retorno/rollback e conflito parcial."],
     "next": "controlled-write"
   },
   {
@@ -147,9 +147,9 @@
     "criticality": "P0",
     "allow": ["federal_assistant", "technical_admin"],
     "deny": ["anonymous", "controller", "sme_management", "inventory"],
-    "anchors": [["src/application/directory-service.js", "async saveController"], ["src/application/team-account-gateway.js", "saveController"], ["supabase/functions/team-account-management/index.ts", ""]],
+    "anchors": [["src/application/directory-service.js", "async saveController"], ["src/application/team-account-gateway.js", "saveController"], ["supabase/functions/team-account-management/index.ts", "authUserIdByEmail"]],
     "service": "DirectoryService.saveController",
-    "repository": "team-account-management + RPC",
+    "repository": "team-account-management + Auth lookup + RPC",
     "resources": ["auth.users", "controllers", "user_profiles", "administrative_logs"],
     "reload": true,
     "concurrency": "row_version",
@@ -187,9 +187,9 @@
     "criticality": "P0",
     "allow": ["federal_assistant", "technical_admin"],
     "deny": ["anonymous", "controller", "sme_management", "inventory"],
-    "anchors": [["src/application/directory-service.js", "async saveInventoryMember"], ["src/application/team-account-gateway.js", "saveInventoryMember"], ["supabase/functions/team-account-management/index.ts", ""]],
+    "anchors": [["src/application/directory-service.js", "async saveInventoryMember"], ["src/application/team-account-gateway.js", "saveInventoryMember"], ["supabase/functions/team-account-management/index.ts", "authUserIdByEmail"]],
     "service": "DirectoryService.saveInventoryMember",
-    "repository": "team-account-management + RPC",
+    "repository": "team-account-management + Auth lookup + RPC",
     "resources": ["auth.users", "inventory_team_members", "user_profiles", "administrative_logs"],
     "reload": true,
     "concurrency": "row_version",

@@ -1,7 +1,7 @@
 # Runbook — migrations, backup, restauração e rollback Supabase
 
 **Estado:** vigente  
-**Atualizado em:** 5 de agosto de 2026
+**Atualizado em:** 7 de agosto de 2026
 
 ## 1. Objetivo
 
@@ -16,27 +16,23 @@ Nenhuma etapa autoriza automaticamente operação em Production.
 
 ## 2. Baseline
 
-```text
-projeto Production: scnryinorqeucbfkioxo
-migrations aplicadas: 25
-PostgreSQL: 17.6.1.147
-migration SME: 20260728182226_sme_access_governance
-alias derivado: ausente
-```
+Projeto, quantidade de migrations, versão mais recente e saúde do ambiente ficam em [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md) e devem ser confirmados no Supabase antes da operação.
 
-O PR nº 141 contém uma 26ª migration somente em sua branch. Enquanto o PR estiver aberto e a migration não tiver sido aplicada, o baseline remoto permanece 25.
+Não manter neste runbook uma segunda lista manual de “quantas migrations estão aplicadas”.
 
 ## 3. Salvaguardas
 
 - segredo administrativo nunca vai ao navegador;
-- chaves e dados integrais não entram em relatório;
-- dumps SQL não são artefatos do CI;
+- chaves/dados integrais não entram em relatório;
+- dumps SQL não são artefatos públicos do CI;
 - seed não é aplicado implicitamente em Production;
 - histórico de migrations não é editado manualmente;
 - SQL já aplicado não é reaplicado para corrigir histórico;
 - migration vazia não mascara divergência;
-- primeiro validar em ambiente local ou descartável;
-- aplicação remota exige dry-run, backup, reversão e autorização.
+- primeiro validar em ambiente local/descartável;
+- aplicação remota exige dry-run, backup, reversão e escopo autorizado;
+- função/trigger privilegiado deve usar `search_path` controlado e grants mínimos;
+- qualquer DML corretiva em migration precisa de guardas que impeçam atingir registros fora do conjunto comprovado.
 
 ## 4. Ferramentas locais
 
@@ -58,51 +54,76 @@ RADAR_ALLOW_DISPOSABLE_BACKUP_RESTORE=true npm run test:backup-restore
 2. confirmar projeto vinculado;
 3. executar `supabase migration list --linked`;
 4. comparar arquivos e histórico remoto;
-5. executar testes de alinhamento;
-6. verificar o schema atual;
+5. executar gates de alinhamento;
+6. verificar schema atual;
 7. resetar localmente;
 8. executar pgTAP e lint;
 9. regenerar tipos;
 10. executar backup/restauração;
-11. documentar reversão;
-12. executar `supabase db push --linked --dry-run`;
-13. interromper diante de desvio não explicado.
+11. revisar privilégios, `search_path`, RLS e efeitos em dados existentes;
+12. documentar reversão;
+13. executar `supabase db push --linked --dry-run`;
+14. interromper diante de desvio não explicado.
 
 ## 6. Criação de migration
 
 - timestamp posterior ao último arquivo integrado;
 - SQL determinístico;
-- teste que falha antes;
+- teste/regressão correspondente;
 - reset local completo;
 - pgTAP para regra e permissões;
 - lint e tipos;
-- documentação do schema, permissões e cobertura;
+- documentação de schema/permissões/cobertura;
 - backup/restauração;
 - Preview ou ambiente descartável;
 - dry-run remoto;
 - plano de reversão;
-- autorização antes da aplicação.
+- aplicação remota somente dentro do escopo aprovado.
 
-Mudança direta de schema pelo painel remoto é proibida porque contorna o histórico versionado.
+Mudança direta de schema pelo painel remoto é proibida quando contorna histórico versionado.
 
 ## 7. Aplicação remota
 
 Na janela autorizada:
 
-1. confirmar SHA e arquivo exato;
+1. confirmar SHA/arquivo exato;
 2. confirmar backup apropriado;
 3. confirmar histórico e dry-run;
 4. confirmar checks do SHA;
 5. aplicar pelo mecanismo oficial;
 6. verificar versão no histórico;
-7. executar consultas e testes pós-aplicação;
-8. revisar logs e Advisors;
+7. executar consultas/testes pós-aplicação;
+8. revisar logs e Advisors quando aplicável;
 9. validar jornadas afetadas;
-10. registrar horário, responsável, resultado e evidência.
+10. executar auditoria de integridade;
+11. registrar horário, responsável, resultado e evidência.
 
-Falha bloqueia nova alteração até classificação e plano de recuperação.
+Falha bloqueia nova alteração até classificação e recuperação.
 
-## 8. Rollback de schema
+## 8. Remediações recentes como referência de padrão
+
+As migrations recentes incorporaram três tipos de correção que devem servir como exemplo de desenho cuidadoso:
+
+### Reparo de Auth legado
+
+- normalização restrita dos campos incompatíveis comprovados;
+- RPC de lookup exato por e-mail restrita a `service_role`;
+- remoção de resíduos sintéticos condicionada por guardas que verificam identidade e ausência de vínculos reais.
+
+### Integridade funcional
+
+- criação de exercício com `row_version` e contrato mensal estrito;
+- trigger controlado para remover bem derivado desvinculado de nota;
+- trigger para sincronizar tentativas de pendência e reconciliação idempotente do histórico.
+
+### Identidade escolar
+
+- constraint de não-vazio;
+- índices únicos normalizados de INEP, CNPJ e SICI.
+
+Esses arquivos já pertencem ao histórico aplicado do baseline corrente. Não copiá-los para nova migration sem nova necessidade comprovada.
+
+## 9. Rollback de schema
 
 Não apagar migration aplicada nem alterar histórico para simular reversão.
 
@@ -110,14 +131,12 @@ Opções:
 
 - migration compensatória;
 - restauração de backup;
-- rollback do frontend quando o problema é compatibilidade;
+- rollback de frontend quando o problema é compatibilidade;
 - correção específica dos dados afetados.
 
-`migration repair --status reverted` altera o histórico, não desfaz SQL.
+`migration repair --status reverted` altera histórico, não desfaz SQL.
 
-## 9. Backup/restauração descartáveis
-
-Componentes:
+## 10. Backup/restauração descartáveis
 
 ```text
 .github/workflows/backup-restore-disposable.yml
@@ -129,95 +148,89 @@ Fluxo:
 
 ```text
 pilha de origem
-→ migrations + seed + Auth efêmero
+→ migrations + seed/fixtures efêmeros
 → dumps de papéis, schema, dados e histórico
 → segunda pilha isolada
 → restauração transacional
 → comparação de schema, dados, Auth e migrations
-→ evidence.json
+→ evidence.json sanitizado
 → limpeza
 ```
 
-O gate não usa `--linked`, segredo remoto ou Production.
-
-## 10. Limites do backup descartável
-
-Comprova o procedimento lógico. Não substitui:
-
-- política institucional de retenção;
-- cópia periódica do ambiente remoto;
-- armazenamento externo;
-- ensaio de desastre autorizado;
-- recurso de recuperação oferecido pelo plano contratado.
+O gate não usa Production e não substitui DR institucional.
 
 ## 11. Importação
 
-### Exportação
+Registrar origem, responsável, formato, `importId`, contagens, hash e snapshot anterior fora do GitHub quando houver dados sensíveis.
 
-Registrar:
+Executar:
 
-- origem e responsável;
-- versão do formato;
-- `importId`;
-- contagens;
-- hash SHA-256;
-- snapshot anterior.
+```text
+plan
+→ validate
+→ dry-run
+→ staging idempotente
+→ reconciliação
+→ promoção transacional
+→ nova reconciliação
+```
 
-Guardar fora do GitHub.
-
-### Validação
-
-Executar `plan`, `validate` e `dry-run` sem escrita.
-
-### Staging
-
-- lotes idempotentes;
-- mesmo `importId` e hash em retomada;
-- checkpoints;
-- nenhuma promoção com divergência.
-
-### Promoção
-
-RPC transacional após reconciliação integral. Depois:
-
-1. exportar destino;
-2. comparar contagens e IDs;
-3. verificar registros alterados;
-4. armazenar resumo sanitizado.
-
-### Rollback de dados
-
-Usar snapshot anterior. Após rollback, reconciliar novamente e bloquear nova tentativa sem correção comprovada.
+Rollback de dados usa snapshot anterior e exige nova reconciliação depois.
 
 ## 12. Gestão de Equipe
 
-Mudança de schema, função ou RPC relacionada a contas deve também validar:
+Mudança de schema/função/RPC relacionada a contas também deve validar:
 
 - Edge Function `team-account-management`;
-- CORS e JWT;
+- CORS/JWT;
 - Auth Admin;
+- `resolve_team_auth_user_id_by_email` e seus grants;
 - vínculos históricos;
 - idempotência;
 - compensação;
+- transição entre perfis;
 - cadastro, edição, redistribuição e desativação;
 - persistência após recarregar.
 
-## 13. Homologação cumulativa
+## 13. Escolas
+
+Mudança de schema relacionada a escolas deve validar:
+
+- campos institucionais obrigatórios;
+- índices de unicidade normalizada;
+- cadastro novo com dados reais;
+- edição legada compatível;
+- autorização da identidade institucional;
+- proteção de `controller_id`;
+- compatibilidade dos cadastros existentes.
+
+## 14. Pendências, notas e patrimônio
+
+Mudança nesses domínios deve avaliar triggers/funções já ativos:
+
+- sincronização de `pendency_attempts`;
+- desvinculação de bem derivado de nota;
+- `saveAssetWithLog` e versões;
+- RLS de exclusão/alteração;
+- efeitos sobre auditoria e integridade agregada.
+
+## 15. Homologação cumulativa
 
 - histórico alinhado;
-- reset e migrations verdes;
+- reset/migrations verdes;
 - pgTAP e RLS;
-- tipos e lint;
+- tipos/lint;
 - backup/restauração;
-- Auth e Edge Functions;
-- E2E por perfil e viewport;
+- Auth/Edge Functions quando afetados;
+- E2E por perfil/viewport;
 - jornadas afetadas;
-- documentação e evidência;
-- autorização expressa para Production.
+- matriz funcional/documentação/evidência;
+- autorização correspondente para Production.
 
-## 14. Referências
+## 16. Referências
 
 - [`SUPABASE_CONNECTION.md`](SUPABASE_CONNECTION.md);
+- [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md);
 - [`../architecture/supabase-readiness.md`](../architecture/supabase-readiness.md);
 - [`../reference/SUPABASE_DATA_DICTIONARY.md`](../reference/SUPABASE_DATA_DICTIONARY.md);
 - [`../reference/SUPABASE_PERMISSIONS_MATRIX.md`](../reference/SUPABASE_PERMISSIONS_MATRIX.md).

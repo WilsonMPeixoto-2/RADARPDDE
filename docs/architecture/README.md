@@ -1,22 +1,26 @@
 # Arquitetura do RADAR PDDE
 
-**Atualizado em:** 5 de agosto de 2026
+**Atualizado em:** 7 de agosto de 2026  
+**Estado:** referência vigente
 
-Esta pasta registra os contratos técnicos e funcionais vigentes. Planos de implementação e auditorias datadas não substituem esses contratos.
+Esta pasta registra contratos técnicos e funcionais estáveis. Valores mutáveis do ambiente ficam em [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md). Planos e auditorias datadas não substituem estes contratos.
 
 ## 1. Fluxo arquitetural
 
 ```text
 interface e navegação
 → domínio e serviços de aplicação
-→ contrato único de repositório
+→ RepositoryContract / UnitOfWork
 → SupabaseRepository
-→ Auth + PostgREST + RLS + RPC + Edge Function
-→ PostgreSQL 17
-→ retorno, estado em memória e renderização
+→ PostgREST / RPC / Edge Function
+→ Auth + RLS + PostgreSQL
+→ resposta
+→ estado em memória
+→ renderização
+→ releitura quando aplicável
 ```
 
-A confiabilidade funcional exige provar o percurso completo, inclusive releitura após recarregar e compensação em falha parcial.
+A confiabilidade funcional exige provar o percurso completo, incluindo autorização negativa, concorrência e compensação quando houver mutação composta.
 
 ## 2. Produto e regras operacionais
 
@@ -30,14 +34,51 @@ A confiabilidade funcional exige provar o percurso completo, inclusive releitura
 
 ## 3. Frontend e integração
 
-- [`frontend-load-order.md`](frontend-load-order.md) — ordem de carregamento e bootstrap;
-- [`product-extensions-load-order.md`](product-extensions-load-order.md) — integrações posteriores ao `app.js`;
+- [`frontend-load-order.md`](frontend-load-order.md) — ordem efetiva de carregamento;
+- [`product-extensions-load-order.md`](product-extensions-load-order.md) — integrações posteriores ao núcleo;
 - [`testing.md`](testing.md) — estratégia de testes e gates;
-- [`supabase-readiness.md`](supabase-readiness.md) — prontidão local/remota do backend.
+- [`supabase-readiness.md`](supabase-readiness.md) — prontidão do backend.
 
-O frontend não é fonte independente de dados. A interface deve consumir serviços e repositórios definidos e refletir o resultado retornado pelo Supabase.
+O frontend não é fonte independente de dados. A interface deve consumir serviços/repositórios definidos e refletir o resultado retornado pelo backend autorizado.
 
-## 4. Exportações
+## 4. Correções arquiteturais recentes incorporadas
+
+### Exercícios e competência
+
+A criação de exercício envia exatamente as doze competências do novo exercício, exige versão esperada e valida janeiro a dezembro. A restauração remota sincroniza as competências antes do primeiro render.
+
+### Escolas
+
+Novas escolas exigem identidade institucional informada. O serviço não gera identidade artificial e o banco protege não-vazio e unicidade normalizada de INEP, CNPJ e SICI.
+
+### Gestão de Equipe
+
+Fluxo:
+
+```text
+interface
+→ DirectoryService
+→ TeamAccountGateway
+→ team-account-management
+→ Auth Admin + RPC transacional
+→ diretórios, perfis, escopos e auditoria
+```
+
+A função administrativa usa lookup Auth exato pela RPC `resolve_team_auth_user_id_by_email`, restrita a `service_role`; não depende de `listUsers`. Reutilização de conta, transições entre perfis, compensação e histórico são contratos permanentes.
+
+### Patrimônio
+
+`ASSET-02` não usa mais persistência genérica: edição rápida é restrita ao campo permitido, usa `saveAssetWithLog`, versão esperada e log. Nota permanente e bem derivado mantêm integridade transacional ao trocar/desvincular o vínculo.
+
+### Pendências
+
+`pendency_attempts` é sincronizada com o agregado de tentativas da pendência, com reconciliação idempotente para histórico existente.
+
+### Exportações
+
+`RadarExcelExportAudit` exige registro inicial via `AuditService` antes do download e neutraliza duplicação do log legado. A conclusão da exportação também é registrada.
+
+## 5. Exportações
 
 - [`excel-export.md`](excel-export.md) — relatório institucional;
 - [`excel-workbook-plan.md`](excel-workbook-plan.md) — plano declarativo do workbook;
@@ -45,19 +86,17 @@ O frontend não é fonte independente de dados. A interface deve consumir servi�
 - [`excel-sme-mensal.md`](excel-sme-mensal.md) — produto mensal da SME;
 - [`excel-integral-certification.md`](excel-integral-certification.md) — certificação célula a célula e OOXML.
 
-### Estado do Excel SME
+Contrato estável do Excel SME:
 
 ```text
 template-fonte: 30 colunas
 produto público: 27 colunas A:AA
 competência: mensal
 motor: ExcelJS 4.4.0
-homologação desktop: concluída
+homologação desktop: obrigatória após mudança material
 ```
 
-As posições-fonte K, R e Y são removidas antes da publicação. Designação, bordas, alinhamento, filtro, impressão e congelamento possuem regressões próprias.
-
-## 5. Supabase, Auth e permissões
+## 6. Supabase, Auth e permissões
 
 - [`../reference/SUPABASE_DATA_DICTIONARY.md`](../reference/SUPABASE_DATA_DICTIONARY.md);
 - [`../reference/SUPABASE_FUNCTIONAL_COVERAGE.md`](../reference/SUPABASE_FUNCTIONAL_COVERAGE.md);
@@ -66,63 +105,46 @@ As posições-fonte K, R e Y são removidas antes da publicação. Designação,
 - [`../runbooks/SUPABASE_CONNECTION.md`](../runbooks/SUPABASE_CONNECTION.md);
 - [`../runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`](../runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md).
 
-Baseline na data de corte:
-
-```text
-Supabase: scnryinorqeucbfkioxo
-PostgreSQL: 17.6.1.147
-migrations em Production: 25
-team-account-management: versão 95, JWT obrigatório
-```
-
-## 6. Gestão de Equipe
-
-Fluxo:
-
-```text
-interface
-→ DirectoryService
-→ TeamAccountGateway
-→ Edge Function team-account-management
-→ Auth Admin + RPC transacional
-→ diretórios, perfis, escopos e auditoria
-```
-
-Contratos obrigatórios:
-
-- CORS fail-closed;
-- origem institucional autorizada;
-- JWT e papel da Assistente;
-- recuperação segura de vínculo histórico;
-- redistribuição de carteira;
-- desativação lógica;
-- compensação de falha parcial;
-- atualização da interface e persistência após recarregar.
+Consultar `CURRENT_STAGE.md` e o próprio Supabase para números de migrations e versão de Edge Function.
 
 ## 7. Garantia operacional
 
-O monitor geral de Production verifica continuamente:
+A arquitetura possui:
 
-- commit publicado;
-- manifesto, shell e assets;
-- gate de autenticação;
-- bloqueio anônimo;
-- preflight das Edge Functions;
-- abertura e encerramento de incidente automático.
+- monitor geral de Production;
+- incidentes automáticos;
+- auditoria agregada de vinte invariantes;
+- matriz funcional executável de 41 operações;
+- backup/restauração descartáveis;
+- gate por perfil/viewport;
+- infraestrutura integrada do smoke autenticado de leitura.
 
-A auditoria de integridade dos dados do PR nº 141 permanece em andamento e não integra a arquitetura vigente até eventual merge e aplicação autorizada.
+A última permanece deliberadamente desativada até provisionamento autorizado de identidades técnicas.
 
-## 8. Documento histórico
+## 8. Matriz funcional
 
-- [`roadmap-pre-supabase.md`](roadmap-pre-supabase.md) — planejamento anterior à ativação remota; não representa o estágio atual.
+A fonte JSON executável diferencia:
 
-## 9. Precedência
+- `covered`: evidência suficiente para o estágio atual;
+- `partial`: contrato implementado, mas prova padronizada ainda incompleta;
+- `gap`: lacuna técnica comprovada;
+- `decision`: implementação existente cuja regra ainda precisa de decisão.
+
+Após a reconciliação pós-PR #162: 9 `covered`, 32 `partial`, 0 `gap`, 0 `decision`.
+
+Correção implementada não é sinônimo de cobertura total. `ASSET-02`, por exemplo, migra de lacuna para parcial.
+
+## 9. Documento histórico
+
+[`roadmap-pre-supabase.md`](roadmap-pre-supabase.md) é planejamento anterior à ativação remota e não representa o estágio atual.
+
+## 10. Precedência
 
 1. código, migrations, tipos e contratos executáveis;
 2. ambientes efetivos;
-3. decisões vigentes;
-4. documentos desta pasta;
-5. evidências do mesmo SHA;
-6. planos e auditorias históricas.
+3. evidências do mesmo SHA;
+4. decisões vigentes;
+5. documentos desta pasta;
+6. históricos.
 
-A classificação detalhada está em [`../reference/STATUS_DOCUMENTOS.md`](../reference/STATUS_DOCUMENTOS.md).
+A classificação completa está em [`../reference/STATUS_DOCUMENTOS.md`](../reference/STATUS_DOCUMENTOS.md).

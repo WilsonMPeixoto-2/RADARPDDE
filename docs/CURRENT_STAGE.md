@@ -1,206 +1,213 @@
 # RADAR PDDE — Estado atual do projeto
 
-**Atualizado em:** 5 de agosto de 2026
+**Atualizado em:** 7 de agosto de 2026  
+**Classe documental:** Canônico — baseline mutável único
 
-## 1. Baseline efetivo
+> Este é o único documento canônico destinado a concentrar valores altamente mutáveis do ambiente, como SHA da `main`, deployment, quantidade de migrations e versão de Edge Function. Antes de qualquer ação dependente do ambiente, revalidar GitHub, Vercel e Supabase. Os demais documentos devem referenciar este baseline em vez de copiar números mutáveis.
+
+## 1. Hierarquia das fontes
+
+Para determinar o estado implementado, usar nesta ordem:
+
+1. código-fonte remoto da `main` ou do SHA explicitamente analisado;
+2. schema, migrations, Auth, RLS, funções, dados e logs efetivos do Supabase autorizado;
+3. deployment efetivamente publicado na Vercel e seu SHA;
+4. testes, workflows e evidências reproduzíveis do mesmo código;
+5. decisões funcionais vigentes;
+6. documentação canônica;
+7. documentos históricos, planos, auditorias datadas e memória de conversa.
+
+Nenhum documento prevalece sobre código ou ambiente real.
+
+## 2. Baseline remoto confirmado
 
 ```text
-GitHub main: 2ae98da8a547d46cd7e8e64977b855b1a90a2495
-Último merge funcional: PR #150 — transição de perfil na Gestão de Equipe
-Vercel Production: dpl_BvrxJUahgWpaRbtn6Y5FrfzknKAw — READY
-Commit publicado na Vercel: 2ae98da8a547d46cd7e8e64977b855b1a90a2495
-Supabase Production: scnryinorqeucbfkioxo — ACTIVE_HEALTHY
+GitHub repository: WilsonMPeixoto-2/RADARPDDE
+GitHub main: b347b854bf5af99c3ec9d9b091b77b854cc53a4b
+Último merge funcional: PR #162 — remediação funcional integral
+
+Vercel project: radarpdde-fix
+Vercel project id: prj_GfXuUuO3dF2jykpp9QgyqIDsxg4U
+Vercel Production: dpl_DYHMyxDLGp9nzFz63AWxT7Wej87T — READY
+Commit publicado: b347b854bf5af99c3ec9d9b091b77b854cc53a4b
+Alias principal: radarpdde-fix.vercel.app
+
+Supabase project: scnryinorqeucbfkioxo — RADAR PDDE 2026
+Supabase status: ACTIVE_HEALTHY
+Região: sa-east-1
 PostgreSQL: 17.6.1.147
-Migrations em Production: 26
-Última migration: 202608040001_production_integrity_monitor
-Competência de fechamento: 2026-12
-Edge Function team-account-management: ACTIVE, versão 103, JWT obrigatório
-Supabase JS: 2.110.9
-Supabase CLI: 2.110.0
+Migrations aplicadas em Production: 30
+Última migration: 202608060003_school_institutional_identity
+closing_competence: 2026-12
+app_config.row_version: 20
+production_integrity_check(): healthy / totalIssues = 0 / schemaVersion = 1
+Edge Function team-account-management: v112 — ACTIVE — verify_jwt=true
+
 Node.js: 24.x
+@supabase/supabase-js: 2.110.9
+Supabase CLI: 2.110.0
+@playwright/test: 1.62.0
+ExcelJS: 4.4.0
 ```
 
-A `main`, o frontend publicado e a Edge Function estão alinhados ao hotfix do PR nº 150. A issue nº 149 foi encerrada. Nenhuma migration ou alteração automática de dados reais integrou essa publicação.
+Na verificação que originou esta reconciliação, a Vercel não apresentou erros de runtime no intervalo consultado e não havia GitHub Issues abertas.
 
-## 2. Estado executivo
+## 3. Estado executivo
 
-O RADAR PDDE opera com frontend estático na Vercel e Supabase Production como backend canônico. Estão integrados:
+O RADAR PDDE opera com Supabase Production como backend institucional canônico e frontend publicado pela Vercel. Permanecem implementados:
 
-- núcleo operacional por competência, escola e programa;
-- Dashboard, Carteira, Competências, Prontuário, timeline e Pendências;
-- notas fiscais, bens, encaminhamento e inventariação;
-- Gestão de Equipe com Auth, CORS, RPC, compensação e transição segura entre perfis;
-- Gestão SME com recortes gerenciais e configurações vigentes;
+- competência global, Dashboard, Carteira, Competências, Prontuário, timeline e Pendências;
+- verificações de bonificação e análise técnica;
+- notas fiscais e efeitos patrimoniais;
+- bens, encaminhamento e inventariação;
+- Gestão de Equipe com Auth Admin protegido, RPCs, CORS, compensação e histórico;
+- Gestão SME e configurações atualmente autorizadas;
+- registros administrativos e trilha técnica;
 - Excel SME mensal de 27 colunas homologado no Excel desktop;
-- monitor geral de Production e incidentes automáticos;
-- auditoria agregada e somente leitura de vinte invariantes de integridade em Production;
-- backup/restauração descartáveis e gate por perfil/viewport;
+- relatório institucional e CSV de contingência;
+- monitor geral de Production, incidentes automáticos e auditoria agregada de vinte invariantes;
+- backup/restauração descartáveis;
+- gate por perfil e viewport;
 - matriz funcional executável de 41 operações;
-- Supabase JS 2.110.9 no navegador e na Edge Function.
+- infraestrutura de smoke autenticado somente leitura em Production, integrada mas deliberadamente desativada até provisionamento específico.
 
-A prioridade corrente é concluir a camada de smoke autenticado somente leitura e, depois, avançar para as provas controladas de escrita.
+Não há evidência atual de incidente sistêmico de Production.
 
-## 3. Matriz funcional ponta a ponta
+## 4. Correções recentes incorporadas ao baseline
 
-A fonte canônica integrada pelo PR nº 145 relaciona:
+### PR #150 — transição entre perfis da equipe
 
-```text
-perfil
-× superfície
-× ação
-× serviço
-× repositório
-× tabela/RPC/Edge Function
-× autorização
-× concorrência
-× releitura
-× compensação
-× evidência
-```
+Corrigiu a reutilização segura de conta Auth em transições autorizadas, preservando um único perfil ativo, histórico inativo, compensação e mensagens funcionais de conflito.
 
-### Resultado registrado
+### PR #154 — autorização da carteira escolar
+
+O Controlador pode editar dados cadastrais autorizados, mas não pode redistribuir `schools.controller_id`. Redistribuição permanece função da Assistente de Verbas Federais e do administrador técnico, com proteção em interface, serviço e banco.
+
+### PR #157 e #160 — exercícios e bootstrap de competências
+
+A criação de novo exercício envia apenas as doze competências correspondentes e o estado remoto é sincronizado antes do primeiro render. A criação usa versão esperada e contrato mensal estrito.
+
+### PR #161 — bloqueio recorrente da Gestão de Equipe
+
+Foi removida a dependência de varredura global `listUsers`. O backend usa `resolve_team_auth_user_id_by_email`, restrita a `service_role`, seguido de lookup exato da conta. Registros Auth legados incompatíveis e resíduos sintéticos conhecidos foram reconciliados pela migration `202608060001_team_auth_legacy_repair`.
+
+### PR #162 — remediação funcional integral
+
+Corrigiu os achados confirmados da auditoria:
+
+- `SCH-01`: identidade institucional de escola deixou de ser sintetizada; novas escolas exigem identificação informada e o banco impede vazios e duplicidades normalizadas de INEP, CNPJ e SICI;
+- `CFG-02`: criação de exercício exige `row_version`, janeiro a dezembro e conflito otimista;
+- `INV-01`: desvinculação/troca do bem derivado de nota permanente elimina o vínculo antigo na mesma transação protegida;
+- `ASSET-02`: edição rápida patrimonial ficou restrita ao campo permitido, com `saveAssetWithLog`, versão esperada e log administrativo;
+- `PEND-02`: `pendency_attempts` é sincronizada com o agregado de tentativas e o histórico existente foi reconciliado de forma idempotente;
+- `EXP-01` e `EXP-02`: auditoria pelo `AuditService` tornou-se obrigatória antes do download e o log legado duplicado foi neutralizado.
+
+As migrations `202608060002_functional_integrity_remediation` e `202608060003_school_institutional_identity` estão efetivamente aplicadas em Production.
+
+## 5. Matriz funcional após a conciliação
+
+A matriz executável continua com **41 operações**. A conciliação documental não transforma correção técnica em homologação completa quando ainda falta prova controlada.
 
 | Cobertura | Operações |
 |---|---:|
 | Comprovada | 9 |
-| Parcial | 29 |
-| Lacuna técnica | 1 |
-| Decisão funcional pendente | 2 |
+| Parcial | 32 |
+| Lacuna técnica conhecida | 0 |
+| Decisão funcional pendente | 0 |
 | **Total** | **41** |
 
 | Próxima prova | Operações |
 |---|---:|
-| manter regressão existente | 5 |
-| smoke autenticado de leitura | 6 |
-| escrita controlada e reversível | 23 |
-| decisão funcional expressa | 2 |
-| observação contínua em Production | 5 |
+| Manter regressão | 5 |
+| Smoke autenticado de leitura | 6 |
+| Escrita controlada e reversível | 25 |
+| Observação contínua em Production | 5 |
+| **Total** | **41** |
 
-### Contratos versionados
+`ASSET-02` deixa de ser lacuna técnica porque a correção está no código e no backend, mas permanece parcial até a prova controlada prevista pelo contrato de confiabilidade.
 
-- `docs/reference/functional-contract-matrix.json`;
-- `docs/reference/functional-contract-matrix/*.json`;
-- `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md`;
-- `scripts/check-functional-contract-matrix.mjs`;
-- `tests/unit/functional-contract-matrix.test.js`.
+`CFG-03` e `CFG-04` deixam de ser classificadas como “decisão pendente”: a revisão do código, serviço, RPC e permissões demonstrou que o contrato vigente já autoriza Gestão SME e administrador técnico a cadastrar, editar e desativar programas. Qualquer retirada ou expansão futura dessa capacidade exige nova decisão funcional expressa.
 
-O verificador integra o readiness e bloqueia IDs duplicados, perfis ou superfícies desconhecidos, permissões incompletas, âncoras/evidências inexistentes e mutações críticas sem releitura, concorrência ou compensação.
+## 6. Smoke autenticado de leitura
 
-## 4. Correção P0 mais recente — Gestão de Equipe
+O PR #148 foi integrado. A infraestrutura cobre cinco contextos autenticados e seis operações de leitura, porém a execução recorrente em Production permanece intencionalmente desativada.
 
-O PR nº 150 corrigiu o percurso:
+Ainda faltam, por decisão de segurança:
 
-```text
-Inventário
-→ desativar integrante
-→ cadastrar a mesma pessoa como Controladora
-→ reutilizar a conta Auth existente
-→ redistribuir carteira
-→ autenticar com o novo papel
-```
+- cinco identidades técnicas exclusivas;
+- segredo protegido com as credenciais dessas identidades;
+- variável de habilitação;
+- execução manual autorizada;
+- execução agendada posteriormente autorizada.
 
-Proteções vigentes:
+Não reutilizar contas pessoais ou funcionais reais para monitoramento.
 
-- busca única por e-mail normalizado antes de enviar convite;
-- reutilização somente sem vínculo ativo conflitante;
-- um único perfil institucional ativo por usuário;
-- histórico inativo preservado;
-- estado anterior de bloqueio restaurado em compensação;
-- payload funcional da Edge Function preservado pelo gateway;
-- conflito apresentado como conflito, não como falsa indisponibilidade.
+## 7. Auditoria funcional PR #156
 
-A prova integral foi executada com identidades e dados sintéticos em Supabase descartável. A operação com pessoas reais não foi executada automaticamente.
+O PR #156, `Auditar funcionalmente as conexões entre frontend e Supabase`, permanece branch histórica de trabalho e **não é fonte canônica do estado atual**.
 
-## 5. Frente aberta — smoke autenticado de leitura
+Ele documentou e reproduziu achados relevantes, mas sua branch divergiu da `main` enquanto as correções avançaram pelos PRs #157, #160, #161 e #162. A documentação formal daquela branch registrou Tasks 1 a 4 como concluídas e a Task 5 como próxima, embora commits posteriores mostrem início da Task 5 e diagnóstico do bootstrap do Controlador.
 
-O PR nº 148 prepara uma prova recorrente, autenticada e não destrutiva para:
+Para continuidade:
 
-- autenticação, perfil, escopo, refresh e logout;
-- busca global autorizada;
-- Dashboard;
-- Carteira ou negativa correta para Inventário;
-- Prontuário e timeline;
-- Pendências.
+- preservar a branch e o PR como evidência histórica;
+- não fazer merge cego do PR #156;
+- iniciar qualquer auditoria remanescente a partir da `main` reconciliada;
+- reaproveitar somente evidências que ainda correspondam ao código atual;
+- considerar o defeito de bootstrap diagnosticado naquela branch como tratado pelo PR #160;
+- considerar os achados SCH-01, CFG-02, INV-01, ASSET-02, PEND-02, EXP-01 e EXP-02 como tecnicamente remediados pelo PR #162, sem confundir isso com prova final de todas as 41 jornadas.
 
-Perfis previstos:
+## 8. Documentação
 
-- Controlador;
-- Assistente de Verbas Federais;
-- Gestão SME;
-- Equipe de Inventário;
-- Administrador técnico.
+A reconciliação de 7 de agosto de 2026 estabelece:
 
-Estado atual:
+- `CURRENT_STAGE.md` como baseline mutável único;
+- documentos canônicos e referências vigentes sem cópias desnecessárias de números voláteis;
+- auditorias e evidências datadas preservadas como registros históricos do momento em que foram produzidas;
+- planos executados preservados, não reescritos para parecer atuais;
+- matriz funcional atualizada na fonte JSON e na visão gerada;
+- PR #156 classificado como trabalho histórico não canônico enquanto permanecer aberto.
 
-- implementação e contratos concluídos na branch;
-- gates locais e descartáveis aprovados no SHA registrado pelo PR;
-- PR ainda em rascunho e precisa ser reconciliado com a `main` após o PR nº 150;
-- execução remota permanece desabilitada;
-- cinco contas técnicas, segredo e variável de ativação não foram criados;
-- nenhuma conta pessoal deve ser reutilizada para monitoramento.
+Relatório: `docs/audits/2026-08-07-reconciliacao-documental-integral-pos-pr162.md`.
 
-A infraestrutura poderá ser integrada desativada. O provisionamento das identidades técnicas e a ativação recorrente exigem autorização operacional específica.
+## 9. Prioridades após esta reconciliação
 
-## 6. Achados estruturais da matriz
+1. encerrar ou substituir formalmente o PR #156 sem merge cego;
+2. retomar a auditoria funcional remanescente a partir da `main` atual;
+3. completar as provas controladas das operações ainda parciais;
+4. decidir separadamente o provisionamento do smoke autenticado de Production;
+5. inspecionar e corrigir, se necessário, a tela de detalhes da escola, cuja conclusão anterior não foi comprovada no histórico remoto;
+6. tratar PRs automáticos de dependências em frente isolada;
+7. realizar UAT com usuários reais e decisão formal de liberação.
 
-### `ASSET-02` — lacuna técnica
+## 10. Critério de conclusão funcional
 
-A edição genérica de bem patrimonial usa `DataService.defaultPersist`, sem o mesmo RPC atômico, log e versão empregados pelas demais mutações patrimoniais. A correção deverá ocorrer em PR próprio antes da prova controlada de escrita.
+Uma função crítica somente é considerada concluída quando houver evidência aplicável de:
 
-### `CFG-03` e `CFG-04` — decisão funcional
-
-Cadastrar, editar e desativar programas existe no frontend e no Supabase, mas a autoridade da Gestão SME deve ser confirmada antes de expansão, retirada ou mudança de RLS.
-
-## 7. Sequência cronológica
-
-1. **Reconciliação documental:** PR nº 142 concluído; atualização pós-PR nº 150 em curso.
-2. **Integridade contínua dos dados:** PR nº 141 concluído; 26ª migration aplicada.
-3. **Matriz funcional executável:** PR nº 145 concluído.
-4. **Atualização Supabase JS:** PR nº 146 concluído e publicado em `2.110.9`.
-5. **Correção do workflow principal:** PR nº 147 concluído.
-6. **Hotfix da transição de perfil:** PR nº 150 concluído e publicado.
-7. **Smoke autenticado de leitura:** reconciliar e integrar o PR nº 148 mantendo a ativação bloqueada.
-8. **Provisionamento técnico do smoke:** criar cinco identidades exclusivas somente após autorização específica.
-9. **Correção de `ASSET-02` e escrita controlada:** PRs isolados, com releitura e reversão.
-10. **Decisão sobre programas da Gestão SME:** confirmação funcional antes de código.
-11. **UAT e liberação:** após os gates técnicos e funcionais.
-
-## 8. Critério de conclusão funcional
-
-Uma função crítica somente é considerada concluída quando houver prova de:
-
-1. visibilidade correta por perfil;
-2. acionamento real no navegador;
+1. perfil autorizado e negativa do indevido;
+2. controle visível e acionamento real;
 3. payload correto;
 4. serviço e repositório esperados;
-5. backend alcançado;
-6. autorização positiva e negativa;
-7. consulta ou gravação concluída;
+5. backend efetivamente alcançado;
+6. gravação ou leitura concluída;
+7. autoria e auditoria;
 8. interface atualizada;
-9. resultado preservado após recarregar;
+9. releitura após refresh quando houver persistência;
 10. conflito tratado;
 11. falha parcial compensada;
-12. regressão permanente no CI.
+12. mensagem útil;
+13. regressão permanente;
+14. evidência correspondente ao mesmo SHA e ambiente.
 
-## 9. Gates ainda pendentes
+## 11. Continuidade documental
 
-- reconciliar e integrar o PR nº 148;
-- autorizar e provisionar identidades técnicas exclusivas para o smoke;
-- aprovar uma execução manual e outra agendada em Production;
-- provas controladas de escrita, releitura e compensação;
-- decisão funcional sobre programas SME;
-- correção da edição patrimonial genérica;
-- homologação do relatório institucional quando priorizada;
-- UAT com servidores reais;
-- decisão formal de liberação.
-
-## 10. Continuidade
+Ordem recomendada de leitura:
 
 1. `AGENTS.md`;
-2. `README.md`;
-3. `docs/CURRENT_STAGE.md`;
-4. `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md`;
-5. `docs/PROJECT_CONTEXT.md`;
-6. `docs/ROADMAP_ATUALIZACOES_2026.md`;
-7. `docs/DECISION_LOG.md`;
-8. `docs/reference/STATUS_DOCUMENTOS.md`.
+2. `docs/CURRENT_STAGE.md`;
+3. `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md`;
+4. `docs/PROJECT_CONTEXT.md`;
+5. `docs/ROADMAP_ATUALIZACOES_2026.md`;
+6. `docs/DECISION_LOG.md`;
+7. `docs/reference/STATUS_DOCUMENTOS.md`;
+8. arquitetura ou runbook específico da tarefa.
