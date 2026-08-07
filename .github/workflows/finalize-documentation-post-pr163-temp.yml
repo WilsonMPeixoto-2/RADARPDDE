@@ -134,7 +134,7 @@ jobs:
           checkpoint = Path('docs/audits/2026-08-07-checkpoint-pos-pr163.md')
           checkpoint_text = '''# RADAR PDDE — checkpoint remoto pós-PR #163
 
-          **Data da verificação:** 7 de agosto de 2026  
+          **Data da verificação:** 7 de agosto de 2026
           **Classe documental:** Histórico — evidência pontual pós-merge
 
           Este arquivo preserva o snapshot remoto exato imediatamente após a integração do PR #163. Não é documento de estado corrente e não deve ser atualizado para acompanhar mudanças futuras.
