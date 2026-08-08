@@ -65,7 +65,7 @@ test.describe('governança de acesso da Gestão SME', () => {
       switchView('prontuario', schoolId);
     }, context);
 
-    await expect(page.getByRole('button', { name: 'Competências e Bonificação' })).toBeVisible();
+    await expect(page.getByRole('tab', { name: 'Competências e Bonificação' })).toBeVisible();
     const prontuario = page.locator('#tab-verificacoes');
     await expect(prontuario.locator('thead th')).toHaveCount(3);
     await expect(prontuario.locator('thead')).not.toContainText('Análise Técnica');

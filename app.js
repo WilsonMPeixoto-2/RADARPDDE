@@ -5056,7 +5056,25 @@ function switchProfile(profile) {
     updateAlertsBell();
 }
 
+function resetContentAreaScroll() {
+    const contentArea = document.querySelector('main.content-area');
+    if (!contentArea) return;
+
+    if (typeof contentArea.scrollTo === 'function') {
+        contentArea.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        return;
+    }
+
+    contentArea.scrollTop = 0;
+    contentArea.scrollLeft = 0;
+}
+
 function switchView(view, param = null) {
+    const previousView = currentView;
+    const previousSchoolId = activeSchoolId;
+    const targetSchoolId = view === 'prontuario' ? (param || activeSchoolId) : null;
+    const shouldResetContentScroll = previousView !== view
+        || (view === 'prontuario' && targetSchoolId !== previousSchoolId);
     currentView = view;
     
     // Atualiza o indicador de competência global
@@ -5084,6 +5102,8 @@ function switchView(view, param = null) {
         else if (view === 'sme-config') renderSMEConfig();
         else if (view === 'equipe') renderEquipe();
     }
+
+    if (shouldResetContentScroll) resetContentAreaScroll();
 }
 
 function toggleProfileDropdown(e) {
@@ -9248,6 +9268,7 @@ function renderProntuario(escolaId) {
         && window.RadarPendencias.isActivePendency(p)
     ));
     const process = esc.processoInventario || 'Não registrado';
+    const showProntuarioActions = accessProfile === 'assistente' || accessProfile === 'controlador';
 
     container.innerHTML = `
         <div class="page-header">
@@ -9257,21 +9278,19 @@ function renderProntuario(escolaId) {
                     ? 'Consulta mensal das informações de bonificação da unidade escolar.'
                     : 'Acompanhamento e Histórico Unificado da Unidade Escolar'}</p>
             </div>
-            <div style="display:flex; gap:12px;">
-                ${accessProfile !== 'inventario' && accessProfile !== 'sme' ? `
-                    <button class="btn btn-secondary" onclick="openContatoModal('${escapeHtml(esc.id)}')">
+            ${showProntuarioActions ? `
+            <div class="prontuario-actions" role="group" aria-label="Ações da unidade escolar">
+                    <button type="button" class="btn btn-secondary" onclick="openContatoModal('${escapeHtml(esc.id)}')">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                         Registrar Contato
                     </button>
-                    <button class="btn btn-secondary" onclick="openCobrancaModal('${escapeHtml(esc.id)}')">
+                    <button type="button" class="btn btn-secondary" onclick="openCobrancaModal('${escapeHtml(esc.id)}')">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
                         Gerar Cobrança
                     </button>
-                ` : ''}
-                ${accessProfile === 'assistente' || accessProfile === 'controlador' ? `
-                    <button class="btn btn-primary" onclick="openEscolaEditModal('${escapeHtml(esc.id)}')">Editar Dados</button>
-                ` : ''}
+                    <button type="button" class="btn btn-primary" onclick="openEscolaEditModal('${escapeHtml(esc.id)}')">Editar Dados</button>
             </div>
+            ` : ''}
         </div>
 
         <div class="school-grid">
@@ -9364,36 +9383,36 @@ function renderProntuario(escolaId) {
                     </div>
                 </div>
 
-                <div class="school-info-card" style="background-color:rgba(157, 125, 252, 0.03)">
-                    <div class="info-label" style="margin-bottom:8px;">Programas Vinculados</div>
-                    <div style="display:flex; flex-direction:column; gap:6px;">
+                <div class="school-info-card school-programs-card">
+                    <div class="info-label">Programas Vinculados</div>
+                    <ul class="school-program-list" role="list" aria-label="Programas vinculados">
                         ${esc.programasIds.map(progId => {
                             const p = programas.find(x => x.id === progId);
-                            return p ? `<span class="badge badge-info" style="justify-content:flex-start;">${escapeHtml(p.name)}</span>` : '';
+                            return p ? `<li class="school-program-item">${escapeHtml(p.name)}</li>` : '';
                         }).join('')}
-                    </div>
+                    </ul>
                 </div>
             </div>
 
             <!-- Corpo Principal: Abas de Trabalho -->
-            <div>
-                <div class="tab-container">
+            <div class="school-workspace">
+                <div class="tab-container prontuario-tablist" role="tablist" aria-label="Seções do prontuário da unidade">
                     ${accessProfile === 'inventario' ? `
-                        <button class="tab-button active" data-tab="capital" onclick="switchSchoolTab(event, 'tab-capital')">Registro de Capital</button>
+                        <button type="button" id="prontuario-tab-capital" class="tab-button active" data-tab="capital" role="tab" aria-controls="tab-capital" aria-selected="true" tabindex="0" onclick="switchSchoolTab(event, 'tab-capital')" onkeydown="handleSchoolTabKeydown(event)">Registro de Capital</button>
                     ` : accessProfile === 'sme' ? `
-                        <button class="tab-button active" data-tab="verificacoes" onclick="switchSchoolTab(event, 'tab-verificacoes')">Competências e Bonificação</button>
+                        <button type="button" id="prontuario-tab-verificacoes" class="tab-button active" data-tab="verificacoes" role="tab" aria-controls="tab-verificacoes" aria-selected="true" tabindex="0" onclick="switchSchoolTab(event, 'tab-verificacoes')" onkeydown="handleSchoolTabKeydown(event)">Competências e Bonificação</button>
                     ` : `
-                        <button class="tab-button active" data-tab="verificacoes" onclick="switchSchoolTab(event, 'tab-verificacoes')">Competências e Análises</button>
-                        <button class="tab-button" data-tab="pendencias" onclick="switchSchoolTab(event, 'tab-pendencias')">Pendências Ativas (${pAtivas.length})</button>
-                        <button class="tab-button" data-tab="contatos" onclick="switchSchoolTab(event, 'tab-contatos')">Histórico de Contatos</button>
-                        <button class="tab-button" data-tab="capital" onclick="switchSchoolTab(event, 'tab-capital')">Registro de Capital</button>
-                        <button class="tab-button" data-tab="auditoria" onclick="switchSchoolTab(event, 'tab-auditoria')">Registros Internos</button>
+                        <button type="button" id="prontuario-tab-verificacoes" class="tab-button active" data-tab="verificacoes" role="tab" aria-controls="tab-verificacoes" aria-selected="true" tabindex="0" onclick="switchSchoolTab(event, 'tab-verificacoes')" onkeydown="handleSchoolTabKeydown(event)">Competências e Análises</button>
+                        <button type="button" id="prontuario-tab-pendencias" class="tab-button" data-tab="pendencias" role="tab" aria-controls="tab-pendencias" aria-selected="false" tabindex="-1" onclick="switchSchoolTab(event, 'tab-pendencias')" onkeydown="handleSchoolTabKeydown(event)">Pendências Ativas (${pAtivas.length})</button>
+                        <button type="button" id="prontuario-tab-contatos" class="tab-button" data-tab="contatos" role="tab" aria-controls="tab-contatos" aria-selected="false" tabindex="-1" onclick="switchSchoolTab(event, 'tab-contatos')" onkeydown="handleSchoolTabKeydown(event)">Histórico de Contatos</button>
+                        <button type="button" id="prontuario-tab-capital" class="tab-button" data-tab="capital" role="tab" aria-controls="tab-capital" aria-selected="false" tabindex="-1" onclick="switchSchoolTab(event, 'tab-capital')" onkeydown="handleSchoolTabKeydown(event)">Registro de Capital</button>
+                        <button type="button" id="prontuario-tab-auditoria" class="tab-button" data-tab="auditoria" role="tab" aria-controls="tab-auditoria" aria-selected="false" tabindex="-1" onclick="switchSchoolTab(event, 'tab-auditoria')" onkeydown="handleSchoolTabKeydown(event)">Registros Internos</button>
                     `}
                 </div>
 
                 ${accessProfile !== 'inventario' ? `
                 <!-- Aba 1: Verificações das Competências -->
-                <div class="tab-content-panel active" id="tab-verificacoes">
+                <div class="tab-content-panel active" id="tab-verificacoes" role="tabpanel" aria-labelledby="prontuario-tab-verificacoes">
                     <div class="panel-card">
                         <div class="panel-header" style="border-bottom: none; padding-bottom: 0;">
                             <h2>Acompanhamento Mensal - Exercício ${currentExercise}</h2>
@@ -9402,7 +9421,7 @@ function renderProntuario(escolaId) {
                                 : 'Clique nos botões de bonificação ou selecione a análise técnica de cada item.'}</p>
                         </div>
                         
-                        <div class="comp-tabs-container" style="display: flex; gap: 8px; flex-wrap: wrap; padding: 0 24px 20px 24px; border-bottom: 1px solid var(--border-color); width: 100%;">
+                        <div class="comp-tabs-container" role="group" aria-label="Competências mensais" style="display: flex; gap: 8px; flex-wrap: wrap; padding: 0 24px 20px 24px; border-bottom: 1px solid var(--border-color); width: 100%;">
                             ${COMPETENCIAS.map(c => {
                                 const status = getCompMonthStatus(esc.id, c.key);
                                 const isActive = c.key === activeProntuarioCompetencia;
@@ -9422,9 +9441,14 @@ function renderProntuario(escolaId) {
                                 const monthAbbr = c.label.split(' ')[0].substring(0, 3);
                                 
                                 return `
-                                    <button class="comp-sub-tab ${isActive ? 'active' : ''} ${isDisabled ? 'disabled' : ''}" 
-                                            ${clickHandler} 
-                                            style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: ${isDisabled ? 'not-allowed' : 'pointer'};"
+                                    <button type="button"
+                                            class="comp-sub-tab ${isActive ? 'active' : ''} ${isDisabled ? 'disabled' : ''}"
+                                            data-competence="${escapeHtml(c.key)}"
+                                            aria-pressed="${String(isActive)}"
+                                            aria-disabled="${String(isDisabled)}"
+                                            ${isDisabled ? 'disabled' : ''}
+                                            ${clickHandler}
+                                            style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 500;"
                                             title="${c.label} - Bonificação: ${monthStatusLabels[status] || 'Não lançada'}">
                                         <span class="status-dot ${statusBadgeClass}" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block;"></span>
                                         <span>${monthAbbr}</span>
@@ -9454,7 +9478,7 @@ function renderProntuario(escolaId) {
 
                 ${accessProfile !== 'inventario' && accessProfile !== 'sme' ? `
                 <!-- Aba 2: Pendências -->
-                <div class="tab-content-panel" id="tab-pendencias">
+                <div class="tab-content-panel" id="tab-pendencias" role="tabpanel" aria-labelledby="prontuario-tab-pendencias" hidden>
                     <div class="panel-card">
                         <div class="panel-header">
                             <h2>Pendências Operacionais Ativas</h2>
@@ -9524,7 +9548,7 @@ function renderProntuario(escolaId) {
                 </div>
 
                 <!-- Aba 3: Histórico de Contatos -->
-                <div class="tab-content-panel" id="tab-contatos">
+                <div class="tab-content-panel" id="tab-contatos" role="tabpanel" aria-labelledby="prontuario-tab-contatos" hidden>
                     <div class="panel-card">
                         <div class="panel-header">
                             <h2>Histórico de Contatos e Cobranças</h2>
@@ -9548,7 +9572,7 @@ function renderProntuario(escolaId) {
 
                 ${accessProfile !== 'sme' ? `
                 <!-- Aba 4: Capital -->
-                <div class="tab-content-panel ${accessProfile === 'inventario' ? 'active' : ''}" id="tab-capital">
+                <div class="tab-content-panel ${accessProfile === 'inventario' ? 'active' : ''}" id="tab-capital" role="tabpanel" aria-labelledby="prontuario-tab-capital" ${accessProfile === 'inventario' ? '' : 'hidden'}>
                         <div class="panel-card">
                         <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 10px;">
                             <div>
@@ -9612,7 +9636,7 @@ function renderProntuario(escolaId) {
 
                 ${accessProfile !== 'inventario' && accessProfile !== 'sme' ? `
                 <!-- Aba 5: Auditoria Local -->
-                <div class="tab-content-panel" id="tab-auditoria">
+                <div class="tab-content-panel" id="tab-auditoria" role="tabpanel" aria-labelledby="prontuario-tab-auditoria" hidden>
                     <div class="panel-card">
                         <div class="panel-header">
                             <h2>Histórico de Registros Internos da Unidade</h2>
@@ -9657,7 +9681,8 @@ function activateProntuarioTab(tabId) {
         'tab-pendencias',
         'tab-contatos',
         'tab-capital',
-        'tab-auditoria'
+        'tab-auditoria',
+        'tab-historico'
     ]);
     if (currentView !== 'prontuario' || !allowedTabIds.has(tabId)) return false;
 
@@ -9672,18 +9697,56 @@ function activateProntuarioTab(tabId) {
     if (!tabContainer || targetPanel.parentElement !== tabContainer.parentElement) return false;
 
     Array.from(tabContainer.children).forEach(element => {
-        if (element.classList.contains('tab-button')) element.classList.remove('active');
+        if (!element.classList.contains('tab-button')) return;
+        const isActive = element === targetButton;
+        const controlledPanelId = `tab-${element.dataset.tab}`;
+        element.classList.toggle('active', isActive);
+        element.id = element.id || `prontuario-tab-${element.dataset.tab}`;
+        element.setAttribute('role', 'tab');
+        element.setAttribute('aria-controls', controlledPanelId);
+        element.setAttribute('aria-selected', String(isActive));
+        element.tabIndex = isActive ? 0 : -1;
     });
     Array.from(targetPanel.parentElement.children).forEach(element => {
-        if (element.classList.contains('tab-content-panel')) element.classList.remove('active');
+        if (!element.classList.contains('tab-content-panel')) return;
+        const isActive = element === targetPanel;
+        const tabName = element.id.startsWith('tab-') ? element.id.slice(4) : '';
+        element.classList.toggle('active', isActive);
+        element.hidden = !isActive;
+        element.setAttribute('role', 'tabpanel');
+        if (tabName) element.setAttribute('aria-labelledby', `prontuario-tab-${tabName}`);
     });
-    targetButton.classList.add('active');
-    targetPanel.classList.add('active');
     return true;
 }
 
 function switchSchoolTab(event, tabId) {
     activateProntuarioTab(tabId);
+}
+
+function handleSchoolTabKeydown(event) {
+    const supportedKeys = new Set(['ArrowLeft', 'ArrowRight', 'Home', 'End']);
+    if (!supportedKeys.has(event.key)) return;
+
+    const currentTab = event.currentTarget;
+    const tabContainer = currentTab?.closest?.('.prontuario-tablist');
+    if (!tabContainer) return;
+
+    const tabs = Array.from(tabContainer.children).filter(element => (
+        element.classList.contains('tab-button') && !element.disabled
+    ));
+    const currentIndex = tabs.indexOf(currentTab);
+    if (currentIndex < 0 || tabs.length === 0) return;
+
+    let nextIndex = currentIndex;
+    if (event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+    if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % tabs.length;
+    if (event.key === 'Home') nextIndex = 0;
+    if (event.key === 'End') nextIndex = tabs.length - 1;
+
+    event.preventDefault();
+    const nextTab = tabs[nextIndex];
+    nextTab.focus();
+    activateProntuarioTab(nextTab.getAttribute('aria-controls'));
 }
 
 // 14.1 Render Grade de Bonificações e Análises Técnicas Mensais
@@ -9955,6 +10018,7 @@ function renderProntuarioVerificacoes(esc) {
                             ${canViewTechnicalAnalysis ? `
                                 <td>
                                     <select class="select-analise select-analise-comp analise-${analiseValue.toLowerCase().replace(/\s+/g, '-').replace(/[()]/g, '')}"
+                                            aria-label="Análise técnica de ${escapeHtml(doc.name)} no programa ${escapeHtml(progName)}"
                                             onchange="changeAnaliseTecnica('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', this.value, this)"
                                             ${activePend ? `aria-describedby="${escapeHtml(analysisLockId)}"` : ''}
                                             ${isAnaliseLocked ? 'disabled' : ''}>
