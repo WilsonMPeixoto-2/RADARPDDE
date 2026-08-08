@@ -121,10 +121,12 @@ async function openTimeline(page, profile = 'controlador') {
     return school.id;
   }, profile);
 
-  const tab = page.getByRole('button', { name: 'Histórico cronológico', exact: true });
+  const tab = page.getByRole('tab', { name: 'Histórico cronológico', exact: true });
   await expect(tab).toBeVisible();
   await tab.click();
+  await expect(tab).toHaveAttribute('aria-selected', 'true');
   await expect(page.locator('#tab-historico')).toHaveClass(/active/);
+  await expect(page.locator('#tab-historico')).not.toHaveAttribute('hidden', '');
 }
 
 test('prontuário apresenta eventos unificados em ordem cronológica e sem duplicar abertura', async ({ page }, testInfo) => {

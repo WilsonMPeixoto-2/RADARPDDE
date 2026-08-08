@@ -1079,8 +1079,22 @@ textarea.form-control {
 /* Prontuário Escola Layout */
 .school-grid {
     display: grid;
-    grid-template-columns: 280px 1fr;
+    grid-template-columns: 280px minmax(0, 1fr);
     gap: 24px;
+}
+
+.school-grid > *,
+.school-workspace {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.prontuario-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 12px;
+    max-width: 100%;
 }
 
 .school-sidebar {
@@ -1094,6 +1108,33 @@ textarea.form-control {
     border: 1px solid var(--border-color);
     border-radius: 16px;
     padding: 20px;
+}
+
+.school-programs-card {
+    background-color: rgba(157, 125, 252, 0.03);
+}
+
+.school-programs-card .info-label {
+    margin-bottom: 10px;
+}
+
+.school-program-list {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.school-program-item {
+    padding: 8px 10px;
+    border: 1px solid rgba(157, 125, 252, 0.16);
+    border-radius: 8px;
+    background-color: rgba(157, 125, 252, 0.06);
+    color: var(--text-main);
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.35;
 }
 
 .info-item {
@@ -1128,6 +1169,12 @@ textarea.form-control {
     margin-bottom: 20px;
     overflow-x: auto;
     overflow-y: hidden;
+}
+
+.prontuario-tablist {
+    flex-wrap: wrap;
+    overflow-x: visible;
+    gap: 8px 10px;
 }
 
 .tab-button {
@@ -1451,7 +1498,7 @@ textarea.form-control {
     color: var(--text-main);
     transition: var(--transition-smooth);
 }
-.comp-sub-tab:hover:not(.disabled) {
+.comp-sub-tab:hover:not(:disabled) {
     background: var(--bg-card-hover);
     border-color: var(--primary-hover);
     transform: translateY(-1px);
@@ -1466,13 +1513,16 @@ textarea.form-control {
 .comp-sub-tab.active .status-dot {
     border: 1.5px solid #ffffff;
 }
-.comp-sub-tab.disabled {
+.comp-sub-tab.disabled,
+.comp-sub-tab:disabled {
     opacity: 0.4;
     background: rgba(0, 0, 0, 0.02);
     border-color: rgba(0, 0, 0, 0.05);
     color: var(--text-muted);
+    cursor: not-allowed;
 }
-body.dark-theme .comp-sub-tab.disabled {
+body.dark-theme .comp-sub-tab.disabled,
+body.dark-theme .comp-sub-tab:disabled {
     background: rgba(255, 255, 255, 0.02);
     border-color: rgba(255, 255, 255, 0.05);
 }

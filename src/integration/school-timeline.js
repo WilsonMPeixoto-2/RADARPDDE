@@ -187,13 +187,18 @@
         if (!targetButton || !tabContainer || !panelContainer) return false;
 
         Array.from(tabContainer.children).forEach(element => {
-            if (element.classList.contains('tab-button')) element.classList.remove('active');
+            if (!element.classList.contains('tab-button')) return;
+            const isActive = element === targetButton;
+            element.classList.toggle('active', isActive);
+            element.setAttribute('aria-selected', String(isActive));
+            element.tabIndex = isActive ? 0 : -1;
         });
         Array.from(panelContainer.children).forEach(element => {
-            if (element.classList.contains('tab-content-panel')) element.classList.remove('active');
+            if (!element.classList.contains('tab-content-panel')) return;
+            const isActive = element === panel;
+            element.classList.toggle('active', isActive);
+            element.hidden = !isActive;
         });
-        targetButton.classList.add('active');
-        panel.classList.add('active');
         return true;
     }
 
@@ -221,6 +226,7 @@
             panel = document.createElement('div');
             panel.className = 'tab-content-panel';
             panel.id = 'tab-historico';
+            panel.hidden = true;
             tabContainer.parentElement.appendChild(panel);
         }
         if (!button) {
@@ -231,6 +237,15 @@
             button.textContent = 'Histórico cronológico';
             tabContainer.appendChild(button);
         }
+        button.id = 'prontuario-tab-historico';
+        button.setAttribute('role', 'tab');
+        button.setAttribute('aria-controls', 'tab-historico');
+        button.setAttribute('aria-selected', String(button.classList.contains('active')));
+        button.tabIndex = button.classList.contains('active') ? 0 : -1;
+        button.onkeydown = event => root.handleSchoolTabKeydown?.(event);
+        panel.setAttribute('role', 'tabpanel');
+        panel.setAttribute('aria-labelledby', button.id);
+        panel.hidden = !button.classList.contains('active');
         button.onclick = event => activateTimeline(event, panel, schoolId);
         button.dataset.schoolId = schoolId;
         panel.dataset.schoolId = schoolId;
