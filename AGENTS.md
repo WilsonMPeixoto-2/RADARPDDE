@@ -1,21 +1,18 @@
 # AGENTS.md — RADAR PDDE 2026
 
-**Atualizado em:** 7 de agosto de 2026
+**Atualizado em:** 9 de agosto de 2026
 
 ## 1. Leitura obrigatória
 
 Antes de analisar ou alterar o repositório, leia:
 
-1. `docs/CURRENT_STAGE.md` — baseline remoto, prioridades e pendências reais;
-2. `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md` — contrato executável das 41 operações;
-3. `docs/PROJECT_CONTEXT.md` — produto, domínio e arquitetura;
-4. `docs/ROADMAP_ATUALIZACOES_2026.md` — sequência técnica e funcional;
+1. `docs/CURRENT_STAGE.md` — estado corrente, baseline e prioridades reais;
+2. `docs/reference/TEST_GOVERNANCE.md` — estratégia proporcional e tratamento de testes superados;
+3. `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md` — visão gerada do contrato funcional vigente;
+4. `docs/PROJECT_CONTEXT.md` — produto, domínio e arquitetura;
 5. `docs/DECISION_LOG.md` — decisões duradouras;
 6. `docs/reference/STATUS_DOCUMENTOS.md` — validade documental;
-7. arquitetura e runbook específicos da frente;
-8. código, GitHub, Vercel e Supabase correspondentes.
-
-`docs/CURRENT_STAGE.md` é o guia canônico do estado corrente e da revalidação remota. Ele não deve congelar SHA da própria `main`, deployment ou versão de Edge Function quando a atualização documental puder alterar esses valores. Snapshots exatos ficam em checkpoints históricos datados.
+7. código, GitHub, Vercel e Supabase correspondentes à frente.
 
 Documentos históricos não prevalecem sobre código, ambientes ou decisões posteriores.
 
@@ -23,46 +20,45 @@ Documentos históricos não prevalecem sobre código, ambientes ou decisões pos
 
 O RADAR PDDE é sistema institucional de gestão, controle, acompanhamento e apoio à decisão para o PDDE da 4ª CRE/SME-Rio. Não é CRUD genérico.
 
-Toda entrega deve ser avaliada por:
+Toda entrega deve considerar, na medida do impacto:
 
 - correção técnica e funcional;
-- aderência ao fluxo real do PDDE;
 - coerência entre perfis, telas e dados;
 - integridade, rastreabilidade e auditabilidade;
+- visualização e encontrabilidade da informação;
+- usabilidade, feedback e clareza da próxima ação;
 - acessibilidade e equivalência mobile;
-- clareza da próxima ação;
-- confiabilidade ponta a ponta.
+- confiabilidade de persistência e releitura.
 
-Uma função não está pronta apenas porque aparece na interface ou passa em teste unitário.
+Uma função não está pronta apenas porque grava no banco. O usuário precisa encontrá-la, compreender o estado, executar a ação e reencontrar o resultado de forma coerente.
 
 ## 3. Fontes de verdade
 
-Para determinar o estado implementado:
+Para determinar o estado implementado, usar nesta ordem:
 
 1. código-fonte remoto do SHA analisado;
-2. migrations, funções, políticas, Auth e dados do Supabase autorizado;
+2. migrations, funções, políticas, Auth, RLS e dados do Supabase autorizado;
 3. artefato implantado na Vercel e seu SHA;
-4. testes e evidências reproduzíveis;
-5. decisões expressas vigentes;
+4. contrato funcional e decisões vigentes;
+5. testes que representam o contrato atual;
 6. documentação canônica;
-7. históricos.
+7. auditorias históricas, planos antigos, testes superados e memória de conversa.
 
-A orientação mais recente do responsável define intenção e prioridade; afirmação técnica deve ser comprovada operacionalmente.
+Se um teste ou documento divergir do comportamento atual comprovado, investigar a divergência antes de alterar o produto. Nunca modificar código correto apenas para satisfazer uma expectativa histórica.
 
-## 4. Estado operacional
+## 4. Estado operacional estável
 
-O estado corrente, as prioridades e o procedimento de revalidação estão em `docs/CURRENT_STAGE.md`. Valores voláteis devem ser consultados ao vivo; checkpoints exatos são evidências históricas datadas.
+O estado corrente completo está em `docs/CURRENT_STAGE.md`. Valores voláteis devem ser consultados diretamente no remoto.
 
-Contratos estáveis atuais:
+Contratos estáveis:
 
 - Supabase é a persistência canônica de Preview/Production;
-- Production usa `supabase-production` e `SupabaseRepository`;
+- Production usa `SupabaseRepository`;
 - Node.js permanece fixado em `24.x`;
+- competência mensal é contexto global único;
 - Excel SME público possui 27 colunas A:AA;
-- monitor geral, incidentes automáticos e auditoria agregada de integridade estão ativos;
-- matriz funcional de 41 operações está integrada;
-- infraestrutura do smoke autenticado de leitura está integrada, mas sua execução remota permanece desativada sem identidades técnicas exclusivas;
-- liberação oficial do produto ainda depende das provas remanescentes e UAT.
+- Gestão de Equipe usa backend protegido, Auth Admin e RPCs transacionais;
+- a suíte automatizada protege o produto, mas não define regra de negócio por conta própria.
 
 ## 5. Perfis e autorização
 
@@ -73,68 +69,59 @@ Perfis funcionais visíveis:
 - Gestão SME (`sme_management`);
 - Equipe de Inventário (`inventory`).
 
-`technical_admin` é papel técnico separado.
+`technical_admin` é papel autenticado técnico separado e não é quinto perfil funcional visual.
 
 ### Controlador
 
-A carteira representa responsabilidade principal e filtro inicial. Controladores podem colaborar nas escolas da própria `cre_scope`, preservando responsável principal e autoria. Não podem redistribuir `schools.controller_id` pela edição cadastral. Alteração de identidade institucional da escola também é exclusiva da Assistente.
+A carteira representa responsabilidade principal e filtro inicial. Controladores podem colaborar nas escolas da própria `cre_scope`, preservando responsável principal e autoria. Não redistribuem `schools.controller_id` pela edição cadastral e não alteram identidade institucional reservada.
 
 ### Assistente de Verbas Federais
 
-Lidera a Gestão de Equipe da CRE e possui as operações transversais autorizadas, incluindo cadastro/desativação de Controladores e Inventário, contas Auth e redistribuição de carteira.
+Possui atuação transversal autorizada na CRE. Lidera Gestão de Equipe, redistribuição de carteira, reanálise de pendências, retificações e demais operações expressamente concedidas pelo contrato atual.
 
 ### Gestão SME
 
-Realiza acompanhamento gerencial e utiliza as configurações atualmente autorizadas. O contrato vigente de código, serviço, RPC e permissões permite cadastrar, editar e desativar programas, além de configurações de exercício/calendário. Qualquer retirada ou expansão futura dessas capacidades exige decisão funcional expressa e alteração coordenada de interface, serviço e RLS.
+Realiza acompanhamento gerencial e utiliza configurações autorizadas. Pendências são consultáveis, sem mutações operacionais. Qualquer mudança futura de programas/configurações deve partir do código e da decisão funcional vigente, não de documentação histórica.
 
 ### Inventário
 
-Opera o fluxo patrimonial autorizado na própria CRE, segundo as políticas específicas de bens.
+Opera o fluxo patrimonial autorizado segundo o escopo e as políticas específicas de bens.
 
-## 6. Regra de impacto entre camadas
+### Administrador técnico
 
-Toda alteração deve verificar, conforme o caso:
+`technical_admin` preserva a identidade, o JWT e a autoridade autenticada independentemente do perfil visual simulado.
+
+A simulação de Controlador, Assistente, SME ou Inventário altera a apresentação da interface e o contexto visual, mas **não rebaixa a autoridade real do administrador técnico**. Auditoria deve registrar o usuário real, `authenticatedRole = technical_admin` e, quando houver, o perfil visual simulado.
+
+## 6. Competência global
+
+`RadarCompetenceContext` é a fonte canônica de competência mensal.
+
+Dashboard, Carteira, Competências, Prontuário, Pendências, alertas, timeline e exportações devem consumir o mesmo mês ativo.
+
+Não criar seletor concorrente nem alterar `activeCompetenciaKey` diretamente em implementação ou teste quando a intenção for mudar o contexto mensal. Usar o contexto canônico.
+
+## 7. Regra de impacto entre camadas
+
+Toda alteração deve verificar somente as camadas materialmente afetadas:
 
 ```text
-layout/frontend
-→ visibilidade e capacidade por perfil
-→ handler
-→ domínio e serviço de aplicação
+layout/frontend e encontrabilidade
+→ visibilidade/capacidade por perfil
+→ handler e serviço de aplicação
 → contrato de persistência
-→ tabela, migration, RPC ou Edge Function
+→ tabela, RPC ou Edge Function
 → Auth/RLS
 → autoria e auditoria
-→ retorno e estado em memória
-→ nova renderização
-→ releitura após refresh
-→ conflito, erro e compensação
-→ testes unitários, pgTAP e E2E
-→ documentação e evidências
-→ build/deployment
+→ atualização da interface
+→ releitura quando houver escrita
+→ erro, conflito e compensação quando aplicáveis
+→ testes proporcionais
+→ documentação afetada
+→ build/deployment quando houver publicação
 ```
 
-Uma tarefa não está concluída quando apenas uma camada foi alterada.
-
-## 7. Contrato de confiabilidade funcional
-
-Para cada função crítica, comprovar quando aplicável:
-
-1. disponibilidade para o perfil correto;
-2. negativa para o perfil indevido;
-3. acionamento real no navegador;
-4. payload e competência corretos;
-5. serviço, repositório e backend esperados;
-6. autorização positiva e negativa;
-7. consulta ou gravação concluída;
-8. autoria/auditoria;
-9. interface atualizada;
-10. persistência após recarregar;
-11. conflito de versão;
-12. falha parcial e compensação;
-13. mensagem útil;
-14. regressão permanente no CI.
-
-A matriz funcional executável é a fonte de classificação de cobertura.
+Não transformar essa lista em checklist obrigatório de todos os gates para toda alteração pequena.
 
 ## 8. Gestão de Equipe
 
@@ -150,56 +137,85 @@ DirectoryService
 Preservar:
 
 - CORS fail-closed e allowlist canônica;
-- JWT obrigatório e papel autorizado;
-- lookup Auth exato por `resolve_team_auth_user_id_by_email` em vez de varredura global de usuários;
+- JWT e papel autorizados;
+- lookup Auth exato por e-mail;
 - recuperação segura de vínculos históricos;
 - rejeição de ambiguidade e vínculo ativo conflitante;
 - transição autorizada entre perfis reutilizando a conta existente;
-- desativação lógica e histórico;
-- redistribuição de carteira;
-- compensação quando Auth ou banco falhar;
-- testes de cadastro, edição, transição e desativação.
+- desativação lógica, redistribuição e histórico;
+- compensação quando Auth ou banco falhar.
 
-## 9. Escolas
+## 9. Escolas, pendências e patrimônio
 
-Novas escolas exigem identidade institucional informada. Não gerar INEP, CNPJ, designação, denominação ou SICI fictícios.
+- novas escolas exigem identidade institucional real; não sintetizar INEP, CNPJ, SICI, designação ou denominação;
+- Controlador não redistribui responsável de carteira pela edição cadastral;
+- novo envio de pendência não resolve automaticamente;
+- reanálise pode ser executada por Controlador, Assistente e `technical_admin`; SME e Inventário permanecem bloqueados para essa mutação;
+- tentativas permanecem sincronizadas com `pendency_attempts` e com a verificação relacionada;
+- nota permanente e bem derivado permanecem coerentes na mesma operação protegida;
+- edição patrimonial usa serviço autorizado, versão esperada e log.
 
-O banco protege campos institucionais não vazios e unicidade normalizada de INEP, CNPJ e SICI. O Controlador pode editar campos cadastrais autorizados, mas não a identidade institucional nem o responsável da carteira.
+## 10. Testes: regra principal
 
-## 10. Patrimônio, pendências e exportações
+Aplicar `docs/reference/TEST_GOVERNANCE.md`.
 
-- edição rápida de bem patrimonial é restrita ao campo expressamente permitido e persiste via `saveAssetWithLog` com versão esperada;
-- nota permanente e bem derivado devem permanecer coerentes na mesma transação;
-- tentativa de pendência deve manter a tabela `pendency_attempts` sincronizada com o agregado da pendência;
-- exportação institucional e Excel SME exigem auditoria inicial pelo `AuditService` antes da liberação do download;
-- duplicação pelo log legado de exportação não deve ser reintroduzida.
+Antes de corrigir qualquer falha de teste, classifique-a como:
 
-## 11. Smoke autenticado de Production
+1. defeito real de produto;
+2. contrato de teste superado;
+3. defeito do próprio teste/fixture;
+4. falha de infraestrutura;
+5. flaky não reproduzível.
 
-A infraestrutura está integrada. Enquanto não houver provisionamento autorizado:
+Só o primeiro caso autoriza alterar o produto por causa da falha.
 
-- manter a execução remota desabilitada;
-- não reutilizar contas pessoais ou funcionais;
-- não criar contas automaticamente em PR;
-- não expor service role ao navegador;
-- não registrar traces, screenshots, vídeos ou credenciais de Production;
-- permitir somente autenticação/leitura previstas pelo contrato.
+### Validação proporcional
 
-## 12. Migrations e Supabase
+Para uma mudança comum:
+
+- reutilizar teste existente diretamente relacionado;
+- comprovar um fluxo positivo;
+- comprovar bloqueio negativo apenas quando a autorização for risco material;
+- para escrita, comprovar persistência/releitura quando isso acrescentar evidência real;
+- avaliar visualização, encontrabilidade, feedback e coerência do estado;
+- executar um gate base compatível com o escopo;
+- não repetir suites já aprovadas se o código coberto não mudou.
+
+Não criar infraestrutura de teste nova sem risco concreto. Não iniciar ciclos sucessivos de E2E, Lighthouse, backup, mobile e outros gates apenas para transformar todos os indicadores em verdes.
+
+Suite integral e gates especializados são apropriados para mudanças transversais, releases relevantes ou auditorias expressamente autorizadas.
+
+## 11. Testes superados
+
+Quando uma regra funcional mudar, registrar:
+
+```text
+regra anterior → regra vigente → código afetado → teste afetado
+```
+
+Atualizar ou remover a expectativa antiga. Se um cenário histórico estiver embutido em uma suíte extensa e já houver proteção sucessora suficiente, ele pode ser excluído da execução por título exato, com razão documentada e referência ao teste atual.
+
+Nunca reverter regra vigente para recuperar um teste antigo.
+
+## 12. Auditoria de testes
+
+Não assumir ordem cronológica de coleções sem `ORDER BY` temporal explícito. UUID não é relógio.
+
+Testes de auditoria devem localizar eventos pelo ator autenticado, contexto, identificador da operação ou timestamp adequado. `reverse()` sobre uma coleção ordenada por ID não prova “último evento”.
+
+## 13. Migrations e Supabase
 
 Regras permanentes:
 
 - migrations versionadas e aplicadas em ordem;
 - nenhum seed institucional implícito;
 - nenhuma chave administrativa no frontend;
-- operações compostas atômicas;
-- conflitos com `row_version` não são sobrescritos;
+- operações compostas atômicas quando necessário;
+- conflitos com `row_version` não são sobrescritos silenciosamente;
 - histórico de migrations não é editado diretamente;
-- nova migration exige reset, pgTAP, lint, tipos, backup/restauração, dry-run, plano de reversão e autorização.
+- nova migration somente quando houver mudança real de schema/regra que não possa ser representada pelo contrato existente.
 
-A contagem e a versão atuais ficam somente em `CURRENT_STAGE.md`.
-
-## 13. Excel SME
+## 14. Excel SME
 
 Contrato vigente:
 
@@ -210,58 +226,46 @@ motor: ExcelJS 4.4.0
 competência: mensal e estrita
 ```
 
-As posições-fonte K, R e Y são removidas na projeção pública. Alteração material exige certificação automatizada e homologação no Excel desktop.
-
-## 14. Testes e conclusão
-
-Usar `npm run test:readiness` como gate base e acrescentar, conforme impacto:
-
-- Supabase local, pgTAP, lint SQL e tipos;
-- backup/restauração descartáveis;
-- Playwright desktop e mobile;
-- gate por perfil e viewport;
-- Lighthouse;
-- dependências;
-- certificação Excel;
-- precedência do frontend;
-- build Vercel;
-- smoke de Production;
-- preflight remoto;
-- UAT.
-
-Antes de declarar conclusão, fixar o SHA candidato e verificar os gates no mesmo SHA.
+As posições-fonte K, R e Y são removidas na projeção pública. Alteração material do gerador exige certificação correspondente; não reexecutar certificação Excel por mudanças sem relação com exportação.
 
 ## 15. Documentação
 
-Classificação:
+- código e ambientes efetivos são superiores à documentação;
+- `CURRENT_STAGE.md` descreve o presente;
+- matriz JSON é a fonte da visão gerada `FUNCTIONAL_CONTRACT_MATRIX.md`;
+- `TEST_GOVERNANCE.md` controla a estratégia de validação;
+- auditorias e planos datados registram o passado e não são reescritos para parecer atuais;
+- branch/PR não integrado não altera o baseline.
 
-- canônicos e referências vigentes descrevem o presente;
-- matriz JSON é contrato executável;
-- visão Markdown da matriz é gerada e não deve ser editada manualmente;
-- auditorias/evidências datadas registram o passado e não são reescritas para parecer atuais;
-- planos executados permanecem históricos;
-- branch/PR não integrado é trabalho em andamento e não altera o baseline.
-
-Ao concluir mudança material, atualizar somente os documentos vigentes afetados e registrar evidência correspondente.
+Ao concluir mudança material, atualizar somente os documentos vigentes realmente afetados.
 
 ## 16. Git e integração
 
 Não trabalhar diretamente na `main`.
 
-Fluxo:
+Fluxo padrão:
 
 1. confirmar HEAD remoto;
 2. criar branch específica;
-3. criar regressão quando aplicável;
-4. implementar mudança mínima coerente;
-5. executar gates;
-6. abrir PR com riscos, limites e evidências;
-7. confirmar checks no SHA final;
-8. integrar e publicar somente dentro da autorização da tarefa;
-9. executar smokes posteriores quando houver impacto em Production.
+3. inspecionar código antes de testes;
+4. implementar a menor mudança coerente;
+5. executar validação proporcional uma vez;
+6. classificar falhas encontradas;
+7. corrigir apenas defeitos reais ou testes comprovadamente superados;
+8. abrir PR com escopo, riscos e evidências;
+9. integrar quando objetivamente pronto;
+10. confirmar o SHA efetivamente publicado quando houver mudança de Production.
 
-Não misturar funcionalidade, dependência, migration e polimento sem relação no mesmo PR.
+Não aguardar indefinidamente todos os jobs nem reiniciar a mesma bateria sem nova evidência.
 
-## 17. Prioridade corrente
+## 17. Critério de conclusão
 
-A sequência atual fica em `docs/CURRENT_STAGE.md` e `docs/ROADMAP_ATUALIZACOES_2026.md`. Em síntese: encerrar a divergência do PR #156, continuar as provas funcionais a partir da `main`, decidir separadamente a ativação do smoke autenticado, verificar a tela de detalhes da escola, tratar dependências isoladamente e concluir UAT.
+Uma frente pode ser encerrada quando:
+
+- o comportamento afetado atende ao contrato atual;
+- o usuário consegue encontrar, compreender e executar as ações esperadas;
+- dados e informações permanecem coerentes após a operação;
+- não há defeito relevante conhecido no escopo;
+- falhas de teste remanescentes foram classificadas e não representam regressão real.
+
+Cobertura parcial, teste histórico, Lighthouse não relacionado ou ausência de uma prova opcional não mantêm automaticamente o RADAR em estado de projeto inacabado.

@@ -1,7 +1,7 @@
 # Matriz funcional ponta a ponta
 
-**Atualizado em:** 2026-08-07  
-**Baseline de origem:** `b347b854bf5af99c3ec9d9b091b77b854cc53a4b`  
+**Atualizado em:** 2026-08-09  
+**Baseline de origem:** `908758d92ec8407003a848ed2779814ce747a6c5`  
 **Fonte canônica:** `functional-contract-matrix.json` e arquivos JSON do diretório `functional-contract-matrix/`
 
 > Arquivo gerado por `scripts/check-functional-contract-matrix.mjs`. Não editar manualmente.
@@ -68,30 +68,30 @@ A matriz contém **41 operações** distribuídas entre 13 superfícies.
 | ID | Ação | Modo | Perfis autorizados | Serviço e persistência | Cobertura | Próxima prova |
 |---|---|---|---|---|---|---|
 | `COMP-01` | Selecionar competência global mensal | read / P0 | Controlador, Assistente de Verbas Federais, Gestão SME, Equipe de Inventário, Administrador técnico | RadarCompetenceContext.select → session state (competences, app_config) | Comprovada | Nenhuma; manter regressão |
-| `VER-01` | Alterar status de entrega para bonificação | write / P0 | Controlador, Assistente de Verbas Federais | VerificationService.setBonification → saveVerificationWithLog (verifications, administrative_logs) | Parcial | Escrita controlada e reversível |
-| `VER-02` | Alterar análise técnica documental | write / P0 | Controlador, Assistente de Verbas Federais | VerificationService.setTechnicalAnalysis → saveVerificationWithLog (verifications, pendencies, administrative_logs) | Parcial | Escrita controlada e reversível |
-| `VER-03` | Consolidar resultado de bonificação mensal | write / P0 | Controlador, Assistente de Verbas Federais | VerificationService.closeBonification → saveVerificationWithLog (verifications, pendencies, administrative_logs) | Parcial | Escrita controlada e reversível |
-| `VER-04` | Retificar consolidação com justificativa auditável | write / P0 | Assistente de Verbas Federais | VerificationService.retify → saveVerificationWithLog (verifications, administrative_logs) | Parcial | Escrita controlada e reversível |
+| `VER-01` | Alterar status de entrega para bonificação | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | VerificationService.setBonification → saveVerificationWithLog (verifications, administrative_logs) | Parcial | Escrita controlada e reversível |
+| `VER-02` | Alterar análise técnica documental | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | VerificationService.setTechnicalAnalysis → saveVerificationWithLog (verifications, pendencies, administrative_logs) | Parcial | Escrita controlada e reversível |
+| `VER-03` | Consolidar resultado de bonificação mensal | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | VerificationService.closeBonification → saveVerificationWithLog (verifications, pendencies, administrative_logs) | Parcial | Escrita controlada e reversível |
+| `VER-04` | Retificar consolidação com justificativa auditável | write / P0 | Assistente de Verbas Federais, Administrador técnico | VerificationService.retify → saveVerificationWithLog (verifications, administrative_logs) | Parcial | Escrita controlada e reversível |
 
 ### Prontuário e timeline
 
 | ID | Ação | Modo | Perfis autorizados | Serviço e persistência | Cobertura | Próxima prova |
 |---|---|---|---|---|---|---|
 | `READ-03` | Consultar prontuário e timeline da unidade | read / P0 | Controlador, Assistente de Verbas Federais, Gestão SME, Equipe de Inventário, Administrador técnico | RadarSchoolTimeline.project → SupabaseRepository.read (schools, verifications, pendencies, pendency_attempts, pendency_contacts, registered_invoices, assets, administrative_logs) | Parcial | Smoke autenticado de leitura |
-| `INV-01` | Cadastrar ou editar nota fiscal e efeitos associados | write / P0 | Controlador, Assistente de Verbas Federais | InvoiceService.save → saveInvoiceWithEffects + registered_invoices_delete_unlinked_asset (registered_invoices, assets, verifications, administrative_logs) | Parcial | Escrita controlada e reversível |
-| `INV-02` | Excluir nota fiscal e reverter efeitos vinculados | write / P0 | Controlador, Assistente de Verbas Federais | InvoiceService.remove → deleteInvoiceWithEffects (registered_invoices, assets, verifications, administrative_logs) | Parcial | Escrita controlada e reversível |
+| `INV-01` | Cadastrar ou editar nota fiscal e efeitos associados | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.save → saveInvoiceWithEffects + registered_invoices_delete_unlinked_asset (registered_invoices, assets, verifications, administrative_logs) | Parcial | Escrita controlada e reversível |
+| `INV-02` | Excluir nota fiscal e reverter efeitos vinculados | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.remove → deleteInvoiceWithEffects (registered_invoices, assets, verifications, administrative_logs) | Parcial | Escrita controlada e reversível |
 
 ### Pendências
 
 | ID | Ação | Modo | Perfis autorizados | Serviço e persistência | Cobertura | Próxima prova |
 |---|---|---|---|---|---|---|
 | `READ-04` | Consultar lista e detalhe de pendências | read / P0 | Controlador, Assistente de Verbas Federais, Gestão SME, Equipe de Inventário, Administrador técnico | PendencyViewModel.project → SupabaseRepository.read (pendencies, pendency_attempts, pendency_contacts) | Parcial | Smoke autenticado de leitura |
-| `PEND-01` | Abrir pendência documental ou manual | write / P0 | Controlador, Assistente de Verbas Federais | PendencyService.open → savePendencyCommand (pendencies, administrative_logs) | Parcial | Escrita controlada e reversível |
-| `PEND-02` | Registrar novo envio para regularização | write / P0 | Controlador, Assistente de Verbas Federais | PendencyService.registerAttempt → savePendencyCommand + pendencies_sync_attempt_statuses (pendencies, pendency_attempts, verifications, administrative_logs) | Parcial | Escrita controlada e reversível |
-| `PEND-03` | Reanalisar tentativa e resolver ou reabrir pendência | write / P0 | Controlador, Assistente de Verbas Federais | PendencyService.reanalyze → reanalyzePendencyWithVerification (pendencies, pendency_attempts, verifications, administrative_logs) | Parcial | Escrita controlada e reversível |
-| `PEND-04` | Cancelar pendência com justificativa | write / P1 | Controlador, Assistente de Verbas Federais | PendencyService.cancel → savePendencyCommand (pendencies, administrative_logs) | Parcial | Escrita controlada e reversível |
-| `PEND-05` | Reabrir pendência cancelada ou resolvida | write / P1 | Controlador, Assistente de Verbas Federais | PendencyService.reopen → savePendencyCommand (pendencies, administrative_logs) | Parcial | Escrita controlada e reversível |
-| `PEND-06` | Registrar contato ou cobrança associado à pendência | write / P1 | Controlador, Assistente de Verbas Federais | PendencyService.registerContact → savePendencyContactWithLog (pendency_contacts, administrative_logs) | Parcial | Escrita controlada e reversível |
+| `PEND-01` | Abrir pendência documental ou manual | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | PendencyService.open → savePendencyCommand (pendencies, administrative_logs) | Parcial | Escrita controlada e reversível |
+| `PEND-02` | Registrar novo envio para regularização | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | PendencyService.registerAttempt → savePendencyCommand + pendencies_sync_attempt_statuses (pendencies, pendency_attempts, verifications, administrative_logs) | Parcial | Escrita controlada e reversível |
+| `PEND-03` | Reanalisar tentativa e resolver ou reabrir pendência | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | PendencyService.reanalyze → reanalyzePendencyWithVerification (pendencies, pendency_attempts, verifications, administrative_logs) | Parcial | Escrita controlada e reversível |
+| `PEND-04` | Cancelar pendência com justificativa | write / P1 | Controlador, Assistente de Verbas Federais, Administrador técnico | PendencyService.cancel → savePendencyCommand (pendencies, administrative_logs) | Parcial | Escrita controlada e reversível |
+| `PEND-05` | Reabrir pendência cancelada ou resolvida | write / P1 | Controlador, Assistente de Verbas Federais, Administrador técnico | PendencyService.reopen → savePendencyCommand (pendencies, administrative_logs) | Parcial | Escrita controlada e reversível |
+| `PEND-06` | Registrar contato ou cobrança associado à pendência | write / P1 | Controlador, Assistente de Verbas Federais, Administrador técnico | PendencyService.registerContact → savePendencyContactWithLog (pendency_contacts, administrative_logs) | Parcial | Escrita controlada e reversível |
 
 ### Configurações SME
 
@@ -117,10 +117,10 @@ A matriz contém **41 operações** distribuídas entre 13 superfícies.
 
 | ID | Ação | Modo | Perfis autorizados | Serviço e persistência | Cobertura | Próxima prova |
 |---|---|---|---|---|---|---|
-| `ASSET-01` | Cadastrar bem permanente manualmente | write / P0 | Controlador, Assistente de Verbas Federais | InventoryService.createAsset → saveAssetWithLog (assets, administrative_logs) | Parcial | Escrita controlada e reversível |
-| `ASSET-02` | Editar campo patrimonial autorizado | write / P0 | Controlador, Assistente de Verbas Federais | InventoryService.updateAsset → saveAssetWithLog (assets, administrative_logs) | Parcial | Escrita controlada e reversível |
-| `ASSET-03` | Encaminhar bem para inventariação | write / P0 | Controlador, Assistente de Verbas Federais | InventoryService.forward → saveAssetWithLog (assets, schools, administrative_logs) | Parcial | Escrita controlada e reversível |
-| `ASSET-04` | Concluir inventariação e registrar responsável | write / P0 | Controlador, Assistente de Verbas Federais, Equipe de Inventário | InventoryService.inventory → saveAssetWithLog (assets, administrative_logs) | Parcial | Escrita controlada e reversível |
+| `ASSET-01` | Cadastrar bem permanente manualmente | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InventoryService.createAsset → saveAssetWithLog (assets, administrative_logs) | Parcial | Escrita controlada e reversível |
+| `ASSET-02` | Editar campo patrimonial autorizado | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InventoryService.updateAsset → saveAssetWithLog (assets, administrative_logs) | Parcial | Escrita controlada e reversível |
+| `ASSET-03` | Encaminhar bem para inventariação | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InventoryService.forward → saveAssetWithLog (assets, schools, administrative_logs) | Parcial | Escrita controlada e reversível |
+| `ASSET-04` | Concluir inventariação e registrar responsável | write / P0 | Controlador, Assistente de Verbas Federais, Equipe de Inventário, Administrador técnico | InventoryService.inventory → saveAssetWithLog (assets, administrative_logs) | Parcial | Escrita controlada e reversível |
 
 ### Registros Internos
 

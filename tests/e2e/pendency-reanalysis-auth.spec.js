@@ -203,11 +203,13 @@ async function reanalyzeAndReload(page, ids, options = {}) {
     const effectiveProfile = typeof window.getRadarAccessProfile === 'function'
       ? window.getRadarAccessProfile()
       : null;
+    const authenticatedUserId = window.RadarAuthContext?.user?.id || null;
+    const authenticatedRole = window.RadarAuthContext?.authorization?.role || null;
     const services = window.RadarApplicationServices;
     await services.pendencies.reanalyze({
       pendencyId: target.pendencyId,
       result: 'correto',
-      observation: `Reanálise autenticada concluída por ${window.RadarAuthContext?.authorization?.role}.`
+      observation: `Reanálise autenticada concluída por ${authenticatedRole}.`
     });
 
     const repository = services.data.repository;
@@ -220,9 +222,11 @@ async function reanalyzeAndReload(page, ids, options = {}) {
     const pendency = pendencies.find(row => row.id === target.pendencyId);
     const attempt = attempts.find(row => row.id === target.attemptId);
     const verification = verifications.find(row => row.id === target.verificationId);
-    const log = [...logs].reverse().find(row => (
+    const log = logs.find(row => (
       row.school_id === target.schoolId
       && row.action === 'Reanálise registrada'
+      && row.actor_user_id === authenticatedUserId
+      && row.details?.authenticatedRole === authenticatedRole
     ));
 
     return {

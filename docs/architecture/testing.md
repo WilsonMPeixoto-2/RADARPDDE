@@ -1,29 +1,45 @@
 # Estratégia de testes e gates de qualidade
 
 **Estado:** vigente  
-**Atualizado em:** 7 de agosto de 2026
+**Atualizado em:** 9 de agosto de 2026
+
+> A regra operacional de interpretação e encerramento está em [`../reference/TEST_GOVERNANCE.md`](../reference/TEST_GOVERNANCE.md). Este documento descreve as camadas técnicas disponíveis, não um checklist universal para toda mudança.
 
 ## 1. Princípio
 
-> Nenhuma função crítica é aprovada apenas porque DOM, serviço ou banco funciona isoladamente.
+Uma função crítica não é aprovada apenas porque DOM, serviço ou banco funciona isoladamente. Ao mesmo tempo, não é necessário testar todas as camadas do sistema para qualquer alteração.
+
+A profundidade da validação acompanha o risco e as camadas realmente afetadas.
+
+Fluxo de referência:
 
 ```text
-domínio e contratos
-→ serviços e integrações
-→ repositórios
-→ banco, Auth, RLS, RPC e Edge Function
-→ navegador
-→ releitura após refresh
-→ artefato publicado
-→ monitoramento e integridade
-→ UAT
+experiência do usuário e contrato funcional
+→ capacidade por perfil
+→ serviço/integração afetados
+→ persistência/Auth/RLS quando aplicável
+→ atualização e releitura quando houver escrita
+→ erro/conflito/compensação quando material
+→ publicação quando houver mudança de Production
 ```
 
-Mutação crítica acrescenta concorrência, erro, falha parcial, rollback e compensação.
+O estado corrente fica em [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md).
 
-O baseline mutável do ambiente fica em [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md).
+## 2. Autoridade dos testes
 
-## 2. Matriz funcional executável
+Testes protegem o contrato vigente. Não criam regra de negócio autonomamente.
+
+Diante de uma falha, classificar antes de alterar código:
+
+1. defeito de produto;
+2. contrato de teste superado;
+3. defeito do próprio teste/fixture;
+4. infraestrutura/ambiente;
+5. flaky não reproduzível.
+
+Somente um defeito real do produto justifica alterar comportamento de produção em resposta à falha.
+
+## 3. Matriz funcional executável
 
 ```text
 docs/reference/functional-contract-matrix.json
@@ -38,72 +54,41 @@ npm run generate:functional-matrix
 npm run check:functional-matrix
 ```
 
-O verificador confirma IDs, perfis, superfícies, permissões, âncoras, evidências, cobertura e contratos de releitura, concorrência e compensação.
+A matriz registra 41 operações e o estado de evidência de cada uma. `partial` significa que uma prova adicional pode ser útil em contexto adequado; **não significa defeito, regressão ou bloqueio automático**.
 
-Após a reconciliação pós-PR #162:
-
-- 9 operações `covered`;
-- 32 operações `partial`;
-- 0 `gap`;
-- 0 `decision`;
-- 6 operações dependem do smoke autenticado de leitura;
-- 25 dependem de escrita controlada e reversível;
-- 5 permanecem em observação contínua;
-- 5 apenas mantêm regressão.
-
-## 3. Readiness
+## 4. Gate base
 
 ```bash
 npm run test:readiness
 ```
 
-Inclui sintaxe, matriz funcional, referências de workflows, vendors, lint, unitários, certificação Excel, integração, Supabase, tipos, artefatos e auditoria funcional.
+O readiness é um gate abrangente disponível para mudanças transversais, releases relevantes e reconciliações de contrato. Ele não precisa ser repetido mecanicamente para cada ajuste visual ou documental se um conjunto menor comprovar o risco real.
 
-Acesso real a Production permanece separado e protegido.
-
-## 4. Unitários e integração
+Camadas menores podem ser usadas isoladamente:
 
 ```bash
+npm run check
 npm run test:unit
 npm run test:integration
+npm run check:functional-matrix
 ```
 
-Toda correção funcional deve criar ou atualizar regressão capaz de falhar diante da reintrodução do defeito.
+## 5. Regressão proporcional
 
-Coberturas centrais:
+Ao corrigir defeito real, preferir regressão pequena capaz de detectar sua reintrodução.
 
-- competência e avaliação mensal;
-- pendências, timeline e navegação;
-- capacidades e autorização;
-- serviços e UnitOfWork;
-- runtime e certificação Excel;
-- CORS, Auth e Gestão de Equipe;
-- transições entre perfis da equipe;
-- autorização de carteira escolar;
-- criação de exercício e sincronização pós-reload;
-- identidade institucional de escolas;
-- edição patrimonial versionada e auditada;
-- integridade nota/bem;
-- sincronização de tentativas de pendência;
-- auditoria obrigatória das exportações;
-- importação e rollback;
-- monitor geral e incidentes;
-- auditoria de integridade;
-- matriz funcional;
-- proteção do smoke autenticado.
+Antes de criar teste novo:
 
-Regressões específicas do pacote de remediação incluem, entre outras:
+- verificar se já existe cenário que cobre a jornada;
+- atualizar contrato antigo quando a regra mudou;
+- evitar duplicar o mesmo comportamento em várias suites;
+- não criar infraestrutura nova apenas para elevar cobertura nominal.
 
-- `tests/unit/school-service.test.js`;
-- `tests/unit/school-form-integrity.test.js`;
-- `tests/unit/school-institutional-identity-migration.test.js`;
-- `tests/unit/configuration-service.test.js`;
-- `tests/unit/inventory-service.test.js`;
-- `tests/unit/excel-export-audit.test.js`;
-- `tests/unit/functional-integrity-migration.test.js`;
-- `supabase/tests/database/functional-integrity-remediation.test.sql`.
+Uma mudança documental/teste que não altera o produto não exige nova prova de banco ou Production apenas por existir um pipeline capaz de executá-la.
 
-## 5. Supabase local
+## 6. Supabase local
+
+Disponível quando a mudança alcança schema, Auth, RLS, RPC, Edge Function ou persistência:
 
 ```bash
 npm run supabase:start
@@ -114,160 +99,119 @@ npm run supabase:gen:types
 npm run typecheck:database
 ```
 
-A contagem atual das migrations fica em `CURRENT_STAGE.md`; o gate deve sempre aplicar a árvore inteira do zero.
+Usar quando materialmente relacionado. Não iniciar Supabase local para alteração sem impacto nessas camadas.
 
-Requisitos:
+## 7. Escritas e operações compostas
 
-- migrations em ordem;
-- pgTAP por perfil e escopo;
-- anônimo bloqueado;
-- funções privilegiadas e grants mínimos;
-- tipos alinhados;
-- histórico reconciliado;
-- dry-run e plano de reversão antes de aplicação remota.
+Para mudança que grava dados, selecionar as provas necessárias entre:
 
-## 6. Gates de remediação funcional
+- perfil autorizado;
+- negativa relevante;
+- payload e serviço corretos;
+- persistência;
+- releitura após refresh;
+- autoria/auditoria;
+- conflito de versão;
+- compensação de falha parcial.
 
-### Escolas
+Não é obrigatório executar todos os itens quando o risco não os envolve.
 
-Comprovar:
+## 8. Pendências
 
-- nova escola sem identidade institucional é rejeitada;
-- valores institucionais informados são preservados;
-- duplicidade de INEP, CNPJ e SICI é rejeitada;
-- Controlador não altera identidade institucional nem `controller_id`;
-- edição cadastral autorizada permanece funcional.
+Contrato vigente:
 
-### Exercícios
+- estados: Aberta, Aguardando reanálise, Resolvida e Cancelada;
+- novo envio não resolve automaticamente;
+- Controlador, Assistente e `technical_admin` podem reanalisar;
+- SME e Inventário não executam reanálise;
+- tentativa, agregado, verificação e histórico permanecem coerentes;
+- competência vem de `RadarCompetenceContext`.
 
-Comprovar:
+Teste atual deve usar o contexto canônico, não manipular `activeCompetenciaKey` diretamente para simular troca de mês.
 
-- exatamente doze competências;
-- janeiro a dezembro do mesmo exercício;
-- lote do novo exercício, sem enviar histórico inteiro à RPC;
-- `row_version` obrigatório;
-- conflito otimista;
-- sincronização antes do primeiro render.
+## 9. Gestão de Equipe
 
-### Patrimônio e notas
+Quando essa superfície for alterada, as provas de maior valor são as ações reais e reversíveis contra Supabase descartável:
 
-Comprovar:
+- cadastrar/editar membro;
+- transição de perfil autorizada;
+- redistribuir carteira;
+- desativar;
+- verificar persistência e vínculo Auth/RPC.
 
-- `ASSET-02` usa `saveAssetWithLog`, versão esperada e log;
-- somente o campo de edição rápida permitido é aceito;
-- nota permanente que perde/troca `linked_asset_id` não deixa bem derivado órfão;
-- criação, encaminhamento e inventariação preservam seus fluxos próprios.
+Não repetir essas operações após mudança sem relação com Gestão de Equipe.
 
-### Pendências
+## 10. Auditoria
 
-Comprovar estado da pendência e da tentativa após tentativa, reanálise, cancelamento/reabertura e reload. O status persistido em `pendency_attempts` deve acompanhar o agregado canônico.
+Teste de autoria deve selecionar o evento pela identidade/contexto corretos. Coleção ordenada por UUID não é ordem cronológica.
 
-### Exportações
+Evitar padrões como `reverse().find(...)` para inferir “último evento” sem ordenação temporal explícita.
 
-Comprovar:
+## 11. Excel
 
-- falha da auditoria inicial bloqueia o download;
-- auditoria inicial bem-sucedida libera geração;
-- conclusão é registrada;
-- evento legado duplicado é neutralizado;
-- falha da auditoria final é distinguida de falha de geração.
-
-## 7. Backup e restauração
-
-```bash
-RADAR_ALLOW_DISPOSABLE_BACKUP_RESTORE=true npm run test:backup-restore
-```
-
-O workflow compara schema, dados, Auth e migrations entre pilhas descartáveis e não usa Production.
-
-## 8. Excel
+Quando a mudança afetar exportação:
 
 ```bash
 npm run certify:excel:fixture
 ```
 
-O relatório institucional mantém contrato próprio. O Excel SME protege competência mensal, 27 colunas A:AA, designação textual, estilos, manifesto, assets, download, reabertura e homologação desktop após mudança material.
+O Excel SME protege competência mensal, 27 colunas A:AA, estrutura, manifesto e geração. Homologação humana no Excel desktop é necessária quando houver mudança material no artefato, não para alterações alheias à exportação.
 
-## 9. Playwright e dispositivos
+## 12. Playwright e dispositivos
+
+Disponíveis:
 
 ```bash
 npm run test:e2e
 npm run test:mobile
 ```
 
-Projetos mínimos:
+Usar desktop/mobile conforme a superfície alterada. Se o código coberto não mudou e a jornada já possui evidência válida, não repetir a mesma suíte apenas por ritual.
 
-- desktop Chromium;
-- Pixel 7/Chromium;
-- iPhone 15/WebKit.
+Alteração de layout, navegação, foco, cabeçalho, modal ou responsividade justifica validação no viewport afetado.
 
-Jornadas incluem login, perfis, competência, Dashboard, Carteira, Prontuário, Pendências, Inventário, Gestão SME, Gestão de Equipe, exportações, erros, foco e overflow.
+## 13. Experiência do usuário
 
-## 10. Gate remoto descartável por perfil e viewport
+Além de “funciona”, verificar quando aplicável:
 
-`.github/workflows/gate-remoto-perfis-viewports.yml` usa Supabase descartável, identidades efêmeras e três viewports. Prova Auth/RLS e responsividade sem tocar Production.
+- ação encontrável;
+- contexto visível e compreensível;
+- legibilidade;
+- clique/teclado/foco estáveis;
+- feedback de sucesso/erro;
+- dados mostrados coerentes com os gravados;
+- retorno e filtros preservados;
+- conteúdo essencial disponível no mobile.
 
-## 11. Smoke autenticado de leitura em Production
+Um backend correto não compensa uma interface que esconde o estado ou a próxima ação.
 
-Arquivos:
+## 14. Backup e restauração
 
-```text
-.github/workflows/production-authenticated-read.yml
-playwright.production-authenticated-read.config.js
-tests/e2e/production-authenticated-read.spec.js
-tests/support/production-authenticated-read.js
+```bash
+RADAR_ALLOW_DISPOSABLE_BACKUP_RESTORE=true npm run test:backup-restore
 ```
 
-A infraestrutura foi integrada pelo PR #148, porém sua execução real permanece desativada até provisionamento específico.
+Executar para mudanças de migration, importação, restauração, snapshot ou risco de recuperação de dados. Não é gate padrão para alteração visual, documental ou teste de interface.
 
-Cobertura prevista:
-
-- autenticação, restauração e logout;
-- busca global autorizada;
-- Dashboard;
-- Carteira ou negativa correta para Inventário;
-- Prontuário e timeline;
-- Pendências.
-
-Regras obrigatórias:
-
-1. cinco contas técnicas dedicadas, nunca contas pessoais/operacionais;
-2. execução real somente fora de pull requests;
-3. segredo em arquivo temporário protegido e removido ao final;
-4. trace, screenshot, vídeo e upload de artefatos desabilitados;
-5. nenhuma service role no navegador;
-6. falha imediata diante de mutação operacional;
-7. erros sanitizados.
-
-A ausência das contas técnicas é bloqueio deliberado de ativação, não falha da infraestrutura integrada.
-
-## 12. Production
+## 15. Production
 
 ### Monitor geral
 
-`.github/workflows/production-system-smoke.yml` verifica publicação, manifesto, shell, Auth gate, assets, bloqueio anônimo, preflight e incidentes.
+`.github/workflows/production-system-smoke.yml` verifica a saúde técnica publicada.
 
 ### Integridade dos dados
 
-`.github/workflows/production-data-integrity.yml` consulta vinte invariantes agregadas por função privilegiada e publica somente contagens sanitizadas.
+`.github/workflows/production-data-integrity.yml` verifica invariantes agregadas.
 
 ### Leitura autenticada
 
-Permanece desabilitada até autorização/provisionamento. Não alterar a cobertura da matriz como se estivesse ativa.
+A infraestrutura dedicada permanece separada e protegida. Ausência de execução recorrente não transforma uma função já homologada em defeito.
 
-## 13. Auditoria funcional remanescente
+Após mudança realmente publicada, confirmar o SHA do deployment quando isso fizer parte da entrega.
 
-O PR #156 contém testes e diagnósticos históricos, mas sua branch divergiu da `main`. Não executar seus workflows temporários como se fossem fonte atual sem primeiro avaliar compatibilidade.
+## 16. Lighthouse e auditorias especializadas
 
-Continuidade correta:
-
-1. partir da `main` reconciliada;
-2. identificar evidências ainda válidas da Task 5;
-3. não repetir prova já absorvida por PR posterior sem motivo;
-4. criar nova regressão apenas para falha atual comprovada;
-5. atualizar a matriz quando a evidência realmente alterar o estado de cobertura.
-
-## 14. Acessibilidade, desempenho e build
+Ferramentas disponíveis:
 
 ```bash
 npm run audit:lighthouse
@@ -277,9 +221,9 @@ npm run test:frontend-precedence
 npm run build:vercel
 ```
 
-Validar teclado, foco, modais, equivalência mobile, ausência de overflow e piso de desempenho no mesmo SHA.
+Usar quando a mudança toca desempenho, acessibilidade estrutural, precedência de frontend ou build. Um Lighthouse vermelho sem relação material com a mudança não deve iniciar sozinho uma nova frente de correção.
 
-## 15. Dependências
+## 17. Dependências
 
 ```bash
 npm run lint
@@ -287,25 +231,18 @@ npm run analyze:unused
 npm run check:team-account-function
 ```
 
-Atualização exige PR isolado, versão fixada, changelog, lockfile e gates afetados.
+Atualização de dependência deve permanecer em frente isolada quando possível e validar somente os riscos introduzidos pela atualização.
 
-## 16. Mesmo SHA
+## 18. Mesmo SHA e encerramento
 
-Antes de declarar conclusão:
+Para entrega com publicação:
 
-1. fixar SHA candidato;
-2. executar gates nesse SHA;
-3. confirmar que a branch não mudou;
-4. verificar checks;
-5. publicar somente o commit aprovado;
-6. repetir smokes após Production quando houver impacto.
+1. identificar o SHA candidato;
+2. executar a validação proporcional nesse código;
+3. classificar qualquer falha relevante;
+4. integrar quando objetivamente pronto;
+5. confirmar o SHA publicado.
 
-## 17. Gates externos/remanescentes
+Não exigir que todos os jobs possíveis estejam verdes se falhas restantes forem comprovadamente históricas, artificiais ou não relacionadas.
 
-- continuar auditoria funcional a partir da `main` atual;
-- executar as provas controladas das operações `partial`;
-- decidir se serão provisionadas as cinco contas técnicas do smoke;
-- verificar a tela de detalhes da escola;
-- UAT com usuários reais;
-- homologação humana de artefatos quando aplicável;
-- decisão formal de liberação.
+Uma rodada termina quando o risco da mudança foi coberto e não há evidência concreta de regressão relevante ao usuário. Não iniciar outra rodada integral sem nova evidência.

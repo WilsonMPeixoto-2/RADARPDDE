@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-08-07",
-  "sourceCommit": "b347b854bf5af99c3ec9d9b091b77b854cc53a4b",
+  "updatedAt": "2026-08-09",
+  "sourceCommit": "908758d92ec8407003a848ed2779814ce747a6c5",
   "profiles": [
     {"id": "anonymous", "label": "Anônimo", "kind": "technical"},
     {"id": "controller", "label": "Controlador", "kind": "functional"},
@@ -27,7 +27,7 @@
   ],
   "coverageStates": {
     "covered": "Percurso e evidência suficientes para o estágio atual.",
-    "partial": "Contrato existe, mas falta prova padronizada de Production, releitura ou compensação.",
+    "partial": "Contrato vigente e funcional; prova adicional só é necessária quando um risco concreto, mudança relacionada ou auditoria expressa justificar. Cobertura parcial não significa defeito nem bloqueio automático do produto.",
     "gap": "Lacuna técnica comprovada.",
     "decision": "Implementação existe, mas a regra funcional exige confirmação."
   },
@@ -52,7 +52,7 @@
     },
     "competence": {
       "unit": ["tests/unit/configuration-service.test.js"],
-      "e2e": ["tests/e2e/exercise-management.spec.js"],
+      "e2e": ["tests/e2e/exercise-management.spec.js", "tests/e2e/global-competence-selector.spec.js", "tests/e2e/task-9-cross-view.spec.js"],
       "database": [],
       "production": []
     },
@@ -100,31 +100,31 @@
     },
     "verification": {
       "unit": ["tests/unit/verification-remote-persistence.test.js", "tests/unit/remote-operational-commands.test.js"],
-      "e2e": ["tests/e2e/application-services.spec.js", "tests/e2e/supabase-full-contract.spec.js"],
+      "e2e": ["tests/e2e/application-services.spec.js", "tests/e2e/supabase-full-contract.spec.js", "tests/e2e/functional-core.spec.js"],
       "database": ["supabase/tests/database/verification-rpc.test.sql", "supabase/tests/database/rls.test.sql"],
       "production": []
     },
     "pendency": {
       "unit": ["tests/unit/access-policy.test.js", "tests/unit/remote-operational-commands.test.js", "tests/unit/functional-integrity-migration.test.js"],
-      "e2e": ["tests/e2e/application-services.spec.js", "tests/e2e/supabase-full-contract.spec.js"],
+      "e2e": ["tests/e2e/application-services.spec.js", "tests/e2e/supabase-full-contract.spec.js", "tests/e2e/pendency-reanalysis-auth.spec.js", "tests/e2e/pendency-cycle.spec.js", "tests/e2e/task-9-pendencias.spec.js", "tests/e2e/task-10-11-pendencias.spec.js"],
       "database": ["supabase/tests/database/operations-rpc.test.sql", "supabase/tests/database/rls.test.sql", "supabase/tests/database/functional-integrity-remediation.test.sql"],
       "production": []
     },
     "invoice": {
       "unit": ["tests/unit/atomic-invoice-rpc.test.js", "tests/unit/remote-operational-commands.test.js", "tests/unit/functional-integrity-migration.test.js"],
-      "e2e": ["tests/e2e/application-services.spec.js", "tests/e2e/supabase-full-contract.spec.js"],
+      "e2e": ["tests/e2e/application-services.spec.js", "tests/e2e/supabase-full-contract.spec.js", "tests/e2e/functional-core.spec.js"],
       "database": ["supabase/tests/database/invoice-rpc.test.sql", "supabase/tests/database/rls.test.sql", "supabase/tests/database/functional-integrity-remediation.test.sql"],
       "production": []
     },
     "asset": {
       "unit": ["tests/unit/remote-operational-commands.test.js", "tests/unit/inventory-service.test.js"],
-      "e2e": ["tests/e2e/application-services.spec.js", "tests/e2e/supabase-full-contract.spec.js"],
+      "e2e": ["tests/e2e/application-services.spec.js", "tests/e2e/supabase-full-contract.spec.js", "tests/e2e/functional-core.spec.js"],
       "database": ["supabase/tests/database/inventory-capital-rls.test.sql", "supabase/tests/database/rls.test.sql", "supabase/tests/database/functional-integrity-remediation.test.sql"],
       "production": []
     },
     "audit": {
       "unit": ["tests/unit/audit-service.test.js", "tests/unit/audit-functional-persistence-contract.test.js"],
-      "e2e": ["tests/e2e/supabase-full-contract.spec.js"],
+      "e2e": ["tests/e2e/supabase-full-contract.spec.js", "tests/e2e/sme-access-governance.spec.js"],
       "database": ["supabase/tests/database/rls.test.sql"],
       "production": []
     },
