@@ -1,0 +1,86 @@
+const { test, expect } = require('@playwright/test');
+
+test.describe('competência global nos dashboards', () => {
+  test('controle mensal SME comanda contexto, cabeçalho, cards e tabela', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário mensal exclusivo do desktop.');
+
+    const pageErrors = [];
+    page.on('pageerror', error => pageErrors.push(error.message));
+
+    await page.goto('/');
+    await page.waitForFunction(() => window.RadarCompetenceContext?.isInitialized?.());
+
+    const seeded = await page.evaluate(() => {
+      const mayKey = '2026-05';
+      const augustKey = '2026-08';
+      const targetSchool = escolas.find(school => (
+        school.cre
+        && Array.isArray(school.programasIds)
+        && school.programasIds.length > 0
+        && isCompetenceInScope(school.competenciaInicial, mayKey)
+      ));
+      if (!targetSchool) throw new Error('Escola apta ao cenário mensal SME não encontrada.');
+
+      const targetSchools = escolas.filter(school => school.cre === targetSchool.cre);
+      targetSchools.forEach(school => {
+        verificacoes[school.id] = verificacoes[school.id] || {};
+        school.programasIds.forEach(programId => {
+          verificacoes[school.id][`${mayKey}_${programId}`] = {
+            bonificacao: {},
+            resultadoBonif: 'inapta'
+          };
+          verificacoes[school.id][`${augustKey}_${programId}`] = {
+            bonificacao: {},
+            resultadoBonif: 'apta'
+          };
+        });
+      });
+
+      RadarCompetenceContext.select(mayKey, { source: 'dashboard-test-setup' });
+      switchProfile('sme');
+      switchView('dashboard');
+
+      return {
+        cre: targetSchool.cre,
+        schoolName: targetSchool.denominação,
+        expectedAptSchools: targetSchools.length
+      };
+    });
+
+    await expect(page.locator('#global-competence-select')).toHaveValue('2026-05');
+    await page.locator('table.data-table tbody tr')
+      .filter({ hasText: seeded.cre })
+      .first()
+      .getByRole('button', { name: 'Detalhamento' })
+      .click();
+    await expect(page.locator('#sme-detail-table')).toBeVisible();
+    const detailRow = page.locator('#sme-detail-table tbody tr')
+      .filter({ hasText: seeded.schoolName })
+      .first();
+    await expect(detailRow.locator('td').last()).toHaveText(/^\s*inapta\s*$/i);
+
+    const local = page.locator('select[data-radar-sme-competence="true"]');
+    await local.selectOption('2026-08');
+
+    await expect(page.locator('#global-competence-select')).toHaveValue('2026-08');
+    await expect(page.locator('#global-competence-label')).toHaveText('Agosto 2026');
+    await expect(local).toHaveValue('2026-08');
+    const aptCard = page.locator('.card-stat')
+      .filter({ hasText: 'Unidades Aptas (Agosto 2026)' });
+    await expect(aptCard).toBeVisible();
+    await expect(aptCard.locator('.stat-value')).toHaveText(`${seeded.expectedAptSchools} Escolas`);
+    await expect(page.getByRole('columnheader', { name: 'Aptas (Agosto 2026)', exact: true })).toBeVisible();
+    await expect(detailRow.locator('td').last()).toHaveText(/^\s*apta\s*$/i);
+
+    expect(await page.evaluate(() => ({
+      contextKey: RadarCompetenceContext.getState().activeKey,
+      mirror: activeCompetenciaKey,
+      prontuarioMirror: activeProntuarioCompetencia
+    }))).toEqual({
+      contextKey: '2026-08',
+      mirror: '2026-08',
+      prontuarioMirror: '2026-08'
+    });
+    expect(pageErrors).toEqual([]);
+  });
+});
