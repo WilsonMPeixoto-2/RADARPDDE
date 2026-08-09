@@ -59,6 +59,13 @@
             this.appendLog = options.appendLog;
             this.getCurrentUser = options.getCurrentUser || (() => ({ name: 'Sistema', role: 'sistema' }));
             this.getCurrentProfile = options.getCurrentProfile || (() => 'controlador');
+            this.getAuthenticatedRole = options.getAuthenticatedRole || (() => {
+                try {
+                    return globalThis?.RadarAuthContext?.authorization?.role || '';
+                } catch (_error) {
+                    return '';
+                }
+            });
             this.createId = options.createId || (prefix => `${prefix}-${Date.now()}`);
             this.now = options.now || (() => new Date().toISOString());
             this.getCorrectAnalysisLabel = options.getCorrectAnalysisLabel || (() => 'Correto');
@@ -91,6 +98,15 @@
             };
         }
 
+        auditContext() {
+            const authenticatedRole = accessPolicy.normalizeProfile(this.getAuthenticatedRole());
+            const visualProfile = accessPolicy.normalizeProfile(this.getCurrentProfile());
+            return {
+                authenticatedRole: authenticatedRole || null,
+                simulatedProfile: authenticatedRole === 'technical_admin' ? visualProfile || null : null
+            };
+        }
+
         find(state, pendencyId, operation) {
             const index = state.pendencies.findIndex(item => String(item.id) === text(pendencyId));
             if (index < 0) fail('NOT_FOUND', 'Pendência não localizada.', operation);
@@ -111,8 +127,11 @@
 
         appendSchoolLog(schoolId, action, details) {
             const log = this.appendLog(action, details, { escolaId: schoolId, schoolId });
-            if (log && typeof log === 'object' && !text(log.escolaId) && !text(log.school_id)) {
-                log.escolaId = schoolId;
+            if (log && typeof log === 'object') {
+                if (!text(log.escolaId) && !text(log.school_id)) log.escolaId = schoolId;
+                const context = this.auditContext();
+                log.authenticatedRole = context.authenticatedRole;
+                log.simulatedProfile = context.simulatedProfile;
             }
             return log || null;
         }
@@ -483,12 +502,12 @@
                         perfil: text(this.getCurrentUser()?.role) || 'sistema'
                     };
                     state.contacts.push(contact);
-                    const log = this.appendLog(
+                    const log = this.appendSchoolLog(
+                        schoolId,
                         'Contato Registrado',
                         pendencyId
                             ? `Contato via ${channel} associado à pendência ${pendencyId}.`
-                            : `Contato via ${channel} registrado para a escola ${schoolId}.`,
-                        { escolaId: schoolId, schoolId }
+                            : `Contato via ${channel} registrado para a escola ${schoolId}.`
                     );
                     persistence.contactId = contact.id;
                     persistence.logId = text(log?.id);
