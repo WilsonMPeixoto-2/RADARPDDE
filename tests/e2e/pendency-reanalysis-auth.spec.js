@@ -233,8 +233,8 @@ async function reanalyzeAndReload(page, ids, options = {}) {
       analysisValue: verification?.analysis?.[target.documentKey],
       actorUserId: log?.actor_user_id,
       profileName: log?.profile_name,
-      auditAuthenticatedRole: log?.payload?.authenticatedRole,
-      auditSimulatedProfile: log?.payload?.simulatedProfile
+      auditAuthenticatedRole: log?.details?.authenticatedRole,
+      auditSimulatedProfile: log?.details?.simulatedProfile ?? null
     };
   }, { target: ids, simulatedProfile: options.simulatedProfile || null });
 }
