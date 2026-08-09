@@ -81,20 +81,31 @@ async function seedAwaitingPendency(page, { schoolId, documentKey, suffix }) {
     });
 
     const repository = services.data.repository;
-    const pendency = (await repository.load('pendencies')).find(row => row.id === pendencyId);
-    const verification = (await repository.load('verifications')).find(row => (
+    const [pendencies, attempts, verifications] = await Promise.all([
+      repository.load('pendencies'),
+      repository.load('pendencyAttempts'),
+      repository.load('verifications')
+    ]);
+    const pendency = pendencies.find(row => row.id === pendencyId);
+    const attempt = attempts.find(row => row.id === attemptId);
+    const verification = verifications.find(row => (
       row.school_id === input.schoolId
       && row.competence_id === '2026-05'
       && row.program_id === 'BASIC'
     ));
-    if (!pendency || !verification) throw new Error('Agregado E2E não foi persistido no Supabase local.');
+    if (!pendency || !attempt || !verification) {
+      throw new Error('Agregado E2E não foi persistido integralmente no Supabase local.');
+    }
 
     return {
       pendencyId,
       attemptId,
       schoolId: input.schoolId,
       documentKey: input.documentKey,
-      verificationId: verification.id
+      verificationId: verification.id,
+      pendencyRecord: pendency,
+      attemptRecord: attempt,
+      verificationRecord: verification
     };
   }, { schoolId, documentKey, suffix });
 }
@@ -104,18 +115,12 @@ async function expectDirectRpcDenied(page, ids) {
     const client = window.RadarSessionContext?.service?.client;
     if (!client) throw new Error('Cliente Supabase autenticado ausente.');
 
-    const [pendencyResult, attemptResult, verificationResult] = await Promise.all([
-      client.from('pendencies').select('*').eq('id', target.pendencyId).single(),
-      client.from('pendency_attempts').select('*').eq('id', target.attemptId).single(),
-      client.from('verifications').select('*').eq('id', target.verificationId).single()
-    ]);
-    for (const result of [pendencyResult, attemptResult, verificationResult]) {
-      if (result.error) throw result.error;
-    }
-
-    const pendency = pendencyResult.data;
-    const attempt = attemptResult.data;
-    const verification = verificationResult.data;
+    // O payload é capturado pelo Administrador Técnico durante a preparação.
+    // Perfis restritos não precisam (nem devem) conseguir ler o registro para
+    // que possamos provar separadamente que a mutação é negada pelo RLS/RPC.
+    const pendency = target.pendencyRecord;
+    const attempt = target.attemptRecord;
+    const verification = target.verificationRecord;
     const now = new Date().toISOString();
     const role = window.RadarAuthContext?.authorization?.role || 'unknown';
     const { error } = await client.rpc('reanalyze_pendency_with_verification', {
