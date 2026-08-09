@@ -11,7 +11,7 @@ function createRoot(options = {}) {
     let exportCalls = 0;
     const root = {
         escolas: [],
-        COMPETENCIAS: [],
+        COMPETENCIAS: [{ key: '2026-05', label: 'Maio 2026' }],
         programas: [],
         verificacoes: {},
         pendencias: [],

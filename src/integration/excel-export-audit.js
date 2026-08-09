@@ -19,6 +19,10 @@
         return value == null ? '' : String(value).trim();
     }
 
+    function isMonthlyCompetence(value) {
+        return /^\d{4}-(0[1-9]|1[0-2])$/.test(text(value));
+    }
+
     function resolveAuditService(root) {
         try {
             if (typeof radarAuditService !== 'undefined' && radarAuditService) return radarAuditService;
@@ -26,6 +30,18 @@
             // Global lexical ainda indisponível.
         }
         return root?.radarAuditService || null;
+    }
+
+    function resolveCanonicalCompetence(root, fallback = '') {
+        try {
+            const key = root?.RadarCompetenceContext?.isInitialized?.()
+                ? root.RadarCompetenceContext.getState()?.activeKey
+                : null;
+            if (isMonthlyCompetence(key)) return text(key);
+        } catch (_error) {
+            // Mantém fallback do estado do navegador.
+        }
+        return isMonthlyCompetence(fallback) ? text(fallback) : '';
     }
 
     function resolveState(root) {
@@ -42,14 +58,37 @@
             }
             return root?.[name];
         };
+        const activeKey = resolveCanonicalCompetence(root, value('activeCompetenciaKey'));
         return {
             escolas: Array.isArray(value('escolas')) ? value('escolas') : [],
             competencias: Array.isArray(value('COMPETENCIAS')) ? value('COMPETENCIAS') : [],
             programas: Array.isArray(value('programas')) ? value('programas') : [],
             verificacoes: value('verificacoes') || {},
             pendencias: Array.isArray(value('pendencias')) ? value('pendencias') : [],
-            activeCompetenciaKey: text(value('activeCompetenciaKey')) || 'TODAS'
+            activeCompetenciaKey: activeKey || 'TODAS'
         };
+    }
+
+    function scopeStateToActiveCompetence(root, state) {
+        const activeKey = resolveCanonicalCompetence(root, state?.activeCompetenciaKey);
+        if (!activeKey) {
+            const error = new Error('Selecione uma competência mensal antes de gerar o relatório Excel.');
+            error.code = 'EXPORT_INVALID_COMPETENCE';
+            throw error;
+        }
+        const competencias = Array.isArray(state?.competencias)
+            ? state.competencias.filter(item => text(item?.key) === activeKey)
+            : [];
+        if (!competencias.length) {
+            const error = new Error(`A competência ${activeKey} não está disponível para exportação.`);
+            error.code = 'EXPORT_COMPETENCE_NOT_FOUND';
+            throw error;
+        }
+        return Object.freeze({
+            ...state,
+            competencias,
+            activeCompetenciaKey: activeKey
+        });
     }
 
     function notify(root, message) {
@@ -73,9 +112,7 @@
     }
 
     function auditDetails(kind, phase, state) {
-        const scope = kind === 'sme'
-            ? `competência ${state.activeCompetenciaKey}`
-            : 'relatório institucional consolidado';
+        const scope = `competência ${state.activeCompetenciaKey}`;
         return phase === 'started'
             ? `Exportação ${kind === 'sme' ? 'Excel SME' : 'Excel institucional'} iniciada para ${scope}.`
             : `Exportação ${kind === 'sme' ? 'Excel SME' : 'Excel institucional'} concluída para ${scope}.`;
@@ -100,7 +137,13 @@
             const action = kind === 'sme'
                 ? 'Relatório Excel SME Exportado'
                 : 'Relatório Excel Exportado';
-            const state = options.state || resolveState(root);
+            let state = options.state || resolveState(root);
+            try {
+                state = scopeStateToActiveCompetence(root, state);
+            } catch (error) {
+                notify(root, error.message || 'Não foi possível determinar a competência da exportação.');
+                return { ok: false, error };
+            }
 
             try {
                 await record(root, 'Exportação Excel Iniciada', auditDetails(kind, 'started', state));
@@ -112,9 +155,14 @@
             controller.depth += 1;
             let result;
             try {
+                const scopedOptions = {
+                    ...options,
+                    state,
+                    temporalScope: `Competência ${state.activeCompetenciaKey}`
+                };
                 result = kind === 'sme'
-                    ? await integration.exportSmeXlsx({ ...options, state })
-                    : await Promise.resolve(integration.exportXlsx({ ...options, state }));
+                    ? await integration.exportSmeXlsx(scopedOptions)
+                    : await Promise.resolve(integration.exportXlsx(scopedOptions));
             } finally {
                 controller.depth = Math.max(0, controller.depth - 1);
             }
@@ -175,6 +223,8 @@
         createAuditedExport,
         install,
         record,
-        resolveState
+        resolveCanonicalCompetence,
+        resolveState,
+        scopeStateToActiveCompetence
     });
 }));
