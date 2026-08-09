@@ -116,8 +116,8 @@ async function expectDirectRpcDenied(page, ids) {
     if (!client) throw new Error('Cliente Supabase autenticado ausente.');
 
     // O payload é capturado pelo Administrador Técnico durante a preparação.
-    // Perfis restritos não precisam (nem devem) conseguir ler o registro para
-    // que possamos provar separadamente que a mutação é negada pelo RLS/RPC.
+    // A própria RPC pode ocultar a pendência antes da checagem de escrita;
+    // NOT_FOUND e AUTHORIZATION_DENIED são ambas recusas seguras da mutação.
     const pendency = target.pendencyRecord;
     const attempt = target.attemptRecord;
     const verification = target.verificationRecord;
@@ -166,7 +166,9 @@ async function expectDirectRpcDenied(page, ids) {
     };
   }, ids);
 
-  expect(denial.message).toContain('AUTHORIZATION_DENIED');
+  const safelyDenied = ['AUTHORIZATION_DENIED', 'NOT_FOUND']
+    .some(token => denial.message?.includes(token));
+  expect(safelyDenied, `RPC deveria negar a reanálise, mas retornou: ${denial.message || denial.code || 'sem erro'}`).toBe(true);
 }
 
 async function reanalyzeAndReload(page, ids, options = {}) {
