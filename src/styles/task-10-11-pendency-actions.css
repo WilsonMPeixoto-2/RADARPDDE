@@ -1,8 +1,14 @@
 /* Tasks 10–11 — ações operacionais de pendências */
 .task-operation-modal {
+    display: flex;
+    flex-direction: column;
     width: min(620px, calc(100vw - 32px));
     max-height: min(86vh, 760px);
-    overflow-y: auto;
+    overflow: hidden;
+}
+
+.task-operation-modal .modal-header {
+    flex: 0 0 auto;
 }
 
 .task-operation-modal .modal-header p {
@@ -21,17 +27,26 @@
 }
 
 .task-operation-modal > form {
-    padding: 20px 24px 24px;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 24px 0;
+    overflow-y: auto;
 }
 
 .task-operation-modal .modal-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
     display: flex;
     justify-content: flex-end;
     gap: 10px;
-    margin: 20px -24px -24px;
+    margin: auto -24px 0;
     padding: 16px 24px;
     border-top: 1px solid var(--border-color);
     background: var(--bg-sidebar);
+    box-shadow: 0 -8px 20px color-mix(in srgb, var(--bg-main) 72%, transparent);
 }
 
 .task-destructive-note {
@@ -91,6 +106,34 @@
     accent-color: var(--primary);
 }
 
+.task-reanalysis-detail {
+    display: grid;
+    gap: 5px;
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-left: 3px solid var(--primary);
+    border-radius: 6px;
+    background: var(--primary-glow);
+}
+
+.task-reanalysis-detail strong {
+    color: var(--text-main);
+    font-size: 0.76rem;
+}
+
+.task-reanalysis-detail p {
+    margin: 0 !important;
+    color: var(--text-main);
+    font-size: 0.8rem;
+    line-height: 1.45;
+}
+
+.task-reanalysis-detail small {
+    margin: 0 !important;
+    color: var(--text-muted);
+    font-size: 0.7rem;
+}
+
 .task-operation-modal :is(button, input, select, textarea):focus-visible {
     outline: 3px solid color-mix(in srgb, var(--primary) 42%, transparent);
     outline-offset: 2px;
@@ -148,10 +191,8 @@
     }
 
     .task-operation-modal .modal-actions {
-        position: sticky;
-        bottom: 0;
         flex-wrap: wrap;
-        margin: 20px -18px 0;
+        margin: auto -18px 0;
         padding: 14px 18px calc(14px + env(safe-area-inset-bottom));
     }
 
