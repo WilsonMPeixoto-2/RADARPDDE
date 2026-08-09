@@ -5437,12 +5437,12 @@ function getEscolaProgramNames(esc) {
 
 // NOTE: relies on _pendenciasByEscolaId and _bensByEscolaId indexes.
 // Call rebuildOperationalIndexes() after any mutation to pendencias or bens.
-function getEscolaOperationalData(esc) {
+function getEscolaOperationalData(esc, competenceKey) {
     const escolaPendencias = _pendenciasByEscolaId.get(esc.id) || [];
     const pendenciasAbertas = escolaPendencias.filter(p => (
         window.RadarPendencias.isActivePendency(p)
     ));
-    const analiseTecnica = getSchoolTechnicalAnalysisStatus(esc, activeCompetenciaKey);
+    const analiseTecnica = getSchoolTechnicalAnalysisStatus(esc, competenceKey);
     const analiseTecnicaMeta = getProgramTechnicalMeta(analiseTecnica);
     const nextActors = [...new Set(pendenciasAbertas.map(pendency => (
         pendency.responsavel
@@ -5462,7 +5462,7 @@ function getEscolaOperationalData(esc) {
         controladorName: getControladorName(esc.controladorId),
         programas: getEscolaProgramNames(esc),
         ra: esc.ra || getRAFromDesignacao(esc.designação),
-        situacao: getSchoolAggregateStatus(esc, activeCompetenciaKey),
+        situacao: getSchoolAggregateStatus(esc, competenceKey),
         analiseTecnica,
         analiseTecnicaMeta,
         pendenciasAbertas,
@@ -5634,18 +5634,22 @@ function handleGlobalSearch(e) {
 // 7. RENDER DA TELA: DASHBOARDS
 // ==========================================
 
-let dashboardCompetenceRecoveryPending = false;
+let competenceBootstrapRecoveryPending = false;
 
-function scheduleDashboardAfterCompetenceBootstrap() {
-    if (dashboardCompetenceRecoveryPending) return false;
-    dashboardCompetenceRecoveryPending = true;
+function scheduleCurrentViewAfterCompetenceBootstrap() {
+    if (competenceBootstrapRecoveryPending) return false;
+    competenceBootstrapRecoveryPending = true;
     window.addEventListener('radar:competence-change', () => {
-        dashboardCompetenceRecoveryPending = false;
-        const accessProfile = getRadarAccessProfile();
-        if (currentView !== 'dashboard') return;
-        if (!['controlador', 'assistente', 'sme'].includes(accessProfile)) return;
+        competenceBootstrapRecoveryPending = false;
         if (!window.RadarCompetenceContext?.isInitialized?.()) return;
-        renderDashboard();
+        if (currentView === 'dashboard') {
+            const accessProfile = getRadarAccessProfile();
+            if (['controlador', 'assistente', 'sme'].includes(accessProfile)) renderDashboard();
+        } else if (currentView === 'escolas') {
+            renderEscolas();
+        } else if (currentView === 'competencias') {
+            renderCompetencias();
+        }
     }, { once: true });
     return true;
 }
@@ -5656,7 +5660,7 @@ function renderDashboard() {
 
     if (['controlador', 'assistente', 'sme'].includes(accessProfile)
         && !window.RadarCompetenceContext?.isInitialized?.()) {
-        scheduleDashboardAfterCompetenceBootstrap();
+        scheduleCurrentViewAfterCompetenceBootstrap();
         return false;
     }
     
@@ -7245,13 +7249,12 @@ function changeEscolaFilter(filterName, value) {
 }
 
 function changeCarteiraCompetencia(value) {
-
-    activeCompetenciaKey = value;
-
-    updateGlobalCompetenceIndicator();
-
-    renderEscolas();
-
+    try {
+        window.RadarCompetenceContext.select(value, { source: 'carteira' });
+        return true;
+    } catch (error) {
+        return false;
+    }
 }
 
 
@@ -7272,11 +7275,11 @@ function clearEscolaFilters() {
 
 
 
-function getFilteredEscolas() {
+function getFilteredEscolas(competenceKey) {
 
     return escolas.filter(esc => {
 
-        const op = getEscolaOperationalData(esc);
+        const op = getEscolaOperationalData(esc, competenceKey);
 
 
 
@@ -7320,19 +7323,28 @@ function renderEscolaFilterOptions(options, activeValue) {
 
 
 
-function renderEscolas() {
+function renderEscolas(capturedCompetenceKey = null) {
 
     const container = document.getElementById('main-container');
 
-    const targetEscolas = getFilteredEscolas();
+    if (!window.RadarCompetenceContext?.isInitialized?.()) {
+        scheduleCurrentViewAfterCompetenceBootstrap();
+        return false;
+    }
+
+    const competenceState = window.RadarCompetenceContext.getState();
+
+    const competenceKey = capturedCompetenceKey || competenceState.activeKey;
+
+    const targetEscolas = getFilteredEscolas(competenceKey);
 
     const raOptions = [...new Set(escolas.map(e => e.ra || getRAFromDesignacao(e.designação)).filter(Boolean))].sort();
 
-    const competenciaOptions = COMPETENCIAS.filter(c => c.key <= config.competenciaFechamento);
+    const competenciaOptions = window.RadarCompetenceContext.getAvailableForExercise(competenceState.exercise);
 
-    const pendenciasCount = targetEscolas.filter(e => getEscolaOperationalData(e).hasPendencias).length;
+    const pendenciasCount = targetEscolas.filter(e => getEscolaOperationalData(e, competenceKey).hasPendencias).length;
 
-    const inventarioCount = targetEscolas.filter(e => getEscolaOperationalData(e).hasInventarioProcess).length;
+    const inventarioCount = targetEscolas.filter(e => getEscolaOperationalData(e, competenceKey).hasInventarioProcess).length;
 
     const activeSearchTerm = escolaSearchQuery.trim();
 
@@ -7557,7 +7569,7 @@ function renderEscolas() {
 
                         ${competenciaOptions.map(c => `
 
-                            <option value="${escapeHtml(c.key)}" ${selectedAttr(activeCompetenciaKey, c.key)}>${escapeHtml(c.label)}</option>
+                            <option value="${escapeHtml(c.key)}" ${selectedAttr(competenceKey, c.key)}>${escapeHtml(c.label)}</option>
 
                         `).join('')}
 
@@ -7619,7 +7631,7 @@ function renderEscolas() {
 
                         ` : targetEscolas.map(e => {
 
-                            const op = getEscolaOperationalData(e);
+                            const op = getEscolaOperationalData(e, competenceKey);
 
                             const statusBadge = getEscolaStatusBadgeClass(op.situacao);
 
@@ -7700,6 +7712,13 @@ function renderEscolas() {
 
 function renderCompetencias() {
     const container = document.getElementById('main-container');
+
+    if (!window.RadarCompetenceContext?.isInitialized?.()) {
+        scheduleCurrentViewAfterCompetenceBootstrap();
+        return false;
+    }
+
+    const competenceKey = window.RadarCompetenceContext.getState().activeKey;
     const canViewTechnicalAnalysis = hasRadarCapability(
         window.RadarAccessPolicy.CAPABILITIES.VIEW_TECHNICAL_ANALYSIS
     );
@@ -7713,19 +7732,11 @@ function renderCompetencias() {
                 <h1>Visão por Competência</h1>
                 <p>Verifique o fechamento e a conformidade da bonificação da competência selecionada.</p>
             </div>
-            <div style="display:flex; align-items:center; gap:12px;">
-                <label for="comp-select-view" style="font-weight:600; font-size:0.85rem;">Competência:</label>
-                <select class="form-control" id="comp-select-view" style="width:180px;" onchange="changeCompetenciaView(this.value)">
-                    ${COMPETENCIAS.filter(c => c.key <= config.competenciaFechamento).map(c => `
-                        <option value="${c.key}" ${c.key === activeCompetenciaKey ? 'selected' : ''}>${c.label}</option>
-                    `).join('')}
-                </select>
-            </div>
         </div>
 
         <div class="panel-card">
             <div class="panel-header">
-                <h2>Lista de Entrega e Bonificação - Competência ${formatCompetenciaText(activeCompetenciaKey)}</h2>
+                <h2>Lista de Entrega e Bonificação - Competência ${formatCompetenciaText(competenceKey)}</h2>
             </div>
             <div class="table-responsive">
                 <table class="data-table">
@@ -7743,14 +7754,14 @@ function renderCompetencias() {
                     </thead>
                     <tbody>
                         ${escolas.map(e => {
-                            const inScope = isCompetenceInScope(e.competenciaInicial, activeCompetenciaKey);
+                            const inScope = isCompetenceInScope(e.competenciaInicial, competenceKey);
                             const ctrl = controladores.find(c => c.id === e.controladorId);
                             
                             let bonifStatusHTML = '';
                             let analiseStatusHTML = '';
                             const pendentesCount = pendencias.filter(p => (
                                 p.escolaId === e.id
-                                && (p.competenciaOrigem === activeCompetenciaKey || p.competencia === activeCompetenciaKey)
+                                && (p.competenciaOrigem === competenceKey || p.competencia === competenceKey)
                                 && window.RadarPendencias.isActivePendency(p)
                             )).length;
 
@@ -7760,13 +7771,13 @@ function renderCompetencias() {
                                     const progName = prog ? prog.name : progId;
                                     const bonusStatus = getProgramBonificationStatus(
                                         e.id,
-                                        activeCompetenciaKey,
+                                        competenceKey,
                                         progId
                                     );
                                     const bonusMeta = getProgramBonificationMeta(bonusStatus);
                                     const technicalStatus = getProgramTechnicalStatus(
                                         e.id,
-                                        activeCompetenciaKey,
+                                        competenceKey,
                                         progId
                                     );
                                     const technicalMeta = getProgramTechnicalMeta(technicalStatus);
@@ -7826,24 +7837,27 @@ function renderCompetencias() {
         ` : ''}
     `;
 
-    if (canViewCompetencePendencies) renderPassivoAnterior();
+    if (canViewCompetencePendencies) renderPassivoAnterior(competenceKey);
 }
 
 function changeCompetenciaView(val) {
-    activeCompetenciaKey = val;
-    updateGlobalCompetenceIndicator();
-    renderCompetencias();
+    try {
+        window.RadarCompetenceContext.select(val, { source: 'competencias-view' });
+        return true;
+    } catch (error) {
+        return false;
+    }
 }
 
-function renderPassivoAnterior() {
+function renderPassivoAnterior(competenceKey) {
     const listEl = document.getElementById('passivo-competencias-list');
     if (!listEl) return;
     
     // Filtrar pendências abertas que sejam anteriores à competência selecionada ativa
-    const passivo = pendencias.filter(p => p.status === 'Aberta' && p.competencia < activeCompetenciaKey);
+    const passivo = pendencias.filter(p => p.status === 'Aberta' && p.competencia < competenceKey);
     
     if (passivo.length === 0) {
-        listEl.innerHTML = `<div style="padding:16px; text-align:center; color:var(--text-muted)">Excelente! Não há passivo de regularização pendente anterior a ${activeCompetenciaKey}.</div>`;
+        listEl.innerHTML = `<div style="padding:16px; text-align:center; color:var(--text-muted)">Excelente! Não há passivo de regularização pendente anterior a ${competenceKey}.</div>`;
         return;
     }
 
