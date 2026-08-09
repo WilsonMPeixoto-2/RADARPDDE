@@ -5634,9 +5634,31 @@ function handleGlobalSearch(e) {
 // 7. RENDER DA TELA: DASHBOARDS
 // ==========================================
 
+let dashboardCompetenceRecoveryPending = false;
+
+function scheduleDashboardAfterCompetenceBootstrap() {
+    if (dashboardCompetenceRecoveryPending) return false;
+    dashboardCompetenceRecoveryPending = true;
+    window.addEventListener('radar:competence-change', () => {
+        dashboardCompetenceRecoveryPending = false;
+        const accessProfile = getRadarAccessProfile();
+        if (currentView !== 'dashboard') return;
+        if (!['controlador', 'assistente', 'sme'].includes(accessProfile)) return;
+        if (!window.RadarCompetenceContext?.isInitialized?.()) return;
+        renderDashboard();
+    }, { once: true });
+    return true;
+}
+
 function renderDashboard() {
     const container = document.getElementById('main-container');
     const accessProfile = getRadarAccessProfile();
+
+    if (['controlador', 'assistente', 'sme'].includes(accessProfile)
+        && !window.RadarCompetenceContext?.isInitialized?.()) {
+        scheduleDashboardAfterCompetenceBootstrap();
+        return false;
+    }
     
     if (accessProfile === 'controlador') {
         renderDashboardControlador(container);
@@ -5651,7 +5673,6 @@ function renderDashboard() {
 
 // 7.1 Dashboard do Controlador
 function renderDashboardControlador(container) {
-    if (!window.RadarCompetenceContext?.isInitialized?.()) return false;
     const competenceKey = window.RadarCompetenceContext.getState().activeKey;
 
     const filterRa = activeControladorRAFilter;
@@ -5944,7 +5965,6 @@ function calculateSMESchoolStats(escolasList, compKey) {
 }
 
 function renderDashboardAssistente(container) {
-    if (!window.RadarCompetenceContext?.isInitialized?.()) return false;
     const competenceKey = window.RadarCompetenceContext.getState().activeKey;
     const competenceLabel = COMPETENCIAS.find(
         competence => competence.key === competenceKey
@@ -6414,7 +6434,6 @@ function clearAssistenteFilters() {
 
 // 7.3 Dashboard da SME
 function renderDashboardSME(container) {
-    if (!window.RadarCompetenceContext?.isInitialized?.()) return false;
     const competenceKey = window.RadarCompetenceContext.getState().activeKey;
     const competenceLabel = COMPETENCIAS.find(
         competence => competence.key === competenceKey

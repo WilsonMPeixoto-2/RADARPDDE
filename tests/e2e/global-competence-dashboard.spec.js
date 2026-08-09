@@ -1,5 +1,43 @@
 const { test, expect } = require('@playwright/test');
 
+const BOOTSTRAP_DASHBOARD_CASES = [
+  {
+    profile: 'controlador',
+    renderer: 'renderDashboardControlador',
+    heading: 'Painel do Controlador'
+  },
+  {
+    profile: 'assistente',
+    renderer: 'renderDashboardAssistente',
+    heading: 'Painel do Assistente de Verbas Federais'
+  },
+  {
+    profile: 'sme',
+    renderer: 'renderDashboardSME',
+    heading: 'Painel da Subsecretaria (SME)'
+  }
+];
+
+async function deferGlobalCompetenceSelector(page) {
+  await page.route('**/src/integration/global-competence-selector.js', async route => {
+    const response = await route.fetch();
+    const source = await response.text();
+    await route.fulfill({
+      response,
+      body: `
+        window.__task2ReleaseGlobalCompetenceSelector = function releaseGlobalCompetenceSelector() {
+          const source = ${JSON.stringify(source)};
+          delete window.__task2ReleaseGlobalCompetenceSelector;
+          const script = document.createElement('script');
+          script.textContent = source;
+          document.head.appendChild(script);
+          script.remove();
+        };
+      `
+    });
+  });
+}
+
 test.describe('competência global nos dashboards', () => {
   test('controle mensal SME comanda contexto, cabeçalho, cards e tabela', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário mensal exclusivo do desktop.');
@@ -83,4 +121,66 @@ test.describe('competência global nos dashboards', () => {
     });
     expect(pageErrors).toEqual([]);
   });
+
+  for (const dashboardCase of BOOTSTRAP_DASHBOARD_CASES) {
+    test(`recupera o primeiro Dashboard de ${dashboardCase.profile} após o bootstrap canônico`, async ({ page }, testInfo) => {
+      test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário de bootstrap exclusivo do desktop.');
+
+      const pageErrors = [];
+      page.on('pageerror', error => pageErrors.push(error.message));
+
+      await deferGlobalCompetenceSelector(page);
+      await page.goto('/');
+      await page.waitForFunction(() => (
+        typeof window.switchProfile === 'function'
+        && typeof window.__task2ReleaseGlobalCompetenceSelector === 'function'
+        && Boolean(window.RadarNavigationReady)
+        && window.RadarDataContext?.ready === true
+        && window.RadarCompetenceContext?.isInitialized?.() !== true
+      ));
+      await page.evaluate(() => window.RadarNavigationReady);
+
+      await page.evaluate(({ profile, renderer }) => {
+        switchProfile(profile);
+        const originalRenderer = window[renderer];
+        if (typeof originalRenderer !== 'function') {
+          throw new Error(`Renderer ${renderer} indisponível no bootstrap.`);
+        }
+        window.__task2DashboardBootstrap = {
+          rendererCalls: 0,
+          profileSwitchesAfterSelection: 0
+        };
+        window[renderer] = function countRecoveredDashboard(...args) {
+          window.__task2DashboardBootstrap.rendererCalls += 1;
+          return originalRenderer.apply(this, args);
+        };
+        const originalSwitchProfile = window.switchProfile;
+        window.switchProfile = function countUnexpectedProfileSwitch(...args) {
+          window.__task2DashboardBootstrap.profileSwitchesAfterSelection += 1;
+          return originalSwitchProfile.apply(this, args);
+        };
+      }, dashboardCase);
+
+      await page.evaluate(() => window.__task2ReleaseGlobalCompetenceSelector());
+      await page.waitForFunction(() => (
+        window.RadarCompetenceContext?.isInitialized?.()
+        && Boolean(window.RadarCycleBDashboard)
+      ));
+
+      expect(await page.evaluate(() => ({
+        rendererCalls: window.__task2DashboardBootstrap.rendererCalls,
+        profileSwitchesAfterSelection: window.__task2DashboardBootstrap.profileSwitchesAfterSelection,
+        profile: currentProfile,
+        view: currentView,
+        heading: document.querySelector('#main-container .page-title h1')?.textContent?.trim() || ''
+      }))).toEqual({
+        rendererCalls: 1,
+        profileSwitchesAfterSelection: 0,
+        profile: dashboardCase.profile,
+        view: 'dashboard',
+        heading: dashboardCase.heading
+      });
+      expect(pageErrors).toEqual([]);
+    });
+  }
 });

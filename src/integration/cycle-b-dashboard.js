@@ -462,7 +462,7 @@
             ? root.getRadarAccessProfile()
             : currentProfile;
         if (typeof currentView !== 'undefined' && currentView === 'dashboard' && profile === 'controlador') {
-            root.renderDashboardControlador(document.getElementById('main-container'));
+            enhanceDashboard();
         }
         return true;
     }
