@@ -37,7 +37,6 @@
 
     function waitForAuthorizedData(root) {
         return new Promise(resolve => {
-            const startedAt = Date.now();
             const tryApply = () => {
                 const remoteEnabled = root.RADAR_PDDE_CONFIG?.supabase?.connectionEnabled === true;
                 const dataReady = root.RadarDataContext?.ready === true;
@@ -51,10 +50,6 @@
                 );
                 if (dataReady && authReady && competenceReady && navigationReady) {
                     resolve(root.RadarNavigationHistory.applyPendingRoute(root));
-                    return true;
-                }
-                if (Date.now() - startedAt >= 30000) {
-                    resolve(false);
                     return true;
                 }
                 return false;

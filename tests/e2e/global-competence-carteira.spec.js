@@ -99,6 +99,44 @@ test.describe('competência global entre Carteira e Competências', () => {
     expect(pageErrors).toEqual([]);
   });
 
+  test('mantém o deep link pendente quando o contexto ultrapassa 30 segundos', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário de bootstrap exclusivo do desktop.');
+
+    await page.addInitScript(() => {
+      const realNow = Date.now.bind(Date);
+      let offset = 0;
+      window.__task3AdvanceBootstrapClock = milliseconds => {
+        offset = Number(milliseconds) || 0;
+      };
+      Date.now = () => realNow() + offset;
+    });
+    await deferGlobalCompetenceSelector(page);
+    await page.goto('/carteira');
+    await page.waitForFunction(() => (
+      typeof window.__task3ReleaseGlobalCompetenceSelector === 'function'
+      && typeof window.__task3AdvanceBootstrapClock === 'function'
+      && Boolean(window.RadarNavigationReady)
+      && window.RadarDataContext?.ready === true
+      && window.RadarCompetenceContext?.isInitialized?.() !== true
+    ));
+
+    await page.evaluate(() => {
+      window.__task3NavigationSettled = false;
+      window.RadarNavigationReady.finally(() => {
+        window.__task3NavigationSettled = true;
+      });
+      window.__task3AdvanceBootstrapClock(31_000);
+      return new Promise(resolve => {
+        window.requestAnimationFrame(() => window.requestAnimationFrame(resolve));
+      });
+    });
+    expect(await page.evaluate(() => window.__task3NavigationSettled)).toBe(false);
+
+    await page.evaluate(() => window.__task3ReleaseGlobalCompetenceSelector());
+    await page.evaluate(() => window.RadarNavigationReady);
+    await expect(page.getByRole('heading', { name: 'Escolas e Carteiras' })).toBeVisible();
+  });
+
   for (const viewCase of [
     { view: 'escolas', path: '/carteira', heading: 'Escolas e Carteiras' },
     { view: 'competencias', path: '/competencias', heading: 'Visão por Competência' }
