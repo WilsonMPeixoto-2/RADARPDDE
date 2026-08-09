@@ -50,14 +50,14 @@
         });
     }
 
-    function buildProjection(targetSchools) {
+    function buildProjection(targetSchools, competenceKey) {
         return root.RadarOperationalProjection.buildOperationalProjection({
             escolas: targetSchools,
             pendencias,
             contatos,
             programas,
             controladores,
-            competencia: activeCompetenciaKey,
+            competencia: competenceKey,
             now: new Date().toISOString(),
             getProgramBonificationStatus: typeof getProgramBonificationStatus === 'function'
                 ? getProgramBonificationStatus
@@ -68,7 +68,7 @@
         });
     }
 
-    function filterSchools(targetSchools, projection) {
+    function filterSchools(targetSchools, projection, competenceKey) {
         if (activeDashboardFilter === 'all') return [...targetSchools];
 
         const projectionBySchool = new Map(
@@ -82,7 +82,7 @@
                     typeof getProgramBonificationStatus === 'function'
                     && getProgramBonificationStatus(
                         school.id,
-                        activeCompetenciaKey,
+                        competenceKey,
                         programId
                     ) === 'nao-lancada'
                 ))
@@ -134,20 +134,20 @@
         `;
     }
 
-    function renderBonificationSummary(count) {
+    function renderBonificationSummary(count, competenceKey) {
         if (!count || activeDashboardFilter === 'bonus') return '';
         return `
             <div class="cycle-b-action-summary">
                 <div>
                     <strong>${count} ${count === 1 ? 'escola aguarda' : 'escolas aguardam'} lançamento de bonificação</strong>
-                    <span>${escapeHtml(formatCompetenciaText(activeCompetenciaKey))} · tarefa regular consolidada</span>
+                    <span>${escapeHtml(formatCompetenciaText(competenceKey))} · tarefa regular consolidada</span>
                 </div>
                 <button type="button" class="btn btn-secondary btn-sm" onclick="changeCycleBDashboardFilter('bonus')">Filtrar Dashboard</button>
             </div>
         `;
     }
 
-    function renderAction(action) {
+    function renderAction(action, competenceKey) {
         const context = [
             action.schoolDesignation,
             action.documentLabel,
@@ -178,7 +178,7 @@
                     class="btn btn-primary btn-sm"
                     ${hasPendency ? `data-pendency-ref="${pendencyReference}"` : ''}
                     data-school-id="${escapeHtml(action.schoolId || '')}"
-                    data-competence="${escapeHtml(action.competence || activeCompetenciaKey)}"
+                    data-competence="${escapeHtml(action.competence || competenceKey)}"
                     onclick="openCycleBOperationalAction(this)"
                 >${hasPendency ? 'Abrir pendência' : 'Abrir Prontuário'}</button>
             </article>
@@ -215,7 +215,7 @@
         return null;
     }
 
-    function renderRowContextAction(action) {
+    function renderRowContextAction(action, competenceKey) {
         if (!action) return '';
         const label = activeDashboardFilter === 'aguardando'
             ? 'Reanalisar documento'
@@ -226,13 +226,13 @@
                 class="btn btn-primary btn-sm cycle-b-row-context-action"
                 data-pendency-ref="${escapeHtml(root.encodePendencyIdReference(action.pendencyId))}"
                 data-school-id="${escapeHtml(action.schoolId || '')}"
-                data-competence="${escapeHtml(action.competence || activeCompetenciaKey)}"
+                data-competence="${escapeHtml(action.competence || competenceKey)}"
                 onclick="openCycleBOperationalAction(this)"
             >${label}</button>
         `;
     }
 
-    function applySchoolListFilter(filteredSchools, projection) {
+    function applySchoolListFilter(filteredSchools, projection, competenceKey) {
         const table = document.querySelector('.dash-layout > div:first-child table.data-table');
         if (!table) return false;
         const tbody = table.querySelector('tbody');
@@ -256,7 +256,7 @@
             const contextualAction = findPrimaryActionForSchool(projection, schoolId);
             if (actionCell && contextualAction) {
                 actionCell.classList.add('cycle-b-dashboard-row-actions');
-                actionCell.insertAdjacentHTML('beforeend', renderRowContextAction(contextualAction));
+                actionCell.insertAdjacentHTML('beforeend', renderRowContextAction(contextualAction, competenceKey));
             }
         });
 
@@ -280,14 +280,16 @@
     }
 
     function enhanceDashboard() {
+        if (!root.RadarCompetenceContext?.isInitialized?.()) return false;
+        const competenceKey = root.RadarCompetenceContext.getState().activeKey;
         const stats = document.querySelector('#main-container .grid-stats');
         const layout = document.querySelector('#main-container .dash-layout');
         if (!stats || !layout) return false;
 
         const targetSchools = getTargetSchools();
-        const fullProjection = buildProjection(targetSchools);
-        const filteredSchools = filterSchools(targetSchools, fullProjection);
-        const filteredProjection = buildProjection(filteredSchools);
+        const fullProjection = buildProjection(targetSchools, competenceKey);
+        const filteredSchools = filterSchools(targetSchools, fullProjection, competenceKey);
+        const filteredProjection = buildProjection(filteredSchools, competenceKey);
         const targetIds = new Set(targetSchools.map(school => school.id));
         const schoolsWithPendingAssets = new Set(
             bens
@@ -307,7 +309,7 @@
             renderCard({
                 label: 'Bonificação não lançada',
                 value: fullProjection.totals.bonificationNotLaunched,
-                detail: formatCompetenciaText(activeCompetenciaKey),
+                detail: formatCompetenciaText(competenceKey),
                 className: 'is-neutral',
                 filter: 'bonus',
                 icon: 'bonus'
@@ -347,7 +349,7 @@
         }
         note.textContent = 'Selecione um cartão para filtrar a lista e as próximas ações. As dimensões podem se sobrepor e não devem ser somadas.';
 
-        applySchoolListFilter(filteredSchools, filteredProjection);
+        applySchoolListFilter(filteredSchools, filteredProjection, competenceKey);
 
         const pendencyActions = filteredProjection.actions.filter(action => action.pendencyId != null);
         const sideColumn = layout.lastElementChild;
@@ -367,11 +369,11 @@
             </div>
             <div class="cycle-b-action-list">
                 ${pendencyActions.length
-                    ? pendencyActions.slice(0, 8).map(renderAction).join('')
+                    ? pendencyActions.slice(0, 8).map(action => renderAction(action, competenceKey)).join('')
                     : '<div class="cycle-b-action-empty"><strong>Nenhuma pendência documental ativa.</strong><span>Não há providência da escola ou reanálise aguardando neste recorte.</span></div>'}
             </div>
             ${pendencyActions.length > 8 ? '<button type="button" class="btn btn-secondary btn-sm cycle-b-action-view-all" onclick="switchView(\'pendencias\')">Ver todas as pendências</button>' : ''}
-            ${renderBonificationSummary(filteredProjection.totals.bonificationNotLaunched)}
+            ${renderBonificationSummary(filteredProjection.totals.bonificationNotLaunched, competenceKey)}
         `;
         const currentSidePanel = sideColumn && sideColumn.querySelector('.panel-card');
         if (currentSidePanel !== queue) {
@@ -459,7 +461,7 @@
             ? root.getRadarAccessProfile()
             : currentProfile;
         if (typeof currentView !== 'undefined' && currentView === 'dashboard' && profile === 'controlador') {
-            root.renderDashboardControlador(document.getElementById('main-container'));
+            enhanceDashboard();
         }
         return true;
     }

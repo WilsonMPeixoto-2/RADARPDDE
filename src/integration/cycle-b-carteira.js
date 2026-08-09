@@ -46,14 +46,14 @@
             .trim();
     }
 
-    function buildProjection(schools = escolas) {
+    function buildProjection(schools, competenceKey) {
         return root.RadarOperationalProjection.buildOperationalProjection({
             escolas: schools,
             pendencias,
             contatos,
             programas,
             controladores,
-            competencia: activeCompetenciaKey,
+            competencia: competenceKey,
             now: new Date().toISOString(),
             getProgramBonificationStatus: typeof getProgramBonificationStatus === 'function'
                 ? getProgramBonificationStatus
@@ -64,8 +64,8 @@
         });
     }
 
-    function getSchoolProjection(schoolId) {
-        return buildProjection(escolas).schools.find(item => String(item.schoolId) === String(schoolId)) || null;
+    function getSchoolProjection(schoolId, competenceKey) {
+        return buildProjection(escolas, competenceKey).schools.find(item => String(item.schoolId) === String(schoolId)) || null;
     }
 
     function schoolMatchesSearchEnhanced(school, query) {
@@ -93,7 +93,7 @@
         return true;
     }
 
-    function getFilteredEscolasEnhanced() {
+    function getFilteredEscolasEnhanced(competenceKey) {
         const pendingFilter = activeEscolaFilters && activeEscolaFilters.pendencias
             ? activeEscolaFilters.pendencias
             : 'all';
@@ -101,18 +101,18 @@
         if (['aberta', 'aguardando'].includes(pendingFilter)) {
             activeEscolaFilters.pendencias = 'all';
             try {
-                base = originalGetFilteredEscolas();
+                base = originalGetFilteredEscolas(competenceKey);
             } finally {
                 activeEscolaFilters.pendencias = pendingFilter;
             }
         } else {
-            base = originalGetFilteredEscolas();
+            base = originalGetFilteredEscolas(competenceKey);
         }
         const projectionBySchool = new Map(
-            buildProjection(base).schools.map(item => [String(item.schoolId), item])
+            buildProjection(base, competenceKey).schools.map(item => [String(item.schoolId), item])
         );
         return base.filter(school => {
-            const projection = projectionBySchool.get(String(school.id)) || getSchoolProjection(school.id);
+            const projection = projectionBySchool.get(String(school.id)) || getSchoolProjection(school.id, competenceKey);
             return projection
                 && matchesPendencyFilter(projection, pendingFilter)
                 && matchesDocumentaryFilter(projection);
@@ -314,20 +314,22 @@
         if (description) description.textContent = 'Lista filtrada conforme os critérios selecionados.';
     }
 
-    function enhanceWallet() {
+    function enhanceWallet(competenceKey) {
         injectFilterControls();
         syncFilterFeedback();
         const panel = findResultPanel();
         if (!panel) return false;
-        const targetSchools = getFilteredEscolasEnhanced();
-        const projection = buildProjection(targetSchools);
+        const targetSchools = getFilteredEscolasEnhanced(competenceKey);
+        const projection = buildProjection(targetSchools, competenceKey);
         if (isMobileViewport()) return renderMobileResults(panel, targetSchools, projection);
         return enhanceDesktopRows(panel, targetSchools, projection);
     }
 
     function renderEscolasEnhanced() {
-        const result = originalRenderEscolas();
-        enhanceWallet();
+        if (!root.RadarCompetenceContext?.isInitialized?.()) return originalRenderEscolas();
+        const competenceKey = root.RadarCompetenceContext.getState().activeKey;
+        const result = originalRenderEscolas(competenceKey);
+        enhanceWallet(competenceKey);
         return result;
     }
 

@@ -84,6 +84,34 @@ test.describe('gestão de exercícios e competências', () => {
     expect(pageErrors).toEqual([]);
   });
 
+  test('criar exercício publica uma única transição canônica', async ({ page }) => {
+    page.on('dialog', dialog => dialog.accept());
+    await page.goto('/');
+    await page.waitForFunction(() => window.RadarCompetenceContext?.isInitialized?.());
+    await page.evaluate(() => {
+      switchProfile('sme');
+      switchView('sme-config');
+      window.__radarCompetenceEvents = [];
+      window.addEventListener('radar:competence-change', event => {
+        window.__radarCompetenceEvents.push(event.detail);
+      });
+    });
+
+    await page.locator('#new-exercise-input').fill('2027');
+    await page.locator('#new-exercise-competencia').selectOption('04');
+    await page.getByRole('button', { name: 'Criar', exact: true }).click();
+    await expect(page.locator('#exercise-select')).toHaveValue('2027');
+
+    const events = await page.evaluate(() => window.__radarCompetenceEvents);
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({
+      exercise: '2027',
+      activeKey: '2027-04',
+      closingKey: '2027-04',
+      source: 'exercise-created'
+    });
+  });
+
   test('recusa exercício duplicado sem alterar o estado', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário administrativo exclusivo do desktop.');
 
@@ -158,5 +186,89 @@ test.describe('gestão de exercícios e competências', () => {
     expect(state.restoredKeys).toHaveLength(12);
     expect(state.appDisplay).not.toBe('none');
     expect(pageErrors).toEqual([]);
+  });
+
+  test('restauração escolhe o novo exercício disponível em uma única transição', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForFunction(() => window.RadarCompetenceContext?.isInitialized?.());
+
+    const result = await page.evaluate(() => {
+      const restoredCompetences = Array.from({ length: 12 }, (_unused, index) => {
+        const month = String(index + 1).padStart(2, '0');
+        return { key: `2098-${month}`, label: `${month}/2098` };
+      });
+      const nextState = captureRadarMemoryState();
+      nextState.config = {
+        ...nextState.config,
+        exercicios: ['2098'],
+        competenciaFechamento: '2098-04',
+        competencias: restoredCompetences
+      };
+      const events = [];
+      window.addEventListener('radar:competence-change', event => events.push(event.detail));
+
+      let failure = null;
+      try {
+        applyRadarMemoryState(nextState);
+      } catch (error) {
+        failure = { code: error?.code || '', message: error?.message || String(error) };
+      }
+
+      return {
+        failure,
+        events,
+        state: RadarCompetenceContext.getState(),
+        activeCompetenciaKey,
+        currentExercise,
+        activeProntuarioCompetencia
+      };
+    });
+
+    expect(result.failure).toBeNull();
+    expect(result.events).toHaveLength(1);
+    expect(result.events[0]).toMatchObject({
+      exercise: '2098',
+      activeKey: '2098-04',
+      closingKey: '2098-04',
+      source: 'data-restored'
+    });
+    expect(result).toMatchObject({
+      state: {
+        exercise: '2098',
+        activeKey: '2098-04',
+        closingKey: '2098-04'
+      },
+      activeCompetenciaKey: '2098-04',
+      currentExercise: '2098',
+      activeProntuarioCompetencia: '2098-04'
+    });
+  });
+
+  test('salvar o fechamento não troca uma competência ativa ainda válida', async ({ page }) => {
+    page.on('dialog', dialog => dialog.accept());
+    await page.goto('/');
+    await page.waitForFunction(() => window.RadarCompetenceContext?.isInitialized?.());
+    await page.locator('#global-competence-select').selectOption('2026-08');
+    await page.evaluate(() => {
+      switchProfile('sme');
+      switchView('sme-config');
+    });
+    await page.locator('#cfg-comp-fechamento').selectOption('2026-07');
+    await page.getByRole('button', { name: 'Salvar Parâmetros' }).click();
+
+    await expect(page.locator('#global-competence-select')).toHaveValue('2026-08');
+    expect(
+      await page.evaluate(() => ({
+        state: RadarCompetenceContext.getState(),
+        activeCompetenciaKey,
+        currentExercise,
+        activeProntuarioCompetencia
+      }))
+    ).toMatchObject({
+      state: { activeKey: '2026-08', exercise: '2026', closingKey: '2026-07' },
+      activeCompetenciaKey: '2026-08',
+      currentExercise: '2026',
+      activeProntuarioCompetencia: '2026-08'
+    });
   });
 });

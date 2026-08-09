@@ -1,16 +1,18 @@
 const { test, expect } = require('@playwright/test');
 
 async function seedTask10Alerts(page) {
+  await page.waitForFunction(() => window.RadarCompetenceContext?.isInitialized?.());
   return page.evaluate(() => {
     switchProfile('controlador');
-    activeCompetenciaKey = '2026-05';
+    const competenceKey = '2026-05';
+    RadarCompetenceContext.select(competenceKey, { source: 'task-10-alert-test-setup' });
     const schools = escolas.filter(item => item.programasIds?.includes('BASIC')).slice(0, 2);
     if (schools.length < 2) throw new Error('Escolas para alertas não encontradas.');
 
     const create = (school, id, key, name, openedAt) => RadarPendencias.createDocumentPendency({
       id,
       escolaId: school.id,
-      competenciaOrigem: activeCompetenciaKey,
+      competenciaOrigem: competenceKey,
       programaId: 'BASIC',
       documentoKey: key,
       item: `PDDE Básico - ${name}`,

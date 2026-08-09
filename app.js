@@ -4526,14 +4526,13 @@ function applyRadarMemoryState(state = {}) {
         .sort((left, right) => (right.dataHora || '').localeCompare(left.dataHora || ''));
     migrateLoadedPendencies();
     rebuildOperationalIndexes();
-    activeCompetenciaKey = config.competenciaFechamento || activeCompetenciaKey;
-    const restoredExercise = /^\d{4}/.exec(String(activeCompetenciaKey || ''))?.[0] || '';
-    const configuredExercises = Array.isArray(config.exercicios)
-        ? config.exercicios.map(String)
-        : [];
-    if (restoredExercise && configuredExercises.includes(restoredExercise)) {
-        currentExercise = restoredExercise;
-    }
+    const restoredCompetence = String(config.competenciaFechamento || '');
+    const restoredExercise = /^\d{4}/.exec(restoredCompetence)?.[0] || '';
+    window.RadarGlobalCompetenceSelector?.refreshContext?.({
+        currentExercise: restoredExercise,
+        initialCompetence: restoredCompetence,
+        source: 'data-restored'
+    });
 }
 
 function getPendencyAnalysisValue(pendency) {
@@ -5438,12 +5437,12 @@ function getEscolaProgramNames(esc) {
 
 // NOTE: relies on _pendenciasByEscolaId and _bensByEscolaId indexes.
 // Call rebuildOperationalIndexes() after any mutation to pendencias or bens.
-function getEscolaOperationalData(esc) {
+function getEscolaOperationalData(esc, competenceKey) {
     const escolaPendencias = _pendenciasByEscolaId.get(esc.id) || [];
     const pendenciasAbertas = escolaPendencias.filter(p => (
         window.RadarPendencias.isActivePendency(p)
     ));
-    const analiseTecnica = getSchoolTechnicalAnalysisStatus(esc, activeCompetenciaKey);
+    const analiseTecnica = getSchoolTechnicalAnalysisStatus(esc, competenceKey);
     const analiseTecnicaMeta = getProgramTechnicalMeta(analiseTecnica);
     const nextActors = [...new Set(pendenciasAbertas.map(pendency => (
         pendency.responsavel
@@ -5463,7 +5462,7 @@ function getEscolaOperationalData(esc) {
         controladorName: getControladorName(esc.controladorId),
         programas: getEscolaProgramNames(esc),
         ra: esc.ra || getRAFromDesignacao(esc.designação),
-        situacao: getSchoolAggregateStatus(esc, activeCompetenciaKey),
+        situacao: getSchoolAggregateStatus(esc, competenceKey),
         analiseTecnica,
         analiseTecnicaMeta,
         pendenciasAbertas,
@@ -5638,6 +5637,11 @@ function handleGlobalSearch(e) {
 function renderDashboard() {
     const container = document.getElementById('main-container');
     const accessProfile = getRadarAccessProfile();
+
+    if (['controlador', 'assistente', 'sme'].includes(accessProfile)
+        && !window.RadarCompetenceContext?.isInitialized?.()) {
+        return false;
+    }
     
     if (accessProfile === 'controlador') {
         renderDashboardControlador(container);
@@ -5652,6 +5656,7 @@ function renderDashboard() {
 
 // 7.1 Dashboard do Controlador
 function renderDashboardControlador(container) {
+    const competenceKey = window.RadarCompetenceContext.getState().activeKey;
 
     const filterRa = activeControladorRAFilter;
 
@@ -5661,9 +5666,9 @@ function renderDashboardControlador(container) {
 
     const activeControladorName = activeControlador ? activeControlador.name : 'Controlador';
 
-    const activeCompetencia = COMPETENCIAS.find(c => c.key === activeCompetenciaKey);
+    const activeCompetencia = COMPETENCIAS.find(c => c.key === competenceKey);
 
-    const activeCompetenciaLabel = activeCompetencia ? activeCompetencia.label : activeCompetenciaKey;
+    const activeCompetenciaLabel = activeCompetencia ? activeCompetencia.label : competenceKey;
 
     let targetEscolas = [];
 
@@ -5704,9 +5709,9 @@ function renderDashboardControlador(container) {
     
     // Listas filtradas auxiliares para sub-filtros
     const escolasNaoAnalisadas = targetEscolas.filter(e => {
-        if (!isCompetenceInScope(e.competenciaInicial, activeCompetenciaKey)) return false;
+        if (!isCompetenceInScope(e.competenciaInicial, competenceKey)) return false;
         return e.programasIds.some(progId => {
-            return getProgramBonificationStatus(e.id, activeCompetenciaKey, progId) === 'nao-lancada';
+            return getProgramBonificationStatus(e.id, competenceKey, progId) === 'nao-lancada';
         });
     });
 
@@ -5722,7 +5727,7 @@ function renderDashboardControlador(container) {
     });
 
     // Calcular estatísticas da carteira filtrada usando getEscolasStats
-    const cStats = getEscolasStats(targetEscolas, activeCompetenciaKey);
+    const cStats = getEscolasStats(targetEscolas, competenceKey);
     const naoAnalisadasCount = cStats.naoAnalisado;
 
     // Aplicar sub-filtro na lista de escolas a renderizar
@@ -5739,10 +5744,6 @@ function renderDashboardControlador(container) {
         subFilterLabel = ' (Filtrado: Com Bens Não Encaminhados)';
     }
 
-    const activeCompetenceLabel = COMPETENCIAS.find(
-        competence => competence.key === activeCompetenciaKey
-    )?.label || formatCompetenciaText(activeCompetenciaKey);
-
     container.innerHTML = `
         <div class="page-header">
             <div class="page-title">
@@ -5750,7 +5751,7 @@ function renderDashboardControlador(container) {
                 <p>Carteira ativa: <strong>${activeControladorName}</strong>. R.A. vinculada: <strong>${carteiraRAText}</strong>. Você pode navegar por outras R.As ou pesquisar na CRE.</p>
 
             </div>
-            <div class="badge badge-info">Mês Ativo: ${activeCompetenceLabel}</div>
+            <div class="badge badge-info">Mês Ativo: ${activeCompetenciaLabel}</div>
         </div>
 
         <div class="tab-container" style="margin-bottom: 20px;">
@@ -5779,7 +5780,7 @@ function renderDashboardControlador(container) {
 
                 </div>
 
-                <div class="stat-label">Bonificação não lançada (${formatCompetenciaText(activeCompetenciaKey)})</div>
+                <div class="stat-label">Bonificação não lançada (${activeCompetenciaLabel})</div>
 
                 <div class="stat-value">${escolasNaoAnalisadas.length} Escolas</div>
 
@@ -5807,7 +5808,7 @@ function renderDashboardControlador(container) {
                     <div class="panel-header">
                         <h2 class="dashboard-list-heading">
                             <span>Lista de Escolas - Visualização: ${filterRa === 'carteira' ? 'Minha Carteira' : filterRa === 'todas' ? 'Todas da CRE' : `${filterRa}ª R.A.`}${subFilterLabel}</span>
-                            <span class="dashboard-competencia-pill">Competência vista: ${escapeHtml(formatCompetenciaText(activeCompetenciaKey))}</span>
+                            <span class="dashboard-competencia-pill">Competência vista: ${escapeHtml(activeCompetenciaLabel)}</span>
                         </h2>
                     </div>
                     <div class="table-responsive">
@@ -5817,7 +5818,7 @@ function renderDashboardControlador(container) {
                                     <th>Unidade Escolar</th>
                                     <th>INEP</th>
                                     <th>Contatos</th>
-                                    <th class="bonificacao-competencia-col">Bonificação <span>(${escapeHtml(formatCompetenciaText(activeCompetenciaKey))})</span></th>
+                                    <th class="bonificacao-competencia-col">Bonificação <span>(${escapeHtml(activeCompetenciaLabel)})</span></th>
                                     <th>Ações</th>
                                 </tr>
                             </thead>
@@ -5831,7 +5832,7 @@ function renderDashboardControlador(container) {
                                     e.programasIds.forEach(progId => {
                                         const prog = programas.find(p => p.id === progId);
                                         const progName = prog ? prog.name : progId;
-                                        const progStatus = getProgramBonificationStatus(e.id, activeCompetenciaKey, progId);
+                                        const progStatus = getProgramBonificationStatus(e.id, competenceKey, progId);
                                         const statusMeta = getProgramBonificationMeta(progStatus);
                                         const progBadge = `<span class="badge ${statusMeta.badgeClass} dashboard-status-badge">${statusMeta.label}</span>`;
 
@@ -5947,6 +5948,11 @@ function calculateSMESchoolStats(escolasList, compKey) {
 }
 
 function renderDashboardAssistente(container) {
+    const competenceKey = window.RadarCompetenceContext.getState().activeKey;
+    const competenceLabel = COMPETENCIAS.find(
+        competence => competence.key === competenceKey
+    )?.label || competenceKey;
+
     // Calcular estatísticas agregadas por escola
     const stats = {
         apto: 0,
@@ -5957,7 +5963,7 @@ function renderDashboardAssistente(container) {
     };
     
     escolas.forEach(e => {
-        const aggStatus = getSchoolAggregateStatus(e, activeCompetenciaKey);
+        const aggStatus = getSchoolAggregateStatus(e, competenceKey);
         if (aggStatus === 'foraEscopo') stats.foraEscopo++;
         else stats[aggStatus]++;
     });
@@ -5975,7 +5981,7 @@ function renderDashboardAssistente(container) {
         let cForaEscopo = 0;
         
         carteira.forEach(e => {
-            const aggStatus = getSchoolAggregateStatus(e, activeCompetenciaKey);
+            const aggStatus = getSchoolAggregateStatus(e, competenceKey);
             if (aggStatus === 'apto') cApto++;
             else if (aggStatus === 'inapto') cInapto++;
             else if (aggStatus === 'emAndamento') cEmAndamento++;
@@ -5989,8 +5995,8 @@ function renderDashboardAssistente(container) {
         const pendentesAtivas = pendencias.filter(p => carteira.map(e => e.id).includes(p.escolaId) && p.status === 'Aberta').length;
 
         // Montar listas para exibição de escolas pendentes no detalhamento do controlador
-        const emAndamentoList = carteira.filter(e => getSchoolAggregateStatus(e, activeCompetenciaKey) === 'emAndamento');
-        const naoAnalisadoList = carteira.filter(e => getSchoolAggregateStatus(e, activeCompetenciaKey) === 'naoAnalisado');
+        const emAndamentoList = carteira.filter(e => getSchoolAggregateStatus(e, competenceKey) === 'emAndamento');
+        const naoAnalisadoList = carteira.filter(e => getSchoolAggregateStatus(e, competenceKey) === 'naoAnalisado');
 
         return {
             ...ctrl,
@@ -6019,7 +6025,7 @@ function renderDashboardAssistente(container) {
     let filteredEscolas = [...escolas];
     if (activeAssistenteSubFilter !== 'all') {
         filteredEscolas = filteredEscolas.filter(e => {
-            const aggStatus = getSchoolAggregateStatus(e, activeCompetenciaKey);
+            const aggStatus = getSchoolAggregateStatus(e, competenceKey);
             return aggStatus === activeAssistenteSubFilter;
         });
     }
@@ -6041,7 +6047,7 @@ function renderDashboardAssistente(container) {
         ? `<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:32px;">Nenhuma unidade escolar encontrada neste filtro.</td></tr>`
         : filteredEscolas.map(e => {
             const ctrl = controladores.find(c => c.id === e.controladorId);
-            const aggStatus = getSchoolAggregateStatus(e, activeCompetenciaKey);
+            const aggStatus = getSchoolAggregateStatus(e, competenceKey);
             let statusText = '';
             let badgeCls = '';
             
@@ -6089,14 +6095,14 @@ function renderDashboardAssistente(container) {
                 <div class="stat-icon" style="background-color: var(--success-bg); color: var(--success);">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                 </div>
-                <div class="stat-label">Unidades Aptas (${formatCompetenciaText(activeCompetenciaKey)})</div>
+                <div class="stat-label">Unidades Aptas (${competenceLabel})</div>
                 <div class="stat-value">${stats.apto} Escolas</div>
             </div>
             <div class="card-stat ${activeAssistenteSubFilter === 'inapto' ? 'active-pendencias' : ''}" style="cursor: pointer;" onclick="changeAssistenteSubFilter('inapto')">
                 <div class="stat-icon" style="background-color: var(--danger-bg); color: var(--danger);">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
                 </div>
-                <div class="stat-label">Unidades Inaptas (${formatCompetenciaText(activeCompetenciaKey)})</div>
+                <div class="stat-label">Unidades Inaptas (${competenceLabel})</div>
                 <div class="stat-value">${stats.inapto} Escolas</div>
             </div>
             <div class="card-stat ${activeAssistenteSubFilter === 'emAndamento' ? 'active-bens' : ''}" style="cursor: pointer;" onclick="changeAssistenteSubFilter('emAndamento')">
@@ -6129,7 +6135,7 @@ function renderDashboardAssistente(container) {
                                 <tr>
                                     <th>Controlador</th>
                                     <th>Escolas Ativas (Escopo)</th>
-                                    <th>Progresso da bonificação (${formatCompetenciaText(activeCompetenciaKey)})</th>
+                                    <th>Progresso da bonificação (${competenceLabel})</th>
                                     <th>Pendências Abertas</th>
                                     <th>Ações</th>
                                 </tr>
@@ -6411,7 +6417,11 @@ function clearAssistenteFilters() {
 
 // 7.3 Dashboard da SME
 function renderDashboardSME(container) {
-    const stats = calculateSMESchoolStats(escolas, activeCompetenciaKey);
+    const competenceKey = window.RadarCompetenceContext.getState().activeKey;
+    const competenceLabel = COMPETENCIAS.find(
+        competence => competence.key === competenceKey
+    )?.label || competenceKey;
+    const stats = calculateSMESchoolStats(escolas, competenceKey);
     const totalEscolasValidas = stats.activeTotal;
 
     // Obter lista de CREs únicas nas escolas cadastradas
@@ -6420,7 +6430,7 @@ function renderDashboardSME(container) {
     // Computar estatísticas por CRE
     const cresStats = activeSMECreList.map(creName => {
         const carteira = escolas.filter(e => e.cre === creName);
-        const cStats = calculateSMESchoolStats(carteira, activeCompetenciaKey);
+        const cStats = calculateSMESchoolStats(carteira, competenceKey);
         const total = cStats.activeTotal;
         return { name: creName, stats: cStats, total };
     });
@@ -6433,7 +6443,7 @@ function renderDashboardSME(container) {
             <div class="panel-card" style="margin-top: 20px; animation: slideDown 0.25s ease;">
                 <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
                     <div>
-                        <h2>Resumo de Itens por Unidade - ${activeSMECreFilter} - Mês: ${COMPETENCIAS.find(c => c.key === activeCompetenciaKey).label}</h2>
+                        <h2>Resumo de Itens por Unidade - ${activeSMECreFilter} - Mês: ${competenceLabel}</h2>
                         <p style="font-size:0.8rem; color:var(--text-muted)">Visualização das respostas Sim, Não e N/A que geraram a conformidade das escolas.</p>
                     </div>
                     <input type="text" class="form-control" style="width:250px; font-size:0.8rem;" placeholder="Filtrar por escola..." id="sme-detail-filter" onkeyup="filterSMEDetailTable(this.value)">
@@ -6456,7 +6466,7 @@ function renderDashboardSME(container) {
                         <tbody>
                             ${filteredSMEEscolas.map(e => {
                                 return e.programasIds.map(progId => {
-                                    const compProgKey = `${activeCompetenciaKey}_${progId}`;
+                                    const compProgKey = `${competenceKey}_${progId}`;
                                     const v = verificacoes[e.id]?.[compProgKey];
                                     const prog = programas.find(p => p.id === progId);
                                     const progName = prog ? prog.name : progId;
@@ -6467,7 +6477,7 @@ function renderDashboardSME(container) {
                                     let consAssessoria = '-';
                                     let declBBAgil = '-';
                                     let encampInventario = '-';
-                                    const progStatus = getProgramBonificationStatus(e.id, activeCompetenciaKey, progId);
+                                    const progStatus = getProgramBonificationStatus(e.id, competenceKey, progId);
                                     const statusMeta = getProgramBonificationMeta(progStatus);
                                     let statusBadge = `<span class="badge ${statusMeta.badgeClass}">${statusMeta.label}</span>`;
                                     
@@ -6518,7 +6528,7 @@ function renderDashboardSME(container) {
             <div style="display:flex; align-items:center; gap:8px;">
                 <label style="font-size:0.85rem; font-weight:600; color:var(--text-main);">Mês de Referência:</label>
                 <select class="form-control" style="width: 150px; font-size: 0.85rem; padding: 6px 12px; height: auto;" data-radar-sme-competence="true" onchange="changeSMEMonth(this.value)">
-                    ${COMPETENCIAS.map(c => `<option value="${c.key}" ${activeCompetenciaKey === c.key ? 'selected' : ''}>${c.label}</option>`).join('')}
+                    ${COMPETENCIAS.map(c => `<option value="${c.key}" ${competenceKey === c.key ? 'selected' : ''}>${c.label}</option>`).join('')}
                 </select>
             </div>
         </div>
@@ -6528,14 +6538,14 @@ function renderDashboardSME(container) {
                 <div class="stat-icon" style="background-color: var(--success-bg); color: var(--success);">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                 </div>
-                <div class="stat-label">Unidades Aptas (${formatCompetenciaText(activeCompetenciaKey)})</div>
+                <div class="stat-label">Unidades Aptas (${competenceLabel})</div>
                 <div class="stat-value">${stats.apta} Escolas</div>
             </div>
             <div class="card-stat">
                 <div class="stat-icon" style="background-color: var(--danger-bg); color: var(--danger);">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
                 </div>
-                <div class="stat-label">Unidades Inaptas (${formatCompetenciaText(activeCompetenciaKey)})</div>
+                <div class="stat-label">Unidades Inaptas (${competenceLabel})</div>
                 <div class="stat-value">${stats.inapta} Escolas</div>
             </div>
             <div class="card-stat">
@@ -6566,8 +6576,8 @@ function renderDashboardSME(container) {
                             <tr>
                                 <th>Coordenadoria (CRE)</th>
                                 <th>Total Escolas Ativas</th>
-                                <th>Aptas (${formatCompetenciaText(activeCompetenciaKey)})</th>
-                                <th>Inaptas (${formatCompetenciaText(activeCompetenciaKey)})</th>
+                                <th>Aptas (${competenceLabel})</th>
+                                <th>Inaptas (${competenceLabel})</th>
                                 <th>Em apuração</th>
                                 <th>Não lançadas</th>
                                 <th>Taxa de Cumprimento (Aptas)</th>
@@ -6633,9 +6643,13 @@ function toggleSMECreFilter(creName) {
     renderDashboard();
 }
 
-function changeSMEMonth(val) {
-    activeCompetenciaKey = val;
-    renderDashboard();
+function changeSMEMonth(value) {
+    try {
+        window.RadarCompetenceContext.select(value, { source: 'sme-dashboard' });
+        return true;
+    } catch (_error) {
+        return false;
+    }
 }
 
 function filterSMEDetailTable(query) {
@@ -7214,13 +7228,12 @@ function changeEscolaFilter(filterName, value) {
 }
 
 function changeCarteiraCompetencia(value) {
-
-    activeCompetenciaKey = value;
-
-    updateGlobalCompetenceIndicator();
-
-    renderEscolas();
-
+    try {
+        window.RadarCompetenceContext.select(value, { source: 'carteira' });
+        return true;
+    } catch (error) {
+        return false;
+    }
 }
 
 
@@ -7241,11 +7254,11 @@ function clearEscolaFilters() {
 
 
 
-function getFilteredEscolas() {
+function getFilteredEscolas(competenceKey) {
 
     return escolas.filter(esc => {
 
-        const op = getEscolaOperationalData(esc);
+        const op = getEscolaOperationalData(esc, competenceKey);
 
 
 
@@ -7289,19 +7302,27 @@ function renderEscolaFilterOptions(options, activeValue) {
 
 
 
-function renderEscolas() {
+function renderEscolas(capturedCompetenceKey = null) {
 
     const container = document.getElementById('main-container');
 
-    const targetEscolas = getFilteredEscolas();
+    if (!window.RadarCompetenceContext?.isInitialized?.()) {
+        return false;
+    }
+
+    const competenceState = window.RadarCompetenceContext.getState();
+
+    const competenceKey = capturedCompetenceKey || competenceState.activeKey;
+
+    const targetEscolas = getFilteredEscolas(competenceKey);
 
     const raOptions = [...new Set(escolas.map(e => e.ra || getRAFromDesignacao(e.designação)).filter(Boolean))].sort();
 
-    const competenciaOptions = COMPETENCIAS.filter(c => c.key <= config.competenciaFechamento);
+    const competenciaOptions = window.RadarCompetenceContext.getAvailableForExercise(competenceState.exercise);
 
-    const pendenciasCount = targetEscolas.filter(e => getEscolaOperationalData(e).hasPendencias).length;
+    const pendenciasCount = targetEscolas.filter(e => getEscolaOperationalData(e, competenceKey).hasPendencias).length;
 
-    const inventarioCount = targetEscolas.filter(e => getEscolaOperationalData(e).hasInventarioProcess).length;
+    const inventarioCount = targetEscolas.filter(e => getEscolaOperationalData(e, competenceKey).hasInventarioProcess).length;
 
     const activeSearchTerm = escolaSearchQuery.trim();
 
@@ -7526,7 +7547,7 @@ function renderEscolas() {
 
                         ${competenciaOptions.map(c => `
 
-                            <option value="${escapeHtml(c.key)}" ${selectedAttr(activeCompetenciaKey, c.key)}>${escapeHtml(c.label)}</option>
+                            <option value="${escapeHtml(c.key)}" ${selectedAttr(competenceKey, c.key)}>${escapeHtml(c.label)}</option>
 
                         `).join('')}
 
@@ -7588,7 +7609,7 @@ function renderEscolas() {
 
                         ` : targetEscolas.map(e => {
 
-                            const op = getEscolaOperationalData(e);
+                            const op = getEscolaOperationalData(e, competenceKey);
 
                             const statusBadge = getEscolaStatusBadgeClass(op.situacao);
 
@@ -7669,6 +7690,12 @@ function renderEscolas() {
 
 function renderCompetencias() {
     const container = document.getElementById('main-container');
+
+    if (!window.RadarCompetenceContext?.isInitialized?.()) {
+        return false;
+    }
+
+    const competenceKey = window.RadarCompetenceContext.getState().activeKey;
     const canViewTechnicalAnalysis = hasRadarCapability(
         window.RadarAccessPolicy.CAPABILITIES.VIEW_TECHNICAL_ANALYSIS
     );
@@ -7682,19 +7709,11 @@ function renderCompetencias() {
                 <h1>Visão por Competência</h1>
                 <p>Verifique o fechamento e a conformidade da bonificação da competência selecionada.</p>
             </div>
-            <div style="display:flex; align-items:center; gap:12px;">
-                <label for="comp-select-view" style="font-weight:600; font-size:0.85rem;">Competência:</label>
-                <select class="form-control" id="comp-select-view" style="width:180px;" onchange="changeCompetenciaView(this.value)">
-                    ${COMPETENCIAS.filter(c => c.key <= config.competenciaFechamento).map(c => `
-                        <option value="${c.key}" ${c.key === activeCompetenciaKey ? 'selected' : ''}>${c.label}</option>
-                    `).join('')}
-                </select>
-            </div>
         </div>
 
         <div class="panel-card">
             <div class="panel-header">
-                <h2>Lista de Entrega e Bonificação - Competência ${formatCompetenciaText(activeCompetenciaKey)}</h2>
+                <h2>Lista de Entrega e Bonificação - Competência ${formatCompetenciaText(competenceKey)}</h2>
             </div>
             <div class="table-responsive">
                 <table class="data-table">
@@ -7712,14 +7731,14 @@ function renderCompetencias() {
                     </thead>
                     <tbody>
                         ${escolas.map(e => {
-                            const inScope = isCompetenceInScope(e.competenciaInicial, activeCompetenciaKey);
+                            const inScope = isCompetenceInScope(e.competenciaInicial, competenceKey);
                             const ctrl = controladores.find(c => c.id === e.controladorId);
                             
                             let bonifStatusHTML = '';
                             let analiseStatusHTML = '';
                             const pendentesCount = pendencias.filter(p => (
                                 p.escolaId === e.id
-                                && (p.competenciaOrigem === activeCompetenciaKey || p.competencia === activeCompetenciaKey)
+                                && (p.competenciaOrigem === competenceKey || p.competencia === competenceKey)
                                 && window.RadarPendencias.isActivePendency(p)
                             )).length;
 
@@ -7729,13 +7748,13 @@ function renderCompetencias() {
                                     const progName = prog ? prog.name : progId;
                                     const bonusStatus = getProgramBonificationStatus(
                                         e.id,
-                                        activeCompetenciaKey,
+                                        competenceKey,
                                         progId
                                     );
                                     const bonusMeta = getProgramBonificationMeta(bonusStatus);
                                     const technicalStatus = getProgramTechnicalStatus(
                                         e.id,
-                                        activeCompetenciaKey,
+                                        competenceKey,
                                         progId
                                     );
                                     const technicalMeta = getProgramTechnicalMeta(technicalStatus);
@@ -7795,24 +7814,27 @@ function renderCompetencias() {
         ` : ''}
     `;
 
-    if (canViewCompetencePendencies) renderPassivoAnterior();
+    if (canViewCompetencePendencies) renderPassivoAnterior(competenceKey);
 }
 
 function changeCompetenciaView(val) {
-    activeCompetenciaKey = val;
-    updateGlobalCompetenceIndicator();
-    renderCompetencias();
+    try {
+        window.RadarCompetenceContext.select(val, { source: 'competencias-view' });
+        return true;
+    } catch (error) {
+        return false;
+    }
 }
 
-function renderPassivoAnterior() {
+function renderPassivoAnterior(competenceKey) {
     const listEl = document.getElementById('passivo-competencias-list');
     if (!listEl) return;
     
     // Filtrar pendências abertas que sejam anteriores à competência selecionada ativa
-    const passivo = pendencias.filter(p => p.status === 'Aberta' && p.competencia < activeCompetenciaKey);
+    const passivo = pendencias.filter(p => p.status === 'Aberta' && p.competencia < competenceKey);
     
     if (passivo.length === 0) {
-        listEl.innerHTML = `<div style="padding:16px; text-align:center; color:var(--text-muted)">Excelente! Não há passivo de regularização pendente anterior a ${activeCompetenciaKey}.</div>`;
+        listEl.innerHTML = `<div style="padding:16px; text-align:center; color:var(--text-muted)">Excelente! Não há passivo de regularização pendente anterior a ${competenceKey}.</div>`;
         return;
     }
 
@@ -9172,8 +9194,10 @@ async function salvarCalendarioSME(e) {
             closingCompetence: cFechamento,
             bonusWindowExtended: prorrogado
         });
-        activeCompetenciaKey = cFechamento;
-        renderSMEConfig();
+        const contextRefreshed = window.RadarGlobalCompetenceSelector.refreshContext({
+            source: 'calendar-saved'
+        });
+        if (!contextRefreshed) renderSMEConfig();
         alert('Parâmetros operacionais da SME atualizados com sucesso!');
     } catch (error) {
         reportRadarActionError(error, 'Não foi possível atualizar os parâmetros operacionais.');

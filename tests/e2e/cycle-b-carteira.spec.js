@@ -1,23 +1,28 @@
 const { test, expect } = require('@playwright/test');
 
 async function seedCycleBCarteira(page) {
+  await page.waitForFunction(() => (
+    window.RadarCompetenceContext?.isInitialized?.()
+    && Boolean(window.RadarCycleBCarteira)
+  ));
   return page.evaluate(() => {
     switchProfile('controlador');
-    activeCompetenciaKey = '2026-05';
+    const competenceKey = '2026-05';
+    RadarCompetenceContext.select(competenceKey, { source: 'cycle-b-wallet-test-setup' });
     activeEscolaFilters = { ...DEFAULT_ESCOLA_FILTERS };
     escolaSearchQuery = '';
 
     const candidates = escolas.filter(school => (
       Array.isArray(school.programasIds)
       && school.programasIds.includes('BASIC')
-      && isCompetenceInScope(school.competenciaInicial, activeCompetenciaKey)
+      && isCompetenceInScope(school.competenciaInicial, competenceKey)
     )).slice(0, 3);
     if (candidates.length < 3) throw new Error('Três escolas não foram encontradas para a Carteira do Ciclo B.');
 
     const createOpen = (school, id, key, name, openedAt) => RadarPendencias.createDocumentPendency({
       id,
       escolaId: school.id,
-      competenciaOrigem: activeCompetenciaKey,
+      competenciaOrigem: competenceKey,
       programaId: 'BASIC',
       documentoKey: key,
       item: `PDDE Básico - ${name}`,

@@ -5,12 +5,13 @@ async function seedCycleBDashboard(page) {
     switchProfile('controlador');
     activeControladorRAFilter = 'todas';
     activeControladorSubFilter = 'all';
-    activeCompetenciaKey = '2026-05';
+    const competenceKey = '2026-05';
+    RadarCompetenceContext.select(competenceKey, { source: 'cycle-b-dashboard-test' });
 
     const candidates = escolas.filter(school => (
       Array.isArray(school.programasIds)
       && school.programasIds.includes('BASIC')
-      && isCompetenceInScope(school.competenciaInicial, activeCompetenciaKey)
+      && isCompetenceInScope(school.competenciaInicial, competenceKey)
     )).slice(0, 3);
     if (candidates.length < 3) throw new Error('Três escolas não foram encontradas para o Dashboard do Ciclo B.');
 
@@ -19,7 +20,7 @@ async function seedCycleBDashboard(page) {
     const createOpen = (school, id, key, name, openedAt) => RadarPendencias.createDocumentPendency({
       id,
       escolaId: school.id,
-      competenciaOrigem: activeCompetenciaKey,
+      competenciaOrigem: competenceKey,
       programaId: 'BASIC',
       documentoKey: key,
       item: `PDDE Básico - ${name}`,

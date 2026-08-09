@@ -138,3 +138,46 @@ test('troca o exercício e escolhe o fechamento ou a competência mais recente c
   assert.equal(next.activeKey, '2027-04');
   assert.deepEqual(next.availableKeys, ['2027-01', '2027-04']);
 });
+
+test('replaceConfiguration preserva a competência ativa válida ao alterar o fechamento', () => {
+  const context = loadApi().createCompetenceContext({
+    competences: competences2026,
+    currentExercise: '2026',
+    closingCompetence: '2026-05',
+    initialCompetence: '2026-08',
+    storage: createMemoryStorage()
+  });
+
+  const next = context.replaceConfiguration({
+    competences: competences2026,
+    currentExercise: '2026',
+    closingCompetence: '2026-09',
+    source: 'calendar-saved'
+  });
+
+  assert.equal(next.activeKey, '2026-08');
+  assert.equal(next.closingKey, '2026-09');
+});
+
+test('replaceConfiguration usa o novo fechamento quando a competência ativa deixa de existir', () => {
+  const context = loadApi().createCompetenceContext({
+    competences: competences2026,
+    currentExercise: '2026',
+    closingCompetence: '2026-05',
+    initialCompetence: '2026-08',
+    storage: createMemoryStorage()
+  });
+
+  const next = context.replaceConfiguration({
+    competences: [
+      { key: '2026-05', label: 'Maio 2026' },
+      { key: '2026-09', label: 'Setembro 2026' }
+    ],
+    currentExercise: '2026',
+    closingCompetence: '2026-09',
+    source: 'calendar-saved'
+  });
+
+  assert.equal(next.activeKey, '2026-09');
+  assert.equal(next.closingKey, '2026-09');
+});

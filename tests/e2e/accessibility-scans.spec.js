@@ -80,6 +80,16 @@ test.describe('Navegação e Ciclo de Foco com Fallback Lógico', () => {
     await page.keyboard.press('Escape');
     await expect(modal).not.toHaveClass(/show/);
 
+    await page.waitForFunction(() => {
+      const active = document.activeElement;
+      return Boolean(
+        active
+        && active.isConnected
+        && !active.closest('#modal-contato')
+        && !active.closest('[hidden], [inert], [aria-hidden="true"]')
+      );
+    });
+
     // O fallback pode ser um landmark ou outro controle interativo válido da página.
     const focusState = await page.evaluate(() => {
       const active = document.activeElement;

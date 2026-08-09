@@ -210,51 +210,23 @@
         else obsoleteControl.remove();
     }
 
-    function chooseCompetenceForExercise(year) {
-        const { runtimeConfig, competences } = getRuntimeCollections();
-        if (!runtimeConfig || !Array.isArray(competences)) return '';
-        const available = competences
-            .map(normalizeCompetence)
-            .filter(item => item && item.key.startsWith(`${year}-`))
-            .sort((left, right) => left.key.localeCompare(right.key));
-        const closing = text(runtimeConfig.competenciaFechamento);
-        if (closing.startsWith(`${year}-`) && available.some(item => item.key === closing)) {
-            return closing;
-        }
-        return available[available.length - 1]?.key || '';
-    }
-
     function changeExercise(value) {
         const year = normalizeYear(value);
         const { runtimeConfig } = getRuntimeCollections();
         if (!year || !runtimeConfig || !runtimeConfig.exercicios.includes(year)) return false;
 
-        if (root.RadarCompetenceContext?.isInitialized?.()) {
-            try {
-                root.RadarCompetenceContext.selectExercise(year, { source: 'exercise-management' });
-                return true;
-            } catch (error) {
-                return false;
-            }
+        if (!root.RadarCompetenceContext?.isInitialized?.()) {
+            root.RadarGlobalCompetenceSelector?.refreshContext?.({ source: 'exercise-management' });
         }
-
-        if (typeof currentExercise !== 'undefined') currentExercise = year;
-        const competence = chooseCompetenceForExercise(year);
-        if (competence && typeof activeCompetenciaKey !== 'undefined') {
-            activeCompetenciaKey = competence;
+        if (!root.RadarCompetenceContext?.isInitialized?.()) return false;
+        try {
+            root.RadarCompetenceContext.selectExercise(year, {
+                source: 'exercise-management'
+            });
+            return true;
+        } catch (error) {
+            return false;
         }
-        if (typeof activeProntuarioCompetencia !== 'undefined') {
-            activeProntuarioCompetencia = null;
-        }
-
-        renderExerciseSelector();
-        if (typeof updateGlobalCompetenceIndicator === 'function') {
-            updateGlobalCompetenceIndicator();
-        }
-        if (typeof switchView === 'function' && typeof currentView !== 'undefined') {
-            switchView(currentView);
-        }
-        return true;
     }
 
     async function createExercise(yearValue, initialMonthValue) {
@@ -267,8 +239,6 @@
         }
         try {
             const result = await service.createExercise({ year, initialMonth: month });
-            if (typeof currentExercise !== 'undefined') currentExercise = year;
-            if (typeof activeCompetenciaKey !== 'undefined') activeCompetenciaKey = result.value.initialCompetence;
             return { ok: true, ...result.value };
         } catch (error) {
             const reasonByCode = {
@@ -303,14 +273,12 @@
         }
 
         if (yearInput) yearInput.value = '';
-        const storageKey = root.RadarCompetenceContext?.STORAGE_KEY;
-        if (storageKey && result.initialCompetence) {
-            root.localStorage?.setItem(storageKey, result.initialCompetence);
-        }
-        root.RadarGlobalCompetenceSelector?.refreshContext?.({ source: 'exercise-created' });
+        root.RadarGlobalCompetenceSelector?.refreshContext?.({
+            initialCompetence: result.initialCompetence,
+            currentExercise: result.year,
+            source: 'exercise-created'
+        });
         renderExerciseSelector();
-        if (typeof renderSMEConfig === 'function') renderSMEConfig();
-        if (typeof updateGlobalCompetenceIndicator === 'function') updateGlobalCompetenceIndicator();
         root.alert?.(`Exercício ${result.year} criado com sucesso.`);
         return true;
     }

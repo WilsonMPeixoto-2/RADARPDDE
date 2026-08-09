@@ -41,20 +41,44 @@
         );
     }
 
-    function readRuntimeState() {
+    function readRuntimeState(meta = {}) {
         const closingCompetence = text(config.competenciaFechamento);
-        const initialCompetence = typeof activeCompetenciaKey !== 'undefined'
-            ? text(activeCompetenciaKey)
+        const requestedCompetence = competenceExists(meta.initialCompetence)
+            ? text(meta.initialCompetence)
             : '';
         const storedCompetence = text(
             root.localStorage?.getItem(root.RadarCompetenceContext.STORAGE_KEY)
         );
         const persistedCompetence = competenceExists(storedCompetence) ? storedCompetence : '';
-        const resolvedExercise = competenceExercise(persistedCompetence)
-            || competenceExercise(initialCompetence)
-            || competenceExercise(closingCompetence)
-            || text(currentExercise)
-            || text(config.exercicios?.[0]);
+        const currentState = root.RadarCompetenceContext.isInitialized()
+            ? root.RadarCompetenceContext.getState()
+            : null;
+        const currentCompetence = competenceExists(currentState?.activeKey)
+            ? text(currentState.activeKey)
+            : '';
+        const availableExercises = [...new Set(
+            COMPETENCIAS.map(item => competenceExercise(item?.key || item?.id || item)).filter(Boolean)
+        )].sort();
+        const hasCompetences = exercise => availableExercises.includes(text(exercise));
+        const configuredExercise = (Array.isArray(config.exercicios) ? config.exercicios : [])
+            .map(text)
+            .find(hasCompetences);
+        const resolvedExercise = [
+            text(meta.currentExercise),
+            competenceExercise(requestedCompetence),
+            text(currentState?.exercise),
+            competenceExercise(persistedCompetence),
+            competenceExercise(closingCompetence),
+            text(currentExercise),
+            configuredExercise,
+            availableExercises[0]
+        ].find(hasCompetences) || '';
+        const initialCompetence = [
+            requestedCompetence,
+            currentCompetence,
+            persistedCompetence,
+            closingCompetence
+        ].find(key => competenceExists(key) && competenceExercise(key) === resolvedExercise) || '';
 
         return {
             competences: COMPETENCIAS,
@@ -164,7 +188,7 @@
     function applyState(state, meta = {}) {
         if (typeof activeCompetenciaKey !== 'undefined') activeCompetenciaKey = state.activeKey;
         if (typeof currentExercise !== 'undefined') currentExercise = state.exercise;
-        if (typeof activeProntuarioCompetencia !== 'undefined') activeProntuarioCompetencia = null;
+        if (typeof activeProntuarioCompetencia !== 'undefined') activeProntuarioCompetencia = state.activeKey;
         renderSelector(state);
         const exerciseSelect = document.getElementById('exercise-select');
         if (exerciseSelect && exerciseSelect.value !== state.exercise) exerciseSelect.value = state.exercise;
@@ -194,9 +218,9 @@
         };
     }
 
-    function initializeContext() {
+    function initializeContext(meta = {}) {
         if (!runtimeReady()) return false;
-        const runtimeState = readRuntimeState();
+        const runtimeState = readRuntimeState(meta);
         root.RadarCompetenceContext.initialize({
             ...runtimeState,
             storage: root.localStorage
@@ -228,8 +252,8 @@
 
     function refreshContext(meta = {}) {
         if (!runtimeReady()) return false;
-        if (!root.RadarCompetenceContext.isInitialized()) return initializeContext();
-        const runtimeState = readRuntimeState();
+        if (!root.RadarCompetenceContext.isInitialized()) return initializeContext(meta);
+        const runtimeState = readRuntimeState(meta);
         root.RadarCompetenceContext.replaceConfiguration({
             ...runtimeState,
             source: text(meta.source) || 'refresh'
