@@ -159,4 +159,32 @@ test.describe('gestão de exercícios e competências', () => {
     expect(state.appDisplay).not.toBe('none');
     expect(pageErrors).toEqual([]);
   });
+
+  test('salvar o fechamento não troca uma competência ativa ainda válida', async ({ page }) => {
+    page.on('dialog', dialog => dialog.accept());
+    await page.goto('/');
+    await page.waitForFunction(() => window.RadarCompetenceContext?.isInitialized?.());
+    await page.locator('#global-competence-select').selectOption('2026-08');
+    await page.evaluate(() => {
+      switchProfile('sme');
+      switchView('sme-config');
+    });
+    await page.locator('#cfg-comp-fechamento').selectOption('2026-07');
+    await page.getByRole('button', { name: 'Salvar Parâmetros' }).click();
+
+    await expect(page.locator('#global-competence-select')).toHaveValue('2026-08');
+    expect(
+      await page.evaluate(() => ({
+        state: RadarCompetenceContext.getState(),
+        activeCompetenciaKey,
+        currentExercise,
+        activeProntuarioCompetencia
+      }))
+    ).toMatchObject({
+      state: { activeKey: '2026-08', exercise: '2026', closingKey: '2026-07' },
+      activeCompetenciaKey: '2026-08',
+      currentExercise: '2026',
+      activeProntuarioCompetencia: '2026-08'
+    });
+  });
 });

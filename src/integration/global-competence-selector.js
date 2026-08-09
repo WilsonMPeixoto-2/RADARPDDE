@@ -43,15 +43,18 @@
 
     function readRuntimeState() {
         const closingCompetence = text(config.competenciaFechamento);
-        const initialCompetence = typeof activeCompetenciaKey !== 'undefined'
-            ? text(activeCompetenciaKey)
-            : '';
         const storedCompetence = text(
             root.localStorage?.getItem(root.RadarCompetenceContext.STORAGE_KEY)
         );
         const persistedCompetence = competenceExists(storedCompetence) ? storedCompetence : '';
-        const resolvedExercise = competenceExercise(persistedCompetence)
-            || competenceExercise(initialCompetence)
+        const currentState = root.RadarCompetenceContext.isInitialized()
+            ? root.RadarCompetenceContext.getState()
+            : null;
+        const currentCompetence = competenceExists(currentState?.activeKey)
+            ? text(currentState.activeKey)
+            : '';
+        const resolvedExercise = text(currentState?.exercise)
+            || competenceExercise(persistedCompetence)
             || competenceExercise(closingCompetence)
             || text(currentExercise)
             || text(config.exercicios?.[0]);
@@ -60,7 +63,7 @@
             competences: COMPETENCIAS,
             currentExercise: resolvedExercise,
             closingCompetence,
-            initialCompetence
+            initialCompetence: currentCompetence || persistedCompetence || closingCompetence
         };
     }
 
@@ -164,7 +167,7 @@
     function applyState(state, meta = {}) {
         if (typeof activeCompetenciaKey !== 'undefined') activeCompetenciaKey = state.activeKey;
         if (typeof currentExercise !== 'undefined') currentExercise = state.exercise;
-        if (typeof activeProntuarioCompetencia !== 'undefined') activeProntuarioCompetencia = null;
+        if (typeof activeProntuarioCompetencia !== 'undefined') activeProntuarioCompetencia = state.activeKey;
         renderSelector(state);
         const exerciseSelect = document.getElementById('exercise-select');
         if (exerciseSelect && exerciseSelect.value !== state.exercise) exerciseSelect.value = state.exercise;

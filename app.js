@@ -4526,13 +4526,23 @@ function applyRadarMemoryState(state = {}) {
         .sort((left, right) => (right.dataHora || '').localeCompare(left.dataHora || ''));
     migrateLoadedPendencies();
     rebuildOperationalIndexes();
-    activeCompetenciaKey = config.competenciaFechamento || activeCompetenciaKey;
-    const restoredExercise = /^\d{4}/.exec(String(activeCompetenciaKey || ''))?.[0] || '';
+    const restoredCompetence = String(config.competenciaFechamento || '');
+    const restoredExercise = /^\d{4}/.exec(restoredCompetence)?.[0] || '';
     const configuredExercises = Array.isArray(config.exercicios)
         ? config.exercicios.map(String)
         : [];
-    if (restoredExercise && configuredExercises.includes(restoredExercise)) {
-        currentExercise = restoredExercise;
+    const restoredCompetenceExists = COMPETENCIAS.some(item => item.key === restoredCompetence);
+    const contextRefreshed = window.RadarGlobalCompetenceSelector?.refreshContext?.({
+        source: 'data-restored'
+    });
+    if (contextRefreshed
+        && restoredCompetenceExists
+        && configuredExercises.includes(restoredExercise)
+        && window.RadarCompetenceContext?.isInitialized?.()) {
+        window.RadarCompetenceContext.selectExercise(restoredExercise, {
+            initialCompetence: restoredCompetence,
+            source: 'data-restored'
+        });
     }
 }
 
@@ -9172,8 +9182,10 @@ async function salvarCalendarioSME(e) {
             closingCompetence: cFechamento,
             bonusWindowExtended: prorrogado
         });
-        activeCompetenciaKey = cFechamento;
-        renderSMEConfig();
+        const contextRefreshed = window.RadarGlobalCompetenceSelector.refreshContext({
+            source: 'calendar-saved'
+        });
+        if (!contextRefreshed) renderSMEConfig();
         alert('Parâmetros operacionais da SME atualizados com sucesso!');
     } catch (error) {
         reportRadarActionError(error, 'Não foi possível atualizar os parâmetros operacionais.');
