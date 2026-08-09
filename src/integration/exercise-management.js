@@ -273,9 +273,9 @@
         }
 
         if (yearInput) yearInput.value = '';
-        root.RadarGlobalCompetenceSelector?.refreshContext?.({ source: 'exercise-created' });
-        root.RadarCompetenceContext?.selectExercise?.(result.year, {
+        root.RadarGlobalCompetenceSelector?.refreshContext?.({
             initialCompetence: result.initialCompetence,
+            currentExercise: result.year,
             source: 'exercise-created'
         });
         renderExerciseSelector();

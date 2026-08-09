@@ -4528,22 +4528,11 @@ function applyRadarMemoryState(state = {}) {
     rebuildOperationalIndexes();
     const restoredCompetence = String(config.competenciaFechamento || '');
     const restoredExercise = /^\d{4}/.exec(restoredCompetence)?.[0] || '';
-    const configuredExercises = Array.isArray(config.exercicios)
-        ? config.exercicios.map(String)
-        : [];
-    const restoredCompetenceExists = COMPETENCIAS.some(item => item.key === restoredCompetence);
-    const contextRefreshed = window.RadarGlobalCompetenceSelector?.refreshContext?.({
+    window.RadarGlobalCompetenceSelector?.refreshContext?.({
+        currentExercise: restoredExercise,
+        initialCompetence: restoredCompetence,
         source: 'data-restored'
     });
-    if (contextRefreshed
-        && restoredCompetenceExists
-        && configuredExercises.includes(restoredExercise)
-        && window.RadarCompetenceContext?.isInitialized?.()) {
-        window.RadarCompetenceContext.selectExercise(restoredExercise, {
-            initialCompetence: restoredCompetence,
-            source: 'data-restored'
-        });
-    }
 }
 
 function getPendencyAnalysisValue(pendency) {
