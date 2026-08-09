@@ -562,7 +562,7 @@
             'technical_admin'
         ]);
         if (!authorizedReviewerProfiles.has(reviewerProfile)) {
-            throw new Error('Reanálise permitida somente a perfis operacionais autorizados.');
+            throw new Error('Reanálise permitida somente a perfis operacionais autorizados: Controlador, Assistente de Verbas Federais ou Administrador Técnico.');
         }
 
         attempt.status = 'analisada';
