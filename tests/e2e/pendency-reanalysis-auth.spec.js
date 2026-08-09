@@ -198,10 +198,12 @@ async function reanalyzeAndReload(page, ids, options = {}) {
       effectiveProfile,
       pendencyStatus: pendency?.status,
       attemptResult: attempt?.result,
-      attemptObservation: attempt?.observation,
+      attemptAnalysisObservation: attempt?.payload?.observacaoAnalise,
       analysisValue: verification?.analysis?.[target.documentKey],
       actorUserId: log?.actor_user_id,
-      profileName: log?.profile_name
+      profileName: log?.profile_name,
+      auditAuthenticatedRole: log?.payload?.authenticatedRole,
+      auditSimulatedProfile: log?.payload?.simulatedProfile
     };
   }, { target: ids, simulatedProfile: options.simulatedProfile || null });
 }
@@ -239,20 +241,24 @@ test('reanálise autenticada respeita Controlador, Assistente, Admin e bloqueia 
   const controllerResult = await reanalyzeAndReload(page, controllerTarget);
   expect(controllerResult.pendencyStatus).toBe('Resolvida');
   expect(controllerResult.attemptResult).toBe('correto');
-  expect(controllerResult.attemptObservation).toContain('Reanálise autenticada');
+  expect(controllerResult.attemptAnalysisObservation).toContain('Reanálise autenticada');
   expect(controllerResult.analysisValue).toContain('Correto');
   expect(controllerResult.actorUserId).toBe(controllerFixture.id);
   expect(controllerResult.profileName).toBe('Controlador');
+  expect(controllerResult.auditAuthenticatedRole).toBe('controlador');
+  expect(controllerResult.auditSimulatedProfile).toBeNull();
   await signOut(page);
 
   const assistantFixture = await signInProfile(page, 'federal_assistant');
   const assistantResult = await reanalyzeAndReload(page, assistantTarget);
   expect(assistantResult.pendencyStatus).toBe('Resolvida');
   expect(assistantResult.attemptResult).toBe('correto');
-  expect(assistantResult.attemptObservation).toContain('Reanálise autenticada');
+  expect(assistantResult.attemptAnalysisObservation).toContain('Reanálise autenticada');
   expect(assistantResult.analysisValue).toContain('Correto');
   expect(assistantResult.actorUserId).toBe(assistantFixture.id);
   expect(assistantResult.profileName).toBe('Assistente de Verbas Federais');
+  expect(assistantResult.auditAuthenticatedRole).toBe('assistente');
+  expect(assistantResult.auditSimulatedProfile).toBeNull();
   await signOut(page);
 
   const adminFixture = await signInProfile(page, 'technical_admin');
@@ -260,8 +266,10 @@ test('reanálise autenticada respeita Controlador, Assistente, Admin e bloqueia 
   expect(adminResult.effectiveProfile).toBe('sme');
   expect(adminResult.pendencyStatus).toBe('Resolvida');
   expect(adminResult.attemptResult).toBe('correto');
-  expect(adminResult.attemptObservation).toContain('Reanálise autenticada');
+  expect(adminResult.attemptAnalysisObservation).toContain('Reanálise autenticada');
   expect(adminResult.analysisValue).toContain('Correto');
   expect(adminResult.actorUserId).toBe(adminFixture.id);
   expect(adminResult.profileName).toBe('Administrador técnico');
+  expect(adminResult.auditAuthenticatedRole).toBe('technical_admin');
+  expect(adminResult.auditSimulatedProfile).toBe('sme');
 });
