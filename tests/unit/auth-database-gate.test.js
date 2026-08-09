@@ -161,7 +161,7 @@ test('reparação Auth isola lookup por e-mail sem alterar a tabela gerenciada',
     assert.doesNotMatch(edge, /admin\.auth\.admin\.listUsers/);
 });
 
-test('gate final exige as trinta migrations atuais, reparação Auth e Edge Function protegida', () => {
+test('gate final exige as 31 migrations atuais, reparação Auth e Edge Function protegida', () => {
     const readiness = read('scripts/check-supabase-final-alignment.js');
     const config = read('supabase/config.toml');
 
@@ -180,7 +180,8 @@ test('gate final exige as trinta migrations atuais, reparação Auth e Edge Func
     assert.match(readiness, /202608060001_team_auth_legacy_repair\.sql/);
     assert.match(readiness, /202608060002_functional_integrity_remediation\.sql/);
     assert.match(readiness, /202608060003_school_institutional_identity\.sql/);
-    assert.match(readiness, /30 migrations/);
+    assert.match(readiness, /20260809165500_restrict_pendency_reanalysis_roles\.sql/);
+    assert.match(readiness, /31 migrations/);
     assert.match(readiness, /school-assignment-authorization\.test\.sql/);
     assert.match(readiness, /functional-integrity-remediation\.test\.sql/);
     assert.match(readiness, /enforce_school_controller_assignment_authorization/);

@@ -51,15 +51,31 @@ test('serviço bloqueia todas as mutações de pendência para Gestão SME antes
     assert.equal(calls.length, 0);
 });
 
-test('serviço também impede reanálise pelo Assistente sem bloquear outras operações válidas', async () => {
+test('serviço permite que Assistente chegue à transação de reanálise', async () => {
     const { service, calls } = createService('assistente');
 
     await assert.rejects(
-        () => service.reanalyze({}),
-        error => error?.code === 'FORBIDDEN'
+        () => service.reanalyze({ pendencyId: 'inexistente' }),
+        error => error?.code === 'NOT_FOUND'
     );
-    assert.equal(calls.length, 0);
+    assert.equal(calls.length, 1);
 
     await service.open({});
-    assert.equal(calls.length, 1);
+    assert.equal(calls.length, 2);
+});
+
+test('administrador técnico mantém autoridade de reanálise mesmo simulando Gestão SME', async () => {
+    const previousAuth = globalThis.RadarAuthContext;
+    globalThis.RadarAuthContext = { authorization: { role: 'technical_admin' } };
+    try {
+        const { service, calls } = createService('sme');
+        await assert.rejects(
+            () => service.reanalyze({ pendencyId: 'inexistente' }),
+            error => error?.code === 'NOT_FOUND'
+        );
+        assert.equal(calls.length, 1);
+    } finally {
+        if (previousAuth === undefined) delete globalThis.RadarAuthContext;
+        else globalThis.RadarAuthContext = previousAuth;
+    }
 });

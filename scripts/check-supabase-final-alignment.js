@@ -12,6 +12,7 @@ const assignmentMigrationPath = 'supabase/migrations/202608050001_school_assignm
 const teamAuthRepairMigrationPath = 'supabase/migrations/202608060001_team_auth_legacy_repair.sql';
 const functionalIntegrityMigrationPath = 'supabase/migrations/202608060002_functional_integrity_remediation.sql';
 const schoolIdentityMigrationPath = 'supabase/migrations/202608060003_school_institutional_identity.sql';
+const pendencyReanalysisMigrationPath = 'supabase/migrations/20260809165500_restrict_pendency_reanalysis_roles.sql';
 const requiredFiles = Object.freeze([
     'src/application/team-account-gateway.js',
     'supabase/migrations/202607190001_team_management_auth_alignment.sql',
@@ -32,6 +33,7 @@ const requiredFiles = Object.freeze([
     teamAuthRepairMigrationPath,
     functionalIntegrityMigrationPath,
     schoolIdentityMigrationPath,
+    pendencyReanalysisMigrationPath,
     'supabase/functions/_shared/team-account-domain.mjs',
     corsPolicyPath,
     'supabase/functions/team-account-management/index.ts',
@@ -203,6 +205,19 @@ function check() {
         }
     });
 
+    const pendencyReanalysisMigration = read(pendencyReanalysisMigrationPath);
+    [
+        /function public\.reanalyze_pendency_with_verification/i,
+        /v_role\s+text\s*:=\s*public\.current_app_role\(\)/i,
+        /v_role\s+not\s+in\s*\('technical_admin',\s*'federal_assistant',\s*'controller'\)/i,
+        /AUTHORIZATION_DENIED:\s*perfil/i,
+        /public\.can_write_school\(v_existing_pendency\.school_id\)/i
+    ].forEach(pattern => {
+        if (!pattern.test(pendencyReanalysisMigration)) {
+            findings.push(`Autorização da reanálise de pendências incompleta: ${pattern}`);
+        }
+    });
+
     const authGate = read('src/integration/auth-gate.js');
     if (/technical_admin\s*:\s*['"]assistente['"]/.test(authGate)) {
         findings.push('Administrador técnico ainda herda o perfil da Assistente.');
@@ -275,8 +290,8 @@ function check() {
 
     const migrationCount = fs.readdirSync(path.join(root, 'supabase/migrations'))
         .filter(name => name.endsWith('.sql')).length;
-    if (migrationCount !== 30) {
-        findings.push(`Conjunto final deve conter 30 migrations; encontrado: ${migrationCount}.`);
+    if (migrationCount !== 31) {
+        findings.push(`Conjunto final deve conter 31 migrations; encontrado: ${migrationCount}.`);
     }
 
     return [...new Set(findings)];

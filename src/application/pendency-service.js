@@ -59,6 +59,13 @@
             this.appendLog = options.appendLog;
             this.getCurrentUser = options.getCurrentUser || (() => ({ name: 'Sistema', role: 'sistema' }));
             this.getCurrentProfile = options.getCurrentProfile || (() => 'controlador');
+            this.getAuthenticatedRole = options.getAuthenticatedRole || (() => {
+                try {
+                    return globalThis?.RadarAuthContext?.authorization?.role || '';
+                } catch (_error) {
+                    return '';
+                }
+            });
             this.createId = options.createId || (prefix => `${prefix}-${Date.now()}`);
             this.now = options.now || (() => new Date().toISOString());
             this.getCorrectAnalysisLabel = options.getCorrectAnalysisLabel || (() => 'Correto');
@@ -91,6 +98,30 @@
             };
         }
 
+        auditContext() {
+            const authenticatedRole = accessPolicy.normalizeProfile(this.getAuthenticatedRole());
+            const visualProfile = accessPolicy.normalizeProfile(this.getCurrentProfile());
+            return {
+                authenticatedRole: authenticatedRole || null,
+                simulatedProfile: authenticatedRole === 'technical_admin' ? visualProfile || null : null
+            };
+        }
+
+        decorateAdministrativeLog(record) {
+            if (!record || typeof record !== 'object') return record;
+            const decorated = cloneValue(record);
+            const currentDetails = decorated.details && typeof decorated.details === 'object'
+                && !Array.isArray(decorated.details)
+                ? cloneValue(decorated.details)
+                : {};
+            const context = this.auditContext();
+            if (context.authenticatedRole) currentDetails.authenticatedRole = context.authenticatedRole;
+            if (context.simulatedProfile) currentDetails.simulatedProfile = context.simulatedProfile;
+            else delete currentDetails.simulatedProfile;
+            decorated.details = currentDetails;
+            return decorated;
+        }
+
         find(state, pendencyId, operation) {
             const index = state.pendencies.findIndex(item => String(item.id) === text(pendencyId));
             if (index < 0) fail('NOT_FOUND', 'Pendência não localizada.', operation);
@@ -111,8 +142,11 @@
 
         appendSchoolLog(schoolId, action, details) {
             const log = this.appendLog(action, details, { escolaId: schoolId, schoolId });
-            if (log && typeof log === 'object' && !text(log.escolaId) && !text(log.school_id)) {
-                log.escolaId = schoolId;
+            if (log && typeof log === 'object') {
+                if (!text(log.escolaId) && !text(log.school_id)) log.escolaId = schoolId;
+                const context = this.auditContext();
+                log.authenticatedRole = context.authenticatedRole;
+                log.simulatedProfile = context.simulatedProfile;
             }
             return log || null;
         }
@@ -133,8 +167,9 @@
                     && String(record.program_id || '') === String(persistence.verificationContext.programId || '')
                 ))
                 : null;
-            const administrativeLog = list(snapshot?.entities?.administrativeLogs)
+            const administrativeLogRecord = list(snapshot?.entities?.administrativeLogs)
                 .find(record => String(record.id) === String(persistence.logId));
+            const administrativeLog = this.decorateAdministrativeLog(administrativeLogRecord);
             if (!pendency || !administrativeLog
                 || (persistence.attemptId && !attempt)
                 || (persistence.verificationContext && !verification)) {
@@ -354,8 +389,9 @@
                             && String(record.program_id || '') === String(pendency.program_id || '')
                         ))
                         : null;
-                    const administrativeLog = list(snapshot?.entities?.administrativeLogs)
+                    const administrativeLogRecord = list(snapshot?.entities?.administrativeLogs)
                         .find(record => String(record.id) === String(persistence.logId));
+                    const administrativeLog = this.decorateAdministrativeLog(administrativeLogRecord);
                     if (!pendency || !verification || !administrativeLog
                         || (persistence.attemptId && !attempt)) {
                         fail(
@@ -483,12 +519,12 @@
                         perfil: text(this.getCurrentUser()?.role) || 'sistema'
                     };
                     state.contacts.push(contact);
-                    const log = this.appendLog(
+                    const log = this.appendSchoolLog(
+                        schoolId,
                         'Contato Registrado',
                         pendencyId
                             ? `Contato via ${channel} associado à pendência ${pendencyId}.`
-                            : `Contato via ${channel} registrado para a escola ${schoolId}.`,
-                        { escolaId: schoolId, schoolId }
+                            : `Contato via ${channel} registrado para a escola ${schoolId}.`
                     );
                     persistence.contactId = contact.id;
                     persistence.logId = text(log?.id);
@@ -500,8 +536,9 @@
                     if (typeof repository.savePendencyContactWithLog !== 'function') return defaultPersist();
                     const contact = (snapshot.entities.pendencyContacts || [])
                         .find(record => String(record.id) === String(persistence.contactId));
-                    const administrativeLog = (snapshot.entities.administrativeLogs || [])
+                    const administrativeLogRecord = (snapshot.entities.administrativeLogs || [])
                         .find(record => String(record.id) === String(persistence.logId));
+                    const administrativeLog = this.decorateAdministrativeLog(administrativeLogRecord);
                     if (!contact || !administrativeLog) {
                         fail(
                             'PERSISTENCE_CONTEXT_MISSING',

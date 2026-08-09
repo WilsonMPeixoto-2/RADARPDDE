@@ -18,6 +18,7 @@ on:
       - 'scripts/generate-runtime-config.mjs'
       - 'tests/e2e/supabase-auth-local.spec.js'
       - 'tests/e2e/supabase-full-contract.spec.js'
+      - 'tests/e2e/pendency-reanalysis-auth.spec.js'
       - 'tests/e2e/supabase-preview-profile-viewport.spec.js'
       - 'tests/support/spa-server.mjs'
       - 'playwright.config.js'
@@ -43,6 +44,7 @@ on:
       - 'scripts/generate-runtime-config.mjs'
       - 'tests/e2e/supabase-auth-local.spec.js'
       - 'tests/e2e/supabase-full-contract.spec.js'
+      - 'tests/e2e/pendency-reanalysis-auth.spec.js'
       - 'tests/e2e/supabase-preview-profile-viewport.spec.js'
       - 'tests/support/spa-server.mjs'
       - 'playwright.config.js'
@@ -142,6 +144,7 @@ jobs:
           npx playwright test
           tests/e2e/supabase-auth-local.spec.js
           tests/e2e/supabase-full-contract.spec.js
+          tests/e2e/pendency-reanalysis-auth.spec.js
           --project=desktop-chromium
 
       - name: Validar papéis e viewports
