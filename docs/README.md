@@ -1,38 +1,39 @@
 # Documentação do RADAR PDDE
 
-**Estado de referência:** 7 de agosto de 2026  
+**Estado de referência:** 9 de agosto de 2026  
 **Classe documental:** Canônico — índice
 
-## 1. Baseline
+## 1. Estado e precedência
 
-O estado corrente e o procedimento de revalidação ficam em [`CURRENT_STAGE.md`](CURRENT_STAGE.md). SHA da própria `main`, deployment e versão de Edge Function não devem ser congelados como “estado atual” em documento versionado, pois a própria atualização pode alterá-los. Valores exatos pertencem a checkpoints históricos datados.
+O estado corrente fica em [`CURRENT_STAGE.md`](CURRENT_STAGE.md). A estratégia de validação fica em [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md).
 
 Regra de precedência:
 
 ```text
-código e contratos executáveis
+código do SHA analisado
 → Supabase/Vercel efetivos
-→ evidências do mesmo SHA
-→ decisões vigentes
+→ contrato funcional e decisões vigentes
+→ testes atuais que representam o contrato
 → documentação canônica
-→ referências vigentes
-→ históricos
+→ históricos e testes superados
 ```
+
+Valores voláteis devem ser consultados no remoto quando necessários. Checkpoints datados preservam valores exatos do momento em que foram produzidos.
 
 ## 2. Ordem de leitura
 
 1. [`../AGENTS.md`](../AGENTS.md);
 2. [`CURRENT_STAGE.md`](CURRENT_STAGE.md);
-3. [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md);
-4. [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md);
-5. [`ROADMAP_ATUALIZACOES_2026.md`](ROADMAP_ATUALIZACOES_2026.md);
+3. [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md);
+4. [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md);
+5. [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md);
 6. [`DECISION_LOG.md`](DECISION_LOG.md);
 7. [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md);
 8. [`architecture/README.md`](architecture/README.md).
 
-## 3. Matriz funcional ponta a ponta
+## 3. Contratos executáveis
 
-### Fonte executável
+### Matriz funcional
 
 - [`reference/functional-contract-matrix.json`](reference/functional-contract-matrix.json);
 - `reference/functional-contract-matrix/*.json`;
@@ -45,16 +46,26 @@ npm run generate:functional-matrix
 npm run check:functional-matrix
 ```
 
-A matriz contém 41 operações e integra o readiness. Após a reconciliação pós-PR #162, não há operação classificada como lacuna técnica ou decisão funcional pendente; as operações ainda não integralmente provadas permanecem `partial`.
+A matriz contém 41 operações. A classificação `partial` indica apenas que pode existir prova adicional útil em contexto futuro; **não significa defeito nem bloqueio automático do produto**.
 
-## 4. Documentos canônicos
+### Testes
 
-- [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — guia canônico de estado corrente e revalidação;
+[`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md) determina como interpretar e executar testes:
+
+- teste não cria regra de negócio sozinho;
+- falha é classificada antes de corrigir código;
+- contrato superado é atualizado/removido, não imposto ao produto;
+- validação é proporcional ao risco e à superfície alterada;
+- evidência válida pode ser reaproveitada quando o código correspondente não mudou.
+
+## 4. Documentos canônicos e referências principais
+
+- [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — estado corrente e gatilhos de nova validação;
 - [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — contrato funcional e arquitetural;
-- [`ROADMAP_ATUALIZACOES_2026.md`](ROADMAP_ATUALIZACOES_2026.md) — sequência e prioridades;
 - [`DECISION_LOG.md`](DECISION_LOG.md) — decisões duradouras;
 - [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md) — validade documental;
-- [`../README.md`](../README.md) — entrada do repositório;
+- [`reference/PRODUCT_SURFACE_CATALOG.md`](reference/PRODUCT_SURFACE_CATALOG.md) — superfícies, UX e ações;
+- [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md) — governança de validação;
 - [`../AGENTS.md`](../AGENTS.md) — regras de trabalho.
 
 ## 5. Arquitetura
@@ -66,7 +77,7 @@ A matriz contém 41 operações e integra o readiness. Após a reconciliação p
 - [`architecture/modelo-operacional.md`](architecture/modelo-operacional.md)
 - [`architecture/timeline-unidade.md`](architecture/timeline-unidade.md)
 - [`architecture/navigation-contextual.md`](architecture/navigation-contextual.md)
-- [`architecture/testing.md`](architecture/testing.md)
+- [`architecture/testing.md`](architecture/testing.md), subordinado à governança atual quando houver divergência
 
 ### Frontend, Supabase e Excel
 
@@ -89,39 +100,20 @@ A matriz contém 41 operações e integra o readiness. Após a reconciliação p
 - [`runbooks/SUPABASE_CONNECTION.md`](runbooks/SUPABASE_CONNECTION.md)
 - [`runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`](runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md)
 
-Os runbooks de bootstrap inicial de Auth/dados são procedimentos históricos restritos, não fluxo cotidiano de Production.
+Runbooks de bootstrap inicial de Auth/dados são procedimentos históricos restritos, não fluxo cotidiano de Production.
 
-## 7. Garantias operacionais
+## 7. Estado pós-estabilização
 
-A arquitetura vigente inclui:
+Os PRs #166 a #170 consolidaram a rodada recente de competência global, permissões, Pendências, exportações e UX contextual. O baseline exato da rodada está registrado em `CURRENT_STAGE.md` como âncora histórica.
 
-- monitor geral de Production;
-- incidentes automáticos;
-- auditoria agregada de vinte invariantes;
-- backup/restauração descartáveis;
-- gate por perfil e viewport;
-- matriz funcional executável;
-- infraestrutura do smoke autenticado de leitura, desativada remotamente até provisionamento específico.
+Não existe uma fila genérica de “testes faltantes” que mantenha o RADAR indefinidamente inacabado. Novas validações devem nascer de mudança real, risco concreto, defeito observado, release relevante ou UAT.
 
-## 8. Decisões centrais
+## 8. Histórico e evidências
 
-- [`decisions/ADR-040-garantia-operacional-contínua.md`](decisions/ADR-040-garantia-operacional-contínua.md)
-- [`decisions/ADR-041-confiabilidade-funcional-ponta-a-ponta.md`](decisions/ADR-041-confiabilidade-funcional-ponta-a-ponta.md)
-- [`decisions/ADR-042-reconciliacao-documental-remota.md`](decisions/ADR-042-reconciliacao-documental-remota.md)
+Arquivos datados em `docs/audits/`, `docs/evidence/`, `docs/superpowers/`, `docs/handoff/` e `docs/reports/` registram seu momento histórico. Eles não devem ser reescritos para coincidir com o presente e não prevalecem sobre o código atual.
 
-## 9. Auditorias, evidências e planos
+A reconciliação de 7 de agosto permanece como histórico do pós-PR #162. A reconciliação vigente de regras e testes está refletida diretamente nos documentos canônicos atualizados em 9 de agosto.
 
-Regra permanente:
+## 9. Continuidade
 
-- arquivos datados em `docs/audits/` e `docs/evidence/` são registros do momento de sua produção;
-- planos/specs em `docs/superpowers/` são históricos após execução ou continuam trabalho em andamento apenas quando sua branch/PR ainda estiver ativa;
-- não reescrever baseline histórico para fazê-lo coincidir com o presente;
-- registrar resolução posterior por referência ao PR/commit/migration correspondente.
-
-A reconciliação atual está em [`audits/2026-08-07-reconciliacao-documental-integral-pos-pr162.md`](audits/2026-08-07-reconciliacao-documental-integral-pos-pr162.md).
-
-## 10. Continuidade
-
-A prioridade corrente é fechar a divergência documental/histórica do PR #156 e retomar a auditoria funcional remanescente a partir da `main` atual, sem repetir cegamente provas já absorvidas pelos PRs posteriores.
-
-Mudança funcional material deve atualizar a operação correspondente na matriz, testes, contrato técnico, roadmap e evidência aplicável. Planos históricos não são reescritos para parecer atuais.
+Mudança futura deve atualizar apenas os contratos, testes e documentos materialmente afetados. O fluxo recomendado é inspeção do código, mudança mínima, validação proporcional, classificação de eventuais falhas e confirmação do ambiente publicado quando aplicável.
