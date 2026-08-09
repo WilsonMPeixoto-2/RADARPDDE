@@ -110,12 +110,36 @@ async function seedAwaitingPendency(page, { schoolId, documentKey, suffix }) {
   }, { schoolId, documentKey, suffix });
 }
 
+async function refreshTargetSnapshot(page, target) {
+  return page.evaluate(async current => {
+    const repository = window.RadarApplicationServices?.data?.repository;
+    if (!repository) throw new Error('Repositório Supabase indisponível para atualizar snapshot E2E.');
+    const [pendencies, attempts, verifications] = await Promise.all([
+      repository.load('pendencies'),
+      repository.load('pendencyAttempts'),
+      repository.load('verifications')
+    ]);
+    const pendency = pendencies.find(row => row.id === current.pendencyId);
+    const attempt = attempts.find(row => row.id === current.attemptId);
+    const verification = verifications.find(row => row.id === current.verificationId);
+    if (!pendency || !attempt || !verification) {
+      throw new Error('Não foi possível atualizar o snapshot E2E do agregado.');
+    }
+    return {
+      ...current,
+      pendencyRecord: pendency,
+      attemptRecord: attempt,
+      verificationRecord: verification
+    };
+  }, target);
+}
+
 async function expectDirectRpcDenied(page, ids) {
   const denial = await page.evaluate(async target => {
     const client = window.RadarSessionContext?.service?.client;
     if (!client) throw new Error('Cliente Supabase autenticado ausente.');
 
-    // O payload é capturado pelo Administrador Técnico durante a preparação.
+    // O payload e as versões são capturados após toda a preparação pelo Admin.
     // A própria RPC pode ocultar a pendência antes da checagem de escrita;
     // NOT_FOUND e AUTHORIZATION_DENIED são ambas recusas seguras da mutação.
     const pendency = target.pendencyRecord;
@@ -234,14 +258,15 @@ test('reanálise autenticada respeita Controlador, Assistente, Admin e bloqueia 
     documentKey: `e2e-admin-${stamp}`,
     suffix: `admin-${stamp}`
   });
+  const restrictedTarget = await refreshTargetSnapshot(page, assistantTarget);
   await signOut(page);
 
   await signInProfile(page, 'sme_management');
-  await expectDirectRpcDenied(page, assistantTarget);
+  await expectDirectRpcDenied(page, restrictedTarget);
   await signOut(page);
 
   await signInProfile(page, 'inventory');
-  await expectDirectRpcDenied(page, assistantTarget);
+  await expectDirectRpcDenied(page, restrictedTarget);
   await signOut(page);
 
   const controllerFixture = await signInProfile(page, 'controller');
