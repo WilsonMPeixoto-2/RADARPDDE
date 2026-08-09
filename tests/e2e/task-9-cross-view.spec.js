@@ -43,7 +43,7 @@ async function seedCompetencePendencies(page) {
     });
 
     pendencias = [open, awaiting];
-    activeCompetenciaKey = '2026-04';
+    RadarCompetenceContext.select('2026-04', { source: 'task9-cross-view-seed' });
     activePendencyDetailId = null;
     rebuildOperationalIndexes();
     persist();
@@ -79,7 +79,7 @@ test.describe('Task 9 — encontrabilidade entre Competências e Pendências', (
     await expect(page.locator('#pendency-filter-competence')).toHaveValue('2026-04');
 
     await page.evaluate(() => {
-      activeCompetenciaKey = '2026-05';
+      RadarCompetenceContext.select('2026-05', { source: 'task9-cross-view-passivo' });
       switchView('competencias');
     });
     const passivo = page.locator('#passivo-competencias-list');
