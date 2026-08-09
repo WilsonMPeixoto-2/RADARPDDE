@@ -550,8 +550,19 @@
             errors,
             attemptId
         );
-        if (normalizeText(event.perfil).toLocaleLowerCase('pt-BR') !== 'controlador') {
-            throw new Error('Reanálise permitida somente ao perfil Controlador.');
+        const reviewerProfile = normalizeText(event.perfil).toLocaleLowerCase('pt-BR');
+        const authorizedReviewerProfiles = new Set([
+            'controlador',
+            'controller',
+            'assistente',
+            'assistente de verbas federais',
+            'federal_assistant',
+            'administrador técnico',
+            'administrador tecnico',
+            'technical_admin'
+        ]);
+        if (!authorizedReviewerProfiles.has(reviewerProfile)) {
+            throw new Error('Reanálise permitida somente a perfis operacionais autorizados.');
         }
 
         attempt.status = 'analisada';
