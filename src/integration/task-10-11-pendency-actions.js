@@ -5,6 +5,9 @@
     let originalRenderPendencias = null;
     let originalOpenPendencyDetail = null;
     let lastTrigger = null;
+    let mainObserver = null;
+    let enhancementFrame = null;
+    let syncingCompetence = false;
 
     function dependenciesReady() {
         return Boolean(
@@ -37,6 +40,218 @@
 
     function findPendency(id) {
         return Array.isArray(pendencias) ? pendencias.find(item => item.id === id) : null;
+    }
+
+    function getActiveCompetenceKey() {
+        if (root.RadarCompetenceContext?.isInitialized?.()) {
+            return String(root.RadarCompetenceContext.getState()?.activeKey || '').trim();
+        }
+        return typeof activeCompetenciaKey !== 'undefined'
+            ? String(activeCompetenciaKey || '').trim()
+            : '';
+    }
+
+    function isPendenciasView() {
+        return typeof currentView !== 'undefined' && currentView === 'pendencias';
+    }
+
+    function syncPendencyCompetence() {
+        if (!isPendenciasView() || syncingCompetence) return false;
+        const activeKey = getActiveCompetenceKey();
+        const state = root.RadarTask9PendencyPage?.getState?.();
+        if (!activeKey || !state || state.filters?.competence === activeKey) return false;
+        if (typeof root.changePendencyFilter !== 'function') return false;
+
+        syncingCompetence = true;
+        try {
+            root.changePendencyFilter('competence', activeKey);
+            return true;
+        } finally {
+            syncingCompetence = false;
+        }
+    }
+
+    function formatCompetenceLabel(key) {
+        if (typeof formatCompetenciaText === 'function') return formatCompetenciaText(key);
+        return key;
+    }
+
+    function countVisibleRows(panelId) {
+        const panel = document.getElementById(panelId);
+        if (!panel) return 0;
+        return panel.querySelectorAll('.pendency-desktop-list tbody tr').length;
+    }
+
+    function polishGlobalCompetenceUi() {
+        if (!isPendenciasView()) return;
+        const activeKey = getActiveCompetenceKey();
+        if (!activeKey) return;
+
+        const competenceSelect = document.getElementById('pendency-filter-competence');
+        const competenceField = competenceSelect?.closest('.filter-field');
+        if (competenceField) competenceField.hidden = true;
+
+        document.querySelectorAll('.pendency-filter-chip').forEach(chip => {
+            const action = chip.getAttribute('onclick') || '';
+            if (action.includes("removePendencyFilter('competence')")) chip.remove();
+        });
+
+        const state = root.RadarTask9PendencyPage?.getState?.();
+        const filters = state?.filters || {};
+        const hasUserFilters = Object.entries(filters).some(([key, value]) => (
+            key !== 'competence' && String(value || '').trim() !== ''
+        ));
+        const clearButton = document.querySelector('.pendency-filter-header .btn');
+        if (clearButton) clearButton.disabled = !hasUserFilters;
+
+        const pageDescription = document.querySelector('.pendency-page-header .page-title p');
+        if (pageDescription) {
+            const description = `Competência atual: ${formatCompetenceLabel(activeKey)}. Os demais filtros refinam esta visão.`;
+            if (pageDescription.textContent !== description) pageDescription.textContent = description;
+        }
+
+        const tabDefinitions = [
+            ['aberta', 'p-abertas'],
+            ['aguardando', 'p-aguardando'],
+            ['resolvida', 'p-resolvidas'],
+            ['cancelada', 'p-canceladas']
+        ];
+        let filteredTotal = 0;
+        tabDefinitions.forEach(([key, panelId]) => {
+            const count = countVisibleRows(panelId);
+            filteredTotal += count;
+            const counter = document.querySelector(`#pendency-tab-${key} span`);
+            if (counter) {
+                const label = `${count} registro${count === 1 ? '' : 's'} na competência atual`;
+                if (counter.textContent !== String(count)) counter.textContent = String(count);
+                if (counter.getAttribute('aria-label') !== label) counter.setAttribute('aria-label', label);
+            }
+        });
+
+        const currentCompetenceTotal = Array.isArray(pendencias)
+            ? pendencias.filter(item => String(item?.competenciaOrigem || item?.competencia || '').trim() === activeKey).length
+            : filteredTotal;
+        const currentActiveTotal = Array.isArray(pendencias)
+            ? pendencias.filter(item => (
+                String(item?.competenciaOrigem || item?.competencia || '').trim() === activeKey
+                && ['Aberta', 'Aguardando reanálise'].includes(item?.status)
+            )).length
+            : 0;
+
+        const summary = document.querySelector('.pendency-active-summary');
+        const summaryValue = summary?.querySelector('strong');
+        const summaryLabel = summary?.querySelector('span');
+        if (summaryValue && summaryValue.textContent !== String(currentActiveTotal)) {
+            summaryValue.textContent = String(currentActiveTotal);
+        }
+        if (summaryLabel) {
+            const label = `pendência${currentActiveTotal === 1 ? '' : 's'} ativa${currentActiveTotal === 1 ? '' : 's'} na competência`;
+            if (summaryLabel.textContent !== label) summaryLabel.textContent = label;
+        }
+
+        const filterResult = document.querySelector('.pendency-filter-result');
+        if (filterResult) {
+            const label = `${filteredTotal} de ${currentCompetenceTotal} registro${currentCompetenceTotal === 1 ? '' : 's'} na competência atual.`;
+            if (filterResult.textContent.trim() !== label) filterResult.textContent = label;
+        }
+    }
+
+    function getAttemptAnalysisObservation(attempt) {
+        return String(
+            attempt?.observacaoAnalise
+            || attempt?.analysisObservation
+            || attempt?.payload?.observacaoAnalise
+            || attempt?.payload?.analysisObservation
+            || ''
+        ).trim();
+    }
+
+    function getAttemptAnalyzedBy(attempt) {
+        return String(
+            attempt?.analisadoPor
+            || attempt?.analyzedBy
+            || attempt?.payload?.analisadoPor
+            || attempt?.payload?.analyzedBy
+            || ''
+        ).trim();
+    }
+
+    function getAttemptAnalysisDate(attempt) {
+        return attempt?.dataAnalise
+            || attempt?.analyzedAt
+            || attempt?.payload?.dataAnalise
+            || attempt?.payload?.analyzedAt
+            || null;
+    }
+
+    function formatDateTime(value) {
+        if (!value) return '';
+        const parsed = new Date(value);
+        if (Number.isNaN(parsed.getTime())) return String(value);
+        return parsed.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+    }
+
+    function createReanalysisDetail(attempt) {
+        const observation = getAttemptAnalysisObservation(attempt);
+        const analyzedBy = getAttemptAnalyzedBy(attempt);
+        const analyzedAt = getAttemptAnalysisDate(attempt);
+        if (!observation && !analyzedBy && !analyzedAt) return null;
+
+        const detail = document.createElement('div');
+        detail.className = 'task-reanalysis-detail';
+        const title = document.createElement('strong');
+        title.textContent = 'Observação da reanálise';
+        detail.appendChild(title);
+        if (observation) {
+            const paragraph = document.createElement('p');
+            paragraph.textContent = observation;
+            detail.appendChild(paragraph);
+        }
+        if (analyzedBy || analyzedAt) {
+            const meta = document.createElement('small');
+            const parts = [];
+            if (analyzedBy) parts.push(`Analisado por ${analyzedBy}`);
+            if (analyzedAt) parts.push(formatDateTime(analyzedAt));
+            meta.textContent = parts.join(' · ');
+            detail.appendChild(meta);
+        }
+        return detail;
+    }
+
+    function buildDrawerRecord(pendency) {
+        if (!root.RadarPendenciasViewModel?.buildPendencyRecords) return null;
+        const records = root.RadarPendenciasViewModel.buildPendencyRecords({
+            pendencias: [pendency],
+            escolas: Array.isArray(escolas) ? escolas : [],
+            programas: Array.isArray(programas) ? programas : [],
+            controladores: Array.isArray(controladores) ? controladores : [],
+            contatos: Array.isArray(contatos) ? contatos : []
+        });
+        return records[0] || null;
+    }
+
+    function enhanceDrawerReanalysisDetails(drawer, pendency) {
+        if (!drawer || !pendency) return;
+        const record = buildDrawerRecord(pendency);
+        if (!record) return;
+
+        const attempts = [...(record.attempts || [])].reverse();
+        drawer.querySelectorAll('.pendency-attempt-list > li').forEach((item, index) => {
+            if (item.querySelector('.task-reanalysis-detail')) return;
+            const detail = createReanalysisDetail(attempts[index]);
+            if (detail) item.appendChild(detail);
+        });
+
+        const timeline = root.RadarPendenciasViewModel.buildPendencyTimeline(record);
+        const attemptsById = new Map((record.attempts || []).map(attempt => [attempt.id, attempt]));
+        drawer.querySelectorAll('.pendency-timeline > li').forEach((item, index) => {
+            if (item.querySelector('.task-reanalysis-detail')) return;
+            const timelineItem = timeline[index];
+            if (!timelineItem?.attemptId) return;
+            const attempt = attemptsById.get(timelineItem.attemptId);
+            const detail = createReanalysisDetail(attempt);
+            if (detail) item.querySelector(':scope > div:last-child')?.appendChild(detail);
+        });
     }
 
     function announce(message, type = 'success') {
@@ -279,7 +494,7 @@
             closeDialog('modal-pendency-contact');
             originalRenderPendencias();
             originalOpenPendencyDetail(pendency.id);
-            enhancePendencyActions();
+            scheduleEnhancement();
             announce('Contato registrado e incluído na linha do tempo.');
         } catch (error) {
             if (typeof reportRadarPersistenceError === 'function') reportRadarPersistenceError(error);
@@ -321,7 +536,7 @@
             closeDialog('modal-pendency-cancel');
             originalRenderPendencias();
             originalOpenPendencyDetail(updated.id);
-            enhancePendencyActions();
+            scheduleEnhancement();
             announce('Pendência cancelada e preservada no histórico.');
         } catch (error) {
             if (typeof reportRadarPersistenceError === 'function') reportRadarPersistenceError(error);
@@ -367,7 +582,7 @@
             closeDialog('modal-pendency-reopen');
             originalRenderPendencias();
             originalOpenPendencyDetail(updated.id);
-            enhancePendencyActions();
+            scheduleEnhancement();
             announce('Pendência reaberta e devolvida à fila Abertas.');
         } catch (error) {
             if (typeof reportRadarPersistenceError === 'function') reportRadarPersistenceError(error);
@@ -404,6 +619,10 @@
 
     function enhancePendencyActions() {
         injectDialogs();
+        if (!isPendenciasView()) return;
+        if (syncPendencyCompetence()) return;
+        polishGlobalCompetenceUi();
+
         document.querySelectorAll('[data-pendency-ref]').forEach(container => {
             if (container.closest('.task-operation-modal')) return;
             const reference = container.dataset.pendencyRef;
@@ -417,6 +636,7 @@
                 : Array.from(container.querySelectorAll('.pendency-row-actions'));
             groups.forEach(group => enhanceActionGroup(group, pendency, reference));
         });
+
         const drawer = document.getElementById('pendency-detail-drawer');
         if (drawer && drawer.dataset.pendencyRef) {
             let id;
@@ -424,18 +644,35 @@
             const pendency = findPendency(id);
             const group = drawer.querySelector('.pendency-drawer-footer .pendency-row-actions');
             if (pendency && group) enhanceActionGroup(group, pendency, drawer.dataset.pendencyRef);
+            if (pendency) enhanceDrawerReanalysisDetails(drawer, pendency);
         }
+    }
+
+    function scheduleEnhancement() {
+        if (enhancementFrame != null) return;
+        enhancementFrame = root.requestAnimationFrame(() => {
+            enhancementFrame = null;
+            enhancePendencyActions();
+        });
+    }
+
+    function observePendencyRendering() {
+        if (mainObserver || typeof MutationObserver !== 'function') return;
+        const container = document.getElementById('main-container');
+        if (!container) return;
+        mainObserver = new MutationObserver(scheduleEnhancement);
+        mainObserver.observe(container, { childList: true, subtree: true });
     }
 
     function renderPendenciasEnhanced(options) {
         const result = originalRenderPendencias(options);
-        root.requestAnimationFrame(enhancePendencyActions);
+        scheduleEnhancement();
         return result;
     }
 
     function openPendencyDetailEnhanced(source) {
         const result = originalOpenPendencyDetail(source);
-        root.requestAnimationFrame(enhancePendencyActions);
+        scheduleEnhancement();
         return result;
     }
 
@@ -452,14 +689,14 @@
         root.openReopenPendencyModal = openReopenPendencyModal;
         root.confirmReopenPendency = confirmReopenPendency;
         root.RadarTask1011PendencyActions = Object.freeze({
-            VERSION: '1.0.0',
+            VERSION: '1.1.0',
             enhance: enhancePendencyActions
         });
         injectDialogs();
+        observePendencyRendering();
+        root.addEventListener?.('radar:competence-change', scheduleEnhancement);
         installed = true;
-        if (typeof currentView !== 'undefined' && currentView === 'pendencias') {
-            root.requestAnimationFrame(enhancePendencyActions);
-        }
+        if (isPendenciasView()) scheduleEnhancement();
         return true;
     }
 
