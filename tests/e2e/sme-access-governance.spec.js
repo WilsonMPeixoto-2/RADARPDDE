@@ -184,8 +184,8 @@ test.describe('governança de acesso da Gestão SME', () => {
     await expect(page.getByRole('complementary', { name: 'Detalhes da pendência' })).toBeVisible();
   });
 
-  test('registros internos usam o UUID mesmo na simulação SME do administrador técnico', async ({ page }) => {
-    await page.evaluate(() => {
+  test('administrador técnico mantém autoridade integral ao simular SME e preserva identidade real', async ({ page }) => {
+    const state = await page.evaluate(() => {
       window.RadarAuthContext = Object.freeze({
         user: Object.freeze({
           id: '00000000-0000-4000-8000-000000000971',
@@ -204,7 +204,7 @@ test.describe('governança de acesso da Gestão SME', () => {
           usuario: 'Administrador Técnico',
           perfil: 'Administrador técnico',
           acao: 'Registro próprio',
-          detalhes: 'Deve aparecer na simulação SME.',
+          detalhes: 'Registro do administrador autenticado.',
           dataHora: '2026-07-28T12:00:00.000Z'
         },
         {
@@ -213,7 +213,7 @@ test.describe('governança de acesso da Gestão SME', () => {
           usuario: 'Outro Usuário',
           perfil: 'Gestão SME',
           acao: 'Registro alheio',
-          detalhes: 'Não deve aparecer na simulação SME.',
+          detalhes: 'Também deve permanecer visível ao administrador técnico.',
           dataHora: '2026-07-28T11:00:00.000Z'
         },
         {
@@ -222,23 +222,33 @@ test.describe('governança de acesso da Gestão SME', () => {
           usuario: 'Legado',
           perfil: 'Gestão SME',
           acao: 'Registro legado',
-          detalhes: 'Sem UUID.',
+          detalhes: 'Sem UUID, mas visível ao administrador técnico.',
           dataHora: '2026-07-28T10:00:00.000Z'
         }
       ];
 
       switchProfile('sme');
       switchView('auditoria');
+      return {
+        effectiveProfile: typeof getRadarAccessProfile === 'function'
+          ? getRadarAccessProfile()
+          : null,
+        authenticatedRole: window.RadarAuthContext?.authorization?.role,
+        authenticatedUserId: window.RadarAuthContext?.user?.id
+      };
+    });
+
+    expect(state).toEqual({
+      effectiveProfile: 'sme',
+      authenticatedRole: 'technical_admin',
+      authenticatedUserId: '00000000-0000-4000-8000-000000000971'
     });
 
     const table = page.locator('#main-container table.data-table');
-    await expect(table.locator('tbody tr')).toHaveCount(1);
+    await expect(table.locator('tbody tr')).toHaveCount(3);
     await expect(table).toContainText('Registro próprio');
-    await expect(table).not.toContainText('Registro alheio');
-    await expect(table).not.toContainText('Registro legado');
-    await expect(page.locator('#main-container')).toContainText(
-      'Ações registradas pelo seu próprio login autenticado.'
-    );
+    await expect(table).toContainText('Registro alheio');
+    await expect(table).toContainText('Registro legado');
 
     await page.evaluate(() => {
       switchProfile('controlador');
