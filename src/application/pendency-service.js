@@ -107,6 +107,21 @@
             };
         }
 
+        decorateAdministrativeLog(record) {
+            if (!record || typeof record !== 'object') return record;
+            const decorated = cloneValue(record);
+            const currentDetails = decorated.details && typeof decorated.details === 'object'
+                && !Array.isArray(decorated.details)
+                ? cloneValue(decorated.details)
+                : {};
+            const context = this.auditContext();
+            if (context.authenticatedRole) currentDetails.authenticatedRole = context.authenticatedRole;
+            if (context.simulatedProfile) currentDetails.simulatedProfile = context.simulatedProfile;
+            else delete currentDetails.simulatedProfile;
+            decorated.details = currentDetails;
+            return decorated;
+        }
+
         find(state, pendencyId, operation) {
             const index = state.pendencies.findIndex(item => String(item.id) === text(pendencyId));
             if (index < 0) fail('NOT_FOUND', 'Pendência não localizada.', operation);
@@ -152,8 +167,9 @@
                     && String(record.program_id || '') === String(persistence.verificationContext.programId || '')
                 ))
                 : null;
-            const administrativeLog = list(snapshot?.entities?.administrativeLogs)
+            const administrativeLogRecord = list(snapshot?.entities?.administrativeLogs)
                 .find(record => String(record.id) === String(persistence.logId));
+            const administrativeLog = this.decorateAdministrativeLog(administrativeLogRecord);
             if (!pendency || !administrativeLog
                 || (persistence.attemptId && !attempt)
                 || (persistence.verificationContext && !verification)) {
@@ -373,8 +389,9 @@
                             && String(record.program_id || '') === String(pendency.program_id || '')
                         ))
                         : null;
-                    const administrativeLog = list(snapshot?.entities?.administrativeLogs)
+                    const administrativeLogRecord = list(snapshot?.entities?.administrativeLogs)
                         .find(record => String(record.id) === String(persistence.logId));
+                    const administrativeLog = this.decorateAdministrativeLog(administrativeLogRecord);
                     if (!pendency || !verification || !administrativeLog
                         || (persistence.attemptId && !attempt)) {
                         fail(
@@ -519,8 +536,9 @@
                     if (typeof repository.savePendencyContactWithLog !== 'function') return defaultPersist();
                     const contact = (snapshot.entities.pendencyContacts || [])
                         .find(record => String(record.id) === String(persistence.contactId));
-                    const administrativeLog = (snapshot.entities.administrativeLogs || [])
+                    const administrativeLogRecord = (snapshot.entities.administrativeLogs || [])
                         .find(record => String(record.id) === String(persistence.logId));
+                    const administrativeLog = this.decorateAdministrativeLog(administrativeLogRecord);
                     if (!contact || !administrativeLog) {
                         fail(
                             'PERSISTENCE_CONTEXT_MISSING',
