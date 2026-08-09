@@ -138,7 +138,16 @@ test.describe('competência global nos dashboards', () => {
         && window.RadarDataContext?.ready === true
         && window.RadarCompetenceContext?.isInitialized?.() !== true
       ));
-      await page.evaluate(() => window.RadarNavigationReady);
+      expect(await page.evaluate(async () => ({
+        cycleBDashboardInstalled: Boolean(window.RadarCycleBDashboard),
+        navigationSettled: await Promise.race([
+          window.RadarNavigationReady.then(() => true),
+          new Promise(resolve => window.setTimeout(() => resolve(false), 100))
+        ])
+      }))).toEqual({
+        cycleBDashboardInstalled: true,
+        navigationSettled: false
+      });
 
       await page.evaluate(({ profile, renderer }) => {
         switchProfile(profile);
@@ -162,6 +171,7 @@ test.describe('competência global nos dashboards', () => {
       }, dashboardCase);
 
       await page.evaluate(() => window.__task2ReleaseGlobalCompetenceSelector());
+      await page.evaluate(() => window.RadarNavigationReady);
       await page.waitForFunction(() => (
         window.RadarCompetenceContext?.isInitialized?.()
         && Boolean(window.RadarCycleBDashboard)

@@ -42,11 +42,14 @@
                 const remoteEnabled = root.RADAR_PDDE_CONFIG?.supabase?.connectionEnabled === true;
                 const dataReady = root.RadarDataContext?.ready === true;
                 const authReady = !remoteEnabled || Boolean(root.RadarAuthContext?.authorization);
+                const competenceReady = Boolean(
+                    root.RadarCompetenceContext?.isInitialized?.()
+                );
                 const navigationReady = Boolean(
                     root.RadarNavigationHistory
                     && root.__radarNavigationHistoryInstalled
                 );
-                if (dataReady && authReady && navigationReady) {
+                if (dataReady && authReady && competenceReady && navigationReady) {
                     resolve(root.RadarNavigationHistory.applyPendingRoute(root));
                     return true;
                 }

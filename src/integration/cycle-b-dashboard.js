@@ -25,7 +25,6 @@
     function dependenciesReady() {
         return Boolean(
             root.RadarOperationalProjection
-            && root.RadarCompetenceContext?.isInitialized?.()
             && typeof root.renderDashboardControlador === 'function'
             && typeof root.switchView === 'function'
             && typeof root.encodePendencyIdReference === 'function'

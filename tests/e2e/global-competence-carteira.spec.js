@@ -100,8 +100,8 @@ test.describe('competência global entre Carteira e Competências', () => {
   });
 
   for (const viewCase of [
-    { view: 'escolas', heading: 'Escolas e Carteiras' },
-    { view: 'competencias', heading: 'Visão por Competência' }
+    { view: 'escolas', path: '/carteira', heading: 'Escolas e Carteiras' },
+    { view: 'competencias', path: '/competencias', heading: 'Visão por Competência' }
   ]) {
     test(`recupera ${viewCase.view} uma única vez após o bootstrap canônico`, async ({ page }, testInfo) => {
       test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário de bootstrap exclusivo do desktop.');
@@ -109,7 +109,7 @@ test.describe('competência global entre Carteira e Competências', () => {
       const pageErrors = [];
       page.on('pageerror', error => pageErrors.push(error.message));
       await deferGlobalCompetenceSelector(page);
-      await page.goto('/');
+      await page.goto(viewCase.path);
       await page.waitForFunction(() => (
         typeof window.switchView === 'function'
         && typeof window.__task3ReleaseGlobalCompetenceSelector === 'function'
@@ -118,7 +118,12 @@ test.describe('competência global entre Carteira e Competências', () => {
         && window.RadarCompetenceContext?.isInitialized?.() !== true
       ));
 
-      await page.evaluate(view => {
+      expect(await page.evaluate(async () => Promise.race([
+        window.RadarNavigationReady.then(() => true),
+        new Promise(resolve => window.setTimeout(() => resolve(false), 100))
+      ]))).toBe(false);
+
+      await page.evaluate(() => {
         window.__task3BootstrapRender = { completed: 0 };
         const container = document.getElementById('main-container');
         const observer = new MutationObserver(() => {
@@ -129,10 +134,10 @@ test.describe('competência global entre Carteira e Competências', () => {
         });
         observer.observe(container, { childList: true });
         window.__task3BootstrapObserver = observer;
-        switchView(view);
-      }, viewCase.view);
+      });
 
       await page.evaluate(() => window.__task3ReleaseGlobalCompetenceSelector());
+      await page.evaluate(() => window.RadarNavigationReady);
       await page.waitForFunction(() => window.RadarCompetenceContext?.isInitialized?.());
       await expect(page.getByRole('heading', { name: viewCase.heading })).toBeVisible();
 

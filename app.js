@@ -5634,33 +5634,12 @@ function handleGlobalSearch(e) {
 // 7. RENDER DA TELA: DASHBOARDS
 // ==========================================
 
-let competenceBootstrapRecoveryPending = false;
-
-function scheduleCurrentViewAfterCompetenceBootstrap() {
-    if (competenceBootstrapRecoveryPending) return false;
-    competenceBootstrapRecoveryPending = true;
-    window.addEventListener('radar:competence-change', () => {
-        competenceBootstrapRecoveryPending = false;
-        if (!window.RadarCompetenceContext?.isInitialized?.()) return;
-        if (currentView === 'dashboard') {
-            const accessProfile = getRadarAccessProfile();
-            if (['controlador', 'assistente', 'sme'].includes(accessProfile)) renderDashboard();
-        } else if (currentView === 'escolas') {
-            renderEscolas();
-        } else if (currentView === 'competencias') {
-            renderCompetencias();
-        }
-    }, { once: true });
-    return true;
-}
-
 function renderDashboard() {
     const container = document.getElementById('main-container');
     const accessProfile = getRadarAccessProfile();
 
     if (['controlador', 'assistente', 'sme'].includes(accessProfile)
         && !window.RadarCompetenceContext?.isInitialized?.()) {
-        scheduleCurrentViewAfterCompetenceBootstrap();
         return false;
     }
     
@@ -7328,7 +7307,6 @@ function renderEscolas(capturedCompetenceKey = null) {
     const container = document.getElementById('main-container');
 
     if (!window.RadarCompetenceContext?.isInitialized?.()) {
-        scheduleCurrentViewAfterCompetenceBootstrap();
         return false;
     }
 
@@ -7714,7 +7692,6 @@ function renderCompetencias() {
     const container = document.getElementById('main-container');
 
     if (!window.RadarCompetenceContext?.isInitialized?.()) {
-        scheduleCurrentViewAfterCompetenceBootstrap();
         return false;
     }
 
