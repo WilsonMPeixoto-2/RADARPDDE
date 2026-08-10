@@ -47,7 +47,7 @@ index.html
       └─ reaplica a integração do guia após RadarNavigationContextReady
 ```
 
-A cadeia de navegação é instalada de forma idempotente pelo bootstrap acionado após o Auth gate. O Guia do Controlador é uma superfície de ajuda sem persistência de negócio e só fica disponível quando o perfil visual efetivo é `controlador`.
+A cadeia de navegação é instalada de forma idempotente pelo bootstrap acionado após o Auth gate. O Guia do Controlador é uma superfície de ajuda sem persistência de negócio e fica disponível para todos os perfis autenticados. O conteúdo continua descrevendo o fluxo operacional do Controlador, mas sua consulta não concede permissões adicionais a outros perfis.
 
 ## 4. Readiness
 
@@ -86,7 +86,8 @@ window.RadarControllerGuide
 O guia:
 
 - injeta a opção `Guia do Controlador` após Pendências Operacionais;
-- não aparece para Assistente, Gestão SME ou Inventário;
+- permanece visível para Controlador, Assistente, Gestão SME e Equipe de Inventário;
+- mantém conteúdo orientado ao trabalho do Controlador sem ampliar capacidades do perfil que o consulta;
 - utiliza capturas reais sanitizadas da linha de base visual já versionada no repositório;
 - oferece busca interna e atalhos para as telas operacionais;
 - usa `window.print()` com folha A4 e estilos próprios para permitir `Salvar como PDF` no navegador;
@@ -131,7 +132,7 @@ Cada integração deve:
 5. impedir recursão;
 6. não criar estado de negócio paralelo.
 
-O guia intercepta apenas a pseudo-visão local `guia-controlador`; ao usar seus atalhos, devolve a navegação às funções normais do RADAR.
+O guia intercepta apenas a pseudo-visão local `guia-controlador`; ao usar seus atalhos, devolve a navegação às funções normais do RADAR. A disponibilidade transversal do guia não altera as regras de acesso das telas de destino.
 
 ## 8. Renderização segura
 
@@ -154,9 +155,9 @@ Para mudança restrita ao Guia do Controlador, validar:
 
 - sintaxe e lint dos arquivos tocados;
 - carregamento das imagens reais;
-- visibilidade positiva para Controlador e negativa para os demais perfis;
+- visibilidade do guia para todos os perfis autenticados;
 - abertura e busca interna do guia;
-- retorno dos atalhos às telas operacionais;
+- retorno dos atalhos às telas operacionais respeitando a política de acesso do perfil atual;
 - layout responsivo e impressão A4.
 
 Não é necessário repetir migrations, backup/restauração ou mutações Supabase quando nenhum contrato de dados, Auth, RLS, RPC ou persistência tiver sido alterado.
