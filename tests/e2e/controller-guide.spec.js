@@ -57,6 +57,51 @@ test.describe('Guia do Controlador', () => {
     await expect(guide.locator('#guia-reanalise')).toBeVisible();
   });
 
+  test('índice percorre o manual sem sair do Guia nem alterar a rota do RADAR', async ({ page }) => {
+    await page.evaluate(() => switchProfile('controlador'));
+    await page.locator('#nav-guia-controlador').click();
+
+    const guide = page.locator('#controller-guide-root');
+    const target = guide.locator('#guia-reanalise');
+    const initialUrl = new URL(page.url());
+
+    await guide.locator('.controller-guide-toc').getByText('Reanálise', { exact: true }).click();
+
+    await expect(guide).toBeVisible();
+    await expect(target).toBeInViewport();
+    await expect(page.locator('#nav-guia-controlador')).toHaveClass(/active/);
+
+    const finalUrl = new URL(page.url());
+    expect(finalUrl.pathname).toBe(initialUrl.pathname);
+    expect(finalUrl.search).toBe(initialUrl.search);
+    expect(finalUrl.hash).toBe('');
+  });
+
+  test('herda a identidade lilás vigente do RADAR', async ({ page }) => {
+    await page.evaluate(() => switchProfile('controlador'));
+    await page.locator('#nav-guia-controlador').click();
+
+    const palette = await page.locator('.controller-guide').evaluate(element => {
+      const guide = getComputedStyle(element);
+      const root = getComputedStyle(document.documentElement);
+      const hero = getComputedStyle(element.querySelector('.controller-guide-hero'));
+      return {
+        guidePrimary: guide.getPropertyValue('--guide-primary').trim(),
+        primary: root.getPropertyValue('--primary').trim(),
+        guideAccent: guide.getPropertyValue('--guide-accent').trim(),
+        accent: root.getPropertyValue('--accent-plum').trim(),
+        guideInk: guide.getPropertyValue('--guide-ink').trim(),
+        ink: root.getPropertyValue('--text-main').trim(),
+        heroBackground: hero.backgroundImage
+      };
+    });
+
+    expect(palette.guidePrimary).toBe(palette.primary);
+    expect(palette.guideAccent).toBe(palette.accent);
+    expect(palette.guideInk).toBe(palette.ink);
+    expect(palette.heroBackground).toContain('124, 58, 237');
+  });
+
   test('atalhos do guia devolvem o usuário às telas operacionais', async ({ page }) => {
     await page.evaluate(() => switchProfile('controlador'));
     await page.locator('#nav-guia-controlador').click();
