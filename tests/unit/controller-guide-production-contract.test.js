@@ -20,7 +20,7 @@ const GUIDE_SCREENSHOTS = Object.freeze([
 ]);
 
 async function createOutputDirectory(context) {
-    const temporaryRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'radar-guide-build-'));
+    const temporaryRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'radar-vercel-build-'));
     context.after(() => fs.rm(temporaryRoot, { recursive: true, force: true }));
     return path.join(temporaryRoot, 'dist');
 }
