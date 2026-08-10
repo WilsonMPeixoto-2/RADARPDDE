@@ -1,0 +1,64 @@
+/*
+   Guia do Controlador - integração com a identidade visual vigente do RADAR.
+   Mantém o stylesheet estrutural separado dos tokens de tema do produto.
+*/
+
+.controller-guide {
+    --guide-primary: var(--primary);
+    --guide-accent: var(--accent-plum);
+    --guide-ink: var(--text-main);
+    --guide-muted: var(--text-muted);
+    --guide-surface: var(--bg-card);
+    --guide-line: var(--border-color);
+}
+
+.controller-guide-hero {
+    background:
+        radial-gradient(circle at 86% 18%, rgba(255, 255, 255, .18), transparent 30%),
+        linear-gradient(135deg, var(--primary-dark) 0%, var(--accent-plum) 52%, var(--primary) 100%);
+    box-shadow: var(--shadow-md);
+}
+
+.controller-guide-hero-actions .btn-primary {
+    color: var(--primary-dark);
+}
+
+.controller-guide-toolbar,
+.controller-guide-toc a:hover,
+.controller-guide-toc a:focus-visible,
+.controller-guide-section {
+    box-shadow: var(--shadow-sm);
+}
+
+.controller-guide-figure,
+.controller-guide-figure img {
+    background: color-mix(in srgb, var(--accent-lavender) 9%, var(--guide-surface));
+}
+
+.controller-guide-figure-label {
+    background: color-mix(in srgb, var(--primary-dark) 90%, transparent);
+}
+
+.controller-guide-callout-info {
+    border-left-color: var(--info);
+}
+
+.controller-guide-callout-info svg {
+    color: var(--info);
+}
+
+.controller-guide-callout-attention {
+    border-left-color: var(--warning);
+}
+
+.controller-guide-callout-attention svg {
+    color: var(--warning);
+}
+
+.controller-guide-callout-result {
+    border-left-color: var(--success);
+}
+
+.controller-guide-callout-result svg {
+    color: var(--success);
+}
