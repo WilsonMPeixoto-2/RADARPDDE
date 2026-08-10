@@ -7,10 +7,8 @@ test.describe('Guia do Controlador', () => {
     await page.waitForFunction(() => Boolean(window.RadarControllerGuide));
   });
 
-  test('aparece somente para Controlador e reúne os fluxos essenciais com prints reais', async ({ page }) => {
-    await page.evaluate(() => {
-      switchProfile('controlador');
-    });
+  test('aparece somente para Controlador e reúne as jornadas essenciais com prints reais', async ({ page }) => {
+    await page.evaluate(() => switchProfile('controlador'));
 
     const nav = page.locator('#nav-guia-controlador');
     await expect(nav).toBeVisible();
@@ -19,19 +17,32 @@ test.describe('Guia do Controlador', () => {
     const guide = page.locator('#controller-guide-root');
     await expect(guide).toBeVisible();
     await expect(guide.getByRole('heading', { level: 1, name: 'Guia do Controlador' })).toBeVisible();
-    await expect(guide.locator('[data-guide-section]')).toHaveCount(12);
-    await expect(guide).toContainText('Avaliação mensal');
-    await expect(guide).toContainText('Documento ausente');
-    await expect(guide).toContainText('Documento ilegível');
-    await expect(guide).toContainText('Registrar novo envio');
-    await expect(guide).toContainText('Aguardando reanálise');
-    await expect(guide).toContainText('Registrar contato');
-    await expect(guide).toContainText('Prontuário');
+    await expect(guide.locator('[data-guide-section]')).toHaveCount(16);
+
+    for (const content of [
+      'Avaliação mensal',
+      'Não se aplica',
+      'Documento ausente',
+      'Documento ilegível',
+      'Adicionar Nota',
+      'Gerar Cobrança',
+      'Editar Dados',
+      'Registrar novo envio',
+      'Aguardando reanálise',
+      'Registrar Contato',
+      'Cancelar pendência',
+      'Reabrir pendência',
+      'Histórico cronológico',
+      'Capital e Inventário'
+    ]) {
+      await expect(guide).toContainText(content);
+    }
+
     await expect(guide.getByRole('button', { name: /Salvar em PDF/ })).toBeVisible();
 
     const screenshots = guide.locator('.controller-guide-figure img');
     expect(await screenshots.count()).toBeGreaterThanOrEqual(6);
-    expect(await screenshots.evaluateAll(images => images.every(image => (
+    await expect.poll(async () => screenshots.evaluateAll(images => images.every(image => (
       image.complete && image.naturalWidth > 0 && image.naturalHeight > 0
     )))).toBe(true);
 
@@ -45,7 +56,7 @@ test.describe('Guia do Controlador', () => {
     await expect(page.locator('#controller-guide-root')).toHaveCount(0);
   });
 
-  test('atalho do guia leva o Controlador de volta às telas operacionais', async ({ page }) => {
+  test('atalhos do guia devolvem o Controlador às telas operacionais', async ({ page }) => {
     await page.evaluate(() => switchProfile('controlador'));
     await page.locator('#nav-guia-controlador').click();
 
