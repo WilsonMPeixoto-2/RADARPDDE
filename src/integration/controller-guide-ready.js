@@ -22,10 +22,14 @@
         root.__radarControllerGuideDirectEntryInstalled = true;
     }
 
+    // A ajuda não é uma rota operacional. A entrada direta precisa existir assim
+    // que o item do Guia estiver disponível, sem depender da inicialização tardia
+    // da navegação contextual. A reinstalação posterior continua idempotente.
+    bindDirectEntry();
+
     Promise.resolve(root.RadarNavigationContextReady)
         .catch(() => false)
         .then(() => {
             root.RadarControllerGuide?.install?.();
-            bindDirectEntry();
         });
 }(typeof window !== 'undefined' ? window : globalThis));
