@@ -7,15 +7,20 @@ test.describe('Guia do Controlador', () => {
     await page.waitForFunction(() => Boolean(window.RadarControllerGuide));
   });
 
-  test('aparece somente para Controlador e reúne as jornadas essenciais com prints reais', async ({ page }) => {
-    await page.evaluate(() => switchProfile('controlador'));
-
+  test('fica disponível em todos os perfis e reúne as jornadas essenciais com prints reais', async ({ page }) => {
     const nav = page.locator('#nav-guia-controlador');
-    await expect(nav).toBeVisible();
+    const guide = page.locator('#controller-guide-root');
+
+    for (const profile of ['controlador', 'assistente', 'sme', 'inventario']) {
+      await page.evaluate(currentProfile => switchProfile(currentProfile), profile);
+      await expect(nav).toBeVisible();
+      await nav.click();
+      await expect(guide).toBeVisible();
+    }
+
+    await page.evaluate(() => switchProfile('controlador'));
     await nav.click();
 
-    const guide = page.locator('#controller-guide-root');
-    await expect(guide).toBeVisible();
     await expect(guide.getByRole('heading', { level: 1, name: 'Guia do Controlador' })).toBeVisible();
     await expect(guide.locator('[data-guide-section]')).toHaveCount(16);
 
@@ -50,13 +55,9 @@ test.describe('Guia do Controlador', () => {
     await search.fill('reanálise');
     await expect(guide.locator('[data-guide-section]:visible')).not.toHaveCount(0);
     await expect(guide.locator('#guia-reanalise')).toBeVisible();
-
-    await page.evaluate(() => switchProfile('assistente'));
-    await expect(nav).toBeHidden();
-    await expect(page.locator('#controller-guide-root')).toHaveCount(0);
   });
 
-  test('atalhos do guia devolvem o Controlador às telas operacionais', async ({ page }) => {
+  test('atalhos do guia devolvem o usuário às telas operacionais', async ({ page }) => {
     await page.evaluate(() => switchProfile('controlador'));
     await page.locator('#nav-guia-controlador').click();
 
