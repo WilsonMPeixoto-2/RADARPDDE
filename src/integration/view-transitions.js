@@ -248,7 +248,7 @@
 
         function viewFromNavigationTarget(target) {
             const item = target?.closest?.('.nav-item[id^="nav-"]');
-            if (!item?.id) return null;
+            if (!item?.id || item.dataset?.radarAuxiliaryNavigation === 'true') return null;
             return item.id.replace(/^nav-/, '') || null;
         }
 

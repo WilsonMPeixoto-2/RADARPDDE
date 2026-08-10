@@ -6,12 +6,15 @@
 
     const document = root.document;
     const styles = Object.freeze([
-        '/src/styles/school-timeline.css'
+        '/src/styles/school-timeline.css',
+        '/src/styles/controller-guide.css'
     ]);
     const scripts = Object.freeze([
         '/src/domain/school-timeline.js',
         '/src/integration/school-timeline.js',
-        '/src/integration/navigation-context-bootstrap.js'
+        '/src/integration/navigation-context-bootstrap.js',
+        '/src/integration/controller-guide.js',
+        '/src/integration/controller-guide-ready.js'
     ]);
 
     function loadStyleOnce(href) {
