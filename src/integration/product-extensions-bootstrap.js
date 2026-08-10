@@ -13,7 +13,8 @@
         '/src/domain/school-timeline.js',
         '/src/integration/school-timeline.js',
         '/src/integration/navigation-context-bootstrap.js',
-        '/src/integration/controller-guide.js'
+        '/src/integration/controller-guide.js',
+        '/src/integration/controller-guide-ready.js'
     ]);
 
     function loadStyleOnce(href) {
