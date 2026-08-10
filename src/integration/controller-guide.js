@@ -29,7 +29,7 @@
                 return root.getRadarAccessProfile() === 'controlador';
             }
         } catch (_error) {
-            // O rodapé ainda oferece um fallback visual durante o bootstrap.
+            // Fallback visual enquanto o perfil termina de ser aplicado.
         }
         return /controlador/i.test(text(root.document.querySelector('#current-user-role')?.textContent));
     }
@@ -50,8 +50,7 @@
             print: '<path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect>',
             search: '<circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path>',
             check: '<path d="m20 6-11 11-5-5"></path>',
-            alert: '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path>',
-            history: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l3 2"></path>'
+            alert: '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path>'
         };
         return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons[name] || icons.guide}</svg>`;
     }
@@ -77,7 +76,7 @@
         return `
             <figure class="controller-guide-figure">
                 <div class="controller-guide-figure-label">PRINT REAL DO RADAR PDDE</div>
-                <img src="${src}" alt="${escapeHtml(title)}" loading="lazy">
+                <img src="${src}" alt="${escapeHtml(title)}">
                 <figcaption><strong>${title}</strong><span>${caption}</span></figcaption>
             </figure>`;
     }
@@ -109,15 +108,15 @@
                 intro: 'O Dashboard é seu ponto de partida. Ele resume a competência selecionada e ajuda a localizar o que exige ação.',
                 image: SCREENS.dashboard,
                 imageTitle: 'Dashboard do Controlador',
-                imageCaption: 'Use o menu à esquerda para mudar de área. No alto, confira a competência e utilize a busca e o sino de alertas.',
+                imageCaption: 'Use o menu à esquerda para mudar de área. No alto, confira a competência, a busca e o sino de alertas.',
                 route: 'dashboard',
                 routeLabel: 'Abrir Dashboard',
                 body: `
                     <ol class="controller-guide-steps">
                         ${step(1, 'Confira a competência', 'Antes de qualquer lançamento, confirme o mês exibido no seletor de competência no cabeçalho.')}
-                        ${step(2, 'Observe os cartões e filas de trabalho', 'Os indicadores mostram o panorama do mês e ajudam a identificar escolas ou situações que precisam de atenção.')}
+                        ${step(2, 'Observe cartões e filas de trabalho', 'Os indicadores mostram o panorama do mês e ajudam a localizar escolas ou situações que precisam de atenção.')}
                         ${step(3, 'Use a busca global', 'Digite o nome ou a designação da escola no campo de busca do cabeçalho para chegar rapidamente à unidade.')}
-                        ${step(4, 'Acompanhe o sino de alertas', 'O sino reúne situações que pedem atenção e pode levar você diretamente ao contexto relacionado.')}
+                        ${step(4, 'Acompanhe o sino de alertas', 'O sino reúne situações que pedem atenção e pode levar você ao contexto relacionado.')}
                     </ol>
                     ${callout('attention', 'Regra de ouro', 'Se uma informação parecer ter desaparecido, confira primeiro a competência selecionada. O RADAR organiza o acompanhamento por mês.')}
                 `
@@ -135,16 +134,41 @@
                 body: `
                     <ol class="controller-guide-steps">
                         ${step(1, 'Clique em “Carteira de Escolas”', 'A opção fica no grupo Operação do menu lateral.')}
-                        ${step(2, 'Localize a unidade', 'Use a busca ou os filtros da própria Carteira. Você também pode abrir a escola pela busca global do cabeçalho.')}
-                        ${step(3, 'Abra o Prontuário', 'Clique no nome da escola ou na ação de abrir/detalhar a unidade. O Prontuário concentra cadastro, competências, pendências e histórico.')}
-                        ${step(4, 'Volte sem perder o contexto', 'Ao retornar, o RADAR preserva o caminho, a competência e os filtros quando a navegação contextual estiver ativa.')}
+                        ${step(2, 'Localize a unidade', 'Use a busca e os filtros da Carteira. Você também pode abrir a escola pela busca global do cabeçalho.')}
+                        ${step(3, 'Abra o Prontuário', 'Clique no nome da escola ou na ação de abrir/detalhar a unidade. O Prontuário concentra o trabalho daquela escola.')}
+                        ${step(4, 'Volte sem perder o contexto', 'Ao retornar, o RADAR preserva o caminho, a competência, os filtros, a posição da página e o foco quando a navegação contextual estiver ativa.')}
                     </ol>
-                    ${callout('result', 'O que você encontra no Prontuário', 'Identificação da escola, programas, competências e bonificação, análise técnica, pendências, registros de atendimento, notas/bens quando aplicáveis e a linha do tempo da unidade.')}
+                `
+            }),
+            section({
+                id: 'guia-prontuario',
+                eyebrow: '03 · Prontuário da unidade',
+                title: 'Use o Prontuário como central de trabalho da escola',
+                intro: 'Quando sua pergunta for “o que preciso fazer nesta escola?” ou “o que já aconteceu aqui?”, o Prontuário é o melhor ponto de partida.',
+                image: SCREENS.carteira,
+                imageTitle: 'Caminho para o Prontuário',
+                imageCaption: 'Abra a escola pela Carteira ou pela busca global. Dentro da unidade, navegue pelas abas e pelas ações autorizadas ao Controlador.',
+                route: 'escolas',
+                routeLabel: 'Escolher uma escola',
+                body: `
+                    <div class="controller-guide-split">
+                        <div class="controller-guide-mini-card"><strong>Competências e bonificação</strong><p>Onde você acompanha o mês, registra entrega/bonificação e faz a análise técnica documental.</p></div>
+                        <div class="controller-guide-mini-card"><strong>Pendências e acompanhamento</strong><p>Onde você consulta ocorrências relacionadas à escola e acompanha regularizações.</p></div>
+                        <div class="controller-guide-mini-card"><strong>Registros e informações da unidade</strong><p>Dados cadastrais, programas vinculados e demais informações apresentadas ao perfil.</p></div>
+                        <div class="controller-guide-mini-card"><strong>Histórico cronológico</strong><p>Reúne eventos como análises, pendências, novos envios, reanálises, contatos, notas e movimentações patrimoniais.</p></div>
+                    </div>
+                    <ol class="controller-guide-steps">
+                        ${step(1, 'Use “Registrar Contato”', 'Registre uma comunicação relevante com a unidade para que o acompanhamento não dependa de memória ou conversa fora do sistema.')}
+                        ${step(2, 'Use “Gerar Cobrança”', 'Quando precisar cobrar uma regularização, abra a ação e utilize a mensagem preparada pelo RADAR como apoio à comunicação.')}
+                        ${step(3, 'Use “Editar Dados”', 'Atualize os dados cadastrais que o Controlador está autorizado a manter, como contatos e responsáveis. O sistema protege campos institucionais e a responsabilidade da carteira que não podem ser alterados por esse perfil.')}
+                        ${step(4, 'Troque de aba sem sair da escola', 'Use as abas do Prontuário para mudar o tipo de informação mantendo a unidade selecionada.')}
+                    </ol>
+                    ${callout('info', 'Programas vinculados', 'No Prontuário, a lista de programas da escola é informativa para o Controlador. Alteração de programa não é feita por essa tela.')}
                 `
             }),
             section({
                 id: 'guia-competencia',
-                eyebrow: '03 · Trabalhe no mês certo',
+                eyebrow: '04 · Trabalhe no mês certo',
                 title: 'Selecione a competência antes de avaliar',
                 intro: 'A competência é global: ao trocar o mês, Dashboard, Carteira, Competências, Prontuário e Pendências passam a trabalhar com o mesmo contexto.',
                 image: SCREENS.competencias,
@@ -156,58 +180,98 @@
                     <ol class="controller-guide-steps">
                         ${step(1, 'Clique no seletor “Competência”', 'Ele fica no cabeçalho superior e apresenta os meses disponíveis no exercício.')}
                         ${step(2, 'Escolha o mês', 'A tela é atualizada para a competência selecionada. Não é necessário selecionar o mês novamente em cada aba.')}
-                        ${step(3, 'Confirme o mês antes de lançar', 'Faça essa conferência antes de alterar bonificação, análise técnica ou registrar uma pendência.')}
+                        ${step(3, 'Confirme o mês antes de lançar', 'Faça essa conferência antes de alterar bonificação, análise técnica, nota fiscal ou pendência.')}
                     </ol>
-                    ${callout('attention', 'Evite lançamento no mês errado', 'Trocar a competência muda o contexto de trabalho do sistema. Antes de salvar, confira sempre o mês no cabeçalho.')}
+                    ${callout('attention', 'Meses fora do escopo', 'No Prontuário, competências fora do período aplicável à escola aparecem sem ação. Não tente usar outro mês para contornar esse bloqueio.')}
                 `
             }),
             section({
                 id: 'guia-avaliacao',
-                eyebrow: '04 · Avaliação mensal',
+                eyebrow: '05 · Avaliação mensal',
                 title: 'Faça a conferência documental e registre a análise',
-                intro: 'Na competência mensal ou no Prontuário da escola, você registra a situação dos documentos e o resultado da análise técnica.',
+                intro: 'A avaliação mensal separa três coisas: a entrega para bonificação, a qualidade técnica do documento e as pendências que surgem quando algo precisa ser corrigido.',
                 image: SCREENS.competencias,
                 imageTitle: 'Ponto de entrada para a avaliação mensal',
-                imageCaption: 'Abra a escola/competência e trabalhe documento a documento. O RADAR mantém o resultado ligado à unidade, programa e mês.',
+                imageCaption: 'Abra a escola/competência e trabalhe documento a documento. O resultado fica ligado à unidade, ao programa e ao mês.',
                 route: 'competencias',
                 routeLabel: 'Iniciar pela Competência',
                 body: `
+                    <div class="controller-guide-path-grid">
+                        <div><strong>Extrato da Conta Corrente</strong><p>Registre a entrega e confira se o extrato corresponde à competência e está completo e legível.</p></div>
+                        <div><strong>Extrato de Investimento</strong><p>Faça a mesma conferência considerando a existência e o movimento da conta de investimento.</p></div>
+                        <div><strong>Notas Fiscais</strong><p>Se houver gasto, registre a entrega e cadastre as notas para que o RADAR conheça a natureza da despesa.</p></div>
+                        <div><strong>Consulta à Assessoria</strong><p>O requisito acompanha despesas de serviço quando aplicável.</p></div>
+                        <div><strong>Declaração BB Ágil</strong><p>Registre a entrega e faça a conferência documental normal.</p></div>
+                        <div><strong>Encaminhamento para Inventariação</strong><p>É utilizado no fluxo de bens permanentes quando aplicável.</p></div>
+                    </div>
                     <ol class="controller-guide-steps">
-                        ${step(1, 'Abra a escola na competência', 'Na lista mensal, localize a escola e abra o detalhamento disponível para a análise.')}
-                        ${step(2, 'Confira a bonificação/entrega', 'Registre a situação de entrega solicitada para cada documento. Use “Não se aplica” apenas quando o requisito realmente não se aplicar ao caso.')}
-                        ${step(3, 'Faça a análise técnica', 'Depois de conferir o arquivo, marque o resultado correspondente: correto, incorreto ou a situação oferecida pela tela.')}
-                        ${step(4, 'Registre o problema quando houver', 'Documento ausente, ilegível, competência incorreta, extrato incompleto, falta de assinatura e outras ocorrências devem ser registradas de forma específica.')}
-                        ${step(5, 'Conclua somente após revisar', 'Confira o conjunto de documentos e as pendências antes de consolidar o resultado mensal quando a ação estiver disponível.')}
+                        ${step(1, 'Abra a escola na competência', 'Na lista mensal ou no Prontuário, localize o programa que será analisado.')}
+                        ${step(2, 'Registre a entrega/bonificação', 'Para cada requisito, marque “Sim”, “Não” ou “Não se aplica” somente quando essa opção for válida para o item.')}
+                        ${step(3, 'Faça a análise técnica', 'Depois de conferir o arquivo, escolha o resultado da análise. “Correto” significa que o documento passou pela conferência, não apenas que foi entregue.')}
+                        ${step(4, 'Abra pendência quando houver correção a fazer', 'Se o arquivo estiver ausente, ilegível, incompleto ou apresentar outro erro, registre a ocorrência de forma específica.')}
+                        ${step(5, 'Revise o conjunto antes de consolidar', 'A consolidação só deve ser feita quando os requisitos necessários estiverem preenchidos e o estado da competência estiver coerente.')}
                     </ol>
-                    ${callout('info', 'Avaliação não é só um “sim” ou “não”', 'O registro deve explicar o que ocorreu. Quando houver problema documental que exija correção da escola, abra a pendência correspondente para que o ciclo fique rastreável.')}
+                    ${callout('attention', 'Entrega e análise técnica são registros diferentes', 'Um documento pode ter sido entregue e ainda assim estar incorreto. Não altere a informação de entrega para tentar representar um problema de qualidade documental.')}
                 `
             }),
             section({
                 id: 'guia-excecoes',
-                eyebrow: '05 · Exceções e documentos problemáticos',
-                title: 'Registre documento faltante, ilegível ou outra ocorrência',
-                intro: 'Quando o documento não pode ser considerado regular, identifique a situação correta e descreva o que a escola precisa corrigir.',
+                eyebrow: '06 · Exceções e “Não se aplica”',
+                title: 'Use “Não se aplica” somente nos requisitos que permitem essa situação',
+                intro: '“Não se aplica” não é uma forma de pular a análise. Ele representa uma situação real em que aquele requisito não é exigível para o caso.',
+                body: `
+                    <ol class="controller-guide-steps">
+                        ${step(1, 'Verifique o requisito', 'Notas Fiscais, Consulta à Assessoria e Encaminhamento para Inventariação podem variar conforme o tipo de gasto e o caso concreto.')}
+                        ${step(2, 'Não use N/A nos documentos obrigatórios', 'Extrato da Conta Corrente, Extrato de Investimento e Declaração BB Ágil não aceitam “Não se aplica” para a consolidação mensal.')}
+                        ${step(3, 'Se já existe nota fiscal cadastrada, trate a nota primeiro', 'O RADAR não apaga nota ou bem automaticamente quando você tenta marcar N/A. Edite ou exclua a nota individualmente quando essa for realmente a correção necessária.')}
+                        ${step(4, 'Confira o efeito antes de consolidar', 'Um “Não se aplica” indevido bloqueia a consolidação e deve ser corrigido no próprio requisito.')}
+                    </ol>
+                    ${callout('info', 'Exemplo', 'Se não houve gasto no período, Notas Fiscais pode ser uma situação não aplicável conforme o caso. Se existe nota cadastrada, não use N/A como atalho para apagar esse registro.')}
+                `
+            }),
+            section({
+                id: 'guia-documentos-problema',
+                eyebrow: '07 · Documento faltante ou com erro',
+                title: 'Registre documento ausente, ilegível ou outra ocorrência',
+                intro: 'Quando o documento não puder ser considerado regular, identifique exatamente o problema e descreva o que a escola precisa corrigir.',
                 body: `
                     <div class="controller-guide-split">
                         <div class="controller-guide-mini-card"><strong>Documento ausente</strong><p>Use quando o arquivo exigido não foi disponibilizado. Não use “ilegível” se simplesmente não existe arquivo.</p></div>
-                        <div class="controller-guide-mini-card"><strong>Documento ilegível</strong><p>Use quando o arquivo existe, mas a qualidade impede a conferência das informações, assinaturas ou valores.</p></div>
-                        <div class="controller-guide-mini-card"><strong>Competência incorreta</strong><p>Use quando o documento apresentado corresponde a outro período e não comprova a competência em análise.</p></div>
-                        <div class="controller-guide-mini-card"><strong>Outros erros</strong><p>Extrato incompleto, ausência de assinatura, arquivo incompatível e demais opções devem refletir exatamente o problema encontrado.</p></div>
+                        <div class="controller-guide-mini-card"><strong>Documento ilegível</strong><p>Use quando o arquivo existe, mas a qualidade impede conferir informações, assinaturas ou valores.</p></div>
+                        <div class="controller-guide-mini-card"><strong>Competência incorreta</strong><p>Use quando o documento apresentado corresponde a outro período.</p></div>
+                        <div class="controller-guide-mini-card"><strong>Outros erros</strong><p>Extrato incompleto, ausência de assinatura, arquivo incompatível e demais opções devem refletir o problema encontrado.</p></div>
                     </div>
                     <ol class="controller-guide-steps">
-                        ${step(1, 'No item analisado, abra a ação de pendência', 'O RADAR preenche o contexto da escola, competência, programa e documento quando a pendência nasce da análise documental.')}
-                        ${step(2, 'Marque o tipo de erro', 'É possível registrar mais de um erro quando o mesmo documento apresenta problemas diferentes.')}
-                        ${step(3, 'Escreva uma observação objetiva', 'Diga o que está errado e o que precisa ser apresentado ou corrigido. Evite observações genéricas como “errado”.')}
-                        ${step(4, 'Crie a pendência', 'Após salvar, a ocorrência entra no acompanhamento da escola e aparece na área de Pendências.')}
+                        ${step(1, 'No documento analisado, abra a ação de pendência', 'Quando a ocorrência nasce da análise documental, o RADAR já leva escola, competência, programa e documento para o registro.')}
+                        ${step(2, 'Marque todos os erros encontrados', 'É possível registrar mais de um erro no mesmo documento quando necessário.')}
+                        ${step(3, 'Escreva uma observação objetiva', 'Diga o que está errado e o que precisa ser apresentado ou corrigido. Evite observações como apenas “errado”.')}
+                        ${step(4, 'Crie a pendência', 'Depois de salvar, a ocorrência entra no acompanhamento da escola e aparece em Pendências Operacionais.')}
                     </ol>
                     ${callout('info', 'Exemplo de observação útil', '“Extrato da conta corrente está sem a página que contém o saldo final. Reenviar o extrato completo da competência.”')}
                 `
             }),
             section({
+                id: 'guia-notas',
+                eyebrow: '08 · Notas fiscais e gastos',
+                title: 'Cadastre a nota quando houver despesa e deixe o RADAR direcionar as exigências',
+                intro: 'Ao informar que houve Nota Fiscal, o Controlador registra o gasto para que o sistema consiga relacionar serviço, consumo ou bem permanente às obrigações correspondentes.',
+                body: `
+                    <ol class="controller-guide-steps">
+                        ${step(1, 'No Prontuário, localize “Notas Fiscais”', 'Na competência e no programa corretos, marque a entrega conforme o caso e utilize “Adicionar Nota”.')}
+                        ${step(2, 'Preencha os dados da despesa', 'Informe descrição do gasto, tipo, número da nota fiscal e valor solicitados pela tela.')}
+                        ${step(3, 'Escolha o tipo corretamente', 'Material de consumo não gera as mesmas exigências de um serviço ou de um bem permanente. Essa escolha influencia o acompanhamento posterior.')}
+                        ${step(4, 'Serviço: acompanhe a Consulta à Assessoria', 'Ao cadastrar uma despesa de serviço, confira o requisito correspondente e registre o envio real à Assessoria quando aplicável.')}
+                        ${step(5, 'Bem permanente: acompanhe o Inventário', 'Quando o gasto for permanente, o bem e o encaminhamento patrimonial passam a integrar o fluxo de Capital e Inventário.')}
+                        ${step(6, 'Edite ou exclua uma nota pela própria nota', 'Se precisar corrigir um registro ainda não consolidado, use as ações de editar/excluir da nota. Não use “Não se aplica” para apagar uma nota existente.')}
+                    </ol>
+                    ${callout('attention', 'Depois da consolidação', 'O Controlador não cria, edita ou exclui notas de uma avaliação já consolidada. Se houver necessidade de ajuste posterior, siga o fluxo institucional autorizado em vez de tentar contornar o bloqueio.')}
+                `
+            }),
+            section({
                 id: 'guia-pendencia',
-                eyebrow: '06 · Pendências',
+                eyebrow: '09 · Pendências',
                 title: 'Abra, acompanhe e entenda o estado de cada pendência',
-                intro: 'A tela Pendências Operacionais organiza o que está aberto, o que recebeu novo envio e aguarda reanálise, o que foi resolvido e o que foi cancelado.',
+                intro: 'Pendências Operacionais organiza o que está aberto, o que recebeu novo envio e aguarda reanálise, o que foi resolvido e o que foi cancelado.',
                 image: SCREENS.pendencias,
                 imageTitle: 'Pendências Operacionais',
                 imageCaption: 'Use as abas de situação e os filtros. Ao abrir os detalhes, você vê erros, tentativas de envio, contatos e histórico.',
@@ -221,21 +285,21 @@
                         <div><span class="status-cancel">Cancelada</span><p>A ocorrência foi encerrada por cancelamento justificado.</p></div>
                     </div>
                     <ol class="controller-guide-steps">
-                        ${step(1, 'Clique em “Pendências Operacionais”', 'Use o menu lateral ou um alerta/atalho contextual vindo da escola.')}
-                        ${step(2, 'Escolha a aba de situação', 'Use “Abertas”, “Aguardando reanálise”, “Resolvidas” ou “Canceladas” para reduzir o universo.')}
-                        ${step(3, 'Filtre pela escola quando necessário', 'Se você chegou pelo Prontuário, o filtro da unidade pode ser aplicado automaticamente e será indicado na tela.')}
-                        ${step(4, 'Clique em “Ver detalhes”', 'O painel de detalhes mostra o histórico e as ações que ainda podem ser executadas.')}
+                        ${step(1, 'Clique em “Pendências Operacionais”', 'Use o menu lateral, o Prontuário ou um alerta/atalho contextual.')}
+                        ${step(2, 'Escolha a aba de situação', 'Use Abertas, Aguardando reanálise, Resolvidas ou Canceladas para reduzir o universo.')}
+                        ${step(3, 'Filtre pela escola quando necessário', 'Se você chegou pelo contexto da unidade, o filtro pode ser aplicado automaticamente e será indicado na tela.')}
+                        ${step(4, 'Clique em “Ver detalhes”', 'O painel mostra os erros, a tentativa mais recente, contatos e histórico, além das ações ainda disponíveis.')}
                     </ol>
                 `
             }),
             section({
                 id: 'guia-novo-envio',
-                eyebrow: '07 · Nova entrega',
+                eyebrow: '10 · Nova entrega',
                 title: 'Registre que a escola disponibilizou um novo arquivo',
-                intro: 'Quando a escola corrigir o documento no Drive, registre o novo envio na pendência para que ela passe ao estado “Aguardando reanálise”.',
+                intro: 'Quando a escola corrigir o documento no Drive, registre o novo envio na pendência para que ela passe a “Aguardando reanálise”.',
                 image: SCREENS.pendencias,
                 imageTitle: 'Pendência pronta para receber nova entrega',
-                imageCaption: 'Abra a pendência e utilize a ação “Registrar novo envio”. O envio não resolve a pendência sozinho.',
+                imageCaption: 'Abra a pendência e utilize “Registrar novo envio”. O envio não resolve a pendência sozinho.',
                 route: 'pendencias',
                 routeLabel: 'Localizar pendência',
                 body: `
@@ -245,12 +309,12 @@
                         ${step(3, 'Preencha a observação', 'Registre o que foi disponibilizado. Se for útil, inclua o link direto do arquivo no campo opcional.')}
                         ${step(4, 'Clique em “Registrar e enviar para reanálise”', 'A pendência muda para “Aguardando reanálise” e passa a aparecer na fila correspondente.')}
                     </ol>
-                    ${callout('attention', 'Novo envio não significa pendência resolvida', 'A pendência só é encerrada como resolvida depois que o documento for efetivamente reanalisado e considerado correto.')}
+                    ${callout('attention', 'Novo envio não significa pendência resolvida', 'A pendência só é resolvida depois que o arquivo for reanalisado e considerado correto.')}
                 `
             }),
             section({
                 id: 'guia-reanalise',
-                eyebrow: '08 · Reanálise',
+                eyebrow: '11 · Reanálise',
                 title: 'Confira a nova entrega e registre uma nova avaliação',
                 intro: 'A reanálise registra o que aconteceu com o arquivo reenviado e mantém a história completa da regularização.',
                 image: SCREENS.pendencias,
@@ -270,44 +334,62 @@
                 `
             }),
             section({
-                id: 'guia-comentarios',
-                eyebrow: '09 · Comentários e contatos',
-                title: 'Registre observações que ajudem a próxima ação',
-                intro: 'Comentários úteis tornam o acompanhamento compreensível para quem consultar a escola depois. Registre também contatos realizados quando a pendência exigir cobrança ou orientação.',
+                id: 'guia-comunicacao',
+                eyebrow: '12 · Contatos, comentários e cobrança',
+                title: 'Registre as comunicações que fazem parte do acompanhamento',
+                intro: 'Uma orientação enviada por telefone, e-mail ou outro meio só vira histórico do RADAR quando você a registra. O sistema também oferece apoio para preparar uma cobrança.',
                 body: `
                     <ol class="controller-guide-steps">
-                        ${step(1, 'Use o campo de observação da própria ação', 'Pendência, novo envio e reanálise possuem campos próprios. Escreva o que foi verificado naquele momento.')}
-                        ${step(2, 'Use “Registrar contato” quando houver comunicação', 'Na pendência, registre contato/cobrança quando precisar documentar uma orientação à escola ou outro acompanhamento.')}
-                        ${step(3, 'Seja específico', 'Prefira “Arquivo sem assinatura do Presidente do CEC” a “documento errado”.')}
-                        ${step(4, 'Consulte o histórico antes de repetir uma cobrança', 'O detalhe da pendência e o Prontuário mostram as movimentações anteriores.')}
+                        ${step(1, 'Use “Registrar Contato”', 'A ação pode ser aberta no contexto da escola ou da pendência. Registre a comunicação e a informação relevante para o acompanhamento.')}
+                        ${step(2, 'Use “Gerar Cobrança” quando precisar de texto de apoio', 'A tela apresenta uma pré-visualização da mensagem e permite copiar o texto para o canal de comunicação utilizado pela equipe.')}
+                        ${step(3, 'Use a observação da ação correta', 'Pendência, novo envio e reanálise possuem seus próprios campos. Registre em cada etapa o que ocorreu naquele momento.')}
+                        ${step(4, 'Seja específico', 'Prefira “Arquivo sem assinatura do Presidente do CEC” a “documento errado”.')}
+                        ${step(5, 'Consulte o histórico antes de repetir contato', 'O detalhe da pendência e o Prontuário mostram as movimentações anteriores e ajudam a evitar cobranças duplicadas.')}
                     </ol>
-                    ${callout('info', 'Boa prática', 'Uma observação deve permitir que outra pessoa entenda o problema sem precisar perguntar o que aconteceu.')}
+                    ${callout('info', 'Boa prática', 'Uma observação deve permitir que outra pessoa entenda o problema e a providência esperada sem precisar perguntar o que aconteceu.')}
+                `
+            }),
+            section({
+                id: 'guia-encerrar-pendencia',
+                eyebrow: '13 · Cancelar ou reabrir pendência',
+                title: 'Use cancelamento e reabertura somente quando o estado do caso realmente mudou',
+                intro: 'Resolver é consequência da reanálise correta. Cancelar e reabrir são ações diferentes e permanecem registradas no histórico.',
+                route: 'pendencias',
+                routeLabel: 'Abrir Pendências',
+                body: `
+                    <ol class="controller-guide-steps">
+                        ${step(1, 'Para cancelar, abra os detalhes da pendência', 'Use “Cancelar pendência” apenas quando existir motivo para encerrar a ocorrência sem uma regularização por reanálise.')}
+                        ${step(2, 'Registre a justificativa', 'O motivo do cancelamento precisa permitir entender por que a pendência deixou de ser tratada como ativa.')}
+                        ${step(3, 'Para reabrir, acesse a pendência resolvida ou cancelada', 'Quando surgir motivo legítimo para retomar o acompanhamento, use “Reabrir pendência”.')}
+                        ${step(4, 'Continue pelo mesmo histórico', 'A reabertura não cria uma história paralela. O ciclo anterior continua disponível para consulta.')}
+                    </ol>
+                    ${callout('attention', 'Não use cancelamento para representar documento corrigido', 'Quando a escola corrigiu o documento, registre novo envio e faça a reanálise. Se estiver correto, a própria reanálise resolve a pendência.')}
                 `
             }),
             section({
                 id: 'guia-historico',
-                eyebrow: '10 · Histórico e rastreabilidade',
+                eyebrow: '14 · Histórico e rastreabilidade',
                 title: 'Encontre o que já foi lançado',
                 intro: 'Use o Prontuário quando sua pergunta for “o que aconteceu com esta escola?” e Registros Internos quando precisar consultar a trilha administrativa disponível ao seu perfil.',
                 image: SCREENS.auditoria,
                 imageTitle: 'Registros Internos',
-                imageCaption: 'A tela reúne eventos administrativos visíveis ao perfil. Para a história completa de uma unidade, prefira começar pelo Prontuário da escola.',
+                imageCaption: 'A tela reúne eventos administrativos visíveis ao Controlador. Para a história completa de uma unidade, comece pelo Prontuário da escola.',
                 route: 'auditoria',
                 routeLabel: 'Abrir Registros Internos',
                 body: `
                     <ol class="controller-guide-steps">
-                        ${step(1, 'Para uma escola específica, abra o Prontuário', 'Comece pela Carteira ou busca global e abra a unidade.')}
-                        ${step(2, 'Navegue pelas áreas do Prontuário', 'Confira competências, pendências, registros e a linha do tempo conforme o conteúdo disponível.')}
-                        ${step(3, 'Para eventos administrativos, use “Registros Internos”', 'A área mostra os registros que o seu perfil está autorizado a consultar.')}
-                        ${step(4, 'Sempre confira data e competência', 'O mesmo documento pode ter acontecimentos em meses e tentativas diferentes.')}
+                        ${step(1, 'Para uma escola específica, abra o Prontuário', 'Comece pela Carteira ou pela busca global e abra a unidade.')}
+                        ${step(2, 'Use o Histórico cronológico', 'A linha do tempo reúne acontecimentos da competência selecionada, como análises, pendências, tentativas, contatos, notas e bens.')}
+                        ${step(3, 'Para eventos administrativos, use “Registros Internos”', 'A área mostra os registros administrativos que o perfil Controlador está autorizado a consultar.')}
+                        ${step(4, 'Confira data, competência e responsável', 'O mesmo documento pode ter acontecimentos em meses e tentativas diferentes.')}
                     </ol>
                 `
             }),
             section({
                 id: 'guia-inventario',
-                eyebrow: '11 · Capital e inventário',
+                eyebrow: '15 · Capital e inventário',
                 title: 'Acompanhe o fluxo patrimonial quando houver gasto permanente',
-                intro: 'O Controlador pode visualizar e executar as ações patrimoniais autorizadas no fluxo, enquanto a conclusão de inventariação também pode envolver a equipe responsável.',
+                intro: 'O Controlador pode cadastrar e acompanhar ações patrimoniais autorizadas, enquanto a conclusão da inventariação também envolve o fluxo próprio da equipe responsável.',
                 image: SCREENS.inventario,
                 imageTitle: 'Capital e Inventário',
                 imageCaption: 'Use esta área para acompanhar bens, encaminhamentos, processo e situação da inventariação.',
@@ -317,22 +399,26 @@
                     <ol class="controller-guide-steps">
                         ${step(1, 'Abra “Capital e Inventário”', 'A opção fica no grupo Interno do menu.')}
                         ${step(2, 'Localize a escola ou o bem', 'Use os filtros disponíveis e confira a situação patrimonial registrada.')}
-                        ${step(3, 'Registre apenas as ações que correspondem ao fluxo real', 'Dados de nota, encaminhamento e inventariação devem permanecer coerentes com o que ocorreu fora do sistema.')}
+                        ${step(3, 'Cadastre/acompanhe o bem quando o gasto for permanente', 'O registro patrimonial deve corresponder à nota fiscal e ao que efetivamente foi adquirido.')}
+                        ${step(4, 'Encaminhe para inventariação quando for o momento', 'Confira as informações exigidas pela tela antes de registrar o encaminhamento.')}
+                        ${step(5, 'Acompanhe o status', 'Use a própria área para identificar o que ainda aguarda encaminhamento, inventariação ou registro complementar.')}
                     </ol>
                 `
             }),
             section({
                 id: 'guia-encontrar',
-                eyebrow: '12 · Como encontrar qualquer coisa',
+                eyebrow: '16 · Como encontrar qualquer coisa',
                 title: 'Escolha o caminho de acordo com a sua pergunta',
                 intro: 'O RADAR oferece mais de uma porta de entrada. A forma mais rápida depende do que você está procurando.',
                 body: `
                     <div class="controller-guide-path-grid">
                         <div><strong>“Quero saber como está uma escola.”</strong><p>Carteira de Escolas → abra a unidade → Prontuário.</p>${quickAction('Ir para Carteira', 'escolas')}</div>
                         <div><strong>“Quero trabalhar o mês.”</strong><p>Selecione a competência → Competências Mensais.</p>${quickAction('Ir para Competências', 'competencias')}</div>
+                        <div><strong>“Quero lançar uma nota fiscal.”</strong><p>Carteira → Prontuário → competência/programa → Notas Fiscais → Adicionar Nota.</p>${quickAction('Escolher escola', 'escolas')}</div>
                         <div><strong>“Quero ver o que falta corrigir.”</strong><p>Pendências Operacionais → escolha a aba de situação.</p>${quickAction('Ir para Pendências', 'pendencias')}</div>
                         <div><strong>“Recebi um arquivo corrigido.”</strong><p>Pendências → abra a ocorrência → Registrar novo envio → Reanalisar.</p>${quickAction('Abrir Pendências', 'pendencias')}</div>
-                        <div><strong>“Quero saber o que já aconteceu.”</strong><p>Prontuário da escola → histórico/linha do tempo; ou Registros Internos para a trilha administrativa.</p>${quickAction('Abrir Registros', 'auditoria')}</div>
+                        <div><strong>“Quero registrar uma conversa.”</strong><p>Abra a escola ou a pendência → Registrar Contato.</p>${quickAction('Ir para Carteira', 'escolas')}</div>
+                        <div><strong>“Quero saber o que já aconteceu.”</strong><p>Prontuário → Histórico cronológico; ou Registros Internos para a trilha administrativa.</p>${quickAction('Abrir Registros', 'auditoria')}</div>
                         <div><strong>“Quero localizar uma escola rapidamente.”</strong><p>Use a busca no cabeçalho pelo nome ou designação e abra o resultado.</p>${quickAction('Voltar ao Dashboard', 'dashboard')}</div>
                     </div>
                 `
@@ -345,7 +431,7 @@
                     <div class="controller-guide-hero-copy">
                         <span class="controller-guide-kicker">RADAR PDDE · 4ª CRE</span>
                         <h1>Guia do Controlador</h1>
-                        <p>Um passo a passo para registrar a avaliação mensal, tratar documentos com problema, acompanhar pendências, registrar novas entregas e reenálises e encontrar o histórico da escola.</p>
+                        <p>Passo a passo para navegar pelo RADAR, registrar a avaliação mensal, tratar exceções e documentos com problema, cadastrar notas, acompanhar pendências, registrar novas entregas e reanálises, documentar contatos e encontrar o histórico da escola.</p>
                         <div class="controller-guide-hero-actions">
                             <button type="button" class="btn btn-primary" id="controller-guide-print">${icon('print')} Salvar em PDF</button>
                             <a class="btn btn-secondary" href="#guia-avaliacao">Começar pela avaliação mensal</a>
@@ -354,8 +440,8 @@
                     </div>
                     <div class="controller-guide-hero-card">
                         <span>Antes de lançar</span>
-                        <strong>1. Escola certa<br>2. Competência certa<br>3. Documento certo</strong>
-                        <p>Essas três conferências evitam a maior parte dos lançamentos no contexto errado.</p>
+                        <strong>1. Escola certa<br>2. Competência certa<br>3. Programa e documento certos</strong>
+                        <p>Essas conferências evitam a maior parte dos lançamentos no contexto errado.</p>
                     </div>
                 </header>
 
@@ -363,24 +449,28 @@
                     <label class="controller-guide-search">
                         ${icon('search')}
                         <span class="sr-only">Buscar no guia</span>
-                        <input type="search" id="controller-guide-search" placeholder="Buscar: pendência, reanálise, documento ilegível...">
+                        <input type="search" id="controller-guide-search" placeholder="Buscar: pendência, nota fiscal, reanálise, documento ilegível...">
                     </label>
                     <span id="controller-guide-search-result" role="status" aria-live="polite"></span>
                 </div>
 
                 <nav class="controller-guide-toc" aria-label="Sumário do Guia do Controlador">
                     <a href="#guia-comecar"><span>01</span>Comece por aqui</a>
-                    <a href="#guia-carteira"><span>02</span>Carteira e Prontuário</a>
-                    <a href="#guia-competencia"><span>03</span>Competência</a>
-                    <a href="#guia-avaliacao"><span>04</span>Avaliação mensal</a>
-                    <a href="#guia-excecoes"><span>05</span>Exceções</a>
-                    <a href="#guia-pendencia"><span>06</span>Pendências</a>
-                    <a href="#guia-novo-envio"><span>07</span>Nova entrega</a>
-                    <a href="#guia-reanalise"><span>08</span>Reanálise</a>
-                    <a href="#guia-comentarios"><span>09</span>Comentários</a>
-                    <a href="#guia-historico"><span>10</span>Histórico</a>
-                    <a href="#guia-inventario"><span>11</span>Inventário</a>
-                    <a href="#guia-encontrar"><span>12</span>Como encontrar</a>
+                    <a href="#guia-carteira"><span>02</span>Carteira</a>
+                    <a href="#guia-prontuario"><span>03</span>Prontuário</a>
+                    <a href="#guia-competencia"><span>04</span>Competência</a>
+                    <a href="#guia-avaliacao"><span>05</span>Avaliação mensal</a>
+                    <a href="#guia-excecoes"><span>06</span>Exceções / N/A</a>
+                    <a href="#guia-documentos-problema"><span>07</span>Documento com erro</a>
+                    <a href="#guia-notas"><span>08</span>Notas e gastos</a>
+                    <a href="#guia-pendencia"><span>09</span>Pendências</a>
+                    <a href="#guia-novo-envio"><span>10</span>Nova entrega</a>
+                    <a href="#guia-reanalise"><span>11</span>Reanálise</a>
+                    <a href="#guia-comunicacao"><span>12</span>Contatos e cobrança</a>
+                    <a href="#guia-encerrar-pendencia"><span>13</span>Cancelar / reabrir</a>
+                    <a href="#guia-historico"><span>14</span>Histórico</a>
+                    <a href="#guia-inventario"><span>15</span>Inventário</a>
+                    <a href="#guia-encontrar"><span>16</span>Como encontrar</a>
                 </nav>
 
                 <div class="controller-guide-content">${sections.join('')}</div>
