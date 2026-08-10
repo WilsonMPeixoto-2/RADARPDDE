@@ -23,17 +23,6 @@
         return value == null ? '' : String(value).trim();
     }
 
-    function isController() {
-        try {
-            if (typeof root.getRadarAccessProfile === 'function') {
-                return root.getRadarAccessProfile() === 'controlador';
-            }
-        } catch (_error) {
-            // Fallback visual enquanto o perfil termina de ser aplicado.
-        }
-        return /controlador/i.test(text(root.document.querySelector('#current-user-role')?.textContent));
-    }
-
     function escapeHtml(value) {
         return text(value)
             .replaceAll('&', '&amp;')
@@ -520,10 +509,6 @@
     }
 
     function renderGuide() {
-        if (!isController()) {
-            baseSwitchView?.call(root, 'dashboard');
-            return false;
-        }
         const main = root.document.querySelector('#main-container');
         if (!main) return false;
         main.innerHTML = buildGuideMarkup();
@@ -558,12 +543,8 @@
     function updateVisibility() {
         const item = ensureNavItem();
         if (!item) return;
-        const visible = isController();
-        item.style.display = visible ? '' : 'none';
-        item.setAttribute('aria-hidden', visible ? 'false' : 'true');
-        if (!visible && root.document.querySelector('#controller-guide-root')) {
-            baseSwitchView?.call(root, 'dashboard');
-        }
+        item.style.display = '';
+        item.setAttribute('aria-hidden', 'false');
     }
 
     function wrapNavigation() {
@@ -612,7 +593,7 @@
     const api = Object.freeze({
         install,
         render: renderGuide,
-        isAvailable: isController,
+        isAvailable: () => true,
         view: GUIDE_VIEW,
         screenshots: SCREENS
     });
