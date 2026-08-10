@@ -158,8 +158,13 @@ test.describe('Task 9 — página de Pendências Operacionais', () => {
     await search.fill('dados divergentes');
 
     const tablist = page.getByRole('tablist', { name: 'Situações das pendências' });
-    await expect(tablist.getByRole('tab', { name: /^Abertas\b/ })).toContainText('0 de 1');
-    await expect(tablist.getByRole('tab', { name: /^Canceladas\b/ })).toContainText('1 de 1');
+    const openCounter = tablist.getByRole('tab', { name: /^Abertas\b/ }).locator('span');
+    const cancelledCounter = tablist.getByRole('tab', { name: /^Canceladas\b/ }).locator('span');
+    await expect(openCounter).toHaveText('0');
+    await expect(openCounter).toHaveAttribute('aria-label', '0 registros na competência atual');
+    await expect(cancelledCounter).toHaveText('1');
+    await expect(cancelledCounter).toHaveAttribute('aria-label', '1 registro na competência atual');
+    await expect(page.locator('.pendency-filter-result')).toContainText('1 de 4 registros na competência atual.');
 
     await tablist.getByRole('tab', { name: /^Canceladas\b/ }).click();
     await expect(visibleRecord(page, 'task9-cancelled')).toContainText('Declaração BB Ágil');
