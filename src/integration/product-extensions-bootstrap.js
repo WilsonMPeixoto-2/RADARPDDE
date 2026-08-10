@@ -7,7 +7,8 @@
     const document = root.document;
     const styles = Object.freeze([
         '/src/styles/school-timeline.css',
-        '/src/styles/controller-guide.css'
+        '/src/styles/controller-guide.css',
+        '/src/styles/controller-guide-theme.css'
     ]);
     const scripts = Object.freeze([
         '/src/domain/school-timeline.js',
