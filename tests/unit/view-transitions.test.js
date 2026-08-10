@@ -250,6 +250,78 @@ test('reengloba switchView e intercepta o evento canônico após o bootstrap de 
     microtasks.forEach(handler => handler());
 });
 
+test('não sequestra itens marcados como navegação auxiliar', () => {
+    const frames = [];
+    const listeners = new Map();
+    const microtasks = [];
+    let navigationCalls = 0;
+
+    function addListener(type, handler) {
+        const handlers = listeners.get(type) || [];
+        handlers.push(handler);
+        listeners.set(type, handlers);
+    }
+
+    const root = {
+        document: {
+            readyState: 'complete',
+            addEventListener: addListener,
+            startViewTransition(update) {
+                const updateCallbackDone = Promise.resolve(update());
+                return {
+                    ready: Promise.resolve(),
+                    updateCallbackDone,
+                    finished: updateCallbackDone
+                };
+            }
+        },
+        requestAnimationFrame(handler) {
+            frames.push(handler);
+        },
+        queueMicrotask(handler) {
+            microtasks.push(handler);
+        },
+        matchMedia() {
+            return { matches: false };
+        },
+        switchView() {
+            navigationCalls += 1;
+        }
+    };
+
+    assert.equal(install(root), true);
+    root.switchView('dashboard');
+    frames.shift()();
+    frames.shift()();
+
+    const auxiliaryTarget = {
+        id: 'nav-guia-controlador',
+        dataset: { radarAuxiliaryNavigation: 'true' },
+        closest(selector) {
+            return selector.includes('.nav-item') ? this : null;
+        },
+        matches() { return false; }
+    };
+    const event = {
+        type: 'click',
+        button: 0,
+        defaultPrevented: false,
+        isTrusted: true,
+        target: auxiliaryTarget,
+        preventDefault() { this.defaultPrevented = true; },
+        stopImmediatePropagation() {
+            this.propagationStopped = true;
+        }
+    };
+
+    for (const handler of listeners.get('click') || []) handler(event);
+
+    assert.equal(event.defaultPrevented, false);
+    assert.equal(event.propagationStopped, undefined);
+    assert.equal(navigationCalls, 1);
+    microtasks.forEach(handler => handler());
+});
+
 test('não aplica nome de transição ao conteúdo durante a carga inicial', () => {
     const script = fs.readFileSync(
         path.join(repoRoot, 'src/integration/view-transitions.js'),
