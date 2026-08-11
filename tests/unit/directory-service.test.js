@@ -89,22 +89,18 @@ test('cadastra programa e o desativa sem apagar o registro histórico', async ()
     assert.equal(harness.defaultPersistCount, 2);
 });
 
-test('desativa controlador somente após reatribuir suas escolas na mesma operação', async () => {
+test('impede desativar controlador enquanto houver escola atribuída', async () => {
     const harness = createHarness();
 
-    const result = await harness.service.deactivateController({
-        controllerId: 'CTRL-1',
-        fallbackControllerId: 'CTRL-2'
-    });
-
-    assert.equal(result.value.reassignedCount, 1);
-    assert.equal(harness.state.schools[0].controladorId, 'CTRL-2');
-    assert.equal(harness.state.controllers[0].active, false);
-    assert.deepEqual(
-        harness.calls[0].changedEntities,
-        ['controllers', 'schools', 'administrativeLogs']
+    await assert.rejects(
+        harness.service.deactivateController({
+            controllerId: 'CTRL-1',
+            fallbackControllerId: 'CTRL-2'
+        }),
+        /Transfira todas as escolas antes de desativar/
     );
-    assert.equal(harness.defaultPersistCount, 1);
+    assert.equal(harness.state.schools[0].controladorId, 'CTRL-1');
+    assert.equal(harness.state.controllers[0].active, true);
 });
 
 test('salva integrante e impede desativar o último integrante ativo', async () => {
@@ -155,19 +151,18 @@ test('modo remoto propaga edição do controlador para a conta vinculada', async
     assert.equal(call.input.previousController.email, 'um@rio.gov.br');
 });
 
-test('modo remoto desativa acesso e redistribui carteira na mesma operação', async () => {
+test('modo remoto também bloqueia desativação com carteira não zerada', async () => {
     const harness = createHarness({ remote: true });
 
-    await harness.service.deactivateController({
-        controllerId: 'CTRL-1',
-        fallbackControllerId: 'CTRL-2'
-    });
-
+    await assert.rejects(
+        harness.service.deactivateController({
+            controllerId: 'CTRL-1',
+            fallbackControllerId: 'CTRL-2'
+        }),
+        /Transfira todas as escolas antes de desativar/
+    );
     assert.equal(harness.defaultPersistCount, 0);
-    assert.equal(harness.gatewayCalls[0].method, 'deactivateController');
-    assert.equal(harness.gatewayCalls[0].input.controllerId, 'CTRL-1');
-    assert.equal(harness.gatewayCalls[0].input.fallbackControllerId, 'CTRL-2');
-    assert.equal(harness.gatewayCalls[0].input.reassignedCount, 1);
+    assert.equal(harness.gatewayCalls.length, 0);
 });
 
 test('modo remoto desativa controlador cuja carteira já foi transferida sem exigir substituto', async () => {

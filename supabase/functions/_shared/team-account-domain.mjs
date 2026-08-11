@@ -87,8 +87,8 @@ export function normalizeTeamCommand(input = {}) {
         const fallbackControllerId = text(input.fallbackControllerId) || null;
         const reassignedCount = Number(input.reassignedCount || 0);
         if (!entityId) throw new Error('Controlador a desativar é obrigatório.');
-        if (fallbackControllerId === entityId || (reassignedCount > 0 && !fallbackControllerId)) {
-            throw new Error('Controlador substituto ativo é obrigatório.');
+        if (fallbackControllerId || reassignedCount > 0) {
+            throw new Error('Transfira todas as escolas antes de desativar o controlador.');
         }
         return {
             operation,

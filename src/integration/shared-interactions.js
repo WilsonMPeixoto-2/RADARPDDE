@@ -67,21 +67,13 @@
             .filter(item => item.id && item.name)
             .sort((left, right) => left.name.localeCompare(right.name, 'pt-BR'));
 
-        if (schoolCount > 0 && candidates.length === 0) {
-            throw new InteractionError(
-                'NO_ACTIVE_RECIPIENT',
-                'Cadastre ou reative outra pessoa antes de transferir esta carteira.'
-            );
-        }
-
         return Object.freeze({
             controller: Object.freeze(controller),
             schoolCount,
             candidates: Object.freeze(candidates.map(item => Object.freeze(item))),
-            requiresRecipient: schoolCount > 0,
-            confirmLabel: schoolCount > 0
-                ? `Desativar e transferir ${pluralSchools(schoolCount)}`
-                : 'Desativar controladora'
+            canDeactivate: schoolCount === 0,
+            requiresRecipient: false,
+            confirmLabel: 'Desativar controladora'
         });
     }
 
@@ -173,7 +165,7 @@
                 <header class="radar-critical-dialog__header">
                     <div>
                         <h2 id="${CONTROLLER_DIALOG_ID}-title"></h2>
-                        <p id="${CONTROLLER_DIALOG_ID}-description">A controladora deixará de aparecer como opção ativa.</p>
+                        <p id="${CONTROLLER_DIALOG_ID}-description">O acesso será desativado e a controladora deixará de aparecer nas listas operacionais.</p>
                     </div>
                     <button type="button" class="btn-close" data-controller-deactivation-close aria-label="Fechar">×</button>
                 </header>
@@ -182,7 +174,7 @@
                     <div class="radar-critical-dialog__field" data-controller-deactivation-field>
                         <label for="controller-deactivation-recipient">Nova responsável</label>
                         <select class="form-control" id="controller-deactivation-recipient"></select>
-                        <small>A reatribuição ocorrerá junto com a desativação.</small>
+                        <small>Transfira as escolas antes de solicitar a desativação.</small>
                     </div>
                     <p class="radar-critical-dialog__history" data-controller-deactivation-history></p>
                     <p class="radar-critical-dialog__error" data-controller-deactivation-error role="alert" tabindex="-1" hidden></p>
@@ -253,7 +245,7 @@
         request.closeButton.disabled = busy;
         request.confirmButton.disabled = busy || (request.model.requiresRecipient && !text(request.select.value));
         request.confirmButton.textContent = busy
-            ? 'Desativando e transferindo…'
+            ? 'Desativando…'
             : request.model.confirmLabel;
     }
 
@@ -313,6 +305,12 @@
         }
 
         const model = buildControllerDeactivationModel(input);
+        if (!model.canDeactivate) {
+            return Promise.reject(new InteractionError(
+                'SCHOOLS_ASSIGNED',
+                `Transfira ${pluralSchools(model.schoolCount)} para outro controlador antes de solicitar a desativação.`
+            ));
+        }
         const dialog = ensureControllerDialog(root.document);
         const select = dialog.querySelector('#controller-deactivation-recipient');
         const confirmButton = dialog.querySelector('[data-controller-deactivation-confirm]');
@@ -320,12 +318,11 @@
         const closeButton = dialog.querySelector('[data-controller-deactivation-close]');
 
         dialog.querySelector(`#${CONTROLLER_DIALOG_ID}-title`).textContent = `Desativar ${model.controller.name}`;
-        dialog.querySelector('[data-controller-deactivation-impact]').textContent = model.requiresRecipient
-            ? `${pluralSchools(model.schoolCount)} precisam de nova responsável.`
-            : 'Nenhuma escola está vinculada a este cadastro.';
+        dialog.querySelector('[data-controller-deactivation-impact]').textContent =
+            'A carteira está zerada. A desativação pode ser concluída com segurança.';
         dialog.querySelector('[data-controller-deactivation-history]').textContent =
             `Os registros históricos de ${model.controller.name} serão mantidos.`;
-        dialog.querySelector('[data-controller-deactivation-field]').hidden = !model.requiresRecipient;
+        dialog.querySelector('[data-controller-deactivation-field]').hidden = true;
         select.replaceChildren();
         const placeholder = root.document.createElement('option');
         placeholder.value = '';

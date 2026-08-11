@@ -83,6 +83,21 @@ test('permite desativar controlador sem substituto quando nenhuma escola será t
     assert.equal(command.reassignedCount, 0);
 });
 
+test('rejeita desativação conjunta com transferência de carteira', async () => {
+    const { normalizeTeamCommand } = await loadDomain();
+
+    assert.throws(
+        () => normalizeTeamCommand({
+            operation: 'deactivate_controller',
+            controllerId: 'CTRL-1',
+            fallbackControllerId: 'CTRL-2',
+            reassignedCount: 1,
+            administrativeLog: { id: 'log-controller-with-schools' }
+        }),
+        /Transfira todas as escolas antes de desativar/
+    );
+});
+
 test('rejeita operação desconhecida, e-mail inválido e payload incompleto', async () => {
     const { normalizeTeamCommand } = await loadDomain();
 

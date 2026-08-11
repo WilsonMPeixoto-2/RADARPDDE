@@ -210,20 +210,18 @@
                         fail('LAST_ACTIVE_CONTROLLER', 'Não é possível desativar o único controlador ativo.', 'deactivateController');
                     }
                     const assigned = schools.filter(item => item.controladorId === controllerId);
-                    const fallback = activeControllers.find(item => item.id === fallbackControllerId && item.id !== controllerId);
-                    if (assigned.length > 0 && !fallback) {
-                        fail('REFERENCED_CONTROLLER', 'Escolha um controlador ativo para receber as escolas vinculadas.', 'deactivateController');
+                    if (assigned.length > 0) {
+                        fail('REFERENCED_CONTROLLER', 'Transfira todas as escolas antes de desativar o controlador.', 'deactivateController');
                     }
-                    assigned.forEach(school => { school.controladorId = fallback.id; });
                     controller.active = false;
                     const administrativeLog = this.appendLog(
                         'Gestão de Equipe',
-                        `Controlador ${controller.name} desativado. ${assigned.length} escolas foram transferidas${fallback ? ` para ${fallback.name}` : ''}. O acesso ao RADAR foi desativado.`
+                        `Controlador ${controller.name} desativado após a carteira ser zerada. O acesso ao RADAR foi desativado e o histórico foi preservado.`
                     );
                     return {
                         controllerId,
-                        fallbackControllerId: fallback?.id || null,
-                        reassignedCount: assigned.length,
+                        fallbackControllerId: null,
+                        reassignedCount: 0,
                         administrativeLog: cloneValue(administrativeLog)
                     };
                 }

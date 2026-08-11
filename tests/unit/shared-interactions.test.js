@@ -22,7 +22,7 @@ test('expõe o contrato compartilhado de desativação de controladores', () => 
     assert.equal(typeof api.formatControllerDeactivationSuccess, 'function');
 });
 
-test('exclui o alvo e integrantes inativos das opções de reatribuição', () => {
+test('bloqueia a desativação enquanto houver escolas vinculadas', () => {
     const api = loadApi();
     const model = api.buildControllerDeactivationModel({
         controller: { id: 'alzira', name: 'Alzira de Souza', active: true },
@@ -36,30 +36,9 @@ test('exclui o alvo e integrantes inativos das opções de reatribuição', () =
     });
 
     assert.deepEqual(model.candidates.map(item => item.id), ['erica', 'monica']);
-    assert.equal(model.requiresRecipient, true);
-    assert.equal(model.confirmLabel, 'Desativar e transferir 13 escolas');
-});
-
-test('exige uma escolha ativa quando há escolas vinculadas', () => {
-    const api = loadApi();
-    const model = api.buildControllerDeactivationModel({
-        controller: { id: 'alzira', name: 'Alzira de Souza', active: true },
-        controllers: [
-            { id: 'alzira', name: 'Alzira de Souza', active: true },
-            { id: 'erica', name: 'Érika Reis', active: true }
-        ],
-        schoolCount: 13
-    });
-
-    assert.throws(
-        () => api.validateControllerRecipient(model, ''),
-        error => error && error.code === 'RECIPIENT_REQUIRED'
-    );
-    assert.throws(
-        () => api.validateControllerRecipient(model, 'alzira'),
-        error => error && error.code === 'INVALID_RECIPIENT'
-    );
-    assert.equal(api.validateControllerRecipient(model, 'erica').name, 'Érika Reis');
+    assert.equal(model.canDeactivate, false);
+    assert.equal(model.requiresRecipient, false);
+    assert.equal(model.confirmLabel, 'Desativar controladora');
 });
 
 test('permite desativar sem destinatário quando não há escolas vinculadas', () => {
@@ -73,7 +52,7 @@ test('permite desativar sem destinatário quando não há escolas vinculadas', (
         schoolCount: 0
     });
 
-    assert.equal(model.requiresRecipient, false);
+    assert.equal(model.canDeactivate, true);
     assert.equal(model.confirmLabel, 'Desativar controladora');
     assert.equal(api.validateControllerRecipient(model, ''), null);
 });
