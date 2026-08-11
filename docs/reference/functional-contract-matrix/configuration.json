@@ -162,7 +162,7 @@
   {
     "id": "TEAM-02",
     "surface": "team-management",
-    "action": "Desativar controlador e redistribuir carteira",
+    "action": "Desativar controlador e redistribuir carteira quando necessário",
     "mode": "edge-function",
     "criticality": "P0",
     "allow": ["federal_assistant", "technical_admin"],

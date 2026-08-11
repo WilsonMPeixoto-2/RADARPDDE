@@ -84,9 +84,10 @@ export function normalizeTeamCommand(input = {}) {
 
     if (operation === 'deactivate_controller') {
         const entityId = text(input.controllerId);
-        const fallbackControllerId = text(input.fallbackControllerId);
+        const fallbackControllerId = text(input.fallbackControllerId) || null;
+        const reassignedCount = Number(input.reassignedCount || 0);
         if (!entityId) throw new Error('Controlador a desativar é obrigatório.');
-        if (!fallbackControllerId || fallbackControllerId === entityId) {
+        if (fallbackControllerId === entityId || (reassignedCount > 0 && !fallbackControllerId)) {
             throw new Error('Controlador substituto ativo é obrigatório.');
         }
         return {
@@ -94,7 +95,7 @@ export function normalizeTeamCommand(input = {}) {
             profileId: 'controller',
             entityId,
             fallbackControllerId,
-            reassignedCount: Number(input.reassignedCount || 0),
+            reassignedCount,
             administrativeLog: log
         };
     }

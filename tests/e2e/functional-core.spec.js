@@ -181,7 +181,7 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
     await expect(fiscalNoteRow(page).locator('select.select-analise')).toHaveValue('Correto');
   });
 
-  test('renderiza nota de serviço e controle da assessoria sem pageerror', async ({ page }, testInfo) => {
+  test('renderiza e persiste consulta à Assessoria individualizada por nota de serviço', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 
     const pageErrors = [];
@@ -191,16 +191,80 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
     await page.goto('/');
     await openOperationalProgram(page, { initialized: true });
 
-    await fiscalNoteRow(page).getByRole('button', { name: 'Adicionar Nota' }).click();
-    await page.locator('#nota-desc').fill('Manutenção elétrica');
-    await page.locator('#nota-tipo').selectOption('servico');
-    await page.locator('#nota-numero').fill('NF-SERV-E2E');
-    await page.locator('#nota-valor').fill('850');
-    await page.locator('#form-dados-nota button[type="submit"]').click();
+    const addServiceInvoice = async ({ description, number, amount }) => {
+      await fiscalNoteRow(page).getByRole('button', { name: 'Adicionar Nota' }).click();
+      await page.locator('#nota-desc').fill(description);
+      await page.locator('#nota-tipo').selectOption('servico');
+      await page.locator('#nota-numero').fill(number);
+      await page.locator('#nota-valor').fill(String(amount));
+      await page.locator('#form-dados-nota button[type="submit"]').click();
+    };
+
+    await addServiceInvoice({
+      description: 'Manutenção elétrica',
+      number: 'NF-SERV-E2E-1',
+      amount: 850
+    });
+    await addServiceInvoice({
+      description: 'Manutenção hidráulica',
+      number: 'NF-SERV-E2E-2',
+      amount: 650
+    });
 
     const assessoriaRow = page.locator('#prontuario-verif-rows tr').filter({ hasText: 'Consulta Assessoria' }).first();
-    await expect(assessoriaRow.getByText('Ref. Serviço NF: NF-SERV-E2E')).toBeVisible();
-    await expect(assessoriaRow.getByLabel('Consultoria realmente enviada para Assessoria')).toBeVisible();
+    const firstSent = assessoriaRow.getByLabel('Consulta enviada à Assessoria para a NF NF-SERV-E2E-1');
+    const secondSent = assessoriaRow.getByLabel('Consulta enviada à Assessoria para a NF NF-SERV-E2E-2');
+    const firstAnalysis = assessoriaRow.getByLabel('Análise da consulta à Assessoria para a NF NF-SERV-E2E-1');
+    const secondAnalysis = assessoriaRow.getByLabel('Análise da consulta à Assessoria para a NF NF-SERV-E2E-2');
+
+    await expect(assessoriaRow.getByText('NF NF-SERV-E2E-1', { exact: true })).toBeVisible();
+    await expect(assessoriaRow.getByText('NF NF-SERV-E2E-2', { exact: true })).toBeVisible();
+    await expect(firstSent).not.toBeChecked();
+    await expect(secondSent).not.toBeChecked();
+    await expect(firstAnalysis).toHaveValue('Não analisado');
+    await expect(secondAnalysis).toHaveValue('Não analisado');
+
+    await firstSent.check();
+    await firstAnalysis.selectOption('Correto');
+
+    await expect(firstSent).toBeChecked();
+    await expect(firstAnalysis).toHaveValue('Correto');
+    await expect(secondSent).not.toBeChecked();
+    await expect(secondAnalysis).toHaveValue('Não analisado');
+
+    const afterFirstReview = await page.evaluate(() => {
+      const serviceNotes = notasRegistradas
+        .filter(note => ['NF-SERV-E2E-1', 'NF-SERV-E2E-2'].includes(note.numero))
+        .sort((left, right) => left.numero.localeCompare(right.numero));
+      const first = serviceNotes[0];
+      const verification = verificacoes[first.escolaId][first.compKey];
+      return {
+        notes: serviceNotes.map(note => ({
+          number: note.numero,
+          sent: note.consultaAssessoriaEnviada,
+          analysis: note.analiseConsultaAssessoria
+        })),
+        aggregate: {
+          delivery: verification.bonificacao.consAssessoria,
+          sent: verification.bonificacao.consEnviada,
+          analysis: verification.analise.consAssessoria
+        }
+      };
+    });
+    expect(afterFirstReview).toEqual({
+      notes: [
+        { number: 'NF-SERV-E2E-1', sent: true, analysis: 'Correto' },
+        { number: 'NF-SERV-E2E-2', sent: false, analysis: 'Não analisado' }
+      ],
+      aggregate: { delivery: 'Não', sent: false, analysis: 'Não analisado' }
+    });
+
+    await secondSent.check();
+    await secondAnalysis.selectOption('Correto (Atrasado)');
+
+    await expect(firstAnalysis).toHaveValue('Correto');
+    await expect(secondAnalysis).toHaveValue('Correto (Atrasado)');
+    await expect(assessoriaRow.getByText('Resumo mensal: Sim')).toBeVisible();
     expect(pageErrors).toEqual([]);
   });
 

@@ -165,6 +165,8 @@ Contratos vigentes:
 - reutilização segura de conta em transição autorizada de perfil;
 - um único perfil institucional ativo por usuário;
 - desativação lógica e preservação de histórico;
+- a desativação de Controlador exige substituto somente enquanto houver escolas na carteira; sem escolas, a conta pode ser desativada diretamente;
+- Controladores inativos permanecem no histórico, mas não integram diretórios, filtros ou seletores operacionais;
 - compensação quando Auth e banco participam de etapas distintas.
 
 Os PRs #150 e #161 complementaram o conserto inicial do PR #138. Não descrever Gestão de Equipe como resolvida apenas pelo CORS do PR #138.
@@ -192,6 +194,8 @@ Notas fiscais e bens permanentes participam de operações compostas.
 
 - nota permanente e bem derivado devem preservar contexto coerente;
 - quando uma nota perde ou troca o vínculo com bem derivado, o vínculo anterior é removido na mesma transação protegida;
+- cada nota fiscal de serviço registra individualmente se a consulta à Assessoria Contábil foi enviada e o resultado de sua análise técnica;
+- os campos de assessoria na verificação mensal são somente um resumo derivado das NFs de serviço, sem substituir a avaliação de cada nota;
 - edição rápida de bem é restrita ao campo permitido e usa `saveAssetWithLog`, versão esperada e log administrativo;
 - encaminhamento e inventariação usam fluxo patrimonial próprio.
 

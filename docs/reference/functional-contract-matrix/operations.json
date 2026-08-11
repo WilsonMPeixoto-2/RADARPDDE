@@ -240,6 +240,26 @@
     "next": "controlled-write"
   },
   {
+    "id": "INV-03",
+    "surface": "school-record",
+    "action": "Registrar envio e análise da consulta contábil por nota fiscal de serviço",
+    "mode": "write",
+    "criticality": "P0",
+    "allow": ["controller", "federal_assistant", "technical_admin"],
+    "deny": ["anonymous", "sme_management", "inventory"],
+    "anchors": [["src/application/invoice-service.js", "async updateServiceAdvisory"], ["src/data/supabase-repository.js", "saveInvoiceWithEffects"]],
+    "service": "InvoiceService.updateServiceAdvisory",
+    "repository": "saveInvoiceWithEffects",
+    "resources": ["registered_invoices", "verifications", "administrative_logs"],
+    "reload": true,
+    "concurrency": "row_version",
+    "compensation": "atomic_rpc",
+    "evidence": "invoice",
+    "coverage": "partial",
+    "gaps": ["Falta prova controlada no Supabase remoto de duas NFs de serviço, persistência individual, resumo derivado e releitura."],
+    "next": "controlled-write"
+  },
+  {
     "id": "ASSET-01",
     "surface": "inventory",
     "action": "Cadastrar bem permanente manualmente",

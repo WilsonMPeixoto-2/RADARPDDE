@@ -29,6 +29,8 @@ test('carrega serviços de auditoria, notas e inventário antes do app principal
 test('handlers de notas e inventário delegam ao gateway sem mutar raízes diretamente', () => {
     const delegated = [
         ['salvarDadosNota', /radarInvoiceService\.save\s*\(/],
+        ['toggleInvoiceAdvisorySent', /radarInvoiceService\.updateServiceAdvisory\s*\(/],
+        ['changeInvoiceAdvisoryAnalysis', /radarInvoiceService\.updateServiceAdvisory\s*\(/],
         ['removerNotaRegistrada', /radarInvoiceService\.remove\s*\(/],
         ['salvarInventariacao', /radarInventoryService\.inventory\s*\(/],
         ['updateCapitalDoc', /radarInventoryService\.updateAsset\s*\(/],
@@ -55,4 +57,3 @@ test('estado de aplicação expõe bens aos serviços e registerLog não persist
     assert.match(APP, /radarInventoryService\s*=\s*new\s+window\.RadarInventoryService\.InventoryService/);
     assert.doesNotMatch(body('registerLog'), /persist\s*\(/);
 });
-

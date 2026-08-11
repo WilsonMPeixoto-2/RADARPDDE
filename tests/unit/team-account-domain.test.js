@@ -67,6 +67,22 @@ test('normaliza cadastro e desativação do Inventário', async () => {
     assert.equal(deactivate.entityId, 'INV-7');
 });
 
+test('permite desativar controlador sem substituto quando nenhuma escola será transferida', async () => {
+    const { normalizeTeamCommand } = await loadDomain();
+
+    const command = normalizeTeamCommand({
+        operation: 'deactivate_controller',
+        controllerId: 'CTRL-SEM-CARTEIRA',
+        fallbackControllerId: null,
+        reassignedCount: 0,
+        administrativeLog: { id: 'log-controller-without-schools' }
+    });
+
+    assert.equal(command.entityId, 'CTRL-SEM-CARTEIRA');
+    assert.equal(command.fallbackControllerId, null);
+    assert.equal(command.reassignedCount, 0);
+});
+
 test('rejeita operação desconhecida, e-mail inválido e payload incompleto', async () => {
     const { normalizeTeamCommand } = await loadDomain();
 

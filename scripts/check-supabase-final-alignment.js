@@ -13,6 +13,7 @@ const teamAuthRepairMigrationPath = 'supabase/migrations/202608060001_team_auth_
 const functionalIntegrityMigrationPath = 'supabase/migrations/202608060002_functional_integrity_remediation.sql';
 const schoolIdentityMigrationPath = 'supabase/migrations/202608060003_school_institutional_identity.sql';
 const pendencyReanalysisMigrationPath = 'supabase/migrations/20260809165500_restrict_pendency_reanalysis_roles.sql';
+const serviceAdvisoryMigrationPath = 'supabase/migrations/20260811173612_individualize_service_invoice_advisory.sql';
 const requiredFiles = Object.freeze([
     'src/application/team-account-gateway.js',
     'supabase/migrations/202607190001_team_management_auth_alignment.sql',
@@ -34,6 +35,7 @@ const requiredFiles = Object.freeze([
     functionalIntegrityMigrationPath,
     schoolIdentityMigrationPath,
     pendencyReanalysisMigrationPath,
+    serviceAdvisoryMigrationPath,
     'supabase/functions/_shared/team-account-domain.mjs',
     corsPolicyPath,
     'supabase/functions/team-account-management/index.ts',
@@ -218,6 +220,21 @@ function check() {
         }
     });
 
+    const serviceAdvisoryMigration = read(serviceAdvisoryMigrationPath);
+    [
+        /consultaAssessoriaEnviada/i,
+        /analiseConsultaAssessoria/i,
+        /service_invoice_count\s*=\s*1/i,
+        /else false/i,
+        /else 'Não analisado'/i,
+        /bool_and\(advisory_sent\)/i,
+        /bool_or\(advisory_analysis\s*=\s*'Incorreto'\)/i
+    ].forEach(pattern => {
+        if (!pattern.test(serviceAdvisoryMigration)) {
+            findings.push(`Individualização da consulta contábil por NF incompleta: ${pattern}`);
+        }
+    });
+
     const authGate = read('src/integration/auth-gate.js');
     if (/technical_admin\s*:\s*['"]assistente['"]/.test(authGate)) {
         findings.push('Administrador técnico ainda herda o perfil da Assistente.');
@@ -290,8 +307,8 @@ function check() {
 
     const migrationCount = fs.readdirSync(path.join(root, 'supabase/migrations'))
         .filter(name => name.endsWith('.sql')).length;
-    if (migrationCount !== 31) {
-        findings.push(`Conjunto final deve conter 31 migrations; encontrado: ${migrationCount}.`);
+    if (migrationCount !== 32) {
+        findings.push(`Conjunto final deve conter 32 migrations; encontrado: ${migrationCount}.`);
     }
 
     return [...new Set(findings)];
