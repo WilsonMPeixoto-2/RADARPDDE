@@ -165,7 +165,7 @@ Contratos vigentes:
 - reutilização segura de conta em transição autorizada de perfil;
 - um único perfil institucional ativo por usuário;
 - desativação lógica e preservação de histórico;
-- a desativação de Controlador exige substituto somente enquanto houver escolas na carteira; sem escolas, a conta pode ser desativada diretamente;
+- a desativação de Controlador segue duas etapas obrigatórias: primeiro todas as escolas são transferidas pela alocação de carteira; somente com a carteira zerada a conta pode ser desativada, sem substituto no comando de desativação;
 - Controladores inativos permanecem no histórico, mas não integram diretórios, filtros ou seletores operacionais;
 - compensação quando Auth e banco participam de etapas distintas.
 

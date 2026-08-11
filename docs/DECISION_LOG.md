@@ -438,3 +438,13 @@ A próxima frente deve criar matriz `perfil × tela × ação × backend × perm
 Documentação corrente deve ser reconciliada com código, Supabase, Vercel, PRs e evidências. PR aberto não é integrado; Preview não é Production; migration em branch não altera a contagem remota; evidência datada não substitui estado atual.
 
 **Documento integral:** `docs/decisions/ADR-042-reconciliacao-documental-remota.md`.
+
+---
+
+## ADR-043 — Desativação de Controlador exige carteira previamente zerada
+
+**Status:** Aprovada e implementada
+
+A Gestão de Equipe adota sequência obrigatória em duas etapas: as escolas são primeiro transferidas para outro Controlador pelos recursos de alocação individual ou em lote; somente após a carteira atingir zero o comando de desativação é habilitado.
+
+A desativação não redistribui escolas. Ela desativa o acesso e remove a pessoa dos diretórios operacionais, preservando os registros históricos. A regra é protegida na interface, no serviço de aplicação, na Edge Function e na RPC transacional.

@@ -11192,12 +11192,15 @@ function renderEquipe() {
                             <div>
                                 <span style="font-size: 0.75rem; color: var(--text-muted); display: block; text-transform: uppercase; letter-spacing: 0.5px;">Carteira</span>
                                 <span style="font-size: 1.1rem; font-weight: 700; color: var(--primary);">${c.totalEscolas} ${c.totalEscolas === 1 ? 'escola' : 'escolas'}</span>
+                                <span style="display:block; margin-top:4px; font-size:0.75rem; color:${c.totalEscolas === 0 ? 'var(--success)' : 'var(--text-muted)'}; font-weight:${c.totalEscolas === 0 ? '700' : '500'};">
+                                    ${c.totalEscolas === 0 ? 'Pronto para remover' : `Transfira ${c.totalEscolas === 1 ? 'a escola' : 'as escolas'} antes de remover`}
+                                </span>
                             </div>
                             <div style="display: flex; gap: 8px;">
                                 <button class="btn btn-secondary btn-sm" onclick="abrirEditarControlador('${escapeHtml(c.id)}')" title="Editar dados">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                 </button>
-                                <button class="btn btn-danger btn-sm" onclick="removerControlador('${escapeHtml(c.id)}', this)" title="Remover controlador" ${activeControllers.length <= 1 ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
+                                <button class="btn btn-danger btn-sm" onclick="removerControlador('${escapeHtml(c.id)}', this)" title="${c.totalEscolas > 0 ? `Transfira ${c.totalEscolas === 1 ? 'a escola' : `as ${c.totalEscolas} escolas`} antes de remover` : activeControllers.length <= 1 ? 'Não é possível remover o único controlador ativo' : 'Remover controlador'}" aria-label="${c.totalEscolas > 0 ? `Remoção indisponível: transfira ${c.totalEscolas === 1 ? 'a escola' : `as ${c.totalEscolas} escolas`} primeiro` : `Remover ${escapeHtml(c.name)}`}" ${(activeControllers.length <= 1 || c.totalEscolas > 0) ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                                 </button>
                             </div>
@@ -11409,6 +11412,13 @@ async function removerControlador(id, trigger = document.activeElement) {
     if (!ctrl) return;
     
     const totalEscolas = escolas.filter(e => e.controladorId === id).length;
+    if (totalEscolas > 0) {
+        window.RadarSharedInteractions?.notify({
+            type: 'warning',
+            message: `Transfira ${totalEscolas === 1 ? 'a escola vinculada' : `as ${totalEscolas} escolas vinculadas`} para outro controlador antes de remover ${ctrl.name}.`
+        });
+        return;
+    }
     
     try {
         if (!window.RadarSharedInteractions?.requestControllerDeactivation) {
@@ -11419,16 +11429,13 @@ async function removerControlador(id, trigger = document.activeElement) {
             controllers: activeControllers,
             schoolCount: totalEscolas,
             trigger,
-            onConfirm: async (recipientId, recipient) => {
+            onConfirm: async () => {
                 try {
                     const operation = await radarDirectoryService.deactivateController({
                         controllerId: id,
-                        fallbackControllerId: recipientId
+                        fallbackControllerId: null
                     });
-                    return {
-                        ...operation.value,
-                        recipientName: recipient?.name || ''
-                    };
+                    return operation.value;
                 } catch (error) {
                     throw reportRadarPersistenceError(error);
                 }

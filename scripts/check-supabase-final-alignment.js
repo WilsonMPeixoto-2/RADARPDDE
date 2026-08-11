@@ -307,8 +307,8 @@ function check() {
 
     const migrationCount = fs.readdirSync(path.join(root, 'supabase/migrations'))
         .filter(name => name.endsWith('.sql')).length;
-    if (migrationCount !== 32) {
-        findings.push(`Conjunto final deve conter 32 migrations; encontrado: ${migrationCount}.`);
+    if (migrationCount !== 33) {
+        findings.push(`Conjunto final deve conter 33 migrations; encontrado: ${migrationCount}.`);
     }
 
     return [...new Set(findings)];
