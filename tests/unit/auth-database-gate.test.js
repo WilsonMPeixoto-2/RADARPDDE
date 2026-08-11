@@ -181,7 +181,7 @@ test('gate final exige as 32 migrations atuais, reparação Auth e Edge Function
     assert.match(readiness, /202608060002_functional_integrity_remediation\.sql/);
     assert.match(readiness, /202608060003_school_institutional_identity\.sql/);
     assert.match(readiness, /20260809165500_restrict_pendency_reanalysis_roles\.sql/);
-    assert.match(readiness, /20260811173612_individualize_service_invoice_advisory\.sql/);
+    assert.match(readiness, /20260811181312_individualize_service_invoice_advisory\.sql/);
     assert.match(readiness, /32 migrations/);
     assert.match(readiness, /school-assignment-authorization\.test\.sql/);
     assert.match(readiness, /functional-integrity-remediation\.test\.sql/);

@@ -13,7 +13,7 @@ const teamAuthRepairMigrationPath = 'supabase/migrations/202608060001_team_auth_
 const functionalIntegrityMigrationPath = 'supabase/migrations/202608060002_functional_integrity_remediation.sql';
 const schoolIdentityMigrationPath = 'supabase/migrations/202608060003_school_institutional_identity.sql';
 const pendencyReanalysisMigrationPath = 'supabase/migrations/20260809165500_restrict_pendency_reanalysis_roles.sql';
-const serviceAdvisoryMigrationPath = 'supabase/migrations/20260811173612_individualize_service_invoice_advisory.sql';
+const serviceAdvisoryMigrationPath = 'supabase/migrations/20260811181312_individualize_service_invoice_advisory.sql';
 const requiredFiles = Object.freeze([
     'src/application/team-account-gateway.js',
     'supabase/migrations/202607190001_team_management_auth_alignment.sql',
