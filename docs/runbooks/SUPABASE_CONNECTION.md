@@ -1,7 +1,7 @@
 # Runbook — conexão e operação controlada do Supabase
 
 **Estado:** vigente; Production conectada  
-**Atualizado em:** 9 de agosto de 2026
+**Atualizado em:** 11 de agosto de 2026
 
 ## 1. Objetivo
 
@@ -13,7 +13,7 @@ Este runbook não autoriza, por si só, migration, importação, alteração de 
 
 Consultar [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md) e revalidar remotamente antes de operação dependente do ambiente.
 
-Por compatibilidade com o verificador de readiness, este runbook mantém um único espelho machine-readable da contagem versionada: O conjunto versionado contém atualmente **31** migrations. A lista e a ordem continuam sendo obtidas do diretório `supabase/migrations/` e do histórico do CLI, nunca de uma segunda lista manual.
+Por compatibilidade com o verificador de readiness, este runbook mantém um único espelho machine-readable da contagem versionada: O conjunto versionado contém atualmente **32** migrations. A lista e a ordem continuam sendo obtidas do diretório `supabase/migrations/` e do histórico do CLI, nunca de uma segunda lista manual.
 
 Contratos estáveis:
 
@@ -124,6 +124,7 @@ As migrations correntes incluem, conforme `CURRENT_STAGE.md`:
 - remediação funcional de exercício, nota/bem e tentativa de pendência;
 - integridade da identidade institucional das escolas;
 - restrição explícita da reanálise de pendências a `controller`, `federal_assistant` e `technical_admin`.
+- avaliação da consulta à Assessoria Contábil individualizada no payload de cada NF de serviço, com resumo mensal derivado.
 
 Não reaplicar SQL já aplicado para “corrigir” histórico.
 

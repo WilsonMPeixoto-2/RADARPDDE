@@ -242,9 +242,12 @@ O trigger `pendencies_sync_attempt_statuses`, instalado pela remediação funcio
 - data de registro;
 - bem vinculado opcional;
 - chave de contexto;
+- para NFs de serviço, `payload.consultaAssessoriaEnviada` e `payload.analiseConsultaAssessoria` mantêm a avaliação individual da consulta contábil;
 - versão.
 
 O trigger `registered_invoices_delete_unlinked_asset` executa `delete_unlinked_invoice_asset()` quando `linked_asset_id` muda. A função remove apenas o bem anteriormente vinculado à mesma escola e bloqueia conflito quando outro documento ainda o referencia.
+
+Para `expense_type = 'servico'`, `consultaAssessoriaEnviada` é booleano e `analiseConsultaAssessoria` admite `Não analisado`, `Correto`, `Correto (Atrasado)` ou `Incorreto`. `verifications.bonification.consAssessoria`, `consEnviada` e `verifications.analysis.consAssessoria` são projeções mensais derivadas de todas as NFs de serviço do contexto; não constituem avaliação compartilhada entre notas.
 
 ### `assets`
 

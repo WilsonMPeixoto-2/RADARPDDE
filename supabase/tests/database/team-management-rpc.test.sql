@@ -2,7 +2,7 @@ begin;
 set local role postgres;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
-select plan(30);
+select plan(33);
 
 select ok(
     has_function_privilege(
@@ -178,6 +178,24 @@ select is((select active from public.controllers where id = 'CTRL-TEAM-A'),
 select is((select count(*)::integer from public.administrative_logs where id = 'log-team-controller-off'),
     1,
     'desativação do controlador é auditada');
+
+set local role service_role;
+select lives_ok($$
+    select public.deactivate_controller_account(
+        'CTRL-TEAM-C',
+        null,
+        '00000000-0000-0000-0000-000000000901',
+        '{"id":"log-team-controller-empty-off","action":"Gestão de Equipe","details":{"effect":"deactivate_without_reassignment"}}'::jsonb
+    )
+$$, 'controlador sem escolas é desativado sem exigir substituto');
+set local role postgres;
+
+select is((select active from public.controllers where id = 'CTRL-TEAM-C'),
+    false,
+    'controlador sem carteira deixa de integrar o diretório ativo');
+select is((select count(*)::integer from public.administrative_logs where id = 'log-team-controller-empty-off'),
+    1,
+    'desativação sem redistribuição também é auditada');
 
 set local role service_role;
 select lives_ok($$

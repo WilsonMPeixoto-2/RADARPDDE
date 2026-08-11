@@ -148,6 +148,8 @@ test('edita nota permanente para serviço, remove bem derivado e exige consulta 
 
     assert.equal(harness.state.assets.length, 0);
     assert.equal(result.value.invoice.bemId, null);
+    assert.equal(result.value.invoice.consultaAssessoriaEnviada, false);
+    assert.equal(result.value.invoice.analiseConsultaAssessoria, 'Não analisado');
     assert.equal(result.value.warnings.includes('SERVICE_ADVISORY_REQUIRED'), true);
     assert.equal(
         harness.state.verifications['ESC-1']['2026-05_BASIC'].bonificacao.consAssessoria,
@@ -159,6 +161,75 @@ test('edita nota permanente para serviço, remove bem derivado e exige consulta 
     );
     assert.equal(harness.state.logs.length, 1);
     assert.equal(harness.state.logs[0].action, 'Nota Editada');
+});
+
+test('registra e analisa a consulta à Assessoria separadamente para cada nota de serviço', async () => {
+    const harness = createHarness();
+
+    const first = await harness.service.save({
+        schoolId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        description: 'Manutenção elétrica',
+        expenseType: 'servico',
+        invoiceNumber: 'NF-SERV-1',
+        amount: 800,
+        profile: 'controlador'
+    });
+    const second = await harness.service.save({
+        schoolId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        description: 'Manutenção hidráulica',
+        expenseType: 'servico',
+        invoiceNumber: 'NF-SERV-2',
+        amount: 600,
+        profile: 'controlador'
+    });
+
+    assert.equal(first.value.invoice.consultaAssessoriaEnviada, false);
+    assert.equal(first.value.invoice.analiseConsultaAssessoria, 'Não analisado');
+    assert.equal(second.value.invoice.consultaAssessoriaEnviada, false);
+    assert.equal(second.value.invoice.analiseConsultaAssessoria, 'Não analisado');
+
+    await harness.service.updateServiceAdvisory({
+        id: first.value.invoice.id,
+        schoolId: 'ESC-1',
+        sent: true,
+        analysis: 'Correto',
+        profile: 'controlador'
+    });
+
+    const firstAfterReview = harness.state.registeredInvoices.find(note => (
+        note.id === first.value.invoice.id
+    ));
+    const secondBeforeReview = harness.state.registeredInvoices.find(note => (
+        note.id === second.value.invoice.id
+    ));
+    const verification = harness.state.verifications['ESC-1']['2026-05_BASIC'];
+
+    assert.equal(firstAfterReview.consultaAssessoriaEnviada, true);
+    assert.equal(firstAfterReview.analiseConsultaAssessoria, 'Correto');
+    assert.equal(secondBeforeReview.consultaAssessoriaEnviada, false);
+    assert.equal(secondBeforeReview.analiseConsultaAssessoria, 'Não analisado');
+    assert.equal(verification.bonificacao.consAssessoria, 'Não');
+    assert.equal(verification.bonificacao.consEnviada, false);
+    assert.equal(verification.analise.consAssessoria, 'Não analisado');
+
+    await harness.service.updateServiceAdvisory({
+        id: second.value.invoice.id,
+        schoolId: 'ESC-1',
+        sent: true,
+        analysis: 'Correto (Atrasado)',
+        profile: 'controlador'
+    });
+
+    assert.equal(firstAfterReview.consultaAssessoriaEnviada, true);
+    assert.equal(firstAfterReview.analiseConsultaAssessoria, 'Correto');
+    assert.equal(secondBeforeReview.consultaAssessoriaEnviada, true);
+    assert.equal(secondBeforeReview.analiseConsultaAssessoria, 'Correto (Atrasado)');
+    assert.equal(verification.bonificacao.consAssessoria, 'Sim');
+    assert.equal(verification.bonificacao.consEnviada, true);
+    assert.equal(verification.analise.consAssessoria, 'Correto (Atrasado)');
+    assert.match(harness.state.logs[0].details, /NF-SERV-2/);
 });
 
 test('remove a última nota e restaura análise e assessoria sem deixar bem órfão', async () => {

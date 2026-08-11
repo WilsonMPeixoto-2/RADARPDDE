@@ -285,6 +285,70 @@ test('ida e volta preserva o modelo canônico atual', () => {
     assert.equal(reconciliation.ok, true, JSON.stringify(reconciliation.entities, null, 2));
 });
 
+test('ida e volta preserva avaliações distintas da assessoria em cada NF de serviço', () => {
+    const sourceStorage = createOperationalStorage();
+    sourceStorage.setItem('radar_pdde_notas_registradas', JSON.stringify([
+        {
+            id: 'nota-servico-1',
+            escolaId: '04.31.001',
+            compKey: '2026-05_ED_FAMILIA',
+            desc: 'Manutenção elétrica',
+            tipo: 'servico',
+            numero: 'NF-SERV-1',
+            valor: 800,
+            consultaAssessoriaEnviada: true,
+            analiseConsultaAssessoria: 'Correto'
+        },
+        {
+            id: 'nota-servico-2',
+            escolaId: '04.31.001',
+            compKey: '2026-05_ED_FAMILIA',
+            desc: 'Manutenção hidráulica',
+            tipo: 'servico',
+            numero: 'NF-SERV-2',
+            valor: 600,
+            consultaAssessoriaEnviada: false,
+            analiseConsultaAssessoria: 'Não analisado'
+        }
+    ]));
+
+    const exported = bridge.exportLegacySnapshot(sourceStorage, {
+        importId: 'service-advisory-source',
+        exportedAt: '2026-08-11T00:00:00.000Z'
+    });
+    assert.equal(
+        exported.snapshot.entities.registeredInvoices[0]
+            .payload.consultaAssessoriaEnviada,
+        true
+    );
+    assert.equal(
+        exported.snapshot.entities.registeredInvoices[1]
+            .payload.analiseConsultaAssessoria,
+        'Não analisado'
+    );
+
+    const restoredStorage = createMemoryStorage();
+    bridge.restoreCanonicalSnapshotToLegacyStorage(
+        exported.snapshot,
+        restoredStorage,
+        { dataVersion: 'service-advisory-restored' }
+    );
+    const restored = JSON.parse(
+        restoredStorage.getItem('radar_pdde_notas_registradas')
+    );
+    assert.deepEqual(
+        restored.map(invoice => ({
+            number: invoice.numero,
+            sent: invoice.consultaAssessoriaEnviada,
+            analysis: invoice.analiseConsultaAssessoria
+        })),
+        [
+            { number: 'NF-SERV-1', sent: true, analysis: 'Correto' },
+            { number: 'NF-SERV-2', sent: false, analysis: 'Não analisado' }
+        ]
+    );
+});
+
 test('ida e volta preserva row_version de nota, bem e verificação para concorrência otimista', () => {
     const source = bridge.exportLegacySnapshot(createOperationalStorage(), {
         importId: 'versions-source',

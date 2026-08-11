@@ -9935,6 +9935,7 @@ function renderProntuarioVerificacoes(esc) {
 
                     // Conteúdo extra para visualização de notas fiscais
                     let extraContentHTML = '';
+                    let serviceAdvisoryEntries = [];
                     if (doc.key === 'notaFiscal') {
                         const notes = notasRegistradas.filter(n => n.escolaId === esc.id && n.compKey === compProgKey);
                         
@@ -9965,32 +9966,117 @@ function renderProntuarioVerificacoes(esc) {
                         }
                     }
                     if (doc.key === 'consAssessoria') {
-                        const serviceNotes = notasRegistradas.filter(n => n.escolaId === esc.id && n.compKey === compProgKey && n.tipo === 'servico');
-                        if (serviceNotes.length > 0) {
-                            const isChecked = v && v.bonificacao && v.bonificacao['consEnviada'];
-                            extraContentHTML = `
-                                <div style="margin-top: 6px; display: flex; flex-direction: column; gap: 6px;">
-                                    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px;">
-                                        <span class="badge badge-warning" style="font-size: 0.7rem; font-weight: 500; padding: 4px 8px;">
-                                            Ref. Serviço NF: ${escapeHtml(serviceNotes.map(n => n.numero).join(', '))}
-                                        </span>
-                                    </div>
-                                    ${accessProfile === 'sme' ? `
-                                        <span class="badge ${isChecked ? 'badge-success' : 'badge-gray'}" data-bonification-detail="consEnviada">
-                                            Consultoria enviada: ${isChecked ? 'Sim' : 'Não'}
-                                        </span>
-                                    ` : `
-                                        <div style="display: flex; align-items: center; gap: 8px;">
-                                            <label style="font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; cursor: pointer; margin-top: 2px;">
-                                                <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleConsEnviada('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', this.checked)" ${isBonifLocked ? 'disabled' : ''}>
-                                                <span>Consultoria realmente enviada para Assessoria</span>
-                                            </label>
+                        const serviceNotes = notasRegistradas.filter(note => (
+                            note.escolaId === esc.id
+                            && note.compKey === compProgKey
+                            && note.tipo === 'servico'
+                        ));
+                        const legacyFallback = serviceNotes.length === 1
+                            ? {
+                                sent: v.bonificacao.consEnviada === true
+                                    || v.bonificacao.consAssessoria === 'Sim',
+                                analysis: v.analise.consAssessoria
+                            }
+                            : {};
+                        serviceAdvisoryEntries = serviceNotes.map(note => ({
+                            note,
+                            ...window.RadarInvoiceService.getServiceAdvisoryState(
+                                note,
+                                legacyFallback
+                            )
+                        }));
+
+                        extraContentHTML = serviceAdvisoryEntries.length > 0
+                            ? `
+                                <div style="margin-top:6px; display:flex; flex-direction:column; gap:6px;">
+                                    ${serviceAdvisoryEntries.map(({ note }) => `
+                                        <div data-service-advisory-invoice="${escapeHtml(note.id)}" style="border:1px solid var(--border-color); border-radius:8px; padding:7px 8px;">
+                                            <strong style="font-size:0.75rem; color:var(--warning);">NF ${escapeHtml(note.numero)}</strong>
+                                            <div style="font-size:0.7rem; color:var(--text-muted); margin-top:2px;">${escapeHtml(note.desc || 'Serviço')}</div>
                                         </div>
-                                    `}
+                                    `).join('')}
                                 </div>
-                            `;
-                        }
+                            `
+                            : '<div style="font-size:0.72rem; color:var(--text-muted); margin-top:6px;">Nenhuma nota fiscal de serviço cadastrada.</div>';
                     }
+
+                    const bonificationCellHTML = doc.key === 'consAssessoria'
+                        ? (serviceAdvisoryEntries.length > 0 ? `
+                            <div style="display:flex; flex-direction:column; gap:8px;">
+                                ${serviceAdvisoryEntries.map(({ note, sent }) => `
+                                    <label style="display:flex; align-items:center; gap:6px; font-size:0.72rem; color:var(--text-muted);">
+                                        <input
+                                            type="checkbox"
+                                            aria-label="Consulta enviada à Assessoria para a NF ${escapeHtml(note.numero)}"
+                                            ${sent ? 'checked' : ''}
+                                            onchange="toggleInvoiceAdvisorySent('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}', this.checked)"
+                                            ${isBonifLocked ? 'disabled' : ''}
+                                        >
+                                        <span>NF ${escapeHtml(note.numero)}: enviada</span>
+                                    </label>
+                                `).join('')}
+                                <span class="badge ${bonifValue === 'Sim' ? 'badge-success' : 'badge-danger'}" style="align-self:flex-start;">
+                                    Resumo mensal: ${escapeHtml(bonifValue || 'Não')}
+                                </span>
+                            </div>
+                        ` : '<span class="badge badge-gray">Não se aplica</span>')
+                        : (accessProfile === 'sme' ? `
+                            <span
+                                class="badge ${bonifValue === 'Sim'
+                                    ? 'badge-success'
+                                    : bonifValue === 'Não'
+                                        ? 'badge-danger'
+                                        : 'badge-gray'}"
+                                data-bonification-value="${escapeHtml(bonifValue || '')}"
+                            >${escapeHtml(bonifValue || 'Não informado')}</span>
+                        ` : `
+                            <div class="btn-group-toggle">
+                                <button class="btn-toggle ${bonifValue === 'Sim' ? 'active-sim' : ''}"
+                                        onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', 'Sim')"
+                                        ${isBonifLocked ? 'disabled' : ''}>Sim</button>
+                                <button class="btn-toggle ${bonifValue === 'Não' ? 'active-nao' : ''}"
+                                        onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', 'Não')"
+                                        ${isBonifLocked ? 'disabled' : ''}>Não</button>
+                                ${doc.allowNaoAplica ? `
+                                    <button class="btn-toggle ${bonifValue === 'Não se aplica' ? 'active-naoseaplica' : ''}"
+                                            onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', 'Não se aplica')"
+                                            ${isBonifLocked ? 'disabled' : ''}>N/A</button>
+                                ` : ''}
+                            </div>
+                        `);
+
+                    const analysisCellHTML = doc.key === 'consAssessoria'
+                        ? (serviceAdvisoryEntries.length > 0 ? `
+                            <div style="display:flex; flex-direction:column; gap:8px;">
+                                ${serviceAdvisoryEntries.map(({ note, analysis }) => `
+                                    <select
+                                        class="select-analise select-analise-comp analise-${analysis.toLowerCase().replace(/\s+/g, '-').replace(/[()]/g, '')}"
+                                        aria-label="Análise da consulta à Assessoria para a NF ${escapeHtml(note.numero)}"
+                                        onchange="changeInvoiceAdvisoryAnalysis('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}', this.value, this)"
+                                        ${activePend ? `aria-describedby="${escapeHtml(analysisLockId)}"` : ''}
+                                        ${isAnaliseLocked ? 'disabled' : ''}
+                                    >
+                                        <option value="Não analisado" ${analysis === 'Não analisado' ? 'selected' : ''}>Não analisado</option>
+                                        <option value="Correto" ${analysis === 'Correto' ? 'selected' : ''}>Correto</option>
+                                        <option value="Correto (Atrasado)" ${analysis === 'Correto (Atrasado)' ? 'selected' : ''}>Correto (Atrasado)</option>
+                                        <option value="Incorreto" ${analysis === 'Incorreto' ? 'selected' : ''}>Incorreto</option>
+                                    </select>
+                                `).join('')}
+                                <span style="font-size:0.68rem; color:var(--text-muted);">Resumo técnico: ${escapeHtml(analiseValue)}</span>
+                            </div>
+                        ` : '<span class="badge badge-success">Correto — N/A</span>')
+                        : `
+                            <select class="select-analise select-analise-comp analise-${analiseValue.toLowerCase().replace(/\s+/g, '-').replace(/[()]/g, '')}"
+                                    aria-label="Análise técnica de ${escapeHtml(doc.name)} no programa ${escapeHtml(progName)}"
+                                    onchange="changeAnaliseTecnica('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', this.value, this)"
+                                    ${activePend ? `aria-describedby="${escapeHtml(analysisLockId)}"` : ''}
+                                    ${isAnaliseLocked ? 'disabled' : ''}>
+                                <option value="Não analisado" ${analiseValue === 'Não analisado' ? 'selected' : ''}>Não analisado</option>
+                                <option value="Correto" ${analiseValue === 'Correto' ? 'selected' : ''}>Correto</option>
+                                <option value="Correto (Atrasado)" ${analiseValue === 'Correto (Atrasado)' ? 'selected' : ''}>Correto (Atrasado)</option>
+                                <option value="Incorreto" ${analiseValue === 'Incorreto' ? 'selected' : ''}>Incorreto</option>
+                            </select>
+                        `;
 
                     rowsHTML += `
                         <tr
@@ -10013,45 +10099,9 @@ function renderProntuarioVerificacoes(esc) {
                                 </div>
                             </td>` : ''}
                             <td><span style="font-size:0.85rem; font-weight:500;">${escapeHtml(doc.name)}</span>${extraContentHTML}</td>
-                            <td>
-                                ${accessProfile === 'sme' ? `
-                                    <span
-                                        class="badge ${bonifValue === 'Sim'
-                                            ? 'badge-success'
-                                            : bonifValue === 'Não'
-                                                ? 'badge-danger'
-                                                : 'badge-gray'}"
-                                        data-bonification-value="${escapeHtml(bonifValue || '')}"
-                                    >${escapeHtml(bonifValue || 'Não informado')}</span>
-                                ` : `
-                                    <div class="btn-group-toggle">
-                                        <button class="btn-toggle ${bonifValue === 'Sim' ? 'active-sim' : ''}"
-                                                onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', 'Sim')"
-                                                ${isBonifLocked ? 'disabled' : ''}>Sim</button>
-                                        <button class="btn-toggle ${bonifValue === 'Não' ? 'active-nao' : ''}"
-                                                onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', 'Não')"
-                                                ${isBonifLocked ? 'disabled' : ''}>Não</button>
-                                        ${doc.allowNaoAplica ? `
-                                            <button class="btn-toggle ${bonifValue === 'Não se aplica' ? 'active-naoseaplica' : ''}"
-                                                    onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', 'Não se aplica')"
-                                                    ${isBonifLocked ? 'disabled' : ''}>N/A</button>
-                                        ` : ''}
-                                    </div>
-                                `}
-                            </td>
+                            <td>${bonificationCellHTML}</td>
                             ${canViewTechnicalAnalysis ? `
-                                <td>
-                                    <select class="select-analise select-analise-comp analise-${analiseValue.toLowerCase().replace(/\s+/g, '-').replace(/[()]/g, '')}"
-                                            aria-label="Análise técnica de ${escapeHtml(doc.name)} no programa ${escapeHtml(progName)}"
-                                            onchange="changeAnaliseTecnica('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', this.value, this)"
-                                            ${activePend ? `aria-describedby="${escapeHtml(analysisLockId)}"` : ''}
-                                            ${isAnaliseLocked ? 'disabled' : ''}>
-                                        <option value="Não analisado" ${analiseValue === 'Não analisado' ? 'selected' : ''}>Não analisado</option>
-                                        <option value="Correto" ${analiseValue === 'Correto' ? 'selected' : ''}>Correto</option>
-                                        <option value="Correto (Atrasado)" ${analiseValue === 'Correto (Atrasado)' ? 'selected' : ''}>Correto (Atrasado)</option>
-                                        <option value="Incorreto" ${analiseValue === 'Incorreto' ? 'selected' : ''}>Incorreto</option>
-                                    </select>
-                                </td>
+                                <td>${analysisCellHTML}</td>
                             ` : ''}
                             ${canUseVerificationActions ? `<td>${pendStatusHTML}</td>` : ''}
                         </tr>
@@ -10301,6 +10351,118 @@ function abrirEditarNota(notaId, escolaId) {
     document.querySelector('#modal-dados-nota button[type="submit"]').innerText = 'Salvar Alterações';
 
     openModal('modal-dados-nota');
+    return true;
+}
+
+async function toggleInvoiceAdvisorySent(notaId, escolaId, isChecked) {
+    const accessProfile = getRadarAccessProfile();
+    if (accessProfile === 'inventario' || accessProfile === 'sme') return false;
+
+    try {
+        await radarInvoiceService.updateServiceAdvisory({
+            id: notaId,
+            schoolId: escolaId,
+            sent: Boolean(isChecked),
+            profile: accessProfile
+        });
+        rebuildOperationalIndexes();
+    } catch (error) {
+        reportRadarActionError(
+            error,
+            'Não foi possível alterar o envio da consulta à Assessoria para esta nota fiscal.'
+        );
+        renderProntuario(escolaId);
+        return false;
+    }
+
+    renderProntuario(escolaId);
+    return true;
+}
+
+async function changeInvoiceAdvisoryAnalysis(
+    notaId,
+    escolaId,
+    value,
+    selectElement = null
+) {
+    const accessProfile = getRadarAccessProfile();
+    if (accessProfile === 'inventario' || accessProfile === 'sme') return false;
+
+    const nota = notasRegistradas.find(item => item.id === notaId);
+    if (!nota || nota.tipo !== 'servico') {
+        renderProntuario(escolaId);
+        return false;
+    }
+
+    const serviceNotes = notasRegistradas.filter(item => (
+        item.escolaId === nota.escolaId
+        && item.compKey === nota.compKey
+        && item.tipo === 'servico'
+    ));
+    const verification = verificacoes[nota.escolaId]?.[nota.compKey];
+    const previousState = window.RadarInvoiceService.getServiceAdvisoryState(
+        nota,
+        serviceNotes.length === 1 ? {
+            sent: verification?.bonificacao?.consEnviada === true
+                || verification?.bonificacao?.consAssessoria === 'Sim',
+            analysis: verification?.analise?.consAssessoria
+        } : {}
+    );
+    const activePendency = findActivePendencyForTechnicalAnalysis(
+        escolaId,
+        nota.compKey,
+        'consAssessoria'
+    );
+    if (activePendency) {
+        if (selectElement && typeof selectElement === 'object') {
+            selectElement.value = previousState.analysis;
+        }
+        const instruction = activePendency.status === 'Aguardando reanálise'
+            ? 'Esta análise aguarda reanálise. Use Reanalisar para registrar o resultado.'
+            : 'Esta análise possui pendência aberta. Use Registrar novo envio para prosseguir.';
+        alert(instruction);
+        renderProntuario(escolaId);
+        return false;
+    }
+
+    let result;
+    try {
+        result = await radarInvoiceService.updateServiceAdvisory({
+            id: notaId,
+            schoolId: escolaId,
+            analysis: value,
+            profile: accessProfile
+        });
+        rebuildOperationalIndexes();
+    } catch (error) {
+        if (selectElement && typeof selectElement === 'object') {
+            selectElement.value = previousState.analysis;
+        }
+        reportRadarActionError(
+            error,
+            'Não foi possível alterar a análise da consulta à Assessoria para esta nota fiscal.'
+        );
+        renderProntuario(escolaId);
+        return false;
+    }
+
+    if (result.value.shouldOpenPendency) {
+        const splitContext = window.RadarCompetencia.splitCompetenciaContext(nota.compKey);
+        const programa = programas.find(item => item.id === splitContext.contextId);
+        openNovaPendenciaModalWithDefaults(
+            escolaId,
+            nota.compKey,
+            programa?.name || splitContext.contextId,
+            'consAssessoria',
+            `Consulta Assessoria — NF ${nota.numero}`
+        );
+        const observation = document.getElementById('pend-obs');
+        if (observation) {
+            observation.value = `Identificado erro técnico na consulta à Assessoria referente à NF ${nota.numero}.`;
+        }
+    }
+
+    renderProntuario(escolaId);
     return true;
 }
 

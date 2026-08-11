@@ -170,6 +170,23 @@ test('modo remoto desativa acesso e redistribui carteira na mesma operação', a
     assert.equal(harness.gatewayCalls[0].input.reassignedCount, 1);
 });
 
+test('modo remoto desativa controlador cuja carteira já foi transferida sem exigir substituto', async () => {
+    const harness = createHarness({ remote: true });
+    harness.state.schools[0].controladorId = 'CTRL-2';
+
+    const result = await harness.service.deactivateController({
+        controllerId: 'CTRL-1'
+    });
+
+    assert.equal(result.value.reassignedCount, 0);
+    assert.equal(harness.state.controllers[0].active, false);
+    assert.equal(harness.defaultPersistCount, 0);
+    assert.equal(harness.gatewayCalls[0].method, 'deactivateController');
+    assert.equal(harness.gatewayCalls[0].input.controllerId, 'CTRL-1');
+    assert.equal(harness.gatewayCalls[0].input.fallbackControllerId, null);
+    assert.equal(harness.gatewayCalls[0].input.reassignedCount, 0);
+});
+
 test('modo remoto provisiona e desativa integrante do Inventário', async () => {
     const harness = createHarness({ remote: true });
 

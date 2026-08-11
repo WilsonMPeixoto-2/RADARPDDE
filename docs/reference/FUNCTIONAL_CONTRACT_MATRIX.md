@@ -8,12 +8,12 @@
 
 ## Resumo executivo
 
-A matriz contém **41 operações** distribuídas entre 13 superfícies.
+A matriz contém **42 operações** distribuídas entre 13 superfícies.
 
 | Cobertura | Operações |
 |---|---:|
 | Comprovada | 9 |
-| Parcial | 32 |
+| Parcial | 33 |
 | Lacuna | 0 |
 | Decisão pendente | 0 |
 
@@ -21,7 +21,7 @@ A matriz contém **41 operações** distribuídas entre 13 superfícies.
 |---|---:|
 | Nenhuma; manter regressão | 5 |
 | Smoke autenticado de leitura | 6 |
-| Escrita controlada e reversível | 25 |
+| Escrita controlada e reversível | 26 |
 | Observação contínua em Production | 5 |
 
 ## Perfis
@@ -80,6 +80,7 @@ A matriz contém **41 operações** distribuídas entre 13 superfícies.
 | `READ-03` | Consultar prontuário e timeline da unidade | read / P0 | Controlador, Assistente de Verbas Federais, Gestão SME, Equipe de Inventário, Administrador técnico | RadarSchoolTimeline.project → SupabaseRepository.read (schools, verifications, pendencies, pendency_attempts, pendency_contacts, registered_invoices, assets, administrative_logs) | Parcial | Smoke autenticado de leitura |
 | `INV-01` | Cadastrar ou editar nota fiscal e efeitos associados | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.save → saveInvoiceWithEffects + registered_invoices_delete_unlinked_asset (registered_invoices, assets, verifications, administrative_logs) | Parcial | Escrita controlada e reversível |
 | `INV-02` | Excluir nota fiscal e reverter efeitos vinculados | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.remove → deleteInvoiceWithEffects (registered_invoices, assets, verifications, administrative_logs) | Parcial | Escrita controlada e reversível |
+| `INV-03` | Registrar envio e análise da consulta contábil por nota fiscal de serviço | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.updateServiceAdvisory → saveInvoiceWithEffects (registered_invoices, verifications, administrative_logs) | Parcial | Escrita controlada e reversível |
 
 ### Pendências
 
@@ -109,7 +110,7 @@ A matriz contém **41 operações** distribuídas entre 13 superfícies.
 | `SCH-02` | Redistribuir uma escola para outro controlador | write / P0 | Assistente de Verbas Federais, Administrador técnico | SchoolService.assignController → assignControllerWithLog (schools, administrative_logs) | Parcial | Escrita controlada e reversível |
 | `SCH-03` | Redistribuir escolas em lote | write / P0 | Assistente de Verbas Federais, Administrador técnico | SchoolService.bulkAssignController → assignControllerWithLog (schools, administrative_logs) | Parcial | Escrita controlada e reversível |
 | `TEAM-01` | Cadastrar ou editar controlador e conta de acesso | edge-function / P0 | Assistente de Verbas Federais, Administrador técnico | DirectoryService.saveController → team-account-management + Auth lookup + RPC (auth.users, controllers, user_profiles, administrative_logs) | Comprovada | Observação contínua em Production |
-| `TEAM-02` | Desativar controlador e redistribuir carteira | edge-function / P0 | Assistente de Verbas Federais, Administrador técnico | DirectoryService.deactivateController → team-account-management + RPC (auth.users, controllers, schools, user_profiles, administrative_logs) | Comprovada | Observação contínua em Production |
+| `TEAM-02` | Desativar controlador e redistribuir carteira quando necessário | edge-function / P0 | Assistente de Verbas Federais, Administrador técnico | DirectoryService.deactivateController → team-account-management + RPC (auth.users, controllers, schools, user_profiles, administrative_logs) | Comprovada | Observação contínua em Production |
 | `TEAM-03` | Cadastrar ou editar integrante do Inventário e conta | edge-function / P0 | Assistente de Verbas Federais, Administrador técnico | DirectoryService.saveInventoryMember → team-account-management + Auth lookup + RPC (auth.users, inventory_team_members, user_profiles, administrative_logs) | Comprovada | Observação contínua em Production |
 | `TEAM-04` | Desativar integrante do Inventário | edge-function / P0 | Assistente de Verbas Federais, Administrador técnico | DirectoryService.deactivateInventoryMember → team-account-management + RPC (auth.users, inventory_team_members, user_profiles, administrative_logs) | Comprovada | Observação contínua em Production |
 
@@ -171,6 +172,7 @@ A matriz contém **41 operações** distribuídas entre 13 superfícies.
 - **PEND-06 — Registrar contato ou cobrança associado à pendência:** Falta prova controlada de idempotência, associação e releitura.
 - **INV-01 — Cadastrar ou editar nota fiscal e efeitos associados:** A remoção do bem derivado ao trocar/desvincular a nota foi remediada; falta prova controlada completa para naturezas, edição, warnings, vínculo/desvínculo e releitura.
 - **INV-02 — Excluir nota fiscal e reverter efeitos vinculados:** Falta prova controlada de remoção, restauração dos requisitos documentais e ausência de resíduos.
+- **INV-03 — Registrar envio e análise da consulta contábil por nota fiscal de serviço:** Falta prova controlada no Supabase remoto de duas NFs de serviço, persistência individual, resumo derivado e releitura.
 - **ASSET-01 — Cadastrar bem permanente manualmente:** Falta prova controlada de criação, status inicial e releitura.
 - **ASSET-02 — Editar campo patrimonial autorizado:** A persistência genérica foi removida e a edição rápida ficou restrita ao campo permitido, com versão e log; falta prova controlada por perfil, conflito e releitura no ambiente de homologação.
 - **ASSET-03 — Encaminhar bem para inventariação:** Falta prova controlada das validações de nota/processo, persistência e releitura.
