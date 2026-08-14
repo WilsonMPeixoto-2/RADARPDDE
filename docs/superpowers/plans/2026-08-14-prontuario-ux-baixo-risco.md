@@ -45,6 +45,7 @@ Por isso, a implementação foi isolada em:
 - [x] Acrescentar classes de início/contexto de programa sem estado paralelo.
 - [x] Localizar a NF por número exato e mover o `<label>`/checkbox já existente para a caixa da NF.
 - [x] Preservar o `aria-label`, `onchange`, estado `checked` e análise técnica individual.
+- [x] Garantir associação visual um-para-um mesmo se houver números de NF repetidos.
 
 ## Task 3 — Estilos isolados
 
@@ -57,14 +58,14 @@ Por isso, a implementação foi isolada em:
 
 - [x] Acrescentar o CSS à lista de extensões de produto.
 - [x] Carregar `prontuario-operational-ux.js` por último, depois dos wrappers já existentes.
-- [ ] Atualizar `docs/architecture/product-extensions-load-order.md`.
+- [x] Atualizar `docs/architecture/product-extensions-load-order.md`.
 
 ## Task 5 — Validação e integração
 
 - [ ] Confirmar GREEN dos dois cenários focados na CI.
 - [ ] Confirmar que os gates materiais não introduziram nova regressão em relação à baseline.
-- [ ] Revisar o diff do PR #177 e confirmar ausência de mudanças em serviços, migrations, schema e persistência.
-- [ ] Fazer code review do pacote.
+- [x] Revisar o diff do PR #177 e confirmar ausência de mudanças em serviços, migrations, schema e persistência.
+- [x] Fazer code review do pacote e corrigir a associação um-para-um entre NF e controle de Assessoria.
 - [ ] Marcar PR como pronto, integrar na `main` e registrar o merge SHA.
 - [ ] Confirmar deployment Vercel `READY`, `target=production` e alias `radarpdde-fix.vercel.app`.
 - [ ] Confirmar no conteúdo servido em Production que a nova extensão e o CSS estão carregados.
