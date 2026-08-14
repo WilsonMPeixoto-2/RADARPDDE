@@ -4,8 +4,8 @@ async function waitForProductExtensions(page) {
   await page.evaluate(() => window.RadarProductExtensionsReady);
 }
 
-async function openProgramWithTwoServiceInvoices(page) {
-  return page.evaluate(() => {
+async function openOperationalProgram(page, options = {}) {
+  return page.evaluate(({ initialized }) => {
     switchProfile('controlador');
 
     const competencia = activeCompetenciaKey;
@@ -17,90 +17,91 @@ async function openProgramWithTwoServiceInvoices(page) {
     const programaId = escola.programasIds[0];
     const compProgKey = `${competencia}_${programaId}`;
 
-    verificacoes[escola.id] = verificacoes[escola.id] || {};
-    verificacoes[escola.id][compProgKey] = {
-      bonificacao: {
-        extCC: '',
-        extINV: '',
-        notaFiscal: 'Sim',
-        consAssessoria: 'Não',
-        consEnviada: false,
-        declBBAgil: '',
-        encampInventario: ''
-      },
-      analise: {
-        extCC: 'Não analisado',
-        extINV: 'Não analisado',
-        notaFiscal: 'Não analisado',
-        consAssessoria: 'Não analisado',
-        declBBAgil: 'Não analisado',
-        encampInventario: 'Não analisado'
-      },
-      resultadoBonif: ''
-    };
+    if (verificacoes[escola.id]) {
+      delete verificacoes[escola.id][compProgKey];
+    }
 
     for (let index = notasRegistradas.length - 1; index >= 0; index -= 1) {
-      const note = notasRegistradas[index];
-      if (note.escolaId === escola.id && note.compKey === compProgKey) {
+      const registeredNote = notasRegistradas[index];
+      if (registeredNote.escolaId === escola.id && registeredNote.compKey === compProgKey) {
         notasRegistradas.splice(index, 1);
       }
     }
 
-    notasRegistradas.push(
-      {
-        id: 'nota-ux-servico-1',
-        escolaId: escola.id,
-        compKey: compProgKey,
-        competencia,
-        programaId,
-        desc: 'Manutenção elétrica',
-        descricao: 'Manutenção elétrica',
-        tipo: 'servico',
-        numero: 'NF-UX-SERV-1',
-        valor: 850,
-        consultaAssessoriaEnviada: false,
-        analiseConsultaAssessoria: 'Não analisado',
-        dataRegistro: new Date().toISOString()
-      },
-      {
-        id: 'nota-ux-servico-2',
-        escolaId: escola.id,
-        compKey: compProgKey,
-        competencia,
-        programaId,
-        desc: 'Manutenção hidráulica',
-        descricao: 'Manutenção hidráulica',
-        tipo: 'servico',
-        numero: 'NF-UX-SERV-2',
-        valor: 650,
-        consultaAssessoriaEnviada: false,
-        analiseConsultaAssessoria: 'Não analisado',
-        dataRegistro: new Date().toISOString()
-      }
-    );
+    if (initialized) {
+      verificacoes[escola.id] = verificacoes[escola.id] || {};
+      verificacoes[escola.id][compProgKey] = {
+        bonificacao: {
+          extCC: '',
+          extINV: '',
+          notaFiscal: 'Sim',
+          consAssessoria: '',
+          declBBAgil: '',
+          encampInventario: ''
+        },
+        analise: {
+          extCC: 'Não analisado',
+          extINV: 'Não analisado',
+          notaFiscal: 'Correto',
+          consAssessoria: 'Não analisado',
+          declBBAgil: 'Não analisado',
+          encampInventario: 'Não analisado'
+        },
+        resultadoBonif: ''
+      };
+    }
 
     activeProntuarioCompetencia = competencia;
     switchView('prontuario', escola.id);
 
     return { escolaId: escola.id, compProgKey };
-  });
+  }, options);
+}
+
+function fiscalNoteRow(page) {
+  return page.locator('#prontuario-verif-rows tr').filter({ hasText: 'Notas Fiscais' }).first();
+}
+
+async function addServiceInvoice(page, { description, number, amount }) {
+  await fiscalNoteRow(page).getByRole('button', { name: 'Adicionar Nota' }).click();
+  await page.locator('#nota-desc').fill(description);
+  await page.locator('#nota-tipo').selectOption('servico');
+  await page.locator('#nota-numero').fill(number);
+  await page.locator('#nota-valor').fill(String(amount));
+  await page.locator('#form-dados-nota button[type="submit"]').click();
+  await expect(page.locator('#modal-dados-nota')).not.toHaveClass(/show/);
 }
 
 test.describe('Prontuário — refinamentos UX de baixo risco', () => {
   test('mantém o controle de envio à Assessoria dentro da caixa da respectiva NF', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 
+    page.on('dialog', dialog => dialog.accept());
+
     await page.goto('/');
     await waitForProductExtensions(page);
-    await openProgramWithTwoServiceInvoices(page);
+    await openOperationalProgram(page, { initialized: true });
 
-    const noteRow = page.locator('#prontuario-verif-rows tr').filter({ hasText: 'Notas Fiscais' }).first();
+    await addServiceInvoice(page, {
+      description: 'Manutenção elétrica',
+      number: 'NF-UX-SERV-1',
+      amount: 850
+    });
+    await addServiceInvoice(page, {
+      description: 'Manutenção hidráulica',
+      number: 'NF-UX-SERV-2',
+      amount: 650
+    });
+
+    const noteRow = fiscalNoteRow(page);
     const assessoriaRow = page.locator('#prontuario-verif-rows tr').filter({ hasText: 'Consulta Assessoria' }).first();
     const firstInvoiceCard = noteRow.locator('[data-service-advisory-invoice]').filter({ hasText: 'NF-UX-SERV-1' });
     const secondInvoiceCard = noteRow.locator('[data-service-advisory-invoice]').filter({ hasText: 'NF-UX-SERV-2' });
 
     const firstSent = firstInvoiceCard.getByLabel('Consulta enviada à Assessoria para a NF NF-UX-SERV-1');
     const secondSent = secondInvoiceCard.getByLabel('Consulta enviada à Assessoria para a NF NF-UX-SERV-2');
+    const firstAnalysis = assessoriaRow.getByLabel('Análise da consulta à Assessoria para a NF NF-UX-SERV-1');
+    const secondAnalysis = assessoriaRow.getByLabel('Análise da consulta à Assessoria para a NF NF-UX-SERV-2');
 
     await expect(firstInvoiceCard).toHaveCount(1);
     await expect(secondInvoiceCard).toHaveCount(1);
@@ -110,14 +111,24 @@ test.describe('Prontuário — refinamentos UX de baixo risco', () => {
     await expect(secondSent).not.toBeChecked();
 
     await expect(assessoriaRow.getByRole('checkbox')).toHaveCount(0);
-    await expect(assessoriaRow.getByLabel('Análise da consulta à Assessoria para a NF NF-UX-SERV-1')).toHaveCount(1);
-    await expect(assessoriaRow.getByLabel('Análise da consulta à Assessoria para a NF NF-UX-SERV-2')).toHaveCount(1);
+    await expect(firstAnalysis).toHaveValue('Não analisado');
+    await expect(secondAnalysis).toHaveValue('Não analisado');
 
     await firstSent.check();
+    await firstAnalysis.selectOption('Correto');
+
+    await expect(firstSent).toBeChecked();
+    await expect(firstAnalysis).toHaveValue('Correto');
+    await expect(secondSent).not.toBeChecked();
+    await expect(secondAnalysis).toHaveValue('Não analisado');
+
     await secondSent.check();
+    await secondAnalysis.selectOption('Correto (Atrasado)');
 
     await expect(firstSent).toBeChecked();
     await expect(secondSent).toBeChecked();
+    await expect(firstAnalysis).toHaveValue('Correto');
+    await expect(secondAnalysis).toHaveValue('Correto (Atrasado)');
     await expect(assessoriaRow.getByText('Resumo mensal: Sim')).toBeVisible();
   });
 
