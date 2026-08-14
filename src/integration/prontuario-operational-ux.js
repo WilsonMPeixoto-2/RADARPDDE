@@ -71,12 +71,11 @@
 
     function moveServiceAdvisoryControls(group) {
         const rowsByDocument = new Map(group.rows.map(row => [row.dataset.documentKey || '', row]));
-        const fiscalNoteRow = rowsByDocument.get('notaFiscal');
         const advisoryRow = rowsByDocument.get('consAssessoria');
-        if (!fiscalNoteRow || !advisoryRow) return;
+        if (!advisoryRow) return;
 
         const invoiceCards = Array.from(
-            fiscalNoteRow.querySelectorAll('[data-service-advisory-invoice]')
+            advisoryRow.querySelectorAll('[data-service-advisory-invoice]')
         );
         invoiceCards.forEach(decorateInvoiceCard);
         if (!invoiceCards.length) return;
