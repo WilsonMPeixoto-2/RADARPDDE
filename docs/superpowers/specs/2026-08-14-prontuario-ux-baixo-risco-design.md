@@ -6,75 +6,55 @@
 
 ## Objetivo
 
-Aplicar apenas refinamentos de apresentação no acompanhamento mensal do Prontuário, sem alterar schema, regras de persistência, permissões, cálculo da avaliação mensal ou efeitos financeiros/patrimoniais.
+Refinar a apresentação do acompanhamento mensal sem alterar regras de negócio, persistência, permissões, schema, RLS, RPCs, Excel ou cálculo da avaliação mensal.
 
 ## Escopo
 
-### 1. Consulta à Assessoria dentro da própria NF
+### Consulta à Assessoria por NF
 
-Cada nota fiscal de serviço já possui estado individual de envio à Assessoria e análise técnica própria. A interface deve aproximar o controle de envio da nota que ele representa:
+Cada NF de serviço já possui uma caixa detalhada na linha **Consulta Assessoria**, além de estado individual de envio e análise técnica. O refinamento deve:
 
-- a caixa da NF na linha **Notas Fiscais** passa a conter o checkbox `Enviada à Assessoria`;
-- o checkbox continua sendo o mesmo elemento e mantém o mesmo handler `toggleInvoiceAdvisorySent()` e a mesma persistência pelo `InvoiceService`;
-- a linha **Consulta Assessoria** mantém a análise técnica individual por NF e o resumo mensal agregado;
-- não criar segundo estado, coluna, tabela ou cálculo;
-- uma NF não pode controlar o estado de outra.
+- mover o checkbox existente `Enviada à Assessoria` para dentro da caixa detalhada da respectiva NF;
+- manter a caixa da NF na própria linha **Consulta Assessoria**;
+- preservar o mesmo checkbox, `aria-label`, estado `checked`, handler e persistência;
+- preservar um seletor de análise técnica por NF e o resumo mensal agregado;
+- nunca criar estado duplicado nem permitir que uma NF controle outra.
 
-### 2. Separação visual entre programas
+### Separação visual entre programas
 
-O acompanhamento mensal deve tornar evidente onde começa e termina cada programa da mesma competência:
-
-- a primeira linha de cada programa recebe marcador visual próprio;
-- a célula lateral que contém competência + programa recebe classes semânticas;
-- nome do programa ganha maior hierarquia tipográfica;
-- início do grupo recebe separação superior mais perceptível e fundo sutil, preservando a paleta vigente;
-- não transformar cada programa em tabela independente e não duplicar cabeçalhos de colunas;
-- o agrupamento deve continuar legível em desktop e responsivo sem retirar conteúdo no mobile.
-
-### 3. Preservações obrigatórias
-
-Não alterar:
-
-- análise técnica individual de cada documento;
-- análise individual de consulta contábil por NF de serviço;
-- resumo mensal automático da Assessoria;
-- bonificação e consolidação;
-- `RadarFluxoOperacional.evaluateMonthlyEvaluation()`;
-- `InvoiceService` e `VerificationService`;
-- Supabase, migrations, RLS, RPCs ou tipos de banco;
-- Excel e exportações.
+- marcar visualmente o início de cada programa;
+- aumentar a hierarquia de competência e nome do programa;
+- usar borda, espaçamento e fundo sutil da paleta existente;
+- não dividir a avaliação em tabelas independentes nem duplicar cabeçalhos.
 
 ## Arquitetura
 
-Durante a exploração do código foi identificado que o repositório já possui uma cadeia canônica de extensões pós-`app.js`, documentada em `docs/architecture/product-extensions-load-order.md`. Para reduzir ainda mais o risco, a implementação não modifica o núcleo monolítico de `app.js` nem `styles.css`.
+O repositório já possui uma cadeia oficial de extensões pós-`app.js`. Para reduzir o risco, o núcleo monolítico não é alterado.
 
 A solução usa:
 
-- `src/integration/prontuario-operational-ux.js`: extensão carregada por último, que envolve `renderProntuario`, preserva argumentos/retorno e reorganiza somente o DOM já renderizado;
-- `src/styles/prontuario-operational-ux.css`: estilos isolados do refinamento;
-- `src/integration/product-extensions-bootstrap.js`: inclusão dos dois artefatos na cadeia oficial;
-- `tests/e2e/prontuario-ux-baixo-risco.spec.js`: contrato E2E específico.
+- `src/integration/prontuario-operational-ux.js` para envolver o `renderProntuario` final e reorganizar somente o DOM já renderizado;
+- `src/styles/prontuario-operational-ux.css` para os estilos isolados;
+- `src/integration/product-extensions-bootstrap.js` para carregar a extensão por último;
+- `tests/e2e/prontuario-ux-baixo-risco.spec.js` para o contrato funcional.
 
-O checkbox existente é movido como nó DOM para a caixa da NF correspondente. Não é clonado nem recriado, portanto conserva `checked`, `aria-label`, `onchange` e a persistência individual já existente. A análise técnica individual permanece na linha **Consulta Assessoria**.
+O checkbox é movido como o mesmo nó DOM para sua caixa detalhada. Não é clonado nem recriado. A análise individual e o resumo mensal permanecem na mesma linha.
 
-A separação dos programas é derivada da estrutura já produzida pelo Prontuário: cada grupo começa na linha que contém a célula `rowspan` da competência/programa. A extensão acrescenta classes de apresentação, sem criar estado de negócio paralelo.
+A separação de programas usa a estrutura já existente: cada grupo começa na linha que contém a célula `rowspan` de competência/programa e recebe apenas classes de apresentação.
 
-## Acessibilidade
+## Preservações obrigatórias
 
-- manter `aria-label` do checkbox identificando explicitamente o número da NF;
-- checkbox permanece associado visualmente à respectiva caixa da NF;
-- não depender apenas de cor para indicar início de programa: há também borda, espaçamento e hierarquia tipográfica;
-- manter foco e controles existentes;
-- não usar `innerHTML` para mover dados operacionais.
+Não alterar `RadarFluxoOperacional.evaluateMonthlyEvaluation()`, `InvoiceService`, `VerificationService`, bonificação, consolidação, Supabase, migrations, Auth, RLS, RPCs, tipos de banco ou exportações.
 
-## Validação proporcional
+## Validação
 
-1. teste E2E focado prova que cada checkbox está dentro da caixa da respectiva NF;
-2. o mesmo teste preserva análise individual e resumo agregado;
-3. cenário de Prontuário prova classes/marcadores de início de programa para mais de um programa;
-4. executar gates automáticos materiais do repositório e comparar eventuais falhas com a baseline;
-5. nenhuma bateria específica de Supabase, migrations, Excel ou backup é necessária, porque essas camadas não são alteradas.
+- cada checkbox deve estar dentro da caixa detalhada da sua NF;
+- os dois controles de NFs distintas permanecem independentes;
+- os selects individuais de análise permanecem funcionais;
+- o resumo mensal continua agregado automaticamente;
+- múltiplos programas recebem marcadores visuais distintos;
+- gates amplos devem ser comparados com a baseline para não atribuir ao pacote falhas preexistentes.
 
 ## Critério de conclusão
 
-O pacote está concluído quando a interface mostra controles de Assessoria junto às respectivas NFs, os programas são visualmente distinguíveis, a análise individual e o resumo mensal permanecem intactos, os testes focados passam e a alteração é integrada e publicada sem regressão material atribuível ao pacote.
+Concluir somente após testes focados verdes, revisão do diff, merge na `main` e confirmação do novo SHA em Production.
