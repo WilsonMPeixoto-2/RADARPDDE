@@ -46,11 +46,19 @@
         if (programName) programName.classList.add('program-context-name');
     }
 
-    function findInvoiceCard(cards, invoiceNumber, fallbackIndex) {
+    function findInvoiceCard(cards, invoiceNumber, fallbackIndex, usedCards) {
         const expectedLabel = `NF ${invoiceNumber}`;
-        return cards.find(card => (
-            text(card.querySelector(':scope > strong')?.textContent) === expectedLabel
-        )) || cards[fallbackIndex] || null;
+        const exactMatch = cards.find(card => (
+            !usedCards.has(card)
+            && text(card.querySelector(':scope > strong')?.textContent) === expectedLabel
+        ));
+        const positionalFallback = cards[fallbackIndex];
+        const card = exactMatch
+            || (positionalFallback && !usedCards.has(positionalFallback) ? positionalFallback : null)
+            || cards.find(candidate => !usedCards.has(candidate))
+            || null;
+        if (card) usedCards.add(card);
+        return card;
     }
 
     function decorateInvoiceCard(card) {
@@ -76,11 +84,12 @@
         const checkboxes = Array.from(advisoryRow.querySelectorAll(
             `input[type="checkbox"][aria-label^="${SENT_LABEL_PREFIX}"]`
         ));
+        const usedCards = new Set();
 
         checkboxes.forEach((checkbox, index) => {
             const accessibleLabel = text(checkbox.getAttribute('aria-label'));
             const invoiceNumber = accessibleLabel.slice(SENT_LABEL_PREFIX.length).trim();
-            const card = findInvoiceCard(invoiceCards, invoiceNumber, index);
+            const card = findInvoiceCard(invoiceCards, invoiceNumber, index, usedCards);
             const label = checkbox.closest('label');
             if (!card || !label) return;
 
