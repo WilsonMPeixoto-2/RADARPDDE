@@ -1,5 +1,9 @@
 const { test, expect } = require('@playwright/test');
 
+async function waitForProductExtensions(page) {
+  await page.evaluate(() => window.RadarProductExtensionsReady);
+}
+
 async function openProgramWithTwoServiceInvoices(page) {
   return page.evaluate(() => {
     switchProfile('controlador');
@@ -78,7 +82,7 @@ async function openProgramWithTwoServiceInvoices(page) {
     activeProntuarioCompetencia = competencia;
     switchView('prontuario', escola.id);
 
-    return { escolaId, compProgKey };
+    return { escolaId: escola.id, compProgKey };
   });
 }
 
@@ -87,6 +91,7 @@ test.describe('Prontuário — refinamentos UX de baixo risco', () => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 
     await page.goto('/');
+    await waitForProductExtensions(page);
     await openProgramWithTwoServiceInvoices(page);
 
     const noteRow = page.locator('#prontuario-verif-rows tr').filter({ hasText: 'Notas Fiscais' }).first();
@@ -120,6 +125,7 @@ test.describe('Prontuário — refinamentos UX de baixo risco', () => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 
     await page.goto('/');
+    await waitForProductExtensions(page);
     const context = await page.evaluate(() => {
       switchProfile('controlador');
       const competencia = activeCompetenciaKey;
