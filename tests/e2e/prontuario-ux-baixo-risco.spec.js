@@ -93,10 +93,9 @@ test.describe('Prontuário — refinamentos UX de baixo risco', () => {
       amount: 650
     });
 
-    const noteRow = fiscalNoteRow(page);
     const assessoriaRow = page.locator('#prontuario-verif-rows tr').filter({ hasText: 'Consulta Assessoria' }).first();
-    const firstInvoiceCard = noteRow.locator('[data-service-advisory-invoice]').filter({ hasText: 'NF-UX-SERV-1' });
-    const secondInvoiceCard = noteRow.locator('[data-service-advisory-invoice]').filter({ hasText: 'NF-UX-SERV-2' });
+    const firstInvoiceCard = assessoriaRow.locator('[data-service-advisory-invoice]').filter({ hasText: 'NF-UX-SERV-1' });
+    const secondInvoiceCard = assessoriaRow.locator('[data-service-advisory-invoice]').filter({ hasText: 'NF-UX-SERV-2' });
 
     const firstSent = firstInvoiceCard.getByLabel('Consulta enviada à Assessoria para a NF NF-UX-SERV-1');
     const secondSent = secondInvoiceCard.getByLabel('Consulta enviada à Assessoria para a NF NF-UX-SERV-2');
@@ -110,7 +109,13 @@ test.describe('Prontuário — refinamentos UX de baixo risco', () => {
     await expect(firstSent).not.toBeChecked();
     await expect(secondSent).not.toBeChecked();
 
-    await expect(assessoriaRow.getByRole('checkbox')).toHaveCount(0);
+    const everySentControlIsInsideItsInvoiceCard = await assessoriaRow.locator(
+      'input[type="checkbox"][aria-label^="Consulta enviada à Assessoria para a NF "]'
+    ).evaluateAll(checkboxes => checkboxes.every(checkbox => (
+      Boolean(checkbox.closest('[data-service-advisory-invoice]'))
+    )));
+    expect(everySentControlIsInsideItsInvoiceCard).toBe(true);
+
     await expect(firstAnalysis).toHaveValue('Não analisado');
     await expect(secondAnalysis).toHaveValue('Não analisado');
 
