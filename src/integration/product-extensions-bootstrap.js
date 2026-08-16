@@ -20,7 +20,8 @@
         '/src/integration/controller-guide-ready.js',
         '/src/integration/unidentified-expense-ux.js',
         '/src/integration/prontuario-operational-ux.js',
-        '/src/integration/operational-readiness-bridge.js'
+        '/src/integration/operational-readiness-bridge.js',
+        '/src/integration/atomic-analysis-pendency.js'
     ]);
 
     function loadStyleOnce(href) {
