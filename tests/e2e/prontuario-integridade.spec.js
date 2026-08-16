@@ -13,6 +13,9 @@ test.describe('Prontuário — integridade temporal', () => {
 
     const context = await page.evaluate(() => {
       switchProfile('controlador');
+      // Production mantém todo o exercício de 2026 no escopo operacional.
+      // O fixture local legado ainda inicia em 2026-05; alinhar o teste à configuração remota real.
+      config.competenciaFechamento = '2026-12';
       const referenceDate = new Date(2026, 7, 16, 12, 0, 0);
       const future = COMPETENCIAS.find(item => window.RadarCompetencia.isFutureCompetence(item.key, referenceDate));
       const current = COMPETENCIAS.find(item => item.key === '2026-08');
