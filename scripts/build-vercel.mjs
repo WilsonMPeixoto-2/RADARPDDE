@@ -32,13 +32,17 @@ const EXCEL_BOOTSTRAP_GUARD_PATH = '/src/integration/excel-export-bootstrap-guar
 const EXCEL_BOOTSTRAP_GUARD_TAG = `<script defer src="${EXCEL_BOOTSTRAP_GUARD_PATH}"></script>`;
 
 const VERCEL_ENVIRONMENTS = new Set(['development', 'preview', 'production']);
+const PRODUCTION_SUPABASE_URL = 'https://scnryinorqeucbfkioxo.supabase.co';
 
+// Preview de PR é deliberadamente isolado do banco institucional. Um Preview só
+// usa Supabase quando URL/chave/modo são informados explicitamente para um projeto
+// de desenvolvimento separado. Nunca há fallback silencioso para Production.
 const PREVIEW_SUPABASE_PUBLIC_RUNTIME = Object.freeze({
-    RADAR_DATA_MODE: 'supabase-preview',
+    RADAR_DATA_MODE: 'local',
     RADAR_ENVIRONMENT: 'preview',
-    RADAR_SUPABASE_REPOSITORY_ENABLED: 'true',
-    RADAR_SUPABASE_URL: 'https://scnryinorqeucbfkioxo.supabase.co',
-    RADAR_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_NJYBP3Mh2b_okdWKNypajQ_CYD8QQTO',
+    RADAR_SUPABASE_REPOSITORY_ENABLED: 'false',
+    RADAR_SUPABASE_URL: '',
+    RADAR_SUPABASE_PUBLISHABLE_KEY: '',
     RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED: 'false'
 });
 
@@ -46,7 +50,7 @@ const PRODUCTION_SUPABASE_PUBLIC_RUNTIME = Object.freeze({
     RADAR_DATA_MODE: 'supabase-production',
     RADAR_ENVIRONMENT: 'production',
     RADAR_SUPABASE_REPOSITORY_ENABLED: 'true',
-    RADAR_SUPABASE_URL: 'https://scnryinorqeucbfkioxo.supabase.co',
+    RADAR_SUPABASE_URL: PRODUCTION_SUPABASE_URL,
     RADAR_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_NJYBP3Mh2b_okdWKNypajQ_CYD8QQTO',
     RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED: 'true'
 });
@@ -157,6 +161,12 @@ function assertDeploymentTargetCompatibility(runtimeInput, environment = {}) {
         && runtimeInput.dataMode === 'supabase-preview'
         && runtimeInput.environment !== 'preview') {
         throw new Error('Preview Supabase na Vercel exige RADAR_ENVIRONMENT=preview.');
+    }
+
+    if (vercelEnvironment === 'preview'
+        && runtimeInput.features?.supabaseRepositoryEnabled
+        && String(runtimeInput.supabase?.url || '').trim() === PRODUCTION_SUPABASE_URL) {
+        throw new Error('Preview da Vercel não pode apontar para o Supabase Production do RADAR. Use um projeto Supabase de desenvolvimento separado ou o modo local isolado.');
     }
 
     if (vercelEnvironment !== 'production'
@@ -304,6 +314,7 @@ export {
     PREVIEW_SUPABASE_PUBLIC_RUNTIME,
     PRODUCTION_LOCAL_ROLLBACK_RUNTIME,
     PRODUCTION_SUPABASE_PUBLIC_RUNTIME,
+    PRODUCTION_SUPABASE_URL,
     RADAR_PRODUCTION_FORCE_LOCAL_VARIABLE,
     RADAR_RUNTIME_VARIABLES,
     RUNTIME_ENTRIES,
