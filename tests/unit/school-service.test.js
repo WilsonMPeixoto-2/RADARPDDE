@@ -94,6 +94,23 @@ test('edita escola, troca controlador e sincroniza programas ativos preservando 
     );
 });
 
+test('atualização sem programIds preserva os vínculos já ativos em vez de zerar programas', async () => {
+    const harness = createHarness();
+    harness.state.programs.find(program => program.id === 'OLD').active = true;
+
+    const result = await harness.service.saveSchool({
+        id: 'ESC-1',
+        controllerId: 'CTRL-1',
+        email: 'novo-email@rio.edu.br'
+    });
+
+    assert.deepEqual(result.value.school.programasIds, ['BASIC', 'OLD']);
+    assert.deepEqual(
+        result.value.school.programasVinculos.map(link => [link.programaId, link.ativo]),
+        [['BASIC', true], ['OLD', true]]
+    );
+});
+
 test('cadastra escola somente com identificadores institucionais informados', async () => {
     const harness = createHarness();
 
