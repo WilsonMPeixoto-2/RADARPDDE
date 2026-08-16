@@ -14,18 +14,19 @@ function readBuild() {
     return fs.readFileSync(buildPath, 'utf8');
 }
 
-test('build automático configura exclusivamente deployments Preview com Supabase', () => {
+test('build automático mantém deployments Preview isolados do Supabase Production', () => {
     const source = readBuild();
 
     assert.match(source, /PREVIEW_SUPABASE_PUBLIC_RUNTIME/);
-    assert.match(source, /RADAR_DATA_MODE:\s*['"]supabase-preview['"]/);
+    assert.match(source, /RADAR_DATA_MODE:\s*['"]local['"]/);
     assert.match(source, /RADAR_ENVIRONMENT:\s*['"]preview['"]/);
-    assert.match(source, /RADAR_SUPABASE_REPOSITORY_ENABLED:\s*['"]true['"]/);
-    assert.match(source, /scnryinorqeucbfkioxo\.supabase\.co/);
-    assert.match(source, /RADAR_SUPABASE_PUBLISHABLE_KEY:\s*['"]sb_publishable_/);
+    assert.match(source, /RADAR_SUPABASE_REPOSITORY_ENABLED:\s*['"]false['"]/);
+    assert.match(source, /RADAR_SUPABASE_URL:\s*['"]['"]/);
+    assert.match(source, /RADAR_SUPABASE_PUBLISHABLE_KEY:\s*['"]['"]/);
     assert.match(source, /RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED:\s*['"]false['"]/);
     assert.match(source, /vercelEnvironment\s*!==\s*['"]preview['"]/);
     assert.match(source, /hasExplicitRadarRuntime\(environment\)/);
+    assert.match(source, /Preview da Vercel não pode apontar para o Supabase Production/);
 });
 
 test('build Preview não depende de token nem de credencial administrativa', () => {
@@ -57,4 +58,5 @@ test('Production continua protegida pelo alvo real da Vercel', () => {
     assert.match(source, /vercelEnvironment === ['"]production['"][\s\S]*runtimeInput\.dataMode === ['"]supabase-preview['"]/);
     assert.match(source, /vercelEnvironment !== ['"]production['"][\s\S]*runtimeInput\.dataMode === ['"]supabase-production['"]/);
     assert.match(source, /Produção em modo local exige RADAR_ENVIRONMENT=local/);
+    assert.match(source, /PRODUCTION_SUPABASE_URL/);
 });
