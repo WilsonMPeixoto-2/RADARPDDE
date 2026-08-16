@@ -4,6 +4,9 @@
     const contract = typeof module !== 'undefined' && module.exports
         ? require('../data/repository-contract.js')
         : root.RadarRepositoryContract;
+    const competencia = typeof module !== 'undefined' && module.exports
+        ? require('../domain/competencia.js')
+        : root.RadarCompetencia;
     const fluxo = typeof module !== 'undefined' && module.exports
         ? require('../domain/fluxo-operacional.js')
         : root.RadarFluxoOperacional;
@@ -13,19 +16,20 @@
     const pendencias = typeof module !== 'undefined' && module.exports
         ? require('../domain/pendencias.js')
         : root.RadarPendencias;
-    const api = factory(contract, fluxo, retificacoes, pendencias);
+    const api = factory(contract, competencia, fluxo, retificacoes, pendencias);
 
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
     if (root) root.RadarVerificationService = Object.freeze(api);
 }(typeof window !== 'undefined' ? window : globalThis, function createVerificationServiceApi(
     contract,
+    defaultCompetence,
     defaultFlow,
     defaultRetifications,
     pendencyDomain
 ) {
     'use strict';
 
-    if (!contract || !defaultFlow || !defaultRetifications) {
+    if (!contract || !defaultCompetence || !defaultFlow || !defaultRetifications) {
         throw new Error('Contrato de dados e domínios de verificação são obrigatórios.');
     }
     const { RepositoryError, cloneValue } = contract;
@@ -105,8 +109,10 @@
             this.appendLog = options.appendLog;
             this.getCurrentUser = options.getCurrentUser || (() => ({ name: 'Sistema', role: 'sistema' }));
             this.getCurrentProfile = options.getCurrentProfile || (() => '');
+            this.getCurrentDate = options.getCurrentDate || (() => new Date());
             this.createId = options.createId || (prefix => `${prefix}-${Date.now()}`);
             this.now = options.now || (() => new Date().toISOString());
+            this.competence = options.competencia || defaultCompetence;
             this.flow = options.fluxo || defaultFlow;
             this.retifications = options.retificacoes || defaultRetifications;
             this.reopenConsolidation = options.reopenConsolidation || (() => {});
@@ -126,6 +132,19 @@
                 fail('FORBIDDEN', 'O perfil atual não pode alterar verificações documentais.', operation);
             }
             return normalized;
+        }
+
+        assertCompetenceEditable(compKey, operation) {
+            const { competence } = splitCompKey(compKey);
+            if (this.competence.isFutureCompetence(competence, this.getCurrentDate())) {
+                fail(
+                    'FUTURE_COMPETENCE',
+                    `${this.competence.formatCompetencia(competence)} ainda é uma competência futura e permanece somente para consulta até o início do mês.`,
+                    operation,
+                    { competence }
+                );
+            }
+            return competence;
         }
 
         getVerification(schoolId, compKey) {
@@ -205,6 +224,7 @@
 
         async setBonification(input = {}) {
             const profile = this.assertEditable(input.profile, 'setBonification');
+            this.assertCompetenceEditable(input.compKey, 'setBonification');
             return this.runSerializedVerificationWrite(input, async () => {
                 const persistence = {};
                 return this.dataService.execute({
@@ -290,6 +310,7 @@
 
         async setTechnicalAnalysis(input = {}) {
             this.assertEditable(input.profile, 'setTechnicalAnalysis');
+            this.assertCompetenceEditable(input.compKey, 'setTechnicalAnalysis');
             return this.runSerializedVerificationWrite(input, async () => {
                 const persistence = {};
                 return this.dataService.execute({
@@ -360,6 +381,7 @@
 
         async closeBonification(input = {}) {
             this.assertEditable(input.profile, 'closeBonification');
+            this.assertCompetenceEditable(input.compKey, 'closeBonification');
             return this.runSerializedVerificationWrite(input, async () => {
                 const persistence = {};
                 return this.dataService.execute({
@@ -408,6 +430,7 @@
             if (!this.retifications.canRetify(profile)) {
                 fail('FORBIDDEN', 'Retificação permitida somente ao perfil Assistente nesta fase.', 'retify');
             }
+            this.assertCompetenceEditable(input.compKey, 'retify');
             return this.runSerializedVerificationWrite(input, async () => {
                 const persistence = {};
                 return this.dataService.execute({
