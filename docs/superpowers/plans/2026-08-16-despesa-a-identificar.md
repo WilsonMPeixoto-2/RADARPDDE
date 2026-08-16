@@ -26,16 +26,17 @@ Alterar `registered_invoices` de forma retrocompatível:
 1. permitir `invoice_number IS NULL`;
 2. incluir `a_identificar` no check de `expense_type`;
 3. adicionar contrato que exija número não vazio para os três tipos identificados;
-4. atualizar `save_invoice_with_effects` para preservar `NULL` em `a_identificar` e nunca inventar número.
+4. preservar a RPC `save_invoice_with_effects` vigente e aplicar a nova semântica por trigger `BEFORE INSERT/UPDATE`: o placeholder legado `SEM-NÚMERO` é convertido para `NULL` somente em `a_identificar`; nos tipos definitivos, ausência, vazio e placeholder são rejeitados.
 
-A migration será aplicada em Production antes da publicação do frontend porque é expansiva e compatível com a versão atual.
+A estratégia por trigger reduz a superfície alterada e mantém a migration expansiva e compatível com o frontend anterior. A migration pode ser aplicada em Production antes da publicação do frontend.
 
 ## Aplicação e UX
 
 - `InvoiceService`: validação condicional, auditoria própria e transições de tipo;
-- ponte de estado: `NULL` ↔ string vazia na UI sem perda semântica;
+- ponte de estado: `NULL` ↔ ausência de número na UI sem perda semântica;
 - Prontuário/modal: opção “A identificar”, indicação clara de documentação pendente e número opcional apenas nesse estado;
-- botão específico para registrar despesa a identificar quando a NF ainda não foi entregue, sem liberar cadastro normal de NF indevidamente.
+- botão específico para registrar despesa a identificar quando a NF ainda não foi entregue, sem liberar cadastro normal de NF indevidamente;
+- extensão visual carregada antes do refinamento operacional do Prontuário, preservando o bloqueio final das competências futuras.
 
 ## Testes
 
@@ -47,4 +48,5 @@ RED → GREEN para:
 - conversão para permanente/serviço;
 - despesa não identificada não satisfaz requisito de NF;
 - round-trip Supabase com `invoice_number = NULL`;
+- pgTAP do contrato SQL e da RPC com ausência real de número;
 - E2E do modal e do Prontuário.
