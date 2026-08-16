@@ -66,15 +66,58 @@
             return controller;
         }
 
-        normalizedProgramIds(state, requested, existingSchool) {
+        normalizedProgramIds(state, requested) {
             const requestedIds = unique(['BASIC', ...requested]);
-            const activeIds = requestedIds.filter(id => state.programs.some(program => program.id === id && program.active !== false));
+            const activeIds = requestedIds.filter(id => (
+                state.programs.some(program => program.id === id && program.active !== false)
+            ));
             if (!activeIds.includes('BASIC')) activeIds.unshift('BASIC');
-            const historical = unique(existingSchool?.programasIds).filter(id => {
-                const program = state.programs.find(item => item.id === id);
-                return program && program.active === false;
+            return unique(activeIds);
+        }
+
+        requestedProgramIds(input, existing) {
+            if (Object.prototype.hasOwnProperty.call(input, 'programIds')) {
+                return list(input.programIds);
+            }
+            if (existing) {
+                const fromActiveIds = list(existing.programasIds).filter(Boolean);
+                if (fromActiveIds.length > 0) return fromActiveIds;
+                return list(existing.programasVinculos)
+                    .filter(link => link?.ativo !== false)
+                    .map(link => text(link?.programaId || link?.program_id))
+                    .filter(Boolean);
+            }
+            return [];
+        }
+
+        synchronizeProgramLinks(existingSchool, activeProgramIds) {
+            const desired = new Set(unique(activeProgramIds));
+            const existingLinks = list(existingSchool?.programasVinculos);
+            const synchronized = [];
+            const seenPrograms = new Set();
+
+            existingLinks.forEach(link => {
+                const programId = text(link?.programaId || link?.program_id);
+                if (!programId || seenPrograms.has(programId)) return;
+                seenPrograms.add(programId);
+                synchronized.push({
+                    ...link,
+                    programaId: programId,
+                    ativo: desired.has(programId)
+                });
             });
-            return unique([...activeIds, ...historical]);
+
+            desired.forEach(programId => {
+                if (seenPrograms.has(programId)) return;
+                synchronized.push({
+                    programaId: programId,
+                    ativo: true,
+                    inicio: null,
+                    fim: null
+                });
+            });
+
+            return synchronized;
         }
 
         institutionalValues(input, existing) {
@@ -245,7 +288,12 @@
                         if (Object.prototype.hasOwnProperty.call(input, source)) school[target] = text(input[source]);
                     });
                     school.controladorId = controllerId;
-                    school.programasIds = this.normalizedProgramIds(state, input.programIds, existing);
+                    const activeProgramIds = this.normalizedProgramIds(
+                        state,
+                        this.requestedProgramIds(input, existing)
+                    );
+                    school.programasIds = activeProgramIds;
+                    school.programasVinculos = this.synchronizeProgramLinks(existing, activeProgramIds);
                     school.active = true;
                     if (!existing) state.schools.push(school);
                     persistedSchoolId = String(school.id);
@@ -261,7 +309,13 @@
                         { escolaId: school.id, schoolId: school.id }
                     );
                     persistence.logId = text(log?.id);
-                    return { school: { ...school, programasIds: [...school.programasIds] } };
+                    return {
+                        school: {
+                            ...school,
+                            programasIds: [...school.programasIds],
+                            programasVinculos: school.programasVinculos.map(link => ({ ...link }))
+                        }
+                    };
                 },
                 persist: async ({ snapshot, repository, defaultPersist }) => {
                     if (typeof repository.saveSchoolWithPrograms !== 'function') {

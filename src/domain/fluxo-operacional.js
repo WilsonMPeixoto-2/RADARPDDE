@@ -205,13 +205,22 @@
         return EDITABLE_PROFILES.has(profile) && bonificacaoNotaFiscal === 'Sim';
     }
 
+    function isIdentifiedFiscalNote(note = {}) {
+        const expenseType = normalizeText(note.tipo || note.expense_type).toLocaleLowerCase('pt-BR');
+        if (expenseType === 'a_identificar') return false;
+        if (!expenseType) return true;
+        const invoiceNumber = normalizeText(note.numero || note.invoice_number || note.notaFiscal);
+        return Boolean(invoiceNumber);
+    }
+
     function shouldRequireFiscalNote(input = {}) {
         const isCorrectAnalysis = CORRECT_ANALYSES.has(input.analiseValue);
         const fiscalNotes = Array.isArray(input.fiscalNotes) ? input.fiscalNotes : [];
+        const identifiedNotes = fiscalNotes.filter(isIdentifiedFiscalNote);
 
         return input.bonificacaoNotaFiscal === 'Sim'
             && isCorrectAnalysis
-            && fiscalNotes.length === 0;
+            && identifiedNotes.length === 0;
     }
 
     return Object.freeze({
@@ -223,6 +232,7 @@
         evaluateMonthlyEvaluation,
         getProgramBonificationStatus,
         getProgramTechnicalAnalysisStatus,
+        isIdentifiedFiscalNote,
         pendencyMatchesContext,
         requiresLateCorrect,
         shouldRequireFiscalNote

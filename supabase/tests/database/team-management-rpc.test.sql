@@ -159,25 +159,25 @@ select is((select profile_id from public.user_profiles where user_id = '00000000
     'perfil inventory é criado e ativado');
 
 set local role service_role;
-select lives_ok($$
+select throws_like($$
     select public.deactivate_controller_account(
         'CTRL-TEAM-A',
         'CTRL-TEAM-B',
         '00000000-0000-0000-0000-000000000901',
         '{"id":"log-team-controller-off","action":"Gestão de Equipe","details":{"effect":"deactivate"}}'::jsonb
     )
-$$, 'desativação de controlador redistribui carteira atomicamente');
+$$, 'VALIDATION_ERROR:%', 'desativação é recusada enquanto o controlador ainda possui escolas');
 set local role postgres;
 
 select is((select controller_id from public.schools where id = 'TEAM-SCHOOL'),
-    'CTRL-TEAM-B',
-    'escola é transferida para o substituto escolhido');
+    'CTRL-TEAM-A',
+    'desativação recusada não transfere a escola automaticamente');
 select is((select active from public.controllers where id = 'CTRL-TEAM-A'),
-    false,
-    'controlador é desativado logicamente');
+    true,
+    'controlador com carteira permanece ativo');
 select is((select count(*)::integer from public.administrative_logs where id = 'log-team-controller-off'),
-    1,
-    'desativação do controlador é auditada');
+    0,
+    'desativação recusada não registra log de conclusão');
 
 set local role service_role;
 select lives_ok($$

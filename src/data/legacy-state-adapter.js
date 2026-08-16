@@ -54,7 +54,8 @@
         'Encaminhada',
         'Inventariada'
     ]);
-    const EXPENSE_TYPES = new Set(['consumo', 'permanente', 'servico']);
+    const IDENTIFIED_EXPENSE_TYPES = new Set(['consumo', 'permanente', 'servico']);
+    const INVOICE_EXPENSE_TYPES = new Set([...IDENTIFIED_EXPENSE_TYPES, 'a_identificar']);
     const MONTH_LABELS = Object.freeze([
         'Janeiro',
         'Fevereiro',
@@ -234,10 +235,10 @@
         };
     }
 
-    function normalizeExpenseType(record) {
+    function normalizeExpenseType(record, allowedTypes = IDENTIFIED_EXPENSE_TYPES) {
         const candidate = text(record.expense_type || record.tipoGasto || record.tipo).toLowerCase();
         if (candidate === 'serviço') return 'servico';
-        return EXPENSE_TYPES.has(candidate) ? candidate : '';
+        return allowedTypes.has(candidate) ? candidate : '';
     }
 
     function transformLegacyState(state = {}) {
@@ -491,7 +492,7 @@
         entities.assets = array(state.assets).flatMap((asset, index) => {
             const id = text(asset?.id);
             const schoolId = text(asset?.escolaId || asset?.school_id);
-            const expenseType = normalizeExpenseType(asset || {});
+            const expenseType = normalizeExpenseType(asset || {}, IDENTIFIED_EXPENSE_TYPES);
             const status = text(asset?.status);
             if (!id || !schoolId || !expenseType || !ASSET_STATUSES.has(status)) {
                 reject('assets', index, 'Bem sem id, escola, tipo de gasto ou status canônico.', asset);
@@ -520,18 +521,19 @@
         entities.registeredInvoices = array(state.registeredInvoices).flatMap((invoice, index) => {
             const id = text(invoice?.id);
             const schoolId = text(invoice?.escolaId || invoice?.school_id);
-            const expenseType = normalizeExpenseType(invoice || {});
+            const expenseType = normalizeExpenseType(invoice || {}, INVOICE_EXPENSE_TYPES);
             if (!id || !schoolId || !expenseType) {
-                reject('registeredInvoices', index, 'Nota sem id, escola ou tipo de gasto canônico.', invoice);
+                reject('registeredInvoices', index, 'Despesa sem id, escola ou tipo de gasto canônico.', invoice);
                 return [];
             }
+            const invoiceNumber = text(invoice.numero || invoice.notaFiscal || invoice.invoice_number);
             return [{
                 id,
                 school_id: schoolId,
                 competence_id: text(invoice.competencia || invoice.competenciaKey || invoice.competence_id) || null,
                 description: text(invoice.descricao || invoice.description),
                 expense_type: expenseType,
-                invoice_number: text(invoice.numero || invoice.notaFiscal || invoice.invoice_number),
+                invoice_number: invoiceNumber || null,
                 amount: numeric(invoice.valor || invoice.amount),
                 payload: cloneValue(invoice),
                 ...(Number.isInteger(invoice.rowVersion || invoice.row_version)

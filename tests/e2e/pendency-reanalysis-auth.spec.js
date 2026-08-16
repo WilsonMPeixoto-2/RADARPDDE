@@ -205,6 +205,13 @@ async function reanalyzeAndReload(page, ids, options = {}) {
       : null;
     const authenticatedUserId = window.RadarAuthContext?.user?.id || null;
     const authenticatedRole = window.RadarAuthContext?.authorization?.role || null;
+    const canonicalAuthenticatedRole = {
+      controller: 'controlador',
+      federal_assistant: 'assistente',
+      sme_management: 'sme',
+      inventory: 'inventario',
+      technical_admin: 'technical_admin'
+    }[authenticatedRole] || authenticatedRole;
     const services = window.RadarApplicationServices;
     await services.pendencies.reanalyze({
       pendencyId: target.pendencyId,
@@ -226,7 +233,7 @@ async function reanalyzeAndReload(page, ids, options = {}) {
       row.school_id === target.schoolId
       && row.action === 'Reanálise registrada'
       && row.actor_user_id === authenticatedUserId
-      && row.details?.authenticatedRole === authenticatedRole
+      && row.details?.authenticatedRole === canonicalAuthenticatedRole
     ));
 
     return {

@@ -205,6 +205,19 @@
         };
     }
 
+    function selectCompetenceContext(root, competenceKey, source = 'global-search') {
+        const key = String(competenceKey || '').trim();
+        if (!key || !root.RadarCompetenceContext?.isInitialized?.()) return false;
+        try {
+            if (String(root.RadarCompetenceContext.getState?.()?.activeKey || '') !== key) {
+                root.RadarCompetenceContext.select(key, { source });
+            }
+            return true;
+        } catch (_error) {
+            return false;
+        }
+    }
+
     function install(root) {
         if (!root || root.__radarGlobalSearchInstalled) return false;
         const document = root.document;
@@ -223,7 +236,7 @@
         container.appendChild(panel);
 
         input.type = 'search';
-        input.placeholder = 'Buscar escola, programa, competência ou área...';
+        input.placeholder = 'Buscar escola, programa, competência, pendência ou área...';
         input.removeAttribute('title');
         input.setAttribute('role', 'combobox');
         input.setAttribute('aria-autocomplete', 'list');
@@ -282,6 +295,44 @@
             if (index < 0) input.removeAttribute('aria-activedescendant');
         }
 
+        function navigateDestination(destination) {
+            if (root.RadarNavigationHistory?.navigate) {
+                root.RadarNavigationHistory.navigate(root, destination);
+            } else {
+                root.switchView?.(destination.view, destination.param);
+            }
+        }
+
+        function applyExactResultContext(result, destination) {
+            if (result.type === 'competence' && result.competenceKey) {
+                selectCompetenceContext(root, result.competenceKey, 'global-search-competence');
+                navigateDestination(destination);
+                return true;
+            }
+
+            if (result.type === 'program' && result.programId) {
+                navigateDestination(destination);
+                if (typeof root.changeEscolaFilter === 'function') {
+                    root.changeEscolaFilter('programa', String(result.programId));
+                }
+                return true;
+            }
+
+            if (result.type === 'pendency' && result.pendencyId) {
+                if (result.competenceKey) {
+                    selectCompetenceContext(root, result.competenceKey, 'global-search-pendency');
+                }
+                navigateDestination(destination);
+                if (typeof root.openPendencyDetail === 'function') {
+                    root.openPendencyDetail(String(result.pendencyId));
+                }
+                return true;
+            }
+
+            navigateDestination(destination);
+            return true;
+        }
+
         function navigateToResult(result) {
             const destination = destinationForResult(result);
             if (!destination) return false;
@@ -293,12 +344,7 @@
             } catch (_error) {
                 // O módulo permanece funcional mesmo sem os estados legados.
             }
-            if (root.RadarNavigationHistory?.navigate) {
-                root.RadarNavigationHistory.navigate(root, destination);
-                return true;
-            }
-            root.switchView?.(destination.view, destination.param);
-            return true;
+            return applyExactResultContext(result, destination);
         }
 
         function createResultButton(result, index) {
@@ -423,6 +469,7 @@
         shouldOpenForQuery,
         keyActionFor,
         destinationForResult,
+        selectCompetenceContext,
         loadScriptOnce,
         install
     });

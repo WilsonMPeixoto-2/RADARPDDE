@@ -9,6 +9,7 @@
         '/src/styles/school-timeline.css',
         '/src/styles/controller-guide.css',
         '/src/styles/controller-guide-theme.css',
+        '/src/styles/unidentified-expense-ux.css',
         '/src/styles/prontuario-operational-ux.css'
     ]);
     const scripts = Object.freeze([
@@ -17,7 +18,10 @@
         '/src/integration/navigation-context-bootstrap.js',
         '/src/integration/controller-guide.js',
         '/src/integration/controller-guide-ready.js',
-        '/src/integration/prontuario-operational-ux.js'
+        '/src/integration/unidentified-expense-ux.js',
+        '/src/integration/prontuario-operational-ux.js',
+        '/src/integration/operational-readiness-bridge.js',
+        '/src/integration/atomic-analysis-pendency.js'
     ]);
 
     function loadStyleOnce(href) {

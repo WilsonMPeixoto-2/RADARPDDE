@@ -13,7 +13,8 @@
 
     if (!contract) throw new Error('Contrato de dados obrigatório para notas fiscais.');
     const { RepositoryError, cloneValue } = contract;
-    const EXPENSE_TYPES = new Set(['consumo', 'permanente', 'servico']);
+    const UNIDENTIFIED_EXPENSE_TYPE = 'a_identificar';
+    const EXPENSE_TYPES = new Set(['consumo', 'permanente', 'servico', UNIDENTIFIED_EXPENSE_TYPE]);
     const SERVICE_ADVISORY_ANALYSES = Object.freeze([
         'Não analisado',
         'Correto',
@@ -41,6 +42,23 @@
 
     function fail(code, message, operation, details = null) {
         throw new RepositoryError(code, message, { operation, details });
+    }
+
+    function isUnidentifiedExpense(invoice = {}) {
+        return text(invoice.tipo || invoice.expenseType || invoice.expense_type).toLocaleLowerCase('pt-BR')
+            === UNIDENTIFIED_EXPENSE_TYPE;
+    }
+
+    function isIdentifiedInvoice(invoice = {}) {
+        return !isUnidentifiedExpense(invoice)
+            && Boolean(text(invoice.numero || invoice.invoiceNumber || invoice.invoice_number || invoice.notaFiscal));
+    }
+
+    function invoiceLabel(invoice = {}) {
+        const number = text(invoice.numero || invoice.invoiceNumber || invoice.invoice_number);
+        return isUnidentifiedExpense(invoice)
+            ? (number ? `Despesa a identificar (referência ${number})` : 'Despesa a identificar')
+            : `Nota Fiscal ${number}`;
     }
 
     function normalizeServiceAdvisoryAnalysis(value, fallback = 'Não analisado') {
@@ -122,7 +140,7 @@
             if (!school) fail('SCHOOL_NOT_FOUND', 'Unidade escolar não localizada.', operation, { schoolId });
             const context = splitContext(compKey);
             if (!context.competence || !context.programId) {
-                fail('VALIDATION_FAILED', 'Competência e programa da nota são obrigatórios.', operation, { compKey });
+                fail('VALIDATION_FAILED', 'Competência e programa da despesa são obrigatórios.', operation, { compKey });
             }
             const program = state.programs.find(item => item.id === context.programId);
             const verification = state.verifications?.[schoolId]?.[compKey] || null;
@@ -133,14 +151,14 @@
             if (verification?.resultadoBonif && profile !== 'assistente') {
                 fail(
                     'CONSOLIDATED_VERIFICATION',
-                    'Esta competência está consolidada. Apenas o(a) Assistente de Verbas Federais pode incluir, editar ou excluir Notas Fiscais.',
+                    'Esta competência está consolidada. Apenas o(a) Assistente de Verbas Federais pode incluir, editar ou excluir despesas e Notas Fiscais.',
                     operation
                 );
             }
             if (verification?.bonificacao?.notaFiscal === 'Não se aplica') {
                 fail(
                     'FISCAL_NOTES_NOT_APPLICABLE',
-                    'Não é possível adicionar notas fiscais para competências marcadas como "Não se aplica".',
+                    'Não é possível adicionar despesas ou notas fiscais para competências marcadas como "Não se aplica".',
                     operation
                 );
             }
@@ -151,11 +169,13 @@
             const expenseType = text(input.expenseType).toLocaleLowerCase('pt-BR');
             const invoiceNumber = text(input.invoiceNumber);
             const amount = Number(input.amount);
-            if (!description || !EXPENSE_TYPES.has(expenseType) || !invoiceNumber
+            const isUnidentified = expenseType === UNIDENTIFIED_EXPENSE_TYPE;
+            if (!description || !EXPENSE_TYPES.has(expenseType)
+                || (!isUnidentified && !invoiceNumber)
                 || !Number.isFinite(amount) || amount < 0) {
                 fail(
                     'VALIDATION_FAILED',
-                    'Descrição, tipo, número e valor válido da nota são obrigatórios.',
+                    'Descrição, tipo e valor válido são obrigatórios. O número da Nota Fiscal é obrigatório quando a natureza da despesa já foi identificada.',
                     operation
                 );
             }
@@ -271,7 +291,7 @@
                         ? state.registeredInvoices.find(invoice => invoice.id === text(input.id))
                         : null;
                     if (input.id && !existing) {
-                        fail('INVOICE_NOT_FOUND', 'Nota fiscal não localizada.', 'invoice:save', { id: input.id });
+                        fail('INVOICE_NOT_FOUND', 'Despesa ou Nota Fiscal não localizada.', 'invoice:save', { id: input.id });
                     }
                     if (context.verification) {
                         this.reopenConsolidation(
@@ -356,10 +376,25 @@
                     this.syncServiceRequirement(state, context.schoolId, context.compKey);
 
                     let auditLog;
-                    if (existing) {
+                    if (existing && invoiceData.expenseType === UNIDENTIFIED_EXPENSE_TYPE) {
+                        auditLog = this.appendLog(
+                            'Despesa a Identificar Editada',
+                            `Despesa a identificar editada para ${context.school.denominação || ''} no valor de R$ ${invoiceData.amount}; documentação fiscal ainda pendente.`
+                        );
+                    } else if (existing && previousType === UNIDENTIFIED_EXPENSE_TYPE) {
+                        auditLog = this.appendLog(
+                            'Despesa Identificada',
+                            `Despesa anteriormente não identificada foi classificada como ${invoiceData.expenseType} para ${context.school.denominação || ''}, NF ${invoiceData.invoiceNumber}, no valor de R$ ${invoiceData.amount}.`
+                        );
+                    } else if (existing) {
                         auditLog = this.appendLog(
                             'Nota Editada',
                             `Nota Fiscal ${invoiceData.invoiceNumber} editada para ${context.school.denominação || ''} no valor de R$ ${invoiceData.amount}.`
+                        );
+                    } else if (invoiceData.expenseType === UNIDENTIFIED_EXPENSE_TYPE) {
+                        auditLog = this.appendLog(
+                            'Despesa a Identificar Cadastrada',
+                            `Despesa a identificar registrada para ${context.school.denominação || ''}: ${invoiceData.description}, R$ ${invoiceData.amount}; documentação fiscal pendente.`
                         );
                     } else if (invoiceData.expenseType === 'permanente') {
                         auditLog = this.appendLog(
@@ -536,7 +571,7 @@
                     const invoiceId = text(input.id);
                     const index = state.registeredInvoices.findIndex(invoice => invoice.id === invoiceId);
                     if (index < 0) {
-                        fail('INVOICE_NOT_FOUND', 'Nota fiscal não localizada.', 'invoice:remove', { id: invoiceId });
+                        fail('INVOICE_NOT_FOUND', 'Despesa ou Nota Fiscal não localizada.', 'invoice:remove', { id: invoiceId });
                     }
                     const invoice = state.registeredInvoices[index];
                     const context = this.getContext(state, {
@@ -568,21 +603,24 @@
                     this.syncServiceRequirement(state, context.schoolId, context.compKey);
 
                     let resetFiscalAnalysis = false;
-                    const remainingNotes = state.registeredInvoices.filter(item => (
-                        item.escolaId === context.schoolId && item.compKey === context.compKey
+                    const remainingIdentifiedNotes = state.registeredInvoices.filter(item => (
+                        item.escolaId === context.schoolId
+                        && item.compKey === context.compKey
+                        && isIdentifiedInvoice(item)
                     ));
                     const analysis = context.verification?.analise || {};
                     const bonification = context.verification?.bonificacao || {};
-                    if (remainingNotes.length === 0
+                    if (remainingIdentifiedNotes.length === 0
                         && bonification.notaFiscal === 'Sim'
                         && ['Correto', 'Correto (Atrasado)', 'Correto após o prazo'].includes(analysis.notaFiscal)) {
                         analysis.notaFiscal = 'Não analisado';
                         resetFiscalAnalysis = true;
                     }
 
+                    const unidentified = isUnidentifiedExpense(invoice);
                     const auditLog = this.appendLog(
-                        'Nota Fiscal Removida',
-                        `Nota Fiscal ${invoice.numero} de R$ ${invoice.valor} foi excluída da escola ${context.school.denominação || ''}.`
+                        unidentified ? 'Despesa a Identificar Removida' : 'Nota Fiscal Removida',
+                        `${invoiceLabel(invoice)} de R$ ${invoice.valor} foi excluída da escola ${context.school.denominação || ''}.`
                     );
                     return {
                         operation: 'remove',
@@ -600,9 +638,13 @@
     }
 
     return Object.freeze({
+        EXPENSE_TYPES: Object.freeze([...EXPENSE_TYPES]),
         InvoiceService,
         SERVICE_ADVISORY_ANALYSES,
+        UNIDENTIFIED_EXPENSE_TYPE,
+        aggregateServiceAdvisories,
         getServiceAdvisoryState,
-        aggregateServiceAdvisories
+        isIdentifiedInvoice,
+        isUnidentifiedExpense
     });
 }));

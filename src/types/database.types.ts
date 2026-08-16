@@ -693,7 +693,7 @@ export type Database = {
           description: string
           expense_type: string
           id: string
-          invoice_number: string
+          invoice_number: string | null
           linked_asset_id: string | null
           payload: Json
           program_id: string | null
@@ -711,7 +711,7 @@ export type Database = {
           description: string
           expense_type: string
           id: string
-          invoice_number: string
+          invoice_number?: string | null
           linked_asset_id?: string | null
           payload?: Json
           program_id?: string | null
@@ -729,7 +729,7 @@ export type Database = {
           description?: string
           expense_type?: string
           id?: string
-          invoice_number?: string
+          invoice_number?: string | null
           linked_asset_id?: string | null
           payload?: Json
           program_id?: string | null
