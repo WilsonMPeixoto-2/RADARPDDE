@@ -28,10 +28,12 @@
         const select = root.document.getElementById('nota-tipo');
         if (!select) return null;
         if (!select.querySelector(`option[value="${TYPE}"]`)) {
+            const previousValue = select.value;
             const option = root.document.createElement('option');
             option.value = TYPE;
             option.textContent = 'A identificar (documentação pendente)';
             select.prepend(option);
+            if (previousValue) select.value = previousValue;
         }
         if (select.dataset.unidentifiedExpenseBound !== 'true') {
             select.addEventListener('change', syncModalFields);
