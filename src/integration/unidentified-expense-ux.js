@@ -4,6 +4,9 @@
     if (!root?.document || root.RadarUnidentifiedExpenseUx) return;
 
     const TYPE = 'a_identificar';
+    const DEFAULT_DESCRIPTION_PLACEHOLDER = 'Ex: Ar Condicionado Split, Pintura de Sala, Papelaria...';
+    const DEFAULT_NUMBER_PLACEHOLDER = 'Ex: NF-12345';
+    const UNIDENTIFIED_DESCRIPTION_PLACEHOLDER = 'Ex: Saída de R$ 850,00 observada no extrato; documentação pendente';
     let installed = false;
     let originalRenderProntuario = null;
     let originalOpenModal = null;
@@ -28,12 +31,14 @@
         const select = root.document.getElementById('nota-tipo');
         if (!select) return null;
         if (!select.querySelector(`option[value="${TYPE}"]`)) {
-            const previousValue = select.value;
+            const previousValue = select.value || 'consumo';
             const option = root.document.createElement('option');
             option.value = TYPE;
             option.textContent = 'A identificar (documentação pendente)';
-            select.prepend(option);
+            option.defaultSelected = false;
+            select.appendChild(option);
             select.value = previousValue;
+            if (!select.value) select.value = 'consumo';
         }
         if (select.dataset.unidentifiedExpenseBound !== 'true') {
             select.addEventListener('change', syncModalFields);
@@ -63,28 +68,39 @@
 
         const label = root.document.querySelector('label[for="nota-numero"]');
         const hint = ensureHint(numberInput);
+        const modal = root.document.getElementById('modal-dados-nota');
+        const description = root.document.getElementById('nota-desc');
+        const invoiceId = text(root.document.getElementById('nota-id')?.value);
+        const title = modal?.querySelector('h3');
+        const submit = modal?.querySelector('button[type="submit"]');
         const unidentified = select.value === TYPE;
+
         numberInput.required = !unidentified;
         numberInput.setAttribute('aria-required', unidentified ? 'false' : 'true');
         numberInput.placeholder = unidentified
             ? 'Opcional enquanto a documentação estiver pendente'
-            : 'Ex: NF-12345';
+            : DEFAULT_NUMBER_PLACEHOLDER;
         if (label) {
             label.textContent = unidentified
                 ? 'Número da Nota Fiscal (opcional neste estágio)'
                 : 'Número da Nota Fiscal';
         }
         if (hint) hint.hidden = !unidentified;
+        if (description) {
+            description.placeholder = unidentified
+                ? UNIDENTIFIED_DESCRIPTION_PLACEHOLDER
+                : DEFAULT_DESCRIPTION_PLACEHOLDER;
+        }
 
-        const modal = root.document.getElementById('modal-dados-nota');
-        const invoiceId = text(root.document.getElementById('nota-id')?.value);
-        if (unidentified && modal) {
-            const title = modal.querySelector('h3');
-            const submit = modal.querySelector('button[type="submit"]');
-            if (title) title.textContent = invoiceId
-                ? 'Editar despesa a identificar'
-                : 'Registrar despesa a identificar';
-            if (submit) submit.textContent = invoiceId ? 'Salvar Alterações' : 'Registrar Despesa';
+        if (title) {
+            title.textContent = unidentified
+                ? (invoiceId ? 'Editar despesa a identificar' : 'Registrar despesa a identificar')
+                : (invoiceId ? 'Editar Dados da Nota Fiscal' : 'Dados da Nota Fiscal / Despesa');
+        }
+        if (submit) {
+            submit.textContent = unidentified
+                ? (invoiceId ? 'Salvar Alterações' : 'Registrar Despesa')
+                : (invoiceId ? 'Salvar Alterações' : 'Salvar Gasto');
         }
         return unidentified;
     }
@@ -98,10 +114,7 @@
         select.value = TYPE;
         syncModalFields();
         const description = root.document.getElementById('nota-desc');
-        if (description) {
-            description.placeholder = 'Ex: Saída de R$ 850,00 observada no extrato; documentação pendente';
-            description.focus({ preventScroll: true });
-        }
+        if (description) description.focus({ preventScroll: true });
         return true;
     }
 
@@ -156,6 +169,8 @@
             if (firstTextNode) {
                 firstTextNode.textContent = ` Despesa a identificar${reference} (R$ ${amount}) `;
             }
+            badge.querySelector('[title="Editar Nota"]')?.setAttribute('title', 'Editar despesa');
+            badge.querySelector('[title="Excluir Nota"]')?.setAttribute('title', 'Excluir despesa');
         });
     }
 
