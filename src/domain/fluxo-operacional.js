@@ -207,8 +207,10 @@
 
     function isIdentifiedFiscalNote(note = {}) {
         const expenseType = normalizeText(note.tipo || note.expense_type).toLocaleLowerCase('pt-BR');
+        if (expenseType === 'a_identificar') return false;
+        if (!expenseType) return true;
         const invoiceNumber = normalizeText(note.numero || note.invoice_number || note.notaFiscal);
-        return expenseType !== 'a_identificar' && Boolean(invoiceNumber);
+        return Boolean(invoiceNumber);
     }
 
     function shouldRequireFiscalNote(input = {}) {
