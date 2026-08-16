@@ -147,6 +147,24 @@
         return Math.sign(leftParsed.sortValue - rightParsed.sortValue);
     }
 
+    function competenceKeyFromDate(referenceDate = new Date()) {
+        const date = referenceDate instanceof Date
+            ? referenceDate
+            : new Date(referenceDate);
+        if (Number.isNaN(date.getTime())) {
+            throw new TypeError('A data de referência da competência é inválida.');
+        }
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    }
+
+    function isFutureCompetence(value, referenceDate = new Date()) {
+        const parsed = parseCompetencia(value);
+        if (!parsed) {
+            throw new TypeError('A competência consultada deve utilizar o padrão YYYY-MM.');
+        }
+        return compareCompetencias(parsed.key, competenceKeyFromDate(referenceDate)) > 0;
+    }
+
     function isCompetenciaInRange(value, start, end) {
         const parsedValue = parseCompetencia(value);
         const parsedStart = start ? parseCompetencia(start) : null;
@@ -177,10 +195,12 @@
     return Object.freeze({
         MONTH_NAMES_PT_BR,
         compareCompetencias,
+        competenceKeyFromDate,
         formatCompetencia,
         formatCompetenciaContext,
         getBaseCompetenciaKey,
         isCompetenciaInRange,
+        isFutureCompetence,
         isValidCompetenciaKey,
         parseCompetencia,
         splitCompetenciaContext
