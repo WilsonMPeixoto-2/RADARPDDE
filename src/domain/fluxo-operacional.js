@@ -27,6 +27,7 @@
     const EDITABLE_PROFILES = new Set(['controlador', 'assistente']);
     const CORRECT_ANALYSES = new Set(['Correto', 'Correto (Atrasado)']);
     const ACTIVE_PENDENCY_STATUSES = new Set(['Aberta', 'Aguardando reanálise']);
+    const CONSOLIDATED_BONUS_RESULTS = new Set(['apta', 'inapta']);
 
     function normalizeText(value) {
         return typeof value === 'string' ? value.trim() : '';
@@ -101,6 +102,17 @@
             status,
             missingFields: Object.freeze([])
         });
+    }
+
+    function requiresLateCorrect(input = {}) {
+        const bonusResult = normalizeText(input.bonusResult || input.resultadoBonif).toLocaleLowerCase('pt-BR');
+        const deliveryStatus = normalizeText(
+            input.deliveryStatus
+            || input.bonificacaoValue
+            || input.bonificationValue
+        );
+        return CONSOLIDATED_BONUS_RESULTS.has(bonusResult)
+            && deliveryStatus === 'Não';
     }
 
     function hasStartedValue(value) {
@@ -212,6 +224,7 @@
         getProgramBonificationStatus,
         getProgramTechnicalAnalysisStatus,
         pendencyMatchesContext,
+        requiresLateCorrect,
         shouldRequireFiscalNote
     });
 }));
