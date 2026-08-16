@@ -134,10 +134,12 @@ test('Assistente executa cadastro, edição, redistribuição e desativação re
     });
     await services.directory.deactivateInventoryMember({ memberId });
 
-    const controllerDeactivated = await services.directory.deactivateController({
-      controllerId,
-      fallbackControllerId: originalControllerId
+    // Regra real: a carteira deve ser zerada antes da desativação definitiva.
+    const returned = await services.schools.bulkAssignController({
+      schoolIds: [originalSchool.id],
+      controllerId: originalControllerId
     });
+    const controllerDeactivated = await services.directory.deactivateController({ controllerId });
 
     const [remoteControllers, remoteMembers, remoteSchools, remoteLogs] = await Promise.all([
       repository.load('controllers'),
@@ -155,6 +157,7 @@ test('Assistente executa cadastro, edição, redistribuição e desativação re
       editedControllerName: controllerEdited.value.controller.name,
       editedMemberName: memberEdited.value.member.name,
       assignedCount: assigned.value.updatedCount,
+      returnedCount: returned.value.updatedCount,
       assignedControllerId: schoolAfterAssignment?.controller_id,
       deactivatedControllerId: controllerDeactivated.value.controllerId,
       finalControllerActive: finalController?.active,
@@ -162,6 +165,7 @@ test('Assistente executa cadastro, edição, redistribuição e desativação re
       finalMemberActive: finalMember?.active,
       finalMemberUserId: finalMember?.user_id,
       finalSchoolControllerId: finalSchool?.controller_id,
+      originalControllerId,
       managementLogCount: remoteLogs.filter(log => [
         'Gestão de Equipe',
         'Redistribuição em Lote'
@@ -172,12 +176,13 @@ test('Assistente executa cadastro, edição, redistribuição e desativação re
   expect(result.editedControllerName).toContain('Editado');
   expect(result.editedMemberName).toContain('Editado');
   expect(result.assignedCount).toBe(1);
+  expect(result.returnedCount).toBe(1);
   expect(result.assignedControllerId).toBe(result.controllerId);
   expect(result.deactivatedControllerId).toBe(result.controllerId);
   expect(result.finalControllerActive).toBe(false);
   expect(result.finalControllerUserId).toBeTruthy();
   expect(result.finalMemberActive).toBe(false);
   expect(result.finalMemberUserId).toBeTruthy();
-  expect(result.finalSchoolControllerId).not.toBe(result.controllerId);
-  expect(result.managementLogCount).toBeGreaterThanOrEqual(5);
+  expect(result.finalSchoolControllerId).toBe(result.originalControllerId);
+  expect(result.managementLogCount).toBeGreaterThanOrEqual(6);
 });
