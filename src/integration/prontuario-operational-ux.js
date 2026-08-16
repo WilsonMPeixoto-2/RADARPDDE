@@ -4,6 +4,7 @@
     if (!root?.document || root.RadarProntuarioOperationalUx) return;
 
     const SENT_LABEL_PREFIX = 'Consulta enviada à Assessoria para a NF ';
+    const CONSOLIDATED_BONUS_LABELS = new Set(['apta', 'inapta']);
     let installed = false;
     let originalRenderProntuario = null;
 
@@ -99,14 +100,154 @@
         });
     }
 
-    function enhanceProntuario() {
+    function isProgramBonificationConsolidated(group) {
+        const badge = group.contextCell?.querySelector('[data-status-dimension="bonificacao"]');
+        return CONSOLIDATED_BONUS_LABELS.has(text(badge?.textContent).toLocaleLowerCase('pt-BR'));
+    }
+
+    function rowWasNotDelivered(row) {
+        if (row.querySelector('.btn-toggle.active-nao')) return true;
+        const readOnlyValue = row.querySelector('[data-bonification-value]');
+        return text(readOnlyValue?.getAttribute('data-bonification-value')) === 'Não'
+            || text(readOnlyValue?.textContent) === 'Não';
+    }
+
+    function applyLateCorrectRestriction(group) {
+        const consolidated = isProgramBonificationConsolidated(group);
+        group.rows.forEach(row => {
+            const requiresLate = consolidated
+                && rowWasNotDelivered(row)
+                && root.RadarFluxoOperacional?.requiresLateCorrect?.({
+                    bonusResult: 'inapta',
+                    deliveryStatus: 'Não'
+                }) === true;
+
+            row.querySelectorAll('select.select-analise').forEach(select => {
+                const correctOption = select.querySelector('option[value="Correto"]');
+                if (!correctOption) return;
+
+                if (requiresLate) {
+                    correctOption.disabled = true;
+                    correctOption.dataset.lateCorrectDisabled = 'true';
+                    select.setAttribute('data-late-correct-required', 'true');
+                    select.title = 'Documento não entregue no período consolidado: se estiver correto após envio posterior, use Correto (Atrasado).';
+                    return;
+                }
+
+                if (correctOption.dataset.lateCorrectDisabled === 'true') {
+                    correctOption.disabled = false;
+                    delete correctOption.dataset.lateCorrectDisabled;
+                }
+                select.removeAttribute('data-late-correct-required');
+                if (select.title.startsWith('Documento não entregue no período consolidado:')) {
+                    select.removeAttribute('title');
+                }
+            });
+        });
+    }
+
+    function restoreFutureCompetenceControls() {
+        root.document.querySelectorAll('[data-future-competence-disabled="true"]').forEach(control => {
+            control.disabled = false;
+            delete control.dataset.futureCompetenceDisabled;
+            if (control.getAttribute('aria-disabled') === 'true') {
+                control.removeAttribute('aria-disabled');
+            }
+        });
+    }
+
+    function removeFutureCompetenceNotice() {
+        root.document.querySelector('[data-future-competence-notice]')?.remove();
+    }
+
+    function decorateCompetenceTabs(referenceDate) {
+        const competenceApi = root.RadarCompetencia;
+        if (!competenceApi?.isFutureCompetence) return;
+
+        root.document.querySelectorAll('.comp-sub-tab[data-competence]').forEach(tab => {
+            let future = false;
+            try {
+                future = competenceApi.isFutureCompetence(tab.dataset.competence, referenceDate);
+            } catch (_error) {
+                future = false;
+            }
+            tab.classList.toggle('future-competence-tab', future);
+            if (future) tab.dataset.futureCompetence = 'true';
+            else delete tab.dataset.futureCompetence;
+        });
+    }
+
+    function getActiveCompetenceKey() {
+        const activeTab = root.document.querySelector(
+            '.comp-sub-tab.active[data-competence], .comp-sub-tab[aria-pressed="true"][data-competence]'
+        );
+        return text(activeTab?.dataset?.competence);
+    }
+
+    function createFutureCompetenceNotice(competenceKey) {
+        const notice = root.document.createElement('div');
+        notice.className = 'future-competence-notice';
+        notice.setAttribute('data-future-competence-notice', 'true');
+        notice.setAttribute('role', 'note');
+
+        const strong = root.document.createElement('strong');
+        strong.textContent = 'Competência futura · somente leitura';
+        const detail = root.document.createElement('span');
+        const label = root.RadarCompetencia?.formatCompetencia?.(competenceKey) || competenceKey;
+        detail.textContent = ` ${label} permanecerá disponível para consulta, mas os lançamentos serão liberados somente no início do respectivo mês.`;
+        notice.append(strong, detail);
+        return notice;
+    }
+
+    function applyFutureCompetenceReadOnly(referenceDate) {
+        restoreFutureCompetenceControls();
+        removeFutureCompetenceNotice();
+        decorateCompetenceTabs(referenceDate);
+
+        const competenceApi = root.RadarCompetencia;
+        const activeCompetence = getActiveCompetenceKey();
+        if (!competenceApi?.isFutureCompetence || !activeCompetence) return false;
+
+        let isFuture = false;
+        try {
+            isFuture = competenceApi.isFutureCompetence(activeCompetence, referenceDate);
+        } catch (_error) {
+            return false;
+        }
+        if (!isFuture) return false;
+
+        const tabPanel = root.document.getElementById('tab-verificacoes');
+        const competenceTabs = tabPanel?.querySelector('.comp-tabs-container');
+        const rowsContainer = root.document.getElementById('prontuario-verif-rows');
+        if (!tabPanel || !rowsContainer) return false;
+
+        const notice = createFutureCompetenceNotice(activeCompetence);
+        if (competenceTabs) competenceTabs.insertAdjacentElement('afterend', notice);
+        else tabPanel.prepend(notice);
+
+        rowsContainer.querySelectorAll('button, input, select, textarea').forEach(control => {
+            if (control.disabled) return;
+            control.disabled = true;
+            control.dataset.futureCompetenceDisabled = 'true';
+            control.setAttribute('aria-disabled', 'true');
+        });
+        return true;
+    }
+
+    function enhanceProntuario(referenceDate = new Date()) {
         const rows = getVerificationRows();
-        if (!rows.length) return false;
+        decorateCompetenceTabs(referenceDate);
+        if (!rows.length) {
+            applyFutureCompetenceReadOnly(referenceDate);
+            return false;
+        }
 
         getProgramGroups(rows).forEach(group => {
             decorateProgramGroup(group);
             moveServiceAdvisoryControls(group);
+            applyLateCorrectRestriction(group);
         });
+        applyFutureCompetenceReadOnly(referenceDate);
         return true;
     }
 
