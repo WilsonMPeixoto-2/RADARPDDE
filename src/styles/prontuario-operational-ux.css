@@ -35,7 +35,7 @@
     border: 1px solid var(--warning);
     border-radius: 8px;
     background: var(--warning-bg);
-    color: var(--text-primary);
+    color: var(--text-main);
     font-size: 0.8rem;
     line-height: 1.45;
 }
