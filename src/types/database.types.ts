@@ -287,60 +287,42 @@ export type Database = {
       data_import_runs: {
         Row: {
           completed_at: string | null
-          completed_batches: Json
           created_at: string
-          created_by: string | null
-          entity_counts: Json
-          error_message: string
+          error_report: Json
           id: string
-          import_id: string
-          reconciliation_report: Json
-          rollback_snapshot: Json | null
-          snapshot_format: string
-          snapshot_version: string
+          metrics: Json
+          requested_by: string
+          rollback_at: string | null
           source_hash: string
-          source_label: string
+          source_payload: Json
           started_at: string
           status: string
-          updated_at: string
         }
         Insert: {
           completed_at?: string | null
-          completed_batches?: Json
           created_at?: string
-          created_by?: string | null
-          entity_counts?: Json
-          error_message?: string
-          id?: string
-          import_id: string
-          reconciliation_report?: Json
-          rollback_snapshot?: Json | null
-          snapshot_format: string
-          snapshot_version: string
+          error_report?: Json
+          id: string
+          metrics?: Json
+          requested_by: string
+          rollback_at?: string | null
           source_hash?: string
-          source_label?: string
+          source_payload?: Json
           started_at?: string
           status: string
-          updated_at?: string
         }
         Update: {
           completed_at?: string | null
-          completed_batches?: Json
           created_at?: string
-          created_by?: string | null
-          entity_counts?: Json
-          error_message?: string
+          error_report?: Json
           id?: string
-          import_id?: string
-          reconciliation_report?: Json
-          rollback_snapshot?: Json | null
-          snapshot_format?: string
-          snapshot_version?: string
+          metrics?: Json
+          requested_by?: string
+          rollback_at?: string | null
           source_hash?: string
-          source_label?: string
+          source_payload?: Json
           started_at?: string
           status?: string
-          updated_at?: string
         }
         Relationships: []
       }
@@ -349,45 +331,49 @@ export type Database = {
           batch_index: number
           created_at: string
           entity: string
+          id: string
           import_id: string
+          normalized_id: string
           payload: Json
-          record_id: string
+          record_index: number
           source_hash: string
-          updated_at: string
         }
         Insert: {
           batch_index: number
           created_at?: string
           entity: string
+          id: string
           import_id: string
+          normalized_id: string
           payload: Json
-          record_id: string
+          record_index: number
           source_hash: string
-          updated_at?: string
         }
         Update: {
           batch_index?: number
           created_at?: string
           entity?: string
+          id?: string
           import_id?: string
+          normalized_id?: string
           payload?: Json
-          record_id?: string
+          record_index?: number
           source_hash?: string
-          updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "data_import_staging_import_id_fkey"
-            columns: ["import_id"]
-            isOneToOne: false
-            referencedRelation: "data_import_runs"
-            referencedColumns: ["import_id"]
+            foreignKeyName: "data_import_staging_import_id_fkey",
+            columns: ["import_id"],
+            isOneToOne: false,
+            referencedRelation: "data_import_runs",
+            referencedColumns: ["id"]
           },
         ]
       }
       inventory_team_members: {
         Row: {
           active: boolean
+          cre: string
           created_at: string
           email: string
           id: string
@@ -398,6 +384,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          cre?: string
           created_at?: string
           email?: string
           id: string
@@ -408,6 +395,7 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          cre?: string
           created_at?: string
           email?: string
           id?: string
@@ -427,6 +415,7 @@ export type Database = {
           id: string
           next_actor: string
           notes: string
+          operation_id: string
           opened_at: string
           payload: Json
           program_id: string | null
@@ -446,6 +435,7 @@ export type Database = {
           id: string
           next_actor?: string
           notes?: string
+          operation_id: string
           opened_at?: string
           payload?: Json
           program_id?: string | null
@@ -465,6 +455,7 @@ export type Database = {
           id?: string
           next_actor?: string
           notes?: string
+          operation_id?: string
           opened_at?: string
           payload?: Json
           program_id?: string | null
@@ -477,13 +468,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "pendencies_competence_origin_fkey"
-            columns: ["competence_origin"]
-            isOneToOne: false
-            referencedRelation: "competences"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "pendencies_program_id_fkey"
             columns: ["program_id"]
@@ -505,11 +489,10 @@ export type Database = {
           analyzed_at: string | null
           attempt_number: number
           created_at: string
-          created_by: string | null
+          description: string
           drive_url: string
           errors: Json
           id: string
-          observation: string
           payload: Json
           pendency_id: string
           result: string | null
@@ -521,11 +504,10 @@ export type Database = {
           analyzed_at?: string | null
           attempt_number: number
           created_at?: string
-          created_by?: string | null
+          description?: string
           drive_url?: string
           errors?: Json
           id: string
-          observation?: string
           payload?: Json
           pendency_id: string
           result?: string | null
@@ -537,11 +519,10 @@ export type Database = {
           analyzed_at?: string | null
           attempt_number?: number
           created_at?: string
-          created_by?: string | null
+          description?: string
           drive_url?: string
           errors?: Json
           id?: string
-          observation?: string
           payload?: Json
           pendency_id?: string
           result?: string | null
@@ -564,11 +545,10 @@ export type Database = {
           contact_date: string
           contact_type: string
           created_at: string
-          created_by: string | null
           description: string
           id: string
           official_charge: boolean
-          operation_id: string | null
+          operation_id: string
           payload: Json
           pendency_id: string | null
           row_version: number
@@ -577,13 +557,12 @@ export type Database = {
         }
         Insert: {
           contact_date: string
-          contact_type: string
+          contact_type?: string
           created_at?: string
-          created_by?: string | null
-          description: string
+          description?: string
           id: string
           official_charge?: boolean
-          operation_id?: string | null
+          operation_id: string
           payload?: Json
           pendency_id?: string | null
           row_version?: number
@@ -594,11 +573,10 @@ export type Database = {
           contact_date?: string
           contact_type?: string
           created_at?: string
-          created_by?: string | null
           description?: string
           id?: string
           official_charge?: boolean
-          operation_id?: string | null
+          operation_id?: string
           payload?: Json
           pendency_id?: string | null
           row_version?: number
@@ -614,7 +592,7 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "pendency_contacts_school_id_fkey"
+            foreignKeyName: "pendency_contacts_school_id_fkey",
             columns: ["school_id"]
             isOneToOne: false
             referencedRelation: "schools"
@@ -624,33 +602,33 @@ export type Database = {
       }
       profiles: {
         Row: {
-          active: boolean
+          can_edit_programs: boolean
           created_at: string
           description: string
           id: string
           label: string
-          priority: number
-          row_version: number
+          permissions: Json
+          protected: boolean
           updated_at: string
         }
         Insert: {
-          active?: boolean
+          can_edit_programs_?: boolean
           created_at?: string
           description?: string
           id: string
           label: string
-          priority?: number
-          row_version?: number
+          permissions?: Json
+          protected?: boolean
           updated_at?: string
         }
         Update: {
-          active?: boolean
+          can_edit_programs_?: boolean
           created_at?: string
           description?: string
           id?: string
           label?: string
-          priority?: number
-          row_version?: number
+          permissions?: Json
+          protected?: boolean
           updated_at?: string
         }
         Relationships: []
@@ -693,7 +671,7 @@ export type Database = {
           description: string
           expense_type: string
           id: string
-          invoice_number: string
+          invoice_number: string | null
           linked_asset_id: string | null
           payload: Json
           program_id: string | null
@@ -711,7 +689,7 @@ export type Database = {
           description: string
           expense_type: string
           id: string
-          invoice_number: string
+          invoice_number?: string | null
           linked_asset_id?: string | null
           payload?: Json
           program_id?: string | null
@@ -729,7 +707,7 @@ export type Database = {
           description?: string
           expense_type?: string
           id?: string
-          invoice_number?: string
+          invoice_number?: string | null
           linked_asset_id?: string | null
           payload?: Json
           program_id?: string | null
@@ -742,7 +720,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "registered_invoices_competence_id_fkey"
+            foreignKeyName: "registered_invoices_competence_id_fkey",
             columns: ["competence_id"]
             isOneToOne: false
             referencedRelation: "competences"
@@ -769,648 +747,4 @@ export type Database = {
             referencedRelation: "schools"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "registered_invoices_verification_id_fkey"
-            columns: ["verification_id"]
-            isOneToOne: false
-            referencedRelation: "verifications"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      school_programs: {
-        Row: {
-          active: boolean
-          created_at: string
-          ends_on: string | null
-          id: string
-          program_id: string
-          row_version: number
-          school_id: string
-          starts_on: string | null
-          updated_at: string
-        }
-        Insert: {
-          active?: boolean
-          created_at?: string
-          ends_on?: string | null
-          id: string
-          program_id: string
-          row_version?: number
-          school_id: string
-          starts_on?: string | null
-          updated_at?: string
-        }
-        Update: {
-          active?: boolean
-          created_at?: string
-          ends_on?: string | null
-          id?: string
-          program_id?: string
-          row_version?: number
-          school_id?: string
-          starts_on?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "school_programs_program_id_fkey"
-            columns: ["program_id"]
-            isOneToOne: false
-            referencedRelation: "programs"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "school_programs_school_id_fkey"
-            columns: ["school_id"]
-            isOneToOne: false
-            referencedRelation: "schools"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      schools: {
-        Row: {
-          active: boolean
-          cnpj: string
-          controller_id: string | null
-          cre: string
-          created_at: string
-          denomination: string
-          deputy_director_name: string
-          deputy_director_phone: string
-          designation: string
-          director_name: string
-          director_phone: string
-          email: string
-          id: string
-          inep: string
-          initial_competence: string | null
-          institutional_mobile: string
-          inventory_process: string
-          phone: string
-          ra: string
-          row_version: number
-          sici: string
-          updated_at: string
-        }
-        Insert: {
-          active?: boolean
-          cnpj?: string
-          controller_id?: string | null
-          cre: string
-          created_at?: string
-          denomination: string
-          deputy_director_name?: string
-          deputy_director_phone?: string
-          designation: string
-          director_name?: string
-          director_phone?: string
-          email?: string
-          id: string
-          inep?: string
-          initial_competence?: string | null
-          institutional_mobile?: string
-          inventory_process?: string
-          phone?: string
-          ra?: string
-          row_version?: number
-          sici?: string
-          updated_at?: string
-        }
-        Update: {
-          active?: boolean
-          cnpj?: string
-          controller_id?: string | null
-          cre?: string
-          created_at?: string
-          denomination?: string
-          deputy_director_name?: string
-          deputy_director_phone?: string
-          designation?: string
-          director_name?: string
-          director_phone?: string
-          email?: string
-          id?: string
-          inep?: string
-          initial_competence?: string | null
-          institutional_mobile?: string
-          inventory_process?: string
-          phone?: string
-          ra?: string
-          row_version?: number
-          sici?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "schools_controller_id_fkey"
-            columns: ["controller_id"]
-            isOneToOne: false
-            referencedRelation: "controllers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "schools_initial_competence_fkey"
-            columns: ["initial_competence"]
-            isOneToOne: false
-            referencedRelation: "competences"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_profiles: {
-        Row: {
-          active: boolean
-          controller_id: string | null
-          cre_scope: string | null
-          created_at: string
-          id: string
-          inventory_member_id: string | null
-          profile_id: string
-          row_version: number
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          active?: boolean
-          controller_id?: string | null
-          cre_scope?: string | null
-          created_at?: string
-          id?: string
-          inventory_member_id?: string | null
-          profile_id: string
-          row_version?: number
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          active?: boolean
-          controller_id?: string | null
-          cre_scope?: string | null
-          created_at?: string
-          id?: string
-          inventory_member_id?: string | null
-          profile_id?: string
-          row_version?: number
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_profiles_controller_id_fkey"
-            columns: ["controller_id"]
-            isOneToOne: false
-            referencedRelation: "controllers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_profiles_inventory_member_id_fkey"
-            columns: ["inventory_member_id"]
-            isOneToOne: false
-            referencedRelation: "inventory_team_members"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_profiles_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_school_scopes: {
-        Row: {
-          can_write: boolean
-          created_at: string
-          id: string
-          school_id: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          can_write?: boolean
-          created_at?: string
-          id?: string
-          school_id: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          can_write?: boolean
-          created_at?: string
-          id?: string
-          school_id?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_school_scopes_school_id_fkey"
-            columns: ["school_id"]
-            isOneToOne: false
-            referencedRelation: "schools"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      verifications: {
-        Row: {
-          analysis: Json
-          bonification: Json
-          bonus_result: string | null
-          competence_id: string
-          created_at: string
-          id: string
-          payload: Json
-          program_id: string
-          row_version: number
-          school_id: string
-          updated_at: string
-        }
-        Insert: {
-          analysis?: Json
-          bonification?: Json
-          bonus_result?: string | null
-          competence_id: string
-          created_at?: string
-          id: string
-          payload?: Json
-          program_id: string
-          row_version?: number
-          school_id: string
-          updated_at?: string
-        }
-        Update: {
-          analysis?: Json
-          bonification?: Json
-          bonus_result?: string | null
-          competence_id?: string
-          created_at?: string
-          id?: string
-          payload?: Json
-          program_id?: string
-          row_version?: number
-          school_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "verifications_competence_id_fkey"
-            columns: ["competence_id"]
-            isOneToOne: false
-            referencedRelation: "competences"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "verifications_program_id_fkey"
-            columns: ["program_id"]
-            isOneToOne: false
-            referencedRelation: "programs"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "verifications_school_id_fkey"
-            columns: ["school_id"]
-            isOneToOne: false
-            referencedRelation: "schools"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      apply_functional_snapshot: { Args: { p_snapshot: Json }; Returns: Json }
-      assign_controller_with_log: {
-        Args: { p_administrative_log: Json; p_schools: Json }
-        Returns: Json
-      }
-      begin_data_import: {
-        Args: {
-          p_entity_counts: Json
-          p_import_id: string
-          p_snapshot_format: string
-          p_snapshot_version: string
-          p_source_hash: string
-        }
-        Returns: Json
-      }
-      can_access_school: { Args: { p_school_id: string }; Returns: boolean }
-      can_write_school: { Args: { p_school_id: string }; Returns: boolean }
-      capture_functional_snapshot: {
-        Args: { p_import_id: string }
-        Returns: Json
-      }
-      complete_data_import: {
-        Args: {
-          p_import_id: string
-          p_reconciliation: Json
-          p_source_hash: string
-        }
-        Returns: Json
-      }
-      current_app_role: { Args: never; Returns: string }
-      current_controller_id: { Args: never; Returns: string }
-      deactivate_controller_account: {
-        Args: {
-          p_actor_user_id: string
-          p_administrative_log: Json
-          p_controller_id: string
-          p_fallback_controller_id: string
-        }
-        Returns: Json
-      }
-      deactivate_inventory_member_account: {
-        Args: {
-          p_actor_user_id: string
-          p_administrative_log: Json
-          p_member_id: string
-        }
-        Returns: Json
-      }
-      delete_invoice_with_effects: {
-        Args: {
-          p_administrative_log?: Json
-          p_delete_linked_asset?: boolean
-          p_expected_asset_version?: number
-          p_expected_invoice_version: number
-          p_expected_verification_version?: number
-          p_invoice_id: string
-          p_verification_patch?: Json
-        }
-        Returns: Json
-      }
-      insert_team_management_log: {
-        Args: { p_actor_user_id: string; p_log: Json; p_profile_name: string }
-        Returns: string
-      }
-      load_staged_import: { Args: { p_import_id: string }; Returns: Json }
-      production_integrity_check: { Args: never; Returns: Json }
-      promote_data_import: {
-        Args: {
-          p_entity_counts: Json
-          p_import_id: string
-          p_snapshot: Json
-          p_source_hash: string
-        }
-        Returns: Json
-      }
-      radar_json_schema: { Args: { p_contract: string }; Returns: Json }
-      radar_jsonb_matches: {
-        Args: { p_contract: string; p_value: Json }
-        Returns: boolean
-      }
-      reanalyze_pendency_with_verification: {
-        Args: {
-          p_administrative_log?: Json
-          p_attempt: Json
-          p_expected_pendency_version: number
-          p_expected_verification_version: number
-          p_pendency: Json
-          p_verification_patch: Json
-        }
-        Returns: Json
-      }
-      resolve_team_auth_user_id_by_email: {
-        Args: { p_email: string }
-        Returns: string
-      }
-      rollback_data_import: { Args: { p_import_id: string }; Returns: Json }
-      save_asset_with_log: {
-        Args: {
-          p_administrative_log: Json
-          p_asset: Json
-          p_expected_version: number
-        }
-        Returns: Json
-      }
-      save_calendar_with_log: {
-        Args: {
-          p_administrative_log: Json
-          p_config: Json
-          p_expected_version: number
-        }
-        Returns: Json
-      }
-      save_exercise_with_competences: {
-        Args: {
-          p_administrative_log?: Json
-          p_competences: Json
-          p_config: Json
-        }
-        Returns: Json
-      }
-      save_invoice_with_effects: {
-        Args: {
-          p_administrative_log?: Json
-          p_asset?: Json
-          p_expected_asset_version?: number
-          p_expected_invoice_version?: number
-          p_expected_verification_version?: number
-          p_invoice: Json
-          p_verification_patch?: Json
-        }
-        Returns: Json
-      }
-      save_pendency_command: {
-        Args: {
-          p_administrative_log: Json
-          p_attempt: Json
-          p_expected_pendency_version: number
-          p_expected_verification_version: number
-          p_operation: string
-          p_pendency: Json
-          p_verification: Json
-        }
-        Returns: Json
-      }
-      save_pendency_contact_with_log: {
-        Args: {
-          p_administrative_log: Json
-          p_contact: Json
-          p_operation_id: string
-        }
-        Returns: Json
-      }
-      save_program_with_log: {
-        Args: {
-          p_administrative_log: Json
-          p_expected_version: number
-          p_program: Json
-        }
-        Returns: Json
-      }
-      save_school_with_programs: {
-        Args: {
-          p_administrative_log?: Json
-          p_expected_school_version?: number
-          p_programs: Json
-          p_school: Json
-        }
-        Returns: Json
-      }
-      save_verification_with_log: {
-        Args: {
-          p_administrative_log?: Json
-          p_expected_version?: number
-          p_verification: Json
-        }
-        Returns: Json
-      }
-      stage_data_import_batch: {
-        Args: {
-          p_batch_index: number
-          p_entity: string
-          p_import_id: string
-          p_records: Json
-          p_source_hash: string
-        }
-        Returns: Json
-      }
-      upsert_team_member_account: {
-        Args: {
-          p_actor_user_id: string
-          p_administrative_log: Json
-          p_member: Json
-          p_profile_id: string
-          p_user_id: string
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-}
-
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
-
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
-
-export type Tables<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-      Row: infer R
-    }
-    ? R
-    : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R
-      }
-      ? R
-      : never
-    : never
-
-export type TablesInsert<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
-    }
-    ? I
-    : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I
-      }
-      ? I
-      : never
-    : never
-
-export type TablesUpdate<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
-    }
-    ? U
-    : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U
-      }
-      ? U
-      : never
-    : never
-
-export type Enums<
-  DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
-    | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
-> = DefaultSchemaEnumNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never
-
-export type CompositeTypes<
-  PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
-> = PublicCompositeTypeNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
-
-export const Constants = {
-  public: {
-    Enums: {},
-  },
-} as const
-
+          
