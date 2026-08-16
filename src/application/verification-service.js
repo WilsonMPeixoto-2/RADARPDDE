@@ -347,6 +347,17 @@
                                 'setTechnicalAnalysis'
                             );
                         }
+                        if (value === 'Correto' && this.flow.requiresLateCorrect({
+                            bonusResult: verification.resultadoBonif,
+                            deliveryStatus: verification.bonificacao[documentKey]
+                        })) {
+                            fail(
+                                'LATE_ANALYSIS_REQUIRED',
+                                'Este documento não foi entregue no período da bonificação já consolidada. Se o arquivo recebido posteriormente estiver correto, registre como "Correto (Atrasado)".',
+                                'setTechnicalAnalysis',
+                                { documentKey }
+                            );
+                        }
                         const fiscalNotes = list(state.registeredInvoices).filter(note => (
                             note.escolaId === schoolId && note.compKey === compKey
                         ));
