@@ -1,0 +1,28 @@
+.unidentified-expense-hint {
+    display: block;
+    margin-top: 6px;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    line-height: 1.35;
+}
+
+.unidentified-expense-hint[hidden] {
+    display: none;
+}
+
+.unidentified-expense-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 7px;
+}
+
+.unidentified-expense-button {
+    font-size: 0.65rem;
+    padding: 3px 7px;
+}
+
+.unidentified-expense-badge {
+    border-style: dashed;
+    font-weight: 600;
+}
