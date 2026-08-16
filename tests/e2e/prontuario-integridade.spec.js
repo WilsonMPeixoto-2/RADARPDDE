@@ -25,17 +25,16 @@ test.describe('Prontuário — integridade temporal', () => {
         && isCompetenceInScope(candidate.competenciaInicial, future.key)
       ));
 
-      activeProntuarioCompetencia = future.key;
       switchView('prontuario', escola.id);
-      window.RadarProntuarioOperationalUx.enhance(referenceDate);
-
       return { escolaId: escola.id, futureKey: future.key, currentKey: current.key };
     });
 
     const futureTab = page.locator(`.comp-sub-tab[data-competence="${context.futureKey}"]`);
     await expect(futureTab).toBeVisible();
-    await expect(futureTab).toHaveAttribute('aria-pressed', 'true');
     await expect(futureTab).toBeEnabled();
+
+    await futureTab.click();
+    await expect(futureTab).toHaveAttribute('aria-pressed', 'true');
     await expect(page.locator('[data-future-competence-notice]')).toContainText('Competência futura');
 
     const analysisControls = page.locator('#prontuario-verif-rows select.select-analise');
@@ -45,12 +44,9 @@ test.describe('Prontuário — integridade temporal', () => {
       await expect(operationalButtons.first()).toBeDisabled();
     }
 
-    await page.evaluate(({ escolaId, currentKey }) => {
-      activeProntuarioCompetencia = currentKey;
-      renderProntuario(escolaId);
-      window.RadarProntuarioOperationalUx.enhance(new Date(2026, 7, 16, 12, 0, 0));
-    }, context);
-
+    const currentTab = page.locator(`.comp-sub-tab[data-competence="${context.currentKey}"]`);
+    await currentTab.click();
+    await expect(currentTab).toHaveAttribute('aria-pressed', 'true');
     await expect(page.locator('[data-future-competence-notice]')).toHaveCount(0);
     await expect(page.locator('#prontuario-verif-rows select.select-analise').first()).toBeEnabled();
   });
