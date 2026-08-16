@@ -26,6 +26,10 @@ function createHarness() {
             controladorId: 'CTRL-1',
             processoInventario: '',
             programasIds: ['BASIC', 'OLD'],
+            programasVinculos: [
+                { id: 'LINK-BASIC', programaId: 'BASIC', ativo: true, rowVersion: 2 },
+                { id: 'LINK-OLD', programaId: 'OLD', ativo: true, rowVersion: 3 }
+            ],
             competenciaInicial: '2026-05',
             active: true
         }],
@@ -57,7 +61,7 @@ function createHarness() {
     return { state, calls, service };
 }
 
-test('edita escola, troca controlador e preserva programa histórico inativo', async () => {
+test('edita escola, troca controlador e sincroniza programas ativos preservando histórico do vínculo', async () => {
     const harness = createHarness();
 
     const result = await harness.service.saveSchool({
@@ -70,7 +74,19 @@ test('edita escola, troca controlador e preserva programa histórico inativo', a
 
     assert.equal(result.value.school.controladorId, 'CTRL-2');
     assert.equal(result.value.school.diretor, 'Nova Direção');
-    assert.deepEqual(result.value.school.programasIds, ['BASIC', 'NEW', 'OLD']);
+    assert.deepEqual(result.value.school.programasIds, ['BASIC', 'NEW']);
+    assert.deepEqual(
+        result.value.school.programasVinculos.map(link => ({
+            id: link.id || null,
+            programaId: link.programaId,
+            ativo: link.ativo
+        })),
+        [
+            { id: 'LINK-BASIC', programaId: 'BASIC', ativo: true },
+            { id: 'LINK-OLD', programaId: 'OLD', ativo: false },
+            { id: null, programaId: 'NEW', ativo: true }
+        ]
+    );
     assert.equal(harness.state.logs[0].action, 'Escola Atualizada');
     assert.deepEqual(
         harness.calls[0].changedEntities,
@@ -103,6 +119,10 @@ test('cadastra escola somente com identificadores institucionais informados', as
     assert.equal(result.value.school.cnpj, '12.345.678/0001-90');
     assert.equal(result.value.school.sici, 'SICI-999');
     assert.deepEqual(result.value.school.programasIds, ['BASIC', 'NEW']);
+    assert.deepEqual(
+        result.value.school.programasVinculos.map(link => [link.programaId, link.ativo]),
+        [['BASIC', true], ['NEW', true]]
+    );
     assert.equal(harness.state.logs[0].action, 'Escola Cadastrada');
 });
 
