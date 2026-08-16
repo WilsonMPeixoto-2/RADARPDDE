@@ -48,6 +48,7 @@
         return {
             id: `school:${id}`,
             type: 'school',
+            schoolId: id,
             title,
             subtitle: designation,
             keywords: uniqueStrings([
@@ -86,6 +87,7 @@
         return {
             id: `program:${id}`,
             type: 'program',
+            programId: id,
             title: String(program.name || program.nome || id).trim(),
             subtitle: `${linkedSchools.length} unidade(s) vinculada(s)`,
             keywords: uniqueStrings([
@@ -105,6 +107,7 @@
         return {
             id: `competence:${id}`,
             type: 'competence',
+            competenceKey: id,
             title,
             subtitle: id,
             keywords: uniqueStrings([id, competence.exercicio, competence.year]),
@@ -115,7 +118,14 @@
 
     function createPendencyItem(pendency, schoolsById) {
         const id = String(pendency.id || '').trim();
-        const schoolId = String(pendency.escolaId || pendency.schoolId || '').trim();
+        const schoolId = String(pendency.escolaId || pendency.schoolId || pendency.school_id || '').trim();
+        const competenceKey = String(
+            pendency.competenciaOrigem
+            || pendency.competencia
+            || pendency.competence_origin
+            || pendency.competence_id
+            || ''
+        ).trim();
         const school = schoolsById.get(schoolId);
         const documentName = String(
             pendency.documento
@@ -127,6 +137,9 @@
         return {
             id: `pendency:${id}`,
             type: 'pendency',
+            pendencyId: id,
+            schoolId,
+            competenceKey,
             title: documentName,
             subtitle: school
                 ? String(school.denominação || school.denominacao || school.id)
@@ -136,7 +149,8 @@
                 schoolId,
                 pendency.status,
                 pendency.programaId,
-                pendency.competencia,
+                pendency.program_id,
+                competenceKey,
                 school?.denominação,
                 school?.denominacao,
                 school?.designação,
@@ -171,7 +185,7 @@
             .filter(competence => competence && (competence.id || competence.value || competence.competencia));
         const pendencies = (Array.isArray(context.pendencies) ? context.pendencies : [])
             .filter(pendency => {
-                const schoolId = String(pendency?.escolaId || pendency?.schoolId || '');
+                const schoolId = String(pendency?.escolaId || pendency?.schoolId || pendency?.school_id || '');
                 return pendency?.id && (!schoolId || schoolsById.has(schoolId));
             });
 
