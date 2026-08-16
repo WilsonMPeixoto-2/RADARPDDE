@@ -128,3 +128,38 @@ test('ao identificar como permanente, cria o bem e passa a exigir número', asyn
     assert.equal(state.assets.length, 1);
     assert.equal(identified.value.invoice.bemId, identified.value.asset.id);
 });
+
+test('ao identificar como serviço, ativa somente o fluxo da Assessoria e não cria patrimônio', async () => {
+    const { state, service } = createHarness();
+
+    const created = await service.save({
+        schoolId: 'ESC-1',
+        compKey: '2026-08_BASIC',
+        description: 'Débito bancário ainda sem documentação',
+        expenseType: 'a_identificar',
+        invoiceNumber: '',
+        amount: 640,
+        profile: 'controlador'
+    });
+
+    const identified = await service.save({
+        id: created.value.invoice.id,
+        schoolId: 'ESC-1',
+        compKey: '2026-08_BASIC',
+        description: 'Serviço de manutenção',
+        expenseType: 'servico',
+        invoiceNumber: 'NF-SERV-640',
+        amount: 640,
+        profile: 'controlador'
+    });
+
+    const verification = state.verifications['ESC-1']['2026-08_BASIC'];
+    assert.equal(identified.value.invoice.tipo, 'servico');
+    assert.equal(identified.value.invoice.numero, 'NF-SERV-640');
+    assert.equal(identified.value.invoice.bemId, null);
+    assert.equal(state.assets.length, 0);
+    assert.equal(identified.value.warnings.includes('SERVICE_ADVISORY_REQUIRED'), true);
+    assert.equal(verification.bonificacao.consAssessoria, 'Não');
+    assert.equal(verification.analise.consAssessoria, 'Não analisado');
+    assert.equal(state.logs[0].action, 'Despesa Identificada');
+});
