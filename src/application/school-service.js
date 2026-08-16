@@ -75,6 +75,21 @@
             return unique(activeIds);
         }
 
+        requestedProgramIds(input, existing) {
+            if (Object.prototype.hasOwnProperty.call(input, 'programIds')) {
+                return list(input.programIds);
+            }
+            if (existing) {
+                const fromActiveIds = list(existing.programasIds).filter(Boolean);
+                if (fromActiveIds.length > 0) return fromActiveIds;
+                return list(existing.programasVinculos)
+                    .filter(link => link?.ativo !== false)
+                    .map(link => text(link?.programaId || link?.program_id))
+                    .filter(Boolean);
+            }
+            return [];
+        }
+
         synchronizeProgramLinks(existingSchool, activeProgramIds) {
             const desired = new Set(unique(activeProgramIds));
             const existingLinks = list(existingSchool?.programasVinculos);
@@ -273,7 +288,10 @@
                         if (Object.prototype.hasOwnProperty.call(input, source)) school[target] = text(input[source]);
                     });
                     school.controladorId = controllerId;
-                    const activeProgramIds = this.normalizedProgramIds(state, input.programIds);
+                    const activeProgramIds = this.normalizedProgramIds(
+                        state,
+                        this.requestedProgramIds(input, existing)
+                    );
                     school.programasIds = activeProgramIds;
                     school.programasVinculos = this.synchronizeProgramLinks(existing, activeProgramIds);
                     school.active = true;
