@@ -68,9 +68,12 @@ test.describe('Prontuário — despesa a identificar', () => {
     await provisionalButton.click();
 
     await expect(page.locator('#modal-dados-nota')).toHaveClass(/show/);
+    await expect(page.locator('#nota-tipo option').first()).toHaveValue('consumo');
     await expect(page.locator('#nota-tipo')).toHaveValue('a_identificar');
     await expect(page.locator('#nota-numero')).not.toHaveAttribute('required');
     await expect(page.getByText('Número da Nota Fiscal (opcional neste estágio)')).toBeVisible();
+    await expect(page.locator('#modal-dados-nota h3')).toHaveText('Registrar despesa a identificar');
+    await expect(page.locator('#nota-desc')).toHaveAttribute('placeholder', /Saída de R\$ 850,00/);
 
     await page.locator('#nota-desc').fill('Saída de R$ 850,00 observada no extrato; documentação pendente');
     await page.locator('#nota-valor').fill('850');
@@ -96,10 +99,13 @@ test.describe('Prontuário — despesa a identificar', () => {
     expect(stateAfterCreate.bemId).toBeNull();
     expect(stateAfterCreate.consAssessoria).toBe('Não se aplica');
 
-    await refreshedRow.getByTitle('Editar Nota').click();
+    await refreshedRow.getByTitle('Editar despesa').click();
     await expect(page.locator('#nota-tipo')).toHaveValue('a_identificar');
     await page.locator('#nota-tipo').selectOption('consumo');
     await expect(page.locator('#nota-numero')).toHaveAttribute('required');
+    await expect(page.locator('#nota-numero')).toHaveAttribute('placeholder', 'Ex: NF-12345');
+    await expect(page.locator('#nota-desc')).toHaveAttribute('placeholder', 'Ex: Ar Condicionado Split, Pintura de Sala, Papelaria...');
+    await expect(page.locator('#modal-dados-nota h3')).toHaveText('Editar Dados da Nota Fiscal');
     await page.locator('#nota-numero').fill('NF-IDENT-850');
     await page.locator('#form-dados-nota button[type="submit"]').click();
 
