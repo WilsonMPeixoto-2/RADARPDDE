@@ -47,6 +47,7 @@ test('Production ignora qualquer tentativa de fallback local e publica somente S
         await fs.readFile(path.join(outputDir, 'radar-build-manifest.json'), 'utf8')
     );
     const publicApp = await fs.readFile(path.join(outputDir, 'app.js'), 'utf8');
+    const publicIndex = await fs.readFile(path.join(outputDir, 'index.html'), 'utf8');
 
     assert.equal(result.runtimeInput.dataMode, 'supabase-production');
     assert.equal(result.runtimeInput.environment, 'production');
@@ -55,10 +56,10 @@ test('Production ignora qualquer tentativa de fallback local e publica somente S
     assert.equal(manifest.productionActivationApproved, true);
     assert.equal(manifest.commitSha, '0123456789abcdef0123456789abcdef01234567');
     assert.doesNotMatch(runtimeSource, /discarded/);
+    assert.match(publicIndex, /RADAR_PDDE_DEPLOYMENT_TARGET\s*=\s*["']production["']/);
     assert.match(publicApp, /const INITIAL_CONTROLADORES = \[\];/);
     assert.match(publicApp, /const INITIAL_ESCOLAS = \[\];/);
     assert.doesNotMatch(publicApp, /Escola Municipal Ema Negrão de Lima|Érika Reis/);
-    await fs.access(path.join(outputDir, 'index.html'));
     await fs.access(path.join(outputDir, 'src/data/supabase-repository.js'));
     await fs.access(path.join(outputDir, 'vendor/supabase-client.js'));
     await assert.rejects(fs.access(path.join(outputDir, 'package.json')));
@@ -82,7 +83,7 @@ test('inclui o template canônico do Excel SME no artefato público da Vercel', 
     );
 });
 
-test('gera artefato de Preview com configuração pública e manifesto sem a chave', async context => {
+test('gera artefato de Preview com configuração pública, marcador e manifesto sem a chave', async context => {
     const { buildVercelArtifact } = await loadBuilder();
     const outputDir = await createOutputDirectory(context);
     const publishableKey = 'sb_publishable_preview_example';
@@ -106,12 +107,14 @@ test('gera artefato de Preview com configuração pública e manifesto sem a cha
         path.join(outputDir, 'radar-build-manifest.json'),
         'utf8'
     );
+    const publicIndex = await fs.readFile(path.join(outputDir, 'index.html'), 'utf8');
 
     assert.equal(result.runtimeInput.dataMode, 'supabase-preview');
     assert.equal(result.manifest.vercelEnvironment, 'preview');
     assert.equal(result.manifest.supabaseRepositoryEnabled, true);
     assert.match(runtimeSource, /supabase-preview/);
     assert.match(runtimeSource, new RegExp(publishableKey));
+    assert.match(publicIndex, /RADAR_PDDE_DEPLOYMENT_TARGET\s*=\s*["']preview["']/);
     assert.doesNotMatch(manifestSource, new RegExp(publishableKey));
     assert.doesNotMatch(manifestSource, /supabase\.co/);
 });
