@@ -10,12 +10,7 @@
     if (!root) return;
 
     root.RadarRuntimeConfig = Object.freeze(api);
-    root.RADAR_PDDE_CONFIG = api.createRuntimeConfig({
-        ...(root.RADAR_PDDE_RUNTIME_INPUT || {}),
-        deploymentTarget: root.RADAR_PDDE_DEPLOYMENT_TARGET
-            || root.RADAR_PDDE_RUNTIME_INPUT?.deploymentTarget
-            || ''
-    });
+    root.RADAR_PDDE_CONFIG = api.createRuntimeConfig(root.RADAR_PDDE_RUNTIME_INPUT || {});
 
     if (typeof document === 'undefined') return;
 
