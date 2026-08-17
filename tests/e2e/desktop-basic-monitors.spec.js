@@ -25,6 +25,12 @@ async function openControllerSchool(page) {
   return schoolId;
 }
 
+function walletTable(page) {
+  return page.locator('.panel-card').filter({
+    has: page.locator('#carteira-competencia-select')
+  }).locator('table.data-table');
+}
+
 function columnCount(value) {
   return String(value || '').trim().split(/\s+/).filter(Boolean).length;
 }
@@ -90,13 +96,13 @@ test.describe('Desktop — notebooks e monitores básicos', () => {
     expect(columnCount(schoolColumns)).toBeGreaterThanOrEqual(2);
 
     await page.evaluate(() => switchView('escolas'));
-    const walletTable = page.locator('.cycle-b-wallet-table');
-    await expect(walletTable).toBeVisible();
-    const walletMetrics = await walletTable.evaluate(element => ({
+    const table = walletTable(page);
+    await expect(table).toBeVisible();
+    const metrics = await table.evaluate(element => ({
       wrapperWidth: element.closest('.table-responsive')?.clientWidth || 0,
       tableWidth: element.getBoundingClientRect().width
     }));
-    expect(walletMetrics.tableWidth).toBeLessThanOrEqual(walletMetrics.wrapperWidth + 1);
+    expect(metrics.tableWidth).toBeLessThanOrEqual(metrics.wrapperWidth + 1);
   });
 
   test('modal com carteira zerada não exibe instrução de transferência', async ({ page }) => {
@@ -134,14 +140,14 @@ test.describe('Desktop — notebooks e monitores básicos', () => {
       switchProfile('controlador');
       switchView('escolas');
     });
-    const walletTable = page.locator('.cycle-b-wallet-table');
-    await expect(walletTable).toBeVisible();
-    const walletMetrics = await walletTable.evaluate(element => ({
-      minWidth: Number.parseFloat(getComputedStyle(element).minWidth),
+    const table = walletTable(page);
+    await expect(table).toBeVisible();
+    const walletMetrics = await table.evaluate(element => ({
+      tableLayout: getComputedStyle(element).tableLayout,
       wrapperWidth: element.closest('.table-responsive')?.clientWidth || 0,
       tableWidth: element.getBoundingClientRect().width
     }));
-    expect(walletMetrics.minWidth).toBeLessThanOrEqual(960);
+    expect(walletMetrics.tableLayout).toBe('fixed');
     expect(walletMetrics.tableWidth).toBeLessThanOrEqual(walletMetrics.wrapperWidth + 1);
     await expect(page.locator('.cycle-b-wallet-mobile')).toHaveCount(0);
 
