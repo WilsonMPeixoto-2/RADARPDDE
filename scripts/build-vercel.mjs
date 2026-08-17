@@ -30,7 +30,7 @@ const RUNTIME_ENTRIES = Object.freeze([
 ]);
 const EXCEL_BOOTSTRAP_GUARD_PATH = '/src/integration/excel-export-bootstrap-guard.js';
 const EXCEL_BOOTSTRAP_GUARD_TAG = `<script defer src="${EXCEL_BOOTSTRAP_GUARD_PATH}"></script>`;
-const DEPLOYMENT_TARGET_GLOBAL = 'RADAR_PDDE_DEPLOYMENT_TARGET';
+const DEPLOYMENT_TARGET_INPUT_KEY = 'deploymentTarget';
 
 const VERCEL_ENVIRONMENTS = new Set(['development', 'preview', 'production']);
 const PRODUCTION_SUPABASE_URL = 'https://scnryinorqeucbfkioxo.supabase.co';
@@ -165,6 +165,15 @@ function sanitizeCommitSha(value) {
     return /^[0-9a-f]{7,40}$/.test(commitSha) ? commitSha : '';
 }
 
+function withDeploymentTarget(runtimeInput, vercelEnvironment) {
+    const target = String(vercelEnvironment || '').trim();
+    if (!['preview', 'production'].includes(target)) return Object.freeze({ ...runtimeInput });
+    return Object.freeze({
+        ...runtimeInput,
+        [DEPLOYMENT_TARGET_INPUT_KEY]: target
+    });
+}
+
 function createPublicBuildManifest(runtimeInput, environment = {}) {
     return Object.freeze({
         schemaVersion: 1,
@@ -283,11 +292,12 @@ async function injectDeploymentTargetMarker(outputDir, vercelEnvironment) {
     if (!['preview', 'production'].includes(target)) return false;
     const indexPath = path.join(outputDir, 'index.html');
     const html = await fs.readFile(indexPath, 'utf8');
-    if (html.includes(`window.${DEPLOYMENT_TARGET_GLOBAL}`)) return false;
+    const markerSignature = `window.RADAR_PDDE_RUNTIME_INPUT=Object.freeze({${DEPLOYMENT_TARGET_INPUT_KEY}:`;
+    if (html.includes(markerSignature)) return false;
     if (!/<head(?:\s[^>]*)?>/iu.test(html)) {
         throw new Error('index.html público não possui head para registrar o alvo do deployment.');
     }
-    const marker = `<script>window.${DEPLOYMENT_TARGET_GLOBAL}=${JSON.stringify(target)};</script>`;
+    const marker = `<script>window.RADAR_PDDE_RUNTIME_INPUT=Object.freeze({${DEPLOYMENT_TARGET_INPUT_KEY}:${JSON.stringify(target)}});</script>`;
     const updated = html.replace(/<head(\s[^>]*)?>/iu, match => `${match}\n    ${marker}`);
     await fs.writeFile(indexPath, updated, 'utf8');
     return true;
@@ -317,8 +327,9 @@ async function buildVercelArtifact({
     const resolvedOutput = assertSafeOutputDirectory(resolvedRoot, outputDir);
     const resolvedEnvironment = resolveVercelRuntimeEnvironment(environment);
 
-    const runtimeInput = buildRuntimeInput(resolvedEnvironment);
-    const vercelEnvironment = assertDeploymentTargetCompatibility(runtimeInput, resolvedEnvironment);
+    const baseRuntimeInput = buildRuntimeInput(resolvedEnvironment);
+    const vercelEnvironment = assertDeploymentTargetCompatibility(baseRuntimeInput, resolvedEnvironment);
+    const runtimeInput = withDeploymentTarget(baseRuntimeInput, vercelEnvironment);
 
     await fs.rm(resolvedOutput, { recursive: true, force: true });
     await fs.mkdir(resolvedOutput, { recursive: true });
@@ -394,7 +405,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
 }
 
 export {
-    DEPLOYMENT_TARGET_GLOBAL,
+    DEPLOYMENT_TARGET_INPUT_KEY,
     EXCEL_BOOTSTRAP_GUARD_PATH,
     EXCEL_BOOTSTRAP_GUARD_TAG,
     EXCEL_SME_ASSETS_MANIFEST_FILE,
@@ -418,5 +429,6 @@ export {
     resolveVercelRuntimeEnvironment,
     sanitizeCommitSha,
     sanitizeProductionApp,
-    sanitizeProductionAppSource
+    sanitizeProductionAppSource,
+    withDeploymentTarget
 };
