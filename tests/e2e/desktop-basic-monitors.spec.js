@@ -151,7 +151,34 @@ test.describe('Desktop — notebooks e monitores básicos', () => {
     expect(walletMetrics.tableWidth).toBeLessThanOrEqual(walletMetrics.wrapperWidth + 1);
     await expect(page.locator('.cycle-b-wallet-mobile')).toHaveCount(0);
 
-    await page.evaluate(() => switchView('pendencias'));
+    await page.evaluate(() => {
+      const competence = activeCompetenciaKey;
+      const school = escolas.find(candidate => (
+        Array.isArray(candidate.programasIds)
+        && candidate.programasIds.includes('BASIC')
+        && isCompetenceInScope(candidate.competenciaInicial, competence)
+      ));
+      if (!school) throw new Error('Unidade escolar para ensaio de Pendências não encontrada.');
+      const pendency = RadarPendencias.createDocumentPendency({
+        id: 'desktop-basic-monitors-pendency',
+        escolaId: school.id,
+        competenciaOrigem: competence,
+        programaId: 'BASIC',
+        documentoKey: 'extCC',
+        item: 'PDDE Básico - Extrato Conta Corrente',
+        errosAtuais: ['Documento incompleto'],
+        observacao: 'Pendência efêmera para homologação de largura desktop.',
+        dataAbertura: '2026-08-17'
+      }, {
+        eventId: 'desktop-basic-monitors-pendency-open',
+        at: '2026-08-17T12:00:00.000Z',
+        usuario: 'Controlador E2E',
+        perfil: 'Controlador'
+      });
+      pendencias = [pendency];
+      rebuildOperationalIndexes();
+      switchView('pendencias');
+    });
     const pendencyTable = page.locator('.pendency-operations-table');
     await expect(pendencyTable).toBeVisible();
     const pendencyMinWidth = await pendencyTable.evaluate(element => Number.parseFloat(getComputedStyle(element).minWidth));
