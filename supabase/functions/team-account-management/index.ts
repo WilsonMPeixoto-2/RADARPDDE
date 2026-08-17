@@ -398,17 +398,23 @@ Deno.serve(async (req: Request) => {
   try {
     headers = corsHeaders(req);
     if (req.method === "OPTIONS") return new Response("ok", { headers });
-    if (req.method !== "POST") return json(405, { code: "METHOD_NOT_ALLOWED", message: "Método não permitido." }, headers);
+    if (req.method !== "POST") {
+      return json(405, { ok: false, code: "METHOD_NOT_ALLOWED", message: "Método não permitido." }, headers);
+    }
 
     const { user, url } = await authorizeRequest(req);
-    const admin = adminClient(url);
     const command = await requestCommand(req);
-    const result = command.action === "save"
+    const admin = adminClient(url);
+    const result = command.operation.startsWith("save_")
       ? await saveMember(admin, user, command)
       : await deactivateMember(admin, user, command);
     return json(200, result, headers);
   } catch (error) {
     const mapped = publicError(error);
-    return json(mapped.status, { code: mapped.code, message: mapped.message }, headers);
+    console.error("team-account-management", {
+      code: mapped.code,
+      status: mapped.status,
+    });
+    return json(mapped.status, { ok: false, code: mapped.code, message: mapped.message }, headers);
   }
 });
