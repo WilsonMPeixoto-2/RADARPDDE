@@ -1,0 +1,126 @@
+/*
+ * Pendências Operacionais: visão transversal do passivo entre competências.
+ * A competência global continua visível como contexto, sem recortar a fila.
+ */
+
+.pendency-cross-competence-notice {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 0 0 12px;
+    padding: 10px 14px;
+    border: 1px solid var(--border-color, #d8d3e6);
+    border-radius: 12px;
+    background: var(--bg-secondary, #f8f7fb);
+}
+
+.pendency-cross-competence-notice > div:first-child {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.pendency-cross-competence-notice span {
+    color: var(--text-secondary, #5f5a6b);
+    font-size: 0.82rem;
+    line-height: 1.35;
+}
+
+.pendency-global-context {
+    display: grid;
+    gap: 2px;
+    min-width: max-content;
+    padding-left: 14px;
+    border-left: 1px solid var(--border-color, #d8d3e6);
+}
+
+.pendency-global-context strong {
+    font-size: 0.9rem;
+}
+
+.pendency-filter-panel {
+    padding-block: 12px;
+}
+
+.pendency-filter-header {
+    margin-bottom: 8px;
+}
+
+.pendency-filter-header p {
+    margin-top: 2px;
+}
+
+.pendency-more-filters {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--border-color, #e2dee9);
+    padding-top: 7px;
+}
+
+.pendency-more-filters > summary {
+    width: fit-content;
+    cursor: pointer;
+    color: var(--primary, #6850a5);
+    font-size: 0.82rem;
+    font-weight: 700;
+    list-style-position: inside;
+}
+
+.pendency-more-filters-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px 12px;
+    margin-top: 9px;
+}
+
+.pendency-record-clickable {
+    cursor: pointer;
+}
+
+.pendency-operations-table tbody tr.pendency-record-clickable:hover td {
+    background: var(--bg-secondary, #f8f7fb);
+}
+
+.pendency-record-clickable:focus-visible {
+    outline: 3px solid var(--primary, #6850a5);
+    outline-offset: -3px;
+}
+
+.pendency-mobile-card.pendency-record-clickable:hover {
+    box-shadow: 0 0 0 1px var(--primary, #6850a5);
+}
+
+@media (min-width: 901px) and (max-width: 1536px) {
+    .pendency-cross-competence-notice {
+        padding: 8px 12px;
+        margin-bottom: 8px;
+    }
+
+    .pendency-filter-panel {
+        padding-block: 9px;
+    }
+
+    .pendency-more-filters-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px 8px;
+    }
+}
+
+@media (max-width: 900px) {
+    .pendency-cross-competence-notice {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .pendency-global-context {
+        padding-left: 0;
+        padding-top: 8px;
+        border-left: 0;
+        border-top: 1px solid var(--border-color, #d8d3e6);
+    }
+
+    .pendency-more-filters-grid {
+        grid-template-columns: 1fr;
+    }
+}
