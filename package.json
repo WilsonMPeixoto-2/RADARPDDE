@@ -79,11 +79,11 @@
     "check:search-ui-vendors": "node scripts/build-search-ui-vendors.mjs --check"
   },
   "devDependencies": {
-    "@axe-core/playwright": "4.12.1",
+    "@axe-core/playwright": "4.13.0",
     "@eslint/js": "10.0.1",
     "@floating-ui/dom": "1.8.0",
-    "@playwright/test": "1.62.0",
-    "@supabase/supabase-js": "2.110.9",
+    "@playwright/test": "1.62.1",
+    "@supabase/supabase-js": "2.112.3",
     "acorn": "8.18.0",
     "acorn-walk": "8.3.5",
     "ajv": "8.20.0",
@@ -96,7 +96,7 @@
     "knip": "6.29.0",
     "lighthouse": "13.4.1",
     "prettier": "3.9.6",
-    "supabase": "2.110.0",
+    "supabase": "2.114.0",
     "typescript": "7.0.2"
   },
   "dependencies": {
