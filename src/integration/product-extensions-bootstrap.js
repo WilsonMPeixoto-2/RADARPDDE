@@ -10,7 +10,8 @@
         '/src/styles/controller-guide.css',
         '/src/styles/controller-guide-theme.css',
         '/src/styles/unidentified-expense-ux.css',
-        '/src/styles/prontuario-operational-ux.css'
+        '/src/styles/prontuario-operational-ux.css',
+        '/src/styles/desktop-basic-monitors.css'
     ]);
     const scripts = Object.freeze([
         '/src/domain/school-timeline.js',
