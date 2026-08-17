@@ -160,21 +160,24 @@ body:not(.dark-theme) .pendency-error-summary {
         line-height: 1.35;
     }
 
-    .cycle-b-wallet-table {
-        min-width: 1180px;
+    /* A Carteira desktop real usa school-carteira-table. */
+    .school-carteira-table {
+        min-width: 980px;
     }
 
     .pendency-operations-table {
         min-width: 1120px;
     }
 
+    .school-actions-stack,
     .cycle-b-wallet-actions {
-        min-width: 108px;
+        min-width: 104px;
     }
 
+    .school-actions-stack .btn,
     .cycle-b-wallet-actions .btn,
     .pendency-row-actions .btn {
-        padding-inline: 10px;
+        padding-inline: 9px;
     }
 
     .pendency-detail-drawer {
@@ -248,8 +251,8 @@ body:not(.dark-theme) .pendency-error-summary {
         grid-column: span 2;
     }
 
-    .cycle-b-wallet-table {
-        min-width: 1080px;
+    .school-carteira-table {
+        min-width: 960px;
     }
 
     .pendency-operations-table {
