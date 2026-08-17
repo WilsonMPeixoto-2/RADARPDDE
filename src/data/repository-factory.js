@@ -29,6 +29,23 @@
             && runtimeConfig.supabase?.connectionEnabled === true;
     }
 
+    function isProductionEnvironment(runtimeConfig = {}) {
+        return String(runtimeConfig.environment || '').trim().toLowerCase() === 'production';
+    }
+
+    function assertProductionRepository(runtimeConfig = {}) {
+        if (!isProductionEnvironment(runtimeConfig)) return true;
+        if (isSupabaseExplicitlyEnabled(runtimeConfig)
+            && runtimeConfig.dataMode === 'supabase-production'
+            && runtimeConfig.productionActivationApproved === true) {
+            return true;
+        }
+
+        const error = new Error('O RADAR PDDE está temporariamente indisponível. A conexão institucional não pôde ser validada.');
+        error.code = 'PRODUCTION_REPOSITORY_UNAVAILABLE';
+        throw error;
+    }
+
     function createLocalRepository(dependencies = {}) {
         return dependencies.localRepository
             || new localApi.LocalStorageRepository({
@@ -39,6 +56,8 @@
     }
 
     function createRepository(runtimeConfig = {}, dependencies = {}) {
+        assertProductionRepository(runtimeConfig);
+
         if (!isSupabaseExplicitlyEnabled(runtimeConfig)) {
             return createLocalRepository(dependencies);
         }
@@ -52,6 +71,8 @@
     return Object.freeze({
         createRepository,
         createLocalRepository,
-        isSupabaseExplicitlyEnabled
+        isProductionEnvironment,
+        isSupabaseExplicitlyEnabled,
+        assertProductionRepository
     });
 }));
