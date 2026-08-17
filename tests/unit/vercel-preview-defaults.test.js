@@ -154,7 +154,7 @@ test('Production ignora configuração local antiga quando a ativação está vi
     assert.equal(result.runtimeInput.productionActivationApproved, true);
 });
 
-test('sinal de emergência mantém Production em modo local', async context => {
+test('Production ignora antigo sinal de rollback local e permanece fail-closed', async context => {
     const { buildVercelArtifact } = await loadBuilder();
     const outputDir = await createOutputDirectory(context);
 
@@ -167,12 +167,10 @@ test('sinal de emergência mantém Production em modo local', async context => {
         }
     });
 
-    assert.equal(result.runtimeInput.environment, 'local');
-    assert.equal(result.runtimeInput.dataMode, 'local');
-    assert.equal(result.runtimeInput.features.supabaseRepositoryEnabled, false);
-    assert.equal(result.runtimeInput.supabase.url, '');
-    assert.equal(result.runtimeInput.supabase.publishableKey, '');
-    assert.equal(result.manifest.productionActivationApproved, false);
+    assert.equal(result.runtimeInput.environment, 'production');
+    assert.equal(result.runtimeInput.dataMode, 'supabase-production');
+    assert.equal(result.runtimeInput.features.supabaseRepositoryEnabled, true);
+    assert.equal(result.runtimeInput.productionActivationApproved, true);
 });
 
 test('configuração RADAR local explícita não é substituída pelos padrões do Preview', async context => {
