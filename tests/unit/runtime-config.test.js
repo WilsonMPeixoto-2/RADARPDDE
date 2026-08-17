@@ -30,6 +30,7 @@ test('modo local é o padrão e neutraliza credenciais mesmo quando preenchidas'
     assert.equal(config.supabase.publishableKey, '');
     assert.equal(config.supabase.connectionEnabled, false);
     assert.equal(config.features.supabaseRepositoryEnabled, false);
+    assert.equal(config.productionBlocked, false);
     assert.equal(Object.hasOwn(config.features, 'legacyAppBridgeEnabled'), false);
 });
 
@@ -116,7 +117,41 @@ test('modo de produção não pode ser ativado sem autorização própria', () =
         }
     });
 
+    assert.equal(config.environment, 'production');
     assert.equal(config.dataMode, DATA_MODES.LOCAL);
     assert.equal(config.supabase.connectionEnabled, false);
+    assert.equal(config.productionBlocked, true);
+    assert.equal(config.activeRepository, 'unavailable');
     assert.match(config.diagnostics.join(' '), /produção/i);
+});
+
+test('marcador do deployment mantém Production fail-closed se config.runtime estiver ausente', () => {
+    const config = createRuntimeConfig({ deploymentTarget: 'production' });
+
+    assert.equal(config.environment, 'production');
+    assert.equal(config.dataMode, DATA_MODES.LOCAL);
+    assert.equal(config.productionBlocked, true);
+    assert.equal(config.activeRepository, 'unavailable');
+    assert.equal(config.supabase.connectionEnabled, false);
+    assert.match(config.diagnostics.join(' '), /production|produção/i);
+});
+
+test('Production válida com marcador permanece conectada ao Supabase', () => {
+    const config = createRuntimeConfig({
+        deploymentTarget: 'production',
+        dataMode: DATA_MODES.SUPABASE_PRODUCTION,
+        environment: 'production',
+        productionActivationApproved: true,
+        supabase: {
+            url: 'https://example.supabase.co',
+            publishableKey: 'sb_publishable_example'
+        },
+        features: {
+            supabaseRepositoryEnabled: true
+        }
+    });
+
+    assert.equal(config.productionBlocked, false);
+    assert.equal(config.activeRepository, 'supabase');
+    assert.equal(config.supabase.connectionEnabled, true);
 });
