@@ -5,7 +5,6 @@
 
     let installed = false;
     let originalSwitchView = null;
-    let originalClearPendencyFilters = null;
     let originalOpenPendencyDetail = null;
     let originalOpenPendencyInProntuario = null;
     let originalGetEscolaOperationalData = null;
@@ -76,13 +75,17 @@
         }
     }
 
-    function syncPendencyFilterToGlobal() {
+    /*
+     * Pendências Operacionais é uma exceção intencional ao recorte mensal.
+     * A competência global continua sendo o contexto da aplicação, mas a fila
+     * deve abrir transversalmente em todas as competências para que passivos
+     * históricos não desapareçam da visão do usuário.
+     */
+    function showAllPendencyCompetences() {
         if (typeof root.changePendencyFilter !== 'function') return false;
-        const key = currentCompetence();
-        if (!key) return false;
         const state = root.RadarTask9PendencyPage?.getState?.();
-        if (text(state?.filters?.competence) === key) return true;
-        root.changePendencyFilter('competence', key);
+        if (!text(state?.filters?.competence)) return true;
+        root.changePendencyFilter('competence', '');
         return true;
     }
 
@@ -91,29 +94,15 @@
         originalSwitchView = root.switchView.bind(root);
         root.switchView = function switchViewWithOperationalContext(view, ...args) {
             const result = originalSwitchView(view, ...args);
-            if (view === 'pendencias') syncPendencyFilterToGlobal();
+            if (view === 'pendencias') showAllPendencyCompetences();
             return result;
         };
-
-        if (typeof root.clearPendencyFilters === 'function') {
-            originalClearPendencyFilters = root.clearPendencyFilters.bind(root);
-            root.clearPendencyFilters = function clearPendencyFiltersWithCompetence() {
-                const result = originalClearPendencyFilters();
-                syncPendencyFilterToGlobal();
-                return result;
-            };
-        }
 
         if (typeof root.openPendencyDetail === 'function') {
             originalOpenPendencyDetail = root.openPendencyDetail.bind(root);
             root.openPendencyDetail = function openPendencyDetailWithContext(source) {
-                const pendency = findPendency(source);
-                const competence = pendencyCompetence(pendency);
-                if (competence) selectCompetence(competence, 'pendency-detail');
                 if (typeof currentView !== 'undefined' && currentView !== 'pendencias') {
                     root.switchView('pendencias');
-                } else if (competence && typeof root.changePendencyFilter === 'function') {
-                    root.changePendencyFilter('competence', competence);
                 }
                 return originalOpenPendencyDetail(resolvePendencyId(source) || source);
             };
@@ -129,13 +118,9 @@
             };
         }
 
-        root.addEventListener('radar:competence-change', event => {
-            const key = text(event?.detail?.activeKey);
-            if (!key || typeof currentView === 'undefined' || currentView !== 'pendencias') return;
-            const state = root.RadarTask9PendencyPage?.getState?.();
-            if (text(state?.filters?.competence) !== key) {
-                root.changePendencyFilter?.('competence', key);
-            }
+        root.addEventListener('radar:competence-change', () => {
+            if (typeof currentView === 'undefined' || currentView !== 'pendencias') return;
+            root.RadarTask9PendencyPage?.render?.();
         });
         return true;
     }
@@ -197,13 +182,15 @@
         wrapSchoolOperationalProjection();
         wrapInventoryDefault();
         if (typeof currentView !== 'undefined' && currentView === 'pendencias') {
-            syncPendencyFilterToGlobal();
+            showAllPendencyCompetences();
         }
         root.RadarOperationalReadinessBridge = Object.freeze({
-            VERSION: '1.0.0',
+            VERSION: '1.1.0',
             currentCompetence,
             pendencyCompetence,
-            syncPendencyFilterToGlobal
+            showAllPendencyCompetences,
+            // Alias preservado para integrações antigas; agora significa remover o recorte mensal da fila.
+            syncPendencyFilterToGlobal: showAllPendencyCompetences
         });
         installed = true;
         return true;
