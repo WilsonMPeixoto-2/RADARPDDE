@@ -22,7 +22,7 @@ async function createOutputDirectory(context) {
     return path.join(temporaryRoot, 'dist');
 }
 
-test('gera artefato local somente com rollback explícito e sem publicar credenciais fornecidas', async context => {
+test('Production ignora qualquer tentativa de fallback local e publica somente Supabase Production', async context => {
     const { buildVercelArtifact } = await loadBuilder();
     const outputDir = await createOutputDirectory(context);
 
@@ -33,12 +33,12 @@ test('gera artefato local somente com rollback explícito e sem publicar credenc
             VERCEL_ENV: 'production',
             VERCEL_GIT_COMMIT_SHA: '0123456789abcdef0123456789abcdef01234567',
             RADAR_PRODUCTION_FORCE_LOCAL: 'true',
-            RADAR_DATA_MODE: 'supabase-production',
-            RADAR_ENVIRONMENT: 'production',
-            RADAR_SUPABASE_REPOSITORY_ENABLED: 'true',
+            RADAR_DATA_MODE: 'local',
+            RADAR_ENVIRONMENT: 'local',
+            RADAR_SUPABASE_REPOSITORY_ENABLED: 'false',
             RADAR_SUPABASE_URL: 'https://discarded.supabase.co',
             RADAR_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_discarded',
-            RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED: 'true'
+            RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED: 'false'
         }
     });
 
@@ -46,14 +46,18 @@ test('gera artefato local somente com rollback explícito e sem publicar credenc
     const manifest = JSON.parse(
         await fs.readFile(path.join(outputDir, 'radar-build-manifest.json'), 'utf8')
     );
+    const publicApp = await fs.readFile(path.join(outputDir, 'app.js'), 'utf8');
 
-    assert.equal(result.runtimeInput.dataMode, 'local');
-    assert.equal(result.runtimeInput.environment, 'local');
+    assert.equal(result.runtimeInput.dataMode, 'supabase-production');
+    assert.equal(result.runtimeInput.environment, 'production');
     assert.equal(manifest.vercelEnvironment, 'production');
-    assert.equal(manifest.supabaseRepositoryEnabled, false);
-    assert.equal(manifest.productionActivationApproved, false);
+    assert.equal(manifest.supabaseRepositoryEnabled, true);
+    assert.equal(manifest.productionActivationApproved, true);
     assert.equal(manifest.commitSha, '0123456789abcdef0123456789abcdef01234567');
     assert.doesNotMatch(runtimeSource, /discarded/);
+    assert.match(publicApp, /const INITIAL_CONTROLADORES = \[\];/);
+    assert.match(publicApp, /const INITIAL_ESCOLAS = \[\];/);
+    assert.doesNotMatch(publicApp, /Escola Municipal Ema Negrão de Lima|Érika Reis/);
     await fs.access(path.join(outputDir, 'index.html'));
     await fs.access(path.join(outputDir, 'src/data/supabase-repository.js'));
     await fs.access(path.join(outputDir, 'vendor/supabase-client.js'));
