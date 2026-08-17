@@ -33,6 +33,14 @@ const EXCEL_BOOTSTRAP_GUARD_TAG = `<script defer src="${EXCEL_BOOTSTRAP_GUARD_PA
 
 const VERCEL_ENVIRONMENTS = new Set(['development', 'preview', 'production']);
 const PRODUCTION_SUPABASE_URL = 'https://scnryinorqeucbfkioxo.supabase.co';
+const PRODUCTION_SEED_DECLARATIONS = Object.freeze([
+    'INITIAL_CONTROLADORES',
+    'INITIAL_ESCOLAS'
+]);
+const PRODUCTION_LEGACY_FIXTURE_MARKERS = Object.freeze([
+    'Escola Municipal Ema Negrão de Lima',
+    'Érika Reis'
+]);
 
 // Preview de PR é deliberadamente isolado do banco institucional. Um Preview só
 // usa Supabase quando URL/chave/modo são informados explicitamente para um projeto
@@ -55,16 +63,6 @@ const PRODUCTION_SUPABASE_PUBLIC_RUNTIME = Object.freeze({
     RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED: 'true'
 });
 
-const PRODUCTION_LOCAL_ROLLBACK_RUNTIME = Object.freeze({
-    RADAR_DATA_MODE: 'local',
-    RADAR_ENVIRONMENT: 'local',
-    RADAR_SUPABASE_REPOSITORY_ENABLED: 'false',
-    RADAR_SUPABASE_URL: '',
-    RADAR_SUPABASE_PUBLISHABLE_KEY: '',
-    RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED: 'false'
-});
-
-const RADAR_PRODUCTION_FORCE_LOCAL_VARIABLE = 'RADAR_PRODUCTION_FORCE_LOCAL';
 const RADAR_RUNTIME_VARIABLES = Object.freeze(
     [...new Set([
         ...Object.keys(PREVIEW_SUPABASE_PUBLIC_RUNTIME),
@@ -109,26 +107,13 @@ function hasExplicitRadarRuntime(environment = {}) {
     ));
 }
 
-function productionForceLocal(environment = {}) {
-    const value = String(environment?.[RADAR_PRODUCTION_FORCE_LOCAL_VARIABLE] || '')
-        .trim()
-        .toLowerCase();
-    if (!value) return false;
-    if (!['true', 'false'].includes(value)) {
-        throw new Error(`${RADAR_PRODUCTION_FORCE_LOCAL_VARIABLE} deve ser true ou false.`);
-    }
-    return value === 'true';
-}
-
 function resolveVercelRuntimeEnvironment(environment = {}) {
     const vercelEnvironment = normalizeVercelEnvironment(environment);
 
     if (vercelEnvironment === 'production') {
         return {
             ...environment,
-            ...(productionForceLocal(environment)
-                ? PRODUCTION_LOCAL_ROLLBACK_RUNTIME
-                : PRODUCTION_SUPABASE_PUBLIC_RUNTIME)
+            ...PRODUCTION_SUPABASE_PUBLIC_RUNTIME
         };
     }
 
@@ -147,14 +132,11 @@ function assertDeploymentTargetCompatibility(runtimeInput, environment = {}) {
     if (!vercelEnvironment) return '';
 
     if (vercelEnvironment === 'production'
-        && runtimeInput.dataMode === 'supabase-preview') {
-        throw new Error('Artefato Supabase de Preview não pode ser construído para o alvo production da Vercel.');
-    }
-
-    if (vercelEnvironment === 'production'
-        && runtimeInput.dataMode === 'local'
-        && runtimeInput.environment !== 'local') {
-        throw new Error('Produção em modo local exige RADAR_ENVIRONMENT=local.');
+        && (runtimeInput.dataMode !== 'supabase-production'
+            || runtimeInput.environment !== 'production'
+            || runtimeInput.features?.supabaseRepositoryEnabled !== true
+            || runtimeInput.productionActivationApproved !== true)) {
+        throw new Error('Production exige Supabase Production explicitamente habilitado e aprovado.');
     }
 
     if (vercelEnvironment === 'preview'
@@ -211,6 +193,90 @@ async function copyRuntimeEntry(rootDir, outputDir, entry) {
     await fs.copyFile(source, destination);
 }
 
+function findArrayDeclarationRange(source, declarationName) {
+    const marker = `const ${declarationName}`;
+    const start = source.indexOf(marker);
+    if (start < 0) {
+        throw new Error(`Declaração ${declarationName} não encontrada no app.js.`);
+    }
+
+    const assignment = source.indexOf('=', start + marker.length);
+    const openBracket = source.indexOf('[', assignment + 1);
+    if (assignment < 0 || openBracket < 0) {
+        throw new Error(`Declaração ${declarationName} não possui array reconhecível.`);
+    }
+
+    let depth = 0;
+    let quote = '';
+    let escaped = false;
+    for (let index = openBracket; index < source.length; index += 1) {
+        const character = source[index];
+        if (quote) {
+            if (escaped) {
+                escaped = false;
+                continue;
+            }
+            if (character === '\\') {
+                escaped = true;
+                continue;
+            }
+            if (character === quote) quote = '';
+            continue;
+        }
+
+        if (character === '"' || character === "'" || character === '`') {
+            quote = character;
+            continue;
+        }
+        if (character === '[') depth += 1;
+        if (character === ']') {
+            depth -= 1;
+            if (depth === 0) {
+                const semicolon = source.indexOf(';', index + 1);
+                if (semicolon < 0) {
+                    throw new Error(`Declaração ${declarationName} não termina com ponto e vírgula.`);
+                }
+                return { start, end: semicolon + 1 };
+            }
+        }
+    }
+
+    throw new Error(`Declaração ${declarationName} não pôde ser delimitada.`);
+}
+
+function sanitizeProductionAppSource(source) {
+    let sanitized = String(source || '');
+    PRODUCTION_SEED_DECLARATIONS.forEach(declarationName => {
+        const range = findArrayDeclarationRange(sanitized, declarationName);
+        sanitized = `${sanitized.slice(0, range.start)}const ${declarationName} = [];${sanitized.slice(range.end)}`;
+    });
+    return sanitized;
+}
+
+function assertProductionAppSanitized(source) {
+    const value = String(source || '');
+    PRODUCTION_SEED_DECLARATIONS.forEach(declarationName => {
+        if (!value.includes(`const ${declarationName} = [];`)) {
+            throw new Error(`Bundle Production ainda contém ${declarationName} operacional.`);
+        }
+    });
+    PRODUCTION_LEGACY_FIXTURE_MARKERS.forEach(marker => {
+        if (value.includes(marker)) {
+            throw new Error(`Bundle Production ainda contém fixture legado: ${marker}.`);
+        }
+    });
+    return true;
+}
+
+async function sanitizeProductionApp(outputDir) {
+    const appPath = path.join(outputDir, 'app.js');
+    const source = await fs.readFile(appPath, 'utf8');
+    const sanitized = sanitizeProductionAppSource(source);
+    assertProductionAppSanitized(sanitized);
+    await fs.writeFile(appPath, sanitized, 'utf8');
+    return true;
+}
+
 async function injectExcelBootstrapGuard(outputDir) {
     const indexPath = path.join(outputDir, 'index.html');
     const html = await fs.readFile(indexPath, 'utf8');
@@ -243,6 +309,9 @@ async function buildVercelArtifact({
 
     for (const entry of RUNTIME_ENTRIES) {
         await copyRuntimeEntry(resolvedRoot, resolvedOutput, entry);
+    }
+    if (runtimeInput.environment === 'production') {
+        await sanitizeProductionApp(resolvedOutput);
     }
     await injectExcelBootstrapGuard(resolvedOutput);
 
@@ -312,20 +381,23 @@ export {
     EXCEL_BOOTSTRAP_GUARD_TAG,
     EXCEL_SME_ASSETS_MANIFEST_FILE,
     PREVIEW_SUPABASE_PUBLIC_RUNTIME,
-    PRODUCTION_LOCAL_ROLLBACK_RUNTIME,
+    PRODUCTION_LEGACY_FIXTURE_MARKERS,
+    PRODUCTION_SEED_DECLARATIONS,
     PRODUCTION_SUPABASE_PUBLIC_RUNTIME,
     PRODUCTION_SUPABASE_URL,
-    RADAR_PRODUCTION_FORCE_LOCAL_VARIABLE,
     RADAR_RUNTIME_VARIABLES,
     RUNTIME_ENTRIES,
+    assertProductionAppSanitized,
     assertSafeOutputDirectory,
     assertDeploymentTargetCompatibility,
     buildVercelArtifact,
     createPublicBuildManifest,
+    findArrayDeclarationRange,
     hasExplicitRadarRuntime,
     injectExcelBootstrapGuard,
     normalizeVercelEnvironment,
-    productionForceLocal,
     resolveVercelRuntimeEnvironment,
-    sanitizeCommitSha
+    sanitizeCommitSha,
+    sanitizeProductionApp,
+    sanitizeProductionAppSource
 };
