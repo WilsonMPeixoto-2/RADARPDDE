@@ -13,6 +13,9 @@ test('backup e restauração usam duas pilhas Supabase descartáveis e comparam 
   const script = read('scripts/verify-supabase-backup-restore.mjs');
   const workflow = read('.github/workflows/backup-restore-disposable.yml');
   const packageJson = JSON.parse(read('package.json'));
+  const uploadBlock = workflow.match(
+    /- name: Publicar evidência sanitizada[\s\S]*?(?=\n\s{6}- name:|$)/
+  )?.[0] || '';
 
   assert.equal(packageJson.scripts['test:backup-restore'], 'node scripts/verify-supabase-backup-restore.mjs');
   assert.match(script, /RADAR_ALLOW_DISPOSABLE_BACKUP_RESTORE/);
@@ -36,9 +39,9 @@ test('backup e restauração usam duas pilhas Supabase descartáveis e comparam 
   assert.match(workflow, /RADAR_ALLOW_DISPOSABLE_BACKUP_RESTORE:\s*'true'/);
   assert.match(workflow, /npm run test:backup-restore/);
   assert.match(workflow, /actions\/upload-artifact@/);
-  assert.match(workflow, /artifacts\/backup-restore\/evidence\.json/);
-  assert.match(workflow, /artifacts\/backup-restore\/diagnostic\.txt/);
-  assert.doesNotMatch(workflow, /artifacts\/backup-restore\/[^\s]*\.sql/);
+  assert.match(uploadBlock, /artifacts\/backup-restore\/evidence\.json/);
+  assert.match(uploadBlock, /artifacts\/backup-restore\/diagnostic\.txt/);
+  assert.doesNotMatch(uploadBlock, /\.sql\b/);
   assert.doesNotMatch(workflow, /secrets\./);
   assert.doesNotMatch(workflow, /--linked/);
 });
