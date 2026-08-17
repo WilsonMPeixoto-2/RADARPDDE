@@ -1,0 +1,267 @@
+/*
+ * RADAR PDDE — refinamento de densidade para estações de trabalho usuais.
+ * Prioridade: notebooks 14–15" (especialmente 1366×768) e monitores 21–24".
+ * Mantém o layout amplo em Full HD e não altera a estratégia mobile abaixo de 901px.
+ */
+
+/* O atributo hidden precisa prevalecer sobre o display:grid autoral do campo. */
+.radar-critical-dialog__field[hidden] {
+    display: none !important;
+}
+
+/* Reforço de contraste dos textos de estado no tema claro sem alterar os fundos semânticos. */
+body:not(.dark-theme) .badge.badge-success,
+body:not(.dark-theme) .btn-toggle.active-sim,
+body:not(.dark-theme) .select-analise.analise-correto {
+    color: #047857 !important;
+}
+
+body:not(.dark-theme) .badge.badge-warning,
+body:not(.dark-theme) .select-analise.analise-correto-atrasado {
+    color: #9a4b00 !important;
+}
+
+body:not(.dark-theme) .badge.badge-danger,
+body:not(.dark-theme) .btn-toggle.active-nao,
+body:not(.dark-theme) .select-analise.analise-incorreto,
+body:not(.dark-theme) .pendency-error-summary {
+    color: #b42318 !important;
+}
+
+/*
+ * Faixa compacta de desktop. Em CSS pixels, 1366–1536 cobre grande parte dos
+ * notebooks corporativos e também monitores Full HD operando com escala elevada.
+ */
+@media (min-width: 901px) and (max-width: 1536px) {
+    #app-layout {
+        grid-template-columns: 244px minmax(0, 1fr);
+    }
+
+    body.radar-expressiva-institucional aside.sidebar {
+        width: auto;
+        padding: 18px 12px 14px;
+    }
+
+    body.radar-expressiva-institucional .sidebar-logo {
+        margin-bottom: 18px;
+        padding-bottom: 16px;
+    }
+
+    body.radar-expressiva-institucional .nav-group {
+        margin-bottom: 14px;
+    }
+
+    body.radar-expressiva-institucional .nav-item {
+        min-height: 42px;
+        padding-block: 6px;
+        font-size: 0.86rem;
+    }
+
+    body.radar-expressiva-institucional header.top-header {
+        height: 66px;
+        padding: 8px 18px;
+        gap: 12px;
+    }
+
+    body.radar-expressiva-institucional .search-bar-container {
+        height: 40px;
+        max-width: 500px;
+    }
+
+    body.radar-expressiva-institucional .global-competence-badge,
+    body.radar-expressiva-institucional .exercise-selector,
+    body.radar-expressiva-institucional .bell-button,
+    body.radar-expressiva-institucional .profile-button {
+        min-height: 38px;
+    }
+
+    body.radar-expressiva-institucional .page-container {
+        padding: 22px 20px 32px;
+    }
+
+    body.radar-expressiva-institucional .page-header {
+        margin-bottom: 16px;
+    }
+
+    body.radar-expressiva-institucional .page-title h1 {
+        font-size: 1.82rem;
+    }
+
+    .grid-stats,
+    body.radar-expressiva-institucional .cycle-b-dashboard-stats {
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    body.radar-expressiva-institucional .cycle-b-dashboard-card {
+        min-height: 168px;
+        padding: 14px;
+    }
+
+    body.radar-expressiva-institucional .cycle-b-dashboard-card .stat-icon {
+        width: 42px;
+        height: 42px;
+        margin-bottom: 10px;
+    }
+
+    body.radar-expressiva-institucional .cycle-b-dashboard-card .stat-value {
+        font-size: 1.65rem;
+    }
+
+    body.radar-expressiva-institucional .cycle-b-dashboard-card .cycle-b-card-detail {
+        margin-top: 7px;
+        font-size: 0.76rem;
+        line-height: 1.38;
+    }
+
+    .panel-card {
+        margin-bottom: 18px;
+        padding: 18px;
+    }
+
+    .panel-header {
+        margin-bottom: 14px;
+    }
+
+    .school-filter-panel,
+    .pendency-filter-panel {
+        margin-bottom: 14px;
+    }
+
+    .school-filter-grid {
+        grid-template-columns: minmax(220px, 1.7fr) repeat(2, minmax(140px, 1fr));
+        gap: 10px;
+    }
+
+    .pendency-filter-grid {
+        grid-template-columns: repeat(3, minmax(150px, 1fr));
+        gap: 10px;
+    }
+
+    .pendency-filter-grid .filter-field-wide {
+        grid-column: span 2;
+    }
+
+    table.data-table th {
+        padding: 9px 8px;
+        font-size: 0.69rem;
+        line-height: 1.25;
+        white-space: normal;
+    }
+
+    table.data-table td {
+        padding: 10px 8px;
+        font-size: 0.79rem;
+        line-height: 1.38;
+    }
+
+    table.data-table small {
+        font-size: 0.7rem;
+        line-height: 1.35;
+    }
+
+    .cycle-b-wallet-table {
+        min-width: 1180px;
+    }
+
+    .pendency-operations-table {
+        min-width: 1120px;
+    }
+
+    .cycle-b-wallet-actions {
+        min-width: 108px;
+    }
+
+    .cycle-b-wallet-actions .btn,
+    .pendency-row-actions .btn {
+        padding-inline: 10px;
+    }
+
+    .pendency-detail-drawer {
+        width: min(560px, calc(100vw - 260px));
+        min-width: 420px;
+    }
+}
+
+/*
+ * Notebook 1366: a ficha institucional deixa de consumir uma coluna permanente
+ * do Prontuário e passa a funcionar como faixa de contexto acima da análise.
+ */
+@media (min-width: 901px) and (max-width: 1366px) {
+    #app-layout {
+        grid-template-columns: 232px minmax(0, 1fr);
+    }
+
+    body.radar-expressiva-institucional aside.sidebar {
+        padding-inline: 10px;
+    }
+
+    body.radar-expressiva-institucional .page-container {
+        padding: 18px 16px 28px;
+    }
+
+    .school-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 14px;
+    }
+
+    .school-sidebar {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 12px;
+    }
+
+    .school-info-card {
+        padding: 15px;
+    }
+
+    .school-sidebar .info-item {
+        margin-bottom: 9px;
+    }
+
+    .prontuario-actions {
+        justify-content: flex-start;
+        gap: 8px;
+    }
+
+    .prontuario-actions .btn {
+        min-height: 38px;
+        padding: 8px 12px;
+    }
+
+    .prontuario-tablist {
+        gap: 6px;
+    }
+
+    .prontuario-tablist .tab-button {
+        padding-inline: 11px;
+        font-size: 0.8rem;
+    }
+
+    .school-filter-grid,
+    .pendency-filter-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .school-filter-grid .filter-field-wide,
+    .pendency-filter-grid .filter-field-wide {
+        grid-column: span 2;
+    }
+
+    .cycle-b-wallet-table {
+        min-width: 1080px;
+    }
+
+    .pendency-operations-table {
+        min-width: 1040px;
+    }
+
+    .cycle-b-dashboard-stats {
+        gap: 10px;
+    }
+
+    body.radar-expressiva-institucional .cycle-b-dashboard-card {
+        min-height: 154px;
+        padding: 12px;
+    }
+}
