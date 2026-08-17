@@ -51,12 +51,14 @@ test('Production ignora qualquer tentativa de fallback local e publica somente S
 
     assert.equal(result.runtimeInput.dataMode, 'supabase-production');
     assert.equal(result.runtimeInput.environment, 'production');
+    assert.equal(result.runtimeInput.deploymentTarget, 'production');
     assert.equal(manifest.vercelEnvironment, 'production');
     assert.equal(manifest.supabaseRepositoryEnabled, true);
     assert.equal(manifest.productionActivationApproved, true);
     assert.equal(manifest.commitSha, '0123456789abcdef0123456789abcdef01234567');
     assert.doesNotMatch(runtimeSource, /discarded/);
-    assert.match(publicIndex, /RADAR_PDDE_DEPLOYMENT_TARGET\s*=\s*["']production["']/);
+    assert.match(runtimeSource, /"deploymentTarget": "production"/);
+    assert.match(publicIndex, /RADAR_PDDE_RUNTIME_INPUT=Object\.freeze\(\{deploymentTarget:["']production["']\}\)/);
     assert.match(publicApp, /const INITIAL_CONTROLADORES = \[\];/);
     assert.match(publicApp, /const INITIAL_ESCOLAS = \[\];/);
     assert.doesNotMatch(publicApp, /Escola Municipal Ema Negrão de Lima|Érika Reis/);
@@ -110,11 +112,13 @@ test('gera artefato de Preview com configuração pública, marcador e manifesto
     const publicIndex = await fs.readFile(path.join(outputDir, 'index.html'), 'utf8');
 
     assert.equal(result.runtimeInput.dataMode, 'supabase-preview');
+    assert.equal(result.runtimeInput.deploymentTarget, 'preview');
     assert.equal(result.manifest.vercelEnvironment, 'preview');
     assert.equal(result.manifest.supabaseRepositoryEnabled, true);
     assert.match(runtimeSource, /supabase-preview/);
+    assert.match(runtimeSource, /"deploymentTarget": "preview"/);
     assert.match(runtimeSource, new RegExp(publishableKey));
-    assert.match(publicIndex, /RADAR_PDDE_DEPLOYMENT_TARGET\s*=\s*["']preview["']/);
+    assert.match(publicIndex, /RADAR_PDDE_RUNTIME_INPUT=Object\.freeze\(\{deploymentTarget:["']preview["']\}\)/);
     assert.doesNotMatch(manifestSource, new RegExp(publishableKey));
     assert.doesNotMatch(manifestSource, /supabase\.co/);
 });
@@ -138,6 +142,7 @@ test('alvo Production ignora tentativa de publicar configuração de Preview', a
 
     assert.equal(result.runtimeInput.dataMode, 'supabase-production');
     assert.equal(result.runtimeInput.environment, 'production');
+    assert.equal(result.runtimeInput.deploymentTarget, 'production');
     assert.equal(result.runtimeInput.productionActivationApproved, true);
     assert.equal(result.manifest.vercelEnvironment, 'production');
 });
