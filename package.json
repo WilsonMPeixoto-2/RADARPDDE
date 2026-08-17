@@ -79,10 +79,10 @@
     "check:search-ui-vendors": "node scripts/build-search-ui-vendors.mjs --check"
   },
   "devDependencies": {
-    "@axe-core/playwright": "4.12.1",
+    "@axe-core/playwright": "4.13.0",
     "@eslint/js": "10.0.1",
     "@floating-ui/dom": "1.8.0",
-    "@playwright/test": "1.62.0",
+    "@playwright/test": "1.62.1",
     "@supabase/supabase-js": "2.110.9",
     "acorn": "8.18.0",
     "acorn-walk": "8.3.5",
