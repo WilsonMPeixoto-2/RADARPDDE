@@ -116,7 +116,7 @@ test.describe('Desktop — notebooks e monitores básicos', () => {
     await dialog.getByRole('button', { name: 'Cancelar', exact: true }).click();
   });
 
-  test('tabelas operacionais reduzem a rolagem em notebook sem remover a tabela', async ({ page }) => {
+  test('tabelas operacionais cabem melhor em notebook sem trocar a interface desktop', async ({ page }) => {
     await page.setViewportSize({ width: 1366, height: 768 });
     await page.goto('/');
     await waitForDesktopRefinements(page);
@@ -125,10 +125,16 @@ test.describe('Desktop — notebooks e monitores básicos', () => {
       switchProfile('controlador');
       switchView('escolas');
     });
-    const walletTable = page.locator('.cycle-b-wallet-table');
+    const walletTable = page.locator('.school-carteira-table');
     await expect(walletTable).toBeVisible();
-    const walletMinWidth = await walletTable.evaluate(element => Number.parseFloat(getComputedStyle(element).minWidth));
-    expect(walletMinWidth).toBeLessThanOrEqual(1080);
+    const walletMetrics = await walletTable.evaluate(element => ({
+      minWidth: Number.parseFloat(getComputedStyle(element).minWidth),
+      wrapperWidth: element.closest('.table-responsive')?.clientWidth || 0,
+      tableWidth: element.getBoundingClientRect().width
+    }));
+    expect(walletMetrics.minWidth).toBeLessThanOrEqual(960);
+    expect(walletMetrics.tableWidth).toBeLessThanOrEqual(walletMetrics.wrapperWidth + 1);
+    await expect(page.locator('.cycle-b-wallet-mobile')).toHaveCount(0);
 
     await page.evaluate(() => switchView('pendencias'));
     const pendencyTable = page.locator('.pendency-operations-table');
