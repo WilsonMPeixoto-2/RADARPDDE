@@ -30,6 +30,7 @@ const RUNTIME_ENTRIES = Object.freeze([
 ]);
 const EXCEL_BOOTSTRAP_GUARD_PATH = '/src/integration/excel-export-bootstrap-guard.js';
 const EXCEL_BOOTSTRAP_GUARD_TAG = `<script defer src="${EXCEL_BOOTSTRAP_GUARD_PATH}"></script>`;
+const DEPLOYMENT_TARGET_GLOBAL = 'RADAR_PDDE_DEPLOYMENT_TARGET';
 
 const VERCEL_ENVIRONMENTS = new Set(['development', 'preview', 'production']);
 const PRODUCTION_SUPABASE_URL = 'https://scnryinorqeucbfkioxo.supabase.co';
@@ -277,6 +278,21 @@ async function sanitizeProductionApp(outputDir) {
     return true;
 }
 
+async function injectDeploymentTargetMarker(outputDir, vercelEnvironment) {
+    const target = String(vercelEnvironment || '').trim();
+    if (!['preview', 'production'].includes(target)) return false;
+    const indexPath = path.join(outputDir, 'index.html');
+    const html = await fs.readFile(indexPath, 'utf8');
+    if (html.includes(`window.${DEPLOYMENT_TARGET_GLOBAL}`)) return false;
+    if (!/<head(?:\s[^>]*)?>/iu.test(html)) {
+        throw new Error('index.html público não possui head para registrar o alvo do deployment.');
+    }
+    const marker = `<script>window.${DEPLOYMENT_TARGET_GLOBAL}=${JSON.stringify(target)};</script>`;
+    const updated = html.replace(/<head(\s[^>]*)?>/iu, match => `${match}\n    ${marker}`);
+    await fs.writeFile(indexPath, updated, 'utf8');
+    return true;
+}
+
 async function injectExcelBootstrapGuard(outputDir) {
     const indexPath = path.join(outputDir, 'index.html');
     const html = await fs.readFile(indexPath, 'utf8');
@@ -302,7 +318,7 @@ async function buildVercelArtifact({
     const resolvedEnvironment = resolveVercelRuntimeEnvironment(environment);
 
     const runtimeInput = buildRuntimeInput(resolvedEnvironment);
-    assertDeploymentTargetCompatibility(runtimeInput, resolvedEnvironment);
+    const vercelEnvironment = assertDeploymentTargetCompatibility(runtimeInput, resolvedEnvironment);
 
     await fs.rm(resolvedOutput, { recursive: true, force: true });
     await fs.mkdir(resolvedOutput, { recursive: true });
@@ -313,6 +329,7 @@ async function buildVercelArtifact({
     if (runtimeInput.environment === 'production') {
         await sanitizeProductionApp(resolvedOutput);
     }
+    await injectDeploymentTargetMarker(resolvedOutput, vercelEnvironment);
     await injectExcelBootstrapGuard(resolvedOutput);
 
     await fs.writeFile(
@@ -377,6 +394,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
 }
 
 export {
+    DEPLOYMENT_TARGET_GLOBAL,
     EXCEL_BOOTSTRAP_GUARD_PATH,
     EXCEL_BOOTSTRAP_GUARD_TAG,
     EXCEL_SME_ASSETS_MANIFEST_FILE,
@@ -394,6 +412,7 @@ export {
     createPublicBuildManifest,
     findArrayDeclarationRange,
     hasExplicitRadarRuntime,
+    injectDeploymentTargetMarker,
     injectExcelBootstrapGuard,
     normalizeVercelEnvironment,
     resolveVercelRuntimeEnvironment,
