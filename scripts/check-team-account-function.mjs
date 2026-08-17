@@ -223,6 +223,15 @@ function insertSyntheticSchool(state) {
   `);
 }
 
+function transferSyntheticSchool(state) {
+  runLocalSql(`
+    update public.schools
+    set controller_id = ${sqlLiteral(state.targetControllerId)}
+    where id = ${sqlLiteral(state.schoolId)}
+      and controller_id = ${sqlLiteral(state.sourceControllerId)};
+  `);
+}
+
 function verifySyntheticState(state) {
   const targetUserId = state.userIds[0];
   runLocalSql(`
@@ -450,19 +459,20 @@ async function validateRoleTransitionLifecycle() {
     assert.equal(sourceControllerSave.userId, sourceUserId);
 
     insertSyntheticSchool(state);
+    transferSyntheticSchool(state);
 
-    const reassignment = expectSuccess(await callFunction(session.accessToken, {
+    const deactivation = expectSuccess(await callFunction(session.accessToken, {
       operation: 'deactivate_controller',
       controllerId: state.sourceControllerId,
-      fallbackControllerId: state.targetControllerId,
-      reassignedCount: 1,
+      fallbackControllerId: null,
+      reassignedCount: 0,
       administrativeLog: {
         id: state.logIds[4],
-        action: 'HML — transferir carteira e desativar origem',
+        action: 'HML — desativar origem após carteira zerada',
         details: { synthetic: true }
       }
-    }), 'transferência da carteira e desativação da origem');
-    assert.equal(reassignment.result?.reassigned_count, 1);
+    }), 'desativação da origem após transferência da carteira');
+    assert.equal(deactivation.result?.reassigned_count ?? 0, 0);
 
     verifySyntheticState(state);
 
