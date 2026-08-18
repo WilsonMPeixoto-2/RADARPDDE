@@ -25,6 +25,10 @@
     line-height: 1.3;
 }
 
+body:not(.dark-theme) #prontuario-verif-rows .btn-toggle:not(.active-sim):not(.active-nao):not(.active-naoseaplica) {
+    color: #4f465f;
+}
+
 .comp-sub-tab.future-competence-tab {
     border-style: dashed;
 }
