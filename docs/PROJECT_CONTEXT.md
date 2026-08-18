@@ -1,6 +1,6 @@
 # RADAR PDDE 2026 — Contexto funcional e arquitetural
 
-**Atualizado em:** 7 de agosto de 2026  
+**Atualizado em:** 18 de agosto de 2026  
 **Classe documental:** Canônico
 
 ## 1. Finalidade
@@ -22,15 +22,19 @@ Dashboard, Carteira, Competências, Prontuário, Pendências, Inventário, Regis
 
 ## 2. Baseline operacional
 
-O baseline mutável corrente fica exclusivamente em [`CURRENT_STAGE.md`](CURRENT_STAGE.md). Este documento descreve contratos estáveis e não deve replicar SHA, deployment, contagem de migrations ou versão de Edge Function.
+O baseline mutável corrente fica em [`CURRENT_STAGE.md`](CURRENT_STAGE.md).
+
+O snapshot de encerramento de 18/08/2026 está em [`handoff/2026-08-18-encerramento-operacional.md`](handoff/2026-08-18-encerramento-operacional.md).
+
+Este documento descreve contratos estáveis e não deve ser usado para presumir SHA, deployment, contagem de migrations ou versão de Edge Function sem nova consulta ao remoto.
 
 ## 3. Regra de precedência
 
 1. código-fonte remoto vigente;
 2. Supabase efetivo, incluindo schema, migrations, Auth, RLS, funções e dados;
 3. artefato implantado na Vercel e seu SHA;
-4. testes/evidências reproduzíveis;
-5. decisões funcionais vigentes;
+4. decisões funcionais vigentes;
+5. testes/evidências reproduzíveis;
 6. documentação canônica;
 7. documentos históricos.
 
@@ -42,7 +46,7 @@ Memória de chat, planos e auditorias anteriores não substituem verificação o
 
 Possui carteira de responsabilidade principal e pode colaborar nas escolas da própria CRE. A atuação fora da carteira não transfere `schools.controller_id`, preserva autoria e não concede acesso a outra CRE.
 
-Pode editar dados cadastrais autorizados, mas não redistribuir carteira nem alterar a identidade institucional da escola.
+Pode editar dados cadastrais autorizados, mas não redistribuir carteira nem alterar a identidade institucional da escola fora das capacidades previstas.
 
 ### Assistente de Verbas Federais
 
@@ -50,9 +54,9 @@ Lidera operacionalmente a GAD/CRE, acompanha escolas, administra Controladores e
 
 ### Gestão SME
 
-Realiza acompanhamento gerencial. Consulta identificação e bonificação, não recebe análise técnica nas superfícies restritas nem mutações operacionais de Pendências. Em Registros Internos, consulta somente registros admitidos pelas políticas vigentes.
+Realiza acompanhamento gerencial. Consulta identificação e bonificação, não recebe análise técnica editável nas superfícies restritas nem mutações operacionais de Pendências.
 
-O contrato atualmente implementado permite à Gestão SME, além do calendário/exercícios, cadastrar, editar e desativar programas. Essa capacidade foi confirmada no código, serviço, RPC e permissões durante a auditoria funcional. Qualquer retirada ou expansão futura exige decisão funcional própria.
+Capacidades administrativas específicas, inclusive de programas, devem ser confirmadas no código e nas permissões atuais antes de qualquer ampliação ou retirada futura.
 
 ### Equipe de Inventário
 
@@ -79,11 +83,25 @@ O produto contém, conforme o perfil:
 
 Toda alteração deve considerar competência, exercício, Controlador, CRE, escola, programa, documento, situação, autoria e perfil efetivo.
 
-## 6. Competência transversal
+## 6. Competência transversal e exceção de Pendências
 
-A competência canônica usa `YYYY-MM` e é única para Dashboard, Carteira, Competências, Prontuário, Pendências, alertas, timeline e exportações.
+A competência canônica usa `YYYY-MM` e é gerida por `RadarCompetenceContext`.
 
-`RadarCompetenceContext` normaliza, valida, seleciona e sincroniza o contexto. Estado remoto restaurado deve atualizar também as estruturas globais usadas pelo primeiro render. O PR #160 fixou a regressão em que uma competência criada pela Gestão SME podia ser restaurada sem sincronização de `COMPETENCIAS`.
+Ela é contexto global persistente para Dashboard, Carteira, Competências, Prontuário, alertas, timeline e exportações conforme a regra da superfície.
+
+### Exceção deliberada: Pendências Operacionais
+
+Pendências representam passivo histórico e não podem desaparecer apenas porque o usuário selecionou a competência corrente.
+
+Por isso:
+
+- a competência global continua visível na página;
+- a página abre em **Todas as competências**;
+- a competência global não é aplicada automaticamente como filtro da lista;
+- o filtro local de competência é opcional;
+- ao navegar de uma pendência para o Prontuário, a competência de origem da pendência volta a ser aplicada ao contexto mensal.
+
+Ver [`decisions/ADR-044-pendencias-transversais.md`](decisions/ADR-044-pendencias-transversais.md).
 
 Competência existente, disponível e formalmente fechada são conceitos distintos.
 
@@ -95,7 +113,14 @@ Identidade:
 escola + competência + programa
 ```
 
-A projeção canônica reúne consolidação, resultado, campos ausentes, bonificação, análise técnica, conclusão e pendências. Consulta, telas e certificação Excel devem usar a mesma regra.
+A projeção canônica reúne consolidação, resultado, campos ausentes, bonificação, análise técnica, conclusão e pendências.
+
+Regras adicionais vigentes:
+
+- competências futuras podem ser vistas, mas não editadas;
+- após consolidação do prazo/bonificação, documento entregue fora do período não recebe `Correto` como situação regular;
+- quando tecnicamente correto e entregue após o prazo, usa-se `Correto (Atrasado)`;
+- bonificação, análise técnica e pendência permanecem dimensões diferentes.
 
 ## 8. Pendências
 
@@ -108,7 +133,9 @@ Estados:
 
 Novo envio não resolve automaticamente. Reanálise positiva resolve; negativa reabre; cancelamento preserva motivo e autoria; regularização não apaga percurso.
 
-A tabela `pendency_attempts` deve permanecer sincronizada com o estado agregado das tentativas da pendência. A migration de remediação de integridade adicionou trigger e reconciliação idempotente para esse contrato.
+A ordenação operacional prioriza as pendências ativas mais antigas e, para estados encerrados, os acontecimentos mais recentes.
+
+A tabela `pendency_attempts` permanece sincronizada com o estado agregado das tentativas da pendência.
 
 ## 9. Timeline
 
@@ -116,7 +143,9 @@ A tabela `pendency_attempts` deve permanecer sincronizada com o estado agregado 
 
 ## 10. Navegação contextual
 
-`RadarNavigationContext` preserva competência, rota, filtros, rolagem e foco entre origem operacional e Prontuário/Pendências. Usa `sessionStorage`, pilha limitada e fallback seguro.
+`RadarNavigationContext` preserva competência, rota, filtros, rolagem e foco entre origem operacional e Prontuário/Pendências.
+
+Na exceção transversal de Pendências, abrir detalhes não força a competência global; navegar para o Prontuário assume a competência da pendência.
 
 ## 11. Persistência
 
@@ -124,15 +153,23 @@ A tabela `pendency_attempts` deve permanecer sincronizada com o estado agregado 
 Frontend
 → serviços de aplicação e UnitOfWork
 → RepositoryContract
-   ├── SupabaseRepository — Preview e Production
-   └── LocalStorageRepository — desenvolvimento e contingência por novo build
+   ├── SupabaseRepository — Production
+   └── LocalStorageRepository — desenvolvimento/testes explicitamente configurados
 → PostgREST / RPC / Edge Function
 → Auth / RLS / PostgreSQL
 ```
 
 O adaptador remoto usa paginação, lotes, erros padronizados, `row_version`, snapshots, RPCs, reconciliação e rollback.
 
-Production somente é liberada após autenticação, autorização e leitura do Supabase. O estado institucional canônico é remoto.
+### Production fail-closed
+
+Production somente opera com a configuração remota autorizada.
+
+Falha, ausência ou inconsistência de configuração Supabase em Production **não ativa fallback silencioso para LocalStorage ou seed**. O produto deve permanecer bloqueado/indisponível até o ambiente oficial ser restabelecido.
+
+O build de Production sanitiza os dados iniciais de escolas/controladores usados no desenvolvimento para que eles não façam parte do bundle público institucional.
+
+Ver [`decisions/ADR-045-production-fail-closed.md`](decisions/ADR-045-production-fail-closed.md).
 
 ## 12. Auth e sessão
 
@@ -144,6 +181,8 @@ O cliente Supabase usa sessão persistente e renovação automática. O bootstra
 4. carrega entidades autorizadas;
 5. aplica o perfil à interface;
 6. mantém a aplicação inerte enquanto a autorização não termina.
+
+Em Production, erro de configuração/autorização não é convertido em sessão local funcional.
 
 ## 13. Gestão de contas
 
@@ -160,16 +199,22 @@ Contratos vigentes:
 - CORS fail-closed;
 - JWT e papel autorizados;
 - credencial administrativa somente server-side;
-- lookup exato de conta por e-mail pela RPC `resolve_team_auth_user_id_by_email`, executável apenas por `service_role`;
+- lookup exato de conta por e-mail pela RPC autorizada;
 - recuperação de vínculo histórico quando inequívoca;
 - reutilização segura de conta em transição autorizada de perfil;
 - um único perfil institucional ativo por usuário;
 - desativação lógica e preservação de histórico;
-- a desativação de Controlador segue duas etapas obrigatórias: primeiro todas as escolas são transferidas pela alocação de carteira; somente com a carteira zerada a conta pode ser desativada, sem substituto no comando de desativação;
-- Controladores inativos permanecem no histórico, mas não integram diretórios, filtros ou seletores operacionais;
 - compensação quando Auth e banco participam de etapas distintas.
 
-Os PRs #150 e #161 complementaram o conserto inicial do PR #138. Não descrever Gestão de Equipe como resolvida apenas pelo CORS do PR #138.
+### Desativação de Controlador
+
+A sequência obrigatória é:
+
+1. transferir todas as escolas pela alocação de carteira;
+2. confirmar carteira zerada;
+3. desativar.
+
+A desativação não redistribui escolas e não pede substituto quando a carteira já está vazia. Controladores inativos permanecem no histórico, mas não integram diretórios, filtros ou seletores operacionais.
 
 ## 14. Escolas e carteira
 
@@ -184,40 +229,48 @@ Novas escolas exigem identidade institucional informada:
 - CNPJ;
 - SICI.
 
-Valores artificiais não podem ser gerados para preencher identidade definitiva. O banco exige campos institucionais não vazios e unicidade normalizada de INEP, CNPJ e SICI.
+Valores artificiais não podem ser gerados para preencher identidade definitiva.
 
-A redistribuição de `controller_id` é exclusiva da Assistente e do administrador técnico/rotina administrativa autorizada, com proteção também no banco.
+A redistribuição de `controller_id` é exclusiva de perfis/rotinas administrativas autorizadas e protegida também no backend.
 
 ## 15. Financeiro e patrimônio
 
 Notas fiscais e bens permanentes participam de operações compostas.
 
-- nota permanente e bem derivado devem preservar contexto coerente;
-- quando uma nota perde ou troca o vínculo com bem derivado, o vínculo anterior é removido na mesma transação protegida;
-- cada nota fiscal de serviço registra individualmente se a consulta à Assessoria Contábil foi enviada e o resultado de sua análise técnica;
-- os campos de assessoria na verificação mensal são somente um resumo derivado das NFs de serviço, sem substituir a avaliação de cada nota;
-- edição rápida de bem é restrita ao campo permitido e usa `saveAssetWithLog`, versão esperada e log administrativo;
+- nota permanente e bem derivado preservam contexto coerente;
+- quando uma nota perde/troca vínculo com bem derivado, o vínculo anterior é tratado na mesma operação protegida;
+- cada NF de serviço registra individualmente consulta à Assessoria e análise técnica;
+- resumos mensais de Assessoria são derivados das NFs e não substituem a avaliação individual;
+- edição rápida de bem é restrita aos campos permitidos, com versão esperada e log;
 - encaminhamento e inventariação usam fluxo patrimonial próprio.
+
+### Despesa `A identificar`
+
+Saída bancária sem documentação suficiente pode ser registrada provisoriamente como `A identificar`.
+
+Esse estado não deve forçar NF, natureza de despesa, bem patrimonial ou consulta à Assessoria. A classificação é atualizada quando houver evidência documental.
 
 ## 16. Auditoria e exportações
 
 `administrative_logs` registra eventos funcionais e `audit_events` serve à trilha técnica correspondente ao schema.
 
-Exportações institucional e SME passam por `RadarExcelExportAudit`: o início precisa ser confirmado via `AuditService.record` antes do download; após geração, registra-se a conclusão. O filtro de compatibilidade impede duplicação do evento legado de exportação.
+Exportações institucional e SME passam por auditoria de início/conclusão e devem permanecer coerentes com o estado canônico.
 
 ## 17. Ambientes
 
 ### Desenvolvimento/local
 
-Supabase local e fixtures descartáveis. Não representa Production.
+Supabase local, LocalStorage e fixtures descartáveis conforme o ensaio. Não representa Production.
 
 ### Preview
 
-Supabase autorizado de Preview/ambiente descartável e artefato candidato. Preview não é publicação oficial.
+Ambiente candidato/isolado para validação. Preview não é publicação oficial.
 
 ### Production
 
-Supabase Production canônico e frontend publicado na Vercel. Consultar `CURRENT_STAGE.md` para o baseline mutável efetivo.
+Supabase Production canônico e frontend publicado na Vercel. Production é fail-closed e não usa seed/local como contingência silenciosa.
+
+Consultar `CURRENT_STAGE.md` e o manifesto remoto para o baseline efetivo.
 
 ## 18. Excel SME
 
@@ -230,22 +283,23 @@ Contrato estável:
 - remoção de K, R e Y na projeção pública;
 - designação como texto;
 - bordas, alinhamentos, filtro, impressão e congelamento preservados;
-- ausência deliberada de `dataValidations` incompatíveis;
-- certificação OOXML, reabertura e homologação desktop.
+- ausência deliberada de validações incompatíveis;
+- certificação OOXML e homologação desktop.
 
 ## 19. Garantia operacional
 
 O sistema possui camadas permanentes de:
 
 - smoke geral de Production;
-- incidentes automáticos;
-- auditoria agregada de vinte invariantes;
+- incidentes/monitoramento conforme workflows vigentes;
+- auditorias e contratos executáveis;
 - backup/restauração descartáveis;
 - gate por perfil e viewport;
-- matriz funcional executável;
-- infraestrutura de leitura autenticada protegida.
+- CodeQL;
+- health checks de dependências;
+- testes de banco, Auth e RLS.
 
-A última permanece desativada até provisionamento específico de identidades técnicas.
+A existência de um gate não o torna automaticamente obrigatório para toda alteração. A governança de testes define proporcionalidade ao risco.
 
 ## 20. Confiabilidade funcional ponta a ponta
 
@@ -266,11 +320,21 @@ superfície
 → erro, conflito e compensação
 ```
 
-A matriz executável registra 41 operações e distingue `covered` de `partial`. Correção de uma lacuna não promove automaticamente a operação a coberta sem a evidência exigida.
+Não declarar função concluída apenas porque o controle aparece na interface.
 
-## 21. Auditoria histórica PR #156
+## 21. Experiência do usuário
 
-A branch do PR #156 contém evidências úteis, porém divergiu da `main`. Não é fonte atual de arquitetura nem deve ser mesclada cegamente. A continuidade das provas deve partir da `main` reconciliada e reutilizar somente evidências compatíveis com o código atual.
+Critérios de homologação incluem:
+
+- clareza de contexto;
+- legibilidade;
+- encontrabilidade de ações;
+- feedback de sucesso/erro;
+- coerência do dado salvo e exibido;
+- permanência após releitura;
+- navegação e retorno contextual.
+
+No fechamento de 18/08/2026 o polimento priorizou notebooks 14–15" e monitores 21–24". Mobile preserva capacidade essencial, mas sua otimização de performance permaneceu melhoria não bloqueadora.
 
 ## 22. Restrições permanentes
 
@@ -278,26 +342,29 @@ Não é permitido:
 
 - alterar código para coincidir com documento histórico;
 - criar fonte paralela de competência, avaliação, timeline ou exportação;
+- voltar a filtrar automaticamente Pendências Operacionais pela competência global;
 - enfraquecer Auth, RLS ou autoria;
+- reintroduzir fallback silencioso local/seed em Production;
+- publicar seed institucional legado no bundle de Production;
 - transformar carteira em fronteira de segurança entre Controladores da mesma CRE;
 - ocultar capacidade essencial no mobile;
 - introduzir segredo no frontend;
-- aplicar migration sem histórico, testes, backup, dry-run e reversão;
+- aplicar migration sem histórico, testes e reversão proporcional ao risco;
 - editar diretamente a tabela de migrations;
 - inventar identidade institucional de escola;
-- reintroduzir persistência patrimonial genérica em `ASSET-02`;
-- reintroduzir `listUsers` como lookup global da Gestão de Equipe;
-- liberar exportação antes da auditoria inicial;
+- liberar exportação sem os controles de auditoria previstos;
 - tratar PR aberto ou Preview como funcionalidade publicada;
 - declarar função pronta apenas pela presença visual.
 
 ## 23. Referências
 
 - [`CURRENT_STAGE.md`](CURRENT_STAGE.md);
-- [`ROADMAP_ATUALIZACOES_2026.md`](ROADMAP_ATUALIZACOES_2026.md);
+- [`handoff/2026-08-18-encerramento-operacional.md`](handoff/2026-08-18-encerramento-operacional.md);
 - [`DECISION_LOG.md`](DECISION_LOG.md);
+- [`decisions/ADR-044-pendencias-transversais.md`](decisions/ADR-044-pendencias-transversais.md);
+- [`decisions/ADR-045-production-fail-closed.md`](decisions/ADR-045-production-fail-closed.md);
 - [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md);
+- [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md);
 - [`architecture/testing.md`](architecture/testing.md);
 - [`architecture/supabase-readiness.md`](architecture/supabase-readiness.md);
-- [`runbooks/SUPABASE_CONNECTION.md`](runbooks/SUPABASE_CONNECTION.md);
-- [`audits/2026-08-07-reconciliacao-documental-integral-pos-pr162.md`](audits/2026-08-07-reconciliacao-documental-integral-pos-pr162.md).
+- [`runbooks/SUPABASE_CONNECTION.md`](runbooks/SUPABASE_CONNECTION.md).
