@@ -1,7 +1,8 @@
 # RADAR PDDE — Estado atual do projeto
 
-**Atualizado em:** 9 de agosto de 2026  
-**Classe documental:** Canônico — guia de estado corrente e revalidação
+**Atualizado em:** 18 de agosto de 2026  
+**Classe documental:** Canônico — estado corrente e retomada futura  
+**Situação:** ciclo de desenvolvimento e preparação para uso real concluído por enquanto
 
 ## 1. Fonte de verdade
 
@@ -9,171 +10,188 @@ Para determinar o estado implementado, usar nesta ordem:
 
 1. código-fonte remoto da `main` ou do SHA explicitamente analisado;
 2. schema, migrations, Auth, RLS, RPCs, Edge Functions e dados efetivos do Supabase;
-3. deployment efetivamente publicado na Vercel e seu SHA;
-4. contrato funcional e decisões vigentes;
+3. deployment efetivamente publicado na Vercel e seu manifesto;
+4. decisões de negócio vigentes;
 5. testes que representam o contrato atual;
 6. documentação canônica;
-7. auditorias, planos e testes históricos.
+7. auditorias, planos e handoffs históricos.
 
 Nenhum documento ou teste antigo prevalece sobre código e ambiente atuais.
 
-Valores mutáveis de `main`, deployment, migrations e serviços devem ser consultados diretamente no remoto. Checkpoints datados são evidência histórica, não substitutos do estado ao vivo.
+O snapshot detalhado de encerramento está em [`handoff/2026-08-18-encerramento-operacional.md`](handoff/2026-08-18-encerramento-operacional.md).
 
-## 2. Baseline funcional estabilizado
-
-A rodada de estabilização encerrada em 9 de agosto de 2026 incorporou os PRs #166 a #170.
-
-O último baseline funcional anterior à presente conciliação documental foi:
+## 2. Baseline de encerramento
 
 ```text
-GitHub main: 908758d92ec8407003a848ed2779814ce747a6c5
-PR de fechamento: #170
-Vercel Production: READY no mesmo SHA
-Alias principal: radarpdde-fix.vercel.app
+Baseline funcional homologado: dc77e29d9b364092361623ce185c8d1a55dde983
+PR de hardening final: #188
+Vercel Production no fechamento funcional: READY
+Deployment funcional de referência: dpl_8tBN6PfaVgu3e2qjhsoep42NpVpZ
+Alias oficial: radarpdde-fix.vercel.app
+Supabase Production: scnryinorqeucbfkioxo
+Migrations canônicas no fechamento: 35
+Edge Function team-account-management no fechamento: versão 135
 ```
 
-Esse SHA é âncora histórica da rodada, não um valor que deva ser presumido como HEAD futuro.
+O SHA acima é o **baseline funcional homologado**, anterior à consolidação documental de encerramento. Commits exclusivamente documentais podem avançar a `main` sem alterar o produto. Em qualquer retomada futura, consultar a `main` e o deployment ao vivo antes de atuar.
 
 ## 3. Estado executivo
 
-O RADAR PDDE opera com Supabase Production como backend institucional canônico e frontend publicado pela Vercel.
+O RADAR PDDE está **apto para uso real** e sem bloqueador funcional conhecido neste encerramento.
 
-A rodada recente consolidou:
+O ciclo terminou com:
 
-- competência mensal global única em Dashboard, Carteira, Competências, Prontuário, Pendências e exportações;
-- regras de autenticação e autorização por perfil;
-- autoridade autenticada do `technical_admin` preservada mesmo durante simulação visual de perfil funcional;
-- reanálise de pendências por Controlador, Assistente de Verbas Federais e administrador técnico;
-- bloqueio de mutações de pendência para Gestão SME e Inventário;
-- histórico de reanálise com observação e autoria;
-- Gestão de Equipe ligada ao Supabase/Auth com cadastro, edição, redistribuição e desativação;
-- relatórios Excel vinculados à competência global aplicável;
-- UX de Pendências com contexto de unidade visível, navegação coerente e redução de rerender intermediário.
+- Supabase Production como backend institucional canônico;
+- Vercel Production publicada e alinhada ao baseline funcional no momento da homologação;
+- autenticação, perfis, escopos e RLS ativos;
+- operações críticas protegidas e auditadas;
+- dados de teste removidos do estado operacional;
+- bundle público de Production sem seed legado de escolas/controladores;
+- Production em modo fail-closed;
+- fluxos centrais homologados em browser e banco;
+- backup/restauração, CodeQL, dependências, Excel e gates operacionais validados.
 
-Não há, nesta data, lista conhecida de correções funcionais críticas dessa rodada aguardando implementação.
+## 4. Decisões mais importantes para retomada
 
-## 4. Homologação proporcional concluída
+### Competência global
 
-A validação de fechamento foi orientada ao uso real do produto, não à obtenção artificial de uma suíte integralmente verde.
+`RadarCompetenceContext` permanece fonte canônica do mês.
 
-A execução utilizada no fechamento registrou:
+A competência continua visível e persistente entre as superfícies.
 
-- 125 cenários aprovados;
-- 39 cenários não aplicáveis/ignorados naquela execução;
-- 1 cenário flaky que passou no retry previsto e não apresentou defeito reproduzível;
-- falhas remanescentes analisadas individualmente e classificadas como contratos de teste superados ou premissas artificiais de teste.
+### Exceção: Pendências Operacionais
 
-Entre os fluxos com evidência útil estão:
+Pendências são passivo transversal e **não são filtradas automaticamente pela competência global**.
 
-- autenticação e perfis;
-- navegação desktop e mobile;
-- competência global;
-- Dashboard e Carteira;
-- Prontuário e timeline;
-- pendências, envio, reanálise, contato, cancelamento e reabertura;
-- bonificação, análise, consolidação e retificação;
-- notas fiscais e efeitos patrimoniais;
-- inventário;
-- Gestão de Equipe com operações reais contra Supabase descartável;
-- exportações Excel;
-- busca, contexto, foco e recuperação de estado;
-- importação/reconciliação nos gates já existentes.
+A página abre em **Todas as competências**. O filtro local de competência é opcional.
 
-A existência de cobertura `partial` na matriz não significa, por si só, defeito ou bloqueio do produto. Ela identifica apenas que uma prova adicional pode existir se um risco futuro concreto justificar sua execução.
+Ativas priorizam as mais antigas; resolvidas/canceladas priorizam os acontecimentos mais recentes.
 
-## 5. Governança de testes vigente
+Documento: [`decisions/ADR-044-pendencias-passivo-transversal.md`](decisions/ADR-044-pendencias-passivo-transversal.md).
 
-A estratégia oficial está em `docs/reference/TEST_GOVERNANCE.md`.
+### Production fail-closed
 
-Princípios obrigatórios:
+Production não pode cair silenciosamente para LocalStorage/seed quando o Supabase falhar ou estiver mal configurado.
 
-- código e contrato atual precedem testes históricos;
-- uma falha deve ser classificada antes de qualquer alteração;
-- produto correto não é modificado para satisfazer expectativa antiga;
-- testes superados devem ser atualizados, removidos ou explicitamente retirados da execução;
-- reutilizar evidência válida quando o código correspondente não mudou;
-- executar testes proporcionais ao risco e à superfície alterada;
-- não iniciar loops sucessivos de suites integrais sem nova evidência.
+Fixtures e persistência local permanecem apenas para desenvolvimento/teste explicitamente configurado.
 
-## 6. Regras funcionais reconciliadas
+Documento: [`decisions/ADR-045-production-fail-closed.md`](decisions/ADR-045-production-fail-closed.md).
 
-### `technical_admin`
+### Desativação de Controlador
 
-O administrador técnico é papel autenticado separado dos quatro perfis funcionais visíveis.
+Transferir todas as escolas primeiro. Somente com carteira zerada é permitido desativar. Desativação não redistribui escolas e preserva histórico.
 
-Quando simula Controlador, Assistente, SME ou Inventário:
+### Avaliação mensal
 
-- o recorte visual muda;
-- o JWT e a identidade reais não mudam;
-- a autoridade técnica real permanece;
-- auditoria preserva usuário autenticado, papel real e perfil simulado.
+- competência futura: visível, porém não editável;
+- documento correto entregue após prazo consolidado: `Correto (Atrasado)`, não `Correto`;
+- bonificação, análise técnica e pendência permanecem dimensões distintas;
+- análise/pendência usam operações coerentes e atômicas quando aplicável.
 
-### Assistente e reanálise
+### Despesas
 
-Assistente de Verbas Federais pode reanalisar pendência aguardando, assim como Controlador e `technical_admin`. Gestão SME e Inventário não executam essa mutação.
+`A identificar` é classificação provisória válida para saída bancária sem documentação suficiente. Não inventar NF, natureza, bem ou Assessoria antes da identificação.
 
-### Competência
+### Nota Fiscal de serviço
 
-`RadarCompetenceContext` é a fonte canônica de mês. `activeCompetenciaKey` é estado refletido/legado e não deve ser manipulado diretamente para representar mudança de competência em código novo ou em testes atuais.
+A consulta/análise da Assessoria é individual por NF. Resumos mensais são derivados e não substituem a análise de cada nota.
 
-### Auditoria
+## 5. Baseline de dependências
 
-Não presumir ordem cronológica de uma coleção ordenada por UUID. Testes devem localizar eventos por ator, contexto, identificador ou timestamp adequado.
+Consultar sempre `package.json` ao vivo. No snapshot de encerramento:
 
-## 7. Experiência do usuário como critério funcional
+```text
+Node 24.x
+Supabase JS 2.112.3
+Supabase CLI 2.114.0
+Playwright 1.62.1
+Axe 4.13.0
+ESLint 10.8.0
+TypeScript 7.0.2
+esbuild 0.28.1
+Lighthouse 13.4.1
+Ajv 8.20.0
+Floating UI 1.8.0
+Fuse.js 7.5.0
+ExcelJS 4.4.0
+Prettier 3.9.6
+Knip 6.29.0
+```
 
-Validação do RADAR deve considerar conjuntamente:
+Atualizações futuras são intencionais e validadas, não atualizações em massa apenas por número de versão.
 
-- visualização e legibilidade;
-- encontrabilidade de ações e informações;
-- clareza do contexto ativo, especialmente competência e unidade;
-- execução sem perda de foco ou elemento durante interação;
-- feedback de sucesso/erro;
-- coerência entre o dado salvo e o dado mostrado;
-- permanência da informação após releitura quando houver persistência;
-- navegação e retorno contextual;
-- manutenção das capacidades essenciais em mobile.
+## 6. Validação de fechamento
 
-Backend correto com interface confusa não é considerado homologação suficiente.
+O hardening final validou, entre outras camadas:
 
-## 8. Próxima etapa
+- Playwright E2E em Desktop Chrome, Android/Chromium e iPhone/WebKit;
+- Supabase readiness;
+- Auth e RLS;
+- 284 testes pgTAP;
+- migrations em PostgreSQL limpo;
+- backup/restauração descartáveis;
+- CodeQL;
+- saúde das dependências;
+- Excel SME / OOXML;
+- gate remoto de perfis e viewports;
+- Gestão de Equipe em Production;
+- bundles e artefatos gerados.
 
-O sistema não permanece em uma fila abstrata de “testes faltantes”. Novas rodadas devem nascer de um destes gatilhos:
+## 7. Ressalvas não bloqueadoras
+
+### Mobile
+
+A prioridade final de polimento foi notebook 14–15" e monitor 21–24".
+
+Última referência Lighthouse:
+
+```text
+Desktop: Performance 79%, Acessibilidade 100%, Boas Práticas 100%, LCP ~3,09 s
+Mobile: Performance 59%, Acessibilidade 94%, Boas Práticas 100%, LCP ~15,69 s
+Orçamento mobile de LCP: 15 s
+```
+
+O limite não foi elevado. Otimização estrutural mobile permanece melhoria futura e não bloqueador atual.
+
+### GitHub main
+
+No encerramento funcional a `main` ainda estava sem branch protection/required status checks. Os gates existem, mas essa política de governança não foi ativada neste ciclo.
+
+Se a proteção for tratada futuramente, confirmar primeiro quais checks permanecem estáveis e então exigir PR + checks pertinentes.
+
+## 8. Gatilhos para nova frente
+
+Não existe fila abstrata de “testes faltantes”. Retomar desenvolvimento quando houver:
 
 1. defeito observado por usuário;
-2. nova funcionalidade ou mudança de regra;
-3. alteração material de Supabase/Auth/RLS/schema;
-4. mudança transversal de frontend/navegação;
-5. release ou auditoria expressamente solicitada;
-6. UAT/uso real que revele uma necessidade concreta.
+2. nova funcionalidade;
+3. mudança de regra de negócio;
+4. alteração material de Supabase/Auth/RLS/schema;
+5. atualização tecnológica relevante;
+6. problema de desempenho com impacto real;
+7. auditoria/release expressamente solicitados.
 
-Na ausência desses gatilhos, não criar novas provas apenas para aumentar cobertura nominal.
-
-## 9. Critério de conclusão de uma nova frente
-
-Uma frente pode ser encerrada quando:
-
-1. o fluxo afetado atende à regra vigente;
-2. a função é encontrável e compreensível;
-3. a ação real funciona;
-4. os dados permanecem coerentes;
-5. autorização relevante foi verificada;
-6. falhas encontradas foram classificadas;
-7. defeitos reais foram corrigidos;
-8. não existe evidência concreta de regressão relevante ao usuário;
-9. o SHA publicado é confirmado quando houver alteração de Production.
-
-Não exigir, automaticamente, Lighthouse, backup/restauração, todos os navegadores, toda a suíte E2E ou qualquer outro gate que não tenha relação material com a mudança.
-
-## 10. Continuidade documental
-
-Ordem recomendada de leitura:
+## 9. Ordem de leitura numa retomada
 
 1. `AGENTS.md`;
 2. `docs/CURRENT_STAGE.md`;
-3. `docs/reference/TEST_GOVERNANCE.md`;
-4. `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md`;
-5. `docs/PROJECT_CONTEXT.md`;
-6. `docs/DECISION_LOG.md`;
-7. `docs/reference/STATUS_DOCUMENTOS.md`;
-8. arquitetura ou runbook específico da tarefa.
+3. `docs/handoff/2026-08-18-encerramento-operacional.md`;
+4. `docs/decisions/ADR-044-pendencias-passivo-transversal.md`;
+5. `docs/decisions/ADR-045-production-fail-closed.md`;
+6. `docs/reference/TEST_GOVERNANCE.md`;
+7. `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md`;
+8. `docs/PROJECT_CONTEXT.md`;
+9. `docs/DECISION_LOG.md`;
+10. arquitetura ou runbook específico da tarefa.
+
+## 10. Regra de retomada
+
+Antes de alterar código:
+
+- confirmar SHA atual da `main`;
+- confirmar manifesto/deployment de Production;
+- conferir Supabase Production e migrations;
+- verificar se alguma decisão deste snapshot foi substituída posteriormente;
+- trabalhar em branch isolada;
+- testar proporcionalmente ao risco;
+- não modificar produto apenas para satisfazer teste histórico superado.
