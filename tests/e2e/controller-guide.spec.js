@@ -65,7 +65,7 @@ test.describe('Guia do Controlador', () => {
     const target = guide.locator('#guia-reanalise');
     const initialUrl = new URL(page.url());
 
-    await guide.locator('.controller-guide-toc').getByText('Reanálise', { exact: true }).click();
+    await guide.locator('.controller-guide-toc').getByRole('button', { name: /Reanálise$/ }).click();
 
     await expect(guide).toBeVisible();
     await expect(target).toBeInViewport();
