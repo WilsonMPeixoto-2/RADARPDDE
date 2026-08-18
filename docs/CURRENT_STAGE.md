@@ -67,7 +67,7 @@ A página abre em **Todas as competências**. O filtro local de competência é 
 
 Ativas priorizam as mais antigas; resolvidas/canceladas priorizam os acontecimentos mais recentes.
 
-Documento: [`decisions/ADR-044-pendencias-transversais.md`](decisions/ADR-044-pendencias-transversais.md).
+Documento: [`decisions/ADR-044-pendencias-passivo-transversal.md`](decisions/ADR-044-pendencias-passivo-transversal.md).
 
 ### Production fail-closed
 
@@ -176,7 +176,7 @@ Não existe fila abstrata de “testes faltantes”. Retomar desenvolvimento qua
 1. `AGENTS.md`;
 2. `docs/CURRENT_STAGE.md`;
 3. `docs/handoff/2026-08-18-encerramento-operacional.md`;
-4. `docs/decisions/ADR-044-pendencias-transversais.md`;
+4. `docs/decisions/ADR-044-pendencias-passivo-transversal.md`;
 5. `docs/decisions/ADR-045-production-fail-closed.md`;
 6. `docs/reference/TEST_GOVERNANCE.md`;
 7. `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md`;
