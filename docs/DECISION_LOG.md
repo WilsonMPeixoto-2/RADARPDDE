@@ -1,6 +1,6 @@
 # RADAR PDDE — Registro de decisões
 
-**Atualizado em:** 5 de agosto de 2026
+**Atualizado em:** 18 de agosto de 2026
 
 Este documento registra decisões duradouras. Não é diário de commits. Uma decisão somente é substituída por decisão expressa com impacto e status documentados.
 
@@ -17,11 +17,11 @@ Este documento registra decisões duradouras. Não é diário de commits. Uma de
 
 ## ADR-001 — Contrato único de repositório
 
-**Status:** Aprovada e implementada
+**Status:** Aprovada e implementada; contingência de Production refinada pela ADR-045
 
 `LocalStorageRepository` e `SupabaseRepository` implementam o mesmo contrato. Interface e serviços não dependem do mecanismo concreto.
 
-**Consequência:** Supabase é canônico em Preview/Production; LocalStorage permanece para desenvolvimento e contingência, sem arquitetura paralela de negócio.
+**Consequência atual:** Supabase é canônico em Production. LocalStorage permanece para desenvolvimento e testes explicitamente configurados; Production não usa fallback local silencioso.
 
 ---
 
@@ -214,7 +214,7 @@ A restrição é cumulativa em capacidades, handlers, serviços e RLS. Programas
 
 ## ADR-023 — Production usa Supabase como persistência canônica
 
-**Status:** Aprovada e implementada
+**Status:** Aprovada e implementada; contingência refinada pela ADR-045
 
 Production opera com:
 
@@ -227,7 +227,7 @@ productionActivationApproved: true
 
 Projeto autorizado: `scnryinorqeucbfkioxo`.
 
-`LocalStorageRepository` permanece somente como contingência por build controlado. Ativação não relaxa Auth, RLS, auditoria, concorrência, reconciliação ou rollback.
+Auth, RLS, auditoria, concorrência, reconciliação e rollback permanecem obrigatórios. LocalStorage não é fallback automático de Production; a regra fail-closed é definida pela ADR-045.
 
 ---
 
@@ -247,9 +247,9 @@ Após mudança material, atualizar READMEs, estágio, contexto, decisões, inven
 
 ## ADR-025 — Competência mensal é contexto global único
 
-**Status:** Aprovada e implementada
+**Status:** Aprovada e implementada; refinada pela ADR-044
 
-Dashboard, Carteira, Competências, Prontuário, Pendências, alertas, timeline e exportações consomem uma única competência ativa.
+Dashboard, Carteira, Competências, Prontuário, alertas, timeline e exportações consomem uma única competência ativa. Pendências Operacionais preserva a competência global como contexto, porém não a utiliza como filtro implícito da fila; essa exceção é detalhada na ADR-044.
 
 ---
 
@@ -448,3 +448,31 @@ Documentação corrente deve ser reconciliada com código, Supabase, Vercel, PRs
 A Gestão de Equipe adota sequência obrigatória em duas etapas: as escolas são primeiro transferidas para outro Controlador pelos recursos de alocação individual ou em lote; somente após a carteira atingir zero o comando de desativação é habilitado.
 
 A desativação não redistribui escolas. Ela desativa o acesso e remove a pessoa dos diretórios operacionais, preservando os registros históricos. A regra é protegida na interface, no serviço de aplicação, na Edge Function e na RPC transacional.
+
+---
+
+## ADR-044 — Pendências Operacionais usa visão transversal entre competências
+
+**Status:** Aprovada, implementada e publicada em Production
+
+A competência mensal continua sendo o contexto global único do RADAR PDDE e permanece visível durante a navegação, porém **não limita implicitamente a fila de Pendências Operacionais**.
+
+Por padrão, a página apresenta o passivo de todas as competências e o filtro local inicia em `Todas as competências`. Pendências ativas priorizam as mais antigas; estados encerrados priorizam os acontecimentos mais recentes.
+
+Abrir o detalhe não altera a competência global. Ao seguir para o Prontuário, a competência de origem da pendência volta a ser aplicada.
+
+**Documento integral:** `docs/decisions/ADR-044-pendencias-passivo-transversal.md`.
+
+---
+
+## ADR-045 — Production é fail-closed e não publica seed institucional
+
+**Status:** Aprovada e implementada
+
+Production opera exclusivamente com a configuração remota autorizada. Falha, ausência ou inconsistência de configuração Supabase não pode ativar fallback silencioso para LocalStorage/seed.
+
+O build de Production sanitiza os dados iniciais de escolas/controladores usados no desenvolvimento para que eles não façam parte do bundle público institucional.
+
+LocalStorage, fixtures e seeds descartáveis permanecem disponíveis apenas para desenvolvimento/testes explicitamente configurados.
+
+**Documento integral:** `docs/decisions/ADR-045-production-fail-closed.md`.
