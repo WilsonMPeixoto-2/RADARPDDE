@@ -101,7 +101,7 @@ Por isso:
 - o filtro local de competência é opcional;
 - ao navegar de uma pendência para o Prontuário, a competência de origem da pendência volta a ser aplicada ao contexto mensal.
 
-Ver [`decisions/ADR-044-pendencias-transversais.md`](decisions/ADR-044-pendencias-transversais.md).
+Ver [`decisions/ADR-044-pendencias-passivo-transversal.md`](decisions/ADR-044-pendencias-passivo-transversal.md).
 
 Competência existente, disponível e formalmente fechada são conceitos distintos.
 
@@ -361,7 +361,7 @@ Não é permitido:
 - [`CURRENT_STAGE.md`](CURRENT_STAGE.md);
 - [`handoff/2026-08-18-encerramento-operacional.md`](handoff/2026-08-18-encerramento-operacional.md);
 - [`DECISION_LOG.md`](DECISION_LOG.md);
-- [`decisions/ADR-044-pendencias-transversais.md`](decisions/ADR-044-pendencias-transversais.md);
+- [`decisions/ADR-044-pendencias-passivo-transversal.md`](decisions/ADR-044-pendencias-passivo-transversal.md);
 - [`decisions/ADR-045-production-fail-closed.md`](decisions/ADR-045-production-fail-closed.md);
 - [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md);
 - [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md);
