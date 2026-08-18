@@ -36,7 +36,7 @@ Edge Function team-account-management: versão 135
 Supabase JS da Edge Function: 2.112.3
 ```
 
-O deployment de referência aponta para o mesmo commit de fechamento funcional e opera em `production` + `supabase-production`.
+O deployment de referência aponta para o mesmo commit de fechamento funcional e opera em `production` + `supabase-production`. Commits exclusivamente documentais posteriores podem avançar a `main` sem alterar esse baseline funcional.
 
 ## 3. Situação executiva
 
@@ -354,7 +354,7 @@ Antes de qualquer nova implementação:
 - [`../DECISION_LOG.md`](../DECISION_LOG.md)
 - [`../reference/TEST_GOVERNANCE.md`](../reference/TEST_GOVERNANCE.md)
 - [`../reference/FUNCTIONAL_CONTRACT_MATRIX.md`](../reference/FUNCTIONAL_CONTRACT_MATRIX.md)
-- [`../decisions/ADR-044-pendencias-transversais.md`](../decisions/ADR-044-pendencias-transversais.md)
+- [`../decisions/ADR-044-pendencias-passivo-transversal.md`](../decisions/ADR-044-pendencias-passivo-transversal.md)
 - [`../decisions/ADR-045-production-fail-closed.md`](../decisions/ADR-045-production-fail-closed.md)
 - PR #188 — endurecimento final, saneamento de Production e dependências
 
