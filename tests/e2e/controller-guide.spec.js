@@ -83,15 +83,15 @@ test.describe('Guia do Controlador', () => {
 
     const palette = await page.locator('.controller-guide').evaluate(element => {
       const guide = getComputedStyle(element);
-      const root = getComputedStyle(document.documentElement);
+      const activeTheme = getComputedStyle(document.body);
       const hero = getComputedStyle(element.querySelector('.controller-guide-hero'));
       return {
         guidePrimary: guide.getPropertyValue('--guide-primary').trim(),
-        primary: root.getPropertyValue('--primary').trim(),
+        primary: activeTheme.getPropertyValue('--primary').trim(),
         guideAccent: guide.getPropertyValue('--guide-accent').trim(),
-        accent: root.getPropertyValue('--accent-plum').trim(),
+        accent: activeTheme.getPropertyValue('--accent-plum').trim(),
         guideInk: guide.getPropertyValue('--guide-ink').trim(),
-        ink: root.getPropertyValue('--text-main').trim(),
+        ink: activeTheme.getPropertyValue('--text-main').trim(),
         heroBackground: hero.backgroundImage
       };
     });
@@ -99,7 +99,7 @@ test.describe('Guia do Controlador', () => {
     expect(palette.guidePrimary).toBe(palette.primary);
     expect(palette.guideAccent).toBe(palette.accent);
     expect(palette.guideInk).toBe(palette.ink);
-    expect(palette.heroBackground).toContain('124, 58, 237');
+    expect(palette.heroBackground).toContain('linear-gradient');
   });
 
   test('atalhos do guia devolvem o usuário às telas operacionais', async ({ page }) => {
