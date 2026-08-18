@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import { sanitizeSupabaseRoleDump } from './lib/sanitize-supabase-role-dump.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUTPUT_DIR = path.resolve(
@@ -248,6 +249,9 @@ async function dumpSource(sourceDbUrl) {
   runSupabase(['db', 'dump', '--db-url', sourceDbUrl, '-f', files.roles, '--role-only'], {
     label: 'Gerar backup de papéis'
   });
+  const roleDump = await readFile(files.roles, 'utf8');
+  await writeFile(files.roles, sanitizeSupabaseRoleDump(roleDump), 'utf8');
+
   runSupabase(['db', 'dump', '--db-url', sourceDbUrl, '-f', files.schema], {
     label: 'Gerar backup de schema'
   });

@@ -168,6 +168,14 @@
         return merged;
     }
 
+    function createOption(value, label, selected = false) {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = label;
+        option.selected = selected;
+        return option;
+    }
+
     function renderExerciseSelector() {
         if (typeof document === 'undefined') return;
         const select = document.getElementById('exercise-select');
@@ -180,9 +188,7 @@
                 .filter(Boolean)
         )).sort();
 
-        select.innerHTML = years
-            .map(year => `<option value="${year}">Exercício ${year}</option>`)
-            .join('');
+        select.replaceChildren(...years.map(year => createOption(year, `Exercício ${year}`)));
 
         const selectedYear = typeof currentExercise !== 'undefined'
             ? normalizeYear(currentExercise)
@@ -195,10 +201,11 @@
         const select = document.getElementById('new-exercise-competencia');
         if (!select) return;
         const selected = normalizeMonth(select.value) || '01';
-        select.innerHTML = MONTH_NAMES.map((name, index) => {
+        const options = MONTH_NAMES.map((name, index) => {
             const month = String(index + 1).padStart(2, '0');
-            return `<option value="${month}" ${month === selected ? 'selected' : ''}>${name}</option>`;
-        }).join('');
+            return createOption(month, name, month === selected);
+        });
+        select.replaceChildren(...options);
     }
 
     function removeObsoleteOfficialChargeControl() {

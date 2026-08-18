@@ -40,13 +40,17 @@
             const direct = source.trim();
             try {
                 const records = typeof pendencias !== 'undefined' && Array.isArray(pendencias) ? pendencias : [];
-                if (records.some(item => text(item?.id) === direct)) return direct;
+                const exact = records.find(item => item?.id === direct);
+                if (exact) return exact.id;
+                const compatible = records.filter(item => text(item?.id) === direct);
+                if (compatible.length === 1) return compatible[0].id;
             } catch (_error) {
                 // Continua para o resolvedor canônico.
             }
         }
         try {
-            return text(root.resolvePendencyIdReference?.(source));
+            const resolved = root.resolvePendencyIdReference?.(source);
+            return resolved == null ? '' : resolved;
         } catch (_error) {
             return '';
         }
@@ -54,10 +58,10 @@
 
     function findPendency(source) {
         const id = resolvePendencyId(source);
-        if (!id) return null;
+        if (id == null || id === '') return null;
         try {
             const records = typeof pendencias !== 'undefined' && Array.isArray(pendencias) ? pendencias : [];
-            return records.find(item => text(item?.id) === id) || null;
+            return records.find(item => item?.id === id) || null;
         } catch (_error) {
             return null;
         }
@@ -185,7 +189,7 @@
             showAllPendencyCompetences();
         }
         root.RadarOperationalReadinessBridge = Object.freeze({
-            VERSION: '1.1.0',
+            VERSION: '1.1.1',
             currentCompetence,
             pendencyCompetence,
             showAllPendencyCompetences,

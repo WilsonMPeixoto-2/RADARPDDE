@@ -34,19 +34,6 @@
             return root.RadarTask9PendencyPage?.getState?.() || null;
         }
 
-        function getActiveCompetenceKey() {
-            if (root.RadarCompetenceContext?.isInitialized?.()) {
-                return String(root.RadarCompetenceContext.getState()?.activeKey || '').trim();
-            }
-            try {
-                return typeof activeCompetenciaKey !== 'undefined'
-                    ? String(activeCompetenciaKey || '').trim()
-                    : '';
-            } catch (_error) {
-                return '';
-            }
-        }
-
         function getCurrentRoute() {
             try {
                 return root.RadarNavigationHistory?.currentRoute?.(root) || null;
@@ -78,11 +65,6 @@
         }
 
         function synchronizeContextBeforeRender() {
-            const activeCompetence = getActiveCompetenceKey();
-            if (activeCompetence) {
-                setFilterIfNeeded('competence', activeCompetence);
-            }
-
             const route = getCurrentRoute();
             const routeSchoolId = getRouteSchoolId();
             if (route?.view === 'pendencias' || root.location?.pathname === '/pendencias') {
@@ -187,11 +169,7 @@
         }
 
         function changePendencyFilterContextStable(name, value) {
-            const activeCompetence = getActiveCompetenceKey();
-            const effectiveValue = name === 'competence' && activeCompetence
-                ? activeCompetence
-                : value;
-            const result = task9ChangePendencyFilter(name, effectiveValue);
+            const result = task9ChangePendencyFilter(name, value);
             ensureSchoolFilterBanner();
             return result;
         }
@@ -199,8 +177,6 @@
         function clearPendencyFiltersContextStable() {
             if (!task9ClearPendencyFilters) return false;
             const result = task9ClearPendencyFilters();
-            const activeCompetence = getActiveCompetenceKey();
-            if (activeCompetence) setFilterIfNeeded('competence', activeCompetence);
             lastRouteSchoolId = '';
             try {
                 if (root.location?.pathname === '/pendencias' && root.location?.search) {
@@ -215,14 +191,6 @@
 
         function removePendencyFilterContextStable(name) {
             if (!task9RemovePendencyFilter) return false;
-            if (name === 'competence') {
-                const activeCompetence = getActiveCompetenceKey();
-                if (activeCompetence) {
-                    const result = task9ChangePendencyFilter('competence', activeCompetence);
-                    ensureSchoolFilterBanner();
-                    return result;
-                }
-            }
             const result = task9RemovePendencyFilter(name);
             if (name === 'schoolId') lastRouteSchoolId = '';
             ensureSchoolFilterBanner();
@@ -237,7 +205,7 @@
         if (task9ClearPendencyFilters) root.clearPendencyFilters = clearPendencyFiltersContextStable;
         if (task9RemovePendencyFilter) root.removePendencyFilter = removePendencyFilterContextStable;
         root.RadarTask9FocusBridge = Object.freeze({
-            VERSION: '1.1.0',
+            VERSION: '1.2.0',
             ensureSchoolFilterBanner,
             synchronizeContextBeforeRender
         });

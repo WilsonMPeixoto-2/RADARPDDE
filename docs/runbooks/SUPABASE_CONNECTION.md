@@ -1,7 +1,7 @@
 # Runbook — conexão e operação controlada do Supabase
 
 **Estado:** vigente; Production conectada  
-**Atualizado em:** 11 de agosto de 2026
+**Atualizado em:** 17 de agosto de 2026
 
 ## 1. Objetivo
 
@@ -13,14 +13,14 @@ Este runbook não autoriza, por si só, migration, importação, alteração de 
 
 Consultar [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md) e revalidar remotamente antes de operação dependente do ambiente.
 
-Por compatibilidade com o verificador de readiness, este runbook mantém um único espelho machine-readable da contagem versionada: O conjunto versionado contém atualmente **33** migrations. A lista e a ordem continuam sendo obtidas do diretório `supabase/migrations/` e do histórico do CLI, nunca de uma segunda lista manual.
+Por compatibilidade com o verificador de readiness, este runbook mantém um único espelho machine-readable da contagem versionada: O conjunto versionado contém atualmente **35** migrations. A lista e a ordem continuam sendo obtidas do diretório `supabase/migrations/` e do histórico do CLI, nunca de uma segunda lista manual.
 
 Contratos estáveis:
 
 ```text
 Production data mode: supabase-production
-repositório normal: SupabaseRepository
-contingência: LocalStorageRepository por novo build controlado
+repositório Production: SupabaseRepository
+fallback local em Production: proibido (fail-closed)
 Supabase JS: versão fixada em package.json
 Supabase CLI: versão fixada em package.json
 Node.js: 24.x
@@ -36,7 +36,7 @@ Node.js: 24.x
 - preservar perfis históricos inativos em troca autorizada de função;
 - não aplicar seed implicitamente em banco remoto;
 - não alterar schema com histórico divergente;
-- não interpretar contingência local como sincronização;
+- não permitir que falha de configuração de Production seja convertida em repositório local;
 - não publicar dumps SQL como evidência;
 - não executar operação remota apenas porque teste local passou;
 - não reutilizar contas pessoais/operacionais como identidades técnicas de monitoramento.
@@ -52,6 +52,8 @@ RADAR_SUPABASE_REPOSITORY_ENABLED=true
 RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED=false
 ```
 
+Preview também pode usar modo local explicitamente isolado quando não houver projeto Supabase de desenvolvimento.
+
 ### Production
 
 ```text
@@ -61,7 +63,7 @@ RADAR_SUPABASE_REPOSITORY_ENABLED=true
 RADAR_SUPABASE_PRODUCTION_ACTIVATION_APPROVED=true
 ```
 
-O build público pode conter URL e chave publicável. São proibidos credenciais administrativas, senha de banco e tokens administrativos no artefato.
+O build público pode conter URL e chave publicável. São proibidos credenciais administrativas, senha de banco e tokens administrativos no artefato. Se a configuração Production não puder ser validada, a aplicação operacional deve permanecer indisponível em vez de cair para dados locais.
 
 ## 5. Validação estática/local
 
@@ -123,8 +125,9 @@ As migrations correntes incluem, conforme `CURRENT_STAGE.md`:
 - reparo de Auth legado e lookup seguro da equipe;
 - remediação funcional de exercício, nota/bem e tentativa de pendência;
 - integridade da identidade institucional das escolas;
-- restrição explícita da reanálise de pendências a `controller`, `federal_assistant` e `technical_admin`.
-- avaliação da consulta à Assessoria Contábil individualizada no payload de cada NF de serviço, com resumo mensal derivado.
+- restrição explícita da reanálise de pendências a `controller`, `federal_assistant` e `technical_admin`;
+- avaliação da consulta à Assessoria Contábil individualizada no payload de cada NF de serviço, com resumo mensal derivado;
+- suporte à despesa provisória `a_identificar` e persistência atômica de análise/pendência.
 
 Não reaplicar SQL já aplicado para “corrigir” histórico.
 
@@ -305,13 +308,18 @@ Classificar a primeira fronteira divergente antes de propor correção.
 | monitor abre incidente | componente exato do job |
 | integridade acusa problema | invariante/contagem antes de consultar registros |
 
-## 19. Contingência local
+## 19. Contingência e falha de configuração
 
-```text
-RADAR_PRODUCTION_FORCE_LOCAL=true
-```
+Production opera em **fail-closed**. Não existe mais sinal de rollback que transforme um deployment Production em `LocalStorageRepository`.
 
-Exige novo build controlado. Não apaga Supabase nem sincroniza estado local de volta.
+Em caso de indisponibilidade da configuração ou conexão institucional:
+
+1. manter o ambiente Production bloqueado para operação;
+2. diagnosticar Vercel, runtime config, Auth e Supabase;
+3. usar ambiente local/Preview isolado apenas para diagnóstico;
+4. publicar novo artefato Production somente após correção e validação.
+
+O modo local continua existindo para desenvolvimento e testes, mas não é contingência operacional de Production e nunca sincroniza seu estado de volta ao banco institucional.
 
 ## 20. Encerramento de investigação
 

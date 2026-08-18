@@ -129,6 +129,7 @@
 
     const ALLOWED_MODES = new Set(Object.values(DATA_MODES));
     const ALLOWED_ENVIRONMENTS = new Set(['local', 'development', 'test', 'preview', 'production']);
+    const ALLOWED_DEPLOYMENT_TARGETS = new Set(['preview', 'production']);
 
     function decodeJwtPayload(value) {
         const parts = String(value || '').trim().split('.');
@@ -193,16 +194,20 @@
 
     function createRuntimeConfig(input = {}) {
         const diagnostics = [];
+        const deploymentTarget = ALLOWED_DEPLOYMENT_TARGETS.has(input.deploymentTarget)
+            ? input.deploymentTarget
+            : '';
+        const deploymentForcesProduction = deploymentTarget === 'production';
         const environmentIsExplicit = ALLOWED_ENVIRONMENTS.has(input.environment);
-        const environment = environmentIsExplicit
-            ? input.environment
-            : 'local';
+        const environment = deploymentForcesProduction
+            ? 'production'
+            : (environmentIsExplicit ? input.environment : 'local');
         const requestedMode = ALLOWED_MODES.has(input.dataMode)
             ? input.dataMode
             : DATA_MODES.LOCAL;
         let dataMode = requestedMode;
 
-        if (requestedMode !== DATA_MODES.LOCAL && !environmentIsExplicit) {
+        if (requestedMode !== DATA_MODES.LOCAL && !environmentIsExplicit && !deploymentForcesProduction) {
             dataMode = DATA_MODES.LOCAL;
             diagnostics.push('Modo Supabase bloqueado: ambiente público ausente ou inválido.');
         }
@@ -230,6 +235,13 @@
         const connectionEnabled = !isLocal
             && requestedRepository
             && validCredentials;
+        const productionBlocked = environment === 'production'
+            && !(
+                dataMode === DATA_MODES.SUPABASE_PRODUCTION
+                && input.productionActivationApproved === true
+                && requestedRepository
+                && connectionEnabled
+            );
 
         if (!isLocal && !validCredentials) {
             diagnostics.push('Conexão Supabase bloqueada: URL ou chave publicável inválida.');
@@ -237,21 +249,29 @@
         if (!isLocal && !requestedRepository) {
             diagnostics.push('Conexão Supabase bloqueada: autorização do repositório ausente.');
         }
+        if (productionBlocked) {
+            diagnostics.push('Production bloqueada: a conexão institucional não pôde ser validada.');
+        }
 
         const config = {
             configVersion: 'supabase-readiness-v2',
+            deploymentTarget,
             environment,
             dataMode,
-            activeRepository: connectionEnabled ? 'supabase' : 'local',
+            activeRepository: productionBlocked
+                ? 'unavailable'
+                : (connectionEnabled ? 'supabase' : 'local'),
+            productionBlocked,
             productionActivationApproved: dataMode === DATA_MODES.SUPABASE_PRODUCTION
-                && input.productionActivationApproved === true,
+                && input.productionActivationApproved === true
+                && !productionBlocked,
             features: {
                 supabaseRepositoryEnabled: isLocal ? false : requestedRepository
             },
             supabase: {
-                url: connectionEnabled ? rawUrl : '',
-                publishableKey: connectionEnabled ? rawKey : '',
-                connectionEnabled
+                url: connectionEnabled && !productionBlocked ? rawUrl : '',
+                publishableKey: connectionEnabled && !productionBlocked ? rawKey : '',
+                connectionEnabled: connectionEnabled && !productionBlocked
             },
             diagnostics
         };

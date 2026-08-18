@@ -52,11 +52,12 @@ test('manifesto público não recebe URL ou chave do Supabase', () => {
     assert.doesNotMatch(manifestBlock, /publishableKey|supabaseUrl|RADAR_SUPABASE_URL/);
 });
 
-test('Production continua protegida pelo alvo real da Vercel', () => {
+test('Production continua protegida pelo alvo real da Vercel e não admite fallback local', () => {
     const source = readBuild();
 
-    assert.match(source, /vercelEnvironment === ['"]production['"][\s\S]*runtimeInput\.dataMode === ['"]supabase-preview['"]/);
+    assert.match(source, /vercelEnvironment === ['"]production['"][\s\S]*runtimeInput\.dataMode !== ['"]supabase-production['"]/);
     assert.match(source, /vercelEnvironment !== ['"]production['"][\s\S]*runtimeInput\.dataMode === ['"]supabase-production['"]/);
-    assert.match(source, /Produção em modo local exige RADAR_ENVIRONMENT=local/);
+    assert.doesNotMatch(source, /PRODUCTION_LOCAL_ROLLBACK_RUNTIME/);
+    assert.match(source, /Production exige Supabase Production explicitamente habilitado e aprovado/);
     assert.match(source, /PRODUCTION_SUPABASE_URL/);
 });

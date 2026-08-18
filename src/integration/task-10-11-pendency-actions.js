@@ -7,7 +7,6 @@
     let lastTrigger = null;
     let mainObserver = null;
     let enhancementFrame = null;
-    let syncingCompetence = false;
 
     function dependenciesReady() {
         return Boolean(
@@ -42,118 +41,8 @@
         return Array.isArray(pendencias) ? pendencias.find(item => item.id === id) : null;
     }
 
-    function getActiveCompetenceKey() {
-        if (root.RadarCompetenceContext?.isInitialized?.()) {
-            return String(root.RadarCompetenceContext.getState()?.activeKey || '').trim();
-        }
-        return typeof activeCompetenciaKey !== 'undefined'
-            ? String(activeCompetenciaKey || '').trim()
-            : '';
-    }
-
     function isPendenciasView() {
         return typeof currentView !== 'undefined' && currentView === 'pendencias';
-    }
-
-    function syncPendencyCompetence() {
-        if (!isPendenciasView() || syncingCompetence) return false;
-        const activeKey = getActiveCompetenceKey();
-        const state = root.RadarTask9PendencyPage?.getState?.();
-        if (!activeKey || !state || state.filters?.competence === activeKey) return false;
-        if (typeof root.changePendencyFilter !== 'function') return false;
-
-        syncingCompetence = true;
-        try {
-            root.changePendencyFilter('competence', activeKey);
-            return true;
-        } finally {
-            syncingCompetence = false;
-        }
-    }
-
-    function formatCompetenceLabel(key) {
-        if (typeof formatCompetenciaText === 'function') return formatCompetenciaText(key);
-        return key;
-    }
-
-    function countVisibleRows(panelId) {
-        const panel = document.getElementById(panelId);
-        if (!panel) return 0;
-        return panel.querySelectorAll('.pendency-desktop-list tbody tr').length;
-    }
-
-    function polishGlobalCompetenceUi() {
-        if (!isPendenciasView()) return;
-        const activeKey = getActiveCompetenceKey();
-        if (!activeKey) return;
-
-        const competenceSelect = document.getElementById('pendency-filter-competence');
-        const competenceField = competenceSelect?.closest('.filter-field');
-        if (competenceField) competenceField.hidden = true;
-
-        document.querySelectorAll('.pendency-filter-chip').forEach(chip => {
-            const action = chip.getAttribute('onclick') || '';
-            if (action.includes("removePendencyFilter('competence')")) chip.remove();
-        });
-
-        const state = root.RadarTask9PendencyPage?.getState?.();
-        const filters = state?.filters || {};
-        const hasUserFilters = Object.entries(filters).some(([key, value]) => (
-            key !== 'competence' && String(value || '').trim() !== ''
-        ));
-        const clearButton = document.querySelector('.pendency-filter-header .btn');
-        if (clearButton) clearButton.disabled = !hasUserFilters;
-
-        const pageDescription = document.querySelector('.pendency-page-header .page-title p');
-        if (pageDescription) {
-            const description = `Competência atual: ${formatCompetenceLabel(activeKey)}. Os demais filtros refinam esta visão.`;
-            if (pageDescription.textContent !== description) pageDescription.textContent = description;
-        }
-
-        const tabDefinitions = [
-            ['aberta', 'p-abertas'],
-            ['aguardando', 'p-aguardando'],
-            ['resolvida', 'p-resolvidas'],
-            ['cancelada', 'p-canceladas']
-        ];
-        let filteredTotal = 0;
-        tabDefinitions.forEach(([key, panelId]) => {
-            const count = countVisibleRows(panelId);
-            filteredTotal += count;
-            const counter = document.querySelector(`#pendency-tab-${key} span`);
-            if (counter) {
-                const label = `${count} registro${count === 1 ? '' : 's'} na competência atual`;
-                if (counter.textContent !== String(count)) counter.textContent = String(count);
-                if (counter.getAttribute('aria-label') !== label) counter.setAttribute('aria-label', label);
-            }
-        });
-
-        const currentCompetenceTotal = Array.isArray(pendencias)
-            ? pendencias.filter(item => String(item?.competenciaOrigem || item?.competencia || '').trim() === activeKey).length
-            : filteredTotal;
-        const currentActiveTotal = Array.isArray(pendencias)
-            ? pendencias.filter(item => (
-                String(item?.competenciaOrigem || item?.competencia || '').trim() === activeKey
-                && ['Aberta', 'Aguardando reanálise'].includes(item?.status)
-            )).length
-            : 0;
-
-        const summary = document.querySelector('.pendency-active-summary');
-        const summaryValue = summary?.querySelector('strong');
-        const summaryLabel = summary?.querySelector('span');
-        if (summaryValue && summaryValue.textContent !== String(currentActiveTotal)) {
-            summaryValue.textContent = String(currentActiveTotal);
-        }
-        if (summaryLabel) {
-            const label = `pendência${currentActiveTotal === 1 ? '' : 's'} ativa${currentActiveTotal === 1 ? '' : 's'} na competência`;
-            if (summaryLabel.textContent !== label) summaryLabel.textContent = label;
-        }
-
-        const filterResult = document.querySelector('.pendency-filter-result');
-        if (filterResult) {
-            const label = `${filteredTotal} de ${currentCompetenceTotal} registro${currentCompetenceTotal === 1 ? '' : 's'} na competência atual.`;
-            if (filterResult.textContent.trim() !== label) filterResult.textContent = label;
-        }
     }
 
     function getAttemptAnalysisObservation(attempt) {
@@ -620,8 +509,6 @@
     function enhancePendencyActions() {
         injectDialogs();
         if (!isPendenciasView()) return;
-        if (syncPendencyCompetence()) return;
-        polishGlobalCompetenceUi();
 
         document.querySelectorAll('[data-pendency-ref]').forEach(container => {
             if (container.closest('.task-operation-modal')) return;
@@ -689,7 +576,7 @@
         root.openReopenPendencyModal = openReopenPendencyModal;
         root.confirmReopenPendency = confirmReopenPendency;
         root.RadarTask1011PendencyActions = Object.freeze({
-            VERSION: '1.1.0',
+            VERSION: '1.1.1',
             enhance: enhancePendencyActions
         });
         injectDialogs();

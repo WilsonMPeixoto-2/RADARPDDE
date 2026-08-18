@@ -9,7 +9,9 @@ on:
       - 'supabase/**'
       - 'scripts/bootstrap-local-auth-fixtures.mjs'
       - 'scripts/verify-supabase-backup-restore.mjs'
+      - 'scripts/lib/sanitize-supabase-role-dump.mjs'
       - 'tests/unit/backup-restore-gate-contract.test.js'
+      - 'tests/unit/supabase-role-dump-sanitizer.test.js'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/backup-restore-disposable.yml'
@@ -87,12 +89,36 @@ jobs:
       - name: Comprovar backup e restauração na segunda pilha
         run: npm run test:backup-restore
 
+      - name: Gerar diagnóstico estrutural em caso de falha
+        if: ${{ failure() && !cancelled() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/backup-restore
+          {
+            echo '# roles.sql após saneamento'
+            if [[ -f artifacts/backup-restore/roles.sql ]]; then
+              sed -n '1,220p' artifacts/backup-restore/roles.sql
+            else
+              echo 'roles.sql ausente'
+            fi
+            echo
+            echo '# comandos potencialmente privilegiados do schema'
+            if [[ -f artifacts/backup-restore/schema.sql ]]; then
+              grep -nEi 'ALTER ROLE|ALTER DATABASE|OWNER TO|SET [A-Za-z_]+|CREATE EXTENSION|COMMENT ON EXTENSION' artifacts/backup-restore/schema.sql | head -n 300 || true
+            else
+              echo 'schema.sql ausente'
+            fi
+          } > artifacts/backup-restore/diagnostic.txt
+
       - name: Publicar evidência sanitizada
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: backup-restore-disposable-${{ github.run_id }}
-          path: artifacts/backup-restore/evidence.json
+          path: |
+            artifacts/backup-restore/evidence.json
+            artifacts/backup-restore/diagnostic.txt
           if-no-files-found: error
           retention-days: 14
 
