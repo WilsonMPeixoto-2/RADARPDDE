@@ -68,7 +68,7 @@ test.describe('Prontuário — despesa a identificar', () => {
     await provisionalButton.click();
 
     await expect(page.locator('#modal-dados-nota')).toHaveClass(/show/);
-    await expect(page.locator('#nota-tipo option').first()).toHaveValue('consumo');
+    await expect(page.locator('#nota-tipo option').first()).toHaveAttribute('value', 'consumo');
     await expect(page.locator('#nota-tipo')).toHaveValue('a_identificar');
     await expect(page.locator('#nota-numero')).not.toHaveAttribute('required');
     await expect(page.getByText('Número da Nota Fiscal (opcional neste estágio)')).toBeVisible();
