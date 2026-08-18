@@ -1,8 +1,9 @@
 # ADR-044 — Pendências Operacionais usa visão transversal entre competências
 
-**Status:** Aprovada, implementada e encaminhada para Production
+**Status:** Aprovada, implementada e publicada em Production
 
-**Data:** 17 de agosto de 2026
+**Data da decisão:** 17 de agosto de 2026  
+**Conciliação final:** 18 de agosto de 2026
 
 ## Decisão
 
@@ -31,6 +32,10 @@ Abrir apenas o detalhe da pendência não altera a competência global. Ao segui
 
 Esta decisão **refina a ADR-025**, sem revogar o contexto global único. A competência continua transversalmente persistida entre as telas, mas Pendências Operacionais não a utiliza como filtro implícito da fila.
 
-## Publicação
+Qualquer módulo futuro que volte a sincronizar automaticamente o filtro local de Pendências com a competência global viola esta ADR.
 
-Publicação em **Vercel Production** autorizada em 17 de agosto de 2026 após integração do PR #185 à `main`. Este registro também força novo ciclo da integração Git da Vercel para que o ambiente oficial seja reconstruído a partir da `main` atual.
+## Implementação e publicação
+
+A regra foi integrada pelo PR #185 e publicada no ambiente oficial. O hardening final do PR #188 removeu o acoplamento residual que ainda podia reintroduzir a competência global como filtro durante a inicialização.
+
+No snapshot de encerramento de 18/08/2026, a regra transversal está homologada e faz parte do baseline funcional `dc77e29d9b364092361623ce185c8d1a55dde983`.
