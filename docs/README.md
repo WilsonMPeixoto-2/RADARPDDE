@@ -31,7 +31,7 @@ Valores voláteis devem ser consultados no remoto quando necessários. O snapsho
 1. [`../AGENTS.md`](../AGENTS.md);
 2. [`CURRENT_STAGE.md`](CURRENT_STAGE.md);
 3. [`handoff/2026-08-18-encerramento-operacional.md`](handoff/2026-08-18-encerramento-operacional.md);
-4. [`decisions/ADR-044-pendencias-transversais.md`](decisions/ADR-044-pendencias-transversais.md);
+4. [`decisions/ADR-044-pendencias-passivo-transversal.md`](decisions/ADR-044-pendencias-passivo-transversal.md);
 5. [`decisions/ADR-045-production-fail-closed.md`](decisions/ADR-045-production-fail-closed.md);
 6. [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md);
 7. [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md);
@@ -46,7 +46,7 @@ Valores voláteis devem ser consultados no remoto quando necessários. O snapsho
 
 A competência global continua visível e persistente, mas a página de Pendências é transversal entre competências e abre em **Todas as competências**. O filtro mensal local é opcional.
 
-Documento: [`decisions/ADR-044-pendencias-transversais.md`](decisions/ADR-044-pendencias-transversais.md).
+Documento: [`decisions/ADR-044-pendencias-passivo-transversal.md`](decisions/ADR-044-pendencias-passivo-transversal.md).
 
 ### Production
 
