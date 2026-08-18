@@ -23,17 +23,17 @@ O snapshot detalhado de encerramento está em [`handoff/2026-08-18-encerramento-
 ## 2. Baseline de encerramento
 
 ```text
-GitHub main: dc77e29d9b364092361623ce185c8d1a55dde983
+Baseline funcional homologado: dc77e29d9b364092361623ce185c8d1a55dde983
 PR de hardening final: #188
-Vercel Production: READY
-Deployment de referência: dpl_8tBN6PfaVgu3e2qjhsoep42NpVpZ
+Vercel Production no fechamento funcional: READY
+Deployment funcional de referência: dpl_8tBN6PfaVgu3e2qjhsoep42NpVpZ
 Alias oficial: radarpdde-fix.vercel.app
 Supabase Production: scnryinorqeucbfkioxo
-Migrations canônicas: 35
-Edge Function team-account-management: versão 135
+Migrations canônicas no fechamento: 35
+Edge Function team-account-management no fechamento: versão 135
 ```
 
-Esses valores são a âncora de 18/08/2026. Em qualquer retomada futura, confirmar novamente o estado ao vivo antes de atuar.
+O SHA acima é o **baseline funcional homologado**, anterior à consolidação documental de encerramento. Commits exclusivamente documentais podem avançar a `main` sem alterar o produto. Em qualquer retomada futura, consultar a `main` e o deployment ao vivo antes de atuar.
 
 ## 3. Estado executivo
 
@@ -42,7 +42,7 @@ O RADAR PDDE está **apto para uso real** e sem bloqueador funcional conhecido n
 O ciclo terminou com:
 
 - Supabase Production como backend institucional canônico;
-- Vercel Production publicada e alinhada ao commit de fechamento;
+- Vercel Production publicada e alinhada ao baseline funcional no momento da homologação;
 - autenticação, perfis, escopos e RLS ativos;
 - operações críticas protegidas e auditadas;
 - dados de teste removidos do estado operacional;
@@ -155,7 +155,9 @@ O limite não foi elevado. Otimização estrutural mobile permanece melhoria fut
 
 ### GitHub main
 
-No encerramento a `main` ainda estava sem branch protection/required status checks. Os gates existem, mas essa política de governança não foi ativada neste ciclo.
+No encerramento funcional a `main` ainda estava sem branch protection/required status checks. Os gates existem, mas essa política de governança não foi ativada neste ciclo.
+
+Se a proteção for tratada futuramente, confirmar primeiro quais checks permanecem estáveis e então exigir PR + checks pertinentes.
 
 ## 8. Gatilhos para nova frente
 
