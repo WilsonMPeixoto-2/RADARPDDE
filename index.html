@@ -112,7 +112,7 @@
             <div class="nav-group">
                 <span class="nav-label">Interno</span>
                 <div class="nav-item" id="nav-inventario" onclick="switchView('inventario')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
                     <span>Capital e Inventário</span>
                 </div>
                 <div class="nav-item" id="nav-auditoria" onclick="switchView('auditoria')">
@@ -124,7 +124,7 @@
             <div class="nav-group" id="nav-sme-group" style="display: none;">
                 <span class="nav-label">Configuração</span>
                 <div class="nav-item" id="nav-sme-config" onclick="switchView('sme-config')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09A1.65 1.65 0 0 0 19.4 15z"></path></svg>
                     <span>Configurações SME</span>
                 </div>
             </div>
@@ -652,7 +652,7 @@
                             Você está registrando o tombamento e inventariação definitiva do bem:
                         </p>
                         <p id="inventario-bem-nome" style="margin: 4px 0 0 0; font-size: 0.95rem; font-weight: 600;"></p>
-                        <p id="inventario-bem-escola" style="margin: 2px 0 0 0; font-size: 0.8rem; color: var(--text-muted);"></p>
+                        <p id="inventario-bem-escola" style="margin: 2px 0 0 0; font-size: 0.8rem; color:var(--text-muted);"></p>
                     </div>
 
                     <div class="form-group">
@@ -735,48 +735,48 @@
     </div>
 
     <!-- Domínios carregados antes das integrações e serviços que os consomem. -->
-    <script src="src/domain/competencia.js"></script>
-    <script src="src/domain/estatisticas.js"></script>
-    <script src="src/domain/fluxo-operacional.js"></script>
-    <script src="src/domain/pendencias.js"></script>
-    <script src="src/domain/access-policy.js"></script>
-    <script src="src/domain/global-search-index.js"></script>
-    <script src="src/domain/retificacoes.js" data-radar-extension="src/domain/retificacoes.js"></script>
+    <script defer src="src/domain/competencia.js"></script>
+    <script defer src="src/domain/estatisticas.js"></script>
+    <script defer src="src/domain/fluxo-operacional.js"></script>
+    <script defer src="src/domain/pendencias.js"></script>
+    <script defer src="src/domain/access-policy.js"></script>
+    <script defer src="src/domain/global-search-index.js"></script>
+    <script defer src="src/domain/retificacoes.js" data-radar-extension="src/domain/retificacoes.js"></script>
     <!-- Configuração pública gerada; a versão no Git permanece local e sem credenciais. -->
-    <script src="config.runtime.js"></script>
+    <script defer src="config.runtime.js"></script>
     <!-- Validação fail-closed e configuração efetiva da aplicação. -->
-    <script src="config.js"></script>
+    <script defer src="config.js"></script>
     <!-- Supabase JS Client -->
-    <script src="vendor/supabase-client.js"></script>
+    <script defer src="vendor/supabase-client.js"></script>
     <!-- Contrato único de persistência e bootstrap de dados. -->
-    <script src="src/data/repository-contract.js"></script>
-    <script src="vendor/ajv.js"></script>
-    <script src="src/domain/json-contracts.js"></script>
-    <script src="src/application/error-mapper.js"></script>
-    <script src="src/auth/session-service.js"></script>
-    <script src="src/integration/auth-bootstrap.js"></script>
-    <script src="src/data/local-storage-repository.js"></script>
-    <script src="src/data/supabase-repository.js"></script>
-    <script src="src/data/repository-factory.js"></script>
-    <script src="src/data/snapshot-tools.js"></script>
-    <script src="src/data/import-coordinator.js"></script>
-    <script src="src/data/legacy-state-adapter.js"></script>
-    <script src="src/data/state-bridge.js"></script>
-    <script src="src/data/state-bridge-metadata.js"></script>
-    <script src="src/application/state-port.js"></script>
-    <script src="src/application/unit-of-work.js"></script>
-    <script src="src/application/data-service.js"></script>
-    <script src="src/application/configuration-service.js"></script>
-    <script src="src/application/directory-service.js"></script>
-    <script src="src/application/school-service.js"></script>
-    <script src="src/application/pendency-service.js"></script>
-    <script src="src/application/verification-service.js"></script>
-    <script src="src/application/audit-service.js"></script>
-    <script src="src/application/invoice-service.js"></script>
-    <script src="src/application/inventory-service.js"></script>
-    <script src="src/integration/shared-interactions.js"></script>
+    <script defer src="src/data/repository-contract.js"></script>
+    <script defer src="vendor/ajv.js"></script>
+    <script defer src="src/domain/json-contracts.js"></script>
+    <script defer src="src/application/error-mapper.js"></script>
+    <script defer src="src/auth/session-service.js"></script>
+    <script defer src="src/integration/auth-bootstrap.js"></script>
+    <script defer src="src/data/local-storage-repository.js"></script>
+    <script defer src="src/data/supabase-repository.js"></script>
+    <script defer src="src/data/repository-factory.js"></script>
+    <script defer src="src/data/snapshot-tools.js"></script>
+    <script defer src="src/data/import-coordinator.js"></script>
+    <script defer src="src/data/legacy-state-adapter.js"></script>
+    <script defer src="src/data/state-bridge.js"></script>
+    <script defer src="src/data/state-bridge-metadata.js"></script>
+    <script defer src="src/application/state-port.js"></script>
+    <script defer src="src/application/unit-of-work.js"></script>
+    <script defer src="src/application/data-service.js"></script>
+    <script defer src="src/application/configuration-service.js"></script>
+    <script defer src="src/application/directory-service.js"></script>
+    <script defer src="src/application/school-service.js"></script>
+    <script defer src="src/application/pendency-service.js"></script>
+    <script defer src="src/application/verification-service.js"></script>
+    <script defer src="src/application/audit-service.js"></script>
+    <script defer src="src/application/invoice-service.js"></script>
+    <script defer src="src/application/inventory-service.js"></script>
+    <script defer src="src/integration/shared-interactions.js"></script>
     <!-- Script Principal -->
-    <script src="app.js"></script>
+    <script defer src="app.js"></script>
     <script defer src="src/integration/view-transitions.js"></script>
     <script defer src="src/integration/global-search.js"></script>
     <script defer src="src/integration/floating-ui-bootstrap.js"></script>
