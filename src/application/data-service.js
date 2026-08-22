@@ -380,18 +380,20 @@
         }
 
         async captureRemoteEntities(changedEntities) {
-            const entities = {};
-            for (const entity of changedEntities) {
-                entities[entity] = await this.repository.load(entity);
-            }
-            return { entities };
+            const entries = await Promise.all(
+                changedEntities.map(async entity => [entity, await this.repository.load(entity)])
+            );
+            return { entities: Object.fromEntries(entries) };
         }
 
         async refreshRemoteEntities(snapshot, changedEntities) {
             const refreshed = cloneValue(snapshot);
-            for (const entity of changedEntities) {
-                refreshed.entities[entity] = await this.repository.load(entity);
-            }
+            const entries = await Promise.all(
+                changedEntities.map(async entity => [entity, await this.repository.load(entity)])
+            );
+            entries.forEach(([entity, records]) => {
+                refreshed.entities[entity] = records;
+            });
             assertSnapshotJson(refreshed, 'refreshRemoteEntities');
             await this.statePort.applyCanonical(refreshed, {
                 persistStorage: false,
