@@ -68,7 +68,7 @@ test('ambiente local, tipos, pgTAP e bundle do cliente estão versionados', () =
 test('HTML não usa mais CDN flutuante do Supabase', () => {
     const html = read('index.html');
     assert.doesNotMatch(html, /cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@2/i);
-    assert.match(html, /<script\s+src=["']vendor\/supabase-client\.js["']><\/script>/i);
+    assert.match(html, /<script\b[^>]*\bsrc=["']vendor\/supabase-client\.js["'][^>]*><\/script>/i);
 });
 
 test('CI executa pgTAP, lint, valida tipos e bundle gerados', () => {
