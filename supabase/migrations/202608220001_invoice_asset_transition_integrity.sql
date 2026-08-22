@@ -1,89 +1,10 @@
 -- RADAR PDDE — integridade patrimonial na mudança de natureza de uma Nota Fiscal.
--- Ao converter uma despesa permanente para natureza não patrimonial, remove o bem
--- anteriormente derivado na mesma transação, com autorização e concorrência otimista.
+-- A implementação privilegiada permanece no schema interno e valida autorização,
+-- escola e row_version antes de qualquer efeito derivado.
 
 begin;
 
-create or replace function radar_private.delete_linked_asset_for_invoice_transition(
-    p_invoice_id text,
-    p_expected_asset_version integer
-)
-returns text
-language plpgsql
-security definer
-set search_path = pg_catalog, public
-as $$
-declare
-    v_invoice public.registered_invoices%rowtype;
-    v_asset public.assets%rowtype;
-    v_asset_id text;
-begin
-    select *
-    into v_invoice
-    from public.registered_invoices
-    where id = p_invoice_id
-    for update;
-
-    if not found then
-        raise exception 'NOT_FOUND: registered_invoices/%', p_invoice_id;
-    end if;
-
-    if not public.can_write_school(v_invoice.school_id) then
-        raise exception 'AUTHORIZATION_DENIED: usuário sem permissão de escrita para a escola %', v_invoice.school_id;
-    end if;
-
-    v_asset_id := v_invoice.linked_asset_id;
-    if v_asset_id is null then
-        return null;
-    end if;
-
-    select *
-    into v_asset
-    from public.assets
-    where id = v_asset_id
-    for update;
-
-    if not found then
-        raise exception 'NOT_FOUND: assets/%', v_asset_id;
-    end if;
-
-    if p_expected_asset_version is null
-        or p_expected_asset_version <= 0
-        or v_asset.row_version <> p_expected_asset_version then
-        raise exception 'OPTIMISTIC_CONFLICT: assets/%', v_asset_id;
-    end if;
-
-    if v_asset.school_id is distinct from v_invoice.school_id then
-        raise exception 'VALIDATION_ERROR: bem e nota pertencem a escolas diferentes';
-    end if;
-
-    if exists (
-        select 1
-        from public.registered_invoices other_invoice
-        where other_invoice.linked_asset_id = v_asset_id
-          and other_invoice.id <> p_invoice_id
-    ) then
-        raise exception 'VALIDATION_ERROR: bem ainda está vinculado a outra nota';
-    end if;
-
-    delete from public.assets
-    where id = v_asset_id
-      and row_version = p_expected_asset_version;
-
-    if not found then
-        raise exception 'OPTIMISTIC_CONFLICT: assets/%', v_asset_id;
-    end if;
-
-    return v_asset_id;
-end
-$$;
-
-revoke all on function radar_private.delete_linked_asset_for_invoice_transition(text, integer)
-    from public, anon;
-grant execute on function radar_private.delete_linked_asset_for_invoice_transition(text, integer)
-    to authenticated, service_role;
-
-create or replace function public.save_invoice_with_effects(
+create or replace function radar_private.save_invoice_with_effects_impl(
     p_invoice jsonb,
     p_asset jsonb default null,
     p_verification_patch jsonb default null,
@@ -94,7 +15,7 @@ create or replace function public.save_invoice_with_effects(
 )
 returns jsonb
 language plpgsql
-security invoker
+security definer
 set search_path = pg_catalog, public
 as $$
 declare
@@ -102,10 +23,12 @@ declare
     v_existing_invoice public.registered_invoices%rowtype;
     v_asset public.assets%rowtype;
     v_existing_asset public.assets%rowtype;
+    v_asset_to_remove public.assets%rowtype;
     v_verification public.verifications%rowtype;
     v_invoice_id text := nullif(p_invoice ->> 'id', '');
     v_school_id text := nullif(p_invoice ->> 'school_id', '');
     v_asset_id text := nullif(p_asset ->> 'id', '');
+    v_previous_asset_id text := null;
     v_removed_asset_id text := null;
     v_verification_id text := coalesce(
         nullif(p_invoice ->> 'verification_id', ''),
@@ -113,6 +36,7 @@ declare
     );
     v_amount numeric(14,2);
     v_target_expense_type text;
+    v_remove_previous_asset boolean := false;
 begin
     if v_invoice_id is null or v_school_id is null then
         raise exception 'VALIDATION_ERROR: invoice id e school_id são obrigatórios';
@@ -173,6 +97,9 @@ begin
                 raise exception 'OPTIMISTIC_CONFLICT: assets/%', v_asset_id;
             end if;
         else
+            if p_expected_asset_version is not null then
+                raise exception 'NOT_FOUND: assets/%', v_asset_id;
+            end if;
             insert into public.assets (
                 id,
                 school_id,
@@ -224,15 +151,38 @@ begin
             nullif(p_invoice ->> 'expense_type', ''),
             v_existing_invoice.expense_type
         );
+        v_previous_asset_id := v_existing_invoice.linked_asset_id;
 
         if p_asset is null
-            and v_existing_invoice.linked_asset_id is not null
+            and v_previous_asset_id is not null
             and nullif(p_invoice ->> 'linked_asset_id', '') is null
             and v_target_expense_type <> 'permanente' then
-            v_removed_asset_id := radar_private.delete_linked_asset_for_invoice_transition(
-                v_invoice_id,
-                p_expected_asset_version
-            );
+            select *
+            into v_asset_to_remove
+            from public.assets
+            where id = v_previous_asset_id
+            for update;
+
+            if not found then
+                raise exception 'NOT_FOUND: assets/%', v_previous_asset_id;
+            end if;
+            if p_expected_asset_version is null
+                or p_expected_asset_version <= 0
+                or v_asset_to_remove.row_version <> p_expected_asset_version then
+                raise exception 'OPTIMISTIC_CONFLICT: assets/%', v_previous_asset_id;
+            end if;
+            if v_asset_to_remove.school_id is distinct from v_school_id then
+                raise exception 'VALIDATION_ERROR: bem e nota pertencem a escolas diferentes';
+            end if;
+            if exists (
+                select 1
+                from public.registered_invoices other_invoice
+                where other_invoice.linked_asset_id = v_previous_asset_id
+                  and other_invoice.id <> v_invoice_id
+            ) then
+                raise exception 'VALIDATION_ERROR: bem ainda está vinculado a outra nota';
+            end if;
+            v_remove_previous_asset := true;
         end if;
 
         update public.registered_invoices
@@ -256,7 +206,21 @@ begin
         if not found then
             raise exception 'OPTIMISTIC_CONFLICT: registered_invoices/%', v_invoice_id;
         end if;
+
+        if v_remove_previous_asset then
+            delete from public.assets
+            where id = v_previous_asset_id
+              and row_version = p_expected_asset_version;
+
+            if not found then
+                raise exception 'OPTIMISTIC_CONFLICT: assets/%', v_previous_asset_id;
+            end if;
+            v_removed_asset_id := v_previous_asset_id;
+        end if;
     else
+        if p_expected_invoice_version is not null then
+            raise exception 'NOT_FOUND: registered_invoices/%', v_invoice_id;
+        end if;
         insert into public.registered_invoices (
             id,
             school_id,
@@ -347,6 +311,36 @@ begin
         'verification', case when v_verification.id is null then null else to_jsonb(v_verification) end
     );
 end
+$$;
+
+revoke all on function radar_private.save_invoice_with_effects_impl(jsonb, jsonb, jsonb, integer, integer, integer, jsonb)
+    from public, anon;
+grant execute on function radar_private.save_invoice_with_effects_impl(jsonb, jsonb, jsonb, integer, integer, integer, jsonb)
+    to authenticated, service_role;
+
+create or replace function public.save_invoice_with_effects(
+    p_invoice jsonb,
+    p_asset jsonb default null,
+    p_verification_patch jsonb default null,
+    p_expected_invoice_version integer default null,
+    p_expected_asset_version integer default null,
+    p_expected_verification_version integer default null,
+    p_administrative_log jsonb default null
+)
+returns jsonb
+language sql
+security invoker
+set search_path = pg_catalog, radar_private
+as $$
+    select radar_private.save_invoice_with_effects_impl(
+        p_invoice,
+        p_asset,
+        p_verification_patch,
+        p_expected_invoice_version,
+        p_expected_asset_version,
+        p_expected_verification_version,
+        p_administrative_log
+    )
 $$;
 
 revoke all on function public.save_invoice_with_effects(jsonb, jsonb, jsonb, integer, integer, integer, jsonb)
