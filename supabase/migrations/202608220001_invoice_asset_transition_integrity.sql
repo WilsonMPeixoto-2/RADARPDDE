@@ -1,6 +1,8 @@
 -- RADAR PDDE — integridade patrimonial na mudança de natureza de uma Nota Fiscal.
 -- A implementação privilegiada permanece no schema interno e valida autorização,
 -- escola e row_version antes de qualquer efeito derivado.
+-- A exclusão do bem desvinculado continua sendo executada pelo trigger patrimonial
+-- já versionado; esta RPC valida a concorrência antes do UPDATE e confirma o efeito.
 
 begin;
 
@@ -216,12 +218,12 @@ begin
         end if;
 
         if v_remove_previous_asset then
-            delete from public.assets
-            where id = v_previous_asset_id
-              and row_version = p_expected_asset_version;
-
-            if not found then
-                raise exception 'OPTIMISTIC_CONFLICT: assets/%', v_previous_asset_id;
+            if exists (
+                select 1
+                from public.assets
+                where id = v_previous_asset_id
+            ) then
+                raise exception 'INTEGRITY_CONFLICT: bem derivado % não foi removido após a desvinculação', v_previous_asset_id;
             end if;
             v_removed_asset_id := v_previous_asset_id;
         end if;
