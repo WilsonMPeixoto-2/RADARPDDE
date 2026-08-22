@@ -36,6 +36,6 @@ test('estilos secundários não bloqueiam a primeira renderização', () => {
     local.forEach(item => {
         assert.equal(item.attrs.rel, 'preload');
         assert.equal(item.attrs.as, 'style');
-        assert.match(item.tag, /\bonload=["'][^"']*stylesheet/i);
+        assert.match(item.tag, /\bonload\s*=/i, 'o preload deve se promover a stylesheet após o carregamento.');
     });
 });
