@@ -135,3 +135,51 @@ test('persistência remota customizada adia baseline e faz no máximo o refresh 
 
     assert.deepEqual(loads, ['verifications', 'administrativeLogs']);
 });
+
+test('refresh remoto dispara leituras independentes em paralelo', async () => {
+    const beforeVerification = {
+        id: '04.10.001::2026-08::BASIC',
+        school_id: '04.10.001',
+        competence_id: '2026-08',
+        program_id: 'BASIC',
+        bonification: { extCC: '' },
+        analysis: { extCC: 'Não analisado' },
+        bonus_result: null,
+        payload: {},
+        row_version: 1
+    };
+    const initial = makeSnapshot(beforeVerification);
+    const state = makeStatePort(initial);
+    const started = [];
+    const pending = new Map();
+    const repository = {
+        capabilities: () => ({ mode: 'supabase', remote: true }),
+        load: entity => {
+            started.push(entity);
+            return new Promise(resolve => pending.set(entity, resolve));
+        },
+        exportSnapshot: async () => structuredClone(initial),
+        save: async () => [],
+        remove: async () => ({ removedId: null }),
+        restoreSnapshot: async () => undefined,
+        healthCheck: async () => ({ ok: true, mode: 'supabase' })
+    };
+    const service = new DataService({ repository, statePort: state.port });
+
+    const refresh = service.refreshRemoteEntities(
+        initial,
+        ['verifications', 'administrativeLogs']
+    );
+    await Promise.resolve();
+
+    assert.deepEqual(
+        started,
+        ['verifications', 'administrativeLogs'],
+        'Todas as leituras devem iniciar antes de qualquer uma precisar terminar.'
+    );
+
+    pending.get('verifications')([beforeVerification]);
+    pending.get('administrativeLogs')([]);
+    const refreshed = await refresh;
+    assert.equal(refreshed.entities.verifications.length, 1);
+});
