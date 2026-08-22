@@ -419,8 +419,20 @@
                 );
             }
             changedEntities.forEach(assertKnownEntity);
+            const declaredRefreshExemptEntities = [
+                ...new Set(Array.isArray(command.remoteRefreshExemptEntities)
+                    ? command.remoteRefreshExemptEntities
+                    : [])
+            ];
+            declaredRefreshExemptEntities.forEach(assertKnownEntity);
             const capabilities = this.repository.capabilities();
             const remote = capabilities.remote === true;
+            const remoteRefreshExemptEntities = new Set(
+                remote
+                    ? declaredRefreshExemptEntities.filter(entity => changedEntities.includes(entity))
+                    : []
+            );
+            const refreshEntities = changedEntities.filter(entity => !remoteRefreshExemptEntities.has(entity));
             const hasCustomPersist = typeof command.persist === 'function';
             const authoritativeRemoteResult = remote && command.remoteResultIsAuthoritative === true;
             const authoritativeRemoteCommit = remote && command.remoteCommitIsAuthoritative === true;
@@ -480,7 +492,10 @@
                     const merged = mergePersistedResult(result.snapshot, result.persisted);
                     committedSnapshot = merged.snapshot;
                     const authoritativeEntitiesComplete = authoritativeRemoteResult
-                        && changedEntities.every(entity => merged.appliedEntities.includes(entity));
+                        && changedEntities.every(entity => (
+                            merged.appliedEntities.includes(entity)
+                            || remoteRefreshExemptEntities.has(entity)
+                        ));
                     const authoritativeCommitConfirmed = authoritativeRemoteCommit && !usedDefaultPersist;
                     const canCommitWithoutRefresh = authoritativeEntitiesComplete || authoritativeCommitConfirmed;
                     if (merged.appliedEntities.length > 0 || authoritativeCommitConfirmed) {
@@ -495,7 +510,7 @@
                     }
                     if (!canCommitWithoutRefresh) {
                         try {
-                            committedSnapshot = await this.refreshRemoteEntities(committedSnapshot, changedEntities);
+                            committedSnapshot = await this.refreshRemoteEntities(committedSnapshot, refreshEntities);
                         } catch (refreshError) {
                             refreshPending = true;
                             if (merged.appliedEntities.length === 0) {
