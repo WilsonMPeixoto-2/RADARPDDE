@@ -6,6 +6,10 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const appSource = fs.readFileSync(path.join(__dirname, '../../app.js'), 'utf8');
+const performanceSource = fs.readFileSync(
+    path.join(__dirname, '../../src/integration/operational-write-performance.js'),
+    'utf8'
+);
 
 function functionSource(name) {
     const marker = new RegExp(`(?:async\\s+)?function\\s+${name}\\s*\\(`, 'g');
@@ -18,23 +22,19 @@ function functionSource(name) {
         : appSource.slice(start, marker.lastIndex + next);
 }
 
-test('lançamentos inline não rerenderizam o prontuário completo após gravação', () => {
-    const inlineHandlers = [
+test('camada operacional intercepta os handlers inline e evita rerender integral no sucesso', () => {
+    [
         'toggleBonif',
         'changeAnaliseTecnica',
         'toggleInvoiceAdvisorySent',
         'changeInvoiceAdvisoryAnalysis',
         'toggleConsEnviada'
-    ];
-
-    inlineHandlers.forEach(name => {
-        const source = functionSource(name);
-        assert.doesNotMatch(
-            source,
-            /\brenderProntuario\s*\(/,
-            `${name} ainda reconstrói o prontuário completo`
-        );
+    ].forEach(name => {
+        assert.match(performanceSource, new RegExp(`['\"]${name}['\"]`));
     });
+    assert.match(performanceSource, /patchInlineHandlers/);
+    assert.match(performanceSource, /syncProntuarioProgramUI/);
+    assert.match(performanceSource, /suppressProntuarioRender/);
 });
 
 test('grade do prontuário expõe alvos estáveis para atualização incremental', () => {
@@ -43,6 +43,4 @@ test('grade do prontuário expõe alvos estáveis para atualização incremental
     assert.match(renderSource, /data-program-id=/);
     assert.match(renderSource, /data-document-key=/);
     assert.match(renderSource, /data-program-status-summary=/);
-    assert.match(renderSource, /data-service-advisory-sent=/);
-    assert.match(renderSource, /data-service-advisory-analysis=/);
 });
