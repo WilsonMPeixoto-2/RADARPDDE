@@ -39,6 +39,13 @@
         return '';
     }
 
+    function analysisStateClass(value) {
+        return `analise-${text(value || 'Não analisado')
+            .toLocaleLowerCase('pt-BR')
+            .replace(/\s+/g, '-')
+            .replace(/[()]/g, '')}`;
+    }
+
     function inlineOperationFromHandler(handler) {
         const source = text(handler);
         if (!source) return '';
@@ -53,6 +60,14 @@
         const source = text(handler);
         const match = source.match(/,\s*'([^']+)'\s*\)\s*;?\s*$/);
         return match ? match[1] : '';
+    }
+
+    function settlePending(control) {
+        if (!control) return false;
+        control.classList?.remove('radar-write-pending');
+        control.removeAttribute?.('aria-busy');
+        if (control.dataset) delete control.dataset.radarWritePending;
+        return true;
     }
 
     function markPending(control, operation, handler) {
@@ -112,8 +127,10 @@
     return Object.freeze({
         ACTIVE_CLASSES,
         bonificationActiveClass,
+        analysisStateClass,
         inlineOperationFromHandler,
         bonificationValueFromHandler,
+        settlePending,
         markPending,
         findInlineControl,
         install

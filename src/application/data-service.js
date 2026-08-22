@@ -419,6 +419,19 @@
                 );
             }
             changedEntities.forEach(assertKnownEntity);
+            const incrementalStateEntities = [
+                ...new Set(Array.isArray(command.incrementalStateEntities)
+                    ? command.incrementalStateEntities
+                    : [])
+            ];
+            incrementalStateEntities.forEach(assertKnownEntity);
+            if (incrementalStateEntities.some(entity => !changedEntities.includes(entity))) {
+                throw new RepositoryError(
+                    'VALIDATION_FAILED',
+                    'A aplicação incremental somente pode incluir entidades declaradas como alteradas.',
+                    { operation: String(command.name || 'data-command') }
+                );
+            }
             const declaredRefreshExemptEntities = [
                 ...new Set(Array.isArray(command.remoteRefreshExemptEntities)
                     ? command.remoteRefreshExemptEntities
@@ -498,12 +511,30 @@
                         ));
                     const authoritativeCommitConfirmed = authoritativeRemoteCommit && !usedDefaultPersist;
                     const canCommitWithoutRefresh = authoritativeEntitiesComplete || authoritativeCommitConfirmed;
+                    const canApplyIncrementally = authoritativeEntitiesComplete
+                        && incrementalStateEntities.length > 0
+                        && typeof this.statePort.applyEntities === 'function'
+                        && incrementalStateEntities.every(entity => (
+                            merged.appliedEntities.includes(entity)
+                            || remoteRefreshExemptEntities.has(entity)
+                        ));
                     if (merged.appliedEntities.length > 0 || authoritativeCommitConfirmed) {
                         try {
-                            await this.statePort.applyCanonical(committedSnapshot, {
-                                persistStorage: false,
-                                source: authoritativeCommitConfirmed ? 'remote-commit' : 'remote-result'
-                            });
+                            if (canApplyIncrementally) {
+                                await this.statePort.applyEntities(
+                                    committedSnapshot,
+                                    incrementalStateEntities,
+                                    {
+                                        persistStorage: false,
+                                        source: 'remote-result-incremental'
+                                    }
+                                );
+                            } else {
+                                await this.statePort.applyCanonical(committedSnapshot, {
+                                    persistStorage: false,
+                                    source: authoritativeCommitConfirmed ? 'remote-commit' : 'remote-result'
+                                });
+                            }
                         } catch (applyError) {
                             stateApplyError = applyError;
                         }

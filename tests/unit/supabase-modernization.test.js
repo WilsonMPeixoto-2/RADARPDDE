@@ -65,10 +65,14 @@ test('ambiente local, tipos, pgTAP e bundle do cliente estão versionados', () =
     ].forEach(file => assert.ok(exists(file), `${file} deve existir.`));
 });
 
-test('HTML não usa mais CDN flutuante do Supabase', () => {
+test('HTML não usa CDN nem carrega Supabase antes de uma conexão remota ser necessária', () => {
     const html = read('index.html');
+    const authBootstrap = read('src/integration/auth-bootstrap.js');
+
     assert.doesNotMatch(html, /cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@2/i);
-    assert.match(html, /<script\s+src=["']vendor\/supabase-client\.js["']><\/script>/i);
+    assert.doesNotMatch(html, /<script\b[^>]*\bsrc=["']vendor\/supabase-client\.js["'][^>]*><\/script>/i);
+    assert.match(authBootstrap, /SUPABASE_CLIENT_SRC\s*=\s*["']vendor\/supabase-client\.js["']/i);
+    assert.match(authBootstrap, /ensureSupabaseClient/i);
 });
 
 test('CI executa pgTAP, lint, valida tipos e bundle gerados', () => {

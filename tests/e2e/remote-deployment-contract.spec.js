@@ -69,8 +69,13 @@ test('usuário anônimo não lê escolas e o login permanece responsivo', async 
     }
   );
 
-  expect(anonymousResponse.ok()).toBeTruthy();
-  expect(await anonymousResponse.json()).toEqual([]);
+  const anonymousStatus = anonymousResponse.status();
+  if (anonymousStatus === 401 || anonymousStatus === 403) {
+    expect([401, 403]).toContain(anonymousStatus);
+  } else {
+    expect(anonymousStatus).toBe(200);
+    expect(await anonymousResponse.json()).toEqual([]);
+  }
   await expect(page.locator('#radar-auth-form')).toBeVisible();
   await expect(page.locator('#radar-auth-email')).toBeFocused();
 

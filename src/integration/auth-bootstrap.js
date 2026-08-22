@@ -11,6 +11,9 @@
 }(typeof window !== 'undefined' ? window : globalThis, function createAuthBootstrapApi() {
     'use strict';
 
+    const SUPABASE_CLIENT_SRC = 'vendor/supabase-client.js';
+    const pendingClientLoads = typeof WeakMap === 'function' ? new WeakMap() : null;
+
     function emitAuthRequired(root, message) {
         if (typeof root?.dispatchEvent !== 'function' || typeof root?.CustomEvent !== 'function') return;
         root.dispatchEvent(new root.CustomEvent('radar:auth-required', {
@@ -35,6 +38,63 @@
         };
     }
 
+    function hasSupabaseClient(root) {
+        return Boolean(root?.supabase && typeof root.supabase.createClient === 'function');
+    }
+
+    function ensureSupabaseClient(root = globalThis) {
+        if (hasSupabaseClient(root)) return Promise.resolve(root.supabase);
+
+        const documentRef = root?.document;
+        if (!documentRef || typeof documentRef.createElement !== 'function') {
+            return Promise.reject(new Error('Cliente Supabase indisponível para a conexão explicitamente ativada.'));
+        }
+
+        if (pendingClientLoads?.has(root)) return pendingClientLoads.get(root);
+
+        const existing = typeof documentRef.querySelector === 'function'
+            ? documentRef.querySelector('script[data-radar-supabase-client="true"]')
+            : null;
+        const script = existing || documentRef.createElement('script');
+
+        const pending = new Promise((resolve, reject) => {
+            const onLoad = () => {
+                if (hasSupabaseClient(root)) {
+                    resolve(root.supabase);
+                    return;
+                }
+                reject(new Error('O bundle local do cliente Supabase foi carregado, mas não disponibilizou createClient.'));
+            };
+            const onError = () => reject(new Error('Não foi possível carregar o cliente Supabase local.'));
+
+            if (typeof script.addEventListener === 'function') {
+                script.addEventListener('load', onLoad, { once: true });
+                script.addEventListener('error', onError, { once: true });
+            } else {
+                script.onload = onLoad;
+                script.onerror = onError;
+            }
+
+            if (existing) return;
+
+            script.src = SUPABASE_CLIENT_SRC;
+            script.async = true;
+            script.dataset.radarSupabaseClient = 'true';
+            const parent = documentRef.head || documentRef.documentElement || documentRef.body;
+            if (!parent || typeof parent.appendChild !== 'function') {
+                reject(new Error('Documento indisponível para carregar o cliente Supabase local.'));
+                return;
+            }
+            parent.appendChild(script);
+        });
+
+        if (pendingClientLoads) {
+            pendingClientLoads.set(root, pending);
+            pending.finally(() => pendingClientLoads.delete(root)).catch(() => null);
+        }
+        return pending;
+    }
+
     async function prepareAuthenticatedClient(options = {}) {
         const runtimeConfig = options.runtimeConfig || {};
         const root = options.root || globalThis;
@@ -46,6 +106,7 @@
             };
         }
 
+        await ensureSupabaseClient(root);
         if (!root.supabase || typeof root.supabase.createClient !== 'function') {
             throw new Error('Cliente Supabase indisponível para a conexão explicitamente ativada.');
         }
@@ -99,6 +160,7 @@
         emitAuthRequired,
         emitAuthResolved,
         publicAuthentication,
+        ensureSupabaseClient,
         prepareAuthenticatedClient
     });
 }));
