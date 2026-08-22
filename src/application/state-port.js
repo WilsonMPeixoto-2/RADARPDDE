@@ -28,6 +28,31 @@
 
     const { RepositoryError, cloneValue } = contract;
     const RADAR_PREFIX = 'radar_pdde_';
+    const INCREMENTAL_MEMORY_ENTITY_MAP = Object.freeze({
+        verifications: 'verifications',
+        registeredInvoices: 'registeredInvoices',
+        administrativeLogs: 'logs'
+    });
+
+    function createBrowserMemoryPatch() {
+        if (typeof document === 'undefined') return null;
+        return function patchBrowserMemory(patch = {}) {
+            if (Object.prototype.hasOwnProperty.call(patch, 'verifications')
+                && typeof verificacoes !== 'undefined') {
+                verificacoes = cloneValue(patch.verifications || {});
+            }
+            if (Object.prototype.hasOwnProperty.call(patch, 'registeredInvoices')
+                && typeof notasRegistradas !== 'undefined') {
+                notasRegistradas = cloneValue(patch.registeredInvoices || []);
+            }
+            if (Object.prototype.hasOwnProperty.call(patch, 'logs')
+                && typeof logs !== 'undefined') {
+                logs = cloneValue(patch.logs || [])
+                    .sort((left, right) => (right.dataHora || '').localeCompare(left.dataHora || ''));
+            }
+            return true;
+        };
+    }
 
     function assertStorage(storage) {
         if (!storage
@@ -120,6 +145,9 @@
         const writeMemory = typeof options.writeMemory === 'function'
             ? options.writeMemory
             : () => undefined;
+        const patchMemory = typeof options.patchMemory === 'function'
+            ? options.patchMemory
+            : createBrowserMemoryPatch();
         const configuredDataVersion = String(options.dataVersion || '').trim();
         const configuredPendencyVersion = String(options.pendencySchemaVersion || '').trim();
 
@@ -236,6 +264,33 @@
             return cloneValue(result.state);
         }
 
+        async function applyEntities(snapshot, entities = [], applyOptions = {}) {
+            const requested = [...new Set(Array.isArray(entities) ? entities : [])];
+            const canPatch = applyOptions.persistStorage === false
+                && patchMemory
+                && typeof bridge.canonicalEntitiesToLegacyState === 'function'
+                && requested.length > 0
+                && requested.every(entity => INCREMENTAL_MEMORY_ENTITY_MAP[entity]);
+            if (!canPatch) return applyCanonical(snapshot, applyOptions);
+
+            const partialEntities = {};
+            requested.forEach(entity => {
+                partialEntities[entity] = cloneValue(snapshot?.entities?.[entity] || []);
+            });
+            const partialState = bridge.canonicalEntitiesToLegacyState(partialEntities, {
+                dataVersion: applyOptions.dataVersion || configuredDataVersion,
+                pendencySchemaVersion: applyOptions.pendencySchemaVersion
+                    || configuredPendencyVersion
+            });
+            const memoryPatch = {};
+            requested.forEach(entity => {
+                const memoryKey = INCREMENTAL_MEMORY_ENTITY_MAP[entity];
+                memoryPatch[memoryKey] = cloneValue(partialState[memoryKey]);
+            });
+            await patchMemory(cloneValue(memoryPatch));
+            return cloneValue(memoryPatch);
+        }
+
         function validateCapture(captured) {
             if (!captured || typeof captured !== 'object' || !captured.storage) {
                 throw new RepositoryError(
@@ -270,11 +325,15 @@
             exportCanonical,
             exportCanonicalSync,
             applyCanonical,
+            applyEntities,
             commitCurrent,
             restore,
             restoreSync
         });
     }
 
-    return Object.freeze({ createStatePort });
+    return Object.freeze({
+        INCREMENTAL_MEMORY_ENTITY_MAP,
+        createStatePort
+    });
 }));
