@@ -248,6 +248,75 @@
         }
     }
 
+    function documentCellFromBonificationGroup(row) {
+        const group = row?.querySelector?.('.btn-group-toggle');
+        const bonificationCell = group?.closest?.('td');
+        return {
+            group,
+            documentCell: bonificationCell?.previousElementSibling || null
+        };
+    }
+
+    function syncFiscalNoteAction(root, row, schoolId, compKey, bonificationValue) {
+        const { group, documentCell } = documentCellFromBonificationGroup(row);
+        if (!documentCell) return;
+
+        const existingButton = documentCell.querySelector(
+            'button[data-radar-incremental-add-note], button[onclick*="openModalDadosNota"]'
+        );
+        const canEdit = Boolean(group && Array.from(
+            group.querySelectorAll('button[onclick*="toggleBonif"]')
+        ).some(button => !button.disabled));
+        const shouldShow = bonificationValue === 'Sim' && canEdit;
+
+        if (!shouldShow) {
+            if (!existingButton) return;
+            const wrapper = existingButton.parentElement;
+            existingButton.remove();
+            if (wrapper
+                && wrapper.childElementCount === 0
+                && text(wrapper.textContent) === '') {
+                wrapper.remove();
+            }
+            return;
+        }
+
+        if (existingButton || typeof root?.openModalDadosNota !== 'function') return;
+
+        const wrapper = root.document.createElement('div');
+        wrapper.dataset.radarIncrementalFiscalNoteActions = 'true';
+        wrapper.style.marginTop = '6px';
+        wrapper.style.display = 'flex';
+        wrapper.style.flexWrap = 'wrap';
+        wrapper.style.alignItems = 'center';
+        wrapper.style.gap = '4px';
+
+        const button = root.document.createElement('button');
+        button.type = 'button';
+        button.className = 'btn btn-secondary btn-sm';
+        button.dataset.radarIncrementalAddNote = 'true';
+        button.style.fontSize = '0.65rem';
+        button.style.padding = '2px 6px';
+        button.style.display = 'inline-flex';
+        button.style.alignItems = 'center';
+        button.style.marginBottom = '4px';
+        button.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:2px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>Adicionar Nota';
+        button.addEventListener('click', () => root.openModalDadosNota(schoolId, compKey));
+
+        wrapper.appendChild(button);
+        documentCell.appendChild(wrapper);
+    }
+
+    function syncServiceAdvisorySummary(row, bonificationValue) {
+        const summary = Array.from(row?.querySelectorAll?.('span.badge') || [])
+            .find(element => text(element.textContent).startsWith('Resumo mensal:'));
+        if (!summary) return;
+
+        summary.classList.remove('badge-success', 'badge-danger');
+        summary.classList.add(bonificationValue === 'Sim' ? 'badge-success' : 'badge-danger');
+        summary.textContent = `Resumo mensal: ${bonificationValue || 'Não'}`;
+    }
+
     function syncProntuarioProgramUI(root, schoolId, compKey) {
         const state = getApplicationState(root);
         if (!state || !root?.document) return false;
@@ -300,6 +369,10 @@
                 setAnalysisControlClass(root, analysisControl, analysisValue);
             }
 
+            if (documentKey === 'notaFiscal') {
+                syncFiscalNoteAction(root, row, schoolId, compKey, bonificationValue);
+            }
+
             if (documentKey === 'consAssessoria') {
                 Array.from(row.querySelectorAll('input[onchange*="toggleInvoiceAdvisorySent"]')).forEach(control => {
                     const invoiceId = invoiceIdFromHandler(control.getAttribute('onchange'));
@@ -316,6 +389,7 @@
                     control.value = advisory.analysis;
                     setAnalysisControlClass(root, control, advisory.analysis);
                 });
+                syncServiceAdvisorySummary(row, bonificationValue);
             }
 
             Array.from(row.querySelectorAll('.radar-write-pending')).forEach(control => {
@@ -387,7 +461,9 @@
     function install(root) {
         const dataServices = collectDataServices(root);
         if (dataServices.length === 0) return false;
-        dataServices.forEach(patchDataService);
+        const dataServicesPatched = dataServices.every(patchDataService);
+        if (!dataServicesPatched) return false;
+        if (!root?.document) return true;
         return patchInlineHandlers(root);
     }
 
