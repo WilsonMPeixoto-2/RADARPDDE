@@ -37,7 +37,8 @@
         'school:assign-controller',
         'school:bulk-assign-controller',
         'directory:save-program',
-        'directory:deactivate-program'
+        'directory:deactivate-program',
+        'configuration:save-calendar'
     ]);
 
     const COMMIT_AUTHORITATIVE_COMMANDS = new Set([
