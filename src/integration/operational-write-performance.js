@@ -47,12 +47,34 @@
         'invoice:update-service-advisory'
     ]);
 
+    const INCREMENTAL_STATE_ENTITIES_BY_COMMAND = Object.freeze({
+        'verification:set-bonification': Object.freeze(['verifications', 'administrativeLogs']),
+        'verification:set-technical-analysis': Object.freeze(['verifications', 'administrativeLogs']),
+        'verification:close-bonification': Object.freeze(['verifications', 'administrativeLogs']),
+        'invoice:update-service-advisory': Object.freeze([
+            'registeredInvoices',
+            'verifications',
+            'administrativeLogs'
+        ])
+    });
+
+    const INLINE_HANDLER_NAMES = Object.freeze([
+        'toggleBonif',
+        'changeAnaliseTecnica',
+        'toggleInvoiceAdvisorySent',
+        'changeInvoiceAdvisoryAnalysis',
+        'toggleConsEnviada'
+    ]);
+
     const ALLOWED_REFRESH_EXEMPT_ENTITIES = new Set(['administrativeLogs']);
     const REFRESH_EXEMPT_ENTITIES_BY_COMMAND = Object.freeze({
         'invoice:save': Object.freeze(['administrativeLogs']),
         'invoice:remove': Object.freeze(['administrativeLogs']),
         'configuration:create-exercise': Object.freeze(['administrativeLogs'])
     });
+
+    const suppressedSchools = new Map();
+    let originalRenderProntuario = null;
 
     function text(value) {
         return value == null ? '' : String(value).trim();
@@ -91,6 +113,14 @@
             } else if (COMMIT_AUTHORITATIVE_COMMANDS.has(name)) {
                 decorated = { ...decorated, remoteCommitIsAuthoritative: true };
             }
+        }
+
+        const incrementalEntities = INCREMENTAL_STATE_ENTITIES_BY_COMMAND[name];
+        if (incrementalEntities && !Array.isArray(command.incrementalStateEntities)) {
+            decorated = {
+                ...decorated,
+                incrementalStateEntities: [...incrementalEntities]
+            };
         }
 
         const refreshExemptEntities = REFRESH_EXEMPT_ENTITIES_BY_COMMAND[name];
@@ -136,22 +166,245 @@
         return true;
     }
 
+    function suppressProntuarioRender(schoolId) {
+        const key = text(schoolId);
+        if (!key) return () => {};
+        suppressedSchools.set(key, (suppressedSchools.get(key) || 0) + 1);
+        return () => {
+            const next = (suppressedSchools.get(key) || 1) - 1;
+            if (next <= 0) suppressedSchools.delete(key);
+            else suppressedSchools.set(key, next);
+        };
+    }
+
+    function installRenderDispatcher(root) {
+        if (originalRenderProntuario) return true;
+        if (typeof root?.renderProntuario !== 'function') return false;
+        originalRenderProntuario = root.renderProntuario.bind(root);
+        root.renderProntuario = function incrementalRenderDispatcher(schoolId, ...args) {
+            if ((suppressedSchools.get(text(schoolId)) || 0) > 0) return false;
+            return originalRenderProntuario(schoolId, ...args);
+        };
+        return true;
+    }
+
+    function handlerValue(handler) {
+        const match = text(handler).match(/,\s*'([^']+)'\s*\)\s*;?\s*$/);
+        return match ? match[1] : '';
+    }
+
+    function invoiceIdFromHandler(handler) {
+        const match = text(handler).match(/(?:toggleInvoiceAdvisorySent|changeInvoiceAdvisoryAnalysis)\('([^']+)'/);
+        return match ? match[1] : '';
+    }
+
+    function getApplicationState(root) {
+        const service = root?.RadarApplicationServices?.verifications
+            || root?.RadarApplicationServices?.invoices;
+        return typeof service?.getState === 'function' ? service.getState() : null;
+    }
+
+    function analysisStateClass(root, value) {
+        if (typeof root?.RadarOperationalWriteFeedback?.analysisStateClass === 'function') {
+            return root.RadarOperationalWriteFeedback.analysisStateClass(value);
+        }
+        return `analise-${text(value || 'Não analisado')
+            .toLocaleLowerCase('pt-BR')
+            .replace(/\s+/g, '-')
+            .replace(/[()]/g, '')}`;
+    }
+
+    function setAnalysisControlClass(root, control, value) {
+        if (!control?.classList) return;
+        Array.from(control.classList)
+            .filter(className => className.startsWith('analise-'))
+            .forEach(className => control.classList.remove(className));
+        control.classList.add(analysisStateClass(root, value));
+    }
+
+    function syncProgramSummary(root, summary, schoolId, competenceKey, programId) {
+        if (!summary) return;
+        if (typeof root.getProgramBonificationStatus === 'function'
+            && typeof root.getProgramBonificationMeta === 'function') {
+            const meta = root.getProgramBonificationMeta(
+                root.getProgramBonificationStatus(schoolId, competenceKey, programId)
+            );
+            const badge = summary.querySelector('[data-status-dimension="bonificacao"]');
+            if (badge && meta) {
+                badge.className = `badge ${meta.badgeClass}`;
+                badge.textContent = meta.label;
+            }
+        }
+        if (typeof root.getProgramTechnicalStatus === 'function'
+            && typeof root.getProgramTechnicalMeta === 'function') {
+            const meta = root.getProgramTechnicalMeta(
+                root.getProgramTechnicalStatus(schoolId, competenceKey, programId)
+            );
+            const badge = summary.querySelector('[data-status-dimension="analise"]');
+            if (badge && meta) {
+                badge.className = `badge ${meta.badgeClass}`;
+                badge.textContent = meta.label;
+            }
+        }
+    }
+
+    function syncProntuarioProgramUI(root, schoolId, compKey) {
+        const state = getApplicationState(root);
+        if (!state || !root?.document) return false;
+        const splitContext = root.RadarCompetencia?.splitCompetenciaContext?.(compKey) || {};
+        const competenceKey = splitContext.competenciaKey || text(compKey).split('_')[0];
+        const programId = splitContext.contextId || text(compKey).slice(competenceKey.length + 1);
+        if (!programId) return false;
+
+        const verification = state.verifications?.[schoolId]?.[compKey] || {};
+        const bonification = verification.bonificacao || verification.bonification || {};
+        const analysis = verification.analise || verification.analysis || {};
+        const rows = Array.from(root.document.querySelectorAll('#prontuario-verif-rows tr[data-program-id]'))
+            .filter(row => row.dataset.programId === programId);
+        if (rows.length === 0) return false;
+
+        const feedback = root.RadarOperationalWriteFeedback;
+        const activeClasses = feedback?.ACTIVE_CLASSES || ['active-sim', 'active-nao', 'active-naoseaplica'];
+        const invoices = Array.isArray(state.registeredInvoices) ? state.registeredInvoices : [];
+        const serviceNotes = invoices.filter(note => (
+            note.escolaId === schoolId && note.compKey === compKey && note.tipo === 'servico'
+        ));
+        const legacyFallback = serviceNotes.length === 1
+            ? {
+                sent: bonification.consEnviada === true || bonification.consAssessoria === 'Sim',
+                analysis: analysis.consAssessoria
+            }
+            : {};
+
+        rows.forEach(row => {
+            const documentKey = row.dataset.documentKey || '';
+            const bonificationValue = bonification[documentKey] || '';
+            const analysisValue = analysis[documentKey] || 'Não analisado';
+
+            const group = row.querySelector('.btn-group-toggle');
+            if (group) {
+                Array.from(group.querySelectorAll('button[onclick*="toggleBonif"]')).forEach(button => {
+                    activeClasses.forEach(className => button.classList.remove(className));
+                    const value = feedback?.bonificationValueFromHandler?.(button.getAttribute('onclick'))
+                        || handlerValue(button.getAttribute('onclick'));
+                    if (value === bonificationValue) {
+                        const activeClass = feedback?.bonificationActiveClass?.(value);
+                        if (activeClass) button.classList.add(activeClass);
+                    }
+                });
+            }
+
+            const analysisControl = row.querySelector('select[onchange*="changeAnaliseTecnica"]');
+            if (analysisControl) {
+                analysisControl.value = analysisValue;
+                setAnalysisControlClass(root, analysisControl, analysisValue);
+            }
+
+            if (documentKey === 'consAssessoria') {
+                Array.from(row.querySelectorAll('input[onchange*="toggleInvoiceAdvisorySent"]')).forEach(control => {
+                    const invoiceId = invoiceIdFromHandler(control.getAttribute('onchange'));
+                    const note = serviceNotes.find(item => String(item.id) === String(invoiceId));
+                    if (!note) return;
+                    const advisory = root.RadarInvoiceService.getServiceAdvisoryState(note, legacyFallback);
+                    control.checked = Boolean(advisory.sent);
+                });
+                Array.from(row.querySelectorAll('select[onchange*="changeInvoiceAdvisoryAnalysis"]')).forEach(control => {
+                    const invoiceId = invoiceIdFromHandler(control.getAttribute('onchange'));
+                    const note = serviceNotes.find(item => String(item.id) === String(invoiceId));
+                    if (!note) return;
+                    const advisory = root.RadarInvoiceService.getServiceAdvisoryState(note, legacyFallback);
+                    control.value = advisory.analysis;
+                    setAnalysisControlClass(root, control, advisory.analysis);
+                });
+            }
+
+            Array.from(row.querySelectorAll('.radar-write-pending')).forEach(control => {
+                if (typeof feedback?.settlePending === 'function') feedback.settlePending(control);
+                else control.classList.remove('radar-write-pending');
+            });
+        });
+
+        const summary = rows
+            .map(row => row.querySelector('[data-program-status-summary]'))
+            .find(Boolean);
+        syncProgramSummary(root, summary, schoolId, competenceKey, programId);
+        return true;
+    }
+
+    function compKeyForHandler(root, name, args) {
+        if (name === 'toggleBonif' || name === 'changeAnaliseTecnica' || name === 'toggleConsEnviada') {
+            return text(args[1]);
+        }
+        const invoiceId = text(args[0]);
+        const state = getApplicationState(root);
+        return text((state?.registeredInvoices || []).find(note => String(note.id) === invoiceId)?.compKey);
+    }
+
+    function schoolIdForHandler(name, args) {
+        return text(
+            name === 'toggleInvoiceAdvisorySent' || name === 'changeInvoiceAdvisoryAnalysis'
+                ? args[1]
+                : args[0]
+        );
+    }
+
+    function patchInlineHandler(root, name) {
+        const original = root?.[name];
+        if (typeof original !== 'function') return false;
+        if (original.__radarIncrementalInlineHandler === true) return true;
+
+        const wrapped = async function incrementalInlineHandler(...args) {
+            const schoolId = schoolIdForHandler(name, args);
+            const compKeyBefore = compKeyForHandler(root, name, args);
+            const release = suppressProntuarioRender(schoolId);
+            let result;
+            try {
+                result = await original.apply(this, args);
+            } finally {
+                release();
+            }
+            if (result === false) {
+                if (originalRenderProntuario) originalRenderProntuario(schoolId);
+                return false;
+            }
+            const compKey = compKeyBefore || compKeyForHandler(root, name, args);
+            if (compKey) syncProntuarioProgramUI(root, schoolId, compKey);
+            return result;
+        };
+        Object.defineProperty(wrapped, '__radarIncrementalInlineHandler', {
+            value: true,
+            enumerable: false
+        });
+        root[name] = wrapped;
+        return true;
+    }
+
+    function patchInlineHandlers(root) {
+        if (!installRenderDispatcher(root)) return false;
+        return INLINE_HANDLER_NAMES.every(name => patchInlineHandler(root, name));
+    }
+
     function install(root) {
         const dataServices = collectDataServices(root);
         if (dataServices.length === 0) return false;
         dataServices.forEach(patchDataService);
-        return true;
+        return patchInlineHandlers(root);
     }
 
     return Object.freeze({
         RESULT_AUTHORITATIVE_COMMANDS,
         COMMIT_AUTHORITATIVE_COMMANDS,
+        INCREMENTAL_STATE_ENTITIES_BY_COMMAND,
+        INLINE_HANDLER_NAMES,
         ALLOWED_REFRESH_EXEMPT_ENTITIES,
         REFRESH_EXEMPT_ENTITIES_BY_COMMAND,
         sanitizeRefreshExemptEntities,
         decorateCommand,
         collectDataServices,
         patchDataService,
+        suppressProntuarioRender,
+        syncProntuarioProgramUI,
+        patchInlineHandlers,
         install
     });
 }));
