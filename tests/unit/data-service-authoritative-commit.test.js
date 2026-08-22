@@ -183,3 +183,62 @@ test('refresh remoto dispara leituras independentes em paralelo', async () => {
     const refreshed = await refresh;
     assert.equal(refreshed.entities.verifications.length, 1);
 });
+
+test('refresh remoto pode preservar entidade append-only já confirmada pela RPC', async () => {
+    const beforeVerification = {
+        id: '04.10.001::2026-08::BASIC',
+        school_id: '04.10.001',
+        competence_id: '2026-08',
+        program_id: 'BASIC',
+        bonification: { extCC: '' },
+        analysis: { extCC: 'Não analisado' },
+        bonus_result: null,
+        payload: {},
+        row_version: 1
+    };
+    const localLog = {
+        id: 'log-preserved-1',
+        school_id: '04.10.001',
+        actor_user_id: null,
+        user_identifier: 'Controlador Teste',
+        profile_name: 'Controlador',
+        action: 'Operação composta',
+        details: {},
+        event_at: '2026-08-21T23:10:00.000Z'
+    };
+    const state = makeStatePort(makeSnapshot(beforeVerification));
+    const loads = [];
+    const repository = {
+        capabilities: () => ({ mode: 'supabase', remote: true }),
+        load: async entity => {
+            loads.push(entity);
+            if (entity === 'verifications') {
+                return [{ ...beforeVerification, row_version: 2 }];
+            }
+            throw new Error(`Entidade ${entity} não deveria ser relida.`);
+        },
+        exportSnapshot: async () => { throw new Error('Não deve exportar snapshot remoto.'); },
+        save: async () => { throw new Error('Não deve usar persistência genérica.'); },
+        remove: async () => { throw new Error('Não deve remover registros.'); },
+        restoreSnapshot: async () => { throw new Error('Não deve restaurar snapshot remoto.'); },
+        healthCheck: async () => ({ ok: true, mode: 'supabase' })
+    };
+
+    const service = new DataService({ repository, statePort: state.port });
+    const result = await service.execute({
+        name: 'operational:composite-write',
+        changedEntities: ['verifications', 'administrativeLogs'],
+        remoteRefreshExemptEntities: ['administrativeLogs'],
+        mutate: () => {
+            state.mutate(snapshot => {
+                snapshot.entities.administrativeLogs.push(structuredClone(localLog));
+            });
+            return { ok: true };
+        },
+        persist: async () => ({})
+    });
+
+    assert.deepEqual(loads, ['verifications']);
+    assert.equal(result.snapshot.entities.verifications[0].row_version, 2);
+    assert.equal(result.snapshot.entities.administrativeLogs[0].id, 'log-preserved-1');
+});
