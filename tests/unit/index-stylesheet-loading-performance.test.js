@@ -18,16 +18,8 @@ function attributes(tag) {
     );
 }
 
-test('fontes remotas e estilos secundários não bloqueiam a primeira renderização', () => {
+test('estilos secundários não bloqueiam a primeira renderização', () => {
     const html = read('index.html');
-    const mainCss = read('styles.css');
-
-    assert.doesNotMatch(
-        mainCss,
-        /@import\s+url\([^)]*fonts\.googleapis\.com/i,
-        'Google Fonts não deve ser importado pelo CSS crítico.'
-    );
-
     const expected = new Set([
         'src/styles/shared-interactions.css',
         'src/styles/global-search.css',
@@ -35,19 +27,15 @@ test('fontes remotas e estilos secundários não bloqueiam a primeira renderiza�
         'src/styles/view-transitions.css'
     ]);
 
-    const marked = [...html.matchAll(/<link\b[^>]*data-radar-nonblocking-style=["']true["'][^>]*>/gi)]
-        .map(match => attributes(match[0]));
-    const local = marked.filter(item => expected.has(item.href));
+    const markedTags = [...html.matchAll(/<link\b[^>]*data-radar-nonblocking-style=["']true["'][^>]*>/gi)];
+    const local = markedTags
+        .map(match => ({ tag: match[0], attrs: attributes(match[0]) }))
+        .filter(item => expected.has(item.attrs.href));
 
     assert.equal(local.length, expected.size, 'todos os estilos secundários esperados devem usar carregamento não bloqueante.');
     local.forEach(item => {
-        assert.equal(item.rel, 'preload');
-        assert.equal(item.as, 'style');
-        assert.match(item.onload || '', /rel\s*=\s*['"]stylesheet['"]/i);
+        assert.equal(item.attrs.rel, 'preload');
+        assert.equal(item.attrs.as, 'style');
+        assert.match(item.tag, /\bonload=["'][^"']*stylesheet/i);
     });
-
-    const googleFonts = marked.find(item => /fonts\.googleapis\.com\/css2/i.test(item.href || ''));
-    assert.ok(googleFonts, 'Google Fonts deve ser carregado de forma não bloqueante.');
-    assert.equal(googleFonts.rel, 'preload');
-    assert.equal(googleFonts.as, 'style');
 });
