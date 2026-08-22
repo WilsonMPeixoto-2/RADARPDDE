@@ -6,10 +6,16 @@
     <title>RADAR PDDE - Registro de Acompanhamento das Demandas, Análises e Regularizações</title>
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="src/styles/shared-interactions.css">
-    <link rel="stylesheet" href="src/styles/global-search.css">
-    <link rel="stylesheet" href="src/styles/floating-ui.css">
-    <link rel="stylesheet" href="src/styles/view-transitions.css">
+    <link rel="preload" as="style" href="src/styles/shared-interactions.css" data-radar-nonblocking-style="true" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" as="style" href="src/styles/global-search.css" data-radar-nonblocking-style="true" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" as="style" href="src/styles/floating-ui.css" data-radar-nonblocking-style="true" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" as="style" href="src/styles/view-transitions.css" data-radar-nonblocking-style="true" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet" href="src/styles/shared-interactions.css">
+        <link rel="stylesheet" href="src/styles/global-search.css">
+        <link rel="stylesheet" href="src/styles/floating-ui.css">
+        <link rel="stylesheet" href="src/styles/view-transitions.css">
+    </noscript>
 </head>
 <body>
     <section
@@ -746,8 +752,7 @@
     <script defer src="config.runtime.js"></script>
     <!-- Validação fail-closed e configuração efetiva da aplicação. -->
     <script defer src="config.js"></script>
-    <!-- Supabase JS Client -->
-    <script defer src="vendor/supabase-client.js"></script>
+    <!-- O cliente Supabase é carregado sob demanda pelo auth-bootstrap quando a conexão remota está ativa. -->
     <!-- Contrato único de persistência e bootstrap de dados. -->
     <script defer src="src/data/repository-contract.js"></script>
     <script defer src="vendor/ajv.js"></script>
