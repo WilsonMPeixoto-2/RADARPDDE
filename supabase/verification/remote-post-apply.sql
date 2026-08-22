@@ -37,7 +37,7 @@ declare
         '20260811190712',
         '20260816205046',
         '20260816214535',
-        '202608220001'
+        '20260822040642'
     ];
     v_actual text[];
     v_missing_extensions text[];
@@ -152,7 +152,8 @@ begin
     end if;
 
     if not exists (
-        select 1 from pg_policies
+        select 1
+        from pg_policies
         where schemaname = 'public'
           and tablename = 'assets'
           and policyname = 'assets_update'
