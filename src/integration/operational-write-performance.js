@@ -47,6 +47,7 @@
         'invoice:update-service-advisory'
     ]);
 
+    const ALLOWED_REFRESH_EXEMPT_ENTITIES = new Set(['administrativeLogs']);
     const REFRESH_EXEMPT_ENTITIES_BY_COMMAND = Object.freeze({
         'invoice:save': Object.freeze(['administrativeLogs']),
         'invoice:remove': Object.freeze(['administrativeLogs']),
@@ -57,12 +58,31 @@
         return value == null ? '' : String(value).trim();
     }
 
+    function sanitizeRefreshExemptEntities(value) {
+        if (!Array.isArray(value)) return [];
+        return [...new Set(value.filter(entity => ALLOWED_REFRESH_EXEMPT_ENTITIES.has(entity)))];
+    }
+
     function decorateCommand(command = {}) {
         if (!command || typeof command !== 'object' || Array.isArray(command)) return command;
         if (typeof command.persist !== 'function') return command;
 
         const name = text(command.name);
         let decorated = command;
+        const declaredRefreshExemptEntities = Array.isArray(command.remoteRefreshExemptEntities)
+            ? command.remoteRefreshExemptEntities
+            : null;
+
+        if (declaredRefreshExemptEntities) {
+            const sanitized = sanitizeRefreshExemptEntities(declaredRefreshExemptEntities);
+            const changed = sanitized.length !== declaredRefreshExemptEntities.length
+                || sanitized.some((entity, index) => entity !== declaredRefreshExemptEntities[index]);
+            if (changed) {
+                decorated = { ...decorated };
+                if (sanitized.length > 0) decorated.remoteRefreshExemptEntities = sanitized;
+                else delete decorated.remoteRefreshExemptEntities;
+            }
+        }
 
         if (command.remoteResultIsAuthoritative !== true
             && command.remoteCommitIsAuthoritative !== true) {
@@ -79,9 +99,7 @@
                 ...decorated,
                 remoteRefreshExemptEntities: [
                     ...new Set([
-                        ...(Array.isArray(decorated.remoteRefreshExemptEntities)
-                            ? decorated.remoteRefreshExemptEntities
-                            : []),
+                        ...sanitizeRefreshExemptEntities(decorated.remoteRefreshExemptEntities),
                         ...refreshExemptEntities
                     ])
                 ]
@@ -128,7 +146,9 @@
     return Object.freeze({
         RESULT_AUTHORITATIVE_COMMANDS,
         COMMIT_AUTHORITATIVE_COMMANDS,
+        ALLOWED_REFRESH_EXEMPT_ENTITIES,
         REFRESH_EXEMPT_ENTITIES_BY_COMMAND,
+        sanitizeRefreshExemptEntities,
         decorateCommand,
         collectDataServices,
         patchDataService,
