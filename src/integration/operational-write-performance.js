@@ -42,7 +42,8 @@
 
     const COMMIT_AUTHORITATIVE_COMMANDS = new Set([
         'pendency:reanalyze',
-        'school:save'
+        'school:save',
+        'invoice:update-service-advisory'
     ]);
 
     function text(value) {
