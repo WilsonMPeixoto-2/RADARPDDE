@@ -419,10 +419,15 @@
             changedEntities.forEach(assertKnownEntity);
             const capabilities = this.repository.capabilities();
             const remote = capabilities.remote === true;
+            const hasCustomPersist = typeof command.persist === 'function';
             const authoritativeRemoteResult = remote && command.remoteResultIsAuthoritative === true;
+            const authoritativeRemoteCommit = remote && command.remoteCommitIsAuthoritative === true;
             let beforeRepository = remote
-                ? (authoritativeRemoteResult ? null : await this.captureRemoteEntities(changedEntities))
+                ? ((authoritativeRemoteResult || authoritativeRemoteCommit || hasCustomPersist)
+                    ? null
+                    : await this.captureRemoteEntities(changedEntities))
                 : await this.repository.exportSnapshot({ includeEmpty: true });
+            let usedDefaultPersist = false;
 
             const ensureBeforeRepository = async () => {
                 if (remote && beforeRepository === null) {
@@ -433,6 +438,7 @@
 
             try {
                 const defaultPersist = async ({ snapshot }) => {
+                    usedDefaultPersist = true;
                     assertSnapshotJson(snapshot, String(command.name || 'data-command'));
                     const baseline = await ensureBeforeRepository();
                     for (const entity of changedEntities) {
@@ -454,7 +460,7 @@
                     deferLocalCommit: remote,
                     remotePersistence: remote,
                     persist: async context => {
-                        if (typeof command.persist !== 'function') {
+                        if (!hasCustomPersist) {
                             return defaultPersist(context);
                         }
                         return command.persist({
@@ -473,17 +479,19 @@
                     committedSnapshot = merged.snapshot;
                     const authoritativeEntitiesComplete = authoritativeRemoteResult
                         && changedEntities.every(entity => merged.appliedEntities.includes(entity));
-                    if (merged.appliedEntities.length > 0) {
+                    const authoritativeCommitConfirmed = authoritativeRemoteCommit && !usedDefaultPersist;
+                    const canCommitWithoutRefresh = authoritativeEntitiesComplete || authoritativeCommitConfirmed;
+                    if (merged.appliedEntities.length > 0 || authoritativeCommitConfirmed) {
                         try {
                             await this.statePort.applyCanonical(committedSnapshot, {
                                 persistStorage: false,
-                                source: 'remote-result'
+                                source: authoritativeCommitConfirmed ? 'remote-commit' : 'remote-result'
                             });
                         } catch (applyError) {
                             stateApplyError = applyError;
                         }
                     }
-                    if (!authoritativeEntitiesComplete) {
+                    if (!canCommitWithoutRefresh) {
                         try {
                             committedSnapshot = await this.refreshRemoteEntities(committedSnapshot, changedEntities);
                         } catch (refreshError) {
