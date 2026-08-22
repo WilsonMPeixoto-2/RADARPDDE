@@ -7,7 +7,7 @@ const path = require('node:path');
 
 const migrationPath = path.resolve(
     __dirname,
-    '../../supabase/migrations/202608220001_invoice_asset_transition_integrity.sql'
+    '../../supabase/migrations/20260822040642_invoice_asset_transition_integrity.sql'
 );
 
 function migration() {
