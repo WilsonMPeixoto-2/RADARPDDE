@@ -36,7 +36,8 @@ declare
         '20260811181312',
         '20260811190712',
         '20260816205046',
-        '20260816214535'
+        '20260816214535',
+        '202608220001'
     ];
     v_actual text[];
     v_missing_extensions text[];
@@ -68,7 +69,8 @@ begin
        or to_regprocedure('public.save_asset_with_log(jsonb,integer,jsonb)') is null
        or to_regprocedure('public.save_program_with_log(jsonb,integer,jsonb)') is null
        or to_regprocedure('public.save_calendar_with_log(jsonb,integer,jsonb)') is null
-       or to_regprocedure('public.assign_controller_with_log(jsonb,jsonb)') is null then
+       or to_regprocedure('public.assign_controller_with_log(jsonb,jsonb)') is null
+       or to_regprocedure('public.save_invoice_with_effects(jsonb,jsonb,jsonb,integer,integer,integer,jsonb)') is null then
         raise exception 'ATOMIC_OPERATIONAL_RPC_MISSING';
     end if;
 
@@ -119,6 +121,7 @@ begin
     if (select prosecdef from pg_proc where oid = 'public.current_app_role()'::regprocedure)
        or (select prosecdef from pg_proc where oid = 'public.can_access_school(text)'::regprocedure)
        or (select prosecdef from pg_proc where oid = 'public.can_write_school(text)'::regprocedure)
+       or (select prosecdef from pg_proc where oid = 'public.save_invoice_with_effects(jsonb,jsonb,jsonb,integer,integer,integer,jsonb)'::regprocedure)
        or (select prosecdef from pg_proc where oid = 'public.delete_invoice_with_effects(text,integer,boolean,integer,jsonb,integer,jsonb)'::regprocedure)
        or (select prosecdef from pg_proc where oid = 'public.production_integrity_check()'::regprocedure)
        or (select prosecdef from pg_proc where oid = 'public.enforce_school_controller_assignment_authorization()'::regprocedure) then
@@ -128,6 +131,7 @@ begin
     if to_regprocedure('radar_private.current_app_role()') is null
        or to_regprocedure('radar_private.can_access_school(text)') is null
        or to_regprocedure('radar_private.can_write_school(text)') is null
+       or to_regprocedure('radar_private.save_invoice_with_effects_impl(jsonb,jsonb,jsonb,integer,integer,integer,jsonb)') is null
        or to_regprocedure('radar_private.delete_invoice_with_effects_impl(text,integer,boolean,integer,jsonb,integer,jsonb)') is null then
         raise exception 'PRIVATE_SECURITY_HELPER_MISSING';
     end if;
