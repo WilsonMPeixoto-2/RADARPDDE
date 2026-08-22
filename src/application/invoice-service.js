@@ -246,7 +246,7 @@
                             : null,
                         expectedAssetVersion: value.asset
                             ? (value.asset.rowVersion || value.asset.row_version || null)
-                            : null,
+                            : (value.removedAsset?.rowVersion || value.removedAsset?.row_version || null),
                         expectedVerificationVersion: value.verification
                             ? (value.verification.rowVersion || value.verification.row_version || null)
                             : null
@@ -309,6 +309,7 @@
                     let asset = previousAssetId
                         ? state.assets.find(item => item.id === previousAssetId) || null
                         : null;
+                    let removedAsset = null;
 
                     if (invoiceData.expenseType === 'permanente') {
                         if (!asset) {
@@ -321,6 +322,7 @@
                             warnings.push('MISSING_INVENTORY_PROCESS');
                         }
                     } else if (previousAssetId) {
+                        removedAsset = asset ? cloneValue(asset) : null;
                         state.assets.splice(
                             0,
                             state.assets.length,
@@ -417,6 +419,7 @@
                         operation: existing ? 'update' : 'create',
                         invoice: cloneValue(invoice),
                         asset: asset ? cloneValue(asset) : null,
+                        removedAsset,
                         verification: context.verification ? cloneValue(context.verification) : null,
                         verificationId: `${context.schoolId}::${context.context.competence}::${context.context.programId}`,
                         auditLog: cloneValue(auditLog),

@@ -6,6 +6,7 @@ const path = require('node:path');
 const legacyAlignment = require('./check-supabase-final-alignment.js');
 
 const root = path.resolve(__dirname, '..');
+const EXPECTED_MIGRATION_COUNT = 36;
 const OBSOLETE_FINDINGS = Object.freeze([
     'Build Vercel incompleto: /RADAR_DATA_MODE:\\s*[\'\"]supabase-preview[\'\"]/',
     'Conjunto final deve conter 33 migrations; encontrado:'
@@ -41,8 +42,10 @@ function currentAlignmentFindings() {
 
     const migrationCount = fs.readdirSync(path.join(root, 'supabase/migrations'))
         .filter(name => name.endsWith('.sql')).length;
-    if (migrationCount !== 35) {
-        findings.push(`Conjunto canônico deve conter 35 migrations; encontrado: ${migrationCount}.`);
+    if (migrationCount !== EXPECTED_MIGRATION_COUNT) {
+        findings.push(
+            `Conjunto canônico deve conter ${EXPECTED_MIGRATION_COUNT} migrations; encontrado: ${migrationCount}.`
+        );
     }
 
     return [...new Set(findings)];
@@ -62,6 +65,7 @@ function main() {
 if (require.main === module) main();
 
 module.exports = Object.freeze({
+    EXPECTED_MIGRATION_COUNT,
     currentAlignmentFindings,
     isObsoleteFinding
 });

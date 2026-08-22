@@ -12,7 +12,8 @@
         '/src/styles/unidentified-expense-ux.css',
         '/src/styles/prontuario-operational-ux.css',
         '/src/styles/desktop-basic-monitors.css',
-        '/src/styles/pendency-passive-queue.css'
+        '/src/styles/pendency-passive-queue.css',
+        '/src/styles/operational-write-feedback.css'
     ]);
     const scripts = Object.freeze([
         '/src/domain/school-timeline.js',
@@ -24,7 +25,9 @@
         '/src/integration/prontuario-operational-ux.js',
         '/src/integration/operational-readiness-bridge.js',
         '/src/integration/pendency-passive-queue-ux.js',
-        '/src/integration/atomic-analysis-pendency.js'
+        '/src/integration/atomic-analysis-pendency.js',
+        '/src/integration/operational-write-performance.js',
+        '/src/integration/operational-write-feedback.js'
     ]);
 
     function loadStyleOnce(href) {

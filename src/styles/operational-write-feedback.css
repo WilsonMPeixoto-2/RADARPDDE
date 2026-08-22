@@ -1,0 +1,37 @@
+.radar-write-pending {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.82;
+    transition: opacity 120ms ease;
+}
+
+.btn-group-toggle.radar-write-pending::after {
+    content: '';
+    width: 0.42rem;
+    height: 0.42rem;
+    margin-left: 0.35rem;
+    border-radius: 999px;
+    display: inline-block;
+    vertical-align: middle;
+    background: currentColor;
+    opacity: 0.45;
+    animation: radar-write-pulse 720ms ease-in-out infinite alternate;
+}
+
+select.radar-write-pending,
+input.radar-write-pending {
+    cursor: progress;
+}
+
+@keyframes radar-write-pulse {
+    from { opacity: 0.25; transform: scale(0.86); }
+    to { opacity: 0.7; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .radar-write-pending,
+    .btn-group-toggle.radar-write-pending::after {
+        transition: none;
+        animation: none;
+    }
+}
