@@ -20,17 +20,22 @@ test('fluxos compostos preservam administrativeLogs já confirmados pela RPC', (
     }
 });
 
-test('isenção de refresh é aditiva e não afeta comandos sem política explícita', () => {
+test('isenção de refresh aceita somente o histórico administrativo append-only', () => {
     const decorated = policy.decorateCommand({
         name: 'invoice:save',
         changedEntities: ['registeredInvoices', 'administrativeLogs'],
+        remoteRefreshExemptEntities: ['registeredInvoices', 'administrativeLogs'],
+        persist
+    });
+    assert.deepEqual(decorated.remoteRefreshExemptEntities, ['administrativeLogs']);
+
+    const genericUnsafe = policy.decorateCommand({
+        name: 'audit:record',
+        changedEntities: ['registeredInvoices'],
         remoteRefreshExemptEntities: ['registeredInvoices'],
         persist
     });
-    assert.deepEqual(
-        decorated.remoteRefreshExemptEntities,
-        ['registeredInvoices', 'administrativeLogs']
-    );
+    assert.equal(genericUnsafe.remoteRefreshExemptEntities, undefined);
 
     const generic = policy.decorateCommand({
         name: 'audit:record',
