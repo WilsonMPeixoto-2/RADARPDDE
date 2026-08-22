@@ -58,6 +58,13 @@ test('política de performance operacional existe e distingue RPCs seguras de fl
     });
     assert.equal(serviceAdvisory.remoteCommitIsAuthoritative, true);
 
+    const calendar = policy.decorateCommand({
+        name: 'configuration:save-calendar',
+        changedEntities: ['appConfig', 'administrativeLogs'],
+        persist
+    });
+    assert.equal(calendar.remoteResultIsAuthoritative, true);
+
     const invoice = policy.decorateCommand({
         name: 'invoice:save',
         changedEntities: ['registeredInvoices', 'assets', 'verifications', 'administrativeLogs'],
@@ -65,6 +72,14 @@ test('política de performance operacional existe e distingue RPCs seguras de fl
     });
     assert.equal(invoice.remoteCommitIsAuthoritative, undefined);
     assert.equal(invoice.remoteResultIsAuthoritative, undefined);
+
+    const exercise = policy.decorateCommand({
+        name: 'configuration:create-exercise',
+        changedEntities: ['appConfig', 'competences', 'administrativeLogs'],
+        persist
+    });
+    assert.equal(exercise.remoteCommitIsAuthoritative, undefined);
+    assert.equal(exercise.remoteResultIsAuthoritative, undefined);
 
     const generic = policy.decorateCommand({
         name: 'audit:record',
@@ -86,4 +101,33 @@ test('política preserva declaração autoritativa explícita do comando', () =>
     const decorated = policy.decorateCommand(command);
     assert.equal(decorated.remoteResultIsAuthoritative, true);
     assert.equal(decorated.remoteCommitIsAuthoritative, undefined);
+});
+
+test('instalação aplica a política ao DataService compartilhado pelos serviços da aplicação', async () => {
+    assert.equal(fs.existsSync(modulePath), true);
+    const policy = require(modulePath);
+    const received = [];
+    const dataService = {
+        execute: async command => {
+            received.push(command);
+            return command;
+        }
+    };
+    const root = {
+        RadarApplicationServices: {
+            pendencies: { dataService },
+            inventory: { dataService }
+        }
+    };
+
+    assert.equal(policy.install(root), true);
+    await dataService.execute({
+        name: 'pendency:open',
+        changedEntities: ['pendencies', 'administrativeLogs'],
+        persist: async () => ({})
+    });
+
+    assert.equal(received.length, 1);
+    assert.equal(received[0].remoteResultIsAuthoritative, true);
+    assert.equal(dataService.__radarOperationalWritePerformance, true);
 });
