@@ -47,26 +47,48 @@
         'invoice:update-service-advisory'
     ]);
 
+    const REFRESH_EXEMPT_ENTITIES_BY_COMMAND = Object.freeze({
+        'invoice:save': Object.freeze(['administrativeLogs']),
+        'invoice:remove': Object.freeze(['administrativeLogs']),
+        'configuration:create-exercise': Object.freeze(['administrativeLogs'])
+    });
+
     function text(value) {
         return value == null ? '' : String(value).trim();
     }
 
     function decorateCommand(command = {}) {
         if (!command || typeof command !== 'object' || Array.isArray(command)) return command;
-        if (command.remoteResultIsAuthoritative === true
-            || command.remoteCommitIsAuthoritative === true
-            || typeof command.persist !== 'function') {
-            return command;
-        }
+        if (typeof command.persist !== 'function') return command;
 
         const name = text(command.name);
-        if (RESULT_AUTHORITATIVE_COMMANDS.has(name)) {
-            return { ...command, remoteResultIsAuthoritative: true };
+        let decorated = command;
+
+        if (command.remoteResultIsAuthoritative !== true
+            && command.remoteCommitIsAuthoritative !== true) {
+            if (RESULT_AUTHORITATIVE_COMMANDS.has(name)) {
+                decorated = { ...decorated, remoteResultIsAuthoritative: true };
+            } else if (COMMIT_AUTHORITATIVE_COMMANDS.has(name)) {
+                decorated = { ...decorated, remoteCommitIsAuthoritative: true };
+            }
         }
-        if (COMMIT_AUTHORITATIVE_COMMANDS.has(name)) {
-            return { ...command, remoteCommitIsAuthoritative: true };
+
+        const refreshExemptEntities = REFRESH_EXEMPT_ENTITIES_BY_COMMAND[name];
+        if (refreshExemptEntities) {
+            decorated = {
+                ...decorated,
+                remoteRefreshExemptEntities: [
+                    ...new Set([
+                        ...(Array.isArray(decorated.remoteRefreshExemptEntities)
+                            ? decorated.remoteRefreshExemptEntities
+                            : []),
+                        ...refreshExemptEntities
+                    ])
+                ]
+            };
         }
-        return command;
+
+        return decorated;
     }
 
     function collectDataServices(root) {
@@ -106,6 +128,7 @@
     return Object.freeze({
         RESULT_AUTHORITATIVE_COMMANDS,
         COMMIT_AUTHORITATIVE_COMMANDS,
+        REFRESH_EXEMPT_ENTITIES_BY_COMMAND,
         decorateCommand,
         collectDataServices,
         patchDataService,
