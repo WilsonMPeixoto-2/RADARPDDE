@@ -34,6 +34,26 @@
         administrativeLogs: 'logs'
     });
 
+    function createBrowserMemoryPatch() {
+        if (typeof document === 'undefined') return null;
+        return function patchBrowserMemory(patch = {}) {
+            if (Object.prototype.hasOwnProperty.call(patch, 'verifications')
+                && typeof verificacoes !== 'undefined') {
+                verificacoes = cloneValue(patch.verifications || {});
+            }
+            if (Object.prototype.hasOwnProperty.call(patch, 'registeredInvoices')
+                && typeof notasRegistradas !== 'undefined') {
+                notasRegistradas = cloneValue(patch.registeredInvoices || []);
+            }
+            if (Object.prototype.hasOwnProperty.call(patch, 'logs')
+                && typeof logs !== 'undefined') {
+                logs = cloneValue(patch.logs || [])
+                    .sort((left, right) => (right.dataHora || '').localeCompare(left.dataHora || ''));
+            }
+            return true;
+        };
+    }
+
     function assertStorage(storage) {
         if (!storage
             || typeof storage.getItem !== 'function'
@@ -127,7 +147,7 @@
             : () => undefined;
         const patchMemory = typeof options.patchMemory === 'function'
             ? options.patchMemory
-            : null;
+            : createBrowserMemoryPatch();
         const configuredDataVersion = String(options.dataVersion || '').trim();
         const configuredPendencyVersion = String(options.pendencySchemaVersion || '').trim();
 
