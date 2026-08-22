@@ -24,7 +24,8 @@
         '/src/integration/prontuario-operational-ux.js',
         '/src/integration/operational-readiness-bridge.js',
         '/src/integration/pendency-passive-queue-ux.js',
-        '/src/integration/atomic-analysis-pendency.js'
+        '/src/integration/atomic-analysis-pendency.js',
+        '/src/integration/operational-write-performance.js'
     ]);
 
     function loadStyleOnce(href) {
