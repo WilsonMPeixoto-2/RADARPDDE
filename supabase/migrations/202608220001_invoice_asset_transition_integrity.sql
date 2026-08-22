@@ -71,6 +71,9 @@ begin
         for update;
 
         if found then
+            if v_existing_asset.school_id is distinct from v_school_id then
+                raise exception 'VALIDATION_ERROR: bem existente pertence a outra escola';
+            end if;
             if p_expected_asset_version is null or v_existing_asset.row_version <> p_expected_asset_version then
                 raise exception 'OPTIMISTIC_CONFLICT: assets/%', v_asset_id;
             end if;
@@ -145,6 +148,11 @@ begin
         end if;
         if p_expected_invoice_version is null or v_existing_invoice.row_version <> p_expected_invoice_version then
             raise exception 'OPTIMISTIC_CONFLICT: registered_invoices/%', v_invoice_id;
+        end if;
+        if p_asset is not null
+            and v_existing_invoice.linked_asset_id is not null
+            and v_existing_invoice.linked_asset_id is distinct from v_asset_id then
+            raise exception 'VALIDATION_ERROR: o bem vinculado à nota não pode ser substituído implicitamente';
         end if;
 
         v_target_expense_type := coalesce(
