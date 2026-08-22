@@ -419,19 +419,28 @@
             changedEntities.forEach(assertKnownEntity);
             const capabilities = this.repository.capabilities();
             const remote = capabilities.remote === true;
-            const beforeRepository = remote
-                ? await this.captureRemoteEntities(changedEntities)
+            const authoritativeRemoteResult = remote && command.remoteResultIsAuthoritative === true;
+            let beforeRepository = remote
+                ? (authoritativeRemoteResult ? null : await this.captureRemoteEntities(changedEntities))
                 : await this.repository.exportSnapshot({ includeEmpty: true });
+
+            const ensureBeforeRepository = async () => {
+                if (remote && beforeRepository === null) {
+                    beforeRepository = await this.captureRemoteEntities(changedEntities);
+                }
+                return beforeRepository;
+            };
 
             try {
                 const defaultPersist = async ({ snapshot }) => {
                     assertSnapshotJson(snapshot, String(command.name || 'data-command'));
+                    const baseline = await ensureBeforeRepository();
                     for (const entity of changedEntities) {
                         if (remote) {
                             await persistRemoteEntity(
                                 this.repository,
                                 entity,
-                                beforeRepository.entities?.[entity] || [],
+                                baseline.entities?.[entity] || [],
                                 snapshot.entities?.[entity] || []
                             );
                         } else {
@@ -462,6 +471,8 @@
                 if (remote) {
                     const merged = mergePersistedResult(result.snapshot, result.persisted);
                     committedSnapshot = merged.snapshot;
+                    const authoritativeEntitiesComplete = authoritativeRemoteResult
+                        && changedEntities.every(entity => merged.appliedEntities.includes(entity));
                     if (merged.appliedEntities.length > 0) {
                         try {
                             await this.statePort.applyCanonical(committedSnapshot, {
@@ -472,18 +483,20 @@
                             stateApplyError = applyError;
                         }
                     }
-                    try {
-                        committedSnapshot = await this.refreshRemoteEntities(committedSnapshot, changedEntities);
-                    } catch (refreshError) {
-                        refreshPending = true;
-                        if (merged.appliedEntities.length === 0) {
-                            try {
-                                await this.statePort.applyCanonical(result.snapshot, {
-                                    persistStorage: false,
-                                    source: 'remote-fallback'
-                                });
-                            } catch (applyError) {
-                                stateApplyError = stateApplyError || applyError;
+                    if (!authoritativeEntitiesComplete) {
+                        try {
+                            committedSnapshot = await this.refreshRemoteEntities(committedSnapshot, changedEntities);
+                        } catch (refreshError) {
+                            refreshPending = true;
+                            if (merged.appliedEntities.length === 0) {
+                                try {
+                                    await this.statePort.applyCanonical(result.snapshot, {
+                                        persistStorage: false,
+                                        source: 'remote-fallback'
+                                    });
+                                } catch (applyError) {
+                                    stateApplyError = stateApplyError || applyError;
+                                }
                             }
                         }
                     }
