@@ -51,6 +51,13 @@ test('política de performance operacional existe e distingue RPCs seguras de fl
     });
     assert.equal(schoolSave.remoteCommitIsAuthoritative, true);
 
+    const serviceAdvisory = policy.decorateCommand({
+        name: 'invoice:update-service-advisory',
+        changedEntities: ['registeredInvoices', 'verifications', 'administrativeLogs'],
+        persist
+    });
+    assert.equal(serviceAdvisory.remoteCommitIsAuthoritative, true);
+
     const invoice = policy.decorateCommand({
         name: 'invoice:save',
         changedEntities: ['registeredInvoices', 'assets', 'verifications', 'administrativeLogs'],
