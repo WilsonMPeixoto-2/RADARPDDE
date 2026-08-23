@@ -24,7 +24,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: ${{ github.event_name == 'push' && github.ref_name || github.event.pull_request.head.sha }}
+          ref: ${{ github.event_name == 'push' && github.ref_name || github.head_ref }}
       - name: Configurar Node.js 24
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
@@ -34,7 +34,9 @@ jobs:
       - name: Gerar package e lock reproduzíveis
         run: npm install --package-lock-only --ignore-scripts --save-dev fast-check msw dependency-cruiser
       - name: Commitar lock na branch de trabalho
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          TARGET_BRANCH: ${{ github.event_name == 'push' && github.ref_name || github.head_ref }}
         run: |
           if git diff --quiet -- package.json package-lock.json; then
             echo "Lock já está sincronizado."
@@ -44,7 +46,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add package.json package-lock.json
           git commit -m "chore: sincronizar lock das ferramentas de estabilização"
-          git push origin HEAD:${GITHUB_REF_NAME}
+          git push origin HEAD:${TARGET_BRANCH}
       - name: Publicar package e lock
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
