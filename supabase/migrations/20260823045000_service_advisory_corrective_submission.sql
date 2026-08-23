@@ -2,6 +2,9 @@
 -- A NF vinculada volta a "Não analisado", o resumo mensal é recalculado pelo
 -- serviço e a pendência/tentativa/verificação/histórico são persistidos na
 -- mesma transação.
+-- Depois que uma NF passa a compor esse histórico, sua identidade estrutural
+-- fica preservada: escola, competência, programa, natureza e existência física
+-- não podem ser alterados, mas os demais dados da NF continuam corrigíveis.
 
 begin;
 
@@ -75,5 +78,56 @@ $$;
 
 revoke all on function public.register_service_advisory_attempt(jsonb, integer, jsonb, integer, jsonb, jsonb, integer, jsonb) from public, anon;
 grant execute on function public.register_service_advisory_attempt(jsonb, integer, jsonb, integer, jsonb, jsonb, integer, jsonb) to authenticated;
+
+create or replace function public.protect_service_advisory_invoice_history()
+returns trigger
+language plpgsql
+security definer
+set search_path = pg_catalog, public
+as $$
+begin
+    if not exists (
+        select 1
+          from public.pendencies
+         where registered_invoice_id = old.id
+           and document_key = 'consAssessoria'
+    ) then
+        if tg_op = 'DELETE' then return old; end if;
+        return new;
+    end if;
+
+    if tg_op = 'DELETE' then
+        raise exception 'INTEGRITY_CONFLICT: Nota Fiscal possui histórico de pendência da Assessoria e não pode ser excluída';
+    end if;
+
+    if new.school_id is distinct from old.school_id
+        or new.competence_id is distinct from old.competence_id
+        or new.program_id is distinct from old.program_id
+        or new.expense_type is distinct from old.expense_type then
+        raise exception 'INTEGRITY_CONFLICT: Nota Fiscal possui histórico de pendência da Assessoria e não pode alterar escola, competência, programa ou natureza';
+    end if;
+
+    return new;
+end
+$$;
+
+drop trigger if exists registered_invoices_protect_advisory_history_update
+    on public.registered_invoices;
+create trigger registered_invoices_protect_advisory_history_update
+before update of school_id, competence_id, program_id, expense_type
+on public.registered_invoices
+for each row
+execute function public.protect_service_advisory_invoice_history();
+
+drop trigger if exists registered_invoices_protect_advisory_history_delete
+    on public.registered_invoices;
+create trigger registered_invoices_protect_advisory_history_delete
+before delete
+on public.registered_invoices
+for each row
+execute function public.protect_service_advisory_invoice_history();
+
+comment on function public.protect_service_advisory_invoice_history() is
+    'Impede apagar ou deslocar estruturalmente NF que já compõe histórico de pendência individual de Assessoria.';
 
 commit;
