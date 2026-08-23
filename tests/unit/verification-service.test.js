@@ -108,6 +108,50 @@ test('altera bonificação e aplica dependências de N/A sem duplicar a regra op
     assert.equal(harness.state.logs[0].action, 'Bonificação Alterada');
 });
 
+test('ao sair de N/A para Sim reinicializa a análise de Nota Fiscal', async () => {
+    const harness = createHarness();
+    await harness.service.setBonification({
+        schoolId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        documentKey: 'notaFiscal',
+        value: 'Não se aplica',
+        profile: 'controlador'
+    });
+
+    const result = await harness.service.setBonification({
+        schoolId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        documentKey: 'notaFiscal',
+        value: 'Sim',
+        profile: 'controlador'
+    });
+
+    assert.equal(result.value.verification.bonificacao.notaFiscal, 'Sim');
+    assert.equal(result.value.verification.analise.notaFiscal, 'Não analisado');
+});
+
+test('ao sair de N/A para Não reinicializa a análise de Nota Fiscal', async () => {
+    const harness = createHarness();
+    await harness.service.setBonification({
+        schoolId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        documentKey: 'notaFiscal',
+        value: 'Não se aplica',
+        profile: 'controlador'
+    });
+
+    const result = await harness.service.setBonification({
+        schoolId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        documentKey: 'notaFiscal',
+        value: 'Não',
+        profile: 'controlador'
+    });
+
+    assert.equal(result.value.verification.bonificacao.notaFiscal, 'Não');
+    assert.equal(result.value.verification.analise.notaFiscal, 'Não analisado');
+});
+
 test('valida entrega e nota cadastrada antes de alterar análise técnica', async () => {
     const harness = createHarness();
 
