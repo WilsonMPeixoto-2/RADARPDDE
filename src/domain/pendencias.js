@@ -301,6 +301,7 @@
             'Competência'
         );
         const errosAtuais = validateDocumentErrors(input.errosAtuais || input.erros);
+        const registeredInvoiceId = getRegisteredInvoiceId(input);
         const status = PENDENCY_STATUS.OPEN;
         const openingEvent = createHistoryEvent(
             'abertura',
@@ -319,7 +320,7 @@
             competenciaOrigem: competencia,
             programaId: requireText(input.programaId, 'Programa'),
             documentoKey: requireText(input.documentoKey, 'Documento'),
-            registeredInvoiceId: getRegisteredInvoiceId(input) || null,
+            ...(registeredInvoiceId ? { registeredInvoiceId } : {}),
             item: requireText(input.item, 'Item'),
             status,
             errosAtuais,
@@ -342,6 +343,7 @@
         const competencia = normalizeText(source.competenciaOrigem)
             || normalizeText(source.competencia);
         const documentary = isDocumentaryPendency(source);
+        const registeredInvoiceId = getRegisteredInvoiceId(source);
         const existingErrors = Array.isArray(source.errosAtuais)
             ? normalizeUniqueNonEmptyStrings(source.errosAtuais)
             : null;
@@ -352,7 +354,11 @@
         next.tipo = documentary ? 'documental' : 'legada';
         next.competencia = competencia;
         next.competenciaOrigem = competencia;
-        next.registeredInvoiceId = getRegisteredInvoiceId(source) || null;
+        if (registeredInvoiceId) next.registeredInvoiceId = registeredInvoiceId;
+        else {
+            delete next.registeredInvoiceId;
+            delete next.registered_invoice_id;
+        }
         next.errosAtuais = [...errors];
         next.motivo = legacyReason
             || errors[0]
