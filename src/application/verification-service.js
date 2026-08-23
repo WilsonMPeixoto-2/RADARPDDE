@@ -329,6 +329,19 @@
         async setTechnicalAnalysis(input = {}) {
             this.assertEditable(input.profile, 'setTechnicalAnalysis');
             this.assertCompetenceEditable(input.compKey, 'setTechnicalAnalysis');
+            const requestedValue = text(input.value);
+            if (requestedValue === 'Incorreto') {
+                fail(
+                    'PENDENCY_REQUIRED',
+                    'A análise “Incorreto” deve ser confirmada junto com a abertura da pendência, na mesma operação.',
+                    'setTechnicalAnalysis',
+                    {
+                        schoolId: text(input.schoolId),
+                        compKey: text(input.compKey),
+                        documentKey: text(input.documentKey)
+                    }
+                );
+            }
             return this.runSerializedVerificationWrite(input, async () => {
                 const persistence = {};
                 return this.dataService.execute({
@@ -340,7 +353,7 @@
                         const schoolId = text(input.schoolId);
                         const compKey = text(input.compKey);
                         const documentKey = text(input.documentKey);
-                        const value = text(input.value);
+                        const value = requestedValue;
                         const activePendency = input.activePendency
                             || this.findActivePendency(state, schoolId, compKey, documentKey);
                         if (activePendency) {
@@ -401,7 +414,7 @@
                         persistence.logId = text(log?.id);
                         return {
                             verification: cloneValue(verification),
-                            shouldOpenPendency: value === 'Incorreto'
+                            shouldOpenPendency: false
                         };
                     },
                     persist: context => this.persistAtomicVerification(context, persistence)
