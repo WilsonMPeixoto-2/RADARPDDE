@@ -33,6 +33,7 @@ function clockRoot() {
             return 1;
         }
     };
+    root.RadarOperationalWriteDiagnostics = diagnostics;
     return {
         root,
         setNow: value => { now = value; },
