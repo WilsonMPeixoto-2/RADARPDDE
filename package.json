@@ -45,7 +45,7 @@
     "supabase:lint:db": "supabase db lint --local --schema public --level warning --fail-on error",
     "supabase:gen:types": "supabase gen types typescript --local --schema public > src/types/database.types.ts",
     "test:unit": "node --test tests/unit/*.test.js",
-    "test:readiness": "npm run check && npm run check:functional-matrix && npm run check:workflow-references && npm run check:search-ui-vendors && npm run lint:security && npm run lint:e2e && npm run test:unit && npm run certify:excel:fixture && npm run test:integration && npm run check:supabase && npm run check:supabase-final && npm run check:runtime-config && npm run check:generated && npm run typecheck:database && npm run audit:functional",
+    "test:readiness": "npm run check && npm run check:functional-matrix && npm run check:workflow-references && npm run check:architecture && npm run check:search-ui-vendors && npm run lint:security && npm run lint:e2e && npm run test:unit && npm run certify:excel:fixture && npm run test:integration && npm run check:supabase && npm run check:supabase-final && npm run check:runtime-config && npm run check:generated && npm run typecheck:database && npm run audit:functional",
     "test:e2e": "playwright test",
     "test:mobile": "playwright test --project=mobile-chromium --project=mobile-webkit",
     "test:mobile:headed": "playwright test --project=mobile-chromium --headed",
@@ -79,7 +79,10 @@
     "build:exceljs": "node scripts/build-exceljs.mjs",
     "lint:security:html": "eslint app.js config.js \"src/**/*.js\" --format html --output-file dependency-health/eslint-security.html --max-warnings 42",
     "build:search-ui-vendors": "node scripts/build-search-ui-vendors.mjs",
-    "check:search-ui-vendors": "node scripts/build-search-ui-vendors.mjs --check"
+    "check:search-ui-vendors": "node scripts/build-search-ui-vendors.mjs --check",
+    "check:architecture": "depcruise src scripts supabase/functions --config .dependency-cruiser.cjs --output-type err-long",
+    "test:properties": "node --test tests/unit/property-evaluation-invariants.test.js",
+    "test:network-failures": "node --test tests/unit/msw-remote-failures.test.js"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",
@@ -90,14 +93,17 @@
     "acorn": "8.18.0",
     "acorn-walk": "8.3.5",
     "ajv": "8.20.0",
+    "dependency-cruiser": "^18.2.0",
     "esbuild": "0.28.1",
     "eslint": "10.8.0",
     "eslint-plugin-no-unsanitized": "4.1.5",
     "eslint-plugin-playwright": "2.10.5",
+    "fast-check": "^4.9.0",
     "fuse.js": "7.5.0",
     "http-server": "14.1.1",
     "knip": "6.29.0",
     "lighthouse": "13.4.1",
+    "msw": "^2.15.0",
     "prettier": "3.9.6",
     "supabase": "2.114.0",
     "typescript": "7.0.2"
