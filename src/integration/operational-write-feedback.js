@@ -24,6 +24,13 @@
         'active-nao',
         'active-naoseaplica'
     ]);
+    const INLINE_HANDLER_NAMES = Object.freeze([
+        'toggleBonif',
+        'changeAnaliseTecnica',
+        'toggleInvoiceAdvisorySent',
+        'changeInvoiceAdvisoryAnalysis',
+        'toggleConsEnviada'
+    ]);
 
     function text(value) {
         return value == null ? '' : String(value).trim();
@@ -46,13 +53,17 @@
             .replace(/[()]/g, '')}`;
     }
 
-    function inlineOperationFromHandler(handler) {
+    function inlineHandlerName(handler) {
         const source = text(handler);
         if (!source) return '';
-        if (/\btoggleBonif\s*\(/.test(source)) return 'bonification';
-        if (/\b(?:toggleConsEnviada|changeAnaliseTecnica|toggleInvoiceAdvisorySent|changeInvoiceAdvisoryAnalysis)\s*\(/.test(source)) {
-            return 'write';
-        }
+        const match = source.match(new RegExp(`\\b(${INLINE_HANDLER_NAMES.join('|')})\\s*\\(`));
+        return match ? match[1] : '';
+    }
+
+    function inlineOperationFromHandler(handler) {
+        const name = inlineHandlerName(handler);
+        if (name === 'toggleBonif') return 'bonification';
+        if (name) return 'write';
         return '';
     }
 
@@ -102,6 +113,28 @@
         return operation ? { control, handler, operation } : null;
     }
 
+    function beginTrace(root, handler) {
+        try {
+            const diagnostics = root?.RadarOperationalWriteDiagnostics;
+            const label = inlineHandlerName(handler);
+            if (!diagnostics || !label) return null;
+            const id = diagnostics.begin(root, label);
+            if (id != null) diagnostics.enqueue(root, label, id);
+            return id;
+        } catch (_error) {
+            return null;
+        }
+    }
+
+    function markTrace(root, id, phase) {
+        if (id == null) return false;
+        try {
+            return root?.RadarOperationalWriteDiagnostics?.mark?.(root, id, phase) === true;
+        } catch (_error) {
+            return false;
+        }
+    }
+
     function install(root) {
         const document = root?.document;
         if (!document || document.__radarOperationalWriteFeedbackInstalled === true) return Boolean(document);
@@ -110,7 +143,9 @@
             if (event?.defaultPrevented) return;
             const found = findInlineControl(event?.target, event?.type);
             if (!found) return;
+            const traceId = beginTrace(root, found.handler);
             markPending(found.control, found.operation, found.handler);
+            markTrace(root, traceId, 'feedback');
         };
 
         document.addEventListener('click', handle, true);
@@ -126,13 +161,17 @@
 
     return Object.freeze({
         ACTIVE_CLASSES,
+        INLINE_HANDLER_NAMES,
         bonificationActiveClass,
         analysisStateClass,
+        inlineHandlerName,
         inlineOperationFromHandler,
         bonificationValueFromHandler,
         settlePending,
         markPending,
         findInlineControl,
+        beginTrace,
+        markTrace,
         install
     });
 }));
