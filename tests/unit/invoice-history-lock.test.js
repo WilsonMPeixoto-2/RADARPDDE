@@ -4,6 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const { InvoiceService } = require('../../src/application/invoice-service.js');
+const { protectService } = require('../../src/integration/invoice-history-lock.js');
 
 function createHarness() {
     const verification = () => ({
@@ -78,6 +79,7 @@ function createHarness() {
         now: () => '2026-08-23T18:15:00.000Z',
         reopenConsolidation: () => {}
     });
+    protectService(service);
     return { state, service };
 }
 
