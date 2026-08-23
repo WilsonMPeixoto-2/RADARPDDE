@@ -70,6 +70,14 @@
         ) || []).filter(row => text(row.dataset.programId) === programId);
     }
 
+    function currentRenderedCompetence(root) {
+        const tab = root.document?.querySelector?.(
+            '.comp-sub-tab.active[data-competence], .comp-sub-tab[aria-pressed="true"][data-competence]'
+        );
+        return text(tab?.dataset?.competence)
+            || text(root.RadarGlobalCompetence?.getActiveCompetence?.());
+    }
+
     function syncConsolidationAction(root, schoolId, compKey, verification, rows) {
         const contextCell = rows[0]?.querySelector?.('td[rowspan]');
         const button = contextCell?.querySelector?.('button');
@@ -121,6 +129,11 @@
         return match ? match[1] : '';
     }
 
+    function cardForInvoice(row, invoiceId) {
+        return Array.from(row.querySelectorAll?.('[data-service-advisory-invoice]') || [])
+            .find(card => String(card.dataset.serviceAdvisoryInvoice) === String(invoiceId)) || null;
+    }
+
     function appendPendencyButton(root, container, label, action, pendency) {
         const button = root.document.createElement('button');
         button.type = 'button';
@@ -135,6 +148,20 @@
         } else {
             button.addEventListener('click', () => root.abrirModalRegistrarNovoEnvio?.(button));
         }
+        container.appendChild(button);
+    }
+
+    function appendRecoveryButton(root, container, invoice, schoolId, select) {
+        const button = root.document.createElement('button');
+        button.type = 'button';
+        button.className = 'btn btn-secondary btn-sm';
+        button.style.fontSize = '0.68rem';
+        button.style.padding = '2px 6px';
+        button.dataset.radarServicePendencyAction = 'recover-open';
+        button.textContent = 'Abrir pendência';
+        button.addEventListener('click', () => {
+            root.changeInvoiceAdvisoryAnalysis?.(invoice.id, schoolId, 'Incorreto', select);
+        });
         container.appendChild(button);
     }
 
@@ -168,20 +195,27 @@
             const invoiceId = invoiceIdFromControl(select);
             const invoice = invoices.find(record => String(record.id) === String(invoiceId));
             if (!invoice) return;
-            const active = legacyActive || root.RadarServiceAdvisoryPendency?.findActiveForInvoice?.(
+            const linkedActive = root.RadarServiceAdvisoryPendency?.findActiveForInvoice?.(
                 root,
                 state,
                 invoice
             ) || null;
+            const active = legacyActive || linkedActive;
             const futureLock = select.dataset.futureCompetenceDisabled === 'true';
             select.disabled = readOnlyProfile || consolidatedLock || futureLock || Boolean(active);
-            if (active) select.dataset.radarServicePendencyDisabled = 'true';
+            if (linkedActive) select.dataset.radarServicePendencyDisabled = 'true';
             else delete select.dataset.radarServicePendencyDisabled;
 
-            const card = row.querySelector(`[data-service-advisory-invoice="${CSS.escape(String(invoice.id))}"]`);
+            const card = cardForInvoice(row, invoice.id);
             if (!card) return;
             card.querySelector('[data-radar-service-pendency-actions]')?.remove();
-            if (!active) return;
+            if (legacyActive) return;
+
+            const individualAnalysis = text(
+                invoice.analiseConsultaAssessoria
+                || invoice.payload?.analiseConsultaAssessoria
+            ) || 'Não analisado';
+            if (!linkedActive && individualAnalysis !== 'Incorreto') return;
 
             const container = root.document.createElement('div');
             container.dataset.radarServicePendencyActions = 'true';
@@ -190,22 +224,26 @@
             container.style.gap = '4px';
             container.style.marginTop = '6px';
 
-            const status = root.document.createElement('span');
-            status.className = active.status === 'Aguardando reanálise'
-                ? 'badge badge-warning'
-                : 'badge badge-danger';
-            status.textContent = active.status;
-            container.appendChild(status);
+            if (linkedActive) {
+                const status = root.document.createElement('span');
+                status.className = linkedActive.status === 'Aguardando reanálise'
+                    ? 'badge badge-warning'
+                    : 'badge badge-danger';
+                status.textContent = linkedActive.status;
+                container.appendChild(status);
 
-            if (active.status === 'Aguardando reanálise' && canReanalyze) {
-                appendPendencyButton(root, container, 'Reanalisar', 'reanalyze', active);
+                if (linkedActive.status === 'Aguardando reanálise' && canReanalyze) {
+                    appendPendencyButton(root, container, 'Reanalisar', 'reanalyze', linkedActive);
+                }
+                if (canRegister) {
+                    const label = root.getCorrectiveSubmissionActionLabel?.(linkedActive)
+                        || (linkedActive.status === 'Aguardando reanálise' ? 'Substituir envio' : 'Registrar novo envio');
+                    if (label) appendPendencyButton(root, container, label, 'register', linkedActive);
+                }
+            } else if (!readOnlyProfile && !consolidatedLock && !futureLock) {
+                appendRecoveryButton(root, container, invoice, schoolId, select);
             }
-            if (canRegister) {
-                const label = root.getCorrectiveSubmissionActionLabel?.(active)
-                    || (active.status === 'Aguardando reanálise' ? 'Substituir envio' : 'Registrar novo envio');
-                if (label) appendPendencyButton(root, container, label, 'register', active);
-            }
-            card.appendChild(container);
+            if (container.childElementCount > 0) card.appendChild(container);
         });
         return true;
     }
@@ -252,11 +290,10 @@
         if (original.__radarConditionalReconciler === true) return true;
         const wrapped = function renderProntuarioWithConditionalReconciliation(schoolId, ...args) {
             const result = original.call(this, schoolId, ...args);
-            const activeCompetence = text(root.activeProntuarioCompetencia)
-                || text(root.RadarGlobalCompetence?.getActiveCompetence?.());
-            const state = stateOf(root);
-            const school = (state?.schools || []).find(record => String(record.id) === String(schoolId));
-            const programIds = school?.programasIds || [];
+            const activeCompetence = currentRenderedCompetence(root);
+            const programIds = [...new Set(Array.from(root.document.querySelectorAll?.(
+                '#prontuario-verif-rows tr[data-program-id][data-document-key]'
+            ) || []).map(row => text(row.dataset.programId)).filter(Boolean))];
             programIds.forEach(programId => {
                 if (activeCompetence) reconcile(root, schoolId, `${activeCompetence}_${programId}`);
             });
@@ -288,6 +325,7 @@
         INLINE_HANDLERS,
         stateOf,
         splitContext,
+        currentRenderedCompetence,
         syncConsolidationAction,
         syncUnidentifiedExpenseAction,
         syncServicePendencyControls,
