@@ -362,7 +362,7 @@
                     id: attempt.id,
                     numero: attempt.attempt_number,
                     dataRegistro: attempt.submitted_at,
-                    dataDisponibilizacao: dateOnly(attempt.submitted_at),
+                    dataDisponibilizacao: dateOnly(attempt.available_at || attempt.submitted_at),
                     dataAnalise: attempt.analyzed_at,
                     resultado: attempt.result,
                     observacao: attempt.observation || '',
