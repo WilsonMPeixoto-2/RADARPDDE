@@ -98,11 +98,11 @@
         const originalSave = service.save.bind(service);
         const originalRemove = service.remove.bind(service);
 
-        service.save = function saveWithHistoryLock(input = {}) {
+        service.save = async function saveWithHistoryLock(input = {}) {
             assertStructuralIdentity(service.getState() || {}, input);
             return originalSave(input);
         };
-        service.remove = function removeWithHistoryLock(input = {}) {
+        service.remove = async function removeWithHistoryLock(input = {}) {
             assertDeletionAllowed(service.getState() || {}, input.id);
             return originalRemove(input);
         };
