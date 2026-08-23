@@ -13,7 +13,7 @@ Este runbook não autoriza, por si só, migration, importação, alteração de 
 
 Consultar [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md) e revalidar remotamente antes de operação dependente do ambiente.
 
-Por compatibilidade com o verificador de readiness, este runbook mantém um único espelho machine-readable da contagem versionada: O conjunto versionado contém atualmente **40** migrations. A lista e a ordem continuam sendo obtidas do diretório `supabase/migrations/` e do histórico do CLI, nunca de uma segunda lista manual.
+Por compatibilidade com o verificador de readiness, este runbook mantém um único espelho machine-readable da contagem versionada: O conjunto versionado contém atualmente **41** migrations. A lista e a ordem continuam sendo obtidas do diretório `supabase/migrations/` e do histórico do CLI, nunca de uma segunda lista manual.
 
 Contratos estáveis:
 
@@ -129,7 +129,7 @@ As migrations correntes incluem, conforme `CURRENT_STAGE.md` e a branch de estab
 - avaliação da consulta à Assessoria Contábil individualizada no payload de cada NF de serviço, com resumo mensal derivado;
 - suporte à despesa provisória `a_identificar` e persistência atômica de análise/pendência;
 - integridade transacional na mudança de Nota Fiscal permanente para natureza não patrimonial, com remoção versionada do bem derivado;
-- semântica explícita para limpeza de `bonus_result`, distinguindo campo ausente de campo presente vazio;
+- semântica explícita para limpeza de `bonus_result` nas operações atômicas de salvamento e exclusão de NF, distinguindo campo ausente de campo presente vazio;
 - preservação de `pendency_attempts.available_at` separada de `submitted_at`, com backfill seguro do histórico;
 - vínculo opcional de pendência de Assessoria Contábil com `registered_invoice_id`, permitindo individualização por NF e impedindo duplicidade ativa para a mesma NF;
 - operações compostas de Assessoria Contábil para persistir análise, pendência, verificação e log de forma coerente, inclusive na reanálise e no envio corretivo.
