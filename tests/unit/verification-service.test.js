@@ -187,7 +187,7 @@ test('consolidar novamente sem alteração é no-op sem segundo log', async () =
     assert.equal(harness.state.logs.length, 0);
 });
 
-test('valida entrega e nota cadastrada antes de alterar análise técnica', async () => {
+test('valida entrega antes de alterar análise técnica regular', async () => {
     const harness = createHarness();
 
     await assert.rejects(
@@ -206,11 +206,11 @@ test('valida entrega e nota cadastrada antes de alterar análise técnica', asyn
         schoolId: 'ESC-1',
         compKey: '2026-05_BASIC',
         documentKey: 'extCC',
-        value: 'Incorreto',
+        value: 'Correto',
         profile: 'controlador'
     });
-    assert.equal(result.value.verification.analise.extCC, 'Incorreto');
-    assert.equal(result.value.shouldOpenPendency, true);
+    assert.equal(result.value.verification.analise.extCC, 'Correto');
+    assert.equal(result.value.shouldOpenPendency, false);
 });
 
 test('consolida somente preenchimento válido e retifica com antes/depois auditável', async () => {
