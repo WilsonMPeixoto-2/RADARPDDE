@@ -56,12 +56,6 @@ async function seedAwaitingPendency(page, { schoolId, documentKey, suffix }) {
       documentKey: input.documentKey,
       value: 'Sim'
     });
-    await services.verifications.setTechnicalAnalysis({
-      schoolId: input.schoolId,
-      compKey,
-      documentKey: input.documentKey,
-      value: 'Incorreto'
-    });
     await services.pendencies.open({
       id: pendencyId,
       schoolId: input.schoolId,
@@ -70,7 +64,8 @@ async function seedAwaitingPendency(page, { schoolId, documentKey, suffix }) {
       documentKey: input.documentKey,
       item: `Documento E2E ${input.suffix}`,
       errors: ['Sem assinatura'],
-      observation: 'Pendência criada para validar reanálise autenticada.'
+      observation: 'Pendência criada para validar reanálise autenticada.',
+      technicalAnalysisValue: 'Incorreto'
     });
     await services.pendencies.registerAttempt({
       pendencyId,

@@ -37,7 +37,12 @@ declare
         '20260811190712',
         '20260816205046',
         '20260816214535',
-        '20260822040642'
+        '20260822040642',
+        '20260823003500',
+        '20260823010000',
+        '20260823032000',
+        '20260823045000',
+        '20260823050000'
     ];
     v_actual text[];
     v_missing_extensions text[];
@@ -70,7 +75,10 @@ begin
        or to_regprocedure('public.save_program_with_log(jsonb,integer,jsonb)') is null
        or to_regprocedure('public.save_calendar_with_log(jsonb,integer,jsonb)') is null
        or to_regprocedure('public.assign_controller_with_log(jsonb,jsonb)') is null
-       or to_regprocedure('public.save_invoice_with_effects(jsonb,jsonb,jsonb,integer,integer,integer,jsonb)') is null then
+       or to_regprocedure('public.save_invoice_with_effects(jsonb,jsonb,jsonb,integer,integer,integer,jsonb)') is null
+       or to_regprocedure('public.save_service_advisory_with_pendency(jsonb,integer,jsonb,integer,jsonb,jsonb)') is null
+       or to_regprocedure('public.register_service_advisory_attempt(jsonb,integer,jsonb,integer,jsonb,jsonb,integer,jsonb)') is null
+       or to_regprocedure('public.reanalyze_service_advisory_pendency(jsonb,integer,jsonb,jsonb,jsonb,integer,integer,jsonb)') is null then
         raise exception 'ATOMIC_OPERATIONAL_RPC_MISSING';
     end if;
 
@@ -123,6 +131,9 @@ begin
        or (select prosecdef from pg_proc where oid = 'public.can_write_school(text)'::regprocedure)
        or (select prosecdef from pg_proc where oid = 'public.save_invoice_with_effects(jsonb,jsonb,jsonb,integer,integer,integer,jsonb)'::regprocedure)
        or (select prosecdef from pg_proc where oid = 'public.delete_invoice_with_effects(text,integer,boolean,integer,jsonb,integer,jsonb)'::regprocedure)
+       or (select prosecdef from pg_proc where oid = 'public.save_service_advisory_with_pendency(jsonb,integer,jsonb,integer,jsonb,jsonb)'::regprocedure)
+       or (select prosecdef from pg_proc where oid = 'public.register_service_advisory_attempt(jsonb,integer,jsonb,integer,jsonb,jsonb,integer,jsonb)'::regprocedure)
+       or (select prosecdef from pg_proc where oid = 'public.reanalyze_service_advisory_pendency(jsonb,integer,jsonb,jsonb,jsonb,integer,integer,jsonb)'::regprocedure)
        or (select prosecdef from pg_proc where oid = 'public.production_integrity_check()'::regprocedure)
        or (select prosecdef from pg_proc where oid = 'public.enforce_school_controller_assignment_authorization()'::regprocedure) then
         raise exception 'PUBLIC_SECURITY_DEFINER_STILL_EXPOSED';

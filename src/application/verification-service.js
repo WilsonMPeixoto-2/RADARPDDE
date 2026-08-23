@@ -226,6 +226,26 @@
             const profile = this.assertEditable(input.profile, 'setBonification');
             this.assertCompetenceEditable(input.compKey, 'setBonification');
             return this.runSerializedVerificationWrite(input, async () => {
+                const schoolId = text(input.schoolId);
+                const compKey = text(input.compKey);
+                const documentKey = text(input.documentKey);
+                const value = documentKey === 'consEnviada'
+                    ? input.value === true
+                    : text(input.value);
+                const currentVerification = this.getVerification(schoolId, compKey);
+                const currentValue = documentKey === 'consEnviada'
+                    ? currentVerification?.bonificacao?.[documentKey] === true
+                    : text(currentVerification?.bonificacao?.[documentKey]);
+                if (currentValue === value) {
+                    return {
+                        ok: true,
+                        value: {
+                            verification: cloneValue(currentVerification),
+                            unchanged: true
+                        }
+                    };
+                }
+
                 const persistence = {};
                 return this.dataService.execute({
                     name: 'verification:set-bonification',
@@ -233,12 +253,6 @@
                     remoteResultIsAuthoritative: true,
                     mutate: () => {
                         const state = this.getState();
-                        const schoolId = text(input.schoolId);
-                        const compKey = text(input.compKey);
-                        const documentKey = text(input.documentKey);
-                        const value = documentKey === 'consEnviada'
-                            ? input.value === true
-                            : text(input.value);
                         const verification = this.getVerification(schoolId, compKey);
                         persistence.schoolId = schoolId;
                         persistence.compKey = compKey;
@@ -272,6 +286,9 @@
                                 verification.analise.consAssessoria = 'Correto';
                                 verification.analise.notaFiscal = 'Correto';
                             } else if (value === 'Sim' || value === 'Não') {
+                                if (before.notaFiscal === 'Não se aplica') {
+                                    verification.analise.notaFiscal = 'Não analisado';
+                                }
                                 if (verification.bonificacao.encampInventario === 'Não se aplica') {
                                     verification.bonificacao.encampInventario = '';
                                     verification.analise.encampInventario = 'Não analisado';
@@ -312,6 +329,19 @@
         async setTechnicalAnalysis(input = {}) {
             this.assertEditable(input.profile, 'setTechnicalAnalysis');
             this.assertCompetenceEditable(input.compKey, 'setTechnicalAnalysis');
+            const requestedValue = text(input.value);
+            if (requestedValue === 'Incorreto') {
+                fail(
+                    'PENDENCY_REQUIRED',
+                    'A análise “Incorreto” deve ser confirmada junto com a abertura da pendência, na mesma operação.',
+                    'setTechnicalAnalysis',
+                    {
+                        schoolId: text(input.schoolId),
+                        compKey: text(input.compKey),
+                        documentKey: text(input.documentKey)
+                    }
+                );
+            }
             return this.runSerializedVerificationWrite(input, async () => {
                 const persistence = {};
                 return this.dataService.execute({
@@ -323,7 +353,7 @@
                         const schoolId = text(input.schoolId);
                         const compKey = text(input.compKey);
                         const documentKey = text(input.documentKey);
-                        const value = text(input.value);
+                        const value = requestedValue;
                         const activePendency = input.activePendency
                             || this.findActivePendency(state, schoolId, compKey, documentKey);
                         if (activePendency) {
@@ -384,7 +414,7 @@
                         persistence.logId = text(log?.id);
                         return {
                             verification: cloneValue(verification),
-                            shouldOpenPendency: value === 'Incorreto'
+                            shouldOpenPendency: false
                         };
                     },
                     persist: context => this.persistAtomicVerification(context, persistence)
@@ -396,14 +426,34 @@
             this.assertEditable(input.profile, 'closeBonification');
             this.assertCompetenceEditable(input.compKey, 'closeBonification');
             return this.runSerializedVerificationWrite(input, async () => {
+                const schoolId = text(input.schoolId);
+                const compKey = text(input.compKey);
+                const currentVerification = this.getVerification(schoolId, compKey);
+                const currentEvaluation = this.getMonthlyEvaluation({
+                    schoolId,
+                    compKey,
+                    verification: currentVerification
+                });
+                if (currentEvaluation.canConsolidate
+                    && text(currentVerification.resultadoBonif)
+                    && text(currentVerification.resultadoBonif) === text(currentEvaluation.bonusResult)) {
+                    return {
+                        ok: true,
+                        value: {
+                            status: currentEvaluation.bonusResult,
+                            evaluation: cloneValue(currentEvaluation),
+                            verification: cloneValue(currentVerification),
+                            unchanged: true
+                        }
+                    };
+                }
+
                 const persistence = {};
                 return this.dataService.execute({
                     name: 'verification:close-bonification',
                     changedEntities: ['verifications', 'administrativeLogs'],
                     remoteResultIsAuthoritative: true,
                     mutate: () => {
-                        const schoolId = text(input.schoolId);
-                        const compKey = text(input.compKey);
                         const verification = this.getVerification(schoolId, compKey);
                         persistence.schoolId = schoolId;
                         persistence.compKey = compKey;

@@ -181,6 +181,10 @@
         return normalizeText(context.competenciaOrigem || context.competencia);
     }
 
+    function getRegisteredInvoiceId(context = {}) {
+        return normalizeText(context.registeredInvoiceId || context.registered_invoice_id);
+    }
+
     function getStructuredContextParts(context = {}) {
         return [
             normalizeText(context.escolaId),
@@ -204,7 +208,16 @@
         }
 
         if (hasCompleteStructuredContext(pendency)) {
-            return buildDocumentContextKey(pendency) === buildDocumentContextKey(context);
+            if (buildDocumentContextKey(pendency) !== buildDocumentContextKey(context)) {
+                return false;
+            }
+            const documentKey = normalizeText(context.documentoKey);
+            const pendencyInvoiceId = getRegisteredInvoiceId(pendency);
+            const contextInvoiceId = getRegisteredInvoiceId(context);
+            if (documentKey === 'consAssessoria' && (pendencyInvoiceId || contextInvoiceId)) {
+                return pendencyInvoiceId === contextInvoiceId;
+            }
+            return true;
         }
 
         const pendencyParts = getStructuredContextParts(pendency);
@@ -288,6 +301,7 @@
             'Competência'
         );
         const errosAtuais = validateDocumentErrors(input.errosAtuais || input.erros);
+        const registeredInvoiceId = getRegisteredInvoiceId(input);
         const status = PENDENCY_STATUS.OPEN;
         const openingEvent = createHistoryEvent(
             'abertura',
@@ -306,6 +320,7 @@
             competenciaOrigem: competencia,
             programaId: requireText(input.programaId, 'Programa'),
             documentoKey: requireText(input.documentoKey, 'Documento'),
+            ...(registeredInvoiceId ? { registeredInvoiceId } : {}),
             item: requireText(input.item, 'Item'),
             status,
             errosAtuais,
@@ -328,6 +343,7 @@
         const competencia = normalizeText(source.competenciaOrigem)
             || normalizeText(source.competencia);
         const documentary = isDocumentaryPendency(source);
+        const registeredInvoiceId = getRegisteredInvoiceId(source);
         const existingErrors = Array.isArray(source.errosAtuais)
             ? normalizeUniqueNonEmptyStrings(source.errosAtuais)
             : null;
@@ -338,6 +354,11 @@
         next.tipo = documentary ? 'documental' : 'legada';
         next.competencia = competencia;
         next.competenciaOrigem = competencia;
+        if (registeredInvoiceId) next.registeredInvoiceId = registeredInvoiceId;
+        else {
+            delete next.registeredInvoiceId;
+            delete next.registered_invoice_id;
+        }
         next.errosAtuais = [...errors];
         next.motivo = legacyReason
             || errors[0]
@@ -620,8 +641,9 @@
     }
 
     function reopenPendency(pendency = {}, input = {}, audit = {}) {
-        if (normalizeText(pendency.status) !== PENDENCY_STATUS.RESOLVED) {
-            throw new Error('Somente pendências resolvidas podem ser reabertas.');
+        const status = normalizeText(pendency.status);
+        if (status !== PENDENCY_STATUS.RESOLVED && status !== PENDENCY_STATUS.CANCELLED) {
+            throw new Error('Somente pendências resolvidas ou canceladas podem ser reabertas.');
         }
 
         const justification = requireText(

@@ -12,7 +12,8 @@
     "fast-uri": ">=3.1.5"
   },
   "allowScripts": {
-    "esbuild@0.28.1": true
+    "esbuild@0.28.1": true,
+    "msw@2.15.0": false
   },
   "scripts": {
     "check": "node --check app.js && node --check config.runtime.js && node --check config.js && node --check src/auth/session-service.js && node --check src/integration/auth-bootstrap.js && node --check src/integration/auth-gate.js && node --check src/integration/navigation-routes.js && node --check src/integration/navigation-policy.js && node --check src/integration/navigation-bootstrap.js && node --check src/integration/navigation-history.js && node --check src/integration/navigation-context-bootstrap.js && node --check src/integration/navigation-context.js && node --check src/integration/product-extensions-bootstrap.js && node --check src/integration/school-timeline.js && node --check src/integration/shared-interactions.js && node --check src/integration/painel-controlador-expressiva.js && node --check src/integration/global-competence-selector.js && node --check src/application/error-mapper.js && node --check src/application/state-port.js && node --check src/application/unit-of-work.js && node --check src/application/data-service.js && node --check src/application/configuration-service.js && node --check src/application/team-account-gateway.js && node --check src/application/directory-service.js && node --check src/application/school-service.js && node --check src/application/pendency-service.js && node --check src/application/verification-service.js && node --check src/application/audit-service.js && node --check src/application/invoice-service.js && node --check src/application/inventory-service.js && node --check src/data/repository-contract.js && node --check src/data/local-storage-repository.js && node --check src/data/supabase-repository.js && node --check src/data/repository-factory.js && node --check src/data/snapshot-tools.js && node --check src/data/legacy-state-adapter.js && node --check src/data/state-bridge.js && node --check src/data/state-bridge-metadata.js && node --check src/domain/competence-context.js && node --check src/domain/school-timeline.js && node --check src/domain/excel-integral-certification.js && node --check src/integration/exercise-management.js && node --check src/integration/exercise-early-init.js && node --check src/vendor/supabase-client-entry.js && node --check tests/support/spa-server.mjs && node --check scripts/bootstrap-local-auth-fixtures.mjs && node --check scripts/check-local-auth-fixtures.mjs && node --check scripts/check-team-account-function.mjs && node --check scripts/run-team-account-function-check.mjs && node --check scripts/check-supabase-readiness.js && node --check scripts/check-supabase-final-alignment.js && node --check scripts/check-supabase-final-alignment-current.js && node --check scripts/audit-functional-persistence.js && node --check scripts/check-generated-artifacts.js && node --check scripts/check-functional-contract-matrix.mjs && node --check scripts/build-supabase-client.mjs && node --check scripts/generate-runtime-config.mjs && node --check scripts/build-vercel.mjs && node --check scripts/run-lighthouse-baseline.mjs && node --check scripts/generate-excel-certification-evidence.mjs && node --check scripts/verify-supabase-backup-restore.mjs && node --check src/domain/json-contracts.js && node --check src/data/import-coordinator.js && node --check src/vendor/ajv-entry.js && node --check scripts/build-ajv.mjs && node --check scripts/migration-cli.mjs && node --check scripts/export-local-snapshot.mjs && node --check scripts/lib/remote-bootstrap.mjs && node --check scripts/bootstrap-supabase-remote.mjs && node --check scripts/lib/remote-admin-bootstrap.mjs && node --check scripts/bootstrap-remote-admin.mjs && node --check supabase/functions/_shared/team-account-domain.mjs && node --check scripts/build-exceljs.mjs && node --check scripts/check-exceljs-audit-policy.mjs && node --check scripts/check-workflow-references.mjs && node --check src/domain/global-search-index.js && node --check src/integration/global-search.js && node --check src/integration/floating-ui-bootstrap.js && node --check src/integration/view-transitions.js && node --check src/vendor/fuse-entry.js && node --check src/vendor/floating-ui-entry.js && node --check scripts/build-search-ui-vendors.mjs",
@@ -45,7 +46,7 @@
     "supabase:lint:db": "supabase db lint --local --schema public --level warning --fail-on error",
     "supabase:gen:types": "supabase gen types typescript --local --schema public > src/types/database.types.ts",
     "test:unit": "node --test tests/unit/*.test.js",
-    "test:readiness": "npm run check && npm run check:functional-matrix && npm run check:workflow-references && npm run check:search-ui-vendors && npm run lint:security && npm run lint:e2e && npm run test:unit && npm run certify:excel:fixture && npm run test:integration && npm run check:supabase && npm run check:supabase-final && npm run check:runtime-config && npm run check:generated && npm run typecheck:database && npm run audit:functional",
+    "test:readiness": "npm run check && npm run check:functional-matrix && npm run check:workflow-references && npm run check:architecture && npm run check:search-ui-vendors && npm run lint:security && npm run lint:e2e && npm run test:unit && npm run certify:excel:fixture && npm run test:integration && npm run check:supabase && npm run check:supabase-final && npm run check:runtime-config && npm run check:generated && npm run typecheck:database && npm run audit:functional",
     "test:e2e": "playwright test",
     "test:mobile": "playwright test --project=mobile-chromium --project=mobile-webkit",
     "test:mobile:headed": "playwright test --project=mobile-chromium --headed",
@@ -79,7 +80,10 @@
     "build:exceljs": "node scripts/build-exceljs.mjs",
     "lint:security:html": "eslint app.js config.js \"src/**/*.js\" --format html --output-file dependency-health/eslint-security.html --max-warnings 42",
     "build:search-ui-vendors": "node scripts/build-search-ui-vendors.mjs",
-    "check:search-ui-vendors": "node scripts/build-search-ui-vendors.mjs --check"
+    "check:search-ui-vendors": "node scripts/build-search-ui-vendors.mjs --check",
+    "check:architecture": "depcruise src scripts supabase/functions --config .dependency-cruiser.cjs --output-type err-long",
+    "test:properties": "node --test tests/unit/property-evaluation-invariants.test.js",
+    "test:network-failures": "node --test tests/unit/msw-remote-failures.test.js"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",
@@ -87,17 +91,21 @@
     "@floating-ui/dom": "1.8.0",
     "@playwright/test": "1.62.1",
     "@supabase/supabase-js": "2.112.3",
+    "@types/node": "24.13.3",
     "acorn": "8.18.0",
     "acorn-walk": "8.3.5",
     "ajv": "8.20.0",
+    "dependency-cruiser": "18.2.0",
     "esbuild": "0.28.1",
     "eslint": "10.8.0",
     "eslint-plugin-no-unsanitized": "4.1.5",
     "eslint-plugin-playwright": "2.10.5",
+    "fast-check": "4.9.0",
     "fuse.js": "7.5.0",
     "http-server": "14.1.1",
     "knip": "6.29.0",
     "lighthouse": "13.4.1",
+    "msw": "2.15.0",
     "prettier": "3.9.6",
     "supabase": "2.114.0",
     "typescript": "7.0.2"

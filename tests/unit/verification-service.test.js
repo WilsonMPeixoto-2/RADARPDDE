@@ -108,7 +108,86 @@ test('altera bonificação e aplica dependências de N/A sem duplicar a regra op
     assert.equal(harness.state.logs[0].action, 'Bonificação Alterada');
 });
 
-test('valida entrega e nota cadastrada antes de alterar análise técnica', async () => {
+test('ao sair de N/A para Sim reinicializa a análise de Nota Fiscal', async () => {
+    const harness = createHarness();
+    await harness.service.setBonification({
+        schoolId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        documentKey: 'notaFiscal',
+        value: 'Não se aplica',
+        profile: 'controlador'
+    });
+
+    const result = await harness.service.setBonification({
+        schoolId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        documentKey: 'notaFiscal',
+        value: 'Sim',
+        profile: 'controlador'
+    });
+
+    assert.equal(result.value.verification.bonificacao.notaFiscal, 'Sim');
+    assert.equal(result.value.verification.analise.notaFiscal, 'Não analisado');
+});
+
+test('ao sair de N/A para Não reinicializa a análise de Nota Fiscal', async () => {
+    const harness = createHarness();
+    await harness.service.setBonification({
+        schoolId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        documentKey: 'notaFiscal',
+        value: 'Não se aplica',
+        profile: 'controlador'
+    });
+
+    const result = await harness.service.setBonification({
+        schoolId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        documentKey: 'notaFiscal',
+        value: 'Não',
+        profile: 'controlador'
+    });
+
+    assert.equal(result.value.verification.bonificacao.notaFiscal, 'Não');
+    assert.equal(result.value.verification.analise.notaFiscal, 'Não analisado');
+});
+
+test('repetir a mesma bonificação é no-op sem nova persistência ou log', async () => {
+    const harness = createHarness();
+    harness.verification.bonificacao.extCC = 'Sim';
+
+    const result = await harness.service.setBonification({
+        schoolId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        documentKey: 'extCC',
+        value: 'Sim',
+        profile: 'controlador'
+    });
+
+    assert.equal(result.value.verification.bonificacao.extCC, 'Sim');
+    assert.equal(harness.calls.length, 0);
+    assert.equal(harness.state.logs.length, 0);
+});
+
+test('consolidar novamente sem alteração é no-op sem segundo log', async () => {
+    const harness = createHarness();
+    Object.keys(harness.verification.bonificacao).forEach(key => {
+        harness.verification.bonificacao[key] = 'Sim';
+    });
+    harness.verification.resultadoBonif = 'apta';
+
+    const result = await harness.service.closeBonification({
+        schoolId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        profile: 'controlador'
+    });
+
+    assert.equal(result.value.status, 'apta');
+    assert.equal(harness.calls.length, 0);
+    assert.equal(harness.state.logs.length, 0);
+});
+
+test('valida entrega antes de alterar análise técnica regular', async () => {
     const harness = createHarness();
 
     await assert.rejects(
@@ -127,11 +206,11 @@ test('valida entrega e nota cadastrada antes de alterar análise técnica', asyn
         schoolId: 'ESC-1',
         compKey: '2026-05_BASIC',
         documentKey: 'extCC',
-        value: 'Incorreto',
+        value: 'Correto',
         profile: 'controlador'
     });
-    assert.equal(result.value.verification.analise.extCC, 'Incorreto');
-    assert.equal(result.value.shouldOpenPendency, true);
+    assert.equal(result.value.verification.analise.extCC, 'Correto');
+    assert.equal(result.value.shouldOpenPendency, false);
 });
 
 test('consolida somente preenchimento válido e retifica com antes/depois auditável', async () => {

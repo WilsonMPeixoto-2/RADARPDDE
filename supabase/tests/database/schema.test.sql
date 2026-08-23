@@ -4,7 +4,7 @@ set local role postgres;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
 
-select plan(23);
+select plan(24);
 
 select has_table('public', 'schools', 'schools existe');
 select has_table('public', 'registered_invoices', 'registered_invoices existe');
@@ -17,6 +17,7 @@ select has_column('public', 'registered_invoices', 'row_version', 'nota possui c
 select has_column('public', 'assets', 'inventoried_by_member_id', 'bem possui inventariador');
 select has_column('public', 'competences', 'bonus_deadline', 'competência possui prazo de bonificação');
 select has_column('public', 'verifications', 'payload', 'verificação preserva extensões auditáveis');
+select has_column('public', 'pendency_attempts', 'available_at', 'tentativa preserva a data de disponibilização');
 select ok(
     to_regprocedure('public.save_invoice_with_effects(jsonb,jsonb,jsonb,integer,integer,integer,jsonb)') is not null,
     'RPC atômica de salvamento existe'
@@ -32,8 +33,8 @@ select ok(to_regprocedure('public.reanalyze_pendency_with_verification(jsonb,jso
 select ok(to_regprocedure('public.promote_data_import(text,text,jsonb,jsonb)') is not null, 'RPC de promoção existe');
 select ok(to_regprocedure('public.rollback_data_import(text)') is not null, 'RPC de rollback existe');
 select ok(
-    (select count(*) = 36 from supabase_migrations.schema_migrations),
-    'trinta e seis migrations foram registradas'
+    (select count(*) = 41 from supabase_migrations.schema_migrations),
+    'quarenta e uma migrations foram registradas'
 );
 select has_extension('pg_jsonschema', 'pg_jsonschema está instalada e ativa');
 select ok(

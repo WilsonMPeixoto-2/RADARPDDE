@@ -422,6 +422,7 @@
                 competence_origin: competence,
                 program_id: text(pendency.programaId || pendency.program_id) || null,
                 document_key: text(pendency.documentoKey || pendency.document_key || pendency.item),
+                registered_invoice_id: text(pendency.registeredInvoiceId || pendency.registered_invoice_id) || null,
                 status,
                 responsible_area: text(pendency.responsavel || pendency.responsible_area),
                 next_actor: text(pendency.responsavel || pendency.next_actor),
@@ -448,8 +449,12 @@
                     attempt_number: Number.isInteger(attempt.numero) && attempt.numero > 0
                         ? attempt.numero
                         : attemptIndex + 1,
-                    submitted_at: normalizeTimestamp(attempt.dataRegistro || attempt.dataDisponibilizacao)
-                        || '1970-01-01T00:00:00.000Z',
+                    available_at: normalizeTimestamp(
+                        attempt.dataDisponibilizacao || attempt.available_at || attempt.dataRegistro
+                    ) || '1970-01-01T00:00:00.000Z',
+                    submitted_at: normalizeTimestamp(
+                        attempt.dataRegistro || attempt.submitted_at || attempt.dataDisponibilizacao
+                    ) || '1970-01-01T00:00:00.000Z',
                     analyzed_at: normalizeTimestamp(attempt.dataAnalise),
                     result: text(attempt.resultado) || null,
                     observation: text(attempt.observacao),
