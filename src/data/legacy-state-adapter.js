@@ -422,6 +422,7 @@
                 competence_origin: competence,
                 program_id: text(pendency.programaId || pendency.program_id) || null,
                 document_key: text(pendency.documentoKey || pendency.document_key || pendency.item),
+                registered_invoice_id: text(pendency.registeredInvoiceId || pendency.registered_invoice_id) || null,
                 status,
                 responsible_area: text(pendency.responsavel || pendency.responsible_area),
                 next_actor: text(pendency.responsavel || pendency.next_actor),
