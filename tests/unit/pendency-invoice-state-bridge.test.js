@@ -92,3 +92,13 @@ test('reload reconstrói registeredInvoiceId pela coluna canônica mesmo sem có
 
     assert.equal(restored.pendencies[0].registeredInvoiceId, 'invoice-service-1');
 });
+
+test('reload preserva vínculo legado do payload quando a coluna canônica ainda está vazia', () => {
+    const canonical = stateBridge.transformLegacyState(legacyState()).entities;
+    canonical.pendencies[0].registered_invoice_id = null;
+    canonical.pendencies[0].payload = { registeredInvoiceId: 'invoice-service-1' };
+
+    const restored = stateBridge.canonicalEntitiesToLegacyState(canonical);
+
+    assert.equal(restored.pendencies[0].registeredInvoiceId, 'invoice-service-1');
+});
