@@ -448,8 +448,12 @@
                     attempt_number: Number.isInteger(attempt.numero) && attempt.numero > 0
                         ? attempt.numero
                         : attemptIndex + 1,
-                    submitted_at: normalizeTimestamp(attempt.dataRegistro || attempt.dataDisponibilizacao)
-                        || '1970-01-01T00:00:00.000Z',
+                    available_at: normalizeTimestamp(
+                        attempt.dataDisponibilizacao || attempt.available_at || attempt.dataRegistro
+                    ) || '1970-01-01T00:00:00.000Z',
+                    submitted_at: normalizeTimestamp(
+                        attempt.dataRegistro || attempt.submitted_at || attempt.dataDisponibilizacao
+                    ) || '1970-01-01T00:00:00.000Z',
                     analyzed_at: normalizeTimestamp(attempt.dataAnalise),
                     result: text(attempt.resultado) || null,
                     observation: text(attempt.observacao),
