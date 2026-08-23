@@ -120,7 +120,7 @@ Seguir [`SUPABASE_MIGRATION_AND_ROLLBACK.md`](SUPABASE_MIGRATION_AND_ROLLBACK.md
 
 ## 8. Remediações recentes incorporadas
 
-As migrations correntes incluem, conforme `CURRENT_STAGE.md`:
+As migrations correntes incluem, conforme `CURRENT_STAGE.md` e a branch de estabilização vigente:
 
 - reparo de Auth legado e lookup seguro da equipe;
 - remediação funcional de exercício, nota/bem e tentativa de pendência;
@@ -128,7 +128,11 @@ As migrations correntes incluem, conforme `CURRENT_STAGE.md`:
 - restrição explícita da reanálise de pendências a `controller`, `federal_assistant` e `technical_admin`;
 - avaliação da consulta à Assessoria Contábil individualizada no payload de cada NF de serviço, com resumo mensal derivado;
 - suporte à despesa provisória `a_identificar` e persistência atômica de análise/pendência;
-- integridade transacional na mudança de Nota Fiscal permanente para natureza não patrimonial, com remoção versionada do bem derivado.
+- integridade transacional na mudança de Nota Fiscal permanente para natureza não patrimonial, com remoção versionada do bem derivado;
+- semântica explícita para limpeza de `bonus_result`, distinguindo campo ausente de campo presente vazio;
+- preservação de `pendency_attempts.available_at` separada de `submitted_at`, com backfill seguro do histórico;
+- vínculo opcional de pendência de Assessoria Contábil com `registered_invoice_id`, permitindo individualização por NF e impedindo duplicidade ativa para a mesma NF;
+- operações compostas de Assessoria Contábil para persistir análise, pendência, verificação e log de forma coerente, inclusive na reanálise e no envio corretivo.
 
 Não reaplicar SQL já aplicado para “corrigir” histórico.
 
@@ -241,7 +245,8 @@ Não aceitar geradores artificiais como identidade definitiva. Duplicidades norm
 
 - `ASSET-02` usa `saveAssetWithLog`, versão esperada e log;
 - alteração do vínculo de bem derivado em nota não pode deixar órfão;
-- `pendency_attempts` deve acompanhar o agregado canônico da pendência;
+- `pendency_attempts` deve acompanhar o agregado canônico da pendência e preservar separadamente `available_at` e `submitted_at`;
+- pendência de Assessoria vinculada a NF deve manter `registered_invoice_id` coerente e a reanálise não pode alterar NFs irmãs;
 - reanálise de pendência exige papel autenticado `controller`, `federal_assistant` ou `technical_admin`, além do escopo escolar aplicável;
 - qualquer divergência observada após reload deve ser investigada no RPC/trigger/persistência antes de culpar a interface.
 
