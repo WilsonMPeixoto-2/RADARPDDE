@@ -1,6 +1,6 @@
 # RADAR PDDE — Registro de decisões
 
-**Atualizado em:** 18 de agosto de 2026
+**Atualizado em:** 23 de agosto de 2026
 
 Este documento registra decisões duradouras. Não é diário de commits. Uma decisão somente é substituída por decisão expressa com impacto e status documentados.
 
@@ -181,7 +181,7 @@ Cada sessão ou PR declara a tarefa como concluída, bloqueada, substituída ou 
 
 ## ADR-020 — Dependências fixadas e atualizações intencionais
 
-**Status:** Aprovada
+**Status:** Aprovada; risco conhecido atual refinado pela ADR-047
 
 Versões permanecem fixadas e lockfile versionado. Nova biblioteca exige necessidade comprovada, análise de changelog e gates completos. A major operacional do Node deve ser deliberadamente fixada antes do release oficial.
 
@@ -476,3 +476,33 @@ O build de Production sanitiza os dados iniciais de escolas/controladores usados
 LocalStorage, fixtures e seeds descartáveis permanecem disponíveis apenas para desenvolvimento/testes explicitamente configurados.
 
 **Documento integral:** `docs/decisions/ADR-045-production-fail-closed.md`.
+
+---
+
+## ADR-046 — Escritas operacionais usam retorno autoritativo, reconciliação incremental e diagnóstico local
+
+**Status:** Aprovada e implementada nos PRs #190–#193; diagnóstico local integrado no PR #194
+
+O caminho normal das escritas inline bem-sucedidas usa feedback imediato, persistência/RPC, retorno autoritativo, incorporação incremental e reconciliação localizada. `renderProntuario()` integral permanece fallback para bootstrap, navegação, erro, retorno incompleto ou inconsistência não reconciliável.
+
+Operações semanticamente idênticas são idempotentes e não devem gerar nova persistência, `row_version` ou log sem mudança real.
+
+A instrumentação local pode medir `click`, `feedback`, RPC, aplicação e estabilização por probe limitada em memória, sem telemetria externa nem dados de negócio. Falha do diagnóstico é fail-open.
+
+`fast-check`, MSW e `dependency-cruiser` permanecem ferramentas de desenvolvimento/teste; Performance API/PerformanceObserver nativos sustentam a medição local.
+
+**Documento integral:** `docs/decisions/ADR-046-escritas-operacionais-incrementais-e-observaveis.md`.
+
+---
+
+## ADR-047 — Vulnerabilidades conhecidas são acompanhadas sem atualização forçada
+
+**Status:** Aprovada
+
+As duas vulnerabilidades moderadas conhecidas na cadeia transitiva ExcelJS/UUID são risco conscientemente aceito no estado de 23/08/2026.
+
+Não executar `npm audit fix --force`, alteração rompente de ExcelJS ou troca oportunista de biblioteca apenas para zerar o relatório. O gate continua bloqueando severidade `high` ou superior.
+
+Reavaliar quando houver correção compatível, aumento de severidade/exposição, caminho materialmente explorável, mudança do contrato Excel ou nova exigência institucional de segurança.
+
+**Documento integral:** `docs/decisions/ADR-047-vulnerabilidades-conhecidas-acompanhamento-sem-atualizacao-forcada.md`.
