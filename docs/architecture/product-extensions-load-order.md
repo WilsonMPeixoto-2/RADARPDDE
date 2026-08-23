@@ -1,27 +1,30 @@
 # Cadeia de carregamento das extensões de produto
 
 **Estado:** vigente  
-**Atualizado em:** 14 de agosto de 2026
+**Atualizado em:** 23 de agosto de 2026
 
 ## 1. Finalidade
 
 Registrar a cadeia que executa depois de `app.js`, quando funções e coleções do núcleo estão disponíveis. Complementa [`frontend-load-order.md`](frontend-load-order.md).
 
+Este documento descreve a ordem efetiva de `product-extensions-bootstrap.js` após os PRs #190–#194. A ordem é contrato porque várias extensões envolvem funções globais já existentes e dependem do wrapper anterior.
+
 As integrações estáticas `view-transitions.js`, `global-search.js` e `floating-ui-bootstrap.js` também são carregadas após `app.js`, mas não pertencem ao bootstrap descrito aqui.
 
 ## 2. Pré-requisitos
 
-Timeline, navegação contextual, Guia do Controlador e refinamentos pós-render do Prontuário dependem de:
+As extensões de produto dependem de:
 
 - `app.js`;
 - Auth gate e perfil aplicado;
 - política e histórico de rotas;
 - renderizadores de Prontuário, Carteira e Pendências;
-- competência global.
+- competência global;
+- serviços de aplicação publicados em `RadarApplicationServices` quando a extensão atua sobre escritas.
 
-Não podem ser antecipados para a fase de domínio inicial nem criar carregador concorrente.
+Não podem ser antecipadas para a fase de domínio inicial nem criar carregador concorrente.
 
-## 3. Cadeia
+## 3. Cadeia efetiva
 
 ```text
 index.html
@@ -35,25 +38,135 @@ index.html
 → navigation-routes.js
 → navigation-history.js
 → product-extensions-bootstrap.js
-   ├─ school-timeline.css
-   ├─ controller-guide.css
-   ├─ controller-guide-theme.css
-   ├─ prontuario-operational-ux.css
-   ├─ src/domain/school-timeline.js
-   ├─ src/integration/school-timeline.js
-   ├─ src/integration/navigation-context-bootstrap.js
-   │  ├─ aguarda RadarNavigationHistory
-   │  └─ src/integration/navigation-context.js
-   ├─ src/integration/controller-guide.js
-   ├─ src/integration/controller-guide-ready.js
-   │  └─ reaplica a integração do guia após RadarNavigationContextReady
-   └─ src/integration/prontuario-operational-ux.js
-      └─ decora o DOM final do Prontuário sem criar estado de negócio
+   ├─ styles
+   │  ├─ school-timeline.css
+   │  ├─ controller-guide.css
+   │  ├─ controller-guide-theme.css
+   │  ├─ unidentified-expense-ux.css
+   │  ├─ prontuario-operational-ux.css
+   │  ├─ desktop-basic-monitors.css
+   │  ├─ pendency-passive-queue.css
+   │  └─ operational-write-feedback.css
+   └─ scripts, sequencialmente
+      01. src/domain/school-timeline.js
+      02. src/integration/school-timeline.js
+      03. src/integration/navigation-context-bootstrap.js
+      04. src/integration/controller-guide.js
+      05. src/integration/controller-guide-ready.js
+      06. src/integration/unidentified-expense-ux.js
+      07. src/integration/prontuario-operational-ux.js
+      08. src/integration/operational-readiness-bridge.js
+      09. src/integration/pendency-passive-queue-ux.js
+      10. src/integration/atomic-analysis-pendency.js
+      11. src/integration/invoice-history-lock.js
+      12. src/integration/service-advisory-pendency.js
+      13. src/integration/service-advisory-corrective-submission.js
+      14. src/integration/operational-write-diagnostics.js
+      15. src/integration/operational-write-performance.js
+      16. src/integration/prontuario-conditional-reconciler.js
+      17. src/integration/operational-write-feedback.js
 ```
 
-A cadeia de navegação é instalada de forma idempotente pelo bootstrap acionado após o Auth gate. O Guia do Controlador é uma superfície de ajuda sem persistência de negócio e fica disponível para todos os perfis autenticados. A extensão `prontuario-operational-ux.js` é carregada por último para trabalhar sobre o DOM final produzido pelos wrappers anteriores.
+Os scripts são criados com `async = false` e aguardados em sequência pela cadeia de Promises do bootstrap.
 
-## 4. Readiness
+## 4. Motivos da ordem
+
+### Timeline e navegação
+
+`school-timeline.js`, `navigation-context-bootstrap.js`, Guia do Controlador e refinamentos de UX precisam encontrar o núcleo já inicializado. `controller-guide-ready.js` reaplica de forma idempotente a integração do guia depois de `RadarNavigationContextReady`.
+
+### Extensões operacionais anteriores à escrita incremental
+
+`atomic-analysis-pendency.js`, `invoice-history-lock.js`, `service-advisory-pendency.js` e `service-advisory-corrective-submission.js` definem/refinam contratos funcionais que devem existir antes de os wrappers de desempenho envolverem os handlers finais.
+
+A ordem preserva:
+
+```text
+regra funcional final
+→ instrumentação/política de escrita
+→ reconciliação
+→ feedback da interação
+```
+
+### Diagnóstico antes de performance
+
+`operational-write-diagnostics.js` precisa carregar antes de `operational-write-performance.js` porque a camada de performance consulta a API global de diagnóstico no momento em que envolve DataServices e handlers.
+
+O diagnóstico cria uma única probe por `window`, limitada em memória e fail-open. A interface pública é somente leitura:
+
+```javascript
+window.RadarOperationalWriteMetrics.snapshot()
+window.RadarOperationalWriteMetrics.summary()
+```
+
+A interface interna de correlação permanece em `RadarOperationalWriteDiagnostics` e não deve ser usada como estado de negócio.
+
+### Performance antes do reconciliador e feedback
+
+`operational-write-performance.js` instala a política de retorno/commit autoritativo, envolve persistência quando há trace e preserva o caminho incremental das escritas inline.
+
+`prontuario-conditional-reconciler.js` deve existir depois dessa política para atuar sobre o estado/DOM já orientado ao fluxo incremental sem reintroduzir render integral no caminho normal.
+
+`operational-write-feedback.js` é carregado por último. Seu listener usa capture phase, por isso abre a amostra e aplica feedback visual antes de o handler inline executar, mesmo sendo o último script da cadeia. Em seguida o wrapper de performance consome o trace enfileirado para medir RPC, aplicação local e estabilização.
+
+## 5. Caminho de uma escrita inline instrumentada
+
+Para handlers suportados:
+
+- `toggleBonif`;
+- `changeAnaliseTecnica`;
+- `toggleInvoiceAdvisorySent`;
+- `changeInvoiceAdvisoryAnalysis`;
+- `toggleConsEnviada`.
+
+O fluxo normal é:
+
+```text
+capture click/change
+→ diagnostics: click
+→ feedback pendente imediato
+→ diagnostics: feedback
+→ wrapper inline consome trace
+→ DataService persist
+   ├─ diagnostics: rpcStart
+   └─ diagnostics: rpcEnd
+→ retorno autoritativo / estado local
+→ diagnostics: applyStart
+→ reconciliação escola + competência + programa
+→ diagnostics: applyEnd
+→ requestAnimationFrame/microtask
+→ diagnostics: stable
+```
+
+Falha da instrumentação não bloqueia nenhuma dessas etapas. Se não existir probe, trace ou Performance API, a operação funcional segue normalmente.
+
+## 6. Segurança e privacidade das métricas
+
+A instrumentação operacional é exclusivamente local e efêmera.
+
+Ela pode registrar apenas:
+
+- id sequencial efêmero da amostra;
+- nome técnico do handler;
+- timestamps monotônicos das fases;
+- durações calculadas.
+
+Não registrar em métrica:
+
+- escola;
+- usuário/e-mail;
+- competência;
+- programa;
+- NF;
+- pendência;
+- UUID de entidade;
+- texto ou valor de negócio.
+
+Não há envio para Supabase, Vercel ou terceiros, nem persistência em LocalStorage/IndexedDB.
+
+`performance.mark()`/`performance.measure()` são usados quando disponíveis. Marcas usam apenas id efêmero e fase técnica, e são limpas ao encerrar a amostra. `PerformanceObserver`, quando suportado, serve apenas para consumir/limpar medidas locais.
+
+## 7. Readiness
 
 ### Extensões de produto
 
@@ -61,7 +174,7 @@ A cadeia de navegação é instalada de forma idempotente pelo bootstrap acionad
 window.RadarProductExtensionsReady
 ```
 
-Resolve `true` quando os scripts carregam e `false` em degradação segura. A falha fica em:
+Resolve `true` quando a cadeia carrega e `false` em degradação segura. A falha fica em:
 
 ```javascript
 window.RADAR_LAST_PRODUCT_EXTENSION_ERROR
@@ -79,119 +192,80 @@ Aguarda `RadarNavigationHistory`, carrega a integração e registra falha em:
 window.RADAR_LAST_CONTEXTUAL_NAVIGATION_ERROR
 ```
 
-Timeline, guia, refinamento do Prontuário e aplicação principal permanecem independentes de mutações de backend.
-
-### Guia do Controlador
+### Diagnóstico operacional
 
 ```javascript
-window.RadarControllerGuide
+window.RadarOperationalWriteMetrics
 ```
 
-O guia:
+É diagnóstico técnico somente leitura. A ausência dessa interface não torna o produto indisponível e não altera persistência.
 
-- injeta a opção `Guia do Controlador` após Pendências Operacionais;
-- permanece visível para Controlador, Assistente, Gestão SME e Equipe de Inventário;
-- mantém conteúdo orientado ao trabalho do Controlador sem ampliar capacidades do perfil que o consulta;
-- utiliza capturas reais sanitizadas da linha de base visual já versionada no repositório;
-- oferece busca interna e atalhos para as telas operacionais;
-- usa `window.print()` com folha A4 e estilos próprios para permitir `Salvar como PDF` no navegador;
-- não lê nem grava dados de negócio.
+## 8. Idempotência
 
-### Refinamento operacional do Prontuário
+Marcadores/contratos relevantes incluem:
 
-```javascript
-window.RadarProntuarioOperationalUx
-```
-
-A integração:
-
-- envolve `renderProntuario` depois dos wrappers já existentes;
-- identifica o início de cada grupo pelo `rowspan` de competência/programa já produzido pelo núcleo;
-- adiciona classes de apresentação para separar visualmente programas;
-- move o `<label>` com o checkbox existente de envio à Assessoria para dentro da caixa da respectiva NF de serviço;
-- preserva o mesmo `aria-label`, estado `checked` e handler `toggleInvoiceAdvisorySent()`;
-- mantém os selects individuais de análise técnica e o resumo mensal na linha Consulta Assessoria;
-- não cria, duplica, recalcula ou persiste estado de negócio.
-
-## 5. Idempotência
-
-Marcadores e contratos:
-
-- `data-radar-product-bootstrap`;
 - `data-radar-product-style`;
 - `data-radar-product-script`;
-- `data-radar-navigation-context`;
 - `__radarSchoolTimelineIntegrationInstalled`;
 - `__radarTimelineWrapped`;
 - `__radarNavigationContextInstalled`;
 - `__radarControllerGuideWrapped`;
 - `window.RadarProntuarioOperationalUx`;
+- `__radarOperationalWritePerformance` nos DataServices;
+- `__radarIncrementalInlineHandler` nos handlers;
+- `__radarOperationalWriteFeedbackInstalled` no documento;
+- singleton de `operational-write-diagnostics.js` por root;
 - promessas únicas de readiness.
 
-Repetição não pode duplicar estilos, scripts, observadores, wrappers, botões nem controles de negócio. No refinamento do Prontuário, mover novamente o mesmo `<label>` para o mesmo cartão é idempotente e não cria um segundo checkbox.
+Repetição não pode duplicar estilos, scripts, observadores, probes, listeners, wrappers, botões nem controles de negócio.
 
-## 6. Ordem interna
+A própria operação funcional também respeita idempotência semântica quando o contrato correspondente prevê que repetir o mesmo valor não gere nova persistência, `row_version` ou log.
 
-`product-extensions-bootstrap.js` carrega sequencialmente:
-
-1. `/src/domain/school-timeline.js`;
-2. `/src/integration/school-timeline.js`;
-3. `/src/integration/navigation-context-bootstrap.js`;
-4. `/src/integration/controller-guide.js`;
-5. `/src/integration/controller-guide-ready.js`;
-6. `/src/integration/prontuario-operational-ux.js`.
-
-Os scripts usam `async = false` e são aguardados em sequência. Como a navegação contextual termina sua instalação de forma assíncrona, `controller-guide-ready.js` aguarda `RadarNavigationContextReady` e solicita novamente a instalação idempotente do wrapper do guia. O refinamento do Prontuário fica por último para envolver a versão final de `renderProntuario` e decorar o DOM depois dos demais efeitos pós-render.
-
-## 7. Wrappers
+## 9. Wrappers
 
 Cada integração deve:
 
 1. capturar a função anterior;
 2. instalar uma única camada;
 3. preservar argumentos, retorno e efeitos;
-4. atualizar a referência global;
-5. impedir recursão;
-6. não criar estado de negócio paralelo.
+4. atualizar a referência global quando esse for o contrato da extensão;
+5. impedir recursão/duplicação;
+6. não criar estado de negócio paralelo;
+7. degradar sem bloquear o núcleo quando sua responsabilidade for complementar.
 
-O guia intercepta apenas a pseudo-visão local `guia-controlador`; ao usar seus atalhos, devolve a navegação às funções normais do RADAR. A disponibilidade transversal do guia não altera as regras de acesso das telas de destino.
+A camada incremental não pode converter sucesso normal em `renderProntuario()` completo. O render integral é fallback para bootstrap, navegação, erro, retorno incompleto ou inconsistência não reconciliável.
 
-`prontuario-operational-ux.js` não intercepta comandos: apenas chama o render anterior e depois reorganiza/classes o DOM resultante.
+## 10. Degradação
 
-## 8. Renderização segura
+Se uma extensão apenas visual falhar, o núcleo deve permanecer utilizável sempre que o contrato permitir.
 
-Timeline e retorno contextual usam criação explícita de elementos, `textContent`, atributos e `dataset` controlados. O Guia do Controlador usa conteúdo editorial estático e caminhos de imagens versionados; nenhum dado operacional digitado pelo usuário é interpolado no HTML do guia.
+Se o diagnóstico operacional falhar:
 
-O refinamento do Prontuário não usa `innerHTML` para reconstruir as notas ou controles. Ele localiza elementos já produzidos pelo núcleo, acrescenta classes e move o nó DOM do checkbox existente. Dessa forma, mantém o handler e evita criar uma segunda fonte visual ou funcional para o estado da Assessoria.
+- a escrita continua;
+- nenhum erro de métrica substitui o erro/retorno funcional;
+- nenhuma requisição remota adicional é criada para compensar;
+- a ausência de amostra é preferível a bloquear a operação.
 
-## 9. Degradação
+Se o retorno da persistência for insuficiente ou ocorrer erro real da operação, os fallbacks do fluxo funcional permanecem responsáveis pela recuperação/reconciliação. A instrumentação não inventa um caminho alternativo de consistência.
 
-Se uma extensão de apresentação falhar:
+## 11. Verificação proporcional
 
-- Auth, rotas e núcleo continuam disponíveis;
-- nenhuma escrita remota é disparada pela falha;
-- as telas operacionais permanecem utilizáveis;
-- o problema fica isolado na camada complementar.
+Mudanças nessa cadeia devem validar pelo menos:
 
-Se `prontuario-operational-ux.js` não carregar, o Prontuário volta ao layout anterior: checkbox na linha Consulta Assessoria e separação visual original. A lógica e a persistência continuam funcionando pelo núcleo.
+- ordem exata entre scripts dependentes;
+- ausência de carregamento duplicado;
+- sintaxe;
+- testes unitários dos wrappers afetados;
+- política incremental de escrita;
+- arquitetura via `dependency-cruiser` quando aplicável;
+- falhas/retornos remotos via MSW quando a persistência for alterada;
+- invariantes via fast-check quando regras de domínio forem alteradas;
+- ausência de regressão material nos gates do repositório.
 
-Se a navegação contextual falhar, o núcleo e o conteúdo do guia permanecem carregáveis, mas atalhos contextuais podem se limitar à navegação base.
+Quando não houver mudança de schema, Auth, RLS, RPC ou dados, não é necessário criar migration nem executar escrita destrutiva em Production apenas para validar uma extensão de frontend.
 
-## 10. Verificação proporcional
+## 12. Evolução
 
-Para mudança restrita ao refinamento operacional do Prontuário, validar:
+Nova extensão pós-`app.js` deve declarar pré-requisitos, posição na cadeia, marcador de conclusão, idempotência, degradação, interação com wrappers e testes de ordem.
 
-- carregamento da extensão e do CSS pela cadeia oficial;
-- existência de um checkbox por NF de serviço dentro do cartão correto;
-- inexistência de checkbox duplicado na linha Consulta Assessoria;
-- manutenção dos selects individuais de análise técnica;
-- manutenção do resumo mensal agregado;
-- marcadores de início de programa para múltiplos programas;
-- comportamento responsivo sem perda de conteúdo;
-- ausência de nova regressão material nos gates automáticos do repositório.
-
-Não é necessário repetir migrations, backup/restauração ou mutações Supabase quando nenhum contrato de dados, Auth, RLS, RPC ou persistência tiver sido alterado.
-
-## 11. Evolução
-
-Nova extensão pós-`app.js` deve declarar pré-requisitos, marcador de conclusão, idempotência, degradação, interação com wrappers e testes de ordem. Novo carregador concorrente exige ADR.
+Novo carregador concorrente, telemetria remota, state library ou mudança estrutural de framework exige motivação e decisão próprias. Não são consequência automática da instrumentação atual.

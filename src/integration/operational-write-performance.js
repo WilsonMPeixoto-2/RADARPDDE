@@ -80,6 +80,68 @@
         return value == null ? '' : String(value).trim();
     }
 
+    function diagnosticsApi(root) {
+        const api = root?.RadarOperationalWriteDiagnostics;
+        return api && typeof api === 'object' ? api : null;
+    }
+
+    function activeTrace(root) {
+        try {
+            return diagnosticsApi(root)?.active?.(root) ?? null;
+        } catch (_error) {
+            return null;
+        }
+    }
+
+    function takeTrace(root, label) {
+        try {
+            return diagnosticsApi(root)?.take?.(root, label) ?? null;
+        } catch (_error) {
+            return null;
+        }
+    }
+
+    function markTrace(root, id, phase) {
+        if (id == null) return false;
+        try {
+            return diagnosticsApi(root)?.mark?.(root, id, phase) === true;
+        } catch (_error) {
+            return false;
+        }
+    }
+
+    function invokeWithTrace(root, id, callback) {
+        const diagnostics = diagnosticsApi(root);
+        if (id == null || typeof diagnostics?.withActive !== 'function') return callback();
+        return diagnostics.withActive(root, id, callback);
+    }
+
+    function scheduleStable(root, id) {
+        if (id == null) return false;
+        const finish = () => markTrace(root, id, 'stable');
+        try {
+            if (typeof root?.requestAnimationFrame === 'function') {
+                root.requestAnimationFrame(finish);
+                return true;
+            }
+            if (typeof root?.queueMicrotask === 'function') {
+                root.queueMicrotask(finish);
+                return true;
+            }
+            if (typeof queueMicrotask === 'function') {
+                queueMicrotask(finish);
+                return true;
+            }
+            if (typeof root?.setTimeout === 'function') {
+                root.setTimeout(finish, 0);
+                return true;
+            }
+        } catch (_error) {
+            return false;
+        }
+        return finish();
+    }
+
     function sanitizeRefreshExemptEntities(value) {
         if (!Array.isArray(value)) return [];
         return [...new Set(value.filter(entity => ALLOWED_REFRESH_EXEMPT_ENTITIES.has(entity)))];
@@ -149,13 +211,30 @@
         )];
     }
 
-    function patchDataService(dataService) {
+    function patchDataService(dataService, root) {
         if (!dataService || typeof dataService.execute !== 'function') return false;
         if (dataService.__radarOperationalWritePerformance === true) return true;
 
         const originalExecute = dataService.execute.bind(dataService);
         dataService.execute = function executeWithOperationalWritePolicy(command = {}) {
-            return originalExecute(decorateCommand(command));
+            const traceId = activeTrace(root);
+            let decorated = decorateCommand(command);
+            if (traceId != null && typeof decorated?.persist === 'function') {
+                const originalPersist = decorated.persist;
+                const persistThis = decorated;
+                decorated = {
+                    ...decorated,
+                    persist: async function tracedOperationalPersist(...args) {
+                        markTrace(root, traceId, 'rpcStart');
+                        try {
+                            return await originalPersist.apply(persistThis, args);
+                        } finally {
+                            markTrace(root, traceId, 'rpcEnd');
+                        }
+                    }
+                };
+            }
+            return originalExecute(decorated);
         };
         Object.defineProperty(dataService, '__radarOperationalWritePerformance', {
             value: true,
@@ -428,12 +507,13 @@
         if (original.__radarIncrementalInlineHandler === true) return true;
 
         const wrapped = async function incrementalInlineHandler(...args) {
+            const traceId = takeTrace(root, name);
             const schoolId = schoolIdForHandler(name, args);
             const compKeyBefore = compKeyForHandler(root, name, args);
             const release = suppressProntuarioRender(schoolId);
             let result;
             try {
-                result = await original.apply(this, args);
+                result = await invokeWithTrace(root, traceId, () => original.apply(this, args));
             } finally {
                 release();
             }
@@ -442,7 +522,15 @@
                 return false;
             }
             const compKey = compKeyBefore || compKeyForHandler(root, name, args);
-            if (compKey) syncProntuarioProgramUI(root, schoolId, compKey);
+            if (compKey) {
+                markTrace(root, traceId, 'applyStart');
+                try {
+                    syncProntuarioProgramUI(root, schoolId, compKey);
+                } finally {
+                    markTrace(root, traceId, 'applyEnd');
+                }
+            }
+            scheduleStable(root, traceId);
             return result;
         };
         Object.defineProperty(wrapped, '__radarIncrementalInlineHandler', {
@@ -461,7 +549,7 @@
     function install(root) {
         const dataServices = collectDataServices(root);
         if (dataServices.length === 0) return false;
-        const dataServicesPatched = dataServices.every(patchDataService);
+        const dataServicesPatched = dataServices.every(service => patchDataService(service, root));
         if (!dataServicesPatched) return false;
         if (!root?.document) return true;
         return patchInlineHandlers(root);

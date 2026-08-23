@@ -1,6 +1,6 @@
 # RADAR PDDE 2026 — Contexto funcional e arquitetural
 
-**Atualizado em:** 18 de agosto de 2026  
+**Atualizado em:** 23 de agosto de 2026  
 **Classe documental:** Canônico
 
 ## 1. Finalidade
@@ -24,7 +24,9 @@ Dashboard, Carteira, Competências, Prontuário, Pendências, Inventário, Regis
 
 O baseline mutável corrente fica em [`CURRENT_STAGE.md`](CURRENT_STAGE.md).
 
-O snapshot de encerramento de 18/08/2026 está em [`handoff/2026-08-18-encerramento-operacional.md`](handoff/2026-08-18-encerramento-operacional.md).
+O checkpoint canônico pós-PR #193 está em [`handoff/2026-08-23-post-pr-193.md`](handoff/2026-08-23-post-pr-193.md).
+
+O snapshot de encerramento de 18/08/2026 permanece histórico em [`handoff/2026-08-18-encerramento-operacional.md`](handoff/2026-08-18-encerramento-operacional.md).
 
 Este documento descreve contratos estáveis e não deve ser usado para presumir SHA, deployment, contagem de migrations ou versão de Edge Function sem nova consulta ao remoto.
 
@@ -34,11 +36,11 @@ Este documento descreve contratos estáveis e não deve ser usado para presumir 
 2. Supabase efetivo, incluindo schema, migrations, Auth, RLS, funções e dados;
 3. artefato implantado na Vercel e seu SHA;
 4. decisões funcionais vigentes;
-5. testes/evidências reproduzíveis;
+5. testes/evidências reproduzíveis que representem o contrato atual;
 6. documentação canônica;
-7. documentos históricos.
+7. documentos históricos e auditorias.
 
-Memória de chat, planos e auditorias anteriores não substituem verificação operacional.
+Memória de chat, planos e auditorias anteriores não substituem verificação operacional. Auditoria externa é evidência técnica, não autoridade de produto.
 
 ## 4. Perfis funcionais
 
@@ -115,12 +117,31 @@ escola + competência + programa
 
 A projeção canônica reúne consolidação, resultado, campos ausentes, bonificação, análise técnica, conclusão e pendências.
 
-Regras adicionais vigentes:
+Regras vigentes:
 
 - competências futuras podem ser vistas, mas não editadas;
 - após consolidação do prazo/bonificação, documento entregue fora do período não recebe `Correto` como situação regular;
 - quando tecnicamente correto e entregue após o prazo, usa-se `Correto (Atrasado)`;
-- bonificação, análise técnica e pendência permanecem dimensões diferentes.
+- bonificação, análise técnica e pendência permanecem dimensões diferentes;
+- `bonus_result` ausente significa preservar o valor existente; limpeza explicitamente solicitada é semanticamente diferente de campo ausente;
+- N/A → Sim/Não reinicializa derivações incompatíveis, incluindo análise técnica de NF para `Não analisado` quando aplicável;
+- operação semanticamente idêntica ao estado atual é idempotente e não deve produzir nova persistência, novo `row_version` ou novo log apenas por repetição do comando.
+
+### Persistência e atualização visual da avaliação
+
+Desde os PRs #190–#193, o caminho normal de sucesso é:
+
+```text
+interação
+→ feedback visual imediato
+→ persistência/RPC
+→ retorno autoritativo
+→ aplicação incremental do estado
+→ reconciliação localizada escola + competência + programa
+→ estabilização visual
+```
+
+`renderProntuario()` integral não é rotina de sucesso. Fica reservado a bootstrap, navegação, erro, retorno incompleto ou inconsistência que não possa ser reconciliada com segurança.
 
 ## 8. Pendências
 
@@ -133,9 +154,27 @@ Estados:
 
 Novo envio não resolve automaticamente. Reanálise positiva resolve; negativa reabre; cancelamento preserva motivo e autoria; regularização não apaga percurso.
 
+Conforme PEND-05, `Resolvida` e `Cancelada` podem voltar a `Aberta` quando a operação de reabertura for válida, sempre preservando histórico e auditoria.
+
 A ordenação operacional prioriza as pendências ativas mais antigas e, para estados encerrados, os acontecimentos mais recentes.
 
 A tabela `pendency_attempts` permanece sincronizada com o estado agregado das tentativas da pendência.
+
+### Datas de tentativa
+
+`available_at` registra quando o documento foi disponibilizado pela escola.
+
+`submitted_at` registra quando a tentativa foi lançada no RADAR.
+
+Esses campos são conceitualmente distintos e não devem ser colapsados em round-trips entre domínio, estado legado e Supabase.
+
+### Pendência de Assessoria vinculada à NF
+
+Pendência individual de Assessoria referencia a Nota Fiscal de origem por `registered_invoice_id`.
+
+NFs distintas podem possuir pendências ativas simultaneamente no mesmo programa/competência. A mesma NF não pode duplicar pendência ativa equivalente.
+
+A reanálise altera a NF vinculada e depois recalcula o agregado mensal, sem contaminar outras notas.
 
 ## 9. Timeline
 
@@ -160,6 +199,8 @@ Frontend
 ```
 
 O adaptador remoto usa paginação, lotes, erros padronizados, `row_version`, snapshots, RPCs, reconciliação e rollback.
+
+Políticas de retorno/commit autoritativo são aplicadas apenas aos comandos em que o contrato permite evitar refresh remoto redundante. `administrativeLogs` é a única entidade autorizada para a isenção ampla de refresh prevista nessa política; entidades mutáveis de negócio permanecem conservadoras quando necessário.
 
 ### Production fail-closed
 
@@ -240,7 +281,11 @@ Notas fiscais e bens permanentes participam de operações compostas.
 - nota permanente e bem derivado preservam contexto coerente;
 - quando uma nota perde/troca vínculo com bem derivado, o vínculo anterior é tratado na mesma operação protegida;
 - cada NF de serviço registra individualmente consulta à Assessoria e análise técnica;
+- `Assessoria = Incorreto` e a pendência obrigatória correspondente são persistidos de forma atômica;
+- pendências de Assessoria preservam `registered_invoice_id` canônico e compatibilidade com o vínculo legado quando necessário;
 - resumos mensais de Assessoria são derivados das NFs e não substituem a avaliação individual;
+- reanálise da Assessoria altera apenas a NF vinculada antes de recalcular o resumo;
+- depois que há histórico de pendência vinculada, a identidade estrutural necessária à rastreabilidade da NF fica protegida pelas regras correspondentes;
 - edição rápida de bem é restrita aos campos permitidos, com versão esperada e log;
 - encaminhamento e inventariação usam fluxo patrimonial próprio.
 
@@ -270,6 +315,8 @@ Ambiente candidato/isolado para validação. Preview não é publicação oficia
 
 Supabase Production canônico e frontend publicado na Vercel. Production é fail-closed e não usa seed/local como contingência silenciosa.
 
+Validações destrutivas não escrevem em Production; usam ambiente descartável/Preview quando necessárias.
+
 Consultar `CURRENT_STAGE.md` e o manifesto remoto para o baseline efetivo.
 
 ## 18. Excel SME
@@ -286,7 +333,7 @@ Contrato estável:
 - ausência deliberada de validações incompatíveis;
 - certificação OOXML e homologação desktop.
 
-## 19. Garantia operacional
+## 19. Garantia operacional e ferramentas
 
 O sistema possui camadas permanentes de:
 
@@ -299,7 +346,20 @@ O sistema possui camadas permanentes de:
 - health checks de dependências;
 - testes de banco, Auth e RLS.
 
+Ferramentas incorporadas no ciclo de estabilização de 23/08:
+
+- `fast-check` para testes de propriedades/invariantes;
+- MSW para falhas, timeout, latência, conflito e retorno remoto incompleto;
+- `dependency-cruiser` para gate arquitetural;
+- Performance API/PerformanceObserver nativos para diagnóstico local das escritas operacionais.
+
+A integração de métricas concluída no PR #194 usa probe limitada em memória e interface somente leitura `RadarOperationalWriteMetrics`. Não envia telemetria, não persiste métricas e não coleta identificadores/conteúdo de negócio. Falha da instrumentação é fail-open.
+
 A existência de um gate não o torna automaticamente obrigatório para toda alteração. A governança de testes define proporcionalidade ao risco.
+
+### Vulnerabilidades conhecidas
+
+As vulnerabilidades moderadas conhecidas na cadeia ExcelJS/UUID são risco conscientemente aceito no estado de 23/08. Não executar atualização forçada, `npm audit fix --force` ou troca rompente de biblioteca apenas para zerar o relatório. Acompanhar versões compatíveis e reavaliar se o risco ou a exposição mudar.
 
 ## 20. Confiabilidade funcional ponta a ponta
 
@@ -315,7 +375,7 @@ superfície
 → Auth/RLS
 → resposta
 → estado em memória
-→ renderização
+→ reconciliação/renderização
 → releitura após refresh
 → erro, conflito e compensação
 ```
@@ -332,9 +392,10 @@ Critérios de homologação incluem:
 - feedback de sucesso/erro;
 - coerência do dado salvo e exibido;
 - permanência após releitura;
-- navegação e retorno contextual.
+- navegação e retorno contextual;
+- fluidez das escritas inline sem reconstrução integral desnecessária da tela.
 
-No fechamento de 18/08/2026 o polimento priorizou notebooks 14–15" e monitores 21–24". Mobile preserva capacidade essencial, mas sua otimização de performance permaneceu melhoria não bloqueadora.
+No ciclo urgente de 22–23/08, otimização mobile não foi critério bloqueante. Mobile preserva capacidade essencial e pode voltar à prioridade por defeito real ou nova decisão explícita.
 
 ## 22. Restrições permanentes
 
@@ -343,6 +404,7 @@ Não é permitido:
 - alterar código para coincidir com documento histórico;
 - criar fonte paralela de competência, avaliação, timeline ou exportação;
 - voltar a filtrar automaticamente Pendências Operacionais pela competência global;
+- reintroduzir `renderProntuario()` integral como caminho normal depois de toda escrita bem-sucedida;
 - enfraquecer Auth, RLS ou autoria;
 - reintroduzir fallback silencioso local/seed em Production;
 - publicar seed institucional legado no bundle de Production;
@@ -354,17 +416,22 @@ Não é permitido:
 - inventar identidade institucional de escola;
 - liberar exportação sem os controles de auditoria previstos;
 - tratar PR aberto ou Preview como funcionalidade publicada;
-- declarar função pronta apenas pela presença visual.
+- declarar função pronta apenas pela presença visual;
+- forçar atualização de dependência conscientemente aceita sem avaliação de compatibilidade e risco.
 
 ## 23. Referências
 
 - [`CURRENT_STAGE.md`](CURRENT_STAGE.md);
+- [`handoff/2026-08-23-post-pr-193.md`](handoff/2026-08-23-post-pr-193.md);
 - [`handoff/2026-08-18-encerramento-operacional.md`](handoff/2026-08-18-encerramento-operacional.md);
 - [`DECISION_LOG.md`](DECISION_LOG.md);
 - [`decisions/ADR-044-pendencias-passivo-transversal.md`](decisions/ADR-044-pendencias-passivo-transversal.md);
 - [`decisions/ADR-045-production-fail-closed.md`](decisions/ADR-045-production-fail-closed.md);
+- [`superpowers/specs/2026-08-22-estabilizacao-avaliacoes-reais-design.md`](superpowers/specs/2026-08-22-estabilizacao-avaliacoes-reais-design.md);
+- [`superpowers/specs/2026-08-23-continuity-instrumentation-post-pr193-design.md`](superpowers/specs/2026-08-23-continuity-instrumentation-post-pr193-design.md);
 - [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md);
 - [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md);
+- [`architecture/product-extensions-load-order.md`](architecture/product-extensions-load-order.md);
 - [`architecture/testing.md`](architecture/testing.md);
 - [`architecture/supabase-readiness.md`](architecture/supabase-readiness.md);
 - [`runbooks/SUPABASE_CONNECTION.md`](runbooks/SUPABASE_CONNECTION.md).
