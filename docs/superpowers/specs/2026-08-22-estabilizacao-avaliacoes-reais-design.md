@@ -27,6 +27,8 @@ Cada pendência de Assessoria deve poder identificar a NF de origem por `registe
 
 A reanálise de uma pendência de Assessoria deve atualizar a NF vinculada e recalcular o resumo agregado sem alterar outras NFs.
 
+Depois que uma NF possuir histórico de pendência de Assessoria vinculada, sua identidade estrutural passa a ser imutável para preservar a rastreabilidade: escola, competência, programa e natureza da despesa não podem ser alterados e a NF não pode ser excluída fisicamente. Número, descrição, valor e demais campos não estruturais continuam corrigíveis pelas regras normais de edição.
+
 ### Transição N/A → Sim/Não
 
 Ao sair de `N/A` para `Sim` ou `Não`, a análise técnica de Nota Fiscal deve ser reinicializada para `Não analisado`, junto das demais derivações incompatíveis com o estado anterior.
