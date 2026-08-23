@@ -83,3 +83,12 @@ test('round-trip canônico preserva registeredInvoiceId sem contaminar pendênci
         'invoice-service-1'
     );
 });
+
+test('reload reconstrói registeredInvoiceId pela coluna canônica mesmo sem cópia no payload', () => {
+    const canonical = stateBridge.transformLegacyState(legacyState()).entities;
+    canonical.pendencies[0].payload = {};
+
+    const restored = stateBridge.canonicalEntitiesToLegacyState(canonical);
+
+    assert.equal(restored.pendencies[0].registeredInvoiceId, 'invoice-service-1');
+});
