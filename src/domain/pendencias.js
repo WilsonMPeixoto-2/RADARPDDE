@@ -620,8 +620,9 @@
     }
 
     function reopenPendency(pendency = {}, input = {}, audit = {}) {
-        if (normalizeText(pendency.status) !== PENDENCY_STATUS.RESOLVED) {
-            throw new Error('Somente pendências resolvidas podem ser reabertas.');
+        const status = normalizeText(pendency.status);
+        if (status !== PENDENCY_STATUS.RESOLVED && status !== PENDENCY_STATUS.CANCELLED) {
+            throw new Error('Somente pendências resolvidas ou canceladas podem ser reabertas.');
         }
 
         const justification = requireText(
