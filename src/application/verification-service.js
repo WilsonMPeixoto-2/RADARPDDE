@@ -272,6 +272,9 @@
                                 verification.analise.consAssessoria = 'Correto';
                                 verification.analise.notaFiscal = 'Correto';
                             } else if (value === 'Sim' || value === 'Não') {
+                                if (before.notaFiscal === 'Não se aplica') {
+                                    verification.analise.notaFiscal = 'Não analisado';
+                                }
                                 if (verification.bonificacao.encampInventario === 'Não se aplica') {
                                     verification.bonificacao.encampInventario = '';
                                     verification.analise.encampInventario = 'Não analisado';
