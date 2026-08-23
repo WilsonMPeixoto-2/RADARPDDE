@@ -54,6 +54,7 @@ function createHarness(remoteRecords = [{ id: 'V1', analysis: { extCC: 'before' 
     return {
         service,
         getLocal: () => clone(localRecords),
+        mutateLocal: mutation => mutation(localRecords),
         setRemote: records => { currentRemote = clone(records); },
         getRestoreCount: () => restoreCount,
         getApplyCount: () => applyCount
@@ -72,19 +73,24 @@ async function rpc(signal) {
     return response.json();
 }
 
-function writeCommand(persist) {
+function writeCommand(harness, persist) {
     return {
         name: 'verification:msw-write',
         changedEntities: ['verifications'],
-        mutate: () => ({ changed: true }),
+        mutate: () => {
+            harness.mutateLocal(records => {
+                records[0].analysis.extCC = 'optimistic';
+            });
+            return { changed: true };
+        },
         persist
     };
 }
 
 test.before(async () => {
     ({ http, HttpResponse, delay } = await import('msw'));
-    ({ setupServer: createServer } = await import('msw/node'));
-    server = createServer();
+    const { setupServer } = await import('msw/node');
+    server = setupServer();
     server.listen({ onUnhandledRequest: 'error' });
 });
 
@@ -99,11 +105,7 @@ test('500 remoto restaura o estado local e não confirma interface falsa', async
     const harness = createHarness();
 
     await assert.rejects(
-        () => harness.service.execute(writeCommand(async () => {
-            const state = harness.getLocal();
-            state[0].analysis.extCC = 'mutated';
-            return rpc();
-        })),
+        () => harness.service.execute(writeCommand(harness, () => rpc())),
         error => error?.code === 'REMOTE_FAILURE'
             || error?.code === 'TRANSACTION_FAILED'
             || error?.status === 500
@@ -120,7 +122,7 @@ test('timeout remoto restaura a mutação otimista', async () => {
     const harness = createHarness();
 
     await assert.rejects(
-        () => harness.service.execute(writeCommand(() => rpc(AbortSignal.timeout(10)))),
+        () => harness.service.execute(writeCommand(harness, () => rpc(AbortSignal.timeout(10)))),
         error => Boolean(error)
     );
     assert.equal(harness.getRestoreCount(), 1);
@@ -135,7 +137,7 @@ test('conflito de row_version é tratado como falha e preserva o estado anterior
     const harness = createHarness();
 
     await assert.rejects(
-        () => harness.service.execute(writeCommand(() => rpc())),
+        () => harness.service.execute(writeCommand(harness, () => rpc())),
         error => Boolean(error)
     );
     assert.equal(harness.getRestoreCount(), 1);
@@ -148,9 +150,8 @@ test('resposta autoritativa incompleta força reconciliação remota antes de es
     harness.setRemote([{ id: 'V1', analysis: { extCC: 'remote-authoritative' } }]);
 
     const result = await harness.service.execute({
-        ...writeCommand(() => rpc()),
-        remoteResultIsAuthoritative: true,
-        mutate: () => ({ changed: true })
+        ...writeCommand(harness, () => rpc()),
+        remoteResultIsAuthoritative: true
     });
 
     assert.equal(result.ok, true);
