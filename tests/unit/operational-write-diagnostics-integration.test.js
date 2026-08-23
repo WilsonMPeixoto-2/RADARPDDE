@@ -149,6 +149,72 @@ test('DataService instrumentado mede apenas a persistência customizada como RPC
     assert.equal(entry.durations.rpc, 10);
 });
 
+test('escrita inline instrumentada fecha click, feedback, RPC, aplicação e estabilidade', async () => {
+    const { root, setNow } = clockRoot();
+    root.document = {
+        querySelectorAll: () => []
+    };
+    root.renderProntuario = () => true;
+
+    const dataService = {
+        execute: async command => {
+            setNow(10);
+            const persisted = await command.persist({ source: 'fixture' });
+            setNow(20);
+            return persisted;
+        }
+    };
+    const state = { verifications: {}, registeredInvoices: [] };
+    root.RadarApplicationServices = {
+        verifications: {
+            dataService,
+            getState: () => state
+        }
+    };
+
+    root.toggleBonif = async () => dataService.execute({
+        name: 'verification:set-bonification',
+        persist: async context => {
+            assert.equal(context.source, 'fixture');
+            setNow(15);
+            return true;
+        }
+    });
+    root.changeAnaliseTecnica = async () => true;
+    root.toggleInvoiceAdvisorySent = async () => true;
+    root.changeInvoiceAdvisoryAnalysis = async () => true;
+    root.toggleConsEnviada = async () => true;
+
+    diagnostics.install(root);
+    assert.equal(performancePolicy.install(root), true);
+
+    setNow(0);
+    const id = diagnostics.begin(root, 'toggleBonif');
+    setNow(1);
+    diagnostics.mark(root, id, 'feedback');
+    diagnostics.enqueue(root, 'toggleBonif', id);
+
+    assert.equal(
+        await root.toggleBonif('school-opaque', '2026-08_program-opaque', 'notaFiscal', 'Sim'),
+        true
+    );
+
+    const entry = root.RadarOperationalWriteMetrics.snapshot()[0];
+    assert.equal(entry.click, 0);
+    assert.equal(entry.feedback, 1);
+    assert.equal(entry.rpcStart, 10);
+    assert.equal(entry.rpcEnd, 15);
+    assert.equal(entry.applyStart, 20);
+    assert.equal(entry.applyEnd, 20);
+    assert.equal(entry.stable, 21);
+    assert.deepEqual(entry.durations, {
+        clickToFeedback: 1,
+        rpc: 5,
+        apply: 0,
+        clickToStable: 21
+    });
+});
+
 test('probe continua limitada após integração e resumo não contém identificadores de negócio', () => {
     const { root, setNow } = clockRoot();
     diagnostics.install(root, { limit: 2 });
