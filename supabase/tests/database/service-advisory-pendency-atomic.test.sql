@@ -4,7 +4,7 @@ set local role postgres;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
 
-select plan(8);
+select plan(9);
 
 insert into auth.users (id, email)
 values ('00000000-0000-0000-0000-000000000196', 'advisory-atomic-admin@example.test');
