@@ -27,7 +27,9 @@
         '/src/integration/pendency-passive-queue-ux.js',
         '/src/integration/atomic-analysis-pendency.js',
         '/src/integration/service-advisory-pendency.js',
+        '/src/integration/service-advisory-corrective-submission.js',
         '/src/integration/operational-write-performance.js',
+        '/src/integration/prontuario-conditional-reconciler.js',
         '/src/integration/operational-write-feedback.js'
     ]);
 
