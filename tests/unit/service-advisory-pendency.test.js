@@ -86,7 +86,12 @@ function createRoot() {
         assertCapability: () => true,
         createId: prefix => `${prefix}-${++seq}`,
         now: () => '2026-08-23T10:00:00.000Z',
-        audit: () => ({ id: `audit-${++seq}`, dataHora: '2026-08-23T10:00:00.000Z' }),
+        audit: () => ({
+            id: `audit-${++seq}`,
+            dataHora: '2026-08-23T10:00:00.000Z',
+            usuario: 'Controlador Teste',
+            perfil: 'Controlador'
+        }),
         appendSchoolLog: (_schoolId, action, details) => {
             const log = { id: `log-${++seq}`, action, details };
             state.logs.push(log);
