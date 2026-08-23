@@ -181,6 +181,10 @@
         return normalizeText(context.competenciaOrigem || context.competencia);
     }
 
+    function getRegisteredInvoiceId(context = {}) {
+        return normalizeText(context.registeredInvoiceId || context.registered_invoice_id);
+    }
+
     function getStructuredContextParts(context = {}) {
         return [
             normalizeText(context.escolaId),
@@ -204,7 +208,16 @@
         }
 
         if (hasCompleteStructuredContext(pendency)) {
-            return buildDocumentContextKey(pendency) === buildDocumentContextKey(context);
+            if (buildDocumentContextKey(pendency) !== buildDocumentContextKey(context)) {
+                return false;
+            }
+            const documentKey = normalizeText(context.documentoKey);
+            const pendencyInvoiceId = getRegisteredInvoiceId(pendency);
+            const contextInvoiceId = getRegisteredInvoiceId(context);
+            if (documentKey === 'consAssessoria' && (pendencyInvoiceId || contextInvoiceId)) {
+                return pendencyInvoiceId === contextInvoiceId;
+            }
+            return true;
         }
 
         const pendencyParts = getStructuredContextParts(pendency);
@@ -306,6 +319,7 @@
             competenciaOrigem: competencia,
             programaId: requireText(input.programaId, 'Programa'),
             documentoKey: requireText(input.documentoKey, 'Documento'),
+            registeredInvoiceId: getRegisteredInvoiceId(input) || null,
             item: requireText(input.item, 'Item'),
             status,
             errosAtuais,
@@ -338,6 +352,7 @@
         next.tipo = documentary ? 'documental' : 'legada';
         next.competencia = competencia;
         next.competenciaOrigem = competencia;
+        next.registeredInvoiceId = getRegisteredInvoiceId(source) || null;
         next.errosAtuais = [...errors];
         next.motivo = legacyReason
             || errors[0]
