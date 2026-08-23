@@ -79,11 +79,11 @@ $$;
 revoke all on function public.register_service_advisory_attempt(jsonb, integer, jsonb, integer, jsonb, jsonb, integer, jsonb) from public, anon;
 grant execute on function public.register_service_advisory_attempt(jsonb, integer, jsonb, integer, jsonb, jsonb, integer, jsonb) to authenticated;
 
-create or replace function public.protect_service_advisory_invoice_history()
+create or replace function radar_private.protect_service_advisory_invoice_history()
 returns trigger
 language plpgsql
 security definer
-set search_path = pg_catalog, public
+set search_path = pg_catalog, public, radar_private
 as $$
 begin
     if not exists (
@@ -111,13 +111,16 @@ begin
 end
 $$;
 
+revoke all on function radar_private.protect_service_advisory_invoice_history()
+    from public, anon, authenticated;
+
 drop trigger if exists registered_invoices_protect_advisory_history_update
     on public.registered_invoices;
 create trigger registered_invoices_protect_advisory_history_update
 before update of school_id, competence_id, program_id, expense_type
 on public.registered_invoices
 for each row
-execute function public.protect_service_advisory_invoice_history();
+execute function radar_private.protect_service_advisory_invoice_history();
 
 drop trigger if exists registered_invoices_protect_advisory_history_delete
     on public.registered_invoices;
@@ -125,9 +128,9 @@ create trigger registered_invoices_protect_advisory_history_delete
 before delete
 on public.registered_invoices
 for each row
-execute function public.protect_service_advisory_invoice_history();
+execute function radar_private.protect_service_advisory_invoice_history();
 
-comment on function public.protect_service_advisory_invoice_history() is
+comment on function radar_private.protect_service_advisory_invoice_history() is
     'Impede apagar ou deslocar estruturalmente NF que já compõe histórico de pendência individual de Assessoria.';
 
 commit;
