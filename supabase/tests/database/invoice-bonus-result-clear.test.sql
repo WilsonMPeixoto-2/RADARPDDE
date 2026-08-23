@@ -4,7 +4,7 @@ set local role postgres;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
 
-select plan(4);
+select plan(8);
 
 insert into auth.users (id, email)
 values ('00000000-0000-0000-0000-000000000193', 'invoice-bonus-clear@example.test');
@@ -72,13 +72,13 @@ select lives_ok(
         p_expected_verification_version => 1
     )
     $$,
-    'patch sem bonus_result preserva a consolidação'
+    'save: patch sem bonus_result preserva a consolidação'
 );
 
 select is(
     (select bonus_result from public.verifications where id = '04.99.193::2028-09::BONUS_CLEAR'),
     'apta',
-    'campo bonus_result ausente preserva o valor existente'
+    'save: campo bonus_result ausente preserva o valor existente'
 );
 
 select lives_ok(
@@ -105,13 +105,87 @@ select lives_ok(
         p_expected_verification_version => 2
     )
     $$,
-    'patch com bonus_result vazio representa reabertura explícita'
+    'save: patch com bonus_result vazio representa reabertura explícita'
 );
 
 select is(
     (select bonus_result from public.verifications where id = '04.99.193::2028-09::BONUS_CLEAR'),
     null,
-    'campo bonus_result presente e vazio limpa a consolidação'
+    'save: campo bonus_result presente e vazio limpa a consolidação'
+);
+
+-- Reconstitui uma consolidação para provar a mesma semântica na exclusão atômica.
+update public.verifications
+set bonus_result = 'apta'
+where id = '04.99.193::2028-09::BONUS_CLEAR';
+
+select lives_ok(
+    $$
+    select public.delete_invoice_with_effects(
+        p_invoice_id => 'invoice-bonus-clear',
+        p_expected_invoice_version => 2,
+        p_verification_patch => jsonb_build_object(
+            'id', '04.99.193::2028-09::BONUS_CLEAR',
+            'analysis', jsonb_build_object('notaFiscal', 'Correto')
+        ),
+        p_expected_verification_version => 4
+    )
+    $$,
+    'delete: patch sem bonus_result preserva a consolidação'
+);
+
+select is(
+    (select bonus_result from public.verifications where id = '04.99.193::2028-09::BONUS_CLEAR'),
+    'apta',
+    'delete: campo bonus_result ausente preserva o valor existente'
+);
+
+insert into public.registered_invoices (
+    id,
+    school_id,
+    competence_id,
+    program_id,
+    verification_id,
+    source_context_key,
+    description,
+    expense_type,
+    invoice_number,
+    amount,
+    payload
+) values (
+    'invoice-bonus-clear-delete',
+    '04.99.193',
+    '2028-09',
+    'BONUS_CLEAR',
+    '04.99.193::2028-09::BONUS_CLEAR',
+    '2028-09_BONUS_CLEAR',
+    'Despesa removida para reabrir consolidação',
+    'consumo',
+    'NF-CLEAR-2',
+    50,
+    '{}'::jsonb
+);
+
+select lives_ok(
+    $$
+    select public.delete_invoice_with_effects(
+        p_invoice_id => 'invoice-bonus-clear-delete',
+        p_expected_invoice_version => 1,
+        p_verification_patch => jsonb_build_object(
+            'id', '04.99.193::2028-09::BONUS_CLEAR',
+            'analysis', jsonb_build_object('notaFiscal', 'Correto'),
+            'bonus_result', ''
+        ),
+        p_expected_verification_version => 5
+    )
+    $$,
+    'delete: patch com bonus_result vazio representa reabertura explícita'
+);
+
+select is(
+    (select bonus_result from public.verifications where id = '04.99.193::2028-09::BONUS_CLEAR'),
+    null,
+    'delete: campo bonus_result presente e vazio limpa a consolidação'
 );
 
 select * from finish();
