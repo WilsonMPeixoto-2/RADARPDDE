@@ -3,9 +3,14 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const integration = require('../../src/integration/service-advisory-pendency.js');
 const pendencyDomain = require('../../src/domain/pendencias.js');
 const accessPolicy = require('../../src/domain/access-policy.js');
+
+function freshIntegration() {
+    const resolved = require.resolve('../../src/integration/service-advisory-pendency.js');
+    delete require.cache[resolved];
+    return require(resolved);
+}
 
 function createRoot() {
     const state = {
@@ -125,6 +130,7 @@ function createRoot() {
 }
 
 test('reconhece pendência de Assessoria somente quando existe identidade da NF', () => {
+    const integration = freshIntegration();
     assert.equal(integration.isLinkedServiceAdvisoryPendency({
         documentoKey: 'consAssessoria',
         registeredInvoiceId: 'NF-A'
@@ -139,6 +145,7 @@ test('reconhece pendência de Assessoria somente quando existe identidade da NF'
 });
 
 test('Incorreto abre contexto da NF sem persistir análise antes da confirmação', async () => {
+    const integration = freshIntegration();
     const harness = createRoot();
     assert.equal(integration.install(harness.root), true);
     const select = { value: 'Incorreto' };
@@ -159,8 +166,8 @@ test('Incorreto abre contexto da NF sem persistir análise antes da confirmaçã
 });
 
 test('confirmação atômica altera somente a NF alvo e cria pendência vinculada', async () => {
+    const integration = freshIntegration();
     const harness = createRoot();
-    integration.clearPendingContext();
     assert.equal(integration.install(harness.root), true);
     await harness.root.changeInvoiceAdvisoryAnalysis('NF-A', 'ESC-1', 'Incorreto', { value: 'Incorreto' });
 
