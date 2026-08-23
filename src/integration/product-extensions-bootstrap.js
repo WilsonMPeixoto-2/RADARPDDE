@@ -29,6 +29,7 @@
         '/src/integration/invoice-history-lock.js',
         '/src/integration/service-advisory-pendency.js',
         '/src/integration/service-advisory-corrective-submission.js',
+        '/src/integration/operational-write-diagnostics.js',
         '/src/integration/operational-write-performance.js',
         '/src/integration/prontuario-conditional-reconciler.js',
         '/src/integration/operational-write-feedback.js'
