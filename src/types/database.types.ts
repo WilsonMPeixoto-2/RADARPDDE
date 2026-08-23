@@ -431,6 +431,7 @@ export type Database = {
           payload: Json
           program_id: string | null
           reason: string
+          registered_invoice_id: string | null
           resolved_at: string | null
           responsible_area: string
           row_version: number
@@ -450,6 +451,7 @@ export type Database = {
           payload?: Json
           program_id?: string | null
           reason?: string
+          registered_invoice_id?: string | null
           resolved_at?: string | null
           responsible_area?: string
           row_version?: number
@@ -469,6 +471,7 @@ export type Database = {
           payload?: Json
           program_id?: string | null
           reason?: string
+          registered_invoice_id?: string | null
           resolved_at?: string | null
           responsible_area?: string
           row_version?: number
@@ -492,6 +495,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "pendencies_registered_invoice_id_fkey"
+            columns: ["registered_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "registered_invoices"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "pendencies_school_id_fkey"
             columns: ["school_id"]
             isOneToOne: false
@@ -504,6 +514,7 @@ export type Database = {
         Row: {
           analyzed_at: string | null
           attempt_number: number
+          available_at: string | null
           created_at: string
           created_by: string | null
           drive_url: string
@@ -520,6 +531,7 @@ export type Database = {
         Insert: {
           analyzed_at?: string | null
           attempt_number: number
+          available_at?: string | null
           created_at?: string
           created_by?: string | null
           drive_url?: string
@@ -536,6 +548,7 @@ export type Database = {
         Update: {
           analyzed_at?: string | null
           attempt_number?: number
+          available_at?: string | null
           created_at?: string
           created_by?: string | null
           drive_url?: string
@@ -1175,6 +1188,32 @@ export type Database = {
         }
         Returns: Json
       }
+      reanalyze_service_advisory_pendency: {
+        Args: {
+          p_administrative_log: Json
+          p_attempt: Json
+          p_expected_invoice_version: number
+          p_expected_pendency_version: number
+          p_expected_verification_version: number
+          p_invoice: Json
+          p_pendency: Json
+          p_verification_patch: Json
+        }
+        Returns: Json
+      }
+      register_service_advisory_attempt: {
+        Args: {
+          p_administrative_log: Json
+          p_attempt: Json
+          p_expected_invoice_version: number
+          p_expected_pendency_version: number
+          p_expected_verification_version: number
+          p_invoice: Json
+          p_pendency: Json
+          p_verification_patch: Json
+        }
+        Returns: Json
+      }
       resolve_team_auth_user_id_by_email: {
         Args: { p_email: string }
         Returns: string
@@ -1250,6 +1289,17 @@ export type Database = {
           p_expected_school_version?: number
           p_programs: Json
           p_school: Json
+        }
+        Returns: Json
+      }
+      save_service_advisory_with_pendency: {
+        Args: {
+          p_administrative_log: Json
+          p_expected_invoice_version: number
+          p_expected_verification_version: number
+          p_invoice: Json
+          p_pendency: Json
+          p_verification_patch: Json
         }
         Returns: Json
       }
