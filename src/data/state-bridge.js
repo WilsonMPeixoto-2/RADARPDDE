@@ -378,7 +378,11 @@
                 competenciaOrigem: pendency.competence_origin,
                 programaId: pendency.program_id || null,
                 documentoKey: pendency.document_key,
-                registeredInvoiceId: pendency.registered_invoice_id || null,
+                registeredInvoiceId: text(
+                    pendency.registered_invoice_id
+                    || payload.registeredInvoiceId
+                    || payload.registered_invoice_id
+                ) || null,
                 status: pendency.status,
                 responsavel: pendency.responsible_area || '',
                 proximoAtor: pendency.next_actor || '',
