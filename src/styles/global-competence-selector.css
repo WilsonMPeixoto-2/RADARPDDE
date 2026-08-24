@@ -1,5 +1,5 @@
-@import url('./editorial-premium-desktop.css') screen and (min-width: 901px);
-@import url('./editorial-premium-desktop-dark.css') screen and (min-width: 901px);
+@import url('./editorial-premium-desktop.css') screen and (min-width: 641px);
+@import url('./editorial-premium-desktop-dark.css') screen and (min-width: 641px);
 
 .global-competence-control {
     display: grid;
@@ -44,34 +44,77 @@
     line-height: 1;
 }
 
-@media (min-width: 901px) {
+/*
+ * A partir de tablet/desktop a competência deixa de ser um controle neutro e
+ * passa a funcionar como âncora de contexto operacional. Mantém o mesmo select
+ * e a mesma persistência; muda apenas a hierarquia visual.
+ */
+@media (min-width: 641px) {
     .global-competence-control {
-        grid-template-columns: auto minmax(10.5rem, 1fr);
-        min-width: 17rem;
-        min-height: 3.5rem;
-        gap: 0.2rem 0.75rem;
-        padding: 0.45rem 0.55rem 0.45rem 0.8rem;
-        border-color: rgba(124, 58, 237, 0.3);
-        background: var(--primary-glow);
-        box-shadow: 0 4px 14px rgba(124, 58, 237, 0.1);
+        position: relative;
+        isolation: isolate;
+        grid-template-columns: 1fr;
+        width: clamp(15rem, 20vw, 19rem);
+        min-width: 15rem;
+        min-height: 4.45rem;
+        gap: 0.28rem;
+        padding: 0.72rem 0.88rem 0.76rem 1rem;
+        overflow: hidden;
+        border: 1px solid rgba(76, 29, 149, 0.52);
+        border-left: 6px solid #2563eb;
+        border-radius: 0.95rem;
+        background: linear-gradient(135deg, #4c1d95 0%, #6d28d9 58%, #7c3aed 100%);
+        box-shadow: 0 10px 24px rgba(76, 29, 149, 0.20);
+    }
+
+    .global-competence-control::after {
+        content: '';
+        position: absolute;
+        inset: auto 0 0 0;
+        height: 3px;
+        background: linear-gradient(90deg, #2563eb 0%, #60a5fa 38%, rgba(255,255,255,0.85) 100%);
+        z-index: -1;
     }
 
     .global-competence-control > label {
-        color: var(--primary);
-        font-size: 0.72rem;
+        color: rgba(255, 255, 255, 0.82);
+        font-size: 0.75rem;
         font-weight: 800;
-        letter-spacing: 0.045em;
+        letter-spacing: 0.075em;
+        line-height: 1.2;
+        text-transform: uppercase;
     }
 
     .global-competence-select {
-        min-height: 2.5rem;
-        padding: 0 2rem 0 0.75rem;
-        border: 1px solid rgba(124, 58, 237, 0.2);
-        border-radius: 0.55rem;
-        background-color: var(--bg-card);
-        color: var(--text-main);
-        font-size: 1rem;
+        min-height: 2.35rem;
+        padding: 0 2rem 0 0;
+        border: 0;
+        border-radius: 0;
+        background-color: transparent;
+        color: #ffffff;
+        font-family: var(--font-heading);
+        font-size: 1.18rem;
         font-weight: 800;
+        letter-spacing: -0.015em;
+        line-height: 1.2;
+        text-shadow: 0 1px 0 rgba(0, 0, 0, 0.12);
+    }
+
+    .global-competence-select option {
+        background: #ffffff;
+        color: #21162f;
+        font-family: var(--font-body);
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .global-competence-select:hover {
+        color: #ffffff;
+    }
+
+    .global-competence-select:focus-visible {
+        border-radius: 0.45rem;
+        box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.60);
     }
 
     .global-competence-current {
@@ -87,36 +130,16 @@
     }
 }
 
-@media (min-width: 901px) and (max-width: 1366px) {
+@media (min-width: 641px) and (max-width: 1100px) {
     .global-competence-control {
-        width: 15rem;
-        min-width: 15rem;
-        grid-template-columns: 4.75rem minmax(0, 1fr);
-        gap: 0.5rem;
-        padding-inline: 0.65rem;
-    }
-
-    .global-competence-control > label {
-        font-size: 0.64rem;
-        line-height: 1.15;
+        width: 14.5rem;
+        min-width: 14.5rem;
+        min-height: 4.15rem;
+        padding-inline: 0.82rem;
     }
 
     .global-competence-select {
-        min-width: 0;
-        padding-left: 0.6rem;
-        font-size: 0.92rem;
-    }
-}
-
-@media (max-width: 900px) {
-    .global-competence-control {
-        min-width: 10.5rem;
-        grid-template-columns: 1fr;
-        gap: 0.15rem;
-    }
-
-    .global-competence-current {
-        display: none;
+        font-size: 1.08rem;
     }
 }
 
@@ -124,6 +147,12 @@
     .global-competence-control {
         width: 100%;
         min-width: 0;
+        grid-template-columns: 1fr;
+        gap: 0.15rem;
+    }
+
+    .global-competence-current {
+        display: none;
     }
 
     .global-competence-select {
