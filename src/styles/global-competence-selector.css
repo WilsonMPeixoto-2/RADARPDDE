@@ -1,5 +1,6 @@
 @import url('./editorial-premium-desktop.css') screen and (min-width: 641px);
 @import url('./editorial-premium-desktop-dark.css') screen and (min-width: 641px);
+@import url('./prontuario-structural-v4.css') screen and (min-width: 641px);
 
 .global-competence-control {
     display: grid;
