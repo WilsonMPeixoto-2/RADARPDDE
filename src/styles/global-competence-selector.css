@@ -1,5 +1,5 @@
-@import url('./editorial-premium-desktop.css');
-@import url('./editorial-premium-desktop-dark.css');
+@import url('./editorial-premium-desktop.css') screen and (min-width: 901px);
+@import url('./editorial-premium-desktop-dark.css') screen and (min-width: 901px);
 
 .global-competence-control {
     display: grid;
