@@ -1,0 +1,322 @@
+/*
+ * RADAR PDDE — hierarquia editorial premium para as superfícies aprovadas do PR #195.
+ * Escopo deliberadamente desktop. Não altera comportamento, dados ou regras de negócio.
+ */
+
+@media (min-width: 901px) {
+    /* Contexto operacional: a competência precisa ser percebida antes dos controles auxiliares. */
+    .global-competence-control {
+        min-width: 18.5rem;
+        min-height: 4rem;
+        grid-template-columns: 7.2rem minmax(10rem, 1fr);
+        gap: 0.35rem 0.8rem;
+        padding: 0.55rem 0.65rem 0.55rem 0.9rem;
+        border: 1px solid rgba(124, 58, 237, 0.48);
+        border-left: 5px solid var(--primary);
+        border-radius: 0.85rem;
+        background-color: rgba(237, 233, 254, 0.88);
+        box-shadow: 0 8px 22px rgba(76, 29, 149, 0.12);
+    }
+
+    .global-competence-control > label {
+        color: var(--primary-dark);
+        font-size: 0.75rem;
+        font-weight: 800;
+        letter-spacing: 0.055em;
+        line-height: 1.2;
+    }
+
+    .global-competence-select {
+        min-height: 2.65rem;
+        padding: 0 2.15rem 0 0.85rem;
+        border: 1px solid rgba(124, 58, 237, 0.34);
+        border-radius: 0.65rem;
+        background-color: #ffffff;
+        color: var(--primary-dark);
+        font-family: var(--font-heading);
+        font-size: 1.125rem;
+        font-weight: 800;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+    }
+
+    .global-competence-select:hover {
+        border-color: rgba(124, 58, 237, 0.62);
+    }
+
+    .global-competence-select:focus-visible {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.16);
+    }
+
+    .radar-context-block {
+        min-width: 250px;
+        padding: 15px 18px 16px;
+        border: 1px solid rgba(124, 58, 237, 0.28);
+        border-left: 6px solid var(--primary);
+        border-radius: 14px;
+        background-color: rgba(245, 243, 255, 0.96);
+        box-shadow: 0 8px 22px rgba(76, 29, 149, 0.08);
+    }
+
+    .radar-context-label {
+        color: var(--accent-plum);
+        font-size: 0.75rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        line-height: 1.2;
+    }
+
+    .radar-context-value {
+        margin-top: 3px;
+        color: var(--primary-dark);
+        font-size: 1.375rem;
+        font-weight: 800;
+        letter-spacing: -0.015em;
+        line-height: 1.2;
+    }
+
+    /* Dossiê institucional: leitura em blocos, não lista corrida de banco de dados. */
+    .school-dossier {
+        border-color: rgba(124, 58, 237, 0.18);
+        border-radius: 18px;
+        background: #ffffff;
+        box-shadow: 0 12px 30px rgba(76, 29, 149, 0.08);
+    }
+
+    .school-dossier-header {
+        padding: 20px 26px;
+        border-bottom: 1px solid rgba(124, 58, 237, 0.22);
+        background-color: #4c1d95;
+    }
+
+    .school-dossier-header h2 {
+        color: #ffffff;
+        font-size: 1.25rem;
+        font-weight: 700;
+        letter-spacing: -0.015em;
+    }
+
+    .school-dossier-sections {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        background-color: #ffffff;
+    }
+
+    .radar-info-section {
+        padding: 23px 26px 24px;
+        border-color: rgba(124, 58, 237, 0.12);
+    }
+
+    .radar-info-section:nth-child(2),
+    .radar-info-section:nth-child(3) {
+        background-color: rgba(248, 247, 252, 0.74);
+    }
+
+    .radar-info-section h3 {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin: 0 0 18px;
+        color: var(--primary-dark);
+        font-size: 0.96rem;
+        font-weight: 800;
+        letter-spacing: 0.015em;
+    }
+
+    .radar-info-section h3::before {
+        content: '';
+        width: 4px;
+        height: 18px;
+        flex: 0 0 4px;
+        border-radius: 999px;
+        background-color: var(--primary);
+    }
+
+    .radar-info-grid {
+        gap: 18px 28px;
+    }
+
+    .radar-info-field {
+        min-width: 0;
+        padding: 0 0 12px;
+        border-bottom: 1px solid rgba(124, 58, 237, 0.10);
+    }
+
+    .radar-info-label {
+        color: #756987;
+        font-size: 0.75rem;
+        font-weight: 800;
+        letter-spacing: 0.055em;
+        line-height: 1.35;
+    }
+
+    .radar-info-value {
+        margin: 5px 0 0;
+        color: #201a30;
+        font-size: 0.97rem;
+        font-weight: 650;
+        line-height: 1.45;
+    }
+
+    .school-programs-card {
+        background-color: rgba(245, 243, 255, 0.78);
+    }
+
+    .school-program-list {
+        gap: 10px 12px;
+    }
+
+    .school-program-item {
+        padding: 10px 12px;
+        border-color: rgba(124, 58, 237, 0.22);
+        background-color: #ffffff;
+        color: var(--primary-dark);
+        font-size: 0.88rem;
+        font-weight: 700;
+    }
+
+    /* Cobrança: seleção e texto final são duas tarefas distintas e precisam parecer distintas. */
+    #modal-cobranca .modal-content {
+        width: min(1160px, calc(100vw - 56px));
+        max-height: calc(100vh - 44px);
+        border: 1px solid rgba(124, 58, 237, 0.18);
+        box-shadow: 0 24px 70px rgba(32, 26, 48, 0.24);
+    }
+
+    #modal-cobranca .modal-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid rgba(124, 58, 237, 0.14);
+    }
+
+    #modal-cobranca .modal-header h3 {
+        font-size: 1.22rem;
+        font-weight: 750;
+    }
+
+    .cobranca-modal-body {
+        padding: 20px 24px 22px;
+    }
+
+    .cobranca-guidance {
+        margin-bottom: 18px;
+        color: #655a75;
+        font-size: 0.89rem;
+        line-height: 1.6;
+    }
+
+    .cobranca-workspace {
+        grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.18fr);
+        gap: 22px;
+        height: min(560px, calc(100vh - 265px));
+        min-height: 390px;
+    }
+
+    .cobranca-selection-panel,
+    .cobranca-preview-panel {
+        border-color: rgba(124, 58, 237, 0.18);
+        border-radius: 14px;
+        background-color: #ffffff;
+        box-shadow: 0 7px 20px rgba(76, 29, 149, 0.05);
+    }
+
+    .cobranca-selection-panel h4,
+    .cobranca-preview-panel h4 {
+        padding: 16px 18px;
+        border-bottom-color: rgba(124, 58, 237, 0.14);
+        background-color: rgba(245, 243, 255, 0.86);
+        color: var(--primary-dark);
+        font-size: 0.96rem;
+        font-weight: 800;
+    }
+
+    .cobranca-options {
+        gap: 12px;
+        padding: 14px;
+    }
+
+    .cobranca-option {
+        gap: 12px;
+        padding: 15px 16px;
+        border-color: rgba(124, 58, 237, 0.15);
+        border-radius: 12px;
+        background-color: #ffffff;
+        box-shadow: 0 2px 8px rgba(76, 29, 149, 0.03);
+    }
+
+    .cobranca-option:has(input:checked) {
+        border-color: rgba(124, 58, 237, 0.42);
+        background-color: rgba(245, 243, 255, 0.88);
+        box-shadow: inset 4px 0 0 var(--primary);
+    }
+
+    .cobranca-option input {
+        width: 18px;
+        height: 18px;
+        margin-top: 2px;
+    }
+
+    .cobranca-option-content {
+        gap: 7px;
+    }
+
+    .cobranca-option-title {
+        color: #2a203a;
+        font-size: 0.88rem;
+        font-weight: 750;
+        line-height: 1.45;
+    }
+
+    .cobranca-option-detail {
+        color: #6d627d;
+        font-size: 0.82rem;
+        line-height: 1.58;
+    }
+
+    .cobranca-preview-panel .cobranca-preview {
+        margin: 16px;
+        padding: 22px 24px;
+        border-color: rgba(124, 58, 237, 0.14);
+        border-radius: 12px;
+        background-color: #fbfaff;
+        color: #2a203a;
+        font-family: var(--font-body);
+        font-size: 0.95rem;
+        font-weight: 450;
+        line-height: 1.7;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+    }
+
+    .cobranca-modal-footer {
+        padding: 16px 24px;
+        border-top: 1px solid rgba(124, 58, 237, 0.14);
+        background-color: #faf9fd;
+    }
+}
+
+@media (min-width: 901px) and (max-width: 1366px) {
+    .global-competence-control {
+        width: 16.75rem;
+        min-width: 16.75rem;
+        grid-template-columns: 6.35rem minmax(0, 1fr);
+        min-height: 3.85rem;
+    }
+
+    .global-competence-select {
+        font-size: 1.0625rem;
+    }
+
+    .radar-context-block {
+        min-width: 225px;
+    }
+
+    .radar-context-value {
+        font-size: 1.28rem;
+    }
+
+    .radar-info-section {
+        padding-inline: 22px;
+    }
+
+    #modal-cobranca .modal-content {
+        width: min(1100px, calc(100vw - 40px));
+    }
+}
