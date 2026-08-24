@@ -28,22 +28,31 @@ function pxValue(cssBlock, property) {
 }
 
 test('contrato editorial exige tipografia legível no dossiê e cobrança', () => {
-  assert.ok(pxValue(block(editorialStyles, '.radar-info-section h3'), 'font-size') >= 15);
-  assert.ok(pxValue(block(editorialStyles, '.radar-info-label'), 'font-size') >= 12);
-  assert.ok(pxValue(block(editorialStyles, '.radar-info-value'), 'font-size') >= 15);
-  assert.ok(pxValue(block(editorialStyles, '.cobranca-option-title'), 'font-size') >= 14);
-  assert.ok(pxValue(block(editorialStyles, '.cobranca-option-detail'), 'font-size') >= 13);
-  assert.ok(pxValue(block(editorialStyles, '.cobranca-preview-panel .cobranca-preview'), 'font-size') >= 15);
+  assert.ok(pxValue(block(editorialStyles, '.radar-info-section h3'), 'font-size') >= 16);
+  assert.ok(pxValue(block(editorialStyles, '.radar-info-label'), 'font-size') >= 11.5);
+  assert.ok(pxValue(block(editorialStyles, '.radar-info-value'), 'font-size') >= 16);
+  assert.ok(pxValue(block(editorialStyles, '.cobranca-option-title'), 'font-size') >= 15);
+  assert.ok(pxValue(block(editorialStyles, '.cobranca-option-detail'), 'font-size') >= 13.5);
+  assert.ok(pxValue(block(editorialStyles, '.cobranca-preview-panel .cobranca-preview'), 'font-size') >= 16);
 });
 
-test('contrato editorial exige competência ativa com peso visual superior', () => {
+test('contrato editorial exige competência ativa dominante e faixa azul preservada', () => {
   assert.match(
     competenceStyles,
-    /@import\s+url\(['"]\.\/editorial-premium-desktop\.css['"]\)/,
-    'A camada editorial precisa ser carregada pelo seletor global de competência'
+    /@import\s+url\(['"]\.\/editorial-premium-desktop\.css['"]\)\s+screen\s+and\s+\(min-width:\s*641px\)/,
+    'A camada editorial precisa estar disponível a partir de 641px'
   );
-  assert.ok(pxValue(block(editorialStyles, '.global-competence-control > label'), 'font-size') >= 12);
-  assert.ok(pxValue(block(editorialStyles, '.global-competence-select'), 'font-size') >= 17);
+  assert.ok(pxValue(block(competenceStyles, '.global-competence-control > label'), 'font-size') >= 12);
+  assert.ok(pxValue(block(competenceStyles, '.global-competence-select'), 'font-size') >= 18);
+  assert.match(block(competenceStyles, '.global-competence-control'), /border-left\s*:\s*6px\s+solid\s+#2563eb/i);
+  assert.match(block(competenceStyles, '.global-competence-control'), /linear-gradient\([^;]*#4c1d95[^;]*#6d28d9/i);
   assert.ok(pxValue(block(editorialStyles, '.radar-context-label'), 'font-size') >= 12);
-  assert.ok(pxValue(block(editorialStyles, '.radar-context-value'), 'font-size') >= 20);
+  assert.ok(pxValue(block(editorialStyles, '.radar-context-value'), 'font-size') >= 22);
+});
+
+test('dossiê usa blocos editoriais separados em vez de folha branca contínua', () => {
+  assert.match(block(editorialStyles, '.school-dossier-sections'), /gap\s*:\s*1rem/);
+  assert.match(block(editorialStyles, '.radar-info-section'), /border-radius\s*:\s*0\.9rem/);
+  assert.match(block(editorialStyles, '.radar-info-field'), /border-left\s*:\s*3px\s+solid/);
+  assert.match(block(editorialStyles, '.school-dossier-header'), /linear-gradient/);
 });
