@@ -1,24 +1,24 @@
 /* Compatibilidade da camada editorial premium com o tema escuro existente. */
 
 @media (min-width: 641px) {
-    body.dark-theme .global-competence-control {
+    body.dark-theme #global-competence-badge.global-competence-control {
         border-color: rgba(96, 165, 250, 0.5);
         border-left-color: #60a5fa;
-        background: linear-gradient(135deg, #2b1550 0%, #4c1d95 60%, #5b21b6 100%);
+        background: #3f176f linear-gradient(135deg, #2b1550 0%, #4c1d95 60%, #5b21b6 100%);
         box-shadow: 0 10px 24px rgba(0, 0, 0, 0.30);
     }
 
-    body.dark-theme .global-competence-control > label {
+    body.dark-theme #global-competence-badge.global-competence-control > label {
         color: rgba(255, 255, 255, 0.78);
     }
 
-    body.dark-theme .global-competence-select {
+    body.dark-theme #global-competence-badge.global-competence-control .global-competence-select {
         color: #ffffff;
         background: transparent;
         box-shadow: none;
     }
 
-    body.dark-theme .global-competence-select option {
+    body.dark-theme #global-competence-badge.global-competence-control .global-competence-select option {
         background: #171220;
         color: var(--text-main);
     }
