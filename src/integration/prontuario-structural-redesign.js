@@ -4,6 +4,10 @@
     if (!root || typeof document === 'undefined') return;
 
     const MIN_WIDTH = 641;
+    const MONTHS = [
+        'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
     let scheduled = false;
     let observer = null;
 
@@ -18,6 +22,74 @@
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/^-|-$/g, '');
+    }
+
+    function getActiveCompetenceKey() {
+        const activeTab = document.querySelector(
+            '#tab-verificacoes .comp-sub-tab.active[data-competence], '
+            + '#tab-verificacoes .comp-sub-tab[aria-pressed="true"][data-competence]'
+        );
+        const tabKey = String(activeTab?.dataset?.competence || '').trim();
+        if (tabKey) return tabKey;
+        return String(root.RadarCompetenceContext?.getState?.().activeKey || '').trim();
+    }
+
+    function formatCompetenceLabel(key) {
+        if (!key) return '';
+        try {
+            const formatted = root.RadarCompetencia?.formatCompetencia?.(key);
+            if (formatted) return String(formatted).replace('/', ' ');
+        } catch (_error) {
+            // Fallback local abaixo.
+        }
+
+        const match = /^(\d{4})-(0[1-9]|1[0-2])$/.exec(key);
+        if (!match) return key;
+        return `${MONTHS[Number(match[2]) - 1]} ${match[1]}`;
+    }
+
+    function ensureProntuarioCompetenceContext() {
+        if (root.innerWidth < MIN_WIDTH) return false;
+        const main = document.querySelector('#main-container');
+        const pageHeader = main?.querySelector(':scope > .page-header');
+        const dossier = main?.querySelector('.school-dossier');
+        if (!pageHeader || !dossier) return false;
+
+        let context = main.querySelector('.radar-prontuario-context');
+        if (!context) {
+            context = document.createElement('div');
+            context.className = 'radar-context-block radar-prontuario-context';
+            context.dataset.radarCompetenceContext = 'true';
+            context.setAttribute('role', 'status');
+            context.setAttribute('aria-label', 'Competência ativa');
+
+            const primary = document.createElement('div');
+            primary.className = 'radar-context-primary';
+
+            const label = document.createElement('span');
+            label.className = 'radar-context-label';
+            label.textContent = 'Competência ativa';
+
+            const value = document.createElement('strong');
+            value.className = 'radar-context-value';
+
+            const exercise = document.createElement('span');
+            exercise.className = 'radar-context-exercise';
+
+            primary.append(label, value);
+            context.append(primary, exercise);
+            pageHeader.insertAdjacentElement('afterend', context);
+        }
+
+        const key = getActiveCompetenceKey();
+        const value = context.querySelector('.radar-context-value');
+        const exercise = context.querySelector('.radar-context-exercise');
+        if (value) value.textContent = formatCompetenceLabel(key);
+        if (exercise) {
+            const match = /^(\d{4})-/.exec(key);
+            exercise.textContent = match ? `Exercício ${match[1]}` : '';
+        }
+        return true;
     }
 
     function markDossier() {
@@ -114,6 +186,7 @@
     function enhance() {
         scheduled = false;
         if (root.innerWidth < MIN_WIDTH) return;
+        ensureProntuarioCompetenceContext();
         markDossier();
         decorateVerificationRows();
     }
