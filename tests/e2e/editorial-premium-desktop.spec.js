@@ -24,8 +24,8 @@ async function openControladorSchool(page) {
     activeProntuarioCompetencia = competenceKey;
     switchView('prontuario', school.id);
   });
-  await expect(page.locator('.school-dossier')).toBeVisible();
-  await expect(page.locator('.radar-program-review-stack')).toBeVisible();
+  await expect(page.locator('.school-dossier.radar-school-summary-v4')).toBeVisible();
+  await expect(page.locator('#prontuario-verif-rows.radar-program-ledger-body-v4')).toBeVisible();
 }
 
 async function openSchoolWithCollectionPendencies(page) {
@@ -81,7 +81,7 @@ async function attachPng(testInfo, name, buffer) {
   await testInfo.attach(name, { body: buffer, contentType: 'image/png' });
 }
 
-test.describe('direção estrutural do prontuário no desktop', () => {
+test.describe('direção estrutural v4 do prontuário no desktop', () => {
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Contrato visual exclusivo do desktop.');
     await page.setViewportSize({ width: 1440, height: 900 });
@@ -127,74 +127,73 @@ test.describe('direção estrutural do prontuário no desktop', () => {
     await attachPng(testInfo, 'competencia-dashboard.png', await page.screenshot({ fullPage: true }));
   });
 
-  test('resumo institucional abandona banner pesado e mini-cards, ficando compacto', async ({ page }, testInfo) => {
+  test('ficha institucional usa leitura de formulário e ocupa menos altura', async ({ page }, testInfo) => {
     await openControladorSchool(page);
 
     const metrics = await page.evaluate(() => {
       const dossier = document.querySelector('.school-dossier');
-      const header = dossier.querySelector('.school-dossier-header');
       const sections = dossier.querySelector('.school-dossier-sections');
-      const section = dossier.querySelector('.radar-info-section[data-section="identificacao"]');
-      const field = section.querySelector('.radar-info-field');
+      const field = dossier.querySelector('.radar-info-field');
       const label = field.querySelector('.radar-info-label');
       const value = field.querySelector('.radar-info-value');
+      const fieldStyle = getComputedStyle(field);
       return {
         dossierHeight: dossier.getBoundingClientRect().height,
         sectionColumns: getComputedStyle(sections).gridTemplateColumns.split(' ').filter(Boolean).length,
-        headerColor: getComputedStyle(header).color,
-        headerBackground: getComputedStyle(header).backgroundImage,
-        sectionRadius: parseFloat(getComputedStyle(section).borderTopLeftRadius),
-        sectionShadow: getComputedStyle(section).boxShadow,
-        fieldRadius: parseFloat(getComputedStyle(field).borderTopLeftRadius),
-        fieldAccent: parseFloat(getComputedStyle(field).borderLeftWidth),
+        fieldDisplay: fieldStyle.display,
+        fieldColumns: fieldStyle.gridTemplateColumns.split(' ').filter(Boolean).length,
         labelFont: parseFloat(getComputedStyle(label).fontSize),
         valueFont: parseFloat(getComputedStyle(value).fontSize)
       };
     });
 
-    await expect(page.locator('.radar-school-summary-kicker')).toHaveText('Cadastro da unidade');
-    expect(metrics.dossierHeight).toBeLessThan(520);
-    expect(metrics.sectionColumns).toBeGreaterThanOrEqual(4);
-    expect(metrics.headerBackground).toContain('linear-gradient');
-    expect(metrics.sectionRadius).toBeLessThanOrEqual(1);
-    expect(metrics.sectionShadow).toBe('none');
-    expect(metrics.fieldRadius).toBeLessThanOrEqual(1);
-    expect(metrics.fieldAccent).toBeLessThanOrEqual(1);
+    await expect(page.locator('.radar-school-summary-kicker')).toHaveText('Ficha institucional');
+    expect(metrics.dossierHeight).toBeLessThan(560);
+    expect(metrics.sectionColumns).toBe(2);
+    expect(metrics.fieldDisplay).toBe('grid');
+    expect(metrics.fieldColumns).toBe(2);
     expect(metrics.labelFont).toBeGreaterThanOrEqual(11);
     expect(metrics.valueFont).toBeGreaterThanOrEqual(15);
 
-    await attachPng(testInfo, 'dossie-institucional-v4.png', await page.locator('.school-dossier').screenshot());
+    await attachPng(testInfo, 'ficha-institucional-v4.png', await page.locator('.school-dossier').screenshot());
   });
 
-  test('acompanhamento mensal é agrupado por programa em vez de uma tabela monolítica', async ({ page }, testInfo) => {
+  test('acompanhamento mensal vira blocos visuais por programa sem mover controles do tbody', async ({ page }, testInfo) => {
     await openControladorSchool(page);
 
-    const stack = page.locator('.radar-program-review-stack');
-    const programs = stack.locator('.radar-program-review');
-    await expect(programs.first()).toBeVisible();
-    expect(await programs.count()).toBeGreaterThanOrEqual(1);
+    const tbody = page.locator('#prontuario-verif-rows');
+    const rows = tbody.locator(':scope > tr[data-program-id]');
+    await expect(rows.first()).toBeVisible();
+    expect(await rows.count()).toBeGreaterThanOrEqual(1);
 
-    await expect(stack.locator('td[rowspan]')).toHaveCount(0);
-    await expect(stack.locator('.radar-program-review-header').first()).toBeVisible();
-    await expect(stack.locator('.radar-program-review-title').first()).not.toHaveText('');
-    await expect(stack.locator('.radar-program-review-table').first()).toBeVisible();
+    const firstProgram = tbody.locator('.radar-program-row-v4--first').first();
+    const meta = firstProgram.locator(':scope > .radar-program-meta-v4');
+    await expect(firstProgram).toBeVisible();
+    await expect(meta).toBeVisible();
+    await expect(meta.locator('.radar-program-meta-name-v4')).not.toHaveText('');
+    await expect(firstProgram.locator('.radar-program-field-v4').first()).toBeVisible();
 
     const geometry = await page.evaluate(() => {
       const main = document.querySelector('main.content-area');
-      const stackElement = document.querySelector('.radar-program-review-stack');
-      const firstProgram = stackElement.querySelector('.radar-program-review');
-      const originalMonolithicTable = document.querySelector('#tab-verificacoes .table-responsive > table.data-table tbody > tr td[rowspan]');
+      const tbodyElement = document.querySelector('#prontuario-verif-rows');
+      const firstRow = tbodyElement.querySelector('.radar-program-row-v4--first');
+      const metaCell = firstRow.querySelector('.radar-program-meta-v4');
+      const originalRowspan = tbodyElement.querySelector('tr[data-program-id] td[rowspan]');
+      const controlsInsideOriginalTbody = tbodyElement.querySelectorAll('button, input, select, textarea').length;
       return {
         hasHorizontalOverflow: main.scrollWidth > main.clientWidth + 1,
-        firstProgramWidth: firstProgram.getBoundingClientRect().width,
-        stackWidth: stackElement.getBoundingClientRect().width,
-        originalRowspanStillPresent: Boolean(originalMonolithicTable)
+        rowDisplay: getComputedStyle(firstRow).display,
+        metaFullWidth: getComputedStyle(metaCell).gridColumnEnd === '-1',
+        originalRowspanStillPresent: Boolean(originalRowspan),
+        controlsInsideOriginalTbody
       };
     });
 
     expect(geometry.hasHorizontalOverflow).toBe(false);
-    expect(geometry.firstProgramWidth).toBeGreaterThan(geometry.stackWidth * 0.95);
-    expect(geometry.originalRowspanStillPresent).toBe(false);
+    expect(geometry.rowDisplay).toBe('grid');
+    expect(geometry.metaFullWidth).toBe(true);
+    expect(geometry.originalRowspanStillPresent).toBe(true);
+    expect(geometry.controlsInsideOriginalTbody).toBeGreaterThan(0);
 
     await attachPng(testInfo, 'acompanhamento-programas-v4.png', await page.locator('#tab-verificacoes').screenshot());
   });
@@ -233,7 +232,7 @@ test.describe('direção estrutural do prontuário no desktop', () => {
     await attachPng(testInfo, 'modal-cobranca-v4.png', await page.locator('#modal-cobranca .modal-content').screenshot());
   });
 
-  test('em 820px o prontuário troca a tabela larga por linhas de documento em grade', async ({ page }, testInfo) => {
+  test('em 820px ficha e acompanhamento assumem leitura de duas colunas sem overflow', async ({ page }, testInfo) => {
     await page.setViewportSize({ width: 820, height: 1100 });
     await openControladorSchool(page);
 
@@ -242,7 +241,7 @@ test.describe('direção estrutural do prontuário no desktop', () => {
       const select = selector.querySelector('select');
       const main = document.querySelector('main.content-area');
       const sections = document.querySelector('.school-dossier-sections');
-      const row = document.querySelector('.radar-program-review-row');
+      const row = document.querySelector('.radar-program-row-v4');
       const rowStyle = getComputedStyle(row);
       return {
         selectorAccent: parseFloat(getComputedStyle(selector).borderLeftWidth),
@@ -256,7 +255,7 @@ test.describe('direção estrutural do prontuário no desktop', () => {
 
     expect(metrics.selectorAccent).toBeGreaterThanOrEqual(5);
     expect(metrics.selectorValueFont).toBeGreaterThanOrEqual(17);
-    expect(metrics.dossierColumns).toBe(2);
+    expect(metrics.dossierColumns).toBe(1);
     expect(metrics.reviewRowDisplay).toBe('grid');
     expect(metrics.reviewRowColumns).toBe(2);
     expect(metrics.hasHorizontalOverflow).toBe(false);
