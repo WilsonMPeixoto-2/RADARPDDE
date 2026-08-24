@@ -76,13 +76,17 @@ function alphaFromColor(color) {
   return match[1] === undefined ? 1 : Number.parseFloat(match[1]);
 }
 
+async function attachPng(testInfo, name, buffer) {
+  await testInfo.attach(name, { body: buffer, contentType: 'image/png' });
+}
+
 test.describe('direção editorial premium no desktop', () => {
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Contrato visual exclusivo do desktop.');
     await page.setViewportSize({ width: 1440, height: 900 });
   });
 
-  test('competência ativa tem presença visual inequívoca no topo e no contexto da página', async ({ page }) => {
+  test('competência ativa tem presença visual inequívoca no topo e no contexto da página', async ({ page }, testInfo) => {
     await page.goto('/');
     await waitForAuthorizedRadar(page);
     await page.evaluate(() => {
@@ -105,6 +109,8 @@ test.describe('direção editorial premium no desktop', () => {
       return {
         selectorHeight: selectorElement.getBoundingClientRect().height,
         selectorBackground: selectorStyle.backgroundColor,
+        selectorBackgroundImage: selectorStyle.backgroundImage,
+        selectorAccentWidth: parseFloat(selectorStyle.borderLeftWidth),
         selectorLabelFont: parseFloat(getComputedStyle(label).fontSize),
         selectorValueFont: parseFloat(getComputedStyle(select).fontSize),
         contextLabelFont: parseFloat(getComputedStyle(contextLabel).fontSize),
@@ -118,43 +124,57 @@ test.describe('direção editorial premium no desktop', () => {
     expect(metrics.selectorHeight).toBeGreaterThanOrEqual(60);
     expect(metrics.selectorLabelFont).toBeGreaterThanOrEqual(12);
     expect(metrics.selectorValueFont).toBeGreaterThanOrEqual(17);
+    expect(metrics.selectorAccentWidth).toBeGreaterThanOrEqual(5);
+    expect(metrics.selectorBackgroundImage).toContain('linear-gradient');
     expect(alphaFromColor(metrics.selectorBackground)).toBeGreaterThanOrEqual(0.18);
     expect(metrics.contextLabelFont).toBeGreaterThanOrEqual(12);
     expect(metrics.contextValueFont).toBeGreaterThanOrEqual(20);
     expect(metrics.contextAccentWidth).toBeGreaterThanOrEqual(5);
+
+    await attachPng(testInfo, 'competencia-dashboard.png', await page.screenshot({ fullPage: true }));
   });
 
-  test('dossiê escolar diferencia claramente seção, rótulo e valor', async ({ page }) => {
+  test('dossiê escolar diferencia claramente seção, rótulo e valor', async ({ page }, testInfo) => {
     await openControladorSchool(page);
     const metrics = await page.evaluate(() => {
+      const dossier = document.querySelector('.school-dossier');
       const section = document.querySelector('.radar-info-section[data-section="identificacao"]');
       const title = section.querySelector('h3');
       const field = section.querySelector('.radar-info-field');
       const label = field.querySelector('.radar-info-label');
       const value = field.querySelector('.radar-info-value');
+      const dossierStyle = getComputedStyle(dossier.querySelector('.school-dossier-header'));
+      const sectionStyle = getComputedStyle(section);
       const fieldStyle = getComputedStyle(field);
       return {
+        dossierHeaderBackground: dossierStyle.backgroundImage,
         sectionTitleFont: parseFloat(getComputedStyle(title).fontSize),
         labelFont: parseFloat(getComputedStyle(label).fontSize),
         valueFont: parseFloat(getComputedStyle(value).fontSize),
         valueWeight: Number.parseInt(getComputedStyle(value).fontWeight, 10),
-        fieldDivider: parseFloat(fieldStyle.borderBottomWidth),
+        sectionRadius: parseFloat(sectionStyle.borderTopLeftRadius),
+        fieldAccent: parseFloat(fieldStyle.borderLeftWidth),
         fieldPaddingBottom: parseFloat(fieldStyle.paddingBottom)
       };
     });
 
+    expect(metrics.dossierHeaderBackground).toContain('linear-gradient');
     expect(metrics.sectionTitleFont).toBeGreaterThanOrEqual(15);
     expect(metrics.labelFont).toBeGreaterThanOrEqual(12);
     expect(metrics.valueFont).toBeGreaterThanOrEqual(15);
     expect(metrics.valueWeight).toBeGreaterThanOrEqual(600);
-    expect(metrics.fieldDivider).toBeGreaterThanOrEqual(1);
+    expect(metrics.sectionRadius).toBeGreaterThanOrEqual(12);
+    expect(metrics.fieldAccent).toBeGreaterThanOrEqual(3);
     expect(metrics.fieldPaddingBottom).toBeGreaterThanOrEqual(10);
+
+    await attachPng(testInfo, 'dossie-institucional.png', await page.locator('.school-dossier').screenshot());
   });
 
-  test('modal de cobrança prioriza leitura confortável da seleção e da mensagem', async ({ page }) => {
+  test('modal de cobrança prioriza leitura confortável da seleção e da mensagem', async ({ page }, testInfo) => {
     await openSchoolWithCollectionPendencies(page);
     const metrics = await page.evaluate(() => {
       const modal = document.querySelector('#modal-cobranca');
+      const modalHeader = modal.querySelector('.modal-header');
       const heading = modal.querySelector('.cobranca-preview-panel h4');
       const option = modal.querySelector('.cobranca-option');
       const optionTitle = modal.querySelector('.cobranca-option-title');
@@ -163,6 +183,7 @@ test.describe('direção editorial premium no desktop', () => {
       const optionStyle = getComputedStyle(option);
       const previewStyle = getComputedStyle(preview);
       return {
+        modalHeaderBackground: getComputedStyle(modalHeader).backgroundImage,
         panelHeadingFont: parseFloat(getComputedStyle(heading).fontSize),
         optionTitleFont: parseFloat(getComputedStyle(optionTitle).fontSize),
         optionDetailFont: parseFloat(getComputedStyle(optionDetail).fontSize),
@@ -172,11 +193,39 @@ test.describe('direção editorial premium no desktop', () => {
       };
     });
 
+    expect(metrics.modalHeaderBackground).toContain('linear-gradient');
     expect(metrics.panelHeadingFont).toBeGreaterThanOrEqual(15);
     expect(metrics.optionTitleFont).toBeGreaterThanOrEqual(14);
     expect(metrics.optionDetailFont).toBeGreaterThanOrEqual(13);
     expect(metrics.optionPaddingTop).toBeGreaterThanOrEqual(14);
     expect(metrics.previewFont).toBeGreaterThanOrEqual(15);
     expect(metrics.previewLineHeight).toBeGreaterThanOrEqual(24);
+
+    await attachPng(testInfo, 'modal-cobranca.png', await page.locator('#modal-cobranca .modal-content').screenshot());
+  });
+
+  test('hierarquia premium continua ativa na janela intermediária usada na revisão visual', async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: 820, height: 1100 });
+    await openControladorSchool(page);
+
+    const metrics = await page.evaluate(() => {
+      const selector = document.querySelector('#global-competence-badge');
+      const select = selector.querySelector('select');
+      const dossierHeader = document.querySelector('.school-dossier-header');
+      const selectorStyle = getComputedStyle(selector);
+      return {
+        selectorAccent: parseFloat(selectorStyle.borderLeftWidth),
+        selectorBackground: selectorStyle.backgroundImage,
+        selectorValueFont: parseFloat(getComputedStyle(select).fontSize),
+        dossierHeaderBackground: getComputedStyle(dossierHeader).backgroundImage
+      };
+    });
+
+    expect(metrics.selectorAccent).toBeGreaterThanOrEqual(5);
+    expect(metrics.selectorBackground).toContain('linear-gradient');
+    expect(metrics.selectorValueFont).toBeGreaterThanOrEqual(17);
+    expect(metrics.dossierHeaderBackground).toContain('linear-gradient');
+
+    await attachPng(testInfo, 'janela-intermediaria-dossie.png', await page.screenshot({ fullPage: true }));
   });
 });
