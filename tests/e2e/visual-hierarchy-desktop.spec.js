@@ -1,4 +1,5 @@
 const { test, expect } = require('@playwright/test');
+const AxeBuilder = require('@axe-core/playwright').default;
 
 async function waitForAuthorizedRadar(page) {
   await page.waitForFunction(() => (
@@ -222,5 +223,63 @@ test.describe('hierarquia visual operacional no desktop', () => {
     await expect(preview).not.toContainText('Extrato Investimento');
     await expect(preview).toContainText(`Prezado(a) Diretor(a) de ${seeded.schoolName}`);
     await expect(preview).toContainText('Atenciosamente');
+
+    const accessibility = await new AxeBuilder({ page })
+      .include('#modal-cobranca')
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+      .analyze();
+    const seriousOrCritical = accessibility.violations.filter(violation => (
+      violation.impact === 'serious' || violation.impact === 'critical'
+    ));
+    expect(seriousOrCritical).toEqual([]);
+  });
+
+  test('mantém dossiê e cobrança íntegros em notebook de 1280 por 800', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await openSchoolWithCollectionPendencies(page);
+
+    const dossierGeometry = await page.evaluate(() => {
+      const main = document.querySelector('main.content-area');
+      const dossier = document.querySelector('.school-dossier');
+      const header = dossier.querySelector('.school-dossier-header');
+      const sections = dossier.querySelector('.school-dossier-sections');
+      const workspace = document.querySelector('.school-workspace');
+      const dossierRect = dossier.getBoundingClientRect();
+      const headerRect = header.getBoundingClientRect();
+      const sectionsRect = sections.getBoundingClientRect();
+      return {
+        headerFullWidth: Math.abs(headerRect.width - dossierRect.width) <= 2,
+        sectionsBelowHeader: sectionsRect.top >= headerRect.bottom - 1,
+        sectionsFullWidth: Math.abs(sectionsRect.width - dossierRect.width) <= 2,
+        workspaceBelow: workspace.getBoundingClientRect().top >= dossierRect.bottom,
+        hasHorizontalOverflow: main.scrollWidth > main.clientWidth + 1
+      };
+    });
+    expect(dossierGeometry).toEqual({
+      headerFullWidth: true,
+      sectionsBelowHeader: true,
+      sectionsFullWidth: true,
+      workspaceBelow: true,
+      hasHorizontalOverflow: false
+    });
+
+    await page.getByRole('button', { name: 'Gerar Cobrança', exact: true }).click();
+    const modal = page.locator('#modal-cobranca');
+    const modalGeometry = await modal.evaluate(element => {
+      const content = element.querySelector('.modal-content').getBoundingClientRect();
+      const selection = element.querySelector('.cobranca-selection-panel').getBoundingClientRect();
+      const preview = element.querySelector('.cobranca-preview-panel').getBoundingClientRect();
+      const footer = element.querySelector('.modal-footer').getBoundingClientRect();
+      return {
+        sideBySide: preview.left > selection.right,
+        contentInsideViewport: content.left >= 0 && content.right <= window.innerWidth,
+        footerVisible: footer.bottom <= window.innerHeight
+      };
+    });
+    expect(modalGeometry).toEqual({
+      sideBySide: true,
+      contentInsideViewport: true,
+      footerVisible: true
+    });
   });
 });

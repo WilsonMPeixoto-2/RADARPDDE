@@ -84,6 +84,27 @@
     }
 }
 
+@media (min-width: 901px) and (max-width: 1366px) {
+    .global-competence-control {
+        width: 15rem;
+        min-width: 15rem;
+        grid-template-columns: 4.75rem minmax(0, 1fr);
+        gap: 0.5rem;
+        padding-inline: 0.65rem;
+    }
+
+    .global-competence-control > label {
+        font-size: 0.64rem;
+        line-height: 1.15;
+    }
+
+    .global-competence-select {
+        min-width: 0;
+        padding-left: 0.6rem;
+        font-size: 0.92rem;
+    }
+}
+
 @media (max-width: 900px) {
     .global-competence-control {
         min-width: 10.5rem;

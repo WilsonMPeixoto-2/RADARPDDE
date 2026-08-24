@@ -289,10 +289,14 @@ body:not(.dark-theme) .pendency-error-summary {
         gap: 14px;
     }
 
-    .school-sidebar {
+    .school-sidebar:not(.school-dossier) {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
         gap: 12px;
+    }
+
+    .school-sidebar.school-dossier {
+        display: block;
     }
 
     .school-info-card {
