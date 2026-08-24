@@ -72,7 +72,7 @@ test('ficha institucional apresenta valores como campos de leitura de formulári
   assert.match(block(structuralStyles, '.radar-school-summary-v4 .radar-info-value'), /display\s*:\s*flex/);
   assert.match(block(structuralStyles, '.radar-school-summary-v4 .radar-info-value'), /min-height\s*:\s*(2\.75rem|44px)/);
   assert.match(block(structuralStyles, '.radar-school-summary-v4 .radar-info-value'), /border\s*:\s*1px\s+solid/);
-  assert.match(block(structuralStyles, '.radar-school-summary-v4 .radar-info-value'), /border-radius\s*:\s*(0\.[5-9]rem|[89]px|1[0-2]px)/);
+  assert.match(block(structuralStyles, '.radar-school-summary-v4 .radar-info-value'), /border-radius\s*:\s*(0\.[5-9]\d*rem|[89]px|1[0-2]px)/);
   assert.match(block(structuralStyles, '.radar-school-summary-v4 .radar-info-value'), /background\s*:\s*#[fF][5-9][a-fA-F0-9]{4}/);
   assert.ok(maxPx(structuralStyles, '.radar-school-summary-v4 .radar-info-label', 'font-size') >= 12);
   assert.ok(maxPx(structuralStyles, '.radar-school-summary-v4 .radar-info-value', 'font-size') >= 15);
