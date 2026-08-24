@@ -47,10 +47,12 @@
 /*
  * A partir de tablet/desktop a competência deixa de ser um controle neutro e
  * passa a funcionar como âncora de contexto operacional. Mantém o mesmo select
- * e a mesma persistência; muda apenas a hierarquia visual.
+ * e a mesma persistência; muda apenas a hierarquia visual. O ID dá prioridade
+ * explícita sobre as camadas antigas de densidade/tema para que o contexto seja
+ * realmente idêntico em Dashboard, Carteira, Prontuário e demais telas.
  */
 @media (min-width: 641px) {
-    .global-competence-control {
+    #global-competence-badge.global-competence-control {
         position: relative;
         isolation: isolate;
         grid-template-columns: 1fr;
@@ -67,7 +69,7 @@
         box-shadow: 0 10px 24px rgba(76, 29, 149, 0.20);
     }
 
-    .global-competence-control::after {
+    #global-competence-badge.global-competence-control::after {
         content: '';
         position: absolute;
         inset: auto 0 0 0;
@@ -76,7 +78,7 @@
         z-index: -1;
     }
 
-    .global-competence-control > label {
+    #global-competence-badge.global-competence-control > label {
         color: rgba(255, 255, 255, 0.82);
         font-size: 0.75rem;
         font-weight: 800;
@@ -85,7 +87,7 @@
         text-transform: uppercase;
     }
 
-    .global-competence-select {
+    #global-competence-badge.global-competence-control .global-competence-select {
         min-height: 2.35rem;
         padding: 0 2rem 0 0;
         border: 0;
@@ -100,7 +102,7 @@
         text-shadow: 0 1px 0 rgba(0, 0, 0, 0.12);
     }
 
-    .global-competence-select option {
+    #global-competence-badge.global-competence-control .global-competence-select option {
         background: #ffffff;
         color: #21162f;
         font-family: var(--font-body);
@@ -108,16 +110,16 @@
         font-weight: 600;
     }
 
-    .global-competence-select:hover {
+    #global-competence-badge.global-competence-control .global-competence-select:hover {
         color: #ffffff;
     }
 
-    .global-competence-select:focus-visible {
+    #global-competence-badge.global-competence-control .global-competence-select:focus-visible {
         border-radius: 0.45rem;
         box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.60);
     }
 
-    .global-competence-current {
+    #global-competence-badge.global-competence-control .global-competence-current {
         position: absolute;
         width: 1px;
         height: 1px;
@@ -131,14 +133,14 @@
 }
 
 @media (min-width: 641px) and (max-width: 1100px) {
-    .global-competence-control {
+    #global-competence-badge.global-competence-control {
         width: 14.5rem;
         min-width: 14.5rem;
         min-height: 4.15rem;
         padding-inline: 0.82rem;
     }
 
-    .global-competence-select {
+    #global-competence-badge.global-competence-control .global-competence-select {
         font-size: 1.08rem;
     }
 }
