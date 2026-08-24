@@ -45,13 +45,6 @@
     line-height: 1;
 }
 
-/*
- * A partir de tablet/desktop a competência deixa de ser um controle neutro e
- * passa a funcionar como âncora de contexto operacional. Mantém o mesmo select
- * e a mesma persistência; muda apenas a hierarquia visual. O ID dá prioridade
- * explícita sobre as camadas antigas de densidade/tema para que o contexto seja
- * realmente idêntico em Dashboard, Carteira, Prontuário e demais telas.
- */
 @media (min-width: 641px) {
     #global-competence-badge.global-competence-control {
         position: relative;
@@ -63,11 +56,11 @@
         gap: 0.28rem;
         padding: 0.72rem 0.88rem 0.76rem 1rem;
         overflow: hidden;
-        border: 1px solid rgba(76, 29, 149, 0.52);
-        border-left: 6px solid #2563eb;
+        border: 1px solid rgba(34, 211, 238, 0.36);
+        border-left: 6px solid #22d3ee;
         border-radius: 0.95rem;
-        background: #5b21b6 linear-gradient(135deg, #4c1d95 0%, #6d28d9 58%, #7c3aed 100%);
-        box-shadow: 0 10px 24px rgba(76, 29, 149, 0.20);
+        background: #0b4f6c linear-gradient(135deg, #0b3b56 0%, #0b4f6c 58%, #0e7490 100%);
+        box-shadow: 0 10px 24px rgba(11, 79, 108, 0.20);
     }
 
     #global-competence-badge.global-competence-control::after {
@@ -75,12 +68,12 @@
         position: absolute;
         inset: auto 0 0 0;
         height: 3px;
-        background: linear-gradient(90deg, #2563eb 0%, #60a5fa 38%, rgba(255,255,255,0.85) 100%);
+        background: linear-gradient(90deg, #22d3ee 0%, #67e8f9 42%, rgba(255, 255, 255, 0.88) 100%);
         z-index: -1;
     }
 
     #global-competence-badge.global-competence-control > label {
-        color: rgba(255, 255, 255, 0.82);
+        color: rgba(255, 255, 255, 0.76);
         font-size: 0.75rem;
         font-weight: 800;
         letter-spacing: 0.075em;
@@ -105,7 +98,7 @@
 
     #global-competence-badge.global-competence-control .global-competence-select option {
         background: #ffffff;
-        color: #21162f;
+        color: #123747;
         font-family: var(--font-body);
         font-size: 1rem;
         font-weight: 600;
@@ -117,7 +110,7 @@
 
     #global-competence-badge.global-competence-control .global-competence-select:focus-visible {
         border-radius: 0.45rem;
-        box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.60);
+        box-shadow: 0 0 0 3px rgba(103, 232, 249, 0.58);
     }
 
     #global-competence-badge.global-competence-control .global-competence-current {
