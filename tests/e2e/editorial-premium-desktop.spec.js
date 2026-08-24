@@ -86,7 +86,7 @@ test.describe('direção editorial premium no desktop', () => {
     await page.setViewportSize({ width: 1440, height: 900 });
   });
 
-  test('competência ativa tem presença visual inequívoca no topo e no contexto da página', async ({ page }, testInfo) => {
+  test('competência ativa tem presença visual inequívoca no topo sem repetição visual', async ({ page }, testInfo) => {
     await page.goto('/');
     await waitForAuthorizedRadar(page);
     await page.evaluate(() => {
@@ -101,49 +101,43 @@ test.describe('direção editorial premium no desktop', () => {
       const selectorElement = document.querySelector('#global-competence-badge');
       const label = selectorElement.querySelector('label');
       const select = selectorElement.querySelector('select');
-      const contextElement = document.querySelector('[data-radar-competence-context]');
-      const contextLabel = contextElement.querySelector('.radar-context-label');
-      const contextValue = contextElement.querySelector('.radar-context-value');
       const selectorStyle = getComputedStyle(selectorElement);
-      const contextStyle = getComputedStyle(contextElement);
       return {
         selectorHeight: selectorElement.getBoundingClientRect().height,
         selectorBackground: selectorStyle.backgroundColor,
         selectorBackgroundImage: selectorStyle.backgroundImage,
         selectorAccentWidth: parseFloat(selectorStyle.borderLeftWidth),
         selectorLabelFont: parseFloat(getComputedStyle(label).fontSize),
-        selectorValueFont: parseFloat(getComputedStyle(select).fontSize),
-        contextLabelFont: parseFloat(getComputedStyle(contextLabel).fontSize),
-        contextValueFont: parseFloat(getComputedStyle(contextValue).fontSize),
-        contextAccentWidth: parseFloat(contextStyle.borderLeftWidth)
+        selectorValueFont: parseFloat(getComputedStyle(select).fontSize)
       };
     });
 
     await expect(selector).toContainText('Competência ativa');
-    await expect(context).toContainText('Agosto 2026');
+    await expect(page.locator('#global-competence-select')).toHaveValue('2026-08');
+    await expect(context).toHaveCount(1);
+    await expect(context).toBeHidden();
     expect(metrics.selectorHeight).toBeGreaterThanOrEqual(60);
     expect(metrics.selectorLabelFont).toBeGreaterThanOrEqual(12);
-    expect(metrics.selectorValueFont).toBeGreaterThanOrEqual(17);
+    expect(metrics.selectorValueFont).toBeGreaterThanOrEqual(18);
     expect(metrics.selectorAccentWidth).toBeGreaterThanOrEqual(5);
     expect(metrics.selectorBackgroundImage).toContain('linear-gradient');
     expect(alphaFromColor(metrics.selectorBackground)).toBeGreaterThanOrEqual(0.18);
-    expect(metrics.contextLabelFont).toBeGreaterThanOrEqual(12);
-    expect(metrics.contextValueFont).toBeGreaterThanOrEqual(20);
-    expect(metrics.contextAccentWidth).toBeGreaterThanOrEqual(5);
 
     await attachPng(testInfo, 'competencia-dashboard.png', await page.screenshot({ fullPage: true }));
   });
 
-  test('dossiê escolar diferencia claramente seção, rótulo e valor', async ({ page }, testInfo) => {
+  test('dossiê escolar funciona como ficha contínua e diferencia seção, rótulo e valor', async ({ page }, testInfo) => {
     await openControladorSchool(page);
     const metrics = await page.evaluate(() => {
       const dossier = document.querySelector('.school-dossier');
-      const section = document.querySelector('.radar-info-section[data-section="identificacao"]');
+      const sections = dossier.querySelector('.school-dossier-sections');
+      const section = dossier.querySelector('.radar-info-section[data-section="identificacao"]');
       const title = section.querySelector('h3');
       const field = section.querySelector('.radar-info-field');
       const label = field.querySelector('.radar-info-label');
       const value = field.querySelector('.radar-info-value');
       const dossierStyle = getComputedStyle(dossier.querySelector('.school-dossier-header'));
+      const sectionsStyle = getComputedStyle(sections);
       const sectionStyle = getComputedStyle(section);
       const fieldStyle = getComputedStyle(field);
       return {
@@ -152,20 +146,28 @@ test.describe('direção editorial premium no desktop', () => {
         labelFont: parseFloat(getComputedStyle(label).fontSize),
         valueFont: parseFloat(getComputedStyle(value).fontSize),
         valueWeight: Number.parseInt(getComputedStyle(value).fontWeight, 10),
+        sectionsGap: parseFloat(sectionsStyle.columnGap),
         sectionRadius: parseFloat(sectionStyle.borderTopLeftRadius),
+        sectionShadow: sectionStyle.boxShadow,
+        fieldRadius: parseFloat(fieldStyle.borderTopLeftRadius),
         fieldAccent: parseFloat(fieldStyle.borderLeftWidth),
+        fieldDivider: parseFloat(fieldStyle.borderBottomWidth),
         fieldPaddingBottom: parseFloat(fieldStyle.paddingBottom)
       };
     });
 
     expect(metrics.dossierHeaderBackground).toContain('linear-gradient');
-    expect(metrics.sectionTitleFont).toBeGreaterThanOrEqual(15);
+    expect(metrics.sectionTitleFont).toBeGreaterThanOrEqual(16);
     expect(metrics.labelFont).toBeGreaterThanOrEqual(12);
-    expect(metrics.valueFont).toBeGreaterThanOrEqual(15);
+    expect(metrics.valueFont).toBeGreaterThanOrEqual(16);
     expect(metrics.valueWeight).toBeGreaterThanOrEqual(600);
-    expect(metrics.sectionRadius).toBeGreaterThanOrEqual(12);
-    expect(metrics.fieldAccent).toBeGreaterThanOrEqual(3);
-    expect(metrics.fieldPaddingBottom).toBeGreaterThanOrEqual(10);
+    expect(metrics.sectionsGap).toBe(0);
+    expect(metrics.sectionRadius).toBeLessThanOrEqual(1);
+    expect(metrics.sectionShadow).toBe('none');
+    expect(metrics.fieldRadius).toBeLessThanOrEqual(1);
+    expect(metrics.fieldAccent).toBeLessThanOrEqual(1);
+    expect(metrics.fieldDivider).toBeGreaterThanOrEqual(1);
+    expect(metrics.fieldPaddingBottom).toBeGreaterThanOrEqual(12);
 
     await attachPng(testInfo, 'dossie-institucional.png', await page.locator('.school-dossier').screenshot());
   });
