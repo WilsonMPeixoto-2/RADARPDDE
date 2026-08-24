@@ -1,27 +1,85 @@
 /*
- * RADAR PDDE — estrutura visual v4 do prontuário (desktop/tablet).
- * Mantém o DOM operacional original e reorganiza a leitura sem mover controles.
+ * RADAR PDDE — ficha institucional e prontuário operacional v5.
+ * Desktop/tablet >= 641px. Mantém o DOM e os controles operacionais originais.
  */
 
 @media (min-width: 641px) {
     /* ================================================================
+       CONTEXTO DA COMPETÊNCIA
+       Visível perto da área de trabalho, não apenas na barra global.
+       ================================================================ */
+    .radar-context-block {
+        display: flex !important;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.5rem;
+        min-height: 5.4rem;
+        margin: 0 0 1.25rem;
+        padding: 1rem 1.35rem 1.05rem;
+        overflow: hidden;
+        border: 1px solid rgba(34, 211, 238, 0.34);
+        border-left: 6px solid #22d3ee;
+        border-radius: 1rem;
+        background: linear-gradient(105deg, #0b3b56 0%, #0b4f6c 64%, #0e7490 100%);
+        color: #ffffff;
+        box-shadow: 0 10px 26px rgba(11, 79, 108, 0.15);
+    }
+
+    .radar-context-primary {
+        display: grid;
+        gap: 0.28rem;
+        min-width: 0;
+    }
+
+    .radar-context-label {
+        color: rgba(255, 255, 255, 0.72) !important;
+        font-size: 0.78rem !important;
+        font-weight: 800 !important;
+        letter-spacing: 0.085em !important;
+        line-height: 1.2;
+        text-transform: uppercase;
+    }
+
+    .radar-context-value {
+        color: #ffffff !important;
+        font-family: var(--font-heading);
+        font-size: 1.65rem !important;
+        font-weight: 850 !important;
+        letter-spacing: -0.025em;
+        line-height: 1.1;
+    }
+
+    .radar-context-exercise {
+        flex: 0 0 auto;
+        color: rgba(255, 255, 255, 0.88);
+        font-size: 1.05rem;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+
+    .radar-prontuario-context {
+        margin-top: -0.1rem;
+    }
+
+    /* ================================================================
        FICHA INSTITUCIONAL
+       Linguagem de formulário somente leitura, inspirada em ficha técnica.
        ================================================================ */
     .school-dossier.radar-school-summary-v4 {
         overflow: hidden;
-        border: 1px solid rgba(54, 37, 79, 0.13);
-        border-radius: 0.9rem;
-        background: #fff;
-        box-shadow: 0 6px 18px rgba(43, 28, 64, 0.045);
+        border: 1px solid #d7e0e8;
+        border-radius: 1rem;
+        background: #ffffff;
+        box-shadow: 0 7px 22px rgba(25, 48, 67, 0.055);
     }
 
     .radar-school-summary-v4 .school-dossier-header {
         display: flex;
         align-items: baseline;
-        gap: 0.75rem;
-        padding: 0.88rem 1.2rem;
-        border-bottom: 1px solid rgba(54, 37, 79, 0.11);
-        background: #faf9fd;
+        gap: 0.8rem;
+        padding: 1rem 1.3rem 0.95rem;
+        border-bottom: 1px solid #e1e7ed;
+        background: #fbfcfd;
     }
 
     .radar-school-summary-v4 .school-dossier-header::after {
@@ -30,121 +88,130 @@
 
     .radar-school-summary-v4 .radar-school-summary-kicker {
         flex: 0 0 auto;
-        padding-right: 0.72rem;
-        border-right: 3px solid #2563eb;
-        color: #2563eb;
-        font-size: 0.68rem;
+        color: #0891b2;
+        font-size: 0.72rem;
         font-weight: 850;
-        letter-spacing: 0.085em;
+        letter-spacing: 0.075em;
         text-transform: uppercase;
     }
 
     .radar-school-summary-v4 .school-dossier-header h2 {
         margin: 0;
-        color: #251832;
-        font-size: 1.02rem;
+        color: #1f2a37;
+        font-family: var(--font-heading);
+        font-size: 1.08rem;
         font-weight: 800;
         letter-spacing: -0.015em;
     }
 
     .radar-school-summary-v4 .school-dossier-sections {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: 1fr;
         gap: 0;
         padding: 0;
-        background: #fff;
+        background: #ffffff;
     }
 
     .radar-school-summary-v4 .radar-info-section {
         min-width: 0;
-        padding: 0.95rem 1.15rem 1rem;
+        padding: 1.08rem 1.3rem 1.2rem;
         border: 0 !important;
-        border-bottom: 1px solid rgba(54, 37, 79, 0.09) !important;
+        border-bottom: 1px solid #e4e9ee !important;
         border-radius: 0 !important;
-        background: #fff !important;
+        background: #ffffff !important;
         box-shadow: none !important;
     }
 
-    .radar-school-summary-v4 .radar-info-section:nth-child(odd):not([data-section="programas"]) {
-        border-right: 1px solid rgba(54, 37, 79, 0.09) !important;
-    }
-
-    .radar-school-summary-v4 .radar-info-section[data-section="programas"] {
-        grid-column: 1 / -1;
-        display: grid;
-        grid-template-columns: 9.5rem minmax(0, 1fr);
-        align-items: center;
-        gap: 0.85rem;
-        padding-block: 0.78rem;
+    .radar-school-summary-v4 .radar-info-section:last-child {
         border-bottom: 0 !important;
-        background: #faf9fd !important;
     }
 
     .radar-school-summary-v4 .radar-info-section h3 {
         display: flex;
         align-items: center;
-        gap: 0.45rem;
-        margin: 0 0 0.68rem;
-        color: #4c1d95;
-        font-size: 0.88rem;
-        font-weight: 800;
-        letter-spacing: -0.006em;
+        gap: 0.55rem;
+        margin: 0 0 0.92rem;
+        padding-bottom: 0.58rem;
+        border-bottom: 1px solid #dce4ea;
+        color: #0891b2;
+        font-family: var(--font-heading);
+        font-size: 0.94rem;
+        font-weight: 850;
+        letter-spacing: 0.025em;
+        line-height: 1.2;
+        text-transform: uppercase;
     }
 
     .radar-school-summary-v4 .radar-info-section h3::before {
         content: '';
-        width: 3px;
-        height: 0.88rem;
-        flex: 0 0 3px;
-        border-radius: 99px;
-        background: #7c3aed;
-    }
-
-    .radar-school-summary-v4 .radar-info-section[data-section="programas"] h3 {
-        margin: 0;
+        width: 0.42rem;
+        height: 0.42rem;
+        flex: 0 0 0.42rem;
+        border: 2px solid #06b6d4;
+        border-radius: 2px;
+        background: #ecfeff;
     }
 
     .radar-school-summary-v4 .radar-info-grid {
         display: grid;
-        grid-template-columns: 1fr;
-        gap: 0;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.85rem 1rem;
         margin: 0;
     }
 
+    .radar-school-summary-v4 .radar-info-section[data-section="identificacao"] .radar-info-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .radar-school-summary-v4 .radar-info-section[data-section="gestao"] .radar-info-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .radar-school-summary-v4 .radar-info-section[data-section="contatos"] .radar-info-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .radar-school-summary-v4 .radar-info-section[data-section="vinculacao"] .radar-info-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
     .radar-school-summary-v4 .radar-info-field {
-        display: grid;
-        grid-template-columns: minmax(7.8rem, 0.82fr) minmax(0, 1.18fr);
-        align-items: baseline;
-        gap: 0.8rem;
+        display: block;
         min-width: 0;
-        padding: 0.48rem 0;
+        padding: 0;
         border: 0 !important;
-        border-top: 1px solid rgba(54, 37, 79, 0.065) !important;
         border-radius: 0 !important;
         background: transparent !important;
     }
 
-    .radar-school-summary-v4 .radar-info-field:first-child {
-        border-top: 0 !important;
-    }
-
     .radar-school-summary-v4 .radar-info-label {
-        margin: 0;
-        color: #81758b;
-        font-size: 0.7rem;
-        font-weight: 800;
-        letter-spacing: 0.045em;
-        line-height: 1.3;
-        text-transform: uppercase;
+        display: block;
+        margin: 0 0 0.38rem;
+        color: #52616f;
+        font-size: 0.76rem;
+        font-weight: 750;
+        letter-spacing: 0.012em;
+        line-height: 1.25;
+        text-transform: none;
     }
 
     .radar-school-summary-v4 .radar-info-value {
+        display: flex;
+        align-items: center;
+        min-height: 2.75rem;
         margin: 0;
-        color: #251832;
-        font-size: 0.94rem;
+        padding: 0.68rem 0.8rem;
+        border: 1px solid #b9c6d1;
+        border-radius: 0.65rem;
+        background: #f7f9fb;
+        color: #182434;
+        font-family: var(--font-body);
+        font-size: 0.96rem;
         font-weight: 650;
-        line-height: 1.38;
+        letter-spacing: -0.003em;
+        line-height: 1.35;
         overflow-wrap: anywhere;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
     }
 
     .radar-school-summary-v4 .radar-info-section[data-section="gestao"] .radar-info-value,
@@ -152,21 +219,25 @@
         font-weight: 700;
     }
 
+    .radar-school-summary-v4 .radar-info-section[data-section="programas"] {
+        background: #fbfcfd !important;
+    }
+
     .radar-school-summary-v4 .school-program-list {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.42rem;
+        gap: 0.5rem;
         margin: 0;
         padding: 0;
     }
 
     .radar-school-summary-v4 .school-program-item {
-        padding: 0.38rem 0.65rem;
-        border: 1px solid rgba(76, 29, 149, 0.14);
-        border-radius: 999px;
-        background: #fff;
-        color: #4c1d95;
-        font-size: 0.78rem;
+        padding: 0.5rem 0.78rem;
+        border: 1px solid #b6dfe8;
+        border-radius: 0.6rem;
+        background: #f0fbfd;
+        color: #0e6075;
+        font-size: 0.82rem;
         font-weight: 750;
         box-shadow: none;
     }
@@ -176,8 +247,8 @@
     }
 
     /* ================================================================
-       ACOMPANHAMENTO MENSAL POR PROGRAMA
-       Os TRs e controles continuam no tbody original. O que muda é a leitura.
+       ACOMPANHAMENTO MENSAL
+       Mantém linhas e controles no tbody original; muda somente a leitura.
        ================================================================ */
     #tab-verificacoes .panel-card.radar-verification-workspace-v4 {
         overflow: visible;
@@ -188,21 +259,51 @@
     }
 
     #tab-verificacoes .radar-verification-workspace-v4 > .panel-header {
-        margin-bottom: 0.65rem;
+        margin-bottom: 0.72rem;
         padding: 0;
     }
 
     #tab-verificacoes .radar-verification-workspace-v4 > .panel-header h2 {
-        color: #251832;
-        font-size: 1.2rem;
+        color: #1f2a37;
+        font-size: 1.22rem;
         letter-spacing: -0.018em;
     }
 
     #tab-verificacoes .radar-verification-workspace-v4 > .panel-header p {
-        margin-top: 0.22rem !important;
-        color: #7d7088 !important;
-        font-size: 0.84rem !important;
+        margin-top: 0.24rem !important;
+        color: #687684 !important;
+        font-size: 0.86rem !important;
         line-height: 1.45;
+    }
+
+    #tab-verificacoes .comp-tabs-container {
+        margin: 0 0 1rem;
+        padding: 0.7rem !important;
+        gap: 0.38rem !important;
+        border: 1px solid #d8e1e8 !important;
+        border-radius: 0.85rem;
+        background: #ffffff;
+        box-shadow: 0 4px 14px rgba(25, 48, 67, 0.04);
+    }
+
+    #tab-verificacoes .comp-sub-tab {
+        min-width: 3.15rem;
+        justify-content: center;
+        padding: 0.56rem 0.72rem !important;
+        border: 1px solid transparent;
+        border-radius: 0.58rem !important;
+        background: #f4f7f9;
+        color: #5c6975;
+        font-size: 0.79rem !important;
+        font-weight: 700 !important;
+        box-shadow: none;
+    }
+
+    #tab-verificacoes .comp-sub-tab.active {
+        border-color: #0e7490;
+        background: #0b4f6c;
+        color: #ffffff;
+        box-shadow: 0 5px 12px rgba(11, 79, 108, 0.18);
     }
 
     #tab-verificacoes .radar-verification-workspace-v4 .table-responsive {
@@ -241,28 +342,28 @@
         grid-template-columns: minmax(14rem, 2fr) minmax(9rem, 0.9fr) minmax(11rem, 1fr) minmax(8rem, 0.8fr);
         width: 100%;
         margin: 0;
-        border-inline: 1px solid rgba(54, 37, 79, 0.12);
-        background: #fff;
+        border-inline: 1px solid #d9e1e7;
+        background: #ffffff;
     }
 
     #tab-verificacoes .radar-program-row-v4--first {
         margin-top: 1rem;
         overflow: hidden;
-        border-top: 1px solid rgba(54, 37, 79, 0.12);
-        border-radius: 0.92rem 0.92rem 0 0;
-        box-shadow: 0 5px 16px rgba(43, 28, 64, 0.04);
+        border-top: 1px solid #d9e1e7;
+        border-radius: 0.9rem 0.9rem 0 0;
+        box-shadow: 0 5px 16px rgba(25, 48, 67, 0.045);
     }
 
     #tab-verificacoes .radar-program-row-v4--last {
         margin-bottom: 1rem;
         overflow: hidden;
-        border-bottom: 1px solid rgba(54, 37, 79, 0.12);
-        border-radius: 0 0 0.92rem 0.92rem;
-        box-shadow: 0 7px 18px rgba(43, 28, 64, 0.045);
+        border-bottom: 1px solid #d9e1e7;
+        border-radius: 0 0 0.9rem 0.9rem;
+        box-shadow: 0 7px 18px rgba(25, 48, 67, 0.045);
     }
 
     #tab-verificacoes .radar-program-row-v4--first.radar-program-row-v4--last {
-        border-radius: 0.92rem;
+        border-radius: 0.9rem;
     }
 
     #tab-verificacoes .radar-program-meta-v4 {
@@ -273,8 +374,8 @@
         min-width: 0;
         padding: 0.82rem 0.95rem;
         border: 0;
-        border-bottom: 1px solid rgba(54, 37, 79, 0.10);
-        background: linear-gradient(90deg, #faf8ff 0%, #f6f9ff 68%, #fff 100%);
+        border-bottom: 1px solid #dce4ea;
+        background: linear-gradient(90deg, #effafd 0%, #f7fbfc 65%, #ffffff 100%);
         text-align: left;
         vertical-align: middle;
     }
@@ -285,16 +386,16 @@
 
     #tab-verificacoes .radar-program-meta-competence-v4 {
         flex: 0 0 auto;
-        color: #2563eb;
-        font-size: 0.68rem;
+        color: #0e7490;
+        font-size: 0.7rem;
         font-weight: 850;
-        letter-spacing: 0.075em;
+        letter-spacing: 0.07em;
         text-transform: uppercase;
     }
 
     #tab-verificacoes .radar-program-meta-name-v4 {
         min-width: 0;
-        color: #2d1b3d;
+        color: #1e3442;
         font-size: 1rem !important;
         font-weight: 800 !important;
         line-height: 1.3;
@@ -318,14 +419,14 @@
     #tab-verificacoes .radar-program-field-v4 {
         position: relative;
         min-width: 0;
-        padding: 0.68rem 0.82rem 0.76rem;
+        padding: 0.72rem 0.82rem 0.78rem;
         border: 0;
-        border-top: 1px solid rgba(54, 37, 79, 0.07);
-        border-right: 1px solid rgba(54, 37, 79, 0.06);
-        background: #fff;
-        color: #33233f;
-        font-size: 0.84rem;
-        line-height: 1.4;
+        border-top: 1px solid #e5eaee;
+        border-right: 1px solid #edf0f3;
+        background: #ffffff;
+        color: #263542;
+        font-size: 0.85rem;
+        line-height: 1.42;
         vertical-align: middle;
     }
 
@@ -336,17 +437,17 @@
     #tab-verificacoes .radar-program-field-v4::before {
         content: attr(data-radar-field-label);
         display: block;
-        margin-bottom: 0.35rem;
-        color: #8a7f92;
-        font-size: 0.62rem;
-        font-weight: 850;
-        letter-spacing: 0.055em;
+        margin-bottom: 0.36rem;
+        color: #778592;
+        font-size: 0.67rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
         line-height: 1.2;
         text-transform: uppercase;
     }
 
     #tab-verificacoes .radar-program-field-v4--item-de-verificacao {
-        color: #271934;
+        color: #1f2d38;
         font-weight: 700;
     }
 
@@ -359,17 +460,25 @@
 }
 
 @media (min-width: 641px) and (max-width: 1050px) {
-    .radar-school-summary-v4 .school-dossier-sections {
-        grid-template-columns: 1fr;
+    .radar-context-block {
+        min-height: 5rem;
+        padding: 0.9rem 1.05rem;
     }
 
-    .radar-school-summary-v4 .radar-info-section:nth-child(odd):not([data-section="programas"]) {
-        border-right: 0 !important;
+    .radar-context-value {
+        font-size: 1.45rem !important;
     }
 
-    .radar-school-summary-v4 .radar-info-section[data-section="programas"] {
-        grid-template-columns: 1fr;
-        gap: 0.55rem;
+    .radar-context-exercise {
+        font-size: 0.95rem;
+    }
+
+    .radar-school-summary-v4 .radar-info-grid,
+    .radar-school-summary-v4 .radar-info-section[data-section="identificacao"] .radar-info-grid,
+    .radar-school-summary-v4 .radar-info-section[data-section="gestao"] .radar-info-grid,
+    .radar-school-summary-v4 .radar-info-section[data-section="contatos"] .radar-info-grid,
+    .radar-school-summary-v4 .radar-info-section[data-section="vinculacao"] .radar-info-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     #tab-verificacoes .radar-program-row-v4 {
@@ -391,42 +500,77 @@
 }
 
 @media (min-width: 641px) {
+    body.dark-theme .radar-context-block {
+        border-color: rgba(34, 211, 238, 0.36);
+        border-left-color: #22d3ee;
+        background: linear-gradient(105deg, #082f49 0%, #0c4a6e 64%, #155e75 100%);
+    }
+
     body.dark-theme .school-dossier.radar-school-summary-v4,
     body.dark-theme .radar-school-summary-v4 .school-dossier-sections,
     body.dark-theme .radar-school-summary-v4 .radar-info-section {
-        border-color: rgba(157, 125, 252, 0.16) !important;
-        background: #171220 !important;
+        border-color: rgba(148, 163, 184, 0.18) !important;
+        background: #171b21 !important;
     }
 
     body.dark-theme .radar-school-summary-v4 .school-dossier-header,
     body.dark-theme .radar-school-summary-v4 .radar-info-section[data-section="programas"] {
-        border-color: rgba(157, 125, 252, 0.15) !important;
-        background: #1d1727 !important;
+        border-color: rgba(148, 163, 184, 0.18) !important;
+        background: #1c2229 !important;
     }
 
     body.dark-theme .radar-school-summary-v4 .school-dossier-header h2,
     body.dark-theme .radar-school-summary-v4 .radar-info-value {
-        color: var(--text-main);
+        color: #eef4f7;
     }
 
-    body.dark-theme .radar-school-summary-v4 .radar-info-field {
-        border-color: rgba(157, 125, 252, 0.10) !important;
+    body.dark-theme .radar-school-summary-v4 .radar-info-section h3,
+    body.dark-theme .radar-school-summary-v4 .radar-school-summary-kicker {
+        color: #67e8f9;
+    }
+
+    body.dark-theme .radar-school-summary-v4 .radar-info-section h3 {
+        border-bottom-color: rgba(148, 163, 184, 0.17);
+    }
+
+    body.dark-theme .radar-school-summary-v4 .radar-info-label {
+        color: #aab7c2;
+    }
+
+    body.dark-theme .radar-school-summary-v4 .radar-info-value {
+        border-color: #465561;
+        background: #202832;
+        box-shadow: none;
+    }
+
+    body.dark-theme .radar-school-summary-v4 .school-program-item {
+        border-color: #285c69;
+        background: #16323a;
+        color: #a5f3fc;
     }
 
     body.dark-theme #tab-verificacoes .radar-program-row-v4,
     body.dark-theme #tab-verificacoes .radar-program-field-v4 {
-        border-color: rgba(157, 125, 252, 0.13);
-        background: #171220;
-        color: var(--text-main);
+        border-color: rgba(148, 163, 184, 0.17);
+        background: #171b21;
+        color: #e6edf2;
     }
 
     body.dark-theme #tab-verificacoes .radar-program-meta-v4 {
-        border-color: rgba(157, 125, 252, 0.15);
-        background: linear-gradient(90deg, #21172d 0%, #1d1d31 70%, #171220 100%);
+        border-color: rgba(148, 163, 184, 0.18);
+        background: linear-gradient(90deg, #15262d 0%, #19242c 68%, #171b21 100%);
     }
 
     body.dark-theme #tab-verificacoes .radar-program-meta-name-v4,
     body.dark-theme #tab-verificacoes .radar-program-field-v4--item-de-verificacao {
-        color: var(--text-main);
+        color: #eef4f7;
+    }
+
+    body.dark-theme #tab-verificacoes .radar-program-meta-competence-v4 {
+        color: #67e8f9;
+    }
+
+    body.dark-theme #tab-verificacoes .radar-program-field-v4::before {
+        color: #9ba9b4;
     }
 }
