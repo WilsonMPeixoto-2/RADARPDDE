@@ -91,4 +91,3 @@ Nenhum spinner, barra de progresso, porcentagem fictícia ou texto cosmético se
 8. Testes unitários, integração/readiness e Playwright desktop ficam verdes.
 9. Capturas do Preview são revisadas visualmente antes de qualquer baseline definitivo.
 10. A branch não contém mudanças mobile, Auth, banco, dependências ou Production.
-
