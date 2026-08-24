@@ -1,3 +1,5 @@
+@import url('./editorial-premium-desktop.css');
+
 .global-competence-control {
     display: grid;
     grid-template-columns: auto minmax(9.5rem, 1fr);
