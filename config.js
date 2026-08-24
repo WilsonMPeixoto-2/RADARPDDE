@@ -116,6 +116,7 @@
         loadScript('src/integration/exercise-early-init.js', false);
         loadScript('src/integration/painel-controlador-expressiva.js', false);
         loadScript('src/integration/school-form-integrity.js', false);
+        loadScript('src/integration/prontuario-structural-redesign.js', false);
         loadScript('src/integration/load-excel-export.js', true);
     }());
 }(typeof window !== 'undefined' ? window : globalThis, function createRadarRuntimeConfigApi() {
