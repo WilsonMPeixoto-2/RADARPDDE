@@ -27,6 +27,7 @@ async function openControladorSchool(page) {
     return school.id;
   });
   await expect(page.locator('#main-container .school-grid')).toBeVisible();
+  await expect(page.locator('.radar-program-review-stack')).toBeVisible();
   return schoolId;
 }
 
@@ -133,7 +134,7 @@ test.describe('hierarquia visual operacional no desktop', () => {
     await expect(page.locator('#global-competence-select')).toHaveValue('2026-08');
   });
 
-  test('organiza os dados da escola em um dossiê institucional de largura integral', async ({ page }) => {
+  test('organiza os dados da escola em resumo institucional horizontal e preserva todos os campos', async ({ page }) => {
     await openControladorSchool(page);
 
     const dossier = page.locator('.school-dossier');
@@ -167,21 +168,21 @@ test.describe('hierarquia visual operacional no desktop', () => {
       const main = document.querySelector('main.content-area');
       const dossierElement = document.querySelector('.school-dossier');
       const workspace = document.querySelector('.school-workspace');
-      const identificationGrid = document.querySelector(
-        '.radar-info-section[data-section="identificacao"] .radar-info-grid'
-      );
+      const sections = document.querySelector('.school-dossier-sections');
       return {
         workspaceBelow: workspace.getBoundingClientRect().top >= dossierElement.getBoundingClientRect().bottom,
         dossierWidth: Math.round(dossierElement.getBoundingClientRect().width),
+        dossierHeight: Math.round(dossierElement.getBoundingClientRect().height),
         mainWidth: Math.round(main.getBoundingClientRect().width),
-        columns: window.getComputedStyle(identificationGrid).gridTemplateColumns.split(' ').length,
+        topLevelColumns: window.getComputedStyle(sections).gridTemplateColumns.split(' ').filter(Boolean).length,
         hasHorizontalOverflow: main.scrollWidth > main.clientWidth + 1
       };
     });
 
     expect(geometry.workspaceBelow).toBe(true);
     expect(geometry.dossierWidth).toBeGreaterThan(geometry.mainWidth * 0.9);
-    expect(geometry.columns).toBeGreaterThanOrEqual(2);
+    expect(geometry.dossierHeight).toBeLessThan(520);
+    expect(geometry.topLevelColumns).toBeGreaterThanOrEqual(4);
     expect(geometry.hasHorizontalOverflow).toBe(false);
   });
 
@@ -233,9 +234,10 @@ test.describe('hierarquia visual operacional no desktop', () => {
     expect(seriousOrCritical).toEqual([]);
   });
 
-  test('mantém dossiê e cobrança íntegros em notebook de 1280 por 800', async ({ page }) => {
+  test('mantém resumo, acompanhamento e cobrança íntegros em notebook de 1280 por 800', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await openSchoolWithCollectionPendencies(page);
+    await expect(page.locator('.radar-program-review-stack')).toBeVisible();
 
     const dossierGeometry = await page.evaluate(() => {
       const main = document.querySelector('main.content-area');
