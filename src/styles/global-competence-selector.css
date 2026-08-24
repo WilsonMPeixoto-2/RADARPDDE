@@ -1,4 +1,5 @@
 @import url('./editorial-premium-desktop.css');
+@import url('./editorial-premium-desktop-dark.css');
 
 .global-competence-control {
     display: grid;
