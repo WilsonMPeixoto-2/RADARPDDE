@@ -22,162 +22,100 @@
 
     function markDossier() {
         const dossier = document.querySelector('.school-dossier');
-        if (!dossier || dossier.dataset.radarStructuralRedesign === 'true') return;
-        dossier.dataset.radarStructuralRedesign = 'true';
-        dossier.classList.add('radar-school-summary');
+        if (!dossier) return false;
 
+        dossier.classList.add('radar-school-summary-v4');
         const header = dossier.querySelector('.school-dossier-header');
         const title = header?.querySelector('h2');
         if (header && title && !header.querySelector('.radar-school-summary-kicker')) {
             const kicker = document.createElement('span');
             kicker.className = 'radar-school-summary-kicker';
-            kicker.textContent = 'Cadastro da unidade';
+            kicker.textContent = 'Ficha institucional';
             header.insertBefore(kicker, title);
         }
+        return true;
     }
 
-    function copyProgramHeader(metaCell, section) {
-        const competence = text(metaCell.querySelector('strong'));
-        const directSpans = Array.from(metaCell.children).filter(node => node.tagName === 'SPAN');
-        const programName = text(directSpans[0]) || metaCell.dataset.programName || 'Programa';
-
-        const heading = document.createElement('header');
-        heading.className = 'radar-program-review-header';
-
-        const identity = document.createElement('div');
-        identity.className = 'radar-program-review-identity';
-
-        const eyebrow = document.createElement('span');
-        eyebrow.className = 'radar-program-review-competence';
-        eyebrow.textContent = competence;
-
-        const title = document.createElement('h3');
-        title.className = 'radar-program-review-title';
-        title.textContent = programName;
-
-        identity.append(eyebrow, title);
-
-        const operations = document.createElement('div');
-        operations.className = 'radar-program-review-operations';
-
-        const summary = metaCell.querySelector('.program-status-summary');
-        if (summary) {
-            summary.classList.add('radar-program-review-summary');
-            operations.appendChild(summary);
-        }
-
-        const actionButtons = Array.from(metaCell.querySelectorAll('button'));
-        actionButtons.forEach(button => {
-            button.classList.add('radar-program-review-action');
-            operations.appendChild(button);
-        });
-
-        heading.append(identity, operations);
-        section.appendChild(heading);
-    }
-
-    function decorateDocumentRow(row, labels) {
-        const cells = Array.from(row.children).filter(cell => cell.tagName === 'TD');
-        cells.forEach((cell, index) => {
-            const label = labels[index] || `Campo ${index + 1}`;
-            cell.dataset.radarFieldLabel = label;
-            cell.classList.add('radar-program-review-cell', `radar-program-review-cell--${slug(label)}`);
-        });
-        row.classList.add('radar-program-review-row');
-    }
-
-    function buildProgramSection(programId, rows, labels) {
-        const firstRow = rows[0];
-        const metaCell = firstRow?.querySelector('td[rowspan]');
-        if (!firstRow || !metaCell) return null;
-
-        const section = document.createElement('section');
-        section.className = 'radar-program-review';
-        section.dataset.programId = programId;
-
-        copyProgramHeader(metaCell, section);
-        metaCell.remove();
-
-        const responsive = document.createElement('div');
-        responsive.className = 'radar-program-review-table-wrap';
-
-        const table = document.createElement('table');
-        table.className = 'data-table radar-program-review-table';
-        table.setAttribute('aria-label', `Itens de verificação - ${text(section.querySelector('.radar-program-review-title'))}`);
-
-        const thead = document.createElement('thead');
-        const headerRow = document.createElement('tr');
-        labels.forEach(label => {
-            const th = document.createElement('th');
-            th.textContent = label;
-            headerRow.appendChild(th);
-        });
-        thead.appendChild(headerRow);
-
-        const tbody = document.createElement('tbody');
-        rows.forEach(row => {
-            decorateDocumentRow(row, labels);
-            tbody.appendChild(row);
-        });
-
-        table.append(thead, tbody);
-        responsive.appendChild(table);
-        section.appendChild(responsive);
-        return section;
-    }
-
-    function enhanceVerificationWorkspace() {
-        if (root.innerWidth < MIN_WIDTH) return;
+    function decorateVerificationRows() {
+        if (root.innerWidth < MIN_WIDTH) return false;
 
         const panel = document.querySelector('#tab-verificacoes .panel-card');
-        if (!panel || panel.dataset.radarStructuralRedesign === 'true') return;
-
-        const sourceTable = Array.from(panel.querySelectorAll('table.data-table')).find(table => (
-            table.querySelector('tbody > tr[data-program-id]')
-            && table.querySelector('tbody > tr[data-program-id] td[rowspan]')
+        const table = Array.from(panel?.querySelectorAll('table.data-table') || []).find(candidate => (
+            candidate.querySelector('tbody#prontuario-verif-rows > tr[data-program-id]')
         ));
-        if (!sourceTable) return;
+        const tbody = table?.querySelector('tbody#prontuario-verif-rows');
+        if (!panel || !table || !tbody) return false;
 
-        const sourceWrapper = sourceTable.closest('.table-responsive');
-        if (!sourceWrapper) return;
-
-        const headers = Array.from(sourceTable.querySelectorAll('thead th')).map(text);
+        const headers = Array.from(table.querySelectorAll('thead th')).map(text);
         const detailHeaders = headers.slice(1);
-        const rows = Array.from(sourceTable.querySelectorAll('tbody > tr[data-program-id]'));
-        if (!rows.length || !detailHeaders.length) return;
+        const rows = Array.from(tbody.querySelectorAll(':scope > tr[data-program-id]'));
+        if (!rows.length) return false;
 
+        panel.classList.add('radar-verification-workspace-v4');
+        table.classList.add('radar-program-ledger-v4');
+        tbody.classList.add('radar-program-ledger-body-v4');
+
+        let currentGroup = [];
+        let currentProgram = '';
         const groups = [];
-        let current = null;
+
         rows.forEach(row => {
             const programId = String(row.dataset.programId || '').trim();
-            if (!current || current.programId !== programId) {
-                current = { programId, rows: [] };
-                groups.push(current);
-            }
-            current.rows.push(row);
-        });
+            const startsGroup = Boolean(row.querySelector(':scope > td[rowspan]'))
+                || !currentGroup.length
+                || programId !== currentProgram;
 
-        const stack = document.createElement('div');
-        stack.className = 'radar-program-review-stack';
-        stack.dataset.radarProgramReviewStack = 'true';
+            if (startsGroup) {
+                if (currentGroup.length) groups.push(currentGroup);
+                currentGroup = [];
+                currentProgram = programId;
+            }
+            currentGroup.push(row);
+        });
+        if (currentGroup.length) groups.push(currentGroup);
 
         groups.forEach(group => {
-            const section = buildProgramSection(group.programId, group.rows, detailHeaders);
-            if (section) stack.appendChild(section);
+            group.forEach((row, rowIndex) => {
+                row.classList.add('radar-program-row-v4');
+                row.classList.toggle('radar-program-row-v4--first', rowIndex === 0);
+                row.classList.toggle('radar-program-row-v4--last', rowIndex === group.length - 1);
+
+                const cells = Array.from(row.children).filter(cell => cell.tagName === 'TD');
+                const metaCell = row.querySelector(':scope > td[rowspan]');
+                const detailCells = metaCell ? cells.slice(1) : cells;
+
+                if (metaCell) {
+                    metaCell.classList.add('radar-program-meta-v4');
+                    const competence = metaCell.querySelector(':scope > strong');
+                    const directProgramName = Array.from(metaCell.children).find(node => (
+                        node.tagName === 'SPAN'
+                        && !node.classList.contains('program-status-summary')
+                        && !node.classList.contains('badge')
+                    ));
+                    competence?.classList.add('radar-program-meta-competence-v4');
+                    directProgramName?.classList.add('radar-program-meta-name-v4');
+                    metaCell.querySelector('.program-status-summary')?.classList.add('radar-program-meta-summary-v4');
+                    metaCell.querySelectorAll(':scope > button').forEach(button => {
+                        button.classList.add('radar-program-meta-action-v4');
+                    });
+                }
+
+                detailCells.forEach((cell, index) => {
+                    const label = detailHeaders[index] || `Campo ${index + 1}`;
+                    cell.dataset.radarFieldLabel = label;
+                    cell.classList.add('radar-program-field-v4', `radar-program-field-v4--${slug(label)}`);
+                });
+            });
         });
 
-        if (!stack.children.length) return;
-
-        sourceWrapper.replaceWith(stack);
-        panel.dataset.radarStructuralRedesign = 'true';
-        panel.classList.add('radar-verification-workspace');
+        return true;
     }
 
     function enhance() {
         scheduled = false;
         if (root.innerWidth < MIN_WIDTH) return;
         markDossier();
-        enhanceVerificationWorkspace();
+        decorateVerificationRows();
     }
 
     function scheduleEnhance() {
