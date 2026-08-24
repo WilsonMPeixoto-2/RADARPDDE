@@ -78,7 +78,7 @@ test.describe('hierarquia visual operacional no desktop', () => {
     await page.setViewportSize({ width: 1440, height: 900 });
   });
 
-  test('torna a competência o contexto dominante sem criar outro estado', async ({ page }) => {
+  test('torna a competência o contexto dominante sem criar outro estado visual', async ({ page }) => {
     await page.goto('/');
     await waitForAuthorizedRadar(page);
     await page.evaluate(() => {
@@ -94,7 +94,7 @@ test.describe('hierarquia visual operacional no desktop', () => {
     await expect(selector).toContainText('Competência ativa');
     await expect(page.locator('#global-competence-select')).toHaveValue('2026-08');
     await expect(context).toHaveCount(1);
-    await expect(context).toContainText('Agosto 2026');
+    await expect(context).toBeHidden();
 
     const prominence = await selector.evaluate(element => {
       const rect = element.getBoundingClientRect();
@@ -109,11 +109,11 @@ test.describe('hierarquia visual operacional no desktop', () => {
 
     expect(prominence.width).toBeGreaterThanOrEqual(240);
     expect(prominence.height).toBeGreaterThanOrEqual(52);
-    expect(prominence.selectFontSize).toBeGreaterThanOrEqual(15);
+    expect(prominence.selectFontSize).toBeGreaterThanOrEqual(18);
     expect(await page.evaluate(() => RadarCompetenceContext.getState().activeKey)).toBe('2026-08');
   });
 
-  test('repete o contexto ativo na Visão por Competência sem seletor local', async ({ page }) => {
+  test('Visão por Competência reutiliza o seletor global sem criar destaque duplicado', async ({ page }) => {
     await page.goto('/');
     await waitForAuthorizedRadar(page);
     await page.evaluate(() => {
@@ -125,8 +125,7 @@ test.describe('hierarquia visual operacional no desktop', () => {
     await expect(page.getByRole('heading', { name: 'Visão por Competência' })).toBeVisible();
     const context = page.locator('[data-radar-competence-context]');
     await expect(context).toHaveCount(1);
-    await expect(context).toContainText('Competência ativa');
-    await expect(context).toContainText('Agosto 2026');
+    await expect(context).toBeHidden();
     await expect(page.getByRole('heading', {
       name: 'Lista de Entrega e Bonificação - Competência Agosto/2026'
     })).toBeVisible();
@@ -139,12 +138,12 @@ test.describe('hierarquia visual operacional no desktop', () => {
 
     const dossier = page.locator('.school-dossier');
     await expect(dossier).toBeVisible();
-    await expect(dossier.getByRole('heading', { name: 'Informações institucionais' })).toBeVisible();
-    await expect(dossier.getByRole('heading', { name: 'Identificação' })).toBeVisible();
-    await expect(dossier.getByRole('heading', { name: 'Gestão escolar' })).toBeVisible();
-    await expect(dossier.getByRole('heading', { name: 'Contatos' })).toBeVisible();
-    await expect(dossier.getByRole('heading', { name: 'Vinculação administrativa' })).toBeVisible();
-    await expect(dossier.getByRole('heading', { name: 'Programas vinculados' })).toBeVisible();
+    await expect(dossier.getByRole('heading', { name: 'Informações institucionais', exact: true })).toBeVisible();
+    await expect(dossier.getByRole('heading', { name: 'Identificação', exact: true })).toBeVisible();
+    await expect(dossier.getByRole('heading', { name: 'Gestão escolar', exact: true })).toBeVisible();
+    await expect(dossier.getByRole('heading', { name: 'Contatos', exact: true })).toBeVisible();
+    await expect(dossier.getByRole('heading', { name: 'Vinculação administrativa', exact: true })).toBeVisible();
+    await expect(dossier.getByRole('heading', { name: 'Programas vinculados', exact: true })).toBeVisible();
     await expect(dossier.locator('dt')).toHaveText([
       'INEP',
       'Designação',
