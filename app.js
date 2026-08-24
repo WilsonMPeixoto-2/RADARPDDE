@@ -5579,6 +5579,15 @@ function updateGlobalCompetenceIndicator() {
     }
 }
 
+function renderCompetenceContextBlock(label) {
+    return `
+        <div class="radar-context-block" data-radar-competence-context role="status" aria-label="Competência ativa">
+            <span class="radar-context-label">Competência ativa</span>
+            <strong class="radar-context-value">${escapeHtml(label)}</strong>
+        </div>
+    `;
+}
+
 function restoreEscolaSearchFocus(selectionStart = null, selectionEnd = selectionStart) {
 
     const input = document.getElementById('escola-search-input');
@@ -5751,7 +5760,7 @@ function renderDashboardControlador(container) {
                 <p>Carteira ativa: <strong>${activeControladorName}</strong>. R.A. vinculada: <strong>${carteiraRAText}</strong>. Você pode navegar por outras R.As ou pesquisar na CRE.</p>
 
             </div>
-            <div class="badge badge-info">Mês Ativo: ${activeCompetenciaLabel}</div>
+            ${renderCompetenceContextBlock(activeCompetenciaLabel)}
         </div>
 
         <div class="tab-container" style="margin-bottom: 20px;">
@@ -7696,6 +7705,8 @@ function renderCompetencias() {
     }
 
     const competenceKey = window.RadarCompetenceContext.getState().activeKey;
+    const competence = COMPETENCIAS.find(item => item.key === competenceKey);
+    const competenceLabel = competence ? competence.label : formatCompetenciaText(competenceKey);
     const canViewTechnicalAnalysis = hasRadarCapability(
         window.RadarAccessPolicy.CAPABILITIES.VIEW_TECHNICAL_ANALYSIS
     );
@@ -7709,6 +7720,7 @@ function renderCompetencias() {
                 <h1>Visão por Competência</h1>
                 <p>Verifique o fechamento e a conformidade da bonificação da competência selecionada.</p>
             </div>
+            ${renderCompetenceContextBlock(competenceLabel)}
         </div>
 
         <div class="panel-card">

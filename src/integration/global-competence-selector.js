@@ -121,7 +121,7 @@
 
         const controlLabel = createElement('label', {
             for: 'global-competence-select',
-            textContent: 'Competência'
+            textContent: 'Competência ativa'
         });
         const select = createElement('select', {
             id: 'global-competence-select',

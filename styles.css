@@ -617,6 +617,35 @@ header.top-header {
     margin-top: 4px;
 }
 
+.radar-context-block {
+    display: grid;
+    min-width: 220px;
+    padding: 12px 16px;
+    border: 1px solid rgba(124, 58, 237, 0.24);
+    border-left: 4px solid var(--primary);
+    border-radius: 12px;
+    background: var(--bg-card);
+    box-shadow: var(--shadow-sm);
+}
+
+.radar-context-label {
+    color: var(--text-muted);
+    font-family: var(--font-body);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.045em;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.radar-context-value {
+    color: var(--primary);
+    font-family: var(--font-heading);
+    font-size: 1.12rem;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
 /* Grid Layouts */
 .grid-stats {
     display: grid;
