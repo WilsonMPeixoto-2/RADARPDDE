@@ -312,26 +312,29 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Gerar Mensagem de Cobrança</h3>
-                <button class="btn-close" onclick="closeModal('modal-cobranca')">×</button>
+                <button type="button" class="btn-close" aria-label="Fechar mensagem de cobrança" onclick="closeModal('modal-cobranca')">×</button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body cobranca-modal-body">
                 <input type="hidden" id="cobranca-escola-id">
-                <div class="form-group">
-                    <p style="color:var(--text-muted); margin-bottom: 12px; font-size:0.85rem;">
-                        Selecione as pendências abaixo para incluir na cobrança consolidada. Pendências internas de inventário foram excluídas automaticamente.
-                    </p>
-                    <div id="cobranca-checkboxes-container" style="max-height: 150px; overflow-y:auto; border: 1px solid var(--border-color); padding: 8px; border-radius: 8px; margin-bottom: 16px;">
-                        <!-- Checkboxes injetados -->
-                    </div>
+                <p class="cobranca-guidance">
+                    Selecione as pendências abaixo para incluir na cobrança consolidada. Pendências internas de inventário foram excluídas automaticamente.
+                </p>
+                <div class="cobranca-workspace">
+                    <section class="cobranca-selection-panel" aria-labelledby="cobranca-selection-title">
+                        <h4 id="cobranca-selection-title">Pendências incluídas</h4>
+                        <div id="cobranca-checkboxes-container" class="cobranca-options" role="group" aria-labelledby="cobranca-selection-title">
+                            <!-- Checkboxes injetados -->
+                        </div>
+                    </section>
+                    <section class="cobranca-preview-panel" aria-labelledby="cobranca-preview-title">
+                        <h4 id="cobranca-preview-title">Pré-visualização da mensagem</h4>
+                        <div class="cobranca-preview" id="cobranca-preview-text" role="document" tabindex="0"></div>
+                    </section>
                 </div>
-                <div class="form-group">
-                    <label>Pré-visualização da Mensagem</label>
-                    <div class="cobranca-preview" id="cobranca-preview-text"></div>
-                </div>
-                <div class="modal-footer" style="padding: 16px 0 0 0; background:none;">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-cobranca')">Fechar</button>
-                    <button type="button" class="btn btn-primary" onclick="copyCobrancaText()">Copiar Texto</button>
-                </div>
+            </div>
+            <div class="modal-footer cobranca-modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('modal-cobranca')">Fechar</button>
+                <button type="button" class="btn btn-primary" onclick="copyCobrancaText()">Copiar Texto</button>
             </div>
         </div>
     </div>

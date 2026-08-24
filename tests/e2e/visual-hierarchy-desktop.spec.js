@@ -29,6 +29,48 @@ async function openControladorSchool(page) {
   return schoolId;
 }
 
+async function openSchoolWithCollectionPendencies(page) {
+  await page.goto('/');
+  await waitForAuthorizedRadar(page);
+  return page.evaluate(() => {
+    switchProfile('controlador');
+    const competenceKey = '2026-08';
+    RadarCompetenceContext.select(competenceKey, { source: 'visual-hierarchy-cobranca-e2e' });
+    const school = escolas.find(candidate => (
+      Array.isArray(candidate.programasIds)
+      && candidate.programasIds.includes('BASIC')
+      && isCompetenceInScope(candidate.competenciaInicial, competenceKey)
+    ));
+    if (!school) throw new Error('Escola compatível com a cobrança não encontrada.');
+
+    const createPendency = (id, documentKey, item) => RadarPendencias.createDocumentPendency({
+      id,
+      escolaId: school.id,
+      competenciaOrigem: competenceKey,
+      programaId: 'BASIC',
+      documentoKey: documentKey,
+      item: `PDDE Básico - ${item}`,
+      errosAtuais: ['Documento ausente'],
+      observacao: `Regularizar ${item}.`,
+      dataAbertura: '2026-08-10'
+    }, {
+      eventId: `${id}-open`,
+      at: '2026-08-10T12:00:00.000Z',
+      usuario: 'Controlador Visual',
+      perfil: 'controlador'
+    });
+
+    pendencias = [
+      createPendency('visual-cobranca-conta', 'extCC', 'Extrato Conta Corrente'),
+      createPendency('visual-cobranca-investimento', 'extINV', 'Extrato Investimento')
+    ];
+    rebuildOperationalIndexes();
+    activeProntuarioCompetencia = competenceKey;
+    switchView('prontuario', school.id);
+    return { schoolId: school.id, schoolName: school.denominação };
+  });
+}
+
 test.describe('hierarquia visual operacional no desktop', () => {
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Contrato visual exclusivo do desktop.');
@@ -141,5 +183,44 @@ test.describe('hierarquia visual operacional no desktop', () => {
     expect(geometry.dossierWidth).toBeGreaterThan(geometry.mainWidth * 0.9);
     expect(geometry.columns).toBeGreaterThanOrEqual(2);
     expect(geometry.hasHorizontalOverflow).toBe(false);
+  });
+
+  test('separa seleção e prévia da cobrança sem alterar a mensagem', async ({ page }) => {
+    const seeded = await openSchoolWithCollectionPendencies(page);
+    await expect(page.getByRole('heading', {
+      name: new RegExp(`Unidade Escolar: ${seeded.schoolName}`)
+    })).toBeVisible();
+
+    await page.getByRole('button', { name: 'Gerar Cobrança', exact: true }).click();
+    const modal = page.locator('#modal-cobranca');
+    await expect(modal).toHaveClass(/show/);
+    await expect(modal.getByRole('button', { name: 'Fechar mensagem de cobrança' })).toBeVisible();
+    await expect(modal.locator('.cobranca-option')).toHaveCount(2);
+    await expect(modal.locator('.chk-cobranca-item:checked')).toHaveCount(2);
+
+    const preview = modal.locator('#cobranca-preview-text');
+    await expect(preview).toContainText(`Prezado(a) Diretor(a) de ${seeded.schoolName}`);
+    await expect(preview).toContainText('Extrato Conta Corrente');
+    await expect(preview).toContainText('Extrato Investimento');
+    await expect(preview).toContainText('Atenciosamente');
+
+    const layout = await modal.evaluate(element => {
+      const workspace = element.querySelector('.cobranca-workspace').getBoundingClientRect();
+      const selection = element.querySelector('.cobranca-selection-panel').getBoundingClientRect();
+      const previewPanel = element.querySelector('.cobranca-preview-panel').getBoundingClientRect();
+      const footer = element.querySelector('.modal-footer').getBoundingClientRect();
+      return {
+        sideBySide: previewPanel.left > selection.right,
+        footerBelow: footer.top >= workspace.bottom - 1,
+        footerVisible: footer.bottom <= window.innerHeight
+      };
+    });
+    expect(layout).toEqual({ sideBySide: true, footerBelow: true, footerVisible: true });
+
+    await modal.locator('.chk-cobranca-item').last().uncheck();
+    await expect(preview).toContainText('Extrato Conta Corrente');
+    await expect(preview).not.toContainText('Extrato Investimento');
+    await expect(preview).toContainText(`Prezado(a) Diretor(a) de ${seeded.schoolName}`);
+    await expect(preview).toContainText('Atenciosamente');
   });
 });

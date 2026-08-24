@@ -11040,7 +11040,7 @@ function openCobrancaModal(escolaId) {
     
     const container = document.getElementById('cobranca-checkboxes-container');
     if (pEscola.length === 0) {
-        container.innerHTML = `<div style="color:var(--text-muted); font-size:0.8rem">Nenhuma pendência externa sob responsabilidade da Escola.</div>`;
+        container.innerHTML = `<div class="cobranca-empty-state" role="status">Nenhuma pendência externa sob responsabilidade da Escola.</div>`;
         document.getElementById('cobranca-preview-text').innerText = `Prezado(a) Diretor(a) de ${esc.denominação},\n\nConstatamos que não há pendências ativas de obrigações do PDDE sob responsabilidade da unidade escolar no RADAR PDDE.\n\nAtenciosamente,\nComitê PDDE / Verbas Federais`;
         openModal('modal-cobranca');
         return true;
@@ -11049,12 +11049,12 @@ function openCobrancaModal(escolaId) {
     container.innerHTML = pEscola.map(p => {
         const pData = getFormattedPendencyData(p);
         return `
-            <label style="display:flex; align-items:flex-start; gap:8px; margin-bottom:8px; font-size:0.8rem; cursor:pointer;">
+            <label class="cobranca-option">
                 <input type="checkbox" class="chk-cobranca-item" value="${escapeHtml(p.id)}" checked onchange="buildCobrancaPreview('${escapeHtml(escolaId)}')">
-                <div>
-                    <strong>[Comp. ${escapeHtml(pData.competencia)}] ${escapeHtml(pData.item)}</strong><br>
-                    Motivo: ${escapeHtml(p.motivo)} - ${escapeHtml(p.observacao)}
-                </div>
+                <span class="cobranca-option-content">
+                    <strong class="cobranca-option-title">[Comp. ${escapeHtml(pData.competencia)}] ${escapeHtml(pData.item)}</strong>
+                    <span class="cobranca-option-detail">Motivo: ${escapeHtml(p.motivo)} - ${escapeHtml(p.observacao)}</span>
+                </span>
             </label>
         `;
     }).join('');
