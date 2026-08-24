@@ -63,7 +63,7 @@
         border: 1px solid rgba(76, 29, 149, 0.52);
         border-left: 6px solid #2563eb;
         border-radius: 0.95rem;
-        background: linear-gradient(135deg, #4c1d95 0%, #6d28d9 58%, #7c3aed 100%);
+        background: #5b21b6 linear-gradient(135deg, #4c1d95 0%, #6d28d9 58%, #7c3aed 100%);
         box-shadow: 0 10px 24px rgba(76, 29, 149, 0.20);
     }
 
