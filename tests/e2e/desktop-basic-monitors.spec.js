@@ -65,20 +65,23 @@ test.describe('Desktop — notebooks e monitores básicos', () => {
       const app = document.querySelector('#app-layout');
       const schoolGrid = document.querySelector('.school-grid');
       const sidebar = document.querySelector('.school-sidebar');
+      const dossierSections = document.querySelector('.school-dossier-sections');
       return {
         viewport: innerWidth,
         documentWidth: document.documentElement.scrollWidth,
         bodyWidth: document.body.scrollWidth,
         appColumns: getComputedStyle(app).gridTemplateColumns,
         schoolColumns: getComputedStyle(schoolGrid).gridTemplateColumns,
-        schoolSidebarDisplay: getComputedStyle(sidebar).display
+        schoolSidebarDisplay: getComputedStyle(sidebar).display,
+        dossierColumns: getComputedStyle(dossierSections).gridTemplateColumns
       };
     });
 
     expect(geometry.documentWidth).toBeLessThanOrEqual(geometry.viewport + 1);
     expect(geometry.bodyWidth).toBeLessThanOrEqual(geometry.viewport + 1);
     expect(columnCount(geometry.schoolColumns)).toBe(1);
-    expect(geometry.schoolSidebarDisplay).toBe('grid');
+    expect(geometry.schoolSidebarDisplay).toBe('block');
+    expect(columnCount(geometry.dossierColumns)).toBeGreaterThanOrEqual(2);
     expect(Number.parseFloat(geometry.appColumns)).toBeLessThanOrEqual(235);
     await expect(page.locator('.prontuario-actions')).toBeVisible();
     await expect(page.locator('.prontuario-tablist')).toBeVisible();
@@ -90,10 +93,16 @@ test.describe('Desktop — notebooks e monitores básicos', () => {
     await waitForDesktopRefinements(page);
     await openControllerSchool(page);
 
-    const schoolColumns = await page.locator('.school-grid').evaluate(element => (
-      getComputedStyle(element).gridTemplateColumns
-    ));
-    expect(columnCount(schoolColumns)).toBeGreaterThanOrEqual(2);
+    const dossierGeometry = await page.locator('.school-grid').evaluate(element => ({
+      schoolColumns: getComputedStyle(element).gridTemplateColumns,
+      dossierDisplay: getComputedStyle(element.querySelector('.school-dossier')).display,
+      dossierColumns: getComputedStyle(
+        element.querySelector('.school-dossier-sections')
+      ).gridTemplateColumns
+    }));
+    expect(columnCount(dossierGeometry.schoolColumns)).toBe(1);
+    expect(dossierGeometry.dossierDisplay).toBe('block');
+    expect(columnCount(dossierGeometry.dossierColumns)).toBeGreaterThanOrEqual(2);
 
     await page.evaluate(() => switchView('escolas'));
     const table = walletTable(page);
