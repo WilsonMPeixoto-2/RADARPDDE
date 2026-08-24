@@ -25,6 +25,7 @@ async function openControladorSchool(page) {
     switchView('prontuario', school.id);
   });
   await expect(page.locator('.school-dossier')).toBeVisible();
+  await expect(page.locator('.radar-program-review-stack')).toBeVisible();
 }
 
 async function openSchoolWithCollectionPendencies(page) {
@@ -80,7 +81,7 @@ async function attachPng(testInfo, name, buffer) {
   await testInfo.attach(name, { body: buffer, contentType: 'image/png' });
 }
 
-test.describe('direção editorial premium no desktop', () => {
+test.describe('direção estrutural do prontuário no desktop', () => {
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Contrato visual exclusivo do desktop.');
     await page.setViewportSize({ width: 1440, height: 900 });
@@ -126,50 +127,76 @@ test.describe('direção editorial premium no desktop', () => {
     await attachPng(testInfo, 'competencia-dashboard.png', await page.screenshot({ fullPage: true }));
   });
 
-  test('dossiê escolar funciona como ficha contínua e diferencia seção, rótulo e valor', async ({ page }, testInfo) => {
+  test('resumo institucional abandona banner pesado e mini-cards, ficando compacto', async ({ page }, testInfo) => {
     await openControladorSchool(page);
+
     const metrics = await page.evaluate(() => {
       const dossier = document.querySelector('.school-dossier');
+      const header = dossier.querySelector('.school-dossier-header');
       const sections = dossier.querySelector('.school-dossier-sections');
       const section = dossier.querySelector('.radar-info-section[data-section="identificacao"]');
-      const title = section.querySelector('h3');
       const field = section.querySelector('.radar-info-field');
       const label = field.querySelector('.radar-info-label');
       const value = field.querySelector('.radar-info-value');
-      const dossierStyle = getComputedStyle(dossier.querySelector('.school-dossier-header'));
-      const sectionsStyle = getComputedStyle(sections);
-      const sectionStyle = getComputedStyle(section);
-      const fieldStyle = getComputedStyle(field);
       return {
-        dossierHeaderBackground: dossierStyle.backgroundImage,
-        sectionTitleFont: parseFloat(getComputedStyle(title).fontSize),
+        dossierHeight: dossier.getBoundingClientRect().height,
+        sectionColumns: getComputedStyle(sections).gridTemplateColumns.split(' ').filter(Boolean).length,
+        headerColor: getComputedStyle(header).color,
+        headerBackground: getComputedStyle(header).backgroundImage,
+        sectionRadius: parseFloat(getComputedStyle(section).borderTopLeftRadius),
+        sectionShadow: getComputedStyle(section).boxShadow,
+        fieldRadius: parseFloat(getComputedStyle(field).borderTopLeftRadius),
+        fieldAccent: parseFloat(getComputedStyle(field).borderLeftWidth),
         labelFont: parseFloat(getComputedStyle(label).fontSize),
-        valueFont: parseFloat(getComputedStyle(value).fontSize),
-        valueWeight: Number.parseInt(getComputedStyle(value).fontWeight, 10),
-        sectionsGap: parseFloat(sectionsStyle.columnGap),
-        sectionRadius: parseFloat(sectionStyle.borderTopLeftRadius),
-        sectionShadow: sectionStyle.boxShadow,
-        fieldRadius: parseFloat(fieldStyle.borderTopLeftRadius),
-        fieldAccent: parseFloat(fieldStyle.borderLeftWidth),
-        fieldDivider: parseFloat(fieldStyle.borderBottomWidth),
-        fieldPaddingBottom: parseFloat(fieldStyle.paddingBottom)
+        valueFont: parseFloat(getComputedStyle(value).fontSize)
       };
     });
 
-    expect(metrics.dossierHeaderBackground).toContain('linear-gradient');
-    expect(metrics.sectionTitleFont).toBeGreaterThanOrEqual(16);
-    expect(metrics.labelFont).toBeGreaterThanOrEqual(12);
-    expect(metrics.valueFont).toBeGreaterThanOrEqual(16);
-    expect(metrics.valueWeight).toBeGreaterThanOrEqual(600);
-    expect(metrics.sectionsGap).toBe(0);
+    await expect(page.locator('.radar-school-summary-kicker')).toHaveText('Cadastro da unidade');
+    expect(metrics.dossierHeight).toBeLessThan(520);
+    expect(metrics.sectionColumns).toBeGreaterThanOrEqual(4);
+    expect(metrics.headerBackground).toContain('linear-gradient');
     expect(metrics.sectionRadius).toBeLessThanOrEqual(1);
     expect(metrics.sectionShadow).toBe('none');
     expect(metrics.fieldRadius).toBeLessThanOrEqual(1);
     expect(metrics.fieldAccent).toBeLessThanOrEqual(1);
-    expect(metrics.fieldDivider).toBeGreaterThanOrEqual(1);
-    expect(metrics.fieldPaddingBottom).toBeGreaterThanOrEqual(12);
+    expect(metrics.labelFont).toBeGreaterThanOrEqual(11);
+    expect(metrics.valueFont).toBeGreaterThanOrEqual(15);
 
-    await attachPng(testInfo, 'dossie-institucional.png', await page.locator('.school-dossier').screenshot());
+    await attachPng(testInfo, 'dossie-institucional-v4.png', await page.locator('.school-dossier').screenshot());
+  });
+
+  test('acompanhamento mensal é agrupado por programa em vez de uma tabela monolítica', async ({ page }, testInfo) => {
+    await openControladorSchool(page);
+
+    const stack = page.locator('.radar-program-review-stack');
+    const programs = stack.locator('.radar-program-review');
+    await expect(programs.first()).toBeVisible();
+    expect(await programs.count()).toBeGreaterThanOrEqual(1);
+
+    await expect(stack.locator('td[rowspan]')).toHaveCount(0);
+    await expect(stack.locator('.radar-program-review-header').first()).toBeVisible();
+    await expect(stack.locator('.radar-program-review-title').first()).not.toHaveText('');
+    await expect(stack.locator('.radar-program-review-table').first()).toBeVisible();
+
+    const geometry = await page.evaluate(() => {
+      const main = document.querySelector('main.content-area');
+      const stackElement = document.querySelector('.radar-program-review-stack');
+      const firstProgram = stackElement.querySelector('.radar-program-review');
+      const originalMonolithicTable = document.querySelector('#tab-verificacoes .table-responsive > table.data-table tbody > tr td[rowspan]');
+      return {
+        hasHorizontalOverflow: main.scrollWidth > main.clientWidth + 1,
+        firstProgramWidth: firstProgram.getBoundingClientRect().width,
+        stackWidth: stackElement.getBoundingClientRect().width,
+        originalRowspanStillPresent: Boolean(originalMonolithicTable)
+      };
+    });
+
+    expect(geometry.hasHorizontalOverflow).toBe(false);
+    expect(geometry.firstProgramWidth).toBeGreaterThan(geometry.stackWidth * 0.95);
+    expect(geometry.originalRowspanStillPresent).toBe(false);
+
+    await attachPng(testInfo, 'acompanhamento-programas-v4.png', await page.locator('#tab-verificacoes').screenshot());
   });
 
   test('modal de cobrança prioriza leitura confortável da seleção e da mensagem', async ({ page }, testInfo) => {
@@ -203,31 +230,37 @@ test.describe('direção editorial premium no desktop', () => {
     expect(metrics.previewFont).toBeGreaterThanOrEqual(15);
     expect(metrics.previewLineHeight).toBeGreaterThanOrEqual(24);
 
-    await attachPng(testInfo, 'modal-cobranca.png', await page.locator('#modal-cobranca .modal-content').screenshot());
+    await attachPng(testInfo, 'modal-cobranca-v4.png', await page.locator('#modal-cobranca .modal-content').screenshot());
   });
 
-  test('hierarquia premium continua ativa na janela intermediária usada na revisão visual', async ({ page }, testInfo) => {
+  test('em 820px o prontuário troca a tabela larga por linhas de documento em grade', async ({ page }, testInfo) => {
     await page.setViewportSize({ width: 820, height: 1100 });
     await openControladorSchool(page);
 
     const metrics = await page.evaluate(() => {
       const selector = document.querySelector('#global-competence-badge');
       const select = selector.querySelector('select');
-      const dossierHeader = document.querySelector('.school-dossier-header');
-      const selectorStyle = getComputedStyle(selector);
+      const main = document.querySelector('main.content-area');
+      const sections = document.querySelector('.school-dossier-sections');
+      const row = document.querySelector('.radar-program-review-row');
+      const rowStyle = getComputedStyle(row);
       return {
-        selectorAccent: parseFloat(selectorStyle.borderLeftWidth),
-        selectorBackground: selectorStyle.backgroundImage,
+        selectorAccent: parseFloat(getComputedStyle(selector).borderLeftWidth),
         selectorValueFont: parseFloat(getComputedStyle(select).fontSize),
-        dossierHeaderBackground: getComputedStyle(dossierHeader).backgroundImage
+        dossierColumns: getComputedStyle(sections).gridTemplateColumns.split(' ').filter(Boolean).length,
+        reviewRowDisplay: rowStyle.display,
+        reviewRowColumns: rowStyle.gridTemplateColumns.split(' ').filter(Boolean).length,
+        hasHorizontalOverflow: main.scrollWidth > main.clientWidth + 1
       };
     });
 
     expect(metrics.selectorAccent).toBeGreaterThanOrEqual(5);
-    expect(metrics.selectorBackground).toContain('linear-gradient');
     expect(metrics.selectorValueFont).toBeGreaterThanOrEqual(17);
-    expect(metrics.dossierHeaderBackground).toContain('linear-gradient');
+    expect(metrics.dossierColumns).toBe(2);
+    expect(metrics.reviewRowDisplay).toBe('grid');
+    expect(metrics.reviewRowColumns).toBe(2);
+    expect(metrics.hasHorizontalOverflow).toBe(false);
 
-    await attachPng(testInfo, 'janela-intermediaria-dossie.png', await page.screenshot({ fullPage: true }));
+    await attachPng(testInfo, 'prontuario-820-v4.png', await page.screenshot({ fullPage: true }));
   });
 });
