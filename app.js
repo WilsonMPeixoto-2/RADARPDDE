@@ -9330,105 +9330,103 @@ function renderProntuario(escolaId) {
         </div>
 
         <div class="school-grid">
-            <!-- Sidebar da Escola -->
-            <div class="school-sidebar">
-                <div class="school-info-card">
-                    <div class="info-item">
-                        <div class="info-label">INEP</div>
-                        <div class="info-value">${escapeHtml(esc.inep)}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Designação</div>
+            <section class="school-sidebar school-dossier" aria-labelledby="school-dossier-title">
+                <header class="school-dossier-header">
+                    <h2 id="school-dossier-title">Informações institucionais</h2>
+                </header>
 
-                        <div class="info-value">${escapeHtml(esc.designação)}</div>
-                    </div>
+                <div class="school-dossier-sections">
+                    <section class="radar-info-section" data-section="identificacao" aria-labelledby="school-identification-title">
+                        <h3 id="school-identification-title">Identificação</h3>
+                        <dl class="radar-info-grid">
+                            <div class="radar-info-field">
+                                <dt class="radar-info-label">INEP</dt>
+                                <dd class="radar-info-value">${escapeHtml(esc.inep)}</dd>
+                            </div>
+                            <div class="radar-info-field">
+                                <dt class="radar-info-label">Designação</dt>
+                                <dd class="radar-info-value">${escapeHtml(esc.designação)}</dd>
+                            </div>
+                            <div class="radar-info-field">
+                                <dt class="radar-info-label">SICI</dt>
+                                <dd class="radar-info-value">${escapeHtml(esc.sici || 'Não informado')}</dd>
+                            </div>
+                            <div class="radar-info-field">
+                                <dt class="radar-info-label">CNPJ</dt>
+                                <dd class="radar-info-value">${escapeHtml(esc.cnpj)}</dd>
+                            </div>
+                        </dl>
+                    </section>
 
-                    <div class="info-item">
+                    <section class="radar-info-section" data-section="gestao" aria-labelledby="school-management-title">
+                        <h3 id="school-management-title">Gestão escolar</h3>
+                        <dl class="radar-info-grid">
+                            <div class="radar-info-field">
+                                <dt class="radar-info-label">Diretor(a)</dt>
+                                <dd class="radar-info-value">${escapeHtml(esc.diretor)}</dd>
+                            </div>
+                            <div class="radar-info-field">
+                                <dt class="radar-info-label">Diretor(a) Adjunto(a)</dt>
+                                <dd class="radar-info-value">${escapeHtml(esc.diretorAdjunto || 'Não informado')}</dd>
+                            </div>
+                        </dl>
+                    </section>
 
-                        <div class="info-label">SICI</div>
+                    <section class="radar-info-section" data-section="contatos" aria-labelledby="school-contacts-title">
+                        <h3 id="school-contacts-title">Contatos</h3>
+                        <dl class="radar-info-grid">
+                            <div class="radar-info-field">
+                                <dt class="radar-info-label">Telefone do Diretor(a)</dt>
+                                <dd class="radar-info-value">${escapeHtml(esc.telefoneDiretor || 'Não informado')}</dd>
+                            </div>
+                            <div class="radar-info-field">
+                                <dt class="radar-info-label">Telefone do Adjunto(a)</dt>
+                                <dd class="radar-info-value">${escapeHtml(esc.telefoneDiretorAdjunto || 'Não informado')}</dd>
+                            </div>
+                            <div class="radar-info-field">
+                                <dt class="radar-info-label">Telefone da Unidade</dt>
+                                <dd class="radar-info-value">${escapeHtml(esc.telefone)}</dd>
+                            </div>
+                            <div class="radar-info-field">
+                                <dt class="radar-info-label">Celular Institucional</dt>
+                                <dd class="radar-info-value">${escapeHtml(esc.telefoneCelularInstitucional || 'Não informado')}</dd>
+                            </div>
+                            <div class="radar-info-field">
+                                <dt class="radar-info-label">E-mail Institucional</dt>
+                                <dd class="radar-info-value">${escapeHtml(esc.email)}</dd>
+                            </div>
+                        </dl>
+                    </section>
 
-                        <div class="info-value">${escapeHtml(esc.sici || 'Não informado')}</div>
-                    </div>
+                    <section class="radar-info-section" data-section="vinculacao" aria-labelledby="school-linking-title">
+                        <h3 id="school-linking-title">Vinculação administrativa</h3>
+                        <dl class="radar-info-grid">
+                            <div class="radar-info-field">
+                                <dt class="radar-info-label">Coordenadoria / RA</dt>
+                                <dd class="radar-info-value">${escapeHtml(esc.cre)} / ${escapeHtml(getRAFromDesignacao(esc.designação))}</dd>
+                            </div>
+                            <div class="radar-info-field">
+                                <dt class="radar-info-label">Controlador Responsável</dt>
+                                <dd class="radar-info-value">${escapeHtml(ctrl ? ctrl.name : 'Não designado')}</dd>
+                            </div>
+                            <div class="radar-info-field">
+                                <dt class="radar-info-label">Processo Inventário (Exercício)</dt>
+                                <dd class="radar-info-value">${escapeHtml(process)}</dd>
+                            </div>
+                        </dl>
+                    </section>
 
-                    <div class="info-item">
-
-                        <div class="info-label">CNPJ</div>
-
-                        <div class="info-value">${escapeHtml(esc.cnpj)}</div>
-                    </div>
-
-                    <div class="info-item">
-
-                        <div class="info-label">Diretor(a)</div>
-
-                        <div class="info-value">${escapeHtml(esc.diretor)}</div>
-                    </div>
-
-                    <div class="info-item">
-
-                        <div class="info-label">Telefone do Diretor(a)</div>
-
-                        <div class="info-value">${escapeHtml(esc.telefoneDiretor || 'Não informado')}</div>
-                    </div>
-
-                    <div class="info-item">
-
-                        <div class="info-label">Diretor(a) Adjunto(a)</div>
-
-                        <div class="info-value">${escapeHtml(esc.diretorAdjunto || 'Não informado')}</div>
-                    </div>
-
-                    <div class="info-item">
-
-                        <div class="info-label">Telefone do Adjunto(a)</div>
-
-                        <div class="info-value">${escapeHtml(esc.telefoneDiretorAdjunto || 'Não informado')}</div>
-                    </div>
-
-                    <div class="info-item">
-
-                        <div class="info-label">Telefone da Unidade</div>
-
-                        <div class="info-value">${escapeHtml(esc.telefone)}</div>
-                    </div>
-
-                    <div class="info-item">
-
-                        <div class="info-label">Celular Institucional</div>
-
-                        <div class="info-value">${escapeHtml(esc.telefoneCelularInstitucional || 'Não informado')}</div>
-                    </div>
-
-                    <div class="info-item">
-
-                        <div class="info-label">Coordenadoria / RA</div>
-                        <div class="info-value">${escapeHtml(esc.cre)} / ${escapeHtml(getRAFromDesignacao(esc.designação))}</div>
-                    </div>
-
-                    <div class="info-item">
-                        <div class="info-label">E-mail Institucional</div>
-                        <div class="info-value">${escapeHtml(esc.email)}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Controlador Responsável</div>
-                        <div class="info-value">${escapeHtml(ctrl ? ctrl.name : 'Não designado')}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Processo Inventário (Exercício)</div>
-                        <div class="info-value">${escapeHtml(process)}</div>
-                    </div>
+                    <section class="radar-info-section school-programs-card" data-section="programas" aria-labelledby="school-programs-title">
+                        <h3 id="school-programs-title">Programas vinculados</h3>
+                        <ul class="school-program-list" role="list" aria-label="Programas vinculados">
+                            ${esc.programasIds.map(progId => {
+                                const p = programas.find(x => x.id === progId);
+                                return p ? `<li class="school-program-item">${escapeHtml(p.name)}</li>` : '';
+                            }).join('')}
+                        </ul>
+                    </section>
                 </div>
-
-                <div class="school-info-card school-programs-card">
-                    <div class="info-label">Programas Vinculados</div>
-                    <ul class="school-program-list" role="list" aria-label="Programas vinculados">
-                        ${esc.programasIds.map(progId => {
-                            const p = programas.find(x => x.id === progId);
-                            return p ? `<li class="school-program-item">${escapeHtml(p.name)}</li>` : '';
-                        }).join('')}
-                    </ul>
-                </div>
-            </div>
+            </section>
 
             <!-- Corpo Principal: Abas de Trabalho -->
             <div class="school-workspace">

@@ -9,6 +9,26 @@ async function waitForAuthorizedRadar(page) {
   ));
 }
 
+async function openControladorSchool(page) {
+  await page.goto('/');
+  await waitForAuthorizedRadar(page);
+  const schoolId = await page.evaluate(() => {
+    switchProfile('controlador');
+    const competenceKey = RadarCompetenceContext.getState().activeKey;
+    const school = escolas.find(candidate => (
+      Array.isArray(candidate.programasIds)
+      && candidate.programasIds.length > 0
+      && isCompetenceInScope(candidate.competenciaInicial, competenceKey)
+    ));
+    if (!school) throw new Error('Escola compatível com o Prontuário não encontrada.');
+    activeProntuarioCompetencia = competenceKey;
+    switchView('prontuario', school.id);
+    return school.id;
+  });
+  await expect(page.locator('#main-container .school-grid')).toBeVisible();
+  return schoolId;
+}
+
 test.describe('hierarquia visual operacional no desktop', () => {
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Contrato visual exclusivo do desktop.');
@@ -69,5 +89,57 @@ test.describe('hierarquia visual operacional no desktop', () => {
     })).toBeVisible();
     await expect(page.locator('#comp-select-view')).toHaveCount(0);
     await expect(page.locator('#global-competence-select')).toHaveValue('2026-08');
+  });
+
+  test('organiza os dados da escola em um dossiê institucional de largura integral', async ({ page }) => {
+    await openControladorSchool(page);
+
+    const dossier = page.locator('.school-dossier');
+    await expect(dossier).toBeVisible();
+    await expect(dossier.getByRole('heading', { name: 'Informações institucionais' })).toBeVisible();
+    await expect(dossier.getByRole('heading', { name: 'Identificação' })).toBeVisible();
+    await expect(dossier.getByRole('heading', { name: 'Gestão escolar' })).toBeVisible();
+    await expect(dossier.getByRole('heading', { name: 'Contatos' })).toBeVisible();
+    await expect(dossier.getByRole('heading', { name: 'Vinculação administrativa' })).toBeVisible();
+    await expect(dossier.getByRole('heading', { name: 'Programas vinculados' })).toBeVisible();
+    await expect(dossier.locator('dt')).toHaveText([
+      'INEP',
+      'Designação',
+      'SICI',
+      'CNPJ',
+      'Diretor(a)',
+      'Diretor(a) Adjunto(a)',
+      'Telefone do Diretor(a)',
+      'Telefone do Adjunto(a)',
+      'Telefone da Unidade',
+      'Celular Institucional',
+      'E-mail Institucional',
+      'Coordenadoria / RA',
+      'Controlador Responsável',
+      'Processo Inventário (Exercício)'
+    ]);
+    await expect(dossier.locator('dd')).toHaveCount(14);
+    await expect(dossier.locator('.school-program-list')).toBeVisible();
+
+    const geometry = await page.evaluate(() => {
+      const main = document.querySelector('main.content-area');
+      const dossierElement = document.querySelector('.school-dossier');
+      const workspace = document.querySelector('.school-workspace');
+      const identificationGrid = document.querySelector(
+        '.radar-info-section[data-section="identificacao"] .radar-info-grid'
+      );
+      return {
+        workspaceBelow: workspace.getBoundingClientRect().top >= dossierElement.getBoundingClientRect().bottom,
+        dossierWidth: Math.round(dossierElement.getBoundingClientRect().width),
+        mainWidth: Math.round(main.getBoundingClientRect().width),
+        columns: window.getComputedStyle(identificationGrid).gridTemplateColumns.split(' ').length,
+        hasHorizontalOverflow: main.scrollWidth > main.clientWidth + 1
+      };
+    });
+
+    expect(geometry.workspaceBelow).toBe(true);
+    expect(geometry.dossierWidth).toBeGreaterThan(geometry.mainWidth * 0.9);
+    expect(geometry.columns).toBeGreaterThanOrEqual(2);
+    expect(geometry.hasHorizontalOverflow).toBe(false);
   });
 });
