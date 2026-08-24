@@ -1,46 +1,58 @@
 /*
- * RADAR PDDE — direção editorial refinada para o PR #195.
- * Mantém regras, dados e fluxos; altera apenas composição e legibilidade desktop/tablet.
+ * RADAR PDDE — terceira direção estrutural do PR #195.
+ * Desktop/tablet >= 641px. Mobile permanece intocado por decisão de escopo.
+ * A meta aqui não é decorar a estrutura antiga, mas mudar a leitura da tela.
  */
 
 @media (min-width: 641px) {
-    /* O seletor global já informa a competência. Evita uma segunda placa repetindo o mesmo estado. */
+    /* A competência global é a única âncora visual do mês nas páginas internas. */
     .radar-context-block {
         display: none !important;
     }
 
-    /* Dossiê institucional: uma ficha contínua, não uma coleção de cards. */
-    .school-dossier {
+    /* ================================================================
+       RESUMO INSTITUCIONAL DA UNIDADE
+       Ficha horizontal compacta, sem banner roxo e sem mini-cards.
+       ================================================================ */
+    .school-dossier,
+    .school-dossier.radar-school-summary {
         overflow: hidden;
-        border: 1px solid rgba(76, 29, 149, 0.14);
-        border-radius: 1.05rem;
+        border: 1px solid rgba(54, 37, 79, 0.13);
+        border-radius: 1rem;
         background: #ffffff;
-        box-shadow: 0 12px 30px rgba(53, 32, 80, 0.08);
+        box-shadow: 0 8px 24px rgba(43, 28, 64, 0.055);
     }
 
     .school-dossier-header {
-        position: relative;
-        padding: 1.15rem 1.5rem 1.12rem;
-        overflow: hidden;
-        border-bottom: 0;
-        background: linear-gradient(116deg, #35145f 0%, #4c1d95 58%, #6d28d9 100%);
+        display: flex;
+        align-items: baseline;
+        gap: 0.9rem;
+        padding: 1rem 1.35rem 0.92rem;
+        border-bottom: 1px solid rgba(54, 37, 79, 0.10);
+        background: linear-gradient(90deg, #fbfaff 0%, #f7f8ff 55%, #ffffff 100%);
     }
 
     .school-dossier-header::after {
-        content: '';
-        position: absolute;
-        inset: auto 0 0 0;
-        height: 4px;
-        background: linear-gradient(90deg, #2563eb 0%, #60a5fa 38%, #a78bfa 72%, #ddd6fe 100%);
+        content: none;
+    }
+
+    .radar-school-summary-kicker {
+        flex: 0 0 auto;
+        color: #2563eb;
+        font-size: 0.7rem;
+        font-weight: 850;
+        letter-spacing: 0.09em;
+        line-height: 1;
+        text-transform: uppercase;
     }
 
     .school-dossier-header h2 {
         margin: 0;
-        color: #ffffff;
+        color: #241832;
         font-family: var(--font-heading);
-        font-size: 1.28rem;
+        font-size: 1.08rem;
         font-weight: 800;
-        letter-spacing: -0.02em;
+        letter-spacing: -0.018em;
         line-height: 1.2;
     }
 
@@ -50,7 +62,7 @@
 
     .school-dossier-sections {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 0;
         padding: 0;
         background: #ffffff;
@@ -58,129 +70,335 @@
 
     .radar-info-section {
         min-width: 0;
-        padding: 1.35rem 1.5rem 1.45rem;
+        padding: 1.05rem 1.18rem 1.15rem;
         border: 0 !important;
-        border-bottom: 1px solid rgba(76, 29, 149, 0.11) !important;
+        border-right: 1px solid rgba(54, 37, 79, 0.09) !important;
         border-radius: 0;
         background: transparent !important;
         box-shadow: none;
     }
 
-    .radar-info-section:nth-child(odd):not([data-section="programas"]) {
-        border-right: 1px solid rgba(76, 29, 149, 0.11) !important;
+    .radar-info-section:nth-child(4) {
+        border-right: 0 !important;
     }
 
     .radar-info-section[data-section="programas"] {
         grid-column: 1 / -1;
-        border-bottom: 0 !important;
-        background: linear-gradient(90deg, rgba(246, 241, 255, 0.7), rgba(238, 245, 255, 0.7)) !important;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        align-items: center;
+        gap: 1.1rem;
+        padding: 0.82rem 1.18rem;
+        border-top: 1px solid rgba(54, 37, 79, 0.09) !important;
+        border-right: 0 !important;
+        background: #faf9fd !important;
     }
 
     .radar-info-section h3 {
         display: flex;
         align-items: center;
-        gap: 0.62rem;
-        margin: 0 0 1rem;
-        color: #4c1d95;
+        gap: 0.48rem;
+        margin: 0 0 0.8rem;
+        color: #4b2c73;
         font-family: var(--font-heading);
-        font-size: 1.02rem;
+        font-size: 0.9rem;
         font-weight: 800;
-        letter-spacing: -0.012em;
-        line-height: 1.25;
+        letter-spacing: -0.005em;
+        line-height: 1.2;
     }
 
     .radar-info-section h3::before {
         content: '';
-        width: 0.28rem;
-        height: 1.05rem;
-        flex: 0 0 0.28rem;
-        border-radius: 999px;
-        background: linear-gradient(180deg, #2563eb 0%, #7c3aed 100%);
+        width: 0.23rem;
+        height: 0.95rem;
+        flex: 0 0 0.23rem;
+        border-radius: 99px;
+        background: #6d28d9;
+    }
+
+    .radar-info-section[data-section="programas"] h3 {
+        margin: 0;
+        white-space: nowrap;
     }
 
     .radar-info-grid {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0 1.15rem;
+        grid-template-columns: 1fr;
+        gap: 0.68rem;
         margin: 0;
     }
 
     .radar-info-field {
         min-width: 0;
-        padding: 0.78rem 0 0.86rem;
+        padding: 0;
         border: 0;
-        border-left: 0;
-        border-bottom: 1px solid rgba(76, 29, 149, 0.085);
         border-radius: 0;
         background: transparent;
     }
 
-    .radar-info-field:nth-child(odd) {
-        padding-right: 1rem;
-        border-right: 1px solid rgba(76, 29, 149, 0.075);
-    }
-
-    .radar-info-field:nth-child(even) {
-        padding-left: 0.1rem;
-    }
-
     .radar-info-label {
         display: block;
-        color: #74677f;
-        font-size: 0.75rem;
+        margin: 0 0 0.16rem;
+        color: #82758e;
+        font-size: 0.69rem;
         font-weight: 800;
-        letter-spacing: 0.06em;
-        line-height: 1.3;
+        letter-spacing: 0.055em;
+        line-height: 1.25;
         text-transform: uppercase;
     }
 
     .radar-info-value {
-        margin: 0.3rem 0 0;
-        color: #21162f;
+        margin: 0;
+        color: #241832;
         font-family: var(--font-body);
-        font-size: 1rem;
+        font-size: 0.94rem;
         font-weight: 650;
-        letter-spacing: -0.006em;
-        line-height: 1.42;
+        letter-spacing: -0.004em;
+        line-height: 1.34;
         overflow-wrap: anywhere;
     }
 
     .radar-info-section[data-section="gestao"] .radar-info-value,
     .radar-info-section[data-section="vinculacao"] .radar-info-value {
-        font-size: 1.02rem;
         font-weight: 700;
     }
 
     .school-program-list {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.55rem;
+        gap: 0.45rem;
         margin: 0;
         padding: 0;
     }
 
     .school-program-item {
         position: relative;
-        padding: 0.62rem 0.82rem 0.62rem 1rem;
-        overflow: hidden;
+        padding: 0.42rem 0.68rem;
         border: 1px solid rgba(76, 29, 149, 0.13);
         border-radius: 999px;
         background: #ffffff;
-        color: #3f176f;
-        font-size: 0.9rem;
+        color: #4c1d95;
+        font-size: 0.8rem;
         font-weight: 750;
-        box-shadow: 0 3px 10px rgba(53, 32, 80, 0.035);
+        box-shadow: none;
     }
 
     .school-program-item::before {
-        content: '';
-        position: absolute;
-        inset: 0 auto 0 0;
-        width: 4px;
-        background: linear-gradient(180deg, #2563eb 0%, #7c3aed 100%);
+        content: none;
     }
 
-    /* Cobrança: seleção operacional de um lado, documento legível do outro. */
+    /* ================================================================
+       ACOMPANHAMENTO MENSAL
+       A tabela única vira uma pilha de programas com cabeçalho próprio.
+       ================================================================ */
+    #tab-verificacoes .panel-card.radar-verification-workspace {
+        overflow: visible;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    #tab-verificacoes .radar-verification-workspace > .panel-header {
+        margin-bottom: 0.65rem;
+        padding: 0;
+    }
+
+    #tab-verificacoes .radar-verification-workspace > .panel-header h2 {
+        color: #241832;
+        font-size: 1.18rem;
+        letter-spacing: -0.018em;
+    }
+
+    #tab-verificacoes .radar-verification-workspace > .panel-header p {
+        margin-top: 0.22rem !important;
+        color: #7d7088 !important;
+        font-size: 0.82rem !important;
+        line-height: 1.4;
+    }
+
+    #tab-verificacoes .comp-tabs-container {
+        margin: 0 0 1rem;
+        padding: 0.75rem !important;
+        gap: 0.38rem !important;
+        border: 1px solid rgba(54, 37, 79, 0.10) !important;
+        border-radius: 0.85rem;
+        background: #ffffff;
+        box-shadow: 0 5px 15px rgba(43, 28, 64, 0.035);
+    }
+
+    #tab-verificacoes .comp-sub-tab {
+        min-width: 3.2rem;
+        justify-content: center;
+        padding: 0.58rem 0.76rem !important;
+        border-radius: 0.62rem !important;
+        border: 1px solid transparent;
+        background: #f7f5fa;
+        color: #65596f;
+        font-size: 0.78rem !important;
+        font-weight: 700 !important;
+        box-shadow: none;
+    }
+
+    #tab-verificacoes .comp-sub-tab.active {
+        border-color: rgba(109, 40, 217, 0.15);
+        background: #6d28d9;
+        color: #ffffff;
+        box-shadow: 0 5px 12px rgba(109, 40, 217, 0.18);
+    }
+
+    #tab-verificacoes .comp-sub-tab.active .status-dot {
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
+    }
+
+    .radar-program-review-stack {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .radar-program-review {
+        overflow: hidden;
+        border: 1px solid rgba(54, 37, 79, 0.12);
+        border-radius: 0.95rem;
+        background: #ffffff;
+        box-shadow: 0 7px 20px rgba(43, 28, 64, 0.05);
+    }
+
+    .radar-program-review-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.86rem 1rem;
+        border-bottom: 1px solid rgba(54, 37, 79, 0.10);
+        background: linear-gradient(90deg, #faf8ff 0%, #f7f9ff 65%, #ffffff 100%);
+    }
+
+    .radar-program-review-identity {
+        min-width: 0;
+    }
+
+    .radar-program-review-competence {
+        display: block;
+        margin-bottom: 0.12rem;
+        color: #2563eb;
+        font-size: 0.67rem;
+        font-weight: 850;
+        letter-spacing: 0.075em;
+        line-height: 1.1;
+        text-transform: uppercase;
+    }
+
+    .radar-program-review-title {
+        margin: 0;
+        color: #2d1b3d;
+        font-family: var(--font-heading);
+        font-size: 1rem;
+        font-weight: 800;
+        letter-spacing: -0.012em;
+        line-height: 1.25;
+    }
+
+    .radar-program-review-operations {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.7rem;
+        min-width: 0;
+    }
+
+    .radar-program-review-summary,
+    .radar-program-review-summary.program-status-summary {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        margin: 0;
+    }
+
+    .radar-program-review-summary > div {
+        display: flex;
+        align-items: center;
+        gap: 0.38rem;
+        white-space: nowrap;
+    }
+
+    .radar-program-review-summary > div > span:first-child {
+        color: #80738c;
+        font-size: 0.68rem;
+        font-weight: 700;
+    }
+
+    .radar-program-review-action {
+        width: auto !important;
+        min-width: 7rem;
+        margin: 0 !important;
+        justify-content: center;
+        font-size: 0.74rem !important;
+    }
+
+    .radar-program-review-table-wrap {
+        overflow-x: auto;
+    }
+
+    .radar-program-review-table {
+        width: 100%;
+        margin: 0;
+        border: 0;
+        border-collapse: collapse;
+        table-layout: auto;
+        background: #ffffff;
+    }
+
+    .radar-program-review-table thead th {
+        padding: 0.56rem 0.82rem;
+        border-bottom: 1px solid rgba(54, 37, 79, 0.08);
+        background: #fcfbfd;
+        color: #867a90;
+        font-size: 0.66rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+    }
+
+    .radar-program-review-row {
+        background: #ffffff;
+    }
+
+    .radar-program-review-row + .radar-program-review-row td {
+        border-top: 1px solid rgba(54, 37, 79, 0.07);
+    }
+
+    .radar-program-review-cell {
+        padding: 0.7rem 0.82rem;
+        border: 0;
+        vertical-align: middle;
+        color: #33233f;
+        font-size: 0.82rem;
+    }
+
+    .radar-program-review-cell--item-de-verificacao {
+        width: 36%;
+        color: #261834;
+        font-weight: 700;
+    }
+
+    .radar-program-review-cell--bonificacao,
+    .radar-program-review-cell--analise-tecnica,
+    .radar-program-review-cell--acoes {
+        width: 21%;
+    }
+
+    .radar-program-review-cell .btn,
+    .radar-program-review-cell select,
+    .radar-program-review-cell .segmented-control,
+    .radar-program-review-cell .toggle-group {
+        max-width: 100%;
+    }
+
+    /* ================================================================
+       COBRANÇA
+       Mantém a boa separação seleção/documento da rodada anterior.
+       ================================================================ */
     #modal-cobranca .modal-content {
         width: min(1180px, calc(100vw - 3rem));
         max-height: calc(100vh - 2.5rem);
@@ -246,15 +464,6 @@
         background: #ffffff;
     }
 
-    .cobranca-selection-panel {
-        box-shadow: 0 6px 18px rgba(53, 32, 80, 0.045);
-    }
-
-    .cobranca-preview-panel {
-        border-color: rgba(76, 29, 149, 0.16);
-        box-shadow: 0 10px 26px rgba(53, 32, 80, 0.07);
-    }
-
     .cobranca-selection-panel h4,
     .cobranca-preview-panel h4 {
         margin: 0;
@@ -265,7 +474,6 @@
         font-family: var(--font-heading);
         font-size: 1rem;
         font-weight: 800;
-        letter-spacing: -0.01em;
     }
 
     .cobranca-preview-panel h4 {
@@ -292,7 +500,6 @@
         border-radius: 0;
         background: #ffffff;
         cursor: pointer;
-        transition: background-color 150ms ease, box-shadow 150ms ease;
     }
 
     .cobranca-option:hover,
@@ -333,14 +540,6 @@
         overflow-wrap: anywhere;
     }
 
-    .cobranca-empty-state {
-        padding: 1.25rem;
-        color: #64596f;
-        font-size: 0.92rem;
-        line-height: 1.55;
-        text-align: center;
-    }
-
     .cobranca-preview-panel .cobranca-preview {
         flex: 1 1 auto;
         min-height: 0;
@@ -364,21 +563,146 @@
         padding: 0.86rem 1.15rem;
         border-top: 1px solid rgba(76, 29, 149, 0.12);
         background: #ffffff;
-        box-shadow: 0 -5px 16px rgba(53, 32, 80, 0.035);
+    }
+}
+
+@media (min-width: 981px) and (max-width: 1280px) {
+    .school-dossier-sections {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .radar-info-section:nth-child(2n) {
+        border-right: 0 !important;
+    }
+
+    .radar-info-section:nth-child(-n + 2) {
+        border-bottom: 1px solid rgba(54, 37, 79, 0.09) !important;
+    }
+
+    .radar-info-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.7rem 1rem;
     }
 }
 
 @media (min-width: 641px) and (max-width: 980px) {
     .school-dossier-sections {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .radar-info-section:nth-child(odd):not([data-section="programas"]) {
+    .radar-info-section {
+        border-bottom: 1px solid rgba(54, 37, 79, 0.09) !important;
+    }
+
+    .radar-info-section:nth-child(2n) {
         border-right: 0 !important;
     }
 
+    .radar-info-section[data-section="programas"] {
+        display: block;
+        border-bottom: 0 !important;
+    }
+
+    .radar-info-section[data-section="programas"] h3 {
+        margin-bottom: 0.65rem;
+    }
+
     .radar-info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .radar-info-section[data-section="identificacao"] .radar-info-grid,
+    .radar-info-section[data-section="contatos"] .radar-info-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.65rem 0.9rem;
+    }
+
+    .radar-program-review-header {
+        align-items: flex-start;
+    }
+
+    .radar-program-review-operations {
+        flex-wrap: wrap;
+    }
+
+    .radar-program-review-table-wrap {
+        overflow: visible;
+    }
+
+    .radar-program-review-table,
+    .radar-program-review-table tbody {
+        display: block;
+        width: 100%;
+    }
+
+    .radar-program-review-table thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    .radar-program-review-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0;
+        margin: 0;
+        padding: 0;
+        border-bottom: 1px solid rgba(54, 37, 79, 0.09);
+    }
+
+    .radar-program-review-row:last-child {
+        border-bottom: 0;
+    }
+
+    .radar-program-review-row + .radar-program-review-row td {
+        border-top: 0;
+    }
+
+    .radar-program-review-cell {
+        display: block;
+        width: auto !important;
+        min-width: 0;
+        padding: 0.72rem 0.82rem;
+        border-right: 1px solid rgba(54, 37, 79, 0.07);
+    }
+
+    .radar-program-review-cell:nth-child(even) {
+        border-right: 0;
+    }
+
+    .radar-program-review-cell::before {
+        content: attr(data-radar-field-label);
+        display: block;
+        margin-bottom: 0.34rem;
+        color: #8a7e93;
+        font-size: 0.62rem;
+        font-weight: 850;
+        letter-spacing: 0.06em;
+        line-height: 1.15;
+        text-transform: uppercase;
+    }
+
+    .radar-program-review-cell--item-de-verificacao {
+        grid-column: 1 / -1;
+        padding-top: 0.9rem;
+        padding-bottom: 0.9rem;
+        border-right: 0;
+        border-bottom: 1px solid rgba(54, 37, 79, 0.06);
+        background: #fcfbfd;
+        font-size: 0.88rem;
+    }
+
+    .radar-program-review-cell--acoes {
+        grid-column: 1 / -1;
+        border-top: 1px solid rgba(54, 37, 79, 0.06);
+        border-right: 0;
+        background: #faf9fc;
     }
 
     .cobranca-workspace {
