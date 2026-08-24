@@ -8,6 +8,10 @@ const editorialStyles = fs.readFileSync(
   path.join(root, 'src/styles/editorial-premium-desktop.css'),
   'utf8'
 );
+const structuralStyles = fs.readFileSync(
+  path.join(root, 'src/styles/prontuario-structural-v4.css'),
+  'utf8'
+);
 const competenceStyles = fs.readFileSync(
   path.join(root, 'src/styles/global-competence-selector.css'),
   'utf8'
@@ -48,8 +52,8 @@ function maxPx(source, selector, property) {
 test('competência ativa continua dominante no seletor global e não é duplicada na página', () => {
   assert.match(
     competenceStyles,
-    /@import\s+url\(['"]\.\/editorial-premium-desktop\.css['"]\)\s+screen\s+and\s+\(min-width:\s*641px\)/,
-    'A camada editorial precisa estar disponível a partir de 641px'
+    /@import\s+url\(['"]\.\/prontuario-structural-v4\.css['"]\)\s+screen\s+and\s+\(min-width:\s*641px\)/,
+    'A camada estrutural v4 precisa ser carregada depois da camada editorial'
   );
   assert.ok(maxPx(competenceStyles, '.global-competence-control > label', 'font-size') >= 12);
   assert.ok(maxPx(competenceStyles, '.global-competence-select', 'font-size') >= 18);
@@ -58,25 +62,27 @@ test('competência ativa continua dominante no seletor global e não é duplicad
   assert.match(block(editorialStyles, '.radar-context-block'), /display\s*:\s*none\s*!important/);
 });
 
-test('resumo institucional é compacto e não usa mini-card por campo', () => {
-  assert.match(block(editorialStyles, '.school-dossier-sections'), /grid-template-columns\s*:\s*repeat\(4/);
-  assert.match(block(editorialStyles, '.radar-info-section'), /border-radius\s*:\s*0/);
-  assert.match(block(editorialStyles, '.radar-info-section'), /box-shadow\s*:\s*none/);
-  assert.match(block(editorialStyles, '.radar-info-field'), /border\s*:\s*0/);
-  assert.match(block(editorialStyles, '.radar-info-field'), /border-radius\s*:\s*0/);
-  assert.ok(maxPx(editorialStyles, '.radar-info-label', 'font-size') >= 11);
-  assert.ok(maxPx(editorialStyles, '.radar-info-value', 'font-size') >= 15);
-  assert.match(block(editorialStyles, '.school-dossier-header'), /background\s*:\s*linear-gradient/);
+test('ficha institucional usa pares campo e valor em vez de mini-cards', () => {
+  assert.match(block(structuralStyles, '.radar-school-summary-v4 .school-dossier-sections'), /grid-template-columns\s*:\s*repeat\(2/);
+  assert.match(block(structuralStyles, '.radar-school-summary-v4 .radar-info-field'), /display\s*:\s*grid/);
+  assert.match(block(structuralStyles, '.radar-school-summary-v4 .radar-info-field'), /grid-template-columns\s*:\s*minmax\(7\.8rem/);
+  assert.match(block(structuralStyles, '.radar-school-summary-v4 .radar-info-field'), /border-radius\s*:\s*0\s*!important/);
+  assert.match(block(structuralStyles, '.radar-school-summary-v4 .radar-info-section'), /box-shadow\s*:\s*none\s*!important/);
+  assert.ok(maxPx(structuralStyles, '.radar-school-summary-v4 .radar-info-label', 'font-size') >= 11);
+  assert.ok(maxPx(structuralStyles, '.radar-school-summary-v4 .radar-info-value', 'font-size') >= 15);
 });
 
-test('acompanhamento mensal deixa de depender da tabela monolítica', () => {
+test('prontuário muda a leitura sem mover as linhas e controles do tbody original', () => {
   assert.match(runtimeConfig, /loadScript\('src\/integration\/prontuario-structural-redesign\.js',\s*false\)/);
-  assert.match(structuralScript, /radar-program-review-stack/);
-  assert.match(structuralScript, /metaCell\.remove\(\)/);
-  assert.match(structuralScript, /sourceWrapper\.replaceWith\(stack\)/);
-  assert.match(block(editorialStyles, '.radar-program-review-stack'), /display\s*:\s*grid/);
-  assert.match(block(editorialStyles, '.radar-program-review'), /border-radius\s*:\s*0\.95rem/);
-  assert.match(editorialStyles, /@media\s*\(min-width:\s*641px\)\s*and\s*\(max-width:\s*980px\)[\s\S]*?\.radar-program-review-row\s*\{[\s\S]*?display\s*:\s*grid/);
+  assert.match(structuralScript, /radar-program-ledger-v4/);
+  assert.match(structuralScript, /radar-program-row-v4--first/);
+  assert.match(structuralScript, /radar-program-meta-v4/);
+  assert.doesNotMatch(structuralScript, /metaCell\.remove\s*\(/);
+  assert.doesNotMatch(structuralScript, /appendChild\(row\)/);
+  assert.doesNotMatch(structuralScript, /replaceWith\(stack\)/);
+  assert.match(block(structuralStyles, '#tab-verificacoes .radar-program-row-v4'), /display\s*:\s*grid/);
+  assert.match(block(structuralStyles, '#tab-verificacoes .radar-program-meta-v4'), /grid-column\s*:\s*1\s*\/\s*-1/);
+  assert.match(structuralStyles, /@media\s*\(min-width:\s*641px\)\s*and\s*\(max-width:\s*1050px\)[\s\S]*?#tab-verificacoes \.radar-program-row-v4\s*\{[\s\S]*?grid-template-columns\s*:\s*repeat\(2/);
 });
 
 test('modal de cobrança mantém tipografia de leitura confortável', () => {
