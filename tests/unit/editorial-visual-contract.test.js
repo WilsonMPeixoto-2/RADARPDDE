@@ -42,14 +42,14 @@ function maxPx(source, selector, property) {
 
 test('contrato editorial exige tipografia legível no dossiê e cobrança', () => {
   assert.ok(maxPx(editorialStyles, '.radar-info-section h3', 'font-size') >= 16);
-  assert.ok(maxPx(editorialStyles, '.radar-info-label', 'font-size') >= 11.5);
+  assert.ok(maxPx(editorialStyles, '.radar-info-label', 'font-size') >= 12);
   assert.ok(maxPx(editorialStyles, '.radar-info-value', 'font-size') >= 16);
   assert.ok(maxPx(editorialStyles, '.cobranca-option-title', 'font-size') >= 15);
   assert.ok(maxPx(editorialStyles, '.cobranca-option-detail', 'font-size') >= 13.5);
   assert.ok(maxPx(editorialStyles, '.cobranca-preview-panel .cobranca-preview', 'font-size') >= 16);
 });
 
-test('contrato editorial exige competência ativa dominante e faixa azul preservada', () => {
+test('competência ativa é dominante no seletor global sem repetição visual na página', () => {
   assert.match(
     competenceStyles,
     /@import\s+url\(['"]\.\/editorial-premium-desktop\.css['"]\)\s+screen\s+and\s+\(min-width:\s*641px\)/,
@@ -59,13 +59,15 @@ test('contrato editorial exige competência ativa dominante e faixa azul preserv
   assert.ok(maxPx(competenceStyles, '.global-competence-select', 'font-size') >= 18);
   assert.match(competenceStyles, /border-left\s*:\s*6px\s+solid\s+#2563eb/i);
   assert.match(competenceStyles, /linear-gradient\(135deg,\s*#4c1d95[^;]*#6d28d9/i);
-  assert.ok(maxPx(editorialStyles, '.radar-context-label', 'font-size') >= 12);
-  assert.ok(maxPx(editorialStyles, '.radar-context-value', 'font-size') >= 22);
+  assert.match(block(editorialStyles, '.radar-context-block'), /display\s*:\s*none\s*!important/);
 });
 
-test('dossiê usa blocos editoriais separados em vez de folha branca contínua', () => {
-  assert.match(block(editorialStyles, '.school-dossier-sections'), /gap\s*:\s*1rem/);
-  assert.match(block(editorialStyles, '.radar-info-section'), /border-radius\s*:\s*0\.9rem/);
-  assert.match(block(editorialStyles, '.radar-info-field'), /border-left\s*:\s*3px\s+solid/);
+test('dossiê usa ficha editorial contínua sem card por campo', () => {
+  assert.match(block(editorialStyles, '.school-dossier-sections'), /gap\s*:\s*0/);
+  assert.match(block(editorialStyles, '.radar-info-section'), /border-radius\s*:\s*0/);
+  assert.match(block(editorialStyles, '.radar-info-section'), /box-shadow\s*:\s*none/);
+  assert.match(block(editorialStyles, '.radar-info-field'), /border-left\s*:\s*0/);
+  assert.match(block(editorialStyles, '.radar-info-field'), /border-bottom\s*:\s*1px\s+solid/);
+  assert.match(block(editorialStyles, '.radar-info-field'), /border-radius\s*:\s*0/);
   assert.match(block(editorialStyles, '.school-dossier-header'), /linear-gradient/);
 });
