@@ -1,4 +1,4 @@
-/* Compatibilidade da direção editorial refinada com o tema escuro existente. */
+/* Compatibilidade do redesenho estrutural do PR #195 com o tema escuro. */
 
 @media (min-width: 641px) {
     body.dark-theme #global-competence-badge.global-competence-control {
@@ -24,62 +24,96 @@
     }
 
     body.dark-theme .school-dossier {
-        border-color: rgba(157, 125, 252, 0.20);
+        border-color: rgba(157, 125, 252, 0.18);
         background: #171220;
-        box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
     }
 
     body.dark-theme .school-dossier-header {
-        background: linear-gradient(116deg, #211137 0%, #2b1550 58%, #3f176f 100%);
+        border-bottom-color: rgba(157, 125, 252, 0.13);
+        background: linear-gradient(90deg, #1d1727 0%, #191623 65%, #171220 100%);
+    }
+
+    body.dark-theme .radar-school-summary-kicker {
+        color: #60a5fa;
+    }
+
+    body.dark-theme .school-dossier-header h2,
+    body.dark-theme .radar-info-value,
+    body.dark-theme .radar-program-review-title,
+    body.dark-theme .radar-program-review-cell,
+    body.dark-theme .cobranca-option-title,
+    body.dark-theme .cobranca-preview-panel .cobranca-preview {
+        color: var(--text-main);
     }
 
     body.dark-theme .school-dossier-sections {
         background: #171220;
     }
 
-    body.dark-theme .radar-info-section,
-    body.dark-theme .radar-info-section[data-section="contatos"],
-    body.dark-theme .radar-info-section[data-section="vinculacao"] {
-        border-color: rgba(157, 125, 252, 0.14) !important;
+    body.dark-theme .radar-info-section {
+        border-color: rgba(157, 125, 252, 0.12) !important;
         background: transparent !important;
-        box-shadow: none;
     }
 
     body.dark-theme .radar-info-section[data-section="programas"] {
-        border-color: rgba(96, 165, 250, 0.18) !important;
-        background: linear-gradient(90deg, rgba(43, 21, 80, 0.48), rgba(30, 41, 59, 0.52)) !important;
+        border-top-color: rgba(157, 125, 252, 0.13) !important;
+        background: #1b1624 !important;
     }
 
     body.dark-theme .radar-info-section h3 {
         color: #c4b5fd;
     }
 
-    body.dark-theme .radar-info-field {
-        border-color: rgba(157, 125, 252, 0.12);
-        background: transparent;
-    }
-
-    body.dark-theme .radar-info-field:nth-child(odd) {
-        border-right-color: rgba(157, 125, 252, 0.10);
-    }
-
     body.dark-theme .radar-info-label,
+    body.dark-theme .radar-program-review-summary > div > span:first-child,
+    body.dark-theme .radar-program-review-table thead th,
     body.dark-theme .cobranca-guidance,
     body.dark-theme .cobranca-option-detail {
         color: var(--text-muted);
     }
 
-    body.dark-theme .radar-info-value,
-    body.dark-theme .cobranca-option-title,
-    body.dark-theme .cobranca-preview-panel .cobranca-preview {
-        color: var(--text-main);
+    body.dark-theme .school-program-item {
+        border-color: rgba(157, 125, 252, 0.20);
+        background: #211a2c;
+        color: #ddd6fe;
     }
 
-    body.dark-theme .school-program-item {
-        border-color: rgba(157, 125, 252, 0.22);
-        background: rgba(20, 15, 28, 0.82);
-        color: #ddd6fe;
-        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.16);
+    body.dark-theme #tab-verificacoes .comp-tabs-container,
+    body.dark-theme .radar-program-review {
+        border-color: rgba(157, 125, 252, 0.16) !important;
+        background: #171220;
+        box-shadow: 0 7px 20px rgba(0, 0, 0, 0.18);
+    }
+
+    body.dark-theme #tab-verificacoes .comp-sub-tab {
+        background: #211a2c;
+        color: #b9afc3;
+    }
+
+    body.dark-theme #tab-verificacoes .comp-sub-tab.active {
+        background: #6d28d9;
+        color: #ffffff;
+    }
+
+    body.dark-theme .radar-program-review-header {
+        border-bottom-color: rgba(157, 125, 252, 0.13);
+        background: linear-gradient(90deg, #211a2c 0%, #1b1825 70%, #171220 100%);
+    }
+
+    body.dark-theme .radar-program-review-competence {
+        color: #60a5fa;
+    }
+
+    body.dark-theme .radar-program-review-table,
+    body.dark-theme .radar-program-review-row {
+        background: #171220;
+    }
+
+    body.dark-theme .radar-program-review-table thead th,
+    body.dark-theme .radar-program-review-row + .radar-program-review-row td {
+        border-color: rgba(157, 125, 252, 0.10);
+        background: #1b1624;
     }
 
     body.dark-theme #modal-cobranca .modal-content {
@@ -135,11 +169,25 @@
     body.dark-theme .cobranca-preview-panel .cobranca-preview {
         border-left-color: #a78bfa;
         background: rgba(10, 7, 18, 0.66);
-        box-shadow: none;
     }
 
     body.dark-theme .cobranca-modal-footer {
         border-top-color: rgba(157, 125, 252, 0.14);
         background: #171220;
+    }
+}
+
+@media (min-width: 641px) and (max-width: 980px) {
+    body.dark-theme .radar-program-review-row {
+        border-bottom-color: rgba(157, 125, 252, 0.11);
+    }
+
+    body.dark-theme .radar-program-review-cell {
+        border-color: rgba(157, 125, 252, 0.09);
+    }
+
+    body.dark-theme .radar-program-review-cell--item-de-verificacao,
+    body.dark-theme .radar-program-review-cell--acoes {
+        background: #1b1624;
     }
 }
