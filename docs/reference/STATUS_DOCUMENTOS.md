@@ -1,6 +1,6 @@
 # Matriz de validade documental
 
-**Atualizado em:** 18 de agosto de 2026  
+**Atualizado em:** 24 de agosto de 2026
 **Classe documental:** Canônico
 
 ## 1. Finalidade
@@ -9,7 +9,7 @@ Este documento define quais arquivos podem orientar o estado presente e quais ex
 
 O estado mutável do projeto fica em [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md). A estratégia vigente de validação fica em [`TEST_GOVERNANCE.md`](TEST_GOVERNANCE.md).
 
-O snapshot de encerramento do ciclo atual fica em [`../handoff/2026-08-18-encerramento-operacional.md`](../handoff/2026-08-18-encerramento-operacional.md) e é uma exceção explícita à classificação histórica normalmente aplicada a handoffs.
+O checkpoint corrente de continuidade fica em [`../handoff/2026-08-24-pre-implementacao-plano-mestre.md`](../handoff/2026-08-24-pre-implementacao-plano-mestre.md) e é uma exceção explícita à classificação histórica normalmente aplicada a handoffs.
 
 ## 2. Classes
 
@@ -47,7 +47,9 @@ Um teste histórico não prevalece sobre regra e código posteriores. PR aberto,
 | `AGENTS.md` | regras de trabalho e proteção do projeto |
 | `README.md` | entrada do repositório |
 | `docs/CURRENT_STAGE.md` | estado corrente, prioridades e gatilhos de nova validação |
-| `docs/handoff/2026-08-18-encerramento-operacional.md` | snapshot canônico de encerramento e retomada futura |
+| `docs/handoff/2026-08-24-pre-implementacao-plano-mestre.md` | checkpoint canônico de diagnóstico, plano e retomada antes das correções |
+| `docs/superpowers/plans/2026-08-24-plano-mestre-correcoes.md` | sequência aprovada como base de implementação, com gates e reversão |
+| `docs/reports/2026-08-24-plano-mestre-correcoes-radar-pdde.docx` | relatório integral versionado, com imagens e wireframes |
 | `docs/reference/TEST_GOVERNANCE.md` | classificação de falhas e estratégia proporcional de testes |
 | `docs/PROJECT_CONTEXT.md` | contrato funcional e arquitetural estável |
 | `docs/DECISION_LOG.md` | decisões duradouras agregadas |
@@ -164,7 +166,11 @@ As auditorias dos incidentes de Gestão de Equipe permanecem válidas como hist�
 
 Arquivos de `docs/superpowers/plans/`, `docs/superpowers/specs/`, `docs/handoff/` e `docs/reports/` são normalmente **Histórico executado**, **Evidência** ou **Trabalho em andamento** conforme sua branch/PR.
 
-**Exceção expressa:** `docs/handoff/2026-08-18-encerramento-operacional.md` é **Canônico** e serve como snapshot de retomada do ciclo encerrado em 18/08/2026.
+**Exceção expressa atual:** `docs/handoff/2026-08-24-pre-implementacao-plano-mestre.md` é **Canônico** e serve como porta de entrada para a próxima execução.
+
+O plano `docs/superpowers/plans/2026-08-24-plano-mestre-correcoes.md` é **Trabalho aprovado como base, ainda não executado**. Seus checkboxes não comprovam implementação. O Word correspondente é **Referência versionada**; a versão Markdown prevalece para busca, diff e execução.
+
+Os handoffs de 18/08 e 23/08 permanecem **Histórico executado/Evidência** de seus respectivos checkpoints e não devem ser apagados ou reescritos para parecer atuais.
 
 Não reescrever plano concluído para refletir solução posterior e não usar plano antigo como autoridade sobre o código atual.
 

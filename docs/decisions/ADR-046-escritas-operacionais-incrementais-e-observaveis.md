@@ -1,7 +1,7 @@
 # ADR-046 — Escritas operacionais usam retorno autoritativo, reconciliação incremental e diagnóstico local
 
-**Data:** 23 de agosto de 2026  
-**Status:** Aprovada e implementada nos PRs #190–#193; diagnóstico local integrado no PR #194
+**Data:** 23 de agosto de 2026
+**Status:** Aprovada; implementada parcialmente nos PRs #190–#194; lacunas específicas de `invoice:save` registradas em 24/08/2026
 
 ## Contexto
 
@@ -26,6 +26,19 @@ interação
 `renderProntuario()` integral é fallback para bootstrap, navegação, erro, retorno incompleto ou inconsistência não reconciliável. Não deve ser executado após todo sucesso apenas por precaução.
 
 Operação semanticamente idêntica ao estado atual é idempotente: não deve criar nova persistência, `row_version` ou log desnecessário.
+
+## Lacunas confirmadas em 24/08/2026
+
+A decisão continua vigente, mas o diagnóstico sobre a `main` `4542bbf` encontrou pontos ainda não cobertos no fluxo de despesas:
+
+- o formulário não impede uma segunda submissão enquanto a primeira está pendente;
+- cada execução de uma inclusão gera uma nova identidade;
+- a edição não usa um planejador que compare despesa, bem, avaliação, Assessoria, consolidação e demais efeitos antes de decidir por no-op;
+- a dispensa de refresh de `administrativeLogs` em `invoice:save` depende da instalação da extensão opcional de desempenho;
+- a RPC não recebe chave idempotente de intenção para retry, duas abas ou perda de resposta;
+- a resposta atual ainda não é suficiente para aplicação incremental segura em toda transição, especialmente remoção por `deleted_asset_id`.
+
+Essas lacunas não revogam a arquitetura. Elas impedem classificar `invoice:save` como integralmente aderente até a execução dos PRs 1, 2, 5 e 8 do [`../superpowers/plans/2026-08-24-plano-mestre-correcoes.md`](../superpowers/plans/2026-08-24-plano-mestre-correcoes.md).
 
 ## Observabilidade local
 

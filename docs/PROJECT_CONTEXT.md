@@ -1,6 +1,6 @@
 # RADAR PDDE 2026 — Contexto funcional e arquitetural
 
-**Atualizado em:** 23 de agosto de 2026  
+**Atualizado em:** 24 de agosto de 2026
 **Classe documental:** Canônico
 
 ## 1. Finalidade
@@ -24,7 +24,9 @@ Dashboard, Carteira, Competências, Prontuário, Pendências, Inventário, Regis
 
 O baseline mutável corrente fica em [`CURRENT_STAGE.md`](CURRENT_STAGE.md).
 
-O checkpoint canônico pós-PR #193 está em [`handoff/2026-08-23-post-pr-193.md`](handoff/2026-08-23-post-pr-193.md).
+O checkpoint canônico pré-implementação das correções atuais está em [`handoff/2026-08-24-pre-implementacao-plano-mestre.md`](handoff/2026-08-24-pre-implementacao-plano-mestre.md).
+
+O checkpoint pós-PR #193 permanece como histórico técnico da estabilização anterior em [`handoff/2026-08-23-post-pr-193.md`](handoff/2026-08-23-post-pr-193.md).
 
 O snapshot de encerramento de 18/08/2026 permanece histórico em [`handoff/2026-08-18-encerramento-operacional.md`](handoff/2026-08-18-encerramento-operacional.md).
 
@@ -126,6 +128,8 @@ Regras vigentes:
 - `bonus_result` ausente significa preservar o valor existente; limpeza explicitamente solicitada é semanticamente diferente de campo ausente;
 - N/A → Sim/Não reinicializa derivações incompatíveis, incluindo análise técnica de NF para `Não analisado` quando aplicável;
 - operação semanticamente idêntica ao estado atual é idempotente e não deve produzir nova persistência, novo `row_version` ou novo log apenas por repetição do comando.
+
+O diagnóstico de 24/08 identificou que esse último contrato ainda não está integralmente satisfeito em `invoice:save`: a edição alcança update/log sem um planejador semântico completo e a inclusão não possui chave idempotente de servidor. Tratar como lacuna conhecida do fluxo INV-01, não como autorização para alterar a regra.
 
 ### Persistência e atualização visual da avaliação
 
@@ -353,7 +357,9 @@ Ferramentas incorporadas no ciclo de estabilização de 23/08:
 - `dependency-cruiser` para gate arquitetural;
 - Performance API/PerformanceObserver nativos para diagnóstico local das escritas operacionais.
 
-A integração de métricas concluída no PR #194 usa probe limitada em memória e interface somente leitura `RadarOperationalWriteMetrics`. Não envia telemetria, não persiste métricas e não coleta identificadores/conteúdo de negócio. Falha da instrumentação é fail-open.
+A integração de métricas concluída e incorporada à `main` pelo PR #194 usa probe limitada em memória e interface somente leitura `RadarOperationalWriteMetrics`. Não envia telemetria, não persiste métricas e não coleta identificadores/conteúdo de negócio. Falha da instrumentação é fail-open.
+
+O checkpoint de 24/08 registrou uma limitação adicional: performance e módulos funcionais críticos ainda podem depender de instalação por polling com prazo fixo. A prontidão real por módulo está planejada, mas não implementada no baseline `4542bbf`.
 
 A existência de um gate não o torna automaticamente obrigatório para toda alteração. A governança de testes define proporcionalidade ao risco.
 
@@ -422,6 +428,9 @@ Não é permitido:
 ## 23. Referências
 
 - [`CURRENT_STAGE.md`](CURRENT_STAGE.md);
+- [`handoff/2026-08-24-pre-implementacao-plano-mestre.md`](handoff/2026-08-24-pre-implementacao-plano-mestre.md);
+- [`superpowers/plans/2026-08-24-plano-mestre-correcoes.md`](superpowers/plans/2026-08-24-plano-mestre-correcoes.md);
+- [`reports/2026-08-24-plano-mestre-correcoes-radar-pdde.docx`](reports/2026-08-24-plano-mestre-correcoes-radar-pdde.docx);
 - [`handoff/2026-08-23-post-pr-193.md`](handoff/2026-08-23-post-pr-193.md);
 - [`handoff/2026-08-18-encerramento-operacional.md`](handoff/2026-08-18-encerramento-operacional.md);
 - [`DECISION_LOG.md`](DECISION_LOG.md);

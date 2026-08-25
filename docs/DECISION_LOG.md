@@ -1,6 +1,6 @@
 # RADAR PDDE — Registro de decisões
 
-**Atualizado em:** 23 de agosto de 2026
+**Atualizado em:** 24 de agosto de 2026
 
 Este documento registra decisões duradouras. Não é diário de commits. Uma decisão somente é substituída por decisão expressa com impacto e status documentados.
 
@@ -481,11 +481,13 @@ LocalStorage, fixtures e seeds descartáveis permanecem disponíveis apenas para
 
 ## ADR-046 — Escritas operacionais usam retorno autoritativo, reconciliação incremental e diagnóstico local
 
-**Status:** Aprovada e implementada nos PRs #190–#193; diagnóstico local integrado no PR #194
+**Status:** Aprovada; implementada parcialmente nos PRs #190–#194; lacunas específicas de `invoice:save` registradas em 24/08
 
 O caminho normal das escritas inline bem-sucedidas usa feedback imediato, persistência/RPC, retorno autoritativo, incorporação incremental e reconciliação localizada. `renderProntuario()` integral permanece fallback para bootstrap, navegação, erro, retorno incompleto ou inconsistência não reconciliável.
 
 Operações semanticamente idênticas são idempotentes e não devem gerar nova persistência, `row_version` ou log sem mudança real.
+
+O diagnóstico de 24/08 confirmou que esse contrato permanece a direção correta, mas não está integralmente coberto em `invoice:save`: submit repetido pode criar duas inclusões, a edição não possui no-op baseado em todos os efeitos derivados, a dispensa de refresh de históricos depende da extensão opcional e ainda não existe chave idempotente de servidor para retry/perda de resposta. A correção está sequenciada em PRs próprios no plano mestre; não considerar a lacuna resolvida apenas pela formulação desta ADR.
 
 A instrumentação local pode medir `click`, `feedback`, RPC, aplicação e estabilização por probe limitada em memória, sem telemetria externa nem dados de negócio. Falha do diagnóstico é fail-open.
 
