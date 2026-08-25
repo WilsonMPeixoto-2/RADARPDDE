@@ -1,18 +1,20 @@
 # AGENTS.md — RADAR PDDE 2026
 
-**Atualizado em:** 9 de agosto de 2026
+**Atualizado em:** 24 de agosto de 2026
 
 ## 1. Leitura obrigatória
 
 Antes de analisar ou alterar o repositório, leia:
 
 1. `docs/CURRENT_STAGE.md` — estado corrente, baseline e prioridades reais;
-2. `docs/reference/TEST_GOVERNANCE.md` — estratégia proporcional e tratamento de testes superados;
-3. `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md` — visão gerada do contrato funcional vigente;
-4. `docs/PROJECT_CONTEXT.md` — produto, domínio e arquitetura;
-5. `docs/DECISION_LOG.md` — decisões duradouras;
-6. `docs/reference/STATUS_DOCUMENTOS.md` — validade documental;
-7. código, GitHub, Vercel e Supabase correspondentes à frente.
+2. `docs/handoff/2026-08-24-pre-implementacao-plano-mestre.md` — diagnóstico e ponto exato de retomada;
+3. `docs/superpowers/plans/2026-08-24-plano-mestre-correcoes.md` — sequência, gates, testes e reversão das correções ainda não executadas;
+4. `docs/reference/TEST_GOVERNANCE.md` — estratégia proporcional e tratamento de testes superados;
+5. `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md` — visão gerada do contrato funcional vigente;
+6. `docs/PROJECT_CONTEXT.md` — produto, domínio e arquitetura;
+7. `docs/DECISION_LOG.md` — decisões duradouras;
+8. `docs/reference/STATUS_DOCUMENTOS.md` — validade documental;
+9. código, GitHub, Vercel e Supabase correspondentes à frente.
 
 Documentos históricos não prevalecem sobre código, ambientes ou decisões posteriores.
 

@@ -1,10 +1,28 @@
 # RADAR PDDE — Estado atual do projeto
 
-**Atualizado em:** 23 de agosto de 2026  
-**Classe documental:** Canônico — estado corrente e retomada futura  
-**Situação:** PR #193 integrado e publicado; frente pós-merge limitada a documentação de continuidade e instrumentação local no PR #194
+**Atualizado em:** 24 de agosto de 2026
+**Classe documental:** Canônico — estado corrente e retomada futura
+**Situação:** diagnóstico das correções operacionais concluído; documentação/plano em versionamento; nenhuma correção iniciada
 
-## 1. Fonte de verdade
+## 1. Porta de entrada atual
+
+O checkpoint detalhado vigente é:
+
+- [`handoff/2026-08-24-pre-implementacao-plano-mestre.md`](handoff/2026-08-24-pre-implementacao-plano-mestre.md)
+
+O plano executável é:
+
+- [`superpowers/plans/2026-08-24-plano-mestre-correcoes.md`](superpowers/plans/2026-08-24-plano-mestre-correcoes.md)
+
+O relatório integral, com linguagem não técnica, wireframes e imagens, é:
+
+- [`reports/2026-08-24-plano-mestre-correcoes-radar-pdde.docx`](reports/2026-08-24-plano-mestre-correcoes-radar-pdde.docx)
+
+O handoff pós-PR #193 permanece histórico e útil para compreender a estabilização anterior:
+
+- [`handoff/2026-08-23-post-pr-193.md`](handoff/2026-08-23-post-pr-193.md)
+
+## 2. Fonte de verdade
 
 Para determinar o estado implementado, usar nesta ordem:
 
@@ -16,216 +34,204 @@ Para determinar o estado implementado, usar nesta ordem:
 6. documentação canônica;
 7. auditorias, planos e handoffs históricos.
 
-Nenhum documento ou teste antigo prevalece sobre código e ambiente atuais.
+Nenhum documento ou teste antigo prevalece sobre código e ambiente atuais. Este arquivo descreve o checkpoint; valores voláteis devem ser revalidados antes de código, migration ou publicação.
 
-O checkpoint detalhado de continuidade está em [`handoff/2026-08-23-post-pr-193.md`](handoff/2026-08-23-post-pr-193.md).
-
-## 2. Baseline pós-PR #193 confirmado no remoto
+## 3. Baseline analisado
 
 ```text
-Main pós-merge do PR #193:
-70a63f5cf53ed2dbb1e8d3ab54dd194f7082a576
+GitHub main:
+4542bbfdba7b4a6073445c8f3ea6ceafbb660dba
 
-Vercel Production de referência:
-dpl_6BwhhzJDEbUDrQpMptVCRxuRcLbk
-estado: READY
-target: production
-SHA: 70a63f5cf53ed2dbb1e8d3ab54dd194f7082a576
+Commit curto:
+4542bbf
 
-Alias oficial: radarpdde-fix.vercel.app
-Supabase Production: scnryinorqeucbfkioxo
-Migrations canônicas confirmadas: 41
+Origem:
+merge do PR #194
+
+Supabase Production:
+scnryinorqeucbfkioxo
+estado observado: ACTIVE_HEALTHY
+PostgreSQL observado: 17.6.1
 ```
 
-Esse é o **baseline funcional pós-PR #193**. O PR #194 parte exatamente desse SHA e adiciona documentação/instrumentação sem migration ou mudança de regra de negócio. Em retomada futura, conferir a `main` e Production ao vivo para saber se o PR #194 já foi integrado ou se houve mudanças posteriores.
+O PR #195 foi fechado sem merge por decisão do responsável pelo produto, pertence a outro assunto e está integralmente fora do diagnóstico e do plano. Não o usar como referência, código ou dependência.
 
-## 3. Estado executivo
+O deployment Vercel deve ser consultado novamente antes do PR 1; este diagnóstico não usa um manifesto Vercel novo como premissa para alterar produto.
 
-O RADAR PDDE permanece **apto para uso real** no baseline pós-PR #193.
+## 4. Snapshot read-only de Production
 
-A sequência #190–#193 resolveu uma frente específica de latência, consistência incremental e integridade de transições antes do uso operacional real:
+Consultas somente leitura realizadas em 24/08/2026 confirmaram:
 
-- #190 removeu leituras remotas redundantes no fluxo crítico de avaliação mensal;
-- #191 generalizou com cautela as políticas de retorno/commit autoritativos e corrigiu transição de bens/NF;
-- #192 eliminou `renderProntuario()` integral do caminho normal de sucesso após auditoria externa;
-- #193 consolidou idempotência, transições condicionais, Assessoria individual por NF, pendências vinculadas, datas de disponibilização e equivalência entre persistência e UI incremental.
+| Entidade/estado | Quantidade observada |
+|---|---:|
+| Avaliações mensais | 113 |
+| Despesas/notas | 17 |
+| Históricos administrativos | 1.562 |
+| Pendências | 22 |
+| Abertas | 19 |
+| Aguardando reanálise | 2 |
+| Canceladas | 1 |
+| Resolvidas | 0 |
+| Tentativas | 5 |
+| Contatos | 0 |
 
-O sistema mantém:
+Concentração ativa observada:
 
-- Supabase Production como backend institucional canônico;
-- autenticação, perfis, escopos e RLS ativos;
-- operações críticas protegidas e auditadas;
-- Production fail-closed;
-- dados reais preservados;
-- nenhuma escrita destrutiva de teste em Production durante a estabilização final;
-- reconciliação incremental como caminho normal das escritas inline.
+- 12 registros em `04.10.001`, R.A. 10, Juliana Barbosa;
+- 9 registros em `04.30.002`, R.A. 30, Mônica Chagas.
 
-## 4. Contratos mais importantes para retomada
+Essas contagens são evidência datada. Não as tratar como constantes nem executar reparo com base apenas nelas.
 
-### Competência global
+## 5. Defeitos e problemas confirmados
 
-`RadarCompetenceContext` permanece fonte canônica do mês.
+### 5.1 Gravação de despesas
 
-### Pendências Operacionais
+- o formulário não possui trava síncrona de submissão;
+- inclusão gera ID novo em cada execução;
+- clique duplo pode persistir duas despesas;
+- edição sempre alcança update/histórico, sem no-op verdadeiramente semântico;
+- a dispensa de reler `administrativeLogs` em `invoice:save` depende hoje da instalação da extensão de desempenho;
+- retry, duas abas e perda de resposta ainda não possuem chave idempotente de servidor.
 
-Pendências são passivo transversal e não são filtradas automaticamente pela competência global. A página abre em **Todas as competências**; filtro local é opcional.
+Conclusão: o relato de duplicação é defeito real. O usuário repetir o clique diante da demora expõe uma falha que o sistema deve conter.
 
-Documento: [`decisions/ADR-044-pendencias-passivo-transversal.md`](decisions/ADR-044-pendencias-passivo-transversal.md).
+### 5.2 Consulta Assessoria e consolidação
 
-### Production fail-closed
+Foram confirmados exatamente quatro contextos inconsistentes:
 
-Production não pode cair silenciosamente para LocalStorage/seed quando Supabase falhar ou estiver mal configurado.
+| Escola | Competência | Programa |
+|---|---|---|
+| `04.10.002` | `2026-03` | Educação Conectada |
+| `04.10.002` | `2026-08` | PDDE Básico |
+| `04.31.001` | `2026-08` | PDDE Básico |
+| `04.31.804` | `2026-05` | PDDE Básico |
 
-Documento: [`decisions/ADR-045-production-fail-closed.md`](decisions/ADR-045-production-fail-closed.md).
+Todos possuem Consulta Assessoria vazia, nenhuma NF de serviço e análise `Não analisado`. Pela regra canônica, zero NF de serviço significa `Não se aplica`/`Correto`.
 
-### Avaliação mensal e idempotência
+O defeito nasce porque `InvoiceService.syncServiceRequirement()` calcula a regra, mas outra transição em `VerificationService` consegue limpar o valor sem executar novamente a mesma função.
 
-- competência futura: visível, porém não editável;
-- bonificação, análise técnica e pendência são dimensões distintas;
-- operação semanticamente idêntica não deve gerar nova RPC, `row_version` ou log;
-- `bonus_result` ausente preserva o valor; valor explicitamente vazio limpa quando o contrato da operação determina;
-- N/A → Sim/Não reinicializa derivações incompatíveis, incluindo análise de NF para `Não analisado` quando aplicável.
+Não corrigir a consolidação para ignorar o vazio. Corrigir a origem e depois reparar somente as linhas ainda elegíveis.
 
-### Nota Fiscal de serviço e Assessoria
+### 5.3 Prontidão funcional
 
-- análise de Assessoria é individual por NF;
-- `Incorreto` + abertura de pendência é operação atômica;
-- pendência de Assessoria referencia a NF por `registered_invoice_id`;
-- NFs diferentes podem ter pendências ativas simultâneas; a mesma NF não duplica pendência ativa equivalente;
-- reanálise altera apenas a NF vinculada e depois recalcula o resumo mensal;
-- histórico de pendência protege a identidade estrutural necessária à rastreabilidade da NF.
+- `RadarProductExtensionsReady` confirma carregamento de scripts, não instalação funcional;
+- módulos críticos e auxiliares usam polling e expiram depois de dez segundos;
+- falha de um script pode interromper a cadeia dos posteriores;
+- a correção exige readiness por módulo e falha isolada.
 
-### Datas de envio corretivo
+### 5.4 Gestão de Pendências
 
-`available_at` é a data em que o documento ficou disponível pela escola. `submitted_at` é a data de lançamento no RADAR. Não confundir nem colapsar os dois campos.
+A ADR-044 permanece correta: todas as competências devem continuar visíveis.
 
-### Reabertura
+As lacunas atuais são de operação e experiência:
 
-PEND-05 permite reabrir `Resolvida` e `Cancelada` para `Aberta` quando o contrato de reabertura for satisfeito, preservando histórico.
+- filtros operacionais insuficientes, especialmente R.A. e Controlador visível;
+- select nativo de escola ruim no mobile;
+- cartões repetidos, altos e sem hierarquia clara;
+- excesso de ações simultâneas;
+- ação/regra espalhada entre módulos e `MutationObserver`;
+- aba inicial prioriza volume, não trabalho do perfil;
+- tempo da etapa diverge depois de reabertura/reanálise incorreta;
+- UI não permite reabrir Cancelada, embora PEND-05 permita;
+- detalhes e reanálise apresentam contexto como texto corrido;
+- pendência Cancelada ainda pode exibir rótulo `Erros atuais`.
 
-### Desativação de Controlador
+## 6. Regras de negócio que não mudam
 
-Transferir todas as escolas primeiro. Somente com carteira zerada é permitido desativar. Desativação não redistribui escolas e preserva histórico.
+- Pendências continuam transversais a todas as competências.
+- Bonificação, análise técnica, pendência e próxima ação são dimensões independentes.
+- `Sim + Incorreto + pendência` continua permitido.
+- Pendência ativa não bloqueia consolidação por si só.
+- `Não analisado` não bloqueia consolidação por si só.
+- Novo envio não resolve automaticamente; cria trabalho de reanálise.
+- Não abrir duas pendências equivalentes para a mesma origem.
+- Despesa `A identificar` não força Nota Fiscal, bem, Assessoria ou conclusão automática de análise.
+- Duas despesas reais podem ter o mesmo conteúdo.
 
-## 5. Arquitetura de escrita pós-#192/#193
-
-Caminho normal:
+## 7. Sequência vigente antes de implementação
 
 ```text
-interação
-→ feedback imediato
-→ persistência/RPC
-→ retorno autoritativo
-→ incorporação incremental
-→ reconciliador localizado
-→ estado visual estável
+Etapa 0 — congelar baseline
+PR 1 — contenção imediata
+PR 2 — regra e efeitos canônicos
+PR 3 — prontidão crítica
+PR 4 — reparo condicionado dos dados
+PR 5 — idempotência de servidor
+PR 6 — contrato funcional da fila
+PR 7A — fila, filtros e cartões
+PR 7B — detalhe, reanálise e agrupamento opcional
+PR 8 — resposta autoritativa completa e desempenho
 ```
 
-`renderProntuario()` completo fica restrito a bootstrap, navegação, erro, retorno incompleto ou inconsistência que não possa ser reconciliada com segurança.
+Gates:
 
-Não reintroduzir rerender integral depois de cada sucesso “por segurança”.
+- PR 4 somente depois de PR 2 publicado e validado;
+- PR 7A/7B somente depois do contrato do PR 6;
+- PR 8 somente depois da idempotência do PR 5 e do tratamento de `deleted_asset_id`;
+- a guarda do PR 1 permanece em todas as fases;
+- no-op semântico fica no PR 2, depois da regra canônica, e não no PR 1.
 
-## 6. Migrations relevantes da estabilização
+## 8. Decisões da futura experiência de Pendências
 
-PR #191:
+- abas continuam representando status; não adicionar filtro de status redundante;
+- `Minha carteira` pode ser atalho, com `Todas` acessível em um gesto;
+- filtro de R.A. pode usar `schools.ra`;
+- não criar `Minha R.A.` sem relação formal usuário ↔ R.A.;
+- Controlador passa para a área principal dos filtros;
+- escola usa combobox pesquisável por nome/designação/código;
+- faixas de tempo: Hoje, 1–3, 4–7, 8–15 e 16+ dias;
+- cartão expõe uma ação principal; secundárias vão para menu;
+- cancelamento é excepcional, protegido e confirmado;
+- agrupamento por escola é opcional no primeiro release;
+- não criar ainda ações ambíguas no cabeçalho do grupo.
 
-```text
-20260822040642_invoice_asset_transition_integrity
+## 9. Testes-base reproduzidos
+
+Conjunto principal: 22 aprovados. Conjunto ampliado: os mesmos 22 mais nove de integração da instrumentação, totalizando 31 aprovados. Zero falhas nos dois recortes.
+
+Comando ampliado:
+
+```bash
+node --test \
+  tests/pendency-cancelled-reopen.test.js \
+  tests/pendencias-view-model.test.js \
+  tests/unit/pendency-service-access.test.js \
+  tests/unit/pendency-reanalysis-roles.test.js \
+  tests/unit/operational-write-diagnostics-integration.test.js
 ```
 
-PR #193:
+Sempre registrar arquivos/comando e resultado, não somente `22` ou `31`.
 
-```text
-20260823003500_invoice_bonus_result_clear_semantics
-20260823010000_pendency_attempt_availability
-20260823032000_service_advisory_pendency_invoice
-20260823045000_service_advisory_corrective_submission
-20260823050000_delete_invoice_bonus_result_clear_semantics
-```
+## 10. Estado executivo
 
-Total canônico confirmado no Supabase Production em 23/08: **41 migrations**.
+O sistema permanece em Production e o diagnóstico não autorizou interrupção geral. Entretanto, existem:
 
-## 7. Ferramentas de qualidade atuais
+- risco imediato de duplicação por submit repetido;
+- risco residual de retry/tabs até o PR 5;
+- quatro inconsistências derivadas conhecidas;
+- possibilidade de módulos críticos não se instalarem em inicialização lenta;
+- baixa clareza operacional na fila de Pendências.
 
-Consultar sempre `package.json` ao vivo. No estado pós-PR #193, além dos gates anteriores:
+Esses itens estão planejados, mas ainda não corrigidos no baseline deste documento.
 
-- `fast-check` está integrado a testes de propriedades;
-- MSW está integrado a testes de falhas/latência/retornos remotos;
-- `dependency-cruiser` está integrado a `check:architecture` e ao readiness;
-- Performance API/diagnóstico operacional possui base criada no PR #193 e integração runtime concluída na branch do PR #194.
+## 11. Próxima ação autorizável
 
-A instrumentação do PR #194 é local, efêmera e fail-open. Quando integrada à `main`, a consulta técnica fica disponível por:
+Depois que este pacote documental estiver integrado à `main`:
 
-```javascript
-window.RadarOperationalWriteMetrics.snapshot()
-window.RadarOperationalWriteMetrics.summary()
-```
+1. revalidar GitHub/Vercel/Supabase;
+2. registrar a Etapa 0;
+3. abrir branch isolada do PR 1;
+4. implementar somente guarda de submit, feedback e refresh mínimo do núcleo;
+5. executar testes focados e smoke desktop/mobile;
+6. parar para revisão antes do PR 2.
 
-Ela não envia telemetria, não persiste métricas e não coleta dados de negócio.
+Nenhuma migration, reparo de dados, idempotência ou redesign deve ser incluído no PR 1.
 
-## 8. Vulnerabilidades conhecidas de dependências
+## 12. Histórico relevante
 
-O `npm audit` continua apontando duas vulnerabilidades **moderadas** na cadeia ExcelJS/UUID.
-
-Decisão vigente em 23/08:
-
-- risco conscientemente aceito no momento;
-- nenhuma atualização forçada;
-- nenhum `npm audit fix --force`;
-- nenhuma troca de ExcelJS apenas para zerar o relatório;
-- acompanhar versões futuras compatíveis e reavaliar se exposição/severidade mudar.
-
-O gate atual permanece bloqueando vulnerabilidades `high` ou superiores.
-
-## 9. Mobile
-
-A otimização mobile não foi critério bloqueante da estabilização urgente de 22–23/08. Não reabrir essa prioridade por inércia de um plano/teste histórico. Retomar mediante defeito real, nova prioridade ou decisão explícita.
-
-## 10. Histórico documental
-
-O snapshot de 18/08 permanece válido **como registro histórico daquele fechamento**, não como estado corrente:
-
-- [`handoff/2026-08-18-encerramento-operacional.md`](handoff/2026-08-18-encerramento-operacional.md)
-
-O checkpoint de 23/08 substitui o de 18/08 como porta de entrada para continuidade:
-
-- [`handoff/2026-08-23-post-pr-193.md`](handoff/2026-08-23-post-pr-193.md)
-
-## 11. Gatilhos para nova frente
-
-Retomar desenvolvimento quando houver:
-
-1. defeito reproduzível;
-2. nova funcionalidade ou regra de negócio;
-3. alteração material de Supabase/Auth/RLS/schema;
-4. risco de segurança materialmente alterado;
-5. problema de desempenho com impacto real;
-6. exigência institucional;
-7. auditoria/release expressamente solicitados.
-
-Não transformar preferência de ferramenta ou documento histórico em requisito de produto sem evidência atual.
-
-## 12. Ordem de leitura numa retomada
-
-1. `AGENTS.md`;
-2. `docs/CURRENT_STAGE.md`;
-3. `docs/handoff/2026-08-23-post-pr-193.md`;
-4. `docs/superpowers/specs/2026-08-22-estabilizacao-avaliacoes-reais-design.md`;
-5. `docs/superpowers/specs/2026-08-23-continuity-instrumentation-post-pr193-design.md`;
-6. `docs/DECISION_LOG.md`;
-7. `docs/PROJECT_CONTEXT.md`;
-8. `docs/reference/TEST_GOVERNANCE.md`;
-9. `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md`;
-10. arquitetura/runbook diretamente relacionado à tarefa.
-
-## 13. Regra de retomada
-
-Antes de alterar código:
-
-- confirmar SHA atual da `main`;
-- confirmar manifesto/deployment de Production;
-- conferir Supabase/migrations quando relevante;
-- verificar se PR #194 ou PRs posteriores mudaram o baseline;
-- trabalhar em branch isolada;
-- testar proporcionalmente ao risco;
-- não modificar produto apenas para satisfazer teste histórico superado.
+- [`handoff/2026-08-23-post-pr-193.md`](handoff/2026-08-23-post-pr-193.md) — checkpoint anterior;
+- [`decisions/ADR-044-pendencias-passivo-transversal.md`](decisions/ADR-044-pendencias-passivo-transversal.md) — todas as competências;
+- [`decisions/ADR-046-escritas-operacionais-incrementais-e-observaveis.md`](decisions/ADR-046-escritas-operacionais-incrementais-e-observaveis.md) — contrato de escrita e lacunas reclassificadas;
+- [`architecture/avaliacao-mensal.md`](architecture/avaliacao-mensal.md);
+- [`architecture/product-extensions-load-order.md`](architecture/product-extensions-load-order.md);
+- [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md).

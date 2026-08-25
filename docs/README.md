@@ -1,6 +1,6 @@
 # Documentação do RADAR PDDE
 
-**Estado de referência:** 23 de agosto de 2026  
+**Estado de referência:** 24 de agosto de 2026
 **Classe documental:** Canônico — índice
 
 ## 1. Onde começar
@@ -9,9 +9,18 @@ O estado corrente fica em [`CURRENT_STAGE.md`](CURRENT_STAGE.md).
 
 O documento principal para retomada futura é:
 
-- [`handoff/2026-08-23-post-pr-193.md`](handoff/2026-08-23-post-pr-193.md)
+- [`handoff/2026-08-24-pre-implementacao-plano-mestre.md`](handoff/2026-08-24-pre-implementacao-plano-mestre.md)
 
-Ele consolida o baseline efetivamente verificado após o merge do PR #193, a sequência #190–#193, decisões de produto preservadas, migrations, arquitetura incremental, ferramentas incorporadas, política das vulnerabilidades conhecidas e a frente limitada do PR #194.
+Ele consolida o baseline `4542bbf` após o merge do PR #194, os relatos de usuários, os defeitos confirmados, as regras que não devem mudar, o snapshot read-only do Supabase, a gestão de Pendências e o estágio exato antes de qualquer correção.
+
+O plano textual executável e o relatório integral são:
+
+- [`superpowers/plans/2026-08-24-plano-mestre-correcoes.md`](superpowers/plans/2026-08-24-plano-mestre-correcoes.md);
+- [`reports/2026-08-24-plano-mestre-correcoes-radar-pdde.docx`](reports/2026-08-24-plano-mestre-correcoes-radar-pdde.docx).
+
+O handoff de 23/08 permanece histórico e necessário para compreender a estabilização #190–#194:
+
+- [`handoff/2026-08-23-post-pr-193.md`](handoff/2026-08-23-post-pr-193.md)
 
 O snapshot de 18/08 permanece histórico:
 
@@ -34,20 +43,23 @@ Valores voláteis sempre devem ser consultados no remoto quando a tarefa depende
 
 1. [`../AGENTS.md`](../AGENTS.md);
 2. [`CURRENT_STAGE.md`](CURRENT_STAGE.md);
-3. [`handoff/2026-08-23-post-pr-193.md`](handoff/2026-08-23-post-pr-193.md);
-4. [`superpowers/specs/2026-08-22-estabilizacao-avaliacoes-reais-design.md`](superpowers/specs/2026-08-22-estabilizacao-avaliacoes-reais-design.md);
-5. [`superpowers/specs/2026-08-23-continuity-instrumentation-post-pr193-design.md`](superpowers/specs/2026-08-23-continuity-instrumentation-post-pr193-design.md);
-6. [`DECISION_LOG.md`](DECISION_LOG.md);
-7. [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md);
-8. [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md);
-9. [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md);
-10. arquitetura ou runbook diretamente relacionado à tarefa.
+3. [`handoff/2026-08-24-pre-implementacao-plano-mestre.md`](handoff/2026-08-24-pre-implementacao-plano-mestre.md);
+4. [`superpowers/plans/2026-08-24-plano-mestre-correcoes.md`](superpowers/plans/2026-08-24-plano-mestre-correcoes.md);
+5. [`reports/2026-08-24-plano-mestre-correcoes-radar-pdde.docx`](reports/2026-08-24-plano-mestre-correcoes-radar-pdde.docx);
+6. [`handoff/2026-08-23-post-pr-193.md`](handoff/2026-08-23-post-pr-193.md);
+7. [`DECISION_LOG.md`](DECISION_LOG.md);
+8. [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md);
+9. [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md);
+10. [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md);
+11. arquitetura ou runbook diretamente relacionado à tarefa.
 
 ## 3. Decisões atuais que não podem ser perdidas
 
 ### Escritas operacionais
 
 Após #190–#193, o caminho normal usa persistência/retorno autoritativo e reconciliação incremental. `renderProntuario()` integral é fallback para erro, retorno incompleto ou inconsistência não reconciliável, não rotina de sucesso.
+
+O diagnóstico de 24/08 encontrou lacunas específicas ainda abertas em `invoice:save`: submit repetido, ausência de no-op verdadeiramente semântico, dependência da extensão opcional para dispensar refresh de históricos e ausência de chave idempotente de servidor. O contrato continua vigente; a cobertura desse fluxo não deve ser presumida como completa.
 
 ### Avaliação mensal
 
@@ -85,7 +97,7 @@ Além dos gates históricos, o ciclo #193 incorporou:
 - `dependency-cruiser` → `npm run check:architecture` e `test:readiness`;
 - Performance API/diagnóstico operacional local → integração runtime no PR #194.
 
-Quando o PR #194 estiver na `main`, a consulta local de métricas será somente leitura:
+A integração do PR #194 está na `main` do baseline `4542bbf`. A consulta local de métricas é somente leitura:
 
 ```javascript
 window.RadarOperationalWriteMetrics.snapshot()
@@ -117,7 +129,10 @@ Não há telemetria externa, persistência das métricas ou coleta de dados de n
 ## 6. Documentos canônicos e referências
 
 - [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — estado corrente;
-- [`handoff/2026-08-23-post-pr-193.md`](handoff/2026-08-23-post-pr-193.md) — checkpoint atual de continuidade;
+- [`handoff/2026-08-24-pre-implementacao-plano-mestre.md`](handoff/2026-08-24-pre-implementacao-plano-mestre.md) — checkpoint atual de continuidade;
+- [`superpowers/plans/2026-08-24-plano-mestre-correcoes.md`](superpowers/plans/2026-08-24-plano-mestre-correcoes.md) — sequência de implementação;
+- [`reports/2026-08-24-plano-mestre-correcoes-radar-pdde.docx`](reports/2026-08-24-plano-mestre-correcoes-radar-pdde.docx) — relatório integral versionado;
+- [`handoff/2026-08-23-post-pr-193.md`](handoff/2026-08-23-post-pr-193.md) — checkpoint histórico anterior;
 - [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — contratos funcionais/arquiteturais estáveis;
 - [`DECISION_LOG.md`](DECISION_LOG.md) — decisões históricas e duradouras;
 - [`decisions/`](decisions/) — ADRs detalhadas;
@@ -148,7 +163,7 @@ Não há telemetria externa, persistência das métricas ou coleta de dados de n
 
 Arquivos datados em `docs/audits/`, `docs/evidence/`, `docs/superpowers/`, `docs/handoff/` e `docs/reports/` preservam o momento em que foram produzidos. Eles não devem ser reescritos para coincidir com o presente e não prevalecem sobre o código/ambiente atual.
 
-O handoff de 23/08 substitui o snapshot de 18/08 **como porta de entrada**, sem apagar o valor histórico do documento anterior.
+O handoff de 24/08 substitui o de 23/08 **como porta de entrada**, sem apagar o valor histórico dos documentos anteriores.
 
 ## 9. Continuidade
 
@@ -165,4 +180,4 @@ verificar remoto
 → atualizar documentação afetada
 ```
 
-Na ausência de nova demanda real, defeito observado ou risco concreto, o RADAR não permanece “inacabado” apenas porque seria possível inventar mais uma rodada de mudanças.
+O estágio atual possui demanda real e defeitos confirmados. A retomada deve começar pela Etapa 0 e pelo PR 1 do plano mestre, sem misturar migration, reparo, idempotência ou redesign no primeiro PR.

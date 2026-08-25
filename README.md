@@ -2,7 +2,7 @@
 
 Sistema institucional de acompanhamento operacional do PDDE da 4ª CRE/SME-Rio. O produto organiza competência mensal, carteira de unidades, prontuário, análise documental, pendências, contatos, notas fiscais, patrimônio, Gestão de Equipe, acompanhamento gerencial e exportações.
 
-> **Estado reconciliado em 7 de agosto de 2026:** GitHub `main`, Vercel Production e Supabase Production estão operacionais e alinhados ao pacote funcional do PR #162. O baseline mutável completo fica exclusivamente em [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md) e deve ser revalidado antes de qualquer ação dependente do ambiente.
+> **Estado reconciliado em 24 de agosto de 2026:** o diagnóstico pré-implementação foi concluído sobre a `main` `4542bbf` (PR #194 integrado) e consultas somente leitura no Supabase Production. Existem correções planejadas, mas nenhuma foi implementada neste checkpoint. O baseline mutável completo fica em [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md) e deve ser revalidado antes de qualquer ação dependente do ambiente.
 
 ## Fontes de verdade
 
@@ -11,8 +11,8 @@ Para saber o que existe de fato:
 1. código da `main` ou SHA analisado;
 2. Supabase efetivo, incluindo migrations, Auth, RLS, funções e dados;
 3. deployment Vercel e SHA publicado;
-4. testes e evidências reproduzíveis;
-5. decisões vigentes;
+4. decisões vigentes;
+5. testes e evidências reproduzíveis que representem o contrato atual;
 6. documentação canônica;
 7. históricos e planos.
 
@@ -42,7 +42,7 @@ Documentação antiga não redefine o código para ficar “coerente”. Quando 
 
 `technical_admin` não é quinto perfil funcional cotidiano.
 
-## Correções consolidadas recentes
+## Correções consolidadas e diagnóstico atual
 
 O baseline atual incorpora, entre outros:
 
@@ -55,6 +55,16 @@ O baseline atual incorpora, entre outros:
 
 A correção de `ASSET-02`, por exemplo, já existe no código com `saveAssetWithLog`, versão esperada e auditoria. A matriz continua distinguindo **correção implementada** de **prova ponta a ponta completa**.
 
+O diagnóstico de 24/08 confirmou, sem alterar produto:
+
+- submit repetido pode duplicar uma inclusão de despesa;
+- `invoice:save` ainda possui lacunas de no-op semântico, idempotência de servidor e refresh mínimo no núcleo;
+- quatro contextos possuem Consulta Assessoria vazia sem NF de serviço;
+- módulos funcionais podem deixar de se instalar depois do timeout fixo de dez segundos;
+- a regra transversal de Pendências está correta, mas a fila exige novo contrato de prioridade, filtros, ações e hierarquia visual.
+
+O plano mestre está em [`docs/superpowers/plans/2026-08-24-plano-mestre-correcoes.md`](docs/superpowers/plans/2026-08-24-plano-mestre-correcoes.md). O PR #195 permanece fora desta frente.
+
 ## Garantia operacional
 
 O projeto possui:
@@ -64,7 +74,7 @@ O projeto possui:
 - auditoria agregada de vinte invariantes de integridade;
 - backup/restauração em pilhas descartáveis;
 - gate remoto por perfil e viewport;
-- matriz funcional executável de 41 operações;
+- matriz funcional executável de 42 operações;
 - infraestrutura integrada de smoke autenticado somente leitura.
 
 O smoke autenticado de Production permanece desativado até provisionamento explícito de cinco identidades técnicas exclusivas. Contas pessoais ou operacionais não devem ser reutilizadas para monitoramento.
@@ -120,22 +130,24 @@ Ordem de leitura:
 
 1. [`AGENTS.md`](AGENTS.md);
 2. [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md);
-3. [`docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md`](docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md);
-4. [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md);
-5. [`docs/ROADMAP_ATUALIZACOES_2026.md`](docs/ROADMAP_ATUALIZACOES_2026.md);
-6. [`docs/DECISION_LOG.md`](docs/DECISION_LOG.md);
-7. [`docs/reference/STATUS_DOCUMENTOS.md`](docs/reference/STATUS_DOCUMENTOS.md).
+3. [`docs/handoff/2026-08-24-pre-implementacao-plano-mestre.md`](docs/handoff/2026-08-24-pre-implementacao-plano-mestre.md);
+4. [`docs/superpowers/plans/2026-08-24-plano-mestre-correcoes.md`](docs/superpowers/plans/2026-08-24-plano-mestre-correcoes.md);
+5. [`docs/reports/2026-08-24-plano-mestre-correcoes-radar-pdde.docx`](docs/reports/2026-08-24-plano-mestre-correcoes-radar-pdde.docx);
+6. [`docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md`](docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md);
+7. [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md);
+8. [`docs/DECISION_LOG.md`](docs/DECISION_LOG.md);
+9. [`docs/reference/STATUS_DOCUMENTOS.md`](docs/reference/STATUS_DOCUMENTOS.md).
 
-A reconciliação integral vigente está registrada em [`docs/audits/2026-08-07-reconciliacao-documental-integral-pos-pr162.md`](docs/audits/2026-08-07-reconciliacao-documental-integral-pos-pr162.md).
+A porta de entrada vigente está registrada em [`docs/handoff/2026-08-24-pre-implementacao-plano-mestre.md`](docs/handoff/2026-08-24-pre-implementacao-plano-mestre.md). Auditorias anteriores permanecem históricas.
 
 ## Próxima sequência
 
-1. fechar a divergência histórica do PR #156 sem merge cego;
-2. retomar a auditoria funcional remanescente a partir da `main` atual;
-3. executar provas controladas das operações ainda parciais;
-4. decidir separadamente sobre ativação do smoke autenticado;
-5. verificar a demanda pendente da tela de detalhes da escola;
-6. tratar dependências em PRs isolados;
-7. realizar UAT e decisão formal de liberação.
+1. integrar e preservar o pacote documental de 24/08;
+2. congelar novamente o baseline remoto (Etapa 0);
+3. executar PR 1 — contenção de submit repetido e refresh mínimo;
+4. executar PR 2 — regra/efeitos canônicos da Assessoria e no-op semântico;
+5. executar PR 3 — prontidão crítica por módulo;
+6. reparar dados somente depois do gate do PR 2;
+7. seguir os PRs 5, 6, 7A, 7B e 8 sem fundi-los num único pacote.
 
 Nenhum PR, documento ou Preview autoriza por si só merge, migration ou mudança de Production fora do escopo aprovado.
