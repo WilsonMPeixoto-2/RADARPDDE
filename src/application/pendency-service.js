@@ -193,10 +193,14 @@
 
         async open(input = {}) {
             this.assertCapability(accessPolicy.CAPABILITIES.OPEN_PENDENCY, 'open');
+            const technicalAnalysisValue = text(input.technicalAnalysisValue);
+            const changesVerification = Boolean(technicalAnalysisValue);
             const persistence = { operation: 'open', expectedPendencyVersion: null };
             return this.dataService.execute({
-                name: 'pendency:open',
-                changedEntities: ['pendencies', 'administrativeLogs'],
+                name: changesVerification ? 'pendency:open-with-analysis' : 'pendency:open',
+                changedEntities: changesVerification
+                    ? ['pendencies', 'verifications', 'administrativeLogs']
+                    : ['pendencies', 'administrativeLogs'],
                 mutate: () => {
                     const state = this.getState();
                     const context = {
@@ -219,6 +223,42 @@
                             { existingPendencyId: existing.id }
                         );
                     }
+
+                    let verification = null;
+                    let bonificationBefore = null;
+                    let resultBefore = null;
+                    if (changesVerification) {
+                        if (technicalAnalysisValue !== 'Incorreto' || !documentary) {
+                            fail(
+                                'VALIDATION_FAILED',
+                                'A abertura atômica só aceita análise “Incorreto” em pendência documental.',
+                                'open'
+                            );
+                        }
+                        const compKey = `${context.competencia}_${context.programaId}`;
+                        verification = state.verifications?.[context.escolaId]?.[compKey] || null;
+                        if (!verification) {
+                            fail('NOT_FOUND', 'Verificação documental não localizada.', 'open');
+                        }
+                        verification.analise = verification.analise || {};
+                        verification.bonificacao = verification.bonificacao || {};
+                        if (!text(verification.bonificacao[context.documentoKey])) {
+                            fail(
+                                'DELIVERY_REQUIRED',
+                                'Você não pode registrar análise incorreta sem antes preencher o status de entrega no Drive.',
+                                'open'
+                            );
+                        }
+                        persistence.expectedVerificationVersion = rowVersionOf(verification);
+                        persistence.verificationContext = {
+                            schoolId: context.escolaId,
+                            competence: context.competencia,
+                            programId: context.programaId
+                        };
+                        bonificationBefore = cloneValue(verification.bonificacao);
+                        resultBefore = cloneValue(verification.resultadoBonif);
+                    }
+
                     try {
                         const id = text(input.id) || this.createId('pend');
                         const openingDate = text(input.openingDate || input.dataAbertura) || this.now().slice(0, 10);
@@ -248,14 +288,32 @@
                                 observacao: observation
                             });
                         state.pendencies.push(opened);
+
+                        if (verification) {
+                            verification.analise[context.documentoKey] = technicalAnalysisValue;
+                            if (JSON.stringify(verification.bonificacao) !== JSON.stringify(bonificationBefore)
+                                || JSON.stringify(verification.resultadoBonif) !== JSON.stringify(resultBefore)) {
+                                fail(
+                                    'BONIFICATION_INVARIANT',
+                                    'A abertura da pendência não pode alterar a bonificação consolidada.',
+                                    'open'
+                                );
+                            }
+                        }
+
                         const log = this.appendSchoolLog(
                             opened.escolaId,
-                            'Pendência Aberta',
-                            `Pendência ${opened.id} aberta para ${opened.item}.`
+                            verification ? 'Análise incorreta e pendência aberta' : 'Pendência Aberta',
+                            verification
+                                ? `Análise técnica de ${context.item || context.documentoKey} marcada como “Incorreto” e pendência ${opened.id} aberta atomicamente para ${opened.item}.`
+                                : `Pendência ${opened.id} aberta para ${opened.item}.`
                         );
                         persistence.pendencyId = opened.id;
                         persistence.logId = text(log?.id);
-                        return { pendency: cloneValue(opened) };
+                        return {
+                            pendency: cloneValue(opened),
+                            verification: verification ? cloneValue(verification) : null
+                        };
                     } catch (error) {
                         throw asRepositoryError(error, 'open');
                     }
