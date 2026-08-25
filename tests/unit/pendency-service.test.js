@@ -74,6 +74,28 @@ test('abre pendência documental com múltiplos erros e impede duplicidade ativa
     );
 });
 
+test('abre pendência e grava análise Incorreto atomicamente no serviço principal', async () => {
+    const harness = createHarness();
+    const verification = harness.state.verifications['ESC-1']['2026-05_BASIC'];
+    verification.analise.extCC = 'Não analisado';
+
+    const opened = await harness.service.open({
+        ...documentaryInput,
+        technicalAnalysisValue: 'Incorreto'
+    });
+
+    assert.equal(opened.value.pendency.status, 'Aberta');
+    assert.equal(opened.value.verification.analise.extCC, 'Incorreto');
+    assert.equal(verification.analise.extCC, 'Incorreto');
+    assert.deepEqual(
+        harness.calls[0].changedEntities,
+        ['pendencies', 'verifications', 'administrativeLogs']
+    );
+    assert.equal(harness.state.logs.length, 1);
+    assert.equal(harness.state.logs[0].action, 'Análise incorreta e pendência aberta');
+    assert.match(harness.state.logs[0].details, /aberta atomicamente/);
+});
+
 test('abre pendência manual pelo mesmo gateway sem inventar contexto documental', async () => {
     const harness = createHarness();
     const opened = await harness.service.open({
