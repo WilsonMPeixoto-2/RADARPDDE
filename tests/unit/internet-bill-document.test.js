@@ -88,6 +88,52 @@ test('Boleto de pagamento de Internet integra a avaliação mensal com Sim, Não
     });
 });
 
+test('consolidação anterior à nova categoria é compatível sem esconder divergências antigas', () => {
+    const legacyBonification = {
+        extCC: 'Sim',
+        extINV: 'Sim',
+        notaFiscal: 'Não se aplica',
+        consAssessoria: 'Não se aplica',
+        declBBAgil: 'Sim',
+        encampInventario: 'Não se aplica'
+    };
+    const legacyAnalysis = {
+        extCC: 'Correto',
+        extINV: 'Correto',
+        notaFiscal: 'Correto',
+        consAssessoria: 'Correto',
+        declBBAgil: 'Correto',
+        encampInventario: 'Correto'
+    };
+
+    const consolidated = fluxo.evaluateMonthlyEvaluation({
+        bonification: legacyBonification,
+        analysis: legacyAnalysis,
+        bonusResult: 'apta',
+        pendencies: []
+    });
+    assert.equal(consolidated.canConsolidate, true);
+    assert.equal(consolidated.bonusResult, 'apta');
+    assert.equal(consolidated.technicalStatus, 'correto');
+    assert.equal(consolidated.technicalCompletion, 'complete');
+
+    const inconsistent = fluxo.evaluateMonthlyEvaluation({
+        bonification: { ...legacyBonification, extCC: 'Não' },
+        analysis: legacyAnalysis,
+        bonusResult: 'apta',
+        pendencies: []
+    });
+    assert.equal(inconsistent.bonusResult, 'inapta');
+
+    const openLegacy = fluxo.evaluateMonthlyEvaluation({
+        bonification: legacyBonification,
+        analysis: legacyAnalysis,
+        pendencies: []
+    });
+    assert.equal(openLegacy.canConsolidate, false);
+    assert.deepEqual(openLegacy.missingFields, ['boletoInternet']);
+});
+
 test('Boleto de Internet usa análise técnica comum sem criar NF, Assessoria ou bem', async () => {
     const harness = createVerificationHarness();
 
