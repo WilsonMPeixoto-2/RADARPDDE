@@ -211,7 +211,7 @@ test('análise técnica usa a mesma RPC atômica com versão e log', async () =>
 test('consolidação usa a mesma RPC atômica com versão e log', async () => {
     const harness = createAtomicHarness(state => {
         state.verifications['04.10.001']['2026-05_BASIC'].bonificacao = {
-            extCC: 'Sim', extINV: 'Sim', notaFiscal: 'Sim', boletoInternet: 'Não se aplica', consAssessoria: 'Sim',
+            extCC: 'Sim', extINV: 'Sim', notaFiscal: 'Sim', consAssessoria: 'Sim',
             declBBAgil: 'Sim', encampInventario: 'Sim'
         };
     });
@@ -233,7 +233,7 @@ test('retificação usa a mesma RPC atômica com versão e log', async () => {
     const harness = createAtomicHarness(state => {
         const verification = state.verifications['04.10.001']['2026-05_BASIC'];
         verification.bonificacao = {
-            extCC: 'Sim', extINV: 'Sim', notaFiscal: 'Sim', boletoInternet: 'Não se aplica', consAssessoria: 'Sim',
+            extCC: 'Sim', extINV: 'Sim', notaFiscal: 'Sim', consAssessoria: 'Sim',
             declBBAgil: 'Sim', encampInventario: 'Sim'
         };
         verification.resultadoBonif = 'apta';
