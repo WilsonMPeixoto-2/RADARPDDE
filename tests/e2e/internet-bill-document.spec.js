@@ -12,9 +12,26 @@ test('Boleto de pagamento de Internet aparece como documento independente sem co
       && candidate.programasIds.length > 0
       && isCompetenceInScope(candidate.competenciaInicial, competencia)
     ));
+    const programaId = escola.programasIds[0];
+    const compKey = `${competencia}_${programaId}`;
+    const serviceInvoiceCountBefore = notasRegistradas.filter(note => (
+      note.escolaId === escola.id
+      && note.compKey === compKey
+      && note.tipo === 'servico'
+    )).length;
+    const assetCountBefore = bens.filter(asset => (
+      asset.escolaId === escola.id
+      && (asset.competencia || asset.competenciaKey) === competencia
+    )).length;
     activeProntuarioCompetencia = competencia;
     switchView('prontuario', escola.id);
-    return { escolaId: escola.id, programaId: escola.programasIds[0] };
+    return {
+      escolaId: escola.id,
+      programaId,
+      compKey,
+      serviceInvoiceCountBefore,
+      assetCountBefore
+    };
   });
 
   const row = page.locator(
@@ -52,8 +69,7 @@ test('Boleto de pagamento de Internet aparece como documento independente sem co
   await pendencyModal.locator('button[type="submit"]').click();
   await expect(pendencyModal).not.toHaveClass(/show/);
 
-  const persisted = await page.evaluate(({ escolaId, programaId }) => {
-    const compKey = `${activeCompetenciaKey}_${programaId}`;
+  const persisted = await page.evaluate(({ escolaId, programaId, compKey }) => {
     const active = pendencias.filter(pendency => (
       RadarPendencias.isActivePendency(pendency)
       && pendency.escolaId === escolaId
@@ -80,6 +96,6 @@ test('Boleto de pagamento de Internet aparece como documento independente sem co
 
   expect(persisted.activePendencies).toBe(1);
   expect(persisted.analysis).toBe('Incorreto');
-  expect(persisted.serviceInvoiceCount).toBe(0);
-  expect(persisted.assetCount).toBe(0);
+  expect(persisted.serviceInvoiceCount).toBe(context.serviceInvoiceCountBefore);
+  expect(persisted.assetCount).toBe(context.assetCountBefore);
 });
