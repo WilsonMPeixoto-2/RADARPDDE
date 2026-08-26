@@ -134,8 +134,39 @@
         return hasStarted ? 'em-apuracao' : 'nao-lancada';
     }
 
+    function usesLegacyInternetBillCompatibility(input = {}) {
+        const result = normalizeText(
+            input.bonusResult
+            || input.resultadoBonif
+            || input.bonus_result
+        ).toLocaleLowerCase('pt-BR');
+        const bonification = input.bonification || input.bonificacao || {};
+        return CONSOLIDATED_BONUS_RESULTS.has(result)
+            && !Object.prototype.hasOwnProperty.call(bonification, 'boletoInternet');
+    }
+
+    function withLegacyInternetBillCompatibility(input = {}) {
+        const bonification = {
+            ...(input.bonification || input.bonificacao || {})
+        };
+        const analysis = {
+            ...(input.analysis || input.analise || {})
+        };
+        if (usesLegacyInternetBillCompatibility(input)) {
+            bonification.boletoInternet = 'Não se aplica';
+            if (!Object.prototype.hasOwnProperty.call(analysis, 'boletoInternet')) {
+                analysis.boletoInternet = 'Correto';
+            }
+        }
+        return { bonification, analysis };
+    }
+
     function getProgramTechnicalAnalysisStatus(verification = {}) {
-        const analise = verification.analise || {};
+        const { analysis: analise } = withLegacyInternetBillCompatibility({
+            bonification: verification.bonificacao || verification.bonification || {},
+            analysis: verification.analise || verification.analysis || {},
+            bonusResult: verification.resultadoBonif || verification.bonus_result || ''
+        });
         const values = DOCUMENT_KEYS.map(key => (
             normalizeText(analise[key]) || 'Não analisado'
         ));
@@ -165,8 +196,9 @@
     }
 
     function evaluateMonthlyEvaluation(input = {}) {
-        const bonification = input.bonification || input.bonificacao || {};
-        const analysis = input.analysis || input.analise || {};
+        const compatibility = withLegacyInternetBillCompatibility(input);
+        const bonification = compatibility.bonification;
+        const analysis = compatibility.analysis;
         const pendencies = Array.isArray(input.pendencies)
             ? input.pendencies
             : (Array.isArray(input.pendencias) ? input.pendencias : []);
