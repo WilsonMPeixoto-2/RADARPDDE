@@ -13,6 +13,7 @@ function createHarness(currentProfile = '') {
             extCC: '',
             extINV: '',
             notaFiscal: '',
+            boletoInternet: '',
             consAssessoria: '',
             declBBAgil: '',
             encampInventario: ''
@@ -21,6 +22,7 @@ function createHarness(currentProfile = '') {
             extCC: 'Não analisado',
             extINV: 'Não analisado',
             notaFiscal: 'Não analisado',
+            boletoInternet: 'Não analisado',
             consAssessoria: 'Não analisado',
             declBBAgil: 'Não analisado',
             encampInventario: 'Não analisado'
