@@ -20,7 +20,7 @@ const COMPLETE_APTA_BONIFICATION = {
     extINV: 'Sim',
     notaFiscal: 'Não se aplica',
     boletoInternet: 'Não se aplica',
-    consAssessoria: 'Não se aplica'
+    consAssessoria: 'Não se aplica',
     declBBAgil: 'Sim',
     encampInventario: 'Não se aplica'
 };
@@ -31,7 +31,7 @@ const COMPLETE_ANALYSIS = Object.fromEntries(
         ['extINV', 'Correto (Atrasado)'],
         ['notaFiscal', 'Correto'],
         ['boletoInternet', 'Correto'],
-        ['consAssessoria', 'Correto']
+        ['consAssessoria', 'Correto'],
         ['declBBAgil', 'Correto'],
         ['encampInventario', 'Correto']
     ]
@@ -43,7 +43,7 @@ test('cria a primeira verificação com os sete documentos vazios e não analisa
         'extINV',
         'notaFiscal',
         'boletoInternet',
-        'consAssessoria'
+        'consAssessoria',
         'declBBAgil',
         'encampInventario'
     ]);
