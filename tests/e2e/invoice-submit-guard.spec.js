@@ -151,4 +151,27 @@ test.describe('PR1 — contenção de submit repetido de Nota Fiscal', () => {
       label: 'Salvar Alterações'
     });
   });
+
+  test('Escape não fecha o modal enquanto a gravação está pendente', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+
+    await prepareInvoiceForm(page);
+    await dispatchRepeatedSubmits(page, 1);
+    await expect.poll(() => readBusySnapshot(page)).toMatchObject({
+      calls: 1,
+      ariaBusy: 'true',
+      disabled: true,
+      label: 'Salvando…'
+    });
+
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#modal-dados-nota')).toHaveClass(/\bshow\b/);
+
+    await releaseInvoiceSave(page);
+    await expect.poll(() => readBusySnapshot(page)).toMatchObject({
+      ariaBusy: 'false',
+      disabled: false,
+      label: 'Salvar Gasto'
+    });
+  });
 });
