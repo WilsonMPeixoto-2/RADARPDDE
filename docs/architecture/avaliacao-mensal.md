@@ -35,6 +35,7 @@ No Supabase, competência e programa permanecem campos relacionais distintos.
 evaluateMonthlyEvaluation({
   bonification,
   analysis,
+  programId,
   bonusResult, // opcional; usado apenas para compatibilidade de consolidações anteriores
   pendencies
 });
@@ -60,15 +61,18 @@ A projeção é pura e não persiste dados.
 
 ## 4. Bonificação
 
-Documentos avaliados:
+Documentos avaliados em todos os programas:
 
 - Extrato da Conta Corrente;
 - Extrato de Investimento;
 - Notas Fiscais;
-- Boleto de pagamento de Internet;
 - Consulta à Assessoria;
 - Declaração BB Ágil;
 - Encaminhamento para Inventariação.
+
+Somente em **Educação Conectada** (`programId = CONECTADA`) existe ainda:
+
+- Boleto de pagamento de Internet.
 
 Valores aceitos:
 
@@ -80,7 +84,7 @@ Extrato da Conta Corrente, Extrato de Investimento e Declaração BB Ágil não 
 
 ### Boleto de pagamento de Internet
 
-`boletoInternet` é uma categoria documental autônoma. Embora registre pagamento de serviço, ela é uma exceção explícita à regra de consulta contábil:
+`boletoInternet` é uma categoria documental autônoma e **exclusiva de Educação Conectada**. Não integra a avaliação dos demais programas. Embora registre pagamento de serviço, ela é uma exceção explícita à regra de consulta contábil:
 
 - não cria Nota Fiscal;
 - não cria nem encaminha bem para inventariação;
@@ -89,7 +93,7 @@ Extrato da Conta Corrente, Extrato de Investimento e Declaração BB Ágil não 
 - usa os mesmos estados canônicos da análise técnica;
 - `Incorreto` segue a abertura atômica da Pendência documental.
 
-A exceção vale somente para esta categoria. A regra de Assessoria vinculada às Notas Fiscais de serviço permanece inalterada.
+A exceção vale somente para esta categoria e somente dentro de Educação Conectada. A regra de Assessoria vinculada às Notas Fiscais de serviço permanece inalterada.
 
 ### Resultado
 
@@ -99,7 +103,7 @@ A exceção vale somente para esta categoria. A regra de Assessoria vinculada à
 
 A regularização posterior não reescreve automaticamente a bonificação histórica.
 
-Registros já consolidados antes da criação de `boletoInternet` permanecem compatíveis sem backfill: quando a nova chave não existe e há `resultadoBonif` consolidado, a projeção trata exclusivamente essa ausência histórica como `Não se aplica` e análise `Correto`, sem persistir valores inventados. Registros ainda não consolidados não recebem essa compatibilidade e precisam ter a nova categoria explicitamente avaliada.
+Registros de **Educação Conectada** já consolidados antes da criação de `boletoInternet` permanecem compatíveis sem backfill: quando a nova chave não existe e há `resultadoBonif` consolidado, a projeção trata exclusivamente essa ausência histórica como `Não se aplica` e análise `Correto`, sem persistir valores inventados. Registros não consolidados de Educação Conectada precisam ter a nova categoria explicitamente avaliada. Os demais programas continuam com o contrato documental anterior e não recebem a chave.
 
 ## 5. Análise técnica
 
@@ -209,7 +213,8 @@ A homologação manual no Microsoft Excel desktop permanece gate separado da cer
 
 - competência posterior a maio;
 - lançamento no Prontuário;
-- consolidação do PDDE Básico;
+- consolidação do PDDE Básico sem exibição de `boletoInternet`;
+- exibição e avaliação de `boletoInternet` somente em Educação Conectada;
 - correspondência entre tela, serviço, estado e armazenamento;
 - recarga preservando competência e resultado;
 - certificação Excel sem divergências;
