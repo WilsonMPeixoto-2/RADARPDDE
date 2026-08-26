@@ -1,7 +1,7 @@
 # Avaliação mensal — contrato canônico
 
 **Estado:** vigente, implementado e publicado  
-**Atualizado em:** 29 de julho de 2026
+**Atualizado em:** 26 de agosto de 2026
 
 ## 1. Finalidade
 
@@ -35,6 +35,7 @@ No Supabase, competência e programa permanecem campos relacionais distintos.
 evaluateMonthlyEvaluation({
   bonification,
   analysis,
+  bonusResult, // opcional; usado apenas para compatibilidade de consolidações anteriores
   pendencies
 });
 ```
@@ -64,6 +65,7 @@ Documentos avaliados:
 - Extrato da Conta Corrente;
 - Extrato de Investimento;
 - Notas Fiscais;
+- Boleto de pagamento de Internet;
 - Consulta à Assessoria;
 - Declaração BB Ágil;
 - Encaminhamento para Inventariação.
@@ -76,6 +78,19 @@ Valores aceitos:
 
 Extrato da Conta Corrente, Extrato de Investimento e Declaração BB Ágil não aceitam `Não se aplica` para consolidação.
 
+### Boleto de pagamento de Internet
+
+`boletoInternet` é uma categoria documental autônoma. Embora registre pagamento de serviço, ela é uma exceção explícita à regra de consulta contábil:
+
+- não cria Nota Fiscal;
+- não cria nem encaminha bem para inventariação;
+- não ativa `Consulta Assessoria`;
+- aceita `Sim`, `Não` e `Não se aplica` na bonificação;
+- usa os mesmos estados canônicos da análise técnica;
+- `Incorreto` segue a abertura atômica da Pendência documental.
+
+A exceção vale somente para esta categoria. A regra de Assessoria vinculada às Notas Fiscais de serviço permanece inalterada.
+
 ### Resultado
 
 - todos os campos válidos e nenhum `Não`: `apta`;
@@ -83,6 +98,8 @@ Extrato da Conta Corrente, Extrato de Investimento e Declaração BB Ágil não 
 - campo ausente ou `Não se aplica` indevido: resultado nulo e consolidação bloqueada.
 
 A regularização posterior não reescreve automaticamente a bonificação histórica.
+
+Registros já consolidados antes da criação de `boletoInternet` permanecem compatíveis sem backfill: quando a nova chave não existe e há `resultadoBonif` consolidado, a projeção trata exclusivamente essa ausência histórica como `Não se aplica` e análise `Correto`, sem persistir valores inventados. Registros ainda não consolidados não recebem essa compatibilidade e precisam ter a nova categoria explicitamente avaliada.
 
 ## 5. Análise técnica
 
@@ -162,7 +179,7 @@ estado de origem
 → manifesto SHA-256
 ```
 
-Divergência entre `resultadoBonif` armazenado e `bonusResult` canônico bloqueia a certificação.
+Divergência entre `resultadoBonif` armazenado e `bonusResult` canônico bloqueia a certificação. Para consolidações anteriores à introdução de `boletoInternet`, a mesma compatibilidade histórica é aplicada antes da comparação, sem alterar as 27 colunas do Excel SME.
 
 Contrato detalhado: [`excel-integral-certification.md`](excel-integral-certification.md).
 
