@@ -68,8 +68,6 @@
 
     const ALLOWED_REFRESH_EXEMPT_ENTITIES = new Set(['administrativeLogs']);
     const REFRESH_EXEMPT_ENTITIES_BY_COMMAND = Object.freeze({
-        'invoice:save': Object.freeze(['administrativeLogs']),
-        'invoice:remove': Object.freeze(['administrativeLogs']),
         'configuration:create-exercise': Object.freeze(['administrativeLogs'])
     });
 
