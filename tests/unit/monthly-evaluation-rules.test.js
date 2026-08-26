@@ -9,6 +9,7 @@ const completeBonification = Object.freeze({
   extCC: 'Sim',
   extINV: 'Sim',
   notaFiscal: 'Não se aplica',
+  boletoInternet: 'Não se aplica',
   consAssessoria: 'Não se aplica',
   declBBAgil: 'Sim',
   encampInventario: 'Não se aplica'
@@ -18,6 +19,7 @@ const completeAnalysis = Object.freeze({
   extCC: 'Correto',
   extINV: 'Correto',
   notaFiscal: 'Correto',
+  boletoInternet: 'Correto',
   consAssessoria: 'Correto',
   declBBAgil: 'Correto',
   encampInventario: 'Correto'
