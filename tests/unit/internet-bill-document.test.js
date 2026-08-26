@@ -77,6 +77,14 @@ test('Boleto de Internet pertence somente ao programa Educação Conectada', () 
     assert.equal(fluxo.DOCUMENT_KEYS.includes('boletoInternet'), false);
     assert.deepEqual(fluxo.getDocumentKeysForProgram('BASIC'), fluxo.DOCUMENT_KEYS);
     assert.equal(fluxo.getDocumentKeysForProgram('CONECTADA').includes('boletoInternet'), true);
+    assert.equal(
+        Object.hasOwn(fluxo.createEmptyVerification('BASIC').bonificacao, 'boletoInternet'),
+        false
+    );
+    assert.equal(
+        Object.hasOwn(fluxo.createEmptyVerification('CONECTADA').bonificacao, 'boletoInternet'),
+        true
+    );
 
     assert.deepEqual(fluxo.evaluateBonification(BASE_BONIFICATION, 'BASIC'), {
         canConsolidate: true,
