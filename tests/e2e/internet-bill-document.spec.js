@@ -37,4 +37,49 @@ test('Boleto de pagamento de Internet aparece como documento independente sem co
   await expect(row.getByRole('button', { name: 'Adicionar Nota' })).toHaveCount(0);
   await expect(row.locator('[data-service-advisory-invoice]')).toHaveCount(0);
   await expect(row.getByText(/Inventariação/i)).toHaveCount(0);
+
+  await page.waitForFunction(() => window.RADAR_ATOMIC_ANALYSIS_READY === true, null, {
+    timeout: 15_000
+  });
+  await row.getByRole('button', { name: 'Sim', exact: true }).click();
+  await analysis.selectOption('Incorreto');
+
+  const pendencyModal = page.locator('#modal-nova-pendencia');
+  await expect(pendencyModal).toHaveClass(/show/);
+  await expect(analysis).toHaveValue('Não analisado');
+  await pendencyModal.locator('input[name="pend-erros"]').first().check();
+  await pendencyModal.locator('#pend-obs').fill('Boleto de Internet com inconsistência.');
+  await pendencyModal.locator('button[type="submit"]').click();
+  await expect(pendencyModal).not.toHaveClass(/show/);
+
+  const persisted = await page.evaluate(({ escolaId, programaId }) => {
+    const compKey = `${activeCompetenciaKey}_${programaId}`;
+    const active = pendencias.filter(pendency => (
+      RadarPendencias.isActivePendency(pendency)
+      && pendency.escolaId === escolaId
+      && pendency.programaId === programaId
+      && pendency.documentoKey === 'boletoInternet'
+    ));
+    const verification = verificacoes[escolaId]?.[compKey];
+    const serviceInvoices = notasRegistradas.filter(note => (
+      note.escolaId === escolaId
+      && note.compKey === compKey
+      && note.tipo === 'servico'
+    ));
+    const contextAssets = bens.filter(asset => (
+      asset.escolaId === escolaId
+      && (asset.competencia || asset.competenciaKey) === activeCompetenciaKey
+    ));
+    return {
+      activePendencies: active.length,
+      analysis: verification?.analise?.boletoInternet,
+      serviceInvoiceCount: serviceInvoices.length,
+      assetCount: contextAssets.length
+    };
+  }, context);
+
+  expect(persisted.activePendencies).toBe(1);
+  expect(persisted.analysis).toBe('Incorreto');
+  expect(persisted.serviceInvoiceCount).toBe(0);
+  expect(persisted.assetCount).toBe(0);
 });
