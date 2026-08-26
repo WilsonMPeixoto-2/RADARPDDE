@@ -164,11 +164,13 @@
         return DOCUMENT_KEYS.some(key => hasStartedValue(bonification[key]));
     }
 
-    function evaluateVerification(verification) {
+    function evaluateVerification(verification, programId = '') {
         const candidate = verification && typeof verification === 'object' ? verification : {};
         return flowApi.evaluateMonthlyEvaluation({
             bonificacao: candidate.bonificacao || candidate.bonification || {},
             analise: candidate.analise || candidate.analysis || {},
+            resultadoBonif: candidate.resultadoBonif || candidate.bonus_result || '',
+            programId,
             pendencias: []
         });
     }
@@ -282,7 +284,7 @@
                 programId,
                 verification,
                 started: hasStartedVerification(verification),
-                evaluation: evaluateVerification(verification)
+                evaluation: evaluateVerification(verification, programId)
             });
         });
     }
