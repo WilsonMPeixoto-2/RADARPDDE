@@ -76,6 +76,50 @@ async function dispatchRepeatedSubmits(page, count = 2) {
   }, count);
 }
 
+async function invokePublicSaveDirectly(page, count = 2) {
+  await page.evaluate(repetitions => {
+    window.__pr1DirectSavePromises = [];
+    for (let index = 0; index < repetitions; index += 1) {
+      const eventLike = {
+        preventDefault() {},
+        stopImmediatePropagation() {}
+      };
+      window.__pr1DirectSavePromises.push(window.salvarDadosNota(eventLike));
+    }
+  }, count);
+}
+
+async function configureRejectOnceThenPending(page) {
+  await page.evaluate(() => {
+    const service = window.RadarApplicationServices.invoices;
+    window.__pr1InvoiceSaveCalls = 0;
+    window.__pr1InvoiceResolvers = [];
+    service.save = () => {
+      window.__pr1InvoiceSaveCalls += 1;
+      if (window.__pr1InvoiceSaveCalls === 1) {
+        return Promise.reject(Object.assign(new Error('Falha controlada PR1'), {
+          code: 'PR1_TEST_FAILURE'
+        }));
+      }
+      return new Promise(resolve => {
+        window.__pr1InvoiceResolvers.push(() => resolve({
+          ok: true,
+          value: { warnings: [] }
+        }));
+      });
+    };
+  });
+}
+
+async function invokePublicSaveAndWait(page) {
+  await page.evaluate(async () => {
+    await window.salvarDadosNota({
+      preventDefault() {},
+      stopImmediatePropagation() {}
+    });
+  });
+}
+
 async function readBusySnapshot(page) {
   return page.evaluate(() => {
     const form = document.getElementById('form-dados-nota');
@@ -125,6 +169,56 @@ test.describe('PR1 — contenção de submit repetido de Nota Fiscal', () => {
     expect(snapshot.ariaBusy).toBe('true');
     expect(snapshot.disabled).toBe(true);
     expect(snapshot.label).toBe('Salvando…');
+
+    await releaseInvoiceSave(page);
+    await expect.poll(() => readBusySnapshot(page)).toMatchObject({
+      ariaBusy: 'false',
+      disabled: false,
+      label: 'Salvar Gasto'
+    });
+  });
+
+  test('chamada direta à entrada pública também bloqueia repetição antes do primeiro await', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+
+    await prepareInvoiceForm(page);
+    await invokePublicSaveDirectly(page, 2);
+
+    const snapshot = await readBusySnapshot(page);
+    expect(snapshot.calls).toBe(1);
+    expect(snapshot.ariaBusy).toBe('true');
+    expect(snapshot.disabled).toBe(true);
+    expect(snapshot.label).toBe('Salvando…');
+
+    await releaseInvoiceSave(page);
+    await expect.poll(() => readBusySnapshot(page)).toMatchObject({
+      ariaBusy: 'false',
+      disabled: false,
+      label: 'Salvar Gasto'
+    });
+  });
+
+  test('falha pela entrada pública restaura a interface e libera uma nova tentativa', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+
+    await prepareInvoiceForm(page);
+    await configureRejectOnceThenPending(page);
+    await invokePublicSaveAndWait(page);
+
+    await expect.poll(() => readBusySnapshot(page)).toMatchObject({
+      calls: 1,
+      ariaBusy: 'false',
+      disabled: false,
+      label: 'Salvar Gasto'
+    });
+
+    await invokePublicSaveDirectly(page, 1);
+    await expect.poll(() => readBusySnapshot(page)).toMatchObject({
+      calls: 2,
+      ariaBusy: 'true',
+      disabled: true,
+      label: 'Salvando…'
+    });
 
     await releaseInvoiceSave(page);
     await expect.poll(() => readBusySnapshot(page)).toMatchObject({
