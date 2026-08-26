@@ -18,6 +18,7 @@
         'extCC',
         'extINV',
         'notaFiscal',
+        'boletoInternet',
         'consAssessoria',
         'declBBAgil',
         'encampInventario'
