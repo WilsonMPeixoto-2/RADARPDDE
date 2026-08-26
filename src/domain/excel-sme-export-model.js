@@ -158,10 +158,13 @@
         return value !== undefined && value !== null && value !== '' && value !== false;
     }
 
-    function hasStartedVerification(verification) {
+    function hasStartedVerification(verification, programId = '') {
         if (!verification || typeof verification !== 'object') return false;
         const bonification = verification.bonificacao || verification.bonification || {};
-        return DOCUMENT_KEYS.some(key => hasStartedValue(bonification[key]));
+        const documentKeys = typeof flowApi.getDocumentKeysForProgram === 'function'
+            ? flowApi.getDocumentKeysForProgram(programId)
+            : DOCUMENT_KEYS;
+        return documentKeys.some(key => hasStartedValue(bonification[key]));
     }
 
     function evaluateVerification(verification, programId = '') {
@@ -283,7 +286,7 @@
             return Object.freeze({
                 programId,
                 verification,
-                started: hasStartedVerification(verification),
+                started: hasStartedVerification(verification, programId),
                 evaluation: evaluateVerification(verification, programId)
             });
         });
