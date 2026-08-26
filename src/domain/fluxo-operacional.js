@@ -18,7 +18,17 @@
         'extCC',
         'extINV',
         'notaFiscal',
-        'boletoInternet',
+        'consAssessoria',
+        'declBBAgil',
+        'encampInventario'
+    ]);
+    const INTERNET_BILL_PROGRAM_ID = 'CONECTADA';
+    const INTERNET_BILL_DOCUMENT_KEY = 'boletoInternet';
+    const CONNECTED_DOCUMENT_KEYS = Object.freeze([
+        'extCC',
+        'extINV',
+        'notaFiscal',
+        INTERNET_BILL_DOCUMENT_KEY,
         'consAssessoria',
         'declBBAgil',
         'encampInventario'
@@ -71,16 +81,24 @@
             || pendencyItem === normalizeText(context.documentoNome);
     }
 
-    function createEmptyVerification() {
+    function getDocumentKeysForProgram(programId) {
+        return normalizeText(programId) === INTERNET_BILL_PROGRAM_ID
+            ? CONNECTED_DOCUMENT_KEYS
+            : DOCUMENT_KEYS;
+    }
+
+    function createEmptyVerification(programId = '') {
+        const documentKeys = getDocumentKeysForProgram(programId);
         return {
-            bonificacao: Object.fromEntries(DOCUMENT_KEYS.map(key => [key, ''])),
-            analise: Object.fromEntries(DOCUMENT_KEYS.map(key => [key, 'Não analisado'])),
+            bonificacao: Object.fromEntries(documentKeys.map(key => [key, ''])),
+            analise: Object.fromEntries(documentKeys.map(key => [key, 'Não analisado'])),
             resultadoBonif: ''
         };
     }
 
-    function evaluateBonification(bonificacao = {}) {
-        const missingFields = DOCUMENT_KEYS.filter(key => {
+    function evaluateBonification(bonificacao = {}, programId = '') {
+        const documentKeys = getDocumentKeysForProgram(programId);
+        const missingFields = documentKeys.filter(key => {
             const value = bonificacao[key];
             return !VALID_VALUES.has(value)
                 || (REQUIRED_DOCUMENT_KEYS.has(key) && value === 'Não se aplica');
@@ -94,7 +112,7 @@
             });
         }
 
-        const status = DOCUMENT_KEYS.some(key => bonificacao[key] === 'Não')
+        const status = documentKeys.some(key => bonificacao[key] === 'Não')
             ? 'inapta'
             : 'apta';
 
@@ -123,14 +141,15 @@
             && value !== false;
     }
 
-    function getProgramBonificationStatus(verification = {}) {
-        const result = normalizeText(verification.resultadoBonif);
+    function getProgramBonificationStatus(verification = {}, programId = '') {
+        const result = normalizeText(verification.resultadoBonif || verification.bonus_result);
         if (result === 'apta' || result === 'inapta') {
             return result;
         }
 
-        const bonificacao = verification.bonificacao || {};
-        const hasStarted = DOCUMENT_KEYS.some(key => hasStartedValue(bonificacao[key]));
+        const bonificacao = verification.bonificacao || verification.bonification || {};
+        const documentKeys = getDocumentKeysForProgram(programId);
+        const hasStarted = documentKeys.some(key => hasStartedValue(bonificacao[key]));
         return hasStarted ? 'em-apuracao' : 'nao-lancada';
     }
 
@@ -141,8 +160,10 @@
             || input.bonus_result
         ).toLocaleLowerCase('pt-BR');
         const bonification = input.bonification || input.bonificacao || {};
-        return CONSOLIDATED_BONUS_RESULTS.has(result)
-            && !Object.prototype.hasOwnProperty.call(bonification, 'boletoInternet');
+        const programId = normalizeText(input.programId || input.programaId);
+        return programId === INTERNET_BILL_PROGRAM_ID
+            && CONSOLIDATED_BONUS_RESULTS.has(result)
+            && !Object.prototype.hasOwnProperty.call(bonification, INTERNET_BILL_DOCUMENT_KEY);
     }
 
     function withLegacyInternetBillCompatibility(input = {}) {
@@ -153,21 +174,23 @@
             ...(input.analysis || input.analise || {})
         };
         if (usesLegacyInternetBillCompatibility(input)) {
-            bonification.boletoInternet = 'Não se aplica';
-            if (!Object.prototype.hasOwnProperty.call(analysis, 'boletoInternet')) {
-                analysis.boletoInternet = 'Correto';
+            bonification[INTERNET_BILL_DOCUMENT_KEY] = 'Não se aplica';
+            if (!Object.prototype.hasOwnProperty.call(analysis, INTERNET_BILL_DOCUMENT_KEY)) {
+                analysis[INTERNET_BILL_DOCUMENT_KEY] = 'Correto';
             }
         }
         return { bonification, analysis };
     }
 
-    function getProgramTechnicalAnalysisStatus(verification = {}) {
+    function getProgramTechnicalAnalysisStatus(verification = {}, programId = '') {
         const { analysis: analise } = withLegacyInternetBillCompatibility({
             bonification: verification.bonificacao || verification.bonification || {},
             analysis: verification.analise || verification.analysis || {},
-            bonusResult: verification.resultadoBonif || verification.bonus_result || ''
+            bonusResult: verification.resultadoBonif || verification.bonus_result || '',
+            programId
         });
-        const values = DOCUMENT_KEYS.map(key => (
+        const documentKeys = getDocumentKeysForProgram(programId);
+        const values = documentKeys.map(key => (
             normalizeText(analise[key]) || 'Não analisado'
         ));
 
@@ -185,30 +208,32 @@
         return 'em-analise';
     }
 
-    function getTechnicalCompletion(analysis = {}) {
-        const values = DOCUMENT_KEYS.map(key => (
+    function getTechnicalCompletion(analysis = {}, programId = '') {
+        const documentKeys = getDocumentKeysForProgram(programId);
+        const values = documentKeys.map(key => (
             normalizeText(analysis[key]) || 'Não analisado'
         ));
         const analyzedCount = values.filter(value => value !== 'Não analisado').length;
         if (analyzedCount === 0) return 'not_started';
-        if (analyzedCount < DOCUMENT_KEYS.length) return 'in_progress';
+        if (analyzedCount < documentKeys.length) return 'in_progress';
         return 'complete';
     }
 
     function evaluateMonthlyEvaluation(input = {}) {
-        const compatibility = withLegacyInternetBillCompatibility(input);
+        const programId = normalizeText(input.programId || input.programaId);
+        const compatibility = withLegacyInternetBillCompatibility({ ...input, programId });
         const bonification = compatibility.bonification;
         const analysis = compatibility.analysis;
         const pendencies = Array.isArray(input.pendencies)
             ? input.pendencies
             : (Array.isArray(input.pendencias) ? input.pendencias : []);
-        const bonusEvaluation = evaluateBonification(bonification);
+        const bonusEvaluation = evaluateBonification(bonification, programId);
         const verification = {
             bonificacao: bonification,
             analise: analysis,
             resultadoBonif: bonusEvaluation.canConsolidate ? bonusEvaluation.status : ''
         };
-        const technicalStatus = getProgramTechnicalAnalysisStatus(verification);
+        const technicalStatus = getProgramTechnicalAnalysisStatus(verification, programId);
         const openPendencyCount = pendencies.filter(pendency => (
             normalizeText(pendency && pendency.status) === 'Aberta'
         )).length;
@@ -225,9 +250,9 @@
             missingFields: Object.freeze([...bonusEvaluation.missingFields]),
             bonificationStatus: bonusEvaluation.canConsolidate
                 ? bonusEvaluation.status
-                : getProgramBonificationStatus(verification),
+                : getProgramBonificationStatus(verification, programId),
             technicalStatus,
-            technicalCompletion: getTechnicalCompletion(analysis),
+            technicalCompletion: getTechnicalCompletion(analysis, programId),
             openPendencyCount,
             awaitingReanalysisCount,
             activePendencyCount
@@ -263,6 +288,7 @@
         createEmptyVerification,
         evaluateBonification,
         evaluateMonthlyEvaluation,
+        getDocumentKeysForProgram,
         getProgramBonificationStatus,
         getProgramTechnicalAnalysisStatus,
         isIdentifiedFiscalNote,
