@@ -1,6 +1,6 @@
 # Documentação do RADAR PDDE
 
-**Estado de referência:** 24 de agosto de 2026
+**Estado de referência:** 26 de agosto de 2026
 **Classe documental:** Canônico — índice
 
 ## 1. Onde começar
@@ -9,14 +9,17 @@ O estado corrente fica em [`CURRENT_STAGE.md`](CURRENT_STAGE.md).
 
 O documento principal para retomada futura é:
 
-- [`handoff/2026-08-24-pre-implementacao-plano-mestre.md`](handoff/2026-08-24-pre-implementacao-plano-mestre.md)
+- [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md)
 
-Ele consolida o baseline `4542bbf` após o merge do PR #194, os relatos de usuários, os defeitos confirmados, as regras que não devem mudar, o snapshot read-only do Supabase, a gestão de Pendências e o estágio exato antes de qualquer correção.
+Ele consolida o baseline `0965ba8` após o merge do PR #200, as auditorias independentes, as decisões finais de produto, as exclusões, a ordem aprovada e o ponto exato de retomada antes das correções restantes.
 
 O plano textual executável e o relatório integral são:
 
-- [`superpowers/plans/2026-08-24-plano-mestre-correcoes.md`](superpowers/plans/2026-08-24-plano-mestre-correcoes.md);
-- [`reports/2026-08-24-plano-mestre-correcoes-radar-pdde.docx`](reports/2026-08-24-plano-mestre-correcoes-radar-pdde.docx).
+- [`superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md);
+- [`reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx`](reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx);
+- [`reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.sha256`](reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.sha256).
+
+O plano de 24/08 e seu handoff permanecem históricos: registram o primeiro diagnóstico, mas não orientam a execução pós-PR #200.
 
 O handoff de 23/08 permanece histórico e necessário para compreender a estabilização #190–#194:
 
@@ -43,9 +46,9 @@ Valores voláteis sempre devem ser consultados no remoto quando a tarefa depende
 
 1. [`../AGENTS.md`](../AGENTS.md);
 2. [`CURRENT_STAGE.md`](CURRENT_STAGE.md);
-3. [`handoff/2026-08-24-pre-implementacao-plano-mestre.md`](handoff/2026-08-24-pre-implementacao-plano-mestre.md);
-4. [`superpowers/plans/2026-08-24-plano-mestre-correcoes.md`](superpowers/plans/2026-08-24-plano-mestre-correcoes.md);
-5. [`reports/2026-08-24-plano-mestre-correcoes-radar-pdde.docx`](reports/2026-08-24-plano-mestre-correcoes-radar-pdde.docx);
+3. [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md);
+4. [`superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md);
+5. [`reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx`](reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx);
 6. [`handoff/2026-08-23-post-pr-193.md`](handoff/2026-08-23-post-pr-193.md);
 7. [`DECISION_LOG.md`](DECISION_LOG.md);
 8. [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md);
@@ -97,7 +100,7 @@ Além dos gates históricos, o ciclo #193 incorporou:
 - `dependency-cruiser` → `npm run check:architecture` e `test:readiness`;
 - Performance API/diagnóstico operacional local → integração runtime no PR #194.
 
-A integração do PR #194 está na `main` do baseline `4542bbf`. A consulta local de métricas é somente leitura:
+A integração do PR #194 permanece na `main`; o baseline pós-PR #200 é `0965ba8`. A consulta local de métricas é somente leitura:
 
 ```javascript
 window.RadarOperationalWriteMetrics.snapshot()
@@ -129,9 +132,9 @@ Não há telemetria externa, persistência das métricas ou coleta de dados de n
 ## 6. Documentos canônicos e referências
 
 - [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — estado corrente;
-- [`handoff/2026-08-24-pre-implementacao-plano-mestre.md`](handoff/2026-08-24-pre-implementacao-plano-mestre.md) — checkpoint atual de continuidade;
-- [`superpowers/plans/2026-08-24-plano-mestre-correcoes.md`](superpowers/plans/2026-08-24-plano-mestre-correcoes.md) — sequência de implementação;
-- [`reports/2026-08-24-plano-mestre-correcoes-radar-pdde.docx`](reports/2026-08-24-plano-mestre-correcoes-radar-pdde.docx) — relatório integral versionado;
+- [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md) — checkpoint atual de continuidade;
+- [`superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md) — sequência canônica de implementação;
+- [`reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx`](reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx) — relatório integral versionado;
 - [`handoff/2026-08-23-post-pr-193.md`](handoff/2026-08-23-post-pr-193.md) — checkpoint histórico anterior;
 - [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — contratos funcionais/arquiteturais estáveis;
 - [`DECISION_LOG.md`](DECISION_LOG.md) — decisões históricas e duradouras;
@@ -163,7 +166,7 @@ Não há telemetria externa, persistência das métricas ou coleta de dados de n
 
 Arquivos datados em `docs/audits/`, `docs/evidence/`, `docs/superpowers/`, `docs/handoff/` e `docs/reports/` preservam o momento em que foram produzidos. Eles não devem ser reescritos para coincidir com o presente e não prevalecem sobre o código/ambiente atual.
 
-O handoff de 24/08 substitui o de 23/08 **como porta de entrada**, sem apagar o valor histórico dos documentos anteriores.
+O handoff de 26/08 substitui o de 24/08 **como porta de entrada**, sem apagar o valor histórico dos documentos anteriores.
 
 ## 9. Continuidade
 
@@ -180,4 +183,4 @@ verificar remoto
 → atualizar documentação afetada
 ```
 
-O estágio atual possui demanda real e defeitos confirmados. A retomada deve começar pela Etapa 0 e pelo PR 1 do plano mestre, sem misturar migration, reparo, idempotência ou redesign no primeiro PR.
+O estágio atual possui demanda real e defeitos confirmados. A retomada deve começar por G0 e pelo PR1 do plano mestre, sem misturar migration, reparo, idempotência ou redesign no primeiro PR.

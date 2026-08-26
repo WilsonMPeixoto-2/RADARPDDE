@@ -2,7 +2,7 @@
 
 Sistema institucional de acompanhamento operacional do PDDE da 4ª CRE/SME-Rio. O produto organiza competência mensal, carteira de unidades, prontuário, análise documental, pendências, contatos, notas fiscais, patrimônio, Gestão de Equipe, acompanhamento gerencial e exportações.
 
-> **Estado reconciliado em 24 de agosto de 2026:** o diagnóstico pré-implementação foi concluído sobre a `main` `4542bbf` (PR #194 integrado) e consultas somente leitura no Supabase Production. Existem correções planejadas, mas nenhuma foi implementada neste checkpoint. O baseline mutável completo fica em [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md) e deve ser revalidado antes de qualquer ação dependente do ambiente.
+> **Estado reconciliado em 26 de agosto de 2026:** a `main` de origem está em `0965ba8` (PR #200 integrado). O hotfix `Incorreto + Pendência` está concluído; as demais correções funcionais ainda não começaram. O plano pós-auditoria foi aprovado e substitui o plano de 24/08 como referência operacional. O baseline mutável completo fica em [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md) e deve ser revalidado antes de qualquer ação dependente do ambiente.
 
 ## Fontes de verdade
 
@@ -55,15 +55,15 @@ O baseline atual incorpora, entre outros:
 
 A correção de `ASSET-02`, por exemplo, já existe no código com `saveAssetWithLog`, versão esperada e auditoria. A matriz continua distinguindo **correção implementada** de **prova ponta a ponta completa**.
 
-O diagnóstico de 24/08 confirmou, sem alterar produto:
+O diagnóstico iniciado em 24/08 e consolidado depois do PR #200 confirmou:
 
 - submit repetido pode duplicar uma inclusão de despesa;
 - `invoice:save` ainda possui lacunas de no-op semântico, idempotência de servidor e refresh mínimo no núcleo;
-- quatro contextos possuem Consulta Assessoria vazia sem NF de serviço;
+- quatro contextos foram historicamente observados com Consulta Assessoria vazia sem NF de serviço; o conjunto atual deve ser recalculado por preflight;
 - módulos funcionais podem deixar de se instalar depois do timeout fixo de dez segundos;
 - a regra transversal de Pendências está correta, mas a fila exige novo contrato de prioridade, filtros, ações e hierarquia visual.
 
-O plano mestre está em [`docs/superpowers/plans/2026-08-24-plano-mestre-correcoes.md`](docs/superpowers/plans/2026-08-24-plano-mestre-correcoes.md). O PR #195 permanece fora desta frente.
+O plano mestre canônico está em [`docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md). O antigo item 20, a proteção de senhas vazadas, o PR #195 e a deduplicação de NF por conteúdo permanecem fora desta frente.
 
 ## Garantia operacional
 
@@ -130,24 +130,24 @@ Ordem de leitura:
 
 1. [`AGENTS.md`](AGENTS.md);
 2. [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md);
-3. [`docs/handoff/2026-08-24-pre-implementacao-plano-mestre.md`](docs/handoff/2026-08-24-pre-implementacao-plano-mestre.md);
-4. [`docs/superpowers/plans/2026-08-24-plano-mestre-correcoes.md`](docs/superpowers/plans/2026-08-24-plano-mestre-correcoes.md);
-5. [`docs/reports/2026-08-24-plano-mestre-correcoes-radar-pdde.docx`](docs/reports/2026-08-24-plano-mestre-correcoes-radar-pdde.docx);
+3. [`docs/handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](docs/handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md);
+4. [`docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md);
+5. [`docs/reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx`](docs/reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx);
 6. [`docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md`](docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md);
 7. [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md);
 8. [`docs/DECISION_LOG.md`](docs/DECISION_LOG.md);
 9. [`docs/reference/STATUS_DOCUMENTOS.md`](docs/reference/STATUS_DOCUMENTOS.md).
 
-A porta de entrada vigente está registrada em [`docs/handoff/2026-08-24-pre-implementacao-plano-mestre.md`](docs/handoff/2026-08-24-pre-implementacao-plano-mestre.md). Auditorias anteriores permanecem históricas.
+A porta de entrada vigente está registrada em [`docs/handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](docs/handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md). Auditorias e planos anteriores permanecem históricos.
 
 ## Próxima sequência
 
-1. integrar e preservar o pacote documental de 24/08;
-2. congelar novamente o baseline remoto (Etapa 0);
-3. executar PR 1 — contenção de submit repetido e refresh mínimo;
-4. executar PR 2 — regra/efeitos canônicos da Assessoria e no-op semântico;
-5. executar PR 3 — prontidão crítica por módulo;
-6. reparar dados somente depois do gate do PR 2;
-7. seguir os PRs 5, 6, 7A, 7B e 8 sem fundi-los num único pacote.
+1. executar G0 e congelar novamente GitHub, Vercel, Supabase, dados e performance;
+2. executar PR1 e PR2;
+3. executar PR3.1, PR3.2 e PR3.3, cada qual com gate próprio;
+4. executar PR4 somente depois de PR2 publicado e de preflight fresco;
+5. seguir PR5, PR6, PR6B, PR7A e PR7B na ordem aprovada;
+6. executar PR8A antes de PR8B;
+7. medir em PR9A, estabilizar a metodologia em PR9B e só então otimizar por hipótese em PR9C.
 
 Nenhum PR, documento ou Preview autoriza por si só merge, migration ou mudança de Production fora do escopo aprovado.

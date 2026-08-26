@@ -1,6 +1,6 @@
 # RADAR PDDE 2026 — Contexto funcional e arquitetural
 
-**Atualizado em:** 24 de agosto de 2026
+**Atualizado em:** 26 de agosto de 2026
 **Classe documental:** Canônico
 
 ## 1. Finalidade
@@ -24,7 +24,7 @@ Dashboard, Carteira, Competências, Prontuário, Pendências, Inventário, Regis
 
 O baseline mutável corrente fica em [`CURRENT_STAGE.md`](CURRENT_STAGE.md).
 
-O checkpoint canônico pré-implementação das correções atuais está em [`handoff/2026-08-24-pre-implementacao-plano-mestre.md`](handoff/2026-08-24-pre-implementacao-plano-mestre.md).
+O checkpoint canônico pós-PR #200 das correções atuais está em [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md).
 
 O checkpoint pós-PR #193 permanece como histórico técnico da estabilização anterior em [`handoff/2026-08-23-post-pr-193.md`](handoff/2026-08-23-post-pr-193.md).
 
@@ -359,7 +359,7 @@ Ferramentas incorporadas no ciclo de estabilização de 23/08:
 
 A integração de métricas concluída e incorporada à `main` pelo PR #194 usa probe limitada em memória e interface somente leitura `RadarOperationalWriteMetrics`. Não envia telemetria, não persiste métricas e não coleta identificadores/conteúdo de negócio. Falha da instrumentação é fail-open.
 
-O checkpoint de 24/08 registrou uma limitação adicional: performance e módulos funcionais críticos ainda podem depender de instalação por polling com prazo fixo. A prontidão real por módulo está planejada, mas não implementada no baseline `4542bbf`.
+O checkpoint pós-PR #200 registrou uma limitação adicional: o hotfix protegeu um fluxo crítico específico, mas performance e outros módulos funcionais ainda podem depender de instalação por polling com prazo fixo. A prontidão real por capacidade está planejada em PR3.1–PR3.3, mas não implementada no baseline `0965ba8`.
 
 A existência de um gate não o torna automaticamente obrigatório para toda alteração. A governança de testes define proporcionalidade ao risco.
 
@@ -428,9 +428,9 @@ Não é permitido:
 ## 23. Referências
 
 - [`CURRENT_STAGE.md`](CURRENT_STAGE.md);
-- [`handoff/2026-08-24-pre-implementacao-plano-mestre.md`](handoff/2026-08-24-pre-implementacao-plano-mestre.md);
-- [`superpowers/plans/2026-08-24-plano-mestre-correcoes.md`](superpowers/plans/2026-08-24-plano-mestre-correcoes.md);
-- [`reports/2026-08-24-plano-mestre-correcoes-radar-pdde.docx`](reports/2026-08-24-plano-mestre-correcoes-radar-pdde.docx);
+- [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md);
+- [`superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md);
+- [`reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx`](reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx);
 - [`handoff/2026-08-23-post-pr-193.md`](handoff/2026-08-23-post-pr-193.md);
 - [`handoff/2026-08-18-encerramento-operacional.md`](handoff/2026-08-18-encerramento-operacional.md);
 - [`DECISION_LOG.md`](DECISION_LOG.md);

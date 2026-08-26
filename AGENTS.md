@@ -1,14 +1,14 @@
 # AGENTS.md — RADAR PDDE 2026
 
-**Atualizado em:** 24 de agosto de 2026
+**Atualizado em:** 26 de agosto de 2026
 
 ## 1. Leitura obrigatória
 
 Antes de analisar ou alterar o repositório, leia:
 
 1. `docs/CURRENT_STAGE.md` — estado corrente, baseline e prioridades reais;
-2. `docs/handoff/2026-08-24-pre-implementacao-plano-mestre.md` — diagnóstico e ponto exato de retomada;
-3. `docs/superpowers/plans/2026-08-24-plano-mestre-correcoes.md` — sequência, gates, testes e reversão das correções ainda não executadas;
+2. `docs/handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md` — checkpoint curto e ponto exato de retomada;
+3. `docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md` — plano mestre canônico, com decisões, sequência, gates, testes e reversão das correções ainda não executadas;
 4. `docs/reference/TEST_GOVERNANCE.md` — estratégia proporcional e tratamento de testes superados;
 5. `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md` — visão gerada do contrato funcional vigente;
 6. `docs/PROJECT_CONTEXT.md` — produto, domínio e arquitetura;
