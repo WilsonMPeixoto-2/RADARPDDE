@@ -5157,6 +5157,7 @@ const VERIFICATION_DOCUMENT_LABELS = Object.freeze({
     extCC: 'Extrato Conta Corrente',
     extINV: 'Extrato Investimento',
     notaFiscal: 'Notas Fiscais',
+    boletoInternet: 'Boleto de pagamento de Internet',
     consAssessoria: 'Consulta Assessoria',
     declBBAgil: 'Declaração BB Ágil',
     encampInventario: 'Encaminhado para Inventariação'
@@ -9805,6 +9806,7 @@ function renderProntuarioVerificacoes(esc) {
         { key: 'extCC', name: 'Extrato Conta Corrente', allowNaoAplica: false },
         { key: 'extINV', name: 'Extrato Investimento', allowNaoAplica: false },
         { key: 'notaFiscal', name: 'Notas Fiscais', allowNaoAplica: true },
+        { key: 'boletoInternet', name: 'Boleto de pagamento de Internet', allowNaoAplica: true },
         { key: 'consAssessoria', name: 'Consulta Assessoria', allowNaoAplica: true },
         { key: 'declBBAgil', name: 'Declaração BB Ágil', allowNaoAplica: false },
         { key: 'encampInventario', name: 'Encaminhado para Inventariação', allowNaoAplica: true }
@@ -10191,6 +10193,7 @@ async function changeAnaliseTecnica(escolaId, compKey, docKey, value, selectElem
         extCC: 'Extrato Conta Corrente',
         extINV: 'Extrato Investimento',
         notaFiscal: 'Notas Fiscais',
+        boletoInternet: 'Boleto de pagamento de Internet',
         consAssessoria: 'Consulta Assessoria',
         declBBAgil: 'Declaração BB Ágil',
         encampInventario: 'Encaminhado para Inventariação'
