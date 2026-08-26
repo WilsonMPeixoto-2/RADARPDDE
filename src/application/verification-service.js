@@ -176,6 +176,7 @@
             return this.flow.evaluateMonthlyEvaluation({
                 bonification: verification?.bonificacao || verification?.bonification || {},
                 analysis: verification?.analise || verification?.analysis || {},
+                bonusResult: verification?.resultadoBonif || verification?.bonus_result || '',
                 pendencies
             });
         }
