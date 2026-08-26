@@ -1,6 +1,6 @@
 # RADAR PDDE — Registro de decisões
 
-**Atualizado em:** 24 de agosto de 2026
+**Atualizado em:** 26 de agosto de 2026
 
 Este documento registra decisões duradouras. Não é diário de commits. Uma decisão somente é substituída por decisão expressa com impacto e status documentados.
 
@@ -481,13 +481,13 @@ LocalStorage, fixtures e seeds descartáveis permanecem disponíveis apenas para
 
 ## ADR-046 — Escritas operacionais usam retorno autoritativo, reconciliação incremental e diagnóstico local
 
-**Status:** Aprovada; implementada parcialmente nos PRs #190–#194; lacunas específicas de `invoice:save` registradas em 24/08
+**Status:** Aprovada; implementada parcialmente nos PRs #190–#194; lacunas específicas de `invoice:save` consolidadas no plano pós-PR #200
 
 O caminho normal das escritas inline bem-sucedidas usa feedback imediato, persistência/RPC, retorno autoritativo, incorporação incremental e reconciliação localizada. `renderProntuario()` integral permanece fallback para bootstrap, navegação, erro, retorno incompleto ou inconsistência não reconciliável.
 
 Operações semanticamente idênticas são idempotentes e não devem gerar nova persistência, `row_version` ou log sem mudança real.
 
-O diagnóstico de 24/08 confirmou que esse contrato permanece a direção correta, mas não está integralmente coberto em `invoice:save`: submit repetido pode criar duas inclusões, a edição não possui no-op baseado em todos os efeitos derivados, a dispensa de refresh de históricos depende da extensão opcional e ainda não existe chave idempotente de servidor para retry/perda de resposta. A correção está sequenciada em PRs próprios no plano mestre; não considerar a lacuna resolvida apenas pela formulação desta ADR.
+O diagnóstico iniciado em 24/08 e consolidado depois do PR #200 confirmou que esse contrato permanece a direção correta, mas não está integralmente coberto em `invoice:save`: submit repetido pode criar duas inclusões, a edição não possui no-op baseado em todos os efeitos derivados, a dispensa de refresh de históricos depende da extensão opcional e ainda não existe chave idempotente de servidor para retry/perda de resposta. A correção está sequenciada em PR1, PR2, PR5, PR8A e PR8B do plano mestre pós-auditoria; não considerar a lacuna resolvida apenas pela formulação desta ADR.
 
 A instrumentação local pode medir `click`, `feedback`, RPC, aplicação e estabilização por probe limitada em memória, sem telemetria externa nem dados de negócio. Falha do diagnóstico é fail-open.
 
@@ -508,3 +508,38 @@ Não executar `npm audit fix --force`, alteração rompente de ExcelJS ou troca 
 Reavaliar quando houver correção compatível, aumento de severidade/exposição, caminho materialmente explorável, mudança do contrato Excel ou nova exigência institucional de segurança.
 
 **Documento integral:** `docs/decisions/ADR-047-vulnerabilidades-conhecidas-acompanhamento-sem-atualizacao-forcada.md`.
+
+---
+
+## ADR-048 — Plano pós-PR #200 usa execução incremental e revisão adversarial
+
+**Status:** Aprovada
+
+O plano de 26/08/2026 substitui o plano de 24/08 como referência operacional das correções restantes. O PR #199 permanece como registro histórico do planejamento inicial e o PR #200 como primeiro hotfix funcional já integrado.
+
+A ordem aprovada é:
+
+```text
+G0 → PR1 → PR2 → PR3.1 → PR3.2 → PR3.3 → PR4 → PR5
+→ PR6 → PR6B → PR7A → PR7B → PR8A → PR8B
+→ PR9A → PR9B → PR9C → encerramento
+```
+
+Cada entrega deve revalidar a premissa, demonstrar RED, implementar a menor correção suficiente, buscar consumidores fora dos arquivos previstos, passar por revisão adversarial independente, cumprir gates proporcionais e registrar publicação/reversão antes da próxima entrega.
+
+Decisões específicas incorporadas:
+
+- PR5 fortalece IDs persistentes sem atribuir a duplicidade atual ao fallback de `InvoiceService`; produtores dependentes exclusivamente de `Date.now()` serão eliminados após inventário, incluindo `DirectoryService`;
+- PR3 é dividido em PR3.1, PR3.2 e PR3.3, com gates próprios;
+- PR8 é dividido em PR8A e PR8B;
+- PR9C só define orçamento por hipótese depois do baseline e do ruído medidos em PR9A/PR9B;
+- `web-vitals` e `Server-Timing` são possibilidades condicionais posteriores ao PR9A, não tarefas antecipadas, e não autorizam telemetria externa.
+
+Exclusões definitivas desta frente:
+
+- antigo item 20 da auditoria, sobre autoridade server-side mais ampla;
+- proteção de senhas vazadas no Supabase Auth;
+- PR #195;
+- deduplicação de NF por conteúdo.
+
+**Documentos integrais:** `docs/handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md` e `docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`.

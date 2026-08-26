@@ -38,7 +38,7 @@ A decisão continua vigente, mas o diagnóstico sobre a `main` `4542bbf` encontr
 - a RPC não recebe chave idempotente de intenção para retry, duas abas ou perda de resposta;
 - a resposta atual ainda não é suficiente para aplicação incremental segura em toda transição, especialmente remoção por `deleted_asset_id`.
 
-Essas lacunas não revogam a arquitetura. Elas impedem classificar `invoice:save` como integralmente aderente até a execução dos PRs 1, 2, 5 e 8 do [`../superpowers/plans/2026-08-24-plano-mestre-correcoes.md`](../superpowers/plans/2026-08-24-plano-mestre-correcoes.md).
+Essas lacunas não revogam a arquitetura. Elas impedem classificar `invoice:save` como integralmente aderente até a execução de PR1, PR2, PR5, PR8A e PR8B do [`../superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](../superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md).
 
 ## Observabilidade local
 
