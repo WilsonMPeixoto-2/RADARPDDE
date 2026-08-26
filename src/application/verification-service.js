@@ -177,6 +177,7 @@
                 bonification: verification?.bonificacao || verification?.bonification || {},
                 analysis: verification?.analise || verification?.analysis || {},
                 bonusResult: verification?.resultadoBonif || verification?.bonus_result || '',
+                programId,
                 pendencies
             });
         }
@@ -231,6 +232,15 @@
                 const schoolId = text(input.schoolId);
                 const compKey = text(input.compKey);
                 const documentKey = text(input.documentKey);
+                const { programId } = splitCompKey(compKey);
+                if (documentKey === 'boletoInternet' && programId !== 'CONECTADA') {
+                    fail(
+                        'DOCUMENT_NOT_APPLICABLE',
+                        'Boleto de pagamento de Internet é aplicável somente ao programa Educação Conectada.',
+                        'setBonification',
+                        { programId, documentKey }
+                    );
+                }
                 const value = documentKey === 'consEnviada'
                     ? input.value === true
                     : text(input.value);
@@ -331,6 +341,16 @@
         async setTechnicalAnalysis(input = {}) {
             this.assertEditable(input.profile, 'setTechnicalAnalysis');
             this.assertCompetenceEditable(input.compKey, 'setTechnicalAnalysis');
+            const technicalDocumentKey = text(input.documentKey);
+            const { programId: technicalProgramId } = splitCompKey(input.compKey);
+            if (technicalDocumentKey === 'boletoInternet' && technicalProgramId !== 'CONECTADA') {
+                fail(
+                    'DOCUMENT_NOT_APPLICABLE',
+                    'Boleto de pagamento de Internet é aplicável somente ao programa Educação Conectada.',
+                    'setTechnicalAnalysis',
+                    { programId: technicalProgramId, documentKey: technicalDocumentKey }
+                );
+            }
             const requestedValue = text(input.value);
             if (requestedValue === 'Incorreto') {
                 fail(
