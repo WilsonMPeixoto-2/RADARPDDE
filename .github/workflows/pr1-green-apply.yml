@@ -6,6 +6,11 @@ on:
       - fix/pr1-invoice-submit-guard
     paths:
       - '.github/workflows/pr1-green-apply.yml'
+  pull_request:
+    branches:
+      - main
+    types:
+      - ready_for_review
 
 permissions:
   contents: write
