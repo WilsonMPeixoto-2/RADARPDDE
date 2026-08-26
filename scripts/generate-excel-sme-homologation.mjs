@@ -43,6 +43,7 @@ function complete(overrides = {}) {
     extCC: 'Sim',
     extINV: 'Sim',
     notaFiscal: 'Não se aplica',
+    boletoInternet: 'Não se aplica',
     consAssessoria: 'Não se aplica',
     declBBAgil: 'Sim',
     encampInventario: 'Não se aplica',
