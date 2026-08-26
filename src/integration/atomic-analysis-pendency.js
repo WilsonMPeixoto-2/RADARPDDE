@@ -7,6 +7,7 @@
         extCC: 'Extrato Conta Corrente',
         extINV: 'Extrato Investimento',
         notaFiscal: 'Notas Fiscais',
+        boletoInternet: 'Boleto de pagamento de Internet',
         consAssessoria: 'Consulta Assessoria',
         declBBAgil: 'Declaração BB Ágil',
         encampInventario: 'Encaminhado para Inventariação'
