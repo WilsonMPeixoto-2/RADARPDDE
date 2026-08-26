@@ -169,7 +169,6 @@
         return flowApi.evaluateMonthlyEvaluation({
             bonificacao: candidate.bonificacao || candidate.bonification || {},
             analise: candidate.analise || candidate.analysis || {},
-            resultadoBonif: candidate.resultadoBonif || candidate.bonus_result || '',
             pendencias: []
         });
     }
