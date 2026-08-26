@@ -8,12 +8,16 @@
     }
     if (root && root.document) {
         root.RadarSharedInteractions = Object.freeze(api);
+        api.installInvoiceSubmissionGuard(root.document);
     }
 }(typeof window !== 'undefined' ? window : globalThis, function createSharedInteractionsApi(root) {
     'use strict';
 
     const CONTROLLER_DIALOG_ID = 'radar-controller-deactivation-dialog';
     const FEEDBACK_REGION_ID = 'radar-feedback-region';
+    const invoiceSubmissionLocks = new WeakSet();
+    const invoiceSubmissionUiState = new WeakMap();
+    let invoiceSubmissionGuardDocument = null;
     let activeRequest = null;
 
     class InteractionError extends Error {
@@ -35,6 +39,88 @@
 
     function pluralSchools(value) {
         return value === 1 ? '1 escola' : `${value} escolas`;
+    }
+
+    function invoiceFormFromEvent(event) {
+        const target = event?.target;
+        if (target?.id === 'form-dados-nota') return target;
+        const currentTarget = event?.currentTarget;
+        return currentTarget?.id === 'form-dados-nota' ? currentTarget : null;
+    }
+
+    function invoiceDismissButtons(form, submitButton) {
+        const formButtons = Array.from(
+            form?.querySelectorAll?.('.btn-secondary, .btn-close, button[type="button"]') || []
+        );
+        const modal = form?.closest?.('.modal-overlay') || null;
+        const modalButtons = Array.from(
+            modal?.querySelectorAll?.('.btn-secondary, .btn-close, button[type="button"]') || []
+        );
+        return [...new Set([...formButtons, ...modalButtons])]
+            .filter(button => button && button !== submitButton);
+    }
+
+    async function guardInvoiceSubmission(event, handler) {
+        const form = invoiceFormFromEvent(event);
+        if (!form || typeof handler !== 'function') return null;
+
+        event.preventDefault?.();
+        event.stopImmediatePropagation?.();
+        if (invoiceSubmissionLocks.has(form)) return false;
+
+        const submitButton = form.querySelector?.('button[type="submit"]') || null;
+        const dismissButtons = invoiceDismissButtons(form, submitButton);
+        invoiceSubmissionLocks.add(form);
+        invoiceSubmissionUiState.set(form, {
+            submitButton,
+            submitDisabled: Boolean(submitButton?.disabled),
+            submitLabel: submitButton?.textContent || '',
+            dismissButtons: dismissButtons.map(button => ({
+                button,
+                disabled: Boolean(button.disabled)
+            }))
+        });
+        form.setAttribute?.('aria-busy', 'true');
+        if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Salvando…';
+        }
+        dismissButtons.forEach(button => {
+            button.disabled = true;
+        });
+
+        try {
+            return await handler(event);
+        } finally {
+            const state = invoiceSubmissionUiState.get(form);
+            form.setAttribute?.('aria-busy', 'false');
+            if (state?.submitButton) {
+                state.submitButton.disabled = state.submitDisabled;
+                state.submitButton.textContent = state.submitLabel;
+            }
+            (state?.dismissButtons || []).forEach(({ button, disabled }) => {
+                button.disabled = disabled;
+            });
+            invoiceSubmissionUiState.delete(form);
+            invoiceSubmissionLocks.delete(form);
+        }
+    }
+
+    function installInvoiceSubmissionGuard(documentRef = root?.document) {
+        if (!documentRef || typeof documentRef.addEventListener !== 'function') return false;
+        if (invoiceSubmissionGuardDocument === documentRef) return true;
+
+        documentRef.addEventListener('submit', event => {
+            const form = invoiceFormFromEvent(event);
+            if (!form) return;
+            const handler = root?.salvarDadosNota;
+            if (typeof handler !== 'function') return;
+            void guardInvoiceSubmission(event, handler.bind(root)).catch(error => {
+                root?.console?.error?.('[RADAR PDDE] Falha no guard de submit de Nota Fiscal.', error);
+            });
+        }, true);
+        invoiceSubmissionGuardDocument = documentRef;
+        return true;
     }
 
     function normalizeControllerRecords(records) {
@@ -363,6 +449,8 @@
         validateControllerRecipient,
         normalizeControllerRecords,
         formatControllerDeactivationSuccess,
+        guardInvoiceSubmission,
+        installInvoiceSubmissionGuard,
         requestControllerDeactivation,
         notify
     });
