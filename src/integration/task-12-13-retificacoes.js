@@ -182,19 +182,27 @@
         return draft;
     }
 
-    function evaluateDraft(draft) {
-        const evaluation = root.RadarFluxoOperacional.evaluateBonification(draft);
+    function evaluateDraft(draft, verification = null) {
+        const evaluation = root.RadarFluxoOperacional.evaluateMonthlyEvaluation({
+            bonification: draft,
+            analysis: verification?.analise || verification?.analysis || {},
+            bonusResult: verification?.resultadoBonif || verification?.bonus_result || '',
+            programId: activeContext?.programId || '',
+            pendencies: []
+        });
         return {
             canConsolidate: Boolean(evaluation.canConsolidate),
-            status: evaluation.canConsolidate ? evaluation.status : null,
+            status: evaluation.canConsolidate ? evaluation.bonusResult : null,
             missingFields: evaluation.missingFields || []
         };
     }
 
-    function renderFields(verification, initialChanges = {}) {
+    function renderFields(verification, initialChanges = {}, programId = '') {
         const container = document.getElementById('retification-fields');
         container.replaceChildren();
-        const keys = Object.keys(verification.bonificacao || {});
+        const keys = Object.keys(verification.bonificacao || {}).filter(key => (
+            key !== 'boletoInternet' || programId === 'CONECTADA'
+        ));
         keys.forEach((key, index) => {
             const current = Object.prototype.hasOwnProperty.call(initialChanges, key)
                 ? initialChanges[key]
@@ -251,8 +259,13 @@
         const verification = getVerification(activeContext.schoolId, activeContext.compKey);
         if (!verification) return;
         const draft = getDraftBonification();
-        const evaluation = evaluateDraft(draft);
-        const changes = getChanges(verification.bonificacao || {}, draft);
+        const evaluation = evaluateDraft(draft, verification);
+        const before = Object.fromEntries(
+            Object.entries(verification.bonificacao || {}).filter(([key]) => (
+                key !== 'boletoInternet' || activeContext?.programId === 'CONECTADA'
+            ))
+        );
+        const changes = getChanges(before, draft);
         const projected = document.getElementById('retification-projected-result');
         projected.textContent = evaluation.canConsolidate
             ? formatResult(evaluation.status)
@@ -306,7 +319,7 @@
         document.getElementById('retification-current-result').textContent = formatResult(verification.resultadoBonif);
         document.getElementById('retification-justification').value = '';
         document.getElementById('retification-error').hidden = true;
-        renderFields(verification, initialChanges);
+        renderFields(verification, initialChanges, programId);
         updateRetificationPreview();
         setModalOpen(true);
         root.requestAnimationFrame(() => {
@@ -341,7 +354,7 @@
             const verification = getVerification(activeContext.schoolId, activeContext.compKey);
             if (!verification) throw new Error('Verificação não encontrada.');
             const draft = getDraftBonification();
-            const evaluation = evaluateDraft(draft);
+            const evaluation = evaluateDraft(draft, verification);
             if (!evaluation.canConsolidate) {
                 const missing = evaluation.missingFields.map(key => BONUS_LABELS[key] || key).join(', ');
                 throw new Error(`A retificação não pode ser concluída. Revise: ${missing || 'campos de bonificação'}.`);
