@@ -19,7 +19,8 @@ const COMPLETE_APTA_BONIFICATION = {
     extCC: 'Sim',
     extINV: 'Sim',
     notaFiscal: 'Não se aplica',
-    consAssessoria: 'Não se aplica',
+    boletoInternet: 'Não se aplica',
+    consAssessoria: 'Não se aplica'
     declBBAgil: 'Sim',
     encampInventario: 'Não se aplica'
 };
@@ -29,18 +30,20 @@ const COMPLETE_ANALYSIS = Object.fromEntries(
         ['extCC', 'Correto'],
         ['extINV', 'Correto (Atrasado)'],
         ['notaFiscal', 'Correto'],
-        ['consAssessoria', 'Correto'],
+        ['boletoInternet', 'Correto'],
+        ['consAssessoria', 'Correto']
         ['declBBAgil', 'Correto'],
         ['encampInventario', 'Correto']
     ]
 );
 
-test('cria a primeira verificação com os seis documentos vazios e não analisados', () => {
+test('cria a primeira verificação com os sete documentos vazios e não analisados', () => {
     assert.deepEqual(DOCUMENT_KEYS, [
         'extCC',
         'extINV',
         'notaFiscal',
-        'consAssessoria',
+        'boletoInternet',
+        'consAssessoria'
         'declBBAgil',
         'encampInventario'
     ]);
@@ -51,7 +54,7 @@ test('cria a primeira verificação com os seis documentos vazios e não analisa
     });
 });
 
-test('consolida como apta quando os seis documentos possuem respostas válidas sem Não', () => {
+test('consolida como apta quando os sete documentos possuem respostas válidas sem Não', () => {
     assert.deepEqual(evaluateBonification(COMPLETE_APTA_BONIFICATION), {
         canConsolidate: true,
         status: 'apta',
@@ -75,6 +78,7 @@ test('recusa consolidação e informa todos os documentos ausentes ou inválidos
         extCC: 'Não se aplica',
         extINV: '',
         notaFiscal: 'Sim',
+        boletoInternet: 'Não se aplica',
         consAssessoria: 'valor desconhecido',
         declBBAgil: 'Não se aplica',
         encampInventario: 'Não'
