@@ -5163,8 +5163,13 @@ const VERIFICATION_DOCUMENT_LABELS = Object.freeze({
     encampInventario: 'Encaminhado para Inventariação'
 });
 
-function buildVerificationSnapshot(verification) {
-    const emptyVerification = window.RadarFluxoOperacional.createEmptyVerification();
+function buildVerificationSnapshot(verification, programId = '') {
+    const isLegacyConnectedConsolidation = programId === 'CONECTADA'
+        && verification?.resultadoBonif
+        && !Object.prototype.hasOwnProperty.call(verification.bonificacao || {}, 'boletoInternet');
+    const emptyVerification = window.RadarFluxoOperacional.createEmptyVerification(
+        isLegacyConnectedConsolidation ? '' : programId
+    );
 
     if (!verification) {
         return emptyVerification;
@@ -5190,7 +5195,11 @@ function ensureProgramVerification(escolaId, compProgKey) {
         verificacoes[escolaId] = {};
     }
 
-    const verification = buildVerificationSnapshot(verificacoes[escolaId][compProgKey]);
+    const programId = window.RadarCompetencia.splitCompetenciaContext(compProgKey).contextId;
+    const verification = buildVerificationSnapshot(
+        verificacoes[escolaId][compProgKey],
+        programId
+    );
     verificacoes[escolaId][compProgKey] = verification;
     return verification;
 }
@@ -5233,14 +5242,16 @@ function blockConsolidatedFiscalNoteMutation(escolaId, compProgKey) {
 function getProgramBonificationStatus(escolaId, compKey, progId) {
     const compProgKey = `${compKey}_${progId}`;
     return window.RadarFluxoOperacional.getProgramBonificationStatus(
-        verificacoes[escolaId]?.[compProgKey]
+        verificacoes[escolaId]?.[compProgKey],
+        progId
     );
 }
 
 function getProgramTechnicalStatus(escolaId, compKey, progId) {
     const compProgKey = `${compKey}_${progId}`;
     return window.RadarFluxoOperacional.getProgramTechnicalAnalysisStatus(
-        verificacoes[escolaId]?.[compProgKey]
+        verificacoes[escolaId]?.[compProgKey],
+        progId
     );
 }
 
@@ -9806,7 +9817,12 @@ function renderProntuarioVerificacoes(esc) {
         { key: 'extCC', name: 'Extrato Conta Corrente', allowNaoAplica: false },
         { key: 'extINV', name: 'Extrato Investimento', allowNaoAplica: false },
         { key: 'notaFiscal', name: 'Notas Fiscais', allowNaoAplica: true },
-        { key: 'boletoInternet', name: 'Boleto de pagamento de Internet', allowNaoAplica: true },
+        {
+            key: 'boletoInternet',
+            name: 'Boleto de pagamento de Internet',
+            allowNaoAplica: true,
+            programIds: ['CONECTADA']
+        },
         { key: 'consAssessoria', name: 'Consulta Assessoria', allowNaoAplica: true },
         { key: 'declBBAgil', name: 'Declaração BB Ágil', allowNaoAplica: false },
         { key: 'encampInventario', name: 'Encaminhado para Inventariação', allowNaoAplica: true }
@@ -9844,7 +9860,10 @@ function renderProntuarioVerificacoes(esc) {
                 const compProgKey = `${c.key}_${progId}`;
 
                 // A grade usa um estado vazio transitório; só um comando do usuário cria a verificação.
-                const v = buildVerificationSnapshot(verificacoes[esc.id]?.[compProgKey]);
+                const v = buildVerificationSnapshot(
+                    verificacoes[esc.id]?.[compProgKey],
+                    progId
+                );
                 const bonusStatus = getProgramBonificationStatus(esc.id, c.key, progId);
                 const bonusMeta = getProgramBonificationMeta(bonusStatus);
                 const technicalStatus = getProgramTechnicalStatus(esc.id, c.key, progId);
@@ -9864,8 +9883,11 @@ function renderProntuarioVerificacoes(esc) {
                     </div>
                 `;
 
-                // Montar a sub-linha com cada documento
-                docItems.forEach((doc, idx) => {
+                // Montar a sub-linha com cada documento aplicável ao programa.
+                const programDocItems = docItems.filter(doc => (
+                    !Array.isArray(doc.programIds) || doc.programIds.includes(progId)
+                ));
+                programDocItems.forEach((doc, idx) => {
                     const bonifValue = v.bonificacao[doc.key] || '';
                     const analiseValue = v.analise[doc.key] || 'Não analisado';
                     const isBonifLocked = (v.resultadoBonif && accessProfile !== 'assistente')
@@ -10086,7 +10108,7 @@ function renderProntuarioVerificacoes(esc) {
                             data-document-key="${escapeHtml(doc.key)}"
                             ${activePend || resolvedPend ? `data-pendency-ref="${escapeHtml(encodePendencyIdReference((activePend || resolvedPend).id))}" tabindex="-1"` : ''}
                         >
-                            ${idx === 0 ? `<td rowspan="${docItems.length}" style="vertical-align:top; border-right: 1px solid var(--border-color); width:180px;">
+                            ${idx === 0 ? `<td rowspan="${programDocItems.length}" style="vertical-align:top; border-right: 1px solid var(--border-color); width:180px;">
                                 <strong>${escapeHtml(c.label)}</strong><br>
                                 <span style="font-size:0.75rem; color:var(--primary); font-weight:600;">${escapeHtml(progName)}</span>
                                 <div style="margin-top:16px;">
