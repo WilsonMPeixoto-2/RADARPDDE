@@ -9,34 +9,43 @@ const pendencyDomain = require('../../src/domain/pendencias.js');
 const { VerificationService } = require('../../src/application/verification-service.js');
 const { PendencyService } = require('../../src/application/pendency-service.js');
 
-function completeBonification(boletoValue) {
-    return {
-        extCC: 'Sim',
-        extINV: 'Sim',
-        notaFiscal: 'Não se aplica',
-        consAssessoria: 'Não se aplica',
-        declBBAgil: 'Sim',
-        encampInventario: 'Não se aplica',
-        boletoInternet: boletoValue
-    };
+const BASE_BONIFICATION = Object.freeze({
+    extCC: 'Sim',
+    extINV: 'Sim',
+    notaFiscal: 'Não se aplica',
+    consAssessoria: 'Não se aplica',
+    declBBAgil: 'Sim',
+    encampInventario: 'Não se aplica'
+});
+
+function connectedBonification(boletoValue) {
+    return { ...BASE_BONIFICATION, boletoInternet: boletoValue };
 }
 
-function createVerificationHarness() {
+function createVerificationHarness(compKey = '2026-08_CONECTADA') {
     const verification = {
-        bonificacao: completeBonification('Não se aplica'),
-        analise: Object.fromEntries([
-            ...fluxo.DOCUMENT_KEYS.map(key => [key, 'Correto']),
-            ['boletoInternet', 'Não analisado']
-        ]),
+        bonificacao: connectedBonification('Não se aplica'),
+        analise: {
+            extCC: 'Correto',
+            extINV: 'Correto',
+            notaFiscal: 'Correto',
+            consAssessoria: 'Correto',
+            declBBAgil: 'Correto',
+            encampInventario: 'Correto',
+            boletoInternet: 'Não analisado'
+        },
         resultadoBonif: ''
     };
     const state = {
-        verifications: { 'ESC-1': { '2026-08_BASIC': verification } },
+        verifications: { 'ESC-1': { [compKey]: verification } },
         registeredInvoices: [],
         assets: [],
         pendencies: [],
         schools: [{ id: 'ESC-1', denominação: 'Escola Teste' }],
-        programs: [{ id: 'BASIC', name: 'PDDE Básico' }],
+        programs: [
+            { id: 'BASIC', name: 'PDDE Básico' },
+            { id: 'CONECTADA', name: 'Educação Conectada' }
+        ],
         logs: []
     };
     let sequence = 0;
@@ -64,74 +73,24 @@ function createVerificationHarness() {
     return { state, verification, service };
 }
 
-test('Boleto de pagamento de Internet integra a avaliação mensal com Sim, Não e Não se aplica', () => {
-    assert.equal(fluxo.DOCUMENT_KEYS.includes('boletoInternet'), true);
+test('Boleto de Internet pertence somente ao programa Educação Conectada', () => {
+    assert.equal(fluxo.DOCUMENT_KEYS.includes('boletoInternet'), false);
+    assert.deepEqual(fluxo.getDocumentKeysForProgram('BASIC'), fluxo.DOCUMENT_KEYS);
+    assert.equal(fluxo.getDocumentKeysForProgram('CONECTADA').includes('boletoInternet'), true);
 
-    const empty = fluxo.createEmptyVerification();
-    assert.equal(empty.bonificacao.boletoInternet, '');
-    assert.equal(empty.analise.boletoInternet, 'Não analisado');
-
-    assert.deepEqual(fluxo.evaluateBonification(completeBonification('Sim')), {
+    assert.deepEqual(fluxo.evaluateBonification(BASE_BONIFICATION, 'BASIC'), {
         canConsolidate: true,
         status: 'apta',
         missingFields: []
     });
-    assert.deepEqual(fluxo.evaluateBonification(completeBonification('Não se aplica')), {
-        canConsolidate: true,
-        status: 'apta',
-        missingFields: []
+    assert.deepEqual(fluxo.evaluateBonification(BASE_BONIFICATION, 'CONECTADA'), {
+        canConsolidate: false,
+        status: null,
+        missingFields: ['boletoInternet']
     });
-    assert.deepEqual(fluxo.evaluateBonification(completeBonification('Não')), {
-        canConsolidate: true,
-        status: 'inapta',
-        missingFields: []
-    });
-});
-
-test('consolidação anterior à nova categoria é compatível sem esconder divergências antigas', () => {
-    const legacyBonification = {
-        extCC: 'Sim',
-        extINV: 'Sim',
-        notaFiscal: 'Não se aplica',
-        consAssessoria: 'Não se aplica',
-        declBBAgil: 'Sim',
-        encampInventario: 'Não se aplica'
-    };
-    const legacyAnalysis = {
-        extCC: 'Correto',
-        extINV: 'Correto',
-        notaFiscal: 'Correto',
-        consAssessoria: 'Correto',
-        declBBAgil: 'Correto',
-        encampInventario: 'Correto'
-    };
-
-    const consolidated = fluxo.evaluateMonthlyEvaluation({
-        bonification: legacyBonification,
-        analysis: legacyAnalysis,
-        bonusResult: 'apta',
-        pendencies: []
-    });
-    assert.equal(consolidated.canConsolidate, true);
-    assert.equal(consolidated.bonusResult, 'apta');
-    assert.equal(consolidated.technicalStatus, 'correto');
-    assert.equal(consolidated.technicalCompletion, 'complete');
-
-    const inconsistent = fluxo.evaluateMonthlyEvaluation({
-        bonification: { ...legacyBonification, extCC: 'Não' },
-        analysis: legacyAnalysis,
-        bonusResult: 'apta',
-        pendencies: []
-    });
-    assert.equal(inconsistent.bonusResult, 'inapta');
-
-    const openLegacy = fluxo.evaluateMonthlyEvaluation({
-        bonification: legacyBonification,
-        analysis: legacyAnalysis,
-        pendencies: []
-    });
-    assert.equal(openLegacy.canConsolidate, false);
-    assert.deepEqual(openLegacy.missingFields, ['boletoInternet']);
+    assert.equal(fluxo.evaluateBonification(connectedBonification('Sim'), 'CONECTADA').status, 'apta');
+    assert.equal(fluxo.evaluateBonification(connectedBonification('Não se aplica'), 'CONECTADA').status, 'apta');
+    assert.equal(fluxo.evaluateBonification(connectedBonification('Não'), 'CONECTADA').status, 'inapta');
 });
 
 test('Boleto de Internet usa análise técnica comum sem criar NF, Assessoria ou bem', async () => {
@@ -139,14 +98,14 @@ test('Boleto de Internet usa análise técnica comum sem criar NF, Assessoria ou
 
     await harness.service.setBonification({
         schoolId: 'ESC-1',
-        compKey: '2026-08_BASIC',
+        compKey: '2026-08_CONECTADA',
         documentKey: 'boletoInternet',
         value: 'Sim',
         profile: 'controlador'
     });
     await harness.service.setTechnicalAnalysis({
         schoolId: 'ESC-1',
-        compKey: '2026-08_BASIC',
+        compKey: '2026-08_CONECTADA',
         documentKey: 'boletoInternet',
         value: 'Correto',
         profile: 'controlador'
@@ -157,13 +116,25 @@ test('Boleto de Internet usa análise técnica comum sem criar NF, Assessoria ou
     assert.equal(harness.state.registeredInvoices.length, 0);
     assert.equal(harness.state.assets.length, 0);
     assert.equal(harness.verification.bonificacao.consAssessoria, 'Não se aplica');
-    assert.match(
-        harness.state.logs.map(log => log.details).join('\n'),
-        /Boleto de pagamento de Internet/
+    assert.match(harness.state.logs.map(log => log.details).join('\n'), /Boleto de pagamento de Internet/);
+});
+
+test('serviço rejeita Boleto de Internet fora de Educação Conectada', async () => {
+    const harness = createVerificationHarness('2026-08_BASIC');
+
+    await assert.rejects(
+        () => harness.service.setBonification({
+            schoolId: 'ESC-1',
+            compKey: '2026-08_BASIC',
+            documentKey: 'boletoInternet',
+            value: 'Sim',
+            profile: 'controlador'
+        }),
+        error => error?.code === 'DOCUMENT_NOT_APPLICABLE'
     );
 });
 
-test('Boleto de Internet abre pendência documental e grava Incorreto atomicamente', async () => {
+test('Boleto de Internet abre pendência documental e grava Incorreto atomicamente em Educação Conectada', async () => {
     const state = {
         pendencies: [],
         contacts: [],
@@ -171,7 +142,7 @@ test('Boleto de Internet abre pendência documental e grava Incorreto atomicamen
         assets: [],
         verifications: {
             'ESC-1': {
-                '2026-08_BASIC': {
+                '2026-08_CONECTADA': {
                     bonificacao: { boletoInternet: 'Sim' },
                     analise: { boletoInternet: 'Não analisado' },
                     resultadoBonif: ''
@@ -179,7 +150,7 @@ test('Boleto de Internet abre pendência documental e grava Incorreto atomicamen
             }
         },
         schools: [{ id: 'ESC-1', denominação: 'Escola Teste' }],
-        programs: [{ id: 'BASIC', name: 'PDDE Básico' }],
+        programs: [{ id: 'CONECTADA', name: 'Educação Conectada' }],
         logs: []
     };
     let sequence = 0;
@@ -205,7 +176,7 @@ test('Boleto de Internet abre pendência documental e grava Incorreto atomicamen
     const result = await service.open({
         schoolId: 'ESC-1',
         competence: '2026-08',
-        programId: 'BASIC',
+        programId: 'CONECTADA',
         documentKey: 'boletoInternet',
         item: 'Boleto de pagamento de Internet',
         errors: ['Comprovante ilegível'],
@@ -213,6 +184,7 @@ test('Boleto de Internet abre pendência documental e grava Incorreto atomicamen
         technicalAnalysisValue: 'Incorreto'
     });
 
+    assert.equal(result.value.pendency.programaId, 'CONECTADA');
     assert.equal(result.value.pendency.documentoKey, 'boletoInternet');
     assert.equal(result.value.verification.analise.boletoInternet, 'Incorreto');
     assert.equal(state.registeredInvoices.length, 0);
