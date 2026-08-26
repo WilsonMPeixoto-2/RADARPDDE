@@ -93,6 +93,24 @@ test('Boleto de Internet pertence somente ao programa Educação Conectada', () 
     assert.equal(fluxo.evaluateBonification(connectedBonification('Não'), 'CONECTADA').status, 'inapta');
 });
 
+test('consolidações antigas de Educação Conectada permanecem válidas sem backfill do boleto', () => {
+    const legacyAnalysis = Object.fromEntries(
+        fluxo.DOCUMENT_KEYS.map(key => [key, 'Correto'])
+    );
+    const result = fluxo.evaluateMonthlyEvaluation({
+        bonification: BASE_BONIFICATION,
+        analysis: legacyAnalysis,
+        bonusResult: 'apta',
+        programId: 'CONECTADA',
+        pendencies: []
+    });
+
+    assert.equal(result.canConsolidate, true);
+    assert.equal(result.bonusResult, 'apta');
+    assert.equal(result.technicalStatus, 'correto');
+    assert.equal(result.technicalCompletion, 'complete');
+});
+
 test('Boleto de Internet usa análise técnica comum sem criar NF, Assessoria ou bem', async () => {
     const harness = createVerificationHarness();
 
