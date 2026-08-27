@@ -33,7 +33,15 @@
     const { planInvoiceEffects } = invoiceEffects;
     const SERVICE_ADVISORY_ANALYSIS_SET = new Set(SERVICE_ADVISORY_ANALYSES);
     const UNIDENTIFIED_EXPENSE_TYPE = 'a_identificar';
-    const EXPENSE_TYPES = new Set(['consumo', 'permanente', 'servico', UNIDENTIFIED_EXPENSE_TYPE]);
+    const INTERNET_BILL_EXPENSE_TYPE = 'boleto_internet';
+    const INTERNET_BILL_PROGRAM_ID = 'CONECTADA';
+    const EXPENSE_TYPES = new Set([
+        'consumo',
+        'permanente',
+        'servico',
+        UNIDENTIFIED_EXPENSE_TYPE,
+        INTERNET_BILL_EXPENSE_TYPE
+    ]);
 
     function text(value) {
         return value == null ? '' : String(value).trim();
@@ -110,6 +118,25 @@
             const program = state.programs.find(item => item.id === context.programId);
             const verification = state.verifications?.[schoolId]?.[compKey] || null;
             return { schoolId, compKey, school, context, program, verification };
+        }
+
+        assertExpenseTypeApplicable(expenseType, context, operation) {
+            if (expenseType !== INTERNET_BILL_EXPENSE_TYPE) return;
+
+            const hasConnectedProgram = Array.isArray(context.school?.programasIds)
+                && context.school.programasIds.includes(INTERNET_BILL_PROGRAM_ID);
+            if (context.context.programId !== INTERNET_BILL_PROGRAM_ID || !hasConnectedProgram) {
+                fail(
+                    'DOCUMENT_NOT_APPLICABLE',
+                    'Boleto de pagamento de Internet é um tipo de gasto exclusivo de escolas com Educação Conectada ativa.',
+                    operation,
+                    {
+                        schoolId: context.schoolId,
+                        programId: context.context.programId,
+                        expenseType
+                    }
+                );
+            }
         }
 
         assertVerificationEditable(verification, profile, operation) {
@@ -224,6 +251,11 @@
             const invoiceData = this.validateInvoice(input, 'invoice:save');
             const initialState = this.getState();
             const initialContext = this.getContext(initialState, input, 'invoice:save');
+            this.assertExpenseTypeApplicable(
+                invoiceData.expenseType,
+                initialContext,
+                'invoice:save'
+            );
             this.assertVerificationEditable(
                 initialContext.verification,
                 profile,

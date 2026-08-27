@@ -54,7 +54,7 @@
         'Encaminhada',
         'Inventariada'
     ]);
-    const IDENTIFIED_EXPENSE_TYPES = new Set(['consumo', 'permanente', 'servico']);
+    const IDENTIFIED_EXPENSE_TYPES = new Set(['consumo', 'permanente', 'servico', 'boleto_internet']);
     const INVOICE_EXPENSE_TYPES = new Set([...IDENTIFIED_EXPENSE_TYPES, 'a_identificar']);
     const MONTH_LABELS = Object.freeze([
         'Janeiro',
@@ -536,6 +536,7 @@
                 id,
                 school_id: schoolId,
                 competence_id: text(invoice.competencia || invoice.competenciaKey || invoice.competence_id) || null,
+                program_id: text(invoice.programaId || invoice.program_id) || null,
                 description: text(invoice.descricao || invoice.description),
                 expense_type: expenseType,
                 invoice_number: invoiceNumber || null,
