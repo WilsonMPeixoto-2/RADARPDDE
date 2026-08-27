@@ -10479,6 +10479,30 @@ async function changeAnaliseTecnica(escolaId, compKey, docKey, value, selectElem
 }
 
 // 14.5 Operações de Registro de Dados da Nota Fiscal (Via Análise Técnica)
+function configureInvoiceExpenseTypeOptions(compKey, selectedType = '') {
+    const select = document.getElementById('nota-tipo');
+    if (!select) return false;
+
+    const billOption = select.querySelector('option[value="boleto_internet"]');
+    const splitContext = window.RadarCompetencia.splitCompetenciaContext(compKey);
+    const isConnected = splitContext.contextId === 'CONECTADA';
+
+    if (billOption) {
+        billOption.hidden = !isConnected;
+        billOption.disabled = !isConnected;
+    }
+
+    if (!isConnected && select.value === 'boleto_internet') {
+        select.value = 'consumo';
+    }
+
+    if (selectedType) {
+        select.value = selectedType;
+    }
+
+    return isConnected;
+}
+
 function openModalDadosNota(escolaId, compKey) {
     const accessProfile = getRadarAccessProfile();
     if (accessProfile === 'inventario' || accessProfile === 'sme') return false;
@@ -10495,6 +10519,7 @@ function openModalDadosNota(escolaId, compKey) {
     document.getElementById('nota-escola-id').value = escolaId;
     document.getElementById('nota-comp-key').value = compKey;
     document.getElementById('nota-id').value = '';
+    configureInvoiceExpenseTypeOptions(compKey);
     
     // Restaurar título e botão do modal para modo padrão
     document.querySelector('#modal-dados-nota h3').innerText = 'Dados da Nota Fiscal / Despesa';
@@ -10566,7 +10591,7 @@ function abrirEditarNota(notaId, escolaId) {
     document.getElementById('nota-comp-key').value = nota.compKey;
     document.getElementById('nota-id').value = nota.id;
     document.getElementById('nota-desc').value = nota.desc;
-    document.getElementById('nota-tipo').value = nota.tipo;
+    configureInvoiceExpenseTypeOptions(nota.compKey, nota.tipo);
     document.getElementById('nota-numero').value = nota.numero;
     document.getElementById('nota-valor').value = nota.valor;
 
