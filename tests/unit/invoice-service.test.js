@@ -271,6 +271,67 @@ test('registra e analisa a consulta à Assessoria separadamente para cada nota d
     assert.match(harness.state.logs[0].details, /NF-SERV-2/);
 });
 
+test('repetir estado individual de Assessoria canônico é no-op sem DataService nem log', async () => {
+    const harness = createHarness();
+    const verification = harness.state.verifications['ESC-1']['2026-05_BASIC'];
+    verification.bonificacao.consAssessoria = 'Sim';
+    verification.bonificacao.consEnviada = true;
+    verification.analise.consAssessoria = 'Correto';
+    harness.state.registeredInvoices.push({
+        id: 'nota-serv-1',
+        escolaId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        tipo: 'servico',
+        numero: 'NF-SERV-NOOP',
+        consultaAssessoriaEnviada: true,
+        analiseConsultaAssessoria: 'Correto'
+    });
+
+    const result = await harness.service.updateServiceAdvisory({
+        id: 'nota-serv-1',
+        schoolId: 'ESC-1',
+        sent: true,
+        analysis: 'Correto',
+        profile: 'controlador'
+    });
+
+    assert.equal(result.value.unchanged, true);
+    assert.equal(harness.calls.length, 0);
+    assert.equal(harness.state.logs.length, 0);
+    assert.equal(harness.reopenCalls.length, 0);
+});
+
+test('Assessoria individual igual não é no-op quando o agregado mensal está divergente', async () => {
+    const harness = createHarness();
+    const verification = harness.state.verifications['ESC-1']['2026-05_BASIC'];
+    verification.bonificacao.consAssessoria = 'Não';
+    verification.bonificacao.consEnviada = false;
+    verification.analise.consAssessoria = 'Não analisado';
+    harness.state.registeredInvoices.push({
+        id: 'nota-serv-1',
+        escolaId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        tipo: 'servico',
+        numero: 'NF-SERV-CORRIGE',
+        consultaAssessoriaEnviada: true,
+        analiseConsultaAssessoria: 'Correto'
+    });
+
+    const result = await harness.service.updateServiceAdvisory({
+        id: 'nota-serv-1',
+        schoolId: 'ESC-1',
+        sent: true,
+        analysis: 'Correto',
+        profile: 'controlador'
+    });
+
+    assert.equal(result.value.unchanged, false);
+    assert.equal(harness.calls.length, 1);
+    assert.equal(verification.bonificacao.consAssessoria, 'Sim');
+    assert.equal(verification.bonificacao.consEnviada, true);
+    assert.equal(verification.analise.consAssessoria, 'Correto');
+});
+
 test('remove a última nota e restaura análise e assessoria sem deixar bem órfão', async () => {
     const harness = createHarness();
     const verification = harness.state.verifications['ESC-1']['2026-05_BASIC'];
@@ -312,6 +373,7 @@ test('remove a última nota e restaura análise e assessoria sem deixar bem órf
     assert.equal(result.value.resetFiscalAnalysis, true);
     assert.equal(harness.state.logs.length, 1);
     assert.equal(harness.state.logs[0].action, 'Nota Fiscal Removida');
+    assert.equal(harness.reopenCalls.length, 0);
 });
 
 test('bloqueia nota consolidada para controlador e aceita assistente com reabertura', async () => {
@@ -341,4 +403,37 @@ test('bloqueia nota consolidada para controlador e aceita assistente com reabert
         profile: 'assistente'
     });
     assert.equal(harness.state.verifications['ESC-1']['2026-05_BASIC'].resultadoBonif, '');
+});
+
+
+test('remoção real por Assistente reabre consolidação sem callback lateral e mantém um único log', async () => {
+    const harness = createHarness();
+    const verification = harness.state.verifications['ESC-1']['2026-05_BASIC'];
+    verification.resultadoBonif = 'apta';
+    harness.state.registeredInvoices.push({
+        id: 'nota-remove-assistente',
+        escolaId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        competencia: '2026-05',
+        programaId: 'BASIC',
+        desc: 'Material',
+        descricao: 'Material',
+        tipo: 'consumo',
+        numero: 'NF-REMOVE-ASSIST',
+        valor: 50,
+        bemId: null,
+        dataRegistro: '2026-07-14T12:00:00.000Z'
+    });
+
+    const result = await harness.service.remove({
+        id: 'nota-remove-assistente',
+        schoolId: 'ESC-1',
+        profile: 'assistente'
+    });
+
+    assert.equal(result.value.verification.resultadoBonif, '');
+    assert.equal(verification.resultadoBonif, '');
+    assert.equal(harness.state.logs.length, 1);
+    assert.match(harness.state.logs[0].details, /reaberta/i);
+    assert.equal(harness.reopenCalls.length, 0);
 });
