@@ -2,13 +2,13 @@
 
 **Atualizado em:** 27 de agosto de 2026
 
-**Classe documental:** Trabalho em andamento — checkpoint operacional do PR #203
+**Classe documental:** Evidência publicada — encerramento operacional do PR #203
 
 **Branch:** `hotfix/boleto-internet-documento`
 
 **PR:** [#203](https://github.com/WilsonMPeixoto-2/RADARPDDE/pull/203)
 
-**Estado:** correções e validação local concluídas; publicação do novo head e gates remotos pendentes
+**Estado:** integrado à `main`, publicado em Production e encerrado; continuidade retorna ao PR #202/PR1
 
 ## 1. Por que esta frente existe
 
@@ -16,17 +16,17 @@ O plano mestre pós-PR #200 foi interrompido temporariamente depois do início d
 
 O parêntese não altera a ordem do plano mestre. Depois da publicação e do smoke desta hotfix, a retomada obrigatória é o PR #202/PR1, ainda antes de PR2.
 
-## 2. Baseline e separação de ambientes
+## 2. Estado final e separação de ambientes
 
-| Superfície               | Estado confirmado na revisão                                                  |
-| ------------------------ | ----------------------------------------------------------------------------- |
-| GitHub `main`            | `2db2a5102d877422d068141a59f5ea340a2ebdc0` — merge documental do PR #201      |
-| Vercel Production        | `dpl_AtHwooDcYgFaiUykT8Ja8rLRoZKT`, `READY`, no mesmo SHA `2db2a510...`       |
-| PR #203 antes da revisão | `a4de3f6e61559aa0d6e446831d6a558d0c88d7d7`                                    |
-| Correção da revisão      | `c76a7ba` — escopo de escrita e compatibilidade visual                        |
-| Supabase Production      | somente leitura; nenhuma migration, backfill ou escrita executada pela hotfix |
+| Superfície | Estado confirmado no encerramento |
+| --- | --- |
+| GitHub `main` | `f90cdf83897b4c954b7b6bf74b497798006e11f9` — merge do PR #203 |
+| Vercel Production | `dpl_EkZDvUjMjbcopE7r9pyxbtnXnCHa`, `READY`, no mesmo SHA da `main` |
+| Head funcional auditado do PR #203 | `12031487edf26e5c2b6d2ae9dd09244d65911ed9` |
+| Supabase Production | `ACTIVE_HEALTHY`; nenhuma migration ou backfill da hotfix |
+| Dados CONECTADA após publicação | 55 verificações; 50 legadas consolidadas sem boleto; 5 não consolidadas sem boleto; 0 com `boletoInternet` materializado |
 
-Preview e checks de um SHA anterior não servem como prova do novo head. Confirmar novamente PR, CI e Vercel depois do push.
+O merge commit contém o conteúdo funcional do head auditado. A Vercel publicou automaticamente a `main` resultante e o artefato Production foi conferido diretamente.
 
 ## 3. Contrato funcional fechado
 
@@ -102,43 +102,64 @@ O worktree não possuía Chromium. O download oficial expirou e devolveu arquivo
 1. categoria somente em Educação Conectada, com Pendência atômica e sem NF/bem;
 2. consolidação legada exibida como `N/A / Correto`, sem materializar as chaves no estado.
 
-## 7. Checks remotos do head anterior
+## 7. Checks remotos do head final
 
-No head `a4de3f6...`, os gates funcionais, CodeQL, Supabase readiness, Excel SME, Playwright, perfis/viewports, homologação integral e Vercel estavam aprovados. O Lighthouse falhou apenas no mobile porque o LCP medido foi `15004,863 ms` para limite `15000 ms`, diferença de `4,863 ms`; desktop permaneceu aprovado.
+No head final `12031487edf26e5c2b6d2ae9dd09244d65911ed9`:
 
-Essa execução não cobre `c76a7ba`. No head final:
+- Playwright remoto: aprovado;
+- validação RADAR e snapshot canônico: aprovados;
+- CodeQL: aprovado;
+- Supabase readiness: aprovado;
+- gate remoto de perfis e viewports: aprovado;
+- homologação e contratos-fonte do Excel SME: aprovados;
+- Vercel Preview: `READY`.
 
-- não afrouxar o limite;
-- não repetir o job indefinidamente até ficar verde;
-- uma repetição controlada pode distinguir ruído, se a falha equivalente reaparecer;
-- classificar conforme `TEST_GOVERNANCE.md` e a decisão do plano que só torna o Lighthouse estatisticamente obrigatório depois do PR9B.
+As únicas falhas remanescentes decorreram do Lighthouse mobile e dos gates agregados que o incluem. O mobile apresentou LCP em torno de `15,05–15,21 s` para teto de `15,00 s`; desktop aprovado com LCP de aproximadamente `3,19 s`.
 
-## 8. Gate objetivo antes do merge
+A exceção foi formalmente classificada como risco de performance mobile preexistente/sistêmico, sem regressão funcional material atribuível à hotfix, e aceita pelo responsável pelo produto porque o RADAR não será utilizado em dispositivos móveis nesta fase. Nenhum limiar foi afrouxado e não houve rerun oportunístico até verde.
 
-O PR #203 fica tecnicamente pronto somente quando:
+## 8. Gate de merge — concluído
 
-1. o novo head estiver publicado na branch remota;
-2. todos os checks funcionais obrigatórios corresponderem ao mesmo SHA;
-3. os dois E2E de boleto passarem no Playwright remoto;
-4. o Preview Vercel desse SHA estiver `READY`;
-5. o smoke confirmar Controlador/Assistente e leitura SME, sem exibição fora de `CONECTADA`;
-6. qualquer falha remanescente estiver classificada com evidência e sem regressão material;
-7. a descrição do PR registrar escopo, REDs, correções, gates, risco e reversão;
-8. houver autorização explícita para merge.
+O gate foi encerrado com:
 
-Não fazer merge nem promover Production apenas porque o Preview está pronto.
+1. head final publicado e estável;
+2. checks funcionais obrigatórios no mesmo SHA;
+3. E2E novos aprovados no Playwright remoto;
+4. Preview Vercel do SHA final em `READY`;
+5. falha de Lighthouse mobile classificada com evidência;
+6. descrição do PR atualizada com risco, reversão e exceção;
+7. autorização explícita do responsável pelo produto;
+8. merge protegido pelo SHA esperado, concluído em `f90cdf83897b4c954b7b6bf74b497798006e11f9`.
 
 ## 9. Publicação, smoke e reversão
 
-Depois do merge autorizado:
+### Publicação
 
-1. confirmar o SHA da `main` e o deployment de Production;
-2. abrir uma escola com Educação Conectada e confirmar a nova linha;
-3. confirmar ausência da linha em outro programa;
-4. verificar uma consolidação legada sem gravação sintética;
-5. registrar o resultado em `CURRENT_STAGE.md` e mudar este handoff de candidato para evidência publicada.
+- Production: `dpl_EkZDvUjMjbcopE7r9pyxbtnXnCHa`;
+- estado: `READY`;
+- SHA: `f90cdf83897b4c954b7b6bf74b497798006e11f9`;
+- região Vercel: `gru1`;
+- Supabase: `ACTIVE_HEALTHY`.
 
-Reversão é feita por revert do conjunto do PR #203. Não existe migration nem backfill a desfazer. Se algum usuário já tiver gravado `boletoInternet` depois da publicação, preservar os dados e decidir separadamente sua compatibilidade antes de qualquer reversão funcional.
+### Smoke sem escrita em dados reais
+
+A superfície pública de Production respondeu HTTP 200 e declarou `deploymentTarget:"production"`.
+
+Foram conferidos diretamente no artefato servido:
+
+- `INTERNET_BILL_PROGRAM_ID = 'CONECTADA'`;
+- `INTERNET_BILL_DOCUMENT_KEY = 'boletoInternet'`;
+- seleção de sete documentos apenas para Educação Conectada;
+- linha de interface `Boleto de pagamento de Internet` com `programIds: ['CONECTADA']`;
+- projeção legada `Não se aplica / Correto` por `getEffectiveDocumentState()`.
+
+Após a publicação, o Supabase permaneceu com as mesmas contagens prévias: 55 verificações CONECTADA, 50 consolidadas sem a chave, 5 não consolidadas sem a chave e 0 registros com boleto materializado. Isso confirma ausência de backfill ou gravação sintética decorrente do deploy.
+
+A jornada autenticada de Controlador/Assistente não foi executada manualmente neste encerramento porque o ambiente exige credenciais institucionais e não foi criada sessão artificial nem dado de teste em Production. A jornada funcional equivalente foi comprovada pelos E2E remotos no head exato publicado antes do merge.
+
+### Reversão
+
+Reversão é feita por revert do conjunto do PR #203. Não existe migration nem backfill a desfazer. Se algum usuário gravar `boletoInternet` depois da publicação, preservar esses dados e decidir separadamente sua compatibilidade antes de qualquer reversão funcional.
 
 ## 10. Retomada do plano mestre
 
