@@ -189,3 +189,102 @@ test('A identificar não participa da regra da Assessoria', () => {
     assert.equal(result.verification.bonificacao.consAssessoria, 'Não se aplica');
     assert.equal(result.verification.analise.consAssessoria, 'Correto');
 });
+
+
+test('remoção da última NF de serviço reconverge Assessoria e análise fiscal pelo mesmo planner', () => {
+    const serviceInvoice = {
+        ...baseInput().existingInvoice,
+        tipo: 'servico',
+        desc: 'Serviço',
+        descricao: 'Serviço',
+        numero: 'NF-SERV-REMOVE',
+        consultaAssessoriaEnviada: true,
+        analiseConsultaAssessoria: 'Correto'
+    };
+    const input = baseInput({
+        operation: 'remove',
+        existingInvoice: serviceInvoice,
+        contextInvoices: [serviceInvoice],
+        verification: {
+            bonificacao: {
+                notaFiscal: 'Sim',
+                consAssessoria: 'Sim',
+                consEnviada: true
+            },
+            analise: {
+                notaFiscal: 'Correto',
+                consAssessoria: 'Correto'
+            },
+            resultadoBonif: ''
+        }
+    });
+
+    const result = planInvoiceEffects(input);
+
+    assert.equal(result.operation, 'remove');
+    assert.equal(result.unchanged, false);
+    assert.equal(result.invoice.id, serviceInvoice.id);
+    assert.equal(result.asset, null);
+    assert.equal(result.verification.bonificacao.consAssessoria, 'Não se aplica');
+    assert.equal(result.verification.bonificacao.consEnviada, false);
+    assert.equal(result.verification.analise.consAssessoria, 'Correto');
+    assert.equal(result.verification.analise.notaFiscal, 'Não analisado');
+    assert.equal(result.resetFiscalAnalysis, true);
+    assert.equal(result.auditDescriptor.action, 'Nota Fiscal Removida');
+});
+
+test('remoção de NF permanente planeja exclusão do bem derivado e reabertura em um único efeito', () => {
+    const permanentInvoice = {
+        ...baseInput().existingInvoice,
+        tipo: 'permanente',
+        desc: 'Notebook',
+        descricao: 'Notebook',
+        numero: 'NF-PERM-REMOVE',
+        valor: 5000,
+        bemId: 'bem-1'
+    };
+    const input = baseInput({
+        operation: 'remove',
+        profile: 'assistente',
+        existingInvoice: permanentInvoice,
+        contextInvoices: [permanentInvoice],
+        currentAsset: {
+            id: 'bem-1',
+            escolaId: 'ESC-1',
+            competencia: '2026-05',
+            item: 'PDDE Básico - Notebook',
+            descricao: 'PDDE Básico - Notebook',
+            tipo: 'permanente',
+            valor: 5000,
+            notaFiscal: 'NF-PERM-REMOVE',
+            processoInventario: '',
+            status: 'Não encaminhada',
+            rowVersion: 2
+        },
+        verification: {
+            bonificacao: {
+                notaFiscal: 'Sim',
+                consAssessoria: 'Não se aplica',
+                consEnviada: false
+            },
+            analise: {
+                notaFiscal: 'Correto',
+                consAssessoria: 'Correto'
+            },
+            resultadoBonif: 'apta'
+        }
+    });
+
+    const result = planInvoiceEffects(input);
+
+    assert.equal(result.operation, 'remove');
+    assert.equal(result.removedAsset.id, 'bem-1');
+    assert.equal(result.verification.resultadoBonif, '');
+    assert.match(result.auditDescriptor.details, /reaberta/i);
+    assert.deepEqual(result.changedEntities, [
+        'registeredInvoices',
+        'assets',
+        'verifications',
+        'administrativeLogs'
+    ]);
+});
