@@ -4657,10 +4657,7 @@ function initializeRadarApplicationServices() {
     });
     radarAuditService = new window.RadarAuditService.AuditService(transactionalDependencies);
     radarInvoiceService = new window.RadarInvoiceService.InvoiceService({
-        ...transactionalDependencies,
-        reopenConsolidation: (schoolId, compKey, verification, changed) => (
-            reopenConsolidationForAssistant(schoolId, compKey, verification, changed)
-        )
+        ...transactionalDependencies
     });
     radarInventoryService = new window.RadarInventoryService.InventoryService(transactionalDependencies);
     window.RadarApplicationServices = Object.freeze({
