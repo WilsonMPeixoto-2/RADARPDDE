@@ -306,16 +306,106 @@ test('retificação usa a mesma RPC atômica com versão e log', async () => {
 });
 
 
-test('consulta enviada preserva valor booleano e usa RPC atômica', async () => {
+test('consEnviada agregado é rejeitado porque o envio pertence à NF de serviço', async () => {
     const harness = createAtomicHarness();
-    await harness.service.setBonification({
-        profile: 'controlador',
-        schoolId: '04.10.001',
-        compKey: '2026-05_BASIC',
-        documentKey: 'consEnviada',
-        value: true
+
+    await assert.rejects(
+        () => harness.service.setBonification({
+            profile: 'controlador',
+            schoolId: '04.10.001',
+            compKey: '2026-05_BASIC',
+            documentKey: 'consEnviada',
+            value: true
+        }),
+        error => error?.code === 'DOCUMENT_NOT_APPLICABLE'
+    );
+
+    assert.equal(harness.rpcCalls.length, 0);
+    assert.equal(harness.getDefaultPersistCalls(), 0);
+});
+
+
+test('consAssessoria agregado é rejeitado porque o resumo pertence às NFs de serviço', async () => {
+    const harness = createAtomicHarness();
+
+    await assert.rejects(
+        () => harness.service.setBonification({
+            profile: 'controlador',
+            schoolId: '04.10.001',
+            compKey: '2026-05_BASIC',
+            documentKey: 'consAssessoria',
+            value: 'Sim'
+        }),
+        error => error?.code === 'DOCUMENT_NOT_APPLICABLE'
+    );
+
+    assert.equal(harness.rpcCalls.length, 0);
+    assert.equal(harness.getDefaultPersistCalls(), 0);
+});
+
+test('retificação genérica rejeita chaves derivadas da Assessoria sem RPC', async () => {
+    for (const derivedKey of ['consAssessoria', 'consEnviada']) {
+        const harness = createAtomicHarness(state => {
+            const verification = state.verifications['04.10.001']['2026-05_BASIC'];
+            verification.bonificacao = {
+                extCC: 'Sim',
+                extINV: 'Sim',
+                notaFiscal: 'Não se aplica',
+                consAssessoria: 'Não se aplica',
+                consEnviada: false,
+                declBBAgil: 'Sim',
+                encampInventario: 'Não se aplica'
+            };
+            verification.analise = {
+                extCC: 'Correto',
+                extINV: 'Correto',
+                notaFiscal: 'Correto',
+                consAssessoria: 'Correto',
+                declBBAgil: 'Correto',
+                encampInventario: 'Correto'
+            };
+            verification.resultadoBonif = 'apta';
+        });
+
+        await assert.rejects(
+            () => harness.service.retify({
+                profile: 'assistente',
+                schoolId: '04.10.001',
+                compKey: '2026-05_BASIC',
+                programId: 'BASIC',
+                bonification: {
+                    [derivedKey]: derivedKey === 'consEnviada' ? true : 'Sim'
+                },
+                bonusResult: 'apta',
+                justification: 'Tentativa de alterar campo derivado.'
+            }),
+            error => error?.code === 'DOCUMENT_NOT_APPLICABLE'
+        );
+
+        assert.equal(harness.rpcCalls.length, 0);
+        assert.equal(harness.getDefaultPersistCalls(), 0);
+    }
+});
+
+
+test('análise técnica agregada de consAssessoria é rejeitada antes de DataService e RPC', async () => {
+    const harness = createAtomicHarness(state => {
+        const verification = state.verifications['04.10.001']['2026-05_BASIC'];
+        verification.bonificacao.consAssessoria = 'Sim';
+        verification.analise.consAssessoria = 'Não analisado';
     });
-    assert.equal(harness.rpcCalls.length, 1);
-    assert.equal(harness.rpcCalls[0].verification.bonification.consEnviada, true);
+
+    await assert.rejects(
+        () => harness.service.setTechnicalAnalysis({
+            profile: 'controlador',
+            schoolId: '04.10.001',
+            compKey: '2026-05_BASIC',
+            documentKey: 'consAssessoria',
+            value: 'Correto'
+        }),
+        error => error?.code === 'DOCUMENT_NOT_APPLICABLE'
+    );
+
+    assert.equal(harness.rpcCalls.length, 0);
     assert.equal(harness.getDefaultPersistCalls(), 0);
 });

@@ -108,6 +108,80 @@ test('altera bonificação e aplica dependências de N/A sem duplicar a regra op
     assert.equal(harness.state.logs[0].action, 'Bonificação Alterada');
 });
 
+test('ao sair de N/A para Sim sem NF de serviço mantém Assessoria em N/A / Correto', async () => {
+    const harness = createHarness();
+    harness.verification.bonificacao.notaFiscal = 'Não se aplica';
+    harness.verification.bonificacao.consAssessoria = 'Não se aplica';
+    harness.verification.bonificacao.consEnviada = false;
+    harness.verification.analise.notaFiscal = 'Correto';
+    harness.verification.analise.consAssessoria = 'Correto';
+
+    const result = await harness.service.setBonification({
+        schoolId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        documentKey: 'notaFiscal',
+        value: 'Sim',
+        profile: 'controlador'
+    });
+
+    assert.equal(result.value.verification.bonificacao.notaFiscal, 'Sim');
+    assert.equal(result.value.verification.bonificacao.consAssessoria, 'Não se aplica');
+    assert.equal(result.value.verification.bonificacao.consEnviada, false);
+    assert.equal(result.value.verification.analise.consAssessoria, 'Correto');
+});
+
+test('mesma bonificação de Nota Fiscal corrige Assessoria derivada incoerente em vez de falso no-op', async () => {
+    const harness = createHarness();
+    harness.verification.bonificacao.notaFiscal = 'Sim';
+    harness.verification.bonificacao.consAssessoria = '';
+    harness.verification.bonificacao.consEnviada = true;
+    harness.verification.analise.consAssessoria = 'Não analisado';
+
+    const result = await harness.service.setBonification({
+        schoolId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        documentKey: 'notaFiscal',
+        value: 'Sim',
+        profile: 'controlador'
+    });
+
+    assert.equal(result.value.verification.bonificacao.consAssessoria, 'Não se aplica');
+    assert.equal(result.value.verification.bonificacao.consEnviada, false);
+    assert.equal(result.value.verification.analise.consAssessoria, 'Correto');
+    assert.equal(harness.calls.length, 1);
+    assert.equal(result.value.unchanged, undefined);
+});
+
+test('mesma bonificação de Nota Fiscal deriva Assessoria a partir das NFs de serviço atuais', async () => {
+    const harness = createHarness();
+    harness.verification.bonificacao.notaFiscal = 'Sim';
+    harness.verification.bonificacao.consAssessoria = 'Não se aplica';
+    harness.verification.bonificacao.consEnviada = false;
+    harness.verification.analise.consAssessoria = 'Correto';
+    harness.state.registeredInvoices.push({
+        id: 'nota-servico',
+        escolaId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        tipo: 'servico',
+        numero: 'NF-SERV-RED',
+        consultaAssessoriaEnviada: false,
+        analiseConsultaAssessoria: 'Não analisado'
+    });
+
+    const result = await harness.service.setBonification({
+        schoolId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        documentKey: 'notaFiscal',
+        value: 'Sim',
+        profile: 'controlador'
+    });
+
+    assert.equal(result.value.verification.bonificacao.consAssessoria, 'Não');
+    assert.equal(result.value.verification.bonificacao.consEnviada, false);
+    assert.equal(result.value.verification.analise.consAssessoria, 'Não analisado');
+    assert.equal(harness.calls.length, 1);
+});
+
 test('ao sair de N/A para Sim reinicializa a análise de Nota Fiscal', async () => {
     const harness = createHarness();
     await harness.service.setBonification({

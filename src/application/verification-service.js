@@ -16,7 +16,17 @@
     const pendencias = typeof module !== 'undefined' && module.exports
         ? require('../domain/pendencias.js')
         : root.RadarPendencias;
-    const api = factory(contract, competencia, fluxo, retificacoes, pendencias);
+    const serviceAdvisory = typeof module !== 'undefined' && module.exports
+        ? require('../domain/service-advisory.js')
+        : root.RadarServiceAdvisory;
+    const api = factory(
+        contract,
+        competencia,
+        fluxo,
+        retificacoes,
+        pendencias,
+        serviceAdvisory
+    );
 
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
     if (root) root.RadarVerificationService = Object.freeze(api);
@@ -25,14 +35,16 @@
     defaultCompetence,
     defaultFlow,
     defaultRetifications,
-    pendencyDomain
+    pendencyDomain,
+    serviceAdvisory
 ) {
     'use strict';
 
-    if (!contract || !defaultCompetence || !defaultFlow || !defaultRetifications) {
+    if (!contract || !defaultCompetence || !defaultFlow || !defaultRetifications || !serviceAdvisory) {
         throw new Error('Contrato de dados e domínios de verificação são obrigatórios.');
     }
     const { RepositoryError, cloneValue } = contract;
+    const { deriveServiceAdvisory } = serviceAdvisory;
     const DOCUMENT_LABELS = Object.freeze({
         extCC: 'Extrato Conta Corrente',
         extINV: 'Extrato Investimento',
@@ -43,6 +55,10 @@
         encampInventario: 'Encaminhado para Inventariação'
     });
     const EDITABLE_PROFILES = new Set(['controlador', 'assistente']);
+    const SERVICE_ADVISORY_DERIVED_BONIFICATION_KEYS = new Set([
+        'consAssessoria',
+        'consEnviada'
+    ]);
 
     function text(value) {
         return value == null ? '' : String(value).trim();
@@ -241,14 +257,32 @@
                         { programId, documentKey }
                     );
                 }
-                const value = documentKey === 'consEnviada'
-                    ? input.value === true
-                    : text(input.value);
+                if (SERVICE_ADVISORY_DERIVED_BONIFICATION_KEYS.has(documentKey)) {
+                    fail(
+                        'DOCUMENT_NOT_APPLICABLE',
+                        'Consulta à Assessoria é derivada das Notas Fiscais de serviço e não pode ser alterada como bonificação mensal.',
+                        'setBonification',
+                        { programId, documentKey }
+                    );
+                }
+                const value = text(input.value);
                 const currentVerification = this.getVerification(schoolId, compKey);
-                const currentValue = documentKey === 'consEnviada'
-                    ? currentVerification?.bonificacao?.[documentKey] === true
-                    : text(currentVerification?.bonificacao?.[documentKey]);
-                if (currentValue === value) {
+                const currentValue = text(currentVerification?.bonificacao?.[documentKey]);
+                const currentState = this.getState();
+                const currentContextInvoices = documentKey === 'notaFiscal'
+                    ? list(currentState.registeredInvoices).filter(note => (
+                        note.escolaId === schoolId && note.compKey === compKey
+                    ))
+                    : [];
+                const currentAdvisory = documentKey === 'notaFiscal'
+                    ? deriveServiceAdvisory(currentContextInvoices)
+                    : null;
+                const advisoryAlreadyCanonical = !currentAdvisory || (
+                    text(currentVerification?.bonificacao?.consAssessoria) === currentAdvisory.delivery
+                    && (currentVerification?.bonificacao?.consEnviada === true) === currentAdvisory.sent
+                    && text(currentVerification?.analise?.consAssessoria) === currentAdvisory.analysis
+                );
+                if (currentValue === value && advisoryAlreadyCanonical) {
                     return {
                         ok: true,
                         value: {
@@ -286,7 +320,8 @@
                                 'setBonification'
                             );
                         }
-                        const before = cloneValue(verification.bonificacao || {});
+                        const beforeBonification = cloneValue(verification.bonificacao || {});
+                        const beforeAnalysis = cloneValue(verification.analise || {});
                         verification.bonificacao = verification.bonificacao || {};
                         verification.analise = verification.analise || {};
                         verification.bonificacao[documentKey] = value;
@@ -294,24 +329,24 @@
                             if (value === 'Não se aplica') {
                                 verification.bonificacao.encampInventario = 'Não se aplica';
                                 verification.analise.encampInventario = 'Correto';
-                                verification.bonificacao.consAssessoria = 'Não se aplica';
-                                verification.analise.consAssessoria = 'Correto';
                                 verification.analise.notaFiscal = 'Correto';
                             } else if (value === 'Sim' || value === 'Não') {
-                                if (before.notaFiscal === 'Não se aplica') {
+                                if (beforeBonification.notaFiscal === 'Não se aplica') {
                                     verification.analise.notaFiscal = 'Não analisado';
                                 }
                                 if (verification.bonificacao.encampInventario === 'Não se aplica') {
                                     verification.bonificacao.encampInventario = '';
                                     verification.analise.encampInventario = 'Não analisado';
                                 }
-                                if (verification.bonificacao.consAssessoria === 'Não se aplica') {
-                                    verification.bonificacao.consAssessoria = '';
-                                    verification.analise.consAssessoria = 'Não analisado';
-                                }
                             }
+
+                            const advisory = deriveServiceAdvisory(registeredNotes);
+                            verification.bonificacao.consAssessoria = advisory.delivery;
+                            verification.bonificacao.consEnviada = advisory.sent;
+                            verification.analise.consAssessoria = advisory.analysis;
                         }
-                        const changed = JSON.stringify(before) !== JSON.stringify(verification.bonificacao);
+                        const changed = JSON.stringify(beforeBonification) !== JSON.stringify(verification.bonificacao)
+                            || JSON.stringify(beforeAnalysis) !== JSON.stringify(verification.analise);
                         this.reopenConsolidation(schoolId, compKey, verification, changed);
                         const log = this.appendSchoolLog(
                             schoolId,
@@ -347,6 +382,14 @@
                 fail(
                     'DOCUMENT_NOT_APPLICABLE',
                     'Boleto de pagamento de Internet é aplicável somente ao programa Educação Conectada.',
+                    'setTechnicalAnalysis',
+                    { programId: technicalProgramId, documentKey: technicalDocumentKey }
+                );
+            }
+            if (technicalDocumentKey === 'consAssessoria') {
+                fail(
+                    'DOCUMENT_NOT_APPLICABLE',
+                    'A análise da Consulta à Assessoria é individual por Nota Fiscal de serviço e não pode ser alterada como análise mensal agregada.',
                     'setTechnicalAnalysis',
                     { programId: technicalProgramId, documentKey: technicalDocumentKey }
                 );
@@ -519,6 +562,19 @@
             this.assertCompetenceEditable(input.compKey, 'retify');
             const retificationContext = splitCompKey(input.compKey, input.programId);
             const requestedBonification = input.bonification || input.bonificacao || {};
+            const derivedAdvisoryKey = [...SERVICE_ADVISORY_DERIVED_BONIFICATION_KEYS]
+                .find(key => Object.prototype.hasOwnProperty.call(requestedBonification, key));
+            if (derivedAdvisoryKey) {
+                fail(
+                    'DOCUMENT_NOT_APPLICABLE',
+                    'Consulta à Assessoria é derivada das Notas Fiscais de serviço e não pode ser retificada como bonificação mensal.',
+                    'retify',
+                    {
+                        programId: retificationContext.programId,
+                        documentKey: derivedAdvisoryKey
+                    }
+                );
+            }
             if (retificationContext.programId !== 'CONECTADA'
                 && Object.prototype.hasOwnProperty.call(requestedBonification, 'boletoInternet')) {
                 fail(

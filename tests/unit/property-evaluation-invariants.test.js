@@ -7,7 +7,7 @@ const fc = require('fast-check');
 const fluxo = require('../../src/domain/fluxo-operacional.js');
 const retificacoes = require('../../src/domain/retificacoes.js');
 const { VerificationService } = require('../../src/application/verification-service.js');
-const { aggregateServiceAdvisories } = require('../../src/application/invoice-service.js');
+const { deriveServiceAdvisory } = require('../../src/domain/service-advisory.js');
 
 const SEED = 20260823;
 
@@ -62,7 +62,7 @@ function createHarness() {
     return { service, state, verification, calls };
 }
 
-test('property: sair de N/A para Sim/Não nunca conserva análise fiscal artificialmente correta', async () => {
+test('property: sair de N/A para Sim/Não preserva Assessoria canônica quando não há NF de serviço', async () => {
     await fc.assert(fc.asyncProperty(
         fc.constantFrom('Sim', 'Não'),
         async nextValue => {
@@ -78,7 +78,9 @@ test('property: sair de N/A para Sim/Não nunca conserva análise fiscal artific
 
             assert.equal(harness.verification.bonificacao.notaFiscal, nextValue);
             assert.equal(harness.verification.analise.notaFiscal, 'Não analisado');
-            assert.notEqual(harness.verification.bonificacao.consAssessoria, 'Não se aplica');
+            assert.equal(harness.verification.bonificacao.consAssessoria, 'Não se aplica');
+            assert.equal(harness.verification.bonificacao.consEnviada, false);
+            assert.equal(harness.verification.analise.consAssessoria, 'Correto');
             assert.notEqual(harness.verification.bonificacao.encampInventario, 'Não se aplica');
         }
     ), { seed: SEED, numRuns: 20 });
@@ -109,7 +111,7 @@ test('property: repetir valor semanticamente igual é no-op sem persistência ne
 
 test('property: Incorreto nunca é persistido isoladamente pelo VerificationService', async () => {
     await fc.assert(fc.asyncProperty(
-        fc.constantFrom('extCC', 'extINV', 'notaFiscal', 'consAssessoria', 'declBBAgil', 'encampInventario'),
+        fc.constantFrom('extCC', 'extINV', 'notaFiscal', 'declBBAgil', 'encampInventario'),
         async documentKey => {
             const harness = createHarness();
             harness.verification.bonificacao[documentKey] = 'Sim';
@@ -146,7 +148,7 @@ test('property: alterar a Assessoria da NF A não altera o estado individual da 
             const siblingBefore = structuredClone(invoices[1]);
             const next = structuredClone(invoices);
             next[0].analiseConsultaAssessoria = analysisA === 'Incorreto' ? 'Correto' : 'Incorreto';
-            aggregateServiceAdvisories(next);
+            deriveServiceAdvisory(next);
 
             assert.deepEqual(next[1], siblingBefore);
             assert.deepEqual(invoices[1], siblingBefore);

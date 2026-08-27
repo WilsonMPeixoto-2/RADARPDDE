@@ -38,7 +38,7 @@ function createHarness() {
     return { service, state, calls, verification };
 }
 
-test('Assessoria = Incorreto não pode ser gravada isoladamente sem a abertura atômica da pendência', async () => {
+test('Assessoria agregada não pertence ao fluxo técnico genérico do VerificationService', async () => {
     const harness = createHarness();
 
     await assert.rejects(
@@ -49,7 +49,7 @@ test('Assessoria = Incorreto não pode ser gravada isoladamente sem a abertura a
             value: 'Incorreto',
             profile: 'controlador'
         }),
-        error => error?.code === 'PENDENCY_REQUIRED'
+        error => error?.code === 'DOCUMENT_NOT_APPLICABLE'
     );
 
     assert.equal(harness.verification.analise.consAssessoria, 'Não analisado');

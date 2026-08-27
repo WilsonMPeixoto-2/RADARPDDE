@@ -4657,10 +4657,7 @@ function initializeRadarApplicationServices() {
     });
     radarAuditService = new window.RadarAuditService.AuditService(transactionalDependencies);
     radarInvoiceService = new window.RadarInvoiceService.InvoiceService({
-        ...transactionalDependencies,
-        reopenConsolidation: (schoolId, compKey, verification, changed) => (
-            reopenConsolidationForAssistant(schoolId, compKey, verification, changed)
-        )
+        ...transactionalDependencies
     });
     radarInventoryService = new window.RadarInventoryService.InventoryService(transactionalDependencies);
     window.RadarApplicationServices = Object.freeze({
@@ -10006,7 +10003,7 @@ function renderProntuarioVerificacoes(esc) {
                             : {};
                         serviceAdvisoryEntries = serviceNotes.map(note => ({
                             note,
-                            ...window.RadarInvoiceService.getServiceAdvisoryState(
+                            ...window.RadarServiceAdvisory.getServiceAdvisoryState(
                                 note,
                                 legacyFallback
                             )
@@ -10439,7 +10436,7 @@ async function changeInvoiceAdvisoryAnalysis(
         && item.tipo === 'servico'
     ));
     const verification = verificacoes[nota.escolaId]?.[nota.compKey];
-    const previousState = window.RadarInvoiceService.getServiceAdvisoryState(
+    const previousState = window.RadarServiceAdvisory.getServiceAdvisoryState(
         nota,
         serviceNotes.length === 1 ? {
             sent: verification?.bonificacao?.consEnviada === true
@@ -10508,21 +10505,26 @@ async function changeInvoiceAdvisoryAnalysis(
 async function toggleConsEnviada(escolaId, compKey, isChecked) {
     const accessProfile = getRadarAccessProfile();
     if (accessProfile === 'inventario' || accessProfile === 'sme') return false;
-    try {
-        await radarVerificationService.setBonification({
-            schoolId: escolaId,
-            compKey,
-            documentKey: 'consEnviada',
-            value: Boolean(isChecked),
-            profile: accessProfile
-        });
-    } catch (error) {
-        reportRadarActionError(error, 'Não foi possível alterar o status da consulta à Assessoria.');
+
+    const serviceNotes = notasRegistradas.filter(note => (
+        note.escolaId === escolaId
+        && note.compKey === compKey
+        && note.tipo === 'servico'
+    ));
+    if (serviceNotes.length !== 1) {
+        alert(
+            'O envio da Consulta à Assessoria é individual por Nota Fiscal. '
+            + 'Use o controle da Nota Fiscal correspondente.'
+        );
         renderProntuario(escolaId);
         return false;
     }
-    renderProntuario(escolaId);
-    return true;
+
+    return toggleInvoiceAdvisorySent(
+        serviceNotes[0].id,
+        escolaId,
+        Boolean(isChecked)
+    );
 }
 
 async function removerNotaRegistrada(notaId, escolaId) {

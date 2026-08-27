@@ -29,3 +29,14 @@ test('scripts locais do bootstrap usam defer para não bloquear a primeira rende
         `scripts parser-blocking encontrados: ${blocking.join(', ')}`
     );
 });
+
+
+test('index não contém escapes \\n literais entre scripts do bootstrap', () => {
+    const html = fs.readFileSync(indexPath, 'utf8');
+
+    assert.doesNotMatch(
+        html,
+        /<\/script>\\n\s*<script\b/,
+        'quebras de linha entre scripts devem ser caracteres reais, não texto \\n'
+    );
+});

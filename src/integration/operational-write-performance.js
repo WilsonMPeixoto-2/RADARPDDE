@@ -1,7 +1,10 @@
 (function installRadarOperationalWritePerformance(root, factory) {
     'use strict';
 
-    const api = factory();
+    const serviceAdvisory = typeof module !== 'undefined' && module.exports
+        ? require('../domain/service-advisory.js')
+        : root.RadarServiceAdvisory;
+    const api = factory(serviceAdvisory);
 
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = api;
@@ -20,8 +23,15 @@
             root.setTimeout?.(() => root.clearInterval?.(interval), 10000);
         }
     }
-}(typeof window !== 'undefined' ? window : globalThis, function createOperationalWritePerformanceApi() {
+}(typeof window !== 'undefined' ? window : globalThis, function createOperationalWritePerformanceApi(
+    serviceAdvisory
+) {
     'use strict';
+
+    if (!serviceAdvisory) {
+        throw new Error('Domínio canônico de Assessoria obrigatório para a política de escrita operacional.');
+    }
+    const { getServiceAdvisoryState } = serviceAdvisory;
 
     const RESULT_AUTHORITATIVE_COMMANDS = new Set([
         'pendency:open',
@@ -455,14 +465,14 @@
                     const invoiceId = invoiceIdFromHandler(control.getAttribute('onchange'));
                     const note = serviceNotes.find(item => String(item.id) === String(invoiceId));
                     if (!note) return;
-                    const advisory = root.RadarInvoiceService.getServiceAdvisoryState(note, legacyFallback);
+                    const advisory = getServiceAdvisoryState(note, legacyFallback);
                     control.checked = Boolean(advisory.sent);
                 });
                 Array.from(row.querySelectorAll('select[onchange*="changeInvoiceAdvisoryAnalysis"]')).forEach(control => {
                     const invoiceId = invoiceIdFromHandler(control.getAttribute('onchange'));
                     const note = serviceNotes.find(item => String(item.id) === String(invoiceId));
                     if (!note) return;
-                    const advisory = root.RadarInvoiceService.getServiceAdvisoryState(note, legacyFallback);
+                    const advisory = getServiceAdvisoryState(note, legacyFallback);
                     control.value = advisory.analysis;
                     setAnalysisControlClass(root, control, advisory.analysis);
                 });

@@ -51,6 +51,7 @@ function createRoot() {
         logs: []
     };
     let seq = 0;
+    const reopenCalls = [];
     const invoiceService = {
         getState: () => state,
         assertEditable: () => 'controlador',
@@ -59,14 +60,16 @@ function createRoot() {
             const notes = current.registeredInvoices.filter(note => (
                 note.escolaId === schoolId && note.compKey === compKey && note.tipo === 'servico'
             ));
-            const aggregate = require('../../src/application/invoice-service.js').aggregateServiceAdvisories(notes);
+            const aggregate = require('../../src/domain/service-advisory.js').deriveServiceAdvisory(notes);
             const verification = current.verifications[schoolId][compKey];
             verification.bonificacao.consAssessoria = aggregate.delivery;
             verification.bonificacao.consEnviada = aggregate.sent;
             verification.analise.consAssessoria = aggregate.analysis;
             return aggregate;
         },
-        reopenConsolidation: () => {},
+        reopenConsolidation: (...args) => {
+            reopenCalls.push(args);
+        },
         async updateServiceAdvisory(input) {
             const note = state.registeredInvoices.find(item => item.id === input.id);
             if (input.analysis) note.analiseConsultaAssessoria = input.analysis;
@@ -131,7 +134,7 @@ function createRoot() {
         rebuildOperationalIndexes() {},
         alert() {}
     };
-    return { root, state, observation, invoiceService, pendencyService };
+    return { root, state, observation, invoiceService, pendencyService, reopenCalls };
 }
 
 test('reconhece pendência de Assessoria somente quando existe identidade da NF', () => {
@@ -191,4 +194,39 @@ test('confirmação atômica altera somente a NF alvo e cria pendência vinculad
     assert.equal(harness.state.pendencies.length, 1);
     assert.equal(harness.state.pendencies[0].registeredInvoiceId, 'NF-A');
     assert.equal(harness.state.verifications['ESC-1']['2026-08_BASIC'].analise.consAssessoria, 'Incorreto');
+});
+
+
+test('abertura atômica consolidada reabre no mesmo efeito e mantém um único log persistível', async () => {
+    const integration = freshIntegration();
+    const harness = createRoot();
+    const verification = harness.state.verifications['ESC-1']['2026-08_BASIC'];
+    verification.resultadoBonif = 'apta';
+    harness.root.getRadarAccessProfile = () => 'assistente';
+    harness.invoiceService.assertEditable = () => 'assistente';
+
+    assert.equal(integration.install(harness.root), true);
+    await harness.root.changeInvoiceAdvisoryAnalysis(
+        'NF-A',
+        'ESC-1',
+        'Incorreto',
+        { value: 'Incorreto' }
+    );
+
+    const result = await harness.pendencyService.open({
+        schoolId: 'ESC-1',
+        competence: '2026-08',
+        programId: 'BASIC',
+        documentKey: 'consAssessoria',
+        item: 'Consulta Assessoria — NF 100',
+        errors: ['Dados divergentes'],
+        observation: 'Corrigir a consulta.'
+    });
+
+    assert.equal(result.value.verification.resultadoBonif, '');
+    assert.equal(verification.resultadoBonif, '');
+    assert.equal(harness.reopenCalls.length, 0);
+    assert.equal(harness.state.logs.length, 1);
+    assert.equal(harness.state.logs[0].action, 'Análise incorreta e pendência aberta');
+    assert.match(harness.state.logs[0].details, /reaberta/i);
 });

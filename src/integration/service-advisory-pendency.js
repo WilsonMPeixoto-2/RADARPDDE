@@ -4,7 +4,10 @@
     const contract = typeof module !== 'undefined' && module.exports
         ? require('../data/repository-contract.js')
         : root.RadarRepositoryContract;
-    const api = factory(contract);
+    const serviceAdvisory = typeof module !== 'undefined' && module.exports
+        ? require('../domain/service-advisory.js')
+        : root.RadarServiceAdvisory;
+    const api = factory(contract, serviceAdvisory);
 
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
     if (root) {
@@ -20,11 +23,17 @@
             root.setTimeout?.(() => root.clearInterval?.(interval), 10000);
         }
     }
-}(typeof window !== 'undefined' ? window : globalThis, function createServiceAdvisoryPendencyApi(contract) {
+}(typeof window !== 'undefined' ? window : globalThis, function createServiceAdvisoryPendencyApi(
+    contract,
+    serviceAdvisory
+) {
     'use strict';
 
-    if (!contract) throw new Error('Contrato de dados obrigatório para integrar Assessoria e pendências.');
+    if (!contract || !serviceAdvisory) {
+        throw new Error('Contrato de dados e domínio de Assessoria são obrigatórios para integrar Assessoria e pendências.');
+    }
     const { RepositoryError, cloneValue } = contract;
+    const { getServiceAdvisoryState } = serviceAdvisory;
     let installed = false;
     let pendingContext = null;
 
@@ -164,13 +173,10 @@
 
                 invoice.analiseConsultaAssessoria = 'Incorreto';
                 invoiceService.syncServiceRequirement(state, invoice.escolaId, invoice.compKey);
-                invoiceService.reopenConsolidation(
-                    invoice.escolaId,
-                    invoice.compKey,
-                    verification,
-                    true,
-                    profile
-                );
+                const reopened = profile === 'assistente' && Boolean(text(verification.resultadoBonif));
+                if (reopened) {
+                    verification.resultadoBonif = '';
+                }
 
                 const opened = pendencyService.domain.createDocumentPendency({
                     id: text(input.id) || pendencyService.createId('pend'),
@@ -185,10 +191,13 @@
                     dataAbertura: text(input.openingDate || input.dataAbertura) || pendencyService.now().slice(0, 10)
                 }, pendencyService.audit('evento-pendencia'));
                 state.pendencies.push(opened);
+                const reopenSuffix = reopened
+                    ? ' A consolidação anterior foi reaberta pela alteração.'
+                    : '';
                 const log = pendencyService.appendSchoolLog(
                     invoice.escolaId,
                     'Análise incorreta e pendência aberta',
-                    `Consulta à Assessoria da NF ${invoice.numero || invoice.id} marcada como “Incorreto” e pendência ${opened.id} aberta atomicamente.`
+                    `Consulta à Assessoria da NF ${invoice.numero || invoice.id} marcada como “Incorreto” e pendência ${opened.id} aberta atomicamente.${reopenSuffix}`
                 );
                 persistence.pendencyId = opened.id;
                 persistence.logId = text(log?.id);
@@ -382,7 +391,7 @@
             const state = invoiceService.getState();
             const invoice = state.registeredInvoices.find(record => String(record.id) === String(invoiceId));
             if (!invoice || invoice.tipo !== 'servico') return false;
-            const previous = root.RadarInvoiceService.getServiceAdvisoryState(invoice).analysis;
+            const previous = getServiceAdvisoryState(invoice).analysis;
             const active = findActiveForInvoice(root, state, invoice);
             if (active) {
                 if (selectElement && typeof selectElement === 'object') selectElement.value = previous;
