@@ -173,13 +173,10 @@
 
                 invoice.analiseConsultaAssessoria = 'Incorreto';
                 invoiceService.syncServiceRequirement(state, invoice.escolaId, invoice.compKey);
-                invoiceService.reopenConsolidation(
-                    invoice.escolaId,
-                    invoice.compKey,
-                    verification,
-                    true,
-                    profile
-                );
+                const reopened = profile === 'assistente' && Boolean(text(verification.resultadoBonif));
+                if (reopened) {
+                    verification.resultadoBonif = '';
+                }
 
                 const opened = pendencyService.domain.createDocumentPendency({
                     id: text(input.id) || pendencyService.createId('pend'),
@@ -194,10 +191,13 @@
                     dataAbertura: text(input.openingDate || input.dataAbertura) || pendencyService.now().slice(0, 10)
                 }, pendencyService.audit('evento-pendencia'));
                 state.pendencies.push(opened);
+                const reopenSuffix = reopened
+                    ? ' A consolidação anterior foi reaberta pela alteração.'
+                    : '';
                 const log = pendencyService.appendSchoolLog(
                     invoice.escolaId,
                     'Análise incorreta e pendência aberta',
-                    `Consulta à Assessoria da NF ${invoice.numero || invoice.id} marcada como “Incorreto” e pendência ${opened.id} aberta atomicamente.`
+                    `Consulta à Assessoria da NF ${invoice.numero || invoice.id} marcada como “Incorreto” e pendência ${opened.id} aberta atomicamente.${reopenSuffix}`
                 );
                 persistence.pendencyId = opened.id;
                 persistence.logId = text(log?.id);
