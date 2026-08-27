@@ -253,13 +253,17 @@
                         { programId, documentKey }
                     );
                 }
-                const value = documentKey === 'consEnviada'
-                    ? input.value === true
-                    : text(input.value);
+                if (documentKey === 'consEnviada') {
+                    fail(
+                        'DOCUMENT_NOT_APPLICABLE',
+                        'O envio da Consulta à Assessoria é individual por Nota Fiscal de serviço e não pode ser alterado como bonificação mensal.',
+                        'setBonification',
+                        { programId, documentKey }
+                    );
+                }
+                const value = text(input.value);
                 const currentVerification = this.getVerification(schoolId, compKey);
-                const currentValue = documentKey === 'consEnviada'
-                    ? currentVerification?.bonificacao?.[documentKey] === true
-                    : text(currentVerification?.bonificacao?.[documentKey]);
+                const currentValue = text(currentVerification?.bonificacao?.[documentKey]);
                 const currentState = this.getState();
                 const currentContextInvoices = documentKey === 'notaFiscal'
                     ? list(currentState.registeredInvoices).filter(note => (
