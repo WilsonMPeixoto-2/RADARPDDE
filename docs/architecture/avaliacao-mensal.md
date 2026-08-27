@@ -70,10 +70,6 @@ Documentos avaliados em todos os programas:
 - Declaração BB Ágil;
 - Encaminhamento para Inventariação.
 
-Somente em **Educação Conectada** (`programId = CONECTADA`) existe ainda:
-
-- Boleto de pagamento de Internet.
-
 Valores aceitos:
 
 - `Sim`;
@@ -84,16 +80,20 @@ Extrato da Conta Corrente, Extrato de Investimento e Declaração BB Ágil não 
 
 ### Boleto de pagamento de Internet
 
-`boletoInternet` é uma categoria documental autônoma e **exclusiva de Educação Conectada**. Não integra a avaliação dos demais programas. Embora registre pagamento de serviço, ela é uma exceção explícita à regra de consulta contábil:
+Boleto de pagamento de Internet **não é categoria documental autônoma**.
 
-- não cria Nota Fiscal;
-- não cria nem encaminha bem para inventariação;
-- não ativa `Consulta Assessoria`;
-- aceita `Sim`, `Não` e `Não se aplica` na bonificação;
-- usa os mesmos estados canônicos da análise técnica;
-- `Incorreto` segue a abertura atômica da Pendência documental.
+O contrato vigente após os PRs #208 e #209 é:
 
-A exceção vale somente para esta categoria e somente dentro de Educação Conectada. A regra de Assessoria vinculada às Notas Fiscais de serviço permanece inalterada.
+- `boleto_internet` é um **tipo de gasto** dentro do item documental `notaFiscal`;
+- a opção aparece somente em competências de Educação Conectada;
+- a escola precisa possuir vínculo ativo com Educação Conectada, inclusive na validação server-side;
+- bonificação, análise técnica e Pendência são as próprias de **Notas Fiscais**;
+- não existe bonificação, análise técnica ou Pendência independente `boletoInternet`;
+- `boleto_internet` não cria nem encaminha bem para inventariação;
+- `boleto_internet` não participa de Consulta Assessoria;
+- somente despesas de tipo `servico` participam da matriz de Assessoria.
+
+Chaves históricas `boletoInternet` podem permanecer armazenadas em verificações antigas para auditabilidade, mas são ignoradas pela matriz documental, pela consolidação, pelo status técnico, pela retificação e pela criação de novas Pendências.
 
 ### Resultado
 
@@ -103,7 +103,7 @@ A exceção vale somente para esta categoria e somente dentro de Educação Cone
 
 A regularização posterior não reescreve automaticamente a bonificação histórica.
 
-Registros de **Educação Conectada** já consolidados antes da criação de `boletoInternet` permanecem compatíveis sem backfill: quando a nova chave não existe e há `resultadoBonif` consolidado, a projeção trata exclusivamente essa ausência histórica como `Não se aplica` e análise `Correto`, sem persistir valores inventados. A grade apresenta esses valores efetivos, mas não materializa as chaves no registro. Registros não consolidados de Educação Conectada precisam ter a nova categoria explicitamente avaliada. Os demais programas continuam com o contrato documental anterior e não recebem a chave.
+Registros antigos que contenham a chave `boletoInternet` não exigem backfill nem limpeza destrutiva. A chave é preservada como histórico, mas não participa do cálculo atual. Educação Conectada usa a mesma matriz de seis documentos dos demais programas; a exclusividade do boleto é aplicada no **tipo de gasto**, não na matriz documental.
 
 ## 5. Análise técnica
 
@@ -183,7 +183,7 @@ estado de origem
 → manifesto SHA-256
 ```
 
-Divergência entre `resultadoBonif` armazenado e `bonusResult` canônico bloqueia a certificação. Para consolidações anteriores à introdução de `boletoInternet`, a mesma compatibilidade histórica é aplicada antes da comparação, sem alterar as 27 colunas do Excel SME.
+Divergência entre `resultadoBonif` armazenado e `bonusResult` canônico bloqueia a certificação. Chaves históricas `boletoInternet` são ignoradas pela avaliação canônica e não alteram as 27 colunas do Excel SME.
 
 Contrato detalhado: [`excel-integral-certification.md`](excel-integral-certification.md).
 
@@ -213,10 +213,12 @@ A homologação manual no Microsoft Excel desktop permanece gate separado da cer
 
 - competência posterior a maio;
 - lançamento no Prontuário;
-- consolidação do PDDE Básico sem exibição de `boletoInternet`;
-- exibição e avaliação de `boletoInternet` somente em Educação Conectada;
-- rejeição de escrita de `boletoInternet` fora de Educação Conectada, inclusive por retificação direta;
-- projeção visual das consolidações legadas sem materializar a nova chave;
+- ausência de linha, subitem, bonificação ou análise independente `boletoInternet`;
+- opção `boleto_internet` visível em `Tipo de Gasto` somente em Educação Conectada;
+- rejeição de `boleto_internet` fora de Educação Conectada;
+- rejeição de escrita documental independente `boletoInternet`, inclusive por retificação e Pendência;
+- gasto `boleto_internet` usando avaliação e Pendência de `notaFiscal`;
+- chaves históricas `boletoInternet` preservadas, mas ignoradas pela consolidação;
 - correspondência entre tela, serviço, estado e armazenamento;
 - recarga preservando competência e resultado;
 - certificação Excel sem divergências;

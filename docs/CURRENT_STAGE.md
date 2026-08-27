@@ -4,7 +4,7 @@
 
 **Classe documental:** Canônico — estado corrente e retomada futura
 
-**Situação:** PR #206 / PR2 integrado à `main`, publicado e validado em Production; PR2 encerrado; PR3.1 é a próxima frente obrigatória
+**Situação:** PR #209 corretivo integrado à `main` e validado em Production; boleto de Internet existe somente como tipo de gasto de Notas Fiscais; PR3.1 continua sendo a próxima frente obrigatória
 
 ## 1. Porta de entrada atual
 
@@ -51,7 +51,7 @@ Observação:
 commits posteriores exclusivamente documentais podem ser descendentes desse SHA e gerar novos deployments sem alterar o runtime funcional. Revalidar o HEAD corrente antes de iniciar PR3.1.
 ```
 
-O PR #199 foi documental. O PR #200 corrigiu o incidente `Incorreto + Pendência`. O PR #201 versionou o plano mestre. O PR #203 adicionou `boletoInternet` exclusivamente à Educação Conectada. O PR #202 concluiu PR1 com guard canônico de submit e refresh mínimo no núcleo. O PR #206 concluiu PR2 com matriz canônica de Consulta Assessoria, planner de efeitos e no-op real. Não reimplementar essas entregas.
+O PR #199 foi documental. O PR #200 corrigiu o incidente `Incorreto + Pendência`. O PR #201 versionou o plano mestre. O PR #203 introduziu o requisito inicial de boleto para Educação Conectada. O PR #208 moveu o boleto para `Tipo de Gasto`, e o PR #209 corrigiu definitivamente a duplicidade: `boleto_internet` existe somente dentro de Notas Fiscais, sem categoria documental autônoma. O PR #202 concluiu PR1 com guard canônico de submit e refresh mínimo no núcleo. O PR #206 concluiu PR2 com matriz canônica de Consulta Assessoria, planner de efeitos e no-op real. Não reimplementar essas entregas.
 
 ## 4. Estado das correções
 
@@ -60,30 +60,30 @@ O PR #199 foi documental. O PR #200 corrigiu o incidente `Incorreto + Pendência
 - PR #199: plano inicial versionado; nenhuma correção funcional;
 - PR #200: operação `Incorreto + Pendência` centralizada e protegida contra falha posterior de extensão opcional;
 - PR #201: plano mestre e rota de continuidade versionados;
-- PR #203: `boletoInternet` exclusivo de Educação Conectada integrado e publicado, sem migration ou backfill;
+- PR #203: requisito inicial de boleto para Educação Conectada integrado e publicado;
 - PR #202: PR1 integrado e publicado; guard canônico de Nota Fiscal/Despesa e refresh mínimo no núcleo;
 - PR #206: PR2 integrado e publicado; regra canônica de Consulta Assessoria, planner de efeitos, no-op real e fechamento das rotas agregadas;
+- PR #208: `boleto_internet` introduzido como tipo de gasto de Notas Fiscais, exclusivo de Educação Conectada, com proteção server-side;
+- PR #209: duplicidade documental removida; `boletoInternet` legado deixou de participar de avaliação, consolidação, retificação e novas Pendências;
 - auditorias independentes: consolidadas no plano de 26/08;
 - cinco revisões finais: incorporadas ao plano canônico.
 
-### Hotfix prioritária concluída — PR #203
+### Boleto de Internet — contrato vigente após PR #209
 
-- PR #203 mergeado em `main` no commit `f90cdf83897b4c954b7b6bf74b497798006e11f9`;
-- primeiro deployment funcional em Vercel Production `dpl_EkZDvUjMjbcopE7r9pyxbtnXnCHa`, `READY`, no mesmo SHA do merge funcional `f90cdf83897b4c954b7b6bf74b497798006e11f9`;
-- categoria `boletoInternet` exclusiva de Educação Conectada;
-- seis documentos anteriores preservados para os demais programas;
-- escrita rejeitada fora de `CONECTADA`, inclusive bonificação, análise, retificação e abertura de Pendência;
-- `Incorreto` usa a operação documental atômica vigente;
-- nenhuma Nota Fiscal, bem ou Consulta Assessoria é criada pelo boleto;
-- 50 consolidações legadas conectadas sem a chave permanecem válidas por projeção `Não se aplica / Correto`, sem backfill nem escrita sintética;
-- 5 registros conectados ainda não consolidados permanecem sem a chave e deverão avaliar o boleto explicitamente;
-- Excel SME permanece com 27 colunas;
-- Supabase Production permaneceu `ACTIVE_HEALTHY`, sem migration nova e com contagens inalteradas: 55 verificações CONECTADA, 50 consolidadas sem boleto, 5 não consolidadas sem boleto e 0 com boleto materializado;
-- artefato servido em Production respondeu HTTP 200, declarou `deploymentTarget:"production"` e foi conferido com a regra `programIds: ['CONECTADA']` e a projeção legada;
-- Playwright remoto e demais gates funcionais do head final foram aprovados;
-- Lighthouse mobile permaneceu vermelho por LCP limítrofe (~15,05–15,21 s para teto de 15 s), formalmente classificado e aceito como exceção não bloqueante desta hotfix; desktop aprovado.
+- PR #203 introduziu originalmente `boletoInternet` como categoria documental de Educação Conectada;
+- PR #208 introduziu o tipo de gasto relacional `boleto_internet` em Notas Fiscais e a proteção de banco que o restringe a escolas com Educação Conectada ativa;
+- PR #209 removeu a representação documental duplicada;
+- contrato atual: **Boleto de pagamento de Internet existe somente como opção de `Tipo de Gasto` dentro de Notas Fiscais**;
+- não existe linha, subitem, bonificação, análise técnica ou Pendência independente `boletoInternet`;
+- bonificação, análise técnica e Pendência são as próprias de `notaFiscal`;
+- `boleto_internet` não cria bem patrimonial e não participa de Consulta Assessoria;
+- somente despesas de tipo `servico` participam da matriz de Assessoria;
+- chaves históricas `boletoInternet` já gravadas permanecem preservadas no JSON para auditabilidade, mas são ignoradas pelo fluxo ativo e não bloqueiam consolidação;
+- nenhuma Pendência histórica `boletoInternet` está ativa em Production no fechamento do PR #209;
+- Production funcional do PR #209: merge `4ce328c507ecbf3dea09446ca377d1f4f3535fec`, Vercel `dpl_22c8wzDnR1dkzGfycfWJxfQHutXw`, `READY`;
+- inspeção autenticada em Production confirmou um gasto real `boleto_internet` exibido apenas dentro de Notas Fiscais, sem bem e sem campos de Assessoria;
+- Supabase Production permanece `ACTIVE_HEALTHY` com 42 migrations; PR #209 não adicionou migration.
 
-Não houve alteração de limiar, rerun oportunístico até verde, otimização global de performance, migration ou backfill.
 
 ### Plano mestre em execução — PR2 concluído
 
