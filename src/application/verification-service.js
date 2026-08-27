@@ -55,6 +55,10 @@
         encampInventario: 'Encaminhado para Inventariação'
     });
     const EDITABLE_PROFILES = new Set(['controlador', 'assistente']);
+    const SERVICE_ADVISORY_DERIVED_BONIFICATION_KEYS = new Set([
+        'consAssessoria',
+        'consEnviada'
+    ]);
 
     function text(value) {
         return value == null ? '' : String(value).trim();
@@ -253,10 +257,10 @@
                         { programId, documentKey }
                     );
                 }
-                if (documentKey === 'consEnviada') {
+                if (SERVICE_ADVISORY_DERIVED_BONIFICATION_KEYS.has(documentKey)) {
                     fail(
                         'DOCUMENT_NOT_APPLICABLE',
-                        'O envio da Consulta à Assessoria é individual por Nota Fiscal de serviço e não pode ser alterado como bonificação mensal.',
+                        'Consulta à Assessoria é derivada das Notas Fiscais de serviço e não pode ser alterada como bonificação mensal.',
                         'setBonification',
                         { programId, documentKey }
                     );
@@ -378,6 +382,14 @@
                 fail(
                     'DOCUMENT_NOT_APPLICABLE',
                     'Boleto de pagamento de Internet é aplicável somente ao programa Educação Conectada.',
+                    'setTechnicalAnalysis',
+                    { programId: technicalProgramId, documentKey: technicalDocumentKey }
+                );
+            }
+            if (technicalDocumentKey === 'consAssessoria') {
+                fail(
+                    'DOCUMENT_NOT_APPLICABLE',
+                    'A análise da Consulta à Assessoria é individual por Nota Fiscal de serviço e não pode ser alterada como análise mensal agregada.',
                     'setTechnicalAnalysis',
                     { programId: technicalProgramId, documentKey: technicalDocumentKey }
                 );
@@ -550,6 +562,19 @@
             this.assertCompetenceEditable(input.compKey, 'retify');
             const retificationContext = splitCompKey(input.compKey, input.programId);
             const requestedBonification = input.bonification || input.bonificacao || {};
+            const derivedAdvisoryKey = [...SERVICE_ADVISORY_DERIVED_BONIFICATION_KEYS]
+                .find(key => Object.prototype.hasOwnProperty.call(requestedBonification, key));
+            if (derivedAdvisoryKey) {
+                fail(
+                    'DOCUMENT_NOT_APPLICABLE',
+                    'Consulta à Assessoria é derivada das Notas Fiscais de serviço e não pode ser retificada como bonificação mensal.',
+                    'retify',
+                    {
+                        programId: retificationContext.programId,
+                        documentKey: derivedAdvisoryKey
+                    }
+                );
+            }
             if (retificationContext.programId !== 'CONECTADA'
                 && Object.prototype.hasOwnProperty.call(requestedBonification, 'boletoInternet')) {
                 fail(
