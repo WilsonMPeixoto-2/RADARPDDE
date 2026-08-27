@@ -36,14 +36,17 @@ Nenhum documento antigo prevalece sobre código e ambientes atuais. Valores vol�
 ## 3. Baseline de origem do plano
 
 ```text
-GitHub main após encerramento da hotfix:
+Baseline funcional publicado pelo PR #203:
 f90cdf83897b4c954b7b6bf74b497798006e11f9
 
 Origem:
 merge do PR #203
 
-Vercel Production após encerramento da hotfix:
+Primeiro deployment Production desse baseline funcional:
 dpl_EkZDvUjMjbcopE7r9pyxbtnXnCHa / f90cdf83897b4c954b7b6bf74b497798006e11f9
+
+Observação:
+commits posteriores exclusivamente documentais podem ser descendentes desse SHA e gerar novos deployments sem alterar o runtime funcional. Revalidar o HEAD corrente antes de retomar código.
 ```
 
 O PR #199 foi documental. O PR #200 corrigiu o incidente `Incorreto + Pendência`. O PR #201 versionou o plano mestre. O PR #203 adicionou a categoria `boletoInternet` exclusivamente à Educação Conectada e é o baseline funcional atual de `main` e Production. Não reimplementar essas entregas.
@@ -64,7 +67,7 @@ O PR #202 iniciou G0/PR1, mas permanece fora de `main` e foi pausado para a hotf
 ### Hotfix prioritária concluída — PR #203
 
 - PR #203 mergeado em `main` no commit `f90cdf83897b4c954b7b6bf74b497798006e11f9`;
-- Vercel Production `dpl_EkZDvUjMjbcopE7r9pyxbtnXnCHa`, `READY`, no mesmo SHA da `main`;
+- primeiro deployment funcional em Vercel Production `dpl_EkZDvUjMjbcopE7r9pyxbtnXnCHa`, `READY`, no mesmo SHA do merge funcional `f90cdf83897b4c954b7b6bf74b497798006e11f9`;
 - categoria `boletoInternet` exclusiva de Educação Conectada;
 - seis documentos anteriores preservados para os demais programas;
 - escrita rejeitada fora de `CONECTADA`, inclusive bonificação, análise, retificação e abertura de Pendência;
@@ -186,7 +189,7 @@ Planos são hipóteses técnicas, não autoridade superior ao código e aos ambi
 
 Retomar o plano mestre pelo PR #202/PR1:
 
-1. reconciliar a branch do PR #202 com a `main` atual `f90cdf83897b4c954b7b6bf74b497798006e11f9`, preservando integralmente o hotfix do PR #203;
+1. revalidar o HEAD corrente da `main` e reconciliar a branch do PR #202 com ele, exigindo que contenha o baseline funcional `f90cdf83897b4c954b7b6bf74b497798006e11f9` e preservando integralmente o hotfix do PR #203;
 2. corrigir o defeito já comprovado no guard de submit público de Nota Fiscal, hoje contornado por chamada direta a `window.salvarDadosNota()`;
 3. manter a política correta de refresh mínimo já implementada no `InvoiceService`;
 4. repetir os testes focados e os gates proporcionais no novo head efetivo;
