@@ -20,13 +20,13 @@ O parêntese não altera a ordem do plano mestre. Depois da publicação e do sm
 
 | Superfície | Estado confirmado no encerramento |
 | --- | --- |
-| GitHub `main` | `f90cdf83897b4c954b7b6bf74b497798006e11f9` — merge do PR #203 |
-| Vercel Production | `dpl_EkZDvUjMjbcopE7r9pyxbtnXnCHa`, `READY`, no mesmo SHA da `main` |
+| Baseline funcional do PR #203 | `f90cdf83897b4c954b7b6bf74b497798006e11f9` — merge funcional |
+| Primeira publicação desse baseline | `dpl_EkZDvUjMjbcopE7r9pyxbtnXnCHa`, `READY`, SHA `f90cdf83897b4c954b7b6bf74b497798006e11f9` |
 | Head funcional auditado do PR #203 | `12031487edf26e5c2b6d2ae9dd09244d65911ed9` |
 | Supabase Production | `ACTIVE_HEALTHY`; nenhuma migration ou backfill da hotfix |
 | Dados CONECTADA após publicação | 55 verificações; 50 legadas consolidadas sem boleto; 5 não consolidadas sem boleto; 0 com `boletoInternet` materializado |
 
-O merge commit contém o conteúdo funcional do head auditado. A Vercel publicou automaticamente a `main` resultante e o artefato Production foi conferido diretamente.
+O merge commit contém o conteúdo funcional do head auditado. A Vercel publicou automaticamente esse baseline e o artefato Production foi conferido diretamente. Commits posteriores exclusivamente documentais podem gerar novos SHAs/deployments sem alterar esse runtime; o HEAD corrente deve ser revalidado na retomada do PR1.
 
 ## 3. Contrato funcional fechado
 
@@ -135,9 +135,10 @@ O gate foi encerrado com:
 
 ### Publicação
 
-- Production: `dpl_EkZDvUjMjbcopE7r9pyxbtnXnCHa`;
+- primeira publicação funcional: `dpl_EkZDvUjMjbcopE7r9pyxbtnXnCHa`;
 - estado: `READY`;
-- SHA: `f90cdf83897b4c954b7b6bf74b497798006e11f9`;
+- baseline funcional: `f90cdf83897b4c954b7b6bf74b497798006e11f9`;
+- commits/deployments posteriores exclusivamente documentais não alteram o contrato funcional registrado aqui;
 - região Vercel: `gru1`;
 - Supabase: `ACTIVE_HEALTHY`.
 
