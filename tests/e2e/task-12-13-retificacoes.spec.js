@@ -14,6 +14,7 @@ async function seedConsolidatedProgram(page, profile = 'assistente') {
         extINV: 'Não',
         notaFiscal: 'Não se aplica',
         consAssessoria: 'Não se aplica',
+        consEnviada: false,
         declBBAgil: 'Sim',
         encampInventario: 'Não se aplica'
       },
@@ -74,6 +75,8 @@ test.describe('Tasks 12–13 — retificação administrativa auditável', () =>
     const dialog = page.getByRole('dialog', { name: 'Retificar consolidação' });
     await expect(dialog).toContainText(seeded.schoolName);
     await expect(dialog).toContainText('Resultado atual');
+    await expect(dialog.getByLabel('Consulta Assessoria')).toHaveCount(0);
+    await expect(dialog.getByLabel('consEnviada')).toHaveCount(0);
     await dialog.getByLabel('Extrato Investimento').selectOption('Sim');
     await dialog.getByLabel('Justificativa da retificação').fill(
       'Correção do lançamento após conferência administrativa do documento apresentado.'
