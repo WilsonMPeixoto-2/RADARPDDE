@@ -35,6 +35,7 @@ function createHarness(overrides = {}) {
     };
     Object.assign(state, overrides.state || {});
     const calls = [];
+    const reopenCalls = [];
     let sequence = 0;
     const dataService = {
         async execute(command) {
@@ -53,13 +54,14 @@ function createHarness(overrides = {}) {
         },
         createId: prefix => `${prefix}-${++sequence}`,
         now: () => '2026-07-14T12:00:00.000Z',
-        reopenConsolidation: (_schoolId, _compKey, verification, changed, profile) => {
+        reopenConsolidation: (schoolId, compKey, verification, changed, profile) => {
+            reopenCalls.push({ schoolId, compKey, changed, profile });
             if (changed && profile === 'assistente' && verification.resultadoBonif) {
                 verification.resultadoBonif = '';
             }
         }
     });
-    return { state, calls, service };
+    return { state, calls, reopenCalls, service };
 }
 
 test('cadastra gasto de consumo sem criar bem e registra uma única auditoria', async () => {
@@ -88,6 +90,43 @@ test('cadastra gasto de consumo sem criar bem e registra uma única auditoria', 
         'verifications',
         'administrativeLogs'
     ]);
+});
+
+test('edição semanticamente idêntica é no-op sem DataService, log ou reabertura', async () => {
+    const harness = createHarness();
+    harness.state.registeredInvoices.push({
+        id: 'nota-1',
+        escolaId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        competencia: '2026-05',
+        programaId: 'BASIC',
+        desc: 'Material pedagógico',
+        descricao: 'Material pedagógico',
+        tipo: 'consumo',
+        numero: 'NF-001',
+        valor: 150.5,
+        bemId: null,
+        dataRegistro: '2026-07-14T12:00:00.000Z',
+        rowVersion: 4
+    });
+
+    const result = await harness.service.save({
+        id: 'nota-1',
+        schoolId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        description: 'Material pedagógico',
+        expenseType: 'consumo',
+        invoiceNumber: 'NF-001',
+        amount: 150.5,
+        profile: 'controlador'
+    });
+
+    assert.equal(result.value.unchanged, true);
+    assert.equal(result.value.invoice.id, 'nota-1');
+    assert.deepEqual(result.value.warnings, []);
+    assert.equal(harness.calls.length, 0);
+    assert.equal(harness.state.logs.length, 0);
+    assert.equal(harness.reopenCalls.length, 0);
 });
 
 test('cadastra nota permanente, cria bem vinculado e preserva aviso de processo ausente', async () => {
