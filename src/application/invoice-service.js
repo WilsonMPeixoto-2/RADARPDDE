@@ -692,12 +692,7 @@
     return Object.freeze({
         EXPENSE_TYPES: Object.freeze([...EXPENSE_TYPES]),
         InvoiceService,
-        SERVICE_ADVISORY_ANALYSES,
         UNIDENTIFIED_EXPENSE_TYPE,
-        aggregateServiceAdvisories: deriveServiceAdvisory,
-        deriveServiceAdvisory,
-        getServiceAdvisoryState,
-        normalizeServiceAdvisoryAnalysis,
         isIdentifiedInvoice,
         isUnidentifiedExpense
     });
