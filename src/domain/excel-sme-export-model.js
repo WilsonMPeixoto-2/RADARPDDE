@@ -158,17 +158,22 @@
         return value !== undefined && value !== null && value !== '' && value !== false;
     }
 
-    function hasStartedVerification(verification) {
+    function hasStartedVerification(verification, programId = '') {
         if (!verification || typeof verification !== 'object') return false;
         const bonification = verification.bonificacao || verification.bonification || {};
-        return DOCUMENT_KEYS.some(key => hasStartedValue(bonification[key]));
+        const documentKeys = typeof flowApi.getDocumentKeysForProgram === 'function'
+            ? flowApi.getDocumentKeysForProgram(programId)
+            : DOCUMENT_KEYS;
+        return documentKeys.some(key => hasStartedValue(bonification[key]));
     }
 
-    function evaluateVerification(verification) {
+    function evaluateVerification(verification, programId = '') {
         const candidate = verification && typeof verification === 'object' ? verification : {};
         return flowApi.evaluateMonthlyEvaluation({
             bonificacao: candidate.bonificacao || candidate.bonification || {},
             analise: candidate.analise || candidate.analysis || {},
+            resultadoBonif: candidate.resultadoBonif || candidate.bonus_result || '',
+            programId,
             pendencias: []
         });
     }
@@ -281,8 +286,8 @@
             return Object.freeze({
                 programId,
                 verification,
-                started: hasStartedVerification(verification),
-                evaluation: evaluateVerification(verification)
+                started: hasStartedVerification(verification, programId),
+                evaluation: evaluateVerification(verification, programId)
             });
         });
     }

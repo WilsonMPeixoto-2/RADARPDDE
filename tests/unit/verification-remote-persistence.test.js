@@ -188,6 +188,54 @@ function createAtomicHarness(configureState) {
     return { state, service, rpcCalls, getDefaultPersistCalls: () => defaultPersistCalls };
 }
 
+test('Boleto de Internet de Educação Conectada percorre a RPC atômica sem efeitos financeiros', async () => {
+    const harness = createAtomicHarness(state => {
+        state.programs = [{ id: 'CONECTADA', name: 'Educação Conectada', active: true }];
+        state.schools[0].programasIds = ['CONECTADA'];
+        state.verifications['04.10.001'] = {
+            '2026-05_CONECTADA': {
+                bonificacao: {
+                    extCC: 'Sim',
+                    extINV: 'Sim',
+                    notaFiscal: 'Não se aplica',
+                    boletoInternet: '',
+                    consAssessoria: 'Não se aplica',
+                    declBBAgil: 'Sim',
+                    encampInventario: 'Não se aplica'
+                },
+                analise: {
+                    boletoInternet: 'Não analisado'
+                },
+                resultadoBonif: '',
+                rowVersion: 4
+            }
+        };
+    });
+
+    await harness.service.setBonification({
+        profile: 'controlador',
+        schoolId: '04.10.001',
+        compKey: '2026-05_CONECTADA',
+        documentKey: 'boletoInternet',
+        value: 'Sim'
+    });
+    await harness.service.setTechnicalAnalysis({
+        profile: 'controlador',
+        schoolId: '04.10.001',
+        compKey: '2026-05_CONECTADA',
+        documentKey: 'boletoInternet',
+        value: 'Correto'
+    });
+
+    assert.equal(harness.rpcCalls.length, 2);
+    assert.equal(harness.rpcCalls[0].verification.program_id, 'CONECTADA');
+    assert.equal(harness.rpcCalls[0].verification.bonification.boletoInternet, 'Sim');
+    assert.equal(harness.rpcCalls[1].verification.analysis.boletoInternet, 'Correto');
+    assert.equal(harness.state.registeredInvoices.length, 0);
+    assert.equal(harness.state.assets.length, 0);
+    assert.equal(harness.getDefaultPersistCalls(), 0);
+});
+
 test('análise técnica usa a mesma RPC atômica com versão e log', async () => {
     const harness = createAtomicHarness(state => {
         state.verifications['04.10.001']['2026-05_BASIC'].bonificacao.extCC = 'Sim';

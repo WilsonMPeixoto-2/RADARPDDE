@@ -1,6 +1,6 @@
 # Matriz de validade documental
 
-**Atualizado em:** 26 de agosto de 2026
+**Atualizado em:** 27 de agosto de 2026
 **Classe documental:** Canônico
 
 ## 1. Finalidade
@@ -9,7 +9,7 @@ Este documento define quais arquivos podem orientar o estado presente e quais ex
 
 O estado mutável do projeto fica em [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md). A estratégia vigente de validação fica em [`TEST_GOVERNANCE.md`](TEST_GOVERNANCE.md).
 
-O checkpoint corrente de continuidade fica em [`../handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](../handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md) e é uma exceção explícita à classificação histórica normalmente aplicada a handoffs.
+O checkpoint corrente da hotfix fica em [`../handoff/2026-08-27-hotfix-boleto-internet.md`](../handoff/2026-08-27-hotfix-boleto-internet.md). O checkpoint do plano mestre continua em [`../handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](../handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md). Ambos são exceções explícitas à classificação histórica normalmente aplicada a handoffs.
 
 ## 2. Classes
 
@@ -47,7 +47,8 @@ Um teste histórico não prevalece sobre regra e código posteriores. PR aberto,
 | `AGENTS.md` | regras de trabalho e proteção do projeto |
 | `README.md` | entrada do repositório |
 | `docs/CURRENT_STAGE.md` | estado corrente, prioridades e gatilhos de nova validação |
-| `docs/handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md` | checkpoint canônico curto e porta de retomada pós-PR #200 |
+| `docs/handoff/2026-08-27-hotfix-boleto-internet.md` | checkpoint corrente da hotfix prioritária e gate de retorno ao PR1 |
+| `docs/handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md` | checkpoint canônico curto do plano mestre pós-PR #200 |
 | `docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md` | plano mestre operacional aprovado, com decisões, sequência, gates e reversão |
 | `docs/reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx` | versão integral aprovada e versionada do plano |
 | `docs/reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.sha256` | integridade verificável do Word canônico |
@@ -169,9 +170,9 @@ As auditorias dos incidentes de Gestão de Equipe permanecem válidas como hist�
 
 Arquivos de `docs/superpowers/plans/`, `docs/superpowers/specs/`, `docs/handoff/` e `docs/reports/` são normalmente **Histórico executado**, **Evidência** ou **Trabalho em andamento** conforme sua branch/PR.
 
-**Exceção expressa atual:** `docs/handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md` é **Canônico** e serve como porta de entrada para a próxima execução.
+**Exceções expressas atuais:** `docs/handoff/2026-08-27-hotfix-boleto-internet.md` é **Trabalho em andamento canônico para o PR #203**; `docs/handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md` permanece **Canônico para a retomada do plano** depois da hotfix.
 
-O plano `docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md` é **Canônico — aprovado, ainda não executado**. Seus checkboxes não comprovam implementação. O Word correspondente é **Referência canônica versionada**; a versão Markdown prevalece para busca, diff e execução.
+O plano `docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md` é **Canônico — aprovado, com G0/PR1 iniciados e temporariamente pausados pela hotfix**. Seus checkboxes não comprovam implementação. O Word correspondente é **Referência canônica versionada**; a versão Markdown prevalece para busca, diff e execução.
 
 O handoff, o plano e o Word de 24/08 são **Superados como orientação operacional** e permanecem **Evidência/Histórico** do primeiro diagnóstico anterior ao PR #200. Não apagar nem reescrever esses arquivos.
 

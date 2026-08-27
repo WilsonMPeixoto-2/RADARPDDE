@@ -37,6 +37,7 @@
         extCC: 'Extrato Conta Corrente',
         extINV: 'Extrato Investimento',
         notaFiscal: 'Notas Fiscais',
+        boletoInternet: 'Boleto de pagamento de Internet',
         consAssessoria: 'Consulta Assessoria',
         declBBAgil: 'Declaração BB Ágil',
         encampInventario: 'Encaminhado para Inventariação'
@@ -175,6 +176,8 @@
             return this.flow.evaluateMonthlyEvaluation({
                 bonification: verification?.bonificacao || verification?.bonification || {},
                 analysis: verification?.analise || verification?.analysis || {},
+                bonusResult: verification?.resultadoBonif || verification?.bonus_result || '',
+                programId,
                 pendencies
             });
         }
@@ -229,6 +232,15 @@
                 const schoolId = text(input.schoolId);
                 const compKey = text(input.compKey);
                 const documentKey = text(input.documentKey);
+                const { programId } = splitCompKey(compKey);
+                if (documentKey === 'boletoInternet' && programId !== 'CONECTADA') {
+                    fail(
+                        'DOCUMENT_NOT_APPLICABLE',
+                        'Boleto de pagamento de Internet é aplicável somente ao programa Educação Conectada.',
+                        'setBonification',
+                        { programId, documentKey }
+                    );
+                }
                 const value = documentKey === 'consEnviada'
                     ? input.value === true
                     : text(input.value);
@@ -329,6 +341,16 @@
         async setTechnicalAnalysis(input = {}) {
             this.assertEditable(input.profile, 'setTechnicalAnalysis');
             this.assertCompetenceEditable(input.compKey, 'setTechnicalAnalysis');
+            const technicalDocumentKey = text(input.documentKey);
+            const { programId: technicalProgramId } = splitCompKey(input.compKey);
+            if (technicalDocumentKey === 'boletoInternet' && technicalProgramId !== 'CONECTADA') {
+                fail(
+                    'DOCUMENT_NOT_APPLICABLE',
+                    'Boleto de pagamento de Internet é aplicável somente ao programa Educação Conectada.',
+                    'setTechnicalAnalysis',
+                    { programId: technicalProgramId, documentKey: technicalDocumentKey }
+                );
+            }
             const requestedValue = text(input.value);
             if (requestedValue === 'Incorreto') {
                 fail(
@@ -495,6 +517,20 @@
                 fail('FORBIDDEN', 'Retificação permitida somente ao perfil Assistente nesta fase.', 'retify');
             }
             this.assertCompetenceEditable(input.compKey, 'retify');
+            const retificationContext = splitCompKey(input.compKey, input.programId);
+            const requestedBonification = input.bonification || input.bonificacao || {};
+            if (retificationContext.programId !== 'CONECTADA'
+                && Object.prototype.hasOwnProperty.call(requestedBonification, 'boletoInternet')) {
+                fail(
+                    'DOCUMENT_NOT_APPLICABLE',
+                    'Boleto de pagamento de Internet é aplicável somente ao programa Educação Conectada.',
+                    'retify',
+                    {
+                        programId: retificationContext.programId,
+                        documentKey: 'boletoInternet'
+                    }
+                );
+            }
             return this.runSerializedVerificationWrite(input, async () => {
                 const persistence = {};
                 return this.dataService.execute({
@@ -505,7 +541,7 @@
                         const state = this.getState();
                         const schoolId = text(input.schoolId);
                         const compKey = text(input.compKey);
-                        const { competence, programId } = splitCompKey(compKey, input.programId);
+                        const { competence, programId } = retificationContext;
                         const verification = this.getVerification(schoolId, compKey);
                         persistence.schoolId = schoolId;
                         persistence.compKey = compKey;
@@ -514,7 +550,7 @@
                         const user = this.getCurrentUser() || {};
                         try {
                             const result = this.retifications.applyRetification(verification, {
-                                bonificacao: cloneValue(input.bonification || input.bonificacao || {}),
+                                bonificacao: cloneValue(requestedBonification),
                                 resultadoBonif: Object.prototype.hasOwnProperty.call(input, 'bonusResult')
                                     ? input.bonusResult
                                     : input.resultadoBonif,

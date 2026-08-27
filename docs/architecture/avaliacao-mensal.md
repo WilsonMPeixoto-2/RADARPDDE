@@ -1,7 +1,7 @@
 # Avaliação mensal — contrato canônico
 
-**Estado:** vigente, implementado e publicado  
-**Atualizado em:** 29 de julho de 2026
+**Estado:** contrato vigente; implementação do boleto candidata no PR #203, ainda não publicada
+**Atualizado em:** 27 de agosto de 2026
 
 ## 1. Finalidade
 
@@ -35,6 +35,8 @@ No Supabase, competência e programa permanecem campos relacionais distintos.
 evaluateMonthlyEvaluation({
   bonification,
   analysis,
+  programId,
+  bonusResult, // opcional; usado apenas para compatibilidade de consolidações anteriores
   pendencies
 });
 ```
@@ -59,7 +61,7 @@ A projeção é pura e não persiste dados.
 
 ## 4. Bonificação
 
-Documentos avaliados:
+Documentos avaliados em todos os programas:
 
 - Extrato da Conta Corrente;
 - Extrato de Investimento;
@@ -67,6 +69,10 @@ Documentos avaliados:
 - Consulta à Assessoria;
 - Declaração BB Ágil;
 - Encaminhamento para Inventariação.
+
+Somente em **Educação Conectada** (`programId = CONECTADA`) existe ainda:
+
+- Boleto de pagamento de Internet.
 
 Valores aceitos:
 
@@ -76,6 +82,19 @@ Valores aceitos:
 
 Extrato da Conta Corrente, Extrato de Investimento e Declaração BB Ágil não aceitam `Não se aplica` para consolidação.
 
+### Boleto de pagamento de Internet
+
+`boletoInternet` é uma categoria documental autônoma e **exclusiva de Educação Conectada**. Não integra a avaliação dos demais programas. Embora registre pagamento de serviço, ela é uma exceção explícita à regra de consulta contábil:
+
+- não cria Nota Fiscal;
+- não cria nem encaminha bem para inventariação;
+- não ativa `Consulta Assessoria`;
+- aceita `Sim`, `Não` e `Não se aplica` na bonificação;
+- usa os mesmos estados canônicos da análise técnica;
+- `Incorreto` segue a abertura atômica da Pendência documental.
+
+A exceção vale somente para esta categoria e somente dentro de Educação Conectada. A regra de Assessoria vinculada às Notas Fiscais de serviço permanece inalterada.
+
 ### Resultado
 
 - todos os campos válidos e nenhum `Não`: `apta`;
@@ -83,6 +102,8 @@ Extrato da Conta Corrente, Extrato de Investimento e Declaração BB Ágil não 
 - campo ausente ou `Não se aplica` indevido: resultado nulo e consolidação bloqueada.
 
 A regularização posterior não reescreve automaticamente a bonificação histórica.
+
+Registros de **Educação Conectada** já consolidados antes da criação de `boletoInternet` permanecem compatíveis sem backfill: quando a nova chave não existe e há `resultadoBonif` consolidado, a projeção trata exclusivamente essa ausência histórica como `Não se aplica` e análise `Correto`, sem persistir valores inventados. A grade apresenta esses valores efetivos, mas não materializa as chaves no registro. Registros não consolidados de Educação Conectada precisam ter a nova categoria explicitamente avaliada. Os demais programas continuam com o contrato documental anterior e não recebem a chave.
 
 ## 5. Análise técnica
 
@@ -162,7 +183,7 @@ estado de origem
 → manifesto SHA-256
 ```
 
-Divergência entre `resultadoBonif` armazenado e `bonusResult` canônico bloqueia a certificação.
+Divergência entre `resultadoBonif` armazenado e `bonusResult` canônico bloqueia a certificação. Para consolidações anteriores à introdução de `boletoInternet`, a mesma compatibilidade histórica é aplicada antes da comparação, sem alterar as 27 colunas do Excel SME.
 
 Contrato detalhado: [`excel-integral-certification.md`](excel-integral-certification.md).
 
@@ -192,7 +213,10 @@ A homologação manual no Microsoft Excel desktop permanece gate separado da cer
 
 - competência posterior a maio;
 - lançamento no Prontuário;
-- consolidação do PDDE Básico;
+- consolidação do PDDE Básico sem exibição de `boletoInternet`;
+- exibição e avaliação de `boletoInternet` somente em Educação Conectada;
+- rejeição de escrita de `boletoInternet` fora de Educação Conectada, inclusive por retificação direta;
+- projeção visual das consolidações legadas sem materializar a nova chave;
 - correspondência entre tela, serviço, estado e armazenamento;
 - recarga preservando competência e resultado;
 - certificação Excel sem divergências;
