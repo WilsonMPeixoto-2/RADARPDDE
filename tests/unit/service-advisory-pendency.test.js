@@ -59,7 +59,7 @@ function createRoot() {
             const notes = current.registeredInvoices.filter(note => (
                 note.escolaId === schoolId && note.compKey === compKey && note.tipo === 'servico'
             ));
-            const aggregate = require('../../src/application/invoice-service.js').aggregateServiceAdvisories(notes);
+            const aggregate = require('../../src/domain/service-advisory.js').deriveServiceAdvisory(notes);
             const verification = current.verifications[schoolId][compKey];
             verification.bonificacao.consAssessoria = aggregate.delivery;
             verification.bonificacao.consEnviada = aggregate.sent;
