@@ -54,7 +54,7 @@
         'Encaminhada',
         'Inventariada'
     ]);
-    const IDENTIFIED_EXPENSE_TYPES = new Set(['consumo', 'permanente', 'servico']);
+    const IDENTIFIED_EXPENSE_TYPES = new Set(['consumo', 'permanente', 'servico', 'boleto_internet']);
     const INVOICE_EXPENSE_TYPES = new Set([...IDENTIFIED_EXPENSE_TYPES, 'a_identificar']);
     const MONTH_LABELS = Object.freeze([
         'Janeiro',
