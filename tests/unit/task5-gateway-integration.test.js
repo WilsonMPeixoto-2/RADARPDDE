@@ -57,3 +57,11 @@ test('estado de aplicação expõe bens aos serviços e registerLog não persist
     assert.match(APP, /radarInventoryService\s*=\s*new\s+window\.RadarInventoryService\.InventoryService/);
     assert.doesNotMatch(body('registerLog'), /persist\s*\(/);
 });
+
+
+test('compatibilidade legada de consEnviada nunca grava o agregado diretamente', () => {
+    const source = body('toggleConsEnviada');
+
+    assert.doesNotMatch(source, /radarVerificationService\.setBonification\s*\(/);
+    assert.match(source, /toggleInvoiceAdvisorySent\s*\(/);
+});
