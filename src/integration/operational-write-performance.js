@@ -455,14 +455,14 @@
                     const invoiceId = invoiceIdFromHandler(control.getAttribute('onchange'));
                     const note = serviceNotes.find(item => String(item.id) === String(invoiceId));
                     if (!note) return;
-                    const advisory = root.RadarInvoiceService.getServiceAdvisoryState(note, legacyFallback);
+                    const advisory = root.RadarServiceAdvisory.getServiceAdvisoryState(note, legacyFallback);
                     control.checked = Boolean(advisory.sent);
                 });
                 Array.from(row.querySelectorAll('select[onchange*="changeInvoiceAdvisoryAnalysis"]')).forEach(control => {
                     const invoiceId = invoiceIdFromHandler(control.getAttribute('onchange'));
                     const note = serviceNotes.find(item => String(item.id) === String(invoiceId));
                     if (!note) return;
-                    const advisory = root.RadarInvoiceService.getServiceAdvisoryState(note, legacyFallback);
+                    const advisory = root.RadarServiceAdvisory.getServiceAdvisoryState(note, legacyFallback);
                     control.value = advisory.analysis;
                     setAnalysisControlClass(root, control, advisory.analysis);
                 });
