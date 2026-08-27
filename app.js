@@ -10508,21 +10508,26 @@ async function changeInvoiceAdvisoryAnalysis(
 async function toggleConsEnviada(escolaId, compKey, isChecked) {
     const accessProfile = getRadarAccessProfile();
     if (accessProfile === 'inventario' || accessProfile === 'sme') return false;
-    try {
-        await radarVerificationService.setBonification({
-            schoolId: escolaId,
-            compKey,
-            documentKey: 'consEnviada',
-            value: Boolean(isChecked),
-            profile: accessProfile
-        });
-    } catch (error) {
-        reportRadarActionError(error, 'Não foi possível alterar o status da consulta à Assessoria.');
+
+    const serviceNotes = notasRegistradas.filter(note => (
+        note.escolaId === escolaId
+        && note.compKey === compKey
+        && note.tipo === 'servico'
+    ));
+    if (serviceNotes.length !== 1) {
+        alert(
+            'O envio da Consulta à Assessoria é individual por Nota Fiscal. '
+            + 'Use o controle da Nota Fiscal correspondente.'
+        );
         renderProntuario(escolaId);
         return false;
     }
-    renderProntuario(escolaId);
-    return true;
+
+    return toggleInvoiceAdvisorySent(
+        serviceNotes[0].id,
+        escolaId,
+        Boolean(isChecked)
+    );
 }
 
 async function removerNotaRegistrada(notaId, escolaId) {
