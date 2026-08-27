@@ -10319,54 +10319,54 @@ function openModalDadosNota(escolaId, compKey) {
     return true;
 }
 
-async function salvarDadosNotaCore() {
-    const accessProfile = getRadarAccessProfile();
-    if (accessProfile === 'inventario' || accessProfile === 'sme') return false;
-    const notaId = document.getElementById('nota-id').value;
-    const escolaId = document.getElementById('nota-escola-id').value;
-    const compKey = document.getElementById('nota-comp-key').value;
-    const desc = document.getElementById('nota-desc').value.trim();
-    const tipo = document.getElementById('nota-tipo').value;
-    const numero = document.getElementById('nota-numero').value.trim();
-    const valor = parseFloat(document.getElementById('nota-valor').value);
-
-    try {
-        const result = await radarInvoiceService.save({
-            id: notaId || null,
-            schoolId: escolaId,
-            compKey,
-            description: desc,
-            expenseType: tipo,
-            invoiceNumber: numero,
-            amount: valor,
-            profile: accessProfile
-        });
-        rebuildOperationalIndexes();
-        if (result.value.warnings.includes('SERVICE_ADVISORY_REQUIRED')) {
-            alert('Aviso de Regra de Negócio: Como é prestação de serviços (custeio), é obrigatório apresentar o e-mail de consultoria da assessoria contábil no encarte mensal do PDDE.');
-        }
-        if (result.value.warnings.includes('MISSING_INVENTORY_PROCESS')) {
-            alert('Aviso: O bem permanente foi registrado no inventário, mas a escola não tem Processo de Inventário cadastrado. A equipe de inventário não poderá tombá-lo até que você cadastre o processo da escola.');
-        }
-        closeModal('modal-dados-nota');
-        renderProntuario(escolaId);
-        updateAlertsBell();
-        return true;
-    } catch (error) {
-        reportRadarActionError(error, 'Não foi possível salvar a nota fiscal.');
-        return false;
-    }
-}
-
 async function salvarDadosNota(e = {}) {
+    const executeSave = async () => {
+        const accessProfile = getRadarAccessProfile();
+        if (accessProfile === 'inventario' || accessProfile === 'sme') return false;
+        const notaId = document.getElementById('nota-id').value;
+        const escolaId = document.getElementById('nota-escola-id').value;
+        const compKey = document.getElementById('nota-comp-key').value;
+        const desc = document.getElementById('nota-desc').value.trim();
+        const tipo = document.getElementById('nota-tipo').value;
+        const numero = document.getElementById('nota-numero').value.trim();
+        const valor = parseFloat(document.getElementById('nota-valor').value);
+
+        try {
+            const result = await radarInvoiceService.save({
+                id: notaId || null,
+                schoolId: escolaId,
+                compKey,
+                description: desc,
+                expenseType: tipo,
+                invoiceNumber: numero,
+                amount: valor,
+                profile: accessProfile
+            });
+            rebuildOperationalIndexes();
+            if (result.value.warnings.includes('SERVICE_ADVISORY_REQUIRED')) {
+                alert('Aviso de Regra de Negócio: Como é prestação de serviços (custeio), é obrigatório apresentar o e-mail de consultoria da assessoria contábil no encarte mensal do PDDE.');
+            }
+            if (result.value.warnings.includes('MISSING_INVENTORY_PROCESS')) {
+                alert('Aviso: O bem permanente foi registrado no inventário, mas a escola não tem Processo de Inventário cadastrado. A equipe de inventário não poderá tombá-lo até que você cadastre o processo da escola.');
+            }
+            closeModal('modal-dados-nota');
+            renderProntuario(escolaId);
+            updateAlertsBell();
+            return true;
+        } catch (error) {
+            reportRadarActionError(error, 'Não foi possível salvar a nota fiscal.');
+            return false;
+        }
+    };
+
     const form = document.getElementById('form-dados-nota');
     const guard = window.RadarSharedInteractions?.guardInvoiceSubmission;
     if (form && typeof guard === 'function') {
-        return guard(e, salvarDadosNotaCore, form);
+        return guard(e, executeSave, form);
     }
 
     e.preventDefault?.();
-    return salvarDadosNotaCore();
+    return executeSave();
 }
 
 
