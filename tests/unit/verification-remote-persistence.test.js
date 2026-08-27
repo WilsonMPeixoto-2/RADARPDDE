@@ -323,3 +323,66 @@ test('consEnviada agregado é rejeitado porque o envio pertence à NF de serviç
     assert.equal(harness.rpcCalls.length, 0);
     assert.equal(harness.getDefaultPersistCalls(), 0);
 });
+
+
+test('consAssessoria agregado é rejeitado porque o resumo pertence às NFs de serviço', async () => {
+    const harness = createAtomicHarness();
+
+    await assert.rejects(
+        () => harness.service.setBonification({
+            profile: 'controlador',
+            schoolId: '04.10.001',
+            compKey: '2026-05_BASIC',
+            documentKey: 'consAssessoria',
+            value: 'Sim'
+        }),
+        error => error?.code === 'DOCUMENT_NOT_APPLICABLE'
+    );
+
+    assert.equal(harness.rpcCalls.length, 0);
+    assert.equal(harness.getDefaultPersistCalls(), 0);
+});
+
+test('retificação genérica rejeita chaves derivadas da Assessoria sem RPC', async () => {
+    for (const derivedKey of ['consAssessoria', 'consEnviada']) {
+        const harness = createAtomicHarness(state => {
+            const verification = state.verifications['04.10.001']['2026-05_BASIC'];
+            verification.bonificacao = {
+                extCC: 'Sim',
+                extINV: 'Sim',
+                notaFiscal: 'Não se aplica',
+                consAssessoria: 'Não se aplica',
+                consEnviada: false,
+                declBBAgil: 'Sim',
+                encampInventario: 'Não se aplica'
+            };
+            verification.analise = {
+                extCC: 'Correto',
+                extINV: 'Correto',
+                notaFiscal: 'Correto',
+                consAssessoria: 'Correto',
+                declBBAgil: 'Correto',
+                encampInventario: 'Correto'
+            };
+            verification.resultadoBonif = 'apta';
+        });
+
+        await assert.rejects(
+            () => harness.service.retify({
+                profile: 'assistente',
+                schoolId: '04.10.001',
+                compKey: '2026-05_BASIC',
+                programId: 'BASIC',
+                bonification: {
+                    [derivedKey]: derivedKey === 'consEnviada' ? true : 'Sim'
+                },
+                bonusResult: 'apta',
+                justification: 'Tentativa de alterar campo derivado.'
+            }),
+            error => error?.code === 'DOCUMENT_NOT_APPLICABLE'
+        );
+
+        assert.equal(harness.rpcCalls.length, 0);
+        assert.equal(harness.getDefaultPersistCalls(), 0);
+    }
+});
