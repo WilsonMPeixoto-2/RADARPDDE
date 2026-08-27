@@ -1,6 +1,6 @@
 # RADAR PDDE — Registro de decisões
 
-**Atualizado em:** 26 de agosto de 2026
+**Atualizado em:** 27 de agosto de 2026
 
 Este documento registra decisões duradouras. Não é diário de commits. Uma decisão somente é substituída por decisão expressa com impacto e status documentados.
 
@@ -543,3 +543,17 @@ Exclusões definitivas desta frente:
 - deduplicação de NF por conteúdo.
 
 **Documentos integrais:** `docs/handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md` e `docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`.
+
+---
+
+## ADR-049 — Boleto de pagamento de Internet é documento exclusivo de Educação Conectada
+
+**Status:** Aprovada; implementação rastreada no PR #203, com publicação ainda condicionada ao gate de merge
+
+`boletoInternet` integra a bonificação e a análise técnica somente em `CONECTADA`. A categoria aceita `Sim`, `Não` e `Não se aplica`; `Incorreto` usa a Pendência documental atômica existente. Ela não cria Nota Fiscal, bem, efeito financeiro ou Consulta Assessoria.
+
+Todos os caminhos públicos de escrita devem rejeitar a chave fora de Educação Conectada, inclusive bonificação, análise, retificação e abertura de Pendência.
+
+Consolidações conectadas anteriores à chave permanecem válidas por projeção `Não se aplica / Correto`, sem backfill nem materialização durante a leitura. Registros ainda não consolidados precisam avaliar a categoria explicitamente. O Excel SME permanece com 27 colunas.
+
+**Documentos:** `docs/architecture/avaliacao-mensal.md` e `docs/handoff/2026-08-27-hotfix-boleto-internet.md`.

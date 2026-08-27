@@ -178,6 +178,8 @@ function auditCanonicalResults(input) {
       const evaluation = flow.evaluateMonthlyEvaluation({
         bonification: verification?.bonificacao || verification?.bonification || {},
         analysis: verification?.analise || verification?.analysis || {},
+        bonusResult: verification?.resultadoBonif || verification?.bonus_result || '',
+        programId,
         pendencies: pendenciesForContext(input, schoolId, competenceKey, programId)
       });
       const canonical = text(evaluation.bonusResult).toLowerCase();

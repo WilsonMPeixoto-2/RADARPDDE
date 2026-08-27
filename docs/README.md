@@ -1,13 +1,19 @@
 # Documentação do RADAR PDDE
 
-**Estado de referência:** 26 de agosto de 2026
+**Estado de referência:** 27 de agosto de 2026
 **Classe documental:** Canônico — índice
 
 ## 1. Onde começar
 
 O estado corrente fica em [`CURRENT_STAGE.md`](CURRENT_STAGE.md).
 
-O documento principal para retomada futura é:
+O checkpoint da frente prioritária atual é:
+
+- [`handoff/2026-08-27-hotfix-boleto-internet.md`](handoff/2026-08-27-hotfix-boleto-internet.md)
+
+Ele registra o escopo do PR #203, os achados da revisão independente, as provas locais, os gates remotos ainda necessários e o retorno obrigatório ao PR1.
+
+O documento principal para retomada do plano mestre é:
 
 - [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md)
 
@@ -46,15 +52,16 @@ Valores voláteis sempre devem ser consultados no remoto quando a tarefa depende
 
 1. [`../AGENTS.md`](../AGENTS.md);
 2. [`CURRENT_STAGE.md`](CURRENT_STAGE.md);
-3. [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md);
-4. [`superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md);
-5. [`reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx`](reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx);
-6. [`handoff/2026-08-23-post-pr-193.md`](handoff/2026-08-23-post-pr-193.md);
-7. [`DECISION_LOG.md`](DECISION_LOG.md);
-8. [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md);
-9. [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md);
-10. [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md);
-11. arquitetura ou runbook diretamente relacionado à tarefa.
+3. [`handoff/2026-08-27-hotfix-boleto-internet.md`](handoff/2026-08-27-hotfix-boleto-internet.md);
+4. [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md);
+5. [`superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md);
+6. [`reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx`](reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx);
+7. [`handoff/2026-08-23-post-pr-193.md`](handoff/2026-08-23-post-pr-193.md);
+8. [`DECISION_LOG.md`](DECISION_LOG.md);
+9. [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md);
+10. [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md);
+11. [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md);
+12. arquitetura ou runbook diretamente relacionado à tarefa.
 
 ## 3. Decisões atuais que não podem ser perdidas
 
@@ -132,7 +139,8 @@ Não há telemetria externa, persistência das métricas ou coleta de dados de n
 ## 6. Documentos canônicos e referências
 
 - [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — estado corrente;
-- [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md) — checkpoint atual de continuidade;
+- [`handoff/2026-08-27-hotfix-boleto-internet.md`](handoff/2026-08-27-hotfix-boleto-internet.md) — checkpoint atual da hotfix;
+- [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md) — checkpoint de retomada do plano mestre;
 - [`superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md) — sequência canônica de implementação;
 - [`reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx`](reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx) — relatório integral versionado;
 - [`handoff/2026-08-23-post-pr-193.md`](handoff/2026-08-23-post-pr-193.md) — checkpoint histórico anterior;
@@ -183,4 +191,4 @@ verificar remoto
 → atualizar documentação afetada
 ```
 
-O estágio atual possui demanda real e defeitos confirmados. A retomada deve começar por G0 e pelo PR1 do plano mestre, sem misturar migration, reparo, idempotência ou redesign no primeiro PR.
+O estágio atual fecha primeiro a hotfix isolada do PR #203. Depois de merge autorizado, publicação e smoke, a retomada volta ao PR #202/PR1; não iniciar PR2 nem misturar migration, reparo, idempotência ou redesign nesse parêntese.
