@@ -7,18 +7,22 @@
     const serviceAdvisory = typeof module !== 'undefined' && module.exports
         ? require('../domain/service-advisory.js')
         : root.RadarServiceAdvisory;
-    const api = factory(contract, serviceAdvisory);
+    const invoiceEffects = typeof module !== 'undefined' && module.exports
+        ? require('../domain/invoice-effects.js')
+        : root.RadarInvoiceEffects;
+    const api = factory(contract, serviceAdvisory, invoiceEffects);
 
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
     if (root) root.RadarInvoiceService = Object.freeze(api);
 }(typeof window !== 'undefined' ? window : globalThis, function createInvoiceServiceApi(
     contract,
-    serviceAdvisory
+    serviceAdvisory,
+    invoiceEffects
 ) {
     'use strict';
 
-    if (!contract || !serviceAdvisory) {
-        throw new Error('Contrato de dados e regra canônica de Assessoria são obrigatórios para notas fiscais.');
+    if (!contract || !serviceAdvisory || !invoiceEffects) {
+        throw new Error('Contrato de dados, regra canônica de Assessoria e planner de efeitos são obrigatórios para notas fiscais.');
     }
     const { RepositoryError, cloneValue } = contract;
     const {
@@ -27,6 +31,7 @@
         getServiceAdvisoryState,
         normalizeServiceAdvisoryAnalysis
     } = serviceAdvisory;
+    const { planInvoiceEffects } = invoiceEffects;
     const SERVICE_ADVISORY_ANALYSIS_SET = new Set(SERVICE_ADVISORY_ANALYSES);
     const UNIDENTIFIED_EXPENSE_TYPE = 'a_identificar';
     const EXPENSE_TYPES = new Set(['consumo', 'permanente', 'servico', UNIDENTIFIED_EXPENSE_TYPE]);
@@ -161,23 +166,6 @@
             return aggregate;
         }
 
-        buildAsset(context, invoiceData, assetId) {
-            const hasProcess = Boolean(text(context.school.processoInventario));
-            const programName = context.program?.name || context.context.programId;
-            return {
-                id: assetId,
-                escolaId: context.schoolId,
-                competencia: context.context.competence,
-                item: `${programName} - ${invoiceData.description}`,
-                descricao: `${programName} - ${invoiceData.description}`,
-                tipo: 'permanente',
-                valor: invoiceData.amount,
-                notaFiscal: invoiceData.invoiceNumber,
-                processoInventario: text(context.school.processoInventario),
-                status: invoiceData.invoiceNumber && hasProcess ? 'Encaminhada' : 'Não encaminhada'
-            };
-        }
-
         createPersistence(operation) {
             return async ({ repository, snapshot, value, defaultPersist }) => {
                 const capabilities = repository.capabilities();
@@ -236,157 +224,160 @@
         async save(input = {}) {
             const profile = this.assertEditable(input.profile, 'invoice:save');
             const invoiceData = this.validateInvoice(input, 'invoice:save');
+            const initialState = this.getState();
+            const initialContext = this.getContext(initialState, input, 'invoice:save');
+            this.assertVerificationEditable(
+                initialContext.verification,
+                profile,
+                'invoice:save'
+            );
+
+            const existing = input.id
+                ? initialState.registeredInvoices.find(invoice => invoice.id === text(input.id))
+                : null;
+            if (input.id && !existing) {
+                fail(
+                    'INVOICE_NOT_FOUND',
+                    'Despesa ou Nota Fiscal não localizada.',
+                    'invoice:save',
+                    { id: input.id }
+                );
+            }
+
+            const contextInvoices = initialState.registeredInvoices.filter(invoice => (
+                invoice.escolaId === initialContext.schoolId
+                && invoice.compKey === initialContext.compKey
+            ));
+            const currentAsset = existing?.bemId
+                ? initialState.assets.find(asset => asset.id === existing.bemId) || null
+                : null;
+            const request = {
+                schoolId: initialContext.schoolId,
+                compKey: initialContext.compKey,
+                competence: initialContext.context.competence,
+                programId: initialContext.context.programId,
+                description: invoiceData.description,
+                expenseType: invoiceData.expenseType,
+                invoiceNumber: invoiceData.invoiceNumber,
+                amount: invoiceData.amount
+            };
+            const basePlanInput = {
+                existingInvoice: existing,
+                request,
+                contextInvoices,
+                currentAsset,
+                verification: initialContext.verification,
+                school: initialContext.school,
+                program: initialContext.program,
+                profile
+            };
+
+            const preliminaryPlan = planInvoiceEffects(basePlanInput);
+            const verificationId = `${initialContext.schoolId}::${initialContext.context.competence}::${initialContext.context.programId}`;
+            if (preliminaryPlan.unchanged) {
+                return {
+                    ok: true,
+                    value: {
+                        ...cloneValue(preliminaryPlan),
+                        verificationId,
+                        auditLog: null,
+                        unchanged: true
+                    }
+                };
+            }
+
+            const invoiceId = existing?.id || this.createId('nota');
+            const assetId = invoiceData.expenseType === 'permanente'
+                ? (
+                    currentAsset?.id
+                    || existing?.bemId
+                    || this.createId('bem')
+                )
+                : null;
+            const timestamp = existing?.dataRegistro || this.now();
+            const plan = planInvoiceEffects({
+                ...basePlanInput,
+                invoiceId,
+                assetId,
+                timestamp
+            });
+
             return this.dataService.execute({
                 name: 'invoice:save',
                 remoteRefreshExemptEntities: ['administrativeLogs'],
-                changedEntities: [
-                    'registeredInvoices',
-                    'assets',
-                    'verifications',
-                    'administrativeLogs'
-                ],
+                changedEntities: [...plan.changedEntities],
                 persist: this.createPersistence('save'),
                 mutate: () => {
                     const state = this.getState();
                     const context = this.getContext(state, input, 'invoice:save');
-                    this.assertVerificationEditable(context.verification, profile, 'invoice:save');
-                    const existing = input.id
-                        ? state.registeredInvoices.find(invoice => invoice.id === text(input.id))
+                    const invoice = plan.operation === 'update'
+                        ? state.registeredInvoices.find(item => item.id === plan.invoice.id)
                         : null;
-                    if (input.id && !existing) {
-                        fail('INVOICE_NOT_FOUND', 'Despesa ou Nota Fiscal não localizada.', 'invoice:save', { id: input.id });
-                    }
-                    if (context.verification) {
-                        this.reopenConsolidation(
-                            context.schoolId,
-                            context.compKey,
-                            context.verification,
-                            true,
-                            profile
-                        );
+                    let appliedInvoice;
+
+                    if (plan.operation === 'update') {
+                        if (!invoice) {
+                            fail(
+                                'INVOICE_NOT_FOUND',
+                                'Despesa ou Nota Fiscal não localizada durante a aplicação do plano.',
+                                'invoice:save',
+                                { id: plan.invoice.id }
+                            );
+                        }
+                        Object.assign(invoice, cloneValue(plan.invoice));
+                        appliedInvoice = invoice;
+                    } else {
+                        appliedInvoice = cloneValue(plan.invoice);
+                        state.registeredInvoices.push(appliedInvoice);
                     }
 
-                    const warnings = [];
-                    const previousType = existing?.tipo || '';
-                    const previousAssetId = existing?.bemId || null;
-                    let asset = previousAssetId
-                        ? state.assets.find(item => item.id === previousAssetId) || null
-                        : null;
-                    let removedAsset = null;
-
-                    if (invoiceData.expenseType === 'permanente') {
-                        if (!asset) {
-                            asset = this.buildAsset(context, invoiceData, this.createId('bem'));
-                            state.assets.push(asset);
-                        } else {
-                            Object.assign(asset, this.buildAsset(context, invoiceData, asset.id));
-                        }
-                        if (!text(context.school.processoInventario)) {
-                            warnings.push('MISSING_INVENTORY_PROCESS');
-                        }
-                    } else if (previousAssetId) {
-                        removedAsset = asset ? cloneValue(asset) : null;
+                    if (plan.removedAsset?.id) {
                         state.assets.splice(
                             0,
                             state.assets.length,
-                            ...state.assets.filter(item => item.id !== previousAssetId)
+                            ...state.assets.filter(asset => asset.id !== plan.removedAsset.id)
                         );
-                        asset = null;
                     }
 
-                    if (invoiceData.expenseType === 'servico' && previousType !== 'servico') {
-                        warnings.push('SERVICE_ADVISORY_REQUIRED');
+                    let appliedAsset = null;
+                    if (plan.asset?.id) {
+                        appliedAsset = state.assets.find(asset => asset.id === plan.asset.id) || null;
+                        if (appliedAsset) {
+                            Object.assign(appliedAsset, cloneValue(plan.asset));
+                        } else {
+                            appliedAsset = cloneValue(plan.asset);
+                            state.assets.push(appliedAsset);
+                        }
                     }
 
-                    const invoice = existing || {
-                        id: this.createId('nota'),
-                        escolaId: context.schoolId,
-                        compKey: context.compKey,
-                        dataRegistro: this.now()
-                    };
-                    invoice.escolaId = context.schoolId;
-                    invoice.compKey = context.compKey;
-                    invoice.competencia = context.context.competence;
-                    invoice.programaId = context.context.programId;
-                    invoice.desc = invoiceData.description;
-                    invoice.descricao = invoiceData.description;
-                    invoice.tipo = invoiceData.expenseType;
-                    invoice.numero = invoiceData.invoiceNumber;
-                    invoice.valor = invoiceData.amount;
-                    invoice.bemId = asset?.id || null;
-                    if (invoiceData.expenseType === 'servico') {
-                        const existingServiceInvoices = state.registeredInvoices.filter(item => (
-                            item.escolaId === context.schoolId
-                            && item.compKey === context.compKey
-                            && item.tipo === 'servico'
-                        ));
-                        const legacyFallback = previousType === 'servico'
-                            && existingServiceInvoices.length === 1
-                            ? {
-                                sent: context.verification?.bonificacao?.consEnviada === true
-                                    || context.verification?.bonificacao?.consAssessoria === 'Sim',
-                                analysis: context.verification?.analise?.consAssessoria
-                            }
-                            : {};
-                        const advisory = previousType === 'servico'
-                            ? getServiceAdvisoryState(invoice, legacyFallback)
-                            : { sent: false, analysis: 'Não analisado' };
-                        invoice.consultaAssessoriaEnviada = advisory.sent;
-                        invoice.analiseConsultaAssessoria = advisory.analysis;
-                    } else {
-                        delete invoice.consultaAssessoriaEnviada;
-                        delete invoice.analiseConsultaAssessoria;
+                    if (context.verification && plan.verification) {
+                        Object.assign(
+                            context.verification,
+                            cloneValue(plan.verification)
+                        );
                     }
-                    if (!existing) state.registeredInvoices.push(invoice);
-                    this.syncServiceRequirement(state, context.schoolId, context.compKey);
 
-                    let auditLog;
-                    if (existing && invoiceData.expenseType === UNIDENTIFIED_EXPENSE_TYPE) {
-                        auditLog = this.appendLog(
-                            'Despesa a Identificar Editada',
-                            `Despesa a identificar editada para ${context.school.denominação || ''} no valor de R$ ${invoiceData.amount}; documentação fiscal ainda pendente.`
-                        );
-                    } else if (existing && previousType === UNIDENTIFIED_EXPENSE_TYPE) {
-                        auditLog = this.appendLog(
-                            'Despesa Identificada',
-                            `Despesa anteriormente não identificada foi classificada como ${invoiceData.expenseType} para ${context.school.denominação || ''}, NF ${invoiceData.invoiceNumber}, no valor de R$ ${invoiceData.amount}.`
-                        );
-                    } else if (existing) {
-                        auditLog = this.appendLog(
-                            'Nota Editada',
-                            `Nota Fiscal ${invoiceData.invoiceNumber} editada para ${context.school.denominação || ''} no valor de R$ ${invoiceData.amount}.`
-                        );
-                    } else if (invoiceData.expenseType === UNIDENTIFIED_EXPENSE_TYPE) {
-                        auditLog = this.appendLog(
-                            'Despesa a Identificar Cadastrada',
-                            `Despesa a identificar registrada para ${context.school.denominação || ''}: ${invoiceData.description}, R$ ${invoiceData.amount}; documentação fiscal pendente.`
-                        );
-                    } else if (invoiceData.expenseType === 'permanente') {
-                        auditLog = this.appendLog(
-                            'Bem Cadastrado',
-                            `Gasto de capital (permanente) de R$ ${invoiceData.amount} registrado via análise mensal para ${context.school.denominação || ''} com NF ${invoiceData.invoiceNumber}.`
-                        );
-                    } else if (invoiceData.expenseType === 'servico') {
-                        auditLog = this.appendLog(
-                            'Gasto Serviço Cadastrado',
-                            `Gasto com Prestação de Serviços registrado para ${context.school.denominação || ''}: ${invoiceData.description} com NF ${invoiceData.invoiceNumber} no valor de R$ ${invoiceData.amount}.`
-                        );
-                    } else {
-                        auditLog = this.appendLog(
-                            'Gasto Consumo Cadastrado',
-                            `Gasto com Material de Consumo registrado para ${context.school.denominação || ''}: ${invoiceData.description} com NF ${invoiceData.invoiceNumber} no valor de R$ ${invoiceData.amount}.`
-                        );
-                    }
+                    const auditLog = plan.auditDescriptor
+                        ? this.appendLog(
+                            plan.auditDescriptor.action,
+                            plan.auditDescriptor.details
+                        )
+                        : null;
 
                     return {
-                        operation: existing ? 'update' : 'create',
-                        invoice: cloneValue(invoice),
-                        asset: asset ? cloneValue(asset) : null,
-                        removedAsset,
-                        verification: context.verification ? cloneValue(context.verification) : null,
-                        verificationId: `${context.schoolId}::${context.context.competence}::${context.context.programId}`,
-                        auditLog: cloneValue(auditLog),
-                        warnings
+                        operation: plan.operation,
+                        invoice: cloneValue(appliedInvoice),
+                        asset: appliedAsset ? cloneValue(appliedAsset) : null,
+                        removedAsset: plan.removedAsset
+                            ? cloneValue(plan.removedAsset)
+                            : null,
+                        verification: context.verification
+                            ? cloneValue(context.verification)
+                            : null,
+                        verificationId,
+                        auditLog: auditLog ? cloneValue(auditLog) : null,
+                        warnings: [...plan.warnings],
+                        unchanged: false
                     };
                 }
             });
