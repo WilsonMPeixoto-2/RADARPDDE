@@ -11,6 +11,13 @@
         encampInventario: 'Encaminhado para Inventariação'
     });
     const BONUS_OPTIONS = ['', 'Sim', 'Não', 'Não se aplica'];
+    const DERIVED_BONIFICATION_KEYS = new Set(['consAssessoria', 'consEnviada']);
+
+    function isEditableBonificationKey(key, programId = '') {
+        if (DERIVED_BONIFICATION_KEYS.has(key)) return false;
+        if (key === 'boletoInternet' && programId !== 'CONECTADA') return false;
+        return true;
+    }
 
     let installed = false;
     let originalRenderProntuario = null;
@@ -181,8 +188,12 @@
     }
 
     function evaluateDraft(draft, verification = null) {
+        const projectedBonification = {
+            ...(verification?.bonificacao || verification?.bonification || {}),
+            ...draft
+        };
         const evaluation = root.RadarFluxoOperacional.evaluateMonthlyEvaluation({
-            bonification: draft,
+            bonification: projectedBonification,
             analysis: verification?.analise || verification?.analysis || {},
             bonusResult: verification?.resultadoBonif || verification?.bonus_result || '',
             programId: activeContext?.programId || '',
@@ -198,9 +209,8 @@
     function renderFields(verification, initialChanges = {}, programId = '') {
         const container = document.getElementById('retification-fields');
         container.replaceChildren();
-        const keys = Object.keys(verification.bonificacao || {}).filter(key => (
-            key !== 'boletoInternet' || programId === 'CONECTADA'
-        ));
+        const keys = Object.keys(verification.bonificacao || {})
+            .filter(key => isEditableBonificationKey(key, programId));
         keys.forEach((key, index) => {
             const current = Object.prototype.hasOwnProperty.call(initialChanges, key)
                 ? initialChanges[key]
@@ -259,9 +269,8 @@
         const draft = getDraftBonification();
         const evaluation = evaluateDraft(draft, verification);
         const before = Object.fromEntries(
-            Object.entries(verification.bonificacao || {}).filter(([key]) => (
-                key !== 'boletoInternet' || activeContext?.programId === 'CONECTADA'
-            ))
+            Object.entries(verification.bonificacao || {})
+                .filter(([key]) => isEditableBonificationKey(key, activeContext?.programId || ''))
         );
         const changes = getChanges(before, draft);
         const projected = document.getElementById('retification-projected-result');
