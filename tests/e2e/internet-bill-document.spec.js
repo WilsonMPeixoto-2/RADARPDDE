@@ -71,7 +71,10 @@ test('Boleto de Internet fica aninhado em Notas Fiscais, registra gasto só em C
   await expect(billAnalysis.locator('option').nth(2)).toHaveText('Correto (Atrasado)');
   await expect(billAnalysis.locator('option').nth(3)).toHaveText('Incorreto');
 
-  const noteBonificationGroup = notesRow.locator('td').nth(2).locator('.btn-group-toggle').first();
+  const noteBonificationCell = notesRow.locator('td').filter({
+    has: notesRow.locator('[data-internet-bill-evaluation="bonification"]')
+  });
+  const noteBonificationGroup = noteBonificationCell.locator('.btn-group-toggle').first();
   await noteBonificationGroup.getByRole('button', { name: 'Sim', exact: true }).click();
 
   await notesRow.getByRole('button', { name: 'Adicionar Nota' }).click();
