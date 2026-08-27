@@ -4,19 +4,20 @@
 
 **Classe documental:** Canônico — estado corrente e retomada futura
 
-**Situação:** PR #202 / PR1 integrado à `main`, publicado e validado em Production; PR1 encerrado; PR2 é a próxima frente obrigatória
+**Situação:** PR #206 / PR2 integrado à `main`, publicado e validado em Production; PR2 encerrado; PR3.1 é a próxima frente obrigatória
 
 ## 1. Porta de entrada atual
 
 Ler nesta ordem:
 
 1. [`../AGENTS.md`](../AGENTS.md);
-2. [`handoff/2026-08-27-pr1-invoice-submit-guard.md`](handoff/2026-08-27-pr1-invoice-submit-guard.md);
-3. [`handoff/2026-08-27-hotfix-boleto-internet.md`](handoff/2026-08-27-hotfix-boleto-internet.md);
-4. [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md);
-5. [`superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md);
-6. [`reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx`](reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx);
-7. [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md) e a documentação específica da entrega.
+2. [`handoff/2026-08-27-pr2-service-advisory-noop.md`](handoff/2026-08-27-pr2-service-advisory-noop.md);
+3. [`handoff/2026-08-27-pr1-invoice-submit-guard.md`](handoff/2026-08-27-pr1-invoice-submit-guard.md);
+4. [`handoff/2026-08-27-hotfix-boleto-internet.md`](handoff/2026-08-27-hotfix-boleto-internet.md);
+5. [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md);
+6. [`superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md);
+7. [`reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx`](reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx);
+8. [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md) e a documentação específica da entrega.
 
 O Markdown é a fonte operacional para busca, diff e execução. O Word é a versão integral para leitura e aprovação. O arquivo `.sha256` ao lado do Word permite verificar sua integridade.
 
@@ -37,20 +38,20 @@ Nenhum documento antigo prevalece sobre código e ambientes atuais. Valores vol�
 ## 3. Baseline de origem do plano
 
 ```text
-Baseline funcional publicado pelo PR1 / PR #202:
-3f4bcdfffd6f0d36ea2a05380ae53c3515a12f70
+Baseline funcional publicado pelo PR2 / PR #206:
+2ec822820dd6e3d7415edf7de9c7913562b0981f
 
 Origem:
-merge do PR #202, contendo a main pós-PR203
+merge do PR #206, contendo PR1 e a hotfix do PR #203
 
 Deployment Production desse baseline:
-dpl_HLof2Sweji1HB8Yq2YMAcqQgEfc9 / 3f4bcdfffd6f0d36ea2a05380ae53c3515a12f70
+dpl_41bzBJnL9baQX7N8sJe8mpY1ZD7H / 2ec822820dd6e3d7415edf7de9c7913562b0981f
 
 Observação:
-commits posteriores exclusivamente documentais podem ser descendentes desse SHA e gerar novos deployments sem alterar o runtime funcional. Revalidar o HEAD corrente antes de iniciar PR2.
+commits posteriores exclusivamente documentais podem ser descendentes desse SHA e gerar novos deployments sem alterar o runtime funcional. Revalidar o HEAD corrente antes de iniciar PR3.1.
 ```
 
-O PR #199 foi documental. O PR #200 corrigiu o incidente `Incorreto + Pendência`. O PR #201 versionou o plano mestre. O PR #203 adicionou `boletoInternet` exclusivamente à Educação Conectada. O PR #202 concluiu PR1 com guard canônico de submit e refresh mínimo no núcleo. Não reimplementar essas entregas.
+O PR #199 foi documental. O PR #200 corrigiu o incidente `Incorreto + Pendência`. O PR #201 versionou o plano mestre. O PR #203 adicionou `boletoInternet` exclusivamente à Educação Conectada. O PR #202 concluiu PR1 com guard canônico de submit e refresh mínimo no núcleo. O PR #206 concluiu PR2 com matriz canônica de Consulta Assessoria, planner de efeitos e no-op real. Não reimplementar essas entregas.
 
 ## 4. Estado das correções
 
@@ -61,6 +62,7 @@ O PR #199 foi documental. O PR #200 corrigiu o incidente `Incorreto + Pendência
 - PR #201: plano mestre e rota de continuidade versionados;
 - PR #203: `boletoInternet` exclusivo de Educação Conectada integrado e publicado, sem migration ou backfill;
 - PR #202: PR1 integrado e publicado; guard canônico de Nota Fiscal/Despesa e refresh mínimo no núcleo;
+- PR #206: PR2 integrado e publicado; regra canônica de Consulta Assessoria, planner de efeitos, no-op real e fechamento das rotas agregadas;
 - auditorias independentes: consolidadas no plano de 26/08;
 - cinco revisões finais: incorporadas ao plano canônico.
 
@@ -83,27 +85,29 @@ O PR #199 foi documental. O PR #200 corrigiu o incidente `Incorreto + Pendência
 
 Não houve alteração de limiar, rerun oportunístico até verde, otimização global de performance, migration ou backfill.
 
-### Plano mestre em execução — PR1 concluído
+### Plano mestre em execução — PR2 concluído
 
 - G0: concluído como baseline operacional do programa;
-- PR1 / PR #202: integrado à `main`, publicado e validado em Production;
-- merge funcional: `3f4bcdfffd6f0d36ea2a05380ae53c3515a12f70`;
-- Vercel Production: `dpl_HLof2Sweji1HB8Yq2YMAcqQgEfc9`, `READY`;
-- Supabase Production: `ACTIVE_HEALTHY`, sem migration ou reparo;
-- smoke autenticado comprovou o guard da entrada pública sem persistir dados fictícios;
-- PR2 em diante: ainda não integrados.
+- PR1 / PR #202: integrado, publicado e validado em Production;
+- PR2 / PR #206: integrado, publicado e validado em Production;
+- merge funcional PR2: `2ec822820dd6e3d7415edf7de9c7913562b0981f`;
+- Vercel Production: `dpl_41bzBJnL9baQX7N8sJe8mpY1ZD7H`, `READY`;
+- Supabase Production: `ACTIVE_HEALTHY`, sem migration, backfill ou reparo;
+- smoke autenticado comprovou no-op real com zero DataService/RPC/log e bloqueio das rotas agregadas de Assessoria;
+- nenhuma outra rota genérica de escrita agregada foi encontrada na busca final;
+- PR3.1 em diante: ainda não integrados.
 
 Itens ainda não integrados do plano incluem:
 
-- regra única de Consulta Assessoria e no-op semântico;
-- readiness sistêmico;
+- readiness sistêmico em PR3.1, PR3.2 e PR3.3;
 - reparo condicionado dos dados antigos;
 - idempotência real de NF;
 - contrato único, contexto e UX de Pendências;
 - escrita remota totalmente autoritativa e incremental;
 - medição e otimização causal do bootstrap.
 
-PR1 não executou migration, reparo de dados ou alteração de regra de negócio de NF além da contenção de gesto e política de refresh.
+PR2 não executou migration, reparo de dados, deduplicação por conteúdo, idempotência de servidor nem redesign de Pendências.
+
 
 
 ## 5. Decisões finais incorporadas
@@ -191,22 +195,22 @@ Planos são hipóteses técnicas, não autoridade superior ao código e aos ambi
 
 ## 10. Próxima ação
 
-Iniciar **PR2 — Regra canônica de Consulta Assessoria, plano de efeitos e no-op**.
+Iniciar **PR3.1 — Registry e loader**, primeira unidade do programa de readiness sistêmico.
 
-Sequência obrigatória:
+Sequência mínima:
 
 1. revalidar o HEAD corrente da `main` e o deployment Production;
-2. mapear todas as implementações atuais de Consulta Assessoria e no-op fora do diff esperado;
-3. escrever RED para a matriz canônica de Assessoria;
-4. extrair a regra sem manter matriz concorrente em `InvoiceService`;
-5. corrigir `VerificationService` para consumir a mesma derivação;
-6. escrever RED do no-op completo;
-7. implementar o planejador puro de efeitos;
-8. impedir `DataService.execute` quando `unchanged=true`;
-9. validar contratos Ajv existentes somente se necessário;
-10. executar os gates focados e revisão adversarial dupla.
+2. inventariar os instaladores, loaders tardios, `setInterval`, watchdogs e esperas por símbolos globais nas superfícies definidas no plano;
+3. escrever RED do registry `capability-readiness.js`;
+4. carregar o registry cedo, antes de seus consumidores;
+5. separar transporte do script de instalação da capacidade;
+6. tornar o loader tolerante à falha de capacidades independentes;
+7. tratar instalador que não termina sem aumentar timeout arbitrariamente;
+8. provar que falha simulada não derruba capacidades independentes;
+9. executar revisão adversarial dupla e gates próprios de PR3.1.
 
-PR2 não autoriza reparo dos dados existentes, idempotência de servidor nem redesign de Pendências.
+PR3.1 não deve migrar oportunisticamente todos os instaladores. PR3.2 e PR3.3 continuam unidades posteriores e independentes do mesmo programa.
+
 
 
 ## 11. Documentos históricos preservados
