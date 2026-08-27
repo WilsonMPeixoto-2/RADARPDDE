@@ -201,3 +201,28 @@ test('cancela, reabre resolvida e registra contato sem alterar estados indevidos
     assert.equal(harness.state.contacts.length, 1);
     assert.equal(harness.state.pendencies.find(item => item.id === id).status, 'Aberta');
 });
+
+
+test('rota genérica rejeita pendência de Assessoria sem identidade da NF antes de DataService', async () => {
+    const harness = createHarness();
+    const verification = harness.state.verifications['ESC-1']['2026-05_BASIC'];
+    verification.bonificacao.consAssessoria = 'Sim';
+    verification.analise.consAssessoria = 'Não analisado';
+
+    await assert.rejects(
+        () => harness.service.open({
+            schoolId: 'ESC-1',
+            competence: '2026-05',
+            programId: 'BASIC',
+            documentKey: 'consAssessoria',
+            item: 'Consulta Assessoria',
+            technicalAnalysisValue: 'Incorreto',
+            errors: ['Consulta divergente']
+        }),
+        error => error?.code === 'DOCUMENT_NOT_APPLICABLE'
+    );
+
+    assert.equal(harness.calls.length, 0);
+    assert.equal(harness.state.pendencies.length, 0);
+    assert.equal(verification.analise.consAssessoria, 'Não analisado');
+});
