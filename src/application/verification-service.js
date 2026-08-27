@@ -517,6 +517,20 @@
                 fail('FORBIDDEN', 'Retificação permitida somente ao perfil Assistente nesta fase.', 'retify');
             }
             this.assertCompetenceEditable(input.compKey, 'retify');
+            const retificationContext = splitCompKey(input.compKey, input.programId);
+            const requestedBonification = input.bonification || input.bonificacao || {};
+            if (retificationContext.programId !== 'CONECTADA'
+                && Object.prototype.hasOwnProperty.call(requestedBonification, 'boletoInternet')) {
+                fail(
+                    'DOCUMENT_NOT_APPLICABLE',
+                    'Boleto de pagamento de Internet é aplicável somente ao programa Educação Conectada.',
+                    'retify',
+                    {
+                        programId: retificationContext.programId,
+                        documentKey: 'boletoInternet'
+                    }
+                );
+            }
             return this.runSerializedVerificationWrite(input, async () => {
                 const persistence = {};
                 return this.dataService.execute({
@@ -527,7 +541,7 @@
                         const state = this.getState();
                         const schoolId = text(input.schoolId);
                         const compKey = text(input.compKey);
-                        const { competence, programId } = splitCompKey(compKey, input.programId);
+                        const { competence, programId } = retificationContext;
                         const verification = this.getVerification(schoolId, compKey);
                         persistence.schoolId = schoolId;
                         persistence.compKey = compKey;
@@ -536,7 +550,7 @@
                         const user = this.getCurrentUser() || {};
                         try {
                             const result = this.retifications.applyRetification(verification, {
-                                bonificacao: cloneValue(input.bonification || input.bonificacao || {}),
+                                bonificacao: cloneValue(requestedBonification),
                                 resultadoBonif: Object.prototype.hasOwnProperty.call(input, 'bonusResult')
                                     ? input.bonusResult
                                     : input.resultadoBonif,

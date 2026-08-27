@@ -182,6 +182,23 @@
         return { bonification, analysis };
     }
 
+    function getEffectiveDocumentState(verification = {}, programId = '', documentKey = '') {
+        const input = {
+            bonification: verification.bonificacao || verification.bonification || {},
+            analysis: verification.analise || verification.analysis || {},
+            bonusResult: verification.resultadoBonif || verification.bonus_result || '',
+            programId
+        };
+        const effective = withLegacyInternetBillCompatibility(input);
+        const key = normalizeText(documentKey);
+        return Object.freeze({
+            bonification: normalizeText(effective.bonification[key]),
+            analysis: normalizeText(effective.analysis[key]) || 'Não analisado',
+            usesLegacyCompatibility: key === INTERNET_BILL_DOCUMENT_KEY
+                && usesLegacyInternetBillCompatibility(input)
+        });
+    }
+
     function getProgramTechnicalAnalysisStatus(verification = {}, programId = '') {
         const { analysis: analise } = withLegacyInternetBillCompatibility({
             bonification: verification.bonificacao || verification.bonification || {},
@@ -289,6 +306,7 @@
         evaluateBonification,
         evaluateMonthlyEvaluation,
         getDocumentKeysForProgram,
+        getEffectiveDocumentState,
         getProgramBonificationStatus,
         getProgramTechnicalAnalysisStatus,
         isIdentifiedFiscalNote,

@@ -9888,8 +9888,10 @@ function renderProntuarioVerificacoes(esc) {
                     !Array.isArray(doc.programIds) || doc.programIds.includes(progId)
                 ));
                 programDocItems.forEach((doc, idx) => {
-                    const bonifValue = v.bonificacao[doc.key] || '';
-                    const analiseValue = v.analise[doc.key] || 'Não analisado';
+                    const effectiveDocumentState = window.RadarFluxoOperacional
+                        .getEffectiveDocumentState(v, progId, doc.key);
+                    const bonifValue = effectiveDocumentState.bonification;
+                    const analiseValue = effectiveDocumentState.analysis;
                     const isBonifLocked = (v.resultadoBonif && accessProfile !== 'assistente')
                         || accessProfile === 'inventario'
                         || accessProfile === 'sme';

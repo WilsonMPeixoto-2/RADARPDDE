@@ -104,3 +104,59 @@ test('Boleto de pagamento de Internet aparece somente em Educação Conectada e 
   expect(persisted.serviceInvoiceCount).toBe(context.serviceInvoiceCountBefore);
   expect(persisted.assetCount).toBe(context.assetCountBefore);
 });
+
+test('consolidação conectada legada projeta N/A e Correto sem materializar o boleto', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+
+  await page.goto('/');
+  const context = await page.evaluate(() => {
+    switchProfile('controlador');
+    const competencia = activeCompetenciaKey;
+    const escola = escolas.find(candidate => (
+      Array.isArray(candidate.programasIds)
+      && candidate.programasIds.includes('CONECTADA')
+      && isCompetenceInScope(candidate.competenciaInicial, competencia)
+    ));
+    if (!escola) throw new Error('Fixture sem escola com Educação Conectada.');
+
+    const compKey = `${competencia}_CONECTADA`;
+    verificacoes[escola.id] ||= {};
+    verificacoes[escola.id][compKey] = {
+      bonificacao: {
+        extCC: 'Sim',
+        extINV: 'Sim',
+        notaFiscal: 'Não se aplica',
+        consAssessoria: 'Não se aplica',
+        declBBAgil: 'Sim',
+        encampInventario: 'Não se aplica'
+      },
+      analise: {
+        extCC: 'Correto',
+        extINV: 'Correto',
+        notaFiscal: 'Correto',
+        consAssessoria: 'Correto',
+        declBBAgil: 'Correto',
+        encampInventario: 'Correto'
+      },
+      resultadoBonif: 'apta'
+    };
+    activeProntuarioCompetencia = competencia;
+    switchView('prontuario', escola.id);
+    return { escolaId: escola.id, compKey };
+  });
+
+  const row = page.locator(
+    '#prontuario-verif-rows tr[data-program-id="CONECTADA"][data-document-key="boletoInternet"]'
+  );
+  await expect(row.getByRole('button', { name: 'N/A', exact: true })).toHaveClass(/active-naoseaplica/);
+  await expect(row.locator('select.select-analise')).toHaveValue('Correto');
+
+  const storedKeys = await page.evaluate(({ escolaId, compKey }) => {
+    const stored = verificacoes[escolaId][compKey];
+    return {
+      hasBonification: Object.hasOwn(stored.bonificacao, 'boletoInternet'),
+      hasAnalysis: Object.hasOwn(stored.analise, 'boletoInternet')
+    };
+  }, context);
+  expect(storedKeys).toEqual({ hasBonification: false, hasAnalysis: false });
+});

@@ -22,7 +22,7 @@ function connectedBonification(boletoValue) {
     return { ...BASE_BONIFICATION, boletoInternet: boletoValue };
 }
 
-function createVerificationHarness(compKey = '2026-08_CONECTADA') {
+function createVerificationHarness(compKey = '2026-08_CONECTADA', profile = 'controlador') {
     const verification = {
         bonificacao: connectedBonification('Não se aplica'),
         analise: {
@@ -63,7 +63,7 @@ function createVerificationHarness(compKey = '2026-08_CONECTADA') {
             return log;
         },
         getCurrentUser: () => ({ name: 'Controlador Teste', role: 'Controlador' }),
-        getCurrentProfile: () => 'controlador',
+        getCurrentProfile: () => profile,
         createId: prefix => `${prefix}-${++sequence}`,
         now: () => '2026-08-26T20:00:00.000Z',
         fluxo,
@@ -117,6 +117,19 @@ test('consolidações antigas de Educação Conectada permanecem válidas sem ba
     assert.equal(result.bonusResult, 'apta');
     assert.equal(result.technicalStatus, 'correto');
     assert.equal(result.technicalCompletion, 'complete');
+
+    const projectedBill = fluxo.getEffectiveDocumentState({
+        bonificacao: BASE_BONIFICATION,
+        analise: legacyAnalysis,
+        resultadoBonif: 'apta'
+    }, 'CONECTADA', 'boletoInternet');
+    assert.deepEqual(projectedBill, {
+        bonification: 'Não se aplica',
+        analysis: 'Correto',
+        usesLegacyCompatibility: true
+    });
+    assert.equal(Object.hasOwn(BASE_BONIFICATION, 'boletoInternet'), false);
+    assert.equal(Object.hasOwn(legacyAnalysis, 'boletoInternet'), false);
 });
 
 test('Boleto de Internet usa análise técnica comum sem criar NF, Assessoria ou bem', async () => {
@@ -155,6 +168,33 @@ test('serviço rejeita Boleto de Internet fora de Educação Conectada', async (
             documentKey: 'boletoInternet',
             value: 'Sim',
             profile: 'controlador'
+        }),
+        error => error?.code === 'DOCUMENT_NOT_APPLICABLE'
+    );
+
+    await assert.rejects(
+        () => harness.service.setTechnicalAnalysis({
+            schoolId: 'ESC-1',
+            compKey: '2026-08_BASIC',
+            documentKey: 'boletoInternet',
+            value: 'Correto',
+            profile: 'controlador'
+        }),
+        error => error?.code === 'DOCUMENT_NOT_APPLICABLE'
+    );
+});
+
+test('retificação rejeita Boleto de Internet fora de Educação Conectada', async () => {
+    const harness = createVerificationHarness('2026-08_BASIC', 'assistente');
+
+    await assert.rejects(
+        () => harness.service.retify({
+            schoolId: 'ESC-1',
+            compKey: '2026-08_BASIC',
+            programId: 'BASIC',
+            bonification: { boletoInternet: 'Sim' },
+            bonusResult: 'apta',
+            justification: 'Retificação de teste.'
         }),
         error => error?.code === 'DOCUMENT_NOT_APPLICABLE'
     );
@@ -216,4 +256,40 @@ test('Boleto de Internet abre pendência documental e grava Incorreto atomicamen
     assert.equal(state.registeredInvoices.length, 0);
     assert.equal(state.assets.length, 0);
     assert.equal(state.pendencies.length, 1);
+});
+
+test('serviço de Pendências rejeita Boleto de Internet fora de Educação Conectada', async () => {
+    const state = {
+        pendencies: [],
+        contacts: [],
+        verifications: {},
+        schools: [],
+        programs: [],
+        logs: []
+    };
+    const service = new PendencyService({
+        dataService: {
+            async execute(command) {
+                return { ok: true, value: await command.mutate() };
+            }
+        },
+        domain: pendencyDomain,
+        getState: () => state,
+        appendLog: () => ({ id: 'log-out-of-scope' }),
+        getCurrentUser: () => ({ name: 'Controlador Teste', role: 'Controlador' }),
+        createId: prefix => `${prefix}-out-of-scope`,
+        now: () => '2026-08-26T20:00:00.000Z'
+    });
+
+    await assert.rejects(
+        () => service.open({
+            schoolId: 'ESC-1',
+            competence: '2026-08',
+            programId: 'BASIC',
+            documentKey: 'boletoInternet',
+            item: 'Boleto de pagamento de Internet',
+            errors: ['Documento ausente']
+        }),
+        error => error?.code === 'DOCUMENT_NOT_APPLICABLE'
+    );
 });
