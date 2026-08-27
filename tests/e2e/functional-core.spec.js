@@ -148,7 +148,8 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
         extCC: '',
         extINV: '',
         notaFiscal: 'Sim',
-        consAssessoria: '',
+        consAssessoria: 'Não se aplica',
+        consEnviada: false,
         declBBAgil: '',
         encampInventario: ''
       },
@@ -156,7 +157,7 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
         extCC: 'Não analisado',
         extINV: 'Não analisado',
         notaFiscal: 'Não analisado',
-        consAssessoria: 'Não analisado',
+        consAssessoria: 'Correto',
         declBBAgil: 'Não analisado',
         encampInventario: 'Não analisado'
       },
@@ -372,14 +373,14 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
         persistedResult: persistedVerification.resultadoBonif,
         assessoria: verification.bonificacao.consAssessoria,
         assessoriaAnalysis: verification.analise.consAssessoria,
-        reopenLogs: logs.filter(log => log.acao === 'Consolidação Reaberta').length
+        reopenMentions: logs.filter(log => /reaberta/i.test(String(log.detalhes || ''))).length
       };
     }, context)).toEqual({
       result: '',
       persistedResult: '',
       assessoria: 'Não',
       assessoriaAnalysis: 'Não analisado',
-      reopenLogs: 1
+      reopenMentions: 1
     });
 
     await page.evaluate(({ escolaId, compProgKey }) => {
@@ -395,8 +396,8 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
       numero: notasRegistradas.find(note => (
         note.escolaId === escolaId && note.compKey === compProgKey
       )).numero,
-      reopenLogs: logs.filter(log => log.acao === 'Consolidação Reaberta').length
-    }), context)).toEqual({ result: '', numero: 'NF-SERV-EDITADA', reopenLogs: 2 });
+      reopenMentions: logs.filter(log => /reaberta/i.test(String(log.detalhes || ''))).length
+    }), context)).toEqual({ result: '', numero: 'NF-SERV-EDITADA', reopenMentions: 2 });
 
     await page.evaluate(({ escolaId, compProgKey }) => {
       verificacoes[escolaId][compProgKey].resultadoBonif = 'apta';
@@ -410,8 +411,8 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
         note.escolaId === escolaId && note.compKey === compProgKey
       )).length,
       assessoria: verificacoes[escolaId][compProgKey].bonificacao.consAssessoria,
-      reopenLogs: logs.filter(log => log.acao === 'Consolidação Reaberta').length
-    }), context)).toEqual({ result: '', noteCount: 0, assessoria: 'Não se aplica', reopenLogs: 3 });
+      reopenMentions: logs.filter(log => /reaberta/i.test(String(log.detalhes || ''))).length
+    }), context)).toEqual({ result: '', noteCount: 0, assessoria: 'Não se aplica', reopenMentions: 3 });
   });
 
   test('direciona alteração consolidada ao fluxo auditável sem edição silenciosa', async ({ page }, testInfo) => {
@@ -438,12 +439,12 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
       result: verificacoes[escolaId][compProgKey].resultadoBonif,
       assessoria: verificacoes[escolaId][compProgKey].bonificacao.consAssessoria,
       inventario: verificacoes[escolaId][compProgKey].bonificacao.encampInventario,
-      reopenLogs: logs.filter(log => log.acao === 'Consolidação Reaberta').length
+      reopenMentions: logs.filter(log => /reaberta/i.test(String(log.detalhes || ''))).length
     }), context)).toEqual({
       result: 'apta',
       assessoria: 'Não se aplica',
       inventario: 'Não se aplica',
-      reopenLogs: 0
+      reopenMentions: 0
     });
   });
 
