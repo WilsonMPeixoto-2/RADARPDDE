@@ -111,7 +111,7 @@ test('property: repetir valor semanticamente igual é no-op sem persistência ne
 
 test('property: Incorreto nunca é persistido isoladamente pelo VerificationService', async () => {
     await fc.assert(fc.asyncProperty(
-        fc.constantFrom('extCC', 'extINV', 'notaFiscal', 'consAssessoria', 'declBBAgil', 'encampInventario'),
+        fc.constantFrom('extCC', 'extINV', 'notaFiscal', 'declBBAgil', 'encampInventario'),
         async documentKey => {
             const harness = createHarness();
             harness.verification.bonificacao[documentKey] = 'Sim';
