@@ -536,6 +536,7 @@
                 id,
                 school_id: schoolId,
                 competence_id: text(invoice.competencia || invoice.competenciaKey || invoice.competence_id) || null,
+                program_id: text(invoice.programaId || invoice.program_id) || null,
                 description: text(invoice.descricao || invoice.description),
                 expense_type: expenseType,
                 invoice_number: invoiceNumber || null,
