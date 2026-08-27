@@ -306,16 +306,20 @@ test('retificação usa a mesma RPC atômica com versão e log', async () => {
 });
 
 
-test('consulta enviada preserva valor booleano e usa RPC atômica', async () => {
+test('consEnviada agregado é rejeitado porque o envio pertence à NF de serviço', async () => {
     const harness = createAtomicHarness();
-    await harness.service.setBonification({
-        profile: 'controlador',
-        schoolId: '04.10.001',
-        compKey: '2026-05_BASIC',
-        documentKey: 'consEnviada',
-        value: true
-    });
-    assert.equal(harness.rpcCalls.length, 1);
-    assert.equal(harness.rpcCalls[0].verification.bonification.consEnviada, true);
+
+    await assert.rejects(
+        () => harness.service.setBonification({
+            profile: 'controlador',
+            schoolId: '04.10.001',
+            compKey: '2026-05_BASIC',
+            documentKey: 'consEnviada',
+            value: true
+        }),
+        error => error?.code === 'DOCUMENT_NOT_APPLICABLE'
+    );
+
+    assert.equal(harness.rpcCalls.length, 0);
     assert.equal(harness.getDefaultPersistCalls(), 0);
 });
