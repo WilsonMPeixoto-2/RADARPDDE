@@ -6,6 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const { InvoiceService } = require('../../src/application/invoice-service.js');
+const { transformLegacyState } = require('../../src/data/legacy-state-adapter.js');
 
 const MIGRATION_PATH = path.resolve(
     __dirname,
@@ -138,4 +139,51 @@ test('migração permite boleto_internet e o restringe server-side a Educação 
         sql,
         /registered_invoices_internet_bill_program_check[\s\S]*?expense_type[\s\S]*?'boleto_internet'[\s\S]*?program_id[\s\S]*?'CONECTADA'/i
     );
+});
+
+
+test('entidade canônica preserva program_id do boleto para a RPC atômica', () => {
+    const transformed = transformLegacyState({
+        registeredInvoices: [{
+            id: 'BOL-ENTITY-1',
+            escolaId: 'ESC-1',
+            competencia: '2026-05',
+            programaId: 'CONECTADA',
+            compKey: '2026-05_CONECTADA',
+            desc: 'Pagamento de Internet',
+            tipo: 'boleto_internet',
+            numero: 'BOL-001',
+            valor: 250
+        }]
+    });
+
+    assert.equal(transformed.entities.registeredInvoices.length, 1);
+    assert.equal(
+        transformed.entities.registeredInvoices[0].program_id,
+        'CONECTADA'
+    );
+    assert.equal(
+        transformed.entities.registeredInvoices[0].expense_type,
+        'boleto_internet'
+    );
+});
+
+test('contexto CONECTADA não basta quando a escola não possui o programa', async () => {
+    const harness = createHarness('CONECTADA');
+    harness.state.schools[0].programasIds = [];
+
+    await assert.rejects(
+        () => harness.service.save({
+            schoolId: 'ESC-1',
+            compKey: harness.compKey,
+            description: 'Pagamento de acesso à Internet',
+            expenseType: 'boleto_internet',
+            invoiceNumber: 'BOL-SEM-PROGRAMA',
+            amount: 250,
+            profile: 'controlador'
+        }),
+        error => error?.code === 'DOCUMENT_NOT_APPLICABLE'
+    );
+
+    assert.equal(harness.calls.length, 0);
 });
