@@ -19,6 +19,7 @@
 
     const { deriveServiceAdvisory, getServiceAdvisoryState } = serviceAdvisory;
     const UNIDENTIFIED_EXPENSE_TYPE = 'a_identificar';
+    const INTERNET_BILL_EXPENSE_TYPE = 'boleto_internet';
 
     function cloneValue(value) {
         if (value === undefined) return undefined;
@@ -187,6 +188,9 @@
         } else if (request.expenseType === 'servico') {
             action = 'Gasto Serviço Cadastrado';
             details = `Gasto com Prestação de Serviços registrado para ${schoolName}: ${request.description} com NF ${request.invoiceNumber} no valor de R$ ${request.amount}.`;
+        } else if (request.expenseType === INTERNET_BILL_EXPENSE_TYPE) {
+            action = 'Boleto de Internet Cadastrado';
+            details = `Boleto de pagamento de Internet registrado para ${schoolName}: ${request.description}, documento ${request.invoiceNumber}, no valor de R$ ${request.amount}.`;
         } else {
             action = 'Gasto Consumo Cadastrado';
             details = `Gasto com Material de Consumo registrado para ${schoolName}: ${request.description} com NF ${request.invoiceNumber} no valor de R$ ${request.amount}.`;
@@ -208,13 +212,19 @@
         const number = text(invoice.numero || invoice.invoiceNumber || invoice.invoice_number);
         const label = unidentified
             ? (number ? `Despesa a identificar (referência ${number})` : 'Despesa a identificar')
-            : `Nota Fiscal ${number}`;
+            : invoiceType(invoice) === INTERNET_BILL_EXPENSE_TYPE
+                ? `Boleto de pagamento de Internet ${number}`
+                : `Nota Fiscal ${number}`;
         let details = `${label} de R$ ${invoice.valor} foi excluída da escola ${input.school?.denominação || input.request?.schoolId || invoice.escolaId || ''}.`;
         if (reopened) {
             details += ' A consolidação anterior foi reaberta pela alteração.';
         }
         return Object.freeze({
-            action: unidentified ? 'Despesa a Identificar Removida' : 'Nota Fiscal Removida',
+            action: unidentified
+                ? 'Despesa a Identificar Removida'
+                : invoiceType(invoice) === INTERNET_BILL_EXPENSE_TYPE
+                    ? 'Boleto de Internet Removido'
+                    : 'Nota Fiscal Removida',
             details
         });
     }
