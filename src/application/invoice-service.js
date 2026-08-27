@@ -28,8 +28,7 @@
     const {
         SERVICE_ADVISORY_ANALYSES,
         deriveServiceAdvisory,
-        getServiceAdvisoryState,
-        normalizeServiceAdvisoryAnalysis
+        getServiceAdvisoryState
     } = serviceAdvisory;
     const { planInvoiceEffects } = invoiceEffects;
     const SERVICE_ADVISORY_ANALYSIS_SET = new Set(SERVICE_ADVISORY_ANALYSES);
