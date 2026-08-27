@@ -9814,12 +9814,6 @@ function renderProntuarioVerificacoes(esc) {
         { key: 'extCC', name: 'Extrato Conta Corrente', allowNaoAplica: false },
         { key: 'extINV', name: 'Extrato Investimento', allowNaoAplica: false },
         { key: 'notaFiscal', name: 'Notas Fiscais', allowNaoAplica: true },
-        {
-            key: 'boletoInternet',
-            name: 'Boleto de pagamento de Internet',
-            allowNaoAplica: true,
-            programIds: ['CONECTADA']
-        },
         { key: 'consAssessoria', name: 'Consulta Assessoria', allowNaoAplica: true },
         { key: 'declBBAgil', name: 'Declaração BB Ágil', allowNaoAplica: false },
         { key: 'encampInventario', name: 'Encaminhado para Inventariação', allowNaoAplica: true }
@@ -9956,6 +9950,99 @@ function renderProntuarioVerificacoes(esc) {
                         pendStatusHTML = `<button class="btn btn-secondary btn-sm" data-action="open-document-pendency" onclick="openNovaPendenciaModalWithDefaults('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(progName)}', '${escapeHtml(doc.key)}', '${escapeHtml(doc.name)}')" style="font-size:0.7rem; padding:2px 6px;">Abrir Pendência</button>`;
                     }
 
+                    let internetBillNested = null;
+                    if (doc.key === 'notaFiscal' && progId === 'CONECTADA') {
+                        const billDocument = {
+                            key: 'boletoInternet',
+                            name: 'Boleto de pagamento de Internet',
+                            allowNaoAplica: true
+                        };
+                        const billState = window.RadarFluxoOperacional
+                            .getEffectiveDocumentState(v, progId, billDocument.key);
+                        const billContext = window.RadarFluxoOperacional.buildPendencyContext({
+                            compProgKey,
+                            programaNome: progName,
+                            documentoKey: billDocument.key,
+                            documentoNome: billDocument.name
+                        });
+                        const billExactContext = {
+                            ...billContext,
+                            escolaId: esc.id,
+                            competenciaOrigem: c.key
+                        };
+                        const billPendencyKey = window.RadarPendencias.buildDocumentContextKey(
+                            billExactContext
+                        );
+                        const billActivePend = window.RadarPendencias.findActivePendency(
+                            documentaryPendencies,
+                            billExactContext
+                        );
+                        const billResolvedPend = documentaryPendencies.find(pendency => (
+                            pendency.status === 'Resolvida'
+                            && window.RadarPendencias.buildDocumentContextKey(pendency)
+                                === billPendencyKey
+                        ));
+                        const billAnalysisLocked = accessProfile === 'inventario'
+                            || accessProfile === 'sme'
+                            || Boolean(billActivePend);
+                        const billLockId = `analysis-lock-${progId}-boletoInternet`;
+                        let billPendStatusHTML = '';
+
+                        if (canUseVerificationActions && billActivePend) {
+                            const submissionActionLabel = getCorrectiveSubmissionActionLabel(
+                                billActivePend
+                            );
+                            const canReanalyse = canReanalysePendency(billActivePend);
+                            const instruction = billActivePend.status === 'Aguardando reanálise'
+                                ? 'Análise bloqueada enquanto aguarda reanálise. Use Reanalisar para registrar o resultado.'
+                                : 'Análise bloqueada enquanto a pendência estiver Aberta. Registre um novo envio para prosseguir.';
+                            billPendStatusHTML = `
+                                <div data-internet-bill-pendency style="margin-top:8px;">
+                                    <div style="font-size:0.68rem; font-weight:600; margin-bottom:4px;">Boleto de Internet</div>
+                                    <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                                        ${canReanalyse ? `
+                                            <button
+                                                class="btn btn-primary btn-sm"
+                                                data-action="reanalyse-pendency"
+                                                data-pendency-ref="${escapeHtml(encodePendencyIdReference(billActivePend.id))}"
+                                                onclick="abrirModalReanalisarPendencia(this)"
+                                                style="font-size:0.7rem; padding:2px 6px;"
+                                            >Reanalisar</button>
+                                        ` : ''}
+                                        ${submissionActionLabel && canRegisterCorrectiveSubmission ? `
+                                            <button
+                                                class="btn ${canReanalyse ? 'btn-secondary' : 'btn-primary'} btn-sm"
+                                                data-action="register-corrective-submission"
+                                                data-pendency-ref="${escapeHtml(encodePendencyIdReference(billActivePend.id))}"
+                                                onclick="abrirModalRegistrarNovoEnvio(this)"
+                                                style="font-size:0.7rem; padding:2px 6px;"
+                                            >${escapeHtml(submissionActionLabel)}</button>
+                                        ` : ''}
+                                    </div>
+                                    <p id="${escapeHtml(billLockId)}" style="font-size:0.7rem; color:var(--text-muted); margin-top:6px;">${escapeHtml(instruction)}</p>
+                                </div>
+                            `;
+                        } else if (
+                            canUseVerificationActions
+                            && billResolvedPend
+                            && billState.analysis === 'Não analisado'
+                        ) {
+                            billPendStatusHTML = `<div data-internet-bill-pendency style="margin-top:8px;"><span class="badge badge-success" style="font-size:0.7rem;" title="Justificativa: ${escapeHtml(billResolvedPend.justificativaResolucao || billResolvedPend.observacao || '')}">Boleto: Resolvida - reanalisar</span></div>`;
+                        } else if (canOpenPendency && billState.analysis === 'Incorreto') {
+                            billPendStatusHTML = `<div data-internet-bill-pendency style="margin-top:8px;"><button class="btn btn-secondary btn-sm" data-action="open-document-pendency" onclick="openNovaPendenciaModalWithDefaults('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(progName)}', 'boletoInternet', 'Boleto de pagamento de Internet')" style="font-size:0.7rem; padding:2px 6px;">Abrir Pendência do Boleto</button></div>`;
+                        }
+
+                        internetBillNested = {
+                            bonification: billState.bonification,
+                            analysis: billState.analysis,
+                            activePend: billActivePend,
+                            resolvedPend: billResolvedPend,
+                            analysisLocked: billAnalysisLocked,
+                            lockId: billLockId,
+                            pendStatusHTML: billPendStatusHTML
+                        };
+                    }
+
                     // Conteúdo extra para visualização de notas fiscais
                     let extraContentHTML = '';
                     let serviceAdvisoryEntries = [];
@@ -9964,7 +10051,7 @@ function renderProntuarioVerificacoes(esc) {
                         
                         const notesBadges = notes.map(n => `
                             <span class="badge badge-info" style="display: inline-flex; align-items: center; margin-right: 4px; margin-bottom: 4px; padding: 4px 8px; font-size: 0.7rem; font-weight: 500;">
-                                NF: ${escapeHtml(n.numero)} (R$ ${n.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})})
+                                ${n.tipo === 'boleto_internet' ? 'Boleto Internet' : 'NF'}: ${escapeHtml(n.numero)} (R$ ${n.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})})
                                 ${accessProfile !== 'inventario' && accessProfile !== 'sme' && !isBonifLocked ? `
                                     <span style="margin-left: 6px; cursor: pointer; font-weight: bold; color: var(--warning); font-size: 0.85rem;" onclick="abrirEditarNota('${escapeHtml(n.id)}', '${escapeHtml(esc.id)}')" title="Editar Nota">✎</span>
                                     <span style="margin-left: 6px; cursor: pointer; font-weight: bold; color: var(--danger); font-size: 0.85rem;" onclick="removerNotaRegistrada('${escapeHtml(n.id)}', '${escapeHtml(esc.id)}')" title="Excluir Nota">×</span>
@@ -9979,12 +10066,23 @@ function renderProntuarioVerificacoes(esc) {
                             </button>
                         ` : '';
                         
-                        if (notesBadges || addBtn) {
+                        if (notesBadges || addBtn || internetBillNested) {
                             extraContentHTML = `
                                 <div style="margin-top: 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px;">
                                     ${notesBadges}
                                     ${addBtn}
                                 </div>
+                                ${internetBillNested ? `
+                                    <div
+                                        data-internet-bill-subitem
+                                        style="margin-top:8px; padding-top:8px; border-top:1px dashed var(--border-color);"
+                                    >
+                                        <div style="font-size:0.75rem; font-weight:600;">Boleto de pagamento de Internet</div>
+                                        <div style="font-size:0.68rem; color:var(--text-muted); margin-top:2px;">
+                                            Registrar pelo campo “Tipo de Gasto”. Avaliação exclusiva de Educação Conectada.
+                                        </div>
+                                    </div>
+                                ` : ''}
                             `;
                         }
                     }
