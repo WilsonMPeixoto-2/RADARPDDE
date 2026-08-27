@@ -83,7 +83,6 @@
             this.getCurrentProfile = options.getCurrentProfile || (() => '');
             this.createId = options.createId || (prefix => `${prefix}-${Date.now()}`);
             this.now = options.now || (() => new Date().toISOString());
-            this.reopenConsolidation = options.reopenConsolidation || (() => {});
             if (!this.dataService || typeof this.dataService.execute !== 'function'
                 || typeof this.getState !== 'function'
                 || typeof this.appendLog !== 'function') {
