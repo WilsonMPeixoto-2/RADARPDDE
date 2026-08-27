@@ -4,7 +4,10 @@
     const contract = typeof module !== 'undefined' && module.exports
         ? require('../data/repository-contract.js')
         : root.RadarRepositoryContract;
-    const api = factory(contract);
+    const serviceAdvisory = typeof module !== 'undefined' && module.exports
+        ? require('../domain/service-advisory.js')
+        : root.RadarServiceAdvisory;
+    const api = factory(contract, serviceAdvisory);
 
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
     if (root) {
@@ -20,11 +23,17 @@
             root.setTimeout?.(() => root.clearInterval?.(interval), 10000);
         }
     }
-}(typeof window !== 'undefined' ? window : globalThis, function createServiceAdvisoryPendencyApi(contract) {
+}(typeof window !== 'undefined' ? window : globalThis, function createServiceAdvisoryPendencyApi(
+    contract,
+    serviceAdvisory
+) {
     'use strict';
 
-    if (!contract) throw new Error('Contrato de dados obrigatório para integrar Assessoria e pendências.');
+    if (!contract || !serviceAdvisory) {
+        throw new Error('Contrato de dados e domínio de Assessoria são obrigatórios para integrar Assessoria e pendências.');
+    }
     const { RepositoryError, cloneValue } = contract;
+    const { getServiceAdvisoryState } = serviceAdvisory;
     let installed = false;
     let pendingContext = null;
 
@@ -382,7 +391,7 @@
             const state = invoiceService.getState();
             const invoice = state.registeredInvoices.find(record => String(record.id) === String(invoiceId));
             if (!invoice || invoice.tipo !== 'servico') return false;
-            const previous = root.RadarServiceAdvisory.getServiceAdvisoryState(invoice).analysis;
+            const previous = getServiceAdvisoryState(invoice).analysis;
             const active = findActiveForInvoice(root, state, invoice);
             if (active) {
                 if (selectElement && typeof selectElement === 'object') selectElement.value = previous;
