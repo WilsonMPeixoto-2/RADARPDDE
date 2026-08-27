@@ -4,24 +4,32 @@
     const contract = typeof module !== 'undefined' && module.exports
         ? require('../data/repository-contract.js')
         : root.RadarRepositoryContract;
-    const api = factory(contract);
+    const serviceAdvisory = typeof module !== 'undefined' && module.exports
+        ? require('../domain/service-advisory.js')
+        : root.RadarServiceAdvisory;
+    const api = factory(contract, serviceAdvisory);
 
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
     if (root) root.RadarInvoiceService = Object.freeze(api);
-}(typeof window !== 'undefined' ? window : globalThis, function createInvoiceServiceApi(contract) {
+}(typeof window !== 'undefined' ? window : globalThis, function createInvoiceServiceApi(
+    contract,
+    serviceAdvisory
+) {
     'use strict';
 
-    if (!contract) throw new Error('Contrato de dados obrigatório para notas fiscais.');
+    if (!contract || !serviceAdvisory) {
+        throw new Error('Contrato de dados e regra canônica de Assessoria são obrigatórios para notas fiscais.');
+    }
     const { RepositoryError, cloneValue } = contract;
+    const {
+        SERVICE_ADVISORY_ANALYSES,
+        deriveServiceAdvisory,
+        getServiceAdvisoryState,
+        normalizeServiceAdvisoryAnalysis
+    } = serviceAdvisory;
+    const SERVICE_ADVISORY_ANALYSIS_SET = new Set(SERVICE_ADVISORY_ANALYSES);
     const UNIDENTIFIED_EXPENSE_TYPE = 'a_identificar';
     const EXPENSE_TYPES = new Set(['consumo', 'permanente', 'servico', UNIDENTIFIED_EXPENSE_TYPE]);
-    const SERVICE_ADVISORY_ANALYSES = Object.freeze([
-        'Não analisado',
-        'Correto',
-        'Correto (Atrasado)',
-        'Incorreto'
-    ]);
-    const SERVICE_ADVISORY_ANALYSIS_SET = new Set(SERVICE_ADVISORY_ANALYSES);
 
     function text(value) {
         return value == null ? '' : String(value).trim();
@@ -61,53 +69,7 @@
             : `Nota Fiscal ${number}`;
     }
 
-    function normalizeServiceAdvisoryAnalysis(value, fallback = 'Não analisado') {
-        const normalized = text(value);
-        if (normalized === 'Correto após o prazo') return 'Correto (Atrasado)';
-        return SERVICE_ADVISORY_ANALYSIS_SET.has(normalized) ? normalized : fallback;
-    }
 
-    function getServiceAdvisoryState(invoice = {}, fallback = {}) {
-        const sent = typeof invoice.consultaAssessoriaEnviada === 'boolean'
-            ? invoice.consultaAssessoriaEnviada
-            : Boolean(fallback.sent);
-        const analysis = normalizeServiceAdvisoryAnalysis(
-            invoice.analiseConsultaAssessoria,
-            normalizeServiceAdvisoryAnalysis(fallback.analysis)
-        );
-        return Object.freeze({ sent, analysis });
-    }
-
-    function aggregateServiceAdvisories(invoices = []) {
-        const serviceInvoices = (Array.isArray(invoices) ? invoices : [])
-            .filter(invoice => invoice?.tipo === 'servico');
-        if (serviceInvoices.length === 0) {
-            return Object.freeze({
-                delivery: 'Não se aplica',
-                sent: false,
-                analysis: 'Correto',
-                invoiceCount: 0
-            });
-        }
-
-        const states = serviceInvoices.map(invoice => getServiceAdvisoryState(invoice));
-        const sent = states.every(state => state.sent);
-        let analysis = 'Correto';
-        if (states.some(state => state.analysis === 'Incorreto')) {
-            analysis = 'Incorreto';
-        } else if (states.some(state => state.analysis === 'Não analisado')) {
-            analysis = 'Não analisado';
-        } else if (states.some(state => state.analysis === 'Correto (Atrasado)')) {
-            analysis = 'Correto (Atrasado)';
-        }
-
-        return Object.freeze({
-            delivery: sent ? 'Sim' : 'Não',
-            sent,
-            analysis,
-            invoiceCount: serviceInvoices.length
-        });
-    }
 
     class InvoiceService {
         constructor(options = {}) {
@@ -188,7 +150,7 @@
                 && invoice.compKey === compKey
                 && invoice.tipo === 'servico'
             ));
-            const aggregate = aggregateServiceAdvisories(serviceInvoices);
+            const aggregate = deriveServiceAdvisory(serviceInvoices);
             const verification = state.verifications?.[schoolId]?.[compKey];
             if (!verification) return aggregate;
             verification.bonificacao = verification.bonificacao || {};
@@ -647,8 +609,10 @@
         InvoiceService,
         SERVICE_ADVISORY_ANALYSES,
         UNIDENTIFIED_EXPENSE_TYPE,
-        aggregateServiceAdvisories,
+        aggregateServiceAdvisories: deriveServiceAdvisory,
+        deriveServiceAdvisory,
         getServiceAdvisoryState,
+        normalizeServiceAdvisoryAnalysis,
         isIdentifiedInvoice,
         isUnidentifiedExpense
     });
