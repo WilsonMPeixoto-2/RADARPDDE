@@ -193,6 +193,15 @@
 
         async open(input = {}) {
             this.assertCapability(accessPolicy.CAPABILITIES.OPEN_PENDENCY, 'open');
+            const requestedDocumentKey = text(input.documentKey || input.documentoKey);
+            if (requestedDocumentKey === 'consAssessoria') {
+                fail(
+                    'DOCUMENT_NOT_APPLICABLE',
+                    'Pendência de Consulta à Assessoria deve ser aberta a partir da Nota Fiscal de serviço correspondente.',
+                    'open',
+                    { documentKey: requestedDocumentKey }
+                );
+            }
             const technicalAnalysisValue = text(input.technicalAnalysisValue);
             const changesVerification = Boolean(technicalAnalysisValue);
             const persistence = { operation: 'open', expectedPendencyVersion: null };
