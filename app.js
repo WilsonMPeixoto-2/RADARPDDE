@@ -9976,6 +9976,8 @@ function renderProntuarioVerificacoes(esc) {
                                 </div>
                             `;
                         }
+                    }
+
                     if (doc.key === 'consAssessoria') {
                         const serviceNotes = notasRegistradas.filter(note => (
                             note.escolaId === esc.id
