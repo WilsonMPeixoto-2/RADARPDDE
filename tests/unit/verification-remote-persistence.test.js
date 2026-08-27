@@ -188,7 +188,7 @@ function createAtomicHarness(configureState) {
     return { state, service, rpcCalls, getDefaultPersistCalls: () => defaultPersistCalls };
 }
 
-test('Boleto de Internet de Educação Conectada percorre a RPC atômica sem efeitos financeiros', async () => {
+test('boletoInternet legado é rejeitado antes da RPC porque a avaliação pertence a Notas Fiscais', async () => {
     const harness = createAtomicHarness(state => {
         state.programs = [{ id: 'CONECTADA', name: 'Educação Conectada', active: true }];
         state.schools[0].programasIds = ['CONECTADA'];
@@ -197,14 +197,16 @@ test('Boleto de Internet de Educação Conectada percorre a RPC atômica sem efe
                 bonificacao: {
                     extCC: 'Sim',
                     extINV: 'Sim',
-                    notaFiscal: 'Não se aplica',
-                    boletoInternet: '',
+                    notaFiscal: 'Sim',
+                    boletoInternet: 'Sim',
                     consAssessoria: 'Não se aplica',
                     declBBAgil: 'Sim',
                     encampInventario: 'Não se aplica'
                 },
                 analise: {
-                    boletoInternet: 'Não analisado'
+                    notaFiscal: 'Não analisado',
+                    boletoInternet: 'Incorreto',
+                    consAssessoria: 'Correto'
                 },
                 resultadoBonif: '',
                 rowVersion: 4
@@ -212,28 +214,38 @@ test('Boleto de Internet de Educação Conectada percorre a RPC atômica sem efe
         };
     });
 
-    await harness.service.setBonification({
-        profile: 'controlador',
-        schoolId: '04.10.001',
-        compKey: '2026-05_CONECTADA',
-        documentKey: 'boletoInternet',
-        value: 'Sim'
-    });
-    await harness.service.setTechnicalAnalysis({
-        profile: 'controlador',
-        schoolId: '04.10.001',
-        compKey: '2026-05_CONECTADA',
-        documentKey: 'boletoInternet',
-        value: 'Correto'
-    });
+    await assert.rejects(
+        () => harness.service.setBonification({
+            profile: 'controlador',
+            schoolId: '04.10.001',
+            compKey: '2026-05_CONECTADA',
+            documentKey: 'boletoInternet',
+            value: 'Não'
+        }),
+        error => error?.code === 'DOCUMENT_NOT_APPLICABLE'
+    );
 
-    assert.equal(harness.rpcCalls.length, 2);
-    assert.equal(harness.rpcCalls[0].verification.program_id, 'CONECTADA');
-    assert.equal(harness.rpcCalls[0].verification.bonification.boletoInternet, 'Sim');
-    assert.equal(harness.rpcCalls[1].verification.analysis.boletoInternet, 'Correto');
-    assert.equal(harness.state.registeredInvoices.length, 0);
-    assert.equal(harness.state.assets.length, 0);
+    await assert.rejects(
+        () => harness.service.setTechnicalAnalysis({
+            profile: 'controlador',
+            schoolId: '04.10.001',
+            compKey: '2026-05_CONECTADA',
+            documentKey: 'boletoInternet',
+            value: 'Correto'
+        }),
+        error => error?.code === 'DOCUMENT_NOT_APPLICABLE'
+    );
+
+    assert.equal(harness.rpcCalls.length, 0);
     assert.equal(harness.getDefaultPersistCalls(), 0);
+    assert.equal(
+        harness.state.verifications['04.10.001']['2026-05_CONECTADA'].bonificacao.boletoInternet,
+        'Sim'
+    );
+    assert.equal(
+        harness.state.verifications['04.10.001']['2026-05_CONECTADA'].analise.boletoInternet,
+        'Incorreto'
+    );
 });
 
 test('análise técnica usa a mesma RPC atômica com versão e log', async () => {
