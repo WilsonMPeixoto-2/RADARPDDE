@@ -382,7 +382,7 @@
             const state = invoiceService.getState();
             const invoice = state.registeredInvoices.find(record => String(record.id) === String(invoiceId));
             if (!invoice || invoice.tipo !== 'servico') return false;
-            const previous = root.RadarInvoiceService.getServiceAdvisoryState(invoice).analysis;
+            const previous = root.RadarServiceAdvisory.getServiceAdvisoryState(invoice).analysis;
             const active = findActiveForInvoice(root, state, invoice);
             if (active) {
                 if (selectElement && typeof selectElement === 'object') selectElement.value = previous;
