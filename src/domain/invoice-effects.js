@@ -119,7 +119,7 @@
             || input.existingInvoice?.bemId
             || input.assetId
         );
-        const desiredAsset = currentAsset || {};
+        const desiredAsset = currentAsset ? cloneValue(currentAsset) : {};
         desiredAsset.id = assetId;
         desiredAsset.escolaId = request.schoolId;
         desiredAsset.competencia = request.competence;
@@ -213,12 +213,14 @@
         const operation = existingInvoice ? 'update' : 'create';
         const previousType = invoiceType(existingInvoice || {});
         const verificationBefore = input.verification ? cloneValue(input.verification) : null;
-        const desiredInvoice = existingInvoice || {
-            id: text(input.invoiceId),
-            escolaId: request.schoolId,
-            compKey: request.compKey,
-            dataRegistro: input.timestamp || null
-        };
+        const desiredInvoice = existingInvoice
+            ? cloneValue(existingInvoice)
+            : {
+                id: text(input.invoiceId),
+                escolaId: request.schoolId,
+                compKey: request.compKey,
+                dataRegistro: input.timestamp || null
+            };
 
         desiredInvoice.id = text(existingInvoice?.id || input.invoiceId);
         desiredInvoice.escolaId = request.schoolId;
