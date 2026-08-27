@@ -8,7 +8,6 @@
     }
     if (root && root.document) {
         root.RadarSharedInteractions = Object.freeze(api);
-        api.installInvoiceSubmissionGuard(root.document);
     }
 }(typeof window !== 'undefined' ? window : globalThis, function createSharedInteractionsApi(root) {
     'use strict';
@@ -17,7 +16,6 @@
     const FEEDBACK_REGION_ID = 'radar-feedback-region';
     const invoiceSubmissionLocks = new WeakSet();
     const invoiceSubmissionUiState = new WeakMap();
-    let invoiceSubmissionGuardDocument = null;
     let activeRequest = null;
 
     class InteractionError extends Error {
@@ -60,8 +58,8 @@
             .filter(button => button && button !== submitButton);
     }
 
-    async function guardInvoiceSubmission(event, handler) {
-        const form = invoiceFormFromEvent(event);
+    async function guardInvoiceSubmission(event, handler, formOverride = null) {
+        const form = formOverride || invoiceFormFromEvent(event);
         if (!form || typeof handler !== 'function') return null;
 
         event.preventDefault?.();
@@ -104,23 +102,6 @@
             invoiceSubmissionUiState.delete(form);
             invoiceSubmissionLocks.delete(form);
         }
-    }
-
-    function installInvoiceSubmissionGuard(documentRef = root?.document) {
-        if (!documentRef || typeof documentRef.addEventListener !== 'function') return false;
-        if (invoiceSubmissionGuardDocument === documentRef) return true;
-
-        documentRef.addEventListener('submit', event => {
-            const form = invoiceFormFromEvent(event);
-            if (!form) return;
-            const handler = root?.salvarDadosNota;
-            if (typeof handler !== 'function') return;
-            void guardInvoiceSubmission(event, handler.bind(root)).catch(error => {
-                root?.console?.error?.('[RADAR PDDE] Falha no guard de submit de Nota Fiscal.', error);
-            });
-        }, true);
-        invoiceSubmissionGuardDocument = documentRef;
-        return true;
     }
 
     function normalizeControllerRecords(records) {
@@ -450,7 +431,6 @@
         normalizeControllerRecords,
         formatControllerDeactivationSuccess,
         guardInvoiceSubmission,
-        installInvoiceSubmissionGuard,
         requestControllerDeactivation,
         notify
     });

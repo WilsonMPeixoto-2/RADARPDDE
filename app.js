@@ -10319,8 +10319,7 @@ function openModalDadosNota(escolaId, compKey) {
     return true;
 }
 
-async function salvarDadosNota(e) {
-    e.preventDefault();
+async function salvarDadosNotaCore() {
     const accessProfile = getRadarAccessProfile();
     if (accessProfile === 'inventario' || accessProfile === 'sme') return false;
     const notaId = document.getElementById('nota-id').value;
@@ -10352,9 +10351,22 @@ async function salvarDadosNota(e) {
         closeModal('modal-dados-nota');
         renderProntuario(escolaId);
         updateAlertsBell();
+        return true;
     } catch (error) {
         reportRadarActionError(error, 'Não foi possível salvar a nota fiscal.');
+        return false;
     }
+}
+
+async function salvarDadosNota(e = {}) {
+    const form = document.getElementById('form-dados-nota');
+    const guard = window.RadarSharedInteractions?.guardInvoiceSubmission;
+    if (form && typeof guard === 'function') {
+        return guard(e, salvarDadosNotaCore, form);
+    }
+
+    e.preventDefault?.();
+    return salvarDadosNotaCore();
 }
 
 

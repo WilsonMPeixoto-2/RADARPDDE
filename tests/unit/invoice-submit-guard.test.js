@@ -97,6 +97,31 @@ test('guard de Nota Fiscal aceita somente uma intenção enquanto o primeiro sav
     assert.equal(harness.closeButton.disabled, false);
 });
 
+test('guard aceita formulário explícito quando a entrada pública não recebe evento DOM', async () => {
+    const harness = createHarness();
+    const directEvent = {
+        preventDefault() {},
+        stopImmediatePropagation() {}
+    };
+
+    const pending = interactions.guardInvoiceSubmission(
+        directEvent,
+        harness.handler,
+        harness.form
+    );
+
+    assert.equal(harness.calls(), 1);
+    assert.equal(harness.form.getAttribute('aria-busy'), 'true');
+    assert.equal(harness.submitButton.disabled, true);
+    assert.equal(harness.submitButton.textContent, 'Salvando…');
+
+    harness.release('ok');
+    assert.equal(await pending, 'ok');
+    assert.equal(harness.form.getAttribute('aria-busy'), 'false');
+    assert.equal(harness.submitButton.disabled, false);
+    assert.equal(harness.submitButton.textContent, 'Salvar Gasto');
+});
+
 test('guard preserva o rótulo Salvar Alterações após concluir uma edição', async () => {
     const harness = createHarness({ label: 'Salvar Alterações' });
 
