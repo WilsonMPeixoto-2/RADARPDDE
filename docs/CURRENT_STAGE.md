@@ -4,7 +4,7 @@
 
 **Classe documental:** Canônico — estado corrente e retomada futura
 
-**Situação:** `main` e Production permanecem no pacote documental do PR #201; PR1 está pausado; a hotfix prioritária do boleto de Internet está em validação final no PR #203 e ainda não foi publicada
+**Situação:** PR #203 integrado à `main` e publicado em Production; hotfix do boleto de Internet encerrada; PR1 permanece pausado e é a próxima frente obrigatória
 
 ## 1. Porta de entrada atual
 
@@ -36,17 +36,20 @@ Nenhum documento antigo prevalece sobre código e ambientes atuais. Valores vol�
 ## 3. Baseline de origem do plano
 
 ```text
-GitHub main confirmado durante a revisão:
-2db2a5102d877422d068141a59f5ea340a2ebdc0
+Baseline funcional publicado pelo PR #203:
+f90cdf83897b4c954b7b6bf74b497798006e11f9
 
 Origem:
-merge documental do PR #201
+merge do PR #203
 
-Vercel Production confirmado durante a revisão:
-dpl_AtHwooDcYgFaiUykT8Ja8rLRoZKT / 2db2a5102d877422d068141a59f5ea340a2ebdc0
+Primeiro deployment Production desse baseline funcional:
+dpl_EkZDvUjMjbcopE7r9pyxbtnXnCHa / f90cdf83897b4c954b7b6bf74b497798006e11f9
+
+Observação:
+commits posteriores exclusivamente documentais podem ser descendentes desse SHA e gerar novos deployments sem alterar o runtime funcional. Revalidar o HEAD corrente antes de retomar código.
 ```
 
-O PR #199 foi documental. O PR #200 corrigiu o incidente `Incorreto + Pendência`. O PR #201 versionou o plano mestre e é o baseline atual de `main` e Production. Não reimplementar essas entregas.
+O PR #199 foi documental. O PR #200 corrigiu o incidente `Incorreto + Pendência`. O PR #201 versionou o plano mestre. O PR #203 adicionou a categoria `boletoInternet` exclusivamente à Educação Conectada e é o baseline funcional atual de `main` e Production. Não reimplementar essas entregas.
 
 O PR #202 iniciou G0/PR1, mas permanece fora de `main` e foi pausado para a hotfix prioritária do PR #203. Ao retomar PR1, reconciliar o head remoto e qualquer trabalho local antes de continuar; não presumir que checks de um SHA anterior cobrem um novo head.
 
@@ -57,22 +60,28 @@ O PR #202 iniciou G0/PR1, mas permanece fora de `main` e foi pausado para a hotf
 - PR #199: plano inicial versionado; nenhuma correção funcional;
 - PR #200: operação `Incorreto + Pendência` centralizada e protegida contra falha posterior de extensão opcional;
 - PR #201: plano mestre e rota de continuidade versionados;
+- PR #203: `boletoInternet` exclusivo de Educação Conectada integrado e publicado, sem migration ou backfill;
 - auditorias independentes: consolidadas no plano de 26/08;
 - cinco revisões finais: incorporadas ao plano canônico.
 
-### Hotfix prioritária em andamento — PR #203
+### Hotfix prioritária concluída — PR #203
 
+- PR #203 mergeado em `main` no commit `f90cdf83897b4c954b7b6bf74b497798006e11f9`;
+- primeiro deployment funcional em Vercel Production `dpl_EkZDvUjMjbcopE7r9pyxbtnXnCHa`, `READY`, no mesmo SHA do merge funcional `f90cdf83897b4c954b7b6bf74b497798006e11f9`;
 - categoria `boletoInternet` exclusiva de Educação Conectada;
 - seis documentos anteriores preservados para os demais programas;
-- escrita rejeitada no serviço fora de `CONECTADA`, inclusive por retificação direta e abertura de Pendência;
-- `Incorreto` usa a operação documental atômica existente;
+- escrita rejeitada fora de `CONECTADA`, inclusive bonificação, análise, retificação e abertura de Pendência;
+- `Incorreto` usa a operação documental atômica vigente;
 - nenhuma Nota Fiscal, bem ou Consulta Assessoria é criada pelo boleto;
 - 50 consolidações legadas conectadas sem a chave permanecem válidas por projeção `Não se aplica / Correto`, sem backfill nem escrita sintética;
-- 5 registros conectados ainda não consolidados precisarão avaliar o boleto explicitamente quando a hotfix for publicada;
+- 5 registros conectados ainda não consolidados permanecem sem a chave e deverão avaliar o boleto explicitamente;
 - Excel SME permanece com 27 colunas;
-- nenhuma migration, backfill, escrita em Supabase Production ou publicação funcional foi executada nesta branch.
+- Supabase Production permaneceu `ACTIVE_HEALTHY`, sem migration nova e com contagens inalteradas: 55 verificações CONECTADA, 50 consolidadas sem boleto, 5 não consolidadas sem boleto e 0 com boleto materializado;
+- artefato servido em Production respondeu HTTP 200, declarou `deploymentTarget:"production"` e foi conferido com a regra `programIds: ['CONECTADA']` e a projeção legada;
+- Playwright remoto e demais gates funcionais do head final foram aprovados;
+- Lighthouse mobile permaneceu vermelho por LCP limítrofe (~15,05–15,21 s para teto de 15 s), formalmente classificado e aceito como exceção não bloqueante desta hotfix; desktop aprovado.
 
-O código revisado foi versionado no commit remoto `c76a7ba`; o head final do PR deve ser confirmado depois da publicação da documentação e todos os checks obrigatórios precisam corresponder a esse mesmo SHA.
+Não houve alteração de limiar, rerun oportunístico até verde, otimização global de performance, migration ou backfill.
 
 ### Plano mestre pausado
 
@@ -178,17 +187,17 @@ Planos são hipóteses técnicas, não autoridade superior ao código e aos ambi
 
 ## 10. Próxima ação
 
-Fechar o PR #203 sem misturá-lo ao plano mestre:
+Retomar o plano mestre pelo PR #202/PR1:
 
-1. publicar o novo head da branch `hotfix/boleto-internet-documento`;
-2. exigir Playwright, gates remotos e Preview Vercel no mesmo SHA final;
-3. confirmar que o E2E cobre a jornada nova e a projeção legada sem materialização;
-4. classificar o Lighthouse conforme a governança vigente, sem afrouxar limiares nem repetir até ficar verde;
-5. obter autorização explícita antes do merge;
-6. depois do merge, confirmar o SHA de Production, executar smoke e atualizar este documento de candidato para publicado;
-7. retornar ao PR #202/PR1, reconciliar sua branch e concluir seus gates antes de iniciar PR2.
+1. revalidar o HEAD corrente da `main` e reconciliar a branch do PR #202 com ele, exigindo que contenha o baseline funcional `f90cdf83897b4c954b7b6bf74b497798006e11f9` e preservando integralmente o hotfix do PR #203;
+2. corrigir o defeito já comprovado no guard de submit público de Nota Fiscal, hoje contornado por chamada direta a `window.salvarDadosNota()`;
+3. manter a política correta de refresh mínimo já implementada no `InvoiceService`;
+4. repetir os testes focados e os gates proporcionais no novo head efetivo;
+5. atualizar a narrativa do PR #202 para o SHA realmente validado;
+6. obter autorização antes do merge;
+7. somente depois de PR1 publicado e validado iniciar PR2.
 
-O parêntese da hotfix não muda a ordem aprovada do plano e não autoriza migration, backfill ou reparo de dados.
+O parêntese da hotfix está encerrado e não altera a ordem aprovada do plano.
 
 ## 11. Documentos históricos preservados
 
