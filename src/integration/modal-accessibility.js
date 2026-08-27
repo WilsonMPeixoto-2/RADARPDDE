@@ -126,6 +126,12 @@
         if (!dialog) return;
         if (event.key === 'Escape') {
             event.preventDefault();
+            const invoiceSavePending = dialog.id === 'modal-dados-nota'
+                && Boolean(dialog.querySelector('#form-dados-nota[aria-busy="true"]'));
+            if (invoiceSavePending) {
+                event.stopImmediatePropagation();
+                return;
+            }
             root.closeModal(dialog.id);
             return;
         }

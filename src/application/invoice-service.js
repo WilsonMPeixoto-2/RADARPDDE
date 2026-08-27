@@ -276,6 +276,7 @@
             const invoiceData = this.validateInvoice(input, 'invoice:save');
             return this.dataService.execute({
                 name: 'invoice:save',
+                remoteRefreshExemptEntities: ['administrativeLogs'],
                 changedEntities: [
                     'registeredInvoices',
                     'assets',
@@ -562,6 +563,7 @@
             const profile = this.assertEditable(input.profile, 'invoice:remove');
             return this.dataService.execute({
                 name: 'invoice:remove',
+                remoteRefreshExemptEntities: ['administrativeLogs'],
                 changedEntities: [
                     'registeredInvoices',
                     'assets',

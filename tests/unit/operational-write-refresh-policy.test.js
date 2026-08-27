@@ -7,16 +7,38 @@ const policy = require('../../src/integration/operational-write-performance.js')
 
 const persist = async () => ({});
 
-test('fluxos compostos preservam administrativeLogs já confirmados pela RPC', () => {
-    for (const name of ['invoice:save', 'invoice:remove', 'configuration:create-exercise']) {
-        const decorated = policy.decorateCommand({
+test('extensão mantém somente a isenção de refresh que ainda lhe pertence', () => {
+    const decorated = policy.decorateCommand({
+        name: 'configuration:create-exercise',
+        changedEntities: ['administrativeLogs'],
+        persist
+    });
+
+    assert.deepEqual(decorated.remoteRefreshExemptEntities, ['administrativeLogs']);
+    assert.equal(decorated.remoteResultIsAuthoritative, undefined);
+    assert.equal(decorated.remoteCommitIsAuthoritative, undefined);
+});
+
+test('extensão não sintetiza política de invoice e preserva declaração explícita do núcleo', () => {
+    for (const name of ['invoice:save', 'invoice:remove']) {
+        const implicit = policy.decorateCommand({
             name,
-            changedEntities: ['administrativeLogs'],
+            changedEntities: ['registeredInvoices', 'administrativeLogs'],
             persist
         });
-        assert.deepEqual(decorated.remoteRefreshExemptEntities, ['administrativeLogs'], name);
-        assert.equal(decorated.remoteResultIsAuthoritative, undefined, name);
-        assert.equal(decorated.remoteCommitIsAuthoritative, undefined, name);
+        assert.equal(
+            implicit.remoteRefreshExemptEntities,
+            undefined,
+            `${name} não deve depender da extensão para declarar administrativeLogs`
+        );
+
+        const explicit = policy.decorateCommand({
+            name,
+            changedEntities: ['registeredInvoices', 'administrativeLogs'],
+            remoteRefreshExemptEntities: ['administrativeLogs'],
+            persist
+        });
+        assert.deepEqual(explicit.remoteRefreshExemptEntities, ['administrativeLogs'], name);
     }
 });
 
