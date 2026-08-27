@@ -386,3 +386,26 @@ test('retificação genérica rejeita chaves derivadas da Assessoria sem RPC', a
         assert.equal(harness.getDefaultPersistCalls(), 0);
     }
 });
+
+
+test('análise técnica agregada de consAssessoria é rejeitada antes de DataService e RPC', async () => {
+    const harness = createAtomicHarness(state => {
+        const verification = state.verifications['04.10.001']['2026-05_BASIC'];
+        verification.bonificacao.consAssessoria = 'Sim';
+        verification.analise.consAssessoria = 'Não analisado';
+    });
+
+    await assert.rejects(
+        () => harness.service.setTechnicalAnalysis({
+            profile: 'controlador',
+            schoolId: '04.10.001',
+            compKey: '2026-05_BASIC',
+            documentKey: 'consAssessoria',
+            value: 'Correto'
+        }),
+        error => error?.code === 'DOCUMENT_NOT_APPLICABLE'
+    );
+
+    assert.equal(harness.rpcCalls.length, 0);
+    assert.equal(harness.getDefaultPersistCalls(), 0);
+});
