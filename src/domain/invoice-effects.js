@@ -198,7 +198,102 @@
         return { action, details };
     }
 
+    function isIdentifiedInvoice(invoice = {}) {
+        return invoiceType(invoice) !== UNIDENTIFIED_EXPENSE_TYPE
+            && Boolean(text(invoice.numero || invoice.invoiceNumber || invoice.invoice_number));
+    }
+
+    function removalAuditDescriptor(input, invoice, reopened) {
+        const unidentified = invoiceType(invoice) === UNIDENTIFIED_EXPENSE_TYPE;
+        const number = text(invoice.numero || invoice.invoiceNumber || invoice.invoice_number);
+        const label = unidentified
+            ? (number ? `Despesa a identificar (referência ${number})` : 'Despesa a identificar')
+            : `Nota Fiscal ${number}`;
+        let details = `${label} de R$ ${invoice.valor} foi excluída da escola ${input.school?.denominação || input.request?.schoolId || invoice.escolaId || ''}.`;
+        if (reopened) {
+            details += ' A consolidação anterior foi reaberta pela alteração.';
+        }
+        return Object.freeze({
+            action: unidentified ? 'Despesa a Identificar Removida' : 'Nota Fiscal Removida',
+            details
+        });
+    }
+
+    function planInvoiceRemoval(input = {}) {
+        const existingInvoice = input.existingInvoice
+            ? cloneValue(input.existingInvoice)
+            : null;
+        if (!existingInvoice) {
+            return Object.freeze({
+                unchanged: true,
+                operation: 'remove',
+                invoice: null,
+                asset: null,
+                removedAsset: null,
+                verification: input.verification ? cloneValue(input.verification) : null,
+                warnings: Object.freeze([]),
+                changedEntities: Object.freeze([]),
+                auditDescriptor: null,
+                resetFiscalAnalysis: false
+            });
+        }
+
+        const existingId = text(existingInvoice.id);
+        const remainingInvoices = (Array.isArray(input.contextInvoices) ? input.contextInvoices : [])
+            .filter(invoice => text(invoice?.id) !== existingId)
+            .map(cloneValue);
+        const aggregate = deriveServiceAdvisory(remainingInvoices);
+        const verification = input.verification ? cloneValue(input.verification) : null;
+        let resetFiscalAnalysis = false;
+
+        if (verification) {
+            verification.bonificacao = verification.bonificacao || {};
+            verification.analise = verification.analise || {};
+            verification.bonificacao.consAssessoria = aggregate.delivery;
+            verification.bonificacao.consEnviada = aggregate.sent;
+            verification.analise.consAssessoria = aggregate.analysis;
+
+            const remainingIdentified = remainingInvoices.filter(isIdentifiedInvoice);
+            if (remainingIdentified.length === 0
+                && verification.bonificacao.notaFiscal === 'Sim'
+                && ['Correto', 'Correto (Atrasado)', 'Correto após o prazo']
+                    .includes(verification.analise.notaFiscal)) {
+                verification.analise.notaFiscal = 'Não analisado';
+                resetFiscalAnalysis = true;
+            }
+        }
+
+        const reopened = Boolean(
+            verification
+            && normalizeProfile(input.profile) === 'assistente'
+            && text(verification.resultadoBonif)
+        );
+        if (reopened) verification.resultadoBonif = '';
+
+        return Object.freeze({
+            unchanged: false,
+            operation: 'remove',
+            invoice: cloneValue(existingInvoice),
+            asset: null,
+            removedAsset: input.currentAsset ? cloneValue(input.currentAsset) : null,
+            verification: verification ? cloneValue(verification) : null,
+            warnings: Object.freeze([]),
+            changedEntities: Object.freeze([
+                'registeredInvoices',
+                'assets',
+                'verifications',
+                'administrativeLogs'
+            ]),
+            auditDescriptor: removalAuditDescriptor(input, existingInvoice, reopened),
+            resetFiscalAnalysis
+        });
+    }
+
     function planInvoiceEffects(input = {}) {
+        if (text(input.operation).toLocaleLowerCase('pt-BR') === 'remove') {
+            return planInvoiceRemoval(input);
+        }
+
         const request = {
             schoolId: text(input.request?.schoolId),
             compKey: text(input.request?.compKey),
