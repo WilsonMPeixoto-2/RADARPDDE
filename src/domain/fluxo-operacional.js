@@ -22,17 +22,6 @@
         'declBBAgil',
         'encampInventario'
     ]);
-    const INTERNET_BILL_PROGRAM_ID = 'CONECTADA';
-    const INTERNET_BILL_DOCUMENT_KEY = 'boletoInternet';
-    const CONNECTED_DOCUMENT_KEYS = Object.freeze([
-        'extCC',
-        'extINV',
-        'notaFiscal',
-        INTERNET_BILL_DOCUMENT_KEY,
-        'consAssessoria',
-        'declBBAgil',
-        'encampInventario'
-    ]);
     const REQUIRED_DOCUMENT_KEYS = new Set(['extCC', 'extINV', 'declBBAgil']);
     const VALID_VALUES = new Set(['Sim', 'Não', 'Não se aplica']);
     const EDITABLE_PROFILES = new Set(['controlador', 'assistente']);
@@ -81,10 +70,8 @@
             || pendencyItem === normalizeText(context.documentoNome);
     }
 
-    function getDocumentKeysForProgram(programId) {
-        return normalizeText(programId) === INTERNET_BILL_PROGRAM_ID
-            ? CONNECTED_DOCUMENT_KEYS
-            : DOCUMENT_KEYS;
+    function getDocumentKeysForProgram(_programId) {
+        return DOCUMENT_KEYS;
     }
 
     function createEmptyVerification(programId = '') {
@@ -153,33 +140,15 @@
         return hasStarted ? 'em-apuracao' : 'nao-lancada';
     }
 
-    function usesLegacyInternetBillCompatibility(input = {}) {
-        const result = normalizeText(
-            input.bonusResult
-            || input.resultadoBonif
-            || input.bonus_result
-        ).toLocaleLowerCase('pt-BR');
-        const bonification = input.bonification || input.bonificacao || {};
-        const programId = normalizeText(input.programId || input.programaId);
-        return programId === INTERNET_BILL_PROGRAM_ID
-            && CONSOLIDATED_BONUS_RESULTS.has(result)
-            && !Object.prototype.hasOwnProperty.call(bonification, INTERNET_BILL_DOCUMENT_KEY);
-    }
-
     function withLegacyInternetBillCompatibility(input = {}) {
-        const bonification = {
-            ...(input.bonification || input.bonificacao || {})
-        };
-        const analysis = {
-            ...(input.analysis || input.analise || {})
-        };
-        if (usesLegacyInternetBillCompatibility(input)) {
-            bonification[INTERNET_BILL_DOCUMENT_KEY] = 'Não se aplica';
-            if (!Object.prototype.hasOwnProperty.call(analysis, INTERNET_BILL_DOCUMENT_KEY)) {
-                analysis[INTERNET_BILL_DOCUMENT_KEY] = 'Correto';
+        return {
+            bonification: {
+                ...(input.bonification || input.bonificacao || {})
+            },
+            analysis: {
+                ...(input.analysis || input.analise || {})
             }
-        }
-        return { bonification, analysis };
+        };
     }
 
     function getEffectiveDocumentState(verification = {}, programId = '', documentKey = '') {
@@ -194,8 +163,7 @@
         return Object.freeze({
             bonification: normalizeText(effective.bonification[key]),
             analysis: normalizeText(effective.analysis[key]) || 'Não analisado',
-            usesLegacyCompatibility: key === INTERNET_BILL_DOCUMENT_KEY
-                && usesLegacyInternetBillCompatibility(input)
+            usesLegacyCompatibility: false
         });
     }
 
