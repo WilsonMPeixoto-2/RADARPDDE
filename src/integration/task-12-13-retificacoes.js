@@ -8,15 +8,13 @@
         boletoInternet: 'Boleto de pagamento de Internet',
         consAssessoria: 'Consulta Assessoria',
         declBBAgil: 'Declaração BB Ágil',
-        encampInventario: 'Encaminhado para Inventariação',
-        consEnviada: 'Consultoria enviada para Assessoria'
+        encampInventario: 'Encaminhado para Inventariação'
     });
     const BONUS_OPTIONS = ['', 'Sim', 'Não', 'Não se aplica'];
 
     let installed = false;
     let originalRenderProntuario = null;
     let originalToggleBonif = null;
-    let originalToggleConsEnviada = null;
     let activeSchoolId = null;
     let activeContext = null;
 
@@ -496,32 +494,13 @@
         return originalToggleBonif(escolaId, compKey, docKey, value);
     }
 
-    function toggleConsEnviadaAudited(escolaId, compKey, isChecked) {
-        const verification = getVerification(escolaId, compKey);
-        if (verification?.resultadoBonif && canRetify()) {
-            return openRetificationModal({
-                schoolId: escolaId,
-                compKey,
-                programId: compKey.slice(compKey.indexOf('_') + 1),
-                nodeType: 0
-            }, { consEnviada: Boolean(isChecked) });
-        }
-        return originalToggleConsEnviada
-            ? originalToggleConsEnviada(escolaId, compKey, isChecked)
-            : false;
-    }
-
     function install() {
         if (installed || !dependenciesReady()) return false;
         injectModal();
         originalRenderProntuario = root.renderProntuario.bind(root);
         originalToggleBonif = root.toggleBonif.bind(root);
-        originalToggleConsEnviada = typeof root.toggleConsEnviada === 'function'
-            ? root.toggleConsEnviada.bind(root)
-            : null;
         root.renderProntuario = renderProntuarioEnhanced;
         root.toggleBonif = toggleBonifAudited;
-        if (originalToggleConsEnviada) root.toggleConsEnviada = toggleConsEnviadaAudited;
         root.openRetificationModal = openRetificationModal;
         root.previewRetification = updateRetificationPreview;
         root.confirmRetification = confirmRetification;
