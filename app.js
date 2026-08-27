@@ -10006,7 +10006,7 @@ function renderProntuarioVerificacoes(esc) {
                             : {};
                         serviceAdvisoryEntries = serviceNotes.map(note => ({
                             note,
-                            ...window.RadarInvoiceService.getServiceAdvisoryState(
+                            ...window.RadarServiceAdvisory.getServiceAdvisoryState(
                                 note,
                                 legacyFallback
                             )
@@ -10439,7 +10439,7 @@ async function changeInvoiceAdvisoryAnalysis(
         && item.tipo === 'servico'
     ));
     const verification = verificacoes[nota.escolaId]?.[nota.compKey];
-    const previousState = window.RadarInvoiceService.getServiceAdvisoryState(
+    const previousState = window.RadarServiceAdvisory.getServiceAdvisoryState(
         nota,
         serviceNotes.length === 1 ? {
             sent: verification?.bonificacao?.consEnviada === true
