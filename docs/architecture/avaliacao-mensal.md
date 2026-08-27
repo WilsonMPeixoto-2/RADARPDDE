@@ -1,7 +1,7 @@
 # Avaliação mensal — contrato canônico
 
-**Estado:** vigente, implementado e publicado  
-**Atualizado em:** 26 de agosto de 2026
+**Estado:** contrato vigente; implementação do boleto candidata no PR #203, ainda não publicada
+**Atualizado em:** 27 de agosto de 2026
 
 ## 1. Finalidade
 
@@ -103,7 +103,7 @@ A exceção vale somente para esta categoria e somente dentro de Educação Cone
 
 A regularização posterior não reescreve automaticamente a bonificação histórica.
 
-Registros de **Educação Conectada** já consolidados antes da criação de `boletoInternet` permanecem compatíveis sem backfill: quando a nova chave não existe e há `resultadoBonif` consolidado, a projeção trata exclusivamente essa ausência histórica como `Não se aplica` e análise `Correto`, sem persistir valores inventados. Registros não consolidados de Educação Conectada precisam ter a nova categoria explicitamente avaliada. Os demais programas continuam com o contrato documental anterior e não recebem a chave.
+Registros de **Educação Conectada** já consolidados antes da criação de `boletoInternet` permanecem compatíveis sem backfill: quando a nova chave não existe e há `resultadoBonif` consolidado, a projeção trata exclusivamente essa ausência histórica como `Não se aplica` e análise `Correto`, sem persistir valores inventados. A grade apresenta esses valores efetivos, mas não materializa as chaves no registro. Registros não consolidados de Educação Conectada precisam ter a nova categoria explicitamente avaliada. Os demais programas continuam com o contrato documental anterior e não recebem a chave.
 
 ## 5. Análise técnica
 
@@ -215,6 +215,8 @@ A homologação manual no Microsoft Excel desktop permanece gate separado da cer
 - lançamento no Prontuário;
 - consolidação do PDDE Básico sem exibição de `boletoInternet`;
 - exibição e avaliação de `boletoInternet` somente em Educação Conectada;
+- rejeição de escrita de `boletoInternet` fora de Educação Conectada, inclusive por retificação direta;
+- projeção visual das consolidações legadas sem materializar a nova chave;
 - correspondência entre tela, serviço, estado e armazenamento;
 - recarga preservando competência e resultado;
 - certificação Excel sem divergências;

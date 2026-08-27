@@ -1,20 +1,21 @@
 # RADAR PDDE — Estado atual do projeto
 
-**Atualizado em:** 26 de agosto de 2026
+**Atualizado em:** 27 de agosto de 2026
 
 **Classe documental:** Canônico — estado corrente e retomada futura
 
-**Situação:** PR #199 e PR #200 integrados; plano mestre pós-auditoria aprovado; correções funcionais restantes ainda não iniciadas
+**Situação:** `main` e Production permanecem no pacote documental do PR #201; PR1 está pausado; a hotfix prioritária do boleto de Internet está em validação final no PR #203 e ainda não foi publicada
 
 ## 1. Porta de entrada atual
 
 Ler nesta ordem:
 
 1. [`../AGENTS.md`](../AGENTS.md);
-2. [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md);
-3. [`superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md);
-4. [`reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx`](reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx);
-5. [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md) e a documentação específica da entrega.
+2. [`handoff/2026-08-27-hotfix-boleto-internet.md`](handoff/2026-08-27-hotfix-boleto-internet.md);
+3. [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md);
+4. [`superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md);
+5. [`reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx`](reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx);
+6. [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md) e a documentação específica da entrega.
 
 O Markdown é a fonte operacional para busca, diff e execução. O Word é a versão integral para leitura e aprovação. O arquivo `.sha256` ao lado do Word permite verificar sua integridade.
 
@@ -35,30 +36,51 @@ Nenhum documento antigo prevalece sobre código e ambientes atuais. Valores vol�
 ## 3. Baseline de origem do plano
 
 ```text
-GitHub main analisada:
-0965ba8d5749f2ed25b3563a65ebc5da413e7fa5
-
-Commit curto:
-0965ba8
+GitHub main confirmado durante a revisão:
+2db2a5102d877422d068141a59f5ea340a2ebdc0
 
 Origem:
-merge do PR #200
+merge documental do PR #201
+
+Vercel Production confirmado durante a revisão:
+dpl_AtHwooDcYgFaiUykT8Ja8rLRoZKT / 2db2a5102d877422d068141a59f5ea340a2ebdc0
 ```
 
-O PR #199 foi documental e permanece como registro histórico do primeiro diagnóstico/plano. O PR #200 corrigiu o incidente `Incorreto + Pendência` e integra o baseline atual. Não reimplementar esse hotfix.
+O PR #199 foi documental. O PR #200 corrigiu o incidente `Incorreto + Pendência`. O PR #201 versionou o plano mestre e é o baseline atual de `main` e Production. Não reimplementar essas entregas.
 
-O plano não presume que Vercel e Supabase continuarão iguais ao checkpoint. G0 deve confirmá-los ao vivo e registrar a evidência antes do PR1.
+O PR #202 iniciou G0/PR1, mas permanece fora de `main` e foi pausado para a hotfix prioritária do PR #203. Ao retomar PR1, reconciliar o head remoto e qualquer trabalho local antes de continuar; não presumir que checks de um SHA anterior cobrem um novo head.
 
 ## 4. Estado das correções
 
-### Concluído
+### Integrado e publicado
 
 - PR #199: plano inicial versionado; nenhuma correção funcional;
 - PR #200: operação `Incorreto + Pendência` centralizada e protegida contra falha posterior de extensão opcional;
+- PR #201: plano mestre e rota de continuidade versionados;
 - auditorias independentes: consolidadas no plano de 26/08;
 - cinco revisões finais: incorporadas ao plano canônico.
 
-### Ainda não executado
+### Hotfix prioritária em andamento — PR #203
+
+- categoria `boletoInternet` exclusiva de Educação Conectada;
+- seis documentos anteriores preservados para os demais programas;
+- escrita rejeitada no serviço fora de `CONECTADA`, inclusive por retificação direta e abertura de Pendência;
+- `Incorreto` usa a operação documental atômica existente;
+- nenhuma Nota Fiscal, bem ou Consulta Assessoria é criada pelo boleto;
+- 50 consolidações legadas conectadas sem a chave permanecem válidas por projeção `Não se aplica / Correto`, sem backfill nem escrita sintética;
+- 5 registros conectados ainda não consolidados precisarão avaliar o boleto explicitamente quando a hotfix for publicada;
+- Excel SME permanece com 27 colunas;
+- nenhuma migration, backfill, escrita em Supabase Production ou publicação funcional foi executada nesta branch.
+
+O código revisado foi versionado no commit remoto `c76a7ba`; o head final do PR deve ser confirmado depois da publicação da documentação e todos os checks obrigatórios precisam corresponder a esse mesmo SHA.
+
+### Plano mestre pausado
+
+- G0: parcialmente comprovado e documentado durante o PR #202;
+- PR1: implementação candidata fora de `main`, pausada e ainda não publicada;
+- PR2 em diante: não iniciados.
+
+Itens ainda não integrados do plano incluem:
 
 - contenção do submit repetido e refresh mínimo;
 - regra única de Consulta Assessoria e no-op semântico;
@@ -69,7 +91,7 @@ O plano não presume que Vercel e Supabase continuarão iguais ao checkpoint. G0
 - escrita remota totalmente autoritativa e incremental;
 - medição e otimização causal do bootstrap.
 
-Nenhuma migration, reparo de dados ou alteração de Production descrita nessas etapas foi executada por este pacote documental.
+Nenhuma migration, reparo de dados ou alteração de Production descrita nessas etapas foi executada.
 
 ## 5. Decisões finais incorporadas
 
@@ -156,17 +178,17 @@ Planos são hipóteses técnicas, não autoridade superior ao código e aos ambi
 
 ## 10. Próxima ação
 
-Começar por G0:
+Fechar o PR #203 sem misturá-lo ao plano mestre:
 
-1. confirmar `origin/main`;
-2. confirmar deployment e SHA da Vercel Production;
-3. confirmar Supabase Production, migrations, RPCs e candidatos atuais ao reparo, somente por leitura;
-4. capturar baseline de chamadas de invoice, Pendências e performance;
-5. confirmar branch protection/ruleset ou registrar gate manual substituto;
-6. abrir branch isolada para PR1;
-7. implementar no PR1 apenas contenção do submit repetido e refresh mínimo.
+1. publicar o novo head da branch `hotfix/boleto-internet-documento`;
+2. exigir Playwright, gates remotos e Preview Vercel no mesmo SHA final;
+3. confirmar que o E2E cobre a jornada nova e a projeção legada sem materialização;
+4. classificar o Lighthouse conforme a governança vigente, sem afrouxar limiares nem repetir até ficar verde;
+5. obter autorização explícita antes do merge;
+6. depois do merge, confirmar o SHA de Production, executar smoke e atualizar este documento de candidato para publicado;
+7. retornar ao PR #202/PR1, reconciliar sua branch e concluir seus gates antes de iniciar PR2.
 
-Não começar pelo reparo de dados nem antecipar no PR1 no-op, idempotência, readiness ou redesign.
+O parêntese da hotfix não muda a ordem aprovada do plano e não autoriza migration, backfill ou reparo de dados.
 
 ## 11. Documentos históricos preservados
 

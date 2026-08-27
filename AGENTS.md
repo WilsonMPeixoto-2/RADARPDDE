@@ -1,20 +1,21 @@
 # AGENTS.md — RADAR PDDE 2026
 
-**Atualizado em:** 26 de agosto de 2026
+**Atualizado em:** 27 de agosto de 2026
 
 ## 1. Leitura obrigatória
 
 Antes de analisar ou alterar o repositório, leia:
 
 1. `docs/CURRENT_STAGE.md` — estado corrente, baseline e prioridades reais;
-2. `docs/handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md` — checkpoint curto e ponto exato de retomada;
-3. `docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md` — plano mestre canônico, com decisões, sequência, gates, testes e reversão das correções ainda não executadas;
-4. `docs/reference/TEST_GOVERNANCE.md` — estratégia proporcional e tratamento de testes superados;
-5. `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md` — visão gerada do contrato funcional vigente;
-6. `docs/PROJECT_CONTEXT.md` — produto, domínio e arquitetura;
-7. `docs/DECISION_LOG.md` — decisões duradouras;
-8. `docs/reference/STATUS_DOCUMENTOS.md` — validade documental;
-9. código, GitHub, Vercel e Supabase correspondentes à frente.
+2. `docs/handoff/2026-08-27-hotfix-boleto-internet.md` — checkpoint da hotfix prioritária, gates pendentes e retorno ao PR1;
+3. `docs/handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md` — checkpoint curto e ponto de retomada do plano;
+4. `docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md` — plano mestre canônico, com decisões, sequência, gates, testes e reversão das correções ainda não executadas;
+5. `docs/reference/TEST_GOVERNANCE.md` — estratégia proporcional e tratamento de testes superados;
+6. `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md` — visão gerada do contrato funcional vigente;
+7. `docs/PROJECT_CONTEXT.md` — produto, domínio e arquitetura;
+8. `docs/DECISION_LOG.md` — decisões duradouras;
+9. `docs/reference/STATUS_DOCUMENTOS.md` — validade documental;
+10. código, GitHub, Vercel e Supabase correspondentes à frente.
 
 Documentos históricos não prevalecem sobre código, ambientes ou decisões posteriores.
 
@@ -156,6 +157,8 @@ Preservar:
 - tentativas permanecem sincronizadas com `pendency_attempts` e com a verificação relacionada;
 - nota permanente e bem derivado permanecem coerentes na mesma operação protegida;
 - edição patrimonial usa serviço autorizado, versão esperada e log.
+
+Na hotfix do PR #203, `boletoInternet` é documento exclusivo de Educação Conectada. Ele não cria Nota Fiscal, bem ou Consulta Assessoria. Consolidações conectadas anteriores à chave usam projeção de compatibilidade sem backfill; nenhuma escrita fora de `CONECTADA` é aceita, inclusive por retificação direta.
 
 ## 10. Testes: regra principal
 
