@@ -1,6 +1,6 @@
 const { test, expect } = require('@playwright/test');
 
-test('Boleto de Internet fica aninhado em Notas Fiscais, registra gasto só em Conectada e preserva Pendência canônica', async ({ page }, testInfo) => {
+test('Boleto de Internet existe somente como Tipo de Gasto de Notas Fiscais em Educação Conectada', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 
   await page.goto('/');
@@ -14,8 +14,7 @@ test('Boleto de Internet fica aninhado em Notas Fiscais, registra gasto só em C
     ));
     if (!escola) throw new Error('Fixture sem escola com Educação Conectada.');
 
-    const programaId = 'CONECTADA';
-    const compKey = `${competencia}_${programaId}`;
+    const compKey = `${competencia}_CONECTADA`;
     const serviceInvoiceCountBefore = notasRegistradas.filter(note => (
       note.escolaId === escola.id
       && note.compKey === compKey
@@ -35,7 +34,6 @@ test('Boleto de Internet fica aninhado em Notas Fiscais, registra gasto só em C
     switchView('prontuario', escola.id);
     return {
       escolaId: escola.id,
-      programaId,
       compKey,
       serviceInvoiceCountBefore,
       billInvoiceCountBefore,
@@ -46,45 +44,30 @@ test('Boleto de Internet fica aninhado em Notas Fiscais, registra gasto só em C
   await expect(
     page.locator('#prontuario-verif-rows tr[data-document-key="boletoInternet"]')
   ).toHaveCount(0);
+  await expect(page.locator('[data-internet-bill-subitem]')).toHaveCount(0);
+  await expect(page.locator('[data-internet-bill-evaluation]')).toHaveCount(0);
+  await expect(page.locator('[data-internet-bill-analysis]')).toHaveCount(0);
 
   const notesRow = page.locator(
     '#prontuario-verif-rows tr[data-program-id="CONECTADA"][data-document-key="notaFiscal"]'
   );
   await expect(notesRow).toBeVisible();
-  await expect(notesRow.locator('[data-internet-bill-subitem]')).toContainText(
-    'Boleto de pagamento de Internet'
-  );
-  await expect(
-    notesRow.getByRole('button', { name: 'Boleto de pagamento de Internet: Sim' })
-  ).toBeVisible();
-  await expect(
-    notesRow.getByRole('button', { name: 'Boleto de pagamento de Internet: Não' })
-  ).toBeVisible();
-  await expect(
-    notesRow.getByRole('button', { name: 'Boleto de pagamento de Internet: N/A' })
-  ).toBeVisible();
 
-  const billAnalysis = notesRow.locator('[data-internet-bill-analysis]');
-  await expect(billAnalysis.locator('option')).toHaveCount(4);
-  await expect(billAnalysis.locator('option').nth(0)).toHaveText('Não analisado');
-  await expect(billAnalysis.locator('option').nth(1)).toHaveText('Correto');
-  await expect(billAnalysis.locator('option').nth(2)).toHaveText('Correto (Atrasado)');
-  await expect(billAnalysis.locator('option').nth(3)).toHaveText('Incorreto');
-
-  const noteBonificationCell = notesRow.locator(
-    'td:has([data-internet-bill-evaluation="bonification"])'
-  );
-  const noteBonificationGroup = noteBonificationCell.locator('.btn-group-toggle').first();
-  await noteBonificationGroup.getByRole('button', { name: 'Sim', exact: true }).click();
+  const noteBonification = notesRow.locator('.btn-group-toggle').first();
+  await noteBonification.getByRole('button', { name: 'Sim', exact: true }).click();
 
   await notesRow.getByRole('button', { name: 'Adicionar Nota' }).click();
   const invoiceModal = page.locator('#modal-dados-nota');
   await expect(invoiceModal).toHaveClass(/show/);
 
-  const billOptionState = await invoiceModal
+  const connectedState = await invoiceModal
     .locator('#nota-tipo option[value="boleto_internet"]')
-    .evaluate(option => ({ hidden: option.hidden, disabled: option.disabled, text: option.textContent.trim() }));
-  expect(billOptionState).toEqual({
+    .evaluate(option => ({
+      hidden: option.hidden,
+      disabled: option.disabled,
+      text: option.textContent.trim()
+    }));
+  expect(connectedState).toEqual({
     hidden: false,
     disabled: false,
     text: 'Boleto de pagamento de Internet'
@@ -111,53 +94,7 @@ test('Boleto de Internet fica aninhado em Notas Fiscais, registra gasto só em C
       && note.tipo === 'boleto_internet'
     ));
     const last = bills.at(-1) || null;
-    return {
-      count: bills.length,
-      invoice: last ? {
-        tipo: last.tipo,
-        numero: last.numero,
-        bemId: last.bemId || null,
-        hasSent: Object.hasOwn(last, 'consultaAssessoriaEnviada'),
-        hasAnalysis: Object.hasOwn(last, 'analiseConsultaAssessoria')
-      } : null
-    };
-  }, context);
-
-  expect(afterSave.count).toBe(context.billInvoiceCountBefore + 1);
-  expect(afterSave.invoice).toEqual({
-    tipo: 'boleto_internet',
-    numero: 'BOL-E2E-001',
-    bemId: null,
-    hasSent: false,
-    hasAnalysis: false
-  });
-
-  await expect(notesRow).toContainText('Boleto Internet: BOL-E2E-001');
-
-  await page.waitForFunction(() => window.RADAR_ATOMIC_ANALYSIS_READY === true, null, {
-    timeout: 15_000
-  });
-  await notesRow
-    .getByRole('button', { name: 'Boleto de pagamento de Internet: Sim' })
-    .click();
-  await notesRow.locator('[data-internet-bill-analysis]').selectOption('Incorreto');
-
-  const pendencyModal = page.locator('#modal-nova-pendencia');
-  await expect(pendencyModal).toHaveClass(/show/);
-  await expect(notesRow.locator('[data-internet-bill-analysis]')).toHaveValue('Não analisado');
-  await pendencyModal.locator('input[name="pend-erros"]').first().check();
-  await pendencyModal.locator('#pend-obs').fill('Boleto de Internet com inconsistência.');
-  await pendencyModal.locator('button[type="submit"]').click();
-  await expect(pendencyModal).not.toHaveClass(/show/);
-
-  const persisted = await page.evaluate(({ escolaId, compKey }) => {
-    const active = pendencias.filter(pendency => (
-      RadarPendencias.isActivePendency(pendency)
-      && pendency.escolaId === escolaId
-      && pendency.programaId === 'CONECTADA'
-      && pendency.documentoKey === 'boletoInternet'
-    ));
-    const verification = verificacoes[escolaId]?.[compKey];
+    const verification = verificacoes[escolaId]?.[compKey] || null;
     const serviceInvoices = notasRegistradas.filter(note => (
       note.escolaId === escolaId
       && note.compKey === compKey
@@ -168,20 +105,70 @@ test('Boleto de Internet fica aninhado em Notas Fiscais, registra gasto só em C
       && (asset.competencia || asset.competenciaKey) === activeCompetenciaKey
     ));
     return {
-      activePendencies: active.length,
-      analysis: verification?.analise?.boletoInternet,
+      billCount: bills.length,
+      invoice: last ? {
+        tipo: last.tipo,
+        numero: last.numero,
+        bemId: last.bemId || null,
+        hasSent: Object.hasOwn(last, 'consultaAssessoriaEnviada'),
+        hasAnalysis: Object.hasOwn(last, 'analiseConsultaAssessoria')
+      } : null,
       serviceInvoiceCount: serviceInvoices.length,
-      assetCount: contextAssets.length
+      assetCount: contextAssets.length,
+      advisoryDelivery: verification?.bonificacao?.consAssessoria || '',
+      advisoryAnalysis: verification?.analise?.consAssessoria || ''
     };
   }, context);
 
-  expect(persisted.activePendencies).toBe(1);
-  expect(persisted.analysis).toBe('Incorreto');
-  expect(persisted.serviceInvoiceCount).toBe(context.serviceInvoiceCountBefore);
-  expect(persisted.assetCount).toBe(context.assetCountBefore);
+  expect(afterSave.billCount).toBe(context.billInvoiceCountBefore + 1);
+  expect(afterSave.invoice).toEqual({
+    tipo: 'boleto_internet',
+    numero: 'BOL-E2E-001',
+    bemId: null,
+    hasSent: false,
+    hasAnalysis: false
+  });
+  expect(afterSave.serviceInvoiceCount).toBe(context.serviceInvoiceCountBefore);
+  expect(afterSave.assetCount).toBe(context.assetCountBefore);
+  expect(afterSave.advisoryDelivery).toBe('Não se aplica');
+  expect(afterSave.advisoryAnalysis).toBe('Correto');
+
+  await expect(notesRow).toContainText('Boleto Internet: BOL-E2E-001');
+
+  await page.waitForFunction(() => window.RADAR_ATOMIC_ANALYSIS_READY === true, null, {
+    timeout: 15_000
+  });
+  const noteAnalysis = notesRow.locator('select.select-analise-comp').first();
+  await noteAnalysis.selectOption('Incorreto');
+
+  const pendencyModal = page.locator('#modal-nova-pendencia');
+  await expect(pendencyModal).toHaveClass(/show/);
+  await expect(pendencyModal).toContainText('Notas Fiscais');
+  await pendencyModal.locator('input[name="pend-erros"]').first().check();
+  await pendencyModal.locator('#pend-obs').fill('Documento de gasto com inconsistência.');
+  await pendencyModal.locator('button[type="submit"]').click();
+  await expect(pendencyModal).not.toHaveClass(/show/);
+
+  const pendency = await page.evaluate(({ escolaId }) => {
+    const active = pendencias.filter(item => (
+      RadarPendencias.isActivePendency(item)
+      && item.escolaId === escolaId
+      && item.programaId === 'CONECTADA'
+      && item.documentoKey === 'notaFiscal'
+    ));
+    const legacy = pendencias.filter(item => (
+      RadarPendencias.isActivePendency(item)
+      && item.escolaId === escolaId
+      && item.documentoKey === 'boletoInternet'
+    ));
+    return { notes: active.length, legacy: legacy.length };
+  }, context);
+
+  expect(pendency.notes).toBe(1);
+  expect(pendency.legacy).toBe(0);
 });
 
-test('consolidação conectada legada projeta N/A e Correto no subitem sem materializar o boleto', async ({ page }, testInfo) => {
+test('boletoInternet legado permanece armazenado, mas não aparece nem participa da consolidação', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 
   await page.goto('/');
@@ -202,6 +189,7 @@ test('consolidação conectada legada projeta N/A e Correto no subitem sem mater
         extCC: 'Sim',
         extINV: 'Sim',
         notaFiscal: 'Não se aplica',
+        boletoInternet: 'Não',
         consAssessoria: 'Não se aplica',
         declBBAgil: 'Sim',
         encampInventario: 'Não se aplica'
@@ -210,35 +198,42 @@ test('consolidação conectada legada projeta N/A e Correto no subitem sem mater
         extCC: 'Correto',
         extINV: 'Correto',
         notaFiscal: 'Correto',
+        boletoInternet: 'Incorreto',
         consAssessoria: 'Correto',
         declBBAgil: 'Correto',
         encampInventario: 'Correto'
       },
-      resultadoBonif: 'apta'
+      resultadoBonif: ''
     };
     activeProntuarioCompetencia = competencia;
     switchView('prontuario', escola.id);
-    return { escolaId: escola.id, compKey };
+
+    const evaluation = RadarFluxoOperacional.evaluateMonthlyEvaluation({
+      bonification: verificacoes[escola.id][compKey].bonificacao,
+      analysis: verificacoes[escola.id][compKey].analise,
+      programId: 'CONECTADA',
+      pendencies: []
+    });
+
+    return {
+      escolaId: escola.id,
+      compKey,
+      evaluation,
+      storedBonification: verificacoes[escola.id][compKey].bonificacao.boletoInternet,
+      storedAnalysis: verificacoes[escola.id][compKey].analise.boletoInternet
+    };
   });
 
+  expect(context.evaluation.canConsolidate).toBe(true);
+  expect(context.evaluation.bonusResult).toBe('apta');
+  expect(context.evaluation.technicalStatus).toBe('correto');
+  expect(context.storedBonification).toBe('Não');
+  expect(context.storedAnalysis).toBe('Incorreto');
+
+  await expect(page.locator('[data-internet-bill-subitem]')).toHaveCount(0);
+  await expect(page.locator('[data-internet-bill-evaluation]')).toHaveCount(0);
+  await expect(page.locator('[data-internet-bill-analysis]')).toHaveCount(0);
   await expect(
     page.locator('#prontuario-verif-rows tr[data-document-key="boletoInternet"]')
   ).toHaveCount(0);
-
-  const notesRow = page.locator(
-    '#prontuario-verif-rows tr[data-program-id="CONECTADA"][data-document-key="notaFiscal"]'
-  );
-  await expect(
-    notesRow.getByRole('button', { name: 'Boleto de pagamento de Internet: N/A' })
-  ).toHaveClass(/active-naoseaplica/);
-  await expect(notesRow.locator('[data-internet-bill-analysis]')).toHaveValue('Correto');
-
-  const storedKeys = await page.evaluate(({ escolaId, compKey }) => {
-    const stored = verificacoes[escolaId][compKey];
-    return {
-      hasBonification: Object.hasOwn(stored.bonificacao, 'boletoInternet'),
-      hasAnalysis: Object.hasOwn(stored.analise, 'boletoInternet')
-    };
-  }, context);
-  expect(storedKeys).toEqual({ hasBonification: false, hasAnalysis: false });
 });

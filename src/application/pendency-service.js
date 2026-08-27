@@ -202,6 +202,14 @@
                     { documentKey: requestedDocumentKey }
                 );
             }
+            if (requestedDocumentKey === 'boletoInternet') {
+                fail(
+                    'DOCUMENT_NOT_APPLICABLE',
+                    'Boleto de pagamento de Internet usa a Pendência de Notas Fiscais e não possui Pendência documental independente.',
+                    'open',
+                    { documentKey: requestedDocumentKey }
+                );
+            }
             const technicalAnalysisValue = text(input.technicalAnalysisValue);
             const changesVerification = Boolean(technicalAnalysisValue);
             const persistence = { operation: 'open', expectedPendencyVersion: null };
@@ -221,14 +229,6 @@
                         item: text(input.item)
                     };
                     const documentary = Boolean(context.programaId && context.documentoKey);
-                    if (context.documentoKey === 'boletoInternet' && context.programaId !== 'CONECTADA') {
-                        fail(
-                            'DOCUMENT_NOT_APPLICABLE',
-                            'Boleto de pagamento de Internet é aplicável somente ao programa Educação Conectada.',
-                            'open',
-                            { programId: context.programaId, documentKey: context.documentoKey }
-                        );
-                    }
                     const existing = documentary
                         ? this.domain.findActivePendency(state.pendencies, context)
                         : null;

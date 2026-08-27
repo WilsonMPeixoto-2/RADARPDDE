@@ -5161,12 +5161,7 @@ const VERIFICATION_DOCUMENT_LABELS = Object.freeze({
 });
 
 function buildVerificationSnapshot(verification, programId = '') {
-    const isLegacyConnectedConsolidation = programId === 'CONECTADA'
-        && verification?.resultadoBonif
-        && !Object.prototype.hasOwnProperty.call(verification.bonificacao || {}, 'boletoInternet');
-    const emptyVerification = window.RadarFluxoOperacional.createEmptyVerification(
-        isLegacyConnectedConsolidation ? '' : programId
-    );
+    const emptyVerification = window.RadarFluxoOperacional.createEmptyVerification(programId);
 
     if (!verification) {
         return emptyVerification;
@@ -9950,99 +9945,6 @@ function renderProntuarioVerificacoes(esc) {
                         pendStatusHTML = `<button class="btn btn-secondary btn-sm" data-action="open-document-pendency" onclick="openNovaPendenciaModalWithDefaults('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(progName)}', '${escapeHtml(doc.key)}', '${escapeHtml(doc.name)}')" style="font-size:0.7rem; padding:2px 6px;">Abrir Pendência</button>`;
                     }
 
-                    let internetBillNested = null;
-                    if (doc.key === 'notaFiscal' && progId === 'CONECTADA') {
-                        const billDocument = {
-                            key: 'boletoInternet',
-                            name: 'Boleto de pagamento de Internet',
-                            allowNaoAplica: true
-                        };
-                        const billState = window.RadarFluxoOperacional
-                            .getEffectiveDocumentState(v, progId, billDocument.key);
-                        const billContext = window.RadarFluxoOperacional.buildPendencyContext({
-                            compProgKey,
-                            programaNome: progName,
-                            documentoKey: billDocument.key,
-                            documentoNome: billDocument.name
-                        });
-                        const billExactContext = {
-                            ...billContext,
-                            escolaId: esc.id,
-                            competenciaOrigem: c.key
-                        };
-                        const billPendencyKey = window.RadarPendencias.buildDocumentContextKey(
-                            billExactContext
-                        );
-                        const billActivePend = window.RadarPendencias.findActivePendency(
-                            documentaryPendencies,
-                            billExactContext
-                        );
-                        const billResolvedPend = documentaryPendencies.find(pendency => (
-                            pendency.status === 'Resolvida'
-                            && window.RadarPendencias.buildDocumentContextKey(pendency)
-                                === billPendencyKey
-                        ));
-                        const billAnalysisLocked = accessProfile === 'inventario'
-                            || accessProfile === 'sme'
-                            || Boolean(billActivePend);
-                        const billLockId = `analysis-lock-${progId}-boletoInternet`;
-                        let billPendStatusHTML = '';
-
-                        if (canUseVerificationActions && billActivePend) {
-                            const submissionActionLabel = getCorrectiveSubmissionActionLabel(
-                                billActivePend
-                            );
-                            const canReanalyse = canReanalysePendency(billActivePend);
-                            const instruction = billActivePend.status === 'Aguardando reanálise'
-                                ? 'Análise bloqueada enquanto aguarda reanálise. Use Reanalisar para registrar o resultado.'
-                                : 'Análise bloqueada enquanto a pendência estiver Aberta. Registre um novo envio para prosseguir.';
-                            billPendStatusHTML = `
-                                <div data-internet-bill-pendency style="margin-top:8px;">
-                                    <div style="font-size:0.68rem; font-weight:600; margin-bottom:4px;">Boleto de Internet</div>
-                                    <div style="display:flex; flex-wrap:wrap; gap:4px;">
-                                        ${canReanalyse ? `
-                                            <button
-                                                class="btn btn-primary btn-sm"
-                                                data-action="reanalyse-pendency"
-                                                data-pendency-ref="${escapeHtml(encodePendencyIdReference(billActivePend.id))}"
-                                                onclick="abrirModalReanalisarPendencia(this)"
-                                                style="font-size:0.7rem; padding:2px 6px;"
-                                            >Reanalisar</button>
-                                        ` : ''}
-                                        ${submissionActionLabel && canRegisterCorrectiveSubmission ? `
-                                            <button
-                                                class="btn ${canReanalyse ? 'btn-secondary' : 'btn-primary'} btn-sm"
-                                                data-action="register-corrective-submission"
-                                                data-pendency-ref="${escapeHtml(encodePendencyIdReference(billActivePend.id))}"
-                                                onclick="abrirModalRegistrarNovoEnvio(this)"
-                                                style="font-size:0.7rem; padding:2px 6px;"
-                                            >${escapeHtml(submissionActionLabel)}</button>
-                                        ` : ''}
-                                    </div>
-                                    <p id="${escapeHtml(billLockId)}" style="font-size:0.7rem; color:var(--text-muted); margin-top:6px;">${escapeHtml(instruction)}</p>
-                                </div>
-                            `;
-                        } else if (
-                            canUseVerificationActions
-                            && billResolvedPend
-                            && billState.analysis === 'Não analisado'
-                        ) {
-                            billPendStatusHTML = `<div data-internet-bill-pendency style="margin-top:8px;"><span class="badge badge-success" style="font-size:0.7rem;" title="Justificativa: ${escapeHtml(billResolvedPend.justificativaResolucao || billResolvedPend.observacao || '')}">Boleto: Resolvida - reanalisar</span></div>`;
-                        } else if (canOpenPendency && billState.analysis === 'Incorreto') {
-                            billPendStatusHTML = `<div data-internet-bill-pendency style="margin-top:8px;"><button class="btn btn-secondary btn-sm" data-action="open-document-pendency" onclick="openNovaPendenciaModalWithDefaults('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(progName)}', 'boletoInternet', 'Boleto de pagamento de Internet')" style="font-size:0.7rem; padding:2px 6px;">Abrir Pendência do Boleto</button></div>`;
-                        }
-
-                        internetBillNested = {
-                            bonification: billState.bonification,
-                            analysis: billState.analysis,
-                            activePend: billActivePend,
-                            resolvedPend: billResolvedPend,
-                            analysisLocked: billAnalysisLocked,
-                            lockId: billLockId,
-                            pendStatusHTML: billPendStatusHTML
-                        };
-                    }
-
                     // Conteúdo extra para visualização de notas fiscais
                     let extraContentHTML = '';
                     let serviceAdvisoryEntries = [];
@@ -10066,26 +9968,16 @@ function renderProntuarioVerificacoes(esc) {
                             </button>
                         ` : '';
                         
-                        if (notesBadges || addBtn || internetBillNested) {
+                        if (notesBadges || addBtn) {
                             extraContentHTML = `
                                 <div style="margin-top: 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px;">
                                     ${notesBadges}
                                     ${addBtn}
                                 </div>
-                                ${internetBillNested ? `
-                                    <div
-                                        data-internet-bill-subitem
-                                        style="margin-top:8px; padding-top:8px; border-top:1px dashed var(--border-color);"
-                                    >
-                                        <div style="font-size:0.75rem; font-weight:600;">Boleto de pagamento de Internet</div>
-                                        <div style="font-size:0.68rem; color:var(--text-muted); margin-top:2px;">
-                                            Registrar pelo campo “Tipo de Gasto”. Avaliação exclusiva de Educação Conectada.
-                                        </div>
-                                    </div>
-                                ` : ''}
                             `;
                         }
                     }
+
                     if (doc.key === 'consAssessoria') {
                         const serviceNotes = notasRegistradas.filter(note => (
                             note.escolaId === esc.id
@@ -10199,95 +10091,7 @@ function renderProntuarioVerificacoes(esc) {
                             </select>
                         `;
 
-                    if (internetBillNested) {
-                        const billBonificationHTML = accessProfile === 'sme'
-                            ? `
-                                <span
-                                    class="badge ${internetBillNested.bonification === 'Sim'
-                                        ? 'badge-success'
-                                        : internetBillNested.bonification === 'Não'
-                                            ? 'badge-danger'
-                                            : 'badge-gray'}"
-                                    data-bonification-value="${escapeHtml(internetBillNested.bonification || '')}"
-                                >${escapeHtml(internetBillNested.bonification || 'Não informado')}</span>
-                            `
-                            : `
-                                <div class="btn-group-toggle" data-internet-bill-bonification>
-                                    <button class="btn-toggle ${internetBillNested.bonification === 'Sim' ? 'active-sim' : ''}"
-                                            aria-label="Boleto de pagamento de Internet: Sim"
-                                            onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', 'boletoInternet', 'Sim')"
-                                            ${isBonifLocked ? 'disabled' : ''}>Sim</button>
-                                    <button class="btn-toggle ${internetBillNested.bonification === 'Não' ? 'active-nao' : ''}"
-                                            aria-label="Boleto de pagamento de Internet: Não"
-                                            onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', 'boletoInternet', 'Não')"
-                                            ${isBonifLocked ? 'disabled' : ''}>Não</button>
-                                    <button class="btn-toggle ${internetBillNested.bonification === 'Não se aplica' ? 'active-naoseaplica' : ''}"
-                                            aria-label="Boleto de pagamento de Internet: N/A"
-                                            onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', 'boletoInternet', 'Não se aplica')"
-                                            ${isBonifLocked ? 'disabled' : ''}>N/A</button>
-                                </div>
-                            `;
-
-                        bonificationCellHTML = `
-                            <div style="display:flex; flex-direction:column; gap:10px;">
-                                <div>
-                                    <div style="font-size:0.66rem; color:var(--text-muted); margin-bottom:4px;">Notas Fiscais</div>
-                                    ${bonificationCellHTML}
-                                </div>
-                                <div data-internet-bill-evaluation="bonification" style="padding-top:8px; border-top:1px dashed var(--border-color);">
-                                    <div style="font-size:0.66rem; color:var(--text-muted); margin-bottom:4px;">Boleto de Internet</div>
-                                    ${billBonificationHTML}
-                                </div>
-                            </div>
-                        `;
-
-                        const billAnalysis = internetBillNested.analysis || 'Não analisado';
-                        const billAnalysisHTML = `
-                            <select
-                                class="select-analise select-analise-comp analise-${billAnalysis.toLowerCase().replace(/\s+/g, '-').replace(/[()]/g, '')}"
-                                data-internet-bill-analysis
-                                aria-label="Análise técnica de Boleto de pagamento de Internet no programa ${escapeHtml(progName)}"
-                                onchange="changeAnaliseTecnica('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', 'boletoInternet', this.value, this)"
-                                ${internetBillNested.activePend ? `aria-describedby="${escapeHtml(internetBillNested.lockId)}"` : ''}
-                                ${internetBillNested.analysisLocked ? 'disabled' : ''}
-                            >
-                                <option value="Não analisado" ${billAnalysis === 'Não analisado' ? 'selected' : ''}>Não analisado</option>
-                                <option value="Correto" ${billAnalysis === 'Correto' ? 'selected' : ''}>Correto</option>
-                                <option value="Correto (Atrasado)" ${billAnalysis === 'Correto (Atrasado)' ? 'selected' : ''}>Correto (Atrasado)</option>
-                                <option value="Incorreto" ${billAnalysis === 'Incorreto' ? 'selected' : ''}>Incorreto</option>
-                            </select>
-                        `;
-
-                        analysisCellHTML = `
-                            <div style="display:flex; flex-direction:column; gap:10px;">
-                                <div>
-                                    <div style="font-size:0.66rem; color:var(--text-muted); margin-bottom:4px;">Notas Fiscais</div>
-                                    ${analysisCellHTML}
-                                </div>
-                                <div data-internet-bill-evaluation="analysis" style="padding-top:8px; border-top:1px dashed var(--border-color);">
-                                    <div style="font-size:0.66rem; color:var(--text-muted); margin-bottom:4px;">Boleto de Internet</div>
-                                    ${billAnalysisHTML}
-                                </div>
-                            </div>
-                        `;
-
-                        if (internetBillNested.pendStatusHTML) {
-                            pendStatusHTML = `
-                                ${pendStatusHTML ? `
-                                    <div style="margin-bottom:8px;">
-                                        <div style="font-size:0.66rem; color:var(--text-muted); margin-bottom:4px;">Notas Fiscais</div>
-                                        ${pendStatusHTML}
-                                    </div>
-                                ` : ''}
-                                ${internetBillNested.pendStatusHTML}
-                            `;
-                        }
-                    }
-
-                    const rowPendency = activePend
-                        || resolvedPend
-                        || internetBillNested?.activePend
-                        || internetBillNested?.resolvedPend;
+                    const rowPendency = activePend || resolvedPend;
 
                     rowsHTML += `
                         <tr

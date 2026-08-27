@@ -18,21 +18,24 @@ const BASE_BONIFICATION = Object.freeze({
     encampInventario: 'Não se aplica'
 });
 
-function connectedBonification(boletoValue) {
-    return { ...BASE_BONIFICATION, boletoInternet: boletoValue };
-}
+const BASE_ANALYSIS = Object.freeze({
+    extCC: 'Correto',
+    extINV: 'Correto',
+    notaFiscal: 'Correto',
+    consAssessoria: 'Correto',
+    declBBAgil: 'Correto',
+    encampInventario: 'Correto'
+});
 
 function createVerificationHarness(compKey = '2026-08_CONECTADA', profile = 'controlador') {
     const verification = {
-        bonificacao: connectedBonification('Não se aplica'),
+        bonificacao: {
+            ...BASE_BONIFICATION,
+            boletoInternet: 'Sim'
+        },
         analise: {
-            extCC: 'Correto',
-            extINV: 'Correto',
-            notaFiscal: 'Correto',
-            consAssessoria: 'Correto',
-            declBBAgil: 'Correto',
-            encampInventario: 'Correto',
-            boletoInternet: 'Não analisado'
+            ...BASE_ANALYSIS,
+            boletoInternet: 'Incorreto'
         },
         resultadoBonif: ''
     };
@@ -41,130 +44,101 @@ function createVerificationHarness(compKey = '2026-08_CONECTADA', profile = 'con
         registeredInvoices: [],
         assets: [],
         pendencies: [],
-        schools: [{ id: 'ESC-1', denominação: 'Escola Teste' }],
+        schools: [{ id: 'ESC-1', denominação: 'Escola Teste', programasIds: ['CONECTADA'] }],
         programs: [
             { id: 'BASIC', name: 'PDDE Básico' },
             { id: 'CONECTADA', name: 'Educação Conectada' }
         ],
         logs: []
     };
-    let sequence = 0;
+    let executeCalls = 0;
     const service = new VerificationService({
         dataService: {
             async execute(command) {
+                executeCalls += 1;
                 return { ok: true, value: await command.mutate() };
             }
         },
         getState: () => state,
         ensureVerification: () => verification,
-        appendLog: (action, details) => {
-            const log = { id: `log-${++sequence}`, action, details };
-            state.logs.unshift(log);
-            return log;
-        },
+        appendLog: () => ({ id: 'log-legacy-boleto' }),
         getCurrentUser: () => ({ name: 'Controlador Teste', role: 'Controlador' }),
         getCurrentProfile: () => profile,
-        createId: prefix => `${prefix}-${++sequence}`,
-        now: () => '2026-08-26T20:00:00.000Z',
+        createId: prefix => `${prefix}-legacy-boleto`,
+        now: () => '2026-08-27T15:00:00.000Z',
         fluxo,
         retificacoes,
         reopenConsolidation: () => {}
     });
-    return { state, verification, service };
+    return { state, verification, service, getExecuteCalls: () => executeCalls };
 }
 
-test('Boleto de Internet pertence somente ao programa Educação Conectada', () => {
-    assert.equal(fluxo.DOCUMENT_KEYS.includes('boletoInternet'), false);
-    assert.deepEqual(fluxo.getDocumentKeysForProgram('BASIC'), fluxo.DOCUMENT_KEYS);
-    assert.equal(fluxo.getDocumentKeysForProgram('CONECTADA').includes('boletoInternet'), true);
-    assert.equal(
-        Object.hasOwn(fluxo.createEmptyVerification('BASIC').bonificacao, 'boletoInternet'),
-        false
-    );
+test('Educação Conectada usa a mesma matriz documental e ignora boletoInternet legado', () => {
+    assert.deepEqual(fluxo.getDocumentKeysForProgram('CONECTADA'), fluxo.DOCUMENT_KEYS);
+    assert.equal(fluxo.getDocumentKeysForProgram('CONECTADA').includes('boletoInternet'), false);
     assert.equal(
         Object.hasOwn(fluxo.createEmptyVerification('CONECTADA').bonificacao, 'boletoInternet'),
-        true
+        false
     );
 
-    assert.deepEqual(fluxo.evaluateBonification(BASE_BONIFICATION, 'BASIC'), {
+    assert.deepEqual(fluxo.evaluateBonification(BASE_BONIFICATION, 'CONECTADA'), {
         canConsolidate: true,
         status: 'apta',
         missingFields: []
     });
-    assert.deepEqual(fluxo.evaluateBonification(BASE_BONIFICATION, 'CONECTADA'), {
-        canConsolidate: false,
-        status: null,
-        missingFields: ['boletoInternet']
-    });
-    assert.equal(fluxo.evaluateBonification(connectedBonification('Sim'), 'CONECTADA').status, 'apta');
-    assert.equal(fluxo.evaluateBonification(connectedBonification('Não se aplica'), 'CONECTADA').status, 'apta');
-    assert.equal(fluxo.evaluateBonification(connectedBonification('Não'), 'CONECTADA').status, 'inapta');
-});
 
-test('consolidações antigas de Educação Conectada permanecem válidas sem backfill do boleto', () => {
-    const legacyAnalysis = Object.fromEntries(
-        fluxo.DOCUMENT_KEYS.map(key => [key, 'Correto'])
+    assert.deepEqual(
+        fluxo.evaluateBonification({ ...BASE_BONIFICATION, boletoInternet: 'Não' }, 'CONECTADA'),
+        {
+            canConsolidate: true,
+            status: 'apta',
+            missingFields: []
+        }
     );
-    const result = fluxo.evaluateMonthlyEvaluation({
-        bonification: BASE_BONIFICATION,
-        analysis: legacyAnalysis,
-        bonusResult: 'apta',
+
+    const evaluation = fluxo.evaluateMonthlyEvaluation({
+        bonification: { ...BASE_BONIFICATION, boletoInternet: 'Não' },
+        analysis: { ...BASE_ANALYSIS, boletoInternet: 'Incorreto' },
+        bonusResult: '',
         programId: 'CONECTADA',
         pendencies: []
     });
 
-    assert.equal(result.canConsolidate, true);
-    assert.equal(result.bonusResult, 'apta');
-    assert.equal(result.technicalStatus, 'correto');
-    assert.equal(result.technicalCompletion, 'complete');
-
-    const projectedBill = fluxo.getEffectiveDocumentState({
-        bonificacao: BASE_BONIFICATION,
-        analise: legacyAnalysis,
-        resultadoBonif: 'apta'
-    }, 'CONECTADA', 'boletoInternet');
-    assert.deepEqual(projectedBill, {
-        bonification: 'Não se aplica',
-        analysis: 'Correto',
-        usesLegacyCompatibility: true
-    });
-    assert.equal(Object.hasOwn(BASE_BONIFICATION, 'boletoInternet'), false);
-    assert.equal(Object.hasOwn(legacyAnalysis, 'boletoInternet'), false);
+    assert.equal(evaluation.canConsolidate, true);
+    assert.equal(evaluation.bonusResult, 'apta');
+    assert.equal(evaluation.technicalStatus, 'correto');
+    assert.equal(evaluation.technicalCompletion, 'complete');
 });
 
-test('Boleto de Internet usa análise técnica comum sem criar NF, Assessoria ou bem', async () => {
+test('estado legado boletoInternet é preservado como dado, mas não recebe compatibilidade ativa', () => {
+    const verification = {
+        bonificacao: { ...BASE_BONIFICATION, boletoInternet: 'Sim' },
+        analise: { ...BASE_ANALYSIS, boletoInternet: 'Incorreto' },
+        resultadoBonif: ''
+    };
+
+    const projected = fluxo.getEffectiveDocumentState(
+        verification,
+        'CONECTADA',
+        'boletoInternet'
+    );
+
+    assert.deepEqual(projected, {
+        bonification: 'Sim',
+        analysis: 'Incorreto',
+        usesLegacyCompatibility: false
+    });
+    assert.equal(verification.bonificacao.boletoInternet, 'Sim');
+    assert.equal(verification.analise.boletoInternet, 'Incorreto');
+});
+
+test('VerificationService rejeita boletoInternet como documento independente antes de DataService', async () => {
     const harness = createVerificationHarness();
-
-    await harness.service.setBonification({
-        schoolId: 'ESC-1',
-        compKey: '2026-08_CONECTADA',
-        documentKey: 'boletoInternet',
-        value: 'Sim',
-        profile: 'controlador'
-    });
-    await harness.service.setTechnicalAnalysis({
-        schoolId: 'ESC-1',
-        compKey: '2026-08_CONECTADA',
-        documentKey: 'boletoInternet',
-        value: 'Correto',
-        profile: 'controlador'
-    });
-
-    assert.equal(harness.verification.bonificacao.boletoInternet, 'Sim');
-    assert.equal(harness.verification.analise.boletoInternet, 'Correto');
-    assert.equal(harness.state.registeredInvoices.length, 0);
-    assert.equal(harness.state.assets.length, 0);
-    assert.equal(harness.verification.bonificacao.consAssessoria, 'Não se aplica');
-    assert.match(harness.state.logs.map(log => log.details).join('\n'), /Boleto de pagamento de Internet/);
-});
-
-test('serviço rejeita Boleto de Internet fora de Educação Conectada', async () => {
-    const harness = createVerificationHarness('2026-08_BASIC');
 
     await assert.rejects(
         () => harness.service.setBonification({
             schoolId: 'ESC-1',
-            compKey: '2026-08_BASIC',
+            compKey: '2026-08_CONECTADA',
             documentKey: 'boletoInternet',
             value: 'Sim',
             profile: 'controlador'
@@ -175,121 +149,77 @@ test('serviço rejeita Boleto de Internet fora de Educação Conectada', async (
     await assert.rejects(
         () => harness.service.setTechnicalAnalysis({
             schoolId: 'ESC-1',
-            compKey: '2026-08_BASIC',
+            compKey: '2026-08_CONECTADA',
             documentKey: 'boletoInternet',
             value: 'Correto',
             profile: 'controlador'
         }),
         error => error?.code === 'DOCUMENT_NOT_APPLICABLE'
     );
-});
 
-test('retificação rejeita Boleto de Internet fora de Educação Conectada', async () => {
-    const harness = createVerificationHarness('2026-08_BASIC', 'assistente');
-
+    const assistantHarness = createVerificationHarness('2026-08_CONECTADA', 'assistente');
     await assert.rejects(
-        () => harness.service.retify({
+        () => assistantHarness.service.retify({
             schoolId: 'ESC-1',
-            compKey: '2026-08_BASIC',
-            programId: 'BASIC',
-            bonification: { boletoInternet: 'Sim' },
+            compKey: '2026-08_CONECTADA',
+            programId: 'CONECTADA',
+            bonification: { boletoInternet: 'Não' },
             bonusResult: 'apta',
-            justification: 'Retificação de teste.'
+            justification: 'Tentativa de editar requisito legado.'
         }),
         error => error?.code === 'DOCUMENT_NOT_APPLICABLE'
     );
+
+    assert.equal(harness.getExecuteCalls(), 0);
+    assert.equal(assistantHarness.getExecuteCalls(), 0);
 });
 
-test('Boleto de Internet abre pendência documental e grava Incorreto atomicamente em Educação Conectada', async () => {
+test('PendencyService rejeita nova pendência boletoInternet e exige o documento Notas Fiscais', async () => {
     const state = {
         pendencies: [],
         contacts: [],
-        registeredInvoices: [],
-        assets: [],
         verifications: {
             'ESC-1': {
                 '2026-08_CONECTADA': {
-                    bonificacao: { boletoInternet: 'Sim' },
-                    analise: { boletoInternet: 'Não analisado' },
+                    bonificacao: { ...BASE_BONIFICATION, boletoInternet: 'Sim' },
+                    analise: { ...BASE_ANALYSIS, boletoInternet: 'Não analisado' },
                     resultadoBonif: ''
                 }
             }
         },
-        schools: [{ id: 'ESC-1', denominação: 'Escola Teste' }],
-        programs: [{ id: 'CONECTADA', name: 'Educação Conectada' }],
-        logs: []
-    };
-    let sequence = 0;
-    const service = new PendencyService({
-        dataService: {
-            async execute(command) {
-                return { ok: true, value: await command.mutate() };
-            }
-        },
-        domain: pendencyDomain,
-        getState: () => state,
-        appendLog: (action, details) => {
-            const log = { id: `log-${++sequence}`, action, details };
-            state.logs.unshift(log);
-            return log;
-        },
-        getCurrentUser: () => ({ name: 'Controlador Teste', role: 'Controlador' }),
-        createId: prefix => `${prefix}-${++sequence}`,
-        now: () => '2026-08-26T20:00:00.000Z',
-        getCorrectAnalysisLabel: () => 'Correto'
-    });
-
-    const result = await service.open({
-        schoolId: 'ESC-1',
-        competence: '2026-08',
-        programId: 'CONECTADA',
-        documentKey: 'boletoInternet',
-        item: 'Boleto de pagamento de Internet',
-        errors: ['Comprovante ilegível'],
-        observation: 'Reenviar comprovante.',
-        technicalAnalysisValue: 'Incorreto'
-    });
-
-    assert.equal(result.value.pendency.programaId, 'CONECTADA');
-    assert.equal(result.value.pendency.documentoKey, 'boletoInternet');
-    assert.equal(result.value.verification.analise.boletoInternet, 'Incorreto');
-    assert.equal(state.registeredInvoices.length, 0);
-    assert.equal(state.assets.length, 0);
-    assert.equal(state.pendencies.length, 1);
-});
-
-test('serviço de Pendências rejeita Boleto de Internet fora de Educação Conectada', async () => {
-    const state = {
-        pendencies: [],
-        contacts: [],
-        verifications: {},
         schools: [],
         programs: [],
         logs: []
     };
+    let executeCalls = 0;
     const service = new PendencyService({
         dataService: {
             async execute(command) {
+                executeCalls += 1;
                 return { ok: true, value: await command.mutate() };
             }
         },
         domain: pendencyDomain,
         getState: () => state,
-        appendLog: () => ({ id: 'log-out-of-scope' }),
+        appendLog: () => ({ id: 'log-boleto-disabled' }),
         getCurrentUser: () => ({ name: 'Controlador Teste', role: 'Controlador' }),
-        createId: prefix => `${prefix}-out-of-scope`,
-        now: () => '2026-08-26T20:00:00.000Z'
+        createId: prefix => `${prefix}-boleto-disabled`,
+        now: () => '2026-08-27T15:00:00.000Z'
     });
 
     await assert.rejects(
         () => service.open({
             schoolId: 'ESC-1',
             competence: '2026-08',
-            programId: 'BASIC',
+            programId: 'CONECTADA',
             documentKey: 'boletoInternet',
             item: 'Boleto de pagamento de Internet',
-            errors: ['Documento ausente']
+            errors: ['Documento incorreto'],
+            technicalAnalysisValue: 'Incorreto'
         }),
         error => error?.code === 'DOCUMENT_NOT_APPLICABLE'
     );
+
+    assert.equal(executeCalls, 0);
+    assert.equal(state.pendencies.length, 0);
 });

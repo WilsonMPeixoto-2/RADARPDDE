@@ -249,10 +249,10 @@
                 const compKey = text(input.compKey);
                 const documentKey = text(input.documentKey);
                 const { programId } = splitCompKey(compKey);
-                if (documentKey === 'boletoInternet' && programId !== 'CONECTADA') {
+                if (documentKey === 'boletoInternet') {
                     fail(
                         'DOCUMENT_NOT_APPLICABLE',
-                        'Boleto de pagamento de Internet é aplicável somente ao programa Educação Conectada.',
+                        'Boleto de pagamento de Internet é um tipo de gasto de Notas Fiscais e não possui bonificação documental independente.',
                         'setBonification',
                         { programId, documentKey }
                     );
@@ -378,10 +378,10 @@
             this.assertCompetenceEditable(input.compKey, 'setTechnicalAnalysis');
             const technicalDocumentKey = text(input.documentKey);
             const { programId: technicalProgramId } = splitCompKey(input.compKey);
-            if (technicalDocumentKey === 'boletoInternet' && technicalProgramId !== 'CONECTADA') {
+            if (technicalDocumentKey === 'boletoInternet') {
                 fail(
                     'DOCUMENT_NOT_APPLICABLE',
-                    'Boleto de pagamento de Internet é aplicável somente ao programa Educação Conectada.',
+                    'Boleto de pagamento de Internet é avaliado pela análise técnica de Notas Fiscais e não possui análise documental independente.',
                     'setTechnicalAnalysis',
                     { programId: technicalProgramId, documentKey: technicalDocumentKey }
                 );
@@ -575,11 +575,10 @@
                     }
                 );
             }
-            if (retificationContext.programId !== 'CONECTADA'
-                && Object.prototype.hasOwnProperty.call(requestedBonification, 'boletoInternet')) {
+            if (Object.prototype.hasOwnProperty.call(requestedBonification, 'boletoInternet')) {
                 fail(
                     'DOCUMENT_NOT_APPLICABLE',
-                    'Boleto de pagamento de Internet é aplicável somente ao programa Educação Conectada.',
+                    'Boleto de pagamento de Internet é um tipo de gasto de Notas Fiscais e não pode ser retificado como item documental independente.',
                     'retify',
                     {
                         programId: retificationContext.programId,

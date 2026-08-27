@@ -11,11 +11,10 @@
         encampInventario: 'Encaminhado para Inventariação'
     });
     const BONUS_OPTIONS = ['', 'Sim', 'Não', 'Não se aplica'];
-    const DERIVED_BONIFICATION_KEYS = new Set(['consAssessoria', 'consEnviada']);
+    const DERIVED_BONIFICATION_KEYS = new Set(['consAssessoria', 'consEnviada', 'boletoInternet']);
 
     function isEditableBonificationKey(key, programId = '') {
         if (DERIVED_BONIFICATION_KEYS.has(key)) return false;
-        if (key === 'boletoInternet' && programId !== 'CONECTADA') return false;
         return true;
     }
 
