@@ -9949,33 +9949,232 @@ function renderProntuarioVerificacoes(esc) {
                     let extraContentHTML = '';
                     let serviceAdvisoryEntries = [];
                     if (doc.key === 'notaFiscal') {
-                        const notes = notasRegistradas.filter(n => n.escolaId === esc.id && n.compKey === compProgKey);
-                        
-                        const notesBadges = notes.map(n => `
-                            <span class="badge badge-info" style="display: inline-flex; align-items: center; margin-right: 4px; margin-bottom: 4px; padding: 4px 8px; font-size: 0.7rem; font-weight: 500;">
-                                ${n.tipo === 'boleto_internet' ? 'Boleto Internet' : 'NF'}: ${escapeHtml(n.numero)} (R$ ${n.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})})
-                                ${accessProfile !== 'inventario' && accessProfile !== 'sme' && !isBonifLocked ? `
-                                    <span style="margin-left: 6px; cursor: pointer; font-weight: bold; color: var(--warning); font-size: 0.85rem;" onclick="abrirEditarNota('${escapeHtml(n.id)}', '${escapeHtml(esc.id)}')" title="Editar Nota">✎</span>
-                                    <span style="margin-left: 6px; cursor: pointer; font-weight: bold; color: var(--danger); font-size: 0.85rem;" onclick="removerNotaRegistrada('${escapeHtml(n.id)}', '${escapeHtml(esc.id)}')" title="Excluir Nota">×</span>
-                                ` : ''}
-                            </span>
-                        `).join('');
-                        
-                        const addBtn = window.RadarFluxoOperacional.canRegisterFiscalNote(accessProfile, bonifValue) && !isBonifLocked ? `
-                            <button class="btn btn-secondary btn-sm" style="font-size:0.65rem; padding: 2px 6px; display: inline-flex; align-items: center; margin-bottom: 4px;" onclick="openModalDadosNota('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:2px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                                Adicionar Nota
-                            </button>
-                        ` : '';
-                        
-                        if (notesBadges || addBtn) {
-                            extraContentHTML = `
-                                <div style="margin-top: 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px;">
-                                    ${notesBadges}
-                                    ${addBtn}
+                        const notes = notasRegistradas.filter(note => (
+                            note.escolaId === esc.id && note.compKey === compProgKey
+                        ));
+                        const individualizationStarted = notes.some(note => (
+                            window.RadarInvoiceDocumentAnalysis.hasExplicitInvoiceDocumentAnalysis(note)
+                            || window.RadarInvoiceDocumentAnalysis.isUnidentifiedExpense(note)
+                        ));
+                        const fiscalSummary = window.RadarInvoiceDocumentAnalysis
+                            .deriveInvoiceDocumentAnalysis(notes, analiseValue || 'Não analisado');
+                        const activeInvoicePendencies = documentaryPendencies.filter(pendency => (
+                            pendency.escolaId === esc.id
+                            && (pendency.competenciaOrigem || pendency.competencia) === c.key
+                            && pendency.programaId === progId
+                            && pendency.documentoKey === 'notaFiscal'
+                            && ['Aberta', 'Aguardando reanálise'].includes(pendency.status)
+                            && Boolean(pendency.registeredInvoiceId || pendency.registered_invoice_id)
+                        ));
+                        const activePendencyCount = activeInvoicePendencies.length
+                            + (activePend ? 1 : 0);
+                        const summaryClass = fiscalSummary === 'Incorreto'
+                            ? 'is-incorrect'
+                            : fiscalSummary === 'Correto'
+                                ? 'is-correct'
+                                : fiscalSummary === 'Correto (Atrasado)'
+                                    ? 'is-late'
+                                    : 'is-pending';
+                        const canMutateInvoice = accessProfile !== 'inventario'
+                            && accessProfile !== 'sme'
+                            && !isBonifLocked;
+                        const canAddInvoice = window.RadarFluxoOperacional
+                            .canRegisterFiscalNote(accessProfile, bonifValue)
+                            && !isBonifLocked;
+
+                        const fiscalBonificationHTML = accessProfile === 'sme'
+                            ? `
+                                <span class="invoice-document-status ${bonifValue === 'Sim'
+                                    ? 'is-correct'
+                                    : bonifValue === 'Não'
+                                        ? 'is-incorrect'
+                                        : 'is-pending'}">
+                                    ${escapeHtml(bonifValue || 'Não informado')}
+                                </span>
+                            `
+                            : `
+                                <div class="invoice-bonification-toggle" role="group" aria-label="Bonificação de Notas Fiscais">
+                                    <button type="button" class="${bonifValue === 'Sim' ? 'is-selected' : ''}"
+                                        onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', 'notaFiscal', 'Sim')"
+                                        ${isBonifLocked ? 'disabled' : ''}>Sim</button>
+                                    <button type="button" class="${bonifValue === 'Não' ? 'is-selected' : ''}"
+                                        onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', 'notaFiscal', 'Não')"
+                                        ${isBonifLocked ? 'disabled' : ''}>Não</button>
+                                    <button type="button" class="${bonifValue === 'Não se aplica' ? 'is-selected' : ''}"
+                                        onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', 'notaFiscal', 'Não se aplica')"
+                                        ${isBonifLocked ? 'disabled' : ''}>N/A</button>
                                 </div>
                             `;
-                        }
+
+                        const documentRowsHTML = notes.length > 0
+                            ? notes.map((note, noteIndex) => {
+                                const invoiceContext = {
+                                    escolaId: esc.id,
+                                    competencia: c.key,
+                                    competenciaOrigem: c.key,
+                                    programaId: progId,
+                                    documentoKey: 'notaFiscal',
+                                    registeredInvoiceId: note.id
+                                };
+                                const invoicePendency = window.RadarPendencias.findActivePendency(
+                                    documentaryPendencies,
+                                    invoiceContext
+                                );
+                                const analysisFallback = individualizationStarted
+                                    ? 'Não analisado'
+                                    : (analiseValue || 'Não analisado');
+                                const analysis = window.RadarInvoiceDocumentAnalysis
+                                    .getInvoiceDocumentAnalysis(note, analysisFallback);
+                                const statusLabel = invoicePendency?.status === 'Aguardando reanálise'
+                                    ? 'Aguardando reanálise'
+                                    : analysis;
+                                const statusClass = statusLabel === 'Incorreto'
+                                    ? 'is-incorrect'
+                                    : statusLabel === 'Correto'
+                                        ? 'is-correct'
+                                        : statusLabel === 'Correto (Atrasado)'
+                                            ? 'is-late'
+                                            : statusLabel === 'Aguardando reanálise'
+                                                ? 'is-waiting'
+                                                : 'is-pending';
+                                const hasPendencyHistory = documentaryPendencies.some(pendency => (
+                                    String(pendency.registeredInvoiceId || pendency.registered_invoice_id || '')
+                                        === String(note.id)
+                                ));
+                                const editableAnalysis = canViewTechnicalAnalysis
+                                    && canMutateInvoice
+                                    && !invoicePendency
+                                    && note.tipo !== 'a_identificar';
+                                const analysisHTML = editableAnalysis
+                                    ? `
+                                        <select
+                                            class="invoice-document-analysis-select ${statusClass}"
+                                            aria-label="Análise técnica de ${escapeHtml(getInvoiceDocumentTitle(note))}"
+                                            onchange="changeInvoiceDocumentAnalysis('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}', this.value, this)"
+                                        >
+                                            <option value="Não analisado" ${analysis === 'Não analisado' ? 'selected' : ''}>Não analisado</option>
+                                            <option value="Correto" ${analysis === 'Correto' ? 'selected' : ''}>Correto</option>
+                                            <option value="Correto (Atrasado)" ${analysis === 'Correto (Atrasado)' ? 'selected' : ''}>Correto (Atrasado)</option>
+                                            <option value="Incorreto">Incorreto</option>
+                                        </select>
+                                    `
+                                    : `<span class="invoice-document-status ${statusClass}">${escapeHtml(statusLabel)}</span>`;
+
+                                let actionHTML = '';
+                                if (invoicePendency) {
+                                    actionHTML = `
+                                        <button type="button" class="invoice-pendency-view-button"
+                                            onclick="openPendencyDrawer('${escapeHtml(invoicePendency.id)}')">
+                                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.6-6 9.5-6 9.5 6 9.5 6-3.6 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.7"/></svg>
+                                            <span>Visualizar pendência</span>
+                                        </button>
+                                    `;
+                                } else if (analysis === 'Incorreto' && canOpenPendency) {
+                                    actionHTML = `
+                                        <button type="button" class="invoice-pendency-view-button"
+                                            onclick="openInvoiceDocumentPendencyModal('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}')">
+                                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5v10"/><path d="M12 18.5h.01"/><path d="M10.2 4.6 2.8 17.4a2 2 0 0 0 1.7 3h15a2 2 0 0 0 1.7-3L13.8 4.6a2 2 0 0 0-3.6 0z"/></svg>
+                                            <span>Abrir pendência</span>
+                                        </button>
+                                    `;
+                                }
+
+                                const editControls = canMutateInvoice
+                                    ? `
+                                        <span class="invoice-document-inline-actions">
+                                            <button type="button" onclick="abrirEditarNota('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}')" aria-label="Editar ${escapeHtml(getInvoiceDocumentTitle(note))}">
+                                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg>
+                                            </button>
+                                            ${!hasPendencyHistory ? `
+                                                <button type="button" class="is-danger" onclick="removerNotaRegistrada('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}')" aria-label="Excluir ${escapeHtml(getInvoiceDocumentTitle(note))}">
+                                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4.5h6V7M7 7l1 13h8l1-13M10 10v7M14 10v7"/></svg>
+                                                </button>
+                                            ` : ''}
+                                        </span>
+                                    `
+                                    : '';
+
+                                return `
+                                    <div class="invoice-document-row ${noteIndex % 2 === 1 ? 'is-striped' : ''}" data-invoice-id="${escapeHtml(note.id)}">
+                                        <div class="invoice-document-identity">
+                                            <span class="invoice-document-icon">${invoiceDocumentIconSvg(note.tipo)}</span>
+                                            <div class="invoice-document-copy">
+                                                <div class="invoice-document-title-line">
+                                                    <strong>${escapeHtml(getInvoiceDocumentTitle(note))}</strong>
+                                                    ${editControls}
+                                                </div>
+                                                <span>${escapeHtml(getInvoiceDocumentTypeLabel(note))} · ${escapeHtml(formatInvoiceCurrency(note.valor))}</span>
+                                            </div>
+                                        </div>
+                                        ${canViewTechnicalAnalysis ? `<div class="invoice-document-analysis">${analysisHTML}</div>` : ''}
+                                        ${canUseVerificationActions ? `<div class="invoice-document-action">${actionHTML || '<span aria-hidden="true" class="invoice-document-empty-action">—</span>'}</div>` : ''}
+                                    </div>
+                                `;
+                            }).join('')
+                            : '<div class="invoice-document-empty">Nenhum documento ou despesa registrado.</div>';
+
+                        rowsHTML += `
+                            <tr
+                                data-program-id="${escapeHtml(progId)}"
+                                data-document-key="notaFiscal"
+                                class="invoice-document-host-row"
+                            >
+                                <td colspan="${Math.max(1, visibleColumnCount - 1)}">
+                                    <section class="invoice-document-panel" data-invoice-document-panel>
+                                        <div class="invoice-document-panel-header">
+                                            <div class="invoice-document-panel-title">
+                                                <span class="invoice-document-icon is-folder">
+                                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 6.5h6l2 2h9v10.5a1.5 1.5 0 0 1-1.5 1.5h-14A1.5 1.5 0 0 1 3.5 19z"/></svg>
+                                                </span>
+                                                <div>
+                                                    <strong>Notas Fiscais</strong>
+                                                    <span>${notes.length} ${notes.length === 1 ? 'registro' : 'registros'}</span>
+                                                </div>
+                                            </div>
+                                            <div class="invoice-document-panel-summary">
+                                                <div class="invoice-summary-block">
+                                                    <span>Bonificação</span>
+                                                    ${fiscalBonificationHTML}
+                                                </div>
+                                                ${canViewTechnicalAnalysis ? `
+                                                    <div class="invoice-summary-block">
+                                                        <span>Situação técnica</span>
+                                                        <strong class="invoice-document-status ${summaryClass}">${escapeHtml(fiscalSummary)}</strong>
+                                                    </div>
+                                                ` : ''}
+                                                <div class="invoice-summary-block is-pendencies">
+                                                    <span class="invoice-summary-pendency-icon">
+                                                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5.5h9M5 10h9M5 14.5h5"/><path d="M17 12.5v4M17 19h.01"/><path d="M15.3 11.6 11.8 18a1.5 1.5 0 0 0 1.3 2.2h7.8a1.5 1.5 0 0 0 1.3-2.2l-3.5-6.4a1.5 1.5 0 0 0-2.7 0z"/></svg>
+                                                    </span>
+                                                    <strong>${activePendencyCount} ${activePendencyCount === 1 ? 'pendência' : 'pendências'}</strong>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="invoice-document-list ${canViewTechnicalAnalysis ? '' : 'no-analysis'} ${canUseVerificationActions ? '' : 'no-actions'}">
+                                            <div class="invoice-document-list-head">
+                                                <span>Documento</span>
+                                                ${canViewTechnicalAnalysis ? '<span>Situação técnica</span>' : ''}
+                                                ${canUseVerificationActions ? '<span>Ação</span>' : ''}
+                                            </div>
+                                            ${documentRowsHTML}
+                                        </div>
+                                        ${canAddInvoice ? `
+                                            <div class="invoice-document-footer">
+                                                <button type="button" class="invoice-add-primary" onclick="openModalDadosNota('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">
+                                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                                                    <span>Adicionar Nota</span>
+                                                </button>
+                                                <button type="button" class="invoice-add-secondary" onclick="openUnidentifiedExpenseModal('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">
+                                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h10l4 4V20.5H5z"/><path d="M15 3.5v4h4"/><path d="M12 11v5M9.5 13.5h5"/></svg>
+                                                    <span>Registrar despesa a identificar</span>
+                                                </button>
+                                            </div>
+                                        ` : ''}
+                                    </section>
+                                </td>
+                            </tr>
+                        `;
+                        return;
                     }
 
                     if (doc.key === 'consAssessoria') {
