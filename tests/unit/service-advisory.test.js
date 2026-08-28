@@ -46,7 +46,7 @@ test('uma NF de serviço nova começa como Não, não enviada e Não analisado',
     );
 });
 
-test('parte das consultas enviadas mantém entrega Não e agrega análises individuais', () => {
+test('uma consulta enviada já produz bonificação mensal Sim e agrega análises individuais', () => {
     const result = deriveServiceAdvisory([
         service({
             id: 'nota-1',
@@ -60,8 +60,8 @@ test('parte das consultas enviadas mantém entrega Não e agrega análises indiv
         })
     ]);
 
-    assert.equal(result.delivery, 'Não');
-    assert.equal(result.sent, false);
+    assert.equal(result.delivery, 'Sim');
+    assert.equal(result.sent, true);
     assert.equal(result.analysis, 'Correto');
     assert.equal(result.invoiceCount, 2);
 });
