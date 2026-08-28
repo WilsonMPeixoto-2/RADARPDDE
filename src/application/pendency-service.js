@@ -664,7 +664,7 @@
             };
             return this.dataService.execute({
                 name: 'invoice:register-document-attempt',
-                changedEntities: ['registeredInvoices', 'pendencies', 'pendencyAttempts', 'verifications', 'administrativeLogs'],
+                changedEntities: ['registeredInvoices', 'assets', 'pendencies', 'pendencyAttempts', 'verifications', 'administrativeLogs'],
                 remoteResultIsAuthoritative: true,
                 mutate: () => {
                     const state = this.getState();
@@ -850,6 +850,14 @@
             const registeredInvoiceId = text(input.registeredInvoiceId || input.registered_invoice_id);
             if (requestedDocumentKey === 'notaFiscal' && registeredInvoiceId) {
                 return this.openInvoiceDocumentPendency(input);
+            }
+            if (requestedDocumentKey === 'notaFiscal') {
+                fail(
+                    'INCOMPLETE_CONTEXT',
+                    'Toda nova Pendência de Notas Fiscais deve estar vinculada à despesa correspondente.',
+                    'open',
+                    { documentKey: requestedDocumentKey }
+                );
             }
             if (requestedDocumentKey === 'consAssessoria') {
                 fail(
