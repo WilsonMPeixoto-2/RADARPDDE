@@ -10723,6 +10723,71 @@ async function changeAnaliseTecnica(escolaId, compKey, docKey, value, selectElem
     return true;
 }
 
+async function changeInvoiceDocumentAnalysis(
+    invoiceId,
+    escolaId,
+    value,
+    selectElement = null
+) {
+    const accessProfile = getRadarAccessProfile();
+    if (accessProfile === 'inventario' || accessProfile === 'sme') return false;
+
+    const invoice = notasRegistradas.find(item => (
+        item.id === invoiceId && item.escolaId === escolaId
+    ));
+    if (!invoice) {
+        renderProntuario(escolaId);
+        return false;
+    }
+
+    const verification = verificacoes[escolaId]?.[invoice.compKey];
+    const allContextInvoices = notasRegistradas.filter(item => (
+        item.escolaId === escolaId && item.compKey === invoice.compKey
+    ));
+    const individualizationStarted = allContextInvoices.some(item => (
+        window.RadarInvoiceDocumentAnalysis.hasExplicitInvoiceDocumentAnalysis(item)
+        || window.RadarInvoiceDocumentAnalysis.isUnidentifiedExpense(item)
+    ));
+    const previousValue = window.RadarInvoiceDocumentAnalysis.getInvoiceDocumentAnalysis(
+        invoice,
+        individualizationStarted
+            ? 'Não analisado'
+            : (verification?.analise?.notaFiscal || 'Não analisado')
+    );
+    const activePendency = findActiveInvoiceDocumentPendency(invoice);
+    if (activePendency) {
+        if (selectElement) selectElement.value = previousValue;
+        openPendencyDrawer(activePendency.id);
+        return false;
+    }
+
+    if (value === 'Incorreto') {
+        if (selectElement) selectElement.value = previousValue;
+        return openInvoiceDocumentPendencyModal(invoiceId, escolaId);
+    }
+
+    try {
+        await radarInvoiceService.updateDocumentAnalysis({
+            id: invoiceId,
+            schoolId: escolaId,
+            analysis: value,
+            profile: accessProfile
+        });
+        rebuildOperationalIndexes();
+        renderProntuario(escolaId);
+        updateAlertsBell();
+        return true;
+    } catch (error) {
+        if (selectElement) selectElement.value = previousValue;
+        reportRadarActionError(
+            error,
+            'Não foi possível atualizar a análise técnica deste documento.'
+        );
+        renderProntuario(escolaId);
+        return false;
+    }
+}
+
 // 14.5 Operações de Registro de Dados da Nota Fiscal (Via Análise Técnica)
 function configureInvoiceExpenseTypeOptions(compKey, selectedType = '') {
     const select = document.getElementById('nota-tipo');
@@ -10787,7 +10852,7 @@ async function salvarDadosNota(e = {}) {
         const valor = parseFloat(document.getElementById('nota-valor').value);
 
         try {
-            const result = await radarInvoiceService.save({
+            const saveInput = {
                 id: notaId || null,
                 schoolId: escolaId,
                 compKey,
@@ -10796,7 +10861,10 @@ async function salvarDadosNota(e = {}) {
                 invoiceNumber: numero,
                 amount: valor,
                 profile: accessProfile
-            });
+            };
+            const result = !notaId && tipo === 'a_identificar'
+                ? await radarInvoiceService.saveUnidentifiedExpenseWithPendency(saveInput)
+                : await radarInvoiceService.save(saveInput);
             rebuildOperationalIndexes();
             if (result.value.warnings.includes('SERVICE_ADVISORY_REQUIRED')) {
                 alert('Aviso de Regra de Negócio: Como é prestação de serviços (custeio), é obrigatório apresentar o e-mail de consultoria da assessoria contábil no encarte mensal do PDDE.');
@@ -10806,6 +10874,9 @@ async function salvarDadosNota(e = {}) {
             }
             closeModal('modal-dados-nota');
             renderProntuario(escolaId);
+            if (result.value.pendency?.id) {
+                openPendencyDrawer(result.value.pendency.id);
+            }
             updateAlertsBell();
             return true;
         } catch (error) {
