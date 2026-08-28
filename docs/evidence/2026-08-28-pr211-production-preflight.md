@@ -74,3 +74,40 @@ O preflight reforça duas decisões:
 2. os 20 `a_identificar` permanecem intocados.
 
 Nenhuma modificação foi executada em Production durante esta verificação.
+
+
+## 5. Evidência de gates do hotfix
+
+Após as correções levantadas pelos ciclos de CI, o checkpoint funcional `5088785e2755e7ae27efc3efc38ea5e0fc3fd5d6` apresentou:
+
+| Gate | Resultado |
+|---|---|
+| Validar RADAR PDDE | PASS |
+| CodeQL | PASS |
+| Saúde das dependências | PASS |
+| Snapshot canônico | PASS |
+| Excel SME / contratos-fonte | PASS |
+| Supabase readiness | PASS |
+| migration-smoke | PASS |
+| Supabase local + Auth + RLS + pgTAP | PASS |
+| pgTAP | 25 arquivos / 346 testes / PASS |
+| Backup e restauração descartáveis | PASS |
+| E2E principal | 153 aprovados / 39 ignorados por escopo / 0 falhas |
+| E2E pré-production | PASS |
+| Auth/RLS remoto descartável | 14 aprovados |
+| Perfis × viewports | 15 aprovados |
+| Lighthouse desktop | PASS — LCP 3,42 s / limite 3,50 s |
+| Lighthouse mobile | FAIL — LCP 16,03 s / limite 15,00 s |
+
+### Classificação do Lighthouse móvel
+
+A falha móvel não nasceu neste hotfix. No PR #210, antes do PR #211, o mesmo gate já falhava com LCP de **15,28 s** para o mesmo limite de 15 s.
+
+Portanto:
+
+- não foi realizado relaxamento do threshold;
+- não foi aplicada alteração visual oportunista para “passar o teste”;
+- a dívida deve ser tratada explicitamente na decisão final do PR;
+- os gates funcionais e de integridade do hotfix permanecem aprovados.
+
+Esta seção registra apenas evidência de CI. Não altera a conclusão do preflight de Production e não autoriza qualquer escrita em Production.
