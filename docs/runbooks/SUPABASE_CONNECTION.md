@@ -1,7 +1,7 @@
 # Runbook — conexão e operação controlada do Supabase
 
 **Estado:** vigente; Production conectada  
-**Atualizado em:** 23 de agosto de 2026
+**Atualizado em:** 28 de agosto de 2026
 
 ## 1. Objetivo
 
@@ -13,7 +13,7 @@ Este runbook não autoriza, por si só, migration, importação, alteração de 
 
 Consultar [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md) e revalidar remotamente antes de operação dependente do ambiente.
 
-Por compatibilidade com o verificador de readiness, este runbook mantém um único espelho machine-readable da contagem versionada: O conjunto versionado contém atualmente **42** migrations. A lista e a ordem continuam sendo obtidas do diretório `supabase/migrations/` e do histórico do CLI, nunca de uma segunda lista manual.
+Por compatibilidade com o verificador de readiness, este runbook mantém um único espelho machine-readable da contagem versionada: O conjunto versionado contém atualmente **43** migrations. A lista e a ordem continuam sendo obtidas do diretório `supabase/migrations/` e do histórico do CLI, nunca de uma segunda lista manual.
 
 Contratos estáveis:
 
@@ -133,6 +133,7 @@ As migrations correntes incluem, conforme `CURRENT_STAGE.md` e a branch de estab
 - preservação de `pendency_attempts.available_at` separada de `submitted_at`, com backfill seguro do histórico;
 - vínculo opcional de pendência de Assessoria Contábil com `registered_invoice_id`, permitindo individualização por NF e impedindo duplicidade ativa para a mesma NF;
 - operações compostas de Assessoria Contábil para persistir análise, pendência, verificação e log de forma coerente, inclusive na reanálise e no envio corretivo.
+- a branch do PR #211 acrescenta, ainda não aplicada em Production, a individualização de análise/Pendência de `notaFiscal` por `registered_invoice_id`, as operações atômicas correspondentes e a regra `a_identificar = Incorreto + Pendência`; até o merge, Production continua no histórico anterior.
 
 Não reaplicar SQL já aplicado para “corrigir” histórico.
 
