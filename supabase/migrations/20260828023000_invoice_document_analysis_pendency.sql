@@ -17,6 +17,49 @@ alter table public.pendencies
 comment on column public.pendencies.registered_invoice_id is
     'Despesa/Nota Fiscal específica vinculada à Pendência individual de Consulta Assessoria ou Notas Fiscais.';
 
+
+-- A trava histórica criada originalmente para Consulta Assessoria também deve
+-- proteger qualquer Nota Fiscal com histórico individual de notaFiscal.
+-- Os triggers existentes continuam apontando para esta função; redefini-la
+-- mantém compatibilidade e fecha o vínculo estrutural no banco.
+create or replace function radar_private.protect_service_advisory_invoice_history()
+returns trigger
+language plpgsql
+security definer
+set search_path = pg_catalog, public, radar_private
+as $
+begin
+    if not exists (
+        select 1
+          from public.pendencies
+         where registered_invoice_id = old.id
+           and document_key in ('consAssessoria', 'notaFiscal')
+    ) then
+        if tg_op = 'DELETE' then return old; end if;
+        return new;
+    end if;
+
+    if tg_op = 'DELETE' then
+        raise exception 'INTEGRITY_CONFLICT: Nota Fiscal possui histórico de pendência individual e não pode ser excluída';
+    end if;
+
+    if new.school_id is distinct from old.school_id
+        or new.competence_id is distinct from old.competence_id
+        or new.program_id is distinct from old.program_id
+        or new.expense_type is distinct from old.expense_type then
+        raise exception 'INTEGRITY_CONFLICT: Nota Fiscal possui histórico de pendência individual e não pode alterar escola, competência, programa ou natureza';
+    end if;
+
+    return new;
+end
+$;
+
+revoke all on function radar_private.protect_service_advisory_invoice_history()
+    from public, anon, authenticated;
+
+comment on function radar_private.protect_service_advisory_invoice_history() is
+    'Impede apagar ou deslocar estruturalmente Nota Fiscal com histórico individual de Assessoria ou de análise técnica de Notas Fiscais.';
+
 create or replace function public.save_pendency_command(
     p_operation text,
     p_pendency jsonb,
