@@ -165,7 +165,11 @@ test.describe('Prontuário — análise individual de Notas Fiscais', () => {
       .selectOption('Correto');
 
     await expect(invoiceRow(page, service1234).locator('select.invoice-document-analysis-select'))
-      .toHaveValue('Correto');
+      .toHaveCount(0);
+    await expect(invoiceRow(page, service1234).locator('.invoice-document-status'))
+      .toHaveText('Correto');
+    await expect(invoiceRow(page, service1234).getByRole('button', { name: 'Editar análise' }))
+      .toBeVisible();
 
     await markIncorrectAndOpenPendency(
       page,
@@ -173,8 +177,8 @@ test.describe('Prontuário — análise individual de Notas Fiscais', () => {
       'Identificado erro técnico no boleto de pagamento do provedor.'
     );
 
-    await expect(invoiceRow(page, service1234).locator('select.invoice-document-analysis-select'))
-      .toBeEnabled();
+    await expect(invoiceRow(page, service1234).locator('.invoice-document-status'))
+      .toHaveText('Correto');
     await expect(invoiceRow(page, service2345).locator('select.invoice-document-analysis-select'))
       .toBeEnabled();
 
