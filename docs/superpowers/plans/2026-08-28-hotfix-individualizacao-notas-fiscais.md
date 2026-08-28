@@ -5,7 +5,7 @@
 **Branch:** `hotfix/individualizar-analise-notas-fiscais`  
 **PR:** #211 (Draft)  
 **Baseline de origem:** `b4ad4e8540c55ccfae0406ea136bc4c8da59fd0b`  
-**Checkpoint funcional consolidado:** `3b10c2a97fd2142dbfd1e120dad0bf2bbd712d57`
+**SHA funcional validado:** `3e032562a7fd5c7a05177006c7270f5af9068564`
 
 ## 1. Relação com o plano mestre
 
@@ -224,7 +224,7 @@ O reparo deve ser fail-closed, com preflight integral antes da associação.
 
 ## 7. Implementado até o checkpoint funcional consolidado
 
-No checkpoint `3b10c2a97fd2142dbfd1e120dad0bf2bbd712d57`:
+No checkpoint `3e032562a7fd5c7a05177006c7270f5af9068564`:
 
 - análise técnica individual por `registered_invoice_id` implementada;
 - bonificação de `notaFiscal` preservada como requisito agregado;
@@ -267,47 +267,59 @@ No checkpoint `3b10c2a97fd2142dbfd1e120dad0bf2bbd712d57`:
 
 ### 8.2 Banco e Supabase
 
-As provas funcionais do banco passaram:
+As provas funcionais do banco passaram integralmente no SHA validado:
 
 - migration-smoke: PASS;
-- readiness estático: PASS;
+- readiness completo: PASS;
 - preflight pós-apply: PASS;
 - pgTAP: **25 arquivos / 357 testes / PASS**;
 - lint do schema: PASS;
-- migrations em PostgreSQL limpo: PASS.
+- migrations em PostgreSQL limpo: PASS;
+- regeneração e conferência dos tipos: PASS;
+- login das identidades descartáveis: PASS;
+- Edge Function: PASS;
+- frontend, Auth e RLS contra Supabase local: PASS.
 
-O workflow agregado `Supabase readiness` ficou vermelho por falha externa ao tentar baixar a imagem `postgres-meta` para regenerar tipos:
-
-`toomanyrequests: Rate exceeded`.
-
-A falha ocorreu **depois** de migration, preflight, pgTAP e lint terem sido aprovados. Ela deve ser reexecutada quando a infraestrutura externa estiver disponível, sem alterar regra de negócio apenas para obter verde.
+A falha externa anterior de registry (`Rate exceeded`) deixou de existir na reexecução e não permanece como pendência.
 
 ### 8.3 Homologação pré-Production
 
-Na mesma rodada:
+Passaram:
 
-- Playwright completo: PASS;
-- prontidão completa: PASS;
-- migrations em PostgreSQL limpo: PASS;
-- dependências e segurança: PASS;
-- Excel SME e rota pública local: PASS;
-- backup/restauração: PASS.
+- Playwright completo;
+- prontidão completa;
+- migrations em PostgreSQL limpo;
+- dependências e segurança;
+- Excel SME e rota pública local;
+- Supabase local, Auth, RLS e pgTAP;
+- backup/restauração.
 
-O job Supabase da homologação falhou durante download/recriação de containers por `Rate exceeded`.
+O único job vermelho é o Lighthouse móvel.
 
-O Lighthouse móvel permanece fora do orçamento e faz o gate agregado ficar vermelho. O desktop, alvo deste hotfix, ficou dentro do orçamento:
+Desktop:
 
-- performance desktop: **79%**;
-- FCP desktop: **1,02 s**;
-- LCP desktop: **3,49 s** para limite de **3,50 s**.
+- performance: **78%**;
+- FCP: **1,07 s**;
+- LCP: **3,45 s** para limite de **3,50 s**.
 
 Mobile:
 
-- performance: **63%**;
-- FCP: **4,00 s**;
-- LCP: **15,98 s** para limite de **15,00 s**.
+- performance: **68%**;
+- FCP: **2,82 s**;
+- LCP: **15,36 s** para limite de **15,00 s**.
 
-A dívida móvel já existia antes do PR #211 e foi expressamente classificada como **não bloqueante para este hotfix desktop**. O threshold não foi relaxado.
+A dívida móvel já existia antes do PR #211 e permanece **não bloqueante para este hotfix desktop**. O threshold não foi relaxado.
+
+### 8.4 Revisão adversarial de caminhos antigos
+
+Concluída no SHA validado.
+
+Foram encontradas e corrigidas duas portas residuais:
+
+- `a_identificar` escondido dentro do cadastro comum de Nota Fiscal;
+- tentativa da integração atômica genérica de iniciar o fluxo agregado antigo de `notaFiscal → Incorreto`.
+
+Os dois caminhos agora estão bloqueados e cobertos por regressão E2E.
 
 ## 9. Sequência restante
 
@@ -325,13 +337,20 @@ Ainda é obrigatório:
 
 ### Etapa H7 — revisão adversarial final
 
-- revisar o diff completo;
-- buscar caminhos antigos equivalentes fora do diff;
-- confirmar novamente Boleto Internet, Assessoria e Inventário;
-- revalidar os 20 `a_identificar` históricos;
-- revalidar o preflight do Boleto 1234 imediatamente antes da migration;
-- confirmar estratégia de reversão;
-- reexecutar o gate Supabase afetado por rate limit.
+**Concluída para código e contratos.**
+
+Resultados adicionais:
+
+- opção `a_identificar` removida do cadastro comum e reservada ao fluxo dedicado;
+- rota agregada antiga de `notaFiscal → Incorreto` bloqueada;
+- Boleto Internet permanece apenas como `boleto_internet` dentro de Notas Fiscais;
+- Assessoria continua exclusiva de serviço;
+- criação patrimonial no novo envio permanece coberta;
+- 20 registros históricos continuam intocados;
+- preflight do Boleto 1234 segue fail-closed;
+- estratégia de reversão está documentada.
+
+A única parte ainda pendente é a inspeção visual autenticada do Preview desktop.
 
 ### Etapa H8 — documentação e decisão de merge
 

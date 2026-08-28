@@ -78,7 +78,7 @@ Nenhuma modificação foi executada em Production durante esta verificação.
 
 ## 5. Evidência de gates do hotfix
 
-Checkpoint funcional consolidado: `3b10c2a97fd2142dbfd1e120dad0bf2bbd712d57`.
+SHA funcional validado: `3e032562a7fd5c7a05177006c7270f5af9068564`.
 
 | Gate | Resultado |
 |---|---|
@@ -91,23 +91,26 @@ Checkpoint funcional consolidado: `3b10c2a97fd2142dbfd1e120dad0bf2bbd712d57`.
 | Gate remoto de perfis e viewports | PASS |
 | Backup e restauração descartáveis | PASS |
 | migration-smoke | PASS |
-| readiness estático | PASS |
+| readiness completo | PASS |
 | preflight pós-apply | PASS |
 | pgTAP | **25 arquivos / 357 testes / PASS** |
 | lint do schema | PASS |
-| Vercel Preview | PASS |
-| Lighthouse desktop | PASS — performance 79%, FCP 1,02 s, LCP 3,49 s / limite 3,50 s |
-| Lighthouse mobile | FAIL — LCP 15,98 s / limite 15,00 s |
-| Supabase readiness agregado | FAIL externo após provas de banco: `Rate exceeded` ao baixar `postgres-meta` para regenerar tipos |
-| Homologação integral pré-Production | FAIL agregado por rate limit externo no job Supabase e Lighthouse mobile |
+| regeneração de tipos | PASS |
+| Auth/RLS/Edge Function em Supabase descartável | PASS |
+| Vercel Preview | **READY** |
+| Lighthouse desktop | PASS — performance 78%, FCP 1,07 s, LCP 3,45 s / limite 3,50 s |
+| Lighthouse mobile | FAIL — performance 68%, FCP 2,82 s, LCP 15,36 s / limite 15,00 s |
+| Homologação integral pré-Production | FAIL agregado somente por Lighthouse mobile; todos os demais jobs PASS |
 
-### Classificação das falhas externas
+### Revalidação de Production somente leitura
 
-Na execução Supabase, migration, preflight, pgTAP e lint foram concluídos com sucesso antes da tentativa de regeneração dos tipos falhar por indisponibilidade/rate limit do registry de imagens.
+Após a estabilização do SHA acima, Production foi consultada novamente sem mutação:
 
-Na homologação pré-Production, Playwright completo, prontidão, migrations limpas, dependências, Excel e backup/restauração passaram. O job Supabase falhou ao iniciar/recriar containers por `Rate exceeded`.
-
-Esses eventos não autorizam ignorar o gate, mas também não constituem evidência de defeito funcional do hotfix. A ação correta é reexecutar quando a infraestrutura externa estiver disponível.
+- `a_identificar`: **20**;
+- `a_identificar` com análise individual explícita: **0**;
+- Pendências fiscais individuais ativas novas por `registered_invoice_id`: **0**;
+- a migration do PR #211 continua ausente de Production;
+- o caso Boleto 1234 continua correspondendo exatamente ao preflight fail-closed já versionado.
 
 ### Classificação do Lighthouse móvel
 
@@ -115,4 +118,4 @@ Mobile não é critério bloqueante deste hotfix, conforme decisão aprovada. O 
 
 O threshold móvel não foi alterado.
 
-Esta seção registra somente evidência de CI. Não altera a conclusão do preflight de Production e não autoriza qualquer escrita em Production.
+Esta seção registra somente evidência de CI e consultas de leitura. Não autoriza qualquer escrita em Production.

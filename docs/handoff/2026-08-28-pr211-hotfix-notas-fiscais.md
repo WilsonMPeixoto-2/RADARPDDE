@@ -3,14 +3,14 @@
 **Data:** 28 de agosto de 2026  
 **PR:** #211 — Draft  
 **Branch:** `hotfix/individualizar-analise-notas-fiscais`  
-**Checkpoint funcional consolidado:** `3b10c2a97fd2142dbfd1e120dad0bf2bbd712d57`  
+**SHA funcional validado:** `3e032562a7fd5c7a05177006c7270f5af9068564`  
 **Production:** sem alteração causada por este PR
 
 ## 1. Situação atual
 
 O núcleo funcional do hotfix está implementado e os principais caminhos antigos foram fechados.
 
-O PR permanece **Draft** porque ainda faltam a inspeção visual autenticada do Preview desktop, a revisão adversarial final e a reexecução de um gate Supabase que falhou por limitação externa de download de imagem Docker.
+O PR permanece **Draft** apenas porque ainda falta a inspeção visual autenticada do Preview desktop e o registro dessa evidência antes da decisão formal de merge/publicação. A revisão adversarial de código foi concluída e a reexecução do gate Supabase passou integralmente.
 
 Nenhuma migration do PR #211 foi aplicada em Production.
 
@@ -62,12 +62,12 @@ Outras decisões visuais já incorporadas:
 
 Referência: `docs/evidence/2026-08-28-pr211-referencias-visuais.md`.
 
-## 4. Gates do checkpoint
+## 4. Gates do SHA funcional validado
 
 ### Aprovados
 
 - Validar RADAR PDDE;
-- E2E Playwright;
+- E2E Playwright completo;
 - Gate remoto de perfis e viewports;
 - Backup e restauração descartáveis;
 - CodeQL;
@@ -75,32 +75,43 @@ Referência: `docs/evidence/2026-08-28-pr211-referencias-visuais.md`.
 - Snapshot canônico;
 - Excel SME e contratos-fonte;
 - migration-smoke;
-- readiness estático;
+- readiness completo;
 - preflight pós-apply;
 - migrations em PostgreSQL limpo;
 - pgTAP: **25 arquivos / 357 testes / PASS**;
 - lint do schema;
-- Vercel Preview.
+- regeneração e conferência de tipos;
+- login de identidades descartáveis;
+- Edge Function;
+- frontend, Auth e RLS contra Supabase local;
+- Vercel Preview: **READY**.
 
-### Vermelhos com causa identificada
+### Lighthouse
 
-**Supabase readiness agregado:** falhou somente ao baixar a imagem `postgres-meta` para regeneração de tipos, com `toomanyrequests: Rate exceeded`, depois de migration, preflight, pgTAP e lint passarem.
+Desktop passou:
 
-**Homologação integral pré-Production:** o job Supabase falhou durante download/recriação de containers pelo mesmo tipo de rate limit externo. Os demais jobs funcionais da homologação passaram.
+- performance: **78%**;
+- FCP: **1,07 s**;
+- LCP: **3,45 s** / limite **3,50 s**.
 
-**Lighthouse:** mobile permanece fora do orçamento; desktop passou.
+Mobile continua fora do orçamento:
 
-Desktop:
-- performance: 79%;
-- FCP: 1,02 s;
-- LCP: 3,49 s / limite 3,50 s.
+- performance: **68%**;
+- FCP: **2,82 s**;
+- LCP: **15,36 s** / limite **15,00 s**.
 
-Mobile:
-- performance: 63%;
-- FCP: 4,00 s;
-- LCP: 15,98 s / limite 15,00 s.
+O vermelho agregado da homologação pré-Production decorre exclusivamente do job Lighthouse móvel. Todos os demais jobs dessa homologação passaram.
 
-A dívida móvel é anterior ao PR #211 e foi definida como **não bloqueante neste hotfix desktop**. O threshold não foi relaxado.
+A dívida móvel é anterior ao PR #211 e permanece **não bloqueante para este hotfix desktop**. O threshold não foi relaxado.
+
+### Revisão adversarial concluída
+
+A revisão final de caminhos antigos encontrou e fechou duas portas residuais:
+
+1. `a_identificar` ainda podia ser exposto como opção dentro do cadastro comum de Nota Fiscal por uma integração legada; agora só é habilitado pelo comando dedicado **Registrar despesa a identificar**;
+2. a integração atômica genérica ainda podia tentar iniciar o antigo fluxo agregado `notaFiscal → Incorreto`; agora `notaFiscal` é devolvido ao serviço canônico, que recusa edição agregada e não abre Pendência genérica.
+
+Ambos os comportamentos possuem regressão E2E e passaram no SHA validado.
 
 ## 5. Estratégia segura de reversão
 
@@ -150,13 +161,11 @@ Em todos os cenários:
 
 ## 6. Próximas ações obrigatórias
 
-1. reexecutar o gate Supabase quando o registry permitir;
-2. abrir e inspecionar o Preview autenticado no desktop;
-3. comparar o Preview com as referências visuais aprovadas;
-4. revisar o diff de forma adversarial;
-5. revalidar Boleto Internet, Assessoria, Inventário e os 20 registros históricos;
-6. revalidar o preflight do reparo Boleto 1234;
-7. somente então decidir retirada do Draft e merge.
+1. abrir e inspecionar o Preview autenticado no desktop;
+2. comparar o Preview com as referências visuais aprovadas;
+3. registrar a evidência visual final;
+4. imediatamente antes de eventual migration, reexecutar o preflight do Boleto 1234 e dos 20 registros históricos;
+5. somente então decidir retirada do Draft e merge.
 
 ## 7. Relação com o plano mestre
 

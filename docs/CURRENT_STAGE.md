@@ -29,7 +29,7 @@ revalidar main
 → só então iniciar PR3.1
 ```
 
-No checkpoint funcional consolidado `3b10c2a97fd2142dbfd1e120dad0bf2bbd712d57`, os fluxos funcionais, E2E, perfis/viewports, backup, segurança, migrations e pgTAP estão aprovados. O pgTAP alcançou **25 arquivos / 357 testes / PASS**. O Vercel Preview foi construído com sucesso. O workflow Supabase agregado ficou vermelho apenas por `Rate exceeded` ao baixar imagem Docker para regeneração de tipos, depois das provas de banco terem passado; a homologação pré-Production registrou ocorrência equivalente ao iniciar/recriar containers. O Lighthouse desktop passou (LCP 3,49 s / limite 3,50 s); o mobile continua acima do orçamento e permanece classificado como dívida herdada não bloqueante para este hotfix desktop. O PR #211 continua **Draft** até a inspeção visual autenticada, a revisão adversarial final e a reexecução do gate afetado pela infraestrutura externa.
+No SHA funcional validado `3e032562a7fd5c7a05177006c7270f5af9068564`, os fluxos funcionais, E2E, perfis/viewports, backup, segurança, migrations, Auth/RLS e pgTAP estão aprovados. O pgTAP alcançou **25 arquivos / 357 testes / PASS**. O Vercel Preview está **READY**. A reexecução do workflow **Supabase readiness** passou integralmente, inclusive regeneração de tipos, login das identidades descartáveis, Edge Function e frontend contra Supabase local. A homologação pré-Production também passou em Playwright, migrations, segurança, Supabase local/Auth/RLS/pgTAP e backup/restauração. O único vermelho conhecido permanece o Lighthouse móvel herdado: desktop passou com **78%**, FCP **1,07 s** e LCP **3,45 s** / limite **3,50 s**; mobile ficou em **68%**, FCP **2,82 s** e LCP **15,36 s** / limite **15,00 s**. O PR #211 continua **Draft** apenas até a inspeção visual autenticada do Preview desktop e a decisão formal de merge/publicação.
 
 ## 1. Porta de entrada atual
 
@@ -40,12 +40,12 @@ Ler nesta ordem:
 3. [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md);
 4. [`evidence/2026-08-28-pr211-referencias-visuais.md`](evidence/2026-08-28-pr211-referencias-visuais.md);
 5. [`handoff/2026-08-27-pr2-service-advisory-noop.md`](handoff/2026-08-27-pr2-service-advisory-noop.md);
-3. [`handoff/2026-08-27-pr1-invoice-submit-guard.md`](handoff/2026-08-27-pr1-invoice-submit-guard.md);
-4. [`handoff/2026-08-27-hotfix-boleto-internet.md`](handoff/2026-08-27-hotfix-boleto-internet.md);
-5. [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md);
-6. [`superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md);
-7. [`reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx`](reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx);
-8. [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md) e a documentação específica da entrega.
+6. [`handoff/2026-08-27-pr1-invoice-submit-guard.md`](handoff/2026-08-27-pr1-invoice-submit-guard.md);
+7. [`handoff/2026-08-27-hotfix-boleto-internet.md`](handoff/2026-08-27-hotfix-boleto-internet.md);
+8. [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md);
+9. [`superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md);
+10. [`reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx`](reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx);
+11. [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md) e a documentação específica da entrega.
 
 O Markdown é a fonte operacional para busca, diff e execução. O Word é a versão integral para leitura e aprovação. O arquivo `.sha256` ao lado do Word permite verificar sua integridade.
 
@@ -227,11 +227,12 @@ Concluir **PR #211 — hotfix de individualização de Notas Fiscais**.
 
 Sequência imediata:
 
-1. validar Preview autenticado no desktop contra as referências visuais;
-2. executar revisão adversarial final do diff e dos contratos de banco;
-3. confirmar que o único vermelho restante é o Lighthouse móvel herdado;
-4. decidir explicitamente se a dívida móvel permanece fora do bloqueio deste hotfix;
-5. somente depois retirar Draft e avaliar merge/publicação.
+1. validar visualmente o Preview autenticado no desktop contra as referências aprovadas;
+2. registrar a evidência visual final;
+3. manter formalmente o Lighthouse móvel como dívida herdada não bloqueante deste hotfix desktop;
+4. somente depois retirar Draft e avaliar merge/publicação.
+
+A revisão adversarial de código já fechou duas portas antigas adicionais no SHA validado: `a_identificar` deixou de aparecer no cadastro comum de Nota Fiscal e a rota agregada antiga de `notaFiscal → Incorreto` não abre mais Pendência genérica.
 
 Depois da publicação do hotfix, fazer reconciliação pós-PR #211 e somente então retomar PR3.1.
 
