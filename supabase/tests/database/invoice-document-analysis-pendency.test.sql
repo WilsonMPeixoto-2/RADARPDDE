@@ -36,7 +36,7 @@ insert into public.registered_invoices (
 (
     'invoice-doc-b', '04.99.211', '2029-01', 'INVOICE_DOC_ATOMIC',
     '04.99.211::2029-01::INVOICE_DOC_ATOMIC', '2029-01_INVOICE_DOC_ATOMIC',
-    'Boleto de Internet', 'boleto_internet', 'BOL-B', 100,
+    'Material B', 'consumo', 'NF-B', 100,
     '{"analiseDocumentoFiscal":"Não analisado"}'::jsonb
 ),
 (
