@@ -65,8 +65,11 @@ test('controlador lança agosto, consolida APTA e recupera o mesmo estado após 
   const fiscalRow = documentRow(page, 'Notas Fiscais');
   await fiscalRow.getByRole('button', { name: 'N/A', exact: true }).click();
   await expect(
-    fiscalRow.locator('.invoice-document-panel-summary').getByText('Correto', { exact: true })
-  ).toBeVisible();
+    fiscalRow.locator('.invoice-bonification-toggle button.is-na.is-selected')
+  ).toHaveText('N/A');
+  await expect(
+    fiscalRow.locator('.invoice-document-panel-summary').getByText('Situação técnica', { exact: true })
+  ).toHaveCount(0);
 
   const basicProgramFirstRow = programRows(page, 'BASIC').first();
   await basicProgramFirstRow.getByRole('button', { name: 'Consolidar', exact: true }).click();
