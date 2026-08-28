@@ -10166,6 +10166,14 @@ function formatInvoiceCurrency(value) {
     });
 }
 
+function formatPendencyDate(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    const date = new Date(/^\d{4}-\d{2}-\d{2}$/.test(raw) ? `${raw}T00:00:00` : raw);
+    if (Number.isNaN(date.getTime())) return raw;
+    return date.toLocaleDateString('pt-BR');
+}
+
 function getInvoiceDocumentTypeLabel(invoice = {}) {
     const labels = {
         consumo: 'Material de consumo',
@@ -10336,7 +10344,7 @@ function renderPendencyDrawer() {
         </div>
         <div class="pendency-preview-date">
             <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M7 3v4M17 3v4M3.5 9h17"/></svg>
-            <div><span>Registrada em</span><strong>${escapeHtml(formatDateBR(pendency.dataAbertura) || pendency.dataAbertura || '')}</strong></div>
+            <div><span>Registrada em</span><strong>${escapeHtml(formatPendencyDate(pendency.dataAbertura))}</strong></div>
         </div>
         <button type="button" class="pendency-preview-edit-button" onclick="${edit ? 'savePendencyDrawerEdits()' : 'editPendencyDrawer()'}">
             ${edit
@@ -11022,6 +11030,7 @@ function configurePendencyFormMode(isDocumentary) {
 }
 
 function resetNovaPendenciaForm() {
+    pendingInvoicePendencyContext = null;
     const form = document.getElementById('form-nova-pendencia');
     form.reset();
     document.getElementById('pend-item')
@@ -11097,6 +11106,10 @@ async function saveNovaPendencia(e) {
     const resp = document.getElementById('pend-responsavel').value;
     const obs = document.getElementById('pend-obs').value.trim();
     const isDocumentary = Boolean(programaId && documentoKey);
+    const invoicePendencyContext = pendingInvoicePendencyContext
+        && pendingInvoicePendencyContext.schoolId === escolaId
+        ? { ...pendingInvoicePendencyContext }
+        : null;
 
     if (!obs) {
         showPendencyNotice('Informe as observações da pendência.', 'error');
@@ -11116,6 +11129,8 @@ async function saveNovaPendencia(e) {
             competence: comp,
             programId: isDocumentary ? programaId : null,
             documentKey: isDocumentary ? documentoKey : null,
+            registeredInvoiceId: invoicePendencyContext?.registeredInvoiceId || null,
+            technicalAnalysisValue: invoicePendencyContext ? 'Incorreto' : null,
             item,
             errors,
             reason: motivo,
@@ -11126,9 +11141,15 @@ async function saveNovaPendencia(e) {
     } catch (error) {
         if (error?.code === 'DUPLICATE_PENDENCY' && error.details?.existingPendencyId) {
             closeModal('modal-nova-pendencia');
+            const existingPendencyId = error.details.existingPendencyId;
             resetNovaPendenciaForm();
-            openPendencyDetail(error.details.existingPendencyId);
-            showPendencyNotice('Já existe uma pendência ativa para este documento.', 'duplicate');
+            if (sourceView === 'prontuario') {
+                renderProntuario(escolaId);
+                openPendencyDrawer(existingPendencyId);
+            } else {
+                openPendencyDetail(existingPendencyId);
+                showPendencyNotice('Já existe uma pendência ativa para este documento.', 'duplicate');
+            }
             return false;
         }
         reportRadarPersistenceError(error);
@@ -11148,6 +11169,9 @@ async function saveNovaPendencia(e) {
 
     if (sourceView === 'prontuario') {
         renderProntuario(escolaId);
+        if (newPend?.registeredInvoiceId || newPend?.registered_invoice_id) {
+            openPendencyDrawer(newPend.id);
+        }
     } else {
         renderPendencias();
     }
