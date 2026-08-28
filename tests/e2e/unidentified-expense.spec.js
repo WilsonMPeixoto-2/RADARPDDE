@@ -75,6 +75,13 @@ test.describe('Prontuário — despesa a identificar', () => {
     const row = fiscalNoteRow(page);
     await expect(row.getByRole('button', { name: 'Adicionar Nota' })).toHaveCount(0);
 
+    await page.evaluate(({ escolaId, compKey }) => openModalDadosNota(escolaId, compKey), context);
+    const normalUnidentifiedOption = page.locator('#nota-tipo option[value="a_identificar"]');
+    await expect(normalUnidentifiedOption).toBeHidden();
+    await expect(normalUnidentifiedOption).toBeDisabled();
+    await expect(page.locator('#nota-tipo')).not.toHaveValue('a_identificar');
+    await page.locator('#modal-dados-nota button[type="button"]', { hasText: 'Cancelar' }).click();
+
     const provisionalButton = row.getByRole('button', { name: 'Registrar despesa a identificar' });
     await expect(provisionalButton).toBeVisible();
     await expect(provisionalButton).toBeEnabled();
@@ -82,6 +89,7 @@ test.describe('Prontuário — despesa a identificar', () => {
 
     await expect(page.locator('#modal-dados-nota')).toHaveClass(/show/);
     await expect(page.locator('#nota-tipo')).toHaveValue('a_identificar');
+    await expect(page.locator('#nota-tipo option[value="a_identificar"]')).toBeEnabled();
     await expect(page.locator('#nota-numero')).not.toHaveAttribute('required');
     await expect(page.getByText('Número da Nota Fiscal (opcional neste estágio)')).toBeVisible();
     await expect(page.locator('#modal-dados-nota h3')).toHaveText('Registrar despesa a identificar');
