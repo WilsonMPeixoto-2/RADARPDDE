@@ -102,7 +102,53 @@ Mobile:
 
 A dívida móvel é anterior ao PR #211 e foi definida como **não bloqueante neste hotfix desktop**. O threshold não foi relaxado.
 
-## 5. Próximas ações obrigatórias
+## 5. Estratégia segura de reversão
+
+O PR #211 não adota rollback destrutivo automático.
+
+A razão é operacional: depois que usuários reais começarem a criar Pendências fiscais individualizadas, identificar `a_identificar` ou vincular novos bens permanentes, voltar cegamente ao modelo anterior poderia apagar ou tornar invisível história válida.
+
+A reversão deve seguir três cenários:
+
+### Cenário A — falha antes da migration em Production
+
+- não aplicar a migration;
+- manter Production atual;
+- reverter apenas o deployment candidato, se necessário;
+- nenhuma transformação de dados é executada.
+
+### Cenário B — migration aplicada, mas nenhuma escrita do novo modelo ocorreu
+
+Só é admissível considerar uma migration compensatória se um preflight comprovar, após o horário de publicação:
+
+- nenhuma nova Pendência `notaFiscal` individual;
+- nenhuma nova `a_identificar`;
+- nenhuma identificação posterior de `a_identificar`;
+- nenhum novo vínculo patrimonial produzido pelo hotfix.
+
+Com essa prova, pode-se restaurar definições anteriores de constraint/RPC de forma controlada.
+
+### Cenário C — houve qualquer escrita real no novo modelo
+
+**Não fazer downgrade destrutivo do banco.**
+
+A estratégia passa a ser **fail-forward**:
+
+1. preservar os registros e o histórico já produzidos;
+2. corrigir o frontend/serviço em nova revisão;
+3. manter as estruturas de banco compatíveis;
+4. executar smoke e reconciliação antes de reabrir a operação.
+
+Reimplantar simplesmente o frontend anterior depois de novas escritas individuais não é considerado rollback seguro, porque o frontend antigo não conhece integralmente o novo vínculo por despesa.
+
+Em todos os cenários:
+
+- backup/restauração descartável deve estar verde antes de Production;
+- registrar horário exato da migration e do deployment;
+- executar preflight imediatamente antes da migration;
+- registrar qualquer escrita ocorrida entre migration e eventual decisão de reversão.
+
+## 6. Próximas ações obrigatórias
 
 1. reexecutar o gate Supabase quando o registry permitir;
 2. abrir e inspecionar o Preview autenticado no desktop;
@@ -110,10 +156,9 @@ A dívida móvel é anterior ao PR #211 e foi definida como **não bloqueante ne
 4. revisar o diff de forma adversarial;
 5. revalidar Boleto Internet, Assessoria, Inventário e os 20 registros históricos;
 6. revalidar o preflight do reparo Boleto 1234;
-7. registrar estratégia segura de reversão;
-8. somente então decidir retirada do Draft e merge.
+7. somente então decidir retirada do Draft e merge.
 
-## 6. Relação com o plano mestre
+## 7. Relação com o plano mestre
 
 Este hotfix não substitui o plano mestre.
 
