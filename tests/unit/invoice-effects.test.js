@@ -185,9 +185,10 @@ test('A identificar não participa da regra da Assessoria', () => {
 
     const result = planInvoiceEffects(input);
 
-    assert.equal(result.unchanged, true);
+    assert.equal(result.unchanged, false);
     assert.equal(result.verification.bonificacao.consAssessoria, 'Não se aplica');
     assert.equal(result.verification.analise.consAssessoria, 'Correto');
+    assert.equal(result.verification.analise.notaFiscal, 'Incorreto');
 });
 
 
