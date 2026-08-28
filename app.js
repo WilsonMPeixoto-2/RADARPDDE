@@ -10243,105 +10243,201 @@ function renderProntuarioVerificacoes(esc) {
                                 analysis: v.analise.consAssessoria
                             }
                             : {};
-                        serviceAdvisoryEntries = serviceNotes.map(note => ({
+                        const serviceEntries = serviceNotes.map(note => ({
                             note,
                             ...window.RadarServiceAdvisory.getServiceAdvisoryState(
                                 note,
                                 legacyFallback
                             )
                         }));
+                        const activeServicePendencies = documentaryPendencies.filter(pendency => (
+                            pendency.escolaId === esc.id
+                            && (pendency.competenciaOrigem || pendency.competencia) === c.key
+                            && pendency.programaId === progId
+                            && pendency.documentoKey === 'consAssessoria'
+                            && ['Aberta', 'Aguardando reanálise'].includes(pendency.status)
+                            && Boolean(pendency.registeredInvoiceId || pendency.registered_invoice_id)
+                        ));
+                        const activeServicePendencyCount = activeServicePendencies.length
+                            + (activePend ? 1 : 0);
+                        const canMutateAdvisory = accessProfile !== 'inventario'
+                            && accessProfile !== 'sme'
+                            && !isBonifLocked;
+                        const monthlyClass = bonifValue === 'Sim'
+                            ? 'is-correct'
+                            : bonifValue === 'Não'
+                                ? 'is-incorrect'
+                                : 'is-pending';
 
-                        extraContentHTML = serviceAdvisoryEntries.length > 0
-                            ? `
-                                <div style="margin-top:6px; display:flex; flex-direction:column; gap:6px;">
-                                    ${serviceAdvisoryEntries.map(({ note }) => `
-                                        <div data-service-advisory-invoice="${escapeHtml(note.id)}" style="border:1px solid var(--border-color); border-radius:8px; padding:7px 8px;">
-                                            <strong style="font-size:0.75rem; color:var(--warning);">NF ${escapeHtml(note.numero)}</strong>
-                                            <div style="font-size:0.7rem; color:var(--text-muted); margin-top:2px;">${escapeHtml(note.desc || 'Serviço')}</div>
+                        const advisoryRowsHTML = serviceEntries.length > 0
+                            ? serviceEntries.map(({ note, sent, analysis }, noteIndex) => {
+                                const invoiceContext = {
+                                    escolaId: esc.id,
+                                    competencia: c.key,
+                                    competenciaOrigem: c.key,
+                                    programaId: progId,
+                                    documentoKey: 'consAssessoria',
+                                    registeredInvoiceId: note.id
+                                };
+                                const invoicePendency = window.RadarPendencias.findActivePendency(
+                                    documentaryPendencies,
+                                    invoiceContext
+                                );
+                                const statusLabel = invoicePendency?.status === 'Aguardando reanálise'
+                                    ? 'Aguardando reanálise'
+                                    : analysis;
+                                const statusClass = statusLabel === 'Incorreto'
+                                    ? 'is-incorrect'
+                                    : statusLabel === 'Correto'
+                                        ? 'is-correct'
+                                        : statusLabel === 'Correto (Atrasado)'
+                                            ? 'is-late'
+                                            : statusLabel === 'Aguardando reanálise'
+                                                ? 'is-waiting'
+                                                : 'is-pending';
+                                const analysisHTML = invoicePendency
+                                    ? `<span class="invoice-document-status ${statusClass}">${escapeHtml(statusLabel)}</span>`
+                                    : canViewTechnicalAnalysis && canMutateAdvisory
+                                        ? `
+                                            <select
+                                                class="invoice-document-analysis-select ${statusClass}"
+                                                aria-label="Análise da consulta à Assessoria para a NF ${escapeHtml(note.numero)}"
+                                                onchange="changeInvoiceAdvisoryAnalysis('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}', this.value, this)"
+                                            >
+                                                <option value="Não analisado" ${analysis === 'Não analisado' ? 'selected' : ''}>Não analisado</option>
+                                                <option value="Correto" ${analysis === 'Correto' ? 'selected' : ''}>Correto</option>
+                                                <option value="Correto (Atrasado)" ${analysis === 'Correto (Atrasado)' ? 'selected' : ''}>Correto (Atrasado)</option>
+                                                <option value="Incorreto" ${analysis === 'Incorreto' ? 'selected' : ''}>Incorreto</option>
+                                            </select>
+                                        `
+                                        : `<span class="invoice-document-status ${statusClass}">${escapeHtml(statusLabel)}</span>`;
+                                const actionHTML = invoicePendency
+                                    ? `
+                                        <button type="button" class="invoice-pendency-view-button"
+                                            onclick="openPendencyDrawer('${escapeHtml(invoicePendency.id)}')">
+                                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.6-6 9.5-6 9.5 6 9.5 6-3.6 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.7"/></svg>
+                                            <span>Visualizar pendência</span>
+                                        </button>
+                                    `
+                                    : '<span aria-hidden="true" class="invoice-document-empty-action">—</span>';
+
+                                return `
+                                    <div class="invoice-document-row service-advisory-row ${noteIndex % 2 === 1 ? 'is-striped' : ''}"
+                                        data-service-advisory-invoice="${escapeHtml(note.id)}">
+                                        <div class="invoice-document-identity">
+                                            <span class="invoice-document-icon">${invoiceDocumentIconSvg('servico')}</span>
+                                            <div class="invoice-document-copy">
+                                                <div class="invoice-document-title-line">
+                                                    <strong>NF ${escapeHtml(note.numero || note.id)}</strong>
+                                                </div>
+                                                <span class="service-advisory-description">${escapeHtml(note.desc || note.descricao || 'Serviço')}</span>
+                                            </div>
                                         </div>
-                                    `).join('')}
-                                </div>
-                            `
-                            : '<div style="font-size:0.72rem; color:var(--text-muted); margin-top:6px;">Nenhuma nota fiscal de serviço cadastrada.</div>';
+                                        <div class="service-advisory-delivery">
+                                            <label>
+                                                <input
+                                                    type="checkbox"
+                                                    aria-label="Consulta enviada à Assessoria para a NF ${escapeHtml(note.numero)}"
+                                                    ${sent ? 'checked' : ''}
+                                                    onchange="toggleInvoiceAdvisorySent('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}', this.checked)"
+                                                    ${isBonifLocked || invoicePendency ? 'disabled' : ''}
+                                                >
+                                                <span>Enviada à Assessoria</span>
+                                            </label>
+                                        </div>
+                                        ${canViewTechnicalAnalysis ? `<div class="invoice-document-analysis">${analysisHTML}</div>` : ''}
+                                        ${canUseVerificationActions ? `<div class="invoice-document-action">${actionHTML}</div>` : ''}
+                                    </div>
+                                `;
+                            }).join('')
+                            : '<div class="invoice-document-empty">Nenhuma Nota Fiscal de serviço cadastrada.</div>';
+
+                        rowsHTML += `
+                            <tr
+                                data-program-id="${escapeHtml(progId)}"
+                                data-document-key="consAssessoria"
+                                class="invoice-document-host-row service-advisory-host-row"
+                            >
+                                <td colspan="${Math.max(1, visibleColumnCount - 1)}">
+                                    <section class="invoice-document-panel service-advisory-panel" data-service-advisory-panel>
+                                        <div class="invoice-document-panel-header">
+                                            <div class="invoice-document-panel-title">
+                                                <span class="invoice-document-icon is-folder">
+                                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v14H5z"/><path d="M8 9h8M8 12h8M8 15h5"/></svg>
+                                                </span>
+                                                <div>
+                                                    <strong>Consulta Assessoria</strong>
+                                                    <span>${serviceNotes.length} ${serviceNotes.length === 1 ? 'nota de serviço' : 'notas de serviço'}</span>
+                                                </div>
+                                            </div>
+                                            <div class="invoice-document-panel-summary">
+                                                <div class="invoice-summary-block is-bonification">
+                                                    <span>Resumo mensal</span>
+                                                    <strong class="invoice-document-status ${monthlyClass}">${escapeHtml(bonifValue || 'Não se aplica')}</strong>
+                                                </div>
+                                                ${activeServicePendencyCount > 0 ? `
+                                                    <div class="invoice-summary-block is-pendencies">
+                                                        <span class="invoice-summary-pendency-icon">
+                                                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5.5h9M5 10h9M5 14.5h5"/><path d="M17 12.5v4M17 19h.01"/><path d="M15.3 11.6 11.8 18a1.5 1.5 0 0 0 1.3 2.2h7.8a1.5 1.5 0 0 0 1.3-2.2l-3.5-6.4a1.5 1.5 0 0 0-2.7 0z"/></svg>
+                                                        </span>
+                                                        <strong>${activeServicePendencyCount} ${activeServicePendencyCount === 1 ? 'pendência' : 'pendências'}</strong>
+                                                    </div>
+                                                ` : ''}
+                                            </div>
+                                        </div>
+                                        <div class="invoice-document-list ${canViewTechnicalAnalysis ? '' : 'no-analysis'} ${canUseVerificationActions ? '' : 'no-actions'}">
+                                            <div class="invoice-document-list-head">
+                                                <span>Nota Fiscal</span>
+                                                <span>Envio à Assessoria</span>
+                                                ${canViewTechnicalAnalysis ? '<span>Situação técnica</span>' : ''}
+                                                ${canUseVerificationActions ? '<span>Ação</span>' : ''}
+                                            </div>
+                                            ${advisoryRowsHTML}
+                                        </div>
+                                    </section>
+                                </td>
+                            </tr>
+                        `;
+                        return;
                     }
 
-                    let bonificationCellHTML = doc.key === 'consAssessoria'
-                        ? (serviceAdvisoryEntries.length > 0 ? `
-                            <div style="display:flex; flex-direction:column; gap:8px;">
-                                ${serviceAdvisoryEntries.map(({ note, sent }) => `
-                                    <label style="display:flex; align-items:center; gap:6px; font-size:0.72rem; color:var(--text-muted);">
-                                        <input
-                                            type="checkbox"
-                                            aria-label="Consulta enviada à Assessoria para a NF ${escapeHtml(note.numero)}"
-                                            ${sent ? 'checked' : ''}
-                                            onchange="toggleInvoiceAdvisorySent('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}', this.checked)"
-                                            ${isBonifLocked ? 'disabled' : ''}
-                                        >
-                                        <span>NF ${escapeHtml(note.numero)}: enviada</span>
-                                    </label>
-                                `).join('')}
-                                <span class="badge ${bonifValue === 'Sim' ? 'badge-success' : 'badge-danger'}" style="align-self:flex-start;">
-                                    Resumo mensal: ${escapeHtml(bonifValue || 'Não')}
-                                </span>
-                            </div>
-                        ` : '<span class="badge badge-gray">Não se aplica</span>')
-                        : (accessProfile === 'sme' ? `
-                            <span
-                                class="badge ${bonifValue === 'Sim'
-                                    ? 'badge-success'
-                                    : bonifValue === 'Não'
-                                        ? 'badge-danger'
-                                        : 'badge-gray'}"
-                                data-bonification-value="${escapeHtml(bonifValue || '')}"
-                            >${escapeHtml(bonifValue || 'Não informado')}</span>
-                        ` : `
-                            <div class="btn-group-toggle">
-                                <button class="btn-toggle ${bonifValue === 'Sim' ? 'active-sim' : ''}"
-                                        onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', 'Sim')"
-                                        ${isBonifLocked ? 'disabled' : ''}>Sim</button>
-                                <button class="btn-toggle ${bonifValue === 'Não' ? 'active-nao' : ''}"
-                                        onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', 'Não')"
-                                        ${isBonifLocked ? 'disabled' : ''}>Não</button>
-                                ${doc.allowNaoAplica ? `
-                                    <button class="btn-toggle ${bonifValue === 'Não se aplica' ? 'active-naoseaplica' : ''}"
-                                            onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', 'Não se aplica')"
-                                            ${isBonifLocked ? 'disabled' : ''}>N/A</button>
-                                ` : ''}
-                            </div>
-                        `);
+                    let bonificationCellHTML = accessProfile === 'sme' ? `
+                        <span
+                            class="badge ${bonifValue === 'Sim'
+                                ? 'badge-success'
+                                : bonifValue === 'Não'
+                                    ? 'badge-danger'
+                                    : 'badge-gray'}"
+                            data-bonification-value="${escapeHtml(bonifValue || '')}"
+                        >${escapeHtml(bonifValue || 'Não informado')}</span>
+                    ` : `
+                        <div class="btn-group-toggle">
+                            <button class="btn-toggle ${bonifValue === 'Sim' ? 'active-sim' : ''}"
+                                    onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', 'Sim')"
+                                    ${isBonifLocked ? 'disabled' : ''}>Sim</button>
+                            <button class="btn-toggle ${bonifValue === 'Não' ? 'active-nao' : ''}"
+                                    onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', 'Não')"
+                                    ${isBonifLocked ? 'disabled' : ''}>Não</button>
+                            ${doc.allowNaoAplica ? `
+                                <button class="btn-toggle ${bonifValue === 'Não se aplica' ? 'active-naoseaplica' : ''}"
+                                        onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', 'Não se aplica')"
+                                        ${isBonifLocked ? 'disabled' : ''}>N/A</button>
+                            ` : ''}
+                        </div>
+                    `;
 
-                    let analysisCellHTML = doc.key === 'consAssessoria'
-                        ? (serviceAdvisoryEntries.length > 0 ? `
-                            <div style="display:flex; flex-direction:column; gap:8px;">
-                                ${serviceAdvisoryEntries.map(({ note, analysis }) => `
-                                    <select
-                                        class="select-analise select-analise-comp analise-${analysis.toLowerCase().replace(/\s+/g, '-').replace(/[()]/g, '')}"
-                                        aria-label="Análise da consulta à Assessoria para a NF ${escapeHtml(note.numero)}"
-                                        onchange="changeInvoiceAdvisoryAnalysis('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}', this.value, this)"
-                                        ${activePend ? `aria-describedby="${escapeHtml(analysisLockId)}"` : ''}
-                                        ${isAnaliseLocked ? 'disabled' : ''}
-                                    >
-                                        <option value="Não analisado" ${analysis === 'Não analisado' ? 'selected' : ''}>Não analisado</option>
-                                        <option value="Correto" ${analysis === 'Correto' ? 'selected' : ''}>Correto</option>
-                                        <option value="Correto (Atrasado)" ${analysis === 'Correto (Atrasado)' ? 'selected' : ''}>Correto (Atrasado)</option>
-                                        <option value="Incorreto" ${analysis === 'Incorreto' ? 'selected' : ''}>Incorreto</option>
-                                    </select>
-                                `).join('')}
-                                <span style="font-size:0.68rem; color:var(--text-muted);">Resumo técnico: ${escapeHtml(analiseValue)}</span>
-                            </div>
-                        ` : '<span class="badge badge-success">Correto — N/A</span>')
-                        : `
-                            <select class="select-analise select-analise-comp analise-${analiseValue.toLowerCase().replace(/\s+/g, '-').replace(/[()]/g, '')}"
-                                    aria-label="Análise técnica de ${escapeHtml(doc.name)} no programa ${escapeHtml(progName)}"
-                                    onchange="changeAnaliseTecnica('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', this.value, this)"
-                                    ${activePend ? `aria-describedby="${escapeHtml(analysisLockId)}"` : ''}
-                                    ${isAnaliseLocked ? 'disabled' : ''}>
-                                <option value="Não analisado" ${analiseValue === 'Não analisado' ? 'selected' : ''}>Não analisado</option>
-                                <option value="Correto" ${analiseValue === 'Correto' ? 'selected' : ''}>Correto</option>
-                                <option value="Correto (Atrasado)" ${analiseValue === 'Correto (Atrasado)' ? 'selected' : ''}>Correto (Atrasado)</option>
-                                <option value="Incorreto" ${analiseValue === 'Incorreto' ? 'selected' : ''}>Incorreto</option>
-                            </select>
-                        `;
+                    let analysisCellHTML = `
+                        <select class="select-analise select-analise-comp analise-${analiseValue.toLowerCase().replace(/\s+/g, '-').replace(/[()]/g, '')}"
+                                aria-label="Análise técnica de ${escapeHtml(doc.name)} no programa ${escapeHtml(progName)}"
+                                onchange="changeAnaliseTecnica('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', this.value, this)"
+                                ${activePend ? `aria-describedby="${escapeHtml(analysisLockId)}"` : ''}
+                                ${isAnaliseLocked ? 'disabled' : ''}>
+                            <option value="Não analisado" ${analiseValue === 'Não analisado' ? 'selected' : ''}>Não analisado</option>
+                            <option value="Correto" ${analiseValue === 'Correto' ? 'selected' : ''}>Correto</option>
+                            <option value="Correto (Atrasado)" ${analiseValue === 'Correto (Atrasado)' ? 'selected' : ''}>Correto (Atrasado)</option>
+                            <option value="Incorreto" ${analiseValue === 'Incorreto' ? 'selected' : ''}>Incorreto</option>
+                        </select>
+                    `;
 
                     const rowPendency = activePend || resolvedPend;
 
