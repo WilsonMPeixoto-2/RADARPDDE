@@ -153,7 +153,7 @@ test.describe('Prontuário — despesa a identificar', () => {
       provisionalInvoiceRow.locator('.invoice-document-status')
     ).toHaveText('Incorreto');
     await expect(
-      refreshedRow.locator('.invoice-document-panel-summary').getByText('Incorreto', { exact: true })
+      refreshedRow.locator('.invoice-document-panel-summary').getByText('1 pendência', { exact: true })
     ).toBeVisible();
     await expect(
       provisionalInvoiceRow.getByRole('button', { name: 'Visualizar pendência' })
