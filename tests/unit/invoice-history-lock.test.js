@@ -199,3 +199,37 @@ test('NF com histórico individual de notaFiscal recebe a mesma trava estrutural
     assert.equal(state.registeredInvoices[0].compKey, '2026-05_BASIC');
     assert.equal(state.logs.length, 0);
 });
+
+
+test('a_identificar com histórico notaFiscal pode ser identificado preservando o ID', async () => {
+    const { state, service } = createHarness();
+    state.registeredInvoices[0] = {
+        ...state.registeredInvoices[0],
+        tipo: 'a_identificar',
+        numero: '',
+        desc: 'Débito sem identificação',
+        descricao: 'Débito sem identificação',
+        consultaAssessoriaEnviada: undefined,
+        analiseConsultaAssessoria: undefined
+    };
+    state.pendencies[0] = {
+        ...state.pendencies[0],
+        documentoKey: 'notaFiscal'
+    };
+
+    const result = await service.save({
+        id: 'NF-LOCKED',
+        schoolId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        description: 'Material identificado',
+        expenseType: 'consumo',
+        invoiceNumber: 'NF-IDENTIFICADA',
+        amount: 300,
+        profile: 'controlador'
+    });
+
+    assert.equal(result.value.invoice.id, 'NF-LOCKED');
+    assert.equal(state.registeredInvoices[0].tipo, 'consumo');
+    assert.equal(state.registeredInvoices[0].numero, 'NF-IDENTIFICADA');
+    assert.equal(state.pendencies[0].registeredInvoiceId, 'NF-LOCKED');
+});
