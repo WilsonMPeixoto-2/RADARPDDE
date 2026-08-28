@@ -205,6 +205,7 @@
 
         root.document.querySelectorAll('#prontuario-verif-rows tr[data-program-id][data-document-key="notaFiscal"]')
             .forEach(row => {
+                if (row.querySelector('[data-invoice-document-panel]')) return;
                 const programId = text(row.dataset.programId);
                 const compKey = `${competence}_${programId}`;
                 const notes = invoices.filter(note => (
