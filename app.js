@@ -10838,7 +10838,7 @@ async function changeAnaliseTecnica(escolaId, compKey, docKey, value, selectElem
     return true;
 }
 
-async function beginInvoiceDocumentAnalysisEdit(invoiceId, escolaId) {
+function beginInvoiceDocumentAnalysisEdit(invoiceId, escolaId) {
     invoiceAnalysisEditId = String(invoiceId);
     renderProntuario(escolaId);
     const selector = document.querySelector(
@@ -10848,7 +10848,7 @@ async function beginInvoiceDocumentAnalysisEdit(invoiceId, escolaId) {
     return true;
 }
 
-function changeInvoiceDocumentAnalysis(
+async function changeInvoiceDocumentAnalysis(
     invoiceId,
     escolaId,
     value,
