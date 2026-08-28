@@ -10553,7 +10553,7 @@ function renderPendencyDrawer() {
             <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M7 3v4M17 3v4M3.5 9h17"/></svg>
             <div><span>Registrada em</span><strong>${escapeHtml(formatPendencyDate(pendency.dataAbertura))}</strong></div>
         </div>
-        <button type="button" class="pendency-preview-edit-button" onclick="${edit ? 'savePendencyDrawerEdits()' : 'editPendencyDrawer()'}">
+        <button type="button" class="pendency-preview-edit-button" onclick="handlePendencyDrawerPrimaryAction()">
             ${edit
                 ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4 4L19 6.5"/></svg><span>Salvar</span>'
                 : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg><span>Editar</span>'}
@@ -10579,6 +10579,15 @@ function editPendencyDrawer() {
     drawer.dataset.mode = 'edit';
     renderPendencyDrawer();
     drawer.querySelector('#pendency-preview-reason')?.focus({ preventScroll: true });
+}
+
+async function handlePendencyDrawerPrimaryAction() {
+    const drawer = ensurePendencyDrawer();
+    if (drawer.dataset.mode === 'edit') {
+        return savePendencyDrawerEdits();
+    }
+    editPendencyDrawer();
+    return true;
 }
 
 async function savePendencyDrawerEdits() {
