@@ -82,7 +82,7 @@ begin
        or to_regprocedure('public.register_service_advisory_attempt(jsonb,integer,jsonb,integer,jsonb,jsonb,integer,jsonb)') is null
        or to_regprocedure('public.reanalyze_service_advisory_pendency(jsonb,integer,jsonb,jsonb,jsonb,integer,integer,jsonb)') is null
        or to_regprocedure('public.save_invoice_document_with_pendency(jsonb,integer,jsonb,integer,jsonb,jsonb)') is null
-       or to_regprocedure('public.register_invoice_document_attempt(jsonb,integer,jsonb,integer,jsonb,jsonb,integer,jsonb)') is null
+       or to_regprocedure('public.register_invoice_document_attempt(jsonb,integer,jsonb,integer,jsonb,integer,jsonb,jsonb,integer,jsonb)') is null
        or to_regprocedure('public.reanalyze_invoice_document_pendency(jsonb,integer,jsonb,jsonb,jsonb,integer,integer,jsonb)') is null
        or to_regprocedure('public.save_unidentified_expense_with_pendency(jsonb,jsonb,integer,jsonb,jsonb)') is null then
         raise exception 'ATOMIC_OPERATIONAL_RPC_MISSING';
@@ -141,7 +141,7 @@ begin
        or (select prosecdef from pg_proc where oid = 'public.register_service_advisory_attempt(jsonb,integer,jsonb,integer,jsonb,jsonb,integer,jsonb)'::regprocedure)
        or (select prosecdef from pg_proc where oid = 'public.reanalyze_service_advisory_pendency(jsonb,integer,jsonb,jsonb,jsonb,integer,integer,jsonb)'::regprocedure)
        or (select prosecdef from pg_proc where oid = 'public.save_invoice_document_with_pendency(jsonb,integer,jsonb,integer,jsonb,jsonb)'::regprocedure)
-       or (select prosecdef from pg_proc where oid = 'public.register_invoice_document_attempt(jsonb,integer,jsonb,integer,jsonb,jsonb,integer,jsonb)'::regprocedure)
+       or (select prosecdef from pg_proc where oid = 'public.register_invoice_document_attempt(jsonb,integer,jsonb,integer,jsonb,integer,jsonb,jsonb,integer,jsonb)'::regprocedure)
        or (select prosecdef from pg_proc where oid = 'public.reanalyze_invoice_document_pendency(jsonb,integer,jsonb,jsonb,jsonb,integer,integer,jsonb)'::regprocedure)
        or (select prosecdef from pg_proc where oid = 'public.save_unidentified_expense_with_pendency(jsonb,jsonb,integer,jsonb,jsonb)'::regprocedure)
        or (select prosecdef from pg_proc where oid = 'public.production_integrity_check()'::regprocedure)
