@@ -133,7 +133,7 @@ As migrations correntes incluem, conforme `CURRENT_STAGE.md` e a branch de estab
 - preservação de `pendency_attempts.available_at` separada de `submitted_at`, com backfill seguro do histórico;
 - vínculo opcional de pendência de Assessoria Contábil com `registered_invoice_id`, permitindo individualização por NF e impedindo duplicidade ativa para a mesma NF;
 - operações compostas de Assessoria Contábil para persistir análise, pendência, verificação e log de forma coerente, inclusive na reanálise e no envio corretivo.
-- a branch do PR #211 acrescenta, ainda não aplicada em Production, a individualização de análise/Pendência de `notaFiscal` por `registered_invoice_id`, as operações atômicas correspondentes e a regra `a_identificar = Incorreto + Pendência`; até o merge, Production continua no histórico anterior.
+- a branch do PR #211 acrescenta, ainda não aplicada em Production, a individualização de análise/Pendência de `notaFiscal` por `registered_invoice_id`, bloqueia novas Pendências fiscais genéricas, cria `a_identificar = Incorreto + Pendência` atomicamente e identifica posteriormente essa mesma despesa dentro de **Registrar novo envio**, preservando o ID; quando a identificação resultar em bem permanente, o patrimônio é salvo na mesma transação; até o merge, Production continua no histórico anterior.
 
 Não reaplicar SQL já aplicado para “corrigir” histórico.
 
