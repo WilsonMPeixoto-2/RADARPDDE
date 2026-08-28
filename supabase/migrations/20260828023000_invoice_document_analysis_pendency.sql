@@ -508,6 +508,73 @@ $$;
 revoke all on function public.reanalyze_invoice_document_pendency(jsonb, integer, jsonb, jsonb, jsonb, integer, integer, jsonb) from public, anon;
 grant execute on function public.reanalyze_invoice_document_pendency(jsonb, integer, jsonb, jsonb, jsonb, integer, integer, jsonb) to authenticated;
 
+-- Cadastro atômico da despesa não identificada: o débito sem documentação
+-- já nasce Incorreto e com Pendência individual obrigatória.
+create or replace function public.save_unidentified_expense_with_pendency(
+    p_invoice jsonb,
+    p_verification_patch jsonb,
+    p_expected_verification_version integer,
+    p_pendency jsonb,
+    p_administrative_log jsonb
+)
+returns jsonb
+language plpgsql
+security invoker
+set search_path = pg_catalog, public
+as $
+declare
+    v_invoice_id text := nullif(p_invoice ->> 'id', '');
+    v_pendency_invoice_id text := nullif(p_pendency ->> 'registered_invoice_id', '');
+    v_invoice_result jsonb;
+    v_pendency_result jsonb;
+begin
+    if v_invoice_id is null
+        or v_pendency_invoice_id is distinct from v_invoice_id
+        or nullif(p_pendency ->> 'document_key', '') <> 'notaFiscal' then
+        raise exception 'VALIDATION_ERROR: despesa a identificar deve abrir Pendência individual de Notas Fiscais';
+    end if;
+    if nullif(p_invoice ->> 'expense_type', '') <> 'a_identificar'
+        or p_invoice #>> '{payload,analiseDocumentoFiscal}' <> 'Incorreto' then
+        raise exception 'VALIDATION_ERROR: despesa a identificar deve nascer em estado Incorreto';
+    end if;
+    if nullif(p_invoice ->> 'school_id', '') is distinct from nullif(p_pendency ->> 'school_id', '')
+        or nullif(p_invoice ->> 'competence_id', '') is distinct from nullif(p_pendency ->> 'competence_origin', '')
+        or nullif(p_invoice ->> 'program_id', '') is distinct from nullif(p_pendency ->> 'program_id', '') then
+        raise exception 'VALIDATION_ERROR: despesa a identificar e Pendência pertencem a contextos diferentes';
+    end if;
+
+    select public.save_invoice_with_effects(
+        p_invoice,
+        null,
+        p_verification_patch,
+        null,
+        null,
+        p_expected_verification_version,
+        null
+    ) into v_invoice_result;
+
+    select public.save_pendency_command(
+        'open',
+        p_pendency,
+        null,
+        null,
+        null,
+        null,
+        p_administrative_log
+    ) into v_pendency_result;
+
+    return jsonb_build_object(
+        'invoice', v_invoice_result -> 'invoice',
+        'verification', v_invoice_result -> 'verification',
+        'pendency', v_pendency_result -> 'pendency',
+        'administrative_log', v_pendency_result -> 'administrative_log'
+    );
+end
+$;
+
+revoke all on function public.save_unidentified_expense_with_pendency(jsonb, jsonb, integer, jsonb, jsonb) from public, anon;
+grant execute on function public.save_unidentified_expense_with_pendency(jsonb, jsonb, integer, jsonb, jsonb) to authenticated;
+
 -- Reparo cirúrgico do único caso conhecido que originou este hotfix.
 -- Em banco limpo os IDs não existem e o bloco é inerte. Se apenas parte do
 -- contexto existir, a migration falha em vez de adivinhar a associação.
