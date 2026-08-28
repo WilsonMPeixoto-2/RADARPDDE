@@ -1,5 +1,9 @@
 const { test, expect } = require('@playwright/test');
 
+async function waitForProductExtensions(page) {
+  await page.evaluate(() => window.RadarProductExtensionsReady);
+}
+
 async function openOperationalProgram(page, options = {}) {
   return page.evaluate(({ initialized, note }) => {
     switchProfile('controlador');
@@ -205,6 +209,7 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
     page.on('dialog', dialog => dialog.accept());
 
     await page.goto('/');
+    await waitForProductExtensions(page);
     await openOperationalProgram(page, { initialized: true });
 
     const addServiceInvoice = async ({ description, number, amount }) => {
@@ -481,6 +486,7 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 
     await page.goto('/');
+    await waitForProductExtensions(page);
     const context = await page.evaluate(() => {
       switchProfile('controlador');
 
@@ -581,7 +587,7 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
     }).click();
 
     const awaitingRow = page.locator(
-      `#p-reanalise tr[data-pendency-ref*="${createdPendency.id}"]`
+      `#p-aguardando tr[data-pendency-ref*="${createdPendency.id}"]`
     );
     await awaitingRow.getByRole('button', { name: 'Reanalisar', exact: true }).click();
     const reanalysisModal = page.locator('#modal-reanalisar-pendencia');

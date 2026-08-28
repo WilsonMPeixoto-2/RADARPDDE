@@ -150,20 +150,30 @@ test.describe('Prontuário — refinamentos UX de baixo risco', () => {
     await expect(thirdAnalysis).toHaveValue('Não analisado');
     await expect(assessoriaRow.getByText('Sim', { exact: true })).toBeVisible();
 
-    await secondAnalysis.selectOption('Correto (Atrasado)');
-    await expect(secondAnalysis).toHaveValue('Correto (Atrasado)');
-    await expect(assessoriaRow.getByText('Sim', { exact: true })).toBeVisible();
+    const pendencyModal = page.locator('#modal-nova-pendencia');
+    const drawer = page.locator('#pendency-preview-drawer');
+
+    await secondAnalysis.selectOption('Incorreto');
+    await expect(pendencyModal).toHaveClass(/show/);
+    await pendencyModal.getByLabel('Documento ilegível', { exact: true }).check();
+    await pendencyModal.locator('#pend-obs')
+      .fill('Problema individual na Consulta Assessoria da segunda Nota Fiscal.');
+    await page.locator('#form-nova-pendencia button[type="submit"]').click();
+    await expect(pendencyModal).not.toHaveClass(/show/);
+    if (await drawer.isVisible()) {
+      await drawer.locator('.pendency-preview-close').click();
+    }
+
+    await expect(secondInvoiceCard.getByText('Incorreto', { exact: true })).toBeVisible();
+    await expect(secondInvoiceCard.getByRole('button', { name: 'Visualizar pendência' })).toBeVisible();
 
     await thirdAnalysis.selectOption('Incorreto');
-    const pendencyModal = page.locator('#modal-nova-pendencia');
     await expect(pendencyModal).toHaveClass(/show/);
     await pendencyModal.getByLabel('Documento ilegível', { exact: true }).check();
     await pendencyModal.locator('#pend-obs')
       .fill('Problema individual na Consulta Assessoria da terceira Nota Fiscal.');
     await page.locator('#form-nova-pendencia button[type="submit"]').click();
     await expect(pendencyModal).not.toHaveClass(/show/);
-
-    const drawer = page.locator('#pendency-preview-drawer');
     if (await drawer.isVisible()) {
       await drawer.locator('.pendency-preview-close').click();
     }
@@ -171,7 +181,7 @@ test.describe('Prontuário — refinamentos UX de baixo risco', () => {
     await expect(thirdInvoiceCard.getByText('Incorreto', { exact: true })).toBeVisible();
     await expect(thirdInvoiceCard.getByRole('button', { name: 'Visualizar pendência' })).toBeVisible();
     await expect(firstInvoiceCard.getByRole('button', { name: 'Visualizar pendência' })).toHaveCount(0);
-    await expect(secondInvoiceCard.getByRole('button', { name: 'Visualizar pendência' })).toHaveCount(0);
+    await expect(assessoriaRow.getByText('2 pendências', { exact: true })).toBeVisible();
     await expect(assessoriaRow.getByRole('button', { name: 'Abrir Pendência' })).toHaveCount(0);
     await expect(assessoriaRow.getByRole('button', { name: 'Registrar novo envio' })).toHaveCount(0);
     await expect(assessoriaRow.getByText('Sim', { exact: true })).toBeVisible();

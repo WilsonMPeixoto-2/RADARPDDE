@@ -10573,6 +10573,23 @@ function findActiveInvoiceDocumentPendency(invoice) {
     return window.RadarPendencias.findActivePendency(documentary, context);
 }
 
+function findActiveInvoiceAdvisoryPendency(invoice) {
+    if (!invoice) return null;
+    const splitContext = window.RadarCompetencia.splitCompetenciaContext(invoice.compKey);
+    const context = {
+        escolaId: invoice.escolaId,
+        competencia: splitContext.competenciaKey,
+        competenciaOrigem: splitContext.competenciaKey,
+        programaId: splitContext.contextId,
+        documentoKey: 'consAssessoria',
+        registeredInvoiceId: invoice.id
+    };
+    const documentary = pendencias.filter(pendency => (
+        window.RadarPendencias.isDocumentaryPendency(pendency)
+    ));
+    return window.RadarPendencias.findActivePendency(documentary, context);
+}
+
 function openInvoiceDocumentPendencyModal(invoiceId, escolaId) {
     const invoice = notasRegistradas.find(item => item.id === invoiceId && item.escolaId === escolaId);
     if (!invoice) return false;
@@ -11162,26 +11179,48 @@ async function changeInvoiceAdvisoryAnalysis(
             analysis: verification?.analise?.consAssessoria
         } : {}
     );
-    const activePendency = findActivePendencyForTechnicalAnalysis(
-        escolaId,
-        nota.compKey,
-        'consAssessoria'
-    );
+
+    const activePendency = findActiveInvoiceAdvisoryPendency(nota);
     if (activePendency) {
         if (selectElement && typeof selectElement === 'object') {
             selectElement.value = previousState.analysis;
         }
-        const instruction = activePendency.status === 'Aguardando reanálise'
-            ? 'Esta análise aguarda reanálise. Use Reanalisar para registrar o resultado.'
-            : 'Esta análise possui pendência aberta. Use Registrar novo envio para prosseguir.';
-        alert(instruction);
-        renderProntuario(escolaId);
+        openPendencyDrawer(activePendency.id);
         return false;
     }
 
-    let result;
+    if (value === 'Incorreto') {
+        if (selectElement && typeof selectElement === 'object') {
+            selectElement.value = previousState.analysis;
+        }
+
+        try {
+            if (window.RadarProductExtensionsReady
+                && typeof window.RadarProductExtensionsReady.then === 'function') {
+                await window.RadarProductExtensionsReady;
+            }
+            const atomicHandler = window.changeInvoiceAdvisoryAnalysis;
+            if (typeof atomicHandler === 'function'
+                && atomicHandler !== changeInvoiceAdvisoryAnalysis) {
+                return atomicHandler(notaId, escolaId, value, selectElement);
+            }
+        } catch (error) {
+            reportRadarActionError(
+                error,
+                'Não foi possível preparar a abertura segura da pendência da Consulta Assessoria.'
+            );
+            return false;
+        }
+
+        reportRadarActionError(
+            new Error('A proteção individual da Consulta Assessoria ainda não está disponível.'),
+            'Não foi possível abrir a pendência desta Nota Fiscal com segurança.'
+        );
+        return false;
+    }
+
     try {
-        result = await radarInvoiceService.updateServiceAdvisory({
+        await radarInvoiceService.updateServiceAdvisory({
             id: notaId,
             schoolId: escolaId,
             analysis: value,
@@ -11198,22 +11237,6 @@ async function changeInvoiceAdvisoryAnalysis(
         );
         renderProntuario(escolaId);
         return false;
-    }
-
-    if (result.value.shouldOpenPendency) {
-        const splitContext = window.RadarCompetencia.splitCompetenciaContext(nota.compKey);
-        const programa = programas.find(item => item.id === splitContext.contextId);
-        openNovaPendenciaModalWithDefaults(
-            escolaId,
-            nota.compKey,
-            programa?.name || splitContext.contextId,
-            'consAssessoria',
-            `Consulta Assessoria — NF ${nota.numero}`
-        );
-        const observation = document.getElementById('pend-obs');
-        if (observation) {
-            observation.value = `Identificado erro técnico na consulta à Assessoria referente à NF ${nota.numero}.`;
-        }
     }
 
     renderProntuario(escolaId);

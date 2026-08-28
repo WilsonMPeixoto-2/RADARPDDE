@@ -395,10 +395,7 @@
             const active = findActiveForInvoice(root, state, invoice);
             if (active) {
                 if (selectElement && typeof selectElement === 'object') selectElement.value = previous;
-                const instruction = active.status === 'Aguardando reanálise'
-                    ? 'Esta Nota Fiscal aguarda reanálise. Use Reanalisar para registrar o resultado.'
-                    : 'Esta Nota Fiscal possui pendência aberta. Use Registrar novo envio para prosseguir.';
-                root.alert?.(instruction);
+                root.openPendencyDrawer?.(active.id);
                 return false;
             }
 
@@ -440,6 +437,7 @@
                     profile: currentProfile(root)
                 });
                 root.rebuildOperationalIndexes?.();
+                root.renderProntuario?.(invoice.escolaId);
                 return true;
             } catch (error) {
                 if (selectElement && typeof selectElement === 'object') selectElement.value = previous;

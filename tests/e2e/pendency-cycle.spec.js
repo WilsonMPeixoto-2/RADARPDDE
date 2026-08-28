@@ -2149,6 +2149,7 @@ test.describe('resultados alternativos, bloqueio e rollback da reanálise', () =
     });
 
     await page.goto('/');
+    await page.evaluate(() => window.RadarProductExtensionsReady);
     const context = await page.evaluate(target => {
       switchProfile('controlador');
       const competencia = activeCompetenciaKey;
@@ -2268,17 +2269,21 @@ test.describe('resultados alternativos, bloqueio e rollback da reanálise', () =
     );
 
     await expect(openRow.locator('select.select-analise')).toBeDisabled();
-    await expect(openRow).toContainText('Registre um novo envio para prosseguir.');
+    await expect(openRow.getByRole('button', { name: 'Visualizar pendência', exact: true }))
+      .toBeVisible();
     await expect(openRow.getByRole('button', { name: 'Registrar novo envio', exact: true }))
-      .toBeVisible();
+      .toHaveCount(0);
+    await expect(openRow.getByRole('button', { name: 'Reanalisar', exact: true }))
+      .toHaveCount(0);
     await expect(awaitingRow.locator('select.select-analise')).toBeDisabled();
-    await expect(awaitingRow).toContainText('Use Reanalisar para registrar o resultado.');
-    await expect(awaitingRow.getByRole('button', { name: 'Reanalisar', exact: true }))
+    await expect(awaitingRow.getByRole('button', { name: 'Visualizar pendência', exact: true }))
       .toBeVisible();
+    await expect(awaitingRow.getByRole('button', { name: 'Reanalisar', exact: true }))
+      .toHaveCount(0);
     await expect(awaitingRow.getByRole('button', {
       name: 'Registrar substituição mais recente',
       exact: true
-    })).toBeVisible();
+    })).toHaveCount(0);
     await expect(unrelatedDocumentRow.locator('select.select-analise')).toBeEnabled();
     await expect(otherProgramRow.locator('select.select-analise')).toBeEnabled();
 

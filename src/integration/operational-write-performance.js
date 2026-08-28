@@ -395,13 +395,28 @@
     }
 
     function syncServiceAdvisorySummary(row, bonificationValue) {
-        const summary = Array.from(row?.querySelectorAll?.('span.badge') || [])
-            .find(element => text(element.textContent).startsWith('Resumo mensal:'));
+        const summary = row?.querySelector?.(
+            '.invoice-summary-block.is-bonification .invoice-document-status'
+        );
         if (!summary) return;
 
-        summary.classList.remove('badge-success', 'badge-danger');
-        summary.classList.add(bonificationValue === 'Sim' ? 'badge-success' : 'badge-danger');
-        summary.textContent = `Resumo mensal: ${bonificationValue || 'Não'}`;
+        const value = bonificationValue || 'Não';
+        summary.classList.remove(
+            'is-correct',
+            'is-incorrect',
+            'is-pending',
+            'is-late',
+            'badge-success',
+            'badge-danger'
+        );
+        summary.classList.add(
+            value === 'Sim'
+                ? 'is-correct'
+                : value === 'Não'
+                    ? 'is-incorrect'
+                    : 'is-pending'
+        );
+        summary.textContent = value;
     }
 
     function syncProntuarioProgramUI(root, schoolId, compKey) {
