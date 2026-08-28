@@ -1,7 +1,20 @@
 # Documentação do RADAR PDDE
 
-**Estado de referência:** 27 de agosto de 2026
+**Estado de referência:** 28 de agosto de 2026
 **Classe documental:** Canônico — índice
+
+## 0. Frente ativa
+
+A frente ativa é o **PR #211 — hotfix de individualização de Notas Fiscais**.
+
+Ler primeiro:
+
+- [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md);
+- [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md);
+- [`evidence/2026-08-28-pr211-referencias-visuais.md`](evidence/2026-08-28-pr211-referencias-visuais.md);
+- [`decisions/ADR-047-analise-pendencia-individual-notas-fiscais.md`](decisions/ADR-047-analise-pendencia-individual-notas-fiscais.md).
+
+Esse hotfix **não substitui o plano mestre**. Depois de seu fechamento, a retomada do plano de 26/08 exige reconciliação explícita do que o PR #211 já tiver modificado ou solucionado.
 
 ## 1. Onde começar
 
@@ -52,6 +65,8 @@ Valores voláteis sempre devem ser consultados no remoto quando a tarefa depende
 
 1. [`../AGENTS.md`](../AGENTS.md);
 2. [`CURRENT_STAGE.md`](CURRENT_STAGE.md);
+3. [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md);
+4. [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md);
 3. [`handoff/2026-08-27-hotfix-boleto-internet.md`](handoff/2026-08-27-hotfix-boleto-internet.md);
 4. [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md);
 5. [`superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md);
