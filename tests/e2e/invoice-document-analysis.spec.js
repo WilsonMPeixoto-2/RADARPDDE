@@ -229,8 +229,8 @@ test.describe('Prontuário — análise individual de Notas Fiscais', () => {
       .toHaveCount(0);
 
     const summary = panel.locator('.invoice-document-panel-summary');
-    await expect(summary.getByText('Incorreto', { exact: true })).toBeVisible();
     await expect(summary.getByText('2 pendências', { exact: true })).toBeVisible();
+    await expect(summary.getByText('Situação técnica', { exact: true })).toHaveCount(0);
 
     await invoiceRow(page, boleto1234).getByRole('button', { name: 'Visualizar pendência' }).click();
     const drawer = page.locator('#pendency-preview-drawer');
