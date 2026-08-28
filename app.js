@@ -10512,6 +10512,15 @@ function renderPendencyDrawer() {
     const meta = pendencyDrawerDocumentMeta(pendency);
     const competence = COMPETENCIAS.find(item => item.key === (pendency.competenciaOrigem || pendency.competencia));
     const program = programas.find(item => item.id === pendency.programaId);
+    const reasonOptions = [...window.RadarPendencias.DOCUMENT_ERROR_TYPES];
+    const currentReason = String(pendency.motivo || '').trim();
+    if (currentReason && !reasonOptions.includes(currentReason)) {
+        reasonOptions.unshift(currentReason);
+    }
+    const reasonOptionsHTML = reasonOptions.map(reason => `
+        <option value="${escapeHtml(reason)}" ${reason === currentReason ? 'selected' : ''}>${escapeHtml(reason)}</option>
+    `).join('');
+
     const statusClass = pendency.status === 'Aberta'
         ? 'is-open'
         : pendency.status === 'Aguardando reanálise'
@@ -10540,7 +10549,7 @@ function renderPendencyDrawer() {
         <div class="pendency-preview-field">
             <label for="pendency-preview-reason">Motivo</label>
             ${edit
-                ? `<input id="pendency-preview-reason" type="text" value="${escapeHtml(pendency.motivo || '')}">`
+                ? `<select id="pendency-preview-reason">${reasonOptionsHTML}</select>`
                 : `<p>${escapeHtml(pendency.motivo || '')}</p>`}
         </div>
         <div class="pendency-preview-field">
