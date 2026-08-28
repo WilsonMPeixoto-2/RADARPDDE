@@ -402,3 +402,32 @@ test('despesa a identificar abre Incorreto mas não aceita novo envio antes de s
         error => error?.code === 'DOCUMENT_IDENTIFICATION_REQUIRED'
     );
 });
+
+
+test('edição pelo drawer mantém motivo canônico sincronizado com errosAtuais', async () => {
+    const harness = createHarness();
+    const opened = await harness.service.open(documentaryInput);
+    const pendencyId = opened.value.pendency.id;
+
+    const updated = await harness.service.updateDetails({
+        pendencyId,
+        reason: 'Dados divergentes',
+        observation: 'Observação revisada no drawer.'
+    });
+
+    assert.equal(updated.value.pendency.motivo, 'Dados divergentes');
+    assert.equal(updated.value.pendency.observacao, 'Observação revisada no drawer.');
+    assert.deepEqual(
+        updated.value.pendency.errosAtuais,
+        ['Dados divergentes', 'Documento ilegível', 'Sem assinatura']
+    );
+
+    await assert.rejects(
+        () => harness.service.updateDetails({
+            pendencyId,
+            reason: 'Texto arbitrário fora do catálogo',
+            observation: 'Não deve persistir.'
+        }),
+        error => error?.code === 'VALIDATION_FAILED'
+    );
+});
