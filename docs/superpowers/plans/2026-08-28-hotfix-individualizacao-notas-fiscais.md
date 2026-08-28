@@ -5,7 +5,7 @@
 **Branch:** `hotfix/individualizar-analise-notas-fiscais`  
 **PR:** #211 (Draft)  
 **Baseline de origem:** `b4ad4e8540c55ccfae0406ea136bc4c8da59fd0b`  
-**Checkpoint documentado:** `cebac4dcb3dfb1836f81d59ba58d04cc96974aca`
+**Checkpoint funcional consolidado:** `3b10c2a97fd2142dbfd1e120dad0bf2bbd712d57`
 
 ## 1. Relação com o plano mestre
 
@@ -222,138 +222,147 @@ Exceção expressamente identificada e comprovada:
 
 O reparo deve ser fail-closed, com preflight integral antes da associação.
 
-## 7. Implementado até o checkpoint
+## 7. Implementado até o checkpoint funcional consolidado
 
-No checkpoint `cebac4dcb3dfb1836f81d59ba58d04cc96974aca`:
+No checkpoint `3b10c2a97fd2142dbfd1e120dad0bf2bbd712d57`:
 
-- branch remota real criada;
-- PR #211 aberto como Draft;
-- domínio `invoice-document-analysis.js` criado;
-- resumo derivado implementado;
-- identidade de Pendência generalizada para `registered_invoice_id`;
-- `InvoiceService.updateDocumentAnalysis()` criado;
-- ciclo individual de abertura, novo envio e reanálise criado no `PendencyService`;
-- RPCs específicas do ciclo individual adicionadas em migration Draft;
-- regra de `a_identificar = Incorreto + Pendência` implementada;
-- criação atômica de `a_identificar` iniciada;
-- proteção de histórico reforçada;
-- layout estruturado de Notas Fiscais implementado no Prontuário;
-- drawer lateral implementado;
-- referência visual aprovada incorporada ao contrato documental;
-- testes unitários e SQL específicos acrescentados;
-- reparo cirúrgico conhecido incluído com preflight;
+- análise técnica individual por `registered_invoice_id` implementada;
+- bonificação de `notaFiscal` preservada como requisito agregado;
+- resumo técnico de `notaFiscal` derivado e bloqueado contra edição direta;
+- Pendências de Notas Fiscais obrigatoriamente vinculadas à despesa específica;
+- coexistência de Pendências ativas de invoices diferentes comprovada;
+- duplicidade ativa da mesma invoice bloqueada;
+- `boleto_internet` mantido exclusivamente como tipo de gasto de `notaFiscal` e somente em `CONECTADA`;
+- nova `a_identificar` criada somente como `Incorreto + Pendência` na mesma operação;
+- editor comum impedido de transformar despesa identificada em `a_identificar`;
+- identificação posterior transferida para **Pendências → Registrar novo envio**, preservando o mesmo ID;
+- identificação como serviço preserva a dimensão separada de Consulta Assessoria;
+- identificação como bem permanente cria e vincula o registro patrimonial na mesma operação;
+- reanálise exige Pendência em `Aguardando reanálise` e tentativa válida da mesma despesa;
+- Pendência ativa bloqueia edição documental comum no Prontuário;
+- layout desktop ajustado para **Documento | Tipo · Valor | Situação técnica | Ação**;
+- estados `Correto` e `Correto (Atrasado)` passam a ser apresentados como estado, com edição deliberada;
+- contador de Pendências ocultado quando igual a zero;
+- ação normal `Abrir pendência` removida do estado que deve nascer atomicamente;
+- drawer limitado a **Visualizar → Editar → Salvar**, com fechamento por Escape e restauração de foco;
+- testes unitários e E2E antigos que legitimavam o fluxo superado foram substituídos;
+- migration Draft e RPCs ajustadas para validar identidade, contexto, transição e atomicidade sem duplicar no PostgreSQL toda a regra de negócio;
+- os 20 registros históricos `a_identificar` permanecem sem backfill;
+- reparo conhecido do Boleto 1234 permanece exclusivamente cirúrgico e fail-closed;
 - Production permanece intocada.
 
-## 8. Falhas já identificadas no checkpoint
+## 8. Evidências do checkpoint atual
 
-O PR **não está apto para merge**.
+### 8.1 Gates funcionais aprovados
 
-Falhas conhecidas que devem ser corrigidas antes da revisão final:
+- **Validar RADAR PDDE:** PASS;
+- **E2E Playwright:** PASS;
+- **Gate remoto de perfis e viewports:** PASS;
+- **Backup e restauração descartáveis:** PASS;
+- **CodeQL:** PASS;
+- **Saúde das dependências:** PASS;
+- **Snapshot canônico:** PASS;
+- **Excel SME / contratos-fonte:** PASS;
+- **Vercel Preview:** PASS.
 
-1. a RPC `save_unidentified_expense_with_pendency` está com delimitador PL/pgSQL inválido na migration Draft;
-2. a suíte unitária ampliada ainda retorna falha e precisa ser inspecionada teste a teste;
-3. o novo drawer acrescentou uma advertência de `innerHTML`, fazendo o lint ultrapassar o teto vigente;
-4. `Supabase readiness` falha enquanto a migration não compila;
-5. gates posteriores ficam cancelados ou bloqueados pelos jobs anteriores;
-6. a inspeção autenticada do Preview ainda não foi concluída.
+### 8.2 Banco e Supabase
+
+As provas funcionais do banco passaram:
+
+- migration-smoke: PASS;
+- readiness estático: PASS;
+- preflight pós-apply: PASS;
+- pgTAP: **25 arquivos / 357 testes / PASS**;
+- lint do schema: PASS;
+- migrations em PostgreSQL limpo: PASS.
+
+O workflow agregado `Supabase readiness` ficou vermelho por falha externa ao tentar baixar a imagem `postgres-meta` para regenerar tipos:
+
+`toomanyrequests: Rate exceeded`.
+
+A falha ocorreu **depois** de migration, preflight, pgTAP e lint terem sido aprovados. Ela deve ser reexecutada quando a infraestrutura externa estiver disponível, sem alterar regra de negócio apenas para obter verde.
+
+### 8.3 Homologação pré-Production
+
+Na mesma rodada:
+
+- Playwright completo: PASS;
+- prontidão completa: PASS;
+- migrations em PostgreSQL limpo: PASS;
+- dependências e segurança: PASS;
+- Excel SME e rota pública local: PASS;
+- backup/restauração: PASS.
+
+O job Supabase da homologação falhou durante download/recriação de containers por `Rate exceeded`.
+
+O Lighthouse móvel permanece fora do orçamento e faz o gate agregado ficar vermelho. O desktop, alvo deste hotfix, ficou dentro do orçamento:
+
+- performance desktop: **79%**;
+- FCP desktop: **1,02 s**;
+- LCP desktop: **3,49 s** para limite de **3,50 s**.
+
+Mobile:
+
+- performance: **63%**;
+- FCP: **4,00 s**;
+- LCP: **15,98 s** para limite de **15,00 s**.
+
+A dívida móvel já existia antes do PR #211 e foi expressamente classificada como **não bloqueante para este hotfix desktop**. O threshold não foi relaxado.
 
 ## 9. Sequência restante
 
-### Etapa H1 — corrigir gates imediatos
+### Etapa H6 — Preview desktop autenticado
 
-- corrigir delimitador SQL;
-- rodar migration-smoke;
-- abrir relatório JUnit e corrigir as falhas reais;
-- eliminar a nova advertência de lint em vez de aumentar o teto.
+Ainda é obrigatório:
 
-### Etapa H2 — validar domínio e persistência
-
-- unit;
-- integration;
-- property tests pertinentes;
-- SQL pgTAP;
-- rollback atômico;
-- conflito otimista;
-- duplicidade por mesma invoice;
-- coexistência de duas invoices;
-- round-trip Supabase ↔ estado legado.
-
-### Etapa H3 — E2E funcional
-
-Provar:
-
-```text
-NFS-E 1234 → Correto
-Boleto 1234 → Incorreto → Pendência A
-NF 2345 → Incorreto → Pendência B
-```
-
-e provar que:
-
-- A não bloqueia B;
-- B não bloqueia C;
-- resumo permanece Incorreto;
-- bonificação não é alterada pela Pendência;
-- Visualizar pendência abre o drawer correto.
-
-### Etapa H4 — `a_identificar`
-
-Provar ponta a ponta:
-
-- nasce Incorreto;
-- Pendência nasce junto;
-- não existe janela intermediária inconsistente;
-- não permite novo envio antes de identificação;
-- identificação preserva ID;
-- depois da identificação entra em Aguardando reanálise;
-- reanálise afeta só aquele documento.
-
-### Etapa H5 — dados existentes
-
-- revalidar o caso conhecido imediatamente antes da migration;
-- inventariar os registros históricos `a_identificar`;
-- não classificar automaticamente registros não comprovados;
-- registrar evidência de qualquer reparo efetivamente necessário.
-
-### Etapa H6 — Preview desktop
-
-- deployment Preview do SHA final;
-- login autenticado;
-- conferência visual do bloco de Notas Fiscais;
-- conferência do drawer;
-- comparar com as referências visuais;
+- abrir o Preview do SHA candidato;
+- autenticar com perfil de teste autorizado;
+- conferir visualmente o bloco de Notas Fiscais;
+- comparar com as referências versionadas;
+- conferir o drawer;
 - provar ausência de duplicidade `boletoInternet`;
-- provar ausência de ações de gestão de Pendência no Prontuário.
+- provar que `Registrar novo envio` e `Reanalisar` permanecem exclusivamente na tela de Pendências.
 
-### Etapa H7 — revisão final
+### Etapa H7 — revisão adversarial final
 
-- revisão adversarial do diff;
-- busca por rotas equivalentes fora do diff;
-- confirmar migrations, rollback e permissões;
-- confirmar que o hotfix não absorveu PR3.1 ou etapas posteriores;
-- gates verdes proporcionais ao risco.
+- revisar o diff completo;
+- buscar caminhos antigos equivalentes fora do diff;
+- confirmar novamente Boleto Internet, Assessoria e Inventário;
+- revalidar os 20 `a_identificar` históricos;
+- revalidar o preflight do Boleto 1234 imediatamente antes da migration;
+- confirmar estratégia de reversão;
+- reexecutar o gate Supabase afetado por rate limit.
 
-### Etapa H8 — merge e Production
+### Etapa H8 — documentação e decisão de merge
 
-Somente após os gates:
+Antes de retirar Draft:
+
+- manter `CURRENT_STAGE.md`, handoff, ADR, evidências e matriz funcional coerentes com o SHA candidato;
+- registrar a classificação formal do Lighthouse móvel como dívida herdada não bloqueante;
+- registrar resultados finais dos gates.
+
+### Etapa H9 — merge e Production
+
+Somente após as etapas anteriores e autorização explícita:
 
 - retirar Draft;
-- merge autorizado;
+- merge;
 - aplicar migration no Supabase Production;
 - publicar Vercel Production;
 - smoke autenticado;
-- confirmar dado reparado;
+- confirmar o reparo cirúrgico conhecido;
+- confirmar que os 20 registros históricos não foram alterados indevidamente;
 - registrar SHA, deployment e estado efetivo.
 
-### Etapa H9 — fechamento e retorno ao plano mestre
+### Etapa H10 — retorno obrigatório ao plano mestre
 
 Antes de PR3.1:
 
-1. revalidar `main`, Vercel e Supabase;
+1. revalidar `main`, Supabase Production e Vercel Production;
 2. comparar o diff completo do PR #211 com o plano mestre;
 3. marcar tarefas futuras já atendidas, parcialmente atendidas ou afetadas;
-4. atualizar `CURRENT_STAGE.md`, plano mestre e handoff;
-5. só então começar PR3.1.
+4. atualizar o plano mestre e o handoff de retomada;
+5. só então iniciar PR3.1.
 
 ## 10. Critério de pronto
 
@@ -363,12 +372,16 @@ O hotfix só está pronto quando:
 - Pendências simultâneas de invoices distintas funcionam;
 - mesma invoice não duplica Pendência ativa;
 - bonificação permanece agregada;
-- resumo técnico é derivado;
+- resumo técnico é derivado e não editável diretamente;
 - `boleto_internet` continua apenas como tipo de gasto;
-- `a_identificar` nasce Incorreto + Pendência atomicamente;
-- histórico não é perdido;
-- migration aplica e reverte de forma segura;
-- testes relevantes estão verdes;
-- Preview desktop coincide funcionalmente com o layout aprovado;
-- Production é publicada e validada;
+- `a_identificar` nasce `Incorreto + Pendência` atomicamente;
+- identificação posterior ocorre no novo envio e preserva o mesmo ID;
+- serviço e bem permanente produzem seus efeitos separados corretamente;
+- reanálise não pode pular novo envio nem trocar de contexto;
+- histórico não é perdido ou inventado;
+- migration aplica de forma segura;
+- testes funcionais relevantes estão aprovados;
+- falhas externas de CI estão classificadas por evidência e reexecutadas quando necessário;
+- Preview desktop coincide funcional e visualmente com o layout aprovado;
+- Production só é publicada após decisão final;
 - documentação registra o retorno obrigatório ao plano mestre.
