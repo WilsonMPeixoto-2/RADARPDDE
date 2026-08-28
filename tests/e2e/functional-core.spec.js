@@ -338,8 +338,8 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
 
     const noteRow = fiscalNoteRow(page);
     await expect(noteRow.getByRole('button', { name: 'Adicionar Nota' })).toHaveCount(0);
-    await expect(noteRow.locator('[title="Editar Nota"]')).toHaveCount(0);
-    await expect(noteRow.locator('[title="Excluir Nota"]')).toHaveCount(0);
+    await expect(noteRow.getByRole('button', { name: /^Editar / })).toHaveCount(0);
+    await expect(noteRow.getByRole('button', { name: /^Excluir / })).toHaveCount(0);
 
     await page.evaluate(({ escolaId, compProgKey }) => {
       openModalDadosNota(escolaId, compProgKey);
@@ -397,7 +397,13 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
       verificacoes[escolaId][compProgKey].resultadoBonif = 'apta';
       renderProntuario(escolaId);
     }, context);
-    await fiscalNoteRow(page).locator('[title="Editar Nota"]').click();
+    const createdInvoiceRow = fiscalNoteRow(page)
+      .locator('.invoice-document-row')
+      .filter({ hasText: 'NF: NF-SERV-CONSOLIDADA' });
+    await createdInvoiceRow.getByRole('button', {
+      name: 'Editar NF: NF-SERV-CONSOLIDADA',
+      exact: true
+    }).click();
     await page.locator('#nota-numero').fill('NF-SERV-EDITADA');
     await page.locator('#form-dados-nota button[type="submit"]').click();
 
@@ -413,7 +419,13 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
       verificacoes[escolaId][compProgKey].resultadoBonif = 'apta';
       renderProntuario(escolaId);
     }, context);
-    await fiscalNoteRow(page).locator('[title="Excluir Nota"]').click();
+    const editedInvoiceRow = fiscalNoteRow(page)
+      .locator('.invoice-document-row')
+      .filter({ hasText: 'NF: NF-SERV-EDITADA' });
+    await editedInvoiceRow.getByRole('button', {
+      name: 'Excluir NF: NF-SERV-EDITADA',
+      exact: true
+    }).click();
 
     expect(await page.evaluate(({ escolaId, compProgKey }) => ({
       result: verificacoes[escolaId][compProgKey].resultadoBonif,
