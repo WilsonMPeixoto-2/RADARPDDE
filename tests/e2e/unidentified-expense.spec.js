@@ -152,9 +152,9 @@ test.describe('Prontuário — despesa a identificar', () => {
     ).toBeVisible();
 
     await page.evaluate(() => switchView('pendencias'));
-    const pendingRow = page.locator('#p-abertas tr[data-pendency-ref]').filter({
-      hasText: 'Despesa a identificar'
-    });
+    const pendingRow = page.locator(
+      `#p-abertas tr[data-pendency-ref="${stateAfterCreate.pendencyId}"]`
+    );
     await expect(pendingRow).toHaveCount(1);
     await pendingRow.getByRole('button', {
       name: 'Registrar novo envio',
