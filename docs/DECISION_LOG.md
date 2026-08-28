@@ -557,3 +557,25 @@ Todos os caminhos públicos de escrita devem rejeitar a chave fora de Educação
 Consolidações conectadas anteriores à chave permanecem válidas por projeção `Não se aplica / Correto`, sem backfill nem materialização durante a leitura. Registros ainda não consolidados precisam avaliar a categoria explicitamente. O Excel SME permanece com 27 colunas.
 
 **Documentos:** `docs/architecture/avaliacao-mensal.md` e `docs/handoff/2026-08-27-hotfix-boleto-internet.md`.
+
+## 28/08/2026 — PR #211: análise e Pendência individual de Notas Fiscais
+
+Decisão detalhada: [ADR-047](decisions/ADR-047-analise-pendencia-individual-notas-fiscais.md).
+
+- `notaFiscal` permanece uma dimensão agregada para bonificação;
+- cada `registered_invoice` passa a possuir análise técnica própria;
+- `verification.analysis.notaFiscal` torna-se resumo derivado;
+- Pendências de `notaFiscal` passam a admitir `registered_invoice_id`;
+- invoices diferentes podem ter Pendências simultâneas;
+- a mesma invoice continua sem poder duplicar Pendência ativa;
+- `boleto_internet` permanece tipo de gasto e não recria `boletoInternet`;
+- `a_identificar` nasce `Incorreto + Pendência` atomicamente;
+- a identificação posterior preserva o ID;
+- o Prontuário deixa gestão posterior de Pendência para a tela de Pendências;
+- o drawer do Prontuário é limitado a visualizar, editar e salvar os dados básicos da Pendência;
+- o PR #211 é um hotfix prioritário, mas não substitui o plano mestre.
+
+### Regra de retomada
+
+Após publicar o PR #211, não iniciar PR3.1 por simples continuidade textual. Primeiro executar re-baseline da `main`, Supabase e Vercel e reconciliar o que o hotfix já solucionou, alterou ou tornou redundante no plano de 26/08.
+
