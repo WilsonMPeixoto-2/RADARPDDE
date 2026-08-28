@@ -124,14 +124,10 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
     await expect(page.locator('#sme-detail-table .sme-detail-row')).toHaveCount(430);
   });
 
-  test('abre prontuário sem persistir e permite cadastrar a primeira nota antes da análise correta', async ({ page }, testInfo) => {
+  test('abre prontuário sem persistir e inicia análise técnica somente depois do cadastro da primeira nota', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 
-    const dialogs = [];
-    page.on('dialog', async dialog => {
-      dialogs.push(dialog.message());
-      await dialog.accept();
-    });
+    page.on('dialog', dialog => dialog.accept());
 
     await page.goto('/');
     const context = await openOperationalProgram(page);
@@ -141,6 +137,8 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
     const noteRow = fiscalNoteRow(page);
     await noteRow.getByRole('button', { name: 'Sim', exact: true }).click();
     await expect(noteRow.getByRole('button', { name: 'Adicionar Nota' })).toBeVisible();
+    await expect(noteRow.locator('select.invoice-document-analysis-select')).toHaveCount(0);
+
     expect(await page.evaluate(({ escolaId, compProgKey }) => (
       verificacoes[escolaId][compProgKey]
     ), context)).toEqual({
@@ -164,22 +162,34 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
       resultadoBonif: ''
     });
 
-    const analysis = noteRow.locator('select.select-analise');
-    await analysis.selectOption('Correto');
-
-    await expect(page.locator('#modal-dados-nota')).toHaveClass(/show/);
-    await expect(analysis).toHaveValue('Não analisado');
-    expect(dialogs.some(message => message.includes('cadastre pelo menos uma Nota Fiscal'))).toBe(true);
-
+    await noteRow.getByRole('button', { name: 'Adicionar Nota' }).click();
     await page.locator('#nota-desc').fill('Material pedagógico');
     await page.locator('#nota-numero').fill('NF-E2E-001');
     await page.locator('#nota-valor').fill('150.50');
     await page.locator('#form-dados-nota button[type="submit"]').click();
 
     await expect(page.locator('#modal-dados-nota')).not.toHaveClass(/show/);
-    await fiscalNoteRow(page).locator('select.select-analise').selectOption('Correto');
-    await expect(page.locator('#modal-dados-nota')).not.toHaveClass(/show/);
-    await expect(fiscalNoteRow(page).locator('select.select-analise')).toHaveValue('Correto');
+    const individualAnalysis = fiscalNoteRow(page).locator('select.invoice-document-analysis-select').first();
+    await expect(individualAnalysis).toHaveValue('Não analisado');
+    await individualAnalysis.selectOption('Correto');
+    await expect(individualAnalysis).toHaveValue('Correto');
+
+    const state = await page.evaluate(({ escolaId, compProgKey }) => {
+      const invoice = notasRegistradas.find(item => (
+        item.escolaId === escolaId
+        && item.compKey === compProgKey
+        && item.numero === 'NF-E2E-001'
+      ));
+      return {
+        invoiceAnalysis: invoice?.analiseDocumentoFiscal,
+        aggregateAnalysis: verificacoes[escolaId][compProgKey].analise.notaFiscal
+      };
+    }, context);
+
+    expect(state).toEqual({
+      invoiceAnalysis: 'Correto',
+      aggregateAnalysis: 'Correto'
+    });
   });
 
   test('renderiza e persiste consulta à Assessoria individualizada por nota de serviço', async ({ page }, testInfo) => {
