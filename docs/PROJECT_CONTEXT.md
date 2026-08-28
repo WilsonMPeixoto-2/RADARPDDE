@@ -149,9 +149,18 @@ Contrato aprovado no PR #211:
 - `boleto_internet` é somente tipo de gasto de Notas Fiscais;
 - `boletoInternet` não pode reaparecer como documento;
 - `a_identificar` nasce `Incorreto + Pendência` de forma atômica;
-- identificação posterior de `a_identificar` preserva o mesmo ID.
+- uma despesa identificada não pode virar `a_identificar` pelo editor comum;
+- identificação posterior de `a_identificar` ocorre em **Pendências → Registrar novo envio** e preserva o mesmo ID;
+- o novo envio leva a Pendência para `Aguardando reanálise` e a despesa identificada para `Não analisado`;
+- se a identificação revelar serviço, Consulta Assessoria surge na dimensão própria;
+- se revelar bem permanente, o registro patrimonial é criado e vinculado na mesma operação;
+- nova Pendência de `notaFiscal` sem `registered_invoice_id` é proibida;
+- com Pendência fiscal ativa, a edição estrutural comum daquela despesa fica bloqueada;
+- reanálise exige tentativa válida da mesma Pendência, no mesmo contexto.
 
 Essa regra específica substitui a antiga interpretação segundo a qual `A identificar` não deveria receber estado técnico automaticamente. O que continua proibido é fabricar **bonificação** ou atribuir retrospectivamente um erro agregado antigo a uma NF específica sem evidência.
+
+**Decisão integral:** `docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`.
 
 ### Persistência e atualização visual da avaliação
 
