@@ -4,7 +4,7 @@ set local role postgres;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
 
-select plan(14);
+select plan(16);
 
 insert into auth.users (id, email)
 values ('00000000-0000-0000-0000-000000000211', 'invoice-document-hotfix@example.test');
@@ -133,6 +133,18 @@ $$, 'reanálise resolve somente a NF vinculada');
 
 select is((select payload ->> 'analiseDocumentoFiscal' from public.registered_invoices where id='invoice-doc-a'), 'Correto', 'NF A torna-se Correta');
 select is((select payload ->> 'analiseDocumentoFiscal' from public.registered_invoices where id='invoice-doc-b'), 'Incorreto', 'NF B permanece Incorreta');
+
+select throws_like($
+    update public.registered_invoices
+       set competence_id = '2029-02',
+           source_context_key = '2029-02_INVOICE_DOC_ATOMIC'
+     where id = 'invoice-doc-a'
+$, 'INTEGRITY_CONFLICT: Nota Fiscal possui histórico de pendência individual e não pode alterar escola, competência, programa ou natureza%', 'histórico notaFiscal bloqueia deslocamento estrutural da despesa');
+
+select throws_like($
+    delete from public.registered_invoices
+     where id = 'invoice-doc-a'
+$, 'INTEGRITY_CONFLICT: Nota Fiscal possui histórico de pendência individual e não pode ser excluída%', 'histórico notaFiscal bloqueia exclusão física da despesa');
 
 select throws_ok($$
     insert into public.pendencies (
