@@ -272,8 +272,9 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
         { number: 'NF-SERV-E2E-1', sent: true, analysis: 'Correto' },
         { number: 'NF-SERV-E2E-2', sent: false, analysis: 'Não analisado' }
       ],
-      aggregate: { delivery: 'Não', sent: false, analysis: 'Não analisado' }
+      aggregate: { delivery: 'Sim', sent: true, analysis: 'Não analisado' }
     });
+    await expect(assessoriaRow.getByText('Sim', { exact: true })).toBeVisible();
 
     await secondSent.check();
     await secondAnalysis.selectOption('Correto (Atrasado)');
@@ -555,7 +556,17 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
       .filter({ hasText: 'Educação e Família' })
       .filter({ hasText: 'Extrato Conta Corrente' });
     await expect(linkedRow.locator('select.select-analise')).toBeDisabled();
-    await linkedRow.getByRole('button', { name: 'Registrar novo envio', exact: true }).click();
+    await expect(linkedRow.getByRole('button', { name: 'Registrar novo envio', exact: true })).toHaveCount(0);
+    await expect(linkedRow.getByRole('button', { name: 'Reanalisar', exact: true })).toHaveCount(0);
+    await linkedRow.getByRole('button', { name: 'Visualizar pendência', exact: true }).click();
+    await expect(page.locator('#pendency-preview-drawer')).toBeVisible();
+    await page.locator('#pendency-preview-drawer .pendency-preview-close').click();
+
+    await page.evaluate(() => switchView('pendencias'));
+    const pendencyRow = page.locator(
+      `#p-abertas tr[data-pendency-ref*="${createdPendency.id}"]`
+    );
+    await pendencyRow.getByRole('button', { name: 'Registrar novo envio', exact: true }).click();
     const submissionModal = page.locator('#modal-registrar-envio');
     await submissionModal.getByLabel(
       'Data em que o arquivo foi disponibilizado no Drive',
@@ -568,10 +579,9 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
       exact: true
     }).click();
 
-    const awaitingRow = page.locator('#prontuario-verif-rows tr')
-      .filter({ hasText: 'Educação e Família' })
-      .filter({ hasText: 'Extrato Conta Corrente' });
-    await expect(awaitingRow.locator('select.select-analise')).toBeDisabled();
+    const awaitingRow = page.locator(
+      `#p-reanalise tr[data-pendency-ref*="${createdPendency.id}"]`
+    );
     await awaitingRow.getByRole('button', { name: 'Reanalisar', exact: true }).click();
     const reanalysisModal = page.locator('#modal-reanalisar-pendencia');
     await reanalysisModal.getByLabel('Resultado da reanálise', { exact: true })
@@ -583,12 +593,16 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
       exact: true
     }).click();
 
+    await page.evaluate(({ escolaId, competencia }) => {
+      activeProntuarioCompetencia = competencia;
+      switchView('prontuario', escolaId);
+    }, context);
     const resolvedRow = page.locator('#prontuario-verif-rows tr')
       .filter({ hasText: 'Educação e Família' })
       .filter({ hasText: 'Extrato Conta Corrente' });
     await expect(resolvedRow.locator('select.select-analise')).toBeEnabled();
     await expect(resolvedRow.locator('select.select-analise')).toHaveValue('Correto');
-    await expect(resolvedRow.getByRole('button', { name: 'Reanalisar', exact: true }))
+    await expect(resolvedRow.getByRole('button', { name: 'Visualizar pendência', exact: true }))
       .toHaveCount(0);
 
     expect(await page.evaluate(({
