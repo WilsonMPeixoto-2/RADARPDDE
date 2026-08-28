@@ -10155,6 +10155,240 @@ async function toggleBonif(escolaId, compKey, docKey, value) {
     return true;
 }
 
+let pendingInvoicePendencyContext = null;
+
+function formatInvoiceCurrency(value) {
+    return Number(value || 0).toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
+function getInvoiceDocumentTypeLabel(invoice = {}) {
+    const labels = {
+        consumo: 'Material de consumo',
+        permanente: 'Bem permanente',
+        servico: 'Prestação de serviço',
+        boleto_internet: 'Boleto de Internet',
+        a_identificar: 'Despesa a identificar'
+    };
+    return labels[invoice.tipo] || 'Despesa';
+}
+
+function getInvoiceDocumentTitle(invoice = {}) {
+    if (invoice.tipo === 'a_identificar') return 'Despesa a identificar';
+    if (invoice.tipo === 'boleto_internet') {
+        return `Boleto Internet: ${invoice.numero || 'sem referência'}`;
+    }
+    return `NF: ${invoice.numero || 'sem número'}`;
+}
+
+function invoiceDocumentIconSvg(type) {
+    if (type === 'boleto_internet') {
+        return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5h16v13H4z"/><path d="M7 9.5v5M9.5 9.5v5M12 9.5v5M15 9.5v5M17.5 9.5v5"/></svg>';
+    }
+    if (type === 'permanente') {
+        return '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="12" rx="1.5"/><path d="M8 20h8M12 16.5V20"/></svg>';
+    }
+    if (type === 'a_identificar') {
+        return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h10l4 4V20.5H5z"/><path d="M15 3.5v4h4"/><path d="M9.2 11.2a2.8 2.8 0 1 1 4.6 2.15c-.9.72-1.8 1.1-1.8 2.15"/><path d="M12 18h.01"/></svg>';
+    }
+    return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h10l4 4V20.5H5z"/><path d="M15 3.5v4h4"/><path d="M8.5 12h7M8.5 15.5h5.5"/></svg>';
+}
+
+function findActiveInvoiceDocumentPendency(invoice) {
+    if (!invoice) return null;
+    const splitContext = window.RadarCompetencia.splitCompetenciaContext(invoice.compKey);
+    const context = {
+        escolaId: invoice.escolaId,
+        competencia: splitContext.competenciaKey,
+        competenciaOrigem: splitContext.competenciaKey,
+        programaId: splitContext.contextId,
+        documentoKey: 'notaFiscal',
+        registeredInvoiceId: invoice.id
+    };
+    const documentary = pendencias.filter(pendency => (
+        window.RadarPendencias.isDocumentaryPendency(pendency)
+    ));
+    return window.RadarPendencias.findActivePendency(documentary, context);
+}
+
+function openInvoiceDocumentPendencyModal(invoiceId, escolaId) {
+    const invoice = notasRegistradas.find(item => item.id === invoiceId && item.escolaId === escolaId);
+    if (!invoice) return false;
+    const splitContext = window.RadarCompetencia.splitCompetenciaContext(invoice.compKey);
+    const programa = programas.find(item => item.id === splitContext.contextId);
+    const opened = openNovaPendenciaModalWithDefaults(
+        escolaId,
+        invoice.compKey,
+        programa?.name || splitContext.contextId,
+        'notaFiscal',
+        getInvoiceDocumentTitle(invoice)
+    );
+    if (!opened) return false;
+
+    pendingInvoicePendencyContext = {
+        registeredInvoiceId: invoice.id,
+        schoolId: escolaId,
+        compKey: invoice.compKey
+    };
+    const observation = document.getElementById('pend-obs');
+    if (observation) {
+        observation.value = invoice.tipo === 'a_identificar'
+            ? `Despesa de ${formatInvoiceCurrency(invoice.valor)} sem documentação suficiente para identificar e comprovar a aplicação da verba.`
+            : `Identificado erro técnico na conferência de ${getInvoiceDocumentTitle(invoice)}.`;
+    }
+    return true;
+}
+
+function ensurePendencyDrawer() {
+    let drawer = document.getElementById('pendency-preview-drawer');
+    if (drawer) return drawer;
+    drawer = document.createElement('div');
+    drawer.id = 'pendency-preview-drawer';
+    drawer.className = 'pendency-preview-shell';
+    drawer.hidden = true;
+    drawer.innerHTML = '<div class="pendency-preview-backdrop" data-pendency-drawer-close></div><aside class="pendency-preview-drawer" role="dialog" aria-modal="true" aria-labelledby="pendency-preview-title"><div id="pendency-preview-content"></div></aside>';
+    drawer.addEventListener('click', event => {
+        if (event.target.closest('[data-pendency-drawer-close]')) closePendencyDrawer();
+    });
+    document.body.appendChild(drawer);
+    return drawer;
+}
+
+function closePendencyDrawer() {
+    const drawer = document.getElementById('pendency-preview-drawer');
+    if (!drawer) return;
+    drawer.hidden = true;
+    drawer.dataset.pendencyId = '';
+    drawer.dataset.mode = 'view';
+}
+
+function pendencyDrawerDocumentMeta(pendency) {
+    const invoiceId = pendency?.registeredInvoiceId || pendency?.registered_invoice_id;
+    const invoice = notasRegistradas.find(item => String(item.id) === String(invoiceId));
+    if (invoice) {
+        return {
+            title: getInvoiceDocumentTitle(invoice),
+            subtitle: `${getInvoiceDocumentTypeLabel(invoice)} · ${formatInvoiceCurrency(invoice.valor)}`
+        };
+    }
+    const snapshot = pendency?.documentSnapshot || {};
+    return {
+        title: snapshot.numero
+            ? `${snapshot.tipo === 'boleto_internet' ? 'Boleto Internet' : 'NF'}: ${snapshot.numero}`
+            : (pendency?.item || 'Notas Fiscais'),
+        subtitle: snapshot.valor != null
+            ? `${getInvoiceDocumentTypeLabel({ tipo: snapshot.tipo })} · ${formatInvoiceCurrency(snapshot.valor)}`
+            : ''
+    };
+}
+
+function renderPendencyDrawer() {
+    const drawer = ensurePendencyDrawer();
+    const content = drawer.querySelector('#pendency-preview-content');
+    const pendencyId = drawer.dataset.pendencyId;
+    const pendency = pendencias.find(item => String(item.id) === String(pendencyId));
+    if (!pendency || !content) return false;
+
+    const mode = drawer.dataset.mode || 'view';
+    const edit = mode === 'edit';
+    const meta = pendencyDrawerDocumentMeta(pendency);
+    const competence = COMPETENCIAS.find(item => item.key === (pendency.competenciaOrigem || pendency.competencia));
+    const program = programas.find(item => item.id === pendency.programaId);
+    const statusClass = pendency.status === 'Aberta'
+        ? 'is-open'
+        : pendency.status === 'Aguardando reanálise'
+            ? 'is-waiting'
+            : 'is-closed';
+
+    content.innerHTML = `
+        <div class="pendency-preview-header">
+            <div>
+                <h2 id="pendency-preview-title">Pendência</h2>
+                <span class="pendency-preview-status ${statusClass}">${escapeHtml(pendency.status || '')}</span>
+            </div>
+            <button type="button" class="pendency-preview-close" data-pendency-drawer-close aria-label="Fechar">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
+            </button>
+        </div>
+        <div class="pendency-preview-document">
+            <strong>${escapeHtml(meta.title)}</strong>
+            ${meta.subtitle ? `<span>${escapeHtml(meta.subtitle)}</span>` : ''}
+        </div>
+        <div class="pendency-preview-context">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M7 3v4M17 3v4M3.5 9h17"/></svg>
+            <span>${escapeHtml(competence?.label || pendency.competenciaOrigem || pendency.competencia || '')} · ${escapeHtml(program?.name || pendency.programaId || '')}</span>
+        </div>
+        <div class="pendency-preview-field">
+            <label for="pendency-preview-reason">Motivo</label>
+            ${edit
+                ? `<input id="pendency-preview-reason" type="text" value="${escapeHtml(pendency.motivo || '')}">`
+                : `<p>${escapeHtml(pendency.motivo || '')}</p>`}
+        </div>
+        <div class="pendency-preview-field">
+            <label for="pendency-preview-observation">Observação</label>
+            ${edit
+                ? `<textarea id="pendency-preview-observation" rows="5">${escapeHtml(pendency.observacao || '')}</textarea>`
+                : `<p class="pendency-preview-observation">${escapeHtml(pendency.observacao || '')}</p>`}
+        </div>
+        <div class="pendency-preview-date">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M7 3v4M17 3v4M3.5 9h17"/></svg>
+            <div><span>Registrada em</span><strong>${escapeHtml(formatDateBR(pendency.dataAbertura) || pendency.dataAbertura || '')}</strong></div>
+        </div>
+        <button type="button" class="pendency-preview-edit-button" onclick="${edit ? 'savePendencyDrawerEdits()' : 'editPendencyDrawer()'}">
+            ${edit
+                ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4 4L19 6.5"/></svg><span>Salvar</span>'
+                : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg><span>Editar</span>'}
+        </button>
+    `;
+    return true;
+}
+
+function openPendencyDrawer(pendencyId) {
+    const drawer = ensurePendencyDrawer();
+    const pendency = pendencias.find(item => String(item.id) === String(pendencyId));
+    if (!pendency) return false;
+    drawer.dataset.pendencyId = String(pendencyId);
+    drawer.dataset.mode = 'view';
+    drawer.hidden = false;
+    renderPendencyDrawer();
+    drawer.querySelector('.pendency-preview-close')?.focus({ preventScroll: true });
+    return true;
+}
+
+function editPendencyDrawer() {
+    const drawer = ensurePendencyDrawer();
+    drawer.dataset.mode = 'edit';
+    renderPendencyDrawer();
+    drawer.querySelector('#pendency-preview-reason')?.focus({ preventScroll: true });
+}
+
+async function savePendencyDrawerEdits() {
+    const drawer = ensurePendencyDrawer();
+    const pendencyId = drawer.dataset.pendencyId;
+    const reason = document.getElementById('pendency-preview-reason')?.value.trim();
+    const observation = document.getElementById('pendency-preview-observation')?.value.trim();
+    try {
+        await radarPendencyService.updateDetails({
+            pendencyId,
+            reason,
+            observation
+        });
+        rebuildOperationalIndexes();
+        drawer.dataset.mode = 'view';
+        renderPendencyDrawer();
+        if (activeSchoolId) renderProntuario(activeSchoolId);
+        updateAlertsBell();
+        return true;
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível salvar a Pendência.');
+        return false;
+    }
+}
+
 function findActivePendencyForTechnicalAnalysis(escolaId, compProgKey, documentoKey) {
     const splitContext = window.RadarCompetencia.splitCompetenciaContext(compProgKey);
     const programaId = splitContext.contextId;
