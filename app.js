@@ -10111,11 +10111,15 @@ function renderProntuarioVerificacoes(esc) {
                                     String(pendency.registeredInvoiceId || pendency.registered_invoice_id || '')
                                         === String(note.id)
                                 ));
-                                const editableAnalysis = canViewTechnicalAnalysis
+                                const canEditAnalysis = canViewTechnicalAnalysis
                                     && canMutateInvoice
                                     && !invoicePendency
                                     && note.tipo !== 'a_identificar';
-                                const analysisHTML = editableAnalysis
+                                const editingAnalysis = canEditAnalysis
+                                    && String(invoiceAnalysisEditId || '') === String(note.id);
+                                const showAnalysisSelect = canEditAnalysis
+                                    && (analysis === 'Não analisado' || editingAnalysis);
+                                const analysisHTML = showAnalysisSelect
                                     ? `
                                         <select
                                             class="invoice-document-analysis-select ${statusClass}"
@@ -10139,17 +10143,19 @@ function renderProntuarioVerificacoes(esc) {
                                             <span>Visualizar pendência</span>
                                         </button>
                                     `;
-                                } else if (analysis === 'Incorreto' && canOpenPendency) {
+                                } else if (canEditAnalysis
+                                    && ['Correto', 'Correto (Atrasado)'].includes(analysis)
+                                    && !editingAnalysis) {
                                     actionHTML = `
-                                        <button type="button" class="invoice-pendency-view-button"
-                                            onclick="openInvoiceDocumentPendencyModal('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}')">
-                                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5v10"/><path d="M12 18.5h.01"/><path d="M10.2 4.6 2.8 17.4a2 2 0 0 0 1.7 3h15a2 2 0 0 0 1.7-3L13.8 4.6a2 2 0 0 0-3.6 0z"/></svg>
-                                            <span>Abrir pendência</span>
+                                        <button type="button" class="invoice-analysis-edit-button"
+                                            onclick="beginInvoiceDocumentAnalysisEdit('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}')">
+                                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg>
+                                            <span>Editar análise</span>
                                         </button>
                                     `;
                                 }
 
-                                const editControls = canMutateInvoice
+                                const editControls = canMutateInvoice && !invoicePendency
                                     ? `
                                         <span class="invoice-document-inline-actions">
                                             <button type="button" onclick="abrirEditarNota('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}')" aria-label="Editar ${escapeHtml(getInvoiceDocumentTitle(note))}">
@@ -10173,8 +10179,11 @@ function renderProntuarioVerificacoes(esc) {
                                                     <strong>${escapeHtml(getInvoiceDocumentTitle(note))}</strong>
                                                     ${editControls}
                                                 </div>
-                                                <span>${escapeHtml(getInvoiceDocumentTypeLabel(note))} · ${escapeHtml(formatInvoiceCurrency(note.valor))}</span>
                                             </div>
+                                        </div>
+                                        <div class="invoice-document-meta">
+                                            <span>${escapeHtml(getInvoiceDocumentTypeLabel(note))}</span>
+                                            <strong>${escapeHtml(formatInvoiceCurrency(note.valor))}</strong>
                                         </div>
                                         ${canViewTechnicalAnalysis ? `<div class="invoice-document-analysis">${analysisHTML}</div>` : ''}
                                         ${canUseVerificationActions ? `<div class="invoice-document-action">${actionHTML || '<span aria-hidden="true" class="invoice-document-empty-action">—</span>'}</div>` : ''}
@@ -10212,17 +10221,20 @@ function renderProntuarioVerificacoes(esc) {
                                                         <strong class="invoice-document-status ${summaryClass}">${escapeHtml(fiscalSummary)}</strong>
                                                     </div>
                                                 ` : ''}
-                                                <div class="invoice-summary-block is-pendencies">
-                                                    <span class="invoice-summary-pendency-icon">
-                                                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5.5h9M5 10h9M5 14.5h5"/><path d="M17 12.5v4M17 19h.01"/><path d="M15.3 11.6 11.8 18a1.5 1.5 0 0 0 1.3 2.2h7.8a1.5 1.5 0 0 0 1.3-2.2l-3.5-6.4a1.5 1.5 0 0 0-2.7 0z"/></svg>
-                                                    </span>
-                                                    <strong>${activePendencyCount} ${activePendencyCount === 1 ? 'pendência' : 'pendências'}</strong>
-                                                </div>
+                                                ${activePendencyCount > 0 ? `
+                                                    <div class="invoice-summary-block is-pendencies">
+                                                        <span class="invoice-summary-pendency-icon">
+                                                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5.5h9M5 10h9M5 14.5h5"/><path d="M17 12.5v4M17 19h.01"/><path d="M15.3 11.6 11.8 18a1.5 1.5 0 0 0 1.3 2.2h7.8a1.5 1.5 0 0 0 1.3-2.2l-3.5-6.4a1.5 1.5 0 0 0-2.7 0z"/></svg>
+                                                        </span>
+                                                        <strong>${activePendencyCount} ${activePendencyCount === 1 ? 'pendência' : 'pendências'}</strong>
+                                                    </div>
+                                                ` : ''}
                                             </div>
                                         </div>
                                         <div class="invoice-document-list ${canViewTechnicalAnalysis ? '' : 'no-analysis'} ${canUseVerificationActions ? '' : 'no-actions'}">
                                             <div class="invoice-document-list-head">
                                                 <span>Documento</span>
+                                                <span>Tipo · Valor</span>
                                                 ${canViewTechnicalAnalysis ? '<span>Situação técnica</span>' : ''}
                                                 ${canUseVerificationActions ? '<span>Ação</span>' : ''}
                                             </div>
@@ -10429,6 +10441,8 @@ async function toggleBonif(escolaId, compKey, docKey, value) {
 }
 
 let pendingInvoicePendencyContext = null;
+let invoiceAnalysisEditId = null;
+let pendencyDrawerReturnFocus = null;
 
 function formatInvoiceCurrency(value) {
     return Number(value || 0).toLocaleString('pt-BR', {
@@ -10535,6 +10549,9 @@ function ensurePendencyDrawer() {
     drawer.addEventListener('click', event => {
         if (event.target.closest('[data-pendency-drawer-close]')) closePendencyDrawer();
     });
+    drawer.addEventListener('keydown', event => {
+        trapAccessibleModalFocus(event, drawer, closePendencyDrawer);
+    });
     document.body.appendChild(drawer);
     return drawer;
 }
@@ -10545,6 +10562,10 @@ function closePendencyDrawer() {
     drawer.hidden = true;
     drawer.dataset.pendencyId = '';
     drawer.dataset.mode = 'view';
+    if (pendencyDrawerReturnFocus && typeof pendencyDrawerReturnFocus.focus === 'function') {
+        pendencyDrawerReturnFocus.focus({ preventScroll: true });
+    }
+    pendencyDrawerReturnFocus = null;
 }
 
 function pendencyDrawerDocumentMeta(pendency) {
@@ -10642,6 +10663,7 @@ function openPendencyDrawer(pendencyId) {
     const drawer = ensurePendencyDrawer();
     const pendency = pendencias.find(item => String(item.id) === String(pendencyId));
     if (!pendency) return false;
+    pendencyDrawerReturnFocus = document.activeElement;
     drawer.dataset.pendencyId = String(pendencyId);
     drawer.dataset.mode = 'view';
     drawer.hidden = false;
@@ -10816,7 +10838,17 @@ async function changeAnaliseTecnica(escolaId, compKey, docKey, value, selectElem
     return true;
 }
 
-async function changeInvoiceDocumentAnalysis(
+async function beginInvoiceDocumentAnalysisEdit(invoiceId, escolaId) {
+    invoiceAnalysisEditId = String(invoiceId);
+    renderProntuario(escolaId);
+    const selector = document.querySelector(
+        `.invoice-document-row[data-invoice-id="${CSS.escape(String(invoiceId))}"] .invoice-document-analysis-select`
+    );
+    selector?.focus({ preventScroll: true });
+    return true;
+}
+
+function changeInvoiceDocumentAnalysis(
     invoiceId,
     escolaId,
     value,
@@ -10866,6 +10898,7 @@ async function changeInvoiceDocumentAnalysis(
             analysis: value,
             profile: accessProfile
         });
+        invoiceAnalysisEditId = null;
         rebuildOperationalIndexes();
         renderProntuario(escolaId);
         updateAlertsBell();
