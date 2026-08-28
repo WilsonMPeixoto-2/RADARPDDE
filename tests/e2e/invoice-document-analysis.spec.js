@@ -151,7 +151,9 @@ test.describe('Prontuário — análise individual de Notas Fiscais', () => {
     });
 
     const [service1234, boleto1234, service2345] = context.invoiceIds;
-    const panel = page.locator('[data-invoice-document-panel]');
+    const panel = page.locator(
+      '#prontuario-verif-rows tr[data-program-id="CONECTADA"][data-document-key="notaFiscal"] [data-invoice-document-panel]'
+    );
     await expect(panel).toBeVisible();
     await expect(panel.getByText('3 registros', { exact: true })).toBeVisible();
     await expect(panel.getByText('NFS-E 1234')).toBeVisible();
