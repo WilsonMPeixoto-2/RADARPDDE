@@ -1,17 +1,45 @@
 # RADAR PDDE — Estado atual do projeto
 
-**Atualizado em:** 27 de agosto de 2026
+**Atualizado em:** 28 de agosto de 2026
 
 **Classe documental:** Canônico — estado corrente e retomada futura
 
-**Situação:** PR #209 corretivo integrado à `main` e validado em Production; boleto de Internet existe somente como tipo de gasto de Notas Fiscais; PR3.1 continua sendo a próxima frente obrigatória
+**Situação:** PR #211 em Draft na branch `hotfix/individualizar-analise-notas-fiscais`; hotfix de individualização de Notas Fiscais temporariamente prioritário; Production permanece no estado anterior ao PR #211; o plano mestre continua vigente e será retomado após reconciliação pós-hotfix
+
+## 0. Hotfix ativo — PR #211
+
+O estado corrente não é mais “iniciar PR3.1”. Antes disso existe um hotfix isolado em andamento:
+
+- plano específico: [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md);
+- handoff corrente: [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md);
+- decisão arquitetural: [`decisions/ADR-047-analise-pendencia-individual-notas-fiscais.md`](decisions/ADR-047-analise-pendencia-individual-notas-fiscais.md);
+- referências visuais: [`evidence/2026-08-28-pr211-referencias-visuais.md`](evidence/2026-08-28-pr211-referencias-visuais.md).
+
+O PR #211 **não substitui o plano mestre**. Ele é um parêntese operacional necessário para corrigir uma inconsistência funcional descoberta depois das entregas anteriores.
+
+Após o merge e o smoke de Production, é obrigatório executar:
+
+```text
+revalidar main
+→ revalidar Supabase Production
+→ revalidar Vercel Production
+→ comparar o diff completo do PR #211 com o plano mestre
+→ marcar tarefas futuras já atendidas/parcialmente atendidas/afetadas
+→ atualizar documentação
+→ só então iniciar PR3.1
+```
+
+No checkpoint documental atual, o PR #211 está avançado, porém **não apto para merge**. Existem falhas conhecidas em migration, suíte unitária e orçamento de lint que precisam ser corrigidas antes dos E2E e da revisão final.
 
 ## 1. Porta de entrada atual
 
 Ler nesta ordem:
 
 1. [`../AGENTS.md`](../AGENTS.md);
-2. [`handoff/2026-08-27-pr2-service-advisory-noop.md`](handoff/2026-08-27-pr2-service-advisory-noop.md);
+2. [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md);
+3. [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md);
+4. [`evidence/2026-08-28-pr211-referencias-visuais.md`](evidence/2026-08-28-pr211-referencias-visuais.md);
+5. [`handoff/2026-08-27-pr2-service-advisory-noop.md`](handoff/2026-08-27-pr2-service-advisory-noop.md);
 3. [`handoff/2026-08-27-pr1-invoice-submit-guard.md`](handoff/2026-08-27-pr1-invoice-submit-guard.md);
 4. [`handoff/2026-08-27-hotfix-boleto-internet.md`](handoff/2026-08-27-hotfix-boleto-internet.md);
 5. [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md);
@@ -135,7 +163,7 @@ Não transformar qualquer exclusão em dependência, gate oculto ou hardening. S
 - Pendência, análise técnica e bonificação são dimensões distintas.
 - `Sim + Incorreto + pendência` continua válido.
 - Novo envio leva à reanálise e não resolve automaticamente.
-- Despesa `A identificar` não fabrica conclusão de bonificação ou análise.
+- Despesa `A identificar` não altera a bonificação agregada, mas após a decisão do PR #211 nasce tecnicamente `Incorreto` e com Pendência individual obrigatória.
 - Pendência ativa e `Não analisado`, isoladamente, não bloqueiam consolidação.
 - Sem NF de serviço, Consulta Assessoria converge para `Não se aplica`.
 - Duas NFs de conteúdo igual podem ser legítimas.
@@ -195,23 +223,23 @@ Planos são hipóteses técnicas, não autoridade superior ao código e aos ambi
 
 ## 10. Próxima ação
 
-Iniciar **PR3.1 — Registry e loader**, primeira unidade do programa de readiness sistêmico.
+Concluir **PR #211 — hotfix de individualização de Notas Fiscais**.
 
-Sequência mínima:
+Sequência imediata:
 
-1. revalidar o HEAD corrente da `main` e o deployment Production;
-2. inventariar os instaladores, loaders tardios, `setInterval`, watchdogs e esperas por símbolos globais nas superfícies definidas no plano;
-3. escrever RED do registry `capability-readiness.js`;
-4. carregar o registry cedo, antes de seus consumidores;
-5. separar transporte do script de instalação da capacidade;
-6. tornar o loader tolerante à falha de capacidades independentes;
-7. tratar instalador que não termina sem aumentar timeout arbitrariamente;
-8. provar que falha simulada não derruba capacidades independentes;
-9. executar revisão adversarial dupla e gates próprios de PR3.1.
+1. corrigir a migration Draft, especialmente a RPC de `a_identificar`;
+2. executar migration-smoke;
+3. abrir o relatório JUnit da suíte unitária e classificar cada falha;
+4. corrigir produto ou teste conforme o contrato aprovado;
+5. remover a nova advertência de lint sem elevar o teto;
+6. reexecutar unit/integration/readiness;
+7. executar E2E do cenário com múltiplas NFs incorretas;
+8. executar E2E completo de `a_identificar`;
+9. validar Preview autenticado no desktop contra as referências visuais;
+10. revisão adversarial final;
+11. somente com gates verdes, retirar Draft e avaliar merge/publicação.
 
-PR3.1 não deve migrar oportunisticamente todos os instaladores. PR3.2 e PR3.3 continuam unidades posteriores e independentes do mesmo programa.
-
-
+Depois da publicação do hotfix, fazer reconciliação pós-PR #211 e somente então retomar PR3.1.
 
 ## 11. Documentos históricos preservados
 
