@@ -21,6 +21,7 @@ function createHarness() {
         },
         schools: [{ id: 'ESC-1', denominação: 'Escola Um' }],
         programs: [{ id: 'BASIC', name: 'PDDE Básico' }],
+        registeredInvoices: [],
         logs: []
     };
     const calls = [];
@@ -225,4 +226,179 @@ test('rota genérica rejeita pendência de Assessoria sem identidade da NF antes
     assert.equal(harness.calls.length, 0);
     assert.equal(harness.state.pendencies.length, 0);
     assert.equal(verification.analise.consAssessoria, 'Não analisado');
+});
+
+
+test('duas Notas Fiscais distintas podem abrir Pendências individuais simultâneas', async () => {
+    const harness = createHarness();
+    const verification = harness.state.verifications['ESC-1']['2026-05_BASIC'];
+    verification.bonificacao.notaFiscal = 'Sim';
+    verification.analise.notaFiscal = 'Não analisado';
+    harness.state.registeredInvoices.push(
+        {
+            id: 'nota-a',
+            escolaId: 'ESC-1',
+            compKey: '2026-05_BASIC',
+            tipo: 'servico',
+            numero: 'NF-A',
+            valor: 500,
+            analiseDocumentoFiscal: 'Não analisado'
+        },
+        {
+            id: 'nota-b',
+            escolaId: 'ESC-1',
+            compKey: '2026-05_BASIC',
+            tipo: 'consumo',
+            numero: 'NF-B',
+            valor: 300,
+            analiseDocumentoFiscal: 'Não analisado'
+        }
+    );
+
+    const first = await harness.service.open({
+        schoolId: 'ESC-1',
+        competence: '2026-05',
+        programId: 'BASIC',
+        documentKey: 'notaFiscal',
+        registeredInvoiceId: 'nota-a',
+        item: 'NF-A',
+        technicalAnalysisValue: 'Incorreto',
+        errors: ['Dados divergentes'],
+        observation: 'Erro específico da NF-A.'
+    });
+    const second = await harness.service.open({
+        schoolId: 'ESC-1',
+        competence: '2026-05',
+        programId: 'BASIC',
+        documentKey: 'notaFiscal',
+        registeredInvoiceId: 'nota-b',
+        item: 'NF-B',
+        technicalAnalysisValue: 'Incorreto',
+        errors: ['Documento incompleto'],
+        observation: 'Erro específico da NF-B.'
+    });
+
+    assert.equal(first.value.pendency.registeredInvoiceId, 'nota-a');
+    assert.equal(second.value.pendency.registeredInvoiceId, 'nota-b');
+    assert.equal(harness.state.pendencies.length, 2);
+    assert.equal(harness.state.registeredInvoices[0].analiseDocumentoFiscal, 'Incorreto');
+    assert.equal(harness.state.registeredInvoices[1].analiseDocumentoFiscal, 'Incorreto');
+    assert.equal(verification.analise.notaFiscal, 'Incorreto');
+
+    await assert.rejects(
+        () => harness.service.open({
+            schoolId: 'ESC-1',
+            competence: '2026-05',
+            programId: 'BASIC',
+            documentKey: 'notaFiscal',
+            registeredInvoiceId: 'nota-a',
+            item: 'NF-A',
+            technicalAnalysisValue: 'Incorreto',
+            errors: ['Outro erro'],
+            observation: 'Duplicada.'
+        }),
+        error => error?.code === 'DUPLICATE_PENDENCY'
+    );
+});
+
+test('novo envio e reanálise de Nota Fiscal alteram somente a despesa vinculada', async () => {
+    const harness = createHarness();
+    const verification = harness.state.verifications['ESC-1']['2026-05_BASIC'];
+    verification.bonificacao.notaFiscal = 'Sim';
+    verification.analise.notaFiscal = 'Não analisado';
+    harness.state.registeredInvoices.push(
+        {
+            id: 'nota-a',
+            escolaId: 'ESC-1',
+            compKey: '2026-05_BASIC',
+            tipo: 'servico',
+            numero: 'NF-A',
+            valor: 500,
+            analiseDocumentoFiscal: 'Não analisado'
+        },
+        {
+            id: 'nota-b',
+            escolaId: 'ESC-1',
+            compKey: '2026-05_BASIC',
+            tipo: 'consumo',
+            numero: 'NF-B',
+            valor: 300,
+            analiseDocumentoFiscal: 'Correto'
+        }
+    );
+
+    const opened = await harness.service.open({
+        schoolId: 'ESC-1',
+        competence: '2026-05',
+        programId: 'BASIC',
+        documentKey: 'notaFiscal',
+        registeredInvoiceId: 'nota-a',
+        item: 'NF-A',
+        technicalAnalysisValue: 'Incorreto',
+        errors: ['Dados divergentes'],
+        observation: 'Corrigir NF-A.'
+    });
+    const pendencyId = opened.value.pendency.id;
+
+    await harness.service.registerAttempt({
+        pendencyId,
+        availabilityDate: '2026-07-15',
+        observation: 'Documento corrigido enviado.'
+    });
+
+    assert.equal(harness.state.registeredInvoices[0].analiseDocumentoFiscal, 'Não analisado');
+    assert.equal(harness.state.registeredInvoices[1].analiseDocumentoFiscal, 'Correto');
+    assert.equal(verification.analise.notaFiscal, 'Não analisado');
+
+    const resolved = await harness.service.reanalyze({
+        pendencyId,
+        result: 'correto',
+        observation: 'NF regularizada.'
+    });
+
+    assert.equal(resolved.value.pendency.status, 'Resolvida');
+    assert.equal(harness.state.registeredInvoices[0].analiseDocumentoFiscal, 'Correto');
+    assert.equal(harness.state.registeredInvoices[1].analiseDocumentoFiscal, 'Correto');
+    assert.equal(verification.analise.notaFiscal, 'Correto');
+});
+
+test('despesa a identificar abre Incorreto mas não aceita novo envio antes de ser identificada', async () => {
+    const harness = createHarness();
+    const verification = harness.state.verifications['ESC-1']['2026-05_BASIC'];
+    verification.bonificacao.notaFiscal = 'Sim';
+    verification.analise.notaFiscal = 'Não analisado';
+    harness.state.registeredInvoices.push({
+        id: 'nota-pendente',
+        escolaId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        tipo: 'a_identificar',
+        numero: '',
+        desc: 'Débito observado no extrato',
+        valor: 850,
+        analiseDocumentoFiscal: 'Incorreto'
+    });
+
+    const opened = await harness.service.open({
+        schoolId: 'ESC-1',
+        competence: '2026-05',
+        programId: 'BASIC',
+        documentKey: 'notaFiscal',
+        registeredInvoiceId: 'nota-pendente',
+        item: 'Despesa a identificar',
+        technicalAnalysisValue: 'Incorreto',
+        errors: ['Documento ausente'],
+        observation: 'Despesa sem documentação comprobatória.'
+    });
+
+    assert.equal(opened.value.pendency.registeredInvoiceId, 'nota-pendente');
+    assert.equal(verification.analise.notaFiscal, 'Incorreto');
+
+    await assert.rejects(
+        () => harness.service.registerAttempt({
+            pendencyId: opened.value.pendency.id,
+            availabilityDate: '2026-07-16',
+            observation: 'Tentativa sem identificar o documento.'
+        }),
+        error => error?.code === 'DOCUMENT_IDENTIFICATION_REQUIRED'
+    );
 });
