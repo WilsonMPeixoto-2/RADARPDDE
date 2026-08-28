@@ -595,3 +595,51 @@ test('atualização individual semanticamente idêntica é no-op', async () => {
     assert.equal(harness.calls.length, 0);
     assert.equal(harness.state.logs.length, 0);
 });
+
+
+test('legado agregado Incorreto com múltiplas NFs não fabrica estado individual anterior', async () => {
+    const harness = createHarness();
+    const verification = harness.state.verifications['ESC-1']['2026-05_BASIC'];
+    verification.analise.notaFiscal = 'Incorreto';
+    harness.state.registeredInvoices.push(
+        {
+            id: 'nota-legado-a',
+            escolaId: 'ESC-1',
+            compKey: '2026-05_BASIC',
+            competencia: '2026-05',
+            programaId: 'BASIC',
+            desc: 'Material A',
+            descricao: 'Material A',
+            tipo: 'consumo',
+            numero: 'NF-LEG-A',
+            valor: 100
+        },
+        {
+            id: 'nota-legado-b',
+            escolaId: 'ESC-1',
+            compKey: '2026-05_BASIC',
+            competencia: '2026-05',
+            programaId: 'BASIC',
+            desc: 'Material B',
+            descricao: 'Material B',
+            tipo: 'consumo',
+            numero: 'NF-LEG-B',
+            valor: 200
+        }
+    );
+
+    const result = await harness.service.updateDocumentAnalysis({
+        id: 'nota-legado-a',
+        schoolId: 'ESC-1',
+        analysis: 'Correto',
+        profile: 'controlador'
+    });
+
+    assert.equal(result.value.previous, 'Não analisado');
+    assert.equal(harness.state.registeredInvoices[0].analiseDocumentoFiscal, 'Correto');
+    assert.equal(
+        Object.hasOwn(harness.state.registeredInvoices[1], 'analiseDocumentoFiscal'),
+        false
+    );
+    assert.equal(verification.analise.notaFiscal, 'Não analisado');
+});
