@@ -10,19 +10,23 @@
     const invoiceEffects = typeof module !== 'undefined' && module.exports
         ? require('../domain/invoice-effects.js')
         : root.RadarInvoiceEffects;
-    const api = factory(contract, serviceAdvisory, invoiceEffects);
+    const invoiceDocumentAnalysis = typeof module !== 'undefined' && module.exports
+        ? require('../domain/invoice-document-analysis.js')
+        : root.RadarInvoiceDocumentAnalysis;
+    const api = factory(contract, serviceAdvisory, invoiceEffects, invoiceDocumentAnalysis);
 
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
     if (root) root.RadarInvoiceService = Object.freeze(api);
 }(typeof window !== 'undefined' ? window : globalThis, function createInvoiceServiceApi(
     contract,
     serviceAdvisory,
-    invoiceEffects
+    invoiceEffects,
+    invoiceDocumentAnalysis
 ) {
     'use strict';
 
-    if (!contract || !serviceAdvisory || !invoiceEffects) {
-        throw new Error('Contrato de dados, regra canônica de Assessoria e planner de efeitos são obrigatórios para notas fiscais.');
+    if (!contract || !serviceAdvisory || !invoiceEffects || !invoiceDocumentAnalysis) {
+        throw new Error('Contrato de dados, regras canônicas de Assessoria e análise documental, e planner de efeitos são obrigatórios para notas fiscais.');
     }
     const { RepositoryError, cloneValue } = contract;
     const {
@@ -31,7 +35,14 @@
         getServiceAdvisoryState
     } = serviceAdvisory;
     const { planInvoiceEffects } = invoiceEffects;
+    const {
+        INVOICE_DOCUMENT_ANALYSES,
+        deriveInvoiceDocumentAnalysis,
+        getInvoiceDocumentAnalysis,
+        normalizeInvoiceDocumentAnalysis
+    } = invoiceDocumentAnalysis;
     const SERVICE_ADVISORY_ANALYSIS_SET = new Set(SERVICE_ADVISORY_ANALYSES);
+    const INVOICE_DOCUMENT_ANALYSIS_SET = new Set(INVOICE_DOCUMENT_ANALYSES);
     const UNIDENTIFIED_EXPENSE_TYPE = 'a_identificar';
     const INTERNET_BILL_EXPENSE_TYPE = 'boleto_internet';
     const INTERNET_BILL_PROGRAM_ID = 'CONECTADA';
@@ -188,6 +199,22 @@
             verification.bonificacao.consAssessoria = aggregate.delivery;
             verification.bonificacao.consEnviada = aggregate.sent;
             verification.analise.consAssessoria = aggregate.analysis;
+            return aggregate;
+        }
+
+        syncInvoiceDocumentAnalysis(state, schoolId, compKey, legacyFallback = null) {
+            const invoices = state.registeredInvoices.filter(invoice => (
+                invoice.escolaId === schoolId
+                && invoice.compKey === compKey
+            ));
+            const verification = state.verifications?.[schoolId]?.[compKey];
+            const fallback = legacyFallback
+                || verification?.analise?.notaFiscal
+                || 'Não analisado';
+            const aggregate = deriveInvoiceDocumentAnalysis(invoices, fallback);
+            if (!verification) return aggregate;
+            verification.analise = verification.analise || {};
+            verification.analise.notaFiscal = aggregate;
             return aggregate;
         }
 
@@ -407,6 +434,173 @@
                         verificationId,
                         auditLog: auditLog ? cloneValue(auditLog) : null,
                         warnings: [...plan.warnings],
+                        unchanged: false
+                    };
+                }
+            });
+        }
+
+        async updateDocumentAnalysis(input = {}) {
+            const profile = this.assertEditable(input.profile, 'invoice:update-document-analysis');
+            const analysis = text(input.analysis);
+            if (!INVOICE_DOCUMENT_ANALYSIS_SET.has(analysis)) {
+                fail(
+                    'VALIDATION_FAILED',
+                    'A análise individual do documento fiscal é inválida.',
+                    'invoice:update-document-analysis',
+                    { analysis }
+                );
+            }
+            if (analysis === 'Incorreto') {
+                fail(
+                    'PENDENCY_REQUIRED',
+                    'A análise “Incorreto” deve ser confirmada junto com a Pendência deste documento.',
+                    'invoice:update-document-analysis'
+                );
+            }
+
+            const initialState = this.getState();
+            const invoiceId = text(input.id);
+            const initialInvoice = initialState.registeredInvoices.find(item => item.id === invoiceId);
+            if (!initialInvoice) {
+                fail(
+                    'INVOICE_NOT_FOUND',
+                    'Despesa ou Nota Fiscal não localizada.',
+                    'invoice:update-document-analysis',
+                    { id: invoiceId }
+                );
+            }
+            if (isUnidentifiedExpense(initialInvoice)) {
+                fail(
+                    'UNIDENTIFIED_EXPENSE_REQUIRES_PENDENCY',
+                    'Despesa a identificar permanece Incorreto enquanto a documentação não permitir sua identificação.',
+                    'invoice:update-document-analysis',
+                    { id: invoiceId }
+                );
+            }
+
+            const schoolId = text(input.schoolId || initialInvoice.escolaId);
+            if (schoolId !== initialInvoice.escolaId) {
+                fail(
+                    'INVOICE_CONTEXT_MISMATCH',
+                    'O documento fiscal não pertence à unidade informada.',
+                    'invoice:update-document-analysis',
+                    { id: invoiceId, schoolId }
+                );
+            }
+            const initialContext = this.getContext(initialState, {
+                schoolId,
+                compKey: initialInvoice.compKey
+            }, 'invoice:update-document-analysis');
+            if (!initialContext.verification) {
+                fail(
+                    'VERIFICATION_NOT_FOUND',
+                    'A verificação mensal do documento fiscal não foi localizada.',
+                    'invoice:update-document-analysis',
+                    { id: invoiceId }
+                );
+            }
+            this.assertVerificationEditable(
+                initialContext.verification,
+                profile,
+                'invoice:update-document-analysis'
+            );
+
+            const previous = getInvoiceDocumentAnalysis(
+                initialInvoice,
+                initialContext.verification.analise?.notaFiscal
+            );
+            const projected = initialState.registeredInvoices
+                .filter(item => item.escolaId === schoolId && item.compKey === initialInvoice.compKey)
+                .map(item => {
+                    const copy = cloneValue(item);
+                    if (copy.id === invoiceId) copy.analiseDocumentoFiscal = analysis;
+                    return copy;
+                });
+            const targetAggregate = deriveInvoiceDocumentAnalysis(
+                projected,
+                initialContext.verification.analise?.notaFiscal || 'Não analisado'
+            );
+            const individualCanonical = text(initialInvoice.analiseDocumentoFiscal) === analysis;
+            const aggregateCanonical = text(initialContext.verification.analise?.notaFiscal)
+                === targetAggregate;
+
+            if (individualCanonical && aggregateCanonical) {
+                return {
+                    ok: true,
+                    value: {
+                        operation: 'update',
+                        invoice: cloneValue(initialInvoice),
+                        asset: null,
+                        verification: cloneValue(initialContext.verification),
+                        verificationId: `${schoolId}::${initialContext.context.competence}::${initialContext.context.programId}`,
+                        auditLog: null,
+                        aggregate: targetAggregate,
+                        previous,
+                        unchanged: true
+                    }
+                };
+            }
+
+            const shouldReopen = Boolean(
+                profile === 'assistente'
+                && initialContext.verification.resultadoBonif
+            );
+
+            return this.dataService.execute({
+                name: 'invoice:update-document-analysis',
+                changedEntities: ['registeredInvoices', 'verifications', 'administrativeLogs'],
+                persist: this.createPersistence('save'),
+                mutate: () => {
+                    const state = this.getState();
+                    const invoice = state.registeredInvoices.find(item => item.id === invoiceId);
+                    if (!invoice) {
+                        fail(
+                            'INVOICE_NOT_FOUND',
+                            'Documento fiscal não localizado durante a aplicação da análise.',
+                            'invoice:update-document-analysis',
+                            { id: invoiceId }
+                        );
+                    }
+                    const context = this.getContext(state, {
+                        schoolId,
+                        compKey: invoice.compKey
+                    }, 'invoice:update-document-analysis');
+                    if (!context.verification) {
+                        fail(
+                            'VERIFICATION_NOT_FOUND',
+                            'A verificação mensal do documento fiscal não foi localizada.',
+                            'invoice:update-document-analysis',
+                            { id: invoiceId }
+                        );
+                    }
+
+                    invoice.analiseDocumentoFiscal = normalizeInvoiceDocumentAnalysis(analysis);
+                    const aggregate = this.syncInvoiceDocumentAnalysis(
+                        state,
+                        schoolId,
+                        invoice.compKey
+                    );
+                    if (shouldReopen) context.verification.resultadoBonif = '';
+
+                    const label = invoiceLabel(invoice);
+                    const reopenSuffix = shouldReopen
+                        ? ' A consolidação anterior foi reaberta pela alteração.'
+                        : '';
+                    const auditLog = this.appendLog(
+                        'Análise Técnica de Documento Fiscal Atualizada',
+                        `${label} atualizado de “${previous}” para “${analysis}”. Resumo técnico de Notas Fiscais: “${aggregate}”.${reopenSuffix}`
+                    );
+
+                    return {
+                        operation: 'update',
+                        invoice: cloneValue(invoice),
+                        asset: null,
+                        verification: cloneValue(context.verification),
+                        verificationId: `${schoolId}::${context.context.competence}::${context.context.programId}`,
+                        auditLog: cloneValue(auditLog),
+                        aggregate,
+                        previous,
                         unchanged: false
                     };
                 }
