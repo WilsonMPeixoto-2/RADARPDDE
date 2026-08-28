@@ -27,7 +27,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = pg_catalog, public, radar_private
-as $
+as $$
 begin
     if not exists (
         select 1
@@ -52,7 +52,7 @@ begin
 
     return new;
 end
-$;
+$$;
 
 revoke all on function radar_private.protect_service_advisory_invoice_history()
     from public, anon, authenticated;
