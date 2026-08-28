@@ -378,6 +378,14 @@
             this.assertCompetenceEditable(input.compKey, 'setTechnicalAnalysis');
             const technicalDocumentKey = text(input.documentKey);
             const { programId: technicalProgramId } = splitCompKey(input.compKey);
+            if (technicalDocumentKey === 'notaFiscal') {
+                fail(
+                    'DOCUMENT_NOT_APPLICABLE',
+                    'A situação técnica de Notas Fiscais é calculada automaticamente a partir de cada despesa e não pode ser alterada diretamente.',
+                    'setTechnicalAnalysis',
+                    { programId: technicalProgramId, documentKey: technicalDocumentKey }
+                );
+            }
             if (technicalDocumentKey === 'boletoInternet') {
                 fail(
                     'DOCUMENT_NOT_APPLICABLE',
