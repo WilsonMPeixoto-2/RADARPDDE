@@ -27,7 +27,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = pg_catalog, public, radar_private
-as $
+as $$
 declare
     v_has_individual_history boolean;
     v_has_advisory_history boolean;
@@ -61,7 +61,7 @@ begin
 
     return new;
 end
-$;
+$$;
 
 revoke all on function radar_private.protect_service_advisory_invoice_history()
     from public, anon, authenticated;
