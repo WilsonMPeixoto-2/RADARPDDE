@@ -586,6 +586,16 @@
                     'invoice:save'
                 );
             }
+            if (existing
+                && invoiceData.expenseType === UNIDENTIFIED_EXPENSE_TYPE
+                && existing.tipo !== UNIDENTIFIED_EXPENSE_TYPE) {
+                fail(
+                    'UNIDENTIFIED_EXPENSE_REQUIRES_PENDENCY',
+                    'Uma despesa identificada não pode ser transformada em “Despesa a identificar” pelo editor comum.',
+                    'invoice:save',
+                    { id: existing.id }
+                );
+            }
             if (existing) {
                 this.assertNoActiveInvoiceDocumentPendency(
                     initialState,
