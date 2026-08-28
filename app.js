@@ -10454,9 +10454,9 @@ function renderProntuarioVerificacoes(esc) {
                                     ${programStatusSummary}
                                     ${accessProfile !== 'inventario' && accessProfile !== 'sme' ? (
                                         v.resultadoBonif ? `
-                                            <button class="btn btn-secondary btn-sm" style="width:100%; justify-content:center; font-size:0.75rem;" disabled>Consolidada</button>
+                                            <button class="btn program-consolidate-button is-disabled" disabled>Consolidada</button>
                                         ` : `
-                                            <button class="btn btn-secondary btn-sm" style="width:100%; justify-content:center; font-size:0.75rem;" onclick="calcularEFecharBonificacao('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">Consolidar</button>
+                                            <button class="btn program-consolidate-button" onclick="calcularEFecharBonificacao('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">Consolidar</button>
                                         `
                                     ) : ''}
                                 </div>
