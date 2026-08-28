@@ -50,7 +50,7 @@ Um teste histórico não prevalece sobre regra e código posteriores. PR aberto,
 | `docs/handoff/2026-08-28-pr211-hotfix-notas-fiscais.md` | checkpoint canônico do PR #211 enquanto Draft |
 | `docs/superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md` | plano executável específico do hotfix; não substitui o plano mestre |
 | `docs/evidence/2026-08-28-pr211-referencias-visuais.md` | evidência/referência visual aprovada do bloco de Notas Fiscais |
-| `docs/decisions/ADR-047-analise-pendencia-individual-notas-fiscais.md` | decisão vigente sobre granularidade individual de análise e Pendência |
+| `docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md` | decisão vigente sobre granularidade individual de análise e Pendência |
 | `docs/handoff/2026-08-27-hotfix-boleto-internet.md` | checkpoint corrente da hotfix prioritária e gate de retorno ao PR1 |
 | `docs/handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md` | checkpoint canônico curto do plano mestre pós-PR #200 |
 | `docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md` | plano mestre operacional aprovado, com decisões, sequência, gates e reversão |
@@ -150,8 +150,10 @@ As decisões recentes mais relevantes são:
 - ADR-044 — Pendências Operacionais usam visão transversal entre competências;
 - ADR-045 — Production é fail-closed e não publica seed institucional legado;
 - ADR-046 — escritas operacionais usam retorno autoritativo e reconciliação incremental;
-- ADR-047 — Notas Fiscais mantêm bonificação agregada, mas análise e Pendência são individuais por `registered_invoice_id`; `a_identificar` nasce Incorreto + Pendência;
-- ADR-048 — plano pós-PR #200 usa execução incremental e revisão adversarial.
+- ADR-047 — vulnerabilidades conhecidas são acompanhadas sem atualização forçada;
+- ADR-048 — plano pós-PR #200 usa execução incremental e revisão adversarial;
+- ADR-049 — Boleto de pagamento de Internet é exclusivo de Educação Conectada e permanece dentro de Notas Fiscais;
+- ADR-050 — Notas Fiscais mantêm bonificação agregada, mas análise e Pendência são individuais por `registered_invoice_id`; `a_identificar` nasce Incorreto + Pendência.
 
 Quando uma ADR detalhada posterior especializar decisão agregada anterior, prevalece a ADR posterior no ponto expressamente indicado.
 
