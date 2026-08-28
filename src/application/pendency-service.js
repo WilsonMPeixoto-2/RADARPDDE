@@ -953,6 +953,52 @@
             });
         }
 
+        async updateDetails(input = {}) {
+            this.assertCapability(accessPolicy.CAPABILITIES.OPEN_PENDENCY, 'updateDetails');
+            const persistence = { operation: 'update_status' };
+            return this.dataService.execute({
+                name: 'pendency:update-details',
+                changedEntities: ['pendencies', 'administrativeLogs'],
+                mutate: () => {
+                    const state = this.getState();
+                    const { index, pendency } = this.find(state, input.pendencyId, 'updateDetails');
+                    if (!this.domain.isDocumentaryPendency(pendency)) {
+                        fail(
+                            'INCOMPLETE_CONTEXT',
+                            'Somente Pendências documentais podem ser editadas por esta visualização.',
+                            'updateDetails'
+                        );
+                    }
+                    const reason = text(input.reason || input.motivo);
+                    const observation = text(input.observation || input.observacao);
+                    if (!reason || !observation) {
+                        fail(
+                            'VALIDATION_FAILED',
+                            'Motivo e observação são obrigatórios.',
+                            'updateDetails'
+                        );
+                    }
+                    persistence.pendencyId = pendency.id;
+                    persistence.expectedPendencyVersion = rowVersionOf(pendency);
+
+                    const next = this.domain.normalizePendencyRecord({
+                        ...cloneValue(pendency),
+                        motivo: reason,
+                        observacao: observation
+                    });
+                    state.pendencies[index] = next;
+                    const log = this.appendSchoolLog(
+                        next.escolaId,
+                        'Pendência Editada',
+                        `Motivo e observação da pendência ${next.id} foram atualizados sem alterar seu status.`
+                    );
+                    persistence.logId = text(log?.id);
+                    return { pendency: cloneValue(next) };
+                },
+                persist: context => this.persistPendencyCommand(context, persistence)
+            });
+        }
+
         async cancel(input = {}) {
             this.assertCapability(accessPolicy.CAPABILITIES.CANCEL_PENDENCY, 'cancel');
             return this.updateStatus('cancel', input, (pendency) => this.domain.cancelPendency(
