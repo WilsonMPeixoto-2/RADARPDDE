@@ -10511,6 +10511,7 @@ function renderPendencyDrawer() {
             ? 'is-waiting'
             : 'is-closed';
 
+    // eslint-disable-next-line nounsanitized/property -- valores dinâmicos do drawer são escapados com escapeHtml antes da interpolação; SVG e estrutura são estáticos.
     content.innerHTML = `
         <div class="pendency-preview-header">
             <div>
