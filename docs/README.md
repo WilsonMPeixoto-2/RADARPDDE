@@ -12,7 +12,7 @@ Ler primeiro:
 - [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md);
 - [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md);
 - [`evidence/2026-08-28-pr211-referencias-visuais.md`](evidence/2026-08-28-pr211-referencias-visuais.md);
-- [`decisions/ADR-047-analise-pendencia-individual-notas-fiscais.md`](decisions/ADR-047-analise-pendencia-individual-notas-fiscais.md).
+- [`decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md).
 
 Esse hotfix **não substitui o plano mestre**. Depois de seu fechamento, a retomada do plano de 26/08 exige reconciliação explícita do que o PR #211 já tiver modificado ou solucionado.
 
@@ -22,9 +22,9 @@ O estado corrente fica em [`CURRENT_STAGE.md`](CURRENT_STAGE.md).
 
 O checkpoint da frente prioritária atual é:
 
-- [`handoff/2026-08-27-hotfix-boleto-internet.md`](handoff/2026-08-27-hotfix-boleto-internet.md)
+- [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md)
 
-Ele registra o escopo do PR #203, os achados da revisão independente, as provas locais, os gates remotos ainda necessários e o retorno obrigatório ao PR1.
+O handoff do Boleto Internet de 27/08 permanece como histórico imediatamente anterior e continua relevante para a regra `boleto_internet`, mas não controla mais o estado corrente do projeto.
 
 O documento principal para retomada do plano mestre é:
 
