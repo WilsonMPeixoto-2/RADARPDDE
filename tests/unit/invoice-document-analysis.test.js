@@ -20,17 +20,27 @@ test('reconhece todos os registros individuais de Notas Fiscais, inclusive despe
     assert.equal(isInvoiceDocument({ tipo: 'outro' }), false);
 });
 
-test('despesa a identificar é sempre Incorreto enquanto não for identificada', () => {
-    const invoice = { id: 'nota-1', tipo: 'a_identificar' };
+test('despesa a identificar nova é Incorreto, mas legado sem análise não recebe classificação inventada', () => {
+    const legacy = { id: 'nota-legada', tipo: 'a_identificar' };
+    const canonical = {
+        id: 'nota-nova',
+        tipo: 'a_identificar',
+        analiseDocumentoFiscal: 'Incorreto'
+    };
 
-    assert.equal(isUnidentifiedExpense(invoice), true);
-    assert.equal(getInvoiceDocumentAnalysis(invoice), 'Incorreto');
+    assert.equal(isUnidentifiedExpense(legacy), true);
+    assert.equal(getInvoiceDocumentAnalysis(legacy), 'Não analisado');
     assert.equal(
-        deriveInvoiceDocumentAnalysis([invoice], 'Correto'),
+        deriveInvoiceDocumentAnalysis([legacy], 'Correto'),
+        'Correto'
+    );
+    assert.equal(getInvoiceDocumentAnalysis(canonical), 'Incorreto');
+    assert.equal(
+        deriveInvoiceDocumentAnalysis([canonical], 'Correto'),
         'Incorreto'
     );
     assert.throws(
-        () => withInvoiceDocumentAnalysis(invoice, 'Correto'),
+        () => withInvoiceDocumentAnalysis(canonical, 'Correto'),
         /deve permanecer Incorreto/
     );
 });

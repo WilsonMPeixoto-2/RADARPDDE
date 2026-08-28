@@ -177,7 +177,8 @@ test('A identificar não participa da regra da Assessoria', () => {
         compKey: '2026-05_BASIC',
         tipo: 'a_identificar',
         desc: 'Despesa pendente',
-        valor: 100
+        valor: 100,
+        analiseDocumentoFiscal: 'Incorreto'
     };
     const input = baseInput({
         contextInvoices: [baseInput().existingInvoice, unidentified]

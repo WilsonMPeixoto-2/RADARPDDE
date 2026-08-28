@@ -151,52 +151,52 @@ test.describe('Prontuário — despesa a identificar', () => {
       provisionalInvoiceRow.getByRole('button', { name: 'Visualizar pendência' })
     ).toBeVisible();
 
-    await provisionalInvoiceRow.locator('button[aria-label^="Editar"]').click();
-    await expect(page.locator('#nota-tipo')).toHaveValue('a_identificar');
-    await page.locator('#nota-tipo').selectOption('consumo');
-    await expect(page.locator('#nota-numero')).toHaveAttribute('required');
-    await page.locator('#nota-numero').fill('NF-IDENT-850');
-    await page.locator('#form-dados-nota button[type="submit"]').click();
-    await expect(page.locator('#modal-dados-nota')).not.toHaveClass(/show/);
-
-    const afterIdentification = await page.evaluate(({ escolaId, compKey }) => {
-      const invoice = notasRegistradas.find(note => note.escolaId === escolaId && note.compKey === compKey);
-      return {
-        id: invoice?.id,
-        tipo: invoice?.tipo,
-        numero: invoice?.numero,
-        analysis: invoice?.analiseDocumentoFiscal
-      };
-    }, context);
-    expect(afterIdentification).toEqual({
-      id: stateAfterCreate.id,
-      tipo: 'consumo',
-      numero: 'NF-IDENT-850',
-      analysis: 'Incorreto'
+    await page.evaluate(() => switchView('pendencias'));
+    const pendingRow = page.locator('#p-abertas tr[data-pendency-ref]').filter({
+      hasText: 'Despesa a identificar'
     });
+    await expect(pendingRow).toHaveCount(1);
+    await pendingRow.getByRole('button', {
+      name: 'Registrar novo envio',
+      exact: true
+    }).click();
 
-    const afterSubmission = await page.evaluate(async pendencyId => {
-      await radarPendencyService.registerAttempt({
-        pendencyId,
-        availabilityDate: '2026-08-28',
-        observation: 'Documento fiscal identificado e disponibilizado pela escola.'
-      });
-      rebuildOperationalIndexes();
+    const submissionModal = page.locator('#modal-registrar-envio');
+    await expect(submissionModal).toHaveClass(/show/);
+    await expect(submissionModal.locator('#envio-identificacao')).toBeVisible();
+    await submissionModal.getByLabel('Tipo da despesa', { exact: true }).selectOption('consumo');
+    await submissionModal.getByLabel('Número ou referência do documento', { exact: true }).fill('NF-IDENT-850');
+    await submissionModal.getByLabel('Descrição', { exact: true }).fill('Material identificado pela escola');
+    await submissionModal.getByLabel('Valor (R$)', { exact: true }).fill('850');
+    await submissionModal.getByLabel('Data em que o arquivo foi disponibilizado no Drive', { exact: true }).fill('2026-08-28');
+    await submissionModal.getByLabel('Observação', { exact: true })
+      .fill('Documento fiscal identificado e disponibilizado pela escola.');
+    await submissionModal.getByRole('button', {
+      name: 'Registrar e enviar para reanálise',
+      exact: true
+    }).click();
+    await expect(submissionModal).not.toHaveClass(/show/);
+
+    const afterSubmission = await page.evaluate(pendencyId => {
       const p = pendencias.find(item => item.id === pendencyId);
       const invoiceId = p.registeredInvoiceId || p.registered_invoice_id;
       const invoice = notasRegistradas.find(item => String(item.id) === String(invoiceId));
       return {
         status: p.status,
+        pendencyId: p.id,
         invoiceId: invoice?.id,
         type: invoice?.tipo,
+        number: invoice?.numero,
         analysis: invoice?.analiseDocumentoFiscal
       };
     }, stateAfterCreate.pendencyId);
 
     expect(afterSubmission).toEqual({
       status: 'Aguardando reanálise',
+      pendencyId: stateAfterCreate.pendencyId,
       invoiceId: stateAfterCreate.id,
       type: 'consumo',
+      number: 'NF-IDENT-850',
       analysis: 'Não analisado'
     });
   });

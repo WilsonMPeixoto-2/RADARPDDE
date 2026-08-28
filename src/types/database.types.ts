@@ -1217,7 +1217,9 @@ export type Database = {
       register_invoice_document_attempt: {
         Args: {
           p_administrative_log: Json
+          p_asset: Json
           p_attempt: Json
+          p_expected_asset_version: number
           p_expected_invoice_version: number
           p_expected_pendency_version: number
           p_expected_verification_version: number
