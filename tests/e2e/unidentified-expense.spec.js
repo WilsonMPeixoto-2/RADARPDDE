@@ -153,7 +153,7 @@ test.describe('Prontuário — despesa a identificar', () => {
 
     await page.evaluate(() => switchView('pendencias'));
     const pendingRow = page.locator(
-      `#p-abertas tr[data-pendency-ref="${stateAfterCreate.pendencyId}"]`
+      `#p-abertas tr[data-pendency-ref*="${stateAfterCreate.pendencyId}"]`
     );
     await expect(pendingRow).toHaveCount(1);
     await pendingRow.getByRole('button', {
