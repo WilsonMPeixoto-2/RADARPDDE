@@ -508,4 +508,79 @@ $$;
 revoke all on function public.reanalyze_invoice_document_pendency(jsonb, integer, jsonb, jsonb, jsonb, integer, integer, jsonb) from public, anon;
 grant execute on function public.reanalyze_invoice_document_pendency(jsonb, integer, jsonb, jsonb, jsonb, integer, integer, jsonb) to authenticated;
 
+-- Reparo cirúrgico do único caso conhecido que originou este hotfix.
+-- Em banco limpo os IDs não existem e o bloco é inerte. Se apenas parte do
+-- contexto existir, a migration falha em vez de adivinhar a associação.
+do $$
+declare
+    v_pendency_id constant text := 'pend-384d9cc0-634f-4e74-9eac-f22da3b6e2c5';
+    v_invoice_id constant text := 'nota-a2da969c-2e29-41f9-a9fc-f34a306e00ed';
+    v_pendency_exists integer;
+    v_invoice_exists integer;
+    v_pendency_match integer;
+    v_invoice_match integer;
+begin
+    select count(*) into v_pendency_exists
+      from public.pendencies
+     where id = v_pendency_id;
+
+    select count(*) into v_invoice_exists
+      from public.registered_invoices
+     where id = v_invoice_id;
+
+    if v_pendency_exists = 0 and v_invoice_exists = 0 then
+        return;
+    end if;
+
+    if v_pendency_exists <> 1 or v_invoice_exists <> 1 then
+        raise exception 'DATA_REPAIR_PREFLIGHT_FAILED: pendência e boleto conhecidos não coexistem';
+    end if;
+
+    select count(*) into v_pendency_match
+      from public.pendencies
+     where id = v_pendency_id
+       and school_id = '04.31.001'
+       and competence_origin = '2026-08'
+       and program_id = 'CONECTADA'
+       and document_key = 'notaFiscal'
+       and registered_invoice_id is null
+       and status in ('Aberta', 'Aguardando reanálise');
+
+    select count(*) into v_invoice_match
+      from public.registered_invoices
+     where id = v_invoice_id
+       and school_id = '04.31.001'
+       and competence_id = '2026-08'
+       and program_id = 'CONECTADA'
+       and expense_type = 'boleto_internet'
+       and invoice_number = 'Boteto 1234'
+       and amount = 100.00;
+
+    if v_pendency_match <> 1 or v_invoice_match <> 1 then
+        raise exception 'DATA_REPAIR_PREFLIGHT_FAILED: contexto conhecido do boleto divergiu';
+    end if;
+
+    update public.pendencies
+       set registered_invoice_id = v_invoice_id,
+           payload = jsonb_set(
+               jsonb_set(
+                   coalesce(payload, '{}'::jsonb),
+                   '{registeredInvoiceId}',
+                   to_jsonb(v_invoice_id),
+                   true
+               ),
+               '{documentSnapshot}',
+               jsonb_build_object(
+                   'registeredInvoiceId', v_invoice_id,
+                   'tipo', 'boleto_internet',
+                   'numero', 'Boteto 1234',
+                   'descricao', 'Boleto de pagamento do provedor de internet',
+                   'valor', 100.00
+               ),
+               true
+           )
+     where id = v_pendency_id;
+end
+$$;
+
 commit;
