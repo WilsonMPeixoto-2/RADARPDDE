@@ -2950,10 +2950,14 @@ body.dark-theme .radar-auth-brand {
 }
 
 .invoice-document-panel-header {
-    display: flex;
-    align-items: stretch;
-    justify-content: space-between;
-    gap: 28px;
+    display: grid;
+    grid-template-columns:
+        minmax(220px, 1.25fr)
+        minmax(190px, 0.95fr)
+        minmax(170px, 0.75fr)
+        minmax(180px, 0.82fr);
+    align-items: center;
+    column-gap: 18px;
     padding: 20px 22px;
     border-bottom: 1px solid var(--invoice-divider);
     background: linear-gradient(180deg, #ffffff 0%, #fdfcff 100%);
@@ -3020,21 +3024,29 @@ body.dark-theme .radar-auth-brand {
 }
 
 .invoice-document-panel-summary {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 0;
-    min-width: 520px;
+    display: contents;
 }
 
 .invoice-summary-block {
     min-height: 62px;
-    padding: 4px 24px;
+    padding: 4px 14px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     gap: 6px;
     border-left: 1px solid var(--invoice-divider);
+}
+
+.invoice-summary-block.is-bonification {
+    grid-column: 2;
+    padding-inline: 0 12px;
+    border-left: 0;
+}
+
+.invoice-summary-block.is-bonification > span {
+    color: #41374f;
+    font-size: 0.78rem;
+    font-weight: 700;
 }
 
 .invoice-summary-block:first-child {
@@ -3049,7 +3061,8 @@ body.dark-theme .radar-auth-brand {
 }
 
 .invoice-summary-block.is-pendencies {
-    min-width: 145px;
+    grid-column: 4;
+    min-width: 0;
     flex-direction: row;
     align-items: center;
     gap: 9px;
@@ -3087,15 +3100,16 @@ body.dark-theme .radar-auth-brand {
 }
 
 .invoice-bonification-toggle button {
-    min-width: 56px;
-    padding: 7px 13px;
+    min-width: 68px;
+    min-height: 38px;
+    padding: 8px 16px;
     border: 0;
     border-left: 1px solid rgba(91, 33, 182, 0.16);
     background: transparent;
     color: #453d54;
     font-family: var(--font-body);
-    font-size: 0.76rem;
-    font-weight: 600;
+    font-size: 0.82rem;
+    font-weight: 700;
     cursor: pointer;
     transition: background var(--transition-fast), color var(--transition-fast);
 }
@@ -3111,6 +3125,18 @@ body.dark-theme .radar-auth-brand {
 .invoice-bonification-toggle button.is-selected {
     background: var(--invoice-purple);
     color: #fff;
+}
+
+.invoice-bonification-toggle button.is-selected.is-sim {
+    background: var(--invoice-green);
+}
+
+.invoice-bonification-toggle button.is-selected.is-nao {
+    background: var(--invoice-red);
+}
+
+.invoice-bonification-toggle button.is-selected.is-na {
+    background: #6b6475;
 }
 
 .invoice-bonification-toggle button:disabled {
@@ -3331,6 +3357,73 @@ body.dark-theme .radar-auth-brand {
     font-size: 0.76rem;
     font-weight: 600;
     cursor: pointer;
+}
+
+.service-advisory-description {
+    color: var(--invoice-secondary);
+    font-size: 0.73rem;
+    font-weight: 500;
+    line-height: 1.35;
+}
+
+.service-advisory-delivery {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+}
+
+.service-advisory-delivery label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 38px;
+    padding: 7px 11px;
+    border: 1px solid rgba(91, 33, 182, 0.14);
+    border-radius: 9px;
+    background: #fbf9ff;
+    color: #51485f;
+    font-size: 0.74rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.service-advisory-delivery input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--invoice-green);
+}
+
+.service-advisory-delivery label:has(input:checked) {
+    border-color: rgba(8, 122, 73, 0.18);
+    background: var(--invoice-green-soft);
+    color: var(--invoice-green);
+}
+
+.program-consolidate-button {
+    width: 100%;
+    min-height: 46px;
+    justify-content: center;
+    margin-top: 4px;
+    border: 0;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%);
+    color: #fff;
+    font-size: 0.86rem;
+    font-weight: 750;
+    box-shadow: 0 5px 14px rgba(91, 33, 182, 0.18);
+}
+
+.program-consolidate-button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #5b21b6 0%, #4c1d95 100%);
+    box-shadow: 0 7px 18px rgba(91, 33, 182, 0.24);
+}
+
+.program-consolidate-button.is-disabled,
+.program-consolidate-button:disabled {
+    background: #eeeaf5;
+    color: #726b7d;
+    box-shadow: none;
+    cursor: default;
 }
 
 .invoice-document-analysis-select:focus {
