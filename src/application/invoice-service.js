@@ -476,6 +476,59 @@
             });
         }
 
+        invoicePendencyHistory(state, invoiceId) {
+            const target = text(invoiceId);
+            if (!target) return [];
+            return (state.pendencies || []).filter(pendency => (
+                text(pendency.registeredInvoiceId || pendency.registered_invoice_id) === target
+            ));
+        }
+
+        assertHistorySafeMutation(state, existing, input = {}, operation = 'invoice:save') {
+            if (!existing) return true;
+            const history = this.invoicePendencyHistory(state, existing.id);
+            if (history.length === 0) return true;
+
+            const currentSchoolId = text(existing.escolaId);
+            const currentCompKey = text(existing.compKey);
+            const targetSchoolId = text(input.schoolId || currentSchoolId);
+            const targetCompKey = text(input.compKey || currentCompKey);
+            if (targetSchoolId !== currentSchoolId || targetCompKey !== currentCompKey) {
+                fail(
+                    'INVOICE_HISTORY_LOCKED',
+                    'Este documento possui histórico de Pendência e não pode ser transferido para outra escola, competência ou programa.',
+                    operation,
+                    { invoiceId: existing.id }
+                );
+            }
+
+            const hasServiceAdvisoryHistory = history.some(pendency => (
+                text(pendency.documentoKey || pendency.document_key) === 'consAssessoria'
+            ));
+            const currentType = text(existing.tipo).toLocaleLowerCase('pt-BR');
+            const targetType = text(input.expenseType || currentType).toLocaleLowerCase('pt-BR');
+            if (hasServiceAdvisoryHistory && targetType !== currentType) {
+                fail(
+                    'INVOICE_HISTORY_LOCKED',
+                    'A natureza de uma Nota Fiscal com histórico de Assessoria não pode ser alterada.',
+                    operation,
+                    { invoiceId: existing.id }
+                );
+            }
+            return true;
+        }
+
+        assertDeletionHistorySafe(state, invoiceId) {
+            const history = this.invoicePendencyHistory(state, invoiceId);
+            if (history.length === 0) return true;
+            fail(
+                'INVOICE_HISTORY_LOCKED',
+                'Este documento possui histórico de Pendência e não pode ser excluído.',
+                'invoice:remove',
+                { invoiceId: text(invoiceId) }
+            );
+        }
+
         async save(input = {}) {
             const profile = this.assertEditable(input.profile, 'invoice:save');
             const invoiceData = this.validateInvoice(input, 'invoice:save');
@@ -503,6 +556,7 @@
                     { id: input.id }
                 );
             }
+            this.assertHistorySafeMutation(initialState, existing, input, 'invoice:save');
 
             const contextInvoices = initialState.registeredInvoices.filter(invoice => (
                 invoice.escolaId === initialContext.schoolId
@@ -1019,6 +1073,7 @@
                 );
             }
             const initialInvoice = initialState.registeredInvoices[initialIndex];
+            this.assertDeletionHistorySafe(initialState, invoiceId);
             const initialContext = this.getContext(initialState, {
                 schoolId: input.schoolId || initialInvoice.escolaId,
                 compKey: initialInvoice.compKey
