@@ -9981,6 +9981,9 @@ function renderProntuarioVerificacoes(esc) {
                         const canAddInvoice = window.RadarFluxoOperacional
                             .canRegisterFiscalNote(accessProfile, bonifValue)
                             && !isBonifLocked;
+                        const canAddUnidentifiedExpense = canMutateInvoice
+                            && Boolean(bonifValue)
+                            && bonifValue !== 'Não se aplica';
 
                         const fiscalBonificationHTML = accessProfile === 'sme'
                             ? `
@@ -10158,16 +10161,20 @@ function renderProntuarioVerificacoes(esc) {
                                             </div>
                                             ${documentRowsHTML}
                                         </div>
-                                        ${canAddInvoice ? `
+                                        ${canAddInvoice || canAddUnidentifiedExpense ? `
                                             <div class="invoice-document-footer">
-                                                <button type="button" class="invoice-add-primary" onclick="openModalDadosNota('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">
-                                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-                                                    <span>Adicionar Nota</span>
-                                                </button>
-                                                <button type="button" class="invoice-add-secondary" onclick="openUnidentifiedExpenseModal('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">
-                                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h10l4 4V20.5H5z"/><path d="M15 3.5v4h4"/><path d="M12 11v5M9.5 13.5h5"/></svg>
-                                                    <span>Registrar despesa a identificar</span>
-                                                </button>
+                                                ${canAddInvoice ? `
+                                                    <button type="button" class="invoice-add-primary" onclick="openModalDadosNota('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">
+                                                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                                                        <span>Adicionar Nota</span>
+                                                    </button>
+                                                ` : ''}
+                                                ${canAddUnidentifiedExpense ? `
+                                                    <button type="button" class="invoice-add-secondary" onclick="openUnidentifiedExpenseModal('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">
+                                                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h10l4 4V20.5H5z"/><path d="M15 3.5v4h4"/><path d="M12 11v5M9.5 13.5h5"/></svg>
+                                                        <span>Registrar despesa a identificar</span>
+                                                    </button>
+                                                ` : ''}
                                             </div>
                                         ` : ''}
                                     </section>
