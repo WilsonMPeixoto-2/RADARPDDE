@@ -1,6 +1,6 @@
 # Matriz de validade documental
 
-**Atualizado em:** 27 de agosto de 2026
+**Atualizado em:** 28 de agosto de 2026
 **Classe documental:** Canônico
 
 ## 1. Finalidade
@@ -9,7 +9,7 @@ Este documento define quais arquivos podem orientar o estado presente e quais ex
 
 O estado mutável do projeto fica em [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md). A estratégia vigente de validação fica em [`TEST_GOVERNANCE.md`](TEST_GOVERNANCE.md).
 
-O checkpoint corrente da hotfix fica em [`../handoff/2026-08-27-hotfix-boleto-internet.md`](../handoff/2026-08-27-hotfix-boleto-internet.md). O checkpoint do plano mestre continua em [`../handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](../handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md). Ambos são exceções explícitas à classificação histórica normalmente aplicada a handoffs.
+O checkpoint corrente é [`../handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](../handoff/2026-08-28-pr211-hotfix-notas-fiscais.md), acompanhado do plano [`../superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](../superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md). O checkpoint do plano mestre continua em [`../handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](../handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md), agora com regra de reconciliação pós-PR #211.
 
 ## 2. Classes
 
@@ -47,6 +47,10 @@ Um teste histórico não prevalece sobre regra e código posteriores. PR aberto,
 | `AGENTS.md` | regras de trabalho e proteção do projeto |
 | `README.md` | entrada do repositório |
 | `docs/CURRENT_STAGE.md` | estado corrente, prioridades e gatilhos de nova validação |
+| `docs/handoff/2026-08-28-pr211-hotfix-notas-fiscais.md` | checkpoint canônico do PR #211 enquanto Draft |
+| `docs/superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md` | plano executável específico do hotfix; não substitui o plano mestre |
+| `docs/evidence/2026-08-28-pr211-referencias-visuais.md` | evidência/referência visual aprovada do bloco de Notas Fiscais |
+| `docs/decisions/ADR-047-analise-pendencia-individual-notas-fiscais.md` | decisão vigente sobre granularidade individual de análise e Pendência |
 | `docs/handoff/2026-08-27-hotfix-boleto-internet.md` | checkpoint corrente da hotfix prioritária e gate de retorno ao PR1 |
 | `docs/handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md` | checkpoint canônico curto do plano mestre pós-PR #200 |
 | `docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md` | plano mestre operacional aprovado, com decisões, sequência, gates e reversão |
@@ -146,6 +150,7 @@ As decisões recentes mais relevantes são:
 - ADR-044 — Pendências Operacionais usam visão transversal entre competências;
 - ADR-045 — Production é fail-closed e não publica seed institucional legado;
 - ADR-046 — escritas operacionais usam retorno autoritativo e reconciliação incremental;
+- ADR-047 — Notas Fiscais mantêm bonificação agregada, mas análise e Pendência são individuais por `registered_invoice_id`; `a_identificar` nasce Incorreto + Pendência;
 - ADR-048 — plano pós-PR #200 usa execução incremental e revisão adversarial.
 
 Quando uma ADR detalhada posterior especializar decisão agregada anterior, prevalece a ADR posterior no ponto expressamente indicado.
@@ -170,9 +175,9 @@ As auditorias dos incidentes de Gestão de Equipe permanecem válidas como hist�
 
 Arquivos de `docs/superpowers/plans/`, `docs/superpowers/specs/`, `docs/handoff/` e `docs/reports/` são normalmente **Histórico executado**, **Evidência** ou **Trabalho em andamento** conforme sua branch/PR.
 
-**Exceções expressas atuais:** `docs/handoff/2026-08-27-hotfix-boleto-internet.md` é **Trabalho em andamento canônico para o PR #203**; `docs/handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md` permanece **Canônico para a retomada do plano** depois da hotfix.
+**Exceções expressas atuais:** `docs/handoff/2026-08-28-pr211-hotfix-notas-fiscais.md` e `docs/superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md` são **Trabalho em andamento canônico para o PR #211**; `docs/handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md` permanece **Canônico para a retomada do plano**, com reconciliação obrigatória pós-hotfix.
 
-O plano `docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md` é **Canônico — aprovado, com G0/PR1 iniciados e temporariamente pausados pela hotfix**. Seus checkboxes não comprovam implementação. O Word correspondente é **Referência canônica versionada**; a versão Markdown prevalece para busca, diff e execução.
+O plano `docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md` é **Canônico — aprovado, com PR1/PR2 já concluídos e PR3.1 temporariamente adiado pelo PR #211**. Seus checkboxes não comprovam implementação. O Word correspondente é **Referência canônica versionada**; a versão Markdown prevalece para busca, diff e execução.
 
 O handoff, o plano e o Word de 24/08 são **Superados como orientação operacional** e permanecem **Evidência/Histórico** do primeiro diagnóstico anterior ao PR #200. Não apagar nem reescrever esses arquivos.
 
