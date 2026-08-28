@@ -521,7 +521,7 @@ returns jsonb
 language plpgsql
 security invoker
 set search_path = pg_catalog, public
-as $
+as $$
 declare
     v_invoice_id text := nullif(p_invoice ->> 'id', '');
     v_pendency_invoice_id text := nullif(p_pendency ->> 'registered_invoice_id', '');
@@ -570,7 +570,7 @@ begin
         'administrative_log', v_pendency_result -> 'administrative_log'
     );
 end
-$;
+$$;
 
 revoke all on function public.save_unidentified_expense_with_pendency(jsonb, jsonb, integer, jsonb, jsonb) from public, anon;
 grant execute on function public.save_unidentified_expense_with_pendency(jsonb, jsonb, integer, jsonb, jsonb) to authenticated;
