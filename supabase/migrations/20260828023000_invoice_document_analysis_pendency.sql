@@ -27,14 +27,19 @@ returns trigger
 language plpgsql
 security definer
 set search_path = pg_catalog, public, radar_private
-as $$
+as $
+declare
+    v_has_individual_history boolean;
+    v_has_advisory_history boolean;
 begin
-    if not exists (
-        select 1
-          from public.pendencies
-         where registered_invoice_id = old.id
-           and document_key in ('consAssessoria', 'notaFiscal')
-    ) then
+    select
+        bool_or(document_key in ('consAssessoria', 'notaFiscal')),
+        bool_or(document_key = 'consAssessoria')
+      into v_has_individual_history, v_has_advisory_history
+      from public.pendencies
+     where registered_invoice_id = old.id;
+
+    if not coalesce(v_has_individual_history, false) then
         if tg_op = 'DELETE' then return old; end if;
         return new;
     end if;
@@ -45,20 +50,24 @@ begin
 
     if new.school_id is distinct from old.school_id
         or new.competence_id is distinct from old.competence_id
-        or new.program_id is distinct from old.program_id
-        or new.expense_type is distinct from old.expense_type then
-        raise exception 'INTEGRITY_CONFLICT: Nota Fiscal possui histórico de pendência individual e não pode alterar escola, competência, programa ou natureza';
+        or new.program_id is distinct from old.program_id then
+        raise exception 'INTEGRITY_CONFLICT: Nota Fiscal possui histórico de pendência individual e não pode alterar escola, competência ou programa';
+    end if;
+
+    if new.expense_type is distinct from old.expense_type
+        and coalesce(v_has_advisory_history, false) then
+        raise exception 'INTEGRITY_CONFLICT: Nota Fiscal possui histórico de pendência da Assessoria e deve permanecer como prestação de serviço';
     end if;
 
     return new;
 end
-$$;
+$;
 
 revoke all on function radar_private.protect_service_advisory_invoice_history()
     from public, anon, authenticated;
 
 comment on function radar_private.protect_service_advisory_invoice_history() is
-    'Impede apagar ou deslocar estruturalmente Nota Fiscal com histórico individual de Assessoria ou de análise técnica de Notas Fiscais.';
+    'Impede apagar ou deslocar de escola/competência/programa Nota Fiscal com histórico individual; histórico de Assessoria também protege a natureza de serviço.';
 
 create or replace function public.save_pendency_command(
     p_operation text,
