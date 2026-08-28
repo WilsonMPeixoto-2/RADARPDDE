@@ -135,10 +135,20 @@ test.describe('Prontuário — despesa a identificar', () => {
     await expect(drawer).toBeHidden();
 
     const refreshedRow = fiscalNoteRow(page);
-    await expect(refreshedRow.getByText('Incorreto', { exact: true })).toBeVisible();
-    await expect(refreshedRow.getByRole('button', { name: 'Visualizar pendência' })).toBeVisible();
+    const provisionalInvoiceRow = refreshedRow.locator(
+      `.invoice-document-row[data-invoice-id="${stateAfterCreate.id}"]`
+    );
+    await expect(
+      provisionalInvoiceRow.locator('select.invoice-document-analysis-select')
+    ).toHaveValue('Incorreto');
+    await expect(
+      refreshedRow.locator('.invoice-document-panel-summary').getByText('Incorreto', { exact: true })
+    ).toBeVisible();
+    await expect(
+      provisionalInvoiceRow.getByRole('button', { name: 'Visualizar pendência' })
+    ).toBeVisible();
 
-    await refreshedRow.locator('button[aria-label^="Editar"]').first().click();
+    await provisionalInvoiceRow.locator('button[aria-label^="Editar"]').click();
     await expect(page.locator('#nota-tipo')).toHaveValue('a_identificar');
     await page.locator('#nota-tipo').selectOption('consumo');
     await expect(page.locator('#nota-numero')).toHaveAttribute('required');
