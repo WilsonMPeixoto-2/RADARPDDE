@@ -261,6 +261,25 @@ test('consolidar novamente sem alteração é no-op sem segundo log', async () =
     assert.equal(harness.state.logs.length, 0);
 });
 
+test('análise agregada de Notas Fiscais não aceita alteração direta', async () => {
+    const harness = createHarness();
+    harness.verification.bonificacao.notaFiscal = 'Sim';
+
+    await assert.rejects(
+        () => harness.service.setTechnicalAnalysis({
+            schoolId: 'ESC-1',
+            compKey: '2026-05_BASIC',
+            documentKey: 'notaFiscal',
+            value: 'Correto',
+            profile: 'controlador'
+        }),
+        error => error?.code === 'DOCUMENT_NOT_APPLICABLE'
+    );
+
+    assert.equal(harness.verification.analise.notaFiscal, 'Não analisado');
+    assert.equal(harness.calls.length, 0);
+});
+
 test('valida entrega antes de alterar análise técnica regular', async () => {
     const harness = createHarness();
 
