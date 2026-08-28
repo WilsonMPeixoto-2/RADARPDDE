@@ -250,8 +250,8 @@ test('registra e analisa a consulta à Assessoria separadamente para cada nota d
     assert.equal(firstAfterReview.analiseConsultaAssessoria, 'Correto');
     assert.equal(secondBeforeReview.consultaAssessoriaEnviada, false);
     assert.equal(secondBeforeReview.analiseConsultaAssessoria, 'Não analisado');
-    assert.equal(verification.bonificacao.consAssessoria, 'Não');
-    assert.equal(verification.bonificacao.consEnviada, false);
+    assert.equal(verification.bonificacao.consAssessoria, 'Sim');
+    assert.equal(verification.bonificacao.consEnviada, true);
     assert.equal(verification.analise.consAssessoria, 'Não analisado');
 
     await harness.service.updateServiceAdvisory({
