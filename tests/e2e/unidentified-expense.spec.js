@@ -140,7 +140,10 @@ test.describe('Prontuário — despesa a identificar', () => {
     );
     await expect(
       provisionalInvoiceRow.locator('select.invoice-document-analysis-select')
-    ).toHaveValue('Incorreto');
+    ).toHaveCount(0);
+    await expect(
+      provisionalInvoiceRow.locator('.invoice-document-status')
+    ).toHaveText('Incorreto');
     await expect(
       refreshedRow.locator('.invoice-document-panel-summary').getByText('Incorreto', { exact: true })
     ).toBeVisible();
