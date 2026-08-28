@@ -1177,6 +1177,19 @@ export type Database = {
         Args: { p_contract: string; p_value: Json }
         Returns: boolean
       }
+      reanalyze_invoice_document_pendency: {
+        Args: {
+          p_administrative_log: Json
+          p_attempt: Json
+          p_expected_invoice_version: number
+          p_expected_pendency_version: number
+          p_expected_verification_version: number
+          p_invoice: Json
+          p_pendency: Json
+          p_verification_patch: Json
+        }
+        Returns: Json
+      }
       reanalyze_pendency_with_verification: {
         Args: {
           p_administrative_log?: Json
@@ -1189,6 +1202,19 @@ export type Database = {
         Returns: Json
       }
       reanalyze_service_advisory_pendency: {
+        Args: {
+          p_administrative_log: Json
+          p_attempt: Json
+          p_expected_invoice_version: number
+          p_expected_pendency_version: number
+          p_expected_verification_version: number
+          p_invoice: Json
+          p_pendency: Json
+          p_verification_patch: Json
+        }
+        Returns: Json
+      }
+      register_invoice_document_attempt: {
         Args: {
           p_administrative_log: Json
           p_attempt: Json
@@ -1240,6 +1266,17 @@ export type Database = {
           p_administrative_log?: Json
           p_competences: Json
           p_config: Json
+        }
+        Returns: Json
+      }
+      save_invoice_document_with_pendency: {
+        Args: {
+          p_administrative_log: Json
+          p_expected_invoice_version: number
+          p_expected_verification_version: number
+          p_invoice: Json
+          p_pendency: Json
+          p_verification_patch: Json
         }
         Returns: Json
       }
@@ -1296,6 +1333,16 @@ export type Database = {
         Args: {
           p_administrative_log: Json
           p_expected_invoice_version: number
+          p_expected_verification_version: number
+          p_invoice: Json
+          p_pendency: Json
+          p_verification_patch: Json
+        }
+        Returns: Json
+      }
+      save_unidentified_expense_with_pendency: {
+        Args: {
+          p_administrative_log: Json
           p_expected_verification_version: number
           p_invoice: Json
           p_pendency: Json
