@@ -53,7 +53,7 @@ test('Boleto de Internet existe somente como Tipo de Gasto de Notas Fiscais em E
   );
   await expect(notesRow).toBeVisible();
 
-  const noteBonification = notesRow.locator('.btn-group-toggle').first();
+  const noteBonification = notesRow.locator('.invoice-bonification-toggle').first();
   await noteBonification.getByRole('button', { name: 'Sim', exact: true }).click();
 
   await notesRow.getByRole('button', { name: 'Adicionar Nota' }).click();
@@ -107,9 +107,11 @@ test('Boleto de Internet existe somente como Tipo de Gasto de Notas Fiscais em E
     return {
       billCount: bills.length,
       invoice: last ? {
+        id: last.id,
         tipo: last.tipo,
         numero: last.numero,
         bemId: last.bemId || null,
+        documentAnalysis: last.analiseDocumentoFiscal,
         hasSent: Object.hasOwn(last, 'consultaAssessoriaEnviada'),
         hasAnalysis: Object.hasOwn(last, 'analiseConsultaAssessoria')
       } : null,
@@ -122,9 +124,11 @@ test('Boleto de Internet existe somente como Tipo de Gasto de Notas Fiscais em E
 
   expect(afterSave.billCount).toBe(context.billInvoiceCountBefore + 1);
   expect(afterSave.invoice).toEqual({
+    id: expect.any(String),
     tipo: 'boleto_internet',
     numero: 'BOL-E2E-001',
     bemId: null,
+    documentAnalysis: 'Não analisado',
     hasSent: false,
     hasAnalysis: false
   });
@@ -135,10 +139,11 @@ test('Boleto de Internet existe somente como Tipo de Gasto de Notas Fiscais em E
 
   await expect(notesRow).toContainText('Boleto Internet: BOL-E2E-001');
 
-  await page.waitForFunction(() => window.RADAR_ATOMIC_ANALYSIS_READY === true, null, {
-    timeout: 15_000
-  });
-  const noteAnalysis = notesRow.locator('select.select-analise-comp').first();
+  const billRow = page.locator(
+    `.invoice-document-row[data-invoice-id="${afterSave.invoice.id}"]`
+  );
+  const noteAnalysis = billRow.locator('select.invoice-document-analysis-select');
+  await expect(noteAnalysis).toBeVisible();
   await noteAnalysis.selectOption('Incorreto');
 
   const pendencyModal = page.locator('#modal-nova-pendencia');
@@ -161,11 +166,22 @@ test('Boleto de Internet existe somente como Tipo de Gasto de Notas Fiscais em E
       && item.escolaId === escolaId
       && item.documentoKey === 'boletoInternet'
     ));
-    return { notes: active.length, legacy: legacy.length };
+    return {
+      notes: active.length,
+      legacy: legacy.length,
+      registeredInvoiceIds: active.map(item => (
+        item.registeredInvoiceId || item.registered_invoice_id || null
+      ))
+    };
   }, context);
 
   expect(pendency.notes).toBe(1);
   expect(pendency.legacy).toBe(0);
+  expect(pendency.registeredInvoiceIds).toEqual([afterSave.invoice.id]);
+  await expect(page.locator('#pendency-preview-drawer')).toBeVisible();
+  await expect(
+    page.locator('#pendency-preview-drawer').getByText('Boleto Internet: BOL-E2E-001', { exact: true })
+  ).toBeVisible();
 });
 
 test('boletoInternet legado permanece armazenado, mas não aparece nem participa da consolidação', async ({ page }, testInfo) => {
