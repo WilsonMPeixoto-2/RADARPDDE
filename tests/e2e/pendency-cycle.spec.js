@@ -322,35 +322,20 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     await expect(modal).not.toHaveClass(/show/);
     await expect(notice).toBeHidden();
 
-    const awaiting = await page.evaluate(({ seeded, target, originalId: pendencyId }) => {
-      const pendencyIndex = pendencias.findIndex(pendency => pendency.id === pendencyId);
-      if (pendencyIndex === -1) {
-        throw new Error('Pendência documental criada não encontrada para o seeding de reanálise.');
-      }
-
-      pendencias[pendencyIndex] = RadarPendencias.registerCorrectiveSubmission(
-        pendencias[pendencyIndex],
-        {
-          id: 'tentativa-e2e-aguardando-reanalise',
-          dataDisponibilizacao: '2026-07-11',
-          observacao: 'Documento corrigido e disponibilizado deterministicamente no E2E.'
-        },
-        {
-          eventId: 'evento-e2e-aguardando-reanalise',
-          at: '2026-07-11T12:00:00.000Z',
-          usuario: 'Escola E2E',
-          perfil: 'Escola'
-        }
-      );
+    const awaiting = await page.evaluate(async ({ seeded, target, originalId: pendencyId }) => {
+      const registered = await radarPendencyService.registerAttempt({
+        pendencyId,
+        availabilityDate: '2026-07-11',
+        observation: 'Documento corrigido e disponibilizado deterministicamente no E2E.'
+      });
       rebuildOperationalIndexes();
-      persist();
       activeProntuarioCompetencia = seeded.competencia;
       switchView('prontuario', seeded.escolaId);
 
       const verification = verificacoes[seeded.escolaId][seeded.compProgKey];
       return {
-        id: pendencias[pendencyIndex].id,
-        status: pendencias[pendencyIndex].status,
+        id: registered.value.pendency.id,
+        status: registered.value.pendency.status,
         bonificacaoDepois: verification.bonificacao[target.documentoKey],
         resultadoDepois: verification.resultadoBonif
       };
