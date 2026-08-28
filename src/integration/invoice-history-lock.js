@@ -34,6 +34,22 @@
         return text(pendency.registeredInvoiceId || pendency.registered_invoice_id);
     }
 
+    const INDIVIDUAL_HISTORY_DOCUMENT_KEYS = Object.freeze([
+        'consAssessoria',
+        'notaFiscal'
+    ]);
+
+    function hasInvoicePendencyHistory(state = {}, invoiceId) {
+        const targetId = text(invoiceId);
+        if (!targetId) return false;
+        return (Array.isArray(state.pendencies) ? state.pendencies : []).some(pendency => (
+            INDIVIDUAL_HISTORY_DOCUMENT_KEYS.includes(
+                text(pendency.documentoKey || pendency.document_key)
+            )
+            && invoiceIdOfPendency(pendency) === targetId
+        ));
+    }
+
     function hasServiceAdvisoryHistory(state = {}, invoiceId) {
         const targetId = text(invoiceId);
         if (!targetId) return false;
@@ -52,7 +68,7 @@
 
     function assertStructuralIdentity(state, input = {}) {
         const invoiceId = text(input.id);
-        if (!invoiceId || !hasServiceAdvisoryHistory(state, invoiceId)) return true;
+        if (!invoiceId || !hasInvoicePendencyHistory(state, invoiceId)) return true;
         const existing = (state.registeredInvoices || []).find(invoice => text(invoice.id) === invoiceId);
         if (!existing) return true;
 
@@ -73,7 +89,7 @@
             || targetCompKey !== currentCompKey
             || targetType !== currentType) {
             fail(
-                'Esta Nota Fiscal possui histórico de pendência da Assessoria. Escola, competência, programa e natureza da despesa não podem ser alterados; os demais dados da NF podem ser corrigidos normalmente.',
+                'Esta Nota Fiscal possui histórico de pendência individual. Escola, competência, programa e natureza da despesa não podem ser alterados; os demais dados da NF podem ser corrigidos normalmente.',
                 'invoice:save',
                 invoiceId
             );
@@ -82,9 +98,9 @@
     }
 
     function assertDeletionAllowed(state, invoiceId) {
-        if (!hasServiceAdvisoryHistory(state, invoiceId)) return true;
+        if (!hasInvoicePendencyHistory(state, invoiceId)) return true;
         fail(
-            'Esta Nota Fiscal possui histórico de pendência da Assessoria e não pode ser excluída. Os dados permitidos da NF podem ser corrigidos normalmente.',
+            'Esta Nota Fiscal possui histórico de pendência individual e não pode ser excluída. Os dados permitidos da NF podem ser corrigidos normalmente.',
             'invoice:remove',
             invoiceId
         );
@@ -122,6 +138,8 @@
 
     return Object.freeze({
         invoiceIdOfPendency,
+        INDIVIDUAL_HISTORY_DOCUMENT_KEYS,
+        hasInvoicePendencyHistory,
         hasServiceAdvisoryHistory,
         assertStructuralIdentity,
         assertDeletionAllowed,
