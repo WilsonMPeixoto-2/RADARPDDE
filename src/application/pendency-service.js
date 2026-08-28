@@ -978,12 +978,30 @@
                             'updateDetails'
                         );
                     }
+                    if (!this.domain.DOCUMENT_ERROR_TYPES.includes(reason)) {
+                        fail(
+                            'VALIDATION_FAILED',
+                            'O motivo informado não pertence ao catálogo documental.',
+                            'updateDetails',
+                            { reason }
+                        );
+                    }
                     persistence.pendencyId = pendency.id;
                     persistence.expectedPendencyVersion = rowVersionOf(pendency);
 
+                    const currentErrors = Array.isArray(pendency.errosAtuais)
+                        ? [...pendency.errosAtuais]
+                        : [];
+                    const nextErrors = reason === 'Documento ausente'
+                        ? ['Documento ausente']
+                        : this.domain.validateDocumentErrors([
+                            reason,
+                            ...currentErrors.filter(error => error !== 'Documento ausente' && error !== reason)
+                        ]);
                     const next = this.domain.normalizePendencyRecord({
                         ...cloneValue(pendency),
                         motivo: reason,
+                        errosAtuais: nextErrors,
                         observacao: observation
                     });
                     state.pendencies[index] = next;
