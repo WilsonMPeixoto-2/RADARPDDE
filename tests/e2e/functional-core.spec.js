@@ -281,7 +281,8 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
 
     await expect(firstAnalysis).toHaveValue('Correto');
     await expect(secondAnalysis).toHaveValue('Correto (Atrasado)');
-    await expect(assessoriaRow.getByText('Resumo mensal: Sim')).toBeVisible();
+    await expect(assessoriaRow.getByText('Resumo mensal', { exact: true })).toBeVisible();
+    await expect(assessoriaRow.getByText('Sim', { exact: true })).toBeVisible();
     expect(pageErrors).toEqual([]);
   });
 
