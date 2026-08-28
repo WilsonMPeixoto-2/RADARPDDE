@@ -12,7 +12,7 @@ O estado corrente não é mais “iniciar PR3.1”. Antes disso existe um hotfix
 
 - plano específico: [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md);
 - handoff corrente: [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md);
-- decisão arquitetural: [`decisions/ADR-047-analise-pendencia-individual-notas-fiscais.md`](decisions/ADR-047-analise-pendencia-individual-notas-fiscais.md);
+- decisão arquitetural: [`decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md);
 - referências visuais: [`evidence/2026-08-28-pr211-referencias-visuais.md`](evidence/2026-08-28-pr211-referencias-visuais.md).
 
 O PR #211 **não substitui o plano mestre**. Ele é um parêntese operacional necessário para corrigir uma inconsistência funcional descoberta depois das entregas anteriores.
@@ -29,7 +29,7 @@ revalidar main
 → só então iniciar PR3.1
 ```
 
-No checkpoint funcional `5088785e2755e7ae27efc3efc38ea5e0fc3fd5d6`, as falhas determinísticas de migration, tipos gerados, unitários, pgTAP e E2E foram corrigidas. Os gates funcionais, Supabase, segurança, backup e perfis/viewports estão aprovados. O único vermelho remanescente é o Lighthouse móvel por LCP, problema já presente no PR #210. O PR #211 continua **Draft** até a inspeção visual autenticada, a revisão adversarial final e a decisão explícita sobre essa dívida móvel herdada.
+No checkpoint funcional consolidado `3b10c2a97fd2142dbfd1e120dad0bf2bbd712d57`, os fluxos funcionais, E2E, perfis/viewports, backup, segurança, migrations e pgTAP estão aprovados. O pgTAP alcançou **25 arquivos / 357 testes / PASS**. O Vercel Preview foi construído com sucesso. O workflow Supabase agregado ficou vermelho apenas por `Rate exceeded` ao baixar imagem Docker para regeneração de tipos, depois das provas de banco terem passado; a homologação pré-Production registrou ocorrência equivalente ao iniciar/recriar containers. O Lighthouse desktop passou (LCP 3,49 s / limite 3,50 s); o mobile continua acima do orçamento e permanece classificado como dívida herdada não bloqueante para este hotfix desktop. O PR #211 continua **Draft** até a inspeção visual autenticada, a revisão adversarial final e a reexecução do gate afetado pela infraestrutura externa.
 
 ## 1. Porta de entrada atual
 

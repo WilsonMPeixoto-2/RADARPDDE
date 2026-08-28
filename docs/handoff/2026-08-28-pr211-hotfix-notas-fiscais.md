@@ -3,85 +3,120 @@
 **Data:** 28 de agosto de 2026  
 **PR:** #211 — Draft  
 **Branch:** `hotfix/individualizar-analise-notas-fiscais`  
-**Checkpoint funcional:** `5088785e2755e7ae27efc3efc38ea5e0fc3fd5d6`  
+**Checkpoint funcional consolidado:** `3b10c2a97fd2142dbfd1e120dad0bf2bbd712d57`  
 **Production:** sem alteração causada por este PR
 
 ## 1. Situação atual
 
-O hotfix está em implementação real no GitHub. Não está em scratch temporário.
+O núcleo funcional do hotfix está implementado e os principais caminhos antigos foram fechados.
 
-A implementação funcional foi corrigida a partir dos ciclos de gate e, no checkpoint acima, os gates de domínio, banco, E2E, segurança, backup e perfis/viewports estão aprovados.
+O PR permanece **Draft** porque ainda faltam a inspeção visual autenticada do Preview desktop, a revisão adversarial final e a reexecução de um gate Supabase que falhou por limitação externa de download de imagem Docker.
 
-Permanece vermelho apenas o Lighthouse móvel por LCP. A evidência histórica do PR #210 comprova que o mesmo gate já falhava antes do PR #211, com LCP móvel de 15,28 s para um limite de 15 s. No PR #211 a medição mais recente foi 16,03 s. O limite não foi relaxado nem mascarado.
+Nenhuma migration do PR #211 foi aplicada em Production.
 
-> **implementação funcional validada; ainda em Draft para inspeção visual/revisão adversarial e decisão explícita sobre a dívida de performance móvel pré-existente.**
+## 2. Regra funcional consolidada
 
-## 2. O que está funcionalmente definido
+- `notaFiscal` continua agregada para bonificação;
+- cada despesa possui análise técnica própria;
+- o resumo técnico de Notas Fiscais é derivado e não aceita edição direta;
+- toda nova Pendência fiscal pertence a uma despesa específica;
+- invoices diferentes podem possuir Pendências simultâneas;
+- a mesma invoice não pode duplicar Pendência ativa;
+- `boleto_internet` permanece tipo de gasto dentro de Notas Fiscais e somente em Educação Conectada;
+- nova `a_identificar` nasce obrigatoriamente `Incorreto + Pendência`;
+- uma despesa identificada não pode virar `a_identificar` pelo editor comum;
+- a identificação posterior de `a_identificar` ocorre em **Registrar novo envio**, na tela de Pendências;
+- o mesmo ID é preservado;
+- se o documento apresentado for serviço, Consulta Assessoria surge em sua área própria;
+- se for bem permanente, o registro patrimonial é criado e vinculado na mesma operação;
+- novo envio leva a Pendência para `Aguardando reanálise` e a despesa para `Não analisado`;
+- reanálise só ocorre depois de tentativa válida da mesma Pendência;
+- os 20 `a_identificar` históricos não recebem Pendências inventadas;
+- somente o Boleto 1234 conhecido possui reparo cirúrgico previamente autorizado.
 
-- análise técnica por `registered_invoice_id`;
-- bonificação agregada;
-- resumo técnico derivado;
-- Pendência por invoice;
-- `boleto_internet` permanece tipo de gasto;
-- `a_identificar` nasce Incorreto + Pendência;
-- drawer do Prontuário é somente visualizar/editar/salvar;
-- novo envio e reanálise continuam na tela de Pendências;
-- desktop é o alvo.
+## 3. Layout aprovado e implementado
 
-## 3. Resultado dos gates
+O Prontuário usa o bloco estruturado de Notas Fiscais com quatro áreas desktop:
 
-A rodada de estabilização fechou as falhas determinísticas encontradas pelos gates:
+`Documento | Tipo · Valor | Situação técnica | Ação`
 
-- matriz funcional alinhada para 43 operações;
-- conjunto canônico e pgTAP alinhados para 43 migrations;
-- migration `20260828023000_invoice_document_analysis_pendency.sql` aplicada com sucesso em PostgreSQL/Supabase descartável;
-- artefatos Supabase regenerados, incluindo os quatro novos RPCs nos tipos TypeScript;
-- pgTAP: **25 arquivos / 346 testes / PASS**;
-- E2E principal: **153 aprovados / 39 ignorados por escopo / 0 falhas**;
-- E2E de pré-production: aprovado;
-- gate remoto de autenticação/RLS: **14 testes aprovados**;
-- gate de perfis × viewports: **15 testes aprovados**;
-- CodeQL, dependências, snapshot, Excel SME, backup/restauração e readiness: aprovados.
+Matriz visual:
 
-### Único gate vermelho
+| Estado | Apresentação | Próxima ação no Prontuário |
+|---|---|---|
+| Não analisado | seletor técnico | analisar |
+| Correto | estado verde | Editar análise, somente por ação deliberada |
+| Correto (Atrasado) | estado semântico concluído | Editar análise, somente por ação deliberada |
+| Incorreto + Pendência | estado estático | Visualizar pendência |
+| Aguardando reanálise | estado estático | Visualizar pendência |
+| Despesa a identificar | Incorreto | Visualizar pendência |
 
-O Lighthouse móvel continua acima do orçamento de LCP:
+Outras decisões visuais já incorporadas:
 
-- PR #210, antes deste hotfix: **15,28 s**;
-- PR #211, medição mais recente: **16,03 s**;
-- limite vigente: **15,00 s**.
+- contador de Pendências oculto quando zero;
+- edição/exclusão documental comum escondida enquanto houver Pendência ativa;
+- `Abrir pendência` não aparece como etapa normal para estado que deve nascer atomicamente;
+- drawer limitado a **Visualizar → Editar → Salvar**;
+- `Registrar novo envio` e `Reanalisar` pertencem à tela de Pendências;
+- desktop é o alvo deste hotfix; não há redesenho geral do RADAR.
 
-Desktop ficou dentro do orçamento na rodada corrente: LCP **3,42 s** para limite de **3,50 s**.
+Referência: `docs/evidence/2026-08-28-pr211-referencias-visuais.md`.
 
-Esse vermelho é uma dívida móvel herdada, não um defeito funcional introduzido pelo PR #211. O threshold não foi elevado. A decisão de tratá-lo como exceção de merge deve ser explícita, nunca implícita.
+## 4. Gates do checkpoint
 
-### Pendente antes de retirar Draft
+### Aprovados
 
-- inspeção visual autenticada do Preview no desktop contra as referências aprovadas;
-- revisão adversarial final do diff;
-- decisão explícita sobre o Lighthouse móvel herdado.
+- Validar RADAR PDDE;
+- E2E Playwright;
+- Gate remoto de perfis e viewports;
+- Backup e restauração descartáveis;
+- CodeQL;
+- Saúde das dependências;
+- Snapshot canônico;
+- Excel SME e contratos-fonte;
+- migration-smoke;
+- readiness estático;
+- preflight pós-apply;
+- migrations em PostgreSQL limpo;
+- pgTAP: **25 arquivos / 357 testes / PASS**;
+- lint do schema;
+- Vercel Preview.
 
-## 4. Próxima ação exata
+### Vermelhos com causa identificada
 
-1. inspecionar o Preview autenticado no desktop contra as referências visuais aprovadas;
-2. revisar o diff completo de forma adversarial, incluindo migration, RPCs, concorrência, rollback e histórico;
-3. confirmar que nenhuma regra de Boleto Internet, Assessoria ou Inventário regrediu;
-4. classificar formalmente o Lighthouse móvel como bloqueio ou dívida herdada autorizada;
-5. somente depois disso retirar Draft e decidir merge/publicação.
+**Supabase readiness agregado:** falhou somente ao baixar a imagem `postgres-meta` para regeneração de tipos, com `toomanyrequests: Rate exceeded`, depois de migration, preflight, pgTAP e lint passarem.
 
-## 5. Relação com o plano mestre
+**Homologação integral pré-Production:** o job Supabase falhou durante download/recriação de containers pelo mesmo tipo de rate limit externo. Os demais jobs funcionais da homologação passaram.
 
-Este hotfix **não substitui o plano mestre**.
+**Lighthouse:** mobile permanece fora do orçamento; desktop passou.
 
-Depois do merge e do smoke de Production, a próxima ação não é começar cegamente PR3.1. Primeiro deve existir um checkpoint de reconciliação:
+Desktop:
+- performance: 79%;
+- FCP: 1,02 s;
+- LCP: 3,49 s / limite 3,50 s.
 
-```text
-PR #211 publicado
-→ reler main/Supabase/Vercel
-→ comparar com plano mestre
-→ atualizar premissas afetadas
-→ confirmar ordem restante
-→ iniciar PR3.1
-```
+Mobile:
+- performance: 63%;
+- FCP: 4,00 s;
+- LCP: 15,98 s / limite 15,00 s.
 
-Essa etapa é obrigatória porque o hotfix altera precisamente áreas que o plano futuro também pretende tocar: InvoiceService, efeitos de NF, Pendências, RPCs, contratos de persistência e UI do Prontuário.
+A dívida móvel é anterior ao PR #211 e foi definida como **não bloqueante neste hotfix desktop**. O threshold não foi relaxado.
+
+## 5. Próximas ações obrigatórias
+
+1. reexecutar o gate Supabase quando o registry permitir;
+2. abrir e inspecionar o Preview autenticado no desktop;
+3. comparar o Preview com as referências visuais aprovadas;
+4. revisar o diff de forma adversarial;
+5. revalidar Boleto Internet, Assessoria, Inventário e os 20 registros históricos;
+6. revalidar o preflight do reparo Boleto 1234;
+7. registrar estratégia segura de reversão;
+8. somente então decidir retirada do Draft e merge.
+
+## 6. Relação com o plano mestre
+
+Este hotfix não substitui o plano mestre.
+
+Depois da eventual publicação em Production:
+
+`PR #211 publicado → revalidar main/Supabase/Vercel → reconciliar com plano mestre → atualizar premissas → só então iniciar PR3.1`

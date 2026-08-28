@@ -558,24 +558,24 @@ Consolidações conectadas anteriores à chave permanecem válidas por projeçã
 
 **Documentos:** `docs/architecture/avaliacao-mensal.md` e `docs/handoff/2026-08-27-hotfix-boleto-internet.md`.
 
-## 28/08/2026 — PR #211: análise e Pendência individual de Notas Fiscais
+## ADR-050 — Análise e Pendência individual por registro de Notas Fiscais
 
-Decisão detalhada: [ADR-047](decisions/ADR-047-analise-pendencia-individual-notas-fiscais.md).
+**Status:** Aprovada; implementação funcional estabilizada no PR #211, ainda em Draft
 
-- `notaFiscal` permanece uma dimensão agregada para bonificação;
-- cada `registered_invoice` passa a possuir análise técnica própria;
-- `verification.analysis.notaFiscal` torna-se resumo derivado;
-- Pendências de `notaFiscal` passam a admitir `registered_invoice_id`;
-- invoices diferentes podem ter Pendências simultâneas;
-- a mesma invoice continua sem poder duplicar Pendência ativa;
-- `boleto_internet` permanece tipo de gasto e não recria `boletoInternet`;
-- `a_identificar` nasce `Incorreto + Pendência` atomicamente;
-- a identificação posterior preserva o ID;
-- o Prontuário deixa gestão posterior de Pendência para a tela de Pendências;
-- o drawer do Prontuário é limitado a visualizar, editar e salvar os dados básicos da Pendência;
-- o PR #211 é um hotfix prioritário, mas não substitui o plano mestre.
+`notaFiscal` permanece agregada para bonificação, mas cada `registered_invoice` possui análise técnica própria. O resumo técnico agregado é derivado e não aceita edição direta.
 
-### Regra de retomada
+Toda nova Pendência de Notas Fiscais precisa de `registered_invoice_id`. Invoices diferentes podem possuir Pendências simultâneas; a mesma invoice não pode duplicar Pendência ativa.
 
-Após publicar o PR #211, não iniciar PR3.1 por simples continuidade textual. Primeiro executar re-baseline da `main`, Supabase e Vercel e reconciliar o que o hotfix já solucionou, alterou ou tornou redundante no plano de 26/08.
+`a_identificar` nasce obrigatoriamente `Incorreto + Pendência` na mesma operação. A identificação posterior ocorre em **Registrar novo envio**, preserva o mesmo ID e pode produzir, de forma separada, Consulta Assessoria ou registro patrimonial conforme o tipo efetivamente identificado.
 
+O Prontuário avalia documentos e permite visualizar a Pendência; novo envio e reanálise permanecem na tela de Pendências. O layout desktop aprovado usa quatro áreas: Documento, Tipo · Valor, Situação técnica e Ação.
+
+Os 20 registros históricos `a_identificar` não recebem Pendências retroativas. O reparo conhecido do Boleto 1234 continua cirúrgico e condicionado a preflight fail-closed.
+
+As regras de negócio permanecem sob domínio/serviços de aplicação. O PostgreSQL valida identidade, contexto, transição, concorrência e atomicidade, sem se tornar um segundo motor completo de regras.
+
+Mobile não é gate bloqueante deste hotfix; desktop é o alvo da homologação visual.
+
+O PR #211 é prioritário, mas não substitui o plano mestre. Após eventual publicação, é obrigatório re-baseline antes de PR3.1.
+
+**Documento integral:** `docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`.

@@ -78,7 +78,7 @@ Nenhuma modificação foi executada em Production durante esta verificação.
 
 ## 5. Evidência de gates do hotfix
 
-Após as correções levantadas pelos ciclos de CI, o checkpoint funcional `5088785e2755e7ae27efc3efc38ea5e0fc3fd5d6` apresentou:
+Checkpoint funcional consolidado: `3b10c2a97fd2142dbfd1e120dad0bf2bbd712d57`.
 
 | Gate | Resultado |
 |---|---|
@@ -87,27 +87,32 @@ Após as correções levantadas pelos ciclos de CI, o checkpoint funcional `5088
 | Saúde das dependências | PASS |
 | Snapshot canônico | PASS |
 | Excel SME / contratos-fonte | PASS |
-| Supabase readiness | PASS |
-| migration-smoke | PASS |
-| Supabase local + Auth + RLS + pgTAP | PASS |
-| pgTAP | 25 arquivos / 346 testes / PASS |
+| E2E Playwright | PASS |
+| Gate remoto de perfis e viewports | PASS |
 | Backup e restauração descartáveis | PASS |
-| E2E principal | 153 aprovados / 39 ignorados por escopo / 0 falhas |
-| E2E pré-production | PASS |
-| Auth/RLS remoto descartável | 14 aprovados |
-| Perfis × viewports | 15 aprovados |
-| Lighthouse desktop | PASS — LCP 3,42 s / limite 3,50 s |
-| Lighthouse mobile | FAIL — LCP 16,03 s / limite 15,00 s |
+| migration-smoke | PASS |
+| readiness estático | PASS |
+| preflight pós-apply | PASS |
+| pgTAP | **25 arquivos / 357 testes / PASS** |
+| lint do schema | PASS |
+| Vercel Preview | PASS |
+| Lighthouse desktop | PASS — performance 79%, FCP 1,02 s, LCP 3,49 s / limite 3,50 s |
+| Lighthouse mobile | FAIL — LCP 15,98 s / limite 15,00 s |
+| Supabase readiness agregado | FAIL externo após provas de banco: `Rate exceeded` ao baixar `postgres-meta` para regenerar tipos |
+| Homologação integral pré-Production | FAIL agregado por rate limit externo no job Supabase e Lighthouse mobile |
+
+### Classificação das falhas externas
+
+Na execução Supabase, migration, preflight, pgTAP e lint foram concluídos com sucesso antes da tentativa de regeneração dos tipos falhar por indisponibilidade/rate limit do registry de imagens.
+
+Na homologação pré-Production, Playwright completo, prontidão, migrations limpas, dependências, Excel e backup/restauração passaram. O job Supabase falhou ao iniciar/recriar containers por `Rate exceeded`.
+
+Esses eventos não autorizam ignorar o gate, mas também não constituem evidência de defeito funcional do hotfix. A ação correta é reexecutar quando a infraestrutura externa estiver disponível.
 
 ### Classificação do Lighthouse móvel
 
-A falha móvel não nasceu neste hotfix. No PR #210, antes do PR #211, o mesmo gate já falhava com LCP de **15,28 s** para o mesmo limite de 15 s.
+Mobile não é critério bloqueante deste hotfix, conforme decisão aprovada. O desktop é o alvo funcional e visual desta entrega e passou no orçamento.
 
-Portanto:
+O threshold móvel não foi alterado.
 
-- não foi realizado relaxamento do threshold;
-- não foi aplicada alteração visual oportunista para “passar o teste”;
-- a dívida deve ser tratada explicitamente na decisão final do PR;
-- os gates funcionais e de integridade do hotfix permanecem aprovados.
-
-Esta seção registra apenas evidência de CI. Não altera a conclusão do preflight de Production e não autoriza qualquer escrita em Production.
+Esta seção registra somente evidência de CI. Não altera a conclusão do preflight de Production e não autoriza qualquer escrita em Production.

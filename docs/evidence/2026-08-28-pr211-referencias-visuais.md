@@ -40,12 +40,16 @@ A imagem contém quatro quadros de referência:
 - contador de registros;
 - bonificação agregada;
 - situação técnica agregada somente leitura;
-- contador de Pendências;
+- contador de Pendências **somente quando maior que zero**;
 - sublinha por documento;
-- identidade, tipo e valor claros;
+- quatro áreas desktop: **Documento | Tipo · Valor | Situação técnica | Ação**;
 - análise individual;
-- `Visualizar pendência` no documento incorreto;
-- ações discretas de edição;
+- `Não analisado` como seletor;
+- `Correto` e `Correto (Atrasado)` como estados concluídos, com edição apenas por ação deliberada;
+- `Incorreto` e `Aguardando reanálise` como estados estáticos acompanhados de `Visualizar pendência`;
+- `a_identificar` como `Incorreto + Visualizar pendência`;
+- controles normais de edição documental escondidos enquanto houver Pendência ativa;
+- `Visualizar pendência` como única ação operacional do Prontuário para documento em ciclo de regularização;
 - `Adicionar Nota`;
 - `Registrar despesa a identificar`;
 - drawer lateral;
@@ -75,3 +79,21 @@ regra de negócio aprovada
 ```
 
 A imagem orienta composição, hierarquia, densidade, próximos passos e estados visuais.
+
+
+## 6. Matriz estado → apresentação → ação
+
+| Estado | Apresentação | Ação principal |
+|---|---|---|
+| Não analisado | seletor técnico | analisar |
+| Correto | estado verde | Editar análise, sob demanda |
+| Correto (Atrasado) | estado concluído | Editar análise, sob demanda |
+| Incorreto + Pendência | estado estático | Visualizar pendência |
+| Aguardando reanálise | estado estático | Visualizar pendência |
+| Despesa a identificar | Incorreto | Visualizar pendência |
+
+## 7. Checkpoint de implementação
+
+No checkpoint funcional `3b10c2a97fd2142dbfd1e120dad0bf2bbd712d57`, o código já incorpora a hierarquia de quatro áreas, contador zero oculto, estado concluído estático, edição deliberada, bloqueio visual de edição comum com Pendência ativa e drawer limitado à conferência/edição simples.
+
+A homologação final ainda exige inspeção autenticada do Preview desktop contra esta referência. Aprovação automatizada de DOM não substitui a conferência visual humana.
