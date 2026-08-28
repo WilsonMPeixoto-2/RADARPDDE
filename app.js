@@ -10023,9 +10023,9 @@ function renderProntuarioVerificacoes(esc) {
                                     documentaryPendencies,
                                     invoiceContext
                                 );
-                                const analysisFallback = individualizationStarted
-                                    ? 'Não analisado'
-                                    : (analiseValue || 'Não analisado');
+                                const analysisFallback = !individualizationStarted && notes.length === 1
+                                    ? (analiseValue || 'Não analisado')
+                                    : 'Não analisado';
                                 const analysis = window.RadarInvoiceDocumentAnalysis
                                     .getInvoiceDocumentAnalysis(note, analysisFallback);
                                 const statusLabel = invoicePendency?.status === 'Aguardando reanálise'
