@@ -518,7 +518,11 @@
             const traceId = takeTrace(root, name);
             const schoolId = schoolIdForHandler(name, args);
             const compKeyBefore = compKeyForHandler(root, name, args);
-            const release = suppressProntuarioRender(schoolId);
+            const requiresFullProntuarioRender = name === 'toggleBonif'
+                && text(args[2]) === 'notaFiscal';
+            const release = requiresFullProntuarioRender
+                ? (() => {})
+                : suppressProntuarioRender(schoolId);
             let result;
             try {
                 result = await invokeWithTrace(root, traceId, () => original.apply(this, args));
@@ -526,8 +530,14 @@
                 release();
             }
             if (result === false) {
-                if (originalRenderProntuario) originalRenderProntuario(schoolId);
+                if (!requiresFullProntuarioRender && originalRenderProntuario) {
+                    originalRenderProntuario(schoolId);
+                }
                 return false;
+            }
+            if (requiresFullProntuarioRender) {
+                scheduleStable(root, traceId);
+                return result;
             }
             const compKey = compKeyBefore || compKeyForHandler(root, name, args);
             if (compKey) {
