@@ -172,7 +172,12 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
     const individualAnalysis = fiscalNoteRow(page).locator('select.invoice-document-analysis-select').first();
     await expect(individualAnalysis).toHaveValue('Não analisado');
     await individualAnalysis.selectOption('Correto');
-    await expect(individualAnalysis).toHaveValue('Correto');
+    const completedInvoice = fiscalNoteRow(page)
+      .locator('.invoice-document-row')
+      .filter({ hasText: 'NF-E2E-001' })
+      .first();
+    await expect(completedInvoice.locator('select.invoice-document-analysis-select')).toHaveCount(0);
+    await expect(completedInvoice.locator('.invoice-document-status')).toHaveText('Correto');
 
     const state = await page.evaluate(({ escolaId, compProgKey }) => {
       const invoice = notasRegistradas.find(item => (
