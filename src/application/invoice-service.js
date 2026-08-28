@@ -43,6 +43,7 @@
         INVOICE_DOCUMENT_ANALYSES,
         deriveInvoiceDocumentAnalysis,
         getInvoiceDocumentAnalysis,
+        hasExplicitInvoiceDocumentAnalysis,
         normalizeInvoiceDocumentAnalysis
     } = invoiceDocumentAnalysis;
     const SERVICE_ADVISORY_ANALYSIS_SET = new Set(SERVICE_ADVISORY_ANALYSES);
@@ -763,13 +764,17 @@
                 'invoice:update-document-analysis'
             );
 
-            const previous = getInvoiceDocumentAnalysis(
-                initialInvoice,
-                initialContext.verification.analise?.notaFiscal
-            );
-            const projected = initialState.registeredInvoices
-                .filter(item => item.escolaId === schoolId && item.compKey === initialInvoice.compKey)
-                .map(item => {
+            const contextInvoices = initialState.registeredInvoices
+                .filter(item => item.escolaId === schoolId && item.compKey === initialInvoice.compKey);
+            const individualizationStarted = contextInvoices.some(item => (
+                hasExplicitInvoiceDocumentAnalysis(item)
+                || isUnidentifiedExpense(item)
+            ));
+            const previousFallback = !individualizationStarted && contextInvoices.length === 1
+                ? (initialContext.verification.analise?.notaFiscal || 'Não analisado')
+                : 'Não analisado';
+            const previous = getInvoiceDocumentAnalysis(initialInvoice, previousFallback);
+            const projected = contextInvoices.map(item => {
                     const copy = cloneValue(item);
                     if (copy.id === invoiceId) copy.analiseDocumentoFiscal = analysis;
                     return copy;
