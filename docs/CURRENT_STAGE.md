@@ -29,7 +29,7 @@ revalidar main
 → só então iniciar PR3.1
 ```
 
-No checkpoint documental atual, o PR #211 está avançado, porém **não apto para merge**. Existem falhas conhecidas em migration, suíte unitária e orçamento de lint que precisam ser corrigidas antes dos E2E e da revisão final.
+No checkpoint funcional `5088785e2755e7ae27efc3efc38ea5e0fc3fd5d6`, as falhas determinísticas de migration, tipos gerados, unitários, pgTAP e E2E foram corrigidas. Os gates funcionais, Supabase, segurança, backup e perfis/viewports estão aprovados. O único vermelho remanescente é o Lighthouse móvel por LCP, problema já presente no PR #210. O PR #211 continua **Draft** até a inspeção visual autenticada, a revisão adversarial final e a decisão explícita sobre essa dívida móvel herdada.
 
 ## 1. Porta de entrada atual
 
@@ -227,17 +227,11 @@ Concluir **PR #211 — hotfix de individualização de Notas Fiscais**.
 
 Sequência imediata:
 
-1. corrigir a migration Draft, especialmente a RPC de `a_identificar`;
-2. executar migration-smoke;
-3. abrir o relatório JUnit da suíte unitária e classificar cada falha;
-4. corrigir produto ou teste conforme o contrato aprovado;
-5. remover a nova advertência de lint sem elevar o teto;
-6. reexecutar unit/integration/readiness;
-7. executar E2E do cenário com múltiplas NFs incorretas;
-8. executar E2E completo de `a_identificar`;
-9. validar Preview autenticado no desktop contra as referências visuais;
-10. revisão adversarial final;
-11. somente com gates verdes, retirar Draft e avaliar merge/publicação.
+1. validar Preview autenticado no desktop contra as referências visuais;
+2. executar revisão adversarial final do diff e dos contratos de banco;
+3. confirmar que o único vermelho restante é o Lighthouse móvel herdado;
+4. decidir explicitamente se a dívida móvel permanece fora do bloqueio deste hotfix;
+5. somente depois retirar Draft e avaliar merge/publicação.
 
 Depois da publicação do hotfix, fazer reconciliação pós-PR #211 e somente então retomar PR3.1.
 
