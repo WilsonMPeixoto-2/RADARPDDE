@@ -64,8 +64,13 @@
     }
 
     function getInvoiceDocumentAnalysis(invoice = {}, fallback = 'Não analisado') {
+        const hasExplicit = hasExplicitInvoiceDocumentAnalysis(invoice);
         if (isUnidentifiedExpense(invoice)) {
-            return 'Incorreto';
+            // Registros históricos a_identificar anteriores ao contrato individual
+            // não recebem uma conclusão técnica inventada. A regra Incorreto é
+            // obrigatória apenas quando a análise individual foi explicitamente
+            // registrada pelo fluxo atômico novo.
+            return hasExplicit ? 'Incorreto' : 'Não analisado';
         }
 
         const value = hasOwn(invoice, 'analiseDocumentoFiscal')
@@ -86,20 +91,14 @@
             return normalizeInvoiceDocumentAnalysis(legacyFallback);
         }
 
-        const hasUnidentified = documents.some(isUnidentifiedExpense);
         const hasExplicit = documents.some(hasExplicitInvoiceDocumentAnalysis);
 
-        if (!hasUnidentified && !hasExplicit) {
+        if (!hasExplicit) {
             return normalizeInvoiceDocumentAnalysis(legacyFallback);
         }
 
         const states = documents.map(invoice => (
-            isUnidentifiedExpense(invoice)
-                ? 'Incorreto'
-                : getInvoiceDocumentAnalysis(
-                    invoice,
-                    hasExplicit ? 'Não analisado' : legacyFallback
-                )
+            getInvoiceDocumentAnalysis(invoice, 'Não analisado')
         ));
 
         if (states.includes('Incorreto')) return 'Incorreto';

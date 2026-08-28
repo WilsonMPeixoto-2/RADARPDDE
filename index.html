@@ -512,6 +512,41 @@
                 <form id="form-registrar-envio" onsubmit="confirmarRegistrarNovoEnvio(event)">
                     <input type="hidden" id="envio-pendencia-id">
                     <div class="pendency-context-summary" id="envio-contexto"></div>
+                    <fieldset
+                        class="pendency-error-fieldset"
+                        id="envio-identificacao"
+                        hidden
+                        disabled
+                    >
+                        <legend>Documento que identifica a despesa</legend>
+                        <p class="form-hint">
+                            A identificação preservará o mesmo registro e a mesma Pendência.
+                        </p>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="envio-identificacao-tipo">Tipo da despesa</label>
+                                <select class="form-control" id="envio-identificacao-tipo" required>
+                                    <option value="">Selecione o tipo</option>
+                                    <option value="consumo">Material de Consumo</option>
+                                    <option value="permanente">Bem Permanente</option>
+                                    <option value="servico">Prestação de Serviço</option>
+                                    <option value="boleto_internet" data-program-id="CONECTADA">Boleto de pagamento de Internet</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="envio-identificacao-numero">Número ou referência do documento</label>
+                                <input type="text" class="form-control" id="envio-identificacao-numero" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="envio-identificacao-descricao">Descrição</label>
+                            <input type="text" class="form-control" id="envio-identificacao-descricao" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="envio-identificacao-valor">Valor (R$)</label>
+                            <input type="number" step="0.01" min="0" class="form-control" id="envio-identificacao-valor" required>
+                        </div>
+                    </fieldset>
                     <div class="form-group">
                         <label for="envio-data-disponibilizacao">Data em que o arquivo foi disponibilizado no Drive</label>
                         <input type="date" class="form-control" id="envio-data-disponibilizacao" required>

@@ -8337,6 +8337,60 @@ function resetRegistrarNovoEnvioForm() {
     form.reset();
     document.getElementById('envio-pendencia-id').value = '';
     document.getElementById('envio-contexto').replaceChildren();
+    const identification = document.getElementById('envio-identificacao');
+    if (identification) {
+        identification.hidden = true;
+        identification.disabled = true;
+    }
+}
+
+function configureRegistrarNovoEnvioIdentification(pendency) {
+    const fieldset = document.getElementById('envio-identificacao');
+    if (!fieldset) return { required: false, invoice: null };
+
+    const invoiceId = pendency?.registeredInvoiceId || pendency?.registered_invoice_id;
+    const invoice = invoiceId
+        ? notasRegistradas.find(item => String(item.id) === String(invoiceId)) || null
+        : null;
+    const required = invoice?.tipo === 'a_identificar';
+    fieldset.hidden = !required;
+    fieldset.disabled = !required;
+
+    if (!required) return { required: false, invoice };
+
+    const typeSelect = document.getElementById('envio-identificacao-tipo');
+    const billOption = typeSelect?.querySelector('option[value="boleto_internet"]');
+    const isConnected = pendency?.programaId === 'CONECTADA';
+    if (billOption) {
+        billOption.hidden = !isConnected;
+        billOption.disabled = !isConnected;
+    }
+    if (typeSelect) typeSelect.value = '';
+    const numberInput = document.getElementById('envio-identificacao-numero');
+    const descriptionInput = document.getElementById('envio-identificacao-descricao');
+    const amountInput = document.getElementById('envio-identificacao-valor');
+    if (numberInput) numberInput.value = '';
+    if (descriptionInput) descriptionInput.value = invoice.desc || invoice.descricao || '';
+    if (amountInput) amountInput.value = Number.isFinite(Number(invoice.valor))
+        ? String(Number(invoice.valor))
+        : '';
+
+    return { required: true, invoice };
+}
+
+function collectRegistrarNovoEnvioIdentification(current) {
+    const invoiceId = current?.registeredInvoiceId || current?.registered_invoice_id;
+    const invoice = invoiceId
+        ? notasRegistradas.find(item => String(item.id) === String(invoiceId)) || null
+        : null;
+    if (invoice?.tipo !== 'a_identificar') return null;
+
+    return {
+        expenseType: document.getElementById('envio-identificacao-tipo')?.value || '',
+        invoiceNumber: document.getElementById('envio-identificacao-numero')?.value.trim() || '',
+        description: document.getElementById('envio-identificacao-descricao')?.value.trim() || '',
+        amount: parseFloat(document.getElementById('envio-identificacao-valor')?.value)
+    };
 }
 
 function showRegistrarNovoEnvioError(message) {
@@ -8534,6 +8588,7 @@ function abrirModalRegistrarNovoEnvio(pendencySource) {
 
     resetRegistrarNovoEnvioForm();
     document.getElementById('envio-pendencia-id').value = encodePendencyIdReference(pendency.id);
+    const identificationContext = configureRegistrarNovoEnvioIdentification(pendency);
     document.getElementById('envio-contexto').innerHTML = `
         <dl aria-label="Contexto da pendência">
             <div>
@@ -8552,6 +8607,10 @@ function abrirModalRegistrarNovoEnvio(pendencySource) {
     `;
 
     openRegistrarNovoEnvioModal(trigger, sourceContext);
+    if (identificationContext.required) {
+        const identificationType = document.getElementById('envio-identificacao-tipo');
+        if (identificationType) identificationType.focus({ preventScroll: true });
+    }
     return true;
 }
 
@@ -8610,6 +8669,7 @@ async function confirmarRegistrarNovoEnvio(event) {
 
     const sourceContext = registrarNovoEnvioSourceContext
         || capturePendencyActionSourceContext(current, registrarNovoEnvioTrigger);
+    const identification = collectRegistrarNovoEnvioIdentification(current);
 
     let nextPendency;
     try {
@@ -8617,10 +8677,17 @@ async function confirmarRegistrarNovoEnvio(event) {
             pendencyId: current.id,
             availabilityDate,
             observation,
-            link
+            link,
+            ...(identification ? { identification } : {})
         });
         nextPendency = result.value.pendency;
         rebuildOperationalIndexes();
+        if (result.value.warnings?.includes('SERVICE_ADVISORY_REQUIRED')) {
+            alert('A despesa foi identificada como prestação de serviço. A Consulta à Assessoria passa a ser exigida separadamente para esta Nota Fiscal.');
+        }
+        if (result.value.warnings?.includes('MISSING_INVENTORY_PROCESS')) {
+            alert('A despesa foi identificada como bem permanente, mas a unidade não possui Processo de Inventário cadastrado.');
+        }
     } catch (error) {
         reportRadarPersistenceError(error);
         showRegistrarNovoEnvioError(error?.cause?.message || error?.message || 'Não foi possível registrar o novo envio.');

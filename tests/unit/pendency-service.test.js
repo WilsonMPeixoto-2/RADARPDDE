@@ -22,6 +22,7 @@ function createHarness() {
         schools: [{ id: 'ESC-1', denominação: 'Escola Um' }],
         programs: [{ id: 'BASIC', name: 'PDDE Básico' }],
         registeredInvoices: [],
+        assets: [],
         logs: []
     };
     const calls = [];
@@ -362,7 +363,7 @@ test('novo envio e reanálise de Nota Fiscal alteram somente a despesa vinculada
     assert.equal(verification.analise.notaFiscal, 'Correto');
 });
 
-test('despesa a identificar abre Incorreto mas não aceita novo envio antes de ser identificada', async () => {
+test('novo envio identifica a despesa preservando ID e envia a mesma Pendência para reanálise', async () => {
     const harness = createHarness();
     const verification = harness.state.verifications['ESC-1']['2026-05_BASIC'];
     verification.bonificacao.notaFiscal = 'Sim';
@@ -371,9 +372,12 @@ test('despesa a identificar abre Incorreto mas não aceita novo envio antes de s
         id: 'nota-pendente',
         escolaId: 'ESC-1',
         compKey: '2026-05_BASIC',
+        competencia: '2026-05',
+        programaId: 'BASIC',
         tipo: 'a_identificar',
         numero: '',
         desc: 'Débito observado no extrato',
+        descricao: 'Débito observado no extrato',
         valor: 850,
         analiseDocumentoFiscal: 'Incorreto'
     });
@@ -390,17 +394,41 @@ test('despesa a identificar abre Incorreto mas não aceita novo envio antes de s
         observation: 'Despesa sem documentação comprobatória.'
     });
 
-    assert.equal(opened.value.pendency.registeredInvoiceId, 'nota-pendente');
-    assert.equal(verification.analise.notaFiscal, 'Incorreto');
-
     await assert.rejects(
         () => harness.service.registerAttempt({
             pendencyId: opened.value.pendency.id,
             availabilityDate: '2026-07-16',
-            observation: 'Tentativa sem identificar o documento.'
+            observation: 'Envio sem dados de identificação.'
         }),
         error => error?.code === 'DOCUMENT_IDENTIFICATION_REQUIRED'
     );
+
+    const submitted = await harness.service.registerAttempt({
+        pendencyId: opened.value.pendency.id,
+        availabilityDate: '2026-07-16',
+        observation: 'NF apresentada pela escola.',
+        identification: {
+            expenseType: 'servico',
+            invoiceNumber: 'NF-IDENT-1',
+            description: 'Serviço de manutenção identificado',
+            amount: 850
+        }
+    });
+
+    const invoice = harness.state.registeredInvoices[0];
+    assert.equal(invoice.id, 'nota-pendente');
+    assert.equal(invoice.tipo, 'servico');
+    assert.equal(invoice.numero, 'NF-IDENT-1');
+    assert.equal(invoice.analiseDocumentoFiscal, 'Não analisado');
+    assert.equal(invoice.consultaAssessoriaEnviada, false);
+    assert.equal(invoice.analiseConsultaAssessoria, 'Não analisado');
+    assert.equal(submitted.value.identified, true);
+    assert.equal(submitted.value.pendency.id, opened.value.pendency.id);
+    assert.equal(submitted.value.pendency.status, 'Aguardando reanálise');
+    assert.equal(submitted.value.pendency.registeredInvoiceId, 'nota-pendente');
+    assert.equal(verification.analise.notaFiscal, 'Não analisado');
+    assert.equal(verification.bonificacao.notaFiscal, 'Sim');
+    assert.equal(verification.bonificacao.consAssessoria, 'Não');
 });
 
 

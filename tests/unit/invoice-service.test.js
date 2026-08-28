@@ -31,6 +31,7 @@ function createHarness(overrides = {}) {
         },
         registeredInvoices: [],
         assets: [],
+        pendencies: [],
         logs: []
     };
     Object.assign(state, overrides.state || {});
@@ -532,38 +533,104 @@ test('Incorreto não pode ser persistido diretamente sem Pendência individual',
     assert.equal(harness.state.registeredInvoices[0].analiseDocumentoFiscal, 'Não analisado');
 });
 
-test('despesa a identificar nasce Incorreto e permanece Incorreto quando é identificada até a reanálise', async () => {
+test('rota comum não cria despesa a identificar sem Pendência atômica', async () => {
+    const harness = createHarness();
+
+    await assert.rejects(
+        () => harness.service.save({
+            schoolId: 'ESC-1',
+            compKey: '2026-05_BASIC',
+            description: 'Débito observado no extrato',
+            expenseType: 'a_identificar',
+            invoiceNumber: '',
+            amount: 850,
+            profile: 'controlador'
+        }),
+        error => error?.code === 'UNIDENTIFIED_EXPENSE_REQUIRES_PENDENCY'
+    );
+
+    assert.equal(harness.calls.length, 0);
+    assert.equal(harness.state.registeredInvoices.length, 0);
+    assert.equal(harness.state.pendencies.length, 0);
+});
+
+test('comando atômico cria despesa a identificar Incorreta já vinculada à Pendência', async () => {
     const harness = createHarness();
     const verification = harness.state.verifications['ESC-1']['2026-05_BASIC'];
     verification.analise.notaFiscal = 'Não analisado';
 
-    const created = await harness.service.save({
+    const created = await harness.service.saveUnidentifiedExpenseWithPendency({
         schoolId: 'ESC-1',
         compKey: '2026-05_BASIC',
         description: 'Débito observado no extrato',
         expenseType: 'a_identificar',
         invoiceNumber: '',
         amount: 850,
-        profile: 'controlador'
+        profile: 'controlador',
+        pendencyObservation: 'Documento não apresentado.'
     });
 
     assert.equal(created.value.invoice.analiseDocumentoFiscal, 'Incorreto');
+    assert.equal(created.value.pendency.status, 'Aberta');
+    assert.equal(
+        created.value.pendency.registeredInvoiceId,
+        created.value.invoice.id
+    );
     assert.equal(verification.analise.notaFiscal, 'Incorreto');
+    assert.equal(harness.calls.length, 1);
+});
 
-    const identified = await harness.service.save({
-        id: created.value.invoice.id,
-        schoolId: 'ESC-1',
+test('Pendência fiscal ativa bloqueia editor e alteração técnica comuns', async () => {
+    const harness = createHarness();
+    harness.state.registeredInvoices.push({
+        id: 'nota-locked',
+        escolaId: 'ESC-1',
         compKey: '2026-05_BASIC',
-        description: 'Serviço de manutenção identificado',
-        expenseType: 'servico',
-        invoiceNumber: 'NF-IDENT-1',
-        amount: 850,
-        profile: 'controlador'
+        competencia: '2026-05',
+        programaId: 'BASIC',
+        desc: 'Material',
+        descricao: 'Material',
+        tipo: 'consumo',
+        numero: 'NF-LOCK',
+        valor: 100,
+        analiseDocumentoFiscal: 'Incorreto'
+    });
+    harness.state.pendencies.push({
+        id: 'pend-locked',
+        escolaId: 'ESC-1',
+        competencia: '2026-05',
+        competenciaOrigem: '2026-05',
+        programaId: 'BASIC',
+        documentoKey: 'notaFiscal',
+        registeredInvoiceId: 'nota-locked',
+        status: 'Aberta'
     });
 
-    assert.equal(identified.value.invoice.id, created.value.invoice.id);
-    assert.equal(identified.value.invoice.analiseDocumentoFiscal, 'Incorreto');
-    assert.equal(verification.analise.notaFiscal, 'Incorreto');
+    await assert.rejects(
+        () => harness.service.save({
+            id: 'nota-locked',
+            schoolId: 'ESC-1',
+            compKey: '2026-05_BASIC',
+            description: 'Material alterado',
+            expenseType: 'consumo',
+            invoiceNumber: 'NF-LOCK',
+            amount: 100,
+            profile: 'controlador'
+        }),
+        error => error?.code === 'ACTIVE_INVOICE_PENDENCY'
+    );
+    await assert.rejects(
+        () => harness.service.updateDocumentAnalysis({
+            id: 'nota-locked',
+            schoolId: 'ESC-1',
+            analysis: 'Correto',
+            profile: 'controlador'
+        }),
+        error => error?.code === 'ACTIVE_INVOICE_PENDENCY'
+    );
+
+    assert.equal(harness.calls.length, 0);
+    assert.equal(harness.state.registeredInvoices[0].analiseDocumentoFiscal, 'Incorreto');
 });
 
 test('atualização individual semanticamente idêntica é no-op', async () => {

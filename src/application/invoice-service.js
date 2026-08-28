@@ -485,6 +485,28 @@
             ));
         }
 
+        activeInvoiceDocumentPendency(state, invoiceId) {
+            return this.invoicePendencyHistory(state, invoiceId).find(pendency => (
+                text(pendency.documentoKey || pendency.document_key) === 'notaFiscal'
+                && pendencyDomain.isActivePendency(pendency)
+            )) || null;
+        }
+
+        assertNoActiveInvoiceDocumentPendency(state, invoiceId, operation) {
+            const active = this.activeInvoiceDocumentPendency(state, invoiceId);
+            if (!active) return true;
+            fail(
+                'ACTIVE_INVOICE_PENDENCY',
+                'Este documento possui Pendência ativa. Novo envio e reanálise devem ser registrados pela tela de Pendências.',
+                operation,
+                {
+                    invoiceId: text(invoiceId),
+                    pendencyId: text(active.id),
+                    status: text(active.status)
+                }
+            );
+        }
+
         assertHistorySafeMutation(state, existing, input = {}, operation = 'invoice:save') {
             if (!existing) return true;
             const history = this.invoicePendencyHistory(state, existing.id);
@@ -555,6 +577,20 @@
                     'Despesa ou Nota Fiscal não localizada.',
                     'invoice:save',
                     { id: input.id }
+                );
+            }
+            if (!existing && invoiceData.expenseType === UNIDENTIFIED_EXPENSE_TYPE) {
+                fail(
+                    'UNIDENTIFIED_EXPENSE_REQUIRES_PENDENCY',
+                    'Nova despesa a identificar deve ser registrada pelo comando atômico que também cria a Pendência.',
+                    'invoice:save'
+                );
+            }
+            if (existing) {
+                this.assertNoActiveInvoiceDocumentPendency(
+                    initialState,
+                    existing.id,
+                    'invoice:save'
                 );
             }
             this.assertHistorySafeMutation(initialState, existing, input, 'invoice:save');
@@ -728,6 +764,11 @@
                     { id: invoiceId }
                 );
             }
+            this.assertNoActiveInvoiceDocumentPendency(
+                initialState,
+                invoiceId,
+                'invoice:update-document-analysis'
+            );
             if (isUnidentifiedExpense(initialInvoice)) {
                 fail(
                     'UNIDENTIFIED_EXPENSE_REQUIRES_PENDENCY',

@@ -13,7 +13,16 @@
     const invoiceDocumentAnalysis = typeof module !== 'undefined' && module.exports
         ? require('../domain/invoice-document-analysis.js')
         : root.RadarInvoiceDocumentAnalysis;
-    const api = factory(contract, domain, accessPolicy, invoiceDocumentAnalysis);
+    const invoiceEffects = typeof module !== 'undefined' && module.exports
+        ? require('../domain/invoice-effects.js')
+        : root.RadarInvoiceEffects;
+    const api = factory(
+        contract,
+        domain,
+        accessPolicy,
+        invoiceDocumentAnalysis,
+        invoiceEffects
+    );
 
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
     if (root) root.RadarPendencyService = Object.freeze(api);
@@ -21,12 +30,13 @@
     contract,
     defaultDomain,
     accessPolicy,
-    invoiceDocumentAnalysis
+    invoiceDocumentAnalysis,
+    invoiceEffects
 ) {
     'use strict';
 
-    if (!contract || !defaultDomain || !accessPolicy || !invoiceDocumentAnalysis) {
-        throw new Error('Contrato de dados, domínios de pendências/análise fiscal e política de acesso são obrigatórios.');
+    if (!contract || !defaultDomain || !accessPolicy || !invoiceDocumentAnalysis || !invoiceEffects) {
+        throw new Error('Contrato de dados, domínios de pendências/análise fiscal, planner de efeitos e política de acesso são obrigatórios.');
     }
     const { RepositoryError, cloneValue } = contract;
     const {
@@ -34,6 +44,13 @@
         isUnidentifiedExpense,
         normalizeInvoiceDocumentAnalysis
     } = invoiceDocumentAnalysis;
+    const { planInvoiceEffects } = invoiceEffects;
+    const IDENTIFIED_EXPENSE_TYPES = new Set([
+        'consumo',
+        'permanente',
+        'servico',
+        'boleto_internet'
+    ]);
 
     function text(value) {
         return value == null ? '' : String(value).trim();
@@ -308,9 +325,15 @@
                 }, 'saveInvoiceDocumentWithPendency');
             }
             if (persistence.operation === 'register_attempt') {
+                const asset = persistence.assetId
+                    ? list(entities.assets)
+                        .find(record => String(record.id) === String(persistence.assetId))
+                    : null;
                 return repository.executeRpc('register_invoice_document_attempt', {
                     p_invoice: invoice,
                     p_expected_invoice_version: persistence.expectedInvoiceVersion,
+                    p_asset: asset,
+                    p_expected_asset_version: persistence.expectedAssetVersion,
                     p_pendency: pendency,
                     p_expected_pendency_version: persistence.expectedPendencyVersion,
                     p_attempt: attempt,
@@ -466,6 +489,173 @@
             });
         }
 
+        validateInvoiceIdentification(input, invoice, pendency, operation) {
+            const identification = input?.identification;
+            if (!identification || typeof identification !== 'object' || Array.isArray(identification)) {
+                fail(
+                    'DOCUMENT_IDENTIFICATION_REQUIRED',
+                    'Informe os dados do documento apresentado para identificar a despesa.',
+                    operation,
+                    { registeredInvoiceId: invoice.id }
+                );
+            }
+
+            const expenseType = text(
+                identification.expenseType
+                || identification.tipo
+            ).toLocaleLowerCase('pt-BR');
+            const description = text(
+                identification.description
+                || identification.descricao
+            );
+            const invoiceNumber = text(
+                identification.invoiceNumber
+                || identification.numero
+                || identification.reference
+            );
+            const amount = Number(
+                identification.amount
+                ?? identification.valor
+            );
+
+            if (!IDENTIFIED_EXPENSE_TYPES.has(expenseType)
+                || !description
+                || !invoiceNumber
+                || !Number.isFinite(amount)
+                || amount < 0) {
+                fail(
+                    'VALIDATION_FAILED',
+                    'Tipo, número ou referência, descrição e valor válido são obrigatórios para identificar a despesa.',
+                    operation,
+                    { registeredInvoiceId: invoice.id }
+                );
+            }
+            if (expenseType === 'boleto_internet'
+                && text(pendency.programaId) !== 'CONECTADA') {
+                fail(
+                    'DOCUMENT_NOT_APPLICABLE',
+                    'Boleto de pagamento de Internet só pode identificar despesa de Educação Conectada.',
+                    operation,
+                    { registeredInvoiceId: invoice.id }
+                );
+            }
+
+            return {
+                expenseType,
+                description,
+                invoiceNumber,
+                amount
+            };
+        }
+
+        applyInvoiceIdentification(state, invoice, pendency, verification, input, persistence) {
+            const operation = 'registerInvoiceDocumentAttempt';
+            const identification = this.validateInvoiceIdentification(
+                input,
+                invoice,
+                pendency,
+                operation
+            );
+            const competence = text(pendency.competenciaOrigem || pendency.competencia);
+            const programId = text(pendency.programaId);
+            const compKey = `${competence}_${programId}`;
+            if (text(invoice.compKey) !== compKey) {
+                fail(
+                    'INVOICE_CONTEXT_MISMATCH',
+                    'A despesa a identificar não pertence à competência e ao programa da Pendência.',
+                    operation,
+                    { registeredInvoiceId: invoice.id, compKey }
+                );
+            }
+
+            const contextInvoices = list(state.registeredInvoices).filter(item => (
+                item.escolaId === invoice.escolaId
+                && item.compKey === invoice.compKey
+            ));
+            const currentAsset = invoice.bemId
+                ? list(state.assets).find(asset => asset.id === invoice.bemId) || null
+                : null;
+            const school = list(state.schools).find(item => item.id === invoice.escolaId) || null;
+            const program = list(state.programs).find(item => item.id === programId) || null;
+            const plan = planInvoiceEffects({
+                existingInvoice: invoice,
+                request: {
+                    schoolId: invoice.escolaId,
+                    compKey: invoice.compKey,
+                    competence,
+                    programId,
+                    description: identification.description,
+                    expenseType: identification.expenseType,
+                    invoiceNumber: identification.invoiceNumber,
+                    amount: identification.amount
+                },
+                contextInvoices,
+                currentAsset,
+                verification,
+                school,
+                program,
+                profile: this.getCurrentProfile(),
+                invoiceId: invoice.id,
+                assetId: identification.expenseType === 'permanente'
+                    ? (currentAsset?.id || invoice.bemId || this.createId('bem'))
+                    : null,
+                timestamp: invoice.dataRegistro || this.now()
+            });
+
+            if (plan.unchanged || plan.operation !== 'update') {
+                fail(
+                    'INVALID_INVOICE_PLAN',
+                    'Não foi possível transformar a despesa a identificar no documento apresentado.',
+                    operation,
+                    { registeredInvoiceId: invoice.id }
+                );
+            }
+
+            persistence.expectedAssetVersion = rowVersionOf(currentAsset);
+            persistence.assetId = plan.asset?.id || null;
+
+            Object.assign(invoice, cloneValue(plan.invoice));
+            invoice.analiseDocumentoFiscal = 'Não analisado';
+
+            if (!Array.isArray(state.assets)) state.assets = [];
+            if (plan.removedAsset?.id) {
+                state.assets.splice(
+                    0,
+                    state.assets.length,
+                    ...state.assets.filter(asset => asset.id !== plan.removedAsset.id)
+                );
+            }
+            if (plan.asset?.id) {
+                const existingAsset = state.assets.find(asset => asset.id === plan.asset.id);
+                if (existingAsset) Object.assign(existingAsset, cloneValue(plan.asset));
+                else state.assets.push(cloneValue(plan.asset));
+            }
+
+            const nextVerification = plan.verification
+                ? cloneValue(plan.verification)
+                : cloneValue(verification);
+            nextVerification.analise = nextVerification.analise || {};
+            nextVerification.bonificacao = nextVerification.bonificacao || {};
+            // A correção documental não muda a bonificação de Notas Fiscais nem
+            // o resultado consolidado. Efeitos derivados de Assessoria/Inventário
+            // permanecem autorizados pelo planner canônico.
+            nextVerification.bonificacao.notaFiscal = verification.bonificacao?.notaFiscal;
+            nextVerification.resultadoBonif = verification.resultadoBonif;
+            nextVerification.analise.notaFiscal = deriveInvoiceDocumentAnalysis(
+                list(state.registeredInvoices).filter(item => (
+                    item.escolaId === invoice.escolaId
+                    && item.compKey === invoice.compKey
+                )),
+                verification.analise?.notaFiscal || 'Não analisado'
+            );
+            Object.assign(verification, nextVerification);
+
+            return {
+                identification,
+                warnings: [...(plan.warnings || [])]
+            };
+        }
+
         async registerInvoiceDocumentAttempt(input = {}, targetPendency) {
             const persistence = {
                 operation: 'register_attempt',
@@ -484,14 +674,6 @@
                         persistence.invoiceId,
                         'registerInvoiceDocumentAttempt'
                     );
-                    if (isUnidentifiedExpense(invoice)) {
-                        fail(
-                            'DOCUMENT_IDENTIFICATION_REQUIRED',
-                            'A despesa ainda precisa ser identificada antes de registrar o novo envio documental.',
-                            'registerInvoiceDocumentAttempt',
-                            { registeredInvoiceId: invoice.id }
-                        );
-                    }
                     const { verification } = this.verificationFor(
                         state,
                         pendency,
@@ -506,6 +688,17 @@
 
                     const bonificationBefore = cloneValue(verification.bonificacao);
                     const resultBefore = cloneValue(verification.resultadoBonif);
+                    const identifying = isUnidentifiedExpense(invoice);
+                    const identificationResult = identifying
+                        ? this.applyInvoiceIdentification(
+                            state,
+                            invoice,
+                            pendency,
+                            verification,
+                            input,
+                            persistence
+                        )
+                        : { warnings: [] };
                     const next = this.domain.registerCorrectiveSubmission(pendency, {
                         id: text(input.attemptId) || this.createId('tentativa'),
                         dataDisponibilizacao: text(input.availabilityDate || input.dataDisponibilizacao),
@@ -515,21 +708,38 @@
 
                     invoice.analiseDocumentoFiscal = 'Não analisado';
                     const aggregate = this.syncInvoiceDocumentAggregate(state, invoice, verification);
+                    if (identifying) {
+                        next.documentSnapshot = this.documentSnapshot(invoice);
+                        next.item = text(invoice.numero)
+                            ? `Notas Fiscais — ${text(invoice.numero)}`
+                            : next.item;
+                    }
                     state.pendencies[index] = next;
 
-                    if (JSON.stringify(verification.bonificacao) !== JSON.stringify(bonificationBefore)
-                        || JSON.stringify(verification.resultadoBonif) !== JSON.stringify(resultBefore)) {
+                    const fiscalBonificationChanged = JSON.stringify(
+                        verification.bonificacao?.notaFiscal
+                    ) !== JSON.stringify(bonificationBefore?.notaFiscal);
+                    const resultChanged = JSON.stringify(
+                        verification.resultadoBonif
+                    ) !== JSON.stringify(resultBefore);
+                    const unrelatedBonificationChanged = !identifying
+                        && JSON.stringify(verification.bonificacao) !== JSON.stringify(bonificationBefore);
+                    if (fiscalBonificationChanged || resultChanged || unrelatedBonificationChanged) {
                         fail(
                             'BONIFICATION_INVARIANT',
-                            'O novo envio individual não pode alterar a bonificação.',
+                            'O novo envio individual não pode alterar a bonificação de Notas Fiscais nem o resultado consolidado.',
                             'registerInvoiceDocumentAttempt'
                         );
                     }
 
                     const log = this.appendSchoolLog(
                         pendency.escolaId,
-                        'Novo envio de documento fiscal registrado',
-                        `Novo envio vinculado à despesa ${invoice.id}; análise individual voltou para “Não analisado”. Resumo técnico: “${aggregate}”.`
+                        identifying
+                            ? 'Despesa identificada em novo envio'
+                            : 'Novo envio de documento fiscal registrado',
+                        identifying
+                            ? `Despesa ${invoice.id} identificada como ${invoice.tipo}, documento ${invoice.numero}; o mesmo registro foi preservado e enviado para reanálise. Resumo técnico: “${aggregate}”.`
+                            : `Novo envio vinculado à despesa ${invoice.id}; análise individual voltou para “Não analisado”. Resumo técnico: “${aggregate}”.`
                     );
                     persistence.attemptId = list(next.tentativas).at(-1)?.id || null;
                     persistence.logId = text(log?.id);
@@ -537,7 +747,9 @@
                         invoice: cloneValue(invoice),
                         pendency: cloneValue(next),
                         verification: cloneValue(verification),
-                        aggregate
+                        aggregate,
+                        identified: identifying,
+                        warnings: identificationResult.warnings
                     };
                 },
                 persist: context => this.persistInvoiceDocumentCommand(context, persistence)
