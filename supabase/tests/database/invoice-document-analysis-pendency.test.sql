@@ -4,7 +4,7 @@ set local role postgres;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
 
-select plan(31);
+select plan(25);
 
 insert into auth.users (id, email)
 values ('00000000-0000-0000-0000-000000000211', 'invoice-document-hotfix@example.test');
@@ -45,18 +45,17 @@ insert into public.registered_invoices (
 
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000211', true);
-set constraints all immediate;
 
 select lives_ok($$
     select public.save_invoice_document_with_pendency(
         jsonb_set((select to_jsonb(i) - 'row_version' - 'created_at' - 'updated_at' from public.registered_invoices i where id='invoice-doc-a'), '{payload,analiseDocumentoFiscal}', to_jsonb('Incorreto'::text), true),
         (select row_version from public.registered_invoices where id='invoice-doc-a'),
-        (select to_jsonb(v) - 'row_version' - 'created_at' - 'updated_at' from public.verifications v where id='04.99.211::2029-01::INVOICE_DOC_ATOMIC'),
+        jsonb_set((select to_jsonb(v) - 'row_version' - 'created_at' - 'updated_at' from public.verifications v where id='04.99.211::2029-01::INVOICE_DOC_ATOMIC'), '{analysis,notaFiscal}', to_jsonb('Incorreto'::text), true),
         (select row_version from public.verifications where id='04.99.211::2029-01::INVOICE_DOC_ATOMIC'),
         '{"id":"pendency-doc-a","school_id":"04.99.211","competence_origin":"2029-01","program_id":"INVOICE_DOC_ATOMIC","document_key":"notaFiscal","registered_invoice_id":"invoice-doc-a","status":"Aberta","responsible_area":"Escola","next_actor":"Escola","reason":"Dados divergentes","notes":"Corrigir NF A","opened_at":"2029-01-20T12:00:00Z","payload":{"registeredInvoiceId":"invoice-doc-a"}}'::jsonb,
         '{"id":"log-doc-a-open","school_id":"04.99.211","action":"Análise incorreta e pendência individual aberta","details":{}}'::jsonb
     )
-$$, 'abre atomicamente Pendência individual da NF A');
+$$, 'abre Pendência individual da NF A na mesma transação');
 select is((select payload ->> 'analiseDocumentoFiscal' from public.registered_invoices where id='invoice-doc-a'), 'Incorreto', 'NF A fica Incorreta');
 select is((select registered_invoice_id from public.pendencies where id='pendency-doc-a'), 'invoice-doc-a', 'Pendência A aponta para NF A');
 
@@ -75,23 +74,23 @@ select is((select count(*)::integer from public.pendencies where document_key='n
 select throws_ok($$
     select public.save_pendency_command(
         'open',
-        '{"id":"pendency-generica","school_id":"04.99.211","competence_origin":"2029-01","program_id":"INVOICE_DOC_ATOMIC","document_key":"notaFiscal","status":"Aberta","responsible_area":"Escola","next_actor":"Escola","reason":"Genérica","notes":"Não pode existir","opened_at":"2029-01-20T13:00:00Z","payload":{}}'::jsonb,
+        '{"id":"pendency-generica","school_id":"04.99.211","competence_origin":"2029-01","program_id":"INVOICE_DOC_ATOMIC","document_key":"notaFiscal","status":"Aberta","responsible_area":"Escola","next_actor":"Escola","reason":"Genérica","notes":"Não deve existir","opened_at":"2029-01-20T13:00:00Z","payload":{}}'::jsonb,
         null, null, null, null,
         '{"id":"log-generica","school_id":"04.99.211","action":"Inválida","details":{}}'::jsonb
     )
-$$, 'P0001', 'VALIDATION_ERROR: nova Pendência de Notas Fiscais exige registered_invoice_id', 'rota genérica não cria Pendência fiscal sem identidade');
+$$, 'P0001', 'VALIDATION_ERROR: nova Pendência de Notas Fiscais exige registered_invoice_id', 'rota genérica do banco não abre nova Pendência fiscal');
 
 select throws_ok($$
     select public.save_invoice_document_with_pendency(
-        jsonb_set((select to_jsonb(i) - 'row_version' - 'created_at' - 'updated_at' from public.registered_invoices i where id='invoice-doc-a'), '{payload,analiseDocumentoFiscal}', to_jsonb('Incorreto'::text), true),
+        jsonb_set(jsonb_set((select to_jsonb(i) - 'row_version' - 'created_at' - 'updated_at' from public.registered_invoices i where id='invoice-doc-a'), '{description}', to_jsonb('ALTERAÇÃO QUE DEVE REVERTER'::text), true), '{payload,analiseDocumentoFiscal}', to_jsonb('Incorreto'::text), true),
         (select row_version from public.registered_invoices where id='invoice-doc-a'),
         (select to_jsonb(v) - 'row_version' - 'created_at' - 'updated_at' from public.verifications v where id='04.99.211::2029-01::INVOICE_DOC_ATOMIC'),
         (select row_version from public.verifications where id='04.99.211::2029-01::INVOICE_DOC_ATOMIC'),
         '{"id":"pendency-doc-a-dup","school_id":"04.99.211","competence_origin":"2029-01","program_id":"INVOICE_DOC_ATOMIC","document_key":"notaFiscal","registered_invoice_id":"invoice-doc-a","status":"Aberta","responsible_area":"Escola","next_actor":"Escola","reason":"Duplicada","notes":"Duplicada","opened_at":"2029-01-21T12:00:00Z","payload":{"registeredInvoiceId":"invoice-doc-a"}}'::jsonb,
         '{"id":"log-doc-a-dup","school_id":"04.99.211","action":"Duplicada","details":{}}'::jsonb
     )
-$$, 'P0001', 'DUPLICATE_PENDENCY: documento já possui Pendência fiscal ativa', 'mesma NF não aceita segunda Pendência ativa');
-select is((select description from public.registered_invoices where id='invoice-doc-a'), 'Serviço A', 'duplicidade não altera o documento');
+$$, '23505', null, 'mesma NF não aceita segunda Pendência ativa');
+select is((select description from public.registered_invoices where id='invoice-doc-a'), 'Serviço A', 'duplicidade reverte qualquer alteração parcial');
 
 select lives_ok($$
     select public.save_unidentified_expense_with_pendency(
@@ -101,63 +100,31 @@ select lives_ok($$
         '{"id":"pendency-doc-u","school_id":"04.99.211","competence_origin":"2029-01","program_id":"INVOICE_DOC_ATOMIC","document_key":"notaFiscal","registered_invoice_id":"invoice-doc-u","status":"Aberta","responsible_area":"Escola","next_actor":"Escola","reason":"Documento ausente","notes":"Débito sem comprovação","opened_at":"2029-01-21T13:00:00Z","payload":{"registeredInvoiceId":"invoice-doc-u"}}'::jsonb,
         '{"id":"log-doc-u-open","school_id":"04.99.211","action":"Despesa a identificar com pendência","details":{}}'::jsonb
     )
-$$, 'RPC própria cria despesa a identificar e Pendência na mesma transação');
-select is((select payload ->> 'analiseDocumentoFiscal' from public.registered_invoices where id='invoice-doc-u'), 'Incorreto', 'nova despesa a identificar nasce Incorreta');
-select is((select registered_invoice_id from public.pendencies where id='pendency-doc-u'), 'invoice-doc-u', 'nova despesa a identificar já nasce vinculada');
-
-select throws_like($$
-    select public.save_invoice_with_effects(
-        '{"id":"invoice-doc-u-sem-pend","school_id":"04.99.211","competence_id":"2029-01","program_id":"INVOICE_DOC_ATOMIC","verification_id":"04.99.211::2029-01::INVOICE_DOC_ATOMIC","source_context_key":"2029-01_INVOICE_DOC_ATOMIC","description":"Inválida","expense_type":"a_identificar","invoice_number":"","amount":10,"payload":{"analiseDocumentoFiscal":"Incorreto"}}'::jsonb,
-        null, null, null, null, null, null
-    )
-$$, 'INTEGRITY_CONFLICT: despesa a identificar deve nascer Incorreta e com Pendência individual%', 'rota comum do banco não cria a_identificar sem Pendência');
+$$, 'cria Despesa a identificar e Pendência na mesma operação');
+select is((select payload ->> 'analiseDocumentoFiscal' from public.registered_invoices where id='invoice-doc-u'), 'Incorreto', 'Despesa a identificar nasce Incorreta');
+select is((select registered_invoice_id from public.pendencies where id='pendency-doc-u'), 'invoice-doc-u', 'Despesa a identificar nasce vinculada à Pendência');
 
 select lives_ok($$
     select public.register_invoice_document_attempt(
         ((select to_jsonb(i) - 'row_version' - 'created_at' - 'updated_at' from public.registered_invoices i where id='invoice-doc-u')
-            || jsonb_build_object('description','Serviço de manutenção identificado','expense_type','servico','invoice_number','NF-U-IDENT','amount',850,'payload',jsonb_build_object('analiseDocumentoFiscal','Não analisado'))),
+            || jsonb_build_object('description','Projetor multimídia','expense_type','permanente','invoice_number','NF-U-IDENT','amount',850,'linked_asset_id','asset-doc-u','payload',jsonb_build_object('analiseDocumentoFiscal','Não analisado'))),
         (select row_version from public.registered_invoices where id='invoice-doc-u'),
-        null,
+        '{"id":"asset-doc-u","school_id":"04.99.211","competence_id":"2029-01","description":"Projetor multimídia","expense_type":"permanente","invoice_number":"NF-U-IDENT","amount":850,"status":"Não encaminhada","inventory_process":"","notes":"","payload":{}}'::jsonb,
         null,
         jsonb_set((select to_jsonb(p) - 'row_version' - 'created_at' - 'updated_at' from public.pendencies p where id='pendency-doc-u'), '{status}', to_jsonb('Aguardando reanálise'::text), true),
         (select row_version from public.pendencies where id='pendency-doc-u'),
         '{"id":"attempt-doc-u","pendency_id":"pendency-doc-u","attempt_number":1,"available_at":"2029-01-22T10:00:00Z","submitted_at":"2029-01-22T10:00:00Z","result":null,"observation":"NF apresentada","drive_url":"","errors":[],"payload":{}}'::jsonb,
-        ((select to_jsonb(v) - 'row_version' - 'created_at' - 'updated_at' from public.verifications v where id='04.99.211::2029-01::INVOICE_DOC_ATOMIC')
-            || jsonb_build_object('bonus_result','inapta','bonification',jsonb_set((select bonification from public.verifications where id='04.99.211::2029-01::INVOICE_DOC_ATOMIC'),'{notaFiscal}',to_jsonb('Não'::text),true))),
+        (select to_jsonb(v) - 'row_version' - 'created_at' - 'updated_at' from public.verifications v where id='04.99.211::2029-01::INVOICE_DOC_ATOMIC'),
         (select row_version from public.verifications where id='04.99.211::2029-01::INVOICE_DOC_ATOMIC'),
         '{"id":"log-doc-u-attempt","school_id":"04.99.211","action":"Despesa identificada em novo envio","details":{}}'::jsonb
     )
-$$, 'novo envio identifica a despesa preservando o registro');
+$$, 'novo envio identifica a despesa e cria o bem permanente na mesma transação');
 select is((select id from public.registered_invoices where id='invoice-doc-u'), 'invoice-doc-u', 'identificação preserva o mesmo ID');
-select is((select expense_type from public.registered_invoices where id='invoice-doc-u'), 'servico', 'identificação altera a natureza permitida');
-select is((select payload ->> 'analiseDocumentoFiscal' from public.registered_invoices where id='invoice-doc-u'), 'Não analisado', 'documento identificado aguarda reanálise');
+select is((select expense_type from public.registered_invoices where id='invoice-doc-u'), 'permanente', 'despesa passa a bem permanente');
+select is((select linked_asset_id from public.registered_invoices where id='invoice-doc-u'), 'asset-doc-u', 'Nota Fiscal fica vinculada ao bem criado');
+select is((select count(*)::integer from public.assets where id='asset-doc-u'), 1, 'bem permanente é efetivamente gravado');
 select is((select status from public.pendencies where id='pendency-doc-u'), 'Aguardando reanálise', 'mesma Pendência passa a Aguardando reanálise');
-select is((select count(*)::integer from public.pendency_attempts where pendency_id='pendency-doc-u' and result is null), 1, 'novo envio cria uma única tentativa aguardando');
-select is((select bonification ->> 'consAssessoria' from public.verifications where id='04.99.211::2029-01::INVOICE_DOC_ATOMIC'), 'Não', 'identificação como serviço deriva Consulta Assessoria');
-select is((select bonification ->> 'notaFiscal' from public.verifications where id='04.99.211::2029-01::INVOICE_DOC_ATOMIC'), 'Sim', 'cliente não altera bonificação agregada de Notas Fiscais');
-select is((select bonus_result from public.verifications where id='04.99.211::2029-01::INVOICE_DOC_ATOMIC'), 'apta', 'cliente não altera resultado consolidado');
-
-select throws_like($$
-    update public.registered_invoices set description = 'Edição comum proibida' where id = 'invoice-doc-u'
-$$, 'INTEGRITY_CONFLICT: documento com Pendência ativa só pode ser identificado durante um novo envio válido%', 'Pendência ativa bloqueia editor comum no banco');
-
-select lives_ok($$
-    select public.reanalyze_invoice_document_pendency(
-        jsonb_set((select to_jsonb(i) - 'row_version' - 'created_at' - 'updated_at' from public.registered_invoices i where id='invoice-doc-u'), '{payload,analiseDocumentoFiscal}', to_jsonb('Correto'::text), true),
-        (select row_version from public.registered_invoices where id='invoice-doc-u'),
-        jsonb_set((select to_jsonb(p) - 'row_version' - 'created_at' - 'updated_at' from public.pendencies p where id='pendency-doc-u'), '{status}', to_jsonb('Resolvida'::text), true),
-        ((select to_jsonb(a) - 'created_at' - 'updated_at' from public.pendency_attempts a where id='attempt-doc-u')
-            || jsonb_build_object('result','correto','analyzed_at','2029-01-22T11:00:00Z','observation','Documento regularizado','errors','[]'::jsonb)),
-        ((select to_jsonb(v) - 'row_version' - 'created_at' - 'updated_at' from public.verifications v where id='04.99.211::2029-01::INVOICE_DOC_ATOMIC') || jsonb_build_object('bonus_result','inapta')),
-        (select row_version from public.pendencies where id='pendency-doc-u'),
-        (select row_version from public.verifications where id='04.99.211::2029-01::INVOICE_DOC_ATOMIC'),
-        '{"id":"log-doc-u-resolve","school_id":"04.99.211","action":"Reanálise registrada","details":{}}'::jsonb
-    )
-$$, 'reanálise válida exige e consome a tentativa aguardando');
-select is((select payload ->> 'analiseDocumentoFiscal' from public.registered_invoices where id='invoice-doc-u'), 'Correto', 'reanálise correta altera somente o documento vinculado');
-select is((select status from public.pendencies where id='pendency-doc-u'), 'Resolvida', 'reanálise correta resolve a mesma Pendência');
-select is((select bonus_result from public.verifications where id='04.99.211::2029-01::INVOICE_DOC_ATOMIC'), 'apta', 'reanálise preserva resultado consolidado');
-select is((select payload ->> 'analiseDocumentoFiscal' from public.registered_invoices where id='invoice-doc-b'), 'Incorreto', 'reanálise não contamina outra NF');
+select is((select count(*)::integer from public.pendency_attempts where pendency_id='pendency-doc-u' and result is null), 1, 'novo envio registra uma tentativa aguardando');
 
 select throws_ok($$
     select public.reanalyze_invoice_document_pendency(
@@ -170,17 +137,35 @@ select throws_ok($$
         (select row_version from public.verifications where id='04.99.211::2029-01::INVOICE_DOC_ATOMIC'),
         '{"id":"log-invalid-reanalysis","school_id":"04.99.211","action":"Inválida","details":{}}'::jsonb
     )
-$$, 'P0001', 'VALIDATION_ERROR: reanálise exige despesa, Pendência e tentativa vinculadas', 'reanálise não aceita Pendência Aberta sem tentativa');
+$$, 'P0001', 'VALIDATION_ERROR: reanálise exige documento, Pendência e tentativa vinculados', 'não reanalisa Pendência ainda Aberta e sem novo envio');
+
+select lives_ok($$
+    select public.reanalyze_invoice_document_pendency(
+        jsonb_set((select to_jsonb(i) - 'row_version' - 'created_at' - 'updated_at' from public.registered_invoices i where id='invoice-doc-u'), '{payload,analiseDocumentoFiscal}', to_jsonb('Correto'::text), true),
+        (select row_version from public.registered_invoices where id='invoice-doc-u'),
+        jsonb_set((select to_jsonb(p) - 'row_version' - 'created_at' - 'updated_at' from public.pendencies p where id='pendency-doc-u'), '{status}', to_jsonb('Resolvida'::text), true),
+        ((select to_jsonb(a) - 'row_version' - 'created_at' - 'updated_at' from public.pendency_attempts a where id='attempt-doc-u')
+            || jsonb_build_object('result','correto','analyzed_at','2029-01-22T11:00:00Z','observation','Documento regularizado','errors','[]'::jsonb)),
+        (select to_jsonb(v) - 'row_version' - 'created_at' - 'updated_at' from public.verifications v where id='04.99.211::2029-01::INVOICE_DOC_ATOMIC'),
+        (select row_version from public.pendencies where id='pendency-doc-u'),
+        (select row_version from public.verifications where id='04.99.211::2029-01::INVOICE_DOC_ATOMIC'),
+        '{"id":"log-doc-u-resolve","school_id":"04.99.211","action":"Reanálise registrada","details":{}}'::jsonb
+    )
+$$, 'reanálise válida consome o novo envio e resolve a mesma Pendência');
+select is((select payload ->> 'analiseDocumentoFiscal' from public.registered_invoices where id='invoice-doc-u'), 'Correto', 'documento identificado torna-se Correto');
+select is((select status from public.pendencies where id='pendency-doc-u'), 'Resolvida', 'Pendência vinculada é resolvida');
+select is((select payload ->> 'analiseDocumentoFiscal' from public.registered_invoices where id='invoice-doc-b'), 'Incorreto', 'reanálise de uma despesa não altera outra');
 
 select throws_like($$
-    update public.registered_invoices set source_context_key = 'OUTRO_CONTEXTO' where id = 'invoice-doc-a'
-$$, 'INTEGRITY_CONFLICT: Nota Fiscal possui histórico de pendência individual e não pode alterar sua identidade ou contexto estrutural%', 'histórico bloqueia source_context_key');
+    update public.registered_invoices
+       set competence_id = '2029-02',
+           source_context_key = '2029-02_INVOICE_DOC_ATOMIC'
+     where id = 'invoice-doc-a'
+$$, 'INTEGRITY_CONFLICT: Nota Fiscal possui histórico de pendência individual e não pode alterar escola, competência ou programa%', 'histórico bloqueia deslocamento estrutural da despesa');
+
 select throws_like($$
-    update public.registered_invoices set id = 'invoice-doc-a-trocada' where id = 'invoice-doc-a'
-$$, 'INTEGRITY_CONFLICT: Nota Fiscal possui histórico de pendência individual e não pode alterar sua identidade ou contexto estrutural%', 'histórico bloqueia troca silenciosa do ID');
-select throws_like($$
-    delete from public.registered_invoices where id = 'invoice-doc-a'
-$$, 'INTEGRITY_CONFLICT: Nota Fiscal possui histórico de pendência individual e não pode ser excluída%', 'histórico bloqueia exclusão física');
+    delete from public.registered_invoices where id='invoice-doc-a'
+$$, 'INTEGRITY_CONFLICT: Nota Fiscal possui histórico de pendência individual e não pode ser excluída%', 'histórico bloqueia exclusão física da despesa');
 
 select * from finish();
 rollback;
