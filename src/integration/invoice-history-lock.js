@@ -85,11 +85,16 @@
         const targetCompKey = text(input.compKey || currentCompKey);
         const targetType = text(input.expenseType || currentType).toLocaleLowerCase('pt-BR');
 
-        if (targetSchoolId !== currentSchoolId
-            || targetCompKey !== currentCompKey
-            || targetType !== currentType) {
+        if (targetSchoolId !== currentSchoolId || targetCompKey !== currentCompKey) {
             fail(
-                'Esta Nota Fiscal possui histórico de pendência individual. Escola, competência, programa e natureza da despesa não podem ser alterados; os demais dados da NF podem ser corrigidos normalmente.',
+                'Esta Nota Fiscal possui histórico de pendência individual. Escola, competência e programa não podem ser alterados; os demais dados permitidos podem ser corrigidos normalmente.',
+                'invoice:save',
+                invoiceId
+            );
+        }
+        if (targetType !== currentType && hasServiceAdvisoryHistory(state, invoiceId)) {
+            fail(
+                'Esta Nota Fiscal possui histórico de pendência da Assessoria e deve permanecer como prestação de serviço.',
                 'invoice:save',
                 invoiceId
             );
