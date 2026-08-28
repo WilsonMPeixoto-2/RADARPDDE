@@ -217,14 +217,14 @@
     "evidence": "pendency",
     "coverage": "partial",
     "gaps": [
-      "A identidade fiscal individual e a abertura atômica estão cobertas por testes locais/SQL; falta prova autenticada no Preview/ambiente publicado com duas invoices distintas e releitura."
+      "Abertura fiscal individual e rejeição de nova Pendência genérica de Notas Fiscais estão cobertas localmente/SQL; falta prova autenticada no Preview e releitura após publicação."
     ],
     "next": "controlled-write"
   },
   {
     "id": "PEND-02",
     "surface": "pendencies",
-    "action": "Registrar novo envio para regularização",
+    "action": "Registrar novo envio para regularização, incluindo identificação de a_identificar",
     "mode": "write",
     "criticality": "P0",
     "allow": [
@@ -263,6 +263,7 @@
     "repository": "savePendencyCommand + register_invoice_document_attempt + pendencies_sync_attempt_statuses",
     "resources": [
       "registered_invoices",
+      "assets",
       "pendencies",
       "pendency_attempts",
       "verifications",
@@ -274,7 +275,7 @@
     "evidence": "pendency",
     "coverage": "partial",
     "gaps": [
-      "O novo envio fiscal individual preserva a bonificação e recoloca apenas a invoice vinculada em Não analisado; falta prova autenticada publicada do ciclo completo e releitura."
+      "Novo envio fiscal individual, identificação preservando ID e criação patrimonial na mesma operação estão cobertos em unitários/pgTAP/E2E descartável; falta prova autenticada publicada do ciclo completo e releitura."
     ],
     "next": "controlled-write"
   },
@@ -327,7 +328,7 @@
     "evidence": "pendency",
     "coverage": "partial",
     "gaps": [
-      "A reanálise fiscal individual altera somente a invoice vinculada e o resumo derivado; falta prova autenticada publicada dos resultados correto/incorreto, conflito e releitura."
+      "Reanálise fiscal exige Aguardando reanálise e tentativa válida da mesma Pendência e altera somente a invoice vinculada; falta prova autenticada publicada dos resultados correto/incorreto e releitura."
     ],
     "next": "controlled-write"
   },
@@ -506,7 +507,7 @@
     "evidence": "invoice",
     "coverage": "partial",
     "gaps": [
-      "Cadastro/edição e a_identificar = Incorreto + Pendência estão cobertos localmente; falta prova autenticada publicada para criação atômica, transformação preservando ID, efeitos patrimoniais e releitura."
+      "Criação atômica de a_identificar, bloqueio da rota comum, preservação de ID e efeitos de serviço/patrimônio estão cobertos em unitários, pgTAP e E2E descartável; falta Preview autenticado e smoke pós-publicação."
     ],
     "next": "controlled-write"
   },
@@ -658,6 +659,7 @@
     "repository": "saveInvoiceWithEffects + save_invoice_document_with_pendency + register_invoice_document_attempt + reanalyze_invoice_document_pendency",
     "resources": [
       "registered_invoices",
+      "assets",
       "verifications",
       "pendencies",
       "pendency_attempts",
@@ -669,7 +671,7 @@
     "evidence": "invoice",
     "coverage": "partial",
     "gaps": [
-      "Domínio, unit, pgTAP e E2E foram ampliados no PR #211; resta Preview desktop autenticado, releitura remota e validação final antes de Production."
+      "Análise individual, resumo derivado, Pendência por invoice, bloqueio de edição com Pendência ativa e reanálise vinculada estão cobertos em unitários, pgTAP e E2E descartável; falta Preview desktop autenticado e smoke pós-publicação."
     ],
     "next": "controlled-write"
   },
