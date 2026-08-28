@@ -53,3 +53,51 @@ test('pendências de Assessoria simultâneas são distinguidas pela NF vinculada
 
     assert.equal(found?.id, 'pend-2');
 });
+
+
+function createFiscalPendency(id, invoiceId) {
+    return createDocumentPendency({
+        id,
+        escolaId: 'ESC-1',
+        competencia: '2026-08',
+        programaId: 'BASIC',
+        documentoKey: 'notaFiscal',
+        registeredInvoiceId: invoiceId,
+        item: `Notas Fiscais - ${invoiceId}`,
+        erros: ['Dados divergentes'],
+        observacao: 'Documento fiscal requer correção.',
+        dataAbertura: '2026-08-27'
+    }, {
+        ...AUDIT,
+        eventId: `evt-${id}`
+    });
+}
+
+test('pendências de Notas Fiscais simultâneas são distinguidas pela despesa vinculada', () => {
+    const first = createFiscalPendency('pend-nf-1', 'nota-1');
+    const second = createFiscalPendency('pend-nf-2', 'nota-2');
+
+    const found = findActivePendency([first, second], {
+        escolaId: 'ESC-1',
+        competencia: '2026-08',
+        programaId: 'BASIC',
+        documentoKey: 'notaFiscal',
+        registeredInvoiceId: 'nota-2'
+    });
+
+    assert.equal(found?.id, 'pend-nf-2');
+});
+
+test('a mesma despesa continua identificando a própria pendência de Notas Fiscais', () => {
+    const first = createFiscalPendency('pend-nf-1', 'nota-1');
+
+    const found = findActivePendency([first], {
+        escolaId: 'ESC-1',
+        competencia: '2026-08',
+        programaId: 'BASIC',
+        documentoKey: 'notaFiscal',
+        registeredInvoiceId: 'nota-1'
+    });
+
+    assert.equal(found?.id, 'pend-nf-1');
+});
