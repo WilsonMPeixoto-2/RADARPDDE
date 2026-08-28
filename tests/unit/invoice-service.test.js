@@ -437,3 +437,161 @@ test('remoção real por Assistente reabre consolidação sem callback lateral e
     assert.match(harness.state.logs[0].details, /reaberta/i);
     assert.equal(harness.reopenCalls.length, 0);
 });
+
+
+test('nova Nota Fiscal nasce Não analisado e o resumo técnico passa a ser derivado', async () => {
+    const harness = createHarness();
+    const verification = harness.state.verifications['ESC-1']['2026-05_BASIC'];
+    verification.analise.notaFiscal = 'Correto';
+
+    const result = await harness.service.save({
+        schoolId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        description: 'Material pedagógico',
+        expenseType: 'consumo',
+        invoiceNumber: 'NF-IND-001',
+        amount: 120,
+        profile: 'controlador'
+    });
+
+    assert.equal(result.value.invoice.analiseDocumentoFiscal, 'Não analisado');
+    assert.equal(verification.analise.notaFiscal, 'Não analisado');
+});
+
+test('análise individual correta não contamina outra Nota Fiscal ainda não analisada', async () => {
+    const harness = createHarness();
+    const verification = harness.state.verifications['ESC-1']['2026-05_BASIC'];
+    verification.analise.notaFiscal = 'Não analisado';
+    harness.state.registeredInvoices.push(
+        {
+            id: 'nota-ind-a',
+            escolaId: 'ESC-1',
+            compKey: '2026-05_BASIC',
+            competencia: '2026-05',
+            programaId: 'BASIC',
+            desc: 'Material A',
+            descricao: 'Material A',
+            tipo: 'consumo',
+            numero: 'NF-A',
+            valor: 100,
+            analiseDocumentoFiscal: 'Não analisado'
+        },
+        {
+            id: 'nota-ind-b',
+            escolaId: 'ESC-1',
+            compKey: '2026-05_BASIC',
+            competencia: '2026-05',
+            programaId: 'BASIC',
+            desc: 'Material B',
+            descricao: 'Material B',
+            tipo: 'consumo',
+            numero: 'NF-B',
+            valor: 200,
+            analiseDocumentoFiscal: 'Não analisado'
+        }
+    );
+
+    await harness.service.updateDocumentAnalysis({
+        id: 'nota-ind-a',
+        schoolId: 'ESC-1',
+        analysis: 'Correto',
+        profile: 'controlador'
+    });
+
+    assert.equal(harness.state.registeredInvoices[0].analiseDocumentoFiscal, 'Correto');
+    assert.equal(harness.state.registeredInvoices[1].analiseDocumentoFiscal, 'Não analisado');
+    assert.equal(verification.analise.notaFiscal, 'Não analisado');
+});
+
+test('Incorreto não pode ser persistido diretamente sem Pendência individual', async () => {
+    const harness = createHarness();
+    harness.state.registeredInvoices.push({
+        id: 'nota-ind-a',
+        escolaId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        competencia: '2026-05',
+        programaId: 'BASIC',
+        desc: 'Material A',
+        descricao: 'Material A',
+        tipo: 'consumo',
+        numero: 'NF-A',
+        valor: 100,
+        analiseDocumentoFiscal: 'Não analisado'
+    });
+
+    await assert.rejects(
+        () => harness.service.updateDocumentAnalysis({
+            id: 'nota-ind-a',
+            schoolId: 'ESC-1',
+            analysis: 'Incorreto',
+            profile: 'controlador'
+        }),
+        error => error?.code === 'PENDENCY_REQUIRED'
+    );
+    assert.equal(harness.calls.length, 0);
+    assert.equal(harness.state.registeredInvoices[0].analiseDocumentoFiscal, 'Não analisado');
+});
+
+test('despesa a identificar nasce Incorreto e permanece Incorreto quando é identificada até a reanálise', async () => {
+    const harness = createHarness();
+    const verification = harness.state.verifications['ESC-1']['2026-05_BASIC'];
+    verification.analise.notaFiscal = 'Não analisado';
+
+    const created = await harness.service.save({
+        schoolId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        description: 'Débito observado no extrato',
+        expenseType: 'a_identificar',
+        invoiceNumber: '',
+        amount: 850,
+        profile: 'controlador'
+    });
+
+    assert.equal(created.value.invoice.analiseDocumentoFiscal, 'Incorreto');
+    assert.equal(verification.analise.notaFiscal, 'Incorreto');
+
+    const identified = await harness.service.save({
+        id: created.value.invoice.id,
+        schoolId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        description: 'Serviço de manutenção identificado',
+        expenseType: 'servico',
+        invoiceNumber: 'NF-IDENT-1',
+        amount: 850,
+        profile: 'controlador'
+    });
+
+    assert.equal(identified.value.invoice.id, created.value.invoice.id);
+    assert.equal(identified.value.invoice.analiseDocumentoFiscal, 'Incorreto');
+    assert.equal(verification.analise.notaFiscal, 'Incorreto');
+});
+
+test('atualização individual semanticamente idêntica é no-op', async () => {
+    const harness = createHarness();
+    const verification = harness.state.verifications['ESC-1']['2026-05_BASIC'];
+    verification.analise.notaFiscal = 'Correto';
+    harness.state.registeredInvoices.push({
+        id: 'nota-noop-analysis',
+        escolaId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        competencia: '2026-05',
+        programaId: 'BASIC',
+        desc: 'Material',
+        descricao: 'Material',
+        tipo: 'consumo',
+        numero: 'NF-NOOP',
+        valor: 100,
+        analiseDocumentoFiscal: 'Correto'
+    });
+
+    const result = await harness.service.updateDocumentAnalysis({
+        id: 'nota-noop-analysis',
+        schoolId: 'ESC-1',
+        analysis: 'Correto',
+        profile: 'controlador'
+    });
+
+    assert.equal(result.value.unchanged, true);
+    assert.equal(harness.calls.length, 0);
+    assert.equal(harness.state.logs.length, 0);
+});
