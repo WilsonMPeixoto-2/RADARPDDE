@@ -35,6 +35,11 @@ test('camada operacional intercepta os handlers inline e evita rerender integral
     assert.match(performanceSource, /patchInlineHandlers/);
     assert.match(performanceSource, /syncProntuarioProgramUI/);
     assert.match(performanceSource, /suppressProntuarioRender/);
+    assert.match(
+        performanceSource,
+        /name === 'toggleBonif'[\s\S]*args\[2\][\s\S]*notaFiscal/,
+        'Notas Fiscais estruturadas devem escapar da atualização incremental legada.'
+    );
 });
 
 test('grade do prontuário expõe alvos estáveis para atualização incremental', () => {
