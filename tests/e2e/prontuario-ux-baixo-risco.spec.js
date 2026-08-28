@@ -73,7 +73,7 @@ async function addServiceInvoice(page, { description, number, amount }) {
 }
 
 test.describe('Prontuário — refinamentos UX de baixo risco', () => {
-  test('mantém o controle de envio à Assessoria dentro da caixa da respectiva NF', async ({ page }, testInfo) => {
+  test('individualiza envio, análise e Pendência da Assessoria por Nota Fiscal', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 
     page.on('dialog', dialog => dialog.accept());
@@ -92,22 +92,45 @@ test.describe('Prontuário — refinamentos UX de baixo risco', () => {
       number: 'NF-UX-SERV-2',
       amount: 650
     });
+    await addServiceInvoice(page, {
+      description: 'Limpeza de caixa d’água',
+      number: 'NF-UX-SERV-3',
+      amount: 555
+    });
 
-    const assessoriaRow = page.locator('#prontuario-verif-rows tr').filter({ hasText: 'Consulta Assessoria' }).first();
-    const firstInvoiceCard = assessoriaRow.locator('[data-service-advisory-invoice]').filter({ hasText: 'NF-UX-SERV-1' });
-    const secondInvoiceCard = assessoriaRow.locator('[data-service-advisory-invoice]').filter({ hasText: 'NF-UX-SERV-2' });
+    const assessoriaRow = page.locator('#prontuario-verif-rows tr')
+      .filter({ hasText: 'Consulta Assessoria' })
+      .first();
+    const firstInvoiceCard = assessoriaRow.locator('[data-service-advisory-invoice]')
+      .filter({ hasText: 'NF-UX-SERV-1' });
+    const secondInvoiceCard = assessoriaRow.locator('[data-service-advisory-invoice]')
+      .filter({ hasText: 'NF-UX-SERV-2' });
+    const thirdInvoiceCard = assessoriaRow.locator('[data-service-advisory-invoice]')
+      .filter({ hasText: 'NF-UX-SERV-3' });
 
-    const firstSent = firstInvoiceCard.getByLabel('Consulta enviada à Assessoria para a NF NF-UX-SERV-1');
-    const secondSent = secondInvoiceCard.getByLabel('Consulta enviada à Assessoria para a NF NF-UX-SERV-2');
-    const firstAnalysis = assessoriaRow.getByLabel('Análise da consulta à Assessoria para a NF NF-UX-SERV-1');
-    const secondAnalysis = assessoriaRow.getByLabel('Análise da consulta à Assessoria para a NF NF-UX-SERV-2');
+    const firstSent = firstInvoiceCard
+      .getByLabel('Consulta enviada à Assessoria para a NF NF-UX-SERV-1');
+    const secondSent = secondInvoiceCard
+      .getByLabel('Consulta enviada à Assessoria para a NF NF-UX-SERV-2');
+    const thirdSent = thirdInvoiceCard
+      .getByLabel('Consulta enviada à Assessoria para a NF NF-UX-SERV-3');
+    const firstAnalysis = firstInvoiceCard
+      .getByLabel('Análise da consulta à Assessoria para a NF NF-UX-SERV-1');
+    const secondAnalysis = secondInvoiceCard
+      .getByLabel('Análise da consulta à Assessoria para a NF NF-UX-SERV-2');
+    const thirdAnalysis = thirdInvoiceCard
+      .getByLabel('Análise da consulta à Assessoria para a NF NF-UX-SERV-3');
 
     await expect(firstInvoiceCard).toHaveCount(1);
     await expect(secondInvoiceCard).toHaveCount(1);
-    await expect(firstSent).toHaveCount(1);
-    await expect(secondSent).toHaveCount(1);
+    await expect(thirdInvoiceCard).toHaveCount(1);
     await expect(firstSent).not.toBeChecked();
     await expect(secondSent).not.toBeChecked();
+    await expect(thirdSent).not.toBeChecked();
+    await expect(firstAnalysis).toHaveValue('Não analisado');
+    await expect(secondAnalysis).toHaveValue('Não analisado');
+    await expect(thirdAnalysis).toHaveValue('Não analisado');
+    await expect(assessoriaRow.getByText('Não', { exact: true })).toBeVisible();
 
     const everySentControlIsInsideItsInvoiceCard = await assessoriaRow.locator(
       'input[type="checkbox"][aria-label^="Consulta enviada à Assessoria para a NF "]'
@@ -116,25 +139,42 @@ test.describe('Prontuário — refinamentos UX de baixo risco', () => {
     )));
     expect(everySentControlIsInsideItsInvoiceCard).toBe(true);
 
-    await expect(firstAnalysis).toHaveValue('Não analisado');
-    await expect(secondAnalysis).toHaveValue('Não analisado');
-
     await firstSent.check();
     await firstAnalysis.selectOption('Correto');
 
     await expect(firstSent).toBeChecked();
-    await expect(firstAnalysis).toHaveValue('Correto');
     await expect(secondSent).not.toBeChecked();
-    await expect(secondAnalysis).toHaveValue('Não analisado');
-
-    await secondSent.check();
-    await secondAnalysis.selectOption('Correto (Atrasado)');
-
-    await expect(firstSent).toBeChecked();
-    await expect(secondSent).toBeChecked();
+    await expect(thirdSent).not.toBeChecked();
     await expect(firstAnalysis).toHaveValue('Correto');
+    await expect(secondAnalysis).toHaveValue('Não analisado');
+    await expect(thirdAnalysis).toHaveValue('Não analisado');
+    await expect(assessoriaRow.getByText('Sim', { exact: true })).toBeVisible();
+
+    await secondAnalysis.selectOption('Correto (Atrasado)');
     await expect(secondAnalysis).toHaveValue('Correto (Atrasado)');
-    await expect(assessoriaRow.getByText('Resumo mensal: Sim')).toBeVisible();
+    await expect(assessoriaRow.getByText('Sim', { exact: true })).toBeVisible();
+
+    await thirdAnalysis.selectOption('Incorreto');
+    const pendencyModal = page.locator('#modal-nova-pendencia');
+    await expect(pendencyModal).toHaveClass(/show/);
+    await pendencyModal.getByLabel('Documento ilegível', { exact: true }).check();
+    await pendencyModal.locator('#pend-obs')
+      .fill('Problema individual na Consulta Assessoria da terceira Nota Fiscal.');
+    await page.locator('#form-nova-pendencia button[type="submit"]').click();
+    await expect(pendencyModal).not.toHaveClass(/show/);
+
+    const drawer = page.locator('#pendency-preview-drawer');
+    if (await drawer.isVisible()) {
+      await drawer.locator('.pendency-preview-close').click();
+    }
+
+    await expect(thirdInvoiceCard.getByText('Incorreto', { exact: true })).toBeVisible();
+    await expect(thirdInvoiceCard.getByRole('button', { name: 'Visualizar pendência' })).toBeVisible();
+    await expect(firstInvoiceCard.getByRole('button', { name: 'Visualizar pendência' })).toHaveCount(0);
+    await expect(secondInvoiceCard.getByRole('button', { name: 'Visualizar pendência' })).toHaveCount(0);
+    await expect(assessoriaRow.getByRole('button', { name: 'Abrir Pendência' })).toHaveCount(0);
+    await expect(assessoriaRow.getByRole('button', { name: 'Registrar novo envio' })).toHaveCount(0);
+    await expect(assessoriaRow.getByText('Sim', { exact: true })).toBeVisible();
   });
 
   test('separa visualmente os programas sem duplicar a estrutura da avaliação', async ({ page }, testInfo) => {
