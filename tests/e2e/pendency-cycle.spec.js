@@ -363,17 +363,14 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     await modal.locator('button[type="submit"]').click();
 
     await expect(modal).not.toHaveClass(/show/);
-    await expect(notice).toHaveText(
-      'Já existe uma pendência ativa para este documento.'
-    );
-    await expect(notice).toBeVisible();
+    await expect(notice).toBeHidden();
 
-    const selectedRow = page.locator('tr[data-pendency-ref].pendency-row-selected');
-    await expect(selectedRow).toHaveCount(1);
-    await expect(selectedRow).toHaveClass(/pendency-row-selected/);
-    await expect(selectedRow).toContainText('Pendência selecionada');
-    await expect(selectedRow.getByText('Aguardando reanálise', { exact: true })).toBeVisible();
-    await expect(selectedRow).toBeFocused();
+    const drawer = page.locator('#pendency-preview-drawer');
+    await expect(drawer).toBeVisible();
+    await expect(drawer).toHaveAttribute('data-pendency-id', originalId);
+    await expect(
+      drawer.locator('.pendency-preview-status')
+    ).toHaveText('Aguardando reanálise');
 
     const afterDuplicate = await page.evaluate(({ seeded, target, originalId: expectedId }) => {
       const key = RadarPendencias.buildDocumentContextKey({
@@ -392,7 +389,7 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
         count: active.length,
         id: active[0] && active[0].id,
         status: active[0] && active[0].status,
-        detailId: activePendencyDetailId,
+        currentView,
         expectedId,
         bonificacaoDepois: verification.bonificacao[target.documentoKey],
         resultadoDepois: verification.resultadoBonif
@@ -403,7 +400,7 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
       count: 1,
       id: originalId,
       status: 'Aguardando reanálise',
-      detailId: originalId,
+      currentView: 'prontuario',
       expectedId: originalId,
       bonificacaoDepois: context.bonificacaoAntes,
       resultadoDepois: context.resultadoAntes
