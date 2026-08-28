@@ -115,6 +115,25 @@ test('abre pendência manual pelo mesmo gateway sem inventar contexto documental
     assert.equal(opened.value.pendency.responsavel, 'Escola');
 });
 
+test('não cria nova Pendência genérica de Notas Fiscais', async () => {
+    const harness = createHarness();
+
+    await assert.rejects(
+        () => harness.service.open({
+            schoolId: 'ESC-1',
+            competence: '2026-05',
+            programId: 'BASIC',
+            documentKey: 'notaFiscal',
+            item: 'Notas Fiscais',
+            reason: 'Documento ausente',
+            observation: 'Sem identificar a despesa.'
+        }),
+        error => error?.code === 'INCOMPLETE_CONTEXT'
+    );
+
+    assert.equal(harness.state.pendencies.length, 0);
+});
+
 test('numera tentativas, reabre após erro e resolve por reanálise sem alterar bonificação', async () => {
     const harness = createHarness();
     const opened = await harness.service.open(documentaryInput);
@@ -431,6 +450,60 @@ test('novo envio identifica a despesa preservando ID e envia a mesma Pendência 
     assert.equal(verification.bonificacao.consAssessoria, 'Não');
 });
 
+
+test('novo envio identifica despesa como bem permanente e inclui o bem na mesma operação', async () => {
+    const harness = createHarness();
+    const verification = harness.state.verifications['ESC-1']['2026-05_BASIC'];
+    verification.bonificacao.notaFiscal = 'Sim';
+    verification.analise.notaFiscal = 'Incorreto';
+    harness.state.registeredInvoices.push({
+        id: 'nota-permanente-pendente',
+        escolaId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        competencia: '2026-05',
+        programaId: 'BASIC',
+        tipo: 'a_identificar',
+        numero: '',
+        desc: 'Débito sem documento',
+        descricao: 'Débito sem documento',
+        valor: 2500,
+        analiseDocumentoFiscal: 'Incorreto'
+    });
+
+    const opened = await harness.service.open({
+        schoolId: 'ESC-1',
+        competence: '2026-05',
+        programId: 'BASIC',
+        documentKey: 'notaFiscal',
+        registeredInvoiceId: 'nota-permanente-pendente',
+        item: 'Despesa a identificar',
+        technicalAnalysisValue: 'Incorreto',
+        errors: ['Documento ausente'],
+        observation: 'Aguardando comprovação.'
+    });
+
+    const submitted = await harness.service.registerAttempt({
+        pendencyId: opened.value.pendency.id,
+        availabilityDate: '2026-07-18',
+        observation: 'NF do equipamento apresentada.',
+        identification: {
+            expenseType: 'permanente',
+            invoiceNumber: 'NF-PERM-2500',
+            description: 'Projetor multimídia',
+            amount: 2500
+        }
+    });
+
+    assert.equal(harness.state.registeredInvoices[0].tipo, 'permanente');
+    assert.equal(harness.state.registeredInvoices[0].numero, 'NF-PERM-2500');
+    assert.equal(harness.state.assets.length, 1);
+    assert.equal(harness.state.registeredInvoices[0].bemId, harness.state.assets[0].id);
+    assert.equal(submitted.value.pendency.status, 'Aguardando reanálise');
+    assert.deepEqual(
+        harness.calls.at(-1).changedEntities,
+        ['registeredInvoices', 'assets', 'pendencies', 'pendencyAttempts', 'verifications', 'administrativeLogs']
+    );
+});
 
 test('edição pelo drawer mantém motivo canônico sincronizado com errosAtuais', async () => {
     const harness = createHarness();
