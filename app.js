@@ -9978,33 +9978,13 @@ function renderProntuarioVerificacoes(esc) {
                     const analysisLockId = `analysis-lock-${progId}-${doc.key}`;
                     let pendStatusHTML = '';
                     if (canUseVerificationActions && activePend) {
-                        const submissionActionLabel = getCorrectiveSubmissionActionLabel(activePend);
-                        const canReanalyse = canReanalysePendency(activePend);
-                        const instruction = activePend.status === 'Aguardando reanálise'
-                            ? 'Análise bloqueada enquanto aguarda reanálise. Use Reanalisar para registrar o resultado.'
-                            : 'Análise bloqueada enquanto a pendência estiver Aberta. Registre um novo envio para prosseguir.';
                         pendStatusHTML = `
-                            <div style="display:flex; flex-wrap:wrap; gap:4px;">
-                                ${canReanalyse ? `
-                                    <button
-                                        class="btn btn-primary btn-sm"
-                                        data-action="reanalyse-pendency"
-                                        data-pendency-ref="${escapeHtml(encodePendencyIdReference(activePend.id))}"
-                                        onclick="abrirModalReanalisarPendencia(this)"
-                                        style="font-size:0.7rem; padding:2px 6px;"
-                                    >Reanalisar</button>
-                                ` : ''}
-                                ${submissionActionLabel && canRegisterCorrectiveSubmission ? `
-                                    <button
-                                        class="btn ${canReanalyse ? 'btn-secondary' : 'btn-primary'} btn-sm"
-                                        data-action="register-corrective-submission"
-                                        data-pendency-ref="${escapeHtml(encodePendencyIdReference(activePend.id))}"
-                                        onclick="abrirModalRegistrarNovoEnvio(this)"
-                                        style="font-size:0.7rem; padding:2px 6px;"
-                                    >${escapeHtml(submissionActionLabel)}</button>
-                                ` : ''}
-                            </div>
-                            <p id="${escapeHtml(analysisLockId)}" style="font-size:0.7rem; color:var(--text-muted); margin-top:6px;">${escapeHtml(instruction)}</p>
+                            <button type="button" class="invoice-pendency-view-button"
+                                data-pendency-ref="${escapeHtml(encodePendencyIdReference(activePend.id))}"
+                                onclick="openPendencyDrawer('${escapeHtml(activePend.id)}')">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.6-6 9.5-6 9.5 6 9.5 6-3.6 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.7"/></svg>
+                                <span>Visualizar pendência</span>
+                            </button>
                         `;
                     } else if (canUseVerificationActions && resolvedPend && analiseValue === 'Não analisado') {
                         pendStatusHTML = `<span class="badge badge-success" style="font-size:0.7rem;" title="Justificativa: ${escapeHtml(resolvedPend.justificativaResolucao || resolvedPend.observacao || '')}">Resolvida - reanalisar</span>`;
@@ -10035,13 +10015,6 @@ function renderProntuarioVerificacoes(esc) {
                         ));
                         const activePendencyCount = activeInvoicePendencies.length
                             + (activePend ? 1 : 0);
-                        const summaryClass = fiscalSummary === 'Incorreto'
-                            ? 'is-incorrect'
-                            : fiscalSummary === 'Correto'
-                                ? 'is-correct'
-                                : fiscalSummary === 'Correto (Atrasado)'
-                                    ? 'is-late'
-                                    : 'is-pending';
                         const canMutateInvoice = accessProfile !== 'inventario'
                             && accessProfile !== 'sme'
                             && !isBonifLocked;
@@ -10064,13 +10037,13 @@ function renderProntuarioVerificacoes(esc) {
                             `
                             : `
                                 <div class="invoice-bonification-toggle" role="group" aria-label="Bonificação de Notas Fiscais">
-                                    <button type="button" class="${bonifValue === 'Sim' ? 'is-selected' : ''}"
+                                    <button type="button" class="is-sim ${bonifValue === 'Sim' ? 'is-selected' : ''}"
                                         onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', 'notaFiscal', 'Sim')"
                                         ${isBonifLocked ? 'disabled' : ''}>Sim</button>
-                                    <button type="button" class="${bonifValue === 'Não' ? 'is-selected' : ''}"
+                                    <button type="button" class="is-nao ${bonifValue === 'Não' ? 'is-selected' : ''}"
                                         onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', 'notaFiscal', 'Não')"
                                         ${isBonifLocked ? 'disabled' : ''}>Não</button>
-                                    <button type="button" class="${bonifValue === 'Não se aplica' ? 'is-selected' : ''}"
+                                    <button type="button" class="is-na ${bonifValue === 'Não se aplica' ? 'is-selected' : ''}"
                                         onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', 'notaFiscal', 'Não se aplica')"
                                         ${isBonifLocked ? 'disabled' : ''}>N/A</button>
                                 </div>
@@ -10211,16 +10184,10 @@ function renderProntuarioVerificacoes(esc) {
                                                 </div>
                                             </div>
                                             <div class="invoice-document-panel-summary">
-                                                <div class="invoice-summary-block">
+                                                <div class="invoice-summary-block is-bonification">
                                                     <span>Bonificação</span>
                                                     ${fiscalBonificationHTML}
                                                 </div>
-                                                ${canViewTechnicalAnalysis ? `
-                                                    <div class="invoice-summary-block">
-                                                        <span>Situação técnica</span>
-                                                        <strong class="invoice-document-status ${summaryClass}">${escapeHtml(fiscalSummary)}</strong>
-                                                    </div>
-                                                ` : ''}
                                                 ${activePendencyCount > 0 ? `
                                                     <div class="invoice-summary-block is-pendencies">
                                                         <span class="invoice-summary-pendency-icon">
