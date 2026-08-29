@@ -819,78 +819,209 @@ $$;
 revoke all on function public.save_unidentified_expense_with_pendency(jsonb, jsonb, integer, jsonb, jsonb) from public, anon;
 grant execute on function public.save_unidentified_expense_with_pendency(jsonb, jsonb, integer, jsonb, jsonb) to authenticated;
 
--- Reparo cirúrgico do único caso conhecido que originou este hotfix.
--- Em banco limpo os IDs não existem e o bloco é inerte. Se apenas parte do
--- contexto existir, a migration falha em vez de adivinhar a associação.
+-- Limpeza fail-closed de fixtures operacionais criadas exclusivamente pela
+-- conta técnica de teste durante a investigação deste hotfix.
+--
+-- A atribuição foi comprovada em Production por actor_user_id + log administrativo
+-- contemporâneo à criação. Os logs são preservados como trilha de auditoria; apenas
+-- os objetos operacionais de teste são removidos. Em banco limpo, o bloco é inerte.
+-- Se houver divergência parcial de IDs, autoria, contexto, histórico ou consolidação,
+-- a migration falha em vez de apagar por aproximação.
 do $$
 declare
-    v_pendency_id constant text := 'pend-384d9cc0-634f-4e74-9eac-f22da3b6e2c5';
-    v_invoice_id constant text := 'nota-a2da969c-2e29-41f9-a9fc-f34a306e00ed';
-    v_pendency_exists integer;
-    v_invoice_exists integer;
-    v_pendency_match integer;
-    v_invoice_match integer;
+    v_test_actor constant uuid := '17a51409-4823-4a36-8d85-4d4ed08da249'::uuid;
+    v_invoice_ids constant text[] := array[
+        'nota-c6d2e4d1-d836-4c65-b9b1-4c9be8ce3612',
+        'nota-b8c2a224-186c-4938-99f9-0b4456cea833',
+        'nota-b4962927-deff-4a69-bea0-777b9054311b',
+        'nota-a2da969c-2e29-41f9-a9fc-f34a306e00ed',
+        'nota-9838a0a5-49ca-4e12-b174-95a71d64e1f9',
+        'nota-acdc7e0d-fd87-424c-b95d-ee1dbf2ff8a5',
+        'nota-4bed5f8e-826a-465a-ac85-44024ccb74a5',
+        'nota-81cd8e05-047c-4dbc-9376-63b7daccc252',
+        'nota-0b4c974a-a525-4151-b8e2-60bc92370634',
+        'nota-cb959bc9-d691-40bc-9720-bfc18e9a0621',
+        'nota-51028cd5-7080-46f9-8264-7aeb70895480',
+        'nota-825dea6a-8032-4f6d-b49f-f5f4b9d98b9c'
+    ];
+    v_pendency_ids constant text[] := array[
+        'pend-46134ec0-1842-4787-9804-4bb0080cd989',
+        'pend-384d9cc0-634f-4e74-9eac-f22da3b6e2c5',
+        'pend-fc828ec9-d1f5-4ab2-bed9-ceba4e93d88b'
+    ];
+    v_any_presence integer;
+    v_invoice_evidence integer;
+    v_pendency_evidence integer;
+    v_unexpected_context_invoices integer;
+    v_linked_history integer;
+    v_verification_count integer;
 begin
-    select count(*) into v_pendency_exists
-      from public.pendencies
-     where id = v_pendency_id;
+    select
+        (select count(*) from public.registered_invoices where id = any(v_invoice_ids))
+        + (select count(*) from public.pendencies where id = any(v_pendency_ids))
+        + (select count(*) from public.administrative_logs
+            where id in (
+                'log-8e80da42-3e7d-4758-848f-93842c677a7b',
+                'log-0eb10350-4f16-481b-97c4-6e2c6f3456ab',
+                'log-7eed6ba1-a0ab-4672-9840-179ddd7bf8eb',
+                'log-d2bcd7cf-6109-4be7-bc77-e87d84d71a0d',
+                'log-62996ede-e987-4909-aac9-0660db78b040',
+                'log-df2ddf51-7a0e-4d82-9fc0-81138ab68338',
+                'log-1e2d6f69-5315-44c2-ac7b-c3e852555258',
+                'log-1c037369-4f60-4387-8ac2-b420b82691c1',
+                'log-de96a656-7eaa-4f09-b507-3bc95de09b06',
+                'log-24a2cae2-7ada-43c4-ab20-6f0cde23b9da',
+                'log-9e092dc3-f08c-4083-a539-5407fb44ce1c',
+                'log-6d897261-5a54-410f-acb1-ea12c4ecb10f',
+                'log-edc31089-6ece-4f5c-ac3c-41df05003d85',
+                'log-d184b73e-9b51-4dda-b82c-cf742ab87d2a',
+                'log-e11faf5d-004d-41f7-8e55-b20b66933855'
+            ))
+      into v_any_presence;
 
-    select count(*) into v_invoice_exists
-      from public.registered_invoices
-     where id = v_invoice_id;
-
-    if v_pendency_exists = 0 and v_invoice_exists = 0 then
+    if v_any_presence = 0 then
         return;
     end if;
 
-    if v_pendency_exists <> 1 or v_invoice_exists <> 1 then
-        raise exception 'DATA_REPAIR_PREFLIGHT_FAILED: pendência e boleto conhecidos não coexistem';
+    with expected(
+        invoice_id, log_id, school_id, competence_id, program_id,
+        expense_type, invoice_number, amount
+    ) as (
+        values
+        ('nota-c6d2e4d1-d836-4c65-b9b1-4c9be8ce3612','log-8e80da42-3e7d-4758-848f-93842c677a7b','04.31.009','2026-03','ADOLESCENCIAS','servico','1234',100.00::numeric),
+        ('nota-b8c2a224-186c-4938-99f9-0b4456cea833','log-0eb10350-4f16-481b-97c4-6e2c6f3456ab','04.31.009','2026-03','ADOLESCENCIAS','a_identificar',null,100.00::numeric),
+        ('nota-b4962927-deff-4a69-bea0-777b9054311b','log-7eed6ba1-a0ab-4672-9840-179ddd7bf8eb','04.31.009','2026-03','BASIC','a_identificar',null,300.00::numeric),
+        ('nota-a2da969c-2e29-41f9-a9fc-f34a306e00ed','log-d2bcd7cf-6109-4be7-bc77-e87d84d71a0d','04.31.001','2026-08','CONECTADA','boleto_internet','Boteto 1234',100.00::numeric),
+        ('nota-9838a0a5-49ca-4e12-b174-95a71d64e1f9','log-62996ede-e987-4909-aac9-0660db78b040','04.31.001','2026-08','CONECTADA','servico','NFS-E 1234',500.00::numeric),
+        ('nota-acdc7e0d-fd87-424c-b95d-ee1dbf2ff8a5','log-df2ddf51-7a0e-4d82-9fc0-81138ab68338','04.31.001','2026-08','CONECTADA','servico','2345',1345.00::numeric),
+        ('nota-4bed5f8e-826a-465a-ac85-44024ccb74a5','log-1e2d6f69-5315-44c2-ac7b-c3e852555258','04.31.001','2026-08','CONECTADA','a_identificar',null,200.00::numeric),
+        ('nota-81cd8e05-047c-4dbc-9376-63b7daccc252','log-1c037369-4f60-4387-8ac2-b420b82691c1','04.31.001','2026-08','BASIC','a_identificar',null,200.00::numeric),
+        ('nota-0b4c974a-a525-4151-b8e2-60bc92370634','log-de96a656-7eaa-4f09-b507-3bc95de09b06','04.31.001','2026-04','CONECTADA','boleto_internet','1233',200.00::numeric),
+        ('nota-cb959bc9-d691-40bc-9720-bfc18e9a0621','log-24a2cae2-7ada-43c4-ab20-6f0cde23b9da','04.31.001','2026-04','CONECTADA','consumo','345',500.00::numeric),
+        ('nota-51028cd5-7080-46f9-8264-7aeb70895480','log-9e092dc3-f08c-4083-a539-5407fb44ce1c','04.31.001','2026-04','CONECTADA','servico','2222',500.00::numeric),
+        ('nota-825dea6a-8032-4f6d-b49f-f5f4b9d98b9c','log-6d897261-5a54-410f-acb1-ea12c4ecb10f','04.31.001','2026-04','CONECTADA','servico','4444',555.00::numeric)
+    )
+    select count(*)
+      into v_invoice_evidence
+      from expected e
+      join public.registered_invoices i
+        on i.id = e.invoice_id
+       and i.school_id = e.school_id
+       and i.competence_id = e.competence_id
+       and i.program_id = e.program_id
+       and i.expense_type = e.expense_type
+       and i.invoice_number is not distinct from e.invoice_number
+       and i.amount = e.amount
+       and i.linked_asset_id is null
+      join public.administrative_logs l
+        on l.id = e.log_id
+       and l.actor_user_id = v_test_actor
+       and l.school_id = e.school_id
+       and abs(extract(epoch from (l.event_at - i.created_at))) <= 10;
+
+    if v_invoice_evidence <> 12 then
+        raise exception 'TEST_FIXTURE_PREFLIGHT_FAILED: autoria/contexto das 12 despesas de teste divergiu';
     end if;
 
-    select count(*) into v_pendency_match
+    with expected(pendency_id, log_id, school_id, competence_id, program_id) as (
+        values
+        ('pend-46134ec0-1842-4787-9804-4bb0080cd989','log-edc31089-6ece-4f5c-ac3c-41df05003d85','04.31.009','2026-03','ADOLESCENCIAS'),
+        ('pend-384d9cc0-634f-4e74-9eac-f22da3b6e2c5','log-d184b73e-9b51-4dda-b82c-cf742ab87d2a','04.31.001','2026-08','CONECTADA'),
+        ('pend-fc828ec9-d1f5-4ab2-bed9-ceba4e93d88b','log-e11faf5d-004d-41f7-8e55-b20b66933855','04.31.001','2026-08','BASIC')
+    )
+    select count(*)
+      into v_pendency_evidence
+      from expected e
+      join public.pendencies p
+        on p.id = e.pendency_id
+       and p.school_id = e.school_id
+       and p.competence_origin = e.competence_id
+       and p.program_id = e.program_id
+       and p.document_key = 'notaFiscal'
+       and p.registered_invoice_id is null
+       and p.status = 'Aberta'
+      join public.administrative_logs l
+        on l.id = e.log_id
+       and l.actor_user_id = v_test_actor
+       and l.school_id = e.school_id
+       and l.action = 'Análise incorreta e pendência aberta'
+       and l.details::text like '%' || e.pendency_id || '%'
+     where not exists (
+        select 1 from public.pendency_attempts pa where pa.pendency_id = p.id
+     );
+
+    if v_pendency_evidence <> 3 then
+        raise exception 'TEST_FIXTURE_PREFLIGHT_FAILED: autoria/contexto das 3 Pendências fiscais de teste divergiu';
+    end if;
+
+    select count(*)
+      into v_unexpected_context_invoices
+      from public.registered_invoices i
+     where (
+            (i.school_id = '04.31.009' and i.competence_id = '2026-03' and i.program_id in ('ADOLESCENCIAS','BASIC'))
+         or (i.school_id = '04.31.001' and i.competence_id = '2026-08' and i.program_id in ('CONECTADA','BASIC'))
+         or (i.school_id = '04.31.001' and i.competence_id = '2026-04' and i.program_id = 'CONECTADA')
+     )
+       and not (i.id = any(v_invoice_ids));
+
+    if v_unexpected_context_invoices <> 0 then
+        raise exception 'TEST_FIXTURE_PREFLIGHT_FAILED: contexto de teste passou a conter despesa não atribuída à conta técnica';
+    end if;
+
+    select count(*)
+      into v_linked_history
       from public.pendencies
-     where id = v_pendency_id
-       and school_id = '04.31.001'
-       and competence_origin = '2026-08'
-       and program_id = 'CONECTADA'
-       and document_key = 'notaFiscal'
-       and registered_invoice_id is null
-       and status in ('Aberta', 'Aguardando reanálise');
+     where registered_invoice_id = any(v_invoice_ids);
 
-    select count(*) into v_invoice_match
-      from public.registered_invoices
-     where id = v_invoice_id
-       and school_id = '04.31.001'
-       and competence_id = '2026-08'
-       and program_id = 'CONECTADA'
-       and expense_type = 'boleto_internet'
-       and invoice_number = 'Boteto 1234'
-       and amount = 100.00;
-
-    if v_pendency_match <> 1 or v_invoice_match <> 1 then
-        raise exception 'DATA_REPAIR_PREFLIGHT_FAILED: contexto conhecido do boleto divergiu';
+    if v_linked_history <> 0 then
+        raise exception 'TEST_FIXTURE_PREFLIGHT_FAILED: despesa de teste passou a possuir histórico individual';
     end if;
 
-    update public.pendencies
-       set registered_invoice_id = v_invoice_id,
-           payload = jsonb_set(
+    select count(*)
+      into v_verification_count
+      from public.verifications v
+     where (
+            (v.school_id = '04.31.009' and v.competence_id = '2026-03' and v.program_id in ('ADOLESCENCIAS','BASIC'))
+         or (v.school_id = '04.31.001' and v.competence_id = '2026-08' and v.program_id in ('CONECTADA','BASIC'))
+         or (v.school_id = '04.31.001' and v.competence_id = '2026-04' and v.program_id = 'CONECTADA')
+     )
+       and coalesce(v.bonus_result, '') = '';
+
+    if v_verification_count <> 5 then
+        raise exception 'TEST_FIXTURE_PREFLIGHT_FAILED: verificação de contexto de teste ausente ou consolidada';
+    end if;
+
+    delete from public.pendencies
+     where id = any(v_pendency_ids);
+
+    delete from public.registered_invoices
+     where id = any(v_invoice_ids);
+
+    update public.verifications
+       set bonification =
                jsonb_set(
-                   coalesce(payload, '{}'::jsonb),
-                   '{registeredInvoiceId}',
-                   to_jsonb(v_invoice_id),
-                   true
+                   jsonb_set(
+                       jsonb_set(
+                           coalesce(bonification, '{}'::jsonb) - 'boletoInternet',
+                           '{notaFiscal}', to_jsonb(''::text), true
+                       ),
+                       '{consEnviada}', 'false'::jsonb, true
+                   ),
+                   '{consAssessoria}', to_jsonb('Não se aplica'::text), true
                ),
-               '{documentSnapshot}',
-               jsonb_build_object(
-                   'registeredInvoiceId', v_invoice_id,
-                   'tipo', 'boleto_internet',
-                   'numero', 'Boteto 1234',
-                   'descricao', 'Boleto de pagamento do provedor de internet',
-                   'valor', 100.00
-               ),
-               true
-           )
-     where id = v_pendency_id;
+           analysis =
+               jsonb_set(
+                   jsonb_set(
+                       coalesce(analysis, '{}'::jsonb) - 'boletoInternet',
+                       '{notaFiscal}', to_jsonb('Não analisado'::text), true
+                   ),
+                   '{consAssessoria}', to_jsonb('Correto'::text), true
+               )
+     where (
+            (school_id = '04.31.009' and competence_id = '2026-03' and program_id in ('ADOLESCENCIAS','BASIC'))
+         or (school_id = '04.31.001' and competence_id = '2026-08' and program_id in ('CONECTADA','BASIC'))
+         or (school_id = '04.31.001' and competence_id = '2026-04' and program_id = 'CONECTADA')
+     );
 end
 $$;
 
