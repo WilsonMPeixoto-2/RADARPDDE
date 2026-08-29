@@ -3,7 +3,7 @@
 **Data:** 29 de agosto de 2026  
 **PR:** #211 — Draft  
 **Branch:** `hotfix/individualizar-analise-notas-fiscais`  
-**Último SHA funcional antes da reconciliação documental:** `3d63e0cee204c633ef8b796c7921fda05274c63e`  
+**Último SHA funcional antes desta atualização documental:** `a6e3c646bada786b014ec0d531f96f2a03fa950d`  
 **Production:** sem alteração causada por este PR
 
 ## 1. Situação atual
@@ -81,7 +81,7 @@ Os resultados verdes do SHA `ff8453c8fd0c4e5707d656b4520051962a48df96` continuam
 
 Entretanto, após esse SHA foram modificados:
 
-- migration de Production, para substituir o antigo reparo do Boleto 1234 pela limpeza fail-closed de fixtures;
+- migration de Production, para substituir o antigo reparo do Boleto 1234 pela limpeza fail-closed de fixtures, inclusive com prova de autoria dos cinco resumos fiscais que serão neutralizados;
 - renderização dos `a_identificar` legítimos, agora identificados como **Registro legado**;
 - regra de transição que determina quando a individualização já começou;
 - regressão E2E correspondente.

@@ -77,6 +77,7 @@ Antes de qualquer aplicação em Production, repetir em modo somente leitura as 
 3. ausência de histórico individual/tentativas;
 4. inexistência de despesas inesperadas nos cinco contextos;
 5. ausência de consolidação das cinco verificações;
-6. preservação dos 16 `a_identificar` legítimos.
+6. autoria técnica dos lançamentos de bonificação de Notas Fiscais que serão neutralizados nos cinco contextos;
+7. preservação dos 16 `a_identificar` legítimos.
 
 Se qualquer item divergir, não aplicar a migration até nova análise.

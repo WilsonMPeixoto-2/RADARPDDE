@@ -112,7 +112,8 @@ A migration somente executa a limpeza se comprovar simultaneamente:
 - ausência de tentativas nas três Pendências;
 - ausência de histórico individual ligado às 12 despesas;
 - ausência de outras despesas nos cinco contextos usados exclusivamente para esses testes;
-- existência das cinco verificações esperadas e ausência de consolidação.
+- existência das cinco verificações esperadas e ausência de consolidação;
+- autoria técnica comprovada do último lançamento de bonificação de Notas Fiscais em cada um dos cinco contextos antes da limpeza do resumo fiscal.
 
 Qualquer divergência interrompe a migration.
 
