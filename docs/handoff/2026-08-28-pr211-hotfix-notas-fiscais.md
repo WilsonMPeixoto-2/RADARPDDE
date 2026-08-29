@@ -1,16 +1,16 @@
 # Handoff — PR #211 / hotfix de Notas Fiscais
 
 **Data:** 29 de agosto de 2026  
-**PR:** #211 — Draft  
+**PR:** #211 — preparado para sair de Draft  
 **Branch:** `hotfix/individualizar-analise-notas-fiscais`  
-**SHA funcional validado:** `e4aaee1969785e7f0c116da6ffbac9fa11f972c8`  
+**SHA funcional validado:** `ff8453c8fd0c4e5707d656b4520051962a48df96`  
 **Production:** sem alteração causada por este PR
 
 ## 1. Situação atual
 
 O núcleo funcional do hotfix está implementado e os principais caminhos antigos foram fechados.
 
-O PR permanece **Draft** apenas porque ainda falta a inspeção visual autenticada do Preview desktop e o registro dessa evidência antes da decisão formal de merge/publicação. A revisão adversarial de código foi concluída e a reexecução do gate Supabase passou integralmente.
+Em 29/08/2026, o responsável pelo produto registrou que não consegue fazer nova conferência visual neste momento e autorizou o avanço da preparação para merge, deixando eventual refinamento visual adicional para etapa posterior. A primeira inspeção autenticada já havia aprovado a estrutura principal e identificado os ajustes residuais; esses ajustes foram implementados e passaram por E2E. Assim, a conferência visual pós-ajuste deixa de ser bloqueante para a preparação do merge, sem ser apagada do histórico.
 
 Nenhuma migration do PR #211 foi aplicada em Production.
 
@@ -99,19 +99,17 @@ Referência: `docs/evidence/2026-08-28-pr211-referencias-visuais.md`.
 
 ### Lighthouse
 
-Desktop passou no SHA final:
+Desktop passou no SHA funcional `ff8453c8fd0c4e5707d656b4520051962a48df96`:
 
 - performance: **79%**;
-- FCP: **1,06 s**;
-- LCP: **3,43 s** / limite **3,50 s**;
-- acessibilidade: **100%**.
+- FCP: **1,01 s**;
+- LCP: **3,44 s** / limite **3,50 s**.
 
 Mobile continua fora do orçamento:
 
-- performance: **68%**;
-- FCP: **2,82 s**;
-- LCP: **16,40 s** / limite **15,00 s**;
-- acessibilidade: **94%**.
+- performance: **64%**;
+- FCP: **4,06 s**;
+- LCP: **15,66 s** / limite **15,00 s**.
 
 O vermelho agregado da homologação pré-Production decorre exclusivamente do Lighthouse móvel. Todos os demais jobs da homologação passaram.
 
@@ -174,10 +172,13 @@ Em todos os cenários:
 
 ## 6. Próximas ações obrigatórias
 
-1. conferir o Preview autenticado do SHA `e4aaee1969785e7f0c116da6ffbac9fa11f972c8`, com foco nas correções visuais e funcionais de Notas Fiscais e Consulta Assessoria;
-2. registrar a evidência visual final;
-3. imediatamente antes de eventual migration, reexecutar o preflight do Boleto 1234 e dos 20 registros históricos;
-4. somente então decidir retirada do Draft e merge.
+1. retirar o PR de Draft após registrar esta dispensa de conferência visual pós-ajuste;
+2. imediatamente antes do merge/migration, reexecutar o preflight fail-closed do Boleto 1234 e dos 20 registros históricos;
+3. confirmar novamente que a `main` não avançou e que o PR permanece mergeável;
+4. obter/usar autorização de merge;
+5. somente então integrar, aplicar migration e executar smoke de Production.
+
+A conferência visual pós-ajuste permanece recomendada, mas foi explicitamente adiada para etapa posterior e não bloqueia mais a preparação do merge.
 
 ## 7. Relação com o plano mestre
 
