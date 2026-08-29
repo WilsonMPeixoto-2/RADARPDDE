@@ -1,6 +1,6 @@
 # PR #211 — preflight somente leitura de Production
 
-**Data:** 28 de agosto de 2026  
+**Data:** 29 de agosto de 2026  
 **Ambiente consultado:** Supabase Production `scnryinorqeucbfkioxo`  
 **Natureza:** somente leitura; nenhuma mutação executada
 
@@ -78,7 +78,7 @@ Nenhuma modificação foi executada em Production durante esta verificação.
 
 ## 5. Evidência de gates do hotfix
 
-SHA funcional validado: `3e032562a7fd5c7a05177006c7270f5af9068564`.
+SHA funcional validado: `e4aaee1969785e7f0c116da6ffbac9fa11f972c8`.
 
 | Gate | Resultado |
 |---|---|
@@ -98,8 +98,8 @@ SHA funcional validado: `3e032562a7fd5c7a05177006c7270f5af9068564`.
 | regeneração de tipos | PASS |
 | Auth/RLS/Edge Function em Supabase descartável | PASS |
 | Vercel Preview | **READY** |
-| Lighthouse desktop | PASS — performance 78%, FCP 1,07 s, LCP 3,45 s / limite 3,50 s |
-| Lighthouse mobile | FAIL — performance 68%, FCP 2,82 s, LCP 15,36 s / limite 15,00 s |
+| Lighthouse desktop | PASS — performance 79%, FCP 1,06 s, LCP 3,43 s / limite 3,50 s |
+| Lighthouse mobile | FAIL — performance 68%, FCP 2,82 s, LCP 16,40 s / limite 15,00 s |
 | Homologação integral pré-Production | FAIL agregado somente por Lighthouse mobile; todos os demais jobs PASS |
 
 ### Revalidação de Production somente leitura
@@ -110,6 +110,8 @@ Após a estabilização do SHA acima, Production foi consultada novamente sem mu
 - `a_identificar` com análise individual explícita: **0**;
 - Pendências fiscais individuais ativas novas por `registered_invoice_id`: **0**;
 - a migration do PR #211 continua ausente de Production;
+- Pendências individuais ativas de Consulta Assessoria por `registered_invoice_id`: **0**;
+- Pendências genéricas ativas de Consulta Assessoria sem `registered_invoice_id`: **0**;
 - o caso Boleto 1234 continua correspondendo exatamente ao preflight fail-closed já versionado.
 
 ### Classificação do Lighthouse móvel

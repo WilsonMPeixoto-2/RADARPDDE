@@ -1,9 +1,9 @@
 # Handoff — PR #211 / hotfix de Notas Fiscais
 
-**Data:** 28 de agosto de 2026  
+**Data:** 29 de agosto de 2026  
 **PR:** #211 — Draft  
 **Branch:** `hotfix/individualizar-analise-notas-fiscais`  
-**SHA funcional validado:** `3e032562a7fd5c7a05177006c7270f5af9068564`  
+**SHA funcional validado:** `e4aaee1969785e7f0c116da6ffbac9fa11f972c8`  
 **Production:** sem alteração causada por este PR
 
 ## 1. Situação atual
@@ -33,6 +33,17 @@ Nenhuma migration do PR #211 foi aplicada em Production.
 - reanálise só ocorre depois de tentativa válida da mesma Pendência;
 - os 20 `a_identificar` históricos não recebem Pendências inventadas;
 - somente o Boleto 1234 conhecido possui reparo cirúrgico previamente autorizado.
+
+### Consulta Assessoria — fechamento da individualização
+
+- somente NFs de serviço participam da Consulta Assessoria;
+- envio, análise e Pendência são individualizados por `registered_invoice_id`;
+- uma Pendência ativa da NF A não bloqueia a NF B;
+- ao selecionar `Incorreto`, a análise não é gravada antes da Pendência: a confirmação ocorre atomicamente;
+- se já existir Pendência da própria NF, o Prontuário abre **Visualizar pendência** em vez de exibir alerta genérico;
+- o resumo mensal de bonificação da Assessoria é `Sim` quando pelo menos uma consulta exigível foi enviada, `Não` quando existem NFs de serviço e nenhuma foi enviada, e `Não se aplica` quando não existe NF de serviço;
+- `Registrar novo envio` e `Reanalisar` permanecem na tela de Pendências;
+- E2E comprova duas Pendências de Assessoria simultâneas para duas NFs distintas, sem bloqueio cruzado.
 
 ## 3. Layout aprovado e implementado
 
@@ -88,19 +99,21 @@ Referência: `docs/evidence/2026-08-28-pr211-referencias-visuais.md`.
 
 ### Lighthouse
 
-Desktop passou:
+Desktop passou no SHA final:
 
-- performance: **78%**;
-- FCP: **1,07 s**;
-- LCP: **3,45 s** / limite **3,50 s**.
+- performance: **79%**;
+- FCP: **1,06 s**;
+- LCP: **3,43 s** / limite **3,50 s**;
+- acessibilidade: **100%**.
 
 Mobile continua fora do orçamento:
 
 - performance: **68%**;
 - FCP: **2,82 s**;
-- LCP: **15,36 s** / limite **15,00 s**.
+- LCP: **16,40 s** / limite **15,00 s**;
+- acessibilidade: **94%**.
 
-O vermelho agregado da homologação pré-Production decorre exclusivamente do job Lighthouse móvel. Todos os demais jobs dessa homologação passaram.
+O vermelho agregado da homologação pré-Production decorre exclusivamente do Lighthouse móvel. Todos os demais jobs da homologação passaram.
 
 A dívida móvel é anterior ao PR #211 e permanece **não bloqueante para este hotfix desktop**. O threshold não foi relaxado.
 
@@ -161,11 +174,10 @@ Em todos os cenários:
 
 ## 6. Próximas ações obrigatórias
 
-1. abrir e inspecionar o Preview autenticado no desktop;
-2. comparar o Preview com as referências visuais aprovadas;
-3. registrar a evidência visual final;
-4. imediatamente antes de eventual migration, reexecutar o preflight do Boleto 1234 e dos 20 registros históricos;
-5. somente então decidir retirada do Draft e merge.
+1. conferir o Preview autenticado do SHA `e4aaee1969785e7f0c116da6ffbac9fa11f972c8`, com foco nas correções visuais e funcionais de Notas Fiscais e Consulta Assessoria;
+2. registrar a evidência visual final;
+3. imediatamente antes de eventual migration, reexecutar o preflight do Boleto 1234 e dos 20 registros históricos;
+4. somente então decidir retirada do Draft e merge.
 
 ## 7. Relação com o plano mestre
 

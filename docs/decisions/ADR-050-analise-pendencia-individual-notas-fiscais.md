@@ -34,6 +34,21 @@ O hotfix também precisa representar corretamente débitos do extrato cuja docum
 19. Pendência ativa bloqueia edição estrutural comum da despesa no Prontuário.
 20. Pendências históricas sem identidade individual não recebem associação automática por número, valor, descrição ou heurística.
 
+### Consulta Assessoria
+
+A dimensão de Consulta Assessoria continua separada da análise documental da Nota Fiscal, mas também usa a identidade da NF de serviço quando precisa registrar análise e Pendência.
+
+Regras consolidadas:
+
+- somente `servico` participa da matriz de Assessoria;
+- cada NF de serviço possui seu próprio `sent` e sua própria análise;
+- Pendência de Assessoria é identificada por escola + competência + programa + `consAssessoria` + `registered_invoice_id`;
+- Pendência da NF A não bloqueia análise ou Pendência da NF B;
+- selecionar `Incorreto` abre o fluxo de Pendência antes da gravação; análise e Pendência são persistidas atomicamente;
+- o resumo mensal de bonificação da Assessoria é `Sim` se pelo menos uma consulta exigível foi enviada, `Não` se existem NFs de serviço e nenhuma foi enviada, e `Não se aplica` se não existe NF de serviço;
+- enquanto houver Pendência ativa da própria NF, o Prontuário apresenta **Visualizar pendência**;
+- novo envio e reanálise permanecem na tela de Pendências.
+
 ## Decisão visual
 
 O hotfix altera somente o bloco de Notas Fiscais do Prontuário e o drawer lateral.

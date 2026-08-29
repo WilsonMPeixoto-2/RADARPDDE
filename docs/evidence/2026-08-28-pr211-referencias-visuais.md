@@ -1,6 +1,6 @@
 # PR #211 — referências visuais do hotfix de Notas Fiscais
 
-**Data:** 28 de agosto de 2026  
+**Data:** 29 de agosto de 2026  
 **Uso:** referência visual e funcional; não substitui contrato de domínio
 
 ## 1. Evidência do defeito original
@@ -94,6 +94,16 @@ A imagem orienta composição, hierarquia, densidade, próximos passos e estados
 
 ## 7. Checkpoint de implementação
 
-No checkpoint funcional `3b10c2a97fd2142dbfd1e120dad0bf2bbd712d57`, o código já incorpora a hierarquia de quatro áreas, contador zero oculto, estado concluído estático, edição deliberada, bloqueio visual de edição comum com Pendência ativa e drawer limitado à conferência/edição simples.
+A primeira inspeção autenticada do Preview confirmou que o bloco de Notas Fiscais estava visualmente aprovado em sua estrutura principal e revelou ajustes residuais objetivos: contraste/tamanho da bonificação, simplificação do cabeçalho, botão Consolidar, resumo mensal da Assessoria e ações antigas de Pendência na Assessoria.
 
-A homologação final ainda exige inspeção autenticada do Preview desktop contra esta referência. Aprovação automatizada de DOM não substitui a conferência visual humana.
+No SHA funcional `e4aaee1969785e7f0c116da6ffbac9fa11f972c8`, esses pontos foram corrigidos no código e cobertos por E2E:
+
+- bonificação de Notas Fiscais ampliada e `Sim` em verde;
+- cabeçalho fiscal sem repetir `Incorreto` agregado, mantendo apenas o contador de Pendências;
+- botão Consolidar reforçado;
+- Consulta Assessoria em sublinhas por NF de serviço;
+- resumo mensal da Assessoria corrigido para `Sim` quando existe pelo menos um envio;
+- duas Pendências de Assessoria de NFs distintas coexistem;
+- Prontuário exibe **Visualizar pendência**; novo envio e reanálise ficam na tela de Pendências.
+
+A homologação final ainda exige uma conferência visual rápida do Preview desse SHA para registrar que a renderização efetiva corresponde às correções já aprovadas funcionalmente.

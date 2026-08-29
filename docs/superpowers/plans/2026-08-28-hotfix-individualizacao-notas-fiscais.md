@@ -5,7 +5,7 @@
 **Branch:** `hotfix/individualizar-analise-notas-fiscais`  
 **PR:** #211 (Draft)  
 **Baseline de origem:** `b4ad4e8540c55ccfae0406ea136bc4c8da59fd0b`  
-**SHA funcional validado:** `3e032562a7fd5c7a05177006c7270f5af9068564`
+**SHA funcional validado:** `e4aaee1969785e7f0c116da6ffbac9fa11f972c8`
 
 ## 1. Relação com o plano mestre
 
@@ -224,7 +224,7 @@ O reparo deve ser fail-closed, com preflight integral antes da associação.
 
 ## 7. Implementado até o checkpoint funcional consolidado
 
-No checkpoint `3e032562a7fd5c7a05177006c7270f5af9068564`:
+No checkpoint `e4aaee1969785e7f0c116da6ffbac9fa11f972c8`:
 
 - análise técnica individual por `registered_invoice_id` implementada;
 - bonificação de `notaFiscal` preservada como requisito agregado;
@@ -249,6 +249,11 @@ No checkpoint `3e032562a7fd5c7a05177006c7270f5af9068564`:
 - migration Draft e RPCs ajustadas para validar identidade, contexto, transição e atomicidade sem duplicar no PostgreSQL toda a regra de negócio;
 - os 20 registros históricos `a_identificar` permanecem sem backfill;
 - reparo conhecido do Boleto 1234 permanece exclusivamente cirúrgico e fail-closed;
+- Consulta Assessoria foi individualizada por NF de serviço também no ciclo de Pendência;
+- a verificação de Pendência ativa da Assessoria usa a identidade da NF exata, evitando bloqueio cruzado;
+- `Incorreto` da Assessoria é persistido apenas junto com a Pendência, na mesma operação;
+- o resumo mensal da Assessoria passa a `Sim` com pelo menos uma consulta enviada e não exige que todas estejam enviadas;
+- o Prontuário da Assessoria usa **Visualizar pendência**, enquanto novo envio e reanálise permanecem na tela de Pendências;
 - Production permanece intocada.
 
 ## 8. Evidências do checkpoint atual
@@ -306,7 +311,7 @@ Mobile:
 
 - performance: **68%**;
 - FCP: **2,82 s**;
-- LCP: **15,36 s** para limite de **15,00 s**.
+- LCP: **16,40 s** para limite de **15,00 s**.
 
 A dívida móvel já existia antes do PR #211 e permanece **não bloqueante para este hotfix desktop**. O threshold não foi relaxado.
 
@@ -343,6 +348,7 @@ Resultados adicionais:
 
 - opção `a_identificar` removida do cadastro comum e reservada ao fluxo dedicado;
 - rota agregada antiga de `notaFiscal → Incorreto` bloqueada;
+- Consulta Assessoria confirmada individual por NF, sem bloqueio cruzado e com abertura atômica de Pendência;
 - Boleto Internet permanece apenas como `boleto_internet` dentro de Notas Fiscais;
 - Assessoria continua exclusiva de serviço;
 - criação patrimonial no novo envio permanece coberta;
