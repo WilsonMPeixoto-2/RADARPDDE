@@ -51,7 +51,7 @@ Regras consolidadas:
 
 ## Decisão visual
 
-O hotfix altera somente o bloco de Notas Fiscais do Prontuário e o drawer lateral.
+O hotfix altera o bloco de Notas Fiscais do Prontuário, o drawer lateral e, de forma estritamente necessária à individualização, o bloco de Consulta Assessoria das NFs de serviço. Não há redesign geral do Prontuário ou da tela de Pendências.
 
 No desktop, cada sublinha possui quatro áreas:
 

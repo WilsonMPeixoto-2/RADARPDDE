@@ -141,7 +141,7 @@ Documento que possua histórico de Pendência individual:
 
 ## 4. Layout aprovado
 
-O hotfix altera somente o bloco de **Notas Fiscais do Prontuário** e o drawer lateral de conferência da Pendência.
+O hotfix altera o bloco de **Notas Fiscais do Prontuário**, o drawer lateral de conferência da Pendência e, somente na extensão necessária ao mesmo contrato individual, o bloco de **Consulta Assessoria** das NFs de serviço.
 
 O desenho aprovado está registrado em:
 
@@ -159,7 +159,8 @@ Princípios:
 8. o drawer serve apenas a **visualizar → Editar → Salvar**;
 9. a gestão posterior da Pendência continua na tela de Pendências;
 10. desktop é o alvo deste hotfix;
-11. nenhuma revisão geral do Prontuário, sidebar ou navegação entra neste escopo.
+11. Consulta Assessoria usa sublinhas por NF de serviço, com envio/análise/Pendência individual e apenas `Visualizar pendência` no Prontuário;
+12. nenhuma revisão geral do Prontuário, sidebar, tela de Pendências ou navegação entra neste escopo.
 
 ## 5. Fluxos obrigatórios
 

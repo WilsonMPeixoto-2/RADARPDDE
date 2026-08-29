@@ -1,4 +1,4 @@
-# PR #211 — referências visuais do hotfix de Notas Fiscais
+# PR #211 — referências visuais do hotfix de Notas Fiscais e Consulta Assessoria
 
 **Data:** 29 de agosto de 2026  
 **Uso:** referência visual e funcional; não substitui contrato de domínio
@@ -53,7 +53,9 @@ A imagem contém quatro quadros de referência:
 - `Adicionar Nota`;
 - `Registrar despesa a identificar`;
 - drawer lateral;
-- no drawer: status, documento, contexto, motivo, observação, data e ação Editar/Salvar.
+- no drawer: status, documento, contexto, motivo, observação, data e ação Editar/Salvar;
+- Consulta Assessoria em sublinha por NF de serviço, preservando envio, análise e Pendência da NF exata;
+- no Prontuário da Assessoria, Pendência ativa usa `Visualizar pendência`, sem `Registrar novo envio` ou `Reanalisar`.
 
 ## 4. Elementos que não devem aparecer no Prontuário
 

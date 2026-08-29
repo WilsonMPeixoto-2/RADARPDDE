@@ -617,7 +617,7 @@
     "evidence": "invoice",
     "coverage": "partial",
     "gaps": [
-      "O vínculo individual por NF, as operações compostas e a preservação histórica estão cobertos localmente; falta prova controlada no ambiente publicado com duas NFs de serviço, persistência individual, resumo derivado e releitura."
+      "Vínculo individual por NF, ausência de bloqueio cruzado, abertura atômica de Incorreto + Pendência, duas Pendências simultâneas e resumo mensal derivado estão comprovados em unitários/E2E/pgTAP; falta somente a conferência visual autenticada do Preview final e o smoke pós-publicação."
     ],
     "next": "controlled-write"
   },
