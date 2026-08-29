@@ -855,6 +855,7 @@ declare
     v_unexpected_context_invoices integer;
     v_linked_history integer;
     v_verification_count integer;
+    v_verification_evidence integer;
 begin
     select
         (select count(*) from public.registered_invoices where id = any(v_invoice_ids))
@@ -989,6 +990,29 @@ begin
 
     if v_verification_count <> 5 then
         raise exception 'TEST_FIXTURE_PREFLIGHT_FAILED: verificação de contexto de teste ausente ou consolidada';
+    end if;
+
+    with expected(school_id, competence_id, program_id, log_id) as (
+        values
+        ('04.31.009','2026-03','ADOLESCENCIAS','log-983c1543-fcdb-459d-a17e-727adf652fc3'),
+        ('04.31.009','2026-03','BASIC','log-74ec96fe-20de-46b0-a634-588517866a55'),
+        ('04.31.001','2026-08','CONECTADA','log-f0a85442-c945-4e0b-ac71-9b16885160e3'),
+        ('04.31.001','2026-08','BASIC','log-eee0525b-feb9-4df5-ae59-2b4dcc01edbd'),
+        ('04.31.001','2026-04','CONECTADA','log-97641c14-a991-4b96-ae49-714b0a6e0668')
+    )
+    select count(*)
+      into v_verification_evidence
+      from expected e
+      join public.administrative_logs l
+        on l.id = e.log_id
+       and l.actor_user_id = v_test_actor
+       and l.school_id = e.school_id
+       and l.action = 'Bonificação Alterada'
+       and l.details::text like '%' || e.competence_id || '_' || e.program_id || '%'
+       and l.details::text like '%Notas Fiscais%';
+
+    if v_verification_evidence <> 5 then
+        raise exception 'TEST_FIXTURE_PREFLIGHT_FAILED: autoria da bonificação fiscal dos contextos de teste divergiu';
     end if;
 
     delete from public.pendencies
