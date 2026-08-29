@@ -10001,7 +10001,6 @@ function renderProntuarioVerificacoes(esc) {
                         ));
                         const individualizationStarted = notes.some(note => (
                             window.RadarInvoiceDocumentAnalysis.hasExplicitInvoiceDocumentAnalysis(note)
-                            || window.RadarInvoiceDocumentAnalysis.isUnidentifiedExpense(note)
                         ));
                         const fiscalSummary = window.RadarInvoiceDocumentAnalysis
                             .deriveInvoiceDocumentAnalysis(notes, analiseValue || 'Não analisado');
@@ -10084,6 +10083,9 @@ function renderProntuarioVerificacoes(esc) {
                                     String(pendency.registeredInvoiceId || pendency.registered_invoice_id || '')
                                         === String(note.id)
                                 ));
+                                const isLegacyUnidentified = note.tipo === 'a_identificar'
+                                    && !window.RadarInvoiceDocumentAnalysis.hasExplicitInvoiceDocumentAnalysis(note)
+                                    && !invoicePendency;
                                 const canEditAnalysis = canViewTechnicalAnalysis
                                     && canMutateInvoice
                                     && !invoicePendency
@@ -10128,7 +10130,9 @@ function renderProntuarioVerificacoes(esc) {
                                     `;
                                 }
 
-                                const editControls = canMutateInvoice && !invoicePendency
+                                const editControls = canMutateInvoice
+                                    && !invoicePendency
+                                    && note.tipo !== 'a_identificar'
                                     ? `
                                         <span class="invoice-document-inline-actions">
                                             <button type="button" onclick="abrirEditarNota('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}')" aria-label="Editar ${escapeHtml(getInvoiceDocumentTitle(note))}">
@@ -10150,6 +10154,12 @@ function renderProntuarioVerificacoes(esc) {
                                             <div class="invoice-document-copy">
                                                 <div class="invoice-document-title-line">
                                                     <strong>${escapeHtml(getInvoiceDocumentTitle(note))}</strong>
+                                                    ${isLegacyUnidentified ? `
+                                                        <span class="invoice-legacy-badge"
+                                                            title="Registro anterior à individualização; nenhuma Pendência histórica foi inventada.">
+                                                            Registro legado
+                                                        </span>
+                                                    ` : ''}
                                                     ${editControls}
                                                 </div>
                                             </div>
@@ -10951,7 +10961,6 @@ async function changeInvoiceDocumentAnalysis(
     ));
     const individualizationStarted = allContextInvoices.some(item => (
         window.RadarInvoiceDocumentAnalysis.hasExplicitInvoiceDocumentAnalysis(item)
-        || window.RadarInvoiceDocumentAnalysis.isUnidentifiedExpense(item)
     ));
     const previousValue = window.RadarInvoiceDocumentAnalysis.getInvoiceDocumentAnalysis(
         invoice,

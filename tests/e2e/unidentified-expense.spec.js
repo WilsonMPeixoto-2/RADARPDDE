@@ -208,4 +208,114 @@ test.describe('Prontuário — despesa a identificar', () => {
       analysis: 'Não analisado'
     });
   });
+
+  test('preserva despesa a identificar legítima anterior ao hotfix como registro legado sem inventar Pendência', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+    page.on('dialog', dialog => dialog.accept());
+
+    await page.goto('/');
+    await waitForProductExtensions(page);
+
+    const context = await page.evaluate(() => {
+      switchProfile('controlador');
+      const competencia = activeCompetenciaKey;
+      const escola = escolas.find(candidate => (
+        Array.isArray(candidate.programasIds)
+        && candidate.programasIds.length > 0
+        && isCompetenceInScope(candidate.competenciaInicial, competencia)
+      ));
+      if (!escola) throw new Error('Escola determinística não encontrada.');
+      const programaId = escola.programasIds[0];
+      const compKey = `${competencia}_${programaId}`;
+
+      verificacoes[escola.id] = verificacoes[escola.id] || {};
+      verificacoes[escola.id][compKey] = {
+        bonificacao: {
+          extCC: '',
+          extINV: '',
+          notaFiscal: 'Sim',
+          consAssessoria: 'Não se aplica',
+          declBBAgil: '',
+          encampInventario: 'Não se aplica'
+        },
+        analise: {
+          extCC: 'Não analisado',
+          extINV: 'Não analisado',
+          notaFiscal: 'Correto',
+          consAssessoria: 'Correto',
+          declBBAgil: 'Não analisado',
+          encampInventario: 'Correto'
+        },
+        resultadoBonif: ''
+      };
+
+      for (let index = notasRegistradas.length - 1; index >= 0; index -= 1) {
+        if (notasRegistradas[index].escolaId === escola.id && notasRegistradas[index].compKey === compKey) {
+          notasRegistradas.splice(index, 1);
+        }
+      }
+      for (let index = pendencias.length - 1; index >= 0; index -= 1) {
+        const p = pendencias[index];
+        if (
+          p.escolaId === escola.id
+          && (p.competenciaOrigem || p.competencia) === competencia
+          && p.programaId === programaId
+          && p.documentoKey === 'notaFiscal'
+        ) {
+          pendencias.splice(index, 1);
+        }
+      }
+
+      notasRegistradas.push({
+        id: 'legacy-unidentified-e2e',
+        escolaId: escola.id,
+        compKey,
+        competencia,
+        programaId,
+        tipo: 'a_identificar',
+        numero: '',
+        desc: 'Débito histórico sem documentação suficiente',
+        descricao: 'Débito histórico sem documentação suficiente',
+        valor: 321.45,
+        dataRegistro: '2026-08-20T12:00:00.000Z'
+      });
+
+      activeProntuarioCompetencia = competencia;
+      rebuildOperationalIndexes();
+      switchView('prontuario', escola.id);
+      return { escolaId: escola.id, compKey };
+    });
+
+    const row = fiscalNoteRow(page).locator(
+      '.invoice-document-row[data-invoice-id="legacy-unidentified-e2e"]'
+    );
+    await expect(row).toBeVisible();
+    await expect(row.getByText('Registro legado', { exact: true })).toBeVisible();
+    await expect(row.locator('.invoice-document-status')).toHaveText('Não analisado');
+    await expect(row.locator('select.invoice-document-analysis-select')).toHaveCount(0);
+    await expect(row.getByRole('button', { name: /Editar/ })).toHaveCount(0);
+    await expect(row.getByRole('button', { name: /Excluir/ })).toHaveCount(0);
+    await expect(row.getByRole('button', { name: 'Visualizar pendência' })).toHaveCount(0);
+
+    const state = await page.evaluate(({ escolaId, compKey }) => {
+      const invoice = notasRegistradas.find(item => (
+        item.id === 'legacy-unidentified-e2e'
+        && item.escolaId === escolaId
+        && item.compKey === compKey
+      ));
+      return {
+        type: invoice?.tipo,
+        hasIndividualAnalysis: Object.prototype.hasOwnProperty.call(
+          invoice || {},
+          'analiseDocumentoFiscal'
+        )
+      };
+    }, context);
+
+    expect(state).toEqual({
+      type: 'a_identificar',
+      hasIndividualAnalysis: false
+    });
+  });
+
 });
