@@ -29,7 +29,7 @@ revalidar main
 → só então iniciar PR3.1
 ```
 
-No SHA funcional validado `e4aaee1969785e7f0c116da6ffbac9fa11f972c8`, os fluxos funcionais, E2E, perfis/viewports, backup, segurança, migrations, Auth/RLS e pgTAP estão aprovados. O pgTAP permanece em **25 arquivos / 357 testes / PASS**. O Vercel Preview do próprio SHA está **READY** e sem erros de runtime nas últimas 24h. A reexecução do **Supabase readiness** passou integralmente, assim como Playwright completo, migrations limpas, segurança, backup/restauração e contratos Excel. A correção final também individualizou por NF de serviço o fluxo de Consulta Assessoria: Pendência de uma NF não bloqueia outra; `Incorreto` só é persistido junto com sua Pendência; o resumo mensal usa a existência de pelo menos um envio como `Sim`. O único vermelho conhecido permanece o Lighthouse móvel herdado: desktop passou com **79%**, FCP **1,06 s** e LCP **3,43 s** / limite **3,50 s**; mobile ficou em **68%**, FCP **2,82 s** e LCP **16,40 s** / limite **15,00 s**. O PR #211 continua **Draft** somente até a conferência visual final do Preview desse SHA e a decisão formal de merge/publicação.
+No SHA funcional validado `ff8453c8fd0c4e5707d656b4520051962a48df96`, os fluxos funcionais, E2E, perfis/viewports, backup, segurança, migrations, Auth/RLS e pgTAP estão aprovados. O pgTAP permanece em **25 arquivos / 357 testes / PASS**. O Vercel Preview do próprio SHA está **READY** e sem erros de runtime nas últimas 24h. A reexecução do **Supabase readiness** passou integralmente, assim como Playwright completo, migrations limpas, segurança, backup/restauração e contratos Excel. A correção final também individualizou por NF de serviço o fluxo de Consulta Assessoria: Pendência de uma NF não bloqueia outra; `Incorreto` só é persistido junto com sua Pendência; o resumo mensal usa a existência de pelo menos um envio como `Sim`. O único vermelho conhecido permanece o Lighthouse móvel herdado: desktop passou com **79%**, FCP **1,06 s** e LCP **3,43 s** / limite **3,50 s**; mobile ficou em **68%**, FCP **2,82 s** e LCP **16,40 s** / limite **15,00 s**. Em 29/08/2026, a nova conferência visual pós-ajuste foi adiada pelo responsável pelo produto, que autorizou o avanço. Como a primeira inspeção visual já aprovou a estrutura principal e os ajustes posteriores estão cobertos por E2E, a pendência visual deixa de bloquear a preparação do merge. O PR pode sair de Draft, permanecendo obrigatório o preflight fail-closed imediatamente antes da integração.
 
 ## 1. Porta de entrada atual
 
@@ -227,13 +227,14 @@ Concluir **PR #211 — hotfix de individualização de Notas Fiscais**.
 
 Sequência imediata:
 
-1. conferir visualmente o Preview autenticado do SHA `e4aaee1969785e7f0c116da6ffbac9fa11f972c8`, especialmente Notas Fiscais, Consulta Assessoria e o botão Consolidar;
-2. registrar a evidência visual final;
-3. manter formalmente o Lighthouse móvel como dívida herdada não bloqueante deste hotfix desktop;
-4. imediatamente antes da migration, repetir o preflight fail-closed do Boleto 1234 e dos 20 `a_identificar` históricos;
-5. somente depois retirar Draft e avaliar merge/publicação.
+1. registrar a dispensa de nova conferência visual como decisão operacional desta etapa;
+2. retirar o PR #211 de Draft;
+3. repetir imediatamente antes do merge o preflight fail-closed do Boleto 1234 e dos 20 `a_identificar` históricos;
+4. confirmar `main` e mergeabilidade;
+5. integrar somente com autorização de merge;
+6. executar migration, deploy e smoke de Production conforme o runbook.
 
-A revisão adversarial de código já fechou duas portas antigas adicionais no SHA validado: `a_identificar` deixou de aparecer no cadastro comum de Nota Fiscal e a rota agregada antiga de `notaFiscal → Incorreto` não abre mais Pendência genérica.
+A revisão externa mais recente sobre Consulta Assessoria foi confrontada com o HEAD atual. O diagnóstico era correto para o estado anterior, mas as correções já estão presentes de forma mais robusta no código atual: busca de Pendência por NF, bloqueio cruzado eliminado e abertura atômica de `Incorreto + Pendência`. O teste unitário cobre explicitamente “Pendência da NF A não bloqueia NF B”.
 
 Depois da publicação do hotfix, fazer reconciliação pós-PR #211 e somente então retomar PR3.1.
 
