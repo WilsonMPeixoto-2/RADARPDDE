@@ -560,22 +560,15 @@ Consolidações conectadas anteriores à chave permanecem válidas por projeçã
 
 ## ADR-050 — Análise e Pendência individual por registro de Notas Fiscais
 
-**Status:** Aprovada; implementação funcional estabilizada no PR #211, ainda em Draft
+**Status:** Aprovada; correções finais no PR #211, ainda em Draft
 
-`notaFiscal` permanece agregada para bonificação, mas cada `registered_invoice` possui análise técnica própria. O resumo técnico agregado é derivado e não aceita edição direta.
+`notaFiscal` permanece agregada para bonificação, mas análise técnica e Pendência são individuais por `registered_invoice_id`. `a_identificar` nova nasce `Incorreto + Pendência` atomicamente; identificação posterior ocorre em **Pendências → Registrar novo envio**, preservando o ID.
 
-Toda nova Pendência de Notas Fiscais precisa de `registered_invoice_id`. Invoices diferentes podem possuir Pendências simultâneas; a mesma invoice não pode duplicar Pendência ativa.
+Consulta Assessoria também é individual por NF de serviço. Pendência da NF A não bloqueia a NF B. O lookup genérico por documento não é válido para esse fluxo; `Incorreto` é confirmado pelo wrapper atômico de `service-advisory-pendency.js`.
 
-`a_identificar` nasce obrigatoriamente `Incorreto + Pendência` na mesma operação. A identificação posterior ocorre em **Registrar novo envio**, preserva o mesmo ID e pode produzir, de forma separada, Consulta Assessoria ou registro patrimonial conforme o tipo efetivamente identificado.
+A classificação de Production foi refinada por autoria: dos 20 `a_identificar` anteriores ao contrato, 16 são legítimos de Controladores e serão preservados como **Registro legado** sem história inventada; 4 são fixtures da conta técnica. A limpeza fail-closed cobre 12 despesas/NFs de teste e três Pendências fiscais genéricas dos cenários do hotfix.
 
-O Prontuário avalia documentos e permite visualizar a Pendência; novo envio e reanálise permanecem na tela de Pendências. O layout desktop aprovado usa quatro áreas: Documento, Tipo · Valor, Situação técnica e Ação.
+A antiga decisão de reparar o Boleto 1234 foi superada porque boleto e Pendência foram comprovados como dados de teste. Ambos integram a limpeza, com logs preservados.
 
-Os 20 registros históricos `a_identificar` não recebem Pendências retroativas. O reparo conhecido do Boleto 1234 continua cirúrgico e condicionado a preflight fail-closed.
-
-As regras de negócio permanecem sob domínio/serviços de aplicação. O PostgreSQL valida identidade, contexto, transição, concorrência e atomicidade, sem se tornar um segundo motor completo de regras.
-
-Mobile não é gate bloqueante deste hotfix; desktop é o alvo da homologação visual.
-
-O PR #211 é prioritário, mas não substitui o plano mestre. Após eventual publicação, é obrigatório re-baseline antes de PR3.1.
-
-**Documento integral:** `docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`.
+**Documento integral:** `docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`.  
+**Evidência de dados:** `docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md`.

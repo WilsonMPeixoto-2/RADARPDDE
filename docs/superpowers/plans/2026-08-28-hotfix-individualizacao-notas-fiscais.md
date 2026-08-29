@@ -223,6 +223,22 @@ Exceção expressamente identificada e comprovada:
 
 O reparo deve ser fail-closed, com preflight integral antes da associação.
 
+## 6.1 Decisão refinada de dados legados — 29/08/2026
+
+A investigação de autoria substitui a classificação anterior que tratava os 20 `a_identificar` como um conjunto homogêneo.
+
+Regra vigente:
+
+- 16 foram criados por Controladores reais e são preservados;
+- 4 foram criados pela conta técnica durante testes e integram a limpeza;
+- mais 8 NFs/despesas dos mesmos cenários foram comprovadas como fixtures, totalizando 12 registros de despesa removíveis;
+- três Pendências fiscais genéricas antigas desses cenários também são fixtures;
+- o Boleto 1234 e sua Pendência pertencem ao conjunto de teste, portanto não são mais reparados;
+- a migration preserva os logs e falha se qualquer prova de autoria/contexto divergir;
+- os 16 legítimos aparecem como **Registro legado**, sem análise/Pendência retroativa e sem edição/exclusão comum.
+
+Fonte canônica: `docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md`.
+
 ## 7. Implementado até o checkpoint funcional consolidado
 
 No checkpoint `e4aaee1969785e7f0c116da6ffbac9fa11f972c8`:
@@ -248,8 +264,8 @@ No checkpoint `e4aaee1969785e7f0c116da6ffbac9fa11f972c8`:
 - drawer limitado a **Visualizar → Editar → Salvar**, com fechamento por Escape e restauração de foco;
 - testes unitários e E2E antigos que legitimavam o fluxo superado foram substituídos;
 - migration Draft e RPCs ajustadas para validar identidade, contexto, transição e atomicidade sem duplicar no PostgreSQL toda a regra de negócio;
-- os 20 registros históricos `a_identificar` permanecem sem backfill;
-- reparo conhecido do Boleto 1234 permanece exclusivamente cirúrgico e fail-closed;
+- os 16 registros históricos legítimos `a_identificar` permanecem sem backfill;
+- antigo reparo do Boleto 1234 foi superado por limpeza fail-closed, após comprovação de que boleto e Pendência são fixtures de teste;
 - Consulta Assessoria foi individualizada por NF de serviço também no ciclo de Pendência;
 - a verificação de Pendência ativa da Assessoria usa a identidade da NF exata, evitando bloqueio cruzado;
 - `Incorreto` da Assessoria é persistido apenas junto com a Pendência, na mesma operação;

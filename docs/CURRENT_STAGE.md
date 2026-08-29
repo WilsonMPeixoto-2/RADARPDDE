@@ -29,7 +29,7 @@ revalidar main
 → só então iniciar PR3.1
 ```
 
-No SHA funcional validado `ff8453c8fd0c4e5707d656b4520051962a48df96`, os fluxos funcionais, E2E, perfis/viewports, backup, segurança, migrations, Auth/RLS e pgTAP estão aprovados. O pgTAP permanece em **25 arquivos / 357 testes / PASS**. O Vercel Preview do próprio SHA está **READY** e sem erros de runtime nas últimas 24h. A reexecução do **Supabase readiness** passou integralmente, assim como Playwright completo, migrations limpas, segurança, backup/restauração e contratos Excel. A correção final também individualizou por NF de serviço o fluxo de Consulta Assessoria: Pendência de uma NF não bloqueia outra; `Incorreto` só é persistido junto com sua Pendência; o resumo mensal usa a existência de pelo menos um envio como `Sim`. O único vermelho conhecido permanece o Lighthouse móvel herdado: desktop passou com **79%**, FCP **1,06 s** e LCP **3,43 s** / limite **3,50 s**; mobile ficou em **68%**, FCP **2,82 s** e LCP **16,40 s** / limite **15,00 s**. Em 29/08/2026, a nova conferência visual pós-ajuste foi adiada pelo responsável pelo produto, que autorizou o avanço. Como a primeira inspeção visual já aprovou a estrutura principal e os ajustes posteriores estão cobertos por E2E, a pendência visual deixa de bloquear a preparação do merge. O PR pode sair de Draft, permanecendo obrigatório o preflight fail-closed imediatamente antes da integração.
+Os gates do SHA `ff8453c8fd0c4e5707d656b4520051962a48df96` comprovaram a estabilidade do núcleo anterior, mas **não autorizam merge do HEAD atual**. Em 29/08 houve nova decisão de dados: 16 `a_identificar` legítimos de Controladores devem ser preservados como Registro legado; 4 `a_identificar` e outras 8 despesas/NFs dos cenários de teste, além de três Pendências fiscais genéricas, foram comprovados por autoria como fixtures da conta técnica. A migration foi alterada para limpeza fail-closed dessas fixtures; o antigo reparo do Boleto 1234 foi formalmente superado. O renderer também foi ajustado para não inventar história nem permitir edição comum dos 16 legados. O PR permanece **Draft** até a nova rodada de gates do HEAD corrente. Production continua intocada.
 
 ## 1. Porta de entrada atual
 
@@ -227,14 +227,16 @@ Concluir **PR #211 — hotfix de individualização de Notas Fiscais**.
 
 Sequência imediata:
 
-1. registrar a dispensa de nova conferência visual como decisão operacional desta etapa;
-2. retirar o PR #211 de Draft;
-3. repetir imediatamente antes do merge o preflight fail-closed do Boleto 1234 e dos 20 `a_identificar` históricos;
-4. confirmar `main` e mergeabilidade;
-5. integrar somente com autorização de merge;
-6. executar migration, deploy e smoke de Production conforme o runbook.
+1. executar novamente todos os gates sobre o HEAD que contém a limpeza fail-closed e a projeção dos legados;
+2. corrigir qualquer falha funcional, SQL, E2E, Auth/RLS, segurança ou backup;
+3. repetir o preflight somente leitura de autoria e contexto imediatamente antes de eventual migration;
+4. confirmar preservação dos 16 registros legítimos e elegibilidade exata das 12 despesas/NFs + três Pendências de teste;
+5. confirmar `main`, Preview e mergeabilidade;
+6. somente então avaliar retirada de Draft e pedir/usar autorização final de merge.
 
-A revisão externa mais recente sobre Consulta Assessoria foi confrontada com o HEAD atual. O diagnóstico era correto para o estado anterior, mas as correções já estão presentes de forma mais robusta no código atual: busca de Pendência por NF, bloqueio cruzado eliminado e abertura atômica de `Incorreto + Pendência`. O teste unitário cobre explicitamente “Pendência da NF A não bloqueia NF B”.
+A Consulta Assessoria permanece individual por NF de serviço. A auditoria externa que identificou o bloqueio cruzado foi útil, mas o HEAD atual já usa uma implementação mais robusta: lookup por `registered_invoice_id` e confirmação atômica via `service-advisory-pendency.js`. Não substituir essa integração pelo antigo lookup genérico.
+
+A classificação canônica de dados está em `evidence/2026-08-29-pr211-classificacao-dados-legados.md`.
 
 Depois da publicação do hotfix, fazer reconciliação pós-PR #211 e somente então retomar PR3.1.
 

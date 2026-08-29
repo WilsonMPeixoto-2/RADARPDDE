@@ -1,16 +1,16 @@
 # Handoff — PR #211 / hotfix de Notas Fiscais
 
 **Data:** 29 de agosto de 2026  
-**PR:** #211 — preparado para sair de Draft  
+**PR:** #211 — Draft  
 **Branch:** `hotfix/individualizar-analise-notas-fiscais`  
-**SHA funcional validado:** `ff8453c8fd0c4e5707d656b4520051962a48df96`  
+**Último SHA funcional antes da reconciliação documental:** `3d63e0cee204c633ef8b796c7921fda05274c63e`  
 **Production:** sem alteração causada por este PR
 
 ## 1. Situação atual
 
 O núcleo funcional do hotfix está implementado e os principais caminhos antigos foram fechados.
 
-Em 29/08/2026, o responsável pelo produto registrou que não consegue fazer nova conferência visual neste momento e autorizou o avanço da preparação para merge, deixando eventual refinamento visual adicional para etapa posterior. A primeira inspeção autenticada já havia aprovado a estrutura principal e identificado os ajustes residuais; esses ajustes foram implementados e passaram por E2E. Assim, a conferência visual pós-ajuste deixa de ser bloqueante para a preparação do merge, sem ser apagada do histórico.
+Após a rodada anterior de homologação, novas correções foram autorizadas: refinamento da classificação de dados legados, limpeza fail-closed de fixtures de teste e adaptação visual dos `a_identificar` legítimos. Por isso, resultados verdes de SHAs anteriores continuam como evidência histórica, mas não autorizam retirar o Draft. Os gates precisam ser executados novamente sobre o HEAD que contém estas correções.
 
 Nenhuma migration do PR #211 foi aplicada em Production.
 
@@ -31,8 +31,10 @@ Nenhuma migration do PR #211 foi aplicada em Production.
 - se for bem permanente, o registro patrimonial é criado e vinculado na mesma operação;
 - novo envio leva a Pendência para `Aguardando reanálise` e a despesa para `Não analisado`;
 - reanálise só ocorre depois de tentativa válida da mesma Pendência;
-- os 20 `a_identificar` históricos não recebem Pendências inventadas;
-- somente o Boleto 1234 conhecido possui reparo cirúrgico previamente autorizado.
+- 16 `a_identificar` históricos legítimos de Controladores são preservados como **Registro legado**, sem Pendência ou análise retroativa;
+- 4 `a_identificar` e outras 8 despesas/NFs comprovadamente criadas pela conta técnica nos cenários do hotfix são fixtures removíveis por preflight fail-closed;
+- três Pendências fiscais genéricas antigas desses testes também integram a limpeza;
+- a antiga proposta de reparar o Boleto 1234 foi superada: boleto e Pendência são fixtures de teste e serão removidos, com logs preservados.
 
 ### Consulta Assessoria — fechamento da individualização
 
@@ -73,56 +75,20 @@ Outras decisões visuais já incorporadas:
 
 Referência: `docs/evidence/2026-08-28-pr211-referencias-visuais.md`.
 
-## 4. Gates do SHA funcional validado
+## 4. Gates
 
-### Aprovados
+Os resultados verdes do SHA `ff8453c8fd0c4e5707d656b4520051962a48df96` continuam válidos como evidência de que o núcleo anterior estava estável.
 
-- Validar RADAR PDDE;
-- E2E Playwright completo;
-- Gate remoto de perfis e viewports;
-- Backup e restauração descartáveis;
-- CodeQL;
-- Saúde das dependências;
-- Snapshot canônico;
-- Excel SME e contratos-fonte;
-- migration-smoke;
-- readiness completo;
-- preflight pós-apply;
-- migrations em PostgreSQL limpo;
-- pgTAP: **25 arquivos / 357 testes / PASS**;
-- lint do schema;
-- regeneração e conferência de tipos;
-- login de identidades descartáveis;
-- Edge Function;
-- frontend, Auth e RLS contra Supabase local;
-- Vercel Preview: **READY**.
+Entretanto, após esse SHA foram modificados:
 
-### Lighthouse
+- migration de Production, para substituir o antigo reparo do Boleto 1234 pela limpeza fail-closed de fixtures;
+- renderização dos `a_identificar` legítimos, agora identificados como **Registro legado**;
+- regra de transição que determina quando a individualização já começou;
+- regressão E2E correspondente.
 
-Desktop passou no SHA funcional `ff8453c8fd0c4e5707d656b4520051962a48df96`:
+Portanto, **nenhum resultado anterior é usado como autorização de merge para o HEAD atual**. O ciclo completo deve ser reexecutado.
 
-- performance: **79%**;
-- FCP: **1,01 s**;
-- LCP: **3,44 s** / limite **3,50 s**.
-
-Mobile continua fora do orçamento:
-
-- performance: **64%**;
-- FCP: **4,06 s**;
-- LCP: **15,66 s** / limite **15,00 s**.
-
-O vermelho agregado da homologação pré-Production decorre exclusivamente do Lighthouse móvel. Todos os demais jobs da homologação passaram.
-
-A dívida móvel é anterior ao PR #211 e permanece **não bloqueante para este hotfix desktop**. O threshold não foi relaxado.
-
-### Revisão adversarial concluída
-
-A revisão final de caminhos antigos encontrou e fechou duas portas residuais:
-
-1. `a_identificar` ainda podia ser exposto como opção dentro do cadastro comum de Nota Fiscal por uma integração legada; agora só é habilitado pelo comando dedicado **Registrar despesa a identificar**;
-2. a integração atômica genérica ainda podia tentar iniciar o antigo fluxo agregado `notaFiscal → Incorreto`; agora `notaFiscal` é devolvido ao serviço canônico, que recusa edição agregada e não abre Pendência genérica.
-
-Ambos os comportamentos possuem regressão E2E e passaram no SHA validado.
+O Lighthouse móvel continua classificado como dívida herdada não bloqueante deste hotfix desktop; essa exceção não se estende a falhas funcionais, de banco, segurança ou E2E.
 
 ## 5. Estratégia segura de reversão
 
@@ -172,13 +138,12 @@ Em todos os cenários:
 
 ## 6. Próximas ações obrigatórias
 
-1. retirar o PR de Draft após registrar esta dispensa de conferência visual pós-ajuste;
-2. imediatamente antes do merge/migration, reexecutar o preflight fail-closed do Boleto 1234 e dos 20 registros históricos;
-3. confirmar novamente que a `main` não avançou e que o PR permanece mergeável;
-4. obter/usar autorização de merge;
-5. somente então integrar, aplicar migration e executar smoke de Production.
-
-A conferência visual pós-ajuste permanece recomendada, mas foi explicitamente adiada para etapa posterior e não bloqueia mais a preparação do merge.
+1. executar unitários, integração, E2E, Supabase readiness, pgTAP, migrations limpas, Auth/RLS, backup/restauração, segurança e Preview no HEAD atual;
+2. revisar os resultados e corrigir qualquer regressão real;
+3. imediatamente antes de eventual merge/migration, repetir em Production somente leitura o preflight de autoria/fixtures e preservação dos 16 registros legítimos;
+4. confirmar `main`, mergeabilidade e Preview;
+5. somente depois avaliar retirada do Draft;
+6. merge e Production continuam dependentes de autorização explícita no estágio final.
 
 ## 7. Relação com o plano mestre
 
@@ -187,3 +152,12 @@ Este hotfix não substitui o plano mestre.
 Depois da eventual publicação em Production:
 
 `PR #211 publicado → revalidar main/Supabase/Vercel → reconciliar com plano mestre → atualizar premissas → só então iniciar PR3.1`
+
+
+## 8. Evidência canônica de legados
+
+A classificação que deve orientar futuras sessões é:
+
+`docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md`
+
+Documentos anteriores que falem em “preservar os 20” ou em “reparar o Boleto 1234” são históricos superados e não devem ser usados como regra corrente.

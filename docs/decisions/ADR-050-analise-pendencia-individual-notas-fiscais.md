@@ -1,6 +1,6 @@
 # ADR-050 — análise e Pendência individual por registro de Notas Fiscais
 
-**Status:** Aceita; implementação funcional estabilizada no PR #211, ainda em Draft  
+**Status:** Aceita; correções finais implementadas no PR #211, ainda em Draft e com gates finais em reexecução  
 **Data:** 28 de agosto de 2026  
 **Escopo:** hotfix PR #211  
 **Substitui:** nenhuma ADR; formaliza as decisões finais do hotfix sem conflitar com ADR-047, ADR-048 e ADR-049 já existentes
@@ -93,26 +93,38 @@ O banco deve proteger:
 
 O banco não deve duplicar toda a lógica funcional já existente nos serviços.
 
-## Histórico e Production
+## Histórico, fixtures e Production
 
-Em 28/08/2026, Production possuía 20 registros históricos `a_identificar` sem análise individual explícita e sem Pendência individual vinculada.
+A consulta inicial encontrou 20 registros históricos `a_identificar` sem análise individual explícita e sem Pendência individual vinculada. A investigação posterior de autoria refinou essa classificação.
 
-Decisão:
+Decisão vigente:
 
-- não criar 20 Pendências retroativas;
-- não inventar análise histórica;
-- aplicar o novo contrato somente às novas operações e transições canônicas.
+- **16 registros legítimos de Controladores** permanecem preservados;
+- esses 16 não recebem análise ou Pendência retroativa;
+- o novo layout os identifica como **Registro legado**, sem alterar seu conteúdo;
+- **4 `a_identificar` de teste** integram uma limpeza fail-closed;
+- a mesma limpeza inclui outras 8 NFs/despesas dos cenários de teste do hotfix, totalizando 12 registros;
+- três Pendências fiscais genéricas antigas criadas nesses testes também são removidas;
+- logs administrativos são preservados;
+- a limpeza só ocorre quando IDs, autoria, contexto e ausência de história real forem novamente comprovados.
 
-Exceção única previamente comprovada:
+A antiga exceção “reparar o vínculo do Boleto 1234” está **superada**. Boleto e Pendência foram atribuídos à conta técnica de teste e passam a ser removidos como fixtures.
 
-- Pendência `pend-384d9cc0-634f-4e74-9eac-f22da3b6e2c5`;
-- despesa `nota-a2da969c-2e29-41f9-a9fc-f34a306e00ed`;
-- Boleto Internet 1234;
-- escola `04.31.001`;
-- competência `2026-08`;
-- programa `CONECTADA`.
+A classificação autoritativa está em `docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md`.
 
-Esse vínculo só pode ser reparado se o preflight fail-closed confirmar novamente todos os atributos esperados.
+### Fronteira canônica de Consulta Assessoria
+
+Para evitar regressões e interpretações divergentes entre futuras sessões:
+
+- a renderização individual por NF de serviço pertence ao bloco `consAssessoria` de `app.js`;
+- a busca de Pendência ativa usa obrigatoriamente `registered_invoice_id` da NF;
+- a busca genérica por escola + competência + programa + documento **não pode** ser usada para bloquear uma NF de serviço individual;
+- selecionar `Incorreto` na UI não grava o estado isoladamente;
+- `app.js` delega esse caminho à integração `src/integration/service-advisory-pendency.js`;
+- essa integração mantém o contexto da NF e confirma `Incorreto + Pendência` de forma atômica;
+- Pendência de uma NF jamais bloqueia outra NF de serviço.
+
+Uma auditoria que proponha voltar ao lookup genérico ou abrir o modal de Assessoria por um caminho paralelo deve ser tratada como incompatível com esta decisão vigente.
 
 ## Evidências e referências
 
@@ -120,6 +132,7 @@ Esse vínculo só pode ser reparado se o preflight fail-closed confirmar novamen
 - handoff: `docs/handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`;
 - referências visuais: `docs/evidence/2026-08-28-pr211-referencias-visuais.md`;
 - preflight Production: `docs/evidence/2026-08-28-pr211-production-preflight.md`;
+- classificação de legados/fixtures: `docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md`;
 - matriz funcional: `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md`.
 
 ## Retorno ao plano mestre
