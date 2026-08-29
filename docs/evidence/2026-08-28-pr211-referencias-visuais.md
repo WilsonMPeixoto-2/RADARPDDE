@@ -98,7 +98,7 @@ A imagem orienta composição, hierarquia, densidade, próximos passos e estados
 
 A primeira inspeção autenticada do Preview confirmou que o bloco de Notas Fiscais estava visualmente aprovado em sua estrutura principal e revelou ajustes residuais objetivos: contraste/tamanho da bonificação, simplificação do cabeçalho, botão Consolidar, resumo mensal da Assessoria e ações antigas de Pendência na Assessoria.
 
-No SHA funcional `e4aaee1969785e7f0c116da6ffbac9fa11f972c8`, esses pontos foram corrigidos no código e cobertos por E2E:
+No SHA funcional `ff8453c8fd0c4e5707d656b4520051962a48df96`, esses pontos foram corrigidos no código e cobertos por E2E:
 
 - bonificação de Notas Fiscais ampliada e `Sim` em verde;
 - cabeçalho fiscal sem repetir `Incorreto` agregado, mantendo apenas o contador de Pendências;
@@ -108,4 +108,4 @@ No SHA funcional `e4aaee1969785e7f0c116da6ffbac9fa11f972c8`, esses pontos foram 
 - duas Pendências de Assessoria de NFs distintas coexistem;
 - Prontuário exibe **Visualizar pendência**; novo envio e reanálise ficam na tela de Pendências.
 
-A homologação final ainda exige uma conferência visual rápida do Preview desse SHA para registrar que a renderização efetiva corresponde às correções já aprovadas funcionalmente.
+Em 29/08/2026, o responsável pelo produto informou que não consegue repetir a conferência visual neste momento e autorizou o avanço. A primeira inspeção autenticada permanece como evidência visual da estrutura; os ajustes residuais posteriores permanecem cobertos por regressão automatizada. Nova conferência visual fica registrada como refinamento recomendado para etapa posterior, não como bloqueio de merge.
