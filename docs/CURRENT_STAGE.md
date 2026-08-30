@@ -4,13 +4,14 @@
 
 **Classe documental:** Canônico — estado corrente e retomada futura
 
-**Situação:** PR #211 integrado e publicado; `main`, Supabase Production e Vercel Production revalidados; o plano mestre continua vigente e aguarda reconciliação pós-hotfix antes de PR3.1
+**Situação:** conjunto PR #211 + #214 + #215 integrado e publicado; Production revalidada; homologação autenticada final pela interface ainda pendente; reconciliação documental/arquitetural em curso antes de PR3.1
 
 ## 0. Hotfix publicado — PR #211
 
 O estado corrente ainda não é “iniciar PR3.1”. O hotfix isolado foi concluído e agora precisa ser conciliado com o plano mestre:
 
-- encerramento pós-publicação: [`handoff/2026-08-30-pr211-publicacao-concluida.md`](handoff/2026-08-30-pr211-publicacao-concluida.md);
+- fechamento técnico corrente: [`handoff/2026-08-30-pr215-fechamento-tecnico.md`](handoff/2026-08-30-pr215-fechamento-tecnico.md);
+- encerramento histórico pós-PR #211: [`handoff/2026-08-30-pr211-publicacao-concluida.md`](handoff/2026-08-30-pr211-publicacao-concluida.md);
 - plano específico: [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md);
 - handoff histórico do Draft: [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md);
 - decisão arquitetural: [`decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md);
@@ -38,7 +39,7 @@ O Lighthouse móvel permaneceu vermelho. Na execução de `main`, desktop passou
 
 Production foi publicada e revalidada:
 
-- Supabase Production `scnryinorqeucbfkioxo`: 43 migrations, incluindo `20260828023000_invoice_document_analysis_pendency`;
+- Supabase Production `scnryinorqeucbfkioxo`: 44 migrations, incluindo `20260828023000_invoice_document_analysis_pendency` e `20260830223000_payload_row_version_boundary`;
 - limpeza pós-apply: 12 despesas/NFs e três Pendências técnicas removidas; 15 logs e 16 `a_identificar` legítimos preservados;
 - Vercel Production: `dpl_2ApguJZe79buX9xD1od45RDTKYDR`, `READY`, manifesto no merge `aa82ab4e`;
 - monitor de site/assets/RLS anônima/Edge Functions: aprovado;
@@ -64,6 +65,49 @@ Resultado:
 - monitor de Production e homologação do Supabase Production passaram após a publicação.
 
 Com isso, a antiga anotação de “reconferência visual posterior adiada” está superada: a inspeção foi executada, encontrou um defeito, o defeito foi corrigido e a regressão passou a ser protegida automaticamente.
+
+## 0.2 Correção pós-PR #211 — PR #215
+
+O teste manual em Production identificou falha real ao marcar **Incorreto** tanto na análise técnica individual de Nota Fiscal quanto na análise individual de Consulta Assessoria.
+
+A causa não estava na regra de negócio nem no layout. A fronteira canônico → estado legado → adapter duplicava concorrência otimista dentro do JSON de negócio:
+
+```text
+row_version = valor canônico atual
+payload.rowVersion = valor de compatibilidade potencialmente defasado
+```
+
+As RPCs atômicas interpretavam essa diferença técnica como alteração indevida da despesa.
+
+O PR #215 corrigiu a fronteira sem relaxar identidade ou dados de negócio:
+
+- `legacy-state-adapter.js` remove `rowVersion` e `row_version` dos payloads;
+- `row_version` permanece top-level/canônico;
+- a migration `20260830223000_payload_row_version_boundary` limpou payloads já persistidos;
+- `save_invoice_document_with_pendency` e `save_service_advisory_with_pendency` ignoram apenas essas duas chaves técnicas nas comparações de payload;
+- Production ficou com **44 migrations** e zero contaminação de versão nos payloads auditados;
+- smokes transacionais contra dados e RPCs reais de Production comprovaram os dois fluxos que haviam falhado e executaram rollback ao final;
+- merge funcional: `19ba20cb7b8a8415070d4a8711a8af0eb23e1fa7`;
+- redeploy operacional de `main`: `24e1934541b92e4399798556c05fd164c9c43801`;
+- Vercel Production: `dpl_TXwRPK2Sv72u5HtQVF3Z7ejJby3k`, `READY`.
+
+A homologação autenticada pela interface real após esse deployment ainda deve ser executada quando o ambiente Work/Cloud Browser estiver disponível.
+
+## 0.3 Aprendizado estrutural pós-PR #215
+
+A revisão adversarial mostrou que uma parte relevante da recorrência de defeitos vinha da **fragmentação da autoridade funcional**: o mesmo ciclo pode atravessar `app.js`, serviços, extensões carregadas dinamicamente, wrappers de diagnóstico e RPCs.
+
+No caso de Consulta Assessoria, a auditoria inicialmente aparentou encontrar ausência do novo envio individual. A investigação completa mostrou que a implementação já existia em `service-advisory-corrective-submission.js`, carregada depois de `service-advisory-pendency.js` pelo bootstrap de extensões. A duplicação iniciada durante a investigação foi removida antes do merge.
+
+A ADR-052 passa a exigir:
+
+- autoridade explícita por operação crítica;
+- ordem de bootstrap tratada como contrato;
+- E2E que comprove a instalação real das extensões críticas;
+- regressão que falhe se a responsabilidade for duplicada ou desconectada;
+- prova da composição, não apenas das camadas isoladas.
+
+Essa regra existe para impedir que PRs futuros repitam a sequência “corrigir → criar rota paralela → perder a correção em outra superfície → corrigir novamente”.
 
 ## 1. Porta de entrada atual
 
@@ -124,6 +168,8 @@ O PR #199 foi documental. O PR #200 corrigiu o incidente `Incorreto + Pendência
 - PR #208: `boleto_internet` introduzido como tipo de gasto de Notas Fiscais, exclusivo de Educação Conectada, com proteção server-side;
 - PR #209: duplicidade documental removida; `boletoInternet` legado deixou de participar de avaliação, consolidação, retificação e novas Pendências;
 - PR #211: análise técnica, Pendência e ciclo de regularização individualizados por `registered_invoice_id`; migration aplicada e Production validada;
+- PR #214: composição desktop dos painéis individualizados corrigida e protegida contra overflow;
+- PR #215: fronteira `row_version`/payload corrigida, migration `20260830223000` aplicada e smokes transacionais reais aprovados;
 - auditorias independentes: consolidadas no plano de 26/08;
 - cinco revisões finais: incorporadas ao plano canônico.
 
@@ -258,21 +304,23 @@ Planos são hipóteses técnicas, não autoridade superior ao código e aos ambi
 
 ## 10. Próxima ação
 
-Executar a **reconciliação pós-PR #211** antes de iniciar PR3.1.
+Concluir a **reconciliação pós-hotfix PR #211/#214/#215**, validar a nova proteção arquitetural da ADR-052 e executar a homologação autenticada final antes de iniciar PR3.1.
 
 Sequência imediata:
 
-1. comparar o diff integrado do PR #211 com cada tarefa do plano mestre;
-2. classificar tarefas como não afetadas, parcialmente atendidas, atendidas ou alteradas;
-3. atualizar o plano mestre e o handoff de retomada sem apagar seu histórico;
-4. confirmar a ordem restante;
-5. somente então iniciar PR3.1 com gate próprio.
+1. concluir os gates da proteção arquitetural/contrato executável da ADR-052;
+2. executar a homologação autenticada final da interface em Production quando o Work estiver disponível;
+3. comparar o conjunto integrado PR #211/#214/#215 com cada tarefa do plano mestre;
+4. classificar tarefas como não afetadas, parcialmente atendidas, atendidas ou alteradas;
+5. atualizar o plano mestre e o handoff de retomada sem apagar seu histórico;
+6. confirmar a ordem restante;
+7. somente então iniciar PR3.1 com gate próprio.
 
 A Consulta Assessoria permanece individual por NF de serviço. O lookup usa `registered_invoice_id`, a abertura continua atômica e o serviço canônico bloqueia qualquer alteração comum enquanto a própria NF possui Pendência ativa. Não substituir esse desenho por lookup genérico ou fluxo paralelo em `app.js`.
 
 A classificação canônica de dados está em `evidence/2026-08-29-pr211-classificacao-dados-legados.md`.
 
-O hotfix já foi publicado. A reconciliação pós-PR #211 é agora o único gate documental para retomar PR3.1.
+O núcleo do hotfix já foi publicado. O fechamento integral exige reconciliação documental/arquitetural e homologação autenticada final; depois disso o plano mestre pode retomar em PR3.1.
 
 ## 11. Documentos históricos preservados
 
