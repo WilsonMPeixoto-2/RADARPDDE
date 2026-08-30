@@ -54,6 +54,7 @@ function createRoot() {
     const reopenCalls = [];
     const drawerCalls = [];
     const renderCalls = [];
+    const genericRegisterCalls = [];
     const invoiceService = {
         getState: () => state,
         assertEditable: () => 'controlador',
@@ -103,6 +104,10 @@ function createRoot() {
             return log;
         },
         async open() { return { ok: true }; },
+        async registerAttempt(input) {
+            genericRegisterCalls.push(input);
+            return { ok: true, value: { generic: true } };
+        },
         async reanalyze() { return { ok: true }; }
     };
     const observation = { value: '' };
@@ -146,7 +151,8 @@ function createRoot() {
         pendencyService,
         reopenCalls,
         drawerCalls,
-        renderCalls
+        renderCalls,
+        genericRegisterCalls
     };
 }
 
@@ -258,6 +264,55 @@ test('confirmação atômica altera somente a NF alvo e cria pendência vinculad
     assert.equal(harness.state.verifications['ESC-1']['2026-08_BASIC'].analise.consAssessoria, 'Incorreto');
 });
 
+
+test('novo envio da Assessoria atualiza a NF vinculada e não cai no fluxo genérico', async () => {
+    const integration = freshIntegration();
+    const harness = createRoot();
+    const invoice = harness.state.registeredInvoices[0];
+    const otherInvoice = harness.state.registeredInvoices[1];
+    const verification = harness.state.verifications['ESC-1']['2026-08_BASIC'];
+
+    invoice.analiseConsultaAssessoria = 'Incorreto';
+    harness.invoiceService.syncServiceRequirement(harness.state, 'ESC-1', '2026-08_BASIC');
+    const bonificationBefore = structuredClone(verification.bonificacao);
+
+    harness.state.pendencies.push(pendencyDomain.createDocumentPendency({
+        id: 'PEND-NF-A',
+        escolaId: 'ESC-1',
+        competencia: '2026-08',
+        programaId: 'BASIC',
+        documentoKey: 'consAssessoria',
+        registeredInvoiceId: 'NF-A',
+        item: 'Consulta Assessoria — NF 100',
+        erros: ['Dados divergentes'],
+        observacao: 'Corrigir a consulta.',
+        dataAbertura: '2026-08-23'
+    }, {
+        eventId: 'EVENT-PEND-NF-A',
+        at: '2026-08-23T10:00:00.000Z',
+        usuario: 'Controlador Teste',
+        perfil: 'Controlador'
+    }));
+
+    assert.equal(integration.install(harness.root), true);
+
+    const result = await harness.pendencyService.registerAttempt({
+        pendencyId: 'PEND-NF-A',
+        availabilityDate: '2026-08-24',
+        observation: 'Arquivo corrigido disponibilizado.'
+    });
+
+    assert.equal(result.value.invoice.id, 'NF-A');
+    assert.equal(result.value.invoice.analiseConsultaAssessoria, 'Não analisado');
+    assert.equal(invoice.analiseConsultaAssessoria, 'Não analisado');
+    assert.equal(otherInvoice.analiseConsultaAssessoria, 'Não analisado');
+    assert.equal(result.value.pendency.status, 'Aguardando reanálise');
+    assert.equal(result.value.pendency.tentativas.length, 1);
+    assert.equal(result.value.pendency.tentativas[0].status, 'aguardando');
+    assert.equal(verification.analise.consAssessoria, 'Não analisado');
+    assert.deepEqual(verification.bonificacao, bonificationBefore);
+    assert.equal(harness.genericRegisterCalls.length, 0);
+});
 
 test('abertura atômica consolidada reabre no mesmo efeito e mantém um único log persistível', async () => {
     const integration = freshIntegration();
