@@ -45,9 +45,9 @@ select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000196
 
 select lives_ok($$
     select public.save_service_advisory_with_pendency(
-        '{"id":"invoice-advisory-a","school_id":"04.99.196","competence_id":"2028-12","program_id":"ADVISORY_ATOMIC","verification_id":"04.99.196::2028-12::ADVISORY_ATOMIC","source_context_key":"2028-12_ADVISORY_ATOMIC","linked_asset_id":null,"description":"Serviço A","expense_type":"servico","invoice_number":"NF-A","amount":300,"payload":{"consultaAssessoriaEnviada":false,"analiseConsultaAssessoria":"Incorreto"}}'::jsonb,
+        '{"id":"invoice-advisory-a","school_id":"04.99.196","competence_id":"2028-12","program_id":"ADVISORY_ATOMIC","verification_id":"04.99.196::2028-12::ADVISORY_ATOMIC","source_context_key":"2028-12_ADVISORY_ATOMIC","linked_asset_id":null,"description":"Serviço A","expense_type":"servico","invoice_number":"NF-A","amount":300,"payload":{"consultaAssessoriaEnviada":false,"analiseConsultaAssessoria":"Incorreto","rowVersion":1}}'::jsonb,
         1,
-        '{"id":"04.99.196::2028-12::ADVISORY_ATOMIC","school_id":"04.99.196","competence_id":"2028-12","program_id":"ADVISORY_ATOMIC","bonification":{"consAssessoria":"Não","consEnviada":false},"analysis":{"consAssessoria":"Incorreto"},"payload":{}}'::jsonb,
+        '{"id":"04.99.196::2028-12::ADVISORY_ATOMIC","school_id":"04.99.196","competence_id":"2028-12","program_id":"ADVISORY_ATOMIC","bonification":{"consAssessoria":"Não","consEnviada":false},"analysis":{"consAssessoria":"Incorreto"},"payload":{"rowVersion":1}}'::jsonb,
         1,
         '{"id":"pendency-advisory-a","school_id":"04.99.196","competence_origin":"2028-12","program_id":"ADVISORY_ATOMIC","document_key":"consAssessoria","registered_invoice_id":"invoice-advisory-a","status":"Aberta","responsible_area":"Escola","next_actor":"Escola","reason":"Dados divergentes","notes":"Correção da NF A","opened_at":"2028-12-20T12:00:00Z","payload":{"registeredInvoiceId":"invoice-advisory-a"}}'::jsonb,
         '{"id":"log-advisory-a-open","school_id":"04.99.196","action":"Análise incorreta e pendência aberta","details":{}}'::jsonb
