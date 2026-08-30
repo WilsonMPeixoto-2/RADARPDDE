@@ -1,5 +1,7 @@
 # Handoff — PR #211 / hotfix de Notas Fiscais
 
+> **Histórico executado.** Este handoff descreve o PR enquanto Draft. Para o estado pós-publicação, usar [`2026-08-30-pr211-publicacao-concluida.md`](2026-08-30-pr211-publicacao-concluida.md).
+
 **Data:** 29–30 de agosto de 2026
 **PR:** #211 — Draft  
 **Branch:** `hotfix/individualizar-analise-notas-fiscais`  

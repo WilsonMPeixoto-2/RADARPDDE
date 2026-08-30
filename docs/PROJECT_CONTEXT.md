@@ -24,7 +24,7 @@ Dashboard, Carteira, Competências, Prontuário, Pendências, Inventário, Regis
 
 O baseline mutável corrente fica em [`CURRENT_STAGE.md`](CURRENT_STAGE.md).
 
-O hotfix ativo de Notas Fiscais está documentado em [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md) e [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md). Ele não substitui o plano mestre.
+O hotfix publicado de Notas Fiscais está documentado em [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md) e [`handoff/2026-08-30-pr211-publicacao-concluida.md`](handoff/2026-08-30-pr211-publicacao-concluida.md). Ele não substitui o plano mestre.
 
 O checkpoint canônico pós-PR #200 das correções atuais está em [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md).
 
@@ -137,7 +137,7 @@ O diagnóstico de 24/08 identificou que esse último contrato ainda não está i
 
 `notaFiscal` continua sendo a dimensão documental agregada para bonificação, mas cada registro em `registered_invoices` é uma unidade técnica individual.
 
-Contrato aprovado no PR #211:
+Contrato integrado e publicado pelo PR #211:
 
 - bonificação de `notaFiscal` permanece agregada em Sim/Não/N/A;
 - análise técnica existe por `registered_invoice_id`;
@@ -161,13 +161,19 @@ Contrato aprovado no PR #211:
 Transição de dados aprovada em 29/08:
 
 - 16 `a_identificar` legítimos anteriores ao contrato individual permanecem como **Registro legado**, sem análise/Pendência retroativa e sem edição/exclusão pelo fluxo comum;
-- 4 `a_identificar` e outras 8 despesas/NFs de teste, mais três Pendências fiscais genéricas dos mesmos cenários, entram somente na limpeza fail-closed comprovada por autoria;
+- 4 `a_identificar` e outras 8 despesas/NFs de teste, mais três Pendências fiscais genéricas dos mesmos cenários, foram removidas pela limpeza fail-closed comprovada por autoria;
 - Boleto 1234 e sua Pendência são fixtures e não recebem o reparo de vínculo proposto inicialmente;
 - a Pendência fiscal agregada real preservada continua acessível como legado, sem associação heurística a uma NF.
 
 Essa regra específica substitui a antiga interpretação segundo a qual `A identificar` não deveria receber estado técnico automaticamente. O que continua proibido é fabricar **bonificação** ou atribuir retrospectivamente um erro agregado antigo a uma NF específica sem evidência.
 
 **Decisão integral:** `docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`.
+
+**Sequência de segurança deliberada:** a auditoria pós-publicação encontrou uma lacuna residual de proteção contra escrita direta em `registered_invoices` para `id`, `verification_id` e `source_context_key`, sem evidência de corrupção atual. Por decisão explícita do responsável pelo produto, o hardening correspondente foi adiado até a conclusão e validação de todas as implementações dos planos de correção funcional. Ver ADR-051. Essa frente não é gate do PR #211 nem da sequência funcional atual.
+
+### Fechamento visual do hotfix
+
+A reconferência visual final do PR #211 detectou overflow horizontal em desktop de 1280 px nos painéis individualizados de Notas Fiscais/Consulta Assessoria. O PR #214 corrigiu a grade entre 901 e 1440 px e adicionou regressão E2E para garantir que painel e controles permaneçam dentro da largura disponível. A correção foi integrada no merge `cc842af7b7bc6341dab68aa55a533a2017923bcf` e publicada em Vercel Production.
 
 ### Consulta Assessoria — proteção individual completa
 

@@ -3,10 +3,11 @@
 **Data:** 28–30 de agosto de 2026
 **Classe documental:** Plano executável específico do hotfix  
 **Branch:** `hotfix/individualizar-analise-notas-fiscais`  
-**PR:** #211 (Draft)  
+**PR:** #211 — integrado em 30/08/2026
 **Baseline de origem:** `b4ad4e8540c55ccfae0406ea136bc4c8da59fd0b`  
 **Último SHA funcional validado:** `530ca6cb62c385ca7ca35f30e82a723e1afed3f6`
-**Hardening:** publicado e validado remotamente
+**Merge em `main`:** `aa82ab4e359f62259df33842fb794aa1e654c30c`
+**Hardening:** publicado e validado em Production
 
 ## 1. Relação com o plano mestre
 
@@ -258,7 +259,7 @@ Até o SHA remoto validado `530ca6cb62c385ca7ca35f30e82a723e1afed3f6`:
 - ação normal `Abrir pendência` removida do estado que deve nascer atomicamente;
 - drawer limitado a **Visualizar → Editar → Salvar**, com fechamento por Escape e restauração de foco;
 - testes unitários e E2E antigos que legitimavam o fluxo superado foram substituídos;
-- migration Draft e RPCs ajustadas para validar identidade, contexto, transição e atomicidade sem duplicar no PostgreSQL toda a regra de negócio;
+- migration e RPCs ajustadas para validar identidade, contexto, transição e atomicidade sem duplicar no PostgreSQL toda a regra de negócio;
 - os 16 registros históricos legítimos `a_identificar` permanecem sem backfill;
 - antigo reparo do Boleto 1234 foi superado por limpeza fail-closed, após comprovação de que boleto e Pendência são fixtures de teste;
 - Consulta Assessoria foi individualizada por NF de serviço também no ciclo de Pendência;
@@ -266,7 +267,7 @@ Até o SHA remoto validado `530ca6cb62c385ca7ca35f30e82a723e1afed3f6`:
 - `Incorreto` da Assessoria é persistido apenas junto com a Pendência, na mesma operação;
 - o resumo mensal da Assessoria passa a `Sim` com pelo menos uma consulta enviada e não exige que todas estejam enviadas;
 - o Prontuário da Assessoria usa **Visualizar pendência**, enquanto novo envio e reanálise permanecem na tela de Pendências;
-- Production permanece intocada.
+- Production permaneceu intocada durante o desenvolvimento; a publicação posterior está registrada na Etapa H8.
 
 O hardening posterior acrescentou, sem alterar essas decisões:
 
@@ -355,28 +356,27 @@ Passaram **800/800 unitários**, **7/7 integração**, `npm run check`, E2E, Pos
 - falhas classificadas por evidência: um contrato de teste corrigido, uma colisão transitória de porta e Lighthouse móvel não bloqueante;
 - reconferência visual manual mantida como refinamento posterior não bloqueante.
 
-### Etapa H7 — revisão adversarial e documentação final
+### Etapa H7 — revisão adversarial e documentação final — concluída
 
-Antes de retirar Draft:
+Concluído antes de retirar Draft:
 
 - manter `CURRENT_STAGE.md`, handoff, ADR, evidências e matriz funcional coerentes com o SHA candidato;
 - registrar a classificação formal do Lighthouse móvel como dívida herdada não bloqueante;
 - registrar resultados finais dos gates.
 
-### Etapa H8 — merge e Production
+### Etapa H8 — merge e Production — concluída
 
-Somente após as etapas anteriores e autorização explícita:
+Resultado:
 
-- retirar Draft;
-- merge;
-- aplicar migration no Supabase Production;
-- publicar Vercel Production;
-- smoke autenticado;
-- confirmar a remoção exata das 12 despesas/NFs e três Pendências de teste;
-- confirmar preservação dos 16 registros legados legítimos e da Pendência agregada real;
-- registrar SHA, deployment e estado efetivo.
+- Draft retirado e PR integrado no merge `aa82ab4e359f62259df33842fb794aa1e654c30c`;
+- migration `20260828023000_invoice_document_analysis_pendency` aplicada no Supabase Production;
+- Vercel Production `READY` no deployment `dpl_2ApguJZe79buX9xD1od45RDTKYDR`;
+- monitor de Production e homologação do Supabase Production aprovados;
+- remoção exata das 12 despesas/NFs e três Pendências de teste confirmada;
+- 16 registros legados legítimos e logs administrativos preservados;
+- monitor dedicado de cinco perfis não executado porque o provisionamento protegido permanece desativado; nenhuma conta pessoal foi reutilizada.
 
-### Etapa H9 — retorno obrigatório ao plano mestre
+### Etapa H9 — retorno obrigatório ao plano mestre — etapa corrente
 
 Antes de PR3.1:
 

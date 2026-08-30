@@ -6,9 +6,9 @@
 
 Antes de analisar ou alterar o repositório, leia **nesta ordem**:
 
-1. `docs/handoff/2026-08-30-pr211-retomada-work.md` — porta de entrada obrigatória para qualquer nova sessão Work/Chat no PR #211;
+1. `docs/handoff/2026-08-30-pr211-publicacao-concluida.md` — porta de entrada obrigatória após a publicação do PR #211;
 2. `docs/CURRENT_STAGE.md` — estado corrente, baseline e prioridades reais;
-3. `docs/handoff/2026-08-28-pr211-hotfix-notas-fiscais.md` — checkpoint operacional do hotfix;
+3. `docs/handoff/2026-08-30-pr211-retomada-work.md` — histórico da retomada final do PR #211;
 4. `docs/superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md` — plano executável do PR #211, já atualizado pelas decisões de 29/08;
 5. `docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md` — contrato funcional vigente;
 6. `docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md` — classificação autoritativa de legados e fixtures decidida em 29/08;
@@ -19,7 +19,7 @@ Antes de analisar ou alterar o repositório, leia **nesta ordem**:
 11. somente depois, handoffs históricos e o plano mestre de 26/08;
 12. código, GitHub, Vercel e Supabase correspondentes à frente.
 
-**Regra para continuidade entre chats:** documentos e decisões de 29/08 prevalecem sobre hipóteses, relatórios e checkpoints anteriores quando tratam do mesmo ponto. Não "corrigir" o produto para voltar a uma regra antiga antes de conferir esses arquivos.
+**Regra para continuidade entre chats:** o handoff de publicação concluída e as decisões de 29/08 prevalecem sobre hipóteses, relatórios e checkpoints anteriores quando tratam do mesmo ponto. Não "corrigir" o produto para voltar a uma regra antiga antes de conferir esses arquivos.
 
 Auditorias externas são insumo de investigação, não ordem de implementação. Se uma auditoria propuser um caminho diferente, comparar primeiro com o SHA atual e com ADR-050/plano/handoff/evidência de 29/08.
 
@@ -164,14 +164,14 @@ Preservar:
 
 No contrato vigente após PR #209 e no PR #211, **não existe documento autônomo `boletoInternet`**. `boleto_internet` existe somente como **Tipo de Gasto dentro de Notas Fiscais**, exclusivo de Educação Conectada. Não possui linha documental, bonificação, análise técnica ou Pendência independente e não participa de Consulta Assessoria.
 
-## 9.1 Guardrails obrigatórios do PR #211
+## 9.1 Guardrails integrados pelo PR #211
 
-Ao continuar o PR #211, preservar estas decisões já fechadas:
+No baseline posterior ao PR #211, preservar estas decisões já fechadas:
 
 - novas `a_identificar` nascem `Incorreto + Pendência` atomicamente;
 - os **16 `a_identificar` legítimos de Controladores** são `Registro legado`: sem backfill, sem Pendência inventada e sem edição/exclusão comum;
-- **12 despesas/NFs + 3 Pendências fiscais genéricas** comprovadas como fixtures da conta técnica entram em limpeza fail-closed;
-- o antigo reparo do **Boleto 1234** está superado: boleto e Pendência foram classificados como fixtures e devem ser removidos pela limpeza condicionada, não vinculados;
+- **12 despesas/NFs + 3 Pendências fiscais genéricas** comprovadas como fixtures da conta técnica foram removidas pela limpeza fail-closed;
+- o antigo reparo do **Boleto 1234** está superado: boleto e Pendência foram classificados como fixtures e removidos pela limpeza condicionada, não vinculados;
 - Consulta Assessoria é individual por NF de serviço e a Pendência ativa deve ser buscada com `registered_invoice_id`; lookup genérico por escola + competência + programa + documento não pode bloquear outra NF;
 - selecionar `Incorreto` em Assessoria abre primeiro o fluxo atômico de Pendência; não gravar `Incorreto` solto;
 - o `InvoiceService` também bloqueia alterações comuns da Assessoria enquanto a mesma NF possui Pendência ativa; somente novo envio e reanálise podem avançar esse ciclo;
@@ -179,8 +179,9 @@ Ao continuar o PR #211, preservar estas decisões já fechadas:
 - o resumo mensal da Assessoria é `Sim` se **ao menos uma** consulta exigível foi enviada, `Não` se existem NFs de serviço e nenhuma foi enviada, e `Não se aplica` sem NF de serviço;
 - no Prontuário, item com Pendência ativa mostra **Visualizar pendência**; `Registrar novo envio` e `Reanalisar` permanecem na tela de Pendências;
 - Pendência fiscal agregada real anterior à individualização continua acessível como legado, sem associação inventada a uma NF;
-- o banco protege identidade, contexto, concorrência e atomicidade, mas não substitui os serviços de domínio como segundo motor completo de regras;
-- desktop é o alvo do hotfix e seus gates funcionais continuam obrigatórios; a nova reconferência visual manual foi expressamente adiada e não bloqueia o merge; mobile permanece dívida separada não bloqueante.
+- o fluxo normal e as RPCs protegem identidade, contexto, concorrência e atomicidade; existe uma lacuna residual conhecida contra escrita **direta** em `registered_invoices` envolvendo `id`, `verification_id` e `source_context_key`, registrada na ADR-051;
+- por decisão explícita do responsável pelo produto, esse hardening adicional do Supabase está **adiado até a conclusão e validação de todas as frentes de correção funcional**; não antecipá-lo, não usá-lo como gate dos PRs funcionais e não marcá-lo como resolvido;
+- desktop foi o alvo do hotfix; a reconferência visual final foi concluída e o overflow em 1280 px foi corrigido pelo PR #214, com regressão E2E de largura/alinhamento; mobile permanece dívida separada não bloqueante.
 
 Se um teste, comentário antigo ou auditoria contrariar esses pontos, classificar primeiro como possível contrato superado antes de alterar o produto.
 

@@ -1,5 +1,7 @@
 # PR #211 — retomada obrigatória para nova sessão Work/Chat
 
+> **Histórico executado.** Este handoff descreve a retomada anterior ao merge. Para o estado pós-publicação, usar [`2026-08-30-pr211-publicacao-concluida.md`](2026-08-30-pr211-publicacao-concluida.md).
+
 **Data:** 30 de agosto de 2026  
 **Branch:** `hotfix/individualizar-analise-notas-fiscais`  
 **Natureza:** documento de roteamento entre sessões; não substitui ADR, plano, handoff ou evidências canônicas

@@ -4,20 +4,21 @@
 
 **Classe documental:** Canônico — estado corrente e retomada futura
 
-**Situação:** PR #211 em Draft na branch `hotfix/individualizar-analise-notas-fiscais`; hotfix de individualização de Notas Fiscais temporariamente prioritário; Production permanece no estado anterior ao PR #211; o plano mestre continua vigente e será retomado após reconciliação pós-hotfix
+**Situação:** PR #211 integrado e publicado; `main`, Supabase Production e Vercel Production revalidados; o plano mestre continua vigente e aguarda reconciliação pós-hotfix antes de PR3.1
 
-## 0. Hotfix ativo — PR #211
+## 0. Hotfix publicado — PR #211
 
-O estado corrente não é mais “iniciar PR3.1”. Antes disso existe um hotfix isolado em andamento:
+O estado corrente ainda não é “iniciar PR3.1”. O hotfix isolado foi concluído e agora precisa ser conciliado com o plano mestre:
 
+- encerramento pós-publicação: [`handoff/2026-08-30-pr211-publicacao-concluida.md`](handoff/2026-08-30-pr211-publicacao-concluida.md);
 - plano específico: [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md);
-- handoff corrente: [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md);
+- handoff histórico do Draft: [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md);
 - decisão arquitetural: [`decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md);
 - referências visuais: [`evidence/2026-08-28-pr211-referencias-visuais.md`](evidence/2026-08-28-pr211-referencias-visuais.md).
 
 O PR #211 **não substitui o plano mestre**. Ele é um parêntese operacional necessário para corrigir uma inconsistência funcional descoberta depois das entregas anteriores.
 
-Após o merge e o smoke de Production, é obrigatório executar:
+Após o merge e os smokes disponíveis de Production, é obrigatório executar:
 
 ```text
 revalidar main
@@ -29,25 +30,52 @@ revalidar main
 → só então iniciar PR3.1
 ```
 
-O hardening posterior foi publicado e validado no SHA remoto `530ca6cb62c385ca7ca35f30e82a723e1afed3f6`. Ele bloqueia alteração comum de Assessoria com Pendência ativa, exige tentativa real e imutável na reanálise, aplica patches mínimos nas RPCs críticas, impede reaproveitamento patrimonial indevido, mantém `a_identificar` existente fora do editor comum e torna acessível a Pendência fiscal agregada real preservada.
+O hardening foi validado no SHA funcional `530ca6cb62c385ca7ca35f30e82a723e1afed3f6` e integrado à `main` pelo merge `aa82ab4e359f62259df33842fb794aa1e654c30c`. Ele bloqueia alteração comum de Assessoria com Pendência ativa, exige tentativa real e imutável na reanálise, aplica patches mínimos nas RPCs críticas, impede reaproveitamento patrimonial indevido, mantém `a_identificar` existente fora do editor comum e torna acessível a Pendência fiscal agregada real preservada.
 
 No SHA `530ca6c` passaram: **800/800 unitários**, **7/7 integração**, Validar RADAR, Playwright completo, Supabase readiness, migration-smoke, Supabase local/Auth/RLS/pgTAP, migrations em PostgreSQL limpo, backup/restauração, perfis/viewports, CodeQL, dependências, snapshot, Ajv, Excel e Vercel Preview. Um job duplicado de Supabase da homologação agregada falhou inicialmente antes dos testes porque a porta local `54322` estava ocupada; sua reexecução passou integralmente, confirmando falha transitória do runner. O Preview READY é `https://radarpdde-hhubte7ci-wilson-m-peixotos-projects.vercel.app`.
 
-O Lighthouse móvel permaneceu vermelho. A primeira medição desktop oscilou 100 ms acima do limite, mas a reexecução do mesmo SHA passou com performance **79%**, acessibilidade **100%**, Best Practices **100%** e LCP **3,35 s** para limite de **3,50 s**. Mobile continua dívida expressamente não bloqueante deste hotfix desktop; por isso o gate agregado pré-Production fica vermelho apenas ao herdar esse job. A nova reconferência visual manual também foi adiada sem bloquear o merge. O PR permanece Draft aguardando decisão/autorização final; Production continua intocada.
+O Lighthouse móvel permaneceu vermelho. Na execução de `main`, desktop passou com performance **79%**, acessibilidade **100%** e LCP **3,45 s** para limite de **3,50 s**; mobile registrou performance **61%**, acessibilidade **94%** e LCP **16,04 s** para limite de **15 s**. Mobile continua dívida expressamente não bloqueante deste hotfix desktop. A nova reconferência visual manual também foi adiada sem bloquear o merge.
+
+Production foi publicada e revalidada:
+
+- Supabase Production `scnryinorqeucbfkioxo`: 43 migrations, incluindo `20260828023000_invoice_document_analysis_pendency`;
+- limpeza pós-apply: 12 despesas/NFs e três Pendências técnicas removidas; 15 logs e 16 `a_identificar` legítimos preservados;
+- Vercel Production: `dpl_2ApguJZe79buX9xD1od45RDTKYDR`, `READY`, manifesto no merge `aa82ab4e`;
+- monitor de site/assets/RLS anônima/Edge Functions: aprovado;
+- homologação do Supabase Production e readiness: aprovados;
+- monitor dedicado de cinco perfis: não executado porque o provisionamento protegido continua desativado; nenhuma conta pessoal foi reutilizada.
+
+## 0.1 Fechamento visual pós-PR #211 — PR #214
+
+A inspeção visual final reproduzida em viewport desktop de 1280 px identificou um overflow horizontal real na grade individual de **Notas Fiscais / Consulta Assessoria**. Os mínimos das quatro colunas ultrapassavam a largura útil do Prontuário e podiam cortar/deslocar especialmente o controle **Enviada à Assessoria**.
+
+A correção foi isolada no PR #214 e integrada à `main` no merge `cc842af7b7bc6341dab68aa55a533a2017923bcf`.
+
+Resultado:
+
+- grade canônica de quatro áreas preservada;
+- mínimos e gaps compactados somente entre 901 e 1440 px;
+- seletor técnico passa a respeitar a largura da própria coluna;
+- texto de envio à Assessoria admite quebra controlada;
+- E2E passou a medir `scrollWidth <= clientWidth` nos painéis de Notas Fiscais e Consulta Assessoria e a verificar que o controle de envio permanece dentro do painel;
+- Playwright completo, Validar RADAR, perfis/viewports, CodeQL, migrations, pgTAP, backup/restauração, prontidão e demais gates funcionais passaram no PR #214;
+- Lighthouse móvel permaneceu como dívida já conhecida e não bloqueante;
+- Vercel Production publicou o merge `cc842af7` no deployment `dpl_33e4bM4z5YrbP5YGhfsr88pgwDPX`, estado `READY`;
+- monitor de Production e homologação do Supabase Production passaram após a publicação.
+
+Com isso, a antiga anotação de “reconferência visual posterior adiada” está superada: a inspeção foi executada, encontrou um defeito, o defeito foi corrigido e a regressão passou a ser protegida automaticamente.
 
 ## 1. Porta de entrada atual
 
 Ler nesta ordem:
 
 1. [`../AGENTS.md`](../AGENTS.md);
-2. [`handoff/2026-08-30-pr211-retomada-work.md`](handoff/2026-08-30-pr211-retomada-work.md);
-3. [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md);
+2. [`handoff/2026-08-30-pr211-publicacao-concluida.md`](handoff/2026-08-30-pr211-publicacao-concluida.md);
+3. [`decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md);
 4. [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md);
-5. [`decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md);
-6. [`evidence/2026-08-29-pr211-classificacao-dados-legados.md`](evidence/2026-08-29-pr211-classificacao-dados-legados.md);
-7. [`evidence/2026-08-28-pr211-referencias-visuais.md`](evidence/2026-08-28-pr211-referencias-visuais.md);
-8. [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md);
-9. somente depois, handoffs de 27/08 e o plano mestre de 26/08 para contexto histórico e retomada pós-hotfix.
+5. [`evidence/2026-08-29-pr211-classificacao-dados-legados.md`](evidence/2026-08-29-pr211-classificacao-dados-legados.md);
+6. [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md);
+7. somente depois, handoffs de execução do PR #211 e o plano mestre de 26/08.
 
 O Markdown é a fonte operacional para busca, diff e execução. O Word é a versão integral para leitura e aprovação. O arquivo `.sha256` ao lado do Word permite verificar sua integridade.
 
@@ -95,6 +123,7 @@ O PR #199 foi documental. O PR #200 corrigiu o incidente `Incorreto + Pendência
 - PR #206: PR2 integrado e publicado; regra canônica de Consulta Assessoria, planner de efeitos, no-op real e fechamento das rotas agregadas;
 - PR #208: `boleto_internet` introduzido como tipo de gasto de Notas Fiscais, exclusivo de Educação Conectada, com proteção server-side;
 - PR #209: duplicidade documental removida; `boletoInternet` legado deixou de participar de avaliação, consolidação, retificação e novas Pendências;
+- PR #211: análise técnica, Pendência e ciclo de regularização individualizados por `registered_invoice_id`; migration aplicada e Production validada;
 - auditorias independentes: consolidadas no plano de 26/08;
 - cinco revisões finais: incorporadas ao plano canônico.
 
@@ -148,16 +177,20 @@ PR2 não executou migration, reparo de dados, deduplicação por conteúdo, idem
 4. PR8 é executado como dois PRs reais: PR8A e PR8B.
 5. PR9C define orçamento por hipótese somente depois do baseline e do ruído medidos em PR9A/PR9B; não há meta percentual universal antecipada.
 
-## 6. Exclusões definitivas
+## 6. Exclusões e adiamentos deliberados
 
-Não incluir nesta frente:
+Não incluir nas frentes funcionais atualmente em execução:
 
-- antigo item 20 da auditoria, sobre autoridade server-side mais ampla;
+- **hardening adicional de escrita direta em `registered_invoices`**: imutabilidade de `id`, validação server-side do vínculo de `verification_id` com escola + competência + programa e proteção/canonicalização de `source_context_key`;
 - proteção de senhas vazadas no Supabase Auth;
 - PR #195;
 - deduplicação de NF por conteúdo.
 
-Não transformar qualquer exclusão em dependência, gate oculto ou hardening. Se surgir necessidade inevitável, parar e solicitar nova decisão do responsável pelo produto.
+O primeiro item é um **adiamento deliberado e explícito do responsável pelo produto**, registrado na ADR-051. A auditoria pós-publicação não encontrou corrupção atual em Production; encontrou uma lacuna latente de integridade caso um cliente autenticado tente contornar os serviços/RPCs e escrever diretamente na tabela. Por decisão de sequência, essa blindagem **não é gate do PR #211, da reconciliação documental nem dos PRs restantes de correção funcional**.
+
+Ela somente deve ser retomada **depois que todas as implementações previstas nos planos de correção de funcionalidades estiverem concluídas e validadas**, em uma frente específica de segurança/integridade. Até lá, não antecipar esse hardening nem tratá-lo como correção funcional pendente.
+
+Não transformar qualquer exclusão ou adiamento em dependência, gate oculto ou hardening antecipado. Se surgir necessidade inevitável antes do gatilho definido, parar e solicitar nova decisão do responsável pelo produto.
 
 ## 7. Invariantes de negócio
 
@@ -225,23 +258,21 @@ Planos são hipóteses técnicas, não autoridade superior ao código e aos ambi
 
 ## 10. Próxima ação
 
-Concluir **PR #211 — hotfix de individualização de Notas Fiscais**.
+Executar a **reconciliação pós-PR #211** antes de iniciar PR3.1.
 
 Sequência imediata:
 
-1. versionar e publicar o candidato de hardening somente na branch do PR Draft;
-2. executar novamente unitários, E2E, pgTAP, Supabase readiness, PostgreSQL limpo, backup/restauração e gates proporcionais sobre o novo SHA;
-3. corrigir somente regressões reais encontradas nessa rodada;
-4. repetir o preflight somente leitura de autoria e contexto imediatamente antes de eventual migration;
-5. confirmar preservação dos 16 registros legítimos, remoção exata das 12 despesas/NFs + três Pendências de teste e acesso ao legado real preservado;
-6. confirmar `main`, Preview e mergeabilidade;
-7. somente então avaliar retirada de Draft e pedir/usar autorização final de merge.
+1. comparar o diff integrado do PR #211 com cada tarefa do plano mestre;
+2. classificar tarefas como não afetadas, parcialmente atendidas, atendidas ou alteradas;
+3. atualizar o plano mestre e o handoff de retomada sem apagar seu histórico;
+4. confirmar a ordem restante;
+5. somente então iniciar PR3.1 com gate próprio.
 
 A Consulta Assessoria permanece individual por NF de serviço. O lookup usa `registered_invoice_id`, a abertura continua atômica e o serviço canônico bloqueia qualquer alteração comum enquanto a própria NF possui Pendência ativa. Não substituir esse desenho por lookup genérico ou fluxo paralelo em `app.js`.
 
 A classificação canônica de dados está em `evidence/2026-08-29-pr211-classificacao-dados-legados.md`.
 
-Depois da publicação do hotfix, fazer reconciliação pós-PR #211 e somente então retomar PR3.1.
+O hotfix já foi publicado. A reconciliação pós-PR #211 é agora o único gate documental para retomar PR3.1.
 
 ## 11. Documentos históricos preservados
 

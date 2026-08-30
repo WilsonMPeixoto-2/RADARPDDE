@@ -1,5 +1,7 @@
 # PR #211 — preflight somente leitura de Production
 
+> **Documento histórico de pré-aplicação.** O PR #211 foi publicado em 30/08/2026 e a migration foi aplicada. O resultado pós-publicação está em [`../handoff/2026-08-30-pr211-publicacao-concluida.md`](../handoff/2026-08-30-pr211-publicacao-concluida.md). As menções abaixo a Production intocada descrevem apenas o momento deste preflight.
+
 **Data:** 29 de agosto de 2026  
 **Ambiente:** Supabase Production `scnryinorqeucbfkioxo`  
 **Natureza:** somente leitura; nenhuma mutação executada
