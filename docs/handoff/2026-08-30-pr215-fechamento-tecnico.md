@@ -121,6 +121,27 @@ A regressão de `state-bridge-row-version.test.js` deve manter cobertura explíc
 
 Assim, não é necessária nova migration nem relaxamento adicional das RPCs de novo envio/reanálise.
 
+## 6.1 Revisão estrutural da autoridade da Assessoria
+
+A revisão posterior identificou um risco de manutenção mais amplo: a lógica crítica da Assessoria está distribuída em módulos carregados por bootstrap dinâmico. A investigação chegou inicialmente à hipótese de que o novo envio corretivo não estava conectado porque `service-advisory-pendency.js` não intercepta `registerAttempt()`.
+
+A hipótese foi descartada ao ampliar a análise para a cadeia completa:
+
+```text
+auth-gate
+→ navigation-routes.js
+→ product-extensions-bootstrap.js
+→ service-advisory-pendency.js
+→ service-advisory-corrective-submission.js
+→ wrappers de diagnóstico/performance
+```
+
+`service-advisory-corrective-submission.js` já é a autoridade vigente para `registerAttempt()` de Pendência `consAssessoria` com `registered_invoice_id` e chama a RPC `register_service_advisory_attempt`.
+
+Durante a investigação, uma duplicação dessa lógica chegou a ser iniciada em `service-advisory-pendency.js`, mas foi revertida antes do merge. A regra passa a ser protegida pela ADR-052 e por regressões executáveis de autoridade, ordem de bootstrap e instalação real em navegador.
+
+Consequência: **não existe novo defeito funcional confirmado no fluxo de novo envio da Assessoria nesta revisão**. O achado foi de fragmentação arquitetural e baixa visibilidade da autoridade, agora tratado como risco de manutenção.
+
 ## 7. Publicação
 
 Vercel Production verificada após o PR #215:
