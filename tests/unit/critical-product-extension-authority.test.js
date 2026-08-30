@@ -28,6 +28,25 @@ test('ordem crítica mantém Assessoria base antes do novo envio corretivo e ant
     assert.ok(performance > diagnostics, 'performance deve envolver o handler já diagnosticado');
 });
 
+test('ordem dos wrappers de renderização e modal permanece determinística', () => {
+    const body = source('src/integration/product-extensions-bootstrap.js');
+    const atomic = body.indexOf("'/src/integration/atomic-analysis-pendency.js'");
+    const unidentified = body.indexOf("'/src/integration/unidentified-expense-ux.js'");
+    const prontuarioUx = body.indexOf("'/src/integration/prontuario-operational-ux.js'");
+    const advisory = body.indexOf("'/src/integration/service-advisory-pendency.js'");
+    const performance = body.indexOf("'/src/integration/operational-write-performance.js'");
+    const reconciler = body.indexOf("'/src/integration/prontuario-conditional-reconciler.js'");
+
+    assert.ok(atomic >= 0 && advisory > atomic,
+        'Assessoria deve envolver closeModal depois da proteção atômica base');
+    assert.ok(unidentified >= 0 && prontuarioUx > unidentified,
+        'UX operacional deve envolver a renderização após a UX de despesa a identificar');
+    assert.ok(performance > prontuarioUx,
+        'dispatcher incremental deve envolver a renderização funcional já finalizada');
+    assert.ok(reconciler > performance,
+        'reconciliador condicional deve ser o wrapper externo final de renderProntuario');
+});
+
 test('autoridade de abertura/reanálise não volta a assumir registerAttempt', () => {
     const body = source('src/integration/service-advisory-pendency.js');
     assert.match(body, /pendencyService\.open = async function openWithServiceAdvisory/);
