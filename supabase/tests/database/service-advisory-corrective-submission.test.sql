@@ -122,7 +122,8 @@ select throws_like($$
         jsonb_set((select to_jsonb(i) - 'row_version' - 'created_at' - 'updated_at' from public.registered_invoices i where id='invoice-advisory-attempt'), '{payload,analiseConsultaAssessoria}', to_jsonb('Correto'::text), true),
         (select row_version from public.registered_invoices where id='invoice-advisory-attempt'),
         jsonb_set((select to_jsonb(p) - 'row_version' - 'created_at' - 'updated_at' from public.pendencies p where id='pendency-advisory-attempt'), '{status}', to_jsonb('Resolvida'::text), true),
-        (select to_jsonb(a) - 'row_version' - 'created_at' - 'updated_at' from public.pendency_attempts a where id='attempt-advisory-1'),
+        ((select to_jsonb(a) - 'row_version' - 'created_at' - 'updated_at' from public.pendency_attempts a where id='attempt-advisory-1')
+            || jsonb_build_object('result','correto','analyzed_at','2029-01-13T11:00:00Z')),
         jsonb_set((select to_jsonb(v) - 'row_version' - 'created_at' - 'updated_at' from public.verifications v where id='04.99.197::2029-01::ADVISORY_ATTEMPT'), '{analysis,consAssessoria}', to_jsonb('Correto'::text), true),
         (select row_version from public.pendencies where id='pendency-advisory-attempt'),
         (select row_version from public.verifications where id='04.99.197::2029-01::ADVISORY_ATTEMPT'),
