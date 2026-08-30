@@ -1,23 +1,27 @@
 # AGENTS.md — RADAR PDDE 2026
 
-**Atualizado em:** 27 de agosto de 2026
+**Atualizado em:** 30 de agosto de 2026
 
 ## 1. Leitura obrigatória
 
-Antes de analisar ou alterar o repositório, leia:
+Antes de analisar ou alterar o repositório, leia **nesta ordem**:
 
-1. `docs/CURRENT_STAGE.md` — estado corrente, baseline e prioridades reais;
-2. `docs/handoff/2026-08-27-hotfix-boleto-internet.md` — checkpoint da hotfix prioritária, gates pendentes e retorno ao PR1;
-3. `docs/handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md` — checkpoint curto e ponto de retomada do plano;
-4. `docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md` — plano mestre canônico, com decisões, sequência, gates, testes e reversão das correções ainda não executadas;
-5. `docs/reference/TEST_GOVERNANCE.md` — estratégia proporcional e tratamento de testes superados;
-6. `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md` — visão gerada do contrato funcional vigente;
-7. `docs/PROJECT_CONTEXT.md` — produto, domínio e arquitetura;
-8. `docs/DECISION_LOG.md` — decisões duradouras;
-9. `docs/reference/STATUS_DOCUMENTOS.md` — validade documental;
-10. código, GitHub, Vercel e Supabase correspondentes à frente.
+1. `docs/handoff/2026-08-30-pr211-retomada-work.md` — porta de entrada obrigatória para qualquer nova sessão Work/Chat no PR #211;
+2. `docs/CURRENT_STAGE.md` — estado corrente, baseline e prioridades reais;
+3. `docs/handoff/2026-08-28-pr211-hotfix-notas-fiscais.md` — checkpoint operacional do hotfix;
+4. `docs/superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md` — plano executável do PR #211, já atualizado pelas decisões de 29/08;
+5. `docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md` — contrato funcional vigente;
+6. `docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md` — classificação autoritativa de legados e fixtures decidida em 29/08;
+7. `docs/evidence/2026-08-28-pr211-referencias-visuais.md` — layout aprovado;
+8. `docs/reference/TEST_GOVERNANCE.md` — estratégia proporcional e tratamento de testes superados;
+9. `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md` — visão gerada do contrato funcional vigente;
+10. `docs/PROJECT_CONTEXT.md` e `docs/DECISION_LOG.md`;
+11. somente depois, handoffs históricos e o plano mestre de 26/08;
+12. código, GitHub, Vercel e Supabase correspondentes à frente.
 
-Documentos históricos não prevalecem sobre código, ambientes ou decisões posteriores.
+**Regra para continuidade entre chats:** documentos e decisões de 29/08 prevalecem sobre hipóteses, relatórios e checkpoints anteriores quando tratam do mesmo ponto. Não "corrigir" o produto para voltar a uma regra antiga antes de conferir esses arquivos.
+
+Auditorias externas são insumo de investigação, não ordem de implementação. Se uma auditoria propuser um caminho diferente, comparar primeiro com o SHA atual e com ADR-050/plano/handoff/evidência de 29/08.
 
 ## 2. Identidade do produto
 
@@ -158,7 +162,24 @@ Preservar:
 - nota permanente e bem derivado permanecem coerentes na mesma operação protegida;
 - edição patrimonial usa serviço autorizado, versão esperada e log.
 
-Na hotfix do PR #203, `boletoInternet` é documento exclusivo de Educação Conectada. Ele não cria Nota Fiscal, bem ou Consulta Assessoria. Consolidações conectadas anteriores à chave usam projeção de compatibilidade sem backfill; nenhuma escrita fora de `CONECTADA` é aceita, inclusive por retificação direta.
+No contrato vigente após PR #209 e no PR #211, **não existe documento autônomo `boletoInternet`**. `boleto_internet` existe somente como **Tipo de Gasto dentro de Notas Fiscais**, exclusivo de Educação Conectada. Não possui linha documental, bonificação, análise técnica ou Pendência independente e não participa de Consulta Assessoria.
+
+## 9.1 Guardrails obrigatórios do PR #211
+
+Ao continuar o PR #211, preservar estas decisões já fechadas:
+
+- novas `a_identificar` nascem `Incorreto + Pendência` atomicamente;
+- os **16 `a_identificar` legítimos de Controladores** são `Registro legado`: sem backfill, sem Pendência inventada e sem edição/exclusão comum;
+- **12 despesas/NFs + 3 Pendências fiscais genéricas** comprovadas como fixtures da conta técnica entram em limpeza fail-closed;
+- o antigo reparo do **Boleto 1234** está superado: boleto e Pendência foram classificados como fixtures e devem ser removidos pela limpeza condicionada, não vinculados;
+- Consulta Assessoria é individual por NF de serviço e a Pendência ativa deve ser buscada com `registered_invoice_id`; lookup genérico por escola + competência + programa + documento não pode bloquear outra NF;
+- selecionar `Incorreto` em Assessoria abre primeiro o fluxo atômico de Pendência; não gravar `Incorreto` solto;
+- o resumo mensal da Assessoria é `Sim` se **ao menos uma** consulta exigível foi enviada, `Não` se existem NFs de serviço e nenhuma foi enviada, e `Não se aplica` sem NF de serviço;
+- no Prontuário, item com Pendência ativa mostra **Visualizar pendência**; `Registrar novo envio` e `Reanalisar` permanecem na tela de Pendências;
+- o banco protege identidade, contexto, concorrência e atomicidade, mas não substitui os serviços de domínio como segundo motor completo de regras;
+- desktop é o alvo visual bloqueante deste hotfix; mobile permanece dívida separada não bloqueante.
+
+Se um teste, comentário antigo ou auditoria contrariar esses pontos, classificar primeiro como possível contrato superado antes de alterar o produto.
 
 ## 10. Testes: regra principal
 
