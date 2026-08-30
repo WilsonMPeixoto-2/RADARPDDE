@@ -139,6 +139,15 @@
             value,
             selectElement = null
         ) {
+            if (text(documentKey) === 'notaFiscal') {
+                return originalChangeTechnicalAnalysis(
+                    schoolId,
+                    compKey,
+                    documentKey,
+                    value,
+                    selectElement
+                );
+            }
             if (text(value) !== 'Incorreto') {
                 return originalChangeTechnicalAnalysis(
                     schoolId,

@@ -73,7 +73,7 @@ select throws_like(
        set expense_type = 'consumo'
      where id = 'invoice-advisory-history-lock'
     $$,
-    'INTEGRITY_CONFLICT: Nota Fiscal possui histórico de pendência da Assessoria e não pode alterar escola, competência, programa ou natureza%',
+    'INTEGRITY_CONFLICT: Nota Fiscal possui histórico de pendência da Assessoria e deve permanecer como prestação de serviço%',
     'natureza da NF fica protegida depois do vínculo histórico'
 );
 
@@ -84,7 +84,7 @@ select throws_like(
            source_context_key = '2028-12_ADVISORY_HISTORY_LOCK'
      where id = 'invoice-advisory-history-lock'
     $$,
-    'INTEGRITY_CONFLICT: Nota Fiscal possui histórico de pendência da Assessoria e não pode alterar escola, competência, programa ou natureza%',
+    'INTEGRITY_CONFLICT: Nota Fiscal possui histórico de pendência individual e não pode alterar escola, competência ou programa%',
     'competência da NF fica protegida depois do vínculo histórico'
 );
 
@@ -93,7 +93,7 @@ select throws_like(
     delete from public.registered_invoices
      where id = 'invoice-advisory-history-lock'
     $$,
-    'INTEGRITY_CONFLICT: Nota Fiscal possui histórico de pendência da Assessoria e não pode ser excluída%',
+    'INTEGRITY_CONFLICT: Nota Fiscal possui histórico de pendência individual e não pode ser excluída%',
     'NF com histórico de pendência não pode ser excluída fisicamente'
 );
 

@@ -1,7 +1,25 @@
 # Documentação do RADAR PDDE
 
-**Estado de referência:** 27 de agosto de 2026
+**Estado de referência:** 30 de agosto de 2026
 **Classe documental:** Canônico — índice
+
+## 0. Frente ativa
+
+A frente ativa é o **PR #211 — hotfix de individualização de Notas Fiscais**.
+
+Ler primeiro:
+
+- [`handoff/2026-08-30-pr211-retomada-work.md`](handoff/2026-08-30-pr211-retomada-work.md) — entrada obrigatória para nova sessão;
+- [`CURRENT_STAGE.md`](CURRENT_STAGE.md);
+- [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md);
+- [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md);
+- [`decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md);
+- [`evidence/2026-08-29-pr211-classificacao-dados-legados.md`](evidence/2026-08-29-pr211-classificacao-dados-legados.md);
+- [`evidence/2026-08-28-pr211-referencias-visuais.md`](evidence/2026-08-28-pr211-referencias-visuais.md).
+
+**Atenção:** as decisões de 29/08 sobre dados legados, fixtures, Boleto 1234 e Consulta Assessoria superam interpretações anteriores do hotfix. Nova sessão não deve restaurar decisões antigas por confundi-las com regressão.
+
+Esse hotfix **não substitui o plano mestre**. Depois de seu fechamento, a retomada do plano de 26/08 exige reconciliação explícita do que o PR #211 já tiver modificado ou solucionado.
 
 ## 1. Onde começar
 
@@ -9,9 +27,9 @@ O estado corrente fica em [`CURRENT_STAGE.md`](CURRENT_STAGE.md).
 
 O checkpoint da frente prioritária atual é:
 
-- [`handoff/2026-08-27-hotfix-boleto-internet.md`](handoff/2026-08-27-hotfix-boleto-internet.md)
+- [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md)
 
-Ele registra o escopo do PR #203, os achados da revisão independente, as provas locais, os gates remotos ainda necessários e o retorno obrigatório ao PR1.
+O handoff do Boleto Internet de 27/08 permanece como histórico imediatamente anterior e continua relevante para a regra `boleto_internet`, mas não controla mais o estado corrente do projeto.
 
 O documento principal para retomada do plano mestre é:
 
@@ -51,17 +69,17 @@ Valores voláteis sempre devem ser consultados no remoto quando a tarefa depende
 ## 2. Ordem de leitura recomendada
 
 1. [`../AGENTS.md`](../AGENTS.md);
-2. [`CURRENT_STAGE.md`](CURRENT_STAGE.md);
-3. [`handoff/2026-08-27-hotfix-boleto-internet.md`](handoff/2026-08-27-hotfix-boleto-internet.md);
-4. [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md);
-5. [`superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md);
-6. [`reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx`](reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx);
-7. [`handoff/2026-08-23-post-pr-193.md`](handoff/2026-08-23-post-pr-193.md);
-8. [`DECISION_LOG.md`](DECISION_LOG.md);
-9. [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md);
+2. [`handoff/2026-08-30-pr211-retomada-work.md`](handoff/2026-08-30-pr211-retomada-work.md);
+3. [`CURRENT_STAGE.md`](CURRENT_STAGE.md);
+4. [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md);
+5. [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md);
+6. [`decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md);
+7. [`evidence/2026-08-29-pr211-classificacao-dados-legados.md`](evidence/2026-08-29-pr211-classificacao-dados-legados.md);
+8. [`evidence/2026-08-28-pr211-referencias-visuais.md`](evidence/2026-08-28-pr211-referencias-visuais.md);
+9. [`DECISION_LOG.md`](DECISION_LOG.md) e [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md);
 10. [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md);
 11. [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md);
-12. arquitetura ou runbook diretamente relacionado à tarefa.
+12. somente depois, handoffs de 27/08 e o plano mestre de 26/08 para contexto histórico e retomada futura.
 
 ## 3. Decisões atuais que não podem ser perdidas
 
@@ -139,8 +157,13 @@ Não há telemetria externa, persistência das métricas ou coleta de dados de n
 ## 6. Documentos canônicos e referências
 
 - [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — estado corrente;
-- [`handoff/2026-08-27-hotfix-boleto-internet.md`](handoff/2026-08-27-hotfix-boleto-internet.md) — checkpoint atual da hotfix;
-- [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md) — checkpoint de retomada do plano mestre;
+- [`handoff/2026-08-30-pr211-retomada-work.md`](handoff/2026-08-30-pr211-retomada-work.md) — roteamento obrigatório entre sessões do PR #211;
+- [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md) — checkpoint operacional atual;
+- [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md) — plano executável do hotfix;
+- [`decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md) — contrato vigente;
+- [`evidence/2026-08-29-pr211-classificacao-dados-legados.md`](evidence/2026-08-29-pr211-classificacao-dados-legados.md) — classificação autoritativa de legados e fixtures;
+- [`handoff/2026-08-27-hotfix-boleto-internet.md`](handoff/2026-08-27-hotfix-boleto-internet.md) — histórico do PR #203, superado no modelo ativo pelos PRs #208/#209;
+- [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md) — checkpoint para retomada somente após o PR #211;
 - [`superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md) — sequência canônica de implementação;
 - [`reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx`](reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx) — relatório integral versionado;
 - [`handoff/2026-08-23-post-pr-193.md`](handoff/2026-08-23-post-pr-193.md) — checkpoint histórico anterior;
@@ -174,7 +197,7 @@ Não há telemetria externa, persistência das métricas ou coleta de dados de n
 
 Arquivos datados em `docs/audits/`, `docs/evidence/`, `docs/superpowers/`, `docs/handoff/` e `docs/reports/` preservam o momento em que foram produzidos. Eles não devem ser reescritos para coincidir com o presente e não prevalecem sobre o código/ambiente atual.
 
-O handoff de 26/08 substitui o de 24/08 **como porta de entrada**, sem apagar o valor histórico dos documentos anteriores.
+O handoff de 30/08 é a porta de entrada enquanto o PR #211 estiver ativo. O handoff de 26/08 volta a orientar a execução somente depois da reconciliação pós-hotfix, sem apagar o valor histórico dos documentos anteriores.
 
 ## 9. Continuidade
 
@@ -191,4 +214,4 @@ verificar remoto
 → atualizar documentação afetada
 ```
 
-O estágio atual fecha primeiro a hotfix isolada do PR #203. Depois de merge autorizado, publicação e smoke, a retomada volta ao PR #202/PR1; não iniciar PR2 nem misturar migration, reparo, idempotência ou redesign nesse parêntese.
+O estágio atual fecha primeiro o PR #211. Depois de merge autorizado, migration, publicação e smoke, é obrigatório reconciliar o diff do hotfix com o plano mestre; somente então a execução retoma em PR3.1. PR1 e PR2 já foram concluídos e não devem ser reimplementados.

@@ -10,21 +10,47 @@
     const accessPolicy = typeof module !== 'undefined' && module.exports
         ? require('../domain/access-policy.js')
         : root.RadarAccessPolicy;
-    const api = factory(contract, domain, accessPolicy);
+    const invoiceDocumentAnalysis = typeof module !== 'undefined' && module.exports
+        ? require('../domain/invoice-document-analysis.js')
+        : root.RadarInvoiceDocumentAnalysis;
+    const invoiceEffects = typeof module !== 'undefined' && module.exports
+        ? require('../domain/invoice-effects.js')
+        : root.RadarInvoiceEffects;
+    const api = factory(
+        contract,
+        domain,
+        accessPolicy,
+        invoiceDocumentAnalysis,
+        invoiceEffects
+    );
 
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
     if (root) root.RadarPendencyService = Object.freeze(api);
 }(typeof window !== 'undefined' ? window : globalThis, function createPendencyServiceApi(
     contract,
     defaultDomain,
-    accessPolicy
+    accessPolicy,
+    invoiceDocumentAnalysis,
+    invoiceEffects
 ) {
     'use strict';
 
-    if (!contract || !defaultDomain || !accessPolicy) {
-        throw new Error('Contrato de dados, domínio de pendências e política de acesso são obrigatórios.');
+    if (!contract || !defaultDomain || !accessPolicy || !invoiceDocumentAnalysis || !invoiceEffects) {
+        throw new Error('Contrato de dados, domínios de pendências/análise fiscal, planner de efeitos e política de acesso são obrigatórios.');
     }
     const { RepositoryError, cloneValue } = contract;
+    const {
+        deriveInvoiceDocumentAnalysis,
+        isUnidentifiedExpense,
+        normalizeInvoiceDocumentAnalysis
+    } = invoiceDocumentAnalysis;
+    const { planInvoiceEffects } = invoiceEffects;
+    const IDENTIFIED_EXPENSE_TYPES = new Set([
+        'consumo',
+        'permanente',
+        'servico',
+        'boleto_internet'
+    ]);
 
     function text(value) {
         return value == null ? '' : String(value).trim();
@@ -191,9 +217,648 @@
             });
         }
 
+        isLinkedInvoiceDocumentPendency(pendency = {}) {
+            return text(pendency.documentoKey || pendency.document_key) === 'notaFiscal'
+                && Boolean(text(
+                    pendency.registeredInvoiceId
+                    || pendency.registered_invoice_id
+                ));
+        }
+
+        findLinkedInvoice(state, invoiceId, operation) {
+            const id = text(invoiceId);
+            const invoice = state.registeredInvoices.find(item => String(item.id) === id);
+            if (!invoice) {
+                fail(
+                    'INVOICE_NOT_FOUND',
+                    'Despesa ou Nota Fiscal vinculada à pendência não localizada.',
+                    operation,
+                    { registeredInvoiceId: id }
+                );
+            }
+            return invoice;
+        }
+
+        assertLinkedInvoiceContext(invoice, context, operation) {
+            const expectedCompKey = `${context.competencia}_${context.programaId}`;
+            if (text(invoice.escolaId) !== context.escolaId
+                || text(invoice.compKey) !== expectedCompKey) {
+                fail(
+                    'INVOICE_CONTEXT_MISMATCH',
+                    'A despesa vinculada e a pendência pertencem a contextos diferentes.',
+                    operation,
+                    {
+                        registeredInvoiceId: invoice.id,
+                        expectedSchoolId: context.escolaId,
+                        expectedCompKey
+                    }
+                );
+            }
+        }
+
+        syncInvoiceDocumentAggregate(state, invoice, verification, legacyFallback = null) {
+            const invoices = state.registeredInvoices.filter(item => (
+                item.escolaId === invoice.escolaId
+                && item.compKey === invoice.compKey
+            ));
+            verification.analise = verification.analise || {};
+            const aggregate = deriveInvoiceDocumentAnalysis(
+                invoices,
+                legacyFallback || verification.analise.notaFiscal || 'Não analisado'
+            );
+            verification.analise.notaFiscal = aggregate;
+            return aggregate;
+        }
+
+        documentSnapshot(invoice = {}) {
+            return {
+                registeredInvoiceId: text(invoice.id),
+                tipo: text(invoice.tipo),
+                numero: text(invoice.numero) || null,
+                descricao: text(invoice.desc || invoice.descricao),
+                valor: Number(invoice.valor || 0)
+            };
+        }
+
+        persistInvoiceDocumentCommand(context, persistence) {
+            const { snapshot, repository, defaultPersist } = context;
+            const capabilities = repository.capabilities?.() || {};
+            if (capabilities.remote !== true || typeof repository.executeRpc !== 'function') {
+                return defaultPersist();
+            }
+            const entities = snapshot.entities || {};
+            const invoice = list(entities.registeredInvoices)
+                .find(record => String(record.id) === String(persistence.invoiceId));
+            const pendency = list(entities.pendencies)
+                .find(record => String(record.id) === String(persistence.pendencyId));
+            const attempt = persistence.attemptId
+                ? list(entities.pendencyAttempts)
+                    .find(record => String(record.id) === String(persistence.attemptId))
+                : null;
+            const verification = list(entities.verifications).find(record => (
+                String(record.school_id) === String(persistence.schoolId)
+                && String(record.competence_id) === String(persistence.competence)
+                && String(record.program_id || '') === String(persistence.programId || '')
+            ));
+            const administrativeLogRecord = list(entities.administrativeLogs)
+                .find(record => String(record.id) === String(persistence.logId));
+            const administrativeLog = this.decorateAdministrativeLog(administrativeLogRecord);
+
+            if (!invoice || !pendency || !verification || !administrativeLog
+                || (persistence.attemptId && !attempt)) {
+                fail(
+                    'PERSISTENCE_CONTEXT_MISSING',
+                    'O agregado individual da Nota Fiscal não foi produzido integralmente para persistência.',
+                    'persistInvoiceDocumentCommand',
+                    cloneValue(persistence)
+                );
+            }
+
+            if (persistence.operation === 'open') {
+                return repository.executeRpc('save_invoice_document_with_pendency', {
+                    p_invoice: invoice,
+                    p_expected_invoice_version: persistence.expectedInvoiceVersion,
+                    p_verification_patch: verification,
+                    p_expected_verification_version: persistence.expectedVerificationVersion,
+                    p_pendency: pendency,
+                    p_administrative_log: administrativeLog
+                }, 'saveInvoiceDocumentWithPendency');
+            }
+            if (persistence.operation === 'register_attempt') {
+                const asset = persistence.assetId
+                    ? list(entities.assets)
+                        .find(record => String(record.id) === String(persistence.assetId))
+                    : null;
+                return repository.executeRpc('register_invoice_document_attempt', {
+                    p_invoice: invoice,
+                    p_expected_invoice_version: persistence.expectedInvoiceVersion,
+                    p_asset: asset,
+                    p_expected_asset_version: persistence.expectedAssetVersion,
+                    p_pendency: pendency,
+                    p_expected_pendency_version: persistence.expectedPendencyVersion,
+                    p_attempt: attempt,
+                    p_verification_patch: verification,
+                    p_expected_verification_version: persistence.expectedVerificationVersion,
+                    p_administrative_log: administrativeLog
+                }, 'registerInvoiceDocumentAttempt');
+            }
+            if (persistence.operation === 'reanalyze') {
+                return repository.executeRpc('reanalyze_invoice_document_pendency', {
+                    p_invoice: invoice,
+                    p_expected_invoice_version: persistence.expectedInvoiceVersion,
+                    p_pendency: pendency,
+                    p_attempt: attempt,
+                    p_verification_patch: verification,
+                    p_expected_pendency_version: persistence.expectedPendencyVersion,
+                    p_expected_verification_version: persistence.expectedVerificationVersion,
+                    p_administrative_log: administrativeLog
+                }, 'reanalyzeInvoiceDocumentPendency');
+            }
+            return defaultPersist();
+        }
+
+        async openInvoiceDocumentPendency(input = {}) {
+            const registeredInvoiceId = text(input.registeredInvoiceId || input.registered_invoice_id);
+            const persistence = {
+                operation: 'open',
+                invoiceId: registeredInvoiceId
+            };
+
+            return this.dataService.execute({
+                name: 'invoice:open-document-pendency',
+                changedEntities: ['registeredInvoices', 'pendencies', 'verifications', 'administrativeLogs'],
+                remoteResultIsAuthoritative: true,
+                mutate: () => {
+                    const state = this.getState();
+                    const context = {
+                        escolaId: text(input.schoolId || input.escolaId),
+                        competencia: text(input.competence || input.competencia),
+                        programaId: text(input.programId || input.programaId),
+                        documentoKey: 'notaFiscal',
+                        registeredInvoiceId,
+                        item: text(input.item)
+                    };
+                    if (!context.escolaId || !context.competencia || !context.programaId || !registeredInvoiceId) {
+                        fail(
+                            'INCOMPLETE_CONTEXT',
+                            'Escola, competência, programa e despesa são obrigatórios para a pendência individual.',
+                            'openInvoiceDocumentPendency'
+                        );
+                    }
+                    const invoice = this.findLinkedInvoice(
+                        state,
+                        registeredInvoiceId,
+                        'openInvoiceDocumentPendency'
+                    );
+                    this.assertLinkedInvoiceContext(invoice, context, 'openInvoiceDocumentPendency');
+
+                    const existing = this.domain.findActivePendency(state.pendencies, context);
+                    if (existing) {
+                        fail(
+                            'DUPLICATE_PENDENCY',
+                            'Já existe uma pendência ativa para este documento.',
+                            'openInvoiceDocumentPendency',
+                            { existingPendencyId: existing.id, registeredInvoiceId }
+                        );
+                    }
+
+                    const compKey = `${context.competencia}_${context.programaId}`;
+                    const verification = state.verifications?.[context.escolaId]?.[compKey] || null;
+                    if (!verification) {
+                        fail('NOT_FOUND', 'Verificação documental não localizada.', 'openInvoiceDocumentPendency');
+                    }
+                    verification.analise = verification.analise || {};
+                    verification.bonificacao = verification.bonificacao || {};
+                    if (!text(verification.bonificacao.notaFiscal)) {
+                        fail(
+                            'DELIVERY_REQUIRED',
+                            'Preencha a bonificação de Notas Fiscais antes de registrar a análise técnica.',
+                            'openInvoiceDocumentPendency'
+                        );
+                    }
+
+                    const expectedAnalysis = text(input.technicalAnalysisValue || input.analysis || 'Incorreto');
+                    if (expectedAnalysis !== 'Incorreto') {
+                        fail(
+                            'VALIDATION_FAILED',
+                            'A abertura da pendência individual exige análise “Incorreto”.',
+                            'openInvoiceDocumentPendency'
+                        );
+                    }
+
+                    persistence.expectedInvoiceVersion = rowVersionOf(invoice);
+                    persistence.expectedVerificationVersion = rowVersionOf(verification);
+                    persistence.schoolId = context.escolaId;
+                    persistence.competence = context.competencia;
+                    persistence.programId = context.programaId;
+
+                    const bonificationBefore = cloneValue(verification.bonificacao);
+                    const resultBefore = cloneValue(verification.resultadoBonif);
+                    const legacyFallback = verification.analise.notaFiscal || 'Não analisado';
+                    invoice.analiseDocumentoFiscal = 'Incorreto';
+                    const aggregate = this.syncInvoiceDocumentAggregate(
+                        state,
+                        invoice,
+                        verification,
+                        legacyFallback
+                    );
+
+                    const openingDate = text(input.openingDate || input.dataAbertura)
+                        || this.now().slice(0, 10);
+                    const opened = this.domain.createDocumentPendency({
+                        id: text(input.id) || this.createId('pend'),
+                        escolaId: context.escolaId,
+                        competencia: context.competencia,
+                        programaId: context.programaId,
+                        documentoKey: 'notaFiscal',
+                        registeredInvoiceId,
+                        item: context.item || (text(invoice.numero)
+                            ? `Notas Fiscais — ${text(invoice.numero)}`
+                            : 'Despesa a identificar'),
+                        erros: input.errors || input.erros,
+                        observacao: text(input.observation || input.observacao),
+                        dataAbertura: openingDate
+                    }, this.audit('evento-pendencia'));
+                    opened.documentSnapshot = this.documentSnapshot(invoice);
+                    state.pendencies.push(opened);
+
+                    if (JSON.stringify(verification.bonificacao) !== JSON.stringify(bonificationBefore)
+                        || JSON.stringify(verification.resultadoBonif) !== JSON.stringify(resultBefore)) {
+                        fail(
+                            'BONIFICATION_INVARIANT',
+                            'A abertura da pendência individual não pode alterar a bonificação.',
+                            'openInvoiceDocumentPendency'
+                        );
+                    }
+
+                    const log = this.appendSchoolLog(
+                        context.escolaId,
+                        'Análise incorreta e pendência individual aberta',
+                        `Documento ${opened.item} marcado como “Incorreto”; pendência ${opened.id} vinculada à despesa ${registeredInvoiceId}. Resumo técnico de Notas Fiscais: “${aggregate}”.`
+                    );
+                    persistence.pendencyId = opened.id;
+                    persistence.logId = text(log?.id);
+                    return {
+                        invoice: cloneValue(invoice),
+                        pendency: cloneValue(opened),
+                        verification: cloneValue(verification),
+                        aggregate
+                    };
+                },
+                persist: context => this.persistInvoiceDocumentCommand(context, persistence)
+            });
+        }
+
+        validateInvoiceIdentification(input, invoice, pendency, operation) {
+            const identification = input?.identification;
+            if (!identification || typeof identification !== 'object' || Array.isArray(identification)) {
+                fail(
+                    'DOCUMENT_IDENTIFICATION_REQUIRED',
+                    'Informe os dados do documento apresentado para identificar a despesa.',
+                    operation,
+                    { registeredInvoiceId: invoice.id }
+                );
+            }
+
+            const expenseType = text(
+                identification.expenseType
+                || identification.tipo
+            ).toLocaleLowerCase('pt-BR');
+            const description = text(
+                identification.description
+                || identification.descricao
+            );
+            const invoiceNumber = text(
+                identification.invoiceNumber
+                || identification.numero
+                || identification.reference
+            );
+            const amount = Number(
+                identification.amount
+                ?? identification.valor
+            );
+
+            if (!IDENTIFIED_EXPENSE_TYPES.has(expenseType)
+                || !description
+                || !invoiceNumber
+                || !Number.isFinite(amount)
+                || amount < 0) {
+                fail(
+                    'VALIDATION_FAILED',
+                    'Tipo, número ou referência, descrição e valor válido são obrigatórios para identificar a despesa.',
+                    operation,
+                    { registeredInvoiceId: invoice.id }
+                );
+            }
+            if (expenseType === 'boleto_internet'
+                && text(pendency.programaId) !== 'CONECTADA') {
+                fail(
+                    'DOCUMENT_NOT_APPLICABLE',
+                    'Boleto de pagamento de Internet só pode identificar despesa de Educação Conectada.',
+                    operation,
+                    { registeredInvoiceId: invoice.id }
+                );
+            }
+
+            return {
+                expenseType,
+                description,
+                invoiceNumber,
+                amount
+            };
+        }
+
+        applyInvoiceIdentification(state, invoice, pendency, verification, input, persistence) {
+            const operation = 'registerInvoiceDocumentAttempt';
+            const identification = this.validateInvoiceIdentification(
+                input,
+                invoice,
+                pendency,
+                operation
+            );
+            const competence = text(pendency.competenciaOrigem || pendency.competencia);
+            const programId = text(pendency.programaId);
+            const compKey = `${competence}_${programId}`;
+            if (text(invoice.compKey) !== compKey) {
+                fail(
+                    'INVOICE_CONTEXT_MISMATCH',
+                    'A despesa a identificar não pertence à competência e ao programa da Pendência.',
+                    operation,
+                    { registeredInvoiceId: invoice.id, compKey }
+                );
+            }
+
+            const contextInvoices = list(state.registeredInvoices).filter(item => (
+                item.escolaId === invoice.escolaId
+                && item.compKey === invoice.compKey
+            ));
+            const currentAsset = invoice.bemId
+                ? list(state.assets).find(asset => asset.id === invoice.bemId) || null
+                : null;
+            const school = list(state.schools).find(item => item.id === invoice.escolaId) || null;
+            const program = list(state.programs).find(item => item.id === programId) || null;
+            const plan = planInvoiceEffects({
+                existingInvoice: invoice,
+                request: {
+                    schoolId: invoice.escolaId,
+                    compKey: invoice.compKey,
+                    competence,
+                    programId,
+                    description: identification.description,
+                    expenseType: identification.expenseType,
+                    invoiceNumber: identification.invoiceNumber,
+                    amount: identification.amount
+                },
+                contextInvoices,
+                currentAsset,
+                verification,
+                school,
+                program,
+                profile: this.getCurrentProfile(),
+                invoiceId: invoice.id,
+                assetId: identification.expenseType === 'permanente'
+                    ? (currentAsset?.id || invoice.bemId || this.createId('bem'))
+                    : null,
+                timestamp: invoice.dataRegistro || this.now()
+            });
+
+            if (plan.unchanged || plan.operation !== 'update') {
+                fail(
+                    'INVALID_INVOICE_PLAN',
+                    'Não foi possível transformar a despesa a identificar no documento apresentado.',
+                    operation,
+                    { registeredInvoiceId: invoice.id }
+                );
+            }
+
+            persistence.expectedAssetVersion = rowVersionOf(currentAsset);
+            persistence.assetId = plan.asset?.id || null;
+
+            Object.assign(invoice, cloneValue(plan.invoice));
+            invoice.analiseDocumentoFiscal = 'Não analisado';
+
+            if (!Array.isArray(state.assets)) state.assets = [];
+            if (plan.removedAsset?.id) {
+                state.assets.splice(
+                    0,
+                    state.assets.length,
+                    ...state.assets.filter(asset => asset.id !== plan.removedAsset.id)
+                );
+            }
+            if (plan.asset?.id) {
+                const existingAsset = state.assets.find(asset => asset.id === plan.asset.id);
+                if (existingAsset) Object.assign(existingAsset, cloneValue(plan.asset));
+                else state.assets.push(cloneValue(plan.asset));
+            }
+
+            const nextVerification = plan.verification
+                ? cloneValue(plan.verification)
+                : cloneValue(verification);
+            nextVerification.analise = nextVerification.analise || {};
+            nextVerification.bonificacao = nextVerification.bonificacao || {};
+            // A correção documental não muda a bonificação de Notas Fiscais nem
+            // o resultado consolidado. Efeitos derivados de Assessoria/Inventário
+            // permanecem autorizados pelo planner canônico.
+            nextVerification.bonificacao.notaFiscal = verification.bonificacao?.notaFiscal;
+            nextVerification.resultadoBonif = verification.resultadoBonif;
+            nextVerification.analise.notaFiscal = deriveInvoiceDocumentAnalysis(
+                list(state.registeredInvoices).filter(item => (
+                    item.escolaId === invoice.escolaId
+                    && item.compKey === invoice.compKey
+                )),
+                verification.analise?.notaFiscal || 'Não analisado'
+            );
+            Object.assign(verification, nextVerification);
+
+            return {
+                identification,
+                warnings: [...(plan.warnings || [])]
+            };
+        }
+
+        async registerInvoiceDocumentAttempt(input = {}, targetPendency) {
+            const persistence = {
+                operation: 'register_attempt',
+                pendencyId: String(targetPendency.id),
+                invoiceId: text(targetPendency.registeredInvoiceId || targetPendency.registered_invoice_id)
+            };
+            return this.dataService.execute({
+                name: 'invoice:register-document-attempt',
+                changedEntities: ['registeredInvoices', 'assets', 'pendencies', 'pendencyAttempts', 'verifications', 'administrativeLogs'],
+                remoteResultIsAuthoritative: true,
+                mutate: () => {
+                    const state = this.getState();
+                    const { index, pendency } = this.find(state, targetPendency.id, 'registerInvoiceDocumentAttempt');
+                    const invoice = this.findLinkedInvoice(
+                        state,
+                        persistence.invoiceId,
+                        'registerInvoiceDocumentAttempt'
+                    );
+                    const { verification } = this.verificationFor(
+                        state,
+                        pendency,
+                        'registerInvoiceDocumentAttempt'
+                    );
+                    persistence.expectedInvoiceVersion = rowVersionOf(invoice);
+                    persistence.expectedPendencyVersion = rowVersionOf(pendency);
+                    persistence.expectedVerificationVersion = rowVersionOf(verification);
+                    persistence.schoolId = pendency.escolaId;
+                    persistence.competence = pendency.competenciaOrigem || pendency.competencia;
+                    persistence.programId = pendency.programaId;
+
+                    const bonificationBefore = cloneValue(verification.bonificacao);
+                    const resultBefore = cloneValue(verification.resultadoBonif);
+                    const identifying = isUnidentifiedExpense(invoice);
+                    const identificationResult = identifying
+                        ? this.applyInvoiceIdentification(
+                            state,
+                            invoice,
+                            pendency,
+                            verification,
+                            input,
+                            persistence
+                        )
+                        : { warnings: [] };
+                    const next = this.domain.registerCorrectiveSubmission(pendency, {
+                        id: text(input.attemptId) || this.createId('tentativa'),
+                        dataDisponibilizacao: text(input.availabilityDate || input.dataDisponibilizacao),
+                        observacao: text(input.observation || input.observacao),
+                        link: text(input.link) || null
+                    }, this.audit('evento-envio'));
+
+                    invoice.analiseDocumentoFiscal = 'Não analisado';
+                    const aggregate = this.syncInvoiceDocumentAggregate(state, invoice, verification);
+                    if (identifying) {
+                        next.documentSnapshot = this.documentSnapshot(invoice);
+                        next.item = text(invoice.numero)
+                            ? `Notas Fiscais — ${text(invoice.numero)}`
+                            : next.item;
+                    }
+                    state.pendencies[index] = next;
+
+                    const fiscalBonificationChanged = JSON.stringify(
+                        verification.bonificacao?.notaFiscal
+                    ) !== JSON.stringify(bonificationBefore?.notaFiscal);
+                    const resultChanged = JSON.stringify(
+                        verification.resultadoBonif
+                    ) !== JSON.stringify(resultBefore);
+                    const unrelatedBonificationChanged = !identifying
+                        && JSON.stringify(verification.bonificacao) !== JSON.stringify(bonificationBefore);
+                    if (fiscalBonificationChanged || resultChanged || unrelatedBonificationChanged) {
+                        fail(
+                            'BONIFICATION_INVARIANT',
+                            'O novo envio individual não pode alterar a bonificação de Notas Fiscais nem o resultado consolidado.',
+                            'registerInvoiceDocumentAttempt'
+                        );
+                    }
+
+                    const log = this.appendSchoolLog(
+                        pendency.escolaId,
+                        identifying
+                            ? 'Despesa identificada em novo envio'
+                            : 'Novo envio de documento fiscal registrado',
+                        identifying
+                            ? `Despesa ${invoice.id} identificada como ${invoice.tipo}, documento ${invoice.numero}; o mesmo registro foi preservado e enviado para reanálise. Resumo técnico: “${aggregate}”.`
+                            : `Novo envio vinculado à despesa ${invoice.id}; análise individual voltou para “Não analisado”. Resumo técnico: “${aggregate}”.`
+                    );
+                    persistence.attemptId = list(next.tentativas).at(-1)?.id || null;
+                    persistence.logId = text(log?.id);
+                    return {
+                        invoice: cloneValue(invoice),
+                        pendency: cloneValue(next),
+                        verification: cloneValue(verification),
+                        aggregate,
+                        identified: identifying,
+                        warnings: identificationResult.warnings
+                    };
+                },
+                persist: context => this.persistInvoiceDocumentCommand(context, persistence)
+            });
+        }
+
+        async reanalyzeInvoiceDocumentPendency(input = {}, targetPendency) {
+            const persistence = {
+                operation: 'reanalyze',
+                pendencyId: String(targetPendency.id),
+                invoiceId: text(targetPendency.registeredInvoiceId || targetPendency.registered_invoice_id)
+            };
+            return this.dataService.execute({
+                name: 'invoice:reanalyze-document-pendency',
+                changedEntities: ['registeredInvoices', 'pendencies', 'pendencyAttempts', 'verifications', 'administrativeLogs'],
+                remoteResultIsAuthoritative: true,
+                mutate: () => {
+                    const state = this.getState();
+                    const { index, pendency } = this.find(state, targetPendency.id, 'reanalyzeInvoiceDocumentPendency');
+                    const invoice = this.findLinkedInvoice(
+                        state,
+                        persistence.invoiceId,
+                        'reanalyzeInvoiceDocumentPendency'
+                    );
+                    if (isUnidentifiedExpense(invoice)) {
+                        fail(
+                            'DOCUMENT_IDENTIFICATION_REQUIRED',
+                            'A despesa ainda precisa ser identificada antes da reanálise documental.',
+                            'reanalyzeInvoiceDocumentPendency',
+                            { registeredInvoiceId: invoice.id }
+                        );
+                    }
+                    const { verification } = this.verificationFor(
+                        state,
+                        pendency,
+                        'reanalyzeInvoiceDocumentPendency'
+                    );
+                    const awaitingAttempt = [...list(pendency.tentativas)]
+                        .reverse()
+                        .find(attempt => attempt && attempt.status === 'aguardando');
+                    persistence.attemptId = text(awaitingAttempt?.id) || null;
+                    persistence.expectedInvoiceVersion = rowVersionOf(invoice);
+                    persistence.expectedPendencyVersion = rowVersionOf(pendency);
+                    persistence.expectedVerificationVersion = rowVersionOf(verification);
+                    persistence.schoolId = pendency.escolaId;
+                    persistence.competence = pendency.competenciaOrigem || pendency.competencia;
+                    persistence.programId = pendency.programaId;
+
+                    const bonificationBefore = cloneValue(verification.bonificacao);
+                    const resultBefore = cloneValue(verification.resultadoBonif);
+                    const next = this.domain.recordReanalysis(pendency, {
+                        resultado: text(input.result || input.resultado),
+                        erros: input.errors || input.erros,
+                        observacao: text(input.observation || input.observacao) || 'Regularização confirmada.'
+                    }, this.audit('evento-reanalise'));
+
+                    const result = text(input.result || input.resultado);
+                    invoice.analiseDocumentoFiscal = normalizeInvoiceDocumentAnalysis(
+                        result === 'correto'
+                            ? this.getCorrectAnalysisLabel(
+                                pendency.competenciaOrigem || pendency.competencia,
+                                awaitingAttempt?.dataDisponibilizacao
+                            )
+                            : 'Incorreto'
+                    );
+                    const aggregate = this.syncInvoiceDocumentAggregate(state, invoice, verification);
+                    state.pendencies[index] = next;
+
+                    if (JSON.stringify(verification.bonificacao) !== JSON.stringify(bonificationBefore)
+                        || JSON.stringify(verification.resultadoBonif) !== JSON.stringify(resultBefore)) {
+                        fail(
+                            'BONIFICATION_INVARIANT',
+                            'A reanálise individual não pode alterar a bonificação.',
+                            'reanalyzeInvoiceDocumentPendency'
+                        );
+                    }
+
+                    const log = this.appendSchoolLog(
+                        pendency.escolaId,
+                        'Reanálise de documento fiscal registrada',
+                        `Despesa ${invoice.id} reanalisada como “${invoice.analiseDocumentoFiscal}”. Resumo técnico de Notas Fiscais: “${aggregate}”.`
+                    );
+                    persistence.logId = text(log?.id);
+                    return {
+                        invoice: cloneValue(invoice),
+                        pendency: cloneValue(next),
+                        verification: cloneValue(verification),
+                        aggregate
+                    };
+                },
+                persist: context => this.persistInvoiceDocumentCommand(context, persistence)
+            });
+        }
+
         async open(input = {}) {
             this.assertCapability(accessPolicy.CAPABILITIES.OPEN_PENDENCY, 'open');
             const requestedDocumentKey = text(input.documentKey || input.documentoKey);
+            const registeredInvoiceId = text(input.registeredInvoiceId || input.registered_invoice_id);
+            if (requestedDocumentKey === 'notaFiscal' && registeredInvoiceId) {
+                return this.openInvoiceDocumentPendency(input);
+            }
+            if (requestedDocumentKey === 'notaFiscal') {
+                fail(
+                    'INCOMPLETE_CONTEXT',
+                    'Toda nova Pendência de Notas Fiscais deve estar vinculada à despesa correspondente.',
+                    'open',
+                    { documentKey: requestedDocumentKey }
+                );
+            }
             if (requestedDocumentKey === 'consAssessoria') {
                 fail(
                     'DOCUMENT_NOT_APPLICABLE',
@@ -226,6 +891,7 @@
                         competenciaOrigem: text(input.competence || input.competencia),
                         programaId: text(input.programId || input.programaId),
                         documentoKey: text(input.documentKey || input.documentoKey),
+                        registeredInvoiceId: text(input.registeredInvoiceId || input.registered_invoice_id) || null,
                         item: text(input.item)
                     };
                     const documentary = Boolean(context.programaId && context.documentoKey);
@@ -287,6 +953,7 @@
                                 competencia: context.competencia,
                                 programaId: context.programaId,
                                 documentoKey: context.documentoKey,
+                                registeredInvoiceId: context.registeredInvoiceId || null,
                                 item: context.item,
                                 erros: input.errors || input.erros,
                                 observacao: observation,
@@ -344,6 +1011,11 @@
                 accessPolicy.CAPABILITIES.REGISTER_CORRECTIVE_SUBMISSION,
                 'registerAttempt'
             );
+            const currentState = this.getState();
+            const target = currentState.pendencies.find(item => String(item.id) === text(input.pendencyId));
+            if (target && this.isLinkedInvoiceDocumentPendency(target)) {
+                return this.registerInvoiceDocumentAttempt(input, target);
+            }
             const persistence = { operation: 'register_attempt' };
             return this.dataService.execute({
                 name: 'pendency:register-attempt',
@@ -397,6 +1069,11 @@
 
         async reanalyze(input = {}) {
             this.assertCapability(accessPolicy.CAPABILITIES.REANALYZE_PENDENCY, 'reanalyze');
+            const currentState = this.getState();
+            const target = currentState.pendencies.find(item => String(item.id) === text(input.pendencyId));
+            if (target && this.isLinkedInvoiceDocumentPendency(target)) {
+                return this.reanalyzeInvoiceDocumentPendency(input, target);
+            }
             const persistence = {};
             return this.dataService.execute({
                 name: 'pendency:reanalyze',
@@ -493,6 +1170,70 @@
                 ...input,
                 result: 'correto',
                 observation: text(input.observation || input.observacao) || 'Pendência regularizada.'
+            });
+        }
+
+        async updateDetails(input = {}) {
+            this.assertCapability(accessPolicy.CAPABILITIES.OPEN_PENDENCY, 'updateDetails');
+            const persistence = { operation: 'update_status' };
+            return this.dataService.execute({
+                name: 'pendency:update-details',
+                changedEntities: ['pendencies', 'administrativeLogs'],
+                mutate: () => {
+                    const state = this.getState();
+                    const { index, pendency } = this.find(state, input.pendencyId, 'updateDetails');
+                    if (!this.domain.isDocumentaryPendency(pendency)) {
+                        fail(
+                            'INCOMPLETE_CONTEXT',
+                            'Somente Pendências documentais podem ser editadas por esta visualização.',
+                            'updateDetails'
+                        );
+                    }
+                    const reason = text(input.reason || input.motivo);
+                    const observation = text(input.observation || input.observacao);
+                    if (!reason || !observation) {
+                        fail(
+                            'VALIDATION_FAILED',
+                            'Motivo e observação são obrigatórios.',
+                            'updateDetails'
+                        );
+                    }
+                    if (!this.domain.DOCUMENT_ERROR_TYPES.includes(reason)) {
+                        fail(
+                            'VALIDATION_FAILED',
+                            'O motivo informado não pertence ao catálogo documental.',
+                            'updateDetails',
+                            { reason }
+                        );
+                    }
+                    persistence.pendencyId = pendency.id;
+                    persistence.expectedPendencyVersion = rowVersionOf(pendency);
+
+                    const currentErrors = Array.isArray(pendency.errosAtuais)
+                        ? [...pendency.errosAtuais]
+                        : [];
+                    const nextErrors = reason === 'Documento ausente'
+                        ? ['Documento ausente']
+                        : this.domain.validateDocumentErrors([
+                            reason,
+                            ...currentErrors.filter(error => error !== 'Documento ausente' && error !== reason)
+                        ]);
+                    const next = this.domain.normalizePendencyRecord({
+                        ...cloneValue(pendency),
+                        motivo: reason,
+                        errosAtuais: nextErrors,
+                        observacao: observation
+                    });
+                    state.pendencies[index] = next;
+                    const log = this.appendSchoolLog(
+                        next.escolaId,
+                        'Pendência Editada',
+                        `Motivo e observação da pendência ${next.id} foram atualizados sem alterar seu status.`
+                    );
+                    persistence.logId = text(log?.id);
+                    return { pendency: cloneValue(next) };
+                },
+                persist: context => this.persistPendencyCommand(context, persistence)
             });
         }
 

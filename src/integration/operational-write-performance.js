@@ -395,13 +395,28 @@
     }
 
     function syncServiceAdvisorySummary(row, bonificationValue) {
-        const summary = Array.from(row?.querySelectorAll?.('span.badge') || [])
-            .find(element => text(element.textContent).startsWith('Resumo mensal:'));
+        const summary = row?.querySelector?.(
+            '.invoice-summary-block.is-bonification .invoice-document-status'
+        );
         if (!summary) return;
 
-        summary.classList.remove('badge-success', 'badge-danger');
-        summary.classList.add(bonificationValue === 'Sim' ? 'badge-success' : 'badge-danger');
-        summary.textContent = `Resumo mensal: ${bonificationValue || 'Não'}`;
+        const value = bonificationValue || 'Não';
+        summary.classList.remove(
+            'is-correct',
+            'is-incorrect',
+            'is-pending',
+            'is-late',
+            'badge-success',
+            'badge-danger'
+        );
+        summary.classList.add(
+            value === 'Sim'
+                ? 'is-correct'
+                : value === 'Não'
+                    ? 'is-incorrect'
+                    : 'is-pending'
+        );
+        summary.textContent = value;
     }
 
     function syncProntuarioProgramUI(root, schoolId, compKey) {
@@ -518,7 +533,11 @@
             const traceId = takeTrace(root, name);
             const schoolId = schoolIdForHandler(name, args);
             const compKeyBefore = compKeyForHandler(root, name, args);
-            const release = suppressProntuarioRender(schoolId);
+            const requiresFullProntuarioRender = name === 'toggleBonif'
+                && text(args[2]) === 'notaFiscal';
+            const release = requiresFullProntuarioRender
+                ? (() => {})
+                : suppressProntuarioRender(schoolId);
             let result;
             try {
                 result = await invokeWithTrace(root, traceId, () => original.apply(this, args));
@@ -526,8 +545,14 @@
                 release();
             }
             if (result === false) {
-                if (originalRenderProntuario) originalRenderProntuario(schoolId);
+                if (!requiresFullProntuarioRender && originalRenderProntuario) {
+                    originalRenderProntuario(schoolId);
+                }
                 return false;
+            }
+            if (requiresFullProntuarioRender) {
+                scheduleStable(root, traceId);
+                return result;
             }
             const compKey = compKeyBefore || compKeyForHandler(root, name, args);
             if (compKey) {

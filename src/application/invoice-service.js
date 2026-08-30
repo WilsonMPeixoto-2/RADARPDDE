@@ -10,19 +10,27 @@
     const invoiceEffects = typeof module !== 'undefined' && module.exports
         ? require('../domain/invoice-effects.js')
         : root.RadarInvoiceEffects;
-    const api = factory(contract, serviceAdvisory, invoiceEffects);
+    const invoiceDocumentAnalysis = typeof module !== 'undefined' && module.exports
+        ? require('../domain/invoice-document-analysis.js')
+        : root.RadarInvoiceDocumentAnalysis;
+    const pendencyDomain = typeof module !== 'undefined' && module.exports
+        ? require('../domain/pendencias.js')
+        : root.RadarPendencias;
+    const api = factory(contract, serviceAdvisory, invoiceEffects, invoiceDocumentAnalysis, pendencyDomain);
 
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
     if (root) root.RadarInvoiceService = Object.freeze(api);
 }(typeof window !== 'undefined' ? window : globalThis, function createInvoiceServiceApi(
     contract,
     serviceAdvisory,
-    invoiceEffects
+    invoiceEffects,
+    invoiceDocumentAnalysis,
+    pendencyDomain
 ) {
     'use strict';
 
-    if (!contract || !serviceAdvisory || !invoiceEffects) {
-        throw new Error('Contrato de dados, regra canônica de Assessoria e planner de efeitos são obrigatórios para notas fiscais.');
+    if (!contract || !serviceAdvisory || !invoiceEffects || !invoiceDocumentAnalysis || !pendencyDomain) {
+        throw new Error('Contrato de dados, regras canônicas de Assessoria/análise documental/Pendências e planner de efeitos são obrigatórios para notas fiscais.');
     }
     const { RepositoryError, cloneValue } = contract;
     const {
@@ -31,7 +39,15 @@
         getServiceAdvisoryState
     } = serviceAdvisory;
     const { planInvoiceEffects } = invoiceEffects;
+    const {
+        INVOICE_DOCUMENT_ANALYSES,
+        deriveInvoiceDocumentAnalysis,
+        getInvoiceDocumentAnalysis,
+        hasExplicitInvoiceDocumentAnalysis,
+        normalizeInvoiceDocumentAnalysis
+    } = invoiceDocumentAnalysis;
     const SERVICE_ADVISORY_ANALYSIS_SET = new Set(SERVICE_ADVISORY_ANALYSES);
+    const INVOICE_DOCUMENT_ANALYSIS_SET = new Set(INVOICE_DOCUMENT_ANALYSES);
     const UNIDENTIFIED_EXPENSE_TYPE = 'a_identificar';
     const INTERNET_BILL_EXPENSE_TYPE = 'boleto_internet';
     const INTERNET_BILL_PROGRAM_ID = 'CONECTADA';
@@ -191,6 +207,22 @@
             return aggregate;
         }
 
+        syncInvoiceDocumentAnalysis(state, schoolId, compKey, legacyFallback = null) {
+            const invoices = state.registeredInvoices.filter(invoice => (
+                invoice.escolaId === schoolId
+                && invoice.compKey === compKey
+            ));
+            const verification = state.verifications?.[schoolId]?.[compKey];
+            const fallback = legacyFallback
+                || verification?.analise?.notaFiscal
+                || 'Não analisado';
+            const aggregate = deriveInvoiceDocumentAnalysis(invoices, fallback);
+            if (!verification) return aggregate;
+            verification.analise = verification.analise || {};
+            verification.analise.notaFiscal = aggregate;
+            return aggregate;
+        }
+
         createPersistence(operation) {
             return async ({ repository, snapshot, value, defaultPersist }) => {
                 const capabilities = repository.capabilities();
@@ -246,6 +278,322 @@
             };
         }
 
+        persistUnidentifiedExpenseWithPendency(context, persistence) {
+            const { snapshot, repository, defaultPersist } = context;
+            const capabilities = repository.capabilities?.() || {};
+            if (capabilities.remote !== true || typeof repository.executeRpc !== 'function') {
+                return defaultPersist();
+            }
+            const entities = snapshot.entities || {};
+            const invoice = (entities.registeredInvoices || [])
+                .find(record => String(record.id) === String(persistence.invoiceId));
+            const pendency = (entities.pendencies || [])
+                .find(record => String(record.id) === String(persistence.pendencyId));
+            const verification = (entities.verifications || []).find(record => (
+                String(record.school_id) === String(persistence.schoolId)
+                && String(record.competence_id) === String(persistence.competence)
+                && String(record.program_id || '') === String(persistence.programId)
+            ));
+            const administrativeLog = (entities.administrativeLogs || [])
+                .find(record => String(record.id) === String(persistence.logId));
+            if (!invoice || !pendency || !verification || !administrativeLog) {
+                fail(
+                    'PERSISTENCE_CONTEXT_MISSING',
+                    'A despesa a identificar e sua Pendência não foram produzidas integralmente para persistência.',
+                    'invoice:save-unidentified-with-pendency',
+                    cloneValue(persistence)
+                );
+            }
+            return repository.executeRpc('save_unidentified_expense_with_pendency', {
+                p_invoice: invoice,
+                p_verification_patch: verification,
+                p_expected_verification_version: persistence.expectedVerificationVersion,
+                p_pendency: pendency,
+                p_administrative_log: administrativeLog
+            }, 'saveUnidentifiedExpenseWithPendency');
+        }
+
+        async saveUnidentifiedExpenseWithPendency(input = {}) {
+            const profile = this.assertEditable(input.profile, 'invoice:save-unidentified-with-pendency');
+            if (text(input.id)) {
+                fail(
+                    'VALIDATION_FAILED',
+                    'A operação atômica de despesa a identificar é exclusiva para novos registros.',
+                    'invoice:save-unidentified-with-pendency'
+                );
+            }
+            const invoiceData = this.validateInvoice(input, 'invoice:save-unidentified-with-pendency');
+            if (invoiceData.expenseType !== UNIDENTIFIED_EXPENSE_TYPE) {
+                fail(
+                    'VALIDATION_FAILED',
+                    'Esta operação exige o tipo “A identificar”.',
+                    'invoice:save-unidentified-with-pendency'
+                );
+            }
+
+            const initialState = this.getState();
+            const initialContext = this.getContext(
+                initialState,
+                input,
+                'invoice:save-unidentified-with-pendency'
+            );
+            this.assertVerificationEditable(
+                initialContext.verification,
+                profile,
+                'invoice:save-unidentified-with-pendency'
+            );
+            if (!initialContext.verification
+                || !text(initialContext.verification.bonificacao?.notaFiscal)
+                || initialContext.verification.bonificacao?.notaFiscal === 'Não se aplica') {
+                fail(
+                    'DELIVERY_REQUIRED',
+                    'Preencha a bonificação de Notas Fiscais antes de registrar uma despesa sem documentação.',
+                    'invoice:save-unidentified-with-pendency'
+                );
+            }
+
+            const contextInvoices = initialState.registeredInvoices.filter(invoice => (
+                invoice.escolaId === initialContext.schoolId
+                && invoice.compKey === initialContext.compKey
+            ));
+            const invoiceId = this.createId('nota');
+            const timestamp = this.now();
+            const request = {
+                schoolId: initialContext.schoolId,
+                compKey: initialContext.compKey,
+                competence: initialContext.context.competence,
+                programId: initialContext.context.programId,
+                description: invoiceData.description,
+                expenseType: UNIDENTIFIED_EXPENSE_TYPE,
+                invoiceNumber: invoiceData.invoiceNumber,
+                amount: invoiceData.amount
+            };
+            const plan = planInvoiceEffects({
+                request,
+                contextInvoices,
+                verification: initialContext.verification,
+                school: initialContext.school,
+                program: initialContext.program,
+                profile,
+                invoiceId,
+                assetId: null,
+                timestamp
+            });
+            if (plan.unchanged || plan.operation !== 'create') {
+                fail(
+                    'INVALID_INVOICE_PLAN',
+                    'Não foi possível planejar a nova despesa a identificar.',
+                    'invoice:save-unidentified-with-pendency'
+                );
+            }
+
+            const pendencyId = this.createId('pend');
+            const verificationId = `${initialContext.schoolId}::${initialContext.context.competence}::${initialContext.context.programId}`;
+            const persistence = {
+                invoiceId,
+                pendencyId,
+                schoolId: initialContext.schoolId,
+                competence: initialContext.context.competence,
+                programId: initialContext.context.programId,
+                expectedVerificationVersion: initialContext.verification.rowVersion
+                    || initialContext.verification.row_version
+                    || null
+            };
+
+            return this.dataService.execute({
+                name: 'invoice:save-unidentified-with-pendency',
+                changedEntities: ['registeredInvoices', 'pendencies', 'verifications', 'administrativeLogs'],
+                remoteResultIsAuthoritative: true,
+                persist: context => this.persistUnidentifiedExpenseWithPendency(context, persistence),
+                mutate: () => {
+                    const state = this.getState();
+                    const context = this.getContext(
+                        state,
+                        input,
+                        'invoice:save-unidentified-with-pendency'
+                    );
+                    const appliedInvoice = cloneValue(plan.invoice);
+                    appliedInvoice.analiseDocumentoFiscal = 'Incorreto';
+                    state.registeredInvoices.push(appliedInvoice);
+
+                    if (context.verification && plan.verification) {
+                        Object.assign(context.verification, cloneValue(plan.verification));
+                    }
+                    context.verification.analise = context.verification.analise || {};
+                    context.verification.analise.notaFiscal = deriveInvoiceDocumentAnalysis(
+                        state.registeredInvoices.filter(invoice => (
+                            invoice.escolaId === initialContext.schoolId
+                            && invoice.compKey === initialContext.compKey
+                        )),
+                        context.verification.analise.notaFiscal || 'Não analisado'
+                    );
+
+                    const openingDate = this.now().slice(0, 10);
+                    const opened = pendencyDomain.createDocumentPendency({
+                        id: pendencyId,
+                        escolaId: initialContext.schoolId,
+                        competencia: initialContext.context.competence,
+                        programaId: initialContext.context.programId,
+                        documentoKey: 'notaFiscal',
+                        registeredInvoiceId: invoiceId,
+                        item: 'Despesa a identificar',
+                        erros: ['Documento ausente'],
+                        observacao: text(input.pendencyObservation || input.observation)
+                            || invoiceData.description,
+                        dataAbertura: openingDate
+                    }, {
+                        eventId: this.createId('evento-pendencia'),
+                        at: this.now(),
+                        usuario: 'Sistema',
+                        perfil: profile
+                    });
+                    opened.documentSnapshot = {
+                        registeredInvoiceId: invoiceId,
+                        tipo: UNIDENTIFIED_EXPENSE_TYPE,
+                        numero: invoiceData.invoiceNumber || null,
+                        descricao: invoiceData.description,
+                        valor: invoiceData.amount
+                    };
+                    state.pendencies.push(opened);
+
+                    const auditLog = this.appendLog(
+                        'Despesa a identificar e Pendência abertas',
+                        `Despesa sem documentação de R$ ${invoiceData.amount} registrada e vinculada à pendência ${pendencyId}.`,
+                        { escolaId: initialContext.schoolId, schoolId: initialContext.schoolId }
+                    );
+                    persistence.logId = text(auditLog?.id);
+
+                    return {
+                        operation: 'create',
+                        invoice: cloneValue(appliedInvoice),
+                        pendency: cloneValue(opened),
+                        verification: cloneValue(context.verification),
+                        verificationId,
+                        auditLog: auditLog ? cloneValue(auditLog) : null,
+                        warnings: [],
+                        unchanged: false
+                    };
+                }
+            });
+        }
+
+        invoicePendencyHistory(state, invoiceId) {
+            const target = text(invoiceId);
+            if (!target) return [];
+            return (state.pendencies || []).filter(pendency => (
+                text(pendency.registeredInvoiceId || pendency.registered_invoice_id) === target
+            ));
+        }
+
+        activeInvoiceDocumentPendency(state, invoiceId) {
+            return this.invoicePendencyHistory(state, invoiceId).find(pendency => (
+                text(pendency.documentoKey || pendency.document_key) === 'notaFiscal'
+                && pendencyDomain.isActivePendency(pendency)
+            )) || null;
+        }
+
+        activeServiceAdvisoryPendency(state, invoiceId) {
+            return this.invoicePendencyHistory(state, invoiceId).find(pendency => (
+                text(pendency.documentoKey || pendency.document_key) === 'consAssessoria'
+                && pendencyDomain.isActivePendency(pendency)
+            )) || null;
+        }
+
+        assertServiceAdvisoryMutationAllowed(state, invoiceId, targetAnalysis, operation) {
+            const active = this.activeServiceAdvisoryPendency(state, invoiceId);
+            if (active) {
+                fail(
+                    'ACTIVE_SERVICE_ADVISORY_PENDENCY',
+                    'Esta Nota Fiscal possui Pendência ativa de Consulta Assessoria. Novo envio e reanálise devem ser registrados pela tela de Pendências.',
+                    operation,
+                    {
+                        invoiceId: text(invoiceId),
+                        pendencyId: text(active.id),
+                        status: text(active.status)
+                    }
+                );
+            }
+            if (text(targetAnalysis) === 'Incorreto') {
+                fail(
+                    'PENDENCY_REQUIRED',
+                    'A análise “Incorreto” da Assessoria só pode ser confirmada junto com a Pendência da Nota Fiscal.',
+                    operation,
+                    { registeredInvoiceId: text(invoiceId) }
+                );
+            }
+            return true;
+        }
+
+        assertNoActiveInvoiceDocumentPendency(state, invoiceId, operation) {
+            const active = this.activeInvoiceDocumentPendency(state, invoiceId);
+            if (!active) return true;
+            fail(
+                'ACTIVE_INVOICE_PENDENCY',
+                'Este documento possui Pendência ativa. Novo envio e reanálise devem ser registrados pela tela de Pendências.',
+                operation,
+                {
+                    invoiceId: text(invoiceId),
+                    pendencyId: text(active.id),
+                    status: text(active.status)
+                }
+            );
+        }
+
+        assertHistorySafeMutation(state, existing, input = {}, operation = 'invoice:save') {
+            if (!existing) return true;
+            const history = this.invoicePendencyHistory(state, existing.id);
+            if (history.length === 0) return true;
+
+            const currentSchoolId = text(existing.escolaId);
+            const currentCompKey = text(existing.compKey);
+            const targetSchoolId = text(input.schoolId || currentSchoolId);
+            const targetCompKey = text(input.compKey || currentCompKey);
+            if (targetSchoolId !== currentSchoolId || targetCompKey !== currentCompKey) {
+                fail(
+                    'INVOICE_HISTORY_LOCKED',
+                    'Este documento possui histórico de Pendência e não pode ser transferido para outra escola, competência ou programa.',
+                    operation,
+                    { invoiceId: existing.id }
+                );
+            }
+
+            const hasServiceAdvisoryHistory = history.some(pendency => (
+                text(pendency.documentoKey || pendency.document_key) === 'consAssessoria'
+            ));
+            const currentType = text(existing.tipo).toLocaleLowerCase('pt-BR');
+            const targetType = text(input.expenseType || currentType).toLocaleLowerCase('pt-BR');
+            if (hasServiceAdvisoryHistory && targetType !== currentType) {
+                fail(
+                    'INVOICE_HISTORY_LOCKED',
+                    'A natureza de uma Nota Fiscal com histórico de Assessoria não pode ser alterada.',
+                    operation,
+                    { invoiceId: existing.id }
+                );
+            }
+            return true;
+        }
+
+        assertDeletionHistorySafe(state, invoiceId) {
+            const history = this.invoicePendencyHistory(state, invoiceId);
+            if (history.length === 0) return true;
+            fail(
+                'INVOICE_HISTORY_LOCKED',
+                'Este documento possui histórico de Pendência e não pode ser excluído.',
+                'invoice:remove',
+                { invoiceId: text(invoiceId) }
+            );
+        }
+
+        assertOrdinaryUnidentifiedMutationAllowed(invoice, operation) {
+            if (!isUnidentifiedExpense(invoice)) return true;
+            fail(
+                'UNIDENTIFIED_EXPENSE_WORKFLOW_REQUIRED',
+                'Despesa a identificar não pode ser editada ou excluída pelo formulário comum. A regularização deve preservar o mesmo registro pelo ciclo da Pendência.',
+                operation,
+                { registeredInvoiceId: text(invoice?.id) }
+            );
+        }
+
         async save(input = {}) {
             const profile = this.assertEditable(input.profile, 'invoice:save');
             const invoiceData = this.validateInvoice(input, 'invoice:save');
@@ -273,6 +621,32 @@
                     { id: input.id }
                 );
             }
+            if (!existing && invoiceData.expenseType === UNIDENTIFIED_EXPENSE_TYPE) {
+                fail(
+                    'UNIDENTIFIED_EXPENSE_REQUIRES_PENDENCY',
+                    'Nova despesa a identificar deve ser registrada pelo comando atômico que também cria a Pendência.',
+                    'invoice:save'
+                );
+            }
+            if (existing
+                && invoiceData.expenseType === UNIDENTIFIED_EXPENSE_TYPE
+                && existing.tipo !== UNIDENTIFIED_EXPENSE_TYPE) {
+                fail(
+                    'UNIDENTIFIED_EXPENSE_REQUIRES_PENDENCY',
+                    'Uma despesa identificada não pode ser transformada em “Despesa a identificar” pelo editor comum.',
+                    'invoice:save',
+                    { id: existing.id }
+                );
+            }
+            if (existing) {
+                this.assertOrdinaryUnidentifiedMutationAllowed(existing, 'invoice:save');
+                this.assertNoActiveInvoiceDocumentPendency(
+                    initialState,
+                    existing.id,
+                    'invoice:save'
+                );
+            }
+            this.assertHistorySafeMutation(initialState, existing, input, 'invoice:save');
 
             const contextInvoices = initialState.registeredInvoices.filter(invoice => (
                 invoice.escolaId === initialContext.schoolId
@@ -413,6 +787,182 @@
             });
         }
 
+        async updateDocumentAnalysis(input = {}) {
+            const profile = this.assertEditable(input.profile, 'invoice:update-document-analysis');
+            const analysis = text(input.analysis);
+            if (!INVOICE_DOCUMENT_ANALYSIS_SET.has(analysis)) {
+                fail(
+                    'VALIDATION_FAILED',
+                    'A análise individual do documento fiscal é inválida.',
+                    'invoice:update-document-analysis',
+                    { analysis }
+                );
+            }
+            if (analysis === 'Incorreto') {
+                fail(
+                    'PENDENCY_REQUIRED',
+                    'A análise “Incorreto” deve ser confirmada junto com a Pendência deste documento.',
+                    'invoice:update-document-analysis'
+                );
+            }
+
+            const initialState = this.getState();
+            const invoiceId = text(input.id);
+            const initialInvoice = initialState.registeredInvoices.find(item => item.id === invoiceId);
+            if (!initialInvoice) {
+                fail(
+                    'INVOICE_NOT_FOUND',
+                    'Despesa ou Nota Fiscal não localizada.',
+                    'invoice:update-document-analysis',
+                    { id: invoiceId }
+                );
+            }
+            this.assertNoActiveInvoiceDocumentPendency(
+                initialState,
+                invoiceId,
+                'invoice:update-document-analysis'
+            );
+            if (isUnidentifiedExpense(initialInvoice)) {
+                fail(
+                    'UNIDENTIFIED_EXPENSE_REQUIRES_PENDENCY',
+                    'Despesa a identificar permanece Incorreto enquanto a documentação não permitir sua identificação.',
+                    'invoice:update-document-analysis',
+                    { id: invoiceId }
+                );
+            }
+
+            const schoolId = text(input.schoolId || initialInvoice.escolaId);
+            if (schoolId !== initialInvoice.escolaId) {
+                fail(
+                    'INVOICE_CONTEXT_MISMATCH',
+                    'O documento fiscal não pertence à unidade informada.',
+                    'invoice:update-document-analysis',
+                    { id: invoiceId, schoolId }
+                );
+            }
+            const initialContext = this.getContext(initialState, {
+                schoolId,
+                compKey: initialInvoice.compKey
+            }, 'invoice:update-document-analysis');
+            if (!initialContext.verification) {
+                fail(
+                    'VERIFICATION_NOT_FOUND',
+                    'A verificação mensal do documento fiscal não foi localizada.',
+                    'invoice:update-document-analysis',
+                    { id: invoiceId }
+                );
+            }
+            this.assertVerificationEditable(
+                initialContext.verification,
+                profile,
+                'invoice:update-document-analysis'
+            );
+
+            const contextInvoices = initialState.registeredInvoices
+                .filter(item => item.escolaId === schoolId && item.compKey === initialInvoice.compKey);
+            const individualizationStarted = contextInvoices.some(item => (
+                hasExplicitInvoiceDocumentAnalysis(item)
+                || isUnidentifiedExpense(item)
+            ));
+            const previousFallback = !individualizationStarted && contextInvoices.length === 1
+                ? (initialContext.verification.analise?.notaFiscal || 'Não analisado')
+                : 'Não analisado';
+            const previous = getInvoiceDocumentAnalysis(initialInvoice, previousFallback);
+            const projected = contextInvoices.map(item => {
+                    const copy = cloneValue(item);
+                    if (copy.id === invoiceId) copy.analiseDocumentoFiscal = analysis;
+                    return copy;
+                });
+            const targetAggregate = deriveInvoiceDocumentAnalysis(
+                projected,
+                initialContext.verification.analise?.notaFiscal || 'Não analisado'
+            );
+            const individualCanonical = text(initialInvoice.analiseDocumentoFiscal) === analysis;
+            const aggregateCanonical = text(initialContext.verification.analise?.notaFiscal)
+                === targetAggregate;
+
+            if (individualCanonical && aggregateCanonical) {
+                return {
+                    ok: true,
+                    value: {
+                        operation: 'update',
+                        invoice: cloneValue(initialInvoice),
+                        asset: null,
+                        verification: cloneValue(initialContext.verification),
+                        verificationId: `${schoolId}::${initialContext.context.competence}::${initialContext.context.programId}`,
+                        auditLog: null,
+                        aggregate: targetAggregate,
+                        previous,
+                        unchanged: true
+                    }
+                };
+            }
+
+            const shouldReopen = Boolean(
+                profile === 'assistente'
+                && initialContext.verification.resultadoBonif
+            );
+
+            return this.dataService.execute({
+                name: 'invoice:update-document-analysis',
+                changedEntities: ['registeredInvoices', 'verifications', 'administrativeLogs'],
+                persist: this.createPersistence('save'),
+                mutate: () => {
+                    const state = this.getState();
+                    const invoice = state.registeredInvoices.find(item => item.id === invoiceId);
+                    if (!invoice) {
+                        fail(
+                            'INVOICE_NOT_FOUND',
+                            'Documento fiscal não localizado durante a aplicação da análise.',
+                            'invoice:update-document-analysis',
+                            { id: invoiceId }
+                        );
+                    }
+                    const context = this.getContext(state, {
+                        schoolId,
+                        compKey: invoice.compKey
+                    }, 'invoice:update-document-analysis');
+                    if (!context.verification) {
+                        fail(
+                            'VERIFICATION_NOT_FOUND',
+                            'A verificação mensal do documento fiscal não foi localizada.',
+                            'invoice:update-document-analysis',
+                            { id: invoiceId }
+                        );
+                    }
+
+                    invoice.analiseDocumentoFiscal = normalizeInvoiceDocumentAnalysis(analysis);
+                    const aggregate = this.syncInvoiceDocumentAnalysis(
+                        state,
+                        schoolId,
+                        invoice.compKey
+                    );
+                    if (shouldReopen) context.verification.resultadoBonif = '';
+
+                    const label = invoiceLabel(invoice);
+                    const reopenSuffix = shouldReopen
+                        ? ' A consolidação anterior foi reaberta pela alteração.'
+                        : '';
+                    const auditLog = this.appendLog(
+                        'Análise Técnica de Documento Fiscal Atualizada',
+                        `${label} atualizado de “${previous}” para “${analysis}”. Resumo técnico de Notas Fiscais: “${aggregate}”.${reopenSuffix}`
+                    );
+
+                    return {
+                        operation: 'update',
+                        invoice: cloneValue(invoice),
+                        asset: null,
+                        verification: cloneValue(context.verification),
+                        verificationId: `${schoolId}::${context.context.competence}::${context.context.programId}`,
+                        auditLog: cloneValue(auditLog),
+                        aggregate,
+                        previous,
+                        unchanged: false
+                    };
+                }
+            });
+        }
+
         async updateServiceAdvisory(input = {}) {
             const profile = this.assertEditable(input.profile, 'invoice:update-service-advisory');
             const hasSent = Object.prototype.hasOwnProperty.call(input, 'sent');
@@ -500,6 +1050,12 @@
             const previous = getServiceAdvisoryState(initialInvoice, legacyFallback);
             const targetSent = hasSent ? input.sent : previous.sent;
             const targetAnalysis = hasAnalysis ? text(input.analysis) : previous.analysis;
+            this.assertServiceAdvisoryMutationAllowed(
+                initialState,
+                invoiceId,
+                targetAnalysis,
+                'invoice:update-service-advisory'
+            );
             const projected = serviceInvoices.map(item => {
                 const copy = cloneValue(item);
                 if (copy.id === invoiceId) {
@@ -622,6 +1178,8 @@
                 );
             }
             const initialInvoice = initialState.registeredInvoices[initialIndex];
+            this.assertOrdinaryUnidentifiedMutationAllowed(initialInvoice, 'invoice:remove');
+            this.assertDeletionHistorySafe(initialState, invoiceId);
             const initialContext = this.getContext(initialState, {
                 schoolId: input.schoolId || initialInvoice.escolaId,
                 compKey: initialInvoice.compKey

@@ -1,6 +1,6 @@
 # RADAR PDDE 2026 — Contexto funcional e arquitetural
 
-**Atualizado em:** 26 de agosto de 2026
+**Atualizado em:** 30 de agosto de 2026
 **Classe documental:** Canônico
 
 ## 1. Finalidade
@@ -23,6 +23,8 @@ Dashboard, Carteira, Competências, Prontuário, Pendências, Inventário, Regis
 ## 2. Baseline operacional
 
 O baseline mutável corrente fica em [`CURRENT_STAGE.md`](CURRENT_STAGE.md).
+
+O hotfix ativo de Notas Fiscais está documentado em [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md) e [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md). Ele não substitui o plano mestre.
 
 O checkpoint canônico pós-PR #200 das correções atuais está em [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md).
 
@@ -131,6 +133,52 @@ Regras vigentes:
 
 O diagnóstico de 24/08 identificou que esse último contrato ainda não está integralmente satisfeito em `invoice:save`: a edição alcança update/log sem um planejador semântico completo e a inclusão não possui chave idempotente de servidor. Tratar como lacuna conhecida do fluxo INV-01, não como autorização para alterar a regra.
 
+### Notas Fiscais — granularidade individual
+
+`notaFiscal` continua sendo a dimensão documental agregada para bonificação, mas cada registro em `registered_invoices` é uma unidade técnica individual.
+
+Contrato aprovado no PR #211:
+
+- bonificação de `notaFiscal` permanece agregada em Sim/Não/N/A;
+- análise técnica existe por `registered_invoice_id`;
+- o resumo `verification.analysis.notaFiscal` é projeção derivada, não campo técnico editável do conjunto;
+- precedência do resumo: Incorreto → Não analisado → Correto (Atrasado) → Correto;
+- Pendência individual de Notas Fiscais usa `registered_invoice_id`;
+- NFs distintas podem ter Pendências ativas simultâneas;
+- a mesma NF não pode duplicar Pendência ativa equivalente;
+- `boleto_internet` é somente tipo de gasto de Notas Fiscais;
+- `boletoInternet` não pode reaparecer como documento;
+- `a_identificar` nasce `Incorreto + Pendência` de forma atômica;
+- uma despesa identificada não pode virar `a_identificar` pelo editor comum;
+- identificação posterior de `a_identificar` ocorre em **Pendências → Registrar novo envio** e preserva o mesmo ID;
+- o novo envio leva a Pendência para `Aguardando reanálise` e a despesa identificada para `Não analisado`;
+- se a identificação revelar serviço, Consulta Assessoria surge na dimensão própria;
+- se revelar bem permanente, o registro patrimonial é criado e vinculado na mesma operação;
+- nova Pendência de `notaFiscal` sem `registered_invoice_id` é proibida;
+- com Pendência fiscal ativa, a edição estrutural comum daquela despesa fica bloqueada;
+- reanálise exige tentativa válida da mesma Pendência, no mesmo contexto.
+
+Transição de dados aprovada em 29/08:
+
+- 16 `a_identificar` legítimos anteriores ao contrato individual permanecem como **Registro legado**, sem análise/Pendência retroativa e sem edição/exclusão pelo fluxo comum;
+- 4 `a_identificar` e outras 8 despesas/NFs de teste, mais três Pendências fiscais genéricas dos mesmos cenários, entram somente na limpeza fail-closed comprovada por autoria;
+- Boleto 1234 e sua Pendência são fixtures e não recebem o reparo de vínculo proposto inicialmente;
+- a Pendência fiscal agregada real preservada continua acessível como legado, sem associação heurística a uma NF.
+
+Essa regra específica substitui a antiga interpretação segundo a qual `A identificar` não deveria receber estado técnico automaticamente. O que continua proibido é fabricar **bonificação** ou atribuir retrospectivamente um erro agregado antigo a uma NF específica sem evidência.
+
+**Decisão integral:** `docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`.
+
+### Consulta Assessoria — proteção individual completa
+
+- somente NFs de serviço participam da dimensão;
+- cada NF usa `registered_invoice_id` para envio, análise e Pendência;
+- Pendência ativa da NF A não bloqueia a NF B;
+- o `InvoiceService` recusa alterações comuns da própria NF enquanto houver Pendência ativa e também recusa `Incorreto` sem a operação atômica;
+- novo envio exige Pendência `Aberta`, cria a próxima tentativa e leva o ciclo a `Aguardando reanálise`;
+- reanálise exige a tentativa real mais recente ainda não analisada e não pode reescrever observação, link ou datas do envio;
+- o resumo mensal é `Sim` se ao menos uma consulta exigível foi enviada, `Não` se existem NFs de serviço e nenhuma foi enviada, e `Não se aplica` sem NF de serviço.
+
 ### Persistência e atualização visual da avaliação
 
 Desde os PRs #190–#193, o caminho normal de sucesso é:
@@ -171,6 +219,20 @@ A tabela `pendency_attempts` permanece sincronizada com o estado agregado das te
 `submitted_at` registra quando a tentativa foi lançada no RADAR.
 
 Esses campos são conceitualmente distintos e não devem ser colapsados em round-trips entre domínio, estado legado e Supabase.
+
+### Pendência de Notas Fiscais vinculada à despesa
+
+Pendência individual de `notaFiscal` referencia a despesa específica por `registered_invoice_id`.
+
+Identidade ativa:
+
+```text
+escola + competência + programa + notaFiscal + registered_invoice_id
+```
+
+O vínculo individual não transforma cada NF em uma nova categoria documental: a categoria continua sendo `notaFiscal`. O ID apenas fornece granularidade ao ciclo de análise, Pendência, envio e reanálise.
+
+No Prontuário, após a abertura da Pendência, a ação é **Visualizar pendência**. Novo envio e reanálise pertencem à tela de Pendências.
 
 ### Pendência de Assessoria vinculada à NF
 

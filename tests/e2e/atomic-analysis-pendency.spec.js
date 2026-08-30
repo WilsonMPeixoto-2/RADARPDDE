@@ -113,4 +113,60 @@ test.describe('análise Incorreto com pendência atômica', () => {
     expect(result.analysis).toBe('Incorreto');
     expect(result.atomicLogCount).toBe(1);
   });
+
+  test('rota agregada antiga de Notas Fiscais não abre Pendência genérica', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+
+    const dialogs = [];
+    page.on('dialog', async dialog => {
+      dialogs.push(dialog.message());
+      await dialog.dismiss();
+    });
+
+    await page.goto('/');
+    await page.waitForFunction(() => window.RADAR_ATOMIC_ANALYSIS_READY === true, null, {
+      timeout: 15_000
+    });
+
+    const result = await page.evaluate(async () => {
+      switchProfile('controlador');
+      const competencia = activeCompetenciaKey;
+      const escola = escolas.find(candidate => (
+        Array.isArray(candidate.programasIds)
+        && candidate.programasIds.length > 0
+        && isCompetenceInScope(candidate.competenciaInicial, competencia)
+      ));
+      if (!escola) throw new Error('Escola determinística não encontrada.');
+
+      const programaId = escola.programasIds[0];
+      const compKey = `${competencia}_${programaId}`;
+      verificacoes[escola.id] = verificacoes[escola.id] || {};
+      const verification = RadarFluxoOperacional.createEmptyVerification();
+      verification.bonificacao.notaFiscal = 'Sim';
+      verification.analise.notaFiscal = 'Não analisado';
+      verificacoes[escola.id][compKey] = verification;
+
+      const before = pendencias.length;
+      const changed = await changeAnaliseTecnica(
+        escola.id,
+        compKey,
+        'notaFiscal',
+        'Incorreto',
+        { value: 'Incorreto' }
+      );
+
+      return {
+        changed,
+        before,
+        after: pendencias.length,
+        modalOpen: document.getElementById('modal-nova-pendencia')?.classList.contains('show') || false
+      };
+    });
+
+    expect(result.changed).toBe(false);
+    expect(result.after).toBe(result.before);
+    expect(result.modalOpen).toBe(false);
+    expect(dialogs.some(message => message.includes('calculada automaticamente'))).toBe(true);
+  });
+
 });

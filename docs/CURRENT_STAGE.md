@@ -1,23 +1,53 @@
 # RADAR PDDE — Estado atual do projeto
 
-**Atualizado em:** 27 de agosto de 2026
+**Atualizado em:** 30 de agosto de 2026
 
 **Classe documental:** Canônico — estado corrente e retomada futura
 
-**Situação:** PR #209 corretivo integrado à `main` e validado em Production; boleto de Internet existe somente como tipo de gasto de Notas Fiscais; PR3.1 continua sendo a próxima frente obrigatória
+**Situação:** PR #211 em Draft na branch `hotfix/individualizar-analise-notas-fiscais`; hotfix de individualização de Notas Fiscais temporariamente prioritário; Production permanece no estado anterior ao PR #211; o plano mestre continua vigente e será retomado após reconciliação pós-hotfix
+
+## 0. Hotfix ativo — PR #211
+
+O estado corrente não é mais “iniciar PR3.1”. Antes disso existe um hotfix isolado em andamento:
+
+- plano específico: [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md);
+- handoff corrente: [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md);
+- decisão arquitetural: [`decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md);
+- referências visuais: [`evidence/2026-08-28-pr211-referencias-visuais.md`](evidence/2026-08-28-pr211-referencias-visuais.md).
+
+O PR #211 **não substitui o plano mestre**. Ele é um parêntese operacional necessário para corrigir uma inconsistência funcional descoberta depois das entregas anteriores.
+
+Após o merge e o smoke de Production, é obrigatório executar:
+
+```text
+revalidar main
+→ revalidar Supabase Production
+→ revalidar Vercel Production
+→ comparar o diff completo do PR #211 com o plano mestre
+→ marcar tarefas futuras já atendidas/parcialmente atendidas/afetadas
+→ atualizar documentação
+→ só então iniciar PR3.1
+```
+
+O hardening posterior foi publicado e validado no SHA remoto `530ca6cb62c385ca7ca35f30e82a723e1afed3f6`. Ele bloqueia alteração comum de Assessoria com Pendência ativa, exige tentativa real e imutável na reanálise, aplica patches mínimos nas RPCs críticas, impede reaproveitamento patrimonial indevido, mantém `a_identificar` existente fora do editor comum e torna acessível a Pendência fiscal agregada real preservada.
+
+No SHA `530ca6c` passaram: **800/800 unitários**, **7/7 integração**, Validar RADAR, Playwright completo, Supabase readiness, migration-smoke, Supabase local/Auth/RLS/pgTAP, migrations em PostgreSQL limpo, backup/restauração, perfis/viewports, CodeQL, dependências, snapshot, Ajv, Excel e Vercel Preview. Um job duplicado de Supabase da homologação agregada falhou inicialmente antes dos testes porque a porta local `54322` estava ocupada; sua reexecução passou integralmente, confirmando falha transitória do runner. O Preview READY é `https://radarpdde-hhubte7ci-wilson-m-peixotos-projects.vercel.app`.
+
+O Lighthouse móvel permaneceu vermelho. A primeira medição desktop oscilou 100 ms acima do limite, mas a reexecução do mesmo SHA passou com performance **79%**, acessibilidade **100%**, Best Practices **100%** e LCP **3,35 s** para limite de **3,50 s**. Mobile continua dívida expressamente não bloqueante deste hotfix desktop; por isso o gate agregado pré-Production fica vermelho apenas ao herdar esse job. A nova reconferência visual manual também foi adiada sem bloquear o merge. O PR permanece Draft aguardando decisão/autorização final; Production continua intocada.
 
 ## 1. Porta de entrada atual
 
 Ler nesta ordem:
 
 1. [`../AGENTS.md`](../AGENTS.md);
-2. [`handoff/2026-08-27-pr2-service-advisory-noop.md`](handoff/2026-08-27-pr2-service-advisory-noop.md);
-3. [`handoff/2026-08-27-pr1-invoice-submit-guard.md`](handoff/2026-08-27-pr1-invoice-submit-guard.md);
-4. [`handoff/2026-08-27-hotfix-boleto-internet.md`](handoff/2026-08-27-hotfix-boleto-internet.md);
-5. [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md);
-6. [`superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md);
-7. [`reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx`](reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx);
-8. [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md) e a documentação específica da entrega.
+2. [`handoff/2026-08-30-pr211-retomada-work.md`](handoff/2026-08-30-pr211-retomada-work.md);
+3. [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md);
+4. [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md);
+5. [`decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md);
+6. [`evidence/2026-08-29-pr211-classificacao-dados-legados.md`](evidence/2026-08-29-pr211-classificacao-dados-legados.md);
+7. [`evidence/2026-08-28-pr211-referencias-visuais.md`](evidence/2026-08-28-pr211-referencias-visuais.md);
+8. [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md);
+9. somente depois, handoffs de 27/08 e o plano mestre de 26/08 para contexto histórico e retomada pós-hotfix.
 
 O Markdown é a fonte operacional para busca, diff e execução. O Word é a versão integral para leitura e aprovação. O arquivo `.sha256` ao lado do Word permite verificar sua integridade.
 
@@ -135,7 +165,7 @@ Não transformar qualquer exclusão em dependência, gate oculto ou hardening. S
 - Pendência, análise técnica e bonificação são dimensões distintas.
 - `Sim + Incorreto + pendência` continua válido.
 - Novo envio leva à reanálise e não resolve automaticamente.
-- Despesa `A identificar` não fabrica conclusão de bonificação ou análise.
+- Despesa `A identificar` não altera a bonificação agregada, mas após a decisão do PR #211 nasce tecnicamente `Incorreto` e com Pendência individual obrigatória.
 - Pendência ativa e `Não analisado`, isoladamente, não bloqueiam consolidação.
 - Sem NF de serviço, Consulta Assessoria converge para `Não se aplica`.
 - Duas NFs de conteúdo igual podem ser legítimas.
@@ -195,23 +225,23 @@ Planos são hipóteses técnicas, não autoridade superior ao código e aos ambi
 
 ## 10. Próxima ação
 
-Iniciar **PR3.1 — Registry e loader**, primeira unidade do programa de readiness sistêmico.
+Concluir **PR #211 — hotfix de individualização de Notas Fiscais**.
 
-Sequência mínima:
+Sequência imediata:
 
-1. revalidar o HEAD corrente da `main` e o deployment Production;
-2. inventariar os instaladores, loaders tardios, `setInterval`, watchdogs e esperas por símbolos globais nas superfícies definidas no plano;
-3. escrever RED do registry `capability-readiness.js`;
-4. carregar o registry cedo, antes de seus consumidores;
-5. separar transporte do script de instalação da capacidade;
-6. tornar o loader tolerante à falha de capacidades independentes;
-7. tratar instalador que não termina sem aumentar timeout arbitrariamente;
-8. provar que falha simulada não derruba capacidades independentes;
-9. executar revisão adversarial dupla e gates próprios de PR3.1.
+1. versionar e publicar o candidato de hardening somente na branch do PR Draft;
+2. executar novamente unitários, E2E, pgTAP, Supabase readiness, PostgreSQL limpo, backup/restauração e gates proporcionais sobre o novo SHA;
+3. corrigir somente regressões reais encontradas nessa rodada;
+4. repetir o preflight somente leitura de autoria e contexto imediatamente antes de eventual migration;
+5. confirmar preservação dos 16 registros legítimos, remoção exata das 12 despesas/NFs + três Pendências de teste e acesso ao legado real preservado;
+6. confirmar `main`, Preview e mergeabilidade;
+7. somente então avaliar retirada de Draft e pedir/usar autorização final de merge.
 
-PR3.1 não deve migrar oportunisticamente todos os instaladores. PR3.2 e PR3.3 continuam unidades posteriores e independentes do mesmo programa.
+A Consulta Assessoria permanece individual por NF de serviço. O lookup usa `registered_invoice_id`, a abertura continua atômica e o serviço canônico bloqueia qualquer alteração comum enquanto a própria NF possui Pendência ativa. Não substituir esse desenho por lookup genérico ou fluxo paralelo em `app.js`.
 
+A classificação canônica de dados está em `evidence/2026-08-29-pr211-classificacao-dados-legados.md`.
 
+Depois da publicação do hotfix, fazer reconciliação pós-PR #211 e somente então retomar PR3.1.
 
 ## 11. Documentos históricos preservados
 

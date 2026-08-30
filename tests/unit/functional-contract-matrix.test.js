@@ -22,7 +22,7 @@ test('a matriz funcional canônica é válida', async () => {
     const { loadMatrix, validateMatrix } = await api();
     const matrix = loadMatrix(ROOT);
     assert.deepEqual(validateMatrix(matrix, ROOT), []);
-    assert.equal(matrix.operations.length, 42);
+    assert.equal(matrix.operations.length, 43);
 });
 
 test('IDs duplicados são rejeitados', async () => {

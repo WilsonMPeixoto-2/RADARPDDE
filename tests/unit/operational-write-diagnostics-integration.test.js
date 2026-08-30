@@ -195,7 +195,7 @@ test('escrita inline instrumentada fecha click, feedback, RPC, aplicação e est
     diagnostics.enqueue(root, 'toggleBonif', id);
 
     assert.equal(
-        await root.toggleBonif('school-opaque', '2026-08_program-opaque', 'notaFiscal', 'Sim'),
+        await root.toggleBonif('school-opaque', '2026-08_program-opaque', 'extCC', 'Sim'),
         true
     );
 

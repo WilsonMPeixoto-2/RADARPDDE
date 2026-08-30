@@ -177,7 +177,8 @@ test('A identificar não participa da regra da Assessoria', () => {
         compKey: '2026-05_BASIC',
         tipo: 'a_identificar',
         desc: 'Despesa pendente',
-        valor: 100
+        valor: 100,
+        analiseDocumentoFiscal: 'Incorreto'
     };
     const input = baseInput({
         contextInvoices: [baseInput().existingInvoice, unidentified]
@@ -185,9 +186,10 @@ test('A identificar não participa da regra da Assessoria', () => {
 
     const result = planInvoiceEffects(input);
 
-    assert.equal(result.unchanged, true);
+    assert.equal(result.unchanged, false);
     assert.equal(result.verification.bonificacao.consAssessoria, 'Não se aplica');
     assert.equal(result.verification.analise.consAssessoria, 'Correto');
+    assert.equal(result.verification.analise.notaFiscal, 'Incorreto');
 });
 
 

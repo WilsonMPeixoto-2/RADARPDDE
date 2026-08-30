@@ -13,6 +13,19 @@
 
 > Este handoff é a porta de entrada curta. O Markdown é a fonte operacional para busca, diff e execução; o Word é a versão integral para leitura e aprovação. Nenhum dos dois autoriza sozinho escrita em Production, migration, mudança de regras do GitHub, merge ou deploy.
 
+## 0. Atualização posterior — 28/08/2026
+
+Este handoff continua válido como origem do plano mestre, mas **não é mais a porta de entrada imediata enquanto o PR #211 estiver em andamento**.
+
+O PR #211 corrige a granularidade de análise/Pendência de Notas Fiscais e altera superfícies que também aparecem em etapas futuras do plano. Portanto, após o hotfix:
+
+1. revalidar `main`, Vercel e Supabase;
+2. comparar o diff do PR #211 com as premissas do plano;
+3. atualizar o estado das tarefas futuras;
+4. só então retomar PR3.1.
+
+A decisão antiga “Despesa A identificar não vira automaticamente Não ou Incorreto” foi superada especificamente pelo ADR-050 no PR #211. O contrato atual é `a_identificar = Incorreto + Pendência individual obrigatória`, sem alterar automaticamente a bonificação.
+
 ## 1. O que aconteceu
 
 O PR #199 versionou o diagnóstico e o primeiro plano, sem implementar correções funcionais. Auditorias independentes posteriores encontraram lacunas e produziram uma especificação mais rigorosa.
@@ -68,7 +81,7 @@ Se alguma entrega revelar necessidade inevitável de tocar uma exclusão, parar 
 - Pendência, análise técnica e bonificação são dimensões diferentes.
 - `Sim + Incorreto + pendência` é combinação válida.
 - Novo envio leva à reanálise; não resolve automaticamente.
-- Despesa `A identificar` não vira automaticamente `Não` ou `Incorreto`.
+- Despesa `A identificar` não altera automaticamente a bonificação; após ADR-050, uma nova despesa nasce tecnicamente `Incorreto` e com Pendência individual obrigatória. Os 16 registros legítimos anteriores permanecem como Registro legado, sem backfill.
 - Pendência ativa não bloqueia consolidação sozinha.
 - `Não analisado` não bloqueia consolidação sozinho.
 - Sem NF de serviço, Consulta Assessoria converge para `Não se aplica`.

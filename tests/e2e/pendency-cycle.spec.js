@@ -322,35 +322,20 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     await expect(modal).not.toHaveClass(/show/);
     await expect(notice).toBeHidden();
 
-    const awaiting = await page.evaluate(({ seeded, target, originalId: pendencyId }) => {
-      const pendencyIndex = pendencias.findIndex(pendency => pendency.id === pendencyId);
-      if (pendencyIndex === -1) {
-        throw new Error('Pendência documental criada não encontrada para o seeding de reanálise.');
-      }
-
-      pendencias[pendencyIndex] = RadarPendencias.registerCorrectiveSubmission(
-        pendencias[pendencyIndex],
-        {
-          id: 'tentativa-e2e-aguardando-reanalise',
-          dataDisponibilizacao: '2026-07-11',
-          observacao: 'Documento corrigido e disponibilizado deterministicamente no E2E.'
-        },
-        {
-          eventId: 'evento-e2e-aguardando-reanalise',
-          at: '2026-07-11T12:00:00.000Z',
-          usuario: 'Escola E2E',
-          perfil: 'Escola'
-        }
-      );
+    const awaiting = await page.evaluate(async ({ seeded, target, originalId: pendencyId }) => {
+      const registered = await radarPendencyService.registerAttempt({
+        pendencyId,
+        availabilityDate: '2026-07-11',
+        observation: 'Documento corrigido e disponibilizado deterministicamente no E2E.'
+      });
       rebuildOperationalIndexes();
-      persist();
       activeProntuarioCompetencia = seeded.competencia;
       switchView('prontuario', seeded.escolaId);
 
       const verification = verificacoes[seeded.escolaId][seeded.compProgKey];
       return {
-        id: pendencias[pendencyIndex].id,
-        status: pendencias[pendencyIndex].status,
+        id: registered.value.pendency.id,
+        status: registered.value.pendency.status,
         bonificacaoDepois: verification.bonificacao[target.documentoKey],
         resultadoDepois: verification.resultadoBonif
       };
@@ -378,17 +363,14 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     await modal.locator('button[type="submit"]').click();
 
     await expect(modal).not.toHaveClass(/show/);
-    await expect(notice).toHaveText(
-      'Já existe uma pendência ativa para este documento.'
-    );
-    await expect(notice).toBeVisible();
+    await expect(notice).toBeHidden();
 
-    const selectedRow = page.locator('tr[data-pendency-ref].pendency-row-selected');
-    await expect(selectedRow).toHaveCount(1);
-    await expect(selectedRow).toHaveClass(/pendency-row-selected/);
-    await expect(selectedRow).toContainText('Pendência selecionada');
-    await expect(selectedRow.getByText('Aguardando reanálise', { exact: true })).toBeVisible();
-    await expect(selectedRow).toBeFocused();
+    const drawer = page.locator('#pendency-preview-drawer');
+    await expect(drawer).toBeVisible();
+    await expect(drawer).toHaveAttribute('data-pendency-id', originalId);
+    await expect(
+      drawer.locator('.pendency-preview-status')
+    ).toHaveText('Aguardando reanálise');
 
     const afterDuplicate = await page.evaluate(({ seeded, target, originalId: expectedId }) => {
       const key = RadarPendencias.buildDocumentContextKey({
@@ -407,7 +389,7 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
         count: active.length,
         id: active[0] && active[0].id,
         status: active[0] && active[0].status,
-        detailId: activePendencyDetailId,
+        currentView,
         expectedId,
         bonificacaoDepois: verification.bonificacao[target.documentoKey],
         resultadoDepois: verification.resultadoBonif
@@ -418,7 +400,7 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
       count: 1,
       id: originalId,
       status: 'Aguardando reanálise',
-      detailId: originalId,
+      currentView: 'prontuario',
       expectedId: originalId,
       bonificacaoDepois: context.bonificacaoAntes,
       resultadoDepois: context.resultadoAntes
@@ -2167,6 +2149,7 @@ test.describe('resultados alternativos, bloqueio e rollback da reanálise', () =
     });
 
     await page.goto('/');
+    await page.evaluate(() => window.RadarProductExtensionsReady);
     const context = await page.evaluate(target => {
       switchProfile('controlador');
       const competencia = activeCompetenciaKey;
@@ -2286,17 +2269,21 @@ test.describe('resultados alternativos, bloqueio e rollback da reanálise', () =
     );
 
     await expect(openRow.locator('select.select-analise')).toBeDisabled();
-    await expect(openRow).toContainText('Registre um novo envio para prosseguir.');
+    await expect(openRow.getByRole('button', { name: 'Visualizar pendência', exact: true }))
+      .toBeVisible();
     await expect(openRow.getByRole('button', { name: 'Registrar novo envio', exact: true }))
-      .toBeVisible();
+      .toHaveCount(0);
+    await expect(openRow.getByRole('button', { name: 'Reanalisar', exact: true }))
+      .toHaveCount(0);
     await expect(awaitingRow.locator('select.select-analise')).toBeDisabled();
-    await expect(awaitingRow).toContainText('Use Reanalisar para registrar o resultado.');
-    await expect(awaitingRow.getByRole('button', { name: 'Reanalisar', exact: true }))
+    await expect(awaitingRow.getByRole('button', { name: 'Visualizar pendência', exact: true }))
       .toBeVisible();
+    await expect(awaitingRow.getByRole('button', { name: 'Reanalisar', exact: true }))
+      .toHaveCount(0);
     await expect(awaitingRow.getByRole('button', {
       name: 'Registrar substituição mais recente',
       exact: true
-    })).toBeVisible();
+    })).toHaveCount(0);
     await expect(unrelatedDocumentRow.locator('select.select-analise')).toBeEnabled();
     await expect(otherProgramRow.locator('select.select-analise')).toBeEnabled();
 

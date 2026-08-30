@@ -1,5 +1,9 @@
 const { test, expect } = require('@playwright/test');
 
+async function waitForProductExtensions(page) {
+  await page.evaluate(() => window.RadarProductExtensionsReady);
+}
+
 async function openOperationalProgram(page, options = {}) {
   return page.evaluate(({ initialized, note }) => {
     switchProfile('controlador');
@@ -124,14 +128,10 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
     await expect(page.locator('#sme-detail-table .sme-detail-row')).toHaveCount(430);
   });
 
-  test('abre prontuário sem persistir e permite cadastrar a primeira nota antes da análise correta', async ({ page }, testInfo) => {
+  test('abre prontuário sem persistir e inicia análise técnica somente depois do cadastro da primeira nota', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 
-    const dialogs = [];
-    page.on('dialog', async dialog => {
-      dialogs.push(dialog.message());
-      await dialog.accept();
-    });
+    page.on('dialog', dialog => dialog.accept());
 
     await page.goto('/');
     const context = await openOperationalProgram(page);
@@ -141,6 +141,8 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
     const noteRow = fiscalNoteRow(page);
     await noteRow.getByRole('button', { name: 'Sim', exact: true }).click();
     await expect(noteRow.getByRole('button', { name: 'Adicionar Nota' })).toBeVisible();
+    await expect(noteRow.locator('select.invoice-document-analysis-select')).toHaveCount(0);
+
     expect(await page.evaluate(({ escolaId, compProgKey }) => (
       verificacoes[escolaId][compProgKey]
     ), context)).toEqual({
@@ -164,22 +166,39 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
       resultadoBonif: ''
     });
 
-    const analysis = noteRow.locator('select.select-analise');
-    await analysis.selectOption('Correto');
-
-    await expect(page.locator('#modal-dados-nota')).toHaveClass(/show/);
-    await expect(analysis).toHaveValue('Não analisado');
-    expect(dialogs.some(message => message.includes('cadastre pelo menos uma Nota Fiscal'))).toBe(true);
-
+    await noteRow.getByRole('button', { name: 'Adicionar Nota' }).click();
     await page.locator('#nota-desc').fill('Material pedagógico');
     await page.locator('#nota-numero').fill('NF-E2E-001');
     await page.locator('#nota-valor').fill('150.50');
     await page.locator('#form-dados-nota button[type="submit"]').click();
 
     await expect(page.locator('#modal-dados-nota')).not.toHaveClass(/show/);
-    await fiscalNoteRow(page).locator('select.select-analise').selectOption('Correto');
-    await expect(page.locator('#modal-dados-nota')).not.toHaveClass(/show/);
-    await expect(fiscalNoteRow(page).locator('select.select-analise')).toHaveValue('Correto');
+    const individualAnalysis = fiscalNoteRow(page).locator('select.invoice-document-analysis-select').first();
+    await expect(individualAnalysis).toHaveValue('Não analisado');
+    await individualAnalysis.selectOption('Correto');
+    const completedInvoice = fiscalNoteRow(page)
+      .locator('.invoice-document-row')
+      .filter({ hasText: 'NF-E2E-001' })
+      .first();
+    await expect(completedInvoice.locator('select.invoice-document-analysis-select')).toHaveCount(0);
+    await expect(completedInvoice.locator('.invoice-document-status')).toHaveText('Correto');
+
+    const state = await page.evaluate(({ escolaId, compProgKey }) => {
+      const invoice = notasRegistradas.find(item => (
+        item.escolaId === escolaId
+        && item.compKey === compProgKey
+        && item.numero === 'NF-E2E-001'
+      ));
+      return {
+        invoiceAnalysis: invoice?.analiseDocumentoFiscal,
+        aggregateAnalysis: verificacoes[escolaId][compProgKey].analise.notaFiscal
+      };
+    }, context);
+
+    expect(state).toEqual({
+      invoiceAnalysis: 'Correto',
+      aggregateAnalysis: 'Correto'
+    });
   });
 
   test('renderiza e persiste consulta à Assessoria individualizada por nota de serviço', async ({ page }, testInfo) => {
@@ -190,6 +209,7 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
     page.on('dialog', dialog => dialog.accept());
 
     await page.goto('/');
+    await waitForProductExtensions(page);
     await openOperationalProgram(page, { initialized: true });
 
     const addServiceInvoice = async ({ description, number, amount }) => {
@@ -257,15 +277,17 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
         { number: 'NF-SERV-E2E-1', sent: true, analysis: 'Correto' },
         { number: 'NF-SERV-E2E-2', sent: false, analysis: 'Não analisado' }
       ],
-      aggregate: { delivery: 'Não', sent: false, analysis: 'Não analisado' }
+      aggregate: { delivery: 'Sim', sent: true, analysis: 'Não analisado' }
     });
+    await expect(assessoriaRow.getByText('Sim', { exact: true })).toBeVisible();
 
     await secondSent.check();
     await secondAnalysis.selectOption('Correto (Atrasado)');
 
     await expect(firstAnalysis).toHaveValue('Correto');
     await expect(secondAnalysis).toHaveValue('Correto (Atrasado)');
-    await expect(assessoriaRow.getByText('Resumo mensal: Sim')).toBeVisible();
+    await expect(assessoriaRow.getByText('Resumo mensal', { exact: true })).toBeVisible();
+    await expect(assessoriaRow.getByText('Sim', { exact: true })).toBeVisible();
     expect(pageErrors).toEqual([]);
   });
 
@@ -328,8 +350,8 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
 
     const noteRow = fiscalNoteRow(page);
     await expect(noteRow.getByRole('button', { name: 'Adicionar Nota' })).toHaveCount(0);
-    await expect(noteRow.locator('[title="Editar Nota"]')).toHaveCount(0);
-    await expect(noteRow.locator('[title="Excluir Nota"]')).toHaveCount(0);
+    await expect(noteRow.getByRole('button', { name: /^Editar / })).toHaveCount(0);
+    await expect(noteRow.getByRole('button', { name: /^Excluir / })).toHaveCount(0);
 
     await page.evaluate(({ escolaId, compProgKey }) => {
       openModalDadosNota(escolaId, compProgKey);
@@ -387,7 +409,13 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
       verificacoes[escolaId][compProgKey].resultadoBonif = 'apta';
       renderProntuario(escolaId);
     }, context);
-    await fiscalNoteRow(page).locator('[title="Editar Nota"]').click();
+    const createdInvoiceRow = fiscalNoteRow(page)
+      .locator('.invoice-document-row')
+      .filter({ hasText: 'NF: NF-SERV-CONSOLIDADA' });
+    await createdInvoiceRow.getByRole('button', {
+      name: 'Editar NF: NF-SERV-CONSOLIDADA',
+      exact: true
+    }).click();
     await page.locator('#nota-numero').fill('NF-SERV-EDITADA');
     await page.locator('#form-dados-nota button[type="submit"]').click();
 
@@ -403,7 +431,13 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
       verificacoes[escolaId][compProgKey].resultadoBonif = 'apta';
       renderProntuario(escolaId);
     }, context);
-    await fiscalNoteRow(page).locator('[title="Excluir Nota"]').click();
+    const editedInvoiceRow = fiscalNoteRow(page)
+      .locator('.invoice-document-row')
+      .filter({ hasText: 'NF: NF-SERV-EDITADA' });
+    await editedInvoiceRow.getByRole('button', {
+      name: 'Excluir NF: NF-SERV-EDITADA',
+      exact: true
+    }).click();
 
     expect(await page.evaluate(({ escolaId, compProgKey }) => ({
       result: verificacoes[escolaId][compProgKey].resultadoBonif,
@@ -452,6 +486,7 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 
     await page.goto('/');
+    await waitForProductExtensions(page);
     const context = await page.evaluate(() => {
       switchProfile('controlador');
 
@@ -528,7 +563,17 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
       .filter({ hasText: 'Educação e Família' })
       .filter({ hasText: 'Extrato Conta Corrente' });
     await expect(linkedRow.locator('select.select-analise')).toBeDisabled();
-    await linkedRow.getByRole('button', { name: 'Registrar novo envio', exact: true }).click();
+    await expect(linkedRow.getByRole('button', { name: 'Registrar novo envio', exact: true })).toHaveCount(0);
+    await expect(linkedRow.getByRole('button', { name: 'Reanalisar', exact: true })).toHaveCount(0);
+    await linkedRow.getByRole('button', { name: 'Visualizar pendência', exact: true }).click();
+    await expect(page.locator('#pendency-preview-drawer')).toBeVisible();
+    await page.locator('#pendency-preview-drawer .pendency-preview-close').click();
+
+    await page.evaluate(() => switchView('pendencias'));
+    const pendencyRow = page.locator(
+      `#p-abertas tr[data-pendency-ref*="${createdPendency.id}"]`
+    );
+    await pendencyRow.getByRole('button', { name: 'Registrar novo envio', exact: true }).click();
     const submissionModal = page.locator('#modal-registrar-envio');
     await submissionModal.getByLabel(
       'Data em que o arquivo foi disponibilizado no Drive',
@@ -541,10 +586,9 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
       exact: true
     }).click();
 
-    const awaitingRow = page.locator('#prontuario-verif-rows tr')
-      .filter({ hasText: 'Educação e Família' })
-      .filter({ hasText: 'Extrato Conta Corrente' });
-    await expect(awaitingRow.locator('select.select-analise')).toBeDisabled();
+    const awaitingRow = page.locator(
+      `#p-aguardando tr[data-pendency-ref*="${createdPendency.id}"]`
+    );
     await awaitingRow.getByRole('button', { name: 'Reanalisar', exact: true }).click();
     const reanalysisModal = page.locator('#modal-reanalisar-pendencia');
     await reanalysisModal.getByLabel('Resultado da reanálise', { exact: true })
@@ -556,12 +600,16 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
       exact: true
     }).click();
 
+    await page.evaluate(({ escolaId, competencia }) => {
+      activeProntuarioCompetencia = competencia;
+      switchView('prontuario', escolaId);
+    }, context);
     const resolvedRow = page.locator('#prontuario-verif-rows tr')
       .filter({ hasText: 'Educação e Família' })
       .filter({ hasText: 'Extrato Conta Corrente' });
     await expect(resolvedRow.locator('select.select-analise')).toBeEnabled();
     await expect(resolvedRow.locator('select.select-analise')).toHaveValue('Correto');
-    await expect(resolvedRow.getByRole('button', { name: 'Reanalisar', exact: true }))
+    await expect(resolvedRow.getByRole('button', { name: 'Visualizar pendência', exact: true }))
       .toHaveCount(0);
 
     expect(await page.evaluate(({

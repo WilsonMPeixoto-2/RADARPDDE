@@ -5,38 +5,83 @@
     "action": "Alterar status de entrega para bonificação",
     "mode": "write",
     "criticality": "P0",
-    "allow": ["controller", "federal_assistant", "technical_admin"],
-    "deny": ["anonymous", "sme_management", "inventory"],
-    "anchors": [["src/application/verification-service.js", "async setBonification"], ["src/data/supabase-repository.js", "saveVerificationWithLog"]],
+    "allow": [
+      "controller",
+      "federal_assistant",
+      "technical_admin"
+    ],
+    "deny": [
+      "anonymous",
+      "sme_management",
+      "inventory"
+    ],
+    "anchors": [
+      [
+        "src/application/verification-service.js",
+        "async setBonification"
+      ],
+      [
+        "src/data/supabase-repository.js",
+        "saveVerificationWithLog"
+      ]
+    ],
     "service": "VerificationService.setBonification",
     "repository": "saveVerificationWithLog",
-    "resources": ["verifications", "administrative_logs"],
+    "resources": [
+      "verifications",
+      "administrative_logs"
+    ],
     "reload": true,
     "concurrency": "row_version",
     "compensation": "atomic_rpc",
     "evidence": "verification",
     "coverage": "partial",
-    "gaps": ["Falta prova controlada de escrita e releitura no ambiente publicado por perfil."],
+    "gaps": [
+      "Falta prova controlada de escrita e releitura no ambiente publicado por perfil."
+    ],
     "next": "controlled-write"
   },
   {
     "id": "VER-02",
     "surface": "competences",
-    "action": "Alterar análise técnica documental",
+    "action": "Alterar análise técnica documental agregada, exceto resumos derivados de Assessoria e Notas Fiscais",
     "mode": "write",
     "criticality": "P0",
-    "allow": ["controller", "federal_assistant", "technical_admin"],
-    "deny": ["anonymous", "sme_management", "inventory"],
-    "anchors": [["src/application/verification-service.js", "async setTechnicalAnalysis"], ["src/data/supabase-repository.js", "saveVerificationWithLog"]],
+    "allow": [
+      "controller",
+      "federal_assistant",
+      "technical_admin"
+    ],
+    "deny": [
+      "anonymous",
+      "sme_management",
+      "inventory"
+    ],
+    "anchors": [
+      [
+        "src/application/verification-service.js",
+        "async setTechnicalAnalysis"
+      ],
+      [
+        "src/data/supabase-repository.js",
+        "saveVerificationWithLog"
+      ]
+    ],
     "service": "VerificationService.setTechnicalAnalysis",
     "repository": "saveVerificationWithLog",
-    "resources": ["verifications", "pendencies", "administrative_logs"],
+    "resources": [
+      "verifications",
+      "pendencies",
+      "administrative_logs"
+    ],
     "reload": true,
     "concurrency": "row_version",
     "compensation": "atomic_rpc",
     "evidence": "verification",
     "coverage": "partial",
-    "gaps": ["Falta prova controlada de análise, bloqueio por pendência ativa e releitura após refresh."],
+    "gaps": [
+      "Falta prova controlada publicada de análise agregada, bloqueio por pendência ativa e releitura após refresh; consAssessoria e notaFiscal individualizada seguem contratos próprios."
+    ],
     "next": "controlled-write"
   },
   {
@@ -45,18 +90,41 @@
     "action": "Consolidar resultado de bonificação mensal",
     "mode": "write",
     "criticality": "P0",
-    "allow": ["controller", "federal_assistant", "technical_admin"],
-    "deny": ["anonymous", "sme_management", "inventory"],
-    "anchors": [["src/application/verification-service.js", "async closeBonification"], ["src/data/supabase-repository.js", "saveVerificationWithLog"]],
+    "allow": [
+      "controller",
+      "federal_assistant",
+      "technical_admin"
+    ],
+    "deny": [
+      "anonymous",
+      "sme_management",
+      "inventory"
+    ],
+    "anchors": [
+      [
+        "src/application/verification-service.js",
+        "async closeBonification"
+      ],
+      [
+        "src/data/supabase-repository.js",
+        "saveVerificationWithLog"
+      ]
+    ],
     "service": "VerificationService.closeBonification",
     "repository": "saveVerificationWithLog",
-    "resources": ["verifications", "pendencies", "administrative_logs"],
+    "resources": [
+      "verifications",
+      "pendencies",
+      "administrative_logs"
+    ],
     "reload": true,
     "concurrency": "row_version",
     "compensation": "atomic_rpc",
     "evidence": "verification",
     "coverage": "partial",
-    "gaps": ["Falta prova controlada de consolidação, releitura e rejeição de conjunto incompleto."],
+    "gaps": [
+      "Falta prova controlada de consolidação, releitura e rejeição de conjunto incompleto."
+    ],
     "next": "controlled-write"
   },
   {
@@ -65,58 +133,150 @@
     "action": "Retificar consolidação com justificativa auditável",
     "mode": "write",
     "criticality": "P0",
-    "allow": ["federal_assistant", "technical_admin"],
-    "deny": ["anonymous", "controller", "sme_management", "inventory"],
-    "anchors": [["src/application/verification-service.js", "async retify"], ["src/data/supabase-repository.js", "saveVerificationWithLog"]],
+    "allow": [
+      "federal_assistant",
+      "technical_admin"
+    ],
+    "deny": [
+      "anonymous",
+      "controller",
+      "sme_management",
+      "inventory"
+    ],
+    "anchors": [
+      [
+        "src/application/verification-service.js",
+        "async retify"
+      ],
+      [
+        "src/data/supabase-repository.js",
+        "saveVerificationWithLog"
+      ]
+    ],
     "service": "VerificationService.retify",
     "repository": "saveVerificationWithLog",
-    "resources": ["verifications", "administrative_logs"],
+    "resources": [
+      "verifications",
+      "administrative_logs"
+    ],
     "reload": true,
     "concurrency": "row_version",
     "compensation": "atomic_rpc",
     "evidence": "verification",
     "coverage": "partial",
-    "gaps": ["Falta prova controlada do antes/depois, autoria, releitura e rejeição para demais perfis."],
+    "gaps": [
+      "Falta prova controlada do antes/depois, autoria, releitura e rejeição para demais perfis."
+    ],
     "next": "controlled-write"
   },
   {
     "id": "PEND-01",
     "surface": "pendencies",
-    "action": "Abrir pendência documental ou manual",
+    "action": "Abrir pendência documental/manual ou pendência fiscal individual vinculada",
     "mode": "write",
     "criticality": "P0",
-    "allow": ["controller", "federal_assistant", "technical_admin"],
-    "deny": ["anonymous", "sme_management", "inventory"],
-    "anchors": [["src/application/pendency-service.js", "async open"], ["src/data/supabase-repository.js", "savePendencyCommand"]],
-    "service": "PendencyService.open",
-    "repository": "savePendencyCommand",
-    "resources": ["pendencies", "administrative_logs"],
+    "allow": [
+      "controller",
+      "federal_assistant",
+      "technical_admin"
+    ],
+    "deny": [
+      "anonymous",
+      "sme_management",
+      "inventory"
+    ],
+    "anchors": [
+      [
+        "src/application/pendency-service.js",
+        "async open"
+      ],
+      [
+        "src/application/pendency-service.js",
+        "async openInvoiceDocumentPendency"
+      ],
+      [
+        "src/data/supabase-repository.js",
+        "savePendencyCommand"
+      ],
+      [
+        "supabase/migrations/20260828023000_invoice_document_analysis_pendency.sql",
+        "save_invoice_document_with_pendency"
+      ]
+    ],
+    "service": "PendencyService.open + openInvoiceDocumentPendency",
+    "repository": "savePendencyCommand + save_invoice_document_with_pendency",
+    "resources": [
+      "registered_invoices",
+      "pendencies",
+      "verifications",
+      "administrative_logs"
+    ],
     "reload": true,
     "concurrency": "row_version",
     "compensation": "atomic_rpc",
     "evidence": "pendency",
     "coverage": "partial",
-    "gaps": ["Falta prova controlada de abertura, prevenção de duplicidade e releitura."],
+    "gaps": [
+      "Abertura fiscal individual e rejeição de nova Pendência genérica de Notas Fiscais estão cobertas localmente/SQL; falta prova autenticada no Preview e releitura após publicação."
+    ],
     "next": "controlled-write"
   },
   {
     "id": "PEND-02",
     "surface": "pendencies",
-    "action": "Registrar novo envio para regularização",
+    "action": "Registrar novo envio para regularização, incluindo identificação de a_identificar",
     "mode": "write",
     "criticality": "P0",
-    "allow": ["controller", "federal_assistant", "technical_admin"],
-    "deny": ["anonymous", "sme_management", "inventory"],
-    "anchors": [["src/application/pendency-service.js", "async registerAttempt"], ["src/data/supabase-repository.js", "savePendencyCommand"], ["supabase/migrations/202608060002_functional_integrity_remediation.sql", "sync_pendency_attempt_statuses"]],
-    "service": "PendencyService.registerAttempt",
-    "repository": "savePendencyCommand + pendencies_sync_attempt_statuses",
-    "resources": ["pendencies", "pendency_attempts", "verifications", "administrative_logs"],
+    "allow": [
+      "controller",
+      "federal_assistant",
+      "technical_admin"
+    ],
+    "deny": [
+      "anonymous",
+      "sme_management",
+      "inventory"
+    ],
+    "anchors": [
+      [
+        "src/application/pendency-service.js",
+        "async registerAttempt"
+      ],
+      [
+        "src/application/pendency-service.js",
+        "async registerInvoiceDocumentAttempt"
+      ],
+      [
+        "src/data/supabase-repository.js",
+        "savePendencyCommand"
+      ],
+      [
+        "supabase/migrations/20260828023000_invoice_document_analysis_pendency.sql",
+        "register_invoice_document_attempt"
+      ],
+      [
+        "supabase/migrations/202608060002_functional_integrity_remediation.sql",
+        "sync_pendency_attempt_statuses"
+      ]
+    ],
+    "service": "PendencyService.registerAttempt + registerInvoiceDocumentAttempt",
+    "repository": "savePendencyCommand + register_invoice_document_attempt + pendencies_sync_attempt_statuses",
+    "resources": [
+      "registered_invoices",
+      "assets",
+      "pendencies",
+      "pendency_attempts",
+      "verifications",
+      "administrative_logs"
+    ],
     "reload": true,
     "concurrency": "row_version",
     "compensation": "atomic_rpc",
     "evidence": "pendency",
     "coverage": "partial",
-    "gaps": ["A sincronização entre agregado e pendency_attempts está remediada; falta prova controlada do ciclo de tentativa, invariância da bonificação e releitura por perfil."],
+    "gaps": [
+      "Novo envio fiscal, identificação preservando ID e criação patrimonial possuem unitários/pgTAP/E2E descartável; o hardening de patrimônio novo, tentativa imutável e linhas reais ainda precisa da rodada remota do SHA final e de smoke pós-publicação."
+    ],
     "next": "controlled-write"
   },
   {
@@ -125,18 +285,51 @@
     "action": "Reanalisar tentativa e resolver ou reabrir pendência",
     "mode": "write",
     "criticality": "P0",
-    "allow": ["controller", "federal_assistant", "technical_admin"],
-    "deny": ["anonymous", "sme_management", "inventory"],
-    "anchors": [["src/application/pendency-service.js", "async reanalyze"], ["src/data/supabase-repository.js", "reanalyzePendencyWithVerification"]],
-    "service": "PendencyService.reanalyze",
-    "repository": "reanalyzePendencyWithVerification",
-    "resources": ["pendencies", "pendency_attempts", "verifications", "administrative_logs"],
+    "allow": [
+      "controller",
+      "federal_assistant",
+      "technical_admin"
+    ],
+    "deny": [
+      "anonymous",
+      "sme_management",
+      "inventory"
+    ],
+    "anchors": [
+      [
+        "src/application/pendency-service.js",
+        "async reanalyze"
+      ],
+      [
+        "src/application/pendency-service.js",
+        "async reanalyzeInvoiceDocumentPendency"
+      ],
+      [
+        "src/data/supabase-repository.js",
+        "reanalyzePendencyWithVerification"
+      ],
+      [
+        "supabase/migrations/20260828023000_invoice_document_analysis_pendency.sql",
+        "reanalyze_invoice_document_pendency"
+      ]
+    ],
+    "service": "PendencyService.reanalyze + reanalyzeInvoiceDocumentPendency",
+    "repository": "reanalyzePendencyWithVerification + reanalyze_invoice_document_pendency",
+    "resources": [
+      "registered_invoices",
+      "pendencies",
+      "pendency_attempts",
+      "verifications",
+      "administrative_logs"
+    ],
     "reload": true,
     "concurrency": "row_version",
     "compensation": "atomic_rpc",
     "evidence": "pendency",
     "coverage": "partial",
-    "gaps": ["Falta prova controlada dos dois resultados, releitura e conflito concorrente."],
+    "gaps": [
+      "Reanálise fiscal exige Aguardando reanálise e tentativa válida da mesma Pendência e altera somente a invoice vinculada; falta prova autenticada publicada dos resultados correto/incorreto e releitura."
+    ],
     "next": "controlled-write"
   },
   {
@@ -145,18 +338,40 @@
     "action": "Cancelar pendência com justificativa",
     "mode": "write",
     "criticality": "P1",
-    "allow": ["controller", "federal_assistant", "technical_admin"],
-    "deny": ["anonymous", "sme_management", "inventory"],
-    "anchors": [["src/application/pendency-service.js", "async cancel"], ["src/data/supabase-repository.js", "savePendencyCommand"]],
+    "allow": [
+      "controller",
+      "federal_assistant",
+      "technical_admin"
+    ],
+    "deny": [
+      "anonymous",
+      "sme_management",
+      "inventory"
+    ],
+    "anchors": [
+      [
+        "src/application/pendency-service.js",
+        "async cancel"
+      ],
+      [
+        "src/data/supabase-repository.js",
+        "savePendencyCommand"
+      ]
+    ],
     "service": "PendencyService.cancel",
     "repository": "savePendencyCommand",
-    "resources": ["pendencies", "administrative_logs"],
+    "resources": [
+      "pendencies",
+      "administrative_logs"
+    ],
     "reload": true,
     "concurrency": "row_version",
     "compensation": "atomic_rpc",
     "evidence": "pendency",
     "coverage": "partial",
-    "gaps": ["Falta prova controlada de justificativa, autoria e releitura."],
+    "gaps": [
+      "Falta prova controlada de justificativa, autoria e releitura."
+    ],
     "next": "controlled-write"
   },
   {
@@ -165,18 +380,40 @@
     "action": "Reabrir pendência cancelada ou resolvida",
     "mode": "write",
     "criticality": "P1",
-    "allow": ["controller", "federal_assistant", "technical_admin"],
-    "deny": ["anonymous", "sme_management", "inventory"],
-    "anchors": [["src/application/pendency-service.js", "async reopen"], ["src/data/supabase-repository.js", "savePendencyCommand"]],
+    "allow": [
+      "controller",
+      "federal_assistant",
+      "technical_admin"
+    ],
+    "deny": [
+      "anonymous",
+      "sme_management",
+      "inventory"
+    ],
+    "anchors": [
+      [
+        "src/application/pendency-service.js",
+        "async reopen"
+      ],
+      [
+        "src/data/supabase-repository.js",
+        "savePendencyCommand"
+      ]
+    ],
     "service": "PendencyService.reopen",
     "repository": "savePendencyCommand",
-    "resources": ["pendencies", "administrative_logs"],
+    "resources": [
+      "pendencies",
+      "administrative_logs"
+    ],
     "reload": true,
     "concurrency": "row_version",
     "compensation": "atomic_rpc",
     "evidence": "pendency",
     "coverage": "partial",
-    "gaps": ["Falta prova controlada da transição, autoria e releitura."],
+    "gaps": [
+      "Falta prova controlada da transição, autoria e releitura."
+    ],
     "next": "controlled-write"
   },
   {
@@ -185,58 +422,146 @@
     "action": "Registrar contato ou cobrança associado à pendência",
     "mode": "write",
     "criticality": "P1",
-    "allow": ["controller", "federal_assistant", "technical_admin"],
-    "deny": ["anonymous", "sme_management", "inventory"],
-    "anchors": [["src/application/pendency-service.js", "async registerContact"], ["src/data/supabase-repository.js", "savePendencyContactWithLog"]],
+    "allow": [
+      "controller",
+      "federal_assistant",
+      "technical_admin"
+    ],
+    "deny": [
+      "anonymous",
+      "sme_management",
+      "inventory"
+    ],
+    "anchors": [
+      [
+        "src/application/pendency-service.js",
+        "async registerContact"
+      ],
+      [
+        "src/data/supabase-repository.js",
+        "savePendencyContactWithLog"
+      ]
+    ],
     "service": "PendencyService.registerContact",
     "repository": "savePendencyContactWithLog",
-    "resources": ["pendency_contacts", "administrative_logs"],
+    "resources": [
+      "pendency_contacts",
+      "administrative_logs"
+    ],
     "reload": true,
     "concurrency": "operation_id",
     "compensation": "atomic_rpc",
     "evidence": "pendency",
     "coverage": "partial",
-    "gaps": ["Falta prova controlada de idempotência, associação e releitura."],
+    "gaps": [
+      "Falta prova controlada de idempotência, associação e releitura."
+    ],
     "next": "controlled-write"
   },
   {
     "id": "INV-01",
     "surface": "school-record",
-    "action": "Cadastrar ou editar nota fiscal e efeitos associados",
+    "action": "Cadastrar/editar Nota Fiscal ou despesa, incluindo criação atômica de A identificar",
     "mode": "write",
     "criticality": "P0",
-    "allow": ["controller", "federal_assistant", "technical_admin"],
-    "deny": ["anonymous", "sme_management", "inventory"],
-    "anchors": [["src/application/invoice-service.js", "async save"], ["src/integration/invoice-history-lock.js", "protectService"], ["src/data/supabase-repository.js", "saveInvoiceWithEffects"], ["supabase/migrations/202608060002_functional_integrity_remediation.sql", "delete_unlinked_invoice_asset"], ["supabase/migrations/20260823045000_service_advisory_corrective_submission.sql", "protect_service_advisory_invoice_history"]],
-    "service": "InvoiceService.save + RadarInvoiceHistoryLock",
-    "repository": "saveInvoiceWithEffects + registered_invoices_delete_unlinked_asset + advisory history trigger",
-    "resources": ["registered_invoices", "assets", "verifications", "pendencies", "administrative_logs"],
+    "allow": [
+      "controller",
+      "federal_assistant",
+      "technical_admin"
+    ],
+    "deny": [
+      "anonymous",
+      "sme_management",
+      "inventory"
+    ],
+    "anchors": [
+      [
+        "src/application/invoice-service.js",
+        "async save"
+      ],
+      [
+        "src/application/invoice-service.js",
+        "async saveUnidentifiedExpenseWithPendency"
+      ],
+      [
+        "src/data/supabase-repository.js",
+        "saveInvoiceWithEffects"
+      ],
+      [
+        "supabase/migrations/20260828023000_invoice_document_analysis_pendency.sql",
+        "save_unidentified_expense_with_pendency"
+      ]
+    ],
+    "service": "InvoiceService.save + saveUnidentifiedExpenseWithPendency",
+    "repository": "saveInvoiceWithEffects + save_unidentified_expense_with_pendency",
+    "resources": [
+      "registered_invoices",
+      "assets",
+      "verifications",
+      "pendencies",
+      "administrative_logs"
+    ],
     "reload": true,
     "concurrency": "row_version",
     "compensation": "atomic_rpc",
     "evidence": "invoice",
     "coverage": "partial",
-    "gaps": ["A remoção do bem derivado e a preservação da identidade estrutural da NF com histórico de Assessoria estão remediadas; falta prova controlada completa no ambiente publicado para naturezas, edição, warnings, vínculo/desvínculo e releitura."],
+    "gaps": [
+      "Criação atômica de a_identificar, bloqueio da rota comum, preservação de ID e efeitos de serviço/patrimônio estão cobertos em unitários, pgTAP e E2E descartável; falta Preview autenticado e smoke pós-publicação."
+    ],
     "next": "controlled-write"
   },
   {
     "id": "INV-02",
     "surface": "school-record",
-    "action": "Excluir nota fiscal sem histórico de Assessoria e reverter efeitos vinculados",
+    "action": "Excluir documento fiscal sem qualquer histórico de Pendência individual e reverter efeitos vinculados",
     "mode": "write",
     "criticality": "P0",
-    "allow": ["controller", "federal_assistant", "technical_admin"],
-    "deny": ["anonymous", "sme_management", "inventory"],
-    "anchors": [["src/application/invoice-service.js", "async remove"], ["src/integration/invoice-history-lock.js", "assertDeletionAllowed"], ["src/data/supabase-repository.js", "deleteInvoiceWithEffects"], ["supabase/migrations/20260823045000_service_advisory_corrective_submission.sql", "protect_service_advisory_invoice_history"]],
-    "service": "InvoiceService.remove + RadarInvoiceHistoryLock",
+    "allow": [
+      "controller",
+      "federal_assistant",
+      "technical_admin"
+    ],
+    "deny": [
+      "anonymous",
+      "sme_management",
+      "inventory"
+    ],
+    "anchors": [
+      [
+        "src/application/invoice-service.js",
+        "async remove"
+      ],
+      [
+        "src/application/invoice-service.js",
+        "assertDeletionHistorySafe"
+      ],
+      [
+        "src/data/supabase-repository.js",
+        "deleteInvoiceWithEffects"
+      ],
+      [
+        "supabase/migrations/20260823045000_service_advisory_corrective_submission.sql",
+        "protect_service_advisory_invoice_history"
+      ]
+    ],
+    "service": "InvoiceService.remove + proteção histórica individual",
     "repository": "deleteInvoiceWithEffects + advisory history trigger",
-    "resources": ["registered_invoices", "assets", "verifications", "pendencies", "administrative_logs"],
+    "resources": [
+      "registered_invoices",
+      "assets",
+      "verifications",
+      "pendencies",
+      "administrative_logs"
+    ],
     "reload": true,
     "concurrency": "row_version",
     "compensation": "atomic_rpc",
     "evidence": "invoice",
     "coverage": "partial",
-    "gaps": ["NFs com histórico de pendência da Assessoria são preservadas e a exclusão continua válida para as demais; falta prova controlada publicada da remoção, restauração dos requisitos documentais e ausência de resíduos."],
+    "gaps": [
+      "Documento com qualquer histórico de Pendência individual é preservado; falta prova autenticada publicada da remoção permitida, bloqueio histórico, restauração de requisitos e ausência de resíduos."
+    ],
     "next": "controlled-write"
   },
   {
@@ -245,18 +570,109 @@
     "action": "Registrar envio, análise, pendência, novo envio e reanálise da Assessoria por nota fiscal de serviço",
     "mode": "write",
     "criticality": "P0",
-    "allow": ["controller", "federal_assistant", "technical_admin"],
-    "deny": ["anonymous", "sme_management", "inventory"],
-    "anchors": [["src/application/invoice-service.js", "async updateServiceAdvisory"], ["src/integration/service-advisory-pendency.js", "buildAtomicOpen"], ["src/integration/service-advisory-corrective-submission.js", "install"], ["supabase/migrations/20260823032000_service_advisory_pendency_invoice.sql", "save_service_advisory_with_pendency"], ["supabase/migrations/20260823045000_service_advisory_corrective_submission.sql", "register_service_advisory_attempt"]],
+    "allow": [
+      "controller",
+      "federal_assistant",
+      "technical_admin"
+    ],
+    "deny": [
+      "anonymous",
+      "sme_management",
+      "inventory"
+    ],
+    "anchors": [
+      [
+        "src/application/invoice-service.js",
+        "async updateServiceAdvisory"
+      ],
+      [
+        "src/integration/service-advisory-pendency.js",
+        "buildAtomicOpen"
+      ],
+      [
+        "src/integration/service-advisory-corrective-submission.js",
+        "install"
+      ],
+      [
+        "supabase/migrations/20260823032000_service_advisory_pendency_invoice.sql",
+        "save_service_advisory_with_pendency"
+      ],
+      [
+        "supabase/migrations/20260823045000_service_advisory_corrective_submission.sql",
+        "register_service_advisory_attempt"
+      ]
+    ],
     "service": "InvoiceService.updateServiceAdvisory + RadarServiceAdvisoryPendency",
     "repository": "saveInvoiceWithEffects + save_service_advisory_with_pendency + register_service_advisory_attempt + reanalyze_service_advisory_pendency",
-    "resources": ["registered_invoices", "verifications", "pendencies", "pendency_attempts", "administrative_logs"],
+    "resources": [
+      "registered_invoices",
+      "verifications",
+      "pendencies",
+      "pendency_attempts",
+      "administrative_logs"
+    ],
     "reload": true,
     "concurrency": "row_version",
     "compensation": "atomic_rpc",
     "evidence": "invoice",
     "coverage": "partial",
-    "gaps": ["O vínculo individual por NF, as operações compostas e a preservação histórica estão cobertos localmente; falta prova controlada no ambiente publicado com duas NFs de serviço, persistência individual, resumo derivado e releitura."],
+    "gaps": [
+      "Vínculo individual, ausência de bloqueio cruzado, abertura atômica, duas Pendências e resumo mensal possuem unitários/E2E/pgTAP; o bloqueio canônico, tentativa obrigatória e imutabilidade do envio ainda precisam da rodada remota do SHA final e de smoke pós-publicação."
+    ],
+    "next": "controlled-write"
+  },
+  {
+    "id": "INV-04",
+    "surface": "school-record",
+    "action": "Analisar cada documento fiscal, abrir Pendência por invoice e manter resumo técnico derivado",
+    "mode": "write",
+    "criticality": "P0",
+    "allow": [
+      "controller",
+      "federal_assistant",
+      "technical_admin"
+    ],
+    "deny": [
+      "anonymous",
+      "sme_management",
+      "inventory"
+    ],
+    "anchors": [
+      [
+        "src/domain/invoice-document-analysis.js",
+        "deriveInvoiceDocumentAnalysis"
+      ],
+      [
+        "src/application/invoice-service.js",
+        "async updateDocumentAnalysis"
+      ],
+      [
+        "src/application/pendency-service.js",
+        "async openInvoiceDocumentPendency"
+      ],
+      [
+        "supabase/migrations/20260828023000_invoice_document_analysis_pendency.sql",
+        "save_invoice_document_with_pendency"
+      ]
+    ],
+    "service": "InvoiceService.updateDocumentAnalysis + PendencyService.open/registerAttempt/reanalyze",
+    "repository": "saveInvoiceWithEffects + save_invoice_document_with_pendency + register_invoice_document_attempt + reanalyze_invoice_document_pendency",
+    "resources": [
+      "registered_invoices",
+      "assets",
+      "verifications",
+      "pendencies",
+      "pendency_attempts",
+      "administrative_logs"
+    ],
+    "reload": true,
+    "concurrency": "row_version",
+    "compensation": "atomic_rpc",
+    "evidence": "invoice",
+    "coverage": "partial",
+    "gaps": [
+      "Análise individual, resumo derivado, Pendência por invoice e reanálise vinculada possuem unitários/pgTAP/E2E; os patches mínimos, patrimônio novo, quarentena do legado e acesso à Pendência agregada precisam da rodada remota do SHA final e de smoke pós-publicação."
+    ],
     "next": "controlled-write"
   },
   {
@@ -265,18 +681,40 @@
     "action": "Cadastrar bem permanente manualmente",
     "mode": "write",
     "criticality": "P0",
-    "allow": ["controller", "federal_assistant", "technical_admin"],
-    "deny": ["anonymous", "sme_management", "inventory"],
-    "anchors": [["src/application/inventory-service.js", "async createAsset"], ["src/data/supabase-repository.js", "saveAssetWithLog"]],
+    "allow": [
+      "controller",
+      "federal_assistant",
+      "technical_admin"
+    ],
+    "deny": [
+      "anonymous",
+      "sme_management",
+      "inventory"
+    ],
+    "anchors": [
+      [
+        "src/application/inventory-service.js",
+        "async createAsset"
+      ],
+      [
+        "src/data/supabase-repository.js",
+        "saveAssetWithLog"
+      ]
+    ],
     "service": "InventoryService.createAsset",
     "repository": "saveAssetWithLog",
-    "resources": ["assets", "administrative_logs"],
+    "resources": [
+      "assets",
+      "administrative_logs"
+    ],
     "reload": true,
     "concurrency": "row_version",
     "compensation": "atomic_rpc",
     "evidence": "asset",
     "coverage": "partial",
-    "gaps": ["Falta prova controlada de criação, status inicial e releitura."],
+    "gaps": [
+      "Falta prova controlada de criação, status inicial e releitura."
+    ],
     "next": "controlled-write"
   },
   {
@@ -285,18 +723,40 @@
     "action": "Editar campo patrimonial autorizado",
     "mode": "write",
     "criticality": "P0",
-    "allow": ["controller", "federal_assistant", "technical_admin"],
-    "deny": ["anonymous", "sme_management", "inventory"],
-    "anchors": [["src/application/inventory-service.js", "async updateAsset"], ["src/application/inventory-service.js", "saveAssetWithLog"]],
+    "allow": [
+      "controller",
+      "federal_assistant",
+      "technical_admin"
+    ],
+    "deny": [
+      "anonymous",
+      "sme_management",
+      "inventory"
+    ],
+    "anchors": [
+      [
+        "src/application/inventory-service.js",
+        "async updateAsset"
+      ],
+      [
+        "src/application/inventory-service.js",
+        "saveAssetWithLog"
+      ]
+    ],
     "service": "InventoryService.updateAsset",
     "repository": "saveAssetWithLog",
-    "resources": ["assets", "administrative_logs"],
+    "resources": [
+      "assets",
+      "administrative_logs"
+    ],
     "reload": true,
     "concurrency": "row_version",
     "compensation": "atomic_rpc",
     "evidence": "asset",
     "coverage": "partial",
-    "gaps": ["A persistência genérica foi removida e a edição rápida ficou restrita ao campo permitido, com versão e log; falta prova controlada por perfil, conflito e releitura no ambiente de homologação."],
+    "gaps": [
+      "A persistência genérica foi removida e a edição rápida ficou restrita ao campo permitido, com versão e log; falta prova controlada por perfil, conflito e releitura no ambiente de homologação."
+    ],
     "next": "controlled-write"
   },
   {
@@ -305,18 +765,41 @@
     "action": "Encaminhar bem para inventariação",
     "mode": "write",
     "criticality": "P0",
-    "allow": ["controller", "federal_assistant", "technical_admin"],
-    "deny": ["anonymous", "sme_management", "inventory"],
-    "anchors": [["src/application/inventory-service.js", "async forward"], ["src/data/supabase-repository.js", "saveAssetWithLog"]],
+    "allow": [
+      "controller",
+      "federal_assistant",
+      "technical_admin"
+    ],
+    "deny": [
+      "anonymous",
+      "sme_management",
+      "inventory"
+    ],
+    "anchors": [
+      [
+        "src/application/inventory-service.js",
+        "async forward"
+      ],
+      [
+        "src/data/supabase-repository.js",
+        "saveAssetWithLog"
+      ]
+    ],
     "service": "InventoryService.forward",
     "repository": "saveAssetWithLog",
-    "resources": ["assets", "schools", "administrative_logs"],
+    "resources": [
+      "assets",
+      "schools",
+      "administrative_logs"
+    ],
     "reload": true,
     "concurrency": "row_version",
     "compensation": "atomic_rpc",
     "evidence": "asset",
     "coverage": "partial",
-    "gaps": ["Falta prova controlada das validações de nota/processo, persistência e releitura."],
+    "gaps": [
+      "Falta prova controlada das validações de nota/processo, persistência e releitura."
+    ],
     "next": "controlled-write"
   },
   {
@@ -325,18 +808,40 @@
     "action": "Concluir inventariação e registrar responsável",
     "mode": "write",
     "criticality": "P0",
-    "allow": ["controller", "federal_assistant", "inventory", "technical_admin"],
-    "deny": ["anonymous", "sme_management"],
-    "anchors": [["src/application/inventory-service.js", "async inventory"], ["src/data/supabase-repository.js", "saveAssetWithLog"]],
+    "allow": [
+      "controller",
+      "federal_assistant",
+      "inventory",
+      "technical_admin"
+    ],
+    "deny": [
+      "anonymous",
+      "sme_management"
+    ],
+    "anchors": [
+      [
+        "src/application/inventory-service.js",
+        "async inventory"
+      ],
+      [
+        "src/data/supabase-repository.js",
+        "saveAssetWithLog"
+      ]
+    ],
     "service": "InventoryService.inventory",
     "repository": "saveAssetWithLog",
-    "resources": ["assets", "administrative_logs"],
+    "resources": [
+      "assets",
+      "administrative_logs"
+    ],
     "reload": true,
     "concurrency": "row_version",
     "compensation": "atomic_rpc",
     "evidence": "asset",
     "coverage": "partial",
-    "gaps": ["Falta prova controlada por perfil, autoria, releitura e bloqueio fora do escopo da CRE."],
+    "gaps": [
+      "Falta prova controlada por perfil, autoria, releitura e bloqueio fora do escopo da CRE."
+    ],
     "next": "controlled-write"
   },
   {
@@ -345,18 +850,35 @@
     "action": "Registrar evento administrativo de domínio",
     "mode": "write",
     "criticality": "P1",
-    "allow": ["controller", "federal_assistant", "sme_management", "inventory", "technical_admin"],
-    "deny": ["anonymous"],
-    "anchors": [["src/application/audit-service.js", "async record"]],
+    "allow": [
+      "controller",
+      "federal_assistant",
+      "sme_management",
+      "inventory",
+      "technical_admin"
+    ],
+    "deny": [
+      "anonymous"
+    ],
+    "anchors": [
+      [
+        "src/application/audit-service.js",
+        "async record"
+      ]
+    ],
     "service": "AuditService.record",
     "repository": "DataService.defaultPersist",
-    "resources": ["administrative_logs"],
+    "resources": [
+      "administrative_logs"
+    ],
     "reload": true,
     "concurrency": "append_only",
     "compensation": "unit_of_work_rollback",
     "evidence": "audit",
     "coverage": "partial",
-    "gaps": ["Falta prova padronizada de autoria e recorte de leitura após persistência em Production."],
+    "gaps": [
+      "Falta prova padronizada de autoria e recorte de leitura após persistência em Production."
+    ],
     "next": "controlled-write"
   }
 ]

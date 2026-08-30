@@ -36,6 +36,8 @@
             option.value = TYPE;
             option.textContent = 'A identificar (documentação pendente)';
             option.defaultSelected = false;
+            option.hidden = true;
+            option.disabled = true;
             select.appendChild(option);
             select.value = previousValue;
             if (!select.value) select.value = 'consumo';
@@ -45,6 +47,18 @@
             select.dataset.unidentifiedExpenseBound = 'true';
         }
         return select;
+    }
+
+    function setUnidentifiedOptionAvailability(allowed) {
+        const select = ensureTypeOption();
+        const option = select?.querySelector(`option[value="${TYPE}"]`);
+        if (!select || !option) return false;
+        const enabled = Boolean(allowed);
+        option.hidden = !enabled;
+        option.disabled = !enabled;
+        select.dataset.allowUnidentifiedExpense = enabled ? 'true' : 'false';
+        if (!enabled && select.value === TYPE) select.value = 'consumo';
+        return enabled;
     }
 
     function ensureHint(numberInput) {
@@ -73,7 +87,12 @@
         const invoiceId = text(root.document.getElementById('nota-id')?.value);
         const title = modal?.querySelector('h3');
         const submit = modal?.querySelector('button[type="submit"]');
-        const unidentified = select.value === TYPE;
+        const legacyUnidentifiedEdit = Boolean(invoiceId && select.value === TYPE);
+        const unidentifiedAllowed = select.dataset.allowUnidentifiedExpense === 'true'
+            || legacyUnidentifiedEdit;
+        setUnidentifiedOptionAvailability(unidentifiedAllowed);
+        if (!unidentifiedAllowed && select.value === TYPE) select.value = 'consumo';
+        const unidentified = unidentifiedAllowed && select.value === TYPE;
 
         numberInput.required = !unidentified;
         numberInput.setAttribute('aria-required', unidentified ? 'false' : 'true');
@@ -111,6 +130,7 @@
         if (opened === false) return false;
         const select = ensureTypeOption();
         if (!select) return false;
+        setUnidentifiedOptionAvailability(true);
         select.value = TYPE;
         syncModalFields();
         const description = root.document.getElementById('nota-desc');
@@ -205,6 +225,7 @@
 
         root.document.querySelectorAll('#prontuario-verif-rows tr[data-program-id][data-document-key="notaFiscal"]')
             .forEach(row => {
+                if (row.querySelector('[data-invoice-document-panel]')) return;
                 const programId = text(row.dataset.programId);
                 const compKey = `${competence}_${programId}`;
                 const notes = invoices.filter(note => (
@@ -225,6 +246,12 @@
             root.openModal = function openModalWithUnidentifiedExpenseUx(...args) {
                 const result = originalOpenModal.apply(this, args);
                 if (args[0] === 'modal-dados-nota') {
+                    const select = ensureTypeOption();
+                    const invoiceId = text(root.document.getElementById('nota-id')?.value);
+                    const editingHistoricalUnidentified = Boolean(
+                        invoiceId && select?.value === TYPE
+                    );
+                    setUnidentifiedOptionAvailability(editingHistoricalUnidentified);
                     root.queueMicrotask?.(syncModalFields);
                     if (!root.queueMicrotask) setTimeout(syncModalFields, 0);
                 }

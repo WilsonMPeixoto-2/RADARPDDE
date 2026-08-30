@@ -58,7 +58,7 @@
         }
 
         const states = serviceInvoices.map(invoice => getServiceAdvisoryState(invoice));
-        const sent = states.every(state => state.sent);
+        const sent = states.some(state => state.sent);
 
         let analysis = 'Correto';
         if (states.some(state => state.analysis === 'Incorreto')) {

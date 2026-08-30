@@ -1,19 +1,19 @@
 # Matriz funcional ponta a ponta
 
-**Atualizado em:** 2026-08-09  
-**Baseline de origem:** `908758d92ec8407003a848ed2779814ce747a6c5`  
+**Atualizado em:** 2026-08-28  
+**Baseline de origem:** `b4ad4e8540c55ccfae0406ea136bc4c8da59fd0b`  
 **Fonte canônica:** `functional-contract-matrix.json` e arquivos JSON do diretório `functional-contract-matrix/`
 
 > Arquivo gerado por `scripts/check-functional-contract-matrix.mjs`. Não editar manualmente.
 
 ## Resumo executivo
 
-A matriz contém **42 operações** distribuídas entre 13 superfícies.
+A matriz contém **43 operações** distribuídas entre 13 superfícies.
 
 | Cobertura | Operações |
 |---|---:|
 | Comprovada | 9 |
-| Parcial | 33 |
+| Parcial | 34 |
 | Lacuna | 0 |
 | Decisão pendente | 0 |
 
@@ -21,7 +21,7 @@ A matriz contém **42 operações** distribuídas entre 13 superfícies.
 |---|---:|
 | Nenhuma; manter regressão | 5 |
 | Smoke autenticado de leitura | 6 |
-| Escrita controlada e reversível | 26 |
+| Escrita controlada e reversível | 27 |
 | Observação contínua em Production | 5 |
 
 ## Perfis
@@ -69,7 +69,7 @@ A matriz contém **42 operações** distribuídas entre 13 superfícies.
 |---|---|---|---|---|---|---|
 | `COMP-01` | Selecionar competência global mensal | read / P0 | Controlador, Assistente de Verbas Federais, Gestão SME, Equipe de Inventário, Administrador técnico | RadarCompetenceContext.select → session state (competences, app_config) | Comprovada | Nenhuma; manter regressão |
 | `VER-01` | Alterar status de entrega para bonificação | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | VerificationService.setBonification → saveVerificationWithLog (verifications, administrative_logs) | Parcial | Escrita controlada e reversível |
-| `VER-02` | Alterar análise técnica documental | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | VerificationService.setTechnicalAnalysis → saveVerificationWithLog (verifications, pendencies, administrative_logs) | Parcial | Escrita controlada e reversível |
+| `VER-02` | Alterar análise técnica documental agregada, exceto resumos derivados de Assessoria e Notas Fiscais | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | VerificationService.setTechnicalAnalysis → saveVerificationWithLog (verifications, pendencies, administrative_logs) | Parcial | Escrita controlada e reversível |
 | `VER-03` | Consolidar resultado de bonificação mensal | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | VerificationService.closeBonification → saveVerificationWithLog (verifications, pendencies, administrative_logs) | Parcial | Escrita controlada e reversível |
 | `VER-04` | Retificar consolidação com justificativa auditável | write / P0 | Assistente de Verbas Federais, Administrador técnico | VerificationService.retify → saveVerificationWithLog (verifications, administrative_logs) | Parcial | Escrita controlada e reversível |
 
@@ -78,18 +78,19 @@ A matriz contém **42 operações** distribuídas entre 13 superfícies.
 | ID | Ação | Modo | Perfis autorizados | Serviço e persistência | Cobertura | Próxima prova |
 |---|---|---|---|---|---|---|
 | `READ-03` | Consultar prontuário e timeline da unidade | read / P0 | Controlador, Assistente de Verbas Federais, Gestão SME, Equipe de Inventário, Administrador técnico | RadarSchoolTimeline.project → SupabaseRepository.read (schools, verifications, pendencies, pendency_attempts, pendency_contacts, registered_invoices, assets, administrative_logs) | Parcial | Smoke autenticado de leitura |
-| `INV-01` | Cadastrar ou editar nota fiscal e efeitos associados | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.save + RadarInvoiceHistoryLock → saveInvoiceWithEffects + registered_invoices_delete_unlinked_asset + advisory history trigger (registered_invoices, assets, verifications, pendencies, administrative_logs) | Parcial | Escrita controlada e reversível |
-| `INV-02` | Excluir nota fiscal sem histórico de Assessoria e reverter efeitos vinculados | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.remove + RadarInvoiceHistoryLock → deleteInvoiceWithEffects + advisory history trigger (registered_invoices, assets, verifications, pendencies, administrative_logs) | Parcial | Escrita controlada e reversível |
+| `INV-01` | Cadastrar/editar Nota Fiscal ou despesa, incluindo criação atômica de A identificar | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.save + saveUnidentifiedExpenseWithPendency → saveInvoiceWithEffects + save_unidentified_expense_with_pendency (registered_invoices, assets, verifications, pendencies, administrative_logs) | Parcial | Escrita controlada e reversível |
+| `INV-02` | Excluir documento fiscal sem qualquer histórico de Pendência individual e reverter efeitos vinculados | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.remove + proteção histórica individual → deleteInvoiceWithEffects + advisory history trigger (registered_invoices, assets, verifications, pendencies, administrative_logs) | Parcial | Escrita controlada e reversível |
 | `INV-03` | Registrar envio, análise, pendência, novo envio e reanálise da Assessoria por nota fiscal de serviço | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.updateServiceAdvisory + RadarServiceAdvisoryPendency → saveInvoiceWithEffects + save_service_advisory_with_pendency + register_service_advisory_attempt + reanalyze_service_advisory_pendency (registered_invoices, verifications, pendencies, pendency_attempts, administrative_logs) | Parcial | Escrita controlada e reversível |
+| `INV-04` | Analisar cada documento fiscal, abrir Pendência por invoice e manter resumo técnico derivado | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.updateDocumentAnalysis + PendencyService.open/registerAttempt/reanalyze → saveInvoiceWithEffects + save_invoice_document_with_pendency + register_invoice_document_attempt + reanalyze_invoice_document_pendency (registered_invoices, assets, verifications, pendencies, pendency_attempts, administrative_logs) | Parcial | Escrita controlada e reversível |
 
 ### Pendências
 
 | ID | Ação | Modo | Perfis autorizados | Serviço e persistência | Cobertura | Próxima prova |
 |---|---|---|---|---|---|---|
 | `READ-04` | Consultar lista e detalhe de pendências | read / P0 | Controlador, Assistente de Verbas Federais, Gestão SME, Equipe de Inventário, Administrador técnico | PendencyViewModel.project → SupabaseRepository.read (pendencies, pendency_attempts, pendency_contacts) | Parcial | Smoke autenticado de leitura |
-| `PEND-01` | Abrir pendência documental ou manual | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | PendencyService.open → savePendencyCommand (pendencies, administrative_logs) | Parcial | Escrita controlada e reversível |
-| `PEND-02` | Registrar novo envio para regularização | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | PendencyService.registerAttempt → savePendencyCommand + pendencies_sync_attempt_statuses (pendencies, pendency_attempts, verifications, administrative_logs) | Parcial | Escrita controlada e reversível |
-| `PEND-03` | Reanalisar tentativa e resolver ou reabrir pendência | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | PendencyService.reanalyze → reanalyzePendencyWithVerification (pendencies, pendency_attempts, verifications, administrative_logs) | Parcial | Escrita controlada e reversível |
+| `PEND-01` | Abrir pendência documental/manual ou pendência fiscal individual vinculada | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | PendencyService.open + openInvoiceDocumentPendency → savePendencyCommand + save_invoice_document_with_pendency (registered_invoices, pendencies, verifications, administrative_logs) | Parcial | Escrita controlada e reversível |
+| `PEND-02` | Registrar novo envio para regularização, incluindo identificação de a_identificar | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | PendencyService.registerAttempt + registerInvoiceDocumentAttempt → savePendencyCommand + register_invoice_document_attempt + pendencies_sync_attempt_statuses (registered_invoices, assets, pendencies, pendency_attempts, verifications, administrative_logs) | Parcial | Escrita controlada e reversível |
+| `PEND-03` | Reanalisar tentativa e resolver ou reabrir pendência | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | PendencyService.reanalyze + reanalyzeInvoiceDocumentPendency → reanalyzePendencyWithVerification + reanalyze_invoice_document_pendency (registered_invoices, pendencies, pendency_attempts, verifications, administrative_logs) | Parcial | Escrita controlada e reversível |
 | `PEND-04` | Cancelar pendência com justificativa | write / P1 | Controlador, Assistente de Verbas Federais, Administrador técnico | PendencyService.cancel → savePendencyCommand (pendencies, administrative_logs) | Parcial | Escrita controlada e reversível |
 | `PEND-05` | Reabrir pendência cancelada ou resolvida | write / P1 | Controlador, Assistente de Verbas Federais, Administrador técnico | PendencyService.reopen → savePendencyCommand (pendencies, administrative_logs) | Parcial | Escrita controlada e reversível |
 | `PEND-06` | Registrar contato ou cobrança associado à pendência | write / P1 | Controlador, Assistente de Verbas Federais, Administrador técnico | PendencyService.registerContact → savePendencyContactWithLog (pendency_contacts, administrative_logs) | Parcial | Escrita controlada e reversível |
@@ -161,18 +162,19 @@ A matriz contém **42 operações** distribuídas entre 13 superfícies.
 - **SCH-02 — Redistribuir uma escola para outro controlador:** Falta prova controlada de ida, releitura, negativa ao Controlador e retorno ao responsável original.
 - **SCH-03 — Redistribuir escolas em lote:** Falta prova controlada de lote, releitura, retorno/rollback e conflito parcial.
 - **VER-01 — Alterar status de entrega para bonificação:** Falta prova controlada de escrita e releitura no ambiente publicado por perfil.
-- **VER-02 — Alterar análise técnica documental:** Falta prova controlada de análise, bloqueio por pendência ativa e releitura após refresh.
+- **VER-02 — Alterar análise técnica documental agregada, exceto resumos derivados de Assessoria e Notas Fiscais:** Falta prova controlada publicada de análise agregada, bloqueio por pendência ativa e releitura após refresh; consAssessoria e notaFiscal individualizada seguem contratos próprios.
 - **VER-03 — Consolidar resultado de bonificação mensal:** Falta prova controlada de consolidação, releitura e rejeição de conjunto incompleto.
 - **VER-04 — Retificar consolidação com justificativa auditável:** Falta prova controlada do antes/depois, autoria, releitura e rejeição para demais perfis.
-- **PEND-01 — Abrir pendência documental ou manual:** Falta prova controlada de abertura, prevenção de duplicidade e releitura.
-- **PEND-02 — Registrar novo envio para regularização:** A sincronização entre agregado e pendency_attempts está remediada; falta prova controlada do ciclo de tentativa, invariância da bonificação e releitura por perfil.
-- **PEND-03 — Reanalisar tentativa e resolver ou reabrir pendência:** Falta prova controlada dos dois resultados, releitura e conflito concorrente.
+- **PEND-01 — Abrir pendência documental/manual ou pendência fiscal individual vinculada:** Abertura fiscal individual e rejeição de nova Pendência genérica de Notas Fiscais estão cobertas localmente/SQL; falta prova autenticada no Preview e releitura após publicação.
+- **PEND-02 — Registrar novo envio para regularização, incluindo identificação de a_identificar:** Novo envio fiscal, identificação preservando ID e criação patrimonial possuem unitários/pgTAP/E2E descartável; o hardening de patrimônio novo, tentativa imutável e linhas reais ainda precisa da rodada remota do SHA final e de smoke pós-publicação.
+- **PEND-03 — Reanalisar tentativa e resolver ou reabrir pendência:** Reanálise fiscal exige Aguardando reanálise e tentativa válida da mesma Pendência e altera somente a invoice vinculada; falta prova autenticada publicada dos resultados correto/incorreto e releitura.
 - **PEND-04 — Cancelar pendência com justificativa:** Falta prova controlada de justificativa, autoria e releitura.
 - **PEND-05 — Reabrir pendência cancelada ou resolvida:** Falta prova controlada da transição, autoria e releitura.
 - **PEND-06 — Registrar contato ou cobrança associado à pendência:** Falta prova controlada de idempotência, associação e releitura.
-- **INV-01 — Cadastrar ou editar nota fiscal e efeitos associados:** A remoção do bem derivado e a preservação da identidade estrutural da NF com histórico de Assessoria estão remediadas; falta prova controlada completa no ambiente publicado para naturezas, edição, warnings, vínculo/desvínculo e releitura.
-- **INV-02 — Excluir nota fiscal sem histórico de Assessoria e reverter efeitos vinculados:** NFs com histórico de pendência da Assessoria são preservadas e a exclusão continua válida para as demais; falta prova controlada publicada da remoção, restauração dos requisitos documentais e ausência de resíduos.
-- **INV-03 — Registrar envio, análise, pendência, novo envio e reanálise da Assessoria por nota fiscal de serviço:** O vínculo individual por NF, as operações compostas e a preservação histórica estão cobertos localmente; falta prova controlada no ambiente publicado com duas NFs de serviço, persistência individual, resumo derivado e releitura.
+- **INV-01 — Cadastrar/editar Nota Fiscal ou despesa, incluindo criação atômica de A identificar:** Criação atômica de a_identificar, bloqueio da rota comum, preservação de ID e efeitos de serviço/patrimônio estão cobertos em unitários, pgTAP e E2E descartável; falta Preview autenticado e smoke pós-publicação.
+- **INV-02 — Excluir documento fiscal sem qualquer histórico de Pendência individual e reverter efeitos vinculados:** Documento com qualquer histórico de Pendência individual é preservado; falta prova autenticada publicada da remoção permitida, bloqueio histórico, restauração de requisitos e ausência de resíduos.
+- **INV-03 — Registrar envio, análise, pendência, novo envio e reanálise da Assessoria por nota fiscal de serviço:** Vínculo individual, ausência de bloqueio cruzado, abertura atômica, duas Pendências e resumo mensal possuem unitários/E2E/pgTAP; o bloqueio canônico, tentativa obrigatória e imutabilidade do envio ainda precisam da rodada remota do SHA final e de smoke pós-publicação.
+- **INV-04 — Analisar cada documento fiscal, abrir Pendência por invoice e manter resumo técnico derivado:** Análise individual, resumo derivado, Pendência por invoice e reanálise vinculada possuem unitários/pgTAP/E2E; os patches mínimos, patrimônio novo, quarentena do legado e acesso à Pendência agregada precisam da rodada remota do SHA final e de smoke pós-publicação.
 - **ASSET-01 — Cadastrar bem permanente manualmente:** Falta prova controlada de criação, status inicial e releitura.
 - **ASSET-02 — Editar campo patrimonial autorizado:** A persistência genérica foi removida e a edição rápida ficou restrita ao campo permitido, com versão e log; falta prova controlada por perfil, conflito e releitura no ambiente de homologação.
 - **ASSET-03 — Encaminhar bem para inventariação:** Falta prova controlada das validações de nota/processo, persistência e releitura.

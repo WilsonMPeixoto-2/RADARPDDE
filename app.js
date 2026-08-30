@@ -8337,6 +8337,60 @@ function resetRegistrarNovoEnvioForm() {
     form.reset();
     document.getElementById('envio-pendencia-id').value = '';
     document.getElementById('envio-contexto').replaceChildren();
+    const identification = document.getElementById('envio-identificacao');
+    if (identification) {
+        identification.hidden = true;
+        identification.disabled = true;
+    }
+}
+
+function configureRegistrarNovoEnvioIdentification(pendency) {
+    const fieldset = document.getElementById('envio-identificacao');
+    if (!fieldset) return { required: false, invoice: null };
+
+    const invoiceId = pendency?.registeredInvoiceId || pendency?.registered_invoice_id;
+    const invoice = invoiceId
+        ? notasRegistradas.find(item => String(item.id) === String(invoiceId)) || null
+        : null;
+    const required = invoice?.tipo === 'a_identificar';
+    fieldset.hidden = !required;
+    fieldset.disabled = !required;
+
+    if (!required) return { required: false, invoice };
+
+    const typeSelect = document.getElementById('envio-identificacao-tipo');
+    const billOption = typeSelect?.querySelector('option[value="boleto_internet"]');
+    const isConnected = pendency?.programaId === 'CONECTADA';
+    if (billOption) {
+        billOption.hidden = !isConnected;
+        billOption.disabled = !isConnected;
+    }
+    if (typeSelect) typeSelect.value = '';
+    const numberInput = document.getElementById('envio-identificacao-numero');
+    const descriptionInput = document.getElementById('envio-identificacao-descricao');
+    const amountInput = document.getElementById('envio-identificacao-valor');
+    if (numberInput) numberInput.value = '';
+    if (descriptionInput) descriptionInput.value = invoice.desc || invoice.descricao || '';
+    if (amountInput) amountInput.value = Number.isFinite(Number(invoice.valor))
+        ? String(Number(invoice.valor))
+        : '';
+
+    return { required: true, invoice };
+}
+
+function collectRegistrarNovoEnvioIdentification(current) {
+    const invoiceId = current?.registeredInvoiceId || current?.registered_invoice_id;
+    const invoice = invoiceId
+        ? notasRegistradas.find(item => String(item.id) === String(invoiceId)) || null
+        : null;
+    if (invoice?.tipo !== 'a_identificar') return null;
+
+    return {
+        expenseType: document.getElementById('envio-identificacao-tipo')?.value || '',
+        invoiceNumber: document.getElementById('envio-identificacao-numero')?.value.trim() || '',
+        description: document.getElementById('envio-identificacao-descricao')?.value.trim() || '',
+        amount: parseFloat(document.getElementById('envio-identificacao-valor')?.value)
+    };
 }
 
 function showRegistrarNovoEnvioError(message) {
@@ -8534,6 +8588,7 @@ function abrirModalRegistrarNovoEnvio(pendencySource) {
 
     resetRegistrarNovoEnvioForm();
     document.getElementById('envio-pendencia-id').value = encodePendencyIdReference(pendency.id);
+    const identificationContext = configureRegistrarNovoEnvioIdentification(pendency);
     document.getElementById('envio-contexto').innerHTML = `
         <dl aria-label="Contexto da pendência">
             <div>
@@ -8552,6 +8607,10 @@ function abrirModalRegistrarNovoEnvio(pendencySource) {
     `;
 
     openRegistrarNovoEnvioModal(trigger, sourceContext);
+    if (identificationContext.required) {
+        const identificationType = document.getElementById('envio-identificacao-tipo');
+        if (identificationType) identificationType.focus({ preventScroll: true });
+    }
     return true;
 }
 
@@ -8610,6 +8669,7 @@ async function confirmarRegistrarNovoEnvio(event) {
 
     const sourceContext = registrarNovoEnvioSourceContext
         || capturePendencyActionSourceContext(current, registrarNovoEnvioTrigger);
+    const identification = collectRegistrarNovoEnvioIdentification(current);
 
     let nextPendency;
     try {
@@ -8617,10 +8677,17 @@ async function confirmarRegistrarNovoEnvio(event) {
             pendencyId: current.id,
             availabilityDate,
             observation,
-            link
+            link,
+            ...(identification ? { identification } : {})
         });
         nextPendency = result.value.pendency;
         rebuildOperationalIndexes();
+        if (result.value.warnings?.includes('SERVICE_ADVISORY_REQUIRED')) {
+            alert('A despesa foi identificada como prestação de serviço. A Consulta à Assessoria passa a ser exigida separadamente para esta Nota Fiscal.');
+        }
+        if (result.value.warnings?.includes('MISSING_INVENTORY_PROCESS')) {
+            alert('A despesa foi identificada como bem permanente, mas a unidade não possui Processo de Inventário cadastrado.');
+        }
     } catch (error) {
         reportRadarPersistenceError(error);
         showRegistrarNovoEnvioError(error?.cause?.message || error?.message || 'Não foi possível registrar o novo envio.');
@@ -9911,33 +9978,13 @@ function renderProntuarioVerificacoes(esc) {
                     const analysisLockId = `analysis-lock-${progId}-${doc.key}`;
                     let pendStatusHTML = '';
                     if (canUseVerificationActions && activePend) {
-                        const submissionActionLabel = getCorrectiveSubmissionActionLabel(activePend);
-                        const canReanalyse = canReanalysePendency(activePend);
-                        const instruction = activePend.status === 'Aguardando reanálise'
-                            ? 'Análise bloqueada enquanto aguarda reanálise. Use Reanalisar para registrar o resultado.'
-                            : 'Análise bloqueada enquanto a pendência estiver Aberta. Registre um novo envio para prosseguir.';
                         pendStatusHTML = `
-                            <div style="display:flex; flex-wrap:wrap; gap:4px;">
-                                ${canReanalyse ? `
-                                    <button
-                                        class="btn btn-primary btn-sm"
-                                        data-action="reanalyse-pendency"
-                                        data-pendency-ref="${escapeHtml(encodePendencyIdReference(activePend.id))}"
-                                        onclick="abrirModalReanalisarPendencia(this)"
-                                        style="font-size:0.7rem; padding:2px 6px;"
-                                    >Reanalisar</button>
-                                ` : ''}
-                                ${submissionActionLabel && canRegisterCorrectiveSubmission ? `
-                                    <button
-                                        class="btn ${canReanalyse ? 'btn-secondary' : 'btn-primary'} btn-sm"
-                                        data-action="register-corrective-submission"
-                                        data-pendency-ref="${escapeHtml(encodePendencyIdReference(activePend.id))}"
-                                        onclick="abrirModalRegistrarNovoEnvio(this)"
-                                        style="font-size:0.7rem; padding:2px 6px;"
-                                    >${escapeHtml(submissionActionLabel)}</button>
-                                ` : ''}
-                            </div>
-                            <p id="${escapeHtml(analysisLockId)}" style="font-size:0.7rem; color:var(--text-muted); margin-top:6px;">${escapeHtml(instruction)}</p>
+                            <button type="button" class="invoice-pendency-view-button"
+                                data-pendency-ref="${escapeHtml(encodePendencyIdReference(activePend.id))}"
+                                onclick="openPendencyDrawer('${escapeHtml(activePend.id)}')">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.6-6 9.5-6 9.5 6 9.5 6-3.6 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.7"/></svg>
+                                <span>Visualizar pendência</span>
+                            </button>
                         `;
                     } else if (canUseVerificationActions && resolvedPend && analiseValue === 'Não analisado') {
                         pendStatusHTML = `<span class="badge badge-success" style="font-size:0.7rem;" title="Justificativa: ${escapeHtml(resolvedPend.justificativaResolucao || resolvedPend.observacao || '')}">Resolvida - reanalisar</span>`;
@@ -9949,33 +9996,263 @@ function renderProntuarioVerificacoes(esc) {
                     let extraContentHTML = '';
                     let serviceAdvisoryEntries = [];
                     if (doc.key === 'notaFiscal') {
-                        const notes = notasRegistradas.filter(n => n.escolaId === esc.id && n.compKey === compProgKey);
-                        
-                        const notesBadges = notes.map(n => `
-                            <span class="badge badge-info" style="display: inline-flex; align-items: center; margin-right: 4px; margin-bottom: 4px; padding: 4px 8px; font-size: 0.7rem; font-weight: 500;">
-                                ${n.tipo === 'boleto_internet' ? 'Boleto Internet' : 'NF'}: ${escapeHtml(n.numero)} (R$ ${n.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})})
-                                ${accessProfile !== 'inventario' && accessProfile !== 'sme' && !isBonifLocked ? `
-                                    <span style="margin-left: 6px; cursor: pointer; font-weight: bold; color: var(--warning); font-size: 0.85rem;" onclick="abrirEditarNota('${escapeHtml(n.id)}', '${escapeHtml(esc.id)}')" title="Editar Nota">✎</span>
-                                    <span style="margin-left: 6px; cursor: pointer; font-weight: bold; color: var(--danger); font-size: 0.85rem;" onclick="removerNotaRegistrada('${escapeHtml(n.id)}', '${escapeHtml(esc.id)}')" title="Excluir Nota">×</span>
-                                ` : ''}
-                            </span>
-                        `).join('');
-                        
-                        const addBtn = window.RadarFluxoOperacional.canRegisterFiscalNote(accessProfile, bonifValue) && !isBonifLocked ? `
-                            <button class="btn btn-secondary btn-sm" style="font-size:0.65rem; padding: 2px 6px; display: inline-flex; align-items: center; margin-bottom: 4px;" onclick="openModalDadosNota('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:2px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                                Adicionar Nota
-                            </button>
-                        ` : '';
-                        
-                        if (notesBadges || addBtn) {
-                            extraContentHTML = `
-                                <div style="margin-top: 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px;">
-                                    ${notesBadges}
-                                    ${addBtn}
+                        const notes = notasRegistradas.filter(note => (
+                            note.escolaId === esc.id && note.compKey === compProgKey
+                        ));
+                        const individualizationStarted = notes.some(note => (
+                            window.RadarInvoiceDocumentAnalysis.hasExplicitInvoiceDocumentAnalysis(note)
+                        ));
+                        const fiscalSummary = window.RadarInvoiceDocumentAnalysis
+                            .deriveInvoiceDocumentAnalysis(notes, analiseValue || 'Não analisado');
+                        const activeInvoicePendencies = documentaryPendencies.filter(pendency => (
+                            pendency.escolaId === esc.id
+                            && (pendency.competenciaOrigem || pendency.competencia) === c.key
+                            && pendency.programaId === progId
+                            && pendency.documentoKey === 'notaFiscal'
+                            && ['Aberta', 'Aguardando reanálise'].includes(pendency.status)
+                            && Boolean(pendency.registeredInvoiceId || pendency.registered_invoice_id)
+                        ));
+                        const activeLegacyInvoicePendencies = documentaryPendencies.filter(pendency => (
+                            pendency.escolaId === esc.id
+                            && (pendency.competenciaOrigem || pendency.competencia) === c.key
+                            && pendency.programaId === progId
+                            && pendency.documentoKey === 'notaFiscal'
+                            && ['Aberta', 'Aguardando reanálise'].includes(pendency.status)
+                            && !Boolean(pendency.registeredInvoiceId || pendency.registered_invoice_id)
+                        ));
+                        const legacyInvoicePendency = activeLegacyInvoicePendencies[0] || null;
+                        const activePendencyCount = activeInvoicePendencies.length
+                            + activeLegacyInvoicePendencies.length;
+                        const canMutateInvoice = accessProfile !== 'inventario'
+                            && accessProfile !== 'sme'
+                            && !isBonifLocked;
+                        const canAddInvoice = window.RadarFluxoOperacional
+                            .canRegisterFiscalNote(accessProfile, bonifValue)
+                            && !isBonifLocked;
+                        const canAddUnidentifiedExpense = canMutateInvoice
+                            && Boolean(bonifValue)
+                            && bonifValue !== 'Não se aplica';
+
+                        const fiscalBonificationHTML = accessProfile === 'sme'
+                            ? `
+                                <span class="invoice-document-status ${bonifValue === 'Sim'
+                                    ? 'is-correct'
+                                    : bonifValue === 'Não'
+                                        ? 'is-incorrect'
+                                        : 'is-pending'}">
+                                    ${escapeHtml(bonifValue || 'Não informado')}
+                                </span>
+                            `
+                            : `
+                                <div class="invoice-bonification-toggle" role="group" aria-label="Bonificação de Notas Fiscais">
+                                    <button type="button" class="is-sim ${bonifValue === 'Sim' ? 'is-selected' : ''}"
+                                        onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', 'notaFiscal', 'Sim')"
+                                        ${isBonifLocked ? 'disabled' : ''}>Sim</button>
+                                    <button type="button" class="is-nao ${bonifValue === 'Não' ? 'is-selected' : ''}"
+                                        onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', 'notaFiscal', 'Não')"
+                                        ${isBonifLocked ? 'disabled' : ''}>Não</button>
+                                    <button type="button" class="is-na ${bonifValue === 'Não se aplica' ? 'is-selected' : ''}"
+                                        onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', 'notaFiscal', 'Não se aplica')"
+                                        ${isBonifLocked ? 'disabled' : ''}>N/A</button>
                                 </div>
                             `;
-                        }
+
+                        const documentRowsHTML = notes.length > 0
+                            ? notes.map((note, noteIndex) => {
+                                const invoiceContext = {
+                                    escolaId: esc.id,
+                                    competencia: c.key,
+                                    competenciaOrigem: c.key,
+                                    programaId: progId,
+                                    documentoKey: 'notaFiscal',
+                                    registeredInvoiceId: note.id
+                                };
+                                const invoicePendency = window.RadarPendencias.findActivePendency(
+                                    documentaryPendencies,
+                                    invoiceContext
+                                );
+                                const analysisFallback = !individualizationStarted && notes.length === 1
+                                    ? (analiseValue || 'Não analisado')
+                                    : 'Não analisado';
+                                const analysis = window.RadarInvoiceDocumentAnalysis
+                                    .getInvoiceDocumentAnalysis(note, analysisFallback);
+                                const statusLabel = invoicePendency?.status === 'Aguardando reanálise'
+                                    ? 'Aguardando reanálise'
+                                    : analysis;
+                                const statusClass = statusLabel === 'Incorreto'
+                                    ? 'is-incorrect'
+                                    : statusLabel === 'Correto'
+                                        ? 'is-correct'
+                                        : statusLabel === 'Correto (Atrasado)'
+                                            ? 'is-late'
+                                            : statusLabel === 'Aguardando reanálise'
+                                                ? 'is-waiting'
+                                                : 'is-pending';
+                                const hasPendencyHistory = documentaryPendencies.some(pendency => (
+                                    String(pendency.registeredInvoiceId || pendency.registered_invoice_id || '')
+                                        === String(note.id)
+                                ));
+                                const isLegacyUnidentified = note.tipo === 'a_identificar'
+                                    && !window.RadarInvoiceDocumentAnalysis.hasExplicitInvoiceDocumentAnalysis(note)
+                                    && !invoicePendency;
+                                const canEditAnalysis = canViewTechnicalAnalysis
+                                    && canMutateInvoice
+                                    && !invoicePendency
+                                    && note.tipo !== 'a_identificar';
+                                const editingAnalysis = canEditAnalysis
+                                    && String(invoiceAnalysisEditId || '') === String(note.id);
+                                const showAnalysisSelect = canEditAnalysis
+                                    && (analysis === 'Não analisado' || editingAnalysis);
+                                const analysisHTML = showAnalysisSelect
+                                    ? `
+                                        <select
+                                            class="invoice-document-analysis-select ${statusClass}"
+                                            aria-label="Análise técnica de ${escapeHtml(getInvoiceDocumentTitle(note))}"
+                                            onchange="changeInvoiceDocumentAnalysis('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}', this.value, this)"
+                                        >
+                                            <option value="Não analisado" ${analysis === 'Não analisado' ? 'selected' : ''}>Não analisado</option>
+                                            <option value="Correto" ${analysis === 'Correto' ? 'selected' : ''}>Correto</option>
+                                            <option value="Correto (Atrasado)" ${analysis === 'Correto (Atrasado)' ? 'selected' : ''}>Correto (Atrasado)</option>
+                                            <option value="Incorreto">Incorreto</option>
+                                        </select>
+                                    `
+                                    : `<span class="invoice-document-status ${statusClass}">${escapeHtml(statusLabel)}</span>`;
+
+                                let actionHTML = '';
+                                if (invoicePendency) {
+                                    actionHTML = `
+                                        <button type="button" class="invoice-pendency-view-button"
+                                            onclick="openPendencyDrawer('${escapeHtml(invoicePendency.id)}')">
+                                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.6-6 9.5-6 9.5 6 9.5 6-3.6 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.7"/></svg>
+                                            <span>Visualizar pendência</span>
+                                        </button>
+                                    `;
+                                } else if (canEditAnalysis
+                                    && ['Correto', 'Correto (Atrasado)'].includes(analysis)
+                                    && !editingAnalysis) {
+                                    actionHTML = `
+                                        <button type="button" class="invoice-analysis-edit-button"
+                                            onclick="beginInvoiceDocumentAnalysisEdit('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}')">
+                                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg>
+                                            <span>Editar análise</span>
+                                        </button>
+                                    `;
+                                }
+
+                                const editControls = canMutateInvoice
+                                    && !invoicePendency
+                                    && note.tipo !== 'a_identificar'
+                                    ? `
+                                        <span class="invoice-document-inline-actions">
+                                            <button type="button" onclick="abrirEditarNota('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}')" aria-label="Editar ${escapeHtml(getInvoiceDocumentTitle(note))}">
+                                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg>
+                                            </button>
+                                            ${!hasPendencyHistory ? `
+                                                <button type="button" class="is-danger" onclick="removerNotaRegistrada('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}')" aria-label="Excluir ${escapeHtml(getInvoiceDocumentTitle(note))}">
+                                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4.5h6V7M7 7l1 13h8l1-13M10 10v7M14 10v7"/></svg>
+                                                </button>
+                                            ` : ''}
+                                        </span>
+                                    `
+                                    : '';
+
+                                return `
+                                    <div class="invoice-document-row ${noteIndex % 2 === 1 ? 'is-striped' : ''}" data-invoice-id="${escapeHtml(note.id)}">
+                                        <div class="invoice-document-identity">
+                                            <span class="invoice-document-icon">${invoiceDocumentIconSvg(note.tipo)}</span>
+                                            <div class="invoice-document-copy">
+                                                <div class="invoice-document-title-line">
+                                                    <strong>${escapeHtml(getInvoiceDocumentTitle(note))}</strong>
+                                                    ${isLegacyUnidentified ? `
+                                                        <span class="invoice-legacy-badge"
+                                                            title="Registro anterior à individualização; nenhuma Pendência histórica foi inventada.">
+                                                            Registro legado
+                                                        </span>
+                                                    ` : ''}
+                                                    ${editControls}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="invoice-document-meta">
+                                            <span>${escapeHtml(getInvoiceDocumentTypeLabel(note))}</span>
+                                            <strong>${escapeHtml(formatInvoiceCurrency(note.valor))}</strong>
+                                        </div>
+                                        ${canViewTechnicalAnalysis ? `<div class="invoice-document-analysis">${analysisHTML}</div>` : ''}
+                                        ${canUseVerificationActions ? `<div class="invoice-document-action">${actionHTML || '<span aria-hidden="true" class="invoice-document-empty-action">—</span>'}</div>` : ''}
+                                    </div>
+                                `;
+                            }).join('')
+                            : '<div class="invoice-document-empty">Nenhum documento ou despesa registrado.</div>';
+
+                        rowsHTML += `
+                            <tr
+                                data-program-id="${escapeHtml(progId)}"
+                                data-document-key="notaFiscal"
+                                class="invoice-document-host-row"
+                            >
+                                <td colspan="${Math.max(1, visibleColumnCount - 1)}">
+                                    <section class="invoice-document-panel" data-invoice-document-panel>
+                                        <div class="invoice-document-panel-header">
+                                            <div class="invoice-document-panel-title">
+                                                <span class="invoice-document-icon is-folder">
+                                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 6.5h6l2 2h9v10.5a1.5 1.5 0 0 1-1.5 1.5h-14A1.5 1.5 0 0 1 3.5 19z"/></svg>
+                                                </span>
+                                                <div>
+                                                    <strong>Notas Fiscais</strong>
+                                                    <span>${notes.length} ${notes.length === 1 ? 'registro' : 'registros'}</span>
+                                                </div>
+                                            </div>
+                                            <div class="invoice-document-panel-summary">
+                                                <div class="invoice-summary-block is-bonification">
+                                                    <span>Bonificação</span>
+                                                    ${fiscalBonificationHTML}
+                                                </div>
+                                                ${activePendencyCount > 0 ? `
+                                                    <div class="invoice-summary-block is-pendencies ${legacyInvoicePendency ? 'has-legacy' : ''}">
+                                                        <span class="invoice-summary-pendency-icon">
+                                                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5.5h9M5 10h9M5 14.5h5"/><path d="M17 12.5v4M17 19h.01"/><path d="M15.3 11.6 11.8 18a1.5 1.5 0 0 0 1.3 2.2h7.8a1.5 1.5 0 0 0 1.3-2.2l-3.5-6.4a1.5 1.5 0 0 0-2.7 0z"/></svg>
+                                                        </span>
+                                                        <strong>${activePendencyCount} ${activePendencyCount === 1 ? 'pendência' : 'pendências'}</strong>
+                                                        ${canUseVerificationActions && legacyInvoicePendency ? `
+                                                            <button type="button" class="invoice-pendency-view-button invoice-legacy-pendency-button"
+                                                                onclick="openPendencyDrawer('${escapeHtml(legacyInvoicePendency.id)}')">
+                                                                <span>Visualizar pendência legada</span>
+                                                            </button>
+                                                        ` : ''}
+                                                    </div>
+                                                ` : ''}
+                                            </div>
+                                        </div>
+                                        <div class="invoice-document-list ${canViewTechnicalAnalysis ? '' : 'no-analysis'} ${canUseVerificationActions ? '' : 'no-actions'}">
+                                            <div class="invoice-document-list-head">
+                                                <span>Documento</span>
+                                                <span>Tipo · Valor</span>
+                                                ${canViewTechnicalAnalysis ? '<span>Situação técnica</span>' : ''}
+                                                ${canUseVerificationActions ? '<span>Ação</span>' : ''}
+                                            </div>
+                                            ${documentRowsHTML}
+                                        </div>
+                                        ${canAddInvoice || canAddUnidentifiedExpense ? `
+                                            <div class="invoice-document-footer">
+                                                ${canAddInvoice ? `
+                                                    <button type="button" class="invoice-add-primary" onclick="openModalDadosNota('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">
+                                                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                                                        <span>Adicionar Nota</span>
+                                                    </button>
+                                                ` : ''}
+                                                ${canAddUnidentifiedExpense ? `
+                                                    <button type="button" class="invoice-add-secondary" onclick="openUnidentifiedExpenseModal('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">
+                                                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h10l4 4V20.5H5z"/><path d="M15 3.5v4h4"/><path d="M12 11v5M9.5 13.5h5"/></svg>
+                                                        <span>Registrar despesa a identificar</span>
+                                                    </button>
+                                                ` : ''}
+                                            </div>
+                                        ` : ''}
+                                    </section>
+                                </td>
+                            </tr>
+                        `;
+                        return;
                     }
 
                     if (doc.key === 'consAssessoria') {
@@ -9991,105 +10268,201 @@ function renderProntuarioVerificacoes(esc) {
                                 analysis: v.analise.consAssessoria
                             }
                             : {};
-                        serviceAdvisoryEntries = serviceNotes.map(note => ({
+                        const serviceEntries = serviceNotes.map(note => ({
                             note,
                             ...window.RadarServiceAdvisory.getServiceAdvisoryState(
                                 note,
                                 legacyFallback
                             )
                         }));
+                        const activeServicePendencies = documentaryPendencies.filter(pendency => (
+                            pendency.escolaId === esc.id
+                            && (pendency.competenciaOrigem || pendency.competencia) === c.key
+                            && pendency.programaId === progId
+                            && pendency.documentoKey === 'consAssessoria'
+                            && ['Aberta', 'Aguardando reanálise'].includes(pendency.status)
+                            && Boolean(pendency.registeredInvoiceId || pendency.registered_invoice_id)
+                        ));
+                        const activeServicePendencyCount = activeServicePendencies.length
+                            + (activePend ? 1 : 0);
+                        const canMutateAdvisory = accessProfile !== 'inventario'
+                            && accessProfile !== 'sme'
+                            && !isBonifLocked;
+                        const monthlyClass = bonifValue === 'Sim'
+                            ? 'is-correct'
+                            : bonifValue === 'Não'
+                                ? 'is-incorrect'
+                                : 'is-pending';
 
-                        extraContentHTML = serviceAdvisoryEntries.length > 0
-                            ? `
-                                <div style="margin-top:6px; display:flex; flex-direction:column; gap:6px;">
-                                    ${serviceAdvisoryEntries.map(({ note }) => `
-                                        <div data-service-advisory-invoice="${escapeHtml(note.id)}" style="border:1px solid var(--border-color); border-radius:8px; padding:7px 8px;">
-                                            <strong style="font-size:0.75rem; color:var(--warning);">NF ${escapeHtml(note.numero)}</strong>
-                                            <div style="font-size:0.7rem; color:var(--text-muted); margin-top:2px;">${escapeHtml(note.desc || 'Serviço')}</div>
+                        const advisoryRowsHTML = serviceEntries.length > 0
+                            ? serviceEntries.map(({ note, sent, analysis }, noteIndex) => {
+                                const invoiceContext = {
+                                    escolaId: esc.id,
+                                    competencia: c.key,
+                                    competenciaOrigem: c.key,
+                                    programaId: progId,
+                                    documentoKey: 'consAssessoria',
+                                    registeredInvoiceId: note.id
+                                };
+                                const invoicePendency = window.RadarPendencias.findActivePendency(
+                                    documentaryPendencies,
+                                    invoiceContext
+                                );
+                                const statusLabel = invoicePendency?.status === 'Aguardando reanálise'
+                                    ? 'Aguardando reanálise'
+                                    : analysis;
+                                const statusClass = statusLabel === 'Incorreto'
+                                    ? 'is-incorrect'
+                                    : statusLabel === 'Correto'
+                                        ? 'is-correct'
+                                        : statusLabel === 'Correto (Atrasado)'
+                                            ? 'is-late'
+                                            : statusLabel === 'Aguardando reanálise'
+                                                ? 'is-waiting'
+                                                : 'is-pending';
+                                const analysisHTML = invoicePendency
+                                    ? `<span class="invoice-document-status ${statusClass}">${escapeHtml(statusLabel)}</span>`
+                                    : canViewTechnicalAnalysis && canMutateAdvisory
+                                        ? `
+                                            <select
+                                                class="invoice-document-analysis-select ${statusClass}"
+                                                aria-label="Análise da consulta à Assessoria para a NF ${escapeHtml(note.numero)}"
+                                                onchange="changeInvoiceAdvisoryAnalysis('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}', this.value, this)"
+                                            >
+                                                <option value="Não analisado" ${analysis === 'Não analisado' ? 'selected' : ''}>Não analisado</option>
+                                                <option value="Correto" ${analysis === 'Correto' ? 'selected' : ''}>Correto</option>
+                                                <option value="Correto (Atrasado)" ${analysis === 'Correto (Atrasado)' ? 'selected' : ''}>Correto (Atrasado)</option>
+                                                <option value="Incorreto" ${analysis === 'Incorreto' ? 'selected' : ''}>Incorreto</option>
+                                            </select>
+                                        `
+                                        : `<span class="invoice-document-status ${statusClass}">${escapeHtml(statusLabel)}</span>`;
+                                const actionHTML = invoicePendency
+                                    ? `
+                                        <button type="button" class="invoice-pendency-view-button"
+                                            onclick="openPendencyDrawer('${escapeHtml(invoicePendency.id)}')">
+                                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.6-6 9.5-6 9.5 6 9.5 6-3.6 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.7"/></svg>
+                                            <span>Visualizar pendência</span>
+                                        </button>
+                                    `
+                                    : '<span aria-hidden="true" class="invoice-document-empty-action">—</span>';
+
+                                return `
+                                    <div class="invoice-document-row service-advisory-row ${noteIndex % 2 === 1 ? 'is-striped' : ''}"
+                                        data-service-advisory-invoice="${escapeHtml(note.id)}">
+                                        <div class="invoice-document-identity">
+                                            <span class="invoice-document-icon">${invoiceDocumentIconSvg('servico')}</span>
+                                            <div class="invoice-document-copy">
+                                                <div class="invoice-document-title-line">
+                                                    <strong>NF ${escapeHtml(note.numero || note.id)}</strong>
+                                                </div>
+                                                <span class="service-advisory-description">${escapeHtml(note.desc || note.descricao || 'Serviço')}</span>
+                                            </div>
                                         </div>
-                                    `).join('')}
-                                </div>
-                            `
-                            : '<div style="font-size:0.72rem; color:var(--text-muted); margin-top:6px;">Nenhuma nota fiscal de serviço cadastrada.</div>';
+                                        <div class="service-advisory-delivery">
+                                            <label>
+                                                <input
+                                                    type="checkbox"
+                                                    aria-label="Consulta enviada à Assessoria para a NF ${escapeHtml(note.numero)}"
+                                                    ${sent ? 'checked' : ''}
+                                                    onchange="toggleInvoiceAdvisorySent('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}', this.checked)"
+                                                    ${isBonifLocked || invoicePendency ? 'disabled' : ''}
+                                                >
+                                                <span>Enviada à Assessoria</span>
+                                            </label>
+                                        </div>
+                                        ${canViewTechnicalAnalysis ? `<div class="invoice-document-analysis">${analysisHTML}</div>` : ''}
+                                        ${canUseVerificationActions ? `<div class="invoice-document-action">${actionHTML}</div>` : ''}
+                                    </div>
+                                `;
+                            }).join('')
+                            : '<div class="invoice-document-empty">Nenhuma Nota Fiscal de serviço cadastrada.</div>';
+
+                        rowsHTML += `
+                            <tr
+                                data-program-id="${escapeHtml(progId)}"
+                                data-document-key="consAssessoria"
+                                class="invoice-document-host-row service-advisory-host-row"
+                            >
+                                <td colspan="${Math.max(1, visibleColumnCount - 1)}">
+                                    <section class="invoice-document-panel service-advisory-panel" data-service-advisory-panel>
+                                        <div class="invoice-document-panel-header">
+                                            <div class="invoice-document-panel-title">
+                                                <span class="invoice-document-icon is-folder">
+                                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v14H5z"/><path d="M8 9h8M8 12h8M8 15h5"/></svg>
+                                                </span>
+                                                <div>
+                                                    <strong>Consulta Assessoria</strong>
+                                                    <span>${serviceNotes.length} ${serviceNotes.length === 1 ? 'nota de serviço' : 'notas de serviço'}</span>
+                                                </div>
+                                            </div>
+                                            <div class="invoice-document-panel-summary">
+                                                <div class="invoice-summary-block is-bonification">
+                                                    <span>Resumo mensal</span>
+                                                    <strong class="invoice-document-status ${monthlyClass}">${escapeHtml(bonifValue || 'Não se aplica')}</strong>
+                                                </div>
+                                                ${activeServicePendencyCount > 0 ? `
+                                                    <div class="invoice-summary-block is-pendencies">
+                                                        <span class="invoice-summary-pendency-icon">
+                                                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5.5h9M5 10h9M5 14.5h5"/><path d="M17 12.5v4M17 19h.01"/><path d="M15.3 11.6 11.8 18a1.5 1.5 0 0 0 1.3 2.2h7.8a1.5 1.5 0 0 0 1.3-2.2l-3.5-6.4a1.5 1.5 0 0 0-2.7 0z"/></svg>
+                                                        </span>
+                                                        <strong>${activeServicePendencyCount} ${activeServicePendencyCount === 1 ? 'pendência' : 'pendências'}</strong>
+                                                    </div>
+                                                ` : ''}
+                                            </div>
+                                        </div>
+                                        <div class="invoice-document-list ${canViewTechnicalAnalysis ? '' : 'no-analysis'} ${canUseVerificationActions ? '' : 'no-actions'}">
+                                            <div class="invoice-document-list-head">
+                                                <span>Nota Fiscal</span>
+                                                <span>Envio à Assessoria</span>
+                                                ${canViewTechnicalAnalysis ? '<span>Situação técnica</span>' : ''}
+                                                ${canUseVerificationActions ? '<span>Ação</span>' : ''}
+                                            </div>
+                                            ${advisoryRowsHTML}
+                                        </div>
+                                    </section>
+                                </td>
+                            </tr>
+                        `;
+                        return;
                     }
 
-                    let bonificationCellHTML = doc.key === 'consAssessoria'
-                        ? (serviceAdvisoryEntries.length > 0 ? `
-                            <div style="display:flex; flex-direction:column; gap:8px;">
-                                ${serviceAdvisoryEntries.map(({ note, sent }) => `
-                                    <label style="display:flex; align-items:center; gap:6px; font-size:0.72rem; color:var(--text-muted);">
-                                        <input
-                                            type="checkbox"
-                                            aria-label="Consulta enviada à Assessoria para a NF ${escapeHtml(note.numero)}"
-                                            ${sent ? 'checked' : ''}
-                                            onchange="toggleInvoiceAdvisorySent('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}', this.checked)"
-                                            ${isBonifLocked ? 'disabled' : ''}
-                                        >
-                                        <span>NF ${escapeHtml(note.numero)}: enviada</span>
-                                    </label>
-                                `).join('')}
-                                <span class="badge ${bonifValue === 'Sim' ? 'badge-success' : 'badge-danger'}" style="align-self:flex-start;">
-                                    Resumo mensal: ${escapeHtml(bonifValue || 'Não')}
-                                </span>
-                            </div>
-                        ` : '<span class="badge badge-gray">Não se aplica</span>')
-                        : (accessProfile === 'sme' ? `
-                            <span
-                                class="badge ${bonifValue === 'Sim'
-                                    ? 'badge-success'
-                                    : bonifValue === 'Não'
-                                        ? 'badge-danger'
-                                        : 'badge-gray'}"
-                                data-bonification-value="${escapeHtml(bonifValue || '')}"
-                            >${escapeHtml(bonifValue || 'Não informado')}</span>
-                        ` : `
-                            <div class="btn-group-toggle">
-                                <button class="btn-toggle ${bonifValue === 'Sim' ? 'active-sim' : ''}"
-                                        onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', 'Sim')"
-                                        ${isBonifLocked ? 'disabled' : ''}>Sim</button>
-                                <button class="btn-toggle ${bonifValue === 'Não' ? 'active-nao' : ''}"
-                                        onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', 'Não')"
-                                        ${isBonifLocked ? 'disabled' : ''}>Não</button>
-                                ${doc.allowNaoAplica ? `
-                                    <button class="btn-toggle ${bonifValue === 'Não se aplica' ? 'active-naoseaplica' : ''}"
-                                            onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', 'Não se aplica')"
-                                            ${isBonifLocked ? 'disabled' : ''}>N/A</button>
-                                ` : ''}
-                            </div>
-                        `);
+                    let bonificationCellHTML = accessProfile === 'sme' ? `
+                        <span
+                            class="badge ${bonifValue === 'Sim'
+                                ? 'badge-success'
+                                : bonifValue === 'Não'
+                                    ? 'badge-danger'
+                                    : 'badge-gray'}"
+                            data-bonification-value="${escapeHtml(bonifValue || '')}"
+                        >${escapeHtml(bonifValue || 'Não informado')}</span>
+                    ` : `
+                        <div class="btn-group-toggle">
+                            <button class="btn-toggle ${bonifValue === 'Sim' ? 'active-sim' : ''}"
+                                    onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', 'Sim')"
+                                    ${isBonifLocked ? 'disabled' : ''}>Sim</button>
+                            <button class="btn-toggle ${bonifValue === 'Não' ? 'active-nao' : ''}"
+                                    onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', 'Não')"
+                                    ${isBonifLocked ? 'disabled' : ''}>Não</button>
+                            ${doc.allowNaoAplica ? `
+                                <button class="btn-toggle ${bonifValue === 'Não se aplica' ? 'active-naoseaplica' : ''}"
+                                        onclick="toggleBonif('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', 'Não se aplica')"
+                                        ${isBonifLocked ? 'disabled' : ''}>N/A</button>
+                            ` : ''}
+                        </div>
+                    `;
 
-                    let analysisCellHTML = doc.key === 'consAssessoria'
-                        ? (serviceAdvisoryEntries.length > 0 ? `
-                            <div style="display:flex; flex-direction:column; gap:8px;">
-                                ${serviceAdvisoryEntries.map(({ note, analysis }) => `
-                                    <select
-                                        class="select-analise select-analise-comp analise-${analysis.toLowerCase().replace(/\s+/g, '-').replace(/[()]/g, '')}"
-                                        aria-label="Análise da consulta à Assessoria para a NF ${escapeHtml(note.numero)}"
-                                        onchange="changeInvoiceAdvisoryAnalysis('${escapeHtml(note.id)}', '${escapeHtml(esc.id)}', this.value, this)"
-                                        ${activePend ? `aria-describedby="${escapeHtml(analysisLockId)}"` : ''}
-                                        ${isAnaliseLocked ? 'disabled' : ''}
-                                    >
-                                        <option value="Não analisado" ${analysis === 'Não analisado' ? 'selected' : ''}>Não analisado</option>
-                                        <option value="Correto" ${analysis === 'Correto' ? 'selected' : ''}>Correto</option>
-                                        <option value="Correto (Atrasado)" ${analysis === 'Correto (Atrasado)' ? 'selected' : ''}>Correto (Atrasado)</option>
-                                        <option value="Incorreto" ${analysis === 'Incorreto' ? 'selected' : ''}>Incorreto</option>
-                                    </select>
-                                `).join('')}
-                                <span style="font-size:0.68rem; color:var(--text-muted);">Resumo técnico: ${escapeHtml(analiseValue)}</span>
-                            </div>
-                        ` : '<span class="badge badge-success">Correto — N/A</span>')
-                        : `
-                            <select class="select-analise select-analise-comp analise-${analiseValue.toLowerCase().replace(/\s+/g, '-').replace(/[()]/g, '')}"
-                                    aria-label="Análise técnica de ${escapeHtml(doc.name)} no programa ${escapeHtml(progName)}"
-                                    onchange="changeAnaliseTecnica('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', this.value, this)"
-                                    ${activePend ? `aria-describedby="${escapeHtml(analysisLockId)}"` : ''}
-                                    ${isAnaliseLocked ? 'disabled' : ''}>
-                                <option value="Não analisado" ${analiseValue === 'Não analisado' ? 'selected' : ''}>Não analisado</option>
-                                <option value="Correto" ${analiseValue === 'Correto' ? 'selected' : ''}>Correto</option>
-                                <option value="Correto (Atrasado)" ${analiseValue === 'Correto (Atrasado)' ? 'selected' : ''}>Correto (Atrasado)</option>
-                                <option value="Incorreto" ${analiseValue === 'Incorreto' ? 'selected' : ''}>Incorreto</option>
-                            </select>
-                        `;
+                    let analysisCellHTML = `
+                        <select class="select-analise select-analise-comp analise-${analiseValue.toLowerCase().replace(/\s+/g, '-').replace(/[()]/g, '')}"
+                                aria-label="Análise técnica de ${escapeHtml(doc.name)} no programa ${escapeHtml(progName)}"
+                                onchange="changeAnaliseTecnica('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', this.value, this)"
+                                ${activePend ? `aria-describedby="${escapeHtml(analysisLockId)}"` : ''}
+                                ${isAnaliseLocked ? 'disabled' : ''}>
+                            <option value="Não analisado" ${analiseValue === 'Não analisado' ? 'selected' : ''}>Não analisado</option>
+                            <option value="Correto" ${analiseValue === 'Correto' ? 'selected' : ''}>Correto</option>
+                            <option value="Correto (Atrasado)" ${analiseValue === 'Correto (Atrasado)' ? 'selected' : ''}>Correto (Atrasado)</option>
+                            <option value="Incorreto" ${analiseValue === 'Incorreto' ? 'selected' : ''}>Incorreto</option>
+                        </select>
+                    `;
 
                     const rowPendency = activePend || resolvedPend;
 
@@ -10106,9 +10479,9 @@ function renderProntuarioVerificacoes(esc) {
                                     ${programStatusSummary}
                                     ${accessProfile !== 'inventario' && accessProfile !== 'sme' ? (
                                         v.resultadoBonif ? `
-                                            <button class="btn btn-secondary btn-sm" style="width:100%; justify-content:center; font-size:0.75rem;" disabled>Consolidada</button>
+                                            <button class="btn program-consolidate-button is-disabled" disabled>Consolidada</button>
                                         ` : `
-                                            <button class="btn btn-secondary btn-sm" style="width:100%; justify-content:center; font-size:0.75rem;" onclick="calcularEFecharBonificacao('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">Consolidar</button>
+                                            <button class="btn program-consolidate-button" onclick="calcularEFecharBonificacao('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}')">Consolidar</button>
                                         `
                                     ) : ''}
                                 </div>
@@ -10153,6 +10526,301 @@ async function toggleBonif(escolaId, compKey, docKey, value) {
     }
     renderProntuario(escolaId);
     return true;
+}
+
+let pendingInvoicePendencyContext = null;
+let invoiceAnalysisEditId = null;
+let pendencyDrawerReturnFocus = null;
+
+function formatInvoiceCurrency(value) {
+    return Number(value || 0).toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
+function formatPendencyDate(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    const date = new Date(/^\d{4}-\d{2}-\d{2}$/.test(raw) ? `${raw}T00:00:00` : raw);
+    if (Number.isNaN(date.getTime())) return raw;
+    return date.toLocaleDateString('pt-BR');
+}
+
+function getInvoiceDocumentTypeLabel(invoice = {}) {
+    const labels = {
+        consumo: 'Material de consumo',
+        permanente: 'Bem permanente',
+        servico: 'Prestação de serviço',
+        boleto_internet: 'Boleto de Internet',
+        a_identificar: 'Despesa a identificar'
+    };
+    return labels[invoice.tipo] || 'Despesa';
+}
+
+function getInvoiceDocumentTitle(invoice = {}) {
+    if (invoice.tipo === 'a_identificar') return 'Despesa a identificar';
+    if (invoice.tipo === 'boleto_internet') {
+        return `Boleto Internet: ${invoice.numero || 'sem referência'}`;
+    }
+    return `NF: ${invoice.numero || 'sem número'}`;
+}
+
+function invoiceDocumentIconSvg(type) {
+    if (type === 'boleto_internet') {
+        return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5h16v13H4z"/><path d="M7 9.5v5M9.5 9.5v5M12 9.5v5M15 9.5v5M17.5 9.5v5"/></svg>';
+    }
+    if (type === 'permanente') {
+        return '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="12" rx="1.5"/><path d="M8 20h8M12 16.5V20"/></svg>';
+    }
+    if (type === 'a_identificar') {
+        return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h10l4 4V20.5H5z"/><path d="M15 3.5v4h4"/><path d="M9.2 11.2a2.8 2.8 0 1 1 4.6 2.15c-.9.72-1.8 1.1-1.8 2.15"/><path d="M12 18h.01"/></svg>';
+    }
+    return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h10l4 4V20.5H5z"/><path d="M15 3.5v4h4"/><path d="M8.5 12h7M8.5 15.5h5.5"/></svg>';
+}
+
+function findActiveInvoiceDocumentPendency(invoice) {
+    if (!invoice) return null;
+    const splitContext = window.RadarCompetencia.splitCompetenciaContext(invoice.compKey);
+    const context = {
+        escolaId: invoice.escolaId,
+        competencia: splitContext.competenciaKey,
+        competenciaOrigem: splitContext.competenciaKey,
+        programaId: splitContext.contextId,
+        documentoKey: 'notaFiscal',
+        registeredInvoiceId: invoice.id
+    };
+    const documentary = pendencias.filter(pendency => (
+        window.RadarPendencias.isDocumentaryPendency(pendency)
+    ));
+    return window.RadarPendencias.findActivePendency(documentary, context);
+}
+
+function findActiveInvoiceAdvisoryPendency(invoice) {
+    if (!invoice) return null;
+    const splitContext = window.RadarCompetencia.splitCompetenciaContext(invoice.compKey);
+    const context = {
+        escolaId: invoice.escolaId,
+        competencia: splitContext.competenciaKey,
+        competenciaOrigem: splitContext.competenciaKey,
+        programaId: splitContext.contextId,
+        documentoKey: 'consAssessoria',
+        registeredInvoiceId: invoice.id
+    };
+    const documentary = pendencias.filter(pendency => (
+        window.RadarPendencias.isDocumentaryPendency(pendency)
+    ));
+    return window.RadarPendencias.findActivePendency(documentary, context);
+}
+
+function openInvoiceDocumentPendencyModal(invoiceId, escolaId) {
+    const invoice = notasRegistradas.find(item => item.id === invoiceId && item.escolaId === escolaId);
+    if (!invoice) return false;
+    const splitContext = window.RadarCompetencia.splitCompetenciaContext(invoice.compKey);
+    const programa = programas.find(item => item.id === splitContext.contextId);
+    const opened = openNovaPendenciaModalWithDefaults(
+        escolaId,
+        invoice.compKey,
+        programa?.name || splitContext.contextId,
+        'notaFiscal',
+        getInvoiceDocumentTitle(invoice)
+    );
+    if (!opened) return false;
+
+    pendingInvoicePendencyContext = {
+        registeredInvoiceId: invoice.id,
+        schoolId: escolaId,
+        compKey: invoice.compKey
+    };
+    const observation = document.getElementById('pend-obs');
+    if (observation) {
+        observation.value = invoice.tipo === 'a_identificar'
+            ? `Despesa de ${formatInvoiceCurrency(invoice.valor)} sem documentação suficiente para identificar e comprovar a aplicação da verba.`
+            : `Identificado erro técnico na conferência de ${getInvoiceDocumentTitle(invoice)}.`;
+    }
+    return true;
+}
+
+function ensurePendencyDrawer() {
+    let drawer = document.getElementById('pendency-preview-drawer');
+    if (drawer) return drawer;
+    drawer = document.createElement('div');
+    drawer.id = 'pendency-preview-drawer';
+    drawer.className = 'pendency-preview-shell';
+    drawer.hidden = true;
+    drawer.innerHTML = '<div class="pendency-preview-backdrop" data-pendency-drawer-close></div><aside class="pendency-preview-drawer" role="dialog" aria-modal="true" aria-labelledby="pendency-preview-title"><div id="pendency-preview-content"></div></aside>';
+    drawer.addEventListener('click', event => {
+        if (event.target.closest('[data-pendency-drawer-close]')) closePendencyDrawer();
+    });
+    drawer.addEventListener('keydown', event => {
+        trapAccessibleModalFocus(event, drawer, closePendencyDrawer);
+    });
+    document.body.appendChild(drawer);
+    return drawer;
+}
+
+function closePendencyDrawer() {
+    const drawer = document.getElementById('pendency-preview-drawer');
+    if (!drawer) return;
+    drawer.hidden = true;
+    drawer.dataset.pendencyId = '';
+    drawer.dataset.mode = 'view';
+    if (pendencyDrawerReturnFocus && typeof pendencyDrawerReturnFocus.focus === 'function') {
+        pendencyDrawerReturnFocus.focus({ preventScroll: true });
+    }
+    pendencyDrawerReturnFocus = null;
+}
+
+function pendencyDrawerDocumentMeta(pendency) {
+    const invoiceId = pendency?.registeredInvoiceId || pendency?.registered_invoice_id;
+    const invoice = notasRegistradas.find(item => String(item.id) === String(invoiceId));
+    if (invoice) {
+        return {
+            title: getInvoiceDocumentTitle(invoice),
+            subtitle: `${getInvoiceDocumentTypeLabel(invoice)} · ${formatInvoiceCurrency(invoice.valor)}`
+        };
+    }
+    const documentKey = pendency?.documentoKey || pendency?.document_key;
+    if (documentKey === 'notaFiscal' && !invoiceId) {
+        return {
+            title: 'Pendência legada de Notas Fiscais',
+            subtitle: 'Registro agregado anterior à individualização'
+        };
+    }
+    const snapshot = pendency?.documentSnapshot || {};
+    return {
+        title: snapshot.numero
+            ? `${snapshot.tipo === 'boleto_internet' ? 'Boleto Internet' : 'NF'}: ${snapshot.numero}`
+            : (pendency?.item || 'Notas Fiscais'),
+        subtitle: snapshot.valor != null
+            ? `${getInvoiceDocumentTypeLabel({ tipo: snapshot.tipo })} · ${formatInvoiceCurrency(snapshot.valor)}`
+            : ''
+    };
+}
+
+function renderPendencyDrawer() {
+    const drawer = ensurePendencyDrawer();
+    const content = drawer.querySelector('#pendency-preview-content');
+    const pendencyId = drawer.dataset.pendencyId;
+    const pendency = pendencias.find(item => String(item.id) === String(pendencyId));
+    if (!pendency || !content) return false;
+
+    const mode = drawer.dataset.mode || 'view';
+    const edit = mode === 'edit';
+    const meta = pendencyDrawerDocumentMeta(pendency);
+    const competence = COMPETENCIAS.find(item => item.key === (pendency.competenciaOrigem || pendency.competencia));
+    const program = programas.find(item => item.id === pendency.programaId);
+    const reasonOptions = [...window.RadarPendencias.DOCUMENT_ERROR_TYPES];
+    const currentReason = String(pendency.motivo || '').trim();
+    if (currentReason && !reasonOptions.includes(currentReason)) {
+        reasonOptions.unshift(currentReason);
+    }
+    const reasonOptionsHTML = reasonOptions.map(reason => `
+        <option value="${escapeHtml(reason)}" ${reason === currentReason ? 'selected' : ''}>${escapeHtml(reason)}</option>
+    `).join('');
+
+    const statusClass = pendency.status === 'Aberta'
+        ? 'is-open'
+        : pendency.status === 'Aguardando reanálise'
+            ? 'is-waiting'
+            : 'is-closed';
+
+    // eslint-disable-next-line nounsanitized/property -- valores dinâmicos do drawer são escapados com escapeHtml antes da interpolação; SVG e estrutura são estáticos.
+    content.innerHTML = `
+        <div class="pendency-preview-header">
+            <div>
+                <h2 id="pendency-preview-title">Pendência</h2>
+                <span class="pendency-preview-status ${statusClass}">${escapeHtml(pendency.status || '')}</span>
+            </div>
+            <button type="button" class="pendency-preview-close" data-pendency-drawer-close aria-label="Fechar">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
+            </button>
+        </div>
+        <div class="pendency-preview-document">
+            <strong>${escapeHtml(meta.title)}</strong>
+            ${meta.subtitle ? `<span>${escapeHtml(meta.subtitle)}</span>` : ''}
+        </div>
+        <div class="pendency-preview-context">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M7 3v4M17 3v4M3.5 9h17"/></svg>
+            <span>${escapeHtml(competence?.label || pendency.competenciaOrigem || pendency.competencia || '')} · ${escapeHtml(program?.name || pendency.programaId || '')}</span>
+        </div>
+        <div class="pendency-preview-field">
+            <label for="pendency-preview-reason">Motivo</label>
+            ${edit
+                ? `<select id="pendency-preview-reason">${reasonOptionsHTML}</select>`
+                : `<p>${escapeHtml(pendency.motivo || '')}</p>`}
+        </div>
+        <div class="pendency-preview-field">
+            <label for="pendency-preview-observation">Observação</label>
+            ${edit
+                ? `<textarea id="pendency-preview-observation" rows="5">${escapeHtml(pendency.observacao || '')}</textarea>`
+                : `<p class="pendency-preview-observation">${escapeHtml(pendency.observacao || '')}</p>`}
+        </div>
+        <div class="pendency-preview-date">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M7 3v4M17 3v4M3.5 9h17"/></svg>
+            <div><span>Registrada em</span><strong>${escapeHtml(formatPendencyDate(pendency.dataAbertura))}</strong></div>
+        </div>
+        <button type="button" class="pendency-preview-edit-button" onclick="handlePendencyDrawerPrimaryAction()">
+            ${edit
+                ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4 4L19 6.5"/></svg><span>Salvar</span>'
+                : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5l4.2-1 9.8-9.8-3.2-3.2-9.8 9.8z"/><path d="M13.8 7l3.2 3.2"/></svg><span>Editar</span>'}
+        </button>
+    `;
+    return true;
+}
+
+function openPendencyDrawer(pendencyId) {
+    const drawer = ensurePendencyDrawer();
+    const pendency = pendencias.find(item => String(item.id) === String(pendencyId));
+    if (!pendency) return false;
+    pendencyDrawerReturnFocus = document.activeElement;
+    drawer.dataset.pendencyId = String(pendencyId);
+    drawer.dataset.mode = 'view';
+    drawer.hidden = false;
+    renderPendencyDrawer();
+    drawer.querySelector('.pendency-preview-close')?.focus({ preventScroll: true });
+    return true;
+}
+
+function editPendencyDrawer() {
+    const drawer = ensurePendencyDrawer();
+    drawer.dataset.mode = 'edit';
+    renderPendencyDrawer();
+    drawer.querySelector('#pendency-preview-reason')?.focus({ preventScroll: true });
+}
+
+async function handlePendencyDrawerPrimaryAction() {
+    const drawer = ensurePendencyDrawer();
+    if (drawer.dataset.mode === 'edit') {
+        return savePendencyDrawerEdits();
+    }
+    editPendencyDrawer();
+    return true;
+}
+
+async function savePendencyDrawerEdits() {
+    const drawer = ensurePendencyDrawer();
+    const pendencyId = drawer.dataset.pendencyId;
+    const reason = document.getElementById('pendency-preview-reason')?.value.trim();
+    const observation = document.getElementById('pendency-preview-observation')?.value.trim();
+    try {
+        await radarPendencyService.updateDetails({
+            pendencyId,
+            reason,
+            observation
+        });
+        rebuildOperationalIndexes();
+        drawer.dataset.mode = 'view';
+        renderPendencyDrawer();
+        if (activeSchoolId) renderProntuario(activeSchoolId);
+        updateAlertsBell();
+        return true;
+    } catch (error) {
+        reportRadarActionError(error, 'Não foi possível salvar a Pendência.');
+        return false;
+    }
 }
 
 function findActivePendencyForTechnicalAnalysis(escolaId, compProgKey, documentoKey) {
@@ -10282,6 +10950,81 @@ async function changeAnaliseTecnica(escolaId, compKey, docKey, value, selectElem
     return true;
 }
 
+function beginInvoiceDocumentAnalysisEdit(invoiceId, escolaId) {
+    invoiceAnalysisEditId = String(invoiceId);
+    renderProntuario(escolaId);
+    const selector = document.querySelector(
+        `.invoice-document-row[data-invoice-id="${CSS.escape(String(invoiceId))}"] .invoice-document-analysis-select`
+    );
+    selector?.focus({ preventScroll: true });
+    return true;
+}
+
+async function changeInvoiceDocumentAnalysis(
+    invoiceId,
+    escolaId,
+    value,
+    selectElement = null
+) {
+    const accessProfile = getRadarAccessProfile();
+    if (accessProfile === 'inventario' || accessProfile === 'sme') return false;
+
+    const invoice = notasRegistradas.find(item => (
+        item.id === invoiceId && item.escolaId === escolaId
+    ));
+    if (!invoice) {
+        renderProntuario(escolaId);
+        return false;
+    }
+
+    const verification = verificacoes[escolaId]?.[invoice.compKey];
+    const allContextInvoices = notasRegistradas.filter(item => (
+        item.escolaId === escolaId && item.compKey === invoice.compKey
+    ));
+    const individualizationStarted = allContextInvoices.some(item => (
+        window.RadarInvoiceDocumentAnalysis.hasExplicitInvoiceDocumentAnalysis(item)
+    ));
+    const previousValue = window.RadarInvoiceDocumentAnalysis.getInvoiceDocumentAnalysis(
+        invoice,
+        individualizationStarted
+            ? 'Não analisado'
+            : (verification?.analise?.notaFiscal || 'Não analisado')
+    );
+    const activePendency = findActiveInvoiceDocumentPendency(invoice);
+    if (activePendency) {
+        if (selectElement) selectElement.value = previousValue;
+        openPendencyDrawer(activePendency.id);
+        return false;
+    }
+
+    if (value === 'Incorreto') {
+        if (selectElement) selectElement.value = previousValue;
+        return openInvoiceDocumentPendencyModal(invoiceId, escolaId);
+    }
+
+    try {
+        await radarInvoiceService.updateDocumentAnalysis({
+            id: invoiceId,
+            schoolId: escolaId,
+            analysis: value,
+            profile: accessProfile
+        });
+        invoiceAnalysisEditId = null;
+        rebuildOperationalIndexes();
+        renderProntuario(escolaId);
+        updateAlertsBell();
+        return true;
+    } catch (error) {
+        if (selectElement) selectElement.value = previousValue;
+        reportRadarActionError(
+            error,
+            'Não foi possível atualizar a análise técnica deste documento.'
+        );
+        renderProntuario(escolaId);
+        return false;
+    }
+}
+
 // 14.5 Operações de Registro de Dados da Nota Fiscal (Via Análise Técnica)
 function configureInvoiceExpenseTypeOptions(compKey, selectedType = '') {
     const select = document.getElementById('nota-tipo');
@@ -10346,7 +11089,7 @@ async function salvarDadosNota(e = {}) {
         const valor = parseFloat(document.getElementById('nota-valor').value);
 
         try {
-            const result = await radarInvoiceService.save({
+            const saveInput = {
                 id: notaId || null,
                 schoolId: escolaId,
                 compKey,
@@ -10355,7 +11098,10 @@ async function salvarDadosNota(e = {}) {
                 invoiceNumber: numero,
                 amount: valor,
                 profile: accessProfile
-            });
+            };
+            const result = !notaId && tipo === 'a_identificar'
+                ? await radarInvoiceService.saveUnidentifiedExpenseWithPendency(saveInput)
+                : await radarInvoiceService.save(saveInput);
             rebuildOperationalIndexes();
             if (result.value.warnings.includes('SERVICE_ADVISORY_REQUIRED')) {
                 alert('Aviso de Regra de Negócio: Como é prestação de serviços (custeio), é obrigatório apresentar o e-mail de consultoria da assessoria contábil no encarte mensal do PDDE.');
@@ -10365,6 +11111,9 @@ async function salvarDadosNota(e = {}) {
             }
             closeModal('modal-dados-nota');
             renderProntuario(escolaId);
+            if (result.value.pendency?.id) {
+                openPendencyDrawer(result.value.pendency.id);
+            }
             updateAlertsBell();
             return true;
         } catch (error) {
@@ -10461,26 +11210,48 @@ async function changeInvoiceAdvisoryAnalysis(
             analysis: verification?.analise?.consAssessoria
         } : {}
     );
-    const activePendency = findActivePendencyForTechnicalAnalysis(
-        escolaId,
-        nota.compKey,
-        'consAssessoria'
-    );
+
+    const activePendency = findActiveInvoiceAdvisoryPendency(nota);
     if (activePendency) {
         if (selectElement && typeof selectElement === 'object') {
             selectElement.value = previousState.analysis;
         }
-        const instruction = activePendency.status === 'Aguardando reanálise'
-            ? 'Esta análise aguarda reanálise. Use Reanalisar para registrar o resultado.'
-            : 'Esta análise possui pendência aberta. Use Registrar novo envio para prosseguir.';
-        alert(instruction);
-        renderProntuario(escolaId);
+        openPendencyDrawer(activePendency.id);
         return false;
     }
 
-    let result;
+    if (value === 'Incorreto') {
+        if (selectElement && typeof selectElement === 'object') {
+            selectElement.value = previousState.analysis;
+        }
+
+        try {
+            if (window.RadarProductExtensionsReady
+                && typeof window.RadarProductExtensionsReady.then === 'function') {
+                await window.RadarProductExtensionsReady;
+            }
+            const atomicHandler = window.changeInvoiceAdvisoryAnalysis;
+            if (typeof atomicHandler === 'function'
+                && atomicHandler !== changeInvoiceAdvisoryAnalysis) {
+                return atomicHandler(notaId, escolaId, value, selectElement);
+            }
+        } catch (error) {
+            reportRadarActionError(
+                error,
+                'Não foi possível preparar a abertura segura da pendência da Consulta Assessoria.'
+            );
+            return false;
+        }
+
+        reportRadarActionError(
+            new Error('A proteção individual da Consulta Assessoria ainda não está disponível.'),
+            'Não foi possível abrir a pendência desta Nota Fiscal com segurança.'
+        );
+        return false;
+    }
+
     try {
-        result = await radarInvoiceService.updateServiceAdvisory({
+        await radarInvoiceService.updateServiceAdvisory({
             id: notaId,
             schoolId: escolaId,
             analysis: value,
@@ -10497,22 +11268,6 @@ async function changeInvoiceAdvisoryAnalysis(
         );
         renderProntuario(escolaId);
         return false;
-    }
-
-    if (result.value.shouldOpenPendency) {
-        const splitContext = window.RadarCompetencia.splitCompetenciaContext(nota.compKey);
-        const programa = programas.find(item => item.id === splitContext.contextId);
-        openNovaPendenciaModalWithDefaults(
-            escolaId,
-            nota.compKey,
-            programa?.name || splitContext.contextId,
-            'consAssessoria',
-            `Consulta Assessoria — NF ${nota.numero}`
-        );
-        const observation = document.getElementById('pend-obs');
-        if (observation) {
-            observation.value = `Identificado erro técnico na consulta à Assessoria referente à NF ${nota.numero}.`;
-        }
     }
 
     renderProntuario(escolaId);
@@ -10788,6 +11543,7 @@ function configurePendencyFormMode(isDocumentary) {
 }
 
 function resetNovaPendenciaForm() {
+    pendingInvoicePendencyContext = null;
     const form = document.getElementById('form-nova-pendencia');
     form.reset();
     document.getElementById('pend-item')
@@ -10863,6 +11619,10 @@ async function saveNovaPendencia(e) {
     const resp = document.getElementById('pend-responsavel').value;
     const obs = document.getElementById('pend-obs').value.trim();
     const isDocumentary = Boolean(programaId && documentoKey);
+    const invoicePendencyContext = pendingInvoicePendencyContext
+        && pendingInvoicePendencyContext.schoolId === escolaId
+        ? { ...pendingInvoicePendencyContext }
+        : null;
 
     if (!obs) {
         showPendencyNotice('Informe as observações da pendência.', 'error');
@@ -10882,6 +11642,8 @@ async function saveNovaPendencia(e) {
             competence: comp,
             programId: isDocumentary ? programaId : null,
             documentKey: isDocumentary ? documentoKey : null,
+            registeredInvoiceId: invoicePendencyContext?.registeredInvoiceId || null,
+            technicalAnalysisValue: invoicePendencyContext ? 'Incorreto' : null,
             item,
             errors,
             reason: motivo,
@@ -10892,9 +11654,15 @@ async function saveNovaPendencia(e) {
     } catch (error) {
         if (error?.code === 'DUPLICATE_PENDENCY' && error.details?.existingPendencyId) {
             closeModal('modal-nova-pendencia');
+            const existingPendencyId = error.details.existingPendencyId;
             resetNovaPendenciaForm();
-            openPendencyDetail(error.details.existingPendencyId);
-            showPendencyNotice('Já existe uma pendência ativa para este documento.', 'duplicate');
+            if (sourceView === 'prontuario') {
+                renderProntuario(escolaId);
+                openPendencyDrawer(existingPendencyId);
+            } else {
+                openPendencyDetail(existingPendencyId);
+                showPendencyNotice('Já existe uma pendência ativa para este documento.', 'duplicate');
+            }
             return false;
         }
         reportRadarPersistenceError(error);
@@ -10914,6 +11682,9 @@ async function saveNovaPendencia(e) {
 
     if (sourceView === 'prontuario') {
         renderProntuario(escolaId);
+        if (newPend?.registeredInvoiceId || newPend?.registered_invoice_id) {
+            openPendencyDrawer(newPend.id);
+        }
     } else {
         renderPendencias();
     }

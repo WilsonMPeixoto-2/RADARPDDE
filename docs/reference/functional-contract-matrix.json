@@ -1,29 +1,92 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-08-09",
-  "sourceCommit": "908758d92ec8407003a848ed2779814ce747a6c5",
+  "updatedAt": "2026-08-28",
+  "sourceCommit": "b4ad4e8540c55ccfae0406ea136bc4c8da59fd0b",
   "profiles": [
-    {"id": "anonymous", "label": "Anônimo", "kind": "technical"},
-    {"id": "controller", "label": "Controlador", "kind": "functional"},
-    {"id": "federal_assistant", "label": "Assistente de Verbas Federais", "kind": "functional"},
-    {"id": "sme_management", "label": "Gestão SME", "kind": "functional"},
-    {"id": "inventory", "label": "Equipe de Inventário", "kind": "functional"},
-    {"id": "technical_admin", "label": "Administrador técnico", "kind": "technical"}
+    {
+      "id": "anonymous",
+      "label": "Anônimo",
+      "kind": "technical"
+    },
+    {
+      "id": "controller",
+      "label": "Controlador",
+      "kind": "functional"
+    },
+    {
+      "id": "federal_assistant",
+      "label": "Assistente de Verbas Federais",
+      "kind": "functional"
+    },
+    {
+      "id": "sme_management",
+      "label": "Gestão SME",
+      "kind": "functional"
+    },
+    {
+      "id": "inventory",
+      "label": "Equipe de Inventário",
+      "kind": "functional"
+    },
+    {
+      "id": "technical_admin",
+      "label": "Administrador técnico",
+      "kind": "technical"
+    }
   ],
   "surfaces": [
-    {"id": "authentication", "label": "Autenticação"},
-    {"id": "navigation", "label": "Navegação e busca"},
-    {"id": "dashboard", "label": "Dashboard"},
-    {"id": "portfolio", "label": "Carteira"},
-    {"id": "competences", "label": "Competências"},
-    {"id": "school-record", "label": "Prontuário e timeline"},
-    {"id": "pendencies", "label": "Pendências"},
-    {"id": "sme-settings", "label": "Configurações SME"},
-    {"id": "team-management", "label": "Gestão de Equipe"},
-    {"id": "inventory", "label": "Capital e Inventário"},
-    {"id": "audit", "label": "Registros Internos"},
-    {"id": "exports", "label": "Exportações"},
-    {"id": "technical-operations", "label": "Operações técnicas"}
+    {
+      "id": "authentication",
+      "label": "Autenticação"
+    },
+    {
+      "id": "navigation",
+      "label": "Navegação e busca"
+    },
+    {
+      "id": "dashboard",
+      "label": "Dashboard"
+    },
+    {
+      "id": "portfolio",
+      "label": "Carteira"
+    },
+    {
+      "id": "competences",
+      "label": "Competências"
+    },
+    {
+      "id": "school-record",
+      "label": "Prontuário e timeline"
+    },
+    {
+      "id": "pendencies",
+      "label": "Pendências"
+    },
+    {
+      "id": "sme-settings",
+      "label": "Configurações SME"
+    },
+    {
+      "id": "team-management",
+      "label": "Gestão de Equipe"
+    },
+    {
+      "id": "inventory",
+      "label": "Capital e Inventário"
+    },
+    {
+      "id": "audit",
+      "label": "Registros Internos"
+    },
+    {
+      "id": "exports",
+      "label": "Exportações"
+    },
+    {
+      "id": "technical-operations",
+      "label": "Operações técnicas"
+    }
   ],
   "coverageStates": {
     "covered": "Percurso e evidência suficientes para o estágio atual.",
@@ -33,130 +96,310 @@
   },
   "evidenceSets": {
     "auth": {
-      "unit": ["tests/unit/auth-bootstrap.test.js", "tests/unit/auth-database-gate.test.js"],
-      "e2e": ["tests/e2e/supabase-auth-local.spec.js"],
-      "database": ["supabase/tests/database/rls.test.sql"],
-      "production": [".github/workflows/production-system-smoke.yml"]
+      "unit": [
+        "tests/unit/auth-bootstrap.test.js",
+        "tests/unit/auth-database-gate.test.js"
+      ],
+      "e2e": [
+        "tests/e2e/supabase-auth-local.spec.js"
+      ],
+      "database": [
+        "supabase/tests/database/rls.test.sql"
+      ],
+      "production": [
+        ".github/workflows/production-system-smoke.yml"
+      ]
     },
     "navigation": {
-      "unit": ["tests/unit/access-policy.test.js"],
-      "e2e": ["tests/e2e/canonical-routes.spec.js"],
+      "unit": [
+        "tests/unit/access-policy.test.js"
+      ],
+      "e2e": [
+        "tests/e2e/canonical-routes.spec.js"
+      ],
       "database": [],
       "production": []
     },
     "search": {
       "unit": [],
-      "e2e": ["tests/e2e/frontend-contract.spec.js"],
-      "database": ["supabase/tests/database/rls.test.sql"],
+      "e2e": [
+        "tests/e2e/frontend-contract.spec.js"
+      ],
+      "database": [
+        "supabase/tests/database/rls.test.sql"
+      ],
       "production": []
     },
     "competence": {
-      "unit": ["tests/unit/configuration-service.test.js"],
-      "e2e": ["tests/e2e/exercise-management.spec.js", "tests/e2e/global-competence-selector.spec.js", "tests/e2e/task-9-cross-view.spec.js"],
+      "unit": [
+        "tests/unit/configuration-service.test.js"
+      ],
+      "e2e": [
+        "tests/e2e/exercise-management.spec.js",
+        "tests/e2e/global-competence-selector.spec.js",
+        "tests/e2e/task-9-cross-view.spec.js"
+      ],
       "database": [],
       "production": []
     },
     "read": {
-      "unit": ["tests/unit/access-policy.test.js"],
-      "e2e": ["tests/e2e/canonical-routes.spec.js", "tests/e2e/supabase-full-contract.spec.js"],
-      "database": ["supabase/tests/database/rls.test.sql"],
-      "production": [".github/workflows/production-system-smoke.yml"]
+      "unit": [
+        "tests/unit/access-policy.test.js"
+      ],
+      "e2e": [
+        "tests/e2e/canonical-routes.spec.js",
+        "tests/e2e/supabase-full-contract.spec.js"
+      ],
+      "database": [
+        "supabase/tests/database/rls.test.sql"
+      ],
+      "production": [
+        ".github/workflows/production-system-smoke.yml"
+      ]
     },
     "portfolio-read": {
-      "unit": ["tests/unit/access-policy.test.js"],
-      "e2e": ["tests/e2e/cycle-b-carteira.spec.js", "tests/e2e/supabase-full-contract.spec.js"],
-      "database": ["supabase/tests/database/rls.test.sql"],
+      "unit": [
+        "tests/unit/access-policy.test.js"
+      ],
+      "e2e": [
+        "tests/e2e/cycle-b-carteira.spec.js",
+        "tests/e2e/supabase-full-contract.spec.js"
+      ],
+      "database": [
+        "supabase/tests/database/rls.test.sql"
+      ],
       "production": []
     },
     "configuration": {
-      "unit": ["tests/unit/configuration-service.test.js", "tests/unit/remote-operational-commands.test.js", "tests/unit/functional-integrity-migration.test.js"],
-      "e2e": ["tests/e2e/exercise-management.spec.js", "tests/e2e/sme-access-governance.spec.js"],
-      "database": ["supabase/tests/database/operational-command-rpc.test.sql", "supabase/tests/database/sme-access-governance.test.sql", "supabase/tests/database/functional-integrity-remediation.test.sql"],
+      "unit": [
+        "tests/unit/configuration-service.test.js",
+        "tests/unit/remote-operational-commands.test.js",
+        "tests/unit/functional-integrity-migration.test.js"
+      ],
+      "e2e": [
+        "tests/e2e/exercise-management.spec.js",
+        "tests/e2e/sme-access-governance.spec.js"
+      ],
+      "database": [
+        "supabase/tests/database/operational-command-rpc.test.sql",
+        "supabase/tests/database/sme-access-governance.test.sql",
+        "supabase/tests/database/functional-integrity-remediation.test.sql"
+      ],
       "production": []
     },
     "exercise": {
-      "unit": ["tests/unit/configuration-service.test.js", "tests/unit/remote-operational-commands.test.js", "tests/unit/functional-integrity-migration.test.js"],
-      "e2e": ["tests/e2e/exercise-management.spec.js"],
-      "database": ["supabase/tests/database/operational-command-rpc.test.sql", "supabase/tests/database/functional-integrity-remediation.test.sql"],
+      "unit": [
+        "tests/unit/configuration-service.test.js",
+        "tests/unit/remote-operational-commands.test.js",
+        "tests/unit/functional-integrity-migration.test.js"
+      ],
+      "e2e": [
+        "tests/e2e/exercise-management.spec.js"
+      ],
+      "database": [
+        "supabase/tests/database/operational-command-rpc.test.sql",
+        "supabase/tests/database/functional-integrity-remediation.test.sql"
+      ],
       "production": []
     },
     "program": {
-      "unit": ["tests/unit/remote-operational-commands.test.js"],
-      "e2e": ["tests/e2e/sme-access-governance.spec.js"],
-      "database": ["supabase/tests/database/sme-access-governance.test.sql"],
+      "unit": [
+        "tests/unit/remote-operational-commands.test.js"
+      ],
+      "e2e": [
+        "tests/e2e/sme-access-governance.spec.js"
+      ],
+      "database": [
+        "supabase/tests/database/sme-access-governance.test.sql"
+      ],
       "production": []
     },
     "remote": {
-      "unit": ["tests/unit/remote-operational-commands.test.js", "tests/unit/verification-remote-persistence.test.js", "tests/unit/school-service.test.js", "tests/unit/school-form-integrity.test.js", "tests/unit/school-institutional-identity-migration.test.js"],
-      "e2e": ["tests/e2e/application-services.spec.js", "tests/e2e/supabase-full-contract.spec.js"],
-      "database": ["supabase/tests/database/operational-command-rpc.test.sql", "supabase/tests/database/rls.test.sql"],
+      "unit": [
+        "tests/unit/remote-operational-commands.test.js",
+        "tests/unit/verification-remote-persistence.test.js",
+        "tests/unit/school-service.test.js",
+        "tests/unit/school-form-integrity.test.js",
+        "tests/unit/school-institutional-identity-migration.test.js"
+      ],
+      "e2e": [
+        "tests/e2e/application-services.spec.js",
+        "tests/e2e/supabase-full-contract.spec.js"
+      ],
+      "database": [
+        "supabase/tests/database/operational-command-rpc.test.sql",
+        "supabase/tests/database/rls.test.sql"
+      ],
       "production": []
     },
     "team": {
-      "unit": ["tests/unit/team-account-gateway.test.js", "tests/unit/team-account-domain.test.js", "tests/unit/team-account-role-transition.test.js", "tests/unit/team-account-edge-contract.test.js"],
-      "e2e": ["tests/e2e/supabase-full-contract.spec.js", "scripts/check-team-account-function.mjs"],
-      "database": ["supabase/tests/database/team-management-rpc.test.sql", "supabase/tests/database/rls.test.sql"],
-      "production": [".github/workflows/production-team-account-preflight.yml"]
+      "unit": [
+        "tests/unit/team-account-gateway.test.js",
+        "tests/unit/team-account-domain.test.js",
+        "tests/unit/team-account-role-transition.test.js",
+        "tests/unit/team-account-edge-contract.test.js"
+      ],
+      "e2e": [
+        "tests/e2e/supabase-full-contract.spec.js",
+        "scripts/check-team-account-function.mjs"
+      ],
+      "database": [
+        "supabase/tests/database/team-management-rpc.test.sql",
+        "supabase/tests/database/rls.test.sql"
+      ],
+      "production": [
+        ".github/workflows/production-team-account-preflight.yml"
+      ]
     },
     "verification": {
-      "unit": ["tests/unit/verification-remote-persistence.test.js", "tests/unit/remote-operational-commands.test.js"],
-      "e2e": ["tests/e2e/application-services.spec.js", "tests/e2e/supabase-full-contract.spec.js", "tests/e2e/functional-core.spec.js"],
-      "database": ["supabase/tests/database/verification-rpc.test.sql", "supabase/tests/database/rls.test.sql"],
+      "unit": [
+        "tests/unit/verification-remote-persistence.test.js",
+        "tests/unit/remote-operational-commands.test.js"
+      ],
+      "e2e": [
+        "tests/e2e/application-services.spec.js",
+        "tests/e2e/supabase-full-contract.spec.js",
+        "tests/e2e/functional-core.spec.js"
+      ],
+      "database": [
+        "supabase/tests/database/verification-rpc.test.sql",
+        "supabase/tests/database/rls.test.sql"
+      ],
       "production": []
     },
     "pendency": {
-      "unit": ["tests/unit/access-policy.test.js", "tests/unit/remote-operational-commands.test.js", "tests/unit/functional-integrity-migration.test.js"],
-      "e2e": ["tests/e2e/application-services.spec.js", "tests/e2e/supabase-full-contract.spec.js", "tests/e2e/pendency-reanalysis-auth.spec.js", "tests/e2e/pendency-cycle.spec.js", "tests/e2e/task-9-pendencias.spec.js", "tests/e2e/task-10-11-pendencias.spec.js"],
-      "database": ["supabase/tests/database/operations-rpc.test.sql", "supabase/tests/database/rls.test.sql", "supabase/tests/database/functional-integrity-remediation.test.sql"],
+      "unit": [
+        "tests/unit/access-policy.test.js",
+        "tests/unit/remote-operational-commands.test.js",
+        "tests/unit/functional-integrity-migration.test.js"
+      ],
+      "e2e": [
+        "tests/e2e/application-services.spec.js",
+        "tests/e2e/supabase-full-contract.spec.js",
+        "tests/e2e/pendency-reanalysis-auth.spec.js",
+        "tests/e2e/pendency-cycle.spec.js",
+        "tests/e2e/task-9-pendencias.spec.js",
+        "tests/e2e/task-10-11-pendencias.spec.js"
+      ],
+      "database": [
+        "supabase/tests/database/operations-rpc.test.sql",
+        "supabase/tests/database/rls.test.sql",
+        "supabase/tests/database/functional-integrity-remediation.test.sql"
+      ],
       "production": []
     },
     "invoice": {
-      "unit": ["tests/unit/atomic-invoice-rpc.test.js", "tests/unit/remote-operational-commands.test.js", "tests/unit/functional-integrity-migration.test.js"],
-      "e2e": ["tests/e2e/application-services.spec.js", "tests/e2e/supabase-full-contract.spec.js", "tests/e2e/functional-core.spec.js"],
-      "database": ["supabase/tests/database/invoice-rpc.test.sql", "supabase/tests/database/rls.test.sql", "supabase/tests/database/functional-integrity-remediation.test.sql"],
+      "unit": [
+        "tests/unit/atomic-invoice-rpc.test.js",
+        "tests/unit/remote-operational-commands.test.js",
+        "tests/unit/functional-integrity-migration.test.js",
+        "tests/unit/invoice-document-analysis.test.js",
+        "tests/unit/invoice-service.test.js",
+        "tests/unit/pendency-service.test.js",
+        "tests/pendency-invoice-context.test.js"
+      ],
+      "e2e": [
+        "tests/e2e/application-services.spec.js",
+        "tests/e2e/supabase-full-contract.spec.js",
+        "tests/e2e/functional-core.spec.js",
+        "tests/e2e/invoice-document-analysis.spec.js",
+        "tests/e2e/unidentified-expense.spec.js",
+        "tests/e2e/internet-bill-document.spec.js"
+      ],
+      "database": [
+        "supabase/tests/database/invoice-rpc.test.sql",
+        "supabase/tests/database/rls.test.sql",
+        "supabase/tests/database/functional-integrity-remediation.test.sql",
+        "supabase/tests/database/invoice-document-analysis-pendency.test.sql"
+      ],
       "production": []
     },
     "asset": {
-      "unit": ["tests/unit/remote-operational-commands.test.js", "tests/unit/inventory-service.test.js"],
-      "e2e": ["tests/e2e/application-services.spec.js", "tests/e2e/supabase-full-contract.spec.js", "tests/e2e/functional-core.spec.js"],
-      "database": ["supabase/tests/database/inventory-capital-rls.test.sql", "supabase/tests/database/rls.test.sql", "supabase/tests/database/functional-integrity-remediation.test.sql"],
+      "unit": [
+        "tests/unit/remote-operational-commands.test.js",
+        "tests/unit/inventory-service.test.js"
+      ],
+      "e2e": [
+        "tests/e2e/application-services.spec.js",
+        "tests/e2e/supabase-full-contract.spec.js",
+        "tests/e2e/functional-core.spec.js"
+      ],
+      "database": [
+        "supabase/tests/database/inventory-capital-rls.test.sql",
+        "supabase/tests/database/rls.test.sql",
+        "supabase/tests/database/functional-integrity-remediation.test.sql"
+      ],
       "production": []
     },
     "audit": {
-      "unit": ["tests/unit/audit-service.test.js", "tests/unit/audit-functional-persistence-contract.test.js"],
-      "e2e": ["tests/e2e/supabase-full-contract.spec.js", "tests/e2e/sme-access-governance.spec.js"],
-      "database": ["supabase/tests/database/rls.test.sql"],
+      "unit": [
+        "tests/unit/audit-service.test.js",
+        "tests/unit/audit-functional-persistence-contract.test.js"
+      ],
+      "e2e": [
+        "tests/e2e/supabase-full-contract.spec.js",
+        "tests/e2e/sme-access-governance.spec.js"
+      ],
+      "database": [
+        "supabase/tests/database/rls.test.sql"
+      ],
       "production": []
     },
     "institutional-export": {
-      "unit": ["tests/unit/excel-export-audit.test.js"],
-      "e2e": ["tests/e2e/excel-export-button.spec.js"],
+      "unit": [
+        "tests/unit/excel-export-audit.test.js"
+      ],
+      "e2e": [
+        "tests/e2e/excel-export-button.spec.js"
+      ],
       "database": [],
       "production": []
     },
     "sme-export": {
-      "unit": ["tests/unit/excel-export-audit.test.js"],
-      "e2e": ["tests/e2e/assistant-dashboard-excel-actions.spec.js", "tests/e2e/excel-export-button.spec.js"],
+      "unit": [
+        "tests/unit/excel-export-audit.test.js"
+      ],
+      "e2e": [
+        "tests/e2e/assistant-dashboard-excel-actions.spec.js",
+        "tests/e2e/excel-export-button.spec.js"
+      ],
       "database": [],
-      "production": [".github/workflows/excel-sme-production-smoke.yml"]
+      "production": [
+        ".github/workflows/excel-sme-production-smoke.yml"
+      ]
     },
     "technical": {
-      "unit": ["tests/unit/audit-functional-persistence-contract.test.js"],
+      "unit": [
+        "tests/unit/audit-functional-persistence-contract.test.js"
+      ],
       "e2e": [],
-      "database": ["supabase/tests/database/operations-rpc.test.sql"],
-      "production": [".github/workflows/backup-restore-disposable.yml"]
+      "database": [
+        "supabase/tests/database/operations-rpc.test.sql"
+      ],
+      "production": [
+        ".github/workflows/backup-restore-disposable.yml"
+      ]
     },
     "monitor": {
       "unit": [],
       "e2e": [],
       "database": [],
-      "production": [".github/workflows/production-system-smoke.yml"]
+      "production": [
+        ".github/workflows/production-system-smoke.yml"
+      ]
     },
     "integrity": {
-      "unit": ["tests/unit/production-data-integrity.test.js", "tests/unit/production-data-integrity-workflow.test.js"],
+      "unit": [
+        "tests/unit/production-data-integrity.test.js",
+        "tests/unit/production-data-integrity-workflow.test.js"
+      ],
       "e2e": [],
-      "database": ["supabase/tests/database/production-integrity-monitor.test.sql"],
-      "production": [".github/workflows/production-data-integrity.yml"]
+      "database": [
+        "supabase/tests/database/production-integrity-monitor.test.sql"
+      ],
+      "production": [
+        ".github/workflows/production-data-integrity.yml"
+      ]
     }
   },
   "operationFiles": [

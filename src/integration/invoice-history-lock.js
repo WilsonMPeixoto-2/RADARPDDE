@@ -34,6 +34,22 @@
         return text(pendency.registeredInvoiceId || pendency.registered_invoice_id);
     }
 
+    const INDIVIDUAL_HISTORY_DOCUMENT_KEYS = Object.freeze([
+        'consAssessoria',
+        'notaFiscal'
+    ]);
+
+    function hasInvoicePendencyHistory(state = {}, invoiceId) {
+        const targetId = text(invoiceId);
+        if (!targetId) return false;
+        return (Array.isArray(state.pendencies) ? state.pendencies : []).some(pendency => (
+            INDIVIDUAL_HISTORY_DOCUMENT_KEYS.includes(
+                text(pendency.documentoKey || pendency.document_key)
+            )
+            && invoiceIdOfPendency(pendency) === targetId
+        ));
+    }
+
     function hasServiceAdvisoryHistory(state = {}, invoiceId) {
         const targetId = text(invoiceId);
         if (!targetId) return false;
@@ -52,7 +68,7 @@
 
     function assertStructuralIdentity(state, input = {}) {
         const invoiceId = text(input.id);
-        if (!invoiceId || !hasServiceAdvisoryHistory(state, invoiceId)) return true;
+        if (!invoiceId || !hasInvoicePendencyHistory(state, invoiceId)) return true;
         const existing = (state.registeredInvoices || []).find(invoice => text(invoice.id) === invoiceId);
         if (!existing) return true;
 
@@ -69,11 +85,16 @@
         const targetCompKey = text(input.compKey || currentCompKey);
         const targetType = text(input.expenseType || currentType).toLocaleLowerCase('pt-BR');
 
-        if (targetSchoolId !== currentSchoolId
-            || targetCompKey !== currentCompKey
-            || targetType !== currentType) {
+        if (targetSchoolId !== currentSchoolId || targetCompKey !== currentCompKey) {
             fail(
-                'Esta Nota Fiscal possui histórico de pendência da Assessoria. Escola, competência, programa e natureza da despesa não podem ser alterados; os demais dados da NF podem ser corrigidos normalmente.',
+                'Esta Nota Fiscal possui histórico de pendência individual. Escola, competência e programa não podem ser alterados; os demais dados permitidos podem ser corrigidos normalmente.',
+                'invoice:save',
+                invoiceId
+            );
+        }
+        if (targetType !== currentType && hasServiceAdvisoryHistory(state, invoiceId)) {
+            fail(
+                'Esta Nota Fiscal possui histórico de pendência da Assessoria e deve permanecer como prestação de serviço.',
                 'invoice:save',
                 invoiceId
             );
@@ -82,9 +103,9 @@
     }
 
     function assertDeletionAllowed(state, invoiceId) {
-        if (!hasServiceAdvisoryHistory(state, invoiceId)) return true;
+        if (!hasInvoicePendencyHistory(state, invoiceId)) return true;
         fail(
-            'Esta Nota Fiscal possui histórico de pendência da Assessoria e não pode ser excluída. Os dados permitidos da NF podem ser corrigidos normalmente.',
+            'Esta Nota Fiscal possui histórico de pendência individual e não pode ser excluída. Os dados permitidos da NF podem ser corrigidos normalmente.',
             'invoice:remove',
             invoiceId
         );
@@ -95,24 +116,15 @@
             || typeof service.getState !== 'function') return false;
         if (service.__radarInvoiceHistoryLock === true) return true;
 
-        const originalSave = service.save.bind(service);
-        const originalRemove = service.remove.bind(service);
-
-        service.save = async function saveWithHistoryLock(input = {}) {
-            assertStructuralIdentity(service.getState() || {}, input);
-            return originalSave(input);
-        };
-        service.remove = async function removeWithHistoryLock(input = {}) {
-            assertDeletionAllowed(service.getState() || {}, input.id);
-            return originalRemove(input);
-        };
-
         Object.defineProperty(service, '__radarInvoiceHistoryLock', {
             value: true,
             configurable: false,
             enumerable: false,
             writable: false
         });
+        // A autoridade de bloqueio já pertence ao InvoiceService. Esta extensão
+        // permanece apenas como marcador de compatibilidade para instalações
+        // antigas, sem substituir métodos nem criar uma segunda regra tardia.
         return true;
     }
 
@@ -122,6 +134,8 @@
 
     return Object.freeze({
         invoiceIdOfPendency,
+        INDIVIDUAL_HISTORY_DOCUMENT_KEYS,
+        hasInvoicePendencyHistory,
         hasServiceAdvisoryHistory,
         assertStructuralIdentity,
         assertDeletionAllowed,

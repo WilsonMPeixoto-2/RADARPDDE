@@ -52,6 +52,8 @@ function createRoot() {
     };
     let seq = 0;
     const reopenCalls = [];
+    const drawerCalls = [];
+    const renderCalls = [];
     const invoiceService = {
         getState: () => state,
         assertEditable: () => 'controlador',
@@ -132,9 +134,20 @@ function createRoot() {
         changeInvoiceAdvisoryAnalysis: async () => true,
         closeModal: () => true,
         rebuildOperationalIndexes() {},
+        renderProntuario: schoolId => renderCalls.push(schoolId),
+        openPendencyDrawer: pendencyId => drawerCalls.push(pendencyId),
         alert() {}
     };
-    return { root, state, observation, invoiceService, pendencyService, reopenCalls };
+    return {
+        root,
+        state,
+        observation,
+        invoiceService,
+        pendencyService,
+        reopenCalls,
+        drawerCalls,
+        renderCalls
+    };
 }
 
 test('reconhece pendência de Assessoria somente quando existe identidade da NF', () => {
@@ -150,6 +163,55 @@ test('reconhece pendência de Assessoria somente quando existe identidade da NF'
         documentoKey: 'notaFiscal',
         registeredInvoiceId: 'NF-A'
     }), false);
+});
+
+test('integração não substitui a regra canônica de atualização da Assessoria', () => {
+    const integration = freshIntegration();
+    const harness = createRoot();
+    const canonicalUpdate = harness.invoiceService.updateServiceAdvisory;
+
+    assert.equal(integration.install(harness.root), true);
+    assert.equal(harness.invoiceService.updateServiceAdvisory, canonicalUpdate);
+});
+
+test('pendência de uma NF abre o drawer sem bloquear a análise de outra NF', async () => {
+    const integration = freshIntegration();
+    const harness = createRoot();
+    harness.state.pendencies.push(pendencyDomain.createDocumentPendency({
+        id: 'PEND-NF-A',
+        escolaId: 'ESC-1',
+        competencia: '2026-08',
+        programaId: 'BASIC',
+        documentoKey: 'consAssessoria',
+        registeredInvoiceId: 'NF-A',
+        item: 'Consulta Assessoria — NF 100',
+        erros: ['Dados divergentes'],
+        observacao: 'Corrigir a consulta.',
+        dataAbertura: '2026-08-23'
+    }, {
+        eventId: 'EVENT-PEND-NF-A',
+        at: '2026-08-23T10:00:00.000Z',
+        usuario: 'Controlador Teste',
+        perfil: 'Controlador'
+    }));
+
+    assert.equal(integration.install(harness.root), true);
+
+    const firstSelect = { value: 'Correto' };
+    const blocked = await harness.root.changeInvoiceAdvisoryAnalysis(
+        'NF-A', 'ESC-1', 'Correto', firstSelect
+    );
+    assert.equal(blocked, false);
+    assert.equal(firstSelect.value, 'Não analisado');
+    assert.deepEqual(harness.drawerCalls, ['PEND-NF-A']);
+    assert.equal(harness.state.registeredInvoices[0].analiseConsultaAssessoria, 'Não analisado');
+
+    const allowed = await harness.root.changeInvoiceAdvisoryAnalysis(
+        'NF-B', 'ESC-1', 'Correto', { value: 'Correto' }
+    );
+    assert.equal(allowed, true);
+    assert.equal(harness.state.registeredInvoices[1].analiseConsultaAssessoria, 'Correto');
+    assert.deepEqual(harness.drawerCalls, ['PEND-NF-A']);
 });
 
 test('Incorreto abre contexto da NF sem persistir análise antes da confirmação', async () => {

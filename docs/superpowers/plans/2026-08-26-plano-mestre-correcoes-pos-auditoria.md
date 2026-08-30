@@ -28,6 +28,40 @@
 
 ---
 
+## 0. Atualização de execução — hotfix PR #211
+
+Em 28/08/2026 foi aberto o PR #211, `hotfix/individualizar-analise-notas-fiscais`, como parêntese operacional prioritário.
+
+Ele **não substitui esta ordem homologada** e não é renumerado como PR3. O plano mestre continua vigente.
+
+Entretanto, o PR #211 toca `InvoiceService`, `invoice-effects`, Pendências, `registered_invoice_id`, RPCs/migrations e o bloco de Notas Fiscais do Prontuário. Essas superfícies também aparecem em entregas futuras deste plano.
+
+Por isso, depois de publicar o hotfix, é obrigatório um gate adicional antes de PR3.1:
+
+```text
+PR #211 publicado e validado
+→ re-baseline de main/Vercel/Supabase
+→ diff PR #211 × plano mestre
+→ classificar tarefas futuras como não afetadas / parcialmente atendidas / atendidas / alteradas
+→ atualizar CURRENT_STAGE e handoff
+→ confirmar ordem restante
+→ iniciar PR3.1
+```
+
+### Decisão de negócio superveniente
+
+A regra antiga deste plano para `A identificar` foi superada pelo ADR-050, no escopo do PR #211.
+
+Contrato vigente após essa decisão:
+
+- `a_identificar` não fabrica bonificação;
+- nasce tecnicamente `Incorreto`;
+- deve nascer com Pendência individual obrigatória na mesma operação atômica;
+- a identificação posterior preserva o `registered_invoice_id`;
+- não se faz backfill heurístico de estados históricos sem evidência.
+
+Plano específico: `docs/superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`.
+
 ## 1. Resultado esperado
 
 Ao final deste programa de trabalho:
@@ -172,7 +206,7 @@ Consequência prática: este plano orienta o trabalho, mas não vence uma evidê
 | Pendência, análise técnica e bonificação são dimensões diferentes | Testes de combinação e consolidação |
 | Sim + Incorreto + Pendência é válido | Teste de serviço e teste E2E |
 | Novo envio leva à reanálise; não resolve automaticamente | Teste do ciclo completo |
-| Despesa A identificar não vira automaticamente Não ou Incorreto | Testes de InvoiceService |
+| Despesa A identificar nasce Incorreto + Pendência individual, sem fabricar bonificação | Testes de InvoiceService/PendencyService e E2E |
 | Pendência ativa, sozinha, não bloqueia consolidação | Teste de regra de consolidação |
 | Não analisado, sozinho, não bloqueia consolidação | Teste de regra de consolidação |
 | Sem NF de serviço, Consulta Assessoria converge para Não se aplica | Teste da regra canônica |
@@ -749,6 +783,8 @@ Após publicar, executar uma inclusão e uma edição controladas, conferindo ch
 
 ### Contrato da regra canônica
 
+> **Validade histórica desta seção:** a matriz abaixo foi aprovada e executada no PR2/#206. O ADR-050/PR #211 substitui especificamente a regra de entrega da bonificação da Assessoria: uma ou mais consultas exigíveis enviadas produzem `Sim`; `Não` somente quando nenhuma NF de serviço foi enviada. As demais regras permanecem aplicáveis quando não conflitarem com o hotfix.
+
 service-advisory.js exporta:
 
     deriveServiceAdvisory(invoices)
@@ -909,6 +945,8 @@ Resultado esperado: uma única matriz, no-op real e correção de derivados aind
 - [ ] **PR2.10 — Revisão adversarial dupla**
 
 Passe de contrato:
+
+> A expectativa histórica deste passe de que `A identificar` não participasse da análise pertence ao PR2/#206. Ela foi superada no PR #211 por `nova a_identificar = Incorreto + Pendência`; preserve o trecho abaixo apenas como evidência daquele checkpoint.
 
 - comparar regra com todos os estados individuais atuais;
 - conferir legado Correto após o prazo → Correto (Atrasado);

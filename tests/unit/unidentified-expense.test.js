@@ -44,26 +44,24 @@ function createHarness() {
     return { state, service };
 }
 
-test('cadastra despesa a identificar sem número de NF e sem efeitos derivados', async () => {
+test('rota comum recusa despesa a identificar sem Pendência obrigatória', async () => {
     const { state, service } = createHarness();
 
-    const result = await service.save({
-        schoolId: 'ESC-1',
-        compKey: '2026-08_BASIC',
-        description: 'Saída observada no extrato, documentação pendente',
-        expenseType: 'a_identificar',
-        invoiceNumber: '',
-        amount: 850,
-        profile: 'controlador'
-    });
+    await assert.rejects(
+        () => service.save({
+            schoolId: 'ESC-1',
+            compKey: '2026-08_BASIC',
+            description: 'Saída observada no extrato, documentação pendente',
+            expenseType: 'a_identificar',
+            invoiceNumber: '',
+            amount: 850,
+            profile: 'controlador'
+        }),
+        error => error?.code === 'UNIDENTIFIED_EXPENSE_REQUIRES_PENDENCY'
+    );
 
-    assert.equal(result.value.invoice.tipo, 'a_identificar');
-    assert.equal(result.value.invoice.numero, '');
-    assert.equal(result.value.invoice.bemId, null);
+    assert.equal(state.registeredInvoices.length, 0);
     assert.equal(state.assets.length, 0);
-    assert.equal(result.value.warnings.includes('SERVICE_ADVISORY_REQUIRED'), false);
-    assert.equal(state.verifications['ESC-1']['2026-08_BASIC'].bonificacao.consAssessoria, 'Não se aplica');
-    assert.equal(state.logs[0].action, 'Despesa a Identificar Cadastrada');
 });
 
 test('tipos identificados continuam exigindo número da Nota Fiscal', async () => {
@@ -99,67 +97,33 @@ test('despesa a identificar não satisfaz a exigência de Nota Fiscal para anál
     }), false);
 });
 
-test('ao identificar como permanente, cria o bem e passa a exigir número', async () => {
+test('editor comum não transforma uma despesa identificada em “Despesa a identificar”', async () => {
     const { state, service } = createHarness();
 
     const created = await service.save({
         schoolId: 'ESC-1',
         compKey: '2026-08_BASIC',
-        description: 'Equipamento visto no extrato',
-        expenseType: 'a_identificar',
-        invoiceNumber: '',
-        amount: 1200,
+        description: 'Material já identificado',
+        expenseType: 'consumo',
+        invoiceNumber: 'NF-123',
+        amount: 120,
         profile: 'controlador'
     });
 
-    const identified = await service.save({
-        id: created.value.invoice.id,
-        schoolId: 'ESC-1',
-        compKey: '2026-08_BASIC',
-        description: 'Projetor multimídia',
-        expenseType: 'permanente',
-        invoiceNumber: 'NF-987',
-        amount: 1200,
-        profile: 'controlador'
-    });
+    await assert.rejects(
+        () => service.save({
+            id: created.value.invoice.id,
+            schoolId: 'ESC-1',
+            compKey: '2026-08_BASIC',
+            description: 'Tentativa de voltar a despesa desconhecida',
+            expenseType: 'a_identificar',
+            invoiceNumber: '',
+            amount: 120,
+            profile: 'controlador'
+        }),
+        error => error?.code === 'UNIDENTIFIED_EXPENSE_REQUIRES_PENDENCY'
+    );
 
-    assert.equal(identified.value.invoice.tipo, 'permanente');
-    assert.equal(identified.value.invoice.numero, 'NF-987');
-    assert.equal(state.assets.length, 1);
-    assert.equal(identified.value.invoice.bemId, identified.value.asset.id);
-});
-
-test('ao identificar como serviço, ativa somente o fluxo da Assessoria e não cria patrimônio', async () => {
-    const { state, service } = createHarness();
-
-    const created = await service.save({
-        schoolId: 'ESC-1',
-        compKey: '2026-08_BASIC',
-        description: 'Débito bancário ainda sem documentação',
-        expenseType: 'a_identificar',
-        invoiceNumber: '',
-        amount: 640,
-        profile: 'controlador'
-    });
-
-    const identified = await service.save({
-        id: created.value.invoice.id,
-        schoolId: 'ESC-1',
-        compKey: '2026-08_BASIC',
-        description: 'Serviço de manutenção',
-        expenseType: 'servico',
-        invoiceNumber: 'NF-SERV-640',
-        amount: 640,
-        profile: 'controlador'
-    });
-
-    const verification = state.verifications['ESC-1']['2026-08_BASIC'];
-    assert.equal(identified.value.invoice.tipo, 'servico');
-    assert.equal(identified.value.invoice.numero, 'NF-SERV-640');
-    assert.equal(identified.value.invoice.bemId, null);
-    assert.equal(state.assets.length, 0);
-    assert.equal(identified.value.warnings.includes('SERVICE_ADVISORY_REQUIRED'), true);
-    assert.equal(verification.bonificacao.consAssessoria, 'Não');
-    assert.equal(verification.analise.consAssessoria, 'Não analisado');
-    assert.equal(state.logs[0].action, 'Despesa Identificada');
+    assert.equal(state.registeredInvoices[0].tipo, 'consumo');
+    assert.equal(state.registeredInvoices[0].numero, 'NF-123');
 });

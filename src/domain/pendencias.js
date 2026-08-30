@@ -211,10 +211,9 @@
             if (buildDocumentContextKey(pendency) !== buildDocumentContextKey(context)) {
                 return false;
             }
-            const documentKey = normalizeText(context.documentoKey);
             const pendencyInvoiceId = getRegisteredInvoiceId(pendency);
             const contextInvoiceId = getRegisteredInvoiceId(context);
-            if (documentKey === 'consAssessoria' && (pendencyInvoiceId || contextInvoiceId)) {
+            if (pendencyInvoiceId || contextInvoiceId) {
                 return pendencyInvoiceId === contextInvoiceId;
             }
             return true;

@@ -4,20 +4,28 @@
     const serviceAdvisory = typeof module !== 'undefined' && module.exports
         ? require('./service-advisory.js')
         : root.RadarServiceAdvisory;
-    const api = factory(serviceAdvisory);
+    const invoiceDocumentAnalysis = typeof module !== 'undefined' && module.exports
+        ? require('./invoice-document-analysis.js')
+        : root.RadarInvoiceDocumentAnalysis;
+    const api = factory(serviceAdvisory, invoiceDocumentAnalysis);
 
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
     if (root) root.RadarInvoiceEffects = Object.freeze(api);
 }(typeof window !== 'undefined' ? window : globalThis, function createInvoiceEffectsApi(
-    serviceAdvisory
+    serviceAdvisory,
+    invoiceDocumentAnalysis
 ) {
     'use strict';
 
-    if (!serviceAdvisory) {
-        throw new Error('Regra canônica de Assessoria é obrigatória para planejar efeitos de Nota Fiscal.');
+    if (!serviceAdvisory || !invoiceDocumentAnalysis) {
+        throw new Error('Regras canônicas de Assessoria e análise documental são obrigatórias para planejar efeitos de Nota Fiscal.');
     }
 
     const { deriveServiceAdvisory, getServiceAdvisoryState } = serviceAdvisory;
+    const {
+        deriveInvoiceDocumentAnalysis,
+        hasExplicitInvoiceDocumentAnalysis
+    } = invoiceDocumentAnalysis;
     const UNIDENTIFIED_EXPENSE_TYPE = 'a_identificar';
     const INTERNET_BILL_EXPENSE_TYPE = 'boleto_internet';
 
@@ -85,6 +93,15 @@
         const desiredState = getServiceAdvisoryState(desired);
         return currentState.sent === desiredState.sent
             && currentState.analysis === desiredState.analysis;
+    }
+
+    function documentAnalysisStateEquals(current = {}, desired = {}) {
+        const currentHas = hasExplicitInvoiceDocumentAnalysis(current);
+        const desiredHas = hasExplicitInvoiceDocumentAnalysis(desired);
+        if (currentHas !== desiredHas) return false;
+        if (!currentHas) return true;
+        return text(current.analiseDocumentoFiscal || current.documentAnalysis || current.document_analysis)
+            === text(desired.analiseDocumentoFiscal || desired.documentAnalysis || desired.document_analysis);
     }
 
     function projectContextInvoices(contextInvoices, existingInvoice, desiredInvoice) {
@@ -263,14 +280,15 @@
             verification.bonificacao.consEnviada = aggregate.sent;
             verification.analise.consAssessoria = aggregate.analysis;
 
-            const remainingIdentified = remainingInvoices.filter(isIdentifiedInvoice);
-            if (remainingIdentified.length === 0
-                && verification.bonificacao.notaFiscal === 'Sim'
-                && ['Correto', 'Correto (Atrasado)', 'Correto após o prazo']
-                    .includes(verification.analise.notaFiscal)) {
-                verification.analise.notaFiscal = 'Não analisado';
-                resetFiscalAnalysis = true;
-            }
+            const previousFiscalAnalysis = text(verification.analise.notaFiscal);
+            const fiscalAnalysis = deriveInvoiceDocumentAnalysis(
+                remainingInvoices,
+                remainingInvoices.length > 0
+                    ? previousFiscalAnalysis
+                    : 'Não analisado'
+            );
+            verification.analise.notaFiscal = fiscalAnalysis;
+            resetFiscalAnalysis = previousFiscalAnalysis !== fiscalAnalysis;
         }
 
         const reopened = Boolean(
@@ -339,6 +357,15 @@
         desiredInvoice.valor = request.amount;
         if (!existingInvoice && input.timestamp) desiredInvoice.dataRegistro = input.timestamp;
 
+        if (!existingInvoice) {
+            desiredInvoice.analiseDocumentoFiscal = request.expenseType === UNIDENTIFIED_EXPENSE_TYPE
+                ? 'Incorreto'
+                : 'Não analisado';
+        } else if (request.expenseType === UNIDENTIFIED_EXPENSE_TYPE
+            || previousType === UNIDENTIFIED_EXPENSE_TYPE) {
+            desiredInvoice.analiseDocumentoFiscal = 'Incorreto';
+        }
+
         const assetPlan = buildDesiredAsset(input, request, desiredInvoice);
         const legacyFallback = advisoryFallback(
             existingInvoice,
@@ -358,7 +385,8 @@
         }
 
         let invoiceChanged = operation === 'create'
-            || !invoiceCoreEquals(existingInvoice, desiredInvoice);
+            || !invoiceCoreEquals(existingInvoice, desiredInvoice)
+            || !documentAnalysisStateEquals(existingInvoice || {}, desiredInvoice);
         if (!invoiceChanged && request.expenseType === 'servico') {
             invoiceChanged = !serviceStateEquals(
                 existingInvoice,
@@ -382,12 +410,19 @@
             const currentDelivery = text(verification.bonificacao.consAssessoria);
             const currentSent = verification.bonificacao.consEnviada === true;
             const currentAnalysis = text(verification.analise.consAssessoria);
+            const currentFiscalAnalysis = text(verification.analise.notaFiscal);
+            const fiscalAnalysis = deriveInvoiceDocumentAnalysis(
+                projectedInvoices,
+                currentFiscalAnalysis || 'Não analisado'
+            );
             verification.bonificacao.consAssessoria = aggregate.delivery;
             verification.bonificacao.consEnviada = aggregate.sent;
             verification.analise.consAssessoria = aggregate.analysis;
+            verification.analise.notaFiscal = fiscalAnalysis;
             verificationChanged = currentDelivery !== aggregate.delivery
                 || currentSent !== aggregate.sent
-                || currentAnalysis !== aggregate.analysis;
+                || currentAnalysis !== aggregate.analysis
+                || currentFiscalAnalysis !== fiscalAnalysis;
         }
 
         const assetChanged = assetPlan.assetChanged;

@@ -1,7 +1,7 @@
 # Runbook — conexão e operação controlada do Supabase
 
 **Estado:** vigente; Production conectada  
-**Atualizado em:** 23 de agosto de 2026
+**Atualizado em:** 28 de agosto de 2026
 
 ## 1. Objetivo
 
@@ -13,7 +13,7 @@ Este runbook não autoriza, por si só, migration, importação, alteração de 
 
 Consultar [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md) e revalidar remotamente antes de operação dependente do ambiente.
 
-Por compatibilidade com o verificador de readiness, este runbook mantém um único espelho machine-readable da contagem versionada: O conjunto versionado contém atualmente **42** migrations. A lista e a ordem continuam sendo obtidas do diretório `supabase/migrations/` e do histórico do CLI, nunca de uma segunda lista manual.
+Por compatibilidade com o verificador de readiness, este runbook mantém um único espelho machine-readable da contagem versionada: O conjunto versionado contém atualmente **43** migrations. A lista e a ordem continuam sendo obtidas do diretório `supabase/migrations/` e do histórico do CLI, nunca de uma segunda lista manual.
 
 Contratos estáveis:
 
@@ -133,6 +133,7 @@ As migrations correntes incluem, conforme `CURRENT_STAGE.md` e a branch de estab
 - preservação de `pendency_attempts.available_at` separada de `submitted_at`, com backfill seguro do histórico;
 - vínculo opcional de pendência de Assessoria Contábil com `registered_invoice_id`, permitindo individualização por NF e impedindo duplicidade ativa para a mesma NF;
 - operações compostas de Assessoria Contábil para persistir análise, pendência, verificação e log de forma coerente, inclusive na reanálise e no envio corretivo.
+- a branch do PR #211 acrescenta, ainda não aplicada em Production, a individualização de análise/Pendência de `notaFiscal` por `registered_invoice_id`, bloqueia novas Pendências fiscais genéricas, cria `a_identificar = Incorreto + Pendência` atomicamente e identifica posteriormente essa mesma despesa dentro de **Registrar novo envio**, preservando o ID; quando a identificação resultar em bem permanente, o patrimônio é salvo na mesma transação; até o merge, Production continua no histórico anterior.
 
 Não reaplicar SQL já aplicado para “corrigir” histórico.
 
@@ -330,3 +331,26 @@ O modo local continua existindo para desenvolvimento e testes, mas não é conti
 ## 20. Encerramento de investigação
 
 A investigação termina quando causa/fronteira foi identificada, percurso autorizado funciona, indevido permanece bloqueado, dado persiste/recarrega, falha parcial não deixa resíduo, existe regressão e a evidência corresponde ao SHA/ambiente correto.
+
+
+## Reversão específica do PR #211
+
+A migration de individualização de Notas Fiscais não deve receber um `down` automático executado sem preflight.
+
+Motivo: depois que existirem escritas reais do novo modelo, remover o suporte a `registered_invoice_id` em `notaFiscal` ou restaurar cegamente o contrato anterior pode preservar os dados fisicamente, mas tornar parte da história operacional inacessível ao frontend antigo.
+
+Procedimento:
+
+1. **Antes da migration:** rollback é apenas não publicar / reverter o deployment candidato.
+2. **Depois da migration e antes de qualquer escrita nova:** uma compensação de banco só pode ser considerada após consulta comprovar ausência de novas Pendências fiscais individuais, novas `a_identificar`, identificações posteriores e vínculos patrimoniais do hotfix.
+3. **Depois de qualquer escrita nova:** não fazer downgrade destrutivo. Preservar banco e histórico e corrigir por avanço (`fail-forward`).
+
+Na publicação, registrar:
+
+- timestamp da migration;
+- SHA da `main`;
+- deployment Vercel;
+- resultado do preflight;
+- primeira escrita observada sob o novo contrato, se houver.
+
+Esse registro define se o cenário 2 ainda é tecnicamente admissível ou se a única reversão segura passou a ser fail-forward.
