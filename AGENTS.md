@@ -6,20 +6,21 @@
 
 Antes de analisar ou alterar o repositório, leia **nesta ordem**:
 
-1. `docs/handoff/2026-08-30-pr211-publicacao-concluida.md` — porta de entrada obrigatória após a publicação do PR #211;
+1. `docs/handoff/2026-08-30-pr215-fechamento-tecnico.md` — porta de entrada obrigatória do estado corrente;
 2. `docs/CURRENT_STAGE.md` — estado corrente, baseline e prioridades reais;
-3. `docs/handoff/2026-08-30-pr211-retomada-work.md` — histórico da retomada final do PR #211;
-4. `docs/superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md` — plano executável do PR #211, já atualizado pelas decisões de 29/08;
+3. `docs/handoff/2026-08-30-pr211-publicacao-concluida.md` — histórico imediatamente anterior ao PR #215;
+4. `docs/superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md` — plano executável original do hotfix;
 5. `docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md` — contrato funcional vigente;
-6. `docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md` — classificação autoritativa de legados e fixtures decidida em 29/08;
-7. `docs/evidence/2026-08-28-pr211-referencias-visuais.md` — layout aprovado;
-8. `docs/reference/TEST_GOVERNANCE.md` — estratégia proporcional e tratamento de testes superados;
-9. `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md` — visão gerada do contrato funcional vigente;
-10. `docs/PROJECT_CONTEXT.md` e `docs/DECISION_LOG.md`;
-11. somente depois, handoffs históricos e o plano mestre de 26/08;
-12. código, GitHub, Vercel e Supabase correspondentes à frente.
+6. `docs/decisions/ADR-052-autoridade-unica-fluxos-criticos.md` — autoridade, bootstrap e composição dos fluxos críticos;
+7. `docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md` — classificação autoritativa de legados e fixtures decidida em 29/08;
+8. `docs/evidence/2026-08-28-pr211-referencias-visuais.md` — layout aprovado;
+9. `docs/reference/TEST_GOVERNANCE.md` — estratégia proporcional e tratamento de testes superados;
+10. `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md` — visão gerada do contrato funcional vigente;
+11. `docs/PROJECT_CONTEXT.md` e `docs/DECISION_LOG.md`;
+12. somente depois, handoffs históricos e o plano mestre de 26/08;
+13. código, GitHub, Vercel e Supabase correspondentes à frente.
 
-**Regra para continuidade entre chats:** o handoff de publicação concluída e as decisões de 29/08 prevalecem sobre hipóteses, relatórios e checkpoints anteriores quando tratam do mesmo ponto. Não "corrigir" o produto para voltar a uma regra antiga antes de conferir esses arquivos.
+**Regra para continuidade entre chats:** o handoff pós-PR #215, ADR-050/ADR-052 e as decisões de 29/08 prevalecem sobre hipóteses, relatórios e checkpoints anteriores quando tratam do mesmo ponto. Não "corrigir" o produto para voltar a uma regra antiga antes de conferir esses arquivos.
 
 Auditorias externas são insumo de investigação, não ordem de implementação. Se uma auditoria propuser um caminho diferente, comparar primeiro com o SHA atual e com ADR-050/plano/handoff/evidência de 29/08.
 
@@ -130,6 +131,45 @@ layout/frontend e encontrabilidade
 
 Não transformar essa lista em checklist obrigatório de todos os gates para toda alteração pequena.
 
+## 7.1 Autoridade única e prevenção de correção duplicada
+
+Para qualquer fluxo P0/P1, **antes de criar handler, wrapper, extensão, RPC ou nova rota de persistência**:
+
+1. pesquisar a operação na matriz funcional e no `DECISION_LOG`;
+2. localizar todos os consumidores e produtores atuais, inclusive módulos carregados dinamicamente;
+3. inspecionar `product-extensions-bootstrap.js` e a cadeia que o instala quando houver extensão;
+4. identificar qual módulo é a autoridade vigente de cada etapa;
+5. confirmar se a suposta ausência é real ou apenas está em outro módulo;
+6. somente então alterar código.
+
+Não duplicar uma regra porque ela não aparece no primeiro arquivo inspecionado.
+
+Para Consulta Assessoria, a autoridade corrente é:
+
+```text
+edição ordinária
+→ InvoiceService.updateServiceAdvisory
+
+Incorreto + abertura / reanálise
+→ service-advisory-pendency.js
+
+novo envio corretivo
+→ service-advisory-corrective-submission.js
+
+persistência
+→ RPC específica correspondente
+```
+
+A ordem de bootstrap é parte do contrato. Um PR que tocar fluxo crítico deve manter ou atualizar regressões que provem:
+
+- bootstrap instalado;
+- autoridade correta por operação;
+- delegação de rotas não aplicáveis;
+- composição real no navegador;
+- snapshot/adapter e RPC quando houver escrita remota.
+
+Se a investigação descobrir implementação equivalente já existente, **não criar uma segunda implementação**. Corrigir carregamento, roteamento ou autoridade, conforme a causa real.
+
 ## 8. Gestão de Equipe
 
 Fluxo vigente:
@@ -181,7 +221,9 @@ No baseline posterior ao PR #211, preservar estas decisões já fechadas:
 - Pendência fiscal agregada real anterior à individualização continua acessível como legado, sem associação inventada a uma NF;
 - o fluxo normal e as RPCs protegem identidade, contexto, concorrência e atomicidade; existe uma lacuna residual conhecida contra escrita **direta** em `registered_invoices` envolvendo `id`, `verification_id` e `source_context_key`, registrada na ADR-051;
 - por decisão explícita do responsável pelo produto, esse hardening adicional do Supabase está **adiado até a conclusão e validação de todas as frentes de correção funcional**; não antecipá-lo, não usá-lo como gate dos PRs funcionais e não marcá-lo como resolvido;
-- desktop foi o alvo do hotfix; a reconferência visual final foi concluída e o overflow em 1280 px foi corrigido pelo PR #214, com regressão E2E de largura/alinhamento; mobile permanece dívida separada não bloqueante.
+- desktop foi o alvo do hotfix; a reconferência visual final foi concluída e o overflow em 1280 px foi corrigido pelo PR #214, com regressão E2E de largura/alinhamento; mobile permanece dívida separada não bloqueante;
+- o PR #215 corrigiu a fronteira `row_version`/payload e Production opera com 44 migrations; não reintroduzir `rowVersion`/`row_version` em payloads de negócio;
+- a ADR-052 exige autoridade única e prova executável do bootstrap/composição de fluxos críticos.
 
 Se um teste, comentário antigo ou auditoria contrariar esses pontos, classificar primeiro como possível contrato superado antes de alterar o produto.
 
