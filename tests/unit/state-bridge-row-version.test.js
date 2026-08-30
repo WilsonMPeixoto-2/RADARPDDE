@@ -32,16 +32,16 @@ function versionedEntities() {
         }],
         pendencies: [{
             id: 'pend-1', school_id: '04.10.001', competence_origin: '2026-05',
-            program_id: 'BASIC', document_key: 'extCC', status: 'Aberta', payload: {}, row_version: 11
+            program_id: 'BASIC', document_key: 'extCC', status: 'Aberta', payload: {}, row_version: 9
         }],
         pendencyAttempts: [{
             id: 'attempt-1', pendency_id: 'pend-1', attempt_number: 1,
-            submitted_at: '2026-07-22T20:00:00.000Z', errors: [], payload: {}, row_version: 9
+            submitted_at: '2026-07-22T20:00:00.000Z', errors: [], payload: {}, row_version: 10
         }],
         pendencyContacts: [{
             id: 'contact-1', school_id: '04.10.001', pendency_id: 'pend-1',
             contact_type: 'E-mail', contact_date: '2026-07-22', description: 'Contato',
-            official_charge: false, payload: {}, row_version: 10
+            official_charge: false, payload: {}, row_version: 11
         }],
         assets: [],
         registeredInvoices: [{
