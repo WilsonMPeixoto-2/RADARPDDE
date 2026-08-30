@@ -79,6 +79,14 @@ Os scripts são criados com `async = false` e aguardados em sequência pela cade
 
 `atomic-analysis-pendency.js`, `invoice-history-lock.js`, `service-advisory-pendency.js` e `service-advisory-corrective-submission.js` definem/refinam contratos funcionais que devem existir antes de os wrappers de desempenho envolverem os handlers finais.
 
+A separação de Assessoria é deliberada e agora protegida pela ADR-052:
+
+- `service-advisory-pendency.js`: abertura `Incorreto + Pendência` e reanálise;
+- `service-advisory-corrective-submission.js`: `registerAttempt()` / novo envio corretivo;
+- nenhum dos dois deve reassumir silenciosamente a responsabilidade do outro;
+- `navigation-routes.js` deve continuar instalando `product-extensions-bootstrap.js`;
+- o E2E `critical-product-extensions.spec.js` comprova que a cadeia foi realmente instalada no navegador.
+
 A ordem preserva:
 
 ```text
