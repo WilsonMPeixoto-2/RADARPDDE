@@ -288,6 +288,21 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
     await expect(secondAnalysis).toHaveValue('Correto (Atrasado)');
     await expect(assessoriaRow.getByText('Resumo mensal', { exact: true })).toBeVisible();
     await expect(assessoriaRow.getByText('Sim', { exact: true })).toBeVisible();
+
+    const advisoryPanel = assessoriaRow.locator('[data-service-advisory-panel]');
+    const advisoryPanelOverflow = await advisoryPanel.evaluate(element => ({
+      clientWidth: element.clientWidth,
+      scrollWidth: element.scrollWidth
+    }));
+    expect(advisoryPanelOverflow.scrollWidth).toBeLessThanOrEqual(advisoryPanelOverflow.clientWidth + 1);
+
+    const lastDelivery = secondSent.locator('xpath=ancestor::label');
+    const deliveryBox = await lastDelivery.boundingBox();
+    const panelBox = await advisoryPanel.boundingBox();
+    expect(deliveryBox).not.toBeNull();
+    expect(panelBox).not.toBeNull();
+    expect(deliveryBox.x + deliveryBox.width).toBeLessThanOrEqual(panelBox.x + panelBox.width + 1);
+
     expect(pageErrors).toEqual([]);
   });
 
