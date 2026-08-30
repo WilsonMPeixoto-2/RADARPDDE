@@ -19,22 +19,45 @@ function versionedEntities() {
             active: true, starts_on: null, ends_on: null, row_version: 7
         }],
         competences: [{ id: '2026-05', label: 'Maio 2026', exercise: 2026 }],
-        verifications: [],
+        verifications: [{
+            id: '04.10.001::2026-05::BASIC',
+            school_id: '04.10.001',
+            competence_id: '2026-05',
+            program_id: 'BASIC',
+            bonification: { notaFiscal: 'Sim' },
+            analysis: { notaFiscal: 'Não analisado' },
+            bonus_result: null,
+            payload: {},
+            row_version: 8
+        }],
         pendencies: [{
             id: 'pend-1', school_id: '04.10.001', competence_origin: '2026-05',
-            program_id: 'BASIC', document_key: 'extCC', status: 'Aberta', payload: {}, row_version: 8
+            program_id: 'BASIC', document_key: 'extCC', status: 'Aberta', payload: {}, row_version: 9
         }],
         pendencyAttempts: [{
             id: 'attempt-1', pendency_id: 'pend-1', attempt_number: 1,
-            submitted_at: '2026-07-22T20:00:00.000Z', errors: [], payload: {}, row_version: 9
+            submitted_at: '2026-07-22T20:00:00.000Z', errors: [], payload: {}, row_version: 10
         }],
         pendencyContacts: [{
             id: 'contact-1', school_id: '04.10.001', pendency_id: 'pend-1',
             contact_type: 'E-mail', contact_date: '2026-07-22', description: 'Contato',
-            official_charge: false, payload: {}, row_version: 10
+            official_charge: false, payload: {}, row_version: 11
         }],
         assets: [],
-        registeredInvoices: [],
+        registeredInvoices: [{
+            id: 'nota-1',
+            school_id: '04.10.001',
+            competence_id: '2026-05',
+            program_id: 'BASIC',
+            verification_id: '04.10.001::2026-05::BASIC',
+            source_context_key: '2026-05_BASIC',
+            description: 'Serviço',
+            expense_type: 'servico',
+            invoice_number: 'NF-1',
+            amount: 100,
+            payload: {},
+            row_version: 12
+        }],
         administrativeLogs: []
     };
 }
@@ -48,9 +71,11 @@ test('ponte preserva row_version de todas as entidades editáveis na ida e volta
     assert.equal(legacy.inventoryTeamMembers[0].rowVersion, 5);
     assert.equal(legacy.schools[0].rowVersion, 6);
     assert.equal(legacy.schools[0].programasVinculos[0].rowVersion, 7);
-    assert.equal(legacy.pendencies[0].rowVersion, 8);
-    assert.equal(legacy.pendencies[0].tentativas[0].rowVersion, 9);
-    assert.equal(legacy.contacts[0].rowVersion, 10);
+    assert.equal(legacy.verifications['04.10.001']['2026-05_BASIC'].rowVersion, 8);
+    assert.equal(legacy.pendencies[0].rowVersion, 9);
+    assert.equal(legacy.pendencies[0].tentativas[0].rowVersion, 10);
+    assert.equal(legacy.contacts[0].rowVersion, 11);
+    assert.equal(legacy.registeredInvoices[0].rowVersion, 12);
 
     const canonical = bridge.transformLegacyState(legacy).entities;
     assert.equal(canonical.appConfig[0].row_version, 2);
@@ -59,7 +84,14 @@ test('ponte preserva row_version de todas as entidades editáveis na ida e volta
     assert.equal(canonical.inventoryTeamMembers[0].row_version, 5);
     assert.equal(canonical.schools[0].row_version, 6);
     assert.equal(canonical.schoolPrograms[0].row_version, 7);
-    assert.equal(canonical.pendencies[0].row_version, 8);
-    assert.equal(canonical.pendencyAttempts[0].row_version, 9);
-    assert.equal(canonical.pendencyContacts[0].row_version, 10);
+    assert.equal(canonical.verifications[0].row_version, 8);
+    assert.equal(canonical.pendencies[0].row_version, 9);
+    assert.equal(canonical.pendencyAttempts[0].row_version, 10);
+    assert.equal(canonical.pendencyContacts[0].row_version, 11);
+    assert.equal(canonical.registeredInvoices[0].row_version, 12);
+
+    assert.equal(canonical.verifications[0].payload.rowVersion, undefined);
+    assert.equal(canonical.verifications[0].payload.row_version, undefined);
+    assert.equal(canonical.registeredInvoices[0].payload.rowVersion, undefined);
+    assert.equal(canonical.registeredInvoices[0].payload.row_version, undefined);
 });

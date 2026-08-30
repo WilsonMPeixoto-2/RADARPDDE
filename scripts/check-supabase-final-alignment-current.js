@@ -6,7 +6,7 @@ const path = require('node:path');
 const legacyAlignment = require('./check-supabase-final-alignment.js');
 
 const root = path.resolve(__dirname, '..');
-const EXPECTED_MIGRATION_COUNT = 43;
+const EXPECTED_MIGRATION_COUNT = 44;
 const OBSOLETE_FINDINGS = Object.freeze([
     'Build Vercel incompleto: /RADAR_DATA_MODE:\\s*[\'\"]supabase-preview[\'\"]/',
     'Conjunto final deve conter 33 migrations; encontrado:'

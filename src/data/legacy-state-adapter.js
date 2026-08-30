@@ -85,6 +85,13 @@
             : {};
     }
 
+    function versionlessPayload(value) {
+        const payload = object(value);
+        delete payload.rowVersion;
+        delete payload.row_version;
+        return payload;
+    }
+
     function verificationPayload(verification) {
         const mappedKeys = new Set([
             'bonificacao',
@@ -93,7 +100,9 @@
             'analysis',
             'resultadoBonif',
             'bonus_result',
-            'payload'
+            'payload',
+            'rowVersion',
+            'row_version'
         ]);
         const source = object(verification);
         const payload = object(source.payload);
@@ -431,7 +440,7 @@
                 opened_at: normalizeTimestamp(pendency.dataAbertura || pendency.opened_at) || '1970-01-01T00:00:00.000Z',
                 resolved_at: normalizeTimestamp(pendency.dataResolucao || pendency.resolved_at),
                 canceled_at: cancellationAt,
-                payload: cloneValue(pendency),
+                payload: versionlessPayload(pendency),
                 ...(Number.isInteger(pendency.rowVersion || pendency.row_version)
                     ? { row_version: pendency.rowVersion || pendency.row_version }
                     : {})
@@ -460,7 +469,7 @@
                     observation: text(attempt.observacao),
                     drive_url: text(attempt.link),
                     errors: array(attempt.errosEncontrados),
-                    payload: cloneValue(attempt),
+                    payload: versionlessPayload(attempt),
                     ...(Number.isInteger(attempt.rowVersion || attempt.row_version)
                         ? { row_version: attempt.rowVersion || attempt.row_version }
                         : {})
@@ -487,7 +496,7 @@
                 official_charge: contact.cobrancaOficial === true
                     || contact.cobrancaEnvioRegistro === true
                     || contact.official_charge === true,
-                payload: cloneValue(contact),
+                payload: versionlessPayload(contact),
                 ...(Number.isInteger(contact.rowVersion || contact.row_version)
                     ? { row_version: contact.rowVersion || contact.row_version }
                     : {})
@@ -516,7 +525,7 @@
                 notes: text(asset.observacoes || asset.observacao || asset.notes),
                 inventoried_by_member_id: text(asset.inventariadorId || asset.inventoried_by_member_id) || null,
                 inventoried_at: normalizeTimestamp(asset.dataInventariacao || asset.inventoried_at),
-                payload: cloneValue(asset),
+                payload: versionlessPayload(asset),
                 ...(Number.isInteger(asset.rowVersion || asset.row_version)
                     ? { row_version: asset.rowVersion || asset.row_version }
                     : {})
@@ -541,7 +550,7 @@
                 expense_type: expenseType,
                 invoice_number: invoiceNumber || null,
                 amount: numeric(invoice.valor || invoice.amount),
-                payload: cloneValue(invoice),
+                payload: versionlessPayload(invoice),
                 ...(Number.isInteger(invoice.rowVersion || invoice.row_version)
                     ? { row_version: invoice.rowVersion || invoice.row_version }
                     : {})
