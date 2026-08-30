@@ -160,6 +160,12 @@ test.describe('Prontuário — análise individual de Notas Fiscais', () => {
     await expect(panel.getByText('Boleto Internet: Boleto 1234')).toBeVisible();
     await expect(panel.getByText('NF: 2345')).toBeVisible();
 
+    const invoicePanelOverflow = await panel.evaluate(element => ({
+      clientWidth: element.clientWidth,
+      scrollWidth: element.scrollWidth
+    }));
+    expect(invoicePanelOverflow.scrollWidth).toBeLessThanOrEqual(invoicePanelOverflow.clientWidth + 1);
+
     await invoiceRow(page, service1234)
       .locator('select.invoice-document-analysis-select')
       .selectOption('Correto');
