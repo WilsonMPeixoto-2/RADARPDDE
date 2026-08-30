@@ -602,3 +602,38 @@ A inspeção visual final do hotfix de Notas Fiscais identificou overflow horizo
 O PR #214 ajustou exclusivamente a composição responsiva desktop, preservando as quatro áreas canônicas e adicionando regressão E2E de largura/alinhamento. Foi integrado em `main` no merge `cc842af7b7bc6341dab68aa55a533a2017923bcf` e publicado no deployment Vercel `dpl_33e4bM4z5YrbP5YGhfsr88pgwDPX`, `READY`.
 
 Monitoramento de Production e homologação do Supabase passaram após a publicação. O Lighthouse móvel permanece dívida separada e não bloqueante.
+
+
+---
+
+## Evento pós-ADR-050 — correção de fronteira pelo PR #215
+
+O teste manual pós-publicação encontrou falha real ao abrir Pendência a partir de análise individual `Incorreto` em Nota Fiscal e Consulta Assessoria. A causa foi a duplicação indevida de `row_version` como `payload.rowVersion` na fronteira canônico → legado → adapter.
+
+O PR #215 corrigiu a fronteira sem alterar a ADR-050: versão otimista permanece top-level, payloads de negócio não carregam chaves de versão, Production foi limpa pela migration `20260830223000_payload_row_version_boundary` e as RPCs de abertura passaram a ignorar somente essas chaves técnicas nas comparações de payload.
+
+Após a correção, Production ficou com 44 migrations, zero contaminação de versão nos payloads auditados e os dois fluxos originalmente falhos foram comprovados por smokes transacionais reais com rollback.
+
+Merge funcional: `19ba20cb7b8a8415070d4a8711a8af0eb23e1fa7`.  
+Redeploy operacional: `24e1934541b92e4399798556c05fd164c9c43801`.  
+Vercel Production: `dpl_TXwRPK2Sv72u5HtQVF3Z7ejJby3k`, `READY`.
+
+---
+
+## ADR-052 — Autoridade única e contrato executável para fluxos críticos
+
+**Status:** Aprovada e em implementação
+
+Fluxo crítico P0/P1 deve possuir autoridade funcional explícita, cadeia de bootstrap tratada como contrato e prova executável de que a composição real foi instalada.
+
+Consulta Assessoria fica explicitamente dividida por operação, não por duplicação de regra:
+
+- edição ordinária: `InvoiceService.updateServiceAdvisory`;
+- abertura `Incorreto + Pendência`: `service-advisory-pendency.js`;
+- novo envio corretivo: `service-advisory-corrective-submission.js`;
+- reanálise: `service-advisory-pendency.js`;
+- persistência: RPC específica correspondente.
+
+A CI deve falhar se o bootstrap deixar de instalar as extensões críticas, se a ordem funcional for invertida, se um módulo assumir silenciosamente responsabilidade de outro ou se a composição real no navegador não instalar os wrappers esperados.
+
+**Documento integral:** `docs/decisions/ADR-052-autoridade-unica-fluxos-criticos.md`.
