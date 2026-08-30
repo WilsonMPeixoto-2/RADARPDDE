@@ -1,6 +1,6 @@
 # RADAR PDDE 2026 — Contexto funcional e arquitetural
 
-**Atualizado em:** 28 de agosto de 2026
+**Atualizado em:** 30 de agosto de 2026
 **Classe documental:** Canônico
 
 ## 1. Finalidade
@@ -158,9 +158,26 @@ Contrato aprovado no PR #211:
 - com Pendência fiscal ativa, a edição estrutural comum daquela despesa fica bloqueada;
 - reanálise exige tentativa válida da mesma Pendência, no mesmo contexto.
 
+Transição de dados aprovada em 29/08:
+
+- 16 `a_identificar` legítimos anteriores ao contrato individual permanecem como **Registro legado**, sem análise/Pendência retroativa e sem edição/exclusão pelo fluxo comum;
+- 4 `a_identificar` e outras 8 despesas/NFs de teste, mais três Pendências fiscais genéricas dos mesmos cenários, entram somente na limpeza fail-closed comprovada por autoria;
+- Boleto 1234 e sua Pendência são fixtures e não recebem o reparo de vínculo proposto inicialmente;
+- a Pendência fiscal agregada real preservada continua acessível como legado, sem associação heurística a uma NF.
+
 Essa regra específica substitui a antiga interpretação segundo a qual `A identificar` não deveria receber estado técnico automaticamente. O que continua proibido é fabricar **bonificação** ou atribuir retrospectivamente um erro agregado antigo a uma NF específica sem evidência.
 
 **Decisão integral:** `docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`.
+
+### Consulta Assessoria — proteção individual completa
+
+- somente NFs de serviço participam da dimensão;
+- cada NF usa `registered_invoice_id` para envio, análise e Pendência;
+- Pendência ativa da NF A não bloqueia a NF B;
+- o `InvoiceService` recusa alterações comuns da própria NF enquanto houver Pendência ativa e também recusa `Incorreto` sem a operação atômica;
+- novo envio exige Pendência `Aberta`, cria a próxima tentativa e leva o ciclo a `Aguardando reanálise`;
+- reanálise exige a tentativa real mais recente ainda não analisada e não pode reescrever observação, link ou datas do envio;
+- o resumo mensal é `Sim` se ao menos uma consulta exigível foi enviada, `Não` se existem NFs de serviço e nenhuma foi enviada, e `Não se aplica` sem NF de serviço.
 
 ### Persistência e atualização visual da avaliação
 

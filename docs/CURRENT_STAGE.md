@@ -1,6 +1,6 @@
 # RADAR PDDE — Estado atual do projeto
 
-**Atualizado em:** 29 de agosto de 2026
+**Atualizado em:** 30 de agosto de 2026
 
 **Classe documental:** Canônico — estado corrente e retomada futura
 
@@ -29,7 +29,9 @@ revalidar main
 → só então iniciar PR3.1
 ```
 
-Os gates do SHA `ff8453c8fd0c4e5707d656b4520051962a48df96` comprovaram a estabilidade do núcleo anterior, mas **não autorizam merge do HEAD atual**. Em 29/08 houve nova decisão de dados: 16 `a_identificar` legítimos de Controladores devem ser preservados como Registro legado; 4 `a_identificar` e outras 8 despesas/NFs dos cenários de teste, além de três Pendências fiscais genéricas, foram comprovados por autoria como fixtures da conta técnica. A migration foi alterada para limpeza fail-closed dessas fixtures; o antigo reparo do Boleto 1234 foi formalmente superado. O renderer também foi ajustado para não inventar história nem permitir edição comum dos 16 legados. O PR permanece **Draft** até a nova rodada de gates do HEAD corrente. Production continua intocada.
+O HEAD remoto `40ab44e2009bea7806c11180472ba70c60b63dd8` incorporou a decisão de dados de 29/08 e concluiu a rodada remota: Playwright, Supabase local/Auth/RLS/pgTAP, migrations em PostgreSQL limpo, backup/restauração, perfis/viewports, CodeQL, dependências, Excel, readiness e Vercel Preview passaram. O Lighthouse móvel permaneceu vermelho; o gate agregado pré-Production falhou somente porque exige esse job. Mobile é dívida expressamente não bloqueante deste hotfix desktop, e a nova reconferência visual manual também foi adiada sem bloquear o merge.
+
+Uma revisão posterior encontrou portas server-side que esses gates não cobriam. O candidato local sobre `40ab44e` agora bloqueia alteração comum de Assessoria com Pendência ativa, exige tentativa real e imutável na reanálise, aplica patches mínimos nas RPCs críticas, impede reaproveitamento patrimonial indevido, mantém `a_identificar` existente fora do editor comum e torna acessível a Pendência fiscal agregada real preservada. Localmente passaram **800/800 unitários**, **7/7 integração**, `npm run check` e os contratos focados. Como esse hardening ainda não possui SHA remoto nem pgTAP/CI executado, o PR permanece **Draft**. Production continua intocada.
 
 ## 1. Porta de entrada atual
 
@@ -225,14 +227,15 @@ Concluir **PR #211 — hotfix de individualização de Notas Fiscais**.
 
 Sequência imediata:
 
-1. executar novamente todos os gates sobre o HEAD que contém a limpeza fail-closed e a projeção dos legados;
-2. corrigir qualquer falha funcional, SQL, E2E, Auth/RLS, segurança ou backup;
-3. repetir o preflight somente leitura de autoria e contexto imediatamente antes de eventual migration;
-4. confirmar preservação dos 16 registros legítimos e elegibilidade exata das 12 despesas/NFs + três Pendências de teste;
-5. confirmar `main`, Preview e mergeabilidade;
-6. somente então avaliar retirada de Draft e pedir/usar autorização final de merge.
+1. versionar e publicar o candidato de hardening somente na branch do PR Draft;
+2. executar novamente unitários, E2E, pgTAP, Supabase readiness, PostgreSQL limpo, backup/restauração e gates proporcionais sobre o novo SHA;
+3. corrigir somente regressões reais encontradas nessa rodada;
+4. repetir o preflight somente leitura de autoria e contexto imediatamente antes de eventual migration;
+5. confirmar preservação dos 16 registros legítimos, remoção exata das 12 despesas/NFs + três Pendências de teste e acesso ao legado real preservado;
+6. confirmar `main`, Preview e mergeabilidade;
+7. somente então avaliar retirada de Draft e pedir/usar autorização final de merge.
 
-A Consulta Assessoria permanece individual por NF de serviço. A auditoria externa que identificou o bloqueio cruzado foi útil, mas o HEAD atual já usa uma implementação mais robusta: lookup por `registered_invoice_id` e confirmação atômica via `service-advisory-pendency.js`. Não substituir essa integração pelo antigo lookup genérico.
+A Consulta Assessoria permanece individual por NF de serviço. O lookup usa `registered_invoice_id`, a abertura continua atômica e o serviço canônico bloqueia qualquer alteração comum enquanto a própria NF possui Pendência ativa. Não substituir esse desenho por lookup genérico ou fluxo paralelo em `app.js`.
 
 A classificação canônica de dados está em `evidence/2026-08-29-pr211-classificacao-dados-legados.md`.
 

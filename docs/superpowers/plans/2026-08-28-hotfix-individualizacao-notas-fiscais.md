@@ -1,11 +1,12 @@
 # Hotfix — individualização da análise técnica e das Pendências de Notas Fiscais
 
-**Data:** 28 de agosto de 2026  
+**Data:** 28–30 de agosto de 2026
 **Classe documental:** Plano executável específico do hotfix  
 **Branch:** `hotfix/individualizar-analise-notas-fiscais`  
 **PR:** #211 (Draft)  
 **Baseline de origem:** `b4ad4e8540c55ccfae0406ea136bc4c8da59fd0b`  
-**SHA funcional validado:** `e4aaee1969785e7f0c116da6ffbac9fa11f972c8`
+**Último HEAD remoto concluído:** `40ab44e2009bea7806c11180472ba70c60b63dd8`
+**Candidato de hardening:** posterior a `40ab44e`, pendente de SHA remoto e CI
 
 ## 1. Relação com o plano mestre
 
@@ -160,7 +161,9 @@ Princípios:
 9. a gestão posterior da Pendência continua na tela de Pendências;
 10. desktop é o alvo deste hotfix;
 11. Consulta Assessoria usa sublinhas por NF de serviço, com envio/análise/Pendência individual e apenas `Visualizar pendência` no Prontuário;
-12. nenhuma revisão geral do Prontuário, sidebar, tela de Pendências ou navegação entra neste escopo.
+12. o cabeçalho fiscal não repete a situação técnica agregada; os estados ficam nas sublinhas e o cabeçalho mostra bonificação e Pendências;
+13. a nova reconferência visual manual pós-ajustes foi expressamente adiada e não bloqueia o merge;
+14. nenhuma revisão geral do Prontuário, sidebar, tela de Pendências ou navegação entra neste escopo.
 
 ## 5. Fluxos obrigatórios
 
@@ -213,15 +216,7 @@ Para contextos históricos sem estado individual explícito:
 
 Pendências históricas sem `registered_invoice_id` não recebem associação automática por heurística.
 
-Exceção expressamente identificada e comprovada:
-
-- Pendência `pend-384d9cc0-634f-4e74-9eac-f22da3b6e2c5`;
-- boleto `nota-a2da969c-2e29-41f9-a9fc-f34a306e00ed`;
-- escola `04.31.001`;
-- competência `2026-08`;
-- programa `CONECTADA`.
-
-O reparo deve ser fail-closed, com preflight integral antes da associação.
+A antiga exceção proposta para o Boleto 1234 está superada: autoria comprovou que boleto e Pendência são fixtures da conta técnica. Eles integram a limpeza fail-closed e não recebem vínculo individual.
 
 ## 6.1 Decisão refinada de dados legados — 29/08/2026
 
@@ -239,9 +234,9 @@ Regra vigente:
 
 Fonte canônica: `docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md`.
 
-## 7. Implementado até o checkpoint funcional consolidado
+## 7. Implementação e hardening
 
-No checkpoint `e4aaee1969785e7f0c116da6ffbac9fa11f972c8`:
+Até o HEAD remoto `40ab44e2009bea7806c11180472ba70c60b63dd8`:
 
 - análise técnica individual por `registered_invoice_id` implementada;
 - bonificação de `notaFiscal` preservada como requisito agregado;
@@ -273,9 +268,22 @@ No checkpoint `e4aaee1969785e7f0c116da6ffbac9fa11f972c8`:
 - o Prontuário da Assessoria usa **Visualizar pendência**, enquanto novo envio e reanálise permanecem na tela de Pendências;
 - Production permanece intocada.
 
-## 8. Evidências do checkpoint atual
+O candidato local posterior acrescenta, sem alterar essas decisões:
 
-### 8.1 Gates funcionais aprovados
+- bloqueio no `InvoiceService` de qualquer alteração comum da Assessoria quando a própria NF possui Pendência ativa;
+- recusa de `Incorreto` da Assessoria fora da abertura atômica;
+- abertura, novo envio e reanálise das RPCs baseados nas linhas reais bloqueadas, contexto e versões esperadas;
+- reanálise somente em `Aguardando reanálise`, usando a tentativa real mais recente ainda não analisada;
+- imutabilidade de observação, link e datas do novo envio durante a reanálise;
+- primeira abertura fiscal impedida de alterar dados estruturais da despesa;
+- identificação permanente criando bem novo e correspondente, sem reuso ou vínculo oculto;
+- `a_identificar` existente fora de edição/exclusão comum;
+- acesso explícito à Pendência fiscal agregada real preservada;
+- retirada dos monkey patches de atualização canônica dos serviços, mantendo as integrações apenas nos caminhos atômicos especializados.
+
+## 8. Evidências e limite de validade
+
+### 8.1 HEAD remoto `40ab44e`
 
 - **Validar RADAR PDDE:** PASS;
 - **E2E Playwright:** PASS;
@@ -287,9 +295,11 @@ No checkpoint `e4aaee1969785e7f0c116da6ffbac9fa11f972c8`:
 - **Excel SME / contratos-fonte:** PASS;
 - **Vercel Preview:** PASS.
 
+Também passaram Supabase local/Auth/RLS/pgTAP, migrations em PostgreSQL limpo e a homologação pré-Production em todos os jobs exceto Lighthouse. O Preview READY desse SHA foi `https://radarpdde-2fayvtph8-wilson-m-peixotos-projects.vercel.app`.
+
 ### 8.2 Banco e Supabase
 
-As provas funcionais do banco passaram integralmente no SHA validado:
+As provas funcionais do banco passaram integralmente em `40ab44e`:
 
 - migration-smoke: PASS;
 - readiness completo: PASS;
@@ -330,52 +340,22 @@ Mobile:
 - FCP: **2,82 s**;
 - LCP: **16,40 s** para limite de **15,00 s**.
 
-A dívida móvel já existia antes do PR #211 e permanece **não bloqueante para este hotfix desktop**. O threshold não foi relaxado.
+A dívida móvel já existia antes do PR #211 e permanece **não bloqueante para este hotfix desktop**. O threshold não foi relaxado. O gate agregado vermelho decorre exclusivamente desse job.
 
-### 8.4 Revisão adversarial de caminhos antigos
+### 8.4 Validação local do hardening posterior
 
-Concluída no SHA validado.
-
-Foram encontradas e corrigidas duas portas residuais:
-
-- `a_identificar` escondido dentro do cadastro comum de Nota Fiscal;
-- tentativa da integração atômica genérica de iniciar o fluxo agregado antigo de `notaFiscal → Incorreto`.
-
-Os dois caminhos agora estão bloqueados e cobertos por regressão E2E.
+Passaram **800/800 unitários**, **7/7 integração**, `npm run check` e os testes de contrato focados. Este resultado local não substitui PostgreSQL/pgTAP, E2E e CI remotos do novo SHA.
 
 ## 9. Sequência restante
 
-### Etapa H6 — Preview desktop autenticado
+### Etapa H6 — publicar e validar o hardening no PR Draft
 
-Ainda é obrigatório:
+- criar SHA remoto do candidato sem retirar o Draft;
+- executar unitários, E2E, pgTAP, Supabase readiness, migrations limpas, Auth/RLS, backup/restauração, segurança e Preview;
+- classificar cada falha antes de alterar produto ou teste;
+- manter a reconferência visual manual como refinamento posterior não bloqueante.
 
-- abrir o Preview do SHA candidato;
-- autenticar com perfil de teste autorizado;
-- conferir visualmente o bloco de Notas Fiscais;
-- comparar com as referências versionadas;
-- conferir o drawer;
-- provar ausência de duplicidade `boletoInternet`;
-- provar que `Registrar novo envio` e `Reanalisar` permanecem exclusivamente na tela de Pendências.
-
-### Etapa H7 — revisão adversarial final
-
-**Concluída para código e contratos.**
-
-Resultados adicionais:
-
-- opção `a_identificar` removida do cadastro comum e reservada ao fluxo dedicado;
-- rota agregada antiga de `notaFiscal → Incorreto` bloqueada;
-- Consulta Assessoria confirmada individual por NF, sem bloqueio cruzado e com abertura atômica de Pendência;
-- Boleto Internet permanece apenas como `boleto_internet` dentro de Notas Fiscais;
-- Assessoria continua exclusiva de serviço;
-- criação patrimonial no novo envio permanece coberta;
-- 20 registros históricos continuam intocados;
-- preflight do Boleto 1234 segue fail-closed;
-- estratégia de reversão está documentada.
-
-A única parte ainda pendente é a inspeção visual autenticada do Preview desktop.
-
-### Etapa H8 — documentação e decisão de merge
+### Etapa H7 — revisão adversarial e documentação final
 
 Antes de retirar Draft:
 
@@ -383,7 +363,7 @@ Antes de retirar Draft:
 - registrar a classificação formal do Lighthouse móvel como dívida herdada não bloqueante;
 - registrar resultados finais dos gates.
 
-### Etapa H9 — merge e Production
+### Etapa H8 — merge e Production
 
 Somente após as etapas anteriores e autorização explícita:
 
@@ -392,11 +372,11 @@ Somente após as etapas anteriores e autorização explícita:
 - aplicar migration no Supabase Production;
 - publicar Vercel Production;
 - smoke autenticado;
-- confirmar o reparo cirúrgico conhecido;
-- confirmar que os 20 registros históricos não foram alterados indevidamente;
+- confirmar a remoção exata das 12 despesas/NFs e três Pendências de teste;
+- confirmar preservação dos 16 registros legados legítimos e da Pendência agregada real;
 - registrar SHA, deployment e estado efetivo.
 
-### Etapa H10 — retorno obrigatório ao plano mestre
+### Etapa H9 — retorno obrigatório ao plano mestre
 
 Antes de PR3.1:
 
@@ -424,6 +404,6 @@ O hotfix só está pronto quando:
 - migration aplica de forma segura;
 - testes funcionais relevantes estão aprovados;
 - falhas externas de CI estão classificadas por evidência e reexecutadas quando necessário;
-- Preview desktop coincide funcional e visualmente com o layout aprovado;
+- gates funcionais desktop e Preview do SHA final estão aprovados; a reconferência visual manual adiada permanece como refinamento posterior;
 - Production só é publicada após decisão final;
 - documentação registra o retorno obrigatório ao plano mestre.

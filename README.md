@@ -2,7 +2,7 @@
 
 Sistema institucional de acompanhamento operacional do PDDE da 4ª CRE/SME-Rio. O produto organiza competência mensal, carteira de unidades, prontuário, análise documental, pendências, contatos, notas fiscais, patrimônio, Gestão de Equipe, acompanhamento gerencial e exportações.
 
-> **Estado reconciliado em 26 de agosto de 2026:** a `main` de origem está em `0965ba8` (PR #200 integrado). O hotfix `Incorreto + Pendência` está concluído; as demais correções funcionais ainda não começaram. O plano pós-auditoria foi aprovado e substitui o plano de 24/08 como referência operacional. O baseline mutável completo fica em [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md) e deve ser revalidado antes de qualquer ação dependente do ambiente.
+> **Estado reconciliado em 30 de agosto de 2026:** a frente prioritária é o PR #211, ainda em Draft, para individualizar análise e Pendências de Notas Fiscais. O HEAD remoto `40ab44e` concluiu os gates funcionais; o único vermelho é o Lighthouse móvel, não bloqueante por decisão expressa, e o gate agregado falha apenas por herdá-lo. Um hardening posterior está em validação antes de novo SHA remoto. Production, Supabase Production e Vercel Production permanecem sem alterações do PR #211. O estado mutável completo fica em [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md).
 
 ## Fontes de verdade
 
@@ -44,6 +44,8 @@ Documentação antiga não redefine o código para ficar “coerente”. Quando 
 
 ## Correções consolidadas e diagnóstico atual
 
+O plano mestre pós-auditoria permanece vigente, mas está temporariamente pausado pelo PR #211. O hotfix mantém a bonificação de Notas Fiscais agregada, individualiza análise e Pendência por `registered_invoice_id`, cria nova `a_identificar` apenas como `Incorreto + Pendência`, preserva 16 registros legítimos como **Registro legado** e remove somente fixtures técnicas comprovadas por uma limpeza fail-closed. A regra e a continuidade entre sessões estão documentadas no handoff de 30/08 indicado abaixo.
+
 O baseline atual incorpora, entre outros:
 
 - PR #150: transição segura entre perfis da equipe usando a mesma conta Auth;
@@ -74,7 +76,7 @@ O projeto possui:
 - auditoria agregada de vinte invariantes de integridade;
 - backup/restauração em pilhas descartáveis;
 - gate remoto por perfil e viewport;
-- matriz funcional executável de 42 operações;
+- matriz funcional executável de 43 operações;
 - infraestrutura integrada de smoke autenticado somente leitura.
 
 O smoke autenticado de Production permanece desativado até provisionamento explícito de cinco identidades técnicas exclusivas. Contas pessoais ou operacionais não devem ser reutilizadas para monitoramento.
@@ -129,24 +131,25 @@ npm run check:functional-matrix
 Ordem de leitura:
 
 1. [`AGENTS.md`](AGENTS.md);
-2. [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md);
-3. [`docs/handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](docs/handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md);
-4. [`docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md);
-5. [`docs/reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx`](docs/reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx);
-6. [`docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md`](docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md);
-7. [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md);
-8. [`docs/DECISION_LOG.md`](docs/DECISION_LOG.md);
-9. [`docs/reference/STATUS_DOCUMENTOS.md`](docs/reference/STATUS_DOCUMENTOS.md).
+2. [`docs/handoff/2026-08-30-pr211-retomada-work.md`](docs/handoff/2026-08-30-pr211-retomada-work.md);
+3. [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md);
+4. [`docs/handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](docs/handoff/2026-08-28-pr211-hotfix-notas-fiscais.md);
+5. [`docs/superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](docs/superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md);
+6. [`docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md);
+7. [`docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md`](docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md);
+8. [`docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md`](docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md);
+9. [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md), [`docs/DECISION_LOG.md`](docs/DECISION_LOG.md) e [`docs/reference/STATUS_DOCUMENTOS.md`](docs/reference/STATUS_DOCUMENTOS.md);
+10. somente depois, o handoff e o plano mestre de 26/08 para a retomada pós-hotfix.
 
-A porta de entrada vigente está registrada em [`docs/handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](docs/handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md). Auditorias e planos anteriores permanecem históricos.
+A porta de entrada vigente é o handoff de 30/08. Auditorias e planos anteriores permanecem históricos e não podem restaurar decisões superadas.
 
 ## Próxima sequência
 
-1. executar G0 e congelar novamente GitHub, Vercel, Supabase, dados e performance;
-2. executar PR1 e PR2;
-3. executar PR3.1, PR3.2 e PR3.3, cada qual com gate próprio;
-4. executar PR4 somente depois de PR2 publicado e de preflight fresco;
-5. seguir PR5, PR6, PR6B, PR7A e PR7B na ordem aprovada;
+1. concluir o hardening e os gates remotos do PR #211 em Draft;
+2. repetir o preflight fail-closed imediatamente antes de eventual migration;
+3. somente com autorização explícita, retirar Draft, integrar, aplicar migration e publicar;
+4. revalidar `main`, Supabase Production e Vercel Production e reconciliar o PR #211 com o plano mestre;
+5. só então retomar PR3.1, PR3.2 e PR3.3, cada qual com gate próprio, e seguir as demais fases na ordem aprovada;
 6. executar PR8A antes de PR8B;
 7. medir em PR9A, estabilizar a metodologia em PR9B e só então otimizar por hipótese em PR9C.
 

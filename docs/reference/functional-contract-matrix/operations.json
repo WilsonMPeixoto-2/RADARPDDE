@@ -275,7 +275,7 @@
     "evidence": "pendency",
     "coverage": "partial",
     "gaps": [
-      "Novo envio fiscal individual, identificação preservando ID e criação patrimonial na mesma operação estão cobertos em unitários/pgTAP/E2E descartável; falta prova autenticada publicada do ciclo completo e releitura."
+      "Novo envio fiscal, identificação preservando ID e criação patrimonial possuem unitários/pgTAP/E2E descartável; o hardening de patrimônio novo, tentativa imutável e linhas reais ainda precisa da rodada remota do SHA final e de smoke pós-publicação."
     ],
     "next": "controlled-write"
   },
@@ -617,7 +617,7 @@
     "evidence": "invoice",
     "coverage": "partial",
     "gaps": [
-      "Vínculo individual por NF, ausência de bloqueio cruzado, abertura atômica de Incorreto + Pendência, duas Pendências simultâneas e resumo mensal derivado estão comprovados em unitários/E2E/pgTAP; falta somente a conferência visual autenticada do Preview final e o smoke pós-publicação."
+      "Vínculo individual, ausência de bloqueio cruzado, abertura atômica, duas Pendências e resumo mensal possuem unitários/E2E/pgTAP; o bloqueio canônico, tentativa obrigatória e imutabilidade do envio ainda precisam da rodada remota do SHA final e de smoke pós-publicação."
     ],
     "next": "controlled-write"
   },
@@ -671,7 +671,7 @@
     "evidence": "invoice",
     "coverage": "partial",
     "gaps": [
-      "Análise individual, resumo derivado, Pendência por invoice, bloqueio de edição com Pendência ativa e reanálise vinculada estão cobertos em unitários, pgTAP e E2E descartável; falta Preview desktop autenticado e smoke pós-publicação."
+      "Análise individual, resumo derivado, Pendência por invoice e reanálise vinculada possuem unitários/pgTAP/E2E; os patches mínimos, patrimônio novo, quarentena do legado e acesso à Pendência agregada precisam da rodada remota do SHA final e de smoke pós-publicação."
     ],
     "next": "controlled-write"
   },

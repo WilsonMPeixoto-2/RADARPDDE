@@ -174,10 +174,13 @@ Ao continuar o PR #211, preservar estas decisões já fechadas:
 - o antigo reparo do **Boleto 1234** está superado: boleto e Pendência foram classificados como fixtures e devem ser removidos pela limpeza condicionada, não vinculados;
 - Consulta Assessoria é individual por NF de serviço e a Pendência ativa deve ser buscada com `registered_invoice_id`; lookup genérico por escola + competência + programa + documento não pode bloquear outra NF;
 - selecionar `Incorreto` em Assessoria abre primeiro o fluxo atômico de Pendência; não gravar `Incorreto` solto;
+- o `InvoiceService` também bloqueia alterações comuns da Assessoria enquanto a mesma NF possui Pendência ativa; somente novo envio e reanálise podem avançar esse ciclo;
+- reanálise fiscal ou de Assessoria exige a tentativa real mais recente, em `Aguardando reanálise`, e não pode reescrever o conteúdo que a escola enviou;
 - o resumo mensal da Assessoria é `Sim` se **ao menos uma** consulta exigível foi enviada, `Não` se existem NFs de serviço e nenhuma foi enviada, e `Não se aplica` sem NF de serviço;
 - no Prontuário, item com Pendência ativa mostra **Visualizar pendência**; `Registrar novo envio` e `Reanalisar` permanecem na tela de Pendências;
+- Pendência fiscal agregada real anterior à individualização continua acessível como legado, sem associação inventada a uma NF;
 - o banco protege identidade, contexto, concorrência e atomicidade, mas não substitui os serviços de domínio como segundo motor completo de regras;
-- desktop é o alvo visual bloqueante deste hotfix; mobile permanece dívida separada não bloqueante.
+- desktop é o alvo do hotfix e seus gates funcionais continuam obrigatórios; a nova reconferência visual manual foi expressamente adiada e não bloqueia o merge; mobile permanece dívida separada não bloqueante.
 
 Se um teste, comentário antigo ou auditoria contrariar esses pontos, classificar primeiro como possível contrato superado antes de alterar o produto.
 

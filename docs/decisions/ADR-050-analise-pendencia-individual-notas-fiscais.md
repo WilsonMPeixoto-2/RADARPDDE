@@ -1,9 +1,9 @@
 # ADR-050 — análise e Pendência individual por registro de Notas Fiscais
 
-**Status:** Aceita; correções finais implementadas no PR #211, ainda em Draft e com gates finais em reexecução  
-**Data:** 28 de agosto de 2026  
+**Status:** Aceita; hardening final em validação no PR #211, ainda em Draft
+**Data:** 28–30 de agosto de 2026
 **Escopo:** hotfix PR #211  
-**Substitui:** nenhuma ADR; formaliza as decisões finais do hotfix sem conflitar com ADR-047, ADR-048 e ADR-049 já existentes
+**Substitui:** especializa e supera o modelo documental do ADR-049; não altera ADR-047 ou ADR-048
 
 ## Contexto
 
@@ -49,6 +49,15 @@ Regras consolidadas:
 - enquanto houver Pendência ativa da própria NF, o Prontuário apresenta **Visualizar pendência**;
 - novo envio e reanálise permanecem na tela de Pendências.
 
+Guardrails de aplicação e banco:
+
+- `InvoiceService.updateServiceAdvisory()` bloqueia qualquer alteração comum da NF com Pendência ativa e recusa `Incorreto` fora da abertura atômica;
+- abertura, novo envio e reanálise carregam e travam as linhas reais de NF, Pendência e verificação antes de validar contexto e versão;
+- novo envio exige Pendência `Aberta` e cria a próxima tentativa ainda sem resultado;
+- reanálise exige `Aguardando reanálise` e a tentativa real mais recente ainda não analisada;
+- observação, link e datas do envio são históricos e não podem ser reescritos durante a reanálise;
+- a integração tardia não substitui mais o método canônico de atualização da Assessoria.
+
 ## Decisão visual
 
 O hotfix altera o bloco de Notas Fiscais do Prontuário, o drawer lateral e, de forma estritamente necessária à individualização, o bloco de Consulta Assessoria das NFs de serviço. Não há redesign geral do Prontuário ou da tela de Pendências.
@@ -71,11 +80,14 @@ Matriz de apresentação:
 Regras adicionais:
 
 - contador de Pendências só aparece quando maior que zero;
+- o cabeçalho não repete a situação técnica agregada; ela permanece derivada internamente e cada linha mostra seu próprio estado;
+- Pendência fiscal agregada real anterior à individualização continua acessível por ação legada explícita, sem associação inventada;
 - com Pendência ativa, controles normais de edição documental não competem com a ação operacional;
 - `Abrir pendência` não é etapa normal de um estado que deve nascer atomicamente;
 - `Registrar novo envio` e `Reanalisar` pertencem exclusivamente à tela de Pendências;
 - o drawer permite somente **Visualizar → Editar → Salvar**;
-- desktop é o alvo deste hotfix; mobile não é gate bloqueante desta entrega.
+- desktop é o alvo deste hotfix; mobile não é gate bloqueante desta entrega;
+- a primeira inspeção autenticada continua como evidência estrutural; a reconferência visual manual posterior aos ajustes foi expressamente adiada e não bloqueia o merge.
 
 ## Limite entre aplicação e banco
 

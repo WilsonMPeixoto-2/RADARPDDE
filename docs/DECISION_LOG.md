@@ -1,6 +1,6 @@
 # RADAR PDDE — Registro de decisões
 
-**Atualizado em:** 27 de agosto de 2026
+**Atualizado em:** 30 de agosto de 2026
 
 Este documento registra decisões duradouras. Não é diário de commits. Uma decisão somente é substituída por decisão expressa com impacto e status documentados.
 
@@ -546,9 +546,9 @@ Exclusões definitivas desta frente:
 
 ---
 
-## ADR-049 — Boleto de pagamento de Internet é documento exclusivo de Educação Conectada
+## ADR-049 — Boleto de pagamento de Internet como documento exclusivo de Educação Conectada
 
-**Status:** Aprovada; implementação rastreada no PR #203, com publicação ainda condicionada ao gate de merge
+**Status:** Histórica; superada no modelo ativo pelos PRs #208/#209 e especializada pelo ADR-050
 
 `boletoInternet` integra a bonificação e a análise técnica somente em `CONECTADA`. A categoria aceita `Sim`, `Não` e `Não se aplica`; `Incorreto` usa a Pendência documental atômica existente. Ela não cria Nota Fiscal, bem, efeito financeiro ou Consulta Assessoria.
 
@@ -558,17 +558,23 @@ Consolidações conectadas anteriores à chave permanecem válidas por projeçã
 
 **Documentos:** `docs/architecture/avaliacao-mensal.md` e `docs/handoff/2026-08-27-hotfix-boleto-internet.md`.
 
+**Regra sucessora vigente:** `boleto_internet` é tipo de gasto dentro de `notaFiscal`, exclusivo de `CONECTADA`. A chave documental `boletoInternet` não possui linha, bonificação, análise ou Pendência autônoma e não deve ser recriada.
+
 ## ADR-050 — Análise e Pendência individual por registro de Notas Fiscais
 
 **Status:** Aprovada; correções finais no PR #211, ainda em Draft
 
 `notaFiscal` permanece agregada para bonificação, mas análise técnica e Pendência são individuais por `registered_invoice_id`. `a_identificar` nova nasce `Incorreto + Pendência` atomicamente; identificação posterior ocorre em **Pendências → Registrar novo envio**, preservando o ID.
 
-Consulta Assessoria também é individual por NF de serviço. Pendência da NF A não bloqueia a NF B. O lookup genérico por documento não é válido para esse fluxo; `Incorreto` é confirmado pelo wrapper atômico de `service-advisory-pendency.js`.
+Consulta Assessoria também é individual por NF de serviço. Pendência da NF A não bloqueia a NF B. O lookup genérico por documento não é válido para esse fluxo; `Incorreto` é confirmado pela operação atômica, e o `InvoiceService` impede alterações comuns enquanto a própria NF possui Pendência ativa.
+
+Novo envio e reanálise fiscal ou de Assessoria exigem a Pendência e a tentativa reais, no estado correto e com versão esperada. A reanálise usa a tentativa mais recente ainda não analisada e não pode reescrever o conteúdo enviado pela escola. Identificação como bem permanente cria patrimônio novo e correspondente; não reaproveita bem anterior nem aceita vínculo oculto em outro tipo.
 
 A classificação de Production foi refinada por autoria: dos 20 `a_identificar` anteriores ao contrato, 16 são legítimos de Controladores e serão preservados como **Registro legado** sem história inventada; 4 são fixtures da conta técnica. A limpeza fail-closed cobre 12 despesas/NFs de teste e três Pendências fiscais genéricas dos cenários do hotfix.
 
 A antiga decisão de reparar o Boleto 1234 foi superada porque boleto e Pendência foram comprovados como dados de teste. Ambos integram a limpeza, com logs preservados.
+
+O resumo técnico fiscal continua derivado internamente, mas não aparece como etiqueta agregada no cabeçalho: os estados ficam nas linhas e o cabeçalho mostra bonificação e quantidade de Pendências. A reconferência visual manual posterior aos ajustes foi expressamente adiada e não bloqueia o merge; isso não dispensa gates funcionais desktop.
 
 **Documento integral:** `docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`.  
 **Evidência de dados:** `docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md`.

@@ -24,7 +24,7 @@ O PR #211 corrige a granularidade de análise/Pendência de Notas Fiscais e alte
 3. atualizar o estado das tarefas futuras;
 4. só então retomar PR3.1.
 
-A decisão antiga “Despesa A identificar não vira automaticamente Não ou Incorreto” foi superada especificamente pelo ADR-047. O contrato atual é `a_identificar = Incorreto + Pendência individual obrigatória`, sem alterar automaticamente a bonificação.
+A decisão antiga “Despesa A identificar não vira automaticamente Não ou Incorreto” foi superada especificamente pelo ADR-050 no PR #211. O contrato atual é `a_identificar = Incorreto + Pendência individual obrigatória`, sem alterar automaticamente a bonificação.
 
 ## 1. O que aconteceu
 
@@ -81,7 +81,7 @@ Se alguma entrega revelar necessidade inevitável de tocar uma exclusão, parar 
 - Pendência, análise técnica e bonificação são dimensões diferentes.
 - `Sim + Incorreto + pendência` é combinação válida.
 - Novo envio leva à reanálise; não resolve automaticamente.
-- Despesa `A identificar` não altera automaticamente a bonificação; após ADR-047, nasce tecnicamente `Incorreto` e com Pendência individual obrigatória.
+- Despesa `A identificar` não altera automaticamente a bonificação; após ADR-050, uma nova despesa nasce tecnicamente `Incorreto` e com Pendência individual obrigatória. Os 16 registros legítimos anteriores permanecem como Registro legado, sem backfill.
 - Pendência ativa não bloqueia consolidação sozinha.
 - `Não analisado` não bloqueia consolidação sozinho.
 - Sem NF de serviço, Consulta Assessoria converge para `Não se aplica`.

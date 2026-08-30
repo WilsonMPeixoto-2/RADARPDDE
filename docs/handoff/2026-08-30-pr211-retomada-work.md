@@ -70,6 +70,16 @@ Obrigatório:
 
 A implementação vigente pode estar mais robusta que uma auditoria externa que proponha funções auxiliares diretamente em `app.js`. Avaliar a causa apontada pela auditoria, mas não substituir automaticamente a integração atual se o HEAD já satisfizer o contrato.
 
+Hardening aprovado para fechamento:
+
+- `InvoiceService` bloqueia alterações comuns da Assessoria se a própria NF possui Pendência ativa;
+- `Incorreto` não pode ser gravado por `updateServiceAdvisory()` sem a operação atômica;
+- novo envio exige Pendência `Aberta`; reanálise exige `Aguardando reanálise`;
+- reanálise fiscal e de Assessoria exige a tentativa real mais recente ainda não analisada;
+- observação, link e datas do envio não podem ser reescritos na reanálise;
+- as RPCs validam as linhas reais, contexto e versões e aplicam somente os patches autorizados;
+- a integração tardia não substitui mais o método canônico de atualização da Assessoria.
+
 ### 3.4 Notas Fiscais e a_identificar
 
 - bonificação de `notaFiscal` continua agregada;
@@ -90,6 +100,14 @@ No Prontuário:
 - gestão do ciclo continua em Pendências.
 
 Desktop é o alvo deste hotfix. Mobile é dívida separada e não bloqueante.
+
+A primeira inspeção autenticada aprovou a estrutura e orientou ajustes posteriormente cobertos por E2E. Em 29/08, a nova reconferência visual manual foi expressamente adiada e deixou de bloquear o merge. Não transformar essa dispensa em autorização para ignorar gates funcionais desktop.
+
+### 3.6 Estado de validação em 30/08
+
+O HEAD remoto `40ab44e2009bea7806c11180472ba70c60b63dd8` passou todos os gates funcionais e de banco. Lighthouse móvel continuou vermelho, e o gate agregado pré-Production falhou somente por herdá-lo. O Preview ficou READY.
+
+Uma revisão posterior produziu candidato local de hardening. Antes de considerá-lo concluído, ele ainda precisa de SHA remoto e nova rodada de pgTAP/CI. Resultados do SHA `40ab44e` não validam automaticamente esse diff posterior.
 
 ## 4. Como tratar auditorias externas
 

@@ -50,7 +50,7 @@ PR #211 publicado e validado
 
 ### Decisão de negócio superveniente
 
-A regra antiga deste plano para `A identificar` foi superada pelo ADR-047.
+A regra antiga deste plano para `A identificar` foi superada pelo ADR-050, no escopo do PR #211.
 
 Contrato vigente após essa decisão:
 
@@ -783,6 +783,8 @@ Após publicar, executar uma inclusão e uma edição controladas, conferindo ch
 
 ### Contrato da regra canônica
 
+> **Validade histórica desta seção:** a matriz abaixo foi aprovada e executada no PR2/#206. O ADR-050/PR #211 substitui especificamente a regra de entrega da bonificação da Assessoria: uma ou mais consultas exigíveis enviadas produzem `Sim`; `Não` somente quando nenhuma NF de serviço foi enviada. As demais regras permanecem aplicáveis quando não conflitarem com o hotfix.
+
 service-advisory.js exporta:
 
     deriveServiceAdvisory(invoices)
@@ -943,6 +945,8 @@ Resultado esperado: uma única matriz, no-op real e correção de derivados aind
 - [ ] **PR2.10 — Revisão adversarial dupla**
 
 Passe de contrato:
+
+> A expectativa histórica deste passe de que `A identificar` não participasse da análise pertence ao PR2/#206. Ela foi superada no PR #211 por `nova a_identificar = Incorreto + Pendência`; preserve o trecho abaixo apenas como evidência daquele checkpoint.
 
 - comparar regra com todos os estados individuais atuais;
 - conferir legado Correto após o prazo → Correto (Atrasado);

@@ -1,16 +1,16 @@
 # Handoff — PR #211 / hotfix de Notas Fiscais
 
-**Data:** 29 de agosto de 2026  
+**Data:** 29–30 de agosto de 2026
 **PR:** #211 — Draft  
 **Branch:** `hotfix/individualizar-analise-notas-fiscais`  
-**Último SHA funcional antes desta atualização documental:** `a6e3c646bada786b014ec0d531f96f2a03fa950d`  
+**Último HEAD remoto concluído:** `40ab44e2009bea7806c11180472ba70c60b63dd8`
 **Production:** sem alteração causada por este PR
 
 ## 1. Situação atual
 
-O núcleo funcional do hotfix está implementado e os principais caminhos antigos foram fechados.
+O núcleo funcional do hotfix e a decisão de dados de 29/08 estão implementados. A rodada remota de `40ab44e` terminou com todos os gates funcionais verdes; o único vermelho é o Lighthouse móvel, e o gate agregado pré-Production falha apenas por exigir esse job não bloqueante.
 
-Após a rodada anterior de homologação, novas correções foram autorizadas: refinamento da classificação de dados legados, limpeza fail-closed de fixtures de teste e adaptação visual dos `a_identificar` legítimos. Por isso, resultados verdes de SHAs anteriores continuam como evidência histórica, mas não autorizam retirar o Draft. Os gates precisam ser executados novamente sobre o HEAD que contém estas correções.
+Uma revisão posterior encontrou riscos server-side que a rodada não exercitava negativamente. O candidato local sobre `40ab44e` fecha essas portas no serviço canônico e nas RPCs, sem reverter as decisões de 29/08. Passaram localmente 800/800 unitários, 7/7 integração, `npm run check` e os contratos focados. Esse candidato ainda precisa de SHA remoto e nova execução de pgTAP/CI; por isso o PR continua Draft.
 
 Nenhuma migration do PR #211 foi aplicada em Production.
 
@@ -31,10 +31,12 @@ Nenhuma migration do PR #211 foi aplicada em Production.
 - se for bem permanente, o registro patrimonial é criado e vinculado na mesma operação;
 - novo envio leva a Pendência para `Aguardando reanálise` e a despesa para `Não analisado`;
 - reanálise só ocorre depois de tentativa válida da mesma Pendência;
+- reanálise usa a tentativa real mais recente ainda não analisada e não reescreve o conteúdo enviado;
 - 16 `a_identificar` históricos legítimos de Controladores são preservados como **Registro legado**, sem Pendência ou análise retroativa;
 - 4 `a_identificar` e outras 8 despesas/NFs comprovadamente criadas pela conta técnica nos cenários do hotfix são fixtures removíveis por preflight fail-closed;
 - três Pendências fiscais genéricas antigas desses testes também integram a limpeza;
 - a antiga proposta de reparar o Boleto 1234 foi superada: boleto e Pendência são fixtures de teste e serão removidos, com logs preservados.
+- a Pendência fiscal agregada real que não pertence às fixtures continua acessível como legado, sem associação inventada.
 
 ### Consulta Assessoria — fechamento da individualização
 
@@ -42,6 +44,9 @@ Nenhuma migration do PR #211 foi aplicada em Production.
 - envio, análise e Pendência são individualizados por `registered_invoice_id`;
 - uma Pendência ativa da NF A não bloqueia a NF B;
 - ao selecionar `Incorreto`, a análise não é gravada antes da Pendência: a confirmação ocorre atomicamente;
+- enquanto a própria NF possui Pendência ativa, o serviço canônico bloqueia qualquer alteração comum de envio/análise;
+- novo envio exige Pendência `Aberta`; reanálise exige `Aguardando reanálise` e a tentativa real mais recente;
+- reanálise não pode alterar observação, link ou datas do envio;
 - se já existir Pendência da própria NF, o Prontuário abre **Visualizar pendência** em vez de exibir alerta genérico;
 - o resumo mensal de bonificação da Assessoria é `Sim` quando pelo menos uma consulta exigível foi enviada, `Não` quando existem NFs de serviço e nenhuma foi enviada, e `Não se aplica` quando não existe NF de serviço;
 - `Registrar novo envio` e `Reanalisar` permanecem na tela de Pendências;
@@ -62,11 +67,14 @@ Matriz visual:
 | Correto (Atrasado) | estado semântico concluído | Editar análise, somente por ação deliberada |
 | Incorreto + Pendência | estado estático | Visualizar pendência |
 | Aguardando reanálise | estado estático | Visualizar pendência |
-| Despesa a identificar | Incorreto | Visualizar pendência |
+| Nova despesa a identificar | Incorreto | Visualizar pendência |
+| `a_identificar` histórico legítimo | Registro legado | somente leitura |
 
 Outras decisões visuais já incorporadas:
 
 - contador de Pendências oculto quando zero;
+- cabeçalho sem repetição da situação técnica agregada; os estados permanecem nas linhas;
+- Pendência fiscal agregada preservada acessível por **Visualizar pendência legada**;
 - edição/exclusão documental comum escondida enquanto houver Pendência ativa;
 - `Abrir pendência` não aparece como etapa normal para estado que deve nascer atomicamente;
 - drawer limitado a **Visualizar → Editar → Salvar**;
@@ -77,16 +85,11 @@ Referência: `docs/evidence/2026-08-28-pr211-referencias-visuais.md`.
 
 ## 4. Gates
 
-Os resultados verdes do SHA `ff8453c8fd0c4e5707d656b4520051962a48df96` continuam válidos como evidência de que o núcleo anterior estava estável.
+No SHA remoto `40ab44e2009bea7806c11180472ba70c60b63dd8` passaram: Validar RADAR, Playwright completo, Supabase local/Auth/RLS/pgTAP, migrations em PostgreSQL limpo, readiness, backup/restauração, perfis/viewports, CodeQL, dependências, snapshot, Excel e Vercel Preview. O Preview ficou READY em `https://radarpdde-2fayvtph8-wilson-m-peixotos-projects.vercel.app`.
 
-Entretanto, após esse SHA foram modificados:
+O Lighthouse móvel falhou e fez o gate agregado pré-Production falhar; todos os demais jobs internos desse gate passaram. Mobile permanece dívida herdada expressamente não bloqueante. A reconferência visual manual posterior aos ajustes também foi expressamente adiada e não bloqueia o merge.
 
-- migration de Production, para substituir o antigo reparo do Boleto 1234 pela limpeza fail-closed de fixtures, inclusive com prova de autoria dos cinco resumos fiscais que serão neutralizados;
-- renderização dos `a_identificar` legítimos, agora identificados como **Registro legado**;
-- regra de transição que determina quando a individualização já começou;
-- regressão E2E correspondente.
-
-Portanto, **nenhum resultado anterior é usado como autorização de merge para o HEAD atual**. O ciclo completo deve ser reexecutado.
+Esses resultados ainda não cobrem o hardening local posterior. Portanto, **não autorizam merge do candidato atual** até a nova rodada remota.
 
 O Lighthouse móvel continua classificado como dívida herdada não bloqueante deste hotfix desktop; essa exceção não se estende a falhas funcionais, de banco, segurança ou E2E.
 
@@ -138,12 +141,13 @@ Em todos os cenários:
 
 ## 6. Próximas ações obrigatórias
 
-1. executar unitários, integração, E2E, Supabase readiness, pgTAP, migrations limpas, Auth/RLS, backup/restauração, segurança e Preview no HEAD atual;
-2. revisar os resultados e corrigir qualquer regressão real;
+1. versionar o hardening na branch do PR Draft e executar novamente unitários, E2E, Supabase readiness, pgTAP, migrations limpas, Auth/RLS, backup/restauração, segurança e Preview;
+2. revisar os resultados e corrigir somente regressões reais;
 3. imediatamente antes de eventual merge/migration, repetir em Production somente leitura o preflight de autoria/fixtures e preservação dos 16 registros legítimos;
-4. confirmar `main`, mergeabilidade e Preview;
-5. somente depois avaliar retirada do Draft;
-6. merge e Production continuam dependentes de autorização explícita no estágio final.
+4. confirmar `main`, mergeabilidade e Preview do SHA final;
+5. a nova inspeção visual manual permanece recomendada, mas não bloqueante por decisão expressa;
+6. somente depois avaliar retirada do Draft;
+7. merge e Production continuam dependentes de autorização explícita no estágio final.
 
 ## 7. Relação com o plano mestre
 
