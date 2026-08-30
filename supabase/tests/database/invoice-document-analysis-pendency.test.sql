@@ -48,9 +48,29 @@ select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000211
 
 select lives_ok($$
     select public.save_invoice_document_with_pendency(
-        jsonb_set((select to_jsonb(i) - 'row_version' - 'created_at' - 'updated_at' from public.registered_invoices i where id='invoice-doc-a'), '{payload,analiseDocumentoFiscal}', to_jsonb('Incorreto'::text), true),
+        jsonb_set(
+            jsonb_set(
+                (select to_jsonb(i) - 'row_version' - 'created_at' - 'updated_at' from public.registered_invoices i where id='invoice-doc-a'),
+                '{payload,rowVersion}',
+                (select to_jsonb(row_version) from public.registered_invoices where id='invoice-doc-a'),
+                true
+            ),
+            '{payload,analiseDocumentoFiscal}',
+            to_jsonb('Incorreto'::text),
+            true
+        ),
         (select row_version from public.registered_invoices where id='invoice-doc-a'),
-        jsonb_set((select to_jsonb(v) - 'row_version' - 'created_at' - 'updated_at' from public.verifications v where id='04.99.211::2029-01::INVOICE_DOC_ATOMIC'), '{analysis,notaFiscal}', to_jsonb('Incorreto'::text), true),
+        jsonb_set(
+            jsonb_set(
+                (select to_jsonb(v) - 'row_version' - 'created_at' - 'updated_at' from public.verifications v where id='04.99.211::2029-01::INVOICE_DOC_ATOMIC'),
+                '{payload,rowVersion}',
+                (select to_jsonb(row_version) from public.verifications where id='04.99.211::2029-01::INVOICE_DOC_ATOMIC'),
+                true
+            ),
+            '{analysis,notaFiscal}',
+            to_jsonb('Incorreto'::text),
+            true
+        ),
         (select row_version from public.verifications where id='04.99.211::2029-01::INVOICE_DOC_ATOMIC'),
         '{"id":"pendency-doc-a","school_id":"04.99.211","competence_origin":"2029-01","program_id":"INVOICE_DOC_ATOMIC","document_key":"notaFiscal","registered_invoice_id":"invoice-doc-a","status":"Aberta","responsible_area":"Escola","next_actor":"Escola","reason":"Dados divergentes","notes":"Corrigir NF A","opened_at":"2029-01-20T12:00:00Z","payload":{"registeredInvoiceId":"invoice-doc-a"}}'::jsonb,
         '{"id":"log-doc-a-open","school_id":"04.99.211","action":"Análise incorreta e pendência individual aberta","details":{}}'::jsonb
