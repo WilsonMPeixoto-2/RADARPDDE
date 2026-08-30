@@ -217,7 +217,7 @@
     "evidence": "pendency",
     "coverage": "partial",
     "gaps": [
-      "Abertura fiscal individual e rejeição de nova Pendência genérica de Notas Fiscais estão cobertas localmente/SQL; falta prova autenticada no Preview e releitura após publicação."
+      "Abertura fiscal e de Assessoria individual está protegida por RPCs atômicas, regressões e smoke transacional real do defeito pós-PR #211; falta homologação autenticada final da interface publicada e releitura após refresh."
     ],
     "next": "controlled-write"
   },
@@ -275,7 +275,7 @@
     "evidence": "pendency",
     "coverage": "partial",
     "gaps": [
-      "Novo envio fiscal, identificação preservando ID e criação patrimonial possuem unitários/pgTAP/E2E descartável; o hardening de patrimônio novo, tentativa imutável e linhas reais ainda precisa da rodada remota do SHA final e de smoke pós-publicação."
+      "Novo envio fiscal e de Assessoria, identificação preservando ID, patrimônio e imutabilidade da tentativa possuem unitários/pgTAP/E2E; falta homologação autenticada final no ambiente publicado e releitura após refresh."
     ],
     "next": "controlled-write"
   },
@@ -328,7 +328,7 @@
     "evidence": "pendency",
     "coverage": "partial",
     "gaps": [
-      "Reanálise fiscal exige Aguardando reanálise e tentativa válida da mesma Pendência e altera somente a invoice vinculada; falta prova autenticada publicada dos resultados correto/incorreto e releitura."
+      "Reanálise fiscal e de Assessoria exige Aguardando reanálise, tentativa válida e invoice vinculada; regressões locais/SQL cobrem correto/incorreto e isolamento, restando homologação autenticada final e releitura no ambiente publicado."
     ],
     "next": "controlled-write"
   },
@@ -591,14 +591,14 @@
       ],
       [
         "src/integration/service-advisory-corrective-submission.js",
-        "install"
+        "registerLinkedAttempt"
       ],
       [
-        "supabase/migrations/20260823032000_service_advisory_pendency_invoice.sql",
-        "save_service_advisory_with_pendency"
+        "src/integration/product-extensions-bootstrap.js",
+        "service-advisory-corrective-submission.js"
       ],
       [
-        "supabase/migrations/20260823045000_service_advisory_corrective_submission.sql",
+        "supabase/migrations/20260828023000_invoice_document_analysis_pendency.sql",
         "register_service_advisory_attempt"
       ]
     ],
@@ -617,7 +617,7 @@
     "evidence": "invoice",
     "coverage": "partial",
     "gaps": [
-      "Vínculo individual, ausência de bloqueio cruzado, abertura atômica, duas Pendências e resumo mensal possuem unitários/E2E/pgTAP; o bloqueio canônico, tentativa obrigatória e imutabilidade do envio ainda precisam da rodada remota do SHA final e de smoke pós-publicação."
+      "Abertura, novo envio e reanálise individual, isolamento entre NFs, tentativa imutável, bootstrap crítico e RPCs possuem regressões unitárias/E2E/pgTAP; falta apenas a homologação autenticada final da interface publicada com refresh/releitura."
     ],
     "next": "controlled-write"
   },
@@ -671,7 +671,7 @@
     "evidence": "invoice",
     "coverage": "partial",
     "gaps": [
-      "Análise individual, resumo derivado, Pendência por invoice e reanálise vinculada possuem unitários/pgTAP/E2E; os patches mínimos, patrimônio novo, quarentena do legado e acesso à Pendência agregada precisam da rodada remota do SHA final e de smoke pós-publicação."
+      "Análise individual, resumo derivado, Pendência por invoice, a_identificar, patrimônio, legado, fronteira rowVersion e RPC de abertura possuem regressões e smoke transacional real; falta homologação autenticada final da interface publicada com refresh/releitura."
     ],
     "next": "controlled-write"
   },
