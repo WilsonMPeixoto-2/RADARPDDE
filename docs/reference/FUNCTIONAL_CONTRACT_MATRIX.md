@@ -1,7 +1,7 @@
 # Matriz funcional ponta a ponta
 
-**Atualizado em:** 2026-08-28  
-**Baseline de origem:** `b4ad4e8540c55ccfae0406ea136bc4c8da59fd0b`  
+**Atualizado em:** 2026-08-30  
+**Baseline de origem:** `24e1934541b92e4399798556c05fd164c9c43801`  
 **Fonte canônica:** `functional-contract-matrix.json` e arquivos JSON do diretório `functional-contract-matrix/`
 
 > Arquivo gerado por `scripts/check-functional-contract-matrix.mjs`. Não editar manualmente.
@@ -165,16 +165,16 @@ A matriz contém **43 operações** distribuídas entre 13 superfícies.
 - **VER-02 — Alterar análise técnica documental agregada, exceto resumos derivados de Assessoria e Notas Fiscais:** Falta prova controlada publicada de análise agregada, bloqueio por pendência ativa e releitura após refresh; consAssessoria e notaFiscal individualizada seguem contratos próprios.
 - **VER-03 — Consolidar resultado de bonificação mensal:** Falta prova controlada de consolidação, releitura e rejeição de conjunto incompleto.
 - **VER-04 — Retificar consolidação com justificativa auditável:** Falta prova controlada do antes/depois, autoria, releitura e rejeição para demais perfis.
-- **PEND-01 — Abrir pendência documental/manual ou pendência fiscal individual vinculada:** Abertura fiscal individual e rejeição de nova Pendência genérica de Notas Fiscais estão cobertas localmente/SQL; falta prova autenticada no Preview e releitura após publicação.
-- **PEND-02 — Registrar novo envio para regularização, incluindo identificação de a_identificar:** Novo envio fiscal, identificação preservando ID e criação patrimonial possuem unitários/pgTAP/E2E descartável; o hardening de patrimônio novo, tentativa imutável e linhas reais ainda precisa da rodada remota do SHA final e de smoke pós-publicação.
-- **PEND-03 — Reanalisar tentativa e resolver ou reabrir pendência:** Reanálise fiscal exige Aguardando reanálise e tentativa válida da mesma Pendência e altera somente a invoice vinculada; falta prova autenticada publicada dos resultados correto/incorreto e releitura.
+- **PEND-01 — Abrir pendência documental/manual ou pendência fiscal individual vinculada:** Abertura fiscal e de Assessoria individual está protegida por RPCs atômicas, regressões e smoke transacional real do defeito pós-PR #211; falta homologação autenticada final da interface publicada e releitura após refresh.
+- **PEND-02 — Registrar novo envio para regularização, incluindo identificação de a_identificar:** Novo envio fiscal e de Assessoria, identificação preservando ID, patrimônio e imutabilidade da tentativa possuem unitários/pgTAP/E2E; falta homologação autenticada final no ambiente publicado e releitura após refresh.
+- **PEND-03 — Reanalisar tentativa e resolver ou reabrir pendência:** Reanálise fiscal e de Assessoria exige Aguardando reanálise, tentativa válida e invoice vinculada; regressões locais/SQL cobrem correto/incorreto e isolamento, restando homologação autenticada final e releitura no ambiente publicado.
 - **PEND-04 — Cancelar pendência com justificativa:** Falta prova controlada de justificativa, autoria e releitura.
 - **PEND-05 — Reabrir pendência cancelada ou resolvida:** Falta prova controlada da transição, autoria e releitura.
 - **PEND-06 — Registrar contato ou cobrança associado à pendência:** Falta prova controlada de idempotência, associação e releitura.
 - **INV-01 — Cadastrar/editar Nota Fiscal ou despesa, incluindo criação atômica de A identificar:** Criação atômica de a_identificar, bloqueio da rota comum, preservação de ID e efeitos de serviço/patrimônio estão cobertos em unitários, pgTAP e E2E descartável; falta Preview autenticado e smoke pós-publicação.
 - **INV-02 — Excluir documento fiscal sem qualquer histórico de Pendência individual e reverter efeitos vinculados:** Documento com qualquer histórico de Pendência individual é preservado; falta prova autenticada publicada da remoção permitida, bloqueio histórico, restauração de requisitos e ausência de resíduos.
-- **INV-03 — Registrar envio, análise, pendência, novo envio e reanálise da Assessoria por nota fiscal de serviço:** Vínculo individual, ausência de bloqueio cruzado, abertura atômica, duas Pendências e resumo mensal possuem unitários/E2E/pgTAP; o bloqueio canônico, tentativa obrigatória e imutabilidade do envio ainda precisam da rodada remota do SHA final e de smoke pós-publicação.
-- **INV-04 — Analisar cada documento fiscal, abrir Pendência por invoice e manter resumo técnico derivado:** Análise individual, resumo derivado, Pendência por invoice e reanálise vinculada possuem unitários/pgTAP/E2E; os patches mínimos, patrimônio novo, quarentena do legado e acesso à Pendência agregada precisam da rodada remota do SHA final e de smoke pós-publicação.
+- **INV-03 — Registrar envio, análise, pendência, novo envio e reanálise da Assessoria por nota fiscal de serviço:** Abertura, novo envio e reanálise individual, isolamento entre NFs, tentativa imutável, bootstrap crítico e RPCs possuem regressões unitárias/E2E/pgTAP; falta apenas a homologação autenticada final da interface publicada com refresh/releitura.
+- **INV-04 — Analisar cada documento fiscal, abrir Pendência por invoice e manter resumo técnico derivado:** Análise individual, resumo derivado, Pendência por invoice, a_identificar, patrimônio, legado, fronteira rowVersion e RPC de abertura possuem regressões e smoke transacional real; falta homologação autenticada final da interface publicada com refresh/releitura.
 - **ASSET-01 — Cadastrar bem permanente manualmente:** Falta prova controlada de criação, status inicial e releitura.
 - **ASSET-02 — Editar campo patrimonial autorizado:** A persistência genérica foi removida e a edição rápida ficou restrita ao campo permitido, com versão e log; falta prova controlada por perfil, conflito e releitura no ambiente de homologação.
 - **ASSET-03 — Encaminhar bem para inventariação:** Falta prova controlada das validações de nota/processo, persistência e releitura.
