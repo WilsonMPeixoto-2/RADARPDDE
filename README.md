@@ -2,7 +2,7 @@
 
 Sistema institucional de acompanhamento operacional do PDDE da 4ª CRE/SME-Rio. O produto organiza competência mensal, carteira de unidades, prontuário, análise documental, pendências, contatos, notas fiscais, patrimônio, Gestão de Equipe, acompanhamento gerencial e exportações.
 
-> **Estado reconciliado em 30 de agosto de 2026:** a frente prioritária é o PR #211, ainda em Draft, para individualizar análise e Pendências de Notas Fiscais. O HEAD remoto `40ab44e` concluiu os gates funcionais; o único vermelho é o Lighthouse móvel, não bloqueante por decisão expressa, e o gate agregado falha apenas por herdá-lo. Um hardening posterior está em validação antes de novo SHA remoto. Production, Supabase Production e Vercel Production permanecem sem alterações do PR #211. O estado mutável completo fica em [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md).
+> **Estado reconciliado em 30 de agosto de 2026:** a frente prioritária é o PR #211, ainda em Draft, para individualizar análise e Pendências de Notas Fiscais. O hardening foi publicado e validado no SHA `530ca6c`: todos os gates funcionais, de banco, segurança, E2E, backup e Preview passaram. O único vermelho efetivo é o Lighthouse móvel, não bloqueante por decisão expressa; o desktop passou na medição de confirmação. O gate agregado falha apenas por herdar o mobile. Production, Supabase Production e Vercel Production permanecem sem alterações do PR #211. O estado mutável completo fica em [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md).
 
 ## Fontes de verdade
 

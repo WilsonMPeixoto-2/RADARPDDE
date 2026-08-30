@@ -105,9 +105,9 @@ A primeira inspeção autenticada aprovou a estrutura e orientou ajustes posteri
 
 ### 3.6 Estado de validação em 30/08
 
-O HEAD remoto `40ab44e2009bea7806c11180472ba70c60b63dd8` passou todos os gates funcionais e de banco. Lighthouse móvel continuou vermelho, e o gate agregado pré-Production falhou somente por herdá-lo. O Preview ficou READY.
+O hardening posterior foi publicado e validado no SHA remoto `530ca6cb62c385ca7ca35f30e82a723e1afed3f6`. Passaram unitários 800/800, integração 7/7, Playwright, Supabase readiness, migration-smoke, Supabase local/Auth/RLS/pgTAP, migrations limpas, backup/restauração, perfis/viewports, CodeQL, dependências, snapshot, Ajv, Excel e Preview. O Preview READY é `https://radarpdde-hhubte7ci-wilson-m-peixotos-projects.vercel.app`.
 
-Uma revisão posterior produziu candidato local de hardening. Antes de considerá-lo concluído, ele ainda precisa de SHA remoto e nova rodada de pgTAP/CI. Resultados do SHA `40ab44e` não validam automaticamente esse diff posterior.
+Na homologação agregada, a primeira execução duplicada de Supabase falhou antes dos testes por porta local `54322` ocupada; a reexecução integral passou. Lighthouse móvel continua vermelho e faz o gate agregado falhar por herança. Desktop passou na medição de confirmação com LCP 3,35 s para limite de 3,50 s. Mobile e a nova reconferência visual manual permanecem não bloqueantes por decisão expressa. Production continua intocada.
 
 ## 4. Como tratar auditorias externas
 

@@ -3,14 +3,12 @@
 **Data:** 29–30 de agosto de 2026
 **PR:** #211 — Draft  
 **Branch:** `hotfix/individualizar-analise-notas-fiscais`  
-**Último HEAD remoto concluído:** `40ab44e2009bea7806c11180472ba70c60b63dd8`
+**Último SHA funcional validado:** `530ca6cb62c385ca7ca35f30e82a723e1afed3f6`
 **Production:** sem alteração causada por este PR
 
 ## 1. Situação atual
 
-O núcleo funcional do hotfix e a decisão de dados de 29/08 estão implementados. A rodada remota de `40ab44e` terminou com todos os gates funcionais verdes; o único vermelho é o Lighthouse móvel, e o gate agregado pré-Production falha apenas por exigir esse job não bloqueante.
-
-Uma revisão posterior encontrou riscos server-side que a rodada não exercitava negativamente. O candidato local sobre `40ab44e` fecha essas portas no serviço canônico e nas RPCs, sem reverter as decisões de 29/08. Passaram localmente 800/800 unitários, 7/7 integração, `npm run check` e os contratos focados. Esse candidato ainda precisa de SHA remoto e nova execução de pgTAP/CI; por isso o PR continua Draft.
+O núcleo funcional, a decisão de dados de 29/08 e o hardening server-side posterior estão implementados e validados remotamente no SHA `530ca6c`. Passaram os gates funcionais, banco, segurança, E2E, backup/restauração, perfis/viewports e Preview. O único vermelho efetivo é o Lighthouse móvel, não bloqueante por decisão expressa; o desktop passou na medição de confirmação. O gate agregado pré-Production falha somente por exigir também o mobile.
 
 Nenhuma migration do PR #211 foi aplicada em Production.
 
@@ -85,11 +83,9 @@ Referência: `docs/evidence/2026-08-28-pr211-referencias-visuais.md`.
 
 ## 4. Gates
 
-No SHA remoto `40ab44e2009bea7806c11180472ba70c60b63dd8` passaram: Validar RADAR, Playwright completo, Supabase local/Auth/RLS/pgTAP, migrations em PostgreSQL limpo, readiness, backup/restauração, perfis/viewports, CodeQL, dependências, snapshot, Excel e Vercel Preview. O Preview ficou READY em `https://radarpdde-2fayvtph8-wilson-m-peixotos-projects.vercel.app`.
+No SHA remoto `530ca6cb62c385ca7ca35f30e82a723e1afed3f6` passaram: Validar RADAR, Playwright completo, Supabase local/Auth/RLS/pgTAP, migration-smoke, migrations em PostgreSQL limpo, readiness, backup/restauração, perfis/viewports, CodeQL, dependências, snapshot, Ajv, Excel e Vercel Preview. O Preview ficou READY em `https://radarpdde-hhubte7ci-wilson-m-peixotos-projects.vercel.app`.
 
-O Lighthouse móvel falhou e fez o gate agregado pré-Production falhar; todos os demais jobs internos desse gate passaram. Mobile permanece dívida herdada expressamente não bloqueante. A reconferência visual manual posterior aos ajustes também foi expressamente adiada e não bloqueia o merge.
-
-Esses resultados ainda não cobrem o hardening local posterior. Portanto, **não autorizam merge do candidato atual** até a nova rodada remota.
+Um job duplicado de Supabase na homologação agregada falhou inicialmente antes dos testes por colisão da porta local `54322`; a reexecução passou integralmente, incluindo migrations, pgTAP, lint, artefatos, Auth, Edge Function e RLS. O Lighthouse móvel falhou e fez o gate agregado pré-Production falhar; todos os demais jobs internos passaram. Na reexecução de confirmação, desktop obteve performance 79%, acessibilidade 100%, Best Practices 100% e LCP 3,35 s para limite de 3,50 s. Mobile permanece dívida herdada expressamente não bloqueante. A reconferência visual manual posterior aos ajustes também foi expressamente adiada e não bloqueia o merge.
 
 O Lighthouse móvel continua classificado como dívida herdada não bloqueante deste hotfix desktop; essa exceção não se estende a falhas funcionais, de banco, segurança ou E2E.
 
@@ -141,13 +137,12 @@ Em todos os cenários:
 
 ## 6. Próximas ações obrigatórias
 
-1. versionar o hardening na branch do PR Draft e executar novamente unitários, E2E, Supabase readiness, pgTAP, migrations limpas, Auth/RLS, backup/restauração, segurança e Preview;
-2. revisar os resultados e corrigir somente regressões reais;
-3. imediatamente antes de eventual merge/migration, repetir em Production somente leitura o preflight de autoria/fixtures e preservação dos 16 registros legítimos;
-4. confirmar `main`, mergeabilidade e Preview do SHA final;
-5. a nova inspeção visual manual permanece recomendada, mas não bloqueante por decisão expressa;
-6. somente depois avaliar retirada do Draft;
-7. merge e Production continuam dependentes de autorização explícita no estágio final.
+1. imediatamente antes de eventual merge/migration, repetir em Production somente leitura o preflight de autoria/fixtures e preservação dos 16 registros legítimos;
+2. confirmar `main`, mergeabilidade e Preview do SHA final;
+3. a nova inspeção visual manual permanece recomendada, mas não bloqueante por decisão expressa;
+4. realizar a revisão adversarial final do diff;
+5. somente depois avaliar retirada do Draft;
+6. merge e Production continuam dependentes de autorização explícita no estágio final.
 
 ## 7. Relação com o plano mestre
 

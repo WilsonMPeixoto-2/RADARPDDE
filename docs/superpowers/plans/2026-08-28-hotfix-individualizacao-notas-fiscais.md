@@ -5,8 +5,8 @@
 **Branch:** `hotfix/individualizar-analise-notas-fiscais`  
 **PR:** #211 (Draft)  
 **Baseline de origem:** `b4ad4e8540c55ccfae0406ea136bc4c8da59fd0b`  
-**Último HEAD remoto concluído:** `40ab44e2009bea7806c11180472ba70c60b63dd8`
-**Candidato de hardening:** posterior a `40ab44e`, pendente de SHA remoto e CI
+**Último SHA funcional validado:** `530ca6cb62c385ca7ca35f30e82a723e1afed3f6`
+**Hardening:** publicado e validado remotamente
 
 ## 1. Relação com o plano mestre
 
@@ -236,7 +236,7 @@ Fonte canônica: `docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md`
 
 ## 7. Implementação e hardening
 
-Até o HEAD remoto `40ab44e2009bea7806c11180472ba70c60b63dd8`:
+Até o SHA remoto validado `530ca6cb62c385ca7ca35f30e82a723e1afed3f6`:
 
 - análise técnica individual por `registered_invoice_id` implementada;
 - bonificação de `notaFiscal` preservada como requisito agregado;
@@ -268,7 +268,7 @@ Até o HEAD remoto `40ab44e2009bea7806c11180472ba70c60b63dd8`:
 - o Prontuário da Assessoria usa **Visualizar pendência**, enquanto novo envio e reanálise permanecem na tela de Pendências;
 - Production permanece intocada.
 
-O candidato local posterior acrescenta, sem alterar essas decisões:
+O hardening posterior acrescentou, sem alterar essas decisões:
 
 - bloqueio no `InvoiceService` de qualquer alteração comum da Assessoria quando a própria NF possui Pendência ativa;
 - recusa de `Incorreto` da Assessoria fora da abertura atômica;
@@ -283,7 +283,7 @@ O candidato local posterior acrescenta, sem alterar essas decisões:
 
 ## 8. Evidências e limite de validade
 
-### 8.1 HEAD remoto `40ab44e`
+### 8.1 SHA remoto validado `530ca6c`
 
 - **Validar RADAR PDDE:** PASS;
 - **E2E Playwright:** PASS;
@@ -295,16 +295,16 @@ O candidato local posterior acrescenta, sem alterar essas decisões:
 - **Excel SME / contratos-fonte:** PASS;
 - **Vercel Preview:** PASS.
 
-Também passaram Supabase local/Auth/RLS/pgTAP, migrations em PostgreSQL limpo e a homologação pré-Production em todos os jobs exceto Lighthouse. O Preview READY desse SHA foi `https://radarpdde-2fayvtph8-wilson-m-peixotos-projects.vercel.app`.
+Também passaram Supabase local/Auth/RLS/pgTAP, migrations em PostgreSQL limpo e a homologação pré-Production em todos os jobs exceto Lighthouse. O Preview READY desse SHA foi `https://radarpdde-hhubte7ci-wilson-m-peixotos-projects.vercel.app`.
 
 ### 8.2 Banco e Supabase
 
-As provas funcionais do banco passaram integralmente em `40ab44e`:
+As provas funcionais do banco passaram integralmente em `530ca6c`:
 
 - migration-smoke: PASS;
 - readiness completo: PASS;
 - preflight pós-apply: PASS;
-- pgTAP: **25 arquivos / 357 testes / PASS**;
+- pgTAP: **25 arquivos / 375 testes / PASS**;
 - lint do schema: PASS;
 - migrations em PostgreSQL limpo: PASS;
 - regeneração e conferência dos tipos: PASS;
@@ -312,7 +312,7 @@ As provas funcionais do banco passaram integralmente em `40ab44e`:
 - Edge Function: PASS;
 - frontend, Auth e RLS contra Supabase local: PASS.
 
-A falha externa anterior de registry (`Rate exceeded`) deixou de existir na reexecução e não permanece como pendência.
+A primeira execução do job duplicado da homologação agregada falhou antes dos testes porque a porta local `54322` estava ocupada. A reexecução passou integralmente; não permanece falha funcional ou de banco.
 
 ### 8.3 Homologação pré-Production
 
@@ -330,30 +330,30 @@ O único job vermelho é o Lighthouse móvel.
 
 Desktop:
 
-- performance: **78%**;
-- FCP: **1,07 s**;
-- LCP: **3,45 s** para limite de **3,50 s**.
+- performance: **79%**;
+- FCP: **981 ms**;
+- LCP: **3,35 s** para limite de **3,50 s** na medição de confirmação.
 
 Mobile:
 
-- performance: **68%**;
-- FCP: **2,82 s**;
-- LCP: **16,40 s** para limite de **15,00 s**.
+- performance: **61%**;
+- FCP: **3,98 s**;
+- LCP: **15,66 s** para limite de **15,00 s**.
 
 A dívida móvel já existia antes do PR #211 e permanece **não bloqueante para este hotfix desktop**. O threshold não foi relaxado. O gate agregado vermelho decorre exclusivamente desse job.
 
-### 8.4 Validação local do hardening posterior
+### 8.4 Validação do hardening posterior
 
-Passaram **800/800 unitários**, **7/7 integração**, `npm run check` e os testes de contrato focados. Este resultado local não substitui PostgreSQL/pgTAP, E2E e CI remotos do novo SHA.
+Passaram **800/800 unitários**, **7/7 integração**, `npm run check`, E2E, PostgreSQL/pgTAP, Auth/RLS, backup/restauração e os demais gates remotos do SHA `530ca6c`. A única exceção é o Lighthouse móvel já classificado acima.
 
 ## 9. Sequência restante
 
-### Etapa H6 — publicar e validar o hardening no PR Draft
+### Etapa H6 — publicar e validar o hardening no PR Draft — concluída
 
-- criar SHA remoto do candidato sem retirar o Draft;
-- executar unitários, E2E, pgTAP, Supabase readiness, migrations limpas, Auth/RLS, backup/restauração, segurança e Preview;
-- classificar cada falha antes de alterar produto ou teste;
-- manter a reconferência visual manual como refinamento posterior não bloqueante.
+- SHA remoto funcional validado: `530ca6cb62c385ca7ca35f30e82a723e1afed3f6`;
+- unitários, E2E, pgTAP, Supabase readiness, migrations limpas, Auth/RLS, backup/restauração, segurança e Preview executados;
+- falhas classificadas por evidência: um contrato de teste corrigido, uma colisão transitória de porta e Lighthouse móvel não bloqueante;
+- reconferência visual manual mantida como refinamento posterior não bloqueante.
 
 ### Etapa H7 — revisão adversarial e documentação final
 
