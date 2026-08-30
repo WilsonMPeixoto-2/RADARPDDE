@@ -9,7 +9,7 @@ Este documento define quais arquivos podem orientar o estado presente e quais ex
 
 O estado mutável do projeto fica em [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md). A estratégia vigente de validação fica em [`TEST_GOVERNANCE.md`](TEST_GOVERNANCE.md).
 
-O roteamento corrente começa em [`../handoff/2026-08-30-pr211-retomada-work.md`](../handoff/2026-08-30-pr211-retomada-work.md), seguido pelo handoff e plano do PR #211. O checkpoint do plano mestre continua em [`../handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](../handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md), mas só volta a orientar a execução depois da reconciliação pós-hotfix.
+O roteamento corrente começa em [`../handoff/2026-08-30-pr211-publicacao-concluida.md`](../handoff/2026-08-30-pr211-publicacao-concluida.md). O checkpoint do plano mestre continua em [`../handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](../handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md), mas só volta a orientar a execução depois da reconciliação pós-hotfix.
 
 ## 2. Classes
 
@@ -47,8 +47,9 @@ Um teste histórico não prevalece sobre regra e código posteriores. PR aberto,
 | `AGENTS.md` | regras de trabalho e proteção do projeto |
 | `README.md` | entrada do repositório |
 | `docs/CURRENT_STAGE.md` | estado corrente, prioridades e gatilhos de nova validação |
-| `docs/handoff/2026-08-30-pr211-retomada-work.md` | roteamento obrigatório entre sessões do PR #211 |
-| `docs/handoff/2026-08-28-pr211-hotfix-notas-fiscais.md` | checkpoint canônico do PR #211 enquanto Draft |
+| `docs/handoff/2026-08-30-pr211-publicacao-concluida.md` | roteamento obrigatório após a publicação do PR #211 |
+| `docs/handoff/2026-08-30-pr211-retomada-work.md` | histórico da retomada final do PR #211 |
+| `docs/handoff/2026-08-28-pr211-hotfix-notas-fiscais.md` | checkpoint histórico do PR #211 enquanto Draft |
 | `docs/superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md` | plano executável específico do hotfix; não substitui o plano mestre |
 | `docs/evidence/2026-08-28-pr211-referencias-visuais.md` | evidência/referência visual aprovada do bloco de Notas Fiscais |
 | `docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md` | classificação autoritativa dos 16 legados e das fixtures técnicas |
@@ -178,11 +179,11 @@ As auditorias dos incidentes de Gestão de Equipe permanecem válidas como hist�
 
 Arquivos de `docs/superpowers/plans/`, `docs/superpowers/specs/`, `docs/handoff/` e `docs/reports/` são normalmente **Histórico executado**, **Evidência** ou **Trabalho em andamento** conforme sua branch/PR.
 
-**Exceções expressas atuais:** o handoff de 30/08, o handoff de 28/08 e o plano do hotfix são **Trabalho em andamento canônico para o PR #211**; o handoff de 26/08 permanece **Canônico para a retomada do plano**, com reconciliação obrigatória pós-hotfix.
+**Exceções expressas atuais:** o handoff de publicação concluída é **Canônico — estado pós-publicação**; os handoffs de execução e o plano do hotfix são **Histórico executado/Evidência**; o handoff de 26/08 permanece **Canônico para a retomada do plano**, com reconciliação obrigatória pós-hotfix.
 
 `docs/handoff/2026-08-27-hotfix-boleto-internet.md` é **Histórico executado** do PR #203. Suas afirmações sobre a categoria autônoma `boletoInternet` não prevalecem sobre os PRs #208/#209 e o ADR-050.
 
-O plano `docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md` é **Canônico — aprovado, com PR1/PR2 já concluídos e PR3.1 temporariamente adiado pelo PR #211**. Seus checkboxes não comprovam implementação. O Word correspondente é **Referência canônica versionada**; a versão Markdown prevalece para busca, diff e execução.
+O plano `docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md` é **Canônico — aprovado, com PR1/PR2 concluídos e PR3.1 aguardando reconciliação pós-PR #211**. Seus checkboxes não comprovam implementação. O Word correspondente é **Referência canônica versionada**; a versão Markdown prevalece para busca, diff e execução.
 
 O handoff, o plano e o Word de 24/08 são **Superados como orientação operacional** e permanecem **Evidência/Histórico** do primeiro diagnóstico anterior ao PR #200. Não apagar nem reescrever esses arquivos.
 

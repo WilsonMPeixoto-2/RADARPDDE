@@ -108,4 +108,10 @@ No SHA funcional `ff8453c8fd0c4e5707d656b4520051962a48df96`, esses pontos foram 
 - duas Pendências de Assessoria de NFs distintas coexistem;
 - Prontuário exibe **Visualizar pendência**; novo envio e reanálise ficam na tela de Pendências.
 
-Em 29/08/2026, o responsável pelo produto informou que não consegue repetir a conferência visual neste momento e autorizou o avanço. A primeira inspeção autenticada permanece como evidência visual da estrutura; os ajustes residuais posteriores permanecem cobertos por regressão automatizada. Nova conferência visual fica registrada como refinamento recomendado para etapa posterior, não como bloqueio de merge.
+Em 29/08/2026, o responsável pelo produto informou que não conseguia repetir a conferência visual naquele momento e autorizou o avanço. Essa anotação ficou posteriormente **superada** pela inspeção final executada em 30/08/2026.
+
+A inspeção final em viewport desktop de 1280 px detectou overflow horizontal real na grade individual: os mínimos das quatro colunas excediam a largura útil do Prontuário e, em Consulta Assessoria, o controle **Enviada à Assessoria** podia ser deslocado/cortado.
+
+O defeito foi corrigido no PR #214, integrado no merge `cc842af7b7bc6341dab68aa55a533a2017923bcf`. A regressão E2E agora mede que os painéis de Notas Fiscais e Consulta Assessoria não possuem overflow horizontal e que o controle de envio permanece dentro dos limites do painel.
+
+A correção foi publicada no Vercel Production pelo deployment `dpl_33e4bM4z5YrbP5YGhfsr88pgwDPX`, `READY`. Monitoramento de Production e homologação do Supabase passaram após a publicação.

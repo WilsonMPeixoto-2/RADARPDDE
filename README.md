@@ -2,7 +2,7 @@
 
 Sistema institucional de acompanhamento operacional do PDDE da 4ª CRE/SME-Rio. O produto organiza competência mensal, carteira de unidades, prontuário, análise documental, pendências, contatos, notas fiscais, patrimônio, Gestão de Equipe, acompanhamento gerencial e exportações.
 
-> **Estado reconciliado em 30 de agosto de 2026:** a frente prioritária é o PR #211, ainda em Draft, para individualizar análise e Pendências de Notas Fiscais. O hardening foi publicado e validado no SHA `530ca6c`: todos os gates funcionais, de banco, segurança, E2E, backup e Preview passaram. O único vermelho efetivo é o Lighthouse móvel, não bloqueante por decisão expressa; o desktop passou na medição de confirmação. O gate agregado falha apenas por herdar o mobile. Production, Supabase Production e Vercel Production permanecem sem alterações do PR #211. O estado mutável completo fica em [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md).
+> **Estado reconciliado em 30 de agosto de 2026:** o PR #211 foi integrado e publicado no merge `aa82ab4e359f62259df33842fb794aa1e654c30c`. Supabase Production possui 43 migrations, incluindo `20260828023000_invoice_document_analysis_pendency`; Vercel Production está `READY` no deployment `dpl_2ApguJZe79buX9xD1od45RDTKYDR`; os smokes de publicação passaram. O Lighthouse móvel continua dívida não bloqueante deste hotfix desktop. A próxima frente é exclusivamente a reconciliação pós-hotfix com o plano mestre, antes de PR3.1. O estado completo fica em [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md).
 
 ## Fontes de verdade
 
@@ -44,7 +44,7 @@ Documentação antiga não redefine o código para ficar “coerente”. Quando 
 
 ## Correções consolidadas e diagnóstico atual
 
-O plano mestre pós-auditoria permanece vigente, mas está temporariamente pausado pelo PR #211. O hotfix mantém a bonificação de Notas Fiscais agregada, individualiza análise e Pendência por `registered_invoice_id`, cria nova `a_identificar` apenas como `Incorreto + Pendência`, preserva 16 registros legítimos como **Registro legado** e remove somente fixtures técnicas comprovadas por uma limpeza fail-closed. A regra e a continuidade entre sessões estão documentadas no handoff de 30/08 indicado abaixo.
+O plano mestre pós-auditoria permanece vigente, mas sua retomada está condicionada à reconciliação pós-PR #211. O hotfix publicado mantém a bonificação de Notas Fiscais agregada, individualiza análise e Pendência por `registered_invoice_id`, cria nova `a_identificar` apenas como `Incorreto + Pendência`, preserva 16 registros legítimos como **Registro legado** e removeu somente fixtures técnicas comprovadas por limpeza fail-closed. O resultado da publicação está documentado no handoff de encerramento indicado abaixo.
 
 O baseline atual incorpora, entre outros:
 
@@ -131,26 +131,24 @@ npm run check:functional-matrix
 Ordem de leitura:
 
 1. [`AGENTS.md`](AGENTS.md);
-2. [`docs/handoff/2026-08-30-pr211-retomada-work.md`](docs/handoff/2026-08-30-pr211-retomada-work.md);
+2. [`docs/handoff/2026-08-30-pr211-publicacao-concluida.md`](docs/handoff/2026-08-30-pr211-publicacao-concluida.md);
 3. [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md);
-4. [`docs/handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](docs/handoff/2026-08-28-pr211-hotfix-notas-fiscais.md);
+4. [`docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md);
 5. [`docs/superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](docs/superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md);
-6. [`docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md);
-7. [`docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md`](docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md);
-8. [`docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md`](docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md);
-9. [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md), [`docs/DECISION_LOG.md`](docs/DECISION_LOG.md) e [`docs/reference/STATUS_DOCUMENTOS.md`](docs/reference/STATUS_DOCUMENTOS.md);
-10. somente depois, o handoff e o plano mestre de 26/08 para a retomada pós-hotfix.
+6. [`docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md`](docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md);
+7. [`docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md`](docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md);
+8. [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md), [`docs/DECISION_LOG.md`](docs/DECISION_LOG.md) e [`docs/reference/STATUS_DOCUMENTOS.md`](docs/reference/STATUS_DOCUMENTOS.md);
+9. somente depois, os handoffs de execução do PR #211 e o plano mestre de 26/08.
 
-A porta de entrada vigente é o handoff de 30/08. Auditorias e planos anteriores permanecem históricos e não podem restaurar decisões superadas.
+A porta de entrada vigente é o handoff de publicação concluída de 30/08. Auditorias e planos anteriores permanecem históricos e não podem restaurar decisões superadas.
 
 ## Próxima sequência
 
-1. concluir o hardening e os gates remotos do PR #211 em Draft;
-2. repetir o preflight fail-closed imediatamente antes de eventual migration;
-3. somente com autorização explícita, retirar Draft, integrar, aplicar migration e publicar;
-4. revalidar `main`, Supabase Production e Vercel Production e reconciliar o PR #211 com o plano mestre;
-5. só então retomar PR3.1, PR3.2 e PR3.3, cada qual com gate próprio, e seguir as demais fases na ordem aprovada;
-6. executar PR8A antes de PR8B;
-7. medir em PR9A, estabilizar a metodologia em PR9B e só então otimizar por hipótese em PR9C.
+1. comparar o diff integrado do PR #211 com o plano mestre;
+2. classificar tarefas futuras como não afetadas, parcialmente atendidas, atendidas ou alteradas;
+3. atualizar o plano mestre e o handoff de retomada;
+4. só então iniciar PR3.1, PR3.2 e PR3.3, cada qual com gate próprio, e seguir as demais fases na ordem aprovada;
+5. executar PR8A antes de PR8B;
+6. medir em PR9A, estabilizar a metodologia em PR9B e só então otimizar por hipótese em PR9C.
 
 Nenhum PR, documento ou Preview autoriza por si só merge, migration ou mudança de Production fora do escopo aprovado.

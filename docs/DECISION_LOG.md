@@ -562,7 +562,7 @@ Consolidações conectadas anteriores à chave permanecem válidas por projeçã
 
 ## ADR-050 — Análise e Pendência individual por registro de Notas Fiscais
 
-**Status:** Aprovada; correções finais no PR #211, ainda em Draft
+**Status:** Aprovada, integrada e publicada pelo PR #211
 
 `notaFiscal` permanece agregada para bonificação, mas análise técnica e Pendência são individuais por `registered_invoice_id`. `a_identificar` nova nasce `Incorreto + Pendência` atomicamente; identificação posterior ocorre em **Pendências → Registrar novo envio**, preservando o ID.
 
@@ -570,11 +570,35 @@ Consulta Assessoria também é individual por NF de serviço. Pendência da NF A
 
 Novo envio e reanálise fiscal ou de Assessoria exigem a Pendência e a tentativa reais, no estado correto e com versão esperada. A reanálise usa a tentativa mais recente ainda não analisada e não pode reescrever o conteúdo enviado pela escola. Identificação como bem permanente cria patrimônio novo e correspondente; não reaproveita bem anterior nem aceita vínculo oculto em outro tipo.
 
-A classificação de Production foi refinada por autoria: dos 20 `a_identificar` anteriores ao contrato, 16 são legítimos de Controladores e serão preservados como **Registro legado** sem história inventada; 4 são fixtures da conta técnica. A limpeza fail-closed cobre 12 despesas/NFs de teste e três Pendências fiscais genéricas dos cenários do hotfix.
+A classificação de Production foi refinada por autoria: dos 20 `a_identificar` anteriores ao contrato, 16 são legítimos de Controladores e foram preservados como **Registro legado** sem história inventada; 4 eram fixtures da conta técnica. A limpeza fail-closed removeu 12 despesas/NFs de teste e três Pendências fiscais genéricas dos cenários do hotfix.
 
-A antiga decisão de reparar o Boleto 1234 foi superada porque boleto e Pendência foram comprovados como dados de teste. Ambos integram a limpeza, com logs preservados.
+A antiga decisão de reparar o Boleto 1234 foi superada porque boleto e Pendência foram comprovados como dados de teste. Ambos foram removidos pela limpeza, com logs preservados.
 
 O resumo técnico fiscal continua derivado internamente, mas não aparece como etiqueta agregada no cabeçalho: os estados ficam nas linhas e o cabeçalho mostra bonificação e quantidade de Pendências. A reconferência visual manual posterior aos ajustes foi expressamente adiada e não bloqueia o merge; isso não dispensa gates funcionais desktop.
 
 **Documento integral:** `docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`.  
 **Evidência de dados:** `docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md`.
+
+---
+
+## ADR-051 — Adiamento deliberado do hardening de escrita direta em registered_invoices
+
+**Status:** Aprovada — implementação deliberadamente adiada
+
+A auditoria pós-publicação do PR #211 confirmou o fluxo funcional normal e não encontrou corrupção atual em Production, mas identificou uma lacuna residual de integridade para tentativas de escrita direta em `registered_invoices`, especialmente nos campos `id`, `verification_id` e `source_context_key`.
+
+Por decisão explícita do responsável pelo produto, essa blindagem adicional do Supabase **não será executada durante as frentes atuais de correção funcional**. Ela somente será retomada depois que todas as implementações previstas nesses planos estiverem concluídas e validadas.
+
+Até esse gatilho, o estado é **risco conhecido, aceito temporariamente e adiado**, não “resolvido”. O tema não reabre o PR #211, não bloqueia a reconciliação documental e não deve ser transformado em gate de PR3.1 ou das demais entregas funcionais.
+
+**Documento integral:** `docs/decisions/ADR-051-adiamento-hardening-registered-invoices.md`.
+
+---
+
+## Evento pós-ADR-050 — fechamento visual pelo PR #214
+
+A inspeção visual final do hotfix de Notas Fiscais identificou overflow horizontal da grade individual em desktop de 1280 px. O defeito não alterava as regras funcionais, mas podia cortar/deslocar o controle **Enviada à Assessoria**.
+
+O PR #214 ajustou exclusivamente a composição responsiva desktop, preservando as quatro áreas canônicas e adicionando regressão E2E de largura/alinhamento. Foi integrado em `main` no merge `cc842af7b7bc6341dab68aa55a533a2017923bcf` e publicado no deployment Vercel `dpl_33e4bM4z5YrbP5YGhfsr88pgwDPX`, `READY`.
+
+Monitoramento de Production e homologação do Supabase passaram após a publicação. O Lighthouse móvel permanece dívida separada e não bloqueante.

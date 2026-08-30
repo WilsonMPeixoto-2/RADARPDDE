@@ -1,6 +1,6 @@
 # ADR-050 — análise e Pendência individual por registro de Notas Fiscais
 
-**Status:** Aceita; hardening final em validação no PR #211, ainda em Draft
+**Status:** Aceita, integrada e publicada pelo PR #211
 **Data:** 28–30 de agosto de 2026
 **Escopo:** hotfix PR #211  
 **Substitui:** especializa e supera o modelo documental do ADR-049; não altera ADR-047 ou ADR-048
@@ -87,7 +87,8 @@ Regras adicionais:
 - `Registrar novo envio` e `Reanalisar` pertencem exclusivamente à tela de Pendências;
 - o drawer permite somente **Visualizar → Editar → Salvar**;
 - desktop é o alvo deste hotfix; mobile não é gate bloqueante desta entrega;
-- a primeira inspeção autenticada continua como evidência estrutural; a reconferência visual manual posterior aos ajustes foi expressamente adiada e não bloqueia o merge.
+- a inspeção visual final em desktop foi executada após a publicação, detectou overflow da grade individual em 1280 px e originou o PR #214;
+- o PR #214 corrigiu o overflow sem alterar regra funcional e adicionou proteção E2E de largura/alinhamento; merge final `cc842af7b7bc6341dab68aa55a533a2017923bcf`.
 
 ## Limite entre aplicação e banco
 
@@ -104,6 +105,14 @@ O banco deve proteger:
 - atomicidade.
 
 O banco não deve duplicar toda a lógica funcional já existente nos serviços.
+
+### Limite conhecido após publicação
+
+A auditoria pós-publicação confirmou que o caminho normal do produto e as RPCs críticas estão coerentes com este contrato, mas identificou uma lacuna residual fora do fluxo normal: usuários autenticados com permissão de escrita da escola ainda podem, em tese, tentar atualizar diretamente alguns campos estruturais de `registered_invoices` que deveriam ter proteção adicional no próprio banco, especialmente `id`, `verification_id` e `source_context_key`.
+
+Não foi encontrada corrupção atual de Production nem divergência nos vínculos existentes. O risco é **latente e de contorno direto da camada de aplicação**, não um defeito observado no uso normal do hotfix.
+
+Por decisão explícita do responsável pelo produto, esse hardening adicional foi **deliberadamente adiado** até que todas as implementações dos planos de correção de funcionalidades estejam concluídas e validadas. Ele não reabre nem bloqueia o PR #211. A decisão de sequência e os critérios de retomada estão registrados na ADR-051.
 
 ## Histórico, fixtures e Production
 
@@ -149,4 +158,4 @@ Uma auditoria que proponha voltar ao lookup genérico ou abrir o modal de Assess
 
 ## Retorno ao plano mestre
 
-Após eventual publicação do PR #211, executar re-baseline de `main`, Supabase Production e Vercel Production, reconciliar o plano mestre de 26/08 e somente então iniciar PR3.1.
+Após a publicação do PR #211, o re-baseline de `main`, Supabase Production e Vercel Production foi concluído. Resta reconciliar o plano mestre de 26/08 e somente então iniciar PR3.1.
