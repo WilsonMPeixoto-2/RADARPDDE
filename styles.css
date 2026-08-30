@@ -3579,6 +3579,51 @@ body.dark-theme .radar-auth-brand {
     height: 19px;
 }
 
+/*
+ * O Prontuário reserva uma coluna lateral para o contexto do programa.
+ * Em desktops de 1280–1440 px, os mínimos originais da grade somavam mais
+ * que a largura restante e a última coluna era cortada pelo painel.
+ * Mantemos as quatro áreas do contrato visual, apenas compactando mínimos,
+ * gaps e controles nesse intervalo.
+ */
+@media (min-width: 901px) and (max-width: 1440px) {
+    .invoice-document-panel-header,
+    .invoice-document-list-head,
+    .invoice-document-row {
+        grid-template-columns:
+            minmax(220px, 1.25fr)
+            minmax(145px, 0.95fr)
+            minmax(140px, 0.75fr)
+            minmax(150px, 0.82fr);
+        column-gap: 12px;
+    }
+
+    .invoice-document-panel-header,
+    .invoice-document-list-head,
+    .invoice-document-row {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .invoice-document-analysis-select {
+        min-width: 0;
+        width: min(100%, 158px);
+    }
+
+    .service-advisory-delivery label {
+        max-width: 100%;
+    }
+
+    .service-advisory-delivery label > span {
+        min-width: 0;
+        white-space: normal;
+    }
+
+    .invoice-pendency-view-button {
+        max-width: 100%;
+    }
+}
+
 .pendency-preview-shell[hidden] {
     display: none !important;
 }
