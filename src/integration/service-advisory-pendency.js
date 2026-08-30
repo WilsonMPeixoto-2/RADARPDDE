@@ -334,23 +334,6 @@
         if (!invoiceService || !pendencyService) return false;
         if (pendencyService.__radarServiceAdvisoryPendency === true) return true;
 
-        const originalUpdateAdvisory = invoiceService.updateServiceAdvisory.bind(invoiceService);
-        invoiceService.updateServiceAdvisory = function updateServiceAdvisoryWithPendencyGuard(input = {}) {
-            if (text(input.analysis) !== 'Incorreto') return originalUpdateAdvisory(input);
-            const state = invoiceService.getState();
-            const invoice = state.registeredInvoices.find(record => String(record.id) === String(input.id));
-            const active = findActiveForInvoice(root, state, invoice);
-            if (!active) {
-                fail(
-                    'PENDENCY_REQUIRED',
-                    'A análise “Incorreto” da Assessoria só pode ser confirmada junto com a pendência da Nota Fiscal.',
-                    'updateServiceAdvisory',
-                    { registeredInvoiceId: text(input.id) }
-                );
-            }
-            return originalUpdateAdvisory(input);
-        };
-
         const originalOpen = pendencyService.open.bind(pendencyService);
         pendencyService.open = async function openWithServiceAdvisory(input = {}) {
             if (!pendingMatches(input)) return originalOpen(input);

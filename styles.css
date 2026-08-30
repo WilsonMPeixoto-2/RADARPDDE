@@ -3075,6 +3075,20 @@ body.dark-theme .radar-auth-brand {
     white-space: nowrap;
 }
 
+.invoice-summary-block.is-pendencies.has-legacy {
+    flex-wrap: wrap;
+    align-content: center;
+    row-gap: 5px;
+}
+
+.invoice-summary-block.is-pendencies .invoice-legacy-pendency-button {
+    width: 100%;
+    min-height: 30px;
+    justify-content: center;
+    padding: 5px 8px;
+    font-size: 0.67rem;
+}
+
 .invoice-summary-pendency-icon {
     width: 34px;
     height: 34px;

@@ -10012,8 +10012,17 @@ function renderProntuarioVerificacoes(esc) {
                             && ['Aberta', 'Aguardando reanálise'].includes(pendency.status)
                             && Boolean(pendency.registeredInvoiceId || pendency.registered_invoice_id)
                         ));
+                        const activeLegacyInvoicePendencies = documentaryPendencies.filter(pendency => (
+                            pendency.escolaId === esc.id
+                            && (pendency.competenciaOrigem || pendency.competencia) === c.key
+                            && pendency.programaId === progId
+                            && pendency.documentoKey === 'notaFiscal'
+                            && ['Aberta', 'Aguardando reanálise'].includes(pendency.status)
+                            && !Boolean(pendency.registeredInvoiceId || pendency.registered_invoice_id)
+                        ));
+                        const legacyInvoicePendency = activeLegacyInvoicePendencies[0] || null;
                         const activePendencyCount = activeInvoicePendencies.length
-                            + (activePend ? 1 : 0);
+                            + activeLegacyInvoicePendencies.length;
                         const canMutateInvoice = accessProfile !== 'inventario'
                             && accessProfile !== 'sme'
                             && !isBonifLocked;
@@ -10199,11 +10208,17 @@ function renderProntuarioVerificacoes(esc) {
                                                     ${fiscalBonificationHTML}
                                                 </div>
                                                 ${activePendencyCount > 0 ? `
-                                                    <div class="invoice-summary-block is-pendencies">
+                                                    <div class="invoice-summary-block is-pendencies ${legacyInvoicePendency ? 'has-legacy' : ''}">
                                                         <span class="invoice-summary-pendency-icon">
                                                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5.5h9M5 10h9M5 14.5h5"/><path d="M17 12.5v4M17 19h.01"/><path d="M15.3 11.6 11.8 18a1.5 1.5 0 0 0 1.3 2.2h7.8a1.5 1.5 0 0 0 1.3-2.2l-3.5-6.4a1.5 1.5 0 0 0-2.7 0z"/></svg>
                                                         </span>
                                                         <strong>${activePendencyCount} ${activePendencyCount === 1 ? 'pendência' : 'pendências'}</strong>
+                                                        ${canUseVerificationActions && legacyInvoicePendency ? `
+                                                            <button type="button" class="invoice-pendency-view-button invoice-legacy-pendency-button"
+                                                                onclick="openPendencyDrawer('${escapeHtml(legacyInvoicePendency.id)}')">
+                                                                <span>Visualizar pendência legada</span>
+                                                            </button>
+                                                        ` : ''}
                                                     </div>
                                                 ` : ''}
                                             </div>
@@ -10665,6 +10680,13 @@ function pendencyDrawerDocumentMeta(pendency) {
         return {
             title: getInvoiceDocumentTitle(invoice),
             subtitle: `${getInvoiceDocumentTypeLabel(invoice)} · ${formatInvoiceCurrency(invoice.valor)}`
+        };
+    }
+    const documentKey = pendency?.documentoKey || pendency?.document_key;
+    if (documentKey === 'notaFiscal' && !invoiceId) {
+        return {
+            title: 'Pendência legada de Notas Fiscais',
+            subtitle: 'Registro agregado anterior à individualização'
         };
     }
     const snapshot = pendency?.documentSnapshot || {};

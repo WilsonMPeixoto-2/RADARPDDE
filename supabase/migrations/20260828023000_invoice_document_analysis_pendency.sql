@@ -357,12 +357,20 @@ declare
     v_invoice_id text := nullif(p_invoice ->> 'id', '');
     v_pendency_invoice_id text := nullif(p_pendency ->> 'registered_invoice_id', '');
     v_analysis text := p_invoice #>> '{payload,analiseDocumentoFiscal}';
+    v_actual_invoice public.registered_invoices%rowtype;
+    v_actual_verification public.verifications%rowtype;
+    v_invoice_patch jsonb;
+    v_verification_patch jsonb;
     v_invoice_result jsonb;
     v_pendency_result jsonb;
 begin
-    if v_invoice_id is null
+    if coalesce(jsonb_typeof(p_invoice), '') <> 'object'
+        or coalesce(jsonb_typeof(p_verification_patch), '') <> 'object'
+        or coalesce(jsonb_typeof(p_pendency), '') <> 'object'
+        or v_invoice_id is null
         or v_pendency_invoice_id is distinct from v_invoice_id
-        or nullif(p_pendency ->> 'document_key', '') <> 'notaFiscal' then
+        or nullif(p_pendency ->> 'document_key', '') is distinct from 'notaFiscal'
+        or nullif(p_pendency ->> 'status', '') is distinct from 'Aberta' then
         raise exception 'VALIDATION_ERROR: Pendência de Notas Fiscais deve apontar para a despesa atualizada';
     end if;
     if nullif(p_invoice ->> 'expense_type', '') not in (
@@ -371,16 +379,94 @@ begin
         or v_analysis <> 'Incorreto' then
         raise exception 'VALIDATION_ERROR: abertura atômica exige documento fiscal individual em estado Incorreto';
     end if;
-    if nullif(p_invoice ->> 'school_id', '') is distinct from nullif(p_pendency ->> 'school_id', '')
-        or nullif(p_invoice ->> 'competence_id', '') is distinct from nullif(p_pendency ->> 'competence_origin', '')
-        or nullif(p_invoice ->> 'program_id', '') is distinct from nullif(p_pendency ->> 'program_id', '') then
+    select * into v_actual_invoice
+      from public.registered_invoices
+     where id = v_invoice_id
+     for update;
+    if not found then raise exception 'NOT_FOUND: registered_invoices/%', v_invoice_id; end if;
+    if not public.can_write_school(v_actual_invoice.school_id) then
+        raise exception 'AUTHORIZATION_DENIED: usuário sem escrita para a escola %', v_actual_invoice.school_id;
+    end if;
+    if p_expected_invoice_version is null
+        or v_actual_invoice.row_version <> p_expected_invoice_version then
+        raise exception 'OPTIMISTIC_CONFLICT: registered_invoices/%', v_invoice_id;
+    end if;
+    if nullif(p_invoice ->> 'school_id', '') is distinct from v_actual_invoice.school_id
+        or nullif(p_invoice ->> 'competence_id', '') is distinct from v_actual_invoice.competence_id
+        or nullif(p_invoice ->> 'program_id', '') is distinct from v_actual_invoice.program_id
+        or nullif(p_invoice ->> 'verification_id', '') is distinct from v_actual_invoice.verification_id
+        or nullif(p_invoice ->> 'source_context_key', '') is distinct from v_actual_invoice.source_context_key
+        or nullif(p_invoice ->> 'linked_asset_id', '') is distinct from v_actual_invoice.linked_asset_id
+        or nullif(p_invoice ->> 'description', '') is distinct from v_actual_invoice.description
+        or nullif(p_invoice ->> 'expense_type', '') is distinct from v_actual_invoice.expense_type
+        or coalesce(p_invoice ->> 'invoice_number', '') is distinct from coalesce(v_actual_invoice.invoice_number, '')
+        or (p_invoice ->> 'amount')::numeric is distinct from v_actual_invoice.amount
+        or (coalesce(p_invoice -> 'payload', '{}'::jsonb) - 'analiseDocumentoFiscal')
+            is distinct from (coalesce(v_actual_invoice.payload, '{}'::jsonb) - 'analiseDocumentoFiscal') then
+        raise exception 'VALIDATION_ERROR: abertura fiscal não pode alterar os dados da despesa';
+    end if;
+    if nullif(p_pendency ->> 'school_id', '') is distinct from v_actual_invoice.school_id
+        or nullif(p_pendency ->> 'competence_origin', '') is distinct from v_actual_invoice.competence_id
+        or nullif(p_pendency ->> 'program_id', '') is distinct from v_actual_invoice.program_id then
         raise exception 'VALIDATION_ERROR: despesa e Pendência pertencem a contextos diferentes';
     end if;
 
+    select * into v_actual_verification
+      from public.verifications
+     where id = v_actual_invoice.verification_id
+       and school_id = v_actual_invoice.school_id
+       and competence_id = v_actual_invoice.competence_id
+       and program_id = v_actual_invoice.program_id
+     for update;
+    if not found then raise exception 'NOT_FOUND: verifications/%', v_actual_invoice.verification_id; end if;
+    if p_expected_verification_version is null
+        or v_actual_verification.row_version <> p_expected_verification_version then
+        raise exception 'OPTIMISTIC_CONFLICT: verifications/%', v_actual_invoice.verification_id;
+    end if;
+    if nullif(p_verification_patch ->> 'id', '') is distinct from v_actual_verification.id
+        or nullif(p_verification_patch ->> 'school_id', '') is distinct from v_actual_verification.school_id
+        or nullif(p_verification_patch ->> 'competence_id', '') is distinct from v_actual_verification.competence_id
+        or nullif(p_verification_patch ->> 'program_id', '') is distinct from v_actual_verification.program_id
+        or coalesce(p_verification_patch #>> '{analysis,notaFiscal}', '') not in (
+            'Correto', 'Correto (Atrasado)', 'Incorreto', 'Não analisado'
+        )
+        or coalesce(p_verification_patch -> 'bonification', '{}'::jsonb)
+            is distinct from coalesce(v_actual_verification.bonification, '{}'::jsonb)
+        or (coalesce(p_verification_patch -> 'analysis', '{}'::jsonb) - 'notaFiscal')
+            is distinct from (coalesce(v_actual_verification.analysis, '{}'::jsonb) - 'notaFiscal')
+        or coalesce(p_verification_patch -> 'payload', '{}'::jsonb)
+            is distinct from coalesce(v_actual_verification.payload, '{}'::jsonb)
+        or (
+            p_verification_patch ? 'bonus_result'
+            and nullif(p_verification_patch ->> 'bonus_result', '') is distinct from v_actual_verification.bonus_result
+        ) then
+        raise exception 'VALIDATION_ERROR: abertura fiscal contém alteração indevida da verificação';
+    end if;
+
+    v_invoice_patch := to_jsonb(v_actual_invoice) - 'row_version' - 'created_at' - 'updated_at';
+    v_invoice_patch := jsonb_set(
+        v_invoice_patch,
+        '{payload}',
+        jsonb_set(
+            coalesce(v_actual_invoice.payload, '{}'::jsonb),
+            '{analiseDocumentoFiscal}',
+            to_jsonb(v_analysis),
+            true
+        ),
+        true
+    );
+    v_verification_patch := to_jsonb(v_actual_verification) - 'row_version' - 'created_at' - 'updated_at';
+    v_verification_patch := jsonb_set(
+        v_verification_patch,
+        '{analysis,notaFiscal}',
+        p_verification_patch #> '{analysis,notaFiscal}',
+        true
+    );
+
     select public.save_invoice_with_effects(
-        p_invoice,
+        v_invoice_patch,
         null,
-        p_verification_patch,
+        v_verification_patch,
         p_expected_invoice_version,
         null,
         p_expected_verification_version,
@@ -520,6 +606,9 @@ begin
 
     v_identifying := v_actual_invoice.expense_type = 'a_identificar';
     if v_identifying then
+        if v_actual_invoice.linked_asset_id is not null then
+            raise exception 'INTEGRITY_CONFLICT: despesa a identificar não pode possuir patrimônio anterior';
+        end if;
         if v_requested_type not in ('consumo', 'permanente', 'servico', 'boleto_internet')
             or nullif(p_invoice ->> 'description', '') is null
             or nullif(p_invoice ->> 'invoice_number', '') is null
@@ -532,17 +621,34 @@ begin
         if v_requested_type = 'permanente' then
             if p_asset is null
                 or nullif(p_asset ->> 'id', '') is null
-                or nullif(p_asset ->> 'school_id', '') is distinct from v_actual_invoice.school_id then
-                raise exception 'VALIDATION_ERROR: identificação como bem permanente exige registro patrimonial da mesma escola';
+                or nullif(p_asset ->> 'school_id', '') is distinct from v_actual_invoice.school_id
+                or nullif(p_invoice ->> 'linked_asset_id', '') is distinct from nullif(p_asset ->> 'id', '')
+                or nullif(p_asset ->> 'competence_id', '') is distinct from v_actual_invoice.competence_id
+                or nullif(p_asset ->> 'description', '') is distinct from nullif(p_invoice ->> 'description', '')
+                or nullif(p_asset ->> 'expense_type', '') is distinct from 'permanente'
+                or coalesce(p_asset ->> 'invoice_number', '') is distinct from coalesce(p_invoice ->> 'invoice_number', '')
+                or (p_asset ->> 'amount')::numeric is distinct from (p_invoice ->> 'amount')::numeric then
+                raise exception 'VALIDATION_ERROR: identificação como bem permanente exige patrimônio novo e correspondente à despesa';
             end if;
-        elsif p_asset is not null then
-            raise exception 'VALIDATION_ERROR: somente bem permanente pode criar patrimônio durante a identificação';
+            if p_expected_asset_version is not null
+                or exists (
+                    select 1
+                      from public.assets
+                     where id = p_asset ->> 'id'
+                ) then
+                raise exception 'VALIDATION_ERROR: identificação como bem permanente deve criar patrimônio novo';
+            end if;
+        elsif p_asset is not null
+            or p_expected_asset_version is not null
+            or nullif(p_invoice ->> 'linked_asset_id', '') is not null then
+            raise exception 'VALIDATION_ERROR: somente bem permanente pode criar ou manter vínculo patrimonial durante a identificação';
         end if;
     else
         if v_requested_type is distinct from v_actual_invoice.expense_type
             or nullif(p_invoice ->> 'description', '') is distinct from v_actual_invoice.description
             or coalesce(p_invoice ->> 'invoice_number', '') is distinct from coalesce(v_actual_invoice.invoice_number, '')
             or (p_invoice ->> 'amount')::numeric is distinct from v_actual_invoice.amount
+            or nullif(p_invoice ->> 'linked_asset_id', '') is distinct from v_actual_invoice.linked_asset_id
             or p_asset is not null then
             raise exception 'VALIDATION_ERROR: novo envio de documento já identificado não pode editar a despesa';
         end if;
@@ -602,18 +708,27 @@ as $$
 declare
     v_invoice_id text := nullif(p_invoice ->> 'id', '');
     v_analysis text := p_invoice #>> '{payload,analiseDocumentoFiscal}';
-    v_result text := nullif(p_attempt ->> 'result', '');
+    v_result text := lower(btrim(coalesce(p_attempt ->> 'result', '')));
     v_actual_invoice public.registered_invoices%rowtype;
     v_actual_pendency public.pendencies%rowtype;
     v_actual_attempt public.pendency_attempts%rowtype;
     v_actual_verification public.verifications%rowtype;
-    v_latest_attempt integer;
+    v_invoice_patch jsonb;
+    v_pendency_patch jsonb;
+    v_attempt_patch jsonb;
+    v_attempt_payload jsonb;
+    v_verification_patch jsonb;
     v_invoice_result jsonb;
     v_reanalysis_result jsonb;
     v_log public.administrative_logs%rowtype;
+    v_key text;
 begin
-    if v_invoice_id is null
+    if coalesce(jsonb_typeof(p_invoice), '') <> 'object'
+        or coalesce(jsonb_typeof(p_pendency), '') <> 'object'
+        or coalesce(jsonb_typeof(p_verification_patch), '') <> 'object'
+        or v_invoice_id is null
         or p_attempt is null
+        or coalesce(jsonb_typeof(p_attempt), '') <> 'object'
         or nullif(p_attempt ->> 'id', '') is null
         or nullif(p_pendency ->> 'registered_invoice_id', '') is distinct from v_invoice_id
         or nullif(p_pendency ->> 'document_key', '') <> 'notaFiscal' then
@@ -653,19 +768,26 @@ begin
 
     select * into v_actual_attempt
       from public.pendency_attempts
-     where id = p_attempt ->> 'id'
-       and pendency_id = v_actual_pendency.id
+     where pendency_id = v_actual_pendency.id
+     order by attempt_number desc
+     limit 1
      for update;
-    if not found then
-        raise exception 'VALIDATION_ERROR: tentativa não pertence à Pendência informada';
-    end if;
-    select max(attempt_number) into v_latest_attempt
-      from public.pendency_attempts
-     where pendency_id = v_actual_pendency.id;
-    if v_actual_attempt.attempt_number is distinct from v_latest_attempt
+    if not found
         or v_actual_attempt.result is not null
         or v_actual_attempt.analyzed_at is not null then
         raise exception 'VALIDATION_ERROR: reanálise exige a tentativa mais recente ainda aguardando';
+    end if;
+    if v_actual_attempt.id is distinct from nullif(p_attempt ->> 'id', '')
+        or v_actual_attempt.pendency_id is distinct from nullif(p_attempt ->> 'pendency_id', '')
+        or v_actual_attempt.attempt_number is distinct from (p_attempt ->> 'attempt_number')::integer then
+        raise exception 'VALIDATION_ERROR: tentativa informada não é o novo envio fiscal aguardando mais recente';
+    end if;
+    if nullif(p_attempt ->> 'analyzed_at', '') is null
+        or nullif(p_attempt ->> 'submitted_at', '')::timestamptz is distinct from v_actual_attempt.submitted_at
+        or nullif(p_attempt ->> 'available_at', '')::timestamptz is distinct from v_actual_attempt.available_at
+        or coalesce(p_attempt ->> 'observation', '') is distinct from v_actual_attempt.observation
+        or coalesce(p_attempt ->> 'drive_url', '') is distinct from v_actual_attempt.drive_url then
+        raise exception 'VALIDATION_ERROR: reanálise fiscal não pode reescrever o novo envio da escola';
     end if;
 
     if v_result not in ('correto', 'incorreto', 'arquivo_indisponivel') then
@@ -685,15 +807,21 @@ begin
         or nullif(p_invoice ->> 'competence_id', '') is distinct from v_actual_invoice.competence_id
         or nullif(p_invoice ->> 'program_id', '') is distinct from v_actual_invoice.program_id
         or nullif(p_invoice ->> 'verification_id', '') is distinct from v_actual_invoice.verification_id
+        or nullif(p_invoice ->> 'source_context_key', '') is distinct from v_actual_invoice.source_context_key
+        or nullif(p_invoice ->> 'linked_asset_id', '') is distinct from v_actual_invoice.linked_asset_id
         or nullif(p_invoice ->> 'expense_type', '') is distinct from v_actual_invoice.expense_type
         or nullif(p_invoice ->> 'description', '') is distinct from v_actual_invoice.description
         or coalesce(p_invoice ->> 'invoice_number', '') is distinct from coalesce(v_actual_invoice.invoice_number, '')
-        or (p_invoice ->> 'amount')::numeric is distinct from v_actual_invoice.amount then
+        or (p_invoice ->> 'amount')::numeric is distinct from v_actual_invoice.amount
+        or (coalesce(p_invoice -> 'payload', '{}'::jsonb) - 'analiseDocumentoFiscal')
+            is distinct from (coalesce(v_actual_invoice.payload, '{}'::jsonb) - 'analiseDocumentoFiscal') then
         raise exception 'VALIDATION_ERROR: reanálise não pode alterar a identidade ou os dados da despesa';
     end if;
     if nullif(p_pendency ->> 'school_id', '') is distinct from v_actual_invoice.school_id
         or nullif(p_pendency ->> 'competence_origin', '') is distinct from v_actual_invoice.competence_id
-        or nullif(p_pendency ->> 'program_id', '') is distinct from v_actual_invoice.program_id then
+        or nullif(p_pendency ->> 'program_id', '') is distinct from v_actual_invoice.program_id
+        or nullif(p_pendency ->> 'registered_invoice_id', '') is distinct from v_actual_invoice.id
+        or nullif(p_pendency ->> 'document_key', '') is distinct from 'notaFiscal' then
         raise exception 'VALIDATION_ERROR: contexto da reanálise não corresponde ao documento';
     end if;
 
@@ -709,12 +837,84 @@ begin
         or v_actual_verification.row_version <> p_expected_verification_version then
         raise exception 'OPTIMISTIC_CONFLICT: verifications/%', v_actual_invoice.verification_id;
     end if;
-    if nullif(p_verification_patch ->> 'id', '') is distinct from v_actual_invoice.verification_id then
-        raise exception 'VALIDATION_ERROR: verificação da reanálise não pertence ao documento';
+    if nullif(p_verification_patch ->> 'id', '') is distinct from v_actual_verification.id
+        or nullif(p_verification_patch ->> 'school_id', '') is distinct from v_actual_verification.school_id
+        or nullif(p_verification_patch ->> 'competence_id', '') is distinct from v_actual_verification.competence_id
+        or nullif(p_verification_patch ->> 'program_id', '') is distinct from v_actual_verification.program_id
+        or coalesce(p_verification_patch #>> '{analysis,notaFiscal}', '') not in (
+            'Correto', 'Correto (Atrasado)', 'Incorreto', 'Não analisado'
+        )
+        or coalesce(p_verification_patch -> 'bonification', '{}'::jsonb)
+            is distinct from coalesce(v_actual_verification.bonification, '{}'::jsonb)
+        or (coalesce(p_verification_patch -> 'analysis', '{}'::jsonb) - 'notaFiscal')
+            is distinct from (coalesce(v_actual_verification.analysis, '{}'::jsonb) - 'notaFiscal')
+        or coalesce(p_verification_patch -> 'payload', '{}'::jsonb)
+            is distinct from coalesce(v_actual_verification.payload, '{}'::jsonb)
+        or (
+            p_verification_patch ? 'bonus_result'
+            and nullif(p_verification_patch ->> 'bonus_result', '') is distinct from v_actual_verification.bonus_result
+        ) then
+        raise exception 'VALIDATION_ERROR: reanálise fiscal contém alteração indevida da verificação';
     end if;
 
+    v_invoice_patch := to_jsonb(v_actual_invoice) - 'row_version' - 'created_at' - 'updated_at';
+    v_invoice_patch := jsonb_set(
+        v_invoice_patch,
+        '{payload}',
+        jsonb_set(
+            coalesce(v_actual_invoice.payload, '{}'::jsonb),
+            '{analiseDocumentoFiscal}',
+            to_jsonb(v_analysis),
+            true
+        ),
+        true
+    );
+    v_pendency_patch := (
+        to_jsonb(v_actual_pendency) - 'row_version' - 'created_at' - 'updated_at'
+    ) || jsonb_build_object(
+        'status', p_pendency ->> 'status',
+        'responsible_area', coalesce(p_pendency ->> 'responsible_area', v_actual_pendency.responsible_area),
+        'next_actor', coalesce(p_pendency ->> 'next_actor', v_actual_pendency.next_actor),
+        'reason', coalesce(p_pendency ->> 'reason', v_actual_pendency.reason),
+        'notes', coalesce(p_pendency ->> 'notes', v_actual_pendency.notes),
+        'resolved_at', p_pendency -> 'resolved_at',
+        'canceled_at', null,
+        'payload', coalesce(p_pendency -> 'payload', v_actual_pendency.payload)
+    );
+
+    v_attempt_payload := coalesce(v_actual_attempt.payload, '{}'::jsonb);
+    foreach v_key in array array[
+        'status', 'dataAnalise', 'analisadoPor', 'resultado',
+        'errosEncontrados', 'observacaoAnalise'
+    ] loop
+        if coalesce(p_attempt -> 'payload', '{}'::jsonb) ? v_key then
+            v_attempt_payload := jsonb_set(
+                v_attempt_payload,
+                array[v_key],
+                p_attempt -> 'payload' -> v_key,
+                true
+            );
+        end if;
+    end loop;
+    v_attempt_patch := (
+        to_jsonb(v_actual_attempt) - 'row_version' - 'created_at' - 'updated_at'
+    ) || jsonb_build_object(
+        'analyzed_at', p_attempt -> 'analyzed_at',
+        'result', v_result,
+        'errors', coalesce(p_attempt -> 'errors', v_actual_attempt.errors),
+        'payload', v_attempt_payload
+    );
+
+    v_verification_patch := to_jsonb(v_actual_verification) - 'row_version' - 'created_at' - 'updated_at';
+    v_verification_patch := jsonb_set(
+        v_verification_patch,
+        '{analysis,notaFiscal}',
+        p_verification_patch #> '{analysis,notaFiscal}',
+        true
+    );
+
     select public.save_invoice_with_effects(
-        p_invoice,
+        v_invoice_patch,
         null,
         null,
         p_expected_invoice_version,
@@ -724,9 +924,9 @@ begin
     ) into v_invoice_result;
 
     select public.reanalyze_pendency_with_verification(
-        p_pendency,
-        p_attempt,
-        p_verification_patch,
+        v_pendency_patch,
+        v_attempt_patch,
+        v_verification_patch,
         p_expected_pendency_version,
         p_expected_verification_version,
         p_administrative_log
@@ -748,6 +948,637 @@ $$;
 
 revoke all on function public.reanalyze_invoice_document_pendency(jsonb, integer, jsonb, jsonb, jsonb, integer, integer, jsonb) from public, anon;
 grant execute on function public.reanalyze_invoice_document_pendency(jsonb, integer, jsonb, jsonb, jsonb, integer, integer, jsonb) to authenticated;
+
+-- As operações anteriores de Consulta Assessoria aceitavam objetos completos
+-- produzidos pelo cliente. As redefinições abaixo passam a travar as linhas
+-- reais e constroem patches mínimos a partir delas. Assim, a tela informa a
+-- intenção, mas não pode alterar silenciosamente identidade, valor ou histórico.
+create or replace function public.save_service_advisory_with_pendency(
+    p_invoice jsonb,
+    p_expected_invoice_version integer,
+    p_verification_patch jsonb,
+    p_expected_verification_version integer,
+    p_pendency jsonb,
+    p_administrative_log jsonb
+)
+returns jsonb
+language plpgsql
+security invoker
+set search_path = pg_catalog, public
+as $$
+declare
+    v_invoice_id text := nullif(p_invoice ->> 'id', '');
+    v_analysis text := p_invoice #>> '{payload,analiseConsultaAssessoria}';
+    v_actual_invoice public.registered_invoices%rowtype;
+    v_actual_verification public.verifications%rowtype;
+    v_invoice_patch jsonb;
+    v_verification_patch jsonb;
+    v_invoice_result jsonb;
+    v_pendency_result jsonb;
+begin
+    if coalesce(jsonb_typeof(p_invoice), '') <> 'object'
+        or coalesce(jsonb_typeof(p_verification_patch), '') <> 'object'
+        or coalesce(jsonb_typeof(p_pendency), '') <> 'object'
+        or v_invoice_id is null
+        or nullif(p_pendency ->> 'registered_invoice_id', '') is distinct from v_invoice_id
+        or nullif(p_pendency ->> 'document_key', '') is distinct from 'consAssessoria'
+        or nullif(p_pendency ->> 'status', '') is distinct from 'Aberta' then
+        raise exception 'VALIDATION_ERROR: pendência de Assessoria deve abrir para a NF de serviço vinculada';
+    end if;
+    if v_analysis is distinct from 'Incorreto' then
+        raise exception 'VALIDATION_ERROR: abertura atômica exige Assessoria Incorreta';
+    end if;
+
+    select * into v_actual_invoice
+      from public.registered_invoices
+     where id = v_invoice_id
+     for update;
+    if not found then raise exception 'NOT_FOUND: registered_invoices/%', v_invoice_id; end if;
+    if not public.can_write_school(v_actual_invoice.school_id) then
+        raise exception 'AUTHORIZATION_DENIED: usuário sem escrita para a escola %', v_actual_invoice.school_id;
+    end if;
+    if p_expected_invoice_version is null
+        or v_actual_invoice.row_version <> p_expected_invoice_version then
+        raise exception 'OPTIMISTIC_CONFLICT: registered_invoices/%', v_invoice_id;
+    end if;
+    if v_actual_invoice.expense_type <> 'servico' then
+        raise exception 'VALIDATION_ERROR: pendência de Assessoria exige NF de serviço';
+    end if;
+    if nullif(p_invoice ->> 'school_id', '') is distinct from v_actual_invoice.school_id
+        or nullif(p_invoice ->> 'competence_id', '') is distinct from v_actual_invoice.competence_id
+        or nullif(p_invoice ->> 'program_id', '') is distinct from v_actual_invoice.program_id
+        or nullif(p_invoice ->> 'verification_id', '') is distinct from v_actual_invoice.verification_id
+        or nullif(p_invoice ->> 'source_context_key', '') is distinct from v_actual_invoice.source_context_key
+        or nullif(p_invoice ->> 'linked_asset_id', '') is distinct from v_actual_invoice.linked_asset_id
+        or nullif(p_invoice ->> 'description', '') is distinct from v_actual_invoice.description
+        or nullif(p_invoice ->> 'expense_type', '') is distinct from v_actual_invoice.expense_type
+        or coalesce(p_invoice ->> 'invoice_number', '') is distinct from coalesce(v_actual_invoice.invoice_number, '')
+        or (p_invoice ->> 'amount')::numeric is distinct from v_actual_invoice.amount
+        or (coalesce(p_invoice -> 'payload', '{}'::jsonb) - 'analiseConsultaAssessoria')
+            is distinct from (coalesce(v_actual_invoice.payload, '{}'::jsonb) - 'analiseConsultaAssessoria') then
+        raise exception 'VALIDATION_ERROR: abertura da Assessoria não pode alterar os dados da NF';
+    end if;
+    if nullif(p_pendency ->> 'school_id', '') is distinct from v_actual_invoice.school_id
+        or nullif(p_pendency ->> 'competence_origin', '') is distinct from v_actual_invoice.competence_id
+        or nullif(p_pendency ->> 'program_id', '') is distinct from v_actual_invoice.program_id then
+        raise exception 'VALIDATION_ERROR: NF e pendência de Assessoria pertencem a contextos diferentes';
+    end if;
+
+    select * into v_actual_verification
+      from public.verifications
+     where id = v_actual_invoice.verification_id
+       and school_id = v_actual_invoice.school_id
+       and competence_id = v_actual_invoice.competence_id
+       and program_id = v_actual_invoice.program_id
+     for update;
+    if not found then raise exception 'NOT_FOUND: verifications/%', v_actual_invoice.verification_id; end if;
+    if p_expected_verification_version is null
+        or v_actual_verification.row_version <> p_expected_verification_version then
+        raise exception 'OPTIMISTIC_CONFLICT: verifications/%', v_actual_invoice.verification_id;
+    end if;
+    if nullif(p_verification_patch ->> 'id', '') is distinct from v_actual_verification.id
+        or nullif(p_verification_patch ->> 'school_id', '') is distinct from v_actual_verification.school_id
+        or nullif(p_verification_patch ->> 'competence_id', '') is distinct from v_actual_verification.competence_id
+        or nullif(p_verification_patch ->> 'program_id', '') is distinct from v_actual_verification.program_id
+        or (coalesce(p_verification_patch -> 'bonification', '{}'::jsonb) - 'consAssessoria' - 'consEnviada')
+            is distinct from (coalesce(v_actual_verification.bonification, '{}'::jsonb) - 'consAssessoria' - 'consEnviada')
+        or (coalesce(p_verification_patch -> 'analysis', '{}'::jsonb) - 'consAssessoria')
+            is distinct from (coalesce(v_actual_verification.analysis, '{}'::jsonb) - 'consAssessoria')
+        or coalesce(p_verification_patch -> 'payload', '{}'::jsonb)
+            is distinct from coalesce(v_actual_verification.payload, '{}'::jsonb)
+        or (
+            p_verification_patch ? 'bonus_result'
+            and nullif(p_verification_patch ->> 'bonus_result', '') is not null
+            and nullif(p_verification_patch ->> 'bonus_result', '') is distinct from v_actual_verification.bonus_result
+        ) then
+        raise exception 'VALIDATION_ERROR: abertura da Assessoria contém alteração indevida da verificação';
+    end if;
+
+    v_invoice_patch := to_jsonb(v_actual_invoice) - 'row_version' - 'created_at' - 'updated_at';
+    v_invoice_patch := jsonb_set(
+        v_invoice_patch,
+        '{payload}',
+        jsonb_set(
+            coalesce(v_actual_invoice.payload, '{}'::jsonb),
+            '{analiseConsultaAssessoria}',
+            to_jsonb(v_analysis),
+            true
+        ),
+        true
+    );
+
+    v_verification_patch := to_jsonb(v_actual_verification) - 'row_version' - 'created_at' - 'updated_at';
+    v_verification_patch := jsonb_set(
+        jsonb_set(
+            jsonb_set(
+                v_verification_patch,
+                '{bonification,consAssessoria}',
+                coalesce(p_verification_patch #> '{bonification,consAssessoria}', 'null'::jsonb),
+                true
+            ),
+            '{bonification,consEnviada}',
+            coalesce(p_verification_patch #> '{bonification,consEnviada}', 'false'::jsonb),
+            true
+        ),
+        '{analysis,consAssessoria}',
+        coalesce(p_verification_patch #> '{analysis,consAssessoria}', to_jsonb(v_analysis)),
+        true
+    );
+    if p_verification_patch ? 'bonus_result' then
+        v_verification_patch := jsonb_set(
+            v_verification_patch,
+            '{bonus_result}',
+            coalesce(p_verification_patch -> 'bonus_result', 'null'::jsonb),
+            true
+        );
+    end if;
+
+    select public.save_invoice_with_effects(
+        v_invoice_patch,
+        null,
+        v_verification_patch,
+        p_expected_invoice_version,
+        null,
+        p_expected_verification_version,
+        null
+    ) into v_invoice_result;
+
+    select public.save_pendency_command(
+        'open',
+        p_pendency,
+        null,
+        null,
+        null,
+        null,
+        p_administrative_log
+    ) into v_pendency_result;
+
+    return jsonb_build_object(
+        'invoice', v_invoice_result -> 'invoice',
+        'verification', v_invoice_result -> 'verification',
+        'pendency', v_pendency_result -> 'pendency',
+        'administrative_log', v_pendency_result -> 'administrative_log'
+    );
+end
+$$;
+
+revoke all on function public.save_service_advisory_with_pendency(jsonb, integer, jsonb, integer, jsonb, jsonb) from public, anon;
+grant execute on function public.save_service_advisory_with_pendency(jsonb, integer, jsonb, integer, jsonb, jsonb) to authenticated;
+
+create or replace function public.register_service_advisory_attempt(
+    p_invoice jsonb,
+    p_expected_invoice_version integer,
+    p_pendency jsonb,
+    p_expected_pendency_version integer,
+    p_attempt jsonb,
+    p_verification_patch jsonb,
+    p_expected_verification_version integer,
+    p_administrative_log jsonb
+)
+returns jsonb
+language plpgsql
+security invoker
+set search_path = pg_catalog, public
+as $$
+declare
+    v_invoice_id text := nullif(p_invoice ->> 'id', '');
+    v_pendency_id text := nullif(p_pendency ->> 'id', '');
+    v_actual_invoice public.registered_invoices%rowtype;
+    v_actual_pendency public.pendencies%rowtype;
+    v_actual_verification public.verifications%rowtype;
+    v_next_attempt_number integer;
+    v_invoice_patch jsonb;
+    v_pendency_patch jsonb;
+    v_verification_patch jsonb;
+    v_invoice_result jsonb;
+    v_pendency_result jsonb;
+begin
+    if coalesce(jsonb_typeof(p_invoice), '') <> 'object'
+        or coalesce(jsonb_typeof(p_pendency), '') <> 'object'
+        or coalesce(jsonb_typeof(p_attempt), '') <> 'object'
+        or coalesce(jsonb_typeof(p_verification_patch), '') <> 'object'
+        or v_invoice_id is null
+        or v_pendency_id is null then
+        raise exception 'VALIDATION_ERROR: novo envio da Assessoria exige NF, Pendência, tentativa e verificação';
+    end if;
+
+    select * into v_actual_pendency
+      from public.pendencies
+     where id = v_pendency_id
+     for update;
+    if not found then raise exception 'NOT_FOUND: pendencies/%', v_pendency_id; end if;
+    if not public.can_write_school(v_actual_pendency.school_id) then
+        raise exception 'AUTHORIZATION_DENIED: usuário sem escrita para a escola %', v_actual_pendency.school_id;
+    end if;
+    if p_expected_pendency_version is null
+        or v_actual_pendency.row_version <> p_expected_pendency_version then
+        raise exception 'OPTIMISTIC_CONFLICT: pendencies/%', v_pendency_id;
+    end if;
+    if v_actual_pendency.status <> 'Aberta' then
+        raise exception 'VALIDATION_ERROR: novo envio da Assessoria exige Pendência Aberta';
+    end if;
+    if v_actual_pendency.document_key <> 'consAssessoria'
+        or v_actual_pendency.registered_invoice_id is distinct from v_invoice_id
+        or nullif(p_pendency ->> 'registered_invoice_id', '') is distinct from v_invoice_id
+        or nullif(p_pendency ->> 'document_key', '') is distinct from v_actual_pendency.document_key
+        or nullif(p_pendency ->> 'school_id', '') is distinct from v_actual_pendency.school_id
+        or nullif(p_pendency ->> 'competence_origin', '') is distinct from v_actual_pendency.competence_origin
+        or nullif(p_pendency ->> 'program_id', '') is distinct from v_actual_pendency.program_id
+        or nullif(p_pendency ->> 'status', '') is distinct from 'Aguardando reanálise' then
+        raise exception 'VALIDATION_ERROR: novo envio da Assessoria não corresponde à Pendência vinculada';
+    end if;
+
+    select * into v_actual_invoice
+      from public.registered_invoices
+     where id = v_invoice_id
+     for update;
+    if not found then raise exception 'NOT_FOUND: registered_invoices/%', v_invoice_id; end if;
+    if p_expected_invoice_version is null
+        or v_actual_invoice.row_version <> p_expected_invoice_version then
+        raise exception 'OPTIMISTIC_CONFLICT: registered_invoices/%', v_invoice_id;
+    end if;
+    if v_actual_invoice.expense_type <> 'servico'
+        or v_actual_invoice.school_id is distinct from v_actual_pendency.school_id
+        or v_actual_invoice.competence_id is distinct from v_actual_pendency.competence_origin
+        or v_actual_invoice.program_id is distinct from v_actual_pendency.program_id then
+        raise exception 'VALIDATION_ERROR: novo envio da Assessoria aponta para NF ou contexto inválido';
+    end if;
+    if p_invoice #>> '{payload,analiseConsultaAssessoria}' is distinct from 'Não analisado'
+        or nullif(p_invoice ->> 'school_id', '') is distinct from v_actual_invoice.school_id
+        or nullif(p_invoice ->> 'competence_id', '') is distinct from v_actual_invoice.competence_id
+        or nullif(p_invoice ->> 'program_id', '') is distinct from v_actual_invoice.program_id
+        or nullif(p_invoice ->> 'verification_id', '') is distinct from v_actual_invoice.verification_id
+        or nullif(p_invoice ->> 'source_context_key', '') is distinct from v_actual_invoice.source_context_key
+        or nullif(p_invoice ->> 'linked_asset_id', '') is distinct from v_actual_invoice.linked_asset_id
+        or nullif(p_invoice ->> 'description', '') is distinct from v_actual_invoice.description
+        or nullif(p_invoice ->> 'expense_type', '') is distinct from v_actual_invoice.expense_type
+        or coalesce(p_invoice ->> 'invoice_number', '') is distinct from coalesce(v_actual_invoice.invoice_number, '')
+        or (p_invoice ->> 'amount')::numeric is distinct from v_actual_invoice.amount
+        or (coalesce(p_invoice -> 'payload', '{}'::jsonb) - 'analiseConsultaAssessoria')
+            is distinct from (coalesce(v_actual_invoice.payload, '{}'::jsonb) - 'analiseConsultaAssessoria') then
+        raise exception 'VALIDATION_ERROR: novo envio da Assessoria não pode alterar os dados da NF';
+    end if;
+
+    select coalesce(max(attempt_number), 0) + 1
+      into v_next_attempt_number
+      from public.pendency_attempts
+     where pendency_id = v_pendency_id;
+    if nullif(p_attempt ->> 'id', '') is null
+        or nullif(p_attempt ->> 'pendency_id', '') is distinct from v_pendency_id
+        or (p_attempt ->> 'attempt_number')::integer is distinct from v_next_attempt_number
+        or nullif(p_attempt ->> 'result', '') is not null
+        or nullif(p_attempt ->> 'analyzed_at', '') is not null then
+        raise exception 'VALIDATION_ERROR: tentativa da Assessoria deve ser a próxima e iniciar sem resultado';
+    end if;
+
+    select * into v_actual_verification
+      from public.verifications
+     where id = v_actual_invoice.verification_id
+       and school_id = v_actual_invoice.school_id
+       and competence_id = v_actual_invoice.competence_id
+       and program_id = v_actual_invoice.program_id
+     for update;
+    if not found then raise exception 'NOT_FOUND: verifications/%', v_actual_invoice.verification_id; end if;
+    if p_expected_verification_version is null
+        or v_actual_verification.row_version <> p_expected_verification_version then
+        raise exception 'OPTIMISTIC_CONFLICT: verifications/%', v_actual_invoice.verification_id;
+    end if;
+    if nullif(p_verification_patch ->> 'id', '') is distinct from v_actual_verification.id
+        or nullif(p_verification_patch ->> 'school_id', '') is distinct from v_actual_verification.school_id
+        or nullif(p_verification_patch ->> 'competence_id', '') is distinct from v_actual_verification.competence_id
+        or nullif(p_verification_patch ->> 'program_id', '') is distinct from v_actual_verification.program_id
+        or p_verification_patch #>> '{analysis,consAssessoria}' is distinct from 'Não analisado'
+        or coalesce(p_verification_patch -> 'bonification', '{}'::jsonb)
+            is distinct from coalesce(v_actual_verification.bonification, '{}'::jsonb)
+        or (coalesce(p_verification_patch -> 'analysis', '{}'::jsonb) - 'consAssessoria')
+            is distinct from (coalesce(v_actual_verification.analysis, '{}'::jsonb) - 'consAssessoria')
+        or coalesce(p_verification_patch -> 'payload', '{}'::jsonb)
+            is distinct from coalesce(v_actual_verification.payload, '{}'::jsonb)
+        or (
+            p_verification_patch ? 'bonus_result'
+            and nullif(p_verification_patch ->> 'bonus_result', '') is distinct from v_actual_verification.bonus_result
+        ) then
+        raise exception 'VALIDATION_ERROR: novo envio da Assessoria contém alteração indevida da verificação';
+    end if;
+
+    v_invoice_patch := to_jsonb(v_actual_invoice) - 'row_version' - 'created_at' - 'updated_at';
+    v_invoice_patch := jsonb_set(
+        v_invoice_patch,
+        '{payload}',
+        jsonb_set(
+            coalesce(v_actual_invoice.payload, '{}'::jsonb),
+            '{analiseConsultaAssessoria}',
+            to_jsonb('Não analisado'::text),
+            true
+        ),
+        true
+    );
+    v_pendency_patch := (
+        to_jsonb(v_actual_pendency) - 'row_version' - 'created_at' - 'updated_at'
+    ) || jsonb_build_object(
+        'status', 'Aguardando reanálise',
+        'responsible_area', coalesce(p_pendency ->> 'responsible_area', v_actual_pendency.responsible_area),
+        'next_actor', coalesce(p_pendency ->> 'next_actor', v_actual_pendency.next_actor),
+        'reason', v_actual_pendency.reason,
+        'notes', coalesce(p_pendency ->> 'notes', v_actual_pendency.notes),
+        'resolved_at', null,
+        'canceled_at', null,
+        'payload', coalesce(p_pendency -> 'payload', v_actual_pendency.payload)
+    );
+    v_verification_patch := to_jsonb(v_actual_verification) - 'row_version' - 'created_at' - 'updated_at';
+    v_verification_patch := jsonb_set(
+        v_verification_patch,
+        '{analysis,consAssessoria}',
+        to_jsonb('Não analisado'::text),
+        true
+    );
+
+    select public.save_invoice_with_effects(
+        v_invoice_patch,
+        null,
+        null,
+        p_expected_invoice_version,
+        null,
+        null,
+        null
+    ) into v_invoice_result;
+
+    select public.save_pendency_command(
+        'register_attempt',
+        v_pendency_patch,
+        p_expected_pendency_version,
+        p_attempt,
+        v_verification_patch,
+        p_expected_verification_version,
+        p_administrative_log
+    ) into v_pendency_result;
+
+    return jsonb_build_object(
+        'invoice', v_invoice_result -> 'invoice',
+        'pendency', v_pendency_result -> 'pendency',
+        'attempt', v_pendency_result -> 'attempt',
+        'verification', v_pendency_result -> 'verification',
+        'administrative_log', v_pendency_result -> 'administrative_log'
+    );
+end
+$$;
+
+revoke all on function public.register_service_advisory_attempt(jsonb, integer, jsonb, integer, jsonb, jsonb, integer, jsonb) from public, anon;
+grant execute on function public.register_service_advisory_attempt(jsonb, integer, jsonb, integer, jsonb, jsonb, integer, jsonb) to authenticated;
+
+create or replace function public.reanalyze_service_advisory_pendency(
+    p_invoice jsonb,
+    p_expected_invoice_version integer,
+    p_pendency jsonb,
+    p_attempt jsonb,
+    p_verification_patch jsonb,
+    p_expected_pendency_version integer,
+    p_expected_verification_version integer,
+    p_administrative_log jsonb
+)
+returns jsonb
+language plpgsql
+security invoker
+set search_path = pg_catalog, public
+as $$
+declare
+    v_invoice_id text := nullif(p_invoice ->> 'id', '');
+    v_pendency_id text := nullif(p_pendency ->> 'id', '');
+    v_analysis text := p_invoice #>> '{payload,analiseConsultaAssessoria}';
+    v_result text := lower(btrim(coalesce(p_attempt ->> 'result', '')));
+    v_actual_invoice public.registered_invoices%rowtype;
+    v_actual_pendency public.pendencies%rowtype;
+    v_actual_attempt public.pendency_attempts%rowtype;
+    v_actual_verification public.verifications%rowtype;
+    v_invoice_patch jsonb;
+    v_pendency_patch jsonb;
+    v_attempt_patch jsonb;
+    v_attempt_payload jsonb;
+    v_verification_patch jsonb;
+    v_invoice_result jsonb;
+    v_reanalysis_result jsonb;
+    v_log public.administrative_logs%rowtype;
+    v_key text;
+begin
+    if p_attempt is null
+        or coalesce(jsonb_typeof(p_attempt), '') <> 'object'
+        or coalesce(jsonb_typeof(p_invoice), '') <> 'object'
+        or coalesce(jsonb_typeof(p_pendency), '') <> 'object'
+        or coalesce(jsonb_typeof(p_verification_patch), '') <> 'object'
+        or v_invoice_id is null
+        or v_pendency_id is null then
+        raise exception 'VALIDATION_ERROR: reanálise da Assessoria exige tentativa vinculada';
+    end if;
+    if v_analysis not in ('Correto', 'Correto (Atrasado)', 'Incorreto')
+        or v_result not in ('correto', 'incorreto', 'arquivo_indisponivel') then
+        raise exception 'VALIDATION_ERROR: resultado de reanálise da Assessoria inválido';
+    end if;
+
+    select * into v_actual_pendency
+      from public.pendencies
+     where id = v_pendency_id
+     for update;
+    if not found then raise exception 'NOT_FOUND: pendencies/%', v_pendency_id; end if;
+    if not public.can_write_school(v_actual_pendency.school_id) then
+        raise exception 'AUTHORIZATION_DENIED: usuário sem escrita para a escola %', v_actual_pendency.school_id;
+    end if;
+    if p_expected_pendency_version is null
+        or v_actual_pendency.row_version <> p_expected_pendency_version then
+        raise exception 'OPTIMISTIC_CONFLICT: pendencies/%', v_pendency_id;
+    end if;
+    if v_actual_pendency.status <> 'Aguardando reanálise' then
+        raise exception 'VALIDATION_ERROR: reanálise da Assessoria exige Pendência Aguardando reanálise';
+    end if;
+    if v_actual_pendency.document_key <> 'consAssessoria'
+        or v_actual_pendency.registered_invoice_id is distinct from v_invoice_id
+        or nullif(p_pendency ->> 'registered_invoice_id', '') is distinct from v_invoice_id
+        or nullif(p_pendency ->> 'document_key', '') is distinct from v_actual_pendency.document_key
+        or nullif(p_pendency ->> 'school_id', '') is distinct from v_actual_pendency.school_id
+        or nullif(p_pendency ->> 'competence_origin', '') is distinct from v_actual_pendency.competence_origin
+        or nullif(p_pendency ->> 'program_id', '') is distinct from v_actual_pendency.program_id then
+        raise exception 'VALIDATION_ERROR: reanálise da Assessoria não corresponde à Pendência vinculada';
+    end if;
+    if (v_result = 'correto' and nullif(p_pendency ->> 'status', '') is distinct from 'Resolvida')
+        or (v_result in ('incorreto', 'arquivo_indisponivel')
+            and nullif(p_pendency ->> 'status', '') is distinct from 'Aberta') then
+        raise exception 'VALIDATION_ERROR: resultado e estado final da Pendência são incompatíveis';
+    end if;
+
+    select * into v_actual_attempt
+      from public.pendency_attempts
+     where pendency_id = v_pendency_id
+     order by attempt_number desc
+     limit 1
+     for update;
+    if not found
+        or v_actual_attempt.result is not null
+        or v_actual_attempt.analyzed_at is not null then
+        raise exception 'VALIDATION_ERROR: não existe novo envio aguardando reanálise da Assessoria';
+    end if;
+    if v_actual_attempt.id is distinct from nullif(p_attempt ->> 'id', '')
+        or v_actual_attempt.pendency_id is distinct from nullif(p_attempt ->> 'pendency_id', '')
+        or v_actual_attempt.attempt_number is distinct from (p_attempt ->> 'attempt_number')::integer then
+        raise exception 'VALIDATION_ERROR: tentativa informada não é o novo envio aguardando mais recente';
+    end if;
+    if nullif(p_attempt ->> 'analyzed_at', '') is null
+        or nullif(p_attempt ->> 'submitted_at', '')::timestamptz is distinct from v_actual_attempt.submitted_at
+        or nullif(p_attempt ->> 'available_at', '')::timestamptz is distinct from v_actual_attempt.available_at
+        or coalesce(p_attempt ->> 'observation', '') is distinct from v_actual_attempt.observation
+        or coalesce(p_attempt ->> 'drive_url', '') is distinct from v_actual_attempt.drive_url then
+        raise exception 'VALIDATION_ERROR: reanálise não pode reescrever o novo envio da escola';
+    end if;
+
+    select * into v_actual_invoice
+      from public.registered_invoices
+     where id = v_invoice_id
+     for update;
+    if not found then raise exception 'NOT_FOUND: registered_invoices/%', v_invoice_id; end if;
+    if p_expected_invoice_version is null
+        or v_actual_invoice.row_version <> p_expected_invoice_version then
+        raise exception 'OPTIMISTIC_CONFLICT: registered_invoices/%', v_invoice_id;
+    end if;
+    if v_actual_invoice.expense_type <> 'servico'
+        or v_actual_invoice.school_id is distinct from v_actual_pendency.school_id
+        or v_actual_invoice.competence_id is distinct from v_actual_pendency.competence_origin
+        or v_actual_invoice.program_id is distinct from v_actual_pendency.program_id
+        or nullif(p_invoice ->> 'school_id', '') is distinct from v_actual_invoice.school_id
+        or nullif(p_invoice ->> 'competence_id', '') is distinct from v_actual_invoice.competence_id
+        or nullif(p_invoice ->> 'program_id', '') is distinct from v_actual_invoice.program_id
+        or nullif(p_invoice ->> 'verification_id', '') is distinct from v_actual_invoice.verification_id
+        or nullif(p_invoice ->> 'source_context_key', '') is distinct from v_actual_invoice.source_context_key
+        or nullif(p_invoice ->> 'linked_asset_id', '') is distinct from v_actual_invoice.linked_asset_id
+        or nullif(p_invoice ->> 'description', '') is distinct from v_actual_invoice.description
+        or nullif(p_invoice ->> 'expense_type', '') is distinct from v_actual_invoice.expense_type
+        or coalesce(p_invoice ->> 'invoice_number', '') is distinct from coalesce(v_actual_invoice.invoice_number, '')
+        or (p_invoice ->> 'amount')::numeric is distinct from v_actual_invoice.amount
+        or (coalesce(p_invoice -> 'payload', '{}'::jsonb) - 'analiseConsultaAssessoria')
+            is distinct from (coalesce(v_actual_invoice.payload, '{}'::jsonb) - 'analiseConsultaAssessoria') then
+        raise exception 'VALIDATION_ERROR: reanálise da Assessoria não pode alterar os dados da NF';
+    end if;
+
+    select * into v_actual_verification
+      from public.verifications
+     where id = v_actual_invoice.verification_id
+       and school_id = v_actual_invoice.school_id
+       and competence_id = v_actual_invoice.competence_id
+       and program_id = v_actual_invoice.program_id
+     for update;
+    if not found then raise exception 'NOT_FOUND: verifications/%', v_actual_invoice.verification_id; end if;
+    if p_expected_verification_version is null
+        or v_actual_verification.row_version <> p_expected_verification_version then
+        raise exception 'OPTIMISTIC_CONFLICT: verifications/%', v_actual_invoice.verification_id;
+    end if;
+    if nullif(p_verification_patch ->> 'id', '') is distinct from v_actual_verification.id
+        or nullif(p_verification_patch ->> 'school_id', '') is distinct from v_actual_verification.school_id
+        or nullif(p_verification_patch ->> 'competence_id', '') is distinct from v_actual_verification.competence_id
+        or nullif(p_verification_patch ->> 'program_id', '') is distinct from v_actual_verification.program_id
+        or coalesce(p_verification_patch #>> '{analysis,consAssessoria}', '') not in (
+            'Correto', 'Correto (Atrasado)', 'Incorreto', 'Não analisado'
+        )
+        or coalesce(p_verification_patch -> 'bonification', '{}'::jsonb)
+            is distinct from coalesce(v_actual_verification.bonification, '{}'::jsonb)
+        or (coalesce(p_verification_patch -> 'analysis', '{}'::jsonb) - 'consAssessoria')
+            is distinct from (coalesce(v_actual_verification.analysis, '{}'::jsonb) - 'consAssessoria')
+        or coalesce(p_verification_patch -> 'payload', '{}'::jsonb)
+            is distinct from coalesce(v_actual_verification.payload, '{}'::jsonb)
+        or (
+            p_verification_patch ? 'bonus_result'
+            and nullif(p_verification_patch ->> 'bonus_result', '') is distinct from v_actual_verification.bonus_result
+        ) then
+        raise exception 'VALIDATION_ERROR: reanálise da Assessoria contém alteração indevida da verificação';
+    end if;
+
+    v_invoice_patch := to_jsonb(v_actual_invoice) - 'row_version' - 'created_at' - 'updated_at';
+    v_invoice_patch := jsonb_set(
+        v_invoice_patch,
+        '{payload}',
+        jsonb_set(
+            coalesce(v_actual_invoice.payload, '{}'::jsonb),
+            '{analiseConsultaAssessoria}',
+            to_jsonb(v_analysis),
+            true
+        ),
+        true
+    );
+    v_pendency_patch := (
+        to_jsonb(v_actual_pendency) - 'row_version' - 'created_at' - 'updated_at'
+    ) || jsonb_build_object(
+        'status', p_pendency ->> 'status',
+        'responsible_area', coalesce(p_pendency ->> 'responsible_area', v_actual_pendency.responsible_area),
+        'next_actor', coalesce(p_pendency ->> 'next_actor', v_actual_pendency.next_actor),
+        'reason', coalesce(p_pendency ->> 'reason', v_actual_pendency.reason),
+        'notes', coalesce(p_pendency ->> 'notes', v_actual_pendency.notes),
+        'resolved_at', p_pendency -> 'resolved_at',
+        'canceled_at', null,
+        'payload', coalesce(p_pendency -> 'payload', v_actual_pendency.payload)
+    );
+
+    v_attempt_payload := coalesce(v_actual_attempt.payload, '{}'::jsonb);
+    foreach v_key in array array[
+        'status', 'dataAnalise', 'analisadoPor', 'resultado',
+        'errosEncontrados', 'observacaoAnalise'
+    ] loop
+        if coalesce(p_attempt -> 'payload', '{}'::jsonb) ? v_key then
+            v_attempt_payload := jsonb_set(
+                v_attempt_payload,
+                array[v_key],
+                p_attempt -> 'payload' -> v_key,
+                true
+            );
+        end if;
+    end loop;
+    v_attempt_patch := (
+        to_jsonb(v_actual_attempt) - 'row_version' - 'created_at' - 'updated_at'
+    ) || jsonb_build_object(
+        'analyzed_at', p_attempt -> 'analyzed_at',
+        'result', v_result,
+        'errors', coalesce(p_attempt -> 'errors', v_actual_attempt.errors),
+        'payload', v_attempt_payload
+    );
+
+    v_verification_patch := to_jsonb(v_actual_verification) - 'row_version' - 'created_at' - 'updated_at';
+    v_verification_patch := jsonb_set(
+        v_verification_patch,
+        '{analysis,consAssessoria}',
+        p_verification_patch #> '{analysis,consAssessoria}',
+        true
+    );
+
+    select public.save_invoice_with_effects(
+        v_invoice_patch,
+        null,
+        null,
+        p_expected_invoice_version,
+        null,
+        null,
+        null
+    ) into v_invoice_result;
+
+    select public.reanalyze_pendency_with_verification(
+        v_pendency_patch,
+        v_attempt_patch,
+        v_verification_patch,
+        p_expected_pendency_version,
+        p_expected_verification_version,
+        p_administrative_log
+    ) into v_reanalysis_result;
+
+    select * into v_log
+      from public.administrative_logs
+     where id = p_administrative_log ->> 'id';
+
+    return jsonb_build_object(
+        'invoice', v_invoice_result -> 'invoice',
+        'pendency', v_reanalysis_result -> 'pendency',
+        'attempt', v_reanalysis_result -> 'attempt',
+        'verification', v_reanalysis_result -> 'verification',
+        'administrative_log', case when v_log.id is null then null else to_jsonb(v_log) end
+    );
+end
+$$;
+
+revoke all on function public.reanalyze_service_advisory_pendency(jsonb, integer, jsonb, jsonb, jsonb, integer, integer, jsonb) from public, anon;
+grant execute on function public.reanalyze_service_advisory_pendency(jsonb, integer, jsonb, jsonb, jsonb, integer, integer, jsonb) to authenticated;
 
 -- Cadastro atômico da despesa não identificada: o débito sem documentação
 -- já nasce Incorreto e com Pendência individual obrigatória.

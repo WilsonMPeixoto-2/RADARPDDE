@@ -333,6 +333,74 @@ test('Assessoria individual igual não é no-op quando o agregado mensal está d
     assert.equal(verification.analise.consAssessoria, 'Correto');
 });
 
+test('serviço canônico bloqueia qualquer alteração comum da Assessoria com Pendência ativa da mesma NF', async () => {
+    const harness = createHarness();
+    harness.state.registeredInvoices.push({
+        id: 'nota-serv-pendente',
+        escolaId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        tipo: 'servico',
+        numero: 'NF-SERV-PENDENTE',
+        consultaAssessoriaEnviada: false,
+        analiseConsultaAssessoria: 'Incorreto'
+    });
+    harness.state.pendencies.push({
+        id: 'pend-assessoria-ativa',
+        escolaId: 'ESC-1',
+        competencia: '2026-05',
+        programaId: 'BASIC',
+        documentoKey: 'consAssessoria',
+        registeredInvoiceId: 'nota-serv-pendente',
+        status: 'Aberta'
+    });
+
+    await assert.rejects(
+        harness.service.updateServiceAdvisory({
+            id: 'nota-serv-pendente',
+            schoolId: 'ESC-1',
+            sent: true,
+            analysis: 'Correto',
+            profile: 'controlador'
+        }),
+        error => error?.code === 'ACTIVE_SERVICE_ADVISORY_PENDENCY'
+            && error?.details?.invoiceId === 'nota-serv-pendente'
+            && error?.details?.pendencyId === 'pend-assessoria-ativa'
+    );
+
+    assert.equal(harness.calls.length, 0);
+    assert.equal(harness.state.logs.length, 0);
+    assert.equal(harness.state.registeredInvoices[0].consultaAssessoriaEnviada, false);
+    assert.equal(harness.state.registeredInvoices[0].analiseConsultaAssessoria, 'Incorreto');
+});
+
+test('serviço canônico recusa Assessoria Incorreta sem abertura atômica da Pendência da NF', async () => {
+    const harness = createHarness();
+    harness.state.registeredInvoices.push({
+        id: 'nota-serv-sem-pendencia',
+        escolaId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        tipo: 'servico',
+        numero: 'NF-SERV-SEM-PENDENCIA',
+        consultaAssessoriaEnviada: true,
+        analiseConsultaAssessoria: 'Não analisado'
+    });
+
+    await assert.rejects(
+        harness.service.updateServiceAdvisory({
+            id: 'nota-serv-sem-pendencia',
+            schoolId: 'ESC-1',
+            analysis: 'Incorreto',
+            profile: 'controlador'
+        }),
+        error => error?.code === 'PENDENCY_REQUIRED'
+            && error?.details?.registeredInvoiceId === 'nota-serv-sem-pendencia'
+    );
+
+    assert.equal(harness.calls.length, 0);
+    assert.equal(harness.state.logs.length, 0);
+    assert.equal(harness.state.registeredInvoices[0].analiseConsultaAssessoria, 'Não analisado');
+});
+
 test('remove a última nota e restaura análise e assessoria sem deixar bem órfão', async () => {
     const harness = createHarness();
     const verification = harness.state.verifications['ESC-1']['2026-05_BASIC'];

@@ -4,7 +4,7 @@ set local role postgres;
 create extension if not exists pgtap with schema extensions;
 set local search_path = extensions, public, pg_catalog;
 
-select plan(7);
+select plan(17);
 
 insert into auth.users (id, email)
 values ('00000000-0000-0000-0000-000000000197', 'advisory-attempt-admin@example.test');
@@ -62,7 +62,7 @@ select is((select status from public.pendencies where id='pendency-advisory-atte
 select is((select available_at::text from public.pendency_attempts where id='attempt-advisory-1'), '2029-01-12 09:00:00+00', 'data de disponibilização é preservada');
 select is((select analysis ->> 'consAssessoria' from public.verifications where id='04.99.197::2029-01::ADVISORY_ATTEMPT'), 'Não analisado', 'resumo mensal volta a Não analisado');
 
-select throws_ok($$
+select throws_like($$
     select public.register_service_advisory_attempt(
         jsonb_set((select to_jsonb(i) - 'row_version' - 'created_at' - 'updated_at' from public.registered_invoices i where id='invoice-advisory-attempt'), '{payload,consultaAssessoriaEnviada}', 'true'::jsonb, true),
         2,
@@ -73,8 +73,93 @@ select throws_ok($$
         2,
         '{"id":"log-advisory-attempt-1","school_id":"04.99.197","action":"Novo envio duplicado","details":{}}'::jsonb
     )
-$$, '23505', null, 'falha no histórico reverte todo o novo envio');
-select is((select (payload ->> 'consultaAssessoriaEnviada')::boolean from public.registered_invoices where id='invoice-advisory-attempt'), false, 'rollback preserva NF quando a transação falha');
+$$, 'VALIDATION_ERROR: novo envio da Assessoria exige Pendência Aberta%', 'não registra outro envio enquanto o anterior ainda aguarda reanálise');
+select is((select (payload ->> 'consultaAssessoriaEnviada')::boolean from public.registered_invoices where id='invoice-advisory-attempt'), false, 'tentativa recusada preserva a NF');
+
+select throws_like($$
+    select public.reanalyze_service_advisory_pendency(
+        jsonb_set((select to_jsonb(i) - 'row_version' - 'created_at' - 'updated_at' from public.registered_invoices i where id='invoice-advisory-attempt'), '{payload,analiseConsultaAssessoria}', to_jsonb('Correto'::text), true),
+        (select row_version from public.registered_invoices where id='invoice-advisory-attempt'),
+        jsonb_set((select to_jsonb(p) - 'row_version' - 'created_at' - 'updated_at' from public.pendencies p where id='pendency-advisory-attempt'), '{status}', to_jsonb('Resolvida'::text), true),
+        null,
+        jsonb_set((select to_jsonb(v) - 'row_version' - 'created_at' - 'updated_at' from public.verifications v where id='04.99.197::2029-01::ADVISORY_ATTEMPT'), '{analysis,consAssessoria}', to_jsonb('Correto'::text), true),
+        (select row_version from public.pendencies where id='pendency-advisory-attempt'),
+        (select row_version from public.verifications where id='04.99.197::2029-01::ADVISORY_ATTEMPT'),
+        '{"id":"log-advisory-reanalysis-null","school_id":"04.99.197","action":"Reanálise inválida","details":{}}'::jsonb
+    )
+$$, 'VALIDATION_ERROR: reanálise da Assessoria exige tentativa%', 'reanálise exige o novo envio real');
+
+select lives_ok($$
+    select public.reanalyze_service_advisory_pendency(
+        jsonb_set((select to_jsonb(i) - 'row_version' - 'created_at' - 'updated_at' from public.registered_invoices i where id='invoice-advisory-attempt'), '{payload,analiseConsultaAssessoria}', to_jsonb('Incorreto'::text), true),
+        (select row_version from public.registered_invoices where id='invoice-advisory-attempt'),
+        jsonb_set((select to_jsonb(p) - 'row_version' - 'created_at' - 'updated_at' from public.pendencies p where id='pendency-advisory-attempt'), '{status}', to_jsonb('Aberta'::text), true),
+        ((select to_jsonb(a) - 'row_version' - 'created_at' - 'updated_at' from public.pendency_attempts a where id='attempt-advisory-1')
+            || jsonb_build_object('result','incorreto','analyzed_at','2029-01-12T11:00:00Z')),
+        jsonb_set((select to_jsonb(v) - 'row_version' - 'created_at' - 'updated_at' from public.verifications v where id='04.99.197::2029-01::ADVISORY_ATTEMPT'), '{analysis,consAssessoria}', to_jsonb('Incorreto'::text), true),
+        (select row_version from public.pendencies where id='pendency-advisory-attempt'),
+        (select row_version from public.verifications where id='04.99.197::2029-01::ADVISORY_ATTEMPT'),
+        '{"id":"log-advisory-reanalysis-1","school_id":"04.99.197","action":"Reanálise incorreta","details":{}}'::jsonb
+    )
+$$, 'reanálise incorreta consome a primeira tentativa e reabre a Pendência');
+select is((select status from public.pendencies where id='pendency-advisory-attempt'), 'Aberta', 'resultado incorreto reabre a Pendência');
+
+select lives_ok($$
+    select public.register_service_advisory_attempt(
+        jsonb_set((select to_jsonb(i) - 'row_version' - 'created_at' - 'updated_at' from public.registered_invoices i where id='invoice-advisory-attempt'), '{payload,analiseConsultaAssessoria}', to_jsonb('Não analisado'::text), true),
+        (select row_version from public.registered_invoices where id='invoice-advisory-attempt'),
+        jsonb_set((select to_jsonb(p) - 'row_version' - 'created_at' - 'updated_at' from public.pendencies p where id='pendency-advisory-attempt'), '{status}', to_jsonb('Aguardando reanálise'::text), true),
+        (select row_version from public.pendencies where id='pendency-advisory-attempt'),
+        '{"id":"attempt-advisory-2","pendency_id":"pendency-advisory-attempt","attempt_number":2,"available_at":"2029-01-13T09:00:00Z","submitted_at":"2029-01-13T10:00:00Z","analyzed_at":null,"result":null,"observation":"Segundo arquivo corrigido","drive_url":"https://drive.example/attempt2","errors":[],"payload":{}}'::jsonb,
+        jsonb_set((select to_jsonb(v) - 'row_version' - 'created_at' - 'updated_at' from public.verifications v where id='04.99.197::2029-01::ADVISORY_ATTEMPT'), '{analysis,consAssessoria}', to_jsonb('Não analisado'::text), true),
+        (select row_version from public.verifications where id='04.99.197::2029-01::ADVISORY_ATTEMPT'),
+        '{"id":"log-advisory-attempt-2","school_id":"04.99.197","action":"Segundo envio registrado","details":{}}'::jsonb
+    )
+$$, 'segundo novo envio é aceito somente depois da reanálise anterior');
+
+select throws_like($$
+    select public.reanalyze_service_advisory_pendency(
+        jsonb_set((select to_jsonb(i) - 'row_version' - 'created_at' - 'updated_at' from public.registered_invoices i where id='invoice-advisory-attempt'), '{payload,analiseConsultaAssessoria}', to_jsonb('Correto'::text), true),
+        (select row_version from public.registered_invoices where id='invoice-advisory-attempt'),
+        jsonb_set((select to_jsonb(p) - 'row_version' - 'created_at' - 'updated_at' from public.pendencies p where id='pendency-advisory-attempt'), '{status}', to_jsonb('Resolvida'::text), true),
+        (select to_jsonb(a) - 'row_version' - 'created_at' - 'updated_at' from public.pendency_attempts a where id='attempt-advisory-1'),
+        jsonb_set((select to_jsonb(v) - 'row_version' - 'created_at' - 'updated_at' from public.verifications v where id='04.99.197::2029-01::ADVISORY_ATTEMPT'), '{analysis,consAssessoria}', to_jsonb('Correto'::text), true),
+        (select row_version from public.pendencies where id='pendency-advisory-attempt'),
+        (select row_version from public.verifications where id='04.99.197::2029-01::ADVISORY_ATTEMPT'),
+        '{"id":"log-advisory-reanalysis-old","school_id":"04.99.197","action":"Reanálise antiga","details":{}}'::jsonb
+    )
+$$, 'VALIDATION_ERROR: tentativa informada não é o novo envio aguardando%', 'tentativa antiga não pode substituir a mais recente');
+
+select throws_like($$
+    select public.reanalyze_service_advisory_pendency(
+        jsonb_set((select to_jsonb(i) - 'row_version' - 'created_at' - 'updated_at' from public.registered_invoices i where id='invoice-advisory-attempt'), '{payload,analiseConsultaAssessoria}', to_jsonb('Correto'::text), true),
+        (select row_version from public.registered_invoices where id='invoice-advisory-attempt'),
+        jsonb_set((select to_jsonb(p) - 'row_version' - 'created_at' - 'updated_at' from public.pendencies p where id='pendency-advisory-attempt'), '{status}', to_jsonb('Resolvida'::text), true),
+        ((select to_jsonb(a) - 'row_version' - 'created_at' - 'updated_at' from public.pendency_attempts a where id='attempt-advisory-2')
+            || jsonb_build_object('result','correto','analyzed_at','2029-01-13T11:00:00Z','observation','conteúdo reescrito')),
+        jsonb_set((select to_jsonb(v) - 'row_version' - 'created_at' - 'updated_at' from public.verifications v where id='04.99.197::2029-01::ADVISORY_ATTEMPT'), '{analysis,consAssessoria}', to_jsonb('Correto'::text), true),
+        (select row_version from public.pendencies where id='pendency-advisory-attempt'),
+        (select row_version from public.verifications where id='04.99.197::2029-01::ADVISORY_ATTEMPT'),
+        '{"id":"log-advisory-reanalysis-rewrite","school_id":"04.99.197","action":"Reanálise inválida","details":{}}'::jsonb
+    )
+$$, 'VALIDATION_ERROR: reanálise não pode reescrever o novo envio%', 'reanálise não altera observação, link ou erros enviados pela escola');
+
+select lives_ok($$
+    select public.reanalyze_service_advisory_pendency(
+        jsonb_set((select to_jsonb(i) - 'row_version' - 'created_at' - 'updated_at' from public.registered_invoices i where id='invoice-advisory-attempt'), '{payload,analiseConsultaAssessoria}', to_jsonb('Correto'::text), true),
+        (select row_version from public.registered_invoices where id='invoice-advisory-attempt'),
+        jsonb_set((select to_jsonb(p) - 'row_version' - 'created_at' - 'updated_at' from public.pendencies p where id='pendency-advisory-attempt'), '{status}', to_jsonb('Resolvida'::text), true),
+        ((select to_jsonb(a) - 'row_version' - 'created_at' - 'updated_at' from public.pendency_attempts a where id='attempt-advisory-2')
+            || jsonb_build_object('result','correto','analyzed_at','2029-01-13T11:00:00Z')),
+        jsonb_set((select to_jsonb(v) - 'row_version' - 'created_at' - 'updated_at' from public.verifications v where id='04.99.197::2029-01::ADVISORY_ATTEMPT'), '{analysis,consAssessoria}', to_jsonb('Correto'::text), true),
+        (select row_version from public.pendencies where id='pendency-advisory-attempt'),
+        (select row_version from public.verifications where id='04.99.197::2029-01::ADVISORY_ATTEMPT'),
+        '{"id":"log-advisory-reanalysis-2","school_id":"04.99.197","action":"Reanálise correta","details":{}}'::jsonb
+    )
+$$, 'reanálise correta consome somente o segundo novo envio');
+select is((select observation from public.pendency_attempts where id='attempt-advisory-2'), 'Segundo arquivo corrigido', 'conteúdo histórico do novo envio permanece congelado');
+select is((select result from public.pendency_attempts where id='attempt-advisory-2'), 'correto', 'reanálise acrescenta somente o resultado');
+select is((select status from public.pendencies where id='pendency-advisory-attempt'), 'Resolvida', 'resultado correto resolve a Pendência');
 
 select * from finish();
 rollback;

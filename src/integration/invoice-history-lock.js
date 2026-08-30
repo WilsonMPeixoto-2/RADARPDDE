@@ -116,24 +116,15 @@
             || typeof service.getState !== 'function') return false;
         if (service.__radarInvoiceHistoryLock === true) return true;
 
-        const originalSave = service.save.bind(service);
-        const originalRemove = service.remove.bind(service);
-
-        service.save = async function saveWithHistoryLock(input = {}) {
-            assertStructuralIdentity(service.getState() || {}, input);
-            return originalSave(input);
-        };
-        service.remove = async function removeWithHistoryLock(input = {}) {
-            assertDeletionAllowed(service.getState() || {}, input.id);
-            return originalRemove(input);
-        };
-
         Object.defineProperty(service, '__radarInvoiceHistoryLock', {
             value: true,
             configurable: false,
             enumerable: false,
             writable: false
         });
+        // A autoridade de bloqueio já pertence ao InvoiceService. Esta extensão
+        // permanece apenas como marcador de compatibilidade para instalações
+        // antigas, sem substituir métodos nem criar uma segunda regra tardia.
         return true;
     }
 

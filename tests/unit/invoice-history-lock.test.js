@@ -201,7 +201,7 @@ test('NF com histórico individual de notaFiscal recebe a mesma trava estrutural
 });
 
 
-test('a_identificar com histórico notaFiscal pode ser identificado preservando o ID', async () => {
+test('a_identificar existente não pode ser editado nem excluído pelo fluxo comum', async () => {
     const { state, service } = createHarness();
     state.registeredInvoices[0] = {
         ...state.registeredInvoices[0],
@@ -217,19 +217,29 @@ test('a_identificar com histórico notaFiscal pode ser identificado preservando 
         documentoKey: 'notaFiscal'
     };
 
-    const result = await service.save({
-        id: 'NF-LOCKED',
-        schoolId: 'ESC-1',
-        compKey: '2026-05_BASIC',
-        description: 'Material identificado',
-        expenseType: 'consumo',
-        invoiceNumber: 'NF-IDENTIFICADA',
-        amount: 300,
-        profile: 'controlador'
-    });
+    await assert.rejects(
+        () => service.save({
+            id: 'NF-LOCKED',
+            schoolId: 'ESC-1',
+            compKey: '2026-05_BASIC',
+            description: 'Material identificado',
+            expenseType: 'consumo',
+            invoiceNumber: 'NF-IDENTIFICADA',
+            amount: 300,
+            profile: 'controlador'
+        }),
+        error => error?.code === 'UNIDENTIFIED_EXPENSE_WORKFLOW_REQUIRED'
+    );
+    await assert.rejects(
+        () => service.remove({
+            id: 'NF-LOCKED',
+            schoolId: 'ESC-1',
+            profile: 'controlador'
+        }),
+        error => error?.code === 'UNIDENTIFIED_EXPENSE_WORKFLOW_REQUIRED'
+    );
 
-    assert.equal(result.value.invoice.id, 'NF-LOCKED');
-    assert.equal(state.registeredInvoices[0].tipo, 'consumo');
-    assert.equal(state.registeredInvoices[0].numero, 'NF-IDENTIFICADA');
+    assert.equal(state.registeredInvoices[0].tipo, 'a_identificar');
+    assert.equal(state.registeredInvoices[0].numero, '');
     assert.equal(state.pendencies[0].registeredInvoiceId, 'NF-LOCKED');
 });

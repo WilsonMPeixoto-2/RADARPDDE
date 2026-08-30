@@ -492,6 +492,38 @@
             )) || null;
         }
 
+        activeServiceAdvisoryPendency(state, invoiceId) {
+            return this.invoicePendencyHistory(state, invoiceId).find(pendency => (
+                text(pendency.documentoKey || pendency.document_key) === 'consAssessoria'
+                && pendencyDomain.isActivePendency(pendency)
+            )) || null;
+        }
+
+        assertServiceAdvisoryMutationAllowed(state, invoiceId, targetAnalysis, operation) {
+            const active = this.activeServiceAdvisoryPendency(state, invoiceId);
+            if (active) {
+                fail(
+                    'ACTIVE_SERVICE_ADVISORY_PENDENCY',
+                    'Esta Nota Fiscal possui Pendência ativa de Consulta Assessoria. Novo envio e reanálise devem ser registrados pela tela de Pendências.',
+                    operation,
+                    {
+                        invoiceId: text(invoiceId),
+                        pendencyId: text(active.id),
+                        status: text(active.status)
+                    }
+                );
+            }
+            if (text(targetAnalysis) === 'Incorreto') {
+                fail(
+                    'PENDENCY_REQUIRED',
+                    'A análise “Incorreto” da Assessoria só pode ser confirmada junto com a Pendência da Nota Fiscal.',
+                    operation,
+                    { registeredInvoiceId: text(invoiceId) }
+                );
+            }
+            return true;
+        }
+
         assertNoActiveInvoiceDocumentPendency(state, invoiceId, operation) {
             const active = this.activeInvoiceDocumentPendency(state, invoiceId);
             if (!active) return true;
@@ -552,6 +584,16 @@
             );
         }
 
+        assertOrdinaryUnidentifiedMutationAllowed(invoice, operation) {
+            if (!isUnidentifiedExpense(invoice)) return true;
+            fail(
+                'UNIDENTIFIED_EXPENSE_WORKFLOW_REQUIRED',
+                'Despesa a identificar não pode ser editada ou excluída pelo formulário comum. A regularização deve preservar o mesmo registro pelo ciclo da Pendência.',
+                operation,
+                { registeredInvoiceId: text(invoice?.id) }
+            );
+        }
+
         async save(input = {}) {
             const profile = this.assertEditable(input.profile, 'invoice:save');
             const invoiceData = this.validateInvoice(input, 'invoice:save');
@@ -597,6 +639,7 @@
                 );
             }
             if (existing) {
+                this.assertOrdinaryUnidentifiedMutationAllowed(existing, 'invoice:save');
                 this.assertNoActiveInvoiceDocumentPendency(
                     initialState,
                     existing.id,
@@ -1007,6 +1050,12 @@
             const previous = getServiceAdvisoryState(initialInvoice, legacyFallback);
             const targetSent = hasSent ? input.sent : previous.sent;
             const targetAnalysis = hasAnalysis ? text(input.analysis) : previous.analysis;
+            this.assertServiceAdvisoryMutationAllowed(
+                initialState,
+                invoiceId,
+                targetAnalysis,
+                'invoice:update-service-advisory'
+            );
             const projected = serviceInvoices.map(item => {
                 const copy = cloneValue(item);
                 if (copy.id === invoiceId) {
@@ -1129,6 +1178,7 @@
                 );
             }
             const initialInvoice = initialState.registeredInvoices[initialIndex];
+            this.assertOrdinaryUnidentifiedMutationAllowed(initialInvoice, 'invoice:remove');
             this.assertDeletionHistorySafe(initialState, invoiceId);
             const initialContext = this.getContext(initialState, {
                 schoolId: input.schoolId || initialInvoice.escolaId,

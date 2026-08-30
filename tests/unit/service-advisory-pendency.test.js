@@ -165,6 +165,15 @@ test('reconhece pendência de Assessoria somente quando existe identidade da NF'
     }), false);
 });
 
+test('integração não substitui a regra canônica de atualização da Assessoria', () => {
+    const integration = freshIntegration();
+    const harness = createRoot();
+    const canonicalUpdate = harness.invoiceService.updateServiceAdvisory;
+
+    assert.equal(integration.install(harness.root), true);
+    assert.equal(harness.invoiceService.updateServiceAdvisory, canonicalUpdate);
+});
+
 test('pendência de uma NF abre o drawer sem bloquear a análise de outra NF', async () => {
     const integration = freshIntegration();
     const harness = createRoot();
