@@ -211,6 +211,178 @@
         });
     }
 
+    async function persistServiceAttempt(root, service, persistence, context) {
+        const { snapshot, repository, defaultPersist } = context;
+        const capabilities = repository.capabilities?.() || {};
+        if (capabilities.remote !== true || typeof repository.executeRpc !== 'function') return defaultPersist();
+        const entities = snapshot.entities || {};
+        const invoice = (entities.registeredInvoices || [])
+            .find(record => String(record.id) === String(persistence.invoiceId));
+        const pendency = (entities.pendencies || [])
+            .find(record => String(record.id) === String(persistence.pendencyId));
+        const attempt = (entities.pendencyAttempts || [])
+            .find(record => String(record.id) === String(persistence.attemptId));
+        const verification = (entities.verifications || []).find(record => (
+            String(record.school_id) === String(persistence.schoolId)
+            && String(record.competence_id) === String(persistence.competence)
+            && String(record.program_id || '') === String(persistence.programId)
+        ));
+        const administrativeLogRecord = (entities.administrativeLogs || [])
+            .find(record => String(record.id) === String(persistence.logId));
+        const administrativeLog = typeof service.decorateAdministrativeLog === 'function'
+            ? service.decorateAdministrativeLog(administrativeLogRecord)
+            : administrativeLogRecord;
+        if (!invoice || !pendency || !attempt || !verification || !administrativeLog) {
+            fail(
+                'PERSISTENCE_CONTEXT_MISSING',
+                'O novo envio da Assessoria não produziu o agregado completo para persistência.',
+                'registerServiceAdvisoryAttempt',
+                cloneValue(persistence)
+            );
+        }
+        return repository.executeRpc(
+            'register_service_advisory_attempt',
+            {
+                p_invoice: invoice,
+                p_expected_invoice_version: persistence.expectedInvoiceVersion,
+                p_pendency: pendency,
+                p_expected_pendency_version: persistence.expectedPendencyVersion,
+                p_attempt: attempt,
+                p_verification_patch: verification,
+                p_expected_verification_version: persistence.expectedVerificationVersion,
+                p_administrative_log: administrativeLog
+            },
+            'registerServiceAdvisoryAttempt'
+        );
+    }
+
+    async function registerLinkedServicePendency(root, service, input, target) {
+        const invoiceService = root.RadarApplicationServices?.invoices;
+        if (!invoiceService) {
+            fail(
+                'SERVICE_UNAVAILABLE',
+                'Serviço de notas fiscais indisponível.',
+                'registerServiceAdvisoryAttempt'
+            );
+        }
+        service.assertCapability(
+            root.RadarAccessPolicy.CAPABILITIES.REGISTER_CORRECTIVE_SUBMISSION,
+            'registerAttempt'
+        );
+        const persistence = {
+            pendencyId: String(target.id),
+            invoiceId: invoiceIdOf(target)
+        };
+        return service.dataService.execute({
+            name: 'pendency:register-service-advisory-attempt',
+            changedEntities: [
+                'registeredInvoices',
+                'pendencies',
+                'pendencyAttempts',
+                'verifications',
+                'administrativeLogs'
+            ],
+            remoteResultIsAuthoritative: true,
+            mutate: () => {
+                const state = service.getState();
+                const index = (state.pendencies || []).findIndex(record => (
+                    String(record.id) === String(persistence.pendencyId)
+                ));
+                if (index < 0) {
+                    fail(
+                        'NOT_FOUND',
+                        'Pendência da Consulta Assessoria não localizada.',
+                        'registerServiceAdvisoryAttempt'
+                    );
+                }
+                const pendency = state.pendencies[index];
+                const invoice = (state.registeredInvoices || []).find(record => (
+                    String(record.id) === String(persistence.invoiceId)
+                ));
+                if (!invoice || invoice.tipo !== 'servico') {
+                    fail(
+                        'NOT_FOUND',
+                        'Nota Fiscal de serviço vinculada à pendência não localizada.',
+                        'registerServiceAdvisoryAttempt'
+                    );
+                }
+
+                const { competence, programId } = splitContext(root, invoice.compKey);
+                if (text(invoice.escolaId) !== text(pendency.escolaId)
+                    || competence !== text(pendency.competenciaOrigem || pendency.competencia)
+                    || programId !== text(pendency.programaId)) {
+                    fail(
+                        'INVOICE_CONTEXT_MISMATCH',
+                        'A Nota Fiscal e a Pendência da Assessoria pertencem a contextos diferentes.',
+                        'registerServiceAdvisoryAttempt',
+                        { registeredInvoiceId: invoice.id, pendencyId: pendency.id }
+                    );
+                }
+
+                const verification = state.verifications?.[invoice.escolaId]?.[invoice.compKey];
+                if (!verification) {
+                    fail(
+                        'NOT_FOUND',
+                        'Verificação mensal da Nota Fiscal não localizada.',
+                        'registerServiceAdvisoryAttempt'
+                    );
+                }
+                const profile = invoiceService.assertEditable(
+                    currentProfile(root),
+                    'registerServiceAdvisoryAttempt'
+                );
+                invoiceService.assertVerificationEditable(
+                    verification,
+                    profile,
+                    'registerServiceAdvisoryAttempt'
+                );
+
+                persistence.schoolId = invoice.escolaId;
+                persistence.competence = competence;
+                persistence.programId = programId;
+                persistence.expectedInvoiceVersion = rowVersionOf(invoice);
+                persistence.expectedPendencyVersion = rowVersionOf(pendency);
+                persistence.expectedVerificationVersion = rowVersionOf(verification);
+
+                const bonificationBefore = cloneValue(verification.bonificacao || {});
+                const resultBefore = cloneValue(verification.resultadoBonif);
+                const next = service.domain.registerCorrectiveSubmission(pendency, {
+                    id: text(input.attemptId) || service.createId('tentativa'),
+                    dataDisponibilizacao: text(input.availabilityDate || input.dataDisponibilizacao),
+                    observacao: text(input.observation || input.observacao),
+                    link: text(input.link) || null
+                }, service.audit('evento-envio'));
+
+                invoice.analiseConsultaAssessoria = 'Não analisado';
+                invoiceService.syncServiceRequirement(state, invoice.escolaId, invoice.compKey);
+                state.pendencies[index] = next;
+
+                if (JSON.stringify(verification.bonificacao || {}) !== JSON.stringify(bonificationBefore)
+                    || JSON.stringify(verification.resultadoBonif) !== JSON.stringify(resultBefore)) {
+                    fail(
+                        'BONIFICATION_INVARIANT',
+                        'O novo envio da Assessoria não pode alterar a bonificação nem o resultado consolidado.',
+                        'registerServiceAdvisoryAttempt'
+                    );
+                }
+
+                const log = service.appendSchoolLog(
+                    pendency.escolaId,
+                    'Novo envio registrado',
+                    `Novo envio da Consulta à Assessoria da NF ${invoice.numero || invoice.id} registrado para reanálise; a análise individual voltou para “Não analisado”.`
+                );
+                persistence.attemptId = (next.tentativas || []).at(-1)?.id || null;
+                persistence.logId = text(log?.id);
+                return {
+                    invoice: cloneValue(invoice),
+                    pendency: cloneValue(next),
+                    verification: cloneValue(verification)
+                };
+            },
+            persist: context => persistServiceAttempt(root, service, persistence, context)
+        });
+    }
+
     async function persistServiceReanalysis(root, service, persistence, context) {
         const { snapshot, repository, defaultPersist } = context;
         const capabilities = repository.capabilities?.() || {};
@@ -342,6 +514,16 @@
             return result;
         };
 
+        const originalRegisterAttempt = pendencyService.registerAttempt.bind(pendencyService);
+        pendencyService.registerAttempt = async function registerAttemptWithServiceAdvisory(input = {}) {
+            const state = pendencyService.getState();
+            const target = (state.pendencies || []).find(record => (
+                String(record.id) === String(input.pendencyId)
+            ));
+            if (!isLinkedServiceAdvisoryPendency(target)) return originalRegisterAttempt(input);
+            return registerLinkedServicePendency(root, pendencyService, input, target);
+        };
+
         const originalReanalyze = pendencyService.reanalyze.bind(pendencyService);
         pendencyService.reanalyze = async function reanalyzeWithServiceAdvisory(input = {}) {
             const state = pendencyService.getState();
@@ -469,6 +651,7 @@
         getPendingContext: () => pendingContext ? { ...pendingContext } : null,
         clearPendingContext: () => { pendingContext = null; },
         buildAtomicOpen,
+        registerLinkedServicePendency,
         reanalyzeLinkedServicePendency,
         install
     });
