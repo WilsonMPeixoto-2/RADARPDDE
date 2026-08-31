@@ -43,10 +43,12 @@ test('lookup crítico não recebe objeto literal montado diretamente', () => {
     }
 });
 
-test('fábrica canônica é a única responsável por aliases de identidade', () => {
+test('fábrica canônica delega aliases de invoice ao normalizador único', () => {
     const body = source('src/domain/pendencias.js');
+    assert.match(body, /function getRegisteredInvoiceId\(context = \{\}\)/);
+    assert.match(body, /context\.registeredInvoiceId \|\| context\.registered_invoice_id/);
     assert.match(body, /function buildPendencyLookupContext\(input = \{\}\)/);
-    assert.match(body, /input\.registeredInvoiceId \|\| input\.registered_invoice_id/);
+    assert.match(body, /const registeredInvoiceId = getRegisteredInvoiceId\(input\)/);
     assert.match(body, /input\.schoolId/);
     assert.match(body, /input\.programId/);
     assert.match(body, /input\.documentKey/);
