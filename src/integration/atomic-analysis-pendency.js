@@ -217,7 +217,7 @@
                 }
                 const observation = root.document.getElementById('pend-obs');
                 if (observation) {
-                    observation.value = `Identificado erro técnico na conferência de ${DOCUMENT_LABELS[documentKey] || documentKey}. A análise “Incorreto” será gravada somente ao confirmar esta pendência.`;
+                    observation.value = `Identificado erro técnico na conferência de ${DOCUMENT_LABELS[documentKey] || documentKey}.`;
                 }
                 return true;
             } catch (error) {
