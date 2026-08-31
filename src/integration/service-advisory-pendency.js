@@ -69,14 +69,17 @@
     function findActiveForInvoice(root, state, invoice) {
         if (!invoice) return null;
         const { competence, programId } = splitContext(root, invoice.compKey);
-        return root.RadarPendencias?.findActivePendency?.(state.pendencies || [], {
+        const context = root.RadarPendencias?.buildPendencyLookupContext?.({
             escolaId: invoice.escolaId,
             competencia: competence,
-            competenciaOrigem: competence,
             programaId: programId,
             documentoKey: 'consAssessoria',
             registeredInvoiceId: invoice.id
-        }) || null;
+        });
+        return root.RadarPendencias?.findActivePendency?.(
+            state.pendencies || [],
+            context || {}
+        ) || null;
     }
 
     function currentProfile(root) {
