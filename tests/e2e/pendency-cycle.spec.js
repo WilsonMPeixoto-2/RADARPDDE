@@ -1,4 +1,5 @@
 const { test, expect } = require('@playwright/test');
+const { selectFixtureCompetence } = require('../support/e2e-competence');
 
 const DOCUMENT_CONTEXT = {
   programaId: 'ED_FAMILIA',
@@ -167,6 +168,7 @@ test.describe('ciclo de criação da pendência documental no desktop', () => {
     });
 
     await page.goto('/');
+    await selectFixtureCompetence(page);
     const context = await page.evaluate(target => {
       switchProfile('controlador');
 
@@ -1700,6 +1702,7 @@ test.describe('reanálise atômica da pendência documental no desktop', () => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 
     await page.goto('/');
+    await selectFixtureCompetence(page);
     const context = await seedAwaitingReanalysis(page, {
       pendencyId: 'pend-e2e-reanalise-correta-tardia',
       availabilityDate: '2026-07-01',
