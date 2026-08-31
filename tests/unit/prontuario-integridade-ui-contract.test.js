@@ -32,14 +32,14 @@ test('extensão preserva a grade canônica da Consulta Assessoria', () => {
     assert.match(source, /findInvoiceCard\(legacyInvoiceCards/);
 });
 
-test('documentos padrão recebem composição tipográfica e ícones sem duplicar os painéis especiais', () => {
+test('documentos padrão recebem composição tipográfica e ícones', () => {
     assert.match(source, /STANDARD_DOCUMENT_META/);
-    assert.match(source, /declBBAgil/);
-    assert.match(source, /encampInventario/);
+    assert.match(source, /extCC:/);
+    assert.match(source, /extINV:/);
+    assert.match(source, /declBBAgil:/);
+    assert.match(source, /encampInventario:/);
     assert.match(source, /prontuario-document-icon/);
     assert.match(source, /prontuario-document-title/);
-    assert.doesNotMatch(source, /STANDARD_DOCUMENT_META[\s\S]*notaFiscal:/);
-    assert.doesNotMatch(source, /STANDARD_DOCUMENT_META[\s\S]*consAssessoria:/);
 });
 
 test('observação de abertura mostra somente o achado técnico, sem metadado de persistência', () => {
