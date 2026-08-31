@@ -37,6 +37,25 @@
         '/src/integration/operational-write-feedback.js'
     ]);
 
+    function installCriticalExtensions() {
+        const advisoryInstalled = root.RadarServiceAdvisoryPendency?.install?.(root) === true;
+        const correctiveInstalled = root.RadarServiceAdvisoryCorrectiveSubmission?.install?.(root) === true;
+        return advisoryInstalled && correctiveInstalled;
+    }
+
+    function waitForCriticalExtensions() {
+        if (installCriticalExtensions()) return Promise.resolve(true);
+        return new Promise(resolve => {
+            const handleServicesReady = () => {
+                if (!installCriticalExtensions()) return;
+                root.removeEventListener?.('radar:application-services-ready', handleServicesReady);
+                resolve(true);
+            };
+            root.addEventListener?.('radar:application-services-ready', handleServicesReady);
+            handleServicesReady();
+        });
+    }
+
     function loadStyleOnce(href) {
         const existing = Array.from(document.querySelectorAll('link[rel="stylesheet"]')).find(link => (
             link.getAttribute('href') === href
@@ -81,7 +100,7 @@
     root.RadarProductExtensionsReady = scripts.reduce(
         (promise, src) => promise.then(() => loadScriptOnce(src)),
         Promise.resolve()
-    ).then(() => true).catch(error => {
+    ).then(() => waitForCriticalExtensions()).catch(error => {
         root.RADAR_LAST_PRODUCT_EXTENSION_ERROR = error;
         console.error('Não foi possível inicializar as extensões de produto do RADAR.', error);
         return false;
