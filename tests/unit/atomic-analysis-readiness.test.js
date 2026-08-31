@@ -45,3 +45,17 @@ test('PendencyService contém o comando atômico de pendência com análise', ()
     );
     assert.match(source, /Análise incorreta e pendência aberta/);
 });
+
+
+test('observação da pendência não expõe regra interna de persistência', () => {
+    const source = read('src/integration/atomic-analysis-pendency.js');
+
+    assert.match(
+        source,
+        /Identificado erro técnico na conferência de \$\{DOCUMENT_LABELS\[documentKey\] \|\| documentKey\}\./
+    );
+    assert.doesNotMatch(
+        source,
+        /A análise “Incorreto” será gravada somente ao confirmar esta pendência/
+    );
+});
