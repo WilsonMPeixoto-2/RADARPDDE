@@ -585,3 +585,215 @@
         animation: none;
     }
 }
+
+
+/* Polimento visual do detalhe de Pendência */
+.pendency-detail-drawer {
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--primary-glow) 28%, transparent), transparent 180px),
+        var(--bg-main);
+}
+
+.pendency-drawer-header {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    padding: 22px 24px 18px;
+    border-bottom-color: color-mix(in srgb, var(--primary) 16%, var(--border-color));
+    background: color-mix(in srgb, var(--bg-sidebar) 96%, var(--primary-glow));
+    backdrop-filter: blur(10px);
+}
+
+.pendency-drawer-header > div:first-child {
+    min-width: 0;
+}
+
+.pendency-drawer-header h2 {
+    margin: 9px 0 5px;
+    color: var(--text-main);
+    font-family: var(--font-heading);
+    font-size: 1.28rem;
+    font-weight: 760;
+    letter-spacing: -0.015em;
+}
+
+.pendency-drawer-body {
+    gap: 14px;
+    padding: 18px 20px 28px;
+}
+
+.pendency-drawer-body > .pendency-drawer-section {
+    padding: 16px 17px;
+    border: 1px solid color-mix(in srgb, var(--primary) 12%, var(--border-color));
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--bg-sidebar) 95%, var(--primary-glow));
+    box-shadow: 0 1px 0 rgba(255,255,255,0.55) inset;
+}
+
+.pendency-drawer-body > .pendency-drawer-section.is-context {
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--primary-glow) 55%, transparent), transparent),
+        var(--bg-sidebar);
+}
+
+.pendency-drawer-body h3 {
+    margin: 0 0 11px;
+    color: var(--text-main);
+    font-family: var(--font-heading);
+    font-size: 0.9rem;
+    font-weight: 720;
+    letter-spacing: -0.005em;
+}
+
+.pendency-detail-grid {
+    gap: 1px;
+    padding: 1px;
+    border-radius: 11px;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--primary) 14%, var(--border-color));
+}
+
+.pendency-detail-grid > div {
+    min-width: 0;
+    padding: 10px 11px 11px;
+    background: color-mix(in srgb, var(--bg-card) 90%, var(--bg-input));
+}
+
+.pendency-detail-drawer dt {
+    color: var(--primary);
+    font-size: 0.64rem;
+    font-weight: 760;
+    letter-spacing: 0.035em;
+}
+
+.pendency-detail-drawer dd {
+    margin-top: 3px;
+    color: var(--text-main);
+    font-family: var(--font-heading);
+    font-size: 0.8rem;
+    font-weight: 640;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.pendency-error-summary {
+    gap: 7px;
+}
+
+.pendency-error-summary li {
+    padding: 7px 10px;
+    border: 1px solid color-mix(in srgb, var(--danger) 18%, var(--border-color));
+    border-radius: 9px;
+    background: color-mix(in srgb, var(--danger-bg) 82%, var(--bg-sidebar));
+    color: var(--text-main);
+    font-size: 0.76rem;
+    line-height: 1.4;
+}
+
+.pendency-drawer-section.is-observation p,
+.pendency-drawer-section.is-cancel p {
+    margin: 0;
+    padding: 11px 12px;
+    border-left: 3px solid color-mix(in srgb, var(--primary) 60%, transparent);
+    border-radius: 8px;
+    background: var(--bg-input);
+}
+
+.pendency-attempt-list > li,
+.pendency-contact-list > li {
+    padding: 12px 13px;
+    border-color: color-mix(in srgb, var(--primary) 10%, var(--border-color));
+    border-radius: 10px;
+    background: var(--bg-input);
+}
+
+.pendency-timeline {
+    gap: 14px;
+}
+
+.pendency-timeline > li {
+    gap: 12px;
+}
+
+.pendency-drawer-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    padding: 13px 20px;
+    border-top-color: color-mix(in srgb, var(--primary) 14%, var(--border-color));
+    background: color-mix(in srgb, var(--bg-sidebar) 96%, var(--primary-glow));
+    box-shadow: 0 -8px 22px rgba(18, 14, 34, 0.05);
+}
+
+.pendency-drawer-footer .pendency-row-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+}
+
+.pendency-drawer-footer .pendency-row-actions .btn {
+    width: 100%;
+    min-height: 40px;
+    margin: 0;
+    white-space: normal;
+}
+
+.pendency-drawer-footer .pendency-row-actions .btn.btn-primary:first-child {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 900px) {
+    .pendency-detail-drawer {
+        background: var(--bg-main);
+    }
+
+    .pendency-drawer-header {
+        padding: max(16px, env(safe-area-inset-top)) 16px 14px;
+    }
+
+    .pendency-drawer-body {
+        gap: 12px;
+        padding: 12px 12px calc(20px + env(safe-area-inset-bottom));
+    }
+
+    .pendency-drawer-body > .pendency-drawer-section {
+        padding: 14px;
+        border-radius: 12px;
+    }
+
+    .pendency-detail-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .pendency-detail-grid > div {
+        padding: 9px 10px 10px;
+    }
+
+    .pendency-drawer-footer {
+        padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    }
+
+    .pendency-drawer-footer .pendency-row-actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .pendency-drawer-footer .pendency-row-actions .btn {
+        flex: initial;
+        min-height: 42px;
+        font-size: 0.74rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .pendency-detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .pendency-drawer-footer .pendency-row-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .pendency-drawer-footer .pendency-row-actions .btn.btn-primary:first-child {
+        grid-column: auto;
+    }
+}

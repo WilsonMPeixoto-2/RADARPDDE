@@ -11884,12 +11884,19 @@ function openCobrancaModal(escolaId) {
 
     document.getElementById('cobranca-escola-id').value = escolaId;
     
-    // Regra: Filtrar e exibir apenas pendências escolares externas (excluir as de responsabilidade do Inventário/Verbas Federais)
-    const pEscola = pendencias.filter(p => p.escolaId == escolaId && p.status === 'Aberta' && p.responsavel === 'Escola');
+    // Regra: filtrar somente pendências externas reais da Escola.
+    // Registros explícitos de homologação/teste permanecem auditáveis no RADAR,
+    // mas nunca entram em uma cobrança dirigida à unidade escolar.
+    const pEscola = pendencias.filter(p => (
+        p.escolaId == escolaId
+        && p.status === 'Aberta'
+        && p.responsavel === 'Escola'
+        && !isInternalTestPendency(p)
+    ));
     
     const container = document.getElementById('cobranca-checkboxes-container');
     if (pEscola.length === 0) {
-        container.innerHTML = `<div style="color:var(--text-muted); font-size:0.8rem">Nenhuma pendência externa sob responsabilidade da Escola.</div>`;
+        container.innerHTML = `<div class="cobranca-empty-state">Nenhuma pendência externa sob responsabilidade da Escola.</div>`;
         document.getElementById('cobranca-preview-text').innerText = `Prezado(a) Diretor(a) de ${esc.denominação},\n\nConstatamos que não há pendências ativas de obrigações do PDDE sob responsabilidade da unidade escolar no RADAR PDDE.\n\nAtenciosamente,\nComitê PDDE / Verbas Federais`;
         openModal('modal-cobranca');
         return true;
@@ -11897,13 +11904,16 @@ function openCobrancaModal(escolaId) {
 
     container.innerHTML = pEscola.map(p => {
         const pData = getFormattedPendencyData(p);
+        const observation = sanitizePendencyPublicText(p.observacao);
         return `
-            <label style="display:flex; align-items:flex-start; gap:8px; margin-bottom:8px; font-size:0.8rem; cursor:pointer;">
+            <label class="cobranca-pendency-option">
                 <input type="checkbox" class="chk-cobranca-item" value="${escapeHtml(p.id)}" checked onchange="buildCobrancaPreview('${escapeHtml(escolaId)}')">
-                <div>
-                    <strong>[Comp. ${escapeHtml(pData.competencia)}] ${escapeHtml(pData.item)}</strong><br>
-                    Motivo: ${escapeHtml(p.motivo)} - ${escapeHtml(p.observacao)}
-                </div>
+                <span class="cobranca-pendency-check" aria-hidden="true"></span>
+                <span class="cobranca-pendency-copy">
+                    <span class="cobranca-pendency-meta">Competência ${escapeHtml(pData.competencia)}</span>
+                    <strong>${escapeHtml(pData.item)}</strong>
+                    <span class="cobranca-pendency-reason">${escapeHtml(p.motivo || 'Pendência documental')}${observation ? ` · ${escapeHtml(observation)}` : ''}</span>
+                </span>
             </label>
         `;
     }).join('');
@@ -11929,9 +11939,26 @@ function formatCompetenciaText(key) {
     return label;
 }
 
+function sanitizePendencyPublicText(text) {
+    if (!text) return '';
+    return String(text)
+        .replace(/\s*A análise [“"]Incorreto[”"] será gravada somente ao confirmar esta pendência\.?/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function isInternalTestPendency(pendency) {
+    const haystack = [
+        pendency?.observacao,
+        pendency?.motivo,
+        pendency?.item
+    ].filter(Boolean).join(' ');
+    return /HOMOLOGAÇÃO\s+FINAL\s+PR\s*#?211|TESTE\s+CONTROLADO/i.test(haystack);
+}
+
 function formatTextCobranca(text) {
     if (!text) return '';
-    let formatted = text.replace(/(\d{4})-(\d{2})_([A-Z0-9_]+)/g, (match, year, month, progId) => {
+    let formatted = sanitizePendencyPublicText(text).replace(/(\d{4})-(\d{2})_([A-Z0-9_]+)/g, (match, year, month, progId) => {
         const prog = programas.find(p => p.id === progId);
         const name = prog ? prog.name : progId;
         return `${month}-${year} ${name}`;
@@ -11949,11 +11976,15 @@ function buildCobrancaPreview(escolaId) {
     if (selectedIds.length === 0) {
         msg += `[Nenhum item selecionado]`;
     } else {
-        selectedIds.forEach((id, idx) => {
+        let visibleIndex = 0;
+        selectedIds.forEach(id => {
             const p = pendencias.find(item => item.id === id);
+            if (!p || isInternalTestPendency(p)) return;
+            visibleIndex += 1;
             const pData = getFormattedPendencyData(p);
             const obsText = formatTextCobranca(p.observacao);
-            msg += `${idx + 1}. [Competência: ${pData.competencia}] - Documento: ${pData.item}\n   Problema: ${p.motivo} (${obsText})\n\n`;
+            const problemText = [p.motivo, obsText].filter(Boolean).join(' — ');
+            msg += `${visibleIndex}. Competência: ${pData.competencia}\n   Documento: ${pData.item}\n   Pendência: ${problemText || 'Regularização documental necessária'}\n\n`;
         });
     }
 
