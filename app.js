@@ -9398,102 +9398,100 @@ function renderProntuario(escolaId) {
         <div class="school-grid">
             <!-- Sidebar da Escola -->
             <div class="school-sidebar">
-                <div class="school-info-card">
-                    <div class="info-item">
-                        <div class="info-label">INEP</div>
-                        <div class="info-value">${escapeHtml(esc.inep)}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Designação</div>
-
-                        <div class="info-value">${escapeHtml(esc.designação)}</div>
-                    </div>
-
-                    <div class="info-item">
-
-                        <div class="info-label">SICI</div>
-
-                        <div class="info-value">${escapeHtml(esc.sici || 'Não informado')}</div>
+                <section class="school-info-card school-data-card" aria-labelledby="school-data-heading">
+                    <div class="school-card-heading">
+                        <span class="school-card-heading-icon" aria-hidden="true">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+                                <rect x="3" y="4" width="18" height="16" rx="3"></rect>
+                                <path d="M8 9h8M8 13h5M8 17h3"></path>
+                            </svg>
+                        </span>
+                        <div>
+                            <h2 id="school-data-heading">Dados da unidade</h2>
+                            <p>Identificação, contatos e responsáveis</p>
+                        </div>
                     </div>
 
-                    <div class="info-item">
-
-                        <div class="info-label">CNPJ</div>
-
-                        <div class="info-value">${escapeHtml(esc.cnpj)}</div>
+                    <div class="school-data-grid">
+                        <div class="info-item school-data-item">
+                            <div class="info-label">INEP</div>
+                            <div class="info-value">${escapeHtml(esc.inep)}</div>
+                        </div>
+                        <div class="info-item school-data-item">
+                            <div class="info-label">Designação</div>
+                            <div class="info-value">${escapeHtml(esc.designação)}</div>
+                        </div>
+                        <div class="info-item school-data-item">
+                            <div class="info-label">SICI</div>
+                            <div class="info-value">${escapeHtml(esc.sici || 'Não informado')}</div>
+                        </div>
+                        <div class="info-item school-data-item">
+                            <div class="info-label">CNPJ</div>
+                            <div class="info-value">${escapeHtml(esc.cnpj)}</div>
+                        </div>
+                        <div class="info-item school-data-item is-wide">
+                            <div class="info-label">Diretor(a)</div>
+                            <div class="info-value">${escapeHtml(esc.diretor)}</div>
+                        </div>
+                        <div class="info-item school-data-item">
+                            <div class="info-label">Telefone do Diretor(a)</div>
+                            <div class="info-value">${escapeHtml(esc.telefoneDiretor || 'Não informado')}</div>
+                        </div>
+                        <div class="info-item school-data-item is-wide">
+                            <div class="info-label">Diretor(a) Adjunto(a)</div>
+                            <div class="info-value">${escapeHtml(esc.diretorAdjunto || 'Não informado')}</div>
+                        </div>
+                        <div class="info-item school-data-item">
+                            <div class="info-label">Telefone do Adjunto(a)</div>
+                            <div class="info-value">${escapeHtml(esc.telefoneDiretorAdjunto || 'Não informado')}</div>
+                        </div>
+                        <div class="info-item school-data-item">
+                            <div class="info-label">Telefone da Unidade</div>
+                            <div class="info-value">${escapeHtml(esc.telefone)}</div>
+                        </div>
+                        <div class="info-item school-data-item">
+                            <div class="info-label">Celular Institucional</div>
+                            <div class="info-value">${escapeHtml(esc.telefoneCelularInstitucional || 'Não informado')}</div>
+                        </div>
+                        <div class="info-item school-data-item">
+                            <div class="info-label">Coordenadoria / RA</div>
+                            <div class="info-value">${escapeHtml(esc.cre)} / ${escapeHtml(getRAFromDesignacao(esc.designação))}</div>
+                        </div>
+                        <div class="info-item school-data-item is-wide">
+                            <div class="info-label">E-mail Institucional</div>
+                            <div class="info-value">${escapeHtml(esc.email)}</div>
+                        </div>
+                        <div class="info-item school-data-item is-wide">
+                            <div class="info-label">Controlador Responsável</div>
+                            <div class="info-value">${escapeHtml(ctrl ? ctrl.name : 'Não designado')}</div>
+                        </div>
+                        <div class="info-item school-data-item is-wide">
+                            <div class="info-label">Processo Inventário (Exercício)</div>
+                            <div class="info-value">${escapeHtml(process)}</div>
+                        </div>
                     </div>
+                </section>
 
-                    <div class="info-item">
-
-                        <div class="info-label">Diretor(a)</div>
-
-                        <div class="info-value">${escapeHtml(esc.diretor)}</div>
+                <section class="school-info-card school-programs-card" aria-labelledby="school-programs-heading">
+                    <div class="school-card-heading school-programs-heading">
+                        <span class="school-card-heading-icon" aria-hidden="true">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+                                <path d="M4 6.5 12 3l8 3.5-8 3.5-8-3.5Z"></path>
+                                <path d="m4 11 8 3.5 8-3.5M4 15.5 12 19l8-3.5"></path>
+                            </svg>
+                        </span>
+                        <div>
+                            <h2 id="school-programs-heading">Programas vinculados</h2>
+                            <p>Programas ativos nesta unidade</p>
+                        </div>
                     </div>
-
-                    <div class="info-item">
-
-                        <div class="info-label">Telefone do Diretor(a)</div>
-
-                        <div class="info-value">${escapeHtml(esc.telefoneDiretor || 'Não informado')}</div>
-                    </div>
-
-                    <div class="info-item">
-
-                        <div class="info-label">Diretor(a) Adjunto(a)</div>
-
-                        <div class="info-value">${escapeHtml(esc.diretorAdjunto || 'Não informado')}</div>
-                    </div>
-
-                    <div class="info-item">
-
-                        <div class="info-label">Telefone do Adjunto(a)</div>
-
-                        <div class="info-value">${escapeHtml(esc.telefoneDiretorAdjunto || 'Não informado')}</div>
-                    </div>
-
-                    <div class="info-item">
-
-                        <div class="info-label">Telefone da Unidade</div>
-
-                        <div class="info-value">${escapeHtml(esc.telefone)}</div>
-                    </div>
-
-                    <div class="info-item">
-
-                        <div class="info-label">Celular Institucional</div>
-
-                        <div class="info-value">${escapeHtml(esc.telefoneCelularInstitucional || 'Não informado')}</div>
-                    </div>
-
-                    <div class="info-item">
-
-                        <div class="info-label">Coordenadoria / RA</div>
-                        <div class="info-value">${escapeHtml(esc.cre)} / ${escapeHtml(getRAFromDesignacao(esc.designação))}</div>
-                    </div>
-
-                    <div class="info-item">
-                        <div class="info-label">E-mail Institucional</div>
-                        <div class="info-value">${escapeHtml(esc.email)}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Controlador Responsável</div>
-                        <div class="info-value">${escapeHtml(ctrl ? ctrl.name : 'Não designado')}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Processo Inventário (Exercício)</div>
-                        <div class="info-value">${escapeHtml(process)}</div>
-                    </div>
-                </div>
-
-                <div class="school-info-card school-programs-card">
-                    <div class="info-label">Programas Vinculados</div>
                     <ul class="school-program-list" role="list" aria-label="Programas vinculados">
                         ${esc.programasIds.map(progId => {
                             const p = programas.find(x => x.id === progId);
                             return p ? `<li class="school-program-item">${escapeHtml(p.name)}</li>` : '';
                         }).join('')}
                     </ul>
-                </div>
+                </section>
             </div>
 
             <!-- Corpo Principal: Abas de Trabalho -->
