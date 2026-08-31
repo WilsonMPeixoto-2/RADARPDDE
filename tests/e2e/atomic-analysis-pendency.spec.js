@@ -1,4 +1,5 @@
 const { test, expect } = require('@playwright/test');
+const { selectFixtureCompetence } = require('../support/e2e-competence');
 
 test.describe('análise Incorreto com pendência atômica', () => {
   test('continua funcional mesmo se uma extensão opcional seguinte falhar', async ({ page }, testInfo) => {
@@ -14,6 +15,7 @@ test.describe('análise Incorreto com pendência atômica', () => {
     // A proteção de "Incorreto" precisa ter sido carregada antes dela.
     await page.route('**/src/domain/school-timeline.js', route => route.abort());
     await page.goto('/');
+    await selectFixtureCompetence(page);
 
     await page.waitForFunction(() => window.RADAR_ATOMIC_ANALYSIS_READY === true, null, {
       timeout: 15_000
@@ -124,6 +126,7 @@ test.describe('análise Incorreto com pendência atômica', () => {
     });
 
     await page.goto('/');
+    await selectFixtureCompetence(page);
     await page.waitForFunction(() => window.RADAR_ATOMIC_ANALYSIS_READY === true, null, {
       timeout: 15_000
     });

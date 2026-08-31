@@ -1,4 +1,5 @@
 const { test, expect } = require('@playwright/test');
+const { selectFixtureCompetence } = require('../support/e2e-competence');
 
 async function waitForProductExtensions(page) {
   await page.evaluate(() => window.RadarProductExtensionsReady);
@@ -55,6 +56,7 @@ test.describe('Prontuário — integridade temporal', () => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 
     await page.goto('/');
+    await selectFixtureCompetence(page);
     await waitForProductExtensions(page);
 
     const context = await page.evaluate(() => {

@@ -8,24 +8,42 @@ const PROFILE_CASES = [
 ];
 
 test.describe('competência mensal global', () => {
-  test('oferece janeiro a dezembro, altera todas as superfícies e preserva a seleção', async ({ page }) => {
+  test('abre no mês corrente e mantém a troca manual apenas durante a sessão atual', async ({ page }) => {
+    await page.addInitScript(() => {
+      const NativeDate = Date;
+      const fixedNow = new NativeDate('2026-08-31T12:00:00-03:00').getTime();
+      class FixedDate extends NativeDate {
+        constructor(...args) {
+          super(...(args.length ? args : [fixedNow]));
+        }
+
+        static now() {
+          return fixedNow;
+        }
+      }
+      window.Date = FixedDate;
+      localStorage.setItem('radar_pdde_active_competence', '2026-12');
+    });
+
     await page.goto('/');
     await page.waitForFunction(() => Boolean(window.RadarCompetenceContext));
 
     const selector = page.locator('#global-competence-select');
     await expect(selector).toBeVisible();
     await expect(selector.locator('option')).toHaveCount(12);
-    await selector.selectOption('2026-08');
-
     await expect(selector).toHaveValue('2026-08');
     await expect(page.locator('#global-competence-label')).toContainText('Agosto');
+
+    await selector.selectOption('2026-09');
+    await expect(selector).toHaveValue('2026-09');
+    await expect(page.locator('#global-competence-label')).toContainText('Setembro');
 
     for (const { profile, views } of PROFILE_CASES) {
       await page.evaluate(nextProfile => switchProfile(nextProfile), profile);
       for (const view of views) {
         await page.evaluate(nextView => switchView(nextView), view);
-        await expect(page.locator('#global-competence-select')).toHaveValue('2026-08');
-        expect(await page.evaluate(() => activeCompetenciaKey)).toBe('2026-08');
+        await expect(page.locator('#global-competence-select')).toHaveValue('2026-09');
+        expect(await page.evaluate(() => activeCompetenciaKey)).toBe('2026-09');
       }
     }
 

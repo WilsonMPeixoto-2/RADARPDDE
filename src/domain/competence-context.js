@@ -79,10 +79,10 @@
         function chooseInitial(year = exercise, explicit = options.initialCompetence) {
             const keys = availableKeys(year);
             if (!keys.length) throw createSelectionError(year);
-            const stored = storedSelection(year);
-            if (stored) return stored;
             const explicitKey = text(explicit);
             if (keys.includes(explicitKey)) return explicitKey;
+            const stored = storedSelection(year);
+            if (stored) return stored;
             if (keys.includes(closingKey)) return closingKey;
             return keys[keys.length - 1];
         }

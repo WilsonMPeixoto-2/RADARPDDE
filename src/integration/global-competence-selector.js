@@ -46,6 +46,12 @@
         const requestedCompetence = competenceExists(meta.initialCompetence)
             ? text(meta.initialCompetence)
             : '';
+        const calendarCompetence = root.RadarCompetencia?.competenceKeyFromDate
+            ? text(root.RadarCompetencia.competenceKeyFromDate())
+            : '';
+        const availableCalendarCompetence = competenceExists(calendarCompetence)
+            ? calendarCompetence
+            : '';
         const storedCompetence = text(
             root.localStorage?.getItem(root.RadarCompetenceContext.STORAGE_KEY)
         );
@@ -67,6 +73,7 @@
             text(meta.currentExercise),
             competenceExercise(requestedCompetence),
             text(currentState?.exercise),
+            competenceExercise(availableCalendarCompetence),
             competenceExercise(persistedCompetence),
             competenceExercise(closingCompetence),
             text(currentExercise),
@@ -76,8 +83,7 @@
         const initialCompetence = [
             requestedCompetence,
             currentCompetence,
-            persistedCompetence,
-            closingCompetence
+            availableCalendarCompetence
         ].find(key => competenceExists(key) && competenceExercise(key) === resolvedExercise) || '';
 
         return {

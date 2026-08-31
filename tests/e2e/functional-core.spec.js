@@ -1,10 +1,12 @@
 const { test, expect } = require('@playwright/test');
+const { selectFixtureCompetence } = require('../support/e2e-competence');
 
 async function waitForProductExtensions(page) {
   await page.evaluate(() => window.RadarProductExtensionsReady);
 }
 
 async function openOperationalProgram(page, options = {}) {
+  await selectFixtureCompetence(page);
   return page.evaluate(({ initialized, note }) => {
     switchProfile('controlador');
 
@@ -112,6 +114,7 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 
     await page.goto('/');
+    await selectFixtureCompetence(page);
     await page.evaluate(() => switchProfile('sme'));
 
     const statsGrid = page.locator('#main-container .grid-stats').first();

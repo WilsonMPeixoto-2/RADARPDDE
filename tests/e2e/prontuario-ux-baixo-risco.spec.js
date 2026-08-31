@@ -1,10 +1,12 @@
 const { test, expect } = require('@playwright/test');
+const { selectFixtureCompetence } = require('../support/e2e-competence');
 
 async function waitForProductExtensions(page) {
   await page.evaluate(() => window.RadarProductExtensionsReady);
 }
 
 async function openOperationalProgram(page, options = {}) {
+  await selectFixtureCompetence(page);
   return page.evaluate(({ initialized }) => {
     switchProfile('controlador');
 
