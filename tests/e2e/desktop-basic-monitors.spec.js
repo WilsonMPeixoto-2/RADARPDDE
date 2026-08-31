@@ -31,10 +31,6 @@ function walletTable(page) {
   }).locator('table.data-table');
 }
 
-function columnCount(value) {
-  return String(value || '').trim().split(/\s+/).filter(Boolean).length;
-}
-
 function contrastRatio(rgb, background = [255, 255, 255]) {
   const luminance = values => {
     const channels = values.map(value => {
@@ -65,20 +61,25 @@ test.describe('Desktop — notebooks e monitores básicos', () => {
       const app = document.querySelector('#app-layout');
       const schoolGrid = document.querySelector('.school-grid');
       const sidebar = document.querySelector('.school-sidebar');
+      const workspace = document.querySelector('.school-workspace');
+      const sidebarRect = sidebar.getBoundingClientRect();
+      const workspaceRect = workspace.getBoundingClientRect();
       return {
         viewport: innerWidth,
         documentWidth: document.documentElement.scrollWidth,
         bodyWidth: document.body.scrollWidth,
         appColumns: getComputedStyle(app).gridTemplateColumns,
-        schoolColumns: getComputedStyle(schoolGrid).gridTemplateColumns,
-        schoolSidebarDisplay: getComputedStyle(sidebar).display
+        schoolDisplay: getComputedStyle(schoolGrid).display,
+        schoolSidebarDisplay: getComputedStyle(sidebar).display,
+        workspaceBelowSummary: workspaceRect.top >= sidebarRect.bottom - 1
       };
     });
 
     expect(geometry.documentWidth).toBeLessThanOrEqual(geometry.viewport + 1);
     expect(geometry.bodyWidth).toBeLessThanOrEqual(geometry.viewport + 1);
-    expect(columnCount(geometry.schoolColumns)).toBe(1);
+    expect(geometry.schoolDisplay).toBe('block');
     expect(geometry.schoolSidebarDisplay).toBe('grid');
+    expect(geometry.workspaceBelowSummary).toBe(true);
     expect(Number.parseFloat(geometry.appColumns)).toBeLessThanOrEqual(235);
     await expect(page.locator('.prontuario-actions')).toBeVisible();
     await expect(page.locator('.prontuario-tablist')).toBeVisible();
@@ -90,10 +91,26 @@ test.describe('Desktop — notebooks e monitores básicos', () => {
     await waitForDesktopRefinements(page);
     await openControllerSchool(page);
 
-    const schoolColumns = await page.locator('.school-grid').evaluate(element => (
-      getComputedStyle(element).gridTemplateColumns
-    ));
-    expect(columnCount(schoolColumns)).toBeGreaterThanOrEqual(2);
+    const summaryGeometry = await page.evaluate(() => {
+      const schoolGrid = document.querySelector('.school-grid');
+      const dataCard = document.querySelector('.school-data-card');
+      const programsCard = document.querySelector('.school-programs-card');
+      const workspace = document.querySelector('.school-workspace');
+      const dataRect = dataCard.getBoundingClientRect();
+      const programsRect = programsCard.getBoundingClientRect();
+      const summaryRect = document.querySelector('.school-sidebar').getBoundingClientRect();
+      const workspaceRect = workspace.getBoundingClientRect();
+      return {
+        schoolDisplay: getComputedStyle(schoolGrid).display,
+        cardsTopAligned: Math.abs(dataRect.top - programsRect.top) <= 1,
+        dataWiderThanPrograms: dataRect.width >= programsRect.width * 1.8,
+        workspaceBelowSummary: workspaceRect.top >= summaryRect.bottom - 1
+      };
+    });
+    expect(summaryGeometry.schoolDisplay).toBe('block');
+    expect(summaryGeometry.cardsTopAligned).toBe(true);
+    expect(summaryGeometry.dataWiderThanPrograms).toBe(true);
+    expect(summaryGeometry.workspaceBelowSummary).toBe(true);
 
     await page.evaluate(() => switchView('escolas'));
     const table = walletTable(page);
