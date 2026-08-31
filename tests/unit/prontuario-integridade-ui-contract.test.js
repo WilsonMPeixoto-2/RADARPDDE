@@ -17,6 +17,10 @@ const cssSource = fs.readFileSync(
     path.resolve(__dirname, '../../src/styles/prontuario-operational-ux.css'),
     'utf8'
 );
+const rootCssSource = fs.readFileSync(
+    path.resolve(__dirname, '../../styles.css'),
+    'utf8'
+);
 
 test('extensão sinaliza competência futura e bloqueia apenas controles operacionais', () => {
     assert.match(source, /data-future-competence-notice/);
@@ -46,4 +50,15 @@ test('documentos regulares usam tipografia e ícones do layout atualizado', () =
     assert.match(cssSource, /\.verification-document-copy strong/);
     assert.match(cssSource, /font-family: var\(--font-heading\)/);
     assert.match(cssSource, /tr\.verification-document-row\.is-striped/);
+});
+
+
+test('dados da unidade são apresentados em campos visuais responsivos', () => {
+    assert.match(appSource, /class="school-info-card school-data-card"/);
+    assert.match(appSource, /class="school-data-grid"/);
+    assert.match(appSource, /class="info-item school-data-item/);
+    assert.match(appSource, />Dados da unidade</);
+    assert.match(rootCssSource, /\.school-data-grid\s*\{[\s\S]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);
+    assert.match(rootCssSource, /\.school-data-grid \.school-data-item\s*\{[\s\S]*border: 1px solid/);
+    assert.match(rootCssSource, /@media \(max-width: 1100px\)[\s\S]*\.school-data-grid\s*\{[\s\S]*repeat\(2, minmax\(0, 1fr\)\)/);
 });
