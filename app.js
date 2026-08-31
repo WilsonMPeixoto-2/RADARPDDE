@@ -9028,14 +9028,7 @@ async function confirmarReanalisePendencia(event) {
     const competence = current.competenciaOrigem || current.competencia;
     const exactActive = window.RadarPendencias.findActivePendency(
         pendencias.filter(pendency => window.RadarPendencias.isDocumentaryPendency(pendency)),
-        {
-            escolaId: current.escolaId,
-            competenciaOrigem: competence,
-            programaId: current.programaId,
-            documentoKey: current.documentoKey,
-            registeredInvoiceId: current.registeredInvoiceId || current.registered_invoice_id,
-            item: current.item
-        }
+        window.RadarPendencias.buildPendencyLookupContext(current)
     );
     const awaitingAttempt = getLatestAwaitingPendencyAttempt(current);
     const compProgKey = competence + '_' + current.programaId;
@@ -10585,14 +10578,13 @@ function invoiceDocumentIconSvg(type) {
 function findActiveInvoiceDocumentPendency(invoice) {
     if (!invoice) return null;
     const splitContext = window.RadarCompetencia.splitCompetenciaContext(invoice.compKey);
-    const context = {
+    const context = window.RadarPendencias.buildPendencyLookupContext({
         escolaId: invoice.escolaId,
         competencia: splitContext.competenciaKey,
-        competenciaOrigem: splitContext.competenciaKey,
         programaId: splitContext.contextId,
         documentoKey: 'notaFiscal',
         registeredInvoiceId: invoice.id
-    };
+    });
     const documentary = pendencias.filter(pendency => (
         window.RadarPendencias.isDocumentaryPendency(pendency)
     ));
@@ -10602,14 +10594,13 @@ function findActiveInvoiceDocumentPendency(invoice) {
 function findActiveInvoiceAdvisoryPendency(invoice) {
     if (!invoice) return null;
     const splitContext = window.RadarCompetencia.splitCompetenciaContext(invoice.compKey);
-    const context = {
+    const context = window.RadarPendencias.buildPendencyLookupContext({
         escolaId: invoice.escolaId,
         competencia: splitContext.competenciaKey,
-        competenciaOrigem: splitContext.competenciaKey,
         programaId: splitContext.contextId,
         documentoKey: 'consAssessoria',
         registeredInvoiceId: invoice.id
-    };
+    });
     const documentary = pendencias.filter(pendency => (
         window.RadarPendencias.isDocumentaryPendency(pendency)
     ));
