@@ -10284,12 +10284,6 @@ function renderProntuarioVerificacoes(esc) {
                         const canMutateAdvisory = accessProfile !== 'inventario'
                             && accessProfile !== 'sme'
                             && !isBonifLocked;
-                        const monthlyClass = bonifValue === 'Sim'
-                            ? 'is-correct'
-                            : bonifValue === 'Não'
-                                ? 'is-incorrect'
-                                : 'is-pending';
-
                         const advisoryRowsHTML = serviceEntries.length > 0
                             ? serviceEntries.map(({ note, sent, analysis }, noteIndex) => {
                                 const invoiceContext = window.RadarPendencias.buildPendencyLookupContext({
