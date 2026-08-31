@@ -370,14 +370,14 @@
                 remoteResultIsAuthoritative: true,
                 mutate: () => {
                     const state = this.getState();
-                    const context = {
-                        escolaId: text(input.schoolId || input.escolaId),
-                        competencia: text(input.competence || input.competencia),
-                        programaId: text(input.programId || input.programaId),
+                    const context = this.domain.buildPendencyLookupContext({
+                        escolaId: input.schoolId || input.escolaId,
+                        competencia: input.competence || input.competencia,
+                        programaId: input.programId || input.programaId,
                         documentoKey: 'notaFiscal',
                         registeredInvoiceId,
-                        item: text(input.item)
-                    };
+                        item: input.item
+                    });
                     if (!context.escolaId || !context.competencia || !context.programaId || !registeredInvoiceId) {
                         fail(
                             'INCOMPLETE_CONTEXT',
@@ -885,15 +885,14 @@
                     : ['pendencies', 'administrativeLogs'],
                 mutate: () => {
                     const state = this.getState();
-                    const context = {
-                        escolaId: text(input.schoolId || input.escolaId),
-                        competencia: text(input.competence || input.competencia),
-                        competenciaOrigem: text(input.competence || input.competencia),
-                        programaId: text(input.programId || input.programaId),
-                        documentoKey: text(input.documentKey || input.documentoKey),
-                        registeredInvoiceId: text(input.registeredInvoiceId || input.registered_invoice_id) || null,
-                        item: text(input.item)
-                    };
+                    const context = this.domain.buildPendencyLookupContext({
+                        escolaId: input.schoolId || input.escolaId,
+                        competencia: input.competence || input.competencia,
+                        programaId: input.programId || input.programaId,
+                        documentoKey: input.documentKey || input.documentoKey,
+                        registeredInvoiceId: input.registeredInvoiceId || input.registered_invoice_id,
+                        item: input.item
+                    });
                     const documentary = Boolean(context.programaId && context.documentoKey);
                     const existing = documentary
                         ? this.domain.findActivePendency(state.pendencies, context)

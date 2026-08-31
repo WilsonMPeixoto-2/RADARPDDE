@@ -194,8 +194,32 @@
         ];
     }
 
+    function buildPendencyLookupContext(input = {}) {
+        const escolaId = normalizeText(input.escolaId || input.schoolId);
+        const competencia = getCanonicalCompetence({
+            competenciaOrigem: input.competenciaOrigem || input.competenceOrigin,
+            competencia: input.competencia || input.competence
+        });
+        const programaId = normalizeText(input.programaId || input.programId);
+        const documentoKey = normalizeText(input.documentoKey || input.documentKey);
+        const registeredInvoiceId = getRegisteredInvoiceId(input);
+        const item = normalizeText(input.item);
+        const documentoNome = normalizeText(input.documentoNome || input.documentName);
+
+        return Object.freeze({
+            escolaId,
+            competencia,
+            competenciaOrigem: competencia,
+            programaId,
+            documentoKey,
+            ...(registeredInvoiceId ? { registeredInvoiceId } : {}),
+            ...(item ? { item } : {}),
+            ...(documentoNome ? { documentoNome } : {})
+        });
+    }
+
     function buildDocumentContextKey(context = {}) {
-        return getStructuredContextParts(context).join('::');
+        return getStructuredContextParts(buildPendencyLookupContext(context)).join('::');
     }
 
     function hasCompleteStructuredContext(context = {}) {
@@ -675,6 +699,7 @@
         PENDENCY_SCHEMA_VERSION,
         PENDENCY_STATUS,
         buildDocumentContextKey,
+        buildPendencyLookupContext,
         cancelPendency,
         createDocumentPendency,
         findActivePendency,

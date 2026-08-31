@@ -17,11 +17,45 @@ test('preflight de reanálise preserva registeredInvoiceId no lookup exato', () 
     const start = body.indexOf(marker);
     assert.ok(start >= 0, 'preflight de reanálise deve existir');
 
-    const snippet = body.slice(start, start + 900);
+    const snippet = body.slice(start, start + 700);
     assert.match(
         snippet,
-        /registeredInvoiceId:\s*current\.registeredInvoiceId\s*\|\|\s*current\.registered_invoice_id/
+        /window\.RadarPendencias\.buildPendencyLookupContext\(current\)/
     );
+});
+
+test('fábrica canônica normaliza aliases e preserva identidade individual', () => {
+    const context = pendencias.buildPendencyLookupContext({
+        schoolId: ' ESC-1 ',
+        competence: '2026-08',
+        programId: ' BASIC ',
+        documentKey: ' consAssessoria ',
+        registered_invoice_id: ' NF-A ',
+        item: ' Consulta Assessoria — NF 100 '
+    });
+
+    assert.deepEqual(context, {
+        escolaId: 'ESC-1',
+        competencia: '2026-08',
+        competenciaOrigem: '2026-08',
+        programaId: 'BASIC',
+        documentoKey: 'consAssessoria',
+        registeredInvoiceId: 'NF-A',
+        item: 'Consulta Assessoria — NF 100'
+    });
+});
+
+test('fábrica canônica não inventa invoice para contexto agregado', () => {
+    const context = pendencias.buildPendencyLookupContext({
+        escolaId: 'ESC-1',
+        competenciaOrigem: '2026-08',
+        programaId: 'BASIC',
+        documentoKey: 'extCC'
+    });
+
+    assert.equal(Object.hasOwn(context, 'registeredInvoiceId'), false);
+    assert.equal(context.competencia, '2026-08');
+    assert.equal(context.competenciaOrigem, '2026-08');
 });
 
 test('lookup agregado não pode localizar Pendência individualizada, mas lookup com invoice deve localizar', () => {
