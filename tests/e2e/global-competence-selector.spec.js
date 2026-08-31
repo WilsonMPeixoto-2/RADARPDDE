@@ -8,7 +8,7 @@ const PROFILE_CASES = [
 ];
 
 test.describe('competência mensal global', () => {
-  test('abre no mês corrente e mantém a troca manual apenas durante a sessão atual', async ({ page }) => {
+  test('abre no mês corrente sem duplicar o rótulo e mantém a troca manual apenas durante a sessão atual', async ({ page }) => {
     await page.addInitScript(() => {
       const NativeDate = Date;
       const fixedNow = new NativeDate('2026-08-31T12:00:00-03:00').getTime();
@@ -29,14 +29,26 @@ test.describe('competência mensal global', () => {
     await page.waitForFunction(() => Boolean(window.RadarCompetenceContext));
 
     const selector = page.locator('#global-competence-select');
+    const control = page.locator('#global-competence-badge');
     await expect(selector).toBeVisible();
     await expect(selector.locator('option')).toHaveCount(12);
     await expect(selector).toHaveValue('2026-08');
-    await expect(page.locator('#global-competence-label')).toContainText('Agosto');
+    await expect(page.locator('#global-competence-label')).toHaveCount(0);
+    await expect(control.getByText('Agosto 2026', { exact: true })).toHaveCount(1);
+
+    const contrast = await selector.evaluate(element => {
+      const style = getComputedStyle(element);
+      return {
+        background: style.backgroundColor,
+        borderColor: style.borderTopColor
+      };
+    });
+    expect(contrast.background).not.toBe('rgba(0, 0, 0, 0)');
+    expect(contrast.borderColor).not.toBe('rgba(0, 0, 0, 0)');
 
     await selector.selectOption('2026-09');
     await expect(selector).toHaveValue('2026-09');
-    await expect(page.locator('#global-competence-label')).toContainText('Setembro');
+    await expect(control.getByText('Setembro 2026', { exact: true })).toHaveCount(1);
 
     for (const { profile, views } of PROFILE_CASES) {
       await page.evaluate(nextProfile => switchProfile(nextProfile), profile);
