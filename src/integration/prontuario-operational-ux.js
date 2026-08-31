@@ -5,6 +5,24 @@
 
     const SENT_LABEL_PREFIX = 'Consulta enviada à Assessoria para a NF ';
     const CONSOLIDATED_BONUS_LABELS = new Set(['apta', 'inapta']);
+    const STANDARD_DOCUMENT_META = Object.freeze({
+        extCC: Object.freeze({
+            label: 'Extrato Conta Corrente',
+            icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="M7 9h10M7 13h5M7 16h7"/></svg>'
+        }),
+        extINV: Object.freeze({
+            label: 'Extrato Investimento',
+            icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18.5V11m5 7.5V7m5 11.5v-5m5 5V4"/><path d="M3 20h18"/></svg>'
+        }),
+        declBBAgil: Object.freeze({
+            label: 'Declaração BB Ágil',
+            icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h10l4 4V20.5H5z"/><path d="M15 3.5v4h4"/><path d="M8 12h8M8 15.5h6"/><path d="M8 8.5h3"/></svg>'
+        }),
+        encampInventario: Object.freeze({
+            label: 'Encaminhado para Inventariação',
+            icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5h16v12H4z"/><path d="M8 7.5V5h8v2.5M8 12h8M8 15.5h5"/></svg>'
+        })
+    });
     let installed = false;
     let originalRenderProntuario = null;
 
@@ -45,6 +63,41 @@
         const programName = group.contextCell.querySelector(':scope > span');
         if (competenceLabel) competenceLabel.classList.add('program-context-competence');
         if (programName) programName.classList.add('program-context-name');
+    }
+
+    function getDocumentCell(row) {
+        const cells = Array.from(row.querySelectorAll(':scope > td'));
+        if (!cells.length) return null;
+        return cells[0].hasAttribute('rowspan') ? (cells[1] || null) : cells[0];
+    }
+
+    function decorateStandardDocumentRow(row) {
+        const documentKey = text(row.dataset.documentKey);
+        const meta = STANDARD_DOCUMENT_META[documentKey];
+        if (!meta || row.dataset.radarDocumentDecorated === 'true') return;
+
+        const cell = getDocumentCell(row);
+        if (!cell) return;
+        const title = Array.from(cell.children).find(child => (
+            child.tagName === 'SPAN' && text(child.textContent) === meta.label
+        ));
+        if (!title) return;
+
+        row.dataset.radarDocumentDecorated = 'true';
+        row.classList.add('prontuario-standard-document-row');
+        cell.classList.add('prontuario-document-cell');
+        title.classList.add('prontuario-document-title');
+        title.removeAttribute('style');
+
+        const icon = root.document.createElement('span');
+        icon.className = `prontuario-document-icon is-${documentKey}`;
+        icon.setAttribute('aria-hidden', 'true');
+        icon.innerHTML = meta.icon;
+        cell.insertBefore(icon, title);
+    }
+
+    function decorateStandardDocumentRows(rows) {
+        rows.forEach(decorateStandardDocumentRow);
     }
 
     function findInvoiceCard(cards, invoiceNumber, fallbackIndex, usedCards) {
@@ -251,6 +304,7 @@
             return false;
         }
 
+        decorateStandardDocumentRows(rows);
         getProgramGroups(rows).forEach(group => {
             decorateProgramGroup(group);
             moveServiceAdvisoryControls(group);
