@@ -364,13 +364,16 @@
         findActivePendency(state, schoolId, compKey, documentKey) {
             if (!pendencyDomain) return null;
             const { competence, programId } = splitCompKey(compKey);
-            return pendencyDomain.findActivePendency(list(state?.pendencies), {
+            const context = pendencyDomain.buildPendencyLookupContext({
                 escolaId: schoolId,
                 competencia: competence,
-                competenciaOrigem: competence,
                 programaId: programId,
                 documentoKey: documentKey
-            }) || null;
+            });
+            return pendencyDomain.findActivePendency(
+                list(state?.pendencies),
+                context
+            ) || null;
         }
 
         async setTechnicalAnalysis(input = {}) {
