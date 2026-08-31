@@ -9033,6 +9033,7 @@ async function confirmarReanalisePendencia(event) {
             competenciaOrigem: competence,
             programaId: current.programaId,
             documentoKey: current.documentoKey,
+            registeredInvoiceId: current.registeredInvoiceId || current.registered_invoice_id,
             item: current.item
         }
     );
