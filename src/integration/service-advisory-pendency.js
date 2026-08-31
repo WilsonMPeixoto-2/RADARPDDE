@@ -14,13 +14,11 @@
         root.RadarServiceAdvisoryPendency = Object.freeze(api);
         if (root.document) {
             const attemptInstall = () => api.install(root);
-            if (!attemptInstall() && root.document.readyState === 'loading') {
+            attemptInstall();
+            if (root.document.readyState === 'loading') {
                 root.document.addEventListener('DOMContentLoaded', attemptInstall, { once: true });
             }
-            const interval = root.setInterval?.(() => {
-                if (attemptInstall()) root.clearInterval?.(interval);
-            }, 25);
-            root.setTimeout?.(() => root.clearInterval?.(interval), 10000);
+            root.addEventListener?.('radar:application-services-ready', attemptInstall);
         }
     }
 }(typeof window !== 'undefined' ? window : globalThis, function createServiceAdvisoryPendencyApi(
@@ -34,7 +32,6 @@
     }
     const { RepositoryError, cloneValue } = contract;
     const { getServiceAdvisoryState } = serviceAdvisory;
-    let installed = false;
     let pendingContext = null;
 
     function text(value) {
@@ -365,8 +362,7 @@
     function patchUi(root) {
         if (typeof root.changeInvoiceAdvisoryAnalysis !== 'function') return false;
         if (root.changeInvoiceAdvisoryAnalysis.__radarServiceAdvisoryPendency === true) return true;
-        const invoiceService = root.RadarApplicationServices?.invoices;
-        if (!invoiceService) return false;
+        if (!root.RadarApplicationServices?.invoices) return false;
 
         const wrapped = async function changeInvoiceAdvisoryAnalysisPerInvoice(
             invoiceId,
@@ -374,6 +370,8 @@
             value,
             selectElement = null
         ) {
+            const invoiceService = root.RadarApplicationServices?.invoices;
+            if (!invoiceService) return false;
             const state = invoiceService.getState();
             const invoice = state.registeredInvoices.find(record => String(record.id) === String(invoiceId));
             if (!invoice || invoice.tipo !== 'servico') return false;
@@ -451,7 +449,6 @@
     }
 
     function install(root) {
-        if (installed) return true;
         if (!root?.RadarPendencias
             || !root?.RadarAccessPolicy
             || !root?.RadarApplicationServices?.invoices
@@ -460,9 +457,7 @@
             || typeof root.openNovaPendenciaModalWithDefaults !== 'function') {
             return false;
         }
-        if (!patchServices(root) || !patchUi(root)) return false;
-        installed = true;
-        return true;
+        return Boolean(patchServices(root) && patchUi(root));
     }
 
     return Object.freeze({
