@@ -4671,6 +4671,9 @@ function initializeRadarApplicationServices() {
         invoices: radarInvoiceService,
         inventory: radarInventoryService
     });
+    window.dispatchEvent(new CustomEvent('radar:application-services-ready', {
+        detail: { services: window.RadarApplicationServices }
+    }));
 }
 
 function reportRadarPersistenceError(error, context = {}) {

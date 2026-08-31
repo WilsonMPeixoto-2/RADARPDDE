@@ -69,3 +69,48 @@ test('handler base de Incorreto é fail-closed e exige extensão funcional insta
     assert.match(body, /atomicHandler !== changeInvoiceAdvisoryAnalysis/);
     assert.match(body, /A proteção individual da Consulta Assessoria ainda não está disponível/);
 });
+
+
+test('serviços autenticados disparam instalação determinística das extensões críticas', () => {
+    const app = source('app.js');
+    const advisory = source('src/integration/service-advisory-pendency.js');
+    const corrective = source('src/integration/service-advisory-corrective-submission.js');
+    const bootstrap = source('src/integration/product-extensions-bootstrap.js');
+
+    assert.match(app, /dispatchEvent\(new CustomEvent\('radar:application-services-ready'/);
+
+    for (const body of [advisory, corrective]) {
+        assert.match(
+            body,
+            /addEventListener\?\.\('radar:application-services-ready', attemptInstall\)/
+        );
+        assert.doesNotMatch(body, /setTimeout\?\.\([^\n]+10000/);
+        assert.doesNotMatch(body, /setInterval\?\.\(\(\) => \{[\s\S]{0,180}attemptInstall/);
+    }
+
+    assert.match(bootstrap, /function waitForCriticalExtensions\(\)/);
+    assert.match(
+        bootstrap,
+        /RadarServiceAdvisoryPendency\?\.install\?\.\(root\) === true/
+    );
+    assert.match(
+        bootstrap,
+        /RadarServiceAdvisoryCorrectiveSubmission\?\.install\?\.\(root\) === true/
+    );
+    assert.match(
+        bootstrap,
+        /\.then\(\(\) => waitForCriticalExtensions\(\)\)/
+    );
+});
+
+test('RadarProductExtensionsReady não pode significar apenas scripts carregados', () => {
+    const bootstrap = source('src/integration/product-extensions-bootstrap.js');
+    assert.doesNotMatch(
+        bootstrap,
+        /Promise\.resolve\(\)\s*\n\s*\)\.then\(\(\) => true\)/
+    );
+    assert.match(
+        bootstrap,
+        /resolve\(true\)/
+    );
+});

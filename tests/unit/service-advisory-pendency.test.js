@@ -292,3 +292,33 @@ test('abertura atômica consolidada reabre no mesmo efeito e mantém um único l
     assert.equal(harness.state.logs[0].action, 'Análise incorreta e pendência aberta');
     assert.match(harness.state.logs[0].details, /reaberta/i);
 });
+
+
+test('reinstala a autoridade individual quando os serviços autenticados são recriados', async () => {
+    const integration = freshIntegration();
+    const first = createRoot();
+    const second = createRoot();
+
+    assert.equal(integration.install(first.root), true);
+    const wrappedUi = first.root.changeInvoiceAdvisoryAnalysis;
+
+    first.root.RadarApplicationServices = second.root.RadarApplicationServices;
+    assert.equal(integration.install(first.root), true);
+
+    assert.equal(
+        second.pendencyService.__radarServiceAdvisoryPendency,
+        true
+    );
+    assert.equal(first.root.changeInvoiceAdvisoryAnalysis, wrappedUi);
+
+    const result = await first.root.changeInvoiceAdvisoryAnalysis(
+        'NF-B',
+        'ESC-1',
+        'Correto',
+        { value: 'Correto' }
+    );
+
+    assert.equal(result, true);
+    assert.equal(second.state.registeredInvoices[1].analiseConsultaAssessoria, 'Correto');
+    assert.equal(first.state.registeredInvoices[1].analiseConsultaAssessoria, 'Não analisado');
+});
