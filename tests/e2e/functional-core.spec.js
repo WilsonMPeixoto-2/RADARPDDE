@@ -245,6 +245,19 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
     await expect(firstAnalysis).toHaveValue('Não analisado');
     await expect(secondAnalysis).toHaveValue('Não analisado');
 
+    const firstAdvisoryInvoiceRow = assessoriaRow.locator('[data-service-advisory-invoice]').first();
+    await expect(firstAdvisoryInvoiceRow).not.toHaveClass(/service-invoice-card/);
+    expect(await firstSent.evaluate(element => Boolean(element.closest('.service-advisory-delivery')))).toBe(true);
+    expect(await firstAnalysis.evaluate(element => Boolean(element.closest('.invoice-document-analysis')))).toBe(true);
+    const advisoryGridTrackCount = await firstAdvisoryInvoiceRow.evaluate(element => (
+      getComputedStyle(element).gridTemplateColumns
+        .split(' ')
+        .map(value => value.trim())
+        .filter(Boolean)
+        .length
+    ));
+    expect(advisoryGridTrackCount).toBe(4);
+
     await firstSent.check();
     await firstAnalysis.selectOption('Correto');
 
