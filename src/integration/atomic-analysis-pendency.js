@@ -41,13 +41,16 @@
 
     function findActivePendency(state, schoolId, compKey, documentKey) {
         const { competence, programId } = splitContext(compKey);
-        return root.RadarPendencias?.findActivePendency?.(state?.pendencies || [], {
+        const context = root.RadarPendencias?.buildPendencyLookupContext?.({
             escolaId: schoolId,
             competencia: competence,
-            competenciaOrigem: competence,
             programaId: programId,
             documentoKey: documentKey
-        }) || null;
+        });
+        return root.RadarPendencias?.findActivePendency?.(
+            state?.pendencies || [],
+            context || {}
+        ) || null;
     }
 
     function pendingMatches(input = {}) {
