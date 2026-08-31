@@ -3113,7 +3113,8 @@ body.dark-theme .radar-auth-brand {
     background: #fff;
 }
 
-.invoice-bonification-toggle button {
+.invoice-bonification-toggle button,
+.invoice-bonification-toggle.is-readonly > span {
     min-width: 68px;
     min-height: 38px;
     padding: 8px 16px;
@@ -3124,11 +3125,22 @@ body.dark-theme .radar-auth-brand {
     font-family: var(--font-body);
     font-size: 0.82rem;
     font-weight: 700;
-    cursor: pointer;
     transition: background var(--transition-fast), color var(--transition-fast);
 }
 
-.invoice-bonification-toggle button:first-child {
+.invoice-bonification-toggle button {
+    cursor: pointer;
+}
+
+.invoice-bonification-toggle.is-readonly > span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+}
+
+.invoice-bonification-toggle button:first-child,
+.invoice-bonification-toggle.is-readonly > span:first-child {
     border-left: 0;
 }
 
@@ -3136,20 +3148,24 @@ body.dark-theme .radar-auth-brand {
     background: var(--invoice-purple-soft);
 }
 
-.invoice-bonification-toggle button.is-selected {
+.invoice-bonification-toggle button.is-selected,
+.invoice-bonification-toggle.is-readonly > span.is-selected {
     background: var(--invoice-purple);
     color: #fff;
 }
 
-.invoice-bonification-toggle button.is-selected.is-sim {
+.invoice-bonification-toggle button.is-selected.is-sim,
+.invoice-bonification-toggle.is-readonly > span.is-selected.is-sim {
     background: var(--invoice-green);
 }
 
-.invoice-bonification-toggle button.is-selected.is-nao {
+.invoice-bonification-toggle button.is-selected.is-nao,
+.invoice-bonification-toggle.is-readonly > span.is-selected.is-nao {
     background: var(--invoice-red);
 }
 
-.invoice-bonification-toggle button.is-selected.is-na {
+.invoice-bonification-toggle button.is-selected.is-na,
+.invoice-bonification-toggle.is-readonly > span.is-selected.is-na {
     background: #6b6475;
 }
 

@@ -10284,12 +10284,6 @@ function renderProntuarioVerificacoes(esc) {
                         const canMutateAdvisory = accessProfile !== 'inventario'
                             && accessProfile !== 'sme'
                             && !isBonifLocked;
-                        const monthlyClass = bonifValue === 'Sim'
-                            ? 'is-correct'
-                            : bonifValue === 'Não'
-                                ? 'is-incorrect'
-                                : 'is-pending';
-
                         const advisoryRowsHTML = serviceEntries.length > 0
                             ? serviceEntries.map(({ note, sent, analysis }, noteIndex) => {
                                 const invoiceContext = window.RadarPendencias.buildPendencyLookupContext({
@@ -10393,7 +10387,13 @@ function renderProntuarioVerificacoes(esc) {
                                             <div class="invoice-document-panel-summary">
                                                 <div class="invoice-summary-block is-bonification">
                                                     <span>Bonificação</span>
-                                                    <strong class="invoice-document-status ${monthlyClass}">${escapeHtml(bonifValue || 'Não se aplica')}</strong>
+                                                    <div class="invoice-bonification-toggle is-readonly"
+                                                        role="group"
+                                                        aria-label="Bonificação da Consulta Assessoria: ${escapeHtml(bonifValue || 'Não se aplica')}">
+                                                        <span class="is-sim ${bonifValue === 'Sim' ? 'is-selected' : ''}">Sim</span>
+                                                        <span class="is-nao ${bonifValue === 'Não' ? 'is-selected' : ''}">Não</span>
+                                                        <span class="is-na ${bonifValue === 'Não se aplica' ? 'is-selected' : ''}">N/A</span>
+                                                    </div>
                                                 </div>
                                                 ${activeServicePendencyCount > 0 ? `
                                                     <div class="invoice-summary-block is-pendencies">

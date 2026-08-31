@@ -245,6 +245,13 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
     await expect(firstAnalysis).toHaveValue('Não analisado');
     await expect(secondAnalysis).toHaveValue('Não analisado');
 
+    const advisoryBonification = assessoriaRow.locator('.invoice-summary-block.is-bonification .invoice-bonification-toggle.is-readonly');
+    await expect(advisoryBonification).toBeVisible();
+    await expect(advisoryBonification.getByText('Sim', { exact: true })).toBeVisible();
+    await expect(advisoryBonification.getByText('Não', { exact: true })).toBeVisible();
+    await expect(advisoryBonification.getByText('N/A', { exact: true })).toBeVisible();
+    await expect(advisoryBonification.locator('.is-selected')).toHaveText('Não');
+
     const firstAdvisoryInvoiceRow = assessoriaRow.locator('[data-service-advisory-invoice]').first();
     await expect(firstAdvisoryInvoiceRow).not.toHaveClass(/service-invoice-card/);
     expect(await firstSent.evaluate(element => Boolean(element.closest('.service-advisory-delivery')))).toBe(true);
@@ -292,7 +299,7 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
       ],
       aggregate: { delivery: 'Sim', sent: true, analysis: 'Não analisado' }
     });
-    await expect(assessoriaRow.getByText('Sim', { exact: true })).toBeVisible();
+    await expect(advisoryBonification.locator('.is-selected')).toHaveText('Sim');
 
     await secondSent.check();
     await secondAnalysis.selectOption('Correto (Atrasado)');
@@ -301,7 +308,8 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
     await expect(secondAnalysis).toHaveValue('Correto (Atrasado)');
     await expect(assessoriaRow.getByText('Bonificação', { exact: true })).toBeVisible();
     await expect(assessoriaRow.getByText('Resumo mensal', { exact: true })).toHaveCount(0);
-    await expect(assessoriaRow.getByText('Sim', { exact: true })).toBeVisible();
+    await expect(advisoryBonification.locator('span')).toHaveCount(3);
+    await expect(advisoryBonification.locator('.is-selected')).toHaveText('Sim');
 
     const advisoryPanel = assessoriaRow.locator('[data-service-advisory-panel]');
     const advisoryPanelOverflow = await advisoryPanel.evaluate(element => ({
