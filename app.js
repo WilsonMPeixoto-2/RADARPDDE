@@ -10392,7 +10392,7 @@ function renderProntuarioVerificacoes(esc) {
                                             </div>
                                             <div class="invoice-document-panel-summary">
                                                 <div class="invoice-summary-block is-bonification">
-                                                    <span>Resumo mensal</span>
+                                                    <span>Bonificação</span>
                                                     <strong class="invoice-document-status ${monthlyClass}">${escapeHtml(bonifValue || 'Não se aplica')}</strong>
                                                 </div>
                                                 ${activeServicePendencyCount > 0 ? `
