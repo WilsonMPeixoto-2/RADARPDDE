@@ -132,12 +132,13 @@
         const select = createElement('select', {
             id: 'global-competence-select',
             className: 'global-competence-select',
-            'aria-describedby': 'global-competence-label'
+            'aria-label': 'Competência global'
         });
         const currentLabel = createElement('span', {
             id: 'global-competence-label',
             className: 'global-competence-current',
-            'aria-live': 'polite'
+            'aria-hidden': 'true',
+            hidden: ''
         });
         badge.append(controlLabel, select, currentLabel);
         return select;
