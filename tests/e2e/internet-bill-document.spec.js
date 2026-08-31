@@ -1,9 +1,11 @@
 const { test, expect } = require('@playwright/test');
+const { selectFixtureCompetence } = require('../support/e2e-competence');
 
 test('Boleto de Internet existe somente como Tipo de Gasto de Notas Fiscais em Educação Conectada', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 
   await page.goto('/');
+  await selectFixtureCompetence(page);
   const context = await page.evaluate(() => {
     switchProfile('controlador');
     const competencia = activeCompetenciaKey;
@@ -188,6 +190,7 @@ test('boletoInternet legado permanece armazenado, mas não aparece nem participa
   test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 
   await page.goto('/');
+  await selectFixtureCompetence(page);
   const context = await page.evaluate(() => {
     switchProfile('controlador');
     const competencia = activeCompetenciaKey;
