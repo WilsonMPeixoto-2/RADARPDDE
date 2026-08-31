@@ -3924,3 +3924,185 @@ body.dark-theme .pendency-preview-drawer {
     background: #100c1e;
     color: #f5f3f7;
 }
+
+
+/* Prontuário — resumo visual da unidade */
+.school-grid {
+    display: block;
+}
+
+.school-sidebar {
+    display: grid;
+    grid-template-columns: minmax(0, 2.15fr) minmax(260px, 0.85fr);
+    gap: 18px;
+    align-items: start;
+    margin-bottom: 28px;
+}
+
+.school-info-card.school-data-card,
+.school-info-card.school-programs-card {
+    padding: 18px;
+    overflow: hidden;
+}
+
+.school-data-card {
+    background:
+        linear-gradient(180deg, rgba(124, 58, 237, 0.045), rgba(255, 255, 255, 0) 96px),
+        var(--bg-card);
+}
+
+.school-card-heading {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding-bottom: 13px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid rgba(124, 58, 237, 0.12);
+}
+
+.school-card-heading-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 36px;
+    width: 36px;
+    height: 36px;
+    border: 1px solid rgba(124, 58, 237, 0.18);
+    border-radius: 10px;
+    background: rgba(124, 58, 237, 0.08);
+    color: var(--primary);
+}
+
+.school-card-heading h2 {
+    margin: 0;
+    color: var(--text-main);
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    font-weight: 750;
+    line-height: 1.2;
+}
+
+.school-card-heading p {
+    margin: 3px 0 0;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    line-height: 1.35;
+}
+
+.school-data-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.school-data-grid .school-data-item {
+    position: relative;
+    min-width: 0;
+    min-height: 72px;
+    margin: 0;
+    padding: 11px 13px 12px;
+    border: 1px solid rgba(124, 58, 237, 0.13);
+    border-radius: 11px;
+    background: rgba(124, 58, 237, 0.035);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset;
+}
+
+.school-data-grid .school-data-item::before {
+    content: "";
+    position: absolute;
+    top: 11px;
+    left: 0;
+    width: 3px;
+    height: 22px;
+    border-radius: 0 999px 999px 0;
+    background: rgba(124, 58, 237, 0.55);
+}
+
+.school-data-grid .school-data-item.is-wide {
+    grid-column: span 2;
+}
+
+.school-data-grid .info-label {
+    margin: 0;
+    color: var(--primary);
+    font-size: 0.66rem;
+    font-weight: 750;
+    letter-spacing: 0.025em;
+    line-height: 1.25;
+}
+
+.school-data-grid .info-value {
+    margin-top: 6px;
+    color: var(--text-main);
+    font-family: var(--font-heading);
+    font-size: 0.82rem;
+    font-weight: 650;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+    word-break: normal;
+}
+
+.school-programs-card {
+    background:
+        linear-gradient(180deg, rgba(124, 58, 237, 0.055), rgba(124, 58, 237, 0.015)),
+        var(--bg-card);
+}
+
+.school-programs-card .school-card-heading {
+    margin-bottom: 12px;
+}
+
+.school-program-list {
+    gap: 10px;
+}
+
+.school-program-item {
+    position: relative;
+    min-height: 40px;
+    padding: 10px 12px 10px 34px;
+    border-color: rgba(124, 58, 237, 0.15);
+    border-radius: 10px;
+    background: rgba(124, 58, 237, 0.055);
+    font-family: var(--font-heading);
+    font-size: 0.79rem;
+    font-weight: 650;
+}
+
+.school-program-item::before {
+    content: "";
+    position: absolute;
+    left: 13px;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    border: 2px solid rgba(124, 58, 237, 0.38);
+    border-radius: 50%;
+    background: rgba(124, 58, 237, 0.1);
+    transform: translateY(-50%);
+}
+
+@media (max-width: 1100px) {
+    .school-sidebar {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .school-data-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .school-data-grid .school-data-item.is-wide {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 340px) {
+    .school-data-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .school-data-grid .school-data-item.is-wide {
+        grid-column: auto;
+    }
+}
