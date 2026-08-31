@@ -2,7 +2,7 @@
 
 Sistema institucional de acompanhamento operacional do PDDE da 4ª CRE/SME-Rio. O produto organiza competência mensal, carteira de unidades, prontuário, análise documental, pendências, contatos, notas fiscais, patrimônio, Gestão de Equipe, acompanhamento gerencial e exportações.
 
-> **Estado reconciliado em 30 de agosto de 2026:** o PR #211 foi integrado e publicado no merge `aa82ab4e359f62259df33842fb794aa1e654c30c`. Supabase Production possui 43 migrations, incluindo `20260828023000_invoice_document_analysis_pendency`; Vercel Production está `READY` no deployment `dpl_2ApguJZe79buX9xD1od45RDTKYDR`; os smokes de publicação passaram. O Lighthouse móvel continua dívida não bloqueante deste hotfix desktop. A próxima frente é exclusivamente a reconciliação pós-hotfix com o plano mestre, antes de PR3.1. O estado completo fica em [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md).
+> **Estado reconciliado em 30 de agosto de 2026:** o conjunto PR #211 + #214 + #215 está integrado e publicado. Supabase Production possui **44 migrations**, incluindo `20260830223000_payload_row_version_boundary`; Vercel Production está `READY` no deployment `dpl_TXwRPK2Sv72u5HtQVF3Z7ejJby3k`, correspondente ao `main` operacional `24e1934541b92e4399798556c05fd164c9c43801`. Os dois fluxos que falharam após PR #211 foram comprovados por smokes transacionais reais com rollback. A homologação autenticada final pela interface permanece pendente. A ADR-052 passa a proteger autoridade e composição dos fluxos críticos. O estado completo fica em [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md).
 
 ## Fontes de verdade
 
@@ -44,7 +44,7 @@ Documentação antiga não redefine o código para ficar “coerente”. Quando 
 
 ## Correções consolidadas e diagnóstico atual
 
-O plano mestre pós-auditoria permanece vigente, mas sua retomada está condicionada à reconciliação pós-PR #211. O hotfix publicado mantém a bonificação de Notas Fiscais agregada, individualiza análise e Pendência por `registered_invoice_id`, cria nova `a_identificar` apenas como `Incorreto + Pendência`, preserva 16 registros legítimos como **Registro legado** e removeu somente fixtures técnicas comprovadas por limpeza fail-closed. O resultado da publicação está documentado no handoff de encerramento indicado abaixo.
+O plano mestre pós-auditoria permanece vigente, mas sua retomada está condicionada ao fechamento e à reconciliação do conjunto PR #211/#214/#215. O hotfix publicado mantém a bonificação de Notas Fiscais agregada, individualiza análise e Pendência por `registered_invoice_id`, cria nova `a_identificar` apenas como `Incorreto + Pendência`, preserva 16 registros legítimos como **Registro legado** e removeu somente fixtures técnicas comprovadas por limpeza fail-closed. O resultado da publicação está documentado no handoff de encerramento indicado abaixo.
 
 O baseline atual incorpora, entre outros:
 
@@ -138,15 +138,18 @@ Ordem de leitura:
 6. [`docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md`](docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md);
 7. [`docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md`](docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md);
 8. [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md), [`docs/DECISION_LOG.md`](docs/DECISION_LOG.md) e [`docs/reference/STATUS_DOCUMENTOS.md`](docs/reference/STATUS_DOCUMENTOS.md);
-9. somente depois, os handoffs de execução do PR #211 e o plano mestre de 26/08.
+9. [`docs/handoff/2026-08-30-pr215-fechamento-tecnico.md`](docs/handoff/2026-08-30-pr215-fechamento-tecnico.md);
+10. [`docs/decisions/ADR-052-autoridade-unica-fluxos-criticos.md`](docs/decisions/ADR-052-autoridade-unica-fluxos-criticos.md);
+11. somente depois, os handoffs históricos de execução e o plano mestre de 26/08.
 
 A porta de entrada vigente é o handoff de publicação concluída de 30/08. Auditorias e planos anteriores permanecem históricos e não podem restaurar decisões superadas.
 
 ## Próxima sequência
 
-1. comparar o diff integrado do PR #211 com o plano mestre;
+1. concluir os gates de autoridade/composição da ADR-052 e a homologação autenticada final;
+2. comparar o conjunto integrado PR #211/#214/#215 com o plano mestre;
 2. classificar tarefas futuras como não afetadas, parcialmente atendidas, atendidas ou alteradas;
-3. atualizar o plano mestre e o handoff de retomada;
+4. atualizar o plano mestre e o handoff de retomada;
 4. só então iniciar PR3.1, PR3.2 e PR3.3, cada qual com gate próprio, e seguir as demais fases na ordem aprovada;
 5. executar PR8A antes de PR8B;
 6. medir em PR9A, estabilizar a metodologia em PR9B e só então otimizar por hipótese em PR9C.
