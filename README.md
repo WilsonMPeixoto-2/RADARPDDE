@@ -131,27 +131,27 @@ npm run check:functional-matrix
 Ordem de leitura:
 
 1. [`AGENTS.md`](AGENTS.md);
-2. [`docs/handoff/2026-08-30-pr211-publicacao-concluida.md`](docs/handoff/2026-08-30-pr211-publicacao-concluida.md);
+2. [`docs/handoff/2026-08-30-pr215-fechamento-tecnico.md`](docs/handoff/2026-08-30-pr215-fechamento-tecnico.md);
 3. [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md);
 4. [`docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md);
-5. [`docs/superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](docs/superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md);
-6. [`docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md`](docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md);
-7. [`docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md`](docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md);
-8. [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md), [`docs/DECISION_LOG.md`](docs/DECISION_LOG.md) e [`docs/reference/STATUS_DOCUMENTOS.md`](docs/reference/STATUS_DOCUMENTOS.md);
-9. [`docs/handoff/2026-08-30-pr215-fechamento-tecnico.md`](docs/handoff/2026-08-30-pr215-fechamento-tecnico.md);
-10. [`docs/decisions/ADR-052-autoridade-unica-fluxos-criticos.md`](docs/decisions/ADR-052-autoridade-unica-fluxos-criticos.md);
-11. somente depois, os handoffs históricos de execução e o plano mestre de 26/08.
+5. [`docs/decisions/ADR-052-autoridade-unica-fluxos-criticos.md`](docs/decisions/ADR-052-autoridade-unica-fluxos-criticos.md);
+6. [`docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md`](docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md);
+7. [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md), [`docs/DECISION_LOG.md`](docs/DECISION_LOG.md) e [`docs/reference/STATUS_DOCUMENTOS.md`](docs/reference/STATUS_DOCUMENTOS.md);
+8. [`docs/superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](docs/superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md);
+9. [`docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md`](docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md);
+10. [`docs/handoff/2026-08-30-pr211-publicacao-concluida.md`](docs/handoff/2026-08-30-pr211-publicacao-concluida.md) como histórico do estado imediatamente anterior ao PR #215;
+11. somente depois, os demais handoffs históricos e o plano mestre de 26/08.
 
-A porta de entrada vigente é o handoff de publicação concluída de 30/08. Auditorias e planos anteriores permanecem históricos e não podem restaurar decisões superadas.
+A porta de entrada vigente é o handoff pós-PR #215. Auditorias e planos anteriores permanecem históricos e não podem restaurar decisões superadas.
 
 ## Próxima sequência
 
 1. concluir os gates de autoridade/composição da ADR-052 e a homologação autenticada final;
 2. comparar o conjunto integrado PR #211/#214/#215 com o plano mestre;
-2. classificar tarefas futuras como não afetadas, parcialmente atendidas, atendidas ou alteradas;
+3. classificar tarefas futuras como não afetadas, parcialmente atendidas, atendidas ou alteradas;
 4. atualizar o plano mestre e o handoff de retomada;
-4. só então iniciar PR3.1, PR3.2 e PR3.3, cada qual com gate próprio, e seguir as demais fases na ordem aprovada;
-5. executar PR8A antes de PR8B;
-6. medir em PR9A, estabilizar a metodologia em PR9B e só então otimizar por hipótese em PR9C.
+5. só então iniciar PR3.1, PR3.2 e PR3.3, cada qual com gate próprio, e seguir as demais fases na ordem aprovada;
+6. executar PR8A antes de PR8B;
+7. medir em PR9A, estabilizar a metodologia em PR9B e só então otimizar por hipótese em PR9C.
 
 Nenhum PR, documento ou Preview autoriza por si só merge, migration ou mudança de Production fora do escopo aprovado.
