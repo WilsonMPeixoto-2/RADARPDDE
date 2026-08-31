@@ -309,26 +309,37 @@
 
     <!-- 2. Modal Geração de Cobrança Consolidada -->
     <div class="modal-overlay" id="modal-cobranca">
-        <div class="modal-content">
+        <div class="modal-content cobranca-modal-content">
             <div class="modal-header">
-                <h3>Gerar Mensagem de Cobrança</h3>
+                <div>
+                    <h3>Gerar Mensagem de Cobrança</h3>
+                    <p class="modal-subtitle">Selecione apenas as pendências que devem constar na comunicação com a unidade escolar.</p>
+                </div>
                 <button class="btn-close" onclick="closeModal('modal-cobranca')">×</button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="cobranca-escola-id">
-                <div class="form-group">
-                    <p style="color:var(--text-muted); margin-bottom: 12px; font-size:0.85rem;">
-                        Selecione as pendências abaixo para incluir na cobrança consolidada. Pendências internas de inventário foram excluídas automaticamente.
-                    </p>
-                    <div id="cobranca-checkboxes-container" style="max-height: 150px; overflow-y:auto; border: 1px solid var(--border-color); padding: 8px; border-radius: 8px; margin-bottom: 16px;">
+                <section class="cobranca-section" aria-labelledby="cobranca-selection-title">
+                    <div class="cobranca-section-heading">
+                        <div>
+                            <h4 id="cobranca-selection-title">Pendências da cobrança</h4>
+                            <p>Pendências internas e registros técnicos de homologação não são incluídos.</p>
+                        </div>
+                    </div>
+                    <div id="cobranca-checkboxes-container" class="cobranca-pendency-list">
                         <!-- Checkboxes injetados -->
                     </div>
-                </div>
-                <div class="form-group">
-                    <label>Pré-visualização da Mensagem</label>
+                </section>
+                <section class="cobranca-section cobranca-preview-section" aria-labelledby="cobranca-preview-title">
+                    <div class="cobranca-section-heading">
+                        <div>
+                            <h4 id="cobranca-preview-title">Pré-visualização da mensagem</h4>
+                            <p>Texto final pronto para copiar e encaminhar por e-mail ou WhatsApp.</p>
+                        </div>
+                    </div>
                     <div class="cobranca-preview" id="cobranca-preview-text"></div>
-                </div>
-                <div class="modal-footer" style="padding: 16px 0 0 0; background:none;">
+                </section>
+                <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('modal-cobranca')">Fechar</button>
                     <button type="button" class="btn btn-primary" onclick="copyCobrancaText()">Copiar Texto</button>
                 </div>
@@ -498,9 +509,12 @@
         aria-hidden="true"
         inert
     >
-        <div class="modal-content">
+        <div class="modal-content corrective-submission-modal-content">
             <div class="modal-header">
-                <h3 id="modal-registrar-envio-title">Registrar novo envio para conferência</h3>
+                <div>
+                    <h3 id="modal-registrar-envio-title">Registrar novo envio para conferência</h3>
+                    <p class="modal-subtitle">Registre a nova disponibilização do documento para que a pendência siga para reanálise.</p>
+                </div>
                 <button
                     type="button"
                     class="btn-close"
@@ -547,17 +561,19 @@
                             <input type="number" step="0.01" min="0" class="form-control" id="envio-identificacao-valor" required>
                         </div>
                     </fieldset>
-                    <div class="form-group">
-                        <label for="envio-data-disponibilizacao">Data em que o arquivo foi disponibilizado no Drive</label>
-                        <input type="date" class="form-control" id="envio-data-disponibilizacao" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="envio-observacao">Observação</label>
-                        <textarea class="form-control" id="envio-observacao" required></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="envio-link">Link direto do arquivo no Drive (opcional)</label>
-                        <input type="url" class="form-control" id="envio-link">
+                    <div class="corrective-submission-fields">
+                        <div class="form-group">
+                            <label for="envio-data-disponibilizacao">Data em que o arquivo foi disponibilizado no Drive</label>
+                            <input type="date" class="form-control" id="envio-data-disponibilizacao" required>
+                        </div>
+                        <div class="form-group is-full">
+                            <label for="envio-observacao">Observação</label>
+                            <textarea class="form-control" id="envio-observacao" rows="4" required></textarea>
+                        </div>
+                        <div class="form-group is-full">
+                            <label for="envio-link">Link direto do arquivo no Drive <span class="field-optional">(opcional)</span></label>
+                            <input type="url" class="form-control" id="envio-link">
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" onclick="closeModal('modal-registrar-envio')">Cancelar</button>
