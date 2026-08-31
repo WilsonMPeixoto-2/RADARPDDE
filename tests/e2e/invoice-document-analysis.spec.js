@@ -1,4 +1,5 @@
 const { test, expect } = require('@playwright/test');
+const { selectFixtureCompetence } = require('../support/e2e-competence');
 
 async function waitForProductExtensions(page) {
   await page.evaluate(() => window.RadarProductExtensionsReady);
@@ -32,6 +33,7 @@ test.describe('Prontuário — análise individual de Notas Fiscais', () => {
     page.on('dialog', dialog => dialog.accept());
 
     await page.goto('/');
+    await selectFixtureCompetence(page);
     await waitForProductExtensions(page);
 
     const context = await page.evaluate(() => {
