@@ -656,7 +656,7 @@
                         <button class="btn-close" type="button" aria-label="Fechar detalhes" onclick="closePendencyDetail()">×</button>
                     </header>
                     <div class="pendency-drawer-body">
-                        <section aria-labelledby="pendency-detail-context-title">
+                        <section class="pendency-drawer-section is-context" aria-labelledby="pendency-detail-context-title">
                             <h3 id="pendency-detail-context-title">Contexto</h3>
                             <dl class="pendency-detail-grid">
                                 <div><dt>Competência</dt><dd>${escapeHtml(formatCompetenciaText(record.competence))}</dd></div>
@@ -669,30 +669,34 @@
                                 <div><dt>Última movimentação</dt><dd>${escapeHtml(formatDateTime(record.latestMovement && record.latestMovement.at))}</dd></div>
                             </dl>
                         </section>
-                        <section aria-labelledby="pendency-detail-errors-title">
+                        <section class="pendency-drawer-section is-errors" aria-labelledby="pendency-detail-errors-title">
                             <h3 id="pendency-detail-errors-title">Erros atuais</h3>
                             ${renderErrors(record, { full: true })}
                         </section>
-                        <section aria-labelledby="pendency-detail-observation-title">
+                        <section class="pendency-drawer-section is-observation" aria-labelledby="pendency-detail-observation-title">
                             <h3 id="pendency-detail-observation-title">Observação de abertura</h3>
-                            <p>${escapeHtml(record.observation || 'Nenhuma observação informada.')}</p>
+                            <p>${escapeHtml(
+                                typeof root.sanitizePendencyPublicText === 'function'
+                                    ? root.sanitizePendencyPublicText(record.observation || '')
+                                    : (record.observation || 'Nenhuma observação informada.')
+                            ) || 'Nenhuma observação informada.'}</p>
                         </section>
                         ${record.status === 'Cancelada' ? `
-                            <section aria-labelledby="pendency-detail-cancel-title">
+                            <section class="pendency-drawer-section is-cancel" aria-labelledby="pendency-detail-cancel-title">
                                 <h3 id="pendency-detail-cancel-title">Cancelamento</h3>
                                 <p>${escapeHtml(record.cancelJustification || 'Justificativa não informada.')}</p>
                                 <small>${escapeHtml(formatDateTime(record.cancelledAt))}</small>
                             </section>
                         ` : ''}
-                        <section aria-labelledby="pendency-detail-attempt-title">
+                        <section class="pendency-drawer-section is-attempts" aria-labelledby="pendency-detail-attempt-title">
                             <h3 id="pendency-detail-attempt-title">Tentativas de envio</h3>
                             ${renderAttempts(record)}
                         </section>
-                        <section aria-labelledby="pendency-detail-contact-title">
+                        <section class="pendency-drawer-section is-contacts" aria-labelledby="pendency-detail-contact-title">
                             <h3 id="pendency-detail-contact-title">Contatos vinculados</h3>
                             ${renderContacts(record)}
                         </section>
-                        <section aria-labelledby="pendency-detail-timeline-title">
+                        <section class="pendency-drawer-section is-timeline" aria-labelledby="pendency-detail-timeline-title">
                             <h3 id="pendency-detail-timeline-title">Linha do tempo</h3>
                             ${renderTimeline(record)}
                         </section>
