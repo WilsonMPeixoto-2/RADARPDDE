@@ -1,6 +1,8 @@
 const { test, expect } = require('@playwright/test');
+const { selectFixtureCompetence } = require('../support/e2e-competence');
 
 async function seedConsolidatedProgram(page, profile = 'assistente') {
+  await selectFixtureCompetence(page);
   return page.evaluate(({ profile }) => {
     switchProfile(profile);
     const school = escolas.find(item => item.programasIds?.includes('BASIC'));
