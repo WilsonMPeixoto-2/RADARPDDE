@@ -96,6 +96,32 @@ regra funcional final
 → feedback da interação
 ```
 
+
+
+### Cadeias de wrappers que exigem ordem estável
+
+A revisão pós-PR #215 confirmou que a ordem não é apenas otimização. Existem cadeias reais de substituição de handlers:
+
+```text
+closeModal
+app.js
+→ atomic-analysis-pendency
+→ service-advisory-pendency
+
+registerAttempt
+PendencyService
+→ service-advisory-corrective-submission
+
+renderProntuario
+app.js
+→ unidentified-expense-ux
+→ prontuario-operational-ux
+→ operational-write-performance
+→ prontuario-conditional-reconciler
+```
+
+Essas cadeias devem ser tratadas como composição deliberada. Inserir novo wrapper entre elas exige justificar a autoridade e atualizar a regressão `critical-product-extension-authority.test.js`. Um wrapper novo não pode substituir silenciosamente uma responsabilidade funcional já existente.
+
 ### Diagnóstico antes de performance
 
 `operational-write-diagnostics.js` precisa carregar antes de `operational-write-performance.js` porque a camada de performance consulta a API global de diagnóstico no momento em que envolve DataServices e handlers.
