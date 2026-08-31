@@ -4,7 +4,7 @@ test('não expõe a regra interna de propagação da competência', async ({ pag
   await page.goto('/');
   await expect(page.locator('#app-layout')).toBeVisible();
   await expect(page.locator('#global-competence-select')).toBeVisible();
-  await expect(page.locator('#global-competence-label')).toBeVisible();
+  await expect(page.locator('#global-competence-label')).toBeHidden();
 
   await expect(page.locator('#global-competence-help')).toHaveCount(0);
   await expect(

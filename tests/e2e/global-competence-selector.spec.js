@@ -33,10 +33,12 @@ test.describe('competência mensal global', () => {
     await expect(selector.locator('option')).toHaveCount(12);
     await expect(selector).toHaveValue('2026-08');
     await expect(page.locator('#global-competence-label')).toContainText('Agosto');
+    await expect(page.locator('#global-competence-label')).toBeHidden();
 
     await selector.selectOption('2026-09');
     await expect(selector).toHaveValue('2026-09');
     await expect(page.locator('#global-competence-label')).toContainText('Setembro');
+    await expect(page.locator('#global-competence-label')).toBeHidden();
 
     for (const { profile, views } of PROFILE_CASES) {
       await page.evaluate(nextProfile => switchProfile(nextProfile), profile);

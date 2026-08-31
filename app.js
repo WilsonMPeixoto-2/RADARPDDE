@@ -5162,6 +5162,17 @@ const VERIFICATION_DOCUMENT_LABELS = Object.freeze({
     encampInventario: 'Encaminhado para Inventariação'
 });
 
+function verificationDocumentIconSvg(documentKey) {
+    const icons = {
+        extCC: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5h16v13H4z"/><path d="M7 9h10M7 12h6M7 15h4"/></svg>',
+        extINV: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5V5h15v14.5z"/><path d="m8 15 3-3 2.5 2 3.5-5"/><path d="M8 8.5h2"/></svg>',
+        declBBAgil: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h16M6 9V19M10 9V19M14 9V19M18 9V19M3 19h18"/><path d="M12 4 4.5 8h15z"/><path d="m15.5 5.9 1.1 1.1 2-2"/></svg>',
+        encampInventario: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 6.5h15v13h-15z"/><path d="M8 4.5h8v4H8z"/><path d="M8 12h8M8 15.5h5"/></svg>'
+    };
+    return icons[documentKey]
+        || '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h10l4 4V20.5H5z"/><path d="M15 3.5v4h4"/><path d="M8.5 12h7M8.5 15.5h5"/></svg>';
+}
+
 function buildVerificationSnapshot(verification, programId = '') {
     const emptyVerification = window.RadarFluxoOperacional.createEmptyVerification(programId);
 
@@ -10462,6 +10473,7 @@ function renderProntuarioVerificacoes(esc) {
 
                     rowsHTML += `
                         <tr
+                            class="verification-document-row ${idx % 2 === 1 ? 'is-striped' : ''}"
                             data-program-id="${escapeHtml(progId)}"
                             data-document-key="${escapeHtml(doc.key)}"
                             ${rowPendency ? `data-pendency-ref="${escapeHtml(encodePendencyIdReference(rowPendency.id))}" tabindex="-1"` : ''}
@@ -10480,7 +10492,15 @@ function renderProntuarioVerificacoes(esc) {
                                     ) : ''}
                                 </div>
                             </td>` : ''}
-                            <td><span style="font-size:0.85rem; font-weight:500;">${escapeHtml(doc.name)}</span>${extraContentHTML}</td>
+                            <td class="verification-document-name-cell">
+                                <div class="verification-document-cell">
+                                    <span class="verification-document-icon">${verificationDocumentIconSvg(doc.key)}</span>
+                                    <span class="verification-document-copy">
+                                        <strong>${escapeHtml(doc.name)}</strong>
+                                    </span>
+                                </div>
+                                ${extraContentHTML}
+                            </td>
                             <td>${bonificationCellHTML}</td>
                             ${canViewTechnicalAnalysis ? `
                                 <td>${analysisCellHTML}</td>
