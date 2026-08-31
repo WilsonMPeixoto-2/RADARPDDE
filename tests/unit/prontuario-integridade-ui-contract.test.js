@@ -53,12 +53,18 @@ test('documentos regulares usam tipografia e ícones do layout atualizado', () =
 });
 
 
-test('dados da unidade são apresentados em campos visuais responsivos', () => {
+test('dados da unidade usam grupos sem colisão com o CSS operacional legado', () => {
     assert.match(appSource, /class="school-info-card school-data-card"/);
-    assert.match(appSource, /class="school-data-grid"/);
-    assert.match(appSource, /class="info-item school-data-item/);
+    assert.match(appSource, /class="school-data-sections"/);
+    assert.match(appSource, /class="school-data-fields"/);
+    assert.match(appSource, /class="info-item school-data-item is-quarter"/);
+    assert.match(appSource, /class="info-item school-data-item is-half"/);
+    assert.match(appSource, /<dt class="info-label">/);
+    assert.match(appSource, /<dd class="info-value">/);
     assert.match(appSource, />Dados da unidade</);
-    assert.match(rootCssSource, /\.school-data-grid\s*\{[\s\S]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);
-    assert.match(rootCssSource, /\.school-data-grid \.school-data-item\s*\{[\s\S]*border: 1px solid/);
-    assert.match(rootCssSource, /@media \(max-width: 1100px\)[\s\S]*\.school-data-grid\s*\{[\s\S]*repeat\(2, minmax\(0, 1fr\)\)/);
+    assert.match(rootCssSource, /\.school-data-fields\s*\{[\s\S]*grid-template-columns: repeat\(12, minmax\(0, 1fr\)\)/);
+    assert.match(rootCssSource, /\.school-data-fields \.school-data-item\.is-quarter\s*\{[\s\S]*grid-column: span 3/);
+    assert.match(rootCssSource, /\.school-data-fields \.school-data-item\.is-half\s*\{[\s\S]*grid-column: span 6/);
+    assert.doesNotMatch(cssSource, /\.school-sidebar > \.school-info-card:not\(\.school-programs-card\)/);
+    assert.doesNotMatch(cssSource, /content:\s*['"]Dados da unidade['"]/);
 });
