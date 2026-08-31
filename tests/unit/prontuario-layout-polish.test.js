@@ -9,6 +9,10 @@ const css = fs.readFileSync(
   path.resolve(__dirname, '../../src/styles/prontuario-operational-ux.css'),
   'utf8'
 );
+const rootCss = fs.readFileSync(
+  path.resolve(__dirname, '../../styles.css'),
+  'utf8'
+);
 
 test('programas do Prontuário possuem separação visual entre blocos', () => {
   assert.match(css, /tr\.program-block-start:not\(:first-child\) > td/);
@@ -16,8 +20,10 @@ test('programas do Prontuário possuem separação visual entre blocos', () => {
 });
 
 test('resumo da unidade escolar usa composição compacta e responsiva', () => {
-  assert.match(css, /\.school-grid \{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/);
-  assert.match(css, /\.school-sidebar \{[\s\S]*grid-template-columns: minmax\(0, 2\.1fr\) minmax\(260px, 0\.9fr\)/);
-  assert.match(css, /Dados da unidade/);
-  assert.match(css, /\.school-program-item::before/);
+  assert.match(rootCss, /\.school-grid \{[\s\S]*display: block/);
+  assert.match(rootCss, /\.school-sidebar \{[\s\S]*grid-template-columns: minmax\(0, 2\.25fr\) minmax\(280px, 0\.85fr\)/);
+  assert.match(rootCss, /\.school-data-fields \{[\s\S]*grid-template-columns: repeat\(12, minmax\(0, 1fr\)\)/);
+  assert.match(rootCss, /\.school-program-item::before/);
+  assert.doesNotMatch(css, /\.school-sidebar > \.school-info-card:not\(\.school-programs-card\)/);
+  assert.doesNotMatch(css, /content:\s*['"]Dados da unidade['"]/);
 });

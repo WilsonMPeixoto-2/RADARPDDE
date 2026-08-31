@@ -9412,63 +9412,80 @@ function renderProntuario(escolaId) {
                         </div>
                     </div>
 
-                    <div class="school-data-grid">
-                        <div class="info-item school-data-item">
-                            <div class="info-label">INEP</div>
-                            <div class="info-value">${escapeHtml(esc.inep)}</div>
-                        </div>
-                        <div class="info-item school-data-item">
-                            <div class="info-label">Designação</div>
-                            <div class="info-value">${escapeHtml(esc.designação)}</div>
-                        </div>
-                        <div class="info-item school-data-item">
-                            <div class="info-label">SICI</div>
-                            <div class="info-value">${escapeHtml(esc.sici || 'Não informado')}</div>
-                        </div>
-                        <div class="info-item school-data-item">
-                            <div class="info-label">CNPJ</div>
-                            <div class="info-value">${escapeHtml(esc.cnpj)}</div>
-                        </div>
-                        <div class="info-item school-data-item is-wide">
-                            <div class="info-label">Diretor(a)</div>
-                            <div class="info-value">${escapeHtml(esc.diretor)}</div>
-                        </div>
-                        <div class="info-item school-data-item">
-                            <div class="info-label">Telefone do Diretor(a)</div>
-                            <div class="info-value">${escapeHtml(esc.telefoneDiretor || 'Não informado')}</div>
-                        </div>
-                        <div class="info-item school-data-item is-wide">
-                            <div class="info-label">Diretor(a) Adjunto(a)</div>
-                            <div class="info-value">${escapeHtml(esc.diretorAdjunto || 'Não informado')}</div>
-                        </div>
-                        <div class="info-item school-data-item">
-                            <div class="info-label">Telefone do Adjunto(a)</div>
-                            <div class="info-value">${escapeHtml(esc.telefoneDiretorAdjunto || 'Não informado')}</div>
-                        </div>
-                        <div class="info-item school-data-item">
-                            <div class="info-label">Telefone da Unidade</div>
-                            <div class="info-value">${escapeHtml(esc.telefone)}</div>
-                        </div>
-                        <div class="info-item school-data-item">
-                            <div class="info-label">Celular Institucional</div>
-                            <div class="info-value">${escapeHtml(esc.telefoneCelularInstitucional || 'Não informado')}</div>
-                        </div>
-                        <div class="info-item school-data-item">
-                            <div class="info-label">Coordenadoria / RA</div>
-                            <div class="info-value">${escapeHtml(esc.cre)} / ${escapeHtml(getRAFromDesignacao(esc.designação))}</div>
-                        </div>
-                        <div class="info-item school-data-item is-wide">
-                            <div class="info-label">E-mail Institucional</div>
-                            <div class="info-value">${escapeHtml(esc.email)}</div>
-                        </div>
-                        <div class="info-item school-data-item is-wide">
-                            <div class="info-label">Controlador Responsável</div>
-                            <div class="info-value">${escapeHtml(ctrl ? ctrl.name : 'Não designado')}</div>
-                        </div>
-                        <div class="info-item school-data-item is-wide">
-                            <div class="info-label">Processo Inventário (Exercício)</div>
-                            <div class="info-value">${escapeHtml(process)}</div>
-                        </div>
+                    <div class="school-data-sections">
+                        <section class="school-data-section" aria-labelledby="school-data-identification-heading">
+                            <h3 id="school-data-identification-heading">Identificação institucional</h3>
+                            <dl class="school-data-fields">
+                                <div class="info-item school-data-item is-quarter">
+                                    <dt class="info-label">INEP</dt>
+                                    <dd class="info-value">${escapeHtml(esc.inep)}</dd>
+                                </div>
+                                <div class="info-item school-data-item is-quarter">
+                                    <dt class="info-label">Designação</dt>
+                                    <dd class="info-value">${escapeHtml(esc.designação)}</dd>
+                                </div>
+                                <div class="info-item school-data-item is-quarter">
+                                    <dt class="info-label">SICI</dt>
+                                    <dd class="info-value">${escapeHtml(esc.sici || 'Não informado')}</dd>
+                                </div>
+                                <div class="info-item school-data-item is-quarter">
+                                    <dt class="info-label">CNPJ</dt>
+                                    <dd class="info-value">${escapeHtml(esc.cnpj)}</dd>
+                                </div>
+                                <div class="info-item school-data-item is-half">
+                                    <dt class="info-label">Coordenadoria / RA</dt>
+                                    <dd class="info-value">${escapeHtml(esc.cre)} / ${escapeHtml(getRAFromDesignacao(esc.designação))}</dd>
+                                </div>
+                                <div class="info-item school-data-item is-half">
+                                    <dt class="info-label">E-mail institucional</dt>
+                                    <dd class="info-value">${escapeHtml(esc.email)}</dd>
+                                </div>
+                            </dl>
+                        </section>
+
+                        <section class="school-data-section" aria-labelledby="school-data-management-heading">
+                            <h3 id="school-data-management-heading">Gestão e contatos</h3>
+                            <dl class="school-data-fields">
+                                <div class="info-item school-data-item is-half">
+                                    <dt class="info-label">Diretor(a)</dt>
+                                    <dd class="info-value">${escapeHtml(esc.diretor)}</dd>
+                                </div>
+                                <div class="info-item school-data-item is-half">
+                                    <dt class="info-label">Telefone do diretor(a)</dt>
+                                    <dd class="info-value">${escapeHtml(esc.telefoneDiretor || 'Não informado')}</dd>
+                                </div>
+                                <div class="info-item school-data-item is-half">
+                                    <dt class="info-label">Diretor(a) adjunto(a)</dt>
+                                    <dd class="info-value">${escapeHtml(esc.diretorAdjunto || 'Não informado')}</dd>
+                                </div>
+                                <div class="info-item school-data-item is-half">
+                                    <dt class="info-label">Telefone do adjunto(a)</dt>
+                                    <dd class="info-value">${escapeHtml(esc.telefoneDiretorAdjunto || 'Não informado')}</dd>
+                                </div>
+                                <div class="info-item school-data-item is-half">
+                                    <dt class="info-label">Telefone da unidade</dt>
+                                    <dd class="info-value">${escapeHtml(esc.telefone)}</dd>
+                                </div>
+                                <div class="info-item school-data-item is-half">
+                                    <dt class="info-label">Celular institucional</dt>
+                                    <dd class="info-value">${escapeHtml(esc.telefoneCelularInstitucional || 'Não informado')}</dd>
+                                </div>
+                            </dl>
+                        </section>
+
+                        <section class="school-data-section" aria-labelledby="school-data-administration-heading">
+                            <h3 id="school-data-administration-heading">Responsabilidade administrativa</h3>
+                            <dl class="school-data-fields">
+                                <div class="info-item school-data-item is-half">
+                                    <dt class="info-label">Controlador responsável</dt>
+                                    <dd class="info-value">${escapeHtml(ctrl ? ctrl.name : 'Não designado')}</dd>
+                                </div>
+                                <div class="info-item school-data-item is-half">
+                                    <dt class="info-label">Processo inventário (exercício)</dt>
+                                    <dd class="info-value">${escapeHtml(process)}</dd>
+                                </div>
+                            </dl>
+                        </section>
                     </div>
                 </section>
 

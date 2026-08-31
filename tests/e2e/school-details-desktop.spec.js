@@ -143,6 +143,55 @@ test.describe('Prontuário operacional no desktop', () => {
     await expect(programList.locator('button, a')).toHaveCount(0);
   });
 
+  test('compõe o resumo da unidade sem título duplicado, compressão ou marcadores sobrepostos', async ({ page }) => {
+    await openProfileSchool(page, 'controlador');
+
+    await expect(page.getByRole('heading', { name: 'Dados da unidade', exact: true })).toHaveCount(1);
+    await expect(page.locator('.school-data-section')).toHaveCount(3);
+    await expect(page.locator('.school-data-item')).toHaveCount(14);
+
+    const geometry = await page.evaluate(() => {
+      const dataCard = document.querySelector('.school-data-card');
+      const programsCard = document.querySelector('.school-programs-card');
+      const sections = Array.from(document.querySelectorAll('.school-data-fields'));
+      const fields = Array.from(document.querySelectorAll('.school-data-item'));
+      const programs = Array.from(document.querySelectorAll('.school-program-item'));
+      const dataRect = dataCard.getBoundingClientRect();
+      const programsRect = programsCard.getBoundingClientRect();
+      const beforeContent = getComputedStyle(dataCard, '::before').content;
+
+      return {
+        beforeContent,
+        dataWiderThanPrograms: dataRect.width >= programsRect.width * 1.8,
+        cardsTopAligned: Math.abs(dataRect.top - programsRect.top) <= 1,
+        sectionsUseCardWidth: sections.every(section => {
+          const rect = section.getBoundingClientRect();
+          return rect.left >= dataRect.left + 20
+            && rect.right <= dataRect.right - 20
+            && rect.width >= dataRect.width - 52;
+        }),
+        fieldsStayInsideCard: fields.every(field => {
+          const rect = field.getBoundingClientRect();
+          return rect.left >= dataRect.left + 20 && rect.right <= dataRect.right - 20;
+        }),
+        programMarkersClearText: programs.every(program => {
+          const style = getComputedStyle(program);
+          const marker = getComputedStyle(program, '::before');
+          const paddingLeft = Number.parseFloat(style.paddingLeft);
+          const markerRight = Number.parseFloat(marker.left) + Number.parseFloat(marker.width);
+          return paddingLeft >= 30 && markerRight <= paddingLeft - 8;
+        })
+      };
+    });
+
+    expect(['none', 'normal']).toContain(geometry.beforeContent);
+    expect(geometry.dataWiderThanPrograms).toBe(true);
+    expect(geometry.cardsTopAligned).toBe(true);
+    expect(geometry.sectionsUseCardWidth).toBe(true);
+    expect(geometry.fieldsStayInsideCard).toBe(true);
+    expect(geometry.programMarkersClearText).toBe(true);
+  });
+
   test('sincroniza abas, painéis e navegação por teclado', async ({ page }) => {
     await openProfileSchool(page, 'controlador');
 
