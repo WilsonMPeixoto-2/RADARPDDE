@@ -9949,11 +9949,11 @@ function renderProntuarioVerificacoes(esc) {
                         documentoKey: doc.key,
                         documentoNome: doc.name
                     });
-                    const exactPendencyContext = {
+                    const exactPendencyContext = window.RadarPendencias.buildPendencyLookupContext({
                         ...pendencyContext,
                         escolaId: esc.id,
                         competenciaOrigem: c.key
-                    };
+                    });
                     const exactPendencyKey = window.RadarPendencias.buildDocumentContextKey(
                         exactPendencyContext
                     );
@@ -10829,11 +10829,14 @@ function findActivePendencyForTechnicalAnalysis(escolaId, compProgKey, documento
         window.RadarPendencias.isDocumentaryPendency(pendency)
     ));
 
-    return window.RadarPendencias.findActivePendency(documentaryPendencies, {
-        ...context,
-        escolaId,
-        competenciaOrigem: context.competencia
-    });
+    return window.RadarPendencias.findActivePendency(
+        documentaryPendencies,
+        window.RadarPendencias.buildPendencyLookupContext({
+            ...context,
+            escolaId,
+            competenciaOrigem: context.competencia
+        })
+    );
 }
 
 // 14.3 Operações de Clique Análise Técnica
