@@ -5,21 +5,23 @@
 
 ## 0. Frente ativa
 
-A frente ativa é o **PR #211 — hotfix de individualização de Notas Fiscais**.
+A frente ativa é o **fechamento técnico do conjunto PR #211 + #214 + #215**, com proteção arquitetural da ADR-052 e homologação autenticada final ainda pendente.
 
 Ler primeiro:
 
-- [`handoff/2026-08-30-pr211-retomada-work.md`](handoff/2026-08-30-pr211-retomada-work.md) — entrada obrigatória para nova sessão;
+- [`handoff/2026-08-30-pr215-fechamento-tecnico.md`](handoff/2026-08-30-pr215-fechamento-tecnico.md) — estado corrente após PR #215;
+- [`handoff/2026-08-30-pr211-retomada-work.md`](handoff/2026-08-30-pr211-retomada-work.md) — histórico da retomada que antecedeu o fechamento;
 - [`CURRENT_STAGE.md`](CURRENT_STAGE.md);
 - [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md);
 - [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md);
 - [`decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md);
+- [`decisions/ADR-052-autoridade-unica-fluxos-criticos.md`](decisions/ADR-052-autoridade-unica-fluxos-criticos.md);
 - [`evidence/2026-08-29-pr211-classificacao-dados-legados.md`](evidence/2026-08-29-pr211-classificacao-dados-legados.md);
 - [`evidence/2026-08-28-pr211-referencias-visuais.md`](evidence/2026-08-28-pr211-referencias-visuais.md).
 
 **Atenção:** as decisões de 29/08 sobre dados legados, fixtures, Boleto 1234 e Consulta Assessoria superam interpretações anteriores do hotfix. Nova sessão não deve restaurar decisões antigas por confundi-las com regressão.
 
-Esse hotfix **não substitui o plano mestre**. Depois de seu fechamento, a retomada do plano de 26/08 exige reconciliação explícita do que o PR #211 já tiver modificado ou solucionado.
+Esse hotfix **não substitui o plano mestre**. Depois da homologação autenticada final, a retomada do plano de 26/08 exige reconciliação explícita do que o conjunto PR #211/#214/#215 já modificou, solucionou ou tornou desnecessário.
 
 ## 1. Onde começar
 
@@ -157,7 +159,8 @@ Não há telemetria externa, persistência das métricas ou coleta de dados de n
 ## 6. Documentos canônicos e referências
 
 - [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — estado corrente;
-- [`handoff/2026-08-30-pr211-retomada-work.md`](handoff/2026-08-30-pr211-retomada-work.md) — roteamento obrigatório entre sessões do PR #211;
+- [`handoff/2026-08-30-pr215-fechamento-tecnico.md`](handoff/2026-08-30-pr215-fechamento-tecnico.md) — roteamento canônico corrente;
+- [`handoff/2026-08-30-pr211-retomada-work.md`](handoff/2026-08-30-pr211-retomada-work.md) — histórico de retomada do PR #211;
 - [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md) — checkpoint operacional atual;
 - [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md) — plano executável do hotfix;
 - [`decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md) — contrato vigente;
@@ -197,7 +200,7 @@ Não há telemetria externa, persistência das métricas ou coleta de dados de n
 
 Arquivos datados em `docs/audits/`, `docs/evidence/`, `docs/superpowers/`, `docs/handoff/` e `docs/reports/` preservam o momento em que foram produzidos. Eles não devem ser reescritos para coincidir com o presente e não prevalecem sobre o código/ambiente atual.
 
-O handoff de 30/08 é a porta de entrada enquanto o PR #211 estiver ativo. O handoff de 26/08 volta a orientar a execução somente depois da reconciliação pós-hotfix, sem apagar o valor histórico dos documentos anteriores.
+O handoff pós-PR #215 é a porta de entrada corrente. O handoff de 26/08 volta a orientar a execução somente depois da homologação autenticada final e da reconciliação pós-hotfix, sem apagar o valor histórico dos documentos anteriores.
 
 ## 9. Continuidade
 
@@ -214,4 +217,4 @@ verificar remoto
 → atualizar documentação afetada
 ```
 
-O estágio atual fecha primeiro o PR #211. Depois de merge autorizado, migration, publicação e smoke, é obrigatório reconciliar o diff do hotfix com o plano mestre; somente então a execução retoma em PR3.1. PR1 e PR2 já foram concluídos e não devem ser reimplementados.
+O estágio atual fecha o conjunto PR #211/#214/#215, protege a composição crítica pela ADR-052 e aguarda somente a homologação autenticada final da interface. Depois disso, é obrigatório reconciliar o conjunto do hotfix com o plano mestre; somente então a execução retoma em PR3.1. PR1 e PR2 já foram concluídos e não devem ser reimplementados.

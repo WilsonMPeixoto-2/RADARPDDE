@@ -79,6 +79,14 @@ Os scripts são criados com `async = false` e aguardados em sequência pela cade
 
 `atomic-analysis-pendency.js`, `invoice-history-lock.js`, `service-advisory-pendency.js` e `service-advisory-corrective-submission.js` definem/refinam contratos funcionais que devem existir antes de os wrappers de desempenho envolverem os handlers finais.
 
+A separação de Assessoria é deliberada e agora protegida pela ADR-052:
+
+- `service-advisory-pendency.js`: abertura `Incorreto + Pendência` e reanálise;
+- `service-advisory-corrective-submission.js`: `registerAttempt()` / novo envio corretivo;
+- nenhum dos dois deve reassumir silenciosamente a responsabilidade do outro;
+- `navigation-routes.js` deve continuar instalando `product-extensions-bootstrap.js`;
+- o E2E `critical-product-extensions.spec.js` comprova que a cadeia foi realmente instalada no navegador.
+
 A ordem preserva:
 
 ```text
@@ -87,6 +95,32 @@ regra funcional final
 → reconciliação
 → feedback da interação
 ```
+
+
+
+### Cadeias de wrappers que exigem ordem estável
+
+A revisão pós-PR #215 confirmou que a ordem não é apenas otimização. Existem cadeias reais de substituição de handlers:
+
+```text
+closeModal
+app.js
+→ atomic-analysis-pendency
+→ service-advisory-pendency
+
+registerAttempt
+PendencyService
+→ service-advisory-corrective-submission
+
+renderProntuario
+app.js
+→ unidentified-expense-ux
+→ prontuario-operational-ux
+→ operational-write-performance
+→ prontuario-conditional-reconciler
+```
+
+Essas cadeias devem ser tratadas como composição deliberada. Inserir novo wrapper entre elas exige justificar a autoridade e atualizar a regressão `critical-product-extension-authority.test.js`. Um wrapper novo não pode substituir silenciosamente uma responsabilidade funcional já existente.
 
 ### Diagnóstico antes de performance
 

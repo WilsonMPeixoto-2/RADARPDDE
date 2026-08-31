@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-08-28",
-  "sourceCommit": "b4ad4e8540c55ccfae0406ea136bc4c8da59fd0b",
+  "updatedAt": "2026-08-30",
+  "sourceCommit": "24e1934541b92e4399798556c05fd164c9c43801",
   "profiles": [
     {
       "id": "anonymous",
@@ -296,7 +296,11 @@
         "tests/unit/invoice-document-analysis.test.js",
         "tests/unit/invoice-service.test.js",
         "tests/unit/pendency-service.test.js",
-        "tests/pendency-invoice-context.test.js"
+        "tests/pendency-invoice-context.test.js",
+        "tests/unit/service-advisory-corrective-submission.test.js",
+        "tests/unit/critical-product-extension-authority.test.js",
+        "tests/unit/state-bridge-row-version.test.js",
+        "tests/unit/payload-row-version-boundary.test.js"
       ],
       "e2e": [
         "tests/e2e/application-services.spec.js",
@@ -304,13 +308,16 @@
         "tests/e2e/functional-core.spec.js",
         "tests/e2e/invoice-document-analysis.spec.js",
         "tests/e2e/unidentified-expense.spec.js",
-        "tests/e2e/internet-bill-document.spec.js"
+        "tests/e2e/internet-bill-document.spec.js",
+        "tests/e2e/critical-product-extensions.spec.js"
       ],
       "database": [
         "supabase/tests/database/invoice-rpc.test.sql",
         "supabase/tests/database/rls.test.sql",
         "supabase/tests/database/functional-integrity-remediation.test.sql",
-        "supabase/tests/database/invoice-document-analysis-pendency.test.sql"
+        "supabase/tests/database/invoice-document-analysis-pendency.test.sql",
+        "supabase/tests/database/service-advisory-corrective-submission.test.sql",
+        "supabase/tests/database/service-advisory-pendency-atomic.test.sql"
       ],
       "production": []
     },

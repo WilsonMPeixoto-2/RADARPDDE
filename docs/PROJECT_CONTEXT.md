@@ -175,6 +175,10 @@ Essa regra específica substitui a antiga interpretação segundo a qual `A iden
 
 A reconferência visual final do PR #211 detectou overflow horizontal em desktop de 1280 px nos painéis individualizados de Notas Fiscais/Consulta Assessoria. O PR #214 corrigiu a grade entre 901 e 1440 px e adicionou regressão E2E para garantir que painel e controles permaneçam dentro da largura disponível. A correção foi integrada no merge `cc842af7b7bc6341dab68aa55a533a2017923bcf` e publicada em Vercel Production.
 
+**Correção pós-PR #211:** o PR #215 corrigiu a fronteira de concorrência otimista que reintroduzia `rowVersion` dentro de payloads de negócio durante a conversão canônico → legado → canônico. A regra funcional da ADR-050 não mudou. `row_version` permanece top-level; payloads não carregam `rowVersion/row_version`; a migration `20260830223000_payload_row_version_boundary` limpou Production e ajustou apenas a tolerância técnica das RPCs de abertura fiscal/Assessoria. Production passou a 44 migrations, e os dois fluxos originalmente falhos foram comprovados por smokes transacionais reais com rollback.
+
+**Governança de composição:** a ADR-052 define que fluxo crítico deve possuir autoridade funcional explícita, ordem de bootstrap tratada como contrato e prova executável de instalação/composição. Para Consulta Assessoria, `service-advisory-pendency.js` responde por abertura/reanálise e `service-advisory-corrective-submission.js` pelo novo envio corretivo. A separação é deliberada e a CI deve impedir duplicação ou desconexão silenciosa dessas autoridades.
+
 ### Consulta Assessoria — proteção individual completa
 
 - somente NFs de serviço participam da dimensão;

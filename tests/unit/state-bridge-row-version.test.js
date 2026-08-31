@@ -27,21 +27,23 @@ function versionedEntities() {
             bonification: { notaFiscal: 'Sim' },
             analysis: { notaFiscal: 'Não analisado' },
             bonus_result: null,
-            payload: {},
+            payload: { rowVersion: 80, row_version: 81 },
             row_version: 8
         }],
         pendencies: [{
             id: 'pend-1', school_id: '04.10.001', competence_origin: '2026-05',
-            program_id: 'BASIC', document_key: 'extCC', status: 'Aberta', payload: {}, row_version: 9
+            program_id: 'BASIC', document_key: 'extCC', status: 'Aberta',
+            payload: { rowVersion: 90, row_version: 91 }, row_version: 9
         }],
         pendencyAttempts: [{
             id: 'attempt-1', pendency_id: 'pend-1', attempt_number: 1,
-            submitted_at: '2026-07-22T20:00:00.000Z', errors: [], payload: {}, row_version: 10
+            submitted_at: '2026-07-22T20:00:00.000Z', errors: [],
+            payload: { rowVersion: 100, row_version: 101 }, row_version: 10
         }],
         pendencyContacts: [{
             id: 'contact-1', school_id: '04.10.001', pendency_id: 'pend-1',
             contact_type: 'E-mail', contact_date: '2026-07-22', description: 'Contato',
-            official_charge: false, payload: {}, row_version: 11
+            official_charge: false, payload: { rowVersion: 110, row_version: 111 }, row_version: 11
         }],
         assets: [],
         registeredInvoices: [{
@@ -55,7 +57,7 @@ function versionedEntities() {
             expense_type: 'servico',
             invoice_number: 'NF-1',
             amount: 100,
-            payload: {},
+            payload: { rowVersion: 120, row_version: 121 },
             row_version: 12
         }],
         administrativeLogs: []
@@ -90,8 +92,14 @@ test('ponte preserva row_version de todas as entidades editáveis na ida e volta
     assert.equal(canonical.pendencyContacts[0].row_version, 11);
     assert.equal(canonical.registeredInvoices[0].row_version, 12);
 
-    assert.equal(canonical.verifications[0].payload.rowVersion, undefined);
-    assert.equal(canonical.verifications[0].payload.row_version, undefined);
-    assert.equal(canonical.registeredInvoices[0].payload.rowVersion, undefined);
-    assert.equal(canonical.registeredInvoices[0].payload.row_version, undefined);
+    for (const record of [
+        canonical.verifications[0],
+        canonical.pendencies[0],
+        canonical.pendencyAttempts[0],
+        canonical.pendencyContacts[0],
+        canonical.registeredInvoices[0]
+    ]) {
+        assert.equal(record.payload.rowVersion, undefined);
+        assert.equal(record.payload.row_version, undefined);
+    }
 });

@@ -6,6 +6,8 @@
 **Merge em `main`:** `aa82ab4e359f62259df33842fb794aa1e654c30c`  
 **SHA funcional validado:** `530ca6cb62c385ca7ca35f30e82a723e1afed3f6`
 
+> **Estado histórico:** este handoff descreve corretamente o fechamento imediatamente após PR #211/#214, mas não é mais a porta de entrada do estado corrente. O defeito de fronteira descoberto depois foi corrigido pelo PR #215. Para o estado atual, usar [`2026-08-30-pr215-fechamento-tecnico.md`](2026-08-30-pr215-fechamento-tecnico.md). Os valores de 43 migrations e deployments abaixo permanecem preservados como fotografia daquele momento.
+
 ## 1. Resultado final
 
 O hotfix de individualização de Notas Fiscais foi integrado e publicado em Production.

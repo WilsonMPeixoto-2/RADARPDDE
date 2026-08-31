@@ -47,7 +47,8 @@ Um teste histórico não prevalece sobre regra e código posteriores. PR aberto,
 | `AGENTS.md` | regras de trabalho e proteção do projeto |
 | `README.md` | entrada do repositório |
 | `docs/CURRENT_STAGE.md` | estado corrente, prioridades e gatilhos de nova validação |
-| `docs/handoff/2026-08-30-pr211-publicacao-concluida.md` | roteamento obrigatório após a publicação do PR #211 |
+| `docs/handoff/2026-08-30-pr215-fechamento-tecnico.md` | estado canônico do conjunto PR #211/#214/#215 e ponte para homologação autenticada final |
+| `docs/handoff/2026-08-30-pr211-publicacao-concluida.md` | histórico canônico imediatamente após a publicação do PR #211; superado para estado corrente pelo handoff pós-PR #215 |
 | `docs/handoff/2026-08-30-pr211-retomada-work.md` | histórico da retomada final do PR #211 |
 | `docs/handoff/2026-08-28-pr211-hotfix-notas-fiscais.md` | checkpoint histórico do PR #211 enquanto Draft |
 | `docs/superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md` | plano executável específico do hotfix; não substitui o plano mestre |
@@ -183,7 +184,7 @@ Arquivos de `docs/superpowers/plans/`, `docs/superpowers/specs/`, `docs/handoff/
 
 `docs/handoff/2026-08-27-hotfix-boleto-internet.md` é **Histórico executado** do PR #203. Suas afirmações sobre a categoria autônoma `boletoInternet` não prevalecem sobre os PRs #208/#209 e o ADR-050.
 
-O plano `docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md` é **Canônico — aprovado, com PR1/PR2 concluídos e PR3.1 aguardando reconciliação pós-PR #211**. Seus checkboxes não comprovam implementação. O Word correspondente é **Referência canônica versionada**; a versão Markdown prevalece para busca, diff e execução.
+O plano `docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md` é **Canônico — aprovado, com PR1/PR2 concluídos e PR3.1 aguardando fechamento/reconciliação do conjunto PR #211/#214/#215**. Seus checkboxes não comprovam implementação. O Word correspondente é **Referência canônica versionada**; a versão Markdown prevalece para busca, diff e execução.
 
 O handoff, o plano e o Word de 24/08 são **Superados como orientação operacional** e permanecem **Evidência/Histórico** do primeiro diagnóstico anterior ao PR #200. Não apagar nem reescrever esses arquivos.
 
@@ -211,7 +212,9 @@ Não usar como estado corrente:
 - preservação indistinta dos 20 `a_identificar` ou reparo do Boleto 1234;
 - `a_identificar` legado editável/excluível ou recebendo Pendência retroativa;
 - reanálise fiscal/Assessoria sem a tentativa real mais recente ou com reescrita do envio;
-- nova reconferência visual manual ou Lighthouse móvel tratados como bloqueadores do PR #211.
+- nova reconferência visual manual ou Lighthouse móvel tratados como bloqueadores do PR #211;
+- documentação que trate 43 migrations, o deployment pré-PR #215 ou o PR #211 isoladamente como estado corrente;
+- qualquer interpretação de que novo envio da Assessoria não possui implementação individual: a autoridade vigente é `service-advisory-corrective-submission.js`, carregada pelo bootstrap crítico.
 
 ## 13. Manutenção
 
