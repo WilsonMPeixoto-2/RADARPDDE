@@ -21,3 +21,10 @@ test('extensão torna Correto indisponível quando a regra histórica exige atra
     assert.match(source, /requiresLateCorrect/);
     assert.match(source, /option\[value="Correto"\]/);
 });
+
+
+test('extensão preserva a grade canônica da Consulta Assessoria', () => {
+    assert.match(source, /legacyInvoiceCards/);
+    assert.match(source, /!card\.classList\.contains\('invoice-document-row'\)/);
+    assert.match(source, /findInvoiceCard\(legacyInvoiceCards/);
+});
