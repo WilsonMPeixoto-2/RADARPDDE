@@ -10053,14 +10053,13 @@ function renderProntuarioVerificacoes(esc) {
 
                         const documentRowsHTML = notes.length > 0
                             ? notes.map((note, noteIndex) => {
-                                const invoiceContext = {
+                                const invoiceContext = window.RadarPendencias.buildPendencyLookupContext({
                                     escolaId: esc.id,
                                     competencia: c.key,
-                                    competenciaOrigem: c.key,
                                     programaId: progId,
                                     documentoKey: 'notaFiscal',
                                     registeredInvoiceId: note.id
-                                };
+                                });
                                 const invoicePendency = window.RadarPendencias.findActivePendency(
                                     documentaryPendencies,
                                     invoiceContext
@@ -10290,14 +10289,13 @@ function renderProntuarioVerificacoes(esc) {
 
                         const advisoryRowsHTML = serviceEntries.length > 0
                             ? serviceEntries.map(({ note, sent, analysis }, noteIndex) => {
-                                const invoiceContext = {
+                                const invoiceContext = window.RadarPendencias.buildPendencyLookupContext({
                                     escolaId: esc.id,
                                     competencia: c.key,
-                                    competenciaOrigem: c.key,
                                     programaId: progId,
                                     documentoKey: 'consAssessoria',
                                     registeredInvoiceId: note.id
-                                };
+                                });
                                 const invoicePendency = window.RadarPendencias.findActivePendency(
                                     documentaryPendencies,
                                     invoiceContext
