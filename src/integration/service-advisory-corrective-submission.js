@@ -11,13 +11,11 @@
         root.RadarServiceAdvisoryCorrectiveSubmission = Object.freeze(api);
         if (root.document) {
             const attemptInstall = () => api.install(root);
-            if (!attemptInstall() && root.document.readyState === 'loading') {
+            attemptInstall();
+            if (root.document.readyState === 'loading') {
                 root.document.addEventListener('DOMContentLoaded', attemptInstall, { once: true });
             }
-            const interval = root.setInterval?.(() => {
-                if (attemptInstall()) root.clearInterval?.(interval);
-            }, 25);
-            root.setTimeout?.(() => root.clearInterval?.(interval), 10000);
+            root.addEventListener?.('radar:application-services-ready', attemptInstall);
         }
     }
 }(typeof window !== 'undefined' ? window : globalThis, function createServiceAdvisoryCorrectiveSubmissionApi(contract) {
@@ -25,7 +23,6 @@
 
     if (!contract) throw new Error('Contrato de dados obrigatório para o novo envio da Assessoria.');
     const { RepositoryError, cloneValue } = contract;
-    let installed = false;
 
     function text(value) {
         return value == null ? '' : String(value).trim();
@@ -196,7 +193,6 @@
     }
 
     function install(root) {
-        if (installed) return true;
         const service = root?.RadarApplicationServices?.pendencies;
         if (!service
             || !root?.RadarApplicationServices?.invoices
@@ -205,7 +201,6 @@
             return false;
         }
         if (service.__radarServiceAdvisoryCorrectiveSubmission === true) {
-            installed = true;
             return true;
         }
 
@@ -224,7 +219,6 @@
             enumerable: false,
             writable: false
         });
-        installed = true;
         return true;
     }
 
