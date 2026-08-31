@@ -55,6 +55,20 @@ test('inicializa pela seleção válida da sessão antes da competência de fech
   });
 });
 
+test('competência inicial explícita prevalece sobre seleção antiga da sessão', () => {
+  const api = loadApi();
+  const storage = createMemoryStorage({ radar_pdde_active_competence: '2026-12' });
+  const context = api.createCompetenceContext({
+    competences: competences2026,
+    currentExercise: '2026',
+    closingCompetence: '2026-12',
+    initialCompetence: '2026-08',
+    storage
+  });
+
+  assert.equal(context.getState().activeKey, '2026-08');
+});
+
 test('usa a competência de fechamento quando não existe seleção de sessão', () => {
   const api = loadApi();
   const context = api.createCompetenceContext({
