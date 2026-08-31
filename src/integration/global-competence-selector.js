@@ -132,14 +132,9 @@
         const select = createElement('select', {
             id: 'global-competence-select',
             className: 'global-competence-select',
-            'aria-describedby': 'global-competence-label'
+            'aria-label': 'Competência'
         });
-        const currentLabel = createElement('span', {
-            id: 'global-competence-label',
-            className: 'global-competence-current',
-            'aria-live': 'polite'
-        });
-        badge.append(controlLabel, select, currentLabel);
+        badge.append(controlLabel, select);
         return select;
     }
 
@@ -159,8 +154,6 @@
         select.value = records.some(item => item.key === state.activeKey)
             ? state.activeKey
             : (previous || records[0]?.key || '');
-        const label = document.getElementById('global-competence-label');
-        if (label) label.textContent = formatLabel(state.activeKey);
         return true;
     }
 
