@@ -78,8 +78,17 @@
         const invoiceCards = Array.from(
             advisoryRow.querySelectorAll('[data-service-advisory-invoice]')
         );
-        invoiceCards.forEach(decorateInvoiceCard);
-        if (!invoiceCards.length) return;
+
+        // A grade canônica atual já possui colunas próprias para Documento,
+        // Envio à Assessoria, Situação técnica e Ação. O decorador abaixo
+        // existe apenas para o markup legado em formato de card. Aplicá-lo
+        // sobre uma .invoice-document-row transforma a linha em uma grade
+        // de duas colunas e desloca os controles para cabeçalhos errados.
+        const legacyInvoiceCards = invoiceCards.filter(card => (
+            !card.classList.contains('invoice-document-row')
+        ));
+        legacyInvoiceCards.forEach(decorateInvoiceCard);
+        if (!legacyInvoiceCards.length) return;
 
         const checkboxes = Array.from(advisoryRow.querySelectorAll(
             `input[type="checkbox"][aria-label^="${SENT_LABEL_PREFIX}"]`
@@ -89,7 +98,7 @@
         checkboxes.forEach((checkbox, index) => {
             const accessibleLabel = text(checkbox.getAttribute('aria-label'));
             const invoiceNumber = accessibleLabel.slice(SENT_LABEL_PREFIX.length).trim();
-            const card = findInvoiceCard(invoiceCards, invoiceNumber, index, usedCards);
+            const card = findInvoiceCard(legacyInvoiceCards, invoiceNumber, index, usedCards);
             const label = checkbox.closest('label');
             if (!card || !label) return;
 
