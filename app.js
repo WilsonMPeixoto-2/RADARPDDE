@@ -4530,7 +4530,6 @@ function applyRadarMemoryState(state = {}) {
     const restoredExercise = /^\d{4}/.exec(restoredCompetence)?.[0] || '';
     window.RadarGlobalCompetenceSelector?.refreshContext?.({
         currentExercise: restoredExercise,
-        initialCompetence: restoredCompetence,
         source: 'data-restored'
     });
 }
