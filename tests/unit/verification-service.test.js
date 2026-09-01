@@ -226,30 +226,32 @@ test('ao sair de N/A para Não reinicializa a análise de Nota Fiscal', async ()
     assert.equal(result.value.verification.analise.notaFiscal, 'Não analisado');
 });
 
-test('Declaração BB Ágil em N/A neutraliza a análise técnica e ao voltar para Sim reinicia a conferência', async () => {
-    const harness = createHarness();
+test('Declaração BB Ágil em N/A neutraliza a análise técnica e ao voltar para Sim/Não reinicia a conferência', async () => {
+    for (const nextValue of ['Sim', 'Não']) {
+        const harness = createHarness();
 
-    const notApplicable = await harness.service.setBonification({
-        schoolId: 'ESC-1',
-        compKey: '2026-05_BASIC',
-        documentKey: 'declBBAgil',
-        value: 'Não se aplica',
-        profile: 'controlador'
-    });
+        const notApplicable = await harness.service.setBonification({
+            schoolId: 'ESC-1',
+            compKey: '2026-05_BASIC',
+            documentKey: 'declBBAgil',
+            value: 'Não se aplica',
+            profile: 'controlador'
+        });
 
-    assert.equal(notApplicable.value.verification.bonificacao.declBBAgil, 'Não se aplica');
-    assert.equal(notApplicable.value.verification.analise.declBBAgil, 'Correto');
+        assert.equal(notApplicable.value.verification.bonificacao.declBBAgil, 'Não se aplica');
+        assert.equal(notApplicable.value.verification.analise.declBBAgil, 'Correto');
 
-    const applicableAgain = await harness.service.setBonification({
-        schoolId: 'ESC-1',
-        compKey: '2026-05_BASIC',
-        documentKey: 'declBBAgil',
-        value: 'Sim',
-        profile: 'controlador'
-    });
+        const applicableAgain = await harness.service.setBonification({
+            schoolId: 'ESC-1',
+            compKey: '2026-05_BASIC',
+            documentKey: 'declBBAgil',
+            value: nextValue,
+            profile: 'controlador'
+        });
 
-    assert.equal(applicableAgain.value.verification.bonificacao.declBBAgil, 'Sim');
-    assert.equal(applicableAgain.value.verification.analise.declBBAgil, 'Não analisado');
+        assert.equal(applicableAgain.value.verification.bonificacao.declBBAgil, nextValue);
+        assert.equal(applicableAgain.value.verification.analise.declBBAgil, 'Não analisado');
+    }
 });
 
 test('Declaração BB Ágil não pode ser marcada N/A enquanto houver pendência ativa', async () => {
