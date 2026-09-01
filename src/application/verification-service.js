@@ -282,7 +282,10 @@
                     && (currentVerification?.bonificacao?.consEnviada === true) === currentAdvisory.sent
                     && text(currentVerification?.analise?.consAssessoria) === currentAdvisory.analysis
                 );
-                if (currentValue === value && advisoryAlreadyCanonical) {
+                const bbAgilAlreadyCanonical = documentKey !== 'declBBAgil'
+                    || value !== 'Não se aplica'
+                    || text(currentVerification?.analise?.declBBAgil) === 'Correto';
+                if (currentValue === value && advisoryAlreadyCanonical && bbAgilAlreadyCanonical) {
                     return {
                         ok: true,
                         value: {
@@ -320,11 +323,37 @@
                                 'setBonification'
                             );
                         }
+                        if (documentKey === 'declBBAgil' && value === 'Não se aplica') {
+                            const activePendency = this.findActivePendency(
+                                state,
+                                schoolId,
+                                compKey,
+                                documentKey
+                            );
+                            if (activePendency) {
+                                fail(
+                                    'ACTIVE_PENDENCY',
+                                    'A Declaração BB Ágil possui pendência ativa. Resolva ou cancele a pendência antes de marcar N/A.',
+                                    'setBonification',
+                                    { pendencyId: activePendency.id }
+                                );
+                            }
+                        }
                         const beforeBonification = cloneValue(verification.bonificacao || {});
                         const beforeAnalysis = cloneValue(verification.analise || {});
                         verification.bonificacao = verification.bonificacao || {};
                         verification.analise = verification.analise || {};
                         verification.bonificacao[documentKey] = value;
+                        if (documentKey === 'declBBAgil') {
+                            if (value === 'Não se aplica') {
+                                verification.analise.declBBAgil = 'Correto';
+                            } else if (
+                                (value === 'Sim' || value === 'Não')
+                                && beforeBonification.declBBAgil === 'Não se aplica'
+                            ) {
+                                verification.analise.declBBAgil = 'Não analisado';
+                            }
+                        }
                         if (documentKey === 'notaFiscal') {
                             if (value === 'Não se aplica') {
                                 verification.bonificacao.encampInventario = 'Não se aplica';
@@ -448,6 +477,17 @@
                         persistence.expectedVersion = rowVersionOf(verification);
                         verification.analise = verification.analise || {};
                         verification.bonificacao = verification.bonificacao || {};
+                        if (
+                            documentKey === 'declBBAgil'
+                            && text(verification.bonificacao[documentKey]) === 'Não se aplica'
+                        ) {
+                            fail(
+                                'DOCUMENT_NOT_APPLICABLE',
+                                'A Declaração BB Ágil marcada como N/A não possui análise técnica editável.',
+                                'setTechnicalAnalysis',
+                                { documentKey }
+                            );
+                        }
                         if (value !== 'Não analisado' && !text(verification.bonificacao[documentKey])) {
                             fail(
                                 'DELIVERY_REQUIRED',

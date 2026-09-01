@@ -49,3 +49,16 @@ test('grade do prontuário expõe alvos estáveis para atualização incremental
     assert.match(renderSource, /data-document-key=/);
     assert.match(renderSource, /data-program-status-summary=/);
 });
+
+
+test('update incremental mantém o bloqueio visual da análise da Declaração BB Ágil em N/A', () => {
+    const renderSource = functionSource('renderProntuarioVerificacoes');
+
+    assert.match(renderSource, /data-bb-agil-na-lock="true"/);
+    assert.match(performanceSource, /documentKey === 'declBBAgil'/);
+    assert.match(performanceSource, /bonificationValue === 'Não se aplica'/);
+    assert.match(performanceSource, /analysisControl\.disabled = true/);
+    assert.match(performanceSource, /analysisControl\.dataset\.bbAgilNaLock = 'true'/);
+    assert.match(performanceSource, /analysisControl\.disabled = false/);
+    assert.match(performanceSource, /delete analysisControl\.dataset\.bbAgilNaLock/);
+});

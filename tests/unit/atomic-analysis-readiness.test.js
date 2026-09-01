@@ -59,3 +59,11 @@ test('observação da pendência não expõe regra interna de persistência', ()
         /A análise “Incorreto” será gravada somente ao confirmar esta pendência/
     );
 });
+
+
+test('integração atômica rejeita análise incorreta da Declaração BB Ágil quando N/A', () => {
+    const source = read('src/integration/atomic-analysis-pendency.js');
+    assert.match(source, /documentKey === 'declBBAgil'/);
+    assert.match(source, /DOCUMENT_NOT_APPLICABLE/);
+    assert.match(source, /Declaração BB Ágil marcada como N\/A não possui análise técnica editável/);
+});

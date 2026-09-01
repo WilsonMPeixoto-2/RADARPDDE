@@ -190,7 +190,7 @@
                         <div><strong>Extrato de Investimento</strong><p>Faça a mesma conferência considerando a existência e o movimento da conta de investimento.</p></div>
                         <div><strong>Notas Fiscais</strong><p>Se houver gasto, registre a entrega e cadastre as notas para que o RADAR conheça a natureza da despesa.</p></div>
                         <div><strong>Consulta à Assessoria</strong><p>O requisito acompanha despesas de serviço quando aplicável.</p></div>
-                        <div><strong>Declaração BB Ágil</strong><p>Registre a entrega e faça a conferência documental normal.</p></div>
+                        <div><strong>Declaração BB Ágil</strong><p>Use Sim/Não quando houver despesas a serem lançadas. Se não houver despesas a lançar, marque N/A.</p></div>
                         <div><strong>Encaminhamento para Inventariação</strong><p>É utilizado no fluxo de bens permanentes quando aplicável.</p></div>
                     </div>
                     <ol class="controller-guide-steps">
@@ -211,7 +211,7 @@
                 body: `
                     <ol class="controller-guide-steps">
                         ${step(1, 'Verifique o requisito', 'Notas Fiscais, Consulta à Assessoria e Encaminhamento para Inventariação podem variar conforme o tipo de gasto e o caso concreto.')}
-                        ${step(2, 'Não use N/A nos documentos obrigatórios', 'Extrato da Conta Corrente, Extrato de Investimento e Declaração BB Ágil não aceitam “Não se aplica” para a consolidação mensal.')}
+                        ${step(2, 'Não use N/A nos documentos obrigatórios', 'Extrato da Conta Corrente e Extrato de Investimento não aceitam “Não se aplica” para a consolidação mensal. Na Declaração BB Ágil, N/A é válido quando não houver despesas a serem lançadas.')}
                         ${step(3, 'Se já existe nota fiscal cadastrada, trate a nota primeiro', 'O RADAR não apaga nota ou bem automaticamente quando você tenta marcar N/A. Edite ou exclua a nota individualmente quando essa for realmente a correção necessária.')}
                         ${step(4, 'Confira o efeito antes de consolidar', 'Um “Não se aplica” indevido bloqueia a consolidação e deve ser corrigido no próprio requisito.')}
                     </ol>
