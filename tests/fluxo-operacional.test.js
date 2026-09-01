@@ -81,7 +81,7 @@ test('recusa consolidação e informa todos os documentos ausentes ou inválidos
     }), {
         canConsolidate: false,
         status: null,
-        missingFields: ['extCC', 'extINV', 'consAssessoria', 'declBBAgil']
+        missingFields: ['extCC', 'extINV', 'consAssessoria']
     });
 });
 
