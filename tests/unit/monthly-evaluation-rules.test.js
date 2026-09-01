@@ -68,7 +68,7 @@ test('não consolida quando campo obrigatório está vazio ou marcado como não 
     pendencies: []
   });
   const invalidNotApplicable = flow.evaluateMonthlyEvaluation({
-    bonification: { ...completeBonification, declBBAgil: 'Não se aplica' },
+    bonification: { ...completeBonification, extINV: 'Não se aplica' },
     analysis: completeAnalysis,
     pendencies: []
   });
@@ -77,7 +77,19 @@ test('não consolida quando campo obrigatório está vazio ou marcado como não 
   assert.equal(empty.bonusResult, null);
   assert.deepEqual(empty.missingFields, ['extCC']);
   assert.equal(invalidNotApplicable.canConsolidate, false);
-  assert.deepEqual(invalidNotApplicable.missingFields, ['declBBAgil']);
+  assert.deepEqual(invalidNotApplicable.missingFields, ['extINV']);
+});
+
+test('Declaração BB Ágil aceita N/A e mantém a bonificação apta', () => {
+  const result = flow.evaluateMonthlyEvaluation({
+    bonification: { ...completeBonification, declBBAgil: 'Não se aplica' },
+    analysis: completeAnalysis,
+    pendencies: []
+  });
+
+  assert.equal(result.canConsolidate, true);
+  assert.equal(result.bonusResult, 'apta');
+  assert.deepEqual(result.missingFields, []);
 });
 
 test('distingue análise não iniciada, em andamento e concluída', () => {
