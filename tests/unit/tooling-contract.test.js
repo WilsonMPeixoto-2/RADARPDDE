@@ -34,6 +34,11 @@ test('mantém o renderer institucional interno e fixa ExcelJS somente para o pro
     assert.equal(packageJson.devDependencies.lighthouse, '13.4.1');
     assert.equal(packageJson.devDependencies['@lhci/cli'], undefined);
     assert.equal(packageJson.overrides['brace-expansion@5.0.8'], '5.0.9');
+    assert.equal(
+        packageJson.allowScripts[`esbuild@${packageJson.devDependencies.esbuild}`],
+        true,
+        'allowScripts deve acompanhar a versão efetivamente fixada do esbuild'
+    );
 });
 
 test('mantém scripts de segurança, dependências e desempenho como gates úteis', () => {
