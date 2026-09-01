@@ -65,7 +65,13 @@ O merge do PR #237 está na `main`, mas a promoção para Production deve ocorre
 
 ## 6. Dependências
 
-A auditoria identificou PRs de Dependabot ainda abertos. Eles devem ser classificados por compatibilidade e gates antes de merge. Atualização de dependência não é concluída apenas porque o PR existe.
+A auditoria classificou os PRs de Dependabot abertos:
+
+- incorporados neste fechamento, sujeitos aos gates: `@supabase/supabase-js 2.112.4`, `esbuild 0.28.2`, `knip 6.32.2`, `eslint 10.8.1`, `eslint-plugin-playwright 2.11.0` e `actions/checkout v7`;
+- `supabase CLI 2.116.0` foi testado e **não aprovado**: o pgTAP/RLS local passou a falhar em duas garantias de service_role; permanece a versão homologada `2.114.0`;
+- `@types/node 26.2.0` foi **adiado** porque o projeto declara Node `24.x`; permanece `24.13.3`.
+
+Atualização de dependência só é considerada concluída depois dos gates e da reconciliação do lockfile/artefatos gerados.
 
 ## 7. Próxima sequência
 
