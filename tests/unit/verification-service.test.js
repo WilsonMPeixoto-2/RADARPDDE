@@ -266,6 +266,25 @@ test('Declaração BB Ágil em N/A neutraliza a análise técnica e ao voltar pa
     }
 });
 
+test('reaplicar N/A canonicaliza análise antiga da Declaração BB Ágil em vez de falso no-op', async () => {
+    const harness = createHarness();
+    harness.verification.bonificacao.declBBAgil = 'Não se aplica';
+    harness.verification.analise.declBBAgil = 'Não analisado';
+
+    const result = await harness.service.setBonification({
+        schoolId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        documentKey: 'declBBAgil',
+        value: 'Não se aplica',
+        profile: 'controlador'
+    });
+
+    assert.equal(result.value.verification.bonificacao.declBBAgil, 'Não se aplica');
+    assert.equal(result.value.verification.analise.declBBAgil, 'Correto');
+    assert.equal(result.value.unchanged, undefined);
+    assert.equal(harness.calls.length, 1);
+});
+
 test('Declaração BB Ágil não pode ser marcada N/A enquanto houver pendência ativa', async () => {
     const harness = createHarness();
     harness.verification.bonificacao.declBBAgil = 'Não';
