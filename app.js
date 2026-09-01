@@ -8603,18 +8603,38 @@ function abrirModalRegistrarNovoEnvio(pendencySource) {
     document.getElementById('envio-pendencia-id').value = encodePendencyIdReference(pendency.id);
     const identificationContext = configureRegistrarNovoEnvioIdentification(pendency);
     document.getElementById('envio-contexto').innerHTML = `
-        <dl aria-label="Contexto da pendência">
-            <div>
-                <dt>Escola</dt>
-                <dd>${escapeHtml(schoolName)}</dd>
+        <dl class="corrective-context-grid" aria-label="Contexto da pendência">
+            <div class="corrective-context-item is-school">
+                <span class="corrective-context-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+                        <path d="M4 20V8l8-4 8 4v12"></path><path d="M8 20v-6h8v6"></path><path d="M8 10h.01M12 10h.01M16 10h.01"></path>
+                    </svg>
+                </span>
+                <span class="corrective-context-copy"><dt>Escola</dt><dd>${escapeHtml(schoolName)}</dd></span>
             </div>
-            <div>
-                <dt>Competência</dt>
-                <dd>${escapeHtml(competenceLabel)} (${escapeHtml(competence)})</dd>
+            <div class="corrective-context-item is-competence">
+                <span class="corrective-context-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+                        <rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M8 3v4M16 3v4M3 10h18"></path>
+                    </svg>
+                </span>
+                <span class="corrective-context-copy"><dt>Competência</dt><dd>${escapeHtml(competenceLabel)}<span class="sr-only"> (${escapeHtml(competence)})</span></dd></span>
             </div>
-            <div>
-                <dt>Programa / documento</dt>
-                <dd>${escapeHtml(programName)} — ${escapeHtml(documentName)}</dd>
+            <div class="corrective-context-item is-program">
+                <span class="corrective-context-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+                        <path d="M3 7.5h6l2 2H21v9.5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7.5Z"></path>
+                    </svg>
+                </span>
+                <span class="corrective-context-copy"><dt>Programa</dt><dd>${escapeHtml(programName)}</dd></span>
+            </div>
+            <div class="corrective-context-item is-document">
+                <span class="corrective-context-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+                        <path d="M6 3h8l4 4v14H6z"></path><path d="M14 3v5h5"></path>
+                    </svg>
+                </span>
+                <span class="corrective-context-copy"><dt>Documento</dt><dd>${escapeHtml(documentName)}</dd></span>
             </div>
         </dl>
     `;
@@ -11897,7 +11917,7 @@ function openCobrancaModal(escolaId) {
     const container = document.getElementById('cobranca-checkboxes-container');
     if (pEscola.length === 0) {
         container.innerHTML = `<div class="cobranca-empty-state">Nenhuma pendência externa sob responsabilidade da Escola.</div>`;
-        document.getElementById('cobranca-preview-text').innerText = `Prezado(a) Diretor(a) de ${esc.denominação},\n\nConstatamos que não há pendências ativas de obrigações do PDDE sob responsabilidade da unidade escolar no RADAR PDDE.\n\nAtenciosamente,\nComitê PDDE / Verbas Federais`;
+        document.getElementById('cobranca-preview-text').innerText = `Prezado(a) Diretor(a) de ${esc.denominação},\n\nConstatamos que não há pendências ativas de obrigações do PDDE sob responsabilidade da unidade escolar no RADAR PDDE.\n\nAtenciosamente`;
         openModal('modal-cobranca');
         return true;
     }
@@ -11908,11 +11928,15 @@ function openCobrancaModal(escolaId) {
         return `
             <label class="cobranca-pendency-option">
                 <input type="checkbox" class="chk-cobranca-item" value="${escapeHtml(p.id)}" checked onchange="buildCobrancaPreview('${escapeHtml(escolaId)}')">
-                <span class="cobranca-pendency-check" aria-hidden="true"></span>
                 <span class="cobranca-pendency-copy">
                     <span class="cobranca-pendency-meta">Competência ${escapeHtml(pData.competencia)}</span>
                     <strong>${escapeHtml(pData.item)}</strong>
                     <span class="cobranca-pendency-reason">${escapeHtml(p.motivo || 'Pendência documental')}${observation ? ` · ${escapeHtml(observation)}` : ''}</span>
+                </span>
+                <span class="cobranca-pendency-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+                        <path d="M6 3h8l4 4v14H6z"></path><path d="M14 3v5h5"></path>
+                    </svg>
                 </span>
             </label>
         `;
@@ -11984,11 +12008,11 @@ function buildCobrancaPreview(escolaId) {
             const pData = getFormattedPendencyData(p);
             const obsText = formatTextCobranca(p.observacao);
             const problemText = [p.motivo, obsText].filter(Boolean).join(' — ');
-            msg += `${visibleIndex}. Competência: ${pData.competencia}\n   Documento: ${pData.item}\n   Pendência: ${problemText || 'Regularização documental necessária'}\n\n`;
+            msg += `${visibleIndex}. Competência: ${pData.competencia}\n   • Documento: ${pData.item}\n   • Pendência: ${problemText || 'Regularização documental necessária'}\n\n`;
         });
     }
 
-    msg += `Solicitamos que os documentos corretos sejam inseridos no Drive institucional da escola com urgência para regularizarmos a situação da prestação de contas da Unidade.\n\nAtenciosamente,\nEquipe de Verbas Federais / 4ª CRE`;
+    msg += `Solicitamos que os documentos corretos sejam inseridos no Drive institucional da escola.\n\nAtenciosamente`;
     document.getElementById('cobranca-preview-text').innerText = msg;
 }
 

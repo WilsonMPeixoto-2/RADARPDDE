@@ -43,3 +43,22 @@ test('drawer de pendências usa seções visuais e sanitiza observação', () =>
   assert.match(pendencyCss, /\.pendency-detail-grid > div/);
   assert.match(pendencyCss, /@media \(max-width: 900px\)[\s\S]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
 });
+
+
+test('refino aprovado mantém assinatura da cobrança apenas em Atenciosamente', () => {
+  assert.match(appSource, /Solicitamos que os documentos corretos sejam inseridos no Drive institucional da escola\.\\n\\nAtenciosamente/);
+  assert.doesNotMatch(appSource, /Equipe RADAR PDDE/);
+  assert.doesNotMatch(appSource, /Equipe de Verbas Federais \/ 4ª CRE/);
+  assert.doesNotMatch(appSource, /Atenciosamente,\\nComitê PDDE \/ Verbas Federais/);
+});
+
+test('refino aprovado usa cartões de contexto e composição editorial', () => {
+  assert.match(appSource, /corrective-context-grid/);
+  assert.match(appSource, /corrective-context-item is-school/);
+  assert.match(appSource, /corrective-context-item is-document/);
+  assert.match(indexSource, /modal-title-lockup/);
+  assert.match(indexSource, /cobranca-section-icon/);
+  assert.match(rootCss, /Refino visual aprovado — modais de Pendências/);
+  assert.match(pendencyCss, /Refino visual aprovado — detalhe de Pendência/);
+  assert.match(pendencyCss, /grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/);
+});
