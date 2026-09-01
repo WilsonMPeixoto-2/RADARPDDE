@@ -76,7 +76,9 @@ Valores aceitos:
 - `Não`;
 - `Não se aplica`.
 
-Extrato da Conta Corrente, Extrato de Investimento e Declaração BB Ágil não aceitam `Não se aplica` para consolidação.
+Extrato da Conta Corrente e Extrato de Investimento não aceitam `Não se aplica` para consolidação.
+
+A Declaração BB Ágil aceita `Não se aplica` quando não houver despesas a serem lançadas. Nesse estado, sua análise técnica é projetada como `Correto` apenas como valor neutro de conclusão, sem criar Pendência. Ao voltar de N/A para `Sim` ou `Não`, a análise técnica retorna a `Não analisado`. Uma Pendência ativa da Declaração BB Ágil precisa ser resolvida ou cancelada antes de marcar N/A.
 
 ### Boleto de pagamento de Internet
 
