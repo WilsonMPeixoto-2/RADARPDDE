@@ -311,18 +311,30 @@
     <div class="modal-overlay" id="modal-cobranca">
         <div class="modal-content cobranca-modal-content">
             <div class="modal-header">
-                <div>
-                    <h3>Gerar Mensagem de Cobrança</h3>
-                    <p class="modal-subtitle">Selecione apenas as pendências que devem constar na comunicação com a unidade escolar.</p>
+                <div class="modal-title-lockup">
+                    <span class="modal-title-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+                            <path d="m21 3-7.5 18-4.2-6.3L3 10.5 21 3Z"></path><path d="m9.3 14.7 4.2-4.2"></path>
+                        </svg>
+                    </span>
+                    <div>
+                        <h3>Gerar Mensagem de Cobrança</h3>
+                        <p class="modal-subtitle">Selecione as pendências que devem constar na comunicação com a unidade escolar.</p>
+                    </div>
                 </div>
-                <button class="btn-close" onclick="closeModal('modal-cobranca')">×</button>
+                <button class="btn-close" aria-label="Fechar geração de cobrança" onclick="closeModal('modal-cobranca')">×</button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="cobranca-escola-id">
                 <section class="cobranca-section" aria-labelledby="cobranca-selection-title">
                     <div class="cobranca-section-heading">
+                        <span class="cobranca-section-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+                                <rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6M9 12h6M9 16h4"></path>
+                            </svg>
+                        </span>
                         <div>
-                            <h4 id="cobranca-selection-title">Pendências da cobrança</h4>
+                            <h4 id="cobranca-selection-title">Pendências selecionadas</h4>
                             <p>Pendências internas e registros técnicos de homologação não são incluídos.</p>
                         </div>
                     </div>
@@ -332,16 +344,22 @@
                 </section>
                 <section class="cobranca-section cobranca-preview-section" aria-labelledby="cobranca-preview-title">
                     <div class="cobranca-section-heading">
+                        <span class="cobranca-section-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+                                <path d="M5 5h14v10H9l-4 4V5Z"></path><path d="M9 9h6M9 12h4"></path>
+                            </svg>
+                        </span>
                         <div>
                             <h4 id="cobranca-preview-title">Pré-visualização da mensagem</h4>
                             <p>Texto final pronto para copiar e encaminhar por e-mail ou WhatsApp.</p>
                         </div>
+                        <button type="button" class="btn btn-secondary btn-sm cobranca-copy-inline" onclick="copyCobrancaText()">Copiar texto</button>
                     </div>
                     <div class="cobranca-preview" id="cobranca-preview-text"></div>
                 </section>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('modal-cobranca')">Fechar</button>
-                    <button type="button" class="btn btn-primary" onclick="copyCobrancaText()">Copiar Texto</button>
+                    <button type="button" class="btn btn-primary" onclick="copyCobrancaText()">Copiar texto</button>
                 </div>
             </div>
         </div>
@@ -511,9 +529,16 @@
     >
         <div class="modal-content corrective-submission-modal-content">
             <div class="modal-header">
-                <div>
-                    <h3 id="modal-registrar-envio-title">Registrar novo envio para conferência</h3>
-                    <p class="modal-subtitle">Registre a nova disponibilização do documento para que a pendência siga para reanálise.</p>
+                <div class="modal-title-lockup">
+                    <span class="modal-title-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+                            <path d="M6 3h8l4 4v14H6z"></path><path d="M14 3v5h5"></path><path d="M12 17V10M9 13l3-3 3 3"></path>
+                        </svg>
+                    </span>
+                    <div>
+                        <h3 id="modal-registrar-envio-title">Registrar novo envio para conferência</h3>
+                        <p class="modal-subtitle">Registre a nova disponibilização do documento para que a pendência siga para reanálise.</p>
+                    </div>
                 </div>
                 <button
                     type="button"
@@ -525,7 +550,10 @@
             <div class="modal-body">
                 <form id="form-registrar-envio" onsubmit="confirmarRegistrarNovoEnvio(event)">
                     <input type="hidden" id="envio-pendencia-id">
-                    <div class="pendency-context-summary" id="envio-contexto"></div>
+                    <section class="corrective-context-panel" aria-labelledby="envio-contexto-title">
+                        <h4 id="envio-contexto-title">Contexto da pendência</h4>
+                        <div class="pendency-context-summary" id="envio-contexto"></div>
+                    </section>
                     <fieldset
                         class="pendency-error-fieldset"
                         id="envio-identificacao"
@@ -568,11 +596,11 @@
                         </div>
                         <div class="form-group is-full">
                             <label for="envio-observacao">Observação</label>
-                            <textarea class="form-control" id="envio-observacao" rows="4" required></textarea>
+                            <textarea class="form-control" id="envio-observacao" rows="4" placeholder="Descreva informações relevantes sobre este envio" required></textarea>
                         </div>
                         <div class="form-group is-full">
                             <label for="envio-link">Link direto do arquivo no Drive <span class="field-optional">(opcional)</span></label>
-                            <input type="url" class="form-control" id="envio-link">
+                            <input type="url" class="form-control" id="envio-link" placeholder="https://drive.google.com/...">
                         </div>
                     </div>
                     <div class="modal-footer">
