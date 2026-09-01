@@ -60,7 +60,10 @@ test('controlador lança agosto, consolida APTA e recupera o estado após nova s
 
   await markDeliveredAndCorrect(page, 'Extrato Conta Corrente');
   await markDeliveredAndCorrect(page, 'Extrato Investimento');
-  await markDeliveredAndCorrect(page, 'Declaração BB Ágil');
+
+  const bbAgilRow = documentRow(page, 'Declaração BB Ágil');
+  await bbAgilRow.getByRole('button', { name: 'N/A', exact: true }).click();
+  await expect(bbAgilRow.locator('select.select-analise')).toHaveValue('Correto');
 
   const fiscalRow = documentRow(page, 'Notas Fiscais');
   await fiscalRow.getByRole('button', { name: 'N/A', exact: true }).click();
