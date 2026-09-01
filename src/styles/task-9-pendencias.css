@@ -797,3 +797,335 @@
         grid-column: auto;
     }
 }
+
+
+/* Refino visual aprovado — detalhe de Pendência (31/08/2026) */
+@media (min-width: 901px) {
+    .pendency-detail-drawer {
+        width: min(900px, calc(100vw - 300px));
+        min-width: 720px;
+        border-left: 1px solid rgba(124, 58, 237, 0.12);
+        background: color-mix(in srgb, var(--bg-main) 97%, var(--primary-glow));
+        box-shadow: -24px 0 70px rgba(18, 14, 34, 0.20);
+    }
+
+    .pendency-drawer-header {
+        min-height: 118px;
+        padding: 24px 30px 20px;
+        background:
+            linear-gradient(135deg, rgba(124, 58, 237, 0.045), rgba(255,255,255,0) 58%),
+            var(--bg-sidebar);
+    }
+
+    .pendency-drawer-header h2 {
+        margin-top: 10px;
+        font-size: 1.38rem;
+    }
+
+    .pendency-drawer-body {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+        padding: 18px 24px 26px;
+    }
+
+    .pendency-drawer-body > .pendency-drawer-section {
+        min-width: 0;
+        padding: 15px 16px;
+        border: 1px solid rgba(124, 58, 237, 0.11);
+        border-radius: 13px;
+        background: color-mix(in srgb, var(--bg-sidebar) 97%, var(--primary-glow));
+        box-shadow: 0 6px 18px rgba(18, 14, 34, 0.035);
+    }
+
+    .pendency-drawer-body > .pendency-drawer-section.is-context,
+    .pendency-drawer-body > .pendency-drawer-section.is-timeline,
+    .pendency-drawer-body > .pendency-drawer-section.is-cancel {
+        grid-column: 1 / -1;
+    }
+
+    .pendency-drawer-body > .pendency-drawer-section.is-context {
+        padding: 14px;
+        background:
+            linear-gradient(180deg, rgba(124, 58, 237, 0.032), rgba(255,255,255,0)),
+            var(--bg-sidebar);
+    }
+
+    .pendency-detail-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 1px;
+        padding: 1px;
+        border: 1px solid rgba(124, 58, 237, 0.10);
+        border-radius: 11px;
+        background: rgba(124, 58, 237, 0.10);
+    }
+
+    .pendency-detail-grid > div {
+        min-height: 74px;
+        padding: 11px 12px;
+        background: color-mix(in srgb, var(--bg-sidebar) 96%, var(--primary-glow));
+    }
+
+    .pendency-detail-drawer dt {
+        font-size: 0.61rem;
+        font-weight: 780;
+        letter-spacing: 0.045em;
+        text-transform: uppercase;
+    }
+
+    .pendency-detail-drawer dd {
+        margin-top: 5px;
+        font-size: 0.79rem;
+        font-weight: 650;
+    }
+
+    .pendency-drawer-body h3 {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+        font-size: 0.9rem;
+        font-weight: 740;
+    }
+
+    .pendency-drawer-body h3::before {
+        content: "";
+        flex: 0 0 27px;
+        width: 27px;
+        height: 27px;
+        border: 1px solid rgba(124, 58, 237, 0.11);
+        border-radius: 8px;
+        background:
+            radial-gradient(circle at center, rgba(124, 58, 237, 0.55) 0 3px, transparent 4px),
+            rgba(124, 58, 237, 0.065);
+    }
+
+    .pendency-drawer-section.is-errors {
+        background: color-mix(in srgb, var(--bg-sidebar) 98%, rgba(239,68,68,0.04));
+    }
+
+    .pendency-drawer-section.is-observation p {
+        min-height: 52px;
+        display: flex;
+        align-items: center;
+        margin: 0;
+        padding: 10px 12px;
+        border-left: 3px solid var(--primary);
+        border-radius: 9px;
+        background: color-mix(in srgb, var(--bg-input) 90%, var(--primary-glow));
+    }
+
+    .pendency-error-summary li {
+        min-height: 42px;
+        display: flex;
+        align-items: center;
+        margin: 0;
+        padding: 9px 11px;
+        border-radius: 9px;
+    }
+
+    .pendency-attempt-list > li,
+    .pendency-contact-list > li {
+        min-height: 50px;
+        display: flex;
+        align-items: center;
+        padding: 11px 12px;
+        border: 0;
+        border-radius: 9px;
+        background: color-mix(in srgb, var(--bg-input) 92%, var(--primary-glow));
+    }
+
+    .pendency-timeline {
+        gap: 16px;
+    }
+
+    .pendency-timeline > li {
+        grid-template-columns: 15px minmax(0, 1fr);
+        gap: 11px;
+        padding-bottom: 2px;
+    }
+
+    .pendency-drawer-footer {
+        padding: 15px 24px;
+        background: color-mix(in srgb, var(--bg-sidebar) 98%, var(--primary-glow));
+        box-shadow: 0 -10px 24px rgba(18,14,34,0.045);
+    }
+
+    .pendency-drawer-footer .pendency-row-actions {
+        grid-template-columns: 1.15fr 1fr 1fr 1fr;
+        gap: 10px;
+    }
+
+    .pendency-drawer-footer .pendency-row-actions .btn.btn-primary:first-child {
+        grid-column: auto;
+    }
+
+    .pendency-drawer-footer .pendency-row-actions .btn {
+        min-height: 42px;
+        border-radius: 10px;
+        font-size: 0.73rem;
+    }
+}
+
+@media (max-width: 900px) {
+    .pendency-detail-drawer {
+        background:
+            linear-gradient(180deg, rgba(124, 58, 237, 0.025), rgba(255,255,255,0) 180px),
+            var(--bg-main);
+    }
+
+    .pendency-drawer-header {
+        min-height: 138px;
+        padding: max(18px, env(safe-area-inset-top)) 18px 16px;
+        border-bottom: 1px solid rgba(124, 58, 237, 0.10);
+        background: var(--bg-sidebar);
+    }
+
+    .pendency-drawer-header h2 {
+        margin-top: 14px;
+        font-size: clamp(1.4rem, 6vw, 1.8rem);
+        line-height: 1.15;
+    }
+
+    .pendency-drawer-header p {
+        margin-top: 6px;
+        font-size: 0.79rem;
+    }
+
+    .pendency-drawer-body {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        padding: 14px 14px 18px;
+    }
+
+    .pendency-drawer-body > .pendency-drawer-section {
+        padding: 14px;
+        border: 1px solid rgba(124, 58, 237, 0.11);
+        border-radius: 15px;
+        background: var(--bg-sidebar);
+        box-shadow: 0 5px 16px rgba(18,14,34,0.03);
+    }
+
+    .pendency-drawer-body h3 {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+        font-size: 0.92rem;
+    }
+
+    .pendency-drawer-body h3::before {
+        content: "";
+        flex: 0 0 28px;
+        width: 28px;
+        height: 28px;
+        border: 1px solid rgba(124, 58, 237, 0.11);
+        border-radius: 50%;
+        background:
+            radial-gradient(circle at center, rgba(124, 58, 237, 0.62) 0 3px, transparent 4px),
+            rgba(124, 58, 237, 0.07);
+    }
+
+    .pendency-detail-grid {
+        grid-template-columns: 1fr;
+        gap: 0;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        overflow: visible;
+        background: transparent;
+    }
+
+    .pendency-detail-grid > div {
+        position: relative;
+        min-height: 72px;
+        padding: 11px 10px 11px 50px;
+        border-bottom: 1px solid rgba(124, 58, 237, 0.11);
+        background: transparent;
+    }
+
+    .pendency-detail-grid > div:last-child {
+        border-bottom: 0;
+    }
+
+    .pendency-detail-grid > div::before {
+        content: "";
+        position: absolute;
+        left: 8px;
+        top: 16px;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background:
+            radial-gradient(circle at center, rgba(124, 58, 237, 0.7) 0 3px, transparent 4px),
+            rgba(124, 58, 237, 0.075);
+    }
+
+    .pendency-detail-drawer dt {
+        font-size: 0.64rem;
+        font-weight: 780;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    .pendency-detail-drawer dd {
+        margin-top: 5px;
+        font-size: 0.95rem;
+        font-weight: 650;
+    }
+
+    .pendency-drawer-section.is-observation p {
+        margin: 0;
+        padding: 10px 11px;
+        border-left: 3px solid var(--primary);
+        border-radius: 9px;
+        background: color-mix(in srgb, var(--bg-input) 90%, var(--primary-glow));
+    }
+
+    .pendency-drawer-footer {
+        padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+        background: color-mix(in srgb, var(--bg-sidebar) 98%, var(--primary-glow));
+        box-shadow: 0 -10px 24px rgba(18,14,34,0.05);
+    }
+
+    .pendency-drawer-footer .pendency-row-actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .pendency-drawer-footer .pendency-row-actions .btn {
+        min-height: 44px;
+        border-radius: 10px;
+        font-size: 0.74rem;
+    }
+
+    .pendency-drawer-footer .pendency-row-actions .btn.btn-primary:first-child {
+        grid-column: 1 / -1;
+    }
+
+    .pendency-drawer-footer .pendency-row-actions .btn.btn-danger {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 480px) {
+    .pendency-drawer-header {
+        min-height: 132px;
+    }
+
+    .pendency-drawer-body {
+        padding-inline: 12px;
+    }
+
+    .pendency-drawer-body > .pendency-drawer-section {
+        border-radius: 14px;
+    }
+
+    .pendency-drawer-footer .pendency-row-actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .pendency-drawer-footer .pendency-row-actions .btn.btn-primary:first-child,
+    .pendency-drawer-footer .pendency-row-actions .btn.btn-danger {
+        grid-column: 1 / -1;
+    }
+}
