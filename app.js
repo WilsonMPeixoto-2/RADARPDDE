@@ -9919,7 +9919,7 @@ function renderProntuarioVerificacoes(esc) {
         { key: 'extINV', name: 'Extrato Investimento', allowNaoAplica: false },
         { key: 'notaFiscal', name: 'Notas Fiscais', allowNaoAplica: true },
         { key: 'consAssessoria', name: 'Consulta Assessoria', allowNaoAplica: true },
-        { key: 'declBBAgil', name: 'Declaração BB Ágil', allowNaoAplica: false },
+        { key: 'declBBAgil', name: 'Declaração BB Ágil', allowNaoAplica: true },
         { key: 'encampInventario', name: 'Encaminhado para Inventariação', allowNaoAplica: true }
     ];
 
