@@ -92,6 +92,22 @@ test('Declaração BB Ágil aceita N/A e mantém a bonificação apta', () => {
   assert.deepEqual(result.missingFields, []);
 });
 
+test('Declaração BB Ágil em N/A neutraliza análise histórica ainda não analisada', () => {
+  const result = flow.evaluateMonthlyEvaluation({
+    bonification: { ...completeBonification, declBBAgil: 'Não se aplica' },
+    analysis: { ...completeAnalysis, declBBAgil: 'Não analisado' },
+    pendencies: []
+  });
+  const documentState = flow.getEffectiveDocumentState({
+    bonificacao: { ...completeBonification, declBBAgil: 'Não se aplica' },
+    analise: { ...completeAnalysis, declBBAgil: 'Não analisado' }
+  }, 'BASIC', 'declBBAgil');
+
+  assert.equal(result.technicalStatus, 'correto');
+  assert.equal(result.technicalCompletion, 'complete');
+  assert.equal(documentState.analysis, 'Correto');
+});
+
 test('distingue análise não iniciada, em andamento e concluída', () => {
   const notStarted = flow.evaluateMonthlyEvaluation({
     bonification: {},
