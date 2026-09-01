@@ -2,7 +2,7 @@
 
 Sistema institucional de acompanhamento operacional do PDDE da 4ª CRE/SME-Rio. O produto organiza competência mensal, carteira de unidades, prontuário, análise documental, pendências, contatos, notas fiscais, patrimônio, Gestão de Equipe, acompanhamento gerencial e exportações.
 
-> **Estado reconciliado em 30 de agosto de 2026:** o conjunto PR #211 + #214 + #215 está integrado e publicado. Supabase Production possui **44 migrations**, incluindo `20260830223000_payload_row_version_boundary`; Vercel Production está `READY` no deployment `dpl_TXwRPK2Sv72u5HtQVF3Z7ejJby3k`, correspondente ao `main` operacional `24e1934541b92e4399798556c05fd164c9c43801`. Os dois fluxos que falharam após PR #211 foram comprovados por smokes transacionais reais com rollback. A homologação autenticada final pela interface permanece pendente. A ADR-052 passa a proteger autoridade e composição dos fluxos críticos. O estado completo fica em [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md).
+> **Estado reconciliado em 31 de agosto de 2026:** a `main` avançou até o PR #237, incorporando as correções pós-PR215, abertura no mês corrente e o refinamento visual aprovado do Prontuário/Pendências. O saneamento atual corrige expectativas temporais de CI que ficaram presas a agosto e uma falha real de sincronização visual da bonificação da Consulta Assessoria. A próxima publicação de Production só deve ocorrer depois dos gates e da revisão das dependências abertas. Estado completo: [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md) e [handoff pós-PR237](docs/handoff/2026-08-31-pr237-fechamento-visual-e-ci.md).
 
 ## Fontes de verdade
 
@@ -131,7 +131,7 @@ npm run check:functional-matrix
 Ordem de leitura:
 
 1. [`AGENTS.md`](AGENTS.md);
-2. [`docs/handoff/2026-08-30-pr215-fechamento-tecnico.md`](docs/handoff/2026-08-30-pr215-fechamento-tecnico.md);
+2. [`docs/handoff/2026-08-31-pr237-fechamento-visual-e-ci.md`](docs/handoff/2026-08-31-pr237-fechamento-visual-e-ci.md);
 3. [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md);
 4. [`docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md);
 5. [`docs/decisions/ADR-052-autoridade-unica-fluxos-criticos.md`](docs/decisions/ADR-052-autoridade-unica-fluxos-criticos.md);
@@ -142,7 +142,7 @@ Ordem de leitura:
 10. [`docs/handoff/2026-08-30-pr211-publicacao-concluida.md`](docs/handoff/2026-08-30-pr211-publicacao-concluida.md) como histórico do estado imediatamente anterior ao PR #215;
 11. somente depois, os demais handoffs históricos e o plano mestre de 26/08.
 
-A porta de entrada vigente é o handoff pós-PR #215. Auditorias e planos anteriores permanecem históricos e não podem restaurar decisões superadas.
+A porta de entrada vigente é o handoff pós-PR #237; o handoff pós-PR #215 permanece histórico e técnico. Auditorias e planos anteriores permanecem históricos e não podem restaurar decisões superadas.
 
 ## Próxima sequência
 

@@ -1,15 +1,16 @@
 # Documentação do RADAR PDDE
 
-**Estado de referência:** 30 de agosto de 2026
+**Estado de referência:** 31 de agosto de 2026
 **Classe documental:** Canônico — índice
 
 ## 0. Frente ativa
 
-A frente ativa é o **fechamento técnico do conjunto PR #211 + #214 + #215**, com proteção arquitetural da ADR-052 e homologação autenticada final ainda pendente.
+A frente ativa é o **fechamento pós-PR #237**, com saneamento das expectativas temporais de CI, correção da sincronização visual da Consulta Assessoria, revisão de dependências e reconciliação documental antes da próxima publicação de Production.
 
 Ler primeiro:
 
-- [`handoff/2026-08-30-pr215-fechamento-tecnico.md`](handoff/2026-08-30-pr215-fechamento-tecnico.md) — estado corrente após PR #215;
+- [`handoff/2026-08-31-pr237-fechamento-visual-e-ci.md`](handoff/2026-08-31-pr237-fechamento-visual-e-ci.md) — estado corrente após PR #237;
+- [`handoff/2026-08-30-pr215-fechamento-tecnico.md`](handoff/2026-08-30-pr215-fechamento-tecnico.md) — histórico técnico após PR #215;
 - [`handoff/2026-08-30-pr211-retomada-work.md`](handoff/2026-08-30-pr211-retomada-work.md) — histórico da retomada que antecedeu o fechamento;
 - [`CURRENT_STAGE.md`](CURRENT_STAGE.md);
 - [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md);

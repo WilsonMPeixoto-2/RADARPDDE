@@ -28,12 +28,17 @@ test('mantém o renderer institucional interno e fixa ExcelJS somente para o pro
     assert.match(runtimeLoader, /\/vendor\/exceljs\.min\.js/);
     assert.doesNotMatch(lockfile, /"node_modules\/@lhci\/cli"/);
     assert.equal(packageJson.devDependencies.prettier, '3.9.6');
-    assert.equal(packageJson.devDependencies.knip, '6.29.0');
+    assert.equal(packageJson.devDependencies.knip, '6.32.2');
     assert.equal(packageJson.devDependencies['eslint-plugin-no-unsanitized'], '4.1.5');
-    assert.equal(packageJson.devDependencies['eslint-plugin-playwright'], '2.10.5');
+    assert.equal(packageJson.devDependencies['eslint-plugin-playwright'], '2.11.0');
     assert.equal(packageJson.devDependencies.lighthouse, '13.4.1');
     assert.equal(packageJson.devDependencies['@lhci/cli'], undefined);
     assert.equal(packageJson.overrides['brace-expansion@5.0.8'], '5.0.9');
+    assert.equal(
+        packageJson.allowScripts[`esbuild@${packageJson.devDependencies.esbuild}`],
+        true,
+        'allowScripts deve acompanhar a versão efetivamente fixada do esbuild'
+    );
 });
 
 test('mantém scripts de segurança, dependências e desempenho como gates úteis', () => {
@@ -100,14 +105,18 @@ test('Lighthouse mede métricas, oportunidades e bloqueia regressões graves', (
     const lighthouseRunner = read('scripts/run-lighthouse-baseline.mjs');
     const lighthouseWorkflow = read('.github/workflows/lighthouse-ci.yml');
 
+    assert.match(lighthouseConfig, /numberOfRuns:\s*3/);
     assert.match(lighthouseConfig, /metricBudgets/);
     assert.match(lighthouseConfig, /thresholds/);
     assert.match(lighthouseRunner, /import\.meta\.resolve\('lighthouse'\)/);
+    assert.match(lighthouseRunner, /function median\(/);
+    assert.match(lighthouseRunner, /aggregation:\s*'median'/);
     assert.match(lighthouseRunner, /accessibilityFindings/);
     assert.match(lighthouseRunner, /opportunities/);
     assert.match(lighthouseWorkflow, /Executar baseline mobile/);
     assert.match(lighthouseWorkflow, /Executar baseline desktop/);
     assert.match(lighthouseWorkflow, /Validar pisos de qualidade Lighthouse/);
+    assert.match(lighthouseWorkflow, /mobile: dívida de performance conhecida e não bloqueante/);
     assert.match(lighthouseWorkflow, /summary\.md/);
 });
 

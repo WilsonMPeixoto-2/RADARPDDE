@@ -527,6 +527,7 @@ test.describe('núcleo funcional do RADAR PDDE no desktop', () => {
 
     await page.goto('/');
     await waitForProductExtensions(page);
+    await selectFixtureCompetence(page);
     const context = await page.evaluate(() => {
       switchProfile('controlador');
 

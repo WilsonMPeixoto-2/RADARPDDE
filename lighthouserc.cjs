@@ -2,7 +2,7 @@
 
 module.exports = Object.freeze({
     url: 'http://127.0.0.1:4175/',
-    numberOfRuns: 2,
+    numberOfRuns: 3,
     categories: Object.freeze([
         'performance',
         'accessibility',

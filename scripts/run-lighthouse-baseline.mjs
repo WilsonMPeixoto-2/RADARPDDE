@@ -83,11 +83,15 @@ async function findJsonReport(baseName) {
     return path.join(outputDir, reportName);
 }
 
-function average(values) {
-    const numericValues = values.filter(value => typeof value === 'number' && Number.isFinite(value));
-    return numericValues.length > 0
-        ? numericValues.reduce((sum, value) => sum + value, 0) / numericValues.length
-        : null;
+function median(values) {
+    const numericValues = values
+        .filter(value => typeof value === 'number' && Number.isFinite(value))
+        .sort((left, right) => left - right);
+    if (numericValues.length === 0) return null;
+    const middle = Math.floor(numericValues.length / 2);
+    return numericValues.length % 2 === 0
+        ? (numericValues[middle - 1] + numericValues[middle]) / 2
+        : numericValues[middle];
 }
 
 function categoryScores(report) {
@@ -216,19 +220,19 @@ function buildMarkdown(summary) {
     const lines = [
         `## Lighthouse — ${summary.profile === 'mobile' ? 'Mobile' : 'Desktop'}`,
         '',
-        '| Categoria | Média | Piso |',
+        '| Categoria | Mediana | Piso |',
         '|---|---:|---:|'
     ];
 
     for (const category of summary.categories) {
-        const score = summary.averages[category];
+        const score = summary.medians[category];
         const threshold = profile.thresholds?.[category];
         lines.push(`| ${category} | ${typeof score === 'number' ? `${(score * 100).toFixed(0)}%` : '—'} | ${typeof threshold === 'number' ? `${(threshold * 100).toFixed(0)}%` : '—'} |`);
     }
 
-    lines.push('', '| Métrica | Média | Limite |', '|---|---:|---:|');
+    lines.push('', '| Métrica | Mediana | Limite |', '|---|---:|---:|');
     for (const [auditId, metadata] of Object.entries(METRICS)) {
-        const value = summary.metricAverages[auditId];
+        const value = summary.metricMedians[auditId];
         const budget = profile.metricBudgets?.[auditId];
         lines.push(`| ${metadata.shortLabel} | ${formatMetric(auditId, value)} | ${typeof budget === 'number' ? formatMetric(auditId, budget) : 'informativo'} |`);
     }
@@ -292,39 +296,40 @@ for (let run = 1; run <= runs; run += 1) {
     });
 }
 
-const averages = Object.fromEntries(categories.map(category => [
+const medians = Object.fromEntries(categories.map(category => [
     category,
-    average(results.map(result => result.scores[category]))
+    median(results.map(result => result.scores[category]))
 ]));
-const metricAverages = Object.fromEntries(Object.keys(METRICS).map(auditId => [
+const metricMedians = Object.fromEntries(Object.keys(METRICS).map(auditId => [
     auditId,
-    average(results.map(result => result.metrics[auditId]?.numericValue))
+    median(results.map(result => result.metrics[auditId]?.numericValue))
 ]));
 const opportunities = aggregateOpportunities(results);
 const aggregatedAccessibilityFindings = aggregateAccessibilityFindings(results);
 
 const violations = [];
 for (const [category, minimum] of Object.entries(profile.thresholds || {})) {
-    const actual = averages[category];
+    const actual = medians[category];
     if (typeof actual === 'number' && actual < Number(minimum)) {
         violations.push({ type: 'category', category, minimum: Number(minimum), actual });
     }
 }
 for (const [auditId, maximum] of Object.entries(profile.metricBudgets || {})) {
-    const actual = metricAverages[auditId];
+    const actual = metricMedians[auditId];
     if (typeof actual === 'number' && actual > Number(maximum)) {
         violations.push({ type: 'metric', auditId, maximum: Number(maximum), actual });
     }
 }
 
 const summary = {
-    schemaVersion: 2,
+    schemaVersion: 3,
     profile: profileName,
     url: String(config.url),
     numberOfRuns: runs,
+    aggregation: 'median',
     categories,
-    averages,
-    metricAverages,
+    medians,
+    metricMedians,
     opportunities,
     accessibilityFindings: aggregatedAccessibilityFindings,
     violations,
@@ -339,10 +344,10 @@ await writeFile(
 await writeFile(path.join(outputDir, 'summary.md'), buildMarkdown(summary), 'utf8');
 
 console.log(`[Lighthouse] Auditoria ${profileName} concluída com ${runs} execução(ões).`);
-for (const [category, score] of Object.entries(averages)) {
+for (const [category, score] of Object.entries(medians)) {
     console.log(`- ${category}: ${typeof score === 'number' ? `${(score * 100).toFixed(0)}%` : 'indisponível'}`);
 }
-for (const [auditId, value] of Object.entries(metricAverages)) {
+for (const [auditId, value] of Object.entries(metricMedians)) {
     console.log(`- ${METRICS[auditId].shortLabel}: ${formatMetric(auditId, value)}`);
 }
 if (opportunities.length > 0) {

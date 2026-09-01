@@ -1,6 +1,6 @@
 # Matriz de validade documental
 
-**Atualizado em:** 30 de agosto de 2026
+**Atualizado em:** 31 de agosto de 2026
 **Classe documental:** Canônico
 
 ## 1. Finalidade
@@ -9,7 +9,7 @@ Este documento define quais arquivos podem orientar o estado presente e quais ex
 
 O estado mutável do projeto fica em [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md). A estratégia vigente de validação fica em [`TEST_GOVERNANCE.md`](TEST_GOVERNANCE.md).
 
-O roteamento corrente começa em [`../handoff/2026-08-30-pr211-publicacao-concluida.md`](../handoff/2026-08-30-pr211-publicacao-concluida.md). O checkpoint do plano mestre continua em [`../handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](../handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md), mas só volta a orientar a execução depois da reconciliação pós-hotfix.
+O roteamento corrente começa em [`../handoff/2026-08-31-pr237-fechamento-visual-e-ci.md`](../handoff/2026-08-31-pr237-fechamento-visual-e-ci.md). O checkpoint do plano mestre continua em [`../handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](../handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md), mas só volta a orientar a execução depois da reconciliação pós-hotfix.
 
 ## 2. Classes
 
@@ -47,6 +47,7 @@ Um teste histórico não prevalece sobre regra e código posteriores. PR aberto,
 | `AGENTS.md` | regras de trabalho e proteção do projeto |
 | `README.md` | entrada do repositório |
 | `docs/CURRENT_STAGE.md` | estado corrente, prioridades e gatilhos de nova validação |
+| `docs/handoff/2026-08-31-pr237-fechamento-visual-e-ci.md` | estado canônico corrente após PR #237, saneamento de CI e ponte para próxima Production |
 | `docs/handoff/2026-08-30-pr215-fechamento-tecnico.md` | estado canônico do conjunto PR #211/#214/#215 e ponte para homologação autenticada final |
 | `docs/handoff/2026-08-30-pr211-publicacao-concluida.md` | histórico canônico imediatamente após a publicação do PR #211; superado para estado corrente pelo handoff pós-PR #215 |
 | `docs/handoff/2026-08-30-pr211-retomada-work.md` | histórico da retomada final do PR #211 |

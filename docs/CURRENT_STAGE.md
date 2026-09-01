@@ -1,10 +1,18 @@
 # RADAR PDDE — Estado atual do projeto
 
-**Atualizado em:** 30 de agosto de 2026
+**Atualizado em:** 31 de agosto de 2026
 
 **Classe documental:** Canônico — estado corrente e retomada futura
 
-**Situação:** conjunto PR #211 + #214 + #215 integrado e publicado; Production revalidada; homologação autenticada final pela interface ainda pendente; reconciliação documental/arquitetural em curso antes de PR3.1
+**Situação:** baseline avançou até o PR #237; refinamento visual e correções pós-PR215 integrados à `main`; saneamento de CI temporal e revisão de dependências em fechamento antes da próxima publicação de Production.
+
+## Atualização pós-PR #237
+
+A porta de entrada corrente é [`handoff/2026-08-31-pr237-fechamento-visual-e-ci.md`](handoff/2026-08-31-pr237-fechamento-visual-e-ci.md).
+
+O conjunto PR #218–#237 incorporou autoridade determinística dos fluxos críticos, preservação/canonização de contexto das Pendências, correções da Consulta Assessoria, abertura no mês corrente e a revisão visual do Prontuário/Pendências. As falhas de CI observadas na virada de agosto para setembro foram reclassificadas: quatro eram expectativas temporais de teste e uma era sincronização visual incremental real da bonificação da Assessoria.
+
+Os blocos abaixo sobre PR #211/#214/#215 permanecem como histórico técnico necessário, mas não representam sozinhos o estado mais recente.
 
 ## 0. Hotfix publicado — PR #211
 

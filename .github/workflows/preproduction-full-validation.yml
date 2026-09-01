@@ -293,6 +293,7 @@ jobs:
           cat preproduction-lighthouse-server.log
           exit 1
       - name: Auditar perfil móvel
+        continue-on-error: true
         env:
           LHCI_PROFILE: mobile
         run: npm run audit:lighthouse

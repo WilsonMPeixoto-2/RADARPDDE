@@ -20,6 +20,11 @@ test.describe('gestão de exercícios e competências', () => {
     });
 
     await expect(page.locator('#new-exercise-competencia option')).toHaveCount(12);
+    const current2026Competence = await page.evaluate(() => (
+      window.RadarCompetencia.competenceKeyFromDate(new Date())
+    ));
+    expect(current2026Competence).toMatch(/^2026-/);
+
     await page.locator('#new-exercise-input').fill('2027');
     await page.locator('#new-exercise-competencia').selectOption('04');
     await page.getByRole('button', { name: 'Criar', exact: true }).click();
@@ -53,7 +58,7 @@ test.describe('gestão de exercícios e competências', () => {
     await page.locator('#exercise-select').selectOption('2026');
     expect(await page.evaluate(() => ({ currentExercise, activeCompetenciaKey }))).toEqual({
       currentExercise: '2026',
-      activeCompetenciaKey: '2026-08'
+      activeCompetenciaKey: current2026Competence
     });
 
     await page.locator('#exercise-select').selectOption('2027');
@@ -66,7 +71,7 @@ test.describe('gestão de exercícios e competências', () => {
     await page.waitForFunction(() => Boolean(window.RadarCompetenceContext?.isInitialized?.()));
     await expect(page.locator('#exercise-select option')).toHaveCount(2);
     await expect(page.locator('#exercise-select')).toHaveValue('2026');
-    await expect(page.locator('#global-competence-select')).toHaveValue('2026-08');
+    await expect(page.locator('#global-competence-select')).toHaveValue(current2026Competence);
     expect(await page.evaluate(() => ({
       exercises: [...config.exercicios],
       currentExercise,
@@ -76,7 +81,7 @@ test.describe('gestão de exercícios e competências', () => {
     }))).toEqual({
       exercises: ['2026', '2027'],
       currentExercise: '2026',
-      activeCompetence: '2026-08',
+      activeCompetence: current2026Competence,
       competenceCount: 12,
       storedClosing: '2027-04'
     });
@@ -248,7 +253,11 @@ test.describe('gestão de exercícios e competências', () => {
     page.on('dialog', dialog => dialog.accept());
     await page.goto('/');
     await page.waitForFunction(() => window.RadarCompetenceContext?.isInitialized?.());
-    await page.locator('#global-competence-select').selectOption('2026-08');
+    const current2026Competence = await page.evaluate(() => (
+      window.RadarCompetencia.competenceKeyFromDate(new Date())
+    ));
+    expect(current2026Competence).toMatch(/^2026-/);
+    await page.locator('#global-competence-select').selectOption(current2026Competence);
     await page.evaluate(() => {
       switchProfile('sme');
       switchView('sme-config');
@@ -256,7 +265,7 @@ test.describe('gestão de exercícios e competências', () => {
     await page.locator('#cfg-comp-fechamento').selectOption('2026-07');
     await page.getByRole('button', { name: 'Salvar Parâmetros' }).click();
 
-    await expect(page.locator('#global-competence-select')).toHaveValue('2026-08');
+    await expect(page.locator('#global-competence-select')).toHaveValue(current2026Competence);
     expect(
       await page.evaluate(() => ({
         state: RadarCompetenceContext.getState(),
@@ -265,10 +274,10 @@ test.describe('gestão de exercícios e competências', () => {
         activeProntuarioCompetencia
       }))
     ).toMatchObject({
-      state: { activeKey: '2026-08', exercise: '2026', closingKey: '2026-07' },
-      activeCompetenciaKey: '2026-08',
+      state: { activeKey: current2026Competence, exercise: '2026', closingKey: '2026-07' },
+      activeCompetenciaKey: current2026Competence,
       currentExercise: '2026',
-      activeProntuarioCompetencia: '2026-08'
+      activeProntuarioCompetencia: current2026Competence
     });
   });
 });
