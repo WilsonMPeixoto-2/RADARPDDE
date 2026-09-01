@@ -22,7 +22,7 @@
         'declBBAgil',
         'encampInventario'
     ]);
-    const REQUIRED_DOCUMENT_KEYS = new Set(['extCC', 'extINV', 'declBBAgil']);
+    const REQUIRED_DOCUMENT_KEYS = new Set(['extCC', 'extINV']);
     const VALID_VALUES = new Set(['Sim', 'Não', 'Não se aplica']);
     const EDITABLE_PROFILES = new Set(['controlador', 'assistente']);
     const CORRECT_ANALYSES = new Set(['Correto', 'Correto (Atrasado)']);
