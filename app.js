@@ -8618,7 +8618,7 @@ function abrirModalRegistrarNovoEnvio(pendencySource) {
                         <rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M8 3v4M16 3v4M3 10h18"></path>
                     </svg>
                 </span>
-                <span class="corrective-context-copy"><dt>Competência</dt><dd>${escapeHtml(competenceLabel)}</dd></span>
+                <span class="corrective-context-copy"><dt>Competência</dt><dd>${escapeHtml(competenceLabel)}<span class="sr-only"> (${escapeHtml(competence)})</span></dd></span>
             </div>
             <div class="corrective-context-item is-program">
                 <span class="corrective-context-icon" aria-hidden="true">
