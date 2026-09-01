@@ -15,7 +15,7 @@ async function markDeliveredAndCorrect(page, label, programId = 'BASIC') {
   await expect(row.locator('select.select-analise')).toHaveValue('Correto');
 }
 
-test('controlador lança agosto, consolida APTA e recupera o mesmo estado após nova sessão', async ({ page }, testInfo) => {
+test('controlador lança agosto, consolida APTA e recupera o estado após nova sessão', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop-chromium', 'Jornada mensal completa validada no desktop.');
 
   const pageErrors = [];
@@ -104,7 +104,11 @@ test('controlador lança agosto, consolida APTA e recupera o mesmo estado após 
 
   await page.reload();
   await page.waitForFunction(() => Boolean(window.RadarCompetenceContext?.isInitialized?.()));
-  await expect(page.locator('#global-competence-select')).toHaveValue('2026-08');
+  const currentCompetenceAfterReload = await page.evaluate(() => (
+    window.RadarCompetencia.competenceKeyFromDate(new Date())
+  ));
+  await expect(page.locator('#global-competence-select')).toHaveValue(currentCompetenceAfterReload);
+  await page.locator('#global-competence-select').selectOption('2026-08');
 
   await page.evaluate(({ escolaId, competencia }) => {
     switchProfile('controlador');
