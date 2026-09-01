@@ -105,14 +105,18 @@ test('Lighthouse mede métricas, oportunidades e bloqueia regressões graves', (
     const lighthouseRunner = read('scripts/run-lighthouse-baseline.mjs');
     const lighthouseWorkflow = read('.github/workflows/lighthouse-ci.yml');
 
+    assert.match(lighthouseConfig, /numberOfRuns:\s*3/);
     assert.match(lighthouseConfig, /metricBudgets/);
     assert.match(lighthouseConfig, /thresholds/);
     assert.match(lighthouseRunner, /import\.meta\.resolve\('lighthouse'\)/);
+    assert.match(lighthouseRunner, /function median\(/);
+    assert.match(lighthouseRunner, /aggregation:\s*'median'/);
     assert.match(lighthouseRunner, /accessibilityFindings/);
     assert.match(lighthouseRunner, /opportunities/);
     assert.match(lighthouseWorkflow, /Executar baseline mobile/);
     assert.match(lighthouseWorkflow, /Executar baseline desktop/);
     assert.match(lighthouseWorkflow, /Validar pisos de qualidade Lighthouse/);
+    assert.match(lighthouseWorkflow, /mobile: dívida de performance conhecida e não bloqueante/);
     assert.match(lighthouseWorkflow, /summary\.md/);
 });
 
