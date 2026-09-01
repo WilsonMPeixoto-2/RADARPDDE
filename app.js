@@ -10014,10 +10014,12 @@ function renderProntuarioVerificacoes(esc) {
                         && window.RadarPendencias.buildDocumentContextKey(pendency)
                             === exactPendencyKey
                     ));
+                    const isBbAgilNaLocked = doc.key === 'declBBAgil'
+                        && bonifValue === 'Não se aplica';
                     const isAnaliseLocked = accessProfile === 'inventario'
                         || accessProfile === 'sme'
                         || Boolean(activePend)
-                        || (doc.key === 'declBBAgil' && bonifValue === 'Não se aplica');
+                        || isBbAgilNaLocked;
                     const analysisLockId = `analysis-lock-${progId}-${doc.key}`;
                     let pendStatusHTML = '';
                     if (canUseVerificationActions && activePend) {
@@ -10497,6 +10499,7 @@ function renderProntuarioVerificacoes(esc) {
                                 aria-label="Análise técnica de ${escapeHtml(doc.name)} no programa ${escapeHtml(progName)}"
                                 onchange="changeAnaliseTecnica('${escapeHtml(esc.id)}', '${escapeHtml(compProgKey)}', '${escapeHtml(doc.key)}', this.value, this)"
                                 ${activePend ? `aria-describedby="${escapeHtml(analysisLockId)}"` : ''}
+                                ${isBbAgilNaLocked ? 'data-bb-agil-na-lock="true"' : ''}
                                 ${isAnaliseLocked ? 'disabled' : ''}>
                             <option value="Não analisado" ${analiseValue === 'Não analisado' ? 'selected' : ''}>Não analisado</option>
                             <option value="Correto" ${analiseValue === 'Correto' ? 'selected' : ''}>Correto</option>
