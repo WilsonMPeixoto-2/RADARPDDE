@@ -114,6 +114,24 @@
             error.code = 'NOT_FOUND';
             throw error;
         }
+        if (
+            documentKey === 'declBBAgil'
+            && text(verification.bonificacao?.[documentKey]) === 'Não se aplica'
+        ) {
+            const ErrorCtor = root.RadarRepositoryContract?.RepositoryError;
+            if (typeof ErrorCtor === 'function') {
+                throw new ErrorCtor(
+                    'DOCUMENT_NOT_APPLICABLE',
+                    'A Declaração BB Ágil marcada como N/A não possui análise técnica editável.',
+                    { operation: 'setTechnicalAnalysis' }
+                );
+            }
+            const error = new Error(
+                'A Declaração BB Ágil marcada como N/A não possui análise técnica editável.'
+            );
+            error.code = 'DOCUMENT_NOT_APPLICABLE';
+            throw error;
+        }
         if (!text(verification.bonificacao?.[documentKey])) {
             const ErrorCtor = root.RadarRepositoryContract?.RepositoryError;
             if (typeof ErrorCtor === 'function') {
