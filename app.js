@@ -10016,7 +10016,8 @@ function renderProntuarioVerificacoes(esc) {
                     ));
                     const isAnaliseLocked = accessProfile === 'inventario'
                         || accessProfile === 'sme'
-                        || Boolean(activePend);
+                        || Boolean(activePend)
+                        || (doc.key === 'declBBAgil' && bonifValue === 'Não se aplica');
                     const analysisLockId = `analysis-lock-${progId}-${doc.key}`;
                     let pendStatusHTML = '';
                     if (canUseVerificationActions && activePend) {
