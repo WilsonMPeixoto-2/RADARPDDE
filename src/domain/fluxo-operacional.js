@@ -141,14 +141,16 @@
     }
 
     function withLegacyInternetBillCompatibility(input = {}) {
-        return {
-            bonification: {
-                ...(input.bonification || input.bonificacao || {})
-            },
-            analysis: {
-                ...(input.analysis || input.analise || {})
-            }
+        const bonification = {
+            ...(input.bonification || input.bonificacao || {})
         };
+        const analysis = {
+            ...(input.analysis || input.analise || {})
+        };
+        if (normalizeText(bonification.declBBAgil) === 'Não se aplica') {
+            analysis.declBBAgil = 'Correto';
+        }
+        return { bonification, analysis };
     }
 
     function getEffectiveDocumentState(verification = {}, programId = '', documentKey = '') {
