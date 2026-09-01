@@ -479,6 +479,15 @@
             if (analysisControl) {
                 analysisControl.value = analysisValue;
                 setAnalysisControlClass(root, analysisControl, analysisValue);
+                const bbAgilNaLocked = documentKey === 'declBBAgil'
+                    && bonificationValue === 'Não se aplica';
+                if (bbAgilNaLocked) {
+                    analysisControl.disabled = true;
+                    analysisControl.dataset.bbAgilNaLock = 'true';
+                } else if (analysisControl.dataset.bbAgilNaLock === 'true') {
+                    analysisControl.disabled = false;
+                    delete analysisControl.dataset.bbAgilNaLock;
+                }
             }
 
             if (documentKey === 'notaFiscal') {
