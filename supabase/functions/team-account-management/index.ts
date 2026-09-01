@@ -1,5 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient, type User } from "npm:@supabase/supabase-js@2.112.3";
+import { createClient, type User } from "npm:@supabase/supabase-js@2.112.4";
 import {
   buildInviteMetadata,
   isTeamManagerRole,
