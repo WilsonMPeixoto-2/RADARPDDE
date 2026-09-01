@@ -282,7 +282,10 @@
                     && (currentVerification?.bonificacao?.consEnviada === true) === currentAdvisory.sent
                     && text(currentVerification?.analise?.consAssessoria) === currentAdvisory.analysis
                 );
-                if (currentValue === value && advisoryAlreadyCanonical) {
+                const bbAgilAlreadyCanonical = documentKey !== 'declBBAgil'
+                    || value !== 'Não se aplica'
+                    || text(currentVerification?.analise?.declBBAgil) === 'Correto';
+                if (currentValue === value && advisoryAlreadyCanonical && bbAgilAlreadyCanonical) {
                     return {
                         ok: true,
                         value: {
