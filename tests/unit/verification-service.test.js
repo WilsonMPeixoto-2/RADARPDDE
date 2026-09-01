@@ -241,6 +241,18 @@ test('Declaração BB Ágil em N/A neutraliza a análise técnica e ao voltar pa
         assert.equal(notApplicable.value.verification.bonificacao.declBBAgil, 'Não se aplica');
         assert.equal(notApplicable.value.verification.analise.declBBAgil, 'Correto');
 
+        await assert.rejects(
+            () => harness.service.setTechnicalAnalysis({
+                schoolId: 'ESC-1',
+                compKey: '2026-05_BASIC',
+                documentKey: 'declBBAgil',
+                value: 'Não analisado',
+                profile: 'controlador'
+            }),
+            error => error?.code === 'DOCUMENT_NOT_APPLICABLE'
+        );
+        assert.equal(harness.verification.analise.declBBAgil, 'Correto');
+
         const applicableAgain = await harness.service.setBonification({
             schoolId: 'ESC-1',
             compKey: '2026-05_BASIC',
