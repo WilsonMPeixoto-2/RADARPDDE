@@ -28,9 +28,9 @@ test('mantém o renderer institucional interno e fixa ExcelJS somente para o pro
     assert.match(runtimeLoader, /\/vendor\/exceljs\.min\.js/);
     assert.doesNotMatch(lockfile, /"node_modules\/@lhci\/cli"/);
     assert.equal(packageJson.devDependencies.prettier, '3.9.6');
-    assert.equal(packageJson.devDependencies.knip, '6.29.0');
+    assert.equal(packageJson.devDependencies.knip, '6.32.2');
     assert.equal(packageJson.devDependencies['eslint-plugin-no-unsanitized'], '4.1.5');
-    assert.equal(packageJson.devDependencies['eslint-plugin-playwright'], '2.10.5');
+    assert.equal(packageJson.devDependencies['eslint-plugin-playwright'], '2.11.0');
     assert.equal(packageJson.devDependencies.lighthouse, '13.4.1');
     assert.equal(packageJson.devDependencies['@lhci/cli'], undefined);
     assert.equal(packageJson.overrides['brace-expansion@5.0.8'], '5.0.9');
