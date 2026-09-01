@@ -395,12 +395,22 @@
     }
 
     function syncServiceAdvisorySummary(row, bonificationValue) {
+        const value = bonificationValue || 'Não';
+        const toggle = row?.querySelector?.(
+            '.invoice-summary-block.is-bonification .invoice-bonification-toggle.is-readonly'
+        );
+        if (toggle) {
+            Array.from(toggle.querySelectorAll('span')).forEach(option => {
+                option.classList.toggle('is-selected', text(option.textContent) === value);
+            });
+            toggle.setAttribute('aria-label', `Bonificação da Consulta Assessoria: ${value}`);
+        }
+
         const summary = row?.querySelector?.(
             '.invoice-summary-block.is-bonification .invoice-document-status'
         );
         if (!summary) return;
 
-        const value = bonificationValue || 'Não';
         summary.classList.remove(
             'is-correct',
             'is-incorrect',
