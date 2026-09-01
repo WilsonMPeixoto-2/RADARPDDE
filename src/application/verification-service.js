@@ -474,6 +474,17 @@
                         persistence.expectedVersion = rowVersionOf(verification);
                         verification.analise = verification.analise || {};
                         verification.bonificacao = verification.bonificacao || {};
+                        if (
+                            documentKey === 'declBBAgil'
+                            && text(verification.bonificacao[documentKey]) === 'Não se aplica'
+                        ) {
+                            fail(
+                                'DOCUMENT_NOT_APPLICABLE',
+                                'A Declaração BB Ágil marcada como N/A não possui análise técnica editável.',
+                                'setTechnicalAnalysis',
+                                { documentKey }
+                            );
+                        }
                         if (value !== 'Não analisado' && !text(verification.bonificacao[documentKey])) {
                             fail(
                                 'DELIVERY_REQUIRED',
