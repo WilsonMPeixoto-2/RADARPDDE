@@ -16,5 +16,6 @@ dependency-health/
 supabase/.temp/
 docs/evidence/
 src/vendor/
+vendor/
 package-lock.json
 radar-pdde-snapshot*.json
