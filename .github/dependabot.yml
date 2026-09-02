@@ -27,9 +27,12 @@ updates:
           - "http-server"
           - "prettier"
           - "typescript"
-    labels:
-      - dependencies
-      - supabase-readiness
+    ignore:
+      # O runtime homologado permanece Node 24.x. Tipos de uma major futura só entram
+      # junto com uma migração deliberada do runtime, não por PR automático.
+      - dependency-name: "@types/node"
+        update-types:
+          - "version-update:semver-major"
 
   - package-ecosystem: github-actions
     directory: /
@@ -44,6 +47,3 @@ updates:
       actions:
         patterns:
           - "*"
-    labels:
-      - dependencies
-      - ci
