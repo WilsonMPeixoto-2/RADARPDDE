@@ -140,3 +140,19 @@ test('Vercel não desperdiça Preview em branches automáticas do Dependabot', (
     assert.match(vercel.ignoreCommand, /dependabot\/\*/);
     assert.equal(vercel.git?.deploymentEnabled, true);
 });
+
+
+test('Dependabot não reabre a versão do Supabase CLI já rejeitada por RLS', () => {
+    const dependabot = read('.github/dependabot.yml');
+
+    assert.match(
+        dependabot,
+        /dependency-name:\s*"supabase"[\s\S]*?versions:\s*[\s\S]*?-\s*"2\.116\.0"/,
+        'Supabase CLI 2.116.0 deve permanecer bloqueado após reprovação pgTAP/RLS'
+    );
+    assert.doesNotMatch(
+        dependabot,
+        /dependency-name:\s*"supabase"[\s\S]*?version-update:semver-(?:minor|patch)/,
+        'o bloqueio não deve impedir versões futuras do Supabase CLI de serem avaliadas'
+    );
+});
