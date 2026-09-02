@@ -14,6 +14,7 @@
 - Labels inexistentes foram removidos do `.github/dependabot.yml`, eliminando o erro automático que acompanhava os PRs.
 - Previews Vercel passam a ser ignorados para branches `dependabot/*`, evitando consumo de quota por propostas automáticas ainda não homologadas. Branches humanas e `main` continuam com deployment habilitado.
 - O override transitivo de `fast-uri` foi corrigido de `>=3.1.5` para `^3.1.6`. O intervalo anterior permitia salto para a major 4 apesar de o Ajv declarar `^3.0.1`; além disso, `4.1.2` passou a ser bloqueado por advisories de alta severidade. O lockfile volta à linha 3 homologada e corrigida, preservando patches futuros dentro da major compatível.
+- `qs` transitivo foi fixado em `^6.16.0`. A versão `6.15.3`, trazida por `union 0.5.0`, passou a ser bloqueada por novos advisories; `union` aceita `qs ^6.4.0`, portanto a atualização permanece dentro da mesma major e do intervalo declarado pelo dependente.
 
 ## Regra operacional
 
