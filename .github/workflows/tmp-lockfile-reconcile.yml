@@ -25,10 +25,8 @@ jobs:
           cache-dependency-path: package-lock.json
       - name: Regenerar lockfile
         run: npm install --package-lock-only --ignore-scripts
-      - name: Exportar lockfile
+      - name: Exibir reconciliação do lockfile
         shell: bash
         run: |
-          echo 'LOCKFILE_BASE64_BEGIN'
-          base64 -w0 package-lock.json
-          echo
-          echo 'LOCKFILE_BASE64_END'
+          git diff -- package-lock.json
+          node -e "const l=require('./package-lock.json'); console.log('QS_ENTRY=' + JSON.stringify(l.packages['node_modules/qs']))"
