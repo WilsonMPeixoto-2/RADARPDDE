@@ -1,25 +1,25 @@
 # Matriz funcional ponta a ponta
 
-**Atualizado em:** 2026-08-30  
-**Baseline de origem:** `24e1934541b92e4399798556c05fd164c9c43801`  
+**Atualizado em:** 2026-09-02  
+**Baseline de origem:** `d5b45184eaa513352db0806f6d41c5e0568c6baf`  
 **Fonte canônica:** `functional-contract-matrix.json` e arquivos JSON do diretório `functional-contract-matrix/`
 
 > Arquivo gerado por `scripts/check-functional-contract-matrix.mjs`. Não editar manualmente.
 
 ## Resumo executivo
 
-A matriz contém **43 operações** distribuídas entre 13 superfícies.
+A matriz contém **44 operações** distribuídas entre 13 superfícies.
 
 | Cobertura | Operações |
 |---|---:|
-| Comprovada | 9 |
+| Comprovada | 10 |
 | Parcial | 34 |
 | Lacuna | 0 |
 | Decisão pendente | 0 |
 
 | Próxima prova | Operações |
 |---|---:|
-| Nenhuma; manter regressão | 5 |
+| Nenhuma; manter regressão | 6 |
 | Smoke autenticado de leitura | 6 |
 | Escrita controlada e reversível | 27 |
 | Observação contínua em Production | 5 |
@@ -88,6 +88,7 @@ A matriz contém **43 operações** distribuídas entre 13 superfícies.
 | ID | Ação | Modo | Perfis autorizados | Serviço e persistência | Cobertura | Próxima prova |
 |---|---|---|---|---|---|---|
 | `READ-04` | Consultar lista e detalhe de pendências | read / P0 | Controlador, Assistente de Verbas Federais, Gestão SME, Equipe de Inventário, Administrador técnico | PendencyViewModel.project → SupabaseRepository.read (pendencies, pendency_attempts, pendency_contacts) | Parcial | Smoke autenticado de leitura |
+| `EXP-03` | Exportar planilha XLSX das pendências conforme busca e filtros atuais | export / P1 | Controlador, Assistente de Verbas Federais, Gestão SME, Equipe de Inventário, Administrador técnico | PendencyViewModel.project → PendencyExcelExportModel → PendencyExcelRenderer → authorized in-memory state + AuditService.record + download (pendencies, pendency_attempts, pendency_contacts, schools, controllers, ExcelJS asset) | Comprovada | Nenhuma; manter regressão |
 | `PEND-01` | Abrir pendência documental/manual ou pendência fiscal individual vinculada | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | PendencyService.open + openInvoiceDocumentPendency → savePendencyCommand + save_invoice_document_with_pendency (registered_invoices, pendencies, verifications, administrative_logs) | Parcial | Escrita controlada e reversível |
 | `PEND-02` | Registrar novo envio para regularização, incluindo identificação de a_identificar | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | PendencyService.registerAttempt + registerInvoiceDocumentAttempt → savePendencyCommand + register_invoice_document_attempt + pendencies_sync_attempt_statuses (registered_invoices, assets, pendencies, pendency_attempts, verifications, administrative_logs) | Parcial | Escrita controlada e reversível |
 | `PEND-03` | Reanalisar tentativa e resolver ou reabrir pendência | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | PendencyService.reanalyze + reanalyzeInvoiceDocumentPendency → reanalyzePendencyWithVerification + reanalyze_invoice_document_pendency (registered_invoices, pendencies, pendency_attempts, verifications, administrative_logs) | Parcial | Escrita controlada e reversível |
