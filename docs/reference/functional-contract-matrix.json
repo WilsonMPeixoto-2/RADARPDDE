@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-08-30",
-  "sourceCommit": "24e1934541b92e4399798556c05fd164c9c43801",
+  "updatedAt": "2026-09-02",
+  "sourceCommit": "d5b45184eaa513352db0806f6d41c5e0568c6baf",
   "profiles": [
     {
       "id": "anonymous",
@@ -407,6 +407,15 @@
       "production": [
         ".github/workflows/production-data-integrity.yml"
       ]
+    },
+    "pendency-export": {
+      "unit": [
+        "tests/unit/pendency-excel-export.test.js",
+        "tests/unit/pendency-surface-polish.test.js"
+      ],
+      "e2e": [],
+      "database": [],
+      "production": []
     }
   },
   "operationFiles": [
