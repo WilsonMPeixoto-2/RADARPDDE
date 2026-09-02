@@ -13,6 +13,7 @@
 - Os scripts `format` e `format:check` agora possuem alvo explícito (`.`) e deixam de depender de invocação incompleta do Prettier.
 - Labels inexistentes foram removidos do `.github/dependabot.yml`, eliminando o erro automático que acompanhava os PRs.
 - Previews Vercel passam a ser ignorados para branches `dependabot/*`, evitando consumo de quota por propostas automáticas ainda não homologadas. Branches humanas e `main` continuam com deployment habilitado.
+- O override transitivo de `fast-uri` foi corrigido de `>=3.1.5` para `^3.1.6`. O intervalo anterior permitia salto para a major 4 apesar de o Ajv declarar `^3.0.1`; além disso, `4.1.2` passou a ser bloqueado por advisories de alta severidade. O lockfile volta à linha 3 homologada e corrigida, preservando patches futuros dentro da major compatível.
 
 ## Regra operacional
 
