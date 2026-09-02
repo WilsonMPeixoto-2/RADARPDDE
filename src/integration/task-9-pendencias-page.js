@@ -404,6 +404,109 @@
         };
     }
 
+    function getFilterSummary(model) {
+        const options = getFilterOptions(model);
+        const optionGroups = {
+            schoolId: options.schools,
+            competence: options.competences,
+            programId: options.programs,
+            documentKey: options.documents,
+            error: options.errors,
+            nextActor: options.actors,
+            controllerId: options.controllers,
+            age: [
+                { value: '0-7', label: 'Até 7 dias' },
+                { value: '8-15', label: '8 a 15 dias' },
+                { value: '16-30', label: '16 a 30 dias' },
+                { value: '30-plus', label: '30 dias ou mais' }
+            ]
+        };
+
+        return Object.keys(pageState.filters).flatMap(key => {
+            const value = String(pageState.filters[key] || '').trim();
+            if (!value) return [];
+            if (key === 'query') return [{ label: 'Busca', value }];
+            const option = (optionGroups[key] || []).find(item => String(item.value) === value);
+            return [{
+                label: FILTER_LABELS[key] || key,
+                value: option?.label || value
+            }];
+        });
+    }
+
+    async function downloadPendencyWorkbook(source) {
+        const button = source?.currentTarget || source || null;
+        if (button?.dataset?.radarBusy === 'true') return false;
+
+        const originalHtml = button?.innerHTML || '';
+        if (button) {
+            button.dataset.radarBusy = 'true';
+            button.disabled = true;
+            button.setAttribute('aria-busy', 'true');
+            button.innerHTML = '<span>Gerando planilha…</span>';
+        }
+
+        try {
+            const bootstrap = root.RadarExcelExportBootstrap;
+            if (!bootstrap || typeof bootstrap.start !== 'function') {
+                throw new Error('O carregador da exportação Excel não está disponível.');
+            }
+            await bootstrap.start();
+
+            const modelApi = root.RadarPendencyExcelExportModel;
+            const rendererApi = root.RadarPendencyExcelRenderer;
+            const runtimeLoader = root.RadarExcelSmeRuntimeLoader;
+            if (!modelApi || typeof modelApi.buildWorkbookModel !== 'function') {
+                throw new Error('O modelo da planilha de pendências não foi carregado.');
+            }
+            if (!rendererApi || typeof rendererApi.downloadWorkbook !== 'function') {
+                throw new Error('O renderizador da planilha de pendências não foi carregado.');
+            }
+            if (!runtimeLoader || typeof runtimeLoader.loadExcelJsRuntime !== 'function') {
+                throw new Error('O motor Excel não está disponível para a planilha de pendências.');
+            }
+
+            const pageModel = getPageModel();
+            if (!pageModel.filteredTotal) {
+                root.alert?.('Não há pendências para exportar com a busca e os filtros atuais.');
+                return false;
+            }
+
+            const workbookModel = modelApi.buildWorkbookModel({
+                pageModel,
+                filterSummary: getFilterSummary(pageModel),
+                generatedAt: new Date()
+            });
+            const runtime = await runtimeLoader.loadExcelJsRuntime();
+            const download = await rendererApi.downloadWorkbook(workbookModel, {
+                ExcelJS: runtime.ExcelJS,
+                fileName: workbookModel.fileName
+            });
+
+            if (typeof radarAuditService !== 'undefined'
+                && radarAuditService
+                && typeof radarAuditService.record === 'function') {
+                const filterCount = workbookModel.filterSummary.length;
+                radarAuditService.record({
+                    action: 'Planilha de Pendências Exportada',
+                    details: `Arquivo ${workbookModel.fileName} gerado com ${workbookModel.rows.length} pendência(s)${filterCount ? ` e ${filterCount} filtro(s) aplicado(s)` : ''}.`
+                }).catch(error => console.error('[RADAR PDDE] Falha ao auditar exportação de pendências.', error));
+            }
+            return { ok: true, model: workbookModel, download };
+        } catch (error) {
+            console.error('[RADAR PDDE] Falha ao gerar planilha de pendências.', error);
+            root.alert?.(`Não foi possível gerar a planilha de pendências. ${error?.message || ''}`.trim());
+            return { ok: false, error };
+        } finally {
+            if (button) {
+                button.dataset.radarBusy = 'false';
+                button.disabled = false;
+                button.removeAttribute('aria-busy');
+                button.innerHTML = originalHtml;
+            }
+        }
+    }
+
     function renderFilterChips(options) {
         const chips = [];
         Object.keys(pageState.filters).forEach(key => {
@@ -724,9 +827,26 @@
                     <h1>Pendências operacionais</h1>
                     <p>Localize, acompanhe e trate pendências por unidade, competência, programa e documento.</p>
                 </div>
-                <div class="pendency-active-summary" aria-label="Resumo de pendências ativas">
-                    <strong>${model.activeTotal}</strong>
-                    <span>pendência${model.activeTotal === 1 ? '' : 's'} ativa${model.activeTotal === 1 ? '' : 's'}</span>
+                <div class="pendency-page-header-actions">
+                    <button
+                        type="button"
+                        class="btn btn-primary pendency-export-button"
+                        data-radar-pendency-export="xlsx"
+                        onclick="downloadPendencyWorkbook(this)"
+                        title="Baixar as pendências considerando a busca e os filtros aplicados, em todas as situações"
+                        aria-label="Baixar planilha de pendências em formato Excel"
+                    >
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        <span>Baixar planilha</span>
+                    </button>
+                    <div class="pendency-active-summary" aria-label="Resumo de pendências ativas">
+                        <strong>${model.activeTotal}</strong>
+                        <span>pendência${model.activeTotal === 1 ? '' : 's'} ativa${model.activeTotal === 1 ? '' : 's'}</span>
+                    </div>
                 </div>
             </div>
 
@@ -1054,12 +1174,14 @@
         root.changePendencyFilter = changePendencyFilter;
         root.clearPendencyFilters = clearPendencyFilters;
         root.removePendencyFilter = removePendencyFilter;
+        root.downloadPendencyWorkbook = downloadPendencyWorkbook;
         root.openPendencyDetail = openPendencyDetailTask9;
         root.closePendencyDetail = closePendencyDetail;
         root.openPendencyInProntuario = openPendencyInProntuario;
         root.returnToPendencias = returnToPendencias;
         root.RadarTask9PendencyPage = Object.freeze({
-            VERSION: '1.1.0',
+            VERSION: '1.2.0',
+            getFilterSummary: () => getFilterSummary(getPageModel()),
             getState: () => ({
                 activeTab: pageState.activeTab,
                 filters: { ...pageState.filters },
