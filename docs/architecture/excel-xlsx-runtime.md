@@ -5,15 +5,16 @@
 
 ## 1. Produtos
 
-A integração mantém três saídas independentes:
+A integração mantém quatro saídas independentes:
 
 1. relatório institucional XLSX de quatro abas;
 2. Excel SME mensal de uma aba e 27 colunas;
-3. CSV legado como fallback do relatório institucional.
+3. CSV legado como fallback do relatório institucional;
+4. relatório editorial XLSX da tela de Pendências.
 
 ## 2. Encadeamento
 
-`src/integration/load-excel-export.js` carrega os módulos de modelo, plano, renderer, runtime SME e integração dos botões. O ExcelJS e o template SME são carregados somente no clique.
+`src/integration/load-excel-export.js` carrega os módulos de modelo, plano, renderers, runtime Excel/SME e integração dos botões. O ExcelJS continua sob demanda. O template SME só é carregado quando o produto SME é solicitado; a planilha de Pendências reutiliza o mesmo ExcelJS sem baixar o template mensal.
 
 Fluxo mensal:
 
@@ -37,7 +38,15 @@ competência visível e estado global
 - equivalência obrigatória com CSV;
 - CSV secundário e fallback em falha do XLSX.
 
-## 4. Excel SME
+## 4. Planilha de Pendências
+
+A tela de Pendências oferece **Baixar planilha**. O relatório respeita a busca e os filtros atuais e reúne todas as situações correspondentes em duas abas: `RESUMO` e `PENDÊNCIAS`.
+
+O fluxo usa `PendencyViewModel → PendencyExcelExportModel → PendencyExcelRenderer`, carrega apenas o ExcelJS sob demanda e exige registro inicial de auditoria antes do download. O produto não depende do template Excel SME.
+
+Detalhes de estrutura e identidade editorial: [`pendency-excel-export.md`](pendency-excel-export.md).
+
+## 5. Excel SME
 
 O botão:
 
@@ -58,7 +67,7 @@ O botão:
 - não inclui CSV nessa superfície;
 - o grupo é removido quando o perfil ou a tela muda.
 
-## 5. Runtime resiliente
+## 6. Runtime resiliente
 
 O carregador do Excel SME possui:
 
@@ -73,7 +82,7 @@ O carregador do Excel SME possui:
 
 A presença de um elemento `<script>` não é tratada automaticamente como carregamento concluído.
 
-## 6. Assets publicados
+## 7. Assets publicados
 
 O artefato contém:
 
@@ -84,7 +93,7 @@ O artefato contém:
 
 Build, `.vercel/output/static`, smoke e runtime compartilham a identidade dos assets. O template não pode ser substituído pelo fallback HTML da SPA.
 
-## 7. Projeção do template SME
+## 8. Projeção do template SME
 
 O template-fonte possui 30 colunas. Antes do preenchimento:
 
@@ -97,7 +106,7 @@ O template-fonte possui 30 colunas. Antes do preenchimento:
 
 Os campos administrativos posteriores são preservados.
 
-## 8. Formatação e compatibilidade
+## 9. Formatação e compatibilidade
 
 - borda fina completa;
 - cabeçalho horizontal e verticalmente centralizado;
@@ -110,7 +119,7 @@ Os campos administrativos posteriores são preservados.
 - filtro e área de impressão A:AA;
 - ausência deliberada de `dataValidations` incompatíveis.
 
-## 9. Barreiras
+## 10. Barreiras
 
 A geração SME é bloqueada quando:
 
@@ -125,7 +134,7 @@ A geração SME é bloqueada quando:
 
 Não existe fallback CSV para o produto SME.
 
-## 10. Idempotência
+## 11. Idempotência
 
 - instalação única;
 - botões identificados por `dataset`;
@@ -135,7 +144,7 @@ Não existe fallback CSV para o produto SME.
 - bloqueio de clique duplicado;
 - restauração da função CSV legada no fluxo de desinstalação de teste.
 
-## 11. Certificação
+## 12. Certificação
 
 - geração pelo botão real;
 - reabertura pelo ExcelJS;
@@ -152,6 +161,6 @@ Referências:
 - [`excel-sme-mensal.md`](excel-sme-mensal.md);
 - [`excel-integral-certification.md`](excel-integral-certification.md).
 
-## 12. Reversão
+## 13. Reversão
 
 A integração pode ser removida em novo build controlado sem alterar dados do Supabase. O runtime Excel não grava dados de negócio.

@@ -459,6 +459,17 @@
             });
         }
 
+        async function loadExcelJsRuntime() {
+            const assetManifest = await loadAssetManifest();
+            const excelJsUrl = versionedAssetUrl(assetManifest?.exceljs, EXCELJS_URL);
+            const ExcelJS = await loadExcelJs(excelJsUrl);
+            return Object.freeze({
+                ExcelJS,
+                excelJsUrl,
+                assetManifest
+            });
+        }
+
         async function loadExcelSmeRuntime() {
             if (!inFlight) {
                 inFlight = performLoad().catch(error => {
@@ -483,6 +494,7 @@
         return Object.freeze({
             clearCache,
             loadAssetManifest,
+            loadExcelJsRuntime,
             loadExcelSmeRuntime
         });
     }
@@ -500,6 +512,7 @@
         createRuntimeError,
         createRuntimeLoader,
         isLocalLocation,
+        loadExcelJsRuntime: defaultLoader.loadExcelJsRuntime,
         loadExcelSmeRuntime: defaultLoader.loadExcelSmeRuntime,
         validateAssetManifest,
         versionedAssetUrl

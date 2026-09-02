@@ -85,6 +85,7 @@ A função administrativa usa lookup Auth exato pela RPC `resolve_team_auth_user
 - [`excel-xlsx-runtime.md`](excel-xlsx-runtime.md) — renderer e integração;
 - [`excel-sme-mensal.md`](excel-sme-mensal.md) — produto mensal da SME;
 - [`excel-integral-certification.md`](excel-integral-certification.md) — certificação célula a célula e OOXML.
+- [`pendency-excel-export.md`](pendency-excel-export.md) — relatório editorial XLSX da fila de Pendências.
 
 Contrato estável do Excel SME:
 

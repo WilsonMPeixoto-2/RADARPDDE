@@ -1,3 +1,5 @@
+const fs = require('node:fs/promises');
+const ExcelJS = require('exceljs');
 const { test, expect } = require('@playwright/test');
 
 async function seedFourPendencyStates(page) {
@@ -146,6 +148,47 @@ test.describe('Task 9 — página de Pendências Operacionais', () => {
     const openTab = tablist.getByRole('tab', { name: /^Abertas\b/ });
     await expect(openTab).toHaveAttribute('aria-selected', 'true');
     await expect(visibleRecord(page, 'task9-open')).toBeVisible();
+  });
+
+
+  test('baixa planilha editorial respeitando a busca e os filtros da fila', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
+    test.setTimeout(90_000);
+
+    await page.goto('/');
+    const seeded = await seedFourPendencyStates(page);
+
+    const button = page.getByRole('button', {
+      name: 'Baixar planilha de pendências em formato Excel'
+    });
+    await expect(button).toBeVisible();
+    await expect(button).toContainText('Baixar planilha');
+
+    const search = page.getByRole('searchbox', { name: 'Buscar pendências' });
+    await search.fill('dados divergentes');
+    await expect(page.locator('.pendency-filter-result')).toContainText('1 de 4 registros encontrado.');
+
+    const downloadPromise = page.waitForEvent('download');
+    await button.click();
+    const download = await downloadPromise;
+    expect(await download.failure()).toBeNull();
+    expect(download.suggestedFilename()).toMatch(/^RELATORIO_PENDENCIAS_PDDE_\d{4}-\d{2}-\d{2}\.xlsx$/);
+
+    const downloadPath = await download.path();
+    const bytes = await fs.readFile(downloadPath);
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(bytes);
+
+    expect(workbook.worksheets.map(sheet => sheet.name)).toEqual(['RESUMO', 'PENDÊNCIAS']);
+    const summary = workbook.getWorksheet('RESUMO');
+    const data = workbook.getWorksheet('PENDÊNCIAS');
+    expect(summary.getCell('A1').value).toBe('RELATÓRIO DE PENDÊNCIAS DO PDDE');
+    expect(String(summary.getCell('C6').value)).toContain('Busca: dados divergentes');
+    expect(data.getCell('A4').value).toBe('Situação');
+    expect(data.getCell('A5').value).toBe('Cancelada');
+    expect(data.getCell('B5').value).toBe(seeded.schoolName);
+    expect(data.getCell('B6').value).toBeNull();
+    await expect(button).toBeEnabled();
   });
 
   test('aplica busca global sem perder a separação das quatro filas', async ({ page }, testInfo) => {

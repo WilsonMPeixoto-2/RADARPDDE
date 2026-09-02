@@ -75,3 +75,14 @@ test('refino aprovado usa cartões de contexto e composição editorial', () => 
   assert.match(pendencyCss, /Refino visual aprovado — detalhe de Pendência/);
   assert.match(pendencyCss, /grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/);
 });
+
+
+test('tela de pendências oferece download da planilha editorial', () => {
+  assert.match(pendencyPageSource, /data-radar-pendency-export="xlsx"/);
+  assert.match(pendencyPageSource, />Baixar planilha<\/span>/);
+  assert.match(pendencyPageSource, /async function downloadPendencyWorkbook/);
+  assert.match(pendencyPageSource, /RadarPendencyExcelExportModel/);
+  assert.match(pendencyPageSource, /loadExcelJsRuntime/);
+  assert.match(pendencyCss, /\.pendency-page-header-actions/);
+  assert.match(pendencyCss, /\.pendency-export-button/);
+});
