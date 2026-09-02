@@ -477,21 +477,25 @@
                 filterSummary: getFilterSummary(pageModel),
                 generatedAt: new Date()
             });
+            const auditService = typeof radarAuditService !== 'undefined' ? radarAuditService : null;
+            if (!auditService || typeof auditService.record !== 'function') {
+                throw new Error('O serviço de auditoria não está disponível para autorizar a exportação.');
+            }
+            const filterCount = workbookModel.filterSummary.length;
+            await auditService.record({
+                action: 'Exportação de Pendências Iniciada',
+                details: `Arquivo ${workbookModel.fileName}; ${workbookModel.rows.length} pendência(s)${filterCount ? `; ${filterCount} filtro(s) aplicado(s)` : '; sem filtros adicionais'}.`
+            });
+
             const runtime = await runtimeLoader.loadExcelJsRuntime();
             const download = await rendererApi.downloadWorkbook(workbookModel, {
                 ExcelJS: runtime.ExcelJS,
                 fileName: workbookModel.fileName
             });
-
-            if (typeof radarAuditService !== 'undefined'
-                && radarAuditService
-                && typeof radarAuditService.record === 'function') {
-                const filterCount = workbookModel.filterSummary.length;
-                radarAuditService.record({
-                    action: 'Planilha de Pendências Exportada',
-                    details: `Arquivo ${workbookModel.fileName} gerado com ${workbookModel.rows.length} pendência(s)${filterCount ? ` e ${filterCount} filtro(s) aplicado(s)` : ''}.`
-                }).catch(error => console.error('[RADAR PDDE] Falha ao auditar exportação de pendências.', error));
-            }
+            await auditService.record({
+                action: 'Planilha de Pendências Exportada',
+                details: `Arquivo ${workbookModel.fileName} gerado com ${workbookModel.rows.length} pendência(s)${filterCount ? ` e ${filterCount} filtro(s) aplicado(s)` : ''}.`
+            });
             return { ok: true, model: workbookModel, download };
         } catch (error) {
             console.error('[RADAR PDDE] Falha ao gerar planilha de pendências.', error);
