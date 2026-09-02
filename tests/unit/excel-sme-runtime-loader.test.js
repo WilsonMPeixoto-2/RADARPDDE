@@ -304,6 +304,32 @@ test('aborta template pendente e permite nova tentativa sem recarregar a página
     assert.equal(runtime.ExcelJS, ExcelJS);
 });
 
+test('carrega somente ExcelJS para relatórios que não usam o template SME', async () => {
+    let scriptCalls = 0;
+    let fetchCalls = 0;
+    const ExcelJS = require('exceljs');
+    const root = {};
+    const loader = loaderApi.createRuntimeLoader({
+        root,
+        loadScript: async (src, target) => {
+            scriptCalls += 1;
+            assert.equal(src, '/vendor/exceljs.min.js');
+            target.ExcelJS = ExcelJS;
+        },
+        fetch: async () => {
+            fetchCalls += 1;
+            return successfulTemplateResponse();
+        }
+    });
+
+    const runtime = await loader.loadExcelJsRuntime();
+
+    assert.equal(runtime.ExcelJS, ExcelJS);
+    assert.equal(scriptCalls, 1);
+    assert.equal(fetchCalls, 0);
+    assert.equal(runtime.templateBytes, undefined);
+});
+
 test('o carregador inicial não inclui o bundle pesado do ExcelJS', () => {
     const source = fs.readFileSync(
         path.resolve(__dirname, '../../src/integration/load-excel-export.js'),
