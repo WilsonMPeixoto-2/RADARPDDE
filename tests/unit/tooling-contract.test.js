@@ -28,7 +28,12 @@ test('mantém o renderer institucional interno e fixa ExcelJS somente para o pro
     assert.match(runtimeLoader, /\/vendor\/exceljs\.min\.js/);
     assert.doesNotMatch(lockfile, /"node_modules\/@lhci\/cli"/);
     assert.equal(packageJson.devDependencies.prettier, '3.9.6');
-    assert.equal(packageJson.devDependencies.knip, '6.32.2');
+    assert.equal(packageJson.scripts.format, 'prettier . --write --ignore-unknown');
+    assert.equal(packageJson.scripts['format:check'], 'prettier . --check --ignore-unknown');
+    const prettierIgnore = read('.prettierignore');
+    assert.match(prettierIgnore, /^vendor\/$/m);
+    assert.equal(packageJson.devDependencies.eslint, '10.9.1');
+    assert.equal(packageJson.devDependencies.knip, '6.33.0');
     assert.equal(packageJson.devDependencies['eslint-plugin-no-unsanitized'], '4.1.5');
     assert.equal(packageJson.devDependencies['eslint-plugin-playwright'], '2.11.0');
     assert.equal(packageJson.devDependencies.lighthouse, '13.4.1');
@@ -125,4 +130,13 @@ test('não mantém workflows temporários de diagnóstico', () => {
         fs.existsSync(path.join(ROOT, '.github/workflows/tooling-supabase-diagnostic.yml')),
         false
     );
+});
+
+
+test('Vercel não desperdiça Preview em branches automáticas do Dependabot', () => {
+    const vercel = readJson('vercel.json');
+
+    assert.match(vercel.ignoreCommand, /VERCEL_GIT_COMMIT_REF/);
+    assert.match(vercel.ignoreCommand, /dependabot\/\*/);
+    assert.equal(vercel.git?.deploymentEnabled, true);
 });
