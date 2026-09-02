@@ -413,7 +413,9 @@
         "tests/unit/pendency-excel-export.test.js",
         "tests/unit/pendency-surface-polish.test.js"
       ],
-      "e2e": [],
+      "e2e": [
+        "tests/e2e/task-9-pendencias.spec.js"
+      ],
       "database": [],
       "production": []
     }
