@@ -58,12 +58,3 @@ jobs:
             cat /tmp/second.sha256
             echo '```'
           } >> "${GITHUB_STEP_SUMMARY}"
-
-      - name: Exportar bundle Ajv gerado para reconciliação
-        if: always()
-        shell: bash
-        run: |
-          echo 'AJV_BUNDLE_BASE64_BEGIN'
-          base64 -w0 vendor/ajv.js
-          echo
-          echo 'AJV_BUNDLE_BASE64_END'
