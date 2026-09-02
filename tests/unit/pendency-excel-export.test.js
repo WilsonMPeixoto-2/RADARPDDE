@@ -123,16 +123,18 @@ test('renderer gera workbook editorial com resumo, base filtrável e semântica 
     assert.equal(summary.getCell('A1').font.name, 'Segoe UI');
     assert.equal(summary.getCell('A1').font.size, 16);
     assert.equal(data.getCell('A4').value, 'Situação');
-    assert.equal(data.getCell('A4').font.color.argb, 'FFFFFF');
-    assert.equal(data.getCell('A4').fill.fgColor.argb, '1B365D');
+    assert.equal(data.getCell('A4').font.color.argb, 'FFFFFFFF');
+    assert.equal(data.getCell('A4').fill.fgColor.argb, 'FF1B365D');
     assert.equal(data.autoFilter, 'A4:W8');
     assert.equal(data.views[0].state, 'frozen');
     assert.equal(data.views[0].xSplit, 3);
     assert.equal(data.views[0].ySplit, 4);
+    assert.equal(data.views[0].showGridLines, false);
+    assert.equal(summary.views[0].showGridLines, false);
 
-    assert.equal(data.getCell('A5').fill.fgColor.argb, 'FFF3CD');
-    assert.equal(data.getCell('A7').fill.fgColor.argb, 'D1E7DD');
-    assert.equal(data.getCell('P5').fill.fgColor.argb, 'F8D7DA');
+    assert.equal(data.getCell('A5').fill.fgColor.argb, 'FFFFF3CD');
+    assert.equal(data.getCell('A7').fill.fgColor.argb, 'FFD1E7DD');
+    assert.equal(data.getCell('P5').fill.fgColor.argb, 'FFF8D7DA');
 
     const bytes = await renderer.renderWorkbook(model, { ExcelJS });
     assert.ok(bytes.length > 1000);
