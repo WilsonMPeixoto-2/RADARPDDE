@@ -39,6 +39,9 @@ test('mantém o renderer institucional interno e fixa ExcelJS somente para o pro
     assert.equal(packageJson.devDependencies.lighthouse, '13.4.1');
     assert.equal(packageJson.devDependencies['@lhci/cli'], undefined);
     assert.equal(packageJson.overrides['brace-expansion@5.0.8'], '5.0.9');
+    assert.equal(packageJson.overrides['fast-uri'], '^3.1.6');
+    assert.match(lockfile, /"node_modules\/fast-uri": \{\s+"version": "3\.1\.6"/);
+    assert.doesNotMatch(lockfile, /"node_modules\/fast-uri": \{\s+"version": "4\.1\.2"/);
     assert.equal(
         packageJson.allowScripts[`esbuild@${packageJson.devDependencies.esbuild}`],
         true,
