@@ -438,12 +438,13 @@
         const button = source?.currentTarget || source || null;
         if (button?.dataset?.radarBusy === 'true') return false;
 
-        const originalHtml = button?.innerHTML || '';
+        const buttonLabel = button?.querySelector?.('span') || null;
+        const originalLabel = buttonLabel?.textContent || 'Baixar planilha';
         if (button) {
             button.dataset.radarBusy = 'true';
             button.disabled = true;
             button.setAttribute('aria-busy', 'true');
-            button.innerHTML = '<span>Gerando planilha…</span>';
+            if (buttonLabel) buttonLabel.textContent = 'Gerando planilha…';
         }
 
         try {
@@ -506,7 +507,7 @@
                 button.dataset.radarBusy = 'false';
                 button.disabled = false;
                 button.removeAttribute('aria-busy');
-                button.innerHTML = originalHtml;
+                if (buttonLabel) buttonLabel.textContent = originalLabel;
             }
         }
     }
