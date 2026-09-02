@@ -52,6 +52,19 @@ test('refino aprovado mantém assinatura da cobrança apenas em Atenciosamente',
   assert.doesNotMatch(appSource, /Atenciosamente,\\nComitê PDDE \/ Verbas Federais/);
 });
 
+test('comunicação externa gerada não expõe o nome do sistema interno', () => {
+  const start = appSource.indexOf('function openCobrancaModal');
+  const end = appSource.indexOf('function copyCobrancaText');
+  assert.ok(start >= 0 && end > start, 'bloco do gerador de cobrança deve existir');
+  const chargeCopySource = appSource.slice(start, end);
+
+  assert.doesNotMatch(chargeCopySource, /RADAR PDDE/i);
+  assert.match(
+    chargeCopySource,
+    /Constatamos que não há pendências ativas de obrigações do PDDE sob responsabilidade da unidade escolar\.\\n\\nAtenciosamente/
+  );
+});
+
 test('refino aprovado usa cartões de contexto e composição editorial', () => {
   assert.match(appSource, /corrective-context-grid/);
   assert.match(appSource, /corrective-context-item is-school/);
