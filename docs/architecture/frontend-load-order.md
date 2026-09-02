@@ -182,10 +182,12 @@ Módulos sequenciais:
 5. `/src/domain/excel-sme-template-renderer.js`;
 6. `/src/domain/excel-sme-monthly-renderer.js`;
 7. `/src/integration/excel-sme-runtime-loader.js`;
-8. `/src/integration/excel-export-integration.js`;
-9. `/src/integration/excel-export-audit.js`.
+8. `/src/domain/pendency-excel-export-model.js`;
+9. `/src/domain/pendency-excel-renderer.js`;
+10. `/src/integration/excel-export-integration.js`;
+11. `/src/integration/excel-export-audit.js`.
 
-A última camada exige a confirmação do evento inicial no `AuditService` antes de liberar o download, elimina a duplicação do log legado e registra a conclusão da exportação institucional ou SME.
+A camada final mantém a auditoria obrigatória das exportações institucional e SME. A exportação de Pendências usa o mesmo `AuditService`, exige o registro inicial antes do download e registra a conclusão no próprio fluxo da tela.
 
 Um `<script>` existente somente é aceito se o contrato global esperado estiver pronto. Falha, timeout ou contrato inválido remove o elemento e permite nova tentativa.
 
