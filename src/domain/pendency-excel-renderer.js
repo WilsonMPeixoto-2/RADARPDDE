@@ -32,7 +32,7 @@
 
     const THIN_BORDER = Object.freeze({
         style: 'thin',
-        color: { argb: COLORS.border }
+        color: argb(COLORS.border)
     });
 
     function createRendererError(code, message, cause = null) {
@@ -54,7 +54,8 @@
     }
 
     function argb(value) {
-        return { argb: value };
+        const normalized = String(value || '').replace(/^#/, '').toUpperCase();
+        return { argb: normalized.length === 6 ? `FF${normalized}` : normalized };
     }
 
     function solidFill(color) {
@@ -159,7 +160,13 @@
 
     function configureSummarySheet(worksheet, model) {
         worksheet.properties.defaultRowHeight = 18;
-        worksheet.views = [{ state: 'frozen', ySplit: 3, topLeftCell: 'A4', activeCell: 'A4' }];
+        worksheet.views = [{
+            state: 'frozen',
+            ySplit: 3,
+            topLeftCell: 'A4',
+            activeCell: 'A4',
+            showGridLines: false
+        }];
         for (let column = 1; column <= 12; column += 1) worksheet.getColumn(column).width = 14;
 
         setMergedText(worksheet, 'A1:L1', model.title, styleTitle);
@@ -324,7 +331,8 @@
             xSplit: 3,
             ySplit: headerRowNumber,
             topLeftCell: 'D5',
-            activeCell: 'D5'
+            activeCell: 'D5',
+            showGridLines: false
         }];
 
         worksheet.pageSetup = {
