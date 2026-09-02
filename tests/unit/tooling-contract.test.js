@@ -39,6 +39,11 @@ test('mantém o renderer institucional interno e fixa ExcelJS somente para o pro
     assert.equal(packageJson.devDependencies.lighthouse, '13.4.1');
     assert.equal(packageJson.devDependencies['@lhci/cli'], undefined);
     assert.equal(packageJson.overrides['brace-expansion@5.0.8'], '5.0.9');
+    assert.equal(packageJson.overrides['fast-uri'], '^3.1.6');
+    assert.equal(packageJson.overrides.qs, '^6.16.0');
+    assert.match(lockfile, /"node_modules\/fast-uri": \{\s+"version": "3\.1\.6"/);
+    assert.match(lockfile, /"node_modules\/qs": \{\s+"version": "6\.16\.0"/);
+    assert.doesNotMatch(lockfile, /"node_modules\/fast-uri": \{\s+"version": "4\.1\.2"/);
     assert.equal(
         packageJson.allowScripts[`esbuild@${packageJson.devDependencies.esbuild}`],
         true,
@@ -139,4 +144,20 @@ test('Vercel não desperdiça Preview em branches automáticas do Dependabot', (
     assert.match(vercel.ignoreCommand, /VERCEL_GIT_COMMIT_REF/);
     assert.match(vercel.ignoreCommand, /dependabot\/\*/);
     assert.equal(vercel.git?.deploymentEnabled, true);
+});
+
+
+test('Dependabot não reabre a versão do Supabase CLI já rejeitada por RLS', () => {
+    const dependabot = read('.github/dependabot.yml');
+
+    assert.match(
+        dependabot,
+        /dependency-name:\s*"supabase"[\s\S]*?versions:\s*[\s\S]*?-\s*"2\.116\.0"/,
+        'Supabase CLI 2.116.0 deve permanecer bloqueado após reprovação pgTAP/RLS'
+    );
+    assert.doesNotMatch(
+        dependabot,
+        /dependency-name:\s*"supabase"[\s\S]*?version-update:semver-(?:minor|patch)/,
+        'o bloqueio não deve impedir versões futuras do Supabase CLI de serem avaliadas'
+    );
 });
