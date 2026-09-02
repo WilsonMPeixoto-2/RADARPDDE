@@ -11921,7 +11921,7 @@ function openCobrancaModal(escolaId) {
     const container = document.getElementById('cobranca-checkboxes-container');
     if (pEscola.length === 0) {
         container.innerHTML = `<div class="cobranca-empty-state">Nenhuma pendência externa sob responsabilidade da Escola.</div>`;
-        document.getElementById('cobranca-preview-text').innerText = `Prezado(a) Diretor(a) de ${esc.denominação},\n\nConstatamos que não há pendências ativas de obrigações do PDDE sob responsabilidade da unidade escolar no RADAR PDDE.\n\nAtenciosamente`;
+        document.getElementById('cobranca-preview-text').innerText = `Prezado(a) Diretor(a) de ${esc.denominação},\n\nConstatamos que não há pendências ativas de obrigações do PDDE sob responsabilidade da unidade escolar.\n\nAtenciosamente`;
         openModal('modal-cobranca');
         return true;
     }

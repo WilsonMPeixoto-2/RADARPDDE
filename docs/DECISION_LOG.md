@@ -637,3 +637,18 @@ Consulta Assessoria fica explicitamente dividida por operação, não por duplic
 A CI deve falhar se o bootstrap deixar de instalar as extensões críticas, se a ordem funcional for invertida, se um módulo assumir silenciosamente responsabilidade de outro ou se a composição real no navegador não instalar os wrappers esperados.
 
 **Documento integral:** `docs/decisions/ADR-052-autoridade-unica-fluxos-criticos.md`.
+
+
+---
+
+## ADR-053 — Comunicação externa não expõe o nome do sistema interno
+
+**Status:** Aprovada e vigente
+
+`RADAR PDDE` é a identificação do sistema interno de acompanhamento e pode aparecer em superfícies internas, documentação técnica, logs e materiais de uso do próprio sistema. O nome **não deve integrar textos gerados para comunicação oficial externa com unidades escolares**, incluindo e-mail, WhatsApp, ofício ou texto de cobrança copiado pelo usuário.
+
+As mensagens externas devem se referir diretamente ao objeto administrativo pertinente, como PDDE, documentação, pendência ou unidade escolar, sem citar a ferramenta interna usada para produzir ou acompanhar a informação.
+
+O gerador de cobrança deve terminar somente em **Atenciosamente**, sem assinatura automática de equipe ou do sistema. O contrato de testes deve impedir a reintrodução de `RADAR PDDE` no bloco de texto externo gerado.
+
+**Aplicação inicial:** hotfix de 02/09/2026 no gerador de cobrança, removendo a expressão “no RADAR PDDE” da mensagem de ausência de pendências.
