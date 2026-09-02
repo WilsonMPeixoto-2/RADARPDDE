@@ -1,0 +1,4 @@
+Nova tentativa de disparo de Production após o bloqueio temporário de quota diária da Vercel.
+O conteúdo funcional corresponde integralmente ao PR #247 já homologado e mergeado no commit bf57c0a32d75fdc511ca435272aabc400843d5c2.
+Esta alteração não modifica regra de negócio, layout, banco, Supabase ou comportamento da exportação; serve apenas para produzir um novo push convencional em main e acionar novamente a integração Git da Vercel.
+Tentativa adicional solicitada pelo usuário em 02/09/2026.
