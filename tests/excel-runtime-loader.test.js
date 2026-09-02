@@ -16,12 +16,15 @@ test('configuração e carregador da exportação possuem sintaxe válida', () =
     ));
 });
 
-test('carregador referencia as quatro camadas na ordem correta', () => {
+test('carregador referencia as camadas Excel na ordem correta', () => {
     const source = read('src/integration/load-excel-export.js');
     const expected = [
         'src/domain/excel-export-model.js',
         'src/domain/excel-workbook-plan.js',
         'src/domain/excel-xlsx-renderer.js',
+        'src/integration/excel-sme-runtime-loader.js',
+        'src/domain/pendency-excel-export-model.js',
+        'src/domain/pendency-excel-renderer.js',
         'src/integration/excel-export-integration.js'
     ];
 
