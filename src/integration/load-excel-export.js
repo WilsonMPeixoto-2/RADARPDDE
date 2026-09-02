@@ -45,6 +45,15 @@
         Object.freeze({
             src: '/src/integration/excel-sme-runtime-loader.js',
             isReady: target => typeof target.RadarExcelSmeRuntimeLoader?.loadExcelSmeRuntime === 'function'
+                && typeof target.RadarExcelSmeRuntimeLoader?.loadExcelJsRuntime === 'function'
+        }),
+        Object.freeze({
+            src: '/src/domain/pendency-excel-export-model.js',
+            isReady: target => typeof target.RadarPendencyExcelExportModel?.buildWorkbookModel === 'function'
+        }),
+        Object.freeze({
+            src: '/src/domain/pendency-excel-renderer.js',
+            isReady: target => typeof target.RadarPendencyExcelRenderer?.downloadWorkbook === 'function'
         }),
         Object.freeze({
             src: '/src/integration/excel-export-integration.js',
