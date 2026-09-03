@@ -24,7 +24,55 @@
 | Escopo de PR8 | PR8A instala contrato remoto e aplicação de estado sem ativar a jornada principal; PR8B ativa o resultado autoritativo e a reconciliação visual. São dois PRs reais. |
 | Metas de PR9C | Não há meta percentual universal antecipada. Cada hipótese recebe orçamento próprio somente depois de PR9A/PR9B, superior ao ruído observado. A referência de 20% ou 1 segundo é apenas heurística de priorização. |
 
-**Ordem homologada:** G0 → PR1 → PR2 → PR3.1 → PR3.2 → PR3.3 → PR4 → PR5 → PR6 → PR6B → PR7A → PR7B → PR8A → PR8B → PR9A → PR9B → PR9C → encerramento.
+**Ordem homologada histórica em 26/08:** G0 → PR1 → PR2 → PR3.1 → PR3.2 → PR3.3 → PR4 → PR5 → PR6 → PR6B → PR7A → PR7B → PR8A → PR8B → PR9A → PR9B → PR9C → encerramento.
+
+> **Reconciliação obrigatória de 03/09/2026:** a sequência histórica acima não deve mais ser executada literalmente. Depois dos PRs #211–#249 e da verificação direta do código/Supabase/Vercel, a matriz atual está em [`../../handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`](../../handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md). Ela prevalece para decidir o que ainda falta, sem apagar este plano como histórico técnico.
+
+## 0A. Reconciliação pós-hotfixes — estado executivo em 03/09/2026
+
+| Entrega | Estado reconciliado |
+|---|---|
+| G0 | concluído |
+| PR1 | concluído |
+| PR2 | concluído |
+| PR3.1–PR3.3 | parcial/pendente; preservar ADR-052 e extensões críticas determinísticas |
+| PR4 | superado; não executar migration antiga |
+| PR5 | pendente |
+| PR6 | parcial; concluir autoridade semântica sem refazer UI |
+| PR6B | concluído por caminho equivalente |
+| PR7A | parcial/alterado; preservar layout/tabs aprovados |
+| PR7B | concluído funcionalmente por caminho equivalente |
+| PR8A/PR8B | parcial |
+| PR9A | pendente |
+| PR9B | concluído por caminho equivalente |
+| PR9C | pendente |
+| ADR-051 | adiado até fechamento funcional |
+
+### Ordem restante vigente
+
+```text
+PR3.1
+→ PR3.2
+→ PR3.3
+→ PR5
+→ PR6
+→ revisão focada dos gaps remanescentes de PR7A
+→ PR8A
+→ PR8B
+→ PR9A
+→ PR9C usando a metodologia estatística de PR9B já vigente
+→ encerramento funcional
+→ reavaliar ADR-051
+```
+
+### Proteções contra regressão documental
+
+- PR4 não pode ser executado pelo classificador antigo. Em Production, a leitura de 03/09 encontrou **0** estados legados não vazios inconsistentes sem NF de serviço, **143** estados canônicos e **15** avaliações vazias/não iniciadas. Normalizar essas 15 seria fabricar avaliação.
+- `pendencias-view-model.js` ainda possui semântica própria de ação/idade. Esse é o núcleo remanescente de PR6; não redesenhar Pendências para “cumprir” PR7.
+- `InvoiceService` ainda possui fallback persistente baseado em `Date.now()` e não existe RPC idempotente v2. PR5 continua real.
+- `capability-readiness.js` ainda não existe e polling de instalação permanece em integrações críticas/restritas. PR3 continua real.
+- Lighthouse já opera com três rodadas e mediana; PR9B não deve ser reimplementado nem usado para relaxar thresholds.
+- PDDE Básico primeiro, exportação XLSX de Pendências, BB Ágil N/A e comunicação externa sem o nome do sistema são decisões posteriores e devem ser preservadas.
 
 ---
 
