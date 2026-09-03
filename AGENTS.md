@@ -1,28 +1,28 @@
 # AGENTS.md — RADAR PDDE 2026
 
-**Atualizado em:** 30 de agosto de 2026
+**Atualizado em:** 3 de setembro de 2026
 
 ## 1. Leitura obrigatória
 
 Antes de analisar ou alterar o repositório, leia **nesta ordem**:
 
-1. `docs/handoff/2026-08-30-pr215-fechamento-tecnico.md` — porta de entrada obrigatória do estado corrente;
-2. `docs/CURRENT_STAGE.md` — estado corrente, baseline e prioridades reais;
-3. `docs/handoff/2026-08-30-pr211-publicacao-concluida.md` — histórico imediatamente anterior ao PR #215;
-4. `docs/superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md` — plano executável original do hotfix;
-5. `docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md` — contrato funcional vigente;
-6. `docs/decisions/ADR-052-autoridade-unica-fluxos-criticos.md` — autoridade, bootstrap e composição dos fluxos críticos;
-7. `docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md` — classificação autoritativa de legados e fixtures decidida em 29/08;
-8. `docs/evidence/2026-08-28-pr211-referencias-visuais.md` — layout aprovado;
-9. `docs/reference/TEST_GOVERNANCE.md` — estratégia proporcional e tratamento de testes superados;
-10. `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md` — visão gerada do contrato funcional vigente;
-11. `docs/PROJECT_CONTEXT.md` e `docs/DECISION_LOG.md`;
-12. somente depois, handoffs históricos e o plano mestre de 26/08;
-13. código, GitHub, Vercel e Supabase correspondentes à frente.
+1. `docs/handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md` — porta de entrada corrente e matriz do que ainda falta;
+2. `docs/CURRENT_STAGE.md` — estado corrente, baseline e sequência real;
+3. `docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md` — contrato funcional vigente de Notas Fiscais/Pendências individuais;
+4. `docs/decisions/ADR-052-autoridade-unica-fluxos-criticos.md` — autoridade, bootstrap e composição dos fluxos críticos;
+5. `docs/reference/STATUS_DOCUMENTOS.md` — validade e precedência dos documentos;
+6. `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md` — visão gerada do contrato funcional vigente;
+7. `docs/PROJECT_CONTEXT.md` e `docs/DECISION_LOG.md`;
+8. `docs/handoff/2026-09-02-dependency-governance.md` quando a frente tocar dependências/tooling;
+9. `docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md` — detalhes das etapas ainda vigentes, começando pela reconciliação de 03/09 incluída no próprio arquivo;
+10. somente depois, handoffs, evidências e planos históricos anteriores;
+11. código, GitHub, Vercel e Supabase correspondentes à frente, revalidados ao vivo quando houver dado volátil.
 
-**Regra para continuidade entre chats:** o handoff pós-PR #215, ADR-050/ADR-052 e as decisões de 29/08 prevalecem sobre hipóteses, relatórios e checkpoints anteriores quando tratam do mesmo ponto. Não "corrigir" o produto para voltar a uma regra antiga antes de conferir esses arquivos.
+**Regra de continuidade:** o handoff de 03/09, o código atual, ADR-050/ADR-052 e decisões posteriores prevalecem sobre checkpoints anteriores no ponto em que houver conflito. Não restaurar uma tarefa, regra ou layout antigo apenas porque aparece em plano histórico.
 
-Auditorias externas são insumo de investigação, não ordem de implementação. Se uma auditoria propuser um caminho diferente, comparar primeiro com o SHA atual e com ADR-050/plano/handoff/evidência de 29/08.
+**Regra específica do plano mestre:** PR4 antigo, PR6B, PR7B e PR9B não voltam à fila de implementação como estavam escritos. A sequência restante e a classificação de cada etapa ficam no handoff de 03/09.
+
+Auditorias externas são insumo de investigação, não ordem de implementação. Se uma auditoria propuser caminho diferente, comparar primeiro com o SHA atual e com a reconciliação vigente.
 
 ## 2. Identidade do produto
 
@@ -204,6 +204,15 @@ Preservar:
 
 No contrato vigente após PR #209 e no PR #211, **não existe documento autônomo `boletoInternet`**. `boleto_internet` existe somente como **Tipo de Gasto dentro de Notas Fiscais**, exclusivo de Educação Conectada. Não possui linha documental, bonificação, análise técnica ou Pendência independente e não participa de Consulta Assessoria.
 
+## 9.0 Guardrails supervenientes até PR #249
+
+- Declaração BB Ágil pode usar N/A sob o contrato vigente; Pendência ativa impede a transição até ser resolvida/cancelada.
+- `RADAR PDDE` é nome interno e não aparece em comunicação oficial externa gerada.
+- a exportação XLSX de Pendências é superfície vigente e deve preservar auditoria, filtros e ausência de IDs técnicos;
+- `PDDE Básico` aparece primeiro somente no layout da avaliação; não reordenar `programasIds` nem transformar isso em regra persistente;
+- a interface atual de Pendências e o polimento visual pós-PR #237/#249 estão aprovados; plano histórico não autoriza redesenho regressivo;
+- Supabase CLI 2.116.0 permanece rejeitado por regressão pgTAP/RLS; não atualizar por automatismo;
+- Lighthouse usa três rodadas e mediana; não relaxar thresholds para obter verde.
 ## 9.1 Guardrails integrados pelo PR #211
 
 No baseline posterior ao PR #211, preservar estas decisões já fechadas:
