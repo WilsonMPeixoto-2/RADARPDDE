@@ -13,18 +13,20 @@
 | Documento integral em Word | [`../reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx`](../reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx) |
 | Integridade do Word | [`../reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.sha256`](../reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.sha256) |
 
-> Este handoff é a porta de entrada curta. O Markdown é a fonte operacional para busca, diff e execução; o Word é a versão integral para leitura e aprovação. Nenhum dos dois autoriza sozinho escrita em Production, migration, mudança de regras do GitHub, merge ou deploy.
+> **No checkpoint de 26/08**, este handoff foi a porta de entrada curta. Hoje ele é histórico reconciliado: a entrada vigente é [`2026-09-03-reconciliacao-documental-e-plano-mestre.md`](2026-09-03-reconciliacao-documental-e-plano-mestre.md). O Markdown e o Word abaixo permanecem úteis como evidência e contrato técnico da época, mas não controlam sozinhos a sequência corrente nem autorizam escrita em Production, migration, mudança de regras do GitHub, merge ou deploy.
 
 ## 0. Atualização posterior — 28/08/2026
 
-Este handoff continua válido como origem do plano mestre, mas **não é mais a porta de entrada imediata enquanto o PR #211 estiver em andamento**.
+Durante o PR #211, este handoff deixou de ser a porta de entrada imediata porque o hotfix alterava superfícies também previstas no plano mestre.
 
-O PR #211 corrige a granularidade de análise/Pendência de Notas Fiscais e altera superfícies que também aparecem em etapas futuras do plano. Portanto, após o hotfix:
+Naquele momento, o roteiro previsto após o hotfix era:
 
 1. revalidar `main`, Vercel e Supabase;
 2. comparar o diff do PR #211 com as premissas do plano;
 3. atualizar o estado das tarefas futuras;
 4. só então retomar PR3.1.
+
+Esse roteiro foi concluído pela reconciliação de 03/09. A sequência atual deve ser obtida no handoff de 03/09, não neste checkpoint histórico.
 
 A decisão antiga “Despesa A identificar não vira automaticamente Não ou Incorreto” foi superada especificamente pelo ADR-050 no PR #211. O contrato atual é `a_identificar = Incorreto + Pendência individual obrigatória`, sem alterar automaticamente a bonificação.
 
@@ -92,7 +94,9 @@ Se alguma entrega revelar necessidade inevitável de tocar uma exclusão, parar 
 - Ir ao Prontuário a partir da Pendência pode trocar a competência de forma explícita.
 - `Ver detalhes` permanece durante este programa; sua eventual remoção exige decisão posterior.
 
-## 6. Ordem obrigatória
+## 6. Ordem obrigatória naquele checkpoint — histórica
+
+A sequência abaixo registra a ordem aprovada em 26/08 e **não é a fila executável atual**. PR4, PR6B, PR7B e PR9B foram posteriormente superados ou atendidos; consultar a reconciliação de 03/09 antes de qualquer implementação.
 
 ```text
 G0

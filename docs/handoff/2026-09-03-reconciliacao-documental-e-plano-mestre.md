@@ -2,9 +2,10 @@
 
 **Data:** 3 de setembro de 2026  
 **Classe documental:** Canônico — estado corrente, reconciliação do plano e proteção contra regressão  
-**Baseline de código analisado:** `75237c6ec5c22e8f7be9eb39fd21481f6d608010`  
-**Vercel Production:** `dpl_HfiKFNkTHc1f9ATZjgZ6Cn7CbWzz`, `READY`, SHA `75237c6ec5c22e8f7be9eb39fd21481f6d608010`  
-**Supabase Production:** `scnryinorqeucbfkioxo`, `ACTIVE_HEALTHY`, 44 migrations
+**Baseline funcional de código analisado:** `75237c6ec5c22e8f7be9eb39fd21481f6d608010`  
+**Vercel Production do baseline funcional auditado:** `dpl_HfiKFNkTHc1f9ATZjgZ6Cn7CbWzz`, `READY`, SHA `75237c6ec5c22e8f7be9eb39fd21481f6d608010`  
+**Supabase Production:** `scnryinorqeucbfkioxo`, `ACTIVE_HEALTHY`, 44 migrations  
+**Nota de temporalidade:** merges exclusivamente documentais posteriores podem alterar o HEAD de `main` e o deployment da Vercel sem mudar o runtime. SHA/deployment correntes devem ser consultados ao vivo; os valores acima identificam o baseline funcional auditado nesta reconciliação.
 
 ## 1. Finalidade
 
@@ -92,7 +93,7 @@ A tela de Pendências possui exportação XLSX própria:
 
 ### PR #249 — ordem visual e polimento
 
-Merge e Production atuais em `75237c6ec5c22e8f7be9eb39fd21481f6d608010`.
+Última mudança funcional do baseline analisado em `75237c6ec5c22e8f7be9eb39fd21481f6d608010`.
 
 Regra vigente:
 

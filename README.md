@@ -2,7 +2,7 @@
 
 Sistema institucional de acompanhamento operacional do PDDE da 4ª CRE/SME-Rio. O produto organiza competência mensal, carteira de unidades, prontuário, análise documental, pendências, contatos, notas fiscais, patrimônio, Gestão de Equipe, acompanhamento gerencial e exportações.
 
-> **Estado reconciliado em 3 de setembro de 2026:** a `main` e a Vercel Production estão alinhadas no PR #249 (`75237c6ec5c22e8f7be9eb39fd21481f6d608010`). A documentação canônica foi reconciliada com os PRs #241–#249 e o plano mestre de 26/08 foi comparado novamente contra código e Supabase atuais. Estado completo: [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md) e [`docs/handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`](docs/handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md).
+> **Estado reconciliado em 3 de setembro de 2026:** o último **baseline funcional auditado** é o PR #249 (`75237c6ec5c22e8f7be9eb39fd21481f6d608010`). A reconciliação documental foi integrada depois desse baseline e, por ser exclusivamente documental, pode produzir SHA/deployment posterior em `main` e na Vercel sem mudança de runtime. Para SHA e deployment correntes, consulte o remoto; para estado funcional e sequência vigente, use [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md) e [`docs/handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`](docs/handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md).
 
 ## Fontes de verdade
 

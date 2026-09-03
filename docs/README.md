@@ -24,25 +24,26 @@ Ler primeiro:
 
 O estado corrente fica em [`CURRENT_STAGE.md`](CURRENT_STAGE.md).
 
-O checkpoint da frente prioritária atual é:
+O **checkpoint canônico atual** é:
 
-- [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md)
+- [`handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`](handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md)
 
-O handoff do Boleto Internet de 27/08 permanece como histórico imediatamente anterior e continua relevante para a regra `boleto_internet`, mas não controla mais o estado corrente do projeto.
+Esse handoff compara o plano mestre com código, Supabase e Vercel do baseline funcional auditado, registra o que já foi atendido ou superado e define a sequência restante sem restaurar decisões antigas.
 
-O documento principal para retomada do plano mestre é:
+Os checkpoints de 28/08 e 26/08 permanecem históricos e úteis para contexto:
 
-- [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md)
+- [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md) — origem do hotfix de individualização;
+- [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md) — fotografia do plano pós-PR #200.
 
-Ele consolida o baseline `0965ba8` após o merge do PR #200, as auditorias independentes, as decisões finais de produto, as exclusões, a ordem aprovada e o ponto exato de retomada antes das correções restantes.
+Nenhum deles controla mais a ordem corrente de execução.
 
-O plano textual executável e o relatório integral são:
+O plano textual continua como **contrato técnico detalhado**, mas sua sequência executável é a reconciliada em 03/09:
 
 - [`superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md);
 - [`reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx`](reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx);
 - [`reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.sha256`](reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.sha256).
 
-O plano de 24/08 e seu handoff permanecem históricos: registram o primeiro diagnóstico, mas não orientam a execução pós-PR #200.
+O handoff do Boleto Internet de 27/08 e o plano de 24/08 permanecem históricos: documentam decisões e diagnóstico da época, mas não orientam a execução corrente.
 
 O handoff de 23/08 permanece histórico e necessário para compreender a estabilização #190–#194:
 

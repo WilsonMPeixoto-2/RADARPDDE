@@ -4,17 +4,19 @@
 
 **Classe documental:** Canônico — estado corrente e retomada futura
 
-**Situação:** baseline reconciliado até o PR #249; `main`, Vercel Production e documentação canônica voltam a apontar para o mesmo estado funcional; plano mestre de 26/08 foi reconciliado contra código e Supabase atuais.
+**Situação:** baseline funcional reconciliado até o PR #249; a documentação canônica incorpora a reconciliação posterior de 03/09. `main` e Vercel podem conter commits/deployments exclusivamente documentais posteriores sem alteração de runtime; SHA e deployment correntes devem ser consultados no remoto.
 
-## Atualização de 03/09 — baseline pós-PR #249
+## Atualização de 03/09 — baseline funcional pós-PR #249 e reconciliação documental
 
 A porta de entrada corrente é [`handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`](handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md).
 
-Baseline confirmado:
+Baseline funcional auditado:
 
-- `main`: `75237c6ec5c22e8f7be9eb39fd21481f6d608010`;
-- Vercel Production: `dpl_HfiKFNkTHc1f9ATZjgZ6Cn7CbWzz`, `READY`, mesmo SHA da `main`;
+- último commit funcional do conjunto reconciliado: `75237c6ec5c22e8f7be9eb39fd21481f6d608010` (PR #249);
+- Vercel Production usada na auditoria funcional: `dpl_HfiKFNkTHc1f9ATZjgZ6Cn7CbWzz`, `READY`, SHA `75237c6ec5c22e8f7be9eb39fd21481f6d608010`;
 - Supabase Production `scnryinorqeucbfkioxo`: `ACTIVE_HEALTHY`, 44 migrations.
+
+Commits ou deployments exclusivamente documentais posteriores não redefinem esse baseline funcional. Para o HEAD e o deployment **correntes**, consultar GitHub e Vercel diretamente.
 
 Desde o PR #237 também foram integrados:
 
@@ -51,9 +53,9 @@ PR3.1 → PR3.2 → PR3.3
 
 O PR4 antigo **não deve ser executado**. A leitura de Production em 03/09 encontrou 143 contextos sem NF de serviço já canônicos, 15 avaliações vazias/não iniciadas e zero estados legados não vazios inconsistentes. Corrigir as 15 avaliações vazias fabricaria estado que o usuário ainda não lançou.
 
-## Atualização pós-PR #237
+## Checkpoint histórico pós-PR #237
 
-A porta de entrada corrente é [`handoff/2026-08-31-pr237-fechamento-visual-e-ci.md`](handoff/2026-08-31-pr237-fechamento-visual-e-ci.md).
+Naquele checkpoint, a porta de entrada era [`handoff/2026-08-31-pr237-fechamento-visual-e-ci.md`](handoff/2026-08-31-pr237-fechamento-visual-e-ci.md). Hoje, a entrada canônica é a reconciliação de 03/09 indicada no topo deste arquivo.
 
 O conjunto PR #218–#237 incorporou autoridade determinística dos fluxos críticos, preservação/canonização de contexto das Pendências, correções da Consulta Assessoria, abertura no mês corrente e a revisão visual do Prontuário/Pendências. As falhas de CI observadas na virada de agosto para setembro foram reclassificadas: quatro eram expectativas temporais de teste e uma era sincronização visual incremental real da bonificação da Assessoria.
 
@@ -61,9 +63,9 @@ Os blocos abaixo sobre PR #211/#214/#215 permanecem como histórico técnico nec
 
 ## 0. Hotfix publicado — PR #211
 
-O estado corrente ainda não é “iniciar PR3.1”. O hotfix isolado foi concluído e agora precisa ser conciliado com o plano mestre:
+Naquele momento, o estado ainda não era “iniciar PR3.1”: o hotfix isolado precisava ser conciliado com o plano mestre. Essa reconciliação foi concluída em 03/09 e este bloco permanece apenas como histórico técnico:
 
-- fechamento técnico corrente: [`handoff/2026-08-30-pr215-fechamento-tecnico.md`](handoff/2026-08-30-pr215-fechamento-tecnico.md);
+- fechamento técnico daquele checkpoint: [`handoff/2026-08-30-pr215-fechamento-tecnico.md`](handoff/2026-08-30-pr215-fechamento-tecnico.md);
 - encerramento histórico pós-PR #211: [`handoff/2026-08-30-pr211-publicacao-concluida.md`](handoff/2026-08-30-pr211-publicacao-concluida.md);
 - plano específico: [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md);
 - handoff histórico do Draft: [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md);
@@ -72,7 +74,7 @@ O estado corrente ainda não é “iniciar PR3.1”. O hotfix isolado foi conclu
 
 O PR #211 **não substitui o plano mestre**. Ele é um parêntese operacional necessário para corrigir uma inconsistência funcional descoberta depois das entregas anteriores.
 
-Após o merge e os smokes disponíveis de Production, é obrigatório executar:
+Naquele momento, o roteiro de continuidade exigia:
 
 ```text
 revalidar main
@@ -83,6 +85,8 @@ revalidar main
 → atualizar documentação
 → só então iniciar PR3.1
 ```
+
+Esse roteiro foi cumprido pela reconciliação de 03/09 e **não deve ser reexecutado literalmente**.
 
 O hardening foi validado no SHA funcional `530ca6cb62c385ca7ca35f30e82a723e1afed3f6` e integrado à `main` pelo merge `aa82ab4e359f62259df33842fb794aa1e654c30c`. Ele bloqueia alteração comum de Assessoria com Pendência ativa, exige tentativa real e imutável na reanálise, aplica patches mínimos nas RPCs críticas, impede reaproveitamento patrimonial indevido, mantém `a_identificar` existente fora do editor comum e torna acessível a Pendência fiscal agregada real preservada.
 
