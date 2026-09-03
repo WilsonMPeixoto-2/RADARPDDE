@@ -262,13 +262,16 @@ PR2, naquele momento, não executou migration, reparo de dados, deduplicação p
 
 
 
-## 5. Decisões finais incorporadas
+## 5. Decisões source-first incorporadas
 
-1. A duplicidade atual de NF não é atribuída ao fallback de `InvoiceService`. PR5 fará o inventário de produtores persistentes e eliminará fallbacks dependentes exclusivamente de `Date.now()`, incluindo o caso confirmado de `DirectoryService`.
-2. `web-vitals` e `Server-Timing` não entram no PR9A. Só poderão ser avaliados depois dele para responder a uma lacuna diagnóstica comprovada. Nenhuma telemetria externa está autorizada.
-3. PR3 é executado como PR3.1, PR3.2 e PR3.3, com gates próprios.
-4. PR8 é executado como dois PRs reais: PR8A e PR8B.
-5. PR9C define orçamento por hipótese somente depois do baseline e do ruído medidos em PR9A/PR9B; não há meta percentual universal antecipada.
+1. A duplicidade atual de NF não é atribuída ao fallback de `InvoiceService`; **R3** inventaria somente IDs persistentes de negócio, preserva o guard/no-op e elimina fallbacks fracos onde realmente persistem identidade.
+2. **R1 precede R2** porque `operational-write-performance.js` ainda contém autoridade de consistência que precisa sair antes de performance/readiness poder degradar sem efeito funcional.
+3. **R3** cria uma única RPC v2 de save com idempotência durável **e** resultado remoto completo; não haverá uma evolução v2 redundante posterior só para satisfazer o plano histórico.
+4. **R4** unifica semântica de Pendências; textos editoriais e ordenações deliberadamente específicas podem permanecer por superfície.
+5. **R5** reaproveita `DataService`, `mergePersistedResult()`, `incrementalStateEntities` e `StatePort.applyEntities()`; nova arquitetura genérica paralela só entra se RED demonstrar necessidade.
+6. **R6** é gate de equivalência e pode encerrar sem diff.
+7. `web-vitals` e `Server-Timing` não entram em **R7**; só podem ser avaliados depois do diagnóstico causal se houver lacuna comprovada. Nenhuma telemetria externa está autorizada.
+8. **R8** define orçamento por hipótese somente depois do baseline/ruído de R7 e da metodologia estatística já vigente.
 
 ## 6. Exclusões e adiamentos deliberados
 
@@ -279,9 +282,9 @@ Não incluir nas frentes funcionais atualmente em execução:
 - PR #195;
 - deduplicação de NF por conteúdo.
 
-O primeiro item é um **adiamento deliberado e explícito do responsável pelo produto**, registrado na ADR-051. A auditoria pós-publicação não encontrou corrupção atual em Production; encontrou uma lacuna latente de integridade caso um cliente autenticado tente contornar os serviços/RPCs e escrever diretamente na tabela. Por decisão de sequência, essa blindagem **não é gate do PR #211, da reconciliação documental nem dos PRs restantes de correção funcional**.
+O primeiro item é um **adiamento deliberado e explícito do responsável pelo produto**, registrado na ADR-051. A auditoria pós-publicação não encontrou corrupção atual em Production; encontrou uma lacuna latente de integridade caso um cliente autenticado tente contornar os serviços/RPCs e escrever diretamente na tabela. Por decisão de sequência, essa blindagem **não é gate do PR #211, da reconciliação documental nem de R1–R9**.
 
-Ela somente deve ser retomada **depois que todas as implementações previstas nos planos de correção de funcionalidades estiverem concluídas e validadas**, em uma frente específica de segurança/integridade. Até lá, não antecipar esse hardening nem tratá-lo como correção funcional pendente.
+Ela somente deve ser retomada **depois do fechamento e rebaseline de R9**, em uma frente específica de segurança/integridade. Até lá, não antecipar esse hardening nem tratá-lo como correção funcional pendente.
 
 Não transformar qualquer exclusão ou adiamento em dependência, gate oculto ou hardening antecipado. Se surgir necessidade inevitável antes do gatilho definido, parar e solicitar nova decisão do responsável pelo produto.
 
