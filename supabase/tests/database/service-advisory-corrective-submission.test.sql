@@ -73,7 +73,7 @@ select throws_like($$
         2,
         '{"id":"log-advisory-attempt-1","school_id":"04.99.197","action":"Novo envio duplicado","details":{}}'::jsonb
     )
-$, 'VALIDATION_ERROR: novo envio da Assessoria não pode alterar os dados da NF%', 'substituição não pode reescrever dados imutáveis da NF');
+$$, 'VALIDATION_ERROR: novo envio da Assessoria não pode alterar os dados da NF%', 'substituição não pode reescrever dados imutáveis da NF');
 select is((select (payload ->> 'consultaAssessoriaEnviada')::boolean from public.registered_invoices where id='invoice-advisory-attempt'), false, 'tentativa recusada preserva a NF');
 
 select throws_like($$
