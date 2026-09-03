@@ -119,7 +119,7 @@ G0
 → encerramento
 ```
 
-Dependências especiais:
+Dependências especiais daquele plano — históricas:
 
 - PR4 somente depois de PR2 publicado, validado e seguido de preflight fresco;
 - PR4 atualiza exatamente o conjunto autorizado pelo preflight, não uma quantidade rígida de quatro linhas;
@@ -145,9 +145,11 @@ Cada PR precisa registrar:
 
 Não iniciar a entrega seguinte até o gate da atual estar satisfeito.
 
-## 8. Primeira ação exata
+## 8. Primeira ação exata naquele checkpoint — superada
 
-Começar por G0, não por alteração de código:
+Esta era a primeira ação em 26/08. G0, PR1 e PR2 já foram concluídos e **não devem ser reexecutados**. A fila atual está no handoff de 03/09.
+
+Naquele checkpoint, a orientação era começar por G0, não por alteração de código:
 
 1. buscar e confirmar `origin/main`;
 2. confirmar o SHA publicado na Vercel;
@@ -156,9 +158,9 @@ Começar por G0, não por alteração de código:
 5. confirmar proteção de branch/ruleset ou documentar o gate manual substituto;
 6. só então abrir a branch isolada do PR1.
 
-O PR1 contém apenas contenção imediata do submit repetido e política mínima de refresh. Não antecipar no-op, migration, idempotência, redesign de Pendências ou refatorações oportunistas.
+O PR1 daquele plano continha apenas contenção imediata do submit repetido e política mínima de refresh. Ele já foi entregue; esta descrição permanece somente como histórico.
 
-## 9. Ordem de leitura para outro agente ou ferramenta
+## 9. Ordem de leitura naquele checkpoint — histórica
 
 1. [`../../AGENTS.md`](../../AGENTS.md);
 2. [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md);
@@ -173,6 +175,6 @@ O PR1 contém apenas contenção imediata do submit repetido e política mínima
 
 ## 10. Regra de continuidade
 
-Não recomeçar o diagnóstico do zero e não executar o plano cegamente. Revalidar premissas contra o SHA e os ambientes atuais, preservar as exclusões e seguir uma entrega por vez.
+A regra geral permanece válida: não recomeçar o diagnóstico do zero e não executar o plano cegamente. Para escolher a entrega atual, usar primeiro a reconciliação de 03/09; depois revalidar premissas contra o SHA e os ambientes correntes, preservar as exclusões e seguir uma entrega por vez.
 
 Se `main`, Vercel ou Supabase tiverem avançado, reconciliar a divergência explicitamente antes de qualquer código ou dado. O baseline `0965ba8` é o ponto de origem do plano, não uma constante eterna.

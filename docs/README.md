@@ -199,7 +199,7 @@ Não há telemetria externa, persistência das métricas ou coleta de dados de n
 
 Arquivos datados em `docs/audits/`, `docs/evidence/`, `docs/superpowers/`, `docs/handoff/` e `docs/reports/` preservam o momento em que foram produzidos. Eles não devem ser reescritos para coincidir com o presente e não prevalecem sobre o código/ambiente atual.
 
-O handoff pós-PR #215 é a porta de entrada corrente. O handoff de 26/08 volta a orientar a execução somente depois da homologação autenticada final e da reconciliação pós-hotfix, sem apagar o valor histórico dos documentos anteriores.
+O handoff pós-PR #215 e o handoff de 26/08 são checkpoints históricos. A porta de entrada corrente é a reconciliação de 03/09; documentos anteriores permanecem disponíveis para rastreabilidade, mas seus “próximos passos” não controlam mais a execução.
 
 ## 9. Continuidade
 
@@ -216,4 +216,4 @@ verificar remoto
 → atualizar documentação afetada
 ```
 
-O estágio atual fecha o conjunto PR #211/#214/#215, protege a composição crítica pela ADR-052 e aguarda somente a homologação autenticada final da interface. Depois disso, é obrigatório reconciliar o conjunto do hotfix com o plano mestre; somente então a execução retoma em PR3.1. PR1 e PR2 já foram concluídos e não devem ser reimplementados.
+A reconciliação pós-hotfix foi concluída em 03/09. O próximo ponto real de implementação é o readiness sistêmico remanescente de PR3.1–PR3.3, preservando ADR-052 e a composição crítica já aprovada; depois seguem PR5, PR6, revisão focada de PR7A, PR8A/PR8B e PR9A/PR9C conforme a matriz canônica. PR1, PR2, PR6B, PR7B e PR9B não devem ser reimplementados; PR4 antigo foi superado.
