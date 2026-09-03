@@ -24,25 +24,26 @@ Ler primeiro:
 
 O estado corrente fica em [`CURRENT_STAGE.md`](CURRENT_STAGE.md).
 
-O checkpoint da frente prioritária atual é:
+O **checkpoint canônico atual** é:
 
-- [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md)
+- [`handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`](handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md)
 
-O handoff do Boleto Internet de 27/08 permanece como histórico imediatamente anterior e continua relevante para a regra `boleto_internet`, mas não controla mais o estado corrente do projeto.
+Esse handoff compara o plano mestre com código, Supabase e Vercel do baseline funcional auditado, registra o que já foi atendido ou superado e define a sequência restante sem restaurar decisões antigas.
 
-O documento principal para retomada do plano mestre é:
+Os checkpoints de 28/08 e 26/08 permanecem históricos e úteis para contexto:
 
-- [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md)
+- [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md) — origem do hotfix de individualização;
+- [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md) — fotografia do plano pós-PR #200.
 
-Ele consolida o baseline `0965ba8` após o merge do PR #200, as auditorias independentes, as decisões finais de produto, as exclusões, a ordem aprovada e o ponto exato de retomada antes das correções restantes.
+Nenhum deles controla mais a ordem corrente de execução.
 
-O plano textual executável e o relatório integral são:
+O plano textual continua como **contrato técnico detalhado**, mas sua sequência executável é a reconciliada em 03/09:
 
 - [`superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md);
 - [`reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx`](reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx);
 - [`reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.sha256`](reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.sha256).
 
-O plano de 24/08 e seu handoff permanecem históricos: registram o primeiro diagnóstico, mas não orientam a execução pós-PR #200.
+O handoff do Boleto Internet de 27/08 e o plano de 24/08 permanecem históricos: documentam decisões e diagnóstico da época, mas não orientam a execução corrente.
 
 O handoff de 23/08 permanece histórico e necessário para compreender a estabilização #190–#194:
 
@@ -198,7 +199,7 @@ Não há telemetria externa, persistência das métricas ou coleta de dados de n
 
 Arquivos datados em `docs/audits/`, `docs/evidence/`, `docs/superpowers/`, `docs/handoff/` e `docs/reports/` preservam o momento em que foram produzidos. Eles não devem ser reescritos para coincidir com o presente e não prevalecem sobre o código/ambiente atual.
 
-O handoff pós-PR #215 é a porta de entrada corrente. O handoff de 26/08 volta a orientar a execução somente depois da homologação autenticada final e da reconciliação pós-hotfix, sem apagar o valor histórico dos documentos anteriores.
+O handoff pós-PR #215 e o handoff de 26/08 são checkpoints históricos. A porta de entrada corrente é a reconciliação de 03/09; documentos anteriores permanecem disponíveis para rastreabilidade, mas seus “próximos passos” não controlam mais a execução.
 
 ## 9. Continuidade
 
@@ -215,4 +216,4 @@ verificar remoto
 → atualizar documentação afetada
 ```
 
-O estágio atual fecha o conjunto PR #211/#214/#215, protege a composição crítica pela ADR-052 e aguarda somente a homologação autenticada final da interface. Depois disso, é obrigatório reconciliar o conjunto do hotfix com o plano mestre; somente então a execução retoma em PR3.1. PR1 e PR2 já foram concluídos e não devem ser reimplementados.
+A reconciliação pós-hotfix foi concluída em 03/09. O próximo ponto real de implementação é o readiness sistêmico remanescente de PR3.1–PR3.3, preservando ADR-052 e a composição crítica já aprovada; depois seguem PR5, PR6, revisão focada de PR7A, PR8A/PR8B e PR9A/PR9C conforme a matriz canônica. PR1, PR2, PR6B, PR7B e PR9B não devem ser reimplementados; PR4 antigo foi superado.

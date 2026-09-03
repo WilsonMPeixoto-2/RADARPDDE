@@ -4,17 +4,19 @@
 
 **Classe documental:** Canônico — estado corrente e retomada futura
 
-**Situação:** baseline reconciliado até o PR #249; `main`, Vercel Production e documentação canônica voltam a apontar para o mesmo estado funcional; plano mestre de 26/08 foi reconciliado contra código e Supabase atuais.
+**Situação:** baseline funcional reconciliado até o PR #249; a documentação canônica incorpora a reconciliação posterior de 03/09. `main` e Vercel podem conter commits/deployments exclusivamente documentais posteriores sem alteração de runtime; SHA e deployment correntes devem ser consultados no remoto.
 
-## Atualização de 03/09 — baseline pós-PR #249
+## Atualização de 03/09 — baseline funcional pós-PR #249 e reconciliação documental
 
 A porta de entrada corrente é [`handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`](handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md).
 
-Baseline confirmado:
+Baseline funcional auditado:
 
-- `main`: `75237c6ec5c22e8f7be9eb39fd21481f6d608010`;
-- Vercel Production: `dpl_HfiKFNkTHc1f9ATZjgZ6Cn7CbWzz`, `READY`, mesmo SHA da `main`;
+- último commit funcional do conjunto reconciliado: `75237c6ec5c22e8f7be9eb39fd21481f6d608010` (PR #249);
+- Vercel Production usada na auditoria funcional: `dpl_HfiKFNkTHc1f9ATZjgZ6Cn7CbWzz`, `READY`, SHA `75237c6ec5c22e8f7be9eb39fd21481f6d608010`;
 - Supabase Production `scnryinorqeucbfkioxo`: `ACTIVE_HEALTHY`, 44 migrations.
+
+Commits ou deployments exclusivamente documentais posteriores não redefinem esse baseline funcional. Para o HEAD e o deployment **correntes**, consultar GitHub e Vercel diretamente.
 
 Desde o PR #237 também foram integrados:
 
@@ -51,9 +53,11 @@ PR3.1 → PR3.2 → PR3.3
 
 O PR4 antigo **não deve ser executado**. A leitura de Production em 03/09 encontrou 143 contextos sem NF de serviço já canônicos, 15 avaliações vazias/não iniciadas e zero estados legados não vazios inconsistentes. Corrigir as 15 avaliações vazias fabricaria estado que o usuário ainda não lançou.
 
-## Atualização pós-PR #237
+## Checkpoint histórico pós-PR #237
 
-A porta de entrada corrente é [`handoff/2026-08-31-pr237-fechamento-visual-e-ci.md`](handoff/2026-08-31-pr237-fechamento-visual-e-ci.md).
+> **Leitura histórica:** os blocos 0.x abaixo preservam a evolução PR #211/#214/#215 e não definem a fila atual. Quando houver linguagem temporal daquele período, prevalecem a atualização de 03/09 no topo e o handoff canônico de reconciliação.
+
+Naquele checkpoint, a porta de entrada era [`handoff/2026-08-31-pr237-fechamento-visual-e-ci.md`](handoff/2026-08-31-pr237-fechamento-visual-e-ci.md). Hoje, a entrada canônica é a reconciliação de 03/09 indicada no topo deste arquivo.
 
 O conjunto PR #218–#237 incorporou autoridade determinística dos fluxos críticos, preservação/canonização de contexto das Pendências, correções da Consulta Assessoria, abertura no mês corrente e a revisão visual do Prontuário/Pendências. As falhas de CI observadas na virada de agosto para setembro foram reclassificadas: quatro eram expectativas temporais de teste e uma era sincronização visual incremental real da bonificação da Assessoria.
 
@@ -61,9 +65,9 @@ Os blocos abaixo sobre PR #211/#214/#215 permanecem como histórico técnico nec
 
 ## 0. Hotfix publicado — PR #211
 
-O estado corrente ainda não é “iniciar PR3.1”. O hotfix isolado foi concluído e agora precisa ser conciliado com o plano mestre:
+Naquele momento, o estado ainda não era “iniciar PR3.1”: o hotfix isolado precisava ser conciliado com o plano mestre. Essa reconciliação foi concluída em 03/09 e este bloco permanece apenas como histórico técnico:
 
-- fechamento técnico corrente: [`handoff/2026-08-30-pr215-fechamento-tecnico.md`](handoff/2026-08-30-pr215-fechamento-tecnico.md);
+- fechamento técnico daquele checkpoint: [`handoff/2026-08-30-pr215-fechamento-tecnico.md`](handoff/2026-08-30-pr215-fechamento-tecnico.md);
 - encerramento histórico pós-PR #211: [`handoff/2026-08-30-pr211-publicacao-concluida.md`](handoff/2026-08-30-pr211-publicacao-concluida.md);
 - plano específico: [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md);
 - handoff histórico do Draft: [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md);
@@ -72,7 +76,7 @@ O estado corrente ainda não é “iniciar PR3.1”. O hotfix isolado foi conclu
 
 O PR #211 **não substitui o plano mestre**. Ele é um parêntese operacional necessário para corrigir uma inconsistência funcional descoberta depois das entregas anteriores.
 
-Após o merge e os smokes disponíveis de Production, é obrigatório executar:
+Naquele momento, o roteiro de continuidade exigia:
 
 ```text
 revalidar main
@@ -83,6 +87,8 @@ revalidar main
 → atualizar documentação
 → só então iniciar PR3.1
 ```
+
+Esse roteiro foi cumprido pela reconciliação de 03/09 e **não deve ser reexecutado literalmente**.
 
 O hardening foi validado no SHA funcional `530ca6cb62c385ca7ca35f30e82a723e1afed3f6` e integrado à `main` pelo merge `aa82ab4e359f62259df33842fb794aa1e654c30c`. Ele bloqueia alteração comum de Assessoria com Pendência ativa, exige tentativa real e imutável na reanálise, aplica patches mínimos nas RPCs críticas, impede reaproveitamento patrimonial indevido, mantém `a_identificar` existente fora do editor comum e torna acessível a Pendência fiscal agregada real preservada.
 
@@ -144,7 +150,7 @@ O PR #215 corrigiu a fronteira sem relaxar identidade ou dados de negócio:
 - redeploy operacional de `main`: `24e1934541b92e4399798556c05fd164c9c43801`;
 - Vercel Production: `dpl_TXwRPK2Sv72u5HtQVF3Z7ejJby3k`, `READY`.
 
-A homologação autenticada pela interface real após esse deployment ainda deve ser executada quando o ambiente Work/Cloud Browser estiver disponível.
+Naquele checkpoint, a homologação autenticada pela interface real ainda estava pendente. Essa anotação não representa mais o estado corrente: validações e refinamentos posteriores avançaram até o PR #249; o status atual está consolidado na atualização de 03/09.
 
 ## 0.3 Aprendizado estrutural pós-PR #215
 
@@ -167,14 +173,17 @@ Essa regra existe para impedir que PRs futuros repitam a sequência “corrigir 
 Ler nesta ordem:
 
 1. [`../AGENTS.md`](../AGENTS.md);
-2. [`handoff/2026-08-30-pr211-publicacao-concluida.md`](handoff/2026-08-30-pr211-publicacao-concluida.md);
+2. [`handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`](handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md);
 3. [`decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md);
-4. [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md);
-5. [`evidence/2026-08-29-pr211-classificacao-dados-legados.md`](evidence/2026-08-29-pr211-classificacao-dados-legados.md);
-6. [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md);
-7. somente depois, handoffs de execução do PR #211 e o plano mestre de 26/08.
+4. [`decisions/ADR-052-autoridade-unica-fluxos-criticos.md`](decisions/ADR-052-autoridade-unica-fluxos-criticos.md);
+5. [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md);
+6. [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md);
+7. [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) e [`DECISION_LOG.md`](DECISION_LOG.md);
+8. [`handoff/2026-09-02-dependency-governance.md`](handoff/2026-09-02-dependency-governance.md) quando a frente tocar dependências/tooling;
+9. [`superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md), lido pela reconciliação de 03/09;
+10. somente depois, os checkpoints PR #211/#215/#237 e demais históricos.
 
-O Markdown é a fonte operacional para busca, diff e execução. O Word é a versão integral para leitura e aprovação. O arquivo `.sha256` ao lado do Word permite verificar sua integridade.
+O Markdown reconciliado é a fonte operacional para busca, diff e execução. O Word de 26/08 permanece referência integral daquele plano, mas não incorpora decisões posteriores.
 
 ## 2. Fonte de verdade
 
@@ -208,7 +217,7 @@ commits posteriores exclusivamente documentais podem ser descendentes desse SHA 
 
 O PR #199 foi documental. O PR #200 corrigiu o incidente `Incorreto + Pendência`. O PR #201 versionou o plano mestre. O PR #203 introduziu o requisito inicial de boleto para Educação Conectada. O PR #208 moveu o boleto para `Tipo de Gasto`, e o PR #209 corrigiu definitivamente a duplicidade: `boleto_internet` existe somente dentro de Notas Fiscais, sem categoria documental autônoma. O PR #202 concluiu PR1 com guard canônico de submit e refresh mínimo no núcleo. O PR #206 concluiu PR2 com matriz canônica de Consulta Assessoria, planner de efeitos e no-op real. Não reimplementar essas entregas.
 
-## 4. Estado das correções
+## 4. Consolidação histórica até PR #215 e origem do plano
 
 ### Integrado e publicado
 
@@ -243,7 +252,7 @@ O PR #199 foi documental. O PR #200 corrigiu o incidente `Incorreto + Pendência
 - Supabase Production permanece `ACTIVE_HEALTHY` com 42 migrations; PR #209 não adicionou migration.
 
 
-### Plano mestre em execução — PR2 concluído
+### Plano mestre no checkpoint pós-PR2 — histórico
 
 - G0: concluído como baseline operacional do programa;
 - PR1 / PR #202: integrado, publicado e validado em Production;
@@ -253,18 +262,19 @@ O PR #199 foi documental. O PR #200 corrigiu o incidente `Incorreto + Pendência
 - Supabase Production: `ACTIVE_HEALTHY`, sem migration, backfill ou reparo;
 - smoke autenticado comprovou no-op real com zero DataService/RPC/log e bloqueio das rotas agregadas de Assessoria;
 - nenhuma outra rota genérica de escrita agregada foi encontrada na busca final;
-- PR3.1 em diante: ainda não integrados.
+- naquele checkpoint, PR3.1 em diante ainda não estavam integrados.
 
-Itens ainda não integrados do plano incluem:
+Naquele checkpoint, o plano ainda listava readiness, reparo de dados, idempotência, Pendências, escrita autoritativa e performance. A reconciliação de 03/09 reclassificou esse quadro:
 
-- readiness sistêmico em PR3.1, PR3.2 e PR3.3;
-- reparo condicionado dos dados antigos;
-- idempotência real de NF;
-- contrato único, contexto e UX de Pendências;
-- escrita remota totalmente autoritativa e incremental;
-- medição e otimização causal do bootstrap.
+- readiness sistêmico continua parcial em PR3.1–PR3.3;
+- o PR4 antigo de reparo foi superado pelo estado atual dos dados e não deve ser executado;
+- idempotência durável de NF continua pendente em PR5;
+- Pendências já recebeu contexto/UX posteriores; resta a duplicidade semântica de PR6 e apenas gaps atuais comprovados de PR7A;
+- escrita remota/autoritativa continua parcial em PR8A/PR8B;
+- medição causal e otimização continuam em PR9A/PR9C;
+- PR9B já foi atendido por caminho equivalente.
 
-PR2 não executou migration, reparo de dados, deduplicação por conteúdo, idempotência de servidor nem redesign de Pendências.
+PR2, naquele momento, não executou migration, reparo de dados, deduplicação por conteúdo, idempotência de servidor nem redesign de Pendências.
 
 
 
@@ -305,37 +315,32 @@ Não transformar qualquer exclusão ou adiamento em dependência, gate oculto ou
 - Abrir o Prontuário a partir de uma Pendência pode mudar a competência explicitamente.
 - `Ver detalhes` permanece durante este programa.
 
-## 8. Ordem aprovada
+## 8. Ordem vigente após a reconciliação de 03/09
 
 ```text
-G0
-→ PR1
-→ PR2
-→ PR3.1
+PR3.1
 → PR3.2
 → PR3.3
-→ PR4
 → PR5
 → PR6
-→ PR6B
-→ PR7A
-→ PR7B
+→ revisão focada dos gaps remanescentes de PR7A
 → PR8A
 → PR8B
 → PR9A
-→ PR9B
-→ PR9C
-→ encerramento
+→ PR9C usando a metodologia estatística de PR9B já vigente
+→ encerramento funcional
+→ reavaliar ADR-051
 ```
 
 Gates de sequência:
 
-- PR4 exige PR2 publicado e validado, seguido de preflight fresco;
 - PR3 só termina depois de PR3.3;
-- PR8A depende de PR5;
-- PR8B depende de PR8A publicado e validado;
-- PR9C depende de causa e orçamento registrados após PR9A/PR9B;
-- nenhuma entrega posterior começa antes do gate da anterior.
+- PR5 começa depois do fechamento de PR3;
+- PR6 preserva a UI aprovada e elimina apenas a duplicidade semântica comprovada;
+- PR7A só recebe mudanças para gaps atuais demonstrados, sem restaurar redesign histórico;
+- PR8A/PR8B devem completar o contrato remoto sem reintroduzir render integral nem reconciliadores duplicados;
+- PR9C depende de causa e orçamento registrados após PR9A, usando a metodologia já vigente de PR9B;
+- PR4 antigo, PR6B, PR7B e PR9B não voltam à fila como estavam escritos.
 
 ## 9. Método de execução
 
@@ -357,23 +362,18 @@ Planos são hipóteses técnicas, não autoridade superior ao código e aos ambi
 
 ## 10. Próxima ação
 
-Concluir a **reconciliação pós-hotfix PR #211/#214/#215**, validar a nova proteção arquitetural da ADR-052 e executar a homologação autenticada final antes de iniciar PR3.1.
+A reconciliação pós-hotfix foi concluída em 03/09. O próximo ponto real é **PR3.1 — readiness sistêmico remanescente**, com escopo reduzido:
 
-Sequência imediata:
-
-1. concluir os gates da proteção arquitetural/contrato executável da ADR-052;
-2. executar a homologação autenticada final da interface em Production quando o Work estiver disponível;
-3. comparar o conjunto integrado PR #211/#214/#215 com cada tarefa do plano mestre;
-4. classificar tarefas como não afetadas, parcialmente atendidas, atendidas ou alteradas;
-5. atualizar o plano mestre e o handoff de retomada sem apagar seu histórico;
-6. confirmar a ordem restante;
-7. somente então iniciar PR3.1 com gate próprio.
+1. preservar `RadarProductExtensionsReady`, ADR-052 e a ordem crítica já determinística;
+2. inventariar e migrar primeiro as esperas essenciais ainda baseadas em polling/timeout;
+3. introduzir registry de capacidades somente se ele eliminar polling e tornar falhas localizadas e observáveis;
+4. manter regras funcionais fora de wrappers de prontidão;
+5. não tocar a UI aprovada sem defeito atual comprovado;
+6. fechar PR3.1–PR3.3 antes de iniciar PR5.
 
 A Consulta Assessoria permanece individual por NF de serviço. O lookup usa `registered_invoice_id`, a abertura continua atômica e o serviço canônico bloqueia qualquer alteração comum enquanto a própria NF possui Pendência ativa. Não substituir esse desenho por lookup genérico ou fluxo paralelo em `app.js`.
 
 A classificação canônica de dados está em `evidence/2026-08-29-pr211-classificacao-dados-legados.md`.
-
-O núcleo do hotfix já foi publicado. O fechamento integral exige reconciliação documental/arquitetural e homologação autenticada final; depois disso o plano mestre pode retomar em PR3.1.
 
 ## 11. Documentos históricos preservados
 

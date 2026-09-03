@@ -13,18 +13,20 @@
 | Documento integral em Word | [`../reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx`](../reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx) |
 | Integridade do Word | [`../reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.sha256`](../reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.sha256) |
 
-> Este handoff é a porta de entrada curta. O Markdown é a fonte operacional para busca, diff e execução; o Word é a versão integral para leitura e aprovação. Nenhum dos dois autoriza sozinho escrita em Production, migration, mudança de regras do GitHub, merge ou deploy.
+> **No checkpoint de 26/08**, este handoff foi a porta de entrada curta. Hoje ele é histórico reconciliado: a entrada vigente é [`2026-09-03-reconciliacao-documental-e-plano-mestre.md`](2026-09-03-reconciliacao-documental-e-plano-mestre.md). O Markdown e o Word abaixo permanecem úteis como evidência e contrato técnico da época, mas não controlam sozinhos a sequência corrente nem autorizam escrita em Production, migration, mudança de regras do GitHub, merge ou deploy.
 
 ## 0. Atualização posterior — 28/08/2026
 
-Este handoff continua válido como origem do plano mestre, mas **não é mais a porta de entrada imediata enquanto o PR #211 estiver em andamento**.
+Durante o PR #211, este handoff deixou de ser a porta de entrada imediata porque o hotfix alterava superfícies também previstas no plano mestre.
 
-O PR #211 corrige a granularidade de análise/Pendência de Notas Fiscais e altera superfícies que também aparecem em etapas futuras do plano. Portanto, após o hotfix:
+Naquele momento, o roteiro previsto após o hotfix era:
 
 1. revalidar `main`, Vercel e Supabase;
 2. comparar o diff do PR #211 com as premissas do plano;
 3. atualizar o estado das tarefas futuras;
 4. só então retomar PR3.1.
+
+Esse roteiro foi concluído pela reconciliação de 03/09. A sequência atual deve ser obtida no handoff de 03/09, não neste checkpoint histórico.
 
 A decisão antiga “Despesa A identificar não vira automaticamente Não ou Incorreto” foi superada especificamente pelo ADR-050 no PR #211. O contrato atual é `a_identificar = Incorreto + Pendência individual obrigatória`, sem alterar automaticamente a bonificação.
 
@@ -92,7 +94,9 @@ Se alguma entrega revelar necessidade inevitável de tocar uma exclusão, parar 
 - Ir ao Prontuário a partir da Pendência pode trocar a competência de forma explícita.
 - `Ver detalhes` permanece durante este programa; sua eventual remoção exige decisão posterior.
 
-## 6. Ordem obrigatória
+## 6. Ordem obrigatória naquele checkpoint — histórica
+
+A sequência abaixo registra a ordem aprovada em 26/08 e **não é a fila executável atual**. PR4, PR6B, PR7B e PR9B foram posteriormente superados ou atendidos; consultar a reconciliação de 03/09 antes de qualquer implementação.
 
 ```text
 G0
@@ -115,7 +119,7 @@ G0
 → encerramento
 ```
 
-Dependências especiais:
+Dependências especiais daquele plano — históricas:
 
 - PR4 somente depois de PR2 publicado, validado e seguido de preflight fresco;
 - PR4 atualiza exatamente o conjunto autorizado pelo preflight, não uma quantidade rígida de quatro linhas;
@@ -141,9 +145,11 @@ Cada PR precisa registrar:
 
 Não iniciar a entrega seguinte até o gate da atual estar satisfeito.
 
-## 8. Primeira ação exata
+## 8. Primeira ação exata naquele checkpoint — superada
 
-Começar por G0, não por alteração de código:
+Esta era a primeira ação em 26/08. G0, PR1 e PR2 já foram concluídos e **não devem ser reexecutados**. A fila atual está no handoff de 03/09.
+
+Naquele checkpoint, a orientação era começar por G0, não por alteração de código:
 
 1. buscar e confirmar `origin/main`;
 2. confirmar o SHA publicado na Vercel;
@@ -152,9 +158,9 @@ Começar por G0, não por alteração de código:
 5. confirmar proteção de branch/ruleset ou documentar o gate manual substituto;
 6. só então abrir a branch isolada do PR1.
 
-O PR1 contém apenas contenção imediata do submit repetido e política mínima de refresh. Não antecipar no-op, migration, idempotência, redesign de Pendências ou refatorações oportunistas.
+O PR1 daquele plano continha apenas contenção imediata do submit repetido e política mínima de refresh. Ele já foi entregue; esta descrição permanece somente como histórico.
 
-## 9. Ordem de leitura para outro agente ou ferramenta
+## 9. Ordem de leitura naquele checkpoint — histórica
 
 1. [`../../AGENTS.md`](../../AGENTS.md);
 2. [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md);
@@ -169,6 +175,6 @@ O PR1 contém apenas contenção imediata do submit repetido e política mínima
 
 ## 10. Regra de continuidade
 
-Não recomeçar o diagnóstico do zero e não executar o plano cegamente. Revalidar premissas contra o SHA e os ambientes atuais, preservar as exclusões e seguir uma entrega por vez.
+A regra geral permanece válida: não recomeçar o diagnóstico do zero e não executar o plano cegamente. Para escolher a entrega atual, usar primeiro a reconciliação de 03/09; depois revalidar premissas contra o SHA e os ambientes correntes, preservar as exclusões e seguir uma entrega por vez.
 
 Se `main`, Vercel ou Supabase tiverem avançado, reconciliar a divergência explicitamente antes de qualquer código ou dado. O baseline `0965ba8` é o ponto de origem do plano, não uma constante eterna.
