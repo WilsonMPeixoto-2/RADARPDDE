@@ -7,6 +7,17 @@
 **Supabase Production:** `scnryinorqeucbfkioxo`, `ACTIVE_HEALTHY`, 44 migrations  
 **Nota de temporalidade:** merges exclusivamente documentais posteriores podem alterar o HEAD de `main` e o deployment da Vercel sem mudar o runtime. SHA/deployment correntes devem ser consultados ao vivo; os valores acima identificam o baseline funcional auditado nesta reconciliação.
 
+## Atualização posterior — reauditoria source-first no mesmo dia
+
+Depois do fechamento documental e do PR #252, os códigos-fonte foram reabertos no SHA `18150cc9ef7e15e2e777041fce541b847af517e1`. Essa segunda leitura refinou a sequência abaixo.
+
+**Para execução futura, este handoff deixou de ser a fila principal.** Usar:
+
+- `docs/superpowers/plans/2026-09-03-plano-remanescente-source-first.md`;
+- `docs/audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md`.
+
+A matriz PR3/PR5/PR6/PR8/PR9 deste documento permanece válida como fotografia da reconciliação anterior, mas foi decomposta em R1–R9 para dialogar com o código atual, sobretudo porque a reauditoria comprovou que `operational-write-performance.js` ainda contém autoridade funcional e precisa ser saneado antes do readiness.
+
 ## 1. Finalidade
 
 Este documento fecha a reconciliação que o plano mestre de 26/08 exigia depois do conjunto de hotfixes e melhorias posteriores.
@@ -204,31 +215,33 @@ Na retomada:
 - depois, qualquer gap funcional de PR7A deve ser provado no código/tela atuais;
 - PR7B é considerado funcionalmente atendido; eventual limpeza de decorator/polling é arquitetura de PR3/ADR-052.
 
-## 9. Sequência restante reconciliada
+## 9. Sequência executável após a reauditoria source-first
 
-A sequência antiga é substituída, para fins de execução futura, por:
+A sequência deste handoff foi substituída pela fila R1–R9:
 
 ```text
-PR3.1
-→ PR3.2
-→ PR3.3
-→ PR5
-→ PR6
-→ revisão focada dos gaps remanescentes de PR7A, sem redesenho automático
-→ PR8A
-→ PR8B
-→ PR9A
-→ PR9C usando a metodologia estatística de PR9B já vigente
-→ encerramento funcional
+R1
+→ R2A → R2B → R2C
+→ R3
+→ R4
+→ R5
+→ R6
+→ R7
+→ R8
+→ R9
 → reavaliar ADR-051 em frente própria
 ```
 
-Itens retirados da sequência:
+Mapeamento de continuidade:
 
-- PR4 antigo: superado pelo estado atual dos dados e pelas decisões posteriores;
-- PR6B: já atendido;
-- PR7B: já atendido funcionalmente;
-- PR9B: já atendido por caminho equivalente.
+- antigo PR3 → R1 + R2;
+- antigo PR5 → R3, absorvendo o contrato remoto v2 útil ao antigo PR8A;
+- antigo PR6 → R4;
+- antiga PR7A → R6, gate sem diff obrigatório;
+- antigo PR8 → R1 + R3 + R5;
+- antigo PR9A → R7;
+- antigo PR9C → R8;
+- G0/PR1/PR2/PR4/PR6B/PR7B/PR9B não voltam à fila.
 
 ## 10. Regras que o plano atualizado não pode regredir
 
@@ -258,19 +271,15 @@ A frente `2026-08-31-estabilizacao-arquitetural-jornadas-criticas.md` também pr
 - **Fase F — fixture permanente:** não há evidência de fechamento integral dessa frente.
 - **Fase G — gate de fechamento:** não concluído globalmente.
 
-Essa frente não cria uma segunda ordem concorrente. Ela passa a funcionar como **regra de implementação** para PR3, PR6 e PR8 restantes.
+Essa frente não cria uma segunda ordem concorrente. Seus princípios foram absorvidos pelo plano source-first, principalmente em R1, R2, R4 e R5.
 
 ## 12. Próximo ponto real de implementação
 
-Depois desta reconciliação documental, o primeiro item realmente pendente continua sendo o **readiness sistêmico de PR3**, mas com escopo reduzido:
+A próxima fase é **R1 — retirar autoridade funcional dos wrappers de performance**.
 
-- preservar `RadarProductExtensionsReady`, ADR-052 e a ordem crítica atual durante a migração;
-- criar o registry de capacidades somente se ele eliminar polling e tornar falhas localizadas/observáveis;
-- migrar primeiro as esperas essenciais;
-- não mover regras funcionais de volta para wrappers;
-- não tocar UI aprovada sem defeito comprovado.
+A reauditoria mostrou que `operational-write-performance.js` ainda injeta políticas de resultado/commit autoritativo, entidades incrementais e refresh exemptions. Portanto, iniciar readiness antes de mover essa autoridade poderia fazer a consistência depender de uma capacidade tratada como opcional.
 
-PR5 só começa depois do fechamento de PR3 conforme a sequência reconciliada.
+R1 deve preservar os comportamentos atuais, provar as escritas com o módulo de performance ausente e deixar performance apenas como observador. Só então R2A inicia o contrato sistêmico de readiness.
 
 ## 13. Documentos que esta reconciliação supera como porta de entrada
 
@@ -281,5 +290,5 @@ Continuam preservados como histórico/evidência:
 - `handoff/2026-08-30-pr211-publicacao-concluida.md`;
 - `handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`.
 
-O plano mestre de 26/08 **não é apagado**. Ele continua contendo contexto, contratos, gates e reversões úteis, mas sua matriz de execução passa a ser lida segundo este documento e a atualização adicionada ao próprio plano.
+O plano mestre de 26/08 **não é apagado**. Ele continua contendo contexto, contratos, gates e reversões úteis, mas sua matriz de execução foi posteriormente substituída pelo plano source-first de 03/09. Este handoff permanece como checkpoint da reconciliação que levou à reauditoria.
 
