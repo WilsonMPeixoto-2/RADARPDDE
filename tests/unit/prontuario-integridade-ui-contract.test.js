@@ -68,3 +68,12 @@ test('dados da unidade usam grupos sem colisão com o CSS operacional legado', (
     assert.doesNotMatch(cssSource, /\.school-sidebar > \.school-info-card:not\(\.school-programs-card\)/);
     assert.doesNotMatch(cssSource, /content:\s*['"]Dados da unidade['"]/);
 });
+
+
+test('ordem visual da avaliação prioriza PDDE Básico sem reordenar a fonte de dados', () => {
+    assert.match(source, /function orderProgramGroupsForPresentation/);
+    assert.match(source, /programId === 'BASIC' \? 0 : 1/);
+    assert.match(source, /leftPriority - rightPriority \|\| left\.sourceIndex - right\.sourceIndex/);
+    assert.match(source, /rowsContainer\.appendChild\(row\)/);
+    assert.doesNotMatch(source, /programasIds\.sort\(/);
+});
