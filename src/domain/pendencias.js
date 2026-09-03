@@ -177,6 +177,15 @@
         return null;
     }
 
+    function syncNextActorProjection(pendency = {}) {
+        const actor = getNextActor(pendency);
+        pendency.responsavel = actor;
+        pendency.proximoAtor = actor;
+        delete pendency.nextActor;
+        delete pendency.next_actor;
+        return actor;
+    }
+
     function getCanonicalCompetence(context = {}) {
         return normalizeText(context.competenciaOrigem || context.competencia);
     }
@@ -350,6 +359,7 @@
             motivo: errosAtuais[0],
             observacao: requireText(input.observacao, 'Observação'),
             responsavel: getNextActor({ status }),
+            proximoAtor: getNextActor({ status }),
             dataAbertura: requireText(input.dataAbertura, 'Data de abertura'),
             dataResolucao: null,
             tentativas: [],
@@ -407,7 +417,7 @@
             next.status = normalizedStatus;
         }
         if (documentary) {
-            next.responsavel = getNextActor(next);
+            syncNextActorProjection(next);
         }
 
         const isPrematureLegacyResolution = !isSchemaTwo
@@ -465,7 +475,7 @@
         next.tentativas.push(attempt);
         next.historico.push(event);
         next.status = PENDENCY_STATUS.AWAITING_REVIEW;
-        next.responsavel = getNextActor(next);
+        syncNextActorProjection(next);
         next.dataResolucao = null;
         return next;
     }
@@ -621,7 +631,7 @@
         next.status = result === 'correto'
             ? PENDENCY_STATUS.RESOLVED
             : PENDENCY_STATUS.OPEN;
-        next.responsavel = getNextActor(next);
+        syncNextActorProjection(next);
         next.dataResolucao = result === 'correto' ? event.dataHora.slice(0, 10) : null;
         next.historico.push(event);
         return next;
@@ -651,7 +661,7 @@
         );
 
         next.status = PENDENCY_STATUS.CANCELLED;
-        next.responsavel = getNextActor(next);
+        syncNextActorProjection(next);
         next.dataResolucao = null;
         next.cancelamento = {
             justificativa: justification,
@@ -687,7 +697,7 @@
         next.status = PENDENCY_STATUS.OPEN;
         next.errosAtuais = [...errors];
         next.motivo = errors[0];
-        next.responsavel = getNextActor(next);
+        syncNextActorProjection(next);
         next.dataResolucao = null;
         next.historico.push(event);
         return next;
