@@ -290,3 +290,166 @@ test('remoção de NF permanente planeja exclusão do bem derivado e reabertura 
         'administrativeLogs'
     ]);
 });
+
+
+test('nova despesa permanente com processo projeta Encaminhado para Inventariação como Sim', () => {
+    const input = baseInput({
+        existingInvoice: null,
+        contextInvoices: [],
+        contextAssets: [],
+        invoiceId: 'nota-perm-nova',
+        assetId: 'bem-perm-novo',
+        timestamp: '2026-09-03T20:30:00.000Z',
+        school: {
+            id: 'ESC-1',
+            denominação: 'Escola Teste',
+            processoInventario: 'PROC-2026/001'
+        },
+        request: {
+            schoolId: 'ESC-1',
+            compKey: '2026-05_BASIC',
+            competence: '2026-05',
+            programId: 'BASIC',
+            description: 'Notebook',
+            expenseType: 'permanente',
+            invoiceNumber: 'NF-PERM-001',
+            amount: 5000
+        }
+    });
+
+    const result = planInvoiceEffects(input);
+
+    assert.equal(result.asset.status, 'Encaminhada');
+    assert.equal(result.verification.bonificacao.encampInventario, 'Sim');
+    assert.equal(result.verification.analise.encampInventario, 'Não analisado');
+});
+
+test('nova despesa permanente sem processo projeta Encaminhado para Inventariação como Não', () => {
+    const input = baseInput({
+        existingInvoice: null,
+        contextInvoices: [],
+        contextAssets: [],
+        invoiceId: 'nota-perm-sem-processo',
+        assetId: 'bem-perm-sem-processo',
+        timestamp: '2026-09-03T20:31:00.000Z',
+        request: {
+            schoolId: 'ESC-1',
+            compKey: '2026-05_BASIC',
+            competence: '2026-05',
+            programId: 'BASIC',
+            description: 'Projetor',
+            expenseType: 'permanente',
+            invoiceNumber: 'NF-PERM-002',
+            amount: 2500
+        }
+    });
+
+    const result = planInvoiceEffects(input);
+
+    assert.equal(result.asset.status, 'Não encaminhada');
+    assert.equal(result.verification.bonificacao.encampInventario, 'Não');
+    assert.equal(result.verification.analise.encampInventario, 'Não analisado');
+});
+
+test('projeção de inventário é agregada entre múltiplas aquisições permanentes', () => {
+    const sibling = {
+        id: 'nota-perm-irma',
+        escolaId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        competencia: '2026-05',
+        programaId: 'BASIC',
+        desc: 'Impressora',
+        descricao: 'Impressora',
+        tipo: 'permanente',
+        numero: 'NF-PERM-010',
+        valor: 1800,
+        bemId: 'bem-perm-irma'
+    };
+    const input = baseInput({
+        existingInvoice: null,
+        contextInvoices: [sibling],
+        contextAssets: [{
+            id: 'bem-perm-irma',
+            escolaId: 'ESC-1',
+            competencia: '2026-05',
+            status: 'Não encaminhada'
+        }],
+        invoiceId: 'nota-perm-segunda',
+        assetId: 'bem-perm-segunda',
+        timestamp: '2026-09-03T20:32:00.000Z',
+        school: {
+            id: 'ESC-1',
+            denominação: 'Escola Teste',
+            processoInventario: 'PROC-2026/001'
+        },
+        request: {
+            schoolId: 'ESC-1',
+            compKey: '2026-05_BASIC',
+            competence: '2026-05',
+            programId: 'BASIC',
+            description: 'Notebook',
+            expenseType: 'permanente',
+            invoiceNumber: 'NF-PERM-011',
+            amount: 5000
+        }
+    });
+
+    const result = planInvoiceEffects(input);
+
+    assert.equal(result.asset.status, 'Encaminhada');
+    assert.equal(result.verification.bonificacao.encampInventario, 'Não');
+});
+
+test('remoção do último permanente restaura Encaminhado para Inventariação para Não se aplica', () => {
+    const permanentInvoice = {
+        ...baseInput().existingInvoice,
+        tipo: 'permanente',
+        desc: 'Notebook',
+        descricao: 'Notebook',
+        numero: 'NF-PERM-LAST',
+        valor: 5000,
+        bemId: 'bem-last'
+    };
+    const input = baseInput({
+        operation: 'remove',
+        existingInvoice: permanentInvoice,
+        contextInvoices: [permanentInvoice],
+        contextAssets: [{
+            id: 'bem-last',
+            escolaId: 'ESC-1',
+            competencia: '2026-05',
+            status: 'Encaminhada'
+        }],
+        currentAsset: {
+            id: 'bem-last',
+            escolaId: 'ESC-1',
+            competencia: '2026-05',
+            item: 'PDDE Básico - Notebook',
+            descricao: 'PDDE Básico - Notebook',
+            tipo: 'permanente',
+            valor: 5000,
+            notaFiscal: 'NF-PERM-LAST',
+            processoInventario: 'PROC-2026/001',
+            status: 'Encaminhada'
+        },
+        verification: {
+            bonificacao: {
+                notaFiscal: 'Sim',
+                consAssessoria: 'Não se aplica',
+                consEnviada: false,
+                encampInventario: 'Sim'
+            },
+            analise: {
+                notaFiscal: 'Correto',
+                consAssessoria: 'Correto',
+                encampInventario: 'Correto'
+            },
+            resultadoBonif: ''
+        }
+    });
+
+    const result = planInvoiceEffects(input);
+
+    assert.equal(result.verification.bonificacao.encampInventario, 'Não se aplica');
+    assert.equal(result.verification.analise.encampInventario, 'Correto');
+});

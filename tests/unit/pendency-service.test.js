@@ -679,6 +679,9 @@ test('novo envio identifica despesa como bem permanente e inclui o bem na mesma 
     assert.equal(harness.state.registeredInvoices[0].numero, 'NF-PERM-2500');
     assert.equal(harness.state.assets.length, 1);
     assert.equal(harness.state.registeredInvoices[0].bemId, harness.state.assets[0].id);
+    assert.equal(harness.state.assets[0].status, 'Não encaminhada');
+    assert.equal(verification.bonificacao.encampInventario, 'Não');
+    assert.equal(verification.analise.encampInventario, 'Não analisado');
     assert.equal(submitted.value.pendency.status, 'Aguardando reanálise');
     assert.deepEqual(
         harness.calls.at(-1).changedEntities,
