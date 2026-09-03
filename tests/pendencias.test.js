@@ -60,6 +60,7 @@ function createOpenPendencyFixture() {
         motivo: 'Documento ilegível',
         observacao: 'O extrato não permite conferir os dados.',
         responsavel: 'Escola',
+        proximoAtor: 'Escola',
         dataAbertura: '2026-05-31',
         dataResolucao: null,
         tentativas: [],
