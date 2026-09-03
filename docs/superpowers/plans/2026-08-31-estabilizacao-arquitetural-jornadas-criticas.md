@@ -1,5 +1,8 @@
 # Plano de estabilização arquitetural das jornadas críticas
 
+
+> **Estado reconciliado em 03/09/2026:** Fase A foi concluída pelo PR #221; Fases B/C estão parciais; Fase D permanece pendente; Fase E está avançada mas incompleta segundo a matriz funcional; Fase F permanece pendente; Fase G está parcial. Este plano deve ser executado junto com o handoff [`../../handoff/2026-09-03-reconciliacao-plano-mestre-pos-hotfixes.md`](../../handoff/2026-09-03-reconciliacao-plano-mestre-pos-hotfixes.md), sem recriar APIs ou wrappers já estabilizados pelos PRs #218/#219/#221/#222.
+
 **Data:** 31 de agosto de 2026  
 **Baseline:** `79e20734802f2240c794af992d0192d8dd428526`  
 **Objetivo:** reduzir recorrência de regressões causadas por regras duplicadas, contexto reconstruído em múltiplas camadas e composição implícita de wrappers/extensões.
