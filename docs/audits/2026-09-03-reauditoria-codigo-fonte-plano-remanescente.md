@@ -173,7 +173,7 @@ Entretanto:
 - o fallback de `createPendencyClientId` combina relógio e aleatoriedade não criptográfica;
 - `DirectoryService` é criado antes de `transactionalDependencies` e ainda pode cair em `prefix-Date.now()`;
 - `InvoiceService`, `InventoryService`, `PendencyService` e `VerificationService` ainda conservam fallbacks `prefix-Date.now()`;
-- `src/domain/retificacoes.js` possui fallback `retificacao-1788442444601`;
+- `src/domain/retificacoes.js` possui fallback `retificacao-${Date.now()}`;
 - `task-12-13-retificacoes.js` possui gerador próprio baseado em `Date.now() + Math.random()`;
 - há caminhos diretos em `app.js` que geram identificador/operação de contato/cobrança fora da autoridade compartilhada.
 
