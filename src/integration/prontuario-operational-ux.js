@@ -1,3 +1,4 @@
+/* global activeSchoolId, bens, notasRegistradas */
 (function installRadarProntuarioOperationalUx(root) {
     'use strict';
 
@@ -7,9 +8,19 @@
     const CONSOLIDATED_BONUS_LABELS = new Set(['apta', 'inapta']);
     let installed = false;
     let originalRenderProntuario = null;
+    let renderedSchoolId = '';
 
     function text(value) {
         return value == null ? '' : String(value).trim();
+    }
+
+    function formatCurrency(value) {
+        return Number(value || 0).toLocaleString('pt-BR', {
+            style: 'currency',
+            currency: 'BRL',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
     }
 
     function getVerificationRows() {
@@ -32,6 +43,146 @@
         });
 
         return groups;
+    }
+
+    function getRegisteredInvoices() {
+        try {
+            return Array.isArray(notasRegistradas) ? notasRegistradas : [];
+        } catch (_error) {
+            return [];
+        }
+    }
+
+    function getAssets() {
+        try {
+            return Array.isArray(bens) ? bens : [];
+        } catch (_error) {
+            return [];
+        }
+    }
+
+    function resolveSchoolId(explicitSchoolId = '') {
+        const explicit = text(explicitSchoolId);
+        if (explicit) return explicit;
+        try {
+            return text(activeSchoolId) || renderedSchoolId;
+        } catch (_error) {
+            return renderedSchoolId;
+        }
+    }
+
+    function invoiceBelongsToContext(invoice, schoolId, competenceKey, programId) {
+        if (text(invoice?.escolaId) !== text(schoolId) || text(invoice?.tipo) !== 'permanente') {
+            return false;
+        }
+        const compKey = text(invoice?.compKey);
+        if (!compKey) return false;
+        if (root.RadarCompetencia?.splitCompetenciaContext) {
+            try {
+                const context = root.RadarCompetencia.splitCompetenciaContext(compKey);
+                return text(context?.competenciaKey) === text(competenceKey)
+                    && text(context?.contextId) === text(programId);
+            } catch (_error) {
+                return false;
+            }
+        }
+        return compKey === `${text(competenceKey)}_${text(programId)}`;
+    }
+
+    function inventoryStatusClass(status) {
+        if (status === 'Inventariada') return 'is-inventoried';
+        if (status === 'Encaminhada') return 'is-forwarded';
+        if (status === 'Não encaminhada') return 'is-pending';
+        return 'is-missing';
+    }
+
+    function createInventoryLinkedEntry(invoice, asset) {
+        const entry = root.document.createElement('div');
+        const invoiceId = text(invoice?.id);
+        const invoiceNumber = text(invoice?.numero) || invoiceId || 'sem número';
+        const description = text(invoice?.desc || invoice?.descricao || asset?.item || asset?.descricao)
+            || 'Bem permanente';
+        const status = text(asset?.status) || 'Bem vinculado não localizado';
+        entry.className = 'inventory-document-link';
+        entry.dataset.inventoryLinkedInvoiceId = invoiceId;
+        entry.setAttribute('role', 'group');
+        entry.setAttribute(
+            'aria-label',
+            `NF ${invoiceNumber}; ${description}; ${formatCurrency(invoice?.valor)}; ${status}`
+        );
+
+        const connector = root.document.createElement('span');
+        connector.className = 'inventory-document-link-connector';
+        connector.setAttribute('aria-hidden', 'true');
+        connector.textContent = '↳';
+
+        const copy = root.document.createElement('span');
+        copy.className = 'inventory-document-link-copy';
+        const title = root.document.createElement('strong');
+        title.textContent = `NF: ${invoiceNumber}`;
+        const meta = root.document.createElement('span');
+        meta.textContent = `${description} · ${formatCurrency(invoice?.valor)}`;
+        copy.append(title, meta);
+
+        const badge = root.document.createElement('span');
+        badge.className = `inventory-document-link-status ${inventoryStatusClass(status)}`;
+        badge.textContent = status;
+        if (text(asset?.processoInventario)) {
+            badge.title = `Processo de inventário: ${text(asset.processoInventario)}`;
+        }
+
+        entry.append(connector, copy, badge);
+        return entry;
+    }
+
+    function decorateInventoryLinks(group, schoolId) {
+        const inventoryRow = group.rows.find(row => row.dataset.documentKey === 'encampInventario');
+        if (!inventoryRow) return;
+        const nameCell = inventoryRow.querySelector('.verification-document-name-cell');
+        if (!nameCell) return;
+
+        const existing = nameCell.querySelector('[data-inventory-document-links]');
+        const competenceKey = getActiveCompetenceKey();
+        const programId = text(inventoryRow.dataset.programId);
+        const resolvedSchoolId = resolveSchoolId(schoolId);
+        if (!competenceKey || !programId || !resolvedSchoolId) {
+            existing?.remove();
+            return;
+        }
+
+        const permanentInvoices = getRegisteredInvoices().filter(invoice => (
+            invoiceBelongsToContext(invoice, resolvedSchoolId, competenceKey, programId)
+        ));
+        if (!permanentInvoices.length) {
+            existing?.remove();
+            return;
+        }
+
+        const assetsById = new Map(getAssets().map(asset => [text(asset?.id), asset]));
+        const panel = existing || root.document.createElement('div');
+        panel.className = 'inventory-document-links';
+        panel.dataset.inventoryDocumentLinks = 'true';
+        panel.setAttribute(
+            'aria-label',
+            'Aquisições permanentes vinculadas ao encaminhamento para inventariação'
+        );
+        panel.replaceChildren();
+
+        const caption = root.document.createElement('span');
+        caption.className = 'inventory-document-links-caption';
+        caption.textContent = permanentInvoices.length === 1
+            ? '1 aquisição patrimonial vinculada'
+            : `${permanentInvoices.length} aquisições patrimoniais vinculadas`;
+        panel.appendChild(caption);
+
+        permanentInvoices.forEach(invoice => {
+            const assetId = text(invoice?.bemId || invoice?.linkedAssetId || invoice?.linked_asset_id);
+            panel.appendChild(createInventoryLinkedEntry(invoice, assetsById.get(assetId) || null));
+        });
+
+        if (!existing) {
+            nameCell.querySelector('.verification-document-cell')?.insertAdjacentElement('afterend', panel);
+        }
     }
 
     function orderProgramGroupsForPresentation(groups) {
@@ -266,7 +417,7 @@
         return true;
     }
 
-    function enhanceProntuario(referenceDate = new Date()) {
+    function enhanceProntuario(referenceDate = new Date(), schoolId = '') {
         const rows = getVerificationRows();
         decorateCompetenceTabs(referenceDate);
         if (!rows.length) {
@@ -274,9 +425,11 @@
             return false;
         }
 
+        const resolvedSchoolId = resolveSchoolId(schoolId);
         orderProgramGroupsForPresentation(getProgramGroups(rows)).forEach(group => {
             decorateProgramGroup(group);
             moveServiceAdvisoryControls(group);
+            decorateInventoryLinks(group, resolvedSchoolId);
             applyLateCorrectRestriction(group);
         });
         applyFutureCompetenceReadOnly(referenceDate);
@@ -289,11 +442,12 @@
         installed = true;
         originalRenderProntuario = root.renderProntuario;
         root.renderProntuario = function renderProntuarioWithOperationalUx(...args) {
+            renderedSchoolId = text(args[0]) || renderedSchoolId;
             const result = originalRenderProntuario.apply(this, args);
-            enhanceProntuario();
+            enhanceProntuario(new Date(), renderedSchoolId);
             return result;
         };
-        enhanceProntuario();
+        enhanceProntuario(new Date(), resolveSchoolId());
         return true;
     }
 
