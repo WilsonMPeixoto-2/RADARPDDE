@@ -57,13 +57,13 @@ O baseline atual incorpora, entre outros:
 
 A correção de `ASSET-02`, por exemplo, já existe no código com `saveAssetWithLog`, versão esperada e auditoria. A matriz continua distinguindo **correção implementada** de **prova ponta a ponta completa**.
 
-O diagnóstico iniciado em 24/08 e consolidado depois do PR #200 confirmou:
+A reconciliação de 03/09 reclassificou o diagnóstico de 24/08:
 
-- submit repetido pode duplicar uma inclusão de despesa;
-- `invoice:save` ainda possui lacunas de no-op semântico, idempotência de servidor e refresh mínimo no núcleo;
+- o duplo submit imediato foi contido pelo PR1/#202, mas retry/perda de resposta ainda não têm idempotência durável no servidor;
+- o no-op semântico e o planejador de efeitos já existem pelo PR2/#206; não devem ser reimplementados;
 - os contextos históricos inconsistentes de Consulta Assessoria sem NF de serviço não permanecem como dívida atual: a leitura de Production em 03/09 encontrou zero estados legados não vazios inconsistentes; 15 avaliações vazias/não iniciadas não devem ser normalizadas automaticamente;
-- módulos funcionais podem deixar de se instalar depois do timeout fixo de dez segundos;
-- a regra transversal de Pendências está correta, mas a fila exige novo contrato de prioridade, filtros, ações e hierarquia visual.
+- readiness sistêmico ainda é lacuna real porque o registry planejado não existe e há polling residual em integrações;
+- Pendências já possui fila, filtros, detalhe, mobile, exportação e layout aprovados; o trabalho remanescente é remover duplicidade semântica e provar apenas gaps funcionais atuais, sem restaurar o redesign histórico.
 
 O plano mestre canônico está em [`docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md). O antigo item 20, a proteção de senhas vazadas, o PR #195 e a deduplicação de NF por conteúdo permanecem fora desta frente.
 
