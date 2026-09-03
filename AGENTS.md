@@ -198,7 +198,7 @@ Preservar:
 - reanálise pode ser executada por Controlador, Assistente e `technical_admin`; SME e Inventário permanecem bloqueados para essa mutação;
 - tentativas permanecem sincronizadas com `pendency_attempts` e com a verificação relacionada;
 - nota permanente e bem derivado permanecem coerentes na mesma operação protegida;
-- quando uma operação inclui, identifica, converte, remove ou **encaminha** despesa/bem `permanente` vinculado, `encampInventario` deve ser derivado do conjunto de bens vinculados do mesmo contexto escola + competência + programa: nenhum permanente = `Não se aplica`; algum não encaminhado = `Não`; todos `Encaminhada`/`Inventariada` = `Sim`; a análise técnica não é aprovada por herança quando o conjunto patrimonial muda ou quando a situação de encaminhamento muda; o encaminhamento posterior de bem vinculado reutiliza `saveInvoiceWithEffects` para preservar atomicidade de NF + bem + verificação + log;
+- quando uma operação inclui, identifica, converte ou remove despesa `permanente`, `encampInventario` deve ser derivado do conjunto de bens vinculados do mesmo contexto escola + competência + programa: nenhum permanente = `Não se aplica`; algum não encaminhado = `Não`; todos `Encaminhada`/`Inventariada` = `Sim`; a análise técnica não é aprovada por herança quando o conjunto patrimonial muda;
 - edição patrimonial usa serviço autorizado, versão esperada e log.
 
 No contrato vigente após PR #209 e no PR #211, **não existe documento autônomo `boletoInternet`**. `boleto_internet` existe somente como **Tipo de Gasto dentro de Notas Fiscais**, exclusivo de Educação Conectada. Não possui linha documental, bonificação, análise técnica ou Pendência independente e não participa de Consulta Assessoria.
