@@ -224,6 +224,31 @@ test('cancela, reabre resolvida e registra contato sem alterar estados indevidos
 });
 
 
+test('serviço reabre Pendência cancelada preservando o evento de cancelamento no histórico', async () => {
+    const harness = createHarness();
+    const opened = await harness.service.open(documentaryInput);
+    const cancelled = await harness.service.cancel({
+        pendencyId: opened.value.pendency.id,
+        justification: 'Registro lançado no contexto errado.'
+    });
+    assert.equal(cancelled.value.pendency.status, 'Cancelada');
+
+    const reopened = await harness.service.reopen({
+        pendencyId: opened.value.pendency.id,
+        justification: 'A pendência é necessária após nova conferência.',
+        errors: ['Documento incompleto']
+    });
+
+    assert.equal(reopened.value.pendency.status, 'Aberta');
+    assert.equal(reopened.value.pendency.responsavel, 'Escola');
+    assert.deepEqual(reopened.value.pendency.errosAtuais, ['Documento incompleto']);
+    assert.ok(reopened.value.pendency.cancelamento);
+    assert.deepEqual(
+        reopened.value.pendency.historico.slice(-2).map(event => event.tipo),
+        ['cancelamento', 'reabertura']
+    );
+});
+
 test('registra todos os canais de contato preservando a Pendência e os dados informados', async () => {
     const harness = createHarness();
     const opened = await harness.service.open(documentaryInput);
