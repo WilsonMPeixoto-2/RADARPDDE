@@ -1,6 +1,6 @@
 # RADAR PDDE 2026 — Contexto funcional e arquitetural
 
-**Atualizado em:** 30 de agosto de 2026
+**Atualizado em:** 3 de setembro de 2026
 **Classe documental:** Canônico
 
 ## 1. Finalidade
@@ -24,15 +24,18 @@ Dashboard, Carteira, Competências, Prontuário, Pendências, Inventário, Regis
 
 O baseline mutável corrente fica em [`CURRENT_STAGE.md`](CURRENT_STAGE.md).
 
-O hotfix publicado de Notas Fiscais está documentado em [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md) e [`handoff/2026-08-30-pr211-publicacao-concluida.md`](handoff/2026-08-30-pr211-publicacao-concluida.md). Ele não substitui o plano mestre.
+A retomada do plano mestre foi reconciliada contra o código e Production em [`handoff/2026-09-03-reconciliacao-plano-mestre-pos-hotfixes.md`](handoff/2026-09-03-reconciliacao-plano-mestre-pos-hotfixes.md). Esse handoff prevalece sobre listas antigas de “próximos passos”.
 
-O checkpoint canônico pós-PR #200 das correções atuais está em [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md).
+Baseline verificado em 03/09:
 
-O checkpoint pós-PR #193 permanece como histórico técnico da estabilização anterior em [`handoff/2026-08-23-post-pr-193.md`](handoff/2026-08-23-post-pr-193.md).
+- `main`: merge do PR #249, `75237c6ec5c22e8f7be9eb39fd21481f6d608010`;
+- Vercel Production: `dpl_HfiKFNkTHc1f9ATZjgZ6Cn7CbWzz`, `READY`;
+- Supabase Production: `scnryinorqeucbfkioxo`, 44 migrations;
+- matriz funcional: 44 operações, incluindo `EXP-03` para exportação XLSX de Pendências.
 
-O snapshot de encerramento de 18/08/2026 permanece histórico em [`handoff/2026-08-18-encerramento-operacional.md`](handoff/2026-08-18-encerramento-operacional.md).
+O hotfix de individualização fiscal, os handoffs PR #211/#215 e o plano de 26/08 continuam relevantes como histórico técnico, mas não controlam sozinhos o presente.
 
-Este documento descreve contratos estáveis e não deve ser usado para presumir SHA, deployment, contagem de migrations ou versão de Edge Function sem nova consulta ao remoto.
+Este documento descreve contratos estáveis e não deve ser usado para presumir valores voláteis sem nova consulta ao remoto.
 
 ## 3. Regra de precedência
 
@@ -204,6 +207,19 @@ interação
 ```
 
 `renderProntuario()` integral não é rotina de sucesso. Fica reservado a bootstrap, navegação, erro, retorno incompleto ou inconsistência que não possa ser reconciliada com segurança.
+
+## 7.1 Decisões supervenientes de setembro
+
+Preservar também:
+
+- **Declaração BB Ágil:** aceita `Não se aplica`; esse estado é válido para consolidação, projeta análise técnica neutra `Correto`, bloqueia edição técnica enquanto N/A e não pode apagar semanticamente uma Pendência ativa;
+- **Consulta Assessoria:** zero NF de serviço projeta `Não se aplica / false / Correto`; a projeção agregada é derivada e somente leitura;
+- **Comunicação externa:** o nome interno `RADAR PDDE` não integra e-mail, WhatsApp, ofício ou cobrança oficial gerados pelo sistema; cobrança termina somente em `Atenciosamente`;
+- **Pendências XLSX:** a tela possui exportação editorial própria, conforme busca e filtros atuais, com auditoria obrigatória;
+- **ordem dos programas:** PDDE Básico aparece primeiro apenas na apresentação da avaliação; a ordem persistida de `programasIds` não é alterada;
+- **Lighthouse:** metodologia corrente usa três execuções + mediana; os pisos não são elevados para absorver oscilação.
+
+A reconciliação do plano mestre não pode desfazer essas decisões.
 
 ## 8. Pendências
 
