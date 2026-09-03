@@ -652,6 +652,12 @@
                 invoice.escolaId === initialContext.schoolId
                 && invoice.compKey === initialContext.compKey
             ));
+            const contextAssetIds = new Set(
+                contextInvoices.map(invoice => text(invoice.bemId)).filter(Boolean)
+            );
+            const contextAssets = initialState.assets.filter(asset => (
+                contextAssetIds.has(text(asset.id))
+            ));
             const currentAsset = existing?.bemId
                 ? initialState.assets.find(asset => asset.id === existing.bemId) || null
                 : null;
@@ -669,6 +675,7 @@
                 existingInvoice: existing,
                 request,
                 contextInvoices,
+                contextAssets,
                 currentAsset,
                 verification: initialContext.verification,
                 school: initialContext.school,
@@ -1194,6 +1201,12 @@
                 invoice.escolaId === initialContext.schoolId
                 && invoice.compKey === initialContext.compKey
             ));
+            const contextAssetIds = new Set(
+                contextInvoices.map(invoice => text(invoice.bemId)).filter(Boolean)
+            );
+            const contextAssets = initialState.assets.filter(asset => (
+                contextAssetIds.has(text(asset.id))
+            ));
             const currentAsset = initialInvoice.bemId
                 ? initialState.assets.find(asset => asset.id === initialInvoice.bemId) || null
                 : null;
@@ -1201,6 +1214,7 @@
                 operation: 'remove',
                 existingInvoice: initialInvoice,
                 contextInvoices,
+                contextAssets,
                 currentAsset,
                 verification: initialContext.verification,
                 school: initialContext.school,
