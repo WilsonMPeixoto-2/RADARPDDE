@@ -1,28 +1,24 @@
 # Documentação do RADAR PDDE
 
-**Estado de referência:** 31 de agosto de 2026
+**Estado de referência:** 3 de setembro de 2026
 **Classe documental:** Canônico — índice
 
 ## 0. Frente ativa
 
-A frente ativa é o **fechamento pós-PR #237**, com saneamento das expectativas temporais de CI, correção da sincronização visual da Consulta Assessoria, revisão de dependências e reconciliação documental antes da próxima publicação de Production.
+A frente ativa é a **retomada reconciliada do plano mestre após o PR #249**. A reconciliação documental e funcional foi concluída em 03/09 diretamente contra `main`, Vercel Production e Supabase Production.
 
 Ler primeiro:
 
-- [`handoff/2026-08-31-pr237-fechamento-visual-e-ci.md`](handoff/2026-08-31-pr237-fechamento-visual-e-ci.md) — estado corrente após PR #237;
-- [`handoff/2026-08-30-pr215-fechamento-tecnico.md`](handoff/2026-08-30-pr215-fechamento-tecnico.md) — histórico técnico após PR #215;
-- [`handoff/2026-08-30-pr211-retomada-work.md`](handoff/2026-08-30-pr211-retomada-work.md) — histórico da retomada que antecedeu o fechamento;
-- [`CURRENT_STAGE.md`](CURRENT_STAGE.md);
-- [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md);
-- [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md);
+- [`handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`](handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md) — porta de entrada atual e matriz do que falta;
+- [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — estado corrente;
+- [`handoff/2026-09-02-dependency-governance.md`](handoff/2026-09-02-dependency-governance.md) — manutenção de dependências vigente;
 - [`decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md);
 - [`decisions/ADR-052-autoridade-unica-fluxos-criticos.md`](decisions/ADR-052-autoridade-unica-fluxos-criticos.md);
-- [`evidence/2026-08-29-pr211-classificacao-dados-legados.md`](evidence/2026-08-29-pr211-classificacao-dados-legados.md);
-- [`evidence/2026-08-28-pr211-referencias-visuais.md`](evidence/2026-08-28-pr211-referencias-visuais.md).
+- [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md);
+- [`architecture/pendency-excel-export.md`](architecture/pendency-excel-export.md);
+- [`handoff/2026-08-31-pr237-fechamento-visual-e-ci.md`](handoff/2026-08-31-pr237-fechamento-visual-e-ci.md) — histórico imediatamente anterior.
 
-**Atenção:** as decisões de 29/08 sobre dados legados, fixtures, Boleto 1234 e Consulta Assessoria superam interpretações anteriores do hotfix. Nova sessão não deve restaurar decisões antigas por confundi-las com regressão.
-
-Esse hotfix **não substitui o plano mestre**. Depois da homologação autenticada final, a retomada do plano de 26/08 exige reconciliação explícita do que o conjunto PR #211/#214/#215 já modificou, solucionou ou tornou desnecessário.
+**Atenção:** planos e handoffs anteriores não podem restaurar decisões superadas. O plano mestre de 26/08 continua como contrato técnico, mas sua ordem de execução foi reconciliada em 03/09 para retirar tarefas já atendidas e impedir regressões.
 
 ## 1. Onde começar
 
@@ -72,17 +68,18 @@ Valores voláteis sempre devem ser consultados no remoto quando a tarefa depende
 ## 2. Ordem de leitura recomendada
 
 1. [`../AGENTS.md`](../AGENTS.md);
-2. [`handoff/2026-08-30-pr211-retomada-work.md`](handoff/2026-08-30-pr211-retomada-work.md);
+2. [`handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`](handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md);
 3. [`CURRENT_STAGE.md`](CURRENT_STAGE.md);
-4. [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md);
-5. [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md);
-6. [`decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md);
-7. [`evidence/2026-08-29-pr211-classificacao-dados-legados.md`](evidence/2026-08-29-pr211-classificacao-dados-legados.md);
-8. [`evidence/2026-08-28-pr211-referencias-visuais.md`](evidence/2026-08-28-pr211-referencias-visuais.md);
-9. [`DECISION_LOG.md`](DECISION_LOG.md) e [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md);
-10. [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md);
-11. [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md);
-12. somente depois, handoffs de 27/08 e o plano mestre de 26/08 para contexto histórico e retomada futura.
+4. [`decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md);
+5. [`decisions/ADR-052-autoridade-unica-fluxos-criticos.md`](decisions/ADR-052-autoridade-unica-fluxos-criticos.md);
+6. [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md);
+7. [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md);
+8. [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) e [`DECISION_LOG.md`](DECISION_LOG.md);
+9. [`handoff/2026-09-02-dependency-governance.md`](handoff/2026-09-02-dependency-governance.md);
+10. [`superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md) para detalhes das etapas ainda vigentes;
+11. somente depois, handoffs e evidências históricas anteriores.
+
+A leitura do plano mestre deve começar pela seção de reconciliação de 03/09 adicionada ao próprio arquivo.
 
 ## 3. Decisões atuais que não podem ser perdidas
 
