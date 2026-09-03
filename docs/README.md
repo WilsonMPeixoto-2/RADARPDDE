@@ -115,22 +115,20 @@ Não há telemetria externa, persistência das métricas ou coleta de dados de n
 
 ## 6. Documentos canônicos e referências
 
+- [`superpowers/plans/2026-09-03-plano-remanescente-source-first.md`](superpowers/plans/2026-09-03-plano-remanescente-source-first.md) — plano executável corrente;
 - [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — estado corrente;
-- [`handoff/2026-08-30-pr215-fechamento-tecnico.md`](handoff/2026-08-30-pr215-fechamento-tecnico.md) — roteamento canônico corrente;
-- [`handoff/2026-08-30-pr211-retomada-work.md`](handoff/2026-08-30-pr211-retomada-work.md) — histórico de retomada do PR #211;
-- [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md) — checkpoint operacional atual;
-- [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md) — plano executável do hotfix;
-- [`decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md) — contrato vigente;
-- [`evidence/2026-08-29-pr211-classificacao-dados-legados.md`](evidence/2026-08-29-pr211-classificacao-dados-legados.md) — classificação autoritativa de legados e fixtures;
-- [`handoff/2026-08-27-hotfix-boleto-internet.md`](handoff/2026-08-27-hotfix-boleto-internet.md) — histórico do PR #203, superado no modelo ativo pelos PRs #208/#209;
-- [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md) — checkpoint para retomada somente após o PR #211;
-- [`superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md) — sequência canônica de implementação;
-- [`reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx`](reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx) — relatório integral versionado;
-- [`handoff/2026-08-23-post-pr-193.md`](handoff/2026-08-23-post-pr-193.md) — checkpoint histórico anterior;
+- [`audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md`](audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md) — evidência do escopo remanescente;
+- [`handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`](handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md) — checkpoint canônico antecedente;
+- [`decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md) — contrato vigente de NF/Pendências individuais;
+- [`decisions/ADR-051-adiamento-hardening-registered-invoices.md`](decisions/ADR-051-adiamento-hardening-registered-invoices.md) — hardening adiado até após R9;
+- [`decisions/ADR-052-autoridade-unica-fluxos-criticos.md`](decisions/ADR-052-autoridade-unica-fluxos-criticos.md) — autoridade/composição de fluxos críticos;
+- [`handoff/2026-09-02-dependency-governance.md`](handoff/2026-09-02-dependency-governance.md) — governança vigente de dependências;
+- [`superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md) — contrato técnico histórico, não fila executável;
+- [`superpowers/plans/2026-08-31-estabilizacao-arquitetural-jornadas-criticas.md`](superpowers/plans/2026-08-31-estabilizacao-arquitetural-jornadas-criticas.md) — referência arquitetural histórica absorvida por R1/R2/R4/R5;
 - [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — contratos funcionais/arquiteturais estáveis;
 - [`DECISION_LOG.md`](DECISION_LOG.md) — decisões históricas e duradouras;
-- [`decisions/`](decisions/) — ADRs detalhadas;
 - [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md) — validade documental;
+- [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md) — visão gerada do contrato funcional vigente;
 - [`reference/PRODUCT_SURFACE_CATALOG.md`](reference/PRODUCT_SURFACE_CATALOG.md) — superfícies e UX;
 - [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md) — governança de validação;
 - [`../AGENTS.md`](../AGENTS.md) — regras de trabalho.
@@ -157,7 +155,7 @@ Não há telemetria externa, persistência das métricas ou coleta de dados de n
 
 Arquivos datados em `docs/audits/`, `docs/evidence/`, `docs/superpowers/`, `docs/handoff/` e `docs/reports/` preservam o momento em que foram produzidos. Eles não devem ser reescritos para coincidir com o presente e não prevalecem sobre o código/ambiente atual.
 
-O handoff pós-PR #215 e o handoff de 26/08 são checkpoints históricos. A porta de entrada corrente é a reconciliação de 03/09; documentos anteriores permanecem disponíveis para rastreabilidade, mas seus “próximos passos” não controlam mais a execução.
+O handoff pós-PR #215, o handoff de 26/08 e a reconciliação pós-hotfix são checkpoints históricos/canônicos de suas etapas. A porta de entrada executável corrente é o plano source-first de 03/09; documentos anteriores permanecem disponíveis para rastreabilidade, mas seus “próximos passos” não controlam mais a execução.
 
 ## 9. Continuidade
 
