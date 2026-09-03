@@ -5,8 +5,10 @@
 -- 2) Consulta Assessoria individual com múltiplas NFs de serviço, em que
 --    uma NF irmã Incorreta deve manter o agregado mensal Incorreto.
 --
--- Não altera dados existentes. As funções continuam security invoker,
--- com a mesma assinatura, RLS/grants e optimistic concurrency.
+-- As funções continuam security invoker, com a mesma assinatura, RLS/grants
+-- e optimistic concurrency. Ao final há reconciliação conservadora apenas de
+-- projeções derivadas já comprovadamente stale; nenhum estado histórico vazio
+-- recebe análise ou Pendência inventada.
 
 create or replace function public.register_invoice_document_attempt(
     p_invoice jsonb,
