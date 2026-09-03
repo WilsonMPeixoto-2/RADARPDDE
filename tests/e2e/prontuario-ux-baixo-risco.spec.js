@@ -189,7 +189,7 @@ test.describe('Prontuário — refinamentos UX de baixo risco', () => {
     await expect(assessoriaRow.getByText('Sim', { exact: true })).toBeVisible();
   });
 
-  test('separa visualmente os programas sem duplicar a estrutura da avaliação', async ({ page }, testInfo) => {
+  test('mantém PDDE Básico em primeiro somente na ordem visual da avaliação', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário exclusivo do projeto desktop.');
 
     await page.goto('/');
@@ -199,29 +199,57 @@ test.describe('Prontuário — refinamentos UX de baixo risco', () => {
       const competencia = activeCompetenciaKey;
       const escola = escolas.find(candidate => (
         Array.isArray(candidate.programasIds)
-        && candidate.programasIds.length >= 2
+        && candidate.programasIds.includes('BASIC')
+        && candidate.programasIds.some(programId => programId !== 'BASIC')
         && isCompetenceInScope(candidate.competenciaInicial, competencia)
       ));
 
+      const originalProgramIds = [...escola.programasIds];
+      const firstNonBasic = originalProgramIds.find(programId => programId !== 'BASIC');
+      const sourceOrder = [
+        firstNonBasic,
+        'BASIC',
+        ...originalProgramIds.filter(programId => (
+          programId !== 'BASIC' && programId !== firstNonBasic
+        ))
+      ];
+
+      escola.programasIds = [...sourceOrder];
       activeProntuarioCompetencia = competencia;
       switchView('prontuario', escola.id);
+
+      const renderedOrder = Array.from(document.querySelectorAll(
+        '#prontuario-verif-rows tr.program-block-start'
+      )).map(row => row.dataset.programId);
+
+      const renderedNames = Array.from(document.querySelectorAll(
+        '#prontuario-verif-rows tr.program-block-start .program-context-name'
+      )).map(element => element.textContent.trim());
+
+      escola.programasIds = originalProgramIds;
+
       return {
-        programCount: escola.programasIds.length,
-        programNames: escola.programasIds.map(programId => (
-          programas.find(program => program.id === programId)?.name || programId
-        ))
+        sourceOrder,
+        renderedOrder,
+        renderedNames,
+        programCount: originalProgramIds.length,
+        sourceRestored: escola.programasIds.join('|') === originalProgramIds.join('|')
       };
     });
 
+    expect(context.sourceOrder[0]).not.toBe('BASIC');
+    expect(context.renderedOrder[0]).toBe('BASIC');
+    expect(context.renderedOrder.slice(1)).toEqual(
+      context.sourceOrder.filter(programId => programId !== 'BASIC')
+    );
+    expect(context.renderedNames[0]).toBe('PDDE Básico');
+    expect(context.sourceRestored).toBe(true);
+
     const starts = page.locator('#prontuario-verif-rows tr.program-block-start');
     await expect(starts).toHaveCount(context.programCount);
-
-    for (let index = 0; index < context.programCount; index += 1) {
-      const start = starts.nth(index);
-      await expect(start.locator('.program-context-cell')).toHaveCount(1);
-      await expect(start.locator('.program-context-competence')).not.toHaveText('');
-      await expect(start.locator('.program-context-name')).toHaveText(context.programNames[index]);
-    }
+    await expect(starts.first().locator('.program-context-cell')).toHaveCount(1);
+    await expect(starts.first().locator('.program-context-competence')).not.toHaveText('');
+    await expect(starts.first().locator('.program-context-name')).toHaveText('PDDE Básico');
 
     const firstBorderWidth = await starts.first().locator('td').first().evaluate(element => (
       getComputedStyle(element).borderTopWidth

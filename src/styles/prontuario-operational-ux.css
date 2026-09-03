@@ -195,3 +195,98 @@ body.dark-theme #prontuario-verif-rows tr.verification-document-row.is-striped >
     }
 
 }
+
+
+/* Polimento editorial da avaliação mensal: hierarquia, alinhamento e contraste. */
+#tab-verificacoes .table-responsive {
+    border: 1px solid color-mix(in srgb, var(--primary) 10%, var(--border-color));
+    border-radius: 14px;
+    background: var(--bg-card);
+}
+
+#tab-verificacoes table.data-table > thead th {
+    vertical-align: middle;
+    color: var(--text-main);
+    font-family: var(--font-heading);
+    font-size: 0.72rem;
+    font-weight: 750;
+    letter-spacing: 0.035em;
+    line-height: 1.25;
+}
+
+#prontuario-verif-rows > tr > td {
+    line-height: 1.45;
+}
+
+#prontuario-verif-rows .program-context-cell {
+    min-width: 190px;
+    padding: 18px 16px 16px;
+    vertical-align: top;
+}
+
+#prontuario-verif-rows .program-context-competence {
+    color: var(--text-main);
+    font-family: var(--font-heading);
+    font-size: 0.92rem;
+    font-weight: 720;
+    letter-spacing: -0.01em;
+}
+
+#prontuario-verif-rows .program-context-name {
+    margin-top: 6px;
+    font-family: var(--font-heading);
+    font-size: 0.94rem !important;
+    font-weight: 760 !important;
+    letter-spacing: -0.01em;
+}
+
+#prontuario-verif-rows .program-status-summary {
+    gap: 8px;
+    margin: 14px 0 10px;
+}
+
+#prontuario-verif-rows .program-status-summary > div {
+    min-height: 28px;
+    align-items: center;
+    gap: 10px;
+}
+
+#prontuario-verif-rows .program-status-summary > div > span:first-child {
+    color: color-mix(in srgb, var(--text-main) 72%, var(--text-muted));
+    font-size: 0.72rem;
+    font-weight: 650;
+}
+
+#prontuario-verif-rows .program-status-summary .badge {
+    min-width: 96px;
+    justify-content: center;
+    font-weight: 700;
+}
+
+#prontuario-verif-rows .verification-document-copy strong {
+    color: var(--text-dark);
+    font-size: 0.91rem;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+}
+
+#prontuario-verif-rows tr.verification-document-row > td > .btn-group-toggle,
+#prontuario-verif-rows tr.verification-document-row > td > .select-analise {
+    min-height: 36px;
+    margin-inline: auto;
+}
+
+#prontuario-verif-rows tr.verification-document-row > td > .select-analise {
+    min-width: 142px;
+}
+
+@media (max-width: 900px) {
+    #prontuario-verif-rows .program-context-cell {
+        min-width: 172px;
+        padding-inline: 14px;
+    }
+
+    #prontuario-verif-rows .program-status-summary .badge {
+        min-width: 88px;
+    }
+}

@@ -86,3 +86,11 @@ test('tela de pendências oferece download da planilha editorial', () => {
   assert.match(pendencyCss, /\.pendency-page-header-actions/);
   assert.match(pendencyCss, /\.pendency-export-button/);
 });
+
+
+test('botão da planilha usa verde Excel com estados acessíveis', () => {
+  assert.match(pendencyCss, /\.pendency-export-button\.btn-primary \{[\s\S]*background: #217346/);
+  assert.match(pendencyCss, /\.pendency-export-button\.btn-primary:hover:not\(:disabled\) \{[\s\S]*background: #185c37/);
+  assert.match(pendencyCss, /\.pendency-export-button\.btn-primary:focus-visible/);
+  assert.match(pendencyCss, /outline: 3px solid rgba\(33, 115, 70, 0\.28\)/);
+});

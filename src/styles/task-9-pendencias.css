@@ -18,6 +18,32 @@
     white-space: nowrap;
 }
 
+.pendency-export-button.btn-primary {
+    border-color: #217346;
+    background: #217346;
+    color: #ffffff;
+    box-shadow: 0 6px 16px rgba(33, 115, 70, 0.20);
+}
+
+.pendency-export-button.btn-primary:hover:not(:disabled) {
+    border-color: #185c37;
+    background: #185c37;
+    color: #ffffff;
+    box-shadow: 0 8px 20px rgba(24, 92, 55, 0.26);
+}
+
+.pendency-export-button.btn-primary:focus-visible {
+    outline: 3px solid rgba(33, 115, 70, 0.28);
+    outline-offset: 2px;
+}
+
+.pendency-export-button.btn-primary:disabled {
+    border-color: #8bb8a0;
+    background: #8bb8a0;
+    color: #ffffff;
+    box-shadow: none;
+}
+
 .pendency-export-button svg {
     flex: 0 0 auto;
 }
