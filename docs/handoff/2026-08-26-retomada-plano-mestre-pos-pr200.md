@@ -1,5 +1,7 @@
 # RADAR PDDE — Handoff canônico do plano mestre pós-PR #200
 
+> **Checkpoint histórico reconciliado em 03/09/2026.** Este arquivo preserva o estado pós-PR #200 e as decisões incorporadas depois, mas não é mais a porta de entrada para execução. Usar primeiro [`2026-09-03-reconciliacao-documental-e-plano-mestre.md`](2026-09-03-reconciliacao-documental-e-plano-mestre.md), que compara o plano com código, Supabase e Vercel atuais e retira tarefas já atendidas ou superadas.
+
 | Campo | Valor |
 | --- | --- |
 | Data de referência | 26 de agosto de 2026 |
