@@ -234,9 +234,19 @@ function createInventoryHarness(configureState) {
     configureState?.(state);
     const rpcCalls = [];
     const repository = {
+        capabilities: () => ({ atomicInvoiceEffects: true }),
         saveAssetWithLog: async input => {
-            rpcCalls.push(structuredClone(input));
+            rpcCalls.push({ kind: 'asset', ...structuredClone(input) });
             return { asset: input.asset, administrative_log: input.administrativeLog };
+        },
+        saveInvoiceWithEffects: async input => {
+            rpcCalls.push({ kind: 'invoice-effects', ...structuredClone(input) });
+            return {
+                invoice: input.invoice,
+                asset: input.asset,
+                verification: input.verificationPatch,
+                administrative_log: input.administrativeLog
+            };
         }
     };
     const data = createDataService(state, repository);
@@ -281,6 +291,64 @@ test('encaminhamento de bem e log usam versão esperada na mesma RPC', async () 
     assert.equal(harness.rpcCalls.length, 1);
     assert.equal(harness.rpcCalls[0].expectedVersion, 3);
     assert.equal(harness.rpcCalls[0].asset.status, 'Encaminhada');
+    assert.equal(harness.rpcCalls[0].administrativeLog.action, 'Capital Encaminhado');
+    assert.equal(harness.getDefaultPersistCalls(), 0);
+});
+
+test('encaminhamento de bem vinculado usa a RPC de efeitos da NF e sincroniza a verificação', async () => {
+    const harness = createInventoryHarness(state => {
+        state.assets.push({
+            id: 'asset-linked-1', escolaId: '04.10.001', competencia: '2026-05',
+            item: 'Projetor', descricao: 'Projetor', tipo: 'permanente', valor: 2500,
+            notaFiscal: 'NF-LINKED-1', processoInventario: '', status: 'Não encaminhada', rowVersion: 3
+        });
+        state.registeredInvoices.push({
+            id: 'invoice-linked-1',
+            escolaId: '04.10.001',
+            compKey: '2026-05_BASIC',
+            competencia: '2026-05',
+            programaId: 'BASIC',
+            desc: 'Projetor',
+            descricao: 'Projetor',
+            tipo: 'permanente',
+            numero: 'NF-LINKED-1',
+            valor: 2500,
+            bemId: 'asset-linked-1',
+            rowVersion: 7
+        });
+        state.verifications = {
+            '04.10.001': {
+                '2026-05_BASIC': {
+                    bonificacao: {
+                        notaFiscal: 'Sim',
+                        encampInventario: 'Não'
+                    },
+                    analise: {
+                        notaFiscal: 'Correto',
+                        encampInventario: 'Correto'
+                    },
+                    resultadoBonif: '',
+                    rowVersion: 6
+                }
+            }
+        };
+    });
+
+    const result = await harness.service.forward({
+        profile: 'controlador',
+        assetId: 'asset-linked-1'
+    });
+
+    assert.equal(result.value.inventoryDelivery, 'Sim');
+    assert.equal(harness.rpcCalls.length, 1);
+    assert.equal(harness.rpcCalls[0].kind, 'invoice-effects');
+    assert.equal(harness.rpcCalls[0].expectedInvoiceVersion, 7);
+    assert.equal(harness.rpcCalls[0].expectedAssetVersion, 3);
+    assert.equal(harness.rpcCalls[0].expectedVerificationVersion, 6);
+    assert.equal(harness.rpcCalls[0].invoice.id, 'invoice-linked-1');
+    assert.equal(harness.rpcCalls[0].asset.status, 'Encaminhada');
+    assert.equal(harness.rpcCalls[0].verificationPatch.bonification.encampInventario, 'Sim');
+    assert.equal(harness.rpcCalls[0].verificationPatch.analysis.encampInventario, 'Não analisado');
     assert.equal(harness.rpcCalls[0].administrativeLog.action, 'Capital Encaminhado');
     assert.equal(harness.getDefaultPersistCalls(), 0);
 });
