@@ -34,6 +34,29 @@
         return groups;
     }
 
+    function orderProgramGroupsForPresentation(groups) {
+        const rowsContainer = root.document.getElementById('prontuario-verif-rows');
+        if (!rowsContainer || groups.length < 2) return groups;
+
+        const ordered = groups
+            .map((group, sourceIndex) => ({
+                group,
+                sourceIndex,
+                programId: text(group.rows[0]?.dataset?.programId)
+            }))
+            .sort((left, right) => {
+                const leftPriority = left.programId === 'BASIC' ? 0 : 1;
+                const rightPriority = right.programId === 'BASIC' ? 0 : 1;
+                return leftPriority - rightPriority || left.sourceIndex - right.sourceIndex;
+            });
+
+        ordered.forEach(({ group }) => {
+            group.rows.forEach(row => rowsContainer.appendChild(row));
+        });
+
+        return ordered.map(item => item.group);
+    }
+
     function decorateProgramGroup(group) {
         const firstRow = group.rows[0];
         if (!firstRow || !group.contextCell) return;
@@ -251,7 +274,7 @@
             return false;
         }
 
-        getProgramGroups(rows).forEach(group => {
+        orderProgramGroupsForPresentation(getProgramGroups(rows)).forEach(group => {
             decorateProgramGroup(group);
             moveServiceAdvisoryControls(group);
             applyLateCorrectRestriction(group);
