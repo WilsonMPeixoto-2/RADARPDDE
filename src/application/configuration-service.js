@@ -94,6 +94,7 @@
             return this.dataService.execute({
                 name: 'configuration:save-calendar',
                 changedEntities: ['appConfig', 'administrativeLogs'],
+                remoteResultIsAuthoritative: true,
                 mutate: () => {
                     const { config, competences } = this.getState();
                     if (!config || !Array.isArray(competences)) {
@@ -128,6 +129,7 @@
             return this.dataService.execute({
                 name: 'configuration:create-exercise',
                 changedEntities: ['appConfig', 'competences', 'administrativeLogs'],
+                remoteRefreshExemptEntities: ['administrativeLogs'],
                 mutate: () => {
                     const { config, competences } = this.getState();
                     if (!config || !Array.isArray(competences)) {
