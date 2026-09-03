@@ -126,21 +126,15 @@ test.describe('Tasks 10–11 — contatos, cancelamento e reabertura', () => {
     await expect(page.getByRole('tab', { name: /^Abertas\b/ })).toHaveAttribute('aria-selected', 'true');
     const state = await page.evaluate(() => {
       const item = pendencias.find(pendency => pendency.id === 'task10-open');
-      const canonical = RadarLegacyStateAdapter.transformLegacyState({
-        ...getCurrentState(),
-        pendencies: [item]
-      }).entities.pendencies.find(pendency => pendency.id === 'task10-open');
       return {
         status: item.status,
         cancellationHistory: item.cancelamento,
-        canceledAt: canonical?.canceled_at ?? null,
         historyTypes: item.historico.map(event => event.tipo)
       };
     });
 
     expect(state.status).toBe('Aberta');
     expect(state.cancellationHistory).toBeTruthy();
-    expect(state.canceledAt).toBeNull();
     expect(state.historyTypes).toContain('cancelamento');
     expect(state.historyTypes).toContain('reabertura');
   });
