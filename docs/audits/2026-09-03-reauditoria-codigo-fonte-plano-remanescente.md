@@ -100,9 +100,42 @@ Isso é incompatível com a intenção arquitetural atual: **a ausência de um m
 
 Há ainda uma dependência artificial em `prontuario-conditional-reconciler.js`: o instalador exige `RadarOperationalWritePerformance`, embora a lógica de reconciliação não utilize essa API como autoridade de negócio.
 
+### Inventário efetivo confirmado antes da implementação
+
+A leitura dos objetos reais enviados a `DataService.execute()` permite reduzir R1 sem criar um novo registry de políticas por nome.
+
+Políticas hoje injetadas pelo wrapper e que devem passar a ser **declarações explícitas do próprio comando/serviço**:
+
+- `remoteResultIsAuthoritative`: calendário; cadastro/desativação de programa; atribuição individual/em lote de Controlador; abertura, novo envio, cancelamento, reabertura e contato de Pendência; quatro operações de Inventário;
+- `remoteCommitIsAuthoritative`: `school:save`, `pendency:reanalyze` e `invoice:update-service-advisory`;
+- `incrementalStateEntities`: bonificação, análise técnica e consolidação em `VerificationService`, além de `invoice:update-service-advisory`;
+- `remoteRefreshExemptEntities: ['administrativeLogs']`: `configuration:create-exercise`; `invoice:save` e `invoice:remove` já declaram essa exceção diretamente e não devem ser reescritos.
+
+A regra global que permite isentar **somente** `administrativeLogs` de releitura não pertence a um serviço específico. Hoje ela é aplicada pelo wrapper de performance por `sanitizeRefreshExemptEntities()`. Ao retirar o wrapper, essa proteção deve migrar para o **DataService**, preservando o comportamento de ignorar isenções inseguras em vez de permitir que uma entidade mutável deixe de ser reconciliada.
+
+A inspeção também mostrou que criar outro mapa central por nome de comando apenas mudaria o esconderijo da mesma autoridade. A solução preferida de R1 é, portanto:
+
+1. política específica declarada no comando que a conhece;
+2. invariantes globais de reconciliação aplicadas pelo DataService;
+3. nenhuma tabela paralela de nomes em módulo opcional ou novo “registry de consistência”.
+
+### Consolidação da reconciliação visual
+
+`operational-write-performance.js` e `prontuario-conditional-reconciler.js` envolvem os mesmos cinco handlers em camadas sucessivas. O primeiro suprime `renderProntuario()` e sincroniza o programa; o segundo sincroniza ações condicionais e Pendências.
+
+Criar um terceiro reconciliador seria aumentar a composição justamente quando o objetivo é reduzi-la. A solução preferida é **absorver a sincronização funcional hoje presente no módulo de performance em `prontuario-conditional-reconciler.js`**, mantendo um único wrapper funcional para esses handlers. O módulo de performance conserva apenas a correlação/medição da persistência. A instrumentação de aplicação/estabilidade pode ser chamada pelo reconciliador de forma fail-open, sem tornar diagnóstico uma dependência funcional.
+
 ### Decisão de planejamento
 
-Antes de tornar performance/readiness opcional, mover a autoridade de consistência para serviços/DataService/StatePort ou para um contrato funcional explícito. O módulo de performance deve permanecer apenas com medição, tracing e otimização.
+Antes de tornar performance/readiness opcional:
+
+- declarar a política específica diretamente nos comandos/serviços atuais;
+- mover a whitelist global de refresh exemption para o DataService;
+- consolidar a reconciliação visual no `prontuario-conditional-reconciler.js`;
+- retirar a dependência de instalação em `RadarOperationalWritePerformance`;
+- deixar `operational-write-performance.js` somente com medição/tracing fail-open.
+
+
 
 ## 5. Achado B — readiness melhorou nos fluxos críticos, mas a inicialização sistêmica continua fragmentada
 
