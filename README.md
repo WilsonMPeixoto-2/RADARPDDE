@@ -2,7 +2,7 @@
 
 Sistema institucional de acompanhamento operacional do PDDE da 4ª CRE/SME-Rio. O produto organiza competência mensal, carteira de unidades, prontuário, análise documental, pendências, contatos, notas fiscais, patrimônio, Gestão de Equipe, acompanhamento gerencial e exportações.
 
-> **Estado reconciliado em 31 de agosto de 2026:** a `main` avançou até o PR #237, incorporando as correções pós-PR215, abertura no mês corrente e o refinamento visual aprovado do Prontuário/Pendências. O saneamento atual corrige expectativas temporais de CI que ficaram presas a agosto e uma falha real de sincronização visual da bonificação da Consulta Assessoria. A próxima publicação de Production só deve ocorrer depois dos gates e da revisão das dependências abertas. Estado completo: [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md) e [handoff pós-PR237](docs/handoff/2026-08-31-pr237-fechamento-visual-e-ci.md).
+> **Estado reconciliado em 3 de setembro de 2026:** a `main` está no merge do PR #249 (`75237c6`) e Production está `READY` no mesmo baseline funcional. O ciclo posterior ao PR #237 incorporou N/A na Declaração BB Ágil, governança de dependências, proteção da comunicação externa, planilha editorial de Pendências, PDDE Básico primeiro somente na apresentação e novo polimento visual. A reconciliação do plano mestre foi refeita a partir do código e de Production. Estado completo: [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md) e [handoff de reconciliação pós-hotfixes](docs/handoff/2026-09-03-reconciliacao-plano-mestre-pos-hotfixes.md).
 
 ## Fontes de verdade
 
@@ -44,28 +44,25 @@ Documentação antiga não redefine o código para ficar “coerente”. Quando 
 
 ## Correções consolidadas e diagnóstico atual
 
-O plano mestre pós-auditoria permanece vigente, mas sua retomada está condicionada ao fechamento e à reconciliação do conjunto PR #211/#214/#215. O hotfix publicado mantém a bonificação de Notas Fiscais agregada, individualiza análise e Pendência por `registered_invoice_id`, cria nova `a_identificar` apenas como `Incorreto + Pendência`, preserva 16 registros legítimos como **Registro legado** e removeu somente fixtures técnicas comprovadas por limpeza fail-closed. O resultado da publicação está documentado no handoff de encerramento indicado abaixo.
+A retomada do plano mestre de 26/08 foi reconciliada contra o **código atual**, migrations, testes e Production. Não se deve mais iniciar PR3.1 e seguir a sequência antiga literalmente.
 
-O baseline atual incorpora, entre outros:
+Estado reconciliado:
 
-- PR #150: transição segura entre perfis da equipe usando a mesma conta Auth;
-- PR #154: redistribuição de carteira bloqueada ao Controlador também no serviço e banco;
-- PR #157: criação de exercício com lote correto de doze competências;
-- PR #160: sincronização de competências remotas antes do primeiro render;
-- PR #161: remoção da dependência de `listUsers`, lookup Auth exato e reparo de resíduos legados;
-- PR #162: remediações `SCH-01`, `CFG-02`, `INV-01`, `ASSET-02`, `PEND-02`, `EXP-01` e `EXP-02`.
+- G0/PR1/PR2: concluídos;
+- PR3 readiness: parcial, porque a cadeia crítica foi tornada determinística pelo PR #222, mas ainda existem módulos com polling/timeout;
+- PR4 reparo condicionado da Assessoria: pendente e confirmado como relevante por preflight read-only atual;
+- PR5 idempotência real/IDs persistentes: pendente;
+- PR6 semântica única de ação/prioridade: parcial;
+- PR6B: atendido funcionalmente;
+- PR7A/PR7B: atendidos em essência pela fila atual, mobile, acessibilidade e refinamentos posteriores;
+- PR8: parcial, com StatePort/DataService incremental já existentes, mas contrato remoto autoritativo de NF ainda incompleto;
+- PR9A: pendente;
+- PR9B: concluído antecipadamente pelo PR #239 com três execuções + mediana, sem elevar pisos;
+- PR9C: pendente e condicionado à medição causal.
 
-A correção de `ASSET-02`, por exemplo, já existe no código com `saveAssetWithLog`, versão esperada e auditoria. A matriz continua distinguindo **correção implementada** de **prova ponta a ponta completa**.
+O handoff canônico é [`docs/handoff/2026-09-03-reconciliacao-plano-mestre-pos-hotfixes.md`](docs/handoff/2026-09-03-reconciliacao-plano-mestre-pos-hotfixes.md).
 
-O diagnóstico iniciado em 24/08 e consolidado depois do PR #200 confirmou:
-
-- submit repetido pode duplicar uma inclusão de despesa;
-- `invoice:save` ainda possui lacunas de no-op semântico, idempotência de servidor e refresh mínimo no núcleo;
-- quatro contextos foram historicamente observados com Consulta Assessoria vazia sem NF de serviço; o conjunto atual deve ser recalculado por preflight;
-- módulos funcionais podem deixar de se instalar depois do timeout fixo de dez segundos;
-- a regra transversal de Pendências está correta, mas a fila exige novo contrato de prioridade, filtros, ações e hierarquia visual.
-
-O plano mestre canônico está em [`docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md). O antigo item 20, a proteção de senhas vazadas, o PR #195 e a deduplicação de NF por conteúdo permanecem fora desta frente.
+Decisões posteriores ao plano que **não podem regredir** incluem: individualização fiscal/Assessoria por `registered_invoice_id`; `a_identificar` atômico com Pendência; fronteira `row_version` fora do payload; autoridade dividida da Assessoria; N/A da Declaração BB Ágil; Boleto de Internet somente como tipo de gasto em Notas Fiscais; comunicação externa sem o nome interno do sistema; fila de Pendências transversal; e PDDE Básico primeiro apenas na ordem visual.
 
 ## Garantia operacional
 
@@ -76,7 +73,7 @@ O projeto possui:
 - auditoria agregada de vinte invariantes de integridade;
 - backup/restauração em pilhas descartáveis;
 - gate remoto por perfil e viewport;
-- matriz funcional executável de 43 operações;
+- matriz funcional executável de 44 operações;
 - infraestrutura integrada de smoke autenticado somente leitura.
 
 O smoke autenticado de Production permanece desativado até provisionamento explícito de cinco identidades técnicas exclusivas. Contas pessoais ou operacionais não devem ser reutilizadas para monitoramento.
@@ -100,6 +97,17 @@ O smoke autenticado de Production permanece desativado até provisionamento expl
 - certificação OOXML e reabertura;
 - homologação no Microsoft Excel desktop;
 - auditoria inicial obrigatória antes do download.
+
+### Pendências XLSX
+
+- exportação própria da tela de Pendências;
+- abas `RESUMO` e `PENDÊNCIAS`;
+- respeita busca e filtros atuais;
+- inclui as quatro situações canônicas;
+- formatação editorial com indicadores executivos;
+- sem UUIDs/chaves técnicas no relatório;
+- ExcelJS sob demanda;
+- auditoria antes do download e registro de conclusão.
 
 ## Desenvolvimento e verificação
 
@@ -131,27 +139,32 @@ npm run check:functional-matrix
 Ordem de leitura:
 
 1. [`AGENTS.md`](AGENTS.md);
-2. [`docs/handoff/2026-08-31-pr237-fechamento-visual-e-ci.md`](docs/handoff/2026-08-31-pr237-fechamento-visual-e-ci.md);
+2. [`docs/handoff/2026-09-03-reconciliacao-plano-mestre-pos-hotfixes.md`](docs/handoff/2026-09-03-reconciliacao-plano-mestre-pos-hotfixes.md);
 3. [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md);
 4. [`docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md);
 5. [`docs/decisions/ADR-052-autoridade-unica-fluxos-criticos.md`](docs/decisions/ADR-052-autoridade-unica-fluxos-criticos.md);
-6. [`docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md`](docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md);
-7. [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md), [`docs/DECISION_LOG.md`](docs/DECISION_LOG.md) e [`docs/reference/STATUS_DOCUMENTOS.md`](docs/reference/STATUS_DOCUMENTOS.md);
-8. [`docs/superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](docs/superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md);
-9. [`docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md`](docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md);
-10. [`docs/handoff/2026-08-30-pr211-publicacao-concluida.md`](docs/handoff/2026-08-30-pr211-publicacao-concluida.md) como histórico do estado imediatamente anterior ao PR #215;
-11. somente depois, os demais handoffs históricos e o plano mestre de 26/08.
+6. [`docs/DECISION_LOG.md`](docs/DECISION_LOG.md), incluindo ADR-053;
+7. [`docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md`](docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md);
+8. [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md) e [`docs/reference/STATUS_DOCUMENTOS.md`](docs/reference/STATUS_DOCUMENTOS.md);
+9. [`docs/handoff/2026-09-02-dependency-governance.md`](docs/handoff/2026-09-02-dependency-governance.md);
+10. somente depois, planos e handoffs históricos.
 
-A porta de entrada vigente é o handoff pós-PR #237; o handoff pós-PR #215 permanece histórico e técnico. Auditorias e planos anteriores permanecem históricos e não podem restaurar decisões superadas.
+O plano mestre de 26/08 continua valioso como catálogo técnico, mas sua sequência antiga está subordinada ao handoff de reconciliação de 03/09.
 
 ## Próxima sequência
 
-1. concluir os gates de autoridade/composição da ADR-052 e a homologação autenticada final;
-2. comparar o conjunto integrado PR #211/#214/#215 com o plano mestre;
-3. classificar tarefas futuras como não afetadas, parcialmente atendidas, atendidas ou alteradas;
-4. atualizar o plano mestre e o handoff de retomada;
-5. só então iniciar PR3.1, PR3.2 e PR3.3, cada qual com gate próprio, e seguir as demais fases na ordem aprovada;
-6. executar PR8A antes de PR8B;
-7. medir em PR9A, estabilizar a metodologia em PR9B e só então otimizar por hipótese em PR9C.
+```text
+PR3-R — readiness remanescente
+→ PR4-R — preflight/reparo condicionado da Assessoria
+→ PR5-R — IDs seguros + idempotência server-side de NF
+→ PR6-R — autoridade semântica única da fila
+→ PR8-R — resultado remoto autoritativo/reconciliação
+→ PR9A-R — instrumentação causal
+→ PR9C-R — otimização por hipótese medida
+→ reavaliar ADR-051
+→ fechamento integral
+```
+
+PR6B, PR7A, PR7B e PR9B não devem ser recriados: seus objetivos já foram absorvidos pelo produto atual. Cada frente remanescente deve começar por inspeção do SHA corrente e preservar as decisões posteriores ao plano.
 
 Nenhum PR, documento ou Preview autoriza por si só merge, migration ou mudança de Production fora do escopo aprovado.
