@@ -6,23 +6,21 @@
 
 Antes de analisar ou alterar o repositório, leia **nesta ordem**:
 
-1. `docs/handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md` — porta de entrada corrente e matriz do que ainda falta;
-2. `docs/CURRENT_STAGE.md` — estado corrente, baseline e sequência real;
-3. `docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md` — contrato funcional vigente de Notas Fiscais/Pendências individuais;
-4. `docs/decisions/ADR-052-autoridade-unica-fluxos-criticos.md` — autoridade, bootstrap e composição dos fluxos críticos;
-5. `docs/reference/STATUS_DOCUMENTOS.md` — validade e precedência dos documentos;
-6. `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md` — visão gerada do contrato funcional vigente;
-7. `docs/PROJECT_CONTEXT.md` e `docs/DECISION_LOG.md`;
-8. `docs/handoff/2026-09-02-dependency-governance.md` quando a frente tocar dependências/tooling;
-9. `docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md` — detalhes das etapas ainda vigentes, começando pela reconciliação de 03/09 incluída no próprio arquivo;
-10. somente depois, handoffs, evidências e planos históricos anteriores;
+1. `docs/superpowers/plans/2026-09-03-plano-remanescente-source-first.md` — plano executável corrente, organizado em R1–R9;
+2. `docs/CURRENT_STAGE.md` — estado corrente, baseline e próxima fase;
+3. `docs/audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md` — evidência source-first que sustenta o novo escopo;
+4. `docs/handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md` — checkpoint imediatamente anterior;
+5. `docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`;
+6. `docs/decisions/ADR-052-autoridade-unica-fluxos-criticos.md`;
+7. `docs/reference/STATUS_DOCUMENTOS.md` e `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md`;
+8. `docs/PROJECT_CONTEXT.md` e `docs/DECISION_LOG.md`;
+9. `docs/handoff/2026-09-02-dependency-governance.md` quando a frente tocar dependências/tooling;
+10. somente depois, planos/handoffs históricos de 26/08–31/08;
 11. código, GitHub, Vercel e Supabase correspondentes à frente, revalidados ao vivo quando houver dado volátil.
 
-**Regra de continuidade:** o handoff de 03/09, o código atual, ADR-050/ADR-052 e decisões posteriores prevalecem sobre checkpoints anteriores no ponto em que houver conflito. Não restaurar uma tarefa, regra ou layout antigo apenas porque aparece em plano histórico.
+**Regra de continuidade:** código atual, decisões vigentes e o plano source-first prevalecem sobre a sequência histórica do plano de 26/08. Não restaurar tarefa, regra, wrapper ou layout antigo apenas porque aparece em plano histórico.
 
-**Regra específica do plano mestre:** PR4 antigo, PR6B, PR7B e PR9B não voltam à fila de implementação como estavam escritos. A sequência restante e a classificação de cada etapa ficam no handoff de 03/09.
-
-Auditorias externas são insumo de investigação, não ordem de implementação. Se uma auditoria propuser caminho diferente, comparar primeiro com o SHA atual e com a reconciliação vigente.
+**Regra específica do programa remanescente:** a fila corrente usa fases **R1–R9**, que não são números de Pull Request. G0/PR1/PR2/PR6B/PR7B/PR9B não voltam; PR4 antigo é proibido como reparo automático; a antiga PR7A virou gate de equivalência sem diff obrigatório; ADR-051 permanece fora de R1–R9.
 
 ## 2. Identidade do produto
 

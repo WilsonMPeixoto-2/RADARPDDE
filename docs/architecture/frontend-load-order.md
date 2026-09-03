@@ -1,7 +1,7 @@
 # Ordem de carregamento e precedência do frontend
 
 **Estado:** vigente  
-**Atualizado em:** 6 de agosto de 2026
+**Atualizado em:** 3 de setembro de 2026
 
 ## 1. Finalidade
 
@@ -193,20 +193,24 @@ Um `<script>` existente somente é aceito se o contrato global esperado estiver 
 
 ## 8. Auth, rotas e extensões de produto
 
-Após `auth-gate.js`, a cadeia de navegação instala política, rotas, histórico e extensões pós-núcleo. O detalhe permanece em [`product-extensions-load-order.md`](product-extensions-load-order.md).
+Após `auth-gate.js`, os módulos de navegação são solicitados serialmente como `navigation-routes.js → navigation-policy.js → navigation-bootstrap.js → navigation-history.js`. O próprio `navigation-routes.js` instala dinamicamente `product-extensions-bootstrap.js`, cuja cadeia interna é documentada em [`product-extensions-load-order.md`](product-extensions-load-order.md).
 
-Resumo:
+Resumo de autoridade, sem fingir uma linearidade que o carregamento dinâmico não possui:
 
 ```text
 auth-gate
-→ navigation bootstrap/policy/routes/history
-→ product-extensions-bootstrap
-→ timeline
-→ navigation-context-bootstrap
-→ navigation-context
+├─ navigation-routes → instala product-extensions-bootstrap
+├─ navigation-policy
+├─ navigation-bootstrap
+└─ navigation-history
+
+product-extensions-bootstrap
+→ proteção atômica primeiro
+→ extensões funcionais
+→ diagnóstico/performance/reconciliação/feedback conforme a ordem corrente
 ```
 
-A aplicação operacional permanece inerte até a autorização terminar.
+A rota pendente só é aplicada quando dados, autorização, competência e histórico de navegação estão prontos. O plano source-first R2 preserva esse contrato e elimina somente readiness residual baseado em polling/símbolos globais.
 
 ## 9. Composição de wrappers
 
@@ -223,7 +227,7 @@ Ordem incorreta pode capturar `undefined`, perder comportamento ou duplicar obse
 
 ## 10. Polling e observadores
 
-`MutationObserver` e polling limitado sustentam compatibilidade com renderização tardia do núcleo. Remoção exige entrypoint explícito equivalente e testes de duplicidade, foco e responsividade.
+`MutationObserver` e polling ainda aparecem por motivos distintos. A reauditoria source-first de 03/09 exige classificar cada ocorrência: readiness crítico/restrito, compatibilidade temporária ou runtime legítimo. Não remover timers mecanicamente. Polling usado como contrato de instalação só sai quando houver sinal determinístico equivalente; `MutationObserver` que observa DOM criado depois da instalação pode permanecer.
 
 ## 11. Regras para mudança
 

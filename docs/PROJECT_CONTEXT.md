@@ -24,7 +24,7 @@ Dashboard, Carteira, Competências, Prontuário, Pendências, Inventário, Regis
 
 O baseline mutável corrente fica em [`CURRENT_STAGE.md`](CURRENT_STAGE.md).
 
-A porta de entrada canônica é [`handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`](handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md), que reconcilia o plano mestre de 26/08 com o código, Supabase Production e Vercel Production atuais.
+A porta de entrada executável canônica é [`superpowers/plans/2026-09-03-plano-remanescente-source-first.md`](superpowers/plans/2026-09-03-plano-remanescente-source-first.md), sustentada pela [`reauditoria direta do código-fonte`](audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md). O handoff de reconciliação de 03/09 permanece como checkpoint canônico imediatamente anterior.
 
 O hotfix de Notas Fiscais permanece documentado em [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md) e [`handoff/2026-08-30-pr211-publicacao-concluida.md`](handoff/2026-08-30-pr211-publicacao-concluida.md), agora como histórico técnico protegido pelas decisões posteriores.
 
@@ -133,7 +133,7 @@ Regras vigentes:
 - N/A → Sim/Não reinicializa derivações incompatíveis, incluindo análise técnica de NF para `Não analisado` quando aplicável;
 - operação semanticamente idêntica ao estado atual é idempotente e não deve produzir nova persistência, novo `row_version` ou novo log apenas por repetição do comando.
 
-O diagnóstico de 24/08 foi parcialmente superado pelo PR2/#206: `invoice-effects.js` hoje planeja os efeitos persistentes e o fluxo possui no-op semântico real antes da escrita quando o estado final é idêntico. A lacuna remanescente de `invoice:save` é a **idempotência durável de intenção no servidor** para retry, perda de resposta e concorrência: ainda não existe `InvoiceSaveIntent`/chave idempotente v2 nem RPC idempotente sucessora. O guard de submit do cliente continua útil, mas não substitui PR5.
+O diagnóstico de 24/08 foi parcialmente superado pelo PR2/#206: `invoice-effects.js` já planeja os efeitos persistentes e o fluxo possui no-op semântico real. A lacuna de `invoice:save` que permanece é a **idempotência durável de intenção no servidor** para retry, perda de resposta e concorrência. O guard de submit continua útil e será preservado em R3; a mesma RPC v2 já deverá nascer com o resultado remoto completo necessário a R5, evitando evolução redundante.
 
 ### Decisões supervenientes de 01–03/09
 
@@ -440,7 +440,7 @@ Ferramentas incorporadas no ciclo de estabilização de 23/08:
 
 A integração de métricas concluída e incorporada à `main` pelo PR #194 usa probe limitada em memória e interface somente leitura `RadarOperationalWriteMetrics`. Não envia telemetria, não persiste métricas e não coleta identificadores/conteúdo de negócio. Falha da instrumentação é fail-open.
 
-O checkpoint pós-PR #200 registrou uma limitação adicional: o hotfix protegeu um fluxo crítico específico, mas performance e outros módulos funcionais ainda podem depender de instalação por polling com prazo fixo. A prontidão real por capacidade está planejada em PR3.1–PR3.3, mas não implementada no baseline `0965ba8`.
+A reauditoria source-first de 03/09 confirmou duas dívidas relacionadas. Primeiro, `operational-write-performance.js` ainda injeta decisões de consistência e aplicação incremental; R1 move essa autoridade para o núcleo. Depois, R2A–R2C expandem readiness sistêmico preservando `RadarProductExtensionsReady`, `radar:application-services-ready` e ADR-052, removendo apenas polling que realmente declara prontidão.
 
 A existência de um gate não o torna automaticamente obrigatório para toda alteração. A governança de testes define proporcionalidade ao risco.
 

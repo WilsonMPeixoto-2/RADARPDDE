@@ -1,6 +1,6 @@
 # ADR-052 — Autoridade única e contrato executável para fluxos críticos
 
-**Status:** Aprovada e em implementação  
+**Status:** Aprovada e implementada nos fluxos críticos atuais; expansão sistêmica planejada em R1/R2  
 **Data:** 30 de agosto de 2026
 
 ## Contexto
@@ -88,6 +88,19 @@ Mudança em qualquer operação P0/P1 deve verificar se alterou:
 - documentação canônica.
 
 A ausência de alteração deve ser explicitamente confirmada, não presumida.
+
+## Atualização source-first de 03/09/2026
+
+A reauditoria do código confirmou que esta ADR é baseline a preservar, não dívida a substituir.
+
+- `RadarProductExtensionsReady` e `radar:application-services-ready` continuam válidos durante a migração;
+- `service-advisory-pendency.js` e `service-advisory-corrective-submission.js` permanecem autoridades distintas e event-driven;
+- R1 remove decisões de consistência de wrappers de performance antes de R2 classificar performance como capacidade opcional/diagnóstica;
+- R2A–R2C expandem o contrato de readiness para o restante do sistema sem recolocar as operações de Assessoria em uma autoridade única artificial;
+- falha de transporte de extensão independente deve ser isolada sem interromper capacidades que não dependem dela;
+- polling só é removido quando existir sinal determinístico equivalente; `atomic-analysis-pendency` continua fail-closed.
+
+Plano corrente: `docs/superpowers/plans/2026-09-03-plano-remanescente-source-first.md`.
 
 ## Consequências
 

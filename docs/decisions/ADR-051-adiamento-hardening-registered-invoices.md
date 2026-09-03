@@ -3,7 +3,7 @@
 **Status:** Aprovada — implementação deliberadamente adiada  
 **Data:** 30 de agosto de 2026  
 **Escopo:** sequência entre correções funcionais e hardening de segurança/integridade  
-**Relaciona-se a:** ADR-050 e plano mestre pós-PR #200
+**Relaciona-se a:** ADR-050, plano histórico pós-PR #200 e plano source-first de 03/09
 
 ## Contexto
 
@@ -27,7 +27,7 @@ Consequências imediatas:
 
 1. o tema não reabre o PR #211;
 2. não é gate para a reconciliação documental pós-hotfix;
-3. não bloqueia PR3.1 nem as demais frentes funcionais já aprovadas;
+3. não bloqueia R1–R9 do plano funcional source-first;
 4. não deve ser antecipado por executor futuro sem nova decisão explícita;
 5. não pode ser classificado como resolvido: o estado correto é **risco conhecido, aceito temporariamente e adiado**.
 
@@ -35,7 +35,7 @@ A razão da sequência é evitar misturar uma frente nova de hardening estrutura
 
 ## Gatilho de retomada
 
-A frente somente volta a ser executável quando todas as implementações dos planos de correção funcional estiverem concluídas e validadas.
+A frente somente volta a ser executável depois do fechamento e rebaseline de **R9** do plano source-first, quando R1–R8 estiverem concluídos ou formalmente encerrados como no-op por ausência comprovada de dívida.
 
 Nesse momento, abrir trabalho específico de segurança/integridade para, no mínimo:
 
@@ -55,7 +55,7 @@ Não há evidência atual de corrupção em Production. A aceitação temporári
 
 ## Regra para futuras sessões
 
-Enquanto os planos de correção funcional não estiverem integralmente concluídos:
+Enquanto R1–R9 do plano source-first não estiverem integralmente concluídos:
 
 - não abrir migration para esse hardening;
 - não transformar o tema em gate oculto;

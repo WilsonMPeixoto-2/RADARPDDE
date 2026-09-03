@@ -6,52 +6,36 @@
 
 **Situação:** baseline funcional reconciliado até o PR #249; a documentação canônica incorpora a reconciliação posterior de 03/09. `main` e Vercel podem conter commits/deployments exclusivamente documentais posteriores sem alteração de runtime; SHA e deployment correntes devem ser consultados no remoto.
 
-## Atualização de 03/09 — baseline funcional pós-PR #249 e reconciliação documental
+## Atualização de 03/09 — reauditoria source-first e novo plano remanescente
 
-A porta de entrada corrente é [`handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`](handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md).
+A porta de entrada executável corrente é [`superpowers/plans/2026-09-03-plano-remanescente-source-first.md`](superpowers/plans/2026-09-03-plano-remanescente-source-first.md). A evidência que sustenta o escopo está em [`audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md`](audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md).
 
-Baseline funcional auditado:
+Baseline reauditorado:
 
-- último commit funcional do conjunto reconciliado: `75237c6ec5c22e8f7be9eb39fd21481f6d608010` (PR #249);
-- Vercel Production usada na auditoria funcional: `dpl_HfiKFNkTHc1f9ATZjgZ6Cn7CbWzz`, `READY`, SHA `75237c6ec5c22e8f7be9eb39fd21481f6d608010`;
+- `main`: `18150cc9ef7e15e2e777041fce541b847af517e1`;
+- último commit funcional dentro desse estado: `75237c6ec5c22e8f7be9eb39fd21481f6d608010` (PR #249);
+- Vercel Production observada: `dpl_HVkoBtt9WkM97XJZN7hYzB1aL8Tw`, `READY`, SHA `18150cc9ef7e15e2e777041fce541b847af517e1`;
 - Supabase Production `scnryinorqeucbfkioxo`: `ACTIVE_HEALTHY`, 44 migrations.
 
-Commits ou deployments exclusivamente documentais posteriores não redefinem esse baseline funcional. Para o HEAD e o deployment **correntes**, consultar GitHub e Vercel diretamente.
+A nova leitura dos códigos refinou a reconciliação anterior:
 
-Desde o PR #237 também foram integrados:
+- **R1** vem antes do readiness porque `operational-write-performance.js` ainda injeta decisões de consistência e aplicação incremental;
+- **R2A–R2C** preservam `RadarProductExtensionsReady`, `radar:application-services-ready` e ADR-052, removendo somente readiness/polling residual;
+- **R3** preserva guard/no-op/planner existentes e trata IDs persistentes, intent, idempotência durável e uma única RPC v2 de save já com resultado remoto completo;
+- **R4** unifica semântica de Pendências sem redesenhar a UI;
+- **R5** reaproveita DataService/StatePort já existentes para ativar convergência autoritativa/incremental;
+- **R6** é gate de equivalência sem diff obrigatório;
+- **R7/R8** tratam diagnóstico causal e otimização comprovada;
+- **R9** fecha a frente antes da reavaliação da ADR-051.
 
-- PR #241 — Declaração BB Ágil com `Não se aplica`;
-- PRs #242/#244 — governança de dependências, Supabase CLI 2.116.0 rejeitado, `fast-uri` e `qs` corrigidos;
-- PR #246 — comunicação externa sem o nome do sistema interno;
-- PR #247 — planilha editorial XLSX de Pendências;
-- PR #249 — PDDE Básico primeiro somente na ordem visual, polimento da avaliação e botão Excel em verde.
-
-A reconciliação do plano mestre deixou de ser tarefa futura: ela foi executada em 03/09 diretamente contra código, Supabase e Production.
-
-Estado reconciliado do plano:
-
-- concluídos: G0, PR1, PR2, PR6B e PR9B;
-- concluído funcionalmente por caminho equivalente: PR7B;
-- parciais: PR3, PR6, PR7A e PR8;
-- pendentes reais: PR5, PR9A e PR9C;
-- superado: PR4 antigo;
-- adiado por decisão vigente: ADR-051.
-
-A sequência restante é:
+Sequência executável:
 
 ```text
-PR3.1 → PR3.2 → PR3.3
-→ PR5
-→ PR6
-→ revisão focada dos gaps remanescentes de PR7A
-→ PR8A → PR8B
-→ PR9A
-→ PR9C com a metodologia estatística de PR9B já vigente
-→ encerramento funcional
-→ reavaliar ADR-051
+R1 → R2A → R2B → R2C → R3 → R4 → R5 → R6 → R7 → R8 → R9
+→ reavaliar ADR-051 em frente separada
 ```
 
-O PR4 antigo **não deve ser executado**. A leitura de Production em 03/09 encontrou 143 contextos sem NF de serviço já canônicos, 15 avaliações vazias/não iniciadas e zero estados legados não vazios inconsistentes. Corrigir as 15 avaliações vazias fabricaria estado que o usuário ainda não lançou.
+Fora da fila: G0, PR1, PR2, PR4 antigo, PR6B, PR7B e PR9B.
 
 ## Checkpoint histórico pós-PR #237
 
@@ -212,7 +196,7 @@ Deployment Production desse baseline:
 dpl_41bzBJnL9baQX7N8sJe8mpY1ZD7H / 2ec822820dd6e3d7415edf7de9c7913562b0981f
 
 Observação:
-commits posteriores exclusivamente documentais podem ser descendentes desse SHA e gerar novos deployments sem alterar o runtime funcional. Revalidar o HEAD corrente antes de iniciar PR3.1.
+commits posteriores exclusivamente documentais podem ser descendentes desse SHA e gerar novos deployments sem alterar o runtime funcional. Revalidar o HEAD corrente antes de qualquer fase executável; a fila atual usa R1–R9.
 ```
 
 O PR #199 foi documental. O PR #200 corrigiu o incidente `Incorreto + Pendência`. O PR #201 versionou o plano mestre. O PR #203 introduziu o requisito inicial de boleto para Educação Conectada. O PR #208 moveu o boleto para `Tipo de Gasto`, e o PR #209 corrigiu definitivamente a duplicidade: `boleto_internet` existe somente dentro de Notas Fiscais, sem categoria documental autônoma. O PR #202 concluiu PR1 com guard canônico de submit e refresh mínimo no núcleo. O PR #206 concluiu PR2 com matriz canônica de Consulta Assessoria, planner de efeitos e no-op real. Não reimplementar essas entregas.
@@ -278,13 +262,16 @@ PR2, naquele momento, não executou migration, reparo de dados, deduplicação p
 
 
 
-## 5. Decisões finais incorporadas
+## 5. Decisões source-first incorporadas
 
-1. A duplicidade atual de NF não é atribuída ao fallback de `InvoiceService`. PR5 fará o inventário de produtores persistentes e eliminará fallbacks dependentes exclusivamente de `Date.now()`, incluindo o caso confirmado de `DirectoryService`.
-2. `web-vitals` e `Server-Timing` não entram no PR9A. Só poderão ser avaliados depois dele para responder a uma lacuna diagnóstica comprovada. Nenhuma telemetria externa está autorizada.
-3. PR3 é executado como PR3.1, PR3.2 e PR3.3, com gates próprios.
-4. PR8 é executado como dois PRs reais: PR8A e PR8B.
-5. PR9C define orçamento por hipótese somente depois do baseline e do ruído medidos em PR9A/PR9B; não há meta percentual universal antecipada.
+1. A duplicidade atual de NF não é atribuída ao fallback de `InvoiceService`; **R3** inventaria somente IDs persistentes de negócio, preserva o guard/no-op e elimina fallbacks fracos onde realmente persistem identidade.
+2. **R1 precede R2** porque `operational-write-performance.js` ainda contém autoridade de consistência que precisa sair antes de performance/readiness poder degradar sem efeito funcional.
+3. **R3** cria uma única RPC v2 de save com idempotência durável **e** resultado remoto completo; não haverá uma evolução v2 redundante posterior só para satisfazer o plano histórico.
+4. **R4** unifica semântica de Pendências; textos editoriais e ordenações deliberadamente específicas podem permanecer por superfície.
+5. **R5** reaproveita `DataService`, `mergePersistedResult()`, `incrementalStateEntities` e `StatePort.applyEntities()`; nova arquitetura genérica paralela só entra se RED demonstrar necessidade.
+6. **R6** é gate de equivalência e pode encerrar sem diff.
+7. `web-vitals` e `Server-Timing` não entram em **R7**; só podem ser avaliados depois do diagnóstico causal se houver lacuna comprovada. Nenhuma telemetria externa está autorizada.
+8. **R8** define orçamento por hipótese somente depois do baseline/ruído de R7 e da metodologia estatística já vigente.
 
 ## 6. Exclusões e adiamentos deliberados
 
@@ -295,9 +282,9 @@ Não incluir nas frentes funcionais atualmente em execução:
 - PR #195;
 - deduplicação de NF por conteúdo.
 
-O primeiro item é um **adiamento deliberado e explícito do responsável pelo produto**, registrado na ADR-051. A auditoria pós-publicação não encontrou corrupção atual em Production; encontrou uma lacuna latente de integridade caso um cliente autenticado tente contornar os serviços/RPCs e escrever diretamente na tabela. Por decisão de sequência, essa blindagem **não é gate do PR #211, da reconciliação documental nem dos PRs restantes de correção funcional**.
+O primeiro item é um **adiamento deliberado e explícito do responsável pelo produto**, registrado na ADR-051. A auditoria pós-publicação não encontrou corrupção atual em Production; encontrou uma lacuna latente de integridade caso um cliente autenticado tente contornar os serviços/RPCs e escrever diretamente na tabela. Por decisão de sequência, essa blindagem **não é gate do PR #211, da reconciliação documental nem de R1–R9**.
 
-Ela somente deve ser retomada **depois que todas as implementações previstas nos planos de correção de funcionalidades estiverem concluídas e validadas**, em uma frente específica de segurança/integridade. Até lá, não antecipar esse hardening nem tratá-lo como correção funcional pendente.
+Ela somente deve ser retomada **depois do fechamento e rebaseline de R9**, em uma frente específica de segurança/integridade. Até lá, não antecipar esse hardening nem tratá-lo como correção funcional pendente.
 
 Não transformar qualquer exclusão ou adiamento em dependência, gate oculto ou hardening antecipado. Se surgir necessidade inevitável antes do gatilho definido, parar e solicitar nova decisão do responsável pelo produto.
 
@@ -315,32 +302,24 @@ Não transformar qualquer exclusão ou adiamento em dependência, gate oculto ou
 - Abrir o Prontuário a partir de uma Pendência pode mudar a competência explicitamente.
 - `Ver detalhes` permanece durante este programa.
 
-## 8. Ordem vigente após a reconciliação de 03/09
+## 8. Ordem vigente após a reauditoria source-first de 03/09
 
 ```text
-PR3.1
-→ PR3.2
-→ PR3.3
-→ PR5
-→ PR6
-→ revisão focada dos gaps remanescentes de PR7A
-→ PR8A
-→ PR8B
-→ PR9A
-→ PR9C usando a metodologia estatística de PR9B já vigente
-→ encerramento funcional
+R1 — retirar autoridade funcional dos wrappers de performance
+→ R2A — contrato mínimo de readiness e loader tolerante
+→ R2B — readiness crítico
+→ R2C — readiness restrito/opcional e inventário final
+→ R3 — IDs persistentes + intent/idempotência + contrato remoto v2 inativo
+→ R4 — semântica única de Pendências
+→ R5 — ativação autoritativa/incremental de save/remove de NF
+→ R6 — gate de equivalência de Pendências
+→ R7 — instrumentação causal do bootstrap
+→ R8 — otimização por hipótese medida
+→ R9 — fechamento funcional e rebaseline
 → reavaliar ADR-051
 ```
 
-Gates de sequência:
-
-- PR3 só termina depois de PR3.3;
-- PR5 começa depois do fechamento de PR3;
-- PR6 preserva a UI aprovada e elimina apenas a duplicidade semântica comprovada;
-- PR7A só recebe mudanças para gaps atuais demonstrados, sem restaurar redesign histórico;
-- PR8A/PR8B devem completar o contrato remoto sem reintroduzir render integral nem reconciliadores duplicados;
-- PR9C depende de causa e orçamento registrados após PR9A, usando a metodologia já vigente de PR9B;
-- PR4 antigo, PR6B, PR7B e PR9B não voltam à fila como estavam escritos.
+R1–R9 são fases do plano, não números de Pull Request do GitHub.
 
 ## 9. Método de execução
 
@@ -362,18 +341,16 @@ Planos são hipóteses técnicas, não autoridade superior ao código e aos ambi
 
 ## 10. Próxima ação
 
-A reconciliação pós-hotfix foi concluída em 03/09. O próximo ponto real é **PR3.1 — readiness sistêmico remanescente**, com escopo reduzido:
+A próxima fase real é **R1 — retirar autoridade funcional dos wrappers de performance**.
 
-1. preservar `RadarProductExtensionsReady`, ADR-052 e a ordem crítica já determinística;
-2. inventariar e migrar primeiro as esperas essenciais ainda baseadas em polling/timeout;
-3. introduzir registry de capacidades somente se ele eliminar polling e tornar falhas localizadas e observáveis;
-4. manter regras funcionais fora de wrappers de prontidão;
-5. não tocar a UI aprovada sem defeito atual comprovado;
-6. fechar PR3.1–PR3.3 antes de iniciar PR5.
+Antes de tocar readiness:
 
-A Consulta Assessoria permanece individual por NF de serviço. O lookup usa `registered_invoice_id`, a abertura continua atômica e o serviço canônico bloqueia qualquer alteração comum enquanto a própria NF possui Pendência ativa. Não substituir esse desenho por lookup genérico ou fluxo paralelo em `app.js`.
-
-A classificação canônica de dados está em `evidence/2026-08-29-pr211-classificacao-dados-legados.md`.
+1. escrever REDs que executem comandos representativos sem `RadarOperationalWritePerformance`;
+2. mover resultado/commit autoritativo, entidades incrementais e refresh exemptions para serviços/DataService/StatePort ou contrato funcional explícito;
+3. remover a dependência artificial de `prontuario-conditional-reconciler.js` em `RadarOperationalWritePerformance`;
+4. preservar somente tracing/medição no módulo de performance;
+5. provar que Consulta Assessoria, NF individual, Pendências e Inventário mantêm comportamento com o módulo ausente;
+6. só então iniciar R2A.
 
 ## 11. Documentos históricos preservados
 

@@ -1,6 +1,8 @@
 # RADAR PDDE — Plano mestre de implementação das correções pós-auditoria
 
-> **Para agentes de implementação:** executar este plano com a skill superpowers:executing-plans ou superpowers:subagent-driven-development, uma entrega por vez. Nenhuma etapa autoriza, por si só, escrita em Production, alteração de regras do GitHub ou merge.
+> **SUPERADO COMO FILA EXECUTÁVEL EM 03/09/2026.** Este arquivo preserva o plano aprovado em 26/08 e continua útil para intenção, riscos, REDs e reversões históricas. **Não executar seus checkboxes nem sua numeração como ordem corrente.** O plano executável atual é [`2026-09-03-plano-remanescente-source-first.md`](2026-09-03-plano-remanescente-source-first.md), produzido após reauditoria direta do código em `18150cc9`. Evidência: [`../../audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md`](../../audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md).
+
+> **Instrução histórica de 26/08:** este era o plano executável daquele checkpoint. **Não usar esta instrução para a fila corrente.** A execução atual deve partir de `2026-09-03-plano-remanescente-source-first.md`; este arquivo permanece para contexto, REDs, riscos e reversões históricas.
 
 **Objetivo:** corrigir, de forma incremental e verificável, os defeitos funcionais e arquiteturais confirmados depois dos PRs #199 e #200, sem alterar regras de negócio legítimas e sem transformar hipóteses em código.
 
@@ -10,7 +12,7 @@
 
 **Especificação-base:** main no commit 0965ba8d5749f2ed25b3563a65ebc5da413e7fa5, correspondente ao merge do PR #200 em 25/08/2026. O PR #199 permanece como registro histórico do primeiro plano. Este documento é a especificação operacional revisada.
 
-**Status desta versão:** APROVADA como plano mestre operacional canônico da frente de correções pós-PR #200, depois da incorporação integral das cinco revisões técnicas consolidadas em 26/08/2026.
+**Status desta versão:** APROVADA em 26/08 como plano mestre daquele checkpoint; **histórica/canônica como contrato técnico, não executável como fila corrente** após a reauditoria source-first de 03/09.
 
 **Controle de aprovação:** a aprovação não alcança retroativamente a redação anterior do Word. Ela incide exclusivamente sobre esta versão revisada, que substitui os planos anteriores como referência operacional e mantém o PR #199 apenas como registro histórico.
 
@@ -26,9 +28,9 @@
 
 **Ordem homologada histórica em 26/08:** G0 → PR1 → PR2 → PR3.1 → PR3.2 → PR3.3 → PR4 → PR5 → PR6 → PR6B → PR7A → PR7B → PR8A → PR8B → PR9A → PR9B → PR9C → encerramento.
 
-> **Reconciliação obrigatória de 03/09/2026:** a sequência histórica acima não deve mais ser executada literalmente. Depois dos PRs #211–#249 e da verificação direta do código/Supabase/Vercel, a matriz atual está em [`../../handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`](../../handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md). Ela prevalece para decidir o que ainda falta, sem apagar este plano como histórico técnico.
+> **Reconciliação e reauditoria de 03/09/2026:** a sequência histórica acima não deve mais ser executada literalmente. A reconciliação intermediária está no handoff de 03/09; a reauditoria source-first posterior substituiu a fila por R1–R9 em [`2026-09-03-plano-remanescente-source-first.md`](2026-09-03-plano-remanescente-source-first.md).
 
-## 0A. Reconciliação pós-hotfixes — estado executivo em 03/09/2026
+## 0A. Reconciliação intermediária pós-hotfixes — fotografia anterior à reauditoria source-first
 
 | Entrega | Estado reconciliado |
 |---|---|
@@ -48,7 +50,7 @@
 | PR9C | pendente |
 | ADR-051 | adiado até fechamento funcional |
 
-### Ordem restante vigente
+### Ordem restante registrada naquele checkpoint — posteriormente substituída
 
 ```text
 PR3.1
@@ -80,7 +82,7 @@ PR3.1
 
 Em 28/08/2026 foi aberto o PR #211, `hotfix/individualizar-analise-notas-fiscais`, como parêntese operacional prioritário.
 
-Ele **não substitui esta ordem homologada** e não é renumerado como PR3. O plano mestre continua vigente.
+Naquele checkpoint, ele não substituía a ordem homologada de 26/08. Essa ordem é hoje histórica: a execução corrente usa R1–R9 no plano source-first de 03/09.
 
 Entretanto, o PR #211 toca `InvoiceService`, `invoice-effects`, Pendências, `registered_invoice_id`, RPCs/migrations e o bloco de Notas Fiscais do Prontuário. Essas superfícies também aparecem em entregas futuras deste plano.
 

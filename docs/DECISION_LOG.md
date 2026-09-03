@@ -481,13 +481,13 @@ LocalStorage, fixtures e seeds descartáveis permanecem disponíveis apenas para
 
 ## ADR-046 — Escritas operacionais usam retorno autoritativo, reconciliação incremental e diagnóstico local
 
-**Status:** Aprovada; implementada parcialmente nos PRs #190–#194; lacunas específicas de `invoice:save` consolidadas no plano pós-PR #200
+**Status:** Aprovada; implementação incremental avançada; lacunas remanescentes reclassificadas pela reauditoria source-first de 03/09
 
 O caminho normal das escritas inline bem-sucedidas usa feedback imediato, persistência/RPC, retorno autoritativo, incorporação incremental e reconciliação localizada. `renderProntuario()` integral permanece fallback para bootstrap, navegação, erro, retorno incompleto ou inconsistência não reconciliável.
 
 Operações semanticamente idênticas são idempotentes e não devem gerar nova persistência, `row_version` ou log sem mudança real.
 
-O diagnóstico iniciado em 24/08 e consolidado depois do PR #200 confirmou que esse contrato permanece a direção correta, mas não está integralmente coberto em `invoice:save`: submit repetido pode criar duas inclusões, a edição não possui no-op baseado em todos os efeitos derivados, a dispensa de refresh de históricos depende da extensão opcional e ainda não existe chave idempotente de servidor para retry/perda de resposta. A correção está sequenciada em PR1, PR2, PR5, PR8A e PR8B do plano mestre pós-auditoria; não considerar a lacuna resolvida apenas pela formulação desta ADR.
+O diagnóstico iniciado em 24/08 foi parcialmente superado por entregas posteriores: o submit imediato possui guard, `invoice-effects.js` planeja efeitos e o no-op semântico já existe. A reauditoria de 03/09 encontrou três lacunas atuais: decisões de consistência ainda são injetadas por `operational-write-performance.js`; falta idempotência durável de intenção no save de NF; e o save/remove normal ainda não converge integralmente pelo resultado remoto sem refresh/render completo. O plano source-first trata isso em **R1, R3 e R5**, reaproveitando DataService/StatePort existentes.
 
 A instrumentação local pode medir `click`, `feedback`, RPC, aplicação e estabilização por probe limitada em memória, sem telemetria externa nem dados de negócio. Falha do diagnóstico é fail-open.
 
@@ -513,9 +513,9 @@ Reavaliar quando houver correção compatível, aumento de severidade/exposiçã
 
 ## ADR-048 — Plano pós-PR #200 usa execução incremental e revisão adversarial
 
-**Status:** Aprovada
+**Status:** Aprovada quanto ao método incremental/adversarial; sequência operacional de 26/08 posteriormente substituída
 
-O plano de 26/08/2026 substitui o plano de 24/08 como referência operacional das correções restantes. O PR #199 permanece como registro histórico do planejamento inicial e o PR #200 como primeiro hotfix funcional já integrado.
+O plano de 26/08/2026 substituiu o plano de 24/08 naquele checkpoint. Sua ordem numerada abaixo é histórica e foi posteriormente substituída pelo plano source-first de 03/09; permanecem vigentes o método de revalidar premissa, escrever RED, limitar o diff, revisar adversarialmente e provar gates. O PR #199 permanece como registro histórico do planejamento inicial e o PR #200 como primeiro hotfix funcional já integrado.
 
 A ordem aprovada é:
 
@@ -589,7 +589,7 @@ A auditoria pós-publicação do PR #211 confirmou o fluxo funcional normal e n�
 
 Por decisão explícita do responsável pelo produto, essa blindagem adicional do Supabase **não será executada durante as frentes atuais de correção funcional**. Ela somente será retomada depois que todas as implementações previstas nesses planos estiverem concluídas e validadas.
 
-Até esse gatilho, o estado é **risco conhecido, aceito temporariamente e adiado**, não “resolvido”. O tema não reabre o PR #211, não bloqueia a reconciliação documental e não deve ser transformado em gate de PR3.1 ou das demais entregas funcionais.
+Até esse gatilho, o estado é **risco conhecido, aceito temporariamente e adiado**, não “resolvido”. O tema não reabre o PR #211, não bloqueia o plano source-first e não deve ser transformado em gate de R1–R9.
 
 **Documento integral:** `docs/decisions/ADR-051-adiamento-hardening-registered-invoices.md`.
 
@@ -669,3 +669,34 @@ Decisões de sequência:
 - decisões posteriores sobre BB Ágil N/A, individualização por NF, Boleto dentro de Notas Fiscais, comunicação externa, exportação de Pendências e ordem visual do PDDE Básico não podem ser revertidas pelo plano histórico.
 
 Documento canônico: `docs/handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`.
+
+
+---
+
+## Evento de governança — plano remanescente source-first em 03/09/2026
+
+Depois da reconciliação documental, o código-fonte foi reaberto no SHA `18150cc9ef7e15e2e777041fce541b847af517e1` para verificar novamente o que ainda existe, sem inferir pendências pelos checkboxes do plano de 26/08.
+
+A reauditoria decidiu:
+
+- usar fases **R1–R9**, que não correspondem a números de Pull Request do GitHub;
+- executar **R1 antes do readiness**, porque `operational-write-performance.js` ainda injeta decisões de consistência;
+- preservar `RadarProductExtensionsReady`, `radar:application-services-ready` e ADR-052;
+- combinar em R3 a idempotência durável do save com **uma única RPC v2 já capaz de devolver resultado remoto completo**;
+- reaproveitar `DataService.remoteResultIsAuthoritative`, `incrementalStateEntities` e `StatePort.applyEntities()` em R5;
+- unificar semântica operacional de Pendências em R4 sem redesenhar tabs/drawer/mobile;
+- transformar a antiga PR7A em **R6, gate de equivalência sem diff obrigatório**;
+- manter PR9B encerrado e executar instrumentação causal/otimização apenas em R7/R8;
+- fechar a frente em R9 e somente então reavaliar ADR-051.
+
+Sequência canônica:
+
+```text
+R1 → R2A → R2B → R2C → R3 → R4 → R5 → R6 → R7 → R8 → R9
+→ reavaliar ADR-051 em frente separada
+```
+
+**Plano executável:** `docs/superpowers/plans/2026-09-03-plano-remanescente-source-first.md`.  
+**Evidência:** `docs/audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md`.
+
+O evento de reconciliação imediatamente anterior permanece válido como histórico da transição, mas sua antiga sequência PR3/PR5/PR6/PR8/PR9 deixou de ser a fila corrente.

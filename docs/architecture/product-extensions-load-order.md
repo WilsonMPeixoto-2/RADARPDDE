@@ -1,13 +1,13 @@
 # Cadeia de carregamento das extensões de produto
 
 **Estado:** vigente  
-**Atualizado em:** 23 de agosto de 2026
+**Atualizado em:** 3 de setembro de 2026
 
 ## 1. Finalidade
 
 Registrar a cadeia que executa depois de `app.js`, quando funções e coleções do núcleo estão disponíveis. Complementa [`frontend-load-order.md`](frontend-load-order.md).
 
-Este documento descreve a ordem efetiva de `product-extensions-bootstrap.js` após os PRs #190–#194. A ordem é contrato porque várias extensões envolvem funções globais já existentes e dependem do wrapper anterior.
+Este documento descreve a ordem efetiva de `product-extensions-bootstrap.js` no baseline reauditorado em 03/09 (`main` em `18150cc9`). A ordem é contrato porque várias extensões envolvem funções globais já existentes e dependem da composição anterior. A reauditoria source-first também identificou que `operational-write-performance.js` ainda carrega autoridade funcional de consistência; isso é dívida corrente de R1, não comportamento a perpetuar.
 
 As integrações estáticas `view-transitions.js`, `global-search.js` e `floating-ui-bootstrap.js` também são carregadas após `app.js`, mas não pertencem ao bootstrap descrito aqui.
 
@@ -26,18 +26,21 @@ Não podem ser antecipadas para a fase de domínio inicial nem criar carregador 
 
 ## 3. Cadeia efetiva
 
+O `auth-gate.js` carrega os módulos de navegação serialmente nesta ordem:
+
 ```text
-index.html
-→ app.js
-→ view-transitions.js
-→ global-search.js
-→ floating-ui-bootstrap.js
-→ auth-gate.js
-→ navigation-bootstrap.js
+navigation-routes.js
 → navigation-policy.js
-→ navigation-routes.js
+→ navigation-bootstrap.js
 → navigation-history.js
-→ product-extensions-bootstrap.js
+```
+
+Ao executar, `navigation-routes.js` instala dinamicamente `product-extensions-bootstrap.js`. Portanto, a cadeia de extensões é iniciada pela rota e não deve ser descrita como se aguardasse toda a sequência de navegação terminar. A aplicação da rota pendente, por sua vez, só ocorre quando dados, autorização, competência e histórico de navegação estão prontos.
+
+Dentro de `product-extensions-bootstrap.js`, a ordem corrente é:
+
+```text
+product-extensions-bootstrap.js
    ├─ styles
    │  ├─ school-timeline.css
    │  ├─ controller-guide.css
@@ -48,16 +51,16 @@ index.html
    │  ├─ pendency-passive-queue.css
    │  └─ operational-write-feedback.css
    └─ scripts, sequencialmente
-      01. src/domain/school-timeline.js
-      02. src/integration/school-timeline.js
-      03. src/integration/navigation-context-bootstrap.js
-      04. src/integration/controller-guide.js
-      05. src/integration/controller-guide-ready.js
-      06. src/integration/unidentified-expense-ux.js
-      07. src/integration/prontuario-operational-ux.js
-      08. src/integration/operational-readiness-bridge.js
-      09. src/integration/pendency-passive-queue-ux.js
-      10. src/integration/atomic-analysis-pendency.js
+      01. src/integration/atomic-analysis-pendency.js
+      02. src/domain/school-timeline.js
+      03. src/integration/school-timeline.js
+      04. src/integration/navigation-context-bootstrap.js
+      05. src/integration/controller-guide.js
+      06. src/integration/controller-guide-ready.js
+      07. src/integration/unidentified-expense-ux.js
+      08. src/integration/prontuario-operational-ux.js
+      09. src/integration/operational-readiness-bridge.js
+      10. src/integration/pendency-passive-queue-ux.js
       11. src/integration/invoice-history-lock.js
       12. src/integration/service-advisory-pendency.js
       13. src/integration/service-advisory-corrective-submission.js
@@ -67,7 +70,9 @@ index.html
       17. src/integration/operational-write-feedback.js
 ```
 
-Os scripts são criados com `async = false` e aguardados em sequência pela cadeia de Promises do bootstrap.
+`atomic-analysis-pendency.js` é deliberadamente o primeiro script funcional: uma falha em extensão opcional posterior não pode deixar o handler-base aceitar `Incorreto` sem a proteção atômica.
+
+Os scripts são criados com `async = false` e aguardados em sequência pela cadeia de Promises do bootstrap. A cadeia corrente ainda falha em cascata quando um transporte anterior rejeita; R2A trata especificamente essa dívida sem desfazer a ordem crítica existente.
 
 ## 4. Motivos da ordem
 
@@ -137,9 +142,9 @@ A interface interna de correlação permanece em `RadarOperationalWriteDiagnosti
 
 ### Performance antes do reconciliador e feedback
 
-`operational-write-performance.js` instala a política de retorno/commit autoritativo, envolve persistência quando há trace e preserva o caminho incremental das escritas inline.
+`operational-write-performance.js` **ainda** instala, no baseline atual, a política de retorno/commit autoritativo, envolve persistência quando há trace e preserva o caminho incremental das escritas inline. A reauditoria de 03/09 classificou a primeira e a terceira responsabilidades como autoridade funcional indevidamente alojada em um módulo de performance. R1 deve movê-las para o núcleo/integração funcional, deixando performance apenas como observador.
 
-`prontuario-conditional-reconciler.js` deve existir depois dessa política para atuar sobre o estado/DOM já orientado ao fluxo incremental sem reintroduzir render integral no caminho normal.
+`prontuario-conditional-reconciler.js` hoje é carregado depois desse wrapper. R1 deve preservar a composição visual sem manter dependência funcional de `RadarOperationalWritePerformance`; a ordem futura será documentada apenas depois do código correspondente ser integrado.
 
 `operational-write-feedback.js` é carregado por último. Seu listener usa capture phase, por isso abre a amostra e aplica feedback visual antes de o handler inline executar, mesmo sendo o último script da cadeia. Em seguida o wrapper de performance consome o trace enfileirado para medir RPC, aplicação local e estabilização.
 

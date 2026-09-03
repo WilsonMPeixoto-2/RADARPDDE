@@ -158,4 +158,4 @@ Uma auditoria que proponha voltar ao lookup genérico ou abrir o modal de Assess
 
 ## Retorno ao plano mestre
 
-Após a publicação do PR #211, o re-baseline de `main`, Supabase Production e Vercel Production foi concluído. A reconciliação com o plano mestre também foi concluída em 03/09/2026. A retomada atual começa pelo readiness sistêmico remanescente de PR3.1–PR3.3, preservando integralmente esta ADR e as decisões posteriores; detalhes em `docs/handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`.
+Após a publicação do PR #211, o re-baseline e a reconciliação com o plano mestre foram concluídos. A reauditoria source-first de 03/09 refinou a ordem corrente: **R1** primeiro retira autoridade de consistência dos wrappers de performance; **R2** expande readiness preservando a cadeia crítica desta ADR/ADR-052; R3–R5 completam idempotência e convergência remota sem alterar a granularidade individual. Plano corrente: `docs/superpowers/plans/2026-09-03-plano-remanescente-source-first.md`.
