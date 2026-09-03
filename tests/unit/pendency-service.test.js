@@ -451,6 +451,136 @@ test('novo envio identifica a despesa preservando ID e envia a mesma Pendência 
 });
 
 
+test('novo envio identifica boleto de Internet somente em Educação Conectada e preserva todos os campos', async () => {
+    const harness = createHarness();
+    harness.state.programs.push({ id: 'CONECTADA', name: 'Educação Conectada' });
+    harness.state.verifications['ESC-1']['2026-05_CONECTADA'] = {
+        bonificacao: {
+            notaFiscal: 'Sim',
+            consAssessoria: 'Não se aplica',
+            consEnviada: false
+        },
+        analise: {
+            notaFiscal: 'Incorreto',
+            consAssessoria: 'Correto'
+        },
+        resultadoBonif: ''
+    };
+    harness.state.registeredInvoices.push({
+        id: 'nota-boleto-pendente',
+        escolaId: 'ESC-1',
+        compKey: '2026-05_CONECTADA',
+        competencia: '2026-05',
+        programaId: 'CONECTADA',
+        tipo: 'a_identificar',
+        numero: '',
+        desc: 'Débito de conectividade sem documento',
+        descricao: 'Débito de conectividade sem documento',
+        valor: 149.9,
+        analiseDocumentoFiscal: 'Incorreto'
+    });
+
+    const opened = await harness.service.open({
+        schoolId: 'ESC-1',
+        competence: '2026-05',
+        programId: 'CONECTADA',
+        documentKey: 'notaFiscal',
+        registeredInvoiceId: 'nota-boleto-pendente',
+        item: 'Despesa a identificar',
+        technicalAnalysisValue: 'Incorreto',
+        errors: ['Documento ausente'],
+        observation: 'Aguardando boleto do provedor.'
+    });
+
+    const submitted = await harness.service.registerAttempt({
+        pendencyId: opened.value.pendency.id,
+        availabilityDate: '2026-07-19',
+        observation: 'Boleto e comprovante disponibilizados.',
+        link: 'https://drive.google.com/file/boleto',
+        identification: {
+            expenseType: 'boleto_internet',
+            invoiceNumber: 'BOL-2026-05',
+            description: 'Pagamento mensal de acesso à Internet',
+            amount: 149.9
+        }
+    });
+
+    const invoice = harness.state.registeredInvoices[0];
+    const attempt = submitted.value.pendency.tentativas.at(-1);
+    const verification = harness.state.verifications['ESC-1']['2026-05_CONECTADA'];
+
+    assert.equal(invoice.id, 'nota-boleto-pendente');
+    assert.equal(invoice.tipo, 'boleto_internet');
+    assert.equal(invoice.numero, 'BOL-2026-05');
+    assert.equal(invoice.desc || invoice.descricao, 'Pagamento mensal de acesso à Internet');
+    assert.equal(invoice.valor, 149.9);
+    assert.equal(invoice.bemId, null);
+    assert.equal(invoice.analiseDocumentoFiscal, 'Não analisado');
+    assert.equal(harness.state.assets.length, 0);
+    assert.equal(submitted.value.pendency.id, opened.value.pendency.id);
+    assert.equal(submitted.value.pendency.status, 'Aguardando reanálise');
+    assert.equal(attempt.dataDisponibilizacao, '2026-07-19');
+    assert.equal(attempt.observacao, 'Boleto e comprovante disponibilizados.');
+    assert.equal(attempt.link, 'https://drive.google.com/file/boleto');
+    assert.equal(verification.analise.notaFiscal, 'Não analisado');
+    assert.equal(verification.bonificacao.notaFiscal, 'Sim');
+    assert.equal(verification.bonificacao.consAssessoria, 'Não se aplica');
+});
+
+test('novo envio rejeita boleto de Internet fora de Educação Conectada sem alterar a despesa', async () => {
+    const harness = createHarness();
+    const verification = harness.state.verifications['ESC-1']['2026-05_BASIC'];
+    verification.bonificacao.notaFiscal = 'Sim';
+    verification.analise.notaFiscal = 'Incorreto';
+    harness.state.registeredInvoices.push({
+        id: 'nota-boleto-basic',
+        escolaId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        competencia: '2026-05',
+        programaId: 'BASIC',
+        tipo: 'a_identificar',
+        numero: '',
+        desc: 'Débito sem documento',
+        descricao: 'Débito sem documento',
+        valor: 99.9,
+        analiseDocumentoFiscal: 'Incorreto'
+    });
+
+    const opened = await harness.service.open({
+        schoolId: 'ESC-1',
+        competence: '2026-05',
+        programId: 'BASIC',
+        documentKey: 'notaFiscal',
+        registeredInvoiceId: 'nota-boleto-basic',
+        item: 'Despesa a identificar',
+        technicalAnalysisValue: 'Incorreto',
+        errors: ['Documento ausente'],
+        observation: 'Aguardando documento.'
+    });
+
+    await assert.rejects(
+        () => harness.service.registerAttempt({
+            pendencyId: opened.value.pendency.id,
+            availabilityDate: '2026-07-19',
+            observation: 'Tentativa inválida.',
+            identification: {
+                expenseType: 'boleto_internet',
+                invoiceNumber: 'BOL-INVALIDO',
+                description: 'Internet fora da ação',
+                amount: 99.9
+            }
+        }),
+        error => error?.code === 'DOCUMENT_NOT_APPLICABLE'
+    );
+
+    const invoice = harness.state.registeredInvoices[0];
+    assert.equal(invoice.tipo, 'a_identificar');
+    assert.equal(invoice.numero, '');
+    assert.equal(invoice.analiseDocumentoFiscal, 'Incorreto');
+    assert.equal(harness.state.pendencies[0].status, 'Aberta');
+    assert.equal(harness.state.pendencies[0].tentativas.length, 0);
+});
+
 test('novo envio identifica despesa como bem permanente e inclui o bem na mesma operação', async () => {
     const harness = createHarness();
     const verification = harness.state.verifications['ESC-1']['2026-05_BASIC'];
