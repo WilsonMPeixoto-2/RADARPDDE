@@ -1,6 +1,6 @@
 # Matriz de validade documental
 
-**Atualizado em:** 31 de agosto de 2026
+**Atualizado em:** 3 de setembro de 2026
 **Classe documental:** Canônico
 
 ## 1. Finalidade
@@ -9,7 +9,7 @@ Este documento define quais arquivos podem orientar o estado presente e quais ex
 
 O estado mutável do projeto fica em [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md). A estratégia vigente de validação fica em [`TEST_GOVERNANCE.md`](TEST_GOVERNANCE.md).
 
-O roteamento corrente começa em [`../handoff/2026-08-31-pr237-fechamento-visual-e-ci.md`](../handoff/2026-08-31-pr237-fechamento-visual-e-ci.md). O checkpoint do plano mestre continua em [`../handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](../handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md), mas só volta a orientar a execução depois da reconciliação pós-hotfix.
+O roteamento corrente começa em [`../handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`](../handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md). O plano mestre continua em [`../superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](../superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md), mas sua matriz de execução foi reconciliada em 03/09 contra código, Supabase e Vercel atuais.
 
 ## 2. Classes
 
@@ -47,7 +47,9 @@ Um teste histórico não prevalece sobre regra e código posteriores. PR aberto,
 | `AGENTS.md` | regras de trabalho e proteção do projeto |
 | `README.md` | entrada do repositório |
 | `docs/CURRENT_STAGE.md` | estado corrente, prioridades e gatilhos de nova validação |
-| `docs/handoff/2026-08-31-pr237-fechamento-visual-e-ci.md` | estado canônico corrente após PR #237, saneamento de CI e ponte para próxima Production |
+| `docs/handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md` | porta de entrada corrente; reconciliação documental e matriz atual do plano mestre |
+| `docs/handoff/2026-09-02-dependency-governance.md` | manutenção de dependências e decisões de versões homologadas/rejeitadas |
+| `docs/handoff/2026-08-31-pr237-fechamento-visual-e-ci.md` | histórico canônico imediatamente anterior à reconciliação de 03/09 |
 | `docs/handoff/2026-08-30-pr215-fechamento-tecnico.md` | estado canônico do conjunto PR #211/#214/#215 e ponte para homologação autenticada final |
 | `docs/handoff/2026-08-30-pr211-publicacao-concluida.md` | histórico canônico imediatamente após a publicação do PR #211; superado para estado corrente pelo handoff pós-PR #215 |
 | `docs/handoff/2026-08-30-pr211-retomada-work.md` | histórico da retomada final do PR #211 |
@@ -101,6 +103,7 @@ A autoridade de `technical_admin` deve permanecer coerente com `src/domain/acces
 - `docs/architecture/supabase-readiness.md`;
 - `docs/architecture/frontend-load-order.md`;
 - `docs/architecture/product-extensions-load-order.md`;
+- `docs/architecture/pendency-excel-export.md`;
 - contratos Excel em `docs/architecture/excel-*.md`.
 
 `docs/architecture/roadmap-pre-supabase.md` é **Superado/Histórico executado** para fins de estágio corrente.
@@ -158,6 +161,8 @@ As decisões recentes mais relevantes são:
 - ADR-048 — plano pós-PR #200 usa execução incremental e revisão adversarial;
 - ADR-049 — decisão histórica do PR #203, superada no modelo ativo pelos PRs #208/#209; o vigente é `boleto_internet` dentro de Notas Fiscais;
 - ADR-050 — Notas Fiscais mantêm bonificação agregada, mas análise e Pendência são individuais por `registered_invoice_id`; `a_identificar` nasce Incorreto + Pendência.
+- ADR-052 — fluxos críticos exigem autoridade explícita, bootstrap tratável como contrato e prova de composição.
+- ADR-053 — comunicação oficial externa gerada não expõe o nome interno `RADAR PDDE`.
 
 Quando uma ADR detalhada posterior especializar decisão agregada anterior, prevalece a ADR posterior no ponto expressamente indicado.
 
@@ -185,7 +190,7 @@ Arquivos de `docs/superpowers/plans/`, `docs/superpowers/specs/`, `docs/handoff/
 
 `docs/handoff/2026-08-27-hotfix-boleto-internet.md` é **Histórico executado** do PR #203. Suas afirmações sobre a categoria autônoma `boletoInternet` não prevalecem sobre os PRs #208/#209 e o ADR-050.
 
-O plano `docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md` é **Canônico — aprovado, com PR1/PR2 concluídos e PR3.1 aguardando fechamento/reconciliação do conjunto PR #211/#214/#215**. Seus checkboxes não comprovam implementação. O Word correspondente é **Referência canônica versionada**; a versão Markdown prevalece para busca, diff e execução.
+O plano `docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md` permanece **Canônico como contrato técnico**, mas a seção de reconciliação de 03/09 controla a execução restante. Estado atual: G0/PR1/PR2/PR6B/PR9B concluídos; PR7B concluído funcionalmente por caminho equivalente; PR3/PR6/PR7A/PR8 parciais; PR5/PR9A/PR9C pendentes; PR4 antigo superado; ADR-051 adiado. Seus checkboxes históricos não comprovam estado atual. O Word de 26/08 permanece **Referência canônica versionada**, mas não incorpora decisões posteriores.
 
 O handoff, o plano e o Word de 24/08 são **Superados como orientação operacional** e permanecem **Evidência/Histórico** do primeiro diagnóstico anterior ao PR #200. Não apagar nem reescrever esses arquivos.
 

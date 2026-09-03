@@ -1,10 +1,55 @@
 # RADAR PDDE — Estado atual do projeto
 
-**Atualizado em:** 31 de agosto de 2026
+**Atualizado em:** 3 de setembro de 2026
 
 **Classe documental:** Canônico — estado corrente e retomada futura
 
-**Situação:** baseline avançou até o PR #237; refinamento visual e correções pós-PR215 integrados à `main`; saneamento de CI temporal e revisão de dependências em fechamento antes da próxima publicação de Production.
+**Situação:** baseline reconciliado até o PR #249; `main`, Vercel Production e documentação canônica voltam a apontar para o mesmo estado funcional; plano mestre de 26/08 foi reconciliado contra código e Supabase atuais.
+
+## Atualização de 03/09 — baseline pós-PR #249
+
+A porta de entrada corrente é [`handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`](handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md).
+
+Baseline confirmado:
+
+- `main`: `75237c6ec5c22e8f7be9eb39fd21481f6d608010`;
+- Vercel Production: `dpl_HfiKFNkTHc1f9ATZjgZ6Cn7CbWzz`, `READY`, mesmo SHA da `main`;
+- Supabase Production `scnryinorqeucbfkioxo`: `ACTIVE_HEALTHY`, 44 migrations.
+
+Desde o PR #237 também foram integrados:
+
+- PR #241 — Declaração BB Ágil com `Não se aplica`;
+- PRs #242/#244 — governança de dependências, Supabase CLI 2.116.0 rejeitado, `fast-uri` e `qs` corrigidos;
+- PR #246 — comunicação externa sem o nome do sistema interno;
+- PR #247 — planilha editorial XLSX de Pendências;
+- PR #249 — PDDE Básico primeiro somente na ordem visual, polimento da avaliação e botão Excel em verde.
+
+A reconciliação do plano mestre deixou de ser tarefa futura: ela foi executada em 03/09 diretamente contra código, Supabase e Production.
+
+Estado reconciliado do plano:
+
+- concluídos: G0, PR1, PR2, PR6B e PR9B;
+- concluído funcionalmente por caminho equivalente: PR7B;
+- parciais: PR3, PR6, PR7A e PR8;
+- pendentes reais: PR5, PR9A e PR9C;
+- superado: PR4 antigo;
+- adiado por decisão vigente: ADR-051.
+
+A sequência restante é:
+
+```text
+PR3.1 → PR3.2 → PR3.3
+→ PR5
+→ PR6
+→ revisão focada dos gaps remanescentes de PR7A
+→ PR8A → PR8B
+→ PR9A
+→ PR9C com a metodologia estatística de PR9B já vigente
+→ encerramento funcional
+→ reavaliar ADR-051
+```
+
+O PR4 antigo **não deve ser executado**. A leitura de Production em 03/09 encontrou 143 contextos sem NF de serviço já canônicos, 15 avaliações vazias/não iniciadas e zero estados legados não vazios inconsistentes. Corrigir as 15 avaliações vazias fabricaria estado que o usuário ainda não lançou.
 
 ## Atualização pós-PR #237
 

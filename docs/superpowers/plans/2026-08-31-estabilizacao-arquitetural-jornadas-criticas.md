@@ -4,6 +4,20 @@
 **Baseline:** `79e20734802f2240c794af992d0192d8dd428526`  
 **Objetivo:** reduzir recorrência de regressões causadas por regras duplicadas, contexto reconstruído em múltiplas camadas e composição implícita de wrappers/extensões.
 
+## 0. Reconciliação de 03/09/2026
+
+Esta frente continua válida como regra arquitetural de implementação, mas não constitui uma segunda fila concorrente ao plano mestre reconciliado.
+
+Estado comprovado no código atual:
+
+- **Fase A — contexto canônico:** concluída. `RadarPendencias.buildPendencyLookupContext()` existe e é consumida pelos fluxos críticos, com regressões de autoridade/contexto.
+- **Fases B/C — APIs por jornada e retirada de preflights de negócio do frontend:** parcialmente atendidas; não estão globalmente encerradas.
+- **Fase D — reduzir wrappers:** pendente; wrappers de readiness, performance e reconciliação continuam presentes e alguns ainda usam polling.
+- **Fase E — teste de composição por jornada:** parcialmente atendida pela ADR-052 e pelos testes dos fluxos críticos, mas ainda não fechada para todas as jornadas listadas.
+- **Fase F — fixture permanente de homologação:** não há evidência de conclusão integral.
+- **Fase G — gate de fechamento:** não concluído globalmente.
+
+Na retomada, esta frente orienta principalmente PR3, PR6 e PR8 da matriz reconciliada em `docs/handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`.
 ## 1. Motivação
 
 A homologação autenticada do hotfix de individualização encontrou dois defeitos que os testes por camada não capturaram:
@@ -55,7 +69,7 @@ Nenhum arquivo crítico pode chamar `findActivePendency()` com objeto literal de
 
 ### Estado
 
-Em implementação nesta branch.
+Concluída no baseline reconciliado de 03/09. A fábrica canônica e seus consumidores críticos já estão na `main`; não recriar esta fase.
 
 ## 4. Fase B — API de aplicação por jornada
 
