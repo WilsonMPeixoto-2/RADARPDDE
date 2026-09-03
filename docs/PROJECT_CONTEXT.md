@@ -133,7 +133,7 @@ Regras vigentes:
 - N/A → Sim/Não reinicializa derivações incompatíveis, incluindo análise técnica de NF para `Não analisado` quando aplicável;
 - operação semanticamente idêntica ao estado atual é idempotente e não deve produzir nova persistência, novo `row_version` ou novo log apenas por repetição do comando.
 
-O diagnóstico de 24/08 identificou que esse último contrato ainda não está integralmente satisfeito em `invoice:save`: a edição alcança update/log sem um planejador semântico completo e a inclusão não possui chave idempotente de servidor. Tratar como lacuna conhecida do fluxo INV-01, não como autorização para alterar a regra.
+O diagnóstico de 24/08 foi parcialmente superado pelo PR2/#206: `invoice-effects.js` hoje planeja os efeitos persistentes e o fluxo possui no-op semântico real antes da escrita quando o estado final é idêntico. A lacuna remanescente de `invoice:save` é a **idempotência durável de intenção no servidor** para retry, perda de resposta e concorrência: ainda não existe `InvoiceSaveIntent`/chave idempotente v2 nem RPC idempotente sucessora. O guard de submit do cliente continua útil, mas não substitui PR5.
 
 ### Decisões supervenientes de 01–03/09
 
