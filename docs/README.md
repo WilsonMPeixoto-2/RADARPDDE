@@ -87,7 +87,7 @@ A leitura do plano mestre deve começar pela seção de reconciliação de 03/09
 
 Após #190–#193, o caminho normal usa persistência/retorno autoritativo e reconciliação incremental. `renderProntuario()` integral é fallback para erro, retorno incompleto ou inconsistência não reconciliável, não rotina de sucesso.
 
-O diagnóstico de 24/08 encontrou lacunas específicas ainda abertas em `invoice:save`: submit repetido, ausência de no-op verdadeiramente semântico, dependência da extensão opcional para dispensar refresh de históricos e ausência de chave idempotente de servidor. O contrato continua vigente; a cobertura desse fluxo não deve ser presumida como completa.
+O diagnóstico de 24/08 foi parcialmente absorvido pelos PRs #202/#206 e pelos hotfixes posteriores: o submit imediato possui guard, `invoice-effects.js` planeja efeitos e o no-op semântico já evita escrita sem mudança real. Permanecem como lacunas a idempotência durável de intenção no servidor (PR5) e a retirada das decisões essenciais de consistência que ainda dependem de wrappers/reconciliação parcial (PR3/PR8).
 
 ### Avaliação mensal
 
