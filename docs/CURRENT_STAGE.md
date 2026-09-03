@@ -1,12 +1,60 @@
 # RADAR PDDE — Estado atual do projeto
 
-**Atualizado em:** 31 de agosto de 2026
+**Atualizado em:** 3 de setembro de 2026
 
 **Classe documental:** Canônico — estado corrente e retomada futura
 
-**Situação:** baseline avançou até o PR #237; refinamento visual e correções pós-PR215 integrados à `main`; saneamento de CI temporal e revisão de dependências em fechamento antes da próxima publicação de Production.
+**Situação:** baseline corrente no merge do PR #249 (`75237c6`), publicado em Production (`dpl_HfiKFNkTHc1f9ATZjgZ6Cn7CbWzz`, `READY`); documentação e plano mestre reconciliados contra o código e o Supabase atuais.
 
-## Atualização pós-PR #237
+## 0. Estado reconciliado pós-PR #249
+
+A porta de entrada corrente é [`handoff/2026-09-03-reconciliacao-plano-mestre-pos-hotfixes.md`](handoff/2026-09-03-reconciliacao-plano-mestre-pos-hotfixes.md).
+
+Depois do PR #237, o produto incorporou:
+
+- PR #239 — saneamento temporal de CI, sincronização visual da Assessoria, dependências aprovadas e Lighthouse com três execuções + mediana;
+- PR #241 — `N/A` na Declaração BB Ágil, com neutralização técnica e proteção de Pendência ativa;
+- PR #242/#244 — governança de dependências, atualização ESLint/Knip, correções `fast-uri`/`qs` e bloqueio exato do Supabase CLI 2.116.0 rejeitado;
+- PR #246 — ADR-053: comunicação oficial externa não expõe o nome interno `RADAR PDDE`;
+- PR #247 — planilha editorial XLSX de Pendências (`EXP-03`), levando a matriz funcional a **44 operações**;
+- PR #249 — PDDE Básico primeiro **somente na ordem visual**, polimento de alinhamento/tipografia e botão Excel verde.
+
+Production corrente:
+
+- Vercel: `dpl_HfiKFNkTHc1f9ATZjgZ6Cn7CbWzz`, `READY`, merge `75237c6ec5c22e8f7be9eb39fd21481f6d608010`;
+- Supabase `scnryinorqeucbfkioxo`: **44 migrations**, última `20260830223000_payload_row_version_boundary`;
+- a reconciliação read-only de 03/09 encontrou 15 verificações sem NF de serviço cuja projeção de Consulta Assessoria ainda diverge da regra canônica atual; nenhuma das 15 possui Pendência ativa de Assessoria.
+
+### Retomada do plano mestre
+
+A antiga instrução “iniciar PR3.1 depois de reconciliar PR #211/#214/#215” está **superada porque a reconciliação foi finalmente executada**.
+
+Estado:
+
+```text
+G0/PR1/PR2 concluídos
+PR3 parcial
+PR4 pendente
+PR5 pendente
+PR6 parcial
+PR6B atendido
+PR7A/PR7B atendidos em essência
+PR8 parcial
+PR9A pendente
+PR9B concluído antecipadamente
+PR9C pendente
+```
+
+Sequência de retomada:
+
+```text
+PR3-R → PR4-R → PR5-R → PR6-R → PR8-R → PR9A-R → PR9C-R
+→ reavaliar ADR-051 → fechamento
+```
+
+As regras posteriores ao plano são guardrails obrigatórios e estão detalhadas no handoff de 03/09. Planos e handoffs abaixo permanecem como histórico técnico e não devem restaurar contratos superados.
+
+## Histórico pós-PR #237
 
 A porta de entrada corrente é [`handoff/2026-08-31-pr237-fechamento-visual-e-ci.md`](handoff/2026-08-31-pr237-fechamento-visual-e-ci.md).
 
