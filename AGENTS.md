@@ -219,7 +219,6 @@ No baseline posterior ao PR #211, preservar estas decisões já fechadas:
 - o fluxo normal e as RPCs protegem identidade, contexto, concorrência e atomicidade; existe uma lacuna residual conhecida contra escrita **direta** em `registered_invoices` envolvendo `id`, `verification_id` e `source_context_key`, registrada na ADR-051;
 - por decisão explícita do responsável pelo produto, esse hardening adicional do Supabase está **adiado até a conclusão e validação de todas as frentes de correção funcional**; não antecipá-lo, não usá-lo como gate dos PRs funcionais e não marcá-lo como resolvido;
 - desktop foi o alvo do hotfix; a reconferência visual final foi concluída e o overflow em 1280 px foi corrigido pelo PR #214, com regressão E2E de largura/alinhamento; mobile permanece dívida separada não bloqueante;
-
 - Declaração BB Ágil aceita `N/A` conforme PR #241: estado neutro `Correto`, análise bloqueada enquanto N/A e Pendência ativa impede neutralização;
 - comunicação oficial externa não contém o nome interno `RADAR PDDE` e a cobrança termina somente em `Atenciosamente` (ADR-053);
 - o botão de Pendências exporta XLSX editorial conforme busca/filtros e essa operação é `EXP-03` na matriz funcional;
