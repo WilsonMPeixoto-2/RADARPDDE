@@ -180,7 +180,7 @@
         return allForwarded ? 'Sim' : 'Não';
     }
 
-    function applyInventoryForwardingProjection(verification, delivery) {
+    function applyInventoryForwardingProjection(verification, delivery, options = {}) {
         if (!verification) return false;
         verification.bonificacao = verification.bonificacao || {};
         verification.analise = verification.analise || {};
@@ -191,7 +191,13 @@
 
         if (delivery === 'Não se aplica') {
             verification.analise.encampInventario = 'Correto';
-        } else if (!beforeDelivery || beforeDelivery === 'Não se aplica') {
+        } else if (
+            options.resetAnalysis === true
+            || !beforeAnalysis
+            || !beforeDelivery
+            || beforeDelivery === 'Não se aplica'
+            || beforeDelivery !== delivery
+        ) {
             verification.analise.encampInventario = 'Não analisado';
         }
 
@@ -337,7 +343,11 @@
                     null,
                     input.currentAsset?.id || existingInvoice?.bemId || null
                 );
-                applyInventoryForwardingProjection(verification, inventoryDelivery);
+                applyInventoryForwardingProjection(
+                    verification,
+                    inventoryDelivery,
+                    { resetAnalysis: true }
+                );
             }
         }
 
@@ -483,9 +493,12 @@
                     assetPlan.asset,
                     assetPlan.removedAsset?.id || null
                 );
+                const inventoryMembershipChanged = operation === 'create'
+                    || previousType !== request.expenseType;
                 verificationChanged = applyInventoryForwardingProjection(
                     verification,
-                    inventoryDelivery
+                    inventoryDelivery,
+                    { resetAnalysis: inventoryMembershipChanged }
                 ) || verificationChanged;
             }
         }
