@@ -149,45 +149,95 @@ Criar regressões que executem comandos representativos **sem instalar `RadarOpe
 - Assessoria;
 - operações que hoje recebem política pelo decorator.
 
-### R1.2 — mover política para a autoridade correta
+### R1.2 — declarar política específica no próprio comando
 
-Para cada comando atualmente listado no decorator:
+Não criar outro mapa central por nome de comando.
 
-- declarar `remoteResultIsAuthoritative`, `remoteCommitIsAuthoritative`, `incrementalStateEntities` e refresh exemptions no serviço/comando ou em contrato de aplicação explicitamente consumido pelo DataService;
-- não duplicar a lista em outro wrapper.
+Mover as políticas hoje efetivamente injetadas pelo decorator para os objetos enviados pelos serviços:
 
-### R1.3 — separar sincronização visual de medição
+- resultado remoto autoritativo: calendário; programa; redistribuição; Pendências operacionais; Inventário;
+- commit remoto autoritativo: `school:save`, `pendency:reanalyze`, `invoice:update-service-advisory`;
+- aplicação incremental: escritas de `VerificationService` atualmente cobertas e `invoice:update-service-advisory`;
+- exceção de refresh: `configuration:create-exercise` declara somente `administrativeLogs`.
 
-Extrair/reusar as funções funcionais hoje alojadas no wrapper de performance somente quando necessárias para preservar o caminho incremental.
+`invoice:save` e `invoice:remove` já declaram a exceção de `administrativeLogs`; preservar sem duplicar.
 
-Não criar um segundo reconciliador concorrente. Preferir:
+O RED deve comparar o objeto efetivo recebido pelo DataService antes/depois e impedir ativação oportunista de política que não existia no caminho atual.
 
-1. rotinas já provadas;
-2. `prontuario-conditional-reconciler.js` quando a responsabilidade for compatível;
-3. pequeno módulo funcional apenas se os testes demonstrarem que as duas autoridades atuais não podem ser compostas.
+### R1.3 — mover a whitelist global de refresh exemption para DataService
 
-### R1.4 — remover dependência artificial
+Apenas `administrativeLogs`, coleção append-only, pode ser dispensada de releitura remota.
 
-`prontuario-conditional-reconciler.js` não pode depender de `RadarOperationalWritePerformance` só para instalar.
+Hoje essa whitelist é sanitizada pelo wrapper de performance. R1 move a sanitização para o DataService, porque é uma invariante global de reconciliação.
 
-### R1.5 — manter performance como observador
+Preservar a semântica atual:
 
-O wrapper final pode:
+- entidade segura declarada → permanece isenta;
+- entidade mutável declarada indevidamente → a isenção é ignorada e a entidade continua sujeita à reconciliação;
+- não transformar essa limpeza em permissão genérica nem em nova falha funcional sem RED específico.
 
-- iniciar/fechar traces;
-- capturar duração;
-- adicionar marcações;
-- observar estabilidade.
+### R1.4 — consolidar os dois reconciliadores funcionais atuais
 
-Não pode decidir o que é commit autoritativo nem quais entidades definem consistência.
+Não criar um terceiro reconciliador.
+
+Mover para `prontuario-conditional-reconciler.js` as responsabilidades funcionais hoje alojadas em `operational-write-performance.js`:
+
+- supressão do `renderProntuario()` integral no caminho incremental já aprovado;
+- sincronização de bonificação/análise da linha;
+- BB Ágil em N/A;
+- ação fiscal condicional;
+- resumo de Assessoria;
+- resumo do programa;
+- aplicação localizada depois dos cinco handlers inline.
+
+Fundir isso com as responsabilidades que o reconciliador condicional já possui para consolidação, despesa a identificar e controles de Pendência.
+
+O resultado deve ser **um único wrapper funcional** para os cinco handlers, preservando a exceção atual em que `toggleBonif(..., 'notaFiscal', ...)` ainda exige a renderização estruturada correspondente.
+
+### R1.5 — remover dependência artificial
+
+`prontuario-conditional-reconciler.js` não pode exigir `RadarOperationalWritePerformance` para instalar.
+
+A correlação de diagnóstico pode ser usada de forma fail-open diretamente pelo reconciliador, mas ausência de trace/Performance API não muda o fluxo funcional.
+
+### R1.6 — manter performance como observador
+
+`operational-write-performance.js` fica limitado a:
+
+- correlacionar a persistência com o trace ativo;
+- marcar `rpcStart/rpcEnd`;
+- medição e diagnóstico fail-open.
+
+Ele não pode:
+
+- decorar comando;
+- escolher resultado/commit autoritativo;
+- escolher entidades incrementais;
+- sanitizar refresh exemption;
+- suprimir renderização;
+- sincronizar DOM;
+- envolver handlers de negócio.
+
+### R1.7 — atualizar regressões de autoridade
+
+Atualizar os testes que hoje cristalizam a arquitetura antiga:
+
+- `operational-write-performance-policy.test.js` passa a provar que performance **não altera** comando e que as políticas estão no serviço;
+- `operational-write-refresh-policy.test.js` passa a provar a whitelist no DataService;
+- `prontuario-inline-write-contract.test.js` passa a apontar para `prontuario-conditional-reconciler.js`;
+- `operational-write-diagnostics-integration.test.js` instala tracing e reconciliador separadamente;
+- `critical-product-extension-authority.test.js` preserva a ordem crítica e comprova que o reconciliador funcional não depende de performance.
 
 ## 10. Gate de R1
 
 - mesmas escritas passam com módulo de performance presente e ausente;
+- comandos declaram no serviço a política que antes era injetada;
+- DataService rejeita por sanitização qualquer tentativa de isentar entidade mutável de refresh;
 - nenhuma regra de persistência depende de monkey patch tardio;
-- Consulta Assessoria e individualização fiscal continuam verdes;
-- sem aumento de renderização integral no caminho já incremental;
-- `operational-write-performance-policy.test.js` é atualizado para provar que a política migrou, não para perpetuar a duplicação.
+- há um único wrapper funcional para os cinco handlers inline;
+- Consulta Assessoria, BB Ágil N/A, individualização fiscal e controles de Pendência continuam verdes;
+- sem aumento de `renderProntuario()` integral no caminho já incremental;
+- ausência de diagnóstico/performance não muda persistência nem DOM funcional.
 
 ---
 
