@@ -280,6 +280,93 @@ body.dark-theme #prontuario-verif-rows tr.verification-document-row.is-striped >
     min-width: 142px;
 }
 
+/* A inventariação mantém o resumo mensal, mas explicita quais aquisições permanentes o sustentam. */
+#prontuario-verif-rows .inventory-document-links {
+    margin: 10px 0 0 44px;
+    padding-top: 8px;
+    border-top: 1px solid color-mix(in srgb, var(--primary) 12%, var(--border-color));
+}
+
+#prontuario-verif-rows .inventory-document-links-caption {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.025em;
+}
+
+#prontuario-verif-rows .inventory-document-link {
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr) auto;
+    gap: 7px;
+    align-items: center;
+    min-width: 0;
+    padding: 5px 0;
+}
+
+#prontuario-verif-rows .inventory-document-link + .inventory-document-link {
+    border-top: 1px dashed color-mix(in srgb, var(--primary) 10%, var(--border-color));
+}
+
+#prontuario-verif-rows .inventory-document-link-connector {
+    color: var(--primary);
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+#prontuario-verif-rows .inventory-document-link-copy {
+    min-width: 0;
+}
+
+#prontuario-verif-rows .inventory-document-link-copy strong,
+#prontuario-verif-rows .inventory-document-link-copy span {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#prontuario-verif-rows .inventory-document-link-copy strong {
+    color: var(--text-main);
+    font-size: 0.76rem;
+    font-weight: 700;
+}
+
+#prontuario-verif-rows .inventory-document-link-copy span {
+    margin-top: 1px;
+    color: var(--text-muted);
+    font-size: 0.7rem;
+}
+
+#prontuario-verif-rows .inventory-document-link-status {
+    justify-self: end;
+    padding: 3px 7px;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    background: var(--table-header-bg);
+    color: var(--text-muted);
+    font-size: 0.66rem;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+#prontuario-verif-rows .inventory-document-link-status.is-forwarded,
+#prontuario-verif-rows .inventory-document-link-status.is-inventoried {
+    border-color: color-mix(in srgb, var(--success) 35%, var(--border-color));
+    background: color-mix(in srgb, var(--success-bg) 75%, transparent);
+    color: var(--success);
+}
+
+#prontuario-verif-rows .inventory-document-link-status.is-pending,
+#prontuario-verif-rows .inventory-document-link-status.is-missing {
+    border-color: color-mix(in srgb, var(--warning) 35%, var(--border-color));
+    background: color-mix(in srgb, var(--warning-bg) 75%, transparent);
+    color: var(--warning-color, var(--warning));
+}
+
 @media (max-width: 900px) {
     #prontuario-verif-rows .program-context-cell {
         min-width: 172px;
@@ -288,5 +375,24 @@ body.dark-theme #prontuario-verif-rows tr.verification-document-row.is-striped >
 
     #prontuario-verif-rows .program-status-summary .badge {
         min-width: 88px;
+    }
+
+    #prontuario-verif-rows .inventory-document-links {
+        margin-left: 0;
+    }
+
+    #prontuario-verif-rows .inventory-document-link {
+        grid-template-columns: 16px minmax(0, 1fr);
+    }
+
+    #prontuario-verif-rows .inventory-document-link-status {
+        grid-column: 2;
+        justify-self: start;
+        margin-top: 2px;
+    }
+
+    #prontuario-verif-rows .inventory-document-link-copy strong,
+    #prontuario-verif-rows .inventory-document-link-copy span {
+        white-space: normal;
     }
 }
