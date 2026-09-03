@@ -224,6 +224,32 @@ test('cancela, reabre resolvida e registra contato sem alterar estados indevidos
 });
 
 
+test('registra todos os canais de contato preservando a Pendência e os dados informados', async () => {
+    const harness = createHarness();
+    const opened = await harness.service.open(documentaryInput);
+    const pendencyId = opened.value.pendency.id;
+    const channels = ['Telefone', 'WhatsApp', 'E-mail', 'Outro'];
+
+    for (const [index, channel] of channels.entries()) {
+        const result = await harness.service.registerContact({
+            pendencyId,
+            channel,
+            serviceDate: `2026-07-${String(20 + index).padStart(2, '0')}`,
+            description: `Contato via ${channel}.`
+        });
+        assert.equal(result.value.contact.tipo, channel);
+        assert.equal(
+            result.value.contact.dataAtendimento,
+            `2026-07-${String(20 + index).padStart(2, '0')}`
+        );
+        assert.equal(result.value.contact.desc, `Contato via ${channel}.`);
+        assert.equal(result.value.contact.pendenciaId, pendencyId);
+    }
+
+    assert.equal(harness.state.contacts.length, 4);
+    assert.equal(harness.state.pendencies[0].status, 'Aberta');
+});
+
 test('rota genérica rejeita pendência de Assessoria sem identidade da NF antes de DataService', async () => {
     const harness = createHarness();
     const verification = harness.state.verifications['ESC-1']['2026-05_BASIC'];
