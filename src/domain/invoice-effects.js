@@ -572,6 +572,8 @@
     }
 
     return Object.freeze({
-        planInvoiceEffects
+        planInvoiceEffects,
+        deriveInventoryForwarding,
+        applyInventoryForwardingProjection
     });
 }));
