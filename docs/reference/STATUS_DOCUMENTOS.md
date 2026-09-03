@@ -183,6 +183,8 @@ Regras:
 
 As auditorias dos incidentes de Gestão de Equipe permanecem válidas como histórico dos defeitos e correções, não como indício de falha atual por si só.
 
+`docs/audits/2026-09-03-documentacao-e-plano-mestre.md` é evidência da auditoria documental/reconciliação que produziu o handoff canônico de 03/09.
+
 ## 11. Planos, especificações e handoffs
 
 Arquivos de `docs/superpowers/plans/`, `docs/superpowers/specs/`, `docs/handoff/` e `docs/reports/` são normalmente **Histórico executado**, **Evidência** ou **Trabalho em andamento** conforme seu contexto.
