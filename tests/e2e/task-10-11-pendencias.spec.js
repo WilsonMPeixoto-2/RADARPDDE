@@ -97,6 +97,54 @@ test.describe('Tasks 10–11 — contatos, cancelamento e reabertura', () => {
     await expect(page.locator('[data-pendency-id="task10-open"]:visible').first()).toContainText('Cancelada');
   });
 
+  test('reabre pendência cancelada sem manter marcador terminal de cancelamento', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário desktop.');
+    await page.goto('/');
+    await seedOperations(page);
+
+    const row = page.locator('[data-pendency-id="task10-open"]:visible').first();
+    await row.getByRole('button', { name: 'Ver detalhes' }).click();
+    let drawer = page.getByRole('complementary', { name: 'Detalhes da pendência' });
+    await drawer.getByRole('button', { name: 'Cancelar pendência' }).click();
+
+    let dialog = page.getByRole('dialog', { name: 'Cancelar pendência' });
+    await dialog.getByLabel('Justificativa do cancelamento').fill('Registro indevido.');
+    await dialog.getByRole('button', { name: 'Confirmar cancelamento' }).click();
+
+    await page.getByRole('tab', { name: /^Canceladas\b/ }).click();
+    const cancelledRow = page.locator('[data-pendency-id="task10-open"]:visible').first();
+    await cancelledRow.getByRole('button', { name: 'Ver detalhes' }).click();
+    drawer = page.getByRole('complementary', { name: 'Detalhes da pendência' });
+    await expect(drawer.getByRole('button', { name: 'Reabrir pendência' })).toBeVisible();
+    await drawer.getByRole('button', { name: 'Reabrir pendência' }).click();
+
+    dialog = page.getByRole('dialog', { name: 'Reabrir pendência' });
+    await dialog.getByLabel('Documento ilegível').check();
+    await dialog.getByLabel('Justificativa da reabertura').fill('Nova conferência exigida.');
+    await dialog.getByRole('button', { name: 'Confirmar reabertura' }).click();
+
+    await expect(page.getByRole('tab', { name: /^Abertas\b/ })).toHaveAttribute('aria-selected', 'true');
+    const state = await page.evaluate(() => {
+      const item = pendencias.find(pendency => pendency.id === 'task10-open');
+      const canonical = RadarLegacyStateAdapter.transformLegacyState({
+        ...getCurrentState(),
+        pendencies: [item]
+      }).entities.pendencies.find(pendency => pendency.id === 'task10-open');
+      return {
+        status: item.status,
+        cancellationHistory: item.cancelamento,
+        canceledAt: canonical?.canceled_at ?? null,
+        historyTypes: item.historico.map(event => event.tipo)
+      };
+    });
+
+    expect(state.status).toBe('Aberta');
+    expect(state.cancellationHistory).toBeTruthy();
+    expect(state.canceledAt).toBeNull();
+    expect(state.historyTypes).toContain('cancelamento');
+    expect(state.historyTypes).toContain('reabertura');
+  });
+
   test('reabre pendência resolvida preservando o histórico', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'desktop-chromium', 'Cenário desktop.');
     await page.goto('/');
