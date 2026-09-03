@@ -1,7 +1,7 @@
 # Avaliação mensal — contrato canônico
 
-**Estado:** contrato vigente; implementação do boleto candidata no PR #203, ainda não publicada
-**Atualizado em:** 27 de agosto de 2026
+**Estado:** contrato vigente e publicado
+**Atualizado em:** 3 de setembro de 2026
 
 ## 1. Finalidade
 
@@ -13,6 +13,16 @@ A avaliação mensal representa, para cada combinação de unidade escolar, comp
 
 Dashboard, Carteira, Competências, Prontuário, timeline e exportações não podem calcular resultados distintos para o mesmo contexto.
 
+## 1.1 Ordem visual dos programas
+
+Na tela de avaliação, `PDDE Básico` é apresentado primeiro para manter a sequência de trabalho habitual dos Controladores.
+
+Essa prioridade é **somente de apresentação**:
+
+- não reordena `programasIds` na fonte;
+- não persiste nova ordem;
+- não altera consolidação, bonificação, análise, Pendências ou regras de programa;
+- os demais programas preservam entre si a ordem original.
 ## 2. Identidade
 
 ```text
