@@ -1,6 +1,6 @@
 # RADAR PDDE — Registro de decisões
 
-**Atualizado em:** 30 de agosto de 2026
+**Atualizado em:** 3 de setembro de 2026
 
 Este documento registra decisões duradouras. Não é diário de commits. Uma decisão somente é substituída por decisão expressa com impacto e status documentados.
 
@@ -574,7 +574,7 @@ A classificação de Production foi refinada por autoria: dos 20 `a_identificar`
 
 A antiga decisão de reparar o Boleto 1234 foi superada porque boleto e Pendência foram comprovados como dados de teste. Ambos foram removidos pela limpeza, com logs preservados.
 
-O resumo técnico fiscal continua derivado internamente, mas não aparece como etiqueta agregada no cabeçalho: os estados ficam nas linhas e o cabeçalho mostra bonificação e quantidade de Pendências. A reconferência visual manual posterior aos ajustes foi expressamente adiada e não bloqueia o merge; isso não dispensa gates funcionais desktop.
+O resumo técnico fiscal continua derivado internamente, mas não aparece como etiqueta agregada no cabeçalho: os estados ficam nas linhas e o cabeçalho mostra bonificação e quantidade de Pendências. A reconferência visual posterior foi executada, originou o PR #214 e foi sucedida pelos refinamentos aprovados até o PR #249; mockups ou anotações anteriores não autorizam restaurar o layout superado.
 
 **Documento integral:** `docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`.  
 **Evidência de dados:** `docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md`.
@@ -622,7 +622,7 @@ Vercel Production: `dpl_TXwRPK2Sv72u5HtQVF3Z7ejJby3k`, `READY`.
 
 ## ADR-052 — Autoridade única e contrato executável para fluxos críticos
 
-**Status:** Aprovada e em implementação
+**Status:** Aprovada e implementada nos fluxos críticos atuais; expansão sistêmica de readiness ainda pendente
 
 Fluxo crítico P0/P1 deve possuir autoridade funcional explícita, cadeia de bootstrap tratada como contrato e prova executável de que a composição real foi instalada.
 
@@ -652,3 +652,20 @@ As mensagens externas devem se referir diretamente ao objeto administrativo pert
 O gerador de cobrança deve terminar somente em **Atenciosamente**, sem assinatura automática de equipe ou do sistema. O contrato de testes deve impedir a reintrodução de `RADAR PDDE` no bloco de texto externo gerado.
 
 **Aplicação inicial:** hotfix de 02/09/2026 no gerador de cobrança, removendo a expressão “no RADAR PDDE” da mensagem de ausência de pendências.
+
+---
+
+## Evento de governança — reconciliação do plano mestre em 03/09/2026
+
+A execução futura do plano mestre de 26/08 foi reconciliada contra a `main`, Vercel Production e Supabase Production atuais.
+
+Decisões de sequência:
+
+- PR4 antigo foi superado pelo estado atual dos dados e não deve gerar migration automática;
+- PR6B, PR7B e PR9B foram atendidos por caminhos posteriores e saem da fila de implementação;
+- PR3, PR6, PR7A e PR8 permanecem parciais, com escopo reduzido ao que ainda falta;
+- PR5, PR9A e PR9C permanecem pendentes reais;
+- ADR-051 continua adiada até o fechamento funcional;
+- decisões posteriores sobre BB Ágil N/A, individualização por NF, Boleto dentro de Notas Fiscais, comunicação externa, exportação de Pendências e ordem visual do PDDE Básico não podem ser revertidas pelo plano histórico.
+
+Documento canônico: `docs/handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`.
