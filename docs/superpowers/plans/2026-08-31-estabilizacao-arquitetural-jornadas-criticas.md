@@ -6,7 +6,7 @@
 
 ## 0. Reconciliação de 03/09/2026
 
-Esta frente continua válida como regra arquitetural de implementação, mas não constitui uma segunda fila concorrente ao plano mestre reconciliado.
+Esta frente continua válida como **referência arquitetural histórica**, mas não constitui uma segunda fila. A reauditoria source-first de 03/09 absorveu seus princípios no plano executável R1–R9.
 
 Estado comprovado no código atual:
 
@@ -17,7 +17,7 @@ Estado comprovado no código atual:
 - **Fase F — fixture permanente de homologação:** não há evidência de conclusão integral.
 - **Fase G — gate de fechamento:** não concluído globalmente.
 
-Na retomada, esta frente orienta principalmente PR3, PR6 e PR8 da matriz reconciliada em `docs/handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`.
+Na execução atual, seus pontos remanescentes são absorvidos principalmente por **R1** (retirar autoridade de wrappers), **R2** (readiness), **R4** (semântica única) e **R5** (convergência incremental), conforme `docs/superpowers/plans/2026-09-03-plano-remanescente-source-first.md`. Nenhuma fase deste arquivo deve ser executada em paralelo como programa independente.
 ## 1. Motivação
 
 A homologação autenticada do hotfix de individualização encontrou dois defeitos que os testes por camada não capturaram:
