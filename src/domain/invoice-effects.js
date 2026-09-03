@@ -159,6 +159,46 @@
         };
     }
 
+    function deriveInventoryForwarding(contextInvoices, contextAssets, plannedAsset = null, removedAssetId = null) {
+        const permanentInvoices = (Array.isArray(contextInvoices) ? contextInvoices : [])
+            .filter(invoice => invoiceType(invoice) === 'permanente');
+        if (permanentInvoices.length === 0) return 'Não se aplica';
+
+        const assetById = new Map(
+            (Array.isArray(contextAssets) ? contextAssets : [])
+                .filter(asset => text(asset?.id) && text(asset?.id) !== text(removedAssetId))
+                .map(asset => [text(asset.id), asset])
+        );
+        if (plannedAsset?.id) assetById.set(text(plannedAsset.id), plannedAsset);
+
+        const forwardedStatuses = new Set(['Encaminhada', 'Inventariada']);
+        const allForwarded = permanentInvoices.every(invoice => {
+            const assetId = text(invoice.bemId || invoice.linkedAssetId || invoice.linked_asset_id);
+            const asset = assetId ? assetById.get(assetId) : null;
+            return Boolean(asset && forwardedStatuses.has(text(asset.status)));
+        });
+        return allForwarded ? 'Sim' : 'Não';
+    }
+
+    function applyInventoryForwardingProjection(verification, delivery) {
+        if (!verification) return false;
+        verification.bonificacao = verification.bonificacao || {};
+        verification.analise = verification.analise || {};
+
+        const beforeDelivery = text(verification.bonificacao.encampInventario);
+        const beforeAnalysis = text(verification.analise.encampInventario);
+        verification.bonificacao.encampInventario = delivery;
+
+        if (delivery === 'Não se aplica') {
+            verification.analise.encampInventario = 'Correto';
+        } else if (!beforeDelivery || beforeDelivery === 'Não se aplica') {
+            verification.analise.encampInventario = 'Não analisado';
+        }
+
+        return beforeDelivery !== text(verification.bonificacao.encampInventario)
+            || beforeAnalysis !== text(verification.analise.encampInventario);
+    }
+
     function advisoryFallback(existingInvoice, contextInvoices, verification) {
         if (!existingInvoice || invoiceType(existingInvoice) !== 'servico') return {};
         const services = (Array.isArray(contextInvoices) ? contextInvoices : [])
@@ -289,6 +329,16 @@
             );
             verification.analise.notaFiscal = fiscalAnalysis;
             resetFiscalAnalysis = previousFiscalAnalysis !== fiscalAnalysis;
+
+            if (invoiceType(existingInvoice) === 'permanente') {
+                const inventoryDelivery = deriveInventoryForwarding(
+                    remainingInvoices,
+                    input.contextAssets,
+                    null,
+                    input.currentAsset?.id || existingInvoice?.bemId || null
+                );
+                applyInventoryForwardingProjection(verification, inventoryDelivery);
+            }
         }
 
         const reopened = Boolean(
@@ -423,6 +473,21 @@
                 || currentSent !== aggregate.sent
                 || currentAnalysis !== aggregate.analysis
                 || currentFiscalAnalysis !== fiscalAnalysis;
+
+            const shouldSyncInventory = request.expenseType === 'permanente'
+                || previousType === 'permanente';
+            if (shouldSyncInventory) {
+                const inventoryDelivery = deriveInventoryForwarding(
+                    projectedInvoices,
+                    input.contextAssets,
+                    assetPlan.asset,
+                    assetPlan.removedAsset?.id || null
+                );
+                verificationChanged = applyInventoryForwardingProjection(
+                    verification,
+                    inventoryDelivery
+                ) || verificationChanged;
+            }
         }
 
         const assetChanged = assetPlan.assetChanged;
