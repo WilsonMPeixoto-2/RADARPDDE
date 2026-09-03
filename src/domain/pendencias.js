@@ -552,7 +552,7 @@
 
         next.tentativas.push(attempt);
         next.status = PENDENCY_STATUS.AWAITING_REVIEW;
-        next.responsavel = getNextActor(next);
+        syncNextActorProjection(next);
         next.dataResolucao = null;
         next.historico.push(event);
         return next;
