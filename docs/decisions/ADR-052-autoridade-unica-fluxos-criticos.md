@@ -1,6 +1,6 @@
 # ADR-052 — Autoridade única e contrato executável para fluxos críticos
 
-**Status:** Aprovada e em implementação  
+**Status:** Aprovada; implementação inicial concluída, expansão sistêmica pendente  
 **Data:** 30 de agosto de 2026
 
 ## Contexto
@@ -99,6 +99,19 @@ A ausência de alteração deve ser explicitamente confirmada, não presumida.
 - não substitui ADR-041, ADR-042 ou ADR-050; operacionaliza essas decisões na composição do frontend.
 
 ## Implementação inicial
+
+### Estado reconciliado em 03/09/2026
+
+A implementação inicial desta ADR foi consolidada pelos PRs #218 e #222:
+
+- regressão de autoridade e ordem da cadeia crítica;
+- E2E de instalação real;
+- `RadarProductExtensionsReady` condicionado à instalação crítica efetiva;
+- evento `radar:application-services-ready` para eliminar o timeout arbitrário da cadeia de Assessoria;
+- instalação idempotente por instância real de serviço.
+
+A expansão sistêmica **não está concluída**. Módulos não críticos/adjacentes ainda usam polling com timeout para instalação e a redução geral de wrappers do plano de estabilização de 31/08 permanece pendente. A evolução futura deve preservar o mecanismo determinístico já validado e não trocá-lo por um registry/polling genérico apenas para reproduzir o desenho inicial do plano.
+
 
 O PR aberto após a revisão pós-PR #215 adiciona:
 
