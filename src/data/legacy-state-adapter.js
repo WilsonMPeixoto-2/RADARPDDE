@@ -424,7 +424,9 @@
                 return;
             }
 
-            const cancellationAt = normalizeTimestamp(pendency.cancelamento?.dataHora || pendency.canceled_at);
+            const cancellationAt = status === 'Cancelada'
+                ? normalizeTimestamp(pendency.cancelamento?.dataHora || pendency.canceled_at)
+                : null;
             entities.pendencies.push({
                 id,
                 school_id: schoolId,
