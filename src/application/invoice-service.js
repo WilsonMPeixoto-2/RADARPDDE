@@ -1105,6 +1105,12 @@
                     'verifications',
                     'administrativeLogs'
                 ],
+                remoteCommitIsAuthoritative: true,
+                incrementalStateEntities: [
+                    'registeredInvoices',
+                    'verifications',
+                    'administrativeLogs'
+                ],
                 persist: this.createPersistence('save'),
                 mutate: () => {
                     const state = this.getState();
