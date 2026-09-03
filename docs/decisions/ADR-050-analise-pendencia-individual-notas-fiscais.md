@@ -158,4 +158,4 @@ Uma auditoria que proponha voltar ao lookup genérico ou abrir o modal de Assess
 
 ## Retorno ao plano mestre
 
-Após a publicação do PR #211, o re-baseline de `main`, Supabase Production e Vercel Production foi concluído. Resta reconciliar o plano mestre de 26/08 e somente então iniciar PR3.1.
+Após a publicação do PR #211, o re-baseline foi concluído e a reconciliação integral do plano mestre foi finalmente executada em 03/09/2026. A retomada passa a seguir `docs/handoff/2026-09-03-reconciliacao-plano-mestre-pos-hotfixes.md`; não se inicia PR3.1 pela sequência histórica sem aplicar essa classificação.
