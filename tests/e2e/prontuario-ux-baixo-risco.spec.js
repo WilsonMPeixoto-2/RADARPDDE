@@ -255,4 +255,5 @@ test.describe('Prontuário — refinamentos UX de baixo risco', () => {
       getComputedStyle(element).borderTopWidth
     ));
     expect(firstBorderWidth).toBe('2px');
-  });});
+  });
+});
