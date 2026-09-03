@@ -1,28 +1,25 @@
 # AGENTS.md — RADAR PDDE 2026
 
-**Atualizado em:** 30 de agosto de 2026
+**Atualizado em:** 3 de setembro de 2026
 
 ## 1. Leitura obrigatória
 
 Antes de analisar ou alterar o repositório, leia **nesta ordem**:
 
-1. `docs/handoff/2026-08-30-pr215-fechamento-tecnico.md` — porta de entrada obrigatória do estado corrente;
-2. `docs/CURRENT_STAGE.md` — estado corrente, baseline e prioridades reais;
-3. `docs/handoff/2026-08-30-pr211-publicacao-concluida.md` — histórico imediatamente anterior ao PR #215;
-4. `docs/superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md` — plano executável original do hotfix;
-5. `docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md` — contrato funcional vigente;
-6. `docs/decisions/ADR-052-autoridade-unica-fluxos-criticos.md` — autoridade, bootstrap e composição dos fluxos críticos;
-7. `docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md` — classificação autoritativa de legados e fixtures decidida em 29/08;
-8. `docs/evidence/2026-08-28-pr211-referencias-visuais.md` — layout aprovado;
-9. `docs/reference/TEST_GOVERNANCE.md` — estratégia proporcional e tratamento de testes superados;
-10. `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md` — visão gerada do contrato funcional vigente;
-11. `docs/PROJECT_CONTEXT.md` e `docs/DECISION_LOG.md`;
-12. somente depois, handoffs históricos e o plano mestre de 26/08;
-13. código, GitHub, Vercel e Supabase correspondentes à frente.
+1. `docs/handoff/2026-09-03-reconciliacao-plano-mestre-pos-hotfixes.md` — porta de entrada da retomada atual;
+2. `docs/CURRENT_STAGE.md` — baseline e prioridades reais;
+3. `docs/PROJECT_CONTEXT.md` — contratos estáveis;
+4. `docs/DECISION_LOG.md` e ADRs 050/051/052/053;
+5. `docs/reference/TEST_GOVERNANCE.md`;
+6. `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md`;
+7. `docs/handoff/2026-09-02-dependency-governance.md` quando a frente tocar tooling/dependências;
+8. os planos reconciliados de 26/08 e 31/08;
+9. somente depois, handoffs PR #211/#215/#237 e demais evidências históricas;
+10. código, GitHub, Vercel e Supabase correspondentes à frente.
 
-**Regra para continuidade entre chats:** o handoff pós-PR #215, ADR-050/ADR-052 e as decisões de 29/08 prevalecem sobre hipóteses, relatórios e checkpoints anteriores quando tratam do mesmo ponto. Não "corrigir" o produto para voltar a uma regra antiga antes de conferir esses arquivos.
+**Regra de continuidade:** código/Production e decisões posteriores prevalecem sobre o desenho original do plano. O plano de 26/08 não autoriza reimplementar PR6B, PR7A, PR7B ou PR9B nem restaurar decisões anteriores aos PRs #211–#249.
 
-Auditorias externas são insumo de investigação, não ordem de implementação. Se uma auditoria propuser um caminho diferente, comparar primeiro com o SHA atual e com ADR-050/plano/handoff/evidência de 29/08.
+Auditorias externas são insumo de investigação, não ordem de implementação. Antes de criar uma solução, confirmar se a função já existe sob outra autoridade ou foi atendida por hotfix posterior.
 
 ## 2. Identidade do produto
 
@@ -105,7 +102,7 @@ A simulação de Controlador, Assistente, SME ou Inventário altera a apresenta�
 
 `RadarCompetenceContext` é a fonte canônica de competência mensal.
 
-Dashboard, Carteira, Competências, Prontuário, Pendências, alertas, timeline e exportações devem consumir o mesmo mês ativo.
+Dashboard, Carteira, Competências, Prontuário, alertas, timeline e exportações mensais consomem o mesmo mês ativo. **Pendências é exceção deliberada:** mantém a competência global como contexto, mas abre a fila transversal em todas as competências até o usuário aplicar filtro local ou abrir explicitamente a Pendência no Prontuário.
 
 Não criar seletor concorrente nem alterar `activeCompetenciaKey` diretamente em implementação ou teste quando a intenção for mudar o contexto mensal. Usar o contexto canônico.
 
@@ -222,6 +219,12 @@ No baseline posterior ao PR #211, preservar estas decisões já fechadas:
 - o fluxo normal e as RPCs protegem identidade, contexto, concorrência e atomicidade; existe uma lacuna residual conhecida contra escrita **direta** em `registered_invoices` envolvendo `id`, `verification_id` e `source_context_key`, registrada na ADR-051;
 - por decisão explícita do responsável pelo produto, esse hardening adicional do Supabase está **adiado até a conclusão e validação de todas as frentes de correção funcional**; não antecipá-lo, não usá-lo como gate dos PRs funcionais e não marcá-lo como resolvido;
 - desktop foi o alvo do hotfix; a reconferência visual final foi concluída e o overflow em 1280 px foi corrigido pelo PR #214, com regressão E2E de largura/alinhamento; mobile permanece dívida separada não bloqueante;
+
+- Declaração BB Ágil aceita `N/A` conforme PR #241: estado neutro `Correto`, análise bloqueada enquanto N/A e Pendência ativa impede neutralização;
+- comunicação oficial externa não contém o nome interno `RADAR PDDE` e a cobrança termina somente em `Atenciosamente` (ADR-053);
+- o botão de Pendências exporta XLSX editorial conforme busca/filtros e essa operação é `EXP-03` na matriz funcional;
+- PDDE Básico primeiro é **somente ordem visual**; não ordenar/persistir `programasIds` para reproduzir a apresentação;
+- metodologia Lighthouse corrente usa três execuções e mediana; não elevar pisos para absorver flutuação.
 - o PR #215 corrigiu a fronteira `row_version`/payload e Production opera com 44 migrations; não reintroduzir `rowVersion`/`row_version` em payloads de negócio;
 - a ADR-052 exige autoridade única e prova executável do bootstrap/composição de fluxos críticos.
 
@@ -302,14 +305,16 @@ As posições-fonte K, R e Y são removidas na projeção pública. Alteração 
 
 ## 15. Documentação
 
-- código e ambientes efetivos são superiores à documentação;
-- `CURRENT_STAGE.md` descreve o presente;
-- matriz JSON é a fonte da visão gerada `FUNCTIONAL_CONTRACT_MATRIX.md`;
-- `TEST_GOVERNANCE.md` controla a estratégia de validação;
-- auditorias e planos datados registram o passado e não são reescritos para parecer atuais;
-- branch/PR não integrado não altera o baseline.
+Quando o estado/prioridade mudar:
 
-Ao concluir mudança material, atualizar somente os documentos vigentes realmente afetados.
+- atualizar `docs/CURRENT_STAGE.md`;
+- atualizar `docs/reference/STATUS_DOCUMENTOS.md` quando a validade de fontes mudar;
+- atualizar o handoff corrente, hoje `docs/handoff/2026-09-03-reconciliacao-plano-mestre-pos-hotfixes.md`;
+- atualizar o plano mestre somente por overlay/reconciliação, preservando a narrativa histórica;
+- atualizar ADR/DECISION_LOG quando a decisão duradoura mudar;
+- não deixar “próxima sequência” antiga parecer executável quando já foi superada.
+
+O plano de 26/08 é catálogo técnico reconciliado, não fila cega de implementação.
 
 ## 16. Git e integração
 
