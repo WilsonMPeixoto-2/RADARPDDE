@@ -4,24 +4,15 @@
     const contract = typeof module !== 'undefined' && module.exports
         ? require('../data/repository-contract.js')
         : root.RadarRepositoryContract;
-    const invoiceEffects = typeof module !== 'undefined' && module.exports
-        ? require('../domain/invoice-effects.js')
-        : root.RadarInvoiceEffects;
-    const api = factory(contract, invoiceEffects);
+    const api = factory(contract);
 
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
     if (root) root.RadarInventoryService = Object.freeze(api);
-}(typeof window !== 'undefined' ? window : globalThis, function createInventoryServiceApi(contract, invoiceEffects) {
+}(typeof window !== 'undefined' ? window : globalThis, function createInventoryServiceApi(contract) {
     'use strict';
 
-    if (!contract || !invoiceEffects) {
-        throw new Error('Contrato de dados e projeção canônica de inventariação são obrigatórios para inventário.');
-    }
+    if (!contract) throw new Error('Contrato de dados obrigatório para inventário.');
     const { RepositoryError, cloneValue } = contract;
-    const {
-        deriveInventoryForwarding,
-        applyInventoryForwardingProjection
-    } = invoiceEffects;
     const DIRECT_EDIT_FIELDS = new Set(['notaFiscal']);
 
     function text(value) {
@@ -75,75 +66,6 @@
             return school;
         }
 
-        linkedInvoiceContext(state, asset, operation) {
-            const assetId = text(asset?.id);
-            const matches = list(state.registeredInvoices).filter(invoice => (
-                text(invoice.bemId || invoice.linkedAssetId || invoice.linked_asset_id) === assetId
-            ));
-            if (matches.length > 1) {
-                fail(
-                    'ASSET_LINK_AMBIGUOUS',
-                    'O bem patrimonial está vinculado a mais de uma despesa fiscal.',
-                    operation,
-                    { assetId, invoiceIds: matches.map(invoice => invoice.id) }
-                );
-            }
-            const invoice = matches[0] || null;
-            if (!invoice || text(invoice.tipo || invoice.expenseType || invoice.expense_type) !== 'permanente') {
-                return null;
-            }
-            const compKey = text(invoice.compKey || invoice.sourceContextKey || invoice.source_context_key);
-            if (!compKey) return null;
-            const verification = state.verifications?.[asset.escolaId]?.[compKey] || null;
-            if (!verification) return null;
-
-            const contextInvoices = list(state.registeredInvoices).filter(item => (
-                text(item.escolaId) === text(asset.escolaId)
-                && text(item.compKey || item.sourceContextKey || item.source_context_key) === compKey
-            ));
-            const contextAssetIds = new Set(
-                contextInvoices
-                    .map(item => text(item.bemId || item.linkedAssetId || item.linked_asset_id))
-                    .filter(Boolean)
-            );
-            const contextAssets = list(state.assets).filter(item => (
-                contextAssetIds.has(text(item.id))
-            ));
-            const separator = compKey.indexOf('_');
-            const competence = separator >= 0 ? compKey.slice(0, separator) : text(invoice.competencia);
-            const programId = separator >= 0 ? compKey.slice(separator + 1) : text(invoice.programaId);
-            return {
-                invoice,
-                verification,
-                contextInvoices,
-                contextAssets,
-                compKey,
-                competence,
-                programId,
-                verificationId: `${asset.escolaId}::${competence}::${programId}`
-            };
-        }
-
-        syncLinkedInventoryProjection(state, asset, persistence, operation) {
-            const linked = this.linkedInvoiceContext(state, asset, operation);
-            if (!linked) return null;
-            const delivery = deriveInventoryForwarding(
-                linked.contextInvoices,
-                linked.contextAssets,
-                asset
-            );
-            applyInventoryForwardingProjection(linked.verification, delivery);
-            persistence.invoiceId = linked.invoice.id;
-            persistence.expectedInvoiceVersion = rowVersionOf(linked.invoice);
-            persistence.verificationId = linked.verificationId;
-            persistence.expectedVerificationVersion = rowVersionOf(linked.verification);
-            return {
-                invoice: cloneValue(linked.invoice),
-                verification: cloneValue(linked.verification),
-                delivery
-            };
-        }
-
         assertOperationalProfile(profile, operation) {
             const normalized = normalizeProfile(this.getCurrentProfile() || profile);
             if (!['controlador', 'assistente'].includes(normalized)) {
@@ -162,10 +84,10 @@
 
         persistAsset(context, persistence) {
             const { snapshot, repository, defaultPersist } = context;
-            const entities = snapshot?.entities || {};
-            const asset = list(entities.assets)
+            if (typeof repository.saveAssetWithLog !== 'function') return defaultPersist();
+            const asset = list(snapshot?.entities?.assets)
                 .find(record => String(record.id) === String(persistence.assetId));
-            const administrativeLog = list(entities.administrativeLogs)
+            const administrativeLog = list(snapshot?.entities?.administrativeLogs)
                 .find(record => String(record.id) === String(persistence.logId));
             if (!asset || !administrativeLog) {
                 fail(
@@ -175,42 +97,6 @@
                     { assetId: persistence.assetId, logId: persistence.logId }
                 );
             }
-
-            const capabilities = repository.capabilities?.() || {};
-            if (
-                persistence.invoiceId
-                && persistence.verificationId
-                && capabilities.atomicInvoiceEffects === true
-                && typeof repository.saveInvoiceWithEffects === 'function'
-            ) {
-                const invoice = list(entities.registeredInvoices)
-                    .find(record => String(record.id) === String(persistence.invoiceId));
-                const verificationPatch = list(entities.verifications)
-                    .find(record => String(record.id) === String(persistence.verificationId));
-                if (!invoice || !verificationPatch) {
-                    fail(
-                        'PERSISTENCE_CONTEXT_MISSING',
-                        'A NF vinculada ou a verificação mensal não foi produzida para persistência patrimonial atômica.',
-                        'persistAsset',
-                        {
-                            assetId: persistence.assetId,
-                            invoiceId: persistence.invoiceId,
-                            verificationId: persistence.verificationId
-                        }
-                    );
-                }
-                return repository.saveInvoiceWithEffects({
-                    invoice,
-                    asset,
-                    verificationPatch,
-                    administrativeLog,
-                    expectedInvoiceVersion: persistence.expectedInvoiceVersion,
-                    expectedAssetVersion: persistence.expectedVersion,
-                    expectedVerificationVersion: persistence.expectedVerificationVersion
-                });
-            }
-
-            if (typeof repository.saveAssetWithLog !== 'function') return defaultPersist();
             return repository.saveAssetWithLog({
                 asset,
                 expectedVersion: persistence.expectedVersion,
@@ -254,19 +140,10 @@
 
         async forward(input = {}) {
             this.assertOperationalProfile(input.profile, 'inventory:forward');
-            const initialState = this.getState();
-            const initialAsset = this.findAsset(initialState, input.assetId, 'inventory:forward');
-            const linkedContext = this.linkedInvoiceContext(
-                initialState,
-                initialAsset,
-                'inventory:forward'
-            );
             const persistence = {};
             return this.dataService.execute({
                 name: 'inventory:forward',
-                changedEntities: linkedContext
-                    ? ['registeredInvoices', 'assets', 'verifications', 'administrativeLogs']
-                    : ['assets', 'administrativeLogs'],
+                changedEntities: ['assets', 'administrativeLogs'],
                 mutate: () => {
                     const state = this.getState();
                     const asset = this.findAsset(state, input.assetId, 'inventory:forward');
@@ -289,24 +166,13 @@
                     }
                     asset.status = 'Encaminhada';
                     asset.processoInventario = text(school.processoInventario);
-                    const linkedProjection = this.syncLinkedInventoryProjection(
-                        state,
-                        asset,
-                        persistence,
-                        'inventory:forward'
-                    );
                     const log = this.appendSchoolLog(
                         school.id,
                         'Capital Encaminhado',
                         `Aquisição ${asset.item} da escola ${school.denominação || ''} encaminhada ao inventariador com NF ${asset.notaFiscal} no processo ${school.processoInventario}.`
                     );
                     persistence.logId = text(log?.id);
-                    return {
-                        asset: cloneValue(asset),
-                        invoice: linkedProjection?.invoice || null,
-                        verification: linkedProjection?.verification || null,
-                        inventoryDelivery: linkedProjection?.delivery || null
-                    };
+                    return { asset: cloneValue(asset) };
                 },
                 persist: context => this.persistAsset(context, persistence)
             });
