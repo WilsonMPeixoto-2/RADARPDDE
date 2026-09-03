@@ -572,6 +572,12 @@
                 item.escolaId === invoice.escolaId
                 && item.compKey === invoice.compKey
             ));
+            const contextAssetIds = new Set(
+                contextInvoices.map(item => text(item.bemId)).filter(Boolean)
+            );
+            const contextAssets = list(state.assets).filter(asset => (
+                contextAssetIds.has(text(asset.id))
+            ));
             const currentAsset = invoice.bemId
                 ? list(state.assets).find(asset => asset.id === invoice.bemId) || null
                 : null;
@@ -590,6 +596,7 @@
                     amount: identification.amount
                 },
                 contextInvoices,
+                contextAssets,
                 currentAsset,
                 verification,
                 school,
