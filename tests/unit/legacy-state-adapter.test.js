@@ -225,6 +225,35 @@ test('transforma o estado atual em entidades relacionais com IDs canônicos', ()
     });
 });
 
+test('marcador canceled_at representa apenas o estado Cancelada e não o histórico preservado', () => {
+    const state = readLegacyState(createLegacyStorage());
+    state.pendencies[0] = {
+        ...state.pendencies[0],
+        status: 'Aberta',
+        responsavel: 'Escola',
+        cancelamento: {
+            justificativa: 'Cancelamento anterior preservado no histórico.',
+            dataHora: '2026-05-20T10:00:00.000Z',
+            usuario: 'Controlador',
+            perfil: 'controlador'
+        }
+    };
+
+    const reopened = transformLegacyState(state).entities.pendencies[0];
+    assert.equal(reopened.status, 'Aberta');
+    assert.equal(reopened.canceled_at, null);
+    assert.equal(
+        reopened.payload.cancelamento.dataHora,
+        '2026-05-20T10:00:00.000Z'
+    );
+
+    state.pendencies[0].status = 'Cancelada';
+    state.pendencies[0].responsavel = null;
+    const cancelled = transformLegacyState(state).entities.pendencies[0];
+    assert.equal(cancelled.status, 'Cancelada');
+    assert.equal(cancelled.canceled_at, '2026-05-20T10:00:00.000Z');
+});
+
 test('exporta snapshot legado válido e reconciliável', () => {
     const result = exportLegacySnapshot(createLegacyStorage(), {
         version: '1',

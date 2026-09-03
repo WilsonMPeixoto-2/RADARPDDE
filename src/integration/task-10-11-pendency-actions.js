@@ -439,8 +439,8 @@
         )) return false;
         const id = resolveId(source);
         const pendency = findPendency(id);
-        if (!pendency || pendency.status !== 'Resolvida') {
-            announce('Somente pendências resolvidas podem ser reabertas.', 'error');
+        if (!pendency || !['Resolvida', 'Cancelada'].includes(pendency.status)) {
+            announce('Somente pendências resolvidas ou canceladas podem ser reabertas.', 'error');
             return false;
         }
         document.getElementById('pendency-reopen-id').value = JSON.stringify({ type: typeof id, value: id });
@@ -499,7 +499,7 @@
             if (hasCapability(root.RadarAccessPolicy.CAPABILITIES.CANCEL_PENDENCY)) {
                 group.appendChild(createActionButton('Cancelar pendência', 'btn-danger', 'openCancelPendencyModal', reference));
             }
-        } else if (pendency.status === 'Resolvida'
+        } else if (['Resolvida', 'Cancelada'].includes(pendency.status)
             && hasCapability(root.RadarAccessPolicy.CAPABILITIES.REOPEN_PENDENCY)) {
             group.appendChild(createActionButton('Reabrir pendência', 'btn-secondary', 'openReopenPendencyModal', reference));
         }
