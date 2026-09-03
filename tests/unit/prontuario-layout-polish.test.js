@@ -27,3 +27,15 @@ test('resumo da unidade escolar usa composição compacta e responsiva', () => {
   assert.doesNotMatch(css, /\.school-sidebar > \.school-info-card:not\(\.school-programs-card\)/);
   assert.doesNotMatch(css, /content:\s*['"]Dados da unidade['"]/);
 });
+
+
+test('avaliação mensal reforça alinhamento e hierarquia tipográfica', () => {
+  assert.match(css, /#tab-verificacoes table\.data-table > thead th/);
+  assert.match(css, /font-weight: 750/);
+  assert.match(css, /#prontuario-verif-rows \.program-context-cell/);
+  assert.match(css, /vertical-align: top/);
+  assert.match(css, /#prontuario-verif-rows \.program-status-summary \.badge/);
+  assert.match(css, /min-width: 96px/);
+  assert.match(css, /#prontuario-verif-rows \.verification-document-copy strong/);
+  assert.match(css, /font-weight: 650/);
+});
