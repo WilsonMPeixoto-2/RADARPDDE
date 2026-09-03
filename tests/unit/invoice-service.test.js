@@ -146,10 +146,34 @@ test('cadastra nota permanente, cria bem vinculado e preserva aviso de processo 
     assert.equal(harness.state.assets.length, 1);
     assert.equal(result.value.invoice.bemId, result.value.asset.id);
     assert.equal(result.value.asset.status, 'Não encaminhada');
+    assert.equal(result.value.verification.bonificacao.encampInventario, 'Não');
+    assert.equal(result.value.verification.analise.encampInventario, 'Não analisado');
     assert.equal(result.value.warnings.includes('MISSING_INVENTORY_PROCESS'), true);
     assert.equal(harness.state.logs.length, 1);
     assert.equal(harness.state.logs[0].action, 'Bem Cadastrado');
 });
+
+
+test('cadastra nota permanente com processo e sincroniza Encaminhado para Inventariação como Sim', async () => {
+    const harness = createHarness();
+    harness.state.schools[0].processoInventario = 'PROC-2026/001';
+
+    const result = await harness.service.save({
+        schoolId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        description: 'Notebook',
+        expenseType: 'permanente',
+        invoiceNumber: 'NF-002-PROC',
+        amount: 5000,
+        profile: 'controlador'
+    });
+
+    assert.equal(result.value.asset.status, 'Encaminhada');
+    assert.equal(result.value.verification.bonificacao.encampInventario, 'Sim');
+    assert.equal(result.value.verification.analise.encampInventario, 'Não analisado');
+    assert.equal(result.value.warnings.includes('MISSING_INVENTORY_PROCESS'), false);
+});
+
 
 test('edita nota permanente para serviço, remove bem derivado e exige consulta da assessoria', async () => {
     const harness = createHarness();
