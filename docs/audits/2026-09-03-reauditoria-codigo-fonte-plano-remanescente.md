@@ -377,7 +377,7 @@ PR9A deve medir o que resta **depois** das fases funcionais, e PR9C só pode oti
 | PR9A | pendente | R7 |
 | PR9B | concluído | fora da fila |
 | PR9C | pendente | R8 |
-| ADR-051 | risco aceito/adido | reavaliar somente após R9 |
+| ADR-051 | risco aceito/adiado | reavaliar somente após R9 |
 
 ## 14. Guardrails contra regressão confirmados novamente
 
