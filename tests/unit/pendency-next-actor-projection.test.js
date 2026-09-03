@@ -41,6 +41,9 @@ test('transições documentais mantêm responsavel e proximoAtor sincronizados',
     assert.equal(opened.responsavel, 'Escola');
     assert.equal(opened.proximoAtor, 'Escola');
 
+    opened.nextActor = 'Escola';
+    opened.next_actor = 'Escola';
+
     const awaiting = registerCorrectiveSubmission(opened, {
         id: 'attempt-1',
         dataDisponibilizacao: '2026-09-03',
