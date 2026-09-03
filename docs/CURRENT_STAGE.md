@@ -56,15 +56,15 @@ As regras posteriores ao plano são guardrails obrigatórios e estão detalhadas
 
 ## Histórico pós-PR #237
 
-A porta de entrada corrente é [`handoff/2026-08-31-pr237-fechamento-visual-e-ci.md`](handoff/2026-08-31-pr237-fechamento-visual-e-ci.md).
+A porta de entrada **daquele checkpoint** era [`handoff/2026-08-31-pr237-fechamento-visual-e-ci.md`](handoff/2026-08-31-pr237-fechamento-visual-e-ci.md).
 
 O conjunto PR #218–#237 incorporou autoridade determinística dos fluxos críticos, preservação/canonização de contexto das Pendências, correções da Consulta Assessoria, abertura no mês corrente e a revisão visual do Prontuário/Pendências. As falhas de CI observadas na virada de agosto para setembro foram reclassificadas: quatro eram expectativas temporais de teste e uma era sincronização visual incremental real da bonificação da Assessoria.
 
 Os blocos abaixo sobre PR #211/#214/#215 permanecem como histórico técnico necessário, mas não representam sozinhos o estado mais recente.
 
-## 0. Hotfix publicado — PR #211
+## 0. Hotfix publicado — PR #211 (histórico)
 
-O estado corrente ainda não é “iniciar PR3.1”. O hotfix isolado foi concluído e agora precisa ser conciliado com o plano mestre:
+Naquele checkpoint, o estado ainda não era “iniciar PR3.1”: o hotfix isolado precisava ser conciliado com o plano mestre. Essa obrigação foi cumprida em 03/09 e permanece abaixo apenas como histórico:
 
 - fechamento técnico corrente: [`handoff/2026-08-30-pr215-fechamento-tecnico.md`](handoff/2026-08-30-pr215-fechamento-tecnico.md);
 - encerramento histórico pós-PR #211: [`handoff/2026-08-30-pr211-publicacao-concluida.md`](handoff/2026-08-30-pr211-publicacao-concluida.md);
