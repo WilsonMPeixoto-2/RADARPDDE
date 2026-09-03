@@ -10,6 +10,7 @@ A frente ativa é a **retomada reconciliada do plano mestre após os hotfixes**.
 Ler primeiro:
 
 - [`handoff/2026-09-03-reconciliacao-plano-mestre-pos-hotfixes.md`](handoff/2026-09-03-reconciliacao-plano-mestre-pos-hotfixes.md) — classificação atual de cada bloco do plano e sequência remanescente;
+- [`audits/2026-09-03-documentacao-e-plano-mestre.md`](audits/2026-09-03-documentacao-e-plano-mestre.md) — auditoria objetiva da documentação e evidência da reconciliação;
 - [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — baseline mutável corrente;
 - [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — contratos funcionais/arquiteturais estáveis;
 - [`DECISION_LOG.md`](DECISION_LOG.md), com ADR-053;
