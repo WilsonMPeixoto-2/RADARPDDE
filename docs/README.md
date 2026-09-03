@@ -1,88 +1,51 @@
 # Documentação do RADAR PDDE
 
-**Estado de referência:** 31 de agosto de 2026
+**Estado de referência:** 3 de setembro de 2026
 **Classe documental:** Canônico — índice
 
 ## 0. Frente ativa
 
-A frente ativa é o **fechamento pós-PR #237**, com saneamento das expectativas temporais de CI, correção da sincronização visual da Consulta Assessoria, revisão de dependências e reconciliação documental antes da próxima publicação de Production.
+A frente ativa é a **retomada reconciliada do plano mestre após os hotfixes**. A reconciliação foi feita contra código, migrations, testes e Production atuais; o plano de 26/08 não deve mais ser executado em sequência literal.
 
 Ler primeiro:
 
-- [`handoff/2026-08-31-pr237-fechamento-visual-e-ci.md`](handoff/2026-08-31-pr237-fechamento-visual-e-ci.md) — estado corrente após PR #237;
-- [`handoff/2026-08-30-pr215-fechamento-tecnico.md`](handoff/2026-08-30-pr215-fechamento-tecnico.md) — histórico técnico após PR #215;
-- [`handoff/2026-08-30-pr211-retomada-work.md`](handoff/2026-08-30-pr211-retomada-work.md) — histórico da retomada que antecedeu o fechamento;
-- [`CURRENT_STAGE.md`](CURRENT_STAGE.md);
-- [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md);
-- [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md);
+- [`handoff/2026-09-03-reconciliacao-plano-mestre-pos-hotfixes.md`](handoff/2026-09-03-reconciliacao-plano-mestre-pos-hotfixes.md) — classificação atual de cada bloco do plano e sequência remanescente;
+- [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — baseline mutável corrente;
+- [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — contratos funcionais/arquiteturais estáveis;
+- [`DECISION_LOG.md`](DECISION_LOG.md), com ADR-053;
 - [`decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md);
 - [`decisions/ADR-052-autoridade-unica-fluxos-criticos.md`](decisions/ADR-052-autoridade-unica-fluxos-criticos.md);
-- [`evidence/2026-08-29-pr211-classificacao-dados-legados.md`](evidence/2026-08-29-pr211-classificacao-dados-legados.md);
-- [`evidence/2026-08-28-pr211-referencias-visuais.md`](evidence/2026-08-28-pr211-referencias-visuais.md).
+- [`handoff/2026-09-02-dependency-governance.md`](handoff/2026-09-02-dependency-governance.md);
+- [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md).
 
-**Atenção:** as decisões de 29/08 sobre dados legados, fixtures, Boleto 1234 e Consulta Assessoria superam interpretações anteriores do hotfix. Nova sessão não deve restaurar decisões antigas por confundi-las com regressão.
-
-Esse hotfix **não substitui o plano mestre**. Depois da homologação autenticada final, a retomada do plano de 26/08 exige reconciliação explícita do que o conjunto PR #211/#214/#215 já modificou, solucionou ou tornou desnecessário.
+Os handoffs PR #211/#215/#237 e os planos anteriores permanecem preservados como história/evidência. Seus “próximos passos” não prevalecem sobre a reconciliação de 03/09.
 
 ## 1. Onde começar
 
 O estado corrente fica em [`CURRENT_STAGE.md`](CURRENT_STAGE.md).
 
-O checkpoint da frente prioritária atual é:
+A retomada do plano mestre é controlada por:
 
-- [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md)
+- [`handoff/2026-09-03-reconciliacao-plano-mestre-pos-hotfixes.md`](handoff/2026-09-03-reconciliacao-plano-mestre-pos-hotfixes.md);
+- [`superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md), agora com overlay explícito de reconciliação;
+- [`superpowers/plans/2026-08-31-estabilizacao-arquitetural-jornadas-criticas.md`](superpowers/plans/2026-08-31-estabilizacao-arquitetural-jornadas-criticas.md), também reconciliado.
 
-O handoff do Boleto Internet de 27/08 permanece como histórico imediatamente anterior e continua relevante para a regra `boleto_internet`, mas não controla mais o estado corrente do projeto.
+O plano de 26/08 continua útil para detalhes de intenção, gates e riscos. O que mudou é a sua **sequência executável**: hotfixes posteriores atenderam ou especializaram várias tarefas.
 
-O documento principal para retomada do plano mestre é:
-
-- [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md)
-
-Ele consolida o baseline `0965ba8` após o merge do PR #200, as auditorias independentes, as decisões finais de produto, as exclusões, a ordem aprovada e o ponto exato de retomada antes das correções restantes.
-
-O plano textual executável e o relatório integral são:
-
-- [`superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md);
-- [`reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx`](reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx);
-- [`reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.sha256`](reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.sha256).
-
-O plano de 24/08 e seu handoff permanecem históricos: registram o primeiro diagnóstico, mas não orientam a execução pós-PR #200.
-
-O handoff de 23/08 permanece histórico e necessário para compreender a estabilização #190–#194:
-
-- [`handoff/2026-08-23-post-pr-193.md`](handoff/2026-08-23-post-pr-193.md)
-
-O snapshot de 18/08 permanece histórico:
-
-- [`handoff/2026-08-18-encerramento-operacional.md`](handoff/2026-08-18-encerramento-operacional.md)
-
-Regra de precedência:
-
-```text
-código do SHA analisado
-→ Supabase/Vercel efetivos
-→ decisões vigentes
-→ testes atuais que representam o contrato
-→ documentação canônica
-→ históricos, auditorias e testes superados
-```
-
-Valores voláteis sempre devem ser consultados no remoto quando a tarefa depender deles.
+Planos/handoffs de 24/08, PR #200, PR #211, PR #215 e PR #237 continuam disponíveis para rastreabilidade, não para restaurar decisões antigas.
 
 ## 2. Ordem de leitura recomendada
 
 1. [`../AGENTS.md`](../AGENTS.md);
-2. [`handoff/2026-08-30-pr211-retomada-work.md`](handoff/2026-08-30-pr211-retomada-work.md);
+2. [`handoff/2026-09-03-reconciliacao-plano-mestre-pos-hotfixes.md`](handoff/2026-09-03-reconciliacao-plano-mestre-pos-hotfixes.md);
 3. [`CURRENT_STAGE.md`](CURRENT_STAGE.md);
-4. [`handoff/2026-08-28-pr211-hotfix-notas-fiscais.md`](handoff/2026-08-28-pr211-hotfix-notas-fiscais.md);
-5. [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md);
-6. [`decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md);
-7. [`evidence/2026-08-29-pr211-classificacao-dados-legados.md`](evidence/2026-08-29-pr211-classificacao-dados-legados.md);
-8. [`evidence/2026-08-28-pr211-referencias-visuais.md`](evidence/2026-08-28-pr211-referencias-visuais.md);
-9. [`DECISION_LOG.md`](DECISION_LOG.md) e [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md);
-10. [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md);
-11. [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md);
-12. somente depois, handoffs de 27/08 e o plano mestre de 26/08 para contexto histórico e retomada futura.
+4. [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md);
+5. [`DECISION_LOG.md`](DECISION_LOG.md) e ADRs 050/051/052/053;
+6. [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md);
+7. [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md);
+8. [`handoff/2026-09-02-dependency-governance.md`](handoff/2026-09-02-dependency-governance.md);
+9. planos reconciliados de 26/08 e 31/08;
+10. somente depois, handoffs e evidências históricas.
 
 ## 3. Decisões atuais que não podem ser perdidas
 
