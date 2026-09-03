@@ -2,7 +2,7 @@
 
 > **SUPERADO COMO FILA EXECUTÁVEL EM 03/09/2026.** Este arquivo preserva o plano aprovado em 26/08 e continua útil para intenção, riscos, REDs e reversões históricas. **Não executar seus checkboxes nem sua numeração como ordem corrente.** O plano executável atual é [`2026-09-03-plano-remanescente-source-first.md`](2026-09-03-plano-remanescente-source-first.md), produzido após reauditoria direta do código em `18150cc9`. Evidência: [`../../audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md`](../../audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md).
 
-> **Para agentes de implementação:** executar este plano com a skill superpowers:executing-plans ou superpowers:subagent-driven-development, uma entrega por vez. Nenhuma etapa autoriza, por si só, escrita em Production, alteração de regras do GitHub ou merge.
+> **Instrução histórica de 26/08:** este era o plano executável daquele checkpoint. **Não usar esta instrução para a fila corrente.** A execução atual deve partir de `2026-09-03-plano-remanescente-source-first.md`; este arquivo permanece para contexto, REDs, riscos e reversões históricas.
 
 **Objetivo:** corrigir, de forma incremental e verificável, os defeitos funcionais e arquiteturais confirmados depois dos PRs #199 e #200, sem alterar regras de negócio legítimas e sem transformar hipóteses em código.
 
