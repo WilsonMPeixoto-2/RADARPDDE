@@ -12,6 +12,8 @@ function createHarness() {
             denominação: 'Escola Teste',
             processoInventario: 'PROC-2026/001'
         }],
+        registeredInvoices: [],
+        verifications: {},
         assets: [{
             id: 'bem-1',
             escolaId: 'ESC-1',
@@ -120,6 +122,52 @@ test('encaminha capital somente com nota e processo e registra auditoria na mesm
         harness.service.forward({ assetId: 'bem-1', profile: 'controlador' }),
         error => error.code === 'INVOICE_NUMBER_REQUIRED'
     );
+});
+
+test('encaminhar bem vinculado sincroniza a verificação mensal sem aprovar análise por herança', async () => {
+    const harness = createHarness();
+    harness.state.registeredInvoices.push({
+        id: 'nota-1',
+        escolaId: 'ESC-1',
+        compKey: '2026-05_BASIC',
+        competencia: '2026-05',
+        programaId: 'BASIC',
+        tipo: 'permanente',
+        numero: 'NF-001',
+        valor: 5000,
+        bemId: 'bem-1',
+        rowVersion: 7
+    });
+    harness.state.verifications['ESC-1'] = {
+        '2026-05_BASIC': {
+            bonificacao: { encampInventario: 'Não' },
+            analise: { encampInventario: 'Correto' },
+            resultadoBonif: '',
+            rowVersion: 6
+        }
+    };
+
+    const result = await harness.service.forward({
+        assetId: 'bem-1',
+        profile: 'controlador'
+    });
+
+    assert.equal(result.value.asset.status, 'Encaminhada');
+    assert.equal(result.value.inventoryDelivery, 'Sim');
+    assert.equal(
+        harness.state.verifications['ESC-1']['2026-05_BASIC'].bonificacao.encampInventario,
+        'Sim'
+    );
+    assert.equal(
+        harness.state.verifications['ESC-1']['2026-05_BASIC'].analise.encampInventario,
+        'Não analisado'
+    );
+    assert.deepEqual(harness.calls[0].changedEntities, [
+        'registeredInvoices',
+        'assets',
+        'verifications',
+        'administrativeLogs'
+    ]);
 });
 
 test('conclui inventariação preservando responsável, observações e instante canônico', async () => {
