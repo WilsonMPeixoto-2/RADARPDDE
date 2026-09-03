@@ -424,3 +424,125 @@ $$;
 
 revoke all on function public.register_service_advisory_attempt(jsonb, integer, jsonb, integer, jsonb, jsonb, integer, jsonb) from public, anon;
 grant execute on function public.register_service_advisory_attempt(jsonb, integer, jsonb, integer, jsonb, jsonb, integer, jsonb) to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Reconciliação conservadora de projeções operacionais já persistidas.
+-- ---------------------------------------------------------------------------
+-- Não cria análise histórica. A correção do ator seguinte vale apenas para
+-- Pendências documentais com estado canônico conhecido. O histórico continua
+-- preservado no payload; apenas chaves de projeção stale são normalizadas.
+update public.pendencies
+set
+    next_actor = case
+        when status = 'Aberta' then 'Escola'
+        when status = 'Aguardando reanálise' then 'Controlador'
+        else ''
+    end,
+    payload = case
+        when status = 'Aberta' then
+            jsonb_set(
+                coalesce(payload, '{}'::jsonb) - 'nextActor' - 'next_actor',
+                '{proximoAtor}',
+                to_jsonb('Escola'::text),
+                true
+            )
+        when status = 'Aguardando reanálise' then
+            jsonb_set(
+                coalesce(payload, '{}'::jsonb) - 'nextActor' - 'next_actor',
+                '{proximoAtor}',
+                to_jsonb('Controlador'::text),
+                true
+            )
+        else
+            coalesce(payload, '{}'::jsonb) - 'proximoAtor' - 'nextActor' - 'next_actor'
+    end
+where program_id is not null
+  and nullif(document_key, '') is not null
+  and status in ('Aberta', 'Aguardando reanálise', 'Resolvida', 'Cancelada')
+  and (
+      next_actor is distinct from case
+          when status = 'Aberta' then 'Escola'
+          when status = 'Aguardando reanálise' then 'Controlador'
+          else ''
+      end
+      or coalesce(payload ->> 'proximoAtor', '') is distinct from case
+          when status = 'Aberta' then 'Escola'
+          when status = 'Aguardando reanálise' then 'Controlador'
+          else ''
+      end
+      or payload ? 'nextActor'
+      or payload ? 'next_actor'
+  );
+
+-- Consulta Assessoria é agregação derivada das NFs de serviço. Reconciliar
+-- somente contextos com uma ou mais NFs de serviço e análise individual
+-- explícita em TODAS elas. Isso exclui precisamente universos vazios/legados
+-- em que preencher "Correto / Não se aplica" inventaria avaliação histórica.
+with service_context as (
+    select
+        i.school_id,
+        i.competence_id,
+        i.program_id,
+        count(*) as service_count,
+        count(*) filter (where i.payload ? 'analiseConsultaAssessoria') as explicit_count,
+        case
+            when bool_or(
+                coalesce(i.payload ->> 'analiseConsultaAssessoria', 'Não analisado') = 'Incorreto'
+            ) then 'Incorreto'
+            when bool_or(
+                coalesce(i.payload ->> 'analiseConsultaAssessoria', 'Não analisado') = 'Não analisado'
+            ) then 'Não analisado'
+            when bool_or(
+                coalesce(i.payload ->> 'analiseConsultaAssessoria', 'Não analisado') = 'Correto (Atrasado)'
+            ) then 'Correto (Atrasado)'
+            else 'Correto'
+        end as expected_analysis,
+        case
+            when bool_or(
+                coalesce((i.payload ->> 'consultaAssessoriaEnviada')::boolean, false)
+            ) then 'Sim'
+            else 'Não'
+        end as expected_delivery,
+        bool_or(
+            coalesce((i.payload ->> 'consultaAssessoriaEnviada')::boolean, false)
+        ) as expected_sent
+    from public.registered_invoices i
+    where i.expense_type = 'servico'
+    group by i.school_id, i.competence_id, i.program_id
+),
+eligible as (
+    select *
+    from service_context
+    where service_count > 0
+      and explicit_count = service_count
+)
+update public.verifications v
+set
+    analysis = jsonb_set(
+        coalesce(v.analysis, '{}'::jsonb),
+        '{consAssessoria}',
+        to_jsonb(e.expected_analysis),
+        true
+    ),
+    bonification = jsonb_set(
+        jsonb_set(
+            coalesce(v.bonification, '{}'::jsonb),
+            '{consAssessoria}',
+            to_jsonb(e.expected_delivery),
+            true
+        ),
+        '{consEnviada}',
+        to_jsonb(e.expected_sent),
+        true
+    )
+from eligible e
+where v.school_id = e.school_id
+  and v.competence_id = e.competence_id
+  and v.program_id is not distinct from e.program_id
+  and (
+      coalesce(v.analysis ->> 'consAssessoria', '') is distinct from e.expected_analysis
+      or coalesce(v.bonification ->> 'consAssessoria', '') is distinct from e.expected_delivery
+      or coalesce((v.bonification ->> 'consEnviada')::boolean, false)
+          is distinct from e.expected_sent
+  );
+
