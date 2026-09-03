@@ -1,6 +1,6 @@
 # RADAR PDDE 2026 — Contexto funcional e arquitetural
 
-**Atualizado em:** 30 de agosto de 2026
+**Atualizado em:** 3 de setembro de 2026
 **Classe documental:** Canônico
 
 ## 1. Finalidade
@@ -24,9 +24,11 @@ Dashboard, Carteira, Competências, Prontuário, Pendências, Inventário, Regis
 
 O baseline mutável corrente fica em [`CURRENT_STAGE.md`](CURRENT_STAGE.md).
 
-O hotfix publicado de Notas Fiscais está documentado em [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md) e [`handoff/2026-08-30-pr211-publicacao-concluida.md`](handoff/2026-08-30-pr211-publicacao-concluida.md). Ele não substitui o plano mestre.
+A porta de entrada canônica é [`handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`](handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md), que reconcilia o plano mestre de 26/08 com o código, Supabase Production e Vercel Production atuais.
 
-O checkpoint canônico pós-PR #200 das correções atuais está em [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md).
+O hotfix de Notas Fiscais permanece documentado em [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md) e [`handoff/2026-08-30-pr211-publicacao-concluida.md`](handoff/2026-08-30-pr211-publicacao-concluida.md), agora como histórico técnico protegido pelas decisões posteriores.
+
+O checkpoint pós-PR #200 em [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md) permanece histórico/canônico para contexto, mas não controla mais a ordem corrente de execução.
 
 O checkpoint pós-PR #193 permanece como histórico técnico da estabilização anterior em [`handoff/2026-08-23-post-pr-193.md`](handoff/2026-08-23-post-pr-193.md).
 
@@ -133,6 +135,13 @@ Regras vigentes:
 
 O diagnóstico de 24/08 identificou que esse último contrato ainda não está integralmente satisfeito em `invoice:save`: a edição alcança update/log sem um planejador semântico completo e a inclusão não possui chave idempotente de servidor. Tratar como lacuna conhecida do fluxo INV-01, não como autorização para alterar a regra.
 
+### Decisões supervenientes de 01–03/09
+
+- **Declaração BB Ágil:** aceita `Não se aplica` quando cabível. Nesse estado, a análise técnica fica neutra como `Correto`; sair de N/A reinicia para `Não analisado`; Pendência ativa precisa ser resolvida ou cancelada antes de marcar N/A.
+- **Comunicação externa:** `RADAR PDDE` é o nome do sistema interno e não integra e-mail, WhatsApp, ofício ou texto oficial gerado para unidade escolar. A cobrança automática termina somente em `Atenciosamente`.
+- **Exportação de Pendências:** a tela possui relatório XLSX próprio, com `RESUMO` e `PENDÊNCIAS`, respeitando busca/filtros e sem expor identificadores técnicos.
+- **Ordem dos programas na avaliação:** `PDDE Básico` aparece primeiro somente na apresentação. A ordem persistida de `programasIds` não é alterada e os demais programas mantêm sua ordem relativa.
+- **Dependências:** decisões de versão e rejeições homologadas ficam em `handoff/2026-09-02-dependency-governance.md`; atualização automática não prevalece sobre RLS, pgTAP, Node 24 ou testes funcionais.
 ### Notas Fiscais — granularidade individual
 
 `notaFiscal` continua sendo a dimensão documental agregada para bonificação, mas cada registro em `registered_invoices` é uma unidade técnica individual.
