@@ -44,7 +44,7 @@ Documentação antiga não redefine o código para ficar “coerente”. Quando 
 
 ## Correções consolidadas e diagnóstico atual
 
-O plano mestre pós-auditoria permanece útil como contrato técnico e histórico, mas sua execução foi reconciliada em 03/09. G0/PR1/PR2, PR6B, PR7B e PR9B não devem ser reimplementados; PR4 antigo foi superado pelo estado atual dos dados; PR3, PR5, PR6, PR7A, PR8, PR9A e PR9C concentram o trabalho remanescente, conforme a matriz canônica de reconciliação.
+A reauditoria source-first de 03/09 reabriu os códigos-fonte das frentes remanescentes e substituiu a antiga fila numerada por um plano executável R1–R9. G0/PR1/PR2/PR6B/PR7B/PR9B permanecem fora da fila; PR4 antigo continua superado; a antiga PR7A virou gate de equivalência sem redesign obrigatório. O trabalho real começa retirando a autoridade de consistência que ainda vive em wrappers de performance, antes da expansão sistêmica de readiness.
 
 O baseline atual incorpora, entre outros:
 
@@ -65,7 +65,7 @@ A reconciliação de 03/09 reclassificou o diagnóstico de 24/08:
 - readiness sistêmico ainda é lacuna real porque o registry planejado não existe e há polling residual em integrações;
 - Pendências já possui fila, filtros, detalhe, mobile, exportação e layout aprovados; o trabalho remanescente é remover duplicidade semântica e provar apenas gaps funcionais atuais, sem restaurar o redesign histórico.
 
-O plano mestre canônico está em [`docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md). O antigo item 20, a proteção de senhas vazadas, o PR #195 e a deduplicação de NF por conteúdo permanecem fora desta frente.
+O plano executável corrente está em [`docs/superpowers/plans/2026-09-03-plano-remanescente-source-first.md`](docs/superpowers/plans/2026-09-03-plano-remanescente-source-first.md), sustentado pela [`reauditoria direta do código-fonte`](docs/audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md). O plano de 26/08 permanece referência histórica/técnica, não fila de implementação. O antigo item 20, a proteção de senhas vazadas, o PR #195 e a deduplicação de NF por conteúdo permanecem fora desta frente.
 
 ## Garantia operacional
 
@@ -141,30 +141,33 @@ npm run check:functional-matrix
 Ordem de leitura:
 
 1. [`AGENTS.md`](AGENTS.md);
-2. [`docs/handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`](docs/handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md);
+2. [`docs/superpowers/plans/2026-09-03-plano-remanescente-source-first.md`](docs/superpowers/plans/2026-09-03-plano-remanescente-source-first.md);
 3. [`docs/CURRENT_STAGE.md`](docs/CURRENT_STAGE.md);
-4. [`docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md);
-5. [`docs/decisions/ADR-052-autoridade-unica-fluxos-criticos.md`](docs/decisions/ADR-052-autoridade-unica-fluxos-criticos.md);
-6. [`docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md`](docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md);
-7. [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md), [`docs/DECISION_LOG.md`](docs/DECISION_LOG.md) e [`docs/reference/STATUS_DOCUMENTOS.md`](docs/reference/STATUS_DOCUMENTOS.md);
-8. [`docs/handoff/2026-09-02-dependency-governance.md`](docs/handoff/2026-09-02-dependency-governance.md);
-9. [`docs/handoff/2026-08-31-pr237-fechamento-visual-e-ci.md`](docs/handoff/2026-08-31-pr237-fechamento-visual-e-ci.md) como histórico imediatamente anterior;
-10. somente depois, os demais handoffs históricos e o plano mestre de 26/08.
+4. [`docs/audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md`](docs/audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md);
+5. [`docs/handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`](docs/handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md);
+6. [`docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md) e [`ADR-052`](docs/decisions/ADR-052-autoridade-unica-fluxos-criticos.md);
+7. [`docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md`](docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md) e [`docs/reference/STATUS_DOCUMENTOS.md`](docs/reference/STATUS_DOCUMENTOS.md);
+8. [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md) e [`docs/DECISION_LOG.md`](docs/DECISION_LOG.md);
+9. [`docs/handoff/2026-09-02-dependency-governance.md`](docs/handoff/2026-09-02-dependency-governance.md);
+10. somente depois, planos/handoffs históricos de 26/08–31/08.
 
-A porta de entrada vigente é a reconciliação de 03/09. Planos anteriores continuam úteis para contexto, testes e reversão, mas não podem restaurar decisões superadas nem reabrir tarefas já atendidas.
+A porta de entrada executável vigente é o plano source-first de 03/09.
 
 ## Próxima sequência
 
 ```text
-PR3.1 → PR3.2 → PR3.3
-→ PR5
-→ PR6
-→ revisão focada dos gaps remanescentes de PR7A, sem redesenho automático
-→ PR8A → PR8B
-→ PR9A
-→ PR9C usando a metodologia de PR9B já vigente
-→ encerramento funcional
-→ reavaliar ADR-051
+R1 — retirar autoridade funcional dos wrappers de performance
+→ R2A — contrato mínimo de readiness e loader tolerante
+→ R2B — readiness crítico
+→ R2C — readiness restrito/opcional e inventário final
+→ R3 — IDs persistentes + intent/idempotência + contrato remoto v2 inativo
+→ R4 — semântica única de Pendências
+→ R5 — ativação autoritativa/incremental de save/remove de NF
+→ R6 — gate de equivalência da superfície de Pendências
+→ R7 — instrumentação causal do bootstrap
+→ R8 — otimizações somente por hipótese medida
+→ R9 — fechamento funcional e rebaseline
+→ reavaliar ADR-051 em frente separada
 ```
 
-PR4 antigo, PR6B, PR7B e PR9B saíram da sequência de implementação porque foram superados ou atendidos por caminhos posteriores. Detalhes e evidências: [`docs/handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`](docs/handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md).
+Os identificadores R1–R9 são fases do programa, não números de Pull Request do GitHub.
