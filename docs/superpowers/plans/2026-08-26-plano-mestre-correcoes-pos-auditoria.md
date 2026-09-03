@@ -1,5 +1,12 @@
 # RADAR PDDE — Plano mestre de implementação das correções pós-auditoria
 
+
+> **RECONCILIAÇÃO VIGENTE EM 03/09/2026:** este plano permanece como histórico técnico e catálogo de problemas, mas **a sequência executável original foi reconciliada com o código atual**. A referência de retomada obrigatória é [`../../handoff/2026-09-03-reconciliacao-plano-mestre-pos-hotfixes.md`](../../handoff/2026-09-03-reconciliacao-plano-mestre-pos-hotfixes.md).
+>
+> Não executar automaticamente PR3.1 → PR9C como se nada tivesse ocorrido desde 26/08. Os hotfixes e evoluções posteriores atenderam ou alteraram partes do plano. Estado resumido: **PR3 parcial; PR4 pendente; PR5 pendente; PR6 parcial; PR6B atendido; PR7A/PR7B atendidos em essência; PR8 parcial; PR9A pendente; PR9B concluído pelo PR #239; PR9C pendente**.
+>
+> A ordem de retomada atual é: **PR3-R → PR4-R → PR5-R → PR6-R → PR8-R → PR9A-R → PR9C-R → reavaliar ADR-051**. Qualquer implementação deve preservar ADR-050/052/053, PRs #211–#249 e o comportamento comprovado de Production.
+
 > **Para agentes de implementação:** executar este plano com a skill superpowers:executing-plans ou superpowers:subagent-driven-development, uma entrega por vez. Nenhuma etapa autoriza, por si só, escrita em Production, alteração de regras do GitHub ou merge.
 
 **Objetivo:** corrigir, de forma incremental e verificável, os defeitos funcionais e arquiteturais confirmados depois dos PRs #199 e #200, sem alterar regras de negócio legítimas e sem transformar hipóteses em código.
