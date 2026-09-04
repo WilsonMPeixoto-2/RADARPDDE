@@ -1,9 +1,9 @@
 name: Sincronizar tipos gerados PR260
 
 on:
-  pull_request:
+  push:
     branches:
-      - main
+      - stabilization/functional-reliability-2026-09-04
     paths:
       - '.github/workflows/sync-generated-types-pr260.yml'
 
@@ -12,7 +12,6 @@ permissions:
 
 jobs:
   sync:
-    if: github.head_ref == 'stabilization/functional-reliability-2026-09-04'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout da branch
@@ -21,39 +20,21 @@ jobs:
           ref: stabilization/functional-reliability-2026-09-04
 
       - name: Sincronizar assinatura da RPC gerada
-        shell: python
+        shell: bash
         run: |
+          python - <<'PY'
           from pathlib import Path
-
           path = Path('src/types/database.types.ts')
           text = path.read_text(encoding='utf-8')
           if 'save_asset_with_verification_and_log:' in text:
               print('Tipos já sincronizados.')
               raise SystemExit(0)
-
-          anchor = '''      save_asset_with_log: {
-        Args: {
-          p_administrative_log: Json
-          p_asset: Json
-          p_expected_version: number
-        }
-        Returns: Json
-      }
-'''
-          addition = '''      save_asset_with_verification_and_log: {
-        Args: {
-          p_administrative_log: Json
-          p_asset: Json
-          p_expected_asset_version: number
-          p_expected_verification_version: number
-          p_verification: Json
-        }
-        Returns: Json
-      }
-'''
+          anchor = "      save_asset_with_log: {\n        Args: {\n          p_administrative_log: Json\n          p_asset: Json\n          p_expected_version: number\n        }\n        Returns: Json\n      }\n"
+          addition = "      save_asset_with_verification_and_log: {\n        Args: {\n          p_administrative_log: Json\n          p_asset: Json\n          p_expected_asset_version: number\n          p_expected_verification_version: number\n          p_verification: Json\n        }\n        Returns: Json\n      }\n"
           if text.count(anchor) != 1:
               raise SystemExit('Âncora canônica de save_asset_with_log não encontrada de forma única.')
           path.write_text(text.replace(anchor, anchor + addition, 1), encoding='utf-8')
+          PY
 
       - name: Confirmar diff esperado
         run: |
