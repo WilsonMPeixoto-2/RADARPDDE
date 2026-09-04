@@ -1,7 +1,7 @@
 # Runbook — conexão e operação controlada do Supabase
 
 **Estado:** vigente; Production conectada  
-**Atualizado em:** 28 de agosto de 2026
+**Atualizado em:** 4 de setembro de 2026
 
 ## 1. Objetivo
 
@@ -13,7 +13,7 @@ Este runbook não autoriza, por si só, migration, importação, alteração de 
 
 Consultar [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md) e revalidar remotamente antes de operação dependente do ambiente.
 
-Por compatibilidade com o verificador de readiness, este runbook mantém um único espelho machine-readable da contagem versionada: O conjunto versionado contém atualmente **45** migrations. A lista e a ordem continuam sendo obtidas do diretório `supabase/migrations/` e do histórico do CLI, nunca de uma segunda lista manual.
+Por compatibilidade com o verificador de readiness, este runbook mantém um único espelho machine-readable da contagem versionada: O conjunto versionado contém atualmente **46** migrations. A lista e a ordem continuam sendo obtidas do diretório `supabase/migrations/` e do histórico do CLI, nunca de uma segunda lista manual.
 
 Contratos estáveis:
 
@@ -81,6 +81,18 @@ npm run typecheck:database
 
 Confirmar scripts e bundles reproduzíveis, migrations em ordem, pgTAP, tipos, Auth local, RLS positiva/negativa e Edge Function quando aplicável.
 
+Para fluxos operacionais críticos, teste de serviço ou de interface isolado não é evidência suficiente. A certificação funcional deve atravessar, quando aplicável:
+
+```text
+comando real da aplicação
+→ persistência no Supabase descartável
+→ leitura direta do repositório
+→ reload da página
+→ nova leitura/renderização
+```
+
+Os workflows `functional-reliability-supabase.yml` e `functional-lifecycle-supabase.yml` exercitam essas jornadas para Nota Fiscal, patrimônio e ciclos correlatos.
+
 ## 6. Validação remota somente leitura
 
 Antes de diagnosticar falha funcional, confirmar:
@@ -125,15 +137,15 @@ As migrations correntes incluem, conforme `CURRENT_STAGE.md` e a branch de estab
 - reparo de Auth legado e lookup seguro da equipe;
 - remediação funcional de exercício, nota/bem e tentativa de pendência;
 - integridade da identidade institucional das escolas;
-- restrição explícita da reanálise de pendências a `controller`, `federal_assistant` e `technical_admin`;
 - avaliação da consulta à Assessoria Contábil individualizada no payload de cada NF de serviço, com resumo mensal derivado;
 - suporte à despesa provisória `a_identificar` e persistência atômica de análise/pendência;
+- individualização de análise/Pendência de `notaFiscal` por `registered_invoice_id`;
 - integridade transacional na mudança de Nota Fiscal permanente para natureza não patrimonial, com remoção versionada do bem derivado;
-- semântica explícita para limpeza de `bonus_result` nas operações atômicas de salvamento e exclusão de NF, distinguindo campo ausente de campo presente vazio;
-- preservação de `pendency_attempts.available_at` separada de `submitted_at`, com backfill seguro do histórico;
-- vínculo opcional de pendência de Assessoria Contábil com `registered_invoice_id`, permitindo individualização por NF e impedindo duplicidade ativa para a mesma NF;
-- operações compostas de Assessoria Contábil para persistir análise, pendência, verificação e log de forma coerente, inclusive na reanálise e no envio corretivo.
-- a branch do PR #211 acrescenta, ainda não aplicada em Production, a individualização de análise/Pendência de `notaFiscal` por `registered_invoice_id`, bloqueia novas Pendências fiscais genéricas, cria `a_identificar = Incorreto + Pendência` atomicamente e identifica posteriormente essa mesma despesa dentro de **Registrar novo envio**, preservando o ID; quando a identificação resultar em bem permanente, o patrimônio é salvo na mesma transação; até o merge, Production continua no histórico anterior.
+- preservação de `pendency_attempts.available_at` separada de `submitted_at`;
+- vínculo de pendência de Assessoria Contábil com `registered_invoice_id`, permitindo individualização por NF;
+- operações compostas de Assessoria Contábil para persistir análise, pendência, verificação e log de forma coerente;
+- sincronização do próximo ator das Pendências nas transições do fluxo;
+- migration candidata `20260904040000_functional_reliability_inventory_sync`, que sincroniza atomicamente o encaminhamento de bem derivado com `encampInventario` no Prontuário e remove aliases internos de versão do payload das verificações.
 
 Não reaplicar SQL já aplicado para “corrigir” histórico.
 
@@ -244,12 +256,17 @@ Não aceitar geradores artificiais como identidade definitiva. Duplicidades norm
 
 ## 13. Patrimônio, notas e pendências
 
-- `ASSET-02` usa `saveAssetWithLog`, versão esperada e log;
+- bem derivado de NF permanente mantém vínculo por `registered_invoice.linked_asset_id` / `bemId`;
+- número da NF de bem derivado não pode ser editado isoladamente pelo Inventário; a NF de origem é a fonte funcional;
+- fluxo patrimonial válido é `Não encaminhada → Encaminhada → Inventariada`; inventariar antes do encaminhamento é inválido;
+- ao encaminhar posteriormente um bem derivado, bem + `encampInventario` da verificação + log são persistidos pela mesma operação atômica;
+- `encampInventario` é projetado pela realidade patrimonial do contexto: sem permanente = `Não se aplica`; algum permanente não encaminhado = `Não`; todos encaminhados/inventariados = `Sim`;
+- análise técnica continua dimensão separada da situação de encaminhamento;
 - alteração do vínculo de bem derivado em nota não pode deixar órfão;
 - `pendency_attempts` deve acompanhar o agregado canônico da pendência e preservar separadamente `available_at` e `submitted_at`;
 - pendência de Assessoria vinculada a NF deve manter `registered_invoice_id` coerente e a reanálise não pode alterar NFs irmãs;
-- reanálise de pendência exige papel autenticado `controller`, `federal_assistant` ou `technical_admin`, além do escopo escolar aplicável;
-- qualquer divergência observada após reload deve ser investigada no RPC/trigger/persistência antes de culpar a interface.
+- qualquer divergência observada após reload deve ser investigada no RPC/trigger/persistência antes de culpar a interface;
+- operações críticas devem ser revalidadas após reload, e cliques repetidos não podem gerar duas gravações concorrentes da mesma intenção.
 
 ## 14. Exportações
 
@@ -257,15 +274,9 @@ A exportação deve passar por auditoria inicial via `AuditService` antes do dow
 
 ## 15. Smoke autenticado de leitura
 
-A infraestrutura do PR #148 está integrada, porém a execução remota permanece desativada até provisionamento autorizado de cinco identidades técnicas exclusivas.
+A infraestrutura de smoke autenticado usa identidades técnicas/fixtures conforme o ambiente de validação. Não reutilizar contas reais em testes automatizados e não expor credenciais, screenshots, traces ou vídeos contendo sessão.
 
-Enquanto isso:
-
-- não reutilizar contas reais;
-- não criar contas automaticamente em PR;
-- não expor credencial administrativa;
-- não registrar screenshots/traces/vídeos/credenciais;
-- não afirmar cobertura real de Production para essas seis operações.
+A cobertura de Preview/Supabase descartável não deve ser apresentada como prova de Production. Production requer verificação própria após publicação.
 
 ## 16. Backup e recuperação
 
@@ -311,6 +322,8 @@ Classificar a primeira fronteira divergente antes de propor correção.
 | conflito aparece como indisponibilidade | payload do erro no gateway |
 | Controlador troca carteira | interface, serviço e trigger |
 | grava e volta | persistência, conflito e releitura |
+| Inventário e Prontuário divergem | vínculo NF↔bem, status patrimonial, RPC composta e verificação |
+| inventariação pula etapa | estado anterior do bem e comando `inventory:complete` |
 | Excel não gera | competência, manifesto, motor, template e auditoria |
 | monitor abre incidente | componente exato do job |
 | integridade acusa problema | invariante/contagem antes de consultar registros |
@@ -330,27 +343,16 @@ O modo local continua existindo para desenvolvimento e testes, mas não é conti
 
 ## 20. Encerramento de investigação
 
-A investigação termina quando causa/fronteira foi identificada, percurso autorizado funciona, indevido permanece bloqueado, dado persiste/recarrega, falha parcial não deixa resíduo, existe regressão e a evidência corresponde ao SHA/ambiente correto.
+A investigação termina quando causa/fronteira foi identificada, percurso funcional funciona, dado persiste e reaparece após reload, falha parcial não deixa resíduo, existe regressão automatizada e a evidência corresponde ao SHA/ambiente correto.
 
+## Reversão das migrations de individualização e estabilização
 
-## Reversão específica do PR #211
-
-A migration de individualização de Notas Fiscais não deve receber um `down` automático executado sem preflight.
-
-Motivo: depois que existirem escritas reais do novo modelo, remover o suporte a `registered_invoice_id` em `notaFiscal` ou restaurar cegamente o contrato anterior pode preservar os dados fisicamente, mas tornar parte da história operacional inacessível ao frontend antigo.
+Migrations que alteram identidade individual de NF/Pendência ou sincronização patrimonial não devem receber `down` automático após escritas reais.
 
 Procedimento:
 
-1. **Antes da migration:** rollback é apenas não publicar / reverter o deployment candidato.
-2. **Depois da migration e antes de qualquer escrita nova:** uma compensação de banco só pode ser considerada após consulta comprovar ausência de novas Pendências fiscais individuais, novas `a_identificar`, identificações posteriores e vínculos patrimoniais do hotfix.
+1. **Antes da migration:** rollback é não publicar / reverter o deployment candidato.
+2. **Depois da migration e antes de qualquer escrita nova:** compensação de banco só pode ser considerada após consulta comprovar ausência de dados escritos sob o novo contrato.
 3. **Depois de qualquer escrita nova:** não fazer downgrade destrutivo. Preservar banco e histórico e corrigir por avanço (`fail-forward`).
 
-Na publicação, registrar:
-
-- timestamp da migration;
-- SHA da `main`;
-- deployment Vercel;
-- resultado do preflight;
-- primeira escrita observada sob o novo contrato, se houver.
-
-Esse registro define se o cenário 2 ainda é tecnicamente admissível ou se a única reversão segura passou a ser fail-forward.
+Na publicação, registrar SHA da `main`, deployment Vercel, migration aplicada e resultado do preflight/pós-apply.
