@@ -10,6 +10,10 @@ const migrationPath = path.resolve(
     __dirname,
     '../../supabase/migrations/20260830223000_payload_row_version_boundary.sql'
 );
+const reliabilityMigrationPath = path.resolve(
+    __dirname,
+    '../../supabase/migrations/20260904040000_functional_reliability_inventory_sync.sql'
+);
 
 function source(file) {
     return fs.readFileSync(file, 'utf8');
@@ -38,7 +42,16 @@ test('adapter mantém row_version canônico fora dos payloads de compatibilidade
     assert.match(body, /payload: versionlessPayload\(invoice\)/);
 });
 
-test('migration remove somente metadados de versão dos payloads já persistidos', () => {
+test('banco remove rowVersion de toda verificação nova ou atualizada e limpa resíduos existentes', () => {
+    const sql = source(reliabilityMigrationPath);
+
+    assert.match(sql, /strip_verification_payload_versions/i);
+    assert.match(sql, /before insert or update of payload on public\.verifications/i);
+    assert.match(sql, /new\.payload\s*:=\s*coalesce\(new\.payload, '\{\}'::jsonb\)\s*-\s*'rowVersion'\s*-\s*'row_version'/i);
+    assert.match(sql, /update public\.verifications[\s\S]+- 'rowVersion' - 'row_version'/i);
+});
+
+test('migration anterior remove metadados de versão dos payloads já persistidos', () => {
     const sql = source(migrationPath);
 
     for (const table of [

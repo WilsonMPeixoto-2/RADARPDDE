@@ -46,7 +46,8 @@ declare
         '20260827130000',
         '20260828023000',
         '20260830223000',
-        '20260903175000'
+        '20260903175000',
+        '20260904040000'
     ];
     v_actual text[];
     v_missing_extensions text[];
@@ -76,6 +77,7 @@ begin
        or to_regprocedure('public.save_pendency_contact_with_log(jsonb,text,jsonb)') is null
        or to_regprocedure('public.save_pendency_command(text,jsonb,integer,jsonb,jsonb,integer,jsonb)') is null
        or to_regprocedure('public.save_asset_with_log(jsonb,integer,jsonb)') is null
+       or to_regprocedure('public.save_asset_with_verification_and_log(jsonb,integer,jsonb,integer,jsonb)') is null
        or to_regprocedure('public.save_program_with_log(jsonb,integer,jsonb)') is null
        or to_regprocedure('public.save_calendar_with_log(jsonb,integer,jsonb)') is null
        or to_regprocedure('public.assign_controller_with_log(jsonb,jsonb)') is null
@@ -139,6 +141,7 @@ begin
        or (select prosecdef from pg_proc where oid = 'public.can_write_school(text)'::regprocedure)
        or (select prosecdef from pg_proc where oid = 'public.save_invoice_with_effects(jsonb,jsonb,jsonb,integer,integer,integer,jsonb)'::regprocedure)
        or (select prosecdef from pg_proc where oid = 'public.delete_invoice_with_effects(text,integer,boolean,integer,jsonb,integer,jsonb)'::regprocedure)
+       or (select prosecdef from pg_proc where oid = 'public.save_asset_with_verification_and_log(jsonb,integer,jsonb,integer,jsonb)'::regprocedure)
        or (select prosecdef from pg_proc where oid = 'public.save_service_advisory_with_pendency(jsonb,integer,jsonb,integer,jsonb,jsonb)'::regprocedure)
        or (select prosecdef from pg_proc where oid = 'public.register_service_advisory_attempt(jsonb,integer,jsonb,integer,jsonb,jsonb,integer,jsonb)'::regprocedure)
        or (select prosecdef from pg_proc where oid = 'public.reanalyze_service_advisory_pendency(jsonb,integer,jsonb,jsonb,jsonb,integer,integer,jsonb)'::regprocedure)

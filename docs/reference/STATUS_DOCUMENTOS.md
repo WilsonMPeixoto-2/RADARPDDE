@@ -1,6 +1,6 @@
 # Matriz de validade documental
 
-**Atualizado em:** 3 de setembro de 2026
+**Atualizado em:** 4 de setembro de 2026
 **Classe documental:** Canônico
 
 ## 1. Finalidade
@@ -9,7 +9,7 @@ Este documento define quais arquivos podem orientar o estado presente e quais ex
 
 O estado mutável do projeto fica em [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md). A estratégia vigente de validação fica em [`TEST_GOVERNANCE.md`](TEST_GOVERNANCE.md).
 
-O roteamento corrente começa em [`../superpowers/plans/2026-09-03-plano-remanescente-source-first.md`](../superpowers/plans/2026-09-03-plano-remanescente-source-first.md), apoiado por [`../audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md`](../audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md) e `CURRENT_STAGE.md`. O handoff de reconciliação e o plano de 26/08 permanecem fontes históricas/canônicas de contexto, mas não controlam a fila executável.
+O roteamento corrente começa em [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md) e [`../handoff/2026-09-04-estabilizacao-funcional-pr260.md`](../handoff/2026-09-04-estabilizacao-funcional-pr260.md). O plano source-first de 03/09 e os planos anteriores permanecem referências históricas de arquitetura e contexto, mas não controlam automaticamente a fila executável após os hotfixes e a estabilização de 04/09.
 
 ## 2. Classes
 
@@ -47,7 +47,8 @@ Um teste histórico não prevalece sobre regra e código posteriores. PR aberto,
 | `AGENTS.md` | regras de trabalho e proteção do projeto |
 | `README.md` | entrada do repositório |
 | `docs/CURRENT_STAGE.md` | estado corrente, prioridades e gatilhos de nova validação |
-| `docs/superpowers/plans/2026-09-03-plano-remanescente-source-first.md` | **plano executável corrente**; fases R1–R9 e gates anti-regressão |
+| `docs/handoff/2026-09-04-estabilizacao-funcional-pr260.md` | **checkpoint canônico da estabilização funcional**; sincronização, persistência, reload, repetição de gesto e regressões |
+| `docs/superpowers/plans/2026-09-03-plano-remanescente-source-first.md` | referência histórica do plano R1–R9 anterior à estabilização de 04/09; não executar literalmente |
 | `docs/audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md` | auditoria source-first que fundamenta o escopo remanescente |
 | `docs/handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md` | checkpoint canônico da reconciliação pós-hotfix; antecede o plano source-first |
 | `docs/handoff/2026-09-02-dependency-governance.md` | manutenção de dependências e decisões de versões homologadas/rejeitadas |

@@ -1255,6 +1255,16 @@ export type Database = {
         }
         Returns: Json
       }
+      save_asset_with_verification_and_log: {
+        Args: {
+          p_administrative_log: Json
+          p_asset: Json
+          p_expected_asset_version: number
+          p_expected_verification_version: number
+          p_verification: Json
+        }
+        Returns: Json
+      }
       save_calendar_with_log: {
         Args: {
           p_administrative_log: Json

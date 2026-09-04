@@ -1,7 +1,7 @@
 # Matriz funcional ponta a ponta
 
-**Atualizado em:** 2026-09-02  
-**Baseline de origem:** `d5b45184eaa513352db0806f6d41c5e0568c6baf`  
+**Atualizado em:** 2026-09-04  
+**Baseline de origem:** `903968042ea8d5d34b9335d8dcda0e4385ca9825`  
 **Fonte canônica:** `functional-contract-matrix.json` e arquivos JSON do diretório `functional-contract-matrix/`
 
 > Arquivo gerado por `scripts/check-functional-contract-matrix.mjs`. Não editar manualmente.
@@ -12,16 +12,16 @@ A matriz contém **44 operações** distribuídas entre 13 superfícies.
 
 | Cobertura | Operações |
 |---|---:|
-| Comprovada | 10 |
-| Parcial | 34 |
+| Comprovada | 19 |
+| Parcial | 25 |
 | Lacuna | 0 |
 | Decisão pendente | 0 |
 
 | Próxima prova | Operações |
 |---|---:|
-| Nenhuma; manter regressão | 6 |
+| Nenhuma; manter regressão | 15 |
 | Smoke autenticado de leitura | 6 |
-| Escrita controlada e reversível | 27 |
+| Escrita controlada e reversível | 18 |
 | Observação contínua em Production | 5 |
 
 ## Perfis
@@ -68,9 +68,9 @@ A matriz contém **44 operações** distribuídas entre 13 superfícies.
 | ID | Ação | Modo | Perfis autorizados | Serviço e persistência | Cobertura | Próxima prova |
 |---|---|---|---|---|---|---|
 | `COMP-01` | Selecionar competência global mensal | read / P0 | Controlador, Assistente de Verbas Federais, Gestão SME, Equipe de Inventário, Administrador técnico | RadarCompetenceContext.select → session state (competences, app_config) | Comprovada | Nenhuma; manter regressão |
-| `VER-01` | Alterar status de entrega para bonificação | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | VerificationService.setBonification → saveVerificationWithLog (verifications, administrative_logs) | Parcial | Escrita controlada e reversível |
-| `VER-02` | Alterar análise técnica documental agregada, exceto resumos derivados de Assessoria e Notas Fiscais | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | VerificationService.setTechnicalAnalysis → saveVerificationWithLog (verifications, pendencies, administrative_logs) | Parcial | Escrita controlada e reversível |
-| `VER-03` | Consolidar resultado de bonificação mensal | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | VerificationService.closeBonification → saveVerificationWithLog (verifications, pendencies, administrative_logs) | Parcial | Escrita controlada e reversível |
+| `VER-01` | Alterar status de entrega para bonificação | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | VerificationService.setBonification → saveVerificationWithLog (verifications, administrative_logs) | Comprovada | Nenhuma; manter regressão |
+| `VER-02` | Alterar análise técnica documental agregada, exceto resumos derivados de Assessoria e Notas Fiscais | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | VerificationService.setTechnicalAnalysis → saveVerificationWithLog (verifications, pendencies, administrative_logs) | Comprovada | Nenhuma; manter regressão |
+| `VER-03` | Consolidar resultado de bonificação mensal | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | VerificationService.closeBonification → saveVerificationWithLog (verifications, pendencies, administrative_logs) | Comprovada | Nenhuma; manter regressão |
 | `VER-04` | Retificar consolidação com justificativa auditável | write / P0 | Assistente de Verbas Federais, Administrador técnico | VerificationService.retify → saveVerificationWithLog (verifications, administrative_logs) | Parcial | Escrita controlada e reversível |
 
 ### Prontuário e timeline
@@ -78,8 +78,8 @@ A matriz contém **44 operações** distribuídas entre 13 superfícies.
 | ID | Ação | Modo | Perfis autorizados | Serviço e persistência | Cobertura | Próxima prova |
 |---|---|---|---|---|---|---|
 | `READ-03` | Consultar prontuário e timeline da unidade | read / P0 | Controlador, Assistente de Verbas Federais, Gestão SME, Equipe de Inventário, Administrador técnico | RadarSchoolTimeline.project → SupabaseRepository.read (schools, verifications, pendencies, pendency_attempts, pendency_contacts, registered_invoices, assets, administrative_logs) | Parcial | Smoke autenticado de leitura |
-| `INV-01` | Cadastrar/editar Nota Fiscal ou despesa, incluindo criação atômica de A identificar | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.save + saveUnidentifiedExpenseWithPendency → saveInvoiceWithEffects + save_unidentified_expense_with_pendency (registered_invoices, assets, verifications, pendencies, administrative_logs) | Parcial | Escrita controlada e reversível |
-| `INV-02` | Excluir documento fiscal sem qualquer histórico de Pendência individual e reverter efeitos vinculados | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.remove + proteção histórica individual → deleteInvoiceWithEffects + advisory history trigger (registered_invoices, assets, verifications, pendencies, administrative_logs) | Parcial | Escrita controlada e reversível |
+| `INV-01` | Cadastrar/editar Nota Fiscal ou despesa, incluindo criação atômica de A identificar | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.save + saveUnidentifiedExpenseWithPendency → saveInvoiceWithEffects + save_unidentified_expense_with_pendency (registered_invoices, assets, verifications, pendencies, administrative_logs) | Comprovada | Nenhuma; manter regressão |
+| `INV-02` | Excluir documento fiscal sem qualquer histórico de Pendência individual e reverter efeitos vinculados | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.remove + proteção histórica individual → deleteInvoiceWithEffects + advisory history trigger (registered_invoices, assets, verifications, pendencies, administrative_logs) | Comprovada | Nenhuma; manter regressão |
 | `INV-03` | Registrar envio, análise, pendência, novo envio e reanálise da Assessoria por nota fiscal de serviço | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.updateServiceAdvisory + RadarServiceAdvisoryPendency → saveInvoiceWithEffects + save_service_advisory_with_pendency + register_service_advisory_attempt + reanalyze_service_advisory_pendency (registered_invoices, verifications, pendencies, pendency_attempts, administrative_logs) | Parcial | Escrita controlada e reversível |
 | `INV-04` | Analisar cada documento fiscal, abrir Pendência por invoice e manter resumo técnico derivado | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InvoiceService.updateDocumentAnalysis + PendencyService.open/registerAttempt/reanalyze → saveInvoiceWithEffects + save_invoice_document_with_pendency + register_invoice_document_attempt + reanalyze_invoice_document_pendency (registered_invoices, assets, verifications, pendencies, pendency_attempts, administrative_logs) | Parcial | Escrita controlada e reversível |
 
@@ -90,8 +90,8 @@ A matriz contém **44 operações** distribuídas entre 13 superfícies.
 | `READ-04` | Consultar lista e detalhe de pendências | read / P0 | Controlador, Assistente de Verbas Federais, Gestão SME, Equipe de Inventário, Administrador técnico | PendencyViewModel.project → SupabaseRepository.read (pendencies, pendency_attempts, pendency_contacts) | Parcial | Smoke autenticado de leitura |
 | `EXP-03` | Exportar planilha XLSX das pendências conforme busca e filtros atuais | export / P1 | Controlador, Assistente de Verbas Federais, Gestão SME, Equipe de Inventário, Administrador técnico | PendencyViewModel.project → PendencyExcelExportModel → PendencyExcelRenderer → authorized in-memory state + AuditService.record + download (pendencies, pendency_attempts, pendency_contacts, schools, controllers, ExcelJS asset) | Comprovada | Nenhuma; manter regressão |
 | `PEND-01` | Abrir pendência documental/manual ou pendência fiscal individual vinculada | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | PendencyService.open + openInvoiceDocumentPendency → savePendencyCommand + save_invoice_document_with_pendency (registered_invoices, pendencies, verifications, administrative_logs) | Parcial | Escrita controlada e reversível |
-| `PEND-02` | Registrar novo envio para regularização, incluindo identificação de a_identificar | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | PendencyService.registerAttempt + registerInvoiceDocumentAttempt → savePendencyCommand + register_invoice_document_attempt + pendencies_sync_attempt_statuses (registered_invoices, assets, pendencies, pendency_attempts, verifications, administrative_logs) | Parcial | Escrita controlada e reversível |
-| `PEND-03` | Reanalisar tentativa e resolver ou reabrir pendência | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | PendencyService.reanalyze + reanalyzeInvoiceDocumentPendency → reanalyzePendencyWithVerification + reanalyze_invoice_document_pendency (registered_invoices, pendencies, pendency_attempts, verifications, administrative_logs) | Parcial | Escrita controlada e reversível |
+| `PEND-02` | Registrar novo envio para regularização, incluindo identificação de a_identificar | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | PendencyService.registerAttempt + registerInvoiceDocumentAttempt → savePendencyCommand + register_invoice_document_attempt + pendencies_sync_attempt_statuses (registered_invoices, assets, pendencies, pendency_attempts, verifications, administrative_logs) | Comprovada | Nenhuma; manter regressão |
+| `PEND-03` | Reanalisar tentativa e resolver ou reabrir pendência | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | PendencyService.reanalyze + reanalyzeInvoiceDocumentPendency → reanalyzePendencyWithVerification + reanalyze_invoice_document_pendency (registered_invoices, pendencies, pendency_attempts, verifications, administrative_logs) | Comprovada | Nenhuma; manter regressão |
 | `PEND-04` | Cancelar pendência com justificativa | write / P1 | Controlador, Assistente de Verbas Federais, Administrador técnico | PendencyService.cancel → savePendencyCommand (pendencies, administrative_logs) | Parcial | Escrita controlada e reversível |
 | `PEND-05` | Reabrir pendência cancelada ou resolvida | write / P1 | Controlador, Assistente de Verbas Federais, Administrador técnico | PendencyService.reopen → savePendencyCommand (pendencies, administrative_logs) | Parcial | Escrita controlada e reversível |
 | `PEND-06` | Registrar contato ou cobrança associado à pendência | write / P1 | Controlador, Assistente de Verbas Federais, Administrador técnico | PendencyService.registerContact → savePendencyContactWithLog (pendency_contacts, administrative_logs) | Parcial | Escrita controlada e reversível |
@@ -122,8 +122,8 @@ A matriz contém **44 operações** distribuídas entre 13 superfícies.
 |---|---|---|---|---|---|---|
 | `ASSET-01` | Cadastrar bem permanente manualmente | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InventoryService.createAsset → saveAssetWithLog (assets, administrative_logs) | Parcial | Escrita controlada e reversível |
 | `ASSET-02` | Editar campo patrimonial autorizado | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InventoryService.updateAsset → saveAssetWithLog (assets, administrative_logs) | Parcial | Escrita controlada e reversível |
-| `ASSET-03` | Encaminhar bem para inventariação | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InventoryService.forward → saveAssetWithLog (assets, schools, administrative_logs) | Parcial | Escrita controlada e reversível |
-| `ASSET-04` | Concluir inventariação e registrar responsável | write / P0 | Controlador, Assistente de Verbas Federais, Equipe de Inventário, Administrador técnico | InventoryService.inventory → saveAssetWithLog (assets, administrative_logs) | Parcial | Escrita controlada e reversível |
+| `ASSET-03` | Encaminhar bem para inventariação | write / P0 | Controlador, Assistente de Verbas Federais, Administrador técnico | InventoryService.forward → save_asset_with_verification_and_log (assets, verifications, schools, administrative_logs) | Comprovada | Nenhuma; manter regressão |
+| `ASSET-04` | Concluir inventariação e registrar responsável | write / P0 | Controlador, Assistente de Verbas Federais, Equipe de Inventário, Administrador técnico | InventoryService.inventory → saveAssetWithLog (assets, administrative_logs) | Comprovada | Nenhuma; manter regressão |
 
 ### Registros Internos
 
@@ -162,24 +162,15 @@ A matriz contém **44 operações** distribuídas entre 13 superfícies.
 - **SCH-01 — Cadastrar nova unidade pela Assistente ou editar cadastro escolar autorizado:** A geração artificial de identidade foi removida e as duplicidades estão protegidas; falta prova controlada completa diferenciando criação pela Assistente, edição autorizada pelo Controlador, negativas de identidade/carteira e releitura.
 - **SCH-02 — Redistribuir uma escola para outro controlador:** Falta prova controlada de ida, releitura, negativa ao Controlador e retorno ao responsável original.
 - **SCH-03 — Redistribuir escolas em lote:** Falta prova controlada de lote, releitura, retorno/rollback e conflito parcial.
-- **VER-01 — Alterar status de entrega para bonificação:** Falta prova controlada de escrita e releitura no ambiente publicado por perfil.
-- **VER-02 — Alterar análise técnica documental agregada, exceto resumos derivados de Assessoria e Notas Fiscais:** Falta prova controlada publicada de análise agregada, bloqueio por pendência ativa e releitura após refresh; consAssessoria e notaFiscal individualizada seguem contratos próprios.
-- **VER-03 — Consolidar resultado de bonificação mensal:** Falta prova controlada de consolidação, releitura e rejeição de conjunto incompleto.
 - **VER-04 — Retificar consolidação com justificativa auditável:** Falta prova controlada do antes/depois, autoria, releitura e rejeição para demais perfis.
 - **PEND-01 — Abrir pendência documental/manual ou pendência fiscal individual vinculada:** Abertura fiscal e de Assessoria individual está protegida por RPCs atômicas, regressões e smoke transacional real do defeito pós-PR #211; falta homologação autenticada final da interface publicada e releitura após refresh.
-- **PEND-02 — Registrar novo envio para regularização, incluindo identificação de a_identificar:** Novo envio fiscal e de Assessoria, identificação preservando ID, patrimônio e imutabilidade da tentativa possuem unitários/pgTAP/E2E; falta homologação autenticada final no ambiente publicado e releitura após refresh.
-- **PEND-03 — Reanalisar tentativa e resolver ou reabrir pendência:** Reanálise fiscal e de Assessoria exige Aguardando reanálise, tentativa válida e invoice vinculada; regressões locais/SQL cobrem correto/incorreto e isolamento, restando homologação autenticada final e releitura no ambiente publicado.
 - **PEND-04 — Cancelar pendência com justificativa:** Falta prova controlada de justificativa, autoria e releitura.
 - **PEND-05 — Reabrir pendência cancelada ou resolvida:** Falta prova controlada da transição, autoria e releitura.
 - **PEND-06 — Registrar contato ou cobrança associado à pendência:** Falta prova controlada de idempotência, associação e releitura.
-- **INV-01 — Cadastrar/editar Nota Fiscal ou despesa, incluindo criação atômica de A identificar:** Criação atômica de a_identificar, bloqueio da rota comum, preservação de ID e efeitos de serviço/patrimônio estão cobertos em unitários, pgTAP e E2E descartável; falta Preview autenticado e smoke pós-publicação.
-- **INV-02 — Excluir documento fiscal sem qualquer histórico de Pendência individual e reverter efeitos vinculados:** Documento com qualquer histórico de Pendência individual é preservado; falta prova autenticada publicada da remoção permitida, bloqueio histórico, restauração de requisitos e ausência de resíduos.
 - **INV-03 — Registrar envio, análise, pendência, novo envio e reanálise da Assessoria por nota fiscal de serviço:** Abertura, novo envio e reanálise individual, isolamento entre NFs, tentativa imutável, bootstrap crítico e RPCs possuem regressões unitárias/E2E/pgTAP; falta apenas a homologação autenticada final da interface publicada com refresh/releitura.
 - **INV-04 — Analisar cada documento fiscal, abrir Pendência por invoice e manter resumo técnico derivado:** Análise individual, resumo derivado, Pendência por invoice, a_identificar, patrimônio, legado, fronteira rowVersion e RPC de abertura possuem regressões e smoke transacional real; falta homologação autenticada final da interface publicada com refresh/releitura.
 - **ASSET-01 — Cadastrar bem permanente manualmente:** Falta prova controlada de criação, status inicial e releitura.
 - **ASSET-02 — Editar campo patrimonial autorizado:** A persistência genérica foi removida e a edição rápida ficou restrita ao campo permitido, com versão e log; falta prova controlada por perfil, conflito e releitura no ambiente de homologação.
-- **ASSET-03 — Encaminhar bem para inventariação:** Falta prova controlada das validações de nota/processo, persistência e releitura.
-- **ASSET-04 — Concluir inventariação e registrar responsável:** Falta prova controlada por perfil, autoria, releitura e bloqueio fora do escopo da CRE.
 - **AUD-01 — Registrar evento administrativo de domínio:** Falta prova padronizada de autoria e recorte de leitura após persistência em Production.
 - **TECH-01 — Planejar, validar, importar, reconciliar ou reverter snapshot canônico:** A execução remota real depende de pacote autorizado, janela operacional, snapshot de retorno e reconciliação final.
 
