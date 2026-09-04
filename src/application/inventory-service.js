@@ -35,6 +35,15 @@
         return profile;
     }
 
+    function invoiceType(invoice = {}) {
+        return text(invoice.tipo || invoice.expenseType || invoice.expense_type)
+            .toLocaleLowerCase('pt-BR');
+    }
+
+    function linkedAssetId(invoice = {}) {
+        return text(invoice.bemId || invoice.linkedAssetId || invoice.linked_asset_id);
+    }
+
     function fail(code, message, operation, details = null) {
         throw new RepositoryError(code, message, { operation, details });
     }
@@ -66,6 +75,112 @@
             return school;
         }
 
+        findLinkedInvoice(state, assetId, operation) {
+            const id = text(assetId);
+            const matches = list(state.registeredInvoices).filter(invoice => linkedAssetId(invoice) === id);
+            if (matches.length > 1) {
+                fail(
+                    'AMBIGUOUS_ASSET_LINK',
+                    'O bem patrimonial está vinculado a mais de uma Nota Fiscal.',
+                    operation,
+                    { assetId: id, invoiceIds: matches.map(invoice => invoice.id) }
+                );
+            }
+            return matches[0] || null;
+        }
+
+        linkedInventoryContext(state, asset, operation) {
+            const invoice = this.findLinkedInvoice(state, asset.id, operation);
+            if (!invoice || invoiceType(invoice) !== 'permanente') return null;
+            const schoolId = text(invoice.escolaId || invoice.school_id);
+            const compKey = text(invoice.compKey || invoice.sourceContextKey || invoice.source_context_key);
+            if (!schoolId || !compKey) {
+                fail(
+                    'INCOMPLETE_INVOICE_CONTEXT',
+                    'A Nota Fiscal vinculada ao bem não possui contexto mensal completo.',
+                    operation,
+                    { invoiceId: invoice.id, assetId: asset.id }
+                );
+            }
+            const separator = compKey.indexOf('_');
+            if (separator < 0) {
+                fail(
+                    'INCOMPLETE_INVOICE_CONTEXT',
+                    'A Nota Fiscal vinculada ao bem não possui programa no contexto mensal.',
+                    operation,
+                    { invoiceId: invoice.id, compKey }
+                );
+            }
+            const competence = compKey.slice(0, separator);
+            const programId = compKey.slice(separator + 1);
+            const verification = state.verifications?.[schoolId]?.[compKey] || null;
+            if (!verification) {
+                fail(
+                    'VERIFICATION_NOT_FOUND',
+                    'A verificação mensal vinculada ao bem patrimonial não foi localizada.',
+                    operation,
+                    { invoiceId: invoice.id, assetId: asset.id, compKey }
+                );
+            }
+            const contextInvoices = list(state.registeredInvoices).filter(item => (
+                text(item.escolaId || item.school_id) === schoolId
+                && text(item.compKey || item.sourceContextKey || item.source_context_key) === compKey
+                && invoiceType(item) === 'permanente'
+            ));
+            const contextAssetIds = new Set(contextInvoices.map(linkedAssetId).filter(Boolean));
+            const contextAssets = list(state.assets).filter(item => contextAssetIds.has(text(item.id)));
+            return {
+                invoice,
+                verification,
+                contextInvoices,
+                contextAssets,
+                schoolId,
+                compKey,
+                competence,
+                programId,
+                verificationId: `${schoolId}::${competence}::${programId}`
+            };
+        }
+
+        deriveInventoryDelivery(context) {
+            if (!context || context.contextInvoices.length === 0) return 'Não se aplica';
+            const assetsById = new Map(context.contextAssets.map(asset => [text(asset.id), asset]));
+            const allForwarded = context.contextInvoices.every(invoice => {
+                const asset = assetsById.get(linkedAssetId(invoice));
+                return asset && ['Encaminhada', 'Inventariada'].includes(text(asset.status));
+            });
+            return allForwarded ? 'Sim' : 'Não';
+        }
+
+        synchronizeInventoryVerification(state, asset, persistence, operation) {
+            const context = this.linkedInventoryContext(state, asset, operation);
+            if (!context) return null;
+            const delivery = this.deriveInventoryDelivery(context);
+            const verification = context.verification;
+            verification.bonificacao = verification.bonificacao || {};
+            verification.analise = verification.analise || {};
+            const previousDelivery = text(verification.bonificacao.encampInventario);
+            const previousAnalysis = text(verification.analise.encampInventario);
+            verification.bonificacao.encampInventario = delivery;
+            if (delivery === 'Não se aplica') {
+                verification.analise.encampInventario = 'Correto';
+            } else if (!previousDelivery || previousDelivery !== delivery || !previousAnalysis) {
+                verification.analise.encampInventario = 'Não analisado';
+            }
+            const changed = previousDelivery !== text(verification.bonificacao.encampInventario)
+                || previousAnalysis !== text(verification.analise.encampInventario);
+            if (changed) {
+                persistence.verificationId = context.verificationId;
+                persistence.expectedVerificationVersion = rowVersionOf(verification);
+            }
+            return {
+                changed,
+                delivery,
+                verification: cloneValue(verification),
+                verificationId: context.verificationId
+            };
+        }
+
         assertOperationalProfile(profile, operation) {
             const normalized = normalizeProfile(this.getCurrentProfile() || profile);
             if (!['controlador', 'assistente'].includes(normalized)) {
@@ -84,10 +199,10 @@
 
         persistAsset(context, persistence) {
             const { snapshot, repository, defaultPersist } = context;
-            if (typeof repository.saveAssetWithLog !== 'function') return defaultPersist();
-            const asset = list(snapshot?.entities?.assets)
+            const entities = snapshot?.entities || {};
+            const asset = list(entities.assets)
                 .find(record => String(record.id) === String(persistence.assetId));
-            const administrativeLog = list(snapshot?.entities?.administrativeLogs)
+            const administrativeLog = list(entities.administrativeLogs)
                 .find(record => String(record.id) === String(persistence.logId));
             if (!asset || !administrativeLog) {
                 fail(
@@ -97,6 +212,32 @@
                     { assetId: persistence.assetId, logId: persistence.logId }
                 );
             }
+
+            if (persistence.verificationId) {
+                const verification = list(entities.verifications)
+                    .find(record => String(record.id) === String(persistence.verificationId));
+                if (!verification) {
+                    fail(
+                        'PERSISTENCE_CONTEXT_MISSING',
+                        'A verificação mensal sincronizada não foi produzida para persistência.',
+                        'persistAsset',
+                        { verificationId: persistence.verificationId }
+                    );
+                }
+                const capabilities = repository.capabilities?.() || {};
+                if (capabilities.remote === true && typeof repository.executeRpc === 'function') {
+                    return repository.executeRpc('save_asset_with_verification_and_log', {
+                        p_asset: asset,
+                        p_expected_asset_version: persistence.expectedVersion,
+                        p_verification: verification,
+                        p_expected_verification_version: persistence.expectedVerificationVersion,
+                        p_administrative_log: administrativeLog
+                    }, 'saveAssetWithVerificationAndLog');
+                }
+                return defaultPersist();
+            }
+
+            if (typeof repository.saveAssetWithLog !== 'function') return defaultPersist();
             return repository.saveAssetWithLog({
                 asset,
                 expectedVersion: persistence.expectedVersion,
@@ -122,6 +263,14 @@
                 mutate: () => {
                     const state = this.getState();
                     const asset = this.findAsset(state, input.assetId, 'inventory:update-asset');
+                    if (field === 'notaFiscal' && this.findLinkedInvoice(state, asset.id, 'inventory:update-asset')) {
+                        fail(
+                            'LINKED_INVOICE_FIELD_LOCKED',
+                            'O número da Nota Fiscal deste bem deve ser alterado no cadastro da própria Nota Fiscal para manter as telas sincronizadas.',
+                            'inventory:update-asset',
+                            { assetId: asset.id }
+                        );
+                    }
                     persistence.assetId = asset.id;
                     persistence.expectedVersion = rowVersionOf(asset);
                     const previousValue = text(asset[field]);
@@ -140,10 +289,19 @@
 
         async forward(input = {}) {
             this.assertOperationalProfile(input.profile, 'inventory:forward');
+            const initialState = this.getState();
+            const initialAsset = this.findAsset(initialState, input.assetId, 'inventory:forward');
+            const hasLinkedContext = Boolean(this.linkedInventoryContext(
+                initialState,
+                initialAsset,
+                'inventory:forward'
+            ));
             const persistence = {};
             return this.dataService.execute({
                 name: 'inventory:forward',
-                changedEntities: ['assets', 'administrativeLogs'],
+                changedEntities: hasLinkedContext
+                    ? ['assets', 'verifications', 'administrativeLogs']
+                    : ['assets', 'administrativeLogs'],
                 mutate: () => {
                     const state = this.getState();
                     const asset = this.findAsset(state, input.assetId, 'inventory:forward');
@@ -166,13 +324,23 @@
                     }
                     asset.status = 'Encaminhada';
                     asset.processoInventario = text(school.processoInventario);
+                    const synchronization = this.synchronizeInventoryVerification(
+                        state,
+                        asset,
+                        persistence,
+                        'inventory:forward'
+                    );
                     const log = this.appendSchoolLog(
                         school.id,
                         'Capital Encaminhado',
                         `Aquisição ${asset.item} da escola ${school.denominação || ''} encaminhada ao inventariador com NF ${asset.notaFiscal} no processo ${school.processoInventario}.`
                     );
                     persistence.logId = text(log?.id);
-                    return { asset: cloneValue(asset) };
+                    return {
+                        asset: cloneValue(asset),
+                        verification: synchronization?.verification || null,
+                        inventoryDelivery: synchronization?.delivery || null
+                    };
                 },
                 persist: context => this.persistAsset(context, persistence)
             });
@@ -194,6 +362,14 @@
                 mutate: () => {
                     const state = this.getState();
                     const asset = this.findAsset(state, input.assetId, 'inventory:complete');
+                    if (text(asset.status) !== 'Encaminhada') {
+                        fail(
+                            'ASSET_NOT_FORWARDED',
+                            'O bem precisa ser encaminhado para inventariação antes de a inventariação ser concluída.',
+                            'inventory:complete',
+                            { assetId: asset.id, status: text(asset.status) }
+                        );
+                    }
                     const school = this.findSchool(state, asset.escolaId, 'inventory:complete');
                     persistence.assetId = asset.id;
                     persistence.expectedVersion = rowVersionOf(asset);
