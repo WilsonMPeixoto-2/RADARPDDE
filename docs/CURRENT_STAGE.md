@@ -26,7 +26,7 @@ A fila R1–R9 descrita em 03/09 permanece como histórico arquitetural e não d
 
 ## Atualização de 03/09 — reauditoria source-first e novo plano remanescente
 
-A porta de entrada executável corrente é [`superpowers/plans/2026-09-03-plano-remanescente-source-first.md`](superpowers/plans/2026-09-03-plano-remanescente-source-first.md). A evidência que sustenta o escopo está em [`audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md`](audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md).
+Naquele checkpoint, a porta de entrada executável era [`superpowers/plans/2026-09-03-plano-remanescente-source-first.md`](superpowers/plans/2026-09-03-plano-remanescente-source-first.md), sustentada por [`audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md`](audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md). Após a estabilização de 04/09, esse plano permanece apenas como referência histórica.
 
 Baseline reauditorado:
 
@@ -46,7 +46,7 @@ A nova leitura dos códigos refinou a reconciliação anterior:
 - **R7/R8** tratam diagnóstico causal e otimização comprovada;
 - **R9** fecha a frente antes da reavaliação da ADR-051.
 
-Sequência executável:
+Sequência então planejada:
 
 ```text
 R1 → R2A → R2B → R2C → R3 → R4 → R5 → R6 → R7 → R8 → R9
@@ -59,7 +59,7 @@ Fora da fila: G0, PR1, PR2, PR4 antigo, PR6B, PR7B e PR9B.
 
 > **Leitura histórica:** os blocos 0.x abaixo preservam a evolução PR #211/#214/#215 e não definem a fila atual. Quando houver linguagem temporal daquele período, prevalecem a atualização de 03/09 no topo e o handoff canônico de reconciliação.
 
-Naquele checkpoint, a porta de entrada era [`handoff/2026-08-31-pr237-fechamento-visual-e-ci.md`](handoff/2026-08-31-pr237-fechamento-visual-e-ci.md). Hoje, a entrada canônica é a reconciliação de 03/09 indicada no topo deste arquivo.
+Naquele checkpoint, a porta de entrada era [`handoff/2026-08-31-pr237-fechamento-visual-e-ci.md`](handoff/2026-08-31-pr237-fechamento-visual-e-ci.md). Naquele checkpoint, a entrada canônica era a reconciliação de 03/09. Após 04/09, prevalecem o estado e o handoff da estabilização funcional indicados no topo deste arquivo.
 
 O conjunto PR #218–#237 incorporou autoridade determinística dos fluxos críticos, preservação/canonização de contexto das Pendências, correções da Consulta Assessoria, abertura no mês corrente e a revisão visual do Prontuário/Pendências. As falhas de CI observadas na virada de agosto para setembro foram reclassificadas: quatro eram expectativas temporais de teste e uma era sincronização visual incremental real da bonificação da Assessoria.
 
