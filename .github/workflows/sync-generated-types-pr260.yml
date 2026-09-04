@@ -1,0 +1,73 @@
+name: Sincronizar tipos gerados PR260
+
+on:
+  push:
+    branches:
+      - stabilization/functional-reliability-2026-09-04
+    paths:
+      - '.github/workflows/sync-generated-types-pr260.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: stabilization/functional-reliability-2026-09-04
+
+      - name: Sincronizar assinatura da RPC gerada
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('src/types/database.types.ts')
+          text = path.read_text(encoding='utf-8')
+          if 'save_asset_with_verification_and_log:' in text:
+              print('Tipos já sincronizados.')
+              raise SystemExit(0)
+
+          anchor = '''      save_asset_with_log: {
+        Args: {
+          p_administrative_log: Json
+          p_asset: Json
+          p_expected_version: number
+        }
+        Returns: Json
+      }
+'''
+          addition = '''      save_asset_with_verification_and_log: {
+        Args: {
+          p_administrative_log: Json
+          p_asset: Json
+          p_expected_asset_version: number
+          p_expected_verification_version: number
+          p_verification: Json
+        }
+        Returns: Json
+      }
+'''
+          if text.count(anchor) != 1:
+              raise SystemExit('Âncora canônica de save_asset_with_log não encontrada de forma única.')
+          path.write_text(text.replace(anchor, anchor + addition, 1), encoding='utf-8')
+
+      - name: Confirmar diff esperado
+        run: |
+          git diff --check
+          git diff -- src/types/database.types.ts
+          grep -q 'save_asset_with_verification_and_log' src/types/database.types.ts
+
+      - name: Commitar somente o artefato gerado
+        run: |
+          if git diff --quiet -- src/types/database.types.ts; then
+            echo 'Nenhuma alteração necessária.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/types/database.types.ts
+          git commit -m 'chore: sincronizar tipos Supabase da migration 46'
+          git push origin HEAD:stabilization/functional-reliability-2026-09-04
