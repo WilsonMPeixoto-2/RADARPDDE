@@ -1,5 +1,7 @@
 # RADAR PDDE — reconciliação documental e do plano mestre pós-hotfixes
 
+> **EVIDÊNCIA HISTÓRICA — NÃO DEFINE A FILA ATUAL.** Este handoff registra o checkpoint anterior aos hotfixes #254/#256/#257/#258/#260. Para continuidade, comece em [`../../START_HERE.md`](../../START_HERE.md).
+
 **Data:** 3 de setembro de 2026  
 **Classe documental:** Canônico — estado corrente, reconciliação do plano e proteção contra regressão  
 **Baseline funcional de código analisado:** `75237c6ec5c22e8f7be9eb39fd21481f6d608010`  

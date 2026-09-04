@@ -1,5 +1,7 @@
 # ADR-050 — análise e Pendência individual por registro de Notas Fiscais
 
+> **VIGENTE COM EMENDAS POSTERIORES.** O núcleo de individualização continua válido, mas regras de novo envio/reabertura/próximo ator foram especializadas pelos PRs #254/#256. Antes de usar este ADR para alterar código, leia [`../PLAN_TRACEABILITY.md`](../PLAN_TRACEABILITY.md) e [`../CURRENT_STATE.md`](../CURRENT_STATE.md).
+
 **Status:** Aceita, integrada e publicada pelo PR #211
 **Data:** 28–30 de agosto de 2026
 **Escopo:** hotfix PR #211  

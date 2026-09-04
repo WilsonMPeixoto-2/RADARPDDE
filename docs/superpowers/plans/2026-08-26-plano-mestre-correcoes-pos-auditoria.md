@@ -1,5 +1,7 @@
 # RADAR PDDE — Plano mestre de implementação das correções pós-auditoria
 
+> **HISTÓRICO — NÃO EXECUTAR COMO FILA ATUAL.** Este plano foi substituído primeiro pelo plano source-first de 03/09 e depois pelo plano mestre corrente. Comece em [`../../../START_HERE.md`](../../../START_HERE.md) e use [`../../MASTER_PLAN_CURRENT.md`](../../MASTER_PLAN_CURRENT.md).
+
 > **SUPERADO COMO FILA EXECUTÁVEL EM 03/09/2026.** Este arquivo preserva o plano aprovado em 26/08 e continua útil para intenção, riscos, REDs e reversões históricas. **Não executar seus checkboxes nem sua numeração como ordem corrente.** O plano executável atual é [`2026-09-03-plano-remanescente-source-first.md`](2026-09-03-plano-remanescente-source-first.md), produzido após reauditoria direta do código em `18150cc9`. Evidência: [`../../audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md`](../../audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md).
 
 > **Instrução histórica de 26/08:** este era o plano executável daquele checkpoint. **Não usar esta instrução para a fila corrente.** A execução atual deve partir de `2026-09-03-plano-remanescente-source-first.md`; este arquivo permanece para contexto, REDs, riscos e reversões históricas.

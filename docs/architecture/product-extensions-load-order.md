@@ -1,5 +1,7 @@
 # Cadeia de carregamento das extensões de produto
 
+> **CONFRONTAR COM O BOOTSTRAP ATUAL.** A ordem de extensões evoluiu posteriormente, inclusive com `critical-action-guard.js` no PR #260. Este documento é referência arquitetural, não substitui a leitura de `src/integration/product-extensions-bootstrap.js` no SHA corrente.
+
 **Estado:** vigente  
 **Atualizado em:** 3 de setembro de 2026
 

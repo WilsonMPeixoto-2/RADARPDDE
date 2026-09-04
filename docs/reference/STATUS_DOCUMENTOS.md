@@ -1,5 +1,7 @@
 # Matriz de validade documental
 
+> **ROTEAMENTO DE CONTINUIDADE:** a classificação abaixo preserva a história documental, mas a retomada operacional começa obrigatoriamente em [`../../START_HERE.md`](../../START_HERE.md). O único plano executável vigente é [`../MASTER_PLAN_CURRENT.md`](../MASTER_PLAN_CURRENT.md).
+
 **Atualizado em:** 4 de setembro de 2026
 **Classe documental:** Canônico
 

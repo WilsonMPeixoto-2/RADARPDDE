@@ -1,5 +1,7 @@
 # RADAR PDDE — Estado atual do projeto
 
+> **CONTINUIDADE CORRENTE:** este arquivo preserva o histórico detalhado dos checkpoints. Para retomada e próxima ação, comece em [`../START_HERE.md`](../START_HERE.md), leia [`CURRENT_STATE.md`](CURRENT_STATE.md) e use somente [`MASTER_PLAN_CURRENT.md`](MASTER_PLAN_CURRENT.md) como fila executável.
+
 **Atualizado em:** 4 de setembro de 2026
 
 **Classe documental:** Canônico — estado corrente e retomada futura
