@@ -19,125 +19,42 @@ jobs:
         with:
           ref: stabilization/functional-reliability-2026-09-04
 
-      - name: Atualizar contratos e roteamento documental
+      - name: Corrigir linguagem histórica em CURRENT_STAGE
         shell: bash
         run: |
           python - <<'PY'
-          import json
-          import re
           from pathlib import Path
 
-          root = Path('.')
+          path = Path('docs/CURRENT_STAGE.md')
+          text = path.read_text(encoding='utf-8')
 
-          manifest_path = root / 'docs/reference/functional-contract-matrix.json'
-          manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
-          manifest['updatedAt'] = '2026-09-04'
-          manifest['sourceCommit'] = '903968042ea8d5d34b9335d8dcda0e4385ca9825'
-
-          additions = {
-              'verification': {
-                  'e2e': ['tests/e2e/supabase-verification-reliability.spec.js']
-              },
-              'pendency': {
-                  'unit': ['tests/unit/critical-action-guard.test.js'],
-                  'e2e': ['tests/e2e/unidentified-expense.spec.js']
-              },
-              'invoice': {
-                  'e2e': [
-                      'tests/e2e/supabase-functional-reliability.spec.js',
-                      'tests/e2e/supabase-invoice-lifecycle-reliability.spec.js'
-                  ]
-              },
-              'asset': {
-                  'unit': ['tests/unit/critical-action-guard.test.js'],
-                  'e2e': ['tests/e2e/supabase-functional-reliability.spec.js']
-              }
+          replacements = {
+              'A porta de entrada executável corrente é [`superpowers/plans/2026-09-03-plano-remanescente-source-first.md`](superpowers/plans/2026-09-03-plano-remanescente-source-first.md). A evidência que sustenta o escopo está em [`audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md`](audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md).':
+              'Naquele checkpoint, a porta de entrada executável era [`superpowers/plans/2026-09-03-plano-remanescente-source-first.md`](superpowers/plans/2026-09-03-plano-remanescente-source-first.md), sustentada por [`audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md`](audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md). Após a estabilização de 04/09, esse plano permanece apenas como referência histórica.',
+              'Sequência executável:': 'Sequência então planejada:',
+              'Hoje, a entrada canônica é a reconciliação de 03/09 indicada no topo deste arquivo.':
+              'Naquele checkpoint, a entrada canônica era a reconciliação de 03/09. Após 04/09, prevalecem o estado e o handoff da estabilização funcional indicados no topo deste arquivo.'
           }
-          for evidence_id, categories in additions.items():
-              evidence = manifest['evidenceSets'][evidence_id]
-              for category, paths in categories.items():
-                  for path in paths:
-                      if path not in evidence[category]:
-                          evidence[category].append(path)
-          manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
 
-          operations_path = root / 'docs/reference/functional-contract-matrix/operations.json'
-          operations = json.loads(operations_path.read_text(encoding='utf-8'))
-          covered = {
-              'VER-01', 'VER-02', 'VER-03',
-              'PEND-02', 'PEND-03',
-              'INV-01', 'INV-02',
-              'ASSET-03', 'ASSET-04'
-          }
-          for operation in operations:
-              if operation['id'] in covered:
-                  operation['coverage'] = 'covered'
-                  operation['gaps'] = []
-                  operation['next'] = 'none'
-              if operation['id'] == 'ASSET-03':
-                  operation['repository'] = 'save_asset_with_verification_and_log'
-                  if 'verifications' not in operation['resources']:
-                      operation['resources'].insert(1, 'verifications')
-                  anchor = [
-                      'supabase/migrations/20260904040000_functional_reliability_inventory_sync.sql',
-                      'save_asset_with_verification_and_log'
-                  ]
-                  if anchor not in operation['anchors']:
-                      operation['anchors'].append(anchor)
-          operations_path.write_text(json.dumps(operations, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+          for old, new in replacements.items():
+              if old not in text:
+                  raise SystemExit(f'Trecho esperado não localizado: {old[:80]}')
+              text = text.replace(old, new, 1)
 
-          stage_path = root / 'docs/CURRENT_STAGE.md'
-          stage = stage_path.read_text(encoding='utf-8')
-          stage = re.sub(r'^\*\*Atualizado em:\*\*.*$', '**Atualizado em:** 4 de setembro de 2026', stage, count=1, flags=re.M)
-          situation = '**Situação:** estabilização funcional materializada pelo PR #260; as regras e provas posteriores aos hotfixes prevalecem sobre planos históricos. Production só muda após merge, migration e deployment verificados.'
-          stage = re.sub(r'^\*\*Situação:\*\*.*$', situation, stage, count=1, flags=re.M)
-          marker = '## Atualização de 04/09 — estabilização funcional e prova ponta a ponta'
-          if marker not in stage:
-              section = '''\n\n## Atualização de 04/09 — estabilização funcional e prova ponta a ponta\n\nA retomada corrente é [`handoff/2026-09-04-estabilizacao-funcional-pr260.md`](handoff/2026-09-04-estabilizacao-funcional-pr260.md). O objetivo não é ampliar funcionalidades, mas fechar falhas de execução e transformar os cenários críticos em regressões permanentes.\n\nRegras consolidadas nesta frente:\n\n- inventariação exige encaminhamento prévio;\n- bem derivado de Nota Fiscal não admite alteração isolada do número fiscal;\n- encaminhamento posterior de bem permanente sincroniza Capital e Inventário, o tópico Encaminhado para Inventariação no Prontuário e o histórico na mesma gravação;\n- metadados técnicos de versão são removidos dos payloads de verificação e impedidos de reaparecer;\n- novo envio, reanálise, encaminhamento e inventariação ficam protegidos contra repetição de gesto durante a gravação;\n- o padrão de certificação funcional passa a ser `ação → persistência → leitura direta → reload → releitura`.\n\nO conjunto canônico passa a 46 migrations com `20260904040000_functional_reliability_inventory_sync.sql`. As jornadas de NF/Inventário, ciclo completo de Nota Fiscal e verificação mensal usam Supabase descartável real para provar persistência e releitura.\n\nA fila R1–R9 descrita em 03/09 permanece como histórico arquitetural e não deve ser executada literalmente. Qualquer trabalho futuro deve partir do código, testes, banco e decisões posteriores à estabilização, preservando as soluções mais novas.\n'''
-              stage = stage.replace(situation, situation + section, 1)
-          stage_path.write_text(stage, encoding='utf-8')
-
-          status_path = root / 'docs/reference/STATUS_DOCUMENTOS.md'
-          status = status_path.read_text(encoding='utf-8')
-          status = re.sub(r'^\*\*Atualizado em:\*\*.*$', '**Atualizado em:** 4 de setembro de 2026', status, count=1, flags=re.M)
-          old_route = 'O roteamento corrente começa em [`../superpowers/plans/2026-09-03-plano-remanescente-source-first.md`](../superpowers/plans/2026-09-03-plano-remanescente-source-first.md), apoiado por [`../audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md`](../audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md) e `CURRENT_STAGE.md`. O handoff de reconciliação e o plano de 26/08 permanecem fontes históricas/canônicas de contexto, mas não controlam a fila executável.'
-          new_route = 'O roteamento corrente começa em [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md) e [`../handoff/2026-09-04-estabilizacao-funcional-pr260.md`](../handoff/2026-09-04-estabilizacao-funcional-pr260.md). O plano source-first de 03/09 e os planos anteriores permanecem referências históricas de arquitetura e contexto, mas não controlam automaticamente a fila executável após os hotfixes e a estabilização de 04/09.'
-          if old_route in status:
-              status = status.replace(old_route, new_route, 1)
-          elif new_route not in status:
-              raise SystemExit('Parágrafo canônico de roteamento não localizado em STATUS_DOCUMENTOS.md')
-
-          current_row = '| `docs/CURRENT_STAGE.md` | estado corrente, prioridades e gatilhos de nova validação |'
-          handoff_row = '| `docs/handoff/2026-09-04-estabilizacao-funcional-pr260.md` | **checkpoint canônico da estabilização funcional**; sincronização, persistência, reload, repetição de gesto e regressões |'
-          if handoff_row not in status:
-              if current_row not in status:
-                  raise SystemExit('Linha de CURRENT_STAGE não localizada em STATUS_DOCUMENTOS.md')
-              status = status.replace(current_row, current_row + '\n' + handoff_row, 1)
-
-          status = status.replace(
-              '| `docs/superpowers/plans/2026-09-03-plano-remanescente-source-first.md` | **plano executável corrente**; fases R1–R9 e gates anti-regressão |',
-              '| `docs/superpowers/plans/2026-09-03-plano-remanescente-source-first.md` | referência histórica do plano R1–R9 anterior à estabilização de 04/09; não executar literalmente |'
-          )
-          status_path.write_text(status, encoding='utf-8')
+          path.write_text(text, encoding='utf-8')
           PY
 
-      - name: Regenerar matriz funcional
-        run: node scripts/check-functional-contract-matrix.mjs --write
-
-      - name: Validar documentação gerada
+      - name: Validar e commit
+        shell: bash
         run: |
-          node scripts/check-functional-contract-matrix.mjs
-          git diff --check -- . ':(exclude)docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md'
-          git diff -- docs/CURRENT_STAGE.md docs/reference/STATUS_DOCUMENTOS.md docs/reference/functional-contract-matrix.json docs/reference/functional-contract-matrix/operations.json docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md
-
-      - name: Commitar atualização canônica
-        run: |
+          git diff --check
+          git diff -- docs/CURRENT_STAGE.md
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add docs/CURRENT_STAGE.md docs/reference/STATUS_DOCUMENTOS.md docs/reference/functional-contract-matrix.json docs/reference/functional-contract-matrix/operations.json docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md
+          git add docs/CURRENT_STAGE.md
           if git diff --cached --quiet; then
-            echo 'Nenhuma atualização documental necessária.'
+            echo 'Nenhuma atualização adicional necessária.'
             exit 0
           fi
-          git commit -m 'docs: reconciliar contratos após estabilização funcional'
+          git commit -m 'docs: neutralizar plano histórico após PR260'
           git push origin HEAD:stabilization/functional-reliability-2026-09-04
