@@ -1,0 +1,45 @@
+name: Aplicar banners históricos de continuidade uma vez
+
+on:
+  push:
+    branches:
+      - audit/continuity-source-traceability-2026-09-04
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: contains(github.event.head_commit.message, 'trigger continuity banners')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Obter branch completa
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+
+      - name: Aplicar banners semânticos
+        run: node scripts/apply-continuity-historical-banners.mjs
+
+      - name: Commitar somente documentação histórica
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            docs/superpowers/plans/2026-09-03-plano-remanescente-source-first.md \
+            docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md \
+            docs/CURRENT_STAGE.md \
+            docs/reference/STATUS_DOCUMENTOS.md \
+            docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md \
+            docs/handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md \
+            docs/audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md \
+            docs/architecture/product-extensions-load-order.md
+          if git diff --cached --quiet; then
+            echo "Nenhuma alteração pendente."
+            exit 0
+          fi
+          git commit -m "docs: aplicar banners de continuidade histórica [skip ci]"
+          git push origin HEAD
