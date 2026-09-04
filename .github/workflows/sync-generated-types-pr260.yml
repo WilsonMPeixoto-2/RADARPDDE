@@ -1,9 +1,9 @@
 name: Sincronizar tipos gerados PR260
 
 on:
-  push:
+  pull_request:
     branches:
-      - stabilization/functional-reliability-2026-09-04
+      - main
     paths:
       - '.github/workflows/sync-generated-types-pr260.yml'
 
@@ -12,9 +12,10 @@ permissions:
 
 jobs:
   sync:
+    if: github.head_ref == 'stabilization/functional-reliability-2026-09-04'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout da branch
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           ref: stabilization/functional-reliability-2026-09-04
