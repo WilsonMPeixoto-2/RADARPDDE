@@ -243,6 +243,82 @@ test('encaminhamento posterior de bem vinculado sincroniza Encaminhado para Inve
     assert.equal(harness.persisted[0].args.p_expected_verification_version, 7);
     assert.equal(harness.persisted[0].args.p_asset.status, 'Encaminhada');
     assert.equal(harness.persisted[0].args.p_verification.bonification.encampInventario, 'Sim');
+    assert.equal(harness.persisted[0].args.p_administrative_log.action, 'Capital Encaminhado');
+});
+
+test('mantém Encaminhado para Inventariação como Não até todas as NFs permanentes do contexto serem encaminhadas', async () => {
+    const harness = createHarness();
+    harness.state.assets.push({
+        id: 'bem-2',
+        escolaId: 'ESC-1',
+        competencia: '2026-05',
+        item: 'Projetor',
+        tipo: 'permanente',
+        valor: 3000,
+        notaFiscal: 'NF-002',
+        status: 'Não encaminhada',
+        rowVersion: 2
+    });
+    harness.state.registeredInvoices.push(
+        {
+            id: 'invoice-1',
+            escolaId: 'ESC-1',
+            compKey: '2026-05_BASIC',
+            competencia: '2026-05',
+            programaId: 'BASIC',
+            tipo: 'permanente',
+            numero: 'NF-001',
+            valor: 5000,
+            bemId: 'bem-1',
+            rowVersion: 3
+        },
+        {
+            id: 'invoice-2',
+            escolaId: 'ESC-1',
+            compKey: '2026-05_BASIC',
+            competencia: '2026-05',
+            programaId: 'BASIC',
+            tipo: 'permanente',
+            numero: 'NF-002',
+            valor: 3000,
+            bemId: 'bem-2',
+            rowVersion: 5
+        }
+    );
+    harness.state.verifications['ESC-1'] = {
+        '2026-05_BASIC': {
+            bonificacao: { encampInventario: 'Não' },
+            analise: { encampInventario: 'Correto' },
+            resultadoBonif: '',
+            rowVersion: 7
+        }
+    };
+
+    await harness.service.forward({ assetId: 'bem-1', profile: 'controlador' });
+
+    assert.equal(
+        harness.state.verifications['ESC-1']['2026-05_BASIC'].bonificacao.encampInventario,
+        'Não'
+    );
+    assert.equal(
+        harness.state.verifications['ESC-1']['2026-05_BASIC'].analise.encampInventario,
+        'Correto'
+    );
+    assert.equal(harness.persisted[0].kind, 'asset');
+
+    await harness.service.forward({ assetId: 'bem-2', profile: 'controlador' });
+
+    assert.equal(
+        harness.state.verifications['ESC-1']['2026-05_BASIC'].bonificacao.encampInventario,
+        'Sim'
+    );
+    assert.equal(
+        harness.state.verifications['ESC-1']['2026-05_BASIC'].analise.encampInventario,
+        'Não analisado'
+    );
+    assert.equal(harness.persisted[1].kind, 'rpc');
+    assert.equal(harness.persisted[1].name, 'save_asset_with_verification_and_log');
+    assert.equal(harness.persisted[1].args.p_verification.bonification.encampInventario, 'Sim');
 });
 
 test('não permite concluir inventariação antes de o bem estar encaminhado', async () => {
