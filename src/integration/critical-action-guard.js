@@ -106,9 +106,7 @@
         });
         guard.wrap('salvarInventariacao', {
             key: currentRoot => `inventory:complete:${hiddenValue(currentRoot, 'inventario-bem-id')}`,
-            form: currentRoot => currentRoot.document?.getElementById?.('form-inventariar')
-                || currentRoot.document?.getElementById?.('form-inventario')
-                || null,
+            form: currentRoot => currentRoot.document?.getElementById?.('form-inventario-confirm') || null,
             busyLabel: 'Inventariando…'
         });
 
