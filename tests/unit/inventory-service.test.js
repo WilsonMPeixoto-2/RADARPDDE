@@ -31,13 +31,13 @@ function createHarness() {
     const persisted = [];
     let sequence = 0;
     const repository = {
-        capabilities: () => ({ atomicInvoiceEffects: true }),
+        capabilities: () => ({ remote: true }),
         async saveAssetWithLog(input) {
             persisted.push({ kind: 'asset', ...input });
             return { ok: true };
         },
-        async saveInvoiceWithEffects(input) {
-            persisted.push({ kind: 'invoice-effects', ...input });
+        async executeRpc(name, args, operation) {
+            persisted.push({ kind: 'rpc', name, args, operation });
             return { ok: true };
         }
     };
@@ -60,6 +60,7 @@ function createHarness() {
                                 bonification: { ...(verification.bonificacao || {}) },
                                 analysis: { ...(verification.analise || {}) },
                                 bonus_result: verification.resultadoBonif || '',
+                                payload: {},
                                 row_version: verification.rowVersion || null
                             };
                         })
@@ -69,8 +70,25 @@ function createHarness() {
                             entities: {
                                 registeredInvoices: state.registeredInvoices.map(invoice => ({ ...invoice })),
                                 verifications,
-                                assets: state.assets.map(asset => ({ ...asset })),
-                                administrativeLogs: state.logs.map(log => ({ ...log }))
+                                assets: state.assets.map(asset => ({
+                                    id: asset.id,
+                                    school_id: asset.escolaId,
+                                    competence_id: asset.competencia,
+                                    description: asset.descricao || asset.item,
+                                    expense_type: asset.tipo,
+                                    invoice_number: asset.notaFiscal,
+                                    amount: asset.valor,
+                                    status: asset.status,
+                                    inventory_process: asset.processoInventario || '',
+                                    notes: asset.observacoes || '',
+                                    row_version: asset.rowVersion || null
+                                })),
+                                administrativeLogs: state.logs.map(log => ({
+                                    id: log.id,
+                                    school_id: log.schoolId || log.escolaId || null,
+                                    action: log.action,
+                                    details: { text: log.details }
+                                }))
                             }
                         },
                         repository,
@@ -215,15 +233,16 @@ test('encaminhamento posterior de bem vinculado sincroniza Encaminhado para Inve
         'Não analisado'
     );
     assert.deepEqual(harness.calls[0].changedEntities, [
-        'registeredInvoices',
         'assets',
         'verifications',
         'administrativeLogs'
     ]);
-    assert.equal(harness.persisted[0].kind, 'invoice-effects');
-    assert.equal(harness.persisted[0].expectedInvoiceVersion, 3);
-    assert.equal(harness.persisted[0].expectedAssetVersion, 4);
-    assert.equal(harness.persisted[0].expectedVerificationVersion, 7);
+    assert.equal(harness.persisted[0].kind, 'rpc');
+    assert.equal(harness.persisted[0].name, 'save_asset_with_verification_and_log');
+    assert.equal(harness.persisted[0].args.p_expected_asset_version, 4);
+    assert.equal(harness.persisted[0].args.p_expected_verification_version, 7);
+    assert.equal(harness.persisted[0].args.p_asset.status, 'Encaminhada');
+    assert.equal(harness.persisted[0].args.p_verification.bonification.encampInventario, 'Sim');
 });
 
 test('não permite concluir inventariação antes de o bem estar encaminhado', async () => {
