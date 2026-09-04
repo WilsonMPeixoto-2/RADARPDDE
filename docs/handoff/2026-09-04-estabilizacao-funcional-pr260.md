@@ -135,4 +135,4 @@ Falhas de infraestrutura ou volatilidade de benchmark devem ser classificadas po
 
 Este checkpoint e `docs/CURRENT_STAGE.md` passam a controlar a retomada da estabilização. O plano remanescente de 03/09 continua útil como histórico arquitetural, mas não deve ser executado literalmente quando conflitar com decisões, hotfixes e provas funcionais posteriores.
 
-Enquanto o PR #260 não estiver integrado, Production continua obedecendo à baseline anterior. Após a integração e a verificação do deployment, as regras funcionais e regressões descritas aqui passam a compor a baseline corrente.
+O PR #260 foi integrado após o head certificado `c3d6fc2374476a4884cfebc2f4236e346ccf2700` passar todos os gates finais. A `main` resultante é `8fc58926565a72465980143f253f0a2fee4b8fc2`. Supabase Production está com 46 migrations, integridade saudável e sem aliases técnicos residuais; Vercel Production `dpl_EmgxYkMpprpY2wLTRFk4bJQA4L2e` está READY e o alias oficial serve o manifesto desse mesmo merge. As regras funcionais e regressões descritas neste checkpoint compõem a baseline corrente.

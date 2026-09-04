@@ -1,7 +1,7 @@
 # Matriz funcional ponta a ponta
 
 **Atualizado em:** 2026-09-04  
-**Baseline de origem:** `903968042ea8d5d34b9335d8dcda0e4385ca9825`  
+**Baseline de origem:** `c3d6fc2374476a4884cfebc2f4236e346ccf2700`  
 **Fonte canônica:** `functional-contract-matrix.json` e arquivos JSON do diretório `functional-contract-matrix/`
 
 > Arquivo gerado por `scripts/check-functional-contract-matrix.mjs`. Não editar manualmente.

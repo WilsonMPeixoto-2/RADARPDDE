@@ -4,7 +4,7 @@
 
 **Classe documental:** Canônico — estado corrente e retomada futura
 
-**Situação:** estabilização funcional materializada pelo PR #260; as regras e provas posteriores aos hotfixes prevalecem sobre planos históricos. Production só muda após merge, migration e deployment verificados.
+**Situação:** estabilização funcional concluída. PR #260 integrado em `8fc58926565a72465980143f253f0a2fee4b8fc2`, Supabase Production com 46 migrations e Vercel Production `dpl_EmgxYkMpprpY2wLTRFk4bJQA4L2e` READY no mesmo merge. As regras e provas posteriores aos hotfixes prevalecem sobre planos históricos.
 
 ## Atualização de 04/09 — estabilização funcional e prova ponta a ponta
 
@@ -23,6 +23,18 @@ O conjunto canônico passa a 46 migrations com `20260904040000_functional_reliab
 
 A fila R1–R9 descrita em 03/09 permanece como histórico arquitetural e não deve ser executada literalmente. Qualquer trabalho futuro deve partir do código, testes, banco e decisões posteriores à estabilização, preservando as soluções mais novas.
 
+
+
+## Fechamento em Production — 04/09
+
+- head certificado antes do merge: `c3d6fc2374476a4884cfebc2f4236e346ccf2700`;
+- todos os gates finais do PR #260 passaram no mesmo head, incluindo jornadas reais com Supabase, Playwright completo, readiness, perfis/viewports, backup/restauração, CodeQL, dependências, Lighthouse e homologação pré-Production;
+- merge da `main`: `8fc58926565a72465980143f253f0a2fee4b8fc2`;
+- Supabase Production: 46 migrations, RPC patrimonial e trigger de limpeza presentes, aliases `rowVersion`/`row_version` em payload = 0 e `production_integrity_check()` com `totalIssues = 0`;
+- Vercel Production: `dpl_EmgxYkMpprpY2wLTRFk4bJQA4L2e` READY, alias oficial servindo manifesto com SHA `8fc58926565a72465980143f253f0a2fee4b8fc2`;
+- código servido em Production contém a sincronização patrimonial e a proteção contra repetição de ações críticas.
+
+A estabilização passa a compor a baseline corrente. Novas revisões devem partir deste estado e não reabrir planos históricos como fila automática.
 
 ## Atualização de 03/09 — reauditoria source-first e novo plano remanescente
 
