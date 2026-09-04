@@ -5,6 +5,8 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
+const adapter = require('../../src/data/legacy-state-adapter.js');
+
 const adapterPath = path.resolve(__dirname, '../../src/data/legacy-state-adapter.js');
 const migrationPath = path.resolve(
     __dirname,
@@ -36,6 +38,42 @@ test('adapter mantém row_version canônico fora dos payloads de compatibilidade
     assert.match(body, /payload: versionlessPayload\(contact\)/);
     assert.match(body, /payload: versionlessPayload\(asset\)/);
     assert.match(body, /payload: versionlessPayload\(invoice\)/);
+});
+
+test('transformação de verificação remove rowVersion mesmo quando o alias já está dentro do payload', () => {
+    const transformed = adapter.transformLegacyState({
+        config: {},
+        programs: [{ id: 'BASIC', name: 'PDDE Básico' }],
+        controllers: [],
+        inventoryTeamMembers: [],
+        schools: [{ id: 'ESC-1', programasIds: ['BASIC'] }],
+        verifications: {
+            'ESC-1': {
+                '2026-05_BASIC': {
+                    bonificacao: {},
+                    analise: {},
+                    resultadoBonif: '',
+                    rowVersion: 9,
+                    payload: {
+                        rowVersion: 8,
+                        row_version: 7,
+                        origem: 'teste-regressao'
+                    }
+                }
+            }
+        },
+        pendencies: [],
+        contacts: [],
+        assets: [],
+        registeredInvoices: [],
+        logs: []
+    });
+
+    const verification = transformed.entities.verifications[0];
+    assert.equal(verification.row_version, 9);
+    assert.equal(verification.payload.origem, 'teste-regressao');
+    assert.equal(Object.hasOwn(verification.payload, 'rowVersion'), false);
+    assert.equal(Object.hasOwn(verification.payload, 'row_version'), false);
 });
 
 test('migration remove somente metadados de versão dos payloads já persistidos', () => {
