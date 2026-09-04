@@ -81,7 +81,7 @@ function invoiceDocumentRow(page) {
 }
 
 test.describe.serial('Uso real — Nota Fiscal e Capital/Inventário', () => {
-  test('NF permanente nasce vinculada ao bem, sobrevive ao reload e só pode ser inventariada após encaminhamento', async ({ page }) => {
+  test('NF permanente entra automaticamente em Aguardando Inventariação, sobrevive ao reload e pode ser inventariada', async ({ page }) => {
     page.on('dialog', dialog => dialog.accept());
     await signInAs(page, 'controller');
     await prepareInvoiceContext(page);
@@ -113,35 +113,17 @@ test.describe.serial('Uso real — Nota Fiscal e Capital/Inventário', () => {
     const asset = persistedAssets.find(item => item.id === invoice.linked_asset_id);
     expect(asset).toBeTruthy();
     expect(asset.invoice_number).toBe(invoiceNumber);
-    expect(asset.status).toBe('Não encaminhada');
+    expect(asset.status).toBe('Encaminhada');
 
     const persistedVerifications = await loadEntity(page, 'verifications');
     const verification = persistedVerifications.find(item => item.id === VERIFICATION_ID);
-    expect(verification?.bonification?.encampInventario).toBe('Não');
+    expect(verification?.bonification?.encampInventario).toBe('Sim');
     expect(verification?.analysis?.encampInventario).toBe('Não analisado');
 
     await reloadAndWait(page, 'controller');
     await openSchoolFromCarteira(page);
     await expect(invoiceDocumentRow(page).getByText(invoiceNumber, { exact: false })).toBeVisible();
 
-    await page.locator('#nav-inventario').click();
-    await expect(page.getByText(invoiceNumber, { exact: false }).first()).toBeVisible();
-
-    const assetContainer = page.locator(`[data-asset-id="${invoice.linked_asset_id}"]`).first();
-    const target = (await assetContainer.count()) ? assetContainer : page.getByText(invoiceNumber, { exact: false }).first().locator('xpath=ancestor::*[self::tr or contains(@class,"card")][1]');
-
-    await expect(target.getByRole('button', { name: /Inventariar/i })).toHaveCount(0);
-    const forwardButton = target.getByRole('button', { name: /Encaminhar/i });
-    await expect(forwardButton).toBeVisible();
-    await forwardButton.click();
-
-    await expect.poll(async () => {
-      const rows = await loadEntity(page, 'assets');
-      return rows.find(item => item.id === invoice.linked_asset_id)?.status;
-    }).toBe('Encaminhada');
-
-    await reloadAndWait(page, 'controller');
-    await openSchoolFromCarteira(page);
     const inventoryRow = page.locator(
       `#prontuario-verif-rows tr[data-program-id="${PROGRAM_ID}"][data-document-key="encampInventario"]`
     );
@@ -149,11 +131,15 @@ test.describe.serial('Uso real — Nota Fiscal e Capital/Inventário', () => {
     await expect(inventoryRow.getByText('Encaminhada', { exact: true })).toBeVisible();
 
     await page.locator('#nav-inventario').click();
-    const forwardedAsset = page.locator(`[data-asset-id="${invoice.linked_asset_id}"]`).first();
-    const forwardedTarget = (await forwardedAsset.count())
-      ? forwardedAsset
-      : page.getByText(invoiceNumber, { exact: false }).first().locator('xpath=ancestor::*[self::tr or contains(@class,"card")][1]');
-    const inventoryButton = forwardedTarget.getByRole('button', { name: /Inventariar/i });
+    await expect(page.getByText(invoiceNumber, { exact: false }).first()).toBeVisible();
+    await expect(page.getByText('Aguardando Inventariação', { exact: true }).first()).toBeVisible();
+
+    const assetContainer = page.locator(`[data-asset-id="${invoice.linked_asset_id}"]`).first();
+    const target = (await assetContainer.count())
+      ? assetContainer
+      : page.getByText(invoiceNumber, { exact: false }).first()
+        .locator('xpath=ancestor::*[self::tr or contains(@class,"card")][1]');
+    const inventoryButton = target.getByRole('button', { name: /Inventariar|Marcar como Inventariado/i });
     await expect(inventoryButton).toBeVisible();
     await inventoryButton.click();
 
