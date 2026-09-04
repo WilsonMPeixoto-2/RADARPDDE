@@ -15,9 +15,9 @@ concurrency:
 
 jobs:
   lifecycle:
-    name: Criar editar converter excluir e reanalisar
+    name: Criar editar converter excluir avaliar e reanalisar
     runs-on: ubuntu-24.04
-    timeout-minutes: 40
+    timeout-minutes: 45
     env:
       SUPABASE_TELEMETRY_DISABLED: '1'
 
@@ -74,6 +74,7 @@ jobs:
         run: >-
           npx playwright test
           tests/e2e/supabase-invoice-lifecycle-reliability.spec.js
+          tests/e2e/supabase-verification-reliability.spec.js
           tests/e2e/pendency-reanalysis-auth.spec.js
           --project=desktop-chromium
           --workers=1
