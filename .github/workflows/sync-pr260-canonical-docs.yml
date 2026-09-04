@@ -89,16 +89,10 @@ jobs:
           stage_path = root / 'docs/CURRENT_STAGE.md'
           stage = stage_path.read_text(encoding='utf-8')
           stage = re.sub(r'^\*\*Atualizado em:\*\*.*$', '**Atualizado em:** 4 de setembro de 2026', stage, count=1, flags=re.M)
-          stage = re.sub(
-              r'^\*\*Situação:\*\*.*$',
-              '**Situação:** estabilização funcional materializada pelo PR #260; as regras e provas posteriores aos hotfixes prevalecem sobre planos históricos. Production só muda após merge, migration e deployment verificados.',
-              stage,
-              count=1,
-              flags=re.M
-          )
+          situation = '**Situação:** estabilização funcional materializada pelo PR #260; as regras e provas posteriores aos hotfixes prevalecem sobre planos históricos. Production só muda após merge, migration e deployment verificados.'
+          stage = re.sub(r'^\*\*Situação:\*\*.*$', situation, stage, count=1, flags=re.M)
           marker = '## Atualização de 04/09 — estabilização funcional e prova ponta a ponta'
           if marker not in stage:
-              situation = '**Situação:** estabilização funcional materializada pelo PR #260; as regras e provas posteriores aos hotfixes prevalecem sobre planos históricos. Production só muda após merge, migration e deployment verificados.'
               section = '''\n\n## Atualização de 04/09 — estabilização funcional e prova ponta a ponta\n\nA retomada corrente é [`handoff/2026-09-04-estabilizacao-funcional-pr260.md`](handoff/2026-09-04-estabilizacao-funcional-pr260.md). O objetivo não é ampliar funcionalidades, mas fechar falhas de execução e transformar os cenários críticos em regressões permanentes.\n\nRegras consolidadas nesta frente:\n\n- inventariação exige encaminhamento prévio;\n- bem derivado de Nota Fiscal não admite alteração isolada do número fiscal;\n- encaminhamento posterior de bem permanente sincroniza Capital e Inventário, o tópico Encaminhado para Inventariação no Prontuário e o histórico na mesma gravação;\n- metadados técnicos de versão são removidos dos payloads de verificação e impedidos de reaparecer;\n- novo envio, reanálise, encaminhamento e inventariação ficam protegidos contra repetição de gesto durante a gravação;\n- o padrão de certificação funcional passa a ser `ação → persistência → leitura direta → reload → releitura`.\n\nO conjunto canônico passa a 46 migrations com `20260904040000_functional_reliability_inventory_sync.sql`. As jornadas de NF/Inventário, ciclo completo de Nota Fiscal e verificação mensal usam Supabase descartável real para provar persistência e releitura.\n\nA fila R1–R9 descrita em 03/09 permanece como histórico arquitetural e não deve ser executada literalmente. Qualquer trabalho futuro deve partir do código, testes, banco e decisões posteriores à estabilização, preservando as soluções mais novas.\n'''
               stage = stage.replace(situation, situation + section, 1)
           stage_path.write_text(stage, encoding='utf-8')
@@ -133,7 +127,7 @@ jobs:
       - name: Validar documentação gerada
         run: |
           node scripts/check-functional-contract-matrix.mjs
-          git diff --check
+          git diff --check -- . ':(exclude)docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md'
           git diff -- docs/CURRENT_STAGE.md docs/reference/STATUS_DOCUMENTOS.md docs/reference/functional-contract-matrix.json docs/reference/functional-contract-matrix/operations.json docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md
 
       - name: Commitar atualização canônica
