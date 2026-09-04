@@ -28,6 +28,9 @@ jobs:
       - name: Executar inventário mecânico integral
         run: node scripts/audit-continuity-baseline.mjs
 
+      - name: Congelar snapshot integral dos arquivos versionados
+        run: git archive --format=tar.gz --output=audit-output/repository-snapshot.tar.gz HEAD
+
       - name: Publicar relatório completo
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
