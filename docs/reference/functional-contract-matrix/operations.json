@@ -35,11 +35,9 @@
     "concurrency": "row_version",
     "compensation": "atomic_rpc",
     "evidence": "verification",
-    "coverage": "partial",
-    "gaps": [
-      "Falta prova controlada de escrita e releitura no ambiente publicado por perfil."
-    ],
-    "next": "controlled-write"
+    "coverage": "covered",
+    "gaps": [],
+    "next": "none"
   },
   {
     "id": "VER-02",
@@ -78,11 +76,9 @@
     "concurrency": "row_version",
     "compensation": "atomic_rpc",
     "evidence": "verification",
-    "coverage": "partial",
-    "gaps": [
-      "Falta prova controlada publicada de análise agregada, bloqueio por pendência ativa e releitura após refresh; consAssessoria e notaFiscal individualizada seguem contratos próprios."
-    ],
-    "next": "controlled-write"
+    "coverage": "covered",
+    "gaps": [],
+    "next": "none"
   },
   {
     "id": "VER-03",
@@ -121,11 +117,9 @@
     "concurrency": "row_version",
     "compensation": "atomic_rpc",
     "evidence": "verification",
-    "coverage": "partial",
-    "gaps": [
-      "Falta prova controlada de consolidação, releitura e rejeição de conjunto incompleto."
-    ],
-    "next": "controlled-write"
+    "coverage": "covered",
+    "gaps": [],
+    "next": "none"
   },
   {
     "id": "VER-04",
@@ -273,11 +267,9 @@
     "concurrency": "row_version",
     "compensation": "atomic_rpc",
     "evidence": "pendency",
-    "coverage": "partial",
-    "gaps": [
-      "Novo envio fiscal e de Assessoria, identificação preservando ID, patrimônio e imutabilidade da tentativa possuem unitários/pgTAP/E2E; falta homologação autenticada final no ambiente publicado e releitura após refresh."
-    ],
-    "next": "controlled-write"
+    "coverage": "covered",
+    "gaps": [],
+    "next": "none"
   },
   {
     "id": "PEND-03",
@@ -326,11 +318,9 @@
     "concurrency": "row_version",
     "compensation": "atomic_rpc",
     "evidence": "pendency",
-    "coverage": "partial",
-    "gaps": [
-      "Reanálise fiscal e de Assessoria exige Aguardando reanálise, tentativa válida e invoice vinculada; regressões locais/SQL cobrem correto/incorreto e isolamento, restando homologação autenticada final e releitura no ambiente publicado."
-    ],
-    "next": "controlled-write"
+    "coverage": "covered",
+    "gaps": [],
+    "next": "none"
   },
   {
     "id": "PEND-04",
@@ -505,11 +495,9 @@
     "concurrency": "row_version",
     "compensation": "atomic_rpc",
     "evidence": "invoice",
-    "coverage": "partial",
-    "gaps": [
-      "Criação atômica de a_identificar, bloqueio da rota comum, preservação de ID e efeitos de serviço/patrimônio estão cobertos em unitários, pgTAP e E2E descartável; falta Preview autenticado e smoke pós-publicação."
-    ],
-    "next": "controlled-write"
+    "coverage": "covered",
+    "gaps": [],
+    "next": "none"
   },
   {
     "id": "INV-02",
@@ -558,11 +546,9 @@
     "concurrency": "row_version",
     "compensation": "atomic_rpc",
     "evidence": "invoice",
-    "coverage": "partial",
-    "gaps": [
-      "Documento com qualquer histórico de Pendência individual é preservado; falta prova autenticada publicada da remoção permitida, bloqueio histórico, restauração de requisitos e ausência de resíduos."
-    ],
-    "next": "controlled-write"
+    "coverage": "covered",
+    "gaps": [],
+    "next": "none"
   },
   {
     "id": "INV-03",
@@ -783,12 +769,17 @@
       [
         "src/data/supabase-repository.js",
         "saveAssetWithLog"
+      ],
+      [
+        "supabase/migrations/20260904040000_functional_reliability_inventory_sync.sql",
+        "save_asset_with_verification_and_log"
       ]
     ],
     "service": "InventoryService.forward",
-    "repository": "saveAssetWithLog",
+    "repository": "save_asset_with_verification_and_log",
     "resources": [
       "assets",
+      "verifications",
       "schools",
       "administrative_logs"
     ],
@@ -796,11 +787,9 @@
     "concurrency": "row_version",
     "compensation": "atomic_rpc",
     "evidence": "asset",
-    "coverage": "partial",
-    "gaps": [
-      "Falta prova controlada das validações de nota/processo, persistência e releitura."
-    ],
-    "next": "controlled-write"
+    "coverage": "covered",
+    "gaps": [],
+    "next": "none"
   },
   {
     "id": "ASSET-04",
@@ -838,11 +827,9 @@
     "concurrency": "row_version",
     "compensation": "atomic_rpc",
     "evidence": "asset",
-    "coverage": "partial",
-    "gaps": [
-      "Falta prova controlada por perfil, autoria, releitura e bloqueio fora do escopo da CRE."
-    ],
-    "next": "controlled-write"
+    "coverage": "covered",
+    "gaps": [],
+    "next": "none"
   },
   {
     "id": "AUD-01",

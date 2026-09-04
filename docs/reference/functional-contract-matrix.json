@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-09-02",
-  "sourceCommit": "d5b45184eaa513352db0806f6d41c5e0568c6baf",
+  "updatedAt": "2026-09-04",
+  "sourceCommit": "903968042ea8d5d34b9335d8dcda0e4385ca9825",
   "profiles": [
     {
       "id": "anonymous",
@@ -259,7 +259,8 @@
       "e2e": [
         "tests/e2e/application-services.spec.js",
         "tests/e2e/supabase-full-contract.spec.js",
-        "tests/e2e/functional-core.spec.js"
+        "tests/e2e/functional-core.spec.js",
+        "tests/e2e/supabase-verification-reliability.spec.js"
       ],
       "database": [
         "supabase/tests/database/verification-rpc.test.sql",
@@ -271,7 +272,8 @@
       "unit": [
         "tests/unit/access-policy.test.js",
         "tests/unit/remote-operational-commands.test.js",
-        "tests/unit/functional-integrity-migration.test.js"
+        "tests/unit/functional-integrity-migration.test.js",
+        "tests/unit/critical-action-guard.test.js"
       ],
       "e2e": [
         "tests/e2e/application-services.spec.js",
@@ -279,7 +281,8 @@
         "tests/e2e/pendency-reanalysis-auth.spec.js",
         "tests/e2e/pendency-cycle.spec.js",
         "tests/e2e/task-9-pendencias.spec.js",
-        "tests/e2e/task-10-11-pendencias.spec.js"
+        "tests/e2e/task-10-11-pendencias.spec.js",
+        "tests/e2e/unidentified-expense.spec.js"
       ],
       "database": [
         "supabase/tests/database/operations-rpc.test.sql",
@@ -309,7 +312,9 @@
         "tests/e2e/invoice-document-analysis.spec.js",
         "tests/e2e/unidentified-expense.spec.js",
         "tests/e2e/internet-bill-document.spec.js",
-        "tests/e2e/critical-product-extensions.spec.js"
+        "tests/e2e/critical-product-extensions.spec.js",
+        "tests/e2e/supabase-functional-reliability.spec.js",
+        "tests/e2e/supabase-invoice-lifecycle-reliability.spec.js"
       ],
       "database": [
         "supabase/tests/database/invoice-rpc.test.sql",
@@ -324,12 +329,14 @@
     "asset": {
       "unit": [
         "tests/unit/remote-operational-commands.test.js",
-        "tests/unit/inventory-service.test.js"
+        "tests/unit/inventory-service.test.js",
+        "tests/unit/critical-action-guard.test.js"
       ],
       "e2e": [
         "tests/e2e/application-services.spec.js",
         "tests/e2e/supabase-full-contract.spec.js",
-        "tests/e2e/functional-core.spec.js"
+        "tests/e2e/functional-core.spec.js",
+        "tests/e2e/supabase-functional-reliability.spec.js"
       ],
       "database": [
         "supabase/tests/database/inventory-capital-rls.test.sql",

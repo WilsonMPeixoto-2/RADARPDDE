@@ -1,10 +1,28 @@
 # RADAR PDDE — Estado atual do projeto
 
-**Atualizado em:** 3 de setembro de 2026
+**Atualizado em:** 4 de setembro de 2026
 
 **Classe documental:** Canônico — estado corrente e retomada futura
 
-**Situação:** baseline funcional reconciliado até o PR #249; a documentação canônica incorpora a reconciliação posterior de 03/09. `main` e Vercel podem conter commits/deployments exclusivamente documentais posteriores sem alteração de runtime; SHA e deployment correntes devem ser consultados no remoto.
+**Situação:** estabilização funcional materializada pelo PR #260; as regras e provas posteriores aos hotfixes prevalecem sobre planos históricos. Production só muda após merge, migration e deployment verificados.
+
+## Atualização de 04/09 — estabilização funcional e prova ponta a ponta
+
+A retomada corrente é [`handoff/2026-09-04-estabilizacao-funcional-pr260.md`](handoff/2026-09-04-estabilizacao-funcional-pr260.md). O objetivo não é ampliar funcionalidades, mas fechar falhas de execução e transformar os cenários críticos em regressões permanentes.
+
+Regras consolidadas nesta frente:
+
+- inventariação exige encaminhamento prévio;
+- bem derivado de Nota Fiscal não admite alteração isolada do número fiscal;
+- encaminhamento posterior de bem permanente sincroniza Capital e Inventário, o tópico Encaminhado para Inventariação no Prontuário e o histórico na mesma gravação;
+- metadados técnicos de versão são removidos dos payloads de verificação e impedidos de reaparecer;
+- novo envio, reanálise, encaminhamento e inventariação ficam protegidos contra repetição de gesto durante a gravação;
+- o padrão de certificação funcional passa a ser `ação → persistência → leitura direta → reload → releitura`.
+
+O conjunto canônico passa a 46 migrations com `20260904040000_functional_reliability_inventory_sync.sql`. As jornadas de NF/Inventário, ciclo completo de Nota Fiscal e verificação mensal usam Supabase descartável real para provar persistência e releitura.
+
+A fila R1–R9 descrita em 03/09 permanece como histórico arquitetural e não deve ser executada literalmente. Qualquer trabalho futuro deve partir do código, testes, banco e decisões posteriores à estabilização, preservando as soluções mais novas.
+
 
 ## Atualização de 03/09 — reauditoria source-first e novo plano remanescente
 
