@@ -1,17 +1,18 @@
 const { test, expect } = require('@playwright/test');
+const { selectFixtureCompetence } = require('../support/e2e-competence');
 
 async function openTimeline(page, profile = 'controlador') {
-  await page.evaluate(nextProfile => {
+  const competence = '2026-08';
+  await selectFixtureCompetence(page, competence);
+  await page.evaluate(({ nextProfile, competenceKey }) => {
     switchProfile(nextProfile);
-    const competence = '2026-08';
-    activeCompetenciaKey = competence;
-    activeProntuarioCompetencia = competence;
+    activeProntuarioCompetencia = competenceKey;
     const school = escolas.find(candidate => (
       Array.isArray(candidate.programasIds)
       && candidate.programasIds.includes('BASIC')
-      && isCompetenceInScope(candidate.competenciaInicial, competence)
+      && isCompetenceInScope(candidate.competenciaInicial, competenceKey)
     ));
-    const compKey = `${competence}_BASIC`;
+    const compKey = `${competenceKey}_BASIC`;
     const pendencyId = 'TIMELINE-E2E-PENDENCY';
 
     verificacoes[school.id] = verificacoes[school.id] || {};
@@ -33,7 +34,7 @@ async function openTimeline(page, profile = 'controlador') {
     pendencias.push({
       id: pendencyId,
       escolaId: school.id,
-      competenciaOrigem: competence,
+      competenciaOrigem: competenceKey,
       programaId: 'BASIC',
       documentoKey: 'extCC',
       item: 'Extrato Conta Corrente',
@@ -86,7 +87,7 @@ async function openTimeline(page, profile = 'controlador') {
     bens.push({
       id: 'TIMELINE-ASSET',
       escolaId: school.id,
-      competencia: competence,
+      competencia: competenceKey,
       item: 'Projetor',
       valor: 1250,
       notaFiscal: 'NF-100',
@@ -103,7 +104,7 @@ async function openTimeline(page, profile = 'controlador') {
       id: 'TIMELINE-LOG',
       escolaId: school.id,
       acao: 'Bonificação Consolidada',
-      detalhes: 'Consolidação registrada em 2026-08.',
+      detalhes: `Consolidação registrada em ${competenceKey}.`,
       dataHora: '2026-08-31T17:00:00.000Z',
       usuario: 'Controlador E2E'
     });
@@ -111,7 +112,7 @@ async function openTimeline(page, profile = 'controlador') {
       id: 'TIMELINE-TECHNICAL',
       escolaId: school.id,
       acao: 'Análise Técnica Alterada',
-      detalhes: 'Documento marcado como incorreto em 2026-08.',
+      detalhes: `Documento marcado como incorreto em ${competenceKey}.`,
       dataHora: '2026-08-18T13:00:00.000Z',
       usuario: 'Controlador E2E'
     });
@@ -119,7 +120,7 @@ async function openTimeline(page, profile = 'controlador') {
     rebuildOperationalIndexes();
     switchView('prontuario', school.id);
     return school.id;
-  }, profile);
+  }, { nextProfile: profile, competenceKey: competence });
 
   const tab = page.getByRole('tab', { name: 'Histórico cronológico', exact: true });
   await expect(tab).toBeVisible();
@@ -136,8 +137,7 @@ test('prontuário apresenta eventos unificados em ordem cronológica e sem dupli
   page.on('pageerror', error => pageErrors.push(error.message));
 
   await page.goto('/');
-  await page.waitForFunction(() => window.RadarProductExtensionsReady);
-  expect(await page.evaluate(() => window.RadarProductExtensionsReady)).toBeTruthy();
+  await page.evaluate(() => window.RadarProductExtensionsReady);
   await openTimeline(page, 'controlador');
 
   const items = page.locator('.school-timeline-item');
@@ -154,7 +154,7 @@ test('Gestão SME mantém eventos gerenciais e oculta detalhe técnico restrito'
   test.skip(testInfo.project.name !== 'desktop-chromium', 'Recorte gerencial validado no desktop.');
 
   await page.goto('/');
-  await page.waitForFunction(() => window.RadarProductExtensionsReady);
+  await page.evaluate(() => window.RadarProductExtensionsReady);
   await openTimeline(page, 'sme');
 
   const consolidations = page.locator('[data-timeline-event-type="verification_consolidated"]');
