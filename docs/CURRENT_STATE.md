@@ -8,6 +8,8 @@
 
 > Antes de usar este arquivo, leia [`../START_HERE.md`](../START_HERE.md). O SHA corrente da `main` deve ser consultado no remoto; este documento não congela um SHA documental como autoridade eterna.
 
+> A partir de 05/09/2026, análises e implementações críticas seguem obrigatoriamente [`architecture/adversarial-analysis-and-implementation-method.md`](architecture/adversarial-analysis-and-implementation-method.md). Gates verdes não equivalem a ausência de defeitos.
+
 ## 1. Ambiente publicado da última baseline funcional
 
 No fechamento do PR #260:
@@ -110,32 +112,75 @@ O PR #260 deixou como baseline jornadas reais que devem ser preservadas e reapro
 - testes de `critical-action-guard`;
 - pgTAP/RLS/Auth, backup/restauração, perfis/viewports, Excel, CodeQL, dependências e Lighthouse.
 
-Teste verde não redefine regra de negócio. Quando houver conflito, primeiro verificar se o teste representa o contrato atual.
+Durante a auditoria adversarial posterior, a suíte desktop executou 178 cenários, com 141 aprovados, 37 ignorados e 0 falhas. Isso reforça a estabilidade dos contratos conhecidos, mas **não invalida defeitos encontrados fora das combinações já cobertas**.
 
-## 5. Auditoria semântica de continuidade
+Teste verde não redefine regra de negócio nem prova completude. Quando houver conflito, primeiro verificar se o teste representa o contrato atual e se cobre o ponto de entrada/composição real.
 
-A reconciliação completa de documentação, decisões, hotfixes e código está registrada em:
+## 5. Auditorias correntes
+
+A reconciliação documental/hotfixes está registrada em:
 
 [`audits/2026-09-05-continuity-semantic-traceability-complete.md`](audits/2026-09-05-continuity-semantic-traceability-complete.md)
 
-Ela substitui o ledger WIP usado durante a investigação. A auditoria não criou novas regras por inferência: quando uma afirmação não tinha suporte suficiente em decisão/código atual, ela não foi promovida a contrato corrente.
+Ela continua válida como reconstrução da linha #253→#261, mas **não deve mais ser interpretada como prova de ausência de defeitos funcionais desconhecidos**.
 
-## 6. Trabalho realmente remanescente
+A auditoria adversarial posterior e seus achados estão em:
 
-O único plano executável está em [`MASTER_PLAN_CURRENT.md`](MASTER_PLAN_CURRENT.md). Em resumo:
+[`audits/2026-09-05-astra-adversarial-findings.md`](audits/2026-09-05-astra-adversarial-findings.md)
 
-1. retirar autoridade funcional que ainda vive em wrappers de performance;
-2. substituir readiness essencial baseado em polling/composição frágil por contrato determinístico, preservando extensões críticas;
-3. completar identidade segura/intenção/idempotência durável da NF normal, sem refazer guards imediatos já existentes;
-4. unificar a projeção operacional de Pendências onde ainda há cálculo duplicado de data-base/idade/ação;
-5. completar o caminho normal autoritativo/incremental de save/remove de NF preservando NF ↔ bem ↔ verificação;
-6. executar gate de equivalência das superfícies;
-7. instrumentar causalmente o bootstrap e otimizar somente se medição justificar;
-8. reexecutar fechamento integral no SHA final.
+O método operacional extraído dessa auditoria está em:
 
-## 7. Documentos de continuidade
+[`architecture/adversarial-analysis-and-implementation-method.md`](architecture/adversarial-analysis-and-implementation-method.md)
+
+## 6. Achados adversariais ainda abertos
+
+### P1 — bem `Inventariada` rebaixado por novo save da NF
+
+Defeito reproduzido no `InvoiceService`/planner: salvar novamente NF permanente já vinculada a bem `Inventariada` pode reaplicar a regra de nascimento e alterar o status para `Encaminhada`, mantendo metadados de inventariação.
+
+**Antes da correção funcional:** reproduzir a jornada em Supabase descartável e caracterizar no-op, edição de descrição/valor e demais transições autorizadas. A correção deve preservar estado patrimonial avançado e não apagar metadados para fabricar integridade verde.
+
+### P1 — botão real de Excel SME contorna auditoria pré-download
+
+Inconsistência de composição reproduzida: a autoridade auditada bloqueia download quando a persistência inicial falha, mas o caminho real do botão SME pode baixar antes da confirmação da auditoria.
+
+**Antes da correção funcional:** criar teste pelo botão real com falha da auditoria inicial e provar `nenhum download`.
+
+### Decisão necessária — idade total × espera do ator
+
+`pendencias-view-model` e `operational-projection` divergem após retorno à Escola. No contraexemplo reproduzido, uma projeção calcula 35 dias desde a abertura e outra 1 dia desde a reanálise incorreta.
+
+Não unificar por inferência. Definir se as superfícies exibem idade total, tempo aguardando o ator atual ou ambas as métricas com nomes explícitos.
+
+### Investigação/decisão — CSV × XLSX institucional
+
+XLSX institucional atual usa competência global ativa por decisão posterior. CSV mantém caminho legado com política temporal/auditoria distinta. Definir contrato antes de igualar ou separar comportamentos.
+
+### Dívidas arquiteturais de risco
+
+- renderer legado de duas abas de Pendências ainda pode existir como fallback executável;
+- duas derivações ativas de `encampInventario`;
+- múltiplas projeções de data/idade/próximo ator;
+- wrappers de performance/readiness ainda possuem autoridade funcional ou semântica ambígua.
+
+Esses itens não devem ser convertidos automaticamente em hotfix sem reprodução/decisão correspondente.
+
+## 7. Trabalho realmente remanescente
+
+O único plano executável está em [`MASTER_PLAN_CURRENT.md`](MASTER_PLAN_CURRENT.md). A ordem foi atualizada para tratar primeiro os achados adversariais:
+
+1. documentação/método/achados no PR #263;
+2. hotfix patrimonial `Inventariada → Encaminhada` em PR funcional próprio;
+3. hotfix da auditoria pré-download do Excel SME em PR próprio;
+4. decisões/probes sobre idade da Pendência e política CSV × XLSX;
+5. depois retomar as frentes arquiteturais anteriores sob o método adversarial;
+6. fechamento final somente após tentativa explícita de produzir contraexemplos.
+
+## 8. Documentos de continuidade
 
 - **Começar sempre em:** [`../START_HERE.md`](../START_HERE.md)
+- **Método obrigatório:** [`architecture/adversarial-analysis-and-implementation-method.md`](architecture/adversarial-analysis-and-implementation-method.md)
+- **Achados adversariais:** [`audits/2026-09-05-astra-adversarial-findings.md`](audits/2026-09-05-astra-adversarial-findings.md)
 - **Plano executável:** [`MASTER_PLAN_CURRENT.md`](MASTER_PLAN_CURRENT.md)
 - **Origem e absorção do plano:** [`PLAN_TRACEABILITY.md`](PLAN_TRACEABILITY.md)
 - **Decisões correntes:** [`DECISION_LOG.md`](DECISION_LOG.md)
