@@ -1,13 +1,13 @@
 # Competências — contrato canônico
 
 **Estado:** vigente e implementado  
-**Atualizado em:** 29 de julho de 2026
+**Atualizado em:** 5 de setembro de 2026
 
-## 1. Objetivo
+> Leia primeiro [`../../START_HERE.md`](../../START_HERE.md). Este documento descreve o contrato de competência; não cria uma segunda fila de trabalho.
 
-Centralizar validação, comparação, apresentação, seleção e navegação das competências mensais do RADAR PDDE.
+## 1. Identidade canônica
 
-O valor canônico utiliza exclusivamente:
+A competência mensal usa exclusivamente:
 
 ```text
 YYYY-MM
@@ -15,160 +15,133 @@ YYYY-MM
 
 Exemplo: `2026-08`.
 
-Rótulos de apresentação são derivados e nunca substituem a chave persistida.
+Rótulos como `Agosto/2026`, `08/2026` e `Agosto de 2026` são apenas apresentação. A chave persistida continua `YYYY-MM`.
 
-## 2. Formatos de apresentação
+A chave composta legada, por exemplo `2026-08_BASIC`, existe somente para interoperabilidade com o núcleo antigo. No modelo relacional, competência e programa são dimensões distintas.
 
-| Identificador | Exemplo | Uso |
-|---|---|---|
-| `display` | `Agosto/2026` | títulos, cartões e indicadores |
-| `numeric` | `08/2026` | relatórios compactos |
-| `long` | `Agosto de 2026` | textos corridos |
-| `iso` | `2026-08` | persistência e intercâmbio |
-| `filename` | `2026-08` | nomes legíveis de arquivo |
-| `compactFilename` | `2026_08` | nomes sem hífen |
+## 2. Autoridade global
 
-## 3. Chaves compostas legadas
+`src/domain/competence-context.js` / `RadarCompetenceContext` é a única autoridade para a seleção mensal global.
 
-A camada de compatibilidade ainda pode representar uma verificação como:
+Regras:
 
-```text
-2026-08_BASIC
-```
+- não criar seletor mensal concorrente por tela;
+- não alterar `activeCompetenciaKey` diretamente para simular troca de mês;
+- integrações legadas podem refletir o valor global para compatibilidade, mas não se tornam segunda fonte de verdade;
+- exercício e competência permanecem sincronizados pelo domínio;
+- navegação contextual restaura a competência por essa mesma autoridade.
 
-Essa forma combina competência e programa apenas para interoperar com o núcleo legado. No modelo relacional, competência e programa são campos e relacionamentos distintos. Novas tabelas, serviços e contratos não devem usar a chave composta como identidade primária.
+`src/integration/global-competence-selector.js` publica a seleção visual e mantém compatibilidade com pontos antigos sem criar uma segunda fonte de estado.
 
-## 4. Componentes do domínio
+## 3. Inicialização
 
-### 4.1 Formatação e comparação
-
-`src/domain/competencia.js` fornece:
-
-```javascript
-RadarCompetencia.isValidCompetenciaKey(value);
-RadarCompetencia.parseCompetencia(value);
-RadarCompetencia.formatCompetencia(value, format, options);
-RadarCompetencia.compareCompetencias(left, right);
-RadarCompetencia.isCompetenciaInRange(value, start, end);
-RadarCompetencia.splitCompetenciaContext(value);
-RadarCompetencia.formatCompetenciaContext(value, options);
-```
-
-### 4.2 Contexto mensal global
-
-`src/domain/competence-context.js` mantém uma única fonte de estado mensal:
-
-```javascript
-RadarCompetenceContext.initialize({
-  competences,
-  currentExercise,
-  closingCompetence,
-  initialCompetence,
-  storage
-});
-
-RadarCompetenceContext.getState();
-// {
-//   exercise: '2026',
-//   activeKey: '2026-08',
-//   availableKeys: ['2026-01', ..., '2026-12'],
-//   closingKey: '2026-12'
-// }
-
-RadarCompetenceContext.select(key, options);
-RadarCompetenceContext.selectExercise(exercise, options);
-RadarCompetenceContext.replaceConfiguration(nextState);
-RadarCompetenceContext.subscribe(listener);
-RadarCompetenceContext.getAvailableForExercise(exercise);
-```
-
-O módulo é puro, funciona no navegador e no Node.js e não depende do DOM.
-
-### 4.3 Integração visual
-
-`src/integration/global-competence-selector.js`:
-
-- transforma o indicador do header em seletor mensal acessível;
-- usa `RadarCompetenceContext` como única fonte de seleção;
-- sincroniza exercício e competência;
-- preserva a competência entre telas e recarga;
-- atualiza a superfície ativa por evento único;
-- remove o seletor mensal concorrente da página de competências;
-- mantém compatibilidade com pontos de entrada legados;
-- aguarda o bootstrap remoto antes de assumir o estado mensal.
-
-A integração é carregada pela cadeia de gestão de exercícios, sem alterar o núcleo `app.js`.
-
-## 5. Regras de inicialização
-
-A seleção inicial segue esta ordem:
+A seleção inicial respeita, em ordem:
 
 1. competência persistida válida;
-2. competência inicial explicitamente fornecida e pertencente ao exercício resolvido;
-3. `closing_competence` válida para o exercício;
+2. competência inicial fornecida e pertencente ao exercício resolvido;
+3. `closing_competence` válida;
 4. competência cronologicamente mais recente do exercício;
 5. erro explícito quando não existe competência válida.
 
-O exercício é derivado da competência persistida, carregada ou de fechamento antes do fallback da aplicação. Isso preserva exercícios posteriores após recarga.
+O exercício é resolvido antes do fallback mensal para preservar exercícios posteriores após reload.
 
-## 6. Estado de 2026
+## 4. Competências futuras
 
-O Supabase Production contém `2026-01` a `2026-12`. As doze competências estão disponíveis aos perfis conforme suas permissões.
+Competências futuras podem ser **consultadas** quando pertencem à configuração válida, mas operações mensais protegidas continuam somente leitura antes do período permitido.
 
-Na data de corte de 29/07/2026:
+Teste SQL com competência futura sintética não prova autorização de edição na UI/application service. A camada exercitada deve ser explicitada.
+
+## 5. Regra geral de navegação
+
+Dashboard, Carteira, Competências, Prontuário, alertas, timeline e exportações mensais devem interpretar a competência global de modo coerente quando a superfície é mensal.
+
+Ao entrar em uma superfície mensal a partir de outra tela, não deve surgir uma seleção paralela ou alteração silenciosa da competência global.
+
+## 6. Exceção deliberada: Pendências é passivo transversal
+
+A regra anterior que dizia simplesmente “transportar a mesma competência para Pendências” ficou incompleta depois da decisão posterior que tornou Pendências uma fila transversal.
+
+Contrato atual:
 
 ```text
-closing_competence = 2026-12
-app_config.row_version = 5
+competência global continua preservada
++
+Pendências pode aplicar filtro local de competência
++
+filtro local pode ser "Todas"
++
+filtrar Pendências NÃO muda silenciosamente RadarCompetenceContext
 ```
 
-A transição de `2026-05` para `2026-12` já foi concluída por fluxo transacional e auditado após a publicação do contexto global. Qualquer documento que descreva essa mudança como futura é histórico.
+Portanto:
 
-Não criar `operational_status` ou migration adicional sem requisito comprovado que não possa ser representado pelas competências existentes, datas, `closed_at` e `closing_competence`.
+- abrir Pendências a partir de uma competência preserva o contexto de origem;
+- a fila pode exibir passivo de outras competências;
+- o filtro local `Todas` é permitido;
+- abrir detalhe/Prontuário reaplica o contexto mensal apropriado quando necessário;
+- retornar deve preservar origem, filtros, rolagem e foco quando a jornada assim prevê.
 
-## 7. Persistência e navegação
+Essa exceção não autoriza qualquer outra tela a criar seletor concorrente.
 
-- persistir somente `YYYY-MM`;
-- não persistir rótulo formatado;
-- preservar a seleção ao navegar, trocar visão permitida, retornar e recarregar;
-- transportar a mesma competência em Dashboard, Carteira, Prontuário, Pendências, alertas, timeline e exportações;
-- não manter seletores mensais independentes por tela;
-- passar `competenceKey` explicitamente às funções de domínio sempre que possível.
+## 7. Exportações
 
-A navegação contextual restaura a competência pelo mesmo domínio; não mantém uma segunda fonte de estado mensal.
+A competência global é relevante para a política temporal das exportações, mas os produtos não podem ser generalizados como se todos tivessem o mesmo contrato.
 
-## 8. Responsabilidades separadas
+Estado corrente:
 
-Os módulos de competência não determinam:
+- **Excel SME:** sempre uma competência mensal ativa;
+- **XLSX institucional:** decisão posterior de 09/08 limita o produto atual à competência global ativa;
+- **CSV de contingência:** caminho legado ainda possui política própria e está em investigação/decisão antes de eventual convergência;
+- **XLSX de Pendências:** respeita os filtros da fila, inclusive o filtro local transversal, sem alterar a competência global.
 
-- escopo da escola;
-- APTA ou INAPTA;
-- autorização de escrita;
-- regras dos programas;
+Não usar um modelo genérico multicompetência para revogar a política do botão real.
+
+## 8. Responsabilidades que não pertencem ao domínio de competência
+
+Competência não decide:
+
+- escopo/autorização da escola;
+- APTA/INAPTA;
+- regras de programas;
 - análise técnica;
-- abertura, resolução ou cancelamento de pendência.
+- abertura/resolução/cancelamento de Pendência;
+- próximo ator;
+- permissão de escrita.
 
-Essas decisões pertencem aos serviços, políticas de acesso, configurações e domínios próprios.
+Essas regras pertencem aos domínios e serviços específicos.
 
-## 9. Cobertura obrigatória
+## 9. Testes
 
-O contrato deve permanecer coberto por:
+Cobertura relevante deve incluir:
 
-- seleção inicial e persistida;
-- rejeição de chave inexistente ou de outro exercício;
+- seleção inicial/persistida;
+- chave inválida/outro exercício;
 - troca de exercício;
-- janeiro a dezembro de 2026;
-- ausência de seletor concorrente;
-- preservação entre telas, perfis e recarga;
-- restauração de exercício posterior;
-- header desktop, Android e iPhone;
-- integração com Supabase, Auth e RLS;
-- uso da mesma chave nas exportações;
-- restauração pela navegação contextual.
+- competência futura somente leitura nas operações protegidas;
+- ausência de seletor global concorrente;
+- preservação entre telas/reload;
+- passivo transversal de Pendências com filtro local `Todas`;
+- abertura do detalhe sem troca silenciosa do contexto;
+- exportações com a política temporal específica de cada produto.
 
-## 10. Referências
+### Anti-padrão de teste
 
-- [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md);
-- [`avaliacao-mensal.md`](avaliacao-mensal.md);
-- [`navigation-contextual.md`](navigation-contextual.md);
-- [`../audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md`](../audits/2026-07-29-reconciliacao-pos-ciclos-1-5.md).
+Não fazer:
+
+```text
+window.activeCompetenciaKey = ...
+```
+
+como substituto de uma seleção real quando o comportamento em teste depende da sincronização global. Fixtures sintéticas que não testam contexto devem ser marcadas explicitamente como tal.
+
+## 10. Evidência adversarial de 05/09/2026
+
+A auditoria Astra encontrou um E2E de timeline que manipula diretamente estado legado de competência. Isso não prova defeito da timeline, mas é um **artefato de teste perigoso**, porque pode mascarar falha de sincronização e ensinar o bypass como padrão.
+
+Também confirmou que a documentação anterior deste arquivo não mencionava corretamente a exceção transversal de Pendências.
+
+Ver:
+
+- [`adversarial-analysis-and-implementation-method.md`](adversarial-analysis-and-implementation-method.md);
+- [`adversarial-analysis-replication-playbook.md`](adversarial-analysis-replication-playbook.md);
+- [`../audits/2026-09-05-astra-adversarial-findings.md`](../audits/2026-09-05-astra-adversarial-findings.md).
