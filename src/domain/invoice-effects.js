@@ -147,9 +147,14 @@
         desiredAsset.valor = request.amount;
         desiredAsset.notaFiscal = request.invoiceNumber;
         desiredAsset.processoInventario = process;
-        desiredAsset.status = request.invoiceNumber && process
-            ? 'Encaminhada'
-            : 'Não encaminhada';
+        // Inventariada é estado patrimonial terminal. Salvar/editar a NF vinculada
+        // pode atualizar os dados derivados do bem, mas nunca reexecutar a regra de
+        // nascimento e rebaixar uma inventariação já concluída.
+        desiredAsset.status = text(currentAsset?.status) === 'Inventariada'
+            ? 'Inventariada'
+            : request.invoiceNumber && process
+                ? 'Encaminhada'
+                : 'Não encaminhada';
         desiredInvoice.bemId = assetId || null;
 
         return {
