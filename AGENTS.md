@@ -1,9 +1,11 @@
 # AGENTS.md — RADAR PDDE 2026
 
-**Atualizado em:** 4 de setembro de 2026
+**Atualizado em:** 5 de setembro de 2026
 
 > **PRIMEIRA LEITURA OBRIGATÓRIA:** [`START_HERE.md`](START_HERE.md).  
 > Nenhum agente deve escolher plano, handoff, ADR ou auditoria como ponto de entrada antes de seguir `START_HERE.md` e verificar a baseline remota.
+
+> **MÉTODO OBRIGATÓRIO:** análises e implementações críticas devem seguir [`docs/architecture/adversarial-analysis-and-implementation-method.md`](docs/architecture/adversarial-analysis-and-implementation-method.md). Suíte verde, CI verde ou documentação reconciliada não equivalem a prova de ausência de defeitos.
 
 ## 1. Continuidade obrigatória
 
@@ -12,9 +14,10 @@ Para qualquer nova sessão/chat/agente:
 1. ler `START_HERE.md`;
 2. verificar se a `main` ainda corresponde à baseline ali declarada;
 3. ler `docs/CURRENT_STATE.md`;
-4. usar `docs/MASTER_PLAN_CURRENT.md` como **único plano executável vigente** quando a tarefa fizer parte da frente planejada;
-5. consultar `docs/PLAN_TRACEABILITY.md` somente para entender origem, absorção ou alteração de uma tarefa;
-6. depois abrir código, testes, ADRs, migrations e evidências específicos da superfície em trabalho.
+4. ler o método adversarial e os achados adversariais correntes quando a tarefa tocar código/fluxo crítico;
+5. usar `docs/MASTER_PLAN_CURRENT.md` como **único plano executável vigente** quando a tarefa fizer parte da frente planejada;
+6. consultar `docs/PLAN_TRACEABILITY.md` somente para entender origem, absorção ou alteração de uma tarefa;
+7. depois abrir código, testes, ADRs, migrations e evidências específicos da superfície em trabalho.
 
 Planos/handoffs datados são histórico de seus checkpoints. Eles não constituem fila concorrente.
 
@@ -89,10 +92,11 @@ Antes de criar handler, wrapper, extensão, RPC ou rota de persistência para fl
 2. localizar produtores e consumidores, inclusive módulos dinâmicos;
 3. inspecionar `product-extensions-bootstrap.js` quando houver extensão;
 4. identificar a autoridade vigente de cada etapa;
-5. confirmar se a suposta ausência é real;
-6. só então alterar.
+5. procurar explicitamente segunda implementação, fallback, closure, callback, renderer legado ou chamada direta concorrente;
+6. confirmar se a suposta ausência é real;
+7. só então alterar.
 
-Não duplicar regra porque ela não apareceu no primeiro arquivo inspecionado.
+Não duplicar regra porque ela não apareceu no primeiro arquivo inspecionado. Encontrar uma implementação correta também não encerra a busca por outra implementação executável.
 
 Para Consulta Assessoria, preservar a separação vigente:
 
@@ -146,6 +150,8 @@ Preservar a regra pós-PRs #257/#258/#260:
 
 A frase `Não encaminhada → Encaminhada → Inventariada` aplica-se ao ramo em que o bem **está** `Não encaminhada`; ela não determina que todo bem permanente deva nascer assim.
 
+**Achado adversarial aberto:** salvar novamente uma NF permanente já vinculada a bem `Inventariada` pode reaplicar a regra de nascimento e rebaixar o bem para `Encaminhada`. Até o hotfix específico, qualquer trabalho nessa área deve preservar explicitamente o estado avançado e reproduzir a jornada completa antes/depois da correção.
+
 ## 8. Gestão de Equipe
 
 Fluxo vigente:
@@ -161,7 +167,7 @@ Preservar CORS fail-closed, JWT/papel autorizado, lookup Auth exato, reutilizaç
 
 ## 9. Testes e auditoria
 
-Aplicar `docs/reference/TEST_GOVERNANCE.md`.
+Aplicar `docs/reference/TEST_GOVERNANCE.md` e o método adversarial.
 
 Antes de corrigir falha, classificar:
 
@@ -169,9 +175,13 @@ Antes de corrigir falha, classificar:
 2. contrato de teste superado;
 3. defeito do teste/fixture;
 4. infraestrutura;
-5. flaky não reproduzível.
+5. flaky não reproduzível;
+6. inconsistência de composição;
+7. duplicação arquitetural com risco;
+8. ambiguidade que exige decisão de produto;
+9. hipótese ainda não reproduzida.
 
-Só defeito real autoriza mudar o produto por causa da falha. Quando regra mudar, registrar `regra anterior → regra vigente → código afetado → teste afetado` e atualizar a expectativa histórica.
+Só defeito real/composição comprovada autoriza mudar o produto por causa da falha. Quando regra mudar, registrar `regra anterior → regra vigente → código afetado → teste afetado` e atualizar a expectativa histórica.
 
 Para escrita crítica, a prova preferida é proporcional ao risco e pode incluir:
 
@@ -184,13 +194,25 @@ ação real
 → superfície relacionada
 ```
 
-O PR #260 já deixou jornadas reais de lifecycle/persistência/reload. Reutilizá-las; não criar uma suíte paralela apenas por ansiedade documental.
+Além disso, em fluxo crítico, procurar:
+
+```text
+criar
+→ avançar o estado em outro subsistema
+→ voltar à origem
+→ salvar/editar novamente
+→ reload
+→ confirmar que o estado avançado sobreviveu
+```
+
+O PR #260 deixou jornadas reais de lifecycle/persistência/reload. Reutilizá-las, mas não assumir que elas cobrem combinações entre fluxos apenas porque cada fluxo isolado está verde.
 
 ## 10. Supabase e migrations
 
 - Production é fail-closed;
 - migrations são versionadas e aplicadas em ordem;
 - histórico de migration não é editado;
+- para RPC redefinida, auditar a **última definição efetiva da assinatura**;
 - nenhum seed institucional implícito;
 - nenhuma chave administrativa no frontend;
 - operações compostas devem ser atômicas quando o domínio exigir;
@@ -205,23 +227,28 @@ Excel SME público mantém contrato de 27 colunas A:AA e competência mensal est
 
 A exportação XLSX de Pendências é superfície vigente e deve preservar filtros, auditoria e ausência de IDs técnicos.
 
+**Achado adversarial aberto:** o botão real de Excel SME pode contornar a autoridade que exige persistência de auditoria antes do download. Até o hotfix específico, não considerar a exportação certificada apenas porque o arquivo baixa corretamente; o cenário `falha da auditoria inicial → nenhum download` precisa ser provado pelo ponto de entrada real.
+
 ## 12. Documentação
 
 Documentação de continuidade:
 
 - `START_HERE.md` — única porta de entrada;
 - `docs/CURRENT_STATE.md` — estado curto corrente;
+- `docs/architecture/adversarial-analysis-and-implementation-method.md` — método obrigatório;
+- `docs/audits/2026-09-05-astra-adversarial-findings.md` — achados adversariais correntes;
 - `docs/MASTER_PLAN_CURRENT.md` — único plano executável;
 - `docs/PLAN_TRACEABILITY.md` — origem e absorção do plano.
 
-`docs/CURRENT_STAGE.md`, ADRs, handoffs, audits e planos datados preservam história/evidência e não devem competir como fila atual.
+`docs/CURRENT_STAGE.md`, ADRs, handoffs, audits anteriores e planos datados preservam história/evidência e não devem competir como fila atual.
 
 Ao integrar hotfix funcional depois da baseline:
 
 1. atualizar `CURRENT_STATE.md`;
 2. registrar impacto em `PLAN_TRACEABILITY.md`;
 3. atualizar `MASTER_PLAN_CURRENT.md` se o trabalho remanescente mudou;
-4. só depois retomar a fila planejada.
+4. atualizar/regredir o ledger de achados adversariais correspondente;
+5. só depois retomar a fila planejada.
 
 ## 13. Git e integração
 
@@ -232,16 +259,30 @@ Fluxo:
 1. confirmar HEAD remoto;
 2. branch isolada;
 3. inspecionar causa atual;
-4. mudança mínima;
-5. validação proporcional;
-6. classificar falhas;
-7. abrir PR com escopo/riscos/evidência;
-8. integrar quando objetivamente pronto;
-9. confirmar SHA publicado quando houver Production;
-10. reconciliar continuidade documental quando a mudança afetar regra/estado/plano.
+4. procurar autoridades concorrentes e estados laterais;
+5. reproduzir antes de corrigir;
+6. mudança mínima;
+7. validação proporcional + composição real;
+8. classificar falhas;
+9. abrir PR com escopo/riscos/evidência;
+10. integrar quando objetivamente pronto;
+11. confirmar SHA publicado quando houver Production;
+12. reconciliar continuidade documental quando a mudança afetar regra/estado/plano.
 
 ## 14. Critério de conclusão
 
 Uma frente pode encerrar quando o comportamento afetado atende ao contrato atual, o usuário consegue executar a tarefa real, dados permanecem coerentes, não há defeito relevante conhecido no escopo e falhas remanescentes foram classificadas.
 
-Não manter o projeto eternamente “inacabado” apenas porque existe teste histórico, prova opcional ou documento antigo ainda arquivado.
+**Não é suficiente** dizer que unitários/E2E/CI estão verdes. Antes do fechamento deve existir evidência de tentativa adversarial de quebrar a funcionalidade dentro do risco do escopo.
+
+Não manter o projeto eternamente “inacabado” apenas porque existe teste histórico, prova opcional ou documento antigo ainda arquivado. Mas também não declarar encerrado apenas porque os gates conhecidos passaram.
+
+## 15. Cinco perguntas obrigatórias antes de encerrar análise ou implementação crítica
+
+1. Onde esta regra está implementada pela segunda vez?
+2. Que estado mais avançado esta operação pode destruir?
+3. Existe caminho real da UI que contorna a autoridade considerada correta?
+4. Que combinação de dois fluxos verdes ainda não foi exercitada em sequência?
+5. Qual contraexemplo tentamos produzir para provar que a solução ainda estava errada?
+
+Se essas perguntas não foram investigadas e registradas proporcionalmente ao risco, a tarefa pode estar validada pelos gates, mas **não está auditada adversarialmente**.
