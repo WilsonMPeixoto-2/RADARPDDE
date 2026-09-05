@@ -71,7 +71,6 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git rm .github/workflows/dependency-refresh-supabase-js-once.yml
           git add package.json package-lock.json vendor/supabase-client.js supabase/functions/team-account-management/index.ts tests/unit/supabase-modernization.test.js dependency-health/npm-outdated-after-supabase-js-2026-09-05.json dependency-health/npm-audit-after-supabase-js-2026-09-05.json dependency-health/supabase-js-tree-2026-09-05.txt
           git commit -m 'chore(deps): atualizar Supabase JS para 2.115.0'
           git push origin HEAD:maintenance/dependency-refresh-adversarial-2026-09-05
