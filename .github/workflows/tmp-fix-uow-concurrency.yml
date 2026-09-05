@@ -1,0 +1,69 @@
+name: Hotfix temporário concorrência UnitOfWork
+
+on:
+  push:
+    branches:
+      - fix/uow-concurrent-rollback-2026-09-05
+
+permissions:
+  contents: write
+
+jobs:
+  apply-fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+      - name: Instalar
+        run: npm ci
+      - name: Comprovar RED antes da correção
+        shell: bash
+        run: |
+          set -euo pipefail
+          if node --test tests/unit/unit-of-work-concurrency.test.js; then
+            echo 'O teste adversarial deveria falhar antes da correção.' >&2
+            exit 1
+          fi
+      - name: Aplicar isolamento serial por instância de UnitOfWork
+        shell: bash
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const path = 'src/application/unit-of-work.js';
+          let source = fs.readFileSync(path, 'utf8');
+          const constructorNeedle = `            this.statePort = options.statePort;\n            if (!this.statePort`;
+          const constructorReplacement = `            this.statePort = options.statePort;\n            // Uma UnitOfWork opera sobre uma única porta de estado mutável. As execuções\n            // precisam ser isoladas para que o rollback de uma operação não restaure um\n            // snapshot anterior a outra escrita já confirmada na mesma instância.\n            this.executionTail = Promise.resolve();\n            if (!this.statePort`;
+          if ((source.split(constructorNeedle).length - 1) !== 1) throw new Error('Construtor alvo não encontrado de forma única');
+          source = source.replace(constructorNeedle, constructorReplacement);
+
+          const queueNeedle = `            const operation = String(command.name || 'data-command');\n            const incidentId = createIncidentId(command);`;
+          const queueReplacement = `            const operation = String(command.name || 'data-command');\n            const incidentId = createIncidentId(command);\n            const previousExecution = this.executionTail;\n            let releaseExecution;\n            this.executionTail = new Promise(resolve => {\n                releaseExecution = resolve;\n            });\n            await previousExecution;`;
+          if ((source.split(queueNeedle).length - 1) !== 1) throw new Error('Ponto de aquisição da fila não encontrado de forma única');
+          source = source.replace(queueNeedle, queueReplacement);
+
+          const finallyNeedle = `                throw annotateFailure(error, {\n                    incidentId,\n                    operation,\n                    phase,\n                    rollbackConfirmed,\n                    localRestoreConfirmed,\n                    remoteCommitConfirmed: remoteCommitConfirmed || error?.details?.remoteCommitConfirmed === true,\n                    remoteWriteStarted\n                });\n            }\n        }`;
+          const finallyReplacement = `                throw annotateFailure(error, {\n                    incidentId,\n                    operation,\n                    phase,\n                    rollbackConfirmed,\n                    localRestoreConfirmed,\n                    remoteCommitConfirmed: remoteCommitConfirmed || error?.details?.remoteCommitConfirmed === true,\n                    remoteWriteStarted\n                });\n            } finally {\n                releaseExecution();\n            }\n        }`;
+          if ((source.split(finallyNeedle).length - 1) !== 1) throw new Error('Final da transação não encontrado de forma única');
+          fs.writeFileSync(path, source.replace(finallyNeedle, finallyReplacement));
+          NODE
+      - name: Provar GREEN e regressões conhecidas
+        run: |
+          node --test tests/unit/unit-of-work-concurrency.test.js
+          node --test tests/unit/application-data-service.test.js tests/unit/error-observability.test.js
+          npm run test:unit
+      - name: Commit e publicar correção
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/tmp-fix-uow-concurrency.yml
+          git add src/application/unit-of-work.js
+          git commit -m 'fix: serializar transações da UnitOfWork para rollback seguro'
+          git push origin HEAD:fix/uow-concurrent-rollback-2026-09-05
