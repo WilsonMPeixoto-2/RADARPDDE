@@ -1,0 +1,80 @@
+name: Atualização direta única de dependências
+
+on:
+  push:
+    branches:
+      - maintenance/dependency-refresh-adversarial-2026-09-05
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-direct:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+
+      - name: Node 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+
+      - name: Instalar baseline limpa
+        run: npm ci
+
+      - name: Resolver versões seguras e atualizar
+        shell: bash
+        run: |
+          set -euo pipefail
+          NODE24_VERSION="$(npm view '@types/node@24' version --json | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>{const v=JSON.parse(s);console.log(Array.isArray(v)?v.at(-1):v)})")"
+          printf 'Node 24 types alvo: %s\n' "$NODE24_VERSION"
+          npm install --save-dev --save-exact \
+            eslint@10.10.0 \
+            @playwright/test@1.63.0 \
+            @types/node@"$NODE24_VERSION"
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const file = 'tests/unit/tooling-contract.test.js';
+          const source = fs.readFileSync(file, 'utf8');
+          const next = source.replace("packageJson.devDependencies.eslint, '10.9.1'", "packageJson.devDependencies.eslint, '10.10.0'");
+          if (next === source) throw new Error('Contrato ESLint 10.9.1 não encontrado');
+          fs.writeFileSync(file, next);
+          NODE
+
+      - name: Registrar pós-atualização
+        shell: bash
+        run: |
+          mkdir -p dependency-health
+          npm outdated --json > dependency-health/npm-outdated-after-direct-2026-09-05.json 2>&1 || true
+          npm audit --json > dependency-health/npm-audit-after-direct-2026-09-05.json 2>&1 || true
+          npm ls --depth=0 > dependency-health/direct-tree-2026-09-05.txt
+          cat dependency-health/npm-outdated-after-direct-2026-09-05.json
+          cat dependency-health/npm-audit-after-direct-2026-09-05.json
+
+      - name: Verificar instalação e código
+        run: |
+          npm ci
+          npm run check
+          npm run lint
+          npm run test:unit
+          npm run analyze:unused
+          npm run typecheck:database
+
+      - name: Instalar Chromium e rodar smoke E2E crítico
+        run: |
+          npx playwright install --with-deps chromium
+          npx playwright test tests/e2e/functional-core.spec.js --project=desktop-chromium
+
+      - name: Persistir atualização
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/dependency-refresh-direct-once.yml
+          git add package.json package-lock.json tests/unit/tooling-contract.test.js dependency-health/npm-outdated-after-direct-2026-09-05.json dependency-health/npm-audit-after-direct-2026-09-05.json dependency-health/direct-tree-2026-09-05.txt
+          git commit -m 'chore(deps): atualizar Playwright ESLint e tipos Node 24'
+          git push origin HEAD:maintenance/dependency-refresh-adversarial-2026-09-05
