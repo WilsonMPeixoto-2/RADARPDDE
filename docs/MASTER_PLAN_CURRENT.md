@@ -1,55 +1,57 @@
 # RADAR PDDE — Plano mestre vigente pós-hotfixes
 
-**Atualizado em:** 4 de setembro de 2026  
+**Atualizado em:** 5 de setembro de 2026  
 **Classe:** **ÚNICO PLANO EXECUTÁVEL VIGENTE**  
-**Baseline documental:** `main` `876c5976124815d2848f7d2d9e8a82b7cd3a43c5`  
 **Baseline funcional:** PR #260 / merge `8fc58926565a72465980143f253f0a2fee4b8fc2`  
+**Checkpoint documental usado na reconciliação:** PR #261 / `876c5976124815d2848f7d2d9e8a82b7cd3a43c5`  
 **Origem:** plano source-first do PR #253 reconciliado com #254, #256, #257, #258, #260 e #261.
 
-> Leia primeiro [`../START_HERE.md`](../START_HERE.md). Se a `main` tiver avançado, reconcilie os PRs posteriores antes de executar este plano.
+> Leia primeiro [`../START_HERE.md`](../START_HERE.md). O SHA atual da `main` deve ser consultado no remoto. Se houver PR funcional posterior ainda não absorvido pela documentação corrente, reconcilie-o antes de executar esta fila. PR documental que apenas integra esta própria reconciliação não cria uma nova regra funcional.
 
 ## 1. Objetivo
 
-Concluir somente o trabalho técnico/funcional que continua real **depois** da estabilização do PR #260, preservando integralmente as decisões supervenientes dos hotfixes. Este plano substitui a fila R1–R9 de 03/09 como ordem de execução.
+Concluir somente o trabalho técnico/funcional que continua real **depois** da estabilização do PR #260, preservando integralmente as decisões posteriores dos hotfixes.
 
-O objetivo não é “terminar o plano antigo”. É terminar o produto atual sem reintroduzir mecanismos ou regras que os hotfixes já substituíram.
+O objetivo não é “terminar o plano antigo”. É terminar o produto atual sem reintroduzir mecanismos, etapas ou regras que os hotfixes já substituíram.
 
-## 2. Método obrigatório
+## 2. Método obrigatório em cada frente
 
-Em cada frente:
-
-1. confirmar que a `main` ainda corresponde à baseline documentada ou reconciliar o que mudou;
+1. consultar a `main` e confirmar que não existe PR funcional posterior ainda não reconciliado;
 2. reabrir o código-fonte atual da premissa;
-3. localizar consumidores e autoridades laterais;
-4. congelar os guardrails posteriores listados em `CURRENT_STATE.md`;
-5. reproduzir o problema atual com RED quando houver mudança de código;
+3. localizar produtores, consumidores e autoridades laterais;
+4. congelar os guardrails de `CURRENT_STATE.md`;
+5. quando houver mudança de código, reproduzir o defeito/dívida atual antes da correção;
 6. implementar a menor mudança suficiente;
 7. executar validação proporcional e jornadas reais afetadas;
 8. atualizar `CURRENT_STATE.md` e `PLAN_TRACEABILITY.md` no mesmo PR funcional;
-9. atualizar este plano quando a entrega concluir, reformular ou substituir trabalho remanescente;
+9. atualizar este plano se a entrega concluir, reduzir, reformular ou substituir trabalho remanescente;
 10. só então avançar.
 
-**Proibido:** alterar uma regra atual apenas para satisfazer texto de plano/ADR/teste histórico.
+**Proibido:** alterar regra atual apenas para satisfazer plano, ADR, matriz ou teste histórico.
 
 ## 3. Guardrails que prevalecem sobre o plano anterior
 
-Antes de qualquer mudança nas superfícies correspondentes, preservar:
+Preservar:
 
-- novo envio/substituição e reabertura de Pendências conforme PR #254;
-- próximo ator sincronizado por estado conforme PR #256;
-- Consulta Assessoria individual por `registered_invoice_id`;
+- novo envio/substituição e reabertura conforme PR #254;
+- próximo ator sincronizado conforme PR #256;
+- análise fiscal e Consulta Assessoria individuais por `registered_invoice_id`;
 - `a_identificar` atômico e sem backfill heurístico;
-- NF permanente + processo existente → bem `Encaminhada` / **Aguardando Inventariação**;
+- `boleto_internet` como tipo de gasto dentro de Notas Fiscais em Educação Conectada;
+- NF permanente + número + processo existente → bem `Encaminhada` / **Aguardando Inventariação**;
 - NF permanente sem processo → bem `Não encaminhada`;
-- `Não encaminhada` não pula para `Inventariada`;
+- somente o ramo `Não encaminhada` exige `Não encaminhada → Encaminhada → Inventariada`;
 - agregação `encampInventario` do PR #257;
 - vínculo visual NF ↔ bem do PR #258;
-- sincronização patrimonial atômica e bloqueio de edição isolada da NF do PR #260;
-- guards de gesto repetido já instalados pelo PR #260;
-- BB Ágil N/A, Boleto Internet como tipo de gasto, PDDE Básico primeiro apenas visualmente, comunicação externa sem nome interno e Production fail-closed;
-- UI de Pendências, exportação XLSX e demais superfícies homologadas não entram em redesign por força de plano histórico.
+- sincronização patrimonial atômica e bloqueio da edição isolada da NF do PR #260;
+- guards de gesto repetido já instalados;
+- BB Ágil N/A;
+- PDDE Básico primeiro apenas na apresentação;
+- comunicação externa sem o nome interno;
+- Production fail-closed;
+- UI de Pendências e exportações homologadas fora de redesign oportunista.
 
-A rastreabilidade completa está em [`PLAN_TRACEABILITY.md`](PLAN_TRACEABILITY.md).
+A origem detalhada está em [`PLAN_TRACEABILITY.md`](PLAN_TRACEABILITY.md).
 
 ---
 
@@ -57,32 +59,25 @@ A rastreabilidade completa está em [`PLAN_TRACEABILITY.md`](PLAN_TRACEABILITY.m
 
 ## Problema atual confirmado
 
-No código da baseline:
+`src/integration/operational-write-performance.js` ainda injeta políticas como resultado/commit remoto autoritativo, entidades incrementais e refresh exemption. `prontuario-conditional-reconciler.js` ainda depende da presença dessa extensão.
 
-- `src/integration/operational-write-performance.js` ainda injeta políticas de `remoteResultIsAuthoritative`, `remoteCommitIsAuthoritative`, `incrementalStateEntities` e refresh exemption;
-- `src/integration/prontuario-conditional-reconciler.js` ainda exige `RadarOperationalWritePerformance` para instalar;
-- portanto uma camada nominalmente de performance ainda participa da consistência funcional.
+Uma camada chamada “performance” ainda participa da correção funcional. Isso é dívida arquitetural, não motivo para alterar a regra de negócio observada pelo usuário.
 
 ## Entrega
 
-- mover políticas funcionais para serviços/DataService/StatePort adequados, preservando políticas já declaradas diretamente por serviços;
-- mover/sanitizar a whitelist de refresh exemption para a camada de dados; somente entidades explicitamente seguras podem ser dispensadas de releitura;
-- consolidar reconciliação funcional do Prontuário fora do módulo de performance, sem criar um terceiro reconciliador;
+- mover políticas funcionais para serviços/DataService/StatePort adequados;
+- mover/sanitizar a whitelist de refresh exemption para a camada de dados;
+- consolidar reconciliação funcional do Prontuário fora do módulo de performance, sem criar terceiro reconciliador;
 - deixar `operational-write-performance.js` como observador fail-open de medição/diagnóstico;
-- provar que ausência do módulo de performance não muda persistência nem DOM funcional.
+- provar que sua ausência não muda persistência nem DOM funcional.
 
-## Preservações adicionais pós-hotfix
+## Preservações pós-hotfix
 
-A extração não pode romper:
-
-- `critical-action-guard.js`;
-- regras de novo envio/reanálise dos PRs #254/#256;
-- projeção NF ↔ Inventário dos PRs #257/#258/#260;
-- BB Ágil N/A e individualização fiscal/Assessoria.
+Não romper `critical-action-guard.js`, novo envio/reanálise, NF ↔ Inventário, BB Ágil N/A, individualização fiscal ou Assessoria.
 
 ## Gate
 
-Mesmas escritas e mesmas projeções funcionais com módulo de performance presente e ausente; nenhuma política de consistência depende de monkey patch tardio.
+Mesmas escritas e projeções funcionais com módulo de performance presente ou ausente.
 
 ---
 
@@ -90,7 +85,7 @@ Mesmas escritas e mesmas projeções funcionais com módulo de performance prese
 
 ## Problema atual confirmado
 
-A baseline ainda possui polling usado para instalação/readiness em diversas integrações e não possui registry sistêmico que represente `pending/ready/failed/degraded` por capacidade.
+A baseline ainda possui polling/composição tardia usados como instalação/readiness e não possui um contrato sistêmico único de `pending/ready/failed/degraded` por capacidade.
 
 ## Entrega
 
@@ -100,23 +95,23 @@ A baseline ainda possui polling usado para instalação/readiness em diversas in
 - preservar `RadarProductExtensionsReady` e `radar:application-services-ready` durante a migração;
 - distinguir script carregado de capacidade instalada;
 - permitir que falha opcional/restrita não interrompa capacidades independentes;
-- manter fail-closed onde a ausência de capacidade crítica tornaria a operação insegura.
+- manter fail-closed onde a ausência de capacidade crítica torna a operação insegura.
 
 ### 2B. Capacidades críticas
 
 Migrar primeiro autenticação/dados/autorização/navegação necessária, proteção atômica `Incorreto + Pendência`, Pendências necessárias à operação segura e instaladores de Assessoria.
 
-### 2C. Capacidades restritas/opcionais
+### 2C. Capacidades opcionais/restritas
 
-Classificar polling restante e remover somente o que funciona como contrato de prontidão. `MutationObserver`, feedback visual, medição e outros timers legítimos não são dívida por definição.
+Classificar polling restante e remover apenas o que funciona como contrato de prontidão. `MutationObserver`, feedback visual, medição e timers legítimos não são dívida por definição.
 
-## Preservação nova do PR #260
+## Preservação do PR #260
 
-`critical-action-guard.js` e sua posição no bootstrap passam a fazer parte das capacidades funcionais que a migração deve preservar e provar instaladas.
+`critical-action-guard.js` e sua posição no bootstrap são capacidades funcionais a preservar e provar instaladas.
 
 ## Gate
 
-Nenhuma prontidão essencial escondida em polling arbitrário; falha induzida de módulo opcional não derruba operação independente; fluxo crítico continua protegido.
+Nenhuma prontidão essencial escondida em polling arbitrário; falha opcional não derruba operação independente; fluxos críticos continuam protegidos.
 
 ---
 
@@ -124,108 +119,96 @@ Nenhuma prontidão essencial escondida em polling arbitrário; falha induzida de
 
 ## O que já foi resolvido
 
-O PR #260 protege repetição **imediata** enquanto uma operação crítica está em andamento. Não reimplementar esse guard.
+O PR #260 protege repetição **imediata** enquanto a operação está em andamento. Não reimplementar esse guard.
 
 ## Dívida atual confirmada
 
-- serviços ainda possuem fallbacks persistentes baseados em `Date.now()`;
-- não existe `InvoiceSaveIntent` durável durante retry ambíguo;
-- não existe storage server-side de idempotência para `invoice:save` normal;
+- existem fallbacks persistentes baseados em `Date.now()` em serviços;
+- não há `InvoiceSaveIntent` durável para retry ambíguo;
+- não há armazenamento server-side de idempotência da NF normal;
 - não existe `save_invoice_with_effects_v2` com operation key e resultado composto completo.
 
 ## Entrega
 
 ### 3A. IDs persistentes seguros
 
-Criar autoridade compartilhada para IDs de negócio com `crypto.randomUUID()` preferencial, fallback criptográfico por `getRandomValues()` e falha explícita sem fonte segura. Inventariar cada uso antes de substituir; timestamps/IDs diagnósticos não entram automaticamente.
+Criar autoridade compartilhada para IDs de negócio com `crypto.randomUUID()` preferencial, fallback criptográfico seguro e falha explícita sem fonte adequada. Não substituir timestamps/IDs diagnósticos por ritual.
 
 ### 3B. Intenção de save
 
-Quando o guard de NF aceita o gesto, congelar `operationKey`, payload normalizado, IDs, timestamp semântico e versões esperadas. Retry por resposta ambígua reutiliza a mesma intenção; novo gesto legítimo cria outra chave.
+Ao aceitar o gesto legítimo, congelar operation key, payload normalizado, IDs e versões. Retry da mesma intenção reutiliza a chave; novo gesto legítimo cria outra.
 
 ### 3C. Idempotência server-side
 
-Mesma operation key + mesmo request + mesmo ator retorna o mesmo resultado; mesma chave com request diferente falha por conflito; duas chaves com conteúdo idêntico continuam podendo criar duas despesas legítimas.
+Mesma chave + mesmo request + mesmo ator retorna o mesmo resultado; mesma chave com request diferente gera conflito. Duas chaves diferentes com conteúdo idêntico continuam podendo criar duas despesas legítimas.
 
 ### 3D. RPC v2 da NF normal
 
-Criar uma única `save_invoice_with_effects_v2` com idempotência, optimistic concurrency e retorno das linhas efetivamente persistidas necessárias à reconciliação. Preservar v1 durante rollout.
-
-As RPCs especializadas de novo envio/reanálise/Assessoria criadas ou endurecidas pelos hotfixes **não são substituídas por conveniência**.
+Criar `save_invoice_with_effects_v2` com idempotência, optimistic concurrency e resposta composta suficiente à reconciliação. Preservar v1 durante rollout e não absorver por conveniência as RPCs especializadas de Pendências/Assessoria.
 
 ## Gate
 
-Retry ambíguo, concorrência com mesma chave, conflito de payload, isolamento por ator, rollback, RLS/grants e duas NFs iguais com chaves distintas.
+Retry ambíguo, concorrência, conflito de payload, isolamento por ator, rollback, RLS/grants e duas NFs idênticas com chaves distintas.
 
 ---
 
 # Frente 4 — projeção operacional única de Pendências
 
-## O que os hotfixes já resolveram
+## O que não deve ser reaberto
 
-Não mexer novamente, salvo defeito comprovado, em:
+Salvo defeito comprovado, não mexer novamente em:
 
 - estados/transições;
-- substituição de envio em `Aguardando reanálise`;
+- substituição em `Aguardando reanálise`;
 - reabertura de `Resolvida`/`Cancelada`;
 - `canceled_at` terminal;
-- sincronização `responsavel`/`proximoAtor`.
+- `responsavel`/`proximoAtor`.
 
 ## Dívida atual confirmada
 
-`src/domain/pendencias-view-model.js` ainda calcula `NEXT_ACTIONS`, `waitingSince` e `ageDays`; `src/domain/operational-projection.js` possui cálculo próprio de data-base e próxima ação. Isso pode produzir divergência entre superfícies sem que o domínio de transição esteja errado.
+`pendencias-view-model.js` e `operational-projection.js` ainda possuem cálculos próprios de data-base, idade e próxima ação.
 
 ## Entrega
 
-Criar/explicitar um núcleo compartilhado de projeção que forneça, no mínimo:
-
-- status normalizado;
-- data-base operacional;
-- idade;
-- próximo ator;
-- código semântico da próxima ação;
-- prioridade quando realmente compartilhável.
-
-A UI pode manter textos editoriais diferentes. Ordenações de apresentação podem permanecer diferentes quando deliberadas. Não redesenhar a tela de Pendências.
+Criar/explicitar um núcleo compartilhado que forneça status normalizado, data-base, idade, próximo ator e código semântico da próxima ação. A UI pode manter textos e ordenações deliberadamente diferentes.
 
 ## Gate
 
-Para a mesma Pendência, Dashboard/Carteira/Pendências/alertas devem concordar em data-base, idade, ator e ação semântica após abertura, novo envio, reanálise incorreta, resolução, cancelamento e reabertura.
+Dashboard, Carteira, Pendências e alertas concordam semanticamente para a mesma Pendência após abertura, envio, reanálise incorreta, resolução, cancelamento e reabertura.
 
 ---
 
 # Frente 5 — save/remove normal de NF autoritativo e incremental
 
-## Baseline que esta frente deve respeitar
+## Baseline a preservar
 
-Depois dos PRs #257/#258/#260, a NF normal não é apenas uma linha fiscal: ela pode produzir/remover/atualizar bem, alterar `encampInventario`, reabrir análise derivada e atualizar projeções no Prontuário. Qualquer convergência incremental precisa reproduzir **esse contrato atual inteiro**.
+NF normal pode produzir/remover/atualizar bem, alterar `encampInventario`, reabrir análise derivada e atualizar o Prontuário. A convergência incremental precisa reproduzir **o contrato atual inteiro**.
 
 ## Dívida atual confirmada
 
-`invoice:save` e `invoice:remove` ainda usam o contrato remoto atual e não possuem a resposta v2 completa prevista na Frente 3 para fechar o caminho feliz sem refresh/render integral.
+`invoice:save` e `invoice:remove` ainda não têm a resposta v2 completa prevista na Frente 3 para fechar o caminho normal sem releitura/renderização ampla.
 
 ## Entrega
 
-- usar a resposta v2 completa da Frente 3;
+- consumir resposta v2 completa;
 - normalizar remoções autoritativas de invoice/asset;
-- aplicar invoice, asset upsert/remove, verification e log no StatePort sem releitura quando o retorno estiver completo;
-- atualizar localmente lista fiscal, resumo técnico, vínculo patrimonial, Consulta Assessoria quando afetada e ações de consolidação;
-- manter `renderProntuario()` integral como fallback degradado, não caminho normal;
-- quando o commit estiver confirmado e a atualização local falhar, informar **salvo no servidor / atualização da tela pendente**, sem repetir escrita automaticamente.
+- aplicar invoice, asset upsert/remove, verification e log no StatePort sem releitura quando a resposta estiver completa;
+- atualizar localmente lista fiscal, resumo técnico, patrimônio, Assessoria e consolidação quando afetados;
+- manter `renderProntuario()` integral apenas como fallback degradado;
+- se o commit remoto estiver confirmado e a aplicação local falhar, informar que foi salvo no servidor e que a tela precisa ser atualizada, sem repetir a escrita automaticamente.
 
 ## Gate
 
 Criar/editar/remover e converter consumo ↔ permanente ↔ serviço, incluindo:
 
-- permanente com processo já existente → `Encaminhada`;
+- permanente com processo existente → `Encaminhada`;
 - permanente sem processo → `Não encaminhada`;
-- agregação `encampInventario` com múltiplos bens;
+- múltiplos bens e agregação `encampInventario`;
 - remoção do último permanente → N/A;
-- no-op;
-- log;
+- no-op e log;
 - zero refresh das entidades cobertas no caminho feliz;
-- fallback seguro quando retorno/aplicação estiver incompleto;
-- jornadas reais de persistência/reload do PR #260 continuam verdes.
+- fallback seguro quando resposta/aplicação estiver incompleta;
+- jornadas de persistência/reload do PR #260 continuam verdes.
 
 ---
 
@@ -233,19 +216,9 @@ Criar/editar/remover e converter consumo ↔ permanente ↔ serviço, incluindo:
 
 Esta frente **não exige diff**.
 
-Depois das Frentes 4 e 5, executar:
+Depois das Frentes 4 e 5, executar regressões de projeção/cross-view, quatro abas, busca/filtros, drawer/timeline, novo envio/reanálise/substituição/reabertura, XLSX de Pendências, perfis, acessibilidade/mobile quando material e Prontuário fiscal/patrimonial.
 
-- unitários do view-model/projeção;
-- cross-view e competência transversal;
-- quatro abas, busca e filtros;
-- drawer/timeline;
-- novo envio/reanálise/substituição/reabertura;
-- XLSX de Pendências;
-- foco/teclado/mobile/acessibilidade;
-- perfis funcionais;
-- Prontuário fiscal/patrimonial e suas jornadas reais.
-
-Se tudo passar e nenhuma divergência atual for encontrada, registrar a frente como concluída sem modificar o produto.
+Se tudo passar, registrar a frente como concluída sem modificar o produto.
 
 ---
 
@@ -253,59 +226,53 @@ Se tudo passar e nenhuma divergência atual for encontrada, registrar a frente c
 
 ## 7A. Instrumentação
 
-Depois do fechamento funcional anterior, medir localmente e de forma fail-open as fronteiras reais do startup, incluindo auth, sessão, cliente Supabase, grupos de leitura, normalização, StatePort, primeiro render, capacidades críticas e interação útil.
+Medir, de forma local e fail-open, fronteiras reais do startup: auth, sessão, Supabase, leituras, normalização, StatePort, primeiro render, capacidades críticas e interação útil.
 
-Regras: Performance API nativa; sem PII/token/payload; sem transmissão ou persistência externa; relatório reproduzível com mediana, pior caso e dispersão.
+Sem PII/token/payload e sem transmissão externa. Relatório reproduzível com mediana, pior caso e dispersão.
 
-## 7B. Otimização somente se houver causa medida
+## 7B. Otimização somente com causa medida
 
-Uma otimização entra apenas com fase dominante, mecanismo causal, baseline, ruído e orçamento definidos antes do código. Se nenhuma hipótese superar ruído/custo, esta etapa fecha sem diff.
+Uma otimização entra apenas com fase dominante, mecanismo causal, baseline, ruído e orçamento definidos antes do código. Se nenhuma hipótese superar ruído/custo, encerrar sem diff.
 
-Não relaxar thresholds. `web-vitals`/`Server-Timing` continuam condicionais a lacuna diagnóstica comprovada.
+Não relaxar thresholds para fazer o gate passar.
 
 ---
 
 # Frente 8 — fechamento integral e novo rebaseline
 
-No SHA final:
+No SHA funcional final:
 
 1. reconciliar `main`, Vercel e Supabase;
 2. migrations/tipos;
-3. unitários e integração;
+3. unitários/integração;
 4. pgTAP/RLS/Auth;
 5. banco limpo;
 6. backup/restauração;
-7. Playwright completo e jornadas reais do PR #260;
+7. Playwright completo e jornadas reais;
 8. perfis/viewports;
-9. Excel;
+9. Excel/exportações;
 10. CodeQL/dependências;
 11. Lighthouse;
 12. matriz funcional;
 13. revisão adversarial;
 14. documentação de continuidade.
 
-A infraestrutura de gate já existente deve ser reutilizada. Não reconstruir o que o PR #260 já deixou funcionando.
+Reutilizar a infraestrutura de gates já existente. Não reconstruir o que o PR #260 deixou funcionando.
 
-A frente termina somente quando as Frentes 1–5 estiverem concluídas, a 6 estiver verde, a 7 estiver encerrada por evidência e não houver tarefa histórica ressuscitada.
-
-## Depois do fechamento
-
-ADR-051 permanece em frente separada. Não inseri-la como hardening oportunista neste plano.
-
----
+ADR-051 permanece em frente separada depois do fechamento, salvo nova decisão expressa.
 
 ## 4. Ordem executável
 
 ```text
 Frente 1 — autoridade funcional fora de performance
 → Frente 2 — readiness determinístico
-→ Frente 3 — IDs/intenção/idempotência NF normal
+→ Frente 3 — IDs/intenção/idempotência da NF normal
 → Frente 4 — projeção única de Pendências
-→ Frente 5 — convergência autoritativa/incremental NF
+→ Frente 5 — convergência autoritativa/incremental de NF
 → Frente 6 — gate de equivalência
 → Frente 7A — instrumentação causal
 → Frente 7B — otimização somente se medida
 → Frente 8 — fechamento/rebaseline
 ```
 
-Essa é a única fila vigente. As fases R1–R9 de 03/09 permanecem apenas como origem rastreável em `PLAN_TRACEABILITY.md`.
+**Esta é a única fila executável vigente.**
