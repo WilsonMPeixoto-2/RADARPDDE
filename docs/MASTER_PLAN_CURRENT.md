@@ -141,6 +141,47 @@ Definir:
 
 Só depois alterar código/testes.
 
+## 0E — higiene de dependências e cadeia transitiva
+
+Achado do pacote Astra:
+
+- o `node_modules` pré-existente do workspace estava defasado em relação ao `package.json` da própria baseline em itens como Playwright, Supabase JS/CLI, ESLint, esbuild, knip e plugins; isso é diferença de ambiente e foi normalizado pelo Astra com `npm ci`, não deve ser confundido com versão declarada do projeto;
+- após `npm ci`, permaneceram warnings reais de dependências **transitivas** depreciadas: `inflight@1.0.6`, `lodash.isequal@4.5.0`, `rimraf@2.7.1`, `glob@7.2.3`, `whatwg-encoding@2.0.0`, `fstream@1.0.12` e `uuid@8.3.2`;
+- a presença desses pacotes no lock não prova, sozinha, vulnerabilidade explorável em Production, mas precisa de rastreabilidade e remoção/atualização quando houver caminho seguro.
+
+Antes de atualizar:
+
+1. executar `npm ls inflight lodash.isequal rimraf glob whatwg-encoding fstream uuid` no checkout limpo;
+2. executar `npm outdated` e `npm audit` sem `--force`;
+3. identificar o **pacote-pai exato** que introduz cada transitiva;
+4. classificar consumo real como runtime, bundle publicado, ferramenta de build/teste ou apenas transitivo inerte; não usar apenas `dependencies`/`devDependencies` como proxy porque alguns pacotes de build geram assets de Production;
+5. verificar se a correção vem por atualização direta, atualização do pacote-pai, override seguro ou substituição da ferramenta;
+6. separar vulnerabilidade efetiva de simples depreciação;
+7. preservar versões deliberadamente pinadas/rejeitadas já registradas no projeto.
+
+Implementação:
+
+- atualizar primeiro pacotes-pai com caminho sem breaking change;
+- usar `overrides` somente quando compatibilidade estiver demonstrada e houver benefício real;
+- não executar `npm audit fix --force`;
+- regenerar `package-lock.json` somente na branch da manutenção;
+- reconstruir bundles/manifestos gerados quando uma dependência participa dos assets publicados;
+- remover warnings transitivos apenas quando a cadeia que os introduz for compreendida, evitando “limpeza” que substitui um aviso por regressão funcional.
+
+Gate:
+
+```text
+npm ci limpo/reproduzível
+→ npm outdated classificado
+→ npm audit classificado
+→ cadeia de cada deprecated conhecida
+→ unitários/integração/E2E relevantes verdes
+→ bundles/manifestos reproduzíveis
+→ sem regressão de Production/runtime
+```
+
+A conclusão desta frente deve dizer explicitamente quais warnings foram eliminados, quais permanecem transitivos sem atualização segura disponível e por quê.
+
 ---
 
 # Frente 1 — retirar autoridade funcional dos wrappers de performance
@@ -280,6 +321,7 @@ Sem essa seção, não existe fechamento integral.
 → 0B hotfix patrimonial
 → 0C hotfix Excel SME
 → 0D decisões/probes
+→ 0E higiene de dependências
 → 1 performance sem autoridade funcional
 → 2 readiness determinístico
 → 3 identidade/idempotência NF
