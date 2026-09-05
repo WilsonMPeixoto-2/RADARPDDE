@@ -1,0 +1,134 @@
+name: Remoção única http-server
+
+on:
+  push:
+    branches:
+      - maintenance/dependency-refresh-adversarial-2026-09-05
+
+permissions:
+  contents: write
+
+jobs:
+  remove-http-server:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+
+      - name: Node 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+
+      - name: Baseline limpa
+        run: npm ci
+
+      - name: Remover http-server e usar servidor SPA canônico existente
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm uninstall --save-dev http-server
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const packagePath = 'package.json';
+          const pkg = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
+          pkg.scripts.start = 'node tests/support/spa-server.mjs';
+          pkg.scripts.dev = 'node tests/support/spa-server.mjs';
+          fs.writeFileSync(packagePath, `${JSON.stringify(pkg, null, 2)}\n`);
+
+          const testPath = 'tests/unit/audit-tools.test.js';
+          const source = fs.readFileSync(testPath, 'utf8');
+          const next = source.replace(
+            "assert.equal(first.package.scripts.start, 'http-server . -p 4175 -c-1');",
+            "assert.equal(first.package.scripts.start, 'node tests/support/spa-server.mjs');"
+          );
+          if (next === source) throw new Error('Contrato antigo de http-server não encontrado no teste de inventário.');
+          fs.writeFileSync(testPath, next);
+          NODE
+          npm install --package-lock-only --ignore-scripts
+
+      - name: Verificar instalação e gates locais
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci
+          npm run check
+          CI=false npm run check:generated
+          npm run test:unit
+          npm run test:integration
+          npm run typecheck:database
+          npm run analyze:unused
+          if npm ls http-server >/dev/null 2>&1; then
+            echo 'http-server ainda está presente na árvore npm.' >&2
+            npm ls http-server
+            exit 1
+          fi
+          if npm ls whatwg-encoding >/dev/null 2>&1; then
+            echo 'whatwg-encoding ainda está presente após remover http-server.' >&2
+            npm ls whatwg-encoding
+            exit 1
+          fi
+
+      - name: Smoke real do npm start e rotas SPA
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm start >/tmp/radar-spa-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in {1..30}; do
+            if curl --fail --silent --show-error http://127.0.0.1:4175/ >/dev/null; then break; fi
+            sleep 1
+          done
+          curl --fail --silent --show-error http://127.0.0.1:4175/dashboard >/dev/null
+          curl --fail --silent --show-error http://127.0.0.1:4175/pendencias >/dev/null
+          curl --fail --silent --show-error http://127.0.0.1:4175/escolas/04.31.001 >/dev/null
+          curl --fail --silent --show-error http://127.0.0.1:4175/styles.css >/dev/null
+          kill "$server_pid"
+          wait "$server_pid" 2>/dev/null || true
+          trap - EXIT
+
+      - name: E2E das rotas canônicas
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx playwright install --with-deps chromium
+          npx playwright test tests/e2e/canonical-routes.spec.js --project=desktop-chromium
+
+      - name: Registrar saúde pós-remoção
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dependency-health
+          npm outdated --json > dependency-health/npm-outdated-after-http-server-2026-09-05.json 2>&1 || true
+          npm audit --json > dependency-health/npm-audit-after-http-server-2026-09-05.json 2>&1 || true
+          npm ls --all > dependency-health/npm-tree-after-http-server-2026-09-05.txt
+          npm ls exceljs uuid archiver glob inflight fast-csv lodash.isequal unzipper fstream rimraf > dependency-health/deprecated-chain-after-http-server-2026-09-05.txt || true
+          cat dependency-health/npm-outdated-after-http-server-2026-09-05.json
+          cat dependency-health/npm-audit-after-http-server-2026-09-05.json
+
+      - name: Commit local da remoção validada
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add package.json package-lock.json tests/unit/audit-tools.test.js dependency-health/npm-outdated-after-http-server-2026-09-05.json dependency-health/npm-audit-after-http-server-2026-09-05.json dependency-health/npm-tree-after-http-server-2026-09-05.txt dependency-health/deprecated-chain-after-http-server-2026-09-05.txt
+          git commit -m 'chore(deps): remover http-server obsoleto'
+
+      - name: Confirmar árvore versionada
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci
+          npm run test:unit -- --test-name-pattern='inventário técnico é determinístico'
+          git diff --exit-code
+
+      - name: Publicar atualização validada na branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git push origin HEAD:maintenance/dependency-refresh-adversarial-2026-09-05
