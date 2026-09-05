@@ -46,11 +46,13 @@ jobs:
           NODE
           npm run build:supabase-client
 
-      - name: Verificar bundle e contratos
+      - name: Verificar atualização antes do commit
+        shell: bash
         run: |
+          set -euo pipefail
           npm ci
           npm run check
-          npm run check:generated
+          CI=false npm run check:generated
           npm run test:unit
           npm run test:integration
           npm run typecheck:database
@@ -59,6 +61,7 @@ jobs:
       - name: Registrar auditoria pós-atualização
         shell: bash
         run: |
+          set -euo pipefail
           mkdir -p dependency-health
           npm outdated --json > dependency-health/npm-outdated-after-supabase-js-2026-09-05.json 2>&1 || true
           npm audit --json > dependency-health/npm-audit-after-supabase-js-2026-09-05.json 2>&1 || true
@@ -66,11 +69,24 @@ jobs:
           cat dependency-health/npm-outdated-after-supabase-js-2026-09-05.json
           cat dependency-health/npm-audit-after-supabase-js-2026-09-05.json
 
-      - name: Persistir atualização
+      - name: Commit local da atualização validada
         shell: bash
         run: |
+          set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add package.json package-lock.json vendor/supabase-client.js supabase/functions/team-account-management/index.ts tests/unit/supabase-modernization.test.js dependency-health/npm-outdated-after-supabase-js-2026-09-05.json dependency-health/npm-audit-after-supabase-js-2026-09-05.json dependency-health/supabase-js-tree-2026-09-05.txt
           git commit -m 'chore(deps): atualizar Supabase JS para 2.115.0'
+
+      - name: Confirmar artefatos exatamente versionados
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run check:generated
+          git diff --exit-code
+
+      - name: Publicar atualização validada na branch
+        shell: bash
+        run: |
+          set -euo pipefail
           git push origin HEAD:maintenance/dependency-refresh-adversarial-2026-09-05
