@@ -5,13 +5,15 @@ import { fileURLToPath } from 'node:url';
 
 const CURRENT_PLAN_MARKER = '**Classe:** **ÚNICO PLANO EXECUTÁVEL VIGENTE**';
 const HISTORICAL_BANNER = 'HISTÓRICO — NÃO EXECUTAR COMO FILA ATUAL';
-const BASELINE_SHA = '876c5976124815d2848f7d2d9e8a82b7cd3a43c5';
+const FUNCTIONAL_BASELINE_SHA = '8fc58926565a72465980143f253f0a2fee4b8fc2';
+const COMPLETE_AUDIT = 'docs/audits/2026-09-05-continuity-semantic-traceability-complete.md';
 
 const REQUIRED_FILES = Object.freeze([
     'START_HERE.md',
     'docs/CURRENT_STATE.md',
     'docs/MASTER_PLAN_CURRENT.md',
-    'docs/PLAN_TRACEABILITY.md'
+    'docs/PLAN_TRACEABILITY.md',
+    COMPLETE_AUDIT
 ]);
 
 const ENTRY_POINTS = Object.freeze([
@@ -45,9 +47,8 @@ function listMarkdownFiles(root) {
         for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
             if (excluded.has(entry.name)) continue;
             const absolute = path.join(directory, entry.name);
-            if (entry.isDirectory()) {
-                visit(absolute);
-            } else if (entry.isFile() && entry.name.toLowerCase().endsWith('.md')) {
+            if (entry.isDirectory()) visit(absolute);
+            else if (entry.isFile() && entry.name.toLowerCase().endsWith('.md')) {
                 result.push(path.relative(root, absolute).split(path.sep).join('/'));
             }
         }
@@ -83,8 +84,8 @@ function validateEntryPoint(relativePath, source, errors) {
 }
 
 function validateStartHere(source, errors) {
-    if (!source.includes(BASELINE_SHA)) {
-        errors.push(`START_HERE.md: baseline esperada ${BASELINE_SHA} não foi encontrada.`);
+    if (!source.includes(FUNCTIONAL_BASELINE_SHA) || !/#260\b/.test(source)) {
+        errors.push(`START_HERE.md: baseline funcional PR #260 / ${FUNCTIONAL_BASELINE_SHA} não foi encontrada.`);
     }
     for (const reference of ['docs/CURRENT_STATE.md', 'docs/MASTER_PLAN_CURRENT.md', 'docs/PLAN_TRACEABILITY.md']) {
         if (!source.includes(reference)) {
@@ -93,6 +94,12 @@ function validateStartHere(source, errors) {
     }
     if (!/#262/i.test(source) || !/ABORTADO/i.test(source) || !/SEM MERGE/i.test(source)) {
         errors.push('START_HERE.md: deve registrar explicitamente que o PR #262 foi abortado e fechado sem merge.');
+    }
+    if (!/#263/i.test(source) || !/documental|governan/i.test(source)) {
+        errors.push('START_HERE.md: deve registrar que o PR #263 é consolidação documental/governança, não nova regra funcional.');
+    }
+    if (/compare o SHA atual com `876c5976124815d2848f7d2d9e8a82b7cd3a43c5`/i.test(source)) {
+        errors.push('START_HERE.md: não pode exigir que a main permaneça para sempre no checkpoint documental anterior ao próprio PR #263.');
     }
 }
 
@@ -103,11 +110,9 @@ function validateCurrentPlanUniqueness(root, errors) {
         if (source?.includes(CURRENT_PLAN_MARKER)) matches.push(relativePath);
     }
 
-    if (matches.length === 0) {
-        errors.push('Não existe documento marcado como plano executável vigente.');
-    } else if (matches.length > 1) {
-        errors.push(`Há mais de um documento marcado como plano executável vigente: ${matches.join(', ')}.`);
-    } else if (matches[0] !== 'docs/MASTER_PLAN_CURRENT.md') {
+    if (matches.length === 0) errors.push('Não existe documento marcado como plano executável vigente.');
+    else if (matches.length > 1) errors.push(`Há mais de um documento marcado como plano executável vigente: ${matches.join(', ')}.`);
+    else if (matches[0] !== 'docs/MASTER_PLAN_CURRENT.md') {
         errors.push(`O único plano executável vigente deve ser docs/MASTER_PLAN_CURRENT.md; encontrado em ${matches[0]}.`);
     }
 }
@@ -128,18 +133,13 @@ function validateHistoricalPlans(root, errors) {
 
 function validateTraceability(source, errors) {
     for (let i = 1; i <= 9; i += 1) {
-        const expression = new RegExp(`\\bR${i}\\b`, 'i');
-        if (!expression.test(source)) {
+        if (!new RegExp(`\\bR${i}\\b`, 'i').test(source)) {
             errors.push(`docs/PLAN_TRACEABILITY.md: destino explícito ausente para R${i}.`);
         }
     }
-
     for (const pr of ['#254', '#256', '#257', '#258', '#260', '#261']) {
-        if (!source.includes(pr)) {
-            errors.push(`docs/PLAN_TRACEABILITY.md: PR posterior obrigatório ausente da reconciliação: ${pr}.`);
-        }
+        if (!source.includes(pr)) errors.push(`docs/PLAN_TRACEABILITY.md: PR posterior obrigatório ausente: ${pr}.`);
     }
-
     if (!/#262/i.test(source) || !/abortad|sem merge/i.test(source)) {
         errors.push('docs/PLAN_TRACEABILITY.md: deve excluir explicitamente o PR #262 da baseline vigente.');
     }
@@ -149,10 +149,10 @@ function validateSemanticContinuity(root, errors) {
     const projectContext = read(root, 'docs/PROJECT_CONTEXT.md');
     if (projectContext != null) {
         if (!projectContext.includes('START_HERE.md') || !projectContext.includes('MASTER_PLAN_CURRENT.md')) {
-            errors.push('docs/PROJECT_CONTEXT.md: deve apontar para START_HERE.md e MASTER_PLAN_CURRENT.md como continuidade corrente.');
+            errors.push('docs/PROJECT_CONTEXT.md: deve apontar para START_HERE.md e MASTER_PLAN_CURRENT.md.');
         }
         if (/porta de entrada executável canônica é[^\n]*2026-09-03-plano-remanescente-source-first/i.test(projectContext)) {
-            errors.push('docs/PROJECT_CONTEXT.md: ainda apresenta o plano source-first de 03/09 como porta executável corrente.');
+            errors.push('docs/PROJECT_CONTEXT.md: ainda apresenta o plano de 03/09 como porta executável corrente.');
         }
         if (/novo envio exige Pendência `Aberta`/i.test(projectContext)) {
             errors.push('docs/PROJECT_CONTEXT.md: ainda contém a pré-condição de novo envio anterior ao PR #254.');
@@ -162,7 +162,7 @@ function validateSemanticContinuity(root, errors) {
     const statusDocs = read(root, 'docs/reference/STATUS_DOCUMENTOS.md');
     if (statusDocs != null) {
         if (!statusDocs.includes('START_HERE.md') || !statusDocs.includes('MASTER_PLAN_CURRENT.md')) {
-            errors.push('docs/reference/STATUS_DOCUMENTOS.md: deve apontar para a cadeia corrente de continuidade.');
+            errors.push('docs/reference/STATUS_DOCUMENTOS.md: deve apontar para a cadeia corrente.');
         }
         if (/plano source-first de 03\/09 é \*\*Canônico — plano executável corrente\*\*/i.test(statusDocs)
             || /fila atual é exclusivamente R1[–-]R9 no plano source-first/i.test(statusDocs)) {
@@ -173,7 +173,7 @@ function validateSemanticContinuity(root, errors) {
     const adr050 = read(root, 'docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md');
     if (adr050 != null) {
         if (/novo envio exige Pendência `Aberta` e cria/i.test(adr050)) {
-            errors.push('ADR-050: a regra de novo envio deve refletir a ampliação do PR #254 para Aberta ou Aguardando reanálise.');
+            errors.push('ADR-050: a regra de novo envio deve refletir o PR #254.');
         }
         if (/Plano corrente:\s*`docs\/superpowers\/plans\/2026-09-03-plano-remanescente-source-first\.md`/i.test(adr050)) {
             errors.push('ADR-050: ainda aponta o plano de 03/09 como plano corrente.');
@@ -182,7 +182,7 @@ function validateSemanticContinuity(root, errors) {
 
     const decisionLog = read(root, 'docs/DECISION_LOG.md');
     if (decisionLog != null && !decisionLog.includes('MASTER_PLAN_CURRENT.md')) {
-        errors.push('docs/DECISION_LOG.md: falta registrar a sucessão pós-PR #260 para MASTER_PLAN_CURRENT.md.');
+        errors.push('docs/DECISION_LOG.md: falta registrar a sucessão para MASTER_PLAN_CURRENT.md.');
     }
 
     const loadOrder = read(root, 'docs/architecture/product-extensions-load-order.md');
@@ -190,7 +190,31 @@ function validateSemanticContinuity(root, errors) {
     if (loadOrder != null && bootstrap?.includes('/src/integration/critical-action-guard.js')) {
         if (!loadOrder.includes('14. src/integration/critical-action-guard.js')
             || !loadOrder.includes('18. src/integration/operational-write-feedback.js')) {
-            errors.push('docs/architecture/product-extensions-load-order.md: ordem documentada não reflete o bootstrap pós-PR #260.');
+            errors.push('docs/architecture/product-extensions-load-order.md: ordem não reflete o bootstrap pós-PR #260.');
+        }
+    }
+
+    const catalog = read(root, 'docs/reference/PRODUCT_SURFACE_CATALOG.md');
+    if (catalog != null) {
+        if (!/processo já cadastrado[\s\S]{0,180}Encaminhada/i.test(catalog)
+            || !/NF permanente sem processo[\s\S]{0,180}Não encaminhada/i.test(catalog)
+            || !/não é etapa obrigatória de toda NF permanente/i.test(catalog)) {
+            errors.push('PRODUCT_SURFACE_CATALOG.md: precisa preservar explicitamente os dois ramos da NF permanente.');
+        }
+    }
+
+    const currentStage = read(root, 'docs/CURRENT_STAGE.md');
+    if (currentStage != null && !/histórico de checkpoints/i.test(currentStage)) {
+        errors.push('docs/CURRENT_STAGE.md: deve estar classificado como histórico de checkpoints, não como segunda fotografia corrente.');
+    }
+
+    const audit = read(root, COMPLETE_AUDIT);
+    if (audit != null) {
+        for (const required of ['#254', '#256', '#257', '#258', '#260', '#261', '#262', 'Inferências deliberadamente rejeitadas']) {
+            if (!audit.includes(required)) errors.push(`${COMPLETE_AUDIT}: conteúdo obrigatório ausente: ${required}.`);
+        }
+        if (!/processo de inventário já existente[\s\S]{0,180}Encaminhada/i.test(audit)) {
+            errors.push(`${COMPLETE_AUDIT}: regra condicional de inventário não foi registrada.`);
         }
     }
 }
@@ -219,7 +243,6 @@ export function validateContinuityDocuments(root = process.cwd()) {
     validateHistoricalPlans(root, errors);
     validateTraceability(read(root, 'docs/PLAN_TRACEABILITY.md'), errors);
     validateSemanticContinuity(root, errors);
-
     return errors;
 }
 
@@ -237,25 +260,21 @@ export function validatePullRequestContinuityImpact(changedFiles = []) {
 
     const errors = [];
     for (const required of ['docs/CURRENT_STATE.md', 'docs/PLAN_TRACEABILITY.md']) {
-        if (!files.has(required)) {
-            errors.push(`PR com alteração funcional deve atualizar ${required} para registrar o impacto na continuidade.`);
-        }
+        if (!files.has(required)) errors.push(`PR com alteração funcional deve atualizar ${required} para registrar o impacto na continuidade.`);
     }
     return errors;
 }
 
 function changedFilesFromGit(baseSha) {
-    const output = execFileSync(
-        'git',
-        ['diff', '--name-only', `${baseSha}...HEAD`],
-        { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }
-    );
+    const output = execFileSync('git', ['diff', '--name-only', `${baseSha}...HEAD`], {
+        encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe']
+    });
     return output.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
 }
 
 function printAndExit(errors) {
     if (errors.length === 0) {
-        console.log('Continuidade documental válida: START_HERE único, plano corrente único, rastreabilidade e regras sensíveis alinhadas.');
+        console.log('Continuidade válida: porta única, plano único, auditoria semântica completa e regras sensíveis alinhadas.');
         return;
     }
     console.error('Falhas de continuidade documental:');
@@ -276,9 +295,8 @@ if (isDirectExecution()) {
 
     if (impactIndex >= 0) {
         const baseSha = args[impactIndex + 1];
-        if (!baseSha) {
-            errors.push('Uso inválido: --pr-impact exige o SHA base do Pull Request.');
-        } else {
+        if (!baseSha) errors.push('Uso inválido: --pr-impact exige o SHA base do Pull Request.');
+        else {
             try {
                 const files = changedFilesFromGit(baseSha);
                 errors = errors.concat(validatePullRequestContinuityImpact(files));
