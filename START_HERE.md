@@ -14,6 +14,8 @@
 
 ## 1. Primeiro: consulte a `main` atual
 
+**Não existe mais um SHA documental fixo** que deva ser tratado como “a main atual” para sempre. O checkpoint documental identifica a origem da reconciliação; o estado remoto corrente deve ser consultado a cada retomada.
+
 Antes de analisar, planejar ou alterar:
 
 1. consulte a `main` remota e o SHA exato;
