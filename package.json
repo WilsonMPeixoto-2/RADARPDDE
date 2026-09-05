@@ -9,8 +9,7 @@
   },
   "overrides": {
     "brace-expansion@5.0.8": "5.0.9",
-    "fast-uri": "^3.1.6",
-    "qs": "^6.16.0"
+    "fast-uri": "^3.1.6"
   },
   "allowScripts": {
     "esbuild@0.28.2": true,
@@ -39,7 +38,7 @@
     "generate:runtime-config": "node scripts/generate-runtime-config.mjs",
     "build:vercel": "node scripts/build-vercel.mjs",
     "typecheck:database": "tsc -p tsconfig.database-types.json --noEmit",
-    "start": "http-server . -p 4175 -c-1",
+    "start": "node tests/support/spa-server.mjs",
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop --no-backup",
     "supabase:reset": "supabase db reset --local",
@@ -74,7 +73,7 @@
     "test:frontend-precedence": "playwright test --config=playwright.frontend-audit.config.js",
     "format": "prettier . --write --ignore-unknown",
     "format:check": "prettier . --check --ignore-unknown",
-    "dev": "http-server . -p 4175 -c-1",
+    "dev": "node tests/support/spa-server.mjs",
     "lint": "npm run lint:security && npm run lint:e2e",
     "lint:security": "eslint app.js config.js \"src/**/*.js\" --max-warnings 42",
     "lint:e2e": "eslint \"tests/e2e/**/*.spec.js\"",
@@ -103,7 +102,6 @@
     "eslint-plugin-playwright": "2.11.0",
     "fast-check": "4.9.0",
     "fuse.js": "7.5.0",
-    "http-server": "14.1.1",
     "knip": "6.34.0",
     "lighthouse": "13.4.1",
     "msw": "2.15.0",

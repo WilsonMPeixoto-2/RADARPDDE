@@ -1,0 +1,18 @@
+radar-pdde@1.0.0 /home/runner/work/RADARPDDE/RADARPDDE
+└─┬ exceljs@4.4.0
+  ├─┬ archiver@5.3.2
+  │ ├─┬ archiver-utils@2.1.0
+  │ │ └─┬ glob@7.2.3
+  │ │   └── inflight@1.0.6
+  │ └─┬ zip-stream@4.1.1
+  │   └─┬ archiver-utils@3.0.4
+  │     └── glob@7.2.3 deduped
+  ├─┬ fast-csv@4.3.6
+  │ └─┬ @fast-csv/format@4.3.5
+  │   └── lodash.isequal@4.5.0
+  ├─┬ unzipper@0.10.14
+  │ └─┬ fstream@1.0.12
+  │   └─┬ rimraf@2.7.1
+  │     └── glob@7.2.3 deduped
+  └── uuid@8.3.2
+
