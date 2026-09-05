@@ -1,0 +1,100 @@
+name: Atualização única Fast CSV transitivo do ExcelJS
+
+on:
+  push:
+    branches:
+      - maintenance/dependency-refresh-adversarial-2026-09-05
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-exceljs-fastcsv:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+
+      - name: Node 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+
+      - name: Baseline limpa
+        run: npm ci
+
+      - name: Atualizar Fast CSV apenas na cadeia do ExcelJS
+        shell: bash
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          pkg.overrides ||= {};
+          pkg.overrides.exceljs = { ...(pkg.overrides.exceljs || {}), 'fast-csv': '5.0.7' };
+          fs.writeFileSync('package.json', `${JSON.stringify(pkg, null, 2)}\n`);
+          NODE
+          npm install --package-lock-only --ignore-scripts
+          npm ci
+          npm ls exceljs fast-csv lodash.isequal
+          if npm ls lodash.isequal >/dev/null 2>&1; then echo 'lodash.isequal ainda presente' >&2; exit 1; fi
+
+      - name: Validar leitura e escrita CSV via ExcelJS
+        shell: bash
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const ExcelJS = require('exceljs');
+          const { Readable } = require('node:stream');
+          (async () => {
+            const input = Readable.from(['nome,valor\nEscola A,10\nEscola B,20\n']);
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = await workbook.csv.read(input);
+            if (worksheet.getCell('A2').value !== 'Escola A' || worksheet.getCell('B3').value !== 20) throw new Error('Leitura CSV divergiu.');
+            const csv = await workbook.csv.writeBuffer({ sheetName: worksheet.name });
+            const text = Buffer.from(csv).toString('utf8');
+            if (!text.includes('Escola A,10') || !text.includes('Escola B,20')) throw new Error('Escrita CSV divergiu.');
+          })().catch(error => { console.error(error); process.exit(1); });
+          NODE
+
+      - name: Certificações focadas do Excel e auditoria
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run build:exceljs
+          CI=false npm run check:generated
+          npm run certify:excel:fixture
+          node --test \
+            tests/unit/excel-integral-certification.test.js \
+            tests/unit/excel-sme-export-integration.test.js \
+            tests/unit/excel-sme-monthly.test.js \
+            tests/unit/excel-sme-renderer.test.js \
+            tests/unit/excel-sme-template-loader.test.js \
+            tests/unit/excel-sme-template-renderer.test.js
+          npm run test:integration
+          npm audit --audit-level=low
+
+      - name: Registrar árvore remanescente
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dependency-health
+          npm ls exceljs uuid archiver glob inflight fast-csv lodash.isequal unzipper fstream rimraf > dependency-health/deprecated-chain-after-exceljs-fastcsv-2026-09-05.txt || true
+          npm audit --json > dependency-health/npm-audit-after-exceljs-fastcsv-2026-09-05.json 2>&1 || true
+          cat dependency-health/deprecated-chain-after-exceljs-fastcsv-2026-09-05.txt
+
+      - name: Commit e publicar atualização validada
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add package.json package-lock.json vendor/exceljs.min.js dependency-health/deprecated-chain-after-exceljs-fastcsv-2026-09-05.txt dependency-health/npm-audit-after-exceljs-fastcsv-2026-09-05.json
+          git commit -m 'chore(deps): atualizar Fast CSV transitivo do ExcelJS'
+          npm ci
+          npm audit --audit-level=low
+          git diff --exit-code
+          git push origin HEAD:maintenance/dependency-refresh-adversarial-2026-09-05
