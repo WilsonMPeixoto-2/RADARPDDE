@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient, type User } from "npm:@supabase/supabase-js@2.112.4";
 import {
   buildInviteMetadata,
+  canCompensateAmbiguousInvite,
   isTeamManagerRole,
   normalizeEmail,
   normalizeTeamCommand,
@@ -227,6 +228,25 @@ async function removeInvitedUser(admin: ReturnType<typeof createClient>, userId:
   }
 }
 
+async function compensateAmbiguousInvite(
+  admin: ReturnType<typeof createClient>,
+  command: ReturnType<typeof normalizeTeamCommand>,
+): Promise<boolean> {
+  try {
+    const candidateId = await authUserIdByEmail(admin, command.entity!.email);
+    if (!candidateId) return false;
+    const candidate = await authUser(admin, candidateId);
+    if (!candidate || !canCompensateAmbiguousInvite(candidate, command)) return false;
+    await removeInvitedUser(admin, candidateId);
+    return true;
+  } catch (error) {
+    if (String((error as { message?: string })?.message || "").includes("COMPENSATION_FAILED")) {
+      throw error;
+    }
+    throw compensationFailure("não foi possível verificar o resultado ambíguo do convite", error);
+  }
+}
+
 function restorationBanDuration(previousUser: User): string {
   const bannedUntil = Date.parse(String(previousUser.banned_until || ""));
   const remainingMs = bannedUntil - Date.now();
@@ -281,6 +301,7 @@ async function saveMember(
     existing?.user_id,
   );
   let createdUser = false;
+  let inviteAttempted = false;
   let reusedExistingAccount = false;
   let previousUser: User | null = null;
 
@@ -309,6 +330,7 @@ async function saveMember(
       const options: { data: Record<string, string>; redirectTo?: string } = { data: metadata };
       const redirectTo = Deno.env.get("RADAR_INVITE_REDIRECT_URL");
       if (redirectTo) options.redirectTo = redirectTo;
+      inviteAttempted = true;
       const { data, error } = await admin.auth.admin.inviteUserByEmail(entity.email, options);
       if (error || !data.user?.id) throw error || new Error("ACCOUNT_CONFLICT: convite sem usuário");
       userId = data.user.id;
@@ -334,6 +356,8 @@ async function saveMember(
   } catch (error) {
     if (createdUser && userId) {
       await removeInvitedUser(admin, userId);
+    } else if (inviteAttempted && !userId) {
+      await compensateAmbiguousInvite(admin, command);
     } else if (previousUser && userId) {
       await restoreUser(admin, userId, previousUser);
     }
