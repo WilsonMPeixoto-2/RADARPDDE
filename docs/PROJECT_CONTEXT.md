@@ -1,527 +1,265 @@
-# RADAR PDDE 2026 — Contexto funcional e arquitetural
+# RADAR PDDE 2026 — Contexto funcional e arquitetural corrente
 
-**Atualizado em:** 3 de setembro de 2026
-**Classe documental:** Canônico
+**Atualizado em:** 5 de setembro de 2026  
+**Classe documental:** contexto funcional corrente, subordinado à continuidade operacional
+
+> **Antes de usar este documento, leia [`../START_HERE.md`](../START_HERE.md).**  
+> A única fila executável vigente é [`MASTER_PLAN_CURRENT.md`](MASTER_PLAN_CURRENT.md). Este arquivo descreve o produto e suas regras estáveis; não define uma fila concorrente.
 
 ## 1. Finalidade
 
 O RADAR PDDE organiza o ciclo de entrega, análise, acompanhamento, regularização, consolidação, inventário, histórico e apoio à decisão dos programas do PDDE no âmbito da 4ª CRE/SME-Rio.
 
-O sistema deve permitir que cada usuário compreenda:
+Dashboard, Carteira, Competências, Prontuário, Pendências, Capital e Inventário, Registros Internos, Gestão de Equipe, configurações, alertas, busca e exportações representam o mesmo universo de dados. Nenhuma dessas superfícies cria uma fonte de verdade independente.
 
-1. o estado atual da unidade, competência e programa;
-2. o que exige atenção;
-3. quem deve agir;
-4. qual é a próxima ação;
-5. onde realizar essa ação;
-6. como o histórico foi formado;
-7. qual competência e programa sustentam a informação;
-8. como a informação chega aos relatórios institucionais.
+## 2. Continuidade e precedência
 
-Dashboard, Carteira, Competências, Prontuário, Pendências, Inventário, Registros Internos, timeline e exportações representam o mesmo universo de dados. Nenhuma superfície cria fonte de verdade independente.
+A continuidade corrente é:
 
-## 2. Baseline operacional
+```text
+START_HERE.md
+→ conferir a main remota
+→ CURRENT_STATE.md
+→ MASTER_PLAN_CURRENT.md
+→ PLAN_TRACEABILITY.md quando for necessário entender a origem de uma regra/tarefa
+→ código, testes, ADRs, migrations e evidências específicos da tarefa
+```
 
-O baseline mutável corrente fica em [`CURRENT_STAGE.md`](CURRENT_STAGE.md).
+O plano source-first de 03/09 foi correto em seu checkpoint, mas é **histórico** depois dos PRs #254, #256, #257, #258, #260 e #261. O PR #262 foi abortado sem merge e não define regra vigente.
 
-A porta de entrada executável canônica é [`superpowers/plans/2026-09-03-plano-remanescente-source-first.md`](superpowers/plans/2026-09-03-plano-remanescente-source-first.md), sustentada pela [`reauditoria direta do código-fonte`](audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md). O handoff de reconciliação de 03/09 permanece como checkpoint canônico imediatamente anterior.
+Para determinar o estado atual de uma superfície:
 
-O hotfix de Notas Fiscais permanece documentado em [`superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md`](superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md) e [`handoff/2026-08-30-pr211-publicacao-concluida.md`](handoff/2026-08-30-pr211-publicacao-concluida.md), agora como histórico técnico protegido pelas decisões posteriores.
+1. decisão funcional posterior deliberadamente aprovada e o hotfix que a implementou;
+2. código, banco e ambiente resultantes;
+3. testes que comprovadamente representam esse contrato;
+4. documentação corrente reconciliada;
+5. documentação histórica como explicação da linhagem.
 
-O checkpoint pós-PR #200 em [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md) permanece histórico/canônico para contexto, mas não controla mais a ordem corrente de execução.
+Código atual não é automaticamente “a regra correta” se houver indício de defeito. Da mesma forma, texto antigo não pode desfazer uma decisão posterior apenas porque foi escrito primeiro.
 
-O checkpoint pós-PR #193 permanece como histórico técnico da estabilização anterior em [`handoff/2026-08-23-post-pr-193.md`](handoff/2026-08-23-post-pr-193.md).
-
-O snapshot de encerramento de 18/08/2026 permanece histórico em [`handoff/2026-08-18-encerramento-operacional.md`](handoff/2026-08-18-encerramento-operacional.md).
-
-Este documento descreve contratos estáveis e não deve ser usado para presumir SHA, deployment, contagem de migrations ou versão de Edge Function sem nova consulta ao remoto.
-
-## 3. Regra de precedência
-
-1. código-fonte remoto vigente;
-2. Supabase efetivo, incluindo schema, migrations, Auth, RLS, funções e dados;
-3. artefato implantado na Vercel e seu SHA;
-4. decisões funcionais vigentes;
-5. testes/evidências reproduzíveis que representem o contrato atual;
-6. documentação canônica;
-7. documentos históricos e auditorias.
-
-Memória de chat, planos e auditorias anteriores não substituem verificação operacional. Auditoria externa é evidência técnica, não autoridade de produto.
-
-## 4. Perfis funcionais
+## 3. Perfis funcionais
 
 ### Controlador
 
-Possui carteira de responsabilidade principal e pode colaborar nas escolas da própria CRE. A atuação fora da carteira não transfere `schools.controller_id`, preserva autoria e não concede acesso a outra CRE.
-
-Pode editar dados cadastrais autorizados, mas não redistribuir carteira nem alterar a identidade institucional da escola fora das capacidades previstas.
+Possui carteira de responsabilidade principal e pode atuar nas escolas autorizadas da própria CRE sem transferir automaticamente `controller_id`. Pode operar análise, Pendências e demais funções concedidas pela política corrente. Redistribuição de carteira e alteração de identidade institucional da escola não são atribuições comuns do Controlador.
 
 ### Assistente de Verbas Federais
 
-Lidera operacionalmente a GAD/CRE, acompanha escolas, administra Controladores e Inventário, distribui carteiras, executa ações transversais autorizadas e consolida relatórios.
+Atua transversalmente na CRE, administra a equipe, distribui carteiras, opera análises e Pendências autorizadas, pode retificar consolidações e possui as funções administrativas previstas para a CRE.
 
 ### Gestão SME
 
-Realiza acompanhamento gerencial. Consulta identificação e bonificação, não recebe análise técnica editável nas superfícies restritas nem mutações operacionais de Pendências.
-
-Capacidades administrativas específicas, inclusive de programas, devem ser confirmadas no código e nas permissões atuais antes de qualquer ampliação ou retirada futura.
+Possui acompanhamento gerencial e funções de configuração expressamente autorizadas. Nas superfícies operacionais restritas, não recebe análise técnica editável nem mutações de Pendências apenas por visualizar os dados.
 
 ### Equipe de Inventário
 
-Executa o fluxo patrimonial autorizado dentro do escopo da CRE.
+Opera a conclusão da inventariação e acessa o recorte patrimonial autorizado. A visibilidade de uma superfície não amplia automaticamente suas permissões de escrita.
 
 ### Administrador técnico
 
-`technical_admin` atua em segurança, infraestrutura, perfis, escopos, importações e auditoria. A simulação visual não altera JWT nem substitui contas operacionais reais.
+`technical_admin` é papel técnico autenticado, não quinto perfil funcional cotidiano. A simulação visual de outro perfil não troca JWT, identidade nem reduz a autoridade real do papel técnico.
 
-## 5. Superfícies
+A autorização efetiva é cumulativa entre interface, serviços, Auth, RLS, RPCs e Edge Functions.
 
-O produto contém, conforme o perfil:
+## 4. Competência e navegação
 
-- Dashboard;
-- Carteira;
-- Competências;
-- Pendências;
-- Prontuário e timeline;
-- Gestão de Equipe;
-- Capital e Inventário;
-- Registros Internos;
-- configurações SME;
-- alertas, busca, modais e exportações.
+A competência mensal usa `YYYY-MM` e é gerida por `RadarCompetenceContext` como contexto global compartilhado pelas superfícies mensais.
 
-Toda alteração deve considerar competência, exercício, Controlador, CRE, escola, programa, documento, situação, autoria e perfil efetivo.
+Regras atuais:
 
-## 6. Competência transversal e exceção de Pendências
+- uma única competência global, sem seletor concorrente;
+- seleção válida pode ser restaurada entre navegações;
+- competências futuras podem ser consultadas, mas não editadas nas operações mensais protegidas;
+- abrir apenas o detalhe de uma Pendência não troca silenciosamente a competência global;
+- Pendências é exceção deliberada: abre em **Todas as competências** porque representa passivo histórico;
+- ao seguir da Pendência para o Prontuário, a competência de origem volta a ser aplicada ao contexto mensal;
+- retorno contextual preserva, quando aplicável, rota, filtros, rolagem e foco.
 
-A competência canônica usa `YYYY-MM` e é gerida por `RadarCompetenceContext`.
+## 5. Avaliação mensal
 
-Ela é contexto global persistente para Dashboard, Carteira, Competências, Prontuário, alertas, timeline e exportações conforme a regra da superfície.
-
-### Exceção deliberada: Pendências Operacionais
-
-Pendências representam passivo histórico e não podem desaparecer apenas porque o usuário selecionou a competência corrente.
-
-Por isso:
-
-- a competência global continua visível na página;
-- a página abre em **Todas as competências**;
-- a competência global não é aplicada automaticamente como filtro da lista;
-- o filtro local de competência é opcional;
-- ao navegar de uma pendência para o Prontuário, a competência de origem da pendência volta a ser aplicada ao contexto mensal.
-
-Ver [`decisions/ADR-044-pendencias-passivo-transversal.md`](decisions/ADR-044-pendencias-passivo-transversal.md).
-
-Competência existente, disponível e formalmente fechada são conceitos distintos.
-
-## 7. Avaliação mensal
-
-Identidade:
+A identidade da avaliação é:
 
 ```text
 escola + competência + programa
 ```
 
-A projeção canônica reúne consolidação, resultado, campos ausentes, bonificação, análise técnica, conclusão e pendências.
+Bonificação, análise técnica e Pendência são dimensões independentes.
 
-Regras vigentes:
+Regras confirmadas no código corrente:
 
-- competências futuras podem ser vistas, mas não editadas;
-- após consolidação do prazo/bonificação, documento entregue fora do período não recebe `Correto` como situação regular;
-- quando tecnicamente correto e entregue após o prazo, usa-se `Correto (Atrasado)`;
-- bonificação, análise técnica e pendência permanecem dimensões diferentes;
-- `bonus_result` ausente significa preservar o valor existente; limpeza explicitamente solicitada é semanticamente diferente de campo ausente;
-- N/A → Sim/Não reinicializa derivações incompatíveis, incluindo análise técnica de NF para `Não analisado` quando aplicável;
-- operação semanticamente idêntica ao estado atual é idempotente e não deve produzir nova persistência, novo `row_version` ou novo log apenas por repetição do comando.
+- bonificação admite `Sim`, `Não` e `Não se aplica` quando o documento permite;
+- Extrato de Conta Corrente e Extrato de Investimento não usam N/A para concluir a bonificação;
+- Declaração BB Ágil pode usar N/A quando cabível; nesse estado sua análise técnica fica neutra como `Correto`;
+- ao sair de N/A para `Sim` ou `Não`, derivações incompatíveis voltam ao estado que exige análise, inclusive `Não analisado` quando aplicável;
+- Pendência ativa da própria Declaração BB Ágil bloqueia a troca para N/A até o ciclo ser encerrado adequadamente;
+- Nota Fiscal não pode ser marcada N/A se já existem despesas/notas registradas no contexto;
+- Consulta Assessoria é derivada das NFs de serviço e não é uma bonificação mensal livremente editável;
+- uma operação semanticamente idêntica ao estado atual não deve criar gravação/log/versão apenas por repetição;
+- consolidação exige preenchimento válido do conjunto aplicável;
+- retificação é ação distinta, exige justificativa, registra antes/depois e é autorizada à Assistente no fluxo funcional corrente;
+- `PDDE Básico` aparece primeiro somente na apresentação; a ordem persistida dos programas não é reescrita por esse motivo.
 
-O diagnóstico de 24/08 foi parcialmente superado pelo PR2/#206: `invoice-effects.js` já planeja os efeitos persistentes e o fluxo possui no-op semântico real. A lacuna de `invoice:save` que permanece é a **idempotência durável de intenção no servidor** para retry, perda de resposta e concorrência. O guard de submit continua útil e será preservado em R3; a mesma RPC v2 já deverá nascer com o resultado remoto completo necessário a R5, evitando evolução redundante.
+## 6. Notas Fiscais e despesas
 
-### Decisões supervenientes de 01–03/09
+`notaFiscal` continua agregada para bonificação, mas cada registro em `registered_invoices` possui identidade própria.
 
-- **Declaração BB Ágil:** aceita `Não se aplica` quando cabível. Nesse estado, a análise técnica fica neutra como `Correto`; sair de N/A reinicia para `Não analisado`; Pendência ativa precisa ser resolvida ou cancelada antes de marcar N/A.
-- **Comunicação externa:** `RADAR PDDE` é o nome do sistema interno e não integra e-mail, WhatsApp, ofício ou texto oficial gerado para unidade escolar. A cobrança automática termina somente em `Atenciosamente`.
-- **Exportação de Pendências:** a tela possui relatório XLSX próprio, com `RESUMO` e `PENDÊNCIAS`, respeitando busca/filtros e sem expor identificadores técnicos.
-- **Ordem dos programas na avaliação:** `PDDE Básico` aparece primeiro somente na apresentação. A ordem persistida de `programasIds` não é alterada e os demais programas mantêm sua ordem relativa.
-- **Dependências:** decisões de versão e rejeições homologadas ficam em `handoff/2026-09-02-dependency-governance.md`; atualização automática não prevalece sobre RLS, pgTAP, Node 24 ou testes funcionais.
-### Notas Fiscais — granularidade individual
+### Análise fiscal individual
 
-`notaFiscal` continua sendo a dimensão documental agregada para bonificação, mas cada registro em `registered_invoices` é uma unidade técnica individual.
+- análise técnica é individual por `registered_invoice_id`;
+- o resumo fiscal mensal é derivado, não uma análise agregada livremente editável;
+- precedência do resumo: `Incorreto → Não analisado → Correto (Atrasado) → Correto`;
+- Pendência fiscal nova precisa estar ligada à invoice correspondente;
+- NFs diferentes podem ter Pendências simultâneas;
+- a mesma NF não pode ter duas Pendências ativas equivalentes;
+- com Pendência ativa da própria NF, edição estrutural comum fica bloqueada;
+- exclusão comum é bloqueada quando existe histórico individual que precisa ser preservado.
 
-Contrato integrado e publicado pelo PR #211:
+### `a_identificar`
 
-- bonificação de `notaFiscal` permanece agregada em Sim/Não/N/A;
-- análise técnica existe por `registered_invoice_id`;
-- o resumo `verification.analysis.notaFiscal` é projeção derivada, não campo técnico editável do conjunto;
-- precedência do resumo: Incorreto → Não analisado → Correto (Atrasado) → Correto;
-- Pendência individual de Notas Fiscais usa `registered_invoice_id`;
-- NFs distintas podem ter Pendências ativas simultâneas;
-- a mesma NF não pode duplicar Pendência ativa equivalente;
-- `boleto_internet` é somente tipo de gasto de Notas Fiscais;
-- `boletoInternet` não pode reaparecer como documento;
-- `a_identificar` nasce `Incorreto + Pendência` de forma atômica;
-- uma despesa identificada não pode virar `a_identificar` pelo editor comum;
-- identificação posterior de `a_identificar` ocorre em **Pendências → Registrar novo envio** e preserva o mesmo ID;
-- o novo envio leva a Pendência para `Aguardando reanálise` e a despesa identificada para `Não analisado`;
-- se a identificação revelar serviço, Consulta Assessoria surge na dimensão própria;
-- se revelar bem permanente, o registro patrimonial é criado e vinculado na mesma operação;
-- nova Pendência de `notaFiscal` sem `registered_invoice_id` é proibida;
-- com Pendência fiscal ativa, a edição estrutural comum daquela despesa fica bloqueada;
-- reanálise exige tentativa válida da mesma Pendência, no mesmo contexto.
+- registro novo nasce obrigatoriamente `Incorreto + Pendência` na mesma operação protegida;
+- o editor comum não transforma uma despesa identificada em `a_identificar`;
+- a identificação posterior ocorre em **Pendências → Registrar novo envio**;
+- o mesmo `registered_invoice_id` é preservado;
+- a apresentação do documento leva a análise para `Não analisado` e a Pendência para `Aguardando reanálise`; não resolve o caso por si só;
+- os 16 registros legados legítimos classificados no hotfix permanecem sem história retroativa fabricada;
+- não é permitido associar automaticamente um legado por número, valor, descrição ou outra heurística.
 
-Transição de dados aprovada em 29/08:
+### Boleto de Internet
 
-- 16 `a_identificar` legítimos anteriores ao contrato individual permanecem como **Registro legado**, sem análise/Pendência retroativa e sem edição/exclusão pelo fluxo comum;
-- 4 `a_identificar` e outras 8 despesas/NFs de teste, mais três Pendências fiscais genéricas dos mesmos cenários, foram removidas pela limpeza fail-closed comprovada por autoria;
-- Boleto 1234 e sua Pendência são fixtures e não recebem o reparo de vínculo proposto inicialmente;
-- a Pendência fiscal agregada real preservada continua acessível como legado, sem associação heurística a uma NF.
+`boleto_internet` é **tipo de gasto dentro de Notas Fiscais**, exclusivo de Educação Conectada. Não é documento autônomo, não possui bonificação/análise/Pendência próprias, não cria patrimônio e não participa de Consulta Assessoria.
 
-Essa regra específica substitui a antiga interpretação segundo a qual `A identificar` não deveria receber estado técnico automaticamente. O que continua proibido é fabricar **bonificação** ou atribuir retrospectivamente um erro agregado antigo a uma NF específica sem evidência.
+## 7. Consulta Assessoria
 
-**Decisão integral:** `docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`.
+Somente NFs de serviço participam dessa dimensão.
 
-**Sequência de segurança deliberada:** a auditoria pós-publicação encontrou uma lacuna residual de proteção contra escrita direta em `registered_invoices` para `id`, `verification_id` e `source_context_key`, sem evidência de corrupção atual. Por decisão explícita do responsável pelo produto, o hardening correspondente foi adiado até a conclusão e validação de todas as implementações dos planos de correção funcional. Ver ADR-051. Essa frente não é gate do PR #211 nem da sequência funcional atual.
+- cada NF possui estado de envio e análise próprios;
+- Pendência usa `registered_invoice_id`;
+- Pendência da NF A não bloqueia a NF B;
+- `Incorreto` é confirmado junto com a Pendência pela operação atômica correspondente;
+- edição comum da Assessoria é separada da abertura de Pendência;
+- novo envio corretivo aceita a Pendência ativa quando está **`Aberta` ou `Aguardando reanálise`**; se já havia envio aguardando análise, o novo envio o substitui como tentativa mais recente sem reescrever o histórico;
+- depois do novo envio, o caso permanece `Aguardando reanálise`;
+- reanálise usa a tentativa real mais recente ainda aguardando;
+- reanálise correta resolve; incorreta ou arquivo indisponível retorna o ciclo para `Aberta`;
+- conteúdo histórico do envio não é reescrito pela reanálise;
+- resumo mensal: `Sim` se ao menos uma consulta exigível foi enviada; `Não` se existem NFs de serviço e nenhuma foi enviada; `Não se aplica` se não existe NF de serviço.
 
-### Fechamento visual do hotfix
-
-A reconferência visual final do PR #211 detectou overflow horizontal em desktop de 1280 px nos painéis individualizados de Notas Fiscais/Consulta Assessoria. O PR #214 corrigiu a grade entre 901 e 1440 px e adicionou regressão E2E para garantir que painel e controles permaneçam dentro da largura disponível. A correção foi integrada no merge `cc842af7b7bc6341dab68aa55a533a2017923bcf` e publicada em Vercel Production.
-
-**Correção pós-PR #211:** o PR #215 corrigiu a fronteira de concorrência otimista que reintroduzia `rowVersion` dentro de payloads de negócio durante a conversão canônico → legado → canônico. A regra funcional da ADR-050 não mudou. `row_version` permanece top-level; payloads não carregam `rowVersion/row_version`; a migration `20260830223000_payload_row_version_boundary` limpou Production e ajustou apenas a tolerância técnica das RPCs de abertura fiscal/Assessoria. Production passou a 44 migrations, e os dois fluxos originalmente falhos foram comprovados por smokes transacionais reais com rollback.
-
-**Governança de composição:** a ADR-052 define que fluxo crítico deve possuir autoridade funcional explícita, ordem de bootstrap tratada como contrato e prova executável de instalação/composição. Para Consulta Assessoria, `service-advisory-pendency.js` responde por abertura/reanálise e `service-advisory-corrective-submission.js` pelo novo envio corretivo. A separação é deliberada e a CI deve impedir duplicação ou desconexão silenciosa dessas autoridades.
-
-### Consulta Assessoria — proteção individual completa
-
-- somente NFs de serviço participam da dimensão;
-- cada NF usa `registered_invoice_id` para envio, análise e Pendência;
-- Pendência ativa da NF A não bloqueia a NF B;
-- o `InvoiceService` recusa alterações comuns da própria NF enquanto houver Pendência ativa e também recusa `Incorreto` sem a operação atômica;
-- novo envio exige Pendência `Aberta`, cria a próxima tentativa e leva o ciclo a `Aguardando reanálise`;
-- reanálise exige a tentativa real mais recente ainda não analisada e não pode reescrever observação, link ou datas do envio;
-- o resumo mensal é `Sim` se ao menos uma consulta exigível foi enviada, `Não` se existem NFs de serviço e nenhuma foi enviada, e `Não se aplica` sem NF de serviço.
-
-### Persistência e atualização visual da avaliação
-
-Desde os PRs #190–#193, o caminho normal de sucesso é:
-
-```text
-interação
-→ feedback visual imediato
-→ persistência/RPC
-→ retorno autoritativo
-→ aplicação incremental do estado
-→ reconciliação localizada escola + competência + programa
-→ estabilização visual
-```
-
-`renderProntuario()` integral não é rotina de sucesso. Fica reservado a bootstrap, navegação, erro, retorno incompleto ou inconsistência que não possa ser reconciliada com segurança.
+Autoridades atuais permanecem separadas: edição ordinária no `InvoiceService`; abertura/reanálise na integração de Pendência da Assessoria; novo envio na integração corretiva; persistência pelas RPCs correspondentes.
 
 ## 8. Pendências
 
-Estados:
-
-- Aberta;
-- Aguardando reanálise;
-- Resolvida;
-- Cancelada.
-
-Novo envio não resolve automaticamente. Reanálise positiva resolve; negativa reabre; cancelamento preserva motivo e autoria; regularização não apaga percurso.
-
-Conforme PEND-05, `Resolvida` e `Cancelada` podem voltar a `Aberta` quando a operação de reabertura for válida, sempre preservando histórico e auditoria.
-
-A ordenação operacional prioriza as pendências ativas mais antigas e, para estados encerrados, os acontecimentos mais recentes.
-
-A tabela `pendency_attempts` permanece sincronizada com o estado agregado das tentativas da pendência.
-
-### Datas de tentativa
-
-`available_at` registra quando o documento foi disponibilizado pela escola.
-
-`submitted_at` registra quando a tentativa foi lançada no RADAR.
-
-Esses campos são conceitualmente distintos e não devem ser colapsados em round-trips entre domínio, estado legado e Supabase.
-
-### Pendência de Notas Fiscais vinculada à despesa
-
-Pendência individual de `notaFiscal` referencia a despesa específica por `registered_invoice_id`.
-
-Identidade ativa:
+Estados canônicos:
 
 ```text
-escola + competência + programa + notaFiscal + registered_invoice_id
+Aberta
+Aguardando reanálise
+Resolvida
+Cancelada
 ```
 
-O vínculo individual não transforma cada NF em uma nova categoria documental: a categoria continua sendo `notaFiscal`. O ID apenas fornece granularidade ao ciclo de análise, Pendência, envio e reanálise.
+`Aberta` e `Aguardando reanálise` são estados ativos.
 
-No Prontuário, após a abertura da Pendência, a ação é **Visualizar pendência**. Novo envio e reanálise pertencem à tela de Pendências.
+Regras atuais:
 
-### Pendência de Assessoria vinculada à NF
+- abertura documental preserva contexto de escola, competência, programa e documento;
+- NF/Assessoria individual também preserva `registered_invoice_id`;
+- novo envio não resolve;
+- substituição de envio ainda não analisado é permitida enquanto a Pendência está `Aguardando reanálise`;
+- `Aberta → próxima ação da Escola`;
+- `Aguardando reanálise → próxima ação do Controlador`;
+- estados terminais não mantêm próximo ator ativo;
+- reanálise correta resolve; incorreta/arquivo indisponível reabre o ciclo para ação da Escola;
+- somente Pendência ativa pode ser cancelada;
+- `Resolvida` ou `Cancelada` pode ser reaberta quando a operação é autorizada;
+- histórico de cancelamento permanece histórico, mas `canceled_at` atual só representa estado terminal efetivamente cancelado;
+- contatos/cobranças são registros associados, não mudança automática do estado da Pendência;
+- a fila é transversal entre competências e possui filtro local próprio.
 
-Pendência individual de Assessoria referencia a Nota Fiscal de origem por `registered_invoice_id`.
+## 9. Capital e Inventário
 
-NFs distintas podem possuir pendências ativas simultaneamente no mesmo programa/competência. A mesma NF não pode duplicar pendência ativa equivalente.
+Regra vigente pós-PRs #257/#258/#260:
 
-A reanálise altera a NF vinculada e depois recalcula o agregado mensal, sem contaminar outras notas.
+1. NF permanente cria/vincula o bem patrimonial;
+2. com número da NF **e processo de inventário já cadastrado**, o bem novo entra `Encaminhada`, mostrado como **Aguardando Inventariação**;
+3. sem processo, o bem novo entra `Não encaminhada`;
+4. se o bem está `Não encaminhada`, ele não pode pular diretamente para `Inventariada`;
+5. nesse ramo, a ordem é `Não encaminhada → Encaminhada → Inventariada`;
+6. `encampInventario` é derivado do conjunto de aquisições permanentes: nenhuma = `Não se aplica`; alguma não encaminhada = `Não`; todas encaminhadas/inventariadas = `Sim`;
+7. mudança patrimonial não aprova automaticamente a análise técnica derivada;
+8. o Prontuário exibe o vínculo NF ↔ bem pela identidade técnica, não por coincidência de texto/valor;
+9. encaminhamento posterior sincroniza bem + verificação + log atomicamente;
+10. bem derivado de NF não permite edição isolada do número fiscal;
+11. conclusão da inventariação exige estado corrente `Encaminhada` e responsável informado;
+12. guards de gesto repetido protegem encaminhamento e inventariação enquanto a primeira chamada está em andamento.
 
-## 9. Timeline
+A frase `Não encaminhada → Encaminhada → Inventariada` descreve **o ramo que está Não encaminhada**. Ela não determina o estado inicial de toda NF permanente.
 
-`RadarSchoolTimeline` projeta avaliações, pendências, tentativas, contatos, despesas, bens e registros administrativos. Preserva ordem, autoria, competência, programa, origem e visibilidade por perfil.
+## 10. Escolas, carteira e Gestão de Equipe
 
-## 10. Navegação contextual
+### Escolas e carteira
 
-`RadarNavigationContext` preserva competência, rota, filtros, rolagem e foco entre origem operacional e Prontuário/Pendências.
+- `controller_id` representa o responsável principal;
+- Controlador não redistribui carteira pela edição comum da escola;
+- alteração da identidade institucional e redistribuição são reservadas ao fluxo autorizado da Assistente;
+- nova escola exige os identificadores institucionais obrigatórios e competência inicial válida;
+- duplicidades de identificadores institucionais são rejeitadas;
+- PDDE Básico permanece no conjunto de programas ativos da escola;
+- redistribuição individual ou em lote usa operação própria e log.
 
-Na exceção transversal de Pendências, abrir detalhes não força a competência global; navegar para o Prontuário assume a competência da pendência.
+### Gestão de Equipe
 
-## 11. Persistência
-
-```text
-Frontend
-→ serviços de aplicação e UnitOfWork
-→ RepositoryContract
-   ├── SupabaseRepository — Production
-   └── LocalStorageRepository — desenvolvimento/testes explicitamente configurados
-→ PostgREST / RPC / Edge Function
-→ Auth / RLS / PostgreSQL
-```
-
-O adaptador remoto usa paginação, lotes, erros padronizados, `row_version`, snapshots, RPCs, reconciliação e rollback.
-
-Políticas de retorno/commit autoritativo são aplicadas apenas aos comandos em que o contrato permite evitar refresh remoto redundante. `administrativeLogs` é a única entidade autorizada para a isenção ampla de refresh prevista nessa política; entidades mutáveis de negócio permanecem conservadoras quando necessário.
-
-### Production fail-closed
-
-Production somente opera com a configuração remota autorizada.
-
-Falha, ausência ou inconsistência de configuração Supabase em Production **não ativa fallback silencioso para LocalStorage ou seed**. O produto deve permanecer bloqueado/indisponível até o ambiente oficial ser restabelecido.
-
-O build de Production sanitiza os dados iniciais de escolas/controladores usados no desenvolvimento para que eles não façam parte do bundle público institucional.
-
-Ver [`decisions/ADR-045-production-fail-closed.md`](decisions/ADR-045-production-fail-closed.md).
-
-## 12. Auth e sessão
-
-O cliente Supabase usa sessão persistente e renovação automática. O bootstrap:
-
-1. restaura ou cria a sessão;
-2. valida perfil, papel efetivo e escopos;
-3. cria cliente autenticado;
-4. carrega entidades autorizadas;
-5. aplica o perfil à interface;
-6. mantém a aplicação inerte enquanto a autorização não termina.
-
-Em Production, erro de configuração/autorização não é convertido em sessão local funcional.
-
-## 13. Gestão de contas
+Fluxo atual:
 
 ```text
 DirectoryService
 → TeamAccountGateway
-→ team-account-management
-   ├── Supabase Auth Admin
-   └── RPC PostgreSQL transacional
+→ Edge Function team-account-management
+→ Supabase Auth Admin + RPC transacional
 ```
 
-Contratos vigentes:
+- Assistente e `technical_admin` são os gestores autorizados dessa frente;
+- cadastro/edição de Controlador ou Inventário sincroniza diretório, conta Auth, perfil e log;
+- reutilização de conta existente só ocorre quando não há vínculo ativo incompatível;
+- falha após alteração de Auth exige compensação/restauração;
+- desativação é lógica e preserva histórico;
+- Controlador só pode ser desativado depois que sua carteira estiver zerada;
+- não é permitido desativar o único Controlador ativo nem o único integrante ativo do Inventário;
+- segredos administrativos permanecem somente no backend protegido;
+- CORS, sessão/JWT e papel autorizado são verificados pela Edge Function.
 
-- CORS fail-closed;
-- JWT e papel autorizados;
-- credencial administrativa somente server-side;
-- lookup exato de conta por e-mail pela RPC autorizada;
-- recuperação de vínculo histórico quando inequívoca;
-- reutilização segura de conta em transição autorizada de perfil;
-- um único perfil institucional ativo por usuário;
-- desativação lógica e preservação de histórico;
-- compensação quando Auth e banco participam de etapas distintas.
+## 11. Exportações e registros
 
-### Desativação de Controlador
+- relatório institucional: XLSX, com CSV de contingência onde previsto;
+- Excel SME: uma competência, uma aba e 27 colunas A:AA; o template de 30 colunas é apenas fonte de projeção;
+- relatório XLSX de Pendências respeita busca/filtros e não expõe IDs técnicos;
+- downloads institucionais previstos registram auditoria;
+- alterações materiais do Excel SME exigem sua certificação específica;
+- Registros Internos usam `administrative_logs` e respeitam o recorte de leitura por papel; SME real não recebe automaticamente visão ampla de logs.
 
-A sequência obrigatória é:
+## 12. Persistência e confiabilidade
 
-1. transferir todas as escolas pela alocação de carteira;
-2. confirmar carteira zerada;
-3. desativar.
+- Supabase é a persistência canônica de Production;
+- Production é fail-closed: ausência ou inconsistência da configuração remota não ativa seed/LocalStorage institucional silenciosamente;
+- concorrência otimista usa `row_version` onde aplicável;
+- operações compostas usam RPC/transação quando o domínio exige atomicidade;
+- payloads de negócio não devem carregar aliases técnicos `rowVersion`/`row_version`;
+- dois documentos com conteúdo idêntico podem representar despesas legítimas distintas; não deduplicar por conteúdo;
+- o PR #260 deixou jornadas reais de `ação → persistência → leitura → reload → releitura` como baseline de regressão;
+- guards de clique/repetição em andamento não substituem a dívida ainda planejada de idempotência durável para retry ambíguo da NF normal.
 
-A desativação não redistribui escolas e não pede substituto quando a carteira já está vazia. Controladores inativos permanecem no histórico, mas não integram diretórios, filtros ou seletores operacionais.
+A baseline funcional do PR #260 contém 46 migrations, incluindo `20260904040000_functional_reliability_inventory_sync` e a RPC `save_asset_with_verification_and_log`.
 
-## 14. Escolas e carteira
+## 13. Comunicação e UX protegidas
 
-A carteira organiza responsabilidade, não fronteira entre Controladores da mesma CRE.
+- textos oficiais externos gerados não exibem o nome interno `RADAR PDDE`;
+- o cabeçalho de Notas Fiscais não repete uma situação técnica agregada que já é apresentada individualmente;
+- Notas Fiscais/Consulta Assessoria mantêm a individualização visual aprovada e a correção de overflow desktop do PR #214;
+- vínculo de inventário no Prontuário mostra NF, bem, valor e status conforme PR #258;
+- Pendências mantém sua estrutura vigente; o plano atual não autoriza redesign por simples refatoração arquitetural;
+- mobile não pode perder conteúdo ou capacidade essencial por reorganização responsiva.
 
-Novas escolas exigem identidade institucional informada:
+## 14. Trabalho remanescente
 
-- código institucional;
-- designação;
-- denominação;
-- INEP;
-- CNPJ;
-- SICI.
+Este documento **não define o backlog**. O que ainda deve ser executado está exclusivamente em [`MASTER_PLAN_CURRENT.md`](MASTER_PLAN_CURRENT.md), reconciliado em [`PLAN_TRACEABILITY.md`](PLAN_TRACEABILITY.md).
 
-Valores artificiais não podem ser gerados para preencher identidade definitiva.
-
-A redistribuição de `controller_id` é exclusiva de perfis/rotinas administrativas autorizadas e protegida também no backend.
-
-## 15. Financeiro e patrimônio
-
-Notas fiscais e bens permanentes participam de operações compostas.
-
-- nota permanente e bem derivado preservam contexto coerente;
-- quando uma nota perde/troca vínculo com bem derivado, o vínculo anterior é tratado na mesma operação protegida;
-- cada NF de serviço registra individualmente consulta à Assessoria e análise técnica;
-- `Assessoria = Incorreto` e a pendência obrigatória correspondente são persistidos de forma atômica;
-- pendências de Assessoria preservam `registered_invoice_id` canônico e compatibilidade com o vínculo legado quando necessário;
-- resumos mensais de Assessoria são derivados das NFs e não substituem a avaliação individual;
-- reanálise da Assessoria altera apenas a NF vinculada antes de recalcular o resumo;
-- depois que há histórico de pendência vinculada, a identidade estrutural necessária à rastreabilidade da NF fica protegida pelas regras correspondentes;
-- edição rápida de bem é restrita aos campos permitidos, com versão esperada e log;
-- encaminhamento e inventariação usam fluxo patrimonial próprio.
-
-### Despesa `A identificar`
-
-Saída bancária sem documentação suficiente pode ser registrada provisoriamente como `A identificar`.
-
-Esse estado não deve forçar NF, natureza de despesa, bem patrimonial ou consulta à Assessoria. A classificação é atualizada quando houver evidência documental.
-
-## 16. Auditoria e exportações
-
-`administrative_logs` registra eventos funcionais e `audit_events` serve à trilha técnica correspondente ao schema.
-
-Exportações institucional e SME passam por auditoria de início/conclusão e devem permanecer coerentes com o estado canônico.
-
-## 17. Ambientes
-
-### Desenvolvimento/local
-
-Supabase local, LocalStorage e fixtures descartáveis conforme o ensaio. Não representa Production.
-
-### Preview
-
-Ambiente candidato/isolado para validação. Preview não é publicação oficial.
-
-### Production
-
-Supabase Production canônico e frontend publicado na Vercel. Production é fail-closed e não usa seed/local como contingência silenciosa.
-
-Validações destrutivas não escrevem em Production; usam ambiente descartável/Preview quando necessárias.
-
-Consultar `CURRENT_STAGE.md` e o manifesto remoto para o baseline efetivo.
-
-## 18. Excel SME
-
-Contrato estável:
-
-- uma competência por arquivo;
-- uma aba;
-- 27 colunas A:AA;
-- template-fonte com 30 colunas usado somente como base visual;
-- remoção de K, R e Y na projeção pública;
-- designação como texto;
-- bordas, alinhamentos, filtro, impressão e congelamento preservados;
-- ausência deliberada de validações incompatíveis;
-- certificação OOXML e homologação desktop.
-
-## 19. Garantia operacional e ferramentas
-
-O sistema possui camadas permanentes de:
-
-- smoke geral de Production;
-- incidentes/monitoramento conforme workflows vigentes;
-- auditorias e contratos executáveis;
-- backup/restauração descartáveis;
-- gate por perfil e viewport;
-- CodeQL;
-- health checks de dependências;
-- testes de banco, Auth e RLS.
-
-Ferramentas incorporadas no ciclo de estabilização de 23/08:
-
-- `fast-check` para testes de propriedades/invariantes;
-- MSW para falhas, timeout, latência, conflito e retorno remoto incompleto;
-- `dependency-cruiser` para gate arquitetural;
-- Performance API/PerformanceObserver nativos para diagnóstico local das escritas operacionais.
-
-A integração de métricas concluída e incorporada à `main` pelo PR #194 usa probe limitada em memória e interface somente leitura `RadarOperationalWriteMetrics`. Não envia telemetria, não persiste métricas e não coleta identificadores/conteúdo de negócio. Falha da instrumentação é fail-open.
-
-A reauditoria source-first de 03/09 confirmou duas dívidas relacionadas. Primeiro, `operational-write-performance.js` ainda injeta decisões de consistência e aplicação incremental; R1 move essa autoridade para o núcleo. Depois, R2A–R2C expandem readiness sistêmico preservando `RadarProductExtensionsReady`, `radar:application-services-ready` e ADR-052, removendo apenas polling que realmente declara prontidão.
-
-A existência de um gate não o torna automaticamente obrigatório para toda alteração. A governança de testes define proporcionalidade ao risco.
-
-### Vulnerabilidades conhecidas
-
-As vulnerabilidades moderadas conhecidas na cadeia ExcelJS/UUID são risco conscientemente aceito no estado de 23/08. Não executar atualização forçada, `npm audit fix --force` ou troca rompente de biblioteca apenas para zerar o relatório. Acompanhar versões compatíveis e reavaliar se o risco ou a exposição mudar.
-
-## 20. Confiabilidade funcional ponta a ponta
-
-Uma função crítica deve ser rastreada por:
-
-```text
-superfície
-→ controle
-→ handler
-→ serviço
-→ repositório
-→ tabela/RPC/Edge Function
-→ Auth/RLS
-→ resposta
-→ estado em memória
-→ reconciliação/renderização
-→ releitura após refresh
-→ erro, conflito e compensação
-```
-
-Não declarar função concluída apenas porque o controle aparece na interface.
-
-## 21. Experiência do usuário
-
-Critérios de homologação incluem:
-
-- clareza de contexto;
-- legibilidade;
-- encontrabilidade de ações;
-- feedback de sucesso/erro;
-- coerência do dado salvo e exibido;
-- permanência após releitura;
-- navegação e retorno contextual;
-- fluidez das escritas inline sem reconstrução integral desnecessária da tela.
-
-No ciclo urgente de 22–23/08, otimização mobile não foi critério bloqueante. Mobile preserva capacidade essencial e pode voltar à prioridade por defeito real ou nova decisão explícita.
-
-## 22. Restrições permanentes
-
-Não é permitido:
-
-- alterar código para coincidir com documento histórico;
-- criar fonte paralela de competência, avaliação, timeline ou exportação;
-- voltar a filtrar automaticamente Pendências Operacionais pela competência global;
-- reintroduzir `renderProntuario()` integral como caminho normal depois de toda escrita bem-sucedida;
-- enfraquecer Auth, RLS ou autoria;
-- reintroduzir fallback silencioso local/seed em Production;
-- publicar seed institucional legado no bundle de Production;
-- transformar carteira em fronteira de segurança entre Controladores da mesma CRE;
-- ocultar capacidade essencial no mobile;
-- introduzir segredo no frontend;
-- aplicar migration sem histórico, testes e reversão proporcional ao risco;
-- editar diretamente a tabela de migrations;
-- inventar identidade institucional de escola;
-- liberar exportação sem os controles de auditoria previstos;
-- tratar PR aberto ou Preview como funcionalidade publicada;
-- declarar função pronta apenas pela presença visual;
-- forçar atualização de dependência conscientemente aceita sem avaliação de compatibilidade e risco.
-
-## 23. Referências
-
-- [`CURRENT_STAGE.md`](CURRENT_STAGE.md);
-- [`handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md`](handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md);
-- [`superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md);
-- [`reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx`](reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx);
-- [`handoff/2026-08-23-post-pr-193.md`](handoff/2026-08-23-post-pr-193.md);
-- [`handoff/2026-08-18-encerramento-operacional.md`](handoff/2026-08-18-encerramento-operacional.md);
-- [`DECISION_LOG.md`](DECISION_LOG.md);
-- [`decisions/ADR-044-pendencias-passivo-transversal.md`](decisions/ADR-044-pendencias-passivo-transversal.md);
-- [`decisions/ADR-045-production-fail-closed.md`](decisions/ADR-045-production-fail-closed.md);
-- [`superpowers/specs/2026-08-22-estabilizacao-avaliacoes-reais-design.md`](superpowers/specs/2026-08-22-estabilizacao-avaliacoes-reais-design.md);
-- [`superpowers/specs/2026-08-23-continuity-instrumentation-post-pr193-design.md`](superpowers/specs/2026-08-23-continuity-instrumentation-post-pr193-design.md);
-- [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md);
-- [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md);
-- [`architecture/product-extensions-load-order.md`](architecture/product-extensions-load-order.md);
-- [`architecture/testing.md`](architecture/testing.md);
-- [`architecture/supabase-readiness.md`](architecture/supabase-readiness.md);
-- [`runbooks/SUPABASE_CONNECTION.md`](runbooks/SUPABASE_CONNECTION.md).
+ADR-051, sobre hardening adicional de escrita direta em `registered_invoices`, permanece deliberadamente adiada e não deve ser inserida oportunisticamente nas frentes funcionais atuais.
