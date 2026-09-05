@@ -116,12 +116,25 @@ export function buildInviteMetadata(command) {
     if (!['controller', 'inventory'].includes(profileId) || !text(entity.id) || !text(entity.name)) {
         throw new Error('Comando de convite inválido.');
     }
+    const operationId = text(command?.administrativeLog?.id);
     return {
         display_name: text(entity.name),
         radar_profile: profileId,
         radar_entity_id: text(entity.id),
-        radar_cre_scope: text(entity.cre_scope) || '4ª CRE'
+        radar_cre_scope: text(entity.cre_scope) || '4ª CRE',
+        ...(operationId ? { radar_account_operation_id: operationId } : {})
     };
+}
+
+export function canCompensateAmbiguousInvite(user, command) {
+    const operationId = text(command?.administrativeLog?.id);
+    const profileId = text(command?.profileId);
+    const entityId = text(command?.entity?.id);
+    const metadata = user?.user_metadata || {};
+    if (!operationId || !profileId || !entityId) return false;
+    return text(metadata.radar_account_operation_id) === operationId
+        && text(metadata.radar_profile) === profileId
+        && text(metadata.radar_entity_id) === entityId;
 }
 
 export const TEAM_ACCOUNT_OPERATIONS = Object.freeze([...OPERATIONS]);
