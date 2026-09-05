@@ -20,11 +20,12 @@ function fixtureRoot() {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'radar-continuity-'));
     write(root, 'START_HERE.md', [
         '# START',
-        'Baseline: `876c5976124815d2848f7d2d9e8a82b7cd3a43c5`',
+        'Baseline funcional: PR #260 / `8fc58926565a72465980143f253f0a2fee4b8fc2`',
         'docs/CURRENT_STATE.md',
         'docs/MASTER_PLAN_CURRENT.md',
         'docs/PLAN_TRACEABILITY.md',
-        'PR #262 foi ABORTADO E FECHADO SEM MERGE.'
+        'PR #262 foi ABORTADO E FECHADO SEM MERGE.',
+        'PR #263 é documental e não muda regra funcional.'
     ].join('\n'));
     write(root, 'README.md', '# README\n\nPrimeira leitura: [START_HERE.md](START_HERE.md)\n');
     write(root, 'AGENTS.md', '# AGENTS\n\nPrimeira leitura: [START_HERE.md](START_HERE.md)\n');
@@ -44,6 +45,12 @@ function fixtureRoot() {
         'R9 — GATE FUTURO',
         '#254 #256 #257 #258 #260 #261',
         'PR #262 abortado sem merge'
+    ].join('\n'));
+    write(root, 'docs/audits/2026-09-05-continuity-semantic-traceability-complete.md', [
+        '# Auditoria completa',
+        'PR #260',
+        'NF permanente + número + processo existente → Encaminhada / Aguardando Inventariação',
+        'PR #254: novo envio/substituição em Aberta ou Aguardando reanálise'
     ].join('\n'));
     write(root, 'docs/superpowers/plans/2026-09-03-plano-remanescente-source-first.md', '# Antigo\n\nHISTÓRICO — NÃO EXECUTAR COMO FILA ATUAL\n');
     write(root, 'docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md', '# Mais antigo\n\nHISTÓRICO — NÃO EXECUTAR COMO FILA ATUAL\n');
@@ -96,6 +103,15 @@ test('rejeita rastreabilidade sem destino explícito para qualquer R1 a R9', asy
     assert.ok(errors.some(error => error.includes('R9')));
 });
 
+test('rejeita ausência da auditoria semântica completa', async () => {
+    const { validateContinuityDocuments } = await loadChecker();
+    const root = fixtureRoot();
+    fs.rmSync(path.join(root, 'docs/audits/2026-09-05-continuity-semantic-traceability-complete.md'));
+
+    const errors = validateContinuityDocuments(root);
+    assert.ok(errors.some(error => error.includes('2026-09-05-continuity-semantic-traceability-complete.md')));
+});
+
 test('PR com alteração funcional exige atualização de estado e rastreabilidade', async () => {
     const { validatePullRequestContinuityImpact } = await loadChecker();
 
@@ -146,4 +162,22 @@ test('documentação de bootstrap contém a extensão crítica efetivamente carr
     assert.match(bootstrap, /\/src\/integration\/critical-action-guard\.js/);
     assert.match(documentation, /14\. src\/integration\/critical-action-guard\.js/);
     assert.match(documentation, /18\. src\/integration\/operational-write-feedback\.js/);
+});
+
+test('catálogo corrente preserva os dois ramos legítimos de NF permanente', () => {
+    const root = path.resolve(__dirname, '../..');
+    const catalog = fs.readFileSync(path.join(root, 'docs/reference/PRODUCT_SURFACE_CATALOG.md'), 'utf8');
+
+    assert.match(catalog, /processo já cadastrado[\s\S]{0,160}Encaminhada/i);
+    assert.match(catalog, /NF permanente sem processo[\s\S]{0,160}Não encaminhada/i);
+    assert.match(catalog, /não é etapa obrigatória de toda NF permanente/i);
+});
+
+test('START_HERE usa baseline funcional e não exige que a main permaneça no SHA documental de entrada', () => {
+    const root = path.resolve(__dirname, '../..');
+    const start = fs.readFileSync(path.join(root, 'START_HERE.md'), 'utf8');
+
+    assert.match(start, /8fc58926565a72465980143f253f0a2fee4b8fc2/);
+    assert.match(start, /não existe mais um SHA documental fixo/i);
+    assert.doesNotMatch(start, /compare o SHA atual com `876c5976124815d2848f7d2d9e8a82b7cd3a43c5`/i);
 });
