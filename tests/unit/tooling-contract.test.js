@@ -33,7 +33,7 @@ test('mantém o renderer institucional interno e fixa ExcelJS somente para o pro
     const prettierIgnore = read('.prettierignore');
     assert.match(prettierIgnore, /^vendor\/$/m);
     assert.equal(packageJson.devDependencies.eslint, '10.9.1');
-    assert.equal(packageJson.devDependencies.knip, '6.33.0');
+    assert.equal(packageJson.devDependencies.knip, '6.34.0');
     assert.equal(packageJson.devDependencies['eslint-plugin-no-unsanitized'], '4.1.5');
     assert.equal(packageJson.devDependencies['eslint-plugin-playwright'], '2.11.0');
     assert.equal(packageJson.devDependencies.lighthouse, '13.4.1');
