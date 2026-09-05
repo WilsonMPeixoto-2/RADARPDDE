@@ -7,7 +7,7 @@
 
 ## 1. Baseline
 
-A baseline funcional do PR #260 contém **46 migrations**. A lista e a ordem reais vêm de `supabase/migrations/` e do histórico do CLI, não de uma lista manual paralela.
+O conjunto versionado contém atualmente **46** migrations e corresponde à baseline funcional do PR #260. A lista e a ordem reais vêm de `supabase/migrations/` e do histórico do CLI, não de uma lista manual paralela.
 
 Contratos estáveis:
 
