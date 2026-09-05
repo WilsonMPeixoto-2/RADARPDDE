@@ -1,151 +1,125 @@
 # RADAR PDDE — Rastreabilidade do plano pós-hotfixes
 
 **Atualizado em:** 5 de setembro de 2026  
-**Baseline de planejamento:** PR #253, plano source-first de 03/09/2026  
-**Baseline funcional posterior:** PR #260 / merge `8fc58926565a72465980143f253f0a2fee4b8fc2`  
-**Checkpoint documental de entrada:** PR #261 / `876c5976124815d2848f7d2d9e8a82b7cd3a43c5`  
-**Classe:** rastreabilidade canônica de continuidade; não é fila executável.
+**Baseline de planejamento:** PR #253  
+**Baseline funcional posterior:** PR #260 / `8fc58926565a72465980143f253f0a2fee4b8fc2`  
+**Checkpoint documental:** PR #261 / `876c5976124815d2848f7d2d9e8a82b7cd3a43c5`  
+**Classe:** rastreabilidade canônica; não é fila executável.
 
-> Para executar trabalho, comece em [`../START_HERE.md`](../START_HERE.md), aplique o [`método adversarial`](architecture/adversarial-analysis-and-implementation-method.md) e use somente [`MASTER_PLAN_CURRENT.md`](MASTER_PLAN_CURRENT.md).
+> Para executar trabalho, comece em [`../START_HERE.md`](../START_HERE.md) e use somente [`MASTER_PLAN_CURRENT.md`](MASTER_PLAN_CURRENT.md).
 
-## 1. Ponto de corte
+## 1. Linha de decisão recente
 
-O PR #253 foi o último checkpoint que havia reconciliado corretamente o plano anterior com código, hotfixes e decisões existentes naquele momento.
+```text
+#253
+→ #254 → #256 → #257 → #258 → #260 → #261
+→ #263 documental em revisão
+```
 
-Depois dele foram integrados:
+PR #262 foi **abortado/fechado sem merge**.
 
-| Ordem | PR | Papel na baseline atual |
-|---|---:|---|
-| 1 | #254 | novo envio/substituição, reabertura e integridade de Pendências/Assessoria |
-| 2 | #256 | sincronização de responsável/próximo ator nas transições |
-| 3 | #257 | derivação de `Encaminhado para Inventariação` pelas aquisições permanentes |
-| 4 | #258 | vínculo visual NF permanente ↔ bem no Prontuário |
-| 5 | #260 | persistência/reload, sequência patrimonial, sincronização atômica e guards de gesto repetido; migration #46 |
-| 6 | #261 | fechamento documental da estabilização, sem mudança de runtime |
+## 2. Regras posteriores preservadas
 
-#255 e #259 não correspondem a PRs dessa sequência. **PR #262 foi abortado e fechado sem merge** e não define regra vigente.
+### Pendências
 
-O PR #263 é a reconciliação documental/governança desta linha e não altera regra funcional, runtime ou banco.
-
-## 2. Regras posteriores que têm precedência
-
-### 2.1 Pendências e novo envio
-
-PRs #254/#256 especializaram o contrato:
-
-- `Aberta` e `Aguardando reanálise` são estados ativos;
-- primeiro envio corretivo pode partir de `Aberta`;
-- substituição pode ocorrer em `Aguardando reanálise`;
 - novo envio não resolve;
-- reanálise correta resolve; incorreta/arquivo indisponível volta a `Aberta`;
-- `Resolvida` e `Cancelada` podem ser reabertas;
-- `canceled_at` representa cancelamento terminal atual;
-- próximo ator: `Aberta → Escola`, `Aguardando reanálise → Controlador`, terminal → nenhum;
-- Consulta Assessoria permanece individual por `registered_invoice_id`;
-- universo legado não recebe análise/Pendência inventada por heurística.
+- substituição enquanto `Aguardando reanálise` é suportada;
+- `Resolvida`/`Cancelada` podem ser reabertas quando autorizado;
+- próximo ator conforme #256;
+- histórico legítimo não recebe estado inventado.
 
-### 2.2 Nota Fiscal permanente e Inventário
+### NF / Assessoria / `a_identificar`
 
-PRs #257/#258/#260 formam o contrato atual:
+- individualização por `registered_invoice_id`;
+- `a_identificar` novo atômico `Incorreto + Pendência`;
+- identificação preserva ID;
+- Assessoria individual por NF de serviço;
+- Boleto Internet é tipo de gasto em NF de Educação Conectada.
 
-1. NF/despesa permanente cria e vincula bem;
-2. com número fiscal e processo existente, bem novo entra `Encaminhada` / **Aguardando Inventariação**;
-3. sem processo, entra `Não encaminhada`;
-4. se está `Não encaminhada`, não pode pular para `Inventariada`;
-5. `encampInventario`: nenhuma permanente = N/A; alguma não encaminhada = Não; todas encaminhadas/inventariadas = Sim;
-6. mudança patrimonial não aprova análise técnica por herança;
-7. Prontuário mostra NF ↔ bem por identidade técnica;
-8. encaminhamento posterior persiste bem + verificação + log atomicamente;
-9. número fiscal do bem derivado não é editado isoladamente;
-10. encaminhamento/inventariação têm guard contra repetição imediata.
+### Inventário
 
-A auditoria adversarial posterior revelou um defeito **não previsto por essa linha de decisão**: salvar novamente uma NF de bem já `Inventariada` pode reaplicar a regra de nascimento e rebaixar o status para `Encaminhada`. Isso não altera a regra aprovada; é bug da implementação atual a corrigir em PR funcional próprio.
+- permanente + número + processo existente → bem novo `Encaminhada`;
+- permanente sem processo → `Não encaminhada`;
+- somente o ramo `Não encaminhada` exige a sequência completa até `Inventariada`;
+- `encampInventario` derivado do conjunto;
+- vínculo NF ↔ bem por identidade técnica;
+- encaminhamento posterior atômico.
 
-### 2.3 Confiabilidade funcional do PR #260
+## 3. Auditoria adversarial de 05/09 e mudança do plano
 
-O PR #260 deixou jornadas reais para NF, patrimônio, avaliação, Pendências e reload. Essas provas permanecem válidas para os cenários que exercitam.
+Depois do fechamento documental inicial do PR #263, a auditoria Codex/Astra Ultra encontrou defeitos e riscos fora da cobertura conhecida.
 
-A auditoria adversarial mostrou, porém, que **não podem ser usadas como prova de cobertura de combinações não exercitadas**. Exemplo: uma suíte verde de NF↔Inventário não cobria necessariamente `inventariar → voltar à NF → salvar novamente`.
+Isso **não revoga** as regras posteriores acima. Revoga a presunção de que gates/documentação verdes eram suficientes para declarar ausência de defeitos desconhecidos.
 
-## 3. Matriz R1–R9 × estado pós-hotfixes e pós-auditoria adversarial
+Documentos obrigatórios:
 
-| Fase do PR #253 | Estado atual | Efeito posterior | Destino |
-|---|---|---|---|
-| **R1 — retirar autoridade funcional de wrappers de performance** | **PENDENTE** | Astra confirmou que performance ainda participa de correção | **Frente 1** |
-| **R2 — readiness sistêmico** | **PENDENTE / REFORMULADO** | preservar guards e provar capacidade instalada, não só Promise/script | **Frente 2** |
-| **R3 — IDs + intent + idempotência NF + RPC v2** | **PENDENTE COM ESCOPO REDUZIDO** | #260 resolveu repetição imediata; retry/idempotência durável continuam | **Frente 3** |
-| **R4 — semântica única de Pendências** | **PARCIAL / EXIGE DECISÃO** | transições estão corretas; data/idade divergem em contraexemplo real | **Frente 0D → Frente 4** |
-| **R5 — save/remove NF remoto autoritativo/incremental** | **PENDENTE / REFORMULADO** | novo bug prova necessidade de preservar estados patrimoniais avançados | **Frente 0B → Frente 5** |
-| **R6 — gate de equivalência** | **GATE FUTURO** | agora precisa incluir cross-view e cross-flow adversarial | **Frente 6** |
-| **R7 — instrumentação causal** | **PENDENTE** | unchanged | **Frente 7A** |
-| **R8 — otimizações medidas** | **CONDICIONAL** | unchanged | **Frente 7B** |
-| **R9 — fechamento/rebaseline** | **GATE FUTURO** | fechamento exige “o que tentamos para provar que ainda estava errado?” | **Frente 8** |
+- [`architecture/adversarial-analysis-and-implementation-method.md`](architecture/adversarial-analysis-and-implementation-method.md);
+- [`architecture/adversarial-analysis-replication-playbook.md`](architecture/adversarial-analysis-replication-playbook.md);
+- [`audits/2026-09-05-astra-adversarial-findings.md`](audits/2026-09-05-astra-adversarial-findings.md);
+- [`audits/2026-09-05-astra-artifact-package-review.md`](audits/2026-09-05-astra-artifact-package-review.md).
 
-## 4. O que os hotfixes já fizeram e não volta como tarefa autônoma
+### Achados que alteram prioridade
 
-- `Incorreto + Pendência` atômicos;
-- individualização fiscal/Assessoria por invoice;
-- novo envio/substituição e reabertura do #254;
-- próximo ator do #256;
-- `encampInventario` do #257;
-- vínculo visual NF ↔ bem do #258;
-- sincronização patrimonial atômica e bloqueio de edição isolada do #260;
-- guards de gesto repetido;
-- jornadas reais de persistência/reload;
-- 46 migrations da baseline funcional;
-- redesign histórico de Pendências;
-- documento autônomo Boleto Internet;
-- deduplicação de NF por conteúdo;
-- backfill heurístico dos `a_identificar` legítimos;
-- hardening ADR-051 dentro da frente funcional atual.
+1. **P1 patrimônio:** save da NF pode rebaixar bem `Inventariada` para `Encaminhada`;
+2. **P1 exportação:** botão Excel SME pode contornar auditoria pré-download;
+3. **decisão Pendências:** idade total × tempo do ator atual;
+4. **decisão/investigação exportação:** CSV × XLSX institucional;
+5. **riscos arquiteturais:** renderer legado de Pendências, projeções duplicadas, performance/readiness com autoridade funcional/ambígua, testes/documentos antigos perigosos.
 
-Os novos achados não autorizam reabrir esses contratos sem evidência específica.
+## 4. Matriz R1–R9 após a auditoria Astra
 
-## 5. Auditoria semântica de continuidade × auditoria adversarial
+| Fase antiga | Situação | Destino atual |
+|---|---|---|
+| R1 autoridade funcional em performance | continua real e reforçada pelo Astra | Frente 1, depois da Frente 0 |
+| R2 readiness | continua real; Promise não equivale capability instalada | Frente 2 |
+| R3 IDs/intenção/idempotência NF | continua pendente com escopo reduzido | Frente 3 |
+| R4 projeção Pendências | duplicação confirmada; semântica de idade exige decisão antes de unificar | Frente 4, condicionada à 0D |
+| R5 save/remove NF | continua pendente; agora deve preservar explicitamente estado patrimonial avançado | Frente 5, depois do hotfix 0B |
+| R6 equivalência | permanece gate | Frente 6 |
+| R7 instrumentação causal | pendente | Frente 7A |
+| R8 otimizações | condicional | Frente 7B |
+| R9 fechamento | infraestrutura existe, critério de fechamento ficou mais rigoroso | Frente 8 |
 
-A auditoria de continuidade de 05/09 reconstruiu corretamente a linha de decisões e corrigiu grande parte da documentação concorrente:
+## 5. Frente 0 adicionada
 
-[`audits/2026-09-05-continuity-semantic-traceability-complete.md`](audits/2026-09-05-continuity-semantic-traceability-complete.md)
+A auditoria Astra criou prioridade anterior às antigas frentes:
 
-Ela permanece válida como **reconciliação histórica/semântica**, mas sua condição de “completa” não deve ser interpretada como prova de ausência de bugs desconhecidos.
+```text
+0A — método/documentação/artefatos
+→ 0B — hotfix patrimonial
+→ 0C — hotfix auditoria Excel SME
+→ 0D — decisões/probes Pendências e CSV
+→ Frentes 1–8
+```
 
-A auditoria adversarial posterior encontrou problemas adicionais ao procurar contraexemplos, paths paralelos e combinações entre fluxos:
+## 6. O que o pacote Astra acrescentou à rastreabilidade
 
-[`audits/2026-09-05-astra-adversarial-findings.md`](audits/2026-09-05-astra-adversarial-findings.md)
+O pacote preservado demonstrou o procedimento real usado:
 
-Principais efeitos no plano:
+- inventário de 840 arquivos naquele checkout;
+- varredura textual integral por classes de risco;
+- mapa AST/SQL com 3.797 funções, 151 chamadas relevantes, 88 definições SQL, 57 nomes distintos e 0 erros de parse;
+- divisão semântica em três recortes complementares;
+- probes com código real e mocks periféricos;
+- comparação entre suíte verde e lacunas de composição;
+- coleta remota de migrations/deployments/funções/integridade;
+- normalização do ambiente com `npm ci` após detectar dependências reaproveitadas divergentes;
+- preservação progressiva em `outputs/` e `work/`.
 
-- **Frente 0B:** bug patrimonial `Inventariada → Encaminhada`;
-- **Frente 0C:** bypass de auditoria pré-download no Excel SME;
-- **Frente 0D:** decisão sobre idade total × espera do ator e política CSV × XLSX;
-- Frontes 1–8 passam a usar método adversarial obrigatório;
-- gates verdes deixam de ser critério suficiente de encerramento.
+Esse procedimento é agora requisito metodológico, não curiosidade histórica.
 
-## 6. Achados documentais/testes a absorver
+## 7. Regra para próximos PRs funcionais
 
-A auditoria adversarial também identificou:
+Todo PR funcional deve:
 
-- matriz apontando para migration/RPC superada;
-- documento de competências anterior à exceção transversal de Pendências;
-- documentação de exportação ainda descrevendo histórico multicompetência;
-- títulos de testes ativos com regra revogada (`somente resolvida`);
-- expectativa histórica de desativação de Controlador com transferência;
-- teste que manipula `activeCompetenciaKey` diretamente;
-- planos históricos de `a_identificar` ainda reutilizáveis fora de contexto;
-- renderer legado de Pendências potencialmente executável por composição.
+1. confirmar baseline e PRs sucessores;
+2. reproduzir/classificar o problema;
+3. procurar autoridade concorrente e estado avançado afetado;
+4. aplicar TDD e composição real;
+5. testar persistência/reload quando material;
+6. tentar produzir contraexemplo após a correção;
+7. atualizar `CURRENT_STATE.md`;
+8. registrar aqui o efeito sobre as frentes;
+9. atualizar `MASTER_PLAN_CURRENT.md` quando o trabalho remanescente mudar.
 
-Esses itens são rastreados como documentação/teste/dívida arquitetural; não viram hotfix funcional automaticamente.
-
-## 7. Regra para próximos PRs
-
-Quando um novo PR funcional for integrado:
-
-1. comparar seu efeito com `MASTER_PLAN_CURRENT.md`;
-2. atualizar `CURRENT_STATE.md`;
-3. registrar aqui se concluiu, reduziu, reformulou, substituiu ou não afetou uma frente;
-4. atualizar `MASTER_PLAN_CURRENT.md`;
-5. atualizar o ledger de achados adversariais correspondente;
-6. atualizar documentos correntes diretamente afetados;
-7. só depois retomar a fila planejada.
-
-O plano deve acompanhar a decisão posterior aprovada. **Não reverter o produto para caber num plano histórico.**
+O plano acompanha decisões posteriores comprovadas. O produto não é revertido para caber em histórico.
