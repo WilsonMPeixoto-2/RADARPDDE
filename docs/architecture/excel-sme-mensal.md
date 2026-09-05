@@ -1,33 +1,37 @@
 # Exportação Excel SME mensal
 
-**Estado:** contrato público de 27 colunas, renderer ExcelJS, integração, auditoria obrigatória, certificação, homologação desktop e publicação concluídos  
-**Atualizado em:** 7 de agosto de 2026
+**Estado:** contrato funcional/visual preservado; existe P1 de composição da auditoria ainda não corrigido  
+**Atualizado em:** 5 de setembro de 2026
+
+> Leia primeiro [`../../START_HERE.md`](../../START_HERE.md). A descrição anterior deste arquivo afirmava que o botão real já seguia integralmente a auditoria pré-download. A auditoria adversarial de 05/09/2026 demonstrou que isso não está comprovado e reproduziu caminho divergente.
 
 ## 1. Finalidade
 
-O botão **Excel SME** gera uma tradução do modelo operacional da SME com os dados canônicos do RADAR para uma única competência mensal.
+O botão **Excel SME** gera uma tradução do modelo operacional da SME para **uma única competência mensal ativa**.
 
-O produto é independente do relatório institucional:
+Contrato do produto:
 
-- **Excel SME:** uma competência, uma aba e uma linha por unidade escolar;
-- **relatório institucional XLSX:** histórico, quatro abas e uma linha por escola × competência × programa consolidado;
-- **CSV institucional:** formato legado preservado como contingência.
+- uma competência;
+- uma aba;
+- uma linha por unidade escolar;
+- 27 colunas A:AA;
+- dados, aba e nome de arquivo derivados da mesma `activeCompetenciaKey`.
+
+O produto é independente do CSV e do XLSX institucional.
 
 ## 2. Regra temporal
 
-A geração exige `activeCompetenciaKey` no formato `YYYY-MM`.
+A geração exige competência válida `YYYY-MM`.
 
-- competência mensal válida: geração habilitada;
-- `TODAS`: geração desabilitada;
-- valor inexistente, inválido ou divergente da interface: geração bloqueada.
+- competência mensal válida: habilita;
+- `TODAS`: bloqueia;
+- valor ausente/inválido/divergente: bloqueia.
 
 Arquivo:
 
 ```text
 RADAR_PDDE_EXCEL_SME_MM-AAAA.xlsx
 ```
-
-A única aba recebe o nome do mês em português.
 
 ## 3. Contrato público de 27 colunas
 
@@ -43,153 +47,110 @@ A única aba recebe o nome do mês em português.
 | Z | parecer |
 | AA | observações |
 
-As colunas técnicas `SISTEMÁTICA PREENCHIDA`, presentes nas posições-fonte K, R e Y do template original, são eliminadas antes da geração final.
+O template-fonte possui 30 colunas. O renderer remove exclusivamente as três colunas `SISTEMÁTICA PREENCHIDA` nas posições-fonte K, R e Y e valida o resultado de 27 colunas.
 
-Os campos administrativos posteriores são preservados e deslocados para W:AA. Campos sem fonte canônica permanecem vazios; a exportação não inventa conteúdo.
+Campos sem fonte canônica permanecem vazios. A exportação não inventa conteúdo.
 
-## 4. Projeção do template-fonte
+## 4. Integração funcional preservada
 
-O template `assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx` possui 30 colunas e não é publicado diretamente como produto preenchido.
+Continuam válidos:
 
-O renderer:
-
-1. valida as posições 25, 18 e 11;
-2. remove Y, R e K em ordem decrescente;
-3. valida os 27 cabeçalhos finais;
-4. reconstrói as linhas com o cadastro atual;
-5. limita conteúdo, filtro, impressão, bordas e estilos a A:AA.
-
-## 5. Mapeamento das contas
-
-| Conta SME | Programas do RADAR |
-|---|---|
-| PDDE Básico | `BASIC` |
-| PDDE Qualidade | `CONECTADA`, `PROEC`, `ED_FAMILIA`, `ADOLESCENCIAS`, `LEITURA`, `TEMPO_APRENDER` |
-| PDDE Equidade | `RECURSOS` |
-
-## 6. Consolidação documental
-
-Quando mais de um programa pertence à mesma conta:
-
-1. `NÃO`, se ao menos um programa possui `Não`;
-2. `SIM`, quando não existe `Não` e há `Sim`;
-3. `NÃO SE APLICA`, quando todos os informados são `Não se aplica`;
-4. vazio, sem consolidação ou valor.
-
-## 7. Apresentação
-
-- 27 cabeçalhos;
-- mesclagem `A1:B1`;
-- borda fina completa;
-- designação como texto `XX.XX.XXX`, formato `@`;
-- unidade, parecer e observações alinhados à esquerda;
-- valores categóricos centralizados;
-- cabeçalho centralizado horizontal e verticalmente;
-- quebra automática e recuo zero;
-- altura 105;
-- congelamento `E2`;
-- filtro e impressão em A:AA;
+- carregamento sob demanda do ExcelJS/template;
+- validação de manifesto/hash;
+- retry de falha de carregamento;
+- bloqueio de clique concorrente;
 - uma aba mensal;
-- nenhuma linha, coluna, fórmula ou validação oculta adicionada.
+- 27 colunas A:AA;
+- designação textual;
+- ausência deliberada de `dataValidations` incompatíveis;
+- bordas/filtro/impressão dentro de A:AA.
 
-`dataValidations` permanecem deliberadamente ausentes porque a estrutura anterior provocava reparo no Microsoft Excel.
+Esses contratos possuem cobertura e não foram revogados pela auditoria adversarial.
 
-## 8. Integração e auditoria
+## 5. Auditoria pré-download — contrato desejado
 
-`excel-export-integration.js` resolve competência, estado dos botões, runtime e download. A camada carregada em seguida, `excel-export-audit.js`, controla a auditoria funcional.
-
-Percurso vigente:
+A regra de negócio permanece:
 
 ```text
 clique no Excel SME
-→ RadarExcelExportAudit
-→ AuditService.record('Exportação Excel Iniciada')
-→ confirmação obrigatória
-→ ExcelSmeRuntime.generate
+→ persistir evento inicial de auditoria
+→ confirmar sucesso
+→ gerar workbook
 → download
-→ AuditService.record('Relatório Excel SME Exportado')
+→ registrar conclusão
 ```
 
-Regras:
+Se o registro inicial falhar, **nenhum download deveria ocorrer**.
 
-- falha da auditoria inicial bloqueia o download;
-- o filtro de compatibilidade impede duplicação do evento legado durante a geração;
-- falha de geração não registra conclusão;
-- falha da auditoria final depois de arquivo gerado é reportada separadamente;
-- clique concorrente continua bloqueado pela integração.
+## 6. P1 conhecido: botão real contorna a autoridade auditada
 
-## 9. Publicação
+A auditoria Astra reproduziu em composição que:
 
-O runtime carrega sob demanda:
+- `RadarExcelExportAudit` bloqueia corretamente o entrypoint auditado quando a persistência inicial falha;
+- `excel-export-integration.js` cria o botão SME com uma closure privada `exportSmeXlsx`;
+- essa closure pode executar `download` e depois o caminho legado de log/persistência;
+- a interceptação da camada auditada não reconhece o clone SME da mesma forma que os botões da Assistente;
+- portanto, o botão real pode baixar antes de confirmar a auditoria inicial.
+
+Probe preservado na auditoria:
 
 ```text
-/assets/templates/CRE_04_CONTROLE_ONEDRIVE2026.xlsx
+botão SME integrado + falha de auditoria
+→ download → legacy-log → legacy-persist
+
+entrypoint auditado + mesma falha
+→ audit-failed
+→ nenhum download
 ```
 
-O build publica também manifesto e ExcelJS com tamanho e SHA-256. Alteração de caminho, nome ou conteúdo exige atualização conjunta de runtime, build, manifesto, testes e smoke.
+**Importante:** o defeito foi reproduzido na composição de código com renderer sintético. Ainda não é afirmação de incidente observado em Production. A correção funcional será feita em PR próprio.
 
-## 10. Certificação
+## 7. Lacuna de teste atual
+
+O E2E existente comprova:
 
 ```text
-competência
-→ modelo de 27 colunas
-→ projeção do template
-→ workbook
-→ reabertura pelo ExcelJS
-→ OOXML
-→ valores e formatos
-→ hashes
+clicar botão real
+→ gerar
+→ baixar
+→ validar workbook
 ```
 
-Critérios:
+Ele **não** comprova:
 
-- uma competência e uma aba;
-- 27 colunas;
-- nenhuma `SISTEMÁTICA PREENCHIDA`;
-- quantidade correta de escolas;
-- designação textual;
-- grade completa;
-- cabeçalho normalizado;
-- filtro e impressão A:AA;
-- ausência de `dataValidations`;
-- isolamento temporal.
+```text
+clicar botão real
+→ auditoria inicial falha
+→ nenhum download
+```
 
-## 11. Homologação final
+Esse segundo cenário passa a ser obrigatório para fechamento da correção.
 
-O contrato atual foi:
+## 8. Certificação futura da correção
 
-- gerado pelo botão real;
-- reaberto pelo ExcelJS;
-- inspecionado no pacote OOXML;
-- validado em desktop, Android e iPhone;
-- aberto no Microsoft Excel desktop sem reparo;
-- aprovado visualmente;
-- publicado em Production.
+O hotfix deverá provar:
 
-Nova alteração material de estrutura, estilo ou motor exige novo candidato e nova abertura humana antes de publicação.
+1. clique pelo botão real;
+2. falha inicial injetada;
+3. zero download;
+4. zero log de conclusão;
+5. interface recuperável para nova tentativa;
+6. sucesso normal continua gerando o workbook de 27 colunas;
+7. competência, nome do arquivo e conteúdo continuam alinhados;
+8. reload não é necessário para recuperar o botão.
 
-## 12. Contratos protegidos
+## 9. Relação com outras exportações
 
-- competência mensal única;
-- uma linha por unidade;
-- 27 colunas A:AA;
-- remoção exclusiva de K, R e Y no template-fonte;
-- preservação dos campos posteriores;
-- três grupos de seis documentos;
-- nenhuma informação inventada;
-- designação textual;
-- ausência de `dataValidations`;
-- isolamento temporal;
-- template, manifesto e runtime no artefato;
-- auditoria inicial antes do download;
-- ausência de duplicação do log legado;
-- smoke HTTP e funcional após deployment.
+- **XLSX institucional:** decisão posterior usa competência global ativa;
+- **Excel SME:** competência global ativa, uma aba/27 colunas;
+- **CSV:** política temporal/auditoria ainda precisa de decisão própria;
+- **Pendências XLSX:** segue filtros locais da fila.
 
-## 13. Referências
+Não generalizar equivalência entre esses produtos.
 
-- [`excel-integral-certification.md`](excel-integral-certification.md);
+## 10. Referências
+
 - [`excel-export.md`](excel-export.md);
 - [`excel-xlsx-runtime.md`](excel-xlsx-runtime.md);
-- [`frontend-load-order.md`](frontend-load-order.md);
-- [`avaliacao-mensal.md`](avaliacao-mensal.md);
-- [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md).
+- [`adversarial-analysis-and-implementation-method.md`](adversarial-analysis-and-implementation-method.md);
+- [`../audits/2026-09-05-astra-adversarial-findings.md`](../audits/2026-09-05-astra-adversarial-findings.md).
