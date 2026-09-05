@@ -286,5 +286,43 @@ test.describe.serial('Confiabilidade funcional com Supabase real descartável', 
       invoiceNumber: created.invoiceNumber,
       inventoryDelivery: 'Sim'
     });
+
+    const resavedAfterInventory = await page.evaluate(async context => {
+      const result = await window.RadarApplicationServices.invoices.save({
+        id: context.invoiceId,
+        schoolId: context.schoolId,
+        compKey: context.compKey,
+        description: 'Impressora de confiabilidade funcional',
+        expenseType: 'permanente',
+        invoiceNumber: context.invoiceNumber,
+        amount: 2000,
+        profile: 'controlador'
+      });
+      const assets = await window.RadarApplicationServices.data.repository.load('assets');
+      const asset = assets.find(item => item.id === context.assetId);
+      return {
+        ok: result?.ok === true,
+        unchanged: result?.value?.unchanged === true,
+        status: asset?.status,
+        responsibleId: asset?.inventoried_by_member_id,
+        inventoriedAt: asset?.inventoried_at
+      };
+    }, created);
+    expect(resavedAfterInventory.ok).toBe(true);
+    expect(resavedAfterInventory.unchanged).toBe(true);
+    expect(resavedAfterInventory.status).toBe('Inventariada');
+    expect(resavedAfterInventory.responsibleId).toBe('inventory-local');
+    expect(resavedAfterInventory.inventoriedAt).toBeTruthy();
+
+    await page.reload();
+    await waitForRestoredController(page);
+    expect(await page.evaluate(context => ({
+      status: bens.find(item => item.id === context.assetId)?.status,
+      responsibleId: bens.find(item => item.id === context.assetId)?.inventariadorId,
+      inventoriedAt: bens.find(item => item.id === context.assetId)?.dataInventariacao
+    }), created)).toMatchObject({
+      status: 'Inventariada',
+      responsibleId: 'inventory-local'
+    });
   });
 });
