@@ -158,6 +158,7 @@
     function completeLoad(targets) {
         return loadScripts(targets)
             .then(() => waitForCriticalExtensions())
+            .then(() => failedScripts.size === 0)
             .catch(error => {
                 root.RADAR_LAST_PRODUCT_EXTENSION_ERROR = error;
                 root.console?.error?.('Não foi possível inicializar as extensões críticas do RADAR.', error);
