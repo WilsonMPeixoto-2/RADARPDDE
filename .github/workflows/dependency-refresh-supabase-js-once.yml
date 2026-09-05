@@ -1,0 +1,77 @@
+name: Atualização única Supabase JS
+
+on:
+  push:
+    branches:
+      - maintenance/dependency-refresh-adversarial-2026-09-05
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-supabase-js:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+
+      - name: Node 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+
+      - name: Baseline limpa
+        run: npm ci
+
+      - name: Atualizar Supabase JS e contratos de versão
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --save-dev --save-exact @supabase/supabase-js@2.115.0
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const files = [
+            'tests/unit/supabase-modernization.test.js',
+            'supabase/functions/team-account-management/index.ts'
+          ];
+          for (const file of files) {
+            const source = fs.readFileSync(file, 'utf8');
+            const next = source.replaceAll('2.112.4', '2.115.0');
+            if (next === source) throw new Error(`Versão 2.112.4 não encontrada em ${file}`);
+            fs.writeFileSync(file, next);
+          }
+          NODE
+          npm run build:supabase-client
+
+      - name: Verificar bundle e contratos
+        run: |
+          npm ci
+          npm run check
+          npm run check:generated
+          npm run test:unit
+          npm run test:integration
+          npm run typecheck:database
+          npm run analyze:unused
+
+      - name: Registrar auditoria pós-atualização
+        shell: bash
+        run: |
+          mkdir -p dependency-health
+          npm outdated --json > dependency-health/npm-outdated-after-supabase-js-2026-09-05.json 2>&1 || true
+          npm audit --json > dependency-health/npm-audit-after-supabase-js-2026-09-05.json 2>&1 || true
+          npm ls @supabase/supabase-js > dependency-health/supabase-js-tree-2026-09-05.txt
+          cat dependency-health/npm-outdated-after-supabase-js-2026-09-05.json
+          cat dependency-health/npm-audit-after-supabase-js-2026-09-05.json
+
+      - name: Persistir atualização
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/dependency-refresh-supabase-js-once.yml
+          git add package.json package-lock.json vendor/supabase-client.js supabase/functions/team-account-management/index.ts tests/unit/supabase-modernization.test.js dependency-health/npm-outdated-after-supabase-js-2026-09-05.json dependency-health/npm-audit-after-supabase-js-2026-09-05.json dependency-health/supabase-js-tree-2026-09-05.txt
+          git commit -m 'chore(deps): atualizar Supabase JS para 2.115.0'
+          git push origin HEAD:maintenance/dependency-refresh-adversarial-2026-09-05
