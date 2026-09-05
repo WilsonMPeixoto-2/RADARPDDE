@@ -131,6 +131,7 @@
         }
 
         const process = text(input.school?.processoInventario);
+        const inventoried = text(currentAsset?.status) === 'Inventariada';
         const programName = text(input.program?.name) || request.programId;
         const assetId = text(
             currentAsset?.id
@@ -146,11 +147,13 @@
         desiredAsset.tipo = 'permanente';
         desiredAsset.valor = request.amount;
         desiredAsset.notaFiscal = request.invoiceNumber;
-        desiredAsset.processoInventario = process;
+        desiredAsset.processoInventario = inventoried
+            ? text(currentAsset?.processoInventario)
+            : process;
         // Inventariada é estado patrimonial terminal. Salvar/editar a NF vinculada
         // pode atualizar os dados derivados do bem, mas nunca reexecutar a regra de
-        // nascimento e rebaixar uma inventariação já concluída.
-        desiredAsset.status = text(currentAsset?.status) === 'Inventariada'
+        // nascimento nem reatribuir o processo de uma inventariação já concluída.
+        desiredAsset.status = inventoried
             ? 'Inventariada'
             : request.invoiceNumber && process
                 ? 'Encaminhada'
