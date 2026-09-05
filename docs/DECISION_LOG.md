@@ -1,702 +1,284 @@
-# RADAR PDDE — Registro de decisões
+# RADAR PDDE — Registro corrente de decisões
 
-**Atualizado em:** 3 de setembro de 2026
+**Atualizado em:** 5 de setembro de 2026  
+**Classe:** ledger de decisões vigentes e sucessão; não é fila executável
 
-Este documento registra decisões duradouras. Não é diário de commits. Uma decisão somente é substituída por decisão expressa com impacto e status documentados.
+> Para retomar o projeto, comece em [`../START_HERE.md`](../START_HERE.md). O único plano executável está em [`MASTER_PLAN_CURRENT.md`](MASTER_PLAN_CURRENT.md). Este arquivo registra **o que foi decidido**, não **o que executar a seguir**.
 
-## Convenções
+## 1. Regra de manutenção
 
-- **Aprovada:** vigente;
-- **Aprovada e implementada:** vigente e refletida no produto;
-- **Cumprida:** gate ou condição já satisfeita;
-- **Substituída:** outra decisão passou a prevalecer;
-- **Revogada:** deixou de valer;
-- **Proposta:** depende de decisão.
+Uma decisão permanece válida até ser expressamente substituída, especializada ou limitada por decisão/hotfix posterior.
 
----
+Quando uma decisão posterior muda apenas parte de uma ADR, a ADR não é descartada inteira: registra-se a cláusula substituída e preserva-se o restante compatível.
 
-## ADR-001 — Contrato único de repositório
+O histórico detalhado anterior permanece nos ADRs, handoffs, evidências e no histórico Git. Este ledger corrente evita que a próxima sessão tenha de deduzir a regra vigente pela ordem de dezenas de arquivos.
 
-**Status:** Aprovada e implementada; contingência de Production refinada pela ADR-045
+## 2. Governança de continuidade
 
-`LocalStorageRepository` e `SupabaseRepository` implementam o mesmo contrato. Interface e serviços não dependem do mecanismo concreto.
+### GOV-01 — uma única porta de entrada
 
-**Consequência atual:** Supabase é canônico em Production. LocalStorage permanece para desenvolvimento e testes explicitamente configurados; Production não usa fallback local silencioso.
+**Status:** vigente
 
----
+Toda sessão nova começa em `START_HERE.md`, confirma a `main` remota e só depois lê estado, plano e rastreabilidade.
 
-## ADR-002 — Production permanece local
+Não existe segunda ordem de leitura em README, handoff, ADR ou plano datado.
 
-**Status:** Substituída pela ADR-023
+### GOV-02 — hotfix posterior emenda o plano anterior
 
-Production permaneceu local durante o gate de pré-conexão. A decisão cumpriu sua finalidade de proteção e não representa o ambiente atual.
+**Status:** vigente
 
----
+Quando um hotfix deliberadamente aprovado altera uma superfície, sua decisão prevalece sobre a redação anterior do plano nessa superfície. Antes de retomar a fila planejada, o estado, a rastreabilidade e o plano sucessor precisam absorver o hotfix.
 
-## ADR-003 — Primeira conexão em Preview exclusivo
+O produto não é revertido para “voltar a combinar” com um plano histórico.
 
-**Status:** Substituída pela ADR-023 quanto ao estágio; vigente como regra de ativação
+### GOV-03 — auditoria não altera regra por inferência
 
-Mudança nova de infraestrutura deve ser validada primeiro em ambiente isolado. Preview aprovado não autoriza automaticamente Production.
+**Status:** vigente
 
----
+Auditoria primeiro classifica o comportamento atual. Teste, wording de PR ou plano histórico não criam regra de negócio por conta própria. Divergência entre fontes atuais deve ser investigada antes de qualquer mudança funcional.
 
-## ADR-004 — Quatro perfis funcionais visíveis
+## 3. Linha recente de sucessão do plano
 
-**Status:** Aprovada e implementada
+### Checkpoint PR #253 — 03/09
 
-O seletor operacional apresenta Controlador, Assistente de Verbas Federais, SME (Gestão) e Equipe de Inventário. `technical_admin` não é quinto perfil funcional visível.
+O plano source-first R1–R9 foi a reconciliação correta do plano anterior com o estado conhecido naquele momento.
 
----
+### Emendas posteriores
 
-## ADR-005 — Administrador técnico separado da Assistente
-
-**Status:** Aprovada e implementada
-
-`technical_admin` opera infraestrutura, perfis, escopos, importações e auditoria. Não recebe identidade nem operação cotidiana da Assistente.
-
----
-
-## ADR-006 — Assistente lidera e administra a equipe da CRE
-
-**Status:** Aprovada e implementada
-
-A Assistente pode cadastrar, editar, convidar, desativar e redistribuir Controladores e integrantes do Inventário dentro do escopo autorizado, com efeitos em persistência, Auth e auditoria.
-
-A atribuição anterior de manutenção cotidiana à SME está substituída.
-
----
-
-## ADR-007 — Cadastro de integrante inclui convite e conta
-
-**Status:** Aprovada e implementada
-
-O cadastro cria ou atualiza diretório, conta Auth, perfil e vínculo funcional, impede duplicidade e registra auditoria. Desativação bloqueia acesso e preserva histórico. Falha parcial exige compensação.
-
----
-
-## ADR-008 — Gestão de contas ocorre em backend protegido
-
-**Status:** Aprovada e implementada
-
-O navegador chama Edge Function autenticada. Auth Admin e RPCs privilegiadas permanecem server-side. `service_role` ou segredo equivalente nunca chega ao frontend.
-
----
-
-## ADR-009 — SME exerce acompanhamento gerencial
-
-**Status:** Aprovada
-
-A SME acompanha CREs, dados consolidados e parâmetros autorizados. Não substitui a Assistente na gestão cotidiana da equipe da CRE. O recorte operacional é detalhado pela ADR-022.
-
----
-
-## ADR-010 — Exclusão física é técnica e excepcional
-
-**Status:** Aprovada e implementada
-
-Remover integrante na interface significa desativação lógica, redistribuição quando necessária, bloqueio de acesso e auditoria. `DELETE` físico permanece excepcional e técnico.
-
----
-
-## ADR-011 — Operações compostas são atômicas
-
-**Status:** Aprovada e implementada
-
-Mudanças interdependentes usam transação ou RPC: competências, escola e programas, verificação e log, reanálise, nota, bem, Gestão de Equipe, importação, promoção e rollback.
-
----
-
-## ADR-012 — Migração de dados progressiva e reversível
-
-**Status:** Aprovada
-
-Fluxo obrigatório:
+Depois do #253 foram integrados:
 
 ```text
-snapshot → validação → plano → dry-run → staging
-         → retomada → reconciliação → promoção atômica
-         → reconciliação do destino → rollback comprovado
+#254 → #256 → #257 → #258 → #260 → #261
 ```
 
-Seed local não é dado institucional e não é aplicado implicitamente em ambiente remoto.
+Esses PRs alteraram/estabilizaram o produto antes da retomada literal da fila R1–R9.
 
----
+### Evento de governança — continuidade pós-PR #260
 
-## ADR-013 — Concorrência otimista explícita
+**Status:** vigente
 
-**Status:** Aprovada e implementada
+O plano source-first de 03/09 passou a ser **histórico**. Seus itens foram reconciliados em `PLAN_TRACEABILITY.md` contra os hotfixes posteriores e o código final da baseline.
 
-Registros mutáveis usam `row_version`. Conflitos não são sobrescritos silenciosamente; o usuário deve reavaliar o estado atual.
+O sucessor é:
 
----
+**`docs/MASTER_PLAN_CURRENT.md` — único plano executável vigente.**
 
-## ADR-014 — Vercel Preview usa build prebuilt verificado
+O PR #262 foi abortado e fechado sem merge; não integra a baseline nem a linha de decisão vigente.
 
-**Status:** Aprovada
+## 4. Persistência e segurança operacional
 
-Preview conectado deve usar build verificado e manifesto próprio. Preview não usa `--prod` e não é promovido como artefato de Production.
+### ADR-023 e sucessoras — Supabase canônico
 
----
+**Status:** vigente
 
-## ADR-015 — GitHub, Vercel e Supabase são fontes operacionais
+Production usa Supabase como persistência canônica. Production é fail-closed: ausência ou inconsistência da configuração remota não autoriza seed/local fallback institucional silencioso.
 
-**Status:** Aprovada
+Auth/RLS continuam parte da autorização, não substitutos da regra de aplicação.
 
-O estado atual é determinado por código remoto, banco/autorização efetivos e deployment real. Memória de chat e documentos históricos não substituem verificação.
+### Concorrência e atomicidade
 
----
+**Status:** vigente
 
-## ADR-016 — Alterações acompanham todas as camadas
+Operações compostas usam versão esperada e RPC/transação quando o domínio exige que múltiplas entidades mudem juntas. `row_version` é metadado top-level; aliases `rowVersion`/`row_version` não pertencem ao payload de negócio.
 
-**Status:** Aprovada
+Duas NFs de mesmo conteúdo podem ser despesas legítimas distintas. Deduplicação por conteúdo continua excluída.
 
-Mudança de ação, perfil ou fluxo exige verificar interface, serviço, persistência, migration/RPC, Auth/RLS, auditoria, testes, documentação e implantação.
+## 5. Competência e navegação
 
----
+### ADR-025 — competência global
 
-## ADR-017 — Mobile preserva conteúdo e capacidade
+**Status:** vigente
 
-**Status:** Aprovada
+`RadarCompetenceContext` é a fonte do contexto mensal global. Não criar seletor concorrente.
 
-Responsividade pode reorganizar tabelas em cartões, mas não remover informações, filtros ou ações essenciais.
+Pendências é exceção deliberada: representa passivo transversal e pode abrir em todas as competências; navegar da Pendência ao Prontuário reaplica a competência de origem quando o recorte mensal volta a ser necessário.
 
----
+Navegação contextual preserva origem, filtros/rolagem/foco quando aplicável.
 
-## ADR-018 — Correções pontuais não redefinem o estágio principal
+## 6. Avaliação mensal
 
-**Status:** Aprovada
+### Independência das três dimensões
 
-Hotfix visual ou textual não substitui automaticamente a frente estrutural vigente. `CURRENT_STAGE.md` controla a sequência operacional.
+**Status:** vigente
 
----
+Bonificação, análise técnica e Pendência são dimensões independentes. Abrir/resolver Pendência não reescreve automaticamente a bonificação.
 
-## ADR-019 — Não iniciar nova frente sem encerrar a anterior
+Consolidação depende do conjunto aplicável estar preenchido e válido; retificação é operação distinta, auditável e autorizada conforme o serviço atual.
 
-**Status:** Aprovada
+### Declaração BB Ágil N/A
 
-Cada sessão ou PR declara a tarefa como concluída, bloqueada, substituída ou parcialmente concluída, com itens restantes explícitos.
+**Status:** vigente
 
----
+Declaração BB Ágil pode ser `Não se aplica` quando cabível. N/A projeta análise neutra `Correto`; sair de N/A reinicia a análise aplicável; Pendência ativa do mesmo documento bloqueia a troca para N/A.
 
-## ADR-020 — Dependências fixadas e atualizações intencionais
+Extratos de Conta Corrente/Investimento não recebem essa exceção.
 
-**Status:** Aprovada; risco conhecido atual refinado pela ADR-047
+### PDDE Básico primeiro
 
-Versões permanecem fixadas e lockfile versionado. Nova biblioteca exige necessidade comprovada, análise de changelog e gates completos. A major operacional do Node deve ser deliberadamente fixada antes do release oficial.
+**Status:** vigente
 
----
+PDDE Básico aparece primeiro **somente na apresentação**. A ordem persistida de programas não é reescrita.
 
-## ADR-021 — Carteira organiza responsabilidade, não restringe colaboração
+## 7. Notas Fiscais, `a_identificar` e Assessoria
 
-**Status:** Aprovada e implementada
+### ADR-050 — individualização por invoice
 
-A carteira define responsável principal, filtro inicial e priorização. Controladores podem atuar nas escolas da mesma `cre_scope`, preservando `schools.controller_id` e autoria real. Outra CRE exige exceção explícita.
+**Status:** vigente com emendas posteriores já incorporadas à ADR
 
----
+- bonificação de `notaFiscal` permanece agregada;
+- análise técnica e Pendência fiscal usam `registered_invoice_id`;
+- resumo técnico é derivado;
+- NFs distintas podem ter Pendências independentes;
+- a mesma NF não duplica Pendência ativa equivalente;
+- edição comum da própria NF é bloqueada quando há Pendência ativa incompatível com a mutação.
 
-## ADR-022 — Gestão SME separa consulta gerencial de operação
+### `a_identificar`
 
-**Status:** Aprovada e implementada
+**Status:** vigente
 
-Na Gestão SME:
+Novo `a_identificar` nasce `Incorreto + Pendência` atomicamente. Identificação posterior ocorre em Pendências, preserva o mesmo ID e não fabrica história retroativa para os 16 legados legítimos classificados.
 
-- visão mensal e Prontuário exibem identificação e bonificação, sem análise técnica ou controles operacionais;
-- Pendências são consultáveis, mas mutações operacionais são proibidas;
-- Registros Internos exibem somente `actor_user_id = auth.uid()`;
-- registros sem UUID de autor não são exibidos;
-- Administrador técnico mantém leitura integral em sua visão técnica;
-- simulação SME reproduz o recorte visual, sem alterar JWT.
+### Boleto de Internet
 
-A restrição é cumulativa em capacidades, handlers, serviços e RLS. Programas por exercício não integram esta decisão e exigem confirmação funcional própria.
+**Status:** vigente; ADR-049 histórica nesse ponto
 
----
+`boleto_internet` é tipo de gasto dentro de Notas Fiscais, somente em Educação Conectada. A chave documental autônoma `boletoInternet` não deve ser recriada.
 
-## ADR-023 — Production usa Supabase como persistência canônica
+### Consulta Assessoria
 
-**Status:** Aprovada e implementada; contingência refinada pela ADR-045
+**Status:** vigente
 
-Production opera com:
+Somente NFs de serviço participam. Estado de envio/análise e Pendência são individuais por invoice.
+
+Autoridades:
 
 ```text
-environment: production
-dataMode: supabase-production
-supabaseRepositoryEnabled: true
-productionActivationApproved: true
+edição ordinária → InvoiceService.updateServiceAdvisory
+abertura/reanálise → service-advisory-pendency.js
+novo envio/substituição → service-advisory-corrective-submission.js
+persistência → RPC específica
 ```
 
-Projeto autorizado: `scnryinorqeucbfkioxo`.
+## 8. Pendências
 
-Auth, RLS, auditoria, concorrência, reconciliação e rollback permanecem obrigatórios. LocalStorage não é fallback automático de Production; a regra fail-closed é definida pela ADR-045.
+### Estados
 
----
+**Status:** vigente
 
-## ADR-024 — Documentação segue código e ambientes
+`Aberta`, `Aguardando reanálise`, `Resolvida`, `Cancelada`.
 
-**Status:** Aprovada; ampliada pela ADR-042
+`Aberta` e `Aguardando reanálise` são ativas.
 
-Após mudança material, atualizar READMEs, estágio, contexto, decisões, inventários e handoffs. Quando houver divergência:
+### Novo envio, emenda do PR #254
 
-1. verificar código, migrations, banco e deployment;
-2. corrigir a documentação;
-3. não modificar código apenas para coincidir com documento antigo;
-4. preservar históricos com classificação explícita;
-5. regenerar artefatos pelo script canônico.
+**Status:** vigente; substitui a pré-condição mais estreita da ADR-050 original
 
----
+Novo envio/substituição pode operar sobre Pendência ativa `Aberta` **ou** `Aguardando reanálise` conforme o fluxo. O novo envio não resolve; o caso fica `Aguardando reanálise`. Uma tentativa anterior ainda aguardando é preservada como substituída, não reescrita.
 
-## ADR-025 — Competência mensal é contexto global único
+`Resolvida` e `Cancelada` podem ser reabertas quando autorizado. Histórico de cancelamento não se torna `canceled_at` atual depois da reabertura.
 
-**Status:** Aprovada e implementada; refinada pela ADR-044
+### Próximo ator, PR #256
 
-Dashboard, Carteira, Competências, Prontuário, alertas, timeline e exportações consomem uma única competência ativa. Pendências Operacionais preserva a competência global como contexto, porém não a utiliza como filtro implícito da fila; essa exceção é detalhada na ADR-044.
-
----
-
-## ADR-026 — Competências restantes de 2026 devem ser operacionalizadas
-
-**Status:** Aprovada e implementada; método esclarecido pela ADR-032
-
-Janeiro a dezembro de 2026 estão disponíveis aos perfis conforme permissões, preservando registros anteriores.
-
-O objetivo foi cumprido com as doze competências existentes e alteração transacional de `closing_competence` para `2026-12`. Não houve migration adicional.
-
----
-
-## ADR-027 — Histórico cronológico é projeção
-
-**Status:** Aprovada e implementada
-
-A timeline consolida verificações, pendências, tentativas, contatos, logs, notas e bens em leitura cronológica. Não cria tabela paralela quando os eventos já possuem entidades canônicas.
-
----
-
-## ADR-028 — Excel exige certificação de paridade integral
-
-**Status:** Aprovada e implementada
-
-Relatórios Excel são produtos finais institucionais. A certificação percorre:
+**Status:** vigente
 
 ```text
-estado canônico → modelo → workbook/OOXML → célula XLSX
+Aberta → Escola
+Aguardando reanálise → Controlador
+Resolvida/Cancelada → nenhum próximo ator ativo
 ```
 
-O botão principal institucional gera XLSX, o Excel SME possui botão próprio e o CSV permanece fallback. Cada mudança material do gerador exige proteção automatizada e homologação humana no Excel desktop antes da publicação.
+## 9. Capital e Inventário
 
-**Aplicação atual ao Excel SME:** o produto público possui 27 colunas A:AA. O template-fonte de 30 colunas é projetado com remoção exclusiva das posições K, R e Y. A versão atual foi aberta no Microsoft Excel desktop sem reparo e publicada pelos PRs nº 136 e 137.
+### PRs #257/#258/#260 — regra composta atual
 
----
+**Status:** vigente
 
-## ADR-029 — Navegação de retorno preserva contexto operacional
+- NF permanente cria/vincula bem;
+- com número fiscal e processo de inventário já existente, o bem novo entra `Encaminhada`, exibido como **Aguardando Inventariação**;
+- sem processo, entra `Não encaminhada`;
+- um bem que esteja `Não encaminhada` não pode pular para `Inventariada`;
+- nesse ramo vale `Não encaminhada → Encaminhada → Inventariada`;
+- `encampInventario`: nenhum permanente = `Não se aplica`; algum não encaminhado = `Não`; todos `Encaminhada`/`Inventariada` = `Sim`;
+- Prontuário explicita NF ↔ bem por vínculo técnico;
+- encaminhamento posterior sincroniza bem + verificação + log atomicamente;
+- bem derivado de NF não permite editar isoladamente o número fiscal;
+- conclusão da inventariação exige `Encaminhada` e responsável.
 
-**Status:** Aprovada e implementada
+A sequência `Não encaminhada → Encaminhada → Inventariada` **não significa que todo bem permanente deva nascer Não encaminhada**.
 
-Telas de aprofundamento usam retorno contextual com competência, rota, filtros, rolagem e foco. Telas raiz não recebem botão redundante e modais continuam com Fechar/Cancelar.
+## 10. Autoridade de fluxos críticos e bootstrap
 
----
+### ADR-052
 
-## ADR-030 — Polimento visual preserva identidade e produto
+**Status:** vigente
 
-**Status:** Aprovada
+Fluxos P0/P1 possuem autoridade explícita e ordem de composição testada. Bootstrap não pode duplicar silenciosamente handlers críticos.
 
-O acabamento pode melhorar hierarquia, espaçamento, legibilidade, ícones, botões, tabelas, cartões, estados e responsividade.
+O PR #260 acrescentou `critical-action-guard.js` antes das camadas de diagnóstico/performance para novo envio, reanálise, encaminhamento e inventariação. O guard de Nota Fiscal já existente foi preservado.
 
-Não pode alterar paleta, logomarca, capacidades, nomenclatura canônica ou fluxos sem decisão específica.
+### Readiness sistêmico
 
----
+**Status:** dívida ainda planejada
 
-## ADR-031 — Liberação oficial depende de gate cumulativo
+A expansão para readiness determinístico continua no plano. Isso não autoriza remover timers indiscriminadamente nem desmontar `RadarProductExtensionsReady`/eventos atuais antes da migração segura.
 
-**Status:** Aprovada
+## 11. Performance e consistência
 
-O sistema somente será declarado liberado após jornadas por perfil, avaliação mensal, timeline, exportações homologadas, desktop/mobile, segurança, backup/restauração, UAT, documentação e decisão formal.
+### Autoridade funcional em wrapper de performance
 
-A decisão final deve registrar: liberado, liberado com restrições ou não liberado com bloqueadores objetivos.
+**Status:** dívida confirmada, não decisão de produto a perpetuar
 
-A ADR-041 esclarece que as jornadas devem provar o percurso ponta a ponta, não apenas telas ou camadas isoladas.
+`operational-write-performance.js` ainda injeta parte das políticas de consistência/convergência. O plano atual manda retirar essa autoridade preservando exatamente o comportamento funcional já homologado.
 
----
+### Idempotência da NF normal
 
-## ADR-032 — Disponibilização de competências reutiliza o contrato existente
+**Status:** parcialmente resolvida
 
-**Status:** Aprovada e implementada
+Guards atuais evitam repetição imediata enquanto a primeira chamada está em andamento. Continua pendente idempotência durável para retry ambíguo/operation key da NF normal. Duas operações legítimas com conteúdo idêntico continuam podendo criar dois registros.
 
-Quando as competências já existem e o requisito é alterar disponibilidade ou fechamento, reutilizar registros, `closing_competence`, datas e RPC/auditoria existentes. Migration adicional somente cabe quando houver mudança real de schema ou regra não representável.
+## 12. Gestão de Equipe e escolas
 
-**Aplicação histórica em 2026:** `closing_competence` foi alterada de `2026-05` para `2026-12`, quando o registro alcançou `row_version = 5`, sem migration nova. `row_version` é mutável e estava em 20 na consulta de 5 de agosto de 2026.
+**Status:** vigente
 
----
+- Assistente e `technical_admin` gerem Controladores/Inventário pelo fluxo autorizado;
+- conta Auth, perfil, diretório e log são coordenados pelo backend protegido;
+- conta existente só é reutilizada sem vínculo ativo incompatível;
+- falha exige compensação quando Auth já foi alterado;
+- desativação preserva histórico;
+- Controlador precisa ficar sem carteira antes da desativação;
+- redistribuição de carteira usa operação específica e não ocorre pela edição comum do Controlador.
 
-## ADR-033 — Divergência do histórico SME bloqueia nova migration
+## 13. Exportações e comunicação externa
 
-**Status:** Cumprida pela ADR-034
+### Excel SME
 
-Enquanto os identificadores local e remoto da migration SME divergiam, novas migrations de Production ficaram bloqueadas. O SQL era idêntico e não podia ser reaplicado, renomeado ou mascarado por migration vazia.
+**Status:** vigente
 
----
+Contrato público: uma competência, uma aba, 27 colunas A:AA. Template-fonte de 30 colunas é projetado removendo as posições definidas no contrato. Alteração material exige certificação própria.
 
-## ADR-034 — Histórico SME reconciliado sem reaplicação de SQL
+### Exportação de Pendências
 
-**Status:** Aprovada e implementada
+**Status:** vigente
 
-O histórico remoto foi reconciliado para o identificador canônico:
+XLSX respeita busca/filtros atuais e não expõe IDs técnicos ao usuário.
 
-```text
-GitHub e Supabase Production: 20260728182226_sme_access_governance
-identificador derivado 20260728190344: ausente
-SHA-256 do SQL: cddda35f4cc08b92093071f888cf958ae052ae82775c91366e4d729434427f0e
-```
+### ADR-053 — comunicação externa
 
-A operação usou o mecanismo oficial `migration repair` para alterar somente o histórico. O SQL funcional não foi reaplicado. Production possuía 25 versões correspondentes em 5 de agosto de 2026.
+**Status:** vigente
 
-**Evidência:** `docs/audits/2026-07-29-reconciliacao-migration-sme-evidencias.md`.
+`RADAR PDDE` pode aparecer internamente, mas não em texto oficial externo gerado para escola. O gerador termina em `Atenciosamente` sem assinatura automática do sistema.
 
----
+## 14. Decisão deliberadamente adiada
 
-## ADR-035 — Node 24 e gate remoto por papel/viewport
+### ADR-051 — hardening de escrita direta em `registered_invoices`
 
-**Status:** Aprovada e implementada
+**Status:** adiada conscientemente
 
-Node.js permanece fixado em `24.x` no projeto, Vercel e workflows. O gate remoto sobe Supabase descartável e valida os papéis institucionais em Desktop Chrome, Pixel 7/Chromium e iPhone 15/WebKit, sem utilizar Production.
+A blindagem adicional de campos estruturais no banco não integra as frentes funcionais correntes. Ela deve ser reavaliada depois do fechamento do plano atual, não reaparecer oportunisticamente em outro hotfix.
 
-**Documento integral:** `docs/decisions/ADR-035-node24-e-gate-remoto.md`.
+## 15. Referências
 
----
-
-## ADR-036 — Backup restaurável e recurso pago do Supabase Auth
-
-**Status:** Aprovada e implementada quanto ao gate disponível
-
-Backup lógico e restauração são verificados em pilhas Supabase descartáveis, incluindo schema, dados, Auth e histórico de migrations. A proteção de senhas comprometidas não é requisito enquanto o projeto permanecer no plano Free e não houver autorização financeira.
-
-**Documento integral:** `docs/decisions/ADR-036-backup-restauracao-e-recurso-pago-auth.md`.
-
----
-
-## ADR-037 — Integridade de referências locais dos workflows
-
-**Status:** Aprovada e implementada
-
-Workflows devem falhar quando chamadas estáticas verificáveis apontarem para scripts, testes, configurações Playwright, scripts npm, diretórios de trabalho, cache manifests ou Actions locais inexistentes.
-
-**Documento integral:** `docs/decisions/ADR-037-integridade-de-referencias-dos-workflows.md`.
-
----
-
-## ADR-038 — Atualizações devem produzir integração pertinente
-
-**Status:** Aprovada e implementada
-
-Atualizar biblioteca, ferramenta ou Action apenas para alterar número de versão não basta quando a versão oferece capacidade útil ao RADAR. Cada atualização deve registrar motivo, recursos relevantes, integração adotada, recursos adiados, itens não aplicáveis e evidências.
-
-Atualização somente de versão é aceitável quando o ganho concreto for correção, segurança, compatibilidade, suporte ou manutenção e a ausência de integração adicional estiver justificada.
-
-**Documento integral:** `docs/decisions/ADR-038-atualizacoes-com-integracao-pertinente.md`.
-
----
-
-## ADR-039 — Evolução tecnológica proativa orientada ao melhor resultado
-
-**Status:** Aprovada
-
-Toda correção, melhoria de layout, mudança de fluxo ou nova capacidade deve avaliar se a tecnologia atual limita o resultado possível.
-
-Propor não significa instalar. Adoção depende de aprovação, branch isolada, versão fixada, análise, gates completos e implantação controlada.
-
-**Documento integral:** `docs/decisions/ADR-039-evolucao-tecnologica-proativa.md`.
-
----
-
-## ADR-040 — Garantia operacional contínua de Production
-
-**Status:** Aprovada e implementada quanto às fases 1 e 2
-
-Production possui monitor recorrente de commit, manifesto, shell, assets, gate de autenticação, bloqueio anônimo e preflight das Edge Functions. Falha confirmada cria ou atualiza incidente automático; recuperação confirmada encerra o incidente.
-
-Integrada pelos PRs nº 139 e 140.
-
-**Documento integral:** `docs/decisions/ADR-040-garantia-operacional-contínua.md`.
-
----
-
-## ADR-041 — Confiabilidade funcional ponta a ponta
-
-**Status:** Aprovada
-
-Função crítica somente é considerada concluída quando interface, evento, serviço, repositório, backend, Auth/RLS, persistência, retorno, renderização, releitura e compensação forem comprovados.
-
-A próxima frente deve criar matriz `perfil × tela × ação × backend × permissão × evidência`, seguida de smoke autenticado e provas controladas de escrita.
-
-**Documento integral:** `docs/decisions/ADR-041-confiabilidade-funcional-ponta-a-ponta.md`.
-
----
-
-## ADR-042 — Reconciliação documental baseada nas fontes remotas
-
-**Status:** Aprovada
-
-Documentação corrente deve ser reconciliada com código, Supabase, Vercel, PRs e evidências. PR aberto não é integrado; Preview não é Production; migration em branch não altera a contagem remota; evidência datada não substitui estado atual.
-
-**Documento integral:** `docs/decisions/ADR-042-reconciliacao-documental-remota.md`.
-
----
-
-## ADR-043 — Desativação de Controlador exige carteira previamente zerada
-
-**Status:** Aprovada e implementada
-
-A Gestão de Equipe adota sequência obrigatória em duas etapas: as escolas são primeiro transferidas para outro Controlador pelos recursos de alocação individual ou em lote; somente após a carteira atingir zero o comando de desativação é habilitado.
-
-A desativação não redistribui escolas. Ela desativa o acesso e remove a pessoa dos diretórios operacionais, preservando os registros históricos. A regra é protegida na interface, no serviço de aplicação, na Edge Function e na RPC transacional.
-
----
-
-## ADR-044 — Pendências Operacionais usa visão transversal entre competências
-
-**Status:** Aprovada, implementada e publicada em Production
-
-A competência mensal continua sendo o contexto global único do RADAR PDDE e permanece visível durante a navegação, porém **não limita implicitamente a fila de Pendências Operacionais**.
-
-Por padrão, a página apresenta o passivo de todas as competências e o filtro local inicia em `Todas as competências`. Pendências ativas priorizam as mais antigas; estados encerrados priorizam os acontecimentos mais recentes.
-
-Abrir o detalhe não altera a competência global. Ao seguir para o Prontuário, a competência de origem da pendência volta a ser aplicada.
-
-**Documento integral:** `docs/decisions/ADR-044-pendencias-passivo-transversal.md`.
-
----
-
-## ADR-045 — Production é fail-closed e não publica seed institucional
-
-**Status:** Aprovada e implementada
-
-Production opera exclusivamente com a configuração remota autorizada. Falha, ausência ou inconsistência de configuração Supabase não pode ativar fallback silencioso para LocalStorage/seed.
-
-O build de Production sanitiza os dados iniciais de escolas/controladores usados no desenvolvimento para que eles não façam parte do bundle público institucional.
-
-LocalStorage, fixtures e seeds descartáveis permanecem disponíveis apenas para desenvolvimento/testes explicitamente configurados.
-
-**Documento integral:** `docs/decisions/ADR-045-production-fail-closed.md`.
-
----
-
-## ADR-046 — Escritas operacionais usam retorno autoritativo, reconciliação incremental e diagnóstico local
-
-**Status:** Aprovada; implementação incremental avançada; lacunas remanescentes reclassificadas pela reauditoria source-first de 03/09
-
-O caminho normal das escritas inline bem-sucedidas usa feedback imediato, persistência/RPC, retorno autoritativo, incorporação incremental e reconciliação localizada. `renderProntuario()` integral permanece fallback para bootstrap, navegação, erro, retorno incompleto ou inconsistência não reconciliável.
-
-Operações semanticamente idênticas são idempotentes e não devem gerar nova persistência, `row_version` ou log sem mudança real.
-
-O diagnóstico iniciado em 24/08 foi parcialmente superado por entregas posteriores: o submit imediato possui guard, `invoice-effects.js` planeja efeitos e o no-op semântico já existe. A reauditoria de 03/09 encontrou três lacunas atuais: decisões de consistência ainda são injetadas por `operational-write-performance.js`; falta idempotência durável de intenção no save de NF; e o save/remove normal ainda não converge integralmente pelo resultado remoto sem refresh/render completo. O plano source-first trata isso em **R1, R3 e R5**, reaproveitando DataService/StatePort existentes.
-
-A instrumentação local pode medir `click`, `feedback`, RPC, aplicação e estabilização por probe limitada em memória, sem telemetria externa nem dados de negócio. Falha do diagnóstico é fail-open.
-
-`fast-check`, MSW e `dependency-cruiser` permanecem ferramentas de desenvolvimento/teste; Performance API/PerformanceObserver nativos sustentam a medição local.
-
-**Documento integral:** `docs/decisions/ADR-046-escritas-operacionais-incrementais-e-observaveis.md`.
-
----
-
-## ADR-047 — Vulnerabilidades conhecidas são acompanhadas sem atualização forçada
-
-**Status:** Aprovada
-
-As duas vulnerabilidades moderadas conhecidas na cadeia transitiva ExcelJS/UUID são risco conscientemente aceito no estado de 23/08/2026.
-
-Não executar `npm audit fix --force`, alteração rompente de ExcelJS ou troca oportunista de biblioteca apenas para zerar o relatório. O gate continua bloqueando severidade `high` ou superior.
-
-Reavaliar quando houver correção compatível, aumento de severidade/exposição, caminho materialmente explorável, mudança do contrato Excel ou nova exigência institucional de segurança.
-
-**Documento integral:** `docs/decisions/ADR-047-vulnerabilidades-conhecidas-acompanhamento-sem-atualizacao-forcada.md`.
-
----
-
-## ADR-048 — Plano pós-PR #200 usa execução incremental e revisão adversarial
-
-**Status:** Aprovada quanto ao método incremental/adversarial; sequência operacional de 26/08 posteriormente substituída
-
-O plano de 26/08/2026 substituiu o plano de 24/08 naquele checkpoint. Sua ordem numerada abaixo é histórica e foi posteriormente substituída pelo plano source-first de 03/09; permanecem vigentes o método de revalidar premissa, escrever RED, limitar o diff, revisar adversarialmente e provar gates. O PR #199 permanece como registro histórico do planejamento inicial e o PR #200 como primeiro hotfix funcional já integrado.
-
-A ordem aprovada é:
-
-```text
-G0 → PR1 → PR2 → PR3.1 → PR3.2 → PR3.3 → PR4 → PR5
-→ PR6 → PR6B → PR7A → PR7B → PR8A → PR8B
-→ PR9A → PR9B → PR9C → encerramento
-```
-
-Cada entrega deve revalidar a premissa, demonstrar RED, implementar a menor correção suficiente, buscar consumidores fora dos arquivos previstos, passar por revisão adversarial independente, cumprir gates proporcionais e registrar publicação/reversão antes da próxima entrega.
-
-Decisões específicas incorporadas:
-
-- PR5 fortalece IDs persistentes sem atribuir a duplicidade atual ao fallback de `InvoiceService`; produtores dependentes exclusivamente de `Date.now()` serão eliminados após inventário, incluindo `DirectoryService`;
-- PR3 é dividido em PR3.1, PR3.2 e PR3.3, com gates próprios;
-- PR8 é dividido em PR8A e PR8B;
-- PR9C só define orçamento por hipótese depois do baseline e do ruído medidos em PR9A/PR9B;
-- `web-vitals` e `Server-Timing` são possibilidades condicionais posteriores ao PR9A, não tarefas antecipadas, e não autorizam telemetria externa.
-
-Exclusões definitivas desta frente:
-
-- antigo item 20 da auditoria, sobre autoridade server-side mais ampla;
-- proteção de senhas vazadas no Supabase Auth;
-- PR #195;
-- deduplicação de NF por conteúdo.
-
-**Documentos integrais:** `docs/handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md` e `docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`.
-
----
-
-## ADR-049 — Boleto de pagamento de Internet como documento exclusivo de Educação Conectada
-
-**Status:** Histórica; superada no modelo ativo pelos PRs #208/#209 e especializada pelo ADR-050
-
-`boletoInternet` integra a bonificação e a análise técnica somente em `CONECTADA`. A categoria aceita `Sim`, `Não` e `Não se aplica`; `Incorreto` usa a Pendência documental atômica existente. Ela não cria Nota Fiscal, bem, efeito financeiro ou Consulta Assessoria.
-
-Todos os caminhos públicos de escrita devem rejeitar a chave fora de Educação Conectada, inclusive bonificação, análise, retificação e abertura de Pendência.
-
-Consolidações conectadas anteriores à chave permanecem válidas por projeção `Não se aplica / Correto`, sem backfill nem materialização durante a leitura. Registros ainda não consolidados precisam avaliar a categoria explicitamente. O Excel SME permanece com 27 colunas.
-
-**Documentos:** `docs/architecture/avaliacao-mensal.md` e `docs/handoff/2026-08-27-hotfix-boleto-internet.md`.
-
-**Regra sucessora vigente:** `boleto_internet` é tipo de gasto dentro de `notaFiscal`, exclusivo de `CONECTADA`. A chave documental `boletoInternet` não possui linha, bonificação, análise ou Pendência autônoma e não deve ser recriada.
-
-## ADR-050 — Análise e Pendência individual por registro de Notas Fiscais
-
-**Status:** Aprovada, integrada e publicada pelo PR #211
-
-`notaFiscal` permanece agregada para bonificação, mas análise técnica e Pendência são individuais por `registered_invoice_id`. `a_identificar` nova nasce `Incorreto + Pendência` atomicamente; identificação posterior ocorre em **Pendências → Registrar novo envio**, preservando o ID.
-
-Consulta Assessoria também é individual por NF de serviço. Pendência da NF A não bloqueia a NF B. O lookup genérico por documento não é válido para esse fluxo; `Incorreto` é confirmado pela operação atômica, e o `InvoiceService` impede alterações comuns enquanto a própria NF possui Pendência ativa.
-
-Novo envio e reanálise fiscal ou de Assessoria exigem a Pendência e a tentativa reais, no estado correto e com versão esperada. A reanálise usa a tentativa mais recente ainda não analisada e não pode reescrever o conteúdo enviado pela escola. Identificação como bem permanente cria patrimônio novo e correspondente; não reaproveita bem anterior nem aceita vínculo oculto em outro tipo.
-
-A classificação de Production foi refinada por autoria: dos 20 `a_identificar` anteriores ao contrato, 16 são legítimos de Controladores e foram preservados como **Registro legado** sem história inventada; 4 eram fixtures da conta técnica. A limpeza fail-closed removeu 12 despesas/NFs de teste e três Pendências fiscais genéricas dos cenários do hotfix.
-
-A antiga decisão de reparar o Boleto 1234 foi superada porque boleto e Pendência foram comprovados como dados de teste. Ambos foram removidos pela limpeza, com logs preservados.
-
-O resumo técnico fiscal continua derivado internamente, mas não aparece como etiqueta agregada no cabeçalho: os estados ficam nas linhas e o cabeçalho mostra bonificação e quantidade de Pendências. A reconferência visual posterior foi executada, originou o PR #214 e foi sucedida pelos refinamentos aprovados até o PR #249; mockups ou anotações anteriores não autorizam restaurar o layout superado.
-
-**Documento integral:** `docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`.  
-**Evidência de dados:** `docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md`.
-
----
-
-## ADR-051 — Adiamento deliberado do hardening de escrita direta em registered_invoices
-
-**Status:** Aprovada — implementação deliberadamente adiada
-
-A auditoria pós-publicação do PR #211 confirmou o fluxo funcional normal e não encontrou corrupção atual em Production, mas identificou uma lacuna residual de integridade para tentativas de escrita direta em `registered_invoices`, especialmente nos campos `id`, `verification_id` e `source_context_key`.
-
-Por decisão explícita do responsável pelo produto, essa blindagem adicional do Supabase **não será executada durante as frentes atuais de correção funcional**. Ela somente será retomada depois que todas as implementações previstas nesses planos estiverem concluídas e validadas.
-
-Até esse gatilho, o estado é **risco conhecido, aceito temporariamente e adiado**, não “resolvido”. O tema não reabre o PR #211, não bloqueia o plano source-first e não deve ser transformado em gate de R1–R9.
-
-**Documento integral:** `docs/decisions/ADR-051-adiamento-hardening-registered-invoices.md`.
-
----
-
-## Evento pós-ADR-050 — fechamento visual pelo PR #214
-
-A inspeção visual final do hotfix de Notas Fiscais identificou overflow horizontal da grade individual em desktop de 1280 px. O defeito não alterava as regras funcionais, mas podia cortar/deslocar o controle **Enviada à Assessoria**.
-
-O PR #214 ajustou exclusivamente a composição responsiva desktop, preservando as quatro áreas canônicas e adicionando regressão E2E de largura/alinhamento. Foi integrado em `main` no merge `cc842af7b7bc6341dab68aa55a533a2017923bcf` e publicado no deployment Vercel `dpl_33e4bM4z5YrbP5YGhfsr88pgwDPX`, `READY`.
-
-Monitoramento de Production e homologação do Supabase passaram após a publicação. O Lighthouse móvel permanece dívida separada e não bloqueante.
-
-
----
-
-## Evento pós-ADR-050 — correção de fronteira pelo PR #215
-
-O teste manual pós-publicação encontrou falha real ao abrir Pendência a partir de análise individual `Incorreto` em Nota Fiscal e Consulta Assessoria. A causa foi a duplicação indevida de `row_version` como `payload.rowVersion` na fronteira canônico → legado → adapter.
-
-O PR #215 corrigiu a fronteira sem alterar a ADR-050: versão otimista permanece top-level, payloads de negócio não carregam chaves de versão, Production foi limpa pela migration `20260830223000_payload_row_version_boundary` e as RPCs de abertura passaram a ignorar somente essas chaves técnicas nas comparações de payload.
-
-Após a correção, Production ficou com 44 migrations, zero contaminação de versão nos payloads auditados e os dois fluxos originalmente falhos foram comprovados por smokes transacionais reais com rollback.
-
-Merge funcional: `19ba20cb7b8a8415070d4a8711a8af0eb23e1fa7`.  
-Redeploy operacional: `24e1934541b92e4399798556c05fd164c9c43801`.  
-Vercel Production: `dpl_TXwRPK2Sv72u5HtQVF3Z7ejJby3k`, `READY`.
-
----
-
-## ADR-052 — Autoridade única e contrato executável para fluxos críticos
-
-**Status:** Aprovada e implementada nos fluxos críticos atuais; expansão sistêmica de readiness ainda pendente
-
-Fluxo crítico P0/P1 deve possuir autoridade funcional explícita, cadeia de bootstrap tratada como contrato e prova executável de que a composição real foi instalada.
-
-Consulta Assessoria fica explicitamente dividida por operação, não por duplicação de regra:
-
-- edição ordinária: `InvoiceService.updateServiceAdvisory`;
-- abertura `Incorreto + Pendência`: `service-advisory-pendency.js`;
-- novo envio corretivo: `service-advisory-corrective-submission.js`;
-- reanálise: `service-advisory-pendency.js`;
-- persistência: RPC específica correspondente.
-
-A CI deve falhar se o bootstrap deixar de instalar as extensões críticas, se a ordem funcional for invertida, se um módulo assumir silenciosamente responsabilidade de outro ou se a composição real no navegador não instalar os wrappers esperados.
-
-**Documento integral:** `docs/decisions/ADR-052-autoridade-unica-fluxos-criticos.md`.
-
-
----
-
-## ADR-053 — Comunicação externa não expõe o nome do sistema interno
-
-**Status:** Aprovada e vigente
-
-`RADAR PDDE` é a identificação do sistema interno de acompanhamento e pode aparecer em superfícies internas, documentação técnica, logs e materiais de uso do próprio sistema. O nome **não deve integrar textos gerados para comunicação oficial externa com unidades escolares**, incluindo e-mail, WhatsApp, ofício ou texto de cobrança copiado pelo usuário.
-
-As mensagens externas devem se referir diretamente ao objeto administrativo pertinente, como PDDE, documentação, pendência ou unidade escolar, sem citar a ferramenta interna usada para produzir ou acompanhar a informação.
-
-O gerador de cobrança deve terminar somente em **Atenciosamente**, sem assinatura automática de equipe ou do sistema. O contrato de testes deve impedir a reintrodução de `RADAR PDDE` no bloco de texto externo gerado.
-
-**Aplicação inicial:** hotfix de 02/09/2026 no gerador de cobrança, removendo a expressão “no RADAR PDDE” da mensagem de ausência de pendências.
-
----
-
-## Evento de governança — reconciliação do plano mestre em 03/09/2026
-
-A execução futura do plano mestre de 26/08 foi reconciliada contra a `main`, Vercel Production e Supabase Production atuais.
-
-Decisões de sequência:
-
-- PR4 antigo foi superado pelo estado atual dos dados e não deve gerar migration automática;
-- PR6B, PR7B e PR9B foram atendidos por caminhos posteriores e saem da fila de implementação;
-- PR3, PR6, PR7A e PR8 permanecem parciais, com escopo reduzido ao que ainda falta;
-- PR5, PR9A e PR9C permanecem pendentes reais;
-- ADR-051 continua adiada até o fechamento funcional;
-- decisões posteriores sobre BB Ágil N/A, individualização por NF, Boleto dentro de Notas Fiscais, comunicação externa, exportação de Pendências e ordem visual do PDDE Básico não podem ser revertidas pelo plano histórico.
-
-Documento canônico: `docs/handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`.
-
-
----
-
-## Evento de governança — plano remanescente source-first em 03/09/2026
-
-Depois da reconciliação documental, o código-fonte foi reaberto no SHA `18150cc9ef7e15e2e777041fce541b847af517e1` para verificar novamente o que ainda existe, sem inferir pendências pelos checkboxes do plano de 26/08.
-
-A reauditoria decidiu:
-
-- usar fases **R1–R9**, que não correspondem a números de Pull Request do GitHub;
-- executar **R1 antes do readiness**, porque `operational-write-performance.js` ainda injeta decisões de consistência;
-- preservar `RadarProductExtensionsReady`, `radar:application-services-ready` e ADR-052;
-- combinar em R3 a idempotência durável do save com **uma única RPC v2 já capaz de devolver resultado remoto completo**;
-- reaproveitar `DataService.remoteResultIsAuthoritative`, `incrementalStateEntities` e `StatePort.applyEntities()` em R5;
-- unificar semântica operacional de Pendências em R4 sem redesenhar tabs/drawer/mobile;
-- transformar a antiga PR7A em **R6, gate de equivalência sem diff obrigatório**;
-- manter PR9B encerrado e executar instrumentação causal/otimização apenas em R7/R8;
-- fechar a frente em R9 e somente então reavaliar ADR-051.
-
-Sequência canônica:
-
-```text
-R1 → R2A → R2B → R2C → R3 → R4 → R5 → R6 → R7 → R8 → R9
-→ reavaliar ADR-051 em frente separada
-```
-
-**Plano executável:** `docs/superpowers/plans/2026-09-03-plano-remanescente-source-first.md`.  
-**Evidência:** `docs/audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md`.
-
-O evento de reconciliação imediatamente anterior permanece válido como histórico da transição, mas sua antiga sequência PR3/PR5/PR6/PR8/PR9 deixou de ser a fila corrente.
+- continuidade: `START_HERE.md`, `CURRENT_STATE.md`, `PLAN_TRACEABILITY.md`, `MASTER_PLAN_CURRENT.md`;
+- ADRs individuais em `docs/decisions/`;
+- histórico de checkpoints em `docs/handoff/`, `docs/audits/`, `docs/evidence/` e Git;
+- operações atuais na matriz funcional, sempre lidas em conjunto com pré-condições do domínio quando a linha resumida não as expressar.
