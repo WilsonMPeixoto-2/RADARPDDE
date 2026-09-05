@@ -23,10 +23,31 @@ jobs:
         with:
           node-version: 24
 
-      - name: Baseline limpa
-        run: npm ci
+      - name: Baseline limpa e escopo de Archiver Utils
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci
+          npm ls archiver-utils --all
+          node - <<'NODE'
+          const { execFileSync } = require('node:child_process');
+          const tree = JSON.parse(execFileSync('npm', ['ls', 'archiver-utils', '--all', '--json'], { encoding: 'utf8' }));
+          function parentsWith(name, node, path = []) {
+            const out = [];
+            for (const [key, dep] of Object.entries(node?.dependencies || {})) {
+              const next = [...path, key];
+              if (key === name) out.push(next.join(' > '));
+              out.push(...parentsWith(name, dep, next));
+            }
+            return out;
+          }
+          const paths = parentsWith('archiver-utils', tree);
+          if (!paths.length) throw new Error('archiver-utils não encontrado');
+          if (paths.some(p => !p.includes('exceljs'))) throw new Error(`archiver-utils também é usado fora do ExcelJS: ${paths.join(' | ')}`);
+          console.log(`archiver-utils restrito à cadeia ExcelJS: ${paths.join(' | ')}`);
+          NODE
 
-      - name: Aplicar Glob moderno somente dentro de Archiver do ExcelJS
+      - name: Aplicar Glob 13 apenas às dependências de Archiver Utils
         shell: bash
         run: |
           set -euo pipefail
@@ -34,33 +55,25 @@ jobs:
           const fs = require('node:fs');
           const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
           pkg.overrides ||= {};
-          const exceljs = pkg.overrides.exceljs || {};
-          exceljs.archiver = {
-            'archiver-utils': { glob: '13.0.6' },
-            'zip-stream': {
-              'archiver-utils': { glob: '13.0.6' }
-            }
+          pkg.overrides['archiver-utils'] = {
+            ...(pkg.overrides['archiver-utils'] || {}),
+            glob: '13.0.6'
           };
-          pkg.overrides.exceljs = exceljs;
           fs.writeFileSync('package.json', `${JSON.stringify(pkg, null, 2)}\n`);
           NODE
           npm install --package-lock-only --ignore-scripts
           set -o pipefail
           npm ci 2>&1 | tee /tmp/npm-ci-modern-glob.log
           echo '=== árvore alvo ==='
-          npm ls exceljs archiver archiver-utils glob inflight zip-stream || true
-          echo '=== explicação glob ==='
-          npm explain glob || true
-          echo '=== explicação inflight ==='
-          npm explain inflight || true
-          if npm ls inflight >/dev/null 2>&1; then echo 'inflight ainda presente após override aninhado' >&2; exit 1; fi
-          if npm ls glob@7.2.3 >/dev/null 2>&1; then echo 'glob 7.2.3 ainda presente após override aninhado' >&2; exit 1; fi
+          npm ls exceljs archiver archiver-utils glob inflight zip-stream
+          if npm ls inflight >/dev/null 2>&1; then echo 'inflight ainda presente' >&2; exit 1; fi
+          if npm ls glob@7.2.3 >/dev/null 2>&1; then echo 'glob 7.2.3 ainda presente' >&2; exit 1; fi
           if grep -E 'npm warn deprecated (inflight|glob)@' /tmp/npm-ci-modern-glob.log; then
             echo 'Persistiu aviso deprecado de inflight/glob.' >&2
             exit 1
           fi
 
-      - name: Provar glob.sync das duas cópias de Archiver Utils
+      - name: Provar glob.sync de Archiver Utils 2 e 3
         shell: bash
         run: |
           set -euo pipefail
@@ -68,18 +81,13 @@ jobs:
           const fs = require('node:fs');
           const path = require('node:path');
           const os = require('node:os');
-          const { createRequire } = require('node:module');
-          const exceljsRequire = createRequire(require.resolve('exceljs/package.json'));
-          const root = path.dirname(require.resolve('exceljs/package.json'));
-          const au2 = exceljsRequire('archiver-utils/file');
-          const zipStreamPkg = require.resolve('exceljs/node_modules/archiver/node_modules/zip-stream/package.json');
-          const zipRequire = createRequire(zipStreamPkg);
-          const au3 = zipRequire('archiver-utils/file');
+          const au2 = require('archiver-utils/file');
+          const au3 = require('./node_modules/zip-stream/node_modules/archiver-utils/file');
           const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'radar-archiver-utils-'));
           fs.writeFileSync(path.join(dir, 'a.txt'), 'A');
           fs.writeFileSync(path.join(dir, 'b.txt'), 'B');
           fs.writeFileSync(path.join(dir, 'c.json'), '{}');
-          for (const [name, api] of [['archiver-utils@2', au2], ['archiver-utils@3', au3]]) {
+          for (const [name, api] of [['archiver-utils@2.1.0', au2], ['archiver-utils@3.0.4', au3]]) {
             const files = api.expand({ cwd: dir }, ['*.txt']).sort();
             if (files.join(',') !== 'a.txt,b.txt') throw new Error(`${name} file.expand divergiu: ${files.join(',')}`);
           }
@@ -95,7 +103,7 @@ jobs:
           const path = require('node:path');
           const os = require('node:os');
           const { PassThrough } = require('node:stream');
-          const archiver = require('exceljs/node_modules/archiver');
+          const archiver = require('archiver');
           const unzipper = require('unzipper');
           (async () => {
             const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'radar-archiver-glob-'));
@@ -205,7 +213,7 @@ jobs:
           Archiver 8.0.0 foi rejeitado: WorkbookWriter falha com "TypeError: Archiver is not a function".
           Archiver 7.0.1 foi rejeitado: WorkbookWriter falha com INPUTSTEAMBUFFERREQUIRED.
           Archiver 6.0.2 foi rejeitado: WorkbookWriter falha com INPUTSTEAMBUFFERREQUIRED.
-          A modernização segura foi limitada ao Glob dentro das duas cadeias de Archiver Utils usadas por Archiver 5.3.2/zip-stream 4.1.1.
+          archiver-utils aparece somente na cadeia do ExcelJS; por isso o override de Glob é restrito a esse pacote, preservando Archiver 5.3.2 e sua semântica de streaming.
           EOF
           cat dependency-health/deprecated-chain-after-exceljs-glob-2026-09-05.txt
 
