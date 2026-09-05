@@ -2,287 +2,311 @@
 
 **Atualizado em:** 5 de setembro de 2026
 
-> **PRIMEIRA LEITURA OBRIGATÓRIA:** [`START_HERE.md`](START_HERE.md).  
-> Nenhum agente deve escolher plano, handoff, ADR ou auditoria como ponto de entrada antes de seguir `START_HERE.md` e verificar a baseline remota.
-
-> **MÉTODO OBRIGATÓRIO:** análises e implementações críticas devem seguir [`docs/architecture/adversarial-analysis-and-implementation-method.md`](docs/architecture/adversarial-analysis-and-implementation-method.md). Suíte verde, CI verde ou documentação reconciliada não equivalem a prova de ausência de defeitos.
+> **PRIMEIRA LEITURA OBRIGATÓRIA:** [`START_HERE.md`](START_HERE.md).
 
 ## 1. Continuidade obrigatória
 
-Para qualquer nova sessão/chat/agente:
+Toda sessão/agente deve:
 
 1. ler `START_HERE.md`;
-2. verificar se a `main` ainda corresponde à baseline ali declarada;
+2. confirmar `main`/SHA/PRs;
 3. ler `docs/CURRENT_STATE.md`;
-4. ler o método adversarial e os achados adversariais correntes quando a tarefa tocar código/fluxo crítico;
-5. usar `docs/MASTER_PLAN_CURRENT.md` como **único plano executável vigente** quando a tarefa fizer parte da frente planejada;
-6. consultar `docs/PLAN_TRACEABILITY.md` somente para entender origem, absorção ou alteração de uma tarefa;
-7. depois abrir código, testes, ADRs, migrations e evidências específicos da superfície em trabalho.
+4. ler o método adversarial e o playbook reproduzível;
+5. consultar achados Astra ainda abertos;
+6. usar `docs/MASTER_PLAN_CURRENT.md` como único plano executável;
+7. abrir código/testes/ADRs/migrations específicos da tarefa.
 
-Planos/handoffs datados são histórico de seus checkpoints. Eles não constituem fila concorrente.
+Planos/handoffs datados são história de checkpoint, não fila concorrente.
 
-**Regra de precedência:** decisão/hotfix posterior deliberadamente aprovado prevalece sobre texto anterior na superfície que alterou. O plano é atualizado para refletir o produto atual; o produto não é revertido para caber no plano histórico.
+## 2. Regra metodológica permanente
 
-Se fontes atuais conflitarem e a intenção não puder ser determinada com segurança, classificar como dúvida e investigar. Não escolher unilateralmente a regra mais antiga ou a mais conveniente.
+Para qualquer análise ou implementação crítica, responder proporcionalmente ao risco:
 
-## 2. Identidade do produto
+1. **Onde esta regra está implementada pela segunda vez?**
+2. **Que estado mais avançado esta operação pode destruir?**
+3. **Existe caminho real da UI que contorna a autoridade considerada correta?**
+4. **Que combinação de dois fluxos verdes ainda não foi testada em sequência?**
+5. **Qual contraexemplo tentamos produzir para provar que o contrato estava errado?**
 
-O RADAR PDDE é sistema institucional de gestão, controle, acompanhamento e apoio à decisão para o PDDE da 4ª CRE/SME-Rio. Não é CRUD genérico.
+Método: [`docs/architecture/adversarial-analysis-and-implementation-method.md`](docs/architecture/adversarial-analysis-and-implementation-method.md)  
+Playbook: [`docs/architecture/adversarial-analysis-replication-playbook.md`](docs/architecture/adversarial-analysis-replication-playbook.md)
 
-Uma função não está pronta apenas porque grava no banco. Conforme o impacto, o usuário precisa conseguir encontrar a função, compreender o estado, executar a ação e reencontrar o resultado com coerência entre telas e dados.
+Se essas perguntas não foram investigadas em fluxo crítico, não chamar a revisão de completa.
 
-Toda entrega deve considerar proporcionalmente:
+## 3. Identidade do produto
 
-- correção técnica e funcional;
-- coerência entre perfis, telas e dados;
-- integridade, rastreabilidade e auditabilidade;
-- visualização e encontrabilidade;
-- feedback e clareza da próxima ação;
-- acessibilidade/mobile quando a superfície for afetada;
-- persistência e releitura quando houver escrita.
+O RADAR PDDE é sistema institucional de gestão, controle, acompanhamento e fiscalização do PDDE da 4ª CRE/SME-Rio. Não é CRUD genérico.
 
-## 3. Fontes de verdade
+Uma função não está pronta só porque grava no banco. O usuário deve conseguir encontrá-la, executá-la, compreender o estado e reencontrar o resultado com coerência entre telas/dados.
 
-Para determinar **o que está implementado**:
+Toda entrega considera:
 
-1. código-fonte remoto do SHA analisado;
-2. Supabase efetivo: migrations, funções, Auth, RLS e dados autorizados;
-3. artefato Vercel e SHA publicado;
+- correção técnica/funcional;
+- coerência entre perfis/telas/dados;
+- integridade/rastreabilidade/auditabilidade;
+- feedback/próxima ação;
+- persistência/releitura;
+- acessibilidade/mobile quando material.
+
+## 4. Fontes de verdade e cronologia
+
+Para saber o que está implementado:
+
+1. comportamento efetivo do SHA/ambiente;
+2. código-fonte e cadeia real de execução;
+3. Supabase efetivo: migrations, funções, Auth, RLS e dados;
 4. decisões funcionais vigentes;
 5. testes que representam o contrato atual;
-6. documentação corrente reconciliada;
-7. histórico documental e memória de conversa.
+6. documentação corrente;
+7. histórico.
 
-Para determinar **o que executar a seguir**, usar `START_HERE.md` e `docs/MASTER_PLAN_CURRENT.md` depois de confirmar a baseline.
+Código atual pode estar errado. Teste verde pode estar incompleto. Documento antigo pode estar superado.
 
-Se teste ou documento divergir de comportamento atual comprovado, investigar a divergência antes de alterar o produto. Teste não cria regra de negócio por conta própria.
+Para SQL/RPC, resolver a **última definição efetiva da mesma assinatura**, não a primeira migration encontrada por busca.
 
-## 4. Perfis e autorização
+## 5. Inventário e cobertura adversarial
+
+Em auditorias amplas:
+
+- gerar inventário mecânico do repositório;
+- varrer código, testes, docs, migrations, pgTAP, scripts, fixtures, mocks e fallbacks;
+- registrar hits por arquivo/linha;
+- construir mapa de funções/calls/SQL quando útil;
+- aprofundar semanticamente pelos clusters de risco;
+- preservar artefatos para não repetir exploração em nova sessão.
+
+Busca por palavras é descoberta de candidatos, nunca decisão semântica.
+
+## 6. Mapa de autoridade
+
+Para fluxo crítico, rastrear:
+
+```text
+UI real
+→ handler/entrada pública
+→ application service
+→ domínio/planner
+→ repository/data service
+→ RPC/Edge Function
+→ persistência
+→ leitura/reload
+→ renderização
+→ superfícies relacionadas
+```
+
+Depois procurar explicitamente:
+
+- outra implementação;
+- closure privada;
+- wrapper;
+- extensão dinâmica;
+- callback global;
+- fallback/renderer legado;
+- chamada direta a repository/RPC;
+- regra repetida em `app.js` e `src/`.
+
+Encontrar uma implementação correta não encerra a investigação.
+
+## 7. Teste de estado avançado
+
+Não limitar lifecycle a `criar → editar → excluir`.
+
+Quando entidade avança em outro subsistema:
+
+```text
+criar
+→ avançar em outro domínio
+→ voltar à origem
+→ salvar/editar novamente
+→ persistir
+→ reload
+→ confirmar que o estado avançado sobreviveu
+```
+
+Exemplo obrigatório após achado Astra:
+
+```text
+NF permanente
+→ Inventário conclui bem
+→ salvar a mesma NF
+→ bem deve continuar Inventariada
+```
+
+## 8. Teste pelo ponto de entrada real
+
+Função correta isolada não certifica composição.
+
+Exemplo:
+
+```text
+regra: auditoria antes do download
+
+necessário:
+clicar botão real
+→ falhar auditoria inicial
+→ nenhum download
+```
+
+Aplicar o mesmo raciocínio a modal, atalho, callback, wrapper, API pública e função exposta em `window`.
+
+## 9. Testes não são autoridade autônoma
+
+Aplicar [`docs/reference/TEST_GOVERNANCE.md`](docs/reference/TEST_GOVERNANCE.md).
+
+Classificar teste/fixture como:
+
+- contrato atual;
+- legado/migração;
+- estado adversarial inválido;
+- mock sintético;
+- teste excluído com sucessor;
+- expectativa obsoleta;
+- função isolada;
+- composição real.
+
+Título de teste ativo deve descrever a regra atual.
+
+Não alterar produto para satisfazer expectativa histórica.
+
+## 10. Ambiente de teste
+
+Não confiar em `node_modules` reaproveitado sem comparar com `package.json`/lock.
+
+Quando houver divergência material:
+
+1. registrar versões;
+2. normalizar por instalação reproduzível;
+3. separar warning de depreciação de vulnerabilidade/bug funcional;
+4. não atribuir falha ao produto sem reprodução na cadeia real.
+
+## 11. Perfis e autorização
 
 Perfis funcionais visíveis:
 
-- Controlador (`controller`);
-- Assistente de Verbas Federais (`federal_assistant`);
-- Gestão SME (`sme_management`);
-- Equipe de Inventário (`inventory`).
+- Controlador;
+- Assistente de Verbas Federais;
+- Gestão SME;
+- Equipe de Inventário.
 
-`technical_admin` é papel autenticado técnico separado, não quinto perfil funcional visual. Simulação visual não rebaixa a autoridade real do administrador técnico; auditoria deve preservar usuário real e perfil visual simulado quando houver.
+`technical_admin` é papel técnico separado. Simulação visual não altera identidade/JWT/autoridade real.
 
-Regras estáveis:
+Regras:
 
-- Controlador atua na própria CRE e não redistribui `schools.controller_id` pela edição cadastral;
-- Assistente possui atuação transversal autorizada e Gestão de Equipe;
-- Gestão SME acompanha e usa apenas configurações/mutações expressamente autorizadas;
-- Inventário opera o fluxo patrimonial autorizado;
-- autorização deve existir também em serviço/banco quando a operação exigir, não apenas na UI.
+- Controlador não redistribui `controller_id` em edição comum;
+- desativação de Controlador exige carteira zerada;
+- Assistente tem atuação transversal e Gestão de Equipe;
+- SME não recebe mutações operacionais de Pendências por simples visibilidade;
+- Inventário opera recorte patrimonial;
+- autorização crítica deve existir além da UI.
 
-## 5. Competência global
+## 12. Competência
 
-`RadarCompetenceContext` é a fonte canônica de competência mensal.
+`RadarCompetenceContext` é autoridade global.
 
-Dashboard, Carteira, Competências, Prontuário, Pendências, alertas, timeline e exportações devem consumir o mesmo contexto quando a função for mensal. Não criar seletor concorrente nem alterar `activeCompetenciaKey` diretamente quando a intenção for mudar a competência global.
+- não escrever `activeCompetenciaKey` diretamente para simular troca real;
+- Pendências é exceção transversal e pode usar filtro local `Todas` sem alterar contexto global;
+- competências futuras são consultáveis, mas operações mensais protegidas ficam somente leitura.
 
-Pendências são passivo transversal; a página de Pendências pode operar em todas as competências sem trocar silenciosamente a competência global.
+## 13. Pendências
 
-## 6. Autoridade única e prevenção de correção duplicada
+Preservar:
 
-Antes de criar handler, wrapper, extensão, RPC ou rota de persistência para fluxo crítico:
+- `Aberta`, `Aguardando reanálise`, `Resolvida`, `Cancelada`;
+- novo envio não resolve;
+- substituição em `Aguardando reanálise`;
+- reanálise correta resolve; incorreta/indisponível reabre;
+- reabertura de Resolvida/Cancelada quando autorizado;
+- `Aberta → Escola`, `Aguardando → Controlador`, terminal → ninguém;
+- bonificação/análise/Pendência independentes;
+- histórico de cancelamento distinto de `canceled_at` terminal.
 
-1. localizar a operação na matriz/decisões atuais;
-2. localizar produtores e consumidores, inclusive módulos dinâmicos;
-3. inspecionar `product-extensions-bootstrap.js` quando houver extensão;
-4. identificar a autoridade vigente de cada etapa;
-5. procurar explicitamente segunda implementação, fallback, closure, callback, renderer legado ou chamada direta concorrente;
-6. confirmar se a suposta ausência é real;
-7. só então alterar.
+A divergência “idade total × tempo do ator atual” está **aberta para decisão** e não deve ser unificada por inferência.
 
-Não duplicar regra porque ela não apareceu no primeiro arquivo inspecionado. Encontrar uma implementação correta também não encerra a busca por outra implementação executável.
+## 14. NF / Assessoria / `a_identificar`
 
-Para Consulta Assessoria, preservar a separação vigente:
+- análise/Pendência fiscal individual por `registered_invoice_id`;
+- `a_identificar` novo = `Incorreto + Pendência` atômico;
+- identificação preserva ID;
+- legados legítimos sem backfill heurístico;
+- Assessoria individual por NF de serviço;
+- Boleto Internet é tipo de gasto em NF de Educação Conectada;
+- análise fiscal agregada antiga não volta a ser autoridade só porque existe ramo/helper histórico.
 
-```text
-edição ordinária
-→ InvoiceService.updateServiceAdvisory
+## 15. Capital e Inventário
 
-Incorreto + abertura/reanálise
-→ service-advisory-pendency.js
+- permanente + número + processo existente → bem novo `Encaminhada` / Aguardando Inventariação;
+- sem processo → bem novo `Não encaminhada`;
+- sequência `Não encaminhada → Encaminhada → Inventariada` vale apenas para esse ramo;
+- `encampInventario` é derivado do conjunto;
+- NF ↔ bem usa identidade técnica;
+- encaminhamento posterior é atômico;
+- número fiscal derivado não é editado isoladamente.
 
-novo envio corretivo
-→ service-advisory-corrective-submission.js
+**Defeito P1 aberto:** salvar NF vinculada a bem `Inventariada` pode rebaixá-lo para `Encaminhada`. Não considerar patrimônio fechado até hotfix/reload correspondente.
 
-persistência
-→ RPC específica correspondente
-```
+## 16. Exportações
 
-A ordem/composição do bootstrap é parte do contrato e deve continuar coberta por regressões quando alterada.
+- Excel SME: competência ativa, uma aba, 27 colunas A:AA;
+- XLSX institucional: competência global ativa por decisão posterior;
+- CSV: contrato temporal/auditoria ainda precisa decisão;
+- Pendências XLSX: segue filtros locais da fila.
 
-## 7. Regras funcionais sensíveis a regressão
+**Defeito P1 aberto:** botão Excel SME pode contornar auditoria pré-download. Teste feliz de workbook não prova ordem da auditoria.
 
-A lista corrente e detalhada está em `docs/CURRENT_STATE.md`. Antes de mexer nas superfícies correspondentes, preservá-la.
+## 17. Gestão de Equipe
 
-Resumo obrigatório:
-
-- bonificação, análise técnica e Pendência são dimensões independentes;
-- análise/Pendência fiscal e Consulta Assessoria usam individualização por `registered_invoice_id`;
-- nova `a_identificar` nasce `Incorreto + Pendência` atomicamente e não há backfill heurístico de legados legítimos;
-- novo envio não resolve Pendência; substituição de envio em `Aguardando reanálise` é suportada pelo contrato posterior ao PR #254;
-- `Aberta → Escola`, `Aguardando reanálise → Controlador`, estados terminais → sem próximo ator;
-- Pendências resolvidas ou canceladas podem ser reabertas quando autorizado;
-- `boleto_internet` é tipo de gasto dentro de Notas Fiscais em Educação Conectada, não documento autônomo;
-- Declaração BB Ágil aceita N/A sob o contrato vigente;
-- comunicação oficial externa gerada não expõe `RADAR PDDE`;
-- PDDE Básico é priorizado apenas na apresentação, sem reordenar a fonte persistida;
-- duas NFs idênticas por conteúdo podem ser legítimas.
-
-### Capital e Inventário
-
-Preservar a regra pós-PRs #257/#258/#260:
-
-- NF permanente cria/vincula bem;
-- com processo de inventário existente e número de NF, o bem novo entra `Encaminhada`, exibido como **Aguardando Inventariação**;
-- sem processo, entra `Não encaminhada`;
-- bem `Não encaminhada` não pode pular para `Inventariada`;
-- `encampInventario`: nenhum permanente = `Não se aplica`; algum não encaminhado = `Não`; todos encaminhados/inventariados = `Sim`;
-- Prontuário mostra o vínculo NF ↔ bem por identidade técnica;
-- encaminhamento posterior sincroniza bem + verificação + log atomicamente;
-- bem derivado de NF não aceita edição isolada do número da NF;
-- guards de gesto repetido já existentes devem ser preservados.
-
-A frase `Não encaminhada → Encaminhada → Inventariada` aplica-se ao ramo em que o bem **está** `Não encaminhada`; ela não determina que todo bem permanente deva nascer assim.
-
-**Achado adversarial aberto:** salvar novamente uma NF permanente já vinculada a bem `Inventariada` pode reaplicar a regra de nascimento e rebaixar o bem para `Encaminhada`. Até o hotfix específico, qualquer trabalho nessa área deve preservar explicitamente o estado avançado e reproduzir a jornada completa antes/depois da correção.
-
-## 8. Gestão de Equipe
-
-Fluxo vigente:
+Fluxo:
 
 ```text
 DirectoryService
 → TeamAccountGateway
 → team-account-management
-→ Auth Admin + RPC transacional
+→ Auth Admin + RPC
 ```
 
-Preservar CORS fail-closed, JWT/papel autorizado, lookup Auth exato, reutilização segura de conta em transição de perfil, rejeição de ambiguidade, desativação lógica, redistribuição/histórico e compensação de falhas.
+Preservar lookup exato, CORS/JWT/papel, compensação e bloqueio de desativação com carteira não vazia.
 
-## 9. Testes e auditoria
+Não reintroduzir fluxo antigo de “desativar + transferir 13 escolas” por título/helper histórico.
 
-Aplicar `docs/reference/TEST_GOVERNANCE.md` e o método adversarial.
+## 18. Production/Supabase
 
-Antes de corrigir falha, classificar:
+- Production fail-closed;
+- migrations imutáveis e ordenadas;
+- nenhuma chave admin no frontend;
+- writes compostos atômicos quando o domínio exige;
+- conflito de versão não é sobrescrito silenciosamente;
+- integridade atual saudável não prova que um write futuro seja seguro;
+- nova migration somente para mudança real de banco/contrato.
 
-1. defeito real de produto;
-2. contrato de teste superado;
-3. defeito do teste/fixture;
-4. infraestrutura;
-5. flaky não reproduzível;
-6. inconsistência de composição;
-7. duplicação arquitetural com risco;
-8. ambiguidade que exige decisão de produto;
-9. hipótese ainda não reproduzida.
+## 19. Critério de conclusão
 
-Só defeito real/composição comprovada autoriza mudar o produto por causa da falha. Quando regra mudar, registrar `regra anterior → regra vigente → código afetado → teste afetado` e atualizar a expectativa histórica.
+Antes de “fechamento confirmado”, registrar:
 
-Para escrita crítica, a prova preferida é proporcional ao risco e pode incluir:
+> **O que foi tentado para provar que ainda estava errado?**
 
-```text
-ação real
-→ persistência
-→ leitura direta
-→ reload
-→ releitura/renderização
-→ superfície relacionada
-```
+Incluir, conforme risco:
 
-Além disso, em fluxo crítico, procurar:
+- contraexemplos;
+- sequências entre fluxos;
+- retorno à origem após estado avançado;
+- caminhos paralelos;
+- falhas intermediárias;
+- cross-view;
+- reload;
+- migrations sucessoras;
+- classificação de fixtures/testes.
 
-```text
-criar
-→ avançar o estado em outro subsistema
-→ voltar à origem
-→ salvar/editar novamente
-→ reload
-→ confirmar que o estado avançado sobreviveu
-```
+Se só existem jobs verdes, a frase correta é:
 
-O PR #260 deixou jornadas reais de lifecycle/persistência/reload. Reutilizá-las, mas não assumir que elas cobrem combinações entre fluxos apenas porque cada fluxo isolado está verde.
+> **os gates conhecidos passaram**.
 
-## 10. Supabase e migrations
+## 20. Git e integração
 
-- Production é fail-closed;
-- migrations são versionadas e aplicadas em ordem;
-- histórico de migration não é editado;
-- para RPC redefinida, auditar a **última definição efetiva da assinatura**;
-- nenhum seed institucional implícito;
-- nenhuma chave administrativa no frontend;
-- operações compostas devem ser atômicas quando o domínio exigir;
-- conflito de `row_version` não é sobrescrito silenciosamente;
-- nova migration somente para mudança real de banco/contrato que não possa ser representada pela estrutura existente;
-- não reintroduzir `rowVersion`/`row_version` em payload de negócio;
-- ADR-051 permanece fora da frente funcional corrente até decisão específica.
-
-## 11. Excel e exportações
-
-Excel SME público mantém contrato de 27 colunas A:AA e competência mensal estrita. Alteração material do gerador exige certificação correspondente; mudanças sem relação com exportação não justificam recertificação indiscriminada.
-
-A exportação XLSX de Pendências é superfície vigente e deve preservar filtros, auditoria e ausência de IDs técnicos.
-
-**Achado adversarial aberto:** o botão real de Excel SME pode contornar a autoridade que exige persistência de auditoria antes do download. Até o hotfix específico, não considerar a exportação certificada apenas porque o arquivo baixa corretamente; o cenário `falha da auditoria inicial → nenhum download` precisa ser provado pelo ponto de entrada real.
-
-## 12. Documentação
-
-Documentação de continuidade:
-
-- `START_HERE.md` — única porta de entrada;
-- `docs/CURRENT_STATE.md` — estado curto corrente;
-- `docs/architecture/adversarial-analysis-and-implementation-method.md` — método obrigatório;
-- `docs/audits/2026-09-05-astra-adversarial-findings.md` — achados adversariais correntes;
-- `docs/MASTER_PLAN_CURRENT.md` — único plano executável;
-- `docs/PLAN_TRACEABILITY.md` — origem e absorção do plano.
-
-`docs/CURRENT_STAGE.md`, ADRs, handoffs, audits anteriores e planos datados preservam história/evidência e não devem competir como fila atual.
-
-Ao integrar hotfix funcional depois da baseline:
-
-1. atualizar `CURRENT_STATE.md`;
-2. registrar impacto em `PLAN_TRACEABILITY.md`;
-3. atualizar `MASTER_PLAN_CURRENT.md` se o trabalho remanescente mudou;
-4. atualizar/regredir o ledger de achados adversariais correspondente;
-5. só depois retomar a fila planejada.
-
-## 13. Git e integração
-
-Não trabalhar diretamente na `main`.
-
-Fluxo:
-
-1. confirmar HEAD remoto;
-2. branch isolada;
-3. inspecionar causa atual;
-4. procurar autoridades concorrentes e estados laterais;
-5. reproduzir antes de corrigir;
-6. mudança mínima;
-7. validação proporcional + composição real;
-8. classificar falhas;
-9. abrir PR com escopo/riscos/evidência;
-10. integrar quando objetivamente pronto;
-11. confirmar SHA publicado quando houver Production;
-12. reconciliar continuidade documental quando a mudança afetar regra/estado/plano.
-
-## 14. Critério de conclusão
-
-Uma frente pode encerrar quando o comportamento afetado atende ao contrato atual, o usuário consegue executar a tarefa real, dados permanecem coerentes, não há defeito relevante conhecido no escopo e falhas remanescentes foram classificadas.
-
-**Não é suficiente** dizer que unitários/E2E/CI estão verdes. Antes do fechamento deve existir evidência de tentativa adversarial de quebrar a funcionalidade dentro do risco do escopo.
-
-Não manter o projeto eternamente “inacabado” apenas porque existe teste histórico, prova opcional ou documento antigo ainda arquivado. Mas também não declarar encerrado apenas porque os gates conhecidos passaram.
-
-## 15. Cinco perguntas obrigatórias antes de encerrar análise ou implementação crítica
-
-1. Onde esta regra está implementada pela segunda vez?
-2. Que estado mais avançado esta operação pode destruir?
-3. Existe caminho real da UI que contorna a autoridade considerada correta?
-4. Que combinação de dois fluxos verdes ainda não foi exercitada em sequência?
-5. Qual contraexemplo tentamos produzir para provar que a solução ainda estava errada?
-
-Se essas perguntas não foram investigadas e registradas proporcionalmente ao risco, a tarefa pode estar validada pelos gates, mas **não está auditada adversarialmente**.
+- não trabalhar diretamente na `main`;
+- branch isolada;
+- causa atual antes da mudança;
+- mudança mínima;
+- validação adversarial proporcional;
+- PR com riscos/evidências;
+- merge/deploy somente quando autorizado;
+- atualizar continuidade no mesmo PR funcional.
