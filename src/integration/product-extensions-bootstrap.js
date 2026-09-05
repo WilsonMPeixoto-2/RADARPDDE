@@ -147,20 +147,33 @@
         }
         publishFailures();
 
-        const criticalFailure = [...failedScripts.keys()].some(src => criticalScripts.has(src));
-        if (criticalFailure) return false;
-        return waitForCriticalExtensions();
+        const failedCritical = [...failedScripts.keys()].find(src => criticalScripts.has(src));
+        if (failedCritical) {
+            throw failedScripts.get(failedCritical)
+                || new Error(`Falha ao carregar extensão crítica ${failedCritical}.`);
+        }
+        return true;
+    }
+
+    function completeLoad(targets) {
+        return loadScripts(targets)
+            .then(() => waitForCriticalExtensions())
+            .catch(error => {
+                root.RADAR_LAST_PRODUCT_EXTENSION_ERROR = error;
+                root.console?.error?.('Não foi possível inicializar as extensões críticas do RADAR.', error);
+                return false;
+            });
     }
 
     root.RadarProductExtensionsRetry = function retryProductExtensions() {
         const retryTargets = scripts.filter(src => failedScripts.has(src));
         const retry = retryTargets.length > 0
-            ? loadScripts(retryTargets)
+            ? completeLoad(retryTargets)
             : waitForCriticalExtensions();
         root.RadarProductExtensionsReady = retry;
         return retry;
     };
 
     styles.forEach(loadStyleOnce);
-    root.RadarProductExtensionsReady = loadScripts(scripts);
+    root.RadarProductExtensionsReady = completeLoad(scripts);
 }(typeof window !== 'undefined' ? window : globalThis));
