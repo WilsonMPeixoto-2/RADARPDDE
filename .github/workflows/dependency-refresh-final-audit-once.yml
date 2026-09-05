@@ -1,0 +1,158 @@
+name: Auditoria final única de dependências
+
+on:
+  push:
+    branches:
+      - maintenance/dependency-refresh-adversarial-2026-09-05
+
+permissions:
+  contents: write
+
+jobs:
+  final-dependency-audit:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+
+      - name: Node 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+
+      - name: Instalação limpa sem pacotes depreciados
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci 2>&1 | tee /tmp/npm-ci-final.log
+          if grep -F 'npm warn deprecated' /tmp/npm-ci-final.log; then
+            echo 'A instalação final ainda contém dependência depreciada.' >&2
+            exit 1
+          fi
+          npm ls --all > /tmp/npm-tree-final.txt
+
+      - name: Auditoria npm zerada e somente exceções deliberadas em outdated
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dependency-health
+          npm audit --json > dependency-health/npm-audit-final-2026-09-05.json
+          npm outdated --json > dependency-health/npm-outdated-final-2026-09-05.json 2>&1 || true
+          cp /tmp/npm-tree-final.txt dependency-health/npm-tree-final-2026-09-05.txt
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const audit = JSON.parse(fs.readFileSync('dependency-health/npm-audit-final-2026-09-05.json', 'utf8'));
+          const counts = audit?.metadata?.vulnerabilities || {};
+          const total = ['info','low','moderate','high','critical'].reduce((sum, key) => sum + Number(counts[key] || 0), 0);
+          if (total !== 0) throw new Error(`npm audit final possui ${total} vulnerabilidade(s)`);
+          const outdated = JSON.parse(fs.readFileSync('dependency-health/npm-outdated-final-2026-09-05.json', 'utf8') || '{}');
+          const keys = Object.keys(outdated).sort();
+          const expected = ['@types/node', 'supabase'];
+          if (JSON.stringify(keys) !== JSON.stringify(expected)) {
+            throw new Error(`npm outdated final contém itens não explicados: ${keys.join(', ') || '(nenhum)'}`);
+          }
+          if (String(outdated['@types/node']?.current) !== '24.13.3') throw new Error('Versão corrente de @types/node divergiu da linha Node 24 aprovada');
+          if (String(outdated.supabase?.current) !== '2.114.0') throw new Error('Versão corrente do Supabase CLI divergiu da versão aprovada');
+          console.log('npm audit=0; outdated contém somente @types/node major 26 e Supabase CLI 2.116.0, ambos deliberadamente bloqueados.');
+          NODE
+
+      - name: Contratos, arquitetura, lint e artefatos gerados
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run check
+          CI=false npm run check:generated
+          npm run check:workflow-references
+          npm run check:architecture
+          npm run check:search-ui-vendors
+          npm run lint
+          npm run typecheck:database
+          npm run analyze:unused
+          npm run certify:excel:fixture
+          node scripts/check-exceljs-audit-policy.mjs --report dependency-health/npm-audit-final-2026-09-05.json
+
+      - name: Testes unitários e integração completos
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run test:unit
+          npm run test:integration
+
+      - name: Smokes reais do servidor SPA
+        shell: bash
+        run: |
+          set -euo pipefail
+          setsid npm start >/tmp/radar-final-spa.log 2>&1 &
+          server_pid=$!
+          trap 'kill -- -"$server_pid" 2>/dev/null || true' EXIT
+          ready=0
+          for attempt in {1..30}; do
+            if curl --fail --silent --show-error http://127.0.0.1:4175/ >/dev/null; then ready=1; break; fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then cat /tmp/radar-final-spa.log; exit 1; fi
+          curl --fail --silent --show-error http://127.0.0.1:4175/dashboard >/dev/null
+          curl --fail --silent --show-error http://127.0.0.1:4175/pendencias >/dev/null
+          curl --fail --silent --show-error http://127.0.0.1:4175/escolas/04.31.001 >/dev/null
+          curl --fail --silent --show-error http://127.0.0.1:4175/styles.css >/dev/null
+          kill -- -"$server_pid" 2>/dev/null || true
+          wait "$server_pid" 2>/dev/null || true
+          trap - EXIT
+
+      - name: E2E focado nas superfícies afetadas
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx playwright install --with-deps chromium
+          npx playwright test \
+            tests/e2e/canonical-routes.spec.js \
+            tests/e2e/application-services.spec.js \
+            tests/e2e/assistant-dashboard-excel-actions.spec.js \
+            --project=desktop-chromium
+
+      - name: Gerar relatório final versionado
+        shell: bash
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          const outdated = JSON.parse(fs.readFileSync('dependency-health/npm-outdated-final-2026-09-05.json', 'utf8') || '{}');
+          const content = `# Auditoria final de dependências — 05/09/2026\n\n` +
+            `## Resultado\n\n` +
+            `- instalação limpa com \`npm ci\`: **PASS**, sem avisos \`npm warn deprecated\`;\n` +
+            `- \`npm audit\`: **0 vulnerabilidades**;\n` +
+            `- árvore npm: **válida**, sem dependências inválidas/extraneous;\n` +
+            `- contratos, arquitetura, lint, artefatos gerados, TypeScript de banco e Knip: **PASS**;\n` +
+            `- testes unitários e de integração completos: **PASS**;\n` +
+            `- smoke do servidor SPA e E2E focado em rotas, serviços e Excel: **PASS**.\n\n` +
+            `## Atualizações consolidadas\n\n` +
+            `- \`@supabase/supabase-js\`: ${pkg.devDependencies['@supabase/supabase-js']};\n` +
+            `- \`http-server\`: removido; \`npm start\`/\`npm dev\` usam o servidor SPA canônico do projeto;\n` +
+            `- ExcelJS ${pkg.dependencies.exceljs}: UUID ${pkg.overrides.exceljs.uuid}, Unzipper ${pkg.overrides.exceljs.unzipper}, Fast CSV ${pkg.overrides.exceljs['fast-csv']};\n` +
+            `- Glob da cadeia Archiver Utils: ${pkg.overrides['archiver-utils'].glob};\n` +
+            `- Archiver 5.3.2 foi preservado porque 6.x/7.x quebraram WorkbookWriter com \`INPUTSTEAMBUFFERREQUIRED\` e 8.x rompeu a API CommonJS esperada pelo ExcelJS.\n\n` +
+            `## Itens que permanecem fora do latest por decisão deliberada\n\n` +
+            `- \`@types/node\` ${outdated['@types/node']?.current}: permanece na linha Node 24; o latest 26.x não corresponde ao runtime \`node: 24.x\`;\n` +
+            `- Supabase CLI ${outdated.supabase?.current}: 2.116.0 permanece bloqueado pela reprovação já documentada em pgTAP/RLS. O bloqueio é específico dessa versão e não impede avaliar versões futuras.\n\n` +
+            `## Segurança operacional\n\n` +
+            `Esta manutenção não altera migrations, schema, regras de negócio ou Production. Mudanças de dependências foram mantidas na branch isolada e só devem chegar a \`main\` após revisão/CI do PR.\n`;
+          fs.writeFileSync('dependency-health/final-dependency-audit-2026-09-05.md', content);
+          NODE
+
+      - name: Commit e publicar evidências finais
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add dependency-health/npm-audit-final-2026-09-05.json \
+            dependency-health/npm-outdated-final-2026-09-05.json \
+            dependency-health/npm-tree-final-2026-09-05.txt \
+            dependency-health/final-dependency-audit-2026-09-05.md
+          git commit -m 'docs(deps): registrar auditoria final da atualização'
+          git diff --exit-code
+          git push origin HEAD:maintenance/dependency-refresh-adversarial-2026-09-05
