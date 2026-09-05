@@ -26,8 +26,18 @@ jobs:
       - name: Normalizar baseline
         run: npm ci
 
-      - name: Atualizar Knip para 6.34.0
-        run: npm install --save-dev --save-exact knip@6.34.0
+      - name: Atualizar Knip para 6.34.0 e contrato correspondente
+        shell: bash
+        run: |
+          npm install --save-dev --save-exact knip@6.34.0
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const file = 'tests/unit/tooling-contract.test.js';
+          const source = fs.readFileSync(file, 'utf8');
+          const next = source.replaceAll("'6.33.0'", "'6.34.0'").replaceAll('"6.33.0"', '"6.34.0"');
+          if (next === source) throw new Error('Contrato do Knip 6.33.0 não encontrado para atualização');
+          fs.writeFileSync(file, next);
+          NODE
 
       - name: Registrar dependências obsoletas e cadeia
         shell: bash
@@ -39,12 +49,19 @@ jobs:
           } > dependency-health/deprecated-chain-2026-09-05.txt 2>&1
           npm outdated --json > dependency-health/npm-outdated-2026-09-05.json 2>&1 || true
           npm audit --json > dependency-health/npm-audit-2026-09-05.json 2>&1 || true
+          echo '=== npm ls ==='
+          cat dependency-health/deprecated-chain-2026-09-05.txt
+          echo '=== npm outdated ==='
+          cat dependency-health/npm-outdated-2026-09-05.json
+          echo '=== npm audit ==='
+          cat dependency-health/npm-audit-2026-09-05.json
 
       - name: Verificar lockfile e checks focais
         run: |
           npm ci
           npm run check
           npm run test:unit
+          npm run analyze:unused
 
       - name: Persistir atualização e evidências
         shell: bash
@@ -52,6 +69,6 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git rm .github/workflows/dependency-refresh-once.yml
-          git add package.json package-lock.json dependency-health/deprecated-chain-2026-09-05.txt dependency-health/npm-outdated-2026-09-05.json dependency-health/npm-audit-2026-09-05.json
+          git add package.json package-lock.json tests/unit/tooling-contract.test.js dependency-health/deprecated-chain-2026-09-05.txt dependency-health/npm-outdated-2026-09-05.json dependency-health/npm-audit-2026-09-05.json
           git commit -m 'chore(deps): atualizar knip e mapear transitivos depreciados'
           git push origin HEAD:maintenance/dependency-refresh-adversarial-2026-09-05
