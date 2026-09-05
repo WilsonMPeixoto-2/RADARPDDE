@@ -5,130 +5,108 @@
 
 > **ROTA OBRIGATÓRIA:** qualquer retomada começa em [`../../START_HERE.md`](../../START_HERE.md). O único plano executável vigente é [`../MASTER_PLAN_CURRENT.md`](../MASTER_PLAN_CURRENT.md).
 
-## 1. Finalidade
-
-Este arquivo informa **como usar** a documentação sem transformar arquivos históricos em instruções atuais. Ele não possui uma segunda ordem de leitura.
-
-A rota corrente é:
+## 1. Rota corrente
 
 ```text
 START_HERE.md
 → CURRENT_STATE.md
 → método adversarial
-→ achados adversariais conhecidos
+→ playbook reproduzível
+→ achados/evidências adversariais
 → MASTER_PLAN_CURRENT.md
 → PLAN_TRACEABILITY.md quando necessário
 → documentos específicos da tarefa
 ```
 
-Se a `main` tiver avançado além da baseline indicada em `START_HERE.md`, os PRs posteriores precisam ser reconciliados antes de executar o plano.
-
-## 2. Documentos correntes de continuidade
+## 2. Documentos correntes de continuidade e método
 
 | Documento | Estado | Uso |
 |---|---|---|
-| `START_HERE.md` | **CORRENTE — porta única** | primeira leitura e verificação da baseline |
-| `docs/CURRENT_STATE.md` | **CORRENTE** | fotografia do estado funcional, regras sensíveis e defeitos conhecidos |
-| `docs/architecture/adversarial-analysis-and-implementation-method.md` | **CORRENTE — método obrigatório** | protocolo de análise/implementação crítica e fechamento adversarial |
-| `docs/audits/2026-09-05-astra-adversarial-findings.md` | **CORRENTE COMO LEDGER DE ACHADOS** | bugs, ambiguidades e riscos ainda não encerrados |
-| `docs/MASTER_PLAN_CURRENT.md` | **CORRENTE — único plano executável** | fila real de trabalho remanescente |
-| `docs/PLAN_TRACEABILITY.md` | **CORRENTE** | origem, absorção e alteração do plano pelos hotfixes/auditorias |
-| `AGENTS.md` | **CORRENTE** | regras permanentes de trabalho e método mínimo |
+| `START_HERE.md` | **CORRENTE — porta única** | primeira leitura e baseline |
+| `docs/CURRENT_STATE.md` | **CORRENTE** | estado funcional, defeitos/decisões abertos |
+| `docs/architecture/adversarial-analysis-and-implementation-method.md` | **CORRENTE — obrigatório** | princípios de análise/implementação adversarial |
+| `docs/architecture/adversarial-analysis-replication-playbook.md` | **CORRENTE — obrigatório em auditoria crítica** | procedimento técnico reproduzível extraído dos artefatos Astra |
+| `docs/audits/2026-09-05-astra-adversarial-findings.md` | **CORRENTE COMO LEDGER DE ACHADOS** | bugs, ambiguidades, dívidas e históricos classificados |
+| `docs/audits/2026-09-05-astra-artifact-package-review.md` | **CORRENTE COMO EVIDÊNCIA/MÉTODO** | estudo dos 27 artefatos reais da auditoria Astra |
+| `docs/MASTER_PLAN_CURRENT.md` | **CORRENTE — único plano executável** | fila real de trabalho |
+| `docs/PLAN_TRACEABILITY.md` | **CORRENTE** | origem/absorção de tarefas |
+| `AGENTS.md` | **CORRENTE** | regras permanentes de agentes |
 | `docs/reference/TEST_GOVERNANCE.md` | **CORRENTE** | governança de testes sob o método adversarial |
-| `README.md` | **CORRENTE** | apresentação e redirecionamento para `START_HERE.md` |
-| `docs/README.md` | **CORRENTE** | índice técnico, sem roteiro concorrente |
-| `docs/PROJECT_CONTEXT.md` | **CORRENTE** | contratos funcionais/arquiteturais estáveis; subordinado a `START_HERE.md` |
-| `docs/DECISION_LOG.md` | **CORRENTE COMO LEDGER** | decisões vigentes e sua sucessão; não define a fila |
+| `docs/PROJECT_CONTEXT.md` | **CORRENTE** | contratos funcionais estáveis, subordinados à rota acima |
+| `docs/DECISION_LOG.md` | **CORRENTE COMO LEDGER** | decisões vigentes; não é fila |
 
-## 3. Estado detalhado e histórico recente
+## 3. Documentos arquiteturais corrigidos em 05/09
+
+A auditoria Astra encontrou documentação arquitetural que ainda descrevia contratos anteriores. Foram reconciliados:
+
+- `docs/architecture/competencias.md`: competência global continua única, mas Pendências possui filtro local transversal `Todas` sem alterar o contexto global;
+- `docs/architecture/excel-export.md`: XLSX institucional corrente segue competência global ativa; CSV permanece com contrato a decidir; P1 de auditoria SME registrado;
+- `docs/architecture/excel-sme-mensal.md`: contrato 27 colunas preservado, mas auditoria pré-download do botão real ainda tem P1 aberto;
+- `docs/architecture/excel-xlsx-runtime.md`: removida a falsa equivalência automática CSV/XLSX e registrado o P1 de composição;
+- `docs/architecture/excel-integral-certification.md`: certificação de workbook foi separada de certificação da composição do botão real.
+
+## 4. Histórico de checkpoints
 
 | Documento | Estado | Regra de uso |
 |---|---|---|
-| `docs/audits/2026-09-05-continuity-semantic-traceability-complete.md` | **HISTÓRICO/CANÔNICO PARA RECONCILIAÇÃO #253→#261** | válido para reconstrução documental/hotfixes, mas não prova ausência de defeitos desconhecidos |
-| `docs/CURRENT_STAGE.md` | **HISTÓRICO DETALHADO DE CHECKPOINTS** | consultar para investigação; não usar como próxima ação |
-| `docs/handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md` | **HISTÓRICO** | checkpoint que levou ao plano de 03/09 |
+| `docs/CURRENT_STAGE.md` | **HISTÓRICO DETALHADO** | investigar checkpoints; não usar como próxima ação |
+| `docs/handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md` | **HISTÓRICO** | checkpoint anterior |
 | `docs/audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md` | **HISTÓRICO** | evidência do baseline de 03/09 |
-| `docs/superpowers/plans/2026-09-03-plano-remanescente-source-first.md` | **HISTÓRICO — NÃO EXECUTAR** | plano correto de seu checkpoint, posteriormente emendado |
-| `docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md` | **HISTÓRICO — NÃO EXECUTAR** | plano anterior ao de 03/09 |
-| demais `handoff/`, `audits/`, `evidence/`, `reports/` e planos datados | **HISTÓRICO/EVIDÊNCIA** | abrir somente quando a rastreabilidade da tarefa exigir |
+| `docs/audits/2026-09-05-continuity-semantic-traceability-complete.md` | **HISTÓRICO/CANÔNICO PARA CONTINUIDADE, NÃO PROVA DE AUSÊNCIA DE BUG** | reconstrução #253→#261; fechamento funcional amplo foi posteriormente reaberto pelo método adversarial |
+| `docs/superpowers/plans/2026-09-03-plano-remanescente-source-first.md` | **HISTÓRICO — NÃO EXECUTAR** | plano do checkpoint 03/09, posteriormente emendado |
+| `docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md` | **HISTÓRICO — NÃO EXECUTAR** | plano anterior |
+| demais handoffs/audits/evidence/reports/planos datados | **HISTÓRICO/EVIDÊNCIA** | abrir apenas quando a rastreabilidade exigir |
 
-O fato de um documento ter sido “canônico” ou “completo” em seu checkpoint não o transforma em instrução corrente para sempre nem em prova de ausência de bugs desconhecidos.
+Um documento ter sido “canônico” em seu checkpoint não o transforma em instrução eterna.
 
-## 4. Linha recente de sucessão
-
-O último plano reconciliado antes da sequência urgente foi o PR #253, em 03/09. Depois foram integrados:
+## 5. Linha recente de sucessão
 
 ```text
-#254 → #256 → #257 → #258 → #260 → #261
+#253
+→ #254 → #256 → #257 → #258 → #260 → #261
+→ #263 documental em revisão
 ```
 
-Esses hotfixes foram absorvidos por `PLAN_TRACEABILITY.md` e pelo plano sucessor `MASTER_PLAN_CURRENT.md`.
+PR #262 foi **abortado e fechado sem merge**.
 
-O PR #262 foi **abortado e fechado sem merge**. Ele não integra a linha de decisão vigente.
+## 6. ADRs
 
-O PR #263 continua documental/governança. Seu fechamento semântico inicial foi reaberto depois dos achados adversariais de 05/09.
+ADRs permanecem válidos somente no escopo não especializado/substituído posteriormente.
 
-## 5. Decisões e ADRs
+- ADR-049: histórica para Boleto Internet;
+- ADR-050: núcleo de individualização vigente, emendado por #254/#256;
+- ADR-051: hardening adicional adiado;
+- ADR-052: separação de autoridades críticas vigente.
 
-ADRs continuam válidos no escopo que não foi posteriormente especializado ou substituído.
+Dúvida entre ADR e hotfix posterior exige PR/código/migration sucessora antes de qualquer alteração.
 
-Regra de leitura:
+## 7. Matrizes e referências geradas
 
-- ADR vigente e sem emenda posterior: usar normalmente;
-- ADR parcialmente alterado: preservar o núcleo e aplicar a emenda posterior documentada;
-- ADR substituído: usar apenas para entender a história;
-- dúvida entre ADR e hotfix posterior: consultar `PLAN_TRACEABILITY.md`, PR posterior e código resultante antes de qualquer alteração;
-- ainda que ADR/código/testes concordem, aplicar método adversarial antes de declarar a funcionalidade correta em fluxo crítico.
+- matriz funcional é inventário operacional/testável, não fonte autônoma de pré-condição;
+- anchors para RPC devem apontar/registrar também a definição sucessora efetiva quando houve redefinição;
+- catálogo de superfícies não substitui autorização real;
+- dicionários Supabase dependem da baseline de migrations;
+- uma linha de matriz não autoriza generalizar ramo específico para todos os cenários.
 
-### Casos importantes já reconciliados
+## 8. O que uma sessão nova NÃO deve fazer
 
-- ADR-049: histórica; `boleto_internet` hoje é tipo de gasto dentro de Notas Fiscais em Educação Conectada;
-- ADR-050: núcleo da individualização por NF continua vigente, mas novo envio/reabertura/próximo ator foram especializados pelos PRs #254/#256;
-- ADR-051: hardening adicional permanece deliberadamente adiado;
-- ADR-052: autoridade separada dos fluxos críticos continua vigente.
+- escolher arquivo recente pelo nome e executá-lo;
+- considerar gate verde como prova de ausência de bug;
+- validar apenas função isolada quando o usuário entra por outro caminho;
+- ignorar segunda implementação/fallback/closure;
+- usar migration antiga depois de redefinição sucessora;
+- transformar fixture legado/adversarial em regra de escrita atual;
+- omitir ambiguidade porque “não é bug”;
+- alterar produto para caber em plano/teste histórico.
 
-## 6. Documentos arquiteturais
+## 9. Manutenção após hotfix
 
-Arquitetura descreve contratos e decisões de desenho, mas arquivos datados precisam ser confrontados com o código corrente quando descrevem ordem física de bootstrap, nomes de módulos ou detalhes que podem mudar por hotfix.
+Todo PR funcional deve:
 
-O protocolo adversarial atual exige também procurar implementações concorrentes, fallbacks executáveis, closures/callbacks e estados avançados que podem ser destruídos por operações posteriores.
-
-## 7. Referências geradas e matrizes
-
-- `reference/FUNCTIONAL_CONTRACT_MATRIX.md` e seus JSONs: inventário operacional/testável; não substituem pré-condições detalhadas;
-- `reference/PRODUCT_SURFACE_CATALOG.md`: catálogo de superfícies/capacidades; confirmar código quando a tarefa alterar autorização;
-- `reference/PRODUCT_DECISIONS.md`: **índice histórico substituído**; não receber novas decisões;
-- dicionários Supabase: contrato técnico do schema, sujeito à baseline de migrations indicada nos documentos correntes.
-
-Para RPC redefinida, uma matriz deve apontar para a **última definição efetiva da assinatura** ou registrar explicitamente a sucessão. Anchor em migration antiga não certifica o contrato atual.
-
-Uma linha resumida de matriz não pode ser usada para inventar pré-condição ausente.
-
-## 8. O que um novo chat NÃO deve fazer
-
-Um novo chat não deve:
-
-- escolher o documento mais recente pelo nome e executá-lo;
-- percorrer handoffs procurando “próxima etapa”;
-- considerar ocorrência de “plano corrente” dentro de arquivo histórico como instrução atual;
-- converter teste antigo em regra de negócio sem verificar linhagem;
-- usar frase resumida de PR sem pré-condições;
-- alterar produto para caber num plano anterior;
-- concluir “tudo correto” apenas porque CI/E2E estão verdes;
-- encontrar uma implementação correta e parar sem procurar caminhos concorrentes;
-- escolher unilateralmente uma semântica quando duas projeções atuais divergem.
-
-## 9. Manutenção obrigatória após novo hotfix ou achado adversarial
-
-Todo hotfix funcional posterior à baseline deve, antes da retomada da fila planejada:
-
-1. atualizar `CURRENT_STATE.md`;
-2. registrar em `PLAN_TRACEABILITY.md` se concluiu, alterou, substituiu ou não afetou o plano;
-3. atualizar `MASTER_PLAN_CURRENT.md` se o trabalho remanescente mudou;
-4. atualizar a baseline em `START_HERE.md` quando aplicável;
-5. atualizar/encerrar o ledger de achados adversariais correspondente;
-6. corrigir qualquer documento corrente diretamente afetado pela nova decisão.
-
-Todo novo achado adversarial relevante, ainda que seja apenas ambiguidade/decisão de produto, deve ser registrado antes de encerrar a revisão.
-
-O plano se adapta à decisão posterior aprovada. A decisão posterior não é desfeita para fazer o código “voltar a combinar” com um plano histórico.
+1. reproduzir e classificar o problema;
+2. aplicar método adversarial;
+3. atualizar `CURRENT_STATE.md`;
+4. atualizar `PLAN_TRACEABILITY.md`;
+5. atualizar `MASTER_PLAN_CURRENT.md` se necessário;
+6. atualizar documentos correntes afetados;
+7. registrar o que foi tentado para provar que a correção ainda estava errada.
