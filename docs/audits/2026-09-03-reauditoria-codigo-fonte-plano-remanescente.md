@@ -1,5 +1,7 @@
 # Reauditoria do código-fonte para o plano remanescente
 
+> **EVIDÊNCIA DO CHECKPOINT DE 03/09.** Esta auditoria explica por que R1–R9 existiam naquele SHA, mas não define a fila pós-PR #260. Para estado corrente, leia [`../CURRENT_STATE.md`](../CURRENT_STATE.md) e [`../PLAN_TRACEABILITY.md`](../PLAN_TRACEABILITY.md).
+
 **Data:** 3 de setembro de 2026  
 **Classe documental:** Auditoria técnica corrente — evidência para planejamento  
 **SHA de `main` reauditorado:** `18150cc9ef7e15e2e777041fce541b847af517e1`  

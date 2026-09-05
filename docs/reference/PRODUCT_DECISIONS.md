@@ -1,110 +1,82 @@
 # Decisões de produto do RADAR PDDE — índice histórico
 
 **Classificação:** referência histórica substituída  
-**Fonte vigente:** [`../DECISION_LOG.md`](../DECISION_LOG.md)  
-**Atualizado em:** 5 de agosto de 2026
+**Atualizado em:** 5 de setembro de 2026
+
+> **Não usar este arquivo para retomar o projeto.** Comece em [`../../START_HERE.md`](../../START_HERE.md). Para decisões correntes, consulte [`../DECISION_LOG.md`](../DECISION_LOG.md); para a fila atual, use somente [`../MASTER_PLAN_CURRENT.md`](../MASTER_PLAN_CURRENT.md).
 
 ## 1. Finalidade
 
-Preservar os identificadores legados `PD-*`, `PS-*`, `PV-*` e `PG-*`. Este arquivo não controla o estado atual.
+Este arquivo preserva os identificadores legados `PD-*`, `PS-*`, `PV-*` e `PG-*` usados em fases antigas. Ele não controla o estado atual e não recebe novas decisões.
 
-Usar, nesta ordem:
+## 2. Decisões de domínio legadas ainda úteis como índice
 
-1. código e ambientes efetivos;
-2. [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md);
-3. [`../PROJECT_CONTEXT.md`](../PROJECT_CONTEXT.md);
-4. [`../DECISION_LOG.md`](../DECISION_LOG.md);
-5. contratos vigentes.
+| ID | Conteúdo histórico | Situação atual |
+|---|---|---|
+| PD-001 | escola como entidade monitorada | preservada |
+| PD-002 | bonificação, análise e Pendência independentes | preservada |
+| PD-003 | novo envio não resolve | preservada; pré-condições ampliadas posteriormente pelo PR #254 |
+| PD-004 | reanálise positiva resolve e negativa reabre | preservada |
+| PD-005 | Pendência não altera bonificação automaticamente | preservada |
+| PD-006 | retificação preserva estados independentes | preservada |
+| PD-007 | Aberta e Aguardando reanálise são ativas | preservada |
+| PD-008 | não existe estado canônico Vencida | preservada |
+| PD-009 | indicadores podem se sobrepor | preservada |
+| PD-010 | regularização não reescreve histórico | preservada |
+| PD-011 | notas e bens possuem regras próprias | preservada e especializada pelos PRs #257/#258/#260 |
 
-## 2. Decisões de domínio
-
-| ID | Conteúdo | Estado | Fonte vigente |
-|---|---|---|---|
-| PD-001 | escola como entidade monitorada | vigente | contexto do projeto |
-| PD-002 | bonificação, análise e pendência independentes | vigente | avaliação mensal |
-| PD-003 | novo envio não resolve | vigente | pendências |
-| PD-004 | reanálise positiva resolve e negativa reabre | vigente | pendências |
-| PD-005 | pendência não altera bonificação automaticamente | vigente | avaliação mensal |
-| PD-006 | retificação preserva estados independentes | vigente | retificações |
-| PD-007 | Aberta e Aguardando reanálise são ativas | vigente | pendências |
-| PD-008 | não existe estado canônico Vencida | vigente | pendências |
-| PD-009 | indicadores podem se sobrepor | vigente | estatísticas |
-| PD-010 | regularização não reescreve histórico | vigente | avaliação mensal |
-| PD-011 | notas e bens possuem regras próprias | vigente | serviços e Supabase |
+A descrição atual e suas pré-condições estão em `DECISION_LOG.md` e `CURRENT_STATE.md`.
 
 ## 3. Persistência
 
-| ID | Decisão antiga | Estado | Sucessora |
-|---|---|---|---|
-| PS-001 | Production em LocalStorage | substituída | ADR-023 |
-| PS-002 | Supabase não implantado | substituída | ADR-023 |
-| PS-003 | Auth/RLS como etapa futura | substituída | ADR-023 |
-| PS-004 | segredo administrativo fora do frontend | vigente | ADR-008 e ADR-023 |
-| PS-005 | migração com cópia, reconciliação e rollback | vigente | ADR-012 e ADR-034 |
-| PS-006 | modo local sem requisição remota | vigente no adaptador local | runtime |
-| PS-007 | banco vazio não autoriza seed implícito | vigente | ADR-012 |
-| PS-008 | Local e Supabase compartilham contrato | vigente | ADR-001 |
+| ID | Decisão antiga | Situação |
+|---|---|---|
+| PS-001 | Production em LocalStorage | substituída pelo Supabase canônico |
+| PS-002 | Supabase não implantado | substituída |
+| PS-003 | Auth/RLS como etapa futura | substituída; Auth/RLS fazem parte do produto atual |
+| PS-004 | segredo administrativo fora do frontend | preservada |
+| PS-005 | migração com cópia, reconciliação e rollback | preservada |
+| PS-006 | modo local sem requisição remota | preservada apenas no adaptador/local apropriado |
+| PS-007 | banco vazio não autoriza seed implícito | preservada |
+| PS-008 | repositórios compartilham contrato | preservada como arquitetura de dados |
 
-Estado atual:
-
-```text
-Production: SupabaseRepository
-LocalStorageRepository: desenvolvimento e contingência por novo build
-```
+Production atual é Supabase e opera fail-closed.
 
 ## 4. Visual, navegação e exportação
 
-| ID | Conteúdo | Estado | Fonte |
-|---|---|---|---|
-| PV-001 | mudança material exige proposta e aprovação | vigente | ADR-030 |
-| PV-002 | preservar informações, ações e permissões | vigente | ADR-017 |
-| PV-003 | Carteira mobile reorganizada sem perda | vigente | frontend |
-| PV-004 | Excel v2.1 congelado | substituída | ADR-028 |
-| PV-005 | superfícies conectadas | vigente e ampliada | ADRs 025, 027 e 029 |
-| PV-006 | modais controlam foco e teclado | vigente | estratégia de testes |
-| PV-007 | polimento não empobrece o domínio | vigente | ADR-030 |
+| ID | Conteúdo | Situação |
+|---|---|---|
+| PV-001 | mudança material exige proposta/aprovação | preservada |
+| PV-002 | preservar informações, ações e permissões | preservada |
+| PV-003 | mobile reorganiza sem perda de conteúdo/capacidade | preservada |
+| PV-004 | Excel v2.1 congelado | substituída pelo contrato atual do Excel SME |
+| PV-005 | superfícies conectadas | preservada e ampliada |
+| PV-006 | modais controlam foco/teclado | preservada |
+| PV-007 | polimento não empobrece o domínio | preservada |
 
-Exportações atuais:
+Exportações atuais e suas permissões devem ser lidas no catálogo/matriz corrente, não inferidas deste índice histórico.
 
-- relatório institucional XLSX de quatro abas;
-- Excel SME mensal com 27 colunas A:AA;
-- CSV secundário e fallback institucional;
-- Excel SME homologado no Microsoft Excel desktop;
-- relatório institucional mantém gate humano próprio quando priorizado.
+## 5. Governança legada
 
-## 5. Governança
-
-| ID | Conteúdo | Estado | Fonte |
-|---|---|---|---|
-| PG-001 | auditar antes de alterar | vigente | ADRs 015 e 042 |
-| PG-002 | classificar achados | vigente quando aplicável | `CHANGE_CLASSIFICATION.md` |
-| PG-003 | dúvida material submetida após verificação | vigente | `AGENTS.md` |
-| PG-004 | merge e Production são autorizações distintas | vigente | ADRs 003 e 031 |
-| PG-005 | não alterar pode ser resultado válido | vigente | governança |
+| ID | Conteúdo | Situação |
+|---|---|---|
+| PG-001 | auditar antes de alterar | preservada |
+| PG-002 | classificar achados | preservada quando aplicável |
+| PG-003 | dúvida material exige investigação | preservada e reforçada pela continuidade atual |
+| PG-004 | merge e Production são autorizações distintas | preservada |
+| PG-005 | não alterar pode ser resultado válido | preservada |
 
 ## 6. Decisões posteriores
 
-Sem ID legado:
+As decisões posteriores deixaram de ser mantidas por IDs `PD/PS/PV/PG` neste arquivo. Elas estão em:
 
-- carteira como responsabilidade principal — ADR-021;
-- governança da SME — ADR-022;
-- Supabase canônico — ADR-023;
-- documentação segue ambientes — ADR-024 e ADR-042;
-- competência global — ADR-025;
-- timeline como projeção — ADR-027;
-- certificação Excel — ADR-028;
-- navegação contextual — ADR-029;
-- gate cumulativo — ADR-031;
-- histórico SME reconciliado — ADR-034;
-- Node 24 e gate remoto — ADR-035;
-- backup/restauração — ADR-036;
-- integridade de workflows — ADR-037;
-- atualizações intencionais — ADR-038;
-- evolução tecnológica proativa — ADR-039;
-- monitor e incidentes de Production — ADR-040;
-- confiabilidade funcional ponta a ponta — ADR-041;
-- reconciliação documental remota — ADR-042.
+- `docs/DECISION_LOG.md`;
+- `docs/decisions/ADR-*.md`;
+- `docs/CURRENT_STATE.md`;
+- `docs/PLAN_TRACEABILITY.md` para a sucessão recente do plano.
+
+Casos especialmente sensíveis já reconciliados: competência global, Pendências transversais, BB Ágil N/A, individualização de Notas Fiscais/Assessoria, `a_identificar`, Boleto de Internet dentro de Notas Fiscais, vínculo NF ↔ patrimônio, Gestão de Equipe, comunicação externa e guards do PR #260.
 
 ## 7. Regra de manutenção
 
-Não adicionar novas decisões aqui. Registrar em `docs/DECISION_LOG.md` e, quando necessário, em ADR próprio.
+Não adicionar novas decisões aqui e não usar esta página como ordem de leitura. Ela existe apenas para decodificar referências históricas antigas.

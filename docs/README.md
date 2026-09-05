@@ -1,149 +1,97 @@
 # Documentação do RADAR PDDE
 
-**Estado de referência:** 3 de setembro de 2026
-**Classe documental:** Canônico — índice
+> **Primeira leitura obrigatória:** [`../START_HERE.md`](../START_HERE.md).  
+> Este índice localiza documentação técnica; **não define uma segunda ordem de retomada**.
 
-## 0. Frente ativa
+## 1. Continuidade e método corrente
 
-A frente ativa é a **execução do plano remanescente source-first**. Depois da reconciliação pós-hotfix, o código-fonte foi reaberto em 03/09 no SHA `18150cc9` para reduzir a fila ao que ainda existe e preservar soluções posteriores mais avançadas.
+A rota operacional é:
 
-Ler primeiro:
+1. [`../START_HERE.md`](../START_HERE.md) — baseline e porta única;
+2. [`CURRENT_STATE.md`](CURRENT_STATE.md) — estado factual, regras e achados abertos;
+3. [`architecture/adversarial-analysis-and-implementation-method.md`](architecture/adversarial-analysis-and-implementation-method.md) — princípios obrigatórios;
+4. [`architecture/adversarial-analysis-replication-playbook.md`](architecture/adversarial-analysis-replication-playbook.md) — procedimento técnico reproduzível baseado nos artefatos Astra;
+5. [`audits/2026-09-05-astra-adversarial-findings.md`](audits/2026-09-05-astra-adversarial-findings.md) — ledger corrente de bugs/ambiguidades/riscos;
+6. [`audits/2026-09-05-astra-artifact-package-review.md`](audits/2026-09-05-astra-artifact-package-review.md) — estudo do pacote de evidências;
+7. [`MASTER_PLAN_CURRENT.md`](MASTER_PLAN_CURRENT.md) — **único plano executável vigente**;
+8. [`PLAN_TRACEABILITY.md`](PLAN_TRACEABILITY.md) — origem e absorção quando necessário;
+9. [`../AGENTS.md`](../AGENTS.md) — regras permanentes de agentes.
 
-- [`superpowers/plans/2026-09-03-plano-remanescente-source-first.md`](superpowers/plans/2026-09-03-plano-remanescente-source-first.md) — plano executável corrente;
-- [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — estado corrente e próxima fase;
-- [`audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md`](audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md) — evidência source-first;
-- [`handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`](handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md) — checkpoint antecedente;
-- [`decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md);
-- [`decisions/ADR-052-autoridade-unica-fluxos-criticos.md`](decisions/ADR-052-autoridade-unica-fluxos-criticos.md);
-- [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md).
+Se a `main` avançar além da baseline, primeiro reconciliar os PRs funcionais posteriores.
 
-**Atenção:** o plano de 26/08 e a estabilização de 31/08 permanecem referências históricas/técnicas, mas não constituem uma segunda fila de implementação.
+## 2. Estado e rastreabilidade
 
-## 1. Onde começar
+- [`CURRENT_STATE.md`](CURRENT_STATE.md) — estado funcional e P1/decisões abertas;
+- [`PLAN_TRACEABILITY.md`](PLAN_TRACEABILITY.md) — impacto dos hotfixes e da auditoria Astra sobre o plano;
+- [`DECISION_LOG.md`](DECISION_LOG.md) — ledger de decisões;
+- [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — contexto funcional amplo;
+- [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — histórico detalhado de checkpoints, não fila executável.
 
-O plano executável canônico atual é [`superpowers/plans/2026-09-03-plano-remanescente-source-first.md`](superpowers/plans/2026-09-03-plano-remanescente-source-first.md), produzido depois de nova leitura direta dos serviços, integrações, loaders, StatePort/DataService, RPCs e testes.
+A auditoria de continuidade anterior, [`audits/2026-09-05-continuity-semantic-traceability-complete.md`](audits/2026-09-05-continuity-semantic-traceability-complete.md), continua útil para reconstruir #253→#261, mas **não é prova de ausência de bugs desconhecidos**.
 
-A auditoria-fonte está em [`audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md`](audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md).
+## 3. Plano
 
-O handoff [`2026-09-03-reconciliacao-documental-e-plano-mestre.md`](handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md) permanece como checkpoint imediatamente anterior. Os planos de 26/08–31/08 continuam preservados como histórico técnico, mas seus “próximos passos” não controlam mais a execução.
+### Vigente
 
-## 2. Ordem de leitura recomendada
+- [`MASTER_PLAN_CURRENT.md`](MASTER_PLAN_CURRENT.md) — única fila executável, iniciada pela Frente 0 adversarial.
 
-1. [`../AGENTS.md`](../AGENTS.md);
-2. [`superpowers/plans/2026-09-03-plano-remanescente-source-first.md`](superpowers/plans/2026-09-03-plano-remanescente-source-first.md);
-3. [`CURRENT_STAGE.md`](CURRENT_STAGE.md);
-4. [`audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md`](audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md);
-5. [`handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`](handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md);
-6. [`decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md) e [`ADR-052`](decisions/ADR-052-autoridade-unica-fluxos-criticos.md);
-7. [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md) e [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md);
-8. [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) e [`DECISION_LOG.md`](DECISION_LOG.md);
-9. [`handoff/2026-09-02-dependency-governance.md`](handoff/2026-09-02-dependency-governance.md) quando aplicável;
-10. somente depois, planos/handoffs históricos de 26/08–31/08.
+### Históricos
 
-## 3. Decisões atuais que não podem ser perdidas
+- [`superpowers/plans/2026-09-03-plano-remanescente-source-first.md`](superpowers/plans/2026-09-03-plano-remanescente-source-first.md);
+- [`superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md);
+- demais planos/handoffs datados.
 
-### Escritas operacionais
+Seus “próximos passos” não controlam a execução atual.
 
-Após #190–#193, o caminho normal usa persistência/retorno autoritativo e reconciliação incremental. `renderProntuario()` integral é fallback para erro, retorno incompleto ou inconsistência não reconciliável, não rotina de sucesso.
+## 4. Testes e método adversarial
 
-O diagnóstico de 24/08 foi parcialmente absorvido pelos PRs #202/#206 e pelos hotfixes posteriores: o submit imediato possui guard, `invoice-effects.js` planeja efeitos e o no-op semântico já evita escrita sem mudança real. Permanecem como lacunas a idempotência durável de intenção no servidor (PR5) e a retirada das decisões essenciais de consistência que ainda dependem de wrappers/reconciliação parcial (PR3/PR8).
+- [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md) — testes como regressão conhecida + descoberta adversarial;
+- [`architecture/adversarial-analysis-and-implementation-method.md`](architecture/adversarial-analysis-and-implementation-method.md) — mapa de autoridade, contraexemplos, estado avançado, composição real, SQL sucessor e fechamento;
+- [`architecture/adversarial-analysis-replication-playbook.md`](architecture/adversarial-analysis-replication-playbook.md) — inventário, varredura, mapa AST/SQL, probes, normalização do ambiente e preservação progressiva de artefatos.
 
-### Avaliação mensal
+Regra central:
 
-- bonificação, análise técnica e pendência são dimensões independentes;
-- operação semanticamente idêntica é idempotente;
-- N/A → Sim/Não reinicializa derivações incompatíveis;
-- `bonus_result` diferencia campo ausente de limpeza explícita.
-
-### Assessoria por NF
-
-A consulta/análise é individual por Nota Fiscal. `Incorreto` + pendência é atômico, a pendência referencia `registered_invoice_id`, e reanálise afeta apenas a NF vinculada antes de recalcular o agregado.
-
-### Pendências
-
-Pendências são passivo transversal. A página abre em **Todas as competências** e o filtro local é opcional.
-
-Documento: [`decisions/ADR-044-pendencias-passivo-transversal.md`](decisions/ADR-044-pendencias-passivo-transversal.md).
-
-### Production
-
-Production usa Supabase e opera **fail-closed**; falha remota não ativa LocalStorage/seed silenciosamente.
-
-Documento: [`decisions/ADR-045-production-fail-closed.md`](decisions/ADR-045-production-fail-closed.md).
-
-### Dependências conhecidas
-
-As duas vulnerabilidades moderadas atualmente conhecidas na cadeia ExcelJS/UUID são risco conscientemente aceito neste momento. Não executar atualização forçada nem `npm audit fix --force`; acompanhar versões compatíveis e reavaliar quando o risco mudar.
-
-## 4. Ferramentas de qualidade
-
-Além dos gates históricos, o ciclo #193 incorporou:
-
-- `fast-check` → `npm run test:properties`;
-- MSW → `npm run test:network-failures`;
-- `dependency-cruiser` → `npm run check:architecture` e `test:readiness`;
-- Performance API/diagnóstico operacional local → integração runtime no PR #194.
-
-A integração do PR #194 permanece na `main`; o baseline pós-PR #200 é `0965ba8`. A consulta local de métricas é somente leitura:
-
-```javascript
-window.RadarOperationalWriteMetrics.snapshot()
-window.RadarOperationalWriteMetrics.summary()
+```text
+gates conhecidos passaram
+≠ produto provado sem defeitos desconhecidos
 ```
 
-Não há telemetria externa, persistência das métricas ou coleta de dados de negócio.
+## 5. Arquitetura corrente
 
-## 5. Contratos executáveis
+- [`architecture/competencias.md`](architecture/competencias.md) — contexto global + exceção transversal de Pendências;
+- [`architecture/avaliacao-mensal.md`](architecture/avaliacao-mensal.md);
+- [`architecture/modelo-operacional.md`](architecture/modelo-operacional.md);
+- [`architecture/product-extensions-load-order.md`](architecture/product-extensions-load-order.md);
+- [`architecture/testing.md`](architecture/testing.md);
+- [`architecture/excel-export.md`](architecture/excel-export.md);
+- [`architecture/excel-sme-mensal.md`](architecture/excel-sme-mensal.md);
+- [`architecture/excel-xlsx-runtime.md`](architecture/excel-xlsx-runtime.md);
+- [`architecture/excel-integral-certification.md`](architecture/excel-integral-certification.md).
 
-### Matriz funcional
+A família Excel foi reconciliada em 05/09 para distinguir:
 
-- [`reference/functional-contract-matrix.json`](reference/functional-contract-matrix.json);
-- `reference/functional-contract-matrix/*.json`;
-- [`../scripts/check-functional-contract-matrix.mjs`](../scripts/check-functional-contract-matrix.mjs);
-- [`../tests/unit/functional-contract-matrix.test.js`](../tests/unit/functional-contract-matrix.test.js);
-- [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md).
+- workbook correto;
+- ponto de entrada real correto;
+- política temporal de XLSX institucional;
+- contrato ainda aberto do CSV.
 
-### Governança de testes
+## 6. Achados adversariais abertos
 
-[`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md) determina que:
+Resumo:
 
-- teste não cria regra de negócio sozinho;
-- falha deve ser classificada antes de alterar produto;
-- contrato superado é atualizado, não imposto ao sistema;
-- validação é proporcional ao risco;
-- evidência válida pode ser reaproveitada quando a superfície correspondente não mudou.
+- P1 `Inventariada → Encaminhada` ao salvar novamente NF vinculada;
+- P1 auditoria pré-download do Excel SME;
+- decisão idade total da Pendência × tempo do ator;
+- decisão/investigação CSV × XLSX;
+- renderer legado de Pendências;
+- projeções duplicadas;
+- readiness por Promise/capability;
+- módulo de performance com autoridade funcional;
+- testes/documentos históricos perigosos.
 
-## 6. Documentos canônicos e referências
+Usar o ledger, não reproduzir esta lista como fonte autônoma.
 
-- [`superpowers/plans/2026-09-03-plano-remanescente-source-first.md`](superpowers/plans/2026-09-03-plano-remanescente-source-first.md) — plano executável corrente;
-- [`CURRENT_STAGE.md`](CURRENT_STAGE.md) — estado corrente;
-- [`audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md`](audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md) — evidência do escopo remanescente;
-- [`handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md`](handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md) — checkpoint canônico antecedente;
-- [`decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md`](decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md) — contrato vigente de NF/Pendências individuais;
-- [`decisions/ADR-051-adiamento-hardening-registered-invoices.md`](decisions/ADR-051-adiamento-hardening-registered-invoices.md) — hardening adiado até após R9;
-- [`decisions/ADR-052-autoridade-unica-fluxos-criticos.md`](decisions/ADR-052-autoridade-unica-fluxos-criticos.md) — autoridade/composição de fluxos críticos;
-- [`handoff/2026-09-02-dependency-governance.md`](handoff/2026-09-02-dependency-governance.md) — governança vigente de dependências;
-- [`superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md`](superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md) — contrato técnico histórico, não fila executável;
-- [`superpowers/plans/2026-08-31-estabilizacao-arquitetural-jornadas-criticas.md`](superpowers/plans/2026-08-31-estabilizacao-arquitetural-jornadas-criticas.md) — referência arquitetural histórica absorvida por R1/R2/R4/R5;
-- [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — contratos funcionais/arquiteturais estáveis;
-- [`DECISION_LOG.md`](DECISION_LOG.md) — decisões históricas e duradouras;
-- [`reference/STATUS_DOCUMENTOS.md`](reference/STATUS_DOCUMENTOS.md) — validade documental;
-- [`reference/FUNCTIONAL_CONTRACT_MATRIX.md`](reference/FUNCTIONAL_CONTRACT_MATRIX.md) — visão gerada do contrato funcional vigente;
-- [`reference/PRODUCT_SURFACE_CATALOG.md`](reference/PRODUCT_SURFACE_CATALOG.md) — superfícies e UX;
-- [`reference/TEST_GOVERNANCE.md`](reference/TEST_GOVERNANCE.md) — governança de validação;
-- [`../AGENTS.md`](../AGENTS.md) — regras de trabalho.
-
-## 7. Arquitetura e Supabase
-
-### Produto/frontend
-
-- [`architecture/competencias.md`](architecture/competencias.md)
-- [`architecture/avaliacao-mensal.md`](architecture/avaliacao-mensal.md)
-- [`architecture/modelo-operacional.md`](architecture/modelo-operacional.md)
-- [`architecture/product-extensions-load-order.md`](architecture/product-extensions-load-order.md)
-- [`architecture/testing.md`](architecture/testing.md)
-
-### Supabase
+## 7. Supabase
 
 - [`reference/SUPABASE_DATA_DICTIONARY.md`](reference/SUPABASE_DATA_DICTIONARY.md)
 - [`reference/SUPABASE_FUNCTIONAL_COVERAGE.md`](reference/SUPABASE_FUNCTIONAL_COVERAGE.md)
@@ -151,25 +99,28 @@ Não há telemetria externa, persistência das métricas ou coleta de dados de n
 - [`runbooks/SUPABASE_CONNECTION.md`](runbooks/SUPABASE_CONNECTION.md)
 - [`runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md`](runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md)
 
-## 8. Histórico
+Baseline #260: 46 migrations. Para RPC, usar a última definição efetiva da assinatura.
 
-Arquivos datados em `docs/audits/`, `docs/evidence/`, `docs/superpowers/`, `docs/handoff/` e `docs/reports/` preservam o momento em que foram produzidos. Eles não devem ser reescritos para coincidir com o presente e não prevalecem sobre o código/ambiente atual.
+## 8. Handoffs, auditorias e evidências
 
-O handoff pós-PR #215, o handoff de 26/08 e a reconciliação pós-hotfix são checkpoints históricos/canônicos de suas etapas. A porta de entrada executável corrente é o plano source-first de 03/09; documentos anteriores permanecem disponíveis para rastreabilidade, mas seus “próximos passos” não controlam mais a execução.
+- `handoff/` — checkpoints;
+- `audits/` — auditorias datadas;
+- `evidence/` — evidências;
+- `reports/` — relatórios;
+- `superpowers/specs/` / `plans/` — desenhos e planos de seus ciclos.
 
-## 9. Continuidade
+São essenciais para rastreabilidade, mas novas sessões não devem percorrê-los aleatoriamente. `START_HERE.md` determina quando são necessários.
 
-Fluxo recomendado:
+## 9. Manutenção após hotfix
 
-```text
-verificar remoto
-→ classificar demanda
-→ branch isolada
-→ mudança mínima
-→ validação proporcional
-→ classificar falhas
-→ confirmar Production quando aplicável
-→ atualizar documentação afetada
-```
+Todo hotfix funcional deve:
 
-A reauditoria source-first foi concluída em 03/09. O próximo ponto real é **R1: retirar a autoridade funcional de consistência ainda alojada em wrappers de performance**. Depois seguem R2A–R2C, R3, R4, R5, o gate R6, R7/R8 e o fechamento R9.
+1. reproduzir/classificar;
+2. aplicar método adversarial;
+3. atualizar [`CURRENT_STATE.md`](CURRENT_STATE.md);
+4. atualizar [`PLAN_TRACEABILITY.md`](PLAN_TRACEABILITY.md);
+5. atualizar [`MASTER_PLAN_CURRENT.md`](MASTER_PLAN_CURRENT.md) se necessário;
+6. atualizar documentos correntes afetados;
+7. registrar o que foi tentado para provar que a correção ainda estava errada.
+
+Não criar outro plano corrente paralelo.

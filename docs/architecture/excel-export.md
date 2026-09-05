@@ -1,183 +1,180 @@
 # Relatório institucional Excel do RADAR PDDE
 
-**Estado:** modelo, renderer, certificação, integração e auditoria obrigatória implementados  
-**Atualizado em:** 7 de agosto de 2026
+**Estado:** contrato corrente reconciliado; existe P1 de composição da auditoria ainda não corrigido  
+**Atualizado em:** 5 de setembro de 2026
 
-## 1. Finalidade
+> Leia primeiro [`../../START_HERE.md`](../../START_HERE.md). A auditoria adversarial de 05/09/2026 revogou a descrição anterior que tratava todas as rotas de exportação como equivalentes e plenamente auditadas.
 
-O relatório institucional `.xlsx` preserva o universo e os doze campos do CSV legado, acrescentando estrutura editorial, sínteses e controles de qualidade sem reduzir ou reinterpretar a base original.
+## 1. Produtos distintos
 
-A integração de runtime substitui a ação principal por XLSX e preserva o CSV como contingência. O download institucional é envolvido por auditoria obrigatória via `RadarExcelExportAudit`.
+O RADAR mantém saídas diferentes que **não podem ser tratadas como um único contrato temporal**:
 
-## 2. Estado por camada
+1. XLSX institucional de quatro abas;
+2. Excel SME mensal de uma aba e 27 colunas;
+3. CSV legado de contingência;
+4. XLSX editorial da tela de Pendências.
 
-| Camada | Estado |
-|---|---|
-| Modelo lógico institucional | implementado |
-| Plano do workbook | implementado |
-| Renderer OOXML/ZIP | implementado |
-| Quatro abas | implementadas |
-| Equivalência com CSV | certificada |
-| Comparação célula a célula | certificada |
-| Manifesto e hashes | implementados |
-| Botão institucional principal usando XLSX | implementado em runtime |
-| Botão secundário CSV | implementado como fallback |
-| Auditoria inicial antes do download | implementada e obrigatória |
-| Registro de conclusão | implementado |
-| Neutralização do log legado duplicado | implementada |
-| Homologação manual do relatório institucional no Excel desktop | pendente quando priorizada |
+O modelo/renderizador genérico poder aceitar múltiplas competências não significa que o botão real de cada produto tenha política multicompetência.
 
-## 3. Contrato do relatório
+## 2. XLSX institucional — regra temporal vigente
 
-A rotina lógica percorre escolas, competências configuradas e programas vinculados. Uma linha existe quando há verificação para `escola + competência + programa` e `resultadoBonif` está preenchido.
+Uma decisão posterior, commit `6f6304d91a9eaf0b241461a1968e3c708902c022` de 09/08/2026 (`fix(export): limitar relatório à competência global`), passou a limitar a exportação institucional atual à **competência global ativa**.
 
-Granularidade:
+Contrato atual do botão institucional:
 
 ```text
-escola × competência × programa consolidado
+RadarCompetenceContext.activeKey
+→ escopo institucional da competência ativa
+→ escola × competência ativa × programa consolidado
+→ workbook institucional
 ```
 
-A competência ativa não limita o conteúdo institucional. O produto é histórico e multicompetência.
+A frase antiga “a competência ativa não limita o conteúdo institucional; o produto é histórico e multicompetência” está **SUPERADA** para o ponto de entrada corrente.
 
-## 4. Campos obrigatórios
+Camadas internas/modelos genéricos podem continuar capazes de representar várias competências sem definir a política do botão real.
 
-A aba `BONIFICACOES` mantém, na mesma ordem lógica:
+## 3. Estrutura do XLSX institucional
 
-| Nº | Campo | Origem |
-|---:|---|---|
-| 1 | INEP | escola |
-| 2 | Denominação | escola |
-| 3 | Designação | escola |
-| 4 | Competência | competência iterada |
-| 5 | Programa | vínculo escola–programa |
-| 6 | Conta corrente | bonificação |
-| 7 | Investimento | bonificação |
-| 8 | Nota fiscal | bonificação |
-| 9 | Assessoria | bonificação |
-| 10 | BB Ágil | bonificação |
-| 11 | Encaminhado ao inventário | bonificação |
-| 12 | Status da bonificação | `resultadoBonif` |
-
-Nenhum campo pode ser removido, agregado ou transferido exclusivamente para outra aba.
-
-## 5. Estrutura do workbook
-
-Ordem fixa:
+O workbook preserva as quatro abas:
 
 1. `BONIFICACOES`;
 2. `SINTESE`;
 3. `QUALIDADE_DADOS`;
 4. `METADADOS`.
 
-As abas auxiliares não alteram a base principal.
-
-## 6. Aba `BONIFICACOES`
-
-- universo e ordem equivalentes ao CSV;
-- `APTA` e `INAPTA` em texto;
-- identificadores textuais preservados;
-- filtros e ordenação;
-- congelamento das oito primeiras linhas e três primeiras colunas;
-- cabeçalho na linha 8;
-- dados a partir da linha 9;
-- nenhum gráfico dentro da base principal.
-
-## 7. `SINTESE`, qualidade e metadados
-
-`SINTESE` agrega indicadores sem modificar a base. `QUALIDADE_DADOS` localiza campos ausentes/representações inválidas e referencia a linha correspondente. `METADADOS` registra geração, versão do modelo, regra de inclusão, granularidade, escopo temporal e dicionário.
-
-A unidade estatística deve permanecer declarada como `escola × competência × programa`.
-
-## 8. Equivalência e certificação
-
-A comparação entre rota lógica legada e base XLSX verifica quantidade, ordem, doze valores, consolidados e ausência de não consolidados.
-
-A certificação percorre:
+Granularidade da base principal:
 
 ```text
-estado de origem
-→ evaluateMonthlyEvaluation
-→ modelo institucional
-→ plano do workbook
-→ OOXML
-→ células
-→ hashes e manifesto
+escola × competência ativa × programa consolidado
 ```
 
-Divergência lógica bloqueia a exportação XLSX e mantém o CSV como contingência.
+Campos principais preservados:
 
-## 9. Runtime e ordem de carregamento
+1. INEP;
+2. Denominação;
+3. Designação;
+4. Competência;
+5. Programa;
+6. Conta corrente;
+7. Investimento;
+8. Nota fiscal;
+9. Assessoria;
+10. BB Ágil;
+11. Encaminhado ao inventário;
+12. Status da bonificação.
 
-`src/integration/load-excel-export.js` carrega sequencialmente os módulos de domínio/renderização, `excel-export-integration.js` e, ao final, `excel-export-audit.js`.
+As abas auxiliares não alteram a base principal.
 
-A integração principal preserva a função CSV legada, disponibiliza XLSX/SME/CSV e mantém fallback técnico. A camada `RadarExcelExportAudit` passa a controlar a liberação do download.
+## 4. CSV de contingência — contrato ainda não reconciliado
 
-## 10. Auditoria obrigatória da exportação
+O CSV legado continua disponível, mas a auditoria adversarial encontrou diferença real em relação ao XLSX institucional:
 
-Percurso vigente:
+- o caminho legado ainda percorre política temporal anterior;
+- a auditoria acontece em ordem diferente;
+- o CSV não é interceptado pela mesma autoridade auditada usada na rota institucional protegida.
+
+Portanto, **não afirmar equivalência XLSX ↔ CSV enquanto esse contrato não for decidido e testado**.
+
+Antes de qualquer mudança, decidir explicitamente:
+
+- se CSV deve refletir somente a competência ativa;
+- se deve continuar histórico/multicompetência como contingência deliberada;
+- qual ordem de auditoria é obrigatória;
+- em que condições ele substitui uma falha do XLSX.
+
+Não remover o CSV por inferência.
+
+## 5. Auditoria obrigatória — regra desejada e defeito conhecido
+
+Regra institucional desejada:
 
 ```text
 clique autorizado
-→ RadarExcelExportAudit
-→ AuditService.record('Exportação Excel Iniciada')
+→ persistir evento inicial de auditoria
 → confirmação obrigatória
-→ geração/download
-→ AuditService.record(ação de conclusão)
+→ somente então gerar/baixar
+→ registrar conclusão
 ```
 
-Regras:
+Se a auditoria inicial falhar, o download **deve ser bloqueado**.
 
-1. se `AuditService` estiver indisponível ou o evento inicial falhar, a exportação é bloqueada;
-2. durante o pipeline, o filtro de compatibilidade neutraliza `registerLog` para os eventos legados de exportação, evitando duplicação;
-3. se a geração falhar, não se afirma conclusão;
-4. se o arquivo for gerado mas o registro final falhar, o retorno distingue `exportCompleted` de `auditFailed` e orienta o usuário;
-5. XLSX institucional e Excel SME usam a mesma regra de auditoria inicial.
+### P1 conhecido em 05/09/2026
 
-Essa camada foi incorporada pelo PR #162 e substitui o contrato documental antigo de persistência assíncrona do snapshot integral de logs.
+A auditoria Astra demonstrou que existe diferença de composição:
 
-## 11. Certificação do deployment
+- o entrypoint auditado bloqueia corretamente quando `AuditService.record(...)` falha;
+- o botão real **Excel SME**, criado por `excel-export-integration.js`, usa closure privada que pode executar o download antes da confirmação da auditoria;
+- o E2E existente comprova que o arquivo baixa corretamente, mas não cobre `falha da auditoria inicial → nenhum download`.
 
-A disponibilidade do produto exige:
+Esse defeito está registrado em:
 
-- assets e manifestos esperados;
-- HTTP válido;
-- botão real concluindo o percurso;
-- workbook reaberto/inspecionado;
-- commit publicado coerente;
-- auditoria inicial disponível.
+[`../audits/2026-09-05-astra-adversarial-findings.md`](../audits/2026-09-05-astra-adversarial-findings.md)
 
-## 12. Homologação humana
+**Ainda não foi corrigido neste PR documental.**
 
-O Excel SME possui homologação própria concluída para o contrato atual. O relatório institucional mantém sua homologação humana independente quando priorizada. Certificação automatizada não substitui abertura humana diante de mudança estrutural ou visual material.
+## 6. Excel SME
 
-## 13. Relação com o Excel SME
+Contrato público preservado:
 
-| Dimensão | Institucional | SME mensal |
-|---|---|---|
-| Escopo | histórico | competência ativa |
-| Granularidade | escola × competência × programa | uma linha por escola |
-| Abas | quatro | uma |
-| Colunas principais | doze | **27 A:AA** |
-| Ação | XLSX institucional | Excel SME |
-| Fallback | CSV | não aplicável |
-| Auditoria inicial | obrigatória | obrigatória |
+- uma competência mensal ativa;
+- uma aba;
+- uma linha por unidade escolar;
+- 27 colunas A:AA;
+- template-fonte de 30 colunas projetado para 27;
+- nenhuma informação inventada;
+- nome do arquivo e aba derivados da mesma competência.
 
-Contrato SME: [`excel-sme-mensal.md`](excel-sme-mensal.md).
+O contrato temporal do Excel SME é claro e não depende da decisão pendente do CSV.
 
-## 14. Limites
+## 7. XLSX de Pendências
 
-A implementação não:
+A exportação de Pendências respeita busca e filtros da fila, inclusive seu filtro local de competência transversal. Essa filtragem não altera `RadarCompetenceContext`.
 
-- consulta Production durante certificação sintética;
-- inventa dados para completar o relatório;
-- substitui homologação humana;
-- remove o CSV legado;
-- libera download institucional sem registro inicial de auditoria.
+É um produto diferente do XLSX institucional e do Excel SME.
 
-## 15. Referências
+## 8. Testes que faltam para fechar o contrato atual
 
-- [`excel-integral-certification.md`](excel-integral-certification.md);
+### Composição de auditoria
+
+Teste obrigatório pelo ponto de entrada real:
+
+```text
+clicar botão
+→ injetar falha na auditoria inicial
+→ verificar que nenhum download ocorreu
+```
+
+Executar pelo menos para:
+
+- XLSX institucional;
+- Excel SME;
+- CSV, depois de definida sua política.
+
+### Escopo temporal
+
+Usar estado com **duas competências reais/sintéticas** e provar:
+
+- XLSX institucional contém somente a competência ativa;
+- Excel SME contém somente a competência ativa;
+- CSV segue o contrato que vier a ser deliberadamente decidido;
+- nome do arquivo, metadados e conteúdo concordam.
+
+Teste com uma única competência não detecta regressão de escopo.
+
+## 9. Anti-padrões
+
+Não concluir que:
+
+- wrapper auditado correto implica botão real auditado;
+- modelo multicompetência implica produto multicompetência;
+- E2E de download feliz comprova bloqueio em falha de auditoria;
+- CSV e XLSX são equivalentes apenas porque já foram equivalentes em checkpoint histórico.
+
+## 10. Evidência e referências
+
+- [`adversarial-analysis-and-implementation-method.md`](adversarial-analysis-and-implementation-method.md);
+- [`adversarial-analysis-replication-playbook.md`](adversarial-analysis-replication-playbook.md);
 - [`excel-sme-mensal.md`](excel-sme-mensal.md);
 - [`excel-xlsx-runtime.md`](excel-xlsx-runtime.md);
-- [`frontend-load-order.md`](frontend-load-order.md);
-- [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md).
+- [`../audits/2026-09-05-astra-adversarial-findings.md`](../audits/2026-09-05-astra-adversarial-findings.md);
+- [`../audits/2026-09-05-astra-artifact-package-review.md`](../audits/2026-09-05-astra-artifact-package-review.md).

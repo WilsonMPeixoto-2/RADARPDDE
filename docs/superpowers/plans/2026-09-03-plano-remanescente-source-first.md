@@ -1,5 +1,7 @@
 # Plano remanescente source-first — pós-hotfixes e pós-reauditoria do código
 
+> **HISTÓRICO — NÃO EXECUTAR COMO FILA ATUAL.** Este foi o plano correto do checkpoint de 03/09, mas foi posteriormente alterado pelos PRs #254, #256, #257, #258 e #260. A única fila vigente está em [`../../MASTER_PLAN_CURRENT.md`](../../MASTER_PLAN_CURRENT.md). Comece em [`../../../START_HERE.md`](../../../START_HERE.md).
+
 **Data:** 3 de setembro de 2026  
 **Classe documental:** Canônico — plano executável corrente  
 **Baseline de planejamento:** `main` em `18150cc9ef7e15e2e777041fce541b847af517e1`  

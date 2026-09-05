@@ -1,239 +1,105 @@
 # Matriz de validade documental
 
-**Atualizado em:** 4 de setembro de 2026
-**Classe documental:** Canônico
+**Atualizado em:** 5 de setembro de 2026  
+**Classe documental:** referência canônica de classificação, não fila executável
 
-## 1. Finalidade
+> **ROTA OBRIGATÓRIA:** qualquer retomada começa em [`../../START_HERE.md`](../../START_HERE.md). O único plano executável vigente é [`../MASTER_PLAN_CURRENT.md`](../MASTER_PLAN_CURRENT.md).
 
-Este documento define quais arquivos podem orientar o estado presente e quais existem apenas para rastreabilidade histórica.
+## 1. Rota corrente
 
-O estado mutável do projeto fica em [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md). A estratégia vigente de validação fica em [`TEST_GOVERNANCE.md`](TEST_GOVERNANCE.md).
+```text
+START_HERE.md
+→ CURRENT_STATE.md
+→ método adversarial
+→ playbook reproduzível
+→ achados/evidências adversariais
+→ MASTER_PLAN_CURRENT.md
+→ PLAN_TRACEABILITY.md quando necessário
+→ documentos específicos da tarefa
+```
 
-O roteamento corrente começa em [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md) e [`../handoff/2026-09-04-estabilizacao-funcional-pr260.md`](../handoff/2026-09-04-estabilizacao-funcional-pr260.md). O plano source-first de 03/09 e os planos anteriores permanecem referências históricas de arquitetura e contexto, mas não controlam automaticamente a fila executável após os hotfixes e a estabilização de 04/09.
+## 2. Documentos correntes
 
-## 2. Classes
-
-| Classe | Significado |
-|---|---|
-| **Canônico** | controla estado, prioridade, regra geral ou validade documental vigente |
-| **Contrato executável** | fonte versionada validada automaticamente |
-| **Gerado** | visão derivada de contrato executável; não editar manualmente |
-| **Referência vigente** | descreve contrato técnico/funcional atual |
-| **Runbook vigente** | procedimento operacional atual, sem constituir autorização automática |
-| **Procedimento histórico restrito** | aplicável somente ao contexto explicitamente indicado |
-| **Decisão vigente** | regra duradoura aprovada |
-| **Evidência** | comprova execução específica em data/SHA/ambiente determinados |
-| **Trabalho em andamento** | branch/PR não integrado; não altera baseline da `main` |
-| **Histórico executado** | plano/spec/relatório preservado após execução |
-| **Superado** | não usar para orientar o presente, salvo investigação histórica |
-
-## 3. Precedência
-
-Para determinar comportamento atual:
-
-1. código do SHA analisado;
-2. Supabase/Auth/RLS/RPCs/Edge Functions e Vercel efetivos;
-3. decisões funcionais vigentes;
-4. testes atuais que representam esse contrato;
-5. documentos canônicos/referências vigentes;
-6. testes, auditorias e documentos históricos.
-
-Um teste histórico não prevalece sobre regra e código posteriores. PR aberto, Preview, documento ou memória de conversa não modifica o estado de Production.
-
-## 4. Fontes canônicas
-
-| Arquivo | Função |
-|---|---|
-| `AGENTS.md` | regras de trabalho e proteção do projeto |
-| `README.md` | entrada do repositório |
-| `docs/CURRENT_STAGE.md` | estado corrente, prioridades e gatilhos de nova validação |
-| `docs/handoff/2026-09-04-estabilizacao-funcional-pr260.md` | **checkpoint canônico da estabilização funcional**; sincronização, persistência, reload, repetição de gesto e regressões |
-| `docs/superpowers/plans/2026-09-03-plano-remanescente-source-first.md` | referência histórica do plano R1–R9 anterior à estabilização de 04/09; não executar literalmente |
-| `docs/audits/2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md` | auditoria source-first que fundamenta o escopo remanescente |
-| `docs/handoff/2026-09-03-reconciliacao-documental-e-plano-mestre.md` | checkpoint canônico da reconciliação pós-hotfix; antecede o plano source-first |
-| `docs/handoff/2026-09-02-dependency-governance.md` | manutenção de dependências e decisões de versões homologadas/rejeitadas |
-| `docs/handoff/2026-08-31-pr237-fechamento-visual-e-ci.md` | histórico canônico imediatamente anterior à reconciliação de 03/09 |
-| `docs/handoff/2026-08-30-pr215-fechamento-tecnico.md` | estado canônico do conjunto PR #211/#214/#215 e ponte para homologação autenticada final |
-| `docs/handoff/2026-08-30-pr211-publicacao-concluida.md` | histórico canônico imediatamente após a publicação do PR #211; superado para estado corrente pelo handoff pós-PR #215 |
-| `docs/handoff/2026-08-30-pr211-retomada-work.md` | histórico da retomada final do PR #211 |
-| `docs/handoff/2026-08-28-pr211-hotfix-notas-fiscais.md` | checkpoint histórico do PR #211 enquanto Draft |
-| `docs/superpowers/plans/2026-08-28-hotfix-individualizacao-notas-fiscais.md` | plano executável específico do hotfix; não substitui o plano mestre |
-| `docs/evidence/2026-08-28-pr211-referencias-visuais.md` | evidência/referência visual aprovada do bloco de Notas Fiscais |
-| `docs/evidence/2026-08-29-pr211-classificacao-dados-legados.md` | classificação autoritativa dos 16 legados e das fixtures técnicas |
-| `docs/decisions/ADR-050-analise-pendencia-individual-notas-fiscais.md` | decisão vigente sobre granularidade individual de análise e Pendência |
-| `docs/handoff/2026-08-26-retomada-plano-mestre-pos-pr200.md` | checkpoint histórico/canônico do plano pós-PR #200; não controla execução corrente |
-| `docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md` | contrato técnico histórico aprovado em 26/08; sequência substituída pelo plano source-first |
-| `docs/reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.docx` | versão integral aprovada e versionada do plano |
-| `docs/reports/2026-08-26-plano-mestre-correcoes-pos-auditoria.sha256` | integridade verificável do Word canônico |
-| `docs/reference/TEST_GOVERNANCE.md` | classificação de falhas e estratégia proporcional de testes |
-| `docs/PROJECT_CONTEXT.md` | contrato funcional e arquitetural estável |
-| `docs/DECISION_LOG.md` | decisões duradouras agregadas |
-| `docs/decisions/ADR-044-pendencias-passivo-transversal.md` | exceção transversal da competência em Pendências |
-| `docs/decisions/ADR-045-production-fail-closed.md` | Production sem fallback local/seed |
-| `docs/README.md` | índice da documentação |
-| `docs/reference/STATUS_DOCUMENTOS.md` | classificação de validade documental |
-
-Valores voláteis como HEAD da `main`, deployment e versão de serviço devem ser consultados no remoto quando necessários. Checkpoints datados podem registrar esses valores como evidência histórica.
-
-## 5. Matriz funcional ponta a ponta
-
-| Arquivo | Classe | Uso |
+| Documento | Estado | Uso |
 |---|---|---|
-| `docs/reference/functional-contract-matrix.json` | Contrato executável | perfis, superfícies, evidências e composição |
-| `docs/reference/functional-contract-matrix/core.json` | Contrato executável | Auth, leitura, navegação e exportações |
-| `docs/reference/functional-contract-matrix/configuration.json` | Contrato executável | configuração, escolas e equipe |
-| `docs/reference/functional-contract-matrix/operations.json` | Contrato executável | verificações, pendências, notas, bens e auditoria |
-| `docs/reference/functional-contract-matrix/technical.json` | Contrato executável | importação, monitoramento e integridade |
-| `scripts/check-functional-contract-matrix.mjs` | Contrato executável | validação e geração |
-| `tests/unit/functional-contract-matrix.test.js` | Contrato executável | regressões da própria matriz |
-| `docs/reference/FUNCTIONAL_CONTRACT_MATRIX.md` | Gerado | visão das operações registradas |
+| `START_HERE.md` | **CORRENTE — porta única** | primeira leitura/baseline |
+| `docs/CURRENT_STATE.md` | **CORRENTE** | estado funcional + achados abertos |
+| `docs/architecture/adversarial-analysis-and-implementation-method.md` | **CORRENTE — obrigatório** | princípios adversariais |
+| `docs/architecture/adversarial-analysis-replication-playbook.md` | **CORRENTE — obrigatório em auditoria crítica** | procedimento reproduzível extraído da execução Astra |
+| `docs/audits/2026-09-05-astra-adversarial-findings.md` | **CORRENTE COMO LEDGER** | bugs, ambiguidades, dívidas e históricos classificados |
+| `docs/audits/2026-09-05-astra-artifact-package-review.md` | **CORRENTE COMO EVIDÊNCIA/MÉTODO** | estudo dos 27 artefatos reais da auditoria Astra |
+| `docs/MASTER_PLAN_CURRENT.md` | **CORRENTE — único plano executável** | fila real |
+| `docs/PLAN_TRACEABILITY.md` | **CORRENTE** | origem e absorção |
+| `AGENTS.md` | **CORRENTE** | regras permanentes de agentes |
+| `docs/reference/TEST_GOVERNANCE.md` | **CORRENTE** | governança de testes |
+| `docs/PROJECT_CONTEXT.md` | **CORRENTE** | contratos funcionais, subordinados à rota |
+| `docs/DECISION_LOG.md` | **CORRENTE COMO LEDGER** | decisões; não é fila |
 
-A classificação `partial` não significa defeito nem bloqueio automático. Prova adicional só é necessária quando houver risco concreto, mudança relacionada ou auditoria expressa.
+## 3. Arquitetura corrente corrigida após Astra
 
-A autoridade de `technical_admin` deve permanecer coerente com `src/domain/access-policy.js`: o papel técnico autenticado preserva autoridade mesmo sob simulação visual de perfil funcional.
+- `competencias.md`: contexto global único + filtro local transversal de Pendências;
+- `excel-export.md`: XLSX institucional na competência ativa; CSV ainda precisa decisão; P1 de auditoria SME aberto;
+- `excel-sme-mensal.md`: 27 colunas preservadas + P1 de composição registrado;
+- `excel-xlsx-runtime.md`: removida equivalência automática CSV/XLSX;
+- `excel-integral-certification.md`: workbook correto separado de composição correta do botão real.
 
-## 6. Referências vigentes
+## 4. Auditorias
 
-### Arquitetura
+### Corrente para achados
 
-- `docs/architecture/README.md`;
-- `docs/architecture/competencias.md`;
-- `docs/architecture/avaliacao-mensal.md`;
-- `docs/architecture/modelo-operacional.md`;
-- `docs/architecture/timeline-unidade.md`;
-- `docs/architecture/navigation-contextual.md`;
-- `docs/architecture/testing.md`, subordinado à governança proporcional atual quando houver divergência;
-- `docs/architecture/supabase-readiness.md`;
-- `docs/architecture/frontend-load-order.md`;
-- `docs/architecture/product-extensions-load-order.md`;
-- `docs/architecture/pendency-excel-export.md`;
-- contratos Excel em `docs/architecture/excel-*.md`.
+- `2026-09-05-astra-adversarial-findings.md` — ledger atual;
+- `2026-09-05-astra-artifact-package-review.md` — evidência/método extraído do pacote.
 
-`docs/architecture/roadmap-pre-supabase.md` é **Superado/Histórico executado** para fins de estágio corrente.
+### Histórica/canônica para continuidade
 
-### Supabase e produto
+- `2026-09-05-continuity-semantic-traceability-complete.md` — reconstrução #253→#261. Continua útil, mas **não prova ausência de bugs desconhecidos**.
 
-- `docs/reference/SUPABASE_DATA_DICTIONARY.md`;
-- `docs/reference/SUPABASE_FUNCTIONAL_COVERAGE.md`;
-- `docs/reference/SUPABASE_INTEGRATION_AUDIT.md`;
-- `docs/reference/SUPABASE_PERMISSIONS_MATRIX.md`;
-- `docs/reference/PRODUCT_SURFACE_CATALOG.md`;
-- `docs/reference/TEST_GOVERNANCE.md`;
-- `docs/reference/PRODUCT_DECISIONS.md`;
-- `docs/reference/DATA_CLASSIFICATION_AND_ENVIRONMENTS.md`;
-- `docs/reference/CHANGE_CLASSIFICATION.md`.
+### Histórica
 
-Referência antiga continua útil apenas enquanto não divergir do código atual e das referências mais recentes.
+- `2026-09-03-reauditoria-codigo-fonte-plano-remanescente.md` e demais auditorias de checkpoints anteriores.
 
-## 7. Testes
+## 5. Planos históricos
 
-Testes atuais são proteção do contrato vigente, não uma camada superior ao produto.
+- `2026-09-03-plano-remanescente-source-first.md` — histórico, não executar;
+- `2026-08-26-plano-mestre-correcoes-pos-auditoria.md` — histórico, não executar;
+- demais planos/handoffs datados — evidência de checkpoint.
 
-Falhas devem ser classificadas conforme `TEST_GOVERNANCE.md` antes de qualquer alteração:
+## 6. Linha de sucessão
 
-- defeito real de produto;
-- contrato de teste superado;
-- defeito de fixture/teste;
-- infraestrutura;
-- flaky não reproduzível.
+```text
+#253
+→ #254 → #256 → #257 → #258 → #260 → #261
+→ #263 documental em revisão
+```
 
-Testes superados podem ser atualizados, removidos ou explicitamente excluídos da execução quando já houver proteção sucessora adequada. Não alterar comportamento correto para satisfazer expectativa histórica.
+PR #262 foi abortado/fechado sem merge.
 
-## 8. Runbooks
+## 7. ADRs e migrations
 
-| Documento | Classe |
-|---|---|
-| `docs/runbooks/SUPABASE_CONNECTION.md` | Runbook vigente |
-| `docs/runbooks/SUPABASE_MIGRATION_AND_ROLLBACK.md` | Runbook vigente |
-| `docs/runbooks/SUPABASE_AUTH_BOOTSTRAP.md` | Procedimento histórico restrito |
-| `docs/runbooks/SUPABASE_DATA_BOOTSTRAP.md` | Procedimento histórico restrito |
+ADRs continuam válidas apenas no escopo não especializado por decisão posterior.
 
-Comando existente em runbook não equivale a autorização para executá-lo em Production.
+Para SQL/RPC:
 
-## 9. Decisões
+- migration antiga continua imutável;
+- autoridade é a última definição efetiva da assinatura;
+- matriz deve registrar evidência sucessora quando a RPC foi redefinida.
 
-Arquivos de `docs/decisions/` e entradas correspondentes de `DECISION_LOG.md` são **Decisão vigente**, salvo quando o próprio status declarar `Substituída`, `Revogada`, `Cumprida` ou equivalente.
+## 8. Sessão nova NÃO deve
 
-As decisões recentes mais relevantes são:
+- usar gate verde como prova de ausência de bug;
+- validar só função isolada quando o usuário entra por outro caminho;
+- ignorar segunda implementação/fallback/closure;
+- usar migration antiga depois de sucessora;
+- transformar fixture legado/adversarial em regra atual;
+- omitir ambiguidade porque “não é bug”;
+- executar plano histórico como fila corrente.
 
-- ADR-043 — desativação de Controlador exige carteira previamente zerada;
-- ADR-044 — Pendências Operacionais usam visão transversal entre competências;
-- ADR-045 — Production é fail-closed e não publica seed institucional legado;
-- ADR-046 — escritas operacionais usam retorno autoritativo e reconciliação incremental;
-- ADR-047 — vulnerabilidades conhecidas são acompanhadas sem atualização forçada;
-- ADR-048 — plano pós-PR #200 usa execução incremental e revisão adversarial;
-- ADR-049 — decisão histórica do PR #203, superada no modelo ativo pelos PRs #208/#209; o vigente é `boleto_internet` dentro de Notas Fiscais;
-- ADR-050 — Notas Fiscais mantêm bonificação agregada, mas análise e Pendência são individuais por `registered_invoice_id`; `a_identificar` nasce Incorreto + Pendência.
-- ADR-052 — fluxos críticos exigem autoridade explícita, bootstrap tratável como contrato e prova de composição.
-- ADR-053 — comunicação oficial externa gerada não expõe o nome interno `RADAR PDDE`.
+## 9. Após hotfix funcional
 
-Quando uma ADR detalhada posterior especializar decisão agregada anterior, prevalece a ADR posterior no ponto expressamente indicado.
-
-Decisões históricas podem conter valores corretos para seu momento e não devem ser atualizadas retroativamente apenas para parecer atuais.
-
-## 10. Auditorias e evidências
-
-Arquivos datados de `docs/audits/` e `docs/evidence/` são, por padrão, **Evidência** ou **Histórico executado**.
-
-Regras:
-
-- preservar constatações e baseline originais;
-- não trocar SHA/migration/versionamento antigo pelo valor atual;
-- quando uma falha for corrigida depois, registrar a resolução em documento atual ou nova evidência;
-- auditoria datada não substitui `CURRENT_STAGE.md`;
-- evidência de teste de um SHA anterior pode ser reutilizada apenas quando o código materialmente coberto não mudou.
-
-As auditorias dos incidentes de Gestão de Equipe permanecem válidas como histórico dos defeitos e correções, não como indício de falha atual por si só.
-
-## 11. Planos, especificações e handoffs
-
-Arquivos de `docs/superpowers/plans/`, `docs/superpowers/specs/`, `docs/handoff/` e `docs/reports/` são normalmente **Histórico executado**, **Evidência** ou **Trabalho em andamento** conforme sua branch/PR.
-
-**Exceções expressas atuais:** o plano source-first de 03/09 é **Canônico — plano executável corrente**; sua reauditoria é **Evidência técnica corrente**; o handoff de reconciliação é **Canônico — checkpoint antecedente**. Os handoffs de execução, o plano do hotfix, o plano de 26/08 e a estabilização de 31/08 permanecem históricos/canônicos para contexto, mas não formam fila concorrente.
-
-`docs/handoff/2026-08-27-hotfix-boleto-internet.md` é **Histórico executado** do PR #203. Suas afirmações sobre a categoria autônoma `boletoInternet` não prevalecem sobre os PRs #208/#209 e o ADR-050.
-
-O plano `docs/superpowers/plans/2026-08-26-plano-mestre-correcoes-pos-auditoria.md` permanece **Canônico como contrato técnico histórico**, mas **não é executável como sequência**. A fila atual é exclusivamente R1–R9 no plano source-first. O Word de 26/08 permanece **Referência canônica versionada** da decisão daquela data e não incorpora as soluções posteriores.
-
-O handoff, o plano e o Word de 24/08 são **Superados como orientação operacional** e permanecem **Evidência/Histórico** do primeiro diagnóstico anterior ao PR #200. Não apagar nem reescrever esses arquivos.
-
-Os handoffs de 18/08 e 23/08 permanecem **Histórico executado/Evidência** de seus respectivos checkpoints e não devem ser apagados ou reescritos para parecer atuais.
-
-Não reescrever plano concluído para refletir solução posterior e não usar plano antigo como autoridade sobre o código atual.
-
-## 12. Afirmações superadas que não podem voltar ao presente
-
-Não usar como estado corrente:
-
-- Excel SME público com 30 colunas;
-- lookup de Auth por varredura global `listUsers`;
-- geração artificial de identidade institucional de escola como comportamento válido;
-- auditoria de exportação via snapshot legado como contrato vigente;
-- Assistente sem capacidade de reanalisar pendências;
-- `technical_admin` perdendo autoridade ao simular SME, Controlador, Assistente ou Inventário;
-- `activeCompetenciaKey` manipulada diretamente como fonte atual de seleção mensal;
-- Pendências Operacionais filtradas implicitamente pela competência global;
-- fallback silencioso de Production para LocalStorage/seed;
-- coleção ordenada por UUID tratada como sequência cronológica;
-- cobertura `partial` interpretada automaticamente como projeto inacabado;
-- qualquer SHA/deployment antigo presumido como baseline atual sem consulta ao remoto.
-- `Situação técnica` agregada restaurada no cabeçalho fiscal por leitura de mockup anterior;
-- preservação indistinta dos 20 `a_identificar` ou reparo do Boleto 1234;
-- `a_identificar` legado editável/excluível ou recebendo Pendência retroativa;
-- reanálise fiscal/Assessoria sem a tentativa real mais recente ou com reescrita do envio;
-- nova reconferência visual manual ou Lighthouse móvel tratados como bloqueadores do PR #211;
-- documentação que trate 43 migrations, o deployment pré-PR #215 ou o PR #211 isoladamente como estado corrente;
-- qualquer interpretação de que novo envio da Assessoria não possui implementação individual: a autoridade vigente é `service-advisory-corrective-submission.js`, carregada pelo bootstrap crítico.
-
-## 13. Manutenção
-
-Mudança material deve, conforme impacto:
-
-1. atualizar código/contrato executável afetado;
-2. atualizar teste diretamente relacionado quando a regra mudar;
-3. atualizar a matriz funcional quando a operação mudar;
-4. atualizar `CURRENT_STAGE.md` quando estado/prioridade mudar;
-5. atualizar ADRs e snapshot quando decisão duradoura mudar;
-6. atualizar referências apenas quando o contrato estável mudar;
-7. preservar históricos sem reescrita retrospectiva;
-8. aplicar validação proporcional, não checklist universal.
+1. reproduzir/classificar;
+2. aplicar método adversarial;
+3. atualizar `CURRENT_STATE.md`;
+4. atualizar `PLAN_TRACEABILITY.md`;
+5. atualizar `MASTER_PLAN_CURRENT.md` se necessário;
+6. atualizar documentos correntes afetados;
+7. registrar o que foi tentado para provar que a correção ainda estava errada.

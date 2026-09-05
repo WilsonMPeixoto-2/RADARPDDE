@@ -1,268 +1,194 @@
 # Auditoria de integração — Supabase e frontend
 
-**Classificação:** referência vigente  
-**Atualizado em:** 7 de agosto de 2026
+**Classificação:** referência vigente da baseline funcional do PR #260  
+**Atualizado em:** 5 de setembro de 2026
+
+> Para continuidade, comece em [`../../START_HERE.md`](../../START_HERE.md). Esta auditoria descreve a integração técnica atual; não define a fila. O estado funcional corrente está em [`../CURRENT_STATE.md`](../CURRENT_STATE.md).
 
 ## 1. Parecer executivo
 
-O Supabase é o backend canônico de Production. A integração cobre Auth, autorização, leitura, escrita, operações atômicas, Gestão de Equipe, auditoria, importação e recuperação.
+Supabase é o backend canônico de Production. A integração cobre Auth, RLS, leitura/escrita, operações atômicas, Gestão de Equipe, auditoria, patrimônio e mecanismos de recuperação.
 
-Os incidentes recentes demonstraram que uma arquitetura amplamente correta pode conter falhas em fronteiras específicas. Por isso, o estado atual deve ser avaliado operação por operação, usando a matriz funcional executável e não apenas a existência das camadas.
+O ponto principal depois dos hotfixes recentes é: **a arquitetura deve ser julgada por operação e por regra vigente, não apenas pela existência das camadas**. Uma falha de teste ou uma frase histórica não autoriza trocar o contrato atual sem reproduzir a divergência no caminho real.
 
-O baseline mutável fica em [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md).
-
-## 2. Camadas da integração
+## 2. Percurso geral
 
 ```text
-index.html / app.js / integrações
-→ domínio e serviços de aplicação
-→ DataService e UnitOfWork
+interface
+→ serviço de aplicação
+→ DataService / UnitOfWork / StatePort
 → RepositoryContract
 → SupabaseRepository
 → PostgREST / RPC / Edge Function
 → Auth / RLS / PostgreSQL
 → resposta
 → estado em memória
-→ renderização
+→ renderização/reconciliação
 ```
 
-### Frontend
+O frontend não recebe chave administrativa. Production opera fail-closed.
 
-- não usa chave administrativa;
-- recebe somente configuração pública;
-- aplica gate de autenticação antes da operação;
-- usa serviços de aplicação para mutações;
-- mantém adaptador local separado;
-- exibe erros classificados por operação;
-- deve refletir o resultado persistido/recarregado, não apenas o estado otimista local.
+## 3. Auth e perfis
 
-### Repositório
+Papéis vigentes:
 
-- paginação e lotes;
-- leitura seletiva;
-- tradução entre modelo de aplicação e banco;
-- `row_version` e conflitos otimistas;
-- RPCs para operações compostas;
-- snapshots, staging, promoção e rollback.
+```text
+controller
+federal_assistant
+sme_management
+inventory
+technical_admin
+```
 
-### Banco
+Sessão, perfil, CRE/escopos, serviços e RLS compõem a autorização. Simulação visual de `technical_admin` não troca JWT.
 
-- RLS nas tabelas expostas;
-- políticas por operação;
-- funções privilegiadas com autorização interna;
-- `search_path` controlado;
-- grants mínimos;
-- autoria e logs;
-- constraints, triggers e relacionamentos.
-
-## 3. Auth e autorização
-
-O bootstrap autenticado:
-
-1. restaura/cria sessão;
-2. deduplica validações concorrentes;
-3. consulta perfil, papel e escopos;
-4. rejeita perfil inativo ou ausência de autorização;
-5. cria cliente autenticado;
-6. carrega entidades autorizadas;
-7. aplica a organização visual do perfil.
-
-Papéis:
-
-- `controller`;
-- `federal_assistant`;
-- `sme_management`;
-- `inventory`;
-- `technical_admin`.
-
-Simulação visual do administrador técnico não altera JWT.
-
-## 4. Gestão de Equipe — percurso vigente
+## 4. Gestão de Equipe
 
 ```text
 formulário
 → DirectoryService
 → TeamAccountGateway
-→ Edge Function
+→ team-account-management
 → CORS + JWT + papel
 → Auth Admin
-→ lookup Auth exato / RPC transacional
-→ diretório, perfil e auditoria
-→ resposta
-→ renderEquipe()
+→ RPC transacional
+→ diretório/perfil/log
+→ resposta/releitura
 ```
 
-### Evolução da correção
+Contrato atual, consolidado ao longo dos PRs #138/#150/#161 e preservado depois:
 
-- **PR #138:** corrigiu CORS e recuperação segura de alguns vínculos históricos;
-- **PR #150:** corrigiu transição entre Inventário e Controlador reutilizando a conta Auth existente;
-- **PR #161:** eliminou a varredura global `listUsers`, adicionou lookup exato pela RPC `resolve_team_auth_user_id_by_email`, normalizou campos Auth legados incompatíveis e reconciliou resíduos sintéticos conhecidos.
-
-O contrato atual é a soma dessas camadas. Não atribuir a resolução integral somente ao PR #138.
-
-### Contratos atuais
-
-- allowlist CORS canônica e fail-closed;
-- JWT e papel autorizados;
-- `service_role` somente server-side;
-- lookup exato por e-mail;
-- ambiguidade de conta rejeitada;
-- reutilização segura de conta sem vínculo ativo conflitante;
-- um único perfil institucional ativo;
+- CORS fail-closed;
+- JWT/papel obrigatório;
+- segredo administrativo server-side;
+- lookup Auth exato por `resolve_team_auth_user_id_by_email`;
+- sem varredura global `listUsers` como caminho normal;
+- reutilização de conta somente sem vínculo ativo conflitante;
+- ambiguidade rejeitada;
 - histórico inativo preservado;
-- bloqueio/desbloqueio e metadados compensados em falha parcial;
-- payload funcional de erro preservado até a interface.
+- desativação lógica;
+- compensação se Auth já mudou e a etapa seguinte falha.
 
-## 5. Integração de dados operacionais
+## 5. Integração por domínio
 
-| Entidade/fluxo | Interface | Serviço | Backend |
-|---|---|---|---|
-| configuração | SME/configuração | ConfigurationService | `app_config`, `competences`, RPCs |
-| programas | SME/configuração | DirectoryService | `programs`, RPC + log |
-| escolas | Carteira/Prontuário | SchoolService | `schools`, `school_programs`, constraints/RPC |
-| verificações | Prontuário/Competências | VerificationService | `verifications`, RPCs |
-| pendências | Pendências/Prontuário | PendencyService | `pendencies`, `pendency_attempts`, `pendency_contacts`, RPCs/triggers |
-| notas | Prontuário | InvoiceService | `registered_invoices`, `assets`, RPCs/triggers |
-| bens | Capital/Inventário | InventoryService | `assets`, `saveAssetWithLog` |
-| equipe | Gestão de Equipe | DirectoryService | Edge Function + Auth + RPC |
-| logs | Registros Internos | AuditService | `administrative_logs` |
-| exportações | ações Excel | RadarExcelExportAudit + integração Excel | AuditService + memória autorizada/assets |
-| importação | superfície técnica | ImportCoordinator | staging + RPCs de promoção/rollback |
+| Domínio | Serviço principal | Persistência/contrato |
+|---|---|---|
+| configuração/exercícios | `ConfigurationService` | `app_config`, `competences`, RPCs |
+| programas/equipe | `DirectoryService` | `programs`, Edge Function/RPCs |
+| escolas/carteira | `SchoolService` | `schools`, `school_programs`, RPCs |
+| avaliação mensal | `VerificationService` | `verifications`, RPC + log |
+| Pendências | `PendencyService` + integrações especializadas | `pendencies`, `pendency_attempts`, `pendency_contacts`, RPCs |
+| Notas Fiscais | `InvoiceService` | `registered_invoices` + efeitos/RPCs |
+| patrimônio | `InventoryService` | `assets`, RPCs patrimoniais |
+| logs | `AuditService` | `administrative_logs` |
+| exportações | integrações de exportação | memória autorizada + auditoria |
+| importação | `ImportCoordinator` | staging + promoção/rollback |
 
-## 6. Escolas e carteira
+## 6. Avaliação mensal
 
-### Cadastro/edição
+Bonificação, análise e Pendência permanecem independentes.
 
-Nova escola exige identidade institucional real. O serviço valida os campos e duplicidades; o banco exige não-vazio e unicidade normalizada de INEP, CNPJ e SICI.
+`VerificationService` protege no-op, N/A, consolidação/retificação e versionamento. Declaração BB Ágil possui regra própria de N/A; extratos não recebem a mesma exceção. Nota Fiscal e Consulta Assessoria usam derivações específicas em vez de uma avaliação agregada livremente editável onde a individualização já foi adotada.
 
-Controlador pode editar dados cadastrais autorizados, mas não pode:
+## 7. Pendências
 
-- redistribuir `controller_id`;
-- alterar identidade institucional.
+Depois dos PRs #254/#256:
 
-Esses limites são impostos no serviço e, para a carteira, também por proteção de banco.
+- `Aberta` e `Aguardando reanálise` são ativas;
+- novo envio não resolve;
+- substituição pode ocorrer em `Aguardando reanálise`;
+- reanálise correta resolve e incorreta/arquivo indisponível reabre;
+- `Resolvida`/`Cancelada` podem ser reabertas quando autorizado;
+- `canceled_at` representa cancelamento terminal atual;
+- próximo ator é sincronizado por estado.
 
-### Redistribuição
+As RPCs individuais de NF/Assessoria validam invoice, Pendência, tentativa e contexto. Não há autorização para backfill heurístico de legados.
 
-Redistribuição individual ou em lote pertence à Gestão de Equipe autorizada. A operação usa versão esperada e log administrativo.
+## 8. Notas Fiscais, `a_identificar` e Assessoria
 
-## 7. Configuração e exercício
+- análise fiscal/Pendência individual usa `registered_invoice_id`;
+- `a_identificar` novo é persistido com `Incorreto + Pendência` na operação protegida;
+- identificação posterior preserva o mesmo ID;
+- `boleto_internet` é tipo de gasto de NF apenas em Educação Conectada;
+- Consulta Assessoria é individual por NF de serviço;
+- operações atômicas preservam a independência entre NFs irmãs.
 
-`ConfigurationService.createExercise` preserva o estado completo localmente, mas envia à RPC somente as doze competências do exercício novo.
+## 9. Nota permanente e patrimônio
 
-O backend exige `row_version`, janeiro a dezembro, um único exercício, configuração coerente e log. A sincronização remota de competências ocorre antes do primeiro render do Controlador.
+A integração atual possui dois ramos válidos:
 
-## 8. Pendências
+```text
+NF permanente + número + processo existente
+→ bem Encaminhada / Aguardando Inventariação
 
-A integração usa RPCs para abertura, tentativa, reanálise, status e contatos.
+NF permanente sem processo
+→ bem Não encaminhada
+→ encaminhamento posterior
+→ Inventariada
+```
 
-A remediação PEND-02 adicionou sincronização entre o agregado de tentativas da pendência e `pendency_attempts`. Isso elimina divergência conhecida, mas a prova completa de todas as transições continua registrada como `partial` na matriz.
+O PR #257 passou a derivar `encampInventario`; o #258 explicitou NF ↔ bem no Prontuário; o #260 impediu salto indevido, bloqueou edição isolada do número fiscal e acrescentou `save_asset_with_verification_and_log` para sincronizar o encaminhamento posterior com a verificação e o log.
 
-## 9. Notas e bens
+A frase “Não encaminhada → Encaminhada → Inventariada” só se aplica ao ramo que **está Não encaminhada**.
 
-Notas fiscais usam operações atômicas e efeitos vinculados. A remediação INV-01 garante que bem derivado anteriormente vinculado seja removido quando a nota perde/troca `linked_asset_id`, sem deixar órfão silencioso.
+## 10. Escolas e carteira
 
-`InventoryService.updateAsset` não usa persistência genérica. A edição rápida admite somente o campo permitido e persiste com `saveAssetWithLog`, versão esperada e log.
+Nova escola exige identidade institucional real e competência inicial válida. Serviço e banco rejeitam identificadores inválidos/duplicados conforme o contrato.
 
-## 10. Exportações
+Controlador não redistribui `controller_id` nem altera identidade institucional pela edição comum. Redistribuição usa fluxo autorizado da Assistente/autoridade técnica apropriada.
 
-`RadarExcelExportAudit` envolve as duas exportações:
+## 11. Exportações
 
-1. grava `Exportação Excel Iniciada` via `AuditService.record`;
-2. bloqueia a exportação se esse registro não for confirmado;
-3. executa o pipeline institucional ou SME;
-4. neutraliza o evento legado duplicado durante a geração;
-5. registra a conclusão correspondente;
-6. distingue falha de auditoria final de falha de geração.
-
-## 11. RLS e escopos
-
-### Controlador
-
-- própria CRE conforme política vigente;
-- carteira como responsabilidade principal;
-- colaboração autorizada na mesma CRE;
-- sem alteração de identidade institucional/redistribuição;
-- outra CRE bloqueada sem escopo.
-
-### Assistente
-
-- acesso transversal à CRE;
-- Gestão de Equipe;
-- redistribuição de carteira;
-- identidade institucional;
-- ações operacionais autorizadas.
-
-### Inventário
-
-- escolas/bens da própria CRE;
-- operações patrimoniais específicas;
-- sem bonificação, análise ou configuração global.
-
-### Gestão SME
-
-- leitura gerencial;
-- sem análise técnica nas superfícies restritas;
-- sem mutações operacionais de Pendências;
-- logs conforme política de autoria;
-- calendário/exercícios e programas conforme contrato atualmente implementado.
-
-### Administrador técnico
-
-- infraestrutura, perfis, escopos, importação e auditoria.
+Exportações sujeitas à auditoria registram início antes do download. O Excel SME mantém contrato de uma competência, uma aba e 27 colunas A:AA. XLSX de Pendências aplica busca/filtros e não apresenta IDs técnicos.
 
 ## 12. Migrations e alinhamento
 
-A quantidade/última migration fica em `CURRENT_STAGE.md` e deve ser confirmada no Supabase.
+A baseline funcional do PR #260 contém **46 migrations**. A migration #46 é `20260904040000_functional_reliability_inventory_sync`.
 
-As remediações recentes incluem:
+Antes de nova migration:
 
-- `202608060001_team_auth_legacy_repair`;
-- `202608060002_functional_integrity_remediation`;
-- `202608060003_school_institutional_identity`.
+1. histórico local/remoto;
+2. reset descartável;
+3. pgTAP/lint;
+4. regeneração de tipos;
+5. reprodutibilidade;
+6. backup/restauração quando aplicável;
+7. revisão de grants/RLS;
+8. aplicação remota somente com autorização;
+9. verificação pós-apply.
 
-Antes de nova migration: comparar histórico, resetar localmente, executar pgTAP/lint/tipos, backup/restauração, dry-run, analisar reversão e aplicar somente dentro do escopo autorizado.
+## 13. Incidente de readiness do PR #263
 
-## 13. Garantia operacional
+A primeira execução do job Supabase local no SHA `617355e1...` falhou apenas na regeneração de tipos/cliente depois de reset, preflight, pgTAP e lint já terem passado.
 
-### Monitor geral
+O **mesmo job foi reexecutado no mesmo SHA, sem qualquer alteração de código**, e passou integralmente, inclusive regeneração/reprodutibilidade, Auth, Edge Function e frontend/RLS.
 
-Verifica publicação, manifesto, shell, assets, Auth gate, bloqueio anônimo, preflight e incidentes.
+Classificação: falha transitória de runner/ambiente. Não havia defeito reproduzível de schema ou código a “corrigir”. Alterar o produto para fazer um evento não reproduzível desaparecer teria sido uma mudança sem causa comprovada.
 
-### Integridade
+## 14. Dívidas arquiteturais que continuam reais
 
-A auditoria agregada de vinte invariantes está integrada. O estado atual é registrado no baseline e deve ser revalidado remotamente.
+A integração atual funciona, mas o plano sucessor ainda registra dívidas comprovadas:
 
-### Leitura autenticada
+- wrapper de performance ainda participa de política funcional de consistência;
+- readiness de extensões ainda possui composição/polling que deve ser tornado determinístico;
+- NF normal ainda precisa de idempotência durável para retry ambíguo;
+- projeções operacionais de Pendências ainda têm cálculos duplicados entre módulos;
+- convergência incremental do caminho normal de NF ainda pode ser melhor fechada depois do contrato v2.
 
-A infraestrutura foi integrada, mas permanece desativada sem identidades técnicas exclusivas.
+Essas dívidas estão em `MASTER_PLAN_CURRENT.md`. Elas não autorizam refazer regras de negócio já homologadas.
 
-## 14. Matriz funcional
+## 15. Conclusão
 
-A matriz executável possui 41 operações e é a fonte granular de cobertura.
+A integração Supabase/frontend da baseline #260 está ativa e coerente com os contratos correntes examinados. A auditoria de continuidade de 05/09 reconciliou a documentação que ainda descrevia checkpoints antigos como se fossem atuais.
 
-Estado reconciliado:
+Qualquer nova análise deve partir da `main` corrente e do roteiro em `START_HERE.md`, não deste arquivo isoladamente.
 
-- 9 comprovadas;
-- 32 parciais;
-- 0 lacunas técnicas;
-- 0 decisões funcionais pendentes.
+## 16. Referências
 
-A ausência de lacuna não equivale a UAT concluído. O próximo ganho de confiança vem das provas controladas das operações parciais.
-
-## 15. PR #156
-
-A auditoria funcional do PR #156 produziu evidências importantes, mas a branch ficou divergente da `main`. Ela não deve ser mesclada como pacote documental atual. A continuação deve partir do código presente e reaproveitar somente evidências compatíveis.
-
-## 16. Conclusão
-
-A integração está ativa e coerente quanto às camadas principais. Os achados estruturais conhecidos da auditoria anterior receberam remediação técnica. O trabalho remanescente é provar sistematicamente as operações ainda parciais, decidir a ativação do smoke autenticado e executar UAT.
-
-## 17. Referências
-
-- [`SUPABASE_FUNCTIONAL_COVERAGE.md`](SUPABASE_FUNCTIONAL_COVERAGE.md);
-- [`SUPABASE_PERMISSIONS_MATRIX.md`](SUPABASE_PERMISSIONS_MATRIX.md);
-- [`SUPABASE_DATA_DICTIONARY.md`](SUPABASE_DATA_DICTIONARY.md);
-- [`FUNCTIONAL_CONTRACT_MATRIX.md`](FUNCTIONAL_CONTRACT_MATRIX.md);
-- [`../runbooks/SUPABASE_CONNECTION.md`](../runbooks/SUPABASE_CONNECTION.md);
-- [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md).
+- [`../CURRENT_STATE.md`](../CURRENT_STATE.md)
+- [`SUPABASE_FUNCTIONAL_COVERAGE.md`](SUPABASE_FUNCTIONAL_COVERAGE.md)
+- [`SUPABASE_PERMISSIONS_MATRIX.md`](SUPABASE_PERMISSIONS_MATRIX.md)
+- [`SUPABASE_DATA_DICTIONARY.md`](SUPABASE_DATA_DICTIONARY.md)
+- [`FUNCTIONAL_CONTRACT_MATRIX.md`](FUNCTIONAL_CONTRACT_MATRIX.md)
+- [`../runbooks/SUPABASE_CONNECTION.md`](../runbooks/SUPABASE_CONNECTION.md)
+- [`../architecture/supabase-readiness.md`](../architecture/supabase-readiness.md)

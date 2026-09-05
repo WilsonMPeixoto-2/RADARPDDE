@@ -1,112 +1,250 @@
 # Governança de testes do RADAR PDDE
 
 **Estado:** referência operacional vigente  
-**Atualizado em:** 9 de agosto de 2026
+**Atualizado em:** 5 de setembro de 2026
 
 ## 1. Finalidade
 
-Os testes existem para proteger o comportamento atual do produto. Eles não são uma fonte autônoma de regra de negócio e não podem obrigar o código a reproduzir uma lógica já substituída.
+Testes protegem comportamento conhecido. Eles **não são fonte autônoma de regra de negócio nem prova de ausência de defeitos desconhecidos**.
 
-A meta é obter confiança proporcional ao risco, não maximizar a quantidade de execuções nem manter o projeto indefinidamente em estado de “quase concluído”.
+A experiência de 05/09/2026 mostrou que uma suíte amplamente verde pode coexistir com bugs escondidos em:
+
+- combinação de fluxos;
+- caminhos paralelos;
+- estados avançados;
+- closures/wrappers que contornam a autoridade correta;
+- projeções concorrentes.
+
+Portanto existem duas funções diferentes:
+
+1. certificar regressões conhecidas;
+2. ajudar a descobrir defeitos desconhecidos por investigação adversarial.
+
+Método: [`../architecture/adversarial-analysis-and-implementation-method.md`](../architecture/adversarial-analysis-and-implementation-method.md)  
+Playbook: [`../architecture/adversarial-analysis-replication-playbook.md`](../architecture/adversarial-analysis-replication-playbook.md)
 
 ## 2. Hierarquia de autoridade
 
-Quando houver divergência, usar nesta ordem:
+Quando houver divergência:
 
-1. código-fonte atual do SHA analisado e comportamento efetivo do ambiente correspondente;
-2. Auth, RLS, RPCs, Edge Functions e persistência efetivos do Supabase;
-3. contrato funcional vigente e decisões atuais;
-4. testes que representam esse contrato atual;
-5. documentação histórica, testes antigos e evidências de SHAs anteriores.
+1. comportamento efetivo do SHA/ambiente;
+2. cadeia real de código executada;
+3. Supabase efetivo: Auth/RLS/RPC/Edge/persistência;
+4. contrato/decisão funcional vigente;
+5. testes atuais;
+6. documentação corrente;
+7. histórico.
 
-Um teste antigo não prevalece sobre código e regra funcional posteriores.
+Código atual pode estar errado. Teste verde pode estar incompleto. Documento histórico pode estar superado.
 
-## 3. Classificação obrigatória de falha
+## 3. Classificação obrigatória
 
-Toda falha relevante deve ser classificada uma única vez antes de qualquer correção:
+Toda falha/achado deve ser classificado antes de correção:
 
-- **Defeito de produto:** comportamento atual viola o contrato vigente ou prejudica o usuário. Corrigir o produto e manter regressão adequada.
-- **Teste com contrato superado:** a expectativa representa uma regra substituída. Atualizar, remover ou retirar o teste da execução; nunca reverter o produto para satisfazê-lo.
-- **Defeito do próprio teste:** fixture, seleção de registro, ordem, timing ou premissa artificial produz falso negativo. Corrigir o teste.
-- **Infraestrutura/ambiente:** falha de runner, rede, navegador, serviço temporário ou ferramenta. Não tratar como defeito funcional sem reprodução no produto.
-- **Flaky não reproduzível:** falha isolada que passa na repetição já prevista pela própria suíte e não apresenta consequência observável. Registrar apenas se ganhar recorrência.
+- **B — bug funcional reproduzido**;
+- **C — inconsistência de composição**;
+- **D — teste/documento obsoleto perigoso**;
+- **E — duplicação arquitetural com risco**;
+- **F — ambiguidade que exige decisão**;
+- **G — histórico legítimo isolado**;
+- **H — hipótese ainda não reproduzida**;
+- infraestrutura/ambiente;
+- flaky não reproduzível.
 
-## 4. Estratégia proporcional
+Não transformar E/F/H em bug só para aumentar a lista. Também não omitir F porque “não é bug”.
 
-Para uma mudança funcional comum, validar somente o necessário para responder às perguntas abaixo:
+## 4. Ambiente reproduzível antes da suíte
 
-1. a função aparece para quem deve utilizá-la e é encontrável;
-2. a ação é compreensível e pode ser executada sem bloqueio de interface;
-3. o backend/serviço correto é alcançado;
-4. uma escrita realmente persiste quando a ação grava dados;
-5. a informação reaparece de forma coerente após atualização/releitura quando isso for material;
-6. um perfil indevido é bloqueado quando a autorização for parte relevante do risco;
-7. a tela posterior reflete corretamente a ação realizada.
+Não confiar automaticamente no `node_modules` já existente.
 
-Isso inclui experiência do usuário: visualização, encontrabilidade, legibilidade, coerência de dados, feedback, navegação e recuperação de contexto.
+Antes de interpretar falhas:
 
-## 5. Quantidade de testes
+1. comparar versões declaradas com o ambiente reutilizado;
+2. quando houver divergência material, normalizar por instalação reproduzível (`npm ci` quando aplicável);
+3. registrar warnings de depreciação separadamente;
+4. rastrear cadeia antes de chamar warning transitivo de vulnerabilidade do produto;
+5. distinguir falha de artefato/line-ending/hash do checkout de falha funcional.
 
-Regra padrão:
+Na coleta Astra, o workspace reaproveitado tinha várias versões divergentes/ausentes; após isso foi feito `npm ci`. Essa etapa passa a ser parte da higiene de auditoria, não detalhe incidental.
 
-- reutilizar testes existentes antes de criar novos;
-- executar primeiro o cenário diretamente afetado;
-- usar um caso positivo e, quando a permissão for material, um caso negativo;
-- para escrita, verificar persistência/releitura apenas onde ela comprova risco real;
-- executar um gate base proporcional ao escopo;
-- não repetir suites já aprovadas se o código coberto por elas não mudou;
-- não criar infraestrutura de teste nova sem risco concreto que a justifique;
-- não iniciar uma segunda rodada integral apenas porque um job não relacionado ficou vermelho.
+## 5. Teste de sequência
 
-Suite completa, múltiplos navegadores, backup/restauração, Lighthouse e demais gates especializados são usados quando a mudança realmente toca essas áreas, em release relevante ou em auditoria expressamente autorizada. Não são checklist automático para toda alteração pequena.
-
-## 6. Teste superado
-
-Quando uma regra mudar, a mesma entrega deve registrar:
+Para entidade com lifecycle:
 
 ```text
-regra anterior → regra vigente → código afetado → testes afetados
+criar
+→ avançar em outro domínio
+→ voltar à origem
+→ editar/salvar
+→ persistir
+→ reload
+→ confirmar estado avançado
 ```
 
-O teste antigo deve ser atualizado ou removido. Se a remoção imediata for desproporcional porque o caso está embutido em uma suíte histórica muito extensa, ele pode ser temporariamente excluído da execução por título exato, desde que:
+Exemplos:
 
-- a razão esteja documentada;
-- exista teste atual cobrindo o contrato sucessor;
-- a exclusão não esconda outro comportamento do mesmo fluxo;
-- o produto não seja alterado para preservar a expectativa superada.
+- NF → Inventário → voltar à NF;
+- Pendência → envio → reanálise → voltar à fila;
+- consolidação → retificação → voltar à avaliação;
+- equipe → redistribuição/desativação → voltar ao cadastro.
 
-## 7. Casos reconciliados em 9 de agosto de 2026
+## 6. Teste pelo ponto de entrada real
 
-### Reanálise de pendências
+Se regra depende de autoridade intermediária, iniciar pelo mesmo ponto usado pelo usuário.
 
-Regra superada: somente Controlador reanalisava pendência aguardando.
+Exemplo:
 
-Regra vigente: Controlador, Assistente de Verbas Federais e `technical_admin` podem reanalisar; Gestão SME e Inventário permanecem sem a mutação.
+```text
+regra: auditoria antes do download
 
-Proteção vigente: `tests/e2e/pendency-reanalysis-auth.spec.js` e políticas atuais de acesso/Supabase.
+insuficiente:
+testar auditExport isoladamente
 
-O cenário histórico com título **“aba Pendências só expõe reanálise documental aguardando ao Controlador”** não representa mais o produto e não deve bloquear CI nem orientar correção funcional.
+necessário:
+clicar botão real
+→ falhar auditoria inicial
+→ provar zero download
+```
 
-### Administrador técnico em simulação visual
+Aplicar a modal, atalho, callback, API em `window`, wrapper, closure e extensão dinâmica.
 
-Regra vigente: `technical_admin` preserva a identidade e a autoridade autenticadas mesmo quando escolhe um dos quatro perfis funcionais para simular a apresentação da interface. A simulação altera o recorte visual, não reduz a autoridade real nem troca o JWT.
+## 7. Comparação diferencial
 
-### Competência mensal
+Quando múltiplas superfícies mostram o mesmo conceito, usar o **mesmo registro** e comparar:
 
-Regra vigente: `RadarCompetenceContext` é a fonte canônica. Testes não devem manipular `activeCompetenciaKey` diretamente para simular mudança de mês; devem selecionar a competência pelo contexto global.
+- status;
+- ator;
+- data-base;
+- idade;
+- ação;
+- identidade;
+- estado após reload.
 
-### Auditoria
+Diferença editorial pode ser legítima. Diferença semântica precisa ser intencional ou classificada.
 
-Coleções retornadas por repositório não devem ser presumidas cronológicas quando a consulta está ordenada por identificador. Testes que precisam localizar o evento de uma ação devem usar identidade do ator, contexto ou timestamp explícito, e não `reverse()` sobre UUIDs.
+## 8. Fixtures e mocks
 
-## 8. Critério de encerramento
+Toda fixture relevante deve deixar claro se representa:
 
-Uma rodada de validação termina quando:
+- contrato atual;
+- legado/migração;
+- estado adversarial deliberadamente inválido;
+- cenário sintético de camada isolada.
 
-- os fluxos afetados foram comprovados em nível proporcional ao risco;
-- eventuais falhas foram classificadas;
-- defeitos reais encontrados foram corrigidos;
-- testes superados não permanecem com poder de veto sobre o produto;
-- não existe evidência concreta de regressão relevante ao usuário.
+Não remover estado antigo só porque hoje não pode mais ser criado. Primeiro verificar compatibilidade/normalização.
 
-Ausência de cobertura máxima, existência de teste histórico ou um job não relacionado ao escopo não transforma automaticamente o sistema em “inacabado”.
+Mock deve ser avaliado pelo que **retira** da cadeia. Se remove justamente persistence/handler/composição onde o bug pode existir, o teste não certifica aquela camada.
+
+## 9. Títulos e testes superados
+
+Quando regra mudar:
+
+```text
+regra anterior
+→ regra vigente
+→ código afetado
+→ teste afetado
+```
+
+Títulos ativos devem descrever a regra atual.
+
+Casos já conhecidos:
+
+- reanálise não é exclusiva do Controlador;
+- Pendência pode reabrir de `Resolvida` **ou `Cancelada`**;
+- desativação de Controlador exige carteira vazia, não “desativar + transferir 13 escolas”;
+- `activeCompetenciaKey` não deve ser escrita diretamente para simular troca global real.
+
+## 10. SQL/RPC
+
+Ao associar teste a RPC:
+
+1. localizar todas as definições da assinatura;
+2. ordenar migrations;
+3. identificar a última efetiva;
+4. conferir grants/RLS/callers;
+5. associar teste sucessor;
+6. não deixar matriz apontar apenas para migration superada.
+
+## 11. Quantidade e ordem dos testes
+
+Ordem preferida:
+
+1. probe/RED focal que responde à hipótese;
+2. teste da composição real;
+3. testes relacionados;
+4. persistência/reload;
+5. suíte mais ampla;
+6. gates especializados conforme risco.
+
+Não começar com a suíte inteira quando um probe barato pode primeiro dizer se a hipótese é real.
+
+Em auditoria longa, salvar inventário, hits, mapa estático, probes e logs progressivamente para não repetir trabalho após perda de cota/contexto.
+
+## 12. Casos Astra que demonstram a regra
+
+### Patrimônio
+
+Testes de NF e Inventário isolados estavam verdes, mas faltava:
+
+```text
+inventariar
+→ salvar novamente a NF
+```
+
+Esse cruzamento revelou `Inventariada → Encaminhada`.
+
+### Excel SME
+
+Teste feliz do botão real baixava workbook correto, e teste da auditoria isolada bloqueava falha corretamente. Faltava:
+
+```text
+botão real
+→ auditoria inicial falha
+→ zero download
+```
+
+A composição revelou o bypass.
+
+### Pendências
+
+Duas projeções passavam seus próprios testes, mas o mesmo registro após reanálise incorreta produziu 35 dias em uma e 1 dia em outra. Isso exige decisão, não escolha automática.
+
+## 13. Evidência ampla não substitui contraexemplo
+
+Na coleta Astra:
+
+- integração 7/7;
+- E2E desktop 141 aprovados / 37 ignorados / 0 falhas entre 178;
+- Production integrity saudável no snapshot.
+
+Mesmo assim foram encontrados defeitos/composições incorretas.
+
+Logo:
+
+```text
+suíte verde + integridade saudável
+≠ prova de ausência de caminho defeituoso
+```
+
+## 14. Critério de encerramento
+
+Antes de “fechamento confirmado”, registrar:
+
+> **O que foi tentado para provar que ainda estava errado?**
+
+Incluir, conforme risco:
+
+- contraexemplos;
+- combinação de fluxos verdes;
+- retorno à origem após estado avançado;
+- paths paralelos;
+- falhas intermediárias;
+- cross-view;
+- reload;
+- migrations sucessoras;
+- classificação de fixtures/testes.
+
+Sem isso, concluir apenas:
+
+> **os gates conhecidos passaram**.

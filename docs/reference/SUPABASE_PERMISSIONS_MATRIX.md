@@ -1,233 +1,151 @@
-# Matriz de permissões — Supabase
+# Matriz de permissões — Supabase e aplicação
 
-**Atualizado em:** 7 de agosto de 2026  
-**Estado:** referência vigente
+**Atualizado em:** 5 de setembro de 2026  
+**Estado:** referência vigente da baseline funcional do PR #260
 
-Esta matriz representa o contrato funcional vigente entre interface, serviços, Auth, RLS, RPCs e Edge Functions. O baseline mutável fica em [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md).
+> Antes de usar esta matriz para alterar autorização, comece em [`../../START_HERE.md`](../../START_HERE.md) e confirme o código/RLS do SHA corrente. Esta página resume o contrato entre interface, serviços, Auth, RLS, RPCs e Edge Functions; não concede permissão por si só.
 
 ## 1. Papéis
 
-| Papel | Nome exibido | Natureza | Escopo padrão |
+| Papel | Nome | Natureza | Escopo padrão |
 |---|---|---|---|
 | `controller` | Controlador | funcional | própria CRE; carteira como responsabilidade principal |
 | `federal_assistant` | Assistente de Verbas Federais | funcional | operação transversal e Gestão de Equipe da CRE |
-| `inventory` | Equipe de Inventário | funcional | fluxo patrimonial da própria CRE |
-| `sme_management` | SME (Gestão) | gerencial | leitura consolidada e configurações autorizadas |
+| `inventory` | Equipe de Inventário | funcional | fluxo patrimonial autorizado da própria CRE |
+| `sme_management` | Gestão SME | gerencial | leitura consolidada e configurações autorizadas |
 | `technical_admin` | Administrador técnico | técnico | infraestrutura, escopos, importação, auditoria e simulação visual |
 
-A simulação visual do administrador técnico não troca o JWT nem transforma seu papel efetivo.
+Simular visualmente outro perfil não muda o papel efetivo do JWT.
 
-## 2. Legenda
+## 2. Matriz funcional resumida
 
-- **L:** leitura;
-- **C:** criação;
-- **A:** alteração ou desativação lógica;
-- **E:** exclusão física excepcional;
-- **S:** operação server-side protegida;
-- **—:** sem acesso direto.
+Legenda: `L` leitura, `C` criação, `A` alteração, `S` operação server-side protegida, `—` sem operação funcional comum.
 
-## 3. Matriz funcional
-
-| Recurso | Controlador | Assistente | Inventário | SME | Admin técnico |
+| Recurso | Controlador | Assistente | Inventário | Gestão SME | Admin técnico |
 |---|---:|---:|---:|---:|---:|
-| Escolas da própria CRE | L/A cadastral autorizada | L/C/A | L patrimonial | L | L/C/A/E |
-| Identidade institucional da escola | L | L/C/A | L | L | L/C/A/E |
-| Carteiras / `controller_id` | L | L/C/A | L | L | L/C/A/E |
-| Programas | L | L | L patrimonial | L/C/A | L/C/A/E |
-| Competências | L | L | L | L/C/A | L/C/A/E |
-| Configuração global | L | L | L | L/C/A | L/C/A/E |
-| Bonificação | L/C/A | L/C/A | — | L | L/C/A/E |
-| Análise técnica | L/C/A | L/C/A | — | — | L/C/A/E |
-| Pendências | L/C/A | L/C/A | L patrimonial restrita | L | L/C/A/E |
-| Tentativas | L/C/A | L/C/A | L patrimonial restrita | L | L/C/A/E |
-| Contatos/cobranças | L/C/A | L/C/A | — | L | L/C/A/E |
-| Notas fiscais | L/C/A | L/C/A | L | L | L/C/A/E |
-| Bens | L/C/A autorizada | L/C/A | L/C/A de inventariação | L | L/C/A/E |
-| Controladores | L | L/C/A/S | L | L | L/C/A/E/S |
-| Equipe de Inventário | L | L/C/A/S | L própria | L | L/C/A/E/S |
+| Escolas da própria CRE | L/A cadastral autorizada | L/C/A | L patrimonial | L | L/C/A técnica |
+| Identidade institucional | L | L/C/A | L | L | L/C/A técnica |
+| Carteira / `controller_id` | L | L/C/A | L | L | L/C/A técnica |
+| Programas | L | L | L patrimonial | L/C/A | L/C/A técnica |
+| Competências/configuração | L | L | L | L/C/A | L/C/A técnica |
+| Bonificação | L/C/A | L/C/A | — | L | L/C/A técnica |
+| Análise técnica | L/C/A | L/C/A | — | leitura apenas onde autorizada | L/C/A técnica |
+| Pendências/tentativas | L/C/A | L/C/A | L restrita | L sem mutações operacionais | L/C/A técnica |
+| Contatos/cobranças | L/C/A | L/C/A | — | L | L/C/A técnica |
+| Notas Fiscais | L/C/A | L/C/A | L | L | L/C/A técnica |
+| Bens | L/C/A autorizada | L/C/A | L + conclusão de inventariação | L | L/C/A técnica |
+| Controladores/Inventário | L | L/C/A/S | L pertinente | L | L/C/A/S técnica |
 | Contas Auth da equipe | — | C/A/S | — | — | C/A/S |
-| Perfis e escopos | própria associação | própria associação | própria associação | L autorizada | L/C/A/E |
-| Logs administrativos | L da CRE | L da CRE | L patrimonial | L conforme política de autoria | L amplo/E excepcional |
-| Auditoria técnica | — | — | — | L autorizada | L |
-| Importações | — | L/C/A autorizada | — | L | L/C/A/E |
+| Logs administrativos | L conforme política | L da CRE | L patrimonial | L conforme política de autoria | L amplo técnico |
+| Importações | — | somente quando procedimento autorizar | — | L quando autorizado | L/C/A técnica |
 
-## 4. Controlador
+A tabela resume a capacidade; a operação específica pode ter pré-condições adicionais no serviço/RPC.
 
-A carteira organiza responsabilidade e filtro inicial; não constitui fronteira de segurança entre Controladores da mesma `cre_scope`.
+## 3. Controlador
 
-O Controlador:
-
-- consulta escolas autorizadas na própria CRE;
-- atua em escola de colega quando a política permite, sem transferir `controller_id`;
-- registra autoria real;
+- atua nas escolas autorizadas da própria `cre_scope`;
+- carteira organiza responsabilidade principal e filtro, não transfere automaticamente a propriedade de uma escola quando há colaboração;
 - não acessa outra CRE sem escopo explícito;
-- pode receber exceção em `user_school_scopes`;
-- não cria nova unidade escolar pela superfície funcional cotidiana;
-- não altera identidade institucional de escola;
-- não altera `controller_id` por edição cadastral.
+- pode editar os campos escolares que o serviço autoriza;
+- não altera identidade institucional nem `controller_id` por edição comum;
+- não gerencia contas Auth da equipe;
+- autoria deve continuar identificando o executor real.
 
-A última restrição é protegida também por trigger de autorização no banco.
+## 4. Assistente de Verbas Federais
 
-## 5. Assistente de Verbas Federais
+- atuação transversal na CRE;
+- cadastra/edita a escola no fluxo autorizado, inclusive identidade institucional;
+- redistribui carteira individualmente ou em lote;
+- administra Controladores e Equipe de Inventário;
+- opera análise/Pendências e retificações autorizadas;
+- acessa exportações/relatórios correspondentes;
+- usa backend protegido para operações que envolvem Auth Admin.
 
-Possui operação transversal na CRE e Gestão de Equipe:
+## 5. Equipe de Inventário
 
-- cadastrar/editar Controladores;
-- criar ou reutilizar conta Auth autorizada;
-- manter `user_profiles` e vínculos;
-- redistribuir escolas individualmente e em lote;
-- desativar integrante e bloquear acesso;
-- cadastrar/editar/desativar integrantes do Inventário;
-- cadastrar nova escola com identidade institucional real;
-- alterar identidade institucional quando necessário;
-- executar operações e exportações autorizadas;
-- registrar auditoria.
+- lê o recorte patrimonial necessário;
+- conclui inventariação de bem que esteja `Encaminhada` e informa responsável;
+- não altera bonificação, análise técnica mensal, carteira, identidade escolar ou configuração global;
+- não recebe permissão genérica de escrita escolar só por acessar dados da escola.
 
-### Fronteira server-side da Gestão de Equipe
+Um bem permanente criado a partir de NF **pode já chegar `Encaminhada`** quando número fiscal e processo de inventário já existem. O perfil de Inventário não precisa de um “encaminhamento manual” nesse caso; sua próxima ação é a inventariação.
+
+## 6. Gestão SME
+
+- acompanhamento gerencial;
+- leitura de Pendências sem mutações operacionais;
+- configuração de calendário/exercícios;
+- cadastro/edição/desativação de programas conforme o contrato implementado;
+- Registros Internos apenas no recorte permitido pela política vigente;
+- não administra cotidianamente a equipe da CRE.
+
+## 7. Administrador técnico
+
+`technical_admin` permanece papel técnico efetivo. Possui capacidades técnicas protegidas para infraestrutura/perfis/escopos/importação/auditoria e pode exercer operações permitidas pelas políticas correspondentes. A UI simulada não altera o JWT real.
+
+## 8. Escolas e carteira
+
+Nova unidade exige identidade institucional real e competência inicial válida. O banco/serviço rejeitam campos obrigatórios ausentes e duplicidades protegidas.
+
+`schools.controller_id` é o responsável principal. Redistribuição usa fluxo próprio. Controlador não altera esse vínculo pelo formulário cadastral comum.
+
+## 9. Notas Fiscais e Pendências
+
+Controlador e Assistente são os perfis funcionais comuns de escrita nesses fluxos.
+
+- análise fiscal individual e Consulta Assessoria usam invoice específica;
+- `a_identificar` novo usa operação atômica `Incorreto + Pendência`;
+- novo envio não resolve a Pendência;
+- substituição em `Aguardando reanálise` é suportada conforme PR #254;
+- reanálise correta resolve e incorreta reabre;
+- SME/Inventário não recebem essas mutações apenas porque conseguem visualizar algum recorte.
+
+## 10. Patrimônio
+
+### Edição rápida
+
+`InventoryService.updateAsset` aceita apenas o campo explicitamente previsto e protege a NF de bem vinculado contra alteração isolada do número fiscal.
+
+### Encaminhamento
+
+Para um bem realmente `Não encaminhada`, Controlador/Assistente usam o fluxo de encaminhamento quando existem NF e processo. A operação sincroniza, no caso vinculado, bem + verificação + log pela RPC do PR #260.
+
+### Inventariação
+
+Controlador, Assistente, Equipe de Inventário e `technical_admin` podem concluir a inventariação conforme a política/serviço, mas somente se o bem já estiver `Encaminhada` e houver responsável informado.
+
+## 11. Gestão de Equipe
 
 ```text
 frontend
+→ DirectoryService / TeamAccountGateway
 → team-account-management
 → Auth Admin + RPC transacional
 ```
 
 A Edge Function:
 
-- exige JWT;
-- valida papel institucional;
+- exige Bearer/JWT válido;
+- verifica papel de gestor autorizado;
 - aplica CORS fail-closed;
-- aceita somente origens autorizadas;
-- resolve conta Auth por e-mail com RPC restrita a `service_role`;
-- não depende de varredura global `listUsers`;
-- recupera vínculo histórico seguro;
-- rejeita divergência ambígua;
-- executa compensação em falha parcial.
+- resolve conta Auth por e-mail via RPC restrita;
+- rejeita vínculo ativo ambíguo/incompatível;
+- permite reutilização segura de conta quando não há conflito;
+- bloqueia/desativa logicamente quando aplicável;
+- executa compensação se Auth já foi alterado e a etapa posterior falha.
 
-A versão efetiva da função fica em `CURRENT_STAGE.md`.
+Desativação de Controlador exige carteira zerada; o último Controlador ativo não é desativado pelo fluxo normal. O último integrante ativo do Inventário também é protegido pelo serviço correspondente.
 
-## 6. Inventário
-
-O perfil:
-
-- consulta escolas e programas necessários ao painel patrimonial da própria CRE;
-- consulta bens autorizados;
-- conclui inventariação de bem encaminhado;
-- atua apenas nas mutações patrimoniais expressamente permitidas pelo serviço/RLS;
-- não altera bonificação, análise técnica, identidade escolar, carteira, contatos ou configuração;
-- não recebe acesso patrimonial a outra CRE.
-
-As políticas patrimoniais são específicas e não derivam de uma permissão genérica de escrita escolar.
-
-## 7. Gestão SME
-
-- consulta identificação e bonificação;
-- não vê análise técnica nas superfícies restritas;
-- consulta Pendências sem mutações operacionais;
-- consulta Registros Internos segundo a política vigente de autoria;
-- acessa configurações globais autorizadas;
-- cadastra, edita e desativa programas conforme o contrato atualmente implementado;
-- cria exercícios/competências e mantém calendário conforme serviço/RPC/RLS vigentes.
-
-`CFG-03` e `CFG-04` não são mais tratadas como decisão funcional pendente. O código já implementa a autoridade. Qualquer retirada ou expansão futura dessa capacidade precisa de decisão expressa, regressão e atualização coordenada das camadas.
-
-A SME não administra cotidianamente a equipe da CRE.
-
-## 8. Administrador técnico
-
-- mantém `technical_admin` como papel efetivo;
-- pode alternar organização visual sem alterar JWT;
-- administra infraestrutura, perfis, escopos, importações e auditoria;
-- executa exclusão física apenas em procedimento técnico excepcional;
-- não substitui testes com contas funcionais próprias de cada perfil.
-
-## 9. Escolas e identidade institucional
-
-Nova escola exige:
-
-- código institucional;
-- designação;
-- denominação;
-- INEP;
-- CNPJ;
-- SICI;
-- competência inicial válida;
-- Controlador ativo;
-- programa básico e demais programas autorizados.
-
-O banco impede identidade vazia e duplicidades normalizadas de INEP, CNPJ e SICI. Não criar identificadores fictícios.
-
-Alteração de identidade institucional por Controlador é bloqueada no serviço.
-
-## 10. Patrimônio
-
-A edição rápida de `ASSET-02`:
-
-- aceita somente o campo explicitamente definido em `DIRECT_EDIT_FIELDS`;
-- exige perfil operacional autorizado;
-- obtém `row_version` do bem;
-- registra `administrativeLog`;
-- persiste por `saveAssetWithLog`;
-- não reutiliza `DataService.defaultPersist` como contrato normal.
-
-Inventário, encaminhamento e criação de bem continuam com fluxos próprios.
-
-## 11. Exclusão e desativação
-
-- remoção visual de integrante significa desativação lógica;
-- histórico/autoria são preservados;
-- carteira deve ser redistribuída quando necessário;
-- conta Auth é bloqueada pelo backend protegido;
-- exclusão física permanece excepcional e técnica;
-- `audit_events` não recebe mutação direta de usuários operacionais.
-
-## 12. Homologação obrigatória
-
-### Autorização
-
-- anônimo e usuário sem perfil são bloqueados;
-- cada perfil vê somente superfícies permitidas;
-- outra CRE é bloqueada sem exceção;
-- SME não executa mutações operacionais de Pendências;
-- Inventário não altera bonificação ou cadastro escolar;
-- usuários operacionais não veem simulação técnica.
-
-### Controlador
-
-- inicia pela própria carteira;
-- colaboração na mesma CRE preserva responsável principal;
-- não redistribui `controller_id`;
-- não altera identidade institucional;
-- autoria identifica executor;
-- conflito não sobrescreve silenciosamente.
-
-### Gestão de Equipe
-
-- Assistente cadastra, edita e desativa Controlador;
-- conta Auth existente é reutilizada quando o contrato permite;
-- vínculo ativo conflitante é rejeitado;
-- redistribuição persiste após recarga;
-- Assistente administra Inventário;
-- repetição idempotente não duplica conta;
-- falha após convite/bloqueio é compensada;
-- origem oficial passa e origem indevida falha;
-- conta é resolvida sem varredura global do catálogo Auth.
-
-### Gestão SME
-
-- recortes gerenciais permanecem restritivos;
-- configurações alcançam backend correto;
-- programas persistem com versão/log e negativas dos perfis indevidos.
-
-## 13. Princípios permanentes
+## 12. Princípios permanentes
 
 1. chave publicável não substitui RLS;
 2. credencial administrativa nunca chega ao navegador;
-3. leitura e mutações possuem políticas separadas;
-4. RPC privilegiada valida autorização internamente;
+3. leitura e escrita podem ter políticas diferentes;
+4. RPC privilegiada valida autorização apropriada;
 5. Edge Function administrativa exige JWT e papel;
-6. falha parcial exige compensação;
+6. falha parcial Auth + banco exige compensação;
 7. carteira não muda sem ação explícita autorizada;
 8. identidade institucional não é sintetizada;
-9. mobile não remove capacidade essencial;
-10. mudança de permissão exige decisão funcional e testes cruzados;
-11. função crítica exige prova ponta a ponta conforme matriz/ADR-041.
+9. visibilidade não implica capacidade de mutação;
+10. mudança de permissão exige decisão funcional explícita e testes cruzados;
+11. antes de retirar ou ampliar permissão, confrontar `access-policy.js`, serviço, RLS/RPC e matriz funcional do SHA atual.

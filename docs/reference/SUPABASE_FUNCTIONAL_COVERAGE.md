@@ -1,16 +1,13 @@
 # Cobertura funcional — Supabase
 
-**Estado:** referência vigente em Preview e Production  
-**Atualizado em:** 7 de agosto de 2026
+**Estado:** referência vigente da baseline funcional do PR #260  
+**Atualizado em:** 5 de setembro de 2026
 
-## 1. Baseline
+> Para retomar o projeto, comece em [`../../START_HERE.md`](../../START_HERE.md). Esta referência descreve cobertura técnica; não substitui `CURRENT_STATE.md`, a matriz funcional nem o plano vigente.
 
-O baseline mutável fica em [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md). Este documento registra o contrato de cobertura e não duplica SHA, contagem de migrations ou versão de Edge Function.
+## 1. Contrato de persistência
 
-## 2. Contrato de persistência
-
-- `SupabaseRepository` — backend canônico de Preview e Production;
-- `LocalStorageRepository` — desenvolvimento controlado e contingência por novo build.
+Production usa `SupabaseRepository` como backend canônico. Desenvolvimento/testes podem usar adaptadores locais explicitamente configurados; Production não cai silenciosamente para seed/LocalStorage.
 
 Fluxo normal:
 
@@ -19,152 +16,140 @@ interface
 → serviço de aplicação
 → DataService/UnitOfWork
 → SupabaseRepository
-→ PostgREST, RPC ou Edge Function
+→ PostgREST / RPC / Edge Function
 → Auth/RLS/PostgreSQL
 → resposta
 → estado em memória
-→ renderização
+→ renderização/reconciliação
 ```
 
-## 3. Cobertura por domínio
+## 2. O que a estabilização do PR #260 acrescentou
 
-Legenda:
+O PR #260 elevou a evidência de várias operações que antes apareciam somente como “parciais”. Passaram a existir jornadas com Supabase local descartável e Auth real que verificam não apenas o clique, mas também persistência, leitura, reload e releitura.
 
-- **Comprovado:** possui integração e evidência suficiente para o estágio atual;
-- **Parcial:** contrato implementado, mas falta prova padronizada de uma ou mais jornadas/negações/releituras;
-- **Controlado:** execução remota depende de pacote/janela/autorização.
+Cobertura adicionada/reforçada:
 
-| Domínio ou fluxo | Estado | Backend principal | Evidência atual | Próxima prova |
-|---|---|---|---|---|
-| Sessão, perfil e escopos | Parcial | Auth + `user_profiles` + RPC | unitários, pgTAP, perfil/viewport | smoke autenticado recorrente em Production |
-| Bootstrap das entidades | Parcial | PostgREST | integração e E2E | leitura autenticada protegida |
-| Competência global | Comprovado | estado + `competences`/`app_config` | rotas, carteira, sincronização pós-PR #160 | manter regressão |
-| Configuração e exercícios | Parcial | `app_config`, `competences`, RPC | serviço, pgTAP, E2E e remediação de CFG-02 | escrita/releitura controladas |
-| Programas | Parcial | `programs`, RPC de programa e log | serviço, RLS, E2E | escrita/releitura controladas |
-| Escolas e programas vinculados | Parcial | `schools`, `school_programs`, RPC | RLS, serviço, E2E, identidade institucional | criação/edição controlada por perfil |
-| Carteiras | Parcial | `schools.controller_id` | Gestão de Equipe, PR #154, E2E | redistribuição e reversão controladas |
-| Gestão de Controladores | Comprovado | Edge Function + Auth Admin + RPC | PRs #150/#161, testes e observação | observação contínua |
-| Gestão do Inventário | Comprovado | Edge Function + Auth Admin + RPC | PRs #150/#161, testes e observação | observação contínua |
-| Bonificação mensal | Parcial | `verifications` + RPC | domínio, pgTAP, E2E | escrita/releitura controladas |
-| Análise técnica | Parcial | `verifications` + RPC | serviço, RLS, E2E | conflito e releitura controlados |
-| Pendências | Parcial | `pendencies` + RPCs | serviço, RLS, E2E | ciclo completo por estado |
-| Tentativas | Parcial | `pendency_attempts` + trigger de sincronização | serviço, remediação PEND-02 | escrita/releitura controladas |
-| Contatos/cobranças | Parcial | `pendency_contacts` | idempotência e E2E | persistência/releitura controladas |
-| Notas fiscais | Parcial | `registered_invoices` + RPC/trigger | atomicidade, remediação INV-01 | casos controlados de vínculo/desvínculo |
-| Bens permanentes | Parcial | `assets` + `saveAssetWithLog` | inventário, PR #162, testes | escrita/releitura por perfil |
-| Inventariação | Parcial | `assets` | RLS, perfil/viewport | releitura recorrente por perfil |
-| Registros administrativos | Parcial | `administrative_logs` | autoria, políticas e testes | recorte/leitura controlados |
-| Gestão SME | Parcial | leitura + configuração/programas | interface, serviços, RPCs, RLS | provas controladas dos comandos |
-| Importação/promoção | Controlado | staging + RPCs | ambiente descartável | pacote real somente com autorização |
-| Rollback de importação | Controlado | RPCs | testes descartáveis | procedimento específico quando houver operação real |
-| Relatório institucional | Parcial | memória autorizada + AuditService | renderer, export audit, E2E | observação/homologação quando priorizada |
-| Excel SME mensal | Comprovado | memória + assets + AuditService | PRs #136/#137/#162, OOXML, desktop | manter regressão |
-| Monitor geral de Production | Comprovado | GitHub Actions + Vercel + Supabase | PRs #139/#153 e execuções recorrentes | manter regressão |
-| Incidentes automáticos | Comprovado | GitHub Issues | PR #140 | observação contínua |
-| Integridade lógica dos dados | Comprovado | RPC privilegiada + workflow | PR #141 e `totalIssues=0` no baseline corrente | manter regressão |
+- ciclo de NF: criar, editar, converter consumo ↔ permanente, remover e reler;
+- NF permanente + bem + Prontuário;
+- bloqueio de inventariação antes de `Encaminhada`;
+- encaminhamento posterior com sincronização de `encampInventario` e log na mesma RPC;
+- bloqueio de edição isolada do número fiscal no bem vinculado;
+- avaliação mensal, preenchimento, reload, consolidação e releitura;
+- novo envio/reanálise continuam cobertos por jornada autenticada específica;
+- guards de gesto repetido em novo envio, reanálise, encaminhamento e inventariação;
+- 46 migrations, pgTAP, RLS/Auth, backup/restauração e demais gates permanecem na baseline.
 
-## 4. Matriz funcional executável
+## 3. Estado por domínio
 
-A fonte oficial da granularidade por operação é `FUNCTIONAL_CONTRACT_MATRIX.md`/JSON.
+| Domínio/fluxo | Estado na baseline | Evidência principal / observação |
+|---|---|---|
+| Sessão, perfil e escopos | implementado; smoke recorrente de Production continua prova operacional separada | Auth, RLS, fixtures, perfis/viewports |
+| Bootstrap/leitura | implementado | integração/E2E; readiness arquitetural ainda tem dívida própria no plano |
+| Competência global | comprovado no contrato atual | domínio + navegação + regressões |
+| Configuração/exercícios | implementado, provas controladas ainda específicas por operação | serviço/RPC/pgTAP |
+| Programas | implementado | serviço/RLS; UAT controlado permanece quando exigido |
+| Escolas/programas vinculados | implementado | identidade institucional, serviço/RPC/RLS |
+| Carteiras | implementado | redistribuição protegida e autorização |
+| Gestão de Controladores | comprovada | Edge Function + Auth Admin + RPC + compensação |
+| Gestão do Inventário | comprovada | Edge Function + Auth Admin + RPC + compensação |
+| Bonificação/análise mensal | comprovada para a jornada crítica do #260 | persistência + leitura + reload + consolidação |
+| Pendências | implementada, com jornadas críticas reais | #254/#256 + E2E/pgTAP; operações auxiliares mantêm seus testes específicos |
+| Tentativas/reanálise | comprovadas nos fluxos críticos | RPCs especializadas + jornada autenticada |
+| Contatos/cobranças | implementados | contrato idempotente/atomicidade; prova específica permanece na matriz |
+| Notas Fiscais | comprovada para lifecycle crítico | jornada real do #260 + testes de efeitos |
+| Análise fiscal individual | implementada e protegida | PR #211/#215/#254, E2E/pgTAP |
+| Consulta Assessoria individual | implementada e protegida | autoridade separada + RPCs + regressões |
+| `a_identificar` | implementado | criação atômica e identificação preservando ID |
+| Bens derivados de NF | comprovados no lifecycle crítico | #257/#258/#260 |
+| Encaminhamento patrimonial | comprovado | `save_asset_with_verification_and_log` + jornada real |
+| Conclusão da inventariação | comprovada no fluxo crítico | serviço + guard + jornada real |
+| Registros administrativos | implementados | logs vinculados às operações; recorte de leitura por papel continua política própria |
+| Gestão SME | implementada nas capacidades autorizadas | configurações/programas + RLS/serviços |
+| Importação/rollback | controlados | só executar em procedimento especificamente autorizado |
+| Relatório institucional | implementado; homologação humana pode ser necessária quando a entrega for priorizada | renderer + auditoria de exportação |
+| Excel SME mensal | comprovado | 27 colunas A:AA + gates dedicados |
+| XLSX de Pendências | comprovado | modelo/renderer + filtros + auditoria |
+| Monitor/integridade Production | comprovados na baseline | workflows + `production_integrity_check()` |
 
-Estado reconciliado:
+## 4. Matriz funcional
 
-| Cobertura | Operações |
-|---|---:|
-| Comprovada | 9 |
-| Parcial | 32 |
-| Lacuna | 0 |
-| Decisão pendente | 0 |
+A fonte detalhada por operação continua em `reference/functional-contract-matrix/*.json` e na visão gerada `FUNCTIONAL_CONTRACT_MATRIX.md`.
 
-A ausência de `gap` não significa UAT concluído. Significa que nenhuma das 41 operações está atualmente classificada como defeito estrutural conhecido sem remediação.
+A matriz é um **inventário de operações**, não uma substituição para pré-condições completas do domínio. Uma descrição curta como “Encaminhar bem” não significa que todo bem nasce em estado não encaminhado. Para mudar comportamento, ler a regra específica em `CURRENT_STATE.md`/ADR/código.
+
+O nível `covered`/`partial` da matriz representa a prova registrada para aquela operação, e não autorização para reabrir regra já homologada.
 
 ## 5. Perfis
 
 ### Controlador
 
-- lê escolas da própria `cre_scope`;
-- carteira define responsável principal/filtro, não fronteira entre Controladores da mesma CRE;
-- pode atuar em escola de colega autorizada sem transferir `controller_id`;
-- não altera identidade institucional da escola;
-- executa bonificação, análise, pendências, contatos, notas e bens autorizados;
-- não acessa outra CRE sem escopo explícito.
+Opera as funções autorizadas da própria CRE, incluindo avaliação, Pendências, NF e patrimônio operacional permitido. Carteira é responsabilidade principal, não autorização para redistribuição pelo formulário comum.
 
 ### Assistente de Verbas Federais
 
-- acesso transversal à CRE;
-- Gestão de Equipe e contas Auth;
-- redistribuição de carteiras;
-- identidade institucional das escolas;
-- ações operacionais autorizadas;
-- relatórios/exportações.
+Opera transversalmente na CRE, gere equipe/carteira, retifica quando autorizado e executa relatórios/operações previstas.
 
 ### Gestão SME
 
-- leitura gerencial de identificação e bonificação;
-- sem análise técnica nas superfícies restritas;
-- Pendências sem mutações operacionais;
-- Registros Internos conforme recorte de autoria;
-- configuração de calendário/exercícios e manutenção de programas segundo o contrato atualmente implementado.
+Realiza leitura gerencial e configurações/programas autorizados. Não recebe mutações operacionais de Pendências apenas por possuir visão gerencial.
 
 ### Inventário
 
-- lê escolas e bens da própria CRE;
-- opera fluxo patrimonial autorizado;
-- não altera bonificação, análise técnica, carteiras ou configuração global.
+Lê o recorte patrimonial e conclui inventariação autorizada. Não altera avaliação mensal, configuração global ou carteira.
 
-### Administrador técnico
+### `technical_admin`
 
-- infraestrutura, perfis, escopos, importação e auditoria;
-- pode simular visualmente perfis sem alterar o papel efetivo do JWT.
+Papel técnico separado, com capacidades técnicas protegidas; simulação visual não altera JWT.
 
 ## 6. Gestão de Equipe
 
-Fluxo vigente:
+Fluxo:
 
 ```text
 DirectoryService
 → TeamAccountGateway
 → team-account-management
-→ Auth Admin
-→ resolve_team_auth_user_id_by_email / RPCs transacionais
-→ diretórios, perfis e auditoria
+→ Auth Admin + RPC transacional
 ```
 
-Contratos comprovados:
+Contratos atuais incluem CORS fail-closed, JWT/papel, lookup Auth exato, reutilização controlada de conta, rejeição de ambiguidade, desativação lógica, auditoria e compensação de falha parcial.
 
-- CORS oficial passa e origem indevida falha;
-- JWT/papel são obrigatórios;
-- cadastro/edição/desativação preservam histórico e auditoria;
-- conta existente pode ser reutilizada quando não há vínculo ativo conflitante;
-- diretório/perfil divergente é rejeitado;
-- lookup por e-mail é exato e não depende de `listUsers`;
-- falha parcial executa compensação.
+## 7. NF permanente e Inventário
 
-## 7. Remediações do PR #162
+A cobertura deve ser lida com a regra atual:
 
-As seguintes lacunas técnicas foram corrigidas, mas as operações correspondentes permanecem parciais quando a matriz ainda exige prova controlada:
+```text
+NF permanente + número + processo existente
+→ asset Encaminhada / Aguardando Inventariação
 
-- `SCH-01` — identidade institucional real e duplicidades;
-- `CFG-02` — versão/conteúdo do novo exercício;
-- `INV-01` — bem derivado ao desvincular nota;
-- `ASSET-02` — edição versionada e auditada;
-- `PEND-02` — sincronização de tentativas;
-- `EXP-01` e `EXP-02` — auditoria obrigatória da exportação.
+NF permanente sem processo
+→ asset Não encaminhada
+→ quando houver processo: Encaminhar
+→ depois: Inventariar
+```
 
-## 8. Smoke autenticado
+`encampInventario` é derivado do conjunto de permanentes do contexto, e o Prontuário mostra o vínculo técnico NF ↔ bem.
 
-A infraestrutura do PR #148 está integrada e protegida, mas não executa jornadas reais sem cinco identidades técnicas exclusivas e habilitação explícita. Essa ausência mantém seis operações de leitura como `partial`.
+## 8. Supabase readiness
 
-## 9. Auditoria funcional histórica
+O workflow de readiness valida, entre outros:
 
-O PR #156 não deve ser tratado como matriz atual. Suas evidências podem ser reutilizadas após confrontação com a `main`, mas o fechamento da auditoria deve ocorrer sobre o código atual.
+- reset local/migrations;
+- preflight de contratos;
+- pgTAP;
+- lint PL/pgSQL;
+- regeneração/reprodutibilidade dos tipos/cliente;
+- Auth das identidades de teste;
+- Edge Function de Gestão de Equipe;
+- frontend + Auth + RLS na pilha local.
 
-## 10. Referências
+Uma falha isolada de runner deve ser reproduzida antes de alterar código. Se o mesmo SHA passa integralmente em reexecução sem mudança, classificar como falha transitória, não como regra a “corrigir” no produto.
 
-- [`SUPABASE_PERMISSIONS_MATRIX.md`](SUPABASE_PERMISSIONS_MATRIX.md);
-- [`SUPABASE_DATA_DICTIONARY.md`](SUPABASE_DATA_DICTIONARY.md);
-- [`SUPABASE_INTEGRATION_AUDIT.md`](SUPABASE_INTEGRATION_AUDIT.md);
-- [`FUNCTIONAL_CONTRACT_MATRIX.md`](FUNCTIONAL_CONTRACT_MATRIX.md);
-- [`../architecture/supabase-readiness.md`](../architecture/supabase-readiness.md);
-- [`../runbooks/SUPABASE_CONNECTION.md`](../runbooks/SUPABASE_CONNECTION.md);
-- [`../CURRENT_STAGE.md`](../CURRENT_STAGE.md).
+## 9. Referências
+
+- [`SUPABASE_PERMISSIONS_MATRIX.md`](SUPABASE_PERMISSIONS_MATRIX.md)
+- [`SUPABASE_DATA_DICTIONARY.md`](SUPABASE_DATA_DICTIONARY.md)
+- [`FUNCTIONAL_CONTRACT_MATRIX.md`](FUNCTIONAL_CONTRACT_MATRIX.md)
+- [`../architecture/supabase-readiness.md`](../architecture/supabase-readiness.md)
+- [`../runbooks/SUPABASE_CONNECTION.md`](../runbooks/SUPABASE_CONNECTION.md)
+- [`../CURRENT_STATE.md`](../CURRENT_STATE.md)
