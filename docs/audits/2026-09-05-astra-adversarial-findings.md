@@ -1,87 +1,89 @@
 # RADAR PDDE — Achados adversariais posteriores ao fechamento documental
 
 **Data:** 5 de setembro de 2026  
-**Baseline funcional examinada:** PR #260 / merge `8fc58926565a72465980143f253f0a2fee4b8fc2`  
+**Baseline funcional examinada:** PR #260 / `8fc58926565a72465980143f253f0a2fee4b8fc2`  
 **Checkpoint documental integrado examinado:** PR #261 / `876c5976124815d2848f7d2d9e8a82b7cd3a43c5`  
-**PR documental em revisão:** #263 / branch `audit/continuity-source-traceability-2026-09-04`  
-**Origem:** auditoria adversarial parcial executada com Codex/Astra Ultra.  
-**Classe:** estado de achados; não altera runtime nem cria regra por inferência.
+**PR documental em revisão:** #263  
+**Classe:** ledger corrente de achados; não altera runtime nem cria regra por inferência.
 
-> A auditoria anterior de continuidade foi útil para reconciliar hotfixes e documentação, mas não foi suficiente para provar ausência de defeitos funcionais desconhecidos. Esta auditoria adversarial encontrou problemas adicionais ao procurar contraexemplos, caminhos paralelos, estados avançados destruídos por operações anteriores e divergências entre projeções.
+> A auditoria anterior de continuidade reconstruiu corretamente a linha #253→#261, mas não provou ausência de defeitos desconhecidos. A auditoria Astra procurou contraexemplos, autoridades concorrentes e combinações de fluxos verdes e encontrou problemas adicionais.
 
-## 1. O que esta auditoria provou sobre a metodologia
+## 1. Evidência metodológica central
 
-A suíte desktop executada durante a auditoria terminou com **141 testes aprovados, 37 ignorados e 0 falhas** entre 178 cenários. Mesmo assim, a análise encontrou defeitos e divergências fora do universo coberto pelos testes existentes.
+Na coleta Astra daquele checkout:
 
-Conclusão metodológica:
+- 840 arquivos inventariados;
+- 3.797 funções mapeadas por AST;
+- 151 chamadas relevantes de write/load;
+- 88 definições SQL e 57 nomes distintos no índice;
+- integração 7/7;
+- E2E desktop 141 aprovados, 37 ignorados, 0 falhas entre 178;
+- Production integrity saudável/zero issues no snapshot.
+
+Mesmo assim, bugs/composições incorretas foram reproduzidos.
+
+Conclusão:
 
 ```text
-gates verdes
-≠ ausência de defeito
+gates verdes + integridade saudável
+≠ ausência de defeito desconhecido
 ```
 
-Os gates comprovam que contratos conhecidos continuam atendidos. A descoberta de defeitos desconhecidos exige investigação adversarial separada, documentada em [`../architecture/adversarial-analysis-and-implementation-method.md`](../architecture/adversarial-analysis-and-implementation-method.md).
+## 2. B — bug funcional reproduzido: bem `Inventariada` rebaixado ao salvar NF
 
-## 2. Achados funcionais comprovados
+**Risco:** P1 / Alto
 
-### 2.1 Bem `Inventariada` pode ser rebaixado ao salvar novamente a NF vinculada
+Cadeia:
 
-**Classificação:** B — bug funcional reproduzido  
-**Risco:** Alto / P1
+1. `InventoryService.inventory` conclui `Inventariada` e grava metadados;
+2. `InvoiceService.save` carrega o bem;
+3. `buildDesiredAsset` reaplica regra de estado inicial também no update;
+4. com processo existente, status é sobrescrito para `Encaminhada`;
+5. metadados de inventariação permanecem.
 
-Cadeia observada:
-
-1. `InventoryService.inventory` conclui o bem como `Inventariada` e grava metadados de inventariação;
-2. `InvoiceService.save` carrega o bem vinculado;
-3. `buildDesiredAsset` reaplica a regra de estado inicial do bem também no update;
-4. com processo de inventário existente, o planner sobrescreve o status com `Encaminhada`;
-5. o save passa a considerar que existe alteração mesmo quando a NF não mudou;
-6. os metadados de inventariação permanecem, criando combinação incoerente `Encaminhada + dados de inventariação`.
-
-Probe focal com `InvoiceService` real e persistência em memória reproduziu:
+Probe com `InvoiceService` real reproduziu:
 
 ```text
 NF permanente sem alteração
 + bem Inventariada
 + processo existente
-→ save executado
+→ save
 → bem Encaminhada
 → metadados de inventariação preservados
 ```
 
-**Limite da prova:** causa no service/planner está reproduzida. Ainda é obrigatório reproduzir a jornada completa em Supabase descartável antes do hotfix e comprovar round-trip/reload.
+**Limite:** reproduzido em service/planner com persistência em memória. Antes do hotfix, reproduzir round-trip em Supabase descartável.
 
-**Correção futura esperada, sem implementação neste PR documental:** separar regra de nascimento do bem de transições de um bem já existente; edição de NF não pode desfazer inventariação concluída sem operação patrimonial explícita que autorize essa reabertura.
+Correção esperada: separar regra de nascimento do bem de transições de bem existente; edição de NF não deve desfazer inventariação sem operação patrimonial explícita.
 
-### 2.2 Botão real de Excel SME pode contornar a auditoria obrigatória pré-download
+## 3. C — inconsistência de composição: auditoria do Excel SME
 
-**Classificação:** C — inconsistência de composição com consequência funcional reproduzida  
-**Risco:** Alto / P1
+**Risco:** P1 / Alto
 
-O módulo de auditoria possui caminho que bloqueia download quando a persistência inicial da auditoria falha. Porém o botão SME real é montado por integração que usa closure privada de exportação e executa download antes do log/persistência correspondente.
+O entrypoint auditado bloqueia download quando a auditoria inicial falha. O botão SME real é criado com closure privada que pode baixar antes da confirmação.
 
-Probe de composição demonstrou diferença:
+Probe de composição:
 
 ```text
-rota auditada + falha inicial
-→ nenhum download
+entrypoint auditado + falha inicial
+→ audit-failed
+→ zero download
 
-botão SME real/integrado + mesma falha
-→ caminho de download ocorre antes da confirmação da auditoria
+botão SME integrado + mesma falha
+→ download
+→ legacy-log
+→ legacy-persist
 ```
 
-Os E2E atuais comprovam que o arquivo é gerado/baixado corretamente, mas não exercitam `falha da auditoria inicial → nenhum download`.
+O E2E atual comprova workbook feliz, mas não `falha inicial → nenhum download`.
 
-**Correção futura esperada:** convergir o ponto de entrada real para a autoridade auditada e criar teste de gesto real com falha inicial. Não tratar como defeito remoto em Production sem reprodução correspondente.
+Correção futura: convergir o ponto de entrada real para a autoridade auditada e testar pelo gesto real.
 
-## 3. Divergências reais que exigem decisão antes de código
+## 4. F — decisão: idade total da Pendência × espera do ator atual
 
-### 3.1 Idade total da Pendência × tempo aguardando o ator atual
-
-**Classificação:** F — ambiguidade que exige decisão de produto  
 **Risco:** Alto para filtros/priorização/cobrança
 
-Para o mesmo registro:
+Contraexemplo:
 
 ```text
 abertura: 01/08/2026
@@ -89,142 +91,131 @@ reanálise incorreta: 04/09/2026
 agora: 05/09/2026
 ```
 
-foram reproduzidos dois cálculos:
+Resultados:
 
 - `pendencias-view-model`: 35 dias desde abertura;
-- `operational-projection`: 1 dia desde o evento que devolveu o trabalho para a Escola.
+- `operational-projection`: 1 dia desde evento que devolveu à Escola.
 
-O próximo ator permanece Escola em ambos. A divergência é real; o relatório não escolheu unilateralmente qual cálculo deve desaparecer.
+Próximo ator é Escola em ambos.
 
-Antes de unificar, o produto precisa distinguir se as superfícies pretendem exibir:
+Não unificar por inferência. Decidir se o produto exibe idade total, tempo do ator atual ou ambas as métricas explicitamente.
 
-- idade total da Pendência;
-- tempo de espera do ator atual;
-- ou ambos com nomes explícitos.
+## 5. F/H — CSV × XLSX institucional
 
-### 3.2 Política do CSV versus XLSX institucional
+Decisão posterior de 09/08 limita o XLSX institucional à competência global ativa. CSV preserva caminho legado com política temporal/auditoria diferente.
 
-**Classificação:** F/H — decisão de produto + investigação complementar
+Antes de alterar:
 
-O XLSX institucional atual foi deliberadamente alterado em commit posterior para escopo da competência global ativa. Documentos antigos ainda descrevem histórico multicompetência. O CSV de contingência mantém caminho legado com política temporal/auditoria diferente.
+- decidir escopo temporal do CSV;
+- ordem da auditoria;
+- fallback;
+- relação deliberada com XLSX.
 
-Não igualar CSV e XLSX por inferência. Primeiro fixar contrato atual desejado e provar os pontos de entrada reais.
+Documentação corrente foi reconciliada para não chamar os dois produtos de equivalentes por padrão.
 
-## 4. Dívidas arquiteturais de risco alto
+## 6. D — teste/helper de desativação de Controlador ainda ensina regra antiga
 
-### 4.1 Renderer legado de Pendências ainda executável por composição
+Contrato atual: desativação exige **carteira previamente zerada**.
 
-**Classificação:** E — duplicação arquitetural com risco alto
+Resíduo:
 
-A UI moderna possui quatro situações canônicas e ações por estado. `app.js` ainda conserva implementação anterior com duas abas/fallbacks relacionados. Hoje a composição moderna prevalece, mas mudança no loader/readiness ou falha de extensão pode reviver comportamento antigo.
+- teste/helper ativo ainda contém linguagem de “desativada + 13 escolas transferidas”.
 
-Ação futura: teste de composição/falha controlada do instalador antes de remover fallback. Não redesenhar a tela no mesmo passo.
+O fluxo atual não realiza essa transferência junto da desativação. O resíduo é perigoso porque suíte verde pode preservar duas mensagens/expectativas concorrentes.
 
-### 4.2 Duas derivações ativas de `encampInventario`
+Ação futura: aposentar/renomear o ramo impossível sem alterar a regra vigente.
 
-**Classificação:** E — duplicação arquitetural
+## 7. D — E2E escreve `activeCompetenciaKey` diretamente
 
-`invoice-effects` e `InventoryService` derivam a projeção patrimonial em caminhos distintos. Hoje a regra básica concorda, mas há diferenças de pré-condição/reset de análise.
+`school-timeline.spec.js` manipula variável legada diretamente e injeta estado sintético.
 
-Ação futura: corpus compartilhado de cenários e eventual extração de função pura, sem transformar diferença de contexto em bug por simplificação.
+Isso não prova bug da timeline, mas pode mascarar sincronização e ensinar bypass do `RadarCompetenceContext`.
 
-### 4.3 Múltiplas projeções de próximo ator/data/ação
+Ação: usar helper/contexto canônico quando a finalidade do teste depender de competência real; marcar fixture isolada quando não depender.
 
-**Classificação:** E/F
+## 8. E — renderer legado de Pendências ainda potencialmente executável
 
-Próximo ator atualmente concorda entre consumidores, mas data-base/idade já divergiu. A frente de projeção única deve começar por testes diferenciais, não por mover código e escolher uma semântica arbitrária.
+UI moderna: quatro situações/abas canônicas.
 
-### 4.4 Wrappers/readiness com autoridade funcional
+`app.js` conserva renderer/fallback anterior de duas abas.
 
-**Classificação:** E
+Não há prova de regressão visível na composição atual. O risco é loader/readiness futuro reviver o caminho antigo.
 
-A auditoria confirmou o problema já previsto no plano: módulo chamado de performance ainda participa de correção/políticas de persistência, e readiness pode confundir Promise publicada com capacidade efetivamente instalada.
+Ação: caracterizar composição/falha controlada antes de retirar fallback.
 
-Esses itens continuam no plano, agora sob o método adversarial obrigatório.
+## 9. E/F — readiness: Promise publicada não equivale capability pronta
 
-## 5. Documentação/testes obsoletos perigosos encontrados
+`RadarProductExtensionsReady` pode existir como Promise desde o início. Verificar apenas truthiness não comprova resolução nem capacidade instalada.
 
-### 5.1 Matriz apontando para migration/RPC superada
+Ação: testes/loader devem esperar resolução e capability específica. Não remover polling antes de substituto determinístico.
 
-`PEND-02` e outras evidências podem apontar para migration anterior à redefinição vigente. A documentação deve resolver a última definição da assinatura e apontar teste sucessor.
+## 10. E — módulo de performance ainda participa da correção
 
-### 5.2 Contrato de competências anterior à exceção transversal de Pendências
+`operational-write-performance.js` altera políticas/handlers e o reconciliador depende da composição.
 
-Documento antigo proíbe seletor independente sem registrar a decisão posterior que permite filtro local `Todas` em Pendências, mantendo a competência global intacta.
+Não tratá-lo como telemetria fail-open até a Frente 1 remover sua autoridade funcional.
 
-### 5.3 Documentos de exportação ainda descrevendo histórico multicompetência
+## 11. E — derivações concorrentes de `encampInventario`
 
-O código/commit posterior limitou o Excel institucional à competência global ativa. Documentos correntes que ainda afirmem o contrário precisam ser reconciliados.
+`invoice-effects` e `InventoryService` derivam o agregado em caminhos distintos. Hoje a regra básica coincide, mas há diferenças de reset/análise por pré-condição.
 
-### 5.4 Títulos de testes que ensinam regra revogada
+Não chamar de bug sem divergência reproduzida. Criar corpus compartilhado de cenários antes de extrair função pura comum.
 
-Foram encontrados títulos ativos como “reabre somente resolvida”, embora o contrato atual aceite `Resolvida` ou `Cancelada`. A assertion pode continuar útil, mas o nome não pode continuar ensinando a regra antiga.
+## 12. D/E — análise fiscal agregada antiga ainda deixa ramo inalcançável
 
-### 5.5 Desativação de Controlador com expectativa histórica de transferência
+A API atual rejeita escrita agregada de Nota Fiscal, mas permanece ramo interno antigo depois da guarda de rejeição.
 
-Fluxo vigente exige carteira zerada antes de desativar. Helper/teste antigo ainda preserva texto de “desativada + 13 escolas transferidas”. Não restaurar transferência implícita por causa desse artefato.
+Risco: manutenção futura interpretar o ramo morto como suporte atual.
 
-### 5.6 Teste E2E manipulando `activeCompetenciaKey` diretamente
+Ação: remover oportunisticamente após confirmar callsites e preservar teste negativo da API agregada.
 
-A arquitetura atual exige `RadarCompetenceContext`. Fixture que altera variável direta pode mascarar sincronização e ensinar bypass de contexto.
+## 13. D — anchors de matriz para migrations/RPCs superadas
 
-### 5.7 Planos históricos de `a_identificar`
+Algumas linhas da matriz apontam para migration inicial de uma RPC que foi redefinida depois.
 
-Planos antigos ainda descrevem conversões hoje proibidas. Devem permanecer como história explicitamente superada e apontar para o contrato sucessor.
+Regra: resolver última definição efetiva da assinatura e registrar evidência sucessora. Migrations antigas permanecem imutáveis.
 
-### 5.8 Ramo agregado fiscal inalcançável dentro de API ativa
+## 14. G — históricos legítimos que NÃO devem ser “corrigidos”
 
-`VerificationService.setTechnicalAnalysis` ainda conserva ramo interno de `notaFiscal` apesar de a API atual rejeitar análise fiscal agregada antes dele. Não é bug funcional atual comprovado, mas é código morto que pode reensinar contrato antigo.
+- `a_identificar` legado sem análise/Pendência retroativa;
+- labels/fixtures de Boleto Internet histórico;
+- migrations antigas preservadas;
+- fixture adversarial com próximo ator stale para testar normalização;
+- conta/local repository explícito em ambiente local/Preview quando permitido.
 
-## 6. Regras confirmadas como coerentes e que não devem ser reabertas sem evidência
+Existência desses artefatos não autoriza backfill, remoção indiscriminada ou regressão de compatibilidade.
 
-A auditoria também confirmou coerência atual em vários contratos:
+## 15. Regras correntes confirmadas pela auditoria
 
-- novo envio não resolve; vai a `Aguardando reanálise`;
-- substituição do último envio enquanto aguarda reanálise é suportada;
-- reanálise correta resolve; incorreta/arquivo indisponível reabre;
-- `Resolvida` ou `Cancelada` podem ser reabertas;
-- cancelamento histórico é preservado sem recriar `canceled_at` terminal após reabertura;
-- próximo ator por status está coerente;
-- bonificação, análise e Pendência são independentes;
-- BB Ágil N/A e bloqueios correlatos estão coerentes;
-- Boleto de Internet é tipo de gasto fiscal, não documento autônomo;
-- Consulta Assessoria permanece individual por invoice;
-- `a_identificar` novo é atômico e legado legítimo não recebe backfill heurístico;
-- Production fail-closed permanece coerente;
-- perfis/autorização principais permanecem coerentes;
-- Excel SME público continua 27 colunas A:AA.
+A auditoria **não** encontrou evidência para revogar:
 
-Essas confirmações são importantes justamente para evitar que a nova auditoria vire justificativa para refazer áreas que não apresentaram defeito.
+- novo envio → `Aguardando reanálise`, não resolve;
+- substituição enquanto aguarda;
+- reabertura Resolvida/Cancelada;
+- Controlador/Assistente/technical_admin podem reanalisar conforme autorização;
+- bonificação/análise/Pendência independentes;
+- BB Ágil N/A sob as regras atuais;
+- Boleto Internet como tipo de gasto de NF;
+- Assessoria individual por NF;
+- `a_identificar` novo atômico + legado sem backfill;
+- permanente com processo pode nascer `Encaminhada`; sem processo `Não encaminhada`;
+- Excel SME com 27 colunas A:AA;
+- Production fail-closed.
 
-## 7. Consequência para o PR #263
+## 16. Artefatos e método
 
-O fechamento técnico anteriormente registrado para #263 deve ser considerado **revogado como fechamento semântico final** até que estes achados sejam incorporados à documentação corrente e ao plano.
+- método: [`../architecture/adversarial-analysis-and-implementation-method.md`](../architecture/adversarial-analysis-and-implementation-method.md)
+- playbook: [`../architecture/adversarial-analysis-replication-playbook.md`](../architecture/adversarial-analysis-replication-playbook.md)
+- estudo do pacote: [`2026-09-05-astra-artifact-package-review.md`](2026-09-05-astra-artifact-package-review.md)
 
-O PR continua documental/governança. Ele não deve implementar os bugs funcionais acima. Deve:
+## 17. Critério de fechamento desses achados
 
-1. institucionalizar o método adversarial;
-2. registrar os achados conhecidos;
-3. corrigir documentos/testes-documentação que ainda ensinem regras superadas, quando estiverem no escopo documental;
-4. atualizar o plano para colocar os bugs comprovados e decisões pendentes antes das frentes arquiteturais anteriores;
-5. deixar claro que gates verdes não encerram a investigação adversarial.
+Cada item só sai do ledger aberto quando houver uma destas condições:
 
-## 8. Próxima ordem segura
+- bug corrigido e reproduzido antes/depois;
+- decisão de produto explicitamente tomada e implementada/testada;
+- risco arquitetural caracterizado e tratado em frente apropriada;
+- artefato obsoleto corrigido/isolado sem destruir histórico legítimo;
+- hipótese H refutada com evidência.
 
-```text
-0A — reconciliar documentação/método/achados no PR #263
-→ 0B — reproduzir e corrigir Inventariada → Encaminhada em PR funcional próprio
-→ 0C — reproduzir em composição real e corrigir auditoria pré-download do Excel SME em PR próprio
-→ 0D — decidir/characterizar idade total × espera do ator e política CSV × XLSX
-→ retomar Frentes 1–8 do MASTER_PLAN_CURRENT já sob o método adversarial
-```
-
-## 9. Limites
-
-A sessão Astra foi interrompida por cota antes de concluir toda a auditoria de persistência/arquitetura. Portanto:
-
-- não afirmar que estes são todos os defeitos existentes;
-- não afirmar corrupção em Production sem reprodução correspondente;
-- não promover hipótese a bug;
-- não usar a incompletude para descartar achados já reproduzidos;
-- preservar os artefatos/probes da auditoria para continuidade e evitar repetir varreduras caras.
+Gate verde sozinho não fecha nenhum item acima.
